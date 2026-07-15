@@ -67,7 +67,7 @@ export interface DoorSlot {
 	axis: 'x' | 'z';
 }
 
-export interface PoolSlot {
+export interface OasisSlot {
 	col: number;
 	row: number;
 	w: number;
@@ -89,7 +89,7 @@ export interface RoomDesc {
 	columns: ColumnSlot[];
 	spawnSlots: SpawnSlot[];
 	doorways: DoorSlot[];
-	pools: PoolSlot[];
+	oases: OasisSlot[];
 }
 
 const NEIGHBORS: { di: number; bit: number; dc: number; dr: number }[] = [
@@ -215,7 +215,7 @@ export function genRoom(seed: number, cx: number, cy: number): RoomDesc {
 		columns: [],
 		spawnSlots: [],
 		doorways: [],
-		pools: [],
+		oases: [],
 	};
 }
 
@@ -408,17 +408,13 @@ const POOL_MAX = 6;
 const POOL_MIN = 3;
 const POOL_MARGIN = 2;
 
-// Sink a water basin into big rooms: a POOL-tile rect centered in the room,
-// inset so a walkable ring always survives between rim and walls/doorways.
-// Runs before genColumns (isFloor rejects POOL) and only converts plain FLOOR,
-// so seam walls / arches carved by genDoorways are never eaten.
-function genPools(
+function genOases(
 	sector: ReturnType<typeof genSector>,
 	tiles: Uint8Array,
 	cols: number,
 	seed: number,
-): PoolSlot[] {
-	const out: PoolSlot[] = [];
+): OasisSlot[] {
+	const out: OasisSlot[] = [];
 	for (const r of sector.rooms) {
 		if (r.w < 2 || r.h < 2) continue;
 		const h = hash01(
@@ -615,7 +611,7 @@ export function genSectorDesc(seed: number, sx: number, sy: number): RoomDesc {
 		...genConnectorDoors(tiles, cols, sector.connectors, seed, sx, sy),
 	);
 
-	const pools = genPools(sector, tiles, cols, seed);
+	const oases = genOases(sector, tiles, cols, seed);
 	const variant = Math.floor(hash01(sx, sy, seed | 0) * VARIANTS);
 	const torches = genTorchesGrid(tiles, cols, rows, variant);
 	const columns = genColumns(sector, tiles, cols, rows, variant);
@@ -635,6 +631,6 @@ export function genSectorDesc(seed: number, sx: number, sy: number): RoomDesc {
 		columns,
 		spawnSlots: [],
 		doorways,
-		pools,
+		oases,
 	};
 }

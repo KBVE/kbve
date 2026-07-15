@@ -1,22 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { POOL_ACTIVE_RADIUS, POOL_VISIBLE_RADIUS } from './constants';
-import { PoolInstance } from './PoolInstance';
+import { OasisInstance } from './PoolInstance';
 import {
-	usePools,
-	poolAt,
+	useOases,
+	oasisAt,
 	setCameraSubmerged,
 	useCameraSubmerged,
-	type PoolDef,
+	type OasisDef,
 } from './pools';
 import { loadWaterAssets, type WaterAssets } from './assets';
 
-// Beyond-demo underwater feel: fullscreen grade while the camera itself is
-// under a pool's surface (the demo conveys it only via the below-sheet).
 function SubmergeSensor() {
 	const camera = useThree((s) => s.camera);
 	useFrame(() => {
-		const p = poolAt(camera.position.x, camera.position.z);
+		const p = oasisAt(camera.position.x, camera.position.z);
 		setCameraSubmerged(!!p && camera.position.y < p.surfaceY);
 	});
 	return null;
@@ -39,22 +37,22 @@ export function UnderwaterTint() {
 	);
 }
 
-function WaterPool({ def, assets }: { def: PoolDef; assets: WaterAssets }) {
+function WaterPool({ def, assets }: { def: OasisDef; assets: WaterAssets }) {
 	const gl = useThree((s) => s.gl);
 	const scene = useThree((s) => s.scene);
 	const camera = useThree((s) => s.camera);
-	// Imperative spawn-in-effect (PropRenderer pattern): StrictMode's fake
-	// unmount/remount disposes and recreates cleanly, and no setState-in-effect
-	// cascade. The instance never flows through React state.
-	const instRef = useRef<PoolInstance | null>(null);
+	const instRef = useRef<OasisInstance | null>(null);
 	const active = useRef(false);
 
 	useEffect(() => {
-		const i = new PoolInstance(gl, def, assets.tileTexture, assets.cubemap);
+		const i = new OasisInstance(
+			gl,
+			def,
+			assets.tileTexture,
+			assets.cubemap,
+		);
 		instRef.current = i;
 		scene.add(i.group);
-		// Prime immediately: a mounted-but-inactive pool must never draw with
-		// null water/caustic samplers (Safari flags the mismatched bind).
 		i.prepare(camera);
 		return () => {
 			instRef.current = null;
@@ -74,7 +72,6 @@ function WaterPool({ def, assets }: { def: PoolDef; assets: WaterAssets }) {
 		if (on) {
 			inst.update(camera);
 		} else if (active.current !== on) {
-			// Freeze: rebind uniforms once so the frozen textures stay valid.
 			inst.prepare(camera);
 		}
 		active.current = on;
@@ -83,10 +80,10 @@ function WaterPool({ def, assets }: { def: PoolDef; assets: WaterAssets }) {
 	return null;
 }
 
-export function Pools() {
-	const pools = usePools();
+export function Oases() {
+	const pools = useOases();
 	if (import.meta.env.DEV)
-		(globalThis as unknown as Record<string, unknown>).__poolsMounted =
+		(globalThis as unknown as Record<string, unknown>).__oasesMounted =
 			pools.length;
 	const [assets, setAssets] = useState<WaterAssets | null>(null);
 	useEffect(() => {

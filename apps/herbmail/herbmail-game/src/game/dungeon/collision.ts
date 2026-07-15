@@ -84,7 +84,6 @@ export function solidAtWorld(x: number, z: number): boolean {
 	return false;
 }
 
-// Ground height at a world position: 0 everywhere except pool basins.
 export function floorYAtWorld(x: number, z: number): number {
 	const wc = Math.floor(x / TILE);
 	const wr = Math.floor(z / TILE);

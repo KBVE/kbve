@@ -30,11 +30,8 @@ export class CharacterMotor {
 	vy = 0;
 	grounded = true;
 	mode: MotorMode = 'ground';
-	// Water line the body settles to while swimming.
 	swimY = 0;
-	// Lowest allowed body height while diving (basin floor clearance).
 	swimFloor = 0;
-	// Visual body pitch while swimming (radians, set by the swim controller).
 	swimPitch = 0;
 
 	mover: ((pos: THREE.Vector3, dx: number, dz: number) => void) | null = null;
@@ -100,8 +97,6 @@ export class CharacterMotor {
 		if (this.mode === 'swim') {
 			this.vy = 0;
 			this.grounded = false;
-			// Diving: vertical input steers directly; with no input the body
-			// drifts buoyantly back up to the swim line.
 			if (Math.abs(this.velocity.y) > 0.05) {
 				this.position.y += this.velocity.y * dt;
 			} else if (this.position.y < this.swimY) {
@@ -121,7 +116,6 @@ export class CharacterMotor {
 		const floorY = this.floorAt
 			? this.floorAt(this.position.x, this.position.z)
 			: 0;
-		// Ground dropped out from under us (walked off a pool rim) — start falling.
 		if (this.grounded && this.position.y > floorY + 1e-3)
 			this.grounded = false;
 		if (!this.grounded || this.vy !== 0) {

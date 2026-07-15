@@ -7,18 +7,14 @@ import {
 	createWorld,
 	despawnWhere,
 	registerOwner,
-	Pool,
+	Oasis,
 	Transform3,
 } from '../mecs/props';
 import type { RoomDesc } from '../dungeon/generate';
 
-// Pools are ECS entities (Transform3 = center, Pool = extents/surface/owner),
-// spawned per sector mount beside props/doors. The PoolDef map below is a
-// derived render cache: one stable object per entity lifetime, so React
-// consumers keep GPU resources keyed on identity.
 const world = createWorld();
 
-export interface PoolDef {
+export interface OasisDef {
 	eid: number;
 	id: string;
 	cx: number;
@@ -44,35 +40,35 @@ export type Disturb =
 			radius: number;
 	  };
 
-const defs = new Map<number, PoolDef>();
+const defs = new Map<number, OasisDef>();
 const disturbs = new Map<string, Disturb[]>();
 const listeners = new Set<() => void>();
-let snapshot: PoolDef[] = [];
+let snapshot: OasisDef[] = [];
 
 function emit(): void {
 	snapshot = [...defs.values()];
 	if (import.meta.env.DEV)
-		(globalThis as Record<string, unknown>).__pools = snapshot;
+		(globalThis as Record<string, unknown>).__oases = snapshot;
 	for (const l of listeners) l();
 }
 
-export function spawnRoomPools(desc: RoomDesc, ownerEid: number): void {
+export function spawnRoomOases(desc: RoomDesc, ownerEid: number): void {
 	let changed = false;
-	for (const p of desc.pools) {
+	for (const p of desc.oases) {
 		const x0 = (desc.originCol + p.col) * TILE;
 		const z0 = (desc.originRow + p.row) * TILE;
 		const w = p.w * TILE;
 		const l = p.h * TILE;
 		const eid = addEntity(world);
 		addComponent(world, eid, Transform3);
-		addComponent(world, eid, Pool);
+		addComponent(world, eid, Oasis);
 		Transform3.px[eid] = x0 + w / 2;
 		Transform3.py[eid] = -SURFACE_DROP;
 		Transform3.pz[eid] = z0 + l / 2;
-		Pool.halfW[eid] = w / 2;
-		Pool.halfL[eid] = l / 2;
-		Pool.surfaceY[eid] = -SURFACE_DROP;
-		Pool.ownerEid[eid] = ownerEid;
+		Oasis.halfW[eid] = w / 2;
+		Oasis.halfL[eid] = l / 2;
+		Oasis.surfaceY[eid] = -SURFACE_DROP;
+		Oasis.ownerEid[eid] = ownerEid;
 		registerOwner(eid, ownerEid);
 		defs.set(eid, {
 			eid,
@@ -92,33 +88,32 @@ export function spawnRoomPools(desc: RoomDesc, ownerEid: number): void {
 	if (changed) emit();
 }
 
-export function despawnRoomPools(ownerEid: number): void {
+export function despawnRoomOases(ownerEid: number): void {
 	let changed = false;
 	for (const [eid, d] of defs) {
-		if (Pool.ownerEid[eid] !== ownerEid) continue;
+		if (Oasis.ownerEid[eid] !== ownerEid) continue;
 		defs.delete(eid);
 		disturbs.delete(d.id);
 		changed = true;
 	}
-	despawnWhere(world, Pool, 'ownerEid', ownerEid);
+	despawnWhere(world, Oasis, 'ownerEid', ownerEid);
 	if (changed) emit();
 }
 
-export function resetPools(): void {
-	// resetPropsWorld() already wiped the ECS world; drop the caches.
+export function resetOases(): void {
 	defs.clear();
 	disturbs.clear();
 	emit();
 }
 
-export function poolAt(x: number, z: number): PoolDef | null {
+export function oasisAt(x: number, z: number): OasisDef | null {
 	for (const p of defs.values())
 		if (x >= p.x0 && x < p.x1 && z >= p.z0 && z < p.z1) return p;
 	return null;
 }
 
-export function nearestPool(x: number, z: number): PoolDef | null {
-	let best: PoolDef | null = null;
+export function nearestOasis(x: number, z: number): OasisDef | null {
+	let best: OasisDef | null = null;
 	let bd = Infinity;
 	for (const p of defs.values()) {
 		const d = Math.hypot(p.cx - x, p.cz - z);
@@ -171,10 +166,10 @@ function sub(cb: () => void): () => void {
 	return () => listeners.delete(cb);
 }
 
-function get(): PoolDef[] {
+function get(): OasisDef[] {
 	return snapshot;
 }
 
-export function usePools(): PoolDef[] {
+export function useOases(): OasisDef[] {
 	return useSyncExternalStore(sub, get, get);
 }

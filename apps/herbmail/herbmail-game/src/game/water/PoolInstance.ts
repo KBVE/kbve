@@ -6,13 +6,11 @@ import { WaterSurfacePass } from './vendor/WaterSurfacePass';
 import { WaterOpticsState } from './vendor/WaterOpticsState';
 import { ObjectTexturePass } from './vendor/ObjectTexturePass';
 import { POOL_CORNER_RADIUS, POOL_DEPTH, SURFACE_DROP } from './constants';
-import { drainDisturbs, type PoolDef } from './pools';
+import { drainDisturbs, type OasisDef } from './pools';
 
 const LIGHT_DIR = new THREE.Vector3(1.4, 2, -0.8).normalize();
 const CAUSTICS_SIZE = 1024;
 
-// One shared object-texture pass: its targets stay cleared (no refractive
-// scene objects yet) but the surface shaders need bound textures + matrices.
 let sharedObjectTextures: ObjectTexturePass | null = null;
 
 function objectTextures(renderer: THREE.WebGLRenderer): ObjectTexturePass {
@@ -22,10 +20,7 @@ function objectTextures(renderer: THREE.WebGLRenderer): ObjectTexturePass {
 	return sharedObjectTextures;
 }
 
-// Full jeantimex/threejs-water pipeline scoped to one dungeon basin.
-// All shader math runs in pool-local space (surface at y=0); the group
-// transform places it in the world, so the eye must be localized per frame.
-export class PoolInstance {
+export class OasisInstance {
 	readonly group = new THREE.Group();
 	private readonly water: Water;
 	private readonly caustics: CausticsPass;
@@ -39,16 +34,13 @@ export class PoolInstance {
 
 	constructor(
 		private readonly renderer: THREE.WebGLRenderer,
-		readonly def: PoolDef,
+		readonly def: OasisDef,
 		tiles: THREE.Texture,
 		sky: THREE.CubeTexture,
 	) {
 		this.optics = new WaterOpticsState();
 		this.optics.lightDirection.copy(LIGHT_DIR);
 		this.otp = objectTextures(renderer);
-		// 512² + linear sampling: at basin scale the demo's 256/Nearest gives
-		// 7cm blocky texels — the "jagged ripples". Linear smooths the surface
-		// and normal reads; sim math is texel-aligned so filtering is safe.
 		this.water = new Water(renderer, 512, THREE.LinearFilter);
 		this.caustics = new CausticsPass(
 			renderer,
@@ -97,19 +89,10 @@ export class PoolInstance {
 		);
 	}
 
-	// NOTE: the demo's sphere "optics" are intentionally unused — enabling
-	// them makes the shaders raytrace a literal ball into the water. The
-	// character is a real mesh; only its sim displacement (wake) is fed in.
-
-	// Full sim + caustics tick. Only called while this pool is ACTIVE
-	// (mounted + player nearby); inactive pools keep their last textures.
 	update(camera: THREE.Camera): void {
 		const def = this.def;
 		for (const d of drainDisturbs(def.id)) {
 			if (d.kind === 'drop') {
-				// Disturbs carry world meters; the ripple shader wants the
-				// center in pool NDC [-1,1] and the radius as a pool-relative
-				// fraction (physRadius = radius * 2 * poolLength).
 				this.water.addDrop(
 					(d.x - def.cx) / def.halfW,
 					(d.z - def.cz) / def.halfL,
@@ -136,8 +119,6 @@ export class PoolInstance {
 		this.prepare(camera);
 	}
 
-	// Uniform rebind without sim stepping — needed once when the pool mounts
-	// (or after resize) so frozen far pools still render coherently.
 	prepare(camera: THREE.Camera): void {
 		if (!this.primed) {
 			this.primed = true;
@@ -158,8 +139,6 @@ export class PoolInstance {
 		});
 	}
 
-	// Visibility gate: far pools contribute zero draw calls; the below-surface
-	// sheet only draws when the camera is actually underwater.
 	setVisible(on: boolean, eyeY: number): void {
 		this.group.visible = on;
 		if (on) this.surface.belowMesh.visible = eyeY < this.def.surfaceY;

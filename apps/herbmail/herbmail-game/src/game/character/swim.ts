@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { poolAt, pushDisturb, type PoolDef } from '../water/pools';
+import { oasisAt, pushDisturb, type OasisDef } from '../water/pools';
 import { POOL_DEPTH, SWIM_SINK } from '../water/constants';
 import { solidAtWorld, floorYAtWorld } from '../dungeon/collision';
 import { registerInteract } from '../interact/registry';
@@ -8,9 +8,6 @@ import type { CharacterHandle } from './Character';
 
 const SWIM_SPEED = 1.2;
 const ENTER_DEPTH = 0.25;
-// Skeleton-driven wake: each listed bone displaces its own sphere when it
-// pierces the surface band — stroking arms and kicking feet make their own
-// splashes instead of one blob.
 const WAKE_BONES: { name: string; r: number }[] = [
 	{ name: 'head', r: 0.2 },
 	{ name: 'spine_02', r: 0.32 },
@@ -20,7 +17,6 @@ const WAKE_BONES: { name: string; r: number }[] = [
 	{ name: 'foot_l', r: 0.16 },
 	{ name: 'foot_r', r: 0.16 },
 ];
-// Vertical band (relative to the surface) where a bone actually displaces.
 const WAKE_BAND_LO = -0.5;
 const WAKE_BAND_HI = 0.3;
 const BODY_R = 0.4;
@@ -39,7 +35,7 @@ interface ClimbSeq {
 }
 
 let handle: CharacterHandle | null = null;
-let pool: PoolDef | null = null;
+let pool: OasisDef | null = null;
 let bobT = 0;
 const prevPos = new THREE.Vector3();
 let climb: ClimbSeq | null = null;
@@ -53,7 +49,7 @@ export function swimSpeed(): number {
 	return SWIM_SPEED;
 }
 
-function enterSwim(h: CharacterHandle, p: PoolDef): void {
+function enterSwim(h: CharacterHandle, p: OasisDef): void {
 	pool = p;
 	h.motor.mode = 'swim';
 	h.motor.swimY = p.surfaceY - SWIM_SINK;
@@ -96,7 +92,6 @@ function startClimb(
 	})();
 }
 
-// The [F] "Swim" prompt at a pool rim — deliberate entry via Climb_Exit.
 export function registerSwimEntry(): () => void {
 	return registerInteract((px, pz) => {
 		const h = handle;
@@ -104,7 +99,7 @@ export function registerSwimEntry(): () => void {
 		const yaw = h.motor.yaw;
 		const fx = Math.sin(yaw);
 		const fz = Math.cos(yaw);
-		const p = poolAt(px + fx * RIM_REACH, pz + fz * RIM_REACH);
+		const p = oasisAt(px + fx * RIM_REACH, pz + fz * RIM_REACH);
 		if (!p) return null;
 		return {
 			target: {
@@ -138,10 +133,6 @@ export function tickSwim(dt: number, forwardHeld: boolean): void {
 	if (m.mode === 'climb' && climb) {
 		climb.t += dt;
 		const a = Math.min(1, climb.t / climb.total);
-		// Split axes so the path hugs the rim instead of cutting the corner
-		// through the basin wall: climbing OUT rises flush against the wall
-		// first, then translates forward once the body clears the lip;
-		// climbing IN walks forward over the edge first, then sinks.
 		const s = (v: number) => v * v * (3 - 2 * v);
 		const va = climb.out
 			? Math.min(1, a / 0.6)
@@ -178,7 +169,7 @@ export function tickSwim(dt: number, forwardHeld: boolean): void {
 	}
 
 	if (m.mode === 'ground') {
-		const p = poolAt(m.position.x, m.position.z);
+		const p = oasisAt(m.position.x, m.position.z);
 		if (p && m.position.y < p.surfaceY - ENTER_DEPTH) enterSwim(h, p);
 		return;
 	}
@@ -190,7 +181,6 @@ export function tickSwim(dt: number, forwardHeld: boolean): void {
 		return;
 	}
 
-	// Keep the body inside the basin — the 2D tile collider has no walls here.
 	m.position.x = THREE.MathUtils.clamp(
 		m.position.x,
 		p.x0 + BODY_R,
@@ -202,7 +192,6 @@ export function tickSwim(dt: number, forwardHeld: boolean): void {
 		p.z1 - BODY_R,
 	);
 
-	// Body pitch follows vertical motion (dive nose-down, surface nose-up).
 	const planar = Math.hypot(m.velocity.x, m.velocity.z);
 	const targetPitch =
 		Math.abs(m.velocity.y) > 0.05
@@ -210,23 +199,14 @@ export function tickSwim(dt: number, forwardHeld: boolean): void {
 			: 0;
 	m.swimPitch += (targetPitch - m.swimPitch) * (1 - Math.exp(-6 * dt));
 
-	// Surface bob: the demo's floating ball rides the waves; approximate with
-	// a slow swell on the swim line (stronger while gliding).
 	bobT += dt;
 	m.swimY =
 		p.surfaceY -
 		SWIM_SINK +
 		Math.sin(bobT * 1.5) * (0.035 + Math.min(planar, 1.2) * 0.03);
 
-	// Wake: CONTINUOUS per-frame displacement from the actual skeleton (the
-	// demo displaces its ball every frame — interval pulses read as choppy
-	// rings). Every tracked bone inside the surface band pushes its own
-	// sphere along its real travel, so strokes and kicks splash where the
-	// limbs are. Divers below the band leave no surface wake.
 	const nearSurface = m.position.y > m.swimY - 0.5;
 	if (nearSurface) {
-		// Equipped bulk widens every displacement sphere — a knight in full
-		// plate pushes more water than bare skin. ~+40% at 20 weight.
 		const bulk = 1 + Math.min(equippedStat('weight'), 30) * 0.02;
 		for (const b of WAKE_BONES) {
 			const bone = h.bone(b.name);
@@ -258,7 +238,6 @@ export function tickSwim(dt: number, forwardHeld: boolean): void {
 	}
 	prevPos.copy(m.position);
 
-	// Climb out: swim against a rim while pushing forward (surface only).
 	if (forwardHeld && m.speed > 0.2 && nearSurface) {
 		const fx = Math.sin(m.yaw);
 		const fz = Math.cos(m.yaw);
