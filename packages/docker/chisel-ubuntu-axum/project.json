@@ -129,7 +129,8 @@
 					"docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1$' && echo 'PASS: Playwright browser download disabled'",
 					"echo '=== All chisel base image tests passed ==='",
 					"echo 'Runtime: user, workdir, jemalloc, libpq, CA bundle, no-shell, size<40MiB'",
-					"echo 'Builder: rustc 1.96, cargo-chef, sccache, mold, protoc, brotli, gzip, libpq-dev, libssl-dev, node 24, pnpm, real-TLS, env hygiene'"
+					"echo 'Builder: rustc 1.96, cargo-chef, sccache, mold, protoc, brotli, gzip, libpq-dev, libssl-dev, node 24, pnpm, real-TLS, env hygiene'",
+					"docker rmi -f ghcr.io/kbve/chisel-ubuntu-axum:24.04 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder || true"
 				],
 				"parallel": false
 			}

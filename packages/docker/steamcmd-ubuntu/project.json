@@ -46,7 +46,8 @@
 					"docker run --rm --platform linux/amd64 ghcr.io/kbve/steamcmd-ubuntu:24.04 steamcmd +quit | grep -q 'Steam Console Client' && echo 'PASS: steamcmd boots'",
 					"docker run --rm --platform linux/amd64 ghcr.io/kbve/steamcmd-ubuntu:24.04 bash -lc 'locale | grep -q en_US.UTF-8' && echo 'PASS: en_US.UTF-8 locale active'",
 					"docker run --rm --platform linux/amd64 ghcr.io/kbve/steamcmd-ubuntu:24.04 bash -lc 'which steamcmd' | grep -q /usr/local/bin/steamcmd && echo 'PASS: steamcmd on PATH'",
-					"echo '=== steamcmd-ubuntu image OK ==='"
+					"echo '=== steamcmd-ubuntu image OK ==='",
+					"docker rmi -f ghcr.io/kbve/steamcmd-ubuntu:24.04 || true"
 				],
 				"parallel": false
 			}
