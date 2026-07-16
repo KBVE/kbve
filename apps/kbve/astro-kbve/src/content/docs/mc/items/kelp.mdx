@@ -1,5 +1,6 @@
 ---
 title: Kelp
+template: splash
 description: |
     Minecraft Kelp — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 257
     ref: kelp
     slug: kelp
+    content_rev: 1
     display_name: Kelp
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Kelp is an aquatic plant block that grows naturally in most ocean biomes, forming tall
+            underwater stalks. It can be harvested and smelted into dried kelp, an edible food item that
+            can also be crafted into dried kelp blocks for compact fuel storage.
+        lore: |
+            Breaking one part of a kelp stalk destroys every kelp block above it in the same column.
+    faq:
+        - question: Where can I find Kelp?
+          answer: |
+              Kelp generates naturally underwater in most ocean biomes, except frozen and warm oceans,
+              and can also be purchased from wandering traders for 3 emeralds.
+        - question: Can I grow Kelp on land?
+          answer: |
+              No, Kelp can only be placed in water source blocks or downward-flowing water, not on dry
+              land or in sideways-flowing water.
+        - question: What is Kelp used for besides food?
+          answer: |
+              Dried kelp can be smelted for fuel, raw kelp can be composted for a chance to raise a
+              composter's level, and kelp farms are commonly automated for renewable resources.
+        - question: How do I stop a Kelp stalk from growing taller?
+          answer: |
+              Use shears on the topmost kelp block to set its age to the maximum value, which prevents
+              further growth.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

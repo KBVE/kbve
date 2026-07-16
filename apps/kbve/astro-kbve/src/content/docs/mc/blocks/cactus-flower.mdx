@@ -1,5 +1,6 @@
 ---
 title: Cactus Flower
+template: splash
 description: |
     Minecraft Cactus Flower — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 267
     ref: cactus_flower
     slug: cactus-flower
+    content_rev: 1
     display_name: Cactus Flower
     material: plant
     hardness: 0
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cactus_flower
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+        - plant
+    about:
+        description: |
+            Cactus Flower is a small decorative bloom that grows on top of
+            cacti in desert and badlands biomes. It breaks instantly with any
+            tool and always drops itself, but unlike other flowers it cannot
+            be placed inside a flower pot.
+        lore: |
+            Added in Java Edition 1.21.5, it expanded desert flora and gave
+            bees another pollination target beyond traditional flower fields.
+    uses:
+        - title: Pink Dye
+          ref: pink_dye
+          detail: |
+              Crafts into pink dye at a 1:1 ratio, the same as most pink
+              flowers.
+        - title: Bee Breeding
+          ref: bee
+          detail: |
+              Feeding a cactus flower to an adult bee puts it into love mode,
+              and holding one attracts nearby bees within 6 blocks.
+    found_in:
+        - location: Desert and badlands biomes
+          detail: Naturally generated cacti have a 25% chance to spawn with a cactus flower on top.
+        - location: Manually placed
+          detail: Can be placed by players on cacti, farmland, or any solid surface with center support.
+    faq:
+        - question: Can I put a Cactus Flower in a flower pot?
+          answer: |
+              No. Unlike almost every other flower, it cannot be potted — a
+              known quirk of the block.
+        - question: What tool do I need to mine it?
+          answer: |
+              None — it breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: Do bees get hurt collecting it from a cactus?
+          answer: |
+              Yes, bees pollinating a flower still attached to a live cactus
+              risk taking damage from the spikes, unless the flower was
+              manually placed on a non-cactus block.
+        - question: What is it used for besides decoration?
+          answer: |
+              It crafts into pink dye at a 1:1 ratio and can be fed to bees
+              to start breeding.
     data_version: "1.21.5"
 ---
 

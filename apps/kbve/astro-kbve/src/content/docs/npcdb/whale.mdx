@@ -1,5 +1,9 @@
 ---
 title: 'Whale'
+template: splash
+sidebar:
+    label: 'Whale'
+    hidden: true
 description: |
     Oceanic / river leviathan. Massive HP pool — a lone Fishing Boat can't solo it quickly. Drops Whale Oil + bulk Meat via EnemyLootDropSystem.
 ref: 'whale'
@@ -36,7 +40,10 @@ faction:
     faction_id: 'beast'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Oceanic leviathan. Huge HP pool, drops Whale Oil + bulk Meat. Fishing Boats' prey.
+
+</NpcLeaf>

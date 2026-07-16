@@ -1,5 +1,6 @@
 ---
 title: Green Shulker Box
+template: splash
 description: |
     Minecraft Green Shulker Box — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 566
     ref: green_shulker_box
     slug: green-shulker-box
+    content_rev: 1
     display_name: Green Shulker Box
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A green shulker box is a portable storage block with 27 slots
+            that is dyed green by combining an undyed shulker box with green
+            dye. Unlike a chest, it keeps its contents intact in item form
+            when broken, making it ideal for hauling large quantities of
+            goods safely.
+        lore: |
+            First introduced in Java Edition 1.11, shulker boxes were
+            originally always purple until an undyed default variant was
+            added in 1.13.
+    faq:
+        - question: How do I make a green shulker box?
+          answer: |
+              Combine any shulker box with green dye in a crafting grid to
+              recolor it, or craft a base shulker box from two shulker
+              shells and a chest first.
+        - question: Do I lose the items inside if I break a green shulker box?
+          answer: |
+              No, a shulker box preserves its inventory when mined, so all
+              contents remain safely stored inside the dropped item.
+        - question: Can I stack multiple green shulker boxes in my inventory?
+          answer: |
+              No, shulker boxes cannot be stacked, and a shulker box cannot
+              be placed inside another shulker box.
+        - question: Why did a piglin become hostile when I opened my green shulker box?
+          answer: |
+              Piglins react aggressively whenever a player opens or mines a
+              shulker box, similar to their reaction to chests.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -81,7 +81,7 @@ fn spawn_hotbar(mut commands: Commands) {
                     slot.spawn((
                         Text::new(""),
                         TextFont {
-                            font_size: 18.0,
+                            font_size: bevy::text::FontSize::Px(18.0),
                             ..default()
                         },
                         HotbarSlotIcon { slot: i },
@@ -89,7 +89,7 @@ fn spawn_hotbar(mut commands: Commands) {
                     slot.spawn((
                         Text::new(format!("{}", i + 1)),
                         TextFont {
-                            font_size: 8.0,
+                            font_size: bevy::text::FontSize::Px(8.0),
                             ..default()
                         },
                         TextColor(GOLD_TEXT),
@@ -104,7 +104,7 @@ fn spawn_hotbar(mut commands: Commands) {
                     slot.spawn((
                         Text::new(""),
                         TextFont {
-                            font_size: 9.0,
+                            font_size: bevy::text::FontSize::Px(9.0),
                             ..default()
                         },
                         TextColor(GOLD_TEXT),

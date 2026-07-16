@@ -1,0 +1,47 @@
+---
+title: herbmail — PSX Web Dungeon Crawler
+description: herbmail-game is a PSX-style React Three Fiber dungeon crawler built with Vite and Nx, shipping to itch.io as a cross-origin-isolated html5 build.
+sem: 1
+sidebar:
+    label: herbmail (game)
+    order: 95
+tags:
+    - web
+    - game
+    - herbmail
+    - r3f
+key: vite_herbmail
+pipeline: vite_game
+app_name: herbmail-game
+source_path: apps/herbmail/herbmail-game
+version_toml: apps/herbmail/herbmail-game/version.toml
+version: "0.1.10"
+runner: ubuntu-latest
+author: h0lybyte
+license: KBVE
+status: beta
+homepage_url: https://kbve.itch.io/herbmail
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+external_publish:
+    itch_user: kbve
+    itch_game: herbmail
+    itch_channel: html5
+engine:
+    version: vite
+    project_path: apps/herbmail/herbmail-game
+    build_targets:
+        - html5
+---
+
+## herbmail
+
+A PSX-style dungeon crawler rendered with React Three Fiber and bundled by Vite through Nx. The build ships to itch.io as a cross-origin-isolated `html5` upload — SharedArrayBuffer is restored on the static host via `coi-serviceworker.js`, and the bundle is emitted with a relative base so every asset resolves under itch's subpath.
+
+### Build & Ship
+
+`ci-main.yml` reads the CI dispatch manifest and hands this entry to `ci-web-game.yml` whenever the MDX `version` outpaces `version.toml`. The web-game pipeline pulls the herbmail art from Forgejo LFS (`git.kbve.com`), runs `herbmail-game:build` through Nx, and pushes the `dist/` bundle to `kbve/herbmail:html5` with butler.

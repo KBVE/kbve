@@ -1,5 +1,9 @@
 ---
 title: 'Crystal Bat'
+template: splash
+sidebar:
+    label: 'Crystal Bat'
+    hidden: true
 description: |
     A small bat with crystalline wings that catch the light, darting through dark caverns.
 ref: 'crystal-bat'
@@ -94,7 +98,10 @@ faction:
     faction_id: 'hostile'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A small bat with crystalline wings that catch the light, darting through dark caverns.
+
+</NpcLeaf>

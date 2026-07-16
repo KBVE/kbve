@@ -1,5 +1,6 @@
 ---
 title: Mud Brick Wall
+template: splash
 description: |
     Minecraft Mud Brick Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 797
     ref: mud_brick_wall
     slug: mud-brick-wall
+    content_rev: 1
     display_name: Mud Brick Wall
     material: dirt
     hardness: 1.5
@@ -21,13 +23,57 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mud_brick_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Mud Brick Wall is the wall variant of mud bricks, connecting to
+            adjacent walls, fences, and solid blocks to form raised posts
+            or low connected barriers.
+        lore: |
+            It rounds out the mud brick building set added with trail ruins
+            in the Trails & Tales Update, giving builders a rustic fence-like
+            option.
+    uses:
+        - title: Trail ruins style fencing and barriers
+          ref: mud_brick_wall
+          detail: |
+              Used for decorative fencing and low barriers around mud-brick
+              structures, matching the mud brick block, slab, and stairs.
+    found_in:
+        - location: Trail Ruins
+          detail: Generates naturally as part of the buried trail ruins archaeology structure.
+        - location: Crafted from Mud Bricks
+          detail: Six Mud Bricks craft six Mud Brick Walls; a stonecutter converts one Mud Brick into one wall.
+    faq:
+        - question: What tool do I need to mine Mud Brick Wall?
+          answer: |
+              Any pickaxe, wooden tier or higher. Without a pickaxe it
+              breaks with no drop.
+        - question: How do I craft Mud Brick Wall?
+          answer: |
+              Arrange six Mud Bricks in a wall pattern for six walls, or use
+              a stonecutter to convert one Mud Brick into one wall.
+        - question: Where does Mud Brick Wall generate naturally?
+          answer: |
+              As part of trail ruins, the buried structures added in the
+              Trails & Tales Update.
+        - question: Can Mud Brick Wall be waterlogged?
+          answer: |
+              Yes. Like other walls, it can be placed in water and hold a
+              water source without the water flowing away.
     data_version: "1.21.5"
 ---
 

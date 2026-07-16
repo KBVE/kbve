@@ -1,5 +1,9 @@
 ---
 title: 'Stone Sentinel'
+template: splash
+sidebar:
+    label: 'Stone Sentinel'
+    hidden: true
 description: |
     A massive stone construct that defends its territory with unwavering determination and crushing force.
 ref: 'stone-sentinel'
@@ -91,7 +95,10 @@ faction:
     faction_id: 'deep-wardens'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A massive stone construct that defends its territory with unwavering determination and crushing force.
+
+</NpcLeaf>

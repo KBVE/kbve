@@ -1,5 +1,6 @@
 ---
 title: Diorite Wall
+template: splash
 description: |
     Minecraft Diorite Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,68 @@ mc_block:
     id: 803
     ref: diorite_wall
     slug: diorite-wall
+    content_rev: 1
     display_name: Diorite Wall
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: diorite_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Diorite Wall is a decorative wall variant of diorite, forming
+            waist-high barriers that connect and post up at junctions and
+            corners. It is waterloggable and shares diorite's speckled
+            texture.
+        lore: |
+            Announced October 9, 2018 and added in Java Edition 1.14
+            (snapshot 18w43a) alongside the other stone-type walls.
+    uses:
+        - title: Fencing & Decoration
+          ref: diorite
+          detail: |
+              Placed as a low barrier or decorative border around builds,
+              connecting to neighboring walls and posting up at corners.
+    found_in:
+        - location: Snowy Tundra Villages
+          detail: Generates naturally as part of snowy tundra village structures.
+        - location: Crafted or Stonecut
+          detail: |
+              Crafting six diorite blocks yields six diorite walls; a
+              stonecutter converts a single diorite block into one wall.
+    faq:
+        - question: What tool do I need to mine Diorite Wall?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe yields no
+              drop.
+        - question: Does Diorite Wall stack with other walls?
+          answer: |
+              Yes, it connects visually to adjacent walls of any type and can
+              be stacked vertically.
+        - question: Is Diorite Wall flammable?
+          answer: |
+              No, it does not burn or catch fire from lava like other
+              stone-type blocks.
+        - question: Can I get Diorite Wall from a stonecutter?
+          answer: |
+              Yes, one diorite block converts into one diorite wall via
+              stonecutting with no crafting-table recipe waste.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Mud Brick Slab
+template: splash
 description: |
     Minecraft Mud Brick Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 586
     ref: mud_brick_slab
     slug: mud-brick-slab
+    content_rev: 1
     display_name: Mud Brick Slab
     material: dirt
     hardness: 1.5
@@ -21,13 +23,59 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mud_brick_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Mud Brick Slab is the half-height slab form of mud bricks,
+            placeable as a bottom, top, or combined double slab depending on
+            where it's placed against a block.
+        lore: |
+            It was added alongside mud bricks and trail ruins in the Trails
+            & Tales Update, giving builders a low-profile earthy building
+            piece.
+    uses:
+        - title: Trail ruins restoration and building
+          ref: mud_brick_slab
+          detail: |
+              Used for flooring, steps, and detailing in mud-brick builds,
+              matching the aesthetic of the mud brick block, stairs, and
+              wall.
+    found_in:
+        - location: Trail Ruins
+          detail: Generates as part of trail ruins structures buried underground.
+        - location: Crafted from Mud Bricks
+          detail: Three Mud Bricks in a row craft six Mud Brick Slabs; a stonecutter converts one Mud Brick into two slabs.
+    faq:
+        - question: What tool do I need to mine Mud Brick Slab?
+          answer: |
+              Any pickaxe, wooden tier or higher. Without a pickaxe it
+              breaks with no drop.
+        - question: How many slabs make a full block?
+          answer: |
+              Two. Placing a slab against another slab of the same type in
+              the matching half creates a full double-slab block.
+        - question: Where do Mud Brick Slabs generate naturally?
+          answer: |
+              As part of trail ruins, the buried archaeological structures
+              introduced in the Trails & Tales Update.
+        - question: Can I craft Mud Brick Slabs myself?
+          answer: |
+              Yes. Three Mud Bricks in a horizontal row yield six slabs, or
+              use a stonecutter for a 1:2 conversion from a single Mud
+              Brick.
     data_version: "1.21.5"
 ---
 

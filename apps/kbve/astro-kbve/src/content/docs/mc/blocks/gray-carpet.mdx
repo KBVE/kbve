@@ -1,5 +1,6 @@
 ---
 title: Gray Carpet
+template: splash
 description: |
     Minecraft Gray Carpet — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 513
     ref: gray_carpet
     slug: gray-carpet
+    content_rev: 1
     display_name: Gray Carpet
     material: wool
     hardness: 0.1
@@ -24,10 +26,59 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: gray_carpet
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Gray Carpet is a thin, one-sixteenth-block-tall floor covering
+            dyed from white carpet. Its low hitbox lets it sit on fences,
+            water, and other non-solid surfaces without blocking movement.
+        lore: |
+            Carpets were added in Java Edition 1.6.1 as thin wool variants
+            and gained their current 1/16-block height in 1.8.
+    uses:
+        - title: Decoration & Flooring
+          ref: gray_carpet
+          detail: |
+              Used purely for aesthetics as thin flooring, table settings,
+              or accents; its short hitbox prevents most mobs from
+              spawning on top of it.
+        - title: Llama Carpet
+          ref: llama
+          detail: |
+              Equip a tamed llama with a carpet to give it a colored
+              decorative covering, purely cosmetic.
+    found_in:
+        - location: Crafting
+          detail: 2 wool blocks craft into 3 carpets of the same color; dye white carpet gray.
+        - location: Generated structures
+          detail: Found in igloos, woodland mansions, villages, and ancient cities.
+    faq:
+        - question: What tool do I need to mine Gray Carpet?
+          answer: |
+              None — it breaks instantly with any tool and always drops
+              itself.
+        - question: Does Gray Carpet block mob spawning?
+          answer: |
+              Yes, its thin hitbox prevents most mobs from spawning on it,
+              making it a common anti-spawn floor covering.
+        - question: Can Gray Carpet be used as furnace fuel?
+          answer: |
+              Yes, each carpet smelts a fraction of an item (0.335), making
+              it a minor fuel source in a pinch.
+        - question: Will Gray Carpet burn?
+          answer: |
+              Yes, like wool it is flammable and can be destroyed by fire
+              spreading from nearby lava or lit blocks.
     data_version: "1.21.5"
 ---
 

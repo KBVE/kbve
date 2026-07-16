@@ -3,6 +3,8 @@ title: League of Legends
 description: |
   League of Legends: Dive into the world's most popular MOBA game where strategy, skill, and teamwork are key.
   Choose from over 140 champions, engage in epic 5v5 battles, and climb the ranks in this competitive, fast-paced online game.
+template: splash
+tableOfContents: false
 sidebar:
   label: League of Legends
   order: 4000
@@ -12,22 +14,44 @@ tags:
   - gaming
   - strategy
   - moba
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'gaming · moba'
+    title: 'League of'
+    accent: Legends.
+    lede: 'Hotkeys, smart-cast setup, and the full default keybind table for Riot''s 5v5 MOBA — tuned for fast, responsive play.'
+    ctas:
+        - label: Hotkeys
+          href: '#hotkeys'
+          primary: true
+        - label: All guides
+          href: /gaming/
+    related:
+        - title: 'World of Warcraft'
+          copy: 'Macros and class notes for Turtle WoW.'
+          href: /gaming/wow/
+          icon: sword
+        - title: 'Gaming hub'
+          copy: 'Every KBVE game guide in one place.'
+          href: /gaming/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1581276879432-15e50529f34b?q=80&w=2400&auto=format&fit=crop'
+        accent: '#a78bfa'
+        accent2: '#38bdf8'
+        btn_fg: '#14091f'
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento}>
 
-## LoL
-
-## HotKeys
+<BentoProse id="hotkeys" heading="Hotkeys">
 
 League of Legends features a comprehensive set of default hotkeys designed to enhance gameplay efficiency and responsiveness.
 Players can cast their champion's abilities using the Q, W, E, and R keys, while summoner spells are assigned to D and F.
@@ -82,10 +106,12 @@ Here is a full table of the hot keys below!
 | Middle-click        | Drag camera                                        |
 | Scroll Wheel        | Zoom in/out                                        |
 
----
+</BentoProse>
 
-<Adsense />
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
----
-
-## Minimap
+</BentoDoc>

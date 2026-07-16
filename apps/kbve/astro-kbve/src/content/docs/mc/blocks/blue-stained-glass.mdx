@@ -1,5 +1,6 @@
 ---
 title: Blue Stained Glass
+template: splash
 description: |
     Minecraft Blue Stained Glass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 296
     ref: blue_stained_glass
     slug: blue-stained-glass
+    content_rev: 1
     display_name: Blue Stained Glass
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blue_stained_glass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Blue Stained Glass is a transparent decorative block dyed with
+            Lapis Lazuli. It has no assigned mining tool and only drops
+            itself when broken with a Silk Touch enchanted tool.
+        lore: |
+            Stained glass comes in all 16 dye colors and has existed since
+            it was added, letting builders tint beacon beams and windows.
+    uses:
+        - title: Beacon Beam Tinting
+          ref: beacon
+          detail: |
+              Placing Blue Stained Glass in a beacon's beam recolors the
+              light column blue, and stacking different colors creates
+              striped beam effects.
+        - title: Stained Glass Panes
+          ref: blue_stained_glass_pane
+          detail: |
+              Six blocks of Blue Stained Glass craft into 16 Blue Stained
+              Glass Panes, the most efficient way to make panes.
+    found_in:
+        - location: Crafting with Lapis Lazuli
+          detail: Four Glass blocks plus one Lapis Lazuli craft 8 Blue Stained Glass.
+        - location: End Cities and End Ships
+          detail: Other stained glass colors generate in structures like end ships, though blue specifically is a crafted color rather than a common natural spawn.
+    faq:
+        - question: What tool do I need to mine Blue Stained Glass?
+          answer: |
+              None specifically; all tools mine it at the same speed, but a
+              Silk Touch enchanted tool is required to drop the block.
+        - question: How do I craft Blue Stained Glass?
+          answer: |
+              Combine 4 Glass blocks with 1 Lapis Lazuli in a crafting grid.
+        - question: Can it change a beacon's beam color?
+          answer: |
+              Yes, placing it in a beacon's light column tints the beam
+              blue.
+        - question: Does Blue Stained Glass burn?
+          answer: |
+              No, it is immune to fire and lava.
     data_version: "1.21.5"
 ---
 

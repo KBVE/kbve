@@ -1,5 +1,6 @@
 ---
 title: Light Gray Stained Glass Pane
+template: splash
 description: |
     Minecraft Light Gray Stained Glass Pane — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 476
     ref: light_gray_stained_glass_pane
     slug: light-gray-stained-glass-pane
+    content_rev: 1
     display_name: Light Gray Stained Glass Pane
     material: glass
     hardness: 0.3
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_gray_stained_glass_pane
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - fragile
+    about:
+        description: |
+            Light Gray Stained Glass Pane is a thin, translucent window
+            block that adapts its shape to connect with neighboring panes
+            and blocks, forming curved or cross-shaped junctions. It uses
+            a third of the material of a full glass block for the same
+            coverage.
+        lore: |
+            Panes were added so players could build detailed windows and
+            fences without spending a full block of glass per space.
+    uses:
+        - title: Window and fence detailing
+          ref: light_gray_stained_glass_pane
+          detail: |
+              Placed along walls or as a fence-like barrier, panes connect
+              visually to adjacent panes, fences, and walls, forming thin
+              seamless windows and railings.
+    found_in:
+        - location: Crafting
+          detail: Craft from 6 matching Light Gray Stained Glass blocks (16 panes), or 4 Glass Panes plus 1 Light Gray Dye (8 panes).
+        - location: Village and Trail Ruins structures
+          detail: Some colored panes generate naturally in village buildings and Trail Ruins loot.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              None. It mines at the same speed with any tool, but it only
+              drops an item if broken with a Silk Touch enchanted tool.
+        - question: Does it drop anything without Silk Touch?
+          answer: |
+              No. Breaking a stained glass pane without Silk Touch destroys
+              it with no drop.
+        - question: Can it be waterlogged?
+          answer: |
+              Yes. Unlike stained glass blocks, stained glass panes can
+              hold water when placed underwater or filled with a water
+              bucket.
+        - question: Can it lock a map like a regular glass pane?
+          answer: |
+              No. Stained glass panes cannot be used to create a locked map,
+              unlike uncolored glass panes.
     data_version: "1.21.5"
 ---
 

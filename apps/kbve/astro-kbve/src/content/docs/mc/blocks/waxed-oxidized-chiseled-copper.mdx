@@ -1,5 +1,6 @@
 ---
 title: Waxed Oxidized Chiseled Copper
+template: splash
 description: |
     Minecraft Waxed Oxidized Chiseled Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 980
     ref: waxed_oxidized_chiseled_copper
     slug: waxed-oxidized-chiseled-copper
+    content_rev: 1
     display_name: Waxed Oxidized Chiseled Copper
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_oxidized_chiseled_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Waxed Oxidized Chiseled Copper is a decorative paneled copper
+            block permanently locked at the fully teal, "oxidized" weathering
+            stage by a honeycomb coating. It carries the same carved,
+            layered-panel texture as regular chiseled copper.
+        lore: |
+            Chiseled copper was revealed at Minecraft Live 2023 as part of
+            the trial chambers copper set, fully released in Java Edition
+            1.21.
+    uses:
+        - title: Decorative Trim & Vault Doors
+          ref: waxed_oxidized_chiseled_copper
+          detail: |
+              Used as a purely decorative accent block for copper builds,
+              carved panels, and matching the aged look found in trial
+              chamber vaults.
+    found_in:
+        - location: Crafted from Cut Copper Slabs
+          detail: Craft two matching cut copper slabs vertically, or stonecut copper blocks, then wax with honeycomb.
+        - location: Trial Chambers
+          detail: Waxed oxidized chiseled copper generates naturally as decoration inside trial chamber structures.
+    faq:
+        - question: Will this block oxidize further?
+          answer: |
+              No, it is already at the final oxidized stage and the wax
+              coating prevents any change.
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better; mining by hand drops nothing.
+        - question: Can I remove the wax?
+          answer: |
+              Yes, an axe scrapes off the wax, though since it's already
+              fully oxidized this has no further visual effect until it's
+              lightning-struck or otherwise reset.
+        - question: What does it drop when mined?
+          answer: |
+              One Waxed Oxidized Chiseled Copper block, unaffected by
+              Fortune or Silk Touch.
     data_version: "1.21.5"
 ---
 

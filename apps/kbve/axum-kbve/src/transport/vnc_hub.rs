@@ -342,13 +342,20 @@ async fn create_session(
         headers.insert("Sec-WebSocket-Protocol", v);
     }
 
-    let (upstream_ws, _resp) = tokio_tungstenite::connect_async_tls_with_config(
-        request,
-        None,
-        false,
-        Some(config.tls_connector),
+    // Bound the upstream TLS connect — a stalled KubeVirt endpoint would
+    // otherwise hang here while holding the just-upgraded browser WebSocket
+    // with no client-visible failure.
+    let (upstream_ws, _resp) = tokio::time::timeout(
+        std::time::Duration::from_secs(15),
+        tokio_tungstenite::connect_async_tls_with_config(
+            request,
+            None,
+            false,
+            Some(config.tls_connector),
+        ),
     )
-    .await?;
+    .await
+    .map_err(|_| "upstream VNC websocket connect timed out")??;
 
     let (upstream_tx, mut upstream_rx) = upstream_ws.split();
     let (broadcast_tx, _) = broadcast::channel::<Bytes>(BROADCAST_CAPACITY);
@@ -427,7 +434,7 @@ async fn run_client(
     }
 
     let session_input = session.clone();
-    let input_task = tokio::spawn(async move {
+    let mut input_task = tokio::spawn(async move {
         while let Some(msg) = browser_rx.next().await {
             let out = match msg {
                 Ok(AxumMsg::Binary(data)) => TungMsg::Binary(data),
@@ -452,7 +459,7 @@ async fn run_client(
         }
     });
 
-    let output_task = tokio::spawn(async move {
+    let mut output_task = tokio::spawn(async move {
         loop {
             match live_rx.recv().await {
                 Ok(bytes) => {
@@ -474,9 +481,14 @@ async fn run_client(
     });
 
     tokio::select! {
-        _ = input_task => {},
-        _ = output_task => {},
+        _ = &mut input_task => {},
+        _ = &mut output_task => {},
     }
+    // Abort the loser — a finished JoinHandle abort is a no-op, but the still
+    // running side would otherwise leak (holding browser_tx + a live broadcast
+    // subscriber) until a later send finally errors.
+    input_task.abort();
+    output_task.abort();
 
     debug!(
         "VNC hub: client {} disconnected from {}",

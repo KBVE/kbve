@@ -1,5 +1,6 @@
 ---
 title: Yellow Concrete Powder
+template: splash
 description: |
     Minecraft Yellow Concrete Powder — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 605
     ref: yellow_concrete_powder
     slug: yellow-concrete-powder
+    content_rev: 1
     display_name: Yellow Concrete Powder
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Yellow Concrete Powder is a gravity-affected block crafted from
+            yellow dye, sand, and gravel. It falls like sand and gravel, and it
+            instantly solidifies into solid Yellow Concrete on contact with any
+            water source or flowing water.
+        lore: |
+            A fully renewable building material, prized by builders who need
+            vivid, weather-proof color without waiting on rare resources.
+    faq:
+        - question: How do I craft Yellow Concrete Powder?
+          answer: |
+              Combine yellow dye with 4 sand and 4 gravel in a shapeless recipe
+              to produce 8 blocks of concrete powder.
+        - question: How does Yellow Concrete Powder turn into concrete?
+          answer: |
+              It converts to solid concrete the moment it touches a water source
+              block, flowing water, or a waterlogged block; rain does not trigger
+              the conversion.
+        - question: Can red sand be used instead of regular sand?
+          answer: |
+              No, red sand cannot substitute for sand in the concrete powder
+              recipe.
+        - question: Is Yellow Concrete Powder affected by gravity?
+          answer: |
+              Yes, like sand and gravel it will fall if there is no block
+              supporting it from below.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

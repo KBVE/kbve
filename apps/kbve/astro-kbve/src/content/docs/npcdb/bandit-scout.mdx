@@ -1,5 +1,9 @@
 ---
 title: 'Bandit Scout'
+template: splash
+sidebar:
+    label: 'Bandit Scout'
+    hidden: true
 description: |
     Hostile recon unit dispatched by Bandit Camps every 90s. Wanders far from the camp, marks discovered Player buildings into KnownPlayerHexesSingleton so HuntJob can divert raid waves to outposts beyond the camp's local TargetingRadius. No weapon — flees combat.
 ref: 'bandit-scout'
@@ -42,7 +46,10 @@ equipment:
           item_ref: 'leather'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Hostile recon. Dispatched by Bandit Camps; marks discovered Player buildings as raid targets. Flees combat.
+
+</NpcLeaf>

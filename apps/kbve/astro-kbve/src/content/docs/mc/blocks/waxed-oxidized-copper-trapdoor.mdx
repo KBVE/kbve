@@ -1,5 +1,6 @@
 ---
 title: Waxed Oxidized Copper Trapdoor
+template: splash
 description: |
     Minecraft Waxed Oxidized Copper Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1022
     ref: waxed_oxidized_copper_trapdoor
     slug: waxed-oxidized-copper-trapdoor
+    content_rev: 1
     display_name: Waxed Oxidized Copper Trapdoor
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_oxidized_copper_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - blast_resistant
+    about:
+        description: |
+            Waxed Oxidized Copper Trapdoor is a fully oxidized copper
+            trapdoor that has been treated with honeycomb, permanently
+            locking in its teal, green-spotted patina so it never weathers
+            further. It opens and closes like any trapdoor, via
+            interaction or redstone signal.
+        lore: |
+            Added alongside the rest of the copper family in the Trails &
+            Tales update, waxed copper lets builders freeze a weathered
+            look in place instead of watching it dull and green over time.
+    uses:
+        - title: Redstone Door
+          ref: waxed_oxidized_copper_trapdoor
+          detail: |
+              Functions as a standard trapdoor: toggled by hand, redstone
+              power, or a wind charge, useful for hidden entrances and
+              decorative copper builds that need a stable finish.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates naturally as part of trial chamber vault and decoration structures.
+        - location: Crafting/Waxing
+          detail: Made by applying honeycomb to an Oxidized Copper Trapdoor.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better. Mining with your hand or a wooden
+              pickaxe destroys the block without a drop.
+        - question: Will it ever oxidize further or turn back?
+          answer: |
+              No. Waxing with honeycomb permanently stops the oxidation
+              cycle, so it stays in this fully oxidized teal-and-green
+              appearance forever.
+        - question: Is it affected by Silk Touch or Fortune?
+          answer: |
+              No. It always drops exactly one of itself regardless of
+              enchantments.
+        - question: How do I unwax it?
+          answer: |
+              You can't. Once waxed, the only way to change its look is to
+              replace it with a different copper block.
     data_version: "1.21.5"
 ---
 

@@ -27,6 +27,17 @@ repositories {
             includeGroup 'maven.modrinth'
         }
     }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'CodeMC'
+                url = 'https://repo.codemc.io/repository/maven-releases/'
+            }
+        }
+        filter {
+            includeGroup 'com.github.retrooper'
+        }
+    }
 }
 
 dependencies {
@@ -44,6 +55,16 @@ dependencies {
     // the mod is absent because its target class never loads. Version
     // must track the pin in apps/mc/Dockerfile.mods.
     modCompileOnly "maven.modrinth:immersive-aircraft:1.4.7+1.21.11"
+
+    // PacketEvents API — compile-only. GrimAC bundles PacketEvents
+    // (jar-in-jar, unrelocated com.github.retrooper.packetevents) so the
+    // runtime copy comes from grimac, never from us. This API surface only
+    // exists to compile PacketEventsRegistryBridge, which teaches the
+    // bundled registry about modded item/block/entity IDs at server start.
+    // Version tracks the release closest to the SNAPSHOT grimac ships
+    // (2.12.2+... inside grimac-fabric-2.3.74); the bridge guards every
+    // call against LinkageError so a drift degrades to a skipped bridge.
+    compileOnly "com.github.retrooper:packetevents-api:2.12.1"
 }
 
 // Inject version into fabric.mod.json + copy Rust native libraries

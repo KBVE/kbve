@@ -1,5 +1,6 @@
 ---
 title: Open Eyeblossom
+template: splash
 description: |
     Minecraft Open Eyeblossom — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1099
     ref: open_eyeblossom
     slug: open-eyeblossom
+    content_rev: 1
     display_name: Open Eyeblossom
     material: stone
     hardness: 0
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: open_eyeblossom
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Open Eyeblossom is a flower found in the pale garden biome that
+            opens at night and closes during the day, glowing brightly and
+            releasing particles as it changes state. Nearby eyeblossoms
+            synchronize their transitions with one another.
+        lore: |
+            Added in the Garden Awakens update (1.21.5), it is the pale
+            garden's signature plant and the only overworld flower that
+            actively communicates its state to neighboring copies.
+    uses:
+        - title: Orange Dye
+          ref: orange_dye
+          detail: |
+              Craft an open eyeblossom into orange dye, or use it directly
+              in a cauldron or crafting grid alongside other dye sources.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              Combine with a mushroom and bowl to make suspicious stew;
+              the open form grants a different potion effect than the
+              closed form.
+    found_in:
+        - location: Pale Garden biome
+          detail: Generates naturally on grass and pale moss blocks throughout the biome.
+        - location: Bone-mealed grass
+          detail: Applying bone meal to grass blocks in a pale garden can spawn more eyeblossoms.
+        - location: Wandering traders
+          detail: Sold by wandering traders for 1 emerald each.
+    faq:
+        - question: What tool do I need to break an Open Eyeblossom?
+          answer: |
+              None. It breaks instantly with any tool or by hand, like
+              other flowers.
+        - question: Does it emit light?
+          answer: |
+              The block itself has no light level, but its "eye" renders at
+              maximum brightness as a visual glow when placed at night.
+        - question: Is it dangerous to be near?
+          answer: |
+              Open eyeblossoms poison bees that pollinate them on contact,
+              though the flower is harmless to players.
+        - question: Does it stay open in the Nether or End?
+          answer: |
+              No — outside the Overworld it never changes state, remaining
+              frozen in whichever form it was in when it arrived.
     data_version: "1.21.5"
 ---
 

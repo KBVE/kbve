@@ -1,21 +1,14 @@
-import { useEffect, useCallback, useRef } from 'react';
-import { useStore } from '@nanostores/react';
-import { ReactServerCard } from './ReactServerCard';
-import { CATEGORIES, castVote } from '@/lib/servers';
-import type { SortOption } from '@/lib/servers';
+import { useEffect, useCallback, useRef, useState } from 'react';
 import {
-	$servers,
-	$total,
-	$category,
-	$sort,
-	$hasMore,
-	$loading,
-	loadServers,
-	setCategory,
-	setSort,
-	loadMore,
-	applyVote,
-} from '@/lib/servers/serverStore';
+	QueryClientProvider,
+	useInfiniteQuery,
+	useQueryClient,
+} from '@tanstack/react-query';
+import type { InfiniteData } from '@tanstack/react-query';
+import { ReactServerCard } from './ReactServerCard';
+import { CATEGORIES, castVote, fetchServers } from '@/lib/servers';
+import type { ServerCard, SortOption } from '@/lib/servers';
+import { queryClient } from '@/lib/servers/queryClient';
 import { useHCaptcha } from '@/lib/servers/useHCaptcha';
 
 const SORT_OPTIONS: { value: SortOption; label: string }[] = [
@@ -23,18 +16,65 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 	{ value: 'members', label: 'Most Members' },
 ];
 
-export function ReactServerGrid() {
-	const servers = useStore($servers);
-	const total = useStore($total);
-	const category = useStore($category);
-	const sort = useStore($sort);
-	const loading = useStore($loading);
+const PAGE_SIZE = 24;
+
+type ServersPage = { servers: ServerCard[]; total: number };
+
+function serversKey(category: string | null, sort: SortOption) {
+	return ['servers', category, sort] as const;
+}
+
+function GridInner() {
+	const [category, setCategory] = useState<string | null>(null);
+	const [sort, setSort] = useState<SortOption>('votes');
+	const qc = useQueryClient();
+
+	const query = useInfiniteQuery({
+		queryKey: serversKey(category, sort),
+		queryFn: ({ pageParam }) =>
+			fetchServers({
+				category: category ?? undefined,
+				sort,
+				page: pageParam,
+				limit: PAGE_SIZE,
+			}),
+		initialPageParam: 1,
+		getNextPageParam: (last: ServersPage, pages: ServersPage[]) => {
+			const loaded = pages.reduce((n, p) => n + p.servers.length, 0);
+			return loaded < last.total ? pages.length + 1 : undefined;
+		},
+	});
+
+	const servers = query.data?.pages.flatMap((p) => p.servers) ?? [];
+	const total = query.data?.pages[0]?.total ?? 0;
+	const loading = query.isLoading || query.isFetchingNextPage;
 
 	const {
 		containerRef: captchaRef,
 		execute: executeCaptcha,
 		reset: resetCaptcha,
 	} = useHCaptcha();
+
+	const applyVote = useCallback(
+		(serverId: string) => {
+			qc.setQueryData<InfiniteData<ServersPage>>(
+				serversKey(category, sort),
+				(data) =>
+					data && {
+						...data,
+						pages: data.pages.map((p) => ({
+							...p,
+							servers: p.servers.map((s) =>
+								s.server_id === serverId
+									? { ...s, vote_count: s.vote_count + 1 }
+									: s,
+							),
+						})),
+					},
+			);
+		},
+		[qc, category, sort],
+	);
 
 	const handleVote = useCallback(
 		async (serverId: string): Promise<boolean> => {
@@ -54,15 +94,10 @@ export function ReactServerGrid() {
 				resetCaptcha();
 			}
 		},
-		[executeCaptcha, resetCaptcha],
+		[executeCaptcha, resetCaptcha, applyVote],
 	);
 
 	const sentinelRef = useRef<HTMLDivElement>(null);
-
-	// Initial load
-	useEffect(() => {
-		loadServers(true);
-	}, []);
 
 	// Infinite scroll — load next page when sentinel enters viewport
 	useEffect(() => {
@@ -73,10 +108,10 @@ export function ReactServerGrid() {
 			(entries) => {
 				if (
 					entries[0]?.isIntersecting &&
-					$hasMore.get() &&
-					!$loading.get()
+					query.hasNextPage &&
+					!query.isFetchingNextPage
 				) {
-					loadMore();
+					query.fetchNextPage();
 				}
 			},
 			{ rootMargin: '200px' },
@@ -84,15 +119,15 @@ export function ReactServerGrid() {
 
 		observer.observe(el);
 		return () => observer.disconnect();
-	}, []);
+	}, [query.hasNextPage, query.isFetchingNextPage, query.fetchNextPage]);
 
 	return (
 		<div>
 			{/* Invisible hCaptcha container */}
 			<div ref={captchaRef} className="hidden" />
 
-			{/* Category filter pills */}
-			<div className="flex items-center gap-2 overflow-x-auto pb-2 mb-4">
+			{/* Category filter pills — wrap into rows, no horizontal scroll */}
+			<div className="flex flex-wrap items-center gap-2 mb-4">
 				<button
 					onClick={() => setCategory(null)}
 					className={`sg-pill ${!category ? 'sg-pill-active' : 'sg-pill-inactive'}`}>
@@ -158,5 +193,13 @@ export function ReactServerGrid() {
 				</div>
 			)}
 		</div>
+	);
+}
+
+export function ReactServerGrid() {
+	return (
+		<QueryClientProvider client={queryClient}>
+			<GridInner />
+		</QueryClientProvider>
 	);
 }

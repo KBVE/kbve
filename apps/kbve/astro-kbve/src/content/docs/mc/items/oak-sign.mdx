@@ -1,5 +1,6 @@
 ---
 title: Oak Sign
+template: splash
 description: |
     Minecraft Oak Sign — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 926
     ref: oak_sign
     slug: oak-sign
+    content_rev: 1
     display_name: Oak Sign
     category: decoration
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            An oak sign is a non-solid block used to display customizable text,
+            placeable on top of blocks as a standing sign or on their sides as a
+            wall sign. Players can edit the text after placement and further
+            decorate it with dyes and glow ink sacs.
+        lore: |
+            "This is a test of the signs" was the original placeholder text used
+            when signs first appeared as entities in Minecraft's earliest builds.
+    faq:
+        - question: How do I craft an oak sign?
+          answer: |
+              Combine six oak planks and one stick in a crafting table to produce
+              three oak signs.
+        - question: How do I place text on a sign?
+          answer: |
+              Right-click the sign after placing it to open the text editor, type
+              up to four lines using the keyboard, then close the interface to
+              finalize the text.
+        - question: Can I change the appearance of sign text?
+          answer: |
+              Yes, applying a dye changes the text color, and a glow ink sac makes
+              the text glow with an outline. A regular ink sac removes the glow effect.
+        - question: What makes a sign's text permanent?
+          answer: |
+              Applying a honeycomb waxes the sign, after which its text can no
+              longer be edited unless the sign is broken and replaced.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

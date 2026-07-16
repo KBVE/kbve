@@ -1,5 +1,6 @@
 ---
 title: Cyan Banner
+template: splash
 description: |
     Minecraft Cyan Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 556
     ref: cyan_wall_banner
     slug: cyan-wall-banner
+    content_rev: 1
     display_name: Cyan Banner
     material: wood
     hardness: 1
@@ -23,11 +25,64 @@ mc_block:
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
+    solid: false
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cyan_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The wall-mounted form of the Cyan Banner, a tall decorative
+            textile block that attaches to the side of a block and can
+            carry up to six layered patterns applied at a loom. It is
+            entirely non-solid and does not block movement.
+        lore: |
+            Banners were added in the "Bountiful Update" (Java 1.8, 2014)
+            as a customizable heraldry block.
+    uses:
+        - title: Shield Customization
+          ref: shield
+          detail: |
+              Combining a patterned banner with a shield in a crafting
+              grid copies the banner's design onto the shield.
+        - title: Loom Patterns
+          ref: loom
+          detail: |
+              A loom lets players combine a banner, a dye, and optionally
+              a pattern item to add another layer of design.
+    found_in:
+        - location: Crafting table
+          detail: |
+              Crafted from 6 cyan wool and 1 stick; automatically becomes
+              the wall variant when placed against a vertical surface.
+        - location: Woodland Mansions and Pillager Outposts
+          detail: |
+              Pre-patterned banners of various colors spawn as decoration
+              in these structures.
+    faq:
+        - question: What tool mines a banner fastest?
+          answer: |
+              An axe, though any tool or bare hand can break it since it
+              has no minimum tool requirement.
+        - question: Does the wall banner drop as a separate item?
+          answer: |
+              No. Breaking it drops the standard Cyan Banner item, which
+              becomes a wall banner again only if placed on a wall face.
+        - question: Can I add patterns after placing a banner?
+          answer: |
+              Only by picking it back up; patterns must be applied at a
+              loom, though a cauldron of water can strip the top layer.
+        - question: Is a banner solid?
+          answer: |
+              No. Banners are non-solid, so entities and projectiles pass
+              through them, and fluids flow around them.
     data_version: "1.21.5"
 ---
 

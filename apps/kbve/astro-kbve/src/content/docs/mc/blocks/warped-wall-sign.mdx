@@ -1,5 +1,6 @@
 ---
 title: Warped Sign
+template: splash
 description: |
     Minecraft Warped Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 863
     ref: warped_wall_sign
     slug: warped-wall-sign
+    content_rev: 1
     display_name: Warped Sign
     material: nether
     hardness: 1
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: warped_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            Warped Sign is the wall-mounted form of the warped sign,
+            a non-solid block that displays customizable text and does
+            not burn away in fire or lava.
+        lore: |
+            Signs have existed since early Minecraft; the warped variant
+            arrived with the Nether Update (1.16) alongside other warped
+            wood blocks.
+    uses:
+        - title: Labels & Fluid Control
+          ref: warped_sign
+          detail: |
+              Used to label storage and areas of interest, or placed to
+              block fluid flow since signs are non-solid but stop water
+              and lava from spreading through their space.
+    found_in:
+        - location: Crafted from Warped Planks & Sticks
+          detail: Six warped planks and one stick craft three warped signs at a crafting table.
+        - location: Placed on a block's side
+          detail: Obtained by placing a warped sign item against the side of any block, creating the wall-mounted variant automatically.
+    faq:
+        - question: What tool do I need to mine a Warped Sign?
+          answer: |
+              Any tool works, and an axe is fastest. There is no minimum
+              tool tier required to get the drop.
+        - question: Does Warped Sign catch fire?
+          answer: |
+              No. Crimson and Warped signs are exceptions among wood
+              signs and do not catch fire from lava in Java Edition.
+        - question: Can Warped Signs be used as furnace fuel?
+          answer: |
+              No. Only Overworld wood signs burn as furnace fuel;
+              crimson and warped signs do not.
+        - question: Can I stop water or lava with a sign?
+          answer: |
+              Yes. Signs are non-solid but still block fluid flow through
+              their space, a common trick for managing water and lava.
     data_version: "1.21.5"
 ---
 

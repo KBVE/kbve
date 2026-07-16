@@ -1,5 +1,6 @@
 ---
 title: Waxed Copper Door
+template: splash
 description: |
     Minecraft Waxed Copper Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1012
     ref: waxed_copper_door
     slug: waxed-copper-door
+    content_rev: 1
     display_name: Waxed Copper Door
     material: metal
     hardness: 3
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_copper_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - doors
+        - mob_interactable_doors
+        - overworld
+    about:
+        description: |
+            Waxed Copper Door is a player- and mob-openable door that has
+            been treated with honeycomb, locking its current oxidation
+            stage so its color never changes while still opening and
+            closing normally.
+        lore: |
+            Copper doors were revealed at Minecraft Live 2023 as part of
+            Trial Chambers and released in Java Edition 1.21, extending the
+            copper weathering theme to functional building pieces.
+    uses:
+        - title: Player-Operated Barrier
+          ref: waxed_copper_door
+          detail: |
+              Opens and closes by right-click or redstone signal, usable as
+              a decorative door that keeps a fixed, non-weathering color.
+        - title: Wind Charge Interaction
+          ref: wind_charge
+          detail: |
+              A thrown wind charge toggles the door open or closed without
+              needing a player or redstone signal.
+    found_in:
+        - location: Trial Chambers
+          detail: Waxed copper doors generate naturally as part of trial chamber structures.
+        - location: Crafted from Copper Ingots
+          detail: Six copper ingots in a 2x3 grid craft three copper doors, then waxed with honeycomb.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe works; it drops itself regardless of tool tier,
+              unlike most other copper blocks.
+        - question: Can mobs open Waxed Copper Doors?
+          answer: |
+              Villagers, piglins, and copper golems can open them normally;
+              zombies and vindicators can still break closed copper doors on
+              Hard difficulty.
+        - question: Does waxing change how the door functions?
+          answer: |
+              No. Waxing only stops oxidation from changing its appearance;
+              opening, closing, and redstone behavior are unaffected.
+        - question: Is it waterloggable?
+          answer: |
+              Only in Bedrock Edition. Java Edition does not support
+              waterlogging copper doors.
     data_version: "1.21.5"
 ---
 

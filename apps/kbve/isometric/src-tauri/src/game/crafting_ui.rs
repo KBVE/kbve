@@ -77,7 +77,7 @@ fn spawn_crafting_panel(mut commands: Commands) {
             panel.spawn((
                 Text::new("Crafting (C to toggle)"),
                 TextFont {
-                    font_size: 11.0,
+                    font_size: bevy::text::FontSize::Px(11.0),
                     ..default()
                 },
                 TextColor(GOLD_TEXT),
@@ -191,7 +191,7 @@ fn populate_recipes(
                 row.spawn((
                     Text::new(emoji),
                     TextFont {
-                        font_size: 18.0,
+                        font_size: bevy::text::FontSize::Px(18.0),
                         ..default()
                     },
                 ));
@@ -204,7 +204,7 @@ fn populate_recipes(
                         col.spawn((
                             Text::new(item.name.clone()),
                             TextFont {
-                                font_size: 11.0,
+                                font_size: bevy::text::FontSize::Px(11.0),
                                 ..default()
                             },
                             TextColor(ui_color::TEXT_PRIMARY),
@@ -212,7 +212,7 @@ fn populate_recipes(
                         col.spawn((
                             Text::new(format!("{ingredients_text}{skill_label}{facility_label}")),
                             TextFont {
-                                font_size: 9.0,
+                                font_size: bevy::text::FontSize::Px(9.0),
                                 ..default()
                             },
                             TextColor(ui_color::TEXT_SECONDARY),
@@ -235,7 +235,7 @@ fn populate_recipes(
                 .with_child((
                     Text::new("Craft"),
                     TextFont {
-                        font_size: 10.0,
+                        font_size: bevy::text::FontSize::Px(10.0),
                         ..default()
                     },
                     TextColor(GOLD_TEXT),

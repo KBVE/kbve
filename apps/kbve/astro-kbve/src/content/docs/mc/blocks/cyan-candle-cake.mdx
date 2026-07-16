@@ -1,5 +1,6 @@
 ---
 title: Cake with Cyan Candle
+template: splash
 description: |
     Minecraft Cake with Cyan Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 930
     ref: cyan_candle_cake
     slug: cyan-candle-cake
+    content_rev: 1
     display_name: Cake with Cyan Candle
     material: stone
     hardness: 0.5
     blast_resistance: 0.5
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,47 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cyan_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Cake with Cyan Candle is created by placing a cyan candle on an
+            uneaten cake, turning it into a decorative, lightable
+            centerpiece. It cannot be eaten while the candle sits on top.
+        lore: |
+            Candle cakes arrived alongside candles in Java Edition 1.17,
+            giving birthday and celebration builds a functional light
+            source.
+    uses:
+        - title: Light Source
+          ref: cyan_candle
+          detail: |
+              Light the candle with flint and steel, a fire charge, or a
+              flaming projectile for a light level of 3.
+    found_in:
+        - location: Player-placed
+          detail: Combine a cyan candle with an uneaten cake block to create it; not found naturally generated.
+    faq:
+        - question: Can I eat a cake with a candle on it?
+          answer: |
+              Eating the cake causes the candle to pop off and drop as an
+              item; the cake is not consumed while the candle remains.
+        - question: What does mining a candle cake drop?
+          answer: |
+              It always drops its cyan candle, not the cake itself.
+        - question: How much light does a lit candle cake give off?
+          answer: |
+              A single lit candle, on a cake or otherwise, emits a light
+              level of 3.
+        - question: What tool do I need to break it?
+          answer: |
+              None — any tool or bare hands breaks it at the same speed.
     data_version: "1.21.5"
 ---
 

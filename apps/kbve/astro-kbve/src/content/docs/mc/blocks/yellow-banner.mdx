@@ -1,5 +1,6 @@
 ---
 title: Yellow Banner
+template: splash
 description: |
     Minecraft Yellow Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 535
     ref: yellow_banner
     slug: yellow-banner
+    content_rev: 1
     display_name: Yellow Banner
     material: wood
     hardness: 1
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: yellow_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            The Yellow Banner is a tall decorative block dyed with yellow
+            wool, customizable with up to six layered patterns applied at
+            a loom. It is non-solid and lets entities pass through.
+        lore: |
+            Banners were added in Java Edition 1.8 as flag-like decoration
+            crafted from wool and a stick.
+    uses:
+        - title: Loom Patterns
+          ref: banner_pattern
+          detail: |
+              Combine with dye and a banner pattern item at a loom to
+              layer custom designs onto the banner.
+        - title: Shield Decoration
+          ref: shield
+          detail: |
+              Apply a patterned banner to a shield in a crafting grid to
+              transfer its design onto the shield.
+    found_in:
+        - location: Villages, mansions, and end cities
+          detail: Generates naturally with pre-applied patterns in these structures.
+        - location: Crafting table
+          detail: Crafted from six yellow wool and one stick.
+    faq:
+        - question: What tool breaks a banner fastest?
+          answer: |
+              An axe, though any tool or bare hands can break it instantly.
+        - question: Is a banner flammable?
+          answer: |
+              No, but it can still catch fire from lava contact.
+        - question: How do I customize a banner's design?
+          answer: |
+              Combine it with dye and a banner pattern at a loom to layer
+              up to six patterns.
+        - question: Where can I find pre-made banners?
+          answer: |
+              Villages, woodland mansions, and end cities generate banners
+              with patterns already applied.
     data_version: "1.21.5"
 ---
 

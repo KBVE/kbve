@@ -1,0 +1,37 @@
+---
+title: Steel Boiler
+template: splash
+description: |
+    Immersive Aircraft Steel Boiler — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Steel Boiler
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900016
+    ref: immersive_aircraft:steel_boiler
+    slug: steel-boiler
+    content_rev: 0
+    display_name: Steel Boiler
+    category: material
+    rarity: common
+    stack_size: 64
+    tags:
+        - immersive_aircraft
+        - upgrade
+    about:
+        description: |
+            A reinforced boiler with a larger fuel capacity for longer voyages.
+        lore: |
+            More fuel, fewer stops.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

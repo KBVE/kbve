@@ -1,5 +1,6 @@
 ---
 title: Potted Warped Fungus
+template: splash
 description: |
     Minecraft Potted Warped Fungus — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 879
     ref: potted_warped_fungus
     slug: potted-warped-fungus
+    content_rev: 1
     display_name: Potted Warped Fungus
     material: plant
     hardness: 0
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: warped_fungus
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - nether
+    about:
+        description: |
+            Potted Warped Fungus is a decorative flower pot holding the small
+            mushroom-like fungus native to warped forests. Placed loose, the
+            same fungus repels hoglins from a 7-block radius.
+        lore: |
+            Warped Fungus is the eerie, blue counterpart to Crimson Fungus,
+            marking the alien flora of the Nether's warped forest biome.
+    uses:
+        - title: Warped Fungus on a Stick
+          ref: warped_fungus_on_a_stick
+          detail: |
+              Crafted with a fishing rod, this item is used to control and
+              breed Striders while riding them.
+        - title: Hoglin Repellent
+          ref: warped_fungus
+          detail: |
+              Placing loose Warped Fungus (or a potted one) keeps hoglins at
+              least 7 blocks away, useful for safe Nether bases.
+    found_in:
+        - location: Warped forest biome
+          detail: Generates naturally on warped nylium throughout warped forests in the Nether.
+        - location: Flower pot
+          detail: Right-clicking a flower pot with Warped Fungus plants this potted variant.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool or bare hands break it instantly — hardness is 0.
+        - question: What does breaking it drop?
+          answer: |
+              It drops both a Flower Pot and a Warped Fungus as separate items.
+        - question: Does the potted version repel hoglins like the placed block?
+          answer: |
+              Yes, a potted Warped Fungus still frightens hoglins away from
+              the area just like the freestanding block.
+        - question: Where does Warped Fungus come from?
+          answer: |
+              It generates naturally on warped nylium in warped forest
+              biomes and can be grown further with bone meal on nylium.
     data_version: "1.21.5"
 ---
 

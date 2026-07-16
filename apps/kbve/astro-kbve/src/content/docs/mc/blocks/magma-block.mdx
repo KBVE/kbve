@@ -1,5 +1,6 @@
 ---
 title: Magma Block
+template: splash
 description: |
     Minecraft Magma Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 639
     ref: magma_block
     slug: magma-block
+    content_rev: 1
     display_name: Magma Block
     material: nether
     hardness: 0.5
@@ -26,8 +28,62 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: magma_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - nether
+        - blast_resistant
+    about:
+        description: |
+            Magma Block is a light-emitting block found underwater in the
+            Overworld and more commonly in the Nether. Standing on it deals
+            continuous burning damage unless the player is sneaking, and
+            submerged magma blocks pull entities downward in a bubble column.
+        lore: |
+            Introduced in Java Edition 1.10 (snapshot 16w20a), Magma Block
+            later gained bubble-column mechanics with the Update Aquatic in
+            version 1.13.
+    uses:
+        - title: Bubble Columns
+          ref: magma_block
+          detail: |
+              Placing Magma Block underwater creates a downward-pulling
+              bubble column, useful for elevators and mob-drop traps.
+        - title: Hazard Flooring
+          ref: magma_block
+          detail: |
+              Deals burning damage to any entity standing on it, making it a
+              common trap or defense block in builds.
+    found_in:
+        - location: The Nether
+          detail: Generates abundantly as ore features around Y=27–36.
+        - location: Overworld oceans
+          detail: Found underwater in aquifers, sulfur springs, ocean ruins, and basalt deltas.
+        - location: Bastion remnants and ruined portals
+          detail: Appears as decoration in these generated structures.
+    faq:
+        - question: What tool do I need to mine Magma Block?
+          answer: |
+              Any pickaxe works, even a wooden one — there is no minimum tier
+              requirement.
+        - question: Does Magma Block hurt me if I stand on it?
+          answer: |
+              Yes, it deals continuous burning damage unless you sneak while
+              standing on it.
+        - question: Can Magma Block be affected by Silk Touch or Fortune?
+          answer: |
+              No. A pickaxe of any tier always retrieves the block itself, so
+              enchantments have no effect on the drop.
+        - question: What is Magma Block used for underwater?
+          answer: |
+              Submerged Magma Block creates a downward bubble column, often
+              used to build elevators or pull mobs and items into traps.
     data_version: "1.21.5"
 ---
 

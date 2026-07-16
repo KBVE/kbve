@@ -1,5 +1,6 @@
 ---
 title: Block of Gold
+template: splash
 description: |
     Minecraft Block of Gold — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 92
     ref: gold_block
     slug: gold-block
+    content_rev: 1
     display_name: Block of Gold
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Block of Gold is a compact storage block crafted from nine gold ingots. It
+            generates naturally in ocean monuments, bastion remnants, and ruined portals, and
+            doubles as a valid base layer for powering a beacon pyramid.
+        lore: |
+            Nine ingots pressed into one gleaming slab, prized by monument guardians and
+            piglin hoarders alike.
+    faq:
+        - question: How do I craft a Block of Gold?
+          answer: |
+              Arrange nine gold ingots in a 3x3 pattern on a crafting table.
+        - question: Where can I find Blocks of Gold naturally?
+          answer: |
+              They generate in the central room of ocean monuments, in bastion remnant chests and
+              structures, and in ruined portals.
+        - question: What tool do I need to mine a Block of Gold?
+          answer: |
+              An iron pickaxe or better is required; the block has a hardness of 3 and a blast
+              resistance of 6.
+        - question: Can a Block of Gold power a beacon?
+          answer: |
+              Yes, it can form any layer of a beacon's pyramid base alongside blocks of iron,
+              emerald, diamond, and netherite.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

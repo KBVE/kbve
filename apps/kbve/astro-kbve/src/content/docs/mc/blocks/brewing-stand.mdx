@@ -1,5 +1,6 @@
 ---
 title: Brewing Stand
+template: splash
 description: |
     Minecraft Brewing Stand — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 355
     ref: brewing_stand
     slug: brewing-stand
+    content_rev: 1
     display_name: Brewing Stand
     material: metal
     hardness: 0.5
@@ -24,10 +26,56 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brewing_stand
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - nether
+    about:
+        description: |
+            The Brewing Stand is a utility block used to brew potions by
+            combining water bottles, ingredients, and blaze powder fuel.
+            It mines quickly with a pickaxe and always drops itself along
+            with any items left inside.
+        lore: |
+            Blaze powder was deliberately chosen as brewing fuel to force
+            players into the Nether before they could brew potions,
+            preserving the game's intended progression.
+    uses:
+        - title: Potion Brewing
+          ref: potion
+          detail: |
+              Holds up to three water bottles plus one ingredient slot and
+              a fuel slot; blaze powder fuels 20 brewing operations, each
+              taking 20 seconds to complete.
+    found_in:
+        - location: Crafting
+          detail: Crafted from 1 Blaze Rod and 3 stone-tier blocks (cobblestone, blackstone, or cobbled deepslate).
+        - location: End ships, igloo basements, village churches
+          detail: Naturally generates as loot-adjacent furniture in these structures.
+    faq:
+        - question: What tool mines a Brewing Stand fastest?
+          answer: |
+              A pickaxe, though any tool or bare hands can break it since
+              its hardness is only 0.5.
+        - question: What fuels a Brewing Stand?
+          answer: |
+              Blaze powder. Each piece powers 20 brewing operations.
+        - question: Can villagers use a Brewing Stand?
+          answer: |
+              Yes, it acts as a job site block that turns an unemployed
+              villager into a Cleric.
+        - question: Does a Brewing Stand generate naturally?
+          answer: |
+              Yes, in end ships, igloo basements, and village churches, in
+              addition to being craftable.
     data_version: "1.21.5"
 ---
 

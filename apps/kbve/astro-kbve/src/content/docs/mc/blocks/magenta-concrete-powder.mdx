@@ -1,5 +1,6 @@
 ---
 title: Magenta Concrete Powder
+template: splash
 description: |
     Minecraft Magenta Concrete Powder — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 696
     ref: magenta_concrete_powder
     slug: magenta-concrete-powder
+    content_rev: 1
     display_name: Magenta Concrete Powder
     material: dirt
     hardness: 0.5
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: magenta_concrete_powder
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+    about:
+        description: |
+            Magenta Concrete Powder is a gravity-affected building block
+            crafted from sand, gravel, and magenta dye. It falls like
+            sand and instantly hardens into solid Magenta Concrete on
+            contact with any water block.
+        lore: |
+            Concrete powder was teased by Jeb in a February 2017 tweet
+            before releasing in Java Edition 1.12 as a colorful,
+            water-reactive building material.
+    uses:
+        - title: Magenta Concrete
+          ref: magenta_concrete
+          detail: |
+              Touching water, a waterlogged block, or rain converts the
+              powder into solid Magenta Concrete, a non-flammable
+              building block.
+    found_in:
+        - location: Crafted
+          detail: One magenta dye plus four sand and four gravel blocks craft eight concrete powder in a shapeless recipe.
+    faq:
+        - question: What tool mines Magenta Concrete Powder fastest?
+          answer: |
+              A shovel, though any tool or bare hands can break it since
+              its hardness is only 0.5.
+        - question: Does Magenta Concrete Powder fall like sand?
+          answer: |
+              Yes. It is gravity-affected and falls until it lands on a
+              solid block, just like sand or gravel.
+        - question: How does it become Magenta Concrete?
+          answer: |
+              Contact with any water source, flowing water, or a
+              waterlogged block instantly converts it into solid concrete.
+        - question: Can red sand be used instead of regular sand?
+          answer: |
+              No. The crafting recipe requires regular sand; red sand
+              cannot substitute for it.
     data_version: "1.21.5"
 ---
 

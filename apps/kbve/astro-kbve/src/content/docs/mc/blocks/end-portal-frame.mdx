@@ -1,7 +1,10 @@
 ---
 title: End Portal Frame
+template: splash
 description: |
-    Minecraft End Portal Frame — vanilla 1.21.5 block record (auto-generated).
+    Minecraft End Portal Frame — the indestructible block that, twelve
+    arranged in a ring and filled with Eyes of Ender, forms an active
+    End Portal.
 sidebar:
     label: End Portal Frame
     hidden: true
@@ -13,6 +16,7 @@ mc_block:
     id: 361
     ref: end_portal_frame
     slug: end-portal-frame
+    content_rev: 1
     display_name: End Portal Frame
     material: end
     hardness: -1
@@ -27,7 +31,50 @@ mc_block:
     renewable: false
     diggable: false
     drops: []
-    tags: []
+    tags:
+        - end
+        - blast_resistant
+        - unbreakable
+    about:
+        description: |
+            The End Portal Frame is an indestructible block that
+            naturally generates in the stronghold portal room. Twelve
+            frames arranged in a ring, each holding an Eye of Ender,
+            activate an End Portal.
+        lore: |
+            Introduced early in development (Beta 1.9 Prerelease 3),
+            the block was originally called simply "End Portal" before
+            being renamed in version 1.13.
+    uses:
+        - title: End Portal Activation
+          ref: end_portal
+          detail: |
+              Insert an Eye of Ender into each of the 12 frames forming
+              the ring; once all are filled, the center 3x3 area
+              becomes an active End Portal.
+    found_in:
+        - location: Stronghold portal room
+          detail: Generates naturally as a ring of 12 frames over a pool of lava, each with a 10% chance of already holding an Eye of Ender.
+    faq:
+        - question: Can I mine or craft an End Portal Frame?
+          answer: |
+              No. It is unobtainable and unbreakable in Survival or
+              Adventure mode; it can only be placed via Creative mode
+              or commands.
+        - question: How many Eyes of Ender does an End Portal need?
+          answer: |
+              12 — one per frame in the ring. Any frames that already
+              generated with an eye reduce the number you need to
+              supply.
+        - question: Does the frame's orientation matter?
+          answer: |
+              Yes. Frames must face inward toward the portal's center;
+              a naturally generated stronghold portal is already
+              correctly oriented.
+        - question: How much light does an End Portal Frame give off?
+          answer: |
+              A light level of 1, a reduction from its original light
+              level of 15 in early development versions.
     data_version: "1.21.5"
 ---
 

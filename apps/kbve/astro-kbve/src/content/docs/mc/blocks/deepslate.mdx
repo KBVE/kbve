@@ -1,5 +1,6 @@
 ---
 title: Deepslate
+template: splash
 description: |
     Minecraft Deepslate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1059
     ref: deepslate
     slug: deepslate
+    content_rev: 1
     display_name: Deepslate
     material: stone
     hardness: 3
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,66 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cobbled_deepslate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: deepslate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - pillar_block
+        - deep_dark
+    about:
+        description: |
+            Deepslate is the dark stone that makes up the majority of the
+            Overworld below Y=0. When mined without Silk Touch it drops
+            cobbled deepslate, its equivalent of cobblestone.
+        lore: |
+            Twice as hard as ordinary stone, deepslate hosts the deepest ore
+            variants and dominates ancient cities. It was originally named
+            "grimstone" before release.
+    uses:
+        - title: Cobbled Deepslate
+          ref: cobbled_deepslate
+          detail: |
+              Mined deepslate yields cobbled deepslate, which crafts into
+              deepslate bricks, tiles, walls, slabs, and stairs.
+        - title: Building and Decoration
+          ref: deepslate
+          detail: |
+              A pillar block that can be oriented on the X, Y, or Z axis,
+              offering a dark palette for builds and stonecutter variants.
+    found_in:
+        - location: Below Y = 0
+          detail: Makes up most solid blocks below Y=0, fully replacing stone by Y=0.
+        - location: Transition band (Y = 0 to 8)
+          detail: Gradually replaces stone from Y=8 downward.
+        - location: Ancient Cities
+          detail: Abundant throughout the deep dark biome and its structures.
+    faq:
+        - question: What tool do I need to mine Deepslate?
+          answer: |
+              A pickaxe of wooden tier or better. Mining with any other tool
+              drops nothing.
+        - question: What does it drop?
+          answer: |
+              Cobbled deepslate when mined normally, or the deepslate block
+              itself with a Silk Touch pickaxe.
+        - question: Why does it take so long to mine?
+          answer: |
+              Deepslate has a hardness of 3, twice that of stone, so it takes
+              roughly twice as long to break.
+        - question: Can I get the smooth deepslate block back?
+          answer: |
+              Yes. Smelt cobbled deepslate in a furnace to turn it back into
+              solid deepslate.
     data_version: "1.21.5"
 ---
 

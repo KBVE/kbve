@@ -1,5 +1,6 @@
 ---
 title: Trapped Chest
+template: splash
 description: |
     Minecraft Trapped Chest — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 438
     ref: trapped_chest
     slug: trapped-chest
+    content_rev: 1
     display_name: Trapped Chest
     material: wood
     hardness: 2.5
@@ -21,13 +23,64 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: trapped_chest
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - guarded_by_piglins
+        - flammable
+    about:
+        description: |
+            The Trapped Chest behaves like a normal chest but emits a
+            redstone signal while it is being accessed, with strength
+            proportional to how many players have it open. It has a
+            distinctive red-tinted latch and merges with an adjacent
+            trapped chest into a double chest.
+        lore: |
+            Introduced in Java Edition 1.5 (snapshot 13w01a) to let players
+            build redstone traps and alarms triggered by chest access.
+    uses:
+        - title: Redstone trap trigger
+          ref: redstone
+          detail: |
+              Wire adjacent redstone components to a trapped chest so
+              opening it powers traps, doors, or alarms.
+        - title: Storage
+          ref: chest
+          detail: |
+              Functions as normal storage identical to a chest, holding 27
+              slots (54 when doubled).
+    found_in:
+        - location: Crafting table
+          detail: Craft 1 tripwire hook with 1 chest (shapeless) to produce a trapped chest.
+        - location: Woodland Mansion
+          detail: Generates in the fake end portal room, guarded and surrounded by TNT, containing two ender pearls.
+    faq:
+        - question: What tool do I need to mine a Trapped Chest?
+          answer: |
+              Any tool works and it breaks instantly with a golden axe,
+              but no minimum tier is required to get the drop.
+        - question: How is a Trapped Chest different from a normal Chest?
+          answer: |
+              It emits a redstone signal while open, proportional to the
+              number of players accessing it, and has a red-tinted latch.
+        - question: How do I craft a Trapped Chest?
+          answer: |
+              Combine one tripwire hook with one chest in any crafting grid pattern.
+        - question: Do two Trapped Chests combine into a double chest?
+          answer: |
+              Yes, placing two adjacent trapped chests merges them into a
+              large trapped chest with double the storage.
     data_version: "1.21.5"
 ---
 

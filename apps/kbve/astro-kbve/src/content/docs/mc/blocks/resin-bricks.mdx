@@ -1,5 +1,6 @@
 ---
 title: Resin Bricks
+template: splash
 description: |
     Minecraft Resin Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 345
     ref: resin_bricks
     slug: resin-bricks
+    content_rev: 1
     display_name: Resin Bricks
     material: stone
     hardness: 1.5
@@ -24,10 +26,64 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: resin_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Resin Bricks is an orange-toned decorative building block
+            crafted from Resin Brick items, requiring at least a wooden
+            pickaxe to drop. It anchors a small family of shapes, including
+            slabs, stairs, walls, and a chiseled variant.
+        lore: |
+            Added alongside the Pale Garden biome in Java 1.21.4 (snapshot
+            24w44a), completing the resin material chain from clumps to
+            finished masonry blocks.
+    uses:
+        - title: Resin Brick Slab
+          ref: resin_brick_slab
+          detail: |
+              4 Resin Bricks cut on a stonecutter (or 3 crafted) produce
+              slabs for half-height building.
+        - title: Resin Brick Stairs
+          ref: resin_brick_stairs
+          detail: |
+              6 Resin Bricks craft 4 Resin Brick Stairs, or cut 1:1 via
+              stonecutter.
+        - title: Resin Brick Wall
+          ref: resin_brick_wall
+          detail: |
+              6 Resin Bricks craft Resin Brick Walls, also cuttable 1:1 on
+              a stonecutter.
+    found_in:
+        - location: Crafting table
+          detail: Crafted from 4 Resin Brick items arranged in a 2x2 pattern.
+        - location: Stonecutter
+          detail: Also obtainable by cutting Resin Brick items on a stonecutter.
+    faq:
+        - question: What tool do I need to mine Resin Bricks?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe drops
+              nothing.
+        - question: Are Resin Bricks affected by Fortune or Silk Touch?
+          answer: |
+              No, it always drops itself as a normal block regardless of
+              enchantments.
+        - question: Is Resin Bricks flammable?
+          answer: |
+              No, it does not catch fire from lava or nearby flames.
+        - question: What variants can I make from Resin Bricks?
+          answer: |
+              Slabs, stairs, walls, and Chiseled Resin Bricks all craft
+              from or cut from Resin Bricks.
     data_version: "1.21.5"
 ---
 

@@ -89,10 +89,10 @@ def parse_cargo(raw: Any) -> dict:
         return {"total": 0, "severities": severities, "advisories": []}
 
     for entry in raw.get("vulnerabilities", {}).get("list", []):
-        adv = entry.get("advisory", {})
+        adv = entry.get("advisory") or {}
         sev = _cargo_severity(adv)
         severities[sev] += 1
-        pkg = entry.get("package", {})
+        pkg = entry.get("package") or {}
         advisories.append({
             "id": adv.get("id", ""),
             "title": adv.get("title", ""),
@@ -105,9 +105,9 @@ def parse_cargo(raw: Any) -> dict:
     for warning_list in raw.get("warnings", {}).values():
         if isinstance(warning_list, list):
             for w in warning_list:
-                adv = w.get("advisory", {})
+                adv = w.get("advisory") or {}
                 severities["info"] += 1
-                pkg = w.get("package", {})
+                pkg = w.get("package") or {}
                 advisories.append({
                     "id": adv.get("id", ""),
                     "title": adv.get("title", ""),

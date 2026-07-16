@@ -1,5 +1,6 @@
 ---
 title: Fern
+template: splash
 description: |
     Minecraft Fern — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,79 @@ mc_block:
     id: 131
     ref: fern
     slug: fern
+    content_rev: 1
     display_name: Fern
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: fern
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: wheat_seeds
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - hand_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Fern is a short decorative plant that grows on grass and other
+            soil blocks in jungles, taigas, and their variants. Breaking it
+            without shears has only a small chance to drop wheat seeds,
+            unlike breaking it with shears which yields the plant itself.
+        lore: |
+            Ferns do not produce seeds in nature — they reproduce via
+            spores — but Minecraft has them drop wheat seeds as a deliberate
+            gameplay simplification.
+    uses:
+        - title: Large Fern
+          ref: large_fern
+          detail: |
+              Applying bone meal to a fern grows it into a two-block-tall
+              large fern, which drops two ferns when harvested with shears.
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Ferns can be placed in a composter, with roughly a 65% chance
+              to raise the compost level by one.
+    found_in:
+        - location: Jungle and Taiga biomes
+          detail: Generates naturally scattered among short grass in jungles, taigas, snowy taigas, and old-growth taiga variants.
+        - location: Bone meal growth
+          detail: Using bone meal on grass in these biomes can spawn additional ferns and large ferns.
+    faq:
+        - question: What's the best way to harvest ferns for the plant itself?
+          answer: |
+              Use shears. Breaking a fern with shears always drops the fern
+              block; any other tool only has a small chance to drop wheat
+              seeds instead.
+        - question: Does Fortune help when breaking ferns by hand?
+          answer: |
+              Yes. Fortune increases the odds and quantity of wheat seeds
+              dropped when a fern is broken without shears.
+        - question: Can ferns burn?
+          answer: |
+              Yes, ferns are flammable and can be destroyed by nearby fire
+              spreading through vegetation.
+        - question: Where do ferns naturally spawn?
+          answer: |
+              Only in jungle, taiga, snowy taiga, and old-growth taiga
+              biomes and their variants, mixed in with short grass.
     data_version: "1.21.5"
 ---
 

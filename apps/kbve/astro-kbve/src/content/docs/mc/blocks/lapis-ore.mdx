@@ -1,5 +1,6 @@
 ---
 title: Lapis Lazuli Ore
+template: splash
 description: |
     Minecraft Lapis Lazuli Ore — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 102
     ref: lapis_ore
     slug: lapis-ore
+    content_rev: 1
     display_name: Lapis Lazuli Ore
     material: stone
     hardness: 3
     blast_resistance: 3
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lapis_lazuli
+          qty_min: 4
+          qty_max: 9
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: lapis_ore
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - ore
+        - overworld
+    about:
+        description: |
+            Lapis Lazuli Ore is a mineable ore block that yields lapis
+            lazuli dye. It generates in two overlapping vein bands through
+            the Overworld and always drops multiple lapis lazuli per block
+            when mined without Silk Touch.
+        lore: |
+            Introduced in Beta 1.2, it originally dropped only a single
+            shard before the developers raised its yield to 4-8 due to
+            rarity complaints; a deepslate variant was added in 1.17.
+    uses:
+        - title: Lapis Lazuli
+          ref: lapis_lazuli
+          detail: |
+              Mine without Silk Touch to collect 4-9 lapis lazuli per block,
+              used for dye, enchanting table crafting, and the enchanting
+              cost at anvils and enchanting tables.
+    found_in:
+        - location: Overworld underground
+          detail: Generates in two vein batches, most commonly around Y=0, ranging from Y=-64 to Y=64.
+        - location: Stone and deepslate
+          detail: Replaces stone, andesite, diorite, granite, tuff, or deepslate depending on depth.
+    faq:
+        - question: What tool do I need to mine Lapis Lazuli Ore?
+          answer: |
+              A stone pickaxe or better. Wooden and golden pickaxes break
+              the block but drop nothing.
+        - question: Does Fortune affect lapis lazuli ore?
+          answer: |
+              Yes. Fortune III can yield up to 36 lapis lazuli from a single
+              ore block.
+        - question: What does Silk Touch do to lapis ore?
+          answer: |
+              It causes the ore block itself to drop instead of loose
+              lapis lazuli, and disables the Fortune bonus.
+        - question: Where is the best place to find lapis ore?
+          answer: |
+              Around Y=0, where its generation is densest; it also appears
+              from Y=-64 up to Y=64 in two separate vein passes.
     data_version: "1.21.5"
 ---
 

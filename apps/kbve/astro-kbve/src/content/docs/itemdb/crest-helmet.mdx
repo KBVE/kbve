@@ -1,0 +1,43 @@
+---
+title: 'Crest Helmet'
+template: splash
+sidebar:
+    label: 'Crest Helmet'
+    hidden: true
+description: |
+    An armored helmet with a bristling sensor crest that reads as plumage at parade distance. Full head coverage, minor ego coverage.
+ref: 'crest-helmet'
+key: 630
+id: '01KXFBEGM3DAR9YZKRTK0N9G56'
+name: 'Crest Helmet'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'rare'
+buy_price: 160
+emoji: '⛑️'
+img: '/assets/items/equipment/crest-helmet.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'SCFI10'
+  nodes:
+    - 'SCFI10_AHED'
+  slot_keys:
+    - 'AHED'
+  covers:
+    - 'HAIR'
+    - 'SCFI09_HAIR'
+equipment:
+  slot: 'head'
+  bonuses:
+    armor: 2
+    extra:
+      weight: 2
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

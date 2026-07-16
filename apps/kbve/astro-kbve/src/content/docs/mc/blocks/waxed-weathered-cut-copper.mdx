@@ -1,5 +1,6 @@
 ---
 title: Waxed Weathered Cut Copper
+template: splash
 description: |
     Minecraft Waxed Weathered Cut Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 997
     ref: waxed_weathered_cut_copper
     slug: waxed-weathered-cut-copper
+    content_rev: 1
     display_name: Waxed Weathered Cut Copper
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,49 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_weathered_cut_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - blast_resistant
+    about:
+        description: |
+            Waxed Weathered Cut Copper is the cut, patterned form of
+            copper block permanently held at its greenish "weathered"
+            oxidation stage by an applied coat of honeycomb wax.
+        lore: |
+            Introduced with the copper block family, cut copper mirrors
+            real-world sheet copper cladding used in architecture.
+    uses:
+        - title: Stairs and Slabs
+          ref: waxed_weathered_cut_copper_stairs
+          detail: |
+              Cut copper is crafted or stonecut into matching stairs and
+              slabs, letting builders shape weathered copper facades and
+              roofing without further oxidation.
+    found_in:
+        - location: Crafted from Waxed Weathered Copper
+          detail: 4 cut copper blocks are crafted from 4 waxed weathered copper blocks, or produced 1:1 with a stonecutter.
+        - location: Trial Chambers
+          detail: Generates naturally as decorative paneling in trial chamber structures.
+    faq:
+        - question: What tool do I need to mine this block?
+          answer: |
+              A stone pickaxe or better. Anything weaker destroys the
+              block without a drop.
+        - question: Will this block oxidize further over time?
+          answer: |
+              No. The wax coating permanently locks it at the weathered
+              stage.
+        - question: Does Silk Touch or Fortune change what it drops?
+          answer: |
+              No. It always drops itself as a single item, regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Horn Coral
+template: splash
 description: |
     Minecraft Horn Coral — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 633
     ref: horn_coral
     slug: horn-coral
+    content_rev: 1
     display_name: Horn Coral
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Horn Coral is a non-solid decorative block that naturally generates in coral reef structures found in warm ocean biomes. It breaks instantly when mined, but must be harvested with a Silk Touch tool to keep its living form, since it dies and turns into dead coral within seconds if it loses contact with water.
+        lore: |
+            Real horn corals have been extinct since the Permian-Triassic extinction event, making their vivid presence in Minecraft's oceans a quiet nod to a prehistoric reef.
+    faq:
+        - question: How do I collect Horn Coral without it dying?
+          answer: |
+              You must mine it with a tool enchanted with Silk Touch; otherwise it drops nothing, and any placed coral not touching water converts to dead coral within 3-10 seconds.
+        - question: Where does Horn Coral generate?
+          answer: |
+              It generates naturally within coral reef structures found in warm ocean biomes, alongside tube, brain, bubble, and fire coral variants.
+        - question: Can I grow more Horn Coral?
+          answer: |
+              Yes, it is renewable — applying bone meal to suitable substrates like dirt, sand, gravel, or clay in a warm ocean biome can generate new coral.
+        - question: When did Horn Coral become obtainable in Survival?
+          answer: |
+              Although teased as early as 2009, it remained technically unobtainable until Silk Touch harvesting was added in Java Edition 1.13-pre10.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Tinted Glass
+template: splash
 description: |
     Minecraft Tinted Glass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,64 @@ mc_block:
     id: 958
     ref: tinted_glass
     slug: tinted-glass
+    content_rev: 1
     display_name: Tinted Glass
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 15
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: tinted_glass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - nether
+        - end
+    about:
+        description: |
+            Tinted Glass is a decorative block crafted from glass and
+            amethyst shards. It looks translucent but functions as a fully
+            opaque block, blocking all light and beacon beams while
+            remaining non-solid like ordinary glass.
+        lore: |
+            Added in Java Edition 1.17, it reused a name once tied to an
+            April Fools' 2013 block that later became stained glass.
+    uses:
+        - title: Light-blocking windows
+          ref: tinted_glass
+          detail: |
+              Placed as windows or panels where players want to block
+              light or a beacon beam without creating a fully solid wall,
+              since mobs cannot spawn on or suffocate in it.
+    found_in:
+        - location: Crafting table
+          detail: Craft 2 amethyst shards and 1 glass block into 2 tinted glass.
+    faq:
+        - question: Do I need Silk Touch to mine Tinted Glass?
+          answer: |
+              No. Unlike regular glass, tinted glass drops itself when
+              broken with any tool or by hand.
+        - question: Can Tinted Glass be made into panes?
+          answer: |
+              No, unlike other glass types it cannot be crafted into glass panes.
+        - question: Does Tinted Glass block light?
+          answer: |
+              Yes. Despite its transparent appearance it is fully opaque,
+              blocking light and beacon beams completely.
+        - question: Is Tinted Glass solid?
+          answer: |
+              No. Like regular glass, it does not cause mob suffocation and
+              mobs cannot spawn on top of it.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Leaves
+template: splash
 description: |
     Minecraft Dark Oak Leaves — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 94
     ref: dark_oak_leaves
     slug: dark-oak-leaves
+    content_rev: 1
     display_name: Dark Oak Leaves
     material: leaves
     hardness: 0.2
@@ -26,8 +28,77 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dark_oak_leaves
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+        - ref: dark_oak_sapling
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: stick
+          qty_min: 0
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: apple
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - shears_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Dark Oak Leaves are the transparent foliage blocks generated as
+            part of dark oak trees. Without Silk Touch or shears they have a
+            small chance to drop a dark oak sapling or a stick, and are one
+            of only two leaf types — alongside regular oak — that can also
+            drop an apple.
+        lore: |
+            Leaves decay when disconnected from a log within a set
+            distance, a mechanic present since Minecraft's earliest tree
+            generation code.
+    uses:
+        - title: Dark Oak Sapling
+          ref: dark_oak_sapling
+          detail: |
+              Breaking leaves without Silk Touch has roughly a 5% chance
+              (scaling with Fortune) to drop a sapling, used to grow new
+              dark oak trees.
+        - title: Composting material
+          ref: dark_oak_leaves
+          detail: |
+              Leaves can be placed in a composter with roughly a 30% chance
+              per block to produce bone meal.
+    found_in:
+        - location: Dark Oak Trees
+          detail: Generates as the canopy of dark oak trees found in dark forest biomes.
+    faq:
+        - question: What tool do I need to get Dark Oak Leaves as an item?
+          answer: |
+              Shears or any Silk Touch-enchanted tool. Without one of those,
+              the leaves themselves do not drop.
+        - question: Can Dark Oak Leaves drop apples?
+          answer: |
+              Yes. Along with regular Oak Leaves, Dark Oak Leaves have
+              roughly a 0.5% chance to drop an apple when broken without
+              Silk Touch.
+        - question: Do player-placed Dark Oak Leaves decay?
+          answer: |
+              No. Only leaves that generated naturally as part of a tree
+              decay when too far from a log; player-placed leaves persist
+              indefinitely.
+        - question: Does Fortune increase sapling drop chance?
+          answer: |
+              Yes, Fortune increases the odds of both sapling and stick
+              drops from Dark Oak Leaves.
     data_version: "1.21.5"
 ---
 

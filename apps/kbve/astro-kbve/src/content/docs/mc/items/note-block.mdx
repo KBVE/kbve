@@ -1,5 +1,6 @@
 ---
 title: Note Block
+template: splash
 description: |
     Minecraft Note Block — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 711
     ref: note_block
     slug: note-block
+    content_rev: 1
     display_name: Note Block
     category: redstone
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The note block is a wooden redstone component that emits a musical sound when attacked, used, or powered by a redstone signal. Right-clicking cycles its pitch through 25 semitones, and the block directly beneath it selects one of 16 instruments, giving builders up to 400 distinct notes to compose with.
+        lore: |
+            A humble plank rigged to sing, its voice shaped by whatever it stands upon.
+    faq:
+        - question: How do I craft a note block?
+          answer: |
+              Combine any wood planks with redstone dust in a crafting table; any Overworld or Nether wood type works.
+        - question: How many different sounds can one note block make?
+          answer: |
+              With 16 possible instruments and 25 pitches each, a single note block can produce up to 400 distinct notes.
+        - question: How does the instrument sound get chosen?
+          answer: |
+              It depends on the block placed directly under the note block; for example wool gives a guitar, gold blocks give bells, and soul sand gives a cow bell.
+        - question: Do any mobs react to note blocks?
+          answer: |
+              Yes, an allay that hears a note block play within 16 blocks will pathfind to it and spend time dropping nearby items.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

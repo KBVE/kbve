@@ -1,5 +1,6 @@
 ---
 title: Pumpkin Seeds
+template: splash
 description: |
     Minecraft Pumpkin Seeds — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 1046
     ref: pumpkin_seeds
     slug: pumpkin-seeds
+    content_rev: 1
     display_name: Pumpkin Seeds
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Pumpkin seeds are planted on farmland to grow pumpkin stems, which eventually produce
+            pumpkins on adjacent dirt, mud, or moss. They are obtained by breaking mature stems,
+            shearing or crafting pumpkins, or from wandering trader and dungeon-style chest loot.
+        lore: |
+            Pumpkin seeds were added in Beta 1.8 but stayed unobtainable until Beta 1.9 Prerelease
+            2, when craftable pumpkins finally made the crop farmable.
+    faq:
+        - question: |
+              How do I plant pumpkin seeds?
+          answer: |
+              Till dirt into farmland and plant the seeds at a light level of 9 or higher; the
+              stem grows through several stages before producing a pumpkin on an adjacent block.
+        - question: |
+              Can one pumpkin stem grow more than one pumpkin?
+          answer: |
+              Yes, a single stem can grow an unlimited number of pumpkins over time as long as
+              each previous pumpkin is harvested from the adjacent space.
+        - question: |
+              What's the fastest way to get pumpkin seeds early game?
+          answer: |
+              Mineshaft and dungeon chests have the highest drop rates, and shearing an uncarved
+              pumpkin also yields seeds.
+        - question: |
+              Are pumpkin seeds useful for anything besides farming?
+          answer: |
+              Yes, they can breed and lead chickens, help tame parrots, and have a 30% chance to
+              raise a composter's level by one.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

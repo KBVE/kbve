@@ -1,5 +1,6 @@
 ---
 title: Blue Candle
+template: splash
 description: |
     Minecraft Blue Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,74 @@ mc_block:
     id: 915
     ref: blue_candle
     slug: blue-candle
+    content_rev: 1
     display_name: Blue Candle
     material: stone
     hardness: 0.1
     blast_resistance: 0.1
     best_tool: hand
     required_tool_tier: 0
-    light_emission: 0
+    light_emission: 3
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blue_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            The blue candle is a dyed light-source block crafted from a
+            candle and blue dye. Up to four candles of the same color can
+            occupy a single block space, each stacking additional light.
+        lore: |
+            Candles were introduced in the Caves & Cliffs update (1.17) as
+            a compact, dyeable alternative to torches.
+    uses:
+        - title: Light Source
+          ref: blue_candle
+          detail: |
+              Ignite with flint and steel, a fire charge, or a flaming
+              projectile. One candle gives light level 3, and stacking up
+              to four in one block raises it to a maximum of 12.
+        - title: Cake Topping
+          ref: blue_candle_cake
+          detail: |
+              Place directly on top of an uneaten cake to create a candle
+              cake, combining decoration with a light source.
+    found_in:
+        - location: Crafted
+          detail: |
+              Made by combining one candle with blue dye in a crafting
+              grid; the base uncolored candle is crafted from string and
+              a honeycomb.
+    faq:
+        - question: What tool do I need to mine a candle?
+          answer: |
+              None. It breaks instantly with any tool or by hand and
+              always drops itself.
+        - question: Is a candle flammable?
+          answer: |
+              Yes, unlike beds and carpets, candles are flammable and can
+              be destroyed by fire spreading to them.
+        - question: How do I put out a lit candle?
+          answer: |
+              Water, a wind charge, or right-clicking it with an empty
+              hand extinguishes the flame. Waterlogged candles cannot be
+              lit at all.
+        - question: Can I change a candle's color after crafting?
+          answer: |
+              No. Once dyed, a candle's color is permanent; you must
+              craft a new candle with a different dye to get another
+              color.
     data_version: "1.21.5"
 ---
 

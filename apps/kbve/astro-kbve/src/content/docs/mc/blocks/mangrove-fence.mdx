@@ -1,5 +1,6 @@
 ---
 title: Mangrove Fence
+template: splash
 description: |
     Minecraft Mangrove Fence — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 612
     ref: mangrove_fence
     slug: mangrove-fence
+    content_rev: 1
     display_name: Mangrove Fence
     material: wood
     hardness: 2
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mangrove_fence
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+    about:
+        description: |
+            Mangrove Fence is a transparent barrier block crafted from
+            Mangrove Planks and Sticks. It connects visually to adjacent
+            fences and fence gates, forming a 1.5-block-high enclosure that
+            most mobs cannot jump over.
+        lore: |
+            Wooden fences date back to Java Edition Alpha v1.0.17; the
+            mangrove variant was added with the Mangrove Swamp update
+            (1.19).
+    uses:
+        - title: Enclosure Building
+          ref: mangrove_fence
+          detail: |
+              Used to contain animals and mobs, or as decorative railing,
+              since it connects to neighboring fences and gates.
+        - title: Furnace Fuel
+          ref: mangrove_fence
+          detail: |
+              Burns as furnace fuel at 1.5 items per fence.
+    found_in:
+        - location: Crafted from Mangrove Planks and Sticks
+          detail: 4 planks and 2 sticks craft 3 fences.
+    faq:
+        - question: What tool do I need to mine a Mangrove Fence?
+          answer: |
+              None — any tool works by hand, though an axe is fastest.
+        - question: Can mobs jump over a Mangrove Fence?
+          answer: |
+              Most mobs cannot clear its 1.5-block height, making it
+              effective for pens.
+        - question: Does a Mangrove Fence connect to other wood fences?
+          answer: |
+              Yes, fences of all wood types connect to each other visually
+              and functionally.
+        - question: Is Mangrove Fence flammable?
+          answer: |
+              Yes, it can catch fire like other wooden blocks.
     data_version: "1.21.5"
 ---
 

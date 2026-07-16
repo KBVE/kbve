@@ -1,5 +1,6 @@
 ---
 title: Cherry Sign
+template: splash
 description: |
     Minecraft Cherry Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 201
     ref: cherry_sign
     slug: cherry-sign
+    content_rev: 1
     display_name: Cherry Sign
     material: wood
     hardness: 1
@@ -26,8 +28,50 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cherry_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Cherry Sign is a placeable text block crafted from Cherry
+            Planks and a stick, letting players write up to four lines of
+            customizable, dyeable text on a post or wall-mounted board.
+        lore: |
+            Signs date back to Minecraft Classic; the cherry variant
+            arrived with the 1.20 "Trails & Tales" update.
+    uses:
+        - title: Written Signage
+          ref: cherry_sign
+          detail: |
+              Place and use to write text; the text can be recolored with
+              dyes, made glowing with a glow ink sac, and locked from
+              further edits with a honeycomb.
+    found_in:
+        - location: Crafting table
+          detail: Six matching planks plus a stick craft 3 signs.
+    faq:
+        - question: What does a Cherry Sign drop when broken?
+          answer: |
+              It drops itself as an item, including any text written on it.
+        - question: Is Cherry Sign flammable?
+          answer: |
+              Yes, it catches fire from lava and nearby flames like most
+              wooden signs.
+        - question: Can I lock the text on a Cherry Sign?
+          answer: |
+              Yes, applying a honeycomb to a placed sign prevents its text
+              from being edited further.
+        - question: Can Cherry Sign be used as furnace fuel?
+          answer: |
+              Yes, Overworld wood signs (including cherry) can be burned as
+              furnace fuel.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Oak Log
+template: splash
 description: |
     Oak Log — basic wood block. Mineable by hand or axe, drops itself.
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 47
     ref: oak_log
     slug: oak-log
+    content_rev: 1
     display_name: Oak Log
     material: wood
     hardness: 2
@@ -33,8 +35,58 @@ mc_block:
           silk_touch_only: false
           affected_by_fortune: false
     tags:
-        - log
+        - axe_mineable
         - flammable
+        - overworld
+        - log
+    about:
+        description: |
+            Oak Log is the basic wood block harvested from oak trees, one of
+            the most common trees in the Overworld. It can be mined with any
+            tool, or by hand, and always drops itself.
+        lore: |
+            Oak has been the default, most recognizable wood type since
+            Minecraft's earliest versions.
+    uses:
+        - title: Oak Planks
+          ref: oak_planks
+          detail: |
+              Craft one log into 4 Oak Planks, the starting point for most
+              wood-based crafting: tools, sticks, crafting tables, and more.
+        - title: Stripped Oak Log
+          ref: stripped_oak_log
+          detail: |
+              Right-click with an axe to strip the bark, producing Stripped
+              Oak Log for a cleaner building texture.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Burns in a furnace or smoker, smelting 1.5 items per log.
+    found_in:
+        - location: Oak trees
+          detail: Generates naturally as the trunk of oak trees across most Overworld biomes.
+        - location: Villages, mineshafts, shipwrecks
+          detail: Appears as structural material in several generated structures.
+        - location: Wandering Trader
+          detail: Occasionally tradeable, 8 logs per emerald.
+    faq:
+        - question: What is the fastest way to mine Oak Log?
+          answer: |
+              An axe is fastest, but any tool — or bare hands — works since
+              no tool tier is required to get the drop.
+        - question: Does Fortune or Silk Touch change the drop?
+          answer: |
+              No. Oak Log always drops exactly one of itself regardless of
+              enchantments.
+        - question: Can Oak Log burn?
+          answer: |
+              Yes, it is flammable and will catch fire from nearby lava or
+              flames like most wood blocks.
+        - question: What is Oak Log used for?
+          answer: |
+              Primarily crafted into Oak Planks, which feed into nearly
+              every wood-based recipe, and it can also be used as furnace
+              fuel or stripped for a different look.
     data_version: "1.21.5"
 ---
 

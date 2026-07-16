@@ -2,15 +2,16 @@
 # Manages SeccompProfile CRDs so pods can reference custom profiles
 # without placing files on node filesystems (required for Talos).
 
-# Pin the operator image to the chart's release (v0.9.1). The chart default
-# is gcr.io/k8s-staging-sp-operator/...:latest, a floating staging tag that
-# drifted to 1.0.1-dev, which expects the SecurityProfilesOperatorDaemon
-# kind in v1 while the v0.9.1 chart only ships v1alpha1 -> operator
-# crashlooped (3000+ restarts) on "no matches for kind ... v1".
+# Pin the operator image to the chart's release. Keep this tag identical to
+# the Application targetRevision so the chart CRDs and the operator image
+# agree on the SecurityProfilesOperatorDaemon kind. v1.0.0 graduates all CRDs
+# to v1 and ships runc v1.5.0 (v0.9.1's spod hit StartError:128 on the Talos
+# 6.18 kernel: statx(STATX_MNT_ID) "operation not permitted", never installing
+# the firecracker-jailer profile). Never point at the floating staging :latest.
 spoImage:
     registry: registry.k8s.io
     repository: security-profiles-operator/security-profiles-operator
-    tag: v0.9.1
+    tag: v1.0.0
 
 enableLogEnricher: false
 enableRecordingHook: false

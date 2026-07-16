@@ -1,5 +1,6 @@
 ---
 title: Purple Bundle
+template: splash
 description: |
     Minecraft Purple Bundle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,44 @@ mc_item:
     id: 985
     ref: purple_bundle
     slug: purple-bundle
+    content_rev: 1
     display_name: Purple Bundle
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A purple bundle is a dyed variant of the bundle, a storage item that holds a mixed
+            assortment of items in one inventory slot. Craft a plain bundle from string and
+            leather, then dye it with purple dye. Capacity is based on stack size, so many small
+            or non-stackable items still fit.
+        lore: |
+            Bundles were first revealed at Minecraft Live 2020, inspired by the ancient Roman coin
+            purse, and finally shipped in October 2024 as the last feature from that reveal to
+            release.
+    faq:
+        - question: |
+              How much can a purple bundle hold?
+          answer: |
+              A bundle holds one stack's worth of space total; an item stacking to 64 takes 1/64
+              of that space, an item stacking to 16 takes 1/16, and non-stackable items fill the
+              entire bundle.
+        - question: |
+              Can I recolor a purple bundle later?
+          answer: |
+              No, bundles only dye to one of the 16 standard colors and cannot be dyed to the
+              color they already are.
+        - question: |
+              Can a purple bundle go inside a shulker box?
+          answer: |
+              Yes, bundles can be stored inside shulker boxes, but shulker boxes cannot be placed
+              inside a bundle.
+        - question: |
+              How do I take a specific item out of a purple bundle?
+          answer: |
+              Right-click the bundle to open its contents and select which stored item to remove.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

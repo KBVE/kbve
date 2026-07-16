@@ -1,5 +1,6 @@
 ---
 title: Nether Sprouts
+template: splash
 description: |
     Minecraft Nether Sprouts — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 253
     ref: nether_sprouts
     slug: nether-sprouts
+    content_rev: 1
     display_name: Nether Sprouts
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Nether Sprouts are non-solid fungi blocks that generate naturally in warped forests,
+            or can be grown by applying bone meal to warped nylium. They must be broken with
+            shears to be collected as an item, and can be composted for a chance at raising a
+            composter's level.
+        lore: |
+            Introduced alongside the Nether Update's warped forest biome, Nether Sprouts add a
+            splash of teal fungal life to the otherwise barren warped landscape.
+    faq:
+        - question: Where do Nether Sprouts generate?
+          answer: |
+              They generate naturally in warped forest biomes in the Nether, and can also be
+              spread by bone-mealing warped nylium.
+        - question: How do you collect Nether Sprouts?
+          answer: |
+              You must break them with shears; breaking them with any other tool destroys the
+              block without dropping an item.
+        - question: What blocks can Nether Sprouts be placed on?
+          answer: |
+              They can be placed on nylium, soul soil, grass, dirt, podzol, mycelium, moss,
+              coarse dirt, rooted dirt, and farmland.
+        - question: Do Nether Sprouts have a crimson forest counterpart?
+          answer: |
+              No, unlike most warped forest plants, Nether Sprouts have no corresponding block in
+              the crimson forest biome.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

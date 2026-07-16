@@ -1,7 +1,9 @@
 ---
 title: Stripped Crimson Hyphae
+template: splash
 description: |
-    Minecraft Stripped Crimson Hyphae — vanilla 1.21.5 block record (auto-generated).
+    Minecraft Stripped Crimson Hyphae — the bark-stripped variant of Crimson
+    Hyphae from the Nether, non-flammable and axe-obtained. Uses and FAQ.
 sidebar:
     label: Stripped Crimson Hyphae
     hidden: true
@@ -13,6 +15,7 @@ mc_block:
     id: 833
     ref: stripped_crimson_hyphae
     slug: stripped-crimson-hyphae
+    content_rev: 1
     display_name: Stripped Crimson Hyphae
     material: nether
     hardness: 2
@@ -24,10 +27,59 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_crimson_hyphae
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            Stripped Crimson Hyphae is the bark-free form of Crimson Hyphae,
+            showing the plank-like pattern on all six faces. Unlike overworld
+            wood, it does not burn, matching the fireproof nature of Nether
+            fungal growths.
+        lore: |
+            Crimson Hyphae and its stripped variant were added with the Nether
+            Update (1.16) alongside the Crimson Forest biome.
+    uses:
+        - title: Crimson Planks
+          ref: crimson_planks
+          detail: |
+              Craft into 4 Crimson Planks per block, or use directly as a
+              fireproof, bark-free building block for Nether-themed builds.
+        - title: Soul Campfire / Smoker
+          ref: soul_campfire
+          detail: |
+              Used as a crafting ingredient for campfires, soul campfires,
+              and smokers in place of the plain stripped stem.
+    found_in:
+        - location: Crafted, not naturally generated
+          detail: |
+              Does not generate naturally; obtained only by stripping Crimson
+              Hyphae with an axe, or by crafting 4 Stripped Crimson Stems
+              into 3 Stripped Crimson Hyphae blocks.
+    faq:
+        - question: How do I get Stripped Crimson Hyphae?
+          answer: |
+              Use any axe on a Crimson Hyphae block placed in the world.
+        - question: Is Stripped Crimson Hyphae flammable?
+          answer: |
+              No. Crimson and Warped hyphae/stems do not burn, unlike
+              overworld wood types.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool, including bare hands, drops the block. An axe is
+              fastest.
+        - question: Can it be used as furnace fuel?
+          answer: |
+              No. Since it is non-flammable, Crimson and Warped wood blocks
+              cannot be burned as fuel in furnaces.
     data_version: "1.21.5"
 ---
 

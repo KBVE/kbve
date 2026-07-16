@@ -1,5 +1,6 @@
 ---
 title: Block of Copper
+template: splash
 description: |
     Minecraft Block of Copper — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 91
     ref: copper_block
     slug: copper-block
+    content_rev: 1
     display_name: Block of Copper
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A block of copper is a compact storage block crafted from nine
+            copper ingots that gradually oxidizes over time, passing through
+            exposed, weathered, and oxidized stages with a growing verdigris
+            appearance. Waxing it with honeycomb halts the process permanently.
+        lore: |
+            A solid ingot storage block that slowly weathers into a
+            beautiful teal-green patina if left untreated.
+    faq:
+        - question: How do you craft a block of copper?
+          answer: |
+              Arrange nine copper ingots in a 3x3 pattern on a crafting
+              table to produce one block of copper.
+        - question: How does copper oxidation work?
+          answer: |
+              A block of copper progresses through four visual stages over
+              time — copper, exposed, weathered, and oxidized — each adding
+              more green discoloration.
+        - question: How do you stop a copper block from oxidizing?
+          answer: |
+              Apply a honeycomb to the block to wax it, which locks it at
+              its current oxidation stage permanently.
+        - question: Can oxidation be reversed?
+          answer: |
+              Yes, scraping the block with an axe removes one oxidation
+              stage or strips wax, and a lightning strike fully
+              deoxidizes it instantly.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

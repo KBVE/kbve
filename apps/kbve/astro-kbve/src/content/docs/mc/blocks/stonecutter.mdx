@@ -1,5 +1,6 @@
 ---
 title: Stonecutter
+template: splash
 description: |
     Minecraft Stonecutter — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 814
     ref: stonecutter
     slug: stonecutter
+    content_rev: 1
     display_name: Stonecutter
     material: stone
     hardness: 3.5
     blast_resistance: 3.5
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,63 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stonecutter
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            The Stonecutter is a crafting station that converts stone-type
+            blocks into their cut variants, such as stairs, slabs, and
+            bricks, using a single click instead of a crafting grid
+            pattern. It also serves as the job site block for mason
+            villagers.
+        lore: |
+            Added in the 1.14 Village & Pillage update, the Stonecutter
+            gave stone-family recipes a dedicated one-to-one conversion
+            tool.
+    uses:
+        - title: Stone Block Conversion
+          ref: stone_stairs
+          detail: |
+              Converts a single stone-family block directly into stairs,
+              slabs, walls, or bricks without needing a crafting-table
+              pattern.
+        - title: Mason Job Site
+          ref: villager
+          detail: |
+              Claimed by an unemployed villager to become a mason, who then
+              trades stone-related goods.
+    found_in:
+        - location: Village mason houses
+          detail: Naturally generates inside mason workstation buildings in villages.
+        - location: Crafted
+          detail: One iron ingot and three stone blocks craft a stonecutter.
+    faq:
+        - question: What tool do I need to mine a Stonecutter?
+          answer: |
+              At least a wooden pickaxe. Without one, it breaks with no
+              drop.
+        - question: What's the advantage of a Stonecutter over a crafting table?
+          answer: |
+              It converts one input block into one output item without
+              needing a specific grid pattern, and offers more stone-family
+              recipes in one place, including efficient stair and cut
+              copper conversions.
+        - question: Can Bedrock Edition use other stone types to craft it?
+          answer: |
+              Yes. Bedrock Edition also accepts granite, diorite, andesite,
+              and their polished forms, while Java Edition requires plain
+              stone.
+        - question: Does a Stonecutter give villagers a job?
+          answer: |
+              Yes, an unemployed villager claiming a stonecutter becomes a
+              mason.
     data_version: "1.21.5"
 ---
 

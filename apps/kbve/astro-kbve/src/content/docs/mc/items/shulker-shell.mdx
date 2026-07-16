@@ -1,5 +1,6 @@
 ---
 title: Shulker Shell
+template: splash
 description: |
     Minecraft Shulker Shell — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1227
     ref: shulker_shell
     slug: shulker-shell
+    content_rev: 1
     display_name: Shulker Shell
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Shulker Shells are items dropped by shulkers when killed, used solely to craft Shulker
+            Boxes when combined with a chest. Each shulker has around a 50% base chance to drop a
+            shell, with the chance boosted further by the Looting enchantment. Since shulkers can
+            spawn additional shulkers when struck by their own bullets, shells are a renewable
+            resource.
+        lore: |
+            Peeled from the armored husk of a defeated shulker, the shell still hums faintly with
+            the creature's End-born resilience.
+    faq:
+        - question: How do you get Shulker Shells?
+          answer: |
+              Shulker Shells drop from shulkers when they are killed, most commonly found and
+              farmed in End cities.
+        - question: What is the drop chance for a Shulker Shell?
+          answer: |
+              A shulker has roughly a 50% base chance to drop a shell, and this chance increases
+              with higher levels of the Looting enchantment.
+        - question: What are Shulker Shells used for?
+          answer: |
+              Their only use is crafting a Shulker Box by combining one shell and a chest, though
+              two shells and a chest are needed for the full recipe.
+        - question: Are Shulker Shells renewable?
+          answer: |
+              Yes, since shulkers can spawn new shulkers when hit by their own bullets, players can
+              farm shells indefinitely without depleting the source.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

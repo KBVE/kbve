@@ -1,5 +1,6 @@
 ---
 title: Jungle Fence Gate
+template: splash
 description: |
     Minecraft Jungle Fence Gate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 598
     ref: jungle_fence_gate
     slug: jungle-fence-gate
+    content_rev: 1
     display_name: Jungle Fence Gate
     material: wood
     hardness: 2
@@ -21,13 +23,58 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: jungle_fence_gate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Jungle Fence Gate is a wooden gate that acts as a switchable
+            barrier, blending with fences to keep mobs and animals penned
+            in while letting players pass through when opened.
+        lore: |
+            Fence gates have connected fences since Beta 1.8, with jungle
+            wood variants added alongside jungle trees.
+    uses:
+        - title: Fence Barrier Opening
+          ref: jungle_fence
+          detail: |
+              Placed within a fence line, it opens and closes by hand,
+              redstone signal, or a nearby wind charge impact.
+    found_in:
+        - location: Crafted
+          detail: Two Sticks and four Jungle Planks in a 3x3 grid.
+        - location: Jungle Villages
+          detail: Generates as part of village fencing in jungle biomes.
+    faq:
+        - question: What tool mines a Jungle Fence Gate fastest?
+          answer: |
+              An axe, though any tool or bare hands can break it since it
+              always drops itself.
+        - question: Is a Jungle Fence Gate flammable?
+          answer: |
+              Yes, being made of wood it can catch fire, unlike the
+              crimson and warped fence gates.
+        - question: How tall is a closed fence gate for jumping mobs?
+          answer: |
+              Although it appears one block tall, a closed fence gate acts
+              as a barrier one and a half blocks high, blocking most mobs
+              from jumping over it.
+        - question: Can a Jungle Fence Gate be used as furnace fuel?
+          answer: |
+              Yes, Overworld wooden fence gates smelt 1.5 items per gate
+              when used as furnace fuel.
     data_version: "1.21.5"
 ---
 

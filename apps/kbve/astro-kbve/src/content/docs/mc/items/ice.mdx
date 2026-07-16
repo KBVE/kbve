@@ -1,5 +1,6 @@
 ---
 title: Ice
+template: splash
 description: |
     Minecraft Ice — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 326
     ref: ice
     slug: ice
+    content_rev: 1
     display_name: Ice
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Ice is a transparent block formed from frozen water that naturally generates in frozen biomes, frozen oceans, and snowy beaches. Its slippery surface causes entities to slide across it, and boats can reach speeds of 40 m/s on it, making ice highways a popular fast-travel technique.
+        lore: |
+            Because sky light is ignored for melting, an ice block sitting under open sky never melts from sunlight alone — only from nearby artificial light or a non-Silk Touch pickaxe.
+    faq:
+        - question: How do I collect Ice without it turning to water?
+          answer: |
+              You need a pickaxe enchanted with Silk Touch; without it, the block breaks and is replaced with water instead of dropping ice.
+        - question: Why is ice useful for travel?
+          answer: |
+              Boats travel extremely quickly on ice, reaching about 40 m/s versus roughly 8 m/s on water, and ice can even be placed in the Nether where water cannot, enabling long-distance boat highways.
+        - question: Does sunlight melt ice?
+          answer: |
+              No, sky light level is ignored for melting, so ice does not melt from sunlight — only from nearby block light level 12 or higher, or when mined without Silk Touch.
+        - question: What can I craft with ice?
+          answer: |
+              Nine ice blocks craft into a single packed ice block for more compact storage or building.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

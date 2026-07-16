@@ -1,5 +1,6 @@
 ---
 title: Cake with Red Candle
+template: splash
 description: |
     Minecraft Cake with Red Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 935
     ref: red_candle_cake
     slug: red-candle-cake
+    content_rev: 1
     display_name: Cake with Red Candle
     material: stone
     hardness: 0.5
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Cake with Red Candle is a combination decoration block created
+            by placing a Red Candle on top of an uneaten cake. It can be
+            lit for light and still provides food, but only drops the
+            candle when broken.
+        lore: |
+            Candle cakes were introduced in Java Edition 1.17, letting
+            players merge the cake's birthday theme with a lightable
+            candle.
+    uses:
+        - title: Light Source
+          ref: red_candle
+          detail: |
+              Light with flint and steel or a fire charge to emit a light
+              level of 3, doubling as a lit birthday-cake decoration.
+        - title: Food
+          ref: cake
+          detail: |
+              Right-clicking without a candle in hand eats a slice,
+              restoring 2 hunger points; eating removes the candle.
+    found_in:
+        - location: Placing a candle on cake
+          detail: Use a Red Candle item on an unbitten Cake block to create Cake with Red Candle.
+        - location: Player builds
+          detail: Common in decorative birthday or celebration builds rather than natural generation.
+    faq:
+        - question: What does Cake with Red Candle drop when mined?
+          answer: |
+              Only the Red Candle. The cake itself is destroyed and drops
+              nothing.
+        - question: Can I still eat a cake with a candle on it?
+          answer: |
+              Yes. Right-clicking without a candle selected eats a slice;
+              the candle pops off once the cake is fully eaten.
+        - question: What tool do I need to break it?
+          answer: |
+              None. It has low hardness and breaks quickly with any tool
+              or bare hands.
+        - question: Can the candle on the cake be lit?
+          answer: |
+              Yes, with flint and steel or a fire charge, giving light
+              level 3 like a single placed candle.
     data_version: "1.21.5"
 ---
 

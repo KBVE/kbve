@@ -1,5 +1,6 @@
 ---
 title: Rose Bush
+template: splash
 description: |
     Minecraft Rose Bush — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 527
     ref: rose_bush
     slug: rose-bush
+    content_rev: 1
     display_name: Rose Bush
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,50 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: rose_bush
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+    about:
+        description: |
+            Rose Bush is a tall, two-block-high flower prized for its
+            bright red blooms. Breaking either half drops the whole plant
+            as a single item, ready to be replanted elsewhere.
+        lore: |
+            Introduced with the Flower Forest and tall-flower additions,
+            Rose Bush gave red dye a natural, renewable plant source
+            beyond poppies.
+    uses:
+        - title: Red Dye
+          ref: red_dye
+          detail: |
+              Crafting or placing a Rose Bush in the crafting grid yields
+              2 Red Dye, useful for dyeing wool, banners, and other
+              colorable items.
+    found_in:
+        - location: Forest and Flower Forest biomes
+          detail: Generates naturally on grass and dirt in forest, flower forest, birch forest, old-growth birch forest, and dark forest biomes.
+    faq:
+        - question: What tool do I need to break a Rose Bush?
+          answer: |
+              None — it breaks instantly with any tool or bare hands.
+        - question: What does a Rose Bush drop?
+          answer: |
+              Breaking either the top or bottom half drops the entire
+              plant as one item, which can be replanted as a two-block
+              tall flower.
+        - question: Does a Rose Bush damage the player when walked through?
+          answer: |
+              No, despite its thorny appearance it deals no damage.
+        - question: Can bees interact with a Rose Bush?
+          answer: |
+              Yes, bees can pollinate it, and its presence near trees can
+              influence bee nest generation.
     data_version: "1.21.5"
 ---
 

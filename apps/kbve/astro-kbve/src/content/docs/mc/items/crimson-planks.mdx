@@ -1,5 +1,6 @@
 ---
 title: Crimson Planks
+template: splash
 description: |
     Minecraft Crimson Planks — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 46
     ref: crimson_planks
     slug: crimson-planks
+    content_rev: 1
     display_name: Crimson Planks
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Crimson planks are a non-flammable Nether wood variant crafted from crimson
+            stems, used as a building block and as an ingredient for stairs, slabs,
+            fences, doors, and trapdoors. Unlike Overworld planks, crimson planks cannot
+            be used to craft boats and do not burn as furnace fuel.
+        lore: |
+            Their deep red grain marks them as timber grown in the Nether's fungal
+            forests rather than any ordinary tree.
+    faq:
+        - question: How many crimson planks do you get from one crimson stem?
+          answer: |
+              Placing a single crimson stem (or hyphae) in a crafting grid yields 4
+              crimson planks.
+        - question: Can crimson planks be used to craft a boat?
+          answer: |
+              No, crimson and warped planks are the only plank types that cannot be
+              crafted into boats.
+        - question: Do crimson planks burn as furnace fuel?
+          answer: |
+              No, crimson and warped planks are non-flammable and cannot be used as
+              furnace fuel, unlike Overworld plank types.
+        - question: Can crimson planks be mixed with other plank types in recipes?
+          answer: |
+              Recipes like doors and boats require matching plank types, but items such
+              as barrels and bookshelves accept any mix of plank types including crimson.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

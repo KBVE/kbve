@@ -1,5 +1,6 @@
 ---
 title: Shulker Spawn Egg
+template: splash
 description: |
     Minecraft Shulker Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1119
     ref: shulker_spawn_egg
     slug: shulker-spawn-egg
+    content_rev: 1
     display_name: Shulker Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Shulker Spawn Egg is used to summon a shulker, a hostile cubic mob found in the
+            End that generates naturally on the walls of End cities and End ships. Shulkers stay
+            attached to a surface, opening to fire homing bullets that inflict Levitation when a
+            target comes near, and they can teleport short distances to evade attacks.
+        lore: |
+            Right-click any surface with this egg to attach one of the End's armored, teleporting
+            sentinels in place.
+    faq:
+        - question: How do you use a Shulker Spawn Egg?
+          answer: |
+              Right-click or interact with a block surface using the spawn egg to attach a shulker
+              to that surface, oriented to the face you targeted.
+        - question: Where do shulkers normally spawn without an egg?
+          answer: |
+              Shulkers generate naturally during the creation of End cities, typically on walls and
+              End ships in the outer islands of the End.
+        - question: Why are shulkers dangerous?
+          answer: |
+              When a target comes within about 16 blocks, a shulker opens and fires guided bullets
+              that inflict Levitation, and it gains 20 armor points while closed for protection.
+        - question: Can shulkers teleport?
+          answer: |
+              Yes, they can teleport to a random position within a 17x17x17 cube around themselves
+              as long as they find a valid surface to reattach to.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

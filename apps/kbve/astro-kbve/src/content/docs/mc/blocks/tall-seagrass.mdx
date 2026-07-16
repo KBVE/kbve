@@ -1,5 +1,6 @@
 ---
 title: Tall Seagrass
+template: splash
 description: |
     Minecraft Tall Seagrass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,76 @@ mc_block:
     id: 137
     ref: tall_seagrass
     slug: tall-seagrass
+    content_rev: 1
     display_name: Tall Seagrass
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: seagrass
+          qty_min: 2
+          qty_max: 2
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - shears_mineable
+        - non_flammable
+        - overworld
+        - plant
+        - water_plant
+    about:
+        description: |
+            Tall seagrass is a two-block-tall aquatic plant found across
+            ocean floors, providing decoration and food for turtles. It
+            occupies both a full water block and the block above it,
+            unlike most other tall plants.
+        lore: |
+            Added in Java Edition 1.13 (18w07a) as part of the Update
+            Aquatic, alongside regular seagrass and kelp.
+    uses:
+        - title: Turtle Breeding
+          ref: seagrass
+          detail: |
+              Turtles eat seagrass to enter breeding mode; tall seagrass
+              growing near beaches keeps them fed and nearby.
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Has a 30% chance to raise a composter's level by one when
+              harvested for its item form.
+    found_in:
+        - location: Non-frozen oceans and rivers
+          detail: Generates in shallow and deep ocean variants, underwater caves, and swamps.
+        - location: Bone meal on seagrass
+          detail: Applying bone meal to regular seagrass can grow it into tall seagrass if there is a free water block above.
+    faq:
+        - question: How do I harvest Tall Seagrass?
+          answer: |
+              Only shears (or a tool with Silk Touch) will drop it, giving
+              2 seagrass items; breaking it with anything else drops
+              nothing.
+        - question: Can Tall Seagrass grow on land?
+          answer: |
+              No, it requires two stacked water source blocks and cannot
+              be placed or survive outside of water.
+        - question: Is Tall Seagrass affected by fire or lava?
+          answer: |
+              No, being submerged it is non-flammable and cannot be
+              ignited.
+        - question: Why can't I get Tall Seagrass in Creative mode?
+          answer: |
+              It has no direct item form obtainable through the Creative
+              inventory or commands — only regular seagrass can be placed,
+              which then may grow into the tall variant.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Warden Spawn Egg
+template: splash
 description: |
     Minecraft Warden Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,44 @@ mc_item:
     id: 1138
     ref: warden_spawn_egg
     slug: warden-spawn-egg
+    content_rev: 1
     display_name: Warden Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            This spawn egg summons a Warden, a blind hostile mob nearly 3 blocks tall that
+            hunts by vibration and smell from the Deep Dark biome. With 500 health and
+            devastating melee and sonic boom attacks that bypass armor and shields, the
+            Warden is meant to be avoided rather than fought in normal survival.
+        lore: |
+            The souls trapped within the Warden's chest manifest as a heartbeat that
+            quickens with its growing agitation, an acoustic herald of its rage.
+    faq:
+        - question: |
+              How is a Warden normally encountered without a spawn egg?
+          answer: |
+              Wardens are not naturally obtainable in survival; they spawn only after
+              players trigger a sculk shrieker four times, causing an automatic summon
+              after 4.5 seconds.
+        - question: |
+              Can I use the spawn egg to place a Warden anywhere?
+          answer: |
+              In Creative mode yes, but it needs a valid block with a complete top surface
+              and no liquid in its lowest occupied block to land on.
+        - question: |
+              Does a spawn egg Warden behave differently from a shrieker-summoned one?
+          answer: |
+              It follows the same standard behavior, but naming a spawn-egg Warden with a
+              name tag prevents it from despawning, unlike shrieker-summoned ones.
+        - question: |
+              What does a Warden drop when killed?
+          answer: |
+              Regardless of how it was summoned, a Warden drops one sculk catalyst and
+              five experience points upon death.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

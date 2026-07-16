@@ -1,5 +1,6 @@
 ---
 title: Exposed Copper Door
+template: splash
 description: |
     Minecraft Exposed Copper Door — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 756
     ref: exposed_copper_door
     slug: exposed-copper-door
+    content_rev: 1
     display_name: Exposed Copper Door
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Exposed Copper Door is the second oxidation stage of the copper door, a
+            functional door that opens and closes just like wooden doors but with a weathered,
+            green-spotted copper finish. It can be opened by players or mobs by hand, or toggled
+            remotely with a redstone signal.
+        lore: |
+            Copper doors generate naturally in trial chambers and were added to give copper
+            builds their own matching functional doors and trapdoors.
+    faq:
+        - question: How do you get an Exposed Copper Door?
+          answer: |
+              It cannot be crafted directly; obtain it by letting an unwaxed copper door oxidize
+              naturally over time, or by scraping a more weathered copper door back one stage
+              with an axe.
+        - question: Does the Exposed Copper Door need redstone to open?
+          answer: |
+              No, it can be opened and closed by hand like a wooden door, and it can also be
+              triggered by a redstone signal.
+        - question: Can you stop an Exposed Copper Door from oxidizing further?
+          answer: |
+              Yes, applying honeycomb waxes the door, permanently locking it at the exposed
+              stage until an axe removes the wax.
+        - question: What tool is needed to mine an Exposed Copper Door?
+          answer: |
+              It can be mined with any tool, though pickaxes are fastest; it has a hardness of 3
+              and a blast resistance of 6.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

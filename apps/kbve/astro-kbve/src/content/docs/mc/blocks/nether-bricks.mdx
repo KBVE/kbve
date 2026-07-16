@@ -1,5 +1,6 @@
 ---
 title: Nether Bricks
+template: splash
 description: |
     Minecraft Nether Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,74 @@ mc_block:
     id: 350
     ref: nether_bricks
     slug: nether-bricks
+    content_rev: 1
     display_name: Nether Bricks
     material: nether
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: nether_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+        - blast_resistant
+    about:
+        description: |
+            Nether Bricks are the dark red building blocks that make up
+            Nether fortresses, crafted from Nether Brick items smelted from
+            netherrack. Their presence within a fortress structure is what
+            allows fortress mobs such as blazes and wither skeletons to
+            spawn.
+        lore: |
+            Introduced alongside Nether fortresses in the original Nether
+            update, they became renewable in 1.16 through piglin bartering.
+    uses:
+        - title: Nether Brick Fence
+          ref: nether_brick_fence
+          detail: |
+              4 Nether Bricks craft 6 Nether Brick Fences, used for
+              fortress-style barriers.
+        - title: Nether Brick Stairs, Slab, Wall
+          ref: nether_brick_stairs
+          detail: |
+              Nether Bricks craft or stonecut into stairs, slabs, and
+              walls for decorative fortress construction.
+    found_in:
+        - location: Nether Fortresses
+          detail: Forms the walls, floors, and pillars of fortress structures throughout the Nether.
+        - location: Crafted from Nether Brick items
+          detail: 4 Nether Brick items arranged in a square craft 1 Nether Bricks block.
+    faq:
+        - question: Do Nether Bricks enable mob spawning?
+          answer: |
+              Yes. Nether fortress mobs like blazes, wither skeletons, and
+              piglin brutes can only spawn on full Nether Brick blocks
+              within fortress bounds.
+        - question: What tool do I need to mine Nether Bricks?
+          answer: |
+              Any pickaxe, including wood. Mining without a pickaxe drops
+              nothing.
+        - question: Are Nether Bricks renewable?
+          answer: |
+              Yes. Piglins can barter Nether Brick items in exchange for
+              gold ingots, making the block fully renewable.
+        - question: Are Nether Bricks flammable?
+          answer: |
+              No. They do not burn and are immune to ghast fireballs, which
+              is part of why fortresses withstand blaze and ghast attacks.
     data_version: "1.21.5"
 ---
 

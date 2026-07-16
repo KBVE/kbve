@@ -1,5 +1,6 @@
 ---
 title: Exposed Cut Copper
+template: splash
 description: |
     Minecraft Exposed Cut Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 974
     ref: exposed_cut_copper
     slug: exposed-cut-copper
+    content_rev: 1
     display_name: Exposed Cut Copper
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: exposed_cut_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Exposed Cut Copper is a decorative stonecutter variant of Cut
+            Copper carrying the first stage of copper oxidation, giving it a
+            duller, slightly greenish tint compared to fresh copper blocks.
+            It weathers further into Weathered and Oxidized Cut Copper over
+            time unless treated with wax.
+        lore: |
+            Cut Copper and its weathering stages were added in the Caves &
+            Cliffs update to give copper the same aged, patina-driven look
+            long associated with real-world copper roofing.
+    uses:
+        - title: Exposed Cut Copper Stairs
+          ref: exposed_cut_copper_stairs
+          detail: |
+              Stonecutting or crafting 3 Exposed Cut Copper yields 4 stairs,
+              useful for sloped roofing that matches the oxidized aesthetic.
+        - title: Exposed Cut Copper Slab
+          ref: exposed_cut_copper_slab
+          detail: |
+              Stonecutting or crafting 3 Exposed Cut Copper yields 6 slabs
+              for half-height detailing.
+    found_in:
+        - location: Trial Chambers
+          detail: Naturally generates as a structural block in trial chamber vaults and corridors.
+        - location: Player builds
+          detail: Crafted or stonecut from Exposed Copper Blocks, which form naturally by waiting or by applying honeycomb-free copper to speed weathering.
+    faq:
+        - question: What tool do I need to mine Exposed Cut Copper?
+          answer: |
+              A stone pickaxe or better. Mining with your hand or a wooden
+              pickaxe destroys the block without dropping it.
+        - question: Does it keep weathering after I place it?
+          answer: |
+              Yes, unless waxed with honeycomb. Left untreated it continues
+              weathering toward Weathered and then Oxidized Cut Copper.
+        - question: Can I reverse the oxidation?
+          answer: |
+              Yes. Scraping it with an axe removes one weathering stage,
+              turning Exposed Cut Copper back into plain Cut Copper.
+        - question: Is it affected by Silk Touch or Fortune?
+          answer: |
+              No. It always drops itself as a single item regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

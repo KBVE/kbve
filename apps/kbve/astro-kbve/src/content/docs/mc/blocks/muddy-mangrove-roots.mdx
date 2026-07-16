@@ -1,5 +1,6 @@
 ---
 title: Muddy Mangrove Roots
+template: splash
 description: |
     Minecraft Muddy Mangrove Roots — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 59
     ref: muddy_mangrove_roots
     slug: muddy-mangrove-roots
+    content_rev: 1
     display_name: Muddy Mangrove Roots
     material: dirt
     hardness: 0.7
@@ -24,10 +26,56 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: muddy_mangrove_roots
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+    about:
+        description: |
+            Muddy Mangrove Roots form where mud meets mangrove tree roots,
+            filling the gaps beneath a mangrove's tangled root system.
+            They are mostly decorative but still support planting.
+        lore: |
+            Added in Java Edition 1.19 alongside the rest of the mangrove
+            swamp biome overhaul, they complete the waterlogged root
+            aesthetic of mangrove trees.
+    uses:
+        - title: Mangrove Sapling Growth
+          ref: mangrove_propagule
+          detail: |
+              When a mangrove propagule grows into a tree over muddy
+              mangrove roots, it can convert them to plain mangrove roots
+              or, with azalea growth nearby, into rooted dirt.
+    found_in:
+        - location: Mangrove Swamp
+          detail: Generates naturally wherever mud intersects the root systems of mangrove trees.
+        - location: Crafted from Mud + Mangrove Roots
+          detail: Combine a mud block with mangrove roots to craft it directly.
+        - location: Trial Chamber Entrances
+          detail: Also found decorating some trial chamber entrances.
+    faq:
+        - question: What tool do I need to mine Muddy Mangrove Roots?
+          answer: |
+              None — it can be broken by hand, though a shovel is fastest.
+        - question: Can I plant on Muddy Mangrove Roots?
+          answer: |
+              Yes. Saplings, sugar cane, sweet berries, and bamboo can all
+              be planted on top of it.
+        - question: How do I get Muddy Mangrove Roots?
+          answer: |
+              Craft mud with mangrove roots, or harvest them directly from
+              mangrove swamp biomes where they generate naturally.
+        - question: Do Muddy Mangrove Roots turn into anything over time?
+          answer: |
+              Saplings grown over them convert the block to dirt, and
+              nearby azalea growth can turn them into rooted dirt.
     data_version: "1.21.5"
 ---
 

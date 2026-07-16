@@ -1,5 +1,6 @@
 ---
 title: Green Candle
+template: splash
 description: |
     Minecraft Green Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 917
     ref: green_candle
     slug: green-candle
+    content_rev: 1
     display_name: Green Candle
     material: stone
     hardness: 0.1
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: green_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            A dyeable, placeable light source colored with green dye. Up
+            to four green candles can occupy a single block space, and it
+            can be placed atop an uneaten cake as a candle cake.
+        lore: |
+            Candles were introduced in Java Edition 1.17 (Caves & Cliffs
+            Part I) as the first dyeable light-emitting block.
+    uses:
+        - title: Ambient Lighting
+          ref: green_candle
+          detail: |
+              Lighting with flint and steel or a fire charge produces
+              light level 3 per candle, stacking up to light level 12
+              with four in one block.
+        - title: Green Candle Cake
+          ref: green_candle_cake
+          detail: |
+              Right-clicking an uneaten cake with a green candle places it
+              on top, creating a decorative candle cake.
+    found_in:
+        - location: Crafting
+          detail: Combine a plain candle with green dye at a crafting table.
+        - location: Ancient cities and trial chambers
+          detail: Undyed candles generate naturally and can be dyed afterward.
+    faq:
+        - question: How many green candles fit in one block?
+          answer: |
+              Up to four candles of the same color can occupy a single
+              block space, increasing the light level with each one added.
+        - question: What tool is needed to mine a green candle?
+          answer: |
+              None required — it breaks instantly with any tool or by hand.
+        - question: Can I mix candle colors in the same block?
+          answer: |
+              No. Only candles of the same color can be combined in one
+              block space.
+        - question: Does the green candle drop differently with Silk Touch?
+          answer: |
+              No. It always drops itself as a single item regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

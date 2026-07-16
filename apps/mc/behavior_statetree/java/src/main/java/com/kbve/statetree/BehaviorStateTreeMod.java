@@ -38,6 +38,16 @@ public class BehaviorStateTreeMod implements ModInitializer {
 
         StarterKit.register();
 
+        // Clamp the survival world to a finite border on first boot so a
+        // vehicle can't reach the vanilla far-lands edge that froze the
+        // server. Idempotent: skips once an admin has set a border.
+        WorldBorderSetup.register();
+
+        // Teach GrimAC's bundled PacketEvents about modded item/entity IDs at
+        // server start so it stops throwing on every inventory tick and
+        // freezing the server. Guarded no-op when PacketEvents is absent.
+        com.kbve.statetree.compat.PacketEventsRegistryBridge.register();
+
         com.kbve.statetree.wallet.WalletScreens.register();
 
         if (!NativeRuntime.isLoaded()) {

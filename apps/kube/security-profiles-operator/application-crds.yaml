@@ -1,0 +1,46 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: security-profiles-operator-crds
+    namespace: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: '1'
+        kbve.com/source-path: kube/security-profiles-operator
+        kbve.com/manifest-path: kube/security-profiles-operator
+        kbve.com/application-file: kube/security-profiles-operator/application-crds.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: security
+        kbve.com/stack: core
+spec:
+    project: default
+    sources:
+        # Vendored from kubernetes-sigs/security-profiles-operator
+        # deploy/helm/crds/crds.yaml @ v1.0.0, with conversion.strategy
+        # patched to None on securityprofilenodestatuses and
+        # securityprofilesoperatordaemons: the v1.0.0 conversion webhook
+        # never registers those two kinds in its scheme, so every
+        # v1alpha1 request fails and hot-loops (~80k errors/6h).
+        # Their v1/v1alpha1 schemas are round-trip compatible, so the
+        # webhook is unnecessary. Re-vendor + re-patch on SPO upgrades.
+        - repoURL: https://github.com/KBVE/kbve.git
+          targetRevision: main
+          path: apps/kube/security-profiles-operator/crds
+          directory:
+              recurse: false
+              include: crds.yaml
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: security-profiles-operator
+    syncPolicy:
+        automated:
+            selfHeal: true
+            prune: false
+        syncOptions:
+            - ServerSideApply=true
+            - RespectIgnoreDifferences=true
+    ignoreDifferences:
+        - group: apiextensions.k8s.io
+          kind: CustomResourceDefinition
+          jqPathExpressions:
+              - .spec.conversion.webhook.clientConfig.caBundle

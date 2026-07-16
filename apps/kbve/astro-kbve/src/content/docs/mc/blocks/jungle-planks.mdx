@@ -1,5 +1,6 @@
 ---
 title: Jungle Planks
+template: splash
 description: |
     Minecraft Jungle Planks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 16
     ref: jungle_planks
     slug: jungle-planks
+    content_rev: 1
     display_name: Jungle Planks
     material: wood
     hardness: 2
@@ -24,10 +26,64 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: jungle_planks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Jungle Planks are the general-purpose building block crafted
+            from Jungle Logs, Wood, or Stems. They form the base ingredient
+            for most jungle-themed furniture, tools, and structural blocks
+            in the game.
+        lore: |
+            Planks are traditionally one of the first blocks a new player
+            crafts, unlocking a crafting table and basic tools.
+    uses:
+        - title: Crafting Table & Tools
+          ref: crafting_table
+          detail: |
+              Combine 4 planks to make a Crafting Table, or shape planks and
+              sticks into wooden tools and weapons.
+        - title: Stairs, Slabs & Doors
+          ref: jungle_stairs
+          detail: |
+              Cut into Jungle Stairs, Slabs, Doors, Trapdoors, and Fences for
+              detailed builds matching the jungle wood palette.
+        - title: Furnace Fuel
+          ref: coal
+          detail: |
+              Smelts 1.5 items per plank when used as fuel.
+    found_in:
+        - location: Crafted from Jungle Logs
+          detail: 1 Jungle Log (or Wood/Stripped variant) yields 4 Jungle Planks.
+        - location: Jungle Temples & Villages
+          detail: Naturally found as part of generated structures and village buildings.
+    faq:
+        - question: How many planks does one log give?
+          answer: |
+              One Jungle Log crafts into 4 Jungle Planks.
+        - question: Can I mix wood types when crafting?
+          answer: |
+              For generic items like crafting tables and furnaces, yes —
+              but type-specific items such as doors and boats require
+              matching wood types.
+        - question: Is Jungle Planks flammable?
+          answer: |
+              Yes, it burns like other overworld plank types and works as
+              furnace fuel.
+        - question: What tool mines it fastest?
+          answer: |
+              An axe, though no minimum tool tier is required — it always
+              drops itself.
     data_version: "1.21.5"
 ---
 

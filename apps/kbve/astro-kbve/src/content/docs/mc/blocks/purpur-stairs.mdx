@@ -1,5 +1,6 @@
 ---
 title: Purpur Stairs
+template: splash
 description: |
     Minecraft Purpur Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 628
     ref: purpur_stairs
     slug: purpur-stairs
+    content_rev: 1
     display_name: Purpur Stairs
     material: end
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: purpur_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - the_end
+    about:
+        description: |
+            Purpur Stairs are the staircase form of Purpur Block, letting
+            builders create slopes and roof lines that match the rest of
+            the purpur family. They support the standard stair placement
+            and waterlogging mechanics shared by all stair blocks.
+        lore: |
+            Purpur Stairs were first revealed by Jeb on Instagram on June
+            22, 2015, as part of the MINECON 2015 teaser lineup.
+    uses:
+        - title: Decorative staircases
+          ref: purpur_block
+          detail: |
+              Used purely for building; no further crafting recipe consumes
+              Purpur Stairs.
+    found_in:
+        - location: End cities
+          detail: Generates as staircases and sloped roofing throughout End city towers.
+        - location: End ships
+          detail: Used for angled details along the hull of the End ship.
+    faq:
+        - question: How do I craft Purpur Stairs?
+          answer: |
+              Arrange 6 Purpur Blocks (or pillars) in a staircase pattern in
+              a crafting grid to get 4 Purpur Stairs, or stonecut a Purpur
+              Block 1:1.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, starting from wooden tier; without one it drops
+              nothing.
+        - question: Are Purpur Stairs waterloggable?
+          answer: |
+              Yes, like all stairs they can be placed in water and will
+              contain a water source without draining it.
+        - question: Do Purpur Stairs burn?
+          answer: |
+              No, they are non-flammable and safe to place near fire or
+              lava in End builds.
     data_version: "1.21.5"
 ---
 

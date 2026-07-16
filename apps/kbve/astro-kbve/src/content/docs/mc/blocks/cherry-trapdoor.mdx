@@ -1,5 +1,6 @@
 ---
 title: Cherry Trapdoor
+template: splash
 description: |
     Minecraft Cherry Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 306
     ref: cherry_trapdoor
     slug: cherry-trapdoor
+    content_rev: 1
     display_name: Cherry Trapdoor
     material: wood
     hardness: 3
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cherry_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Cherry Trapdoor is a hinged wooden barrier crafted from
+            cherry planks. Like other trapdoors, it can be placed on the
+            top or bottom of a block face and opened by hand or redstone
+            signal to block or allow passage through a doorway or hole.
+        lore: |
+            Cherry wood variants, including the trapdoor, were added in
+            the Trails & Tales update (1.20) alongside the cherry grove
+            biome.
+    uses:
+        - title: Cherry Planks
+          ref: cherry_planks
+          detail: |
+              Six cherry planks arranged in two rows of three on a
+              crafting table produce two cherry trapdoors.
+    found_in:
+        - location: Crafting only
+          detail: Cherry trapdoors do not generate naturally; they must be crafted from cherry planks.
+    faq:
+        - question: What tool do I need to mine a Cherry Trapdoor?
+          answer: |
+              Any tool works, including bare hands. An axe is fastest but
+              breaking it with anything always drops the trapdoor.
+        - question: Can a Cherry Trapdoor be waterlogged?
+          answer: |
+              Yes. Placing it in water lets it hold the water source, and
+              it can be climbed like a ladder when opened above a ladder.
+        - question: Does a Cherry Trapdoor burn?
+          answer: |
+              No. Unlike most overworld wood blocks, trapdoors placed near
+              fire do not ignite by default, though they can still be
+              destroyed by explosions.
+        - question: Can I use it as furnace fuel?
+          answer: |
+              Yes, wooden trapdoors including cherry can be smelted as
+              fuel, burning for a short duration per trapdoor.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Magenta Terracotta
+template: splash
 description: |
     Minecraft Magenta Terracotta — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 459
     ref: magenta_terracotta
     slug: magenta-terracotta
+    content_rev: 1
     display_name: Magenta Terracotta
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Magenta Terracotta is a dyed variant of terracotta, crafted by surrounding terracotta blocks
+            with magenta dye. It keeps the hardened, blast-resistant properties of terracotta while adding
+            a permanent, vivid color that cannot be changed once applied.
+        lore: |
+            A weathered clay long since fired hard by the sun, dyed to a rich violet-pink hue.
+    faq:
+        - question: How do I get Magenta Terracotta?
+          answer: |
+              Craft it by surrounding one terracotta block with eight magenta dye in a crafting table,
+              which yields eight blocks of magenta terracotta at once.
+        - question: Can I change its color after dyeing it?
+          answer: |
+              No. Once terracotta is dyed a color, that color is permanent; it cannot be re-dyed or
+              reverted to plain terracotta.
+        - question: Can I turn it into glazed terracotta?
+          answer: |
+              Yes, smelting magenta terracotta in a furnace produces magenta glazed terracotta, which has
+              a distinct directional pattern useful for decorative designs.
+        - question: Is Magenta Terracotta affected by explosions?
+          answer: |
+              It has the same blast resistance as regular terracotta, making it notably tougher against
+              explosions than most other decorative blocks like wool or concrete.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

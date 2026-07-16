@@ -1,5 +1,6 @@
 ---
 title: Husk Spawn Egg
+template: splash
 description: |
     Minecraft Husk Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1099
     ref: husk_spawn_egg
     slug: husk-spawn-egg
+    content_rev: 1
     display_name: Husk Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Husk Spawn Egg is a Creative-mode item used to summon a husk, a desert-dwelling undead variant of the zombie that does not burn in sunlight. Husks spawn primarily in desert biomes at night and aggressively pursue players, villagers, and iron golems, inflicting the Hunger effect with their melee attacks.
+        lore: |
+            A husk submerged in water for 30 seconds sheds its desiccated form and converts into an ordinary zombie, as if the desert dried out of it.
+    faq:
+        - question: Why don't husks burn in daylight like other zombies?
+          answer: |
+              Husks are one of the few undead mobs immune to burning in sunlight, letting them roam desert biomes even during the day.
+        - question: What happens if a husk goes underwater?
+          answer: |
+              After 30 seconds submerged, a husk begins converting into a normal zombie, a process that takes an additional 15 seconds and cannot be stopped.
+        - question: What effect do husks inflict when they attack?
+          answer: |
+              Husks apply the Hunger effect to any player or mob they hit with a melee attack, unless the husk is holding an item in its main hand.
+        - question: What do husks drop when killed?
+          answer: |
+              They drop 0-2 rotten flesh, and rarely iron ingots, carrots, or potatoes; camel-riding husks also have a 50% chance to drop a rabbit's foot.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

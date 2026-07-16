@@ -1,5 +1,6 @@
 ---
 title: Purple Wool
+template: splash
 description: |
     Minecraft Purple Wool — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 150
     ref: purple_wool
     slug: purple-wool
+    content_rev: 1
     display_name: Purple Wool
     material: wool
     hardness: 0.8
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: purple_wool
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+    about:
+        description: |
+            Purple Wool is a dyed variant of wool obtained by shearing purple
+            sheep or dyeing white wool with purple dye. Like all wool colors
+            it breaks instantly with shears and can be crafted into beds,
+            banners, and carpets of matching color.
+        lore: |
+            Wool has been in Minecraft since the earliest classic versions,
+            with dye-based color variants added shortly after.
+    uses:
+        - title: Purple Bed
+          ref: purple_bed
+          detail: |
+              Combine three Purple Wool with three planks of any wood to
+              craft a Purple Bed for setting spawn points and skipping
+              the night.
+        - title: Purple Carpet
+          ref: purple_carpet
+          detail: |
+              Two Purple Wool in a crafting grid produce three Purple
+              Carpet, a thin decorative floor covering.
+    found_in:
+        - location: Villages and mansions
+          detail: Small amounts generate as furniture or decoration in some village and woodland mansion buildings.
+        - location: Sheep farms
+          detail: Dye white or brown sheep purple, or dye sheared wool blocks directly with purple dye.
+    faq:
+        - question: How do I get Purple Wool?
+          answer: |
+              Dye white wool (or a white sheep) with purple dye, made from
+              1 blue dye and 1 red dye, then shear or craft as normal.
+        - question: What tool should I use to break it?
+          answer: |
+              Shears break wool instantly; any tool or bare hands also work
+              since wool has no minimum tool tier requirement.
+        - question: Does wool burn?
+          answer: |
+              Yes. Wool is flammable and will catch fire from nearby flames
+              or lava, so keep it away from open flame sources.
+        - question: Can I get Purple Wool without sheep?
+          answer: |
+              Yes, craft 4 String into 1 White Wool block, then dye it
+              purple with a dye item in a crafting grid.
     data_version: "1.21.5"
 ---
 

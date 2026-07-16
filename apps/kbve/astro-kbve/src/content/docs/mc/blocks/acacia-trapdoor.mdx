@@ -1,5 +1,6 @@
 ---
 title: Acacia Trapdoor
+template: splash
 description: |
     Minecraft Acacia Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 305
     ref: acacia_trapdoor
     slug: acacia-trapdoor
+    content_rev: 1
     display_name: Acacia Trapdoor
     material: wood
     hardness: 3
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: acacia_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Acacia Trapdoors are hinged wooden barriers that players can
+            open and close by hand or with a redstone signal. They can be
+            attached to the top, bottom, or side of a block, making them
+            useful for hidden passages and piston doors.
+        lore: |
+            Wooden trapdoors have existed since the early days of Minecraft,
+            with wood-specific variants like acacia added as part of the
+            wood-type expansion in later updates.
+    uses:
+        - title: Acacia Planks
+          ref: acacia_planks
+          detail: |
+              Six Acacia Planks arranged in two rows of three craft two
+              Acacia Trapdoors.
+        - title: Hidden Doors and Redstone Contraptions
+          ref: redstone
+          detail: |
+              Trapdoors can be wired to redstone circuits or toggled by hand,
+              commonly used to disguise entrances in walls and ceilings.
+    found_in:
+        - location: Crafting
+          detail: Made from six matching acacia planks to yield two trapdoors.
+        - location: Villages and igloos
+          detail: Generate naturally in some village houses and igloo basements.
+    faq:
+        - question: What tool mines an Acacia Trapdoor fastest?
+          answer: |
+              An axe. Any tool works with no minimum tier requirement, and
+              the trapdoor always drops itself.
+        - question: Does an Acacia Trapdoor burn in fire?
+          answer: |
+              No. Unlike acacia planks and stairs, trapdoors do not catch
+              fire, so they are safe to use near lava or flame sources.
+        - question: Can I open an Acacia Trapdoor with redstone?
+          answer: |
+              Yes. A redstone signal toggles the trapdoor open or closed,
+              the same as right-clicking it by hand.
+        - question: Where can I place an Acacia Trapdoor?
+          answer: |
+              On the top, bottom, or side face of a block, and it can be
+              oriented to sit flush in a doorway when combined with a
+              fence gate or wall.
     data_version: "1.21.5"
 ---
 

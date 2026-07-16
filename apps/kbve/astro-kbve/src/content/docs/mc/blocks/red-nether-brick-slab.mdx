@@ -1,5 +1,6 @@
 ---
 title: Red Nether Brick Slab
+template: splash
 description: |
     Minecraft Red Nether Brick Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 788
     ref: red_nether_brick_slab
     slug: red-nether-brick-slab
+    content_rev: 1
     display_name: Red Nether Brick Slab
     material: nether
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_nether_brick_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+    about:
+        description: |
+            Red Nether Brick Slab is a decorative half-height variant of
+            Red Nether Bricks that does not generate naturally and must be
+            crafted or stonecut. Two slabs stack into a full double slab,
+            making it a flexible trim block for Nether-themed builds.
+        lore: |
+            Added in Java Edition 1.14 (18w43a) alongside the wider wave of
+            slab variants introduced for that update's building blocks.
+    uses:
+        - title: Building & Decoration
+          ref: red_nether_brick_slab
+          detail: |
+              Used purely as a construction material for half-height
+              steps, floors, and trim in Nether-themed builds; two slabs
+              combine into a full Red Nether Brick block visually.
+    found_in:
+        - location: Crafted from Red Nether Bricks
+          detail: 3 Red Nether Bricks in a row craft 6 slabs; a stonecutter converts 1 brick into 2 slabs.
+    faq:
+        - question: What tool do I need to mine Red Nether Brick Slab?
+          answer: |
+              A wooden pickaxe or better. Mining it without any pickaxe
+              destroys the block with no drop.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one Red Nether Brick Slab
+              regardless of enchantments.
+        - question: Does Red Nether Brick Slab generate naturally?
+          answer: |
+              No. It is only obtained by crafting or stonecutting Red
+              Nether Bricks; it never appears in natural world generation.
+        - question: Can two slabs form a full block?
+          answer: |
+              Yes. Placing a second slab on top of an existing one (or
+              crafting with two in a grid) forms a full Red Nether Bricks
+              block.
     data_version: "1.21.5"
 ---
 

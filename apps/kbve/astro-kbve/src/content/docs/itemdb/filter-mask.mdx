@@ -1,0 +1,39 @@
+---
+title: 'Filter Mask'
+template: splash
+sidebar:
+    label: 'Filter Mask'
+    hidden: true
+description: |
+    A snug half-mask with twin cartridge filters. The air tastes like plastic, which beats tasting like the district.
+ref: 'filter-mask'
+key: 617
+id: '01KXFBEGM2H82QW7QX3GBXGV0V'
+name: 'Filter Mask'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 25
+emoji: '😷'
+img: '/assets/items/equipment/filter-mask.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'SCFI09'
+  nodes:
+    - 'SCFI09_AFAC'
+  slot_keys:
+    - 'AFAC'
+equipment:
+  slot: 'head'
+  bonuses:
+    extra:
+      weight: 1
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

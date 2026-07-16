@@ -46,6 +46,26 @@ function formatGP(v: number | null | undefined): string {
 	return v.toLocaleString();
 }
 
+// Seed the initial filters from the URL so rail links like /osrs/?tag=potion
+// land pre-filtered. Only whitelisted tags apply; unknown values fall back to
+// the unfiltered default.
+function initialParams(): {
+	q: string;
+	tag: string;
+	members: 'all' | 'p2p' | 'f2p';
+} {
+	const fallback = { q: '', tag: '', members: 'all' as const };
+	if (typeof window === 'undefined') return fallback;
+	const p = new URLSearchParams(window.location.search);
+	const tagRaw = p.get('tag') ?? '';
+	const tag = TAG_OPTIONS.some((o) => o.value === tagRaw && o.value)
+		? tagRaw
+		: '';
+	const m = p.get('members');
+	const members = m === 'p2p' || m === 'f2p' ? m : 'all';
+	return { q: p.get('q') ?? '', tag, members };
+}
+
 type RowExtra = { items: OSRSIndexEntry[] };
 
 function Row({ index, style, items }: RowComponentProps<RowExtra>) {
@@ -116,10 +136,10 @@ const LIST_HEIGHT = 600;
 export default function OSRSItemBrowser() {
 	const [data, setData] = useState<OSRSIndexEntry[] | null>(null);
 	const [error, setError] = useState<string | null>(null);
-	const [query, setQuery] = useState('');
-	const [tag, setTag] = useState('');
+	const [query, setQuery] = useState(() => initialParams().q);
+	const [tag, setTag] = useState(() => initialParams().tag);
 	const [membersOnly, setMembersOnly] = useState<'all' | 'p2p' | 'f2p'>(
-		'all',
+		() => initialParams().members,
 	);
 	const [width, setWidth] = useState(0);
 	const containerRef = useRef<HTMLDivElement>(null);

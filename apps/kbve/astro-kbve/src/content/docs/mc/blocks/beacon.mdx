@@ -1,5 +1,6 @@
 ---
 title: Beacon
+template: splash
 description: |
     Minecraft Beacon — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 377
     ref: beacon
     slug: beacon
+    content_rev: 1
     display_name: Beacon
     material: stone
     hardness: 3
     blast_resistance: 3
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 1
     light_emission: 15
     light_opacity: 1
     transparent: true
@@ -26,8 +28,65 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: beacon
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - light_source
+        - utility
+        - crafting
+    about:
+        description: |
+            A Beacon is a utility block that projects a beam of light into
+            the sky and grants status effects to nearby players when placed
+            atop a pyramid of mineral blocks. It always drops itself when
+            broken and can be mined with any tool.
+        lore: |
+            Crafted from a Nether Star dropped by the Wither, the beacon
+            rewards players for defeating one of the game's toughest bosses
+            with lasting utility buffs.
+    uses:
+        - title: Status Effects
+          detail: |
+              Grants Speed, Haste, Resistance, Jump Boost, Strength, or
+              Regeneration to players within range.
+        - title: Crafting Recipe
+          ref: nether_star
+          detail: |
+              Crafted from 5 glass, 3 obsidian, and 1 nether star.
+        - title: Landmark Beam
+          detail: |
+              Emits a bright vertical beam that can be recolored by placing
+              stained glass above the beacon.
+    found_in:
+        - location: Crafting Only
+          detail: |
+              Beacons do not generate naturally; they must be crafted with a
+              nether star from a defeated Wither.
+    faq:
+        - question: How do I activate a beacon?
+          answer: |
+              Place it on a pyramid of iron, gold, emerald, diamond, or
+              netherite blocks with a clear view of the sky.
+        - question: How big does the pyramid need to be?
+          answer: |
+              From a 3x3 level 1 base up to a 9x9 level 4 base; larger
+              pyramids unlock more effects and greater range.
+        - question: Can I mix different block types in the pyramid?
+          answer: |
+              Yes. Iron, gold, emerald, diamond, and netherite blocks can be
+              mixed freely in any orientation.
+        - question: Can I change the beam color?
+          answer: |
+              Yes. Place stained glass above the beacon; stacking multiple
+              colors blends them.
+        - question: What tool mines a beacon?
+          answer: |
+              Any tool works and it always drops itself; a pickaxe is fastest.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Torchflower
+template: splash
 description: |
     Minecraft Torchflower — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,68 @@ mc_block:
     id: 158
     ref: torchflower
     slug: torchflower
+    content_rev: 1
     display_name: Torchflower
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: torchflower
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+        - non_solid
+    about:
+        description: |
+            The Torchflower is a decorative flower obtained by fully
+            growing a Torchflower Crop. It does not generate naturally on
+            its own and is used for dye, suspicious stew, and attracting bees.
+        lore: |
+            Modeled after the Kniphofia genus of flowering plants, commonly
+            known as "torch lilies," and tied to the Trails & Tales
+            update's prehistoric theme.
+    uses:
+        - title: Orange Dye
+          ref: orange_dye
+          detail: |
+              Craft a Torchflower into orange dye for dyeing wool, terracotta, and other items.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              Combine with a mushroom and a bowl to craft suspicious stew
+              that grants the Night Vision effect.
+    found_in:
+        - location: Torchflower Crop
+          detail: Obtained only by breaking a fully grown Torchflower Crop; never generates naturally in the world.
+    faq:
+        - question: Can I find Torchflowers growing naturally in the wild?
+          answer: |
+              No. They only appear by fully growing a Torchflower Crop
+              planted from Torchflower Seeds.
+        - question: What tool do I need to break a Torchflower?
+          answer: |
+              None. It has zero hardness and breaks instantly with any
+              tool or bare hands.
+        - question: Does a Torchflower attract bees?
+          answer: |
+              Yes. Trees grown near a Torchflower have a small chance to
+              generate with a bee nest, and bees pollinate it like other flowers.
+        - question: Is the Torchflower flammable?
+          answer: |
+              Yes, it can catch fire from nearby flames, though it will
+              not ignite from lava contact alone.
     data_version: "1.21.5"
 ---
 

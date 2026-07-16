@@ -12,12 +12,45 @@ import {
 	JOURNAL_ROOT,
 	buildJournalBreadcrumb,
 } from './journalNav';
+import { THEORY_NAV, THEORY_ROOT, buildTheoryBreadcrumb } from './theoryNav';
+import {
+	GAMING_NAV,
+	GAMING_ROOT,
+	buildGamingBreadcrumb,
+} from '../gaming/gamingNav';
+import { OSRS_NAV, OSRS_ROOT, buildOsrsBreadcrumb } from '../osrs/osrsNav';
+import { MC_NAV, MC_ROOT, buildMcBreadcrumb } from '../mcdb/mcNav';
+import { NPC_ROOT, buildNpcNav, buildNpcBreadcrumb } from '../npcdb/npcNav';
+import {
+	ITEM_ROOT,
+	buildItemNav,
+	buildItemBreadcrumb,
+} from '../itemdb/itemNav';
+import { MAP_ROOT, buildMapNav, buildMapBreadcrumb } from '../mapdb/mapNav';
+import { getCollection } from 'astro:content';
 
 const pathname = Astro.url.pathname;
 const isDashboard = pathname.startsWith('/dashboard');
 const isApplication =
 	pathname.startsWith('/application/') && pathname !== '/application/';
 const isJournal = pathname.startsWith('/journal/') && pathname !== '/journal/';
+const isTheory = pathname.startsWith('/theory/');
+// Gaming guides live under /gaming/. The OSRS and Arcade *landing* pages also
+// belong under Gaming, but their subpages (item DB entries, individual games)
+// keep their own layouts — match those two roots exactly, not by prefix.
+const isGamingRoot = (p: string) => p === '/osrs/' || p === '/arcade/';
+const isGaming = pathname.startsWith('/gaming/') || isGamingRoot(pathname);
+// OSRS item pages (/osrs/<slug>/) sit under Gaming > OSRS but keep their own
+// splash layout; the /osrs/ landing itself is handled by the gaming shell.
+const isOsrsItem = pathname.startsWith('/osrs/') && pathname !== '/osrs/';
+const isMc = pathname.startsWith('/mc/');
+const isNpcdb = pathname.startsWith('/npcdb/');
+const isItemdb = pathname.startsWith('/itemdb/');
+const isMapdb = pathname.startsWith('/mapdb/');
+
+const npcNav = isNpcdb ? buildNpcNav(await getCollection('npcdb')) : [];
+const itemNav = isItemdb ? buildItemNav(await getCollection('itemdb')) : [];
+const mapNav = isMapdb ? buildMapNav(await getCollection('mapdb')) : [];
 
 const shell = isDashboard
 	? {
@@ -49,7 +82,86 @@ const shell = isDashboard
 					collapsible: true,
 					withToc: true,
 				}
-			: undefined;
+			: isTheory
+				? {
+						entries: THEORY_NAV,
+						root: THEORY_ROOT,
+						menuLabel: 'Theory topics',
+						navLabel: 'Theory',
+						crumbs: buildTheoryBreadcrumb(pathname),
+						collapsible: true,
+						withToc: true,
+					}
+				: isGaming
+					? {
+							entries: GAMING_NAV,
+							root: GAMING_ROOT,
+							menuLabel: 'Games',
+							navLabel: 'Gaming',
+							crumbs: buildGamingBreadcrumb(pathname),
+							collapsible: false,
+							withToc: true,
+						}
+					: isOsrsItem
+						? {
+								entries: OSRS_NAV,
+								root: OSRS_ROOT,
+								menuLabel: 'OSRS database',
+								navLabel: 'OSRS',
+								crumbs: buildOsrsBreadcrumb(pathname),
+								collapsible: false,
+								withToc: false,
+							}
+						: isMc
+							? {
+									entries: MC_NAV,
+									root: MC_ROOT,
+									menuLabel: 'Minecraft database',
+									navLabel: 'Minecraft',
+									crumbs: buildMcBreadcrumb(pathname),
+									collapsible: true,
+									withToc: true,
+								}
+							: isNpcdb
+								? {
+										entries: npcNav,
+										root: NPC_ROOT,
+										menuLabel: 'NPC database',
+										navLabel: 'NPC Database',
+										crumbs: buildNpcBreadcrumb(
+											npcNav,
+											pathname,
+										),
+										collapsible: true,
+										withToc: true,
+									}
+								: isItemdb
+									? {
+											entries: itemNav,
+											root: ITEM_ROOT,
+											menuLabel: 'Item database',
+											navLabel: 'Item Database',
+											crumbs: buildItemBreadcrumb(
+												itemNav,
+												pathname,
+											),
+											collapsible: true,
+											withToc: true,
+										}
+									: isMapdb
+										? {
+												entries: mapNav,
+												root: MAP_ROOT,
+												menuLabel: 'Map database',
+												navLabel: 'Map Database',
+												crumbs: buildMapBreadcrumb(
+													mapNav,
+													pathname,
+												),
+												collapsible: true,
+												withToc: true,
+											}
+										: undefined;
 
 const crumbs = shell?.crumbs ?? [];
 ---

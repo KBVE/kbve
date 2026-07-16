@@ -1,5 +1,6 @@
 ---
 title: Magenta Candle
+template: splash
 description: |
     Minecraft Magenta Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 906
     ref: magenta_candle
     slug: magenta-candle
+    content_rev: 1
     display_name: Magenta Candle
     material: stone
     hardness: 0.1
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: magenta_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Magenta Candle is a decorative light-source block crafted from
+            string, honeycomb, and magenta dye. Up to four candles of the
+            same color can share a block, and lighting them raises light
+            output in steps of 3, up to level 12.
+        lore: |
+            Candles were added in Java Edition 1.17 as a compact,
+            colorable alternative to torches and other light sources.
+    uses:
+        - title: Cake Topper
+          ref: magenta_candle_cake
+          detail: |
+              Use a magenta candle on an uneaten cake to place it on top,
+              creating a Cake with Magenta Candle block.
+    found_in:
+        - location: Crafted
+          detail: Crafted from one string, one honeycomb, and magenta dye, or by dyeing a white candle.
+        - location: Ancient cities, trial chambers, and trail ruins
+          detail: Candles generate naturally in these structures and in suspicious gravel/sand.
+    faq:
+        - question: What tool do I need to mine Magenta Candle?
+          answer: |
+              None. Any tool, or bare hands, breaks it instantly since its
+              hardness is only 0.1.
+        - question: How much light does a lit Magenta Candle give off?
+          answer: |
+              A single lit candle emits light level 3. Stacking up to four
+              candles of the same color in one block raises output by 3
+              per candle, to a maximum of light level 12.
+        - question: How do I extinguish a lit Magenta Candle?
+          answer: |
+              Right-click it, splash it with water, or hit it with a wind
+              charge. Waterlogged candles cannot be lit at all.
+        - question: Is Magenta Candle affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops itself as a single item regardless of
+              the tool or enchantments used.
     data_version: "1.21.5"
 ---
 

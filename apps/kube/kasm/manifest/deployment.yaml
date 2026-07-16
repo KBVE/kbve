@@ -154,7 +154,7 @@ spec:
                           memory: 384Mi
                           cpu: 500m
                 - name: workspace
-                  image: ghcr.io/kbve/kasm-void:0.0.5
+                  image: ghcr.io/kbve/kasm-void:0.0.6
                   imagePullPolicy: IfNotPresent
                   securityContext:
                       runAsNonRoot: true
@@ -186,6 +186,8 @@ spec:
                   env:
                       - name: KASM_PORT
                         value: '6901'
+                      - name: KASM_SVC_SMARTCARD
+                        value: '0'
                       - name: VNC_PW
                         valueFrom:
                             secretKeyRef:

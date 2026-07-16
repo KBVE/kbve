@@ -1,5 +1,6 @@
 ---
 title: Cracked Nether Bricks
+template: splash
 description: |
     Minecraft Cracked Nether Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 901
     ref: cracked_nether_bricks
     slug: cracked-nether-bricks
+    content_rev: 1
     display_name: Cracked Nether Bricks
     material: nether
     hardness: 2
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cracked_nether_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+        - blast_resistant
+    about:
+        description: |
+            Cracked Nether Bricks are the weathered variant of Nether
+            Bricks, produced by smelting them, and used to add aged detail
+            to Nether fortress and bastion structures.
+        lore: |
+            First introduced in Java Edition 1.16 (snapshot 20w15a), the
+            block received a texture refresh in version 1.21.4.
+    uses:
+        - title: Nether Bricks
+          ref: nether_bricks
+          detail: |
+              Smelt Nether Bricks in a furnace or blast furnace with any
+              fuel to produce the cracked variant for weathered detailing.
+    found_in:
+        - location: Nether Fortresses
+          detail: Generates naturally as part of nether fortress structures.
+        - location: Bastion Remnants
+          detail: Also appears as a decorative block within bastion remnant generation.
+    faq:
+        - question: What tool do I need to mine Cracked Nether Bricks?
+          answer: |
+              Any pickaxe, including wooden. Mining without a pickaxe yields
+              no drop.
+        - question: How do I get Cracked Nether Bricks?
+          answer: |
+              Smelt Nether Bricks in a furnace with any fuel, or find them
+              naturally in nether fortresses and bastion remnants.
+        - question: Is it affected by Silk Touch or Fortune?
+          answer: |
+              No. It always drops itself as a single block regardless of
+              enchantments.
+        - question: When did the block's texture change?
+          answer: |
+              It received a texture update in Java Edition 1.21.4 (snapshot
+              24w44a).
     data_version: "1.21.5"
 ---
 

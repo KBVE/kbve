@@ -1,5 +1,6 @@
 ---
 title: Dropper
+template: splash
 description: |
     Minecraft Dropper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,71 @@ mc_block:
     id: 451
     ref: dropper
     slug: dropper
+    content_rev: 1
     display_name: Dropper
     material: redstone
     hardness: 3.5
     blast_resistance: 3.5
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dropper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - redstone_component
+    about:
+        description: |
+            Dropper is a nine-slot redstone storage block that ejects its
+            contents into the world, or into an adjacent container, when
+            powered by a redstone signal. Unlike a Dispenser, it never uses
+            special item behaviors — it simply drops whatever it holds.
+        lore: |
+            Added in Java Edition 1.5 (13w03a) alongside hoppers, expanding
+            automated item-transport options for redstone builds.
+    uses:
+        - title: Item Sorting Systems
+          ref: hopper
+          detail: |
+              Paired with hoppers and comparators, droppers form the core
+              of many automatic item-sorting and dispensing machines.
+        - title: Dispenser
+          ref: dispenser
+          detail: |
+              Combining a Dropper with a Bow upgrades the recipe path into
+              a Dispenser, which fires or uses items instead of just
+              dropping them.
+    found_in:
+        - location: Crafting Table
+          detail: Crafted from 7 Cobblestone and 1 Redstone Dust in a dispenser-style pattern.
+    faq:
+        - question: What tool do I need to mine a Dropper?
+          answer: |
+              At least a wooden pickaxe. Without one, it drops nothing.
+        - question: How is it different from a Dispenser?
+          answer: |
+              A Dropper only ejects items as dropped entities, while a
+              Dispenser can fire projectiles or apply special item effects.
+        - question: Does mining it keep its contents?
+          answer: |
+              No. Breaking a Dropper spills its stored items into the world
+              as loose item entities.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one Dropper block regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

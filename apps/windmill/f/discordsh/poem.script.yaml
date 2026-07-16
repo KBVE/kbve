@@ -1,0 +1,28 @@
+summary: Fetch a poem from PoetryDB
+description: >-
+  Demo /wm target. Optional first arg = author (random poem by them),
+  otherwise a random poem. Bun runtime, no dependencies, fast cold start.
+kind: script
+lock: ''
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  order:
+    - args
+    - discord
+  properties:
+    args:
+      type: array
+      description: Space-separated args from /wm; args[0] optional author.
+      items:
+        type: string
+      default: []
+    discord:
+      type: object
+      description: Discord invocation context injected by the bot.
+      properties:
+        user_id: { type: string }
+        username: { type: string }
+        guild_id: { type: string }
+        channel_id: { type: string }
+  required: []

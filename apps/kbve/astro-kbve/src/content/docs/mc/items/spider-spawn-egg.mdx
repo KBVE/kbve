@@ -1,5 +1,6 @@
 ---
 title: Spider Spawn Egg
+template: splash
 description: |
     Minecraft Spider Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 1126
     ref: spider_spawn_egg
     slug: spider-spawn-egg
+    content_rev: 1
     display_name: Spider Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The spider spawn egg instantly places a spider when used on a block surface, playing the
+            mob's ambient sound as it appears. It also works in dispensers and can override the mobs
+            produced by monster spawners and trial spawners when placed inside them.
+            Like all spawn eggs, it is obtainable only in Creative mode or via commands, keeping it out
+            of normal Survival crafting and drop tables.
+        lore: |
+            One of many creative-only eggs used to populate the world with a specific mob on demand.
+    faq:
+        - question: |
+              How do I get a spider spawn egg in Survival?
+          answer: |
+              You cannot obtain it in Survival mode; it is only available through the Creative
+              inventory or the /give command.
+        - question: |
+              What happens if I use it on a spawner?
+          answer: |
+              Using a spider spawn egg on a monster spawner or trial spawner changes the mob type
+              it spawns to a spider.
+        - question: |
+              Can I use it in a dispenser?
+          answer: |
+              Yes, a dispenser loaded with a spider spawn egg will spawn a spider when triggered.
+        - question: |
+              Does the spawned spider have any special traits?
+          answer: |
+              No, it spawns as a normal spider with default health and behavior, unaffected by the
+              egg's own appearance.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

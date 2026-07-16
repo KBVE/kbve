@@ -1,5 +1,6 @@
 ---
 title: Mangrove Hanging Sign
+template: splash
 description: |
     Minecraft Mangrove Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 231
     ref: mangrove_hanging_sign
     slug: mangrove-hanging-sign
+    content_rev: 1
     display_name: Mangrove Hanging Sign
     material: wood
     hardness: 1
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mangrove_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+    about:
+        description: |
+            Mangrove Hanging Sign is a variant of sign that hangs from the
+            underside of a block or a solid self-supporting bracket. Like
+            other signs it displays customizable text and lets water or lava
+            flow around it without being pushed away.
+        lore: |
+            Hanging signs were introduced in the Trails & Tales update
+            (1.20), expanding on the wall-mounted signs from earlier
+            versions.
+    uses:
+        - title: Text Display
+          ref: mangrove_hanging_sign
+          detail: |
+              Placed to label storage, paths, or convey messages; text can
+              be edited after placement with a compatible dye or ink sac.
+        - title: Furnace Fuel
+          ref: mangrove_hanging_sign
+          detail: |
+              Overworld wood hanging signs smelt 4 items per sign as
+              furnace fuel.
+    found_in:
+        - location: Crafted from Stripped Mangrove Logs and Chains
+          detail: 6 stripped mangrove logs and 2 chains craft 6 mangrove hanging signs.
+    faq:
+        - question: What tool do I need to mine a Mangrove Hanging Sign?
+          answer: |
+              None — any tool works by hand, though an axe is fastest.
+        - question: What materials craft a Mangrove Hanging Sign?
+          answer: |
+              6 stripped mangrove logs plus 2 iron chains craft 6 hanging
+              signs.
+        - question: Can water or lava flow through a hanging sign?
+          answer: |
+              Fluids flow around it without pushing it away, unlike most
+              non-solid blocks.
+        - question: Is Mangrove Hanging Sign flammable?
+          answer: |
+              Yes, being made of wood it can catch fire and burn.
     data_version: "1.21.5"
 ---
 

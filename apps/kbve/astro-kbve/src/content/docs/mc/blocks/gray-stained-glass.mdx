@@ -1,5 +1,6 @@
 ---
 title: Gray Stained Glass
+template: splash
 description: |
     Minecraft Gray Stained Glass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 292
     ref: gray_stained_glass
     slug: gray-stained-glass
+    content_rev: 1
     display_name: Gray Stained Glass
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: gray_stained_glass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - not_flammable
+        - overworld
+    about:
+        description: |
+            Gray Stained Glass is glass permanently dyed a neutral gray,
+            used to build transparent structures that filter light without
+            revealing what lies behind them. It only drops when mined with
+            a Silk Touch tool.
+        lore: |
+            Stained glass was added in Java Edition 1.7.2, giving builders
+            16 tinted variants of the original glass block.
+    uses:
+        - title: Stained Glass Panes
+          ref: gray_stained_glass_pane
+          detail: |
+              Crafting six gray stained glass blocks in a 3x2 pattern yields
+              16 gray stained glass panes, the thinner window-friendly form.
+        - title: Beacon Beam Coloring
+          ref: beacon
+          detail: |
+              Stacking gray stained glass above an active beacon tints its
+              light beam, and stacking multiple colors blends the hue.
+    found_in:
+        - location: Crafted
+          detail: Four glass blocks plus one gray dye craft eight gray stained glass in a furnace-free recipe.
+        - location: Trial Chambers and End Cities
+          detail: Some stained glass colors generate naturally in trial chamber vaults and end city structures.
+    faq:
+        - question: What tool do I need to mine Gray Stained Glass?
+          answer: |
+              Any tool works to break it, but it only drops itself when
+              mined with a Silk Touch enchanted tool.
+        - question: Is Gray Stained Glass flammable?
+          answer: |
+              No. It does not burn and is immune to catching fire from lava
+              or adjacent flames.
+        - question: Can I recolor it after crafting?
+          answer: |
+              No, the dye color is permanent once applied; you must break
+              and recraft to change it.
+        - question: How is it made?
+          answer: |
+              Combine four glass blocks with one gray dye in a crafting
+              grid to produce eight gray stained glass blocks.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Birch Slab
+template: splash
 description: |
     Minecraft Birch Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 569
     ref: birch_slab
     slug: birch-slab
+    content_rev: 1
     display_name: Birch Slab
     material: wood
     hardness: 2
@@ -24,10 +26,63 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: birch_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+        - renewable
+    about:
+        description: |
+            The Birch Slab is a half-height building block crafted from
+            Birch Planks. Two slabs stacked together form a full solid
+            block, letting builders create fine detail like steps and
+            trim.
+        lore: |
+            Wooden slabs have existed since early Minecraft development,
+            expanding to cover every wood type as new trees were added.
+    uses:
+        - title: Chiseled Bookshelf
+          ref: chiseled_bookshelf
+          detail: |
+              Combined with planks to craft a Chiseled Bookshelf, a
+              storage block for books.
+        - title: Barrel
+          ref: barrel
+          detail: |
+              Slabs are combined with planks in the Barrel recipe for
+              portable storage.
+        - title: Furnace Fuel
+          ref: birch_planks
+          detail: |
+              Wooden slabs can be burned in a furnace, smelting 0.75 items
+              each.
+    found_in:
+        - location: Villages and Woodland Mansions
+          detail: Generates as roofing and detail in birch-themed and mixed-wood structures.
+        - location: Crafted from Birch Planks
+          detail: Three Birch Planks arranged in a row craft six Birch Slabs.
+    faq:
+        - question: What tool do I need to mine a Birch Slab?
+          answer: |
+              None required — any tool works, though an axe is fastest.
+        - question: Do two slabs make a full block?
+          answer: |
+              Yes, placing a second matching slab on top of (or into) an
+              existing slab combines them into one full Birch block.
+        - question: Are Birch Slabs flammable?
+          answer: |
+              Yes, like most wooden blocks they can catch fire and burn.
+        - question: Can Birch Slabs be used as furnace fuel?
+          answer: |
+              Yes, wooden slabs smelt 0.75 items each when used as fuel.
     data_version: "1.21.5"
 ---
 

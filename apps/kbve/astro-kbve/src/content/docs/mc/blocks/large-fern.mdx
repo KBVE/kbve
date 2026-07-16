@@ -1,5 +1,6 @@
 ---
 title: Large Fern
+template: splash
 description: |
     Minecraft Large Fern — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,77 @@ mc_block:
     id: 530
     ref: large_fern
     slug: large-fern
+    content_rev: 1
     display_name: Large Fern
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: large_fern
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+        - ref: wheat_seeds
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - instant_break
+        - plant
+        - overworld
+        - flammable
+    about:
+        description: |
+            Large Fern is the two-block-tall grown form of a fern, created
+            by applying bone meal to a fern or planting one on top of
+            another via a fern seed. It breaks instantly with any tool.
+        lore: |
+            Ferns date back to Beta 1.6 for jungle-like biomes but were
+            unobtainable until shears were added in Beta 1.8, letting
+            players harvest the plant intact.
+    uses:
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Placing a large fern in a composter has a 65% chance to raise
+              the compost level by one, eventually producing bone meal.
+        - title: Sheep grazing
+          ref: wool
+          detail: |
+              Sheep can eat large ferns (and ferns) on the ground to
+              regrow their wool after being sheared.
+    found_in:
+        - location: Jungles and taigas
+          detail: Generates in jungle, taiga, snowy taiga, and old-growth taiga biomes alongside regular ferns.
+        - location: Bone-mealed ferns
+          detail: Grown by applying bone meal to a fern planted on a grass-like block.
+    faq:
+        - question: How do I get a Large Fern to drop itself?
+          answer: |
+              Break it with shears. Without shears it only has a small
+              chance to drop wheat seeds instead of the plant.
+        - question: What does breaking a Large Fern without shears give?
+          answer: |
+              A 12.5% chance of one wheat seed, boosted by Fortune to up to
+              seven seeds at Fortune III.
+        - question: What tool tier does a Large Fern need?
+          answer: |
+              None. It breaks instantly with any tool, or even by hand.
+        - question: Where do Large Ferns naturally spawn?
+          answer: |
+              In jungle, taiga, snowy taiga, and old-growth taiga biomes,
+              or by bone-mealing a regular fern.
     data_version: "1.21.5"
 ---
 

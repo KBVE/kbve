@@ -1,5 +1,6 @@
 ---
 title: Light Blue Bed
+template: splash
 description: |
     Minecraft Light Blue Bed — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,70 @@ mc_block:
     id: 113
     ref: light_blue_bed
     slug: light-blue-bed
+    content_rev: 1
     display_name: Light Blue Bed
-    material: stone
+    material: wood
     hardness: 0.2
     blast_resistance: 0.2
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_blue_bed
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - renewable
+    about:
+        description: |
+            The Light Blue Bed is a furniture block dyed light blue that
+            lets players sleep through the night and set their spawn point.
+            It bounces entities that fall onto it and explodes violently if
+            used in the Nether or the End.
+        lore: |
+            Beds have been part of Minecraft since its earliest survival
+            builds, long before dyeable color variants were added.
+    uses:
+        - title: Sleeping and Spawn Point
+          ref: light_blue_bed
+          detail: |
+              Sleeping in the bed skips the night in the Overworld and sets
+              the player's respawn location to the bed.
+        - title: Zombie Villager Curing
+          ref: golden_apple
+          detail: |
+              Placing a bed near a weakened zombie villager during curing
+              speeds up the process.
+    found_in:
+        - location: Crafted
+          detail: Made from one Light Blue Wool and three Planks of any wood type.
+        - location: Dyed
+          detail: Any existing bed can be recolored with Light Blue Dye.
+    faq:
+        - question: What tool do I need to break a Light Blue Bed?
+          answer: |
+              None. It requires no minimum tool tier and can be broken by
+              hand or any tool.
+        - question: Can I sleep in this bed in the Nether?
+          answer: |
+              No, attempting to sleep in any bed in the Nether or the End
+              causes it to explode with a power level of 5.
+        - question: How do I change a bed's color?
+          answer: |
+              Craft it with matching wool for a new bed, or combine any
+              existing bed with a dye of the desired color.
+        - question: Does the bed bounce players like a slime block?
+          answer: |
+              Yes, falling onto a bed reduces fall damage and gives a small
+              bounce effect.
     data_version: "1.21.5"
 ---
 

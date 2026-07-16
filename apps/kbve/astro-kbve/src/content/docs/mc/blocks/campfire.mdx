@@ -1,5 +1,6 @@
 ---
 title: Campfire
+template: splash
 description: |
     Minecraft Campfire — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 818
     ref: campfire
     slug: campfire
+    content_rev: 1
     display_name: Campfire
     material: wood
     hardness: 2
@@ -24,10 +26,65 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: charcoal
+          qty_min: 2
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: campfire
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - light_source
+    about:
+        description: |
+            Campfire is a craftable heat source that cooks food, emits
+            light and smoke, and deals fire damage to anything standing on
+            it while lit — all without spreading fire to nearby blocks.
+        lore: |
+            Campfires debuted in Java Edition 1.14 (Village & Pillage) after
+            winning the taiga biome vote at MINECON Earth 2018.
+    uses:
+        - title: Passive Cooking
+          ref: cooked_beef
+          detail: |
+              Up to four food items can cook on a lit campfire at once,
+              each finishing in 30 seconds without consuming fuel.
+        - title: Smoke Signal
+          ref: hay_block
+          detail: |
+              Placing a hay bale beneath a lit campfire sends its smoke
+              column up to 24 blocks high, useful as a long-range visual
+              marker.
+    found_in:
+        - location: Crafted only
+          detail: 3 sticks, 1 coal or charcoal, and 1 log/stem/wood/hyphae of any type craft a campfire.
+        - location: Village generation
+          detail: Generates lit in taiga villages, and unlit in ancient cities and trail ruins.
+    faq:
+        - question: What does mining a lit campfire drop?
+          answer: |
+              2 charcoal without Silk Touch, or the campfire block itself
+              with Silk Touch.
+        - question: Does standing on a campfire hurt me?
+          answer: |
+              Yes, a lit campfire deals 1 HP of fire damage per tick to any
+              mob or player standing directly on it.
+        - question: Can campfire fire spread to nearby blocks?
+          answer: |
+              No. Unlike regular fire, a campfire's flame never spreads,
+              even next to flammable blocks.
+        - question: Do campfires stop bees from attacking?
+          answer: |
+              Yes, smoke from a nearby lit campfire pacifies bees, letting
+              players harvest honey or honeycomb from a hive or nest safely.
     data_version: "1.21.5"
 ---
 

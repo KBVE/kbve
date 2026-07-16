@@ -1,5 +1,6 @@
 ---
 title: Orange Banner
+template: splash
 description: |
     Minecraft Orange Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 548
     ref: orange_wall_banner
     slug: orange-wall-banner
+    content_rev: 1
     display_name: Orange Banner
     material: wood
     hardness: 1
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: orange_wall_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Orange Wall Banner is the wall-mounted placement state of the
+            Orange Banner, produced automatically when a banner is attached
+            to a vertical surface instead of the floor.
+        lore: |
+            Banners gently sway in place as if stirred by a breeze, a
+            purely visual flourish added for atmosphere.
+    uses:
+        - title: Shield Design
+          ref: shield
+          detail: |
+              Combine a banner with a shield on a crafting grid to copy the
+              banner's pattern onto the shield permanently.
+        - title: Loom Patterning
+          ref: loom
+          detail: |
+              Use a Loom with dyes and pattern items to add up to six
+              layered designs to a banner before placing it.
+    found_in:
+        - location: Crafted
+          detail: Craft 6 Orange Wool with 1 Stick to make 1 Orange Banner.
+        - location: Village and mansion loot
+          detail: Naturally generates on some village and woodland mansion structures.
+        - location: Shepherd and Cartographer trades
+          detail: Purchasable for 3 emeralds from expert-level villagers of these professions.
+    faq:
+        - question: What tool breaks a banner fastest?
+          answer: |
+              An axe, though any tool or bare hands will eventually break
+              it since no minimum tier is required.
+        - question: Does the wall banner drop itself?
+          answer: |
+              Yes, breaking it or removing its supporting wall drops the
+              Orange Banner item, patterns included.
+        - question: Can I put patterns on an Orange Banner?
+          answer: |
+              Yes, use a Loom with dye and a pattern item to layer up to
+              six designs onto it.
+        - question: Is a banner solid?
+          answer: |
+              No. Banners are non-solid decorative blocks that entities can
+              pass through.
     data_version: "1.21.5"
 ---
 

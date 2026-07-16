@@ -1,5 +1,6 @@
 ---
 title: Lever
+template: splash
 description: |
     Minecraft Lever — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 702
     ref: lever
     slug: lever
+    content_rev: 1
     display_name: Lever
     category: redstone
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Lever is a player-toggled redstone power source crafted from a stick and
+            cobblestone. When flipped it emits full-strength redstone power to adjacent
+            dust, comparators, repeaters, and mechanisms, making it one of the most basic
+            switches for redstone circuits and doors.
+        lore: |
+            A simple cobblestone-and-stick switch that snaps between on and off with
+            a satisfying click, no wiring required.
+    faq:
+        - question: How do you craft a Lever?
+          answer: |
+              Combine one stick and one cobblestone in a crafting grid to produce
+              a single lever.
+        - question: How does a Lever power redstone?
+          answer: |
+              When activated, a lever powers adjacent redstone dust to power level
+              15 and directly activates neighboring mechanisms such as pistons and redstone lamps.
+        - question: Where can Levers be placed?
+          answer: |
+              Levers attach to the top, side, or bottom of any full solid opaque
+              block; in Bedrock Edition they can also be placed on fences, walls, and hoppers.
+        - question: Do Levers spawn naturally in the world?
+          answer: |
+              Yes, three levers generate in every jungle temple as part of its
+              trap mechanism, and levers also appear in woodland mansions and ancient cities.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

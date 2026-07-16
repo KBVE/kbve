@@ -1,5 +1,6 @@
 ---
 title: Crimson Door
+template: splash
 description: |
     Minecraft Crimson Door — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 753
     ref: crimson_door
     slug: crimson-door
+    content_rev: 1
     display_name: Crimson Door
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Crimson Door is a wooden door crafted from crimson planks harvested in the Nether's crimson forests. It opens and closes like any other wood door but is non-flammable and immune to fire damage, reflecting its Nether origin.
+            Unlike some other wood door variants, it does not generate naturally in structures and must be crafted by the player.
+        lore: |
+            Carved from hellish crimson wood, this door withstands the Nether's flames yet swings open at a simple touch.
+    faq:
+        - question: How do I craft a Crimson Door?
+          answer: |
+              Craft it from crimson planks at a crafting table, the same way as other wooden door variants.
+        - question: Can crimson doors catch fire?
+          answer: |
+              No, crimson doors are non-flammable, unlike some Overworld wood variants that can burn.
+        - question: Can mobs break through crimson doors?
+          answer: |
+              Zombies and vindicators may attempt to break closed wooden doors on Hard difficulty, while piglins and villagers can simply open and close them.
+        - question: Do crimson doors spawn naturally in structures?
+          answer: |
+              No, they don't generate naturally the way oak or spruce doors sometimes do; they must be crafted.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

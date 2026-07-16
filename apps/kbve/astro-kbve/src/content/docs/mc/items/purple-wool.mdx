@@ -1,5 +1,6 @@
 ---
 title: Purple Wool
+template: splash
 description: |
     Minecraft Purple Wool — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,35 @@ mc_item:
     id: 223
     ref: purple_wool
     slug: purple-wool
+    content_rev: 1
     display_name: Purple Wool
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Purple Wool is a dyed variant of wool obtained by shearing a purple
+            sheep or crafting white Wool with Purple Dye. Like all wool colors, it
+            stacks separately from other colors and can be crafted into matching
+            beds, banners, and carpets.
+        lore: |
+            Soft fleece dyed a royal violet, favored for banners and cozy beds
+            alike.
+    faq:
+        - question: How do I get Purple Wool?
+          answer: |
+              Shear a purple sheep, or craft one White Wool with one Purple Dye to
+              convert it directly.
+        - question: Does Purple Wool block sculk sensors?
+          answer: |
+              Yes, wool of any color absorbs vibrations, preventing sculk sensors and
+              wardens from detecting nearby activity.
+        - question: Can Purple Wool be used as furnace fuel?
+          answer: |
+              Yes, wool blocks can be burned as fuel in a furnace, though it is
+              usually more valuable used for building or crafting.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

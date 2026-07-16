@@ -1,0 +1,75 @@
+{
+	"name": "herbmail-game",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "apps/herbmail/herbmail-game/src",
+	"projectType": "application",
+	"tags": ["scope:herbmail", "type:app", "game"],
+	"targets": {
+		"dev": {
+			"executor": "@nx/vite:dev-server",
+			"options": {
+				"buildTarget": "herbmail-game:build"
+			}
+		},
+		"serve": {
+			"executor": "@nx/vite:dev-server",
+			"options": {
+				"buildTarget": "herbmail-game:build"
+			}
+		},
+		"build": {
+			"executor": "@nx/vite:build",
+			"outputs": ["{options.outputPath}"],
+			"dependsOn": ["lfs-pull"],
+			"options": {
+				"outputPath": "dist/apps/herbmail/herbmail-game"
+			}
+		},
+		"rebake": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/herbmail/herbmail-game",
+				"commands": ["bash art/character/rebake.sh"]
+			}
+		},
+		"lfs-pull": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs herbmail pull --include='apps/herbmail/herbmail-game/public/**') || echo 'herbmail LFS pull skipped (no creds / offline) — assets may be pointer stubs'"
+				]
+			}
+		},
+		"lfs-push": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs herbmail push origin HEAD)"
+				]
+			}
+		},
+		"lfs-register": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs herbmail register origin)"
+				]
+			}
+		},
+		"preview": {
+			"executor": "@nx/vite:preview-server",
+			"options": {
+				"buildTarget": "herbmail-game:build"
+			}
+		},
+		"lint": {
+			"executor": "@nx/eslint:lint"
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "vitest run --config apps/herbmail/herbmail-game/vite.config.ts"
+			}
+		}
+	}
+}

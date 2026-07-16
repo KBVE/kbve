@@ -1,5 +1,6 @@
 ---
 title: Chiseled Polished Blackstone
+template: splash
 description: |
     Minecraft Chiseled Polished Blackstone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,66 @@ mc_block:
     id: 890
     ref: chiseled_polished_blackstone
     slug: chiseled-polished-blackstone
+    content_rev: 1
     display_name: Chiseled Polished Blackstone
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: chiseled_polished_blackstone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+    about:
+        description: |
+            Chiseled Polished Blackstone is a decorative blackstone variant
+            carved with a piglin snout pattern, used for detailing in
+            bastion-style and Nether builds.
+        lore: |
+            The carving is a deliberate nod to the piglins, whose bastion
+            remnants are built largely from blackstone.
+    uses:
+        - title: Decorative building
+          ref: polished_blackstone_slab
+          detail: |
+              Stack two Polished Blackstone Slabs vertically, or stonecut a
+              Polished Blackstone block, to produce Chiseled Polished
+              Blackstone for trim and detailing.
+    found_in:
+        - location: Bastion Remnants
+          detail: Generates naturally as a decorative block within bastion remnant structures.
+        - location: Nether Ruined Portals
+          detail: Also found scattered among the blackstone rubble of ruined portals in the Nether.
+    faq:
+        - question: What tool do I need to mine Chiseled Polished Blackstone?
+          answer: |
+              Any pickaxe, starting from wood. Mining without a pickaxe
+              yields no drop.
+        - question: Is Chiseled Polished Blackstone renewable?
+          answer: |
+              Yes. Piglins can barter gold ingots for blackstone, giving
+              players a sustainable path to craft or stonecut more.
+        - question: Where does it generate naturally?
+          answer: |
+              In bastion remnants and, less commonly, in ruined portals
+              found throughout the Nether.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops itself as a single block once mined with
+              any pickaxe.
     data_version: "1.21.5"
 ---
 

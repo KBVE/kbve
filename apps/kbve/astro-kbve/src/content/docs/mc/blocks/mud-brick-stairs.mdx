@@ -1,5 +1,6 @@
 ---
 title: Mud Brick Stairs
+template: splash
 description: |
     Minecraft Mud Brick Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 341
     ref: mud_brick_stairs
     slug: mud-brick-stairs
+    content_rev: 1
     display_name: Mud Brick Stairs
     material: dirt
     hardness: 1.5
@@ -21,13 +23,58 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mud_brick_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Mud Brick Stairs are the stair form of mud bricks, giving
+            builders a way to create sloped and stepped surfaces matching
+            the earthy, packed-mud aesthetic.
+        lore: |
+            Introduced with trail ruins in the Trails & Tales Update, they
+            complement the mud brick block, slab, and wall as a full
+            building set.
+    uses:
+        - title: Trail ruins style building
+          ref: mud_brick_stairs
+          detail: |
+              Used for stepped access and roofing details in mud-brick
+              structures, matching the mud brick block, slab, and wall.
+    found_in:
+        - location: Trail Ruins
+          detail: Generates naturally as part of the buried trail ruins archaeology structure.
+        - location: Crafted from Mud Bricks
+          detail: Six Mud Bricks craft four Mud Brick Stairs; a stonecutter converts one Mud Brick into one stair.
+    faq:
+        - question: What tool do I need to mine Mud Brick Stairs?
+          answer: |
+              Any pickaxe, wooden tier or higher. Without a pickaxe it
+              breaks with no drop.
+        - question: How do I craft Mud Brick Stairs?
+          answer: |
+              Arrange six Mud Bricks in a staircase pattern for four stairs,
+              or use a stonecutter to convert one Mud Brick into one stair.
+        - question: Where do Mud Brick Stairs generate naturally?
+          answer: |
+              As part of trail ruins, the buried structures added in the
+              Trails & Tales Update.
+        - question: Are Mud Brick Stairs waterloggable?
+          answer: |
+              Yes. Like other stairs, they can hold water when placed in a
+              water source, letting them be submerged without displacing
+              the water.
     data_version: "1.21.5"
 ---
 

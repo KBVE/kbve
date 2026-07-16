@@ -1,5 +1,6 @@
 ---
 title: Cactus
+template: splash
 description: |
     Minecraft Cactus — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 266
     ref: cactus
     slug: cactus
+    content_rev: 1
     display_name: Cactus
     material: plant
     hardness: 0.4
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cactus
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - plant
+    about:
+        description: |
+            Cactus is a spiny plant block that grows in tall stacks and
+            deals contact damage to any entity that touches it, while also
+            destroying items and minecarts on impact.
+        lore: |
+            A desert staple since Minecraft's earliest versions, cactus has
+            long doubled as both a natural hazard and a farmable dye source.
+    uses:
+        - title: Green Dye
+          ref: green_dye
+          detail: |
+              Smelting cactus in a furnace or smoker yields green dye and
+              awards 1 XP per item — among the best smelting XP for a
+              farmable block.
+        - title: Camel Breeding
+          ref: camel
+          detail: |
+              Feeding cactus to camels breeds them and reduces baby camel
+              growth time.
+    found_in:
+        - location: Desert and badlands biomes
+          detail: Generates naturally as 1–3 block tall stacks, roughly twice as common in deserts as in badlands.
+        - location: Trading and loot
+          detail: Obtainable from wandering traders (3 emeralds) and some village or bonus chests.
+    faq:
+        - question: Can I mine cactus without taking damage?
+          answer: |
+              Yes — breaking a cactus block bare-handed or with a tool
+              doesn't hurt you, unlike simply touching a standing cactus.
+        - question: What tool do I need to break cactus?
+          answer: |
+              None. It breaks with any tool or bare hands at the same speed,
+              since it has no assigned best tool.
+        - question: Does Silk Touch change the drop?
+          answer: |
+              No. Cactus always drops itself as a block whether or not the
+              tool has Silk Touch.
+        - question: Why do cacti sometimes fail to grow tall?
+          answer: |
+              Cacti require all four horizontally adjacent blocks to be
+              empty; if anything occupies those spaces, the stack breaks or
+              stops growing.
     data_version: "1.21.5"
 ---
 

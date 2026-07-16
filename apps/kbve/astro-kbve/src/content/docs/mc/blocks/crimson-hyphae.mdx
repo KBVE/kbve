@@ -1,5 +1,6 @@
 ---
 title: Crimson Hyphae
+template: splash
 description: |
     Minecraft Crimson Hyphae — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 832
     ref: crimson_hyphae
     slug: crimson-hyphae
+    content_rev: 1
     display_name: Crimson Hyphae
     material: nether
     hardness: 2
@@ -26,8 +28,49 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crimson_hyphae
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            Crimson Hyphae is the bark-textured counterpart to crimson
+            stems, showing the same mottled fungal skin on all six faces
+            instead of only the sides. It is produced by stripping a
+            crimson stem, matching how stripped logs work for overworld
+            wood.
+        lore: |
+            Added with the Nether Update (1.16), hyphae blocks let builders
+            use the "log" look on every face without exposing the stem's
+            rings.
+    uses:
+        - title: Crimson Planks
+          ref: crimson_planks
+          detail: |
+              Crafted into crimson planks (4 planks per block) for
+              building, or used as fuel and in campfire/smoker recipes.
+    found_in:
+        - location: Crimson Forest
+          detail: Obtained by using an axe on a placed crimson stem, converting it in place; does not generate on its own.
+    faq:
+        - question: How do I get Crimson Hyphae?
+          answer: |
+              Use an axe on a crimson stem block to strip it, or on
+              stripped crimson stem placed so all faces show bark — it
+              does not generate naturally by itself.
+        - question: Does Crimson Hyphae burn?
+          answer: |
+              No. Unlike most wood, crimson and warped hyphae are
+              non-flammable in Java Edition and safe to use near lava.
+        - question: What tool do I need to mine it?
+          answer: |
+              None required — an axe is fastest, but it can be broken by
+              hand or any tool and always drops itself.
     data_version: "1.21.5"
 ---
 

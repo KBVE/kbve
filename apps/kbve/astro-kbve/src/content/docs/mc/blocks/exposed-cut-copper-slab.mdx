@@ -1,5 +1,6 @@
 ---
 title: Exposed Cut Copper Slab
+template: splash
 description: |
     Minecraft Exposed Cut Copper Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,74 @@ mc_block:
     id: 990
     ref: exposed_cut_copper_slab
     slug: exposed-cut-copper-slab
+    content_rev: 1
     display_name: Exposed Cut Copper Slab
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: exposed_cut_copper_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Exposed Cut Copper Slab is the first weathering stage of the
+            cut copper slab, a decorative half-height building block whose
+            surface has dulled from bright orange-brown into a light gray,
+            spotted patina.
+        lore: |
+            Introduced alongside the other cut copper variants in the Java
+            Edition 1.17 Caves & Cliffs update.
+    uses:
+        - title: Exposed Chiseled Copper
+          ref: exposed_chiseled_copper
+          detail: |
+              Two exposed cut copper slabs stacked in a crafting grid
+              produce Exposed Chiseled Copper, matching the same
+              oxidation stage.
+        - title: Waxed Exposed Cut Copper Slab
+          ref: waxed_exposed_cut_copper_slab
+          detail: |
+              Combining with honeycomb halts oxidation permanently,
+              locking the slab at the exposed stage.
+    found_in:
+        - location: Trial Chambers
+          detail: The waxed variant at this oxidation stage generates naturally as part of trial chamber structures.
+        - location: Natural weathering or lightning
+          detail: An unoxidized cut copper slab reaches this stage over time, or instantly if struck by lightning.
+    faq:
+        - question: What tool do I need to mine Exposed Cut Copper Slab?
+          answer: |
+              A stone pickaxe or better. Anything weaker breaks the block
+              without dropping it.
+        - question: How do I get Exposed Cut Copper Slab?
+          answer: |
+              Craft it from 3 Exposed Cut Copper blocks (6 slabs), stonecut
+              a Block of Exposed Copper (8 slabs), or let an unoxidized
+              slab weather naturally.
+        - question: Is Exposed Cut Copper Slab affected by Fortune?
+          answer: |
+              No. It always drops exactly one slab per slab mined,
+              regardless of Fortune level.
+        - question: How do I stop it from oxidizing further?
+          answer: |
+              Apply honeycomb to wax it, which locks it at the exposed
+              oxidation stage permanently.
     data_version: "1.21.5"
 ---
 

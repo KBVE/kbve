@@ -18,3 +18,4 @@ export * from './adapters/vm';
 export * from './adapters/rows';
 export * from './adapters/factorio';
 export * from './adapters/minecraft';
+export * from './clickhouse';

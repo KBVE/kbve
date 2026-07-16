@@ -1,5 +1,6 @@
 ---
 title: Mule Spawn Egg
+template: splash
 description: |
     Minecraft Mule Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1104
     ref: mule_spawn_egg
     slug: mule-spawn-egg
+    content_rev: 1
     display_name: Mule Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Mule Spawn Egg is a creative-mode item that instantly spawns a mule, a
+            passive pack animal normally created only by breeding a horse with a
+            donkey. Mules resemble donkeys with darker, reddish-brown coats and
+            donkey-like ears.
+        lore: |
+            Mules were introduced in Java Edition 1.6.1 with development assistance
+            from the creator of the Mo' Creatures mod, and remain the only hybrid mobs
+            in Minecraft.
+    faq:
+        - question: How do you normally get a Mule without the spawn egg?
+          answer: |
+              Breed a horse and a donkey together; there is no natural spawning, and
+              mules cannot breed with each other.
+        - question: What is a Mule used for?
+          answer: |
+              Tamed and saddled mules can be ridden for transportation and equipped
+              with a chest for 15 extra inventory slots as a pack animal.
+        - question: Do baby Mules ever hatch from spawn eggs?
+          answer: |
+              Yes, about 20% of mule spawn eggs produce a baby mule instead of an
+              adult.
+        - question: How well do Mules handle water and falls?
+          answer: |
+              Ridden mules float on water, and they take less fall damage than most
+              other mobs.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

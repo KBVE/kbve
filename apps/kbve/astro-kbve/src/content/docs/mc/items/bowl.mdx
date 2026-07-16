@@ -1,5 +1,6 @@
 ---
 title: Bowl
+template: splash
 description: |
     Minecraft Bowl — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 839
     ref: bowl
     slug: bowl
+    content_rev: 1
     display_name: Bowl
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A simple wooden container used to hold and serve food such as mushroom stew, rabbit stew,
+            beetroot soup, and suspicious stew. Bowls are crafted from any 3 wooden planks in a V-shape,
+            and the empty bowl is returned to the player's inventory after the food is eaten.
+        lore: |
+            A humble vessel, crafted by hand, ready to nourish those who wander the blocky realm.
+    faq:
+        - question: What foods require a bowl?
+          answer: |
+              Bowls are used to craft mushroom stew, rabbit stew, beetroot soup, and suspicious stew, and
+              they hold each of these foods until eaten.
+        - question: Can I get bowls without crafting them?
+          answer: |
+              Yes—fishing has a small chance of yielding a bowl, turtles drop them when struck by lightning,
+              and they can be found in abandoned camp barrels.
+        - question: Are bowls reusable?
+          answer: |
+              Yes. When you eat food from a bowl, the empty bowl returns to your inventory, allowing
+              infinite reuse.
+        - question: What's an efficient use for bowls?
+          answer: |
+              Using bowls on mooshrooms to repeatedly create mushroom stew is a quick way to restock hunger
+              without depleting other resources.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

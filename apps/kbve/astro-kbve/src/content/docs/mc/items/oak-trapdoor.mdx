@@ -1,5 +1,6 @@
 ---
 title: Oak Trapdoor
+template: splash
 description: |
     Minecraft Oak Trapdoor — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 764
     ref: oak_trapdoor
     slug: oak-trapdoor
+    content_rev: 1
     display_name: Oak Trapdoor
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            An oak trapdoor is a wooden hatch block that can be opened and closed
+            manually or via redstone signal. It can be attached to the top, bottom,
+            or sides of a block, and remains in place even if its attachment point
+            is later destroyed.
+        lore: |
+            Oak trapdoors naturally generate in plains villages, igloo basements,
+            and shipwrecks, hinting at their practical use for hidden storage and
+            maritime hatches.
+    faq:
+        - question: How do you craft an oak trapdoor?
+          answer: |
+              Arrange six oak planks in a 3x2 or 2x3 pattern on a crafting table
+              to produce two oak trapdoors.
+        - question: Can redstone control an oak trapdoor?
+          answer: |
+              Yes, when a redstone signal activates it the trapdoor immediately
+              opens, and when the signal is removed it immediately closes; players
+              can also toggle it manually by hand.
+        - question: Are oak trapdoors flammable?
+          answer: |
+              No, unlike other oak wood blocks, oak trapdoors are non-flammable
+              and cannot be used as furnace fuel.
+        - question: Where do oak trapdoors generate naturally?
+          answer: |
+              They can be found in plains village houses, igloo basements, and
+              shipwrecks as part of their generated structures.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

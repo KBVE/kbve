@@ -1,5 +1,6 @@
 ---
 title: Sunflower
+template: splash
 description: |
     Minecraft Sunflower — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,8 +14,9 @@ mc_block:
     id: 525
     ref: sunflower
     slug: sunflower
+    content_rev: 1
     display_name: Sunflower
-    material: stone
+    material: plant
     hardness: 0
     blast_resistance: 0
     best_tool: hand
@@ -24,10 +26,53 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: sunflower
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Sunflower is a two-block-tall flower found only in sunflower
+            plains biomes. Its top half always visually faces east, making
+            it a handy compass landmark, and it attracts bees for pollination.
+        lore: |
+            First teased by Jeb in 2013, Sunflower was officially added in
+            Java Edition 1.7.2 alongside the Flower Update.
+    uses:
+        - title: Yellow Dye
+          ref: yellow_dye
+          detail: |
+              Crafting a Sunflower yields two Yellow Dye, more efficient than
+              most other yellow dye sources.
+    found_in:
+        - location: Sunflower Plains
+          detail: |
+              Generates naturally as a vegetation feature on grass and dirt
+              blocks exclusively within the sunflower plains biome.
+    faq:
+        - question: Why does my Sunflower always point the same direction?
+          answer: |
+              Its texture always faces east regardless of how it is placed,
+              which players use as a quick in-game compass.
+        - question: What tool is needed to harvest a Sunflower?
+          answer: |
+              None. It breaks instantly with any tool or bare hands and
+              always drops itself as an item.
+        - question: Do Sunflowers help with bees?
+          answer: |
+              Yes, bees can pollinate them like other flowers, and nearby
+              beehives or nests benefit from the added pollination source.
+        - question: Can Sunflowers be composted?
+          answer: |
+              Yes, they have roughly a 65% chance to raise the composter's
+              level when added.
     data_version: "1.21.5"
 ---
 

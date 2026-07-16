@@ -1,5 +1,6 @@
 ---
 title: Cyan Glazed Terracotta
+template: splash
 description: |
     Minecraft Cyan Glazed Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 671
     ref: cyan_glazed_terracotta
     slug: cyan-glazed-terracotta
+    content_rev: 1
     display_name: Cyan Glazed Terracotta
     material: stone
     hardness: 1.4
     blast_resistance: 1.4
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cyan_glazed_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Cyan Glazed Terracotta is a decorative block made by smelting
+            Cyan Terracotta. It carries a fixed directional pattern — a
+            creeper face design — that rotates based on placement direction
+            and combines with neighboring blocks into larger images.
+        lore: |
+            Its texture design was inspired by Moroccan-style tile flooring
+            seen in a California hotel bathroom, according to Mojang notes.
+    uses:
+        - title: Decorative patterned building
+          ref: cyan_glazed_terracotta
+          detail: |
+              Placed to form directional mosaics; the cyan variant displays a
+              creeper face that lines up across adjacent blocks.
+    found_in:
+        - location: Furnace smelting
+          detail: Smelt Cyan Terracotta with any fuel to produce Cyan Glazed Terracotta.
+        - location: Mason villager trades
+          detail: Mason villagers occasionally trade glazed terracotta blocks for emeralds, making it renewable.
+    faq:
+        - question: What tool do I need to mine Cyan Glazed Terracotta?
+          answer: |
+              Any pickaxe, wooden or better. Mining without one drops
+              nothing.
+        - question: Can pistons move Cyan Glazed Terracotta?
+          answer: |
+              Regular pistons can push it, but sticky pistons cannot pull it
+              back — it does not stick to slime or honey blocks.
+        - question: How do I get Cyan Glazed Terracotta?
+          answer: |
+              Smelt Cyan Terracotta in a furnace or blast furnace, or trade
+              with a Mason villager.
+        - question: Why does the pattern look different depending on placement?
+          answer: |
+              Glazed terracotta has a directional texture that rotates based
+              on the direction you were facing when you placed it.
     data_version: "1.21.5"
 ---
 

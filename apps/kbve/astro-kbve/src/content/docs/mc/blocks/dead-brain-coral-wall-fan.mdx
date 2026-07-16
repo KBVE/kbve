@@ -1,5 +1,6 @@
 ---
 title: Dead Brain Coral Wall Fan
+template: splash
 description: |
     Minecraft Dead Brain Coral Wall Fan — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,65 @@ mc_block:
     id: 746
     ref: dead_brain_coral_wall_fan
     slug: dead-brain-coral-wall-fan
+    content_rev: 1
     display_name: Dead Brain Coral Wall Fan
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: pickaxe
+    best_tool: hoe
     required_tool_tier: 0
     light_emission: 0
-    light_opacity: 1
+    light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
+    solid: false
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dead_brain_coral_fan
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Dead Brain Coral Wall Fan is the wall-mounted placement state
+            of a Dead Brain Coral Fan, automatically used by the game
+            whenever a coral fan is attached to the side of a block. It
+            is not a separate obtainable item.
+        lore: |
+            Added with the Update Aquatic (1.13) as the technical
+            wall-attached counterpart to the standing coral fan block.
+    uses:
+        - title: Reef Decoration
+          ref: dead_brain_coral_fan
+          detail: |
+              Attaches coral fan decoration to vertical surfaces, letting
+              builders dress the sides of reef structures and shipwrecks.
+    found_in:
+        - location: Warm Ocean Biomes
+          detail: Generates naturally where coral fans attach to the sides of blocks in reef formations.
+        - location: Dying Live Coral Wall Fan
+          detail: A live Brain Coral Wall Fan converts to this dead form after 3–4.95 seconds without adjacent water.
+    faq:
+        - question: What tool do I need to mine this block?
+          answer: |
+              Any tool works and it breaks instantly, but a hoe is the
+              fastest option.
+        - question: Do I need Silk Touch?
+          answer: |
+              Yes — without Silk Touch it drops nothing, same as the
+              standing Dead Brain Coral Fan.
+        - question: Is this a separate item from Dead Brain Coral Fan?
+          answer: |
+              No. It is only a placement state; both drop the same Dead
+              Brain Coral Fan item when mined with Silk Touch.
+        - question: How is it placed?
+          answer: |
+              The game automatically uses this state when a coral fan is
+              placed against the side of a block rather than on top of one.
     data_version: "1.21.5"
 ---
 

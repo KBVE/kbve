@@ -1,5 +1,6 @@
 ---
 title: Wither Skeleton Skull
+template: splash
 description: |
     Minecraft Wither Skeleton Skull — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 423
     ref: wither_skeleton_skull
     slug: wither-skeleton-skull
+    content_rev: 1
     display_name: Wither Skeleton Skull
     material: stone
     hardness: 1
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: wither_skeleton_skull
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - nether
+        - blast_resistant
+    about:
+        description: |
+            The Wither Skeleton Skull is a rare drop from wither skeletons
+            in Nether fortresses, prized for summoning the Wither boss and
+            crafting decorative items.
+        lore: |
+            Added in Java Edition 1.4.2 alongside the Wither boss, it gave
+            players a repeatable way to obtain Nether Stars.
+    uses:
+        - title: Wither Boss
+          ref: nether_star
+          detail: |
+              Placing three wither skeleton skulls atop a T-shaped soul
+              sand or soul soil structure spawns the Wither boss, which
+              drops a Nether Star.
+        - title: Banner Pattern
+          ref: skull_banner_pattern
+          detail: |
+              Used at a loom to apply the wither skeleton skull design to
+              banners.
+    found_in:
+        - location: Nether fortresses
+          detail: Dropped by wither skeletons at a 2.5% base chance, boosted by Looting; 100% when killed by a charged creeper.
+    faq:
+        - question: What is the drop chance from a wither skeleton?
+          answer: |
+              2.5% base in Java Edition, increasing 1% per Looting level
+              (max 5.5% with Looting III). Charged creeper kills guarantee
+              a drop.
+        - question: What tool do I need to mine a placed skull?
+          answer: |
+              None. No tool speeds up breaking it, and it always drops
+              itself.
+        - question: What are wither skeleton skulls used for?
+          answer: |
+              Summoning the Wither boss, applying banner patterns, and
+              crafting creeper-face firework stars.
+        - question: Can I wear a wither skeleton skull?
+          answer: |
+              Yes, it can be equipped in the head armor slot as a cosmetic item.
     data_version: "1.21.5"
 ---
 

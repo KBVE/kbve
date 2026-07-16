@@ -1,8 +1,15 @@
 ---
-title: 'NPC Database Index'
-description: |
-    Placeholder entry for the NPC database content collection.
-    This file is filtered out during API generation.
+title: 'NPC Database'
+description: The KBVE NPC database — every creature, humanoid, and vessel across our games, with stats, families, and behavior data.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
+sidebar:
+    label: Overview
+    order: 1
 ref: 'npcdb-index'
 id: '00000000000000000000000000'
 name: 'Index'
@@ -13,6 +20,214 @@ rank: 'elite'
 family: 'humanoid'
 level: 0
 drafted: true
+tags:
+    - npcdb
+    - npc
+    - database
+ogTitle: KBVE NPC Database — Creatures, Humanoids & Vessels
+ogDescription: Browse the KBVE NPC database — a shared catalog of creatures, humanoids, constructs, and vessels with stats, rarities, families, and behavior data used across our games.
+ogImage: https://images.unsplash.com/photo-1509198397868-475647b2a1e5?fit=crop&w=1400&h=700&q=75
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - name: Home
+          path: /
+        - name: NPC Database
+          path: /npcdb/
+    faq:
+        - question: What is the KBVE NPC database?
+          answer: A shared, versioned catalog of every non-player character across our games — creatures, humanoids, constructs, and vessels — with stats, rarities, families, elements, and behavior data. It is generated from MDX source in the monorepo and served both as pages and as a JSON API.
+        - question: How are NPCs organized?
+          answer: NPCs are grouped by creature family — humanoid, beast, undead, construct, elemental, spirit, and more. Use the sidebar or the family directory on this page to browse every entry in a family.
+        - question: Can I use the NPC data in my own tools?
+          answer: Yes. The full catalog is available as JSON at /api/npcdb.json, keyed by id, ref, and name. Draft entries are excluded from the API output.
+        - question: What do rarity and rank mean?
+          answer: Rarity (common through mythic) reflects how special an NPC is, while rank (normal, minion, elite, rare_elite, world_boss) describes its combat tier. Both drive spawn rules and loot in-game.
 ---
 
-NPC Database index — this entry is excluded from the API output.
+import BentoShell from '@/components/hero/BentoShell.astro';
+import NpcFamilyDirectory from '@/components/npcdb/NpcFamilyDirectory.astro';
+
+export const backdrop = 'https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=2400&auto=format&fit=crop';
+
+export const faqs = [
+	{ q: 'What is the KBVE NPC database?', a: 'A shared, versioned catalog of every non-player character across our games — creatures, humanoids, constructs, and vessels — with stats, rarities, families, elements, and behavior data. It is generated from MDX source in the monorepo and served both as pages and as a JSON API.' },
+	{ q: 'How are NPCs organized?', a: 'NPCs are grouped by creature family — humanoid, beast, undead, construct, elemental, spirit, and more. Use the sidebar or the family directory on this page to browse every entry in a family.' },
+	{ q: 'Can I use the NPC data in my own tools?', a: 'Yes. The full catalog is available as JSON at /api/npcdb.json, keyed by id, ref, and name. Draft entries are excluded from the API output.', href: '/api/npcdb.json', link: 'View the JSON API' },
+	{ q: 'What do rarity and rank mean?', a: 'Rarity (common through mythic) reflects how special an NPC is, while rank (normal, minion, elite, rare_elite, world_boss) describes its combat tier. Both drive spawn rules and loot in-game.' },
+];
+
+export const related = [
+	{ href: '/itemdb/', title: 'Item database', copy: 'Weapons, armor, and consumables that NPCs drop and wield.', icon: 'M20 7h-9M14 17H5M17 3l4 4-4 4M7 21l-4-4 4-4' },
+	{ href: '/spelldb/', title: 'Spell database', copy: 'Abilities and spells referenced by NPC intent and phase rules.', icon: 'M15 4V2M15 16v-2M8 9h2M20 9h2M17.8 11.8 19 13M15 9h.01M17.8 6.2 19 5M3 21l9-9M12.2 6.2 11 5' },
+	{ href: '/api/npcdb.json', title: 'JSON API', copy: 'The full catalog as machine-readable JSON, keyed by id, ref, and name.', icon: 'M16 18l6-6-6-6M8 6l-6 6 6 6' },
+];
+
+<div class="npc-hub" style={`--bento-hero-bg: url('${backdrop}')`}>
+
+<section class="bento-hero bento-section not-content" aria-label="KBVE NPC database">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
+					<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" /></svg>
+					<span>kbve npcdb · shared catalog</span>
+				</span>
+				<h1 class="bento-title">
+					The KBVE
+					<span class="bento-title__accent">NPC Database.</span>
+				</h1>
+				<p class="bento-lede">
+					Every creature, humanoid, construct, and vessel across our
+					games — one versioned catalog with stats, rarities, families,
+					elements, and behavior data, served as pages and a JSON API.
+				</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="#directory">
+						Browse the catalog
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="/api/npcdb.json">JSON API</a>
+					<a class="bento-btn bento-btn--ghost" href="#faq">FAQ</a>
+				</div>
+			</div>
+
+			<div class="bento-cell bento-card bento-card--glass npc-hub__intro">
+				<h2 class="bento-rulecard__title">Grouped by family</h2>
+				<p class="bento-rulecard__desc">
+					Entries are organized by creature family — humanoid, beast,
+					undead, construct, elemental, spirit, and more. Use the
+					sidebar to jump to any NPC, or scroll the directory below to
+					browse a whole family at once.
+				</p>
+			</div>
+		</div>
+
+		<nav class="bento-jump" aria-label="On this page">
+			<a class="bento-chip" href="#directory">Directory</a>
+			<a class="bento-chip" href="#faq">FAQ</a>
+			<a class="bento-chip" href="#related">Related</a>
+		</nav>
+	</div>
+</section>
+
+<BentoShell id="directory" eyebrow="Every NPC" heading="Browse by family">
+	<NpcFamilyDirectory />
+</BentoShell>
+
+<BentoShell id="faq" eyebrow="FAQ" heading="Frequently asked questions">
+	<div class="bento-faq">
+		{faqs.map((f, i) => (
+			<details class="bento-faq__cell" name="npc-faq">
+				<summary class="bento-faq__question">
+					<span class="bento-faq__index">{String(i + 1).padStart(2, '0')}</span>
+					<span class="bento-faq__label">{f.q}</span>
+					<span class="bento-faq__chevron bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
+					</span>
+				</summary>
+				<div class="bento-faq__answer">
+					<p>{f.a}</p>
+					{f.href && <a class="bento-faq__link" href={f.href}>{f.link} →</a>}
+				</div>
+			</details>
+		))}
+	</div>
+</BentoShell>
+
+<BentoShell id="related" eyebrow="Keep going" heading="Related databases">
+	<div class="bento-board bento-board--cols-3">
+		{related.map((r) => (
+			<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href={r.href}>
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={r.icon} /></svg>
+				</span>
+				<span class="bento-linkcard__title">{r.title}</span>
+				<span class="bento-linkcard__copy">{r.copy}</span>
+				<span class="bento-linkcard__go" aria-hidden="true">
+					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+				</span>
+			</a>
+		))}
+	</div>
+</BentoShell>
+
+</div>
+
+<style is:global>{`
+	.npc-hub {
+		--bento-accent: #a855f7;
+		--bento-accent-2: #c084fc;
+	}
+	.npc-hub .npc-hub__intro {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		justify-content: center;
+	}
+	.npc-hub .bento-faq {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 1px;
+		background-color: var(--bento-hairline);
+	}
+	.npc-hub .bento-faq__cell {
+		background-color: var(--bento-cell-bg);
+	}
+	.npc-hub .bento-faq__question {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 1.125rem 1.5rem;
+		cursor: pointer;
+		list-style: none;
+		user-select: none;
+	}
+	.npc-hub .bento-faq__question::-webkit-details-marker { display: none; }
+	.npc-hub .bento-faq__index {
+		flex-shrink: 0;
+		font-size: 0.625rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		letter-spacing: 0.08em;
+		color: var(--sl-color-gray-4);
+	}
+	.npc-hub .bento-faq__label {
+		flex: 1;
+		min-width: 0;
+		font-size: 0.875rem;
+		font-weight: 600;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white);
+	}
+	.npc-hub .bento-faq__chevron {
+		flex-shrink: 0;
+		transition: transform 220ms ease, color 220ms ease;
+	}
+	.npc-hub .bento-faq__cell[open] .bento-faq__chevron {
+		transform: rotate(180deg);
+		color: var(--sl-color-accent-high);
+	}
+	.npc-hub .bento-faq__cell[open] .bento-faq__index { color: var(--sl-color-accent-high); }
+	.npc-hub .bento-faq__answer { padding: 0 1.5rem 1.25rem 3.125rem; }
+	.npc-hub .bento-faq__answer p {
+		font-size: 0.8125rem;
+		line-height: 1.6;
+		color: var(--sl-color-gray-3);
+		max-width: 34rem;
+	}
+	.npc-hub .bento-faq__link {
+		display: inline-block;
+		margin-top: 0.625rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--sl-color-accent-high);
+		text-decoration: none;
+	}
+	.npc-hub .bento-faq__link:hover { text-decoration: underline; }
+	@media (max-width: 768px) {
+		.npc-hub .bento-faq { grid-template-columns: 1fr; }
+		.npc-hub .bento-faq__answer { padding-left: 1.5rem; }
+	}
+`}</style>

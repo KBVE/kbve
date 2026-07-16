@@ -1,5 +1,6 @@
 ---
 title: Verdant Froglight
+template: splash
 description: |
     Minecraft Verdant Froglight — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,66 @@ mc_block:
     id: 1087
     ref: verdant_froglight
     slug: verdant-froglight
+    content_rev: 1
     display_name: Verdant Froglight
     material: stone
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 15
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: verdant_froglight
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - light_source
+    about:
+        description: |
+            Verdant Froglight is the green-tinted variant of froglight, the
+            brightest light-emitting block in the game. It is mob loot rather
+            than a minable resource, produced only when a cold frog eats a
+            tiny magma cube.
+        lore: |
+            Froglights were added in Java Edition 1.19 as part of the Wild
+            Update, their color determined by which frog variant eats the
+            magma cube.
+    uses:
+        - title: Light Source
+          ref: verdant_froglight
+          detail: |
+              Placed for maximum-brightness decorative lighting (light level
+              15); also melts nearby snow layers and ice like other
+              light-emitting blocks.
+    found_in:
+        - location: Cold Frog + Tiny Magma Cube
+          detail: A cold frog (found in cold/snowy biomes) eating a tiny magma cube drops one verdant froglight.
+    faq:
+        - question: What tool do I need to mine Verdant Froglight?
+          answer: |
+              Any tool works, or even bare hands — it breaks instantly
+              regardless of tool used.
+        - question: How do I get a Verdant Froglight?
+          answer: |
+              Lure a cold frog next to a tiny magma cube and let the frog eat
+              it; the frog then drops a verdant froglight.
+        - question: How is Verdant Froglight different from other froglights?
+          answer: |
+              Only the color differs by frog biome — warm frogs produce ochre,
+              temperate frogs produce pearlescent, and cold frogs produce
+              verdant froglight. All share identical light level and stats.
+        - question: Can Verdant Froglight be crafted?
+          answer: |
+              No, it cannot be crafted; it is only obtainable as frog mob
+              loot, making it a renewable but non-craftable resource.
     data_version: "1.21.5"
 ---
 

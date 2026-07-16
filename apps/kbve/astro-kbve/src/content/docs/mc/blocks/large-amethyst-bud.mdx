@@ -1,5 +1,6 @@
 ---
 title: Large Amethyst Bud
+template: splash
 description: |
     Minecraft Large Amethyst Bud — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 940
     ref: large_amethyst_bud
     slug: large-amethyst-bud
+    content_rev: 1
     display_name: Large Amethyst Bud
     material: stone
     hardness: 1.5
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: large_amethyst_bud
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - amethyst
+    about:
+        description: |
+            Large Amethyst Bud is the third of four growth stages of an
+            amethyst cluster, sprouting from a budding amethyst block. It
+            emits a soft purple light and must grow one more stage into a
+            full cluster before it yields amethyst shards.
+        lore: |
+            Amethyst geodes and their buds were added in the Caves & Cliffs
+            update (1.17), after being teased as early as 2019.
+    uses:
+        - title: Amethyst Cluster (growth)
+          ref: amethyst_cluster
+          detail: |
+              Left alone, a Large Amethyst Bud eventually grows into a full
+              Amethyst Cluster, which is the only growth stage that drops
+              amethyst shards without Silk Touch.
+    found_in:
+        - location: Amethyst Geodes
+          detail: Generates on the exposed faces of budding amethyst blocks inside geodes, found underground or partially exposed at the surface.
+    faq:
+        - question: Do I need Silk Touch to keep a Large Amethyst Bud?
+          answer: |
+              Yes. Without Silk Touch it breaks with no drop; only a fully
+              grown Amethyst Cluster drops shards without Silk Touch.
+        - question: Does a Large Amethyst Bud grow further?
+          answer: |
+              Yes. Given time and an adjacent budding amethyst, it advances
+              into a full Amethyst Cluster, the final growth stage.
+        - question: Does Fortune help harvest it?
+          answer: |
+              No. Fortune only affects the fully grown Amethyst Cluster
+              stage, not the Large Amethyst Bud.
+        - question: Where do amethyst buds generate?
+          answer: |
+              Only inside amethyst geodes, growing outward from budding
+              amethyst blocks found underground.
     data_version: "1.21.5"
 ---
 

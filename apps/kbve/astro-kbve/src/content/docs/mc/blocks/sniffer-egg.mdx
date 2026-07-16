@@ -1,5 +1,6 @@
 ---
 title: Sniffer Egg
+template: splash
 description: |
     Minecraft Sniffer Egg — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 714
     ref: sniffer_egg
     slug: sniffer-egg
+    content_rev: 1
     display_name: Sniffer Egg
     material: stone
     hardness: 0.5
@@ -24,10 +26,56 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: sniffer_egg
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hand_mineable
+        - overworld
+    about:
+        description: |
+            Sniffer Egg is the item-like block that hatches into a baby
+            sniffer (snifflet). It can be mined with any tool or bare
+            hands and always drops itself, unlike turtle eggs which need
+            Silk Touch.
+        lore: |
+            Introduced in Java Edition 1.20, the sniffer egg revived the
+            long-extinct sniffer mob after players first unearthed one in
+            a community vote.
+    uses:
+        - title: Sniffer Breeding
+          ref: sniffer
+          detail: |
+              Placed on a valid block, the egg cracks through two stages
+              before hatching into a snifflet, which grows into an adult
+              sniffer that digs up ancient seeds.
+    found_in:
+        - location: Warm ocean ruins
+          detail: Brushed out of suspicious sand with a chance around 6.7% per block.
+        - location: Sniffer breeding
+          detail: Breeding two adult sniffers with torchflower seeds produces a new egg.
+    faq:
+        - question: What tool do I need to mine a Sniffer Egg?
+          answer: |
+              Any tool, or even bare hands — it always drops itself
+              regardless of tool used.
+        - question: How long does a Sniffer Egg take to hatch?
+          answer: |
+              10 minutes on a moss block, or 20 minutes on any other
+              block. Hatching speed is unaffected by random tick speed.
+        - question: Where do I find Sniffer Eggs?
+          answer: |
+              Brush suspicious sand in warm ocean ruins, or breed two adult
+              sniffers together using torchflower seeds.
+        - question: Does a Sniffer Egg need Silk Touch to drop?
+          answer: |
+              No. Unlike turtle eggs, sniffer eggs drop themselves when
+              mined with any tool.
     data_version: "1.21.5"
 ---
 

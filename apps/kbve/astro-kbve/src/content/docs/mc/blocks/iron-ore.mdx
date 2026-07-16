@@ -1,5 +1,6 @@
 ---
 title: Iron Ore
+template: splash
 description: |
     Minecraft Iron Ore — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 44
     ref: iron_ore
     slug: iron-ore
+    content_rev: 1
     display_name: Iron Ore
     material: stone
     hardness: 3
     blast_resistance: 3
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,66 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: raw_iron
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: iron_ore
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - ore
+        - smeltable
+    about:
+        description: |
+            Iron Ore is a common mineral block that drops raw iron when
+            mined. The raw iron is smelted into iron ingots, the backbone
+            material for tools, weapons, armor, and countless recipes.
+        lore: |
+            Iron is one of the most abundant and versatile resources in the
+            game, generating in three separate height batches across the
+            Overworld. Its deepslate variant carries the same drops.
+    uses:
+        - title: Raw Iron and Iron Ingots
+          ref: iron_ingot
+          detail: |
+              Smelt raw iron in a furnace or blast furnace to produce iron
+              ingots, used to craft tools, armor, rails, buckets, and more.
+        - title: Experience
+          ref: experience
+          detail: |
+              Smelting iron ore or raw iron grants experience points when the
+              ingot is removed from the furnace.
+    found_in:
+        - location: Upper batch (Y = 80 to 384)
+          detail: Most common around Y=232 in mountainous terrain.
+        - location: Middle batch (Y = -24 to 56)
+          detail: Peaks around Y=16, the most reliable mining band.
+        - location: Deepslate layers
+          detail: Appears as Deepslate Iron Ore below Y=0 with identical drops.
+    faq:
+        - question: What tool do I need to mine Iron Ore?
+          answer: |
+              A stone pickaxe or better. A wooden or golden pickaxe breaks it
+              with no drop.
+        - question: Does Fortune increase the drops?
+          answer: |
+              Yes. Fortune increases the amount of raw iron dropped, up to
+              four with Fortune III.
+        - question: How do I get the ore block itself?
+          answer: |
+              Mine it with a Silk Touch pickaxe to collect the iron ore block
+              instead of raw iron.
+        - question: Where is the best place to find it?
+          answer: |
+              The middle batch around Y=16 offers a strong, even
+              distribution, and large deepslate veins appear deeper down.
     data_version: "1.21.5"
 ---
 

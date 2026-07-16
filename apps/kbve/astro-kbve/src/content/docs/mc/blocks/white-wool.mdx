@@ -1,5 +1,6 @@
 ---
 title: White Wool
+template: splash
 description: |
     Minecraft White Wool — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 140
     ref: white_wool
     slug: white-wool
+    content_rev: 1
     display_name: White Wool
     material: wool
     hardness: 0.8
@@ -24,10 +26,66 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: white_wool
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+        - blocks_vibrations
+    about:
+        description: |
+            White Wool is the undyed form of the block obtained by
+            shearing or killing sheep. It is highly flammable, blocks
+            sculk sensor vibrations, and is a core crafting ingredient for
+            beds, banners, and carpets.
+        lore: |
+            Wool has existed since Minecraft's earliest versions and was
+            among the first blocks to receive full-color dyeing.
+    uses:
+        - title: White Bed
+          ref: white_bed
+          detail: |
+              Three White Wool blocks plus three planks craft a bed,
+              setting a player's spawn point.
+        - title: White Carpet
+          ref: white_carpet
+          detail: |
+              Two White Wool blocks craft three matching carpets.
+        - title: White Banner
+          ref: white_wall_banner
+          detail: |
+              Six White Wool blocks plus a stick craft a banner for
+              custom patterns.
+    found_in:
+        - location: Sheep Shearing
+          detail: Shearing an adult sheep with shears yields 1-3 wool without harming it, and it regrows after eating grass.
+        - location: Sheep Drops
+          detail: Killing a sheep drops 1 wool matching its color.
+        - location: Villages and Woodland Mansions
+          detail: Generates as building material and loot in various village houses and mansions.
+    faq:
+        - question: What is the fastest way to mine White Wool?
+          answer: |
+              Shears break it almost instantly and let you collect 1-3
+              blocks from a live sheep without killing it.
+        - question: Is White Wool flammable?
+          answer: |
+              Yes, wool burns readily and spreads fire quickly, making it
+              risky to use near lava or fire sources.
+        - question: What can I craft from White Wool?
+          answer: |
+              Beds, carpets, and banners all use wool as a primary
+              ingredient.
+        - question: Does wool block anything special?
+          answer: |
+              Yes, wool blocks vibrations, preventing sculk sensors from
+              detecting sounds on the other side.
     data_version: "1.21.5"
 ---
 

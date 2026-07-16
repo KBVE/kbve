@@ -1,5 +1,6 @@
 ---
 title: Ward Armor Trim
+template: splash
 description: |
     Minecraft Ward Armor Trim — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,44 @@ mc_item:
     id: 1338
     ref: ward_armor_trim_smithing_template
     slug: ward-armor-trim-smithing-template
+    content_rev: 1
     display_name: Ward Armor Trim
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Ward Armor Trim is a smithing template found in ancient city chests that
+            lets players decorate armor with a distinctive pattern at a smithing table.
+            Applying it with any armor piece and a trim material adds a cosmetic accent
+            without changing the armor's protective stats, and the template can be
+            duplicated with diamonds and cobbled deepslate.
+        lore: |
+            The trim's design resembles the faces found inside a warden's chest, tying it
+            thematically to the deep dark's silent guardian.
+    faq:
+        - question: |
+              Where can I find a Ward Armor Trim?
+          answer: |
+              It has a chance to appear in most ancient city chests, excluding the ice box
+              chests, giving roughly a 5% chance per relevant chest.
+        - question: |
+              Can it be applied to any armor piece?
+          answer: |
+              Yes, the ward armor trim works on any armor piece using any trim material,
+              so the color comes entirely from the material chosen.
+        - question: |
+              How do I duplicate a Ward Armor Trim once I find one?
+          answer: |
+              Combine 1 Ward Armor Trim with 8 diamonds and 1 cobbled deepslate at a
+              crafting table to produce 2 templates.
+        - question: |
+              Is the Ward Armor Trim renewable?
+          answer: |
+              The template itself is non-renewable since it must first be found in an
+              ancient city, though it can be duplicated indefinitely afterward.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

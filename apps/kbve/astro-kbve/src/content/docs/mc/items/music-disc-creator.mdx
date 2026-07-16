@@ -1,5 +1,6 @@
 ---
 title: Music Disc
+template: splash
 description: |
     Minecraft Music Disc — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,35 @@ mc_item:
     id: 1235
     ref: music_disc_creator
     slug: music-disc-creator
+    content_rev: 1
     display_name: Music Disc
     category: music
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Music Disc (Creator) plays a 2:56 track composed by Lena Raine, introduced in Java
+            Edition 1.21 as part of the Trials & Tales update. It is found by looting ominous
+            vaults inside Trial Chambers at roughly a 7.5% chance.
+        lore: |
+            The signature theme of the trial chambers, earned only by braving an ominous vault's
+            trial rewards.
+    faq:
+        - question: How do I get Music Disc (Creator)?
+          answer: |
+              Loot an ominous vault inside a Trial Chamber; the disc has roughly a 7.5% drop chance.
+        - question: Who composed "Creator"?
+          answer: |
+              Lena Raine composed the track, marking a departure from C418's earlier disc catalog.
+        - question: When was this disc added?
+          answer: |
+              It was introduced in Java Edition 1.21 (24w18a) as part of the Trials & Tales update.
+        - question: Is there a variant of this track?
+          answer: |
+              Yes, "Creator (Music Box)" is a shorter 1:13 music-box arrangement found in Trial
+              Chamber decorated pots.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

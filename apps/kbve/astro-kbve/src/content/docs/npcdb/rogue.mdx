@@ -1,5 +1,9 @@
 ---
 title: 'Rogue'
+template: splash
+sidebar:
+    label: 'Rogue'
+    hidden: true
 description: |
     Player melee skirmisher. Dual-dagger, dark cloak, face scarf. Fast and high-attack but glassy — picks off stragglers, dies fast in line combat.
 ref: 'rogue'
@@ -37,7 +41,10 @@ faction:
     faction_id: 'player'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Fast, high-attack, low HP. Skirmisher class.
+
+</NpcLeaf>

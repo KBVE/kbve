@@ -1,5 +1,6 @@
 ---
 title: Block of Netherite
+template: splash
 description: |
     Minecraft Block of Netherite — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 94
     ref: netherite_block
     slug: netherite-block
+    content_rev: 1
     display_name: Block of Netherite
     category: block
     rarity: common
@@ -20,6 +22,24 @@ mc_item:
     tier: netherite
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Block of Netherite is a storage block crafted from nine netherite ingots, used to compactly store large quantities of netherite. It has a hardness of 50 and a blast resistance of 1,200, matching obsidian, while remaining immune to fire and lava damage in item form. Unlike obsidian, it can be moved by pistons, making it useful in redstone builds.
+        lore: |
+            Representing the ultimate material for those who have conquered the Nether, the block of netherite is prized for preserving valuable creations.
+    faq:
+        - question: Can pistons move Blocks of Netherite?
+          answer: |
+              Yes, unlike obsidian, blocks of netherite can be pushed and pulled by pistons despite their high durability.
+        - question: What's the fastest way to mine a Block of Netherite?
+          answer: |
+              A netherite pickaxe breaks it in about 8.35 seconds, while a diamond pickaxe takes roughly 9.4 seconds; any lesser tool yields nothing.
+        - question: How much netherite goes into one block?
+          answer: |
+              One block requires 9 netherite ingots, which traces back to 36 ancient debris and 36 gold ingots in total.
+        - question: Can Blocks of Netherite be used in beacons?
+          answer: |
+              Yes, they function as valid beacon base blocks alongside iron, gold, diamond, and emerald blocks.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Waxed Exposed Copper Bulb
+template: splash
 description: |
     Minecraft Waxed Exposed Copper Bulb — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,70 @@ mc_block:
     id: 1037
     ref: waxed_exposed_copper_bulb
     slug: waxed-exposed-copper-bulb
+    content_rev: 1
     display_name: Waxed Exposed Copper Bulb
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
-    light_emission: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
+    light_emission: 12
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_exposed_copper_bulb
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - redstone_component
+    about:
+        description: |
+            Waxed Exposed Copper Bulb is a light-emitting redstone component
+            frozen at the exposed oxidation stage by a coat of honeycomb wax.
+            It toggles between lit and unlit when it receives a redstone
+            pulse and needs no continuous power to keep shining.
+        lore: |
+            Copper Bulbs were added in Java Edition 1.21 as part of the
+            Trial Chambers update, giving copper a redstone-interactive role.
+    uses:
+        - title: Redstone Lighting
+          ref: waxed_exposed_copper_bulb
+          detail: |
+              Wire to a lever, button, or pulse circuit to create a light
+              that latches on or off, unlike vanilla lamps that need
+              constant power.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates as part of copper vault and bulb decorations; can be waxed on-site with honeycomb.
+        - location: Crafted
+          detail: A matching copper block, a blaze rod, and redstone dust craft four copper bulbs, then waxed with honeycomb.
+    faq:
+        - question: What tool do I need to mine this block?
+          answer: |
+              A stone pickaxe or better. Mining with only your hand or an
+              axe destroys it without a drop.
+        - question: Why is the light level only 12 and not 15?
+          answer: |
+              Light output depends on oxidation stage: 15 for fresh copper,
+              12 for exposed, 8 for weathered, and 4 for oxidized. This is
+              the exposed stage.
+        - question: Will this block keep oxidizing further?
+          answer: |
+              No. The honeycomb wax coating permanently locks it at the
+              exposed stage; it will never progress to weathered or oxidized.
+        - question: Does it conduct redstone like a wire?
+          answer: |
+              No. It only reacts to a direct redstone pulse to toggle its
+              lit state; it does not transmit signal to adjacent blocks.
     data_version: "1.21.5"
 ---
 

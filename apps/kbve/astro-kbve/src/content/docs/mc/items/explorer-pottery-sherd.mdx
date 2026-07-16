@@ -1,5 +1,6 @@
 ---
 title: Explorer Pottery Sherd
+template: splash
 description: |
     Minecraft Explorer Pottery Sherd — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1359
     ref: explorer_pottery_sherd
     slug: explorer-pottery-sherd
+    content_rev: 1
     display_name: Explorer Pottery Sherd
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Explorer Pottery Sherd is a decorative fragment depicting a map, used together
+            with bricks to craft a decorated pot. It is obtained only by brushing suspicious
+            gravel found in cold ocean ruins, making it a reward tied to underwater exploration
+            and archaeology.
+        lore: |
+            Added in the Trails & Tales update, it was originally called the "Explorer Pottery
+            Shard" before being renamed to "Sherd."
+    faq:
+        - question: How do you get an Explorer Pottery Sherd?
+          answer: |
+              Brush suspicious gravel found in cold ocean ruins; each block has roughly a 6.7%
+              chance of yielding this sherd.
+        - question: What is the Explorer Pottery Sherd used for?
+          answer: |
+              It is combined with bricks at a crafting table to create a decorated pot, which
+              displays the sherd's map pattern on one side of the pot.
+        - question: Can you get the sherd back after crafting a pot?
+          answer: |
+              Yes, breaking a decorated pot returns all of the pottery sherds (or bricks) used to
+              craft it.
+        - question: Is the Explorer Pottery Sherd renewable?
+          answer: |
+              No, it is non-renewable since it can only be obtained from a limited number of
+              suspicious gravel blocks in cold ocean ruins per world.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

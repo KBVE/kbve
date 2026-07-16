@@ -1,5 +1,9 @@
 ---
 title: 'Elder Monk'
+template: splash
+sidebar:
+    label: 'Elder Monk'
+    hidden: true
 description: |
     A serene keeper of the old ways. Meditates near the plaza shrine and offers travelers patience, wisdom, and the occasional cryptic hint about the road to the throne.
 ref: 'monk'
@@ -52,6 +56,8 @@ faction:
     faction_id: 'player'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
+</NpcLeaf>

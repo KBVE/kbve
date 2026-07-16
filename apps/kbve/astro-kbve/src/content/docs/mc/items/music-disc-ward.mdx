@@ -1,5 +1,6 @@
 ---
 title: Music Disc
+template: splash
 description: |
     Minecraft Music Disc — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1242
     ref: music_disc_ward
     slug: music-disc-ward
+    content_rev: 1
     display_name: Music Disc
     category: music
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Music Disc (Ward) is a music disc composed by C418, one of the longer entries in
+            the collection at roughly 4 minutes 11 seconds. Like the other creeper-jukebox
+            discs, it is dropped when a creeper is slain by a skeleton or stray, and can also
+            be discovered as loot within generated structures.
+        lore: |
+            Its extended, ambient runtime gives it a brooding, protective feel that suits its
+            name.
+    faq:
+        - question: How do I get Music Disc (Ward)?
+          answer: |
+              Let a skeleton or stray kill a creeper so the disc drops, or search structure
+              loot chests for a chance at one.
+        - question: What does Music Disc (Ward) do?
+          answer: |
+              Playing it in a jukebox produces its 4:11 ambient track composed by C418.
+        - question: How many Music Disc (Ward) can I carry in one inventory slot?
+          answer: |
+              Only one, since music discs cannot be stacked.
+        - question: Does Music Disc (Ward) work with redstone comparators?
+          answer: |
+              Yes, a jukebox playing this disc gives off a specific comparator signal strength
+              that redstone circuits can detect.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

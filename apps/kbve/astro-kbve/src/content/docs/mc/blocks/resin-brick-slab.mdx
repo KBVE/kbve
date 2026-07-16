@@ -1,5 +1,6 @@
 ---
 title: Resin Brick Slab
+template: splash
 description: |
     Minecraft Resin Brick Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 347
     ref: resin_brick_slab
     slug: resin-brick-slab
+    content_rev: 1
     display_name: Resin Brick Slab
     material: stone
     hardness: 1.5
@@ -21,13 +23,58 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: resin_brick_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            Resin Brick Slab is a half-height building block cut from
+            Resin Bricks, sharing their hardness and orange terracotta-like
+            look. Single slabs let light through while double slabs form a
+            full solid block.
+        lore: |
+            Added with the resin brick family in Java 1.21.4 (snapshot
+            24w44a) as the slab variant for the Pale Garden's masonry set.
+    uses:
+        - title: Chiseled Resin Bricks
+          ref: chiseled_resin_bricks
+          detail: |
+              Two Resin Brick Slabs craft into one Chiseled Resin Bricks
+              block for extra decorative detail.
+    found_in:
+        - location: Crafting table
+          detail: Crafted from 3 Resin Bricks arranged in a row, yielding 6 slabs.
+        - location: Stonecutter
+          detail: Cut from 1 Resin Bricks block for 2 slabs.
+    faq:
+        - question: What tool do I need to mine Resin Brick Slab?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe drops
+              nothing.
+        - question: Does Resin Brick Slab occur naturally in the world?
+          answer: |
+              No, it must be crafted or cut from Resin Bricks; it does not
+              generate as world terrain.
+        - question: Can Resin Brick Slab be waterlogged?
+          answer: |
+              Yes, like other slabs it can hold water when placed in a
+              water source.
+        - question: What can I craft from Resin Brick Slabs?
+          answer: |
+              Two slabs combine into Chiseled Resin Bricks for added
+              decorative variety.
     data_version: "1.21.5"
 ---
 

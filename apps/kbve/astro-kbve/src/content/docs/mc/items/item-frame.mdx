@@ -1,5 +1,6 @@
 ---
 title: Item Frame
+template: splash
 description: |
     Minecraft Item Frame — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1156
     ref: item_frame
     slug: item-frame
+    content_rev: 1
     display_name: Item Frame
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            An item frame is a decorative entity crafted from eight sticks and one leather that
+            displays an item or map on a wall, floor, or ceiling. Placed items can be rotated in
+            45-degree increments, and a glow item frame variant lights up its contents in the dark.
+        lore: |
+            Item frames holding maps expand to fill the whole block and tile seamlessly with
+            neighboring maps, forming giant wall murals of the world.
+    faq:
+        - question: How do you craft an item frame?
+          answer: |
+              Combine four sticks around one piece of leather in a crafting table.
+        - question: How do you rotate an item in a frame?
+          answer: |
+              Right-click the frame to rotate the displayed item in 45-degree steps across eight
+              positions, each emitting a distinct redstone comparator signal.
+        - question: What is a glow item frame?
+          answer: |
+              It is a variant made by combining a regular item frame with a glow ink sac, causing
+              its contents to glow in the dark.
+        - question: What happens if you place a map in an item frame?
+          answer: |
+              The map enlarges to fill the entire block and shows a green pointer marking the
+              frame's location on the map.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

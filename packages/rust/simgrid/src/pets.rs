@@ -436,7 +436,7 @@ mod tests {
             app.world_mut(),
         );
         {
-            let (mut bank, mut rosters) = sys.get_mut(app.world_mut());
+            let (mut bank, mut rosters) = sys.get_mut(app.world_mut()).unwrap();
             let mut roster = rosters.single_mut().unwrap();
             bank.add(&mut roster, snap);
             let out = bank.snapshot(&roster);
@@ -462,7 +462,7 @@ mod tests {
             app.world_mut(),
         );
         {
-            let (mut bank, mut rosters) = sys.get_mut(app.world_mut());
+            let (mut bank, mut rosters) = sys.get_mut(app.world_mut()).unwrap();
             let [mut from_r, mut to_r] = rosters.get_many_mut([from, to]).unwrap();
             bank.add(&mut from_r, snap);
             assert!(bank.transfer(&mut from_r, 0, &mut to_r));

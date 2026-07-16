@@ -106,7 +106,7 @@ fn spawn_title_screen(mut commands: Commands) {
             root.spawn((
                 Text::new("KBVE ISOMETRIC"),
                 TextFont {
-                    font_size: TITLE_FONT_SIZE,
+                    font_size: bevy::text::FontSize::Px(TITLE_FONT_SIZE),
                     ..default()
                 },
                 TextColor(ui_color::TEXT_PRIMARY),
@@ -119,7 +119,7 @@ fn spawn_title_screen(mut commands: Commands) {
             root.spawn((
                 Text::new("a multiplayer sandbox"),
                 TextFont {
-                    font_size: SUBTITLE_FONT_SIZE,
+                    font_size: bevy::text::FontSize::Px(SUBTITLE_FONT_SIZE),
                     ..default()
                 },
                 TextColor(ui_color::TEXT_SECONDARY),
@@ -141,7 +141,7 @@ fn spawn_title_screen(mut commands: Commands) {
                 badges.spawn((
                     Text::new("Transport: detecting..."),
                     TextFont {
-                        font_size: BADGE_FONT_SIZE,
+                        font_size: bevy::text::FontSize::Px(BADGE_FONT_SIZE),
                         ..default()
                     },
                     TextColor(ui_color::BADGE_LOADING),
@@ -152,7 +152,7 @@ fn spawn_title_screen(mut commands: Commands) {
                 badges.spawn((
                     Text::new("Auth: checking..."),
                     TextFont {
-                        font_size: BADGE_FONT_SIZE,
+                        font_size: bevy::text::FontSize::Px(BADGE_FONT_SIZE),
                         ..default()
                     },
                     TextColor(ui_color::BADGE_LOADING),
@@ -182,7 +182,7 @@ fn spawn_title_screen(mut commands: Commands) {
                         UiButtonConfig {
                             width: Val::Px(95.0),
                             height: Val::Px(BTN_HEIGHT),
-                            font_size: BTN_FONT_SIZE,
+                            font_size: bevy::text::FontSize::Px(BTN_FONT_SIZE),
                             kind: ButtonKind::Secondary,
                             ..default()
                         },
@@ -194,7 +194,7 @@ fn spawn_title_screen(mut commands: Commands) {
                         UiButtonConfig {
                             width: Val::Px(95.0),
                             height: Val::Px(BTN_HEIGHT),
-                            font_size: BTN_FONT_SIZE,
+                            font_size: bevy::text::FontSize::Px(BTN_FONT_SIZE),
                             kind: ButtonKind::Secondary,
                             ..default()
                         },
@@ -206,7 +206,7 @@ fn spawn_title_screen(mut commands: Commands) {
                         UiButtonConfig {
                             width: Val::Px(95.0),
                             height: Val::Px(BTN_HEIGHT),
-                            font_size: BTN_FONT_SIZE,
+                            font_size: bevy::text::FontSize::Px(BTN_FONT_SIZE),
                             kind: ButtonKind::Secondary,
                             ..default()
                         },
@@ -218,7 +218,7 @@ fn spawn_title_screen(mut commands: Commands) {
                         UiButtonConfig {
                             width: Val::Px(95.0),
                             height: Val::Px(BTN_HEIGHT),
-                            font_size: BTN_FONT_SIZE,
+                            font_size: bevy::text::FontSize::Px(BTN_FONT_SIZE),
                             kind: ButtonKind::Secondary,
                             ..default()
                         },
@@ -232,7 +232,7 @@ fn spawn_title_screen(mut commands: Commands) {
                     UiButtonConfig {
                         width: Val::Px(BTN_WIDTH),
                         height: Val::Px(BTN_HEIGHT),
-                        font_size: BTN_FONT_SIZE,
+                        font_size: bevy::text::FontSize::Px(BTN_FONT_SIZE),
                         kind: ButtonKind::Primary,
                         ..default()
                     },
@@ -244,7 +244,7 @@ fn spawn_title_screen(mut commands: Commands) {
                     UiButtonConfig {
                         width: Val::Px(BTN_WIDTH),
                         height: Val::Px(BTN_HEIGHT),
-                        font_size: BTN_FONT_SIZE,
+                        font_size: bevy::text::FontSize::Px(BTN_FONT_SIZE),
                         kind: ButtonKind::Secondary,
                         ..default()
                     },
@@ -256,7 +256,7 @@ fn spawn_title_screen(mut commands: Commands) {
                     UiButtonConfig {
                         width: Val::Px(BTN_WIDTH),
                         height: Val::Px(BTN_HEIGHT),
-                        font_size: BTN_FONT_SIZE,
+                        font_size: bevy::text::FontSize::Px(BTN_FONT_SIZE),
                         kind: ButtonKind::Secondary,
                         ..default()
                     },
@@ -268,7 +268,7 @@ fn spawn_title_screen(mut commands: Commands) {
                     UiButtonConfig {
                         width: Val::Px(BTN_WIDTH),
                         height: Val::Px(BTN_HEIGHT),
-                        font_size: BTN_FONT_SIZE,
+                        font_size: bevy::text::FontSize::Px(BTN_FONT_SIZE),
                         kind: ButtonKind::Danger,
                         ..default()
                     },
@@ -279,7 +279,7 @@ fn spawn_title_screen(mut commands: Commands) {
             root.spawn((
                 Text::new("v0.1 — dev build"),
                 TextFont {
-                    font_size: 12.0,
+                    font_size: bevy::text::FontSize::Px(12.0),
                     ..default()
                 },
                 TextColor(ui_color::TEXT_SECONDARY),

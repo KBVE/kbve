@@ -1,5 +1,6 @@
 ---
 title: Minecart with Chest
+template: splash
 description: |
     Minecraft Minecart with Chest — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 802
     ref: chest_minecart
     slug: chest-minecart
+    content_rev: 1
     display_name: Minecart with Chest
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Minecart with Chest combines a single chest's storage with a
+            minecart's rail-based mobility, letting players haul large amounts of
+            items across a rail network. It can interact with hoppers for automatic
+            loading and unloading, and sends comparator signals based on how full
+            it is.
+        lore: |
+            Added in Java Edition Alpha, this minecart variant became the standard
+            loot container generated in mineshafts starting in version 1.5.
+    faq:
+        - question: How do I get a Minecart with Chest?
+          answer: |
+            Craft one by combining a chest and a regular minecart, or find one
+            already spawned on rails inside mineshafts.
+        - question: Can hoppers interact with a Minecart with Chest?
+          answer: |
+            Yes, hoppers placed above or below the minecart's path can insert or
+            extract items automatically as it passes.
+        - question: How fast does a loaded Minecart with Chest travel on powered rails?
+          answer: |
+            A fully loaded chest minecart travels only about 16 blocks from a
+            single powered rail, compared to 64 blocks for an empty minecart.
+        - question: What happens if I break a Minecart with Chest?
+          answer: |
+            It drops the minecart item and spills its stored contents separately
+            onto the ground.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

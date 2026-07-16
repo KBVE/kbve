@@ -1,5 +1,6 @@
 ---
 title: Waxed Weathered Copper Bulb
+template: splash
 description: |
     Minecraft Waxed Weathered Copper Bulb — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1038
     ref: waxed_weathered_copper_bulb
     slug: waxed-weathered-copper-bulb
+    content_rev: 1
     display_name: Waxed Weathered Copper Bulb
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,65 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_weathered_copper_bulb
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            The Waxed Weathered Copper Bulb is a redstone-toggled light
+            source permanently locked at the weathered (green-tinted)
+            oxidation stage thanks to a honeycomb coating. It emits light
+            only while lit and flips between lit and unlit states each
+            time it receives a redstone pulse, acting as a compact toggle
+            latch.
+        lore: |
+            Introduced alongside the Copper Bulb in the Trial Chambers
+            update, waxing lets builders lock in a weathered patina for
+            redstone contraptions without worrying about further
+            oxidation dulling the light output.
+    uses:
+        - title: Redstone toggle light
+          ref: redstone
+          detail: |
+              Wire a lever, button, or pulse circuit to a bulb to switch
+              it on and off; a comparator can read its lit state as a
+              signal strength of 15.
+    found_in:
+        - location: Trial Chambers
+          detail: |
+              Generates naturally in vaulted and copper-themed rooms,
+              often already waxed at various oxidation stages including
+              weathered.
+        - location: Crafted from Weathered Copper
+          detail: |
+              Craft 4 unwaxed Weathered Copper Bulbs from a Weathered
+              Copper block, a blaze rod, and redstone dust, then apply
+              honeycomb to wax them.
+    faq:
+        - question: Does the waxed weathered copper bulb still oxidize further?
+          answer: |
+              No. Waxing with honeycomb locks it at the weathered stage
+              permanently — it will never progress to fully oxidized.
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better. Mining with wood or bare hands
+              destroys the block without dropping it.
+        - question: Can I remove the wax later?
+          answer: |
+              No, waxed copper blocks cannot be un-waxed, but an axe can
+              still be used before waxing to scrape off oxidation stages.
+        - question: Does it conduct redstone signals?
+          answer: |
+              No, the bulb itself is not conductive, but it responds to
+              adjacent redstone power and a comparator can read whether
+              it is lit.
     data_version: "1.21.5"
 ---
 

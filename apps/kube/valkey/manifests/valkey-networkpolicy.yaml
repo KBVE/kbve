@@ -19,9 +19,6 @@ spec:
                         kubernetes.io/metadata.name: forgejo
               - namespaceSelector:
                     matchLabels:
-                        kubernetes.io/metadata.name: n8n
-              - namespaceSelector:
-                    matchLabels:
                         kubernetes.io/metadata.name: discordsh
               - namespaceSelector:
                     matchLabels:

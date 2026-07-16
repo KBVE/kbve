@@ -1,5 +1,6 @@
 ---
 title: Yellow Candle
+template: splash
 description: |
     Minecraft Yellow Candle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1310
     ref: yellow_candle
     slug: yellow-candle
+    content_rev: 1
     display_name: Yellow Candle
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Yellow Candle is a dyeable light-emitting block crafted from
+            string, honeycomb, and yellow dye. Up to four candles can occupy a
+            single block space, and lighting them with flint and steel or fire
+            produces a light level that scales with how many are placed together.
+        lore: |
+            Master-level librarian villagers are known to trade for yellow and
+            red candles, prizing their warm glow for cozy library corners.
+    faq:
+        - question: How do I light a Yellow Candle?
+          answer: |
+              Use flint and steel, a fire charge, or a flaming projectile on the
+              placed candle to ignite it.
+        - question: How many candles can I place in one block space?
+          answer: |
+              Up to four candles of the same color can be placed together in a
+              single block space, with each lit candle adding to the light level.
+        - question: Can a Yellow Candle be put on a cake?
+          answer: |
+              Yes, placing a single candle on a cake creates a candle cake, which
+              can also be lit for both decoration and light.
+        - question: What extinguishes a lit Yellow Candle?
+          answer: |
+              Water, wind charges, and direct player interaction will put out a
+              lit candle.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

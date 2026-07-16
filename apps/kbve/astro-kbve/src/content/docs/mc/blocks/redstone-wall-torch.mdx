@@ -1,5 +1,6 @@
 ---
 title: Redstone Torch
+template: splash
 description: |
     Minecraft Redstone Torch — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 261
     ref: redstone_wall_torch
     slug: redstone-wall-torch
+    content_rev: 1
     display_name: Redstone Torch
     material: redstone
     hardness: 0
@@ -24,10 +26,58 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: redstone_torch
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hand_mineable
+        - overworld
+        - redstone_component
+    about:
+        description: |
+            The Redstone Wall Torch is the wall-mounted form a Redstone
+            Torch takes automatically when placed on the side of a block
+            instead of on top of one, functioning identically as a power
+            and light source.
+        lore: |
+            Wall torches share the same Alpha-era origin as the standing
+            redstone torch, differing only in placement orientation.
+    uses:
+        - title: Signal Inversion (NOT Gate)
+          ref: redstone_wire
+          detail: |
+              Functions exactly like a standing redstone torch, strongly
+              powering the block it protrudes from being attached to and
+              weakly powering neighbors — used for wall-mounted inverters
+              and compact circuits.
+    found_in:
+        - location: Automatic placement, not generated
+          detail: |
+              Appears whenever a redstone torch is placed against the side
+              of a block; it is never generated or obtained directly as
+              this variant, and drops a standard redstone torch item.
+    faq:
+        - question: How do I get a Redstone Wall Torch?
+          answer: |
+              You cannot obtain it directly — place a normal redstone
+              torch item against the side of a block and it becomes a wall
+              torch automatically.
+        - question: What tool do I need to mine it?
+          answer: |
+              None — it breaks instantly with any tool or bare hands.
+        - question: Does it behave differently from a standing torch?
+          answer: |
+              No. Aside from orientation, it has identical power output,
+              light level, and burnout behavior.
+        - question: What does it drop when broken?
+          answer: |
+              A regular redstone torch item, which can be replaced on the
+              ground or against any block face.
     data_version: "1.21.5"
 ---
 

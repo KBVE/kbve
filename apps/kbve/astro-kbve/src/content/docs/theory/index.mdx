@@ -1,0 +1,196 @@
+---
+title: Theory Navigator
+description: |
+    The KBVE Theory collection maps the ideas behind the build — programming craft, automation, emulation, and dead code alongside the cultural essays on social media, solarpunk, and open access that shape how and why we ship.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
+unsplash: 1620023593001-3394d6297aeb
+img: https://images.unsplash.com/photo-1620023593001-3394d6297aeb?fit=crop&w=1400&h=700&q=75
+sidebar:
+    label: Theory Navigator
+    order: 1
+tags:
+    - theory
+    - essays
+    - philosophy
+    - technology
+ogTitle: KBVE Theory Navigator — The Ideas Behind the Build
+ogDescription: Essays and notes on the craft and culture of building — programming, automation, emulation, dead code, social media, solarpunk, and open access.
+ogImage: https://images.unsplash.com/photo-1620023593001-3394d6297aeb?fit=crop&w=1400&h=700&q=75
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - name: Home
+          path: /
+        - name: Theory
+          path: /theory/
+    faq:
+        - question: What is the Theory collection?
+          answer: A set of essays and notes on the ideas behind KBVE — the craft of programming and automation, the practice of emulation and archiving dead code, and the cultural stances on social media, solarpunk, and open access that guide the work.
+        - question: How is Theory different from the Application guides?
+          answer: Application guides are hands-on field notes for specific tools. Theory is the why beneath them — principles, movements, and manifestos rather than commands and configs.
+        - question: Can I contribute an essay?
+          answer: Yes — every page is an MDX file in the open monorepo. Open a pull request against KBVE on GitHub and it ships with the next deploy.
+        - question: Where do the tool and project docs live?
+          answer: Tools live under /application/ and KBVE's own services and games under /project/, with the tagged hub at /projects/.
+---
+
+import BentoShell from '@/components/hero/BentoShell.astro';
+import { Adsense } from '@/components/astropad';
+import { THEORY_NAV } from '@/components/dashboard/theoryNav';
+
+export const backdrop = 'https://images.unsplash.com/photo-1620023593001-3394d6297aeb?q=80&w=2400&auto=format&fit=crop';
+
+export const essayCount = THEORY_NAV.reduce((n, g) => n + g.items.length, 0);
+export const anchorOf = (group) => group.href.split('#')[1];
+export const chipLabel = (group) => group.label.split(' &')[0];
+
+export const stats = [
+	{ label: 'Essays', value: String(essayCount), icon: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z' },
+	{ label: 'Engineering pieces', value: String(THEORY_NAV[0].items.length), icon: 'M16 18l6-6-6-6M8 6l-6 6 6 6' },
+	{ label: 'Culture pieces', value: String(THEORY_NAV[1].items.length), icon: 'M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
+	{ label: 'Open source', value: '100%', icon: 'M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22' },
+];
+
+export const related = [
+	{
+		href: '/application/',
+		title: 'Application Navigator',
+		copy: 'Field guides for every tool in the KBVE stack.',
+		icon: 'M16 18l6-6-6-6M8 6l-6 6 6 6',
+	},
+	{
+		href: '/journal/',
+		title: 'Journal',
+		copy: 'Daily dev logs — one page for every day of the year.',
+		icon: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
+	},
+	{
+		href: '/projects/',
+		title: 'KBVE Projects',
+		copy: 'Everything we build — games, services, and libraries in one tagged index.',
+		icon: 'M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z',
+	},
+];
+
+export const Section = ({ group }) => (
+	<div class="bento-board bento-board--auto">
+		{group.items.map((g) => (
+			<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href={g.href}>
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={g.icon ?? group.icon} /></svg>
+				</span>
+				<span class="bento-linkcard__title">{g.label}</span>
+				<span class="bento-linkcard__copy">{g.copy}</span>
+				<span class="bento-linkcard__go" aria-hidden="true">
+					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+				</span>
+			</a>
+		))}
+	</div>
+);
+
+<div class="theory-hub" style={`--bento-hero-bg: url('${backdrop}')`}>
+
+<section class="bento-hero bento-section not-content" aria-label="KBVE Theory Navigator">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
+					<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7zM9 21h6" /></svg>
+					<span>theory navigator</span>
+				</span>
+				<h1 class="bento-title">
+					The ideas
+					<span class="bento-title__accent">behind the build.</span>
+				</h1>
+				<p class="bento-lede">
+					Essays and notes on the why beneath KBVE — the craft of programming
+					and automation, the practice of emulation and archiving dead code,
+					and the cultural stances on social media, solarpunk, and open access
+					that shape how we ship. Opinionated, evolving, and open.
+				</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="#engineering">
+						Read the essays
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="/application/">Application guides</a>
+					<a class="bento-btn bento-btn--ghost" href="/projects/">KBVE projects</a>
+				</div>
+			</div>
+
+			{stats.map((s) => (
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={s.icon} /></svg>
+					</span>
+					<span class="bento-stat__value">{s.value}</span>
+					<span class="bento-stat__label">{s.label}</span>
+				</div>
+			))}
+		</div>
+
+		<nav class="bento-jump" aria-label="On this page">
+			{THEORY_NAV.map((g) => (
+				<a class="bento-chip" href={`#${anchorOf(g)}`}>{chipLabel(g)}</a>
+			))}
+			<a class="bento-chip" href="#faq">FAQ</a>
+		</nav>
+	</div>
+</section>
+
+{THEORY_NAV.map((group) => (
+	<BentoShell id={anchorOf(group)} eyebrow={group.eyebrow} heading={group.label}>
+		<Section group={group} />
+	</BentoShell>
+))}
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoShell id="faq" eyebrow="Questions" heading="Frequently asked">
+	<div class="bento-board bento-board--auto-wide">
+		{frontmatter.jsonld.faq.map((f) => (
+			<div class="bento-cell bento-faqcard bento-card bento-card--glass bento-card--interactive">
+				<h3 class="bento-faqcard__q">{f.question}</h3>
+				<p class="bento-faqcard__a">{f.answer}</p>
+			</div>
+		))}
+	</div>
+</BentoShell>
+
+<BentoShell id="related" eyebrow="Keep exploring" heading="Where to next">
+	<div class="bento-board bento-board--cols-3">
+		{related.map((r) => (
+			<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href={r.href}>
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={r.icon} /></svg>
+				</span>
+				<span class="bento-linkcard__title">{r.title}</span>
+				<span class="bento-linkcard__copy">{r.copy}</span>
+				<span class="bento-linkcard__go" aria-hidden="true">
+					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+				</span>
+			</a>
+		))}
+	</div>
+</BentoShell>
+
+</div>
+
+<style is:global>{`
+	.theory-hub {
+		--bento-accent: #a78bfa;
+		--bento-accent-2: #f0abfc;
+		--bento-btn-fg: #1e0b3b;
+	}
+`}</style>

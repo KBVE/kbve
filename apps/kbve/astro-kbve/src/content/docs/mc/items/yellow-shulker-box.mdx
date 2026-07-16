@@ -1,5 +1,6 @@
 ---
 title: Yellow Shulker Box
+template: splash
 description: |
     Minecraft Yellow Shulker Box — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 557
     ref: yellow_shulker_box
     slug: yellow-shulker-box
+    content_rev: 1
     display_name: Yellow Shulker Box
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Yellow Shulker Box is a portable storage container dyed with yellow dye. Like all shulker boxes,
+            it holds 27 inventory slots and, unlike a chest, keeps its contents intact when mined or broken by
+            an explosion, letting players carry a stocked inventory between bases.
+        lore: |
+            Shulker boxes are crafted from a chest and two shulker shells harvested from shulkers in the End.
+    faq:
+        - question: What does a Yellow Shulker Box do?
+          answer: |
+              It stores up to 27 stacks of items, the same capacity as a chest, but keeps its contents in item
+              form when the box itself is broken, so nothing spills out.
+        - question: How do you get a Yellow Shulker Box?
+          answer: |
+              Craft an undyed shulker box from a chest and two shulker shells (dropped by shulkers in the End),
+              then combine it with yellow dye in a crafting grid to recolor it.
+        - question: Does breaking a Yellow Shulker Box destroy its contents?
+          answer: |
+              No. Mining it with any tool, or losing it to an explosion or piston, drops it as an item with its
+              contents preserved inside.
+        - question: Can a Yellow Shulker Box be renamed or recolored again?
+          answer: |
+              Yes. It can be renamed on an anvil, and its color can be changed by crafting it with a different
+              dye or removed entirely by washing it in a cauldron with water on Bedrock Edition.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Music Disc
+template: splash
 description: |
     Minecraft Music Disc — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 1232
     ref: music_disc_cat
     slug: music-disc-cat
+    content_rev: 1
     display_name: Music Disc
     category: music
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Music Disc (cat) plays "cat", a 3:05 track composed by C418, one of the two original
+            music discs added back in Java Edition Alpha alongside "13". It can drop when a creeper
+            is killed by a skeleton, wither skeleton, stray, bogged, or parched mob, or turn up in
+            monster room, woodland mansion, and ancient city loot chests.
+        lore: |
+            One of the very first two music discs ever added to Minecraft, born from the chaos of
+            a creeper's untimely demise at a skeleton's hands.
+    faq:
+        - question: How do I get Music Disc (cat)?
+          answer: |
+              Kill a creeper with a skeleton, wither skeleton, stray, bogged, or parched mob and it
+              may drop the disc, or search chests in monster rooms, woodland mansions, and ancient cities.
+        - question: Who composed the "cat" track?
+          answer: |
+              C418 composed "cat", one of the original two discs added in Java Edition Alpha alongside "13".
+        - question: How long is the "cat" track?
+          answer: |
+              The track runs 3 minutes and 5 seconds.
+        - question: What rarity is Music Disc (cat)?
+          answer: |
+              It is Uncommon rarity, changed from Rare in version 1.21.2, and it does not stack.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Polished Deepslate Slab
+template: splash
 description: |
     Minecraft Polished Deepslate Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1066
     ref: polished_deepslate_slab
     slug: polished-deepslate-slab
+    content_rev: 1
     display_name: Polished Deepslate Slab
     material: stone
     hardness: 3.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_deepslate_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Polished Deepslate Slab is the half-height variant of polished
+            deepslate, a smooth stone finish used for detailed masonry work.
+            Two slabs stack into a full block, and single slabs can be
+            waterlogged when placed in water.
+        lore: |
+            Debuted as "Polished Grimstone Slab" in Java Edition 21w07a and
+            renamed to its current form the following week, alongside
+            deepslate's expansion in the Caves & Cliffs update.
+    uses:
+        - title: Ancient City Masonry
+          ref: polished_deepslate
+          detail: |
+              Used decoratively in ancient city structures generated in the
+              Deep Dark biome, and by players for half-block detailing on
+              stone builds.
+    found_in:
+        - location: Ancient Cities
+          detail: Naturally generates as part of ancient city structures in the Deep Dark biome.
+        - location: Crafting or Stonecutting
+          detail: Craft from polished deepslate, or stonecut from deepslate, cobbled deepslate, or polished deepslate.
+    faq:
+        - question: What tool do I need to mine Polished Deepslate Slab?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining without a pickaxe
+              yields no drop.
+        - question: Does it drop itself with Silk Touch?
+          answer: |
+              Yes, it always drops itself whether or not Silk Touch is used.
+        - question: Can I get it without visiting an ancient city?
+          answer: |
+              Yes. Craft three polished deepslate in a row for six slabs, or
+              stonecut deepslate, cobbled deepslate, or polished deepslate.
+        - question: Can it be waterlogged?
+          answer: |
+              Yes, a single slab placed in water becomes waterlogged and
+              keeps the water source in that space.
     data_version: "1.21.5"
 ---
 

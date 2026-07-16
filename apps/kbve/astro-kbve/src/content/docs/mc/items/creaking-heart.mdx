@@ -1,5 +1,6 @@
 ---
 title: Creaking Heart
+template: splash
 description: |
     Minecraft Creaking Heart — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 318
     ref: creaking_heart
     slug: creaking-heart
+    content_rev: 1
     display_name: Creaking Heart
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Creaking Heart is a living block crafted from two Pale Oak Logs and a Block of
+            Resin, or found naturally with a 10% chance inside Pale Oak tree trunks in Pale Garden
+            biomes. When aligned between two Pale Oak logs, it activates at night and spawns a
+            linked Creaking mob within a 33x17x33 area.
+        lore: |
+            Introduced in The Garden Awakens update, the heart binds its life to the Creaking it
+            spawns — destroying the heart instantly kills the mob, and the Creaking itself cannot
+            be harmed except by breaking its heart.
+    faq:
+        - question: How do you obtain a Creaking Heart?
+          answer: |
+              Craft it from two Pale Oak Logs and a Block of Resin, or mine one with Silk Touch
+              from a Pale Oak tree trunk where it has a 10% chance to naturally generate.
+        - question: What does a Creaking Heart do?
+          answer: |
+              When placed between two aligned Pale Oak logs, it becomes active at night and spawns
+              a Creaking mob that it protects from damage and despawns during the day.
+        - question: How do you kill a Creaking?
+          answer: |
+              Attacking the Creaking directly has no effect; you must locate and break its linked
+              Creaking Heart to kill it instantly.
+        - question: Can a Creaking Heart interact with redstone?
+          answer: |
+              Yes, a redstone comparator can read a signal strength from the Creaking Heart based
+              on distance to its linked Creaking, calculated as 15 minus the floor of distance
+              divided by 32 times 15.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

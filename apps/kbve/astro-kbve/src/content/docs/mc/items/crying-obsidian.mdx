@@ -1,5 +1,6 @@
 ---
 title: Crying Obsidian
+template: splash
 description: |
     Minecraft Crying Obsidian — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1291
     ref: crying_obsidian
     slug: crying-obsidian
+    content_rev: 1
     display_name: Crying Obsidian
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Crying Obsidian is a luminous variant of obsidian that constantly emits purple dripping
+            particles and gives off a light level of 10. It shares obsidian's high hardness and blast
+            resistance, so it cannot be crafted and must instead be traded from piglins, found in ruined
+            portals and bastion remnants, or mined with a diamond or netherite pickaxe. Its main purpose
+            is crafting a respawn anchor alongside glowstone.
+        lore: |
+            Obsidian that seems to weep with a faint purple glow, as if mourning something lost in the Nether.
+    faq:
+        - question: How do I get Crying Obsidian?
+          answer: |
+              The most reliable way is bartering gold ingots with piglins in the Nether, which has roughly
+              an 8.5% chance to award 1-3 crying obsidian blocks. It also generates naturally in ruined
+              portals and can appear as loot in bastion remnant chests.
+        - question: What is Crying Obsidian used for?
+          answer: |
+              Its primary use is crafting a respawn anchor, combined with glowstone, which lets players set
+              a Nether respawn point similar to how a bed works in the Overworld.
+        - question: Can I mine Crying Obsidian without a special tool?
+          answer: |
+              No. Like regular obsidian, it can only be harvested with a diamond or netherite pickaxe;
+              any other tool destroys the block without dropping it.
+        - question: Does Crying Obsidian give off light?
+          answer: |
+              Yes, it naturally emits a light level of 10, making it one of the few naturally occurring
+              light sources that doubles as a solid, blast-resistant building block.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

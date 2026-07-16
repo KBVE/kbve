@@ -64,6 +64,7 @@ pub fn router(app: Arc<AppState>, svc: Arc<OWSService>) -> Router {
     let zones = zones::zones_routes(hs.clone());
     let management = management::management_routes(hs.clone());
     let system = system::system_routes(hs.clone());
+    let fleet_restart = system::fleet_restart_routes(hs.clone());
 
     Router::new()
         .route("/", get(root))
@@ -77,6 +78,7 @@ pub fn router(app: Arc<AppState>, svc: Arc<OWSService>) -> Router {
         .merge(zones)
         .merge(management)
         .merge(system)
+        .merge(fleet_restart)
 }
 
 #[utoipa::path(get, path = "/", tag = "health",
@@ -93,6 +95,33 @@ pub async fn root() -> Json<serde_json::Value> {
     responses((status = 200, description = "Health check", body = HealthResponse))
 )]
 pub async fn health(State(hs): State<HandlerState>) -> Json<HealthResponse> {
+    // Authoritative version from the deploy_state SNAPSHOT (refreshed by jobs::deploy_state_refresh
+    // every 30s). /health is the liveness-probe path (timeoutSeconds: 3) and MUST stay DB-free —
+    // a synchronous read here would turn a Postgres latency spike into a kubelet restart storm.
+    // Degrades to the in-memory ReportBuild value when the snapshot is empty (table dark / no row);
+    // `deploy_healthy:true` is the degrade default.
+    let deploy = hs.app.deploy_state_cache.read().unwrap().clone();
+    let (unreal_version, pending_version, deploy_healthy, failing_version) = match deploy {
+        Some(ds) => {
+            let healthy = ds.health != "unhealthy";
+            let failing = (!healthy).then(|| ds.target_version.clone());
+            if ds.rolled {
+                (Some(ds.target_version), None, healthy, failing)
+            } else {
+                // Update pending: the served version isn't in deploy_state (single row), so fall
+                // back to the in-memory GameServer-reported value for the served build.
+                let served = hs.app.server_build_version.read().unwrap().clone();
+                (served, Some(ds.target_version), healthy, failing)
+            }
+        }
+        None => (
+            hs.app.server_build_version.read().unwrap().clone(),
+            None,
+            true,
+            None,
+        ),
+    };
+
     Json(HealthResponse {
         status: "healthy",
         service: "rows",
@@ -100,7 +129,10 @@ pub async fn health(State(hs): State<HandlerState>) -> Json<HealthResponse> {
         uptime_seconds: hs.app.started_at.elapsed().as_secs(),
         active_sessions: hs.app.sessions.len(),
         active_instances: hs.app.zone_servers.len(),
-        unreal_version: hs.app.server_build_version.read().unwrap().clone(),
+        unreal_version,
+        pending_version,
+        deploy_healthy,
+        failing_version,
     })
 }
 

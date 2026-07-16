@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Button
+template: splash
 description: |
     Minecraft Dark Oak Button — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 417
     ref: dark_oak_button
     slug: dark-oak-button
+    content_rev: 1
     display_name: Dark Oak Button
     material: redstone
     hardness: 0.5
@@ -23,11 +25,59 @@ mc_block:
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dark_oak_button
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Dark Oak Button is a wooden redstone component crafted
+            from dark oak planks. Pressing it sends a brief redstone pulse
+            to power adjacent mechanisms.
+        lore: |
+            Wooden buttons were added in Java Edition 1.4.2 (2012)
+            alongside other early redstone components.
+    uses:
+        - title: Redstone Circuits
+          ref: redstone_torch
+          detail: |
+              Provides a momentary power pulse of about 1.5 seconds when
+              pressed, commonly used to trigger doors, dispensers, and
+              other short-lived mechanisms.
+    found_in:
+        - location: Crafting table
+          detail: |
+              One dark oak plank crafts into one dark oak button.
+        - location: Trial Chambers and Desert Villages
+          detail: |
+              Wooden buttons of matching wood types occasionally generate
+              in some village and trial chamber structures.
+    faq:
+        - question: How long does the button's signal last?
+          answer: |
+              About 1.5 seconds (15 redstone ticks) when pressed by a
+              player, mob, or wind charge.
+        - question: Can arrows or tridents trigger it?
+          answer: |
+              Yes. A projectile striking the button activates it, and it
+              stays powered until the projectile despawns.
+        - question: Is a dark oak button flammable?
+          answer: |
+              Yes. Being made of wood, it can catch fire and burn, unlike
+              stone or crimson/warped buttons.
+        - question: What tool breaks it fastest?
+          answer: |
+              An axe, though any tool or bare hand breaks it instantly
+              since it has no minimum tool requirement.
     data_version: "1.21.5"
 ---
 

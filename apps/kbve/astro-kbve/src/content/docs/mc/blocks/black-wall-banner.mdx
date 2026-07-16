@@ -1,5 +1,6 @@
 ---
 title: Black Banner
+template: splash
 description: |
     Minecraft Black Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 562
     ref: black_wall_banner
     slug: black-wall-banner
+    content_rev: 1
     display_name: Black Banner
     material: wood
     hardness: 1
@@ -24,10 +26,69 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: black_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Black Banner (wall variant) is the wall-mounted placement of a
+            black banner, a tall decorative block that can carry up to six
+            layered dye patterns applied in a loom.
+        lore: |
+            Banners were added in Java Edition 1.8 as heraldry-style
+            decoration, later gaining the ability to be copied and combined
+            on shields in 1.9.
+    uses:
+        - title: Shield Decoration
+          ref: shield
+          detail: |
+              Combining a banner with a shield in a crafting grid stamps its
+              pattern onto the shield, letting players carry custom
+              heraldry into combat.
+        - title: Pattern Duplication
+          ref: loom
+          detail: |
+              A loom lets players add new pattern layers to a banner using
+              dye and, optionally, a banner pattern item, then copy the
+              result onto blank banners.
+    found_in:
+        - location: Crafted from wool
+          detail: |
+              Crafted from 6 matching-color wool plus 1 stick; wall banners
+              are the automatically placed form when a banner is set
+              against a vertical surface.
+        - location: Villager trades and structures
+          detail: |
+              Obtainable from Shepherd and Cartographer villagers, and found
+              pre-placed in woodland mansions, pillager outposts, and end
+              cities.
+    faq:
+        - question: What is the difference between a Black Banner and Black Wall Banner?
+          answer: |
+              They are the same item; the wall variant is simply the block
+              state used automatically when a banner is placed on the side
+              of a block instead of standing on the floor.
+        - question: Do I need Silk Touch to pick up a banner?
+          answer: |
+              No, banners always drop themselves along with any applied
+              patterns when broken with any tool.
+        - question: Can a banner catch fire?
+          answer: |
+              Banners do not ignite on their own but will burn if directly
+              exposed to lava or fire, since wood-based blocks are
+              flammable.
+        - question: How many pattern layers can a Black Banner hold?
+          answer: |
+              Up to six layers total, including the banner's base color,
+              applied through repeated loom use.
     data_version: "1.21.5"
 ---
 

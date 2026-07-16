@@ -1,5 +1,6 @@
 ---
 title: Mangrove Propagule
+template: splash
 description: |
     Minecraft Mangrove Propagule — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,65 @@ mc_block:
     id: 33
     ref: mangrove_propagule
     slug: mangrove-propagule
+    content_rev: 1
     display_name: Mangrove Propagule
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mangrove_propagule
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - renewable
+    about:
+        description: |
+            Mangrove Propagule is the sapling equivalent for mangrove
+            trees. It grows hanging beneath mangrove leaves through five
+            age stages, or can be planted on suitable ground to sprout a
+            full mangrove tree, including underwater.
+        lore: |
+            First revealed at Minecraft Live 2021, propagules were added
+            in Java Edition 1.19 alongside the mangrove swamp biome.
+    uses:
+        - title: Mangrove Tree
+          ref: mangrove_log
+          detail: |
+              Planting a fully grown propagule on dirt, mud, moss, or clay
+              with enough clearance above grows an entire mangrove tree.
+    found_in:
+        - location: Mangrove Swamp
+          detail: Hangs beneath mangrove leaves and matures through bone meal or time.
+        - location: Wandering Trader
+          detail: Sold occasionally for 5 emeralds.
+    faq:
+        - question: What tool do I need to break a Mangrove Propagule?
+          answer: |
+              None. It breaks instantly with any tool or bare hands.
+        - question: When does a Mangrove Propagule drop as an item?
+          answer: |
+              Only fully grown hanging propagules (age 4) or non-hanging
+              propagules drop themselves; immature hanging propagules drop
+              nothing.
+        - question: How do I grow a mangrove tree from a propagule?
+          answer: |
+              Plant it on dirt, mud, moss, or clay with at least six empty
+              blocks above and bone meal it, or wait for natural growth.
+        - question: Can Mangrove Propagules grow underwater?
+          answer: |
+              Yes, mangrove trees can successfully grow while submerged in
+              water.
     data_version: "1.21.5"
 ---
 

@@ -55,6 +55,7 @@ export const dashboardNav: NavNode[] = [
 
 export const appsNav: NavNode[] = [
 	{ label: 'Applications', link: '/application/' },
+	{ label: 'Theory', link: '/theory/' },
 	{ label: 'Projects', link: '/projects/' },
 	{ label: 'Project Docs', link: '/project/' },
 	{ label: 'API', link: '/api/' },

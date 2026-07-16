@@ -1,5 +1,6 @@
 ---
 title: Skeleton Skull
+template: splash
 description: |
     Minecraft Skeleton Skull — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 422
     ref: skeleton_wall_skull
     slug: skeleton-wall-skull
+    content_rev: 1
     display_name: Skeleton Skull
     material: stone
     hardness: 1
@@ -21,13 +23,61 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: skeleton_skull
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Skeleton Wall Skull is the wall-mounted placement state of the
+            Skeleton Skull, automatically used when the skull item is
+            placed against the side of a block instead of on top. It
+            always breaks instantly and drops the Skeleton Skull item.
+        lore: |
+            Like its floor-standing counterpart, it borrows its texture
+            from the skeleton mob and has existed since mob heads were
+            added in the Halloween Update.
+    uses:
+        - title: Firework Star Ingredient
+          ref: firework_star
+          detail: |
+              Craft with gunpowder and dye to add a creeper-style shaped
+              explosion effect to firework stars.
+        - title: Wearable Disguise
+          ref: skeleton_skull
+          detail: |
+              As an item it can be worn as a helmet to slightly reduce
+              skeleton detection range.
+    found_in:
+        - location: Ancient Cities
+          detail: Naturally generates mounted on walls as decoration within ancient city structures.
+        - location: Placed by Players
+          detail: Automatically used in place of the standing skull when placed against a block's side.
+    faq:
+        - question: How is this different from the standing Skeleton Skull?
+          answer: |
+              It is the same item; this is the block state used when the
+              skull is attached to a wall rather than placed on the floor.
+        - question: What tool do I need to mine it?
+          answer: |
+              None — it breaks instantly with any tool or bare hands and
+              always drops the Skeleton Skull item.
+        - question: How many directions can it face on a wall?
+          answer: |
+              Four, one for each horizontal cardinal direction, matching
+              the side of the block it was placed against.
+        - question: Does it emit light?
+          answer: |
+              No, the skull itself emits no light regardless of placement.
     data_version: "1.21.5"
 ---
 

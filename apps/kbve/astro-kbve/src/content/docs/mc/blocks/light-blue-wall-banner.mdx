@@ -1,5 +1,6 @@
 ---
 title: Light Blue Banner
+template: splash
 description: |
     Minecraft Light Blue Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 550
     ref: light_blue_wall_banner
     slug: light-blue-wall-banner
+    content_rev: 1
     display_name: Light Blue Banner
     material: wood
     hardness: 1
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_blue_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - non_flammable
+    about:
+        description: |
+            Light Blue Banner (wall) is the block form a banner takes when
+            hung on a wall rather than standing on the floor. It always
+            drops the banner item, preserving any patterns applied with a
+            loom.
+        lore: |
+            Banners were added in 1.8 as tall, patternable flags that can be
+            layered with up to six designs using a loom or copied from
+            another banner.
+    uses:
+        - title: Shield decoration
+          ref: shield
+          detail: |
+              Applying a banner to a shield on a crafting grid transfers its
+              pattern onto the shield, consuming the banner but keeping the
+              shield's durability and enchantments.
+    found_in:
+        - location: Crafting table
+          detail: 6 matching-color wool plus a stick craft one standing banner.
+        - location: Woodland Mansions, villages
+          detail: |
+              Wall banners generate naturally as decoration in various
+              generated structures.
+    faq:
+        - question: What tool mines a wall banner fastest?
+          answer: |
+              An axe, though any tool or bare hands can break it since there
+              is no minimum tier requirement.
+        - question: What drops when a wall banner is broken?
+          answer: |
+              It always drops itself as a banner item, including any
+              patterns previously applied to it.
+        - question: Can pistons move banners?
+          answer: |
+              No, banners cannot be pushed or pulled by pistons.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Cherry Door
+template: splash
 description: |
     Minecraft Cherry Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 618
     ref: cherry_door
     slug: cherry-door
+    content_rev: 1
     display_name: Cherry Door
     material: wood
     hardness: 3
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cherry_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Cherry Door is a two-tile-tall wooden door made from cherry
+            wood, matching the pale pink planks of the cherry grove biome.
+            It can be opened and closed by hand, by redstone signal, or by
+            villagers and other passive mobs.
+        lore: |
+            Cherry wood arrived with the Trails & Tales update (1.20),
+            giving the cherry grove biome its own matching set of wooden
+            blocks including this door.
+    uses:
+        - title: Cherry Planks
+          ref: cherry_planks
+          detail: |
+              Crafted from two cherry planks stacked in a 1x2 column,
+              yielding three doors per craft.
+        - title: Furnace fuel
+          ref: furnace
+          detail: |
+              Burns in a furnace or blast furnace, smelting one item per
+              door.
+    found_in:
+        - location: Cherry grove villages
+          detail: Generates as part of cherry-wood houses in cherry grove biome villages.
+        - location: Crafted by players
+          detail: Built from cherry planks at a crafting table for use in any build.
+    faq:
+        - question: What tool do I need to mine a Cherry Door?
+          answer: |
+              None — it can be broken by hand, though an axe is the
+              fastest tool.
+        - question: Can zombies break Cherry Doors?
+          answer: |
+              On Hard difficulty, zombies have a small chance to break
+              wooden doors, including cherry doors, to reach a target.
+        - question: Is the Cherry Door flammable?
+          answer: |
+              No. It does not catch fire from nearby flames, though it
+              can still be destroyed by direct lava contact.
+        - question: Does Silk Touch or Fortune affect its drop?
+          answer: |
+              No. A Cherry Door always drops itself as a single item
+              regardless of the tool used.
     data_version: "1.21.5"
 ---
 

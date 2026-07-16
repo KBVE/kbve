@@ -1,5 +1,6 @@
 ---
 title: Blackstone Stairs
+template: splash
 description: |
     Minecraft Blackstone Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,66 @@ mc_block:
     id: 884
     ref: blackstone_stairs
     slug: blackstone-stairs
+    content_rev: 1
     display_name: Blackstone Stairs
     material: nether
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blackstone_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+    about:
+        description: |
+            Blackstone Stairs are a decorative stairs variant of blackstone
+            that generates in bastion remnants. They share blackstone's
+            stone-type sound and durability and are used for architectural
+            detailing in Nether structures.
+        lore: |
+            Introduced with blackstone in the Nether Update (Java Edition
+            1.16), the stairs later gained renewability through piglin
+            bartering.
+    uses:
+        - title: Building & Decoration
+          ref: blackstone
+          detail: |
+              Used to build stepped roofs, staircases, and trim on
+              Nether-themed structures alongside blackstone slabs and walls.
+    found_in:
+        - location: Bastion Remnants
+          detail: Generates naturally as staircases and architectural trim within bastion remnants.
+        - location: Crafted or cut
+          detail: Craft 6 blackstone into 4 stairs, or cut 1 blackstone into 1 stair with a stonecutter.
+    faq:
+        - question: What tool do I need to mine Blackstone Stairs?
+          answer: |
+              A wooden pickaxe or better. Without one, the block breaks
+              without dropping anything.
+        - question: Are Blackstone Stairs affected by Fortune or Silk Touch?
+          answer: |
+              No. They always drop exactly one Blackstone Stairs block.
+        - question: Can Blackstone Stairs be waterlogged?
+          answer: |
+              Yes. Like most stairs, they can hold water when placed in a
+              water source, useful for underwater or wet Nether builds.
+        - question: How do I make Blackstone Stairs renewable?
+          answer: |
+              Trade gold ingots with piglins for a chance at blackstone,
+              then craft or stonecutter it into stairs.
     data_version: "1.21.5"
 ---
 

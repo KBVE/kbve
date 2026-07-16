@@ -1,5 +1,6 @@
 ---
 title: Exposed Cut Copper Stairs
+template: splash
 description: |
     Minecraft Exposed Cut Copper Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,76 @@ mc_block:
     id: 986
     ref: exposed_cut_copper_stairs
     slug: exposed-cut-copper-stairs
+    content_rev: 1
     display_name: Exposed Cut Copper Stairs
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: exposed_cut_copper_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Exposed Cut Copper Stairs are the first weathering stage of the
+            cut copper stairs, a decorative stair variant whose surface has
+            dulled from bright orange-brown into a light gray, spotted
+            patina, letting builders make sloped copper roofs and trim at
+            this weathering stage.
+        lore: |
+            Added in Java Edition 1.17 alongside the rest of the copper
+            block family, and later found generating naturally as of the
+            1.21 Trial Chambers update.
+    uses:
+        - title: Copper roofing and trim
+          ref: exposed_cut_copper
+          detail: |
+              Used decoratively to build sloped roofs, awnings, and
+              staircases that match exposed-stage copper builds.
+        - title: Waxed Exposed Cut Copper Stairs
+          ref: waxed_exposed_cut_copper_stairs
+          detail: |
+              Applying honeycomb waxes the stairs, freezing their
+              oxidation stage at exposed permanently.
+    found_in:
+        - location: Trial Chambers
+          detail: The waxed variant at this oxidation stage generates naturally within trial chamber vaults and corridors.
+        - location: Natural weathering or lightning
+          detail: An unoxidized cut copper stairs block reaches this stage over time, or instantly if struck by lightning.
+    faq:
+        - question: What tool do I need to mine Exposed Cut Copper Stairs?
+          answer: |
+              A stone pickaxe or better; weaker tools break the block
+              without a drop.
+        - question: How do I get Exposed Cut Copper Stairs?
+          answer: |
+              Craft from 6 Exposed Cut Copper blocks (4 stairs), stonecut
+              from a Block of Exposed Copper, or let unoxidized stairs
+              weather naturally.
+        - question: Can I reverse oxidation on the stairs?
+          answer: |
+              Yes. Scraping with an axe removes one oxidation stage back
+              toward unoxidized, and waxing with honeycomb prevents
+              further oxidation.
+        - question: Are Exposed Cut Copper Stairs affected by Fortune?
+          answer: |
+              No, they always drop themselves as a single item regardless
+              of Fortune enchantment.
     data_version: "1.21.5"
 ---
 

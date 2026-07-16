@@ -1,5 +1,6 @@
 ---
 title: Oxidized Cut Copper Slab
+template: splash
 description: |
     Minecraft Oxidized Cut Copper Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 988
     ref: oxidized_cut_copper_slab
     slug: oxidized-cut-copper-slab
+    content_rev: 1
     display_name: Oxidized Cut Copper Slab
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oxidized_cut_copper_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Oxidized Cut Copper Slab is the fully weathered stage of the
+            cut copper slab, a half-height decorative block sharing the
+            teal-green patina of other fully oxidized copper variants.
+        lore: |
+            Cut copper and its slab form were revealed at Minecraft Live
+            2020 and released in Java Edition 1.17, giving copper's
+            weathering mechanic a stonecutter-friendly building set.
+    uses:
+        - title: Chiseled Copper
+          ref: oxidized_chiseled_copper
+          detail: |
+              Two matching Oxidized Cut Copper Slabs craft into Oxidized
+              Chiseled Copper, a decorative block with an engraved pattern.
+    found_in:
+        - location: Weathering
+          detail: An unwaxed Cut Copper Slab left exposed long enough progresses through Exposed and Weathered before reaching Oxidized.
+        - location: Trial Chambers
+          detail: Waxed Oxidized Cut Copper Slabs generate naturally as part of some trial chamber structures.
+    faq:
+        - question: What tool do I need to mine an Oxidized Cut Copper Slab?
+          answer: |
+              A stone pickaxe or better; anything weaker breaks it with no
+              drop.
+        - question: How is it obtained?
+          answer: |
+              Craft 3 Oxidized Cut Copper blocks into 6 slabs, stonecut 1
+              Oxidized Copper block into 8 slabs, or let a lower-stage slab
+              weather naturally over time.
+        - question: Does it still oxidize further?
+          answer: |
+              No. Oxidized is the last of the four stages, so it stops
+              changing unless the process is reversed.
+        - question: Can I stop it from reverting or wax it?
+          answer: |
+              Yes. Apply honeycomb to lock it permanently at the oxidized
+              stage; an axe or lightning can still reverse an unwaxed slab.
     data_version: "1.21.5"
 ---
 

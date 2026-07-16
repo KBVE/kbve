@@ -1,5 +1,6 @@
 ---
 title: Diorite
+template: splash
 description: |
     Minecraft Diorite — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 4
     ref: diorite
     slug: diorite
+    content_rev: 1
     display_name: Diorite
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: diorite
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Diorite is a speckled black-and-white igneous rock that
+            generates in large underground pockets throughout the
+            Overworld. It shares granite's texture pattern but in a
+            lighter, whiter tone.
+        lore: |
+            Added in Java Edition 1.8 (snapshot 14w02a), diorite rounded out
+            the trio of granite, diorite, and andesite intrusive rock types.
+    uses:
+        - title: Polished Diorite, Andesite & Granite
+          ref: polished_diorite
+          detail: |
+              Combined with cobblestone or nether quartz to craft polished
+              diorite, andesite, and granite, and used as an ingredient for
+              diorite slabs, stairs, walls, and stonecutters.
+    found_in:
+        - location: Overworld Underground
+          detail: |
+              Generates in large pockets underground across most Overworld
+              biomes.
+        - location: Snowy Villages & Coral Reefs
+          detail: |
+              Also appears in snowy tundra village structures and, on
+              Bedrock Edition, in coral reef generation.
+    faq:
+        - question: What tool do I need to mine Diorite?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe yields no
+              drop.
+        - question: What does Diorite drop when mined?
+          answer: |
+              Diorite drops itself, one block per block mined with an
+              appropriate pickaxe.
+        - question: What can I craft from Diorite?
+          answer: |
+              Polished diorite, granite, andesite, plus diorite slabs,
+              stairs, and walls via stonecutting or crafting.
+        - question: Can villagers trade for Diorite?
+          answer: |
+              Yes, Journeyman-level mason villagers buy 16 diorite in
+              exchange for an emerald.
     data_version: "1.21.5"
 ---
 

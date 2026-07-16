@@ -1,5 +1,6 @@
 ---
 title: Water
+template: splash
 description: |
     Minecraft Water — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,76 @@ mc_block:
     id: 35
     ref: water
     slug: water
+    content_rev: 1
     display_name: Water
     material: liquid
     hardness: 100
     blast_resistance: 100
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
     transparent: true
     placeable: true
     solid: true
-    renewable: false
-    diggable: true
+    renewable: true
+    diggable: false
     drops: []
-    tags: []
+    tags:
+        - overworld
+        - fluid
+    about:
+        description: |
+            Water is a fluid that generates abundantly across the Overworld
+            in oceans, rivers, lakes, and underground springs. It can be
+            collected with a bucket and placed to create infinite water
+            sources, irrigate farmland, and negate fall damage.
+        lore: |
+            Water has existed since the earliest versions of Minecraft as
+            one of the two core fluids, alongside lava, that shape terrain
+            generation and survival mechanics.
+    uses:
+        - title: Farmland Hydration
+          ref: farmland
+          detail: |
+              Hydrates farmland within 4 blocks horizontally and 1 block
+              vertically, keeping crops from reverting to dry, unhydrated
+              soil.
+        - title: Obsidian and Stone Generation
+          ref: obsidian
+          detail: |
+              Flowing onto lava source blocks produces obsidian; water
+              flowing over lava produces cobblestone or stone depending on
+              the contact direction.
+        - title: Fall Damage Negation
+          ref: water_bucket
+          detail: |
+              Landing in water at any depth of one block or more negates all
+              fall damage, making it a common builder's safety net.
+    found_in:
+        - location: Oceans, Rivers, and Lakes
+          detail: Naturally generates as the dominant surface fluid in most Overworld biomes.
+        - location: Underground Aquifers
+          detail: Generates as pockets and springs while caving, especially near lush caves and dripstone caves.
+    faq:
+        - question: Can I mine or pick up Water directly?
+          answer: |
+              Not by hand. A bucket is required to scoop up a source block
+              into a water bucket; flowing (non-source) water cannot be
+              collected.
+        - question: What happens if I place Water in the Nether?
+          answer: |
+              It instantly evaporates into nothing, except when placed
+              inside a cauldron, which can safely hold water in the Nether.
+        - question: How far does Water spread?
+          answer: |
+              A single source block spreads up to 7 blocks horizontally and
+              falls indefinitely downward, turning into new source blocks
+              where flows meet.
+        - question: Does Water affect mob drowning?
+          answer: |
+              Yes. Most land mobs and players have a breath timer of about
+              15 seconds underwater before they start taking drowning
+              damage, extendable with the Respiration enchantment.
     data_version: "1.21.5"
 ---
 

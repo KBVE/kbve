@@ -1,5 +1,6 @@
 ---
 title: Cake with White Candle
+template: splash
 description: |
     Minecraft Cake with White Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 921
     ref: white_candle_cake
     slug: white-candle-cake
+    content_rev: 1
     display_name: Cake with White Candle
     material: stone
     hardness: 0.5
@@ -26,8 +28,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: white_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Cake with White Candle is a decorative variant created by using
+            a White Candle on an uneaten cake. The candle can be lit for
+            ambient light and extinguished independently of eating the
+            cake.
+        lore: |
+            Candles and their cake combination arrived in the Caves &
+            Cliffs Update (1.17), adding a decorative lighting option to an
+            otherwise purely edible block.
+    uses:
+        - title: Ambient Lighting
+          ref: white_candle
+          detail: |
+              Lighting the candle with flint and steel, a fire charge, or a
+              flaming projectile gives off light level 3 without harming
+              the cake.
+    found_in:
+        - location: Placed by the player
+          detail: Right-click an uneaten Cake block with a White Candle to combine them; no natural generation.
+    faq:
+        - question: What does breaking a candle cake drop?
+          answer: |
+              Only the White Candle; the cake portion is destroyed with no
+              drop.
+        - question: Can I still eat the cake once a candle is on it?
+          answer: |
+              Yes, eating any slice causes the candle to pop off and drop
+              as an item.
+        - question: How do I light or extinguish the candle?
+          answer: |
+              Use flint and steel or a fire source to light it; right-click
+              the lit candle (not the cake) to snuff it out so it can be
+              relit later.
+        - question: What tool do I need to mine it?
+          answer: |
+              None — any tool or bare hands breaks it instantly.
     data_version: "1.21.5"
 ---
 

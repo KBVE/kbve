@@ -43,7 +43,7 @@ App::new()
     .run();
 
 fn kick_off_rpc(client: Res<SupaClient>) {
-    // Bevy 0.18 has no async system adapter, so hand the client off to
+    // Bevy 0.19 has no async system adapter, so hand the client off to
     // an AsyncComputeTaskPool task or bevy_tasker::spawn.
     let cloned = client.clone();
     bevy_tasker::spawn(async move {

@@ -1,5 +1,6 @@
 ---
 title: Guardian Spawn Egg
+template: splash
 description: |
     Minecraft Guardian Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1096
     ref: guardian_spawn_egg
     slug: guardian-spawn-egg
+    content_rev: 1
     display_name: Guardian Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Guardian Spawn Egg is a creative-mode item that instantly spawns a Guardian, a
+            hostile aquatic mob with 30 HP that inhabits ocean monuments. Guardians attack with a
+            damaging laser beam or retaliatory spikes and drop prismarine shards, prismarine
+            crystals, and fish.
+        lore: |
+            The mob's ever-watchful eye and spiked body were inspired by classic floating-eye
+            monsters from Dungeons & Dragons and Doom.
+    faq:
+        - question: What does the Guardian Spawn Egg do?
+          answer: |
+              Using it on a block, especially in or near water, spawns a Guardian mob at that
+              location; it is only available in Creative mode or via commands.
+        - question: How does a Guardian attack?
+          answer: |
+              It fires a laser beam that takes 4 seconds to charge and deals damage at up to 15
+              blocks range, and its spikes deal retaliatory damage when the mob is struck in
+              melee.
+        - question: What does a Guardian drop when killed?
+          answer: |
+              Guardians drop prismarine shards, prismarine crystals, and raw or cooked cod or
+              other fish.
+        - question: Where do Guardians normally spawn without the egg?
+          answer: |
+              They spawn naturally in ocean monuments, which require water to generate the mob.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

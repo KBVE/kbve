@@ -1,5 +1,6 @@
 ---
 title: Green Concrete
+template: splash
 description: |
     Minecraft Green Concrete — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,43 @@ mc_item:
     id: 598
     ref: green_concrete
     slug: green-concrete
+    content_rev: 1
     display_name: Green Concrete
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Green concrete is a solid decorative block formed when green
+            concrete powder comes into contact with water. It is harder than
+            stone and offers a bright, saturated color that builders favor
+            for detailed structures, though it has notably low blast
+            resistance.
+        lore: |
+            Introduced in Java Edition 1.12, concrete was originally pitched
+            by developer Jeb as a distinct alternative to stained hardened
+            clay available in all sixteen dye colors.
+    faq:
+        - question: How is green concrete made?
+          answer: |
+              It forms automatically when green concrete powder touches a
+              water source, flowing water, or a waterlogged block — it
+              cannot be crafted directly.
+        - question: What tool do I need to mine green concrete?
+          answer: |
+              Any pickaxe works, though a wooden pickaxe or better is
+              required to actually collect the block as an item.
+        - question: Is green concrete good for blast protection?
+          answer: |
+              Not especially — while it has solid hardness, its blast
+              resistance is quite low, so it is better suited to
+              decorative builds than defensive structures.
+        - question: Is green concrete renewable?
+          answer: |
+              Yes, since its ingredients — sand, gravel, and dye — are all
+              renewable, green concrete can be produced indefinitely.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

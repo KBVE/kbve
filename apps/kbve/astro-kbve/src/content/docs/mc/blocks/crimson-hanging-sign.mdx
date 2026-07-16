@@ -1,5 +1,6 @@
 ---
 title: Crimson Hanging Sign
+template: splash
 description: |
     Minecraft Crimson Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 229
     ref: crimson_hanging_sign
     slug: crimson-hanging-sign
+    content_rev: 1
     display_name: Crimson Hanging Sign
     material: nether
     hardness: 1
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crimson_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+        - non_flammable
+        - waterloggable
+    about:
+        description: |
+            Crimson Hanging Sign is a writable sign crafted from Stripped
+            Crimson Stem and chains, mountable on block sides, hanging
+            beneath a block, or in an up-arrow shape under narrow supports
+            like chains. Being Nether wood, it never burns.
+        lore: |
+            Hanging signs let builders label doorways, shops, and Nether
+            hubs with a fixture that dangles rather than sits flush
+            against a wall.
+    uses:
+        - title: Labeling and Wayfinding
+          ref: crimson_stem
+          detail: |
+              Text can be customized with dyes and Glow Ink Sacs for a
+              glowing effect, then locked permanently against edits by
+              waxing it with Honeycomb.
+    found_in:
+        - location: Crafted from Stripped Crimson Stem and chains
+          detail: Two Iron Chains plus six Stripped Crimson Stems craft six Crimson Hanging Signs.
+        - location: Nether builds and villages
+          detail: Placed by players as decoration near doorways and shop stalls.
+    faq:
+        - question: What tool do I need to mine Crimson Hanging Sign?
+          answer: |
+              An axe is fastest, but any tool or bare hands works since no
+              minimum tool tier is required.
+        - question: Does it burn in fire or lava?
+          answer: |
+              No. As a Nether wood item, it is non-flammable, unlike
+              Overworld hanging sign variants.
+        - question: Can I edit the text after placing it?
+          answer: |
+              Yes, until it is waxed with Honeycomb, which permanently
+              locks the text against further edits.
+        - question: Can it be waterlogged?
+          answer: |
+              Yes. A Crimson Hanging Sign can occupy the same space as a
+              water source block.
     data_version: "1.21.5"
 ---
 

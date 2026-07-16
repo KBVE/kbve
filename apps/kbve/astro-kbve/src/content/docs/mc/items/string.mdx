@@ -1,5 +1,6 @@
 ---
 title: String
+template: splash
 description: |
     Minecraft String — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 890
     ref: string
     slug: string
+    content_rev: 1
     display_name: String
     category: material
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            String is a versatile crafting material obtained from spiders, cobwebs, fishing, and
+            naturally-generated tripwire in structures. It is a key ingredient for bows, fishing rods,
+            leads, crossbows, looms, and can even be placed as tripwire for redstone detection circuits.
+        lore: |
+            String is now placeable as tripwire, letting hooks and observers detect anything that touches it.
+    faq:
+        - question: Where do I find string?
+          answer: |
+              Spiders drop 0-2 string on death, cobwebs yield string when broken with a sword, and fishing
+              has a small chance of catching string with an unenchanted rod.
+        - question: What can I craft with string?
+          answer: |
+              Bows, fishing rods, leads, crossbows, and looms all require string, and it can also be
+              crafted into wool or used in candle recipes.
+        - question: How does tripwire work?
+          answer: |
+              Placed string acts as tripwire, letting tripwire hooks and observers detect entities that
+              touch it, forming redstone circuits up to 40 blocks long.
+        - question: Can I get string from villagers?
+          answer: |
+              Yes, Fletcher villagers buy string for emeralds, and Fisherman villagers also purchase
+              string as part of their trades.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

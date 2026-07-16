@@ -1,5 +1,6 @@
 ---
 title: Bell
+template: splash
 description: |
     Minecraft Bell — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 815
     ref: bell
     slug: bell
+    content_rev: 1
     display_name: Bell
     material: metal
     hardness: 5
@@ -21,13 +23,59 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bell
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            A Bell is a village landmark block that rings to warn villagers
+            of raids or nighttime danger, causing nearby villagers to flee
+            indoors and revealing illagers with a glowing outline.
+        lore: |
+            Bells were added in the Village & Pillage update (1.14) as part
+            of the overhauled village raid mechanic.
+    uses:
+        - title: Raid Alarm
+          ref: bell
+          detail: |
+              Ringing a bell during a raid alerts villagers to take shelter
+              and highlights nearby illagers, making them easier to spot and
+              fight.
+    found_in:
+        - location: Village centers
+          detail: Generates at the meeting point of every village variant.
+        - location: Ruined Portal chests
+          detail: A small chance to find a Bell in Ruined Portal loot chests.
+        - location: Toolsmith/Weaponsmith/Armorer trades
+          detail: Apprentice-level villagers sell a Bell for 36 emeralds.
+    faq:
+        - question: What tool do I need to mine a Bell?
+          answer: |
+              Any tool works and it always drops itself; a pickaxe is
+              fastest but not required.
+        - question: Can a Bell be crafted?
+          answer: |
+              No. Bells cannot be crafted — they must be obtained from
+              village generation, trading, or Ruined Portal loot.
+        - question: What happens when I ring a Bell?
+          answer: |
+              Nearby villagers run to the nearest bed and any illagers within
+              range are outlined with a glowing effect for several seconds.
+        - question: Are Piglins interested in Bells?
+          answer: |
+              Yes, Piglins treat dropped Bells as a gold-related item and
+              will pause to inspect one before picking it up.
     data_version: "1.21.5"
 ---
 

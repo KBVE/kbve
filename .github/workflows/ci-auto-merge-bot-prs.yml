@@ -210,6 +210,7 @@ jobs:
                           ...(manifest.unity || []),
                           ...(manifest.godot || []),
                           ...(manifest.bevy_game || []),
+                          ...(manifest.vite_game || []),
                         ];
                         const entry = allEntries.find(
                           e => e.app_name === appName || e.package_name === appName

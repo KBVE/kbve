@@ -1,5 +1,6 @@
 ---
 title: Acacia Hanging Sign
+template: splash
 description: |
     Minecraft Acacia Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 224
     ref: acacia_hanging_sign
     slug: acacia-hanging-sign
+    content_rev: 1
     display_name: Acacia Hanging Sign
     material: wood
     hardness: 1
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: acacia_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            Acacia Hanging Sign is a decorative sign variant made from
+            stripped acacia logs and chains, hung beneath blocks with
+            self-supporting brackets or parallel chains for editable text.
+        lore: |
+            Hanging signs were conceptualized by lead creative designer
+            Agnes Larsson, inspired by her daughter, and were revealed to
+            players during Minecraft Live 2022.
+    uses:
+        - title: Shop and Direction Signage
+          ref: acacia_hanging_sign
+          detail: |
+              Displays customizable, dyeable text and can be locked against
+              edits with a honeycomb after waxing.
+        - title: Furnace Fuel
+          ref: acacia_hanging_sign
+          detail: |
+              Overworld wood hanging signs can be burned as furnace fuel.
+    found_in:
+        - location: Crafting
+          detail: Two chains plus six stripped acacia logs or stems craft six acacia hanging signs.
+        - location: Waterlogged Placements
+          detail: Can be placed underwater and remains waterlogged for use in aquatic builds.
+    faq:
+        - question: What tool mines an acacia hanging sign fastest?
+          answer: |
+              An axe, with a golden axe being quickest of all, though no
+              minimum tool tier is required to break it.
+        - question: How is an acacia hanging sign crafted?
+          answer: |
+              Combine two chains with six stripped acacia logs or stems to
+              produce six hanging signs at once.
+        - question: Can it be placed underwater?
+          answer: |
+              Yes, it is waterloggable and can be submerged while remaining
+              functional.
+        - question: How do I lock the text on a hanging sign?
+          answer: |
+              Apply a honeycomb to a placed sign to wax it, preventing
+              further text edits.
     data_version: "1.21.5"
 ---
 

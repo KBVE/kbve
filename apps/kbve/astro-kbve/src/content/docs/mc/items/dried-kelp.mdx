@@ -1,5 +1,6 @@
 ---
 title: Dried Kelp
+template: splash
 description: |
     Minecraft Dried Kelp — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1045
     ref: dried_kelp
     slug: dried-kelp
+    content_rev: 1
     display_name: Dried Kelp
     category: misc
     rarity: common
@@ -22,6 +24,32 @@ mc_item:
         saturation: 1.2
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Dried Kelp is a food item obtained by smelting raw kelp in a furnace, smoker, or
+            campfire, or by crafting it from a dried kelp block. It restores only a small
+            amount of hunger and saturation, but it can be eaten roughly twice as fast as any
+            other food, making it useful for quick top-ups during combat or long treks.
+        lore: |
+            Dried kelp's rapid consumption speed and renewable source make it the food of
+            choice for players racing across oceans or riding boats between distant shores.
+    faq:
+        - question: How do you make Dried Kelp?
+          answer: |
+              Smelt raw kelp in a furnace, smoker, or campfire, or break down a dried kelp
+              block to get 9 pieces of dried kelp at once.
+        - question: Why would I eat Dried Kelp instead of other food?
+          answer: |
+              It can be eaten about twice as fast as any other food item, letting you restore
+              hunger quickly without pausing your movement for long.
+        - question: Is Dried Kelp renewable?
+          answer: |
+              Yes. Kelp grows naturally underwater and regrows after harvesting, so a simple
+              kelp farm provides an endless supply to smelt into dried kelp.
+        - question: Does Dried Kelp have any other uses?
+          answer: |
+              It has a chance to raise the level of a composter and is required for the
+              Castaway achievement, which involves eating only dried kelp for three days.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Parrot Spawn Egg
+template: splash
 description: |
     Minecraft Parrot Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 1107
     ref: parrot_spawn_egg
     slug: parrot-spawn-egg
+    content_rev: 1
     display_name: Parrot Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Parrot Spawn Egg is a Creative-mode and command-only item that instantly summons
+            a parrot when used on a surface. Like all spawn eggs, it cannot be obtained through
+            normal Survival gameplay; players get it via the Creative inventory or by using pick
+            block on an existing parrot.
+        lore: |
+            A pocket-sized shortcut for populating the jungle with the game's most colorful mimic.
+    faq:
+        - question: |
+              Can I get a Parrot Spawn Egg in Survival mode?
+          answer: |
+              No. Spawn eggs are obtainable only in Creative mode or via commands; they are not
+              found through normal Survival gameplay.
+        - question: |
+              What happens when I use the egg?
+          answer: |
+              A parrot spawns adjacent to the surface you used the egg on and immediately plays
+              its ambient sound.
+        - question: |
+              Does using the egg on an existing parrot do anything special?
+          answer: |
+              Using a spawn egg on a matching adult mob that has a baby variant spawns a baby of
+              that mob, though parrots themselves have no baby form.
+        - question: |
+              Can spawn eggs be used with dispensers or spawners?
+          answer: |
+              Yes. A dispenser can spawn the mob directly in front of it while consuming the egg,
+              and any spawn egg can be used to change the mob type of a monster spawner.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Brain Coral Block
+template: splash
 description: |
     Minecraft Brain Coral Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 721
     ref: brain_coral_block
     slug: brain-coral-block
+    content_rev: 1
     display_name: Brain Coral Block
     material: stone
     hardness: 1.5
@@ -24,10 +26,65 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brain_coral_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+        - ref: dead_brain_coral_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - underwater
+    about:
+        description: |
+            Brain Coral Block is a living coral variant that must stay
+            adjacent to water or it dies into a Dead Brain Coral Block
+            within seconds. It only drops its living form when mined with
+            Silk Touch.
+        lore: |
+            Coral blocks were added in the Update Aquatic (Java 1.13),
+            bringing colorful reef terrain and marine life to ocean biomes.
+    uses:
+        - title: Sea Pickle Farming
+          ref: sea_pickle
+          detail: |
+              Living coral blocks serve as valid placement substrate for
+              sea pickles, which can be bone-mealed to spread further
+              pickles across the block.
+        - title: Reef Decoration
+          ref: brain_coral_block
+          detail: |
+              Used purely as a decorative building block for aquariums and
+              artificial reefs, provided it stays submerged.
+    found_in:
+        - location: Warm ocean coral reefs
+          detail: Generates naturally within coral reef formations in warm ocean biomes.
+        - location: Wandering traders
+          detail: Occasionally sold by wandering traders for emeralds.
+    faq:
+        - question: Why did my Brain Coral Block turn gray?
+          answer: |
+              It lost contact with water on all six adjacent sides and died
+              into a Dead Brain Coral Block; this cannot be reversed.
+        - question: Do I need Silk Touch to keep it alive when mining?
+          answer: |
+              Yes, without Silk Touch it drops the dead coral block variant
+              instead of the living one.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, even wooden, breaks it.
+        - question: Is Brain Coral Block flammable?
+          answer: |
+              No, coral blocks do not burn.
     data_version: "1.21.5"
 ---
 

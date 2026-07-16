@@ -1,5 +1,6 @@
 ---
 title: Music Disc
+template: splash
 description: |
     Minecraft Music Disc — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,35 @@ mc_item:
     id: 1234
     ref: music_disc_chirp
     slug: music-disc-chirp
+    content_rev: 1
     display_name: Music Disc
     category: music
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Music Disc (chirp) plays "chirp", a 3:05 track composed by C418. It can drop when a
+            creeper is killed by a skeleton, wither skeleton, stray, bogged, or parched mob, or be
+            found in monster room, woodland mansion, and ancient city chests.
+        lore: |
+            A chattering little tune recovered from the same charged encounters that yield discs
+            like "cat" and "far".
+    faq:
+        - question: How do I get Music Disc (chirp)?
+          answer: |
+              Have a skeleton, wither skeleton, stray, bogged, or parched mob kill a creeper for a
+              chance at the drop, or search monster room, woodland mansion, and ancient city chests.
+        - question: Who composed "chirp"?
+          answer: |
+              C418 composed the track, which runs 3 minutes and 5 seconds.
+        - question: What comparator signal does "chirp" give in a jukebox?
+          answer: |
+              Placing a comparator beside a jukebox playing "chirp" outputs a signal intensity of 4.
+        - question: What rarity is Music Disc (chirp)?
+          answer: |
+              It is Uncommon rarity and does not stack.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

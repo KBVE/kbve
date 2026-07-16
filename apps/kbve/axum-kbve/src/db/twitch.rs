@@ -175,11 +175,12 @@ impl TwitchClient {
     /// Get user by login name
     pub async fn get_user_by_login(&self, login: &str) -> Result<Option<TwitchUser>, String> {
         let token = self.get_token().await?;
-        let url = format!("{}/users?login={}", TWITCH_API_BASE, login);
+        let url = format!("{}/users", TWITCH_API_BASE);
 
         let response = self
             .client
             .get(&url)
+            .query(&[("login", login)])
             .header("Authorization", format!("Bearer {}", token))
             .header("Client-Id", &self.config.client_id)
             .send()
@@ -304,11 +305,12 @@ impl TwitchClient {
     /// Check if a user is live by their login name
     pub async fn is_user_live(&self, login: &str) -> Result<bool, String> {
         let token = self.get_token().await?;
-        let url = format!("{}/streams?user_login={}", TWITCH_API_BASE, login);
+        let url = format!("{}/streams", TWITCH_API_BASE);
 
         let response = self
             .client
             .get(&url)
+            .query(&[("user_login", login)])
             .header("Authorization", format!("Bearer {}", token))
             .header("Client-Id", &self.config.client_id)
             .send()

@@ -1,5 +1,6 @@
 ---
 title: Red Sand
+template: splash
 description: |
     Minecraft Red Sand — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 39
     ref: red_sand
     slug: red-sand
+    content_rev: 1
     display_name: Red Sand
     material: sand
     hardness: 0.5
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_sand
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+        - gravity_affected
+    about:
+        description: |
+            Red Sand is a reddish-orange variant of sand found only in
+            badlands biomes and their variants. Like regular sand, it is
+            affected by gravity and falls if the block below it is removed,
+            but it never converts to red sandstone on its own without
+            crafting.
+        lore: |
+            Introduced in Java Edition 1.7.2 alongside the badlands (mesa)
+            biome, giving desert-style terrain a distinct color palette.
+    uses:
+        - title: Red Sandstone
+          ref: red_sandstone
+          detail: |
+              4 Red Sand craft 1 Red Sandstone block, used for
+              badlands-themed building and decoration.
+        - title: TNT
+          ref: tnt
+          detail: |
+              Combines with gunpowder to craft TNT, using Red Sand
+              interchangeably with regular sand in the recipe.
+    found_in:
+        - location: Badlands biomes
+          detail: Generates naturally below roughly Y=74 in badlands and its variants, always in a single surface layer.
+        - location: Wandering Trader
+          detail: Purchasable from wandering traders for 1 emerald per 4 Red Sand.
+    faq:
+        - question: What tool do I need to mine Red Sand?
+          answer: |
+              Any shovel mines it fastest, but it can be mined by hand or
+              with any tool and still drops itself.
+        - question: Does Red Sand fall like gravel?
+          answer: |
+              Yes. It is a gravity-affected block and falls straight down
+              if the block supporting it is removed, potentially suffocating
+              entities below.
+        - question: Where can I find Red Sand?
+          answer: |
+              Almost exclusively in badlands biomes, where it forms a thin
+              surface layer over red terracotta and red sandstone.
+        - question: Can I get Red Sand outside the badlands?
+          answer: |
+              Yes, via enderman mob drops when they are holding it,
+              trading with wandering traders, or transporting it from a
+              badlands biome.
     data_version: "1.21.5"
 ---
 

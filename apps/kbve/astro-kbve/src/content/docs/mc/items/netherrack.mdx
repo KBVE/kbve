@@ -1,5 +1,6 @@
 ---
 title: Netherrack
+template: splash
 description: |
     Minecraft Netherrack — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 347
     ref: netherrack
     slug: netherrack
+    content_rev: 1
     display_name: Netherrack
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Netherrack is a frail, porous stone block with a reddish, volcanic texture that makes up most of the Nether's terrain. It generates abundantly across the Nether and also appears in ruined portals and bastion remnants found in the Overworld. A pickaxe of any tier is required to mine it and it always drops itself.
+        lore: |
+            The scorched, brittle bedrock of the Nether, quick to crumble under a pickaxe and just as quick to catch flame.
+    faq:
+        - question: What tool do I need to mine netherrack?
+          answer: |
+              Any pickaxe works, though a wooden pickaxe is the minimum requirement; using another tool or bare hands yields no drops.
+        - question: Why is netherrack useful for building?
+          answer: |
+              It is abundant and cheap to mine, making it a common choice for scaffolding, temporary structures, and blocking off tunnels.
+        - question: What makes netherrack special regarding fire?
+          answer: |
+              Fire lit on top of netherrack burns indefinitely and resists being extinguished by rain, making it a popular base for permanent light sources.
+        - question: What can netherrack be turned into?
+          answer: |
+              Smelting netherrack produces nether bricks, and applying bone meal near nylium can spread crimson or warped nylium onto it.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

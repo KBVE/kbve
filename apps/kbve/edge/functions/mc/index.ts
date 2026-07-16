@@ -3,7 +3,7 @@ import { preflight, withCors } from "../_shared/cors.ts";
 import { buildHelpText, parseCommand } from "../_shared/routing.ts";
 import { logError } from "../_shared/logging.ts";
 import { requireJsonContentType, enforceBodySizeLimit } from "../_shared/validators.ts";
-import { extractToken, jsonResponse, parseJwt } from "./_shared.ts";
+import { AuthError, extractToken, jsonResponse, parseJwt } from "./_shared.ts";
 import { AUTH_ACTIONS, handleAuth } from "./auth.ts";
 import { handlePlayer, PLAYER_ACTIONS } from "./player.ts";
 import { CONTAINER_ACTIONS, handleContainer } from "./container.ts";
@@ -92,13 +92,11 @@ serve(async (req) => {
     return withCors(res, req);
   } catch (err) {
     logError("mc", err);
-    const rawMessage = err instanceof Error
-      ? err.message
-      : "Internal server error";
-    const isAuthError =
-      rawMessage.includes("authorization") || rawMessage.includes("JWT");
-    if (isAuthError) {
-      return withCors(jsonResponse({ error: "Unauthorized" }, 401), req);
+    if (err instanceof AuthError) {
+      return withCors(jsonResponse({ error: err.message }, err.status), req);
+    }
+    if (err instanceof SyntaxError) {
+      return withCors(jsonResponse({ error: "Invalid JSON body" }, 400), req);
     }
     return withCors(jsonResponse({ error: "Internal server error" }, 500), req);
   }

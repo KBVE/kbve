@@ -1,5 +1,6 @@
 ---
 title: White Bed
+template: splash
 description: |
     Minecraft White Bed — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 110
     ref: white_bed
     slug: white-bed
+    content_rev: 1
     display_name: White Bed
     material: stone
     hardness: 0.2
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: white_bed
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            The White Bed is a two-block sleeping furniture item that lets
+            players skip the night, set a respawn point, and — in the
+            Nether or the End — detonate violently when used.
+        lore: |
+            Colored beds arrived with the Discontinued Update naming aside;
+            beds have let players skip night since Java Edition 1.3.1,
+            with dyeable variants added in 1.12.
+    uses:
+        - title: Sleeping & Spawn Point
+          ref: white_bed
+          detail: |
+              Sleeping in a bed at night sets it as the player's spawn
+              point and skips to morning once enough players are asleep.
+        - title: Nether/End Explosive
+          ref: tnt
+          detail: |
+              Attempting to sleep in a bed outside the Overworld causes it
+              to explode, dealing heavy damage — sometimes used deliberately
+              as a demolition tool.
+    found_in:
+        - location: Crafted from wool and planks
+          detail: 3 matching wool plus 3 wooden planks craft one bed.
+        - location: Villages and igloos
+          detail: Beds generate pre-placed in village houses, igloos, and trial chamber vaults.
+    faq:
+        - question: What tool is needed to break a bed?
+          answer: |
+              None — any tool, or bare hands, breaks it at the same speed
+              and it always drops itself.
+        - question: Why does my bed explode in the Nether?
+          answer: |
+              Beds are unusable outside the Overworld and detonate with
+              significant force when a player tries to sleep in them there.
+        - question: Can I recolor a placed bed?
+          answer: |
+              No, you must break it and craft a new bed with a different
+              wool color; placed beds cannot be dyed directly.
+        - question: Does sleeping always skip the night?
+          answer: |
+              Only when enough of the server's players are simultaneously
+              in bed; in singleplayer, one sleeping player is enough.
     data_version: "1.21.5"
 ---
 

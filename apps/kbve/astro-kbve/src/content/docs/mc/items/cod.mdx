@@ -1,5 +1,6 @@
 ---
 title: Raw Cod
+template: splash
 description: |
     Minecraft Raw Cod — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 995
     ref: cod
     slug: cod
+    content_rev: 1
     display_name: Raw Cod
     category: food
     rarity: common
@@ -22,6 +24,30 @@ mc_item:
         saturation: 1.6
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Raw cod is a common fish drop obtained by killing cod mobs found in schools throughout
+            ocean biomes, or by fishing. It restores a modest amount of hunger when eaten raw, but
+            it can also be smelted or campfire-cooked into cooked cod for a better food value.
+        lore: |
+            An ordinary ocean fish, plentiful and easy to catch, that feeds sailors even before
+            it's cooked.
+    faq:
+        - question: How do you get raw cod?
+          answer: |
+              Kill a cod mob in an ocean biome or catch one while fishing; cod always drop 1 raw
+              cod unless killed while on fire or with a Fire Aspect weapon.
+        - question: Why did my cod drop cooked cod instead of raw cod?
+          answer: |
+              A cod killed while on fire, or with a weapon enchanted with Fire Aspect, drops cooked
+              cod instead of raw cod.
+        - question: How much hunger does raw cod restore?
+          answer: |
+              Raw cod restores 2 hunger points and 1.6 saturation when eaten.
+        - question: Do cod swim in groups?
+          answer: |
+              Yes, cod swim in schools of up to 9 fish, making them easy to find in bulk in ocean
+              biomes.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

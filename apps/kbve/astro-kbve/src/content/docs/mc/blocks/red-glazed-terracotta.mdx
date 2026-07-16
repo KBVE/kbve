@@ -1,5 +1,6 @@
 ---
 title: Red Glazed Terracotta
+template: splash
 description: |
     Minecraft Red Glazed Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,71 @@ mc_block:
     id: 676
     ref: red_glazed_terracotta
     slug: red-glazed-terracotta
+    content_rev: 1
     display_name: Red Glazed Terracotta
     material: stone
     hardness: 1.4
     blast_resistance: 1.4
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_glazed_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Red Glazed Terracotta is a hard, glossy decorative block made
+            by smelting Red Stained Terracotta. Its texture rotates to face
+            the player when placed, letting builders align patterns across
+            multiple blocks.
+        lore: |
+            Glazed terracotta was inspired by Moroccan tile floors and
+            added in Java Edition 1.12, giving each of the sixteen colors a
+            unique directional pattern.
+    uses:
+        - title: Decorative Building Material
+          ref: red_glazed_terracotta
+          detail: |
+              Placed in 2x2 or larger grids, adjacent tiles line up to form
+              larger continuous patterns for floors, walls, and roofs.
+    found_in:
+        - location: Smelting Stained Terracotta
+          detail: |
+              Smelt Red Stained Terracotta in a furnace or blast furnace to
+              produce Red Glazed Terracotta.
+        - location: Mason Villager Trades
+          detail: |
+              Expert-level Mason villagers trade emeralds for glazed
+              terracotta, making it renewable.
+    faq:
+        - question: What tool do I need to mine Red Glazed Terracotta?
+          answer: |
+              At least a wooden pickaxe. Mining without one drops nothing.
+        - question: Why does the texture look different depending on how I place it?
+          answer: |
+              Glazed terracotta's texture rotates to face the direction the
+              player was facing when placed, allowing patterned builds.
+        - question: Can pistons move Red Glazed Terracotta?
+          answer: |
+              Regular pistons can push it, but sticky pistons cannot pull
+              it, and it won't stick to slime or honey blocks.
+        - question: How do I get Red Glazed Terracotta?
+          answer: |
+              Smelt Red Stained Terracotta in a furnace, or trade with an
+              expert-level Mason villager.
     data_version: "1.21.5"
 ---
 

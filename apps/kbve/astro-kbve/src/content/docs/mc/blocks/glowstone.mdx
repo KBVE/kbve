@@ -1,5 +1,6 @@
 ---
 title: Glowstone
+template: splash
 description: |
     Minecraft Glowstone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,80 @@ mc_block:
     id: 279
     ref: glowstone
     slug: glowstone
+    content_rev: 1
     display_name: Glowstone
     material: stone
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
+    best_tool: pickaxe
     required_tool_tier: 0
     light_emission: 15
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: glowstone_dust
+          qty_min: 2
+          qty_max: 4
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: glowstone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - light_source
+        - nether
+        - fortune_affected
+        - brewing
+    about:
+        description: |
+            Glowstone is a light-emitting block found hanging from ceilings
+            in the Nether. It shines at the maximum light level of 15 and
+            drops glowstone dust when broken without Silk Touch.
+        lore: |
+            A staple Nether resource, glowstone dust is used in brewing and
+            crafting, while the block itself is a bright, decorative light
+            source and a component of redstone lamps and respawn anchors.
+    uses:
+        - title: Glowstone Dust
+          ref: glowstone_dust
+          detail: |
+              Drops 2 to 4 dust when mined, increased by Fortune up to a cap
+              of 4. Dust is used in brewing and to craft glowstone back.
+        - title: Redstone Lamp and Respawn Anchor
+          ref: redstone_lamp
+          detail: |
+              Combines with redstone to craft redstone lamps, and with
+              crying obsidian to craft respawn anchors.
+    found_in:
+        - location: The Nether
+          detail: Hangs from ceilings and overhangs across all Nether biomes.
+        - location: Bastion Remnants
+          detail: Found in hoglin stable chests at roughly a 22.8% chance.
+        - location: Villager Trade
+          detail: Journeyman clerics and wandering traders sell glowstone for emeralds.
+    faq:
+        - question: What tool do I need to mine Glowstone?
+          answer: |
+              Any tool or your hand works, since glowstone has very low
+              hardness. No specific tool tier is required to get a drop.
+        - question: How much glowstone dust does it drop?
+          answer: |
+              Two to four dust per block. Fortune improves the odds but the
+              amount is still capped at four.
+        - question: How do I collect the block itself?
+          answer: |
+              Mine it with a Silk Touch tool to drop the intact glowstone
+              block instead of dust.
+        - question: How bright is Glowstone?
+          answer: |
+              It emits light level 15, the brightest possible, matching sea
+              lanterns and jack o'lanterns.
     data_version: "1.21.5"
 ---
 

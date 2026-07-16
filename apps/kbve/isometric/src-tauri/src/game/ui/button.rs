@@ -44,7 +44,7 @@ impl ButtonKind {
 pub struct UiButtonConfig {
     pub width: Val,
     pub height: Val,
-    pub font_size: f32,
+    pub font_size: bevy::text::FontSize,
     pub border_radius: f32,
     pub kind: ButtonKind,
 }
@@ -54,7 +54,7 @@ impl Default for UiButtonConfig {
         Self {
             width: Val::Px(220.0),
             height: Val::Px(40.0),
-            font_size: 16.0,
+            font_size: bevy::text::FontSize::Px(16.0),
             border_radius: 6.0,
             kind: ButtonKind::Primary,
         }

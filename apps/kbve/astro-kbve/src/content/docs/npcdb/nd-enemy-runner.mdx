@@ -3,6 +3,10 @@ id: '01KSR8C4R81VPD7J5CH6VEGTJP'
 ref: 'nd-enemy-runner'
 drafted: false
 title: 'Nexus Defense — Runner'
+template: splash
+sidebar:
+    label: 'Runner'
+    hidden: true
 name: 'Runner'
 description: |
     Fast, fragile basic enemy for Nexus Defense. Walks the lane from the spawn point toward the player's Nexus and dies in a couple of tower volleys. Drops a flat gold bounty on death.
@@ -26,13 +30,14 @@ faction:
     faction_id: 'daemoncorps'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
+
+<NpcLeaf data={frontmatter}>
 
 # Nexus Defense — Runner
 
 Default lane mob for Nexus Defense matches. Spawned by the server during the `Wave` phase and walks straight toward the Nexus along the player's hex strip.
 
-<NPCDBPanel data={frontmatter} />
 
 ## Tuning surface
 
@@ -43,3 +48,5 @@ The `nd-server` flavor of the `q` crate pulls combat numbers from this entry at 
 - `loot.gold_min` → flat bounty awarded to the slot whose tower lands the killing blow. `loot.gold_max` is ignored until per-kill variance is wired up.
 
 Adjusting the YAML and re-running `nx run astro-kbve:sync:npcdb` retunes the live build without recompiling the Rust binary.
+
+</NpcLeaf>

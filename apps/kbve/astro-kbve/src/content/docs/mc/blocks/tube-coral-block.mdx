@@ -1,5 +1,6 @@
 ---
 title: Tube Coral Block
+template: splash
 description: |
     Minecraft Tube Coral Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 720
     ref: tube_coral_block
     slug: tube-coral-block
+    content_rev: 1
     display_name: Tube Coral Block
     material: stone
     hardness: 1.5
@@ -24,10 +26,59 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: tube_coral_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+        - ref: dead_tube_coral_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - ocean
+    about:
+        description: |
+            Tube Coral Block is a solid blue coral block found in warm
+            ocean coral reefs. It stays alive only while touching water and
+            permanently turns into Dead Tube Coral Block if exposed to air.
+        lore: |
+            Added in the Update Aquatic (1.13), it is one of five coral
+            block colors representing real-world coral species.
+    uses:
+        - title: Underwater decoration
+          ref: sea_pickle
+          detail: |
+              Used as a stable base block for aquascaping and can anchor
+              nearby sea pickles and coral fans in a reef build.
+    found_in:
+        - location: Warm Ocean coral reefs
+          detail: Generates naturally in reef formations within warm ocean biomes.
+        - location: Wandering Trader
+          detail: Sold for 3 emeralds at roughly a 7% chance per trade offer.
+    faq:
+        - question: How do I mine it without killing it into the dead variant?
+          answer: |
+              Use a Silk Touch enchanted pickaxe; any other tool drops the
+              corresponding Dead Tube Coral Block instead.
+        - question: How do I keep a placed Tube Coral Block alive?
+          answer: |
+              At least one of the six adjacent blocks must be water or a
+              waterlogged block, or it dies within a few seconds.
+        - question: Is it renewable?
+          answer: |
+              Yes, warm ocean coral reefs regenerate coral blocks and bone
+              meal can grow additional coral nearby.
+        - question: What tool tier is required to mine it?
+          answer: |
+              None — any pickaxe, even wooden, can mine it, though a Silk
+              Touch enchantment is needed to keep it as the living block.
     data_version: "1.21.5"
 ---
 

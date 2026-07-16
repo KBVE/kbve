@@ -1,5 +1,6 @@
 ---
 title: Cobblestone Stairs
+template: splash
 description: |
     Minecraft Cobblestone Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,71 @@ mc_block:
     id: 210
     ref: cobblestone_stairs
     slug: cobblestone-stairs
+    content_rev: 1
     display_name: Cobblestone Stairs
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cobblestone_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - nether
+        - blast_resistant
+    about:
+        description: |
+            Cobblestone Stairs are a decorative stepped variant of
+            cobblestone used for vertical navigation and detailing. They
+            generate naturally in strongholds, villages, mansions, and
+            jungle pyramids.
+        lore: |
+            Stone stairs were added in Java Edition Infdev 20100629 and
+            renamed to "Cobblestone Stairs" in 1.8 (14w31a).
+    uses:
+        - title: Building & Decoration
+          ref: cobblestone
+          detail: |
+              Used for constructing stairways and roofs, and for
+              decorative detailing in stone-themed builds.
+    found_in:
+        - location: Strongholds, Villages, Mansions & Jungle Pyramids
+          detail: Generates naturally as part of these overworld structures.
+        - location: Crafting table or stonecutter
+          detail: |
+              Crafted from 6 cobblestone (yields 4 stairs), or cut from
+              cobblestone or stone at a stonecutter.
+    faq:
+        - question: What tool do I need to mine Cobblestone Stairs?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining without a pickaxe
+              destroys the block with no drop.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one set of stairs regardless of
+              enchantments.
+        - question: Can Cobblestone Stairs be placed upside down?
+          answer: |
+              Yes, like all stairs they support upside-down placement and
+              automatically form corner shapes based on adjacent blocks.
+        - question: Where does it generate naturally?
+          answer: |
+              It appears in strongholds, villages, woodland mansions, and
+              jungle temples.
     data_version: "1.21.5"
 ---
 

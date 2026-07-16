@@ -1,5 +1,6 @@
 ---
 title: Redstone Ore
+template: splash
 description: |
     Minecraft Redstone Ore — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 72
     ref: redstone_ore
     slug: redstone-ore
+    content_rev: 1
     display_name: Redstone Ore
     category: redstone
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Redstone Ore generates throughout the Overworld from bedrock up to around Y=15, with denser veins deeper underground, and also appears as Deepslate Redstone Ore in stone-variant layers. Mining it with an iron pickaxe or better drops 4-5 redstone dust, boosted by Fortune, while Silk Touch recovers the ore block itself.
+            When walked on or struck, the ore glows and sparks with red particles for a short time even though it isn't actually emitting a redstone signal, a quirk that catches many new players off guard.
+        lore: |
+            The faint red glow beneath the stone is the first hint many players get that machinery is possible.
+    faq:
+        - question: |
+              What tool do I need to mine Redstone Ore?
+          answer: |
+              You need at least an iron pickaxe to break Redstone Ore and collect its drops; lower-tier pickaxes will not drop anything.
+        - question: |
+              Why does Redstone Ore glow when I touch it?
+          answer: |
+              Touching or mining Redstone Ore triggers a temporary lit state with red particles and a light level of 9 for roughly 68 seconds, even though the block itself is not powering anything.
+        - question: |
+              Does Fortune increase Redstone Ore drops?
+          answer: |
+              Yes. A normal break yields 4-5 redstone dust, while Fortune III can increase that to as many as 8 dust per ore block.
+        - question: |
+              Can I get the ore block itself instead of dust?
+          answer: |
+              Mining Redstone Ore with a Silk Touch enchanted tool drops the ore block itself rather than redstone dust.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

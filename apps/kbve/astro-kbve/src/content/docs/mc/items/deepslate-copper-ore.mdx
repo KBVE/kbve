@@ -1,5 +1,6 @@
 ---
 title: Deepslate Copper Ore
+template: splash
 description: |
     Minecraft Deepslate Copper Ore — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 69
     ref: deepslate_copper_ore
     slug: deepslate-copper-ore
+    content_rev: 1
     display_name: Deepslate Copper Ore
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Deepslate Copper Ore is the deep-underground counterpart of Copper Ore,
+            generating between Y=-16 and Y=112 with a peak around Y=48. It drops
+            raw copper when mined and is found in ordinary caves as well as larger
+            veins inside dripstone caves.
+        lore: |
+            A greenish vein locked in deepslate, formed where copper deposits sank
+            deep enough to be crushed into the harder underground stone.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better is required; iron, diamond, or netherite
+              pickaxes mine it faster.
+        - question: What does it drop?
+          answer: |
+              It drops 2-5 Raw Copper per block, boosted further by the Fortune
+              enchantment, or the block itself with Silk Touch.
+        - question: Where does it generate?
+          answer: |
+              It generates between Y=-16 and Y=112, peaking around Y=48, with larger
+              veins found in dripstone caves.
+        - question: What is Raw Copper used for?
+          answer: |
+              Raw Copper can be smelted into Copper Ingots, used for blocks, lightning
+              rods, and other copper-based crafting.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

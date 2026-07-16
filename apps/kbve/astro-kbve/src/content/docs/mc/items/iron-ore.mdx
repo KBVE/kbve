@@ -1,5 +1,6 @@
 ---
 title: Iron Ore
+template: splash
 description: |
     Minecraft Iron Ore — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 66
     ref: iron_ore
     slug: iron-ore
+    content_rev: 1
     display_name: Iron Ore
     category: misc
     rarity: common
@@ -20,6 +22,30 @@ mc_item:
     tier: iron
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Iron ore is a mineral block found underground and is the primary source of raw iron.
+            It generates in three separate batches, most commonly around Y=232 and Y=16, with a
+            deepslate variant appearing in deeper layers. Mining it requires a stone pickaxe or better.
+        lore: |
+            Veins of iron ore have been the backbone of survival progression since the earliest
+            days of Minecraft, gating access to iron tools, armor, and buckets.
+    faq:
+        - question: What tool do you need to mine iron ore?
+          answer: |
+              A stone pickaxe or better is required; mining with a wooden or gold pickaxe yields nothing.
+        - question: What does iron ore drop?
+          answer: |
+              Without Silk Touch it drops raw iron (1-4 pieces with Fortune); with Silk Touch it
+              drops the ore block itself.
+        - question: Where does iron ore generate?
+          answer: |
+              It spawns in three height batches, the most common centered around Y=232 and Y=16,
+              with a smaller spread down to Y=-64.
+        - question: What is deepslate iron ore?
+          answer: |
+              It is the deeper variant of iron ore found in deepslate layers, with higher hardness
+              (4.5 versus 3) that takes slightly longer to mine.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

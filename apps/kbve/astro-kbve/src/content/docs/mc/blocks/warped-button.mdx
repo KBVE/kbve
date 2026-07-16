@@ -1,5 +1,6 @@
 ---
 title: Warped Button
+template: splash
 description: |
     Minecraft Warped Button — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 857
     ref: warped_button
     slug: warped-button
+    content_rev: 1
     display_name: Warped Button
     material: redstone
     hardness: 0.5
@@ -23,11 +25,58 @@ mc_block:
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: warped_button
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - nether
+        - redstone_component
+    about:
+        description: |
+            The Warped Button is the warped-wood variant of the wooden
+            button, a monostable redstone power source crafted from warped
+            planks. Like other wooden buttons it can be triggered by
+            projectiles as well as direct interaction.
+        lore: |
+            Wooden buttons debuted in Java Edition 1.4.2; the warped variant
+            was added in the 1.16 Nether Update alongside crimson and warped
+            wood, sourced from warped nylium and warped fungus.
+    uses:
+        - title: Redstone Signal
+          ref: redstone
+          detail: |
+              Pressing a warped button emits a redstone signal of power level
+              15 for 1.5 seconds (60 game ticks), longer than stone buttons,
+              enough to briefly trigger doors, dispensers, or trapdoors.
+    found_in:
+        - location: Crafted from Warped Planks
+          detail: One warped plank crafts one warped button.
+    faq:
+        - question: What tool do I need to mine a Warped Button?
+          answer: |
+              None required — an axe breaks it fastest, but any tool or bare
+              hands still collects it.
+        - question: How long does a Warped Button stay powered?
+          answer: |
+              1.5 seconds (60 redstone ticks) after being pressed, longer
+              than the 1-second duration of stone buttons.
+        - question: Can arrows trigger a Warped Button?
+          answer: |
+              Yes, arrows and tridents can activate wooden buttons like the
+              warped button, a feature stone buttons lack.
+        - question: How is the Warped Button different from other wood buttons?
+          answer: |
+              Only its texture and crafting material differ; a warped button
+              functions identically to oak, crimson, or any other wood
+              button variant.
     data_version: "1.21.5"
 ---
 

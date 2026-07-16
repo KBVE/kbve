@@ -1,5 +1,6 @@
 ---
 title: Iron Hoe
+template: splash
 description: |
     Minecraft Iron Hoe — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 877
     ref: iron_hoe
     slug: iron-hoe
+    content_rev: 1
     display_name: Iron Hoe
     category: tool
     rarity: common
@@ -35,6 +37,36 @@ mc_item:
             - vanishing_curse
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The iron hoe is a mid-tier farming tool crafted from two iron ingots and two sticks,
+            used to till dirt and grass into farmland for planting crops. With 250 durability it
+            outlasts wooden and stone hoes, and it also breaks leaves, hay bales, and similar
+            plant blocks faster than other tools.
+        lore: |
+            Once wooden tools have served their purpose, the iron hoe becomes the farmer's
+            gateway to cultivating fields fast enough to turn subsistence into surplus.
+    faq:
+        - question: |
+              How do I craft an iron hoe?
+          answer: |
+              Combine two iron ingots and two sticks in the standard hoe pattern — ingots form
+              the head, sticks form the handle.
+        - question: |
+              What does an iron hoe do besides tilling?
+          answer: |
+              It efficiently breaks leaves, hay bales, dried kelp, sculk, and moss blocks, and
+              can deal a small amount of melee damage in a pinch.
+        - question: |
+              Can I repair an iron hoe?
+          answer: |
+              Yes, repair it at an anvil with iron ingots (each restoring roughly 25%
+              durability), or combine two damaged hoes to merge their remaining durability.
+        - question: |
+              Is the iron hoe better than a stone or copper hoe?
+          answer: |
+              Yes, it offers higher mining efficiency, attack speed, durability, and
+              enchantability than the copper and stone tiers below it.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

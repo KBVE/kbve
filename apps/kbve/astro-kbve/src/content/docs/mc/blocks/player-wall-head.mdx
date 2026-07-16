@@ -1,5 +1,6 @@
 ---
 title: Player Head
+template: splash
 description: |
     Minecraft Player Head — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 428
     ref: player_wall_head
     slug: player-wall-head
+    content_rev: 1
     display_name: Player Head
     material: stone
     hardness: 1
     blast_resistance: 1
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: player_head
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - not_flammable
+        - decoration
+    about:
+        description: |
+            Player Wall Head is the wall-mounted form of the Player Head
+            block, automatically placed when a Player Head is set against a
+            wall instead of the floor. It bears the same custom player skin
+            texture and is not obtainable in Survival through normal
+            gameplay.
+        lore: |
+            It shares its item form with the floor variant — Minecraft
+            simply swaps the block state based on where the head is placed.
+    uses:
+        - title: Wall Decoration
+          ref: player_wall_head
+          detail: |
+              Mounted on a vertical surface for decorative displays,
+              commonly used in custom builds and mapmaking projects.
+    found_in:
+        - location: Placing a Player Head item against a wall
+          detail: Automatically becomes this block state; the item itself is the same Player Head item.
+    faq:
+        - question: Is this a different item from Player Head?
+          answer: |
+              No. It is the same Player Head item; this block state is used
+              only when it's attached to a wall rather than a floor.
+        - question: What tool do I need to mine it?
+          answer: |
+              None — any tool or bare hands break it at the same speed, and
+              it drops a Player Head item.
+        - question: Does Silk Touch or Fortune affect it?
+          answer: |
+              No. It always drops exactly one Player Head regardless of
+              enchantments.
+        - question: Can I place this block directly from the inventory?
+          answer: |
+              No. It has no item form of its own — placing a Player Head
+              item against a wall creates this block state automatically.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Tinted Glass
+template: splash
 description: |
     Minecraft Tinted Glass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 196
     ref: tinted_glass
     slug: tinted-glass
+    content_rev: 1
     display_name: Tinted Glass
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Tinted glass is a visually transparent block that completely blocks light
+            and beacon beams, functioning as an opaque barrier despite its see-through
+            appearance. It is crafted by combining four amethyst shards with one glass
+            block, and unlike regular glass it cannot be turned into glass panes but
+            does drop as an item when broken by any tool or by hand.
+        lore: |
+            The name "tinted glass" was first used on a different block during
+            Minecraft's 2013 April Fools' update, which eventually evolved into the
+            stained glass blocks players know today.
+    faq:
+        - question: How do I craft tinted glass?
+          answer: |
+              Arrange four amethyst shards around a central glass block in a crafting
+              grid to produce two tinted glass blocks.
+        - question: Why can't I make tinted glass panes?
+          answer: |
+              Unlike other types of glass, tinted glass cannot be turned into glass
+              panes, making it unique among glass variants in the game.
+        - question: Will mobs spawn or suffocate on tinted glass?
+          answer: |
+              No — mobs neither spawn on top of tinted glass nor suffocate inside it,
+              similar to regular glass behavior.
+        - question: When was tinted glass added to the game?
+          answer: |
+              It was introduced in Java Edition snapshot 20w45a during the 1.17
+              development cycle and released with the full version.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

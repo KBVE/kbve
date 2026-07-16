@@ -1,5 +1,6 @@
 ---
 title: Sculk Shrieker
+template: splash
 description: |
     Minecraft Sculk Shrieker — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 965
     ref: sculk_shrieker
     slug: sculk-shrieker
+    content_rev: 1
     display_name: Sculk Shrieker
     material: plant
     hardness: 3
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: sculk_shrieker
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - overworld
+        - sculk
+    about:
+        description: |
+            The sculk shrieker is the primary threat block of ancient
+            cities, emitting a piercing shriek when a player stands on it
+            or triggers nearby sculk sensors. After enough activations it
+            summons the Warden and inflicts the Darkness effect.
+        lore: |
+            Its design was inspired by the human larynx, fitting its role
+            as the Deep Dark's warning cry against intruders.
+    uses:
+        - title: Warden Summoning Mechanic
+          ref: warden
+          detail: |
+              Naturally-generated shriekers count activations and summon a
+              Warden after enough triggers; player-placed ones are inert.
+    found_in:
+        - location: Deep Dark Biome
+          detail: Generates scattered through deep dark biome patches.
+        - location: Ancient Cities
+          detail: Much more common within ancient city structures, often near chests.
+    faq:
+        - question: What tool do I need to mine a Sculk Shrieker?
+          answer: |
+              A hoe breaks it fastest, but any tool works. It only drops
+              itself with Silk Touch; otherwise it yields experience.
+        - question: How does a Sculk Shrieker summon the Warden?
+          answer: |
+              A naturally-generated shrieker summons a Warden after being
+              triggered four times within a short span.
+        - question: Are player-placed Sculk Shriekers dangerous?
+          answer: |
+              No, shriekers placed by a player are inert and cannot summon
+              a Warden or shriek.
+        - question: What triggers a Sculk Shrieker?
+          answer: |
+              Standing on its center, or nearby sculk sensors detecting
+              player vibrations within about 8 blocks.
     data_version: "1.21.5"
 ---
 

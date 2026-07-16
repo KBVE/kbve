@@ -1,5 +1,6 @@
 ---
 title: Spruce Sapling
+template: splash
 description: |
     Minecraft Spruce Sapling — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 50
     ref: spruce_sapling
     slug: spruce-sapling
+    content_rev: 1
     display_name: Spruce Sapling
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Spruce Sapling is a small non-solid plant block that grows into a spruce
+            tree when placed on dirt or moss with enough light and headroom above it.
+            Planting four saplings in a 2x2 grid instead produces a towering mega spruce,
+            and bone meal can force growth instantly regardless of light level.
+        lore: |
+            A dormant seedling of the hardy conifer, waiting only for sunlight and soil
+            to unfurl into a spire of blue-green needles.
+    faq:
+        - question: How do you get a Spruce Sapling?
+          answer: |
+              Break spruce leaves for a small chance to drop one (higher with Fortune),
+              buy one from a wandering trader for 5 emeralds, or loot it from taiga
+              village chests.
+        - question: How do you make a Spruce Sapling grow faster?
+          answer: |
+              Apply bone meal to it. This bypasses the usual light-level requirement and
+              can trigger growth immediately.
+        - question: What is a mega spruce tree?
+          answer: |
+              Planting four Spruce Saplings together in a 2x2 square grows an oversized
+              mega spruce or mega pine tree, which needs significantly more vertical
+              space than a normal spruce tree.
+        - question: Can Spruce Saplings be used for anything besides growing trees?
+          answer: |
+              Yes. They can be smelted as a minor furnace fuel, composted for a chance to
+              raise the compost level, or placed in flower pots as decoration.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

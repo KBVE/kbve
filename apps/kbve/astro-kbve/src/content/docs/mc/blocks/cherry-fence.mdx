@@ -1,5 +1,6 @@
 ---
 title: Cherry Fence
+template: splash
 description: |
     Minecraft Cherry Fence — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 609
     ref: cherry_fence
     slug: cherry-fence
+    content_rev: 1
     display_name: Cherry Fence
     material: wood
     hardness: 2
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cherry_fence
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            The Cherry Fence is a wooden barrier block made from cherry
+            wood that connects to adjacent wooden fences and posts,
+            forming a 1.5-block-tall wall used to contain animals and
+            mark boundaries.
+        lore: |
+            Introduced with the cherry grove biome in the Trails & Tales
+            update (1.20), the cherry fence matches the pale pink tone
+            of cherry planks.
+    uses:
+        - title: Cherry Fence Gate
+          ref: cherry_fence_gate
+          detail: |
+              Combine with a cherry fence gate to add a passable opening
+              in an otherwise solid fence line.
+        - title: Furnace fuel
+          ref: furnace
+          detail: |
+              Burns in a furnace, smelting 1.5 items per fence.
+    found_in:
+        - location: Cherry grove villages
+          detail: Generates as fencing around cherry-wood village houses and farms.
+        - location: Crafted by players
+          detail: Crafted from cherry planks and sticks, yielding 3 fences per craft.
+    faq:
+        - question: What tool do I need to mine a Cherry Fence?
+          answer: |
+              None — any tool works, though an axe breaks it fastest.
+        - question: Do Cherry Fences connect to other wood types?
+          answer: |
+              No. Wooden fences only connect to other wooden fences of
+              any type, not to Nether brick fences.
+        - question: Is the Cherry Fence flammable?
+          answer: |
+              Yes. It can catch fire from nearby flames and burn away
+              like other overworld wood blocks.
+        - question: Does it drop anything special with Silk Touch or Fortune?
+          answer: |
+              No. A Cherry Fence always drops itself as a single item
+              regardless of the tool or enchantments used.
     data_version: "1.21.5"
 ---
 

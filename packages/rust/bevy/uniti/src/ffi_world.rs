@@ -1600,7 +1600,7 @@ pub unsafe extern "C" fn uniti_world_total_unit_count(world: *const c_void) -> u
         Err(_) => return 0,
     };
     let mut total: u32 = 0;
-    for (_coord, chunk) in state.chunks.iter() {
+    for chunk in state.chunks.values() {
         total = total.saturating_add(chunk.units.len() as u32);
     }
     total
@@ -1854,7 +1854,7 @@ pub unsafe extern "C" fn uniti_world_total_building_count(world: *const c_void) 
         Err(_) => return 0,
     };
     let mut total: u32 = 0;
-    for (_coord, chunk) in state.chunks.iter() {
+    for chunk in state.chunks.values() {
         total = total.saturating_add(chunk.buildings.len() as u32);
     }
     total

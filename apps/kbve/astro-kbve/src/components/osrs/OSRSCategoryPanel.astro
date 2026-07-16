@@ -1,0 +1,278 @@
+---
+import { getCollection } from 'astro:content';
+import type { OSRSExtended } from '@/data/schema';
+import { buildOsrsTags } from '@/data/osrs/tags';
+import { findOsrsCategory } from '@/data/osrs/categories';
+import OSRSCategoryRow from './OSRSCategoryRow.astro';
+
+interface Props {
+	slug: string;
+}
+
+const { slug } = Astro.props;
+const category = findOsrsCategory(slug);
+if (!category) {
+	throw new Error(`Unknown OSRS category: ${slug}`);
+}
+
+interface Row {
+	id: number;
+	name: string;
+	slug: string;
+	icon: string;
+	members: boolean;
+	value: number;
+	highalch: number | null;
+	limit: number | null;
+	slot?: string;
+}
+
+const docs = await getCollection('docs');
+const rows: Row[] = [];
+for (const entry of docs) {
+	const o = (entry.data as { osrs?: OSRSExtended }).osrs;
+	if (!o || !o.id || !o.slug || !o.name) continue;
+	if (!buildOsrsTags(o).includes(category.tag)) continue;
+	rows.push({
+		id: o.id,
+		name: o.name,
+		slug: o.slug,
+		icon: o.icon,
+		members: !!o.members,
+		value: o.value ?? 0,
+		highalch: o.highalch ?? null,
+		limit: o.limit ?? null,
+		slot: o.equipment?.slot ?? undefined,
+	});
+}
+rows.sort((a, b) => a.name.localeCompare(b.name));
+
+interface Section {
+	label: string | null;
+	rows: Row[];
+}
+
+// Ordered subgroups when the category defines them; each row falls into the
+// first subgroup whose keyword its name contains, leftovers collect under
+// "Other". Without subgroups the whole list renders as one flat grid.
+let sections: Section[];
+const subs = category.subgroups;
+if (subs && subs.length) {
+	const claimed = new Set<number>();
+	sections = [];
+	for (const sg of subs) {
+		const kw = sg.match.map((m) => m.toLowerCase());
+		const bucket = rows.filter((r) => {
+			if (claimed.has(r.id)) return false;
+			const n = r.name.toLowerCase();
+			if (kw.some((k) => n.includes(k))) {
+				claimed.add(r.id);
+				return true;
+			}
+			return false;
+		});
+		if (bucket.length) sections.push({ label: sg.label, rows: bucket });
+	}
+	const other = rows.filter((r) => !claimed.has(r.id));
+	if (other.length) sections.push({ label: 'Other', rows: other });
+} else {
+	sections = [{ label: null, rows }];
+}
+
+const accent = category.accent;
+const accentHigh = accent.replace(/(\d+)%\)?$/, '') + '72%';
+---
+
+<section
+	class="osrs-category not-content kbve-dashboard-page relative w-full bg-transparent"
+	style={`--bento-accent: hsl(${accent}); --sl-color-accent: hsl(${accent}); --sl-color-accent-high: hsl(${accentHigh});`}>
+	<div class="bento-frame">
+		<div class="bento-board bento-board--cols-4">
+			<div class="bento-card bento-cell--wide osrs-cat-head">
+				<p class="osrs-cat-head__eyebrow">OSRS · {category.group}</p>
+				<h1 class="osrs-cat-head__title">{category.label}</h1>
+				<p class="osrs-cat-head__blurb">{category.blurb}</p>
+			</div>
+			<div class="bento-stat osrs-cat-stat">
+				<span class="osrs-cat-stat__value">
+					{rows.length.toLocaleString()}
+				</span>
+				<span class="osrs-cat-stat__label">items</span>
+			</div>
+			<a
+				href="/osrs/"
+				class="bento-stat osrs-cat-stat osrs-cat-stat--link">
+				<span class="osrs-cat-stat__value">All</span>
+				<span class="osrs-cat-stat__label">browse database</span>
+			</a>
+		</div>
+	</div>
+
+	{
+		rows.length === 0 && (
+			<div class="bento-frame">
+				<p class="osrs-cat-empty">No items in this category yet.</p>
+			</div>
+		)
+	}
+
+	{
+		sections.map((section) =>
+			section.label ? (
+				<div class="bento-frame">
+					<details class="osrs-cat-sub" open>
+						<summary class="osrs-cat-sub__head">
+							<span class="osrs-cat-sub__label">
+								{section.label}
+							</span>
+							<span class="osrs-cat-sub__count">
+								{section.rows.length}
+							</span>
+							<svg
+								class="osrs-cat-sub__chevron"
+								width="16"
+								height="16"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true">
+								<polyline points="6 9 12 15 18 9" />
+							</svg>
+						</summary>
+						<div class="osrs-cat-grid">
+							{section.rows.map((item) => (
+								<OSRSCategoryRow item={item} />
+							))}
+						</div>
+					</details>
+				</div>
+			) : (
+				<div class="bento-frame">
+					<div class="osrs-cat-grid">
+						{section.rows.map((item) => (
+							<OSRSCategoryRow item={item} />
+						))}
+					</div>
+				</div>
+			),
+		)
+	}
+</section>
+
+<style>
+	.osrs-category {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	.osrs-cat-head {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		justify-content: center;
+	}
+
+	.osrs-cat-head__eyebrow {
+		margin: 0;
+		font-size: 0.7rem;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--sl-color-accent-high);
+	}
+
+	.osrs-cat-head__title {
+		margin: 0;
+		font-size: 1.6rem;
+		line-height: 1.1;
+	}
+
+	.osrs-cat-head__blurb {
+		margin: 0;
+		font-size: 0.85rem;
+		color: var(--sl-color-gray-2);
+	}
+
+	.osrs-cat-stat {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 0.15rem;
+		text-decoration: none;
+	}
+
+	.osrs-cat-stat__value {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: var(--sl-color-accent-high);
+	}
+
+	.osrs-cat-stat__label {
+		font-size: 0.72rem;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-cat-stat--link:hover .osrs-cat-stat__value {
+		text-decoration: underline;
+	}
+
+	.osrs-cat-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+		gap: 0.5rem;
+		padding: 0.5rem;
+	}
+
+	.osrs-cat-sub {
+		width: 100%;
+	}
+
+	.osrs-cat-sub__head {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.7rem 0.9rem;
+		cursor: pointer;
+		list-style: none;
+		border-bottom: 1px solid var(--bento-hairline);
+		font-weight: 600;
+	}
+
+	.osrs-cat-sub__head::-webkit-details-marker {
+		display: none;
+	}
+
+	.osrs-cat-sub__label {
+		font-size: 0.95rem;
+	}
+
+	.osrs-cat-sub__count {
+		font-size: 0.7rem;
+		font-weight: 700;
+		padding: 0.05rem 0.4rem;
+		border-radius: 999px;
+		color: var(--sl-color-accent-high);
+		background: color-mix(in srgb, var(--sl-color-accent) 18%, transparent);
+	}
+
+	.osrs-cat-sub__chevron {
+		margin-inline-start: auto;
+		transition: transform 160ms ease;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-cat-sub[open] .osrs-cat-sub__chevron {
+		transform: rotate(180deg);
+	}
+
+	.osrs-cat-empty {
+		padding: 1rem;
+		color: var(--sl-color-gray-3);
+	}
+</style>

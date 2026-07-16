@@ -1,5 +1,6 @@
 ---
 title: Raw Mutton
+template: splash
 description: |
     Minecraft Raw Mutton — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1194
     ref: mutton
     slug: mutton
+    content_rev: 1
     display_name: Raw Mutton
     category: food
     rarity: common
@@ -22,6 +24,32 @@ mc_item:
         saturation: 4.8
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Raw mutton is a food item obtained mainly by killing sheep, which drop 1-2 pieces
+            (up to 5 with a Looting III weapon). It can also be found in village butcher shop
+            chests and traded from journeyman-level butcher villagers. Eating it restores a
+            modest amount of hunger, though cooking it in a furnace, smoker, or campfire turns
+            it into the far more filling cooked mutton.
+        lore: |
+            An unglamorous cut of meat straight from a slain sheep, best improved by a good
+            cooking fire.
+    faq:
+        - question: How do I get raw mutton?
+          answer: |
+              Kill a sheep to have it drop 1-2 raw mutton, loot village butcher shop chests,
+              or trade emeralds with a journeyman butcher villager.
+        - question: Should I cook raw mutton before eating it?
+          answer: |
+              Yes, smelting raw mutton in a furnace, smoker, or campfire converts it into
+              cooked mutton, which restores far more hunger and saturation.
+        - question: How much hunger does raw mutton restore?
+          answer: |
+              Eating raw mutton restores 2 hunger points and 1.2 saturation points.
+        - question: Can raw mutton be used for anything besides eating?
+          answer: |
+              Yes, it can be fed to tamed wolves to heal them, lead them, breed them, or speed
+              up the growth of wolf pups.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

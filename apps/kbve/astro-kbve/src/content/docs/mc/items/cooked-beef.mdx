@@ -1,5 +1,6 @@
 ---
 title: Steak
+template: splash
 description: |
     Minecraft Steak — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1049
     ref: cooked_beef
     slug: cooked-beef
+    content_rev: 1
     display_name: Steak
     category: food
     rarity: common
@@ -22,6 +24,35 @@ mc_item:
         saturation: 204.8
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Steak is the cooked form of raw beef, produced in a furnace, smoker, or campfire, or obtained
+            directly from cows and mooshrooms killed while burning. It restores as much hunger as any
+            stackable food in the game, making it a top-tier staple for long expeditions.
+        lore: |
+            Alongside cooked porkchop, steak sits at the top of the stackable food tier list, restoring a
+            full 8 hunger points and 12.8 saturation per serving.
+    faq:
+        - question: |
+              How do you get steak?
+          answer: |
+              Cook raw beef in a furnace, smoker, or campfire, or collect it as a drop from cows and
+              mooshrooms killed by fire or Fire Aspect weapons.
+        - question: |
+              How much hunger does steak restore?
+          answer: |
+              Steak restores 8 hunger points and 12.8 saturation, matching cooked porkchop as the most
+              filling stackable food.
+        - question: |
+              Can steak be used for anything besides eating?
+          answer: |
+              Yes, steak can breed and heal tamed wolves, make them follow the player, and speed up the
+              growth of wolf pups.
+        - question: |
+              Can villagers give me steak?
+          answer: |
+              Butcher villagers gift steak to players who have Hero of the Village status from completing a
+              raid.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

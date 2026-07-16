@@ -42,6 +42,8 @@ spec:
             labels:
                 app: discordsh
                 tier: frontend
+            annotations:
+                kbve.com/config-revision: 2026-07-16-log-warn
         spec:
             serviceAccountName: discordsh-sa
             automountServiceAccountToken: false

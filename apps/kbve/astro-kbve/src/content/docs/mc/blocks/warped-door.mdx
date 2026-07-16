@@ -1,5 +1,6 @@
 ---
 title: Warped Door
+template: splash
 description: |
     Minecraft Warped Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 859
     ref: warped_door
     slug: warped-door
+    content_rev: 1
     display_name: Warped Door
     material: nether
     hardness: 3
@@ -24,10 +26,55 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: warped_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+        - non_flammable
+    about:
+        description: |
+            The Warped Door is the Nether-wood variant of the door, crafted
+            from Warped Planks. Like all Nether wood blocks it does not burn,
+            making it a safe choice for builds near lava or fire.
+        lore: |
+            Added alongside the rest of the warped wood set in the Nether
+            Update (1.16), giving builders a fire-immune, eerie blue door.
+    uses:
+        - title: Warped Planks
+          ref: warped_planks
+          detail: |
+              Six Warped Planks craft three Warped Doors, letting the door
+              swing open and closed and block mobs or villagers as needed.
+    found_in:
+        - location: Crafted
+          detail: Made from six Warped Planks at a crafting table, yielding three doors.
+        - location: Bastion Remnants
+          detail: Occasionally found as part of generated Nether structures.
+    faq:
+        - question: Can zombies break down a Warped Door?
+          answer: |
+              Yes, like other doors it can be broken by zombies on Hard
+              difficulty, though Nether wood's fire immunity does not stop
+              mob damage.
+        - question: Does the Warped Door catch fire from lava?
+          answer: |
+              No. Nether wood blocks, including Warped Doors, never catch
+              fire, unlike Overworld wooden doors.
+        - question: What tool do I need to mine it?
+          answer: |
+              None — any tool or bare hands will break it and drop the door
+              itself; an axe is simply the fastest.
+        - question: Can villagers and piglins open Warped Doors?
+          answer: |
+              Yes, villagers, piglins, and copper golems can open and close
+              any wooden door, including the Warped Door.
     data_version: "1.21.5"
 ---
 

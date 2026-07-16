@@ -1,5 +1,6 @@
 ---
 title: Block of Raw Copper
+template: splash
 description: |
     Minecraft Block of Raw Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1082
     ref: raw_copper_block
     slug: raw-copper-block
+    content_rev: 1
     display_name: Block of Raw Copper
     material: metal
     hardness: 5
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: raw_copper_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Block of Raw Copper is a compact storage block for raw copper,
+            crafted from nine raw copper items or found rarely embedded
+            directly in copper ore veins as a decorative variant.
+        lore: |
+            Introduced in Java Edition 1.17 (the Caves & Cliffs update)
+            alongside raw ore blocks for iron and gold, and given a
+            texture rework in 21w17a.
+    uses:
+        - title: Compact Storage
+          ref: raw_copper
+          detail: |
+              Mine 1 Block of Raw Copper to recover 9 Raw Copper, making it
+              a space-efficient way to carry or store copper before
+              smelting.
+    found_in:
+        - location: Copper Ore Veins
+          detail: Has a small chance (about 2%) to replace copper ore within a copper ore vein terrain feature, above Y=0.
+        - location: Crafting Table
+          detail: Craft 9 Raw Copper in a 3x3 grid to create 1 Block of Raw Copper.
+    faq:
+        - question: What tool do I need to mine Block of Raw Copper?
+          answer: |
+              A stone pickaxe or better. A wooden pickaxe breaks the block
+              but yields no drop.
+        - question: Can Block of Raw Copper be smelted directly into copper?
+          answer: |
+              No. It must first be mined back into 9 Raw Copper, which can
+              then be smelted individually or in bulk into copper ingots.
+        - question: Does it generate on its own in the world?
+          answer: |
+              Yes, rarely, as a low-chance substitute inside copper ore
+              veins — it never appears in the smaller standalone copper
+              ore blobs.
+        - question: Is it affected by Fortune?
+          answer: |
+              No, since it drops itself rather than raw copper items, and
+              Fortune only affects ores that drop something other than
+              themselves.
     data_version: "1.21.5"
 ---
 

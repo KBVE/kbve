@@ -1,5 +1,6 @@
 ---
 title: Sandstone
+template: splash
 description: |
     Minecraft Sandstone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 106
     ref: sandstone
     slug: sandstone
+    content_rev: 1
     display_name: Sandstone
     material: stone
     hardness: 0.8
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: sandstone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Sandstone is a solid building block found compressed beneath
+            desert and beach sand. It is crafted from four sand blocks, and
+            in turn cuts and smelts into stairs, slabs, walls, and smooth
+            variants used across desert-themed builds.
+        lore: |
+            Its natural layers form beneath the loose sand of deserts and
+            beaches, hinting at the compacted geology beneath Minecraft's
+            arid biomes.
+    uses:
+        - title: Sandstone Stairs, Slabs & Walls
+          ref: sandstone_stairs
+          detail: |
+              Craft into stairs, slabs, and walls for desert-style
+              construction, or smelt with fuel to produce Smooth Sandstone.
+        - title: Chiseled & Cut Sandstone
+          ref: chiseled_sandstone
+          detail: |
+              Craft into cut or chiseled sandstone for decorative facades
+              and pyramid-style builds.
+    found_in:
+        - location: Deserts and Beaches
+          detail: Generates in layers beneath surface sand blocks.
+        - location: Desert Temples and Villages
+          detail: Used structurally in desert pyramids, wells, and desert village buildings.
+    faq:
+        - question: What tool do I need to mine Sandstone?
+          answer: |
+              Any pickaxe, even wooden, will drop it. Without a pickaxe it
+              breaks with no drop.
+        - question: How is Sandstone crafted?
+          answer: |
+              Combine four Sand blocks in a crafting grid to produce one
+              Sandstone block.
+        - question: Is Sandstone affected by gravity like Sand?
+          answer: |
+              No. Unlike sand, sandstone is a solid block and does not fall
+              when unsupported.
+        - question: Is Sandstone flammable?
+          answer: |
+              No, it does not burn and is safe to use near fire or lava.
     data_version: "1.21.5"
 ---
 

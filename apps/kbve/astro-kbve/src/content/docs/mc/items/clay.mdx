@@ -1,5 +1,6 @@
 ---
 title: Clay
+template: splash
 description: |
     Minecraft Clay — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 330
     ref: clay
     slug: clay
+    content_rev: 1
     display_name: Clay
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Clay is a soft, gray-colored block found in shallow rivers, lakes, and oceans in grassy biomes, on pond floors in lush caves, and around village mason houses. It can also form when mud converts above pointed dripstone.
+            It can be mined with any tool but breaks fastest with a shovel, dropping four clay balls unless mined with Silk Touch, which keeps the block itself; it also smelts directly into terracotta and supports plants such as azaleas and mangrove propagules.
+        lore: |
+            Clay has existed since Java Edition Alpha, originally appearing as underwater disks before later spreading into lush caves and mud conversion mechanics.
+    faq:
+        - question: Where does clay generate naturally?
+          answer: |
+              It generates underwater in rivers, lakes, and oceans in grassy biomes, on lush cave pond floors, near village mason houses, and wherever mud converts above pointed dripstone.
+        - question: What tool should I use to mine clay?
+          answer: |
+              Any tool works, but a shovel mines it fastest thanks to its low 0.6 hardness.
+        - question: What does clay drop when mined?
+          answer: |
+              Without Silk Touch it drops four clay balls; with Silk Touch it drops the clay block itself.
+        - question: What can clay be used for besides clay balls?
+          answer: |
+              It can be smelted into terracotta, used to support certain plants like azaleas and dripleaves, and produces flute sounds when placed under note blocks.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,6 +1,135 @@
 {
   "graph": {
     "nodes": {
+      "kbve-spider": {
+        "name": "kbve-spider",
+        "type": "app",
+        "data": {
+          "root": "apps/agones/factorio/mods-src/kbve-spider",
+          "targets": {
+            "test": {
+              "inputs": [
+                "{projectRoot}/info.json",
+                "{projectRoot}/prototypes/**/*.lua",
+                "{projectRoot}/graphics/**/*.png",
+                "{projectRoot}/tools/test_mod.py",
+                "{projectRoot}/pyproject.toml"
+              ],
+              "cache": true,
+              "executor": "nx:run-commands",
+              "outputs": [],
+              "options": {
+                "commands": [
+                  "uv run --quiet --project . python tools/test_mod.py"
+                ],
+                "cwd": "apps/agones/factorio/mods-src/kbve-spider",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": false,
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                "test"
+              ],
+              "options": {
+                "commands": [
+                  "uv run --quiet --project . python tools/test_mod.py"
+                ],
+                "cwd": "apps/agones/factorio/mods-src/kbve-spider",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "bake": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "uv run --quiet --project . python tools/bake_sheets.py --src ${SPIDER_SRC:-~/Downloads/Spider256} --out graphics/entity/spider"
+                ],
+                "cwd": "apps/agones/factorio/mods-src/kbve-spider",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "package": {
+              "executor": "nx:run-commands",
+              "cache": true,
+              "dependsOn": [
+                "test"
+              ],
+              "inputs": [
+                "{projectRoot}/info.json",
+                "{projectRoot}/data.lua",
+                "{projectRoot}/changelog.txt",
+                "{projectRoot}/README.md",
+                "{projectRoot}/prototypes/**/*.lua",
+                "{projectRoot}/graphics/**/*.png",
+                "{projectRoot}/tools/build_zip.py",
+                "{projectRoot}/pyproject.toml"
+              ],
+              "outputs": [
+                "{projectRoot}/dist"
+              ],
+              "options": {
+                "commands": [
+                  "uv run --quiet --project . python tools/build_zip.py"
+                ],
+                "cwd": "apps/agones/factorio/mods-src/kbve-spider",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "optimize": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "uv run --quiet --project . python tools/optimize_pngs.py"
+                ],
+                "cwd": "apps/agones/factorio/mods-src/kbve-spider",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "clean": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "rm -rf dist",
+                  "find graphics -name '*.png.opt' -delete"
+                ],
+                "cwd": "apps/agones/factorio/mods-src/kbve-spider",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "kbve-spider",
+          "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/agones/factorio/mods-src/kbve-spider",
+          "tags": [
+            "scope:factorio",
+            "type:mod",
+            "lang:lua"
+          ],
+          "implicitDependencies": []
+        }
+      },
       "astro-cryptothrone-e2e": {
         "name": "astro-cryptothrone-e2e",
         "type": "e2e",
@@ -282,27 +411,169 @@
           "implicitDependencies": []
         }
       },
+      "kbve-orc": {
+        "name": "kbve-orc",
+        "type": "app",
+        "data": {
+          "root": "apps/agones/factorio/mods-src/kbve-orc",
+          "targets": {
+            "test": {
+              "inputs": [
+                "{projectRoot}/info.json",
+                "{projectRoot}/prototypes/**/*.lua",
+                "{projectRoot}/graphics/**/*.png",
+                "{projectRoot}/tools/test_mod.py",
+                "{projectRoot}/pyproject.toml"
+              ],
+              "cache": true,
+              "executor": "nx:run-commands",
+              "outputs": [],
+              "options": {
+                "commands": [
+                  "uv run --quiet --project . python tools/test_mod.py"
+                ],
+                "cwd": "apps/agones/factorio/mods-src/kbve-orc",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": false,
+              "executor": "nx:run-commands",
+              "dependsOn": [
+                "test"
+              ],
+              "options": {
+                "commands": [
+                  "uv run --quiet --project . python tools/test_mod.py"
+                ],
+                "cwd": "apps/agones/factorio/mods-src/kbve-orc",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "bake": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "uv run --quiet --project . python tools/bake_sheets.py --src ${ORC_SRC:-~/Downloads/orc_assets} --out graphics/entity/orc"
+                ],
+                "cwd": "apps/agones/factorio/mods-src/kbve-orc",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "package": {
+              "executor": "nx:run-commands",
+              "cache": true,
+              "dependsOn": [
+                "test"
+              ],
+              "inputs": [
+                "{projectRoot}/info.json",
+                "{projectRoot}/data.lua",
+                "{projectRoot}/changelog.txt",
+                "{projectRoot}/README.md",
+                "{projectRoot}/prototypes/**/*.lua",
+                "{projectRoot}/graphics/**/*.png",
+                "{projectRoot}/tools/build_zip.py",
+                "{projectRoot}/pyproject.toml"
+              ],
+              "outputs": [
+                "{projectRoot}/dist"
+              ],
+              "options": {
+                "commands": [
+                  "uv run --quiet --project . python tools/build_zip.py"
+                ],
+                "cwd": "apps/agones/factorio/mods-src/kbve-orc",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "optimize": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "uv run --quiet --project . python tools/optimize_pngs.py"
+                ],
+                "cwd": "apps/agones/factorio/mods-src/kbve-orc",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "clean": {
+              "executor": "nx:run-commands",
+              "cache": false,
+              "options": {
+                "commands": [
+                  "rm -rf dist",
+                  "find graphics -name '*.png.opt' -delete"
+                ],
+                "cwd": "apps/agones/factorio/mods-src/kbve-orc",
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "name": "kbve-orc",
+          "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "application",
+          "sourceRoot": "apps/agones/factorio/mods-src/kbve-orc",
+          "tags": [
+            "scope:factorio",
+            "type:mod",
+            "lang:lua"
+          ],
+          "implicitDependencies": []
+        }
+      },
       "deathslayer-launcher": {
         "name": "deathslayer-launcher",
         "type": "app",
         "data": {
           "root": "apps/deathslayer/deathslayer-launcher",
-          "projectType": "application",
-          "metadata": {
-            "targetGroups": {
-              "NPM Scripts": [
-                "preview",
-                "tauri"
-              ]
-            },
-            "js": {
-              "packageName": "@kbve/deathslayer-launcher",
-              "packageVersion": "0.1.0",
-              "isInPackageManagerWorkspaces": false
-            }
-          },
           "targets": {
+            "lint": {
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*"
+              ],
+              "cache": true,
+              "executor": "@nx/eslint:lint",
+              "options": {
+                "lintFilePatterns": [
+                  "apps/deathslayer/deathslayer-launcher/src/**/*.{ts,tsx}"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
             "build": {
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true,
               "executor": "nx:run-commands",
               "options": {
                 "commands": [
@@ -437,25 +708,6 @@
               "configurations": {},
               "parallelism": true
             },
-            "lint": {
-              "inputs": [
-                "default",
-                "^default",
-                "{workspaceRoot}/.eslintrc.json",
-                "{workspaceRoot}/.eslintignore",
-                "{workspaceRoot}/eslint.config.js",
-                "{workspaceRoot}/tools/eslint-rules/**/*"
-              ],
-              "cache": true,
-              "executor": "@nx/eslint:lint",
-              "options": {
-                "lintFilePatterns": [
-                  "apps/deathslayer/deathslayer-launcher/src/**/*.{ts,tsx}"
-                ]
-              },
-              "configurations": {},
-              "parallelism": true
-            },
             "tauri": {
               "executor": "nx:run-script",
               "metadata": {
@@ -509,6 +761,20 @@
               "parallelism": true
             }
           },
+          "projectType": "application",
+          "metadata": {
+            "targetGroups": {
+              "NPM Scripts": [
+                "preview",
+                "tauri"
+              ]
+            },
+            "js": {
+              "packageName": "@kbve/deathslayer-launcher",
+              "packageVersion": "0.1.0",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
           "name": "deathslayer-launcher",
           "$schema": "../../../node_modules/nx/schemas/project-schema.json",
           "sourceRoot": "apps/deathslayer/deathslayer-launcher",
@@ -527,11 +793,15 @@
           "metadata": {},
           "targets": {
             "test": {
-              "executor": "nx:run-commands",
+              "inputs": [
+                "default",
+                "^production"
+              ],
               "cache": true,
+              "executor": "nx:run-commands",
               "options": {
-                "cwd": "apps/cryptothrone/astro-cryptothrone",
-                "command": "vitest run --coverage --config vitest.config.ts"
+                "command": "vitest run --coverage --config vitest.config.ts",
+                "cwd": "apps/cryptothrone/astro-cryptothrone"
               },
               "configurations": {},
               "parallelism": true
@@ -1312,7 +1582,8 @@
                   "docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1$' && echo 'PASS: Playwright browser download disabled'",
                   "echo '=== All chisel base image tests passed ==='",
                   "echo 'Runtime: user, workdir, jemalloc, libpq, CA bundle, no-shell, size<40MiB'",
-                  "echo 'Builder: rustc 1.96, cargo-chef, sccache, mold, protoc, brotli, gzip, libpq-dev, libssl-dev, node 24, pnpm, real-TLS, env hygiene'"
+                  "echo 'Builder: rustc 1.96, cargo-chef, sccache, mold, protoc, brotli, gzip, libpq-dev, libssl-dev, node 24, pnpm, real-TLS, env hygiene'",
+                  "docker rmi -f ghcr.io/kbve/chisel-ubuntu-axum:24.04 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder || true"
                 ],
                 "parallel": false
               },
@@ -1644,7 +1915,8 @@
                   "docker inspect ghcr.io/kbve/kasm-cloakbrowser:dev --format '{{.Config.User}}' | grep -q '^1000$' && echo 'PASS: drops to uid 1000'",
                   "docker run --rm --entrypoint /opt/cloakbrowser/cloakbrowser ghcr.io/kbve/kasm-cloakbrowser:dev --version && echo 'PASS: cloakbrowser binary runs --version'",
                   "docker run --rm --entrypoint cat ghcr.io/kbve/kasm-cloakbrowser:dev /dockerstartup/custom_startup.sh | grep -q CLOAK_BIN && echo 'PASS: custom_startup.sh installed'",
-                  "docker run --rm --entrypoint python3 ghcr.io/kbve/kasm-cloakbrowser:dev -c 'from cloakbrowser import launch; print(\"sdk-import-ok\")' | grep -q sdk-import-ok && echo 'PASS: python cloakbrowser sdk importable'"
+                  "docker run --rm --entrypoint python3 ghcr.io/kbve/kasm-cloakbrowser:dev -c 'from cloakbrowser import launch; print(\"sdk-import-ok\")' | grep -q sdk-import-ok && echo 'PASS: python cloakbrowser sdk importable'",
+                  "docker rmi -f ghcr.io/kbve/kasm-cloakbrowser:dev || true"
                 ],
                 "parallel": false
               },
@@ -2472,6 +2744,11 @@
               "parallelism": true
             },
             "test": {
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true,
               "executor": "nx:run-commands",
               "options": {
                 "command": "cargo test -p cryptothrone-server"
@@ -2814,7 +3091,8 @@
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/steamcmd-ubuntu:24.04 steamcmd +quit | grep -q 'Steam Console Client' && echo 'PASS: steamcmd boots'",
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/steamcmd-ubuntu:24.04 bash -lc 'locale | grep -q en_US.UTF-8' && echo 'PASS: en_US.UTF-8 locale active'",
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/steamcmd-ubuntu:24.04 bash -lc 'which steamcmd' | grep -q /usr/local/bin/steamcmd && echo 'PASS: steamcmd on PATH'",
-                  "echo '=== steamcmd-ubuntu image OK ==='"
+                  "echo '=== steamcmd-ubuntu image OK ==='",
+                  "docker rmi -f ghcr.io/kbve/steamcmd-ubuntu:24.04 || true"
                 ],
                 "parallel": false
               },
@@ -3753,10 +4031,117 @@
               "options": {},
               "configurations": {},
               "parallelism": true
+            },
+            "build": {
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true,
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo build -p bevy_spells"
+                ],
+                "cwd": "packages/rust/bevy/bevy_spells"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test": {
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true,
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo test -p bevy_spells"
+                ],
+                "cwd": "packages/rust/bevy/bevy_spells"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lint": {
+              "inputs": [
+                "default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js"
+              ],
+              "cache": true,
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo clippy -p bevy_spells -- -D warnings"
+                ],
+                "cwd": "packages/rust/bevy/bevy_spells"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "e2e": {
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true,
+              "executor": "nx:run-commands",
+              "options": {
+                "parallel": false,
+                "commands": [
+                  "nx run bevy_spells:test",
+                  "nx run bevy_spells:check-wasm",
+                  "nx run bevy_spells:check-desktop"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "check-wasm": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo +nightly check -p bevy_spells --target wasm32-unknown-unknown"
+                ],
+                "cwd": "packages/rust/bevy/bevy_spells"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "check-desktop": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo check -p bevy_spells"
+                ],
+                "cwd": "packages/rust/bevy/bevy_spells"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "dry": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "cargo publish -p bevy_spells --dry-run --allow-dirty"
+                ],
+                "parallel": false
+              },
+              "configurations": {},
+              "parallelism": true
             }
           },
-          "implicitDependencies": [],
-          "tags": []
+          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+          "projectType": "library",
+          "sourceRoot": "packages/rust/bevy/bevy_spells/src",
+          "tags": [],
+          "implicitDependencies": []
         }
       },
       "bevy_tasker": {
@@ -3889,135 +4274,6 @@
           "projectType": "library",
           "sourceRoot": "packages/rust/bevy/bevy_tasker/src",
           "tags": [],
-          "implicitDependencies": []
-        }
-      },
-      "kbve-spider": {
-        "name": "kbve-spider",
-        "type": "app",
-        "data": {
-          "root": "apps/factorio/mods/kbve-spider",
-          "targets": {
-            "test": {
-              "inputs": [
-                "{projectRoot}/info.json",
-                "{projectRoot}/prototypes/**/*.lua",
-                "{projectRoot}/graphics/**/*.png",
-                "{projectRoot}/tools/test_mod.py",
-                "{projectRoot}/pyproject.toml"
-              ],
-              "cache": true,
-              "executor": "nx:run-commands",
-              "outputs": [],
-              "options": {
-                "commands": [
-                  "uv run --quiet --project . python tools/test_mod.py"
-                ],
-                "cwd": "apps/factorio/mods/kbve-spider",
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "e2e": {
-              "inputs": [
-                "default",
-                "^production"
-              ],
-              "cache": false,
-              "executor": "nx:run-commands",
-              "dependsOn": [
-                "test"
-              ],
-              "options": {
-                "commands": [
-                  "uv run --quiet --project . python tools/test_mod.py"
-                ],
-                "cwd": "apps/factorio/mods/kbve-spider",
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "bake": {
-              "executor": "nx:run-commands",
-              "cache": false,
-              "options": {
-                "commands": [
-                  "uv run --quiet --project . python tools/bake_sheets.py --src ${SPIDER_SRC:-~/Downloads/Spider256} --out graphics/entity/spider"
-                ],
-                "cwd": "apps/factorio/mods/kbve-spider",
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "package": {
-              "executor": "nx:run-commands",
-              "cache": true,
-              "dependsOn": [
-                "test"
-              ],
-              "inputs": [
-                "{projectRoot}/info.json",
-                "{projectRoot}/data.lua",
-                "{projectRoot}/changelog.txt",
-                "{projectRoot}/README.md",
-                "{projectRoot}/prototypes/**/*.lua",
-                "{projectRoot}/graphics/**/*.png",
-                "{projectRoot}/tools/build_zip.py",
-                "{projectRoot}/pyproject.toml"
-              ],
-              "outputs": [
-                "{projectRoot}/dist"
-              ],
-              "options": {
-                "commands": [
-                  "uv run --quiet --project . python tools/build_zip.py"
-                ],
-                "cwd": "apps/factorio/mods/kbve-spider",
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "optimize": {
-              "executor": "nx:run-commands",
-              "cache": false,
-              "options": {
-                "commands": [
-                  "uv run --quiet --project . python tools/optimize_pngs.py"
-                ],
-                "cwd": "apps/factorio/mods/kbve-spider",
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            },
-            "clean": {
-              "executor": "nx:run-commands",
-              "cache": false,
-              "options": {
-                "commands": [
-                  "rm -rf dist",
-                  "find graphics -name '*.png.opt' -delete"
-                ],
-                "cwd": "apps/factorio/mods/kbve-spider",
-                "parallel": false
-              },
-              "configurations": {},
-              "parallelism": true
-            }
-          },
-          "name": "kbve-spider",
-          "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
-          "projectType": "application",
-          "sourceRoot": "apps/factorio/mods/kbve-spider",
-          "tags": [
-            "scope:factorio",
-            "type:mod",
-            "lang:lua"
-          ],
           "implicitDependencies": []
         }
       },
@@ -5392,6 +5648,14 @@
               "parallelism": true
             },
             "build": {
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true,
               "executor": "nx:run-commands",
               "options": {
                 "commands": [
@@ -5635,7 +5899,7 @@
                 },
                 "ci": {
                   "commands": [
-                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/discordsh-bot:latest --file apps/discordsh/discordsh-bot/Dockerfile .",
+                    "bash scripts/ci/retry-transient.sh 'BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/discordsh-bot:latest --file apps/discordsh/discordsh-bot/Dockerfile .'",
                     "VERSION=$(grep '^version' apps/discordsh/discordsh-bot/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/discordsh-bot:latest kbve/discordsh-bot:$VERSION && echo \"Tagged kbve/discordsh-bot:$VERSION\""
                   ]
                 }
@@ -6428,6 +6692,213 @@
           ]
         }
       },
+      "herbmail-game": {
+        "name": "herbmail-game",
+        "type": "app",
+        "data": {
+          "root": "apps/herbmail/herbmail-game",
+          "targets": {
+            "lint": {
+              "inputs": [
+                "default",
+                "^default",
+                "{workspaceRoot}/.eslintrc.json",
+                "{workspaceRoot}/.eslintignore",
+                "{workspaceRoot}/eslint.config.js",
+                "{workspaceRoot}/tools/eslint-rules/**/*"
+              ],
+              "cache": true,
+              "executor": "@nx/eslint:lint",
+              "options": {},
+              "configurations": {},
+              "parallelism": true
+            },
+            "build": {
+              "cache": true,
+              "dependsOn": [
+                "lfs-pull"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "executor": "@nx/vite:build",
+              "outputs": [
+                "{options.outputPath}"
+              ],
+              "options": {
+                "outputPath": "dist/apps/herbmail/herbmail-game"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "serve": {
+              "executor": "@nx/vite:dev-server",
+              "options": {
+                "buildTarget": "herbmail-game:build"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "continuous": true
+            },
+            "dev": {
+              "executor": "@nx/vite:dev-server",
+              "options": {
+                "buildTarget": "herbmail-game:build"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "continuous": true
+            },
+            "preview": {
+              "executor": "@nx/vite:preview-server",
+              "options": {
+                "buildTarget": "herbmail-game:build"
+              },
+              "configurations": {},
+              "parallelism": true,
+              "continuous": true
+            },
+            "serve-static": {
+              "continuous": true,
+              "executor": "@nx/web:file-server",
+              "options": {
+                "buildTarget": "build",
+                "spa": true
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "typecheck": {
+              "cache": true,
+              "inputs": [
+                "production",
+                "^production",
+                {
+                  "externalDependencies": [
+                    "typescript"
+                  ]
+                }
+              ],
+              "metadata": {
+                "description": "Runs type-checking for the project.",
+                "technologies": [
+                  "typescript"
+                ],
+                "help": {
+                  "command": "pnpm exec tsc -p tsconfig.json --help",
+                  "example": {
+                    "options": {
+                      "noEmit": true
+                    }
+                  }
+                }
+              },
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/herbmail/herbmail-game",
+                "command": "tsc --noEmit -p tsconfig.json"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "build-deps": {
+              "dependsOn": [
+                "^build"
+              ],
+              "configurations": {},
+              "options": {},
+              "parallelism": true,
+              "executor": "nx:noop"
+            },
+            "watch-deps": {
+              "continuous": true,
+              "dependsOn": [
+                "build-deps"
+              ],
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "pnpm exec nx watch --projects herbmail-game --includeDependencies -- pnpm exec nx build-deps herbmail-game"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "test": {
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true,
+              "executor": "nx:run-commands",
+              "options": {
+                "command": "vitest run --config apps/herbmail/herbmail-game/vite.config.ts"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "rebake": {
+              "executor": "nx:run-commands",
+              "options": {
+                "cwd": "apps/herbmail/herbmail-game",
+                "commands": [
+                  "bash art/character/rebake.sh"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lfs-pull": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs herbmail pull --include='apps/herbmail/herbmail-game/public/**') || echo 'herbmail LFS pull skipped (no creds / offline) — assets may be pointer stubs'"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lfs-push": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs herbmail push origin HEAD)"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "lfs-register": {
+              "executor": "nx:run-commands",
+              "options": {
+                "commands": [
+                  "(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs herbmail register origin)"
+                ]
+              },
+              "configurations": {},
+              "parallelism": true
+            }
+          },
+          "projectType": "application",
+          "metadata": {
+            "targetGroups": {},
+            "js": {
+              "packageName": "@kbve/herbmail-game",
+              "packageVersion": "0.0.0",
+              "isInPackageManagerWorkspaces": false
+            }
+          },
+          "name": "herbmail-game",
+          "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+          "sourceRoot": "apps/herbmail/herbmail-game/src",
+          "tags": [
+            "npm:private",
+            "scope:herbmail",
+            "type:app",
+            "game"
+          ],
+          "implicitDependencies": []
+        }
+      },
       "kbve-react-native": {
         "name": "kbve-react-native",
         "type": "app",
@@ -6920,7 +7391,8 @@
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'zip -v' | grep -q 'Zip ' && echo 'PASS: zip on PATH'",
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'xz --version' | grep -q 'xz (XZ Utils)' && echo 'PASS: xz on PATH'",
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'gh --version' | grep -q 'gh version' && echo 'PASS: gh on PATH'",
-                  "echo '=== arc-runner image OK ==='"
+                  "echo '=== arc-runner image OK ==='",
+                  "docker rmi -f ghcr.io/kbve/arc-runner:latest || true"
                 ],
                 "parallel": false
               },
@@ -7326,7 +7798,8 @@
                   "docker run --rm --entrypoint bash ghcr.io/kbve/kasm-void:dev -c 'real=$(readlink -e /usr/share/discord/Discord); size=$(stat -c %s \"$real\"); [ \"$size\" -gt 1048576 ] || { echo \"Discord binary suspiciously small: $size bytes ($real)\" >&2; exit 1; }' && echo 'PASS: Discord binary larger than 1 MiB (not a stub)'",
                   "docker run --rm --entrypoint bash ghcr.io/kbve/kasm-void:dev -c 'real=$(readlink -e /usr/share/discord/Discord); missing=$(ldd \"$real\" 2>/dev/null | grep \"not found\" || true); [ -z \"$missing\" ] || { echo \"missing libs: $missing\" >&2; exit 1; }' && echo 'PASS: Discord shared lib deps resolve'",
                   "bash packages/docker/kasm-void/tests/nav-shim-smoke.sh",
-                  "bash packages/docker/kasm-void/tests/full-session-smoke.sh"
+                  "bash packages/docker/kasm-void/tests/full-session-smoke.sh",
+                  "docker rmi -f ghcr.io/kbve/kasm-void:dev || true"
                 ],
                 "parallel": false
               },
@@ -9081,11 +9554,15 @@
           "metadata": {},
           "targets": {
             "test": {
-              "executor": "nx:run-commands",
+              "inputs": [
+                "default",
+                "^production"
+              ],
               "cache": true,
+              "executor": "nx:run-commands",
               "options": {
-                "cwd": "apps/memes/astro-memes",
-                "command": "vitest run --config vitest.config.ts"
+                "command": "vitest run --config vitest.config.ts",
+                "cwd": "apps/memes/astro-memes"
               },
               "configurations": {},
               "parallelism": true
@@ -10195,18 +10672,25 @@
           },
           "targets": {
             "build": {
+              "dependsOn": [
+                "^build"
+              ],
+              "inputs": [
+                "production",
+                "^production"
+              ],
+              "cache": true,
               "executor": "nx:run-commands",
               "outputs": [
                 "{projectRoot}/dist"
               ],
-              "cache": true,
               "options": {
-                "cwd": "apps/agones/arpg/web",
                 "commands": [
                   "vite build",
                   "vite build --mode embed",
                   "vite build --mode discord"
                 ],
+                "cwd": "apps/agones/arpg/web",
                 "parallel": false
               },
               "configurations": {},
@@ -10424,11 +10908,15 @@
           "metadata": {},
           "targets": {
             "test": {
-              "executor": "nx:run-commands",
+              "inputs": [
+                "default",
+                "^production"
+              ],
               "cache": true,
+              "executor": "nx:run-commands",
               "options": {
-                "cwd": "apps/kbve/astro-kbve",
-                "command": "vitest run --config vitest.config.ts"
+                "command": "vitest run --config vitest.config.ts",
+                "cwd": "apps/kbve/astro-kbve"
               },
               "configurations": {},
               "parallelism": true
@@ -11852,7 +12340,7 @@
                 },
                 "ci": {
                   "commands": [
-                    "BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/kbve:latest --file apps/kbve/axum-kbve/Dockerfile --cache-from=type=registry,ref=ghcr.io/kbve/kbve:buildcache ${VALKEY_PASSWORD:+--secret id=valkey_password,env=VALKEY_PASSWORD} .",
+                    "bash scripts/ci/retry-transient.sh 'BUILDKIT_PROGRESS=plain docker buildx build --load --tag kbve/kbve:latest --file apps/kbve/axum-kbve/Dockerfile --cache-from=type=registry,ref=ghcr.io/kbve/kbve:buildcache ${VALKEY_PASSWORD:+--secret id=valkey_password,env=VALKEY_PASSWORD} .'",
                     "VERSION=$(grep '^version' apps/kbve/axum-kbve/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/kbve:latest kbve/kbve:$VERSION && echo \"Tagged kbve/kbve:$VERSION\""
                   ]
                 }
@@ -14766,6 +15254,11 @@
               "parallelism": true
             },
             "test": {
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true,
               "executor": "nx:run-commands",
               "options": {
                 "command": "vitest run --config packages/npm/laser/vite.config.ts"
@@ -14891,10 +15384,15 @@
               "parallelism": true
             },
             "test": {
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true,
               "executor": "nx:run-commands",
               "options": {
-                "cwd": "packages/npm/chat",
-                "command": "vitest run"
+                "command": "vitest run",
+                "cwd": "packages/npm/chat"
               },
               "configurations": {},
               "parallelism": true
@@ -15692,10 +16190,15 @@
               "parallelism": true
             },
             "test": {
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true,
               "executor": "nx:run-commands",
               "options": {
-                "cwd": "packages/npm/fx",
-                "command": "vitest run"
+                "command": "vitest run",
+                "cwd": "packages/npm/fx"
               },
               "configurations": {},
               "parallelism": true
@@ -16062,10 +16565,15 @@
               "parallelism": true
             },
             "test": {
+              "inputs": [
+                "default",
+                "^production"
+              ],
+              "cache": true,
               "executor": "nx:run-commands",
               "options": {
-                "cwd": "packages/npm/rn",
-                "command": "vitest run"
+                "command": "vitest run",
+                "cwd": "packages/npm/rn"
               },
               "configurations": {},
               "parallelism": true
@@ -16259,7 +16767,7 @@
                 },
                 "ci": {
                   "commands": [
-                    "./kbve.sh -nx edge:containerx --configuration=ci"
+                    "bash scripts/ci/retry-transient.sh './kbve.sh -nx edge:containerx --configuration=ci'"
                   ]
                 }
               },
@@ -17643,6 +18151,7 @@
       }
     },
     "dependencies": {
+      "kbve-spider": [],
       "astro-cryptothrone-e2e": [
         {
           "source": "astro-cryptothrone-e2e",
@@ -17652,6 +18161,7 @@
       ],
       "firecracker-python-net": [],
       "firecracker-python-web": [],
+      "kbve-orc": [],
       "deathslayer-launcher": [
         {
           "source": "deathslayer-launcher",
@@ -17801,7 +18311,6 @@
       "bevy_skills": [],
       "bevy_spells": [],
       "bevy_tasker": [],
-      "kbve-spider": [],
       "unreal-cleanroom": [],
       "axum-discordsh": [
         {
@@ -18045,6 +18554,13 @@
           "source": "firecracker-ctl-e2e",
           "target": "firecracker-ctl",
           "type": "implicit"
+        }
+      ],
+      "herbmail-game": [
+        {
+          "source": "herbmail-game",
+          "target": "laser",
+          "type": "static"
         }
       ],
       "kbve-react-native": [

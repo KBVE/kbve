@@ -1,5 +1,6 @@
 ---
 title: Frosted Ice
+template: splash
 description: |
     Minecraft Frosted Ice — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 638
     ref: frosted_ice
     slug: frosted-ice
+    content_rev: 1
     display_name: Frosted Ice
     material: ice
     hardness: 0.5
@@ -24,10 +26,53 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - overworld
+    about:
+        description: |
+            Frosted Ice is a temporary, translucent ice variant created
+            when an entity wearing Frost Walker-enchanted boots walks over
+            water. It slowly melts back into water once it is no longer
+            supported by the enchantment's effect and exposed to light.
+        lore: |
+            Added alongside the Frost Walker enchantment in Java Edition
+            1.9, it lets players and mobs sprint across lakes and oceans
+            without needing ice already in place.
+    uses:
+        - title: Frost Walker Travel
+          ref: frost_walker
+          detail: |
+              Frosted ice forms a slippery path under a walking entity,
+              enabling fast movement and rapid boat travel across its
+              surface before it melts away.
+    found_in:
+        - location: Frost Walker Boots
+          detail: |
+              Generated dynamically when a player or mob wearing boots
+              enchanted with Frost Walker walks over water; it is not
+              found naturally in world generation.
+    faq:
+        - question: Can I mine and keep Frosted Ice?
+          answer: |
+              No. Breaking it releases the water underneath and yields no
+              item, even with Silk Touch.
+        - question: How do I create Frosted Ice?
+          answer: |
+              Wear boots enchanted with Frost Walker and walk over a water
+              source; the water beneath and around your feet converts to
+              frosted ice temporarily.
+        - question: Why does Frosted Ice disappear on its own?
+          answer: |
+              It is unstable and melts back into water within seconds once
+              it is no longer being refreshed by the Frost Walker effect,
+              especially near light sources.
+        - question: Does Frosted Ice affect boat speed?
+          answer: |
+              Yes. Boats travel unusually fast when sliding across frosted
+              ice, faster than on regular ice.
     data_version: "1.21.5"
 ---
 

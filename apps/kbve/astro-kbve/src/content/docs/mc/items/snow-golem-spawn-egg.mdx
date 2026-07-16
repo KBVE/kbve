@@ -1,5 +1,6 @@
 ---
 title: Snow Golem Spawn Egg
+template: splash
 description: |
     Minecraft Snow Golem Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1125
     ref: snow_golem_spawn_egg
     slug: snow-golem-spawn-egg
+    content_rev: 1
     display_name: Snow Golem Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Snow Golem Spawn Egg instantly summons a snow golem, the friendly mob normally built
+            by stacking two snow blocks and topping them with a carved pumpkin. Snow golems throw
+            snowballs at hostile mobs from up to 10 blocks away and leave a trail of snow as they wander.
+        lore: |
+            Snow golems were originally called "Snowmen" before being renamed following community
+            feedback, and have remained a beloved player-built defender since Beta 1.9.
+    faq:
+        - question: What does the Snow Golem Spawn Egg do?
+          answer: |
+              It spawns a snow golem directly, skipping the usual pumpkin-and-snow-block construction.
+        - question: How does a snow golem attack?
+          answer: |
+              It throws snowballs at hostile mobs within roughly 10 blocks, provoking them without
+              dealing damage to most creatures other than blazes.
+        - question: Can snow golems survive in warm biomes?
+          answer: |
+              No, they take damage and eventually die in biomes with a temperature above 1.0, as well
+              as in rain or water, unless protected from the environment.
+        - question: Can I remove the golem's pumpkin head?
+          answer: |
+              Yes, shearing a snow golem permanently removes its carved pumpkin, dropping it and
+              revealing the golem's bare face underneath.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

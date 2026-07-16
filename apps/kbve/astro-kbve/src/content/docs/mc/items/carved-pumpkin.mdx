@@ -1,5 +1,6 @@
 ---
 title: Carved Pumpkin
+template: splash
 description: |
     Minecraft Carved Pumpkin — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 345
     ref: carved_pumpkin
     slug: carved-pumpkin
+    content_rev: 1
     display_name: Carved Pumpkin
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A carved pumpkin is made by shearing a regular pumpkin, giving it a
+            jack-o'-lantern-style face. It can be worn as headgear to block enderman
+            aggression and creaking freezes, crafted into a jack o'lantern with a torch,
+            or placed atop snow, iron, or copper blocks to build golems.
+        lore: |
+            Its use as headgear is said to nod to the web-comic "Jailbreak," where a
+            character gets a carved pumpkin stuck on his head.
+    faq:
+        - question: How do I get a carved pumpkin?
+          answer: |
+              Shear an uncarved pumpkin to get a carved pumpkin plus pumpkin seeds; they
+              also generate in woodland mansions and pillager outposts.
+        - question: Does pumpkin orientation matter for building golems?
+          answer: |
+              No, orientation is irrelevant when placing a carved pumpkin atop a snow,
+              iron, or copper golem's body.
+        - question: Why wear a carved pumpkin?
+          answer: |
+              Wearing one restricts your view to the pumpkin's face pattern but prevents
+              endermen from becoming hostile and creakings from freezing when you look at
+              them.
+        - question: Can I remove a carved pumpkin once worn?
+          answer: |
+              Yes, unless it is enchanted with Curse of Binding, in which case it stays
+              equipped until death — permanently in Hardcore mode.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

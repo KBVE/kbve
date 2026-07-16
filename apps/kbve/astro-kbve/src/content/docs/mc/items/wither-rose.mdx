@@ -1,5 +1,6 @@
 ---
 title: Wither Rose
+template: splash
 description: |
     Minecraft Wither Rose — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 243
     ref: wither_rose
     slug: wither-rose
+    content_rev: 1
     display_name: Wither Rose
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Wither Rose is a black, damaging flower that appears wherever a mob or player is
+            killed by the Wither boss. Standing near it inflicts the Wither status effect, dealing
+            steady damage over time similar to Poison but capable of killing outright.
+        lore: |
+            A dark bloom born from death at the Wither's hands, marking the ground it grows on as
+            cursed rather than fertile.
+    faq:
+        - question: How do you obtain a Wither Rose?
+          answer: |
+              Any mob or player killed by the Wither drops one Wither Rose at the spot of death,
+              or as a dropped item if it cannot be placed there.
+        - question: What happens if you touch a Wither Rose?
+          answer: |
+              It inflicts the Wither effect on contact, dealing continuous damage that lingers for
+              about a second after you step away from it.
+        - question: Is the Wither Rose good for anything besides decoration?
+          answer: |
+              Yes — it can be crafted into black dye, used in suspicious stew, and composted for
+              bone meal, and it attracts (but damages) bees.
+        - question: Why is the Wither Rose rarity listed as common?
+          answer: |
+              Despite requiring a rare Wither Skeleton Skull to ever encounter one, the item itself
+              is classified as common rarity in-game.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

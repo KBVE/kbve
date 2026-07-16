@@ -1,5 +1,6 @@
 ---
 title: Suspicious Gravel
+template: splash
 description: |
     Minecraft Suspicious Gravel — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 41
     ref: suspicious_gravel
     slug: suspicious-gravel
+    content_rev: 1
     display_name: Suspicious Gravel
     material: gravel
     hardness: 0.25
@@ -27,7 +29,46 @@ mc_block:
     renewable: false
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - shovel_mineable
+        - overworld
+    about:
+        description: |
+            Suspicious Gravel is a fragile, gravity-affected archaeology
+            block generated in trail ruins and cold ocean ruins. Brushing it
+            with a Brush slowly reveals hidden loot before it turns into
+            ordinary gravel.
+        lore: |
+            Added in Java Edition 1.20 as part of the Trails & Tales update's
+            archaeology feature.
+    uses:
+        - title: Archaeology Loot
+          ref: brush
+          detail: |
+              Must be excavated with a Brush rather than mined; digging it
+              normally or letting it fall destroys any loot it holds.
+    found_in:
+        - location: Trail Ruins
+          detail: Generated as buried decorative blocks within trail ruins structures.
+        - location: Cold Ocean Ruins
+          detail: Also found scattered through cold ocean ruin structures underwater.
+    faq:
+        - question: What happens if I mine Suspicious Gravel with a shovel?
+          answer: |
+              It breaks instantly and drops nothing; any loot inside is lost
+              unless you brush it out first.
+        - question: What tool reveals the loot inside?
+          answer: |
+              A Brush, used by holding right-click on the block until the
+              hidden item pops out.
+        - question: Why did my Suspicious Gravel turn into plain gravel?
+          answer: |
+              Once fully brushed, or if it falls and breaks from gravity, it
+              converts into or drops as regular Gravel with no further loot.
+        - question: Can Suspicious Gravel fall like normal gravel?
+          answer: |
+              Yes, it is gravity-affected and will fall and shatter — losing
+              its contents — if unsupported or moved by a piston.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Sculk
+template: splash
 description: |
     Minecraft Sculk — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 962
     ref: sculk
     slug: sculk
+    content_rev: 1
     display_name: Sculk
     material: plant
     hardness: 0.2
@@ -24,10 +26,56 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: sculk
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - overworld
+        - sculk
+    about:
+        description: |
+            Sculk is a dark, decorative block dotted with glowing spots
+            that generates in patches across the deep dark biome and
+            ancient cities. It spreads whenever a sculk catalyst absorbs
+            experience released by a nearby mob death.
+        lore: |
+            Its name derives from "skulk," meaning to keep out of sight
+            with sinister intent, fitting the block's ominous, spreading
+            nature deep underground.
+    uses:
+        - title: Experience Farming
+          ref: sculk_catalyst
+          detail: |
+              Mining sculk without Silk Touch yields experience, making
+              sculk patches near a catalyst useful for XP farms.
+    found_in:
+        - location: Deep Dark Biome
+          detail: Generates in large patches throughout deep dark biome terrain.
+        - location: Sculk Catalyst Spread
+          detail: Spreads onto sculk-replaceable blocks within 8 blocks of a catalyst after a mob dies.
+    faq:
+        - question: What tool do I need to mine Sculk?
+          answer: |
+              A hoe breaks it fastest, but any tool works. With Silk Touch
+              it drops itself; otherwise it yields 1 experience.
+        - question: How does Sculk spread?
+          answer: |
+              A nearby sculk catalyst converts experience from a mob or
+              player death into new sculk, veins, sensors, and shriekers.
+        - question: Does Sculk emit light?
+          answer: |
+              No, despite its glowing spots it does not emit any light
+              level.
+        - question: Where can I find Sculk outside the Deep Dark?
+          answer: |
+              It also appears within ancient city structures, which
+              generate embedded in the deep dark biome.
     data_version: "1.21.5"
 ---
 

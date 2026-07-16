@@ -1,5 +1,6 @@
 ---
 title: Spyglass
+template: splash
 description: |
     Minecraft Spyglass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 993
     ref: spyglass
     slug: spyglass
+    content_rev: 1
     display_name: Spyglass
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Spyglass is a zooming tool crafted from an amethyst shard and two copper
+            ingots that narrows the field of view to magnify distant objects. Using it
+            applies a square vignette overlay and slows the player's movement, and it can
+            also be found as loot in some generated structures.
+        lore: |
+            A copper-banded scope of polished amethyst glass, ground to pull the horizon
+            close enough to touch.
+    faq:
+        - question: How do you craft a Spyglass?
+          answer: |
+              Combine one amethyst shard with two copper ingots in a crafting table.
+        - question: Does the Spyglass let you see farther than normal render distance?
+          answer: |
+              No. Objects and mobs too distant or hazy to render normally remain
+              unrendered even when viewed through the spyglass.
+        - question: Can you stack Spyglasses in your inventory?
+          answer: |
+              No, the spyglass occupies a single inventory slot and cannot be stacked.
+        - question: Are there advancements tied to the Spyglass?
+          answer: |
+              Yes, including "Is It a Bird?" for viewing a parrot, "Is It a Balloon?" for
+              viewing a ghast, and "Is It a Plane?" for viewing the Ender Dragon through
+              it.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

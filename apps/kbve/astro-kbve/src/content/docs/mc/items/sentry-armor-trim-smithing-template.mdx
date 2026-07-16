@@ -1,5 +1,6 @@
 ---
 title: Sentry Armor Trim
+template: splash
 description: |
     Minecraft Sentry Armor Trim — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1334
     ref: sentry_armor_trim_smithing_template
     slug: sentry-armor-trim-smithing-template
+    content_rev: 1
     display_name: Sentry Armor Trim
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Sentry Armor Trim is an uncommon smithing template introduced in the Trails &
+            Tales update, found in pillager outpost chests. It can be applied to any armor
+            piece at a smithing table with any trim material, and once obtained can be
+            duplicated using diamonds and cobblestone.
+        lore: |
+            A trim pattern inspired by the vigilant sentries of pillager strongholds, marking
+            armor with disciplined precision.
+    faq:
+        - question: Where do I find my first Sentry Armor Trim?
+          answer: |
+              This item is found in pillager outposts, with a 25% chance per chest typically
+              yielding 2 templates per discovery.
+        - question: Can I make more after finding one?
+          answer: |
+              Yes, the template can be duplicated using an existing template, cobblestone, and
+              diamonds in a crafting grid, making it infinitely renewable once obtained.
+        - question: What does the trim actually look like?
+          answer: |
+              The trim applies a decorative border design inspired by the "Sentry" pattern to
+              armor pieces while leaving their original protective stats unchanged.
+        - question: Does using the trim consume it?
+          answer: |
+              Yes, it is consumed when applied at the smithing table, but more copies can be
+              made using the duplication recipe.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

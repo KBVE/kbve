@@ -1,5 +1,6 @@
 ---
 title: Zombified Piglin Spawn Egg
+template: splash
 description: |
     Minecraft Zombified Piglin Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 1148
     ref: zombified_piglin_spawn_egg
     slug: zombified-piglin-spawn-egg
+    content_rev: 1
     display_name: Zombified Piglin Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Zombified Piglin Spawn Egg is a Creative-mode-only item that instantly
+            spawns a Zombified Piglin, the undead Nether-native piglin variant. It is
+            available only through the Creative inventory, pick block, or commands.
+        lore: |
+            Zombified Piglins are normally passive but swarm and attack in packs the
+            instant one of them is harmed, wielding golden swords as their signature weapon.
+    faq:
+        - question: How do you get a Zombified Piglin Spawn Egg?
+          answer: |
+              Only in Creative mode, from the inventory or by using pick block on an
+              existing zombified piglin, or via a command such as
+              /give @s zombified_piglin_spawn_egg — it is not obtainable in Survival.
+        - question: Is the spawned mob hostile right away?
+          answer: |
+              No — a zombified piglin spawned from the egg is passive like its
+              naturally spawned counterparts, and only turns hostile toward the player
+              (and alerts nearby zombified piglins) if attacked first.
+        - question: What does it drop when killed?
+          answer: |
+              Like normally spawned zombified piglins, it can drop rotten flesh and
+              has a chance to drop its equipped gold sword or gold nuggets, matching
+              vanilla loot tables.
+        - question: Does it differ from the Zombie Spawn Egg?
+          answer: |
+              Both are Creative-only, one-use spawn items, but this egg produces the
+              Nether-themed Zombified Piglin with its own texture, sounds, and pack
+              aggression behavior instead of a plain overworld Zombie.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

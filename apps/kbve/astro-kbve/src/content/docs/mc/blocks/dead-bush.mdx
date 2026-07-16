@@ -1,5 +1,6 @@
 ---
 title: Dead Bush
+template: splash
 description: |
     Minecraft Dead Bush — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,12 @@ mc_block:
     id: 132
     ref: dead_bush
     slug: dead-bush
+    content_rev: 1
     display_name: Dead Bush
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,9 +28,64 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
-    data_version: "1.21.5"
+    drops:
+        - ref: dead_bush
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+        - ref: stick
+          qty_min: 0
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Dead Bush is a decorative plant block found in dry biomes. It
+            breaks instantly with any tool: shears harvest the bush itself,
+            while any other method yields zero to two sticks instead — one
+            of the more reliable early-game sources of sticks.
+        lore: |
+            The stick-drop mechanic was reportedly suggested by a Reddit
+            user and later implemented by Mojang, letting players harvest
+            sticks from a plant that would otherwise be purely cosmetic.
+    uses:
+        - title: Sticks
+          ref: stick
+          detail: |
+              Breaking a dead bush without shears drops 0–2 sticks, useful
+              for crafting tools, torches, and other early-game items
+              without needing to fell trees.
+        - title: Furnace fuel
+          ref: furnace
+          detail: |
+              Each dead bush smelts 0.5 items when used as furnace fuel.
+    found_in:
+        - location: Deserts and badlands
+          detail: Common in desert and badlands biomes, generating on sand, red sand, and terracotta; badlands has roughly ten times the density of deserts.
+        - location: Swamps, mangrove swamps, and old growth taigas
+          detail: Also generates on grass blocks, podzol, dirt, coarse dirt, and mud in these biomes.
+    faq:
+        - question: What tool should I use to get the Dead Bush block itself?
+          answer: |
+              Shears. Any other tool (or bare hands) breaks the block into
+              0–2 sticks instead of dropping the bush.
+        - question: Does Fortune increase the stick drops?
+          answer: |
+              No, the Fortune enchantment has no effect on the number of
+              sticks a dead bush drops.
+        - question: Where does Dead Bush generate naturally?
+          answer: |
+              Mainly in deserts and badlands, and less frequently in swamps,
+              mangrove swamps, and old growth taigas, always on dry ground
+              like sand, terracotta, or dirt variants.
+        - question: Is Dead Bush useful as fuel?
+          answer: |
+              Yes, it can be smelted as furnace fuel, though at 0.5 items per
+              bush it is a weak fuel source compared to wood or coal.
 ---
 
 import MCBlockPanel from '@/components/mcdb/MCBlockPanel.astro';

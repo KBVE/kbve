@@ -1,5 +1,6 @@
 ---
 title: Mangrove Wood
+template: splash
 description: |
     Minecraft Mangrove Wood — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 78
     ref: mangrove_wood
     slug: mangrove-wood
+    content_rev: 1
     display_name: Mangrove Wood
     material: wood
     hardness: 2
@@ -24,10 +26,56 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mangrove_wood
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Mangrove Wood is the bark-textured six-sided block form of the
+            mangrove log, crafted from four mangrove logs or stems. It
+            behaves like any other wood block: it burns, floats, and can be
+            stripped with an axe to reveal a lighter stripped variant.
+        lore: |
+            Added in the Wild Update (1.19) alongside the mangrove swamp
+            biome, it lets builders finish structures without exposing the
+            log's ring pattern on every face.
+    uses:
+        - title: Planks & Fuel
+          ref: mangrove_planks
+          detail: |
+              Crafts into mangrove planks, campfires, and smokers, and can
+              be smelted into charcoal or burned directly as furnace fuel.
+    found_in:
+        - location: Crafted from Mangrove Logs
+          detail: Four mangrove logs or stems craft into three mangrove wood blocks.
+        - location: Trial Chambers
+          detail: Generates naturally at some trial chamber entrances.
+    faq:
+        - question: Does Mangrove Wood drop itself when mined?
+          answer: |
+              Yes, any tool (or bare hands) instantly returns the block; an
+              axe is simply the fastest tool.
+        - question: Is Mangrove Wood flammable?
+          answer: |
+              Yes, like all standard wood blocks it catches fire and burns
+              when exposed to flame or lava.
+        - question: How do I get Mangrove Wood?
+          answer: |
+              Craft it from four mangrove logs or stripped mangrove logs in
+              a crafting grid, yielding three wood blocks.
+        - question: Can I strip Mangrove Wood?
+          answer: |
+              Yes, right-clicking with an axe converts it to Stripped
+              Mangrove Wood, removing the bark texture.
     data_version: "1.21.5"
 ---
 

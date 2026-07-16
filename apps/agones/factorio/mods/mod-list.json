@@ -3,6 +3,7 @@
 		{ "name": "base", "enabled": true },
 		{ "name": "kbve", "enabled": true },
 		{ "name": "kbve-spider", "enabled": true },
+		{ "name": "kbve-orc", "enabled": true },
 		{ "name": "elevated-rails", "enabled": true },
 		{ "name": "quality", "enabled": true },
 		{ "name": "space-age", "enabled": true },

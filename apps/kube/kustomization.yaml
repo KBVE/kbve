@@ -52,8 +52,7 @@ resources:
     - memes/application.yaml
     - jobboard/application.yaml
     - metrics/application.yaml
-    - n8n/application.yaml
-    # Windmill — workflow engine (n8n replacement candidate), windmill.kbve.com
+    # Windmill — workflow engine (replaced n8n), windmill.kbve.com
     - windmill/application.yaml
     - rabbitmq/application.yaml
     # rows = shared ROWS infra (ns `rows`): ows-valkey, externalsecrets, servicemonitor,
@@ -91,7 +90,7 @@ resources:
     - gateway-api/application.yaml
     # Cilium CNI + WireGuard + Gateway API
     - cilium/application.yaml
-    # Cilium LB IPAM — IP pools + L2 announcements (replaces MetalLB)
+    # Cilium LB IPAM — IP pools + L2 announcements
     - cilium/lb-application.yaml
 
     # ECK (Elastic Cloud on Kubernetes) fully retired — ES + Kibana were
@@ -101,6 +100,9 @@ resources:
     - forgejo/application.yaml
 
     # Security Profiles Operator — SeccompProfile CRDs for Talos (no Localhost profiles)
+    # CRDs split into their own app (sync-wave 1) so a CRD apiVersion graduation
+    # applies ahead of the operator (wave 2) instead of wedging the whole app.
+    - security-profiles-operator/application-crds.yaml
     - security-profiles-operator/application.yaml
 
     # Firecracker — microVM runtime service (edge function Tier 2 isolation)

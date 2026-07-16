@@ -1,5 +1,6 @@
 ---
 title: Spruce Stairs
+template: splash
 description: |
     Minecraft Spruce Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 373
     ref: spruce_stairs
     slug: spruce-stairs
+    content_rev: 1
     display_name: Spruce Stairs
     material: wood
     hardness: 2
@@ -24,10 +26,56 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: spruce_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Spruce Stairs are angled blocks cut from spruce planks that let
+            players walk up and down in half-block steps. They can be
+            placed upside-down or rotated into four directions, and
+            adjacent stairs form inner and outer corner shapes.
+        lore: |
+            Stairs turned simple wood cabins into properly navigable
+            multi-level builds without needing awkward jump-ups.
+    uses:
+        - title: Building & Decoration
+          ref: spruce_planks
+          detail: |
+              Used for rooftops, staircases, and terraced builds; also
+              usable as furnace fuel, smelting 1.5 items per stair block.
+    found_in:
+        - location: Crafting table
+          detail: Six matching spruce planks craft four spruce stairs.
+        - location: Villages, mansions, and shipwrecks
+          detail: Generates naturally as staircases and roofing in spruce-themed structures.
+    faq:
+        - question: What tool mines Spruce Stairs fastest?
+          answer: |
+              An axe. Any tool works, including bare hands, and the block
+              always drops itself.
+        - question: Do Spruce Stairs burn?
+          answer: |
+              Yes, like most wood blocks they are flammable and can catch
+              fire from nearby flames or lava.
+        - question: Can Spruce Stairs be placed upside down?
+          answer: |
+              Yes, placing while looking at the upper half of a block face
+              creates an upside-down stair, useful for ceilings and
+              overhangs.
+        - question: Do adjacent stairs form corner shapes automatically?
+          answer: |
+              Yes, two stairs placed at right angles to each other connect
+              into inner or outer corner shapes automatically.
     data_version: "1.21.5"
 ---
 

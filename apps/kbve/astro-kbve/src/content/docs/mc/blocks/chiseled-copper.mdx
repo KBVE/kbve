@@ -1,5 +1,6 @@
 ---
 title: Chiseled Copper
+template: splash
 description: |
     Minecraft Chiseled Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,71 @@ mc_block:
     id: 979
     ref: chiseled_copper
     slug: chiseled-copper
+    content_rev: 1
     display_name: Chiseled Copper
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: chiseled_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Chiseled Copper is a decorative copper building block with an
+            ornamental banded pattern, crafted by stacking cut copper slabs.
+            Like other copper blocks it weathers through four oxidation
+            stages and can be waxed with honeycomb to freeze its look.
+        lore: |
+            Added in Java Edition 1.21 (Tricky Trials), it also spawns
+            pre-waxed in trial chambers as part of that update's vault loot
+            aesthetic.
+    uses:
+        - title: Decorative building
+          ref: cut_copper_slab
+          detail: |
+              Stack two Cut Copper Slabs vertically in a crafting grid, or
+              cut a Block of Copper at a stonecutter (1 copper block yields
+              4 chiseled copper), to produce this ornamental variant.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates as a waxed decorative block within trial chamber vaults and corridors.
+        - location: Player-crafted
+          detail: Most commonly obtained by crafting or stonecutting copper blocks/slabs.
+    faq:
+        - question: What tool do I need to mine Chiseled Copper?
+          answer: |
+              A stone pickaxe or better. A wooden pickaxe (or bare hands)
+              breaks the block but yields no drop.
+        - question: Does Chiseled Copper oxidize like other copper blocks?
+          answer: |
+              Yes, the un-waxed form progresses through normal, exposed,
+              weathered, and oxidized stages over time, changing from
+              orange-brown to teal-green. Waxing with honeycomb halts the
+              process at its current stage.
+        - question: Can I reverse oxidation on Chiseled Copper?
+          answer: |
+              Yes. Right-clicking with an axe scrapes off one oxidation
+              stage, and the block can be waxed afterward to lock it in.
+        - question: Is Chiseled Copper affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops itself as a single block regardless of
+              enchantments once mined with at least a stone pickaxe.
     data_version: "1.21.5"
 ---
 

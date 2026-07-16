@@ -1,5 +1,6 @@
 ---
 title: Golden Pickaxe
+template: splash
 description: |
     Minecraft Golden Pickaxe — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 870
     ref: golden_pickaxe
     slug: golden-pickaxe
+    content_rev: 1
     display_name: Golden Pickaxe
     category: tool
     rarity: common
@@ -35,6 +37,24 @@ mc_item:
             - vanishing_curse
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The golden pickaxe mines stone and metal-based materials with the highest mining efficiency of any pickaxe, but it is limited to mining level 0 and has only 32 uses of durability, the lowest in its class. It is crafted from 3 gold ingots and 2 sticks, and its high enchantability of 22 makes it a favorite base for Efficiency or Silk Touch builds despite its fragility.
+        lore: |
+            Golden pickaxes were among the earliest tools added to Minecraft during Indev development, embodying the enduring design philosophy that gold tools mine fastest but break quickest.
+    faq:
+        - question: Why use a golden pickaxe if it breaks so easily?
+          answer: |
+              Its exceptional mining speed and high enchantability make it ideal for quick mining runs or for enchanting with Efficiency and Unbreaking to offset the low durability.
+        - question: Can a golden pickaxe be repaired?
+          answer: |
+              Yes, either by combining two damaged pickaxes in a crafting grid, using an anvil with gold ingots to restore 25% durability each, or applying the Mending enchantment.
+        - question: What can a golden pickaxe mine?
+          answer: |
+              It has a mining level of 0, so it can only break stone-tier blocks and coal ore, not iron, gold, diamond, or other higher-tier ores.
+        - question: Is there any combat use for a golden pickaxe?
+          answer: |
+              It deals only 2 HP of attack damage, comparable to a wooden pickaxe, so its main non-mining value is distracting piglins, who pause to inspect dropped golden tools.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

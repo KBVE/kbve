@@ -32,6 +32,12 @@ CREATE INDEX IF NOT EXISTS idx_mapinstances_active
     ON MapInstances (CustomerGUID, LastServerEmptyDate, MapInstanceID)
     WHERE Status > 0;
 
+-- Index: fleet-restart drainable scan (active, not-yet-draining rows, ordered by id — matches
+-- list_drainable_instances exactly; built CONCURRENTLY by migration 20260629120100)
+CREATE INDEX IF NOT EXISTS idx_mapinstances_drainable
+    ON MapInstances (CustomerGUID, MapInstanceID)
+    WHERE Status > 0 AND DrainState IS NULL;
+
 -- Security: MapInstances
 ALTER TABLE MapInstances ENABLE ROW LEVEL SECURITY;
 ALTER TABLE MapInstances FORCE ROW LEVEL SECURITY;

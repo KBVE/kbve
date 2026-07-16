@@ -1,5 +1,6 @@
 ---
 title: Lava Cauldron
+template: splash
 description: |
     Minecraft Lava Cauldron — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 358
     ref: lava_cauldron
     slug: lava-cauldron
+    content_rev: 1
     display_name: Lava Cauldron
     material: liquid
     hardness: 2
@@ -24,10 +26,62 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cauldron
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - nether
+        - light_source
+    about:
+        description: |
+            Lava Cauldron is a cauldron block filled with a lava source,
+            created by right-clicking an empty cauldron with a lava
+            bucket. It glows at full brightness and burns any entity that
+            enters it.
+        lore: |
+            Cauldrons gained the ability to hold lava in Java Edition 1.17
+            snapshot 20w45a, expanding their original water-only role.
+    uses:
+        - title: Light source
+          ref: lava_cauldron
+          detail: |
+              Emits light level 15, the same as a lava block, making it a
+              decorative and functional light source that cannot spread
+              fire or flow.
+        - title: Redstone comparator input
+          ref: comparator
+          detail: |
+              Outputs a fixed comparator signal strength of 3, useful in
+              redstone contraptions that check cauldron contents.
+    found_in:
+        - location: Crafted / filled manually
+          detail: Right-click an empty cauldron with a lava bucket to fill it; empty it again with an empty bucket.
+        - location: Pointed dripstone drip
+          detail: A dripstone dripping lava above an empty cauldron slowly fills it over time, making it renewable.
+    faq:
+        - question: What does mining a Lava Cauldron drop?
+          answer: |
+              An empty cauldron item. The lava inside is always lost when
+              the block is broken, regardless of tool.
+        - question: Can a Lava Cauldron start fires?
+          answer: |
+              No. Unlike a free-standing lava source, lava held in a
+              cauldron does not ignite nearby blocks or spread fire.
+        - question: How do I fill a cauldron with lava?
+          answer: |
+              Right-click it with a lava bucket, or place it under a
+              pointed dripstone that drips lava to fill it slowly over time.
+        - question: Is a Lava Cauldron dangerous to touch?
+          answer: |
+              Yes. Entities that step into it take fire damage just like
+              standing in lava.
     data_version: "1.21.5"
 ---
 

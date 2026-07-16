@@ -1,5 +1,6 @@
 ---
 title: Crimson Sign
+template: splash
 description: |
     Minecraft Crimson Sign — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 936
     ref: crimson_sign
     slug: crimson-sign
+    content_rev: 1
     display_name: Crimson Sign
     category: decoration
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A crimson sign is a non-solid block crafted from crimson planks and a stick,
+            used to display up to four lines of customizable text for labeling storage,
+            marking locations, or leaving messages. Text can be recolored with dyes, made
+            glowing with a glow ink sac, and locked from further edits with honeycomb.
+        lore: |
+            Carved from Nether timber, it carries a message even where no wind or water
+            can wear it down.
+    faq:
+        - question: How many crimson signs does one crafting recipe produce?
+          answer: |
+              Crafting 6 crimson planks with 1 stick in the standard sign pattern yields 3
+              crimson signs.
+        - question: Can crimson signs be used as furnace fuel?
+          answer: |
+              No, crimson and warped signs are non-flammable and cannot be used as fuel,
+              unlike signs made from Overworld wood.
+        - question: How do you make text on a crimson sign glow?
+          answer: |
+              Use a glow ink sac on the sign after writing on it to make the text emit a
+              soft glow.
+        - question: Can a crimson sign be edited after it is placed?
+          answer: |
+              Yes, unless it has been waxed with a honeycomb, which locks the text and
+              prevents further edits.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

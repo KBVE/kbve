@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Sign
+template: splash
 description: |
     Minecraft Pale Oak Sign — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 933
     ref: pale_oak_sign
     slug: pale-oak-sign
+    content_rev: 1
     display_name: Pale Oak Sign
     category: decoration
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Pale Oak Sign is a non-solid block that displays up to four lines of
+            customizable text and can be placed on top of or attached to the side of a
+            block. It is crafted from six Pale Oak Planks and a stick, yielding three
+            signs, and its text can be dyed or made to glow with a glow ink sac.
+        lore: |
+            Its bleached, pallid wood grain matches the unsettling trees of the Pale
+            Garden.
+    faq:
+        - question: How do I craft a Pale Oak Sign?
+          answer: |
+              Combine six Pale Oak Planks with one stick in a crafting grid to get
+              three signs.
+        - question: Can I change the text color on a Pale Oak Sign?
+          answer: |
+              Yes, apply a dye to change the text color, or a glow ink sac to make the
+              text glow in the dark.
+        - question: Can a Pale Oak Sign be locked from editing?
+          answer: |
+              Yes, applying honeycomb to a placed sign waxes it, preventing further
+              text edits.
+        - question: Does a Pale Oak Sign block fluid flow?
+          answer: |
+              Yes, like other signs, water and lava flow around a placed sign instead
+              of through it.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

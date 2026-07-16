@@ -1,5 +1,6 @@
 ---
 title: Blue Shulker Box
+template: splash
 description: |
     Minecraft Blue Shulker Box — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 657
     ref: blue_shulker_box
     slug: blue-shulker-box
+    content_rev: 1
     display_name: Blue Shulker Box
     material: stone
     hardness: 2
@@ -26,8 +28,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blue_shulker_box
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Blue Shulker Box is a portable 27-slot storage container dyed
+            with Blue Dye. Unlike chests, it keeps its contents intact when
+            mined and picked back up as an item.
+        lore: |
+            Shulker Boxes were introduced in Java Edition 1.11 (2016),
+            unlocking portable inventory storage for the first time.
+    uses:
+        - title: Portable Storage
+          ref: blue_shulker_box
+          detail: |
+              Holds 27 item slots and can be placed, opened, broken, and
+              carried away without losing its contents, making it ideal for
+              transporting large amounts of items.
+    found_in:
+        - location: Crafting with Shulker Shell
+          detail: Crafted from any Shulker Box (or a Chest and a Shulker Shell) plus Blue Dye to recolor it.
+        - location: End Cities
+          detail: The base Shulker Shell needed to craft any shulker box drops from Shulkers found in End Cities.
+    faq:
+        - question: What tool do I need to mine a Blue Shulker Box?
+          answer: |
+              A pickaxe is fastest, but it can be mined with any tool or by
+              hand since it has no required tool tier.
+        - question: Do I lose the items inside when I mine it?
+          answer: |
+              No. The contents are stored inside the dropped item itself,
+              so mining and replacing it preserves everything inside.
+        - question: Does it need to be empty to pick it up?
+          answer: |
+              No, a Shulker Box can be mined and moved while full.
+        - question: How do I get a Blue Shulker Box?
+          answer: |
+              Craft any Shulker Box using a Shulker Shell (obtained from
+              Shulkers in End Cities) and a Chest, then dye it Blue.
     data_version: "1.21.5"
 ---
 

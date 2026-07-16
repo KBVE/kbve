@@ -1,5 +1,6 @@
 ---
 title: Bamboo Shoot
+template: splash
 description: |
     Minecraft Bamboo Shoot — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 758
     ref: bamboo_sapling
     slug: bamboo-sapling
+    content_rev: 1
     display_name: Bamboo Shoot
     material: plant
     hardness: 1
     blast_resistance: 1
-    best_tool: sword
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            The bamboo shoot is the earliest growth stage of a bamboo
+            stalk, appearing as a short, non-solid sprout. It breaks
+            instantly with any tool and always drops a bamboo item, letting
+            players harvest a planted stand before it matures.
+        lore: |
+            Bamboo is the fastest-growing plant in Minecraft, able to shoot
+            up from a single shoot to a full stalk in moments under the
+            right conditions.
+    uses:
+        - title: Bamboo
+          ref: bamboo
+          detail: |
+              Once grown into a full stalk, bamboo is crafted into
+              scaffolding, bamboo planks, and other bamboo wood blocks, used
+              as furnace fuel, and fed to pandas to breed them.
+    found_in:
+        - location: Jungle biomes
+          detail: Scattered single shoots generate across ordinary jungles.
+        - location: Bamboo jungles
+          detail: Grows extremely densely, covering large areas of the landscape.
+    faq:
+        - question: What tool do I need to mine a bamboo shoot?
+          answer: |
+              None — it breaks instantly with any tool, or even by hand.
+        - question: Does a bamboo shoot drop anything?
+          answer: |
+              Yes, it always drops one bamboo item regardless of the tool
+              used.
+        - question: Does a bamboo shoot burn in fire?
+          answer: |
+              Mature bamboo stalks are flammable, but the young shoot stage
+              does not burn.
+        - question: Can I plant a bamboo shoot anywhere?
+          answer: |
+              It needs to be placed on dirt, sand, or similar soil blocks,
+              and will grow tallest with bone meal or over time.
     data_version: "1.21.5"
 ---
 

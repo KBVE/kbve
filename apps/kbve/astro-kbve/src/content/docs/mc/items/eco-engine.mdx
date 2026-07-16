@@ -1,0 +1,37 @@
+---
+title: Eco Engine
+template: splash
+description: |
+    Immersive Aircraft Eco Engine — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Eco Engine
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900014
+    ref: immersive_aircraft:eco_engine
+    slug: eco-engine
+    content_rev: 0
+    display_name: Eco Engine
+    category: material
+    rarity: common
+    stack_size: 64
+    tags:
+        - immersive_aircraft
+        - upgrade
+    about:
+        description: |
+            A fuel-efficient engine that sips rather than guzzles, extending your range.
+        lore: |
+            Fly farther on far less.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

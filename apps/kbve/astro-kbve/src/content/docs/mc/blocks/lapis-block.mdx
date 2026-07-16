@@ -1,5 +1,6 @@
 ---
 title: Block of Lapis Lazuli
+template: splash
 description: |
     Minecraft Block of Lapis Lazuli — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,75 @@ mc_block:
     id: 104
     ref: lapis_block
     slug: lapis-block
+    content_rev: 1
     display_name: Block of Lapis Lazuli
     material: stone
     hardness: 3
     blast_resistance: 3
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lapis_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Block of Lapis Lazuli is a compact storage block equivalent to
+            nine lapis lazuli, crafted by filling a crafting grid with lapis
+            lazuli. It can be uncrafted back into nine lapis lazuli, making it
+            useful for bulk storage during large mining trips.
+        lore: |
+            Added in Beta 1.2 and renamed from "Lapis Lazuli Block" to
+            "Block of Lapis Lazuli" in 1.17, it also decorates the statues
+            found inside woodland mansions.
+    uses:
+        - title: Lapis Lazuli (uncraft)
+          ref: lapis_lazuli
+          detail: |
+              Place the block in a crafting grid to break it back down into
+              nine lapis lazuli, reversing the original 3x3 recipe.
+        - title: Decoration
+          ref: lapis_block
+          detail: |
+              Used as a blue building block and forms the core of the
+              illager statues found in woodland mansions.
+    found_in:
+        - location: Woodland Mansions
+          detail: Generates as the centerpiece of illager statues.
+        - location: Crafted
+          detail: Crafted from nine lapis lazuli, or bought from cleric villagers as loose lapis lazuli.
+    faq:
+        - question: What tool do I need to mine Block of Lapis Lazuli?
+          answer: |
+              A stone pickaxe or better. A wooden or golden pickaxe breaks
+              it but drops nothing.
+        - question: Does mining it drop lapis lazuli shards?
+          answer: |
+              No. It always drops the full block itself, not loose lapis
+              lazuli — place it in a crafting grid to uncraft it into nine
+              lapis lazuli.
+        - question: Is it affected by Fortune?
+          answer: |
+              No. Fortune has no effect since the block always drops itself
+              as a single item.
+        - question: How do I get lapis lazuli blocks?
+          answer: |
+              Craft one from nine lapis lazuli, or find them built into
+              woodland mansion illager statues.
     data_version: "1.21.5"
 ---
 

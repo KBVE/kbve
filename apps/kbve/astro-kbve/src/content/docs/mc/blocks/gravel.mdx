@@ -1,5 +1,6 @@
 ---
 title: Gravel
+template: splash
 description: |
     Minecraft Gravel — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 40
     ref: gravel
     slug: gravel
+    content_rev: 1
     display_name: Gravel
     material: gravel
     hardness: 0.6
@@ -24,10 +26,69 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: gravel
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: flint
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - shovel_mineable
+        - overworld
+        - nether
+        - gravity_affected
+    about:
+        description: |
+            Gravel is a gravity-affected block that forms shallow disks in
+            water, ocean floors, and underground pockets. Mining it has a
+            small chance to drop Flint instead of the block itself.
+        lore: |
+            Gravel falls like sand when the block beneath it is removed,
+            and can crush entities standing where it lands.
+    uses:
+        - title: Flint
+          ref: flint
+          detail: |
+              Mining gravel without Silk Touch has a 10% base chance to
+              drop Flint, rising with Fortune, needed for flint and steel
+              and arrows.
+        - title: Concrete Powder
+          ref: concrete_powder
+          detail: |
+              Combine gravel with sand and dye to craft colored concrete
+              powder, which hardens into concrete when touched by water.
+    found_in:
+        - location: The Overworld
+          detail: |
+              Forms shallow disks in shallow water, comprises ocean floors,
+              and generates as underground deposits in most biomes.
+        - location: The Nether
+          detail: Forms in layers along lava sea shores.
+    faq:
+        - question: Does gravel always drop flint?
+          answer: |
+              No. Without Silk Touch it has only a 10% chance to drop Flint
+              (higher with Fortune); otherwise it drops itself.
+        - question: What tool mines gravel fastest?
+          answer: |
+              A shovel, though any tool or bare hands can break it since it
+              has no minimum tier requirement.
+        - question: Can gravel fall and hurt me?
+          answer: |
+              Yes. Gravel obeys gravity and can suffocate or damage entities
+              if it falls on top of them.
+        - question: Is gravel renewable?
+          answer: |
+              Yes — piglins in the Nether can barter gold ingots for
+              gravel, and gravel can be traded to fletcher villagers for
+              flint.
     data_version: "1.21.5"
 ---
 

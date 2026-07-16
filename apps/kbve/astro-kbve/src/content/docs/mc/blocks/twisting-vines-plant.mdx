@@ -1,5 +1,6 @@
 ---
 title: Twisting Vines Plant
+template: splash
 description: |
     Minecraft Twisting Vines Plant — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,63 @@ mc_block:
     id: 840
     ref: twisting_vines_plant
     slug: twisting-vines-plant
+    content_rev: 1
     display_name: Twisting Vines Plant
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: twisting_vines
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - hand_mineable
+        - shears_mineable
+        - nether
+        - climbable
+        - flammable_free
+    about:
+        description: |
+            Twisting Vines Plant is the stem segment that forms the growing
+            body of a Twisting Vines column, placed automatically below the
+            topmost Twisting Vines block as it grows upward.
+        lore: |
+            Introduced alongside Twisting Vines in Java Edition 1.16 (Nether
+            Update) as the internal segment block for the vine's climbing
+            column, not obtainable as a distinct item.
+    found_in:
+        - location: Warped forest biome
+          detail: Forms automatically as a Twisting Vines column grows upward, up to a random maximum height each stem.
+    faq:
+        - question: Is Twisting Vines Plant different from Twisting Vines?
+          answer: |
+              It is the same climbable column; the "plant" block is the
+              stem segment used for every part of the vine except the top,
+              which is the Twisting Vines block itself.
+        - question: What drops when I mine a Twisting Vines Plant segment?
+          answer: |
+              Same as Twisting Vines: a 33% base chance of one Twisting
+              Vines item, guaranteed with shears or Silk Touch, or boosted
+              by Fortune.
+        - question: Can I obtain Twisting Vines Plant as an item?
+          answer: |
+              No, it has no item form; breaking any segment yields the
+              Twisting Vines item instead.
+        - question: What tool do I need to break it?
+          answer: |
+              None — it breaks instantly with any tool, though shears
+              guarantee the drop.
     data_version: "1.21.5"
 ---
 

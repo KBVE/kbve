@@ -1,5 +1,6 @@
 ---
 title: Red Sandstone Wall
+template: splash
 description: |
     Minecraft Red Sandstone Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,68 @@ mc_block:
     id: 793
     ref: red_sandstone_wall
     slug: red-sandstone-wall
+    content_rev: 1
     display_name: Red Sandstone Wall
     material: stone
     hardness: 0.8
     blast_resistance: 0.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_sandstone_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Red Sandstone Wall is a decorative wall variant of red
+            sandstone that does not generate naturally and is used for
+            building. It connects to adjacent blocks and fence gates with
+            low or tall posts, forming a mob-blocking barrier.
+        lore: |
+            Added in Java Edition 1.14 (18w43a) alongside the other stone
+            wall variants introduced with the Village & Pillage update.
+    uses:
+        - title: Mob-safe fencing
+          ref: red_sandstone_wall
+          detail: |
+              At 1.5 blocks tall a wall blocks most mobs while still
+              letting players see and shoot over it, matching red
+              sandstone builds and badlands-themed structures.
+    found_in:
+        - location: Crafting table
+          detail: 6 Red Sandstone crafts 6 Red Sandstone Walls.
+        - location: Stonecutter
+          detail: 1 Red Sandstone converts to 1 wall with no waste.
+    faq:
+        - question: Does Red Sandstone Wall spawn naturally?
+          answer: |
+              No. It only exists as a crafted or stonecut block; it does
+              not generate anywhere in the world.
+        - question: What tool do I need to mine it?
+          answer: |
+              At least a wooden pickaxe. Mining without one breaks the
+              block with no drop.
+        - question: Does Fortune or Silk Touch affect the drop?
+          answer: |
+              No. It always drops exactly one Red Sandstone Wall
+              regardless of enchantments.
+        - question: Can a Red Sandstone Wall be waterlogged?
+          answer: |
+              Yes, like other walls it can hold a water source without the
+              water flowing out, useful for canals and aquariums.
     data_version: "1.21.5"
 ---
 

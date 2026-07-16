@@ -1,5 +1,6 @@
 ---
 title: Sweet Berry Bush
+template: splash
 description: |
     Minecraft Sweet Berry Bush — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 820
     ref: sweet_berry_bush
     slug: sweet-berry-bush
+    content_rev: 1
     display_name: Sweet Berry Bush
     material: plant
     hardness: 0
@@ -24,10 +26,58 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: sweet_berries
+          qty_min: 1
+          qty_max: 3
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Sweet Berry Bush is a four-stage crop found in taiga biomes that
+            grows Sweet Berries over time. It damages and slows most entities
+            that walk through it but leaves foxes and rabbits unharmed.
+        lore: |
+            Added in Java Edition 1.14 after winning the biome vote at
+            MINECON Earth 2018, bringing taiga vegetation to life.
+    uses:
+        - title: Sweet Berries (food)
+          ref: sweet_berries
+          detail: |
+              Eating a Sweet Berry restores 2 hunger points and a small
+              amount of saturation.
+        - title: Fox Breeding
+          ref: fox
+          detail: |
+              Sweet Berries are the breeding and taming food for foxes,
+              and also lure them during domestication.
+    found_in:
+        - location: Taiga and Snowy Taiga
+          detail: |
+              Each chunk has roughly a 1-in-12 chance to generate a patch of
+              bushes, including in old growth pine and spruce taigas.
+    faq:
+        - question: Why does walking into a Sweet Berry Bush hurt me?
+          answer: |
+              Its thorns deal small amounts of damage and slow movement to
+              about a third of normal speed when passed through horizontally.
+        - question: Does Fortune increase berry drops?
+          answer: |
+              Yes, each level of Fortune adds one extra berry to the harvest
+              from a fully grown bush.
+        - question: How many berries drop from a mature bush?
+          answer: |
+              A fully mature (stage 3) bush drops 2-3 berries, while an
+              earlier stage-2 bush drops only 1-2 and resets to stage 1.
+        - question: Can Sweet Berry Bush be composted?
+          answer: |
+              Yes, both the bush and its berries can be used in a composter,
+              with roughly a 30% chance to raise the compost level.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Honeycomb Block
+template: splash
 description: |
     Minecraft Honeycomb Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 873
     ref: honeycomb_block
     slug: honeycomb-block
+    content_rev: 1
     display_name: Honeycomb Block
     material: stone
     hardness: 0.6
     blast_resistance: 0.6
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 15
@@ -26,8 +27,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: honeycomb_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - decorative
+    about:
+        description: |
+            Honeycomb Block is a purely decorative block crafted from four
+            Honeycomb items. Its square-tiled texture is used across the
+            bee-themed decoration set and shares its sounds with coral
+            blocks.
+        lore: |
+            Added in Java Edition 1.15 alongside bees, honeycombs, and the
+            honey block.
+    uses:
+        - title: Building & decoration
+          ref: honeycomb_block
+          detail: |
+              Used purely for its warm, honeycomb-patterned appearance in
+              builds; it has no other crafting recipes and cannot be
+              converted back into loose Honeycomb items.
+    found_in:
+        - location: Crafting table
+          detail: Crafted from four Honeycomb items arranged in a 2x2 grid.
+    faq:
+        - question: Can I get Honeycomb back from a Honeycomb Block?
+          answer: |
+              No. Unlike the Honey Block, a Honeycomb Block cannot be
+              uncrafted back into individual Honeycomb items.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool works, and there is no minimum tool tier — it just
+              takes slightly longer by hand since its hardness is 0.6.
+        - question: Does Silk Touch or Fortune matter?
+          answer: |
+              No, neither enchantment changes the drop; it always yields
+              exactly one Honeycomb Block.
+        - question: Where do I get Honeycomb to craft it?
+          answer: |
+              Scrape a full beehive or bee nest with shears (without
+              angering the bees, if it has 5 honey levels) to collect
+              Honeycomb items.
     data_version: "1.21.5"
 ---
 

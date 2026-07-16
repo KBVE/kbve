@@ -1,5 +1,6 @@
 ---
 title: Purple Candle
+template: splash
 description: |
     Minecraft Purple Candle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,44 @@ mc_item:
     id: 1316
     ref: purple_candle
     slug: purple-candle
+    content_rev: 1
     display_name: Purple Candle
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Purple candle is a dyeable light-emitting block, crafted from a plain candle (string
+            and honeycomb) combined with purple dye. Up to four can occupy one block space, each
+            adding a light level of 3, and it can also top an uneaten cake as a decorative candle
+            cake.
+        lore: |
+            Candles were first shown at Minecraft Live 2020 alongside the Deep Dark reveal and
+            released in Java Edition 1.17; they now generate naturally in ancient cities, trial
+            chambers, and trail ruins.
+    faq:
+        - question: |
+              Can I change a purple candle back to another color?
+          answer: |
+              No, once a candle is dyed it cannot be recolored and must be crafted again from
+              scratch.
+        - question: |
+              How do I light a purple candle?
+          answer: |
+              Use flint and steel, a fire charge, or a flaming projectile; water instantly
+              extinguishes a lit candle.
+        - question: |
+              Do four purple candles give enough light to stop mob spawning?
+          answer: |
+              Yes, four lit candles in one block emit light level 12, the same threshold as a
+              torch, which prevents hostile mob spawns.
+        - question: |
+              Can I place a purple candle on a cake?
+          answer: |
+              Yes, a single candle of any color can top an uneaten cake to form a candle cake, and
+              it drops if the cake is eaten or destroyed.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

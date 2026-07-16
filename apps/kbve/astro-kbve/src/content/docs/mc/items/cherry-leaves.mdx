@@ -1,5 +1,6 @@
 ---
 title: Cherry Leaves
+template: splash
 description: |
     Minecraft Cherry Leaves — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 187
     ref: cherry_leaves
     slug: cherry-leaves
+    content_rev: 1
     display_name: Cherry Leaves
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Cherry Leaves are the pink, transparent foliage blocks that make up cherry trees in cherry groves. Harvesting them with shears or a Silk Touch tool yields the leaves themselves, while breaking them by hand instead has a chance to drop a sapling or a stick. They act as bee-pollination flowers, can be composted, and keep their pink color in every biome since they use pre-colored textures rather than biome tinting.
+        lore: |
+            Petals that never fade with the seasons, cherry leaves keep their blossom-pink hue no matter where the wind carries them.
+    faq:
+        - question: Do cherry leaves decay like other leaves?
+          answer: |
+              Yes, natural cherry leaves decay if left more than 6 blocks (Java Edition) or 4 blocks (Bedrock Edition) from any log or wood block; player-placed leaves never decay.
+        - question: Can bees use cherry leaves?
+          answer: |
+              Yes, cherry leaves function like flowers for bee pollination and can help nearby trees generate bee nests.
+        - question: What's the drop rate for cherry saplings?
+          answer: |
+              Breaking cherry leaves by hand has roughly a 5% (1 in 20) chance to drop a sapling, with the odds improving at higher Fortune levels.
+        - question: Why don't cherry leaves change color in different biomes?
+          answer: |
+              They use fixed, pre-colored textures instead of a biome colormap, so they keep their pink appearance everywhere, unlike oak or jungle leaves.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Farmland
+template: splash
 description: |
     Minecraft Farmland — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 195
     ref: farmland
     slug: farmland
+    content_rev: 1
     display_name: Farmland
     material: dirt
     hardness: 0.6
@@ -24,10 +26,68 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dirt
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: farmland
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+    about:
+        description: |
+            Farmland is the tilled soil block created by using a hoe on
+            dirt, grass, or dirt paths. It is required beneath most crops
+            and must stay hydrated by nearby water or rain to grow crops at
+            full speed.
+        lore: |
+            Farmland has been a core farming block since Minecraft's early
+            days, though its decay-to-dirt mechanic and hydration range have
+            been tuned across several updates.
+    uses:
+        - title: Wheat
+          ref: wheat
+          detail: |
+              Farmland is the required planting surface for wheat, carrots,
+              potatoes, beetroots, and other seed-based crops.
+        - title: Melon and Pumpkin stems
+          ref: melon_seeds
+          detail: |
+              Melon and pumpkin stems must also be planted on farmland
+              before their fruit can spread to adjacent blocks.
+    found_in:
+        - location: Villages
+          detail: Generates naturally in village farm plots, already tilled and often planted.
+        - location: Woodland Mansions
+          detail: A small number of farmland blocks appear in mansion garden rooms.
+        - location: Player-made farms
+          detail: Created anywhere by using a hoe on dirt, grass blocks, rooted dirt, or dirt paths.
+    faq:
+        - question: What does breaking farmland drop?
+          answer: |
+              Without Silk Touch it drops a single Dirt block; with Silk
+              Touch it drops itself as Farmland.
+        - question: Why did my farmland turn back into dirt?
+          answer: |
+              Farmland reverts to dirt if it dries out completely with no
+              crop planted, or if an entity jumps onto it and triggers
+              trampling damage.
+        - question: How close does water need to be to hydrate it?
+          answer: |
+              Water (or rain) hydrates farmland within a 4-block horizontal
+              radius, at the same level or one block above the farmland.
+        - question: Can I mine farmland with any tool?
+          answer: |
+              Yes, any tool or your hand can break it — a shovel is just
+              the fastest option.
     data_version: "1.21.5"
 ---
 

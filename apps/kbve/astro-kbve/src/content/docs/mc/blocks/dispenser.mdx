@@ -1,5 +1,6 @@
 ---
 title: Dispenser
+template: splash
 description: |
     Minecraft Dispenser — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 105
     ref: dispenser
     slug: dispenser
+    content_rev: 1
     display_name: Dispenser
     material: redstone
     hardness: 3.5
     blast_resistance: 3.5
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,65 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dispenser
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - redstone
+        - container
+        - automation
+    about:
+        description: |
+            A dispenser is a low-capacity redstone container that fires
+            projectiles, uses certain items and tools, and places some blocks,
+            fluids, or entities when it receives a redstone signal. Its nine
+            inventory slots pick a random item to activate each pulse.
+        lore: |
+            Unlike a dropper, the dispenser interacts with items — shooting
+            arrows, splashing potions, equipping armor on mobs, and scooping
+            or pouring liquids — making it the workhorse of automated farms
+            and trap contraptions.
+    uses:
+        - title: Projectile Launcher
+          ref: dispenser
+          detail: |
+              Fires arrows, splash and lingering potions, fireworks, and fire
+              charges in the direction it faces when powered.
+        - title: Item and Fluid Automation
+          ref: dispenser
+          detail: |
+              Places or collects water and lava with buckets, equips armor on
+              nearby mobs, tills soil, shears sheep, and more.
+    found_in:
+        - location: Jungle Temple
+          detail: Two dispensers loaded with arrows generate in every jungle temple.
+        - location: Trial Chambers
+          detail: Several generate with randomized loot inside trial chamber structures.
+        - location: Crafting
+          detail: Crafted from 7 cobblestone, 1 bow, and 1 redstone dust.
+    faq:
+        - question: What tool do I need to mine a dispenser?
+          answer: |
+              A wooden pickaxe or better. Mined without a pickaxe it drops only
+              its contents, not the block.
+        - question: How is a dispenser different from a dropper?
+          answer: |
+              A dispenser interacts with items — firing arrows, placing fluids,
+              equipping armor — while a dropper simply ejects items as loose
+              entities.
+        - question: How do I activate a dispenser?
+          answer: |
+              Give it a redstone signal from an adjacent component, powered
+              dust, repeater, or comparator. It has a 4 game tick (0.2s) delay
+              between activation and firing.
+        - question: What happens with an item it does not have special behavior for?
+          answer: |
+              Items without a defined action are simply dropped in front like a
+              dropper would eject them.
     data_version: "1.21.5"
 ---
 

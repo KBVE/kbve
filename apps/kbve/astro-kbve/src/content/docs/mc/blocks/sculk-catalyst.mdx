@@ -1,5 +1,6 @@
 ---
 title: Sculk Catalyst
+template: splash
 description: |
     Minecraft Sculk Catalyst — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 964
     ref: sculk_catalyst
     slug: sculk-catalyst
+    content_rev: 1
     display_name: Sculk Catalyst
     material: plant
     hardness: 3
@@ -24,10 +26,56 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: sculk_catalyst
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - overworld
+        - sculk
+    about:
+        description: |
+            A sculk catalyst blooms whenever a living entity dies within
+            range, converting the experience released into sculk blocks,
+            veins, sensors, and shriekers spreading outward from the death
+            point. It emits a faint light and cannot be moved by pistons.
+        lore: |
+            Built from a bone-like material, the catalyst embodies the Deep
+            Dark's ancient ecosystem that feeds on death to spread its
+            corruption.
+    uses:
+        - title: Sculk Spread Farm
+          ref: sculk
+          detail: |
+              Kill mobs near a catalyst to convert experience into a
+              patch of sculk, veins, sensors, and shriekers for XP farming.
+    found_in:
+        - location: Deep Dark Biome
+          detail: Generates naturally throughout deep dark biome patches.
+        - location: Ancient City Chests
+          detail: Found in chests with roughly a 16.5% chance for 1–2, or dropped by a slain Warden.
+    faq:
+        - question: What tool do I need to mine a Sculk Catalyst?
+          answer: |
+              A hoe breaks it fastest, but any tool works. It only drops
+              itself with Silk Touch; otherwise it yields experience.
+        - question: What triggers a Sculk Catalyst to bloom?
+          answer: |
+              Any living entity, mob or player, dying within its detection
+              range causes it to bloom and spread sculk blocks.
+        - question: Can I get a Sculk Catalyst without Silk Touch?
+          answer: |
+              The only renewable way to obtain one without mining it with
+              Silk Touch is killing a Warden, which drops one on death.
+        - question: Does a Sculk Catalyst emit light?
+          answer: |
+              Yes, it glows at light level 6, making it visible in the dark
+              sculk patches of the Deep Dark.
     data_version: "1.21.5"
 ---
 

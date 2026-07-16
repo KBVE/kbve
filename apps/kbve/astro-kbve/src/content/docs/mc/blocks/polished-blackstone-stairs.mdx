@@ -1,5 +1,6 @@
 ---
 title: Polished Blackstone Stairs
+template: splash
 description: |
     Minecraft Polished Blackstone Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,70 @@ mc_block:
     id: 895
     ref: polished_blackstone_stairs
     slug: polished-blackstone-stairs
+    content_rev: 1
     display_name: Polished Blackstone Stairs
     material: nether
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_blackstone_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+        - blast_resistant
+    about:
+        description: |
+            Polished Blackstone Stairs are a step-shaped building variant
+            of polished blackstone, letting players build sloped Nether
+            structures. They can face any of four directions and be placed
+            upside down.
+        lore: |
+            Added with the rest of the polished blackstone family in the
+            Nether Update (Java Edition 1.16).
+    uses:
+        - title: Nether Building
+          ref: polished_blackstone
+          detail: |
+              Used decoratively to build ramps, roofs, and detailing for
+              Nether bases and bastion-style builds.
+    found_in:
+        - location: Ruined Portals
+          detail: Generates naturally as part of ruined portal structures in the Nether.
+        - location: Crafted or Stonecut
+          detail: |
+              Six polished blackstone blocks craft four stairs, or cut them
+              1:1 with a stonecutter from blackstone or polished
+              blackstone.
+    faq:
+        - question: What tool do I need to mine Polished Blackstone Stairs?
+          answer: |
+              A wooden pickaxe or better. Without a pickaxe, the block
+              breaks but drops nothing.
+        - question: Can stairs be placed upside down?
+          answer: |
+              Yes. Placing them against the upper half of a block face
+              flips their orientation, letting them form ceilings.
+        - question: Are Polished Blackstone Stairs waterloggable?
+          answer: |
+              Yes, they can hold a water source while placed, useful for
+              underwater or Nether-hub builds.
+        - question: Do stairs block redstone or light differently than a full block?
+          answer: |
+              Yes. Their partial shape lets light and some signals pass
+              through the open side, unlike the fully opaque solid block.
     data_version: "1.21.5"
 ---
 

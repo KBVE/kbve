@@ -1,5 +1,6 @@
 ---
 title: Piston
+template: splash
 description: |
     Minecraft Piston — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 138
     ref: piston
     slug: piston
+    content_rev: 1
     display_name: Piston
     material: redstone
     hardness: 1.5
     blast_resistance: 1.5
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: piston
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - redstone
+        - mechanism
+        - automation
+    about:
+        description: |
+            A piston is a mechanical redstone block that pushes most blocks and
+            entities one space when it receives a redstone signal. It can move
+            up to twelve blocks at once and retracts its head when the signal is
+            removed.
+        lore: |
+            The regular piston only pushes; its sticky variant, made by adding a
+            slimeball, can also pull blocks back. Pistons power flying machines,
+            hidden doors, logic gates, and countless redstone contraptions.
+    uses:
+        - title: Block Movement
+          ref: piston
+          detail: |
+              Pushes up to twelve blocks in a line when powered, used for hidden
+              doors, bridges, and automated farms.
+        - title: Redstone Mechanisms
+          ref: piston
+          detail: |
+              A core component of logic gates, flying machines, and compact
+              redstone circuits.
+    found_in:
+        - location: Crafting
+          detail: Crafted from 3 wooden planks, 4 cobblestone, 1 iron ingot, and 1 redstone dust.
+    faq:
+        - question: What tool do I need to mine a piston?
+          answer: |
+              A pickaxe breaks it fastest, but a piston always drops itself no
+              matter how it is broken.
+        - question: How many blocks can a piston push?
+          answer: |
+              Up to twelve blocks at once. It cannot push more than twelve, nor
+              can it move bedrock, obsidian, command blocks, end portals,
+              enchanting tables, and other special blocks.
+        - question: How is a regular piston different from a sticky piston?
+          answer: |
+              A regular piston only pushes blocks. A sticky piston, crafted by
+              adding a slimeball, both pushes and pulls the block in front of
+              its head.
+        - question: What is quasi-connectivity?
+          answer: |
+              A Java Edition quirk where a piston can be powered from the space
+              above its head, not just adjacent sides, enabling many advanced
+              redstone designs.
     data_version: "1.21.5"
 ---
 

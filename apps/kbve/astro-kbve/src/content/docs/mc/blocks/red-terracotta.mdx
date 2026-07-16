@@ -1,5 +1,6 @@
 ---
 title: Red Terracotta
+template: splash
 description: |
     Minecraft Red Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 466
     ref: red_terracotta
     slug: red-terracotta
+    content_rev: 1
     display_name: Red Terracotta
     material: stone
     hardness: 1.25
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Red Terracotta is one of sixteen dyed terracotta variants,
+            made by dyeing plain terracotta red. It shares terracotta's
+            resistance to fire and explosions and is commonly used as a
+            durable, colorful building block.
+        lore: |
+            Terracotta was originally added as "stained clay" in Java
+            Edition 1.6.1 and renamed to terracotta in 1.12.
+    uses:
+        - title: Glazed Terracotta
+          ref: red_glazed_terracotta
+          detail: |
+              Smelt Red Terracotta in a furnace or blast furnace to
+              produce Red Glazed Terracotta, which has a directional
+              patterned texture.
+    found_in:
+        - location: Badlands biomes
+          detail: Naturally generates in the layered strata characteristic of badlands terrain.
+        - location: Crafting
+          detail: Craft from Terracotta plus Red Dye to produce Red Terracotta.
+    faq:
+        - question: What tool do I need to mine Red Terracotta?
+          answer: |
+              Any pickaxe. Mining without a pickaxe drops nothing.
+        - question: Does Red Terracotta burn?
+          answer: |
+              No. Like all terracotta, it does not catch fire or burn
+              away, unlike wool or wood blocks.
+        - question: Can I turn Red Terracotta into Glazed Terracotta?
+          answer: |
+              Yes, smelting it in a furnace produces Red Glazed
+              Terracotta.
+        - question: Where does Red Terracotta generate naturally?
+          answer: |
+              In badlands biomes, layered alongside other terracotta
+              colors, and rarely in some village structures.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Fire Charge
+template: splash
 description: |
     Minecraft Fire Charge — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1150
     ref: fire_charge
     slug: fire-charge
+    content_rev: 1
     display_name: Fire Charge
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A fire charge is a consumable item that acts as a single-use alternative to flint and steel,
+            instantly creating fire when used. It can also be loaded into a dispenser, which launches it as a
+            projectile fireball, and it is crafted from blaze powder, coal or charcoal, and gunpowder.
+        lore: |
+            A smoldering ember bound in gunpowder and coal, ready to ignite with a single throw.
+    faq:
+        - question: Can I use a fire charge like flint and steel?
+          answer: |
+              Yes, it lights fire the same way, but it is consumed after one use instead of being reusable
+              like flint and steel.
+        - question: Where is the best place to find fire charges early on?
+          answer: |
+              Ruined portal chests are the most reliable source, with roughly a 46% chance to contain one.
+              They can also be crafted from blaze powder, coal or charcoal, and gunpowder, or bartered from
+              piglins.
+        - question: What makes fire charges useful beyond lighting fires?
+          answer: |
+              Dispensers can fire them as small fireball projectiles, letting them prime TNT, ignite nether
+              portals or campfires, and detonate creepers from a distance.
+        - question: Do blazes drop fire charges?
+          answer: |
+              No. Despite shooting fireballs themselves, blazes do not drop fire charges as loot when defeated.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

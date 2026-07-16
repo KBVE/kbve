@@ -1,5 +1,6 @@
 ---
 title: Orange Candle
+template: splash
 description: |
     Minecraft Orange Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 905
     ref: orange_candle
     slug: orange-candle
+    content_rev: 1
     display_name: Orange Candle
     material: stone
     hardness: 0.1
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: orange_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            The Orange Candle is a dyed decorative light source that can
+            be stacked up to four to a block and lit for ambient lighting
+            and crackling sound and fire particle effects.
+        lore: |
+            Candles were revealed at Minecraft Live 2020 alongside the
+            deep dark biome concept and shipped in the Caves & Cliffs
+            update (1.17), with dyed colors including orange added for variety.
+    uses:
+        - title: Cake Decoration
+          ref: orange_candle_cake
+          detail: |
+              Place on top of an uneaten cake to create a lightable
+              birthday-cake block.
+        - title: Ambient Lighting
+          ref: orange_candle
+          detail: |
+              Stack up to four orange candles in one block space and light
+              them for a combined light level up to 12.
+    found_in:
+        - location: Crafting table
+          detail: Craft from a regular candle and orange dye.
+    faq:
+        - question: What tool do I need to mine an Orange Candle?
+          answer: |
+              None — it breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: How much light does it give off?
+          answer: |
+              None while unlit; once lit each candle emits a light level of
+              3, up to 12 when four are stacked in one block.
+        - question: Can I change its color again after dyeing?
+          answer: |
+              No — once a candle is dyed a color it is permanent and cannot
+              be re-dyed or reverted.
+        - question: Is it flammable?
+          answer: |
+              No, the candle block itself does not catch fire or burn, even
+              while lit.
     data_version: "1.21.5"
 ---
 

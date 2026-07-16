@@ -1,5 +1,6 @@
 ---
 title: Chiseled Nether Bricks
+template: splash
 description: |
     Minecraft Chiseled Nether Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 900
     ref: chiseled_nether_bricks
     slug: chiseled-nether-bricks
+    content_rev: 1
     display_name: Chiseled Nether Bricks
     material: nether
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: chiseled_nether_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+    about:
+        description: |
+            Chiseled Nether Bricks is a decorative variant of Nether Bricks
+            carved with a wither skeleton face motif, used to add detail to
+            Nether fortress-style builds.
+        lore: |
+            Its texture nods to the wither skeletons that patrol Nether
+            fortresses, tying the block's look to its native biome.
+    uses:
+        - title: Decorative building
+          ref: nether_brick_slab
+          detail: |
+              Stack two Nether Brick Slabs vertically, or stonecut a Nether
+              Bricks block, to produce Chiseled Nether Bricks for trim and
+              detailing.
+    found_in:
+        - location: Player-crafted
+          detail: Not found naturally generated; obtained by crafting or stonecutting Nether Bricks.
+        - location: The Nether
+          detail: Nether Bricks (the base material) are gathered from Nether fortresses.
+    faq:
+        - question: What tool do I need to mine Chiseled Nether Bricks?
+          answer: |
+              Any pickaxe, starting from wood. Mining without a pickaxe
+              yields no drop.
+        - question: Does Chiseled Nether Bricks generate naturally?
+          answer: |
+              No. It must be crafted from Nether Brick Slabs or cut from
+              Nether Bricks at a stonecutter; it does not spawn in Nether
+              fortresses on its own.
+        - question: Is it flammable?
+          answer: |
+              No. Like other brick and stone blocks it does not burn or
+              catch fire from nearby lava.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops itself as a single block once mined with
+              any pickaxe.
     data_version: "1.21.5"
 ---
 

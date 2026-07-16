@@ -1,5 +1,6 @@
 ---
 title: Oak Wood
+template: splash
 description: |
     Minecraft Oak Wood — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 71
     ref: oak_wood
     slug: oak-wood
+    content_rev: 1
     display_name: Oak Wood
     material: wood
     hardness: 2
@@ -24,10 +26,62 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oak_wood
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Oak Wood is a bark-covered block made of four oak logs,
+            textured with log rings on every face. It is purely
+            decorative, functioning identically to Oak Log for crafting
+            and building purposes.
+        lore: |
+            The block was originally an accidental byproduct of
+            rotatable logs added in version 1.3.1, and was renamed from
+            "Bark" to "Wood" in the 1.13 Flattening update.
+    uses:
+        - title: Building & Fuel
+          ref: oak_planks
+          detail: |
+              Used as a bark-textured building block, smelted into
+              charcoal, or burned as furnace fuel at 1.5 items per
+              block.
+        - title: Stripped Variant
+          ref: stripped_oak_wood
+          detail: |
+              Stripping with an axe converts it to Stripped Oak Wood,
+              removing the bark texture for a cleaner plank-like look.
+    found_in:
+        - location: Crafted from Oak Logs
+          detail: Four oak logs arranged in a square craft three oak wood blocks.
+        - location: Village Structures
+          detail: Occasionally used in generated village buildings alongside oak logs.
+    faq:
+        - question: What tool do I need to mine Oak Wood?
+          answer: |
+              None required — any tool works and an axe is fastest.
+        - question: How is Oak Wood different from Oak Log?
+          answer: |
+              Oak Wood shows the bark texture on all six faces, while
+              Oak Log shows the ring texture only on its two end faces.
+              They are interchangeable for crafting and fuel.
+        - question: Does Oak Wood burn?
+          answer: |
+              Yes. It is flammable and can be used as furnace fuel or
+              burn away if exposed to fire or lava.
+        - question: Can Oak Wood be stripped?
+          answer: |
+              Yes. Right-clicking it with an axe turns it into Stripped
+              Oak Wood.
     data_version: "1.21.5"
 ---
 

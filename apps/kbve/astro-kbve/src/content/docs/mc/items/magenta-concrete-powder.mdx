@@ -1,5 +1,6 @@
 ---
 title: Magenta Concrete Powder
+template: splash
 description: |
     Minecraft Magenta Concrete Powder — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 603
     ref: magenta_concrete_powder
     slug: magenta-concrete-powder
+    content_rev: 1
     display_name: Magenta Concrete Powder
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Magenta Concrete Powder is a gravity-affected building block crafted from magenta dye, sand, and gravel. It behaves like sand until it touches water, at which point it instantly solidifies into solid Magenta Concrete. Builders use it to pour hardening structures into place near lakes, rivers, or waterlogged blocks.
+        lore: |
+            A shapeless blend of dye and aggregate that waits only for water to become permanent stone.
+    faq:
+        - question: How do you craft Magenta Concrete Powder?
+          answer: |
+              Combine one magenta dye with four sand blocks and four gravel blocks in a shapeless crafting recipe; ingredient placement does not matter.
+        - question: What happens when Magenta Concrete Powder touches water?
+          answer: |
+              It immediately solidifies into a block of Magenta Concrete on contact with any water source, flowing water, or waterlogged block, but not from rain or splash water bottles.
+        - question: Does Magenta Concrete Powder fall like sand?
+          answer: |
+              Yes, it is affected by gravity and falls until it lands on a solid block or hits water, at which point it either settles or converts to concrete.
+        - question: Is Magenta Concrete Powder renewable?
+          answer: |
+              Yes, since dye, sand, and gravel are all renewable resources, though sand is practically limited without extensive gravel-to-sand conversion or wandering trader purchases.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

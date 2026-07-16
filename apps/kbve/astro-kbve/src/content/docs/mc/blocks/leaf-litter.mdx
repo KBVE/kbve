@@ -1,5 +1,6 @@
 ---
 title: Leaf Litter
+template: splash
 description: |
     Minecraft Leaf Litter — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 1051
     ref: leaf_litter
     slug: leaf-litter
+    content_rev: 1
     display_name: Leaf Litter
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: leaf_litter
+          qty_min: 1
+          qty_max: 4
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+        - plant
+    about:
+        description: |
+            Leaf Litter is a thin, non-solid groundcover block that scatters
+            fallen leaves across forest floors. Up to four pieces can occupy
+            a single block space, and its color shifts with the surrounding
+            biome's foliage palette.
+        lore: |
+            Leaf Litter was added in Java Edition 1.21.5 (2025) as part of
+            the deeper-forest terrain overhaul.
+    uses:
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Placing Leaf Litter in a composter has a chance to raise its
+              level by one, eventually yielding bone meal.
+        - title: Furnace Fuel
+          ref: coal
+          detail: |
+              Each piece burns for about 5 seconds, enough to smelt a small
+              number of items.
+    found_in:
+        - location: Forests, dark forests, and dappled forests
+          detail: Generates naturally as groundcover beneath trees.
+        - location: Wooded badlands
+          detail: Also scatters across the ground in this biome variant.
+    faq:
+        - question: Do I need a special tool to break Leaf Litter?
+          answer: |
+              No. It breaks instantly with any tool or bare hands and always
+              drops itself.
+        - question: Does Leaf Litter burn?
+          answer: |
+              Yes, it is flammable and can catch fire from nearby flames or
+              lava.
+        - question: Can I stack multiple Leaf Litter in one space?
+          answer: |
+              Yes, up to four layers can occupy the same block position,
+              increasing the drop count when broken.
+        - question: Is Leaf Litter useful for anything besides decoration?
+          answer: |
+              Yes, it works as composter material and as a weak furnace fuel.
     data_version: "1.21.5"
 ---
 

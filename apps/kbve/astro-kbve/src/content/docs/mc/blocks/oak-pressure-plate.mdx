@@ -1,5 +1,6 @@
 ---
 title: Oak Pressure Plate
+template: splash
 description: |
     Minecraft Oak Pressure Plate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 248
     ref: oak_pressure_plate
     slug: oak-pressure-plate
+    content_rev: 1
     display_name: Oak Pressure Plate
     material: redstone
     hardness: 0.5
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oak_pressure_plate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Oak Pressure Plate is a redstone component that emits a signal
+            when a player, mob, item, or arrow rests on it. It is crafted
+            from two Oak Planks and outputs the maximum signal strength of
+            15 while activated.
+        lore: |
+            Pressure plates were introduced early on as one of the first
+            simple redstone triggers, alongside levers and buttons.
+    uses:
+        - title: Redstone Circuits
+          ref: redstone
+          detail: |
+              Placed on floors or paths to trigger doors, dispensers, traps,
+              or any redstone contraption when stepped on.
+        - title: Villager Farms
+          ref: oak_door
+          detail: |
+              Commonly paired with doors so villagers and players can open
+              them automatically by walking over the plate.
+    found_in:
+        - location: Village houses
+          detail: Naturally generates in plains-style village buildings, often near doors.
+        - location: Trial Chambers
+          detail: Also found as a trigger mechanism inside trial chamber rooms.
+        - location: Crafted from planks
+          detail: Two matching wood planks placed vertically in a crafting grid craft one plate.
+    faq:
+        - question: What entities activate a pressure plate?
+          answer: |
+              Players, mobs, dropped items, and arrows can all trigger a
+              wooden pressure plate.
+        - question: How strong is the redstone signal?
+          answer: |
+              It outputs the maximum signal strength of 15 while something
+              is on top of it, and stops the moment it is empty.
+        - question: Is Oak Pressure Plate flammable?
+          answer: |
+              No, unlike most other oak wood blocks it does not catch fire.
+        - question: What tool should I use to mine it?
+          answer: |
+              An axe breaks it fastest, but any tool or bare hands works
+              since no tool tier is required for the drop.
     data_version: "1.21.5"
 ---
 

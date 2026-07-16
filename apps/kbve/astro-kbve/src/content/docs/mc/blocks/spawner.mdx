@@ -1,5 +1,6 @@
 ---
 title: Monster Spawner
+template: splash
 description: |
     Minecraft Monster Spawner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 185
     ref: spawner
     slug: spawner
+    content_rev: 1
     display_name: Monster Spawner
     material: stone
     hardness: 5
     blast_resistance: 5
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 1
     transparent: true
@@ -27,7 +29,52 @@ mc_block:
     renewable: false
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - pickaxe_mineable
+        - structure
+        - redstone_component
+        - spawns_mobs
+    about:
+        description: |
+            A monster spawner is a cage-like block that continuously
+            summons the mob displayed spinning inside it whenever a player
+            is nearby and the surrounding light and space conditions are
+            met. It cannot be picked up in Survival — even with Silk Touch —
+            and breaking it with a pickaxe yields experience but no block.
+        lore: |
+            Spawners are placed only by world generation, guarding the
+            hostile heart of dungeons, mineshafts, and fortresses.
+    uses:
+        - title: Experience Farming
+          detail: |
+              Left intact and lit correctly, a spawner produces an
+              endless supply of mobs, making it the core of many XP and
+              mob-drop farms.
+        - title: Experience on Break
+          detail: |
+              Mining a spawner with a pickaxe drops 15–43 experience,
+              though the block itself is destroyed.
+    found_in:
+        - location: Dungeons (monster rooms)
+          detail: Spawns zombies, skeletons, or spiders in cobblestone rooms.
+        - location: Mineshafts
+          detail: Cave spider spawners sit within cobweb-filled corridors.
+        - location: Strongholds and Nether structures
+          detail: Silverfish in end portal rooms, blazes in nether fortresses, magma cubes in bastion remnants.
+    faq:
+        - question: Can I pick up a spawner with Silk Touch?
+          answer: |
+              No. A monster spawner cannot be collected in Survival by any
+              means, including Silk Touch — it only drops experience.
+        - question: How do I stop a spawner?
+          answer: |
+              Place torches or other light sources in and around it to
+              raise the light level, or fill the surrounding space so mobs
+              have nowhere to spawn.
+        - question: Can I change what a spawner spawns?
+          answer: |
+              Only in Creative mode, by using a spawn egg on the block. In
+              Survival the mob type is fixed by world generation.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Breeze Rod
+template: splash
 description: |
     Minecraft Breeze Rod — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 1154
     ref: breeze_rod
     slug: breeze-rod
+    content_rev: 1
     display_name: Breeze Rod
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Breeze Rod is a renewable crafting material dropped exclusively by the Breeze mob found in
+            Trial Chambers. A slain Breeze drops 1-2 rods, with Looting increasing the yield up to 8
+            per kill, but only when the killing blow comes from a player or tamed wolf.
+        lore: |
+            A gust-charged relic left behind by the wind-summoning Breeze, crackling with the same air magic the mob wields in combat.
+    faq:
+        - question: How do you get Breeze Rods?
+          answer: |
+              Kill a Breeze mob. It drops 1-2 rods by default, or up to 4-8 with Looting III, but only
+              if the finishing blow is dealt by a player or a tamed wolf.
+        - question: What are Breeze Rods used for?
+          answer: |
+              They craft into Wind Charges (4 per rod), combine with a Heavy Core to make a Mace,
+              duplicate the Flow Armor Trim on a smithing table, and brew into a Potion of Wind Charging.
+        - question: Can Breeze Rods repair a Mace?
+          answer: |
+              Yes, Breeze Rods can be used in an anvil to repair a damaged Mace's durability.
+        - question: When were Breeze Rods added to Minecraft?
+          answer: |
+              They were introduced alongside the Breeze mob in Java Edition snapshot 24w11a and became
+              a permanent part of the game in the Minecraft 1.21 release.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

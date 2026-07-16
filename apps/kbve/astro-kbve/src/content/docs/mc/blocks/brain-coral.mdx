@@ -1,5 +1,6 @@
 ---
 title: Brain Coral
+template: splash
 description: |
     Minecraft Brain Coral — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 731
     ref: brain_coral
     slug: brain-coral
+    content_rev: 1
     display_name: Brain Coral
     material: stone
     hardness: 0
@@ -24,10 +26,52 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brain_coral
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - coral
+    about:
+        description: |
+            Brain Coral is one of five coral block variants found in warm
+            ocean reefs. It must stay adjacent to water or it dies within a
+            few seconds, turning into Dead Brain Coral. It breaks instantly
+            regardless of tool and only drops itself when mined with Silk
+            Touch.
+        lore: |
+            Brain coral's pink, wrinkled look mirrors the real-world coral
+            of the same name, one of five reef corals modeled after actual
+            species.
+    uses:
+        - title: Decoration
+          ref: brain_coral
+          detail: |
+              Used purely as a decorative building block for underwater
+              structures, aquariums, and reef terrain.
+    found_in:
+        - location: Warm ocean coral reefs
+          detail: Generates naturally as part of coral reef structures in warm ocean biomes.
+        - location: Bone-mealed reef blocks
+          detail: Applying bone meal to dirt, sand, gravel, or clay underwater in a warm ocean can grow new coral, making it renewable.
+    faq:
+        - question: Do I need Silk Touch to collect Brain Coral?
+          answer: |
+              Yes. Mining it without Silk Touch destroys it with no drop;
+              only a Silk Touch tool collects the block itself.
+        - question: What happens if Brain Coral is removed from water?
+          answer: |
+              It dies within a few seconds and turns into Dead Brain
+              Coral, an irreversible change.
+        - question: Is Brain Coral renewable?
+          answer: |
+              Yes, since 1.13.1 bone meal can grow new coral on suitable
+              blocks in warm ocean biomes.
     data_version: "1.21.5"
 ---
 

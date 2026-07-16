@@ -1,7 +1,10 @@
 ---
 title: Emerald Ore
+template: splash
 description: |
-    Minecraft Emerald Ore — vanilla 1.21.5 block record (auto-generated).
+    Minecraft Emerald Ore — the rarest overworld ore, found only in
+    mountain biomes and prized for villager trading. Mining requirements,
+    spawn heights, drops, and uses.
 sidebar:
     label: Emerald Ore
     hidden: true
@@ -13,12 +16,13 @@ mc_block:
     id: 367
     ref: emerald_ore
     slug: emerald-ore
+    content_rev: 1
     display_name: Emerald Ore
     material: stone
     hardness: 3
     blast_resistance: 3
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 3
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +30,62 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: emerald
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: emerald_ore
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_iron_tool
+        - overworld
+        - ore
+    about:
+        description: |
+            Emerald Ore is the rarest overworld ore, generating only in
+            mountain-type biomes such as windswept hills and jagged peaks.
+            It requires an iron pickaxe or better and yields a single
+            emerald per block, the currency used in villager trading.
+        lore: |
+            Emerald Ore shares its ancestry with Diamond Ore — early
+            development builds of Diamond Ore were internally called
+            "emerald ore" before the two became separate blocks.
+    uses:
+        - title: Villager Trading
+          ref: emerald
+          detail: |
+              Emeralds are the universal currency for trading with
+              villagers and wandering traders, exchanged for tools,
+              enchantments, food, and rare items.
+    found_in:
+        - location: Mountain biomes
+          detail: Generates in windswept hills, jagged peaks, snowy slopes, groves, and similar mountain biomes, in blobs of 0-3 blocks.
+        - location: Y = -16 to 320
+          detail: Peaks around Y=232 in the overworld; a deepslate variant generates from Y=-16 to 8.
+    faq:
+        - question: What tool do I need to mine Emerald Ore?
+          answer: |
+              An iron pickaxe or better. Wood, gold, and stone pickaxes
+              break the block but drop nothing.
+        - question: Does Fortune increase Emerald drops?
+          answer: |
+              Yes. Fortune can increase the single emerald drop up to
+              4 with higher Fortune levels.
+        - question: Where is the best place to find Emerald Ore?
+          answer: |
+              Exclusively in mountain biomes — it does not generate
+              underground outside of those biomes, making mountain
+              exploration the only reliable way to find it.
+        - question: What is Emerald Ore used for besides emeralds?
+          answer: |
+              Nothing else — its sole purpose is to yield emeralds for
+              villager and wandering trader commerce.
     data_version: "1.21.5"
 ---
 

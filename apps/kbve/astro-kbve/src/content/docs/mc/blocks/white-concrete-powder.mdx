@@ -1,5 +1,6 @@
 ---
 title: White Concrete Powder
+template: splash
 description: |
     Minecraft White Concrete Powder — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 694
     ref: white_concrete_powder
     slug: white-concrete-powder
+    content_rev: 1
     display_name: White Concrete Powder
     material: dirt
     hardness: 0.5
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: white_concrete_powder
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+        - falling_block
+    about:
+        description: |
+            White Concrete Powder is a gravity-affected block made from sand,
+            gravel, and white dye. It falls like sand or gravel and instantly
+            hardens into solid White Concrete on contact with water.
+        lore: |
+            Concrete powder was revealed by Jeb in February 2017 and shipped
+            in Java Edition 1.12, giving players vivid, non-flammable
+            building colors.
+    uses:
+        - title: White Concrete
+          ref: white_concrete
+          detail: |
+              Solidifies into White Concrete the instant it touches a water
+              source, flowing water, or a waterlogged block.
+    found_in:
+        - location: Crafted by the player
+          detail: One white dye plus four sand and four gravel craft eight concrete powder.
+        - location: Piglin bartering
+          detail: Piglins can offer gravel used to craft concrete powder, making it renewable.
+    faq:
+        - question: What tool mines White Concrete Powder fastest?
+          answer: |
+              A shovel, though it can be mined with any tool or by hand with
+              no minimum tier requirement.
+        - question: Does White Concrete Powder fall like sand?
+          answer: |
+              Yes, it is affected by gravity and falls until it lands on a
+              solid block or dissolves in water.
+        - question: How do I turn it into solid concrete?
+          answer: |
+              Let it touch any water source, flowing water, or a waterlogged
+              block; it converts instantly into White Concrete.
+        - question: Is White Concrete Powder renewable?
+          answer: |
+              Yes. Sand is infinite and gravel can be obtained renewably from
+              piglin bartering, so the dye is the only limiting ingredient.
     data_version: "1.21.5"
 ---
 

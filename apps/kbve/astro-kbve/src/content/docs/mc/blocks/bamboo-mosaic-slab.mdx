@@ -1,5 +1,6 @@
 ---
 title: Bamboo Mosaic Slab
+template: splash
 description: |
     Minecraft Bamboo Mosaic Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 577
     ref: bamboo_mosaic_slab
     slug: bamboo-mosaic-slab
+    content_rev: 1
     display_name: Bamboo Mosaic Slab
     material: wood
     hardness: 2
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo_mosaic_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Bamboo Mosaic Slab is a decorative half-height block that
+            carries the crosshatch weave pattern of Bamboo Mosaic. It
+            does not generate naturally and exists purely as a
+            player-crafted building material.
+        lore: |
+            Announced at Minecraft Live 2022 and released with the 1.20
+            Trails & Tales update alongside the rest of the bamboo wood set.
+    uses:
+        - title: Building and detailing
+          ref: bamboo_mosaic_slab
+          detail: |
+              Placed as single or double (top/bottom) slabs for stairs,
+              trim, and half-height detailing that matches Bamboo Mosaic
+              walls and floors.
+        - title: Furnace fuel
+          ref: bamboo_mosaic_slab
+          detail: |
+              Burns in a furnace like other wooden slabs, smelting a
+              fraction of an item per slab.
+    found_in:
+        - location: Player crafting only
+          detail: Crafted from 3 Bamboo Mosaic blocks, which yields 6 slabs; never generates naturally.
+    faq:
+        - question: What tool do I need to mine a Bamboo Mosaic Slab?
+          answer: |
+              None — any tool or bare hands work, though an axe is fastest.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No, it always drops itself as a single slab regardless of
+              enchantments.
+        - question: Does it burn in fire?
+          answer: |
+              Yes, like most wood-based blocks it is flammable and will
+              catch fire from lava or nearby flames.
+        - question: Where do I get Bamboo Mosaic Slabs?
+          answer: |
+              Only by crafting — 3 Bamboo Mosaic blocks in a crafting
+              grid produce 6 slabs. They do not generate in any structure.
     data_version: "1.21.5"
 ---
 

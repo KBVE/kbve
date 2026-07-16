@@ -1,5 +1,6 @@
 ---
 title: Rabbit's Foot
+template: splash
 description: |
     Minecraft Rabbit's Foot — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1184
     ref: rabbit_foot
     slug: rabbit-foot
+    content_rev: 1
     display_name: Rabbit's Foot
     category: food
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Rabbit's Foot is a brewing ingredient dropped by rabbits, husks riding camels, and foxes
+            that occasionally spawn carrying one. Its main use is brewing an Awkward Potion into a
+            Potion of Leaping, which grants Jump Boost.
+        lore: |
+            Long considered a good-luck charm in folklore, the item has been reworked several times
+            since its introduction in 2014 to expand its brewing and taming uses.
+    faq:
+        - question: How do you get a Rabbit's Foot?
+          answer: |
+              Rabbits have a 10% chance to drop one on death, increased 3% per Looting level; husks
+              riding camels and certain foxes can also drop one.
+        - question: What is Rabbit's Foot used for?
+          answer: |
+              It is brewed with an Awkward Potion to create a Potion of Leaping, which grants the
+              Jump Boost effect.
+        - question: Can you trade Rabbit's Foot with villagers?
+          answer: |
+              Yes, cleric villagers buy two Rabbit's Feet for one emerald.
+        - question: Does Rabbit's Foot have any use besides brewing?
+          answer: |
+              Yes, it can be used to tame and heal camel-riding husks, which will then follow a
+              player holding one.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

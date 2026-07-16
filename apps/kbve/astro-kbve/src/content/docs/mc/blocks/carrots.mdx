@@ -1,5 +1,6 @@
 ---
 title: Carrots
+template: splash
 description: |
     Minecraft Carrots — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 409
     ref: carrots
     slug: carrots
+    content_rev: 1
     display_name: Carrots
     material: plant
     hardness: 0
@@ -24,10 +26,66 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: carrot
+          qty_min: 2
+          qty_max: 5
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - overworld
+        - crop
+    about:
+        description: |
+            Carrots is the crop block grown from a planted carrot on
+            farmland. It passes through eight growth stages before it can
+            be harvested for a handful of carrots.
+        lore: |
+            Carrots existed only as a rare zombie drop before update
+            12w36a made them a fully farmable crop.
+    uses:
+        - title: Golden Carrot
+          ref: golden_carrot
+          detail: |
+              Combine a carrot with eight gold nuggets to craft a golden
+              carrot, a stronger food item and brewing ingredient.
+        - title: Carrot on a Stick
+          ref: carrot_on_a_stick
+          detail: |
+              Craft with a fishing rod to make a tool for steering pigs
+              and, in Bedrock, striped horses.
+        - title: Rabbit Stew
+          ref: rabbit_stew
+          detail: |
+              Combine a carrot with cooked rabbit, a baked potato,
+              mushroom, and bowl for a filling stew.
+    found_in:
+        - location: Farmland
+          detail: Grown by planting a carrot on hydrated or unhydrated tilled farmland.
+        - location: Village Farms
+          detail: Naturally spawn in roughly 30% of plains villages and 10% of snowy villages.
+        - location: Pillager Outposts and Shipwrecks
+          detail: Loot chests contain raw carrots at high rates (57.5% and 42.1% respectively).
+    faq:
+        - question: What tool do I need to harvest carrots?
+          answer: |
+              None. A fully grown carrot crop breaks instantly with any
+              tool or bare hands.
+        - question: Does Fortune increase carrot yield?
+          answer: |
+              Yes. Higher Fortune levels raise the average number of
+              carrots dropped from a mature crop, from about 3.7 with no
+              enchantment up to about 5.4 with Fortune III.
+        - question: How did players get carrots before they were farmable?
+          answer: |
+              Carrots originally dropped rarely from killed zombies before
+              becoming a plantable crop in a later update.
+        - question: What light level do carrots need to grow?
+          answer: |
+              A light level of 9 or higher is needed for the crop to
+              progress through its growth stages.
     data_version: "1.21.5"
 ---
 

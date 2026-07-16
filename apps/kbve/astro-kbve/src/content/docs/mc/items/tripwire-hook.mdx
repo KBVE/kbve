@@ -1,5 +1,6 @@
 ---
 title: Tripwire Hook
+template: splash
 description: |
     Minecraft Tripwire Hook — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 707
     ref: tripwire_hook
     slug: tripwire-hook
+    content_rev: 1
     display_name: Tripwire Hook
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A tripwire hook is a redstone component crafted from iron ingots, a stick,
+            and a wooden plank. Two hooks connected by string form a tripwire circuit
+            that emits a redstone signal at power level 15 when an entity crosses the
+            line, making it a common building block for traps.
+        lore: |
+            The tripwire hook was teased through cryptic tweets from Dinnerbone in May
+            2012, inspired by his fiancee MissMarzenia, ahead of the 1.3.1 update.
+    faq:
+        - question: How do I set up a tripwire circuit?
+          answer: |
+              Place two tripwire hooks facing each other on solid blocks, with 1 to 40
+              blocks of string connecting them in a straight line.
+        - question: What triggers a tripwire?
+          answer: |
+              Most entities such as players, mobs, and items intersect the tripwire
+              line's hitbox and trigger it; spectators and area effect clouds cannot.
+        - question: Can I remove a tripwire without setting it off?
+          answer: |
+              Yes, using shears on the string destroys it without triggering the circuit,
+              though the hook's visible state will still change.
+        - question: What is a tripwire hook used to craft?
+          answer: |
+              It is an ingredient for crossbows and trapped chests, and can be traded to
+              fletcher villagers at an 8:1 emerald ratio.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

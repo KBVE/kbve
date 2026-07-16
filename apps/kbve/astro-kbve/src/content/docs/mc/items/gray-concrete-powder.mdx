@@ -1,5 +1,6 @@
 ---
 title: Gray Concrete Powder
+template: splash
 description: |
     Minecraft Gray Concrete Powder — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 608
     ref: gray_concrete_powder
     slug: gray-concrete-powder
+    content_rev: 1
     display_name: Gray Concrete Powder
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Gray concrete powder is a gravity-affected building block crafted from gray dye, four sand blocks, and four gravel blocks in a shapeless recipe that yields eight blocks. It falls when unsupported like sand or gravel, and instantly solidifies into gray concrete the moment it contacts flowing water, a still water source, or a waterlogged block.
+        lore: |
+            First teased by developer Jeb in 2017, concrete powder transformed construction by pairing gravity-based placement with instant water-activated solidification.
+    faq:
+        - question: Does rain or a water bottle turn gray concrete powder into concrete?
+          answer: |
+              No. Only flowing water, still water source blocks, or waterlogged blocks trigger the transformation; rain and splash water bottles have no effect on concrete powder.
+        - question: Is gray concrete powder a renewable resource?
+          answer: |
+              Technically yes, since all of its ingredients are renewable, but practically limited because sand is only renewably obtained from the infrequent wandering trader.
+        - question: What happens if gray concrete powder falls into water?
+          answer: |
+              It solidifies once it makes contact with the water, either mid-fall or upon landing, but it does not solidify simply from falling past water it never touches.
+        - question: Can I use red sand instead of regular sand to craft it?
+          answer: |
+              No. Red sand cannot be substituted for sand in the concrete powder recipe.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

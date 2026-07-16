@@ -1,5 +1,6 @@
 ---
 title: Potion
+template: splash
 description: |
     Minecraft Potion — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 1059
     ref: potion
     slug: potion
+    content_rev: 1
     display_name: Potion
     category: brewing
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A potion is a bottled liquid that grants a temporary status effect when drunk, taking
+            about 1.6 seconds to consume before returning an empty glass bottle. Most potions are
+            created at a brewing stand by combining water bottles, an ingredient such as nether
+            wart, and secondary modifiers like glowstone dust or redstone.
+        lore: |
+            Since the earliest cauldron-brewed concoctions of Beta 1.9, potions have let players
+            bend fire, water, and gravity itself with nothing more than a swig from a glass bottle.
+    faq:
+        - question: How do I brew a potion?
+          answer: |
+              Place water bottles in a brewing stand, add nether wart to create an awkward potion,
+              then add a specific ingredient such as a golden carrot or spider eye to produce the
+              desired effect.
+        - question: How can I make a potion stronger or last longer?
+          answer: |
+              Glowstone dust increases a potion's effect level (for example Strength I to
+              Strength II), while redstone dust extends its duration at the cost of potency.
+        - question: What is the difference between a potion, splash potion, and lingering potion?
+          answer: |
+              A regular potion must be drunk directly, a splash potion (made with gunpowder) can
+              be thrown to affect nearby entities, and a lingering potion (made with dragon's
+              breath) leaves a cloud that applies its effect over time.
+        - question: Do potions affect undead mobs differently?
+          answer: |
+              Yes. Undead mobs such as zombies and skeletons take damage from healing potions and
+              are instead healed by harming potions, reversing the usual effect.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

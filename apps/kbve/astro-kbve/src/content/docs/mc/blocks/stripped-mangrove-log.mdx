@@ -1,5 +1,6 @@
 ---
 title: Stripped Mangrove Log
+template: splash
 description: |
     Minecraft Stripped Mangrove Log — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 69
     ref: stripped_mangrove_log
     slug: stripped-mangrove-log
+    content_rev: 1
     display_name: Stripped Mangrove Log
     material: wood
     hardness: 2
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_mangrove_log
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Stripped Mangrove Log is the bark-free variant of the Mangrove
+            Log, produced by using an axe on a placed log. It keeps the
+            log's orientation-aware bark rings on the cut ends and shows
+            plain wood on the sides.
+        lore: |
+            Mangrove wood arrived with the 1.19 Wild Update as part of the
+            Mangrove Swamp biome, and its stripped variant follows the
+            same axe-stripping mechanic every other wood type uses.
+    uses:
+        - title: Mangrove Planks
+          ref: mangrove_planks
+          detail: |
+              Crafts into 4 Mangrove Planks per log, the base ingredient
+              for mangrove furniture, doors, boats, and signs.
+        - title: Stripped Mangrove Wood
+          ref: stripped_mangrove_wood
+          detail: |
+              Combine 4 Stripped Mangrove Logs in a square to craft 3
+              Stripped Mangrove Wood, the all-sides bark-free block.
+    found_in:
+        - location: Mangrove Swamp biome
+          detail: Mangrove trees generate there; their logs can be stripped with an axe after felling or in place.
+        - location: Player-stripped Mangrove Log
+          detail: Right-click a placed Mangrove Log with any axe to strip it directly.
+    faq:
+        - question: How do I strip a Mangrove Log?
+          answer: |
+              Right-click (or use) an axe on a placed Mangrove Log. This
+              consumes a small amount of the axe's durability and
+              converts the block in place.
+        - question: What tool do I need to mine Stripped Mangrove Log?
+          answer: |
+              Any tool or bare hands work; an axe is simply the fastest.
+              There is no minimum tool tier for it to drop.
+        - question: Is Stripped Mangrove Log flammable?
+          answer: |
+              Yes, it burns like other overworld wood blocks, so avoid
+              placing it near lava or open flame in builds.
+        - question: Can stripping be undone?
+          answer: |
+              No. Once a log is stripped it cannot be turned back into
+              its bark-covered form.
     data_version: "1.21.5"
 ---
 

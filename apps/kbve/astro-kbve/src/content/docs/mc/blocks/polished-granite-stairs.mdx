@@ -1,5 +1,6 @@
 ---
 title: Polished Granite Stairs
+template: splash
 description: |
     Minecraft Polished Granite Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 764
     ref: polished_granite_stairs
     slug: polished-granite-stairs
+    content_rev: 1
     display_name: Polished Granite Stairs
     material: stone
     hardness: 1.5
@@ -26,8 +28,45 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_granite_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            Polished Granite Stairs are decorative stair blocks crafted from
+            Polished Granite, letting builders create elevated pathways and
+            architectural details that match the polished stone look.
+        lore: |
+            Announced in October 2018 and added to Java Edition 1.14
+            (snapshot 18w43a) with the rest of the polished stone stair set.
+    found_in:
+        - location: Crafted from Polished Granite
+          detail: 6 Polished Granite blocks craft into 4 stairs.
+        - location: Stonecutter
+          detail: Cut 1 Granite or Polished Granite into 1 stair.
+    faq:
+        - question: What tool do I need to mine Polished Granite Stairs?
+          answer: |
+              Any wooden pickaxe or better. Mining without one drops
+              nothing.
+        - question: Do Polished Granite Stairs generate naturally?
+          answer: |
+              No. They must be crafted or cut with a stonecutter; they have
+              no natural world generation.
+        - question: Can Polished Granite Stairs be waterlogged?
+          answer: |
+              Yes, they can hold water when placed in a water source,
+              useful for underwater or half-submerged builds.
+        - question: Are Polished Granite Stairs flammable?
+          answer: |
+              No, being a stone-based block it does not burn.
     data_version: "1.21.5"
 ---
 

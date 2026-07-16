@@ -1,5 +1,9 @@
 ---
 title: 'Wraith Executioner'
+template: splash
+sidebar:
+    label: 'Wraith Executioner'
+    hidden: true
 description: |
     A spectral headsman draped in tattered judicial robes, carrying an impossibly large phantom axe that cleaves through armor and soul alike.
 ref: 'wraith-executioner'
@@ -58,7 +62,10 @@ credits: |
     Future integration: UV-ready shader for apps/kbve/isometric.
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A spectral headsman draped in tattered judicial robes, carrying an impossibly large phantom axe that cleaves through armor and soul alike.
+
+</NpcLeaf>

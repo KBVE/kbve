@@ -1,5 +1,6 @@
 ---
 title: Crimson Sign
+template: splash
 description: |
     Minecraft Crimson Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 860
     ref: crimson_sign
     slug: crimson-sign
+    content_rev: 1
     display_name: Crimson Sign
     material: nether
     hardness: 1
@@ -26,8 +28,47 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crimson_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            The Crimson Sign is a text-display block crafted from crimson
+            planks, letting players write up to four lines of customizable
+            text that can be colored with dye or made to glow.
+        lore: |
+            Nether wood signs share the reddish, otherworldly look of
+            crimson planks, standing out against overworld wood signs on
+            builds and message boards.
+    uses:
+        - title: Text Display
+          ref: crimson_planks
+          detail: |
+              Placed on the ground or a wall to show labels, directions,
+              or decoration; text can be dyed, made to glow with a glow
+              ink sac, and locked from edits by waxing with honeycomb.
+    found_in:
+        - location: Crafting
+          detail: Made from 6 crimson planks and 1 stick, yielding 3 signs.
+    faq:
+        - question: Does a Crimson Sign burn?
+          answer: |
+              No. Like all crimson wood blocks, signs made from it are
+              non-flammable in Java Edition.
+        - question: What tool do I need to mine it?
+          answer: |
+              None required — an axe is fastest, but any tool or bare
+              hands break it instantly and it always drops itself.
+        - question: Can I lock the text on a Crimson Sign?
+          answer: |
+              Yes. Waxing the sign with honeycomb prevents further edits
+              to its text while keeping the existing message.
     data_version: "1.21.5"
 ---
 

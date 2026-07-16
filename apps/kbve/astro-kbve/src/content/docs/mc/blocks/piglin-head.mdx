@@ -1,5 +1,6 @@
 ---
 title: Piglin Head
+template: splash
 description: |
     Minecraft Piglin Head — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 433
     ref: piglin_head
     slug: piglin-head
+    content_rev: 1
     display_name: Piglin Head
     material: stone
     hardness: 1
@@ -26,8 +28,63 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: piglin_head
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - nether
+        - mob_head
+        - decoration
+    about:
+        description: |
+            Piglin Head is a decorative mob head obtained only when a
+            piglin is killed by a charged creeper's explosion. It can be
+            placed on floors in 16 rotations or on walls, and worn as a
+            disguise that halves piglins' detection range.
+        lore: |
+            Added with the Nether Update, it follows the mob-head tradition
+            established by skeleton, zombie, and creeper heads, but requires
+            a charged-creeper kill rather than a simple charged-creeper
+            headshot.
+    uses:
+        - title: Piglin disguise
+          ref: piglin_head
+          detail: |
+              Wearing the head in the helmet slot reduces the distance at
+              which piglins and piglin brutes notice the player to 50% of
+              normal, useful for sneaking through bartering camps.
+        - title: Noteblock sound
+          ref: note_block
+          detail: |
+              Placing the head above a note block makes it play a piglin
+              ambient sound instead of the default instrument note.
+    found_in:
+        - location: Charged creeper explosions
+          detail: |
+              Drops only when a piglin is killed by the blast of a
+              lightning-charged creeper; not a normal mob drop.
+    faq:
+        - question: How do I get a Piglin Head?
+          answer: |
+              Have a charged (lightning-struck) creeper explode and kill a
+              piglin in the blast. The piglin then drops its head.
+        - question: What tool do I need to mine it?
+          answer: |
+              None required — any tool or bare hands can pick it back up
+              once placed.
+        - question: What does wearing it do?
+          answer: |
+              It halves the detection range piglins and piglin brutes have
+              for you, letting you move more freely near piglins or their
+              bartering areas.
+        - question: Can I enchant a Piglin Head?
+          answer: |
+              Not through normal enchanting, but an anvil can apply Curse
+              of Binding or Curse of Vanishing to it.
     data_version: "1.21.5"
 ---
 

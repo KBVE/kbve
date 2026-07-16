@@ -1,5 +1,6 @@
 ---
 title: Jungle Sign
+template: splash
 description: |
     Minecraft Jungle Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 202
     ref: jungle_sign
     slug: jungle-sign
+    content_rev: 1
     display_name: Jungle Sign
     material: wood
     hardness: 1
@@ -24,10 +26,54 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: jungle_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Jungle Sign is a non-solid block used to display up to four
+            lines of text on either the front or back face. It can be
+            placed standing on the ground or mounted to the side of a
+            block as a wall sign.
+        lore: |
+            Signs were added in Java Edition Beta 1.6 and later expanded
+            with double-sided text, dyeing, and waxing in later updates.
+    uses:
+        - title: Jungle Wall Sign
+          ref: jungle_wall_sign
+          detail: |
+              Placed against the side of a block instead of standing on
+              top, functioning identically for labeling and messages.
+    found_in:
+        - location: Crafted from Jungle Planks
+          detail: Six jungle planks and one stick in the sign pattern craft three jungle signs.
+        - location: Igloos and Villages
+          detail: Signs of various wood types generate naturally in some structures.
+    faq:
+        - question: What tool mines a jungle sign fastest?
+          answer: |
+              An axe. It also breaks with any tool or by hand, just more slowly.
+        - question: Can jungle signs burn?
+          answer: |
+              Yes. Overworld signs like jungle are flammable and can also
+              be used as furnace fuel, unlike Nether wood signs.
+        - question: How do I lock the text on a sign?
+          answer: |
+              Right-click the sign with a honeycomb to wax it, permanently
+              preventing further text edits.
+        - question: Can I change the text color?
+          answer: |
+              Yes. Dye the sign with any dye while holding it against the
+              sign, or use a glow ink sac for luminous outlined text.
     data_version: "1.21.5"
 ---
 

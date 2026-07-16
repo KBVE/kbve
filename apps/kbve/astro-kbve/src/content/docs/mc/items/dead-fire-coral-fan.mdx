@@ -1,5 +1,6 @@
 ---
 title: Dead Fire Coral Fan
+template: splash
 description: |
     Minecraft Dead Fire Coral Fan — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 647
     ref: dead_fire_coral_fan
     slug: dead-fire-coral-fan
+    content_rev: 1
     display_name: Dead Fire Coral Fan
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Dead Fire Coral Fan is a non-solid, gray decorative block created when a living Fire Coral Fan dies from exposure outside of water or is mined without Silk Touch. It can be attached to the top or sides of blocks, is waterloggable, and breaks instantly due to its zero hardness and blast resistance.
+            Unlike the living Fire Coral Fan, the dead version has no harmful touch effect and cannot be restored to its living state.
+        lore: |
+            A charred, faded fan-shaped remnant of a fire coral that once burned bright at the edge of a warm reef.
+    faq:
+        - question: How do you get a Dead Fire Coral Fan?
+          answer: |
+              Place a living Fire Coral Fan outside of water so it dies naturally, or mine a living Fire Coral Fan with a Silk Touch pickaxe, then break the dead fan with any tool.
+        - question: Does Dead Fire Coral Fan still cause fire damage?
+          answer: |
+              No, only the living Fire Coral Fan can ignite entities on contact; the dead variant is harmless.
+        - question: Can it be reverted to a living coral fan?
+          answer: |
+              No, dead coral fans are permanently dead and cannot be turned back into their living form.
+        - question: Can it be placed in water?
+          answer: |
+              Yes, it is waterloggable and can be placed on the top or sides of blocks whether submerged or on dry land.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Cyan Concrete Powder
+template: splash
 description: |
     Minecraft Cyan Concrete Powder — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 703
     ref: cyan_concrete_powder
     slug: cyan-concrete-powder
+    content_rev: 1
     display_name: Cyan Concrete Powder
     material: dirt
     hardness: 0.5
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cyan_concrete_powder
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - gravity_affected
+        - overworld
+    about:
+        description: |
+            Cyan Concrete Powder is a gravity-affected block made by combining
+            cyan dye with sand and gravel. It falls like sand and instantly
+            solidifies into solid Cyan Concrete on contact with any water,
+            making it a popular renewable building material.
+        lore: |
+            Concrete powder was teased by developer Jeb in early 2017 as a
+            mysterious color-shifting gravity block before its full reveal.
+    uses:
+        - title: Cyan Concrete
+          ref: cyan_concrete
+          detail: |
+              Touching water — a source block, flowing water, or a
+              waterlogged block — instantly converts the powder into solid
+              Cyan Concrete.
+    found_in:
+        - location: Crafting table
+          detail: Shapeless craft from cyan dye, 4 sand, and 4 gravel, yielding 8 blocks.
+        - location: Piglin bartering
+          detail: Gravel obtained from piglins keeps the recipe renewable without mining.
+    faq:
+        - question: What tool mines Cyan Concrete Powder fastest?
+          answer: |
+              A shovel. It can also be broken by hand or any tool since it
+              has very low hardness (0.5).
+        - question: Does Cyan Concrete Powder drop itself when mined?
+          answer: |
+              Yes, mining it always drops the powder block itself with no
+              tool tier or enchantment requirement.
+        - question: Why did my Cyan Concrete Powder turn into Cyan Concrete?
+          answer: |
+              It touched water. Falling powder only converts after landing
+              and receiving a block update — it will not harden mid-fall.
+        - question: Is Cyan Concrete Powder renewable?
+          answer: |
+              Yes, since both sand and gravel (via piglin bartering) and dye
+              are all renewable resources.
     data_version: "1.21.5"
 ---
 

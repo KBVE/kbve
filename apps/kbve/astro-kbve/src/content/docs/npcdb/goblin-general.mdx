@@ -1,5 +1,9 @@
 ---
 title: 'Goblin General'
+template: splash
+sidebar:
+    label: 'Goblin General'
+    hidden: true
 description: |
     Hostile warlord goblin. Chestplate, spiked crown, warpaint. Tougher than a regular Goblin, anchors larger raid waves and elite hostile garrisons.
 ref: 'goblin-general'
@@ -37,7 +41,10 @@ faction:
     faction_id: 'hostile'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Hostile warlord. Anchors elite raid waves.
+
+</NpcLeaf>

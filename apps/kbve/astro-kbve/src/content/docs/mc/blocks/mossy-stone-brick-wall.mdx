@@ -1,5 +1,6 @@
 ---
 title: Mossy Stone Brick Wall
+template: splash
 description: |
     Minecraft Mossy Stone Brick Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 794
     ref: mossy_stone_brick_wall
     slug: mossy-stone-brick-wall
+    content_rev: 1
     display_name: Mossy Stone Brick Wall
     material: stone
     hardness: 1.5
@@ -21,13 +23,61 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mossy_stone_brick_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Mossy Stone Brick Wall is a decorative wall variant of mossy
+            stone bricks, offering the same connective wall mechanics as
+            other stone walls. It requires only a wooden pickaxe or better
+            to break and drop itself.
+        lore: |
+            Its moss-covered look ties it thematically to weathered ruins,
+            and it generates naturally as part of ruined portal structures.
+    uses:
+        - title: Defensive and decorative barriers
+          ref: mossy_stone_brick_wall
+          detail: |
+              Placed like any wall block, it connects to adjacent walls,
+              fences, and solid blocks, forming a raised post where isolated
+              and a low barrier where connected on two sides.
+    found_in:
+        - location: Ruined Portals
+          detail: Generates as part of the ruined portal structure found throughout the Overworld.
+        - location: Crafted from Mossy Stone Bricks
+          detail: Six Mossy Stone Bricks in a wall pattern craft six Mossy Stone Brick Walls; a stonecutter converts one Mossy Stone Brick into one wall.
+    faq:
+        - question: What tool do I need to mine Mossy Stone Brick Wall?
+          answer: |
+              Any pickaxe, wooden tier or higher. Mining it without a
+              pickaxe destroys the block with no drop.
+        - question: Does it drop itself when mined?
+          answer: |
+              Yes. Breaking it with a suitable pickaxe always drops one
+              Mossy Stone Brick Wall, with no Silk Touch or Fortune effects
+              involved.
+        - question: Where can I find Mossy Stone Brick Wall naturally?
+          answer: |
+              It generates as part of ruined portal structures scattered
+              across the Overworld. It can also be crafted from Mossy Stone
+              Bricks.
+        - question: Can I make it myself instead of finding one?
+          answer: |
+              Yes. Craft six Mossy Stone Bricks into six walls, or run a
+              single Mossy Stone Brick through a stonecutter for a 1:1
+              conversion.
     data_version: "1.21.5"
 ---
 

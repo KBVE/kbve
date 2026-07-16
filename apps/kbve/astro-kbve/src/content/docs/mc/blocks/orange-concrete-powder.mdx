@@ -1,5 +1,6 @@
 ---
 title: Orange Concrete Powder
+template: splash
 description: |
     Minecraft Orange Concrete Powder — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 695
     ref: orange_concrete_powder
     slug: orange-concrete-powder
+    content_rev: 1
     display_name: Orange Concrete Powder
     material: dirt
     hardness: 0.5
@@ -24,10 +26,58 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: orange_concrete_powder
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - gravity_affected
+        - falling_block
+        - overworld
+    about:
+        description: |
+            Orange Concrete Powder is a gravity-affected block crafted from
+            sand, gravel, and orange dye. It instantly solidifies into solid
+            Orange Concrete the moment it touches any water, including a
+            single waterlogged block or flowing water.
+        lore: |
+            Concrete powder was teased by Mojang developer Jeb in a 2017
+            video showing a mysterious pink block turning solid on contact
+            with water.
+    uses:
+        - title: Orange Concrete
+          ref: orange_concrete
+          detail: |
+              Place or drop the powder so it touches water — a source
+              block, flowing water, or a waterlogged block — and it
+              converts into solid Orange Concrete in the same location.
+    found_in:
+        - location: Crafting table
+          detail: 4 sand + 4 gravel + 1 orange dye crafts 8 Orange Concrete Powder.
+        - location: Wandering trader
+          detail: Sand purchased from wandering traders makes the recipe fully renewable.
+    faq:
+        - question: What tool do I need to mine Orange Concrete Powder?
+          answer: |
+              None required — it can be mined by hand, though a shovel is
+              fastest. It always drops itself regardless of tool.
+        - question: Why did my Orange Concrete Powder disappear?
+          answer: |
+              It touched water and instantly converted into solid Orange
+              Concrete in place — this is the intended way to make concrete.
+        - question: Does it fall like sand or gravel?
+          answer: |
+              Yes. Orange Concrete Powder is affected by gravity and falls
+              if unsupported, just like sand and gravel.
+        - question: Is Orange Concrete Powder renewable?
+          answer: |
+              Yes, since both sand and gravel (via trading or other means)
+              and dye are renewable resources.
     data_version: "1.21.5"
 ---
 

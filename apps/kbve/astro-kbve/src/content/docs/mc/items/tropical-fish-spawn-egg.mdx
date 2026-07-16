@@ -1,5 +1,6 @@
 ---
 title: Tropical Fish Spawn Egg
+template: splash
 description: |
     Minecraft Tropical Fish Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 1132
     ref: tropical_fish_spawn_egg
     slug: tropical-fish-spawn-egg
+    content_rev: 1
     display_name: Tropical Fish Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            An item available only in Creative mode or via commands that instantly spawns a tropical fish when used on a surface. Shape, color, and pattern are randomized on each spawn, with about 90% of results landing on one of the 22 uniquely-named tropical fish variants rather than a fully random combination.
+            Since tropical fish are aquatic, using the egg out of water still spawns the mob, but it behaves best when placed directly in a body of water.
+        lore: |
+            The egg's own texture mixes a clownfish-orange base with a pale spot, hinting at the huge variety of colors and patterns it can produce.
+    faq:
+        - question: How do I obtain a Tropical Fish Spawn Egg?
+          answer: |
+              Spawn eggs cannot be found in Survival mode; they are only available by selecting them in the Creative inventory, using pick block on an existing tropical fish in Creative, or through commands.
+        - question: What does using this spawn egg produce?
+          answer: |
+              It instantly spawns a tropical fish with a randomized shape, color, and pattern; roughly 90% of spawns match one of the 22 named varieties, such as Clownfish or Blue Tang.
+        - question: Can I use it to breed or farm tropical fish?
+          answer: |
+              Tropical fish spawned from the egg behave like normal tropical fish and can be captured in a water bucket afterward, but the egg itself does not breed fish.
+        - question: Does it work outside of water?
+          answer: |
+              Using the egg on a dry surface still spawns the fish, but as an aquatic mob it will flop and eventually suffocate unless it is in or near water.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

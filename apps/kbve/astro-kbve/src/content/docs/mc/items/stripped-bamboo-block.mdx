@@ -1,5 +1,6 @@
 ---
 title: Block of Stripped Bamboo
+template: splash
 description: |
     Minecraft Block of Stripped Bamboo — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 170
     ref: stripped_bamboo_block
     slug: stripped-bamboo-block
+    content_rev: 1
     display_name: Block of Stripped Bamboo
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Block of Stripped Bamboo is created by using an axe on a regular block of bamboo, removing
+            its bark texture. It can be crafted into bamboo planks, bamboo hanging signs, and bamboo
+            shelves, and also serves as furnace fuel.
+        lore: |
+            A natural timber stripped bare, ready for the craftsperson's hands.
+    faq:
+        - question: How do I obtain a Block of Stripped Bamboo?
+          answer: |
+              Using an axe on a block of bamboo turns it into a block of stripped bamboo, or you can mine
+              an existing one with any tool, though an axe is fastest.
+        - question: What can I craft with stripped bamboo blocks?
+          answer: |
+              These blocks are ingredients for bamboo planks, bamboo hanging signs when combined with
+              iron chains, and bamboo shelves.
+        - question: Can I use stripped bamboo as fuel?
+          answer: |
+              Yes, it functions well as furnace fuel for smelting, though unlike logs it cannot be turned
+              into charcoal.
+        - question: What are the block's properties?
+          answer: |
+              It has a hardness of 2, a blast resistance of 2, is flammable near lava, and stacks up to
+              64 in the inventory.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

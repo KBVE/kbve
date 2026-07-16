@@ -1,5 +1,6 @@
 ---
 title: Green Stained Glass
+template: splash
 description: |
     Minecraft Green Stained Glass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,65 @@ mc_block:
     id: 298
     ref: green_stained_glass
     slug: green-stained-glass
+    content_rev: 1
     display_name: Green Stained Glass
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: green_stained_glass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - end
+    about:
+        description: |
+            Green Stained Glass is a transparent building block tinted
+            green, letting light and view pass through while staying
+            opaque to most mobs. It is one of sixteen dyed glass colors
+            crafted from regular glass and dye.
+        lore: |
+            Stained glass generates naturally in trial chambers, one of
+            Minecraft's newer dungeon structures.
+    uses:
+        - title: Colored Windows and Beacons
+          ref: green_stained_glass
+          detail: |
+              Used for decorative windows and, when stacked directly above
+              an active beacon, tints the beacon's light beam green.
+    found_in:
+        - location: Crafting
+          detail: Craft 4 Glass blocks with 1 Green Dye to produce 8 Green Stained Glass blocks.
+        - location: Natural generation
+          detail: Found in trial chambers, and in mixed colors within trail ruins and end cities.
+    faq:
+        - question: What tool do I need to mine Green Stained Glass?
+          answer: |
+              Any tool works, and speed does not depend on tool tier since
+              glass has no minimum tool requirement.
+        - question: Does it drop itself when mined?
+          answer: |
+              Only if mined with a Silk Touch enchanted tool; otherwise it
+              breaks with no drop, same as regular glass.
+        - question: Can I use it to color a beacon beam?
+          answer: |
+              Yes. Placing stained glass directly in the beacon's beam path
+              recolors the beam to match; multiple colors blend the result.
+        - question: How do I craft it?
+          answer: |
+              Combine 4 Glass blocks with 1 Green Dye in a crafting grid to
+              get 8 Green Stained Glass blocks.
     data_version: "1.21.5"
 ---
 

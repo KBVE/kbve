@@ -1,5 +1,6 @@
 ---
 title: Potted Red Tulip
+template: splash
 description: |
     Minecraft Potted Red Tulip — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,8 +14,9 @@ mc_block:
     id: 397
     ref: potted_red_tulip
     slug: potted-red-tulip
+    content_rev: 1
     display_name: Potted Red Tulip
-    material: stone
+    material: plant
     hardness: 0
     blast_resistance: 0
     best_tool: hand
@@ -26,8 +28,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: red_tulip
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Potted Red Tulip is a decorative variant created by placing a
+            Red Tulip into a Flower Pot. It breaks instantly with any tool
+            or by hand, and returns both the pot and the flower as
+            separate items.
+        lore: |
+            Red Tulip was added alongside the other tulip colors, giving
+            plains and meadow biomes a splash of scarlet among the grass.
+    found_in:
+        - location: Village houses
+          detail: Potted red tulips occasionally appear as decoration in generated village houses.
+        - location: Player-crafted
+          detail: Right-clicking a Flower Pot with a Red Tulip places it inside.
+    faq:
+        - question: What does breaking Potted Red Tulip drop?
+          answer: |
+              Both the Flower Pot and the Red Tulip item, recoverable
+              instantly with any tool or bare hands.
+        - question: Where do Red Tulips grow naturally?
+          answer: |
+              Red Tulips grow in plains and meadow biomes and can be dug
+              up with shears or by hand and replanted, then potted.
+        - question: Does it require a specific tool to mine?
+          answer: |
+              No. It has 0 hardness and breaks instantly with anything,
+              including bare hands.
+        - question: What is Red Tulip used for besides decoration?
+          answer: |
+              It is a valid Suspicious Stew ingredient granting Weakness,
+              and it can be used with a loom to dye banners red-orange
+              patterns.
     data_version: "1.21.5"
 ---
 

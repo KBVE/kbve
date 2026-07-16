@@ -1,5 +1,6 @@
 ---
 title: Pink Petals
+template: splash
 description: |
     Minecraft Pink Petals — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1049
     ref: pink_petals
     slug: pink-petals
+    content_rev: 1
     display_name: Pink Petals
     material: plant
     hardness: 0
@@ -24,10 +26,58 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pink_petals
+          qty_min: 1
+          qty_max: 4
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Pink Petals are a decorative, non-solid plant that grows on the
+            forest floor of cherry grove biomes. Up to four petals can stack
+            in a single block space, and breaking the block drops one item
+            per petal present.
+        lore: |
+            Added alongside cherry groves in The Trails & Tales Update
+            (1.20), pink petals scatter beneath Minecraft's cherry blossom
+            trees.
+    uses:
+        - title: Pink Dye
+          ref: pink_dye
+          detail: |
+              Each pink petal item can be crafted into one pink dye,
+              making them a renewable dye source inside cherry groves.
+        - title: Bee Breeding
+          ref: bee
+          detail: |
+              Bees can pollinate pink petals, and players can use the
+              petals to breed bees the same way as other flowers.
+    found_in:
+        - location: Cherry Grove biome
+          detail: Generates naturally on grass and dirt paths beneath cherry trees.
+        - location: Bone meal growth
+          detail: Applying bone meal to grass in a cherry grove or to existing petals adds more petals to the patch.
+    faq:
+        - question: What tool do I need to break Pink Petals?
+          answer: |
+              None. They break instantly with any tool or bare hands.
+        - question: How many petals drop when I mine the block?
+          answer: |
+              One petal item for each petal stacked in that block space, up
+              to four.
+        - question: Can Pink Petals be used as furnace fuel?
+          answer: |
+              No, unlike leaf litter, pink petals cannot be burned as fuel.
+        - question: Do they spread on their own?
+          answer: |
+              They do not spread by themselves, but bone meal applied to
+              cherry grove grass blocks can generate new petal patches.
     data_version: "1.21.5"
 ---
 

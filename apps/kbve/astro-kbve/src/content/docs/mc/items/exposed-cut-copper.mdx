@@ -1,5 +1,6 @@
 ---
 title: Exposed Cut Copper
+template: splash
 description: |
     Minecraft Exposed Cut Copper — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 103
     ref: exposed_cut_copper
     slug: exposed-cut-copper
+    content_rev: 1
     display_name: Exposed Cut Copper
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Exposed Cut Copper is the second oxidation stage of the cut copper decorative block,
+            showing green spots beginning to form on its discolored surface. It can be crafted
+            directly from exposed copper blocks or appear when regular cut copper oxidizes over
+            time. Waxing it with honeycomb prevents any further weathering.
+        lore: |
+            As cut copper ages in the open air, faint green patina begins to bloom across its
+            once-bright, machined surface.
+    faq:
+        - question: How do I get Exposed Cut Copper?
+          answer: |
+              Craft it from exposed copper blocks at a stonecutter or crafting table, or let
+              regular cut copper oxidize naturally over time.
+        - question: Can Exposed Cut Copper oxidize further?
+          answer: |
+              Yes, left unwaxed it will continue weathering into weathered cut copper and
+              eventually oxidized cut copper.
+        - question: How do I stop it from oxidizing?
+          answer: |
+              Apply honeycomb to create Waxed Exposed Cut Copper, which looks identical but
+              never progresses further.
+        - question: Can I turn it back into regular Cut Copper?
+          answer: |
+              Yes. Scraping it with an axe removes the oxidation stage, and lightning strikes
+              can deoxidize nearby unwaxed copper blocks entirely.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

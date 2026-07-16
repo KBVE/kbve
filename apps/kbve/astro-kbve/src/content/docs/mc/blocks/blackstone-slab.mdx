@@ -1,5 +1,6 @@
 ---
 title: Blackstone Slab
+template: splash
 description: |
     Minecraft Blackstone Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,70 @@ mc_block:
     id: 886
     ref: blackstone_slab
     slug: blackstone-slab
+    content_rev: 1
     display_name: Blackstone Slab
     material: nether
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blackstone_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+    about:
+        description: |
+            Blackstone Slab is a decorative half-height variant of blackstone
+            that generates naturally in bastion remnants. It behaves like a
+            stone slab, letting two placed together form a full double slab,
+            and it is waterloggable for use in Nether builds near lava or
+            water.
+        lore: |
+            Added alongside blackstone in the Nether Update (Java Edition
+            1.16), it became renewable once piglins started bartering
+            blackstone for gold ingots.
+    uses:
+        - title: Building & Decoration
+          ref: blackstone
+          detail: |
+              Used purely as a construction material for half-height steps,
+              floors, and detailing in Nether-themed builds; stacks two slabs
+              to form a full blackstone block visually.
+    found_in:
+        - location: Bastion Remnants
+          detail: Generates naturally as flooring and detail trim throughout bastion structures in the Nether.
+        - location: Crafted or cut
+          detail: Craft 3 blackstone into 6 slabs, or cut 1 blackstone into 2 slabs with a stonecutter.
+    faq:
+        - question: What tool do I need to mine Blackstone Slab?
+          answer: |
+              A wooden pickaxe or better. Mining it without any pickaxe
+              destroys the block with no drop.
+        - question: Is Blackstone Slab affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops itself as a single slab regardless of
+              enchantments.
+        - question: How do I get Blackstone Slab without visiting the Nether?
+          answer: |
+              Barter gold ingots with piglins for a chance at 8–16
+              blackstone, then craft or cut it into slabs.
+        - question: Can I combine two slabs into a full block?
+          answer: |
+              Yes. Placing a second slab on top of an existing slab (or
+              using two in a crafting grid) forms a full blackstone block
+              visually indistinguishable from the original.
     data_version: "1.21.5"
 ---
 

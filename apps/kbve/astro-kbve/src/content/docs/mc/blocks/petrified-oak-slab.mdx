@@ -1,5 +1,6 @@
 ---
 title: Petrified Oak Slab
+template: splash
 description: |
     Minecraft Petrified Oak Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 582
     ref: petrified_oak_slab
     slug: petrified-oak-slab
+    content_rev: 1
     display_name: Petrified Oak Slab
     material: stone
     hardness: 2
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: petrified_oak_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - legacy_block
+        - blast_resistant
+    about:
+        description: |
+            Petrified Oak Slab is a leftover relic from Minecraft's earliest
+            wooden slab implementation — it looks like oak planks but has
+            stone properties, requiring a pickaxe and using stone step
+            sounds instead of wood.
+        lore: |
+            Added in Beta 1.3 as the original wooden slab, it was made
+            obsolete once Java Edition 1.3.1 introduced proper wood-type
+            slabs, and it is no longer obtainable in new survival worlds.
+    uses:
+        - title: Legacy decoration
+          ref: petrified_oak_slab
+          detail: |
+              No longer craftable; only usable via commands like /give or
+              /setblock, or found already placed in worlds carried over
+              from older versions.
+    found_in:
+        - location: Old worlds only
+          detail: |
+              Does not generate naturally and cannot be crafted in current
+              versions; it only persists in worlds created before Java
+              Edition 1.3.1 separated wood-type slabs.
+    faq:
+        - question: How do I get a Petrified Oak Slab today?
+          answer: |
+              You can't craft or find one in a new world. It's only
+              obtainable via commands (/give, /setblock) or by carrying an
+              old world forward.
+        - question: What tool mines it?
+          answer: |
+              A pickaxe, since despite its wood-plank texture it behaves as
+              a stone-type block and requires a pickaxe to drop.
+        - question: Does it burn like wood?
+          answer: |
+              No. It is not flammable and cannot be used as furnace fuel,
+              unlike real wooden slabs.
+        - question: Why does this block exist?
+          answer: |
+              It's the original wooden slab from Beta 1.3, renamed
+              "Petrified Oak Slab" in 1.13 once real wood-type slabs were
+              added and the old block became a legacy leftover.
     data_version: "1.21.5"
 ---
 

@@ -42,7 +42,7 @@ fi
 # --- Get credentials ---
 
 CH_ENDPOINT="${CH_ENDPOINT:-http://clickhouse-clickhouse-cluster.clickhouse.svc.cluster.local:8123}"
-CH_USERNAME="${CH_USERNAME:-logflare}"
+CH_USERNAME="${CH_USERNAME:-kbve_ingest}"
 
 if [[ -z "${CH_PASSWORD:-}" ]]; then
     echo -n "Enter ClickHouse password: "

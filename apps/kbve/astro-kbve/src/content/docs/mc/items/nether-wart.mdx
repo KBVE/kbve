@@ -1,5 +1,6 @@
 ---
 title: Nether Wart
+template: splash
 description: |
     Minecraft Nether Wart — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1057
     ref: nether_wart
     slug: nether-wart
+    content_rev: 1
     display_name: Nether Wart
     category: brewing
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Nether wart is a fungus found in the Nether that serves as an essential ingredient in almost every potion. Players can gather it from Nether fortresses and bastion remnants, or cultivate it themselves by planting it on soul sand, where it grows through four stages over roughly 34 minutes. It is primarily used to brew the awkward potion, the base for most potion effects.
+        lore: |
+            Unlike other crimson plants of the Nether, nether wart stands alone without a warped counterpart, making it a uniquely vital ingredient for potion crafting.
+    faq:
+        - question: How much nether wart does a fully grown crop yield?
+          answer: |
+              A fully mature nether wart crop yields 2-4 nether wart, and the Fortune enchantment adds one more per level, up to a maximum of seven.
+        - question: Can bone meal speed up nether wart growth?
+          answer: |
+              No, bone meal cannot be used on nether wart, so growth must run its natural random-tick cycle.
+        - question: Where can I find nether wart without farming it?
+          answer: |
+              Nether fortresses are the easiest early source, often containing established wart gardens near stairwells as well as wart in chests.
+        - question: Why won't nether wart plant on soul soil?
+          answer: |
+              Nether wart can only be planted on soul sand; soul soil looks similar but does not support it.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

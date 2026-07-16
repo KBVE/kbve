@@ -1,5 +1,6 @@
 ---
 title: Birch Log
+template: splash
 description: |
     Minecraft Birch Log — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 51
     ref: birch_log
     slug: birch-log
+    content_rev: 1
     display_name: Birch Log
     material: wood
     hardness: 2
@@ -24,11 +26,66 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
-    data_version: "1.21.5"
+    drops:
+        - ref: birch_log
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            The Birch Log is the trunk block of birch trees, identifiable
+            by its white bark with dark streaks. Like other logs it is
+            bark on all sides and can be stripped with an axe to reveal a
+            cleaner grain pattern.
+        lore: |
+            Birch trees have been part of Minecraft since the introduction
+            of biome-specific tree variants, giving builders a lighter wood
+            tone alongside oak and spruce.
+    uses:
+        - title: Birch Planks
+          ref: birch_planks
+          detail: |
+              Crafting one Birch Log yields four Birch Planks, the base
+              material for most birch building and furniture recipes.
+        - title: Stripped Birch Log
+          ref: stripped_birch_log
+          detail: |
+              Right-clicking a Birch Log with an axe strips its bark,
+              producing a Stripped Birch Log used for cleaner-looking builds.
+        - title: Furnace Fuel
+          ref: birch_log
+          detail: |
+              Birch Logs can be burned as furnace fuel, smelting 1.5 items
+              per log.
+    found_in:
+        - location: Birch trees
+          detail: Generates as the trunk of birch trees in birch forest and related biomes.
+        - location: Wandering Trader
+          detail: Occasionally purchasable from a Wandering Trader, 8 logs per emerald.
+    faq:
+        - question: What is the fastest way to break a Birch Log?
+          answer: |
+              With an axe. Any tool or bare hands will still break it and
+              it always drops itself.
+        - question: Can I strip a Birch Log without a crafting table?
+          answer: |
+              Yes. Right-clicking the log directly with any axe converts it
+              to a Stripped Birch Log on the spot.
+        - question: Is Birch Log flammable?
+          answer: |
+              Yes, it will catch fire from nearby flames or lava, so keep
+              stacked birch logs away from open fire.
+        - question: How many planks does one Birch Log produce?
+          answer: |
+              Four Birch Planks per log when crafted at a crafting table or
+              in your inventory grid.
 ---
 
 import MCBlockPanel from '@/components/mcdb/MCBlockPanel.astro';

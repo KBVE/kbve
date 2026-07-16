@@ -1,5 +1,6 @@
 ---
 title: Block of Quartz
+template: splash
 description: |
     Minecraft Block of Quartz — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,79 @@ mc_block:
     id: 446
     ref: quartz_block
     slug: quartz-block
+    content_rev: 1
     display_name: Block of Quartz
     material: stone
     hardness: 0.8
     blast_resistance: 0.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: quartz_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - renewable
+    about:
+        description: |
+            Block of Quartz is a white decorative stone crafted from four
+            Nether Quartz. It anchors an entire quartz family of chiseled,
+            pillar, and smooth variants popular for clean, marble-like
+            builds.
+        lore: |
+            Jeb first teased Nether quartz and its decorative block variants
+            in January 2013, ahead of the material's full release.
+    uses:
+        - title: Quartz Pillar
+          ref: quartz_pillar
+          detail: |
+              Craft 2 Blocks of Quartz into 1 Quartz Pillar, or cut with a
+              stonecutter for the same result.
+        - title: Quartz Stairs and Slabs
+          ref: quartz_slab
+          detail: |
+              Craft or stonecut into Quartz Stairs (4 per 6 blocks) or
+              Quartz Slabs (6 per 3 blocks) for detail work.
+        - title: Smooth Quartz Block
+          ref: smooth_quartz
+          detail: |
+              Smelt a Block of Quartz in a furnace to obtain a Smooth
+              Quartz Block with a flatter texture.
+    found_in:
+        - location: Crafted from Nether Quartz
+          detail: 4 Nether Quartz (mined from Nether Quartz Ore in the Nether) craft into 1 Block of Quartz.
+        - location: Bastion remnants and piglin trading
+          detail: Occasionally obtainable as loot or through piglin bartering with gold ingots.
+    faq:
+        - question: How do I craft Block of Quartz?
+          answer: |
+              Combine 4 Nether Quartz in a crafting grid to produce 1 Block
+              of Quartz.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, starting from wooden tier; breaking it by hand
+              yields no drop.
+        - question: Is Block of Quartz renewable?
+          answer: |
+              Yes, Nether Quartz Ore is plentiful in the Nether and can also
+              be obtained via piglin bartering, making the block fully
+              renewable.
+        - question: What's the difference between quartz block and smooth quartz?
+          answer: |
+              Smooth Quartz Block is made by smelting a regular Block of
+              Quartz, giving a flatter, less textured appearance for the
+              same material.
     data_version: "1.21.5"
 ---
 

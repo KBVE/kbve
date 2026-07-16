@@ -1,5 +1,6 @@
 ---
 title: Netherrack
+template: splash
 description: |
     Minecraft Netherrack — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 272
     ref: netherrack
     slug: netherrack
+    content_rev: 1
     display_name: Netherrack
     material: nether
     hardness: 0.4
     blast_resistance: 0.4
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: netherrack
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+        - building_block
+        - flammable_surface
+    about:
+        description: |
+            Netherrack is the soft, reddish stone that makes up most of the
+            Nether's terrain. It mines quickly with any pickaxe and drops
+            itself. A fire lit on top of netherrack burns indefinitely and
+            cannot be put out by rain.
+        lore: |
+            Notch first called it "netherstone," and its red hue was meant
+            to read as moss rather than blood, keeping the game bloodless.
+    uses:
+        - title: Nether Bricks
+          ref: nether_bricks
+          detail: |
+              Smelt netherrack in a furnace to produce nether brick, a
+              staple building and crafting material.
+        - title: Eternal Fire
+          detail: |
+              Fire placed on netherrack never burns out, making it ideal
+              for decorative flames, beacons of light, and nether portals' aesthetics.
+        - title: Building Material
+          detail: |
+              Its abundance and low hardness make it a convenient bulk
+              building and scaffolding block in the Nether.
+    found_in:
+        - location: The Nether
+          detail: Forms the bulk of the Nether's landscape across all biomes.
+        - location: Ruined Portals
+          detail: Generates around ruined portal structures in both the Overworld and Nether.
+    faq:
+        - question: What tool mines netherrack fastest?
+          answer: |
+              Any pickaxe works; a golden pickaxe mines it almost
+              instantly thanks to its speed on soft blocks.
+        - question: Why does fire on netherrack never go out?
+          answer: |
+              Netherrack has a special property that makes fire placed on
+              its top face burn forever, unaffected by rain — useful for
+              permanent light and decoration.
+        - question: Can I make nether bricks from it?
+          answer: |
+              Yes. Smelt netherrack in a furnace to get nether brick, then
+              craft four together into a nether bricks block.
     data_version: "1.21.5"
 ---
 

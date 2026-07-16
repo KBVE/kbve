@@ -1,5 +1,6 @@
 ---
 title: Stripped Cherry Log
+template: splash
 description: |
     Minecraft Stripped Cherry Log — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 65
     ref: stripped_cherry_log
     slug: stripped-cherry-log
+    content_rev: 1
     display_name: Stripped Cherry Log
     material: wood
     hardness: 2
@@ -24,10 +26,60 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_cherry_log
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Stripped Cherry Log is the bark-free form of a Cherry Log, made
+            by using an axe on it. It shows cherry wood's warm pink-brown
+            ring pattern on its top and bottom faces.
+        lore: |
+            Cherry wood was introduced with the Cherry Grove biome in the
+            1.20 "Trails & Tales" update, adding a pastel-pink log variant.
+    uses:
+        - title: Stripped Cherry Wood
+          ref: stripped_cherry_wood
+          detail: |
+              Craft four Stripped Cherry Logs in a 2x2 pattern to make
+              three Stripped Cherry Wood blocks, showing the ring texture
+              on all six faces.
+        - title: Cherry Planks
+          ref: cherry_planks
+          detail: |
+              Crafts into Cherry Planks and is used for campfires,
+              smokers, hanging signs, and shelves.
+    found_in:
+        - location: Any Cherry Log
+          detail: |
+              Not naturally generated — obtained by using an axe on a
+              placed Cherry Log harvested from a Cherry Grove biome.
+    faq:
+        - question: How do I get Stripped Cherry Log?
+          answer: |
+              Use any axe on a placed Cherry Log. The strip is instant and
+              permanent — it cannot be turned back into a bark-covered log.
+        - question: Where do I find Cherry Logs to strip?
+          answer: |
+              Cherry trees only grow naturally in the Cherry Grove biome,
+              added in the Trails & Tales update.
+        - question: Does the tool tier matter?
+          answer: |
+              No — any tool works and always drops the log; an axe just
+              breaks it fastest.
+        - question: Is Stripped Cherry Log renewable?
+          answer: |
+              Yes, cherry saplings regrow into trees, so the supply of
+              logs to strip is unlimited.
     data_version: "1.21.5"
 ---
 

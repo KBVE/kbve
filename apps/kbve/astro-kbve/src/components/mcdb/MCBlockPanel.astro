@@ -1,117 +1,246 @@
 ---
 import { McBlockSchema } from '@/data/schema';
 import MCTextureImage from './MCTextureImage';
+import MCBlockJsonLd from './MCBlockJsonLd.astro';
 
 const { data } = Astro.props;
 const b = McBlockSchema.parse(data);
+
+const MATERIAL_ACCENT: Record<string, string> = {
+	nether: '5 80% 58%',
+	stone: '220 8% 60%',
+	rock: '220 8% 60%',
+	dirt: '30 45% 50%',
+	wood: '30 60% 52%',
+	plant: '120 50% 52%',
+	metal: '200 15% 68%',
+	glass: '190 60% 66%',
+	sand: '45 55% 62%',
+	ice: '195 70% 70%',
+	wool: '320 45% 66%',
+	end: '275 55% 66%',
+	gem: '260 75% 66%',
+};
+const accent = MATERIAL_ACCENT[b.material] ?? '220 10% 60%';
+
+interface Stat {
+	label: string;
+	value: string | number;
+}
+const stats: Stat[] = [
+	{ label: 'Hardness', value: b.hardness < 0 ? '∞' : b.hardness },
+	{ label: 'Blast Res.', value: b.blast_resistance },
+	{ label: 'Best Tool', value: b.best_tool },
+];
+if (b.required_tool_tier > 0)
+	stats.push({ label: 'Tool Tier', value: b.required_tool_tier });
+if (b.light_emission > 0)
+	stats.push({ label: 'Light', value: b.light_emission });
+stats.push({ label: 'Transparent', value: b.transparent ? 'yes' : 'no' });
+stats.push({ label: 'Renewable', value: b.renewable ? 'yes' : 'no' });
 ---
 
-<section class="mcdb-panel not-content kbve-dashboard-page">
-	<header class="mcdb-panel__head">
-		<div class="mcdb-panel__icon">
-			<MCTextureImage
-				client:load
-				ref={b.ref}
-				category="block"
-				alt={b.display_name}
-				size={96}
-			/>
-		</div>
-		<div class="mcdb-panel__title">
-			<h2>{b.display_name}</h2>
-			<div class="mcdb-panel__meta">
-				<span class="mcdb-pill mcdb-pill--kind">{b.material}</span>
-				{b.placeable && <span class="mcdb-pill">placeable</span>}
-				{
-					!b.diggable && (
-						<span class="mcdb-pill mcdb-pill--curse">
-							indestructible
+<MCBlockJsonLd data={b} />
+
+<section
+	class="mcdb not-content kbve-dashboard-page"
+	style={`--bento-accent: hsl(${accent}); --sl-color-accent: hsl(${accent}); --sl-color-accent-high: hsl(${accent.replace(/\s*\d+%\s*$/, ' 72%')});`}>
+	<div class="bento-frame">
+		<div class="bento-board bento-board--cols-4">
+			<div class="bento-card bento-cell--wide mcdb-id">
+				<div class="mcdb-id__icon">
+					<MCTextureImage
+						client:load
+						ref={b.ref}
+						category="block"
+						alt={b.display_name}
+						size={96}
+					/>
+				</div>
+				<div class="mcdb-id__body">
+					<h2 class="mcdb-id__title">{b.display_name}</h2>
+					<div class="mcdb-id__chips">
+						<span class="bento-chip mcdb-chip--kind">
+							{b.material}
 						</span>
-					)
-				}
+						{
+							b.placeable && (
+								<span class="bento-chip">placeable</span>
+							)
+						}
+						{
+							!b.diggable && (
+								<span class="bento-chip">indestructible</span>
+							)
+						}
+						{
+							!b.renewable && (
+								<span class="bento-chip mcdb-chip--muted">
+									non-renewable
+								</span>
+							)
+						}
+						{
+							b.content_rev > 0 && (
+								<span class="bento-chip mcdb-chip--rev">
+									enriched v{b.content_rev}
+								</span>
+							)
+						}
+					</div>
+					<code class="mcdb-id__ref">minecraft:{b.ref}</code>
+					{
+						b.about?.description && (
+							<p class="mcdb-id__desc">{b.about.description}</p>
+						)
+					}
+				</div>
 			</div>
-			<code class="mcdb-panel__ref">minecraft:{b.ref}</code>
-		</div>
-	</header>
 
-	<dl class="mcdb-grid">
-		<div><dt>Hardness</dt><dd>{b.hardness < 0 ? '∞' : b.hardness}</dd></div>
-		<div><dt>Blast Res.</dt><dd>{b.blast_resistance}</dd></div>
-		<div><dt>Best Tool</dt><dd>{b.best_tool}</dd></div>
-		{
-			b.required_tool_tier > 0 && (
-				<div>
-					<>
-						<dt>Tool Tier</dt>
-						<dd>{b.required_tool_tier}</dd>
-					</>
-				</div>
-			)
-		}
-		{
-			b.light_emission > 0 && (
-				<div>
-					<>
-						<dt>Light</dt>
-						<dd>{b.light_emission}</dd>
-					</>
-				</div>
-			)
-		}
-		<div><dt>Transparent</dt><dd>{b.transparent ? 'yes' : 'no'}</dd></div>
-	</dl>
+			{
+				stats.map((s) => (
+					<div class="bento-card bento-stat mcdb-stat">
+						<span class="bento-stat__value">{s.value}</span>
+						<span class="bento-stat__label">{s.label}</span>
+					</div>
+				))
+			}
 
-	{
-		b.drops.length > 0 && (
-			<section class="mcdb-section">
-				<h3>Drops</h3>
-				<ul class="mcdb-recipes">
-					{b.drops.map((d) => (
-						<li>
-							<a href={`/mc/items/${d.ref.replace(/_/g, '-')}/`}>
-								{d.ref}
-							</a>
-							<span class="mcdb-recipe-yields">
-								{d.qty_min === d.qty_max
-									? `× ${d.qty_min}`
-									: `× ${d.qty_min}–${d.qty_max}`}
+			{
+				b.uses.length > 0 && (
+					<div class="bento-card bento-cell--wide mcdb-block">
+						<h3 class="mcdb-block__title">Uses</h3>
+						<ul class="mcdb-list">
+							{b.uses.map((u) => (
+								<li>
+									<span class="mcdb-list__label">
+										{u.ref ? (
+											<a
+												href={`/mc/items/${u.ref.replace(/_/g, '-')}/`}>
+												{u.title}
+											</a>
+										) : (
+											u.title
+										)}
+									</span>
+									{u.detail && (
+										<span class="mcdb-list__detail">
+											{' '}
+											— {u.detail}
+										</span>
+									)}
+								</li>
+							))}
+						</ul>
+					</div>
+				)
+			}
+
+			{
+				b.found_in.length > 0 && (
+					<div class="bento-card bento-cell--wide mcdb-block">
+						<h3 class="mcdb-block__title">Found In</h3>
+						<ul class="mcdb-list">
+							{b.found_in.map((f) => (
+								<li>
+									<span class="mcdb-list__label">
+										{f.location}
+									</span>
+									{f.detail && (
+										<span class="mcdb-list__detail">
+											{' '}
+											— {f.detail}
+										</span>
+									)}
+								</li>
+							))}
+						</ul>
+					</div>
+				)
+			}
+
+			{
+				b.drops.length > 0 && (
+					<div class="bento-card bento-cell--wide mcdb-block">
+						<h3 class="mcdb-block__title">Drops</h3>
+						<ul class="mcdb-recipes">
+							{b.drops.map((d) => (
+								<li>
+									<a
+										href={`/mc/items/${d.ref.replace(/_/g, '-')}/`}>
+										{d.ref.replace(/_/g, ' ')}
+									</a>
+									<span class="mcdb-recipe-yields">
+										{d.qty_min === d.qty_max
+											? `× ${d.qty_min}`
+											: `× ${d.qty_min}–${d.qty_max}`}
+									</span>
+									{d.silk_touch_only && (
+										<span class="mcdb-recipe-kind">
+											silk-touch
+										</span>
+									)}
+									{d.affected_by_fortune && (
+										<span class="mcdb-recipe-kind">
+											fortune
+										</span>
+									)}
+								</li>
+							))}
+						</ul>
+					</div>
+				)
+			}
+
+			{
+				b.faq.length > 0 && (
+					<div class="bento-card bento-cell--wide mcdb-block">
+						<h3 class="mcdb-block__title">FAQ</h3>
+						<div class="mcdb-faq">
+							{b.faq.map((f) => (
+								<div>
+									<p class="mcdb-faq__q">{f.question}</p>
+									<p class="mcdb-faq__a">{f.answer}</p>
+								</div>
+							))}
+						</div>
+					</div>
+				)
+			}
+
+			{
+				b.tags.length > 0 && (
+					<div class="bento-card bento-cell--wide mcdb-block">
+						<h3 class="mcdb-block__title">Tags</h3>
+						<ul class="mcdb-chips">
+							{b.tags.map((t) => (
+								<li>
+									<span class="bento-chip mcdb-chip--muted">
+										{t}
+									</span>
+								</li>
+							))}
+						</ul>
+					</div>
+				)
+			}
+
+			<div class="bento-card bento-cell--wide mcdb-block">
+				<div class="mcdb-block__foot">
+					<a
+						href={`/mc/items/${b.ref.replace(/_/g, '-')}/`}
+						class="mcdb-block__market">
+						View item form →
+					</a>
+					{
+						b.data_version && (
+							<span class="mcdb-block__version">
+								data: {b.data_version}
 							</span>
-							{d.silk_touch_only && (
-								<span class="mcdb-recipe-kind">silk-touch</span>
-							)}
-							{d.affected_by_fortune && (
-								<span class="mcdb-recipe-kind">fortune</span>
-							)}
-						</li>
-					))}
-				</ul>
-			</section>
-		)
-	}
-
-	{
-		b.tags.length > 0 && (
-			<section class="mcdb-section">
-				<h3>Tags</h3>
-				<ul class="mcdb-chips mcdb-chips--muted">
-					{b.tags.map((t) => (
-						<li>{t}</li>
-					))}
-				</ul>
-			</section>
-		)
-	}
-
-	<footer class="mcdb-panel__foot">
-		<a
-			href={`/mc/items/${b.ref.replace(/_/g, '-')}/`}
-			class="mcdb-panel__market">
-			View item form →
-		</a>
-		{
-			b.data_version && (
-				<span class="mcdb-panel__version">data: {b.data_version}</span>
-			)
-		}
-	</footer>
+						)
+					}
+				</div>
+			</div>
+		</div>
+	</div>
 </section>

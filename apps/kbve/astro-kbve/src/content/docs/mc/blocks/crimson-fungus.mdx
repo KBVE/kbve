@@ -1,5 +1,6 @@
 ---
 title: Crimson Fungus
+template: splash
 description: |
     Minecraft Crimson Fungus — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,74 @@ mc_block:
     id: 835
     ref: crimson_fungus
     slug: crimson-fungus
+    content_rev: 1
     display_name: Crimson Fungus
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crimson_fungus
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - nether
+    about:
+        description: |
+            Crimson Fungus is the small sapling-like plant of the crimson
+            forest biome, placeable on Crimson Nylium, dirt, soul soil, and
+            similar blocks. Bone meal applied while it grows on nylium has
+            a chance to instantly grow it into a huge crimson fungus tree.
+        lore: |
+            Crimson Fungus mirrors the Overworld's tree saplings, giving
+            the Nether's crimson forests their own renewable, blocky
+            fungal canopy.
+    uses:
+        - title: Huge Crimson Fungus
+          ref: crimson_stem
+          detail: |
+              Applying bone meal to Crimson Fungus planted on Crimson
+              Nylium has roughly a 40% chance to instantly grow a huge
+              crimson fungus, yielding Crimson Stem and Nether Wart Block.
+        - title: Hoglin Breeding
+          ref: hoglin
+          detail: |
+              Crimson Fungus can be used to breed and lead Hoglins,
+              though it does not stop them from attacking players.
+    found_in:
+        - location: Crimson forest biome
+          detail: Generates abundantly on Crimson Nylium throughout crimson forests.
+        - location: Bastion remnant hoglin stables
+          detail: Found in stable chests with roughly a 22.8% chance, in stacks of 2-7.
+        - location: Warped forest biome
+          detail: Occasionally generates in warped forests as a rarer cross-biome spawn.
+    faq:
+        - question: What tool do I need to mine Crimson Fungus?
+          answer: |
+              None. It has zero hardness and breaks instantly with any
+              tool or bare hands, always dropping itself.
+        - question: Does bone meal always grow it into a tree?
+          answer: |
+              No. Bone meal on Crimson Fungus planted on Crimson Nylium
+              has about a 40% chance to instantly grow a huge crimson
+              fungus structure.
+        - question: Can Crimson Fungus be composted?
+          answer: |
+              Yes. Placing it in a composter has a 65% chance to raise the
+              compost level by one step.
+        - question: Does it burn in lava or fire?
+          answer: |
+              No. Like other Nether plant blocks, it is non-flammable and
+              unaffected by nearby lava.
     data_version: "1.21.5"
 ---
 

@@ -2,49 +2,146 @@
 title: Infrastructure
 description: |
   Staff infrastructure hub — proxied cluster dashboards and external ops UIs for KBVE.
+template: splash
 tableOfContents: false
 graph:
     visible: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
 sidebar:
     label: Infrastructure
     order: 3
 tags:
     - dashboard
     - infrastructure
+ogTitle: KBVE Infrastructure Hub — Cluster Dashboards & Ops UIs
+ogDescription: One place for the proxied in-site cluster dashboards and the external ops UIs that keep KBVE running — Argo, Grafana, ClickHouse, Longhorn, and more.
+ogImage: https://images.unsplash.com/photo-1558494949-ef010cbdcc31?fit=crop&w=1400&h=700&q=75
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - name: Home
+          path: /
+        - name: Dashboard
+          path: /dashboard/
+        - name: Infrastructure
+          path: /dashboard/infrastructure/
 ---
 
-import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import BentoShell from '@/components/hero/BentoShell.astro';
 
-Everything that keeps the cluster running, in one place. The **internal** entries are the in-site
-proxied dashboards; the **external** UIs open in a new tab behind their own logins.
+export const backdrop = 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=2400&auto=format&fit=crop';
 
-## Internal Dashboards
+export const stats = [
+	{ label: 'Internal dashboards', value: '6', icon: 'M4 4h16v6H4zM4 14h16v6H4zM8 7h.01M8 17h.01' },
+	{ label: 'External ops UIs', value: '3', icon: 'M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6' },
+	{ label: 'Orchestration', value: 'k8s', icon: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96 12 12.01l8.73-5.05M12 22.08V12' },
+	{ label: 'GitOps', value: 'Argo', icon: 'M6 3v12M18 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM15 6a9 9 0 0 1-9 9' },
+];
 
-<CardGrid>
-	<LinkCard title="Argo" href="/dashboard/argo/" description="GitOps deployments and application sync status." />
-	<LinkCard title="Edge" href="/dashboard/edge/" description="Edge function health and status." />
-	<LinkCard title="Virtual Machines" href="/dashboard/vm/" description="KubeVirt VM management." />
-	<LinkCard title="ClickHouse" href="/dashboard/clickhouse/" description="Log aggregation and analytics." />
-	<LinkCard title="Grafana" href="/dashboard/grafana/" description="Proxied cluster monitoring." />
-	<LinkCard title="Forgejo" href="/dashboard/forgejo/" description="Git hosting dashboard." />
-</CardGrid>
+export const internal = [
+	{ href: '/dashboard/argo/', title: 'Argo', copy: 'GitOps deployments and application sync status.', icon: 'M6 3v12M18 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM15 6a9 9 0 0 1-9 9' },
+	{ href: '/dashboard/edge/', title: 'Edge', copy: 'Edge function health and status.', icon: 'M13 2 3 14h9l-1 8 10-12h-9z' },
+	{ href: '/dashboard/vm/', title: 'Virtual Machines', copy: 'KubeVirt VM management.', icon: 'M4 4h16v6H4zM4 14h16v6H4zM8 7h.01M8 17h.01' },
+	{ href: '/dashboard/clickhouse/', title: 'ClickHouse', copy: 'Log aggregation and analytics.', icon: 'M12 2C6.48 2 2 3.79 2 6s4.48 4 10 4 10-1.79 10-4-4.48-4-10-4zM2 6v6c0 2.21 4.48 4 10 4s10-1.79 10-4V6M2 12v6c0 2.21 4.48 4 10 4s10-1.79 10-4v-6' },
+	{ href: '/dashboard/grafana/', title: 'Grafana', copy: 'Proxied cluster monitoring.', icon: 'M3 3v18h18M7 16l4-4 3 3 5-6' },
+	{ href: '/dashboard/forgejo/', title: 'Forgejo', copy: 'Git hosting dashboard.', icon: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z' },
+];
 
-## External Infrastructure
+export const external = [
+	{ href: 'https://argo.kbve.com/', title: 'ArgoCD', copy: 'GitOps deployments and application sync status.', icon: 'M6 3v12M18 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM15 6a9 9 0 0 1-9 9' },
+	{ href: 'https://grafana.kbve.com/', title: 'Grafana', copy: 'Cluster metrics, dashboards, and alerting.', icon: 'M3 3v18h18M7 16l4-4 3 3 5-6' },
+	{ href: 'https://longhorn.kbve.com/', title: 'Longhorn', copy: 'Distributed block storage — volumes, snapshots, and backups.', icon: 'M22 12H2M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11zM6 16h.01M10 16h.01' },
+];
 
-<CardGrid>
-	<Card title="ArgoCD">
-		GitOps deployments and application sync status.
+<div class="infra-hub" style={`--bento-hero-bg: url('${backdrop}')`} data-infra-hub>
 
-		<a href="https://argo.kbve.com/" target="_blank" rel="noopener noreferrer">Open ArgoCD →</a>
-	</Card>
-	<Card title="Grafana">
-		Cluster metrics, dashboards, and alerting.
+<section class="bento-hero bento-section not-content" aria-label="KBVE Infrastructure">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
+					<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16v6H4zM4 14h16v6H4zM8 7h.01M8 17h.01" /></svg>
+					<span>kbve infra · staff ops hub</span>
+				</span>
+				<h1 class="bento-title">
+					Everything that keeps
+					<span class="bento-title__accent">the cluster running. One place.</span>
+				</h1>
+				<p class="bento-lede">
+					The <strong>internal</strong> entries are the in-site proxied dashboards;
+					the <strong>external</strong> UIs open in a new tab behind their own logins.
+				</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="#internal">
+						Internal dashboards
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="#external">External UIs</a>
+					<a class="bento-btn bento-btn--ghost" href="/dashboard/">Dashboard home</a>
+				</div>
+			</div>
 
-		<a href="https://grafana.kbve.com/" target="_blank" rel="noopener noreferrer">Open Grafana →</a>
-	</Card>
-	<Card title="Longhorn">
-		Distributed block storage — volumes, snapshots, and backups.
+			{stats.map((s) => (
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={s.icon} /></svg>
+					</span>
+					<span class="bento-stat__value">{s.value}</span>
+					<span class="bento-stat__label">{s.label}</span>
+				</div>
+			))}
+		</div>
 
-		<a href="https://longhorn.kbve.com/" target="_blank" rel="noopener noreferrer">Open Longhorn →</a>
-	</Card>
-</CardGrid>
+		<nav class="bento-jump" aria-label="On this page">
+			<a class="bento-chip" href="#internal">Internal</a>
+			<a class="bento-chip" href="#external">External</a>
+		</nav>
+	</div>
+</section>
+
+<BentoShell id="internal" eyebrow="Proxied, in-site" heading="Internal Dashboards">
+	<div class="bento-board bento-board--cols-3">
+		{internal.map((r) => (
+			<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href={r.href}>
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={r.icon} /></svg>
+				</span>
+				<span class="bento-linkcard__title">{r.title}</span>
+				<span class="bento-linkcard__copy">{r.copy}</span>
+				<span class="bento-linkcard__go" aria-hidden="true">
+					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+				</span>
+			</a>
+		))}
+	</div>
+</BentoShell>
+
+<BentoShell id="external" eyebrow="Behind their own logins" heading="External Infrastructure">
+	<div class="bento-board bento-board--cols-3">
+		{external.map((r) => (
+			<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href={r.href} target="_blank" rel="noopener noreferrer">
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={r.icon} /></svg>
+				</span>
+				<span class="bento-linkcard__title">{r.title}</span>
+				<span class="bento-linkcard__copy">{r.copy}</span>
+				<span class="bento-linkcard__go" aria-hidden="true">
+					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M10 14 21 3M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" /></svg>
+				</span>
+			</a>
+		))}
+	</div>
+</BentoShell>
+
+</div>
+
+<style is:global>{`
+	.infra-hub {
+		--bento-accent: #38bdf8;
+		--bento-accent-2: #22d3ee;
+	}
+`}</style>

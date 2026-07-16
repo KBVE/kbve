@@ -1,5 +1,6 @@
 ---
 title: Weathered Cut Copper Stairs
+template: splash
 description: |
     Minecraft Weathered Cut Copper Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 985
     ref: weathered_cut_copper_stairs
     slug: weathered-cut-copper-stairs
+    content_rev: 1
     display_name: Weathered Cut Copper Stairs
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: weathered_cut_copper_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Weathered Cut Copper Stairs are a decorative stair variant cut
+            from Weathered Cut Copper, carrying the same deep green patina
+            and continuing to oxidize toward the fully Oxidized stage
+            unless waxed.
+        lore: |
+            Cut copper stairs were added alongside cut copper in Java
+            Edition 1.17 and now generate naturally in trial chambers.
+    uses:
+        - title: Building material
+          ref: weathered_cut_copper_stairs
+          detail: |
+              Used for roofing, ramps, and decorative trim in copper
+              builds, and plays a note-block trumpet sound when used as an
+              instrument block.
+    found_in:
+        - location: Trial Chambers
+          detail: Waxed weathered/oxidized cut copper stairs generate as part of trial chamber structures.
+        - location: Stonecutter or crafting table
+          detail: |
+              Crafted from 6 Weathered Cut Copper (yields 4 stairs), or cut
+              from a Weathered Cut Copper or Weathered Copper block via
+              the stonecutter.
+    faq:
+        - question: What tool do I need to mine these stairs?
+          answer: A stone pickaxe or better; anything weaker breaks the block without a drop.
+        - question: Will they keep oxidizing?
+          answer: |
+              Yes, unless waxed with honeycomb, they eventually progress
+              to Oxidized Cut Copper Stairs.
+        - question: What sound do they make on a note block?
+          answer: |
+              Cut copper blocks and their variants play a trumpet sound
+              when placed under a note block.
+        - question: Can I reverse the oxidation?
+          answer: |
+              Yes, scraping with an axe reverts the stairs one oxidation
+              stage back to Exposed Cut Copper Stairs.
     data_version: "1.21.5"
 ---
 

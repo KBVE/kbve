@@ -1,5 +1,6 @@
 ---
 title: Redstone Comparator
+template: splash
 description: |
     Minecraft Redstone Comparator — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 691
     ref: comparator
     slug: comparator
+    content_rev: 1
     display_name: Redstone Comparator
     category: redstone
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The redstone comparator is a crafted redstone component made from redstone torches,
+            nether quartz, and stone that can compare or subtract two side signals against a rear
+            signal, and also read container fullness or block states like cake bites and lectern pages.
+        lore: |
+            A quartz-eyed redstone device that measures, compares, and subtracts signals with
+            surgical precision.
+    faq:
+        - question: What do you need to craft a redstone comparator?
+          answer: |
+              Three redstone torches, one nether quartz block, and three stone blocks arranged in
+              the crafting grid.
+        - question: What's the difference between comparison and subtraction mode?
+          answer: |
+              Toggling the front torch switches the comparator between comparison mode (outputs the
+              rear signal if it's stronger than both side signals) and subtraction mode (subtracts
+              the strongest side signal from the rear signal).
+        - question: Can a comparator read how full a chest is?
+          answer: |
+              Yes, it can measure the fullness of chests, hoppers, furnaces, and dozens of other
+              containers, outputting a signal strength from 1 to 15.
+        - question: How much delay does a comparator add to a signal?
+          answer: |
+              It takes 2 game ticks, or 0.1 seconds, for a signal to pass through a comparator from
+              either the rear or the side inputs.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

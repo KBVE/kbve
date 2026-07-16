@@ -1,5 +1,6 @@
 ---
 title: Barrier
+template: splash
 description: |
     Minecraft Barrier — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,35 @@ mc_item:
     id: 473
     ref: barrier
     slug: barrier
+    content_rev: 1
     display_name: Barrier
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Barrier is an invisible, indestructible solid block used to build boundaries that players and mobs cannot pass. It cannot be obtained in survival and is only available through the /give command or in Creative mode with cheats enabled. While a player holds a barrier item, all placed barriers show up as a red box with a diagonal slash so builders can see them, but they become completely invisible again once the item is put away.
+        lore: |
+            An unseen wall that map makers raise to hold the world in place.
+    faq:
+        - question: |
+            How do you get a Barrier block?
+          answer: |
+            Barriers cannot be found or crafted in survival; obtain them with the /give command or from the Creative inventory when cheats are enabled.
+        - question: |
+            Why are Barriers invisible?
+          answer: |
+            Barriers are designed for map makers to build unobtrusive boundaries, so they render fully invisible unless you are holding a barrier item.
+        - question: |
+            How can you see placed Barriers?
+          answer: |
+            Hold a barrier item and every nearby placed barrier appears as a red box with a diagonal slash, making them easy to locate and remove.
+        - question: |
+            How is a Barrier different from bedrock?
+          answer: |
+            Both are unbreakable in survival, but bedrock is a visible textured block while a barrier stays completely invisible, ideal for hidden walls.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

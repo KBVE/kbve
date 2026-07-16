@@ -1,5 +1,6 @@
 ---
 title: Birch Sapling
+template: splash
 description: |
     Minecraft Birch Sapling — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,72 @@ mc_block:
     id: 27
     ref: birch_sapling
     slug: birch-sapling
+    content_rev: 1
     display_name: Birch Sapling
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: birch_sapling
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+        - plant
+        - renewable
+    about:
+        description: |
+            The Birch Sapling is a small plant grown from decaying Birch
+            Leaves. Planted on dirt or moss and given enough light or bone
+            meal, it grows into a full Birch tree.
+        lore: |
+            Birch trees, and their saplings, were introduced in Beta 1.5
+            as the second alternate wood type after oak.
+    uses:
+        - title: Growing Birch Trees
+          ref: birch_log
+          detail: |
+              Plant on dirt, grass, podzol, or moss with a light level of
+              9+ above it; bone meal can instantly force growth, producing
+              a full tree of logs and leaves.
+        - title: Furnace Fuel
+          ref: birch_planks
+          detail: |
+              Saplings can be burned as furnace fuel, smelting half an
+              item each, though they are a weak fuel source.
+    found_in:
+        - location: Decaying Birch Leaves
+          detail: Birch Leaves have a 5% chance (10% with Fortune III) to drop a sapling when they decay or are broken without Silk Touch.
+        - location: Village chests and wandering traders
+          detail: Occasionally found in village loot chests or purchasable from wandering traders for emeralds.
+    faq:
+        - question: What tool do I need to mine a Birch Sapling?
+          answer: |
+              None. It breaks instantly with any tool or bare hands.
+        - question: How do I get more Birch Saplings?
+          answer: |
+              Break Birch Leaves for a small chance to drop a sapling, or
+              trade with a wandering trader.
+        - question: What does a Birch Sapling need to grow?
+          answer: |
+              It must be planted on dirt, grass, podzol, or moss with a
+              light level of at least 9 on the block above it, or be
+              instantly grown with bone meal.
+        - question: Can I use Birch Saplings as fuel?
+          answer: |
+              Yes, though they are inefficient, smelting only half an item
+              per sapling in a furnace.
     data_version: "1.21.5"
 ---
 

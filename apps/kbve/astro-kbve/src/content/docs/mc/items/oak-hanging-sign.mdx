@@ -1,5 +1,6 @@
 ---
 title: Oak Hanging Sign
+template: splash
 description: |
     Minecraft Oak Hanging Sign — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 938
     ref: oak_hanging_sign
     slug: oak-hanging-sign
+    content_rev: 1
     display_name: Oak Hanging Sign
     category: decoration
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The oak hanging sign is a decorative sign crafted from stripped oak logs and iron chains that suspends below a block or attaches to the side of fences, walls, and other chains. Its text can be edited after placement and customized with dyes, glow ink sacs, and formatting, giving builders a flexible way to label structures. Waxing it with honeycomb permanently locks the text against further edits.
+        lore: |
+            Stripped timber and iron chain, swinging gently to mark a doorway or a shopfront.
+    faq:
+        - question: How do I craft an oak hanging sign?
+          answer: |
+              Combine two iron chains with two stripped oak logs in a crafting table to produce six oak hanging signs.
+        - question: How can a hanging sign be placed?
+          answer: |
+              It can be attached to the side of a block with a self-supporting bracket, hung below a wide block with parallel chains, or suspended under narrow blocks like chains in an upward-arrow shape.
+        - question: Can I change the text after placing it?
+          answer: |
+              Yes, interacting with the sign reopens the edit text GUI, and the text can be styled with dyes, glow ink sacs, and formatting codes.
+        - question: How do I stop a hanging sign's text from being edited?
+          answer: |
+              Apply honeycomb to wax the sign, which irreversibly locks its text against any further changes.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

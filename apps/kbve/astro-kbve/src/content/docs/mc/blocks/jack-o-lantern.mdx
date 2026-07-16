@@ -1,5 +1,6 @@
 ---
 title: Jack o'Lantern
+template: splash
 description: |
     Minecraft Jack o'Lantern — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 282
     ref: jack_o_lantern
     slug: jack-o-lantern
+    content_rev: 1
     display_name: Jack o'Lantern
     material: plant
     hardness: 1
@@ -24,10 +26,59 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: jack_o_lantern
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Jack o'Lantern is a carved pumpkin fitted with a torch,
+            giving it the maximum light level of 15 — the brightest light
+            source obtainable without redstone. It faces the direction it
+            was placed and can melt nearby snow and ice.
+        lore: |
+            Modeled after the Halloween tradition of carving pumpkins into
+            lanterns, it has lit Minecraft worlds since the Halloween Update.
+    uses:
+        - title: Golem Head
+          ref: iron_golem
+          detail: |
+              Placing a Jack o'Lantern as the final block atop a body of
+              iron blocks or snow blocks spawns an Iron Golem or Snow Golem.
+        - title: Portable Light Source
+          ref: torch
+          detail: |
+              Crafted from a Carved Pumpkin and a Torch, it works underwater
+              and is immune to mobs that avoid normal light sources.
+    found_in:
+        - location: Taiga Villages
+          detail: Generates in pumpkin piles decorating taiga village houses.
+        - location: Crafted
+          detail: Combine a Carved Pumpkin with a Torch in a crafting grid.
+    faq:
+        - question: What tool do I need to mine a Jack o'Lantern?
+          answer: |
+              Any tool works, though an axe is fastest. It always drops
+              itself regardless of tool used.
+        - question: Is a Jack o'Lantern flammable?
+          answer: |
+              No. Unlike many wooden or plant blocks, it does not catch
+              fire from nearby flames.
+        - question: Can I wear a Jack o'Lantern as a helmet?
+          answer: |
+              Not in survival since Java Edition 1.20-pre5; it can still be
+              worn via commands, but Carved Pumpkins remain wearable normally.
+        - question: What must be placed last when building a golem?
+          answer: |
+              The Jack o'Lantern (or Carved Pumpkin) head must be the final
+              block placed, or the golem will not spawn.
     data_version: "1.21.5"
 ---
 

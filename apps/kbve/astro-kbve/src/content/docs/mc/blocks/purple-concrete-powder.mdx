@@ -1,5 +1,6 @@
 ---
 title: Purple Concrete Powder
+template: splash
 description: |
     Minecraft Purple Concrete Powder — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 704
     ref: purple_concrete_powder
     slug: purple-concrete-powder
+    content_rev: 1
     display_name: Purple Concrete Powder
     material: dirt
     hardness: 0.5
@@ -24,10 +26,53 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: purple_concrete_powder
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+    about:
+        description: |
+            Purple Concrete Powder is a gravity-affected block crafted from
+            purple dye, sand, and gravel. It falls like sand when
+            unsupported and instantly solidifies into Purple Concrete on
+            contact with any water source.
+        lore: |
+            Concrete powder was added in Java Edition 1.12 to give builders
+            a vivid, non-flammable alternative to stained clay and wool.
+    uses:
+        - title: Purple Concrete
+          ref: purple_concrete
+          detail: |
+              Touching flowing or source water, or a waterlogged block,
+              instantly converts concrete powder into solid concrete of the
+              same color.
+    found_in:
+        - location: Crafted
+          detail: Shapeless recipe of one purple dye, four sand, and four gravel yields eight purple concrete powder.
+    faq:
+        - question: What tool mines Purple Concrete Powder fastest?
+          answer: |
+              A shovel; a netherite shovel breaks it in about 0.1 seconds
+              versus 0.4 seconds for a wooden one.
+        - question: Does Purple Concrete Powder fall like sand?
+          answer: |
+              Yes, it is gravity-affected and falls into any open space
+              below it until it lands on a solid block or water.
+        - question: How do I turn Purple Concrete Powder into concrete?
+          answer: |
+              Let it touch any water source, flowing water, or a
+              waterlogged block; it solidifies into Purple Concrete
+              instantly.
+        - question: Is Purple Concrete Powder flammable?
+          answer: |
+              No. It does not catch fire from lava or nearby flames.
     data_version: "1.21.5"
 ---
 

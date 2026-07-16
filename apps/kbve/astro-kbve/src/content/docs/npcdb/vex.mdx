@@ -1,5 +1,9 @@
 ---
 title: 'Vex'
+template: splash
+sidebar:
+    label: 'Vex'
+    hidden: true
 description: |
     Sci-fi exchange keeper. Operates the trading window of a colony hub: takes coin, hands over crates, watches the queue. Stoic with a sharp tongue when the till runs short.
 ref: 'vex'
@@ -46,7 +50,10 @@ faction:
     faction_id: 'player'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Sci-fi exchange keeper. Operates the trading window of a colony hub.
+
+</NpcLeaf>

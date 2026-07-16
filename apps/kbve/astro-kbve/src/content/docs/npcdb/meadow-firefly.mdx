@@ -1,5 +1,9 @@
 ---
 title: 'Meadow Firefly'
+template: splash
+sidebar:
+    label: 'Meadow Firefly'
+    hidden: true
 description: |
     A tiny luminescent spirit that drifts through grasslands at night, pulsing with a soft green glow.
 ref: 'meadow-firefly'
@@ -46,7 +50,10 @@ credits: |
     KBVE Isometric ambient creature system.
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A tiny luminescent spirit that drifts through grasslands at night, pulsing with a soft green glow.
+
+</NpcLeaf>

@@ -1,7 +1,9 @@
 ---
 title: End Rod
+template: splash
 description: |
-    Minecraft End Rod — vanilla 1.21.5 block record (auto-generated).
+    Minecraft End Rod — a bright decorative block found in End cities,
+    crafted from a Blaze Rod and Popped Chorus Fruit.
 sidebar:
     label: End Rod
     hidden: true
@@ -13,6 +15,7 @@ mc_block:
     id: 623
     ref: end_rod
     slug: end-rod
+    content_rev: 1
     display_name: End Rod
     material: end
     hardness: 0
@@ -26,8 +29,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: end_rod
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - end
+    about:
+        description: |
+            The End Rod is a bright, slender decorative block that
+            generates throughout End cities, both upright on towers and
+            sideways inside buildings. It emits a strong white light and
+            can be placed on any surface in any orientation.
+        lore: |
+            Added in Java Edition 1.9, its recipe pairs a Blaze Rod from
+            the Nether with a Popped Chorus Fruit from The End, tying
+            together resources from both alternate dimensions.
+    uses:
+        - title: Light Source
+          ref: end_rod
+          detail: |
+              Provides a light level of 14, equal to a torch, while
+              emitting white particles; melts nearby snow and ice within
+              a 2-block radius.
+        - title: Climbing Aid
+          ref: end_rod
+          detail: |
+              Placed in spiral patterns inside End cities, functioning
+              as makeshift ladders or stepping points for players and
+              shulkers.
+    found_in:
+        - location: End cities
+          detail: Generates naturally on towers and inside buildings throughout End cities in the outer End islands.
+        - location: Crafting
+          detail: Craft with 1 Blaze Rod and 1 Popped Chorus Fruit to yield 4 End Rods.
+    faq:
+        - question: What tool do I need to mine an End Rod?
+          answer: |
+              None — it breaks instantly by hand and drops itself
+              regardless of tool used.
+        - question: How do I craft an End Rod?
+          answer: |
+              Combine 1 Blaze Rod with 1 Popped Chorus Fruit in a
+              crafting table to produce 4 End Rods.
+        - question: How bright is an End Rod?
+          answer: |
+              It emits a light level of 14, the same as a torch, and
+              also melts nearby snow and ice.
+        - question: Can End Rods be placed on any surface?
+          answer: |
+              Yes. They can be attached to any block face in any of the
+              six orientations, and can be pushed or pulled by pistons.
     data_version: "1.21.5"
 ---
 

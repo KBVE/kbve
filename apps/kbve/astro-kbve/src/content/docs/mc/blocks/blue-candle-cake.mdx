@@ -1,5 +1,6 @@
 ---
 title: Cake with Blue Candle
+template: splash
 description: |
     Minecraft Cake with Blue Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,68 @@ mc_block:
     id: 932
     ref: blue_candle_cake
     slug: blue-candle-cake
+    content_rev: 1
     display_name: Cake with Blue Candle
     material: stone
     hardness: 0.5
     blast_resistance: 0.5
     best_tool: hand
     required_tool_tier: 0
-    light_emission: 0
+    light_emission: 3
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blue_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Cake with Blue Candle is formed by placing a blue candle on an
+            uneaten cake block. It combines a light source with a decorative
+            dessert but cannot be eaten while the candle is present.
+        lore: |
+            Candle cakes were added alongside candles in the Caves & Cliffs
+            update (1.17), letting players top birthday-style cakes with a
+            lit flame.
+    uses:
+        - title: Light Source
+          ref: blue_candle
+          detail: |
+              Lighting the candle with flint and steel or a fire charge
+              gives light level 3, the same as a single loose candle.
+    found_in:
+        - location: Player-placed
+          detail: |
+              Not naturally generated; created by placing a blue candle
+              directly on top of a cake block.
+    faq:
+        - question: Can I eat a cake with a candle on it?
+          answer: |
+              No. The candle must be removed first; right-clicking the
+              block with an empty hand extinguishes a lit candle rather
+              than eating the cake.
+        - question: What happens to the candle if the cake is eaten or destroyed?
+          answer: |
+              The candle pops off and drops as a separate blue candle item
+              instead of being destroyed with the cake.
+        - question: What tool do I need to mine it?
+          answer: |
+              None required — any tool or bare hands breaks it instantly,
+              dropping the blue candle (the cake portion is consumed, not
+              dropped).
+        - question: Does the candle stay lit after placement?
+          answer: |
+              It only lights when ignited with flint and steel, a fire
+              charge, or a flaming projectile, and stays lit until
+              extinguished by water or player interaction.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Cherry Planks
+template: splash
 description: |
     Minecraft Cherry Planks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 18
     ref: cherry_planks
     slug: cherry-planks
+    content_rev: 1
     display_name: Cherry Planks
     material: wood
     hardness: 2
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cherry_planks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Cherry Planks are a pink-toned wood block crafted from Cherry
+            Logs, matching the pale pink foliage of the cherry grove biome.
+            They are used to build the wooden portion of nearly every
+            cherry-themed structure, from stairs to signs to boats.
+        lore: |
+            Cherry wood was added in the 1.20 "Trails & Tales" update
+            alongside the cherry grove biome.
+    uses:
+        - title: Cherry Stairs, Slabs & Doors
+          ref: cherry_stairs
+          detail: |
+              Craft into stairs, slabs, fences, gates, doors, trapdoors,
+              pressure plates, buttons, signs, and boats — each recipe
+              requires cherry planks specifically to keep the wood type
+              consistent.
+        - title: Crafting Table & Bookshelf
+          ref: crafting_table
+          detail: |
+              Any four planks make a crafting table, and combined with
+              books they form bookshelves for enchanting setups.
+    found_in:
+        - location: Cherry Grove biome
+          detail: Crafted from Cherry Logs harvested from cherry trees in the cherry grove biome.
+        - location: Crafting table
+          detail: One log or wood block yields 4 planks when crafted.
+    faq:
+        - question: Are Cherry Planks flammable?
+          answer: |
+              Yes. Like most plank types they catch fire from lava and
+              nearby flames, so keep them away from unshielded fire sources.
+        - question: What tool mines Cherry Planks fastest?
+          answer: |
+              An axe. They can still be broken by hand or any tool, just
+              more slowly.
+        - question: Can I substitute another wood type in cherry recipes?
+          answer: |
+              No. Stairs, slabs, fences, doors, trapdoors, pressure plates,
+              buttons, signs, and boats must be crafted from planks of the
+              same wood type.
+        - question: Where do I get Cherry Logs to make the planks?
+          answer: |
+              Chop down cherry trees, which generate naturally in the
+              cherry grove biome.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Fence Gate
+template: splash
 description: |
     Minecraft Dark Oak Fence Gate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 601
     ref: dark_oak_fence_gate
     slug: dark-oak-fence-gate
+    content_rev: 1
     display_name: Dark Oak Fence Gate
     material: wood
     hardness: 2
@@ -26,8 +28,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dark_oak_fence_gate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Dark Oak Fence Gate is an openable barrier that combines
+            fence and door behavior. It connects visually to fences and
+            walls, forming a 1.5-block-high barrier when closed that opens
+            to fully non-solid when activated.
+        lore: |
+            Fence gates were first shown publicly at PAX Prime in 2010
+            before releasing officially in Beta 1.8, with dark oak added
+            later alongside the other colored wood variants.
+    uses:
+        - title: Controlled access points
+          ref: dark_oak_fence_gate
+          detail: |
+              Placed in fence lines to let players and villagers pass
+              through without letting most mobs see or path through the
+              gap while closed.
+    found_in:
+        - location: Crafted from Dark Oak Planks and Sticks
+          detail: Two dark oak planks plus two sticks craft one fence gate.
+        - location: Woodland Mansions and Villages
+          detail: Generates as part of dark-oak-themed structures and some village fencing.
+    faq:
+        - question: What tool do I need to break a Dark Oak Fence Gate?
+          answer: |
+              None required — any tool works, though an axe breaks it
+              fastest.
+        - question: Can mobs see through a closed Dark Oak Fence Gate?
+          answer: |
+              No. Hostile mobs cannot detect or path toward players through
+              a closed gate, making it useful for safe viewing points.
+        - question: Does a Dark Oak Fence Gate need support to stay placed?
+          answer: |
+              No, it can float without a supporting block, unlike some other
+              redstone-adjacent blocks.
     data_version: "1.21.5"
 ---
 

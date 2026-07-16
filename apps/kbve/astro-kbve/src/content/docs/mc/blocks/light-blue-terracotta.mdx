@@ -1,5 +1,6 @@
 ---
 title: Light Blue Terracotta
+template: splash
 description: |
     Minecraft Light Blue Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 455
     ref: light_blue_terracotta
     slug: light-blue-terracotta
+    content_rev: 1
     display_name: Light Blue Terracotta
     material: stone
     hardness: 1.25
     blast_resistance: 4.2
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,50 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_blue_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - non_flammable
+    about:
+        description: |
+            Light Blue Terracotta is a dyed variant of terracotta, a hardened
+            clay block. Once dyed it cannot be changed back or recolored, so
+            the coloring is a permanent, irreversible crafting step.
+        lore: |
+            Terracotta gained its 16 dye colors in the World of Color Update
+            (1.12), giving builders a hard, weather-resistant palette block.
+    uses:
+        - title: Light Blue Glazed Terracotta
+          ref: light_blue_glazed_terracotta
+          detail: |
+              Smelting Light Blue Terracotta in a furnace with any fuel
+              produces Light Blue Glazed Terracotta, which has a glossy,
+              patterned texture.
+    found_in:
+        - location: Crafting table
+          detail: 8 blocks from 4 plain Terracotta blocks plus light blue dye.
+        - location: Mason villager trades
+          detail: Mason villagers trade emeralds for terracotta of any of the 16 colors.
+    faq:
+        - question: What is the minimum tool needed to mine it?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe, or with
+              bare hands, does not drop the block.
+        - question: Can I undo the dye once terracotta is colored?
+          answer: |
+              No. Dyeing terracotta is a one-way recipe; there is no way to
+              revert it to plain terracotta.
+        - question: Is terracotta flammable?
+          answer: |
+              No, it is non-flammable and safe to use as fireproof
+              decoration.
     data_version: "1.21.5"
 ---
 

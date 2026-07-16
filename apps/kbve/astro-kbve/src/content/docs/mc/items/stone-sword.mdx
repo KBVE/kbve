@@ -1,5 +1,6 @@
 ---
 title: Stone Sword
+template: splash
 description: |
     Minecraft Stone Sword — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 863
     ref: stone_sword
     slug: stone-sword
+    content_rev: 1
     display_name: Stone Sword
     category: weapon
     rarity: common
@@ -36,6 +38,34 @@ mc_item:
             - vanishing_curse
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The stone sword is a mid-tier melee weapon crafted from a stick and two
+            stone-tier blocks. It is a step up from the wooden sword, dealing more damage
+            and lasting longer, while also breaking certain blocks faster than bare hands.
+        lore: |
+            Its texture traces back to Notch's abandoned RPG Legend of the Chambered,
+            making the stone sword one of Minecraft's oldest weapon designs.
+    faq:
+        - question: |
+            How do you craft a stone sword?
+          answer: |
+            Combine one stick with two stone-tier blocks (cobblestone, blackstone, or
+            cobbled deepslate) in the standard sword pattern.
+        - question: |
+            How much damage does a stone sword deal?
+          answer: |
+            In Java Edition it deals 5 attack damage with a 1.6 attack speed; Bedrock
+            Edition deals 6 damage with no attack cooldown.
+        - question: |
+            How much durability does a stone sword have?
+          answer: |
+            It has 130 durability in Java Edition and 131 in Bedrock Edition.
+        - question: |
+            Can mobs drop a stone sword?
+          answer: |
+            Yes, wither skeletons can spawn holding a stone sword and have an 8.5% chance
+            of dropping it on death, rising to 11.5% with Looting III.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

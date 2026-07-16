@@ -1,5 +1,6 @@
 ---
 title: Firefly Bush
+template: splash
 description: |
     Minecraft Firefly Bush — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1103
     ref: firefly_bush
     slug: firefly-bush
+    content_rev: 1
     display_name: Firefly Bush
     material: plant
     hardness: 0
@@ -23,11 +25,56 @@ mc_block:
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: firefly_bush
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - compostable
+        - non_solid
+    about:
+        description: |
+            Firefly Bush is a decorative plant that emits a soft light and
+            spawns firefly particles in the dark. It grows in patches near
+            water in most Overworld biomes and anywhere in swamps.
+        lore: |
+            Firefly Bush was added to give swamps and waterside biomes more
+            ambient nighttime life without introducing an actual firefly
+            mob.
+    uses:
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Placing a firefly bush into a composter has a 30% chance of
+              raising the compost level by one.
+    found_in:
+        - location: Grass and mud near water
+          detail: Generates in patches on grass blocks near water in most Overworld biomes, and on mud near water in mangrove swamps.
+        - location: Swamps
+          detail: Generates throughout swamp biomes regardless of proximity to water.
+    faq:
+        - question: Do I need a special tool to break Firefly Bush?
+          answer: |
+              No, it breaks instantly with any item or bare hands and always
+              drops itself.
+        - question: Why does my Firefly Bush glow at night?
+          answer: |
+              It produces firefly particles and a faint ambient buzzing
+              sound whenever the surrounding light level is 13 or lower.
+        - question: Can I make more Firefly Bushes?
+          answer: |
+              Yes, applying bone meal to an existing firefly bush spreads it
+              to nearby valid blocks.
+        - question: Where does Firefly Bush naturally spawn?
+          answer: |
+              Near water on grass or mud in most Overworld biomes, and
+              throughout swamps even away from water.
     data_version: "1.21.5"
 ---
 

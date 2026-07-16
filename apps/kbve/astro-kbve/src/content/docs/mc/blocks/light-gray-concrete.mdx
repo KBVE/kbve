@@ -1,5 +1,6 @@
 ---
 title: Light Gray Concrete
+template: splash
 description: |
     Minecraft Light Gray Concrete — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,69 @@ mc_block:
     id: 686
     ref: light_gray_concrete
     slug: light-gray-concrete
+    content_rev: 1
     display_name: Light Gray Concrete
     material: stone
     hardness: 1.8
     blast_resistance: 1.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_gray_concrete
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Light Gray Concrete is a solid, brightly colored building
+            block formed by hardening Light Gray Concrete Powder with
+            water. It requires a pickaxe to mine and drops itself when
+            broken, unlike its powder form.
+        lore: |
+            Concrete arrived alongside concrete powder to give builders a
+            vivid, non-flammable alternative to stained terracotta and
+            wool that keeps its color true under all lighting.
+    uses:
+        - title: Building and Decoration
+          ref: light_gray_concrete
+          detail: |
+              Its saturated, matte finish and non-flammable nature make it
+              a popular large-scale building material for floors, walls,
+              and accents.
+    found_in:
+        - location: Water-hardened Concrete Powder
+          detail: Cannot be crafted directly; place Light Gray Concrete Powder next to water to instantly harden it into concrete.
+        - location: Trial chamber murals
+          detail: Some concrete colors, including red and white, appear decoratively in trial chamber atrium murals.
+    faq:
+        - question: What tool do I need to mine Light Gray Concrete?
+          answer: |
+              A pickaxe of at least wood tier; mining by hand destroys the
+              block without dropping anything.
+        - question: Can I craft concrete directly?
+          answer: |
+              No, concrete cannot be crafted with a recipe — it only forms
+              when Concrete Powder contacts water.
+        - question: Is Light Gray Concrete affected by Silk Touch or Fortune?
+          answer: |
+              No, it always drops exactly one of itself regardless of
+              enchantments.
+        - question: Is Light Gray Concrete flammable?
+          answer: |
+              No, unlike wool it does not catch fire, though its blast
+              resistance is surprisingly low for a solid concrete block.
     data_version: "1.21.5"
 ---
 

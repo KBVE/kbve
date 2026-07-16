@@ -1,5 +1,6 @@
 ---
 title: Brain Coral
+template: splash
 description: |
     Minecraft Brain Coral — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 630
     ref: brain_coral
     slug: brain-coral
+    content_rev: 1
     display_name: Brain Coral
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Brain Coral is one of five coral variants found in warm ocean coral reefs. It can only be
+            collected by mining it with a Silk Touch enchanted tool, since breaking it any other way
+            destroys the block without a drop. It must stay adjacent to water or it dries out into its
+            dead coral form within a few seconds.
+        lore: |
+            A living fragment of a warm-water reef, modeled after the real sessile animal colonies that build coral structures.
+    faq:
+        - question: How do you get Brain Coral without it dying?
+          answer: |
+              Mine it with a Silk Touch enchanted tool. Breaking it with anything else destroys the
+              block, and even a Silk Touch drop will dry out into dead coral if it isn't kept touching
+              water or a waterlogged block.
+        - question: Can Brain Coral be farmed renewably?
+          answer: |
+              Yes. Applying bone meal to dirt, sand, gravel, or clay in a warm ocean biome grows coral,
+              including brain coral, in place of seagrass, making it a fully renewable resource.
+        - question: What happens if Brain Coral leaves water?
+          answer: |
+              It transforms into dead brain coral after roughly 3 to 5 seconds in Java Edition (longer
+              in Bedrock Edition), and that transformation is permanent — dead coral cannot revert back.
+        - question: What is Brain Coral used for?
+          answer: |
+              It's mainly a decorative building block for aquariums and aquatic-themed builds, since it
+              has no crafting recipes of its own.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

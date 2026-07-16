@@ -1,5 +1,6 @@
 ---
 title: Book and Quill
+template: splash
 description: |
     Minecraft Book and Quill — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1152
     ref: writable_book
     slug: writable-book
+    content_rev: 1
     display_name: Book and Quill
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Book and Quill is a craftable item that lets players write and edit text across up to 100 pages in Java Edition. Once signed, it becomes a written book that can no longer be edited, and it can be displayed on lecterns for others to read. It is a fully renewable resource made from common farming and mob-drop materials.
+        lore: |
+            A writer's most treasured companion, holding words waiting to be immortalized.
+    faq:
+        - question: How do I make a Book and Quill?
+          answer: |
+              Combine a Book, an Ink Sac, and a Feather in any arrangement on a crafting table. Books come from paper, ink sacs from squids, and feathers from chickens.
+        - question: What happens when I sign a book?
+          answer: |
+              Signing it lets you name it for free and permanently prevents further edits, turning it into a fixed written book with an author and title.
+        - question: Can I copy written books with a Book and Quill?
+          answer: |
+              Yes. Crafting one with a written book produces a "Copy of Original" or "Copy of Copy," though copies of copies cannot be duplicated further as an anti-spam measure.
+        - question: What's the page and character limit?
+          answer: |
+              Java Edition allows up to 1,023 characters per page across 100 pages, while Bedrock Edition caps at 256 characters per page across 50 pages.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Scaffolding
+template: splash
 description: |
     Minecraft Scaffolding — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 804
     ref: scaffolding
     slug: scaffolding
+    content_rev: 1
     display_name: Scaffolding
     material: stone
     hardness: 0
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: scaffolding
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            Scaffolding is a climbable, temporary building block crafted
+            from bamboo and string. It breaks instantly with any tool,
+            supports players jumping or sneaking to climb, and collapses in
+            a chain when its base support is removed.
+        lore: |
+            Introduced in Java Edition 1.14, scaffolding gave builders a
+            fast, disposable way to reach great heights without permanent
+            structures.
+    uses:
+        - title: Temporary Building Access
+          ref: scaffolding
+          detail: |
+              Stack scaffolding up to six blocks outward from a support
+              base to reach tall builds; climb by jumping or descend by
+              sneaking.
+    found_in:
+        - location: Crafted from Bamboo and String
+          detail: 6 Bamboo plus 1 String craft 6 Scaffolding in a shaped recipe.
+        - location: Trial Chamber Corridor Chests
+          detail: Found in stacks of 2–10 with roughly a 19.6% chance per chest.
+    faq:
+        - question: What tool do I need to mine Scaffolding?
+          answer: |
+              None. It breaks instantly with any tool, or bare hands, and
+              always drops itself.
+        - question: How do I climb Scaffolding?
+          answer: |
+              Jump while inside a scaffolding column to climb up, or sneak
+              to climb down.
+        - question: How far can Scaffolding extend without support?
+          answer: |
+              Up to six blocks horizontally from its base support before it
+              breaks and collapses.
+        - question: Is Scaffolding flammable?
+          answer: |
+              Yes, it can catch fire and burn, so avoid using it near lava
+              or fire sources.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Name Tag
+template: splash
 description: |
     Minecraft Name Tag — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1192
     ref: name_tag
     slug: name-tag
+    content_rev: 1
     display_name: Name Tag
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A name tag is an item used to permanently rename a mob once it has been labeled on
+            an anvil for 1 experience level. It can be crafted from paper and a metal nugget,
+            found in mineshaft and monster room loot chests, caught while fishing, or bought
+            from wandering traders. Once applied, a named mob becomes persistent and no longer
+            despawns or counts toward the mob cap.
+        lore: |
+            A small tag that turns any ordinary mob into a namesake that will never fade away.
+    faq:
+        - question: How do I use a name tag?
+          answer: |
+              Rename the name tag on an anvil for 1 experience level, then right-click a mob
+              with it to give that mob the custom name permanently.
+        - question: Where can I find name tags?
+          answer: |
+              They can be crafted from paper and any metal nugget, looted from mineshaft or
+              monster room chests, caught while fishing, or purchased from wandering traders.
+        - question: Does naming a mob stop it from despawning?
+          answer: |
+              Yes, a named mob becomes persistent and will not despawn, and it no longer
+              counts toward the mob cap, with the exception of wandering traders.
+        - question: Are there any special names that trigger effects?
+          answer: |
+              Yes, naming a mob "Dinnerbone" or "Grumm" flips it upside down, and other
+              special names like "jeb_" or "Toast" trigger unique cosmetic effects on
+              specific mobs.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

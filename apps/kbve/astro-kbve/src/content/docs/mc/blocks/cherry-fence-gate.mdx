@@ -1,5 +1,6 @@
 ---
 title: Cherry Fence Gate
+template: splash
 description: |
     Minecraft Cherry Fence Gate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 600
     ref: cherry_fence_gate
     slug: cherry-fence-gate
+    content_rev: 1
     display_name: Cherry Fence Gate
     material: wood
     hardness: 2
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cherry_fence_gate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            The Cherry Fence Gate is a wooden gate made from cherry wood
+            that can be opened and closed as a break in a fence line,
+            letting players and villagers pass while keeping most mobs
+            out.
+        lore: |
+            Cherry wood variants of the fence gate were added in the
+            Trails & Tales update (1.20) alongside the rest of the
+            cherry grove wood set.
+    uses:
+        - title: Cherry Fence
+          ref: cherry_fence
+          detail: |
+              Pairs with cherry fences to build enclosures with a
+              player-passable opening for animal pens and gardens.
+        - title: Furnace fuel
+          ref: furnace
+          detail: |
+              Burns in a furnace, smelting 1.5 items per gate.
+    found_in:
+        - location: Cherry grove villages
+          detail: Generates in cherry-wood village structures within the cherry grove biome.
+        - location: Crafted by players
+          detail: Made from cherry planks and sticks at a crafting table.
+    faq:
+        - question: What tool do I need to mine a Cherry Fence Gate?
+          answer: |
+              None — any tool works, though an axe breaks it fastest.
+        - question: Can mobs jump over a closed Cherry Fence Gate?
+          answer: |
+              No. A closed fence gate acts as a 1.5-block-high barrier
+              that most mobs cannot jump, even though it looks one
+              block tall.
+        - question: Is the Cherry Fence Gate flammable?
+          answer: |
+              Yes. Like other overworld wood variants, it can catch
+              fire and burn away if exposed to flames.
+        - question: Does it drop anything special with Silk Touch or Fortune?
+          answer: |
+              No. It always drops itself as a single item regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

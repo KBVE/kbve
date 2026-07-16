@@ -1,5 +1,6 @@
 ---
 title: Waxed Cut Copper
+template: splash
 description: |
     Minecraft Waxed Cut Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 999
     ref: waxed_cut_copper
     slug: waxed-cut-copper
+    content_rev: 1
     display_name: Waxed Cut Copper
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_cut_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Waxed Cut Copper is a decorative copper block with a paneled
+            texture, sealed with honeycomb so it stops oxidizing. It keeps
+            whatever weathering stage it had when waxed forever.
+        lore: |
+            Cut copper was introduced in the Caves & Cliffs Update (1.17) as
+            the decorative counterpart to plain copper blocks.
+    uses:
+        - title: Decorative Building Block
+          ref: waxed_cut_copper
+          detail: |
+              Used as a paneled decorative wall or floor block whose
+              appearance is permanently fixed, unlike unwaxed copper which
+              slowly weathers.
+    found_in:
+        - location: Trial Chambers
+          detail: Waxed variants generate naturally as part of trial chamber structures.
+        - location: Crafted
+          detail: 4 matching Blocks of Copper craft 4 Cut Copper, or stonecutting 1:1, then waxed with honeycomb.
+    faq:
+        - question: What tool do I need to mine Waxed Cut Copper?
+          answer: |
+              A stone pickaxe or better. Mining with anything weaker breaks
+              the block with no drop.
+        - question: Does Waxed Cut Copper ever change color?
+          answer: |
+              No. The honeycomb wax coating permanently prevents further
+              oxidation, unlike its unwaxed counterpart.
+        - question: How do I remove the wax?
+          answer: |
+              Right-click the block with an axe to strip the wax; the block
+              will then resume weathering normally.
+        - question: Is the drop affected by Fortune?
+          answer: |
+              No. It always drops exactly one block regardless of
+              enchantments, provided a stone pickaxe or better is used.
     data_version: "1.21.5"
 ---
 

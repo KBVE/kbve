@@ -1,5 +1,6 @@
 ---
 title: Waxed Oxidized Cut Copper Stairs
+template: splash
 description: |
     Minecraft Waxed Oxidized Cut Copper Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1000
     ref: waxed_oxidized_cut_copper_stairs
     slug: waxed-oxidized-cut-copper-stairs
+    content_rev: 1
     display_name: Waxed Oxidized Cut Copper Stairs
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_oxidized_cut_copper_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - blast_resistant
+    about:
+        description: |
+            Waxed Oxidized Cut Copper Stairs are stair-shaped blocks cut
+            from fully oxidized, honeycomb-sealed copper. Their teal,
+            green-spotted finish is locked in place, giving builds a
+            stable weathered look without further color change.
+        lore: |
+            Cut copper stairs let the copper family's four oxidation
+            colors double as a full architectural stair set, matching
+            the slab and full-block variants introduced with them.
+    uses:
+        - title: Decorative stairs
+          ref: waxed_oxidized_cut_copper_stairs
+          detail: |
+              Used for staircases, roof edges, and trim on builds that
+              want a permanently aged copper aesthetic.
+    found_in:
+        - location: Crafting
+          detail: Craft from Waxed Oxidized Cut Copper blocks (6 stairs per recipe), or stonecut a Waxed Oxidized Copper block.
+        - location: Trial Chambers
+          detail: Generates naturally as part of trial chamber decoration.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better. Anything weaker breaks the block
+              without a drop.
+        - question: Is it affected by Silk Touch or Fortune?
+          answer: |
+              No. It always drops exactly one of itself regardless of
+              enchantments.
+        - question: How is it different from unwaxed Oxidized Cut Copper Stairs?
+          answer: |
+              They look identical, but the waxed version is permanently
+              frozen at this fully oxidized stage — the unwaxed version
+              is just already at the same natural end state.
+        - question: Can it be combined with slabs and full blocks?
+          answer: |
+              Yes, the stairs, slab, and full block share the same teal
+              waxed-oxidized texture, so they mix seamlessly in builds.
     data_version: "1.21.5"
 ---
 

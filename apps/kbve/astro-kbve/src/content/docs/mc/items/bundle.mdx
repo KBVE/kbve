@@ -1,5 +1,6 @@
 ---
 title: Bundle
+template: splash
 description: |
     Minecraft Bundle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 974
     ref: bundle
     slug: bundle
+    content_rev: 1
     display_name: Bundle
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A bundle is a storage item that holds a mix of different item types in a single inventory slot, letting players carry things like sticks and ender pearls together instead of dedicating separate slots to each. Items occupy space in the bundle based on their normal stack size, so items that stack to 64 take up less room than items that stack to 16 or not at all. Bundles can be dyed in any of the 16 colors to help identify their contents at a glance.
+        lore: |
+            Bundles are inspired by the ancient Roman coin purse, a compact pouch used for carrying mixed valuables for thousands of years.
+    faq:
+        - question: How do I craft a bundle?
+          answer: |
+              Combine one string with one leather in a crafting grid to create a basic bundle.
+        - question: Can bundles be colored, and how?
+          answer: |
+              Yes, bundles can be dyed in 16 different colors by combining them with matching dyes, which helps players quickly identify a bundle's contents.
+        - question: What items cannot go inside bundles?
+          answer: |
+              Shulker boxes cannot be placed inside bundles, though bundles themselves can be nested inside other bundles, each consuming a portion of the outer bundle's space plus room for their own contents.
+        - question: How do I retrieve specific items from a bundle?
+          answer: |
+              Right-click the bundle to access its contents, then scroll through the stored items to select which one to remove, or simply retrieve the most recently added item by default.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

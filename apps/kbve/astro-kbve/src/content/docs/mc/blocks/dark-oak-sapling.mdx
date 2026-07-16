@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Sapling
+template: splash
 description: |
     Minecraft Dark Oak Sapling — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 31
     ref: dark_oak_sapling
     slug: dark-oak-sapling
+    content_rev: 1
     display_name: Dark Oak Sapling
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dark_oak_sapling
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - plant
+    about:
+        description: |
+            A Dark Oak Sapling is a plant block that grows into a dark
+            oak tree. Unlike most saplings, it cannot grow alone —
+            dark oak trees require four saplings planted in a 2x2
+            square with at least seven blocks of space above.
+        lore: |
+            Dark oak saplings were added in the 1.7 update together with
+            the large, bushy dark oak trees of roofed forests.
+    uses:
+        - title: Dark Oak Tree
+          ref: dark_oak_log
+          detail: |
+              Plant four saplings in a 2x2 square with open space above
+              to grow a full dark oak tree.
+    found_in:
+        - location: Dark Oak Leaves
+          detail: Breaking dark oak leaves has a small chance to drop a sapling.
+        - location: Wandering Traders
+          detail: Purchasable from wandering traders for 5 emeralds.
+    faq:
+        - question: What tool do I need to mine a Dark Oak Sapling?
+          answer: |
+              None. It breaks instantly with any tool or bare hands.
+        - question: Why won't my Dark Oak Sapling grow?
+          answer: |
+              Dark oak trees only grow from four saplings planted
+              together in a 2x2 square, with at least seven blocks of
+              clear space above them.
+        - question: Can Dark Oak Saplings be used as furnace fuel?
+          answer: |
+              Yes, saplings smelt 0.5 items each when used as fuel.
+        - question: Do Dark Oak Saplings help with composting?
+          answer: |
+              Yes, placing one in a composter has a 30% chance to raise
+              the compost level.
     data_version: "1.21.5"
 ---
 

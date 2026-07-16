@@ -1,5 +1,6 @@
 ---
 title: Brick Stairs
+template: splash
 description: |
     Minecraft Brick Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 339
     ref: brick_stairs
     slug: brick-stairs
+    content_rev: 1
     display_name: Brick Stairs
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brick_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Brick Stairs is a decorative stairs variant of Bricks, used to
+            build sloped and stepped brick structures. It requires at
+            least a wooden pickaxe to drop, otherwise it breaks with
+            nothing.
+        lore: |
+            Like Brick Slab, Brick Stairs generates naturally in trail
+            ruins, the buried archaeology structures added in the 1.20
+            "Trails & Tales" update.
+    uses:
+        - title: Building & Decoration
+          ref: brick_stairs
+          detail: |
+              Used for steps, ramps, and roof trim on brick-themed
+              builds; can be oriented as straight, inner-corner, or
+              outer-corner stairs, and placed upside down.
+    found_in:
+        - location: Crafting
+          detail: 6 Bricks arranged in a staircase pattern craft 4 Brick Stairs.
+        - location: Stonecutting
+          detail: 1 Brick Block produces 1 Brick Stairs via the stonecutter.
+        - location: Trail ruins
+          detail: Generates naturally as part of trail ruins structures.
+    faq:
+        - question: What tool do I need to mine Brick Stairs?
+          answer: |
+              At least a wooden pickaxe. Mining without a pickaxe drops
+              nothing.
+        - question: Is Brick Stairs flammable?
+          answer: |
+              No, it does not burn or catch fire from adjacent flames or
+              lava.
+        - question: Can Brick Stairs be waterlogged?
+          answer: |
+              Yes, water can occupy the same block space as the stairs.
+        - question: Where does Brick Stairs generate naturally?
+          answer: |
+              As part of trail ruins, the buried archaeological structures
+              found underground and underwater.
     data_version: "1.21.5"
 ---
 

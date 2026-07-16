@@ -1,5 +1,6 @@
 ---
 title: Spruce Sapling
+template: splash
 description: |
     Minecraft Spruce Sapling — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 26
     ref: spruce_sapling
     slug: spruce-sapling
+    content_rev: 1
     display_name: Spruce Sapling
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: spruce_sapling
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - plant
+    about:
+        description: |
+            A Spruce Sapling is a small plant obtained mainly from decaying
+            spruce leaves. Planted on dirt, grass, or moss with enough
+            light and space above, it grows into a spruce tree.
+        lore: |
+            Notch initially hid the sapling block in early development
+            because he thought its texture was "ugly."
+    uses:
+        - title: Spruce Tree Growth
+          ref: spruce_log
+          detail: |
+              A single sapling grows into a standard spruce or pine tree;
+              four saplings placed in a 2x2 square grow into a giant spruce
+              tree instead.
+        - title: Bone Meal Acceleration
+          ref: bone_meal
+          detail: |
+              Applying bone meal instantly attempts to grow the sapling
+              into a tree, regardless of light level.
+    found_in:
+        - location: Decaying Spruce Leaves
+          detail: Breaking or decaying spruce leaves has roughly a 5% chance to drop a sapling.
+        - location: Wandering Traders and Taiga Villages
+          detail: Purchasable from wandering traders or occasionally found in taiga village chests.
+    faq:
+        - question: What tool do I need to break a spruce sapling?
+          answer: |
+              None — it breaks instantly with any tool or bare hands.
+        - question: How do I grow a giant spruce tree?
+          answer: |
+              Place four spruce saplings in a 2x2 square with at least 14
+              blocks of open space above and enough light.
+        - question: Can spruce saplings be used as furnace fuel?
+          answer: |
+              Yes, each sapling smelts 0.5 items, though it is a
+              relatively weak fuel source.
+        - question: Does bone meal always work on saplings?
+          answer: |
+              No, there is a random chance each application succeeds, so
+              it may take several tries to force growth.
     data_version: "1.21.5"
 ---
 

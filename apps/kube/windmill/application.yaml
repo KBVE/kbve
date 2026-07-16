@@ -37,6 +37,8 @@ spec:
                           extraEnv:
                               - name: PG_SCHEMA
                                 value: windmill
+                              - name: RUST_LOG
+                                value: warn
                           resources:
                               requests:
                                   memory: 512Mi
@@ -53,6 +55,8 @@ spec:
                             extraEnv:
                                 - name: PG_SCHEMA
                                   value: windmill
+                                - name: RUST_LOG
+                                  value: warn
                             resources:
                                 requests:
                                     memory: 512Mi
@@ -72,6 +76,8 @@ spec:
                                   value: 'true'
                                 - name: SLEEP_QUEUE
                                   value: '200'
+                                - name: RUST_LOG
+                                  value: warn
                             resources:
                                 requests:
                                     memory: 256Mi

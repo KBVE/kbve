@@ -1,5 +1,9 @@
 ---
 title: 'Ember Wisp'
+template: splash
+sidebar:
+    label: 'Ember Wisp'
+    hidden: true
 description: |
     A floating orb of pale fire that drifts through corridors, leaving trails of burning air.
 ref: 'ember-wisp'
@@ -86,7 +90,10 @@ abilities:
       cooldown_turns: 3
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A floating orb of pale fire that drifts through corridors, leaving trails of burning air.
+
+</NpcLeaf>

@@ -1,5 +1,6 @@
 ---
 title: Small Amethyst Bud
+template: splash
 description: |
     Minecraft Small Amethyst Bud — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,44 @@ mc_item:
     id: 1322
     ref: small_amethyst_bud
     slug: small-amethyst-bud
+    content_rev: 1
     display_name: Small Amethyst Bud
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Small Amethyst Bud is the first of four growth stages of amethyst,
+            forming on budding amethyst blocks found inside amethyst geodes deep
+            underground. It grows over time into a medium bud, then a large bud,
+            and finally a fully mature amethyst cluster that drops amethyst
+            shards when mined.
+        lore: |
+            Amethyst geodes were added to give underground exploration a
+            crystalline, glowing landmark worth seeking out and harvesting.
+    faq:
+        - question: How do I find a Small Amethyst Bud?
+          answer: |
+              Small amethyst buds naturally generate inside amethyst geodes,
+              which spawn underground and are lined with budding amethyst on
+              their interior calcite layer.
+        - question: Can I mine or move the Small Amethyst Bud?
+          answer: |
+              It can be broken with any tool, but only the fully grown amethyst
+              cluster stage actually drops amethyst shards; earlier bud stages
+              drop nothing when mined.
+        - question: Does the Small Amethyst Bud grow on its own?
+          answer: |
+              Yes, given enough time it randomly progresses from small bud to
+              medium bud, large bud, and finally a mature cluster, but only while
+              still attached to budding amethyst.
+        - question: Does it emit light?
+          answer: |
+              Small amethyst buds emit a faint light, with brightness increasing
+              at each growth stage until the fully mature cluster reaches its
+              maximum light level.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

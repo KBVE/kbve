@@ -1,5 +1,6 @@
 ---
 title: Jungle Fence
+template: splash
 description: |
     Minecraft Jungle Fence — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 607
     ref: jungle_fence
     slug: jungle-fence
+    content_rev: 1
     display_name: Jungle Fence
     material: wood
     hardness: 2
@@ -26,8 +28,62 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: jungle_fence
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Jungle Fence is a wooden fence crafted from Jungle Planks and
+            Sticks. It stands a block and a half tall, connects visually to
+            adjacent fences and solid blocks, and blocks player and mob
+            movement while still letting arrows and gaze pass through the
+            gaps.
+        lore: |
+            Wooden fences have been part of Minecraft since Alpha, with the
+            jungle variant following the jungle wood set introduced to give
+            each biome's timber a matching build palette.
+    uses:
+        - title: Jungle Fence Gate
+          ref: jungle_fence_gate
+          detail: |
+              Combine with sticks to make a matching gate that opens for
+              players and villagers, useful for walkable openings in fence
+              lines.
+        - title: Animal Pens & Perimeters
+          ref: jungle_fence
+          detail: |
+              Placed around farms and pastures to contain animals and
+              villagers while keeping builds visually open.
+    found_in:
+        - location: Jungle Temples
+          detail: Occasionally used as decoration or trap components inside jungle temple structures.
+        - location: Crafted from Jungle Wood
+          detail: Made from 4 Jungle Planks + 2 Sticks, producing 3 fences per craft.
+    faq:
+        - question: Does Jungle Fence connect to other wood types?
+          answer: |
+              Yes. All wooden fence variants connect to each other and to
+              solid blocks, but not to Nether Brick Fences.
+        - question: Can mobs jump over a Jungle Fence?
+          answer: |
+              Most mobs and players cannot jump over it during normal
+              movement, though some larger mobs can path over short fences
+              in certain edge cases.
+        - question: Is Jungle Fence flammable?
+          answer: |
+              Yes. Like other overworld wood fences it burns and can be used
+              as furnace fuel (1.5 items smelted per fence).
+        - question: What tool mines it fastest?
+          answer: |
+              An axe. It requires no minimum tool tier and always drops
+              itself regardless of tool.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Cherry Boat
+template: splash
 description: |
     Minecraft Cherry Boat — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 820
     ref: cherry_boat
     slug: cherry-boat
+    content_rev: 1
     display_name: Cherry Boat
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A cherry boat is a rideable watercraft crafted from five cherry planks in a
+            crafting table, holding up to two passengers. Introduced in Java Edition 1.20, it
+            is renewable since cherry trees generate naturally, and it functions identically to
+            every other wood-type boat.
+        lore: |
+            Cherry boats let players cross water and glide across ice using the distinctive
+            pink-blossomed cherry wood introduced with the Trails & Tales update.
+    faq:
+        - question: How fast do cherry boats go?
+          answer: |
+              On water they reach up to 8 blocks per second, while on ice surfaces like
+              packed or blue ice they can accelerate to roughly 40 blocks per second.
+        - question: Can I put a chest in a cherry boat?
+          answer: |
+              Yes, combining a cherry boat with a chest creates a boat with chest, giving it
+              mobile storage space while traveling.
+        - question: Do cherry boats have special properties?
+          answer: |
+              No, cherry boats behave identically to oak, spruce, and other wood boats;
+              wood type only affects appearance, not gameplay.
+        - question: Can mobs ride cherry boats?
+          answer: |
+              Most mobs can end up in a boat involuntarily by colliding with it, but they
+              cannot steer and can only leave if the boat is destroyed or sinks.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

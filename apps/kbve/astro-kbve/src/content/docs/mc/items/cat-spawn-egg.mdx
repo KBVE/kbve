@@ -1,5 +1,6 @@
 ---
 title: Cat Spawn Egg
+template: splash
 description: |
     Minecraft Cat Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1076
     ref: cat_spawn_egg
     slug: cat-spawn-egg
+    content_rev: 1
     display_name: Cat Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The cat spawn egg is a creative-mode and command-only item that instantly
+            spawns a cat, a passive mob normally found in villages and swamp huts. Cats
+            can be tamed with raw fish and are prized for scaring away creepers and
+            phantoms.
+        lore: |
+            The Jellie coat pattern was added after winning a 2018 community contest,
+            submitted as a tribute to YouTuber GoodTimesWithScar's real cat.
+    faq:
+        - question: How do I get a cat spawn egg in survival?
+          answer: |
+              You cannot obtain it in standard survival — it is only available through
+              creative mode inventory or commands.
+        - question: What happens when I use the egg on a tamed cat?
+          answer: |
+              It spawns a kitten that is automatically tamed to that cat's owner.
+        - question: Do spawned cats have random appearances?
+          answer: |
+              Yes, cats created from the spawn egg get a random variant from the 11
+              available coat types.
+        - question: Will a spawned cat ever despawn?
+          answer: |
+              No, cats spawned from the egg do not despawn naturally, just like tamed or
+              village-born cats.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

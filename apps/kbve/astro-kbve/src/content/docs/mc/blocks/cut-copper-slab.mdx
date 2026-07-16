@@ -1,5 +1,6 @@
 ---
 title: Cut Copper Slab
+template: splash
 description: |
     Minecraft Cut Copper Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,74 @@ mc_block:
     id: 991
     ref: cut_copper_slab
     slug: cut-copper-slab
+    content_rev: 1
     display_name: Cut Copper Slab
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cut_copper_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Cut Copper Slab is a decorative half-height building block made
+            by cutting copper blocks or waxed copper into slab form. Like
+            other copper blocks, unwaxed slabs oxidize over time, shifting
+            from bright orange-brown through green patina unless waxed with
+            honeycomb.
+        lore: |
+            Introduced alongside the other cut copper variants in the Java
+            Edition 1.17 Caves & Cliffs update.
+    uses:
+        - title: Chiseled Copper
+          ref: chiseled_copper
+          detail: |
+              Two cut copper slabs stacked in a crafting grid produce
+              Chiseled Copper, giving builders another decorative copper
+              texture option.
+        - title: Waxed Cut Copper Slab
+          ref: waxed_cut_copper_slab
+          detail: |
+              Combining with honeycomb halts oxidation permanently,
+              locking the slab at its current weathering stage.
+    found_in:
+        - location: Trial Chambers
+          detail: The waxed, fully oxidized variant generates naturally as part of trial chamber structures.
+        - location: Crafting or stonecutting
+          detail: Made from 3 Cut Copper blocks (6 slabs) or 1 Block of Copper via the stonecutter (8 slabs).
+    faq:
+        - question: What tool do I need to mine Cut Copper Slab?
+          answer: |
+              A stone pickaxe or better. Anything weaker breaks the block
+              without dropping it.
+        - question: Does Cut Copper Slab oxidize like copper blocks?
+          answer: |
+              Yes, unless waxed. It progresses through the same four
+              oxidation stages as other copper blocks over time.
+        - question: Is Cut Copper Slab affected by Fortune?
+          answer: |
+              No. It always drops exactly one slab per slab mined,
+              regardless of Fortune level.
+        - question: How do I stop it from oxidizing?
+          answer: |
+              Apply honeycomb to wax it, which locks it at its current
+              oxidation stage permanently.
     data_version: "1.21.5"
 ---
 

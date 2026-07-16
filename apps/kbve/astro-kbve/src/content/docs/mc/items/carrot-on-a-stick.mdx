@@ -1,5 +1,6 @@
 ---
 title: Carrot on a Stick
+template: splash
 description: |
     Minecraft Carrot on a Stick — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 806
     ref: carrot_on_a_stick
     slug: carrot-on-a-stick
+    content_rev: 1
     display_name: Carrot on a Stick
     category: food
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A carrot on a stick is a tool crafted from a fishing rod and a carrot that lets a
+            player steer and boost a saddled pig they are riding. It has limited durability that
+            is consumed only when activating a speed boost, and it turns back into a plain fishing
+            rod once fully depleted.
+        lore: |
+            Its name comes from the English idiom "carrot and stick," describing reward and
+            threat used together as motivation.
+    faq:
+        - question: What happens when the carrot on a stick runs out of durability?
+          answer: |
+              It turns back into a fishing rod, since the two items share the same durability pool
+              in reverse.
+        - question: Can I repair a carrot on a stick?
+          answer: |
+              Yes, combining two damaged carrots on sticks in a crafting grid or anvil merges their
+              durability and adds one extra point.
+        - question: Does the boost work on any animal?
+          answer: |
+              No, only saddled pigs respond to the carrot on a stick; rabbits and other mobs do
+              not follow or speed up from it.
+        - question: What enchantments can it receive?
+          answer: |
+              A carrot on a stick can be enchanted with Unbreaking III, Mending I, and Curse of
+              Vanishing I via an anvil.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

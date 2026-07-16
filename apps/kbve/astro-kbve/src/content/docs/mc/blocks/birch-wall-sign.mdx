@@ -1,5 +1,6 @@
 ---
 title: Birch Sign
+template: splash
 description: |
     Minecraft Birch Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 213
     ref: birch_wall_sign
     slug: birch-wall-sign
+    content_rev: 1
     display_name: Birch Sign
     material: wood
     hardness: 1
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: birch_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Birch Sign (wall variant) is a non-solid signpost crafted
+            from birch planks and mounted flush against a wall. It displays
+            up to four lines of editable, dyeable text per side.
+        lore: |
+            Signs predate almost every other decorative block in
+            Minecraft, originally tested as text-displaying entities before
+            becoming a proper block.
+    uses:
+        - title: Labeling & Wayfinding
+          ref: birch_wall_sign
+          detail: |
+              Common for labeling storage rooms, farms, and shop stalls;
+              text supports dye colors and a glowing effect from ink sacs.
+        - title: Furnace Fuel
+          ref: birch_wall_sign
+          detail: |
+              Overworld wood signs burn as furnace fuel, smelting one item
+              per sign.
+    found_in:
+        - location: Crafted from Birch Planks + Stick
+          detail: 6 birch planks and 1 stick craft 3 birch signs.
+        - location: Village Signposts
+          detail: Occasionally decorates village paths and building fronts.
+    faq:
+        - question: What tool do I need to mine a birch sign?
+          answer: |
+              None — any tool works, though an axe is fastest.
+        - question: Can I edit the text after placing it?
+          answer: |
+              Yes, right-click the sign to reopen the text editor unless it
+              has been waxed with honeycomb, which locks it permanently.
+        - question: Do mobs collide with signs?
+          answer: |
+              No, signs are non-solid; players, mobs, and items pass
+              through them freely.
+        - question: Is it flammable?
+          answer: |
+              Yes, like all overworld wood signs; only the nether wood
+              variants (crimson/warped) are fireproof.
     data_version: "1.21.5"
 ---
 

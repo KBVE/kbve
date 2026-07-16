@@ -1,5 +1,6 @@
 ---
 title: Brown Banner
+template: splash
 description: |
     Minecraft Brown Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 543
     ref: brown_banner
     slug: brown-banner
+    content_rev: 1
     display_name: Brown Banner
     material: wood
     hardness: 1
@@ -24,10 +26,58 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brown_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Brown Banner is a tall, non-solid decorative block woven from
+            wool and dyed brown. It breaks instantly with any tool
+            (fastest with an axe) and can carry up to six pattern layers.
+        lore: |
+            Banners were added in Java Edition 1.9 as customizable
+            heraldic flags that can also be applied to shields.
+    uses:
+        - title: Loom Patterns
+          ref: banner_pattern
+          detail: |
+              Combine with dye and an optional Banner Pattern item at a
+              loom to add up to six layered designs.
+        - title: Shield Decoration
+          ref: shield
+          detail: |
+              Placing a banner with a Shield in a crafting grid copies its
+              pattern onto the shield.
+    found_in:
+        - location: Savanna Villages
+          detail: Generates outside houses, meeting points, and pillar fountains in savanna villages.
+        - location: Cartographer trades
+          detail: Expert-level Cartographer villagers in several biomes trade brown banners for emeralds.
+    faq:
+        - question: What tool do I need to mine Brown Banner?
+          answer: |
+              None required — it breaks with any tool or bare hands, but
+              an axe breaks it fastest.
+        - question: Can I change a banner's base color after crafting?
+          answer: |
+              No. The base color is fixed at crafting time; only the
+              pattern layers added at a loom can be customized further.
+        - question: Where does Brown Banner spawn naturally?
+          answer: |
+              It generates in savanna villages, near houses, meeting
+              points, and pillar fountains.
+        - question: Can Brown Banner be used as fuel?
+          answer: |
+              Yes. Banners can be smelted as furnace fuel, burning for the
+              equivalent of 1.5 items.
     data_version: "1.21.5"
 ---
 

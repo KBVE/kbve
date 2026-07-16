@@ -1,5 +1,6 @@
 ---
 title: Piglin Head
+template: splash
 description: |
     Minecraft Piglin Head — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 434
     ref: piglin_wall_head
     slug: piglin-wall-head
+    content_rev: 1
     display_name: Piglin Head
     material: stone
     hardness: 1
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: piglin_head
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - nether
+        - mob_head
+        - decoration
+    about:
+        description: |
+            Piglin Wall Head is the wall-mounted placement state of the
+            Piglin Head block, automatically used when the head is set
+            against a vertical surface instead of a floor.
+        lore: |
+            Shares its drop and item with the standard Piglin Head; the two
+            block states exist only to give the head a different rotation
+            model depending on where it is placed.
+    uses:
+        - title: Piglin disguise
+          ref: piglin_head
+          detail: |
+              Functions identically to the floor variant when broken and
+              re-worn — reduces piglins' and piglin brutes' detection
+              range by half.
+    found_in:
+        - location: Charged creeper explosions
+          detail: |
+              Obtained the same way as the standing head: a piglin killed
+              by a charged creeper's explosion drops the head item, which
+              becomes this block state when placed on a wall.
+    faq:
+        - question: How is Piglin Wall Head different from Piglin Head?
+          answer: |
+              They are the same item and drop; this is simply the block
+              state used automatically when the head is attached to a wall
+              instead of standing on a floor.
+        - question: How do I get the head item?
+          answer: |
+              Kill a piglin with a charged creeper's explosion; it always
+              drops a piglin head.
+        - question: What tool mines it?
+          answer: |
+              None required — any tool or bare hands can break and re-place it.
+        - question: Does placement orientation affect gameplay?
+          answer: |
+              No, only visual rotation. The disguise and noteblock-sound
+              effects work the same whether the head sits on a floor or a wall.
     data_version: "1.21.5"
 ---
 

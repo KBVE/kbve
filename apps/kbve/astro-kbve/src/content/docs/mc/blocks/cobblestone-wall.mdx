@@ -1,5 +1,6 @@
 ---
 title: Cobblestone Wall
+template: splash
 description: |
     Minecraft Cobblestone Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 378
     ref: cobblestone_wall
     slug: cobblestone-wall
+    content_rev: 1
     display_name: Cobblestone Wall
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cobblestone_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Cobblestone Wall is a decorative variant of cobblestone that adds
+            waist-high posts and connecting sections to fences off areas or
+            dress up stone builds. Adjacent walls, blocks, and fence gates
+            automatically connect it into a continuous barrier.
+        lore: |
+            Cobblestone walls were first shown off by Jeb in August 2012 and
+            shipped in Java Edition 1.4.2.
+    uses:
+        - title: Crafting
+          ref: cobblestone
+          detail: |
+              Six Cobblestone arranged in a crafting table row yield six
+              Cobblestone Walls, or a Stonecutter converts a single
+              Cobblestone into one wall.
+        - title: Mob-safe fencing
+          ref: cobblestone_wall
+          detail: |
+              At 1.5 blocks tall a wall blocks most mobs while still letting
+              players see and shoot over it, making it a common perimeter
+              and garden border block.
+    found_in:
+        - location: Overworld villages and structures
+          detail: Generates as decoration around wells, houses, and other village structures.
+        - location: Crafted or stonecutter
+          detail: Most walls are player-placed from crafted or stonecut cobblestone.
+    faq:
+        - question: What tool do I need to mine a Cobblestone Wall?
+          answer: |
+              Any pickaxe, starting with wood. Mining without a pickaxe
+              destroys the block with no drop.
+        - question: Does Fortune or Silk Touch affect drops?
+          answer: |
+              No. A Cobblestone Wall always drops exactly one Cobblestone
+              Wall regardless of enchantments.
+        - question: How do I craft Cobblestone Walls?
+          answer: |
+              Six Cobblestone in a crafting grid produces six walls, or feed
+              Cobblestone into a Stonecutter for a 1:1 conversion.
+        - question: Do walls connect to fence gates?
+          answer: |
+              Yes. Placing a fence gate next to a wall lets the wall visually
+              connect to it, forming a gap players and mobs can walk through.
     data_version: "1.21.5"
 ---
 

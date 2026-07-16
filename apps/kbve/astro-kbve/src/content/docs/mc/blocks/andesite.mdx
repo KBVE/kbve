@@ -1,5 +1,6 @@
 ---
 title: Andesite
+template: splash
 description: |
     Minecraft Andesite — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 6
     ref: andesite
     slug: andesite
+    content_rev: 1
     display_name: Andesite
     material: stone
     hardness: 1.5
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: andesite
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Andesite is an igneous stone block that generates in large
+            blob deposits underground. Its mottled gray coloring makes it a
+            popular neutral building stone, and it is the base ingredient
+            for polished andesite and its derived shapes.
+        lore: |
+            Its name and appearance are drawn from the real-world volcanic
+            rock formed by rapidly cooling lava flows.
+    uses:
+        - title: Polished Andesite
+          ref: polished_andesite
+          detail: |
+              Craft 4 Andesite in a 2x2 grid, or stonecut 1:1, to make
+              Polished Andesite, and further into slabs, stairs, and walls.
+    found_in:
+        - location: Overworld stone blobs
+          detail: |
+              Generates in blob deposits, roughly two attempts per chunk
+              from Y=0-60, tapering off up to Y=128.
+        - location: Piglin bartering chain
+          detail: Obtainable renewably via quartz-diorite-andesite crafting from bartered gold.
+    faq:
+        - question: What tool do I need to mine Andesite?
+          answer: |
+              Any pickaxe, including a wooden one. It always drops itself
+              regardless of tool tier.
+        - question: How is Andesite crafted?
+          answer: |
+              Combine one Diorite and one Cobblestone in a crafting grid to
+              produce two Andesite.
+        - question: Can I sell Andesite to villagers?
+          answer: |
+              Yes. Journeyman-level Mason villagers buy 16 Andesite for 1
+              emerald.
+        - question: What is Andesite used for?
+          answer: |
+              Mainly building and decoration — it can be polished, cut into
+              slabs and stairs, or shaped into walls via a stonecutter.
     data_version: "1.21.5"
 ---
 

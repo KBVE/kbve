@@ -1,5 +1,6 @@
 ---
 title: Creaking Spawn Egg
+template: splash
 description: |
     Minecraft Creaking Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 1144
     ref: creaking_spawn_egg
     slug: creaking-spawn-egg
+    content_rev: 1
     display_name: Creaking Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Creaking Spawn Egg summons a Creaking, the hostile mob tied to the Pale Garden biome. Unlike naturally spawned Creakings, which are bound to an activated Creaking Heart and invulnerable until it is destroyed, egg-summoned Creakings can take damage directly and do not despawn at dawn.
+            It gives players a way to study or fight the mob's unique stealth behavior outside of its normal Creaking Heart mechanic.
+        lore: |
+            Rooted in the pale, sunless groves of ancient trees, the Creaking only moves when no one is watching.
+    faq:
+        - question: How do I get a Creaking Spawn Egg?
+          answer: |
+              It is available in Creative mode inventory or by using pick block on a naturally spawned Creaking; it does not drop from normal combat.
+        - question: How is an egg-spawned Creaking different from a natural one?
+          answer: |
+              Natural Creakings are linked to a Creaking Heart and only die when that heart is destroyed. Creakings summoned from the spawn egg are independently vulnerable and can be killed directly.
+        - question: Why can't I hit the Creaking?
+          answer: |
+              A naturally spawned Creaking is invulnerable to damage until its linked Creaking Heart is destroyed, which instantly kills it.
+        - question: What makes the Creaking's movement unusual?
+          answer: |
+              It can only move while no player in Survival or Adventure mode has it in view, freezing in place the moment it is being watched.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

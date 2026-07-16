@@ -1,5 +1,6 @@
 ---
 title: Purple Concrete
+template: splash
 description: |
     Minecraft Purple Concrete — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,68 @@ mc_block:
     id: 688
     ref: purple_concrete
     slug: purple-concrete
+    content_rev: 1
     display_name: Purple Concrete
     material: stone
     hardness: 1.8
     blast_resistance: 1.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: purple_concrete
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Purple Concrete is a solid, non-flammable building block formed
+            when Purple Concrete Powder contacts water. It shares the vivid
+            saturation of its powder form but hardens into a stone-like
+            block requiring a pickaxe to mine.
+        lore: |
+            Concrete gives builders a fire-proof, deeply saturated
+            alternative to wool and terracotta, popular for modern-style
+            architecture.
+    uses:
+        - title: Building Material
+          ref: purple_concrete
+          detail: |
+              Used purely as a decorative, fireproof building block; it has
+              no further crafting uses.
+    found_in:
+        - location: Water Contact
+          detail: Forms instantly when Purple Concrete Powder touches a water source, flowing water, or a waterlogged block.
+    faq:
+        - question: What tool do I need to mine Purple Concrete?
+          answer: |
+              Any pickaxe, wooden or better; mining without a pickaxe
+              yields no drop.
+        - question: Is Purple Concrete flammable?
+          answer: |
+              No. Unlike wool, concrete never catches fire, making it a
+              safer choice near lava or fire-based builds.
+        - question: How is Purple Concrete different from Purple Concrete Powder?
+          answer: |
+              Concrete is the solid, water-cured form; the powder is
+              gravity-affected and turns into concrete on contact with
+              water.
+        - question: Is Purple Concrete considered blast resistant?
+          answer: |
+              Not especially — its blast resistance of 1.8 is lower than
+              stone, despite concrete's real-world reputation for
+              durability.
     data_version: "1.21.5"
 ---
 

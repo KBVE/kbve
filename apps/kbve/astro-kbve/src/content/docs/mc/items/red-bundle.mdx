@@ -1,5 +1,6 @@
 ---
 title: Red Bundle
+template: splash
 description: |
     Minecraft Red Bundle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 989
     ref: red_bundle
     slug: red-bundle
+    content_rev: 1
     display_name: Red Bundle
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A red bundle is a storage item that can hold up to 64 inventory slots' worth of mixed item types within a single inventory slot. Items stack according to their normal stack size, so items that stack to 64 take up only 1/64 of the bundle's space, while unstackable items consume the whole bundle. It is crafted from one string and one leather, then dyed red.
+        lore: |
+            Bundles are inspired by the ancient Roman coin purse, a compact pouch used for thousands of years to carry a jumble of small valuables in one place.
+    faq:
+        - question: How much can a red bundle hold?
+          answer: |
+              A red bundle holds up to 64 slots' worth of items, with space consumed proportionally to each item's normal stack size — fully stackable items take 1/64 of the space each, while unstackable items fill the entire bundle.
+        - question: Can I put another bundle inside a red bundle?
+          answer: |
+              Yes, nested bundles are allowed. A bundle placed inside another bundle consumes 1/16 of the outer bundle's space plus whatever space its own contents occupy.
+        - question: How do I take items out of a red bundle?
+          answer: |
+              Right-click the bundle to retrieve the most recently added item, or scroll through its contents to select a different stack before withdrawing it.
+        - question: Can I store a shulker box inside a red bundle?
+          answer: |
+              No, shulker boxes cannot be placed inside bundles. The reverse works, however — a bundle can be stored inside a shulker box.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

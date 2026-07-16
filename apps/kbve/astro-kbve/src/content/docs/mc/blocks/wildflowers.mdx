@@ -1,5 +1,6 @@
 ---
 title: Wildflowers
+template: splash
 description: |
     Minecraft Wildflowers — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1050
     ref: wildflowers
     slug: wildflowers
+    content_rev: 1
     display_name: Wildflowers
     material: stone
     hardness: 0
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: wildflowers
+          qty_min: 1
+          qty_max: 4
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Wildflowers are thin decorative flowers that grow in clusters of
+            up to four per block space, similar to pink petals or leaf
+            litter. Stem color varies by the biome they grow in, most
+            commonly birch forests and meadows.
+        lore: |
+            Added in Java Edition 1.21.5 as part of a pass on natural terrain
+            decoration around birch-themed biomes.
+    uses:
+        - title: Yellow Dye
+          ref: yellow_dye
+          detail: |
+              Each wildflower crafts into one yellow dye, usable for dyeing
+              wool, banners, and other colorable blocks.
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Placing a wildflower in a composter has a chance to raise its
+              level by 30%, eventually yielding bone meal.
+    found_in:
+        - location: Birch forests and meadows
+          detail: Generates naturally on grass blocks with a random flower count per block.
+        - location: Wandering trader
+          detail: Purchasable from wandering traders for 1 emerald.
+    faq:
+        - question: What tool do I need to break wildflowers?
+          answer: |
+              None. Wildflowers break instantly with any tool or bare hands.
+        - question: Do wildflowers spread on their own?
+          answer: |
+              Applying bone meal to grass in a suitable biome can generate
+              new wildflowers, and bone meal on an existing patch can
+              duplicate flowers within it.
+        - question: Are wildflowers useful for bees?
+          answer: |
+              Yes. Bees pollinate wildflowers, and saplings grown within 2
+              blocks of them have a 5% chance to generate a bee nest.
+        - question: What do wildflowers craft into?
+          answer: |
+              Each wildflower converts into one yellow dye at a crafting table.
     data_version: "1.21.5"
 ---
 

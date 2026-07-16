@@ -1,5 +1,6 @@
 ---
 title: Gilded Blackstone
+template: splash
 description: |
     Minecraft Gilded Blackstone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 894
     ref: gilded_blackstone
     slug: gilded-blackstone
+    content_rev: 1
     display_name: Gilded Blackstone
     material: nether
     hardness: 1.5
@@ -26,8 +28,64 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: gilded_blackstone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: gold_nugget
+          qty_min: 2
+          qty_max: 5
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - pickaxe_mineable
+        - nether
+        - blast_resistant
+        - piglin_loved
+    about:
+        description: |
+            Gilded Blackstone is a decorative variant of blackstone found
+            exclusively in bastion remnants, distinguished by streaks of
+            gold running through its surface. Despite its appearance, it
+            cannot be smelted into gold.
+        lore: |
+            Introduced with bastion remnants in the Nether Update, its name
+            references Gilded Games, a studio that supported Minecraft's
+            modding community.
+    uses:
+        - title: Piglin Distraction
+          ref: gold_nugget
+          detail: |
+              When dropped as an item near piglins, gilded blackstone
+              distracts them for several seconds while they inspect it,
+              similar to gold ingots.
+    found_in:
+        - location: Bastion Remnants
+          detail: |
+              Generates as part of bastion remnant structures, replacing
+              some regular blackstone, and is commonly found beneath the
+              chests inside bastion remnants.
+    faq:
+        - question: What tool do I need to mine Gilded Blackstone?
+          answer: |
+              Any pickaxe works, even a wooden one, since it has no minimum
+              tool tier requirement.
+        - question: Does Gilded Blackstone drop gold ingots?
+          answer: |
+              No. When mined without Silk Touch it has a chance to drop 2
+              to 5 gold nuggets instead of the block itself; Silk Touch
+              always recovers the block.
+        - question: Where can I find Gilded Blackstone?
+          answer: |
+              Only inside bastion remnant structures in the Nether,
+              scattered throughout their blackstone walls and frequently
+              placed beneath loot chests.
+        - question: Can Gilded Blackstone be smelted for gold?
+          answer: |
+              No. Despite its gold-flecked texture, it cannot be smelted
+              into gold ingots or nuggets in a furnace.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Birch Wood
+template: splash
 description: |
     Minecraft Birch Wood — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 73
     ref: birch_wood
     slug: birch-wood
+    content_rev: 1
     display_name: Birch Wood
     material: wood
     hardness: 2
@@ -24,10 +26,62 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: birch_wood
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Birch Wood is the all-bark variant of a birch log, showing bark
+            texture on all six faces instead of rings on the ends. It is
+            purely decorative, functioning identically to a birch log for
+            crafting and fuel.
+        lore: |
+            Wood blocks (bark-on-all-sides logs) were added in snapshot
+            12w30d as a compact way to build bark-textured pillars and
+            beams without exposed log rings.
+    uses:
+        - title: Furnace Fuel
+          ref: birch_planks
+          detail: |
+              Burns as furnace fuel, smelting 1.5 items per block, same as
+              a regular birch log.
+        - title: Stripped Birch Wood
+          ref: stripped_birch_wood
+          detail: |
+              Right-clicking with an axe strips the bark rings to produce
+              Stripped Birch Wood, a lighter all-bark finish.
+    found_in:
+        - location: Crafted from Birch Logs
+          detail: 4 birch logs arranged in a 2x2 grid craft 3 birch wood blocks.
+        - location: Birch Forest Trees (as logs)
+          detail: The plain "wood" block itself isn't found naturally; birch logs generate in birch forest biomes and can be crafted into wood.
+    faq:
+        - question: What tool do I need to mine birch wood?
+          answer: |
+              None — any tool works, though an axe is fastest at chopping
+              it down.
+        - question: Is birch wood flammable?
+          answer: |
+              Yes, it catches fire from lava and nearby flames like all
+              overworld wood blocks.
+        - question: How is it different from a birch log?
+          answer: |
+              Purely cosmetic — birch wood shows bark texture on every
+              face, while a birch log shows the ring pattern on its two
+              ends.
+        - question: Can I strip it?
+          answer: |
+              Yes, using an axe on birch wood converts it to Stripped Birch
+              Wood, matching the look of stripped logs on all sides.
     data_version: "1.21.5"
 ---
 

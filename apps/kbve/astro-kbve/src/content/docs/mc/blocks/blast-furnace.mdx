@@ -1,5 +1,6 @@
 ---
 title: Blast Furnace
+template: splash
 description: |
     Minecraft Blast Furnace — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,74 @@ mc_block:
     id: 808
     ref: blast_furnace
     slug: blast-furnace
+    content_rev: 1
     display_name: Blast Furnace
     material: stone
     hardness: 3.5
     blast_resistance: 3.5
     best_tool: pickaxe
-    required_tool_tier: 0
-    light_emission: 0
+    required_tool_tier: 1
+    light_emission: 13
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blast_furnace
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+    about:
+        description: |
+            The Blast Furnace is a specialized smelting block that processes
+            ores, raw metals, and metal tools/armor twice as fast as a
+            regular furnace, though it cannot smelt food or other
+            non-metallic items. It emits light while lit and serves as an
+            armorer villager's job site block.
+        lore: |
+            Added in Java Edition 1.14 (Village & Pillage), the Blast
+            Furnace gave players a faster, specialized alternative to the
+            furnace for ore processing.
+    uses:
+        - title: Fast Ore Smelting
+          ref: furnace
+          detail: |
+              Smelts ores, raw metals, and metal armor/tools in half the
+              time of a regular furnace, at the same fuel cost per item.
+        - title: Armorer Job Site
+          ref: villager
+          detail: |
+              Assigns a nearby jobless villager as an armorer and lets
+              players trade with existing armorers.
+    found_in:
+        - location: Village Armorer Houses
+          detail: Generates as furniture inside armorer houses in villages.
+        - location: Trail Ruins
+          detail: Can be found partially buried as decoration within trail ruins structures.
+        - location: Crafted
+          detail: Craft with 5 iron ingots, 1 furnace, and 3 smooth stone blocks.
+    faq:
+        - question: What tool do I need to mine a Blast Furnace?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe destroys
+              the block with no drop.
+        - question: How much faster does a Blast Furnace smelt than a furnace?
+          answer: |
+              Twice as fast — 100 game ticks per item instead of 200 — but
+              it uses fuel at twice the rate to match.
+        - question: Can a Blast Furnace smelt food or wood?
+          answer: |
+              No. It only accepts ores, raw metals, and metal tools/armor;
+              use a regular furnace or smoker for other items.
+        - question: Does a Blast Furnace give off light?
+          answer: |
+              Yes, it emits light level 13 while actively smelting, similar
+              to a lit furnace.
     data_version: "1.21.5"
 ---
 

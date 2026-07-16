@@ -1,5 +1,6 @@
 ---
 title: Warped Sign
+template: splash
 description: |
     Minecraft Warped Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 861
     ref: warped_sign
     slug: warped-sign
+    content_rev: 1
     display_name: Warped Sign
     material: nether
     hardness: 1
@@ -24,10 +26,60 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: warped_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            A Warped Sign lets players write up to four lines of
+            customizable text on a fireproof Nether-wood post or wall
+            plaque, and can be waxed with honeycomb to prevent further
+            edits.
+        lore: |
+            Signs are one of Minecraft's oldest tools for player-to-player
+            communication, with the Warped variant added as part of the
+            Nether Update's fungal wood set.
+    uses:
+        - title: Labeling and Information
+          ref: warped_planks
+          detail: |
+              Post text for storage labels, warnings, shop prices, or
+              decoration; text can be dyed or made to glow with a glow ink
+              sac.
+        - title: Fluid and Lava Control
+          ref: warped_hanging_sign
+          detail: |
+              Signs block the flow of water and lava when placed in the
+              path of the fluid, making them useful for containment.
+    found_in:
+        - location: Crafted from Warped Planks and a Stick
+          detail: Six Warped Planks plus one Stick craft 3 Warped Signs.
+    faq:
+        - question: Can Warped Signs burn?
+          answer: |
+              No, being made of Nether wood they are immune to fire, unlike
+              most overworld sign variants in Bedrock Edition.
+        - question: How do I edit or lock sign text?
+          answer: |
+              Right-click to open the text editor while placing; apply
+              honeycomb afterward to wax and permanently lock the text.
+        - question: Do signs stop fluids?
+          answer: |
+              Yes. A placed sign blocks water and lava from flowing through
+              its space, useful for small-scale fluid control.
+        - question: What tool breaks a Warped Sign fastest?
+          answer: |
+              An axe, though no minimum tool tier is required — any tool or
+              bare hands will eventually break it and it always drops
+              itself.
     data_version: "1.21.5"
 ---
 

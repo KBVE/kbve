@@ -1,5 +1,6 @@
 ---
 title: Lectern
+template: splash
 description: |
     Minecraft Lectern — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 812
     ref: lectern
     slug: lectern
+    content_rev: 1
     display_name: Lectern
     material: wood
     hardness: 2.5
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lectern
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+        - redstone_component
+    about:
+        description: |
+            The Lectern is a wooden furniture block that holds a written
+            book or book and quill so multiple players can read it at once.
+            It also serves as the job site block for librarian villagers
+            and can output a redstone signal tied to the current page.
+        lore: |
+            Dinnerbone first proposed the lectern back in 2012, but it was
+            not implemented and released until Java Edition 1.14 in 2019.
+    uses:
+        - title: Librarian Job Site
+          ref: librarian
+          detail: |
+              A villager standing near a Lectern claims it as a job site
+              block and becomes a librarian.
+        - title: Book Display
+          ref: written_book
+          detail: |
+              Right-clicking with a book and quill or written book places it
+              on the Lectern for reading; turning pages emits a redstone
+              pulse matching the page number.
+    found_in:
+        - location: Villages
+          detail: Spawns naturally in village library buildings.
+        - location: Crafted
+          detail: Made from any wooden slab and a bookshelf.
+    faq:
+        - question: What tool should I use to break a Lectern?
+          answer: |
+              An axe is fastest, but any tool or bare hands will eventually
+              break it since it requires no minimum tool tier.
+        - question: How do I craft a Lectern?
+          answer: |
+              Combine four wooden slabs, one bookshelf, and shape them at a
+              crafting table; any wood type slab works.
+        - question: Can a Lectern power redstone?
+          answer: |
+              Yes, it emits a signal strength that changes as pages are
+              turned in the placed book, useful for page-based redstone
+              triggers.
+        - question: Does breaking a Lectern drop the book on it?
+          answer: |
+              Yes, any book placed on the Lectern drops along with the
+              Lectern block itself.
     data_version: "1.21.5"
 ---
 

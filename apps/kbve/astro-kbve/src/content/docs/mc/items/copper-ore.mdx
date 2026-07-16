@@ -1,5 +1,6 @@
 ---
 title: Copper Ore
+template: splash
 description: |
     Minecraft Copper Ore — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 68
     ref: copper_ore
     slug: copper-ore
+    content_rev: 1
     display_name: Copper Ore
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Copper Ore is an Overworld ore block, with a deepslate variant found
+            deeper underground, that yields raw copper when mined. It generates as
+            common blobs across most biomes and in denser clusters within dripstone
+            caves, most abundantly around Y-level 48.
+        lore: |
+            First announced at Minecraft Live 2020, copper ore gave the Caves &
+            Cliffs update its own signature building metal.
+    faq:
+        - question: What tool do I need to mine Copper Ore?
+          answer: |
+              A stone pickaxe or better; anything weaker drops nothing.
+        - question: How much raw copper does mining Copper Ore give?
+          answer: |
+              Each block drops 2-5 raw copper normally, or up to 20 with a Fortune
+              III enchantment, while Silk Touch collects the ore block itself.
+        - question: Does Copper Ore oxidize like copper blocks do?
+          answer: |
+              No, despite its weathered-looking texture, copper ore does not
+              actually oxidize over time.
+        - question: Where does Copper Ore generate?
+          answer: |
+              It generates in standard blobs throughout most biomes between roughly
+              Y=-16 and Y=112, with larger concentrations inside dripstone caves.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

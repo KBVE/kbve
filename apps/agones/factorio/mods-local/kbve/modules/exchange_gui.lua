@@ -231,6 +231,7 @@ local function handle_buy(player, index)
 	end
 	local entry = Market.ITEMS[index]
 	if not entry then return end
+	if not prototypes.item[entry.item] then return end
 	local balance = Coins.get_balance(player.index)
 	if balance < entry.price then
 		player.print({ '', 'Need ', entry.price, ' coins, balance is ', balance, '.' })

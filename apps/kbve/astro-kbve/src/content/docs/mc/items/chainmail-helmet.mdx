@@ -1,5 +1,6 @@
 ---
 title: Chainmail Helmet
+template: splash
 description: |
     Minecraft Chainmail Helmet — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 900
     ref: chainmail_helmet
     slug: chainmail-helmet
+    content_rev: 1
     display_name: Chainmail Helmet
     category: armor
     rarity: common
@@ -39,6 +41,32 @@ mc_item:
             - vanishing_curse
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Chainmail helmets are an uncommon head-slot armor piece that shares the same 2
+            armor points and durability as an iron helmet, but with higher enchantability. They
+            cannot be crafted, and are instead obtained from armored mob drops, purchased from
+            Journeyman-level armorer villagers, or given as a Hero of the Village gift.
+        lore: |
+            The chainmail texture set was carried over from Notch's earlier game Legend of the
+            Chambered 2, predating the removal of its fire-based crafting recipe in version 1.8.
+    faq:
+        - question: Why can't I craft a chainmail helmet?
+          answer: |
+              Crafting was removed in Java Edition 1.8 when the item form of fire used in the
+              old recipe was eliminated, leaving chainmail permanently uncraftable.
+        - question: Is chainmail better than iron armor?
+          answer: |
+              They share identical armor points and durability, but chainmail's higher
+              enchantability makes it a better base for enchanting than iron.
+        - question: Can I repair chainmail helmets?
+          answer: |
+              Yes, repair them on an anvil using iron ingots, each restoring 25% durability,
+              or combine two damaged helmets for one with a small durability bonus.
+        - question: How rare is finding chainmail from mobs?
+          answer: |
+              Armored zombies, husks, skeletons, strays, and bogged mobs drop their armor with
+              an 8.5% base chance on death, rising to 11.5% with Looting III.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

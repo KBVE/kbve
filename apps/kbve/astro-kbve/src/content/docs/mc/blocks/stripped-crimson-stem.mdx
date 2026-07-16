@@ -1,7 +1,9 @@
 ---
 title: Stripped Crimson Stem
+template: splash
 description: |
-    Minecraft Stripped Crimson Stem — vanilla 1.21.5 block record (auto-generated).
+    Minecraft Stripped Crimson Stem — the bark-stripped variant of Crimson
+    Stem from the Nether, non-flammable and obtained by axing a stem. FAQ.
 sidebar:
     label: Stripped Crimson Stem
     hidden: true
@@ -13,6 +15,7 @@ mc_block:
     id: 831
     ref: stripped_crimson_stem
     slug: stripped-crimson-stem
+    content_rev: 1
     display_name: Stripped Crimson Stem
     material: nether
     hardness: 2
@@ -24,10 +27,63 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_crimson_stem
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            Stripped Crimson Stem is the bark-free form of Crimson Stem,
+            showing the plank-textured rings on all faces including the
+            sides, not just the log ends. It does not burn, matching other
+            Nether fungal wood blocks.
+        lore: |
+            Crimson Stem and its stripped variant were added with the Nether
+            Update (1.16) alongside the Crimson Forest biome.
+    uses:
+        - title: Stripped Crimson Hyphae
+          ref: stripped_crimson_hyphae
+          detail: |
+              Craft 4 Stripped Crimson Stems into 3 Stripped Crimson Hyphae
+              blocks, the all-bark-pattern equivalent.
+        - title: Crimson Planks
+          ref: crimson_planks
+          detail: |
+              Craft into 4 Crimson Planks per block for Nether-themed
+              building.
+        - title: Soul Campfire / Smoker
+          ref: soul_campfire
+          detail: |
+              Used as a crafting ingredient for campfires, soul campfires,
+              and smokers.
+    found_in:
+        - location: Crafted, not naturally generated
+          detail: |
+              Does not generate naturally; obtained by stripping a Crimson
+              Stem with an axe while it is placed in the world.
+    faq:
+        - question: How do I get Stripped Crimson Stem?
+          answer: |
+              Use any axe on a placed Crimson Stem block.
+        - question: Is Stripped Crimson Stem flammable?
+          answer: |
+              No. Crimson and Warped stems/hyphae are immune to fire, unlike
+              overworld log types.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool, including bare hands, drops the block; an axe is
+              fastest.
+        - question: Does it generate naturally anywhere?
+          answer: |
+              No, in Java Edition it is only obtained by stripping a placed
+              Crimson Stem with an axe; it does not generate in this form.
     data_version: "1.21.5"
 ---
 

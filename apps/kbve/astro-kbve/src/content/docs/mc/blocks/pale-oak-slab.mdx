@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Slab
+template: splash
 description: |
     Minecraft Pale Oak Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 574
     ref: pale_oak_slab
     slug: pale-oak-slab
+    content_rev: 1
     display_name: Pale Oak Slab
     material: wood
     hardness: 2
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pale_oak_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Pale Oak Slab is a half-height building block crafted from Pale
+            Oak Planks. Two slabs stacked together form a full Pale Oak
+            block, and slabs let builders create precise half-block steps,
+            floors, and trim.
+        lore: |
+            Pale Oak was added with the Pale Garden biome in the Garden
+            Awakening update, bringing a bleached, eerie wood tone to
+            building palettes.
+    uses:
+        - title: Pale Oak Slab
+          ref: pale_oak_slab
+          detail: |
+              Crafted from 3 Pale Oak Planks to make 6 slabs. Used for
+              detailing rooftops, staircases, and half-height flooring in
+              builds that use the pale, washed-out Pale Oak palette.
+    found_in:
+        - location: Crafting table
+          detail: Crafted directly from 3 Pale Oak Planks, yielding 6 slabs.
+        - location: Pale Garden structures
+          detail: Occasionally found as part of naturally generated Pale Garden buildings.
+    faq:
+        - question: What tool do I need to mine a Pale Oak Slab?
+          answer: |
+              Any tool works, including bare hands, though an axe breaks it
+              fastest.
+        - question: Can I combine two Pale Oak Slabs into a full block?
+          answer: |
+              Yes. Placing a second slab on top of (or against) an existing
+              slab of the same type merges them into a full Pale Oak Slab
+              block.
+        - question: Is Pale Oak Slab flammable?
+          answer: |
+              Yes, like most Overworld wood blocks it can catch fire from
+              nearby flames or lava.
+        - question: Does Pale Oak Slab work with redstone or waterlogging?
+          answer: |
+              It can be waterlogged when placed in water, and functions the
+              same as other wooden slabs for redstone conductivity (it is
+              non-conductive).
     data_version: "1.21.5"
 ---
 

@@ -1,0 +1,37 @@
+---
+title: Nether Engine
+template: splash
+description: |
+    Immersive Aircraft Nether Engine — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Nether Engine
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900015
+    ref: immersive_aircraft:nether_engine
+    slug: nether-engine
+    content_rev: 0
+    display_name: Nether Engine
+    category: material
+    rarity: common
+    stack_size: 64
+    tags:
+        - immersive_aircraft
+        - upgrade
+    about:
+        description: |
+            A high-powered engine tuned to run reliably even in the harsh Nether.
+        lore: |
+            Built to breathe fire.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

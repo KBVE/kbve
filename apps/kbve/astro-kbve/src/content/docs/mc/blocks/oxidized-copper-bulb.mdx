@@ -1,5 +1,6 @@
 ---
 title: Oxidized Copper Bulb
+template: splash
 description: |
     Minecraft Oxidized Copper Bulb — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,78 @@ mc_block:
     id: 1035
     ref: oxidized_copper_bulb
     slug: oxidized-copper-bulb
+    content_rev: 1
     display_name: Oxidized Copper Bulb
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
-    light_emission: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
+    light_emission: 4
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oxidized_copper_bulb
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - redstone
+    about:
+        description: |
+            Oxidized Copper Bulb is the fully weathered stage of the copper
+            bulb, a redstone-powered light source that toggles between lit
+            and unlit on a single pulse instead of needing continuous
+            power. Full oxidation dims its light output to the dimmest of
+            the four stages.
+        lore: |
+            Introduced in the Trial Chambers update, the copper bulb's
+            oxidation stages let redstone builders match toggle-lights to
+            the weathered look of aged copper builds.
+    uses:
+        - title: Redstone Toggle Light
+          ref: oxidized_copper_bulb
+          detail: |
+              A single redstone pulse flips it between lit and unlit and it
+              holds that state, giving flicker-free lighting for builds
+              themed around aged, teal-green copper.
+        - title: Comparator Signal
+          ref: comparator
+          detail: |
+              A comparator reads a lit Oxidized Copper Bulb as signal
+              strength 15, the same as any other oxidation stage.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates lit and waxed at the oxidized stage in some trial chamber structures.
+        - location: Weathering
+          detail: An unwaxed Copper Bulb left exposed long enough progresses through Exposed and Weathered before reaching Oxidized.
+    faq:
+        - question: What tool do I need to mine an Oxidized Copper Bulb?
+          answer: |
+              A stone pickaxe or better; anything weaker breaks it with no
+              drop.
+        - question: How bright is an Oxidized Copper Bulb compared to a fresh one?
+          answer: |
+              Light output falls from 15 when new to 4 once fully oxidized,
+              the dimmest of the four stages.
+        - question: Does it still need constant redstone power to stay lit?
+          answer: |
+              No. It only needs a momentary pulse to toggle state, then
+              stays lit or unlit until pulsed again, regardless of
+              oxidation stage.
+        - question: Can I stop it from oxidizing further or reverse it?
+          answer: |
+              Apply honeycomb to wax it and lock the current stage in
+              place. An axe scrapes off one oxidation stage per use, and
+              lightning strikes fully de-oxidize it.
     data_version: "1.21.5"
 ---
 

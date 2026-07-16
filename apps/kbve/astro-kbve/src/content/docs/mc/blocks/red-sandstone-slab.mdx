@@ -1,5 +1,6 @@
 ---
 title: Red Sandstone Slab
+template: splash
 description: |
     Minecraft Red Sandstone Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 589
     ref: red_sandstone_slab
     slug: red-sandstone-slab
+    content_rev: 1
     display_name: Red Sandstone Slab
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_sandstone_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Red Sandstone Slab is a decorative half-height variant of Red
+            Sandstone that does not generate naturally and must be crafted
+            or stonecut. Two slabs stack into a full double slab, making
+            it a flexible trim block for badlands-themed builds.
+        lore: |
+            Introduced in Java Edition 1.8 (14w32a) alongside Red
+            Sandstone, giving badlands construction a matching slab
+            variant.
+    uses:
+        - title: Chiseled Red Sandstone
+          ref: chiseled_red_sandstone
+          detail: |
+              Stacking 2 Red Sandstone Slabs in a crafting grid produces
+              1 Chiseled Red Sandstone block.
+    found_in:
+        - location: Crafted from Red Sandstone
+          detail: 3 Red Sandstone (or Chiseled Red Sandstone) craft 6 slabs; a stonecutter converts 1 Red Sandstone into 2 slabs.
+    faq:
+        - question: What tool do I need to mine Red Sandstone Slab?
+          answer: |
+              A wooden pickaxe or better. Mining it without any pickaxe
+              destroys the block with no drop.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one Red Sandstone Slab
+              regardless of enchantments.
+        - question: Does Red Sandstone Slab generate naturally?
+          answer: |
+              No. It is only obtained by crafting or stonecutting Red
+              Sandstone; it never appears in natural world generation.
+        - question: Can two slabs form a full block?
+          answer: |
+              Yes. Placing a second slab on top of an existing one (or
+              crafting with three in a row) forms a visual full Red
+              Sandstone block.
     data_version: "1.21.5"
 ---
 

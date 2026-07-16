@@ -1,5 +1,6 @@
 ---
 title: Blackstone
+template: splash
 description: |
     Minecraft Blackstone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,77 @@ mc_block:
     id: 883
     ref: blackstone
     slug: blackstone
+    content_rev: 1
     display_name: Blackstone
     material: nether
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blackstone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+    about:
+        description: |
+            Blackstone is a dark Nether stone that functions much like
+            cobblestone, generating in large deposits below the lava seas of
+            basalt deltas and throughout bastion remnants. It can substitute
+            for cobblestone in most crafting recipes and be polished, cut
+            into slabs and stairs, or chiseled for decoration.
+        lore: |
+            Added in the Nether Update (Java Edition 1.16), Blackstone gave
+            the Nether its own native building stone distinct from
+            netherrack.
+    uses:
+        - title: Cobblestone Substitute
+          ref: polished_blackstone
+          detail: |
+              Crafts into stone tools, furnaces, brewing stands, and stone
+              button/pressure plate equivalents just like cobblestone; also
+              polishes into Polished Blackstone and its brick variants.
+        - title: Blackstone Slab / Stairs / Wall
+          ref: blackstone_slab
+          detail: |
+              Crafted or stonecutter-cut into slabs, stairs, and walls for
+              building and decoration.
+    found_in:
+        - location: Basalt Deltas
+          detail: Generates in large deposits beneath the lava seas of the basalt deltas biome.
+        - location: Bastion Remnants
+          detail: Forms the primary structural material of bastion remnants throughout the Nether.
+        - location: Piglin Bartering
+          detail: Piglins have a chance to trade 8–16 blackstone for a gold ingot.
+    faq:
+        - question: What tool do I need to mine Blackstone?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe destroys
+              the block with no drop.
+        - question: Is Blackstone affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one Blackstone regardless of
+              enchantments.
+        - question: Can Blackstone replace cobblestone in recipes?
+          answer: |
+              Yes, for most stone-tier recipes such as tools, furnaces, and
+              brewing stands, but it cannot craft dispensers, droppers, or
+              pistons.
+        - question: Where is the best place to find Blackstone?
+          answer: |
+              Basalt deltas offer the largest natural deposits, while
+              bastion remnants provide easy surface access without digging.
     data_version: "1.21.5"
 ---
 

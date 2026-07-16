@@ -1,5 +1,6 @@
 ---
 title: Exposed Copper Trapdoor
+template: splash
 description: |
     Minecraft Exposed Copper Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1017
     ref: exposed_copper_trapdoor
     slug: exposed-copper-trapdoor
+    content_rev: 1
     display_name: Exposed Copper Trapdoor
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: exposed_copper_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - redstone_component
+    about:
+        description: |
+            Exposed Copper Trapdoor is the first weathering stage of the
+            copper trapdoor, a redstone-operable trapdoor whose surface has
+            begun dulling into a spotted patina compared to its original
+            bright orange-brown finish.
+        lore: |
+            Revealed at Minecraft Live 2023 alongside the rest of the
+            copper trapdoor family and released in Java Edition 1.21.
+    uses:
+        - title: Copper Door
+          ref: exposed_copper_door
+          detail: |
+              Pairs with the matching Exposed Copper Door as part of the
+              oxidizable copper building set, useful for redstone-controlled
+              entrances.
+        - title: Honeycomb Waxing
+          ref: honeycomb
+          detail: |
+              Apply honeycomb to wax it, halting further oxidation at the
+              exposed stage.
+    found_in:
+        - location: Natural weathering or lightning
+          detail: An unoxidized copper trapdoor reaches this stage over time, or instantly if struck by lightning.
+        - location: Crafted
+          detail: Made from 4 Exposed Copper ingots (Exposed Copper block) or scraped down from a more-oxidized trapdoor with an axe.
+    faq:
+        - question: What tool do I need to mine an Exposed Copper Trapdoor?
+          answer: |
+              A stone pickaxe or better; lower tools break it without a drop.
+        - question: How do I get an Exposed Copper Trapdoor?
+          answer: |
+              Let an unoxidized copper trapdoor weather naturally, strike
+              it with lightning, or scrape a more-oxidized one back a stage
+              with an axe.
+        - question: Can I stop it from oxidizing further?
+          answer: |
+              Yes. Apply honeycomb to wax it, which locks it at the exposed
+              stage permanently.
+        - question: Does it behave differently from an unoxidized trapdoor?
+          answer: |
+              No, oxidation only changes its appearance — it still opens,
+              closes, and responds to redstone identically.
     data_version: "1.21.5"
 ---
 

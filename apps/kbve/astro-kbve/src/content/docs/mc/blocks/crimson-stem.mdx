@@ -1,5 +1,6 @@
 ---
 title: Crimson Stem
+template: splash
 description: |
     Minecraft Crimson Stem — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 830
     ref: crimson_stem
     slug: crimson-stem
+    content_rev: 1
     display_name: Crimson Stem
     material: nether
     hardness: 2
@@ -24,10 +26,59 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crimson_stem
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            Crimson Stem is the log-equivalent block of the crimson fungus
+            "tree," the trunk of the giant crimson fungi found in Crimson
+            Forests. It does not burn, unlike overworld logs.
+        lore: |
+            Added in the Nether Update (1.16), giant crimson and warped
+            fungi replaced trees as the Nether's native flora.
+    uses:
+        - title: Crimson Planks
+          ref: crimson_planks
+          detail: |
+              Craft one Crimson Stem into four Crimson Planks, the base
+              material for crimson slabs, stairs, doors, trapdoors,
+              fences, and furniture.
+        - title: Stripped Crimson Stem
+          ref: stripped_crimson_stem
+          detail: |
+              Right-click with an axe to strip the bark texture off,
+              producing Stripped Crimson Stem with identical properties.
+    found_in:
+        - location: Crimson Forest
+          detail: Grows as the trunk of giant crimson fungi, generating naturally throughout the Crimson Forest biome.
+        - location: Bastion Remnants
+          detail: Used as a structural and decorative material in bastion remnants.
+    faq:
+        - question: What tool do I need to mine Crimson Stem?
+          answer: |
+              Any tool works, and an axe is fastest. There is no minimum
+              tool tier required to receive the drop.
+        - question: Does Crimson Stem burn in lava or fire?
+          answer: |
+              No. Crimson and Warped stems are non-flammable in Java
+              Edition, unlike every overworld log type.
+        - question: Can Crimson Stem be turned into charcoal?
+          answer: |
+              No. Unlike overworld logs, stems cannot be smelted into
+              charcoal in a furnace.
+        - question: How do I get Stripped Crimson Stem?
+          answer: |
+              Use any axe on a placed Crimson Stem to strip its bark,
+              turning it into Stripped Crimson Stem in place.
     data_version: "1.21.5"
 ---
 

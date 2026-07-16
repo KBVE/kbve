@@ -1,5 +1,6 @@
 ---
 title: Brown Concrete Powder
+template: splash
 description: |
     Minecraft Brown Concrete Powder — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 706
     ref: brown_concrete_powder
     slug: brown-concrete-powder
+    content_rev: 1
     display_name: Brown Concrete Powder
     material: dirt
     hardness: 0.5
@@ -24,10 +26,54 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brown_concrete_powder
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - gravity_affected
+        - overworld
+    about:
+        description: |
+            Brown Concrete Powder is a gravity-affected building block that
+            falls like sand or gravel when unsupported. On contact with any
+            water source it instantly solidifies into Brown Concrete.
+        lore: |
+            Concrete powder was announced by Jeb in February 2017 as a
+            gravity-obeying block that hardens into concrete upon touching
+            water.
+    uses:
+        - title: Brown Concrete
+          ref: brown_concrete
+          detail: |
+              Touching water — flowing, still, or waterlogged — converts
+              the powder block instantly into solid Brown Concrete.
+    found_in:
+        - location: Crafting
+          detail: Craft 4 sand, 4 gravel, and 1 brown dye (shapeless) to yield 8 brown concrete powder.
+    faq:
+        - question: What tool do I need to mine Brown Concrete Powder?
+          answer: |
+              Any tool works, but a shovel mines it fastest. No minimum
+              tool tier is required.
+        - question: Why did my Brown Concrete Powder disappear?
+          answer: |
+              It is gravity-affected like sand; if unsupported it falls,
+              and if it lands in water it converts into Brown Concrete.
+        - question: Is Brown Concrete Powder renewable?
+          answer: |
+              Yes. Sand and gravel are both obtainable renewably, making
+              the powder (and resulting concrete) fully renewable.
+        - question: Does Brown Concrete Powder suffocate mobs like gravel?
+          answer: |
+              No, it behaves like sand for falling but does not deal fall
+              damage differently; it simply hardens on water contact
+              rather than staying as loose powder.
     data_version: "1.21.5"
 ---
 

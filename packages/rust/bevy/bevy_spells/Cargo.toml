@@ -13,7 +13,7 @@ categories = ["game-development", "game-engines"]
 readme = "README.md"
 
 [dependencies]
-bevy = { version = "0.18", default-features = false, features = [
+bevy = { version = "0.19", default-features = false, features = [
     "bevy_state",
 ] }
 prost = { version = "0.14", features = ["derive"] }

@@ -1,5 +1,6 @@
 ---
 title: Red Sandstone
+template: splash
 description: |
     Minecraft Red Sandstone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 563
     ref: red_sandstone
     slug: red-sandstone
+    content_rev: 1
     display_name: Red Sandstone
     material: stone
     hardness: 0.8
     blast_resistance: 0.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,68 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_sandstone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Red Sandstone is a solid stone-family block that replaces red
+            sand at badlands cave entrances and mesa formations, unlike
+            red sand it resists gravity and stays put once placed. It
+            crafts from four red sand blocks and forms the basis of an
+            entire family of decorative variants.
+        lore: |
+            Introduced in Java Edition 1.8 (14w32a) to solve red sand
+            avalanches at mesa cave openings, giving the badlands biome its
+            own stone palette to match regular sandstone in deserts.
+    uses:
+        - title: Cut Red Sandstone
+          ref: cut_red_sandstone
+          detail: |
+              Crafts 1:1 into Cut Red Sandstone, a smoother decorative
+              variant used for detailing.
+        - title: Stairs, Slabs, and Walls
+          ref: red_sandstone_stairs
+          detail: |
+              Crafts or stonecuts into Red Sandstone Stairs, Slabs, and
+              Walls for stepped and fenced construction.
+        - title: Smooth Red Sandstone
+          ref: smooth_red_sandstone
+          detail: |
+              Smelting Red Sandstone in a furnace produces Smooth Red
+              Sandstone, a flatter-textured building variant.
+    found_in:
+        - location: Badlands biome
+          detail: Generates at noise cave entrances in badlands, replacing red sand.
+        - location: Crafting table
+          detail: 4 Red Sand crafts 1 Red Sandstone.
+        - location: Wandering traders
+          detail: Sell red sand, making red sandstone indirectly renewable.
+    faq:
+        - question: What tool do I need to mine Red Sandstone?
+          answer: |
+              At least a wooden pickaxe. Mining without one breaks the
+              block with no drop.
+        - question: Does Red Sandstone fall like sand?
+          answer: |
+              No. Unlike red sand, red sandstone is not affected by
+              gravity and stays fixed in place once placed or generated.
+        - question: How do I get Red Sandstone without visiting badlands?
+          answer: |
+              Craft it from red sand, which can be gathered elsewhere or
+              purchased from a wandering trader, then smelted or crafted
+              into red sandstone.
+        - question: What variants can Red Sandstone become?
+          answer: |
+              Cut, chiseled, and smooth red sandstone, plus stairs, slabs,
+              and walls, all craftable or stonecuttable from the base block.
     data_version: "1.21.5"
 ---
 

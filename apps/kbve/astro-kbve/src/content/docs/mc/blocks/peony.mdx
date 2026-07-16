@@ -1,5 +1,6 @@
 ---
 title: Peony
+template: splash
 description: |
     Minecraft Peony — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 528
     ref: peony
     slug: peony
+    content_rev: 1
     display_name: Peony
     material: stone
     hardness: 0
@@ -24,10 +26,63 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: peony
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+        - instabreak
+        - tall_flower
+    about:
+        description: |
+            Peony is a two-block-tall flower that grows in forest biomes,
+            breaks instantly with any tool, and can be ground into pink dye.
+            Applying bone meal to it yields an extra copy of itself.
+        lore: |
+            Peonies were showcased at Minecraft developer Jeb's real-world
+            wedding before being added to the game.
+    uses:
+        - title: Pink Dye
+          ref: pink_dye
+          detail: |
+              Crafting a peony yields 2 pink dye, making it an efficient
+              source of the color compared to most other dye flowers.
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Peonies have a 65% chance to raise a composter's level by 1,
+              turning excess flowers into bone meal.
+    found_in:
+        - location: Forests
+          detail: |
+              Generates on grass and dirt in forests, flower forests, birch
+              forests, old growth birch forests, and dark forests.
+        - location: Abandoned camps
+          detail: Can appear as decoration in abandoned camps found in birch forests.
+    faq:
+        - question: What does Peony drop when mined?
+          answer: |
+              The peony block itself, which breaks instantly with any tool
+              and occupies both the block mined and the one above or below it.
+        - question: Can I duplicate peonies?
+          answer: |
+              Yes. Applying bone meal to a peony has a chance to drop an
+              extra copy of the flower.
+        - question: What is Peony used for?
+          answer: |
+              Mainly as a decorative flower and a source of pink dye (2 per
+              flower). It also boosts nearby honey production when bees
+              pollinate it.
+        - question: Does Peony burn?
+          answer: |
+              Yes, it is flammable and can catch fire from nearby lava or
+              spreading fire, unlike stone-based blocks.
     data_version: "1.21.5"
 ---
 

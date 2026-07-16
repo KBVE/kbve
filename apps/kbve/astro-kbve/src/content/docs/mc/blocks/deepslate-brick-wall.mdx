@@ -1,5 +1,6 @@
 ---
 title: Deepslate Brick Wall
+template: splash
 description: |
     Minecraft Deepslate Brick Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1075
     ref: deepslate_brick_wall
     slug: deepslate-brick-wall
+    content_rev: 1
     display_name: Deepslate Brick Wall
     material: stone
     hardness: 3.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: deepslate_brick_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Deepslate Brick Wall is a fence-like wall variant of deepslate
+            bricks that connects to adjacent walls and posts, useful for
+            fortifications and decorative borders.
+        lore: |
+            Known as Grimstone Brick Wall in early Caves & Cliffs snapshots
+            before being renamed, and later incorporated into the natural
+            ancient city generation added in 1.19.
+    uses:
+        - title: Deepslate Brick Wall
+          ref: deepslate_brick_wall
+          detail: |
+              Crafted from 6 deepslate bricks in a wall pattern for 6
+              walls, or produced via stonecutting from cobbled deepslate,
+              polished deepslate, or deepslate bricks.
+    found_in:
+        - location: Ancient Cities
+          detail: Generates naturally as perimeter and railing elements in ancient city structures.
+        - location: Crafting table / Stonecutter
+          detail: Also obtained by crafting or stonecutting deepslate-family blocks.
+    faq:
+        - question: What tool do I need to mine Deepslate Brick Wall?
+          answer: |
+              Any pickaxe, wood tier or higher. Without a pickaxe it drops
+              nothing.
+        - question: Does it block mobs from jumping over?
+          answer: |
+              Yes. Like other walls, it forms a taller collision box than
+              a normal block, blocking most mob pathing.
+        - question: Can it hold a torch or lantern on top?
+          answer: |
+              Yes, walls support placing torches, lanterns, and similar
+              blocks on their raised center post.
+        - question: Where does it generate naturally?
+          answer: |
+              Only within ancient city structures; elsewhere it must be
+              crafted or stonecut.
     data_version: "1.21.5"
 ---
 

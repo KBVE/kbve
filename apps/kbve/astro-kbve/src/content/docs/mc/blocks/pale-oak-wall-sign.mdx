@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Sign
+template: splash
 description: |
     Minecraft Pale Oak Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 218
     ref: pale_oak_wall_sign
     slug: pale-oak-wall-sign
+    content_rev: 1
     display_name: Pale Oak Sign
     material: wood
     hardness: 1
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pale_oak_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Pale Oak Sign is the wall-mounted form of the Pale Oak sign,
+            attached flush to the face of another block and used to display
+            up to four lines of customizable text.
+        lore: |
+            Signs let players leave messages and labels throughout their
+            world, and Pale Oak's variant carries the wood's pale, bleached
+            look introduced with the Pale Garden biome.
+    uses:
+        - title: Pale Oak Sign
+          ref: pale_oak_sign
+          detail: |
+              Crafted from 6 Pale Oak Planks and 1 Stick to make 3 signs.
+              Text can be dyed, made to glow with a Glow Ink Sac, and waxed
+              with Honeycomb to prevent further edits.
+    found_in:
+        - location: Crafting table
+          detail: Crafted from 6 Pale Oak Planks and 1 Stick, yielding 3 signs.
+        - location: Pale Garden structures
+          detail: Occasionally found as part of naturally generated Pale Garden buildings.
+    faq:
+        - question: What tool do I need to mine a Pale Oak Sign?
+          answer: |
+              Any tool works, including bare hands, though an axe breaks it
+              fastest.
+        - question: Can I edit the text after placing a Pale Oak Sign?
+          answer: |
+              Yes, until it is waxed with Honeycomb, after which the text
+              becomes permanently locked.
+        - question: Is Pale Oak Sign flammable?
+          answer: |
+              No, unlike many other wooden blocks it does not catch fire
+              from nearby flames.
+        - question: How many lines of text can a Pale Oak Sign hold?
+          answer: |
+              Up to four lines, with a character limit per line, and the
+              text color can be changed with dyes.
     data_version: "1.21.5"
 ---
 

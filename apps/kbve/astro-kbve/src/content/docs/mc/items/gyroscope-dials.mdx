@@ -1,0 +1,37 @@
+---
+title: Advanced Gyroscope
+template: splash
+description: |
+    Immersive Aircraft Advanced Gyroscope — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Advanced Gyroscope
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900020
+    ref: immersive_aircraft:gyroscope_dials
+    slug: gyroscope-dials
+    content_rev: 0
+    display_name: Advanced Gyroscope
+    category: material
+    rarity: common
+    stack_size: 64
+    tags:
+        - immersive_aircraft
+        - upgrade
+    about:
+        description: |
+            A mechanical dashboard upgrade that adds extra stabilization and analog flight dials.
+        lore: |
+            Brass, glass, and confidence.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

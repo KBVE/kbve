@@ -1,5 +1,6 @@
 ---
 title: Copper Door
+template: splash
 description: |
     Minecraft Copper Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1008
     ref: copper_door
     slug: copper-door
+    content_rev: 1
     display_name: Copper Door
     material: metal
     hardness: 3
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: copper_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            The copper door is a functional door that weathers through the
+            same four oxidation stages as other copper blocks, letting
+            players build doors whose appearance ages over time unless
+            waxed.
+        lore: |
+            Added with the Trial Chambers update, the copper door extended
+            copper's living-metal aesthetic to interactive furniture instead
+            of just static blocks.
+    uses:
+        - title: Weathering Door
+          ref: copper_door
+          detail: |
+              Functions like any other door — openable by players, redstone,
+              villagers, piglins, and copper golems — while its texture
+              gradually oxidizes unless waxed with honeycomb.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates naturally at various oxidation stages within trial chamber vaults and rooms.
+        - location: Crafted
+          detail: Made from 6 copper ingots in a door pattern, yielding 3 copper doors.
+    faq:
+        - question: What tool do I need to mine a Copper Door?
+          answer: |
+              Any tool works — a pickaxe is fastest, but a copper door
+              always drops itself regardless of the tool used.
+        - question: Do copper doors oxidize like other copper blocks?
+          answer: |
+              Yes, they progress through the same normal, exposed,
+              weathered, and oxidized stages unless waxed with honeycomb.
+        - question: Can copper golems open copper doors?
+          answer: |
+              Yes. Copper golems, along with villagers and piglins, can open
+              and close copper doors automatically.
+        - question: Can a copper door be used underwater?
+          answer: |
+              Yes, it creates an air pocket when opened underwater or in
+              lava, similar to other doors.
     data_version: "1.21.5"
 ---
 

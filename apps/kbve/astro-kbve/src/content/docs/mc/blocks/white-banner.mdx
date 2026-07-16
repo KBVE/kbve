@@ -1,5 +1,6 @@
 ---
 title: White Banner
+template: splash
 description: |
     Minecraft White Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 531
     ref: white_banner
     slug: white-banner
+    content_rev: 1
     display_name: White Banner
     material: wood
     hardness: 1
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: white_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+    about:
+        description: |
+            The White Banner is a tall decorative block that can carry up to
+            six layered patterns applied with dye and a loom. It is one of
+            16 color variants and can be recolored or restyled after
+            placement.
+        lore: |
+            Banners were introduced in the Bountiful Update (1.9), giving
+            players a way to design and display custom emblems.
+    uses:
+        - title: Shield Patterns
+          ref: shield
+          detail: |
+              Combine a banner with a shield in a crafting grid to stamp
+              the banner's pattern onto the shield for a personalized
+              design.
+        - title: Loom Patterning
+          ref: loom
+          detail: |
+              A loom lets players layer dyed patterns onto a banner without
+              consuming a crafting table recipe each time.
+    found_in:
+        - location: Crafted from wool
+          detail: 6 white wool plus 1 stick craft a White Banner.
+        - location: Woodland Mansions, Pillager Outposts, End Cities
+          detail: Pre-patterned banners generate naturally in these structures and as illager mob drops.
+    faq:
+        - question: What tool mines a banner fastest?
+          answer: |
+              An axe, though any tool — including bare hands — breaks it
+              and always drops the banner itself.
+        - question: Can a White Banner burn?
+          answer: |
+              No, banners are non-flammable and safe to place near fire
+              sources.
+        - question: How many patterns can one banner hold?
+          answer: |
+              Up to six layered patterns applied via a loom with dye and
+              pattern items.
+        - question: Can I put a banner design on a shield?
+          answer: |
+              Yes, crafting a banner together with a shield copies the
+              banner's current pattern onto the shield.
     data_version: "1.21.5"
 ---
 

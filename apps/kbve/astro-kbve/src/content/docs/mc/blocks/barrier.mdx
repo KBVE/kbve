@@ -1,5 +1,6 @@
 ---
 title: Barrier
+template: splash
 description: |
     Minecraft Barrier — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 492
     ref: barrier
     slug: barrier
+    content_rev: 1
     display_name: Barrier
     material: stone
     hardness: -1
     blast_resistance: 3600000.8
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -27,7 +28,44 @@ mc_block:
     renewable: false
     diggable: false
     drops: []
-    tags: []
+    tags:
+        - blast_resistant
+    about:
+        description: |
+            The Barrier is an invisible, indestructible block used to build
+            solid boundaries that restrict player and mob movement without
+            being visible in-game. It cannot be broken in Survival and is
+            immune to all explosions.
+        lore: |
+            Barriers were added in Java Edition 1.8 (14w05a) as a tool for
+            map makers to fence off areas invisibly, credited to developer
+            Grum's work on boundary mechanics.
+    uses:
+        - title: Invisible Boundaries
+          ref: barrier
+          detail: |
+              Placed to block player or mob movement in adventure maps and
+              multiplayer builds without obstructing the view.
+    found_in:
+        - location: Creative inventory / commands only
+          detail: Obtainable only via /give or the Creative "Operator Items Tab", never through survival gameplay.
+    faq:
+        - question: Can I mine a Barrier in Survival mode?
+          answer: |
+              No. Its hardness of -1 makes it unbreakable by any tool in
+              Survival; it can only be removed in Creative mode or by
+              commands.
+        - question: What tool is needed to mine it?
+          answer: |
+              None exists that will break it in Survival — Barriers must be
+              removed via Creative mode or the /setblock command.
+        - question: Does a Barrier drop anything when removed?
+          answer: |
+              No, it drops nothing under any circumstance.
+        - question: Is the Barrier affected by explosions?
+          answer: |
+              No, its blast resistance of 3,600,000.8 makes it immune to
+              TNT, creepers, and all other explosions.
     data_version: "1.21.5"
 ---
 

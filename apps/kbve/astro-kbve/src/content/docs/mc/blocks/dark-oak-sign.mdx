@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Sign
+template: splash
 description: |
     Minecraft Dark Oak Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 203
     ref: dark_oak_sign
     slug: dark-oak-sign
+    content_rev: 1
     display_name: Dark Oak Sign
     material: wood
     hardness: 1
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dark_oak_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            A Dark Oak Sign is a decorative and functional block used
+            to display up to four lines of text. It can be placed on
+            top of a block as a standing sign or on the side as a wall
+            sign, and text can be colored with dye or made to glow with
+            a glow ink sac.
+        lore: |
+            Signs have existed since the earliest days of Minecraft as
+            a simple way for players to leave messages in the world.
+    uses:
+        - title: Waxed Sign
+          ref: honeycomb
+          detail: |
+              Applying honeycomb to a sign waxes it, permanently locking
+              its text so other players cannot edit it.
+    found_in:
+        - location: Crafted from Dark Oak Planks and a Stick
+          detail: Six planks and a stick in the sign pattern craft three signs.
+        - location: Igloo basements and villages
+          detail: Signs occasionally generate as decoration in these structures.
+    faq:
+        - question: What tool do I need to mine a Dark Oak Sign?
+          answer: |
+              None. Any tool works, but an axe breaks it fastest.
+        - question: Does a Dark Oak Sign burn?
+          answer: |
+              No, wooden signs are non-flammable except for Crimson and
+              Warped signs, which can catch fire in Java Edition.
+        - question: How many lines of text fit on a sign?
+          answer: |
+              Up to four lines per side, with two sides available on
+              each sign.
+        - question: Can mobs or arrows pass through a placed sign?
+          answer: |
+              Yes, signs are non-solid, letting items, projectiles, and
+              mobs pass through while still blocking fluids.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Tall Dry Grass
+template: splash
 description: |
     Minecraft Tall Dry Grass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,12 @@ mc_block:
     id: 135
     ref: tall_dry_grass
     slug: tall-dry-grass
+    content_rev: 1
     display_name: Tall Dry Grass
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: tall_dry_grass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - hand_mineable
+        - shears_mineable
+        - flammable
+        - overworld
+        - plant
+    about:
+        description: |
+            Tall dry grass is the two-block-tall variant of dry grass,
+            standing a single block high unlike most other tall foliage. It
+            generates thickly across deserts and badlands, giving those
+            biomes a scrubby, sunbaked look.
+        lore: |
+            Added in Java Edition 1.21.5 (snapshot 25w06a) alongside dry
+            grass and dry foliage as part of the arid-biome visual refresh.
+    uses:
+        - title: Furnace Fuel
+          ref: tall_dry_grass
+          detail: |
+              Burns for 5 game ticks, enough to smelt half an item — a minor
+              fuel source when clearing large patches.
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Has a 30% chance to raise a composter's level, an easy way to
+              farm bone meal while clearing desert terrain.
+    found_in:
+        - location: Deserts and badlands
+          detail: Generates frequently on sand and terracotta blocks in every badlands variant and desert.
+        - location: Bred with sheep
+          detail: Sheared sheep and lambs eat it to regrow wool, with lambs grazing on it far more often.
+    faq:
+        - question: What tool do I need to break Tall Dry Grass?
+          answer: |
+              Any tool works instantly, but only shears (or Silk Touch)
+              yield the block itself — breaking it any other way drops
+              nothing.
+        - question: Can I plant Tall Dry Grass myself?
+          answer: |
+              Yes, place it on sand, dirt variants, terracotta, or other
+              soil blocks after harvesting it with shears.
+        - question: Does Tall Dry Grass burn?
+          answer: |
+              Yes, it is flammable and will catch fire from adjacent lava or
+              spreading flames, quickly clearing large patches.
+        - question: Is Tall Dry Grass useful for farming?
+          answer: |
+              Only indirectly — it composts into bone meal and serves as
+              sheep food, but it has no seed drops like tall grass does.
     data_version: "1.21.5"
 ---
 

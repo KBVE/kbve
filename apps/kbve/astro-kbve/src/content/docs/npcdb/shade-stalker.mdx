@@ -1,5 +1,9 @@
 ---
 title: 'Shade Stalker'
+template: splash
+sidebar:
+    label: 'Shade Stalker'
+    hidden: true
 description: |
     A dark figure that moves between shadows, striking before its prey even knows it is there.
 ref: 'shade-stalker'
@@ -87,7 +91,10 @@ faction:
     faction_id: 'shadow-court'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A dark figure that moves between shadows, striking before its prey even knows it is there.
+
+</NpcLeaf>

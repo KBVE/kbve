@@ -1,5 +1,6 @@
 ---
 title: Torch
+template: splash
 description: |
     Minecraft Torch — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 310
     ref: torch
     slug: torch
+    content_rev: 1
     display_name: Torch
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Torches are non-solid blocks that emit a light level of 14, making them one of
+            the most common ways to illuminate builds, caves, and mines. They are crafted
+            from a single coal or charcoal combined with a stick, yielding four torches per
+            craft. Placed light sources like torches also prevent hostile mobs from
+            spawning in the lit area.
+        lore: |
+            Notch originally planned torches to burn out over time and require flint and
+            steel to relight, a mechanic that was never implemented.
+    faq:
+        - question: How do I craft a torch?
+          answer: |
+              Combine one coal (or charcoal) with one stick in a crafting grid to produce
+              four torches.
+        - question: What light level does a torch provide?
+          answer: |
+              A torch emits a light level of 14, bright enough to prevent hostile mob
+              spawns in most situations.
+        - question: Can torches melt snow and ice?
+          answer: |
+              Yes, a placed torch melts snow layers within 2 blocks and ice within 3
+              blocks (measured by taxicab distance).
+        - question: Where can torches be found without crafting them?
+          answer: |
+              Torches generate naturally in mineshafts, villages, strongholds, igloos,
+              woodland mansions, pillager outposts, ancient cities, and trial chambers.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

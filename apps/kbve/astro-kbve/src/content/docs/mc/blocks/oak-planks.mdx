@@ -1,5 +1,6 @@
 ---
 title: Oak Planks
+template: splash
 description: |
     Minecraft Oak Planks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 13
     ref: oak_planks
     slug: oak-planks
+    content_rev: 1
     display_name: Oak Planks
     material: wood
     hardness: 2
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oak_planks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Oak Planks are the most common building material in the game,
+            crafted from Oak Log and used across nearly every wood-based
+            recipe. Four planks come from a single log.
+        lore: |
+            Planks were among the first crafted items in Minecraft, anchoring
+            the earliest crafting-table recipes.
+    uses:
+        - title: Crafting Table
+          ref: crafting_table
+          detail: |
+              Four Oak Planks arranged in a square craft a Crafting Table,
+              the gateway to nearly all further recipes.
+        - title: Sticks
+          ref: stick
+          detail: |
+              Two planks stacked vertically craft 4 Sticks, used in tools,
+              torches, and countless other recipes.
+        - title: Wood Furniture
+          ref: oak_stairs
+          detail: |
+              Craft into stairs, slabs, fences, doors, trapdoors, pressure
+              plates, buttons, signs, and boats — all restricted to Oak
+              variants when made from Oak Planks.
+    found_in:
+        - location: Crafted from logs
+          detail: Any Oak Log, Stripped Oak Log, or Oak Wood block converts into 4 planks.
+        - location: Villages, mineshafts, strongholds, shipwrecks
+          detail: Generates naturally as structural material in several structures.
+    faq:
+        - question: How many planks does one log produce?
+          answer: |
+              One Oak Log crafts into 4 Oak Planks.
+        - question: Can I mix wood types when crafting plank items?
+          answer: |
+              No. Recipes like stairs, doors, and signs require planks of a
+              single matching wood type.
+        - question: Are Oak Planks flammable?
+          answer: |
+              Yes, like most plank types they burn readily and spread fire.
+        - question: What is the fastest tool to mine Oak Planks?
+          answer: |
+              An axe is fastest, though any tool or bare hands will break it
+              and always drop itself.
     data_version: "1.21.5"
 ---
 

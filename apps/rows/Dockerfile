@@ -12,7 +12,7 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS pla
 ENV CARGO_INCREMENTAL=0
 
 # Create workspace
-RUN printf '[workspace]\nmembers = ["apps/rows", "packages/rust/jedi", "packages/rust/holy", "packages/rust/kbve"]\nresolver = "2"\n' > Cargo.toml
+RUN printf '[workspace]\nmembers = ["apps/rows", "packages/rust/jedi", "packages/rust/holy", "packages/rust/kbve"]\nresolver = "2"\n[workspace.package]\nrust-version = "1.96"\n' > Cargo.toml
 
 # Copy all manifests + source for recipe generation
 COPY apps/rows/Cargo.toml apps/rows/Cargo.toml
@@ -33,7 +33,7 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS coo
 ENV CARGO_INCREMENTAL=0
 
 # Create workspace
-RUN printf '[workspace]\nmembers = ["apps/rows", "packages/rust/jedi", "packages/rust/holy", "packages/rust/kbve"]\nresolver = "2"\n' > Cargo.toml
+RUN printf '[workspace]\nmembers = ["apps/rows", "packages/rust/jedi", "packages/rust/holy", "packages/rust/kbve"]\nresolver = "2"\n[workspace.package]\nrust-version = "1.96"\n' > Cargo.toml
 
 # Copy manifests + build.rs (needed for proc macros / build scripts)
 COPY apps/rows/Cargo.toml apps/rows/Cargo.toml

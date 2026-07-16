@@ -72,6 +72,12 @@ export const MCAboutSchema = z.object({
 });
 export type MCAbout = z.infer<typeof MCAboutSchema>;
 
+export const MCFaqSchema = z.object({
+	question: z.string().min(1),
+	answer: z.string().min(1),
+});
+export type MCFaq = z.infer<typeof MCFaqSchema>;
+
 export const MCItemSchema = MCIdentitySchema.extend({
 	display_name: z.string().min(1),
 	category: MCItemCategorySchema,
@@ -91,6 +97,7 @@ export const MCItemSchema = MCIdentitySchema.extend({
 	drop_sources: z.array(z.string().min(1)).default([]),
 
 	about: MCAboutSchema.default({ description: '', lore: '' }),
+	faq: z.array(MCFaqSchema).default([]),
 
 	data_version: z.string().default(''),
 	icon: z.string().default(''),

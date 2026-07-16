@@ -1,5 +1,6 @@
 ---
 title: Soul Lantern
+template: splash
 description: |
     Minecraft Soul Lantern — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,43 @@ mc_item:
     id: 1279
     ref: soul_lantern
     slug: soul-lantern
+    content_rev: 1
     display_name: Soul Lantern
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Soul Lantern is the soul fire counterpart of the regular lantern, giving off an
+            eerie cyan-blue glow instead of a warm orange one. It is crafted by surrounding a
+            soul torch with 8 iron nuggets, and it can be placed on top of blocks or hung from
+            ceilings using chains, waterlogging like its ordinary counterpart.
+        lore: |
+            Its ghostly blue flame echoes the restless souls said to haunt the Deep Dark and the
+            ancient cities where it is found glowing in the dark.
+    faq:
+        - question: |
+              How much light does a Soul Lantern give off?
+          answer: |
+              It emits a light level of 10, dimmer than a regular lantern's level 15, and that
+              lower level means it cannot melt nearby snow or ice.
+        - question: |
+              Where can I find Soul Lanterns without crafting one?
+          answer: |
+              They generate naturally inside ancient cities in the Deep Dark biome, often lighting
+              pathways and structures throughout the city.
+        - question: |
+              Can I move a placed Soul Lantern with a piston?
+          answer: |
+              No. Pistons destroy Soul Lanterns instead of pushing or pulling them, so plan builds
+              accordingly.
+        - question: |
+              Does a Soul Lantern repel piglins like a Soul Torch does?
+          answer: |
+              Yes, the soul fire light source keeps piglins away, making it useful for both
+              lighting and piglin-proofing a Nether base.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

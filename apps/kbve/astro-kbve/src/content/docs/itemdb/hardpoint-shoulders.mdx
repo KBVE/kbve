@@ -1,0 +1,42 @@
+---
+title: 'Hardpoint Shoulders'
+template: splash
+sidebar:
+    label: 'Hardpoint Shoulders'
+    hidden: true
+description: |
+    Heavy articulated shoulder armor pair with mounting rails for gear that has not been invented yet.
+ref: 'hardpoint-shoulders'
+key: 632
+id: '01KXFBEGM36ME6G8NFP92QCCE1'
+name: 'Hardpoint Shoulders'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'rare'
+buy_price: 120
+emoji: '🛡️'
+img: '/assets/items/equipment/hardpoint-shoulders.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'SCFI10'
+  nodes:
+    - 'SCFI10_ASHL'
+    - 'SCFI10_ASHR'
+  slot_keys:
+    - 'ASHL'
+    - 'ASHR'
+equipment:
+  slot: 'chest'
+  bonuses:
+    armor: 3
+    extra:
+      weight: 3
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

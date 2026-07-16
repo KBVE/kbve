@@ -1,5 +1,6 @@
 ---
 title: Light Gray Terracotta
+template: splash
 description: |
     Minecraft Light Gray Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 460
     ref: light_gray_terracotta
     slug: light-gray-terracotta
+    content_rev: 1
     display_name: Light Gray Terracotta
     material: stone
     hardness: 1.25
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_gray_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Light Gray Terracotta is a dyed variant of Terracotta, made by
+            crafting regular Terracotta with Light Gray Dye. It keeps
+            Terracotta's blast resistance and heat immunity while adding
+            a permanent tint that cannot be removed once applied.
+        lore: |
+            Terracotta was originally called Hardened Clay before being
+            renamed, and dyed colors became renewable once mason
+            villagers began trading finished terracotta.
+    uses:
+        - title: Glazed Terracotta
+          ref: light_gray_glazed_terracotta
+          detail: |
+              Smelt in a furnace, blast furnace, or smoker to produce
+              Light Gray Glazed Terracotta, a patterned decorative block.
+    found_in:
+        - location: Badlands biome
+          detail: Light gray terracotta generates naturally in badlands terrain alongside other terracotta colors.
+        - location: Crafting
+          detail: Craft from 8 Terracotta plus 1 Light Gray Dye to dye it permanently.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe. Mining it without one drops nothing.
+        - question: Can I undo the dye once applied?
+          answer: |
+              No. Dyeing terracotta is irreversible — the color cannot be
+              changed or removed afterward.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops itself as a single block regardless of
+              enchantments.
+        - question: What is it used for besides building?
+          answer: |
+              Its main use is being smelted into Glazed Terracotta, though
+              it is also popular purely for its decorative color in
+              construction.
     data_version: "1.21.5"
 ---
 

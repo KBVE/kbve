@@ -1,5 +1,6 @@
 ---
 title: Chainmail Boots
+template: splash
 description: |
     Minecraft Chainmail Boots — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 903
     ref: chainmail_boots
     slug: chainmail-boots
+    content_rev: 1
     display_name: Chainmail Boots
     category: armor
     rarity: common
@@ -41,6 +43,33 @@ mc_item:
             - vanishing_curse
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Chainmail boots are an uncommon feet-slot armor piece that cannot be crafted through
+            normal means. They are obtained by killing zombies, husks, skeletons, strays, or
+            bogged mobs that spawn wearing them, by trading with an Apprentice-level armorer
+            villager, or as a Hero of the Village gift. They match leather boots for armor
+            points but have far greater durability.
+        lore: |
+            Their texture traces back to Notch's earlier game Legend of the Chambered 2, from
+            before the crafting recipe using fire was removed in version 1.8.
+    faq:
+        - question: Why can't I craft chainmail boots?
+          answer: |
+              Chainmail boots have no crafting recipe. The only ways to get a pair are mob
+              drops, trading with an armorer villager, or a Hero of the Village gift.
+        - question: Are chainmail boots worth using?
+          answer: |
+              They only give 1 armor point, the same as leather boots, but their much higher
+              durability makes them a decent early-game stopgap before iron armor.
+        - question: How do I repair damaged chainmail boots?
+          answer: |
+              Repair them on an anvil with iron ingots, each restoring 25% durability, or
+              combine two damaged pairs together for a repaired pair with a small durability bonus.
+        - question: Can chainmail boots be enchanted?
+          answer: |
+              Yes. They accept the normal boot enchantments, including Protection, Feather
+              Falling, Depth Strider, Frost Walker, Soul Speed, Unbreaking, and Mending.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

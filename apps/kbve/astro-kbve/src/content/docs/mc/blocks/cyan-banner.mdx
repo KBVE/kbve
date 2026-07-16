@@ -1,5 +1,6 @@
 ---
 title: Cyan Banner
+template: splash
 description: |
     Minecraft Cyan Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 540
     ref: cyan_banner
     slug: cyan-banner
+    content_rev: 1
     display_name: Cyan Banner
     material: wood
     hardness: 1
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cyan_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Cyan Banner is a decorative, non-solid standing or wall
+            block made from cyan wool and a stick. It can carry up to six
+            pattern layers applied with a loom, dyes, and banner pattern
+            items.
+        lore: |
+            Banners were added in Java Edition 1.8 as tall, customizable
+            heraldry pieces for builds, and later gained the ability to
+            decorate shields.
+    uses:
+        - title: Shield
+          ref: shield
+          detail: |
+              Apply a banner to a shield in a crafting grid to transfer its
+              pattern onto the shield.
+        - title: Loom Patterns
+          ref: loom
+          detail: |
+              Combine a banner with dye and a banner pattern item in a loom
+              to add another layer of design.
+    found_in:
+        - location: Crafted
+          detail: 6 cyan wool and 1 stick craft into 6 cyan banners.
+        - location: Pillager outposts and woodland mansions
+          detail: Certain banner variants generate naturally on these structures.
+    faq:
+        - question: Can a banner be moved by a piston?
+          answer: |
+              No. Banners are non-solid and pistons cannot push or pull
+              them.
+        - question: Does a banner burn in fire?
+          answer: |
+              No, the banner block itself does not catch fire, even though
+              nearby lava can ignite adjacent air blocks.
+        - question: What tool mines a banner fastest?
+          answer: |
+              An axe, though any tool or bare hands can break it since it
+              has no minimum tool requirement.
+        - question: Can I use a banner as furnace fuel?
+          answer: |
+              Yes, a banner can be smelted as fuel, burning about 1.5 items
+              worth of fuel time.
     data_version: "1.21.5"
 ---
 

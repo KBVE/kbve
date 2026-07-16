@@ -1,5 +1,6 @@
 ---
 title: Blue Wool
+template: splash
 description: |
     Minecraft Blue Wool — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 224
     ref: blue_wool
     slug: blue-wool
+    content_rev: 1
     display_name: Blue Wool
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Blue Wool is a dyed variant of wool, a block obtained from sheep that can be
+            crafted into any of sixteen colors. It is a soft block with low blast
+            resistance, but it is highly useful for building, decoration, and blocking
+            sound vibrations from sculk sensors.
+        lore: |
+            Wool has been a staple building and crafting block since the earliest days of Minecraft, prized for its wide palette of dye colors.
+    faq:
+        - question: How do you obtain Blue Wool?
+          answer: |
+              Blue Wool is made by dyeing white wool with lapis lazuli, or by shearing
+              or killing a sheep that has been dyed blue. It can also be crafted directly
+              from four blue thread-equivalent string sources combined with dye.
+        - question: What can Blue Wool be used for?
+          answer: |
+              Like all wool colors, it is a crafting ingredient for beds, banners, and
+              carpets, and it can be placed to block vibrations from reaching nearby
+              sculk sensors, making it useful for sneaking past deep dark mobs.
+        - question: Is Blue Wool flammable?
+          answer: |
+              Yes. Wool of any color is highly flammable and offers very little
+              explosion resistance, so it is a poor choice for fireproof or blast-proof
+              structures.
+        - question: Can sheep naturally produce Blue Wool?
+          answer: |
+              Sheep do not naturally spawn blue; their wool must be dyed blue by a
+              player using lapis lazuli on the sheep, after which shearing or killing it
+              yields Blue Wool.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

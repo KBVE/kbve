@@ -1,5 +1,6 @@
 ---
 title: Note Block
+template: splash
 description: |
     Minecraft Note Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 109
     ref: note_block
     slug: note-block
+    content_rev: 1
     display_name: Note Block
     material: redstone
     hardness: 0.8
@@ -24,10 +26,62 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: note_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - redstone_component
+        - flammable
+    about:
+        description: |
+            The Note Block is a redstone component that plays one of 400
+            musical tones, chosen from 16 instruments and 25 pitches, based
+            on the block placed directly beneath it and how many times it
+            has been right-clicked.
+        lore: |
+            Added in Java Edition Beta 1.2 with five original instruments,
+            the Note Block's instrument roster expanded significantly with
+            1.12's addition of dyed-block-based sounds.
+    uses:
+        - title: Music and Redstone Contraptions
+          ref: redstone_dust
+          detail: |
+              Chains of Note Blocks driven by redstone circuits are used to
+              build automatic music machines and note-block songs.
+        - title: Note Block Farms
+          ref: allay
+          detail: |
+              Allays gather nearby dropped items for 30 seconds after
+              hearing a Note Block play, enabling automated item-sorting
+              farms.
+    found_in:
+        - location: Crafting table
+          detail: Crafted from any 8 wooden planks surrounding 1 redstone dust.
+    faq:
+        - question: What determines a Note Block's sound?
+          answer: |
+              The block placed directly underneath it — for example, wood
+              gives a bass sound, sand gives snare drum, and glass gives
+              hi-hat.
+        - question: How do I change the pitch of a Note Block?
+          answer: |
+              Right-click (or use it) to cycle through 25 pitches across two
+              octaves; each interaction advances the pitch by one semitone.
+        - question: Can a Note Block catch fire?
+          answer: |
+              Yes, it is flammable and can catch fire when adjacent to lava
+              or other fire sources.
+        - question: Do mob heads change the Note Block's sound?
+          answer: |
+              Yes, placing certain mob heads on top of a Note Block makes it
+              play that mob's sound instead of an instrument note.
     data_version: "1.21.5"
 ---
 

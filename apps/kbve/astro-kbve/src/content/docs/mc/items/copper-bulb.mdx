@@ -1,5 +1,6 @@
 ---
 title: Copper Bulb
+template: splash
 description: |
     Minecraft Copper Bulb — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 1383
     ref: copper_bulb
     slug: copper-bulb
+    content_rev: 1
     display_name: Copper Bulb
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A copper bulb is a redstone light source crafted from a block of
+            copper, a blaze rod, and redstone dust, yielding four bulbs. It
+            toggles on or off with a redstone pulse and stays lit without
+            needing continuous power, with brightness decreasing as it
+            oxidizes.
+        lore: |
+            A self-latching lantern of ancient trial chambers, glowing
+            brighter the less it has weathered.
+    faq:
+        - question: How do you craft a copper bulb?
+          answer: |
+              Combine a block of copper, a blaze rod, and redstone dust to
+              craft four copper bulbs.
+        - question: How does a copper bulb turn on and off?
+          answer: |
+              It toggles its lit state whenever it receives a redstone
+              pulse and does not require continuous power to stay lit,
+              making it useful for T flip-flop circuits.
+        - question: Does oxidation affect a copper bulb's light output?
+          answer: |
+              Yes, light level drops from 15 at normal copper down to 12,
+              8, and 4 as it progresses through exposed, weathered, and
+              oxidized stages.
+        - question: Where can you find copper bulbs naturally?
+          answer: |
+              Copper bulbs generate naturally within trial chambers, which
+              were introduced in the Tricky Trials update.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

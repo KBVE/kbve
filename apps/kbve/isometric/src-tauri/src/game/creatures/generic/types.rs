@@ -2,7 +2,7 @@
 //! per-creature hardcoded modules.
 
 use bevy::prelude::*;
-use bevy::render::storage::ShaderStorageBuffer;
+use bevy::render::storage::ShaderBuffer;
 
 use super::super::sprite_material::{SpriteAnimData, SpriteAtlasMaterial};
 
@@ -293,7 +293,7 @@ pub struct SpriteAtlasPool {
 pub struct SpriteAtlasEntry {
     pub type_key: &'static str,
     pub material: Handle<SpriteAtlasMaterial>,
-    pub anim_buffer: Handle<ShaderStorageBuffer>,
+    pub anim_buffer: Handle<ShaderBuffer>,
     pub anim_data: Vec<SpriteAnimData>,
     pub spawned: bool,
 }

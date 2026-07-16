@@ -1,5 +1,6 @@
 ---
 title: Lily of the Valley
+template: splash
 description: |
     Minecraft Lily of the Valley — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 170
     ref: lily_of_the_valley
     slug: lily-of-the-valley
+    content_rev: 1
     display_name: Lily of the Valley
     material: plant
     hardness: 0
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lily_of_the_valley
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Lily of the Valley is a small white flower found in forest
+            biomes. It reflects its real-world toxicity by inflicting the
+            Poison effect when eaten as part of a suspicious stew.
+        lore: |
+            Added in Java Edition 1.14 (18w43a), it was included as part of
+            the Village & Pillage flower expansion.
+    uses:
+        - title: White Dye
+          ref: white_dye
+          detail: |
+              Craft one lily of the valley into 1 white dye for dyeing
+              wool, terracotta, and other blocks.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              Used with a mooshroom or brown mushroom to make suspicious
+              stew that applies Poison for 11 seconds, dealing 4 hearts of damage.
+    found_in:
+        - location: Forest Biomes
+          detail: Generates in forest, flower forest, birch forest, old growth birch forest, and dark forest biomes.
+        - location: Wandering Trader
+          detail: Purchasable from wandering traders for 1 emerald.
+    faq:
+        - question: What tool do I need to mine Lily of the Valley?
+          answer: |
+              None; it breaks instantly with any tool or bare hands, always
+              dropping itself.
+        - question: Is Lily of the Valley poisonous in-game?
+          answer: |
+              Only indirectly — brewing it into suspicious stew inflicts
+              Poison, mirroring the real flower's toxicity.
+        - question: Does it attract bees?
+          answer: |
+              Yes, bees can pollinate it, and it can help nearby trees
+              generate with bee nests.
+        - question: Can endermen interact with it?
+          answer: |
+              Yes, in Java Edition endermen can pick up and place lily of
+              the valley blocks.
     data_version: "1.21.5"
 ---
 

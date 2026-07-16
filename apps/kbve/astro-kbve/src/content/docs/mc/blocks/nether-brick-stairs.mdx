@@ -1,5 +1,6 @@
 ---
 title: Nether Brick Stairs
+template: splash
 description: |
     Minecraft Nether Brick Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,56 @@ mc_block:
     id: 352
     ref: nether_brick_stairs
     slug: nether-brick-stairs
+    content_rev: 1
     display_name: Nether Brick Stairs
     material: nether
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: nether_brick_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+        - blast_resistant
+    about:
+        description: |
+            Nether Brick Stairs form the staircases inside Nether
+            fortresses, letting mobs and players climb between floors of
+            the fortress bridges and towers.
+        lore: |
+            Added in Beta 1.9 Prerelease, it became one of the defining
+            shapes of fortress architecture alongside Nether Brick Fences.
+    found_in:
+        - location: Nether Fortresses
+          detail: Generates naturally as connecting staircases throughout fortress structures.
+        - location: Crafted or stonecut
+          detail: 6 Nether Bricks craft 4 stairs; stonecutting converts 1 brick into 1 stair.
+    faq:
+        - question: Do Nether Brick Stairs count for fortress mob spawning?
+          answer: |
+              No. Only full Nether Brick blocks count toward the fortress
+              mob-spawning check; stairs and slabs do not.
+        - question: What tool do I need to mine them?
+          answer: |
+              Any pickaxe, including wood. Mining without one drops
+              nothing.
+        - question: Are they flammable?
+          answer: |
+              No. Nether Brick Stairs do not burn and are immune to ghast
+              fireballs.
     data_version: "1.21.5"
 ---
 

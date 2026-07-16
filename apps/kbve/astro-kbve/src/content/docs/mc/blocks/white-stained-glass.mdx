@@ -1,5 +1,6 @@
 ---
 title: White Stained Glass
+template: splash
 description: |
     Minecraft White Stained Glass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 285
     ref: white_stained_glass
     slug: white-stained-glass
+    content_rev: 1
     display_name: White Stained Glass
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: white_stained_glass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - transparent
+        - not_flammable
+        - blast_resistant
+        - overworld
+    about:
+        description: |
+            White Stained Glass is a dyed variant of the standard glass
+            block. It lets light through while blocking most mob spawns
+            and hiding its seams next to identically colored glass,
+            making it a popular material for greenhouses and colored
+            windows.
+        lore: |
+            Stained glass was added in Java Edition 1.7.2, giving builders
+            sixteen colored, see-through blocks to work with.
+    uses:
+        - title: White Stained Glass Pane
+          ref: white_stained_glass_pane
+          detail: |
+              Crafts into sixteen White Stained Glass Panes, a thinner
+              window block that uses less material for the same coverage.
+    found_in:
+        - location: Crafting Table
+          detail: Craft from four glass blocks plus one white dye to produce eight blocks.
+        - location: End Cities and Trail Ruins
+          detail: Similar stained glass colors generate naturally as windows in end ships and trail ruins.
+    faq:
+        - question: What tool do I need to mine White Stained Glass?
+          answer: |
+              Any tool works, but it only drops the block itself when
+              mined with a Silk Touch tool; otherwise it drops nothing.
+        - question: Does White Stained Glass burn?
+          answer: |
+              No, it is not flammable and is unaffected by lava contact.
+        - question: Can mobs spawn on it?
+          answer: |
+              No, hostile mobs cannot spawn on stained glass, though
+              zombie reinforcements are an exception.
+        - question: How do I dye glass a different color?
+          answer: |
+              Craft four glass blocks with one dye of the desired color
+              to get eight matching stained glass blocks.
     data_version: "1.21.5"
 ---
 

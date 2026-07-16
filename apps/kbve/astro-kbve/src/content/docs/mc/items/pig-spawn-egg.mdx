@@ -1,5 +1,6 @@
 ---
 title: Pig Spawn Egg
+template: splash
 description: |
     Minecraft Pig Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 1109
     ref: pig_spawn_egg
     slug: pig-spawn-egg
+    content_rev: 1
     display_name: Pig Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Pig Spawn Egg is a Creative-mode and command-only item that instantly summons a
+            pig when used on a surface. It is not obtainable through normal Survival gameplay;
+            players get it via the Creative inventory or by using pick block on an existing pig.
+        lore: |
+            A single tap and an oinking pig appears, ready for farming, breeding, or a quick ride.
+    faq:
+        - question: |
+              Can I get a Pig Spawn Egg in Survival mode?
+          answer: |
+              No. Spawn eggs are obtainable only in Creative mode or via commands, not through
+              normal Survival gameplay.
+        - question: |
+              What happens when I use the Pig Spawn Egg?
+          answer: |
+              A pig spawns adjacent to the surface the egg was used on, immediately playing its
+              ambient sound.
+        - question: |
+              Does using it on an existing pig do anything special?
+          answer: |
+              Using a spawn egg on a mob with a baby form spawns a baby of that mob, so using it
+              on an adult pig spawns a piglet.
+        - question: |
+              Can spawn eggs be used to stock monster spawners or dispensers?
+          answer: |
+              Yes. Any spawn egg can change the mob type produced by a monster spawner, and a
+              dispenser can use it to spawn the mob directly in front while consuming the egg.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

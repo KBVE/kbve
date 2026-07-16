@@ -20,6 +20,11 @@ on:
             CRATES_TOKEN:
                 required: true
 
+env:
+    CARGO_NET_RETRY: '10'
+    CARGO_NET_TIMEOUT: '60'
+    RUSTUP_MAX_RETRIES: '10'
+
 jobs:
     publish:
         runs-on: ubuntu-latest
@@ -106,4 +111,29 @@ jobs:
             - name: Cargo Publish
               if: steps.version_check.outputs.should_publish == 'true'
               run: |
-                  cargo publish -p ${{ inputs.package }} --allow-dirty
+                  set -o pipefail
+                  max=6
+                  attempt=0
+                  while true; do
+                    attempt=$((attempt + 1))
+                    if cargo publish -p ${{ inputs.package }} --allow-dirty 2>publish.err; then
+                      cat publish.err >&2 || true
+                      exit 0
+                    fi
+                    cat publish.err >&2
+                    if grep -qiE "already (exists|uploaded)|crate version .* is already" publish.err; then
+                      echo "::notice::${{ inputs.package }} already published — treating as success."
+                      exit 0
+                    fi
+                    if ! grep -qi "429 Too Many Requests" publish.err; then
+                      echo "::error::cargo publish failed with a non-retryable error."
+                      exit 1
+                    fi
+                    if [ "$attempt" -ge "$max" ]; then
+                      echo "::error::cargo publish still rate-limited after $max attempts."
+                      exit 1
+                    fi
+                    wait=$((attempt * 120))
+                    echo "::warning::crates.io rate limit (429); attempt $attempt/$max — sleeping ${wait}s."
+                    sleep "$wait"
+                  done

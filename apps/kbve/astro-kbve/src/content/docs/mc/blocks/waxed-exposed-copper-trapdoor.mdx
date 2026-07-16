@@ -1,5 +1,6 @@
 ---
 title: Waxed Exposed Copper Trapdoor
+template: splash
 description: |
     Minecraft Waxed Exposed Copper Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1021
     ref: waxed_exposed_copper_trapdoor
     slug: waxed-exposed-copper-trapdoor
+    content_rev: 1
     display_name: Waxed Exposed Copper Trapdoor
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_exposed_copper_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            Waxed Exposed Copper Trapdoor is a functional trapdoor locked
+            at the exposed oxidation stage by honeycomb wax. It opens like
+            any other trapdoor via player interaction, redstone signals, or
+            a wind charge.
+        lore: |
+            Copper trapdoors were announced at Minecraft Live 2023 and
+            added in Java Edition 1.21 alongside copper doors, bulbs, and
+            grates.
+    uses:
+        - title: Hatch or Redstone-Controlled Access
+          ref: waxed_exposed_copper_trapdoor
+          detail: |
+              Used as a floor or wall hatch, air pocket in underwater or
+              lava builds, or a redstone-toggled secret passage that keeps
+              its color permanently.
+    found_in:
+        - location: Trial Chambers
+          detail: Oxidized and waxed oxidized trapdoors generate naturally in trial chambers; earlier stages are made by waxing crafted copper.
+        - location: Crafted
+          detail: Four copper ingots in a 2x2 pattern craft one copper trapdoor, then waxed with honeycomb.
+    faq:
+        - question: What tool do I need to mine this trapdoor?
+          answer: |
+              A stone pickaxe or better. Mining with anything weaker
+              destroys it without a drop.
+        - question: Can I toggle it without touching it?
+          answer: |
+              Yes. It responds to redstone signals and to wind charges, in
+              addition to a direct player interaction.
+        - question: Will it change color over time?
+          answer: |
+              No. The honeycomb wax coating permanently locks it at the
+              exposed stage, preventing further oxidation.
+        - question: Is it waterloggable?
+          answer: |
+              Yes. It can be placed inside water to create an underwater
+              hatch that still holds back the water when closed.
     data_version: "1.21.5"
 ---
 

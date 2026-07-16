@@ -1,0 +1,27 @@
+# Role: Allow the discordsh ExternalSecrets SA to read the windmill
+# superadmin token, so its discordsh-windmill-token-store can compose
+# WINDMILL_TOKEN for the /wm command (apps/kube/discordsh/manifest/discordsh-externalsecret.yaml).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: discordsh-token-reader
+    namespace: windmill
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['windmill-superadmin-token']
+      verbs: ['get', 'watch', 'list']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: discordsh-token-reader-binding
+    namespace: windmill
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: discordsh-token-reader
+subjects:
+    - kind: ServiceAccount
+      name: discordsh-external-secrets
+      namespace: discordsh

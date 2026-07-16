@@ -70,7 +70,7 @@ gatewayAPI:
     enableAlpn: true
     enableAppProtocol: true
 
-# L2 announcements — replaces MetalLB
+# L2 announcements
 # Includes ^br.* for bridge interface support
 l2announcements:
     enabled: true

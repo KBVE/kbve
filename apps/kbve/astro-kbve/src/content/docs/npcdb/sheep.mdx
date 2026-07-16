@@ -1,5 +1,9 @@
 ---
 title: 'Sheep'
+template: splash
+sidebar:
+    label: 'Sheep'
+    hidden: true
 description: |
     Passive grazing livestock. Slow, harmless. Drops Wool / Meat when killed; herds farm Migration events spawn flocks.
 ref: 'sheep'
@@ -33,7 +37,10 @@ faction:
     faction_id: 'wildlife'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Passive grazing livestock. Slow, harmless. Drops Wool / Meat when killed.
+
+</NpcLeaf>

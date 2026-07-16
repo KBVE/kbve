@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Slab
+template: splash
 description: |
     Minecraft Dark Oak Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 573
     ref: dark_oak_slab
     slug: dark-oak-slab
+    content_rev: 1
     display_name: Dark Oak Slab
     material: wood
     hardness: 2
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dark_oak_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            A Dark Oak Slab is a half-height wooden block used for
+            detailed building, staircases, and waterloggable surfaces.
+            Placing two slabs of the same type in the same space forms
+            a full block.
+        lore: |
+            Wooden slabs were introduced alongside pressure plates as
+            part of the crafting-recipe rework in Beta 1.3.
+    uses:
+        - title: Building detail
+          ref: dark_oak_planks
+          detail: |
+              Used to create half-height steps, ceilings, and trim
+              alongside dark oak planks and stairs.
+    found_in:
+        - location: Crafted from Dark Oak Planks
+          detail: Three planks in a horizontal row craft six slabs.
+        - location: Villages and woodland mansions
+          detail: Generates as flooring and detailing in some structures.
+    faq:
+        - question: What tool do I need to mine a Dark Oak Slab?
+          answer: |
+              None. Any tool works, though an axe breaks it fastest.
+        - question: Are Dark Oak Slabs waterloggable?
+          answer: |
+              Yes, water can occupy the same space as a slab, which is
+              useful for aquariums and redstone builds.
+        - question: Does a Dark Oak Slab burn?
+          answer: |
+              Yes, like most wood slabs it is flammable and can be
+              destroyed by fire.
+        - question: How do I make a full dark oak block from slabs?
+          answer: |
+              Place two dark oak slabs in the same block space to
+              combine them into a full Dark Oak Planks block visually.
     data_version: "1.21.5"
 ---
 

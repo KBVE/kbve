@@ -1,5 +1,9 @@
 ---
 title: 'Water Wyvern'
+template: splash
+sidebar:
+    label: 'Water Wyvern'
+    hidden: true
 description: |
     A sleek wyvern whose scales shimmer like rain on glass, trailing a fine mist as it glides over the grass. It roams the surface but never aggresses.
 ref: 'wyvern_water'
@@ -42,7 +46,10 @@ faction:
     faction_id: 'neutral'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A sleek wyvern whose scales shimmer like rain on glass, trailing a fine mist as it glides over the grass.
+
+</NpcLeaf>

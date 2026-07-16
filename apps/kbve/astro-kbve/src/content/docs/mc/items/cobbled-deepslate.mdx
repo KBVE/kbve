@@ -1,5 +1,6 @@
 ---
 title: Cobbled Deepslate
+template: splash
 description: |
     Minecraft Cobbled Deepslate — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 9
     ref: cobbled_deepslate
     slug: cobbled-deepslate
+    content_rev: 1
     display_name: Cobbled Deepslate
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Cobbled deepslate is a stone variant found deep underground, obtained by mining deepslate without Silk Touch or converting deepslate with a stonecutter. It functions similarly to cobblestone for crafting stone tools, furnaces, and brewing stands, but cannot be used for blocks like dispensers, droppers, and pistons that specifically require cobblestone.
+            It also generates naturally in ancient cities and trial chambers, and can be crafted into polished deepslate, slabs, stairs, and walls.
+        lore: |
+            A rough, unpolished stone from the deepest reaches of the world, bearing the weight of ancient stone.
+    faq:
+        - question: Can I use cobbled deepslate instead of cobblestone for everything?
+          answer: |
+              No. While it works for tools and furnaces, cobbled deepslate cannot be used for making most blocks that use cobblestone in their recipes, such as dispensers, droppers, and pistons.
+        - question: How do I get cobbled deepslate fastest?
+          answer: |
+              Use a stonecutter with regular deepslate for the quickest conversion, rather than crafting through multiple steps.
+        - question: What's the fastest tool to mine it?
+          answer: |
+              A netherite pickaxe breaks it in 0.6 seconds, while a golden pickaxe manages 0.45 seconds despite its lower durability.
+        - question: Where should I look for it naturally?
+          answer: |
+              Search ancient cities and trial chambers for naturally-generated cobbled deepslate.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

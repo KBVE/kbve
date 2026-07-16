@@ -1,5 +1,6 @@
 ---
 title: Magenta Wool
+template: splash
 description: |
     Minecraft Magenta Wool — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 142
     ref: magenta_wool
     slug: magenta-wool
+    content_rev: 1
     display_name: Magenta Wool
     material: wool
     hardness: 0.8
@@ -24,10 +26,66 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: magenta_wool
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+    about:
+        description: |
+            Magenta Wool is a dyed wool block sheared or dropped from sheep,
+            or crafted from string. It is highly flammable and can be
+            re-dyed into any other color at any time.
+        lore: |
+            Wool was one of the first craftable colored blocks in Minecraft,
+            letting builders decorate structures long before terracotta or
+            concrete existed.
+    uses:
+        - title: Magenta Banner
+          ref: magenta_wall_banner
+          detail: |
+              Six wool blocks of the same color plus a stick craft into a
+              matching banner.
+        - title: Bed
+          ref: magenta_bed
+          detail: |
+              Three wool blocks of one color plus three planks craft into a
+              bed of that color.
+        - title: Carpet
+          ref: magenta_carpet
+          detail: |
+              Two wool blocks of the same color craft into three carpets of
+              that color.
+    found_in:
+        - location: Sheep
+          detail: Shearing an adult sheep or killing one drops 1–3 wool blocks matching its color.
+        - location: Crafted
+          detail: Four string craft into one white wool, then dye it with any dye.
+        - location: Villages & Ancient Cities
+          detail: Colored wool generates in villages, woodland mansions, pillager outposts, and ancient cities.
+    faq:
+        - question: What's the fastest way to mine wool?
+          answer: |
+              Shears break wool almost instantly (about 0.25 seconds); any
+              tool or bare hands also work with no minimum tier.
+        - question: Is Magenta Wool flammable?
+          answer: |
+              Yes, wool is highly flammable and will burn quickly if
+              ignited or exposed to lava.
+        - question: Can I change a wool block's color later?
+          answer: |
+              Yes, applying a different dye to a wool block re-dyes it to
+              the new color.
+        - question: Does wool block sculk sensor vibrations?
+          answer: |
+              Yes, wool of any color absorbs nearby vibrations, preventing
+              sculk sensors from detecting activity through it.
     data_version: "1.21.5"
 ---
 

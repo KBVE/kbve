@@ -1,5 +1,6 @@
 ---
 title: Heavy Core
+template: splash
 description: |
     Minecraft Heavy Core — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1095
     ref: heavy_core
     slug: heavy-core
+    content_rev: 1
     display_name: Heavy Core
     material: metal
     hardness: 10
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: heavy_core
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - blast_resistant
+        - overworld
+        - trial_chamber
+    about:
+        description: |
+            The Heavy Core is a rare, dense block found only in ominous
+            vaults within trial chambers. It is the key crafting
+            ingredient for the mace weapon.
+        lore: |
+            Introduced in Java Edition 1.21 alongside trial chambers and
+            the mace, developers describe it as "dense and mysterious."
+    uses:
+        - title: Mace
+          ref: mace
+          detail: |
+              Combine a heavy core with a breeze rod to craft a mace, a
+              melee weapon that deals bonus damage based on fall height.
+    found_in:
+        - location: Trial Chamber Ominous Vaults
+          detail: |
+              Drops from ominous vaults inside trial chambers at
+              approximately a 7.5% chance per opening, requiring an
+              ominous trial key.
+    faq:
+        - question: What tool do I need to mine a Heavy Core?
+          answer: |
+              None strictly required; any tool works, though a pickaxe is
+              fastest.
+        - question: Where can I get a Heavy Core?
+          answer: |
+              Only from ominous vaults inside trial chambers, opened with
+              an ominous trial key obtained from raids in the chamber.
+        - question: Does Silk Touch matter for Heavy Core?
+          answer: |
+              No. It always drops itself regardless of the tool or
+              enchantments used.
+        - question: What is a Heavy Core used for?
+          answer: |
+              Its sole crafting use is combining with a breeze rod to
+              make a mace.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Spruce Boat
+template: splash
 description: |
     Minecraft Spruce Boat — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 812
     ref: spruce_boat
     slug: spruce-boat
+    content_rev: 1
     display_name: Spruce Boat
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Spruce Boat is a drivable vehicle crafted from 5 spruce planks arranged in a U-shape, letting a player cross water or race across ice at high speed. It can carry up to two entities and inflicts no fall damage on its passengers.
+            Boats sink in flowing water, cannot be crafted from Nether wood, and can also be burned as furnace fuel for 60 seconds.
+        lore: |
+            Shaped from resilient spruce timber, this boat carries travelers safely across lakes, rivers, and frozen wastes alike.
+    faq:
+        - question: How do you craft a Spruce Boat?
+          answer: |
+              Arrange 5 spruce planks in a U-shape on a crafting grid: one plank in the middle column of the bottom row is skipped, with planks along both sides and the bottom, matching the standard boat recipe.
+        - question: How many entities can a Spruce Boat carry?
+          answer: |
+              A regular Spruce Boat can carry up to two entities, unlike the chest variant which can carry only one due to the chest occupying extra space.
+        - question: Can a Spruce Boat be used as furnace fuel?
+          answer: |
+              Yes, an Overworld boat like the Spruce Boat can be smelted as fuel, burning for 60 seconds and smelting up to 6 items.
+        - question: Does a Spruce Boat sink in water?
+          answer: |
+              In Java Edition, boats sink when fully submerged or caught in flowing water, so they work best on calm water surfaces or ice.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

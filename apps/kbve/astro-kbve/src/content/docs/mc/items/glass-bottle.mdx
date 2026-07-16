@@ -1,5 +1,6 @@
 ---
 title: Glass Bottle
+template: splash
 description: |
     Minecraft Glass Bottle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1058
     ref: glass_bottle
     slug: glass-bottle
+    content_rev: 1
     display_name: Glass Bottle
     category: brewing
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A glass bottle is a fundamental utility item used as a container for liquids such
+            as water, potions, honey, and dragon's breath. It is crafted from three glass
+            blocks, and players can fill it from water sources, cauldrons, beehives, or by
+            collecting dragon's breath.
+        lore: |
+            Witches have a chance of dropping glass bottles upon death in Java Edition,
+            making them one of the few mob-based sources for this item in Survival.
+    faq:
+        - question: How do you craft a Glass Bottle?
+          answer: |
+              Craft three glass blocks in a V shape on a crafting table to produce three
+              glass bottles.
+        - question: What can a Glass Bottle be filled with?
+          answer: |
+              Filling it from a water source creates a water bottle for brewing, and it can
+              also be filled with honey from a beehive or dragon's breath during the Ender
+              Dragon fight.
+        - question: Do potions return empty bottles when consumed?
+          answer: |
+              Yes, drinking a potion returns an empty glass bottle to the inventory, though
+              collecting single dragon's breath bottles consumes the bottle instead.
+        - question: Can you trade for Glass Bottles?
+          answer: |
+              Expert-level cleric villagers will buy 9 glass bottles for 1 emerald, making
+              bottles a renewable trading commodity.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

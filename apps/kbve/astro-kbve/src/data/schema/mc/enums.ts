@@ -138,8 +138,8 @@ export const MCIdentitySchema = z.object({
 		.string()
 		.min(1)
 		.regex(
-			/^(?:[a-z]+:)?[a-z0-9_]+(?:\/[a-z0-9_]+)*$/,
-			'ref must be lowercase snake_case, optionally prefixed by a namespace like "kbve:" or "minecraft:"',
+			/^(?:[a-z_]+:)?[a-z0-9_]+(?:\/[a-z0-9_]+)*$/,
+			'ref must be lowercase snake_case, optionally prefixed by a namespace like "kbve:", "minecraft:" or "immersive_aircraft:"',
 		),
 	slug: z
 		.string()
@@ -148,5 +148,6 @@ export const MCIdentitySchema = z.object({
 			/^[a-z0-9-]+(?:\/[a-z0-9-]+)*$/,
 			'slug must be kebab-case (slashes allowed)',
 		),
+	content_rev: z.number().int().nonnegative().default(0),
 });
 export type MCIdentity = z.infer<typeof MCIdentitySchema>;

@@ -1,0 +1,113 @@
+{
+	"groups": [
+		{
+			"label": "Gear",
+			"eyebrow": "Equipable",
+			"icon": "M12 2 4 6v6c0 5 3.5 8 8 10 4.5-2 8-5 8-10V6l-8-4z"
+		},
+		{
+			"label": "Consumables",
+			"eyebrow": "Supplies",
+			"icon": "M6 2v20M6 8h4V2M18 2c-2 0-3 2-3 5s1 5 3 5v10"
+		},
+		{
+			"label": "Sources",
+			"eyebrow": "Obtained",
+			"icon": "M12 2C8 8 5 11 5 15a7 7 0 0 0 14 0c0-4-3-7-7-13z"
+		}
+	],
+	"categories": [
+		{
+			"slug": "equipment",
+			"tag": "equipment",
+			"label": "Equipment",
+			"group": "Gear",
+			"accent": "190 70% 58%",
+			"blurb": "Weapons, armour, and every worn-slot item tracked in the database."
+		},
+		{
+			"slug": "ammunition",
+			"tag": "ammo",
+			"label": "Ammunition",
+			"group": "Gear",
+			"accent": "0 80% 62%",
+			"blurb": "Arrows, bolts, darts, javelins, cannonballs, and thrown ammunition.",
+			"subgroups": [
+				{ "label": "Arrows", "match": ["arrow"] },
+				{ "label": "Bolts", "match": ["bolt"] },
+				{ "label": "Darts", "match": ["dart"] },
+				{ "label": "Knives", "match": ["knife", "knives"] },
+				{ "label": "Javelins", "match": ["javelin"] },
+				{
+					"label": "Throwing Axes",
+					"match": ["thrownaxe", "throwing axe"]
+				},
+				{ "label": "Cannonballs", "match": ["cannonball"] }
+			]
+		},
+		{
+			"slug": "prayer",
+			"tag": "prayer",
+			"label": "Prayer",
+			"group": "Gear",
+			"accent": "175 65% 55%",
+			"blurb": "Bones, ashes, and supplies that train or restore Prayer."
+		},
+		{
+			"slug": "food",
+			"tag": "food",
+			"label": "Food",
+			"group": "Consumables",
+			"accent": "30 90% 58%",
+			"blurb": "Healing food and drinks that restore hitpoints."
+		},
+		{
+			"slug": "potions",
+			"tag": "potion",
+			"label": "Potions",
+			"group": "Consumables",
+			"accent": "280 70% 62%",
+			"blurb": "Brewed potions, doses, and combat boosts."
+		},
+		{
+			"slug": "teleport",
+			"tag": "teleport",
+			"label": "Teleport",
+			"group": "Consumables",
+			"accent": "215 85% 62%",
+			"blurb": "Teleport tabs, scrolls, jewellery, and travel items."
+		},
+		{
+			"slug": "drops",
+			"tag": "drop",
+			"label": "Drops",
+			"group": "Sources",
+			"accent": "260 75% 66%",
+			"blurb": "Items obtained as monster and boss drops."
+		},
+		{
+			"slug": "farming",
+			"tag": "farm",
+			"label": "Farming",
+			"group": "Sources",
+			"accent": "130 55% 52%",
+			"blurb": "Seeds, crops, saplings, and Farming produce."
+		},
+		{
+			"slug": "gathering",
+			"tag": "gather",
+			"label": "Gathering",
+			"group": "Sources",
+			"accent": "35 70% 52%",
+			"blurb": "Ores, logs, fish, and raw gathering resources."
+		},
+		{
+			"slug": "quest",
+			"tag": "quest",
+			"label": "Quest",
+			"group": "Sources",
+			"accent": "48 90% 60%",
+			"blurb": "Items tied to quests and their requirements."
+		}
+	]
+}

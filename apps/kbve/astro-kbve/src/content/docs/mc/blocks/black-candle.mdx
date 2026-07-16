@@ -1,5 +1,6 @@
 ---
 title: Black Candle
+template: splash
 description: |
     Minecraft Black Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 919
     ref: black_candle
     slug: black-candle
+    content_rev: 1
     display_name: Black Candle
     material: stone
     hardness: 0.1
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: black_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Black Candle is a dyed variant of the candle, a small light
+            source that can be lit and extinguished at will. Up to four
+            candles of the same color can be stacked into one block space,
+            each raising the light level by three.
+        lore: |
+            Candles were revealed at Minecraft Live 2020 alongside the deep
+            dark and sculk blocks before shipping in Java Edition 1.17.
+    uses:
+        - title: Cake with Black Candle
+          ref: black_candle_cake
+          detail: |
+              Placed on top of an uneaten cake to create a decorated,
+              lightable cake block.
+        - title: Light source
+          ref: black_candle
+          detail: |
+              Lit with flint and steel, a fire charge, or a flaming
+              projectile; extinguished with water or by right-clicking while
+              lit.
+    found_in:
+        - location: Crafted by the player
+          detail: Craft from one string and one honeycomb, then dye black for this color.
+    faq:
+        - question: Do I need a tool to mine a candle?
+          answer: |
+              No. Candles can be mined by hand and always drop themselves
+              regardless of tool.
+        - question: How much light does a Black Candle give off?
+          answer: |
+              A single lit candle emits light level 3. Placing up to four in
+              one block adds 3 light per candle, up to level 12.
+        - question: Can Black Candles be waterlogged?
+          answer: |
+              Yes, they can be placed in water to become waterlogged, but a
+              waterlogged candle cannot be lit until the water is removed.
+        - question: Does the candle's color matter for its function?
+          answer: |
+              No. Color is purely cosmetic; all 16 dyed candles behave
+              identically as light sources.
     data_version: "1.21.5"
 ---
 

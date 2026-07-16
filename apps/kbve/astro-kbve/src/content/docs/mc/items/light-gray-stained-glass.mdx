@@ -1,5 +1,6 @@
 ---
 title: Light Gray Stained Glass
+template: splash
 description: |
     Minecraft Light Gray Stained Glass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 509
     ref: light_gray_stained_glass
     slug: light-gray-stained-glass
+    content_rev: 1
     display_name: Light Gray Stained Glass
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Light Gray Stained Glass is a tinted variant of glass crafted from four glass blocks and Light Gray Dye, yielding eight blocks per craft. It stays transparent while lightly coloring the light passing through it, and it drops nothing when broken unless mined with a Silk Touch tool. Some light gray stained glass also generates naturally within trial chambers.
+        lore: |
+            Builders use colored glass like this to tint windows and light beams while still letting players see through to the world beyond.
+    faq:
+        - question: How do I craft Light Gray Stained Glass?
+          answer: |
+              Combine four Glass blocks with one Light Gray Dye in a crafting grid to produce eight Light Gray Stained Glass blocks.
+        - question: Do I need Silk Touch to collect Light Gray Stained Glass?
+          answer: |
+              Yes, stained glass only drops as an item when broken with a tool enchanted with Silk Touch; otherwise it breaks with no drop.
+        - question: Can Light Gray Stained Glass change the color of a beacon beam?
+          answer: |
+              Yes, placing it above a beacon tints the beam, and stacking multiple colors blends them by averaging their RGB values.
+        - question: Can mobs spawn on Light Gray Stained Glass?
+          answer: |
+              No, mobs generally cannot spawn on stained glass, with the exception of zombie reinforcements.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

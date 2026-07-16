@@ -1,5 +1,6 @@
 ---
 title: Exposed Chiseled Copper
+template: splash
 description: |
     Minecraft Exposed Chiseled Copper — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 99
     ref: exposed_chiseled_copper
     slug: exposed-chiseled-copper
+    content_rev: 1
     display_name: Exposed Chiseled Copper
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Exposed Chiseled Copper is the second oxidation stage of chiseled copper, a purely
+            decorative building block. It gets its discolored, green-spotted look from natural
+            weathering, and can be crafted from cut copper slabs of the exposed stage or cut with
+            a stonecutter from exposed copper blocks.
+        lore: |
+            Chiseled copper generates naturally in trial chambers and plays a trumpet sound when
+            placed under a note block.
+    faq:
+        - question: How do you get Exposed Chiseled Copper?
+          answer: |
+              Craft it from two cut copper slabs of the exposed stage, cut it from an exposed
+              copper or cut copper block with a stonecutter, or let an unwaxed chiseled copper
+              block oxidize naturally over time.
+        - question: Can Exposed Chiseled Copper's oxidation be stopped or reversed?
+          answer: |
+              Applying honeycomb waxes the block, halting further oxidation. Right-clicking with
+              an axe scrapes wax or reverses oxidation by one stage; lightning bolts can also
+              strip oxidation.
+        - question: Does Exposed Chiseled Copper have any redstone function?
+          answer: |
+              No, it is purely decorative and does not interact with redstone.
+        - question: How much light and blast resistance does it have?
+          answer: |
+              It has a hardness of 3 and a blast resistance of 6, and requires at least a stone
+              pickaxe to mine.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

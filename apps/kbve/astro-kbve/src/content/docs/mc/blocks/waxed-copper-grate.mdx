@@ -1,5 +1,6 @@
 ---
 title: Waxed Copper Grate
+template: splash
 description: |
     Minecraft Waxed Copper Grate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1028
     ref: waxed_copper_grate
     slug: waxed-copper-grate
+    content_rev: 1
     display_name: Waxed Copper Grate
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_copper_grate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Waxed Copper Grate is a see-through copper variant with
+            perforations, made by applying honeycomb to a Copper Grate. The
+            wax coating locks the block's current oxidation stage in place,
+            preventing it from ever weathering further.
+        lore: |
+            Copper Grates and their waxed forms were added in the Trials
+            Update (1.21) alongside chiseled copper and copper doors.
+    uses:
+        - title: Decorative Flooring/Walls
+          ref: waxed_copper_grate
+          detail: |
+              Used as a see-through, non-redstone-conductive decorative
+              block for floors, ceilings, and walls; can be waterlogged
+              without affecting its appearance.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates naturally as part of vault and chamber decoration in various oxidation stages.
+        - location: Crafted from Copper Blocks
+          detail: 4 matching Copper Blocks craft 4 Copper Grates, then honeycomb waxes them.
+    faq:
+        - question: What tool do I need to mine Waxed Copper Grate?
+          answer: |
+              A stone pickaxe or better. Mining with only your hand or a
+              wooden pickaxe destroys the block without dropping it.
+        - question: Will a Waxed Copper Grate ever oxidize?
+          answer: |
+              No. The wax coating from the honeycomb permanently blocks
+              oxidation until an axe is used to scrape the wax off.
+        - question: Can I remove the wax later?
+          answer: |
+              Yes. Right-clicking with an axe removes the wax, and the
+              block resumes weathering from whatever stage it was waxed at.
+        - question: Does Fortune or Silk Touch change the drop?
+          answer: |
+              No. It always drops itself as one item regardless of
+              enchantments, as long as a stone pickaxe or better is used.
     data_version: "1.21.5"
 ---
 

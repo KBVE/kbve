@@ -1,0 +1,41 @@
+---
+title: 'Utility Cuffs'
+template: splash
+sidebar:
+    label: 'Utility Cuffs'
+    hidden: true
+description: |
+    Forearm cuff pair with tool loops and a dent where a wrench lives. The left one has a screen that shows the time, occasionally.
+ref: 'utility-cuffs'
+key: 621
+id: '01KXFBEGM2X37CN3WC55AK837S'
+name: 'Utility Cuffs'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 25
+emoji: '⌚'
+img: '/assets/items/equipment/utility-cuffs.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'SCFI09'
+  nodes:
+    - 'SCFI09_ALWL'
+    - 'SCFI09_ALWR'
+  slot_keys:
+    - 'ALWL'
+    - 'ALWR'
+equipment:
+  slot: 'hands'
+  bonuses:
+    extra:
+      weight: 1
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

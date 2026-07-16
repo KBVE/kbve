@@ -1,5 +1,6 @@
 ---
 title: Polished Deepslate
+template: splash
 description: |
     Minecraft Polished Deepslate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1064
     ref: polished_deepslate
     slug: polished-deepslate
+    content_rev: 1
     display_name: Polished Deepslate
     material: stone
     hardness: 3.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_deepslate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Polished Deepslate is a smooth, refined form of deepslate used as
+            the base building block for the deepslate stairs, slabs, walls,
+            and bricks family. It forms much of the visible masonry inside
+            ancient city structures.
+        lore: |
+            Introduced as "polished grimstone" in Java Edition 1.17 snapshot
+            21w07a, renamed to polished deepslate in 21w08a, and folded into
+            ancient city generation with the Deep Dark update in 1.19.
+    uses:
+        - title: Deepslate Stone Family
+          ref: polished_deepslate_slab
+          detail: |
+              Crafted or stonecut into polished deepslate slabs, stairs,
+              walls, and further processed into deepslate bricks and their
+              own slab, stair, and wall variants.
+    found_in:
+        - location: Ancient Cities
+          detail: Generates naturally as structural material throughout ancient city builds in the Deep Dark biome.
+        - location: Crafting or Stonecutting
+          detail: Craft from cobbled deepslate, or stonecut from cobbled deepslate or deepslate.
+    faq:
+        - question: What tool do I need to mine Polished Deepslate?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining without a pickaxe
+              yields no drop.
+        - question: How do I craft Polished Deepslate?
+          answer: |
+              Craft four cobbled deepslate in a 2x2 pattern for four polished
+              deepslate, or stonecut cobbled deepslate or deepslate for a
+              faster 1:1 conversion.
+        - question: Does it generate naturally outside ancient cities?
+          answer: |
+              No, its only natural source is ancient city generation in the
+              Deep Dark; elsewhere it must be crafted or stonecut.
+        - question: Is Polished Deepslate flammable?
+          answer: |
+              No, like other stone-family blocks it does not burn or ignite.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Campfire
+template: splash
 description: |
     Minecraft Campfire — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1282
     ref: campfire
     slug: campfire
+    content_rev: 1
     display_name: Campfire
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A campfire is a versatile block crafted from sticks, coal or charcoal, and wood that
+            can cook food, provide light, generate rising smoke, and damage mobs standing on it
+            while lit. It cooks up to four food items at once without consuming any fuel, and a
+            hay bale placed underneath turns its smoke into a tall, visible signal.
+        lore: |
+            Campfires were voted into the game by the community at MINECON Earth 2018 as part of
+            the taiga-themed update, arriving in Java Edition 1.14.
+    faq:
+        - question: How do I light or extinguish a campfire?
+          answer: |
+              Campfires are lit by default when placed and can also be ignited with flint and
+              steel, fire charges, or flaming projectiles; they can be put out with a shovel, a
+              splash water bottle, or by waterlogging the block.
+        - question: What can I cook on a campfire?
+          answer: |
+              Raw meats, potatoes, and kelp can all be cooked on a campfire, taking 30 seconds
+              (600 ticks) per item without requiring any furnace fuel.
+        - question: Why use a campfire instead of a furnace?
+          answer: |
+              A campfire needs no fuel and cooks four items simultaneously, making it efficient for
+              bulk cooking, though it is slower per item than a furnace or smoker.
+        - question: Can a campfire hurt me?
+          answer: |
+              Yes, standing on a lit campfire deals 1 HP of damage per tick, making it useful both
+              as a light source and as a simple mob trap.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

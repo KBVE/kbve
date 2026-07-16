@@ -1,5 +1,6 @@
 ---
 title: Birch Stairs
+template: splash
 description: |
     Minecraft Birch Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 374
     ref: birch_stairs
     slug: birch-stairs
+    content_rev: 1
     display_name: Birch Stairs
     material: wood
     hardness: 2
@@ -24,10 +26,60 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: birch_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+        - renewable
+    about:
+        description: |
+            Birch Stairs are a shaped building block crafted from Birch
+            Planks, letting players build slopes, roofs, and detailed
+            trim. Like all stairs, their facing and orientation can be
+            adjusted when placed.
+        lore: |
+            Wooden stairs are among the oldest block types in Minecraft,
+            first added during early Infdev development and later
+            expanded to every wood type.
+    uses:
+        - title: Roofing & Detail
+          ref: birch_planks
+          detail: |
+              Used to build sloped roofs, staircases, and decorative trim
+              in birch-themed builds.
+        - title: Furnace Fuel
+          ref: birch_planks
+          detail: |
+              Overworld wooden stairs can be used as furnace fuel,
+              smelting 1.5 items each.
+    found_in:
+        - location: Villages and Woodland Mansions
+          detail: Generates as roofing and stairwells in birch-themed and mixed-wood structures.
+        - location: Crafted from Birch Planks
+          detail: Six Birch Planks arranged in a staircase pattern craft four Birch Stairs.
+    faq:
+        - question: What tool do I need to mine Birch Stairs?
+          answer: |
+              None required — any tool works, though an axe is fastest.
+        - question: Are Birch Stairs flammable?
+          answer: |
+              Yes, like most wooden blocks they can catch fire and burn.
+        - question: Can Birch Stairs be placed upside down?
+          answer: |
+              Yes, placing them while looking at the upper half of a block
+              face creates an upside-down (top-half) stair orientation.
+        - question: Can Birch Stairs be used as furnace fuel?
+          answer: |
+              Yes, they smelt 1.5 items each when burned as fuel, more
+              efficient than slabs or planks alone.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Cracked Stone Bricks
+template: splash
 description: |
     Minecraft Cracked Stone Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 313
     ref: cracked_stone_bricks
     slug: cracked-stone-bricks
+    content_rev: 1
     display_name: Cracked Stone Bricks
     material: stone
     hardness: 1.5
@@ -24,10 +26,58 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cracked_stone_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Cracked Stone Bricks are a weathered variant of Stone Bricks,
+            commonly found decorating strongholds, igloo basements, ocean
+            ruins, and trail ruins. They offer no functional advantage over
+            regular stone but add aged texture to a build.
+        lore: |
+            Introduced in Java Edition Beta 1.8, Cracked Stone Bricks were
+            originally intended to look worn from age and monster
+            infestation within stronghold walls.
+    uses:
+        - title: Decorative building
+          ref: stone_bricks
+          detail: |
+              Used for aesthetic variation in stone brick structures; has
+              no functional advantage over stone bricks or cobblestone.
+    found_in:
+        - location: Strongholds
+          detail: Generates naturally throughout stronghold corridors and rooms.
+        - location: Igloo basements, ocean ruins, trail ruins
+          detail: Appears as generated decoration in these structures.
+        - location: Furnace
+          detail: Obtainable by smelting Stone Bricks with any fuel source.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, starting with wood. Mining without a pickaxe
+              drops nothing.
+        - question: Does it drop itself when mined?
+          answer: |
+              Yes, mining it with any pickaxe drops the block itself.
+        - question: How do I get more of it?
+          answer: |
+              Smelt regular Stone Bricks in a furnace with any fuel, making
+              it renewable, or gather it from strongholds and other
+              generated structures.
+        - question: Can silverfish hide inside it?
+          answer: |
+              Yes, like other stone brick variants it can become an
+              Infested Cracked Stone Bricks block, which silverfish burst
+              out of when broken.
     data_version: "1.21.5"
 ---
 

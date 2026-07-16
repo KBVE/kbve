@@ -1,5 +1,6 @@
 ---
 title: Raw Gold
+template: splash
 description: |
     Minecraft Raw Gold — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 854
     ref: raw_gold
     slug: raw-gold
+    content_rev: 1
     display_name: Raw Gold
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Raw gold is a metal resource obtained by mining gold ore or deepslate gold ore with an iron pickaxe or better. Its primary use is smelting into gold ingots, though it can also be crafted into a block of raw gold for storage. The item stacks up to 64 and is non-renewable.
+        lore: |
+            Raw gold attracts piglins in the Nether, who will inspect it before collecting it, though it cannot be used for bartering with them.
+    faq:
+        - question: How do I get raw gold?
+          answer: |
+              Gold ore and deepslate gold ore mined with an iron pickaxe or better drop 1 unit of raw gold, with Fortune III increasing that to a maximum of 4.
+        - question: What's the main use for raw gold?
+          answer: |
+              The primary usage of raw gold is smelting it into gold ingots, which are then used for crafting gold tools, armor, and decorative blocks.
+        - question: Can I store raw gold more efficiently?
+          answer: |
+              Yes. Nine raw gold can be crafted into a block of raw gold for compact storage, and the block can be uncrafted back into individual units.
+        - question: Why do piglins care about raw gold?
+          answer: |
+              Piglins are attracted to raw gold and will run toward it on the ground, though raw gold cannot be used for bartering with them.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Bamboo Stairs
+template: splash
 description: |
     Minecraft Bamboo Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 489
     ref: bamboo_stairs
     slug: bamboo-stairs
+    content_rev: 1
     display_name: Bamboo Stairs
     material: wood
     hardness: 2
@@ -24,10 +26,54 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Bamboo stairs are a wood variant of stairs crafted from bamboo
+            planks, letting builders create sloped surfaces, roofs, and
+            steps in the bamboo palette.
+        lore: |
+            Stairs give every plank type a matching sloped block, and
+            bamboo's pale, striated wood makes for a distinct look among
+            the fourteen wood variants.
+    uses:
+        - title: Bamboo Stairs
+          ref: bamboo_stairs
+          detail: |
+              Six bamboo planks arranged in a staircase pattern craft four
+              stairs. Overworld wood stairs can also be smelted as furnace
+              fuel.
+    found_in:
+        - location: Crafted by the player
+          detail: Made from six bamboo planks at a crafting table.
+        - location: Generated structures
+          detail: Occasionally found in villages, mansions, shipwrecks, igloos, witch huts, and pillager outposts.
+    faq:
+        - question: What tool do I need to mine bamboo stairs?
+          answer: |
+              None required — any tool works, though an axe is fastest.
+        - question: Do bamboo stairs burn?
+          answer: |
+              Yes, they are flammable and can catch fire from nearby lava
+              or fire.
+        - question: Can bamboo stairs be placed upside down?
+          answer: |
+              Yes, placing them while aiming at the upper half of a block
+              face creates the upside-down orientation.
+        - question: Can bamboo stairs be used as furnace fuel?
+          answer: |
+              Yes, overworld wood stairs smelt 1.5 items per stair burned.
     data_version: "1.21.5"
 ---
 

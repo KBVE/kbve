@@ -1,5 +1,6 @@
 ---
 title: Nether Brick Fence
+template: splash
 description: |
     Minecraft Nether Brick Fence — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,68 @@ mc_block:
     id: 351
     ref: nether_brick_fence
     slug: nether-brick-fence
+    content_rev: 1
     display_name: Nether Brick Fence
     material: nether
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: nether_brick_fence
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - nether
+    about:
+        description: |
+            Nether Brick Fence is a thin, dark barrier crafted from nether
+            bricks. It generates as window bars, balcony rails, and
+            portcullises throughout Nether fortresses.
+        lore: |
+            Added alongside nether bricks in the Nether's original
+            introduction, it is the only fence type without a matching
+            fence gate.
+    uses:
+        - title: Mob-Proof Barriers
+          ref: nether_brick_wall
+          detail: |
+              Functions like any other fence for containing mobs or
+              fencing off structures, and connects visually to most blocks
+              including wooden fence gates.
+    found_in:
+        - location: Nether Fortresses
+          detail: Generates extensively as window bars, balconies, and portcullises inside Nether fortresses.
+        - location: Crafted from Nether Bricks
+          detail: Six nether bricks craft into six nether brick fence pieces.
+    faq:
+        - question: What tool do I need to mine Nether Brick Fence?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe drops
+              nothing.
+        - question: Is Nether Brick Fence flammable?
+          answer: |
+              No, it is non-flammable and shares the same blast resistance
+              as most stone blocks.
+        - question: Does Nether Brick Fence have a fence gate?
+          answer: |
+              No — it is the only fence type in the game without a
+              matching fence gate variant.
+        - question: What connects to Nether Brick Fence?
+          answer: |
+              It visually connects to most solid blocks and to wooden
+              fence gates, but not to wooden fences.
     data_version: "1.21.5"
 ---
 

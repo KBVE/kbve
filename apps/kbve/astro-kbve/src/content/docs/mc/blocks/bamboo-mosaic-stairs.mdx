@@ -1,5 +1,6 @@
 ---
 title: Bamboo Mosaic Stairs
+template: splash
 description: |
     Minecraft Bamboo Mosaic Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 490
     ref: bamboo_mosaic_stairs
     slug: bamboo-mosaic-stairs
+    content_rev: 1
     display_name: Bamboo Mosaic Stairs
     material: wood
     hardness: 2
@@ -26,8 +28,49 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo_mosaic_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Bamboo Mosaic Stairs are a decorative stair variant of Bamboo
+            Mosaic, letting builders carry the woven crosshatch texture
+            across sloped surfaces and staircases. They do not generate
+            naturally.
+        lore: |
+            Announced at Minecraft Live 2022 and released in the 1.20
+            Trails & Tales update as part of the bamboo building set.
+    uses:
+        - title: Vertical movement and detailing
+          ref: bamboo_mosaic_stairs
+          detail: |
+              Placed to form stair steps, roofs, and decorative trim that
+              matches Bamboo Mosaic blocks and slabs.
+    found_in:
+        - location: Player crafting only
+          detail: Crafted from 6 Bamboo Mosaic blocks in a stair pattern, yielding 4 stairs; never generates naturally.
+    faq:
+        - question: What tool do I need to mine Bamboo Mosaic Stairs?
+          answer: |
+              None — any tool works, though an axe breaks it fastest.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No, it always drops itself regardless of enchantments.
+        - question: Does it burn in fire?
+          answer: |
+              Yes, it is flammable and can catch fire from lava or nearby
+              flames like other wood-based blocks.
+        - question: How do I craft Bamboo Mosaic Stairs?
+          answer: |
+              Arrange 6 Bamboo Mosaic blocks in the standard stair shape
+              in a crafting grid to produce 4 stairs.
     data_version: "1.21.5"
 ---
 

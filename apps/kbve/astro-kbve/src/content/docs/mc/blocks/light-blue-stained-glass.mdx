@@ -1,5 +1,6 @@
 ---
 title: Light Blue Stained Glass
+template: splash
 description: |
     Minecraft Light Blue Stained Glass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 288
     ref: light_blue_stained_glass
     slug: light-blue-stained-glass
+    content_rev: 1
     display_name: Light Blue Stained Glass
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_blue_stained_glass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - non_flammable
+    about:
+        description: |
+            Light Blue Stained Glass is a dyed glass block that tints light
+            and vision passing through it. It only drops itself when mined
+            with a Silk Touch tool, otherwise breaking without a drop.
+        lore: |
+            Stained glass was added to give builders colored, see-through
+            walls beyond plain glass and colored wool.
+    uses:
+        - title: Light Blue Stained Glass Pane
+          ref: light_blue_stained_glass_pane
+          detail: |
+              6 Light Blue Stained Glass blocks craft into 16 Light Blue
+              Stained Glass Panes, a thinner and more material-efficient
+              window block.
+        - title: Beacon beam coloring
+          ref: light_blue_stained_glass
+          detail: |
+              Placing stained glass in a beacon's beam path tints the beam,
+              and stacking multiple colors blends them.
+    found_in:
+        - location: Crafting table
+          detail: 8 blocks made from 4 glass blocks plus light blue dye.
+        - location: End Cities, Trail Ruins, Trial Chambers
+          detail: |
+              Various stained glass colors generate naturally in these
+              structures.
+    faq:
+        - question: What tool is needed to mine stained glass?
+          answer: |
+              Any tool works at the same speed; there is no minimum tier.
+              Without Silk Touch, mining it yields no drop at all.
+        - question: Can mobs spawn on stained glass?
+          answer: |
+              No, mobs cannot spawn on top of stained glass blocks under
+              normal conditions.
+        - question: Does light blue stained glass emit light?
+          answer: |
+              No, it emits no light of its own; it only tints light passing
+              through it.
     data_version: "1.21.5"
 ---
 

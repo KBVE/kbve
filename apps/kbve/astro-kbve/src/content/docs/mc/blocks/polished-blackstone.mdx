@@ -1,5 +1,6 @@
 ---
 title: Polished Blackstone
+template: splash
 description: |
     Minecraft Polished Blackstone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,82 @@ mc_block:
     id: 887
     ref: polished_blackstone
     slug: polished-blackstone
+    content_rev: 1
     display_name: Polished Blackstone
     material: nether
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_blackstone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+        - blast_resistant
+    about:
+        description: |
+            Polished Blackstone is a smoothed building-block variant of
+            blackstone, crafted four-at-a-time or found as part of ruined
+            portals in the Nether. It serves as the base for the entire
+            polished blackstone family, from bricks to buttons.
+        lore: |
+            Introduced in the Nether Update (Java Edition 1.16) as a refined
+            counterpart to raw blackstone.
+    uses:
+        - title: Polished Blackstone Bricks
+          ref: polished_blackstone_bricks
+          detail: |
+              Craft four polished blackstone into four polished blackstone
+              bricks for a more detailed masonry texture.
+        - title: Chiseled Polished Blackstone
+          ref: chiseled_polished_blackstone
+          detail: |
+              Stack two polished blackstone slabs to produce chiseled
+              polished blackstone, used for decorative trim.
+        - title: Slabs, Stairs, and Walls
+          ref: polished_blackstone_slab
+          detail: |
+              Craft or stonecut into slabs, stairs, and walls for Nether
+              building projects.
+    found_in:
+        - location: Ruined Portals
+          detail: Generates naturally as part of ruined portal structures in the Nether.
+        - location: Crafted from Blackstone
+          detail: Four blackstone blocks craft four polished blackstone at a crafting table.
+        - location: Piglin Bartering
+          detail: |
+              Piglins have an 8.71% chance to give 8-16 blackstone per
+              barter, which can be polished, making the block renewable.
+    faq:
+        - question: What tool do I need to mine Polished Blackstone?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe destroys
+              the block with no drop.
+        - question: Is Polished Blackstone flammable?
+          answer: |
+              No. It never catches fire and is unaffected by nearby lava,
+              making it a safe Nether building material.
+        - question: What is Polished Blackstone used for?
+          answer: |
+              It crafts into bricks, chiseled polished blackstone, slabs,
+              stairs, walls, buttons, and pressure plates, forming the base
+              of the whole decorative family.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops itself regardless of enchantments, as
+              long as a pickaxe is used to mine it.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Light Blue Candle
+template: splash
 description: |
     Minecraft Light Blue Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 907
     ref: light_blue_candle
     slug: light-blue-candle
+    content_rev: 1
     display_name: Light Blue Candle
     material: stone
     hardness: 0.1
     blast_resistance: 0.1
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_blue_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Light Blue Candle is a dyed variant of the candle, crafted by
+            combining a plain candle with light blue dye. Up to four
+            candles of the same color can be placed in a single block
+            space, and they can be lit with flint and steel to emit light
+            proportional to how many are stacked together.
+        lore: |
+            Candles were announced at Minecraft Live 2020 alongside the
+            deep dark biome and added in the Caves & Cliffs update.
+    uses:
+        - title: Light Source
+          ref: light_blue_candle
+          detail: |
+              Place on the floor, a fence, or other candles and light
+              with flint and steel for a stackable, dyed light source that
+              can also decorate a cake.
+    found_in:
+        - location: Crafting table
+          detail: Crafted from a candle and light blue dye in a shapeless recipe.
+        - location: Ancient cities / trial chambers
+          detail: Undyed and red candle variants generate naturally; colored candles like light blue must be dyed.
+    faq:
+        - question: What tool do I need to mine Light Blue Candle?
+          answer: |
+              None. Any tool, or even bare hands, breaks it instantly and
+              it always drops itself.
+        - question: How much light does it give off when lit?
+          answer: |
+              Light level 3 per candle, stacking up to light level 12 when
+              four candles occupy the same block.
+        - question: Can it be placed in water?
+          answer: |
+              Yes, it can be waterlogged, but a waterlogged candle cannot
+              be lit until the water is removed.
+        - question: Does it stack with other candle colors?
+          answer: |
+              No. Only candles of the same color can occupy the same
+              block; different colors must be placed in separate spots.
     data_version: "1.21.5"
 ---
 

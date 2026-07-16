@@ -1,5 +1,6 @@
 ---
 title: Powder Snow Cauldron
+template: splash
 description: |
     Minecraft Powder Snow Cauldron — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 359
     ref: powder_snow_cauldron
     slug: powder-snow-cauldron
+    content_rev: 1
     display_name: Powder Snow Cauldron
     material: metal
     hardness: 2
     blast_resistance: 2
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cauldron
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Powder Snow Cauldron is a Cauldron filled with Powder Snow,
+            created when snow falls into an empty (or partially filled)
+            cauldron over time. Entities that fall into it are extinguished
+            if on fire, though it does not cushion fall damage.
+        lore: |
+            Added with the Powder Snow update, this cauldron variant lets
+            players harvest Powder Snow without needing a bucket to be
+            filled at a source block.
+    uses:
+        - title: Extinguishing Entities
+          ref: powder_snow_cauldron
+          detail: |
+              Entities on fire that land in the cauldron are extinguished,
+              making it a passive fire-safety fixture.
+        - title: Powder Snow Bucket
+          ref: powder_snow_bucket
+          detail: |
+              Scoop a full cauldron's contents with an empty bucket to get a
+              Powder Snow Bucket, usable to place Powder Snow elsewhere.
+    found_in:
+        - location: Snowy biomes
+          detail: |
+              An empty or partially-filled cauldron slowly accumulates
+              powder snow during snowfall in snowy biomes.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe. Mining without one drops nothing.
+        - question: What drops when it's mined?
+          answer: |
+              An empty Cauldron block — the powder snow content is lost, not
+              collected as an item.
+        - question: How do I fill a cauldron with powder snow?
+          answer: |
+              Leave an empty or partly-filled cauldron exposed during
+              snowfall in a snowy biome; it fills gradually on its own.
+        - question: Can I use a powder snow bucket to top it off?
+          answer: |
+              No — using a Powder Snow Bucket on a non-full Powder Snow
+              Cauldron places powder snow next to it instead of filling it
+              further.
     data_version: "1.21.5"
 ---
 

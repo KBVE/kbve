@@ -210,12 +210,18 @@ pub(crate) struct ListLotsQuery {
 }
 
 impl ListLotsQuery {
-    fn cursor(&self) -> LotChunkCursor {
-        LotChunkCursor {
-            after_chunk_x: self.after_chunk_x,
-            after_chunk_z: self.after_chunk_z,
-            after_lot_id: self.after_lot_id.clone(),
-        }
+    /// Consume the query into `(world, limit, cursor)` — moves the owned
+    /// `world`/`after_lot_id` strings out instead of cloning them.
+    fn into_parts(self) -> (String, i32, LotChunkCursor) {
+        (
+            self.world,
+            self.limit,
+            LotChunkCursor {
+                after_chunk_x: self.after_chunk_x,
+                after_chunk_z: self.after_chunk_z,
+                after_lot_id: self.after_lot_id,
+            },
+        )
     }
 }
 
@@ -451,10 +457,8 @@ pub(crate) async fn list_vacant(headers: HeaderMap, Query(q): Query<ListLotsQuer
         Some(c) => c,
         None => return lot_service_unavailable(),
     };
-    match client
-        .list_vacant_lots(user_id, q.world.clone(), q.limit, q.cursor())
-        .await
-    {
+    let (world, limit, cursor) = q.into_parts();
+    match client.list_vacant_lots(user_id, world, limit, cursor).await {
         Ok(rows) => Json(rows.into_iter().map(vacant_to_dto).collect::<Vec<_>>()).into_response(),
         Err(e) => lot_error_response(e),
     }
@@ -482,8 +486,9 @@ pub(crate) async fn list_my_active(headers: HeaderMap, Query(q): Query<ListLotsQ
         Some(c) => c,
         None => return lot_service_unavailable(),
     };
+    let (world, limit, cursor) = q.into_parts();
     match client
-        .list_my_active_lots(user_id, q.world.clone(), q.limit, q.cursor())
+        .list_my_active_lots(user_id, world, limit, cursor)
         .await
     {
         Ok(rows) => Json(rows.into_iter().map(owned_to_dto).collect::<Vec<_>>()).into_response(),
@@ -516,8 +521,9 @@ pub(crate) async fn list_my_transitional(
         Some(c) => c,
         None => return lot_service_unavailable(),
     };
+    let (world, limit, cursor) = q.into_parts();
     match client
-        .list_my_transitional_lots(user_id, q.world.clone(), q.limit, q.cursor())
+        .list_my_transitional_lots(user_id, world, limit, cursor)
         .await
     {
         Ok(rows) => Json(rows.into_iter().map(owned_to_dto).collect::<Vec<_>>()).into_response(),
@@ -563,7 +569,7 @@ pub(crate) async fn list_viewport(headers: HeaderMap, Query(q): Query<ViewportQu
     match client
         .list_lots_in_viewport(
             user_id,
-            q.world.clone(),
+            q.world,
             q.min_chunk_x,
             q.max_chunk_x,
             q.min_chunk_z,

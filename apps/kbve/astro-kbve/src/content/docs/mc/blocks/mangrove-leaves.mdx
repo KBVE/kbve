@@ -1,5 +1,6 @@
 ---
 title: Mangrove Leaves
+template: splash
 description: |
     Minecraft Mangrove Leaves — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 96
     ref: mangrove_leaves
     slug: mangrove-leaves
+    content_rev: 1
     display_name: Mangrove Leaves
     material: leaves
     hardness: 0.2
@@ -26,8 +28,66 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mangrove_propagule
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: stick
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: mangrove_leaves
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - shears_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Mangrove Leaves cap the canopy of every mangrove tree growing in
+            mangrove swamps. Like other leaf blocks they are transparent,
+            flammable, and slowly decay when no mangrove log is within
+            range, unless placed directly by a player.
+        lore: |
+            Mangrove leaves arrived in Java Edition 1.19 alongside the Wild
+            Update's mangrove swamp biome, first revealed at Minecraft Live 2021.
+    uses:
+        - title: Mangrove Propagule
+          ref: mangrove_propagule
+          detail: |
+              Breaking mangrove leaves without Silk Touch has a small chance
+              to drop a mangrove propagule, the seed item used to grow new
+              mangrove trees.
+    found_in:
+        - location: Mangrove Swamp
+          detail: Generates as the leafy canopy of every mangrove tree in the biome.
+    faq:
+        - question: What is the best tool to break Mangrove Leaves?
+          answer: |
+              Shears or a Silk Touch tool drop the leaves block itself; a
+              hoe breaks them fastest if you only want a chance at a
+              propagule or stick.
+        - question: What drops from Mangrove Leaves?
+          answer: |
+              Without Silk Touch they have a small chance to drop a
+              mangrove propagule or a stick; with Silk Touch they always
+              drop themselves.
+        - question: Do Mangrove Leaves decay?
+          answer: |
+              Yes. Naturally generated leaves not connected to a log within
+              a few blocks will decay over time, but player-placed leaves
+              never decay.
+        - question: Can Mangrove Leaves catch fire?
+          answer: |
+              Yes, like most leaves they are flammable and will burn when
+              exposed to fire or lava.
     data_version: "1.21.5"
 ---
 

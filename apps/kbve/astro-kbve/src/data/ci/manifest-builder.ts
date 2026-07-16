@@ -89,6 +89,7 @@ interface UnityEntry extends GameEntryBase {}
 interface GodotEntry extends GameEntryBase {}
 interface UnrealGameEntry extends GameEntryBase {}
 interface BevyGameEntry extends GameEntryBase {}
+interface ViteGameEntry extends GameEntryBase {}
 
 type ManifestEntry =
 	| DockerEntry
@@ -100,7 +101,8 @@ type ManifestEntry =
 	| UnityEntry
 	| GodotEntry
 	| UnrealGameEntry
-	| BevyGameEntry;
+	| BevyGameEntry
+	| ViteGameEntry;
 
 export interface DispatchManifest {
 	docker: DockerEntry[];
@@ -113,6 +115,7 @@ export interface DispatchManifest {
 	godot: GodotEntry[];
 	unreal_game: UnrealGameEntry[];
 	bevy_game: BevyGameEntry[];
+	vite_game: ViteGameEntry[];
 	index: Record<string, number>;
 	summary: Record<string, number>;
 }
@@ -122,7 +125,10 @@ export interface ProjectEntry {
 	data: ICiProject;
 }
 
-function toManifestEntry(d: ICiProject, mdxPath?: string): ManifestEntry | null {
+function toManifestEntry(
+	d: ICiProject,
+	mdxPath?: string,
+): ManifestEntry | null {
 	const vt = d.version_toml;
 	const ver = d.version;
 	switch (d.pipeline) {
@@ -232,7 +238,8 @@ function toManifestEntry(d: ICiProject, mdxPath?: string): ManifestEntry | null 
 		case 'unity':
 		case 'godot':
 		case 'unreal_game':
-		case 'bevy_game': {
+		case 'bevy_game':
+		case 'vite_game': {
 			if (!d.app_name || !d.engine) return null;
 			const ge: GameEntryBase = {
 				key: d.key!,
@@ -290,6 +297,7 @@ export function buildManifest(entries: ProjectEntry[]): DispatchManifest {
 		godot: [],
 		unreal_game: [],
 		bevy_game: [],
+		vite_game: [],
 		index: {},
 		summary: {},
 	};
@@ -316,6 +324,7 @@ export function buildManifest(entries: ProjectEntry[]): DispatchManifest {
 			| 'godot'
 			| 'unreal_game'
 			| 'bevy_game'
+			| 'vite_game'
 		>;
 		const arr = manifest[pipeline] as ManifestEntry[];
 		const idx = arr.length;

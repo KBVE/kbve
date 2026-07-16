@@ -1,5 +1,6 @@
 ---
 title: Carved Pumpkin
+template: splash
 description: |
     Minecraft Carved Pumpkin — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 281
     ref: carved_pumpkin
     slug: carved-pumpkin
+    content_rev: 1
     display_name: Carved Pumpkin
     material: plant
     hardness: 1
@@ -24,10 +26,65 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: carved_pumpkin
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Carved Pumpkin is made by shearing a regular pumpkin, and can
+            be worn as a helmet, used to build golems, or crafted with a
+            torch into a jack o'lantern.
+        lore: |
+            Its jack-o'-lantern face has been Minecraft's Halloween-themed
+            block since the very first pumpkin carving mechanics.
+    uses:
+        - title: Jack o'Lantern
+          ref: jack_o_lantern
+          detail: |
+              Combine with a torch to craft a jack o'lantern, a carved
+              pumpkin that emits light on its own.
+        - title: Snow Golem
+          ref: snow_golem
+          detail: |
+              Stack two snow blocks and top with a carved pumpkin to
+              summon a snow golem.
+        - title: Iron Golem
+          ref: iron_golem
+          detail: |
+              Build a T-shaped iron block frame and top it with a carved
+              pumpkin to summon an iron golem.
+    found_in:
+        - location: Shearing a Pumpkin
+          detail: Use shears on a regular pumpkin to obtain a carved pumpkin and pumpkin seeds.
+        - location: Woodland Mansions and Pillager Outposts
+          detail: Generates naturally as decoration in these structures.
+        - location: Snow Golems
+          detail: Shearing a snow golem drops its carved pumpkin "head".
+    faq:
+        - question: What is the fastest tool to mine a carved pumpkin?
+          answer: |
+              An axe, though any tool or bare hands can break it since no
+              minimum tier is required.
+        - question: Does wearing a carved pumpkin protect me from endermen?
+          answer: |
+              Yes. Wearing one prevents endermen from becoming hostile
+              when looked at, though it also obstructs and darkens the
+              player's view.
+        - question: Does a carved pumpkin give armor points?
+          answer: |
+              No, it has no armor value; it is worn purely for its
+              enderman-safety and disguise effects.
+        - question: Can I turn it back into a regular pumpkin?
+          answer: |
+              No, carving is a one-way process and cannot be reversed.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Yellow Wool
+template: splash
 description: |
     Minecraft Yellow Wool — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 217
     ref: yellow_wool
     slug: yellow-wool
+    content_rev: 1
     display_name: Yellow Wool
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Yellow Wool is a dyed variant of wool obtained by shearing a sheep or crafting white wool from
+            string and then coloring it with yellow dye. It is highly flammable but useful for building,
+            beds, banners, and dampening vibrations from sculk sensors.
+        lore: |
+            A sheep named "jeb_" cycles through rainbow wool colors visually, yet still drops its true color.
+    faq:
+        - question: How do you get Yellow Wool?
+          answer: |
+              Shear a yellow sheep directly, or shear/kill any sheep for white wool and dye it yellow, or
+              craft white wool from 4 string and dye that.
+        - question: Is Yellow Wool flammable?
+          answer: |
+              Yes, wool of any color is highly flammable and will catch fire quickly from lava or nearby flames.
+        - question: What can Yellow Wool be crafted into?
+          answer: |
+              It can be combined with planks to make a bed, with a stick to make a banner, or crafted alone
+              into a matching carpet.
+        - question: Does Yellow Wool have any special property besides color?
+          answer: |
+              Yes, wool blocks dampen vibrations, preventing sculk sensors from detecting footsteps or item
+              drops on top of them.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

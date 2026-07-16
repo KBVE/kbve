@@ -1,5 +1,6 @@
 ---
 title: Snout Banner Pattern
+template: splash
 description: |
     Minecraft Snout Banner Pattern — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 1262
     ref: piglin_banner_pattern
     slug: piglin-banner-pattern
+    content_rev: 1
     display_name: Snout Banner Pattern
     category: banner
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Snout Banner Pattern is a decorative loom template that emblazons a piglin snout
+            design onto a banner using any matching dye. It is a non-renewable item found only as
+            loot in bastion remnant chests, and it is not consumed when applied in the loom.
+        lore: |
+            A trophy pattern salvaged from the Nether's bastions, letting builders wear the
+            piglins' snout with pride.
+    faq:
+        - question: |
+              How do I obtain the Snout Banner Pattern?
+          answer: |
+              It cannot be crafted; it is found exclusively as loot in bastion remnant chests,
+              appearing in generic chests with roughly a 10.1% chance.
+        - question: |
+              Does using the pattern consume it?
+          answer: |
+              No. The pattern remains in the loom's pattern slot after use, so it can be applied
+              to multiple banners.
+        - question: |
+              What dye colors work with this pattern?
+          answer: |
+              All 16 standard dye colors can be combined with the pattern to produce matching
+              snout-themed banner variants.
+        - question: |
+              When was this pattern added to the game?
+          answer: |
+              It was introduced in Java Edition snapshot 20w15a for version 1.16, and was renamed
+              from its original name to "Snout" in snapshot 20w18a.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

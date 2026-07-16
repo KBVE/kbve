@@ -1,5 +1,6 @@
 ---
 title: Cooked Chicken
+template: splash
 description: |
     Minecraft Cooked Chicken — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1051
     ref: cooked_chicken
     slug: cooked-chicken
+    content_rev: 1
     display_name: Cooked Chicken
     category: food
     rarity: common
@@ -22,6 +24,35 @@ mc_item:
         saturation: 86.4
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Cooked chicken is produced by smelting raw chicken in a furnace, smoker, or campfire, or by
+            killing a chicken while it is on fire. Unlike its raw counterpart, it carries no risk of food
+            poisoning and can always be eaten safely.
+        lore: |
+            Cooked chicken restores 6 hunger points and 7.2 saturation, making it a safe and renewable
+            staple once raw chicken has been cooked.
+    faq:
+        - question: |
+              How do you cook chicken?
+          answer: |
+              Smelt raw chicken in a furnace with any fuel, or cook it in a smoker or campfire; it can also
+              drop already cooked from a chicken killed while burning.
+        - question: |
+              Is cooked chicken safer than raw chicken?
+          answer: |
+              Yes, cooked chicken carries no chance of food poisoning, unlike raw chicken which has a 30%
+              chance to inflict Hunger when eaten.
+        - question: |
+              How much hunger does cooked chicken restore?
+          answer: |
+              It restores 6 hunger points and 7.2 saturation, and in Java Edition heals 4.8 HP over 2.4
+              seconds when eaten at zero saturation.
+        - question: |
+              Can I trade for cooked chicken?
+          answer: |
+              Butcher villagers sell 8 cooked chicken for 1 emerald, and gift it to players with Hero of the
+              Village status.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

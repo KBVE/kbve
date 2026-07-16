@@ -1,5 +1,6 @@
 ---
 title: Cut Copper
+template: splash
 description: |
     Minecraft Cut Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,73 @@ mc_block:
     id: 975
     ref: cut_copper
     slug: cut-copper
+    content_rev: 1
     display_name: Cut Copper
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cut_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Cut Copper is a decorative full block cut from copper into
+            neat rectangular panels. It oxidizes over time when unwaxed,
+            cycling through four visual stages from bright orange-brown
+            to a weathered green-teal patina.
+        lore: |
+            Added in Java Edition 1.17 as part of the Caves & Cliffs
+            copper family, giving copper a proper cut-stone building
+            texture rather than only the raw block form.
+    uses:
+        - title: Cut Copper Slab and Stairs
+          ref: cut_copper_slab
+          detail: |
+              Crafted or stonecut into Cut Copper Slabs and Cut Copper
+              Stairs for detailed building work.
+        - title: Chiseled Copper
+          ref: chiseled_copper
+          detail: |
+              Stacking two Cut Copper blocks vertically in a crafting grid
+              produces Chiseled Copper.
+    found_in:
+        - location: Trial Chambers
+          detail: The oxidized, waxed variant generates naturally as structural decoration.
+        - location: Crafting or stonecutting
+          detail: Made from a 2x2 crafting grid of Copper Blocks, or via the stonecutter.
+    faq:
+        - question: What tool do I need to mine Cut Copper?
+          answer: |
+              A stone pickaxe or better. Mining with a wooden or golden
+              pickaxe, or bare hands, yields nothing.
+        - question: Does Cut Copper oxidize?
+          answer: |
+              Yes, unless waxed with honeycomb, it weathers through four
+              stages over real-world time, ending in a green patina.
+        - question: How do I stop or reverse oxidation?
+          answer: |
+              Waxing with honeycomb stops it permanently; scraping with an
+              axe removes one oxidation stage at a time.
+        - question: Is Cut Copper affected by Fortune?
+          answer: |
+              No, it always drops a single block regardless of Fortune
+              level.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Pink Shulker Box
+template: splash
 description: |
     Minecraft Pink Shulker Box — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 559
     ref: pink_shulker_box
     slug: pink-shulker-box
+    content_rev: 1
     display_name: Pink Shulker Box
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Pink Shulker Box is a portable storage block dyed pink, crafted from a default Shulker Box and Pink Dye, or built directly from two Shulker Shells and a Chest. It holds 27 item slots and, unlike a chest, keeps its contents intact when broken and picked up.
+            It can be dyed a different color by combining it with another dye, or undyed by using it on a water-filled cauldron.
+        lore: |
+            Once a shell dropped by the enigmatic Shulkers of the End, now tamed into a pink-tinted mobile chest for adventurers on the move.
+    faq:
+        - question: How do you make a Pink Shulker Box?
+          answer: |
+              Combine an undyed Shulker Box with Pink Dye in a crafting grid, or craft a Shulker Box from 2 Shulker Shells and a Chest, then dye it pink.
+        - question: Does a Pink Shulker Box keep its items when broken?
+          answer: |
+              Yes, mining a shulker box with any tool drops it as an item along with all 27 slots of its contents intact.
+        - question: Can you stack Pink Shulker Boxes in your inventory?
+          answer: |
+              No, shulker boxes cannot be stacked with other items, and a shulker box cannot be placed inside another shulker box.
+        - question: Can hoppers interact with a Pink Shulker Box?
+          answer: |
+              Yes, hoppers can insert into and extract items from a placed shulker box just like a chest.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Netherite Upgrade
+template: splash
 description: |
     Minecraft Netherite Upgrade — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1333
     ref: netherite_upgrade_smithing_template
     slug: netherite-upgrade-smithing-template
+    content_rev: 1
     display_name: Netherite Upgrade
     category: block
     rarity: common
@@ -20,6 +22,24 @@ mc_item:
     tier: netherite
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Netherite Upgrade is the smithing template used to convert diamond gear into its netherite equivalent at a smithing table, alongside a netherite ingot. It is found in Bastion Remnant chests, guaranteed in treasure chests and with a smaller chance in bridge, hoglin stable, and other generic chests, and once obtained it can be duplicated using an existing template, netherrack, and diamonds. Upgrading with it preserves all enchantments, durability loss, and armor trims from the original diamond item.
+        lore: |
+            Etched with patterns forged deep in Bastion Remnants, this smithing template unlocks the secret of tempering diamond gear with the Nether's ancient debris.
+    faq:
+        - question: Where do I find a Netherite Upgrade smithing template?
+          answer: |
+              In Bastion Remnants: guaranteed in treasure chests, with a smaller chance in bridge, hoglin stable, and other generic chests.
+        - question: Is the Netherite Upgrade template consumed when used?
+          answer: |
+              Yes, it is consumed at the smithing table, but it can be duplicated afterward using an existing template, netherrack, and diamonds.
+        - question: What gear can it upgrade?
+          answer: |
+              Any diamond tool, weapon, or armor piece, including helmets, chestplates, leggings, boots, swords, pickaxes, axes, shovels, and hoes.
+        - question: Do enchantments survive the netherite upgrade?
+          answer: |
+              Yes, all enchantments, durability loss, and armor trims carry over completely to the new netherite item.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

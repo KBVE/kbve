@@ -1,5 +1,6 @@
 ---
 title: Potted Torchflower
+template: splash
 description: |
     Minecraft Potted Torchflower — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 381
     ref: potted_torchflower
     slug: potted-torchflower
+    content_rev: 1
     display_name: Potted Torchflower
     material: stone
     hardness: 0
@@ -26,8 +28,62 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: torchflower
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Potted Torchflower is a decorative flower pot holding a
+            Torchflower, one of the rarest flowers in the game. Torchflowers
+            never generate naturally and can only be grown from Torchflower
+            Seeds dropped by Sniffers.
+        lore: |
+            Torchflowers were added alongside the Sniffer in the 1.20 update
+            and are modeled after real-world torch lilies (Kniphofia).
+    uses:
+        - title: Orange Dye
+          ref: orange_dye
+          detail: |
+              Crafts 1:1 into Orange Dye, usable for dyeing wool, terracotta,
+              and other dyeable blocks.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              Combined with a mushroom and a bowl to brew Suspicious Stew,
+              granting the Night Vision effect.
+    found_in:
+        - location: Sniffer excavation sites
+          detail: |
+              Sniffers dig up Torchflower Seeds from moss blocks, which grow
+              into Torchflower crops when planted.
+        - location: Flower pot
+          detail: Right-clicking a flower pot with a Torchflower plants this potted variant.
+    faq:
+        - question: Can I find Potted Torchflower naturally in the world?
+          answer: |
+              No. Torchflowers do not generate naturally anywhere; they must
+              be grown from Torchflower Seeds obtained via Sniffers.
+        - question: What tool do I need to break it?
+          answer: |
+              Any tool or bare hands break it instantly — hardness is 0.
+        - question: What does breaking it drop?
+          answer: |
+              It drops both a Flower Pot and a Torchflower as separate items.
+        - question: What is Torchflower used for besides decoration?
+          answer: |
+              It crafts into Orange Dye and is an ingredient in Suspicious
+              Stew, which grants Night Vision.
     data_version: "1.21.5"
 ---
 

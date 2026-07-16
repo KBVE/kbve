@@ -1,5 +1,6 @@
 ---
 title: Detector Rail
+template: splash
 description: |
     Minecraft Detector Rail — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 127
     ref: detector_rail
     slug: detector-rail
+    content_rev: 1
     display_name: Detector Rail
     material: redstone
     hardness: 0.7
@@ -24,10 +26,58 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: detector_rail
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - redstone_component
+    about:
+        description: |
+            Detector Rail is a redstone-emitting rail variant that outputs
+            a signal while a minecart is passing over it, letting players
+            trigger pistons, lamps, or hoppers when a cart arrives.
+        lore: |
+            One of the original rail types added in Java Edition Beta 1.5,
+            long before the activator rail or minecart-with-hopper existed.
+    uses:
+        - title: Minecart Detection Circuits
+          ref: detector_rail
+          detail: |
+              Placed in a rail line to send a redstone pulse when a
+              minecart rolls over it, powering doors, lamps, item
+              unloading systems, or station stop mechanisms.
+    found_in:
+        - location: Mineshaft Chests
+          detail: Found as loot in minecart chests within abandoned mineshafts.
+        - location: Crafting
+          detail: |
+              Crafted from 6 Iron Ingots, 1 Stone Pressure Plate, and 1
+              Redstone Dust to yield 6 Detector Rails.
+    faq:
+        - question: What tool do I need to mine Detector Rail?
+          answer: |
+              Any tool, including bare hands — it drops itself regardless
+              of tool, though a pickaxe breaks it fastest.
+        - question: How do I craft Detector Rail?
+          answer: |
+              Combine 6 Iron Ingots, 1 Stone Pressure Plate, and 1 Redstone
+              Dust in a crafting grid to get 6 Detector Rails.
+        - question: What does a Detector Rail actually do?
+          answer: |
+              It emits a redstone signal for a short time whenever a
+              minecart (or certain entities) passes over it, acting like a
+              pressure plate for rail lines.
+        - question: Can I find Detector Rails without crafting them?
+          answer: |
+              Yes. They occasionally spawn as loot in minecart chests
+              inside abandoned mineshafts.
     data_version: "1.21.5"
 ---
 

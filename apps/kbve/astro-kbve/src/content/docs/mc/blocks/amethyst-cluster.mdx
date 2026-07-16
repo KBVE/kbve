@@ -1,5 +1,6 @@
 ---
 title: Amethyst Cluster
+template: splash
 description: |
     Minecraft Amethyst Cluster — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 939
     ref: amethyst_cluster
     slug: amethyst-cluster
+    content_rev: 1
     display_name: Amethyst Cluster
     material: stone
     hardness: 1.5
@@ -22,12 +24,71 @@ mc_block:
     light_emission: 5
     light_opacity: 0
     transparent: true
-    placeable: true
-    solid: true
-    renewable: false
+    placeable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: amethyst_shard
+          qty_min: 2
+          qty_max: 4
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: amethyst_cluster
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - light_source
+        - waterloggable
+    about:
+        description: |
+            Amethyst Cluster is the fourth and final growth stage of an
+            amethyst bud, forming on budding amethyst inside geodes. It
+            emits soft purple light and drops amethyst shards when mined.
+        lore: |
+            Amethyst buds and clusters were revealed at Minecraft Live 2020
+            and added in Java Edition 1.17, introducing the game's first
+            renewable gem-farming mechanic via budding amethyst.
+    uses:
+        - title: Amethyst Shard Farming
+          ref: amethyst_shard
+          detail: |
+              Mining a fully grown cluster without Silk Touch yields 4
+              amethyst shards (2 without a pickaxe), used for spyglasses
+              and tinted glass.
+        - title: Decorative Light Source
+          ref: amethyst_cluster
+          detail: |
+              Emits light level 5 and can be placed with Silk Touch on
+              solid blocks for crystalline decoration and ambient lighting.
+    found_in:
+        - location: Amethyst geodes
+          detail: Grows on the exposed budding amethyst faces lining the inside of geodes found underground in any biome.
+        - location: Growth from budding amethyst
+          detail: Spreads randomly to adjacent blocks over roughly 2 hours 16 minutes to reach full cluster stage.
+    faq:
+        - question: What tool do I need to mine Amethyst Cluster?
+          answer: |
+              Any pickaxe works and mines it fastest; without a pickaxe it
+              still breaks but yields fewer shards.
+        - question: What does Silk Touch do to Amethyst Cluster?
+          answer: |
+              Silk Touch drops the cluster block itself intact, letting you
+              replant it elsewhere, instead of breaking it into shards.
+        - question: Does Fortune affect Amethyst Cluster drops?
+          answer: |
+              Yes. Fortune increases the number of amethyst shards dropped
+              when mined without Silk Touch, up to higher yields at Fortune III.
+        - question: Can I farm Amethyst Cluster infinitely?
+          answer: |
+              Yes. Budding amethyst continuously regrows buds into full
+              clusters over time, making it a renewable source of amethyst
+              shards.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Dead Fire Coral Block
+template: splash
 description: |
     Minecraft Dead Fire Coral Block — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 622
     ref: dead_fire_coral_block
     slug: dead-fire-coral-block
+    content_rev: 1
     display_name: Dead Fire Coral Block
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Dead Fire Coral Block is the gray, lifeless variant of the Fire Coral Block, obtained when the living block is mined without Silk Touch or dies after being left outside of water for a few seconds. It functions as a solid, non-flammable building block with no aquatic effects, unlike its living counterpart which can inflict the Fire status effect on contact.
+            The transformation from living to dead coral is permanent and cannot be undone by any means in vanilla Minecraft.
+        lore: |
+            A scorched-looking coral colony gone cold and gray, its once-searing touch long extinguished.
+    faq:
+        - question: How do you obtain a Dead Fire Coral Block?
+          answer: |
+              Mine a living Fire Coral Block without a Silk Touch pickaxe, or let a live Fire Coral Block die outside of water and then mine it with any pickaxe.
+        - question: Is Dead Fire Coral Block dangerous to touch?
+          answer: |
+              No, unlike the living Fire Coral Block which can set entities on fire, the dead version has no harmful touch effect.
+        - question: Can it be turned back into living coral?
+          answer: |
+              No, once a coral block dies it permanently stays dead and gray with no way to revive it.
+        - question: What is it used for?
+          answer: |
+              It serves as a decorative or structural building block underwater or on land, and is non-flammable.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

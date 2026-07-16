@@ -1,5 +1,6 @@
 ---
 title: Light
+template: splash
 description: |
     Minecraft Light — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 474
     ref: light
     slug: light
+    content_rev: 1
     display_name: Light
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Light block is an invisible block intended for map makers, capable of emitting any light level from 0 to 15. It is only obtainable through the creative inventory or commands such as /give, and it lets falling blocks and water pass through it as if it were air. Holding the item in hand reveals placed light blocks as particles showing their configured level.
+        lore: |
+            Added to give builders precise control over invisible lighting, the Light block lets a room glow without a single visible lamp in sight.
+    faq:
+        - question: How do I get a Light block in survival?
+          answer: |
+              Light blocks cannot be mined or found naturally; they must be obtained with /give or from the creative inventory.
+        - question: How do I set the light level of a Light block?
+          answer: |
+              In Java Edition use /give with a block_state level tag from 0 to 15, and in Bedrock Edition right-click a placed block while holding a light block to cycle its level.
+        - question: Can water occupy the same space as a Light block?
+          answer: |
+              Yes, Light blocks can be waterlogged, allowing them to sit inside water while still emitting light.
+        - question: Do falling blocks interact with a Light block?
+          answer: |
+              No, falling blocks pass through Light blocks as though they were air rather than landing on them.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

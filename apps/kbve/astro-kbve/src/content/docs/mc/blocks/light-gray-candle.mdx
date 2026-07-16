@@ -1,5 +1,6 @@
 ---
 title: Light Gray Candle
+template: splash
 description: |
     Minecraft Light Gray Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,75 @@ mc_block:
     id: 912
     ref: light_gray_candle
     slug: light-gray-candle
+    content_rev: 1
     display_name: Light Gray Candle
     material: stone
     hardness: 0.1
     blast_resistance: 0.1
-    best_tool: hand
     required_tool_tier: 0
-    light_emission: 0
+    light_emission: 3
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_gray_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            The Light Gray Candle is a short, waterloggable light source
+            crafted from string and a honeycomb, then dyed light gray.
+            Up to four candles can be placed together in one block space,
+            increasing the light they emit when lit.
+        lore: |
+            Candles were added in the Caves & Cliffs update as a
+            lower-light alternative to torches that could be dyed to match
+            any of the 16 wool colors.
+    uses:
+        - title: Stackable Light Source
+          ref: light_gray_candle
+          detail: |
+              Up to four light gray candles can occupy one block, emitting
+              light level 3, 6, 9, or 12 respectively once lit with flint
+              and steel, a fire charge, or a flaming projectile.
+        - title: Candle Cake
+          ref: light_gray_candle_cake
+          detail: |
+              Placing a light gray candle on an uneaten cake creates a
+              Cake with Light Gray Candle, combining decoration with a
+              light source.
+    found_in:
+        - location: Crafted
+          detail: 1 string + 1 honeycomb crafts an uncolored candle, then combine with light gray dye to recolor it.
+        - location: Ancient cities, trial chambers, trail ruins, abandoned camps
+          detail: Uncolored and some colored candles generate naturally in these structures and as suspicious-gravel loot.
+    faq:
+        - question: What tool do I need to mine a Light Gray Candle?
+          answer: |
+              None — any tool or bare hands mine it instantly, and it
+              always drops itself.
+        - question: How do I light or extinguish it?
+          answer: |
+              Light it with flint and steel, a fire charge, or a flaming
+              projectile; extinguish it by right-clicking with an empty
+              hand, exposing it to water, or hitting it with a wind charge.
+        - question: How many candles can go in one block space?
+          answer: |
+              Up to four candles of the same color can be combined in a
+              single block, each additional candle raising the light
+              level by 3 up to a maximum of 12.
+        - question: Is the Light Gray Candle flammable?
+          answer: |
+              No, despite being wax and wick, the candle block itself is
+              not flammable.
     data_version: "1.21.5"
 ---
 

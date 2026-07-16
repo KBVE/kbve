@@ -1,5 +1,6 @@
 ---
 title: Dead Bubble Coral
+template: splash
 description: |
     Minecraft Dead Bubble Coral — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 727
     ref: dead_bubble_coral
     slug: dead-bubble-coral
+    content_rev: 1
     display_name: Dead Bubble Coral
     material: stone
     hardness: 0
@@ -26,9 +28,47 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
-    data_version: "1.21.5"
+    drops:
+        - ref: dead_bubble_coral
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Dead Bubble Coral is the lifeless, plant-form counterpart to
+            Bubble Coral, formed when the living plant is removed from
+            water. It breaks instantly with any tool but only drops itself
+            when mined with a Silk Touch enchanted pickaxe.
+        lore: |
+            Coral plants were added in Java Edition 1.13.1, giving reef
+            builders a shorter, non-cubic decoration to place alongside
+            coral blocks and fans.
+    found_in:
+        - location: Warm ocean coral reefs
+          detail: Generates naturally as dead coral in Bedrock Edition warm ocean reef structures.
+        - location: Converted from Bubble Coral
+          detail: Placing live bubble coral outside of water causes it to die and transform into this block after 3–5 seconds.
+    faq:
+        - question: Do I need Silk Touch to collect Dead Bubble Coral?
+          answer: |
+              Yes. Without a Silk Touch enchanted pickaxe (Java Edition) or
+              any Silk Touch tool (Bedrock Edition), mining it drops nothing.
+        - question: What must it be placed on?
+          answer: |
+              Like living coral, it must sit on top of a solid block; if that
+              support block is removed, the coral breaks.
+        - question: Can dead coral be revived?
+          answer: |
+              No. There is no way to turn dead coral back into a living
+              coral plant.
+        - question: Does random tick suppression stop the death transformation?
+          answer: |
+              No. Coral still dies and converts to its dead form even when
+              random ticks are disabled via game rules.
 ---
 
 import MCBlockPanel from '@/components/mcdb/MCBlockPanel.astro';

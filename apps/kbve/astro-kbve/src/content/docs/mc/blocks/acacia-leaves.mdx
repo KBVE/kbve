@@ -1,5 +1,6 @@
 ---
 title: Acacia Leaves
+template: splash
 description: |
     Minecraft Acacia Leaves — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 92
     ref: acacia_leaves
     slug: acacia-leaves
+    content_rev: 1
     display_name: Acacia Leaves
     material: leaves
     hardness: 0.2
@@ -26,8 +28,69 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: acacia_leaves
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+        - ref: acacia_sapling
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: stick
+          qty_min: 1
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - hoe_mineable
+        - overworld
+        - flammable
+        - leaves
+    about:
+        description: |
+            Acacia Leaves grow from acacia trees and slowly decay when no
+            log block is connected nearby. Breaking them normally has a
+            small chance to drop a sapling or stick; Silk Touch or shears
+            harvest the leaf block itself.
+        lore: |
+            Leaves spontaneously decaying once disconnected from logs has
+            been a core mechanic since Minecraft's earliest versions,
+            shaping how players farm and clear trees.
+    uses:
+        - title: Sapling Farming
+          ref: acacia_sapling
+          detail: |
+              Breaking leaves without Silk Touch has a small chance to drop
+              an acacia sapling, which can be replanted to grow new trees.
+        - title: Decoration and Landscaping
+          ref: acacia_leaves
+          detail: |
+              Harvested with Silk Touch or shears to relocate intact foliage
+              for builds and hedges.
+    found_in:
+        - location: Savanna Biomes
+          detail: Generates as the canopy of naturally spawning acacia trees.
+        - location: Player-Grown Trees
+          detail: Grows from planted acacia saplings given enough light and space.
+    faq:
+        - question: What tool do I need to collect acacia leaves as a block?
+          answer: |
+              Shears or a Silk Touch tool; without either, the leaves vanish
+              and only occasionally drop a sapling or stick.
+        - question: Do acacia leaves drop apples?
+          answer: |
+              No, only oak and dark oak leaves have a chance to drop apples.
+        - question: Are acacia leaves flammable?
+          answer: |
+              Yes, leaves burn readily and spread fire quickly, making
+              acacia canopies a fire risk near lava or other flames.
+        - question: Does Fortune help when farming saplings?
+          answer: |
+              Yes, Fortune increases the chance of sapling and stick drops
+              when leaves are broken without Silk Touch.
     data_version: "1.21.5"
 ---
 

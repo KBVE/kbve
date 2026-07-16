@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Leaves
+template: splash
 description: |
     Minecraft Pale Oak Leaves — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 189
     ref: pale_oak_leaves
     slug: pale-oak-leaves
+    content_rev: 1
     display_name: Pale Oak Leaves
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Pale oak leaves are the transparent canopy blocks that form the crown of pale oak trees in the Pale Garden biome. Breaking them with shears or a Silk Touch tool yields the block itself, while other tools have a chance to drop a pale oak sapling or a stick instead.
+            Uncollected leaves not connected to a log within range will slowly decay, and they can be composted into bone meal like other leaf types.
+        lore: |
+            These ashen leaves rustle without wind in the fog-choked Pale Garden, home to the watchful Creaking.
+    faq:
+        - question: How do I harvest pale oak leaves without losing them to decay?
+          answer: |
+              Break the leaves with shears or a Silk Touch-enchanted tool to collect the block itself instead of risking a sapling or stick drop.
+        - question: Will placed pale oak leaves decay over time?
+          answer: |
+              No, leaves placed directly by a player never decay, only naturally generated leaves left disconnected from a log will decay.
+        - question: What can pale oak leaves be used for besides building?
+          answer: |
+              They can be composted to produce bone meal and, if harvested carefully, provide pale oak saplings for growing new trees.
+        - question: Where do pale oak leaves naturally generate?
+          answer: |
+              They generate as part of pale oak trees found in the Pale Garden biome.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

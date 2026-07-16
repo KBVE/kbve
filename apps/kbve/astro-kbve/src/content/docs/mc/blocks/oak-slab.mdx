@@ -1,5 +1,6 @@
 ---
 title: Oak Slab
+template: splash
 description: |
     Minecraft Oak Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 567
     ref: oak_slab
     slug: oak-slab
+    content_rev: 1
     display_name: Oak Slab
     material: wood
     hardness: 2
@@ -26,8 +28,64 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oak_slab
+          qty_min: 1
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Oak Slab is a half-height wood block crafted from Oak Planks,
+            used for detailed building and can be placed as a bottom, top,
+            or double slab. Mining a double slab drops two slabs.
+        lore: |
+            Slabs were added to give builders finer vertical control than
+            full blocks allow, quickly becoming a staple of detailed builds.
+    uses:
+        - title: Barrel
+          ref: barrel
+          detail: |
+              Six slabs and two planks craft a Barrel, a portable storage
+              container.
+        - title: Chiseled Bookshelf
+          ref: chiseled_bookshelf
+          detail: |
+              Six wood slabs and three planks craft a Chiseled Bookshelf
+              that can store and display books.
+        - title: Daylight Detector
+          ref: daylight_detector
+          detail: |
+              Wood slabs are a key ingredient in crafting a Daylight
+              Detector, a redstone component sensing sky light.
+    found_in:
+        - location: Villages
+          detail: Generates in plains, taiga, and savanna village structures.
+        - location: Woodland mansions and pillager outposts
+          detail: Used decoratively as flooring and trim in these structures.
+        - location: Crafted from planks
+          detail: Three matching planks in a horizontal row craft 6 slabs.
+    faq:
+        - question: How many slabs does mining a double slab give?
+          answer: |
+              A double (full-height) slab position drops two individual
+              slabs when mined.
+        - question: Can two half slabs combine into a full block?
+          answer: |
+              Yes, placing a slab against another half slab of the same
+              type in the matching position combines them into a full,
+              double slab block.
+        - question: Is Oak Slab flammable?
+          answer: |
+              Yes, like other oak wood blocks it burns and spreads fire.
+        - question: What is the fastest tool to mine Oak Slab?
+          answer: |
+              An axe is fastest, though any tool or bare hands will break it
+              since no tool tier is required.
     data_version: "1.21.5"
 ---
 

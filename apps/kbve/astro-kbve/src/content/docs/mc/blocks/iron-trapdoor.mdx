@@ -1,5 +1,6 @@
 ---
 title: Iron Trapdoor
+template: splash
 description: |
     Minecraft Iron Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 494
     ref: iron_trapdoor
     slug: iron-trapdoor
+    content_rev: 1
     display_name: Iron Trapdoor
     material: metal
     hardness: 5
     blast_resistance: 5
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: iron_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - trapdoors
+        - overworld
+    about:
+        description: |
+            The Iron Trapdoor is a horizontal hatch that, like the Iron
+            Door, only responds to redstone power and cannot be toggled by
+            clicking. It stays fixed in place even if its supporting block
+            is removed, making it popular for hidden and secure entrances.
+        lore: |
+            It was introduced during Java Edition's 1.8 development cycle,
+            first appearing in snapshot 14w07a.
+    uses:
+        - title: Redstone Security Hatch
+          ref: iron_trapdoor
+          detail: |
+              Wired to a lever, button, or pressure plate, it forms secret
+              floor or ceiling entrances and automated access points that
+              players cannot open by hand.
+    found_in:
+        - location: Ancient Cities
+          detail: Generates as part of vault and structure mechanisms within Ancient City generation.
+        - location: Crafting table
+          detail: Craft 4 Iron Ingots arranged in a 2x2 pattern to get 1 Iron Trapdoor.
+    faq:
+        - question: Why won't my iron trapdoor open when I click it?
+          answer: |
+              Iron trapdoors ignore direct player interaction entirely and
+              only respond to a redstone signal from an adjacent power
+              source.
+        - question: Can I use a lever or button to control it?
+          answer: |
+              Yes. Any redstone power source that reaches the trapdoor or
+              the block it's attached to will toggle it open or closed.
+        - question: Does it need a support block to stay in place?
+          answer: |
+              No. Once placed, it remains fixed even if the block it was
+              attached to is removed or changed.
+        - question: How does it differ from a wooden trapdoor?
+          answer: |
+              Wooden trapdoors open with a simple click, while iron
+              trapdoors require redstone power, offering better security
+              against players and mobs alike.
     data_version: "1.21.5"
 ---
 

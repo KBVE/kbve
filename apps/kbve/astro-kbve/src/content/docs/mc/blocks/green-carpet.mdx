@@ -1,5 +1,6 @@
 ---
 title: Green Carpet
+template: splash
 description: |
     Minecraft Green Carpet — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 519
     ref: green_carpet
     slug: green-carpet
+    content_rev: 1
     display_name: Green Carpet
     material: wool
     hardness: 0.1
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: green_carpet
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            A thin, decorative floor covering crafted from green wool. It
+            occupies a fraction of a block's height, prevents mob spawning
+            underneath it, and dampens sculk sensor vibrations.
+        lore: |
+            Carpets were proposed as far back as 2009 and were officially
+            added to the game in version 1.6.1.
+    uses:
+        - title: Decorative Flooring
+          ref: green_carpet
+          detail: |
+              Placed as a thin layer on top of most blocks, including
+              non-solid ones, for decoration or to block mob spawns.
+        - title: Llama Adornment
+          ref: green_carpet
+          detail: |
+              Equipping a tamed llama with green carpet gives it a unique
+              colored, patterned covering.
+    found_in:
+        - location: Crafting
+          detail: Two green wool craft into three green carpet.
+        - location: Igloos, villages, woodland mansions, and ancient cities
+          detail: Carpets of various colors generate naturally in these structures.
+    faq:
+        - question: What tool do I need to mine green carpet?
+          answer: |
+              None — it breaks instantly by hand or with any tool.
+        - question: Does green carpet stop mobs from spawning?
+          answer: |
+              Yes. Placing carpet on a floor prevents most mobs from
+              spawning on that block.
+        - question: Can carpet be used as furnace fuel?
+          answer: |
+              Yes, in Java Edition carpet can be burned as furnace fuel,
+              though it burns for a very short time.
+        - question: Is green carpet affected by Silk Touch or Fortune?
+          answer: |
+              No. It always drops itself as a single item regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

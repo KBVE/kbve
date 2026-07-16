@@ -1,5 +1,6 @@
 ---
 title: Nether Quartz Ore
+template: splash
 description: |
     Minecraft Nether Quartz Ore — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 81
     ref: nether_quartz_ore
     slug: nether-quartz-ore
+    content_rev: 1
     display_name: Nether Quartz Ore
     category: material
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Nether Quartz Ore is the primary source of nether quartz, generating in large blobs
+            throughout the Nether dimension. It requires at least a wooden pickaxe to mine and
+            yields experience along with its quartz drops.
+        lore: |
+            Introduced in Java Edition 1.5, Nether Quartz Ore gave the Nether a distinctly
+            valuable mineral resource used for redstone comparators and quartz block decoration.
+    faq:
+        - question: Where does Nether Quartz Ore generate?
+          answer: |
+              It generates in blobs of 0-24 blocks between Y-levels 10 and 117 across all Nether
+              biomes, appearing even more frequently in basalt deltas.
+        - question: What does Nether Quartz Ore drop?
+          answer: |
+              It drops 1 nether quartz by default, increasing up to 4 with Fortune III, or the
+              block itself with Silk Touch.
+        - question: What tool do I need to mine Nether Quartz Ore?
+          answer: |
+              A wooden pickaxe or better is required; mining by hand yields nothing.
+        - question: How much experience does mining Nether Quartz Ore give?
+          answer: |
+              Each ore drops 2-5 experience points, making it a reasonably efficient way to gain
+              levels while mining in the Nether.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

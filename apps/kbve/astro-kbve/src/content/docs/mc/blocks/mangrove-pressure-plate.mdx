@@ -1,5 +1,6 @@
 ---
 title: Mangrove Pressure Plate
+template: splash
 description: |
     Minecraft Mangrove Pressure Plate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 256
     ref: mangrove_pressure_plate
     slug: mangrove-pressure-plate
+    content_rev: 1
     display_name: Mangrove Pressure Plate
     material: redstone
     hardness: 0.5
@@ -24,10 +26,52 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mangrove_pressure_plate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Mangrove Pressure Plate is a redstone activation device crafted
+            from mangrove planks. It emits a full-strength redstone signal
+            whenever a player, mob, or dropped item rests on it.
+        lore: |
+            Wooden pressure plates date back to Alpha; the mangrove variant
+            was added in Java Edition 1.19 with the rest of the mangrove wood set.
+    uses:
+        - title: Redstone Circuits
+          ref: redstone
+          detail: |
+              Placed on the ground to trigger doors, dispensers, TNT, or
+              any redstone component when stepped on, powering it at
+              signal strength 15.
+    found_in:
+        - location: Crafted from Mangrove Planks
+          detail: Two mangrove planks placed side by side craft one pressure plate.
+    faq:
+        - question: What is the best tool to mine a Mangrove Pressure Plate?
+          answer: |
+              An axe is fastest, though it can be broken by hand or with
+              any tool since there is no tool tier requirement.
+        - question: What activates a Mangrove Pressure Plate?
+          answer: |
+              Any entity standing on it, including players, mobs, and
+              dropped items, except spectators and armor stands' markers.
+        - question: How do I craft a Mangrove Pressure Plate?
+          answer: |
+              Place two Mangrove Planks side by side in a crafting grid.
+        - question: Can Mangrove Pressure Plates be used as furnace fuel?
+          answer: |
+              Yes, being made of overworld wood they can smelt 1.5 items
+              each when used as fuel.
     data_version: "1.21.5"
 ---
 

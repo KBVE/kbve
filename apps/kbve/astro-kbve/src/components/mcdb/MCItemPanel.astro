@@ -2,603 +2,347 @@
 import { MCItemSchema } from '@/data/schema';
 import MCTextureImage from './MCTextureImage';
 import MCTooltipMount from './MCTooltipMount.astro';
+import MCItemJsonLd from './MCItemJsonLd.astro';
 import MCItemMarketSidecar from '@/components/market/MCItemMarketSidecar';
 
 const { data } = Astro.props;
 const item = MCItemSchema.parse(data);
+
+const CATEGORY_ACCENT: Record<string, string> = {
+	tool: '210 90% 62%',
+	weapon: '0 80% 62%',
+	armor: '190 70% 58%',
+	food: '30 90% 58%',
+	block: '150 45% 52%',
+	material: '260 75% 66%',
+	redstone: '355 85% 58%',
+	transport: '45 90% 58%',
+	decoration: '320 70% 64%',
+	brewing: '280 70% 62%',
+	spawn_egg: '120 60% 55%',
+	music: '175 65% 55%',
+	banner: '340 70% 60%',
+	map: '35 70% 55%',
+	misc: '220 10% 60%',
+};
+const accent = CATEGORY_ACCENT[item.category] ?? CATEGORY_ACCENT.misc;
+
+interface Stat {
+	label: string;
+	value: string | number;
+}
+const stats: Stat[] = [{ label: 'Stack', value: item.stack_size }];
+if (item.max_durability > 0)
+	stats.push({
+		label: 'Durability',
+		value: item.max_durability.toLocaleString(),
+	});
+if (item.damage) {
+	stats.push({ label: 'Attack Damage', value: item.damage.attack_damage });
+	stats.push({ label: 'Attack Speed', value: item.damage.attack_speed });
+}
+if (item.equipment?.slot) {
+	stats.push({ label: 'Slot', value: item.equipment.slot });
+	if (item.equipment.armor_points > 0)
+		stats.push({ label: 'Armor', value: item.equipment.armor_points });
+	if (item.equipment.toughness > 0)
+		stats.push({ label: 'Toughness', value: item.equipment.toughness });
+}
+if (item.food) {
+	stats.push({ label: 'Nutrition', value: item.food.nutrition });
+	stats.push({ label: 'Saturation', value: item.food.saturation });
+}
+if (item.mining) {
+	stats.push({ label: 'Tool', value: item.mining.tool_type });
+	stats.push({ label: 'Mining Tier', value: item.mining.tier });
+}
 ---
 
+<MCItemJsonLd data={item} />
 <MCTooltipMount />
 
-<section class="mcdb-panel not-content kbve-dashboard-page">
-	<header class="mcdb-panel__head">
-		<div class="mcdb-panel__icon">
-			<MCTextureImage
-				client:load
-				ref={item.ref}
-				category={item.category}
-				alt={item.display_name}
-				size={96}
-			/>
-		</div>
-		<div class="mcdb-panel__title">
-			<h2>{item.display_name}</h2>
-			<div class="mcdb-panel__meta">
-				<span class="mcdb-pill mcdb-pill--kind">{item.category}</span>
-				{
-					item.rarity !== 'common' && (
-						<span
-							class={`mcdb-pill mcdb-pill--rarity mcdb-pill--rarity-${item.rarity}`}>
-							{item.rarity}
-						</span>
-					)
-				}
-				{
-					item.tier && (
-						<span class="mcdb-pill mcdb-pill--tier">
-							{item.tier}
-						</span>
-					)
-				}
-			</div>
-			<code class="mcdb-panel__ref">minecraft:{item.ref}</code>
-		</div>
-	</header>
-
-	{
-		item.about?.description && (
-			<p class="mcdb-panel__desc">{item.about.description}</p>
-		)
-	}
-
-	<dl class="mcdb-grid">
-		<div><dt>Stack</dt><dd>{item.stack_size}</dd></div>
-		{
-			item.max_durability > 0 && (
-				<div>
-					<>
-						<dt>Durability</dt>
-						<dd>{item.max_durability.toLocaleString()}</dd>
-					</>
+<section
+	class="mcdb not-content kbve-dashboard-page"
+	style={`--bento-accent: hsl(${accent}); --sl-color-accent: hsl(${accent}); --sl-color-accent-high: hsl(${accent.replace(/(\d+)%\)?$/, '')}72%);`}>
+	<div class="bento-frame">
+		<div class="bento-board bento-board--cols-4">
+			<div class="bento-card bento-cell--wide mcdb-id">
+				<div class="mcdb-id__icon">
+					<MCTextureImage
+						client:load
+						ref={item.ref}
+						category={item.category}
+						alt={item.display_name}
+						size={96}
+					/>
 				</div>
-			)
-		}
-		{
-			item.damage && (
-				<>
-					<div>
-						<>
-							<dt>Attack Damage</dt>
-							<dd>{item.damage.attack_damage}</dd>
-						</>
-					</div>
-					<div>
-						<>
-							<dt>Attack Speed</dt>
-							<dd>{item.damage.attack_speed}</dd>
-						</>
-					</div>
-				</>
-			)
-		}
-		{
-			item.equipment?.slot && (
-				<>
-					<div>
-						<>
-							<dt>Slot</dt>
-							<dd>{item.equipment.slot}</dd>
-						</>
-					</div>
-					{item.equipment.armor_points > 0 && (
-						<div>
-							<dt>Armor</dt>
-							<dd>{item.equipment.armor_points}</dd>
-						</div>
-					)}
-					{item.equipment.toughness > 0 && (
-						<div>
-							<dt>Toughness</dt>
-							<dd>{item.equipment.toughness}</dd>
-						</div>
-					)}
-				</>
-			)
-		}
-		{
-			item.food && (
-				<>
-					<div>
-						<>
-							<dt>Nutrition</dt>
-							<dd>{item.food.nutrition}</dd>
-						</>
-					</div>
-					<div>
-						<>
-							<dt>Saturation</dt>
-							<dd>{item.food.saturation}</dd>
-						</>
-					</div>
-				</>
-			)
-		}
-		{
-			item.mining && (
-				<>
-					<div>
-						<>
-							<dt>Tool</dt>
-							<dd>{item.mining.tool_type}</dd>
-						</>
-					</div>
-					<div>
-						<>
-							<dt>Mining Tier</dt>
-							<dd>{item.mining.tier}</dd>
-						</>
-					</div>
-				</>
-			)
-		}
-	</dl>
-
-	{
-		item.enchants && item.enchants.allowed.length > 0 && (
-			<section class="mcdb-section">
-				<h3>Compatible Enchants</h3>
-				<ul class="mcdb-chips">
-					{item.enchants.allowed.map((ref) => (
-						<li>
-							<a href={`/mc/enchants/${ref.replace(/_/g, '-')}/`}>
-								{ref.replace(/_/g, ' ')}
-							</a>
-						</li>
-					))}
-				</ul>
-			</section>
-		)
-	}
-
-	{
-		item.tags.length > 0 && (
-			<section class="mcdb-section">
-				<h3>Tags</h3>
-				<ul class="mcdb-chips mcdb-chips--muted">
-					{item.tags.map((t) => (
-						<li>{t}</li>
-					))}
-				</ul>
-			</section>
-		)
-	}
-
-	{
-		item.recipes.length > 0 && (
-			<section class="mcdb-section">
-				<h3>Recipes</h3>
-				{item.recipes.map((r) => {
-					const isShaped =
-						r.kind === 'shaped' && r.width > 0 && r.height > 0;
-					const GRID_DIM = 3;
-					const grid: ((typeof r.ingredients)[number] | null)[][] =
-						Array.from({ length: GRID_DIM }, () =>
-							Array.from({ length: GRID_DIM }, () => null),
-						);
-					if (isShaped) {
-						for (const ing of r.ingredients) {
-							if (
-								ing.row >= 0 &&
-								ing.row < GRID_DIM &&
-								ing.col >= 0 &&
-								ing.col < GRID_DIM &&
-								grid[ing.row][ing.col] === null
-							) {
-								grid[ing.row][ing.col] = ing;
-							}
-						}
-					}
-					return (
-						<div class="mcdb-recipe-card">
-							<div class="mcdb-recipe-card__meta">
-								<span class="mcdb-recipe-kind">{r.kind}</span>
-								{r.station !== 'none' && (
-									<span class="mcdb-recipe-station">
-										@ {r.station}
-									</span>
-								)}
-								<span class="mcdb-recipe-yields">
-									yields × {r.yields}
+				<div class="mcdb-id__body">
+					<h2 class="mcdb-id__title">{item.display_name}</h2>
+					<div class="mcdb-id__chips">
+						<span class="bento-chip mcdb-chip--kind">
+							{item.category}
+						</span>
+						{
+							item.rarity !== 'common' && (
+								<span
+									class={`bento-chip mcdb-chip--rarity-${item.rarity}`}>
+									{item.rarity}
 								</span>
-								{r.cook_time_ticks > 0 && (
-									<span class="mcdb-recipe-station">
-										{(r.cook_time_ticks / 20).toFixed(1)}s
+							)
+						}
+						{
+							item.tier && (
+								<span class="bento-chip">{item.tier}</span>
+							)
+						}
+						{
+							item.content_rev > 0 && (
+								<span class="bento-chip mcdb-chip--rev">
+									enriched v{item.content_rev}
+								</span>
+							)
+						}
+					</div>
+					<code class="mcdb-id__ref">minecraft:{item.ref}</code>
+					{
+						item.about?.description && (
+							<p class="mcdb-id__desc">
+								{item.about.description}
+							</p>
+						)
+					}
+				</div>
+			</div>
+
+			{
+				stats.map((s) => (
+					<div class="bento-card bento-stat mcdb-stat">
+						<span class="bento-stat__value">{s.value}</span>
+						<span class="bento-stat__label">{s.label}</span>
+					</div>
+				))
+			}
+
+			{
+				item.enchants && item.enchants.allowed.length > 0 && (
+					<div class="bento-card bento-cell--wide mcdb-block">
+						<h3 class="mcdb-block__title">Compatible Enchants</h3>
+						<ul class="mcdb-chips">
+							{item.enchants.allowed.map((ref) => (
+								<li>
+									<a
+										class="bento-chip"
+										href={`/mc/enchants/${ref.replace(/_/g, '-')}/`}>
+										{ref.replace(/_/g, ' ')}
+									</a>
+								</li>
+							))}
+						</ul>
+					</div>
+				)
+			}
+
+			{
+				item.tags.length > 0 && (
+					<div class="bento-card bento-cell--wide mcdb-block">
+						<h3 class="mcdb-block__title">Tags</h3>
+						<ul class="mcdb-chips">
+							{item.tags.map((t) => (
+								<li>
+									<span class="bento-chip mcdb-chip--muted">
+										{t}
 									</span>
-								)}
-								{r.experience > 0 && (
-									<span class="mcdb-recipe-station">
-										{r.experience} XP
-									</span>
-								)}
-							</div>
-							{isShaped ? (
-								<div
-									class="mcdb-grid-recipe"
-									style={`--cols: ${GRID_DIM};`}>
-									{grid.flat().map((cell) => {
-										if (!cell)
-											return (
-												<div class="mcdb-grid-cell" />
-											);
-										const ingRef = cell.ref || cell.tag_ref;
-										return (
-											<a
-												class="mcdb-grid-cell mcdb-grid-cell--filled"
-												href={`/mc/items/${ingRef.replace(/_/g, '-')}/`}
-												data-mc-tooltip
-												data-mc-ref={cell.ref || ''}
-												data-mc-tag-ref={
-													cell.tag_ref || ''
-												}
-												data-mc-qty={cell.qty}
-												title={`${cell.qty}× ${ingRef}`}>
-												{cell.qty > 1 && (
-													<span class="mcdb-grid-qty">
-														{cell.qty}
-													</span>
-												)}
-												{cell.ref ? (
-													<MCTextureImage
-														client:visible
-														ref={cell.ref}
-														alt={cell.ref}
-														size={56}
-														className="mcdb-grid-img"
-													/>
-												) : (
-													<span class="mcdb-grid-ref">
-														#{cell.tag_ref}
-													</span>
-												)}
-											</a>
-										);
-									})}
+								</li>
+							))}
+						</ul>
+					</div>
+				)
+			}
+
+			{
+				item.recipes.length > 0 && (
+					<div class="bento-card bento-cell--wide mcdb-block">
+						<h3 class="mcdb-block__title">Recipes</h3>
+						{item.recipes.map((r) => {
+							const isShaped =
+								r.kind === 'shaped' &&
+								r.width > 0 &&
+								r.height > 0;
+							const GRID_DIM = 3;
+							const grid: (
+								| (typeof r.ingredients)[number]
+								| null
+							)[][] = Array.from({ length: GRID_DIM }, () =>
+								Array.from({ length: GRID_DIM }, () => null),
+							);
+							if (isShaped) {
+								for (const ing of r.ingredients) {
+									if (
+										ing.row >= 0 &&
+										ing.row < GRID_DIM &&
+										ing.col >= 0 &&
+										ing.col < GRID_DIM &&
+										grid[ing.row][ing.col] === null
+									) {
+										grid[ing.row][ing.col] = ing;
+									}
+								}
+							}
+							return (
+								<div class="mcdb-recipe-card">
+									<div class="mcdb-recipe-card__meta">
+										<span class="mcdb-recipe-kind">
+											{r.kind}
+										</span>
+										{r.station !== 'none' && (
+											<span class="mcdb-recipe-station">
+												@ {r.station}
+											</span>
+										)}
+										<span class="mcdb-recipe-yields">
+											yields × {r.yields}
+										</span>
+										{r.cook_time_ticks > 0 && (
+											<span class="mcdb-recipe-station">
+												{(
+													r.cook_time_ticks / 20
+												).toFixed(1)}
+												s
+											</span>
+										)}
+										{r.experience > 0 && (
+											<span class="mcdb-recipe-station">
+												{r.experience} XP
+											</span>
+										)}
+									</div>
+									{isShaped ? (
+										<div
+											class="mcdb-grid-recipe"
+											style={`--cols: ${GRID_DIM};`}>
+											{grid.flat().map((cell) => {
+												if (!cell)
+													return (
+														<div class="mcdb-grid-cell" />
+													);
+												const ingRef =
+													cell.ref || cell.tag_ref;
+												return (
+													<a
+														class="mcdb-grid-cell mcdb-grid-cell--filled"
+														href={`/mc/items/${ingRef.replace(/_/g, '-')}/`}
+														data-mc-tooltip
+														data-mc-ref={
+															cell.ref || ''
+														}
+														data-mc-tag-ref={
+															cell.tag_ref || ''
+														}
+														data-mc-qty={cell.qty}
+														title={`${cell.qty}× ${ingRef}`}>
+														{cell.qty > 1 && (
+															<span class="mcdb-grid-qty">
+																{cell.qty}
+															</span>
+														)}
+														{cell.ref ? (
+															<MCTextureImage
+																client:visible
+																ref={cell.ref}
+																alt={cell.ref}
+																size={56}
+																className="mcdb-grid-img"
+															/>
+														) : (
+															<span class="mcdb-grid-ref">
+																#{cell.tag_ref}
+															</span>
+														)}
+													</a>
+												);
+											})}
+										</div>
+									) : (
+										<ul class="mcdb-recipes">
+											{r.ingredients.map((ing) => {
+												const ingRef =
+													ing.ref || ing.tag_ref;
+												return (
+													<li>
+														{ing.ref && (
+															<MCTextureImage
+																client:visible
+																ref={ing.ref}
+																alt={ing.ref}
+																size={28}
+																className="mcdb-recipe-img"
+															/>
+														)}
+														<span class="mcdb-recipe-yields">
+															× {ing.qty}
+														</span>
+														<a
+															href={`/mc/items/${ingRef.replace(/_/g, '-')}/`}
+															data-mc-tooltip
+															data-mc-ref={
+																ing.ref || ''
+															}
+															data-mc-tag-ref={
+																ing.tag_ref ||
+																''
+															}
+															data-mc-qty={
+																ing.qty
+															}>
+															{ing.ref ||
+																`#${ing.tag_ref}`}
+														</a>
+													</li>
+												);
+											})}
+										</ul>
+									)}
 								</div>
-							) : (
-								<ul class="mcdb-recipes">
-									{r.ingredients.map((ing) => {
-										const ingRef = ing.ref || ing.tag_ref;
-										return (
-											<li>
-												{ing.ref && (
-													<MCTextureImage
-														client:visible
-														ref={ing.ref}
-														alt={ing.ref}
-														size={28}
-														className="mcdb-recipe-img"
-													/>
-												)}
-												<span class="mcdb-recipe-yields">
-													× {ing.qty}
-												</span>
-												<a
-													href={`/mc/items/${ingRef.replace(/_/g, '-')}/`}
-													data-mc-tooltip
-													data-mc-ref={ing.ref || ''}
-													data-mc-tag-ref={
-														ing.tag_ref || ''
-													}
-													data-mc-qty={ing.qty}>
-													{ing.ref ||
-														`#${ing.tag_ref}`}
-												</a>
-											</li>
-										);
-									})}
-								</ul>
-							)}
+							);
+						})}
+					</div>
+				)
+			}
+
+			{
+				item.faq.length > 0 && (
+					<div class="bento-card bento-cell--wide mcdb-block">
+						<h3 class="mcdb-block__title">FAQ</h3>
+						<div class="mcdb-faq">
+							{item.faq.map((f) => (
+								<div>
+									<p class="mcdb-faq__q">{f.question}</p>
+									<p class="mcdb-faq__a">{f.answer}</p>
+								</div>
+							))}
 						</div>
-					);
-				})}
-			</section>
-		)
-	}
+					</div>
+				)
+			}
 
-	<section class="mcdb-section">
-		<h3>Marketplace</h3>
-		<MCItemMarketSidecar client:visible ref={item.ref} />
-	</section>
-
-	<footer class="mcdb-panel__foot">
-		<a
-			href={`/market/?kind=mc_item&q=${item.ref}`}
-			class="mcdb-panel__market">
-			Open marketplace listings →
-		</a>
-		{
-			item.data_version && (
-				<span class="mcdb-panel__version">
-					data: {item.data_version}
-				</span>
-			)
-		}
-	</footer>
+			<div class="bento-card bento-cell--wide mcdb-block">
+				<h3 class="mcdb-block__title">Marketplace</h3>
+				<MCItemMarketSidecar client:visible ref={item.ref} />
+				<div class="mcdb-block__foot">
+					<a
+						href={`/market/?kind=mc_item&q=${item.ref}`}
+						class="mcdb-block__market">
+						Open marketplace listings →
+					</a>
+					{
+						item.data_version && (
+							<span class="mcdb-block__version">
+								data: {item.data_version}
+							</span>
+						)
+					}
+				</div>
+			</div>
+		</div>
+	</div>
 </section>
-
-<style is:global>
-	.mcdb-panel {
-		display: grid;
-		gap: 1rem;
-		padding: 1.25rem 1.5rem;
-		border-radius: 18px;
-		background: linear-gradient(
-			165deg,
-			var(--sl-color-bg-nav) 0%,
-			var(--sl-color-bg) 100%
-		);
-		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
-		color: var(--sl-color-text);
-	}
-	.mcdb-panel__head {
-		display: grid;
-		grid-template-columns: auto 1fr;
-		gap: 1rem;
-		align-items: center;
-	}
-	.mcdb-panel__icon {
-		width: 96px;
-		height: 96px;
-		border-radius: 14px;
-		background:
-			repeating-linear-gradient(
-				45deg,
-				color-mix(in srgb, var(--sl-color-black) 18%, transparent) 0 6px,
-				transparent 6px 12px
-			),
-			linear-gradient(
-				135deg,
-				var(--sl-color-bg-nav) 0%,
-				var(--sl-color-bg-sidebar) 100%
-			);
-		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
-		padding: 10%;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
-	.mcdb-panel__icon img {
-		width: 100%;
-		height: 100%;
-		image-rendering: pixelated;
-		object-fit: contain;
-	}
-	.mcdb-panel__title h2 {
-		margin: 0;
-		font-size: clamp(1.4rem, 2.5vw, 1.75rem);
-		font-weight: 800;
-		letter-spacing: -0.01em;
-		color: var(--sl-color-white, var(--sl-color-text));
-	}
-	.mcdb-panel__meta {
-		display: flex;
-		gap: 0.4rem;
-		flex-wrap: wrap;
-		margin: 0.4rem 0 0.3rem;
-	}
-	.mcdb-pill {
-		padding: 0.15rem 0.6rem;
-		border-radius: 999px;
-		font-size: 0.7rem;
-		font-weight: 700;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		background: var(--sl-color-bg-nav);
-		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
-		color: var(--sl-color-text);
-	}
-	.mcdb-pill--kind {
-		background: color-mix(in srgb, var(--sl-color-accent) 18%, transparent);
-		border-color: color-mix(
-			in srgb,
-			var(--sl-color-accent) 50%,
-			transparent
-		);
-		color: var(--sl-color-accent-high, var(--sl-color-accent));
-	}
-	.mcdb-pill--rarity-uncommon {
-		color: rgb(120, 200, 120);
-	}
-	.mcdb-pill--rarity-rare {
-		color: rgb(120, 180, 240);
-	}
-	.mcdb-pill--rarity-epic {
-		color: rgb(210, 120, 240);
-	}
-	.mcdb-panel__ref {
-		display: inline-block;
-		font-size: 0.78rem;
-		padding: 0.05rem 0.45rem;
-		border-radius: 6px;
-		background: var(--sl-color-bg-inline-code);
-		color: var(--sl-color-text);
-	}
-	.mcdb-panel__desc {
-		margin: 0;
-		color: var(--sl-color-gray-3);
-		line-height: 1.55;
-	}
-	.mcdb-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-		gap: 0.6rem;
-		margin: 0;
-	}
-	.mcdb-grid > div {
-		padding: 0.55rem 0.8rem;
-		border-radius: 10px;
-		background: var(--sl-color-bg-nav);
-		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
-	}
-	.mcdb-grid dt {
-		font-size: 0.7rem;
-		text-transform: uppercase;
-		letter-spacing: 0.05em;
-		color: var(--sl-color-gray-3);
-	}
-	.mcdb-grid dd {
-		margin: 0.15rem 0 0;
-		font-weight: 700;
-		font-variant-numeric: tabular-nums;
-	}
-	.mcdb-section h3 {
-		margin: 0 0 0.5rem;
-		font-size: 1rem;
-		font-weight: 800;
-	}
-	.mcdb-chips {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-		display: flex;
-		gap: 0.4rem;
-		flex-wrap: wrap;
-	}
-	.mcdb-chips li {
-		padding: 0.15rem 0.6rem;
-		border-radius: 999px;
-		font-size: 0.78rem;
-		font-weight: 600;
-		background: color-mix(in srgb, var(--sl-color-accent) 14%, transparent);
-		border: 1px solid
-			color-mix(in srgb, var(--sl-color-accent) 50%, transparent);
-		color: var(--sl-color-accent-high, var(--sl-color-accent));
-	}
-	.mcdb-chips--muted li {
-		background: var(--sl-color-bg-nav);
-		border-color: var(--sl-color-hairline, var(--sl-color-gray-5));
-		color: var(--sl-color-gray-3);
-	}
-	.mcdb-chips a {
-		color: inherit;
-		text-decoration: none;
-	}
-	.mcdb-recipes {
-		list-style: none;
-		padding: 0;
-		margin: 0;
-		display: grid;
-		gap: 0.4rem;
-	}
-	.mcdb-recipes li {
-		padding: 0.5rem 0.75rem;
-		border-radius: 10px;
-		background: var(--sl-color-bg-nav);
-		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
-		display: flex;
-		gap: 0.75rem;
-		flex-wrap: wrap;
-		font-size: 0.85rem;
-	}
-	.mcdb-recipe-kind {
-		font-weight: 700;
-		text-transform: uppercase;
-		font-size: 0.7rem;
-		letter-spacing: 0.05em;
-		color: var(--sl-color-accent-high, var(--sl-color-accent));
-	}
-	.mcdb-panel__foot {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		gap: 1rem;
-		padding-top: 0.5rem;
-		border-top: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
-	}
-	.mcdb-panel__market {
-		color: var(--sl-color-text-accent);
-		font-weight: 700;
-		text-decoration: none;
-	}
-	.mcdb-panel__market:hover {
-		text-decoration: underline;
-	}
-	.mcdb-panel__version {
-		color: var(--sl-color-gray-3);
-		font-size: 0.78rem;
-		font-variant-numeric: tabular-nums;
-	}
-	.mcdb-recipe-card {
-		display: grid;
-		gap: 0.5rem;
-		padding: 0.75rem;
-		border-radius: 12px;
-		background: var(--sl-color-bg-nav);
-		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
-		margin-top: 0.5rem;
-	}
-	.mcdb-recipe-card__meta {
-		display: flex;
-		gap: 0.75rem;
-		flex-wrap: wrap;
-		align-items: center;
-	}
-	.mcdb-recipe-station {
-		font-size: 0.78rem;
-		color: var(--sl-color-gray-3);
-	}
-	.mcdb-grid-recipe {
-		display: grid;
-		grid-template-columns: repeat(var(--cols, 3), 72px);
-		gap: 0.4rem;
-		justify-content: start;
-	}
-	.mcdb-grid-cell {
-		width: 72px;
-		height: 72px;
-		border-radius: 10px;
-		background: var(--sl-color-bg-sidebar, var(--sl-color-bg-nav));
-		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		justify-content: center;
-		gap: 0.15rem;
-		padding: 0.3rem;
-		font-size: 0.7rem;
-		text-align: center;
-	}
-	.mcdb-grid-qty {
-		font-weight: 800;
-		color: var(--sl-color-accent-high, var(--sl-color-accent));
-	}
-	.mcdb-grid-ref {
-		color: var(--sl-color-gray-3);
-		font-size: 0.65rem;
-		line-height: 1.1;
-		word-break: break-all;
-	}
-	.kbve-mc-tex {
-		display: inline-flex;
-		align-items: center;
-		justify-content: center;
-		image-rendering: pixelated;
-		object-fit: contain;
-	}
-	.kbve-mc-tex--missing {
-		background: var(--sl-color-bg-nav);
-		border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
-		border-radius: 6px;
-		color: var(--sl-color-gray-3);
-		font-weight: 800;
-	}
-	.mcdb-grid-cell .kbve-mc-tex,
-	.mcdb-grid-img.kbve-mc-tex {
-		max-width: 80%;
-		max-height: 80%;
-	}
-	.mcdb-recipe-img.kbve-mc-tex {
-		flex-shrink: 0;
-		margin-right: 0.25rem;
-	}
-</style>

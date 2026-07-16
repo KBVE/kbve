@@ -1,5 +1,6 @@
 ---
 title: Blackstone
+template: splash
 description: |
     Minecraft Blackstone — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1292
     ref: blackstone
     slug: blackstone
+    content_rev: 1
     display_name: Blackstone
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Blackstone is a dark stone block found throughout the Nether, especially in basalt deltas, bastion remnants, and ruined portals. It works as a Nether-side substitute for cobblestone, letting you craft stone tools, furnaces, and brewing stands, and it can be polished or repaired stone tools on an anvil. Piglins may barter blackstone for gold, making it a renewable resource.
+        lore: |
+            The charred bedrock of the Nether, born of cooling lava and shadow, as sturdy as cobble but darker than any overworld stone.
+    faq:
+        - question: Where do I find Blackstone?
+          answer: |
+            Blackstone generates naturally in the Nether, particularly in the basalt deltas biome and beneath lava seas, and also appears in bastion remnants and ruined portals.
+        - question: Can I use Blackstone instead of cobblestone?
+          answer: |
+            Mostly. Blackstone crafts stone tools, furnaces, and brewing stands, but it cannot be used to craft dispensers, droppers, pistons, or other blocks that require cobblestone.
+        - question: Is Blackstone renewable?
+          answer: |
+            Yes. Bartering with piglins gives roughly an 8.53% chance to receive 8 to 16 blackstone per gold ingot, making it a renewable resource.
+        - question: What tool do I need to mine Blackstone?
+          answer: |
+            A wooden pickaxe or better is required to mine blackstone and have it drop; a golden pickaxe breaks it fastest at about 0.2 seconds.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

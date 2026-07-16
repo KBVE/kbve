@@ -1,0 +1,62 @@
+name: CI - Forgejo Mirror
+
+on:
+    push:
+        branches: [main]
+        tags: ['**']
+    workflow_dispatch:
+
+concurrency:
+    group: forgejo-mirror-${{ github.ref }}
+    cancel-in-progress: false
+
+jobs:
+    mirror:
+        name: 'Mirror to Forgejo'
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout (full history, no LFS)
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  lfs: false
+              env:
+                  GIT_LFS_SKIP_SMUDGE: 1
+
+            - name: Push ref and tags to Forgejo
+              env:
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+                  REF_TYPE: ${{ github.ref_type }}
+                  REF_NAME: ${{ github.ref_name }}
+              run: |
+                  set -euo pipefail
+
+                  if [ -z "${FORGEJO_USER:-}" ] || [ -z "${FORGEJO_TOKEN:-}" ]; then
+                      echo "::error::FORGEJO_USER / FORGEJO_TOKEN secrets are not set"
+                      exit 1
+                  fi
+
+                  REMOTE="https://${FORGEJO_USER}:${FORGEJO_TOKEN}@git.kbve.com/KBVE/kbve.git"
+
+                  echo "::notice::Mirroring ${REF_TYPE} '${REF_NAME}' to Forgejo (pointers only, non-destructive)"
+
+                  if [ "${REF_TYPE}" = "branch" ] && [ "${REF_NAME}" = "main" ]; then
+                      git push "${REMOTE}" "HEAD:refs/heads/main"
+                  fi
+
+                  git push "${REMOTE}" --tags
+
+    track-mirror:
+        name: Track Mirror
+        if: always()
+        needs: [mirror]
+        permissions:
+            issues: write
+        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        with:
+            workflow_name: 'CI - Forgejo Mirror'
+            job_name: 'Mirror to Forgejo'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.mirror.result }}

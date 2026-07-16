@@ -1,5 +1,6 @@
 ---
 title: Exposed Copper Bulb
+template: splash
 description: |
     Minecraft Exposed Copper Bulb — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,68 @@ mc_block:
     id: 1033
     ref: exposed_copper_bulb
     slug: exposed-copper-bulb
+    content_rev: 1
     display_name: Exposed Copper Bulb
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
-    light_emission: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
+    light_emission: 12
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: exposed_copper_bulb
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - redstone_component
+    about:
+        description: |
+            Exposed Copper Bulb is the first oxidation stage of the
+            Copper Bulb, a light source that toggles on and off when it
+            receives a redstone pulse rather than needing continuous
+            power. Its light output drops to level 12 at this stage.
+        lore: |
+            First shown at Minecraft Live 2023 alongside the Trial
+            Chambers, added in Java Edition 1.21 and Bedrock 1.21.0.
+    uses:
+        - title: Waxed Exposed Copper Bulb
+          ref: waxed_exposed_copper_bulb
+          detail: |
+              Apply Honeycomb to halt oxidation at this stage, locking
+              its light level and toggle behavior in place.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates lit, wired to redstone, as part of Trial Chamber vault and mechanism decoration.
+        - location: Natural weathering
+          detail: Forms over time when an unwaxed Copper Bulb progresses from its unoxidized state.
+    faq:
+        - question: What tool do I need to mine Exposed Copper Bulb?
+          answer: |
+              A stone pickaxe or better. Mining with a wooden pickaxe or
+              by hand drops nothing.
+        - question: How does it toggle on and off?
+          answer: |
+              A redstone pulse flips its lit state; unlike a redstone
+              lamp, it does not need continuous power to stay lit,
+              making it useful for compact toggle circuits.
+        - question: Does oxidation affect its light level?
+          answer: |
+              Yes. Light output falls from 15 (unoxidized) to 12
+              (exposed) to 8 (weathered) to 4 (oxidized).
+        - question: How do I stop it from oxidizing further?
+          answer: |
+              Apply Honeycomb to wax the block, which locks it at the
+              Exposed stage and preserves its current light level.
     data_version: "1.21.5"
 ---
 

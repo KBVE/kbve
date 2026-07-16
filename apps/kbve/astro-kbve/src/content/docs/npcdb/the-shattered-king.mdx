@@ -1,5 +1,9 @@
 ---
 title: 'The Shattered King'
+template: splash
+sidebar:
+    label: 'The Shattered King'
+    hidden: true
 description: |
     An ancient ruler whose fractured body radiates immense power, speaking in riddles of ages past.
 ref: 'the-shattered-king'
@@ -115,7 +119,10 @@ faction:
     faction_id: 'shadow-court'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 An ancient ruler whose fractured body radiates immense power, speaking in riddles of ages past.
+
+</NpcLeaf>

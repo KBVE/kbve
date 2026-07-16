@@ -1,5 +1,6 @@
 ---
 title: Mud Bricks
+template: splash
 description: |
     Minecraft Mud Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 316
     ref: mud_bricks
     slug: mud-bricks
+    content_rev: 1
     display_name: Mud Bricks
     material: dirt
     hardness: 1.5
@@ -24,10 +26,57 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mud_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Mud Bricks are a terracotta-colored building block crafted from
+            packed mud. They share the muted, earthy palette of trail ruins,
+            where they generate as part of the structure's crumbling
+            architecture.
+        lore: |
+            Announced at Minecraft Live 2021 and added in Java Edition 1.19,
+            mud bricks mirror a real-world building material with a history
+            stretching back thousands of years.
+    uses:
+        - title: Mud Brick Stairs, Slabs & Walls
+          ref: mud_brick_stairs
+          detail: |
+              Craft mud bricks into stairs, slabs, and walls for detailing,
+              or process them through a stonecutter for the same shapes
+              without extra ingredients.
+    found_in:
+        - location: Trail Ruins
+          detail: Generates as structural blocks throughout the buried trail ruins archaeology sites.
+        - location: Crafted from Packed Mud
+          detail: Four packed mud blocks craft into one mud brick.
+    faq:
+        - question: What tool do I need to mine Mud Bricks?
+          answer: |
+              Any pickaxe, even wooden, mines it instantly-fast and drops the
+              block. Mining without a pickaxe still drops it, just slower.
+        - question: Are Mud Bricks flammable?
+          answer: |
+              No. Mud Bricks do not burn and are safe to use near lava or
+              fire.
+        - question: How do I get Mud Bricks?
+          answer: |
+              Craft four Packed Mud into a Mud Brick, or find them
+              pre-placed in trail ruins structures.
+        - question: What can I build with Mud Bricks?
+          answer: |
+              They have a matching stairs, slab, and wall variant, all
+              craftable directly or via a stonecutter for efficient
+              conversion.
     data_version: "1.21.5"
 ---
 

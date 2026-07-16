@@ -1,5 +1,6 @@
 ---
 title: Small Amethyst Bud
+template: splash
 description: |
     Minecraft Small Amethyst Bud — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 942
     ref: small_amethyst_bud
     slug: small-amethyst-bud
+    content_rev: 1
     display_name: Small Amethyst Bud
     material: stone
     hardness: 1.5
@@ -24,10 +26,56 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: small_amethyst_bud
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Small Amethyst Bud is the first growth stage of an amethyst
+            cluster, sprouting on budding amethyst blocks inside geodes. It
+            emits a faint purple glow and only yields itself when mined
+            with a Silk Touch tool; otherwise it drops nothing.
+        lore: |
+            Amethyst geodes and their bud stages arrived in the Caves &
+            Cliffs Update (1.17), realizing an idea for crystal blocks
+            Notch had floated back in 2009.
+    uses:
+        - title: Decoration and Ambient Light
+          ref: small_amethyst_bud
+          detail: |
+              Placed for its soft purple glow (light level 1) and
+              crystalline look inside builds and geode-themed rooms.
+    found_in:
+        - location: Amethyst Geodes
+          detail: Grows on budding amethyst blocks lining the inside of amethyst geode formations underground.
+        - location: Random-Tick Growth
+          detail: Advances to medium bud, large bud, then a full cluster over several random ticks, roughly 2+ hours total.
+    faq:
+        - question: What happens if I mine a small bud without Silk Touch?
+          answer: |
+              It drops nothing — only fully grown amethyst clusters yield
+              shards without Silk Touch; buds require Silk Touch to obtain.
+        - question: Does Fortune increase drops from a small bud?
+          answer: |
+              No, Fortune has no effect on buds; it only affects shard
+              yield from fully grown amethyst clusters.
+        - question: How does a small bud grow into a cluster?
+          answer: |
+              It progresses through medium bud and large bud stages before
+              becoming a cluster, driven by random ticks on the budding
+              amethyst block beneath it.
+        - question: How much light does it give off?
+          answer: |
+              Level 1, the dimmest of the four amethyst growth stages
+              (bud stages emit 1, 2, and 4; the full cluster emits 5).
     data_version: "1.21.5"
 ---
 

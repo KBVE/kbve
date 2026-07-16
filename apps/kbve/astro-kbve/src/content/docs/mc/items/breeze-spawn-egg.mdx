@@ -1,5 +1,6 @@
 ---
 title: Breeze Spawn Egg
+template: splash
 description: |
     Minecraft Breeze Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 1075
     ref: breeze_spawn_egg
     slug: breeze-spawn-egg
+    content_rev: 1
     display_name: Breeze Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Breeze Spawn Egg is a creative-mode item that instantly summons a Breeze, the
+            wind-armored hostile mob introduced in Minecraft 1.21. In survival, Breezes normally only
+            appear from trial spawners inside Trial Chamber combat rooms.
+        lore: |
+            A swirling capsule of captured wind, said to hold the restless spirit of a Breeze ready to burst free.
+    faq:
+        - question: How do you use a Breeze Spawn Egg?
+          answer: |
+              Right-click (or use) the egg on a block to instantly spawn a Breeze at that location,
+              available only in Creative mode or via commands.
+        - question: Where do Breezes normally spawn in survival?
+          answer: |
+              From trial spawners inside Trial Chamber combat rooms, never in the connecting corridors,
+              typically one breeze spawner per room.
+        - question: What makes the Breeze dangerous?
+          answer: |
+              It fires wind charges from up to 16 blocks away every 1.6 seconds, leaps up to 15 blocks
+              horizontally with total fall-damage immunity, and deflects nearly any projectile shot at it.
+        - question: What does a Breeze drop when killed?
+          answer: |
+              1-2 Breeze Rods (more with Looting) and 10 experience orbs.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

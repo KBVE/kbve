@@ -1,5 +1,6 @@
 ---
 title: Chest
+template: splash
 description: |
     Minecraft Chest — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 188
     ref: chest
     slug: chest
+    content_rev: 1
     display_name: Chest
     material: wood
     hardness: 2.5
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: chest
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - storage
+        - container
+        - flammable
+    about:
+        description: |
+            The Chest is a storage block that holds items in a 27-slot grid.
+            Two chests placed side by side merge into a large chest with 54
+            slots, and it opens with a hinged-lid animation.
+        lore: |
+            Among Minecraft's earliest features, introduced in Indev 0.31
+            (2010). Beta 1.8 (2011) gave it the now-iconic 3D model with an
+            opening lid, replacing the original flat cube design.
+    uses:
+        - title: Item Storage
+          detail: |
+              A single chest stores items across 27 slots; place two
+              adjacent to form a large chest with 54 slots.
+        - title: Portable and Crafting Storage
+          detail: |
+              Can be attached to donkeys, mules, and llamas for storage on
+              the move, and is an ingredient for hoppers, shulker boxes,
+              trapped chests, and chest boats.
+    found_in:
+        - location: Crafting
+          detail: Eight wood planks of any type arranged around an empty center in a 3x3 grid.
+        - location: Generated Structures
+          detail: Spawns as loot chests in villages, strongholds, temples, shipwrecks, mineshafts, and more across all three dimensions.
+    faq:
+        - question: What tool breaks a chest fastest?
+          answer: |
+              An axe. A chest can also be broken by hand and always drops
+              itself along with its contents.
+        - question: How many items can a chest hold?
+          answer: |
+              A single chest has 27 slots. Placing two next to each other
+              forms a large chest with 54 slots.
+        - question: Do items drop when I break a chest?
+          answer: |
+              Yes. Breaking a chest drops both the chest block and every item
+              stored inside it.
     data_version: "1.21.5"
 ---
 

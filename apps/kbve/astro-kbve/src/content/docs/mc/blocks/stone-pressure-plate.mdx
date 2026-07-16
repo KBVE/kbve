@@ -1,5 +1,6 @@
 ---
 title: Stone Pressure Plate
+template: splash
 description: |
     Minecraft Stone Pressure Plate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 246
     ref: stone_pressure_plate
     slug: stone-pressure-plate
+    content_rev: 1
     display_name: Stone Pressure Plate
     material: redstone
     hardness: 0.5
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stone_pressure_plate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            The Stone Pressure Plate is a redstone component that activates
+            when a player or mob stands on it, emitting a full-strength
+            signal of 15. Unlike wooden plates, it ignores dropped items and
+            most projectiles, only responding to entities standing on it.
+        lore: |
+            Stone pressure plates predate most other redstone sensors and
+            remain a staple for mob-triggered traps and doors.
+    uses:
+        - title: Detector Rail
+          ref: detector_rail
+          detail: |
+              Combined with iron ingots and redstone dust to craft a
+              detector rail, which senses passing minecarts.
+    found_in:
+        - location: Desert pyramids
+          detail: Placed above the trap chamber inside desert pyramid temples.
+        - location: Ancient cities
+          detail: Generates as part of trap mechanisms within ancient cities.
+    faq:
+        - question: What triggers a Stone Pressure Plate?
+          answer: |
+              Only players and mobs standing on top of it, or riding in a
+              minecart or boat over it. Dropped items and arrows do not
+              activate it.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool works, though a pickaxe is fastest. It always drops
+              itself regardless of tool.
+        - question: Can it be waterlogged?
+          answer: |
+              In Bedrock Edition, yes. In Java Edition, stone pressure
+              plates cannot be waterlogged.
+        - question: How is it crafted?
+          answer: |
+              Two stone blocks placed vertically in a crafting grid produce
+              one stone pressure plate.
     data_version: "1.21.5"
 ---
 

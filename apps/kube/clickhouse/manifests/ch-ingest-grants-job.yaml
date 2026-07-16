@@ -8,21 +8,45 @@ metadata:
         kbve.com/stack: clickhouse
         kbve.com/managed-by: argocd
 data:
-    grants.sh:
-        "#!/bin/sh\nset -eu\n\necho \"Verifying ClickHouse admin connectivity...\"\
-        \ncurl -sf --max-time 10 \\\n  \"${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}\"\
-        \ \\\n  -d \"SELECT 1\" >/dev/null || {\n  echo \"ERROR: Cannot connect to ClickHouse\
-        \ at ${CH_ADMIN_URL} with admin user\"\n  exit 1\n}\necho \"Admin connection OK.\"\
-        \n\ngrant() {\n  echo \"GRANT: $1\"\n  curl -sf --max-time 30 \\\n    \"${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}\"\
-        \ \\\n    -d \"$1\" || {\n    echo \"ERROR: grant failed: $1\"\n    exit 1\n \
-        \ }\n}\n\n# CLUSTER privilege is required for every ON CLUSTER statement (CH 25.x);\n\
-        # without it the per-pipeline setup jobs fail ACCESS_DENIED (Code 497).\ngrant\
-        \ \"GRANT CLUSTER ON *.* TO kbve_ingest ON CLUSTER 'cluster'\"\n\n# Data access for\
-        \ each direct-write pipeline. Creating a table does not\n# grant the creator data\
-        \ rights in CH RBAC.\ngrant \"GRANT ALL ON telemetry.* TO kbve_ingest ON CLUSTER 'cluster'\"\ngrant \"\
-        GRANT ALL ON observability.* TO kbve_ingest ON CLUSTER 'cluster'\"\ngrant \"GRANT\
-        \ ALL ON mc.* TO kbve_ingest ON CLUSTER 'cluster'\"\n\necho \"\"\necho \"Ingest-user\
-        \ grants applied.\"\n"
+    grants.sh: |
+        #!/bin/sh
+        set -eu
+
+        echo "Verifying ClickHouse admin connectivity..."
+        curl -sf --max-time 10 \
+          "${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}" \
+          -d "SELECT 1" >/dev/null || {
+          echo "ERROR: Cannot connect to ClickHouse at ${CH_ADMIN_URL} with admin user"
+          exit 1
+        }
+        echo "Admin connection OK."
+
+        grant() {
+          echo "GRANT: $1"
+          curl -sf --max-time 30 \
+            "${CH_ADMIN_URL}/?user=${CH_ADMIN_USERNAME}&password=${CH_ADMIN_PASSWORD}" \
+            -d "$1" || {
+            echo "ERROR: grant failed: $1"
+            exit 1
+          }
+        }
+
+        # CLUSTER privilege is required for every ON CLUSTER statement (CH 25.x);
+        # without it the per-pipeline setup jobs fail ACCESS_DENIED (Code 497).
+        grant "GRANT CLUSTER ON *.* TO kbve_ingest ON CLUSTER 'cluster'"
+
+        # Data access for each direct-write pipeline plus the read-side dashboard
+        # proxy (axum-kbve reads gameops.*). Creating a table does not grant the
+        # creator data rights in CH RBAC, so every database is granted explicitly.
+        grant "GRANT ALL ON telemetry.* TO kbve_ingest ON CLUSTER 'cluster'"
+        grant "GRANT ALL ON observability.* TO kbve_ingest ON CLUSTER 'cluster'"
+        grant "GRANT ALL ON mc.* TO kbve_ingest ON CLUSTER 'cluster'"
+        grant "GRANT ALL ON gameops.* TO kbve_ingest ON CLUSTER 'cluster'"
+        grant "GRANT ALL ON firecracker.* TO kbve_ingest ON CLUSTER 'cluster'"
+        grant "GRANT ALL ON logflare.* TO kbve_ingest ON CLUSTER 'cluster'"
+
+        echo ""
+        echo "Ingest-user grants applied."
 ---
 apiVersion: batch/v1
 kind: Job

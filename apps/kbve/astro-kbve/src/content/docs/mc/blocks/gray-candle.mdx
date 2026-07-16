@@ -1,5 +1,6 @@
 ---
 title: Gray Candle
+template: splash
 description: |
     Minecraft Gray Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 911
     ref: gray_candle
     slug: gray-candle
+    content_rev: 1
     display_name: Gray Candle
     material: stone
     hardness: 0.1
@@ -24,10 +26,62 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: gray_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Gray Candle is the dyed variant of the candle, a small decorative
+            light source crafted from string and honeycomb, then dyed gray.
+            Up to four candles can be placed together in a single block
+            space, and lighting them with flint and steel produces a
+            flickering flame and light level that scales with the count.
+        lore: |
+            Candles were revealed at Minecraft Live 2020 alongside the deep
+            dark concept and shipped in Java Edition 1.17.
+    uses:
+        - title: Light Source
+          ref: gray_candle
+          detail: |
+              Light with flint and steel for a light level of 3 to 12
+              depending on how many candles occupy the block, or snuff them
+              out with a water bucket or by hand.
+        - title: Cake Decoration
+          ref: cake
+          detail: |
+              A single candle can be placed on top of a cake as a
+              birthday-cake decoration; lighting it works the same as on
+              the ground.
+    found_in:
+        - location: Crafting
+          detail: Craft from 1 string and 1 honeycomb, then dye with gray dye.
+        - location: Generated structures
+          detail: Undyed candles spawn in ancient cities, trail ruins, and trial chambers.
+    faq:
+        - question: What tool do I need to mine a Gray Candle?
+          answer: |
+              None — it breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: Does Gray Candle affect mob spawning or light output?
+          answer: |
+              Lit candles emit light level 3 per candle up to 12 for four
+              stacked together, and lit candles can ignite nearby TNT or
+              be blown out with water.
+        - question: Can I stack multiple candles in one block?
+          answer: |
+              Yes, up to four candles of the same color can share one block
+              space, increasing both the light level and the hitbox height.
+        - question: How do I get Gray Candle specifically?
+          answer: |
+              Craft a plain candle from string and honeycomb, then combine
+              it with gray dye in a crafting grid.
     data_version: "1.21.5"
 ---
 

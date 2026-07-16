@@ -1,5 +1,6 @@
 ---
 title: Magenta Banner
+template: splash
 description: |
     Minecraft Magenta Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 549
     ref: magenta_wall_banner
     slug: magenta-wall-banner
+    content_rev: 1
     display_name: Magenta Banner
     material: wood
     hardness: 1
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: magenta_wall_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Magenta Banner is a tall decorative block dyed magenta, placeable
+            on a wall or floor. It can carry up to six pattern layers applied
+            with dyes and a loom, and its wall-mounted form is stored under
+            this block's data.
+        lore: |
+            Banners let players craft custom heraldry, and illagers famously
+            carry ominous banners as an insignia during raids.
+    uses:
+        - title: Shield
+          ref: shield
+          detail: |
+              Combine a banner with a shield in a crafting grid to apply the
+              banner's pattern to the shield's face.
+        - title: Loom Patterning
+          ref: loom
+          detail: |
+              A loom lets players apply additional pattern layers (using dye
+              and pattern items) on top of a banner's base color.
+    found_in:
+        - location: Crafted
+          detail: Made from 6 Magenta Wool and 1 Stick arranged in a sign-like pattern.
+        - location: Structures
+          detail: Pre-patterned banners generate in end cities, woodland mansions, pillager outposts, and villages.
+    faq:
+        - question: What tool mines a banner fastest?
+          answer: |
+              An axe, though any tool or bare hands can break it — there is
+              no minimum tier required for it to drop.
+        - question: Can a banner be moved by pistons?
+          answer: |
+              No, banners cannot be pushed or pulled by pistons.
+        - question: Is a Banner flammable?
+          answer: |
+              It does not spread fire itself, but it can still catch fire
+              from nearby lava like most non-stone blocks.
+        - question: What is a wall banner versus a standing banner?
+          answer: |
+              They're the same item — a standing banner is placed on a
+              floor, and a wall banner is the form used when it's mounted
+              against a wall.
     data_version: "1.21.5"
 ---
 

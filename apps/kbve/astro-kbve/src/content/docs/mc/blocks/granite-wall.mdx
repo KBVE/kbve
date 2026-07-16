@@ -1,5 +1,6 @@
 ---
 title: Granite Wall
+template: splash
 description: |
     Minecraft Granite Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,69 @@ mc_block:
     id: 795
     ref: granite_wall
     slug: granite-wall
+    content_rev: 1
     display_name: Granite Wall
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: granite_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Granite Wall is a decorative barrier variant of granite that
+            connects to adjacent walls and posts, used for fences and
+            chimney-style detailing. It requires at least a wooden
+            pickaxe to mine.
+        lore: |
+            First announced in October 2018, Granite Wall arrived in Java
+            Edition 18w43a (1.14) as part of the stonecutter-era wave of
+            decorative building blocks.
+    uses:
+        - title: Building decoration
+          ref: granite
+          detail: |
+              Six granite blocks craft into six granite walls, used for
+              fencing, chimneys, and connective borders around granite
+              builds.
+    found_in:
+        - location: Desert villages
+          detail: Generates as the top part of the chimney on desert village armorer buildings.
+        - location: Crafting / Stonecutter
+          detail: Craftable from six granite blocks, or one granite block cut per wall via stonecutter.
+    faq:
+        - question: What tool do I need to mine Granite Wall?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining without a pickaxe
+              destroys the block with no drop.
+        - question: Does Granite Wall connect to fences and other walls?
+          answer: |
+              Yes. It connects to adjacent walls with low or tall
+              connections and supports an optional center post when
+              isolated.
+        - question: Is Granite Wall flammable?
+          answer: |
+              No. As a stone-type block, it does not burn.
+        - question: Where does Granite Wall generate naturally?
+          answer: |
+              As two wall blocks forming the top of the chimney on desert
+              village armorer buildings.
     data_version: "1.21.5"
 ---
 

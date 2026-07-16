@@ -1,7 +1,7 @@
 [package]
 name = "arpg-server"
 authors = ["kbve", "h0lybyte"]
-version = "0.1.26"
+version = "0.1.27"
 edition = "2024"
 rust-version.workspace = true
 license = "MIT"
@@ -17,7 +17,7 @@ bevy_items = { path = "../../../../packages/rust/bevy/bevy_items" }
 bevy_spells = { path = "../../../../packages/rust/bevy/bevy_spells" }
 bevy_mapdb = { path = "../../../../packages/rust/bevy/bevy_mapdb" }
 jedi = { path = "../../../../packages/rust/jedi", features = ["postgres", "valkey", "observ"] }
-bevy = { version = "0.18", default-features = false, features = ["bevy_state"] }
+bevy = { version = "0.19", default-features = false, features = ["bevy_state"] }
 axum = { version = "0.8.9", default-features = false, features = ["ws", "json", "http1", "tokio"] }
 tokio = { version = "1.49", features = ["rt-multi-thread", "macros", "signal", "sync", "time", "net"] }
 tracing = "0.1"

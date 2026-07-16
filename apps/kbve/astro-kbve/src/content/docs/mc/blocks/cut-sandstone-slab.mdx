@@ -1,5 +1,6 @@
 ---
 title: Cut Sandstone Slab
+template: splash
 description: |
     Minecraft Cut Sandstone Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,65 @@ mc_block:
     id: 581
     ref: cut_sandstone_slab
     slug: cut-sandstone-slab
+    content_rev: 1
     display_name: Cut Sandstone Slab
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cut_sandstone_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Cut Sandstone Slab is a decorative half-height slab made by
+            cutting or stonecutting Cut Sandstone or Sandstone, giving
+            builders a low-profile trim block for desert-themed builds.
+        lore: |
+            Added in Java Edition 1.14 alongside the rest of the cut
+            sandstone family as a purely decorative block.
+    uses:
+        - title: Decorative trim and flooring
+          ref: cut_sandstone
+          detail: |
+              Used for low walls, staircase steps, floor trim, and any
+              build needing a half-height sandstone block.
+    found_in:
+        - location: Crafting
+          detail: 3 Cut Sandstone blocks craft into 6 slabs.
+        - location: Stonecutting
+          detail: Sandstone or Cut Sandstone produces 2 slabs per block via the stonecutter.
+    faq:
+        - question: What tool do I need to mine Cut Sandstone Slab?
+          answer: |
+              Any pickaxe, including wooden, works. Mining without a
+              pickaxe drops nothing.
+        - question: Does Cut Sandstone Slab generate naturally?
+          answer: |
+              No, it only exists as a crafted or stonecut decorative
+              block and does not appear in world generation.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No, it always drops itself as a single slab regardless of
+              enchantments.
+        - question: Can two slabs form a full block?
+          answer: |
+              Yes, placing two Cut Sandstone Slabs in the same position
+              combines them into a solid Cut Sandstone block.
     data_version: "1.21.5"
 ---
 

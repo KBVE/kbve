@@ -2,6 +2,8 @@
 title: World of Warcraft
 description: |
   An all in one future guide for World of Warcraft, including some amazing macros
+template: splash
+tableOfContents: false
 sidebar:
   label: World of Warcraft
   order: 5500
@@ -11,38 +13,62 @@ tags:
   - gaming
   - strategy
   - mmorpg
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: 'gaming · mmorpg'
+    title: 'World of'
+    accent: Warcraft.
+    lede: 'Addon setup and a growing macro library for Turtle WoW — one-button rotations, weapon swaps, and class combos across warrior, mage, warlock, rogue, hunter, priest, and shaman.'
+    ctas:
+        - label: Macros
+          href: '#macros'
+          primary: true
+        - label: All guides
+          href: /gaming/
+    related:
+        - title: 'League of Legends'
+          copy: 'Hotkeys and the full default keybind table.'
+          href: /gaming/lol/
+          icon: sword
+        - title: 'Gaming hub'
+          copy: 'Every KBVE game guide in one place.'
+          href: /gaming/
+          icon: book
+    theme:
+        hero_bg: 'https://images.unsplash.com/photo-1581276879432-15e50529f34b?q=80&w=2400&auto=format&fit=crop'
+        accent: '#f59e0b'
+        accent2: '#38bdf8'
+        btn_fg: '#1a1206'
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-import { Giscus, Adsense } from '@/components/astropad';
+<BentoDoc data={frontmatter.bento}>
 
-## World of Warcraft
+<BentoProse id="addons" heading="Addons & Setup">
 
-
-This is still a proof of concept guide and needs to be worked on.
-
-
-<Adsense />
-
-However for the time being, I am going to start the document and then reference it back when I get more information.
-
+This is still a proof of concept guide and needs to be worked on. I am going to start the document and then reference it back when I get more information.
 
 ### Addons
 
 For the best addon management experience in World of Warcraft, opt for CurseForge.
-It provides a user-friendly interface, easy installation, and automatic updates for your addons. 
+It provides a user-friendly interface, easy installation, and automatic updates for your addons.
 Plus it has a vast library of addons, you can customize your gameplay easily and share it across multiple computers too.
 
+</BentoProse>
 
-### Macros
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="macros" heading="Macros">
 
 This is a quick breakdown of all the macros that we will be using, I am currently playing between a warrior and a warlock but I will try to keep them noted here for future reference.
 
@@ -70,9 +96,9 @@ This is a quick macro for skinning the last target after its been killed and loo
 /cast [dead, exists] Skinning
 ```
 
-#### Priest
+### Priest
 
-##### Pain + Wand
+#### Pain + Wand
 
 Single button to apply pain and follow up with wand attack.
 
@@ -85,9 +111,9 @@ Single button to apply pain and follow up with wand attack.
 The macro goes `Shadow Word: Pain` into `!Shoot` but when holding alt and casting it will only do shoot.
 Mod change was by Chip.
 
-#### Hunter
+### Hunter
 
-##### Pet, Hunters Mark + Auto Shot
+#### Pet, Hunters Mark + Auto Shot
 
 A simple but quick marco that will send your pet to attack, apply the hunters mark and start to auto attack.
 
@@ -97,23 +123,23 @@ A simple but quick marco that will send your pet to attack, apply the hunters ma
 /cast !Auto Shot
 ```
 
-##### Sting + Auto Shot
+#### Sting + Auto Shot
 
 ```
 /cast Serpent Sting
 /cast !Auto Shot
 ```
 
-##### Arcane + Auto Shot
+#### Arcane + Auto Shot
 
 ```
 /cast !Auto Shot
 /cast Arcane Shot
 ```
 
-#### Warrior
+### Warrior
 
-##### Weapon Swap Macro
+#### Weapon Swap Macro
 
 The one button macro switches from two handed to one handed with shield.
 
@@ -126,7 +152,7 @@ The one button macro switches from two handed to one handed with shield.
 
 Remember to swap out the names of the `$2H_item_name`, ect... with the items you have in your bag.
 
-##### Charge,Rend,Throw
+#### Charge, Rend, Throw
 
 This is a quick macro to cast `Charge` in non-combat, then Rend if in combat and finally a quick throw without a modshift.
 
@@ -137,9 +163,9 @@ This is a quick macro to cast `Charge` in non-combat, then Rend if in combat and
 
 This macro still needs to be worked on.
 
-#### Mage Macros
+### Mage
 
-##### Frostbolt
+#### Frostbolt
 
 Quick macro for a frost bolt
 
@@ -150,7 +176,7 @@ Quick macro for a frost bolt
 /cast Frostbolt
 ```
 
-##### Arcane Missles + FrostBolt Rank 1 
+#### Arcane Missles + FrostBolt Rank 1
 
 This is my starter combat macro for my ice hardcore mage!
 If you are not in combat, it will cast the Arcane Missiles but if you are in-combat then it will fire off a rank 1 frostbolt to apply the slow.
@@ -162,23 +188,23 @@ If you are not in combat, it will cast the Arcane Missiles but if you are in-com
 /em zug zug missiles incoming
 ```
 
-##### Frostbolt + Wand
+#### Frostbolt + Wand
 
 ```lua
 /cast Frostbolt
 /castsequence reset=2 !Shoot, null
 ```
 
-#### Warlock
+### Warlock
 
-##### Pet Attack + Wand via Shoot
+#### Pet Attack + Wand via Shoot
 
 ```
 /petattack
 /castsequence reset=2 !Shoot, null
 ```
 
-##### Pet Attack + DoT 
+#### Pet Attack + DoT
 
 ```
 /petattack
@@ -188,9 +214,9 @@ If you are not in combat, it will cast the Arcane Missiles but if you are in-com
 
 This macro is part of the `tab`, `111` rotation and helps you throw your damage over time.
 
-#### Rogue
+### Rogue
 
-##### Throw + Sinister Strike
+#### Throw + Sinister Strike
 
 This macro will cast throw when you are not in combat or cast sinister strike when you are in combat!
 It also throws a blue square up on the target and can cast your racial ability.
@@ -203,7 +229,7 @@ Remember to swap out `Berserking` with whatever spell you would like to combo it
 /script UIErrorsFrame:Clear()
 ```
 
-Troll-Only Version , includes Berserking.
+Troll-Only Version, includes Berserking.
 
 ```
 /startattack
@@ -215,7 +241,7 @@ Troll-Only Version , includes Berserking.
 
 ```
 
-##### Pick Pocket + Garrorte
+#### Pick Pocket + Garrorte
 
 This is a macro for when you are already in stealth!
 It will pick pocket and then garrote the humanoid, however the loot for the pick pocket does not appear until after.
@@ -226,16 +252,16 @@ It will pick pocket and then garrote the humanoid, however the loot for the pick
 /script UIErrorsFrame:Clear()
 ```
 
-##### Stealth OR Slice & Dice, Eviscerate
+#### Stealth OR Slice & Dice, Eviscerate
 
 ```
 /cast [nocombat] Stealth
 /castsequence [combat] reset=target/combat Slice and Dice, Eviscerate
 ```
 
-#### Shaman
+### Shaman
 
-##### Turtle WoW Friendly
+#### Turtle WoW Friendly
 
 The all in one key press, defensive macro.
 This defensive macro below will cast Lightning Shield, StoneSkin and if both are there then Healing Wave.
@@ -256,9 +282,7 @@ Next is our shock rotation macro, which is a WIP.
 
 ```
 
-
-
-#### Guild
+### Guild
 
 This is our guild macro for messaging around in general chat!
 
@@ -266,10 +290,9 @@ This is our guild macro for messaging around in general chat!
 /script SendChatMessage("Looking for a friendly leveling guild? Join <One Life To Live>! We offer active players, friendly community, and helpful members. Whisper me for an invite!", "CHANNEL", nil, GetChannelName("General - " .. GetZoneText()))
 ```
 
-#### Camera
+### Camera
 
-##### Camera Zoom In
-
+#### Camera Zoom In
 
 ```lua
 
@@ -277,3 +300,7 @@ This is our guild macro for messaging around in general chat!
 /console cameraDistanceMaxZoomFactor 4
 
 ```
+
+</BentoProse>
+
+</BentoDoc>

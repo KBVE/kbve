@@ -1,5 +1,6 @@
 ---
 title: Bubble Column
+template: splash
 description: |
     Minecraft Bubble Column — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,63 @@ mc_block:
     id: 763
     ref: bubble_column
     slug: bubble-column
+    content_rev: 1
     display_name: Bubble Column
     material: liquid
     hardness: 0
-    blast_resistance: 0
-    best_tool: hand
+    blast_resistance: 100
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
     transparent: true
     placeable: true
-    solid: true
+    solid: false
     renewable: false
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - overworld
+        - non_solid
+    about:
+        description: |
+            A bubble column is a non-solid, fluid-like block that forms a
+            vertical current inside water, pushing entities upward or
+            pulling them downward. It generates naturally above underwater
+            magma blocks and can be created manually with soul sand.
+        lore: |
+            Bubble columns were announced at MINECON Earth 2017 and added
+            to Java Edition in the 1.13 Update Aquatic snapshot 18w07a.
+    uses:
+        - title: Vertical Transport
+          ref: soul_sand
+          detail: |
+              Placing soul sand under source water creates an upward
+              bubble column, while a magma block underwater creates a
+              downward whirlpool column — together they form fast
+              underwater elevators.
+    found_in:
+        - location: Underwater ocean ruins and aquifers
+          detail: Whirlpool (downward) columns appear naturally where magma blocks generate underwater.
+        - location: Player-built water elevators
+          detail: Soul sand placed beneath source water creates an upward column on demand.
+    faq:
+        - question: Can I mine or collect a bubble column?
+          answer: |
+              No. It has no item form obtainable through normal survival
+              play and produces no drops when its source block is removed.
+        - question: How fast do bubble columns move entities?
+          answer: |
+              Upward columns push entities at roughly 11 blocks per second
+              in Java Edition, while downward whirlpool columns pull them
+              at about 4.9 blocks per second.
+        - question: Can pistons push bubble columns?
+          answer: |
+              Not anymore. Bubble columns were briefly pushable by pistons
+              in early snapshots but this was removed in 18w16a.
+        - question: Is it safe for underwater mobs?
+          answer: |
+              No. Most water-breathing mobs avoid bubble columns because
+              they can suffocate while caught inside one.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Bubble Coral Block
+template: splash
 description: |
     Minecraft Bubble Coral Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 722
     ref: bubble_coral_block
     slug: bubble-coral-block
+    content_rev: 1
     display_name: Bubble Coral Block
     material: stone
     hardness: 1.5
@@ -24,10 +26,63 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bubble_coral_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+        - ref: dead_bubble_coral_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - coral
+        - underwater
+    about:
+        description: |
+            Bubble Coral Block is a decorative coral block found in warm
+            ocean coral reefs. It stays alive only while touching water on
+            at least one side, wilting into its dead gray variant within
+            seconds if exposed to air.
+        lore: |
+            Coral blocks were added in the Update Aquatic (Java 1.13) as
+            part of a wider push to fill out ocean biomes.
+    uses:
+        - title: Underwater Decoration
+          ref: dead_bubble_coral_block
+          detail: |
+              Used purely for building and reef aesthetics; mining without
+              Silk Touch instead yields the dead coral block variant,
+              which is safe to use outside water.
+    found_in:
+        - location: Warm ocean coral reefs
+          detail: Generates naturally as part of coral reef structures in warm ocean biomes.
+        - location: Wandering trader
+          detail: Can be purchased from wandering traders for 3 emeralds, making it renewable.
+    faq:
+        - question: Do I need Silk Touch to collect it alive?
+          answer: |
+              Yes. Mining Bubble Coral Block with a non-Silk-Touch pickaxe
+              always yields the dead coral block instead of the living one.
+        - question: Why did my coral block turn gray?
+          answer: |
+              Coral blocks need an adjacent water or waterlogged block to
+              stay alive; without one they convert to their dead variant
+              within a few seconds.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe works, including wooden — there is no minimum
+              tool tier requirement.
+        - question: Is Bubble Coral Block renewable?
+          answer: |
+              Yes, via wandering trader purchases, since the block itself
+              does not naturally spread or regrow.
     data_version: "1.21.5"
 ---
 

@@ -1,0 +1,40 @@
+---
+title: 'Vanguard Tassets'
+template: splash
+sidebar:
+    label: 'Vanguard Tassets'
+    hidden: true
+description: |
+    A skirted hip harness that guards the belt line, where mail ends and regret begins.
+ref: 'vanguard-tassets'
+key: 610
+id: '01KXFBEGM12NRWN6TT8FBSMSP9'
+name: 'Vanguard Tassets'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'uncommon'
+buy_price: 65
+emoji: '🛡️'
+img: '/assets/items/equipment/vanguard-tassets.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'KNGT'
+  nodes:
+    - 'HIPS'
+  slot_keys:
+    - 'HIPS'
+equipment:
+  slot: 'legs'
+  bonuses:
+    armor: 2
+    extra:
+      weight: 3
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

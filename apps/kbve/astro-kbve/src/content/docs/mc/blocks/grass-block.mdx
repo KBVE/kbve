@@ -1,5 +1,6 @@
 ---
 title: Grass Block
+template: splash
 description: |
     Minecraft Grass Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 8
     ref: grass_block
     slug: grass-block
+    content_rev: 1
     display_name: Grass Block
     material: dirt
     hardness: 0.6
@@ -24,10 +26,59 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dirt
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: grass_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+    about:
+        description: |
+            Grass Block is the surface layer covering dirt across most
+            Overworld biomes. It slowly spreads its grassy top to nearby
+            dirt blocks when exposed to light, and reverts to dirt if
+            covered or mined without Silk Touch.
+        lore: |
+            Alongside Stone, Grass Block was one of the first two blocks
+            ever added to Minecraft and remains the game's iconic symbol.
+    uses:
+        - title: Farmland
+          ref: farmland
+          detail: |
+              Till with a hoe to convert it into farmland for planting
+              crops, or let sheep graze on it to regrow their wool.
+    found_in:
+        - location: The Overworld
+          detail: |
+              Generates naturally in nearly every Overworld biome, and as
+              part of village and ancient city terrain.
+    faq:
+        - question: What does a Grass Block drop when mined?
+          answer: |
+              Without Silk Touch it drops a single Dirt block; with Silk
+              Touch it drops itself as a Grass Block.
+        - question: What tool should I use?
+          answer: |
+              A shovel breaks it fastest, though any tool or bare hands
+              will work since it has no minimum tier requirement.
+        - question: How does grass spread?
+          answer: |
+              A Grass Block spreads its grassy texture to adjacent dirt
+              blocks that have enough light above them, given enough time.
+        - question: Can I get a Grass Block without Silk Touch?
+          answer: |
+              Yes — Endermen occasionally pick up Grass Blocks and drop
+              them intact if killed while holding one.
     data_version: "1.21.5"
 ---
 

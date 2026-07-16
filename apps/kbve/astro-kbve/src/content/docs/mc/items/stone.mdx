@@ -1,5 +1,6 @@
 ---
 title: Stone
+template: splash
 description: |
     Minecraft Stone — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1
     ref: stone
     slug: stone
+    content_rev: 1
     display_name: Stone
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Stone is a fundamental building block found underground throughout the Overworld, making up
+            the majority of solid terrain above Y=0. Mining it with a regular pickaxe drops cobblestone
+            instead of the block itself, so a Silk Touch enchantment is required to collect actual stone.
+        lore: |
+            Stone, along with grass, is one of the first two blocks ever added to Minecraft.
+    faq:
+        - question: How do I obtain stone?
+          answer: |
+              Stone generates naturally underground and on mountain surfaces. You can also create it by
+              letting lava flow over water, or by smelting cobblestone in a furnace with any fuel source.
+        - question: What's the difference between stone and cobblestone?
+          answer: |
+              Mining stone with a regular pickaxe drops cobblestone instead of stone. Use a Silk
+              Touch-enchanted pickaxe to obtain the actual stone block for building.
+        - question: What can I craft with stone?
+          answer: |
+              Stone is a crafting ingredient for stone bricks, slabs, stairs, buttons, pressure plates,
+              and redstone components like repeaters and comparators.
+        - question: How does stone differ from deepslate?
+          answer: |
+              Stone generates in the upper Overworld from Y=8 and above, while deepslate gradually
+              replaces it at lower levels and becomes exclusive below Y=0.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Cyan Stained Glass
+template: splash
 description: |
     Minecraft Cyan Stained Glass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 510
     ref: cyan_stained_glass
     slug: cyan-stained-glass
+    content_rev: 1
     display_name: Cyan Stained Glass
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Cyan Stained Glass is a dyed variant of glass, crafted from 4 glass blocks and cyan dye. It
+            keeps the transparency of regular glass while tinting light and beacon beams that pass
+            through it a cyan hue.
+        lore: |
+            Stained glass blocks of the same color are invisible to each other when viewed through one
+            another, a subtle rendering quirk unique to their transparent, tinted design.
+    faq:
+        - question: How do I craft Cyan Stained Glass?
+          answer: |
+              Combine 8 glass blocks with 1 cyan dye in a crafting grid to produce 8 Cyan Stained Glass
+              blocks.
+        - question: What tool do I need to harvest Cyan Stained Glass?
+          answer: |
+              Silk Touch is required; without it, breaking the block drops nothing.
+        - question: Can Cyan Stained Glass color a beacon beam?
+          answer: |
+              Yes, placing it in a beacon's beam tints the light cyan, and stacking different stained
+              glass colors blends their hues together.
+        - question: Do mobs spawn on Cyan Stained Glass?
+          answer: |
+              No, mobs generally cannot spawn on it (aside from zombie reinforcements), and mobs cannot
+              see through it to detect players.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

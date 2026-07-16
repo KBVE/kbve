@@ -6000,7 +6000,7 @@ mod tests {
             let mut sys = bevy::ecs::system::SystemState::<(PetBank, Query<&mut PetRoster>)>::new(
                 app.world_mut(),
             );
-            let (mut bank, mut rosters) = sys.get_mut(app.world_mut());
+            let (mut bank, mut rosters) = sys.get_mut(app.world_mut()).unwrap();
             let mut r = rosters.get_mut(player).expect("player has a roster");
             bank.add(&mut r, snap);
             sys.apply(app.world_mut());
@@ -6020,7 +6020,7 @@ mod tests {
         assert_eq!(restored.active, Some(0));
         {
             let mut sys = bevy::ecs::system::SystemState::<PetBank>::new(app.world_mut());
-            let bank = sys.get_mut(app.world_mut());
+            let bank = sys.get_mut(app.world_mut()).unwrap();
             let snaps = bank.snapshot(&restored);
             assert_eq!(snaps.len(), 1);
             assert_eq!(snaps[0].id, want.id, "pet instance id must survive");

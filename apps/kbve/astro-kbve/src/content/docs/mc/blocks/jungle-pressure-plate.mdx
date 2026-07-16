@@ -1,5 +1,6 @@
 ---
 title: Jungle Pressure Plate
+template: splash
 description: |
     Minecraft Jungle Pressure Plate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 251
     ref: jungle_pressure_plate
     slug: jungle-pressure-plate
+    content_rev: 1
     display_name: Jungle Pressure Plate
     material: redstone
     hardness: 0.5
@@ -24,10 +26,60 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: jungle_pressure_plate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Jungle Pressure Plate is a redstone component that emits a
+            signal when a player, mob, or item entity rests on top of it.
+            It is crafted from two Jungle Planks and behaves identically to
+            other wooden pressure plates, triggering from any entity.
+        lore: |
+            Wooden pressure plates were introduced in Alpha v1.0.1 and, as
+            wood variants multiplied, jungle wood gained its own matching
+            plate for redstone builds that favor jungle aesthetics.
+    uses:
+        - title: Redstone Triggers
+          ref: redstone
+          detail: |
+              Detects any entity (players, mobs, dropped items, arrows) to
+              trigger doors, dispensers, or traps.
+        - title: Trapdoor & Door Automation
+          ref: jungle_door
+          detail: |
+              Commonly paired with jungle-themed doors and trapdoors for
+              automatic opening builds.
+    found_in:
+        - location: Crafted from Jungle Planks
+          detail: 2 Jungle Planks stacked vertically craft 1 Jungle Pressure Plate.
+        - location: Village Structures & Trial Chambers
+          detail: Occasionally generates as part of these structures.
+    faq:
+        - question: What triggers a wooden pressure plate?
+          answer: |
+              Any entity, including players, mobs, and dropped items — unlike
+              stone plates which only respond to players and mobs.
+        - question: Is Jungle Pressure Plate flammable?
+          answer: |
+              Yes, like other overworld wood pressure plates it can burn and
+              serves as furnace fuel (1.5 items smelted per plate).
+        - question: Does breaking the block beneath it destroy the plate?
+          answer: |
+              Yes. Removing, moving, or destroying the supporting block also
+              removes the pressure plate, dropping it as an item.
+        - question: Does Silk Touch or Fortune change its drop?
+          answer: |
+              No. It always drops itself as a single item.
     data_version: "1.21.5"
 ---
 

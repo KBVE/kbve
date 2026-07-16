@@ -1,5 +1,6 @@
 ---
 title: Weathered Chiseled Copper
+template: splash
 description: |
     Minecraft Weathered Chiseled Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 977
     ref: weathered_chiseled_copper
     slug: weathered-chiseled-copper
+    content_rev: 1
     display_name: Weathered Chiseled Copper
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: weathered_chiseled_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - blast_resistant
+    about:
+        description: |
+            Weathered Chiseled Copper is a decorative, engraved copper
+            block that has naturally oxidized to its greenish weathered
+            stage. Unlike waxed variants, it continues oxidizing toward
+            full teal patina if left unwaxed.
+        lore: |
+            Added in the Tricky Trials update to decorate trial chambers,
+            chiseled copper brought a carved-panel look to the copper family.
+    uses:
+        - title: Decorative Paneling
+          ref: weathered_chiseled_copper
+          detail: |
+              Used purely for decoration, giving builds a carved, aged
+              copper appearance. Apply honeycomb to halt oxidation at
+              this stage.
+    found_in:
+        - location: Crafted from Cut Copper Slabs
+          detail: 2 matching weathered cut copper slabs craft into 1 chiseled copper block, or stonecut from a weathered copper block.
+        - location: Trial Chambers
+          detail: Generates naturally as decoration inside trial chamber vaults and corridors.
+    faq:
+        - question: What tool do I need to mine this block?
+          answer: |
+              A stone pickaxe or better. Mining with bare hands or a
+              wooden pickaxe drops nothing.
+        - question: Will it keep oxidizing if I don't wax it?
+          answer: |
+              Yes. Left unwaxed, it will eventually progress to the fully
+              oxidized stage over time.
+        - question: How do I stop it from oxidizing further?
+          answer: |
+              Apply honeycomb to the block to wax it, permanently locking
+              it at the weathered stage.
+        - question: Does Silk Touch or Fortune affect its drops?
+          answer: |
+              No. It always drops itself as a single item regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

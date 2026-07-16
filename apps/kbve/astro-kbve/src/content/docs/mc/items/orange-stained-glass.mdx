@@ -1,5 +1,6 @@
 ---
 title: Orange Stained Glass
+template: splash
 description: |
     Minecraft Orange Stained Glass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,34 @@ mc_item:
     id: 502
     ref: orange_stained_glass
     slug: orange-stained-glass
+    content_rev: 1
     display_name: Orange Stained Glass
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Orange Stained Glass is a dyed, transparent variant of regular glass, crafted by combining
+            4 glass blocks with 1 orange dye to yield 8 blocks. It shares glass's brittleness, breaking
+            instantly and only dropping when mined with a Silk Touch tool.
+        lore: |
+            A colored pane of light, valued by builders for tinted windows and for shifting the hue of
+            beacon beams stacked above it.
+    faq:
+        - question: How do I get Orange Stained Glass to drop when broken?
+          answer: |
+              You must break it with a tool enchanted with Silk Touch; otherwise it shatters and drops nothing.
+        - question: Can Orange Stained Glass change a beacon's beam color?
+          answer: |
+              Yes, stacking orange stained glass (or its panes) above a beacon tints the beam orange.
+        - question: How is Orange Stained Glass crafted?
+          answer: |
+              Combine 4 glass blocks with 1 orange dye in a crafting grid to produce 8 orange stained glass blocks.
+        - question: Do mobs spawn on Orange Stained Glass?
+          answer: |
+              Generally no, though zombie reinforcements are an exception and can spawn on the block form.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

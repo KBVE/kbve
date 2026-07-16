@@ -1,5 +1,6 @@
 ---
 title: Bedrock
+template: splash
 description: |
     Minecraft Bedrock — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 34
     ref: bedrock
     slug: bedrock
+    content_rev: 1
     display_name: Bedrock
     material: stone
     hardness: -1
@@ -27,7 +29,60 @@ mc_block:
     renewable: false
     diggable: false
     drops: []
-    tags: []
+    tags:
+        - unbreakable
+        - indestructible
+        - world_boundary
+        - creative_only
+    about:
+        description: |
+            Bedrock is an indestructible block that forms the impenetrable
+            boundary of every dimension. With a hardness of -1 and blast
+            resistance of 3,600,000 — the highest in the game — it cannot be
+            broken or obtained in Survival mode and drops nothing.
+        lore: |
+            Bedrock has existed since Classic 0.0.12a in 2009, when Notch
+            first demonstrated it as the "unbreakable" world floor; only its
+            texture has changed over the years.
+    uses:
+        - title: World Boundary
+          detail: |
+              Seals the bottom of the Overworld and the roof and floor of
+              the Nether, keeping players out of the void.
+        - title: Wither Trapping
+          detail: |
+              Its indestructibility makes it ideal for building wither cages
+              and other blast-proof containment.
+        - title: End Portal Frame
+          detail: |
+              Forms the exit portal frame and the pillars atop End spikes
+              that hold End crystals.
+    found_in:
+        - location: Overworld
+          detail: The bottom five layers, Y = -64 to Y = -60.
+        - location: The Nether
+          detail: The top and bottom five layers in a rough pattern.
+        - location: The End
+          detail: Atop obsidian spikes, the exit portal frame, and gateways.
+    faq:
+        - question: Can I break bedrock in Survival?
+          answer: |
+              No. Bedrock cannot be destroyed by mining in Survival — only
+              Creative mode or commands remove it.
+        - question: Does bedrock drop anything?
+          answer: |
+              No. Bedrock drops nothing when destroyed and can only be
+              stacked in Creative mode.
+        - question: Do mobs spawn on bedrock?
+          answer: |
+              No. Mobs do not spawn on bedrock.
+        - question: Can pistons move bedrock?
+          answer: |
+              No. Neither regular nor sticky pistons can affect it.
+        - question: Why is the Nether roof made of bedrock?
+          answer: |
+              It caps the dimension to stop players from building above it,
+              though the roof is reachable in Java Edition for farms.
     data_version: "1.21.5"
 ---
 

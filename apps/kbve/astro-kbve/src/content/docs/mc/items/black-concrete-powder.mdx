@@ -1,5 +1,6 @@
 ---
 title: Black Concrete Powder
+template: splash
 description: |
     Minecraft Black Concrete Powder — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 616
     ref: black_concrete_powder
     slug: black-concrete-powder
+    content_rev: 1
     display_name: Black Concrete Powder
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Black Concrete Powder is a gravity-affected block made by combining black dye with sand and gravel, yielding eight blocks per craft. Like sand and gravel it falls when unsupported, and when it comes into contact with a water block it hardens into solid black concrete. Rain and splash water bottles have no effect, so direct water contact is required.
+        lore: |
+            A restless black dust that obeys gravity until water touches it, then locks forever into stone.
+    faq:
+        - question: How do you craft black concrete powder?
+          answer: |
+            Place black dye with four sand and four gravel in a shapeless recipe on a crafting table to produce eight black concrete powder; red sand cannot be substituted.
+        - question: How do you turn it into concrete?
+          answer: |
+            Let the powder touch a water source, flowing water, or a waterlogged block and it instantly solidifies into black concrete.
+        - question: Does rain harden concrete powder?
+          answer: |
+            No, only direct water contact converts it; rain and splash water bottles will not trigger the change.
+        - question: Is black concrete powder affected by gravity?
+          answer: |
+            Yes, it behaves like sand and gravel, falling when there is no supporting block beneath it.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

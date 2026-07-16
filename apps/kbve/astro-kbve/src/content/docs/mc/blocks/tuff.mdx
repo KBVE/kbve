@@ -1,5 +1,6 @@
 ---
 title: Tuff
+template: splash
 description: |
     Minecraft Tuff — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 943
     ref: tuff
     slug: tuff
+    content_rev: 1
     display_name: Tuff
     material: stone
     hardness: 1.5
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: tuff
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Tuff is an ornamental stone that generates underground in large
+            blob formations, modeled after real volcanic tuff rock formed
+            from compressed ash. It shares tuff's mottled gray look across a
+            growing family of polished, brick, chiseled, slab, stair, and
+            wall variants.
+        lore: |
+            Added in Java Edition 1.17 (Caves & Cliffs), Tuff was originally
+            just an underground decoration before the Trails & Tales update
+            (1.21) expanded it into a full building block set.
+    uses:
+        - title: Polished Tuff
+          ref: polished_tuff
+          detail: |
+              Craft or stonecut Tuff into Polished Tuff, Tuff Bricks,
+              Chiseled Tuff, and their slab/stair/wall forms for building.
+    found_in:
+        - location: Overworld underground, Y=-64 to Y=0
+          detail: Generates in large blob formations, especially below Y=0, with roughly 2 attempts per chunk.
+        - location: Iron ore veins and sulfur springs
+          detail: Also appears embedded in deepslate iron ore veins and near deep dark sulfur spring formations.
+        - location: Trial Chambers
+          detail: Tuff-family blocks and bricks appear as building material and loot in Trial Chamber structures.
+    faq:
+        - question: What tool do I need to mine Tuff?
+          answer: |
+              Any pickaxe. There is no minimum tier requirement.
+        - question: Does Tuff drop itself when mined?
+          answer: |
+              Yes, with any pickaxe, with or without Silk Touch.
+        - question: Where does Tuff generate naturally?
+          answer: |
+              Mostly below Y=0 in large blob formations throughout the
+              Overworld, and alongside iron ore veins in the deep dark
+              region.
+        - question: What can I craft Tuff into?
+          answer: |
+              Polished Tuff, Tuff Bricks, Chiseled Tuff, and their slab,
+              stair, and wall variants, either by crafting or with a
+              Stonecutter.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Stone Brick Slab
+template: splash
 description: |
     Minecraft Stone Brick Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,77 @@ mc_block:
     id: 585
     ref: stone_brick_slab
     slug: stone-brick-slab
+    content_rev: 1
     display_name: Stone Brick Slab
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stone_brick_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wooden_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Stone Brick Slab is the half-height form of Stone Bricks,
+            crafted three at a time or cut two at a time with a
+            stonecutter. Two slabs stacked together form a full Stone Brick
+            block again.
+        lore: |
+            Slabs let builders create half-height steps, thin floors, and
+            detailing that full blocks cannot.
+    uses:
+        - title: Chiseled Stone Bricks
+          ref: chiseled_stone_bricks
+          detail: |
+              Two stone brick slabs stacked in a crafting grid produce a
+              Chiseled Stone Bricks block.
+        - title: Building & Detailing
+          ref: stone_bricks
+          detail: |
+              Common for half-height steps, trim, and stairs-adjacent
+              detailing in stone builds.
+    found_in:
+        - location: Stronghold
+          detail: Generates as flooring and stair detailing throughout strongholds.
+        - location: Ruined Portal
+          detail: Scattered among the portal's stone brick rubble.
+        - location: Crafted or Stonecut
+          detail: |
+              3 Stone Bricks craft into 6 slabs; 1 Stone Brick or Stone cut
+              at a stonecutter yields 2 slabs.
+    faq:
+        - question: What tool do I need to mine a Stone Brick Slab?
+          answer: |
+              At least a wooden pickaxe. Mining without a pickaxe drops
+              nothing.
+        - question: Can I turn two slabs back into a full block?
+          answer: |
+              Yes — placing two stone brick slabs in the same space merges
+              them into a full, solid Stone Bricks-height double slab.
+        - question: Does Silk Touch or Fortune matter for this block?
+          answer: |
+              No. It always drops one slab per slab broken regardless of
+              enchantments.
+        - question: Where can I find Stone Brick Slabs naturally?
+          answer: |
+              They generate in strongholds and ruined portals; otherwise
+              craft or stonecut them from stone or stone bricks.
     data_version: "1.21.5"
 ---
 

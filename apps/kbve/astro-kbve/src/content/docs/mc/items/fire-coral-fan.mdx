@@ -1,5 +1,6 @@
 ---
 title: Fire Coral Fan
+template: splash
 description: |
     Minecraft Fire Coral Fan — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 642
     ref: fire_coral_fan
     slug: fire-coral-fan
+    content_rev: 1
     display_name: Fire Coral Fan
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Fire coral fan is a non-solid decorative block found in coral reef structures in warm oceans. It
+            must remain submerged in water to survive, and mining it without Silk Touch destroys it instead
+            of dropping an item.
+        lore: |
+            A fragile symbol of the ocean's beauty, this delicate coral formation withers without water's nurturing embrace.
+    faq:
+        - question: Can I obtain fire coral fans without Silk Touch?
+          answer: |
+              No. Mining a coral fan without a Silk Touch pickaxe destroys it completely, leaving nothing to
+              collect.
+        - question: Does fire coral fan have to stay underwater?
+          answer: |
+              Yes, it must remain in water to survive, transforming into its dead variant if placed outside
+              of water.
+        - question: Can pistons move fire coral fans?
+          answer: |
+              No. Pistons cannot push coral fans; attempting to do so destroys the block instead.
+        - question: How can I get more fire coral fans without exploring?
+          answer: |
+              Applying bone meal in a warm ocean biome has a chance to generate new coral fans, including the
+              fire variant, making them renewable.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

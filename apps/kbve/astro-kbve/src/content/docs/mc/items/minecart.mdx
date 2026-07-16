@@ -1,5 +1,6 @@
 ---
 title: Minecart
+template: splash
 description: |
     Minecraft Minecart — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 801
     ref: minecart
     slug: minecart
+    content_rev: 1
     display_name: Minecart
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A minecart is a rideable vehicle that travels along rails, carrying players or mobs across
+            long distances at up to 8 blocks per second. It is crafted from 5 iron ingots and can be
+            combined with a chest, furnace, hopper, or TNT to create specialized variants for storage,
+            propulsion, automation, or demolition.
+        lore: |
+            Once a simple storage cart in the earliest days of the game, the minecart grew into the
+            backbone of Minecraft's rail-based transportation networks.
+    faq:
+        - question: How do I make a minecart go faster?
+          answer: |
+              Lay down powered rails to accelerate it with redstone. Minecarts merged together on a
+              straight track also hold their speed better than a single cart.
+        - question: How do I get out of a moving minecart?
+          answer: |
+              Press the sneak key while riding and the minecart will eject you to a safe nearby block.
+        - question: Can a minecart move without rails?
+          answer: |
+              Yes, but only briefly. A minecart can be pushed across open ground, though it decelerates
+              rapidly within a block or two.
+        - question: What special minecart variants can I craft?
+          answer: |
+              Combining a minecart with a chest, furnace, hopper, or TNT creates a storage minecart,
+              a self-propelled minecart, a hopper minecart for automatic item pickup, or an explosive
+              minecart, respectively.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

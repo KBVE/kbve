@@ -1,5 +1,6 @@
 ---
 title: Warped Nylium
+template: splash
 description: |
     Minecraft Warped Nylium — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 34
     ref: warped_nylium
     slug: warped-nylium
+    content_rev: 1
     display_name: Warped Nylium
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Warped Nylium is a variant of netherrack that forms the ground of warped forest
+            biomes, supporting warped fungi and mushrooms at any light level. It spreads onto
+            adjacent netherrack when bone meal is applied, letting players cultivate it artificially.
+        lore: |
+            A cold, cyan crust that clings to blistered netherrack, thriving in a light no
+            ordinary fungus could tolerate.
+    faq:
+        - question: |
+              How do I get Warped Nylium?
+          answer: |
+              It must be mined with Silk Touch, since breaking it normally drops netherrack
+              instead of the nylium block itself.
+        - question: |
+              How do I spread Warped Nylium?
+          answer: |
+              Apply bone meal to netherrack placed next to existing warped nylium with open air
+              above; the netherrack converts into more warped nylium.
+        - question: |
+              Does Warped Nylium decay like grass blocks?
+          answer: |
+              It does not decay underneath water or lava, but it does decay if covered by snow
+              or an opaque block.
+        - question: |
+              Do I need light to grow plants on it?
+          answer: |
+              No, mushrooms and warped fungi can grow on warped nylium at any light level,
+              unlike overworld grass blocks.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

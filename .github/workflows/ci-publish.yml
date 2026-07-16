@@ -53,6 +53,11 @@ on:
 
 permissions: {}
 
+env:
+    CARGO_NET_RETRY: '10'
+    CARGO_NET_TIMEOUT: '60'
+    RUSTUP_MAX_RETRIES: '10'
+
 jobs:
     # ---------------------------------------------------------------------------
     # Queue Guard — fail loudly if this run has been waiting > 2 hours.

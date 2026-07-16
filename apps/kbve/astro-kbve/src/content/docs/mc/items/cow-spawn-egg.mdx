@@ -1,5 +1,6 @@
 ---
 title: Cow Spawn Egg
+template: splash
 description: |
     Minecraft Cow Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1081
     ref: cow_spawn_egg
     slug: cow-spawn-egg
+    content_rev: 1
     display_name: Cow Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Cow Spawn Egg is a Creative-mode-only item that instantly spawns a
+            cow when used on a block surface. It can also be used on a monster
+            spawner to set it to spawn cows, or on an adult cow to spawn a calf.
+        lore: |
+            Like all spawn eggs, it exists purely as a creative and testing tool
+            rather than something found in Survival mode.
+    faq:
+        - question: How do I get a Cow Spawn Egg?
+          answer: |
+              It is only obtainable in Creative mode, from the creative inventory,
+              or via commands; pick-blocking an existing cow also gives one.
+        - question: What happens if I use a Cow Spawn Egg on a monster spawner?
+          answer: |
+              It changes the spawner's mob type to cow, so it will spawn cows going
+              forward.
+        - question: Can I spawn a baby cow with the egg?
+          answer: |
+              Yes, using the spawn egg directly on an adult cow spawns a baby calf
+              instead of an adult.
+        - question: Can I get special-looking cows by naming them before spawning?
+          answer: |
+              Naming a spawn egg on an anvil before use can trigger special mob
+              behaviors for certain names, such as "Johnny" or "jeb_", though most
+              named-mob effects apply to other mob types.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

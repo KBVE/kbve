@@ -1,0 +1,97 @@
+{
+	"name": "kbve-spider",
+	"$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/agones/factorio/mods-src/kbve-spider",
+	"targets": {
+		"test": {
+			"executor": "nx:run-commands",
+			"cache": true,
+			"inputs": [
+				"{projectRoot}/info.json",
+				"{projectRoot}/prototypes/**/*.lua",
+				"{projectRoot}/graphics/**/*.png",
+				"{projectRoot}/tools/test_mod.py",
+				"{projectRoot}/pyproject.toml"
+			],
+			"outputs": [],
+			"options": {
+				"commands": [
+					"uv run --quiet --project . python tools/test_mod.py"
+				],
+				"cwd": "apps/agones/factorio/mods-src/kbve-spider",
+				"parallel": false
+			}
+		},
+		"bake": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": [
+					"uv run --quiet --project . python tools/bake_sheets.py --src ${SPIDER_SRC:-~/Downloads/Spider256} --out graphics/entity/spider"
+				],
+				"cwd": "apps/agones/factorio/mods-src/kbve-spider",
+				"parallel": false
+			}
+		},
+		"package": {
+			"executor": "nx:run-commands",
+			"cache": true,
+			"dependsOn": ["test"],
+			"inputs": [
+				"{projectRoot}/info.json",
+				"{projectRoot}/data.lua",
+				"{projectRoot}/changelog.txt",
+				"{projectRoot}/README.md",
+				"{projectRoot}/prototypes/**/*.lua",
+				"{projectRoot}/graphics/**/*.png",
+				"{projectRoot}/tools/build_zip.py",
+				"{projectRoot}/pyproject.toml"
+			],
+			"outputs": ["{projectRoot}/dist"],
+			"options": {
+				"commands": [
+					"uv run --quiet --project . python tools/build_zip.py"
+				],
+				"cwd": "apps/agones/factorio/mods-src/kbve-spider",
+				"parallel": false
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"dependsOn": ["test"],
+			"options": {
+				"commands": [
+					"uv run --quiet --project . python tools/test_mod.py"
+				],
+				"cwd": "apps/agones/factorio/mods-src/kbve-spider",
+				"parallel": false
+			}
+		},
+		"optimize": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": [
+					"uv run --quiet --project . python tools/optimize_pngs.py"
+				],
+				"cwd": "apps/agones/factorio/mods-src/kbve-spider",
+				"parallel": false
+			}
+		},
+		"clean": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": [
+					"rm -rf dist",
+					"find graphics -name '*.png.opt' -delete"
+				],
+				"cwd": "apps/agones/factorio/mods-src/kbve-spider",
+				"parallel": false
+			}
+		}
+	},
+	"tags": ["scope:factorio", "type:mod", "lang:lua"]
+}

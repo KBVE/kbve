@@ -1,5 +1,6 @@
 ---
 title: Brick
+template: splash
 description: |
     Minecraft Brick — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 963
     ref: brick
     slug: brick
+    content_rev: 1
     display_name: Brick
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Brick is a renewable crafting ingredient obtained by smelting a clay ball in a furnace. It's
+            used to craft brick blocks and flower pots, as a component of decorated pots, and can be
+            bought in bulk from Mason villagers.
+        lore: |
+            A fired lump of clay, the humble building block behind everything from cozy chimneys to sprawling brick mansions.
+    faq:
+        - question: How do you get Bricks?
+          answer: |
+              Smelt a clay ball in a furnace using any fuel, or find them as loot in desert well
+              suspicious sand and trail ruins suspicious gravel, or by breaking decorated pots.
+        - question: What can you craft with Bricks?
+          answer: |
+              Four bricks make a Brick Block, three bricks make a Flower Pot, and bricks combine with
+              pottery sherds to craft Decorated Pots.
+        - question: Can you trade for Bricks?
+          answer: |
+              Yes, Mason villagers sell 10 bricks for 1 emerald as part of their trades.
+        - question: Are Bricks renewable?
+          answer: |
+              Yes, since clay balls can be gathered indefinitely from clay blocks and smelted into
+              bricks, making them a fully renewable resource.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

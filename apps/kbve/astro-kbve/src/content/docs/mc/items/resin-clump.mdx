@@ -1,5 +1,6 @@
 ---
 title: Resin Clump
+template: splash
 description: |
     Minecraft Resin Clump — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 383
     ref: resin_clump
     slug: resin-clump
+    content_rev: 1
     display_name: Resin Clump
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Resin Clump is a sticky decorative material that appears on pale oak wood when
+            a creaking mob is struck at night. It can also be mined from a creaking heart
+            without Silk Touch, found in woodland mansion chests, or crafted back down from a
+            Block of Resin.
+        lore: |
+            The amber-like deposits hint at the strange sap that pale oak trees produce near
+            the watchful creaking guardians of the forest.
+    faq:
+        - question: How do I get Resin Clump?
+          answer: |
+              Attack a creaking mob at night to spawn 2-3 clumps on nearby pale oak wood,
+              mine a creaking heart without Silk Touch, loot woodland mansion chests, or
+              craft one from a Block of Resin.
+        - question: What is Resin Clump used for?
+          answer: |
+              Nine clumps craft into a Block of Resin, and clumps can be smelted into Resin
+              Bricks, which in turn craft into decorative brick stairs, slabs, walls, and
+              chiseled variants.
+        - question: Does Resin Clump stack?
+          answer: |
+              Yes, it stacks up to 64 per slot like most other crafting materials.
+        - question: Can Resin Clump catch fire?
+          answer: |
+              In Java Edition it can ignite from lava contact, but in Bedrock Edition it is
+              not flammable.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

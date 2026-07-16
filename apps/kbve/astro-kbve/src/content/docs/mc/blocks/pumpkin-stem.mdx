@@ -1,5 +1,6 @@
 ---
 title: Pumpkin Stem
+template: splash
 description: |
     Minecraft Pumpkin Stem — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,64 @@ mc_block:
     id: 333
     ref: pumpkin_stem
     slug: pumpkin-stem
+    content_rev: 1
     display_name: Pumpkin Stem
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pumpkin_seeds
+          qty_min: 0
+          qty_max: 3
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - instant_break
+    about:
+        description: |
+            The Pumpkin Stem is the growth stage block for pumpkins,
+            planted on farmland from seeds and bending over once mature
+            to face the pumpkin it produces on adjacent soil.
+        lore: |
+            Its curled, bent texture only appears at full maturity, the
+            visual cue that a pumpkin has grown beside it.
+    uses:
+        - title: Pumpkin Farming
+          ref: pumpkin
+          detail: |
+              A mature stem periodically grows a Pumpkin block on any
+              adjacent farmland-adjacent dirt, grass, mud, or moss block,
+              enabling automatic pumpkin farms.
+    found_in:
+        - location: Farmland
+          detail: Grows from planted Pumpkin Seeds when placed on tilled soil with a light level of 9 or higher.
+        - location: Woodland Mansions and Taiga Villages
+          detail: Occasionally found already planted in these structures' farm plots.
+    faq:
+        - question: What does breaking a Pumpkin Stem drop?
+          answer: |
+              0 to 3 Pumpkin Seeds; the chance of a higher-quantity drop
+              increases as the stem ages toward maturity.
+        - question: Do I need a tool to break it?
+          answer: |
+              No, any tool or bare hands break it instantly since it has 0 hardness.
+        - question: Why isn't my stem growing a pumpkin?
+          answer: |
+              It needs light level 9 or higher and an open dirt, grass,
+              mud, or moss block on one of its four sides; only one
+              pumpkin grows per stem at a time.
+        - question: Is Fortune useful on Pumpkin Stems?
+          answer: |
+              No, Fortune does not affect the seed drop count from breaking a stem.
     data_version: "1.21.5"
 ---
 

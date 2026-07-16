@@ -1,5 +1,6 @@
 ---
 title: Oak Log
+template: splash
 description: |
     Minecraft Oak Log — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 134
     ref: oak_log
     slug: oak-log
+    content_rev: 1
     display_name: Oak Log
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Oak logs are the cylindrical wooden blocks that make up the trunk of oak
+            trees, obtainable by chopping down naturally generated trees with any
+            tool. As a primary crafting resource, each log converts into four oak
+            planks and can also be burned as furnace fuel.
+        lore: |
+            Oak is the first tree most players encounter, making its log the
+            foundation of wooden construction in survival mode.
+    faq:
+        - question: How do you get oak logs?
+          answer: |
+              Break the trunk blocks of an oak tree with any tool; an axe is
+              fastest. Trees generate naturally in most biomes, or a sapling can
+              be planted and grown with bone meal.
+        - question: What is the main crafting use for oak logs?
+          answer: |
+              Placing an oak log in any crafting grid slot yields four oak planks,
+              which in turn unlock recipes for doors, stairs, chests, tools, and
+              many decorative blocks.
+        - question: Can oak logs be used as furnace fuel?
+          answer: |
+              Yes, logs (but not wood stems) can be used as fuel in a furnace,
+              smelting roughly 1.5 items per log burned.
+        - question: What happens when you strip an oak log with an axe?
+          answer: |
+              Using an axe on a log strips its bark, turning it into a stripped
+              oak log. The stripped variant behaves identically but has a
+              different, bark-free appearance.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

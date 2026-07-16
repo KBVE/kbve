@@ -1,5 +1,6 @@
 ---
 title: Podzol
+template: splash
 description: |
     Minecraft Podzol — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 11
     ref: podzol
     slug: podzol
+    content_rev: 1
     display_name: Podzol
     material: dirt
     hardness: 0.5
@@ -26,8 +28,67 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dirt
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: podzol
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+        - dirt
+        - mushroom_grow_block
+    about:
+        description: |
+            Podzol is a dirt-variant block that naturally forms beneath old
+            growth spruce and dark oak trees, most commonly found in old
+            growth taiga and bamboo jungle biomes. It allows mushrooms to
+            be placed on it regardless of light level.
+        lore: |
+            It's modeled on the real-world soil type of the same name,
+            typically found in acidic, nutrient-poor boreal forest floors.
+    uses:
+        - title: Mushroom Farming
+          ref: red_mushroom
+          detail: |
+              Mushrooms can be placed on Podzol at any light level, unlike
+              on regular grass or dirt, making it useful for indoor or
+              well-lit mushroom farms.
+        - title: Dirt Path Conversion
+          ref: dirt_path
+          detail: |
+              A shovel can convert Podzol into a Dirt Path, though it
+              cannot be tilled directly into Farmland.
+    found_in:
+        - location: Old growth taiga and bamboo jungle biomes
+          detail: Generates naturally as the surface soil in these biomes.
+        - location: Beneath large spruce trees
+          detail: Replaces grass or dirt blocks under the canopy when a large (2x2) spruce tree grows from four saplings.
+        - location: Trial chambers
+          detail: Appears around bogged and cave spider spawner rooms.
+    faq:
+        - question: What does Podzol drop without Silk Touch?
+          answer: |
+              Regular Dirt. You need Silk Touch to obtain the Podzol block
+              itself.
+        - question: What's the best tool to mine Podzol?
+          answer: |
+              A shovel breaks it fastest, though it can be mined with any
+              tool or bare hands since no tool tier is required for a drop.
+        - question: Can grass spread onto Podzol?
+          answer: |
+              No. Grass and mycelium cannot spread onto Podzol, and Podzol
+              itself never spreads onto adjacent dirt.
+        - question: Can I farm on Podzol?
+          answer: |
+              Not directly — it cannot be tilled into Farmland. Convert it
+              to a Dirt Path or replace it with Dirt first.
     data_version: "1.21.5"
 ---
 

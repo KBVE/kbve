@@ -1,5 +1,6 @@
 ---
 title: Stripped Jungle Wood
+template: splash
 description: |
     Minecraft Stripped Jungle Wood — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 82
     ref: stripped_jungle_wood
     slug: stripped-jungle-wood
+    content_rev: 1
     display_name: Stripped Jungle Wood
     material: wood
     hardness: 2
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_jungle_wood
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Stripped Jungle Wood is the bark-free, all-sides variant of
+            Jungle Wood, made by crafting four Stripped Jungle Logs
+            together instead of stripping a full wood block directly. It
+            shows the log's exposed ring texture on every face.
+        lore: |
+            Stripped wood variants were added in the 1.16 Nether Update
+            alongside the wood-log block family, giving builders a
+            bark-free look on all six faces rather than just the ends.
+    uses:
+        - title: Jungle Planks
+          ref: jungle_planks
+          detail: |
+              Smelts or crafts down into Jungle Planks (4 per block),
+              usable in any jungle-wood recipe.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Burns as furnace fuel like any wood block, smelting 1.5
+              items per block.
+    found_in:
+        - location: Crafting Table
+          detail: Crafted from 4 Stripped Jungle Logs arranged in a square, yielding 3 Stripped Jungle Wood.
+        - location: Player-stripped Jungle Wood
+          detail: Right-clicking a placed Jungle Wood block with an axe strips it directly into this block.
+    faq:
+        - question: How do I get Stripped Jungle Wood?
+          answer: |
+              Craft 4 Stripped Jungle Logs in a 2x2 square, or use an axe
+              directly on a placed Jungle Wood block.
+        - question: Is Stripped Jungle Wood flammable?
+          answer: |
+              Yes. Like all overworld wood blocks it catches fire and
+              burns, so keep it away from lava and fire sources if
+              building.
+        - question: What tool should I use to mine it?
+          answer: |
+              An axe is fastest, but it can be broken by hand or any tool
+              since it has no minimum tool tier requirement.
+        - question: Does Stripped Jungle Wood have a different texture than the log?
+          answer: |
+              Yes. Stripped wood shows the ringed log texture on all six
+              faces, while stripped logs only show it on the top and
+              bottom.
     data_version: "1.21.5"
 ---
 

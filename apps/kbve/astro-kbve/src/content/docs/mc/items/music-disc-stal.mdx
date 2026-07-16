@@ -1,5 +1,6 @@
 ---
 title: Music Disc
+template: splash
 description: |
     Minecraft Music Disc — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 1240
     ref: music_disc_stal
     slug: music-disc-stal
+    content_rev: 1
     display_name: Music Disc
     category: music
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Music Disc "stal" is a track composed by C418 with a title evoking the
+            stalactites and stalagmites of Minecraft's cave systems. It drops when a
+            creeper is killed by a skeleton, wither skeleton, stray, bogged, or parched mob.
+        lore: |
+            Its title nods to the mineral cave formations that echo Minecraft's
+            underground exploration theme.
+    faq:
+        - question: How do I get the stal music disc?
+          answer: |
+              Kill a creeper with a skeleton, wither skeleton, stray, bogged, or parched
+              mob nearby; stal can drop as part of that loot pool.
+        - question: Who composed the stal track?
+          answer: |
+              Stal was composed by C418, the composer behind most of Minecraft's original
+              music discs.
+        - question: How long does the stal track play?
+          answer: |
+              Stal has a runtime of about 2 minutes and 30 seconds.
+        - question: What comparator signal does stal produce?
+          answer: |
+              Playing stal in a jukebox next to a comparator outputs a signal strength of 8.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Cake with Lime Candle
+template: splash
 description: |
     Minecraft Cake with Lime Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,64 @@ mc_block:
     id: 926
     ref: lime_candle_cake
     slug: lime-candle-cake
+    content_rev: 1
     display_name: Cake with Lime Candle
     material: stone
     hardness: 0.5
     blast_resistance: 0.5
     best_tool: hand
     required_tool_tier: 0
-    light_emission: 0
+    light_emission: 3
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lime_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - not_flammable
+        - candle_cakes
+    about:
+        description: |
+            A cake with a lime candle placed on top combines the candle's
+            decorative lighting with the cake block, but the cake beneath
+            cannot be eaten while the candle sits on it. It mines instantly
+            with any tool.
+        lore: |
+            Candle cakes arrived with candles in Java Edition 1.17,
+            letting players turn a birthday cake into a lit centerpiece.
+    uses:
+        - title: Decorative Lighting
+          ref: lime_candle
+          detail: |
+              When lit with flint and steel or a fire charge, it emits a
+              light level of 3, useful as a low-key light source on tables.
+    found_in:
+        - location: Player-Made
+          detail: Created by using a lime candle on an uneaten cake block.
+    faq:
+        - question: Can I eat a cake with a candle on it?
+          answer: |
+              No, the candle must be removed (by breaking it, which drops
+              the candle) before the cake can be eaten.
+        - question: What does breaking a candle cake drop?
+          answer: |
+              It drops the lime candle only; the cake portion is
+              consumed/lost, not dropped as an item.
+        - question: How much light does a lit candle cake give off?
+          answer: |
+              A light level of 3, the same as a single unstacked candle.
+        - question: Can I stack multiple candles on one cake?
+          answer: |
+              No, a cake can only ever hold one candle at a time, unlike
+              candle blocks which can stack up to four.
     data_version: "1.21.5"
 ---
 

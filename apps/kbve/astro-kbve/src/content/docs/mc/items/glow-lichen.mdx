@@ -1,5 +1,6 @@
 ---
 title: Glow Lichen
+template: splash
 description: |
     Minecraft Glow Lichen — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 382
     ref: glow_lichen
     slug: glow-lichen
+    content_rev: 1
     display_name: Glow Lichen
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Glow Lichen is a non-solid, light-emitting block that grows on cave
+            walls and ceilings, casting light level 7. It can be harvested with
+            shears and spread to adjacent blocks using bone meal.
+        lore: |
+            A quiet, glowing growth that colonizes damp stone, lighting caverns
+            long before any adventurer arrives with a torch.
+    faq:
+        - question: How do I get Glow Lichen?
+          answer: |
+              Break it with shears to collect it as a drop; breaking it with any
+              other tool destroys it without a drop. It also generates naturally
+              in caves on stone, deepslate, and similar blocks near air or water.
+        - question: How much light does Glow Lichen produce?
+          answer: |
+              Each glow lichen block emits a light level of 7, enough to provide
+              modest illumination in caves without being as bright as a torch.
+        - question: Can Glow Lichen spread?
+          answer: |
+              Yes, applying bone meal to a glow lichen block causes it to spread
+              onto adjacent valid surfaces, similar to how vines and other
+              lichen-like blocks propagate.
+        - question: Does Glow Lichen affect water or lava flow?
+          answer: |
+              It can block or redirect water flow since it is a solid-ish
+              obstruction to fluids, but it burns away if exposed to lava or
+              fire since it is flammable.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

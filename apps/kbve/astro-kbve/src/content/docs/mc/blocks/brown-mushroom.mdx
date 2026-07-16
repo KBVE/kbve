@@ -1,5 +1,6 @@
 ---
 title: Brown Mushroom
+template: splash
 description: |
     Minecraft Brown Mushroom — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 171
     ref: brown_mushroom
     slug: brown-mushroom
+    content_rev: 1
     display_name: Brown Mushroom
     material: stone
     hardness: 0
@@ -23,11 +25,61 @@ mc_block:
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brown_mushroom
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - nether
+    about:
+        description: |
+            Brown Mushroom is a small, dim-light-loving fungus that grows
+            in the Overworld and Nether. It emits a faint light and can be
+            grown into a huge mushroom with bone meal on suitable blocks.
+        lore: |
+            The brown mushroom's texture is based on the real-world
+            porcini, Boletus edulis.
+    uses:
+        - title: Mushroom Stew
+          ref: mushroom_stew
+          detail: |
+              Combine with a Red Mushroom and a Bowl to craft Mushroom
+              Stew, a filling food item.
+        - title: Huge Mushroom
+          ref: brown_mushroom_block
+          detail: |
+              Applying bone meal to a Brown Mushroom at light level 12 or
+              below grows it into a huge mushroom, if space allows.
+    found_in:
+        - location: Mushroom Fields Biome
+          detail: Brown mushrooms are extremely common here and can grow on any surface.
+        - location: Dim Overworld Areas
+          detail: Spawns in caves, swamps, and other spots with low light level.
+        - location: The Nether
+          detail: Grows on nylium and other suitable nether blocks.
+    faq:
+        - question: What tool do I need to mine Brown Mushroom?
+          answer: |
+              None. It breaks instantly with any tool or bare hand and
+              always drops itself.
+        - question: Does Brown Mushroom spread on its own?
+          answer: |
+              Yes, it has a small chance to spread to nearby valid blocks
+              on a random tick if fewer than five mushrooms exist nearby.
+        - question: Can bone meal grow Brown Mushroom into a huge mushroom?
+          answer: |
+              Yes, provided the light level is 12 or below and there is
+              enough vertical space above it.
+        - question: Where can I reliably find Brown Mushroom?
+          answer: |
+              Mushroom Fields biome, dark cave interiors, swamps, and
+              nether nylium areas.
     data_version: "1.21.5"
 ---
 

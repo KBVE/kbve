@@ -1,5 +1,6 @@
 ---
 title: Oxidized Cut Copper
+template: splash
 description: |
     Minecraft Oxidized Cut Copper — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 105
     ref: oxidized_cut_copper
     slug: oxidized-cut-copper
+    content_rev: 1
     display_name: Oxidized Cut Copper
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Oxidized Cut Copper is the fully weathered form of cut copper, a decorative block crafted from
+            copper blocks that has passed through all four oxidation stages to reach a teal-green finish.
+            It can be further processed into oxidized slabs, stairs, and chiseled copper variants, and
+            generates naturally in trial chambers alongside its waxed counterpart.
+        lore: |
+            A finely cut copper panel, its crisp lines softened under a teal coat of age-old patina.
+    faq:
+        - question: How is Oxidized Cut Copper made?
+          answer: |
+              Four blocks of copper at any oxidation stage craft four matching cut copper blocks, or a
+              stonecutter can process copper blocks directly into cut copper of the same stage; unwaxed
+              cut copper then weathers naturally over time into the oxidized stage.
+        - question: What can Oxidized Cut Copper be crafted into?
+          answer: |
+              It can be turned into oxidized cut copper slabs (6 per 3 blocks), stairs (4 per 3 blocks),
+              and chiseled copper variants.
+        - question: Can Oxidized Cut Copper stop weathering permanently?
+          answer: |
+              Yes, applying honeycomb waxes it so it no longer oxidizes further; an axe can remove that
+              wax or revert the block one oxidation stage backward.
+        - question: Does lightning affect Oxidized Cut Copper?
+          answer: |
+              Yes, a direct lightning strike fully deoxidizes the block, and nearby unwaxed copper blocks
+              may randomly deoxidize as well.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Honey Bottle
+template: splash
 description: |
     Minecraft Honey Bottle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1288
     ref: honey_bottle
     slug: honey-bottle
+    content_rev: 1
     display_name: Honey Bottle
     category: food
     rarity: common
@@ -22,6 +24,24 @@ mc_item:
         saturation: 14.400001
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A honey bottle is a drinkable food item obtained by using a glass bottle on a beehive or bee nest with a honey level of 5, by crafting glass bottles with a honey block, or as loot from trial chambers vaults. Drinking one restores 6 hunger and 1.2 saturation over 2 seconds while curing poison, and it can also be crafted into a honey block or three sugar.
+        lore: |
+            The only drinkable item capable of restoring hunger, honey bottles bridge the gap between potions and traditional foods in Minecraft's survival economy.
+    faq:
+        - question: Why do bees attack when I harvest honey?
+          answer: |
+              Bees become hostile if disturbed near their nest; placing a campfire within 5 blocks below the nest calms them and prevents aggression while harvesting.
+        - question: Does honey remove all status effects like milk?
+          answer: |
+              No, honey specifically clears poison but leaves other effects intact, unlike milk which clears everything.
+        - question: When was honey added?
+          answer: |
+              Honey bottles debuted in Java Edition's 19w34a snapshot for version 1.15, with poison removal added shortly after in 19w35a.
+        - question: Can I stack honey bottles?
+          answer: |
+              Yes, honey bottles stack up to 16 per slot, making them more practical for storage than single-stack potions.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

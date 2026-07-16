@@ -1,5 +1,6 @@
 ---
 title: Birch Hanging Sign
+template: splash
 description: |
     Minecraft Birch Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 223
     ref: birch_hanging_sign
     slug: birch-hanging-sign
+    content_rev: 1
     display_name: Birch Hanging Sign
     material: wood
     hardness: 1
@@ -26,9 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
-    data_version: "1.21.5"
+    drops:
+        - ref: birch_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Birch Hanging Sign is a decorative, editable-text block that
+            dangles beneath a ceiling block or between posts using chain
+            brackets, rather than standing on the ground like a regular sign.
+        lore: |
+            Hanging signs were added in the Trails & Tales update to give
+            builders a chain-suspended alternative to standing and wall signs.
+    uses:
+        - title: Labeling and Way-Finding
+          ref: birch_hanging_sign
+          detail: |
+              Place text on the sign and optionally dye it or add a glow
+              ink sac for luminous text; wax it with honeycomb to lock the
+              text against further edits.
+        - title: Furnace Fuel
+          ref: birch_hanging_sign
+          detail: |
+              Overworld wood hanging signs can be burned as furnace fuel,
+              smelting four items per sign.
+    found_in:
+        - location: Crafted from Chains and Stripped Birch Logs
+          detail: Two chains plus six stripped birch logs or stems craft six hanging signs at a crafting table.
+        - location: Player-placed decoration
+          detail: Not found in any naturally generated structure; obtained only by crafting.
+    faq:
+        - question: Can a Birch Hanging Sign be edited after placing it?
+          answer: |
+              Yes, by right-clicking it with an empty hand, unless it has
+              been waxed with honeycomb, which locks the text permanently.
+        - question: Does a Birch Hanging Sign burn?
+          answer: |
+              No, it is not flammable itself, though fire can still spread
+              nearby and destroy it indirectly.
+        - question: What does breaking a Birch Hanging Sign drop?
+          answer: |
+              It always drops itself as one item, along with any attached
+              text and dye data being reset.
+        - question: Can I use a Birch Hanging Sign as fuel?
+          answer: |
+              Yes, as long as it is made of Overworld wood; Nether wood
+              hanging signs cannot be used as furnace fuel.
 ---
 
 import MCBlockPanel from '@/components/mcdb/MCBlockPanel.astro';

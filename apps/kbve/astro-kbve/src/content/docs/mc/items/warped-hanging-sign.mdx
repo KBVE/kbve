@@ -1,5 +1,6 @@
 ---
 title: Warped Hanging Sign
+template: splash
 description: |
     Minecraft Warped Hanging Sign — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 949
     ref: warped_hanging_sign
     slug: warped-hanging-sign
+    content_rev: 1
     display_name: Warped Hanging Sign
     category: decoration
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Warped Hanging Sign is a decorative block crafted from Warped Stems and iron
+            chains, letting it dangle from a ceiling block or perch on a self-supporting bracket.
+            Like all signs, it can display up to four lines of custom text, dyed and glowing if desired.
+        lore: |
+            Etched from the pale, gnarled wood of the warped forest, its chains creak faintly
+            with an otherworldly hush.
+    faq:
+        - question: |
+              How do I craft a Warped Hanging Sign?
+          answer: |
+              Combine iron chains with stripped Warped Stems (or Warped Hyphae) in the crafting
+              grid; the recipe yields 6 hanging signs at once.
+        - question: |
+              Can I edit the text after placing it?
+          answer: |
+              Yes, right-click the sign with an empty hand to open the text editor, or use dye
+              and glow ink sacs to recolor and illuminate the text.
+        - question: |
+              Does water or lava destroy a Warped Hanging Sign?
+          answer: |
+              No, hanging signs are not destroyed by water or lava, so they are often used to
+              control or block fluid flow.
+        - question: |
+              Can it be used as furnace fuel?
+          answer: |
+              No, because it is made from Nether wood, the Warped Hanging Sign cannot be burned
+              as furnace fuel, unlike overworld wood signs.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

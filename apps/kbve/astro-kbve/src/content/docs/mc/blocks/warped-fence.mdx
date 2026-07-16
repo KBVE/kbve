@@ -1,5 +1,6 @@
 ---
 title: Warped Fence
+template: splash
 description: |
     Minecraft Warped Fence — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 849
     ref: warped_fence
     slug: warped-fence
+    content_rev: 1
     display_name: Warped Fence
     material: nether
     hardness: 2
@@ -24,10 +26,52 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: warped_fence
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+        - non_flammable
+    about:
+        description: |
+            The Warped Fence is the Nether-wood variant of the fence,
+            crafted from Warped Planks and sticks. It connects to matching
+            fences and gates to form 1.5-block-tall barriers.
+        lore: |
+            Part of the warped wood set added in the Nether Update (1.16),
+            it lets players build fire-proof enclosures inside the Nether.
+    uses:
+        - title: Warped Fence Gate
+          ref: warped_fence_gate
+          detail: |
+              Combine with a Warped Fence Gate to create a walkable opening
+              in an otherwise solid enclosure line.
+    found_in:
+        - location: Crafted
+          detail: Made from four Warped Planks and two sticks at a crafting table, yielding three fences.
+    faq:
+        - question: What is the best tool to mine a Warped Fence?
+          answer: |
+              An axe mines it fastest, though any tool works since it
+              always drops itself regardless of tool used.
+        - question: Does the Warped Fence catch fire from lava?
+          answer: |
+              No. Nether wood fences, unlike Overworld wood fences, are
+              completely non-flammable.
+        - question: Can mobs jump over a Warped Fence?
+          answer: |
+              No. Fences are 1.5 blocks tall, which is enough to keep most
+              mobs and players from jumping over them.
+        - question: Does the Warped Fence connect to Nether brick fences?
+          answer: |
+              No. Wooden fences, including Warped Fence, do not visually
+              connect to Nether Brick Fences.
     data_version: "1.21.5"
 ---
 

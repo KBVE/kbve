@@ -250,6 +250,34 @@ spec:
           allowedRoutes:
               namespaces:
                   from: All
+        - name: https-herbmail
+          protocol: HTTPS
+          port: 443
+          hostname: herbmail.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: herbmail-tls
+                    namespace: herbmail
+          allowedRoutes:
+              namespaces:
+                  from: All
+        - name: https-herbmail-www
+          protocol: HTTPS
+          port: 443
+          hostname: www.herbmail.com
+          tls:
+              mode: Terminate
+              certificateRefs:
+                  - kind: Secret
+                    group: ''
+                    name: herbmail-tls
+                    namespace: herbmail
+          allowedRoutes:
+              namespaces:
+                  from: All
 ---
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute

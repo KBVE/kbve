@@ -1,5 +1,6 @@
 ---
 title: Bamboo
+template: splash
 description: |
     Minecraft Bamboo — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 759
     ref: bamboo
     slug: bamboo
+    content_rev: 1
     display_name: Bamboo
     material: plant
     hardness: 1
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Bamboo is a fast-growing plant block found in jungle biomes,
+            capable of reaching 12 to 16 blocks tall. Any sword breaks it
+            instantly, making it the quickest way to clear a bamboo thicket.
+        lore: |
+            Announced at MINECON Earth 2018, bamboo was added in Java
+            Edition 1.14 alongside the panda mob it feeds.
+    uses:
+        - title: Scaffolding
+          ref: scaffolding
+          detail: |
+              Combine bamboo with string to craft scaffolding, a
+              climbable, temporary building aid.
+        - title: Bamboo Planks
+          ref: bamboo_planks
+          detail: |
+              Bamboo can be crafted into planks, blocks of bamboo, sticks,
+              and the full bamboo wood building set.
+        - title: Panda Breeding
+          ref: bamboo
+          detail: |
+              Feeding pandas bamboo lets players breed them and grow baby
+              pandas.
+    found_in:
+        - location: Jungle biomes
+          detail: Generates naturally on grass and dirt throughout jungles and bamboo jungles.
+        - location: Jungle pyramids and shipwrecks
+          detail: Found as loot in chests within these structures.
+    faq:
+        - question: What is the fastest way to break bamboo?
+          answer: |
+              Any sword breaks bamboo instantly, though an axe is the
+              nominal best tool for mining speed calculations.
+        - question: Does bamboo need a specific tool to drop?
+          answer: |
+              No. It can be broken by hand or any tool and always drops
+              itself.
+        - question: Is bamboo affected by Fortune or Silk Touch?
+          answer: |
+              No, bamboo always drops exactly one bamboo item regardless of
+              enchantments.
+        - question: Why does bamboo sometimes drop as a stack when broken low?
+          answer: |
+              Breaking the bottom-most bamboo block in a stalk causes the
+              entire column above it to break and drop as separate items.
     data_version: "1.21.5"
 ---
 

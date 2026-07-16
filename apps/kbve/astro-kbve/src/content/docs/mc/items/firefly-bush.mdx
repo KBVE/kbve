@@ -1,5 +1,6 @@
 ---
 title: Firefly Bush
+template: splash
 description: |
     Minecraft Firefly Bush — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 208
     ref: firefly_bush
     slug: firefly-bush
+    content_rev: 1
     display_name: Firefly Bush
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Firefly Bush is a decorative plant that emits glowing firefly
+            particles and ambient buzzing sounds once night falls, without actually
+            producing light. It generates naturally near water in most Overworld
+            biomes, spreads freely in swamps, and can be bought from wandering
+            traders or spread with bone meal.
+        lore: |
+            A scrapped firefly mob concept reborn as a bush that brings the night alive with light.
+    faq:
+        - question: Does a Firefly Bush actually light up the area?
+          answer: |
+              No, its particles glow visually but produce no real light level, so it
+              is purely decorative.
+        - question: Where can I plant a Firefly Bush?
+          answer: |
+              On soil-type blocks such as grass, dirt, podzol, mud, or moss, ideally
+              with open sky above so it can trigger its night effects.
+        - question: Can I get more Firefly Bushes without finding new ones?
+          answer: |
+              Yes, applying bone meal to an existing bush spreads it to adjacent
+              valid blocks, and it can also be bought from wandering traders for 3
+              emeralds.
+        - question: When does the Firefly Bush make sound?
+          answer: |
+              It buzzes ambiently at night, between ticks 12600 and 23400, as long as
+              no solid block sits directly above it.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

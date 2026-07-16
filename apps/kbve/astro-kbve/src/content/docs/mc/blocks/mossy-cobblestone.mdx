@@ -1,5 +1,6 @@
 ---
 title: Mossy Cobblestone
+template: splash
 description: |
     Minecraft Mossy Cobblestone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,81 @@ mc_block:
     id: 179
     ref: mossy_cobblestone
     slug: mossy-cobblestone
+    content_rev: 1
     display_name: Mossy Cobblestone
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mossy_cobblestone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Mossy Cobblestone is a decorative variant of cobblestone flecked
+            with moss, giving it an aged, overgrown look. It behaves exactly
+            like regular cobblestone in terms of mining and physics, differing
+            only in appearance.
+        lore: |
+            It first appeared as a natural feature of jungle temples and
+            dungeons before becoming craftable with vines or moss blocks in
+            later updates.
+    uses:
+        - title: Mossy Cobblestone Slab
+          ref: mossy_cobblestone_slab
+          detail: |
+              Craft three Mossy Cobblestone in a row for six slabs, or cut one
+              block on a stonecutter for two slabs.
+        - title: Mossy Cobblestone Stairs
+          ref: mossy_cobblestone_stairs
+          detail: |
+              Craft six Mossy Cobblestone in a staircase pattern for four
+              stairs, or cut one block on a stonecutter for one stair.
+        - title: Mossy Cobblestone Wall
+          ref: mossy_cobblestone_wall
+          detail: |
+              Craft six Mossy Cobblestone in a row for six walls, or cut one
+              block on a stonecutter for one wall.
+    found_in:
+        - location: Jungle temples and dungeons
+          detail: Generates naturally as part of these overgrown structures.
+        - location: Pillager outposts and ocean ruins
+          detail: Also found in outpost towers, abandoned villages, and cold ocean ruins.
+        - location: Crafted with Vines or Moss
+          detail: Cobblestone combined with Vines or a Moss Block yields Mossy Cobblestone, making it fully renewable.
+    faq:
+        - question: What tool do I need to mine Mossy Cobblestone?
+          answer: |
+              Any pickaxe, wood tier or better. Mining it by hand or with the
+              wrong tool drops nothing.
+        - question: Is Mossy Cobblestone renewable?
+          answer: |
+              Yes. Combining Cobblestone with Vines or a Moss Block in a
+              crafting grid produces Mossy Cobblestone.
+        - question: Does Silk Touch or Fortune affect its drops?
+          answer: |
+              No. It always drops itself as a single block regardless of
+              enchantments.
+        - question: What is Mossy Cobblestone used for?
+          answer: |
+              Mostly decorative building, giving structures an aged or
+              overgrown look. It also crafts into matching slabs, stairs, and
+              walls.
     data_version: "1.21.5"
 ---
 

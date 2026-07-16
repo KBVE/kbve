@@ -21,7 +21,7 @@ jsonld:
           answer: The image tag is pinned across every manifest listed in the deployment_yamls frontmatter field, and all of them auto-bump on each publish via the post-publish version sync.
 pipeline: docker
 app_name: kbve-kubectl
-version: "0.1.5"
+version: "0.1.6"
 source_path: apps/vm/kubectl
 version_toml: apps/vm/kubectl/version.toml
 version_target: apps/vm/kubectl/Cargo.toml
@@ -35,6 +35,7 @@ deployment_yamls:
     - apps/kube/kubevirt/keda/scaled-jobs.yaml
     - apps/kube/agones/factorio/manifests/rotation-deployment.yaml
     - apps/kube/namespace/manifests/pod-gc-cronjob.yaml
+    - apps/kube/ca-staleness-monitor/manifests/ca-staleness-monitor.yaml
     - apps/kube/crossplane/providers/s3-healthcheck-cronjob.yaml
     - apps/kube/github/runners/manifests/runner-reaper.yaml
     - apps/kube/forgejo/manifest/forgejo-oauth-register-job.yaml

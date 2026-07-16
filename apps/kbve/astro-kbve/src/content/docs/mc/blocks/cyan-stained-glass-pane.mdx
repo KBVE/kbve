@@ -1,5 +1,6 @@
 ---
 title: Cyan Stained Glass Pane
+template: splash
 description: |
     Minecraft Cyan Stained Glass Pane — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,64 @@ mc_block:
     id: 477
     ref: cyan_stained_glass_pane
     slug: cyan-stained-glass-pane
+    content_rev: 1
     display_name: Cyan Stained Glass Pane
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cyan_stained_glass_pane
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - needs_silk_touch
+    about:
+        description: |
+            Cyan Stained Glass Pane is a thin, transparent decorative block
+            that offers about 2.67 times more coverage per unit of glass than
+            full stained glass blocks. It only drops when mined with Silk
+            Touch.
+        lore: |
+            Glass panes were added as a material-efficient alternative to
+            stained glass blocks for window and fence-style builds.
+    uses:
+        - title: Windows and dividers
+          ref: cyan_stained_glass_pane
+          detail: |
+              Connects to adjacent panes and blocks, forming thin colored
+              window frames without the material cost of full glass blocks.
+    found_in:
+        - location: Crafting table
+          detail: Craft from 4 glass panes plus cyan dye (8 panes), or 6 cyan stained glass blocks (16 panes).
+        - location: Trail ruins loot
+          detail: Some colored panes appear in Trail Ruins structure loot chests.
+    faq:
+        - question: Do I need Silk Touch to pick up Cyan Stained Glass Pane?
+          answer: |
+              Yes. Without Silk Touch it breaks and drops nothing.
+        - question: What tool is best for mining it?
+          answer: |
+              Any tool works equally well since it has no assigned best tool
+              and very low hardness (0.3).
+        - question: Can spiders pass through a row of these panes?
+          answer: |
+              Yes, if there is a one-block gap between two panes, spiders can
+              still climb through the opening.
+        - question: How is Cyan Stained Glass Pane different from Cyan Stained Glass?
+          answer: |
+              Panes are thinner, non-solid, and give more coverage per
+              crafting ingredient, but function the same visually.
     data_version: "1.21.5"
 ---
 

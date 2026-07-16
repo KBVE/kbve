@@ -1,5 +1,6 @@
 ---
 title: Redstone Comparator
+template: splash
 description: |
     Minecraft Redstone Comparator — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,78 @@ mc_block:
     id: 441
     ref: comparator
     slug: comparator
+    content_rev: 1
     display_name: Redstone Comparator
     material: redstone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: comparator
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - redstone_component
+    about:
+        description: |
+            Redstone Comparator is a redstone logic component that reads,
+            compares, or subtracts signal strength, including the fill level
+            of chests, cauldrons, and other container blocks. It instantly
+            breaks when mined and always returns itself.
+        lore: |
+            Dinnerbone introduced the comparator in December 2012 as a
+            replacement for an earlier "capacitor" concept, debuting in
+            snapshot 13w01a for Java Edition 1.5.
+    uses:
+        - title: Crafting
+          ref: redstone
+          detail: |
+              Crafted from 3 Redstone Torches, 1 Nether Quartz, and 3 Stone
+              arranged on a crafting table.
+        - title: Comparison and subtraction mode
+          ref: comparator
+          detail: |
+              Right-clicking toggles between comparison mode (outputs the
+              stronger of two side inputs) and subtraction mode (rear signal
+              minus side signal), enabling complex redstone logic.
+        - title: Container level detection
+          ref: comparator
+          detail: |
+              Placed facing a chest, barrel, or hopper, it outputs a signal
+              proportional to how full the container is, powering item
+              sorters and storage indicators.
+    found_in:
+        - location: Crafted only
+          detail: Does not generate naturally; must be crafted using Redstone, Nether Quartz, and Stone.
+    faq:
+        - question: What tool do I need to mine a Comparator?
+          answer: |
+              None. It instant-mines with any tool or bare hands and always
+              drops itself.
+        - question: What ingredients craft a Comparator?
+          answer: |
+              Three Redstone Torches, one Nether Quartz, and three Stone
+              blocks arranged in the standard comparator recipe.
+        - question: What's the difference between comparison and subtraction mode?
+          answer: |
+              Comparison mode outputs the larger of the rear or side signal;
+              subtraction mode outputs the rear signal minus the strongest
+              side signal.
+        - question: Can a Comparator read container contents?
+          answer: |
+              Yes. Facing a chest, barrel, hopper, or similar container, it
+              outputs a signal strength proportional to how full that
+              container is.
     data_version: "1.21.5"
 ---
 

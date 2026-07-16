@@ -1,5 +1,6 @@
 ---
 title: Granite
+template: splash
 description: |
     Minecraft Granite — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 2
     ref: granite
     slug: granite
+    content_rev: 1
     display_name: Granite
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Granite is an igneous rock block that generates in large ore veins underground throughout the Overworld, sharing the same blast resistance as stone. It is primarily used as a decorative and structural building material, and can be crafted into polished granite, slabs, stairs, and walls, or cut using a stonecutter.
+        lore: |
+            Granite rock comes from underground magma chambers that turned cold, valued by builders for its distinctive mottled reddish-pink appearance.
+    faq:
+        - question: How do I make granite?
+          answer: |
+              Combine one diorite block with one nether quartz in a crafting grid.
+        - question: What pickaxe do I need to mine granite?
+          answer: |
+              A wooden pickaxe or better is required; without one, the block drops nothing.
+        - question: Can I trade granite with villagers?
+          answer: |
+              Yes, Journeyman-level Mason villagers buy 16 granite for 1 emerald.
+        - question: What's the difference between granite and diorite?
+          answer: |
+              Diorite has less quartz mixed in than granite; granite itself is made by adding nether quartz to diorite.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

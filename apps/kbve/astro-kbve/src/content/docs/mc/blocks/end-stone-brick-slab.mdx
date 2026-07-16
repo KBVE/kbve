@@ -1,7 +1,9 @@
 ---
 title: End Stone Brick Slab
+template: splash
 description: |
-    Minecraft End Stone Brick Slab — vanilla 1.21.5 block record (auto-generated).
+    Minecraft End Stone Brick Slab — a decorative half-height slab
+    crafted from End Stone Bricks.
 sidebar:
     label: End Stone Brick Slab
     hidden: true
@@ -13,12 +15,13 @@ mc_block:
     id: 783
     ref: end_stone_brick_slab
     slug: end-stone-brick-slab
+    content_rev: 1
     display_name: End Stone Brick Slab
     material: end
     hardness: 3
     blast_resistance: 9
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +29,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: end_stone_brick_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+    about:
+        description: |
+            The End Stone Brick Slab is a half-height decorative block
+            crafted from End Stone Bricks. It shares its parent block's
+            pale, weathered appearance and can be stacked into a full
+            block when placed as a double slab.
+        lore: |
+            Introduced alongside the other stone brick slabs in Java
+            Edition 1.14 (18w43a), with its hardness later increased
+            from 2 to 3 to match the full brick block.
+    uses:
+        - title: Decorative Building
+          ref: end_stone_bricks
+          detail: |
+              Used for half-height steps, borders, and detailing in
+              builds that reuse the pale, sandy tone of End Stone.
+    found_in:
+        - location: Crafting
+          detail: Craft 3 End Stone Bricks in a row to yield 6 End Stone Brick Slabs.
+    faq:
+        - question: What tool do I need to mine an End Stone Brick Slab?
+          answer: |
+              Any pickaxe, wood or better. Mining without a pickaxe
+              breaks it but yields no drop.
+        - question: How do I craft End Stone Brick Slabs?
+          answer: |
+              Place 3 End Stone Bricks in a horizontal row in a crafting
+              grid to get 6 slabs.
+        - question: Does placing two slabs make a full block?
+          answer: |
+              Yes. Two End Stone Brick Slabs stacked in the same
+              position combine into a full End Stone Bricks-textured
+              double slab block.
+        - question: Is the slab waterloggable?
+          answer: |
+              Yes. Like other slabs, it can hold water when placed in a
+              body of water, without letting the water flow out.
     data_version: "1.21.5"
 ---
 

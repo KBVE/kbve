@@ -1,5 +1,6 @@
 ---
 title: Purpur Slab
+template: splash
 description: |
     Minecraft Purpur Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 591
     ref: purpur_slab
     slug: purpur-slab
+    content_rev: 1
     display_name: Purpur Slab
     material: end
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: purpur_slab
+          qty_min: 1
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - the_end
+        - renewable
+    about:
+        description: |
+            Purpur Slab is a half-height variant of Purpur Block, placeable
+            as a bottom, top, or double slab. It is waterloggable and
+            commonly used for roofing and detail work in End-themed builds.
+        lore: |
+            Purpur Slab was first revealed by Jeb on Instagram on June 22,
+            2015, alongside the other purpur family blocks.
+    uses:
+        - title: Purpur Pillar
+          ref: purpur_pillar
+          detail: |
+              Stack 2 Purpur Slabs in a crafting grid to make 1 Purpur
+              Pillar.
+    found_in:
+        - location: End cities
+          detail: Generates as roofing, ledges, and decorative trim throughout End city structures.
+        - location: End ships
+          detail: Used for detail work and half-height platforms aboard the End ship.
+    faq:
+        - question: How do I craft Purpur Slab?
+          answer: |
+              Craft 3 Purpur Blocks (or pillars) in a horizontal row for 6
+              Purpur Slabs, or cut 1 block into 2 slabs with a stonecutter.
+        - question: Does placing two slabs make a full block?
+          answer: |
+              Yes, placing a slab on top of a matching bottom slab combines
+              them into a full double-slab block, dropping 2 slabs if
+              broken.
+        - question: Is Purpur Slab waterloggable?
+          answer: |
+              Yes, it can hold water when placed in a water source, keeping
+              the water contained.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, starting from wooden tier; mining without one
+              yields no drop.
     data_version: "1.21.5"
 ---
 

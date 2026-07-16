@@ -1,0 +1,40 @@
+---
+title: 'Circuit Jacket'
+template: splash
+sidebar:
+    label: 'Circuit Jacket'
+    hidden: true
+description: |
+    A padded utility jacket threaded with dead circuitry that still glows when it rains. Warm, tough, and louder in color than in fact.
+ref: 'circuit-jacket'
+key: 619
+id: '01KXFBEGM2N7Q99WN237XBRPC1'
+name: 'Circuit Jacket'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'uncommon'
+buy_price: 95
+emoji: '🧥'
+img: '/assets/items/equipment/circuit-jacket.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'SCFI09'
+  nodes:
+    - 'SCFI09_TORS'
+  slot_keys:
+    - 'TORS'
+equipment:
+  slot: 'chest'
+  bonuses:
+    armor: 1
+    extra:
+      weight: 2
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

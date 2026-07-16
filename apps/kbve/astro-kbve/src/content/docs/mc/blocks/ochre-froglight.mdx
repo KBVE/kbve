@@ -1,5 +1,6 @@
 ---
 title: Ochre Froglight
+template: splash
 description: |
     Minecraft Ochre Froglight — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,64 @@ mc_block:
     id: 1086
     ref: ochre_froglight
     slug: ochre-froglight
+    content_rev: 1
     display_name: Ochre Froglight
     material: stone
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 15
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: ochre_froglight
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Ochre Froglight is a bright, non-flammable light source
+            produced when a warm-variant frog eats a magma cube. It
+            emits full light level 15 and can be oriented on any axis
+            like a log.
+        lore: |
+            Froglights reference the developer's note that "small magma
+            cubes are mistaken for small slimes by frogs," turning an
+            odd behavior quirk into a craftable-adjacent light block.
+    uses:
+        - title: Decorative Lighting
+          ref: ochre_froglight
+          detail: |
+              Placed as a warm-toned maximum-brightness light source
+              that also melts nearby snow and ice within a few blocks.
+    found_in:
+        - location: Frog Eats Magma Cube
+          detail: A warm (orange) frog eating a small magma cube drops one ochre froglight.
+        - location: Warm Ocean / Swamp Frog Breeding
+          detail: Bred by luring warm frogs near tiny magma cubes, often farmed near basalt deltas for a magma cube source.
+    faq:
+        - question: What tool do I need to mine Ochre Froglight?
+          answer: |
+              None required — any tool works equally, including bare
+              hands, and it always drops itself.
+        - question: How do I get an Ochre Froglight?
+          answer: |
+              Lure a warm (orange) frog to eat a tiny magma cube; the
+              frog then produces one ochre froglight.
+        - question: Does Ochre Froglight burn?
+          answer: |
+              No. It is non-flammable and immune to fire and lava.
+        - question: Can Ochre Froglight be rotated?
+          answer: |
+              Yes. Like logs, it can be oriented along the x, y, or z
+              axis depending on how it is placed.
     data_version: "1.21.5"
 ---
 

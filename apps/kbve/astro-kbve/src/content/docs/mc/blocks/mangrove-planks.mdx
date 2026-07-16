@@ -1,5 +1,6 @@
 ---
 title: Mangrove Planks
+template: splash
 description: |
     Minecraft Mangrove Planks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 22
     ref: mangrove_planks
     slug: mangrove-planks
+    content_rev: 1
     display_name: Mangrove Planks
     material: wood
     hardness: 2
@@ -24,10 +26,55 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mangrove_planks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Mangrove Planks are the refined building block crafted from
+            mangrove wood, used for construction, furniture, and as a fuel
+            source in furnaces.
+        lore: |
+            Mangrove Planks were introduced in Java Edition 1.19 alongside
+            the mangrove swamp biome and its distinctive wood set.
+    uses:
+        - title: Mangrove Stairs, Slabs, Doors & Fences
+          ref: mangrove_stairs
+          detail: |
+              Crafts into the full mangrove furniture set — stairs, slabs,
+              fences, gates, doors, trapdoors, and signs.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: Each plank smelts 1.5 items as furnace fuel.
+    found_in:
+        - location: Crafted from Mangrove Log
+          detail: One Mangrove Log crafts into four Mangrove Planks.
+    faq:
+        - question: What is the best tool to mine Mangrove Planks?
+          answer: |
+              An axe is fastest, though the block can be broken with any
+              tool or by hand since there is no tool tier requirement.
+        - question: Can Mangrove Planks burn?
+          answer: |
+              Yes, they are flammable and will catch fire from lava or
+              nearby flames.
+        - question: How do I get Mangrove Planks?
+          answer: |
+              Craft them from Mangrove Logs, Wood, or Stripped Mangrove Log
+              in a crafting grid — one log yields four planks.
+        - question: Can Mangrove Planks be used as furnace fuel?
+          answer: |
+              Yes, like other Overworld wood planks each one smelts 1.5
+              items when used as fuel.
     data_version: "1.21.5"
 ---
 

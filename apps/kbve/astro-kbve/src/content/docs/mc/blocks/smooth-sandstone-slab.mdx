@@ -1,5 +1,6 @@
 ---
 title: Smooth Sandstone Slab
+template: splash
 description: |
     Minecraft Smooth Sandstone Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 784
     ref: smooth_sandstone_slab
     slug: smooth-sandstone-slab
+    content_rev: 1
     display_name: Smooth Sandstone Slab
     material: stone
     hardness: 2
@@ -26,8 +28,45 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: smooth_sandstone_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Smooth Sandstone Slab is a half-height decorative block cut from
+            Smooth Sandstone. It places as a bottom, top, or waterlogged
+            slab and is a common find inside desert village houses.
+        lore: |
+            Part of the smooth sandstone set added in Java Edition 1.14,
+            later showing up as village building trim.
+    found_in:
+        - location: Desert villages
+          detail: Generates as roofing and trim on desert village houses.
+        - location: Crafted from Smooth Sandstone
+          detail: Three Smooth Sandstone blocks craft into six slabs, or one block yields two slabs via a stonecutter.
+    faq:
+        - question: What tool do I need to mine Smooth Sandstone Slab?
+          answer: |
+              Any pickaxe works — there is no minimum tier requirement for
+              the drop.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one slab per half-slab broken,
+              regardless of enchantments.
+        - question: Where can I find Smooth Sandstone Slab without crafting it?
+          answer: |
+              Desert villages generate it as part of house roofs and
+              decorative trim.
+        - question: How do I craft it?
+          answer: |
+              Craft three Smooth Sandstone into six slabs, or stonecut one
+              block into two slabs.
     data_version: "1.21.5"
 ---
 

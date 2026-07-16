@@ -1,5 +1,6 @@
 ---
 title: Rail
+template: splash
 description: |
     Minecraft Rail — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 798
     ref: rail
     slug: rail
+    content_rev: 1
     display_name: Rail
     category: redstone
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Rail is a track block used to guide minecarts across the world. It is
+            crafted from iron ingots and a stick, and automatically orients itself
+            into straight or curved sections depending on the surrounding rails and
+            terrain.
+        lore: |
+            A network of ordinary rails paired with occasional powered rails lets
+            minecarts travel efficiently across long automated transit lines.
+    faq:
+        - question: How do I craft Rail?
+          answer: |
+              Combine 6 iron ingots and 1 stick in a crafting grid to produce 16
+              rails.
+        - question: Where can Rail be placed?
+          answer: |
+              Rails can be placed on full blocks, hoppers, top slabs, upside-down
+              stairs, and top trapdoors, automatically connecting to adjacent rails.
+        - question: How many powered rails do I need for a minecart line?
+          answer: |
+              An empty minecart needs about 7 powered rails to reach full speed from
+              a stop, then 1 powered rail after every 3 regular rails to maintain it.
+        - question: Can mobs walk onto rails?
+          answer: |
+              In Java Edition, spiders, cave spiders, and wardens are the only mobs
+              that freely walk onto rails; most others avoid them.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

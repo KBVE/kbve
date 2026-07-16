@@ -1,5 +1,6 @@
 ---
 title: Soul Torch
+template: splash
 description: |
     Minecraft Soul Torch — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 277
     ref: soul_torch
     slug: soul-torch
+    content_rev: 1
     display_name: Soul Torch
     material: nether
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 10
     light_opacity: 0
@@ -26,8 +27,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: soul_torch
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - light_source
+        - nether
+    about:
+        description: |
+            The Soul Torch is a light source that burns with a teal soul flame
+            and sits on top of a block. It emits a light level of 10 — dimmer
+            than a normal torch — and breaks instantly, dropping itself. It is
+            crafted by adding soul soil or soul sand to a regular torch recipe.
+        lore: |
+            Lit from the restless souls of the Nether, its cold blue fire wards
+            off the piglins that roam those wastes.
+    uses:
+        - title: Piglin Repellent
+          ref: soul_torch
+          detail: |
+              Placing soul torches near a build repels regular piglins (though
+              not piglin brutes), letting you work in the Nether without
+              provoking them.
+        - title: Dim Lighting
+          ref: soul_torch
+          detail: |
+              Provides atmospheric teal illumination at light level 10, useful
+              for decorative builds where a full-brightness torch would look
+              too harsh.
+    found_in:
+        - location: Ancient Cities
+          detail: Generates in ancient city chests, 1–15 per chest in the deep dark.
+        - location: Crafting Table
+          detail: Craft coal or charcoal on a stick over soul soil or soul sand for four torches.
+    faq:
+        - question: How is a Soul Torch different from a regular torch?
+          answer: |
+              A soul torch emits light level 10 instead of 14, glows teal
+              instead of orange, and requires soul soil or soul sand to craft.
+        - question: Do Soul Torches repel piglins?
+          answer: |
+              Yes. Regular piglins avoid soul torches and soul fire, but piglin
+              brutes ignore them.
+        - question: Can a Soul Torch melt ice or snow?
+          answer: |
+              No. Its light level of 10 is below the level 12 threshold needed
+              to melt snow or ice.
+        - question: What tool mines a Soul Torch?
+          answer: |
+              Any tool or your bare hand breaks it instantly, and it always
+              drops itself as an item.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Dead Fire Coral
+template: splash
 description: |
     Minecraft Dead Fire Coral — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,59 @@ mc_block:
     id: 728
     ref: dead_fire_coral
     slug: dead-fire-coral
+    content_rev: 1
     display_name: Dead Fire Coral
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: pickaxe
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dead_fire_coral
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - ocean
+    about:
+        description: |
+            Dead Fire Coral is the gray, lifeless plant form of fire coral,
+            standing upright as a single-block decoration in and out of
+            water. It breaks instantly but only drops itself with Silk Touch.
+        lore: |
+            Coral plants and their dead counterparts were added alongside
+            coral blocks and fans in the Update Aquatic (1.13).
+    found_in:
+        - location: Bedrock Edition warm ocean reefs
+          detail: Naturally generates as part of coral reef structures, Bedrock Edition only.
+        - location: Bleached live coral
+          detail: Placing live fire coral outside of water kills it, turning it into Dead Fire Coral within a few seconds.
+    faq:
+        - question: Why did my coral turn gray?
+          answer: |
+              Living coral dies and bleaches into its dead variant if it is
+              not touching water, including when the water source around it
+              is removed.
+        - question: Can it be revived?
+          answer: |
+              No. There is no way to convert dead coral back into a living
+              coral plant.
+        - question: What drops without Silk Touch?
+          answer: |
+              Nothing. Mining Dead Fire Coral with a non-Silk Touch tool
+              destroys it with no item drop.
+        - question: Can pistons move it?
+          answer: |
+              In Java Edition, dead coral can be pushed by a piston as long
+              as it remains supported after the move.
     data_version: "1.21.5"
 ---
 

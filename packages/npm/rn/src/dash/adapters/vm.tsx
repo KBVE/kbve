@@ -181,7 +181,7 @@ export function createVMStream(opts: VMStreamOptions): StreamStore<VMItem> {
 		namespace = 'angelscript',
 	} = opts;
 
-	return createStreamSource<never, VMItem>({
+	return createStreamSource<VMItem, VMItem>({
 		key: `vm:${namespace}`,
 		pollMs,
 		cacheTtlMs: 30_000,

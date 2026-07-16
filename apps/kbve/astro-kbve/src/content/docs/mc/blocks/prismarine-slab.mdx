@@ -1,5 +1,6 @@
 ---
 title: Prismarine Slab
+template: splash
 description: |
     Minecraft Prismarine Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 501
     ref: prismarine_slab
     slug: prismarine-slab
+    content_rev: 1
     display_name: Prismarine Slab
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: prismarine_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - slab
+    about:
+        description: |
+            Prismarine Slab is a decorative half-height variant of plain
+            Prismarine, used for trim and detail work. It does not
+            generate naturally and is only obtained by crafting.
+        lore: |
+            The cyan, faintly crystalline material comes from prismarine
+            shards harvested from drowned mobs, echoing the deep-sea
+            architecture of ocean monuments.
+    uses:
+        - title: Decorative Trim
+          ref: prismarine_slab
+          detail: |
+              Used for half-steps, capping walls, and adding detail lines
+              in aquatic or monument-themed builds.
+    found_in:
+        - location: Crafted from Prismarine
+          detail: 3 Prismarine blocks craft 6 slabs; a stonecutter converts 1 block into 2 slabs.
+    faq:
+        - question: What tool do I need to mine Prismarine Slab?
+          answer: |
+              Any pickaxe, wood tier or higher. Without a pickaxe the slab
+              breaks with no drop.
+        - question: Does Prismarine Slab generate naturally?
+          answer: |
+              No. It's a crafted-only decorative block and doesn't appear
+              in ocean monuments or other generated structures.
+        - question: How do I craft Prismarine Slabs?
+          answer: |
+              Place 3 Prismarine blocks in a horizontal row in a crafting
+              grid for 6 slabs, or cut 1 block into 2 slabs with a
+              stonecutter.
+        - question: Does Silk Touch affect the drop?
+          answer: |
+              No. Prismarine Slab always drops itself when mined with any
+              pickaxe.
     data_version: "1.21.5"
 ---
 

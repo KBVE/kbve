@@ -1,5 +1,6 @@
 ---
 title: Cyan Concrete Powder
+template: splash
 description: |
     Minecraft Cyan Concrete Powder — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 610
     ref: cyan_concrete_powder
     slug: cyan-concrete-powder
+    content_rev: 1
     display_name: Cyan Concrete Powder
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Cyan Concrete Powder is a gravity-affected block crafted from cyan dye, sand, and gravel.
+            It falls like sand until it comes into direct contact with water, at which point it
+            instantly solidifies into solid Cyan Concrete.
+        lore: |
+            First teased by developer Jeb in 2017 as a mysterious color-shifting powder, it was later
+            added to the game as a renewable, water-reactive building block.
+    faq:
+        - question: How do I craft Cyan Concrete Powder?
+          answer: |
+              Combine 1 cyan dye, 4 sand, and 4 gravel in a shapeless crafting recipe to produce 8
+              Cyan Concrete Powder blocks.
+        - question: How does Cyan Concrete Powder turn into Cyan Concrete?
+          answer: |
+              It converts to solid Cyan Concrete the instant it touches a water source, flowing water,
+              or a waterlogged block. Rain and splash water bottles do not trigger the conversion.
+        - question: Does Cyan Concrete Powder fall like sand?
+          answer: |
+              Yes, it is gravity-affected and falls until it lands on a solid block, at which point it
+              stays as powder unless it also contacts water during or after the fall.
+        - question: Can I mine Cyan Concrete Powder with any tool?
+          answer: |
+              It can be mined with any tool, or by hand, though using a shovel breaks it fastest.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

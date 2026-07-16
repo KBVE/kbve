@@ -1,0 +1,42 @@
+---
+title: 'Vanguard Knee Guards'
+template: splash
+sidebar:
+    label: 'Vanguard Knee Guards'
+    hidden: true
+description: |
+    Poleyn pair for the knees, the joint every low blow is aimed at and every stair regrets.
+ref: 'vanguard-knee-guards'
+key: 613
+id: '01KXFBEGM1AKYE9SSRKNW2XR4X'
+name: 'Vanguard Knee Guards'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 30
+emoji: '🦵'
+img: '/assets/items/equipment/vanguard-knee-guards.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'KNGT'
+  nodes:
+    - 'AKNL'
+    - 'AKNR'
+  slot_keys:
+    - 'AKNL'
+    - 'AKNR'
+equipment:
+  slot: 'legs'
+  bonuses:
+    armor: 2
+    extra:
+      weight: 2
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

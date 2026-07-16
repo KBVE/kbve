@@ -1,5 +1,6 @@
 ---
 title: Waxed Weathered Chiseled Copper
+template: splash
 description: |
     Minecraft Waxed Weathered Chiseled Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 981
     ref: waxed_weathered_chiseled_copper
     slug: waxed-weathered-chiseled-copper
+    content_rev: 1
     display_name: Waxed Weathered Chiseled Copper
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_weathered_chiseled_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - blast_resistant
+    about:
+        description: |
+            Waxed Weathered Chiseled Copper is a decorative, carved
+            copper block at the weathered (second-to-last) oxidation
+            stage, sealed with honeycomb so its green patina with brown
+            spots never progresses further.
+        lore: |
+            Chiseled copper variants added a carved, relief-style texture
+            to the copper family, giving builders an ornamental option
+            alongside the plain and cut copper blocks.
+    uses:
+        - title: Decorative trim
+          ref: waxed_weathered_chiseled_copper
+          detail: |
+              Used purely as a decorative block for facades, columns,
+              and detail work where a fixed weathered patina look is
+              wanted.
+    found_in:
+        - location: Crafting
+          detail: Apply honeycomb to Weathered Chiseled Copper, or stonecut Weathered Copper / Weathered Cut Copper (4 blocks per cut).
+        - location: Trial Chambers
+          detail: Generates naturally as part of trial chamber decoration.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better. Anything weaker breaks the block
+              without a drop.
+        - question: Is it affected by Silk Touch or Fortune?
+          answer: |
+              No. It always drops exactly one of itself regardless of
+              enchantments.
+        - question: How is it different from Waxed Oxidized Chiseled Copper?
+          answer: |
+              It's one oxidation stage earlier — greener with brown
+              spots rather than the fully teal, green-spotted final
+              stage — and, being waxed, it stays that way permanently.
+        - question: Can it still be cut into other shapes?
+          answer: |
+              No. Chiseled copper is a decorative end-shape; it is not
+              used as a stonecutting input for slabs or stairs.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Waxed Exposed Cut Copper Stairs
+template: splash
 description: |
     Minecraft Waxed Exposed Cut Copper Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1002
     ref: waxed_exposed_cut_copper_stairs
     slug: waxed-exposed-cut-copper-stairs
+    content_rev: 1
     display_name: Waxed Exposed Cut Copper Stairs
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_exposed_cut_copper_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Waxed Exposed Cut Copper Stairs are a decorative stair variant
+            of cut copper that has been treated with honeycomb, locking it
+            at the lightly-weathered "exposed" oxidation stage forever.
+            They behave like any other stair block for movement and
+            placement, letting players build slopes and roof lines in a
+            weathered-copper palette.
+        lore: |
+            Introduced alongside the full copper building-block family in
+            the Trails & Tales update, giving builders a permanent
+            mid-oxidation look without waiting for natural weathering.
+    uses:
+        - title: Copper Stair Builds
+          ref: waxed_exposed_cut_copper_stairs
+          detail: |
+              Used purely as a decorative and structural stair block for
+              roofs, staircases, and copper-themed builds that want to
+              freeze the exposed patina permanently.
+    found_in:
+        - location: Crafted from Waxed Exposed Cut Copper
+          detail: Made at a crafting table or stonecutter from waxed exposed cut copper or waxed exposed blocks of copper.
+        - location: Trial Chambers
+          detail: Waxed oxidized cut copper stairs generate naturally as part of trial chamber structures.
+    faq:
+        - question: Will these stairs oxidize further?
+          answer: |
+              No. Waxing with honeycomb locks the block permanently at the
+              exposed stage; it will never progress to weathered or
+              oxidized.
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better. Mining without a pickaxe drops
+              nothing.
+        - question: Can I remove the wax later?
+          answer: |
+              Yes, scraping it with an axe removes the wax coating,
+              allowing the block to oxidize again over time.
+        - question: Does it drop itself when mined?
+          answer: |
+              Yes, with a pickaxe of at least stone tier it drops one
+              Waxed Exposed Cut Copper Stairs block, unaffected by Fortune
+              or Silk Touch.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,9 @@
 ---
 title: 'Venomfang Lurker'
+template: splash
+sidebar:
+    label: 'Venomfang Lurker'
+    hidden: true
 description: |
     A serpentine creature that coils in darkness, delivering multiple doses of deadly venom before its prey can react.
 ref: 'venomfang-lurker'
@@ -90,7 +94,10 @@ abilities:
       cooldown_turns: 3
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A serpentine creature that coils in darkness, delivering multiple doses of deadly venom before its prey can react.
+
+</NpcLeaf>

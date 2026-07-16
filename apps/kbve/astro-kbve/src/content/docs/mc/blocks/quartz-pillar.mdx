@@ -1,5 +1,6 @@
 ---
 title: Quartz Pillar
+template: splash
 description: |
     Minecraft Quartz Pillar — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,71 @@ mc_block:
     id: 448
     ref: quartz_pillar
     slug: quartz-pillar
+    content_rev: 1
     display_name: Quartz Pillar
     material: stone
     hardness: 0.8
     blast_resistance: 0.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: quartz_pillar
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Quartz Pillar is a decorative quartz block with a distinct
+            grooved texture that can be oriented on any axis, making it
+            popular for columns, pillars, and accent trim.
+        lore: |
+            Formerly named Pillar Quartz Block until it was renamed in
+            Java Edition 1.13, and made renewable through Mason villager
+            trades in 19w11a.
+    uses:
+        - title: Quartz Slab
+          ref: quartz_slab
+          detail: |
+              3 Quartz Pillars craft into 6 Quartz Slabs, or cut 1-for-2
+              at a stonecutter.
+        - title: Quartz Stairs
+          ref: quartz_stairs
+          detail: |
+              6 Quartz Pillars craft into 4 Quartz Stairs, or cut 1-for-1
+              at a stonecutter.
+    found_in:
+        - location: Crafting Table
+          detail: Craft 2 Blocks of Quartz in a vertical or horizontal pair to yield 1 Quartz Pillar.
+        - location: Mason Villager
+          detail: Master-level Mason villagers buy Quartz Pillar for an emerald, making it a renewable trade.
+    faq:
+        - question: Can Quartz Pillar be placed on any axis?
+          answer: |
+              Yes. Placing it against different faces orients the pillar
+              vertically, or horizontally along either axis.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, starting with wood — mining without one drops
+              nothing.
+        - question: Is Quartz Pillar renewable?
+          answer: |
+              Yes, since Java Edition 19w11a Mason villagers sell it,
+              making an otherwise finite resource fully renewable.
+        - question: What was Quartz Pillar called before?
+          answer: |
+              It was named "Pillar Quartz Block" prior to the Java Edition
+              1.13 flattening, which renamed and re-IDed many blocks.
     data_version: "1.21.5"
 ---
 

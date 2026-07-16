@@ -1,5 +1,6 @@
 ---
 title: Dirt
+template: splash
 description: |
     Minecraft Dirt — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 9
     ref: dirt
     slug: dirt
+    content_rev: 1
     display_name: Dirt
     material: dirt
     hardness: 0.5
@@ -24,10 +26,68 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dirt
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+    about:
+        description: |
+            Dirt is one of the most abundant blocks in the Overworld,
+            forming the surface layer beneath grass blocks and filling
+            underground patches. It is easy to till, path, or build with.
+        lore: |
+            Present since Minecraft's earliest versions, dirt has always
+            been the baseline terrain block players dig through to reach
+            stone and ores.
+    uses:
+        - title: Farmland
+          ref: farmland
+          detail: |
+              Tilling dirt with a hoe converts it to farmland, which can be
+              planted with crop seeds.
+        - title: Coarse Dirt
+          ref: coarse_dirt
+          detail: |
+              Crafted with gravel to produce coarse dirt, which cannot turn
+              into a grass block.
+        - title: Dirt Path
+          ref: dirt_path
+          detail: |
+              Using a shovel on dirt flattens it into a dirt path for
+              village-style walkways.
+    found_in:
+        - location: Overworld Surface
+          detail: |
+              Underlies grass blocks in most Overworld biomes, roughly
+              1,850 blocks per plains or forest chunk.
+        - location: Underground Patches & Structures
+          detail: |
+              Also generates in underground pockets and inside villages and
+              ancient cities.
+    faq:
+        - question: What tool do I need to mine Dirt?
+          answer: |
+              None required — dirt can be mined by hand, though a shovel is
+              fastest.
+        - question: Is Dirt renewable?
+          answer: |
+              Yes. Tilling coarse dirt back into a hoe-able state or moss
+              block conversion methods can yield renewable dirt.
+        - question: Why did my Dirt turn into a Grass Block?
+          answer: |
+              Dirt adjacent to a grass block that receives a light level of
+              4 or higher will eventually spread into a grass block itself.
+        - question: What is the fastest way to mine Dirt?
+          answer: |
+              A Netherite shovel breaks dirt in about 0.1 seconds, the
+              fastest of any tool.
     data_version: "1.21.5"
 ---
 

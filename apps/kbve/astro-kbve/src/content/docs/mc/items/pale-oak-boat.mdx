@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Boat
+template: splash
 description: |
     Minecraft Pale Oak Boat — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 824
     ref: pale_oak_boat
     slug: pale-oak-boat
+    content_rev: 1
     display_name: Pale Oak Boat
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The pale oak boat is a drivable vehicle crafted from five pale oak planks arranged in a U-shape, letting players cross water and glide across ice at high speed. It carries up to two passengers, shields riders from fall damage, and can be sold to fisherman villagers or burned as furnace fuel.
+            Like other wood variants, it shares vanilla boat mechanics but takes on the pale, bleached look of the Pale Garden's signature timber.
+        lore: |
+            Its bone-white planks echo the eerie, sun-starved Pale Garden biome the wood was harvested from.
+    faq:
+        - question: How do I craft a pale oak boat?
+          answer: |
+              Arrange five pale oak planks in a U-shape on a crafting table: one plank in each of the bottom three slots, and one plank in the leftmost and rightmost slots of the middle row, leaving the middle slot empty.
+        - question: How many passengers can a pale oak boat hold?
+          answer: |
+              It can carry up to two entities at once, such as a player and a mob, or two players.
+        - question: Can a pale oak boat be used as furnace fuel?
+          answer: |
+              Yes, it can be burned in a furnace and will smelt up to 6 items before being consumed.
+        - question: Does the pale oak boat protect against fall damage?
+          answer: |
+              Yes, riding in any boat, including the pale oak boat, completely negates fall damage while mounted.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

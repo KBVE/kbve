@@ -1,5 +1,6 @@
 ---
 title: Purple Glazed Terracotta
+template: splash
 description: |
     Minecraft Purple Glazed Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 672
     ref: purple_glazed_terracotta
     slug: purple-glazed-terracotta
+    content_rev: 1
     display_name: Purple Glazed Terracotta
     material: stone
     hardness: 1.4
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: purple_glazed_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Purple Glazed Terracotta is a decorative block formed by smelting
+            purple stained terracotta. Its glossy face shows a sword-hilt
+            design that lines up into a repeating pattern when multiple
+            blocks are placed together, and it can be rotated to face any
+            direction.
+        lore: |
+            Introduced in Java Edition 1.12, glazed terracotta gave every
+            dye color a smeltable, patterned building block.
+    uses:
+        - title: Directional Building Patterns
+          ref: purple_glazed_terracotta
+          detail: |
+              Rotates on placement so its sword-hilt pattern can be lined up
+              across walls and floors to create large repeating mosaics.
+    found_in:
+        - location: Smelting
+          detail: Smelt Purple Stained Terracotta in a furnace or blast furnace to produce it.
+        - location: Mason Villager Trades
+          detail: Expert-level mason villagers occasionally sell glazed terracotta.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe works; there is no minimum tier, so even a wooden
+              pickaxe drops the block.
+        - question: Can I get it without smelting?
+          answer: |
+              Yes, some ocean ruins, villages, trail ruins, and trial
+              chambers generate it naturally, and mason villagers trade it.
+        - question: Does it burn near lava?
+          answer: |
+              No. Glazed terracotta is not flammable and will not catch fire
+              from lava or fire sources.
+        - question: Can pistons move it?
+          answer: |
+              Regular pistons can push it, but it cannot be pulled by sticky
+              pistons and does not stick to slime or honey blocks.
     data_version: "1.21.5"
 ---
 

@@ -34,7 +34,7 @@ impl Plugin for IsometricCameraPlugin {
             Update,
             attach_pixelate_settings.run_if(
                 any_with_component::<DisplayCamera>
-                    .and(not(any_with_component::<PixelateSettings>)),
+                    .and_then(not(any_with_component::<PixelateSettings>)),
             ),
         );
 

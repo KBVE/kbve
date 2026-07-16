@@ -1,5 +1,6 @@
 ---
 title: Medium Amethyst Bud
+template: splash
 description: |
     Minecraft Medium Amethyst Bud — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 1323
     ref: medium_amethyst_bud
     slug: medium-amethyst-bud
+    content_rev: 1
     display_name: Medium Amethyst Bud
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A medium amethyst bud is the second of four growth stages that sprout naturally from budding amethyst blocks found inside amethyst geodes. It emits a light level of 2, giving it a subtle decorative glow while it continues growing toward a small, then large bud, and finally a fully mature amethyst cluster.
+            Mining a medium bud without Silk Touch drops nothing, so a Silk Touch tool is required to collect it intact for decorative use elsewhere.
+        lore: |
+            Amethyst geodes and their buds were revealed ahead of the 1.17 Caves & Cliffs update, adding a naturally glowing crystal aesthetic to underground exploration.
+    faq:
+        - question: How does a medium amethyst bud form?
+          answer: |
+              It grows from a budding amethyst block, which has a random chance on each tick to advance an exposed face from small bud to medium bud, then large bud, then a full cluster.
+        - question: Do you need Silk Touch to collect a medium amethyst bud?
+          answer: |
+              Yes, without Silk Touch a medium bud drops nothing when broken; only a Silk Touch tool retrieves the block itself.
+        - question: Does a medium amethyst bud give off light?
+          answer: |
+              Yes, it emits a light level of 2, slightly more useful for ambient lighting than the small bud stage.
+        - question: Can a medium amethyst bud be placed anywhere?
+          answer: |
+              It can only be placed by natural growth from budding amethyst and does not attach to blocks like fences, glass panes, leaves, or anvils.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

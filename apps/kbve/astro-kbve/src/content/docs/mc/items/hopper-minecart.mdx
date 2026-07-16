@@ -1,5 +1,6 @@
 ---
 title: Minecart with Hopper
+template: splash
 description: |
     Minecraft Minecart with Hopper — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 805
     ref: hopper_minecart
     slug: hopper-minecart
+    content_rev: 1
     display_name: Minecart with Hopper
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Minecart with Hopper is crafted by combining a hopper and a minecart,
+            producing a rail vehicle that sucks up dropped items and pulls from
+            containers above it as it travels. It works up to eight times faster
+            than a stationary hopper, making it a staple of automated item-collection
+            rail systems.
+        lore: |
+            A hopper bolted into a minecart, built to scoop up loot while rolling along the tracks.
+    faq:
+        - question: How do you craft a Minecart with Hopper?
+          answer: |
+              Combine a hopper and a minecart in a crafting grid to produce one
+              Minecart with Hopper.
+        - question: What does a Minecart with Hopper do?
+          answer: |
+              It automatically collects dropped items and pulls items from
+              containers positioned just above it while riding on rails.
+        - question: Is a Minecart with Hopper faster than a regular hopper?
+          answer: |
+              Yes, in Java Edition it can pull items about eight times faster than
+              a standard hopper.
+        - question: Can a Minecart with Hopper be turned on and off?
+          answer: |
+              Yes, powering it with an activator rail disables its item pickup
+              until the power is removed.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

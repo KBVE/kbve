@@ -1,5 +1,6 @@
 ---
 title: Acacia Hanging Sign
+template: splash
 description: |
     Minecraft Acacia Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 236
     ref: acacia_wall_hanging_sign
     slug: acacia-wall-hanging-sign
+    content_rev: 1
     display_name: Acacia Hanging Sign
     material: wood
     hardness: 1
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: acacia_wall_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Acacia Hanging Sign is the wall-mounted form of the acacia
+            hanging sign, suspended beneath the block it is attached to. It
+            displays customizable, dyeable text and can be waxed with a
+            honeycomb to prevent further edits.
+        lore: |
+            Hanging signs were announced at Minecraft Live 2022 and added
+            in snapshot 22w42a as part of the Trails & Tales update.
+    uses:
+        - title: Acacia Hanging Sign (item)
+          ref: acacia_hanging_sign
+          detail: |
+              Crafted from 2 chains and 6 stripped acacia logs, yielding 6
+              hanging signs; placed against a block edge to hang in wall form.
+        - title: Wayfinding and Labels
+          ref: sign
+          detail: |
+              Used to label shops, paths, and structures with custom, editable text.
+    found_in:
+        - location: Crafting
+          detail: Made from 2 iron chains and 6 stripped acacia logs, yielding 6 hanging signs.
+        - location: Trail Ruins
+          detail: Generated hanging signs can be found decorating Trail Ruins structures.
+    faq:
+        - question: What tool mines an Acacia Hanging Sign fastest?
+          answer: |
+              An axe. No minimum tool tier is required, and it always drops
+              itself as an item.
+        - question: Does the Acacia Hanging Sign burn?
+          answer: |
+              No. It is not flammable and will not catch fire from nearby
+              lava or flames.
+        - question: How is the wall-hanging variant different from a regular hanging sign?
+          answer: |
+              The wall variant attaches flush beneath a block edge using a
+              bracket, rather than hanging from chains on a post like the
+              free-standing version.
+        - question: Can I edit the text after placing it?
+          answer: |
+              Yes, unless the sign has been waxed with a honeycomb, which
+              locks the text permanently against further edits.
     data_version: "1.21.5"
 ---
 

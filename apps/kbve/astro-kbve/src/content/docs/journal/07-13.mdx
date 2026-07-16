@@ -1,7 +1,7 @@
 ---
 title: 'July: 13'
 category: Daily
-date: 2025-07-13 12:00:00
+date: 2026-07-13 12:00:00
 client: Self
 unsplash: 1686672605288-f83df6f815f7
 img: https://images.unsplash.com/photo-1686672605288-f83df6f815f7?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -53,6 +53,88 @@ import BentoDoc from '@/components/hero/BentoDoc.astro';
 import BentoProse from '@/components/hero/BentoProse.astro';
 
 <BentoDoc data={frontmatter.bento}>
+
+
+
+
+<BentoProse id="2026" heading="2026">
+
+### Gitub LFS
+
+-   11:56AM
+
+    No too sure what caused the github lFS to leak out again, but we have hit our 10GB cap.
+    I am thinking that it might be stale branches, we have a decent amount of cleanup work that we need to do in the repo.
+    I will loop through them all, and see if I can quickly clean up any that might be in the way of our repo.
+
+
+### Torch Prop
+
+-   12:12PM
+
+    The torch needs to be an item that the player holds in their hand, but can also be mounted on the wall.
+    We could also update it so that the torch's flame adjusts when I go to swing, that way the flame feels a bit more dynamic.
+
+### Bevy 0.19
+
+-   12:31PM
+
+    We just upgraded the core of bevy to v0.19, which comes with wGPU v0.29 , a decent blocked this past couple months.
+    Thus with all that updated, we should have a new inputs system and a couple other improvements in the multi threading!
+    With that said, we will need to update all of the crates that were using an older version of bevy.
+    Afterwards we will prepare for the pnpm upgrade.
+
+### Shadow Reduction
+
+-   01:32PM
+
+    Lowering the shadow system a bit because there might be too much going on, causing some lag and FPS drop.
+    This will be easier for us to look through and understand once we get more content in the game.
+
+### Uniti Crate
+
+-   01:41PM
+
+    Since we are bumping the bevy up to v0.19, we will have to double check the uniti crate, making sure that there will not be any issues with the FFI.
+    I suppose the only downside of using the rust abstractions will be when we have to make calls from various end points.
+
+  
+### Herbmail Low Poly Shields
+
+-   02:05PM
+
+    Adding about 20 low poly shields to the game, then we can look at adding our first batch of enemies to the game.
+    I might do a classic model first, then look at maybe the billboard approach for some optimized creatures later on.
+
+
+### Nx v23.0.2 Upgrade
+
+-   03:35PM
+
+    Upgrading the Nx to the latest minor version, I will then update Astro and finally loop back around and do a pnpm upgrade.
+
+
+### Factorio Orc Mod
+
+-   07:14PM
+
+    Long over due release of the factorio orc mod!
+    Since we have a new version of factorio out, we probably could do a clean sweep and update for it.
+    Afterwards I want to link it over to the ROWS and get that all situated.
+    As of right now, there is no direct KBVE and factorio integration either, but that is fine because I think it be cool to add some of the factory elements to my ARPG.
+    Even the basics would be cool, just getting a functional belt system and maybe storage out of the way.
+
+### Astro Upgrade astro@7.0.9
+
+-   07:42PM
+
+    Going to hold off on the astro upgrade until later this weekend, I saw there were a couple quick patch and releases, I might wait for it to stablize.
+    While I am doing that, going to update some of the itemdb/npcdb over to the bento grid.
+
+
+
+</BentoProse>
+
 
 <BentoProse id="2025" heading="2025">
 

@@ -1,5 +1,6 @@
 ---
 title: Tuff Slab
+template: splash
 description: |
     Minecraft Tuff Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 944
     ref: tuff_slab
     slug: tuff-slab
+    content_rev: 1
     display_name: Tuff Slab
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,50 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: tuff_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+    about:
+        description: |
+            Tuff Slab is a half-height building block cut directly from
+            Tuff, giving builders a plain gray-stone step or floor detail
+            without needing to process it into bricks first.
+        lore: |
+            Added in Update 1.21 as part of the broader tuff building block
+            expansion that also introduced tuff bricks and walls.
+    uses:
+        - title: Chiseled Tuff
+          ref: chiseled_tuff
+          detail: |
+              Two Tuff Slabs stacked in a crafting grid produce Chiseled
+              Tuff for extra decorative detail.
+    found_in:
+        - location: Crafting table
+          detail: 3 Tuff blocks arranged in a row yield 6 Tuff Slabs.
+        - location: Stonecutter
+          detail: Cut from 1 Tuff block to yield 2 slabs.
+    faq:
+        - question: Does Tuff Slab generate naturally?
+          answer: |
+              No. It only exists as a crafted or stonecut product and does
+              not appear in world generation.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, starting from wooden. Mining without a pickaxe
+              drops nothing.
+        - question: Can two Tuff Slabs form a full block?
+          answer: |
+              Yes. Placing two in the same space combines them into a full
+              Tuff block.
+        - question: What is it used for?
+          answer: |
+              Decorative building, floor and step detailing, and as an
+              ingredient for Chiseled Tuff.
     data_version: "1.21.5"
 ---
 

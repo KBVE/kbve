@@ -1,5 +1,6 @@
 ---
 title: Bow
+template: splash
 description: |
     Minecraft Bow — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 841
     ref: bow
     slug: bow
+    content_rev: 1
     display_name: Bow
     category: misc
     rarity: common
@@ -28,6 +30,31 @@ mc_item:
             - vanishing_curse
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A ranged weapon crafted from 3 sticks and 3 string that fires arrows at enemies. Damage scales
+            with how long the bow is charged before release, from a light tap up to a full critical shot,
+            and it can be enchanted with Power, Punch, Flame, Infinity, Unbreaking, Mending, or Curse of
+            Vanishing to customize its behavior.
+        lore: |
+            A taut string and a steady hand turn a simple stick into a weapon that strikes from afar.
+    faq:
+        - question: How do I craft a bow?
+          answer: |
+              Arrange 3 sticks and 3 string in a bow shape on a crafting table—the sticks form the frame
+              and the string forms the bowstring.
+        - question: What's the best enchantment setup for a bow?
+          answer: |
+              Power V maximizes damage, paired with Unbreaking III for durability. Choose either Infinity
+              (infinite arrows) or Mending (self-repair via XP), since the two are mutually exclusive.
+        - question: How does charge time affect arrow damage?
+          answer: |
+              A full charge takes about 1 second; a bare tap deals 1 HP, a partial charge deals up to 6 HP,
+              and a critical charge held past 1 second can deal up to 11 HP.
+        - question: Can a bow be used from the off-hand?
+          answer: |
+              Yes, though it won't aim visually. It draws arrows from the selected hotbar slot or off-hand,
+              whichever contains arrows closest to slot 0.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

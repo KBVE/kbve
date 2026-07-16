@@ -1,5 +1,6 @@
 ---
 title: Warped Slab
+template: splash
 description: |
     Minecraft Warped Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 845
     ref: warped_slab
     slug: warped-slab
+    content_rev: 1
     display_name: Warped Slab
     material: nether
     hardness: 2
@@ -24,10 +26,58 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: warped_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            Warped Slabs are half-height blocks cut from Warped Planks,
+            used for detailed building work like staircases, roofs, and
+            fireproof flooring in the Nether.
+        lore: |
+            Nether-wood slabs joined the plank family in the Nether Update,
+            giving builders a fireproof alternative to overworld slabs.
+    uses:
+        - title: Building and Roofing
+          ref: warped_stairs
+          detail: |
+              Stack two slabs to form a full block, or use single slabs for
+              half-height flooring, trim, and detailed roof lines.
+        - title: Crafting Ingredient
+          ref: chiseled_bookshelf
+          detail: |
+              Used in recipes such as Bamboo Mosaic, Barrels, and Chiseled
+              Bookshelves alongside other plank-derived materials.
+    found_in:
+        - location: Crafted from Warped Planks
+          detail: Three Warped Planks craft 6 Warped Slabs.
+        - location: Nether structures and villages
+          detail: Occasionally found generated in bastion remnants and other structures.
+    faq:
+        - question: Can Warped Slabs burn?
+          answer: |
+              No. Like all Nether wood, Warped Slabs are immune to fire and
+              lava.
+        - question: How many slabs come from planks?
+          answer: |
+              Crafting 3 Warped Planks in a horizontal row yields 6 Warped
+              Slabs.
+        - question: Can I combine two slabs into a full block?
+          answer: |
+              Yes, placing a second slab on a matching placed slab combines
+              them into a solid Warped Planks block.
+        - question: What tool breaks Warped Slabs fastest?
+          answer: |
+              An axe, although no minimum tool tier is required to get the
+              drop.
     data_version: "1.21.5"
 ---
 

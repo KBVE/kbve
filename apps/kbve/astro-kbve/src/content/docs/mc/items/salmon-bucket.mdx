@@ -1,5 +1,6 @@
 ---
 title: Bucket of Salmon
+template: splash
 description: |
     Minecraft Bucket of Salmon — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 958
     ref: salmon_bucket
     slug: salmon-bucket
+    content_rev: 1
     display_name: Bucket of Salmon
     category: food
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Bucket of Salmon is created by using a water bucket on a living salmon,
+            capturing the fish and its water source together. It lets players transport
+            salmon without despawning and release them elsewhere, such as into a decorative
+            aquarium.
+        lore: |
+            A sloshing bucket of water keeps its silvery passenger calm and breathing all
+            the way home.
+    faq:
+        - question: How do I get a Bucket of Salmon?
+          answer: |
+              Use a water bucket directly on a living salmon to scoop it up along with the
+              water source block.
+        - question: What can I do with a Bucket of Salmon?
+          answer: |
+              Carry the salmon between locations, pour it out to set up an aquarium, or feed
+              it to nautiluses and zombie nautiluses.
+        - question: Does a caught salmon despawn once released?
+          answer: |
+              No, salmon captured in a bucket and later released do not despawn, unlike
+              naturally spawned salmon.
+        - question: Does a Bucket of Salmon stack?
+          answer: |
+              No, it is not stackable, occupying one inventory slot per bucket.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

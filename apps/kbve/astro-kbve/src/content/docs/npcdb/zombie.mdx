@@ -1,5 +1,9 @@
 ---
 title: 'Zombie'
+template: splash
+sidebar:
+    label: 'Zombie'
+    hidden: true
 description: |
     Slow, undead horde unit. Spawns at night via ZombieNightSpawnSystem and around demolished shrines. Bite/claw melee, prefers to chase Player units, doesn't fatigue.
 ref: 'zombie'
@@ -37,7 +41,10 @@ faction:
     faction_id: 'hostile'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Slow, undead horde unit. Spawns at night and around demolished shrines.
+
+</NpcLeaf>

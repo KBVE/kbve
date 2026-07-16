@@ -1,5 +1,6 @@
 ---
 title: Spruce Leaves
+template: splash
 description: |
     Minecraft Spruce Leaves — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 89
     ref: spruce_leaves
     slug: spruce-leaves
+    content_rev: 1
     display_name: Spruce Leaves
     material: leaves
     hardness: 0.2
@@ -26,8 +28,69 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: spruce_sapling
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: stick
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: spruce_leaves
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - overworld
+        - flammable
+        - leaves
+    about:
+        description: |
+            Spruce Leaves form the dark green canopy of spruce and pine
+            trees native to taiga and snowy taiga biomes. They are
+            transparent, diffuse light, and slowly decay when no longer
+            connected to a spruce log.
+        lore: |
+            Ancient forests shed their foliage in a constant cycle of growth
+            and decay.
+    uses:
+        - title: Sapling Farming
+          ref: spruce_sapling
+          detail: |
+              Breaking or waiting for decay gives a small chance of a
+              spruce sapling, the basis of automated tree farms.
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Placing leaves in a composter has a 30% chance to raise its
+              level, eventually yielding bone meal.
+    found_in:
+        - location: Taiga and Snowy Taiga biomes
+          detail: Generates as the canopy of naturally spawning spruce and pine trees.
+        - location: Player-placed builds
+          detail: Can be placed by hand and, unlike natural leaves, will never decay.
+    faq:
+        - question: What tool should I use to mine spruce leaves?
+          answer: |
+              A hoe breaks them fastest, but any tool or bare hands work
+              since there is no minimum tier requirement.
+        - question: How do I get the leaf block itself instead of a sapling?
+          answer: |
+              Break it with Silk Touch to collect the leaves block directly;
+              otherwise it drops a sapling, a stick, or nothing.
+        - question: Will placed spruce leaves eventually disappear?
+          answer: |
+              No. Leaves only decay when naturally generated and no longer
+              connected to a log within range; player-placed leaves persist
+              forever.
+        - question: Can spruce leaves catch fire?
+          answer: |
+              Yes, they are flammable and can burn from nearby fire or lava.
     data_version: "1.21.5"
 ---
 

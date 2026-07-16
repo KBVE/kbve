@@ -1,5 +1,9 @@
 ---
 title: 'Glass Slime'
+template: splash
+sidebar:
+    label: 'Glass Slime'
+    hidden: true
 description: |
     A translucent blob of living glass that oozes through dungeon corridors, absorbing anything it touches.
 ref: 'glass-slime'
@@ -98,7 +102,10 @@ faction:
     faction_id: 'crystal-order'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A translucent blob of living glass that oozes through dungeon corridors, absorbing anything it touches.
+
+</NpcLeaf>

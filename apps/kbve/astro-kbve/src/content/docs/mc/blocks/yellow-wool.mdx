@@ -1,5 +1,6 @@
 ---
 title: Yellow Wool
+template: splash
 description: |
     Minecraft Yellow Wool — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 144
     ref: yellow_wool
     slug: yellow-wool
+    content_rev: 1
     display_name: Yellow Wool
     material: wool
     hardness: 0.8
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: yellow_wool
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+    about:
+        description: |
+            Yellow Wool is a soft building block dyed yellow, obtainable by
+            shearing sheep or crafting string, and freely re-dyeable to any
+            other color.
+        lore: |
+            Wool was one of Minecraft's earliest blocks, giving sheep farms
+            a renewable source of colorful building material.
+    uses:
+        - title: Beds
+          ref: yellow_bed
+          detail: |
+              Combine 3 Yellow Wool with 3 matching planks to craft a Yellow
+              Bed, letting players set their spawn point and skip the night.
+        - title: Carpets
+          ref: yellow_carpet
+          detail: |
+              Craft 2 Yellow Wool into 3 Yellow Carpet for a thin decorative
+              floor covering.
+    found_in:
+        - location: Sheep
+          detail: Shear an adult sheep for 1-3 wool without harming it, or kill an unsheared sheep for 1 wool.
+        - location: Crafted from String
+          detail: 4 String crafts into 1 White Wool, which can then be dyed yellow.
+    faq:
+        - question: Does mining Yellow Wool need a special tool?
+          answer: |
+              No. It breaks with anything, including bare hands, though
+              shears are fastest at 0.25 seconds.
+        - question: Can I change Yellow Wool back to another color?
+          answer: |
+              Yes. Wool of any color can be re-dyed into any other color by
+              combining it with dye in a crafting grid.
+        - question: Is Yellow Wool flammable?
+          answer: |
+              Yes. Wool blocks catch fire easily and burn away completely,
+              so keep them clear of lava and other fire sources.
+        - question: Does shearing a sheep hurt it?
+          answer: |
+              No. Shearing is harmless and the sheep's wool regrows over
+              time after it eats grass.
     data_version: "1.21.5"
 ---
 

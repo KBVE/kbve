@@ -1,5 +1,6 @@
 ---
 title: Zoglin Spawn Egg
+template: splash
 description: |
     Minecraft Zoglin Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1143
     ref: zoglin_spawn_egg
     slug: zoglin-spawn-egg
+    content_rev: 1
     display_name: Zoglin Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Zoglin Spawn Egg is a creative-mode and command item used to instantly summon a zoglin, the
+            undead hostile mob that a hoglin becomes after 15 seconds outside the Nether. It bypasses the
+            natural conversion process, spawning a fully formed adult or baby zoglin.
+        lore: |
+            A zoglin's indiscriminate aggression toward nearly everything echoes the vindicator "Johnny."
+    faq:
+        - question: What does a Zoglin Spawn Egg do?
+          answer: |
+              Using it on a block instantly spawns a zoglin, the same undead mob a hoglin turns into after
+              spending 300 game ticks (15 seconds) outside the Nether.
+        - question: How do you obtain a Zoglin Spawn Egg?
+          answer: |
+              It is only available through the creative mode inventory or by using the /give command; it
+              cannot be found through normal survival gameplay.
+        - question: How aggressive is a zoglin spawned from the egg?
+          answer: |
+              Very. Zoglins attack players and almost all non-zoglin mobs indiscriminately and never retreat
+              or flee once they spot a target.
+        - question: Can a zoglin spawned this way be tamed or bred?
+          answer: |
+              No, zoglins are fully undead and cannot breed or be tamed, regardless of whether they were
+              converted from a hoglin or spawned directly from the egg.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

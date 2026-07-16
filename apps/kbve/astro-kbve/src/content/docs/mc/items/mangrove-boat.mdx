@@ -1,5 +1,6 @@
 ---
 title: Mangrove Boat
+template: splash
 description: |
     Minecraft Mangrove Boat — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,34 @@ mc_item:
     id: 826
     ref: mangrove_boat
     slug: mangrove-boat
+    content_rev: 1
     display_name: Mangrove Boat
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Mangrove Boat is a drivable vehicle crafted from five mangrove planks arranged in a
+            U-shape, letting players and mobs travel quickly across water and ice. It also nullifies fall
+            damage for its riders and can be used as furnace fuel.
+        lore: |
+            Sturdy mangrove timber lashed together to skim across swamp and sea alike.
+    faq:
+        - question: How do I craft a Mangrove Boat?
+          answer: |
+              Arrange five mangrove planks in a U-shape in a crafting grid to produce one boat.
+        - question: Can a Mangrove Boat travel on ice?
+          answer: |
+              Yes, boats move extremely fast on all ice types, and especially fast on blue ice, making
+              them popular for quick ice highways.
+        - question: Does riding in a boat prevent fall damage?
+          answer: |
+              Yes, boats completely nullify fall damage for themselves and any riders inside them.
+        - question: Can I use a Mangrove Boat as fuel?
+          answer: |
+              Yes, a boat can be used as furnace fuel, burning for 60 seconds and smelting up to 6 items.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

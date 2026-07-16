@@ -1,5 +1,6 @@
 ---
 title: Pink Concrete Powder
+template: splash
 description: |
     Minecraft Pink Concrete Powder — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 700
     ref: pink_concrete_powder
     slug: pink-concrete-powder
+    content_rev: 1
     display_name: Pink Concrete Powder
     material: dirt
     hardness: 0.5
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pink_concrete_powder
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+        - gravity_affected
+    about:
+        description: |
+            Pink Concrete Powder is a gravity-affected block crafted from
+            dye, sand, and gravel. It instantly hardens into solid Pink
+            Concrete on contact with any water.
+        lore: |
+            Concrete and concrete powder were announced in February 2017
+            and shipped in Java Edition 1.12, adding vivid, non-flammable
+            building colors.
+    uses:
+        - title: Pink Concrete
+          ref: pink_concrete
+          detail: |
+              Touching water source, flowing water, or being waterlogged
+              converts concrete powder into solid concrete of the same
+              color, with no way to reverse it.
+    found_in:
+        - location: Crafting
+          detail: Craft 1 pink dye with 4 sand and 4 gravel to yield 8 pink concrete powder.
+        - location: Falling near water
+          detail: Place near water sources to watch it fall and instantly harden into concrete.
+    faq:
+        - question: What tool do I need to mine Pink Concrete Powder?
+          answer: |
+              None required — a shovel is fastest, but any tool or bare
+              hands still break it and it always drops itself.
+        - question: What happens if Pink Concrete Powder touches water?
+          answer: |
+              It instantly converts into solid Pink Concrete, including
+              when waterlogged or splashed by flowing water.
+        - question: Does Pink Concrete Powder fall like sand?
+          answer: |
+              Yes. It is gravity-affected and falls until it lands on a
+              solid block or converts to concrete in water.
+        - question: Can red sand replace sand in the recipe?
+          answer: |
+              No. The crafting recipe requires regular sand; red sand is
+              not a valid substitute.
     data_version: "1.21.5"
 ---
 

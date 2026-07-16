@@ -1,5 +1,6 @@
 ---
 title: Brown Concrete Powder
+template: splash
 description: |
     Minecraft Brown Concrete Powder — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 613
     ref: brown_concrete_powder
     slug: brown-concrete-powder
+    content_rev: 1
     display_name: Brown Concrete Powder
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Brown Concrete Powder is a gravity-affected block that solidifies into
+            Brown Concrete when it touches water. It is crafted from brown dye, sand,
+            and gravel.
+        lore: |
+            First teased by developer Jeb in February 2017 as a mysterious color
+            changing block, concrete powder officially arrived in Java Edition 1.12.
+    faq:
+        - question: How do you craft Brown Concrete Powder?
+          answer: |
+              Combine 1 brown dye, 4 sand, and 4 gravel in a shapeless recipe to
+              produce 8 Brown Concrete Powder.
+        - question: What happens when Brown Concrete Powder touches water?
+          answer: |
+              It immediately solidifies into Brown Concrete when it contacts flowing
+              water, a water source block, or a waterlogged block.
+        - question: Can red sand be used instead of sand?
+          answer: |
+              No, red sand cannot substitute for regular sand in the concrete powder
+              recipe.
+        - question: Does rain turn Brown Concrete Powder into concrete?
+          answer: |
+              No, rain and splash water bottles do not trigger the solidification
+              effect; direct contact with a water block is required.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

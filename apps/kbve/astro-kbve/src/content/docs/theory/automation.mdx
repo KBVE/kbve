@@ -3,6 +3,12 @@ title: Automation
 description: |
     Automation software streamlines and optimizes tasks, spanning from intricate code development to diverse real-world applications like business process enhancement, data analysis, and daily repetitive functions.
     By transforming manual endeavors into automated workflows, it amplifies efficiency, reduces errors, and fosters innovation across numerous domains.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: Automation
     order: 4
@@ -11,9 +17,103 @@ img: https://images.unsplash.com/photo-1620023593001-3394d6297aeb?fit=fill&fill=
 tags:
   - automation
   - software
+bento:
+    badge: theory · automation · software
+    title: 'The quiet machinery that lets you'
+    accent: do more by doing less.
+    lede: >-
+        Automation software takes singular, repetitive tasks and multiplies
+        them — synchronizing each action into an outcome greater than the sum
+        of its parts. From n8n workflows to pixel-driven scripting, this note
+        collects the libraries and applications that amplify human potential
+        by letting machines handle the routine.
+    ctas:
+        - label: Introduction
+          href: '#introduction'
+          primary: true
+        - label: n8n
+          href: '#n8n'
+        - label: Simba
+          href: '#simba'
+    aside:
+        icon: gears
+        title: Why automate
+        body: >-
+            Automation is not just about code or algorithms — it is about
+            carving out space for innovation by letting machines take over the
+            repetitive and the routine, so human effort flows to the work that
+            actually needs a human.
+        points:
+            - <strong>Efficiency</strong> — turn manual endeavors into automated workflows.
+            - <strong>Reliability</strong> — reduce human error through precise repetition.
+            - <strong>Scale</strong> — run many tasks at once, in perfect sync.
+    stats:
+        - { label: Core tools, value: n8n & Simba, icon: gears }
+        - { label: Domain, value: Workflows, icon: route }
+        - { label: n8n role, value: Eco-system pillar, icon: network }
+        - { label: Simba, value: Open source, icon: eye }
+    features:
+        - title: Introduction
+          icon: book
+          href: '#introduction'
+          body: The philosophy of automation — why doing more by doing less has driven human progress from ancient levers to digital orchestration.
+        - title: n8n
+          icon: network
+          href: '#n8n'
+          body: A pillar of the KBVE eco-system with its own dedicated notes for building visual, node-based automation workflows.
+        - title: Simba
+          icon: eye
+          href: '#simba'
+          body: Open-source automation for repeatable mouse and keyboard tasks driven by on-screen colour and pixel detection.
+    related:
+        - title: Programming
+          href: /theory/programming/
+          copy: The craft beneath the automation — how code turns intent into repeatable action.
+          icon: code
+        - title: Emulation
+          href: /theory/emulation/
+          copy: Preserving and re-running software long after its original hardware is gone.
+          icon: server
+        - title: n8n notes
+          href: /application/n8n/
+          copy: The dedicated field guide for running n8n inside the KBVE infrastructure.
+          icon: network
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1620023593001-3394d6297aeb?q=80&w=2400&auto=format&fit=crop
+        accent: '#a855f7'
+        accent2: '#22d3ee'
+        btn_fg: '#1a0033'
+    features_eyebrow: On this page
+    features_heading: What this note covers
+    related_eyebrow: Keep exploring
+    related_heading: Related theory
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - name: Home
+          path: /
+        - name: Theory
+          path: /theory/
+        - name: Automation
+          path: /theory/automation/
+    faq:
+        - question: What is automation software?
+          answer: Software that transforms manual, repetitive tasks into automated workflows — amplifying efficiency, reducing errors, and freeing human effort for creative and non-routine work across business, data, and daily operations.
+        - question: What role does n8n play at KBVE?
+          answer: n8n is a pillar of the KBVE eco-system with its own dedicated document folder. It provides visual, node-based workflow automation, with full setup and operational notes at /application/n8n/.
+        - question: What is Simba used for?
+          answer: Simba is open-source automation software for repeatable mouse and keyboard tasks along a linear timeline. It locates colours or pixels on screen, then moves and clicks at their coordinates.
+        - question: Why automate at all?
+          answer: Automation carves out space for innovation and creativity by handing the repetitive and routine to machines, letting people focus on the work that genuinely needs human judgement.
 ---
 
-## Introduction
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="introduction" eyebrow="Start here" heading="Introduction">
 
 In a world constantly spinning on the axis of change, human endeavors have often revolved around one perennial quest: `to make life easier`.
 From the intricate levers of ancient civilizations to the steam engines of the Industrial Revolution, our innate desire has always been to achieve more by doing less.
@@ -33,13 +133,27 @@ And as we stand at the precipice of the future, there's no doubt that the dance 
 
 The goal of this document is to provide references and links to different automation libraries and applications that you can utilize in your software adventures!
 
-## n8n
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="n8n" eyebrow="Workflow automation" heading="n8n">
 
 N8N is a pillar within the KBVE eco-system, we have a whole document folder dedicated to this amazing application, located [here, KBVE n8n Notes](/application/n8n/).
 
-## Simba
+</BentoProse>
+
+<BentoProse id="simba" eyebrow="Pixel scripting" heading="Simba">
 
 Simba software is an open source automation software designed for repeatable mouse/keyboard tasks that follow a generic linear timeline.
 The software's primary functionality is locating colours / pixels within the screen of choice, then moving the mouse to click the x and y coordinates of the colour / pixel.
 
 More information can be found on the repo for SRL [Villavu/SRL-Development](https://github.com/Villavu/SRL-Development)
+
+</BentoProse>
+
+</BentoDoc>

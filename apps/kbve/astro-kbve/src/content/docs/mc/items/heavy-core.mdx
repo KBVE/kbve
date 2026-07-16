@@ -1,5 +1,6 @@
 ---
 title: Heavy Core
+template: splash
 description: |
     Minecraft Heavy Core — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 87
     ref: heavy_core
     slug: heavy-core
+    content_rev: 1
     display_name: Heavy Core
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Heavy Core is a dense, mysterious block dropped as rare loot from ominous vaults in trial chambers, with a hardness of 10 and blast resistance of 1,200. Its primary purpose is crafting a mace by combining it with a breeze rod, giving players access to one of the game's most powerful melee weapons.
+        lore: |
+            Introduced in the Tricky Trials update, this enigmatic block became a key component of the trial chambers' dangerous ominous reward system.
+    faq:
+        - question: Can I find heavy cores anywhere else?
+          answer: |
+              No, they are restricted to ominous vaults in trial chambers with no other renewable source.
+        - question: How long does mining take?
+          answer: |
+              Mining a heavy core takes about 15 seconds with a diamond pickaxe, or roughly 1.7 seconds with a netherite pickaxe.
+        - question: What makes it different from obsidian?
+          answer: |
+              While similarly durable, heavy cores can be moved by pistons in Java Edition and exist specifically for crafting the mace rather than as a structural block.
+        - question: Does it have any special properties?
+          answer: |
+              Yes, it is transparent, waterloggable, and produces a snare drum sound when a note block is placed above it.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Gray Shulker Box
+template: splash
 description: |
     Minecraft Gray Shulker Box — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 560
     ref: gray_shulker_box
     slug: gray-shulker-box
+    content_rev: 1
     display_name: Gray Shulker Box
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Gray Shulker Box is a portable storage block with 27 inventory slots, dyed gray
+            from a plain shulker box. Unlike chests, its contents stay intact when the box is
+            mined, so it can be carried in an inventory or another container without losing
+            items.
+        lore: |
+            Shulker boxes are crafted from the shells dropped by shulkers found in End cities.
+    faq:
+        - question: What happens if I break a Gray Shulker Box?
+          answer: |
+              Its contents are stored inside the dropped item rather than spilling out, so you
+              can pick it up and place it elsewhere with everything still inside.
+        - question: How do I craft a Gray Shulker Box?
+          answer: |
+              Combine any Shulker Box with Gray Dye in a crafting grid to recolor it while
+              keeping its stored items.
+        - question: Can I stack Gray Shulker Boxes in my inventory?
+          answer: |
+              No. Shulker boxes are not stackable, and they cannot be placed inside other
+              shulker boxes or bundles.
+        - question: Is it safe to open near Piglins?
+          answer: |
+              No. Piglins become hostile toward players who open or mine a shulker box, so use
+              caution in the Nether.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

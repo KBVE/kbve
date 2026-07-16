@@ -1,5 +1,6 @@
 ---
 title: Red Nether Brick Stairs
+template: splash
 description: |
     Minecraft Red Nether Brick Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 775
     ref: red_nether_brick_stairs
     slug: red-nether-brick-stairs
+    content_rev: 1
     display_name: Red Nether Brick Stairs
     material: nether
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_nether_brick_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+    about:
+        description: |
+            Red Nether Brick Stairs are a decorative stairs variant of Red
+            Nether Bricks that does not generate naturally and must be
+            crafted. They provide stepped detailing for roofs and
+            staircases in Nether-themed structures.
+        lore: |
+            Added in Java Edition 1.14 (18w43a) alongside the broader wave
+            of stair variants introduced for that update's building blocks.
+    uses:
+        - title: Building & Decoration
+          ref: red_nether_brick_stairs
+          detail: |
+              Used to build stepped roofs, staircases, and architectural
+              trim on Nether-themed structures alongside Red Nether Brick
+              slabs and walls.
+    found_in:
+        - location: Crafted from Red Nether Bricks
+          detail: 6 Red Nether Bricks in a stair pattern craft 4 stairs; a stonecutter converts 1 brick into 1 stair.
+    faq:
+        - question: What tool do I need to mine Red Nether Brick Stairs?
+          answer: |
+              A wooden pickaxe or better. Without one, the block breaks
+              without dropping anything.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one Red Nether Brick Stairs
+              block.
+        - question: Do Red Nether Brick Stairs generate naturally?
+          answer: |
+              No. They only come from crafting or stonecutting Red Nether
+              Bricks; they never spawn in natural generation.
+        - question: Can Red Nether Brick Stairs be waterlogged?
+          answer: |
+              Yes. Like most stairs, they can hold water when placed in a
+              water source, useful for wet or underwater Nether builds.
     data_version: "1.21.5"
 ---
 

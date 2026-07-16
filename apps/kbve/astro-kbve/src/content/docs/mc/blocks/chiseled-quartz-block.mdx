@@ -1,5 +1,6 @@
 ---
 title: Chiseled Quartz Block
+template: splash
 description: |
     Minecraft Chiseled Quartz Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 447
     ref: chiseled_quartz_block
     slug: chiseled-quartz-block
+    content_rev: 1
     display_name: Chiseled Quartz Block
     material: stone
     hardness: 0.8
     blast_resistance: 0.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: chiseled_quartz_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Chiseled Quartz Block is a decorative quartz variant with a
+            vertical pillar-style carving, popular for pale, clean-looking
+            builds. It is crafted from quartz slabs or cut at a
+            stonecutter.
+        lore: |
+            Introduced alongside the Nether Reactor-era quartz family in
+            1.5, it was one of the first decorative "chiseled" stone
+            variants added to the game.
+    uses:
+        - title: Quartz Slabs
+          ref: quartz_slab
+          detail: |
+              Craft two Chiseled Quartz Blocks in a 1x2 grid to yield 6
+              Quartz Slabs, or convert 6 blocks into 4 Quartz Stairs.
+    found_in:
+        - location: Player-crafted
+          detail: Not found naturally generated; made by crafting Quartz Slabs or stonecutting a Block of Quartz.
+        - location: The Nether
+          detail: Nether Quartz Ore (the base material) is mined from Nether biomes.
+    faq:
+        - question: What tool do I need to mine Chiseled Quartz Block?
+          answer: |
+              Any pickaxe, starting from wood. Mining without a pickaxe
+              yields no drop.
+        - question: Does Chiseled Quartz Block generate naturally?
+          answer: |
+              No. It is only obtained by crafting quartz slabs together or
+              stonecutting a Block of Quartz.
+        - question: What can Chiseled Quartz Block be crafted into?
+          answer: |
+              It can be turned back into Quartz Slabs (6 per 2 blocks) or
+              Quartz Stairs (4 per 6 blocks).
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops itself as a single block once mined with
+              any pickaxe.
     data_version: "1.21.5"
 ---
 

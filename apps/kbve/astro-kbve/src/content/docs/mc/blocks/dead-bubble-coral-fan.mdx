@@ -1,5 +1,6 @@
 ---
 title: Dead Bubble Coral Fan
+template: splash
 description: |
     Minecraft Dead Bubble Coral Fan — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 737
     ref: dead_bubble_coral_fan
     slug: dead-bubble-coral-fan
+    content_rev: 1
     display_name: Dead Bubble Coral Fan
     material: stone
     hardness: 0
@@ -26,9 +28,47 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
-    data_version: "1.21.5"
+    drops:
+        - ref: dead_bubble_coral_fan
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Dead Bubble Coral Fan is the lifeless, grayscale form of Bubble
+            Coral Fan. It breaks instantly with any tool but, unlike dead
+            coral blocks, only drops itself when mined with a Silk Touch
+            enchanted pickaxe — without it, breaking yields nothing.
+        lore: |
+            Coral fans were added alongside coral blocks in Java Edition
+            1.13, giving builders thin decorative fronds to scatter across
+            reef floors and dead ocean terrain.
+    found_in:
+        - location: Warm ocean coral reefs
+          detail: Generates naturally as a dead coral fan in Bedrock Edition warm ocean reef structures; not naturally generated in Java Edition.
+        - location: Converted from Bubble Coral Fan
+          detail: Placing a live bubble coral fan outside of water causes it to die and become this block.
+    faq:
+        - question: Do I need Silk Touch to collect Dead Bubble Coral Fan?
+          answer: |
+              Yes. Mining it with anything other than a Silk Touch pickaxe
+              destroys it with no drop.
+        - question: Can it be placed underwater without dying?
+          answer: |
+              Yes, dead coral fans do not require water and can be placed on
+              land or underwater without any change in appearance.
+        - question: Can I turn it back into a living coral fan?
+          answer: |
+              No, dead coral fans cannot be revived once they have died.
+        - question: Where does it fit on a block?
+          answer: |
+              As a fan it must be placed on top of a solid block's upper
+              face; use the wall fan variant to attach it to the side of a
+              block instead.
 ---
 
 import MCBlockPanel from '@/components/mcdb/MCBlockPanel.astro';

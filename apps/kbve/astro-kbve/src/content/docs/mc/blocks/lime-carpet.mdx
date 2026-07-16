@@ -1,5 +1,6 @@
 ---
 title: Lime Carpet
+template: splash
 description: |
     Minecraft Lime Carpet — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 511
     ref: lime_carpet
     slug: lime-carpet
+    content_rev: 1
     display_name: Lime Carpet
     material: wool
     hardness: 0.1
@@ -24,10 +26,60 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lime_carpet
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Lime carpet is a thin, single-layer decorative block crafted
+            from wool, often used as cheap flooring or to decorate llamas.
+            It breaks instantly with any tool.
+        lore: |
+            Carpets were introduced in Java Edition 1.6.1, originally
+            yielding two carpets per two wool before the recipe was
+            changed to three.
+    uses:
+        - title: Llama Decoration
+          ref: llama
+          detail: |
+              Carpets can be equipped on llamas to give them a colored
+              saddle-blanket appearance.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              A single carpet smelts for 0.335 of a smelting cycle,
+              making it a minor fuel source.
+    found_in:
+        - location: Crafting
+          detail: Crafted from two lime wool, yielding three carpets.
+        - location: Structures
+          detail: Found in igloos, woodland mansions, villages, and ancient cities.
+        - location: Villager Trades
+          detail: Purchasable from shepherd villagers for emeralds.
+    faq:
+        - question: Is lime carpet flammable?
+          answer: |
+              Yes, it can catch fire from adjacent flames and burns
+              relatively easily like wool.
+        - question: Does carpet stop mobs from spawning?
+          answer: |
+              Yes, its thin 1/16-block hitbox prevents most mobs from
+              spawning on top of it.
+        - question: What tool mines carpet fastest?
+          answer: |
+              None needed; it has such low hardness that any tool or bare
+              hands breaks it instantly.
+        - question: How many carpets does one crafting recipe produce?
+          answer: |
+              Two wool blocks craft three carpets of that color.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Door
+template: splash
 description: |
     Minecraft Dark Oak Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 619
     ref: dark_oak_door
     slug: dark-oak-door
+    content_rev: 1
     display_name: Dark Oak Door
     material: wood
     hardness: 3
@@ -26,8 +28,50 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dark_oak_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Dark Oak Door is a two-tile-tall wooden door crafted from
+            dark oak planks. Like all wood doors, it can be opened and
+            closed by hand, redstone signal, or by villagers and other
+            passive mobs, but not by zombies on any difficulty.
+        lore: |
+            Wooden doors date back to Infdev in mid-2010, one of Minecraft's
+            oldest interactive blocks, with dark oak added alongside the
+            other new wood types in Beta 1.9.
+    uses:
+        - title: Furnace fuel
+          ref: dark_oak_door
+          detail: |
+              Each dark oak door smelts one item when used as furnace fuel,
+              since it is made of overworld wood.
+    found_in:
+        - location: Crafted from Dark Oak Planks
+          detail: Six dark oak planks in a 2x3 pattern craft three doors.
+        - location: Woodland Mansions
+          detail: Dark oak doors generate naturally throughout woodland mansions, matching the mansion's dark oak build style.
+    faq:
+        - question: What tool do I need to break a Dark Oak Door?
+          answer: |
+              None — it can be broken by hand instantly-ish, though an axe
+              is the fastest tool and no tool tier is required.
+        - question: Can zombies break Dark Oak Doors?
+          answer: |
+              No. Regular zombies cannot break any wooden door; only
+              vindicators can break doors, and only on Hard difficulty.
+        - question: What happens if the block below the door is removed?
+          answer: |
+              The door breaks and drops itself as an item, since doors
+              require a supporting block beneath their bottom half.
     data_version: "1.21.5"
 ---
 

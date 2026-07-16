@@ -1,5 +1,6 @@
 ---
 title: Brown Banner
+template: splash
 description: |
     Minecraft Brown Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 559
     ref: brown_wall_banner
     slug: brown-wall-banner
+    content_rev: 1
     display_name: Brown Banner
     material: wood
     hardness: 1
@@ -23,11 +25,61 @@ mc_block:
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
+    solid: false
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brown_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Brown Banner (wall-mounted) is a decorative, dye-colored
+            banner attached to the side of a solid block. It can carry up
+            to six loom-applied patterns and drops as a regular banner item
+            when broken.
+        lore: |
+            Banners let players design and copy custom heraldry, and their
+            patterns can be applied to shields for personal or team emblems.
+    uses:
+        - title: Shield decoration
+          ref: shield
+          detail: |
+              Combine a banner with a shield at a crafting table to transfer
+              its pattern onto the shield.
+        - title: Loom patterning
+          ref: loom
+          detail: |
+              Use a loom with dye and pattern items to add up to six stacked
+              layers of design to a banner before placing it.
+    found_in:
+        - location: Savanna villages
+          detail: Brown banners naturally generate on houses and meeting points in savanna villages.
+        - location: Crafting table
+          detail: Craft from 6 brown wool and 1 stick to produce a plain brown banner.
+    faq:
+        - question: What tool do I need to mine a Brown Banner?
+          answer: |
+              None strictly required — an axe is fastest, but any tool or
+              bare hands will break it.
+        - question: What happens if the wall it's attached to is removed?
+          answer: |
+              The banner block breaks and drops itself as an item, same as
+              mining it directly.
+        - question: Is Brown Banner flammable?
+          answer: |
+              Yes. Banners can catch fire from nearby flames and burn away,
+              and they can also be used as furnace fuel.
+        - question: Can I copy a banner's pattern?
+          answer: |
+              Yes. Place a patterned banner alongside a blank banner of the
+              same color in a loom to duplicate its design.
     data_version: "1.21.5"
 ---
 

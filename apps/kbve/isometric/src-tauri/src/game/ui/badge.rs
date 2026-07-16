@@ -40,7 +40,7 @@ pub fn spawn_badge(
         .spawn((
             Text::new(text.to_string()),
             TextFont {
-                font_size,
+                font_size: bevy::text::FontSize::Px(font_size),
                 ..default()
             },
             TextColor(kind.color()),

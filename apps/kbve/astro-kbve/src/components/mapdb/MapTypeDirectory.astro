@@ -1,0 +1,193 @@
+---
+import { getCollection } from 'astro:content';
+import { buildMapNav, TYPE_META } from './mapNav';
+
+const raw = await getCollection('mapdb');
+const entries = raw.map((e: { id: string; data: Record<string, unknown> }) => ({
+	id: e.id,
+	data: e.data,
+}));
+
+const groups = buildMapNav(entries as any);
+
+const iconFor = (label: string): string => {
+	const meta = TYPE_META.find((m) => m.label === label);
+	return meta?.icon ?? 'M9 20 3 17V4l6 3 6-3 6 3v13l-6-3-6 3zM9 7v13M15 4v13';
+};
+
+const anchorFor = (href: string): string =>
+	href.split('#')[1] ?? href.replace(/\W+/g, '');
+
+const total = groups.reduce((n, g) => n + g.items.length, 0);
+const harvestable = groups
+	.filter((g) => ['Resource Nodes'].includes(g.label))
+	.reduce((n, g) => n + g.items.length, 0);
+
+const stats = [
+	{
+		label: 'World objects',
+		value: String(total),
+		icon: 'M9 20 3 17V4l6 3 6-3 6 3v13l-6-3-6 3zM9 7v13M15 4v13',
+	},
+	{
+		label: 'Object types',
+		value: String(groups.length),
+		icon: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
+	},
+	{
+		label: 'Resource nodes',
+		value: String(harvestable),
+		icon: 'M6 3h12l4 6-10 12L2 9z M2 9h20 M12 3 8 9l4 12 4-12-4-6',
+	},
+];
+---
+
+<div class="map-directory">
+	<div class="bento-board map-directory__stats">
+		{
+			stats.map((s) => (
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg
+							viewBox="0 0 24 24"
+							width="16"
+							height="16"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.75"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true">
+							<path d={s.icon} />
+						</svg>
+					</span>
+					<span class="bento-stat__value">{s.value}</span>
+					<span class="bento-stat__label">{s.label}</span>
+				</div>
+			))
+		}
+	</div>
+
+	{
+		groups.map((group) => (
+			<section id={anchorFor(group.href ?? group.label)} class="map-type">
+				<header class="map-type__header">
+					<span class="bento-icon-tile">
+						<svg
+							viewBox="0 0 24 24"
+							width="17"
+							height="17"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="1.75"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true">
+							<path d={iconFor(group.label)} />
+						</svg>
+					</span>
+					<div class="map-type__heading">
+						<p class="bento-eyebrow">{group.eyebrow}</p>
+						<h3 class="map-type__title">{group.label}</h3>
+					</div>
+					<span class="map-type__count">{group.items.length}</span>
+				</header>
+				<div class="bento-board bento-board--cols-3">
+					{group.items.map((item) => (
+						<a
+							class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive"
+							href={item.href}>
+							<span class="bento-linkcard__title">
+								{item.label}
+							</span>
+							<span class="bento-linkcard__go" aria-hidden="true">
+								<svg
+									viewBox="0 0 24 24"
+									width="16"
+									height="16"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="2"
+									stroke-linecap="round"
+									stroke-linejoin="round">
+									<path d="M5 12h14M13 6l6 6-6 6" />
+								</svg>
+							</span>
+						</a>
+					))}
+				</div>
+			</section>
+		))
+	}
+</div>
+
+<style>
+	.map-directory {
+		display: flex;
+		flex-direction: column;
+		gap: 2.5rem;
+	}
+
+	.map-directory__stats {
+		display: grid;
+		grid-template-columns: repeat(3, minmax(0, 1fr));
+		gap: 1px;
+		background-color: var(--bento-hairline);
+	}
+
+	@media (max-width: 640px) {
+		.map-directory__stats {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	.map-type {
+		scroll-margin-top: 5rem;
+	}
+
+	.map-type__header {
+		display: flex;
+		align-items: center;
+		gap: 0.85rem;
+		padding: 0 0.25rem 1rem;
+	}
+
+	.map-type__heading {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.map-type__heading .bento-eyebrow {
+		margin: 0;
+	}
+
+	.map-type__title {
+		margin: 0.1rem 0 0;
+		font-size: 1.25rem;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		color: var(--sl-color-white);
+	}
+
+	.map-type__count {
+		flex-shrink: 0;
+		font-size: 0.75rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		padding: 0.2rem 0.55rem;
+		border-radius: 999px;
+		color: var(--sl-color-gray-2);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 6%,
+			transparent
+		);
+	}
+
+	.map-directory .bento-linkcard {
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.5rem;
+	}
+</style>

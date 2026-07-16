@@ -1,5 +1,9 @@
 ---
 title: 'Reno'
+template: splash
+sidebar:
+    label: 'Reno'
+    hidden: true
 description: |
     Sci-fi combat lieutenant. Coordinates the colony's response force when biters breach the wall. Loud, blunt, and effective. Treats every alarm like the last one.
 ref: 'reno'
@@ -40,7 +44,10 @@ faction:
     faction_id: 'player'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Sci-fi combat lieutenant. Coordinates the colony's response force.
+
+</NpcLeaf>

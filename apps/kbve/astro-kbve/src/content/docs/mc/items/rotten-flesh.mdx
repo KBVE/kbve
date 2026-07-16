@@ -1,5 +1,6 @@
 ---
 title: Rotten Flesh
+template: splash
 description: |
     Minecraft Rotten Flesh — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1052
     ref: rotten_flesh
     slug: rotten-flesh
+    content_rev: 1
     display_name: Rotten Flesh
     category: food
     rarity: common
@@ -22,6 +24,33 @@ mc_item:
         saturation: 6.4
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Rotten Flesh is a low-quality food that drops from zombie-type mobs and can also
+            turn up in loot chests or as fishing junk. Eating it restores hunger but carries
+            an 80% chance of inflicting Hunger, making it best saved for feeding wolves or
+            trading with clerics.
+        lore: |
+            Torn from the shambling bodies of the undead, this putrid meat is edible only in
+            true desperation.
+    faq:
+        - question: How do I get Rotten Flesh?
+          answer: |
+              Zombies, husks, drowned, and zombie villagers drop it, and it can also be found
+              in dungeon, desert pyramid, and shipwreck chests, gifted by tamed cats, or
+              caught while fishing.
+        - question: Is it safe to eat Rotten Flesh?
+          answer: |
+              It restores 4 hunger and 0.8 saturation, but there is an 80% chance it inflicts
+              the Hunger effect for 30 seconds; drinking milk cures the effect.
+        - question: What is the best use for Rotten Flesh?
+          answer: |
+              Feed it to tamed wolves, which are immune to the Hunger effect, or trade 32
+              pieces to a cleric villager for 1 emerald.
+        - question: Can I eat Rotten Flesh even at full hunger?
+          answer: |
+              Yes, like all foods with a hunger-effect risk, it can always be eaten even when
+              your hunger bar is full.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

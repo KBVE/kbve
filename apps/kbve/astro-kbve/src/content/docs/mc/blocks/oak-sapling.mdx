@@ -1,5 +1,6 @@
 ---
 title: Oak Sapling
+template: splash
 description: |
     Minecraft Oak Sapling — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 25
     ref: oak_sapling
     slug: oak-sapling
+    content_rev: 1
     display_name: Oak Sapling
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,65 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oak_sapling
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - plant
+    about:
+        description: |
+            Oak Sapling is a small plant block that grows into an oak tree
+            over time, either naturally under enough light or instantly with
+            bone meal. It breaks instantly with any tool or by hand.
+        lore: |
+            Saplings have existed since Minecraft's pre-Classic days, though
+            Notch reportedly disliked the original texture enough to hide
+            the block from early builds.
+    uses:
+        - title: Bone Meal
+          ref: bone_meal
+          detail: |
+              Applying bone meal to a planted sapling has a chance to
+              instantly grow it into a full oak tree.
+        - title: Composter
+          ref: composter
+          detail: |
+              Saplings can be added to a composter, with a 30% chance to
+              raise the compost level by one.
+        - title: Potted Plant
+          ref: flower_pot
+          detail: |
+              Place inside a flower pot to create a decorative potted oak
+              sapling.
+    found_in:
+        - location: Decaying oak leaves
+          detail: Oak leaves have a small chance to drop a sapling when they decay or are broken.
+        - location: Village chests and bonus chests
+          detail: Occasionally generates as loot in these containers.
+        - location: Wandering Trader
+          detail: Purchasable for 5 emeralds.
+    faq:
+        - question: How does an Oak Sapling grow into a tree?
+          answer: |
+              It needs a light level of 9 or higher above it and passes
+              through two hidden growth stages before sprouting, or bone
+              meal can force instant growth.
+        - question: Can I break it instantly?
+          answer: |
+              Yes, its hardness is 0, so any tool or bare hands break it
+              immediately with no drop penalty.
+        - question: What does planting saplings near flowers do?
+          answer: |
+              Oak, birch, and cherry saplings have a small chance to spawn a
+              bee nest if they grow within 2 blocks of flowers.
+        - question: Is Oak Sapling flammable?
+          answer: |
+              No, unlike oak logs and planks, the sapling block itself does
+              not catch fire.
     data_version: "1.21.5"
 ---
 

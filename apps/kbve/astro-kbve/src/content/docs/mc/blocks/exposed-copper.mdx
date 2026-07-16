@@ -1,5 +1,6 @@
 ---
 title: Exposed Copper
+template: splash
 description: |
     Minecraft Exposed Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 967
     ref: exposed_copper
     slug: exposed-copper
+    content_rev: 1
     display_name: Exposed Copper
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,62 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: exposed_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Exposed Copper is the first weathering stage of the Block of
+            Copper, its bright orange-brown surface dulled with light gray,
+            green-tinted spots. It behaves identically to unoxidized
+            copper otherwise, serving as a solid decorative and storage
+            block.
+        lore: |
+            Copper blocks and their oxidation stages were introduced in the
+            1.17 Caves & Cliffs update, giving builders a living-metal
+            material that ages in place over time.
+    uses:
+        - title: Exposed Cut Copper
+          ref: exposed_cut_copper
+          detail: |
+              Stonecut or crafted into Exposed Cut Copper for decorative
+              variants such as slabs and stairs at the same oxidation
+              stage.
+        - title: Exposed Copper Grate
+          ref: exposed_copper_grate
+          detail: |
+              Four Exposed Copper blocks craft into 4 Exposed Copper
+              Grates, a see-through mob-proof variant.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates naturally at this oxidation stage within trial chamber structures.
+        - location: Natural weathering or lightning
+          detail: An unoxidized copper block reaches this stage over time, or instantly if struck by lightning.
+    faq:
+        - question: What tool do I need to mine Exposed Copper?
+          answer: |
+              A stone pickaxe or better. A wooden pickaxe or bare hands
+              break it without dropping anything.
+        - question: How do I get Exposed Copper?
+          answer: |
+              Let a Block of Copper weather naturally, strike it with
+              lightning, or scrape a more-oxidized block back a stage with
+              an axe.
+        - question: Is Exposed Copper affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one block regardless of
+              enchantments.
+        - question: Can I stop it from oxidizing further?
+          answer: |
+              Yes, apply honeycomb to wax it and lock it at the exposed
+              stage permanently.
     data_version: "1.21.5"
 ---
 

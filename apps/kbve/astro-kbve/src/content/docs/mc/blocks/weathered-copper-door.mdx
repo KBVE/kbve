@@ -1,5 +1,6 @@
 ---
 title: Weathered Copper Door
+template: splash
 description: |
     Minecraft Weathered Copper Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1011
     ref: weathered_copper_door
     slug: weathered-copper-door
+    content_rev: 1
     display_name: Weathered Copper Door
     material: metal
     hardness: 3
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: weathered_copper_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - blast_resistant
+    about:
+        description: |
+            The Weathered Copper Door is a copper door frozen at the
+            greenish weathered oxidation stage. It opens by hand,
+            redstone signal, or mob interaction, unlike wooden doors
+            which villagers and iron golems cannot open.
+        lore: |
+            Introduced with copper doors in the Tricky Trials update as
+            a functional, weathering alternative to wood and iron doors.
+    uses:
+        - title: Player and Mob Passage
+          ref: weathered_copper_door
+          detail: |
+              Functions as a standard door that opens and closes by
+              hand-clicking or redstone, and can also be toggled by
+              nearby mobs, unlike iron doors.
+    found_in:
+        - location: Crafted from Copper Ingots
+          detail: 6 copper ingots craft 3 copper doors, then oxidize naturally to weathered over time unless waxed.
+        - location: Trial Chambers
+          detail: Generates naturally between rooms and vault entrances in trial chambers.
+    faq:
+        - question: What tool do I need to mine this block?
+          answer: |
+              Any tool works and it always drops itself; a pickaxe is
+              simply the fastest way to break it.
+        - question: Can mobs open this door on their own?
+          answer: |
+              Yes, unlike iron doors, copper doors can be opened by
+              villagers, zombies, and other mobs, as well as by hand or
+              redstone.
+        - question: Will it keep oxidizing if left unwaxed?
+          answer: |
+              Yes, it will continue oxidizing toward the fully oxidized
+              stage unless waxed with honeycomb.
+        - question: Does Silk Touch or Fortune affect its drops?
+          answer: |
+              No. It always drops itself as a single item regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

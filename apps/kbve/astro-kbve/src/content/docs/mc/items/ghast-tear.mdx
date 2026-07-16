@@ -1,5 +1,6 @@
 ---
 title: Ghast Tear
+template: splash
 description: |
     Minecraft Ghast Tear — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1055
     ref: ghast_tear
     slug: ghast-tear
+    content_rev: 1
     display_name: Ghast Tear
     category: brewing
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A ghast tear is a rare drop from ghasts in the Nether used primarily for brewing
+            and crafting. It is the key ingredient for potions of regeneration, and it is
+            also used in crafting end crystals and dried ghasts.
+        lore: |
+            The item's purpose was changed early in development because "Ghast Tears are so
+            hard to get," leading developers to swap out an instant-health effect for the
+            regeneration potion to better reflect their rarity.
+    faq:
+        - question: How do you get a Ghast Tear?
+          answer: |
+              Kill a ghast in the Nether. Without Looting, there is roughly a 50% drop
+              chance per ghast, rising to about 91.67% with Looting III in Java Edition.
+        - question: What potions can you brew with Ghast Tears?
+          answer: |
+              Combine a ghast tear with a water bottle for a mundane potion, or with an
+              awkward potion to brew a potion of regeneration lasting 45 seconds.
+        - question: What else are Ghast Tears used for?
+          answer: |
+              They are crafting ingredients for end crystals (with glass and eyes of ender)
+              and for dried ghasts (with soul sand).
+        - question: Is the Ghast Tear a renewable resource?
+          answer: |
+              Yes. Since ghasts respawn infinitely in the Nether, ghast tears remain
+              renewable despite their relative rarity per kill.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

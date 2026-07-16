@@ -1,5 +1,6 @@
 ---
 title: Crying Obsidian
+template: splash
 description: |
     Minecraft Crying Obsidian — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 876
     ref: crying_obsidian
     slug: crying-obsidian
+    content_rev: 1
     display_name: Crying Obsidian
     material: nether
     hardness: 50
     blast_resistance: 1200
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 4
     light_emission: 10
     light_opacity: 15
     transparent: false
@@ -26,8 +28,67 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crying_obsidian
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_diamond_tool
+        - nether
+        - light_source
+        - blast_resistant
+    about:
+        description: |
+            Crying Obsidian is a luminous variant of obsidian that drips
+            purple particles and emits light level 10. It shares obsidian's
+            extreme blast resistance but cannot form Nether portals; its
+            main purpose is crafting respawn anchors.
+        lore: |
+            First conceived by Jeb in 2011 as an early respawn mechanic
+            before beds existed, it was finally added in the 1.16 Nether
+            Update and repurposed for the respawn anchor.
+    uses:
+        - title: Respawn Anchor
+          ref: respawn_anchor
+          detail: |
+              Combine 6 crying obsidian with 3 glowstone blocks to craft a
+              respawn anchor for setting spawn in the Nether.
+        - title: Decorative Light
+          detail: |
+              Emits light level 10 without melting snow or ice, making it a
+              durable decorative light source.
+    found_in:
+        - location: Ruined Portals
+          detail: Each obsidian block has a 15% chance to be crying obsidian.
+        - location: Bastion Remnants
+          detail: Found in hoglin stable, treasure, generic, and bridge chests.
+        - location: Piglin Bartering
+          detail: |
+              Roughly 8.5% chance per gold ingot to receive 1-3 blocks; the
+              only renewable source.
+    faq:
+        - question: What tool mines crying obsidian?
+          answer: |
+              A diamond or netherite pickaxe. Weaker tools drop nothing and
+              take about 9.4 seconds to break it with a diamond pickaxe.
+        - question: Can I make a Nether portal with it?
+          answer: |
+              No. Crying obsidian cannot form a portal frame — you need
+              regular obsidian for that.
+        - question: Can I turn regular obsidian into crying obsidian?
+          answer: |
+              No conversion exists; they are entirely separate blocks.
+        - question: What is the best way to get it?
+          answer: |
+              Piglin bartering is both the most reliable and the only
+              renewable source of crying obsidian.
+        - question: Can I place End crystals on it?
+          answer: |
+              No. It intentionally blocks End crystal placement, unlike
+              regular obsidian and bedrock.
     data_version: "1.21.5"
 ---
 

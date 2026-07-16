@@ -1,5 +1,6 @@
 ---
 title: Black Wool
+template: splash
 description: |
     Minecraft Black Wool — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 155
     ref: black_wool
     slug: black-wool
+    content_rev: 1
     display_name: Black Wool
     material: wool
     hardness: 0.8
@@ -24,10 +26,65 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: black_wool
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+    about:
+        description: |
+            Black Wool is a dyed wool block sheared from sheep or crafted
+            from string, valued for solid-color builds and for blocking
+            sound vibrations near sculk sensors and wardens.
+        lore: |
+            Wool was one of Minecraft's original dyeable blocks, and its 16
+            colors have made it a staple building material since the game's
+            earliest versions.
+    uses:
+        - title: Bed Crafting
+          ref: black_bed
+          detail: |
+              Combining 3 Black Wool with 3 planks of any wood crafts a
+              Black Bed, letting players set their spawn point and skip
+              the night.
+        - title: Carpet
+          ref: black_carpet
+          detail: |
+              Two Black Wool craft into three Black Carpet, a thin
+              decorative floor covering.
+    found_in:
+        - location: Sheep
+          detail: |
+              Shearing an adult black sheep yields 1-3 wool without harming
+              it; killing a sheep drops 1 wool of its color.
+        - location: Structure generation
+          detail: |
+              Naturally found in woodland mansions, villages, pillager
+              outposts, and ancient cities as decoration or loot.
+    faq:
+        - question: Is Black Wool flammable?
+          answer: |
+              Yes, wool of any color burns readily and will catch fire from
+              lava or nearby flames, so keep it away from open flame builds.
+        - question: Does Fortune increase wool drops?
+          answer: |
+              No, wool drop rates are not affected by Fortune or Looting;
+              mining or shearing always yields the standard amount.
+        - question: Why is Black Wool useful near a Warden?
+          answer: |
+              Wool blocks, including black, muffle sounds and prevent
+              vibrations from reaching sculk sensors, helping players sneak
+              past a Warden.
+        - question: Can I get Black Wool without a sheep?
+          answer: |
+              Yes, crafting four String in a 2x2 grid produces plain wool,
+              which can then be dyed black with an Ink Sac.
     data_version: "1.21.5"
 ---
 

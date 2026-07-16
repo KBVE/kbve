@@ -1,5 +1,6 @@
 ---
 title: Bush
+template: splash
 description: |
     Minecraft Bush — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 204
     ref: bush
     slug: bush
+    content_rev: 1
     display_name: Bush
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A bush is a non-solid decorative plant block found in grassy biomes throughout the Overworld, with its color changing based on the local biome's temperature and humidity to match surrounding grass. It can be placed on grass, dirt, farmland, mud, and moss blocks, and is instantly broken when mined, though it only drops as an item when harvested with shears or a Silk Touch tool. Bone meal used on a bush attempts to grow another bush on an adjacent compatible block.
+        lore: |
+            Bushes were introduced in the "Spring to Life" update, adding extra natural vegetation detail to grassy biomes and abandoned camps.
+    faq:
+        - question: How do I collect bushes without them disappearing?
+          answer: |
+              You must use shears or any tool with the Silk Touch enchantment to break a bush and receive it as an item; otherwise it is destroyed without dropping anything.
+        - question: Can I place bushes anywhere?
+          answer: |
+              No, bushes can only be placed on specific blocks such as grass blocks, mycelium, podzol, dirt variants, farmland, mud, and moss blocks, not in flower pots.
+        - question: Do bushes prevent trees from growing?
+          answer: |
+              No, bushes no longer block tree growth and are simply replaced when a tree grows into their space.
+        - question: What happens when I use bone meal on a bush?
+          answer: |
+              Applying bone meal to a bush attempts to generate another bush on an adjacent compatible block.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

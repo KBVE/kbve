@@ -1,5 +1,6 @@
 ---
 title: Oxidized Cut Copper
+template: splash
 description: |
     Minecraft Oxidized Cut Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 972
     ref: oxidized_cut_copper
     slug: oxidized-cut-copper
+    content_rev: 1
     display_name: Oxidized Cut Copper
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oxidized_cut_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Oxidized Cut Copper is the fully weathered, chiseled form of a
+            Block of Copper, showing the dull teal-green patina copper
+            reaches after passing through all four oxidation stages. It is
+            purely decorative and behaves like ordinary stone.
+        lore: |
+            Introduced with the Copper block family in Java Edition 1.17,
+            it lets builders recreate aged copper roofing and statues.
+    uses:
+        - title: Oxidized Cut Copper Stairs
+          ref: oxidized_cut_copper_stairs
+          detail: |
+              Craft or stonecut into stairs (4 output) or slabs (6 output)
+              for detailing rooflines and trim.
+        - title: Chiseled Copper
+          ref: chiseled_copper
+          detail: |
+              Stonecut into Chiseled Copper for an alternate decorative
+              pattern in the same oxidation stage.
+    found_in:
+        - location: Trial Chambers
+          detail: Waxed oxidized cut copper generates naturally as part of trial chamber structures.
+        - location: Crafted or stonecut
+          detail: Made from a Block of Copper that has fully oxidized, then cut via crafting table or stonecutter.
+    faq:
+        - question: What tool do I need to mine Oxidized Cut Copper?
+          answer: |
+              A stone pickaxe or better. Mining without a pickaxe destroys
+              the block and drops nothing.
+        - question: Does it keep oxidizing?
+          answer: |
+              No, oxidized is the last of four weathering stages, so the
+              block stays as-is once it reaches this point.
+        - question: How do I stop it from changing?
+          answer: |
+              Apply honeycomb to wax it, which blocks further oxidation and
+              protects it from axe scraping and lightning strikes.
+        - question: Can I turn it back into a lighter copper stage?
+          answer: |
+              Yes, scraping an unwaxed block with an axe removes one
+              oxidation stage.
     data_version: "1.21.5"
 ---
 

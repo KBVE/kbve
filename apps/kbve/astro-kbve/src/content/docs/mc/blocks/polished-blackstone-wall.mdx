@@ -1,5 +1,6 @@
 ---
 title: Polished Blackstone Wall
+template: splash
 description: |
     Minecraft Polished Blackstone Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,72 @@ mc_block:
     id: 899
     ref: polished_blackstone_wall
     slug: polished-blackstone-wall
+    content_rev: 1
     display_name: Polished Blackstone Wall
     material: nether
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_blackstone_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+        - blast_resistant
+    about:
+        description: |
+            Polished Blackstone Wall is a taller, connecting variant of
+            polished blackstone used for fencing and decorative borders. It
+            automatically links to neighboring walls, fences, and solid
+            blocks, and can raise a center post.
+        lore: |
+            Added with the rest of the polished blackstone family in the
+            Nether Update (Java Edition 1.16).
+    uses:
+        - title: Nether Fencing
+          ref: polished_blackstone
+          detail: |
+              Placed around bases or bridges in the Nether to block mob
+              pathing while keeping projectiles and player view mostly
+              unobstructed.
+    found_in:
+        - location: Ruined Portals
+          detail: Generates naturally as part of ruined portal structures in the Nether.
+        - location: Crafted or Stonecut
+          detail: |
+              Six polished blackstone blocks craft six walls, or cut them
+              1:1 with a stonecutter from blackstone or polished
+              blackstone.
+    faq:
+        - question: What tool do I need to mine a Polished Blackstone Wall?
+          answer: |
+              A wooden pickaxe or better. Mining without one destroys the
+              block with no drop.
+        - question: Do walls connect to fences and other blocks automatically?
+          answer: |
+              Yes. Walls connect to adjacent walls, fence gates, and solid
+              blocks, raising a center post when isolated or surrounded on
+              multiple sides.
+        - question: Can mobs walk through a wall gap?
+          answer: |
+              No, walls are taller than fences and block most mob movement,
+              though players can still be hit over them by ranged attacks
+              depending on height.
+        - question: Is the wall waterloggable?
+          answer: |
+              Yes, it can hold a water source block while placed.
     data_version: "1.21.5"
 ---
 

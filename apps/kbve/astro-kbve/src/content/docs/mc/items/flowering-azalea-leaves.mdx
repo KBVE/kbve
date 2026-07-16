@@ -1,5 +1,6 @@
 ---
 title: Flowering Azalea Leaves
+template: splash
 description: |
     Minecraft Flowering Azalea Leaves — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 192
     ref: flowering_azalea_leaves
     slug: flowering-azalea-leaves
+    content_rev: 1
     display_name: Flowering Azalea Leaves
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Flowering azalea leaves are transparent foliage blocks that form the pink-blossomed
+            canopy of azalea trees, generated in lush caves and along flowering azalea shrubs.
+            They can be harvested intact with shears or a Silk Touch tool, and act as a flower
+            source for bee pollination just like real flowers.
+        lore: |
+            A splash of pink blooming quietly in the dark of the lush caves, where flowers
+            otherwise struggle to grow.
+    faq:
+        - question: How do I get flowering azalea leaves without them decaying instantly?
+          answer: |
+              Break them with shears or a tool enchanted with Silk Touch; otherwise they drop
+              only sticks or saplings, and any leftover leaves left disconnected from a log for
+              too many blocks will decay on their own.
+        - question: Do flowering azalea leaves work as flowers for bees?
+          answer: |
+              Yes, along with cherry leaves they count as flowers for bee pollination, which is
+              unusual since most other leaf blocks do not.
+        - question: Where do flowering azalea leaves generate naturally?
+          answer: |
+              They generate as part of azalea trees found in lush caves biomes and on the
+              overhanging azalea bushes that dot lush cave ceilings and dripstone transitions.
+        - question: Can flowering azalea leaves be composted?
+          answer: |
+              Yes, they have a 50% chance of adding to a composter, higher than the 30% chance
+              of most other leaf types.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

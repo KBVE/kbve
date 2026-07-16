@@ -1,5 +1,6 @@
 ---
 title: Bone
+template: splash
 description: |
     Minecraft Bone — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1021
     ref: bone
     slug: bone
+    content_rev: 1
     display_name: Bone
     category: material
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Bone is an item primarily obtained from skeletons and similar undead
+            mobs. It is used to craft bone meal fertilizer and to tame wild wolves,
+            making it a key resource for both farming and taming.
+        lore: |
+            Bones have dropped from skeleton-type mobs since skeletons were first added, tying the item to both combat and animal husbandry.
+    faq:
+        - question: What mobs drop Bones?
+          answer: |
+              Bones drop from Skeletons, Wither Skeletons, Strays, Skeleton Horses,
+              Bogged, and Parched mobs, and they can also be found in loot chests such
+              as desert pyramids, jungle pyramids, and dungeons, or occasionally caught
+              while fishing.
+        - question: What can you craft with Bones?
+          answer: |
+              A single bone can be crafted into three bone meal, which is used to
+              instantly grow crops and other plants.
+        - question: How do Bones help tame wolves?
+          answer: |
+              Using a bone on a wild wolf has a one-in-three chance of taming it;
+              successful taming gives the wolf a collar and makes it a loyal companion.
+        - question: Are Bones stackable and common?
+          answer: |
+              Yes, Bones are a common item that stack up to sixty-four per slot, making
+              them easy to accumulate from routine skeleton fights.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

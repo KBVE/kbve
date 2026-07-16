@@ -4,6 +4,15 @@
 Usage:
     nx-security-to-mdx.py --input <raw.json> --timestamp <ISO>
                            [--mdx-out <path>] [--json-out <path>]
+
+MIGRATION (pending): this standalone script has been ported into the
+``kbve`` Python package as ``kbve.nx`` (parse: kbve/nx/security.py, render:
+kbve/nx/render.py, CLI: kbve/nx/cli.py). The console script
+``kbve-nx-security`` produces byte-identical JSON+MDX and is covered by
+tests/test_nx_render.py. This file remains the authoritative runner until
+ci-dashboard.yml flips from ``python3 scripts/nx-security-to-mdx.py`` to
+``uv run kbve-nx-security``. Keep the two parse layers in sync until then —
+any fix here must be mirrored in kbve/nx/security.py (and vice-versa).
 """
 import argparse
 import json
@@ -113,7 +122,7 @@ def parse_cargo(raw) -> dict:
 
     vuln_list = raw.get("vulnerabilities", {}).get("list", [])
     for entry in vuln_list:
-        adv = entry.get("advisory", {})
+        adv = entry.get("advisory") or {}
         # Derive severity from informational flag or CVSS score
         if adv.get("informational"):
             sev = "info"
@@ -137,7 +146,7 @@ def parse_cargo(raw) -> dict:
             sev = "medium"
 
         severities[sev] = severities.get(sev, 0) + 1
-        pkg = entry.get("package", {})
+        pkg = entry.get("package") or {}
         advisories.append({
             "id": adv.get("id", ""),
             "title": adv.get("title", ""),
@@ -150,9 +159,9 @@ def parse_cargo(raw) -> dict:
     for warning in raw.get("warnings", {}).values():
         if isinstance(warning, list):
             for w in warning:
-                adv = w.get("advisory", {})
+                adv = w.get("advisory") or {}
                 severities["info"] = severities.get("info", 0) + 1
-                pkg = w.get("package", {})
+                pkg = w.get("package") or {}
                 advisories.append({
                     "id": adv.get("id", ""),
                     "title": adv.get("title", ""),

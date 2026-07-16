@@ -1,5 +1,6 @@
 ---
 title: White Concrete Powder
+template: splash
 description: |
     Minecraft White Concrete Powder — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 601
     ref: white_concrete_powder
     slug: white-concrete-powder
+    content_rev: 1
     display_name: White Concrete Powder
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            White concrete powder is a gravity-affected block crafted from white dye, sand, and gravel in a shapeless recipe that yields 8 blocks. Like sand, it falls when unsupported, but it solidifies into solid white concrete the instant it touches flowing water, a water source, or a waterlogged block.
+            It became renewable in version 1.16 once piglins began bartering gravel, completing the crafting chain.
+        lore: |
+            A dry, chalky powder waiting for a single splash to set it into permanent stone.
+    faq:
+        - question: How do I make white concrete powder?
+          answer: |
+              Combine white dye, sand, and gravel in a shapeless crafting recipe to produce 8 blocks of white concrete powder.
+        - question: How do I turn white concrete powder into concrete?
+          answer: |
+              Let it touch flowing water, a water source block, or a waterlogged block; it solidifies instantly into white concrete. Rain and splash potions will not trigger the conversion.
+        - question: Does white concrete powder fall like sand?
+          answer: |
+              Yes, it is gravity-affected and falls straight down if the block beneath it is removed, just like sand or gravel.
+        - question: Is white concrete powder renewable?
+          answer: |
+              Yes, since 1.16 gravel can be obtained renewably by bartering with piglins, making the full crafting chain for concrete powder renewable.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

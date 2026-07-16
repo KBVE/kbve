@@ -1,5 +1,6 @@
 ---
 title: Magenta Shulker Box
+template: splash
 description: |
     Minecraft Magenta Shulker Box — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 648
     ref: magenta_shulker_box
     slug: magenta-shulker-box
+    content_rev: 1
     display_name: Magenta Shulker Box
     material: stone
     hardness: 2
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: magenta_shulker_box
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Magenta Shulker Box is a portable storage container dyed with
+            magenta dye. It holds 27 inventory slots and, unlike a chest,
+            keeps its contents when broken — the items stay inside the
+            dropped item instead of spilling into the world.
+        lore: |
+            Shulker boxes were added in Java Edition 1.11, giving players a
+            way to carry a container's worth of items without losing them on
+            break, and dyed variants let that storage be color-coded.
+    uses:
+        - title: Magenta Shulker Box
+          ref: magenta_shulker_box
+          detail: |
+              Crafted from a Shulker Box plus Magenta Dye, or by combining
+              any shulker box with magenta dye to recolor it without losing
+              its contents.
+        - title: Portable Storage
+          ref: chest
+          detail: |
+              Provides 27 storage slots that can be placed, opened, and
+              picked back up while still full — useful for organizing
+              inventories by color and for nesting large item hauls.
+    found_in:
+        - location: Crafted
+          detail: Made from a Shulker Box (2 Shulker Shells + a Chest) and Magenta Dye.
+        - location: End Cities
+          detail: Undyed Shulker Boxes and Shulker Shells originate from Shulkers found in End City structures.
+    faq:
+        - question: Does breaking a Magenta Shulker Box lose its items?
+          answer: |
+              No. Shulker boxes keep their entire inventory inside the
+              dropped item when mined, unlike chests or barrels.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool works, though a pickaxe is fastest. There is no
+              minimum tier — it always drops for any tool or bare hands.
+        - question: Can I change the color after crafting it?
+          answer: |
+              Yes. Combine any shulker box with a different color of dye in
+              a crafting grid to recolor it while keeping its contents.
+        - question: Is a Shulker Box flammable?
+          answer: |
+              No. It does not catch fire from nearby flames the way wool or
+              wood does.
     data_version: "1.21.5"
 ---
 

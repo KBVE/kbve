@@ -1,5 +1,6 @@
 ---
 title: Kelp
+template: splash
 description: |
     Minecraft Kelp — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,71 @@ mc_block:
     id: 710
     ref: kelp
     slug: kelp
+    content_rev: 1
     display_name: Kelp
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: kelp
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - instant_break
+    about:
+        description: |
+            Kelp is the topmost, still-growing segment of an underwater
+            kelp stalk, randomly aging up over time until it reaches its
+            maximum height and stops. It drops a kelp item instantly when
+            broken with any tool.
+        lore: |
+            Kelp was revealed at MineCon Earth in November 2017 before
+            shipping in the Update Aquatic.
+    uses:
+        - title: Dried Kelp
+          ref: dried_kelp
+          detail: |
+              Smelt kelp in a furnace to get dried kelp, an edible food
+              item that can be crafted into dried kelp blocks, one of the
+              most efficient furnace fuels in the game.
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Placing kelp in a composter has a 30% chance to raise the
+              compost level by one, a cheap way to generate bone meal.
+    found_in:
+        - location: Ocean biomes
+          detail: Generates underwater with roughly a 1-in-18 chance per chunk, in most non-frozen, non-warm oceans.
+        - location: Wandering Trader
+          detail: Purchasable from wandering traders for 3 emeralds.
+    faq:
+        - question: Does Kelp need a special tool to mine?
+          answer: |
+              No. It has 0 hardness and breaks instantly with any tool or
+              bare hands.
+        - question: Can Kelp grow on land?
+          answer: |
+              No, kelp can only be placed and will only survive on top of
+              another kelp block or ground block submerged in water.
+        - question: What is Kelp used for?
+          answer: |
+              Primarily as a renewable food source (via dried kelp) and as
+              compost or furnace fuel once converted into dried kelp blocks.
+        - question: Is Kelp affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one kelp item regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

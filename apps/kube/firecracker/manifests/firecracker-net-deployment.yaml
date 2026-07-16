@@ -145,8 +145,13 @@ spec:
                                 key: db-url-ro
                   securityContext:
                       seccompProfile:
-                          type: Unconfined
+                          type: Localhost
+                          localhostProfile: operator/firecracker-jailer.json
                       readOnlyRootFilesystem: true
+                      # Firecracker jailer requires SYS_ADMIN (mount --make-private for
+                      # pivot_root on shared-propagation emptyDir), SYS_CHROOT + MKNOD
+                      # (create /dev/kvm, /dev/net/tun inside the chroot). These replace
+                      # privileged: true — not removable without a rootless-jailer rearchitect.
                       capabilities:
                           drop:
                               - ALL

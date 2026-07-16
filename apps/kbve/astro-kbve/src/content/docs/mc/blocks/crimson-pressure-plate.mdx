@@ -1,5 +1,6 @@
 ---
 title: Crimson Pressure Plate
+template: splash
 description: |
     Minecraft Crimson Pressure Plate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 846
     ref: crimson_pressure_plate
     slug: crimson-pressure-plate
+    content_rev: 1
     display_name: Crimson Pressure Plate
     material: redstone
     hardness: 0.5
@@ -26,8 +28,48 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crimson_pressure_plate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            The Crimson Pressure Plate is a redstone component crafted
+            from crimson planks that emits a signal strength of 15 while
+            any entity stands on it, checking for occupants each tick.
+        lore: |
+            Like all wooden pressure plates, the crimson variant reacts to
+            any entity, from players and mobs to dropped items, unlike its
+            stone counterpart which is player/mob only.
+    uses:
+        - title: Redstone Trigger
+          ref: redstone
+          detail: |
+              Placed in doorways, traps, or farms to detect entities and
+              power adjacent redstone components such as doors, dispensers,
+              or note blocks.
+    found_in:
+        - location: Crafting
+          detail: Made from 2 crimson planks placed side by side.
+    faq:
+        - question: What triggers a Crimson Pressure Plate?
+          answer: |
+              Any entity — players, mobs, boats, and dropped items —
+              standing on it, unlike stone pressure plates which ignore
+              items.
+        - question: Does it burn like other wood pressure plates?
+          answer: |
+              No. Crimson pressure plates are non-flammable, matching all
+              other crimson and warped wood blocks.
+        - question: What tool do I need to mine it?
+          answer: |
+              None required — an axe is fastest, but any tool breaks it
+              instantly and it always drops itself.
     data_version: "1.21.5"
 ---
 

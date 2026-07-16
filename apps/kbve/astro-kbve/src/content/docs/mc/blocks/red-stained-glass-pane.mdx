@@ -1,5 +1,6 @@
 ---
 title: Red Stained Glass Pane
+template: splash
 description: |
     Minecraft Red Stained Glass Pane — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 482
     ref: red_stained_glass_pane
     slug: red-stained-glass-pane
+    content_rev: 1
     display_name: Red Stained Glass Pane
     material: glass
     hardness: 0.3
@@ -24,10 +26,57 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_stained_glass_pane
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - hand_mineable
+        - transparent
+        - waterloggable
+        - non_flammable
+        - overworld
+    about:
+        description: |
+            Red Stained Glass Pane is a thin, dyed window block made from
+            stained glass or plain glass panes with red dye. It connects
+            to adjacent blocks with flat or corner shapes and can be
+            waterlogged.
+        lore: |
+            Stained glass panes generate naturally as windows in various
+            village and temple structures across the Overworld.
+    uses:
+        - title: Decorative windows
+          ref: red_stained_glass
+          detail: |
+              Placed as thin colored windows or dividers; using panes
+              instead of full glass blocks covers up to 267% more window
+              area with the same amount of material.
+    found_in:
+        - location: Crafting table
+          detail: 6 red stained glass, or 4 glass panes + 1 red dye, crafts 16 or 8 panes.
+        - location: Village structures
+          detail: Generates naturally as windows in some village buildings.
+    faq:
+        - question: What drops when I mine Red Stained Glass Pane?
+          answer: |
+              Nothing, unless the tool has Silk Touch — then it drops
+              itself. Without Silk Touch it simply breaks.
+        - question: What tool do I need?
+          answer: |
+              None — it mines at the same speed with any tool or by hand.
+        - question: Can spiders fit through gaps made with panes?
+          answer: |
+              Yes, spiders can squeeze through small gaps as narrow as 2x1
+              blocks created between two panes.
+        - question: Can it be waterlogged?
+          answer: |
+              Yes, a stained glass pane can hold a water source in the same
+              block space.
     data_version: "1.21.5"
 ---
 

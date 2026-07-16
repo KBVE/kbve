@@ -1,5 +1,6 @@
 ---
 title: Wither Spawn Egg
+template: splash
 description: |
     Minecraft Wither Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1140
     ref: wither_spawn_egg
     slug: wither-spawn-egg
+    content_rev: 1
     display_name: Wither Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Wither Spawn Egg is a command/creative-only item that instantly summons the Wither,
+            a three-headed undead boss capable of destroying most blocks and dealing devastating
+            ranged and melee damage. It bypasses the normal soul sand and skull summoning ritual.
+        lore: |
+            Built from soul sand and wither skeleton skulls in survival, the Wither emerges as a
+            devastating force of nature feared for its explosive power and deadly effect.
+    faq:
+        - question: How is a Wither normally summoned in survival mode?
+          answer: |
+              Players arrange four soul sand or soul soil blocks in a T-shape, then place three
+              wither skeleton skulls on top, with the final skull triggering the spawn.
+        - question: What attacks does the Wither use?
+          answer: |
+              It fires black and blue explosive skulls; black ones have standard blast power while
+              blue ones move slower but destroy more terrain, and all inflict the Wither effect.
+        - question: How much health does the Wither have?
+          answer: |
+              In Java Edition it always has 300 HP regardless of difficulty; in Bedrock Edition it
+              scales from 300 HP on Easy up to 600 HP on Hard.
+        - question: What reward does defeating the Wither give?
+          answer: |
+              The Wither always drops a Nether Star on death, which is required to craft a beacon.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

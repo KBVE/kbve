@@ -1,5 +1,6 @@
 ---
 title: Blue Concrete
+template: splash
 description: |
     Minecraft Blue Concrete — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 689
     ref: blue_concrete
     slug: blue-concrete
+    content_rev: 1
     display_name: Blue Concrete
     material: stone
     hardness: 1.8
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blue_concrete
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Blue concrete is a solid, brightly colored building block
+            formed when blue concrete powder contacts water. It is
+            non-flammable and offers more vivid, saturated color than
+            stained clay or terracotta.
+        lore: |
+            Concrete was added in 1.12, giving builders a vivid, fire-safe
+            alternative to wool and stained clay for large structures.
+    uses:
+        - title: Building & Decoration
+          ref: blue_concrete
+          detail: |
+              Used purely for construction and color accents; its bright
+              solid tone and fire resistance make it popular for large
+              builds and redstone-safe areas.
+    found_in:
+        - location: Trial Chamber Murals
+          detail: |
+              Certain colors (notably red and white) generate naturally in
+              trial chamber atriums, but blue concrete itself must be
+              crafted by hydrating blue concrete powder.
+        - location: Crafted
+          detail: |
+              Created when blue concrete powder touches a water source,
+              flowing water, or a waterlogged block.
+    faq:
+        - question: What tool do I need to mine blue concrete?
+          answer: |
+              A wooden pickaxe or better. Mining it without a pickaxe
+              yields no drops.
+        - question: Is blue concrete flammable?
+          answer: |
+              No, unlike wool or carpet, concrete does not burn, making
+              it a safer building choice near lava or fire.
+        - question: How do I make blue concrete?
+          answer: |
+              Craft blue concrete powder from sand, gravel, and blue dye,
+              then place or pour it into contact with water to solidify
+              it instantly.
+        - question: Can concrete be un-crafted back into powder?
+          answer: |
+              No. Once solidified, concrete cannot be converted back into
+              concrete powder.
     data_version: "1.21.5"
 ---
 

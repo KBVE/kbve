@@ -1,5 +1,6 @@
 ---
 title: Red Nether Bricks
+template: splash
 description: |
     Minecraft Red Nether Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 641
     ref: red_nether_bricks
     slug: red-nether-bricks
+    content_rev: 1
     display_name: Red Nether Bricks
     material: nether
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_nether_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+        - blast_resistant
+    about:
+        description: |
+            Red Nether Bricks are a darker red, decorative variant of
+            Nether Bricks that does not generate naturally and must be
+            crafted from Nether Bricks and Nether Wart. They resist fire
+            and ghast fireballs, making them a durable Nether building
+            material.
+        lore: |
+            First revealed by Jens Bergensten and introduced in Java
+            Edition 1.10 (16w20a) as a new brick color for Nether builds.
+    uses:
+        - title: Red Nether Brick Slab, Stairs, Wall
+          ref: red_nether_brick_slab
+          detail: |
+              Craft or stonecut into slabs, stairs, and walls for
+              detailed Nether-themed construction.
+    found_in:
+        - location: Crafted from Nether Bricks and Nether Wart
+          detail: 2 Nether Bricks + 2 Nether Wart in a 2x2 pattern craft 1 Red Nether Bricks block.
+        - location: Piglin bartering (indirect)
+          detail: Piglins can barter Nether Bricks for gold ingots, supplying the ingredient needed to craft Red Nether Bricks.
+    faq:
+        - question: Do Red Nether Bricks generate naturally?
+          answer: |
+              No. Unlike regular Nether Bricks, they never appear in
+              fortress generation and must be crafted.
+        - question: What tool do I need to mine Red Nether Bricks?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe drops
+              nothing.
+        - question: Are Red Nether Bricks flammable?
+          answer: |
+              No. They do not burn and are immune to ghast fireballs,
+              making them safe for Nether-facing walls.
+        - question: What do I need to craft Red Nether Bricks?
+          answer: |
+              2 Nether Bricks and 2 Nether Wart arranged in a 2x2 square
+              in a crafting grid yield 1 Red Nether Bricks block.
     data_version: "1.21.5"
 ---
 

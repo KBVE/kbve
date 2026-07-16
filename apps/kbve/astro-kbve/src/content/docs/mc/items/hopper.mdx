@@ -1,5 +1,6 @@
 ---
 title: Hopper
+template: splash
 description: |
     Minecraft Hopper — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 697
     ref: hopper
     slug: hopper
+    content_rev: 1
     display_name: Hopper
     category: redstone
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Hopper is a low-capacity storage block crafted from five iron
+            ingots and a chest, used to funnel items into, out of, and between
+            containers. It has five inventory slots and can also suck up loose
+            items dropped above it, forming the backbone of most automated
+            sorting and farming systems.
+        lore: |
+            A cone-shaped iron chute engineered to funnel loot exactly where it belongs.
+    faq:
+        - question: How do you craft a Hopper?
+          answer: |
+              Combine five iron ingots with one chest in a crafting grid to
+              produce a Hopper.
+        - question: What does a Hopper do?
+          answer: |
+              It pulls items from a container above it, pushes items into a
+              container it faces, and collects dropped items floating above it.
+        - question: How do you stop a Hopper from moving items?
+          answer: |
+              Supplying it with a redstone signal locks the hopper, halting all
+              its transfer operations until the signal is removed.
+        - question: Can a comparator read a Hopper's contents?
+          answer: |
+              Yes, a comparator placed next to a hopper outputs a signal strength
+              from 0 to 15 based on how full it is.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

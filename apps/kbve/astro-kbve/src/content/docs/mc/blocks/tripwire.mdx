@@ -1,5 +1,6 @@
 ---
 title: Tripwire
+template: splash
 description: |
     Minecraft Tripwire — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 371
     ref: tripwire
     slug: tripwire
+    content_rev: 1
     display_name: Tripwire
     material: redstone
     hardness: 0
@@ -24,10 +26,58 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: string
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - redstone_component
+        - overworld
+    about:
+        description: |
+            Tripwire is the string placed horizontally between two Tripwire
+            Hooks. When an entity intersects the taut line it triggers a
+            redstone signal from the hooks, powering connected traps or
+            mechanisms.
+        lore: |
+            Added in the Adventure Update (1.0.0), tripwire lines are a
+            staple of jungle temple dart traps and player-built ambushes.
+    uses:
+        - title: Redstone circuit trigger
+          ref: redstone_dust
+          detail: |
+              Forms an invisible detection line up to 40 blocks long
+              between two hooks, powering redstone contraptions when
+              crossed.
+    found_in:
+        - location: Jungle Pyramid
+          detail: Generates as part of the pyramid's dart-trap trigger mechanism.
+        - location: Trial Chamber
+          detail: Used in some trap setups near dispensers.
+        - location: Crafting
+          detail: Placed using String between two connected Tripwire Hooks; not directly crafted.
+    faq:
+        - question: What does breaking tripwire drop?
+          answer: |
+              A single String, and it breaks instantly with any tool or
+              bare hands.
+        - question: Which entities can trigger a tripwire?
+          answer: |
+              Most entities trigger it; spectators, area effect clouds, and
+              a few special entities like ender dragons and item markers
+              do not.
+        - question: How long does the signal stay active?
+          answer: |
+              About 10 game ticks before the circuit re-checks whether an
+              entity is still intersecting the line.
+        - question: Can I disable a tripwire silently?
+          answer: |
+              Yes — breaking the string with shears disarms it without
+              sending a signal to the connected hooks.
     data_version: "1.21.5"
 ---
 

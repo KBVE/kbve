@@ -1,5 +1,6 @@
 ---
 title: Stripped Acacia Wood
+template: splash
 description: |
     Minecraft Stripped Acacia Wood — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 83
     ref: stripped_acacia_wood
     slug: stripped-acacia-wood
+    content_rev: 1
     display_name: Stripped Acacia Wood
     material: wood
     hardness: 2
@@ -24,10 +26,56 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_acacia_wood
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Stripped Acacia Wood shows the ringed acacia log texture on all
+            six faces instead of just the ends. It is made by stripping an
+            Acacia Wood block with an axe, or by crafting stripped logs
+            together.
+        lore: |
+            All-bark wood blocks were added so builders could use the log
+            ring pattern on every side without stacking logs sideways.
+    uses:
+        - title: Acacia Planks
+          ref: acacia_planks
+          detail: |
+              Crafts into Acacia Planks and is a valid ingredient for
+              campfires, smokers, soul campfires, and furnace fuel.
+    found_in:
+        - location: Any Acacia Wood block
+          detail: |
+              Obtained by using an axe on a placed Acacia Wood block, or by
+              crafting four Stripped Acacia Logs in a 2x2 grid for three
+              Stripped Acacia Wood blocks.
+    faq:
+        - question: How do I make Stripped Acacia Wood?
+          answer: |
+              Use an axe on a placed Acacia Wood block, or craft four
+              Stripped Acacia Logs together in a 2x2 pattern.
+        - question: What's the difference from Stripped Acacia Log?
+          answer: |
+              Stripped Acacia Wood shows the ringed bark texture on every
+              face, while the log only shows it on the top and bottom.
+        - question: Is it flammable?
+          answer: |
+              Yes, it burns like other acacia wood blocks and will catch
+              fire from lava or nearby flames.
+        - question: Can I use it as furnace fuel?
+          answer: |
+              Yes, it smelts about 1.5 items per block, the same as a
+              regular wood or log block.
     data_version: "1.21.5"
 ---
 

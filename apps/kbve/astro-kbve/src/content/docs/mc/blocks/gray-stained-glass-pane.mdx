@@ -1,5 +1,6 @@
 ---
 title: Gray Stained Glass Pane
+template: splash
 description: |
     Minecraft Gray Stained Glass Pane — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 475
     ref: gray_stained_glass_pane
     slug: gray-stained-glass-pane
+    content_rev: 1
     display_name: Gray Stained Glass Pane
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: gray_stained_glass_pane
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - not_flammable
+        - overworld
+    about:
+        description: |
+            Gray Stained Glass Pane is the thin, dye-tinted counterpart to
+            gray stained glass, letting light pass through in a muted gray
+            tone while using far less glass per block of coverage. It only
+            drops when broken with a Silk Touch tool.
+        lore: |
+            Glass panes were added in Java Edition Beta 1.9, and dyed
+            variants followed with stained glass in Java Edition 1.7.2.
+    uses:
+        - title: Windows and Fences
+          ref: gray_stained_glass_pane
+          detail: |
+              Used decoratively to build tinted windows, greenhouse walls,
+              and thin dividers that let colored light through without the
+              bulk of a full glass block.
+    found_in:
+        - location: Crafted
+          detail: Six matching gray stained glass blocks craft 16 gray stained glass panes.
+        - location: Crafted from clear panes
+          detail: Four glass panes plus one gray dye also produce eight gray stained glass panes.
+    faq:
+        - question: What tool do I need to mine Gray Stained Glass Pane?
+          answer: |
+              Any tool works, but the pane only drops itself if broken with
+              a Silk Touch enchanted tool. Otherwise it breaks with no drop.
+        - question: Can I change its color once placed?
+          answer: |
+              No. To change color you must break it (with Silk Touch) and
+              re-obtain a differently dyed pane; color cannot be altered in place.
+        - question: Does it burn in fire?
+          answer: |
+              No, stained glass panes are non-flammable and do not catch
+              fire from lava or nearby flames.
+        - question: How much glass does a pane save over a full block?
+          answer: |
+              A single stained glass block crafts into 16 panes covering
+              nearly triple the window area per unit of glass consumed.
     data_version: "1.21.5"
 ---
 

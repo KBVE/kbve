@@ -1,5 +1,6 @@
 ---
 title: Chorus Plant
+template: splash
 description: |
     Minecraft Chorus Plant — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 312
     ref: chorus_plant
     slug: chorus-plant
+    content_rev: 1
     display_name: Chorus Plant
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Chorus plant is the twisting stem block that makes up chorus trees, generating naturally on the outer islands of the End where it grows from chorus flowers into structures 10-15 blocks tall. It is transparent, non-flammable, and fairly fragile with a hardness of 0.4.
+            It cannot be collected in Survival even with Silk Touch, so it exists mainly as a source of chorus fruit and as scenery around End islands.
+        lore: |
+            The block is said to be named for the rustling, chorus-like sound it makes as it grows.
+    faq:
+        - question: Can I collect chorus plant blocks in Survival?
+          answer: |
+              No. Chorus plant cannot be obtained in Survival mode even with Silk Touch; it is only available through the Creative inventory.
+        - question: What do I get from breaking chorus plant?
+          answer: |
+              Breaking a chorus plant block yields 0 or 1 chorus fruit, and this drop is unaffected by the Fortune enchantment.
+        - question: Where does chorus plant grow?
+          answer: |
+              It generates as part of chorus trees on the outer islands of the End, growing upward from chorus flowers.
+        - question: What happens if I break the base of a chorus plant?
+          answer: |
+              Because the blocks above rely on it for support, breaking a lower chorus plant block typically causes the entire stalk above it to break as well.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

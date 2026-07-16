@@ -8,3 +8,10 @@ export function dockerLogs(container = CONTAINER): string {
 		maxBuffer: 32 * 1024 * 1024,
 	});
 }
+
+export function dockerExec(cmd: string, container = CONTAINER): string {
+	return execSync(`docker exec ${container} sh -c ${JSON.stringify(cmd)}`, {
+		encoding: 'utf8',
+		maxBuffer: 32 * 1024 * 1024,
+	});
+}

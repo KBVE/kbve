@@ -1,5 +1,6 @@
 ---
 title: Vines
+template: splash
 description: |
     Minecraft Vines — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,71 @@ mc_block:
     id: 335
     ref: vine
     slug: vine
+    content_rev: 1
     display_name: Vines
     material: plant
     hardness: 0.2
     blast_resistance: 0.2
-    best_tool: axe
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: vine
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - shears_mineable
+        - overworld
+        - flammable
+        - climbable
+    about:
+        description: |
+            Vines are climbable, non-solid plant blocks that hang and spread
+            across walls in jungles, swamps, and lush caves. Players can
+            climb them like ladders and use them to break falls.
+        lore: |
+            Added in Beta 1.8, vines originally spread infinitely downward
+            until later updates capped their growth and reworked climbing to
+            allow free-hanging ascent without a solid block behind them.
+    uses:
+        - title: Mossy Cobblestone
+          ref: mossy_cobblestone
+          detail: |
+              Combine a vine with cobblestone in a crafting grid to produce
+              mossy cobblestone; the same recipe works with stone bricks for
+              mossy stone bricks.
+    found_in:
+        - location: Jungles and Jungle Trees
+          detail: Generates thickly on jungle tree trunks and jungle-biome terrain.
+        - location: Swamps and Mangrove Swamps
+          detail: Grows on swamp oak and mangrove trees.
+        - location: Lush Caves, Jungle Pyramids, Woodland Mansions
+          detail: Also found decorating these structures and biomes.
+    faq:
+        - question: What tool do I need to collect Vines?
+          answer: |
+              Only Shears (or Silk Touch) pick up vines as an item; breaking
+              them with anything else destroys them with no drop.
+        - question: Can I climb Vines?
+          answer: |
+              Yes. Hold jump or move toward a vine-covered wall to climb, and
+              they slow falls like ladders.
+        - question: Do Vines spread?
+          answer: |
+              Yes, vines slowly spread to adjacent blocks over time, which is
+              why they can quickly cover large areas of jungle terrain.
+        - question: Can Vines burn?
+          answer: |
+              Yes, vines are flammable and will catch fire from nearby flames,
+              spreading quickly through jungle foliage.
     data_version: "1.21.5"
 ---
 

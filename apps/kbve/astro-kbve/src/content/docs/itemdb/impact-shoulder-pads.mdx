@@ -1,0 +1,42 @@
+---
+title: 'Impact Shoulder Pads'
+template: splash
+sidebar:
+    label: 'Impact Shoulder Pads'
+    hidden: true
+description: |
+    Molded polymer shoulder pair that turns a doorframe collision into a sound effect.
+ref: 'impact-shoulder-pads'
+key: 627
+id: '01KXFBEGM2EGGJYW693H99X0NW'
+name: 'Impact Shoulder Pads'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 40
+emoji: '🛡️'
+img: '/assets/items/equipment/impact-shoulder-pads.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'SCFI09'
+  nodes:
+    - 'SCFI09_ASHL'
+    - 'SCFI09_ASHR'
+  slot_keys:
+    - 'ASHL'
+    - 'ASHR'
+equipment:
+  slot: 'chest'
+  bonuses:
+    armor: 1
+    extra:
+      weight: 1
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

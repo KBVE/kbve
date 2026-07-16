@@ -1,5 +1,9 @@
 ---
 title: 'Crystal Golem'
+template: splash
+sidebar:
+    label: 'Crystal Golem'
+    hidden: true
 description: |
     A towering construct of living crystal that charges through obstacles, its body refracting light into blinding rainbows.
 ref: 'crystal-golem'
@@ -90,7 +94,10 @@ faction:
     faction_id: 'crystal-order'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A towering construct of living crystal that charges through obstacles, its body refracting light into blinding rainbows.
+
+</NpcLeaf>

@@ -1,5 +1,6 @@
 ---
 title: Waxed Weathered Cut Copper Slab
+template: splash
 description: |
     Minecraft Waxed Weathered Cut Copper Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1005
     ref: waxed_weathered_cut_copper_slab
     slug: waxed-weathered-cut-copper-slab
+    content_rev: 1
     display_name: Waxed Weathered Cut Copper Slab
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_weathered_cut_copper_slab
+          qty_min: 1
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            The Waxed Weathered Cut Copper Slab is a decorative half-block
+            cut from Weathered Cut Copper, permanently held at its
+            green-tinted oxidation stage by honeycomb wax. Two slabs
+            combine into a full double-slab block.
+        lore: |
+            Cut copper slabs give builders finer vertical control for
+            copper trim and roofing, and waxing keeps their patina from
+            drifting further while the rest of a build weathers.
+    uses:
+        - title: Double slabs and stairs
+          ref: waxed_weathered_cut_copper_stairs
+          detail: |
+              Two slabs placed in the same space form a full block; pair
+              with Weathered Cut Copper Stairs for matching roof and trim
+              details.
+    found_in:
+        - location: Trial Chambers
+          detail: |
+              Generates naturally as waxed slabs at various oxidation
+              stages, including weathered, in vault architecture.
+        - location: Crafted or stonecut from Cut Copper
+          detail: |
+              Craft 6 slabs from 3 Weathered Cut Copper blocks, or
+              stonecut 1 Weathered Copper block into 8 slabs, then wax
+              with honeycomb.
+    faq:
+        - question: Does the waxed weathered cut copper slab still oxidize further?
+          answer: |
+              No. Waxing with honeycomb permanently locks it at the
+              weathered stage.
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better; mining drops 1 slab, or 2 if it
+              was placed as a double slab.
+        - question: Can I combine two slabs into a full block?
+          answer: |
+              Yes, placing a second matching slab in the same position
+              creates a full Weathered Cut Copper block visually, dropping
+              2 slabs if broken.
+        - question: Does Fortune increase the drop count?
+          answer: |
+              No, Fortune has no effect on copper slab drops since they
+              are not ore blocks.
     data_version: "1.21.5"
 ---
 

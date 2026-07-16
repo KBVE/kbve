@@ -1,5 +1,9 @@
 ---
 title: 'Crumbling Statue'
+template: splash
+sidebar:
+    label: 'Crumbling Statue'
+    hidden: true
 description: |
     An ancient stone figure that stirs to life when intruders approach, defending its post with weathered resolve.
 ref: 'crumbling-statue'
@@ -76,7 +80,10 @@ faction:
     faction_id: 'crystal-order'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 An ancient stone figure that stirs to life when intruders approach, defending its post with weathered resolve.
+
+</NpcLeaf>

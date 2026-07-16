@@ -1,5 +1,6 @@
 ---
 title: Cyan Candle
+template: splash
 description: |
     Minecraft Cyan Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 913
     ref: cyan_candle
     slug: cyan-candle
+    content_rev: 1
     display_name: Cyan Candle
     material: stone
     hardness: 0.1
     blast_resistance: 0.1
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cyan_candle
+          qty_min: 1
+          qty_max: 4
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            The Cyan Candle is a dyable, stackable light source; up to
+            four candles can occupy a single block space, each adding 3
+            light levels when lit, for a maximum of 12.
+        lore: |
+            Candles were added in Java Edition 1.17, first generating only
+            in ancient cities before spreading to trail ruins and trial
+            chambers in later updates.
+    uses:
+        - title: Cake Topper
+          ref: cyan_candle_cake
+          detail: |
+              Place a candle on an uneaten cake to create a decorative,
+              lightable candle cake.
+        - title: Light Source
+          ref: cyan_candle
+          detail: |
+              Ignite with flint and steel or a flaming projectile; put out
+              with water or a wind charge.
+    found_in:
+        - location: Crafted
+          detail: 1 string and 1 honeycomb craft into 1 plain candle, then dye it cyan.
+        - location: Dyed
+          detail: Combine a plain or colored candle with cyan dye to recolor it.
+    faq:
+        - question: How many candles fit in one block?
+          answer: |
+              Up to four candles of the same color can be stacked in a
+              single block space.
+        - question: Does a candle catch fire from lava?
+          answer: |
+              No, candles are not flammable and do not ignite from nearby
+              lava.
+        - question: What tool is needed to mine a candle?
+          answer: |
+              None — any tool or bare hands breaks it instantly, and there
+              is no minimum tool tier.
+        - question: Can candles go underwater?
+          answer: |
+              Yes, candles are waterloggable, though a lit candle
+              extinguishes if submerged.
     data_version: "1.21.5"
 ---
 

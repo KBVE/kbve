@@ -1,5 +1,6 @@
 ---
 title: Diamond Ore
+template: splash
 description: |
     Minecraft Diamond Ore — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 78
     ref: diamond_ore
     slug: diamond-ore
+    content_rev: 1
     display_name: Diamond Ore
     category: material
     rarity: common
@@ -20,6 +22,32 @@ mc_item:
     tier: diamond
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Diamond ore generates deep underground in the Overworld from Y=16 down to
+            Y=-63, becoming more common near the bottom of the world. It requires an iron
+            pickaxe or better to mine, dropping one diamond and 3-7 experience per block,
+            or the block itself with Silk Touch.
+        lore: |
+            The deepslate variant replaces coal ore in fossils below Y=0, a nod to the
+            common misconception that diamonds form from compressed coal.
+    faq:
+        - question: What pickaxe do I need to mine diamond ore?
+          answer: |
+              At least an iron pickaxe; wooden and stone pickaxes cannot break it for
+              drops.
+        - question: How many diamonds does one block drop?
+          answer: |
+              One diamond normally, or up to 4 with Fortune III (averaging about 2.2),
+              or the ore block itself with Silk Touch.
+        - question: Is deepslate diamond ore different from regular diamond ore?
+          answer: |
+              It drops the same rewards but has higher hardness (4.5 vs 3), taking longer
+              to mine.
+        - question: Where is diamond ore most common?
+          answer: |
+              Near the bottom of the world, generating in blobs between Y=16 and Y=-63
+              with the highest concentration close to Y=-58.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

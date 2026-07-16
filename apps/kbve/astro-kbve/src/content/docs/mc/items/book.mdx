@@ -1,5 +1,6 @@
 ---
 title: Book
+template: splash
 description: |
     Minecraft Book — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 967
     ref: book
     slug: book
+    content_rev: 1
     display_name: Book
     category: material
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Book is an item used as a crafting material or to store enchantments in
+            a form that can later be applied to valid items using an anvil. It is a
+            core ingredient for bookshelves, enchanting tables, and written works.
+        lore: |
+            Books have served as the foundation of Minecraft's enchanting system since enchanting tables were introduced.
+    faq:
+        - question: How do you craft a Book?
+          answer: |
+              A Book is crafted from three sheets of paper and one leather combined in
+              a shapeless recipe, yielding a single book.
+        - question: What are Books used for?
+          answer: |
+              Books can be combined with planks to make bookshelves, with an ink sac
+              and feather to make a book and quill, enchanted at an enchanting table to
+              become an enchanted book, or combined with diamonds and obsidian to craft
+              an enchanting table.
+        - question: Where can Books be found naturally?
+          answer: |
+              Books generate in ancient city chests, shipwreck map chests, stronghold
+              libraries, and village houses, and breaking a bookshelf without Silk
+              Touch or fire drops three books.
+        - question: Can Books be stacked?
+          answer: |
+              Yes, plain Books stack up to sixty-four, though enchanted books and
+              written books do not stack since each carries unique data.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

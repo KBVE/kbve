@@ -1,5 +1,6 @@
 ---
 title: Green Candle
+template: splash
 description: |
     Minecraft Green Candle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,43 @@ mc_item:
     id: 1319
     ref: green_candle
     slug: green-candle
+    content_rev: 1
     display_name: Green Candle
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A green candle is a dyable light source crafted from string and a
+            honeycomb, then colored with green dye. Up to four matching
+            candles can be placed together in a single block space, and each
+            must be lit manually with flint and steel or a flaming
+            projectile rather than igniting on placement.
+        lore: |
+            Green candles can also be pressed into an uneaten cake to form a
+            glowing candle cake that drops the candle when eaten or broken.
+    faq:
+        - question: How do I light a green candle?
+          answer: |
+              Right-click it with flint and steel, a fire charge, or ignite
+              it with a flaming projectile — candles do not light on their
+              own when placed.
+        - question: Can I stack multiple green candles in one block?
+          answer: |
+              Yes, up to four green candles can occupy the same block space,
+              increasing the light level emitted up to a maximum of 12.
+        - question: Will water put out a lit green candle?
+          answer: |
+              Yes, water sources, wind charges, and player interaction can
+              all extinguish a lit candle, and waterlogged candles cannot be
+              lit at all.
+        - question: Where can I find green candles naturally?
+          answer: |
+              Candles generate naturally in structures such as ancient
+              cities, trial chambers, and trail ruins, though not always in
+              the green color specifically.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Dragon's Breath
+template: splash
 description: |
     Minecraft Dragon's Breath — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1220
     ref: dragon_breath
     slug: dragon-breath
+    content_rev: 1
     display_name: Dragon's Breath
     category: brewing
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Dragon's Breath is collected by using a glass bottle on the Ender Dragon's purple
+            breath attack or the lingering clouds from its fireballs. Its sole brewing purpose
+            is turning splash potions into lingering potions, which create longer-lasting area
+            effect clouds.
+        lore: |
+            A bottled wisp of the Ender Dragon's own breath, potent enough to linger long after
+            it is unleashed.
+    faq:
+        - question: How do you get Dragon's Breath?
+          answer: |
+              Use an empty glass bottle on the Ender Dragon while it is perched and breathing,
+              or on the purple area-effect clouds left by its fireball attacks.
+        - question: What is Dragon's Breath used for?
+          answer: |
+              It is a brewing ingredient that converts any splash potion into its lingering
+              variant, which creates a persistent area effect cloud instead of a one-time burst.
+        - question: Do you always get the glass bottle back after brewing?
+          answer: |
+              Only if two or more Dragon's Breath are brewed at once — the glass bottle drops as
+              an item entity afterward. With just one, the bottle is consumed.
+        - question: Is Dragon's Breath renewable?
+          answer: |
+              Yes, since the Ender Dragon can respawn using end crystals, its breath attack can
+              be collected repeatedly across multiple encounters.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

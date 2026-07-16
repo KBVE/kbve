@@ -1,5 +1,9 @@
 ---
 title: 'Scout'
+template: splash
+sidebar:
+    label: 'Scout'
+    hidden: true
 description: |
     Player recon unit. Fast, light, no weapon — vision radius 3 (vs default 1) feeds FogBakeSystem so the player explores fog of war faster. Recruited from Barracks for 5 Coin + 2 Timber.
 ref: 'scout'
@@ -42,7 +46,10 @@ equipment:
           item_ref: 'leather'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Player recon unit. Big vision radius for fog reveal. Recruited from Barracks.
+
+</NpcLeaf>

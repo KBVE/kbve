@@ -1,5 +1,6 @@
 ---
 title: Soul Campfire
+template: splash
 description: |
     Minecraft Soul Campfire — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 819
     ref: soul_campfire
     slug: soul-campfire
+    content_rev: 1
     display_name: Soul Campfire
     material: nether
     hardness: 2
@@ -24,10 +26,67 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: charcoal
+          qty_min: 2
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: soul_campfire
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+        - light_source
+    about:
+        description: |
+            Soul Campfire is a blue-flamed variant of the campfire, built
+            on soul sand or soul soil, that deals more damage while lit
+            and repels piglins within an 8-block radius. It cooks food and
+            emits light without spreading fire to adjacent blocks.
+        lore: |
+            Added in Java Edition 1.16 alongside the Nether Update, the
+            soul campfire ties its eerie blue flame to the soul sand
+            valley biome's undead theme.
+    uses:
+        - title: Piglin Repellent
+          ref: piglin
+          detail: |
+              A lit soul campfire keeps non-hostile piglins from
+              approaching within 8 blocks, useful for safely working
+              near bastion remnants.
+        - title: Cooking
+          ref: cooked_beef
+          detail: |
+              Like a regular campfire, food items placed on top slowly
+              cook without needing a hopper or fuel refill.
+    found_in:
+        - location: Soul sand valley
+          detail: Occasionally generates near structures in this Nether biome.
+        - location: Crafting
+          detail: Two sticks, soul sand or soul soil, and any log/stem/wood/hyphae craft one soul campfire.
+    faq:
+        - question: What tool do I need to mine Soul Campfire?
+          answer: |
+              An axe is fastest, but any tool or bare hands can break it.
+              Without Silk Touch it drops 2 charcoal instead of itself.
+        - question: How much damage does Soul Campfire deal?
+          answer: |
+              Standing in the flames deals more damage per tick than a
+              regular campfire, though it does not ignite the entity on fire.
+        - question: Does Soul Campfire scare off piglins?
+          answer: |
+              Yes. Lit soul campfires and soul torches repel non-hostile
+              piglins within 8 blocks, unlike regular fire.
+        - question: How do I get Soul Campfire drops?
+          answer: |
+              Mine it with a Silk Touch tool to get the block itself;
+              otherwise it drops 2 charcoal.
     data_version: "1.21.5"
 ---
 

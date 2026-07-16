@@ -1,5 +1,6 @@
 ---
 title: Sheaf Pottery Sherd
+template: splash
 description: |
     Minecraft Sheaf Pottery Sherd — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 1371
     ref: sheaf_pottery_sherd
     slug: sheaf-pottery-sherd
+    content_rev: 1
     display_name: Sheaf Pottery Sherd
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Sheaf Pottery Sherd is a decorative archaeology find depicting a bundle of wheat.
+            It is found only by brushing rare suspicious gravel in Trail Ruins structures, making
+            it a non-renewable collectible tied to the game's archaeology system.
+        lore: |
+            An ancient fragment of pottery, restored from the ruins of a lost trail settlement.
+    faq:
+        - question: How do you get a Sheaf Pottery Sherd?
+          answer: |
+              It can only be obtained by brushing suspicious gravel blocks found in Trail Ruins
+              structures, with roughly an 8.3% chance of appearing in that loot.
+        - question: What is the Sheaf Pottery Sherd used for?
+          answer: |
+              Combine four pottery sherds (or bricks) in a crafting grid to make a decorated pot,
+              a purely decorative storage-adjacent block.
+        - question: Is the Sheaf Pottery Sherd renewable?
+          answer: |
+              No, it is non-renewable — once all suspicious gravel in a Trail Ruins site has been
+              brushed, no more sherds of that kind can be found there.
+        - question: Does breaking a decorated pot return the sherd?
+          answer: |
+              Yes, breaking a decorated pot drops all four of its component sherds or bricks intact.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

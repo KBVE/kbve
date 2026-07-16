@@ -1,5 +1,6 @@
 ---
 title: Gray Terracotta
+template: splash
 description: |
     Minecraft Gray Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,69 @@ mc_block:
     id: 459
     ref: gray_terracotta
     slug: gray-terracotta
+    content_rev: 1
     display_name: Gray Terracotta
     material: stone
     hardness: 1.25
     blast_resistance: 4.2
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: gray_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Gray Terracotta is a dyed variant of terracotta, keeping the
+            hard, kiln-fired look of the base block while adding a
+            permanent gray tint. It requires at least a wooden pickaxe to
+            be mined and drops itself.
+        lore: |
+            Stained terracotta was added in Java Edition 1.6.1, and remains
+            one of the few permanently colored building blocks in the game.
+    uses:
+        - title: Glazed Terracotta
+          ref: gray_glazed_terracotta
+          detail: |
+              Smelting gray terracotta in a furnace converts it into gray
+              glazed terracotta, a glossy patterned block often used for
+              pixel art and directional redstone builds.
+    found_in:
+        - location: Badlands biome
+          detail: Gray terracotta appears in badlands terrain alongside other colored terracotta bands.
+        - location: Crafted
+          detail: Combine eight terracotta blocks with one gray dye to craft eight gray terracotta.
+    faq:
+        - question: What tool do I need to mine Gray Terracotta?
+          answer: |
+              At least a wooden pickaxe. Breaking it without a pickaxe
+              destroys the block without dropping anything.
+        - question: Does mining Gray Terracotta need Silk Touch?
+          answer: |
+              No, it drops itself with any pickaxe of wood tier or higher;
+              Silk Touch is not required.
+        - question: Can Gray Terracotta be turned into glazed terracotta?
+          answer: |
+              Yes. Smelting it in a furnace produces gray glazed
+              terracotta, a glossy variant with a printed pattern.
+        - question: Is Gray Terracotta the same as gray concrete?
+          answer: |
+              No, terracotta is a naturally kiln-hardened clay product with
+              higher blast resistance, while concrete forms when concrete
+              powder is touched by water.
     data_version: "1.21.5"
 ---
 

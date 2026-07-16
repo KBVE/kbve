@@ -28,7 +28,7 @@ use crate::db::{
     CommentRow, DiscordClient, FeedQuery, FeedRow, SpaceRow, ThreadRow, UserProfile,
     extract_texture_hash, get_discord_client, get_forum_service, get_mc_service, get_osrs_cache,
     get_profile_cache, get_profile_service, get_rentearth_service, get_role_names,
-    get_twitch_client, validate_username,
+    get_twitch_client, osrs_ready, validate_username,
 };
 use askama::Template;
 
@@ -885,9 +885,10 @@ async fn profile_handler(Path(username): Path<String>) -> impl IntoResponse {
                 fetch_enriched_profile(&u).await
             })
             .await
-            .map(|arc| (*arc).clone())
     } else {
-        fetch_profile_from_db(&validated_username).await
+        fetch_profile_from_db(&validated_username)
+            .await
+            .map(std::sync::Arc::new)
     };
 
     match profile {
@@ -1580,6 +1581,17 @@ pub(crate) async fn osrs_api_handler(Path(item_id): Path<String>) -> impl IntoRe
         }
     };
 
+    // Cache still loading its mapping — answer 503 rather than a misleading 404.
+    if !osrs_ready() {
+        return (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Json(json!({
+                "error": "OSRS cache is warming up, retry shortly"
+            })),
+        )
+            .into_response();
+    }
+
     let result = if let Ok(id) = item_id.parse::<u32>() {
         cache.get_by_id(id).await
     } else {
@@ -1812,9 +1824,10 @@ pub(crate) async fn profile_api_handler(Path(username): Path<String>) -> impl In
                 fetch_enriched_profile(&u).await
             })
             .await
-            .map(|arc| (*arc).clone())
     } else {
-        fetch_profile_from_db(&validated_username).await
+        fetch_profile_from_db(&validated_username)
+            .await
+            .map(std::sync::Arc::new)
     };
 
     match profile {

@@ -1,5 +1,6 @@
 ---
 title: Waxed Exposed Cut Copper Slab
+template: splash
 description: |
     Minecraft Waxed Exposed Cut Copper Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1006
     ref: waxed_exposed_cut_copper_slab
     slug: waxed-exposed-cut-copper-slab
+    content_rev: 1
     display_name: Waxed Exposed Cut Copper Slab
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_exposed_cut_copper_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            Waxed Exposed Cut Copper Slab is a half-height decorative slab
+            cut from copper and locked at the exposed oxidation stage. Two
+            slabs stack into a full cut copper block, and it never
+            progresses to weathered or oxidized.
+        lore: |
+            Cut Copper and its slabs were added in Java Edition 1.17,
+            giving copper the same building-block shapes as stone variants.
+    uses:
+        - title: Half-Height Building and Detailing
+          ref: waxed_exposed_cut_copper_slab
+          detail: |
+              Used for stairs-adjacent trim, roofing, and floor detailing
+              that permanently keeps the exposed copper patina.
+    found_in:
+        - location: Trial Chambers
+          detail: Waxed variants generate naturally as part of trial chamber decoration.
+        - location: Crafted or Stonecut
+          detail: Three matching cut copper blocks craft six slabs vertically; a stonecutter converts one copper block into eight slabs.
+    faq:
+        - question: What tool do I need to mine this slab?
+          answer: |
+              A stone pickaxe or better. Mining with anything weaker
+              destroys it without a drop.
+        - question: Can I combine two slabs into a full block?
+          answer: |
+              Yes. Placing one slab on top of a matching half-slab combines
+              them into a full waxed exposed cut copper block.
+        - question: Will it change color over time?
+          answer: |
+              No. The honeycomb wax coating permanently locks it at the
+              exposed stage, preventing further oxidation.
+        - question: Is it waterloggable?
+          answer: |
+              Yes. A single slab placed in water becomes waterlogged like
+              other slabs.
     data_version: "1.21.5"
 ---
 

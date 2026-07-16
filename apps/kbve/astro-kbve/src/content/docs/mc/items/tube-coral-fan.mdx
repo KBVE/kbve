@@ -1,5 +1,6 @@
 ---
 title: Tube Coral Fan
+template: splash
 description: |
     Minecraft Tube Coral Fan — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 639
     ref: tube_coral_fan
     slug: tube-coral-fan
+    content_rev: 1
     display_name: Tube Coral Fan
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A thin, blue coral fan that generates in coral reef structures in warm ocean biomes and can also be grown by applying bone meal to a coral fan placed underwater. It must be harvested with a Silk Touch tool, and can be placed as a floor fan on top of a block or as a wall fan on the four sides.
+            Like other coral, it needs to stay touching water or it withers into a dead coral fan, in Bedrock Edition immediately and in Java Edition after a short delay.
+        lore: |
+            With zero hardness, a tube coral fan breaks the instant it is struck, so careless mining or nearby explosions can wipe out a reef decoration in a heartbeat.
+    faq:
+        - question: How do I obtain Tube Coral Fan?
+          answer: |
+              Mine a naturally generated coral fan with a Silk Touch tool, or grow new ones by applying bone meal to an existing coral fan placed in warm ocean water.
+        - question: Can Tube Coral Fan be placed on walls?
+          answer: |
+              Yes, it can be placed on the four vertical sides of a block as a wall fan, or on top of a block as a floor fan, but never on the underside of a block.
+        - question: What happens if Tube Coral Fan is removed from water?
+          answer: |
+              It dies and turns into its dead coral fan variant, instantly in Bedrock Edition or after a few seconds in Java Edition.
+        - question: Is Tube Coral Fan affected by pistons or breaking easily?
+          answer: |
+              It cannot be pushed or pulled by pistons, and its hardness is 0, so any tool breaks it instantly.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Azalea Leaves
+template: splash
 description: |
     Minecraft Azalea Leaves — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 97
     ref: azalea_leaves
     slug: azalea-leaves
+    content_rev: 1
     display_name: Azalea Leaves
     material: leaves
     hardness: 0.2
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: azalea_leaves
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+        - ref: stick
+          qty_min: 1
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Azalea Leaves are the foliage of azalea shrubs and trees,
+            generating around lush caves. Unlike most leaves they never
+            change color with biome and act like flowers for bee
+            pollination.
+        lore: |
+            Introduced in Java Edition 1.17 alongside azaleas and the lush
+            caves biome.
+    uses:
+        - title: Bee Pollination
+          ref: bee
+          detail: |
+              Functions as a flower source for bees seeking pollen, and
+              trees grown near it have a chance to generate with a bee nest.
+    found_in:
+        - location: Lush Caves
+          detail: Generates as the canopy of azalea trees found throughout the lush caves biome.
+    faq:
+        - question: What tool breaks Azalea Leaves fastest?
+          answer: |
+              A hoe. Hoes were made the fastest tool for all leaf blocks,
+              though no tool tier is required to break them.
+        - question: How do I get the leaf block itself?
+          answer: |
+              Break it with Shears or a Silk Touch tool; otherwise it has a
+              small chance to drop only a stick.
+        - question: Do Azalea Leaves decay like normal leaves?
+          answer: |
+              Yes, if not connected within range of a log or azalea block
+              they will eventually decay and disappear.
+        - question: Are Azalea Leaves flammable?
+          answer: |
+              Yes, like other leaves they can catch fire and burn when
+              exposed to flames or lava.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Pink Concrete Powder
+template: splash
 description: |
     Minecraft Pink Concrete Powder — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 607
     ref: pink_concrete_powder
     slug: pink-concrete-powder
+    content_rev: 1
     display_name: Pink Concrete Powder
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Pink Concrete Powder is a gravity-affected block crafted from pink dye, sand, and gravel that instantly converts into solid Pink Concrete when it touches any water source, flowing water, or a waterlogged block. Rain and splash potions do not trigger this conversion, so the powder must make direct contact with a water block.
+            It became renewable in Java Edition 1.16 once piglins began trading gravel, making colored concrete builds fully sustainable without needing to mine.
+        lore: |
+            First teased by developer Jeb as a mysterious gravity-obeying powder in 2017, concrete powder solidifies the moment it meets water, turning a soft pile of dye and aggregate into a permanent colored block.
+    faq:
+        - question: |
+              How do I craft Pink Concrete Powder?
+          answer: |
+              Combine one pink dye, four sand, and four gravel in a crafting grid using the shapeless recipe to produce eight blocks of pink concrete powder.
+        - question: |
+              How does Pink Concrete Powder turn into concrete?
+          answer: |
+              It converts to solid Pink Concrete the instant it touches a water source block, flowing water, or a waterlogged block; rain and splash potions of any kind do not cause the conversion.
+        - question: |
+              Is Pink Concrete Powder affected by gravity?
+          answer: |
+              Yes, like sand and gravel it falls if unsupported, so it needs a solid block beneath it or it will drop until it lands or converts to concrete on contact with water.
+        - question: |
+              What tool mines Pink Concrete Powder fastest?
+          answer: |
+              Any shovel mines it quickly, with a diamond or netherite shovel breaking it in about 0.1 seconds due to its low hardness of 0.5.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

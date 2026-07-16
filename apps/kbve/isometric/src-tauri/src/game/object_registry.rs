@@ -430,7 +430,7 @@ fn spawn_object_entity(
                     range: 30.0,
                     outer_angle: PI / 8.0,
                     inner_angle: PI / 16.0,
-                    shadows_enabled: true,
+                    shadow_maps_enabled: true,
                     ..default()
                 },
                 Transform::from_translation(position).looking_at(Vec3::ZERO, Vec3::Y),
@@ -444,7 +444,7 @@ fn spawn_object_entity(
                     color: Color::srgb(0.5, 0.6, 0.9),
                     intensity: 40000.0,
                     range: 20.0,
-                    shadows_enabled: true,
+                    shadow_maps_enabled: true,
                     ..default()
                 },
                 Transform::from_translation(position),

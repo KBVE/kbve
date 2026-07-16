@@ -1,5 +1,6 @@
 ---
 title: Snow
+template: splash
 description: |
     Minecraft Snow — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 263
     ref: snow
     slug: snow
+    content_rev: 1
     display_name: Snow
     material: snow
     hardness: 0.1
@@ -21,13 +23,65 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: snowball
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: snow
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - needs_wood_tool
+        - overworld
+        - thin_layer
+    about:
+        description: |
+            Snow (snow layer) is the thin, stackable ground cover that
+            forms during snowfall in cold biomes. It can be shoveled up
+            for snowballs, and stacking eight layers with Silk Touch
+            yields a full snow block instead.
+        lore: |
+            Conceived as early as May 2009, snow layers only became a
+            harvestable, stackable block in Java Edition Beta 1.5.
+    uses:
+        - title: Snow Block
+          ref: snow_block
+          detail: |
+              Six snow layers craft back into three snow blocks, and
+              collecting eight stacked layers with Silk Touch yields one
+              snow block.
+    found_in:
+        - location: Snowy biomes
+          detail: Naturally forms on the ground during snowfall in snowy and cold biomes.
+        - location: Crafting
+          detail: Three snow blocks craft six snow layers.
+    faq:
+        - question: What tool do I need to mine Snow?
+          answer: |
+              A wooden shovel or better. Mining without a shovel yields no
+              drop.
+        - question: What does Snow drop when mined?
+          answer: |
+              One snowball per layer without Silk Touch, or the snow
+              layer item itself with a Silk Touch shovel.
+        - question: Can Snow stack into a full block?
+          answer: |
+              Yes. Snow layers stack up to eight high on the same space,
+              and mining all eight with Silk Touch produces a snow block.
+        - question: Does Snow block movement or light?
+          answer: |
+              It slows entities slightly and is transparent, letting light
+              pass through and mobs like snow foxes remain hidden on it.
     data_version: "1.21.5"
 ---
 

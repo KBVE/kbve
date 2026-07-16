@@ -1,5 +1,6 @@
 ---
 title: Pink Glazed Terracotta
+template: splash
 description: |
     Minecraft Pink Glazed Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 668
     ref: pink_glazed_terracotta
     slug: pink-glazed-terracotta
+    content_rev: 1
     display_name: Pink Glazed Terracotta
     material: stone
     hardness: 1.4
     blast_resistance: 1.4
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,49 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pink_glazed_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Pink Glazed Terracotta is a decorative block made by smelting
+            pink stained terracotta in a furnace. Its glossy, patterned
+            texture rotates depending on the direction it is placed, letting
+            builders form larger repeating designs across walls and floors.
+        lore: |
+            Glazed terracotta was added in the Frostburn Update (1.12) and
+            takes visual inspiration from Moroccan bathroom tiles.
+    uses:
+        - title: Decorative Patterns
+          ref: pink_glazed_terracotta
+          detail: |
+              Placing four glazed terracotta blocks together in a 2x2
+              arrangement lines up their arrow-like patterns into a single
+              cohesive design, popular for banners, floors, and rooftops.
+    found_in:
+        - location: Furnace smelting
+          detail: Smelt Pink Stained Terracotta with any fuel source to produce it.
+        - location: Village structures
+          detail: Generates in desert and savanna village houses, and appears as mason villager trade stock.
+    faq:
+        - question: What tool do I need to mine Pink Glazed Terracotta?
+          answer: |
+              A wooden pickaxe or better. Mining it with your bare hands or
+              any other tool type destroys it without a drop.
+        - question: Can I change its color after crafting?
+          answer: |
+              No. Once terracotta is dyed and glazed, the color is
+              permanent — you would need to mine and replace the block.
+        - question: Does it burn?
+          answer: |
+              No. Glazed terracotta is non-flammable and safe to use near
+              lava or fire.
     data_version: "1.21.5"
 ---
 

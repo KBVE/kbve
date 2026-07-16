@@ -1,5 +1,6 @@
 ---
 title: Nether Brick Wall
+template: splash
 description: |
     Minecraft Nether Brick Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,54 @@ mc_block:
     id: 798
     ref: nether_brick_wall
     slug: nether-brick-wall
+    content_rev: 1
     display_name: Nether Brick Wall
     material: nether
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: nether_brick_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+        - blast_resistant
+    about:
+        description: |
+            Nether Brick Wall is a decorative wall variant of Nether
+            Bricks that connects to adjacent blocks and posts, used to
+            build fences and barriers around Nether-themed structures.
+        lore: |
+            Added in Java Edition 1.14, alongside the broader wave of
+            stone and brick wall variants for that update.
+    found_in:
+        - location: Crafted from Nether Bricks
+          detail: 6 Nether Bricks craft 6 walls; stonecutting converts 1 brick into 1 wall at a 1:1 ratio.
+    faq:
+        - question: Does Nether Brick Wall generate naturally?
+          answer: |
+              No. It is only obtained by crafting or stonecutting Nether
+              Bricks; it does not appear in natural fortress generation.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, including wood. Without a pickaxe it drops
+              nothing.
+        - question: Can I see through it like a fence?
+          answer: |
+              Yes. Nether Brick Wall is a partial, transparent block that
+              connects visually to neighboring walls and fence posts.
     data_version: "1.21.5"
 ---
 

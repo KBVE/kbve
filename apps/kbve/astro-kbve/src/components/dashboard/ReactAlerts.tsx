@@ -15,10 +15,10 @@ import {
 	Cell,
 	LabelList,
 	ResponsiveContainer,
-	Tooltip,
 	XAxis,
 	YAxis,
 } from 'recharts';
+import { ChartTooltip, POLL_MS } from './chartTheme';
 import {
 	$alertsFiring,
 	$alertsFiringStatus,
@@ -41,14 +41,6 @@ import {
 	type AlertsRange,
 } from './alertsService';
 
-const POLL_MS = 30_000;
-const tooltipStyle = {
-	background: 'var(--sl-color-bg-nav, #111)',
-	border: '1px solid var(--sl-color-gray-5, #262626)',
-	borderRadius: '0.375rem',
-	fontSize: '0.75rem',
-	color: 'var(--sl-color-text, #e6edf3)',
-};
 
 export type AlertsVariant = 'compact' | 'full';
 
@@ -285,8 +277,7 @@ export default function ReactAlerts({ variant = 'full' }: Props) {
 									tickLine={false}
 									width={32}
 								/>
-								<Tooltip
-									contentStyle={tooltipStyle}
+								<ChartTooltip
 									cursor={{
 										fill: 'color-mix(in srgb, var(--sl-color-gray-4) 18%, transparent)',
 									}}

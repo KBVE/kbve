@@ -1,5 +1,6 @@
 ---
 title: Bubble Coral Block
+template: splash
 description: |
     Minecraft Bubble Coral Block — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 626
     ref: bubble_coral_block
     slug: bubble-coral-block
+    content_rev: 1
     display_name: Bubble Coral Block
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Bubble Coral Block is one of five coral block variants that generate naturally
+            in coral reef structures within warm ocean biomes. Mining it with a Silk
+            Touch-enchanted tool preserves the living block; otherwise it drops as its
+            grayscale dead coral block form. It must stay adjacent to water or it dies and
+            converts to dead coral block within seconds, so it is often used as a hydrated
+            base for sea pickle farms and underwater decoration.
+        lore: |
+            In the depths where sunlight filters through blue-green waters, the bubble coral sways gently, its rounded polyps releasing streams of tiny bubbles that dance upward through the current.
+    faq:
+        - question: How do you get Bubble Coral Block?
+          answer: |
+              Mine it from a coral reef in a warm ocean biome using a pickaxe enchanted
+              with Silk Touch; without Silk Touch it drops dead coral block instead.
+        - question: Why does my Bubble Coral Block keep dying?
+          answer: |
+              Coral blocks need to be touching at least one water or waterlogged block; if
+              exposed to air they turn into their dead variant within a few seconds.
+        - question: What is Bubble Coral Block used for?
+          answer: |
+              Mainly decoration and underwater building, and it can act as a base block
+              that keeps nearby sea pickles alive and growing when it stays hydrated.
+        - question: Can dead Bubble Coral Block be turned back into the living version?
+          answer: |
+              No, once it becomes dead coral block it cannot be revived; you must obtain a
+              fresh living block with Silk Touch.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

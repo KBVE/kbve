@@ -1,5 +1,6 @@
 ---
 title: Spruce Sign
+template: splash
 description: |
     Minecraft Spruce Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 212
     ref: spruce_wall_sign
     slug: spruce-wall-sign
+    content_rev: 1
     display_name: Spruce Sign
     material: wood
     hardness: 1
@@ -24,10 +26,55 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: spruce_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            A Spruce Wall Sign is the wall-mounted form of the spruce sign,
+            automatically placed when a sign is attached to the side of a
+            block instead of the ground. It shares the same text and
+            editing features as the standing variant.
+        lore: |
+            Wall signs let builders label doors, shelves, and shop fronts
+            without taking up floor space.
+    uses:
+        - title: Spruce Sign
+          ref: spruce_sign
+          detail: |
+              Placed automatically when a crafted spruce sign is attached
+              to the side of a block; drops the standard Spruce Sign item
+              when broken.
+    found_in:
+        - location: Crafting table
+          detail: Obtained by placing a crafted Spruce Sign item against the side of a block.
+        - location: Village and structure decoration
+          detail: Occasionally generates on shop fronts and labeled builds.
+    faq:
+        - question: What tool mines a Spruce Wall Sign fastest?
+          answer: |
+              An axe. Any tool, or bare hands, still breaks it and it
+              drops the Spruce Sign item.
+        - question: Is Spruce Wall Sign a separate item from Spruce Sign?
+          answer: |
+              No, it is the same Spruce Sign item; wall placement is just
+              the block state used when attached to a vertical surface.
+        - question: Can I edit the text on a wall sign?
+          answer: |
+              Yes, right-click it with an empty hand to reopen the text
+              editor, unless it has been waxed with honeycomb.
+        - question: Does breaking the wall it's attached to remove the sign?
+          answer: |
+              Yes, a wall sign requires the block behind it; removing that
+              block breaks the sign and drops it as an item.
     data_version: "1.21.5"
 ---
 

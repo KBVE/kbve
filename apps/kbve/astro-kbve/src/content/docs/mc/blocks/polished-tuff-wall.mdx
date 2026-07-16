@@ -1,5 +1,6 @@
 ---
 title: Polished Tuff Wall
+template: splash
 description: |
     Minecraft Polished Tuff Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 950
     ref: polished_tuff_wall
     slug: polished-tuff-wall
+    content_rev: 1
     display_name: Polished Tuff Wall
     material: stone
     hardness: 1.5
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_tuff_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Polished Tuff Wall is a decorative wall variant of polished tuff,
+            crafted in a ring pattern from six polished tuff blocks. Like
+            other walls, it forms raised, half-height posts when isolated and
+            connects into taller barriers when placed alongside matching
+            blocks, and it can be waterlogged.
+        lore: |
+            Announced at Minecraft Live 2023 and finalized in Java Edition
+            1.21, it rounds out the tuff building set alongside the bricks,
+            slabs, and stairs variants.
+    uses:
+        - title: Fences and Borders
+          ref: polished_tuff_wall
+          detail: |
+              Used purely for decoration and construction, forming raised
+              stone borders, pillars, and accents that match polished tuff
+              and tuff brick builds.
+    found_in:
+        - location: Crafting table
+          detail: Six polished tuff blocks in a ring pattern craft six polished tuff walls.
+        - location: Stonecutter
+          detail: Cut directly from tuff or polished tuff blocks, one wall per input block.
+    faq:
+        - question: What tool do I need to mine Polished Tuff Wall?
+          answer: |
+              Any pickaxe works, even a wooden one — mining without a
+              pickaxe yields no drop.
+        - question: Does it drop itself when mined?
+          answer: |
+              Yes. It always drops one Polished Tuff Wall regardless of
+              enchantments, since it has no ore-like ilk.
+        - question: Can I waterlog Polished Tuff Wall?
+          answer: |
+              Yes, like other wall blocks it can hold water when placed
+              adjacent to a water source, useful for aqueducts and ponds.
+        - question: How is it different from a Tuff Wall?
+          answer: |
+              It uses the smoother Polished Tuff texture instead of raw
+              Tuff, giving builds a cleaner, more refined stone look.
     data_version: "1.21.5"
 ---
 

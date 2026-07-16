@@ -1,5 +1,6 @@
 ---
 title: Short Grass
+template: splash
 description: |
     Minecraft Short Grass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,77 @@ mc_block:
     id: 130
     ref: short_grass
     slug: short-grass
+    content_rev: 1
     display_name: Short Grass
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: wheat_seeds
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: short_grass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - shears_mineable
+        - overworld
+        - flammable
+        - non_solid
+    about:
+        description: |
+            Short Grass is the common decorative plant covering grass
+            blocks across most temperate and lush biomes, occasionally
+            yielding wheat seeds when broken by hand.
+        lore: |
+            Its original texture was based on the grass texture from an
+            early version of one of Notch's earlier games.
+    uses:
+        - title: Wheat Seed Farming
+          ref: wheat_seeds
+          detail: |
+              Breaking it without shears has a 12.5% chance to drop one
+              wheat seed, boosted to up to 7 with Fortune III.
+        - title: Composting
+          ref: short_grass
+          detail: |
+              Placing it in a composter has a 30% chance to raise the
+              compost level by one.
+    found_in:
+        - location: Plains, Forests & Savannas
+          detail: Generates on grass blocks in plains, forests, savannas, jungles, meadows, and swamps.
+        - location: Cherry Groves & Lush Caves
+          detail: Also common in cherry groves, lush caves, and pale gardens, with rare spawns in deserts and snowy slopes.
+    faq:
+        - question: What tool do I need to collect Short Grass?
+          answer: |
+              Shears or Silk Touch; without them it drops nothing but has a
+              small chance of wheat seeds instead.
+        - question: How do I get wheat seeds from grass?
+          answer: |
+              Break Short Grass without shears — it has a 12.5% chance to
+              drop 1 wheat seed, with Fortune increasing the maximum yield.
+        - question: Does bone meal affect Short Grass?
+          answer: |
+              Yes, bone meal grows it into Tall Grass, the two-block tall
+              variant that yields two short grass items when sheared.
+        - question: Is Short Grass flammable?
+          answer: |
+              Yes, though it cannot be directly ignited by lightning strikes
+              despite being flammable from fire and lava.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Tuff Brick Slab
+template: splash
 description: |
     Minecraft Tuff Brick Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 953
     ref: tuff_brick_slab
     slug: tuff-brick-slab
+    content_rev: 1
     display_name: Tuff Brick Slab
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: tuff_brick_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+    about:
+        description: |
+            Tuff Brick Slab is a half-height decorative block cut from Tuff
+            Bricks, giving builders a low, stackable surface option for
+            floors, steps, and detailing. It never generates naturally and
+            must be crafted or cut with a stonecutter.
+        lore: |
+            Introduced in the Tricky Trials update alongside the wider tuff
+            building block family used throughout trial chambers.
+    uses:
+        - title: Chiseled Tuff Bricks
+          ref: chiseled_tuff_bricks
+          detail: |
+              Two Tuff Brick Slabs stacked in a crafting grid produce
+              Chiseled Tuff Bricks for extra architectural detail.
+    found_in:
+        - location: Crafting table
+          detail: 3 Tuff Bricks arranged in a row yield 6 Tuff Brick Slabs.
+        - location: Stonecutter
+          detail: Cut from Tuff, Polished Tuff, or Tuff Bricks at 2 slabs per input.
+    faq:
+        - question: Does Tuff Brick Slab generate naturally?
+          answer: |
+              No. It only exists as a crafted or stonecut product — it does
+              not spawn in any world generation feature.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, starting from wooden. Mining without a pickaxe
+              drops nothing.
+        - question: Can two slabs make a full block?
+          answer: |
+              Yes. Placing two Tuff Brick Slabs in the same space combines
+              them into a full Tuff Brick block.
+        - question: What is it used for?
+          answer: |
+              Purely decorative construction — steps, floor detailing, and
+              as an ingredient for Chiseled Tuff Bricks.
     data_version: "1.21.5"
 ---
 

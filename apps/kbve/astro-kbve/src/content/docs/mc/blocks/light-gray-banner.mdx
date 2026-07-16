@@ -1,5 +1,6 @@
 ---
 title: Light Gray Banner
+template: splash
 description: |
     Minecraft Light Gray Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 539
     ref: light_gray_banner
     slug: light-gray-banner
+    content_rev: 1
     display_name: Light Gray Banner
     material: wood
     hardness: 1
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_gray_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - non_flammable
+    about:
+        description: |
+            Light Gray Banner is a standing decorative block that can carry
+            up to six pattern layers applied with a loom. It always drops
+            itself, preserving any patterns, when broken.
+        lore: |
+            Banners were introduced in 1.8, giving players tall, custom
+            flags that can be layered with designs and even used to mark
+            locations on maps.
+    uses:
+        - title: Shield decoration
+          ref: shield
+          detail: |
+              Combining a banner with a shield in a crafting grid transfers
+              its pattern onto the shield, consuming the banner while
+              keeping the shield's durability and enchantments intact.
+        - title: Furnace fuel
+          ref: light_gray_banner
+          detail: A banner can be used as furnace fuel, smelting 1.5 items.
+    found_in:
+        - location: Crafting table
+          detail: 6 Light Gray Wool plus a stick craft one Light Gray Banner.
+        - location: Shepherd and Cartographer trades
+          detail: |
+              Expert-level Shepherds and Cartographers trade banners for 3
+              emeralds.
+        - location: End Cities, woodland mansions, villages, pillager outposts
+          detail: Banners generate naturally as decoration in these structures.
+    faq:
+        - question: What tool mines a banner fastest?
+          answer: |
+              An axe, though any tool or bare hands can break it since
+              there is no minimum tier requirement.
+        - question: How many pattern layers can a banner have?
+          answer: |
+              Up to six layers can be applied using a loom; more layers are
+              only possible via commands.
+        - question: Can pistons push banners?
+          answer: |
+              No, banners have no collision and cannot be moved by pistons.
     data_version: "1.21.5"
 ---
 

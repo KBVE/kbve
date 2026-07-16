@@ -1,5 +1,6 @@
 ---
 title: Chiseled Copper
+template: splash
 description: |
     Minecraft Chiseled Copper — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 98
     ref: chiseled_copper
     slug: chiseled-copper
+    content_rev: 1
     display_name: Chiseled Copper
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Chiseled Copper is a decorative copper block that oxidizes over time, cycling through normal, exposed, weathered, and oxidized stages just like other copper blocks. It generates naturally in trial chambers and can be crafted by stacking two cut copper slabs of the same oxidation stage, or cut with a stonecutter. Waxing it with honeycomb locks its current oxidation stage in place, while an axe can scrape wax or reverse weathering.
+        lore: |
+            Introduced alongside the Trial Chambers, its carved copper panels give ancient vaults a weathered, ceremonial look.
+    faq:
+        - question: How do I get Chiseled Copper?
+          answer: |
+              Find it naturally in trial chambers, craft it from two cut copper slabs of matching oxidation stage, or cut a copper block/cut copper variant with a stonecutter.
+        - question: Does Chiseled Copper oxidize like other copper blocks?
+          answer: |
+              Yes. It progresses through normal, exposed, weathered, and oxidized stages unless waxed with honeycomb to halt the process.
+        - question: What is Chiseled Copper used for?
+          answer: |
+              It is purely decorative, prized for its carved texture in copper-themed builds and trial chamber style architecture. Placing a note block on top produces a trumpet sound.
+        - question: Can I stop Chiseled Copper from oxidizing?
+          answer: |
+              Yes, applying honeycomb waxes the block and freezes it at its current oxidation stage. An axe can later remove the wax if desired.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

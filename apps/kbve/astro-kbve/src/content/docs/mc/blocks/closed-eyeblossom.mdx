@@ -1,5 +1,6 @@
 ---
 title: Closed Eyeblossom
+template: splash
 description: |
     Minecraft Closed Eyeblossom — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 1100
     ref: closed_eyeblossom
     slug: closed-eyeblossom
+    content_rev: 1
     display_name: Closed Eyeblossom
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: closed_eyeblossom
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Closed Eyeblossom is the daytime state of the Eyeblossom flower
+            found in the pale garden biome. It breaks instantly like other
+            flowers and always drops itself in whichever state it was in
+            when broken.
+        lore: |
+            Eyeblossoms were added with the pale garden biome, a
+            spooky-themed forest introduced to accompany the Creaking mob.
+    uses:
+        - title: Gray Dye
+          ref: gray_dye
+          detail: |
+              Closed Eyeblossoms can be crafted into gray dye, matching the
+              muted color palette of the pale garden.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              Used as a suspicious stew ingredient, granting the nausea
+              effect when eaten.
+    found_in:
+        - location: Pale Garden biome
+          detail: Spawns naturally on grass and pale moss blocks throughout the pale garden and its abandoned camp variant.
+    faq:
+        - question: Why does my Eyeblossom keep opening and closing?
+          answer: |
+              Eyeblossoms follow the day-night cycle, closing during the day
+              and opening at night, and can synchronize state changes with
+              nearby eyeblossoms.
+        - question: Do I need a special tool to break it?
+          answer: |
+              No. It has zero hardness and breaks instantly with any tool or
+              bare hands.
+        - question: Does Silk Touch matter for Eyeblossom?
+          answer: |
+              No. It always drops itself in its current open or closed
+              state regardless of enchantments.
+        - question: Can I buy a Closed Eyeblossom from a Wandering Trader?
+          answer: |
+              No. Wandering Traders only sell the open variant; the closed
+              form must be found or grown naturally.
     data_version: "1.21.5"
 ---
 

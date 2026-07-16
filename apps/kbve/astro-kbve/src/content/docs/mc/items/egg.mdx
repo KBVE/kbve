@@ -1,5 +1,6 @@
 ---
 title: Egg
+template: splash
 description: |
     Minecraft Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 969
     ref: egg
     slug: egg
+    content_rev: 1
     display_name: Egg
     category: misc
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Eggs are throwable items laid periodically by chickens that can hatch chicks on
+            impact or serve as a crafting ingredient for cake and pumpkin pie. Thrown eggs
+            deal knockback but no damage, and different chicken variants can lay standard,
+            blue, or brown eggs.
+        lore: |
+            Added in Alpha with no purpose, eggs only gained their signature throwing
+            mechanic in Beta 1.0, reportedly inspired by an unrelated conversation about
+            eating a USB drive.
+    faq:
+        - question: How do I get Eggs?
+          answer: |
+              Adult chickens lay an egg every 5 to 10 minutes, and foxes occasionally spawn
+              carrying one in their mouth; eggs can also be found in village fletcher houses
+              and trial chamber loot.
+        - question: What happens when I throw an Egg?
+          answer: |
+              A thrown egg has about a 12.5% chance to spawn a baby chicken, with a further
+              small chance of spawning three chicks at once.
+        - question: What can I craft with Eggs?
+          answer: |
+              Eggs are used to craft cake, alongside milk buckets, sugar, and wheat, and
+              pumpkin pie, alongside pumpkin and sugar.
+        - question: Do colored Eggs work differently?
+          answer: |
+              No, blue and brown eggs from cold and warm chicken variants function exactly
+              like standard eggs for throwing and crafting.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

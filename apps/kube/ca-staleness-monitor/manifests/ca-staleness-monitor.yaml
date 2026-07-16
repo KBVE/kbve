@@ -101,7 +101,7 @@ spec:
                             type: RuntimeDefault
                     containers:
                         - name: scan
-                          image: alpine/k8s:1.33.0
+                          image: ghcr.io/kbve/kubectl:0.1.6
                           imagePullPolicy: IfNotPresent
                           securityContext:
                               allowPrivilegeEscalation: false

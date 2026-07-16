@@ -1,5 +1,6 @@
 ---
 title: Prismarine Stairs
+template: splash
 description: |
     Minecraft Prismarine Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,65 @@ mc_block:
     id: 498
     ref: prismarine_stairs
     slug: prismarine-stairs
+    content_rev: 1
     display_name: Prismarine Stairs
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: prismarine_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+    about:
+        description: |
+            Prismarine Stairs are the stair-shaped variant of prismarine,
+            crafted for sloped surfaces and roof lines. They inherit the
+            parent block's animated texture, cycling through blue, green,
+            and purple hues.
+        lore: |
+            Added in Java Edition 1.13 alongside the rest of the ocean
+            update's building set, letting players replicate monument
+            architecture on dry land.
+    uses:
+        - title: Decorative Building
+          ref: prismarine
+          detail: |
+              Used purely for construction — staircases, roofs, and
+              monument-style builds — with the usual directional and
+              upside-down stair placement options.
+    found_in:
+        - location: Crafting Table
+          detail: Six Prismarine blocks in a staircase pattern craft four Prismarine Stairs.
+        - location: Stonecutter
+          detail: Converts one Prismarine block into one Prismarine Stairs block at a time.
+    faq:
+        - question: Do Prismarine Stairs generate naturally?
+          answer: |
+              No. They must be crafted from prismarine or produced with a
+              stonecutter; they never appear in world generation.
+        - question: What tool do I need to mine them?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe leaves no drop.
+        - question: Are Prismarine Stairs flammable?
+          answer: |
+              No, and they can be waterlogged, making them safe to use in and around water builds.
+        - question: Do Prismarine Stairs interact with conduits?
+          answer: |
+              No. Only whole prismarine, prismarine bricks, and dark
+              prismarine blocks count toward a conduit's activation frame.
     data_version: "1.21.5"
 ---
 

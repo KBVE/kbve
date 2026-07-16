@@ -1,5 +1,6 @@
 ---
 title: Sculk Vein
+template: splash
 description: |
     Minecraft Sculk Vein — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 401
     ref: sculk_vein
     slug: sculk-vein
+    content_rev: 1
     display_name: Sculk Vein
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Sculk Vein is a decorative, multi-faced block that spreads across surfaces in the
+            Deep Dark biome, similar to glow lichen. It generates naturally there or grows when
+            a mob dies within range of a sculk catalyst, and only drops as an item when mined
+            with a Silk Touch tool.
+        lore: |
+            A creeping, dark web of otherworldly growth that marks where the Deep Dark's eerie ecosystem has taken hold.
+    faq:
+        - question: How do I obtain Sculk Vein as an item?
+          answer: |
+              You must mine it with a tool enchanted with Silk Touch; otherwise breaking it
+              yields nothing.
+        - question: Is Sculk Vein renewable?
+          answer: |
+              Yes, it spreads infinitely whenever a mob dies within 8 blocks of a sculk catalyst.
+        - question: What tool mines Sculk Vein fastest?
+          answer: |
+              Hoes are the fastest tool, and with a hardness of only 0.2, golden or netherite
+              hoes can instantly mine it.
+        - question: Can Sculk Vein be placed on multiple sides of a block?
+          answer: |
+              Yes, like glow lichen, it can attach to several faces of the same block at once,
+              creating a spreading, vine-like look.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

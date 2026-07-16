@@ -1,5 +1,6 @@
 ---
 title: Blue Bundle
+template: splash
 description: |
     Minecraft Blue Bundle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 986
     ref: blue_bundle
     slug: blue-bundle
+    content_rev: 1
     display_name: Blue Bundle
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Blue Bundle is a blue-dyed variant of the bundle, an inventory item that stores a mixed collection of items in a single slot up to one stack's worth of combined weight. It behaves identically to a standard bundle and is made by combining any bundle with blue dye. The color is purely cosmetic, aiding quick visual identification of container contents.
+        lore: |
+            A deep-blue coin purse of stitched leather, sized to swallow a jumble of odds and ends without cluttering your pack.
+    faq:
+        - question: How do I make a Blue Bundle?
+          answer: |
+            Combine any bundle with blue dye in a crafting grid. A base bundle itself is crafted from one string and one leather.
+        - question: How much can a Blue Bundle hold?
+          answer: |
+            It holds up to one stack's worth of combined items by weight, so a full stack of 64 fills it or several partial stacks share the space proportionally.
+        - question: Can I put shulker boxes in a Blue Bundle?
+          answer: |
+            No. Shulker boxes cannot be placed inside bundles, though bundles can be stored inside shulker boxes.
+        - question: How do I take items out of a Blue Bundle?
+          answer: |
+            Right-click the bundle to open its contents and select the item you want to remove, retrieving items from those most recently added.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

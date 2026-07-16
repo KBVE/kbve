@@ -189,7 +189,7 @@ fn spawn_pause_menu(mut commands: Commands, settings: Res<super::settings::GameS
                         header.spawn((
                             Text::new("Settings"),
                             TextFont {
-                                font_size: 16.0,
+                                font_size: bevy::text::FontSize::Px(16.0),
                                 ..default()
                             },
                             TextColor(ui_color::TEXT_PRIMARY),
@@ -237,7 +237,7 @@ fn spawn_pause_menu(mut commands: Commands, settings: Res<super::settings::GameS
                                     .with_child((
                                         Text::new(label),
                                         TextFont {
-                                            font_size: 12.0,
+                                            font_size: bevy::text::FontSize::Px(12.0),
                                             ..default()
                                         },
                                         TextColor(if is_active {
@@ -265,7 +265,7 @@ fn spawn_pause_menu(mut commands: Commands, settings: Res<super::settings::GameS
                             content.spawn((
                                 Text::new(category_title(SettingsCategory::General)),
                                 TextFont {
-                                    font_size: 14.0,
+                                    font_size: bevy::text::FontSize::Px(14.0),
                                     ..default()
                                 },
                                 TextColor(ui_color::TEXT_PRIMARY),
@@ -277,7 +277,7 @@ fn spawn_pause_menu(mut commands: Commands, settings: Res<super::settings::GameS
                                     &settings_snapshot,
                                 )),
                                 TextFont {
-                                    font_size: 11.0,
+                                    font_size: bevy::text::FontSize::Px(11.0),
                                     ..default()
                                 },
                                 TextColor(ui_color::TEXT_SECONDARY),
@@ -313,7 +313,7 @@ fn spawn_pause_menu(mut commands: Commands, settings: Res<super::settings::GameS
                             .with_child((
                                 Text::new("Exit"),
                                 TextFont {
-                                    font_size: 12.0,
+                                    font_size: bevy::text::FontSize::Px(12.0),
                                     ..default()
                                 },
                                 TextColor(ui_color::BTN_TEXT),
@@ -338,7 +338,7 @@ fn spawn_pause_menu(mut commands: Commands, settings: Res<super::settings::GameS
                             .with_child((
                                 Text::new("Resume"),
                                 TextFont {
-                                    font_size: 12.0,
+                                    font_size: bevy::text::FontSize::Px(12.0),
                                     ..default()
                                 },
                                 TextColor(ui_color::BTN_TEXT),

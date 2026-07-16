@@ -1,5 +1,6 @@
 ---
 title: Tuff Brick Stairs
+template: splash
 description: |
     Minecraft Tuff Brick Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 954
     ref: tuff_brick_stairs
     slug: tuff-brick-stairs
+    content_rev: 1
     display_name: Tuff Brick Stairs
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,50 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: tuff_brick_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+    about:
+        description: |
+            Tuff Brick Stairs are the stepped variant of Tuff Bricks, letting
+            builders create sloped surfaces and staircases that match the
+            gray, textured look of tuff masonry.
+        lore: |
+            Added with the Tricky Trials update as part of the expanded tuff
+            building palette introduced alongside trial chambers.
+    uses:
+        - title: Architectural detailing
+          ref: tuff_bricks
+          detail: |
+              Used purely for construction — matching stairs give roofs,
+              staircases, and terraces a tuff-brick finish.
+    found_in:
+        - location: Crafting table
+          detail: 6 Tuff Bricks in the standard stair pattern yield 4 Tuff Brick Stairs.
+        - location: Stonecutter
+          detail: Cut from Tuff, Polished Tuff, or Tuff Bricks, one stair per input block.
+    faq:
+        - question: Does Tuff Brick Stairs generate naturally?
+          answer: |
+              No. It is only obtained through crafting or stonecutting —
+              it never appears in world generation.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, starting from wooden. Mining without a pickaxe
+              drops nothing.
+        - question: Can mobs path over these stairs normally?
+          answer: |
+              Yes. Like all stairs, mobs and players can walk up them as a
+              gentle slope instead of a full block step.
+        - question: What is it used for?
+          answer: |
+              Purely decorative — matching Tuff Bricks for staircases, roofs,
+              and other architectural shapes.
     data_version: "1.21.5"
 ---
 

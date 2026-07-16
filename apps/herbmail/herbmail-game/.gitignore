@@ -1,0 +1,5 @@
+# scratch probe/debug scripts (throwaway)
+_*.mjs
+
+# blender autosave backups
+*.blend1

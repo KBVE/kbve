@@ -1,5 +1,6 @@
 ---
 title: Deepslate Iron Ore
+template: splash
 description: |
     Minecraft Deepslate Iron Ore — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 67
     ref: deepslate_iron_ore
     slug: deepslate-iron-ore
+    content_rev: 1
     display_name: Deepslate Iron Ore
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Deepslate Iron Ore is the deepslate variant of iron ore, found in the deeper layers
+            of the Overworld where stone transitions into deepslate. Mining it with a stone
+            pickaxe or better drops raw iron, which can be smelted into iron ingots for tools,
+            weapons, and armor. It shares iron ore's drop table but has greater hardness.
+        lore: |
+            Miners prize iron ore as the foundation of civilization, and even buried deep
+            beneath the stone it still yields the raw metal that built the modern age.
+    faq:
+        - question: What is the difference between iron ore and deepslate iron ore?
+          answer: |
+              Deepslate iron ore generates deeper underground, typically below Y=-24, and has
+              higher hardness than regular iron ore, taking longer to mine with the same tool.
+        - question: What tool do I need to mine deepslate iron ore?
+          answer: |
+              A stone pickaxe or better is required; wooden pickaxes cannot break the block.
+        - question: Can I get the ore block itself instead of raw iron?
+          answer: |
+              Yes, mining with a Silk Touch enchanted pickaxe drops the deepslate iron ore
+              block rather than raw iron.
+        - question: How do I turn raw iron into iron ingots?
+          answer: |
+              Smelt raw iron in a furnace using any fuel source to produce iron ingots and
+              a small amount of experience.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

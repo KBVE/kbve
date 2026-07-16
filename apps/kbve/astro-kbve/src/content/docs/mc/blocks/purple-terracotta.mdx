@@ -1,5 +1,6 @@
 ---
 title: Purple Terracotta
+template: splash
 description: |
     Minecraft Purple Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 462
     ref: purple_terracotta
     slug: purple-terracotta
+    content_rev: 1
     display_name: Purple Terracotta
     material: stone
     hardness: 1.25
     blast_resistance: 4.2
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: purple_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Purple Terracotta is dyed hardened clay, resistant to fire and
+            explosions relative to its hardness. It is a common decorative
+            building block, especially recognizable in the purple-heavy
+            palettes of badlands architecture.
+        lore: |
+            Originally called stained clay when added in 2013, it was
+            renamed to terracotta and later gained a smeltable glazed form
+            in Java Edition 1.12.
+    uses:
+        - title: Glazed Terracotta
+          ref: purple_glazed_terracotta
+          detail: |
+              Smelt in a furnace or blast furnace to produce Purple Glazed
+              Terracotta, which adds a directional decorative pattern.
+    found_in:
+        - location: Crafting
+          detail: Craft from 8 Terracotta surrounding 1 Purple Dye.
+        - location: Badlands Villages
+          detail: Villages generated in badlands biomes use various terracotta colors, including purple, in their buildings.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              At least a wooden pickaxe; mining without a pickaxe of any
+              tier yields no drop.
+        - question: Does it resist explosions well?
+          answer: |
+              Reasonably — its blast resistance of 4.2 is higher than
+              stone, making it a bit tougher against TNT than plain rock.
+        - question: Can it burn?
+          answer: |
+              No, terracotta is non-flammable and will not catch fire from
+              lava or nearby flames.
+        - question: What is it used for besides building?
+          answer: |
+              Mainly decoration and smelting into Purple Glazed Terracotta
+              for patterned floors and walls.
     data_version: "1.21.5"
 ---
 

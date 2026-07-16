@@ -41,7 +41,7 @@ use crate::discord::game::{ProfileStore, SessionStore};
 use crate::discord::github_cache::GitHubCache;
 use crate::discord::github_permissions::GitHubCommandGuard;
 use crate::discord::mention::MentionResolver;
-use crate::discord::n8n::N8nConfig;
+use crate::discord::windmill::WindmillConfig;
 use crate::health::HealthMonitor;
 use crate::tracker::ShardTracker;
 
@@ -120,10 +120,10 @@ pub struct AppState {
     pub github_board_scheduler_started: AtomicBool,
     pub gh_sync_worker_started: AtomicBool,
 
-    /// Optional n8n webhook forwarder. `None` when `N8N_BASE_URL`,
-    /// `N8N_HMAC_SECRET`, or `N8N_ALLOWED_PATHS` are missing — in which case
-    /// `/n8n` is not registered as a usable command.
-    pub n8n: Option<Arc<N8nConfig>>,
+    /// Optional Windmill job runner. `None` when `WINDMILL_BASE_URL`,
+    /// `WINDMILL_TOKEN`, or `WINDMILL_ALLOWED_PATHS` are missing — in which
+    /// case `/wm` is not registered as a usable command.
+    pub windmill: Option<Arc<WindmillConfig>>,
 
     /// Optional persistent KV store (redb). Opened from `DB_PATH` env var
     /// at startup. `None` when the variable is unset or the file fails to
@@ -224,10 +224,10 @@ impl AppState {
         let local_db = open_local_db();
         let profiles = Arc::new(ProfileStore::from_env_with_local(local_db.clone()));
 
-        let n8n = N8nConfig::from_env();
-        if n8n.is_none() {
+        let windmill = WindmillConfig::from_env();
+        if windmill.is_none() {
             tracing::info!(
-                "n8n not configured (set N8N_BASE_URL + N8N_HMAC_SECRET + N8N_ALLOWED_PATHS to enable /n8n)"
+                "windmill runner not configured (set WINDMILL_BASE_URL + WINDMILL_TOKEN + WINDMILL_ALLOWED_PATHS to enable /wm)"
             );
         }
 
@@ -278,7 +278,7 @@ impl AppState {
             irc_forwarder_started: AtomicBool::new(false),
             github_board_scheduler_started: AtomicBool::new(false),
             gh_sync_worker_started: AtomicBool::new(false),
-            n8n,
+            windmill,
             local_db,
         }
     }

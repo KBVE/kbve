@@ -1,7 +1,9 @@
 ---
 title: Stripped Dark Oak Wood
+template: splash
 description: |
-    Minecraft Stripped Dark Oak Wood — vanilla 1.21.5 block record (auto-generated).
+    Minecraft Stripped Dark Oak Wood — the bark-free, all-sides-ringed
+    variant of Dark Oak Wood made by axing a wood block. Uses and FAQ.
 sidebar:
     label: Stripped Dark Oak Wood
     hidden: true
@@ -13,6 +15,7 @@ mc_block:
     id: 85
     ref: stripped_dark_oak_wood
     slug: stripped-dark-oak-wood
+    content_rev: 1
     display_name: Stripped Dark Oak Wood
     material: wood
     hardness: 2
@@ -24,10 +27,68 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_dark_oak_wood
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Stripped Dark Oak Wood is the bark-free form of Dark Oak Wood,
+            showing the ringed log texture on all six faces instead of only
+            the ends. It is created by right-clicking a Dark Oak Wood block
+            with an axe.
+        lore: |
+            Dark Oak was introduced in the Beta 1.9 Prerelease; the "wood"
+            block variant showing bark-free rings on every face was added in
+            1.13 alongside the other stripped wood blocks.
+    uses:
+        - title: Dark Oak Planks
+          ref: dark_oak_planks
+          detail: |
+              Craft into 4 Dark Oak Planks per block, or use directly as a
+              decorative all-sides-ringed building block.
+        - title: Campfire / Smoker
+          ref: campfire
+          detail: |
+              Used as a crafting ingredient for campfires and smokers in
+              place of the plain stripped log.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Burns as fuel, smelting 1.5 items per block when used in a
+              furnace or smoker.
+    found_in:
+        - location: Crafted, not naturally generated
+          detail: |
+              Does not generate naturally; obtained only by stripping Dark
+              Oak Wood with an axe, or by crafting 4 Stripped Dark Oak Logs
+              into 3 Stripped Dark Oak Wood blocks.
+    faq:
+        - question: How do I get Stripped Dark Oak Wood?
+          answer: |
+              Use any axe on a Dark Oak Wood block, or craft 4 Stripped Dark
+              Oak Logs together to get 3 Stripped Dark Oak Wood blocks.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool, including bare hands, drops the block; an axe is
+              fastest.
+        - question: Is Stripped Dark Oak Wood flammable?
+          answer: |
+              Yes, like other overworld wood blocks it burns and can be used
+              as furnace fuel.
+        - question: What's the difference between Stripped Log and Stripped Wood?
+          answer: |
+              Stripped Wood shows the ringed bark-free texture on all six
+              faces, while Stripped Log only shows it on the top and bottom,
+              with plank-like grain on the sides.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Shears
+template: splash
 description: |
     Minecraft Shears — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1043
     ref: shears
     slug: shears
+    content_rev: 1
     display_name: Shears
     category: misc
     rarity: common
@@ -25,6 +27,31 @@ mc_item:
             - vanishing_curse
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Shears are an iron tool crafted from two iron ingots, used to harvest wool, leaves,
+            vines, and cobwebs without destroying the drops. They have 238 durability in Java
+            Edition and can also shear mooshrooms, extract honeycomb, and carve pumpkins.
+        lore: |
+            A simple pair of iron blades, indispensable to any shepherd or forager.
+    faq:
+        - question: How do you craft shears?
+          answer: |
+              Combine two iron ingots diagonally in a crafting grid, or find them in shepherd
+              house or abandoned camp chests, or trade with a shepherd villager.
+        - question: What can shears be used on?
+          answer: |
+              Shears harvest wool from sheep, collect leaves, vines, and cobwebs intact, shear
+              mooshrooms back into cows, extract honeycomb from beehives, and carve pumpkins
+              into jack-o'-lanterns.
+        - question: How much durability do shears have?
+          answer: |
+              238 uses in Java Edition (239 in Bedrock), and they can be repaired by combining
+              two damaged shears or using an anvil.
+        - question: Can dispensers use shears?
+          answer: |
+              Yes, a dispenser loaded with shears can shear sheep and other shearable mobs when
+              activated, without consuming durability on a failed attempt.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Jungle Hanging Sign
+template: splash
 description: |
     Minecraft Jungle Hanging Sign — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 941
     ref: jungle_hanging_sign
     slug: jungle-hanging-sign
+    content_rev: 1
     display_name: Jungle Hanging Sign
     category: decoration
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The jungle hanging sign is a decorative text block crafted from stripped jungle logs and iron chains, displaying up to four lines of customizable text. It can hang below a block, attach to a wall with self-supporting brackets, or hang under narrow blocks like chains.
+            Its text can be dyed for color and brightened permanently with a glow ink sac, and honeycomb can be applied to lock the sign against further edits.
+        lore: |
+            Hanging signs let builders label doorways and market stalls with jungle-toned wood that swings from chains rather than sitting flush on a post.
+    faq:
+        - question: What materials craft a jungle hanging sign?
+          answer: |
+              Two iron chains and six stripped jungle logs arranged in the hanging sign pattern produce six jungle hanging signs.
+        - question: What happens if the block holding the sign is removed?
+          answer: |
+              A hanging sign attached below a block breaks and drops itself as an item if that supporting block is moved, removed, or destroyed; wall-mounted signs are unaffected.
+        - question: Can I make the text glow?
+          answer: |
+              Yes, applying a glow ink sac to the sign makes its text glow, and dyes can also change the text color.
+        - question: Can jungle hanging signs be used as furnace fuel?
+          answer: |
+              Yes, overworld wood hanging signs like the jungle variant can be smelted as fuel, unlike signs made from nether wood.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

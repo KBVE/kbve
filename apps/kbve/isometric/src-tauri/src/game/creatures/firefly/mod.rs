@@ -58,7 +58,7 @@ pub(super) fn spawn_fireflies(
                     intensity: 0.0,
                     radius: 0.08,
                     range: 10.0,
-                    shadows_enabled: false,
+                    shadow_maps_enabled: false,
                     ..default()
                 },
                 Transform::from_xyz(0.0, -100.0, 0.0),
@@ -335,7 +335,7 @@ pub(super) fn render_fireflies(
         let glow = 0.35 + pulse * 0.65;
         let intensity = glow * nf;
 
-        if let Some(mat) = materials.get_mut(&rd.mat_handle) {
+        if let Some(mut mat) = materials.get_mut(&rd.mat_handle) {
             let emit = intensity * 55.0;
             mat.emissive = LinearRgba::new(0.3 * emit, 0.85 * emit, 0.15 * emit, 1.0);
             mat.base_color = Color::srgba(0.5, 0.9, 0.3, intensity * 0.95 + 0.3 * nf);

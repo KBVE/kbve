@@ -1,5 +1,6 @@
 ---
 title: Mossy Cobblestone Stairs
+template: splash
 description: |
     Minecraft Mossy Cobblestone Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 768
     ref: mossy_cobblestone_stairs
     slug: mossy-cobblestone-stairs
+    content_rev: 1
     display_name: Mossy Cobblestone Stairs
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mossy_cobblestone_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Mossy Cobblestone Stairs are the stair form of Mossy Cobblestone,
+            used to build overgrown ramps, rooftops, and steps that match the
+            aged-stone aesthetic of the base block.
+        lore: |
+            It was added in the same 1.14 update that introduced Mossy
+            Cobblestone Slabs and Walls, rounding out the mossy stone family.
+    uses:
+        - title: Ramps, rooftops, and detailing
+          ref: mossy_cobblestone_stairs
+          detail: |
+              Placed with directional facing and half-block orientation like
+              any stair block, commonly used for jungle-temple or
+              overgrown-ruins style builds.
+    found_in:
+        - location: Pillager outposts
+          detail: Generates naturally as part of outpost towers.
+        - location: Crafted from Mossy Cobblestone
+          detail: Six Mossy Cobblestone arranged in a staircase pattern yield four stairs, or one block on a stonecutter yields one stair.
+    faq:
+        - question: What tool do I need to mine Mossy Cobblestone Stairs?
+          answer: |
+              Any pickaxe, wood tier or better. Mining without one drops
+              nothing.
+        - question: Does it drop itself when mined?
+          answer: |
+              Yes, always one Mossy Cobblestone Stairs block, unaffected by
+              Silk Touch or Fortune.
+        - question: What's the fastest way to craft a lot of these?
+          answer: |
+              Use a stonecutter — one Mossy Cobblestone yields one stair,
+              versus six blocks for four stairs at a crafting table.
+        - question: Are Mossy Cobblestone Stairs flammable?
+          answer: |
+              No. Like all stone-family blocks, they do not burn or catch
+              fire from lava.
     data_version: "1.21.5"
 ---
 

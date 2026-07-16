@@ -1,5 +1,6 @@
 ---
 title: Brush
+template: splash
 description: |
     Minecraft Brush — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1332
     ref: brush
     slug: brush
+    content_rev: 1
     display_name: Brush
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Brush is a tool crafted from a feather, a copper ingot, and a stick, used
+            for archaeology. It excavates suspicious sand and suspicious gravel blocks,
+            taking about 4.8 seconds per block and gradually revealing loot such as pottery
+            sherds. It can also be used on armadillos to collect scutes without harming
+            them. It has 64 durability and supports Unbreaking, Mending, and Curse of
+            Vanishing.
+        lore: |
+            Archaeologists prize the brush as an essential tool for uncovering the remnants of ancient civilizations buried beneath desert sands.
+    faq:
+        - question: How do you craft a Brush?
+          answer: |
+              Combine one feather, one copper ingot, and one stick in a crafting table to
+              make a brush.
+        - question: What does a Brush do?
+          answer: |
+              It slowly brushes away suspicious sand or suspicious gravel to reveal buried
+              archaeology loot like pottery sherds, without destroying the block outright.
+        - question: Can a Brush be used on mobs?
+          answer: |
+              Yes, brushing an armadillo produces a scute, which is otherwise only obtained
+              by waiting for the armadillo to naturally shed one.
+        - question: How much durability does a Brush lose per use?
+          answer: |
+              Brushing a suspicious block costs 1 durability, while brushing an armadillo
+              costs 16 durability, out of a maximum of 64.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

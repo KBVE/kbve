@@ -9,6 +9,41 @@ import type { BadgeTone } from './_ui';
  * Any data stream (ArgoCD, Forgejo, Grafana, …) plugs in as a source + a lens.
  */
 
+export type StreamParams = Record<string, string | number | undefined>;
+
+export interface SavedView {
+	id: string;
+	name: string;
+	params: StreamParams;
+	pollMs?: number | null;
+	/** Marks an adapter-seeded default view. removeView deletes it like any other; seeded defaults are re-added on next start(). */
+	seeded?: boolean;
+}
+
+export type StreamControl =
+	| {
+			kind: 'segmented';
+			param: string;
+			label?: string;
+			options: { label: string; value: string | number }[];
+	  }
+	| {
+			kind: 'select';
+			param: string;
+			label?: string;
+			placeholder?: string;
+			options?: { label: string; value: string }[];
+			optionsFromMeta?: (
+				meta: unknown,
+			) => { label: string; value: string }[];
+	  }
+	| {
+			kind: 'search';
+			param: string;
+			placeholder?: string;
+			debounceMs?: number;
+	  };
+
 export interface FetchContext {
 	/** Aborts when the source is disposed or a newer fetch supersedes this one. */
 	signal: AbortSignal;
@@ -18,7 +53,7 @@ export interface StreamSourceConfig<TRaw, TItem> {
 	/** Cache key prefix; the source namespaces its own keys under it. */
 	key: string;
 	/** Fetch the raw payload list. Owns auth, URL, and transport (domain concern). */
-	fetch: (ctx: FetchContext) => Promise<TRaw[]>;
+	fetch: (ctx: FetchContext, params: StreamParams) => Promise<TRaw[]>;
 	/** Project one raw record into the stable item shape the views render. */
 	normalize: (raw: TRaw) => TItem;
 	/** Stable identity for an item (dedupe, expand target, list key). */
@@ -40,7 +75,11 @@ export interface StreamSourceConfig<TRaw, TItem> {
 	 * refreshes. Surfaced to the lens's `stats` as the second argument. Should
 	 * resolve (not throw) on failure so it never blocks the item fetch.
 	 */
-	fetchMeta?: (ctx: FetchContext) => Promise<unknown>;
+	fetchMeta?: (ctx: FetchContext, params: StreamParams) => Promise<unknown>;
+	/** Initial params for the stream. Defaults to empty. */
+	initialParams?: StreamParams;
+	/** Seeded views shown by default in the view picker. */
+	defaultViews?: SavedView[];
 }
 
 export interface StreamState<TItem> {
@@ -59,6 +98,9 @@ export interface StreamState<TItem> {
 	actionBusy: string | null;
 	actionError: string | null;
 	actionMsg: string | null;
+	params: StreamParams;
+	views: SavedView[];
+	activeViewId: string | null;
 }
 
 export interface StreamStore<TItem> {
@@ -90,6 +132,15 @@ export interface StreamStore<TItem> {
 		fn: () => Promise<void>,
 		opts?: { refresh?: boolean; successMsg?: string },
 	) => Promise<void>;
+	setParams: (patch: StreamParams) => void;
+	resetParams: () => void;
+	saveView: (name: string) => void;
+	applyView: (id: string) => void;
+	removeView: (id: string) => void;
+	renameView: (id: string, name: string) => void;
+	reorderViews: (ids: string[]) => void;
+	exportViews: () => string;
+	importViews: (json: string) => number;
 }
 
 export interface StatModel {
@@ -115,6 +166,12 @@ export interface StreamFilter<TItem> {
 	label: string;
 	tone?: BadgeTone;
 	predicate: (item: TItem) => boolean;
+	/**
+	 * Optional server-side params applied while this filter is active (e.g.
+	 * `{ level: 'error' }`). Selecting the chip patches params + refetches;
+	 * deselecting (or switching chips) clears this filter's keys first.
+	 */
+	params?: StreamParams;
 }
 
 /**
@@ -147,4 +204,6 @@ export interface StreamLens<TItem> {
 	filters?: readonly StreamFilter<TItem>[];
 	/** Mutations offered on an expanded item (sync, refresh, rollback…). */
 	actions?: readonly StreamAction<TItem>[];
+	/** Stream parameter controls (segmented, select, search). */
+	controls?: readonly StreamControl[];
 }

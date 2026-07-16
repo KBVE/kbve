@@ -1,5 +1,6 @@
 ---
 title: Stone Brick Wall
+template: splash
 description: |
     Minecraft Stone Brick Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,69 @@ mc_block:
     id: 796
     ref: stone_brick_wall
     slug: stone-brick-wall
+    content_rev: 1
     display_name: Stone Brick Wall
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stone_brick_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wooden_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Stone Brick Wall is a tall, connecting variant of Stone Bricks
+            that links to neighboring walls, fences, and solid blocks, used
+            to fence off areas while blocking most mobs and arrows.
+        lore: |
+            Walls were added in 1.14 (18w43a) to give stone-brick builds a
+            proper fencing option with realistic connections.
+    uses:
+        - title: Perimeter & Bridge Railings
+          ref: stone_bricks
+          detail: |
+              Placed around builds or along bridges as a mob-blocking,
+              player-passable-height barrier that connects visually to
+              adjacent blocks.
+    found_in:
+        - location: Ruined Portal
+          detail: Generates among the portal's scattered stone brick blocks.
+        - location: Crafted or Stonecut
+          detail: |
+              6 Stone Bricks in a crafting grid yield 6 walls; stone or
+              stone bricks can also be cut at a stonecutter.
+    faq:
+        - question: What tool do I need to mine a Stone Brick Wall?
+          answer: |
+              At least a wooden pickaxe; mining without one drops nothing.
+        - question: Do Stone Brick Walls connect to fences and other walls?
+          answer: |
+              Yes, they visually connect to adjacent walls, fences, and
+              solid blocks, forming a continuous barrier.
+        - question: Can mobs jump over a Stone Brick Wall?
+          answer: |
+              Most ground mobs cannot; the raised center post is tall enough
+              to block standard mob pathing and most arrows.
+        - question: Where do Stone Brick Walls generate naturally?
+          answer: |
+              They appear in ruined portals; otherwise craft or stonecut
+              them from stone bricks or stone.
     data_version: "1.21.5"
 ---
 

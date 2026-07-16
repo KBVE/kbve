@@ -106,78 +106,109 @@ if (hasUsedIn(item)) {
 	if (computed && computed.length > 0) usedInEntries = computed;
 }
 const showUsedIn = (usedInEntries?.length ?? 0) > 0;
+
+// Derive a bento accent from the item's role, mirroring MC's CATEGORY_ACCENT so
+// OSRS item pages read as part of the same bento design system.
+const OSRS_CATEGORY_ACCENT: Record<string, string> = {
+	weapon: '0 80% 62%',
+	armor: '190 70% 58%',
+	potion: '280 70% 62%',
+	food: '30 90% 58%',
+	material: '260 75% 66%',
+	prayer: '175 65% 55%',
+	misc: '220 10% 60%',
+};
+function osrsCategory(): string {
+	if (showEquipment && item.equipment?.slot) {
+		const s = String(item.equipment.slot).toLowerCase();
+		return s === 'weapon' || s === '2h' || s.includes('weapon')
+			? 'weapon'
+			: 'armor';
+	}
+	if (showPotion) return 'potion';
+	if (showFood) return 'food';
+	if (showGathering) return 'material';
+	if (showPrayer) return 'prayer';
+	return 'misc';
+}
+const accent =
+	OSRS_CATEGORY_ACCENT[osrsCategory()] ?? OSRS_CATEGORY_ACCENT.misc;
+const accentHigh = accent.replace(/(\d+)%\)?$/, '') + '72%';
 ---
 
 <OSRSItemJsonLd data={item} />
 
 <section
-	class="osrs-panel not-content kbve-dashboard-page relative min-h-screen w-full bg-transparent">
+	class="osrs-panel not-content kbve-dashboard-page relative min-h-screen w-full bg-transparent"
+	style={`--bento-accent: hsl(${accent}); --sl-color-accent: hsl(${accent}); --sl-color-accent-high: hsl(${accentHigh});`}>
 	<div class="osrs-panel__container">
-		<!-- Item Header Card - Two Column Layout -->
-		<div class="osrs-card">
-			<div class="osrs-card__main">
-				<!-- Left: Icon + Info -->
-				<div class="osrs-card__left">
-					<!-- Icon with Badge -->
-					<div class="osrs-card__icon-wrap">
-						<div class="osrs-card__icon-box">
-							<img
-								src={iconUrl}
-								alt={item.name}
-								class="osrs-card__icon"
-								loading="lazy"
-							/>
+		<!-- Item Header — bento board: wide id card + core stat cards -->
+		<div class="bento-frame">
+			<div class="bento-board bento-board--cols-4">
+				<div class="bento-card bento-cell--wide osrs-id">
+					<!-- Left: Icon + Info -->
+					<div class="osrs-card__left">
+						<!-- Icon with Badge -->
+						<div class="osrs-card__icon-wrap">
+							<div class="osrs-card__icon-box">
+								<img
+									src={iconUrl}
+									alt={item.name}
+									class="osrs-card__icon"
+									loading="lazy"
+								/>
+							</div>
+							<span
+								class={`osrs-card__badge ${item.members ? 'osrs-card__badge--p2p' : 'osrs-card__badge--f2p'}`}>
+								{item.members ? 'P2P' : 'F2P'}
+							</span>
 						</div>
-						<span
-							class={`osrs-card__badge ${item.members ? 'osrs-card__badge--p2p' : 'osrs-card__badge--f2p'}`}>
-							{item.members ? 'P2P' : 'F2P'}
-						</span>
-					</div>
 
-					<!-- Title + Examine + Links -->
-					<div class="osrs-card__info">
-						<div class="osrs-card__title-row">
-							<h3 class="osrs-card__title">{item.name}</h3>
-							<span class="osrs-card__id">#{item.id}</span>
-						</div>
-						<p class="osrs-card__examine">"{item.examine}"</p>
-						<div class="osrs-card__links">
-							<a
-								href={wikiUrl}
-								target="_blank"
-								rel="noopener noreferrer"
-								class="osrs-card__link">
-								<svg
-									class="osrs-card__link-icon"
-									fill="currentColor"
-									viewBox="0 0 24 24">
-									<path
-										d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z">
-									</path>
-								</svg>
-								Wiki
-							</a>
-							<a
-								href={geUrl}
-								target="_blank"
-								rel="noopener noreferrer"
-								class="osrs-card__link osrs-card__link--accent">
-								<svg
-									class="osrs-card__link-icon"
-									fill="currentColor"
-									viewBox="0 0 24 24">
-									<path
-										d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5">
-									</path>
-								</svg>
-								GE
-							</a>
+						<!-- Title + Examine + Links -->
+						<div class="osrs-card__info">
+							<div class="osrs-card__title-row">
+								<h3 class="osrs-card__title">{item.name}</h3>
+								<span class="osrs-card__id">#{item.id}</span>
+							</div>
+							<p class="osrs-card__examine">"{item.examine}"</p>
+							<div class="osrs-card__links">
+								<a
+									href={wikiUrl}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="osrs-card__link">
+									<svg
+										class="osrs-card__link-icon"
+										fill="currentColor"
+										viewBox="0 0 24 24">
+										<path
+											d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z">
+										</path>
+									</svg>
+									Wiki
+								</a>
+								<a
+									href={geUrl}
+									target="_blank"
+									rel="noopener noreferrer"
+									class="osrs-card__link osrs-card__link--accent">
+									<svg
+										class="osrs-card__link-icon"
+										fill="currentColor"
+										viewBox="0 0 24 24">
+										<path
+											d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5">
+										</path>
+									</svg>
+									GE
+								</a>
+							</div>
 						</div>
 					</div>
 				</div>
 
-				<!-- Right: Quad Stats Table -->
-				<div class="osrs-card__right">
+				<!-- Core value stats -->
+				<div class="bento-card bento-cell--wide osrs-values">
 					<div class="osrs-quad">
 						<div class="osrs-quad__cell">
 							<span class="osrs-quad__label">High Alch</span>
@@ -216,7 +247,6 @@ const showUsedIn = (usedInEntries?.length ?? 0) > 0;
 				</div>
 			</div>
 		</div>
-
 		<!-- Live GE Prices — full width -->
 		<div class="osrs-section">
 			<div class="osrs-section__header">

@@ -1,5 +1,6 @@
 ---
 title: Pitcher Crop
+template: splash
 description: |
     Minecraft Pitcher Crop — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,64 @@ mc_block:
     id: 631
     ref: pitcher_crop
     slug: pitcher-crop
+    content_rev: 1
     display_name: Pitcher Crop
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pitcher_pod
+          qty_min: 0
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - crop
+    about:
+        description: |
+            Pitcher Crop is the growing form of a Pitcher Pod planted on
+            farmland. It advances through five growth stages, and only the
+            final stage becomes a fully grown Pitcher Plant.
+        lore: |
+            Added in the 1.20 Trails & Tales Update alongside the Sniffer,
+            whose digs are the only natural source of Pitcher Pods.
+    uses:
+        - title: Pitcher Plant
+          ref: pitcher_plant
+          detail: |
+              Once the crop reaches its final growth stage, harvesting it
+              yields a Pitcher Plant instead of a Pitcher Pod.
+    found_in:
+        - location: Farmland
+          detail: Plant a Pitcher Pod on tilled farmland to start growth.
+        - location: Sniffer Digs
+          detail: Sniffers occasionally unearth Pitcher Pods when digging.
+    faq:
+        - question: What tool do I need to break Pitcher Crop?
+          answer: |
+              None. It breaks instantly with any tool or bare hands at any
+              growth stage.
+        - question: What does an immature Pitcher Crop drop?
+          answer: |
+              Breaking it before it fully grows drops a single Pitcher Pod,
+              which can be replanted.
+        - question: How do I get Pitcher Pods to plant?
+          answer: |
+              Sniffers dig them up from the ground, or you can harvest one
+              from an unripe Pitcher Crop.
+        - question: Can villagers farm Pitcher Crop?
+          answer: |
+              Farmer villagers can plant Pitcher Pods on farmland but will
+              not harvest the mature crop.
     data_version: "1.21.5"
 ---
 

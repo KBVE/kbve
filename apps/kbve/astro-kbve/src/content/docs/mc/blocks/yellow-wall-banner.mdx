@@ -1,5 +1,6 @@
 ---
 title: Yellow Banner
+template: splash
 description: |
     Minecraft Yellow Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 551
     ref: yellow_wall_banner
     slug: yellow-wall-banner
+    content_rev: 1
     display_name: Yellow Banner
     material: wood
     hardness: 1
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: yellow_wall_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Yellow Banner (wall-mounted form) is a tall, non-solid decoration
+            hung against a wall, capable of displaying up to six dyed pattern
+            layers applied at a loom.
+        lore: |
+            Banners debuted in 1.8, giving players a canvas of wool and dye
+            to design their own emblems.
+    uses:
+        - title: Shield Decoration
+          ref: shield
+          detail: |
+              Combine a patterned banner with a shield at a crafting table
+              to transfer its design onto the shield, consuming the banner.
+        - title: Loom Patterns
+          ref: loom
+          detail: |
+              Use a Loom with dye and an optional pattern item to stamp up
+              to six layered designs onto the banner.
+    found_in:
+        - location: Crafted only
+          detail: Made from 6 Yellow Wool and 1 Stick arranged like a sign; placing it on a wall (rather than the ground) creates the wall-banner form.
+        - location: Map Markers (Java Edition)
+          detail: Right-click a placed banner while holding a map to add it as a named marker on that map.
+    faq:
+        - question: Does mining a patterned Yellow Banner keep its design?
+          answer: |
+              Yes. The dropped item retains every pattern layer applied at
+              the loom.
+        - question: What's the fastest tool to mine a banner?
+          answer: |
+              An axe. A golden axe breaks it in about 0.15 seconds, though
+              any tool or bare hands will eventually break it.
+        - question: Can a wall banner be pushed by a piston?
+          answer: |
+              No. Like all banners, it is non-solid and pistons cannot move
+              it.
+        - question: How is a wall banner different from a standing banner?
+          answer: |
+              Both share the same hitbox and drop the same item; the wall
+              variant is simply mounted to a vertical surface facing outward
+              instead of standing on the floor.
     data_version: "1.21.5"
 ---
 

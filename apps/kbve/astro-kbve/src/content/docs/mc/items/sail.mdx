@@ -1,0 +1,37 @@
+---
+title: Sail
+template: splash
+description: |
+    Immersive Aircraft Sail — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Sail
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900010
+    ref: immersive_aircraft:sail
+    slug: sail
+    content_rev: 0
+    display_name: Sail
+    category: material
+    rarity: common
+    stack_size: 64
+    tags:
+        - immersive_aircraft
+        - part
+    about:
+        description: |
+            A cloth sail that catches the wind on lighter-than-air craft such as the airship.
+        lore: |
+            Canvas and rope, the oldest way to move.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

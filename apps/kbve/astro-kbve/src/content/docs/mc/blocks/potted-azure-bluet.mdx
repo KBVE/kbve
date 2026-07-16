@@ -1,5 +1,6 @@
 ---
 title: Potted Azure Bluet
+template: splash
 description: |
     Minecraft Potted Azure Bluet — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 396
     ref: potted_azure_bluet
     slug: potted-azure-bluet
+    content_rev: 1
     display_name: Potted Azure Bluet
-    material: stone
+    material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,47 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: azure_bluet
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Potted Azure Bluet is a decorative flower pot arrangement made by
+            placing an Azure Bluet inside a Flower Pot. It breaks instantly
+            with any tool or by hand, dropping both the pot and the flower.
+        lore: |
+            Despite its name suggesting a blue hue, the azure bluet renders
+            with a pale, near-white color in Minecraft, unlike its real-world
+            namesake.
+    found_in:
+        - location: Plains Villages
+          detail: Generates as decoration inside some village houses.
+        - location: Woodland Mansions
+          detail: Appears as potted decoration in generated mansion rooms.
+    faq:
+        - question: What does breaking Potted Azure Bluet drop?
+          answer: |
+              Both the Flower Pot and the Azure Bluet flower item, obtained
+              instantly with any tool or bare hands.
+        - question: Can I dye anything with Potted Azure Bluet?
+          answer: |
+              Not while potted, but the Azure Bluet item itself crafts into
+              Light Gray Dye once removed from the pot.
+        - question: Is Potted Azure Bluet flammable?
+          answer: |
+              Yes, like most plant blocks it can catch fire from nearby
+              flames, though it will not ignite from lava contact alone.
     data_version: "1.21.5"
 ---
 

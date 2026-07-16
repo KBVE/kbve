@@ -1,7 +1,7 @@
 ---
 title: "July: 16"
 category: Daily
-date: 2025-07-16 12:00:00
+date: 2026-07-16 12:00:00
 client: Self
 unsplash: 1721046583031-07296af14cc7
 img: https://images.unsplash.com/photo-1721046583031-07296af14cc7?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -52,6 +52,49 @@ import BentoDoc from '@/components/hero/BentoDoc.astro';
 import BentoProse from '@/components/hero/BentoProse.astro';
 
 <BentoDoc data={frontmatter.bento}>
+
+
+<BentoProse id="2026" heading="2026">
+
+
+### KBVE.com Panel Upgrades
+
+-   12:31AM
+
+    The upgrade for the panels is something that we need to finish up.
+    I need to finish migrating the globe over to hover effect on the community card, rather than a floating right side panel.
+
+### Kubectl Container
+
+-   01:06AM
+
+    Updating the kubectl container that we use in KBVE ops, so that it will be easier on us in the future with some of the bash commands.
+
+### Windmill over n8n
+
+-   01:31PM
+
+    Spinning down the n8n instances, as we replace them with the windmill instances.
+
+-   03:17PM
+
+    Okay so the idea here is that we start with the shared admin token, then as we continue to build it out, we can focus on mkaing sure it all connects.
+    The first test will be the poem call, which will be via a manually set script by us.
+
+### DiscordSH Full Revamp
+
+-   04:07AM
+
+    Granted these notes are a bit backed up, as I was cleaning up some of the kubectl issues.
+    What I am planning to do is a quick cleanup of the whole site, then integrate the windmill eco-system directly into the website.
+    Afterwards, we should have a clean and operational eco-system to work with.
+
+-   03:22PM
+
+    The staled discordsh application is the next issue, while we update the website.
+    We do need to get the workflows in sync on both the kbve website and the discordsh website.
+
+</BentoProse>
 
 <BentoProse id="2025" heading="2025">
 

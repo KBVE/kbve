@@ -1,5 +1,6 @@
 ---
 title: Wither Skeleton Skull
+template: splash
 description: |
     Minecraft Wither Skeleton Skull — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 424
     ref: wither_skeleton_wall_skull
     slug: wither-skeleton-wall-skull
+    content_rev: 1
     display_name: Wither Skeleton Skull
     material: stone
     hardness: 1
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: wither_skeleton_skull
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - nether
+        - blast_resistant
+    about:
+        description: |
+            The wall-mounted variant of the Wither Skeleton Skull, placed
+            when a skull is attached to the side of a block instead of on
+            top of it. Functionally identical to the standing skull.
+        lore: |
+            Added in Java Edition 1.4.2 alongside the Wither boss, sharing
+            its drop item with the standing skull placement.
+    uses:
+        - title: Wither Boss
+          ref: nether_star
+          detail: |
+              Wall skulls can still be used, alongside standing skulls, in
+              a T-shaped soul sand or soul soil structure to summon the
+              Wither boss.
+        - title: Banner Pattern
+          ref: skull_banner_pattern
+          detail: |
+              Used at a loom to apply the wither skeleton skull design to
+              banners.
+    found_in:
+        - location: Nether fortresses
+          detail: Placed on a wall when a dropped wither skeleton skull item is attached to a vertical surface.
+    faq:
+        - question: How is the wall skull different from the standing skull?
+          answer: |
+              Only in placement orientation and block state; both come from
+              the same dropped item and behave identically otherwise.
+        - question: What tool do I need to mine a wall skull?
+          answer: |
+              None. No tool speeds up breaking it, and it always drops itself.
+        - question: Does the wall skull work for summoning the Wither?
+          answer: |
+              Yes, it functions the same as the standing skull for that purpose.
+        - question: Can I get a wall skull directly from a mob?
+          answer: |
+              No. Wither skeletons drop the item form; the wall state only
+              appears once it is placed against a vertical surface.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: End Rod
+template: splash
 description: |
     Minecraft End Rod — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 311
     ref: end_rod
     slug: end-rod
+    content_rev: 1
     display_name: End Rod
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The End Rod is a decorative light source found throughout End
+            Cities, emitting a light level of 14 and melting nearby snow and
+            ice. It can be crafted from a Blaze Rod and Popped Chorus Fruit and
+            can be mined instantly with any tool.
+        lore: |
+            A slender beacon of pale light, marking the towers of a distant,
+            windswept dimension.
+    faq:
+        - question: How do you craft an End Rod?
+          answer: |
+              Combine a Blaze Rod with Popped Chorus Fruit in a crafting grid
+              to produce 4 End Rods.
+        - question: How much light does an End Rod give off?
+          answer: |
+              It emits a light level of 14, comparable to a torch.
+        - question: Can End Rods be placed on any surface?
+          answer: |
+              Yes, they can be attached to any face of a block and remain in
+              place even if the supporting block is later removed.
+        - question: Where are End Rods commonly found?
+          answer: |
+              They generate naturally throughout End Cities, both upright on
+              tower exteriors and sideways inside, often forming spiral
+              staircases.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+    name: rows-fleet-restart-token
+    namespace: rows-rentearth-release
+spec:
+    encryptedData:
+        token: AgAdgrwVizcANt4J7RP57bxj7jlAGvOn/6hWudx3yJiM+Zr/2ZbgabMPNzEL6mZqQMSAzhfymX9gXN4vMXHiOV/a26OQXPsV86kzJTAtbw++zRVil3te4PilbxPrxsjpuieQDo9SrjH5/f2LNveWTZ3nkHI4hqJb+MWLtNN7NOm3YS5KZe5Xq2BrUBMdnJNPOnacabp6novhDYFdhs95MdxdjOdMUd13dUt8X/TwtwfVTyRDwLmf4VjqC5EAZ7F/xQA/cUMTfXS+y19hYOwv9g+n9PyX5O0ejR8Mywp/O7c6us9vNuhMMm4LhUGN8naMPJDWDSE7fZvhBLpJVZz2lNlscMd8MTpmTZWyua6+IgzVAzZhmI3cqjZoat36IBjp16f64s3OaIe4hLpQmWasO4UDMGQzo+B8AO28/k0+9QZhJZ6TMsKVN7cxsIRsehhkET5z1flaXAZ4EoXJvd7vLJ1WLxam37Fo6xiB7Hu1KXLh7gtg1FcttQY9bYnRsWOviXXx+BoWzDSkFRqxEc81TRiqm0c6v6NyvktvsyE2a3T8vndxoI2codPKrSkuApBbTTAbDNO88goy/jKAMACTM336rCIG3EYaW6QLK8hFpBeEmaqpJSv+STIQs76F0QfQFzwx/ge9nTifDpFKWjEqNC1o0GuLoQIrL+qnIwmajgVRVyvLlpFdclZw6jS7A/3K9/aBZDGmUV1IfeFytrftXofdUWZFMXvEHEh7dq4kf3sdnW2LALvWSihMfU8px3yYsSycwVVDetiXv+chPiiLNYh2
+    template:
+        metadata:
+            name: rows-fleet-restart-token
+            namespace: rows-rentearth-release

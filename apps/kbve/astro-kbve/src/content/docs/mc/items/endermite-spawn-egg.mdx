@@ -1,5 +1,6 @@
 ---
 title: Endermite Spawn Egg
+template: splash
 description: |
     Minecraft Endermite Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1089
     ref: endermite_spawn_egg
     slug: endermite-spawn-egg
+    content_rev: 1
     display_name: Endermite Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Endermite Spawn Egg summons an Endermite, the smallest hostile mob in the game by hitbox size. In normal play, Endermites have only a small chance to appear when a player throws an ender pearl, and they despawn automatically within two minutes unless named with a name tag.
+        lore: |
+            Endermen are inexplicably hostile toward Endermites, attacking them on sight as though the smaller creature were an intruder from between dimensions.
+    faq:
+        - question: How do Endermites normally spawn without the egg?
+          answer: |
+              There is a small chance one appears whenever a player throws and lands an ender pearl, spawning near the player or the pearl's landing spot depending on edition.
+        - question: Do Endermites despawn quickly?
+          answer: |
+              Yes, they vanish after about two minutes regardless of distance to the player, unless they have been given a name tag.
+        - question: Why do Endermen attack Endermites?
+          answer: |
+              Endermen are always hostile toward Endermites, attacking them the moment one is nearby, regardless of how the Endermite spawned.
+        - question: What do Endermites drop when killed?
+          answer: |
+              They drop a small amount of experience orbs when killed by a player or tamed wolf, but no items.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

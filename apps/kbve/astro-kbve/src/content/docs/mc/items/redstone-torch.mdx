@@ -1,5 +1,6 @@
 ---
 title: Redstone Torch
+template: splash
 description: |
     Minecraft Redstone Torch — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 688
     ref: redstone_torch
     slug: redstone-torch
+    content_rev: 1
     display_name: Redstone Torch
     category: redstone
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Redstone Torch is crafted from one redstone dust and one stick, and it acts as a constant power source that strongly powers the block above it and weakly powers adjacent blocks. It also functions as a logic inverter, turning off whenever the block it is attached to becomes powered, which makes it a core building piece for repeaters, comparators, and activator rails.
+            Redstone torches naturally generate inside igloo basements and as part of the wired mechanisms found in ancient cities.
+        lore: |
+            A single glowing stick of dust and wood taught a generation of players how to build logic gates.
+    faq:
+        - question: |
+              How do I craft a Redstone Torch?
+          answer: |
+              Combine one redstone dust with one stick in a crafting table to produce a redstone torch.
+        - question: |
+              What happens when a Redstone Torch's attachment block is powered?
+          answer: |
+              The torch turns off, acting as a NOT gate/inverter; when the attached block loses power, the torch turns back on.
+        - question: |
+              Can a Redstone Torch burn out?
+          answer: |
+              Yes. If it toggles state more than eight times within 60 game ticks it burns out, emitting smoke and a hiss sound, and stops responding to changes until the rapid toggling stops.
+        - question: |
+              How much light does a Redstone Torch give off?
+          answer: |
+              A lit redstone torch emits a light level of 7, making it a mild light source in addition to its circuit uses.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

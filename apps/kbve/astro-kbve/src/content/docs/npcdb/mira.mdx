@@ -1,5 +1,9 @@
 ---
 title: 'Mira'
+template: splash
+sidebar:
+    label: 'Mira'
+    hidden: true
 description: |
     Sci-fi logistics officer. Runs the hauler ring — what loads where, when, and in what order. Has a soft spot for clean spreadsheets and full cargo holds.
 ref: 'mira'
@@ -40,7 +44,10 @@ faction:
     faction_id: 'player'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Sci-fi logistics officer. Runs the hauler ring.
+
+</NpcLeaf>

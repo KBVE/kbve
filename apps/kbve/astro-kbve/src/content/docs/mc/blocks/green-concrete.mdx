@@ -1,5 +1,6 @@
 ---
 title: Green Concrete
+template: splash
 description: |
     Minecraft Green Concrete — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 691
     ref: green_concrete
     slug: green-concrete
+    content_rev: 1
     display_name: Green Concrete
     material: stone
     hardness: 1.8
     blast_resistance: 1.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: green_concrete
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            A solid, non-flammable building block formed when green
+            concrete powder contacts water. It requires at least a wooden
+            pickaxe to drop and offers bright, flat color unlike stained
+            terracotta or wool.
+        lore: |
+            Teased by Jeb in January 2017, concrete was officially added
+            in Java Edition 1.12 as a durable, non-flammable alternative
+            to wool for building.
+    uses:
+        - title: Building Material
+          ref: green_concrete
+          detail: |
+              Used decoratively for its bright, solid color and because,
+              unlike wool, it does not burn.
+    found_in:
+        - location: Water contact conversion
+          detail: Forms when green concrete powder touches any water source, flowing water, or waterlogged block.
+        - location: Trial chamber atriums
+          detail: Generates naturally in trial chamber structures.
+    faq:
+        - question: What tool do I need to mine green concrete?
+          answer: |
+              At least a wooden pickaxe. Breaking it without a pickaxe
+              yields nothing.
+        - question: Is green concrete flammable?
+          answer: |
+              No. Unlike wool, concrete does not catch fire, making it
+              safer for builds near lava or fire.
+        - question: How do I turn concrete powder into concrete?
+          answer: |
+              Let the powder touch any water source, flowing water, or a
+              waterlogged block — it solidifies instantly.
+        - question: Does green concrete drop with Fortune?
+          answer: |
+              No. It always drops exactly one green concrete regardless of
+              enchantments, as long as an adequate pickaxe is used.
     data_version: "1.21.5"
 ---
 

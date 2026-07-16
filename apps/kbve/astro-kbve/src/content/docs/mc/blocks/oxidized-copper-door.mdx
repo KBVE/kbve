@@ -1,5 +1,6 @@
 ---
 title: Oxidized Copper Door
+template: splash
 description: |
     Minecraft Oxidized Copper Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1010
     ref: oxidized_copper_door
     slug: oxidized-copper-door
+    content_rev: 1
     display_name: Oxidized Copper Door
     material: metal
     hardness: 3
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oxidized_copper_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Oxidized Copper Door is the fully weathered stage of the copper
+            door, a functional door whose texture ages through copper's
+            four oxidation stages unless waxed. Its opening and closing
+            animation also runs slower the more oxidized it becomes.
+        lore: |
+            Added with the Trial Chambers update, the copper door extended
+            copper's living-metal aesthetic to interactive furniture, and
+            oxidation was tied directly to how sluggishly the door swings.
+    uses:
+        - title: Weathered Door
+          ref: oxidized_copper_door
+          detail: |
+              Functions like any other door — openable by players,
+              redstone, villagers, piglins, and copper golems — with the
+              slowest open/close animation of the four oxidation stages.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates naturally at the oxidized stage within some trial chamber vaults and rooms.
+        - location: Weathering
+          detail: An unwaxed Copper Door left exposed long enough progresses through Exposed and Weathered before reaching Oxidized.
+    faq:
+        - question: What tool do I need to mine an Oxidized Copper Door?
+          answer: |
+              Any tool works — a pickaxe is fastest, but it always drops
+              itself regardless of the tool used.
+        - question: Why does this door open more slowly than a plain copper door?
+          answer: |
+              Copper doors slow their opening and closing animation as they
+              oxidize, and Oxidized is the final, slowest stage.
+        - question: Can copper golems open Oxidized Copper Doors?
+          answer: |
+              Yes. Copper golems, along with villagers and piglins, can open
+              and close copper doors automatically regardless of oxidation
+              stage.
+        - question: Can I stop it from oxidizing further?
+          answer: |
+              Apply honeycomb to wax it, which locks it at the oxidized
+              stage permanently.
     data_version: "1.21.5"
 ---
 

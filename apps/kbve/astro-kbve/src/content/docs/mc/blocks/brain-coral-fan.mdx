@@ -1,5 +1,6 @@
 ---
 title: Brain Coral Fan
+template: splash
 description: |
     Minecraft Brain Coral Fan — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 741
     ref: brain_coral_fan
     slug: brain-coral-fan
+    content_rev: 1
     display_name: Brain Coral Fan
     material: stone
     hardness: 0
@@ -24,10 +26,51 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brain_coral_fan
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - coral
+    about:
+        description: |
+            Brain Coral Fan is the fan-shaped, non-solid coral decoration
+            placed on top of or against the sides of blocks. Like other
+            coral, it must stay in water or it dies into a Dead Brain
+            Coral Fan within a few seconds.
+        lore: |
+            Coral fans grow from bone-mealed reefs the same way regular
+            coral does, giving builders a thinner, more decorative reef
+            piece to fill in gaps.
+    uses:
+        - title: Decoration
+          ref: brain_coral_fan
+          detail: |
+              Placed on the top or sides of blocks (never underneath) to
+              decorate reefs and underwater builds.
+    found_in:
+        - location: Warm ocean coral reefs
+          detail: Generates naturally as part of coral reef structures in warm ocean biomes.
+        - location: Bone-mealed reef blocks
+          detail: Bone meal applied underwater in warm oceans can grow new coral fans, making them renewable.
+    faq:
+        - question: Do I need Silk Touch to collect a Brain Coral Fan?
+          answer: |
+              Yes. It breaks instantly with any tool but only drops
+              itself when mined with a Silk Touch enchanted tool.
+        - question: Can a coral fan be pushed by a piston?
+          answer: |
+              No, live coral fans break instead of moving when a piston
+              pushes them.
+        - question: Where can Brain Coral Fan be placed?
+          answer: |
+              On the top and four sides of a block, but not on the
+              underside of a block.
     data_version: "1.21.5"
 ---
 

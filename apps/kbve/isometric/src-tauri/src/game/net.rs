@@ -1172,7 +1172,7 @@ fn spawn_remote_player_visuals(
             .with_child((
                 Text2d::new(""),
                 TextFont {
-                    font_size: 24.0,
+                    font_size: bevy::text::FontSize::Px(24.0),
                     ..default()
                 },
                 TextColor(Color::WHITE),

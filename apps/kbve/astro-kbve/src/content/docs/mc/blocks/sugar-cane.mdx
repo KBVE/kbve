@@ -1,5 +1,6 @@
 ---
 title: Sugar Cane
+template: splash
 description: |
     Minecraft Sugar Cane — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 269
     ref: sugar_cane
     slug: sugar-cane
+    content_rev: 1
     display_name: Sugar Cane
     material: plant
     hardness: 0
@@ -24,10 +26,60 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: sugar_cane
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Sugar Cane is a renewable plant that must be placed on a block
+            adjacent to water, growing up to three segments tall over time.
+            Breaking the water source or the ground beneath it causes the
+            whole stalk above the break point to pop off.
+        lore: |
+            Known as "reeds" in early development, it was renamed Sugar Cane
+            in Beta 1.2 and has been a core farming resource ever since.
+    uses:
+        - title: Sugar
+          ref: sugar
+          detail: |
+              Crafted one-to-one into Sugar, used in cakes, pumpkin pie, and
+              brewing sugar-based potions like Swiftness.
+        - title: Paper
+          ref: paper
+          detail: |
+              Three Sugar Cane craft into three Paper, used for maps, books,
+              banner patterns, and firework rockets.
+    found_in:
+        - location: Overworld shorelines
+          detail: |
+              Generates naturally on sand, dirt, or grass adjacent to water
+              in most biomes, especially common in deserts, swamps, and
+              beaches.
+    faq:
+        - question: What tool do I need to break Sugar Cane?
+          answer: |
+              None. Any tool, or even bare hands, breaks it instantly with no
+              tool requirement.
+        - question: Why did my Sugar Cane fall over and disappear?
+          answer: |
+              Sugar Cane needs an adjacent water source to keep growing; if
+              the water or the block it stands on is removed, the stalk
+              breaks and drops as items.
+        - question: Can Sugar Cane be used in a composter?
+          answer: |
+              Yes, it has roughly a 50% chance to raise the compost level
+              each time it is added.
+        - question: How tall does Sugar Cane grow?
+          answer: |
+              Up to three blocks tall when naturally grown or player-placed,
+              though it can generate slightly taller in rare world-gen cases.
     data_version: "1.21.5"
 ---
 

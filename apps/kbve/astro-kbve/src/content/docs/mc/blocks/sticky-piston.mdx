@@ -1,5 +1,6 @@
 ---
 title: Sticky Piston
+template: splash
 description: |
     Minecraft Sticky Piston — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 128
     ref: sticky_piston
     slug: sticky-piston
+    content_rev: 1
     display_name: Sticky Piston
     material: redstone
     hardness: 1.5
@@ -24,10 +26,59 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: sticky_piston
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - redstone_component
+    about:
+        description: |
+            A Sticky Piston is a redstone component that pushes a block when
+            powered and pulls the same block back when power is removed,
+            thanks to its slimeball-coated face. It cannot pull blocks such
+            as obsidian, spawners, or other pistons.
+        lore: |
+            Sticky pistons began as a community mod by Hippoplatimus before
+            being added to vanilla Minecraft in Beta 1.7.
+    uses:
+        - title: Redstone Contraptions
+          ref: redstone_dust
+          detail: |
+              Used in flying machines, retractable doors, farms, and any
+              build needing a block pulled back rather than just pushed.
+    found_in:
+        - location: Crafted
+          detail: |
+              Craft from 1 Slimeball placed above a regular Piston.
+        - location: Jungle Pyramid
+          detail: Three sticky pistons generate as part of the trap mechanism.
+        - location: Ancient City
+          detail: Five sticky pistons generate throughout the structure.
+    faq:
+        - question: How do I craft a Sticky Piston?
+          answer: |
+              Place one Slimeball above a regular Piston in a crafting grid.
+        - question: What is the difference between a Piston and a Sticky Piston?
+          answer: |
+              A regular piston only pushes blocks and leaves them when
+              retracting. A sticky piston also pulls the pushed block back
+              when it retracts.
+        - question: What blocks can't a Sticky Piston pull?
+          answer: |
+              Blocks like obsidian, bedrock, other pistons, spawners,
+              portals, and enchanting tables ignore both pushing and
+              pulling.
+        - question: Does a Sticky Piston need a special tool to mine?
+          answer: |
+              No. Any pickaxe works and it always drops itself; a pickaxe
+              is simply the fastest tool.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Dark Prismarine Stairs
+template: splash
 description: |
     Minecraft Dark Prismarine Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 500
     ref: dark_prismarine_stairs
     slug: dark-prismarine-stairs
+    content_rev: 1
     display_name: Dark Prismarine Stairs
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dark_prismarine_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Dark Prismarine Stairs are a decorative staircase variant
+            of dark prismarine that does not generate naturally in the
+            world. They provide walkable, sloped surfaces for
+            prismarine-themed architecture.
+        lore: |
+            Dark prismarine and its cut variants were added alongside
+            ocean monuments in the 1.8 "Bountiful Update," giving
+            builders an ocean-themed stone palette.
+    uses:
+        - title: Prismarine Staircases
+          ref: dark_prismarine_stairs
+          detail: |
+              Used to build steps, roof slopes, and edge trim in
+              underwater or monument-themed builds alongside full dark
+              prismarine blocks and slabs.
+    found_in:
+        - location: Crafting Table
+          detail: Crafted from 6 dark prismarine blocks in a staircase pattern, yielding 4 stairs.
+        - location: Stonecutter
+          detail: One dark prismarine block converts into 1 stair via the stonecutter.
+    faq:
+        - question: What tool do I need to mine Dark Prismarine Stairs?
+          answer: |
+              A wooden pickaxe or better; mining without a pickaxe
+              yields no drop.
+        - question: Do Dark Prismarine Stairs generate naturally?
+          answer: |
+              No, they only exist as a crafted or stonecut block and do
+              not appear naturally in ocean monuments.
+        - question: Is it affected by Silk Touch or Fortune?
+          answer: |
+              No, it always drops itself as one stair block regardless
+              of enchantments.
+        - question: Can Dark Prismarine Stairs be waterlogged?
+          answer: |
+              Yes, like most stair blocks they can hold water when
+              placed underwater or filled with a water bucket.
     data_version: "1.21.5"
 ---
 

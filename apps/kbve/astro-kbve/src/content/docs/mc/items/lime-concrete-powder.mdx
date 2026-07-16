@@ -1,5 +1,6 @@
 ---
 title: Lime Concrete Powder
+template: splash
 description: |
     Minecraft Lime Concrete Powder — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 606
     ref: lime_concrete_powder
     slug: lime-concrete-powder
+    content_rev: 1
     display_name: Lime Concrete Powder
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Lime Concrete Powder is a gravity-affected block made from lime dye, sand, and gravel
+            that solidifies into Lime Concrete on contact with water. It falls like sand until it
+            hardens, making it a popular renewable building material for colorful, solid structures.
+        lore: |
+            A loose lime-tinted powder that hardens into stone the instant it meets water.
+    faq:
+        - question: How do I craft Lime Concrete Powder?
+          answer: |
+              Combine lime dye with 4 sand blocks and 4 gravel blocks in a shapeless recipe to
+              produce 8 Lime Concrete Powder blocks. Red sand cannot be substituted for sand.
+        - question: How does Lime Concrete Powder turn into Lime Concrete?
+          answer: |
+              It solidifies when it touches water, including source blocks, flowing water, or
+              waterlogged blocks; it does not solidify from rain or while falling past water.
+        - question: Is Lime Concrete Powder affected by gravity?
+          answer: |
+              Yes, like sand and gravel it falls until it lands on a solid block or hardens
+              on contact with water.
+        - question: What tool is best for mining Lime Concrete Powder?
+          answer: |
+              A shovel is fastest since it has low hardness and blast resistance (0.5).
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

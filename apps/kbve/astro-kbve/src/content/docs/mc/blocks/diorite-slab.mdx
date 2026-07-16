@@ -1,5 +1,6 @@
 ---
 title: Diorite Slab
+template: splash
 description: |
     Minecraft Diorite Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 790
     ref: diorite_slab
     slug: diorite-slab
+    content_rev: 1
     display_name: Diorite Slab
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: diorite_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Diorite Slab is a half-height decorative variant of diorite, a
+            light-colored igneous stone, letting builders add steps and
+            thin stone layers to bright, speckled builds.
+        lore: |
+            Added in Java Edition 1.14 alongside the wider set of stone
+            variant slabs introduced in the Village & Pillage update.
+    uses:
+        - title: Diorite Building
+          ref: diorite_slab
+          detail: |
+              Used for steps, floors, and decorative trim in builds using
+              diorite's bright, speckled stone look. Two slabs combine
+              into a full Diorite block.
+    found_in:
+        - location: Villages
+          detail: Generates naturally in some snowy village structures.
+        - location: Crafting/Stonecutting
+          detail: |
+              Crafted from 3 Diorite into 6 slabs, or cut from Diorite
+              using a stonecutter for a 1:2 yield.
+    faq:
+        - question: What tool do I need to mine Diorite Slab?
+          answer: |
+              Any pickaxe, wood tier or better. Mining without one destroys
+              the block with no drop.
+        - question: How do I craft Diorite Slab?
+          answer: |
+              Place 3 Diorite blocks across a crafting grid row to get 6
+              slabs, or cut a Diorite block with a stonecutter for 2 slabs.
+        - question: Can Diorite Slabs hold water?
+          answer: |
+              Yes. Like other slabs, they are waterloggable when placed in
+              the bottom half-position.
+        - question: Where does it generate naturally?
+          answer: |
+              It appears in some snowy village structures, alongside other
+              stone-variant building blocks.
     data_version: "1.21.5"
 ---
 

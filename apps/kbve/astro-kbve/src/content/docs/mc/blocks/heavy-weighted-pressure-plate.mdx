@@ -1,5 +1,6 @@
 ---
 title: Heavy Weighted Pressure Plate
+template: splash
 description: |
     Minecraft Heavy Weighted Pressure Plate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 440
     ref: heavy_weighted_pressure_plate
     slug: heavy-weighted-pressure-plate
+    content_rev: 1
     display_name: Heavy Weighted Pressure Plate
     material: redstone
     hardness: 0.5
@@ -23,11 +25,60 @@ mc_block:
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: heavy_weighted_pressure_plate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - redstone_component
+        - overworld
+    about:
+        description: |
+            The Heavy Weighted Pressure Plate is a redstone component
+            crafted from iron that outputs a signal strength proportional
+            to the number of entities standing on it.
+        lore: |
+            Added in Java Edition 1.5, it originally measured item stack
+            weight before being redesigned in 1.7.2 to count individual
+            entities instead.
+    uses:
+        - title: Entity Counter
+          ref: heavy_weighted_pressure_plate
+          detail: |
+              Outputs a redstone signal from 1 to 15, scaling at one
+              signal level per 10 entities standing on the plate, useful
+              for mob farms and crowd detection.
+    found_in:
+        - location: Crafted
+          detail: |
+              Craft from 2 iron ingots stacked vertically in a crafting
+              grid to produce one plate.
+    faq:
+        - question: What tool do I need to mine a Heavy Weighted Pressure Plate?
+          answer: |
+              No tool is required; any tool or bare hands can break it,
+              though a pickaxe is fastest.
+        - question: How is a Heavy Weighted Pressure Plate different from the Light one?
+          answer: |
+              The heavy plate is made of iron and needs 10 entities per
+              signal level (up to 141+ for full signal 15), while the
+              light plate is made of gold and only needs 1 entity for
+              full signal.
+        - question: Can Item Frames trigger a Heavy Weighted Pressure Plate?
+          answer: |
+              No. Item frames and glow item frames cannot activate the
+              plate, though they will keep it active if already
+              triggered.
+        - question: Does Silk Touch affect the drop?
+          answer: |
+              No. The plate always drops itself when mined, regardless of
+              tool or enchantments.
     data_version: "1.21.5"
 ---
 

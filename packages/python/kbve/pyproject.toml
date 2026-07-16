@@ -42,10 +42,14 @@ kbve-model-sprites = "kbve.sprite.model_sprites_cli:main"
 kbve-osrs-survey = "kbve.osrs.survey:main"
 kbve-osrs-audit = "kbve.osrs.audit:main"
 kbve-osrs-families = "kbve.osrs.families:main"
+kbve-nx-security = "kbve.nx.cli:security_main"
+kbve-nx-graph = "kbve.nx.cli:graph_main"
+kbve-nx-alerts = "kbve.nx.cli:alerts_main"
 kbve-seo-audit = "kbve.seo.audit:main"
 kbve-seo-report = "kbve.seo.report:main"
 kbve-unreal-clangd = "kbve.unreal.clangd:main"
 kbve-unreal-check = "kbve.unreal.check:main"
+kbve-blender-retarget = "kbve.blender.cli:retarget_main"
 
 [dependency-groups]
 dev = [

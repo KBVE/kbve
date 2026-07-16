@@ -1,0 +1,100 @@
+---
+import type { McBlock } from '@/data/schema';
+import { mcTextureUrls } from './texture';
+
+interface Props {
+	data: McBlock;
+}
+
+const { data: block } = Astro.props;
+
+const SITE = 'https://kbve.com';
+const ITEM_URL = `${SITE}/mc/blocks/${block.slug}/`;
+const tex = mcTextureUrls(block.ref, 'block');
+const ICON_URL = `${SITE}${tex.primary}`;
+const WIKI_URL = `https://minecraft.wiki/w/${block.display_name.replace(/ /g, '_')}`;
+
+function descFor(b: McBlock): string {
+	const parts: string[] = [];
+	if (b.about?.description) parts.push(b.about.description);
+	parts.push(`Minecraft ${b.material} block.`);
+	parts.push(
+		b.hardness < 0
+			? 'Unbreakable.'
+			: `Hardness ${b.hardness}, blast resistance ${b.blast_resistance}.`,
+	);
+	return parts.join(' ');
+}
+
+const term = {
+	'@context': 'https://schema.org',
+	'@type': 'DefinedTerm',
+	'@id': `${ITEM_URL}#block`,
+	name: block.display_name,
+	description: descFor(block),
+	image: ICON_URL,
+	url: ITEM_URL,
+	identifier: String(block.id),
+	termCode: block.ref,
+	inDefinedTermSet: {
+		'@type': 'DefinedTermSet',
+		name: 'Minecraft Block Database',
+		url: `${SITE}/mc/blocks/`,
+	},
+	additionalProperty: [
+		{ '@type': 'PropertyValue', name: 'Block ID', value: block.id },
+		{ '@type': 'PropertyValue', name: 'Material', value: block.material },
+		{ '@type': 'PropertyValue', name: 'Hardness', value: block.hardness },
+		{
+			'@type': 'PropertyValue',
+			name: 'Blast resistance',
+			value: block.blast_resistance,
+		},
+		{ '@type': 'PropertyValue', name: 'Best tool', value: block.best_tool },
+		...(block.required_tool_tier > 0
+			? [
+					{
+						'@type': 'PropertyValue',
+						name: 'Required tool tier',
+						value: block.required_tool_tier,
+					},
+				]
+			: []),
+		...(block.light_emission > 0
+			? [
+					{
+						'@type': 'PropertyValue',
+						name: 'Light emission',
+						value: block.light_emission,
+					},
+				]
+			: []),
+	],
+	sameAs: [WIKI_URL],
+};
+
+const faqLd =
+	block.faq && block.faq.length > 0
+		? {
+				'@context': 'https://schema.org',
+				'@type': 'FAQPage',
+				'@id': `${ITEM_URL}#faq`,
+				mainEntity: block.faq.map((f) => ({
+					'@type': 'Question',
+					name: f.question,
+					acceptedAnswer: { '@type': 'Answer', text: f.answer },
+				})),
+			}
+		: null;
+---
+
+<script type="application/ld+json" is:inline set:html={JSON.stringify(term)} />
+{
+	faqLd && (
+		<script
+			type="application/ld+json"
+			is:inline
+			set:html={JSON.stringify(faqLd)}
+		/>
+	)
+}

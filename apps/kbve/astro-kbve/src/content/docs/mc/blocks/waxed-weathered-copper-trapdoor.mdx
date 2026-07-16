@@ -1,5 +1,6 @@
 ---
 title: Waxed Weathered Copper Trapdoor
+template: splash
 description: |
     Minecraft Waxed Weathered Copper Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1023
     ref: waxed_weathered_copper_trapdoor
     slug: waxed-weathered-copper-trapdoor
+    content_rev: 1
     display_name: Waxed Weathered Copper Trapdoor
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_weathered_copper_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            The Waxed Weathered Copper Trapdoor is a functional trapdoor
+            locked at the weathered oxidation stage by a honeycomb
+            coating. It opens and closes via player interaction, redstone
+            signal, or wind charge, while permanently keeping its
+            green-tinted finish.
+        lore: |
+            Copper trapdoors let redstone builders and decorators match
+            weathered copper roofing and hatches without the finish
+            drifting further over time.
+    uses:
+        - title: Redstone-operated hatch
+          ref: redstone
+          detail: |
+              Wire to a lever, pressure plate, or pulse circuit to open
+              the trapdoor automatically, or trigger it with a wind
+              charge.
+    found_in:
+        - location: Trial Chambers
+          detail: |
+              Generates naturally as waxed trapdoors at various oxidation
+              stages, including weathered, in vault and hatch structures.
+        - location: Crafted from Weathered Copper
+          detail: |
+              Craft 1 unwaxed Weathered Copper Trapdoor from 4 Weathered
+              Copper ingots in a 2x2 grid, then apply honeycomb to wax.
+    faq:
+        - question: Does the waxed weathered copper trapdoor still oxidize further?
+          answer: |
+              No. Waxing with honeycomb permanently locks it at the
+              weathered stage.
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better; lower tools or bare hands break
+              it without a drop.
+        - question: Can wind charges open it?
+          answer: |
+              Yes, wind charges can toggle copper trapdoors open or
+              closed, same as copper doors.
+        - question: Can I remove the wax to let it oxidize further?
+          answer: |
+              No, waxed copper cannot be un-waxed. Use an unwaxed
+              trapdoor if you want ongoing oxidation.
     data_version: "1.21.5"
 ---
 

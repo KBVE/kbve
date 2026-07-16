@@ -1,5 +1,6 @@
 ---
 title: Prismarine Bricks
+template: splash
 description: |
     Minecraft Prismarine Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,76 @@ mc_block:
     id: 496
     ref: prismarine_bricks
     slug: prismarine-bricks
+    content_rev: 1
     display_name: Prismarine Bricks
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: prismarine_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - conduit_frame
+    about:
+        description: |
+            Prismarine Bricks are chiseled, cyan-tinted blocks that make up
+            the main structure and 23 supporting pillars of ocean
+            monuments. Their pentagonal-tiled pattern distinguishes them
+            from plain prismarine and dark prismarine.
+        lore: |
+            Prismarine bricks and the guardian-filled monuments they build
+            were added in Update 1.8, the "Bountiful Update."
+    uses:
+        - title: Conduit Activation
+          ref: conduit
+          detail: |
+              Alongside sea lanterns and dark prismarine, prismarine bricks
+              can form the frame that activates a conduit's underwater
+              beacon effects.
+        - title: Slabs and Stairs
+          ref: prismarine_brick_slab
+          detail: |
+              Crafts directly into Prismarine Brick Slabs and Prismarine
+              Brick Stairs for detailed building.
+    found_in:
+        - location: Ocean Monuments
+          detail: Forms the majority of monument walls, floors, and the 23 interior support pillars.
+        - location: Crafted from Prismarine Shards
+          detail: 9 Prismarine Shards in a 3×3 grid craft 1 Prismarine Bricks block.
+    faq:
+        - question: What tool do I need to mine Prismarine Bricks?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining without a pickaxe
+              produces no drop.
+        - question: How do I get Prismarine Bricks?
+          answer: |
+              Mine them from ocean monuments, or craft them from 9
+              Prismarine Shards, which drop renewably from drowned mobs.
+        - question: What are Prismarine Bricks used for besides building?
+          answer: |
+              They are one of three valid materials (with sea lanterns and
+              dark prismarine) for building the frame that activates a
+              conduit.
+        - question: Do Prismarine Bricks emit light?
+          answer: |
+              No, they don't emit light themselves, but their light
+              opacity is high (15), meaning they block light passing
+              through like a normal solid block.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Jungle Sign
+template: splash
 description: |
     Minecraft Jungle Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 216
     ref: jungle_wall_sign
     slug: jungle-wall-sign
+    content_rev: 1
     display_name: Jungle Sign
     material: wood
     hardness: 1
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: jungle_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Jungle Signs are wall- or post-mounted text blocks crafted from
+            jungle planks and a stick, carrying the pale green tone of
+            jungle wood. Once placed, the sign entity holds up to four
+            lines of player-written text that can be dyed or made to glow.
+        lore: |
+            Wood signs share a single crafting pattern across all wood
+            types, with jungle being one of the original variants added
+            alongside the sign block itself.
+    uses:
+        - title: Text Signage
+          ref: jungle_sign
+          detail: |
+              Place on a block face (wall sign) or on top of a block
+              (standing sign) to write custom text; right-click with a
+              dye to recolor the text or with glow ink sac to make it
+              glow in the dark.
+    found_in:
+        - location: Crafted from Jungle Planks
+          detail: Crafted from 1 stick and 6 jungle planks, yielding 3 signs.
+        - location: Jungle biome structures
+          detail: Occasionally found already placed in jungle-themed structures and loot.
+    faq:
+        - question: What is the difference between a wall sign and a standing sign?
+          answer: |
+              A wall sign is mounted flush against a vertical block face,
+              while a standing sign is placed on top of a block and can be
+              rotated to 16 facings. Both share the same jungle_sign item.
+        - question: What tool should I use to break a jungle sign?
+          answer: |
+              An axe is fastest, but any tool — or bare hands — breaks it
+              instantly since its hardness is only 1.
+        - question: Can jungle signs burn?
+          answer: |
+              Yes. Like other wood signs they are flammable and can be
+              destroyed by fire or lava.
+        - question: Can I edit the text after placing the sign?
+          answer: |
+              In modern versions, right-clicking the front or back of the
+              sign with an empty hand opens the text editor for that face.
     data_version: "1.21.5"
 ---
 

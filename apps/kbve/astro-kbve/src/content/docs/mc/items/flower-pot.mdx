@@ -1,5 +1,6 @@
 ---
 title: Flower Pot
+template: splash
 description: |
     Minecraft Flower Pot — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1158
     ref: flower_pot
     slug: flower-pot
+    content_rev: 1
     display_name: Flower Pot
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A flower pot is a decorative block crafted from three bricks that displays
+            small plants such as flowers, saplings, ferns, cacti, bamboo, and fungi. It
+            also naturally generates in structures like witch huts, igloos, and villages.
+        lore: |
+            A humble clay vessel representing the intersection of agriculture and
+            decoration in Minecraft's crafting traditions.
+    faq:
+        - question: What plants can go in a flower pot?
+          answer: |
+              Any one-block-high flowers, saplings, ferns, dead bushes, cacti, bamboo,
+              azaleas, mangrove propagules, and warped or crimson roots can be potted.
+        - question: How do I remove a plant from a flower pot?
+          answer: |
+              Use the pot to place the potted item directly into your inventory without
+              breaking the pot itself.
+        - question: Can I place flower pots anywhere?
+          answer: |
+              In Java Edition pots can rest on any block or over air, while Bedrock
+              Edition requires a full block, fence, wall, or hopper underneath.
+        - question: Are potted cacti or wither roses dangerous to touch?
+          answer: |
+              No, potted plants can display cacti and wither roses without inheriting
+              their damaging properties.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

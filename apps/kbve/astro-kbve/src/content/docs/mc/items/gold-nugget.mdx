@@ -1,5 +1,6 @@
 ---
 title: Gold Nugget
+template: splash
 description: |
     Minecraft Gold Nugget — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1056
     ref: gold_nugget
     slug: gold-nugget
+    content_rev: 1
     display_name: Gold Nugget
     category: material
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Gold Nuggets are small crafting components obtained by smelting golden tools and
+            armor, mining nether gold ore, or looting structure chests. Nine nuggets combine into
+            a gold ingot, and they are also used to craft golden carrots and glistering melon
+            slices.
+        lore: |
+            Tiny flecks of gold, too small to spend but perfect for a hungry piglin to snatch up.
+    faq:
+        - question: How do I get Gold Nuggets?
+          answer: |
+              Smelt golden tools or armor in a furnace, mine nether gold ore for 2-6 nuggets, or
+              find them in bastion remnant and shipwreck chests.
+        - question: What can I craft with Gold Nuggets?
+          answer: |
+              Nine nuggets craft a gold ingot, and they are also used in golden carrots,
+              glistering melon slices, and firework stars.
+        - question: Do Gold Nuggets interact with piglins?
+          answer: |
+              Yes, piglins instantly pick up any gold nugget within one block of them, though they
+              will not actively chase one down the way they do gold ingots.
+        - question: Are Gold Nuggets worth using instead of ingots?
+          answer: |
+              They are handy for precise crafting amounts and repairing golden tools or armor in
+              an anvil without needing a full ingot.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

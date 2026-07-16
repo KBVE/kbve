@@ -1,5 +1,6 @@
 ---
 title: Brown Mushroom Block
+template: splash
 description: |
     Minecraft Brown Mushroom Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 323
     ref: brown_mushroom_block
     slug: brown-mushroom-block
+    content_rev: 1
     display_name: Brown Mushroom Block
     material: wood
     hardness: 0.2
@@ -24,10 +26,59 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brown_mushroom
+          qty_min: 0
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: brown_mushroom_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Brown Mushroom Blocks make up the cap and stem structure of
+            huge brown mushrooms. Mined normally they yield a few Brown
+            Mushroom items, but Silk Touch preserves the textured block
+            itself for building.
+        lore: |
+            Huge mushrooms were hinted at in a June 2011 Minecraft change
+            list before their official reveal.
+    uses:
+        - title: Composting
+          ref: composter
+          detail: |
+              Mushroom caps have an 85% chance and stems a 65% chance to
+              raise a composter's level when added.
+    found_in:
+        - location: Huge Mushroom Formations
+          detail: Generates as the cap and stem of naturally grown or bonemeal-grown huge brown mushrooms.
+        - location: Mushroom Fields Biome
+          detail: Huge mushrooms are especially common in this biome.
+    faq:
+        - question: What tool do I need to mine Brown Mushroom Block?
+          answer: |
+              Any tool works, but an axe is fastest. No minimum tool tier
+              is required.
+        - question: What does mining Brown Mushroom Block drop?
+          answer: |
+              Without Silk Touch it drops 0-2 Brown Mushroom items (mostly
+              0). With Silk Touch it drops the textured block itself.
+        - question: Can I craft Brown Mushroom Block?
+          answer: |
+              No. It can only be obtained via natural huge mushroom
+              generation or Silk Touch harvesting.
+        - question: Is it flammable?
+          answer: |
+              No, but it can still catch fire when directly exposed to
+              lava.
     data_version: "1.21.5"
 ---
 

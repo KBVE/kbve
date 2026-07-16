@@ -1,5 +1,6 @@
 ---
 title: Blade Pottery Sherd
+template: splash
 description: |
     Minecraft Blade Pottery Sherd — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1355
     ref: blade_pottery_sherd
     slug: blade-pottery-sherd
+    content_rev: 1
     display_name: Blade Pottery Sherd
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Blade Pottery Sherd is a decorative item depicting a sword, one of the many pottery sherd variants tied to Minecraft's archaeology system. It is recovered by brushing suspicious gravel found in cold ocean ruins and cannot be crafted or otherwise renewed. Its only functional use is as an ingredient when crafting decorated pots.
+        lore: |
+            An engraved fragment of a forgotten vessel, its etched blade hinting at battles fought long before the sea reclaimed the ruins.
+    faq:
+        - question: Where do I find the Blade Pottery Sherd?
+          answer: |
+            It is uncovered by brushing suspicious gravel inside cold ocean ruins, with roughly a 6.7% chance per brushed block.
+        - question: Can the Blade Pottery Sherd be crafted or farmed?
+          answer: |
+            No. Pottery sherds are non-renewable and cannot be crafted, so the supply is limited to what you excavate from ruins.
+        - question: What is the Blade Pottery Sherd used for?
+          answer: |
+            It is used as one of the four sherd or brick ingredients when crafting a decorated pot, contributing its sword design to the pot's face.
+        - question: Can I recover a sherd after using it in a decorated pot?
+          answer: |
+            Yes. Breaking a decorated pot returns the individual sherds that were used to craft it.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

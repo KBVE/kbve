@@ -1,5 +1,6 @@
 ---
 title: Blaze Powder
+template: splash
 description: |
     Minecraft Blaze Powder — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1062
     ref: blaze_powder
     slug: blaze-powder
+    content_rev: 1
     display_name: Blaze Powder
     category: brewing
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Blaze Powder is a renewable item crafted from blaze rods, which drop from blazes killed in Nether fortresses. It is the required fuel for the brewing stand and a key crafting ingredient, most notably for Eyes of Ender used to locate strongholds and reach The End. It can also be brewed into potions and used to make magma cream and fire charges.
+        lore: |
+            Ground from the smoldering rods of the Nether's blazes, this glowing dust carries a fragment of their eternal fire.
+    faq:
+        - question: How do I get Blaze Powder?
+          answer: |
+            Craft it from a blaze rod; each rod yields two blaze powder. Blaze rods are dropped by blazes that spawn in Nether fortresses.
+        - question: How much brewing does one Blaze Powder fuel?
+          answer: |
+            A single piece of blaze powder fuels the brewing stand for up to 20 batches, enough to produce as many as 60 potions.
+        - question: What potion does Blaze Powder make?
+          answer: |
+            Brewed into an Awkward Potion, it creates a Potion of Strength, granting the drinker bonus attack damage.
+        - question: Why is Blaze Powder important for progression?
+          answer: |
+            It is combined with ender pearls to craft Eyes of Ender, which are needed to find strongholds and activate the End portal.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

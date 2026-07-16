@@ -1,5 +1,9 @@
 ---
 title: 'Galley'
+template: splash
+sidebar:
+    label: 'Galley'
+    hidden: true
 description: |
     Player warship — Shipyard-built (Dock T1+). Water-locked, ranged arrow loadout, decent HP. Sister combat boat to the FishingBoat economy hull; kept on cadence by ShipyardGalleyProductionSystem.
 ref: 'galley'
@@ -37,7 +41,10 @@ faction:
     faction_id: 'player'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Player warship — Shipyard-built. Water-locked, ranged arrow loadout, decent HP.
+
+</NpcLeaf>

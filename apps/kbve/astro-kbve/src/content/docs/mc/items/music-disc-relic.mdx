@@ -1,5 +1,6 @@
 ---
 title: Music Disc
+template: splash
 description: |
     Minecraft Music Disc — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 1246
     ref: music_disc_relic
     slug: music-disc-relic
+    content_rev: 1
     display_name: Music Disc
     category: music
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Music Disc "relic" is a rare track composed by Aaron Cherof, tied to the Trial
+            Chambers introduced in the Tricky Trials update. It is found exclusively in
+            ominous vaults, with roughly a 7.5% chance per vault.
+        lore: |
+            Its name and vault-locked origin tie it to the ancient, trap-guarded treasures
+            hidden deep within Trial Chambers.
+    faq:
+        - question: How do I get the relic music disc?
+          answer: |
+              Relic drops from ominous vaults inside Trial Chambers, with roughly a 7.5%
+              chance per vault opened with an ominous trial key.
+        - question: Who composed the relic track?
+          answer: |
+              Relic was composed by Aaron Cherof for the Tricky Trials update soundtrack.
+        - question: How long does the relic track play?
+          answer: |
+              Relic has a runtime of about 3 minutes and 39 seconds.
+        - question: Can relic be found in regular reward vaults?
+          answer: |
+              No, relic is exclusive to ominous vaults and does not appear in standard
+              Trial Chamber reward vault loot.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

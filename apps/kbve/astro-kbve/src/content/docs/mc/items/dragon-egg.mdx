@@ -1,5 +1,6 @@
 ---
 title: Dragon Egg
+template: splash
 description: |
     Minecraft Dragon Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 408
     ref: dragon_egg
     slug: dragon-egg
+    content_rev: 1
     display_name: Dragon Egg
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Dragon Egg is a rare decorative block generated exactly once per world, appearing
+            atop the exit portal after the Ender Dragon is defeated. Attacking it teleports it to
+            a nearby location, so players must use tricks like pistons or falling to actually
+            collect it.
+        lore: |
+            The last remnant of the Ender Dragon's brood, forever slipping away from anyone who
+            reaches for it.
+    faq:
+        - question: How do you get the Dragon Egg?
+          answer: |
+              It spawns automatically atop the exit portal the first time the Ender Dragon is
+              defeated in a world.
+        - question: Why does the Dragon Egg keep teleporting?
+          answer: |
+              Attacking it in survival mode causes it to teleport to a nearby air block, up to
+              seven blocks vertically or fifteen blocks horizontally away, similar to an
+              Enderman.
+        - question: How do you actually pick up the Dragon Egg?
+          answer: |
+              Common methods include pushing it with a piston so it drops as an item, letting it
+              fall onto a non-full block like a torch or slab, or destroying it with an
+              explosion.
+        - question: What is the Dragon Egg used for?
+          answer: |
+              It has no crafting recipe or functional use beyond decoration — it emits a faint
+              light level of 1 and serves as a trophy proving the Ender Dragon was defeated.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

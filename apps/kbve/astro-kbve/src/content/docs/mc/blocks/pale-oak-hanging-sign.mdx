@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Hanging Sign
+template: splash
 description: |
     Minecraft Pale Oak Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 228
     ref: pale_oak_hanging_sign
     slug: pale-oak-hanging-sign
+    content_rev: 1
     display_name: Pale Oak Hanging Sign
     material: wood
     hardness: 1
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pale_oak_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Pale Oak Hanging Sign is a text-display block crafted from
+            stripped pale oak logs and chains, suspended beneath a solid
+            block or mounted on a wall bracket, and dyeable and glow-ink
+            capable like other signs.
+        lore: |
+            Hanging signs debuted in Java Edition 1.20, and the pale oak
+            variant followed with the rest of the pale oak wood set in
+            the Garden Awakens drop (Java Edition 1.21.4).
+    uses:
+        - title: Labeling and Wayfinding
+          ref: pale_oak_hanging_sign
+          detail: |
+              Displays up to four lines of customizable text, editable
+              with dye colors or glow ink sac for markets, storage rooms,
+              and pale-themed builds.
+        - title: Fluid Control
+          ref: water_bucket
+          detail: |
+              Like other signs, it can be placed to stop water or lava
+              from flowing past it, useful in small builds.
+    found_in:
+        - location: Crafting
+          detail: Two chains and six stripped pale oak logs (or stems) craft one pale oak hanging sign in the hanging-sign pattern.
+        - location: Trial Chambers and Trail Ruins
+          detail: Hanging signs of matching wood types can appear as loot or decoration in these structures.
+    faq:
+        - question: What tool do I need to mine Pale Oak Hanging Sign?
+          answer: |
+              None. It breaks with any tool, or by hand, and always drops
+              itself.
+        - question: How much text can Pale Oak Hanging Sign hold?
+          answer: |
+              Up to four lines per side, on both the front and back,
+              editable with dye and glow ink sac.
+        - question: Is Pale Oak Hanging Sign flammable?
+          answer: |
+              No. Signs, including hanging signs, do not catch fire from
+              nearby flames.
+        - question: Can Pale Oak Hanging Sign be waterlogged?
+          answer: |
+              Yes. Like other hanging signs, it can be placed in water to
+              become waterlogged without breaking.
     data_version: "1.21.5"
 ---
 

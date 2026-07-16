@@ -1,5 +1,6 @@
 ---
 title: Honeycomb
+template: splash
 description: |
     Minecraft Honeycomb — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1285
     ref: honeycomb
     slug: honeycomb
+    content_rev: 1
     display_name: Honeycomb
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Honeycomb is harvested by shearing a full bee nest or beehive, or by
+            using a dispenser loaded with shears so the bees stay calm. It is used
+            to wax copper blocks and lightning rods against oxidation, to lock
+            signs from further editing, and as a crafting ingredient for beehives,
+            candles, and honeycomb blocks.
+        lore: |
+            A golden, sticky wafer of beeswax collected straight from a buzzing hive.
+    faq:
+        - question: How do you get honeycomb?
+          answer: |
+              Shear a bee nest or beehive once its honey level reaches 5, which
+              drops 3 honeycombs. A lit campfire underneath keeps the bees calm.
+        - question: What does honeycomb do to copper?
+          answer: |
+              Applying honeycomb to a copper block, cut copper, or a lightning rod
+              waxes it, preventing further oxidation from spreading.
+        - question: Can honeycomb be used on signs?
+          answer: |
+              Yes, applying honeycomb to a placed sign locks its text so it can no
+              longer be edited.
+        - question: What can honeycomb be crafted into?
+          answer: |
+              Honeycomb combines with wood planks to make a beehive, with string to
+              make candles, or with three more honeycombs to make a honeycomb block.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

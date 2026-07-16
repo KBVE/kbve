@@ -1,5 +1,6 @@
 ---
 title: End Stone
+template: splash
 description: |
     Minecraft End Stone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 362
     ref: end_stone
     slug: end-stone
+    content_rev: 1
     display_name: End Stone
     material: end
     hardness: 3
     blast_resistance: 9
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: end_stone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - the_end
+    about:
+        description: |
+            End Stone forms the solid ground of the End dimension's
+            floating islands. Its texture is a geometric inversion of
+            cobblestone, and the block resists damage from both endermen
+            and the ender dragon.
+        lore: |
+            Introduced in Beta 1.9 Prerelease 4, End Stone originally
+            dropped cobblestone before Prerelease 5 changed it to drop
+            itself.
+    uses:
+        - title: End Stone Bricks
+          ref: end_stone_bricks
+          detail: |
+              Craft four End Stone blocks into End Stone Bricks, or
+              convert them 1:1 with a stonecutter.
+    found_in:
+        - location: The End dimension
+          detail: Comprises all non-structure terrain across the main island and outer End islands.
+        - location: Beneath the exit portal
+          detail: The 16 blocks under the main island's exit portal regenerate whenever the ender dragon respawns.
+    faq:
+        - question: What tool do I need to mine End Stone?
+          answer: |
+              Any pickaxe. Mining without a pickaxe drops nothing.
+        - question: Is End Stone renewable?
+          answer: |
+              Yes, indirectly. The blocks beneath the exit portal
+              regenerate each time the ender dragon is respawned with End
+              Crystals.
+        - question: What is End Stone used for?
+          answer: |
+              Crafting End Stone Bricks, and it is the only surface
+              chorus flowers and chorus plants can grow on.
+        - question: Can Silk Touch or Fortune change the drop?
+          answer: |
+              No. The block always drops itself with a pickaxe, and
+              Fortune has no effect on the single-item drop.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,9 @@
 ---
 title: 'Mage'
+template: splash
+sidebar:
+    label: 'Mage'
+    hidden: true
 description: |
     Cloth-armoured spellcaster. Light HP, big mana pool, flings ranged spells from the back line.
 ref: 'mage'
@@ -37,7 +41,10 @@ faction:
     faction_id: 'player'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Cloth-armoured spellcaster. Light HP, big mana pool, flings ranged spells from the back line.
+
+</NpcLeaf>

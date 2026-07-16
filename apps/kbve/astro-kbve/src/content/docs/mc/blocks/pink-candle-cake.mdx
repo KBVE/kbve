@@ -1,5 +1,6 @@
 ---
 title: Cake with Pink Candle
+template: splash
 description: |
     Minecraft Cake with Pink Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 927
     ref: pink_candle_cake
     slug: pink-candle-cake
+    content_rev: 1
     display_name: Cake with Pink Candle
     material: stone
     hardness: 0.5
@@ -27,7 +29,46 @@ mc_block:
     renewable: false
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - overworld
+    about:
+        description: |
+            Cake with Pink Candle is the combined block formed when a pink
+            candle is placed on top of a cake. It still functions as food
+            and, once lit, doubles as a light source and birthday-cake
+            decoration.
+        lore: |
+            Candles were introduced in Java Edition 1.17 as part of the
+            deep dark and ancient city update, adding the option to top a
+            cake with one.
+    uses:
+        - title: Lit Decoration
+          ref: pink_candle
+          detail: |
+              Light the candle with flint and steel, a fire charge, or a
+              flaming projectile to emit light while the cake can still be
+              eaten one slice at a time.
+    found_in:
+        - location: Placing a candle on cake
+          detail: Place any candle directly on top of a placed cake block to combine them; no separate block item exists.
+    faq:
+        - question: What does breaking Cake with Pink Candle drop?
+          answer: |
+              Nothing. Like plain cake, this block yields no items when
+              destroyed — eat it in place instead.
+        - question: Can I still eat the cake with a candle on it?
+          answer: |
+              Yes. Right-clicking the block eats a slice, restoring 2
+              hunger and 0.4 saturation each time, and the candle stays lit
+              or unlit as the cake shrinks.
+        - question: How do I remove the candle without destroying the cake?
+          answer: |
+              You cannot remove just the candle — breaking the block
+              removes both, dropping nothing.
+        - question: Does the lit candle affect the cake's redstone signal?
+          answer: |
+              No. The comparator output strength still tracks only the
+              remaining cake slices, unrelated to the candle's lit state.
     data_version: "1.21.5"
 ---
 

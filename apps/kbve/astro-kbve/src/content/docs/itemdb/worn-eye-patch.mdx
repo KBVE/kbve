@@ -1,0 +1,39 @@
+---
+title: 'Worn Eye Patch'
+template: splash
+sidebar:
+    label: 'Worn Eye Patch'
+    hidden: true
+description: |
+    Boiled leather on a waxed cord. Proof that something happened, and that you are still here to not talk about it.
+ref: 'worn-eye-patch'
+key: 602
+id: '01KXFBEGM016HQ7DD3KG84JWB5'
+name: 'Worn Eye Patch'
+type_flags: 524290
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 10
+emoji: '🏴‍☠️'
+img: '/assets/items/equipment/worn-eye-patch.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'KNGT'
+  nodes:
+    - 'AFAC'
+  slot_keys:
+    - 'AFAC'
+equipment:
+  slot: 'head'
+  bonuses:
+    extra:
+      weight: 1
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

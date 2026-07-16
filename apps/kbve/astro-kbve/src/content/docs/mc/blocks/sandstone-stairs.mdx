@@ -1,5 +1,6 @@
 ---
 title: Sandstone Stairs
+template: splash
 description: |
     Minecraft Sandstone Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 366
     ref: sandstone_stairs
     slug: sandstone-stairs
+    content_rev: 1
     display_name: Sandstone Stairs
     material: stone
     hardness: 0.8
     blast_resistance: 0.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: sandstone_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Sandstone Stairs are a stair-shaped variant of sandstone,
+            used for building slopes and desert-themed structures found
+            in generated desert villages and ocean ruins.
+        lore: |
+            Added in Java Edition 1.3.1 alongside the wave of stair
+            variants that let builders climb and slope stone-family
+            blocks.
+    uses:
+        - title: Building & Decoration
+          ref: sandstone
+          detail: |
+              Used as a standard stair block for stepped builds; also
+              produces a bass drum note when placed under a note block.
+    found_in:
+        - location: Desert Pyramids and Villages
+          detail: Generates as part of desert village and pyramid structures.
+        - location: Warm Ocean Ruins
+          detail: Also found in underwater warm ocean ruin structures.
+        - location: Crafted or Stonecut
+          detail: Crafted from Sandstone, Cut Sandstone, or Chiseled Sandstone (4 stairs), or cut with a stonecutter.
+    faq:
+        - question: What tool do I need to mine Sandstone Stairs?
+          answer: |
+              A wooden pickaxe or better; without one, the block drops
+              nothing.
+        - question: Can Sandstone Stairs be waterlogged?
+          answer: |
+              Yes, they can hold a water source when placed in or filled
+              with water.
+        - question: What note does a note block play above Sandstone Stairs?
+          answer: |
+              A bass drum sound, the same instrument as full sandstone.
+        - question: Where do Sandstone Stairs generate naturally?
+          answer: |
+              In desert pyramids, desert villages, and warm ocean ruins.
     data_version: "1.21.5"
 ---
 

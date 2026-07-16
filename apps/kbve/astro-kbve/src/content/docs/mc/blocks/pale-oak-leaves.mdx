@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Leaves
+template: splash
 description: |
     Minecraft Pale Oak Leaves — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 95
     ref: pale_oak_leaves
     slug: pale-oak-leaves
+    content_rev: 1
     display_name: Pale Oak Leaves
     material: leaves
     hardness: 0.2
@@ -26,8 +28,64 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pale_oak_leaves
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+        - ref: pale_oak_sapling
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: stick
+          qty_min: 1
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - hoe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Pale Oak Leaves are the foliage block of the pale oak tree,
+            found across the eerie Pale Garden biome. Like other leaves,
+            they are fragile, flammable, and will decay into nothing if
+            left disconnected from a pale oak log.
+        lore: |
+            Pale oak trees and their bone-white leaves were added alongside
+            the Pale Garden biome and the Creaking mob in the 1.21.4/1.21.5
+            Garden Awakens update.
+    uses:
+        - title: Pale Oak Sapling
+          ref: pale_oak_sapling
+          detail: |
+              Breaking leaves without Silk Touch has a small chance to
+              drop a sapling, which can be planted to grow a new pale oak
+              tree.
+    found_in:
+        - location: Pale Garden biome
+          detail: Generates naturally as the canopy of pale oak trees.
+    faq:
+        - question: What tool should I use on Pale Oak Leaves?
+          answer: |
+              A hoe breaks them fastest, though any tool — or bare hands —
+              will work since no tier is required.
+        - question: Do Pale Oak Leaves drop saplings?
+          answer: |
+              Yes, with roughly a 5% chance without Silk Touch; Fortune
+              increases the odds. A Silk Touch tool always drops the leaf
+              block itself.
+        - question: Will Pale Oak Leaves decay?
+          answer: |
+              Yes. If not within range of a connected pale oak log, natural
+              leaves decay and disappear; player-placed leaves never decay.
+        - question: Are Pale Oak Leaves flammable?
+          answer: |
+              Yes, they catch fire easily and burn quickly, like all leaf
+              blocks.
     data_version: "1.21.5"
 ---
 

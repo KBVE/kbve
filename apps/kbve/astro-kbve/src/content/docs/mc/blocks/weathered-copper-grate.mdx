@@ -1,5 +1,6 @@
 ---
 title: Weathered Copper Grate
+template: splash
 description: |
     Minecraft Weathered Copper Grate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1026
     ref: weathered_copper_grate
     slug: weathered-copper-grate
+    content_rev: 1
     display_name: Weathered Copper Grate
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: weathered_copper_grate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - blast_resistant
+    about:
+        description: |
+            The Weathered Copper Grate is a transparent, chain-link-style
+            copper block at the greenish weathered oxidation stage. It
+            lets light and gameplay through while blocking mob spawns on
+            top, and does not conduct redstone.
+        lore: |
+            Inspired by chain-link fencing, copper grates were added in
+            the Tricky Trials update as functional walkway decoration.
+    uses:
+        - title: Walkways and Vents
+          ref: weathered_copper_grate
+          detail: |
+              Used as a see-through walkway or vent block; mobs cannot
+              spawn on top of it, and it can be waterlogged for use
+              underwater.
+    found_in:
+        - location: Crafted from Weathered Copper
+          detail: A matching weathered copper block crafted 2x2 yields 4 grates, or stonecut 1:1.
+        - location: Trial Chambers
+          detail: Generates naturally as walkway flooring inside trial chamber corridors.
+    faq:
+        - question: What tool do I need to mine this block?
+          answer: |
+              A stone pickaxe or better. Anything weaker destroys it
+              without a drop.
+        - question: Can mobs spawn on top of a copper grate?
+          answer: |
+              No. Mobs cannot spawn on copper grates, making them useful
+              for mob-proof walkways.
+        - question: Does it conduct redstone signals?
+          answer: |
+              No, copper grates are not redstone conductors.
+        - question: Does Silk Touch or Fortune affect its drops?
+          answer: |
+              No. It always drops itself as a single item regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

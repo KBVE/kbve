@@ -1,5 +1,6 @@
 ---
 title: Cake
+template: splash
 description: |
     Minecraft Cake — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 1023
     ref: cake
     slug: cake
+    content_rev: 1
     display_name: Cake
     category: food
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Cake is a placeable, shareable food block made from milk, sugar, egg, and wheat that
+            must be set down before it can be eaten. Once placed it is sliced into seven servings,
+            and any nearby player can eat from it, restoring hunger and saturation with each bite.
+            A placed cake also emits a comparator signal that decreases as slices are consumed.
+        lore: |
+            Cake was added to Minecraft as a promise the developers made after the game won the
+            2010 Indie of the Year Awards.
+    faq:
+        - question: Can I pick a placed cake back up?
+          answer: |
+              No. Once placed on a block, a cake cannot be recollected, even with a Silk Touch
+              tool, so placing it is a one-way decision.
+        - question: How much hunger does a whole cake restore?
+          answer: |
+              Each of the seven slices restores 2 hunger points and 0.4 saturation, so eating the
+              entire cake restores 14 hunger and 2.8 saturation, more than any other single food
+              item in the game.
+        - question: Can multiple players eat from the same cake?
+          answer: |
+              Yes. Because a cake is a shared block rather than a personal inventory item, any
+              player standing next to it can take a slice until all seven are gone.
+        - question: What happens if I put a candle on a cake?
+          answer: |
+              An unlit candle of any color can be placed on an uneaten cake as decoration, and
+              lighting it with flint and steel gives off light level 3; eating the cake afterward
+              drops the candle.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

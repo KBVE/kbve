@@ -1,5 +1,6 @@
 ---
 title: Shroomlight
+template: splash
 description: |
     Minecraft Shroomlight — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 836
     ref: shroomlight
     slug: shroomlight
+    content_rev: 1
     display_name: Shroomlight
     material: nether
     hardness: 1
@@ -24,10 +26,66 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: shroomlight
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - axe_mineable
+        - pickaxe_mineable
+        - nether
+        - non_flammable
+        - redstone_transparent
+    about:
+        description: |
+            Shroomlight is a bright fungal-cap block found near the top of
+            crimson and warped huge fungi, providing the highest light
+            level in the game without catching fire.
+        lore: |
+            Announced September 28, 2019 and added in Java Edition 1.16, it
+            was briefly obtainable through piglin bartering before that
+            source was removed in 20w10a.
+    uses:
+        - title: Building & Redstone
+          ref: shroomlight
+          detail: |
+              A solid, always-drops-itself block that also lets redstone
+              signals pass through it, unlike glowstone, making it useful
+              in compact redstone builds.
+        - title: Composting
+          ref: shroomlight
+          detail: |
+              Placing it in a composter has a 65% chance to raise the
+              compost level by one.
+    found_in:
+        - location: Crimson Forest
+          detail: Generates near the tops of crimson huge fungi.
+        - location: Warped Forest
+          detail: Generates near the tops of warped huge fungi.
+        - location: Bone Meal Farming
+          detail: Growing huge fungi with bone meal renews the supply of shroomlight.
+    faq:
+        - question: What tool do I need to mine Shroomlight?
+          answer: |
+              None strictly required — it always drops itself — but a hoe
+              (especially golden) breaks it fastest.
+        - question: Does Shroomlight burn in the Nether?
+          answer: |
+              No, it is non-flammable and immune to catching fire from
+              lava, unlike many Nether wood blocks.
+        - question: Can Shroomlight be farmed renewably?
+          answer: |
+              Yes, bone-mealing huge fungi grows more shroomlight, making it
+              a fully renewable light source.
+        - question: How bright is Shroomlight?
+          answer: |
+              It emits light level 15, tied with glowstone and beacons for
+              the maximum brightness in the game.
     data_version: "1.21.5"
 ---
 

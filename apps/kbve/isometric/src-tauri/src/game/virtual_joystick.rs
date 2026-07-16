@@ -155,7 +155,7 @@ fn spawn_joystick_ui(mut commands: Commands) {
                 .with_child((
                     Text::new("ACT".to_string()),
                     TextFont {
-                        font_size: 14.0,
+                        font_size: bevy::text::FontSize::Px(14.0),
                         ..default()
                     },
                     TextColor(Color::srgba(1.0, 1.0, 1.0, 0.7)),
@@ -179,7 +179,7 @@ fn spawn_joystick_ui(mut commands: Commands) {
                 .with_child((
                     Text::new("JMP".to_string()),
                     TextFont {
-                        font_size: 14.0,
+                        font_size: bevy::text::FontSize::Px(14.0),
                         ..default()
                     },
                     TextColor(Color::srgba(1.0, 1.0, 1.0, 0.7)),

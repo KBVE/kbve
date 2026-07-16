@@ -1,5 +1,6 @@
 ---
 title: Red Stained Glass
+template: splash
 description: |
     Minecraft Red Stained Glass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 515
     ref: red_stained_glass
     slug: red-stained-glass
+    content_rev: 1
     display_name: Red Stained Glass
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Red Stained Glass is a dyed variant of glass, crafted from four glass blocks and a red dye
+            in a crafting grid. It is fully transparent, lets light through, and can only be recovered
+            by mining with a Silk Touch tool, since a plain pickaxe destroys it without any drops.
+        lore: |
+            A tinted pane of glass that colors the light passing through it a deep, fiery red.
+    faq:
+        - question: How do you get Red Stained Glass?
+          answer: |
+              Craft it by placing four glass blocks and one red dye anywhere in a crafting grid,
+              which yields eight red stained glass blocks per craft.
+        - question: Do you need Silk Touch to mine it?
+          answer: |
+              Yes. Breaking red stained glass with a normal tool destroys it and drops nothing;
+              only a pickaxe enchanted with Silk Touch will recover the block itself.
+        - question: Can mobs see or spawn through Red Stained Glass?
+          answer: |
+              Mobs treat stained glass as a fully opaque block for line-of-sight purposes, so they
+              cannot see through it, and hostile mobs cannot spawn on top of it.
+        - question: Can Red Stained Glass be used to color a beacon beam?
+          answer: |
+              Yes. Placing red stained glass in the beam above a beacon tints the light red, and
+              stacking additional colored glass blends the colors further up the beam.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

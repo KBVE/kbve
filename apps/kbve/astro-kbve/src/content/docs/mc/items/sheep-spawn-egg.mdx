@@ -1,5 +1,6 @@
 ---
 title: Sheep Spawn Egg
+template: splash
 description: |
     Minecraft Sheep Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1118
     ref: sheep_spawn_egg
     slug: sheep-spawn-egg
+    content_rev: 1
     display_name: Sheep Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Sheep Spawn Egg is a creative-mode item that instantly spawns a sheep when used
+            on a block. It is only obtainable in creative mode or via commands, and the sheep's
+            wool color is influenced by the biome it spawns in.
+        lore: |
+            A speckled egg that hatches a woolly companion the moment it touches the ground.
+    faq:
+        - question: How do you get a Sheep Spawn Egg?
+          answer: |
+              It is only available in the creative inventory or through commands such as
+              /give — it cannot be crafted or found in survival mode.
+        - question: What determines the color of a spawned sheep?
+          answer: |
+              The wool color is influenced by the biome the sheep spawns in, with white, gray,
+              and brown being the most common natural colors.
+        - question: What resources do sheep provide?
+          answer: |
+              Sheep can be sheared repeatedly for wool and drop raw mutton when killed, and they
+              can be bred using wheat.
+        - question: Can spawn eggs be used in dispensers?
+          answer: |
+              Yes, a dispenser loaded with a spawn egg will spawn the corresponding mob when
+              activated.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

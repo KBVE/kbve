@@ -1,5 +1,6 @@
 ---
 title: Ocelot Spawn Egg
+template: splash
 description: |
     Minecraft Ocelot Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1105
     ref: ocelot_spawn_egg
     slug: ocelot-spawn-egg
+    content_rev: 1
     display_name: Ocelot Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Ocelot Spawn Egg is a creative-mode item used to instantly spawn an ocelot
+            wherever it is used. Ocelots are wild jungle mobs that flee from players but can
+            be won over with raw fish, and unlike cats they can never be fully tamed. They are
+            also notable for scaring away creepers that wander too close.
+        lore: |
+            In the dense jungles of Minecraft, ocelots roam freely as elusive felines that can
+            be befriended through patience and raw fish, though never truly domesticated.
+    faq:
+        - question: How do I get an ocelot spawn egg?
+          answer: |
+              Spawn eggs like this one are only available in Creative mode inventory or via
+              commands; they cannot be crafted or found as survival loot.
+        - question: What happens when I use the ocelot spawn egg?
+          answer: |
+              Using it on a block spawns a wild ocelot at that location, which will immediately
+              try to flee from nearby players until trust is built with raw cod or salmon.
+        - question: Are ocelots the same as cats?
+          answer: |
+              No. Since ocelots and cats were split into separate mobs, ocelots remain wild
+              jungle animals while cats are the fully tameable domestic variant.
+        - question: Do ocelots have any special defensive use?
+          answer: |
+              Yes, creepers keep a distance of about six blocks from ocelots, so keeping one
+              nearby can help discourage creepers from approaching a base.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

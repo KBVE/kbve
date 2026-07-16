@@ -1,5 +1,6 @@
 ---
 title: Magenta Stained Glass Pane
+template: splash
 description: |
     Minecraft Magenta Stained Glass Pane — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 470
     ref: magenta_stained_glass_pane
     slug: magenta-stained-glass-pane
+    content_rev: 1
     display_name: Magenta Stained Glass Pane
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: magenta_stained_glass_pane
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Magenta Stained Glass Pane is a thin, colored window block dyed
+            magenta. It uses less material than full stained glass panels
+            and blocks half as much light while still letting colored light
+            through.
+        lore: |
+            Stained glass panes let builders add tinted windows to a
+            structure without the bulk of full glass blocks, matching
+            Minecraft's 16-color dye palette.
+    uses:
+        - title: Magenta Stained Glass Pane
+          ref: magenta_stained_glass_pane
+          detail: |
+              Craft from 6 Magenta Stained Glass blocks (yields 16 panes) or
+              from 4 Glass Panes plus Magenta Dye (yields 8 panes).
+    found_in:
+        - location: Crafted
+          detail: Made from magenta stained glass or glass panes combined with magenta dye.
+        - location: Village Structures
+          detail: Colored glass panes generate in some village temples, trail ruins, and abandoned villages.
+    faq:
+        - question: Does it drop anything when mined normally?
+          answer: |
+              No. Without Silk Touch it breaks with no drop; a Silk Touch
+              tool is required to recover the pane itself.
+        - question: What tool should I use to mine it?
+          answer: |
+              Any tool works and none is required — it breaks instantly with
+              no minimum tier for the block to exist as an item.
+        - question: Can water flow through it?
+          answer: |
+              No, but it is waterloggable, so it can be placed submerged
+              without displacing the water around it.
+        - question: How does it compare to a full stained glass block?
+          answer: |
+              Panes cover more window area per block of material and let
+              you build thinner window frames, at the cost of not filling a
+              full block space.
     data_version: "1.21.5"
 ---
 

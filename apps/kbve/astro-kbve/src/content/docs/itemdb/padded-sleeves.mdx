@@ -1,0 +1,41 @@
+---
+title: 'Padded Sleeves'
+template: splash
+sidebar:
+    label: 'Padded Sleeves'
+    hidden: true
+description: |
+    Quilted sleeve pair that clips to any jacket, rated for road rash and low-grade plasma splash.
+ref: 'padded-sleeves'
+key: 620
+id: '01KXFBEGM26JBWDBNDS4Q24226'
+name: 'Padded Sleeves'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 30
+emoji: '💪'
+img: '/assets/items/equipment/padded-sleeves.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'SCFI09'
+  nodes:
+    - 'SCFI09_AUPL'
+    - 'SCFI09_AUPR'
+  slot_keys:
+    - 'AUPL'
+    - 'AUPR'
+equipment:
+  slot: 'chest'
+  bonuses:
+    extra:
+      weight: 1
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

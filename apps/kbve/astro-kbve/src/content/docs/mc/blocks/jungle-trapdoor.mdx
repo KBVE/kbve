@@ -1,5 +1,6 @@
 ---
 title: Jungle Trapdoor
+template: splash
 description: |
     Minecraft Jungle Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 304
     ref: jungle_trapdoor
     slug: jungle-trapdoor
+    content_rev: 1
     display_name: Jungle Trapdoor
     material: wood
     hardness: 3
@@ -24,10 +26,54 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: jungle_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Jungle Trapdoor is a hinged wooden door segment that can be
+            mounted horizontally or vertically, opened by hand or with
+            redstone power, and used to build secret passages or
+            mob-proof openings.
+        lore: |
+            Wooden trapdoors were added in Beta 1.6 (2011); additional
+            wood variants followed as new tree types were introduced.
+    uses:
+        - title: Redstone Door Mechanism
+          ref: redstone
+          detail: |
+              Powering a trapdoor with redstone opens or closes it
+              automatically, commonly used in hidden entrances and
+              piston-free secret doors.
+    found_in:
+        - location: Crafted from Jungle Planks
+          detail: Six jungle planks arranged in a 2x3 grid craft two jungle trapdoors.
+        - location: Desert Villages
+          detail: Jungle trapdoors generate naturally on desert village houses.
+    faq:
+        - question: What tool is needed to break a jungle trapdoor?
+          answer: |
+              None specifically — any tool works, though an axe is fastest.
+        - question: Can a trapdoor be climbed like a ladder?
+          answer: |
+              Yes, if placed directly above a ladder on the same block
+              face, players can climb through an open trapdoor.
+        - question: Does a jungle trapdoor need support to stay placed?
+          answer: |
+              No. It remains attached even if the block behind it is removed.
+        - question: Is jungle trapdoor flammable?
+          answer: |
+              Yes, like other overworld wood trapdoors. Crimson and
+              warped trapdoors are the non-flammable exceptions.
     data_version: "1.21.5"
 ---
 

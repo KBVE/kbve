@@ -1,0 +1,41 @@
+---
+title: 'Shin Wraps'
+template: splash
+sidebar:
+    label: 'Shin Wraps'
+    hidden: true
+description: |
+    Zip-on lower-leg wraps in matched pair, sealing trouser to boot against dust, sparks and opinion.
+ref: 'shin-wraps'
+key: 624
+id: '01KXFBEGM200CKKBGYB1X4WF4N'
+name: 'Shin Wraps'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 20
+emoji: '🦵'
+img: '/assets/items/equipment/shin-wraps.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'SCFI09'
+  nodes:
+    - 'SCFI09_LEGL'
+    - 'SCFI09_LEGR'
+  slot_keys:
+    - 'LEGL'
+    - 'LEGR'
+equipment:
+  slot: 'legs'
+  bonuses:
+    extra:
+      weight: 1
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

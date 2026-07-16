@@ -1,5 +1,6 @@
 ---
 title: Purpur Block
+template: splash
 description: |
     Minecraft Purpur Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 626
     ref: purpur_block
     slug: purpur-block
+    content_rev: 1
     display_name: Purpur Block
     material: end
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: purpur_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - the_end
+    about:
+        description: |
+            Purpur Block is a magenta-hued decorative block found throughout
+            End cities and End ships. It is crafted from popped chorus
+            fruit, giving builders a native End-themed material without
+            needing to raid generated structures.
+        lore: |
+            Mojang associated the name and color of purpur with Tyrian
+            purple, the rare antique dye once made from sea snails.
+    uses:
+        - title: Purpur Slab
+          ref: purpur_slab
+          detail: |
+              Craft 3 Purpur Blocks (or pillars) into 6 Purpur Slabs, or cut
+              1 block into 2 slabs with a stonecutter.
+        - title: Purpur Stairs
+          ref: purpur_stairs
+          detail: |
+              Arrange Purpur Blocks in a stair pattern to craft 4 Purpur
+              Stairs, or cut them 1:1 with a stonecutter.
+    found_in:
+        - location: End cities
+          detail: Generates extensively as the primary building material of End city towers and bridges.
+        - location: End ships
+          detail: Forms the hull and interior structure of the End ship found attached to some End cities.
+    faq:
+        - question: How do I craft Purpur Block?
+          answer: |
+              Place 4 Popped Chorus Fruit in a crafting grid to yield 1
+              Purpur Block.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, starting from wooden. Mining without a pickaxe
+              drops nothing.
+        - question: Is Purpur Block flammable?
+          answer: |
+              No. It will not catch fire or burn away, making it safe near
+              lava and fire in End dimension builds.
+        - question: Can I get it without visiting the End?
+          answer: |
+              Yes, farm chorus fruit from chorus plants in the End
+              highlands, pop it in a furnace, then craft it into blocks.
     data_version: "1.21.5"
 ---
 

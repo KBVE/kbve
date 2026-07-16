@@ -1,0 +1,42 @@
+---
+title: 'Impact Elbow Pads'
+template: splash
+sidebar:
+    label: 'Impact Elbow Pads'
+    hidden: true
+description: |
+    Strap-on elbow pair, scuffed white at the point of every lesson learned sliding.
+ref: 'impact-elbow-pads'
+key: 628
+id: '01KXFBEGM3549STW6B4RYKHDAZ'
+name: 'Impact Elbow Pads'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 25
+emoji: '🦾'
+img: '/assets/items/equipment/impact-elbow-pads.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'SCFI09'
+  nodes:
+    - 'SCFI09_AEBL'
+    - 'SCFI09_AEBR'
+  slot_keys:
+    - 'AEBL'
+    - 'AEBR'
+equipment:
+  slot: 'hands'
+  bonuses:
+    armor: 1
+    extra:
+      weight: 1
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

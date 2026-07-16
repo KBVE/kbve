@@ -1,5 +1,6 @@
 ---
 title: Hay Bale
+template: splash
 description: |
     Minecraft Hay Bale — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 505
     ref: hay_block
     slug: hay-block
+    content_rev: 1
     display_name: Hay Bale
     material: plant
     hardness: 0.5
@@ -24,10 +26,66 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: hay_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            The Hay Bale is a decorative farm block crafted from wheat
+            that feeds and breeds horses and llamas, reduces fall damage,
+            and boosts campfire smoke height.
+        lore: |
+            Hay bales were found hidden in the 2013 Mojam game files
+            before being officially added in Java Edition 1.6.1
+            (snapshot 13w16a).
+    uses:
+        - title: Animal Feed
+          ref: hay_block
+          detail: |
+              Feeds horses, donkeys, llamas, and mules up to 10 hearts,
+              speeds foal growth, and enables llama breeding.
+        - title: Fall Damage Cushion
+          ref: hay_block
+          detail: |
+              Landing on a hay bale reduces fall damage to 20% of normal,
+              allowing survival from very long falls.
+        - title: Composting
+          ref: composter
+          detail: |
+              Placing a hay bale in a composter has an 85% chance to
+              raise the compost level by one.
+    found_in:
+        - location: Crafted
+          detail: Craft from 9 wheat in a 3x3 grid to produce one hay bale.
+        - location: Wandering Traders
+          detail: Wandering traders occasionally sell hay bales for emeralds.
+    faq:
+        - question: What tool should I use on a Hay Bale?
+          answer: |
+              A hoe breaks it fastest, though any tool or bare hands work
+              since no tool is strictly required.
+        - question: Can a Hay Bale be turned back into wheat?
+          answer: |
+              Yes. Crafting a hay bale yields 9 wheat, reversing the
+              original recipe.
+        - question: Does a Hay Bale stop all fall damage?
+          answer: |
+              No. It reduces fall damage to 20% of normal, not to zero,
+              though this still allows surviving falls of 100+ blocks
+              with full health.
+        - question: Is Hay Bale flammable?
+          answer: |
+              Yes. It catches fire easily from nearby flames like other
+              plant-based blocks.
     data_version: "1.21.5"
 ---
 

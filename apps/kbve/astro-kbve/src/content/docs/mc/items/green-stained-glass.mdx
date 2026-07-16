@@ -1,5 +1,6 @@
 ---
 title: Green Stained Glass
+template: splash
 description: |
     Minecraft Green Stained Glass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 514
     ref: green_stained_glass
     slug: green-stained-glass
+    content_rev: 1
     display_name: Green Stained Glass
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Green Stained Glass is a dyed variant of regular glass that keeps the transparency
+            of plain glass while tinting it a vivid green. It is crafted from 4 glass blocks and
+            1 green dye, yielding 8 stained glass blocks per craft, and mining it without Silk
+            Touch destroys the block instead of dropping it.
+        lore: |
+            Builders favor green stained glass for greenhouse windows, jungle-themed structures,
+            and beacon beams that need to be recolored to green.
+    faq:
+        - question: How do you craft Green Stained Glass?
+          answer: |
+              Combine 4 glass blocks with 1 green dye in a crafting grid to produce 8 green
+              stained glass blocks.
+        - question: Do you need Silk Touch to mine it?
+          answer: |
+              Yes, mining green stained glass without a Silk Touch enchanted tool destroys the
+              block and drops nothing.
+        - question: Can Green Stained Glass change a beacon beam's color?
+          answer: |
+              Yes, stacking it directly above a beacon causes the beam to blend toward green
+              based on the glass color's RGB values.
+        - question: Can mobs spawn on Green Stained Glass?
+          answer: |
+              No, mobs cannot spawn on stained glass blocks, with the exception of zombie
+              reinforcements.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

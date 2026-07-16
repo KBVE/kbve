@@ -3,6 +3,8 @@ title: Arcade
 description: |
     KBVE Arcade — the home for our in-browser games. Card games, action
     RPGs, endless runners, and (soon) classic Flash titles via Ruffle.
+template: splash
+tableOfContents: false
 unsplash: 1688413399498-e35ed74b554f
 img: https://images.unsplash.com/photo-1688413399498-e35ed74b554f?fit=crop&w=1400&h=700&q=75
 sidebar:
@@ -14,9 +16,14 @@ tags:
     - browser-games
     - flash
     - ruffle
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 ---
 
 import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import BentoShell from '@/components/hero/BentoShell.astro';
 import {
 	ArcadeHero,
 	ArcadeGameCard,
@@ -28,7 +35,7 @@ import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
 
 <ArcadeTooltipController client:only="react" />
 
-<div class="">
+<BentoShell id="hero">
 
 <ArcadeHero
 	title="KBVE Arcade"
@@ -40,12 +47,14 @@ import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
 	]}
 />
 
+</BentoShell>
+
+<BentoShell id="available" eyebrow="Play now" heading="Available games">
+
 If you used to play Flash games on portals like Miniclip, Newgrounds, or
 Kongregate in the late 2000s — that's the vibe we're after. A single hub
 with a deep library, plus a few first-party titles you can't get
 anywhere else.
-
-## Available now
 
 <ArcadeGameGrid columns={2}>
 	<ArcadeGameCard
@@ -113,9 +122,15 @@ anywhere else.
 	/>
 </ArcadeGameGrid>
 
-<DeferredAdsense />
+</BentoShell>
 
-## Coming soon
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<DeferredAdsense />
+	</div>
+</section>
+
+<BentoShell id="soon" eyebrow="In the oven" heading="Coming soon">
 
 We're working on a **[Ruffle](https://ruffle.rs/)** integration so the
 arcade can host classic Flash (`.swf`) games in-browser via the WASM
@@ -157,7 +172,9 @@ fan-favorite classics and grow from there.
 	</Card>
 </CardGrid>
 
-## How it's built
+</BentoShell>
+
+<BentoShell id="built" eyebrow="Under the hood" heading="How it's built">
 
 The arcade is part of [kbve.com](https://kbve.com), a static Astro
 Starlight site. Each game embeds via a `client:only` React island so
@@ -170,7 +187,7 @@ actually open the game's page — the rest of the site stays light.
 	near-instant.
 </Aside>
 
-## Controls cheatsheet
+### Controls cheatsheet
 
 A few common patterns across the arcade:
 
@@ -188,6 +205,10 @@ A few common patterns across the arcade:
 	browser/device. We move fast on player feedback.
 </Aside>
 
-<DeferredAdsense />
+</BentoShell>
 
-</div>
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<DeferredAdsense />
+	</div>
+</section>

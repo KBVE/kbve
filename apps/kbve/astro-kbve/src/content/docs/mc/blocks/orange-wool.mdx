@@ -1,5 +1,6 @@
 ---
 title: Orange Wool
+template: splash
 description: |
     Minecraft Orange Wool — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 141
     ref: orange_wool
     slug: orange-wool
+    content_rev: 1
     display_name: Orange Wool
     material: wool
     hardness: 0.8
@@ -24,10 +26,59 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: orange_wool
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - flammable
+        - overworld
+    about:
+        description: |
+            Orange Wool is the orange-dyed variant of wool, obtained by
+            dyeing white wool or shearing orange sheep. It burns readily
+            and muffles sculk sensor vibrations, making it popular for both
+            decoration and stealth builds.
+        lore: |
+            Wool was one of Minecraft's earliest dyeable blocks, letting
+            builders color entire structures long before concrete existed.
+    uses:
+        - title: Orange Bed
+          ref: orange_bed
+          detail: |
+              Craft 3 Orange Wool with 3 Planks to make an Orange Bed for
+              setting spawn points and skipping the night.
+        - title: Orange Carpet
+          ref: orange_carpet
+          detail: |
+              Craft 2 Orange Wool side by side to produce 3 Orange Carpet.
+    found_in:
+        - location: Orange sheep
+          detail: Shearing a naturally orange-colored sheep yields 1-3 Orange Wool.
+        - location: Dyed white wool
+          detail: Dye White Wool with Orange Dye to convert it to Orange Wool.
+        - location: Village loot
+          detail: Occasionally found in village chests and structures.
+    faq:
+        - question: Does Orange Wool burn?
+          answer: |
+              Yes, wool is highly flammable and will catch fire from nearby
+              flames or lava.
+        - question: What is the fastest way to break wool?
+          answer: |
+              Shears break wool almost instantly; any other tool or bare
+              hands works but is slower.
+        - question: Can wool hide me from sculk sensors?
+          answer: |
+              Yes, wool blocks absorb vibrations, so placing, breaking, or
+              walking on wool does not trigger nearby sculk sensors.
+        - question: How do I get Orange Wool?
+          answer: |
+              Shear an orange sheep, or dye White Wool with Orange Dye.
     data_version: "1.21.5"
 ---
 

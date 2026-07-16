@@ -31,7 +31,7 @@ spec:
             terminationGracePeriodSeconds: 30
             containers:
                 - name: rows
-                  image: ghcr.io/kbve/rows:0.1.37
+                  image: ghcr.io/kbve/rows:0.1.38
                   imagePullPolicy: Always
                   env:
                       - name: HTTP_HOST
@@ -43,7 +43,7 @@ spec:
                       - name: METRICS_PORT
                         value: '4324'
                       - name: RUST_LOG
-                        value: 'info'
+                        value: 'warn,tower_http=warn'
                       - name: DB_MAX_CONNECTIONS
                         value: '20'
                       - name: OWS_API_KEY
@@ -72,6 +72,15 @@ spec:
                                 name: rows-supabase-service-key
                                 key: hash
                                 optional: true
+                      # Gateway-held bearer token gating POST /fleet-restart/trigger (and, once
+                      # set, the legacy RestartFleet). GameServers must NOT receive this value.
+                      # optional so a missing secret can't block rollout — the trigger just 401s.
+                      - name: ROWS_FLEET_RESTART_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: rows-fleet-restart-token
+                                key: token
+                                optional: true
                       - name: SUPABASE_URL
                         value: 'https://supabase.kbve.com'
                       - name: AGONES_NAMESPACE
@@ -94,7 +103,7 @@ spec:
                       # indistinguishable from a dead one, so ROWS_REAP_NEVER_REPORTED would
                       # deallocate populated servers ~boot-grace after spawn. Enabling the switches
                       # below is a HARD-GATED runbook step — see Operational Runbook section 2 in
-                      # docs/superpowers/plans/2026-06-23-rows-empty-server-reaper.md. Leave the two
+                      # apps/rows/docs/2026-06-23-rows-empty-server-reaper.md. Leave the two
                       # switches commented until that gate is satisfied; flipping them on is then a
                       # deliberate, reviewable GitOps diff (no out-of-band env edits / Argo drift).
                       # - name: ROWS_EMPTY_REAPER_ENABLED      # master switch (count-based reap)
@@ -201,7 +210,11 @@ metadata:
         app: rows
         app.kubernetes.io/part-of: ows
 spec:
-    minAvailable: 1
+    # maxUnavailable (not minAvailable): with a single replica, minAvailable:1 blocks every
+    # voluntary eviction and hangs node drains. maxUnavailable:1 always permits the drain; run
+    # replicas >= 2 before enabling the fleet-restart reconcile live so one pod is always serving
+    # (the per-tenant advisory lock makes multi-replica safe).
+    maxUnavailable: 1
     selector:
         matchLabels:
             app: rows

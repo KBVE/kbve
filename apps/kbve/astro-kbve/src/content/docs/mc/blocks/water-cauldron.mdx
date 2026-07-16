@@ -1,5 +1,6 @@
 ---
 title: Water Cauldron
+template: splash
 description: |
     Minecraft Water Cauldron — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 357
     ref: water_cauldron
     slug: water-cauldron
+    content_rev: 1
     display_name: Water Cauldron
     material: liquid
     hardness: 2
     blast_resistance: 2
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cauldron
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            A Water Cauldron is a regular cauldron filled with water, used to
+            store a small amount of water for utility purposes. It fills
+            gradually from rain or dripstone, or all at once from a water
+            bucket.
+        lore: |
+            The cauldron was originally built for potion brewing before Beta
+            1.9, but that role moved to the brewing stand and cauldrons were
+            repurposed as general liquid-storage utility blocks.
+    uses:
+        - title: Dye Removal
+          ref: leather_armor
+          detail: |
+              Washes dye off leather armor, banners, and shulker boxes one
+              layer at a time without destroying the item.
+        - title: Fire Extinguishing
+          ref: cauldron
+          detail: |
+              Extinguishes a burning player or mob that walks through it,
+              and can be used to put out a player who is on fire.
+    found_in:
+        - location: Witch Huts, Igloos, Woodland Mansions, Village Tanneries
+          detail: Generates pre-filled with water in these structures.
+        - location: Any biome with rain
+          detail: An empty cauldron placed outdoors slowly fills with water during rainfall.
+    faq:
+        - question: What tool do I need to mine a Water Cauldron?
+          answer: |
+              Any wooden pickaxe or better. Mining it without a pickaxe drops
+              nothing.
+        - question: Does mining it keep the water?
+          answer: |
+              No. Mining a Water Cauldron with a pickaxe drops the empty
+              cauldron item; the water is lost.
+        - question: How full can a Water Cauldron get?
+          answer: |
+              It fills in three levels. A water bucket fills it fully in one
+              use; rain and dripstone fill it gradually one level at a time.
+        - question: Can I use it to fill bottles or bowls?
+          answer: |
+              Yes, a full Water Cauldron can refill empty glass bottles and
+              is used by leatherworker villagers as a job site block.
     data_version: "1.21.5"
 ---
 

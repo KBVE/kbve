@@ -1,5 +1,6 @@
 ---
 title: Crimson Hanging Sign
+template: splash
 description: |
     Minecraft Crimson Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 242
     ref: crimson_wall_hanging_sign
     slug: crimson-wall-hanging-sign
+    content_rev: 1
     display_name: Crimson Hanging Sign
     material: nether
     hardness: 1
@@ -23,11 +25,56 @@ mc_block:
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crimson_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            Crimson Hanging Sign is the wall-mounted form of the crimson
+            hanging sign, suspended from iron chains against the side of
+            a block. It displays four lines of customizable text.
+        lore: |
+            Hanging signs were added in the Trails & Tales Update (1.20),
+            crafted from stripped logs and chains rather than planks.
+    uses:
+        - title: Labels & Wayfinding
+          ref: crimson_hanging_sign
+          detail: |
+              Used to label storage, mark trails, or decorate builds; text
+              can be dyed, made to glow with a glow ink sac, and locked
+              permanently by waxing with honeycomb.
+    found_in:
+        - location: Crafted from Stripped Crimson Stem
+          detail: Two iron chains plus six stripped crimson stems (or planks-equivalent stripped logs) craft six crimson hanging signs at a crafting table.
+        - location: Trial Chambers & Trail Ruins
+          detail: Generates naturally with pre-written or blank text in trial chamber and trail ruin structures.
+    faq:
+        - question: What tool do I need to mine a Crimson Hanging Sign?
+          answer: |
+              Any tool works, and an axe is fastest. There is no minimum
+              tool tier required to get the drop.
+        - question: Does it drop the wall or standard hanging sign item?
+          answer: |
+              Both the wall-mounted and ceiling-mounted hanging sign
+              blocks drop the same single hanging sign item, which can be
+              placed in either orientation.
+        - question: Can Crimson Hanging Signs be used as furnace fuel?
+          answer: |
+              No. Only Overworld wood hanging signs burn as furnace fuel;
+              crimson and warped hanging signs do not.
+        - question: Can I edit the text after placing it?
+          answer: |
+              Yes, unless the sign has been waxed with honeycomb, which
+              permanently locks the text against further edits.
     data_version: "1.21.5"
 ---
 

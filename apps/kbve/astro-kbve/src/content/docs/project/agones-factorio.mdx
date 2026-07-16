@@ -13,7 +13,7 @@ tags:
 key: agones_factorio
 pipeline: docker
 app_name: agones-factorio
-version: "0.0.13"
+version: "0.0.14"
 source_path: apps/agones/factorio
 version_toml: apps/agones/factorio/version.toml
 runner: ubuntu-latest
@@ -30,7 +30,9 @@ external_publish:
         - name: kbve
           source_path: apps/agones/factorio/mods-local/kbve
         - name: kbve-spider
-          source_path: apps/factorio/mods/kbve-spider
+          source_path: apps/agones/factorio/mods-src/kbve-spider
+        - name: kbve-orc
+          source_path: apps/agones/factorio/mods-src/kbve-orc
 kube:
     stack: agones
     environment: prod
@@ -81,7 +83,7 @@ bento:
             - <strong>Local-friendly</strong> — SDK skipped when AGONES_SDK_HTTP unset.
     stats:
         - { label: Image, value: kbve/agones-factorio, icon: box }
-        - { label: Base, value: factoriotools 2.0.76, icon: package }
+        - { label: Base, value: factoriotools 2.0.77, icon: package }
         - { label: Orchestration, value: Agones, icon: server }
         - { label: License, value: KBVE, icon: license }
     features:

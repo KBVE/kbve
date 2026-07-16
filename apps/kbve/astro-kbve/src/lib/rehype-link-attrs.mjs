@@ -4,7 +4,7 @@
  * Rehype plugin that enriches <a> elements produced from markdown/MDX:
  *  - Internal links: adds `data-astro-prefetch`, `aria-label`, `title`
  *  - External links: adds `rel="noopener noreferrer"`, `target="_blank"`,
- *    `aria-label`, `title`
+ *    `aria-label`, `title` — plus `nofollow` unless the host is first-party
  *
  * An internal link is any href that starts with "/" or is relative (no protocol).
  */
@@ -14,6 +14,26 @@ import { visit } from 'unist-util-visit';
 /** @param {string} href */
 function isExternal(href) {
 	return /^https?:\/\//.test(href) || href.startsWith('//');
+}
+
+const FIRST_PARTY_DOMAINS = [
+	'kbve.com',
+	'herbmail.com',
+	'rareicon.com',
+	'cryptothrone.com',
+];
+
+/** @param {string} href */
+function isFirstParty(href) {
+	let host;
+	try {
+		host = new URL(href, 'https://kbve.com').hostname;
+	} catch {
+		return false;
+	}
+	return FIRST_PARTY_DOMAINS.some(
+		(domain) => host === domain || host.endsWith(`.${domain}`),
+	);
 }
 
 /** @param {string} href */
@@ -61,7 +81,9 @@ export default function rehypeLinkAttrs() {
 
 			if (isExternal(href)) {
 				// External link enrichment
-				props.rel = 'noopener noreferrer';
+				props.rel = isFirstParty(href)
+					? 'noopener noreferrer'
+					: 'nofollow noopener noreferrer';
 				props.target = '_blank';
 
 				if (!props.title) {

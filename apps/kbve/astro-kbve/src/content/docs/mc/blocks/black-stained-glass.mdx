@@ -1,5 +1,6 @@
 ---
 title: Black Stained Glass
+template: splash
 description: |
     Minecraft Black Stained Glass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,72 @@ mc_block:
     id: 300
     ref: black_stained_glass
     slug: black-stained-glass
+    content_rev: 1
     display_name: Black Stained Glass
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: black_stained_glass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Black Stained Glass is a dyed variant of glass that tints light
+            passing through it black while still letting mobs see and be
+            seen through most other glass colors, though black is opaque
+            enough to obscure vision.
+        lore: |
+            Stained glass was added in Beta 1.8 as part of the Adventure
+            Update, giving builders a colored, see-through alternative to
+            plain glass and wool.
+    uses:
+        - title: Stained Glass Panes
+          ref: black_stained_glass_pane
+          detail: |
+              Crafting six Black Stained Glass blocks yields sixteen Black
+              Stained Glass Panes, ideal for slim windows and decorative
+              partitions.
+        - title: Beacon Beam Color
+          ref: beacon
+          detail: |
+              Stacking stained glass above a beacon changes the color of its
+              light beam, letting players layer multiple hues.
+    found_in:
+        - location: Crafted only
+          detail: |
+              Crafted from 8 Glass blocks and 1 Ink Sac; the black variant
+              does not generate naturally in structures.
+    faq:
+        - question: Do I need Silk Touch to collect Black Stained Glass?
+          answer: |
+              Yes. Mining it without Silk Touch destroys the block and
+              drops nothing.
+        - question: Does Black Stained Glass block light?
+          answer: |
+              No, light passes through it, but the light is tinted black,
+              which visually darkens the area behind it.
+        - question: Can I use Black Stained Glass to hide from mobs?
+          answer: |
+              Mostly yes — unlike clear glass, most mobs cannot see players
+              through stained glass, and black glass is the most opaque
+              looking of the colors.
+        - question: Is Black Stained Glass flammable?
+          answer: |
+              No, like all glass variants it is non-flammable and safe to
+              use near lava or fire.
     data_version: "1.21.5"
 ---
 

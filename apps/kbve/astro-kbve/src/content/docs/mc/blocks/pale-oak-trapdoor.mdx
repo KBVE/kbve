@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Trapdoor
+template: splash
 description: |
     Minecraft Pale Oak Trapdoor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 308
     ref: pale_oak_trapdoor
     slug: pale-oak-trapdoor
+    content_rev: 1
     display_name: Pale Oak Trapdoor
     material: wood
     hardness: 3
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pale_oak_trapdoor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Pale Oak Trapdoor is a hinged wooden door segment crafted from
+            Pale Oak Planks, used to seal off floor and ceiling openings
+            while allowing players to pass through when opened.
+        lore: |
+            Part of the Pale Garden wood set, this trapdoor matches the
+            washed-out grain of Pale Oak builds and can be climbed like a
+            ladder when open and mounted above one.
+    uses:
+        - title: Pale Oak Trapdoor
+          ref: pale_oak_trapdoor
+          detail: |
+              Crafted from 6 Pale Oak Planks arranged in two rows of three
+              to produce 2 trapdoors, used for secret entrances, redstone
+              contraptions, and fences that block mobs but not players.
+    found_in:
+        - location: Crafting table
+          detail: Crafted directly from 6 Pale Oak Planks, yielding 2 trapdoors.
+        - location: Pale Garden structures
+          detail: Occasionally found as part of naturally generated Pale Garden buildings.
+    faq:
+        - question: What tool do I need to mine a Pale Oak Trapdoor?
+          answer: |
+              Any tool works, including bare hands, though an axe breaks it
+              fastest.
+        - question: Can a Pale Oak Trapdoor be climbed?
+          answer: |
+              Yes, when opened and placed directly above a ladder, players
+              can climb through it like part of the ladder.
+        - question: Is Pale Oak Trapdoor flammable?
+          answer: |
+              Yes, like most Overworld wood blocks it can catch fire from
+              nearby flames or lava.
+        - question: Can redstone open a Pale Oak Trapdoor?
+          answer: |
+              Yes, a redstone signal toggles it open or closed, and it can
+              also be flipped upside down to attach to the top of a block
+              face.
     data_version: "1.21.5"
 ---
 

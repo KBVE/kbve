@@ -1,5 +1,6 @@
 ---
 title: Azalea
+template: splash
 description: |
     Minecraft Azalea — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1046
     ref: azalea
     slug: azalea
+    content_rev: 1
     display_name: Azalea
     material: stone
     hardness: 0
@@ -26,8 +28,49 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: azalea
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Azalea is a small flowering shrub that generates on moss in
+            lush caves. It can be placed on grass, dirt, podzol, farmland,
+            mud, or clay, and grows into a full azalea tree when bone
+            mealed.
+        lore: |
+            Revealed at Minecraft Live 2020 and added in Java Edition 1.17
+            as part of the lush caves biome overhaul.
+    uses:
+        - title: Azalea Tree
+          ref: azalea_leaves
+          detail: |
+              Applying bone meal gives roughly a 45% chance per use to
+              grow the azalea into a full tree with logs and azalea leaves.
+    found_in:
+        - location: Lush Caves
+          detail: Generates naturally on moss blocks throughout the lush caves biome.
+    faq:
+        - question: Does an Azalea grow into a tree on its own?
+          answer: |
+              No. Unlike saplings, it never grows automatically — bone
+              meal is the only way to turn it into a full azalea tree.
+        - question: What tool do I need to mine an Azalea?
+          answer: |
+              None. It breaks instantly with any tool or by hand.
+        - question: Can mobs spawn on top of an Azalea?
+          answer: |
+              In Java Edition, yes, despite it being a transparent block;
+              this was removed in Bedrock Edition.
+        - question: Is Azalea useful as fuel or compost?
+          answer: |
+              Yes, it can smelt as a weak furnace fuel and has a 65% chance
+              per item to raise a composter's level.
     data_version: "1.21.5"
 ---
 

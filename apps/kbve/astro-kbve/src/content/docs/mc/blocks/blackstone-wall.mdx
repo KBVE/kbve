@@ -1,5 +1,6 @@
 ---
 title: Blackstone Wall
+template: splash
 description: |
     Minecraft Blackstone Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,66 @@ mc_block:
     id: 885
     ref: blackstone_wall
     slug: blackstone-wall
+    content_rev: 1
     display_name: Blackstone Wall
     material: nether
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blackstone_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+    about:
+        description: |
+            Blackstone Wall is a decorative wall variant of blackstone that
+            generates in bastion remnants. It connects to adjacent walls,
+            fences, and solid blocks, and can be waterlogged, making it
+            useful for fencing off Nether builds and bastions.
+        lore: |
+            Introduced with blackstone in the Nether Update (Java Edition
+            1.16), it later became renewable through piglin bartering.
+    uses:
+        - title: Building & Decoration
+          ref: blackstone
+          detail: |
+              Used as a fence-like border block for bastion-style builds,
+              patios, and bridges, connecting visually to blackstone slabs
+              and stairs.
+    found_in:
+        - location: Bastion Remnants
+          detail: Generates naturally as railings and border trim throughout bastion remnants.
+        - location: Crafted
+          detail: Craft 6 blackstone into 6 walls in a crafting table.
+    faq:
+        - question: What tool do I need to mine Blackstone Wall?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe destroys
+              the block with no drop.
+        - question: Is Blackstone Wall affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops itself as a single wall block.
+        - question: Does Blackstone Wall connect to fences?
+          answer: |
+              Yes. Like other walls, it visually connects to adjacent walls,
+              fence gates, and solid blocks, and raises the collision height
+              of the corner post when isolated.
+        - question: Can Blackstone Wall be waterlogged?
+          answer: |
+              Yes, it can hold a water source when placed underwater.
     data_version: "1.21.5"
 ---
 

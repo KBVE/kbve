@@ -130,6 +130,7 @@ function generateNewItemMdx(item, slug) {
 
 	const frontmatter = {
 		title: `${item.name} | OSRS Price Data`,
+		template: 'splash',
 		description: generateSEODescription(item),
 		osrs: osrsData,
 	};

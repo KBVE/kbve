@@ -1,5 +1,6 @@
 ---
 title: Cherry Slab
+template: splash
 description: |
     Minecraft Cherry Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 572
     ref: cherry_slab
     slug: cherry-slab
+    content_rev: 1
     display_name: Cherry Slab
     material: wood
     hardness: 2
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cherry_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Cherry Slab is a half-height building block crafted from three
+            Cherry Planks, used for detailing rooftops, floors, and
+            cherry-themed builds.
+        lore: |
+            Wooden slabs are one of Minecraft's oldest block families; the
+            cherry variant arrived with the 1.20 "Trails & Tales" update.
+    uses:
+        - title: Building & Detailing
+          ref: cherry_slab
+          detail: |
+              Used as a half-block for rooftops, staircases, and
+              decorative trim, and as an ingredient for bamboo mosaics,
+              barrels, chiseled bookshelves, composters, and daylight
+              detectors.
+    found_in:
+        - location: Crafting table
+          detail: Three matching planks arranged horizontally craft 6 slabs.
+        - location: Village and mansion structures
+          detail: Naturally generates in some structures depending on the wood type used there.
+    faq:
+        - question: What does a Cherry Slab drop when mined?
+          answer: |
+              It drops itself; two placed slabs combine into a single full
+              block that also drops as slabs when broken.
+        - question: Is Cherry Slab flammable?
+          answer: |
+              Yes, like most wooden slabs it can catch fire and burn.
+        - question: Can Cherry Slab be used as furnace fuel?
+          answer: |
+              Yes, Overworld wooden slabs can be burned as fuel.
+        - question: What is Cherry Slab used to craft?
+          answer: |
+              It is an ingredient in bamboo mosaics, barrels, chiseled
+              bookshelves, composters, and daylight detectors.
     data_version: "1.21.5"
 ---
 

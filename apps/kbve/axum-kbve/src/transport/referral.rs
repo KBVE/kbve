@@ -252,9 +252,8 @@ async fn handle_referral(headers: HeaderMap, handle: String, slug: Option<String
         return redirect_to(&resolved.url);
     }
 
-    let client_ip = extract_client_ip(&headers);
-    let ip_string = match client_ip {
-        Some(ip) => ip.to_string(),
+    let client_ip = match extract_client_ip(&headers) {
+        Some(ip) => ip,
         None => {
             tracing::warn!(
                 handle = %normalized_handle,
@@ -265,11 +264,8 @@ async fn handle_referral(headers: HeaderMap, handle: String, slug: Option<String
         }
     };
 
-    let ip_hash = hmac_sha256(secret, ip_string.as_bytes());
-    let subnet_hash = hmac_sha256(
-        secret,
-        client_ip.map(subnet_prefix).unwrap_or_default().as_bytes(),
-    );
+    let ip_hash = hmac_sha256(secret, client_ip.to_string().as_bytes());
+    let subnet_hash = hmac_sha256(secret, subnet_prefix(client_ip).as_bytes());
 
     let input = RecordClickInput {
         referrer_id,

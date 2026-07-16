@@ -1,5 +1,6 @@
 ---
 title: Vex Spawn Egg
+template: splash
 description: |
     Minecraft Vex Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 1134
     ref: vex_spawn_egg
     slug: vex-spawn-egg
+    content_rev: 1
     display_name: Vex Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Vex is a small, flying hostile mob normally summoned only by Evokers during combat, wielding an iron sword and able to phase freely through blocks including water, lava, and even bedrock. This spawn egg lets players place them directly in creative mode.
+            Vexes target players, villagers, iron golems, and wandering traders, often flanking from behind to bypass shield defense, and glow red while charging an attack.
+        lore: |
+            Summoned from thin air by Evoker magic, these spectral warriors dart through obstacles with supernatural grace, their iron blades glinting as they seek to protect their master's will.
+    faq:
+        - question: Can I obtain a Vex Spawn Egg in regular survival mode?
+          answer: |
+              No, vexes only spawn through Evoker summoning or creative mode spawn eggs. They don't generate naturally.
+        - question: Why can't I block a Vex's attack with my shield?
+          answer: |
+              Vexes frequently attack from behind their target, positioning themselves to bypass frontal shield defense.
+        - question: How long do summoned Vexes last in combat?
+          answer: |
+              Those called by an Evoker survive between 30-119 seconds before automatically taking damage and perishing; vexes placed via spawn egg do not expire this way.
+        - question: Do Vexes drop their swords when defeated?
+          answer: |
+              No, their equipped iron swords have zero drop chance and cannot be obtained, regardless of enchantments used.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

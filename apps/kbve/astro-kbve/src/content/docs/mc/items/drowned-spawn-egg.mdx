@@ -1,5 +1,6 @@
 ---
 title: Drowned Spawn Egg
+template: splash
 description: |
     Minecraft Drowned Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1085
     ref: drowned_spawn_egg
     slug: drowned-spawn-egg
+    content_rev: 1
     display_name: Drowned Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Drowned Spawn Egg is a creative-mode and command item that instantly spawns a
+            Drowned, the aquatic zombie variant found in oceans, rivers, and dripstone caves.
+            Drowned that spawn naturally can carry a trident or fishing rod and will chase
+            players through water, unlike regular zombies which avoid it.
+        lore: |
+            Drowned represent zombies that have adapted to the deep, formed either by natural
+            underwater spawning or by regular zombies left submerged long enough to convert.
+    faq:
+        - question: How do I get a Drowned in Survival mode?
+          answer: |
+              The spawn egg itself is only available in Creative mode or via commands;
+              in Survival, drowned spawn naturally underwater or form when a zombie is
+              submerged in water for about 45 seconds total.
+        - question: What does using the Drowned Spawn Egg create?
+          answer: |
+              It spawns an adult Drowned with 20 health, or a baby "gurgle" variant if used
+              on an existing baby zombie or drowned.
+        - question: Are spawned Drowned dangerous?
+          answer: |
+              Yes, some carry tridents or fishing rods for ranged attacks, and they actively
+              hunt players in water while ignoring them on land during the day.
+        - question: Can Drowned be attacked by guardians?
+          answer: |
+              No, drowned are immune to both guardian and elder guardian attacks, making
+              them unique among hostile aquatic mobs.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

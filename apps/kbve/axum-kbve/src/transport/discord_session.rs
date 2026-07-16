@@ -13,7 +13,8 @@
 //! global `crate::db::get_pg_cluster()` instead of an Extension and a kbve.com
 //! synthetic-email domain.
 
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::sync::OnceLock;
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use axum::{
     Json,
@@ -23,6 +24,20 @@ use axum::{
 use jedi::state::pg::PgConn;
 use jsonwebtoken::{Algorithm, EncodingKey, Header, encode};
 use serde::{Deserialize, Serialize};
+
+/// Shared HTTP client for all Discord/GoTrue upstream calls. Built once with a
+/// bounded timeout so a hung upstream can't pin an Axum worker (or the DB write
+/// connection held across the provision step) indefinitely.
+fn http_client() -> &'static reqwest::Client {
+    static CLIENT: OnceLock<reqwest::Client> = OnceLock::new();
+    CLIENT.get_or_init(|| {
+        reqwest::Client::builder()
+            .timeout(Duration::from_secs(10))
+            .connect_timeout(Duration::from_secs(5))
+            .build()
+            .unwrap_or_default()
+    })
+}
 
 const DISCORD_TOKEN_URL: &str = "https://discord.com/api/v10/oauth2/token";
 const DISCORD_USER_URL: &str = "https://discord.com/api/v10/users/@me";
@@ -101,7 +116,7 @@ pub async fn session(Json(req): Json<SessionRequest>) -> Response {
         return err(StatusCode::SERVICE_UNAVAILABLE, "database offline");
     };
 
-    let http = reqwest::Client::new();
+    let http = http_client();
 
     // 1. OAuth code -> Discord access token. Activities authorize in-client
     // without a redirect_uri, so only send one when explicitly configured —
@@ -183,7 +198,7 @@ pub async fn session(Json(req): Json<SessionRequest>) -> Response {
         Some((uid, Some(name))) if !name.is_empty() => (uid, name),
         other => {
             let existing = other.map(|(uid, _)| uid);
-            match provision_user(&http, &conn, &user, existing).await {
+            match provision_user(http, &conn, &user, existing).await {
                 Ok(pair) => pair,
                 Err((code, msg)) => return err(code, msg),
             }

@@ -1,5 +1,6 @@
 ---
 title: Creeper Head
+template: splash
 description: |
     Minecraft Creeper Head — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 430
     ref: creeper_wall_head
     slug: creeper-wall-head
+    content_rev: 1
     display_name: Creeper Head
     material: stone
     hardness: 1
     blast_resistance: 1
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: creeper_head
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hand_mineable
+        - overworld
+        - mob_head
+    about:
+        description: |
+            Creeper Wall Head is the wall-mounted placement form of the
+            Creeper Head, used when the item is placed against the side of
+            a block instead of on top of one.
+        lore: |
+            Split into its own block ID in Java Edition 1.13 so wall-
+            mounted and standing mob heads could each track their own
+            orientation data.
+    uses:
+        - title: Wall decoration
+          ref: creeper_head
+          detail: |
+              Displays a Creeper Head facing outward from a wall in one of
+              4 cardinal directions, commonly used in trophy rooms and
+              builds referencing charged-creeper kills.
+    found_in:
+        - location: Placing a Creeper Head item on a wall
+          detail: |
+              Automatically becomes this block state when the Creeper Head
+              item is placed against the side of a block rather than its
+              top; the item itself only drops from a creeper killed by a
+              charged creeper's explosion.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              None; it breaks at the same speed with any tool or bare
+              hands, and always drops a Creeper Head item.
+        - question: How is this different from the standing Creeper Head?
+          answer: |
+              It is a separate block used only when the head is attached to
+              the side of a block, with a facing property (north, south,
+              east, west) instead of the standing head's 16-value rotation.
+        - question: Do I need a special item to place this?
+          answer: |
+              No, both variants come from the same Creeper Head item; which
+              block state is used depends only on where you place it.
+        - question: Can I obtain it by crafting?
+          answer: |
+              No, it can only be obtained the same way as the standing
+              head: killing a creeper with another charged creeper's
+              explosion.
     data_version: "1.21.5"
 ---
 

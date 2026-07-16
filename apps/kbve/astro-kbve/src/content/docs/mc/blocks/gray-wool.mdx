@@ -1,5 +1,6 @@
 ---
 title: Gray Wool
+template: splash
 description: |
     Minecraft Gray Wool — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 147
     ref: gray_wool
     slug: gray-wool
+    content_rev: 1
     display_name: Gray Wool
     material: wool
     hardness: 0.8
@@ -24,10 +26,59 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: gray_wool
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Gray Wool is a dyed variant of wool, obtained by shearing gray
+            sheep or dyeing white wool, and used as a fast-to-mine,
+            colorful building block. It also blocks vibrations from
+            reaching nearby sculk sensors.
+        lore: |
+            Wool has been in Minecraft since the earliest versions and was
+            one of the first blocks available in all 16 dye colors.
+    uses:
+        - title: Beds
+          ref: gray_bed
+          detail: |
+              Three gray wool plus three matching planks craft a gray bed,
+              usable to set a spawn point and skip the night.
+        - title: Banners
+          ref: gray_banner
+          detail: |
+              Six gray wool and one stick craft a gray banner for
+              decoration or shield patterning.
+    found_in:
+        - location: Sheep
+          detail: Shear a gray sheep for 1-3 wool, or breed sheep with gray dye applied.
+        - location: Crafted
+          detail: Four string craft white wool, which can then be dyed gray with one gray dye.
+    faq:
+        - question: What is the fastest way to mine Gray Wool?
+          answer: |
+              Shears break it instantly in about 0.25 seconds; any tool
+              works, and no tool is required to get a drop.
+        - question: Is Gray Wool flammable?
+          answer: |
+              Yes, wool is highly flammable and will catch fire from lava
+              or nearby flames, so avoid it in fire-prone builds.
+        - question: How do I get Gray Wool without sheep?
+          answer: |
+              Craft four string into white wool, then combine it with one
+              gray dye, or dye any other colored wool gray directly.
+        - question: Does Gray Wool block sculk sensor vibrations?
+          answer: |
+              Yes, all wool colors dampen vibrations, preventing nearby
+              sculk sensors and wardens from detecting sounds through it.
     data_version: "1.21.5"
 ---
 

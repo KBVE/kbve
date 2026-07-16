@@ -1,5 +1,6 @@
 ---
 title: Chiseled Red Sandstone
+template: splash
 description: |
     Minecraft Chiseled Red Sandstone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,66 @@ mc_block:
     id: 564
     ref: chiseled_red_sandstone
     slug: chiseled-red-sandstone
+    content_rev: 1
     display_name: Chiseled Red Sandstone
     material: stone
     hardness: 0.8
     blast_resistance: 0.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: chiseled_red_sandstone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Chiseled Red Sandstone is a decorative red sandstone variant
+            carved with a wither-shaped motif, used for detailing in desert
+            and mesa builds. Unlike red sand, it is unaffected by gravity.
+        lore: |
+            The wither carving was a community-suggested design, added to
+            the sandstone family as a playful nod to the boss mob.
+    uses:
+        - title: Decorative building
+          ref: red_sandstone_slab
+          detail: |
+              Stack two Red Sandstone Slabs vertically, or stonecut a Red
+              Sandstone block, to produce Chiseled Red Sandstone; it can
+              also be crafted back into 6 slabs or cut into 4 stairs.
+    found_in:
+        - location: Player-crafted
+          detail: Not found naturally generated; obtained by crafting Red Sandstone Slabs or stonecutting Red Sandstone.
+        - location: Deserts and Badlands
+          detail: Red Sandstone (the base material) is gathered from desert and badlands/mesa biomes.
+    faq:
+        - question: What tool do I need to mine Chiseled Red Sandstone?
+          answer: |
+              Any pickaxe, starting from wood. Mining without a pickaxe
+              yields no drop.
+        - question: Does Chiseled Red Sandstone generate naturally?
+          answer: |
+              No. It is only obtained by crafting or stonecutting Red
+              Sandstone; it does not spawn pre-formed in the world.
+        - question: What is depicted on Chiseled Red Sandstone's texture?
+          answer: |
+              A stylized wither face, suggested by a member of the
+              Minecraft community during its early development.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops itself as a single block once mined with
+              any pickaxe.
     data_version: "1.21.5"
 ---
 

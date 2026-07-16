@@ -1,5 +1,6 @@
 ---
 title: Potted Pale Oak Sapling
+template: splash
 description: |
     Minecraft Potted Pale Oak Sapling — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 389
     ref: potted_pale_oak_sapling
     slug: potted-pale-oak-sapling
+    content_rev: 1
     display_name: Potted Pale Oak Sapling
     material: plant
     hardness: 0
@@ -26,8 +28,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: pale_oak_sapling
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Potted Pale Oak Sapling is a decorative variant created by
+            placing a Pale Oak sapling into a Flower Pot. It breaks
+            instantly with any tool or by hand, and returns both the pot
+            and the sapling as separate items.
+        lore: |
+            Pale Oak was introduced with the pale garden biome, giving
+            builders a bleached, ghostly wood tone to pot alongside other
+            saplings.
+    found_in:
+        - location: Pale Garden decoration
+          detail: Potted pale oak saplings can appear as decoration in generated pale garden structures.
+        - location: Player-crafted
+          detail: Right-clicking a Flower Pot with a Pale Oak sapling places it inside.
+    faq:
+        - question: What does breaking Potted Pale Oak Sapling drop?
+          answer: |
+              Both the Flower Pot and the Pale Oak Sapling item, recoverable
+              instantly with any tool or bare hands.
+        - question: Can I grow the potted sapling into a tree?
+          answer: |
+              No. Only a Pale Oak sapling planted on soil, not potted, can
+              grow into a full pale oak tree.
+        - question: Does it require a specific tool to mine?
+          answer: |
+              No. It has 0 hardness and breaks instantly with anything,
+              including bare hands.
+        - question: Where do Potted Pale Oak Saplings occur naturally?
+          answer: |
+              They can generate as decoration in pale garden biome
+              structures, alongside the wider pale garden update content.
     data_version: "1.21.5"
 ---
 

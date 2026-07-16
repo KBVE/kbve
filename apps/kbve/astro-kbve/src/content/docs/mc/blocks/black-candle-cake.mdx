@@ -1,5 +1,6 @@
 ---
 title: Cake with Black Candle
+template: splash
 description: |
     Minecraft Cake with Black Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 936
     ref: black_candle_cake
     slug: black-candle-cake
+    content_rev: 1
     display_name: Cake with Black Candle
     material: stone
     hardness: 0.5
@@ -26,8 +28,50 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: black_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Cake with Black Candle is created by placing a Black Candle on
+            top of an uneaten cake. It can be lit like any candle, and slices
+            can still be eaten from the cake underneath while the candle
+            burns on top.
+        lore: |
+            Candles, and the ability to decorate cakes with them, were added
+            in the Caves & Cliffs Java Edition 1.17 update.
+    uses:
+        - title: Birthday / celebration decoration
+          ref: black_candle
+          detail: |
+              Purely decorative combination of a cake and a lit candle;
+              breaking the block always returns the candle, while the cake
+              itself is consumed by eating rather than mined.
+    found_in:
+        - location: Crafted by the player
+          detail: Made by using a Black Candle on a placed, uneaten cake block.
+    faq:
+        - question: What does breaking a Cake with Black Candle drop?
+          answer: |
+              It always drops the Black Candle placed on top. The cake
+              portion cannot be recovered once placed, even with Silk Touch.
+        - question: Can I still eat the cake with a candle on it?
+          answer: |
+              Yes. Right-clicking the cake eats a slice as normal; the candle
+              stays on top and can be lit or extinguished independently.
+        - question: Does the candle need to be lit to place it on a cake?
+          answer: |
+              No. Any candle, lit or unlit, can be placed on an uneaten cake;
+              light it afterward with flint and steel or a fire charge.
+        - question: What tool do I need to break it?
+          answer: |
+              None — it can be mined by hand or with any tool with no tool
+              requirement.
     data_version: "1.21.5"
 ---
 

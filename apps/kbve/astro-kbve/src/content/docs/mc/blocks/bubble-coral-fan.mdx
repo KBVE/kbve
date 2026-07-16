@@ -1,5 +1,6 @@
 ---
 title: Bubble Coral Fan
+template: splash
 description: |
     Minecraft Bubble Coral Fan — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 742
     ref: bubble_coral_fan
     slug: bubble-coral-fan
+    content_rev: 1
     display_name: Bubble Coral Fan
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bubble_coral_fan
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - coral
+        - underwater
+        - non_solid
+    about:
+        description: |
+            Bubble Coral Fan is a coral plant that can be placed on the
+            four sides or top of a block while underwater. It cannot be
+            pushed by pistons — attempting to do so breaks it instead.
+        lore: |
+            Coral fans were introduced alongside coral blocks and coral
+            plants in the Update Aquatic to decorate ocean reefs.
+    uses:
+        - title: Underwater Wall/Floor Decoration
+          ref: bubble_coral_wall_fan
+          detail: |
+              Placed on the side of a block, a coral fan automatically
+              becomes a Bubble Coral Wall Fan; used purely for
+              decorative reef building.
+    found_in:
+        - location: Warm ocean coral reef structures
+          detail: Generates naturally on the sides and tops of blocks within coral reefs.
+        - location: Bone-mealed coral blocks
+          detail: Can spread from a nearby living coral block or plant via bone meal underwater.
+    faq:
+        - question: Do I need Silk Touch to collect it?
+          answer: |
+              Yes. Bubble Coral Fan only drops itself when mined with a
+              Silk Touch enchanted tool; otherwise it drops nothing.
+        - question: What happens if I place it out of water?
+          answer: |
+              It wilts into Dead Bubble Coral Fan within a few seconds in
+              Java Edition, or instantly in Bedrock Edition.
+        - question: Can I push it with a piston?
+          answer: |
+              No. Live coral fans break instead of moving when a piston
+              tries to push them.
+        - question: Where can it be placed?
+          answer: |
+              On the four side faces and the top surface of a block, but
+              never on the underside of a block.
     data_version: "1.21.5"
 ---
 

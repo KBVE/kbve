@@ -1,5 +1,6 @@
 ---
 title: Warped Fungus on a Stick
+template: splash
 description: |
     Minecraft Warped Fungus on a Stick — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 807
     ref: warped_fungus_on_a_stick
     slug: warped-fungus-on-a-stick
+    content_rev: 1
     display_name: Warped Fungus on a Stick
     category: material
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Warped Fungus on a Stick is crafted from a fishing rod and warped fungus, and
+            it functions as the strider's equivalent of a carrot on a stick. Holding it
+            attracts nearby striders, and while riding a saddled strider it steers the
+            creature in the direction the player faces, consuming durability with each use.
+        lore: |
+            The strider's ability to walk unharmed on lava makes it a safe means of
+            transport across the Nether's molten terrain when guided by this tool.
+    faq:
+        - question: |
+              How do I craft Warped Fungus on a Stick?
+          answer: |
+              Combine a fishing rod with warped fungus in a crafting grid, placing the rod
+              diagonally above the fungus.
+        - question: |
+              What happens when it runs out of durability?
+          answer: |
+              It has 100 durability on Java Edition (101 on Bedrock), losing one point per
+              use, and once depleted it turns back into a plain fishing rod.
+        - question: |
+              Does it work on striders that aren't saddled?
+          answer: |
+              It will still attract nearby striders toward the player, but steering only
+              works while riding a saddled strider.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

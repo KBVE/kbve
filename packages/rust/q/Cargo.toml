@@ -84,7 +84,7 @@ bincode = { version = "2.0", optional = true, features = ["serde"] }
 rapier2d = { version = "0.22", optional = true }
 
 # Bevy ECS — headless server. No render, no winit; we drive App::update from a tokio task.
-bevy = { version = "0.18", optional = true, default-features = false, features = ["bevy_state"] }
+bevy = { version = "0.19", optional = true, default-features = false, features = ["bevy_state"] }
 
 # Shared map registry — Zone authoring lives in the mapdb proto, not in
 # game-specific schema. Server-only because the godot client doesn't load

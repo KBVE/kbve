@@ -1,5 +1,6 @@
 ---
 title: Brown Shulker Box
+template: splash
 description: |
     Minecraft Brown Shulker Box — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 658
     ref: brown_shulker_box
     slug: brown-shulker-box
+    content_rev: 1
     display_name: Brown Shulker Box
     material: stone
     hardness: 2
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brown_shulker_box
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - container
+        - end
+    about:
+        description: |
+            The Brown Shulker Box is a portable 27-slot storage container dyed
+            brown. Unlike other containers, a shulker box keeps every item it
+            holds when broken, so you can carry a full inventory with you. Any
+            tool or your bare hand mines it, though a pickaxe is fastest.
+        lore: |
+            Crafted from the shell of a Shulker, the box carries the End's
+            teleporting guardians' knack for holding things in place.
+    uses:
+        - title: Portable Storage
+          ref: brown_shulker_box
+          detail: |
+              Holds 27 stacks and retains its contents when mined, making it
+              the standard way to haul large amounts of items or organize a
+              base without losing anything on the move.
+        - title: Redstone Container
+          ref: comparator
+          detail: |
+              A comparator reads how full the box is, and an observer detects
+              its open and close animation, so it can drive redstone contraptions.
+    found_in:
+        - location: End Cities
+          detail: Shulkers spawn on End city ships and towers; their shells craft into boxes.
+        - location: Crafting Table
+          detail: Combine a shulker shell, a chest, and brown dye to make or recolor the box.
+    faq:
+        - question: Do I keep my items when I break a Brown Shulker Box?
+          answer: |
+              Yes. The box drops as an item with all of its stored contents
+              intact, unlike chests which spill their inventory.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool or your bare hand works, and the box always drops. A
+              pickaxe simply breaks it fastest.
+        - question: Can I put a shulker box inside another shulker box?
+          answer: |
+              No. Shulker boxes cannot be nested, and they cannot be stacked
+              in your inventory either.
+        - question: How do I change the color of a shulker box?
+          answer: |
+              Combine any shulker box with brown dye in a crafting grid to
+              recolor it; the stored contents are preserved.
     data_version: "1.21.5"
 ---
 

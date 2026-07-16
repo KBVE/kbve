@@ -23,10 +23,24 @@ spec:
             containers:
                 - name: valkey
                   image: valkey/valkey:8-alpine
+                  # Intentional volatile cache (routing/affinity/occupancy only — no durable state).
+                  # `--appendonly yes` on an emptyDir was a no-op (the AOF is wiped on every
+                  # reschedule), so it's dropped. maxmemory + allkeys-lru cap usage below the 256Mi
+                  # limit so valkey self-evicts within budget instead of being OOMKilled by the
+                  # kubelet (which wipes the whole keyspace). When the server-lifecycle feature adds
+                  # hot-path *durable* claims (SETNX party anchors / reserved-instance markers),
+                  # switch to a PVC + `--maxmemory-policy noeviction`, or keep this cache and make
+                  # those consumers provably fail-safe. See the lifecycle spec (B2/B3).
                   command:
                       - valkey-server
+                      - --maxmemory
+                      - 192mb
+                      - --maxmemory-policy
+                      - allkeys-lru
+                      - --save
+                      - ''
                       - --appendonly
-                      - 'yes'
+                      - 'no'
                   ports:
                       - name: valkey
                         containerPort: 6379
@@ -52,12 +66,6 @@ spec:
                               - ping
                       initialDelaySeconds: 5
                       periodSeconds: 5
-                  volumeMounts:
-                      - name: data
-                        mountPath: /data
-            volumes:
-                - name: data
-                  emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

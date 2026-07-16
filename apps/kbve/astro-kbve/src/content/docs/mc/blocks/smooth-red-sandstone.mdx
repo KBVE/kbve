@@ -1,5 +1,6 @@
 ---
 title: Smooth Red Sandstone
+template: splash
 description: |
     Minecraft Smooth Red Sandstone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 595
     ref: smooth_red_sandstone
     slug: smooth-red-sandstone
+    content_rev: 1
     display_name: Smooth Red Sandstone
     material: stone
     hardness: 2
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: smooth_red_sandstone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Smooth Red Sandstone is a smelted variant of Red Sandstone with a
+            uniform, seamless texture. It is not affected by gravity, unlike
+            red sand, and serves as the base ingredient for smooth red
+            sandstone slabs and stairs.
+        lore: |
+            Originally a leftover double-slab texture in Java Edition 1.8,
+            it was given a proper block form and smelting recipe by 1.14.
+    uses:
+        - title: Smooth Red Sandstone Slab
+          ref: smooth_red_sandstone_slab
+          detail: |
+              Craft three blocks into six slabs, or stonecut one block into
+              two slabs.
+        - title: Smooth Red Sandstone Stairs
+          ref: smooth_red_sandstone_stairs
+          detail: |
+              Craft six blocks into four stairs, or stonecut one block into
+              one stair.
+    found_in:
+        - location: Furnace or blast furnace
+          detail: Smelt regular Red Sandstone with any fuel to produce Smooth Red Sandstone.
+        - location: Not found naturally
+          detail: It does not generate in the world and must always be smelted from Red Sandstone.
+    faq:
+        - question: What tool do I need to mine Smooth Red Sandstone?
+          answer: |
+              Any pickaxe works — there is no minimum tier requirement for
+              the drop.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one block, regardless of
+              enchantments.
+        - question: How do I obtain Smooth Red Sandstone?
+          answer: |
+              Smelt Red Sandstone in a furnace or blast furnace using any
+              fuel — it cannot be gathered any other way.
+        - question: Why is its hardness higher than plain Red Sandstone?
+          answer: |
+              Smooth Red Sandstone inherits hardness and blast resistance
+              values from the historical double-slab block it originated
+              from, making it tougher than the regular block.
     data_version: "1.21.5"
 ---
 

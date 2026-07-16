@@ -1,5 +1,6 @@
 ---
 title: Oak Sapling
+template: splash
 description: |
     Minecraft Oak Sapling — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 49
     ref: oak_sapling
     slug: oak-sapling
+    content_rev: 1
     display_name: Oak Sapling
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            An oak sapling is a non-solid block that grows into an oak tree when
+            planted on dirt, grass, or moss and given enough light and space. It is
+            one of the most basic renewable resources in the game, essential for
+            sustaining a supply of wood early on.
+        lore: |
+            In official Minecraft artwork, characters plant oak saplings for Arbor
+            Day, echoing the game's themes of growth and stewardship.
+    faq:
+        - question: How do you get oak saplings?
+          answer: |
+              Breaking oak leaves has a 5% chance to drop a sapling, increasing
+              up to 10% with a Fortune III enchanted tool. Saplings also appear in
+              village chests and can be bought from wandering traders.
+        - question: How long does it take for an oak sapling to grow?
+          answer: |
+              A sapling passes through two hidden growth stages before sprouting
+              into a tree on the third stage. Applying bone meal can trigger
+              instant growth.
+        - question: What space does an oak tree need to grow?
+          answer: |
+              An oak sapling needs open space above it, roughly a 3x3 column with
+              at least 5 blocks of clearance, and can mature into either a regular
+              oak or a larger "fancy" oak tree.
+        - question: Can oak saplings be planted anywhere?
+          answer: |
+              Saplings can only be placed on dirt-type blocks such as dirt, grass
+              block, podzol, or moss block, and require adequate light to grow.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Nether Brick Slab
+template: splash
 description: |
     Minecraft Nether Brick Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,61 @@ mc_block:
     id: 587
     ref: nether_brick_slab
     slug: nether-brick-slab
+    content_rev: 1
     display_name: Nether Brick Slab
     material: nether
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: nether_brick_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+        - blast_resistant
+    about:
+        description: |
+            Nether Brick Slab is a decorative half-height slab cut from
+            Nether Bricks. It never generates naturally, existing only as a
+            building variant crafted or stonecut for fortress-style
+            construction.
+        lore: |
+            Added in Java Edition 12w49a (1.4.6), it lets builders trim
+            Nether Brick walls and floors to half-block height.
+    uses:
+        - title: Chiseled Nether Bricks
+          ref: chiseled_nether_bricks
+          detail: |
+              Two Nether Brick Slabs stacked in a crafting grid produce
+              Chiseled Nether Bricks, a decorative variant.
+    found_in:
+        - location: Crafted from Nether Bricks
+          detail: 3 Nether Bricks in a row craft 6 slabs; a single brick can also be stonecut into 2 slabs.
+    faq:
+        - question: Does Nether Brick Slab generate naturally?
+          answer: |
+              No. It only exists as a crafted or stonecut building block —
+              it is never part of natural Nether fortress generation.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, including wood. Mining without a pickaxe drops
+              nothing.
+        - question: Is it flammable?
+          answer: |
+              No. Like other Nether brick blocks it does not burn and is
+              immune to ghast fireballs.
     data_version: "1.21.5"
 ---
 

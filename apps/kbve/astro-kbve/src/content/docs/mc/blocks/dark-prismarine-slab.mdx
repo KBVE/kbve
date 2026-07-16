@@ -1,5 +1,6 @@
 ---
 title: Dark Prismarine Slab
+template: splash
 description: |
     Minecraft Dark Prismarine Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 503
     ref: dark_prismarine_slab
     slug: dark-prismarine-slab
+    content_rev: 1
     display_name: Dark Prismarine Slab
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dark_prismarine_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            The Dark Prismarine Slab is a half-height decorative
+            variant of dark prismarine that does not generate
+            naturally. It is used to add fine detail and flat
+            surfaces to prismarine-themed builds.
+        lore: |
+            Dark prismarine and its cut variants were added alongside
+            ocean monuments in the 1.8 "Bountiful Update," giving
+            builders an ocean-themed stone palette.
+    uses:
+        - title: Prismarine Detailing
+          ref: dark_prismarine_slab
+          detail: |
+              Used for steps, half-height walls, and roofing accents in
+              underwater or ocean-monument-themed structures alongside
+              full dark prismarine blocks and stairs.
+    found_in:
+        - location: Crafting Table
+          detail: Crafted from 3 dark prismarine blocks arranged in a row, yielding 6 slabs.
+        - location: Stonecutter
+          detail: One dark prismarine block converts into 2 slabs via the stonecutter.
+    faq:
+        - question: What tool do I need to mine a Dark Prismarine Slab?
+          answer: |
+              A wooden pickaxe or better; mining it without any pickaxe
+              yields no drop.
+        - question: Does Dark Prismarine Slab generate naturally?
+          answer: |
+              No, it only exists as a crafted or stonecut block — the
+              natural ocean monument structure does not contain it.
+        - question: Is it affected by Silk Touch or Fortune?
+          answer: |
+              No, it always drops itself as one slab regardless of
+              enchantments.
+        - question: Can two slabs be combined into a full block?
+          answer: |
+              Yes, placing two dark prismarine slabs in the same space
+              (or combining them in a crafting grid) produces a full
+              Dark Prismarine block.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Music Disc
+template: splash
 description: |
     Minecraft Music Disc — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1245
     ref: music_disc_otherside
     slug: music-disc-otherside
+    content_rev: 1
     display_name: Music Disc
     category: music
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Music Disc "otherside" is a rare track composed by Lena Raine, added in Java
+            Edition 1.18. It can be obtained as a rare drop from creepers killed by
+            skeletons, or looted from Monster Rooms, Strongholds, and Ancient City chests.
+        lore: |
+            Its synth-driven melody stands apart from C418's earlier ambient discs, hinting
+            at the deeper, stranger places explorers can find it.
+    faq:
+        - question: How do I get the otherside music disc?
+          answer: |
+              You can get otherside as a rare drop when a creeper is killed by a skeleton,
+              or by looting chests in Monster Rooms, Strongholds, or Ancient Cities.
+        - question: Who composed the otherside track?
+          answer: |
+              Otherside was composed by Lena Raine, who joined Minecraft's soundtrack team
+              starting with the 1.18 update.
+        - question: What comparator signal does otherside output?
+          answer: |
+              Playing otherside in a jukebox next to a comparator produces a signal strength
+              of 14.
+        - question: Is otherside renewable?
+          answer: |
+              Otherside is non-renewable outside of chest loot and creeper drops; it cannot
+              be crafted.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Cake with Gray Candle
+template: splash
 description: |
     Minecraft Cake with Gray Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 928
     ref: gray_candle_cake
     slug: gray-candle-cake
+    content_rev: 1
     display_name: Cake with Gray Candle
     material: stone
     hardness: 0.5
@@ -21,13 +23,56 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: gray_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Cake with Gray Candle is formed by placing a Gray Candle onto
+            an uneaten cake block. Mining it drops only the candle — the
+            cake itself is destroyed and yields nothing.
+        lore: |
+            Introduced alongside candles in Java Edition 1.17, candle
+            cakes double as a birthday-cake decoration and a light source.
+    uses:
+        - title: Light Source
+          ref: gray_candle
+          detail: |
+              Light the candle with flint and steel or a fire charge to
+              emit a light level of 3, useful for small decorative
+              lighting setups.
+    found_in:
+        - location: Crafted or Placed
+          detail: |
+              Not found naturally — created by using a Gray Candle item on
+              a placed, uneaten Cake block.
+    faq:
+        - question: What does mining a gray candle cake drop?
+          answer: |
+              Only the Gray Candle; the cake portion is consumed and drops
+              nothing, unlike a plain cake.
+        - question: Can I eat a candle cake?
+          answer: |
+              No, candle cakes cannot be eaten while the candle is placed;
+              the candle must be removed first by breaking the block.
+        - question: How do I light a candle cake?
+          answer: |
+              Use flint and steel, a fire charge, or a fire-aspect weapon
+              on it to ignite the candle for light.
+        - question: What tool is needed to mine it?
+          answer: |
+              None — it can be broken with bare hands since it has no
+              minimum tool tier requirement.
     data_version: "1.21.5"
 ---
 

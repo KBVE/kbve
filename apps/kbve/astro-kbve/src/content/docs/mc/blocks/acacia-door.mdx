@@ -1,5 +1,6 @@
 ---
 title: Acacia Door
+template: splash
 description: |
     Minecraft Acacia Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 617
     ref: acacia_door
     slug: acacia-door
+    content_rev: 1
     display_name: Acacia Door
     material: wood
     hardness: 3
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: acacia_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Acacia Door is a two-tile-tall openable barrier crafted from
+            acacia planks. Players can open it by hand, redstone signal, or
+            pressure plate, while most hostile mobs cannot.
+        lore: |
+            The creaking open and close sound effects for wooden doors were
+            finalized in Java Edition 1.0.0-RC1, giving each door its
+            familiar audio cue.
+    uses:
+        - title: Base Entrances
+          ref: acacia_door
+          detail: |
+              Placed in doorways to let players and villagers pass while
+              blocking most mobs; can be wired to redstone for automatic
+              opening.
+        - title: Furnace Fuel
+          ref: acacia_door
+          detail: |
+              Overworld wood doors can be smelted as furnace fuel.
+    found_in:
+        - location: Crafting
+          detail: Six acacia planks in a door pattern craft three acacia doors.
+        - location: Villages and Woodland Structures
+          detail: Generates naturally on many village and savanna-biome structures.
+    faq:
+        - question: What tool mines an acacia door fastest?
+          answer: |
+              An axe, though any tool (or bare hands) can break it since no
+              minimum tool tier is required.
+        - question: Does the door drop itself when broken?
+          answer: |
+              Yes, it always drops as a single acacia door item regardless
+              of enchantments.
+        - question: Can zombies break acacia doors?
+          answer: |
+              Zombies and vindicators can break wooden doors on Hard
+              difficulty, though this is rarer than iron door immunity
+              would suggest since wooden doors can also just be opened.
+        - question: Is acacia wood flammable?
+          answer: |
+              The door itself does not burn directly from fire spread, but it
+              can catch fire if exposed to lava, like other wooden doors.
     data_version: "1.21.5"
 ---
 

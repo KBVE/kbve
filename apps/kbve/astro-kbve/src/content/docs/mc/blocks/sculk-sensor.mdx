@@ -1,5 +1,6 @@
 ---
 title: Sculk Sensor
+template: splash
 description: |
     Minecraft Sculk Sensor — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 960
     ref: sculk_sensor
     slug: sculk-sensor
+    content_rev: 1
     display_name: Sculk Sensor
     material: plant
     hardness: 1.5
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: sculk_sensor
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - redstone_component
+        - deep_dark
+        - vibration_sensor
+    about:
+        description: |
+            A sculk sensor is a redstone block that detects vibrations —
+            footsteps, block changes, projectiles, and other actions —
+            within an 8-block spherical range and emits a redstone signal
+            whose strength depends on how close the vibration occurred.
+            It only drops itself when mined with Silk Touch; otherwise it
+            yields 5 experience.
+        lore: |
+            Sculk sensors grow from the spread of the deep dark and share
+            the same vibration sense that summons the Warden.
+    uses:
+        - title: Wireless Redstone
+          detail: |
+              Because it reacts to distant events, a sculk sensor acts as
+              a contactless switch for hidden doors, alarms, and traps.
+        - title: Warden Warning
+          detail: |
+              Its activation, paired with a sculk shrieker, can trigger
+              the warning cycle that eventually spawns the Warden.
+    found_in:
+        - location: Deep Dark biome
+          detail: Generates naturally across the deep dark and ancient cities.
+        - location: Sculk spread
+          detail: Has a 9% chance to form on sculk blocks when a sculk catalyst absorbs a mob death.
+        - location: Ancient City chests
+          detail: Found as loot with roughly a 23.7% chance per chest.
+    faq:
+        - question: What tool breaks a sculk sensor fastest?
+          answer: |
+              A hoe — a golden hoe is quickest. The block breaks slowly
+              with anything else.
+        - question: How do I collect the block itself?
+          answer: |
+              Mine it with a Silk Touch tool. Without Silk Touch it drops
+              5 experience and no block.
+        - question: Can I hide the redstone signal from it?
+          answer: |
+              Yes — cover the sensor with wool, which dampens vibrations
+              and prevents the sensor and nearby sculk from detecting them.
     data_version: "1.21.5"
 ---
 

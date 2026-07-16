@@ -1,5 +1,6 @@
 ---
 title: Honey Block
+template: splash
 description: |
     Minecraft Honey Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 872
     ref: honey_block
     slug: honey-block
+    content_rev: 1
     display_name: Honey Block
     material: glass
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
@@ -26,8 +27,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: honey_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - sticky
+    about:
+        description: |
+            Honey Block is a sticky block crafted from four honey bottles. It
+            slows entities that walk across its top, lets them slide gently
+            down its sides without fall damage, and can be pulled by pistons
+            to move adjacent blocks and entities together.
+        lore: |
+            Announced at MINECON Live 2019 and added in Java Edition 1.15,
+            introduced alongside bees and honeycomb.
+    uses:
+        - title: Honey Bottle
+          ref: honey_bottle
+          detail: |
+              Placed in a crafting grid, a Honey Block converts back into
+              four Honey Bottles.
+        - title: Piston contraptions
+          ref: piston
+          detail: |
+              Its stickiness (without the full adhesion of a Slime Block)
+              lets redstone builds move honey blocks and attached entities
+              while still separating from slime blocks.
+    found_in:
+        - location: Crafting table
+          detail: Crafted from four Honey Bottles arranged in a 2x2 grid.
+    faq:
+        - question: Does a Honey Block stick to Slime Blocks?
+          answer: |
+              No. Honey Blocks and Slime Blocks never stick to each other,
+              though each sticks to blocks of its own type and to normal
+              blocks pushed by pistons.
+        - question: Does walking on a Honey Block hurt me?
+          answer: |
+              No, and it helps: falling onto a Honey Block reduces fall
+              damage by 80%, and climbing its sides lets entities slide down
+              slowly like a ladder.
+        - question: What tool do I need to break a Honey Block?
+          answer: |
+              None. Any tool, or no tool at all, mines it instantly since its
+              hardness is 0.
+        - question: How is Honey Block obtained?
+          answer: |
+              Collect Honey Bottles from a beehive or bee nest using a glass
+              bottle, then craft four of them together in a 2x2 pattern.
     data_version: "1.21.5"
 ---
 

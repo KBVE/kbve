@@ -167,6 +167,7 @@ fn drain_native_input(
                     x: dx as f32,
                     y: dy as f32,
                     window: window_entity,
+                    phase: bevy::input::touch::TouchPhase::Moved,
                 };
                 wheel_writer.write(mw);
                 window_event_writer.write(WindowEvent::MouseWheel(mw));

@@ -1,5 +1,6 @@
 ---
 title: Cyan Carpet
+template: splash
 description: |
     Minecraft Cyan Carpet — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 515
     ref: cyan_carpet
     slug: cyan-carpet
+    content_rev: 1
     display_name: Cyan Carpet
     material: wool
     hardness: 0.1
     blast_resistance: 0.1
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cyan_carpet
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Cyan Carpet is a thin, one-sixteenth-block-thick decorative
+            floor covering dyed from wool. It stays visually opaque while
+            still letting light pass through and prevents mob spawning
+            underneath.
+        lore: |
+            Carpets were added in Java Edition 1.7.4 as a cheap way to
+            stretch wool further while adding a decorative rug layer to
+            floors.
+    uses:
+        - title: Llama Saddle Decoration
+          ref: cyan_carpet
+          detail: |
+              Equip a llama with a matching-colored carpet to give it a
+              unique decorative pattern.
+        - title: Sculk Sensor Dampener
+          ref: sculk_sensor
+          detail: |
+              Place carpet on a sculk sensor or calibrated sculk sensor to
+              muffle vibrations it would otherwise detect.
+    found_in:
+        - location: Crafted
+          detail: 2 cyan wool craft into 3 cyan carpet.
+        - location: Dyed
+          detail: In Bedrock Edition, combine existing carpet with matching dye to recolor it.
+    faq:
+        - question: Does carpet stop mobs from spawning?
+          answer: |
+              Yes, placing carpet over a floor prevents hostile mob
+              spawning on that block.
+        - question: Is carpet flammable?
+          answer: |
+              Yes, carpet can catch fire and burn like wool, though it
+              resists fire for a short time before igniting.
+        - question: Can two layers of carpet block movement?
+          answer: |
+              Yes, a double layer of carpet placed together on one block
+              acts as a barrier entities cannot walk across.
+        - question: What tool do I need to mine carpet?
+          answer: |
+              None — any tool or bare hands breaks it instantly, and it
+              always drops itself.
     data_version: "1.21.5"
 ---
 

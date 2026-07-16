@@ -1,5 +1,6 @@
 ---
 title: Cut Red Sandstone
+template: splash
 description: |
     Minecraft Cut Red Sandstone — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,72 @@ mc_block:
     id: 565
     ref: cut_red_sandstone
     slug: cut-red-sandstone
+    content_rev: 1
     display_name: Cut Red Sandstone
     material: stone
     hardness: 0.8
     blast_resistance: 0.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cut_red_sandstone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Cut Red Sandstone is a smooth decorative variant of red
+            sandstone with a plain rectangular carved pattern, made by
+            crafting or stonecutting red sandstone rather than found
+            naturally in the world.
+        lore: |
+            Originally added as "Smooth Red Sandstone" in Java Edition
+            1.8, then renamed to Cut Red Sandstone in 1.13 when a
+            separate smooth variant was introduced.
+    uses:
+        - title: Cut Red Sandstone Slab
+          ref: cut_red_sandstone_slab
+          detail: |
+              Crafted 3-to-6 into slabs, or stonecut directly for a
+              half-height trim block.
+        - title: Red Sandstone Stairs
+          ref: red_sandstone_stairs
+          detail: |
+              Six Cut Red Sandstone blocks craft into 4 Red Sandstone
+              Stairs.
+    found_in:
+        - location: Crafting
+          detail: 4 Red Sandstone blocks craft into 4 Cut Red Sandstone.
+        - location: Stonecutting
+          detail: 1 Red Sandstone produces 1 Cut Red Sandstone via the stonecutter.
+    faq:
+        - question: What tool do I need to mine Cut Red Sandstone?
+          answer: |
+              Any pickaxe, even wooden, works; mining without one drops
+              nothing.
+        - question: Does Cut Red Sandstone generate naturally?
+          answer: |
+              No, it is purely a crafted or stonecut decorative block and
+              does not appear in world generation.
+        - question: Is Cut Red Sandstone affected by Fortune?
+          answer: |
+              No, it always drops exactly one block regardless of
+              Fortune level.
+        - question: What was Cut Red Sandstone originally called?
+          answer: |
+              It was introduced as "Smooth Red Sandstone" in Java Edition
+              1.8 before being renamed in 1.13.
     data_version: "1.21.5"
 ---
 

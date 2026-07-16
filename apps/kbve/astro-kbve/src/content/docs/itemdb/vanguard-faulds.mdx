@@ -1,0 +1,46 @@
+---
+title: 'Vanguard Faulds'
+template: splash
+sidebar:
+    label: 'Vanguard Faulds'
+    hidden: true
+description: |
+    Four hinged plates ringing the hips — front, back and both flanks. They swing with the stride and close ranks when it stops.
+ref: 'vanguard-faulds'
+key: 611
+id: '01KXFBEGM1RHJR3X96YW33PW5E'
+name: 'Vanguard Faulds'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'uncommon'
+buy_price: 80
+emoji: '🛡️'
+img: '/assets/items/equipment/vanguard-faulds.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'KNGT'
+  nodes:
+    - 'AHPF'
+    - 'AHPB'
+    - 'AHPL'
+    - 'AHPR'
+  slot_keys:
+    - 'AHPF'
+    - 'AHPB'
+    - 'AHPL'
+    - 'AHPR'
+equipment:
+  slot: 'legs'
+  bonuses:
+    armor: 4
+    extra:
+      weight: 4
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

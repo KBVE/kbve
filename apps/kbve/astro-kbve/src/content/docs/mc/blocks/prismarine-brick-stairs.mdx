@@ -1,5 +1,6 @@
 ---
 title: Prismarine Brick Stairs
+template: splash
 description: |
     Minecraft Prismarine Brick Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 499
     ref: prismarine_brick_stairs
     slug: prismarine-brick-stairs
+    content_rev: 1
     display_name: Prismarine Brick Stairs
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: prismarine_brick_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - stairs
+    about:
+        description: |
+            Prismarine Brick Stairs are a decorative staircase variant of
+            Prismarine Bricks, used to build sloped surfaces and detail in
+            aquatic-themed structures. They do not generate naturally.
+        lore: |
+            Like all prismarine blocks, the material traces back to ocean
+            monuments, guardian-guarded structures found in deep ocean
+            biomes.
+    uses:
+        - title: Sloped Building
+          ref: prismarine_brick_stairs
+          detail: |
+              Used for roofs, steps, and transitions in ocean-monument or
+              underwater-themed builds where a flat slope is needed.
+    found_in:
+        - location: Crafted from Prismarine Bricks
+          detail: 6 Prismarine Bricks in a staircase pattern craft 4 stairs; a stonecutter converts 1 brick into 1 stair.
+    faq:
+        - question: What tool do I need to mine Prismarine Brick Stairs?
+          answer: |
+              Any pickaxe, wood tier or higher. Without a pickaxe the
+              block breaks with no drop.
+        - question: Do Prismarine Brick Stairs generate naturally?
+          answer: |
+              No. They are a crafted-only decorative block and don't
+              appear in ocean monuments or other structures.
+        - question: How do I craft Prismarine Brick Stairs?
+          answer: |
+              Arrange 6 Prismarine Bricks in a staircase shape in a
+              crafting grid to get 4 stairs, or cut bricks individually
+              with a stonecutter.
+        - question: Is Silk Touch needed to keep the drop?
+          answer: |
+              No. The block always drops itself when broken with any
+              pickaxe.
     data_version: "1.21.5"
 ---
 

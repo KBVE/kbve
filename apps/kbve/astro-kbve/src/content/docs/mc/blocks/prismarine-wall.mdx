@@ -1,5 +1,6 @@
 ---
 title: Prismarine Wall
+template: splash
 description: |
     Minecraft Prismarine Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,64 @@ mc_block:
     id: 792
     ref: prismarine_wall
     slug: prismarine-wall
+    content_rev: 1
     display_name: Prismarine Wall
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: prismarine_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+    about:
+        description: |
+            Prismarine Wall is a decorative wall variant of prismarine that
+            connects to neighboring walls and posts at low or tall
+            heights, matching the shimmering animated texture of its
+            parent block.
+        lore: |
+            Does not generate naturally — a purely player-crafted piece
+            for fencing off and framing monument-themed builds.
+    uses:
+        - title: Decorative Fencing
+          ref: prismarine
+          detail: |
+              Used to border paths, pools, and monument-style builds while
+              blocking most mob movement like other wall blocks.
+    found_in:
+        - location: Crafting Table
+          detail: Six Prismarine blocks in a wall pattern craft six Prismarine Walls.
+        - location: Stonecutter
+          detail: Converts one Prismarine block into one Prismarine Wall at a time.
+    faq:
+        - question: Does Prismarine Wall generate naturally?
+          answer: |
+              No. It is only obtainable by crafting or stonecutting
+              prismarine blocks.
+        - question: What tool do I need to mine it?
+          answer: |
+              A wooden pickaxe or better; mining without one drops nothing.
+        - question: Can mobs pass through it?
+          answer: |
+              No, walls (including this one) block most ground mob
+              pathing while still allowing players to see over them.
+        - question: Can it be waterlogged?
+          answer: |
+              Yes, making it suitable for underwater monument-style
+              builds without displacing water.
     data_version: "1.21.5"
 ---
 

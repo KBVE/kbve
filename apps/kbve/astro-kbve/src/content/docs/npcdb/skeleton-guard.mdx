@@ -1,5 +1,9 @@
 ---
 title: 'Skeleton Guard'
+template: splash
+sidebar:
+    label: 'Skeleton Guard'
+    hidden: true
 description: |
     A reanimated skeleton clad in rusted armor, standing eternal watch over dusty corridors.
 ref: 'skeleton-guard'
@@ -92,7 +96,10 @@ equipment:
           item_ref: 'hood'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A reanimated skeleton clad in rusted armor, standing eternal watch over dusty corridors.
+
+</NpcLeaf>

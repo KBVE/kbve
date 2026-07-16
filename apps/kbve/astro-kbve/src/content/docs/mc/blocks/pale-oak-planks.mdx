@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Planks
+template: splash
 description: |
     Minecraft Pale Oak Planks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 21
     ref: pale_oak_planks
     slug: pale-oak-planks
+    content_rev: 1
     display_name: Pale Oak Planks
     material: wood
     hardness: 2
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pale_oak_planks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Pale Oak Planks are the crafted building block made from pale
+            oak logs, giving builds a pale, bone-white wood tone. Unlike
+            most planks, they do not generate naturally and must always be
+            crafted.
+        lore: |
+            Pale oak planks arrived with the Pale Garden biome, adding a
+            ghostly white wood option to match the biome's eerie theme.
+    uses:
+        - title: Pale Oak building set
+          ref: pale_oak_planks
+          detail: |
+              Craft into stairs, slabs, fences, gates, doors, trapdoors,
+              pressure plates, buttons, signs, and boats sharing the pale
+              oak look.
+        - title: Furnace fuel
+          ref: pale_oak_planks
+          detail: |
+              Planks can be burned as smelting fuel, like most wooden
+              blocks.
+    found_in:
+        - location: Crafted from Pale Oak Log
+          detail: Never generates naturally — always crafted from pale oak logs.
+    faq:
+        - question: How are Pale Oak Planks obtained?
+          answer: |
+              Only by crafting them from Pale Oak Logs (or stripped logs);
+              they do not generate naturally in any structure.
+        - question: What tool mines Pale Oak Planks fastest?
+          answer: |
+              An axe, though no minimum tool tier is required.
+        - question: Are Pale Oak Planks flammable?
+          answer: |
+              Yes, they burn like other overworld wood planks and work as
+              furnace fuel.
+        - question: What can Pale Oak Planks craft into?
+          answer: |
+              The full pale oak furniture set — stairs, slabs, fences,
+              doors, trapdoors, pressure plates, buttons, signs, and boats.
     data_version: "1.21.5"
 ---
 

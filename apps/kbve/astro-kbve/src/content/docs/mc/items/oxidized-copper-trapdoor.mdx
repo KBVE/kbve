@@ -1,5 +1,6 @@
 ---
 title: Oxidized Copper Trapdoor
+template: splash
 description: |
     Minecraft Oxidized Copper Trapdoor — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 779
     ref: oxidized_copper_trapdoor
     slug: oxidized-copper-trapdoor
+    content_rev: 1
     display_name: Oxidized Copper Trapdoor
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Oxidized Copper Trapdoor is the fully weathered form of the copper trapdoor, a functional
+            block that players toggle open or closed manually, via redstone signal, or with wind charges.
+            At this final oxidation stage its surface has turned a teal patina, and it generates naturally
+            in trial chambers in both oxidized and waxed-oxidized forms.
+        lore: |
+            A teal-stained copper hatch, its hinges still swinging true despite years of weathering.
+    faq:
+        - question: How do I open an Oxidized Copper Trapdoor?
+          answer: |
+              Press the Use Item control to toggle it, or activate it with a redstone signal or a wind
+              charge; when activated it opens immediately, and closes immediately when deactivated.
+        - question: How is an Oxidized Copper Trapdoor obtained?
+          answer: |
+              Copper trapdoors are crafted from four copper ingots and then oxidize naturally over time,
+              or an oxidized one can generate naturally in trial chambers.
+        - question: Can I stop an Oxidized Copper Trapdoor from oxidizing further?
+          answer: |
+              Yes, applying honeycomb waxes it to prevent further oxidation, and lightning bolts can
+              strip oxidation from an unwaxed trapdoor.
+        - question: Is the Oxidized Copper Trapdoor waterloggable?
+          answer: |
+              Yes, copper trapdoors are waterloggable and remain fully functional when placed underwater.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

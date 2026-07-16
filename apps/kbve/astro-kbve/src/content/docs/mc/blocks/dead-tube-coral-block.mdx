@@ -1,5 +1,6 @@
 ---
 title: Dead Tube Coral Block
+template: splash
 description: |
     Minecraft Dead Tube Coral Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 715
     ref: dead_tube_coral_block
     slug: dead-tube-coral-block
+    content_rev: 1
     display_name: Dead Tube Coral Block
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,49 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dead_tube_coral_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Dead Tube Coral Block is the lifeless, grayscale form of Tube
+            Coral Block. Unlike the fragile coral and fan variants, it is a
+            solid full block that mines normally with a pickaxe and drops
+            itself without needing Silk Touch.
+        lore: |
+            Coral blocks and their dead counterparts were added in the
+            Update Aquatic (1.13) as a full-block companion to the thinner
+            coral and coral fan decorations.
+    found_in:
+        - location: Warm ocean biomes (Bedrock Edition)
+          detail: Naturally generates within coral reef structures alongside live coral blocks.
+        - location: Anywhere, by placement
+          detail: Created by placing a live Tube Coral Block out of water, where it dies after a few seconds.
+    faq:
+        - question: What tool do I need to mine Dead Tube Coral Block?
+          answer: |
+              Any pickaxe, wooden or better. It drops itself normally with
+              no Silk Touch requirement, unlike dead coral and coral fans.
+        - question: Does Fortune affect the drop?
+          answer: |
+              No. It always drops exactly one Dead Tube Coral Block
+              regardless of Fortune level.
+        - question: Where does it generate naturally?
+          answer: |
+              In coral reef structures inside warm ocean biomes, primarily
+              on Bedrock Edition; Java Edition players mostly obtain it by
+              killing off live coral blocks out of water.
+        - question: What is it used for?
+          answer: |
+              Decoration and building, especially aquarium, reef, and
+              shipwreck-themed builds that want a bleached-coral look.
     data_version: "1.21.5"
 ---
 

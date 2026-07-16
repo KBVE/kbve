@@ -1,5 +1,6 @@
 ---
 title: Light Gray Carpet
+template: splash
 description: |
     Minecraft Light Gray Carpet — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 514
     ref: light_gray_carpet
     slug: light-gray-carpet
+    content_rev: 1
     display_name: Light Gray Carpet
     material: wool
     hardness: 0.1
     blast_resistance: 0.1
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_gray_carpet
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Light Gray Carpet is a thin, one-pixel-tall decorative block
+            crafted from two light gray wool. It has a tiny hitbox, blocks
+            mob spawning on the block below it, and dampens vibrations
+            picked up by sculk sensors.
+        lore: |
+            Carpets were introduced as a decorative flooring option
+            derived from wool, later gaining the ability to be crafted
+            back and forth with wool blocks.
+    uses:
+        - title: Decorative Flooring
+          ref: light_gray_carpet
+          detail: |
+              Placed over floors or llamas as a saddle-blanket decoration,
+              light gray carpet adds color without the full height of a
+              wool block.
+        - title: Furnace Fuel
+          ref: light_gray_carpet
+          detail: |
+              Each carpet smelts as fuel for about a third of a smelting
+              cycle, making stacks of carpet a minor backup fuel source.
+    found_in:
+        - location: Crafted
+          detail: 2 light gray wool in a crafting grid yields 3 light gray carpet.
+        - location: Villages, igloos, woodland mansions, ancient cities
+          detail: Various carpet colors generate as decoration in these structures.
+    faq:
+        - question: What tool do I need to mine Light Gray Carpet?
+          answer: |
+              None — it breaks instantly by hand or with any tool and
+              always drops itself.
+        - question: Does carpet stop mobs from spawning?
+          answer: |
+              Yes, placing carpet on a block prevents most mobs from
+              spawning on that space since mobs treat carpet as air for
+              spawning checks.
+        - question: Is Light Gray Carpet flammable?
+          answer: |
+              Yes, like wool it can catch fire from nearby flames or lava
+              and burn away.
+        - question: Can I turn carpet back into wool?
+          answer: |
+              No, carpet cannot be crafted back into wool blocks; only
+              wool can be crafted into carpet.
     data_version: "1.21.5"
 ---
 

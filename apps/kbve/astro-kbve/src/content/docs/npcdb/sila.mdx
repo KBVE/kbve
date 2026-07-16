@@ -1,5 +1,9 @@
 ---
 title: 'Sila'
+template: splash
+sidebar:
+    label: 'Sila'
+    hidden: true
 description: |
     Sci-fi vault keeper. Catalogs and seals personal lockers in the colony bank. Polite but cold; she has counted every gram of metal that crosses the threshold.
 ref: 'sila'
@@ -40,7 +44,10 @@ faction:
     faction_id: 'player'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Sci-fi vault keeper. Catalogs and seals personal lockers.
+
+</NpcLeaf>

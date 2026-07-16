@@ -1,5 +1,6 @@
 ---
 title: Orange Concrete
+template: splash
 description: |
     Minecraft Orange Concrete — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,69 @@ mc_block:
     id: 679
     ref: orange_concrete
     slug: orange-concrete
+    content_rev: 1
     display_name: Orange Concrete
     material: stone
     hardness: 1.8
     blast_resistance: 1.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: orange_concrete
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Orange Concrete is a solid, vividly colored building block formed
+            when Orange Concrete Powder touches water. It offers a brighter,
+            more saturated color than stained terracotta and, unlike wool,
+            does not burn.
+        lore: |
+            Concrete comes in all sixteen dye colors and also appears in
+            trial chamber murals as a decorative block.
+    uses:
+        - title: Building and decoration
+          ref: orange_concrete_powder
+          detail: |
+              Used purely as a decorative building material; its saturated
+              color and non-flammability make it popular for large colored
+              structures and pixel art.
+    found_in:
+        - location: Water conversion
+          detail: Made instantly when Orange Concrete Powder contacts water.
+        - location: Trial chambers
+          detail: Generates naturally as part of decorative murals.
+    faq:
+        - question: What tool do I need to mine Orange Concrete?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe yields
+              no drop.
+        - question: How is Orange Concrete made?
+          answer: |
+              Orange Concrete Powder solidifies into Orange Concrete the
+              instant it touches any water source, flowing water, or a
+              waterlogged block.
+        - question: Does Orange Concrete burn?
+          answer: |
+              No, unlike wool it is non-flammable, making it a safer choice
+              near lava or fire.
+        - question: Is Orange Concrete blast resistant?
+          answer: |
+              Not especially — despite looking sturdy, its blast resistance
+              (1.8) is similar to stone and lower than many players expect.
     data_version: "1.21.5"
 ---
 

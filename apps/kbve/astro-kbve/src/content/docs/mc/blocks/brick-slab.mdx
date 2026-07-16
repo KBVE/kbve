@@ -1,5 +1,6 @@
 ---
 title: Brick Slab
+template: splash
 description: |
     Minecraft Brick Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 584
     ref: brick_slab
     slug: brick-slab
+    content_rev: 1
     display_name: Brick Slab
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brick_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Brick Slab is a decorative half-height slab variant of Bricks,
+            used to add detail to builds and stairs-adjacent trim. It
+            requires at least a wooden pickaxe to drop, otherwise it
+            breaks with nothing.
+        lore: |
+            Brick slabs generate as part of trail ruins, the buried
+            archaeology structures added in the 1.20 "Trails & Tales"
+            update.
+    uses:
+        - title: Building & Decoration
+          ref: brick_slab
+          detail: |
+              Used for half-height steps, ledges, and decorative trim on
+              brick-themed builds; two brick slabs can be combined into a
+              full Brick Block.
+    found_in:
+        - location: Crafting
+          detail: 3 Bricks in a horizontal row craft 6 Brick Slabs.
+        - location: Stonecutting
+          detail: 1 Brick Block produces 2 Brick Slabs via the stonecutter.
+        - location: Trail ruins
+          detail: Generates naturally as part of trail ruins structures.
+    faq:
+        - question: What tool do I need to mine Brick Slab?
+          answer: |
+              At least a wooden pickaxe. Mining without a pickaxe drops
+              nothing.
+        - question: Can two Brick Slabs make a full block?
+          answer: |
+              Yes, placing one slab on top of another in the same space
+              forms a full, indistinguishable Brick Block.
+        - question: Is Brick Slab flammable?
+          answer: |
+              No, it does not burn or catch fire from adjacent flames.
+        - question: Where does Brick Slab generate naturally?
+          answer: |
+              As part of trail ruins, the buried archaeological structures
+              found underground and underwater.
     data_version: "1.21.5"
 ---
 

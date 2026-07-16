@@ -1,5 +1,6 @@
 ---
 title: Vines
+template: splash
 description: |
     Minecraft Vines — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 381
     ref: vine
     slug: vine
+    content_rev: 1
     display_name: Vines
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Vines are climbable, non-solid vegetation blocks that grow on walls in jungles, swamps, mangrove swamps, and lush caves. They naturally generate on trees and structures and spread organically via random ticks, but can only be harvested with shears.
+            Players use vines to craft mossy cobblestone, mossy stone bricks, banner patterns, and as a composting material.
+        lore: |
+            In the dense canopies and damp grottos of Minecraft's wilder biomes, verdant strands of vegetation dangle from ancient trees and stone walls, offering adventurers both a climbable passage and a reminder of nature's persistent reach into even the darkest caves.
+    faq:
+        - question: Where do vines naturally spawn?
+          answer: |
+              Vines are naturally generated in jungles, swamps, mangrove swamps, and lush caves, appearing on jungle tree trunks, swamp oaks, mangrove trees, and within lush cave systems. They also generate in structures like jungle pyramids, woodland mansions, and pillager outposts.
+        - question: How do players climb vines?
+          answer: |
+              Players can climb vines by standing next to them and holding the jump key. If a solid block exists behind the vines, the forward movement key also enables climbing, and vines absorb fall damage even without adjacent surfaces.
+        - question: What are vines used for crafting?
+          answer: |
+              Vines combine with various materials to create useful items: cobblestone becomes mossy cobblestone, stone bricks become mossy stone bricks, and paper creates the bordure indented banner pattern.
+        - question: How do vines spread and can players control this?
+          answer: |
+              On random ticks, vines have a 25% chance to spread in a randomly selected direction, downward, upward, or horizontally, depending on adjacent blocks. In Java Edition, the spread_vines game rule toggles this behavior.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

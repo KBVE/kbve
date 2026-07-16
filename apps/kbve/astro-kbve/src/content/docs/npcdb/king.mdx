@@ -1,5 +1,9 @@
 ---
 title: 'King'
+template: splash
+sidebar:
+    label: 'King'
+    hidden: true
 description: |
     Player avatar. Crowned warrior — high HP, ranged crossbow loadout, drives the empire-builder loop. Rarely seen on the front line by mid-game; lose him and the run ends.
 ref: 'king'
@@ -45,7 +49,10 @@ equipment:
         item_ref: 'iron-armor'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Player avatar. Crowned warrior with a crossbow. Lose the King and the run ends.
+
+</NpcLeaf>

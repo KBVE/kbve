@@ -3,7 +3,7 @@
 		{
 			"key": "agones_factorio",
 			"app_name": "agones-factorio",
-			"version": "0.0.13",
+			"version": "0.0.14",
 			"version_toml": "apps/agones/factorio/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-factorio.mdx",
 			"source_path": "apps/agones/factorio",
@@ -20,7 +20,11 @@
 					},
 					{
 						"name": "kbve-spider",
-						"source_path": "apps/factorio/mods/kbve-spider"
+						"source_path": "apps/agones/factorio/mods-src/kbve-spider"
+					},
+					{
+						"name": "kbve-orc",
+						"source_path": "apps/agones/factorio/mods-src/kbve-orc"
 					}
 				]
 			}
@@ -40,7 +44,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.230",
+			"version": "1.0.235",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -70,7 +74,7 @@
 		{
 			"key": "aria2_proxy",
 			"app_name": "aria2-proxy",
-			"version": "0.1.0",
+			"version": "0.1.1",
 			"version_toml": "apps/vm/aria2-proxy/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/aria2-proxy.mdx",
 			"source_path": "apps/vm/aria2-proxy",
@@ -83,7 +87,7 @@
 		{
 			"key": "arpg_server",
 			"app_name": "arpg-server",
-			"version": "0.1.26",
+			"version": "0.1.27",
 			"version_toml": "apps/agones/arpg/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-server.mdx",
 			"version_target": "apps/agones/arpg/server/Cargo.toml",
@@ -96,7 +100,7 @@
 		{
 			"key": "arpg_web",
 			"app_name": "arpg-web",
-			"version": "0.1.26",
+			"version": "0.1.27",
 			"version_toml": "apps/agones/arpg/web/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-web.mdx",
 			"version_target": "apps/agones/arpg/web/version.toml",
@@ -205,7 +209,7 @@
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.46",
+			"version": "0.1.47",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -344,7 +348,7 @@
 		{
 			"key": "kasm_void",
 			"app_name": "kasm-void",
-			"version": "0.0.5",
+			"version": "0.0.6",
 			"version_toml": "packages/docker/kasm-void/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kasm-void.mdx",
 			"source_path": "packages/docker/kasm-void",
@@ -388,7 +392,7 @@
 		{
 			"key": "kubectl",
 			"app_name": "kbve-kubectl",
-			"version": "0.1.5",
+			"version": "0.1.6",
 			"version_toml": "apps/vm/kubectl/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kubectl.mdx",
 			"version_target": "apps/vm/kubectl/Cargo.toml",
@@ -404,6 +408,7 @@
 				"apps/kube/kubevirt/keda/scaled-jobs.yaml",
 				"apps/kube/agones/factorio/manifests/rotation-deployment.yaml",
 				"apps/kube/namespace/manifests/pod-gc-cronjob.yaml",
+				"apps/kube/ca-staleness-monitor/manifests/ca-staleness-monitor.yaml",
 				"apps/kube/crossplane/providers/s3-healthcheck-cronjob.yaml",
 				"apps/kube/github/runners/manifests/runner-reaper.yaml",
 				"apps/kube/forgejo/manifest/forgejo-oauth-register-job.yaml",
@@ -415,7 +420,7 @@
 		{
 			"key": "mc",
 			"app_name": "mc",
-			"version": "1.0.64",
+			"version": "1.0.67",
 			"version_toml": "apps/mc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc.mdx",
 			"source_path": "apps/mc",
@@ -436,7 +441,7 @@
 		{
 			"key": "mc_lobby",
 			"app_name": "mc-lobby",
-			"version": "1.0.10",
+			"version": "1.0.11",
 			"version_toml": "apps/mc/lobby/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc-lobby.mdx",
 			"source_path": "apps/mc/lobby",
@@ -449,7 +454,7 @@
 		{
 			"key": "mc_velocity",
 			"app_name": "mc-velocity",
-			"version": "1.1.10",
+			"version": "1.1.11",
 			"version_toml": "apps/mc/velocity/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc-velocity.mdx",
 			"source_path": "apps/mc/velocity",
@@ -505,7 +510,7 @@
 		{
 			"key": "rows",
 			"app_name": "rows",
-			"version": "0.1.37",
+			"version": "0.1.38",
 			"version_toml": "apps/rows/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/rows.mdx",
 			"version_target": "apps/rows/Cargo.toml",
@@ -592,7 +597,7 @@
 		{
 			"key": "bevy_chat_crate",
 			"package_name": "bevy_chat",
-			"version": "0.0.0",
+			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_chat/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-chat-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_chat/Cargo.toml"
@@ -600,7 +605,7 @@
 		{
 			"key": "bevy_db_crate",
 			"package_name": "bevy_db",
-			"version": "0.0.0",
+			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_db/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-db-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_db/Cargo.toml"
@@ -678,6 +683,14 @@
 			"version_target": "packages/rust/bevy/bevy_skills/Cargo.toml"
 		},
 		{
+			"key": "bevy_spells_crate",
+			"package_name": "bevy_spells",
+			"version": "0.1.0",
+			"version_toml": "packages/rust/bevy/bevy_spells/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-spells-crate.mdx",
+			"version_target": "packages/rust/bevy/bevy_spells/Cargo.toml"
+		},
+		{
 			"key": "bevy_statemachine_crate",
 			"package_name": "bevy_statemachine",
 			"version": "0.1.0",
@@ -688,7 +701,7 @@
 		{
 			"key": "bevy_supa_crate",
 			"package_name": "bevy_supa",
-			"version": "0.0.0",
+			"version": "0.1.0",
 			"version_toml": "packages/rust/bevy/bevy_supa/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-supa-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_supa/Cargo.toml"
@@ -1313,10 +1326,33 @@
 		}
 	],
 	"bevy_game": [],
+	"vite_game": [
+		{
+			"key": "vite_herbmail",
+			"app_name": "herbmail-game",
+			"engine": {
+				"version": "vite",
+				"project_path": "apps/herbmail/herbmail-game",
+				"build_targets": [
+					"html5"
+				]
+			},
+			"source_path": "apps/herbmail/herbmail-game",
+			"version": "0.1.9",
+			"version_toml": "apps/herbmail/herbmail-game/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/herbmail-game.mdx",
+			"runner": "ubuntu-latest",
+			"external_publish": {
+				"itch_user": "kbve",
+				"itch_game": "herbmail",
+				"itch_channel": "html5"
+			}
+		}
+	],
 	"summary": {
 		"docker": 36,
 		"npm": 4,
-		"crates": 24,
+		"crates": 25,
 		"python": 2,
 		"unreal": 27,
 		"ue5_server": 1,
@@ -1324,6 +1360,7 @@
 		"godot": 0,
 		"unreal_game": 4,
 		"bevy_game": 0,
-		"total": 99
+		"vite_game": 1,
+		"total": 101
 	}
 }

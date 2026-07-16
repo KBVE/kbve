@@ -1,5 +1,6 @@
 ---
 title: Polished Diorite Stairs
+template: splash
 description: |
     Minecraft Polished Diorite Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 767
     ref: polished_diorite_stairs
     slug: polished-diorite-stairs
+    content_rev: 1
     display_name: Polished Diorite Stairs
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_diorite_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Polished Diorite Stairs are the staircase form of polished
+            diorite, giving builders sloped and stepped surfaces in the
+            bright, speckled white-gray finish. It does not generate
+            naturally and must be crafted or stonecut.
+        lore: |
+            Announced October 8, 2018 and added in Java Edition 18w43a
+            (1.14), with a texture update in 18w44a; it later reached
+            Bedrock Edition 1.9.0.
+    uses:
+        - title: Light-Toned Architecture
+          ref: polished_diorite
+          detail: |
+              Used purely for building — stairs pair with polished diorite
+              slabs and walls for stepped surfaces, roofs, and trim in
+              bright stone builds.
+    found_in:
+        - location: Crafting
+          detail: Craft six polished diorite in a staircase pattern for four stairs.
+        - location: Stonecutting
+          detail: Stonecut diorite or polished diorite for a 1:1 conversion into stairs.
+    faq:
+        - question: Does Polished Diorite Stairs generate naturally?
+          answer: |
+              No, it does not generate in any structure or terrain feature —
+              it is only obtained through crafting or stonecutting.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining without a pickaxe
+              yields no drop.
+        - question: Does Silk Touch change the drop?
+          answer: |
+              No, it always drops itself as stairs whether or not Silk Touch
+              is used.
+        - question: What's the quickest way to make a lot of stairs?
+          answer: |
+              Stonecut raw diorite or polished diorite — one block converts
+              directly into one stair at a stonecutter, avoiding the
+              crafting table's less efficient recipe.
     data_version: "1.21.5"
 ---
 

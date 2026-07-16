@@ -1,5 +1,9 @@
 ---
 title: 'Bone Archer'
+template: splash
+sidebar:
+    label: 'Bone Archer'
+    hidden: true
 description: |
     A skeletal figure that draws a creaking bow with trembling, bony fingers.
 ref: 'bone-archer'
@@ -83,7 +87,10 @@ faction:
     faction_id: 'deep-wardens'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A skeletal figure that draws a creaking bow with trembling, bony fingers.
+
+</NpcLeaf>

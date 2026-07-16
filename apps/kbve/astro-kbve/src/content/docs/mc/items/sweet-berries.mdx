@@ -1,5 +1,6 @@
 ---
 title: Sweet Berries
+template: splash
 description: |
     Minecraft Sweet Berries — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1280
     ref: sweet_berries
     slug: sweet-berries
+    content_rev: 1
     display_name: Sweet Berries
     category: food
     rarity: common
@@ -22,6 +24,30 @@ mc_item:
         saturation: 1.6
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Sweet berries are a renewable food item harvested from sweet berry bushes found naturally in
+            taiga and snowy taiga biomes. Beyond restoring hunger, they are used to breed foxes, trade
+            with butchers, and grow defensive thorny bushes that slow and damage most entities.
+        lore: |
+            Found thriving in cold forests, sweet berries offer a modest but accessible food source while their protective thorns deter careless travelers.
+    faq:
+        - question: Why do sweet berry bushes hurt me?
+          answer: |
+              Players and most mobs are slowed down and take constant damage while moving through them,
+              making bushes effective for protective barriers, though foxes are immune to both effects.
+        - question: How long does it take for sweet berries to fully grow?
+          answer: |
+              Bushes grow through four stages via random ticks with a 20% chance per tick if not fully
+              mature. Bone meal can accelerate growth by one stage regardless of light levels.
+        - question: Can I use sweet berries for anything besides eating?
+          answer: |
+              Yes, they breed foxes, trade with butchers for emeralds, work in composters, and can be
+              planted to create defensive terrain that slows and damages mobs.
+        - question: Do sweet berries need special conditions to grow?
+          answer: |
+              Bushes require a light level of 9 or higher above them and space to grow, though bone meal
+              can bypass these restrictions.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Waxed Weathered Copper
+template: splash
 description: |
     Minecraft Waxed Weathered Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 993
     ref: waxed_weathered_copper
     slug: waxed-weathered-copper
+    content_rev: 1
     display_name: Waxed Weathered Copper
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,69 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_weathered_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Waxed Weathered Copper is a storage block equivalent to nine
+            copper ingots, permanently held at the weathered (green
+            patina) oxidation stage by a honeycomb coating. It behaves
+            identically to unwaxed weathered copper except that it never
+            progresses to the oxidized stage.
+        lore: |
+            Copper blocks let builders compress ingots for storage while
+            doubling as a decorative material whose look drifts from
+            shiny orange to teal-green over time — waxing freezes that
+            look wherever a builder wants it.
+    uses:
+        - title: Cut Copper and variants
+          ref: waxed_weathered_cut_copper
+          detail: |
+              Stonecut or craft into Weathered Cut Copper, slabs, stairs,
+              and chiseled copper, all inheriting the waxed weathered
+              finish.
+        - title: Copper Golem
+          ref: copper_golem
+          detail: |
+              Combine with a carved pumpkin to build a copper golem,
+              which itself slowly oxidizes and can be waxed the same way.
+    found_in:
+        - location: Trial Chambers
+          detail: |
+              Generates naturally as waxed copper at various oxidation
+              stages, including weathered, throughout vault structures.
+        - location: Crafted from Copper Ingots
+          detail: |
+              Craft 1 Weathered Copper block from 9 Copper Ingots that
+              have naturally oxidized to that stage, then wax with
+              honeycomb.
+    faq:
+        - question: Does waxed weathered copper still oxidize further?
+          answer: |
+              No. Honeycomb waxing permanently locks it at the weathered
+              stage; it will never progress to fully oxidized.
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better. Wood tools or bare hands break
+              the block without dropping it, and Silk Touch has no
+              effect on the drop.
+        - question: Can I scrape the wax off later?
+          answer: |
+              No, waxed copper cannot be un-waxed. Scrape oxidation with
+              an axe before waxing if you want a different stage.
+        - question: Can I convert copper ingots back out of this block?
+          answer: |
+              No, copper blocks cannot be uncrafted back into ingots in
+              vanilla survival; only a crafting table conversion the
+              other direction exists.
     data_version: "1.21.5"
 ---
 

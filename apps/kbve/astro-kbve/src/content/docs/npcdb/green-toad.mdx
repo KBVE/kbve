@@ -1,5 +1,9 @@
 ---
 title: 'Green Toad'
+template: splash
+sidebar:
+    label: 'Green Toad'
+    hidden: true
 description: |
     A small amphibian that sits idle in the grass, croaks occasionally, and hops to nearby spots during the day.
 ref: 'green-toad'
@@ -46,7 +50,10 @@ credits: |
     KBVE Isometric ambient creature system.
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A small amphibian that sits idle in the grass, croaks occasionally, and hops to nearby spots during the day.
+
+</NpcLeaf>

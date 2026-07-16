@@ -1,5 +1,6 @@
 ---
 title: Cherry Door
+template: splash
 description: |
     Minecraft Cherry Door — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 748
     ref: cherry_door
     slug: cherry-door
+    content_rev: 1
     display_name: Cherry Door
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Cherry Door is a wooden door crafted from cherry planks in a 3x2 pattern, producing three doors per craft. It can be opened manually or triggered by redstone signals, and shares standard wooden door mechanics while playing distinct cherry wood sounds when it swings open or shut. Villagers, piglins, and copper golems can open it, and zombies and vindicators can break it on Hard difficulty.
+        lore: |
+            Cut from the pale pink timber of the cherry grove, this door lets light and blossoms alike drift past its frame.
+    faq:
+        - question: When were cherry doors added to Minecraft?
+          answer: |
+              Cherry doors first appeared as an experimental feature in Java Edition 1.19.4's snapshot 23w07a, then fully released in version 1.20.
+        - question: How many cherry doors does one crafting recipe produce?
+          answer: |
+              The recipe yields 3 cherry doors from six cherry planks arranged in a two-column, three-row pattern at a crafting table.
+        - question: Can mobs open cherry doors like they do oak doors?
+          answer: |
+              Yes, villagers, piglins, and copper golems can open cherry doors, and zombies or vindicators can break them on Hard difficulty.
+        - question: Can a Cherry Door be used as furnace fuel?
+          answer: |
+              Yes, like other wooden doors it can be burned in a furnace, smelting one item per door.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

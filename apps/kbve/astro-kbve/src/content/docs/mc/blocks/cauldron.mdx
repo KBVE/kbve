@@ -1,5 +1,6 @@
 ---
 title: Cauldron
+template: splash
 description: |
     Minecraft Cauldron — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 356
     ref: cauldron
     slug: cauldron
+    content_rev: 1
     display_name: Cauldron
     material: metal
     hardness: 2
     blast_resistance: 2
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,65 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cauldron
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - needs_wood_tool
+    about:
+        description: |
+            Cauldron is an iron block that stores water, lava, powder
+            snow, or potions in small increments. It can extinguish
+            burning entities and remove dye from leather gear and banners.
+        lore: |
+            Long a fixture of witch huts, the cauldron was expanded to
+            hold multiple liquid types and act as a leatherworker's
+            workstation.
+    uses:
+        - title: Leatherworker Job Site
+          ref: leather
+          detail: |
+              A cauldron with water acts as the workstation that lets a
+              villager become a leatherworker.
+        - title: Dye Removal
+          ref: leather_armor
+          detail: |
+              Dip dyed leather armor or a patterned banner into water in a
+              cauldron to strip its color or pattern one layer at a time.
+        - title: Fire Extinguishing
+          ref: water_bucket
+          detail: |
+              Standing in a water-filled cauldron while on fire puts the
+              player out, consuming one level of water per use.
+    found_in:
+        - location: Witch Huts
+          detail: Generates filled with water inside swamp witch huts.
+        - location: Igloos
+          detail: A cauldron appears in the basement of igloos.
+        - location: Crafted with Iron
+          detail: Craft with seven iron ingots arranged as three walls and a base.
+    faq:
+        - question: What tool do I need to mine a cauldron?
+          answer: |
+              A wooden pickaxe or better. Mining it with anything weaker
+              destroys it without dropping the cauldron, and any liquid
+              inside is always lost.
+        - question: Can a cauldron freeze the water inside it?
+          answer: |
+              No, water held in a cauldron never freezes, even in cold or
+              snowy biomes.
+        - question: How does a cauldron fill with rain?
+          answer: |
+              During rainfall, a cauldron slowly fills with water at
+              roughly 5% of the rate that snow layers accumulate.
+        - question: Can sponges soak up water from a cauldron?
+          answer: |
+              No, sponges cannot remove water stored in a cauldron.
     data_version: "1.21.5"
 ---
 

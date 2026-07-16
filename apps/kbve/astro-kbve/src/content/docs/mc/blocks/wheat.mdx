@@ -1,5 +1,6 @@
 ---
 title: Wheat Crops
+template: splash
 description: |
     Minecraft Wheat Crops — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 194
     ref: wheat
     slug: wheat
+    content_rev: 1
     display_name: Wheat Crops
     material: plant
     hardness: 0
@@ -26,8 +28,68 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: wheat
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: wheat_seeds
+          qty_min: 1
+          qty_max: 4
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - overworld
+    about:
+        description: |
+            Wheat Crops are the fully-grown form of farmland wheat, passing
+            through eight growth stages before they can be harvested for
+            Wheat and Wheat Seeds. They require farmland and nearby light to
+            progress.
+        lore: |
+            Wheat has been a core farming block since Minecraft's earliest
+            versions and remains the staple ingredient for bread and animal
+            breeding.
+    uses:
+        - title: Bread
+          ref: bread
+          detail: |
+              Three Wheat craft one loaf of Bread, a cheap and reliable
+              food source.
+        - title: Hay Bale
+          ref: hay_block
+          detail: |
+              Nine Wheat craft a Hay Bale, used as a compact storage block,
+              fall-damage cushion, or horse feed.
+        - title: Animal Breeding
+          ref: wheat
+          detail: |
+              Wheat breeds and grows up cows, sheep, goats, and mooshrooms,
+              and can be traded to farmer villagers for emeralds.
+    found_in:
+        - location: Farmland (any biome)
+          detail: Planted from Wheat Seeds on tilled, hydrated farmland and grown under adequate light.
+        - location: Village farms
+          detail: Villages commonly generate with wheat farms already planted and tended by farmer villagers.
+    faq:
+        - question: What does a fully grown Wheat Crop drop?
+          answer: |
+              One Wheat item plus 1-4 Wheat Seeds (averaging about 2.6
+              seeds); breaking it before it matures drops only a single
+              seed.
+        - question: Does Fortune affect Wheat drops?
+          answer: |
+              It only increases the seed count, not the guaranteed single
+              Wheat item.
+        - question: What tool should I use to harvest Wheat?
+          answer: |
+              Any tool works and breaks it instantly; a hoe is not needed to
+              harvest, only to till the farmland underneath.
+        - question: What is Wheat used for besides bread?
+          answer: |
+              Crafting Hay Bales, breeding several farm animals, and trading
+              with farmer villagers for emeralds.
     data_version: "1.21.5"
 ---
 

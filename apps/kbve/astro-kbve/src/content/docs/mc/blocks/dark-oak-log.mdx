@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Log
+template: splash
 description: |
     Minecraft Dark Oak Log — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 55
     ref: dark_oak_log
     slug: dark-oak-log
+    content_rev: 1
     display_name: Dark Oak Log
     material: wood
     hardness: 2
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dark_oak_log
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Dark Oak Log is the trunk block of dark oak trees, one of
+            the darker and denser-looking wood types in the Overworld. Like
+            all logs, it can be stripped with an axe to reveal a cleaner
+            bark-free variant.
+        lore: |
+            Dark oak trees and their logs were added in Beta 1.9 as part of
+            the biome-specific wood expansion that introduced the dark
+            forest tree type.
+    uses:
+        - title: Dark Oak Planks
+          ref: dark_oak_planks
+          detail: |
+              Each log crafts into 4 dark oak planks, the base material for
+              most dark oak tools, furniture, and building blocks.
+        - title: Charcoal (via furnace)
+          ref: charcoal
+          detail: |
+              Overworld logs like dark oak can be smelted into charcoal, a
+              coal substitute for fuel and torches.
+    found_in:
+        - location: Dark Forest biome
+          detail: Generates as the trunks of the tall, thick dark oak trees unique to dark forest biomes.
+        - location: Woodland Mansions
+          detail: Used extensively as a building material throughout woodland mansion structures.
+    faq:
+        - question: What tool do I need to break a Dark Oak Log?
+          answer: |
+              None required — any tool works, though an axe breaks it
+              fastest.
+        - question: Can Dark Oak Logs be used as furnace fuel?
+          answer: |
+              Yes, like other overworld logs, each one smelts 1.5 items
+              when used as fuel.
+        - question: How do I get stripped Dark Oak Log?
+          answer: |
+              Right-click (use) a Dark Oak Log with an axe to strip its
+              bark, producing Stripped Dark Oak Log.
     data_version: "1.21.5"
 ---
 

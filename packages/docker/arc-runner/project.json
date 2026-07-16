@@ -46,7 +46,8 @@
 					"docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'zip -v' | grep -q 'Zip ' && echo 'PASS: zip on PATH'",
 					"docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'xz --version' | grep -q 'xz (XZ Utils)' && echo 'PASS: xz on PATH'",
 					"docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'gh --version' | grep -q 'gh version' && echo 'PASS: gh on PATH'",
-					"echo '=== arc-runner image OK ==='"
+					"echo '=== arc-runner image OK ==='",
+					"docker rmi -f ghcr.io/kbve/arc-runner:latest || true"
 				],
 				"parallel": false
 			}

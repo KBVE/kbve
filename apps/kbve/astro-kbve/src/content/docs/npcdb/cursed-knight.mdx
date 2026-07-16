@@ -1,5 +1,9 @@
 ---
 title: 'Cursed Knight'
+template: splash
+sidebar:
+    label: 'Cursed Knight'
+    hidden: true
 description: |
     A heavily armored undead warrior consumed by rage, cursed to fight for eternity.
 ref: 'cursed-knight'
@@ -89,7 +93,10 @@ faction:
     faction_id: 'deep-wardens'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 A heavily armored undead warrior consumed by rage, cursed to fight for eternity.
+
+</NpcLeaf>

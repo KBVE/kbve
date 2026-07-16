@@ -1,5 +1,6 @@
 ---
 title: Piglin Spawn Egg
+template: splash
 description: |
     Minecraft Piglin Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 1110
     ref: piglin_spawn_egg
     slug: piglin-spawn-egg
+    content_rev: 1
     display_name: Piglin Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Piglin Spawn Egg instantly spawns a Piglin when used on a block surface. Like all spawn eggs, it is obtainable only in Creative mode or via commands, and it is consumed on use in Survival.
+            Using it on an existing Piglin spawns a baby Piglin, and it also works in dispensers and on monster spawners to change the mob a spawner produces.
+        lore: |
+            The egg's gold-and-zombie-flesh coloring nods to the piglins' love of gold and their distant kinship with zombified piglins.
+    faq:
+        - question: |
+              How do I get a Piglin Spawn Egg?
+          answer: |
+              Spawn eggs like this one can only be obtained in Creative mode inventory or by using commands (for example /give); they do not drop from mobs or generate naturally in the world.
+        - question: |
+              What happens if I use it on an existing Piglin?
+          answer: |
+              Using a spawn egg on a mob of the same species spawns a baby version of that mob, so using it on a Piglin produces a baby Piglin.
+        - question: |
+              Can I rename the egg for special spawn effects?
+          answer: |
+              Yes. Renaming a spawn egg on an anvil before use can trigger special effects for some names (such as "Dinnerbone" or "Grumm" spawning the mob upside down), though most names have no special behavior.
+        - question: |
+              Does the spawned Piglin despawn like other spawn-egg mobs?
+          answer: |
+              Yes, hostile or neutral mobs spawned from spawn eggs are subject to normal despawn rules and will still despawn under the usual conditions, unlike mobs given a name tag.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

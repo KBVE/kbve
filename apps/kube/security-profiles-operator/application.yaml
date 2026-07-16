@@ -4,6 +4,7 @@ metadata:
     name: security-profiles-operator
     namespace: argocd
     annotations:
+        argocd.argoproj.io/sync-wave: '2'
         kbve.com/source-path: kube/security-profiles-operator
         kbve.com/manifest-path: kube/security-profiles-operator
         kbve.com/application-file: kube/security-profiles-operator/application.yaml
@@ -15,10 +16,11 @@ spec:
     project: default
     sources:
         - repoURL: https://github.com/kubernetes-sigs/security-profiles-operator
-          targetRevision: v0.9.1
+          targetRevision: v1.0.0
           path: deploy/helm
           helm:
               releaseName: security-profiles-operator
+              skipCrds: true
               valueFiles:
                   - $values/apps/kube/security-profiles-operator/manifests/values.yaml
         - repoURL: https://github.com/kbve/kbve

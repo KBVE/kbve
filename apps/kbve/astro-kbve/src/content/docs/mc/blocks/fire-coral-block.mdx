@@ -1,5 +1,6 @@
 ---
 title: Fire Coral Block
+template: splash
 description: |
     Minecraft Fire Coral Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 723
     ref: fire_coral_block
     slug: fire-coral-block
+    content_rev: 1
     display_name: Fire Coral Block
     material: stone
     hardness: 1.5
@@ -24,10 +26,68 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: fire_coral_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+        - ref: dead_fire_coral_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - coral
+    about:
+        description: |
+            Fire Coral Block is a living coral variant that generates in
+            warm ocean coral reefs. It must stay adjacent to water on at
+            least one side or it quickly dies, turning into a grayscale
+            Dead Fire Coral Block.
+        lore: |
+            Coral blocks were added in the Update Aquatic to bring vibrant
+            reef life underwater; Mojang later donated to real-world coral
+            reef conservation after players built enormous coral structures
+            in-game.
+    uses:
+        - title: Sea Pickle farming
+          ref: sea_pickle
+          detail: |
+              Bone meal applied to a living coral block can spread sea
+              pickles onto it, making coral reefs a useful pickle farm site.
+        - title: Decoration
+          ref: dead_fire_coral_block
+          detail: |
+              Used for vivid reef-themed builds; without water contact it
+              becomes the muted Dead Fire Coral Block instead.
+    found_in:
+        - location: Warm Ocean coral reefs
+          detail: Naturally generates in coral reef structures within warm ocean biomes.
+        - location: Wandering Trader
+          detail: Occasionally purchasable, making the block a renewable resource.
+    faq:
+        - question: How do I keep Fire Coral Block alive?
+          answer: |
+              Keep at least one of the six adjacent blocks as water or a
+              waterlogged block; otherwise it dies within seconds and
+              becomes Dead Fire Coral Block.
+        - question: Do I need Silk Touch to get the living block?
+          answer: |
+              Yes. Mining without Silk Touch always drops the dead coral
+              block variant instead of the living one.
+        - question: What tool should I use?
+          answer: |
+              Any pickaxe works; even a wooden pickaxe can mine it, though a
+              better pickaxe mines it faster.
+        - question: Is Fire Coral Block renewable?
+          answer: |
+              Yes, via bone meal spreading nearby coral and through
+              occasional Wandering Trader purchases.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: White Banner
+template: splash
 description: |
     Minecraft White Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 547
     ref: white_wall_banner
     slug: white-wall-banner
+    content_rev: 1
     display_name: White Banner
     material: wood
     hardness: 1
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: white_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - non_solid
+        - overworld
+    about:
+        description: |
+            The White Banner is the wall-mounted form of a banner placed
+            against a vertical surface. It drops as a regular White
+            Banner item and can carry up to six layers of dyed patterns
+            applied at a loom.
+        lore: |
+            Banners were added in Java Edition 1.8 as a way for players
+            and structures to display customizable flag-like symbols.
+    uses:
+        - title: Shield Patterning
+          ref: shield
+          detail: |
+              Combining a banner with a shield at a crafting table
+              copies the banner's pattern onto the shield.
+        - title: Loom Patterning
+          ref: loom
+          detail: |
+              Used at a loom with dye and an optional pattern item to
+              add up to six stacked layers of design.
+    found_in:
+        - location: Crafting Table
+          detail: Craft from six White Wool blocks plus one stick, arranged in a sign-like pattern.
+        - location: Villager Trades and Illager Drops
+          detail: Obtainable from shepherd and cartographer villager trades, or as a rare drop from illager captains.
+    faq:
+        - question: What tool do I need to mine a wall banner?
+          answer: |
+              Any tool works, but an axe is fastest; it always drops the
+              banner item regardless of tool.
+        - question: Does the wall banner block anything?
+          answer: |
+              No, it is non-solid and entities can pass through it
+              freely.
+        - question: How do I add patterns to a banner?
+          answer: |
+              Use a loom with dye and, optionally, a banner pattern item
+              to add up to six layers total.
+        - question: Can I move a wall banner to the ground?
+          answer: |
+              Breaking and replacing it lets you choose either the
+              standing or wall-mounted orientation depending on where you
+              place it.
     data_version: "1.21.5"
 ---
 

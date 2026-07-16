@@ -1,5 +1,6 @@
 ---
 title: Cyan Shulker Box
+template: splash
 description: |
     Minecraft Cyan Shulker Box — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 655
     ref: cyan_shulker_box
     slug: cyan-shulker-box
+    content_rev: 1
     display_name: Cyan Shulker Box
     material: stone
     hardness: 2
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cyan_shulker_box
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - storage
+    about:
+        description: |
+            A Cyan Shulker Box is a portable storage container dyed cyan.
+            Unlike chests, it always drops itself with its 27-slot inventory
+            fully intact when mined, with no Silk Touch required.
+        lore: |
+            Shulker boxes were introduced in Java Edition 1.11, crafted from
+            Shulker Shells dropped by Shulkers found in End cities.
+    uses:
+        - title: Portable storage
+          ref: cyan_shulker_box
+          detail: |
+              Holds 27 item stacks and can be mined, carried, and replaced
+              anywhere without losing its contents, unlike a chest.
+    found_in:
+        - location: Crafting table
+          detail: Combine an undyed Shulker Box with cyan dye, or a Chest with a Shulker Shell then dye it cyan.
+        - location: End cities
+          detail: Shulker Shells needed for crafting drop from Shulkers found guarding End City loot rooms.
+    faq:
+        - question: Do I need Silk Touch to keep the items inside?
+          answer: |
+              No. Every shulker box automatically preserves its contents when
+              mined, regardless of tool or enchantment.
+        - question: What tool do I need to mine Cyan Shulker Box?
+          answer: |
+              Any tool works, including bare hands, since it has no required
+              tool tier — though a pickaxe is fastest.
+        - question: Can I stack multiple shulker boxes in one inventory slot?
+          answer: |
+              No. Each shulker box occupies its own inventory slot and cannot
+              stack, even if empty.
+        - question: Do piglins react to shulker boxes?
+          answer: |
+              Yes, piglins become hostile toward players who open or mine any
+              shulker box while nearby.
     data_version: "1.21.5"
 ---
 

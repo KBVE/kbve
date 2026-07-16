@@ -50,7 +50,7 @@ tauri-build = { version = "2", features = [] }
 
 # --- Shared dependencies ---
 [dependencies]
-bevy = { version = "0.18", default-features = false, features = [
+bevy = { version = "0.19", default-features = false, features = [
     "bevy_asset",
     "bevy_render",
     "bevy_core_pipeline",
@@ -74,7 +74,7 @@ bevy = { version = "0.18", default-features = false, features = [
 libm = "0.2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-avian3d = { version = "0.5", default-features = false, features = ["3d", "f32", "parry-f32", "debug-plugin"] }
+avian3d = { version = "0.7", default-features = false, features = ["3d", "f32", "parry-f32", "debug-plugin"] }
 bevy_inventory = { path = "../../../../packages/rust/bevy/bevy_inventory" }
 bevy_items = { path = "../../../../packages/rust/bevy/bevy_items", features = ["inventory"] }
 bevy_cam = { path = "../../../../packages/rust/bevy/bevy_cam" }
@@ -84,7 +84,7 @@ bevy_pathfinder = { path = "../../../../packages/rust/bevy/bevy_pathfinder" }
 bevy_skills = { path = "../../../../packages/rust/bevy/bevy_skills" }
 bevy_db = { path = "../../../../packages/rust/bevy/bevy_db" }
 bevy_chat = { path = "../../../../packages/rust/bevy/bevy_chat", features = ["plugin"] }
-lightyear = { version = "0.26", default-features = false, features = [
+lightyear = { version = "0.28", default-features = false, features = [
     "client",
     "replication",
     "prediction",
@@ -105,7 +105,7 @@ log = "0.4"
 
 # --- Native (desktop + mobile) render deps ---
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-wgpu = "27"
+wgpu = "29"
 pollster = "0.4"
 raw-window-handle = "0.6"
 ureq = { version = "3", features = ["json"] }
@@ -134,12 +134,12 @@ android-activity = { version = "0.6", features = ["native-activity"] }
 
 # --- Linux-only Bevy features (x11/wayland) ---
 [target.'cfg(target_os = "linux")'.dependencies.bevy]
-version = "0.18"
+version = "0.19"
 features = ["x11", "wayland"]
 
 # --- WASM-only Bevy features (WebGPU backend) ---
 [target.'cfg(target_arch = "wasm32")'.dependencies.bevy]
-version = "0.18"
+version = "0.19"
 features = ["webgpu"]
 
 # --- WASM-only dependencies ---

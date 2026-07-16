@@ -1,5 +1,6 @@
 ---
 title: Lime Wool
+template: splash
 description: |
     Minecraft Lime Wool — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 145
     ref: lime_wool
     slug: lime-wool
+    content_rev: 1
     display_name: Lime Wool
     material: wool
     hardness: 0.8
@@ -24,10 +26,62 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lime_wool
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shears_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Lime Wool is a dyed variant of wool, obtained by applying lime dye
+            to white wool or shearing a lime-colored sheep. It is a common
+            building block prized for its bright green-yellow color.
+        lore: |
+            Wool was one of the earliest dyeable blocks in Minecraft, giving
+            builders access to all sixteen colors long before terracotta or
+            concrete existed.
+    uses:
+        - title: Lime Bed
+          ref: lime_bed
+          detail: |
+              Combine 3 Lime Wool with 3 planks to craft a Lime Bed for
+              sleeping and setting a spawn point.
+        - title: Lime Banner
+          ref: lime_wall_banner
+          detail: |
+              Combine 6 Lime Wool with 1 stick to craft a Lime Banner for
+              customizable loom patterns.
+        - title: Lime Carpet
+          ref: lime_carpet
+          detail: Crafting 2 Lime Wool in a row produces 3 Lime Carpet.
+    found_in:
+        - location: Sheep
+          detail: Shearing a lime sheep yields 1–3 Lime Wool; killing an unsheared one drops 1.
+        - location: Crafting Table
+          detail: Craft White Wool with Lime Dye, or 4 String into White Wool then dye it.
+    faq:
+        - question: What tool do I need to mine Lime Wool?
+          answer: |
+              Any tool works, but shears are fastest, breaking it almost
+              instantly.
+        - question: Is Lime Wool flammable?
+          answer: |
+              Yes. Wool catches fire easily and burns quickly, so avoid
+              placing it near lava or fire sources.
+        - question: How do I get Lime Wool?
+          answer: |
+              Shear a lime-colored sheep, dye white wool with lime dye, or
+              trade with a shepherd villager.
+        - question: What is Lime Wool used for?
+          answer: |
+              Building, decoration, and crafting beds, banners, and carpets.
     data_version: "1.21.5"
 ---
 

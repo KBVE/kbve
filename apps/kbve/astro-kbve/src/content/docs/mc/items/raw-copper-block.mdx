@@ -1,5 +1,6 @@
 ---
 title: Block of Raw Copper
+template: splash
 description: |
     Minecraft Block of Raw Copper — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 85
     ref: raw_copper_block
     slug: raw-copper-block
+    content_rev: 1
     display_name: Block of Raw Copper
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A block of raw copper is a compact storage block equivalent to nine raw copper items, requiring a stone pickaxe or better to mine. It condenses raw copper into a single block for more efficient inventory and chest storage. Unlike a copper ingot block, it cannot be smelted directly and must first be broken back down into raw copper.
+        lore: |
+            Raw copper blocks occasionally replace standard copper ore during world generation, appearing in about 2% of copper ore veins above Y=0.
+    faq:
+        - question: How do I craft a Block of Raw Copper?
+          answer: |
+              Arrange nine raw copper items in a 3x3 crafting grid to create one block of raw copper.
+        - question: Where can I find these blocks naturally?
+          answer: |
+              They generate rarely within copper ore veins above Y=0, with roughly a 2% chance of replacing any given copper ore, though never in regular ore blobs.
+        - question: What's the point of storing copper as blocks instead of ingots?
+          answer: |
+              Blocks offer better inventory space efficiency by condensing nine raw items into one, making large-scale copper collection more manageable before processing.
+        - question: Can I smelt this block into a copper block directly?
+          answer: |
+              No. It cannot be smelted into a block of copper. You must first smelt raw copper into copper ingots, then craft those ingots into copper blocks.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

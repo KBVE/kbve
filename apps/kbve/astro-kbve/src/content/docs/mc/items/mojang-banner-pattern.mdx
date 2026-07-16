@@ -1,5 +1,6 @@
 ---
 title: Thing Banner Pattern
+template: splash
 description: |
     Minecraft Thing Banner Pattern — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,35 @@ mc_item:
     id: 1260
     ref: mojang_banner_pattern
     slug: mojang-banner-pattern
+    content_rev: 1
     display_name: Thing Banner Pattern
     category: banner
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Thing Banner Pattern (internally `mojang_banner_pattern`) applies a design based on the
+            old Mojang Studios logo to a banner when used at a loom, and is not consumed on use. It is
+            crafted from paper and an enchanted golden apple, making it a rare, late-game cosmetic item.
+        lore: |
+            A nostalgic nod to Mojang Studios' former logo, preserved as a collectible design within the game's crafting system.
+    faq:
+        - question: Is the pattern consumed when applied to a banner?
+          answer: |
+              No, the pattern item is reusable at a loom and is never consumed, so a single pattern can
+              decorate any number of banners.
+        - question: How do I craft this pattern?
+          answer: |
+              Combine paper with an enchanted golden apple in a crafting grid, making it an expensive,
+              late-game item to obtain.
+        - question: Can I find this pattern without crafting it?
+          answer: |
+              Yes, it can also be found as loot in ominous vaults.
+        - question: What achievement is tied to this pattern?
+          answer: |
+              Creating a banner with this pattern awards the "Fruit on the Loom" achievement.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

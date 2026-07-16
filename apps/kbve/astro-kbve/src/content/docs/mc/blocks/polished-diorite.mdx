@@ -1,5 +1,6 @@
 ---
 title: Polished Diorite
+template: splash
 description: |
     Minecraft Polished Diorite — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 5
     ref: polished_diorite
     slug: polished-diorite
+    content_rev: 1
     display_name: Polished Diorite
     material: stone
     hardness: 1.5
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_diorite
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Polished Diorite is the smoothed, decorative counterpart to
+            regular Diorite, produced by combining diorite with cobblestone.
+            It functions purely as a building block, sharing diorite's pale,
+            speckled look without the rough texture.
+        lore: |
+            Added in Java Edition 1.8, it has remained an unchanged cosmetic
+            stone variant ever since.
+    uses:
+        - title: Polished Diorite Slab
+          ref: polished_diorite_slab
+          detail: |
+              Crafting 3 Polished Diorite yields 6 slabs; stonecutting
+              converts diorite or polished diorite into slabs 1:2.
+        - title: Polished Diorite Stairs
+          ref: polished_diorite_stairs
+          detail: |
+              Crafting 6 Polished Diorite yields 4 stairs, or cut 1:1 with a
+              stonecutter.
+    found_in:
+        - location: Warm ocean ruins
+          detail: Generates naturally as part of underwater ruin structures.
+        - location: Crafted from Diorite
+          detail: 4 Diorite blocks craft into 4 Polished Diorite, or convert 1:1 via stonecutter.
+        - location: Mason villager trades
+          detail: Journeyman-level masons buy or sell polished diorite for emeralds.
+    faq:
+        - question: What tool do I need to mine Polished Diorite?
+          answer: |
+              Any wooden pickaxe or better. Mining without a pickaxe drops
+              nothing.
+        - question: Does Polished Diorite drop itself when mined?
+          answer: |
+              Yes, mining it with a pickaxe always drops one Polished
+              Diorite block; Silk Touch and Fortune have no effect.
+        - question: How is Polished Diorite obtained?
+          answer: |
+              Craft it from 4 Diorite, cut Diorite with a stonecutter, find
+              it in warm ocean ruins, or trade with a journeyman mason
+              villager.
+        - question: What can I craft from Polished Diorite?
+          answer: |
+              Polished Diorite Slabs and Polished Diorite Stairs, both purely
+              decorative building blocks.
     data_version: "1.21.5"
 ---
 

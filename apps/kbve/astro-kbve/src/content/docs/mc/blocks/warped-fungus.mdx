@@ -1,5 +1,6 @@
 ---
 title: Warped Fungus
+template: splash
 description: |
     Minecraft Warped Fungus — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,66 @@ mc_block:
     id: 826
     ref: warped_fungus
     slug: warped-fungus
+    content_rev: 1
     display_name: Warped Fungus
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: warped_fungus
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - nether
+        - non_flammable
+        - instant_break
+    about:
+        description: |
+            Warped Fungus is the small blue mushroom-like sapling of the
+            warped forest, grown on Warped Nylium. It breaks instantly with
+            any tool or bare hands and plays a harp note when struck.
+        lore: |
+            Added in the Nether Update (1.16) as the warped counterpart to
+            Crimson Fungus, tied to the strider and hoglin-repelling
+            mechanics of the warped forest biome.
+    uses:
+        - title: Warped Fungus on a Stick
+          ref: warped_fungus_on_a_stick
+          detail: |
+              Combine with a Fishing Rod to craft Warped Fungus on a Stick,
+              used to steer a ridden Strider.
+    found_in:
+        - location: Warped Forest
+          detail: Generates naturally on Warped Nylium throughout the biome.
+        - location: Bone Meal on Warped Nylium
+          detail: Applying bone meal to Warped Nylium has a chance to spawn a Warped Fungus or grow it into a huge fungus tree.
+    faq:
+        - question: What tool do I need to mine Warped Fungus?
+          answer: |
+              None — it breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: Does Warped Fungus repel any mobs?
+          answer: |
+              Yes, hoglins avoid coming within about 7 blocks of Warped
+              Fungus.
+        - question: Can I breed Striders with Warped Fungus?
+          answer: |
+              Yes, feeding Striders Warped Fungus breeds them and also
+              speeds up baby Strider growth.
+        - question: How does Warped Fungus become renewable?
+          answer: |
+              Applying bone meal to Warped Nylium can spawn new fungus or
+              grow an existing one into a huge warped fungus tree.
     data_version: "1.21.5"
 ---
 

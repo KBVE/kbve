@@ -5,10 +5,9 @@ import MCTooltipMount from './MCTooltipMount.astro';
 
 <MCTooltipMount />
 
-<section class="mcdb-browse__shell mcdb-panel not-content kbve-dashboard-page">
+<section class="mcdb-browse__shell not-content kbve-dashboard-page bento-frame">
 	<header class="mcdb-browse__head">
 		<div>
-			<h1>Minecraft Items</h1>
 			<p>
 				Browse every vanilla Minecraft 1.21.5 item we've published —
 				tools, weapons, armor, blocks, foods, brewing reagents,
@@ -51,6 +50,7 @@ import MCTooltipMount from './MCTooltipMount.astro';
 	.mcdb-browse__shell {
 		display: grid;
 		gap: 1rem;
+		padding: 1.25rem 1.5rem;
 	}
 	.mcdb-browse__head {
 		display: flex;
@@ -62,13 +62,6 @@ import MCTooltipMount from './MCTooltipMount.astro';
 	.mcdb-browse__head > div {
 		flex: 1;
 		min-width: 0;
-	}
-	.mcdb-browse__head h1 {
-		margin: 0;
-		font-size: clamp(1.5rem, 3vw, 2rem);
-		font-weight: 800;
-		letter-spacing: -0.01em;
-		color: var(--sl-color-white, var(--sl-color-text));
 	}
 	.mcdb-browse__head p {
 		margin: 0.5rem 0 0;

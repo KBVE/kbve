@@ -1,5 +1,6 @@
 ---
 title: Smooth Basalt
+template: splash
 description: |
     Minecraft Smooth Basalt — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,72 @@ mc_block:
     id: 1080
     ref: smooth_basalt
     slug: smooth-basalt
+    content_rev: 1
     display_name: Smooth Basalt
     material: nether
     hardness: 1.25
     blast_resistance: 4.2
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: smooth_basalt
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - nether
+    about:
+        description: |
+            Smooth Basalt is a decorative variant of basalt with its
+            distinctive ringed texture removed, produced only by smelting
+            regular basalt in a furnace. It generates naturally as the
+            outer shell of amethyst geodes and in ancient cities.
+        lore: |
+            Added alongside basalt in the Nether Update, the smooth form
+            became a decoration and building staple once amethyst geodes
+            introduced it to the Overworld in the Caves & Cliffs update.
+    uses:
+        - title: Building Material
+          ref: basalt
+          detail: |
+              Used purely for decoration and construction; it has no
+              further crafting recipes and cannot be turned back into
+              regular basalt.
+    found_in:
+        - location: Amethyst geode shell
+          detail: Forms the outer layer of every amethyst geode, found underground in any biome.
+        - location: Ancient cities
+          detail: Used as a structural and decorative block throughout the deep dark city generation.
+        - location: Furnace (smelted)
+          detail: Smelt any Basalt block with any fuel to obtain Smooth Basalt.
+    faq:
+        - question: What tool do I need to mine Smooth Basalt?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe yields
+              nothing.
+        - question: How do I get Smooth Basalt?
+          answer: |
+              Smelt regular Basalt in a furnace, blast furnace, or campfire
+              with any fuel source, or mine it directly from amethyst
+              geodes and ancient cities.
+        - question: Can Smooth Basalt be crafted back into Basalt?
+          answer: |
+              No. Smelting is one-directional; there is no recipe to
+              reverse it.
+        - question: Does Fortune increase Smooth Basalt drops?
+          answer: |
+              No. It always drops exactly one Smooth Basalt regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

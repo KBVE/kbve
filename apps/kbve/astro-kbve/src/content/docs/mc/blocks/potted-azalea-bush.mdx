@@ -1,5 +1,6 @@
 ---
 title: Potted Azalea
+template: splash
 description: |
     Minecraft Potted Azalea — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 1084
     ref: potted_azalea_bush
     slug: potted-azalea-bush
+    content_rev: 1
     display_name: Potted Azalea
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,47 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: azalea
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Potted Azalea is a decorative variant created by placing an
+            Azalea sapling into a Flower Pot. It breaks instantly with any
+            tool or by hand, and returns both the pot and the azalea as
+            separate items.
+        lore: |
+            Azalea was introduced in the Caves & Cliffs update to dress up
+            the new lush caves biome, and like other saplings it can be
+            potted for decoration.
+    found_in:
+        - location: Woodland Mansions
+          detail: Potted azaleas can appear as decoration in generated mansion rooms.
+        - location: Player-crafted
+          detail: Right-clicking a Flower Pot with an Azalea places it inside.
+    faq:
+        - question: What does breaking Potted Azalea drop?
+          answer: |
+              Both the Flower Pot and the Azalea plant item, recoverable
+              instantly with any tool or bare hands.
+        - question: Can Potted Azalea grow into a tree?
+          answer: |
+              No. Only azalea planted directly on soil (not potted) can be
+              grown into an azalea tree with bone meal.
+        - question: Does it require a specific tool to mine?
+          answer: |
+              No. It has 0 hardness and breaks instantly with anything,
+              including bare hands.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,9 @@
 ---
 title: 'Merchant'
+template: splash
+sidebar:
+    label: 'Merchant'
+    hidden: true
 description: |
     Civilian humanoid trader. Flat cap, coin pouch. No combat role; used as the visual base for Innkeepers (one per Inn, swapped per tier). Future Caravan/Bazaar AI will reuse this body.
 ref: 'merchant'
@@ -42,7 +46,10 @@ shop_items:
     - 'iron-shield'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Civilian humanoid. Innkeeper visual base. No combat role.
+
+</NpcLeaf>

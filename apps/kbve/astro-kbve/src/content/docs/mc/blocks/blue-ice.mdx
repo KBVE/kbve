@@ -1,5 +1,6 @@
 ---
 title: Blue Ice
+template: splash
 description: |
     Minecraft Blue Ice — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 756
     ref: blue_ice
     slug: blue-ice
+    content_rev: 1
     display_name: Blue Ice
     material: ice
     hardness: 2.8
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: blue_ice
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Blue Ice is the slipperiest natural block in the game, formed
+            deep within frozen ocean icebergs. It never melts near light
+            sources and can only be collected with a Silk Touch tool.
+        lore: |
+            Added in Java Edition 1.13, Blue Ice originally had an even
+            higher slipperiness value before being tuned down slightly.
+    uses:
+        - title: Boat Highways
+          ref: boat
+          detail: |
+              Its slipperiness of 0.989 makes it the fastest surface for
+              riding boats, reaching top speeds far beyond regular ice,
+              making it popular for long-distance transportation tracks.
+        - title: Basalt Generation
+          ref: basalt
+          detail: |
+              Placing Blue Ice next to Soul Soil under flowing lava creates
+              Basalt, a Nether-adjacent farming trick usable in the Overworld.
+    found_in:
+        - location: Frozen Ocean Icebergs
+          detail: Forms as arching structures and cores at the bottom of icebergs in frozen ocean biomes; rarely an entire iceberg is made of it.
+        - location: Ancient Cities
+          detail: Small amounts generate within ancient city structures.
+        - location: Wandering Trader
+          detail: Purchasable from wandering traders for 6 emeralds.
+    faq:
+        - question: What tool do I need to mine Blue Ice?
+          answer: |
+              A Silk Touch enchanted tool. Without Silk Touch, mining it
+              drops nothing at all.
+        - question: Can I craft Blue Ice?
+          answer: |
+              Yes, nine Packed Ice blocks arranged in a 3x3 crafting grid
+              produce one Blue Ice block, but it cannot be crafted back
+              into Packed Ice.
+        - question: Why do players build tracks out of it?
+          answer: |
+              Its high slipperiness lets boats travel much faster than on
+              any other ice or ground surface, making it the fastest known
+              method of overworld boat transportation.
+        - question: Does it melt near torches or other light sources?
+          answer: |
+              No, unlike regular ice, Blue Ice does not melt when placed
+              near light-emitting blocks.
     data_version: "1.21.5"
 ---
 

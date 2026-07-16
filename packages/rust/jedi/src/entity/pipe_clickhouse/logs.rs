@@ -85,6 +85,19 @@ pub(crate) fn clamped_minutes(raw: Option<u32>) -> u32 {
     raw.unwrap_or(DEFAULT_MINUTES).clamp(1, MAX_MINUTES)
 }
 
+/// Time-window condition for the query WHERE clause. `Some(0)` is the ALL
+/// sentinel and returns `None` (no timestamp filter), letting the dashboard
+/// scan the full retention window.
+pub(crate) fn time_condition(raw: Option<u32>) -> Option<String> {
+    match raw {
+        Some(0) => None,
+        other => Some(format!(
+            "timestamp > now() - INTERVAL {} MINUTE",
+            clamped_minutes(other)
+        )),
+    }
+}
+
 fn clamped_limit(raw: Option<u32>) -> u32 {
     raw.unwrap_or(DEFAULT_LIMIT).clamp(1, MAX_LIMIT)
 }
@@ -94,14 +107,26 @@ fn clamped_search(raw: &str) -> String {
     escape_clickhouse_string(&trimmed)
 }
 
+/// Level predicate — `warn` and `warning` are stored interchangeably by
+/// different emitters, so either input matches both spellings.
+fn level_condition(raw: &str) -> String {
+    let lvl = raw.to_lowercase();
+    if lvl == "warn" || lvl == "warning" {
+        "level IN ('warn', 'warning')".to_string()
+    } else {
+        format!("level = '{}'", escape_clickhouse_string(&lvl))
+    }
+}
+
 /// Build the `query` SQL — filtered SELECT against logs_distributed,
 /// ordered by timestamp DESC.
 pub fn build_query_sql(params: &LogsQueryParams) -> String {
-    let minutes = clamped_minutes(params.minutes);
     let limit = clamped_limit(params.limit);
 
-    let mut conditions: Vec<String> =
-        vec![format!("timestamp > now() - INTERVAL {} MINUTE", minutes)];
+    let mut conditions: Vec<String> = Vec::new();
+    if let Some(cond) = time_condition(params.minutes) {
+        conditions.push(cond);
+    }
 
     if let Some(ns) = params.pod_namespace.as_deref().filter(|s| !s.is_empty()) {
         conditions.push(format!(
@@ -116,10 +141,7 @@ pub fn build_query_sql(params: &LogsQueryParams) -> String {
         conditions.push(format!("service = '{}'", escape_clickhouse_string(svc)));
     }
     if let Some(lvl) = params.level.as_deref().filter(|s| !s.is_empty()) {
-        conditions.push(format!(
-            "level = '{}'",
-            escape_clickhouse_string(&lvl.to_lowercase())
-        ));
+        conditions.push(level_condition(lvl));
     }
     if let Some(search) = params.search.as_deref().filter(|s| !s.is_empty()) {
         conditions.push(format!("message ILIKE '%{}%'", clamped_search(search)));
@@ -144,15 +166,18 @@ pub fn build_query_sql(params: &LogsQueryParams) -> String {
 /// Build the `stats` SQL — GROUP BY namespace+service+level for the last
 /// `minutes` minutes.
 pub fn build_stats_sql(params: &LogsStatsParams) -> String {
-    let minutes = clamped_minutes(params.minutes);
+    let where_clause = match time_condition(params.minutes) {
+        Some(cond) => format!("WHERE {} ", cond),
+        None => String::new(),
+    };
     format!(
         "SELECT pod_namespace, service, level, count() AS cnt \
 		 FROM logs_distributed \
-		 WHERE timestamp > now() - INTERVAL {} MINUTE \
+		 {}\
 		 GROUP BY pod_namespace, service, level \
 		 ORDER BY cnt DESC \
 		 LIMIT 5000",
-        minutes
+        where_clause
     )
 }
 
@@ -195,13 +220,13 @@ fn clamped_error_groups(raw: Option<u32>) -> u32 {
 /// 2m ago" so callers can triage the dominant failure first. Optionally scoped
 /// to a single namespace.
 pub fn build_error_groups_sql(params: &ErrorGroupsParams) -> String {
-    let minutes = clamped_minutes(params.minutes);
     let limit = clamped_error_groups(params.limit);
 
-    let mut conditions: Vec<String> = vec![
-        format!("timestamp > now() - INTERVAL {} MINUTE", minutes),
-        "level = 'error'".to_string(),
-    ];
+    let mut conditions: Vec<String> = Vec::new();
+    if let Some(cond) = time_condition(params.minutes) {
+        conditions.push(cond);
+    }
+    conditions.push("level = 'error'".to_string());
     if let Some(ns) = params.pod_namespace.as_deref().filter(|s| !s.is_empty()) {
         conditions.push(format!(
             "pod_namespace = '{}'",
@@ -469,10 +494,54 @@ mod tests {
     }
 
     #[test]
+    fn warn_level_matches_warning_alias() {
+        for input in ["warn", "WARNING"] {
+            let sql = build_query_sql(&LogsQueryParams {
+                level: Some(input.into()),
+                ..Default::default()
+            });
+            assert!(
+                sql.contains("level IN ('warn', 'warning')"),
+                "level={input} should match both spellings: {sql}"
+            );
+        }
+        let sql = build_query_sql(&LogsQueryParams {
+            level: Some("error".into()),
+            ..Default::default()
+        });
+        assert!(sql.contains("level = 'error'"));
+    }
+
+    #[test]
     fn build_stats_sql_default_minutes() {
         let sql = build_stats_sql(&LogsStatsParams::default());
         assert!(sql.contains(&format!("INTERVAL {} MINUTE", DEFAULT_MINUTES)));
         assert!(sql.contains("GROUP BY pod_namespace, service, level"));
+    }
+
+    #[test]
+    fn all_sentinel_drops_time_filter() {
+        assert!(time_condition(Some(0)).is_none());
+        assert!(time_condition(None).is_some());
+
+        let query = build_query_sql(&LogsQueryParams {
+            minutes: Some(0),
+            ..Default::default()
+        });
+        assert!(!query.contains("INTERVAL"));
+
+        let stats = build_stats_sql(&LogsStatsParams { minutes: Some(0) });
+        assert!(!stats.contains("INTERVAL"));
+        assert!(!stats.contains("WHERE"));
+        assert!(stats.contains("GROUP BY pod_namespace, service, level"));
+
+        let groups = build_error_groups_sql(&ErrorGroupsParams {
+            pod_namespace: None,
+            minutes: Some(0),
+            limit: Some(10),
+        });
+        assert!(!groups.contains("INTERVAL"));
+        assert!(groups.contains("level = 'error'"));
     }
 
     #[test]

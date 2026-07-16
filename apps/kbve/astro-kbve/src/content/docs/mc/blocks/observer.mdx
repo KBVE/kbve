@@ -1,5 +1,6 @@
 ---
 title: Observer
+template: splash
 description: |
     Minecraft Observer — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 644
     ref: observer
     slug: observer
+    content_rev: 1
     display_name: Observer
     material: redstone
     hardness: 3
     blast_resistance: 3
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,59 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: observer
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - redstone
+        - sensor
+        - automation
+    about:
+        description: |
+            An observer is a redstone sensor that watches the block directly in
+            front of its face. When that block, fluid, or air changes state, the
+            observer emits a short, strong redstone pulse from its back.
+        lore: |
+            Compact and reliable, observers replaced many bulky block-update
+            detectors. They drive flying machines, fast clocks, and automatic
+            farms that react instantly to changes.
+    uses:
+        - title: Block Update Detection
+          ref: observer
+          detail: |
+              Emits a 2 game tick, signal-strength-15 pulse from its back
+              whenever the block it faces changes, ideal for triggering crop
+              or melon harvesters.
+        - title: Redstone Clocks
+          ref: observer
+          detail: |
+              Two observers facing each other form a compact, fast repeating
+              clock used in flying machines and timing circuits.
+    found_in:
+        - location: Crafting
+          detail: Crafted from 6 cobblestone, 2 redstone dust, and 1 nether quartz.
+    faq:
+        - question: What tool do I need to mine an observer?
+          answer: |
+              A wooden pickaxe or better. Mined without a pickaxe it drops
+              nothing.
+        - question: Which side detects and which side outputs?
+          answer: |
+              The face (the side with the small dot) watches the block in front
+              of it; the opposite back side emits the redstone pulse when a
+              change is detected.
+        - question: How strong and how long is the pulse?
+          answer: |
+              It outputs strong power at signal strength 15 for 2 game ticks,
+              with a 2 game tick delay in Java Edition.
+        - question: What does an observer detect?
+          answer: |
+              Any state change in the block, fluid, or air directly in front of
+              its face — growth, placement, removal, or block-state updates.
     data_version: "1.21.5"
 ---
 

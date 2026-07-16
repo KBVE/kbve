@@ -1,5 +1,6 @@
 ---
 title: Purple Carpet
+template: splash
 description: |
     Minecraft Purple Carpet — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 516
     ref: purple_carpet
     slug: purple-carpet
+    content_rev: 1
     display_name: Purple Carpet
     material: wool
     hardness: 0.1
@@ -24,10 +26,60 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: purple_carpet
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Purple Carpet is a thin, decorative wool block crafted two wool
+            for three carpet. Its 1/16-block hitbox lets mobs stand on it
+            without triggering spawn-blocking, and it dampens vibrations for
+            sculk sensors.
+        lore: |
+            Carpets were introduced as a way to add color and texture to
+            floors without the full height of a wool block, and later
+            gained a role as sculk-vibration dampeners.
+    uses:
+        - title: Note Block Sound
+          ref: purple_carpet
+          detail: |
+              Placing carpet on a note block produces the default harp
+              sound, same as no block at all.
+        - title: Llama Decoration
+          ref: purple_carpet
+          detail: |
+              Purple carpet equipped on a llama displays an enderman-eyes
+              pattern on its carrying blanket.
+    found_in:
+        - location: Taiga Villages
+          detail: Purple carpet generates naturally in some taiga village houses alongside white and red carpet.
+        - location: Crafted
+          detail: Two purple wool craft into three purple carpet at a crafting table.
+    faq:
+        - question: What tool is needed to mine Purple Carpet?
+          answer: |
+              None — any tool or bare hands breaks it instantly and it
+              always drops itself.
+        - question: Does Purple Carpet stop sculk sensors from detecting me?
+          answer: |
+              Yes. Carpet dampens vibrations, making it useful for muffling
+              footsteps and other actions from sculk sensors.
+        - question: Can mobs spawn on Purple Carpet?
+          answer: |
+              No. Its thin hitbox prevents most mob spawning while still
+              functioning as a solid, walkable surface.
+        - question: Is Purple Carpet flammable?
+          answer: |
+              Yes. Like wool, carpet catches fire from lava and nearby
+              flames, and can be used as furnace fuel.
     data_version: "1.21.5"
 ---
 

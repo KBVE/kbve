@@ -1,5 +1,6 @@
 ---
 title: Horn Coral
+template: splash
 description: |
     Minecraft Horn Coral — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 734
     ref: horn_coral
     slug: horn-coral
+    content_rev: 1
     display_name: Horn Coral
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: horn_coral
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - ocean
+        - coral
+        - waterloggable
+    about:
+        description: |
+            Horn Coral is the plant-form, yellow-colored coral block that
+            generates within coral reef structures in warm ocean biomes. It
+            requires adjacent water to survive, dying into Dead Horn Coral
+            otherwise.
+        lore: |
+            Introduced in Java Edition 1.13's Update Aquatic, one of five
+            coral plant color variants.
+    uses:
+        - title: Building & decoration
+          ref: horn_coral
+          detail: |
+              Placed on the top of blocks for decorative underwater
+              scenery and coral reef builds.
+    found_in:
+        - location: Warm ocean coral reefs
+          detail: Generates naturally within coral reef structures in warm ocean biomes.
+        - location: Bone meal on sand/dirt/gravel/clay
+          detail: Applying bone meal to these blocks in warm oceans can generate coral, including horn coral, across a 5x5 area.
+    faq:
+        - question: Does mining it without Silk Touch give anything?
+          answer: |
+              No. Without Silk Touch it drops nothing at all.
+        - question: What happens if it's removed from water?
+          answer: |
+              It dies within a few seconds and permanently becomes Dead
+              Horn Coral.
+        - question: What tool do I need?
+          answer: |
+              Any tool works instantly since its hardness is 0; there is no
+              minimum tool tier.
+        - question: How can I grow more Horn Coral?
+          answer: |
+              Apply bone meal to sand, dirt, gravel, or clay while
+              underwater in a warm ocean biome to generate new coral,
+              including the horn variant, nearby.
     data_version: "1.21.5"
 ---
 

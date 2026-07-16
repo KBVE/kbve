@@ -1,5 +1,6 @@
 ---
 title: Sandstone Wall
+template: splash
 description: |
     Minecraft Sandstone Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,65 @@ mc_block:
     id: 801
     ref: sandstone_wall
     slug: sandstone-wall
+    content_rev: 1
     display_name: Sandstone Wall
     material: stone
     hardness: 0.8
     blast_resistance: 0.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: sandstone_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Sandstone Wall is a decorative wall variant of sandstone,
+            connecting to neighboring walls and posts to form tall or low
+            barriers around desert village structures.
+        lore: |
+            Introduced in Java Edition 1.14 as part of the wall-block
+            family; a 1.16 update removed the visual gap between stacked
+            walls.
+    uses:
+        - title: Fencing & Decoration
+          ref: sandstone
+          detail: |
+              Used to build low barriers and decorative borders around
+              desert-themed builds, connecting seamlessly to other walls.
+    found_in:
+        - location: Desert Villages
+          detail: Generates as a structural element in desert village builds.
+        - location: Crafted or Stonecut
+          detail: Crafted from 6 Sandstone blocks, or cut from Sandstone with a stonecutter.
+    faq:
+        - question: What tool do I need to mine a Sandstone Wall?
+          answer: |
+              A wooden pickaxe or better; without one, it drops nothing.
+        - question: Can Sandstone Walls be waterlogged?
+          answer: |
+              Yes, they can hold a water source when placed in water.
+        - question: Do Sandstone Walls connect to each other automatically?
+          answer: |
+              Yes, adjacent walls and fence gates connect visually,
+              forming continuous barriers with optional raised center
+              posts.
+        - question: Was Sandstone Wall's hardness ever changed?
+          answer: |
+              Yes, Bedrock Edition 1.21.30 lowered its hardness from 2.0
+              to 0.8 to match Java Edition.
     data_version: "1.21.5"
 ---
 

@@ -1,14 +1,14 @@
 import { StyleSheet, View } from 'react-native';
 import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
-import { createStreamSource } from '../createStreamSource';
-import type { StreamLens, StreamStore } from '../types';
+import type { StreamLens } from '../types';
+import { buildStatsTotals, CH_CONTROLS } from '../clickhouse/clickhouseStream';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
 
-interface RawLogRow {
+export interface RawLogRow {
 	timestamp: string;
 	level?: string;
 	message?: string;
@@ -30,27 +30,11 @@ export interface LogItem {
 	relativeTime: string;
 }
 
-export interface ClickHouseStreamOptions {
-	/** Returns a fresh bearer token (Supabase access token). */
-	getToken: () => Promise<string | null>;
-	/** Origin for the proxy. '' (relative) on web, absolute URL on mobile. */
-	baseUrl?: string;
-	pollMs?: number;
-	/** Query parameters for log filtering */
-	namespace?: string;
-	podName?: string;
-	service?: string;
-	level?: string;
-	search?: string;
-	minutes?: number;
-	limit?: number;
-}
-
 // ---------------------------------------------------------------------------
 // Normalization
 // ---------------------------------------------------------------------------
 
-function normalize(raw: RawLogRow): LogItem {
+export function normalize(raw: RawLogRow): LogItem {
 	const level = (raw.level ?? 'info').toLowerCase();
 	const namespace = raw.pod_namespace ?? '';
 	const podName = raw.pod_name ?? '';
@@ -93,77 +77,6 @@ function formatRelativeTime(ts: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Stream Source
-// ---------------------------------------------------------------------------
-
-export function createClickHouseStream(
-	opts: ClickHouseStreamOptions,
-): StreamStore<LogItem> {
-	const {
-		getToken,
-		baseUrl = '',
-		pollMs = 30_000,
-		namespace,
-		podName,
-		service,
-		level,
-		search,
-		minutes = 60,
-		limit = 200,
-	} = opts;
-
-	return createStreamSource<RawLogRow, LogItem>({
-		key: `clickhouse:logs:${namespace ?? 'all'}`,
-		pollMs,
-		cacheTtlMs: 60_000,
-		id: (it) => it.id,
-		signature: (it) => `${it.timestamp}|${it.level}|${it.message}`,
-		normalize,
-		fetch: async ({ signal }) => {
-			const token = await getToken();
-			const body: Record<string, unknown> = {
-				command: 'query',
-				minutes,
-				limit,
-			};
-			if (namespace) body.pod_namespace = namespace;
-			if (podName) body.pod_name = podName;
-			if (service) body.service = service;
-			if (level) body.level = level;
-			if (search) body.search = search;
-
-			const res = await fetch(`${baseUrl}/dashboard/clickhouse/proxy`, {
-				method: 'POST',
-				headers: {
-					...(token ? { Authorization: `Bearer ${token}` } : {}),
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(body),
-				signal,
-			});
-
-			if (res.status === 403) throw new Error('Access restricted');
-			if (!res.ok)
-				throw new Error(`ClickHouse logs API error: ${res.status}`);
-
-			const json = (await res.json()) as { rows?: RawLogRow[] };
-			const raw = json?.rows ?? [];
-
-			// Sort by timestamp descending (newest first)
-			return raw.sort((a, b) => {
-				const tA = new Date(
-					a.timestamp.replace(' ', 'T') + 'Z',
-				).getTime();
-				const tB = new Date(
-					b.timestamp.replace(' ', 'T') + 'Z',
-				).getTime();
-				return tB - tA;
-			});
-		},
-	});
-}
-
-// ---------------------------------------------------------------------------
 // Lens
 // ---------------------------------------------------------------------------
 
@@ -193,37 +106,45 @@ export const clickhouseLens: StreamLens<LogItem> = {
 			label: 'Errors',
 			tone: 'danger',
 			predicate: (it) => it.level === 'error',
+			params: { level: 'error' },
 		},
 		{
 			id: 'warn',
 			label: 'Warnings',
 			tone: 'warning',
 			predicate: (it) => it.level === 'warn' || it.level === 'warning',
+			params: { level: 'warn' },
 		},
 		{
 			id: 'info',
 			label: 'Info',
 			tone: 'neutral',
 			predicate: (it) => it.level === 'info',
+			params: { level: 'info' },
 		},
 	],
-	stats: (items) => [
-		{ id: 'total', label: 'Total Logs', value: items.length },
-		{
-			id: 'errors',
-			label: 'Errors',
-			tone: 'danger',
-			value: items.filter((i) => i.level === 'error').length,
-		},
-		{
-			id: 'warnings',
-			label: 'Warnings',
-			tone: 'warning',
-			value: items.filter(
-				(i) => i.level === 'warn' || i.level === 'warning',
-			).length,
-		},
-	],
+	stats: (items, meta) => {
+		const t = meta
+			? buildStatsTotals(meta)
+			: {
+					total: items.length,
+					errors: items.filter((i) => i.level === 'error').length,
+					warnings: items.filter(
+						(i) => i.level === 'warn' || i.level === 'warning',
+					).length,
+				};
+		return [
+			{ id: 'total', label: 'Total Logs', value: t.total },
+			{ id: 'errors', label: 'Errors', tone: 'danger', value: t.errors },
+			{
+				id: 'warnings',
+				label: 'Warnings',
+				tone: 'warning',
+				value: t.warnings,
+			},
+		];
+	},
+	controls: CH_CONTROLS,
 	row: (it) => (
 		<Surface padded={false} style={styles.row}>
 			<View

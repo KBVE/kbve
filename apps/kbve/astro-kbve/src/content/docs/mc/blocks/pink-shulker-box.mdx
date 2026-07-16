@@ -1,5 +1,6 @@
 ---
 title: Pink Shulker Box
+template: splash
 description: |
     Minecraft Pink Shulker Box — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 652
     ref: pink_shulker_box
     slug: pink-shulker-box
+    content_rev: 1
     display_name: Pink Shulker Box
     material: stone
     hardness: 2
@@ -24,10 +26,54 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pink_shulker_box
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            A Pink Shulker Box is a portable storage container dyed with
+            pink dye. Like all shulker boxes it keeps its 27 inventory slots
+            intact when broken, letting players carry stored items as a
+            single block.
+        lore: |
+            Shulker boxes were added in Java Edition 1.11, crafted from the
+            shells dropped by shulkers found in End cities.
+    uses:
+        - title: Portable Storage
+          ref: pink_shulker_box
+          detail: |
+              Holds 27 slots of items. Breaking a placed shulker box (by
+              any means, including pistons or explosions) drops it with its
+              contents preserved.
+    found_in:
+        - location: Crafting table
+          detail: Craft a Shulker Shell with a Chest, then dye the result Pink Dye to recolor it.
+        - location: Cauldron
+          detail: Washing a dyed shulker box in a cauldron with water removes the color back to a plain Shulker Box.
+    faq:
+        - question: What tool do I need to mine a Pink Shulker Box?
+          answer: |
+              Any tool, or even bare hands, will mine it — a pickaxe is
+              simply the fastest option.
+        - question: Does mining it destroy the items stored inside?
+          answer: |
+              No. The contents stay bound to the dropped item, so you can
+              safely relocate a full shulker box.
+        - question: Can I stack multiple Pink Shulker Boxes together?
+          answer: |
+              No, shulker box items do not stack, even if empty.
+        - question: Does opening one anger nearby piglins?
+          answer: |
+              Yes. Piglins react with hostility whenever a player opens or
+              mines any shulker box near them.
     data_version: "1.21.5"
 ---
 

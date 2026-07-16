@@ -1,5 +1,6 @@
 ---
 title: Stone Bricks
+template: splash
 description: |
     Minecraft Stone Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,76 @@ mc_block:
     id: 311
     ref: stone_bricks
     slug: stone-bricks
+    content_rev: 1
     display_name: Stone Bricks
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stone_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wooden_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Stone Bricks are a decorative stone variant crafted from four
+            regular Stone blocks in a 2x2 grid, forming the base block for
+            mossy, cracked, and chiseled stone brick variants.
+        lore: |
+            Stone Bricks were added in Beta 1.8 Pre-release as the primary
+            building material found throughout strongholds.
+    uses:
+        - title: Stone Brick Slab / Stairs / Wall
+          ref: stone_brick_slab
+          detail: |
+              Crafts into Stone Brick Slabs (3 bricks to 6 slabs), Stairs (6
+              bricks to 4 stairs), and Walls (6 bricks to 6 walls).
+        - title: Chiseled & Mossy Variants
+          ref: chiseled_stone_bricks
+          detail: |
+              Two slabs form Chiseled Stone Bricks; placing vines or moss
+              near stone bricks over time can create Mossy Stone Bricks.
+    found_in:
+        - location: Stronghold
+          detail: The dominant building material used throughout strongholds.
+        - location: Cold Ocean Ruin / Trail Ruins / Trial Chamber
+          detail: Generates as structural blocks in these generated structures.
+        - location: Village Mason Chest
+          detail: Obtainable as loot from mason house chests in villages.
+        - location: Crafted
+          detail: 4 Stone blocks in a 2x2 grid craft 4 Stone Bricks.
+    faq:
+        - question: What tool do I need to mine Stone Bricks?
+          answer: |
+              At least a wooden pickaxe; mining without one drops nothing.
+        - question: Can Silverfish hide inside Stone Bricks?
+          answer: |
+              Yes. Silverfish can infest Stone Bricks, turning them into
+              Infested Stone Bricks that release a silverfish when broken.
+        - question: How do I craft Stone Bricks?
+          answer: |
+              Place 4 regular Stone blocks in a 2x2 pattern in any crafting
+              grid to get 4 Stone Bricks.
+        - question: What is the difference between Stone Bricks and Stone?
+          answer: |
+              Stone Bricks are a decorative variant crafted from Stone, with
+              the same hardness category but purely aesthetic differences
+              and access to mossy, cracked, and chiseled forms.
     data_version: "1.21.5"
 ---
 

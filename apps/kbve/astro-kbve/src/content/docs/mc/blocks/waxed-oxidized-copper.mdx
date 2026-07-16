@@ -1,5 +1,6 @@
 ---
 title: Waxed Oxidized Copper
+template: splash
 description: |
     Minecraft Waxed Oxidized Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 995
     ref: waxed_oxidized_copper
     slug: waxed-oxidized-copper
+    content_rev: 1
     display_name: Waxed Oxidized Copper
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_oxidized_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - blast_resistant
+    about:
+        description: |
+            Waxed Oxidized Copper is a Block of Copper at its final,
+            fully weathered stage, sealed with honeycomb so it never
+            oxidizes further. Its teal surface with green patina spots
+            stays fixed permanently, unlike unwaxed copper which keeps
+            aging.
+        lore: |
+            Copper's slow oxidation cycle and the honeycomb-waxing
+            mechanic were introduced together in the Trails & Tales
+            update to give builders control over an otherwise
+            time-based block.
+    uses:
+        - title: Copper Bulb / Grate crafting
+          ref: copper_bulb
+          detail: |
+              Used as a crafting ingredient for waxed copper bulbs and
+              grates, and can be stonecut into waxed oxidized cut copper,
+              stairs, slabs, and chiseled copper.
+    found_in:
+        - location: Crafting/Waxing
+          detail: Made by applying honeycomb to an Oxidized Copper block, which itself forms naturally when a Block of Copper is left exposed over time, or is crafted directly from oxidized copper ingots.
+        - location: Trial Chambers
+          detail: Some waxed copper variants generate naturally as decoration in trial chambers.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better. Anything weaker breaks the block
+              without dropping it.
+        - question: How is it different from regular Oxidized Copper?
+          answer: |
+              Visually identical, but waxed copper is locked at that
+              oxidation stage forever — regular oxidized copper is just
+              the natural end state and behaves the same visually, though
+              only waxed copper is guaranteed to never change.
+        - question: Is it affected by Silk Touch or Fortune?
+          answer: |
+              No. It always drops exactly one of itself regardless of
+              enchantments.
+        - question: Can I turn it back into an unwaxed block?
+          answer: |
+              No, waxing cannot be undone. An axe can scrape wax off
+              lower-oxidation copper variants, but scraping does not
+              un-wax a fully oxidized block back into an aging one.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Cobweb
+template: splash
 description: |
     Minecraft Cobweb — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 129
     ref: cobweb
     slug: cobweb
+    content_rev: 1
     display_name: Cobweb
     material: misc
     hardness: 4
@@ -26,8 +28,70 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cobweb
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+        - ref: string
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shears_mineable
+        - sword_mineable
+        - overworld
+    about:
+        description: |
+            Cobweb is a decorative and tactical block that drastically slows
+            anything moving through it, whether player, mob, or item. It is
+            best harvested with shears to keep the block intact, or with a
+            sword to instantly break it into string.
+        lore: |
+            Cobwebs were originally conceived as spider silk that Notch
+            planned for spiders to weave, long before they became a
+            standalone placeable block.
+    uses:
+        - title: Traps and mob control
+          ref: cobweb
+          detail: |
+              Placed in corridors or pits, cobweb slows enemies to roughly a
+              quarter speed, making it a common trap and mob-farm ingredient.
+        - title: Potion of Weaving
+          ref: cobweb
+          detail: |
+              Cobweb is brewed with an Awkward Potion to create a Potion of
+              Weaving, which coats a target in cobweb on impact.
+        - title: Fall damage prevention
+          ref: cobweb
+          detail: |
+              Landing in cobweb negates fall damage, making it useful for
+              parkour builds and safety nets.
+    found_in:
+        - location: Mineshafts and strongholds
+          detail: Generates around rails, chests, and library shelves.
+        - location: Woodland mansions and trial chambers
+          detail: Found decorating rooms and corridors as an obstacle.
+        - location: Igloo basements and abandoned villages
+          detail: Appears in hidden basement rooms and derelict structures.
+    faq:
+        - question: What tool do I need to keep the Cobweb block?
+          answer: |
+              Shears. Breaking cobweb with shears drops the cobweb block
+              itself; almost any other tool leaves only string or nothing.
+        - question: What does breaking Cobweb with a sword give?
+          answer: |
+              One String, and it breaks instantly since swords are effective
+              against cobweb.
+        - question: Does Cobweb affect fall damage?
+          answer: |
+              Yes. Falling into cobweb cancels fall damage entirely, similar
+              to landing in water or hay bales.
+        - question: Can Fortune increase Cobweb drops?
+          answer: |
+              No. Cobweb drop quantities are fixed regardless of Fortune;
+              only the tool used changes what item you receive.
     data_version: "1.21.5"
 ---
 

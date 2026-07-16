@@ -1,5 +1,6 @@
 ---
 title: Warped Hanging Sign
+template: splash
 description: |
     Minecraft Warped Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 243
     ref: warped_wall_hanging_sign
     slug: warped-wall-hanging-sign
+    content_rev: 1
     display_name: Warped Hanging Sign
     material: nether
     hardness: 1
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: warped_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+    about:
+        description: |
+            Warped Hanging Sign is the wall-mounted form of the warped
+            hanging sign, suspended from iron chains against the side of
+            a block. It displays four lines of customizable text.
+        lore: |
+            Hanging signs were added in the Trails & Tales Update (1.20),
+            crafted from stripped logs and chains rather than planks.
+    uses:
+        - title: Labels & Wayfinding
+          ref: warped_hanging_sign
+          detail: |
+              Used to label storage, mark trails, or decorate builds; text
+              can be dyed, made to glow with a glow ink sac, and locked
+              permanently by waxing with honeycomb.
+    found_in:
+        - location: Crafted from Stripped Warped Stem
+          detail: Two iron chains plus six stripped warped stems craft six warped hanging signs at a crafting table.
+        - location: Trial Chambers & Trail Ruins
+          detail: Generates naturally with pre-written or blank text in trial chamber and trail ruin structures.
+    faq:
+        - question: What tool do I need to mine a Warped Hanging Sign?
+          answer: |
+              Any tool works, and an axe is fastest. There is no minimum
+              tool tier required to get the drop.
+        - question: Does it drop the wall or standard hanging sign item?
+          answer: |
+              Both the wall-mounted and ceiling-mounted hanging sign
+              blocks drop the same single hanging sign item, which can be
+              placed in either orientation.
+        - question: Can Warped Hanging Signs be used as furnace fuel?
+          answer: |
+              No. Only Overworld wood hanging signs burn as furnace fuel;
+              crimson and warped hanging signs do not.
+        - question: Can I edit the text after placing it?
+          answer: |
+              Yes, unless the sign has been waxed with honeycomb, which
+              permanently locks the text against further edits.
     data_version: "1.21.5"
 ---
 

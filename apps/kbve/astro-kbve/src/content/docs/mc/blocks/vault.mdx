@@ -1,5 +1,6 @@
 ---
 title: Vault
+template: splash
 description: |
     Minecraft Vault — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 1094
     ref: vault
     slug: vault
+    content_rev: 1
     display_name: Vault
     material: stone
     hardness: 50
     blast_resistance: 50
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 6
     light_opacity: 1
@@ -27,7 +28,48 @@ mc_block:
     renewable: false
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            The Vault is a loot-dispensing block found only in trial chambers,
+            paired with trial spawners. It sits inert until a nearby player
+            uses a trial key, at which point it ejects a reward and locks
+            itself against that player permanently.
+        lore: |
+            Added in the 1.21 Tricky Trials update, vaults were inspired by
+            gashapon capsule-toy machines, each guaranteeing a fair shot at
+            loot for every player who reaches it.
+    uses:
+        - title: Trial Key
+          ref: trial_key
+          detail: |
+              Insert a Trial Key (or Ominous Trial Key) into a vault to
+              unlock it and receive 2–5 stacks of loot such as emeralds,
+              arrows, enchanted gear, or rare items.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates on waxed cut copper pedestals in every room containing a trial spawner, plus the entrance room.
+    faq:
+        - question: Can I mine a Vault?
+          answer: |
+              No. It has no associated tool and drops nothing when broken —
+              it is meant to stay in place inside its trial chamber.
+        - question: Can I open the same Vault twice?
+          answer: |
+              Not as the same player. Each vault can be opened once per
+              player, but different players can still unlock it for their
+              own loot.
+        - question: What key does a Vault need?
+          answer: |
+              A regular Trial Key for normal vaults, or an Ominous Trial Key
+              (dropped by Ominous Trial Spawners) for ominous vaults with
+              better loot.
+        - question: Does a Vault give light?
+          answer: |
+              Yes. It emits light level 6 while idle and 12 while active or
+              ejecting loot.
     data_version: "1.21.5"
 ---
 

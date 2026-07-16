@@ -9,14 +9,16 @@ describe('OSRS endpoints', () => {
 	describe('GET /api/v1/osrs/:item_id', () => {
 		it('returns JSON for a known item ID (rune scimitar = 1333)', async () => {
 			const res = await fetch(`${BASE_URL}/api/v1/osrs/1333`);
-			// May return 200 (cached) or 502/503 (OSRS API unreachable)
+			// May return 200 (cached) or 404/408/502/503 (OSRS API
+			// unreachable — 408 when the cache actor stalls on the upstream
+			// fetch and the request hits the 10s server timeout)
 			if (res.status === 200) {
 				const data = await res.json();
 				// OSRS GE API returns price data directly: { avg, high, low, ... }
 				expect(typeof data).toBe('object');
 				expect(data).not.toBeNull();
 			} else {
-				expect([404, 502, 503]).toContain(res.status);
+				expect([404, 408, 502, 503]).toContain(res.status);
 			}
 		});
 
@@ -40,8 +42,8 @@ describe('OSRS endpoints', () => {
 				const ct = res.headers.get('content-type') ?? '';
 				expect(ct).toContain('text/html');
 			} else {
-				// Without OSRS cache, may 404 or 502
-				expect([404, 502, 503]).toContain(res.status);
+				// Without OSRS cache, may 404/408/502/503
+				expect([404, 408, 502, 503]).toContain(res.status);
 			}
 		});
 
@@ -51,7 +53,7 @@ describe('OSRS endpoints', () => {
 				const ct = res.headers.get('content-type') ?? '';
 				expect(ct).toContain('text/html');
 			} else {
-				expect([404, 502, 503]).toContain(res.status);
+				expect([404, 408, 502, 503]).toContain(res.status);
 			}
 		});
 	});

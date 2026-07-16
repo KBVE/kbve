@@ -1,5 +1,6 @@
 ---
 title: Chicken Spawn Egg
+template: splash
 description: |
     Minecraft Chicken Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1079
     ref: chicken_spawn_egg
     slug: chicken-spawn-egg
+    content_rev: 1
     display_name: Chicken Spawn Egg
     category: food
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Chicken Spawn Egg instantly spawns a chicken when used on a block,
+            with the mob's feet resting adjacent to the surface it was used on. It
+            is available only in Creative mode or through commands, and is one of
+            the many mob-specific spawn eggs in the game.
+        lore: |
+            Spawn eggs have existed since the early days of Creative mode as a
+            convenient way for builders and map makers to populate their worlds
+            with mobs.
+    faq:
+        - question: How do I obtain a Chicken Spawn Egg?
+          answer: |
+            It is only available in Creative mode inventory or via the /give
+            command; it cannot be crafted or found in Survival.
+        - question: What happens if I use it on a monster spawner?
+          answer: |
+            Using the spawn egg on a monster spawner or trial spawner changes the
+            mob type it spawns to a chicken.
+        - question: Can I rename mobs spawned from this egg?
+          answer: |
+            Yes, renaming the spawn egg on an anvil before use gives the spawned
+            chicken that custom name.
+        - question: Is the Chicken Spawn Egg consumed when used?
+          answer: |
+            In Survival mode it is consumed after spawning a mob; in Creative mode
+            it remains in the inventory.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

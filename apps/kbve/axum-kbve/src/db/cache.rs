@@ -19,6 +19,12 @@ const CACHE_TTL: Duration = Duration::from_secs(300);
 const CACHE_MAX_SIZE: usize = 10_000;
 const CLEANUP_INTERVAL: Duration = Duration::from_secs(60);
 const EVICTION_BATCH: usize = CACHE_MAX_SIZE / 10;
+// Short-TTL tombstones for known-missing usernames so an unauthenticated
+// `/@bogus` flood can't re-run the full 2-RPC enrichment pipeline on every hit.
+const NEGATIVE_TTL: Duration = Duration::from_secs(30);
+// Hard cap on the tombstone map between background sweeps so a high-rate flood
+// of distinct unknown usernames can't grow it without bound.
+const NEGATIVE_MAX: usize = 4096;
 
 type ProfileKey = String;
 
@@ -74,6 +80,11 @@ pub struct CacheStats {
 pub struct ProfileCache {
     entries: Arc<DashMap<ProfileKey, CacheEntry>>,
     inflight: Arc<DashMap<ProfileKey, Arc<Mutex<()>>>>,
+    negative: Arc<DashMap<ProfileKey, Instant>>,
+    /// Bumped on every invalidation. A loader snapshots it before fetching and
+    /// skips writing its result if it changed mid-flight, so an invalidation
+    /// racing an in-flight load isn't silently overwritten by stale data.
+    generation: Arc<AtomicU64>,
     counters: Arc<CacheCounters>,
 }
 
@@ -99,6 +110,8 @@ impl ProfileCache {
         Self {
             entries: Arc::new(DashMap::with_capacity(1024)),
             inflight: Arc::new(DashMap::with_capacity(256)),
+            negative: Arc::new(DashMap::with_capacity(256)),
+            generation: Arc::new(AtomicU64::new(0)),
             counters: Arc::new(CacheCounters::default()),
         }
     }
@@ -160,6 +173,10 @@ impl ProfileCache {
             return Some(profile);
         }
 
+        if self.is_negative_cached(&key) {
+            return None;
+        }
+
         let lock = self
             .inflight
             .entry(key.clone())
@@ -182,16 +199,49 @@ impl ProfileCache {
             return Some(profile);
         }
 
+        // Snapshot the invalidation generation before loading. If an
+        // invalidation lands while `loader` is in flight, we must not write the
+        // now-stale result back into the cache.
+        let generation = self.generation.load(Ordering::Relaxed);
+
         // We are the loader. Populate cache *before* returning so late-arriving
         // fast-path readers see the hit even before the guard clears inflight.
         match loader(key.clone()).await {
             Some(profile) => {
                 let arc = Arc::new(profile);
-                self.insert_arc(key, Arc::clone(&arc));
+                if self.generation.load(Ordering::Relaxed) == generation {
+                    self.negative.remove(&key);
+                    self.insert_arc(key, Arc::clone(&arc));
+                }
                 Some(arc)
             }
-            None => None,
+            None => {
+                if self.generation.load(Ordering::Relaxed) == generation {
+                    self.insert_negative(key);
+                }
+                None
+            }
         }
+    }
+
+    fn insert_negative(&self, key: ProfileKey) {
+        // Bound growth between background sweeps: once over the cap, drop expired
+        // tombstones before inserting the new one.
+        if self.negative.len() >= NEGATIVE_MAX {
+            self.negative.retain(|_, at| at.elapsed() <= NEGATIVE_TTL);
+        }
+        self.negative.insert(key, Instant::now());
+    }
+
+    fn is_negative_cached(&self, key: &str) -> bool {
+        if let Some(at) = self.negative.get(key) {
+            if at.elapsed() <= NEGATIVE_TTL {
+                return true;
+            }
+            drop(at);
+            self.negative.remove(key);
+        }
+        false
     }
 
     #[allow(dead_code)]
@@ -202,7 +252,11 @@ impl ProfileCache {
 
     #[allow(dead_code)]
     pub fn invalidate_by_key(&self, key: &str) {
+        // Bump first so a loader that reads the generation after this point
+        // observes the change and declines to write its now-stale result.
+        self.generation.fetch_add(1, Ordering::Relaxed);
         self.entries.remove(key);
+        self.negative.remove(key);
     }
 
     #[allow(dead_code)]
@@ -273,6 +327,8 @@ impl ProfileCache {
                 .fetch_add(removed, Ordering::Relaxed);
             tracing::debug!(removed, "cleaned expired profile cache entries");
         }
+
+        self.negative.retain(|_, at| at.elapsed() <= NEGATIVE_TTL);
     }
 
     fn evict_lru(&self, count: usize) {

@@ -1,5 +1,9 @@
 ---
 title: 'Fishing Boat'
+template: splash
+sidebar:
+    label: 'Fishing Boat'
+    hidden: true
 description: |
     Craftsman-built water-locked vessel. Slow, mid HP, harpoon-tipped ranged attack against Whales + Beasts. Spawned by Docks; lives in river / ocean tiles only.
 ref: 'fishing-boat'
@@ -37,7 +41,10 @@ faction:
     faction_id: 'player'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Craftsman-built water-locked vessel. Slow, harpoon-tipped, hunts Whales and Beasts.
+
+</NpcLeaf>

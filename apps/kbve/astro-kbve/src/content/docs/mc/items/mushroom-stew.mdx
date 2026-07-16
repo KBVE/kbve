@@ -1,5 +1,6 @@
 ---
 title: Mushroom Stew
+template: splash
 description: |
     Minecraft Mushroom Stew — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 889
     ref: mushroom_stew
     slug: mushroom-stew
+    content_rev: 1
     display_name: Mushroom Stew
     category: food
     rarity: common
@@ -22,6 +24,30 @@ mc_item:
         saturation: 86.4
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Mushroom stew is a bowl of stewed mushrooms that restores 6 hunger points and 7.2 saturation in a single bite,
+            making it one of the most efficient early-game foods per item consumed. It is crafted from a red mushroom, a
+            brown mushroom, and a bowl, or gathered instantly by using an empty bowl on a mooshroom, which returns the
+            filled stew and lets the bowl be reused once eaten.
+        lore: |
+            One of Minecraft's oldest food items, dating back to Java Edition Indev, long before hunger or saturation
+            mechanics existed in their current form.
+    faq:
+        - question: How do I make mushroom stew?
+          answer: |
+              Craft it from one red mushroom, one brown mushroom, and a bowl, or simply use an empty bowl on a mooshroom
+              to "milk" it for an instant bowl of stew.
+        - question: How much hunger does mushroom stew restore?
+          answer: |
+              It restores 6 hunger points and 7.2 saturation, and in Java Edition it also heals 4.8 HP over 2.4 seconds
+              when eaten.
+        - question: Do I get the bowl back after eating mushroom stew?
+          answer: |
+              Yes, the empty bowl is returned to your inventory once the stew is fully eaten, so it can be reused.
+        - question: Can mushroom stew be eaten at full hunger?
+          answer: |
+              No, like most food items it cannot be consumed while the hunger bar is completely full.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

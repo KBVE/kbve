@@ -133,7 +133,7 @@ fn setup_campfires(
                     intensity: 120000.0,
                     radius: 1.0,
                     range: 40.0,
-                    shadows_enabled: false,
+                    shadow_maps_enabled: false,
                     ..default()
                 },
                 Transform::from_xyz(wx, ground_y + 1.4, wz),
@@ -169,7 +169,7 @@ fn animate_campfires(
         tf.translation = campfire.base_pos + push_back;
         tf.look_to(cam_tf.forward().as_vec3(), Vec3::Y);
 
-        if let Some(mat) = fire_materials.get_mut(&mat_handle.0) {
+        if let Some(mut mat) = fire_materials.get_mut(&mat_handle.0) {
             mat.uniforms.time = t + campfire.phase;
         }
     }

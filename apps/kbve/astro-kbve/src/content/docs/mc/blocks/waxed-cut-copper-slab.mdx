@@ -1,5 +1,6 @@
 ---
 title: Waxed Cut Copper Slab
+template: splash
 description: |
     Minecraft Waxed Cut Copper Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1007
     ref: waxed_cut_copper_slab
     slug: waxed-cut-copper-slab
+    content_rev: 1
     display_name: Waxed Cut Copper Slab
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_cut_copper_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Waxed Cut Copper Slab is a decorative half-height copper slab
+            treated with honeycomb so it never oxidizes. It keeps whatever
+            oxidation stage it was waxed at, letting builders mix fresh and
+            aged copper tones intentionally.
+        lore: |
+            Cut copper blocks and their slab/stair forms debuted in the
+            Caves & Cliffs Update (1.17), with waxing added the same update.
+    uses:
+        - title: Decorative Half-Blocks
+          ref: waxed_cut_copper_slab
+          detail: |
+              Used for roofing, trim, and half-height decorative surfaces
+              that need to permanently retain a specific copper patina.
+    found_in:
+        - location: Trial Chambers
+          detail: Waxed variants generate naturally as part of trial chamber structures.
+        - location: Crafted
+          detail: 3 Cut Copper craft 6 slabs, or stonecutting yields 8 slabs per Block of Copper, then waxed with honeycomb.
+    faq:
+        - question: What tool do I need to mine Waxed Cut Copper Slab?
+          answer: |
+              A stone pickaxe or better. Mining without one destroys the
+              block with no drop.
+        - question: Why wax a cut copper slab?
+          answer: |
+              Waxing locks the slab's current oxidation stage (normal,
+              exposed, weathered, or oxidized) so it never changes color
+              again, which matters for builds mixing multiple patina stages.
+        - question: Can two slabs be combined into a full block?
+          answer: |
+              Yes. Placing two Waxed Cut Copper Slabs of the same stage in
+              the same space combines them into a Waxed Cut Copper block.
+        - question: Does Fortune increase the drop count?
+          answer: |
+              No. It always drops exactly one slab regardless of
+              enchantments, as long as a stone pickaxe or better is used.
     data_version: "1.21.5"
 ---
 

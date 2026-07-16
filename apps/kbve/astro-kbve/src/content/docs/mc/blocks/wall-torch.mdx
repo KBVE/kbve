@@ -1,5 +1,6 @@
 ---
 title: Torch
+template: splash
 description: |
     Minecraft Torch — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,74 @@ mc_block:
     id: 182
     ref: wall_torch
     slug: wall-torch
+    content_rev: 1
     display_name: Torch
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 14
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: torch
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - nether
+        - non_solid
+        - light_source
+    about:
+        description: |
+            A wall torch is a torch attached to the side of a block instead
+            of standing on top of one. It provides the same permanent,
+            renewable light as a standing torch and is one of the earliest
+            and most common light sources in the game.
+        lore: |
+            Torches were among Minecraft's very first blocks, suggested by
+            Notch in 2009, and have remained a foundational renewable light
+            source throughout the game's development.
+    uses:
+        - title: Jack o'Lantern
+          ref: jack_o_lantern
+          detail: |
+              Combine a torch with a carved pumpkin to craft a jack o'lantern,
+              a brighter decorative light source.
+        - title: Lantern
+          ref: lantern
+          detail: |
+              Torches craft into lanterns with iron nuggets, giving a
+              hangable light source with a longer break/place range.
+    found_in:
+        - location: Crafted from Coal or Charcoal
+          detail: One coal or charcoal plus one stick crafts 4 torches.
+        - location: Mineshafts, Villages, Strongholds
+          detail: Naturally generates as wall torches in these structures and appears in mineshaft and trial chamber chest loot.
+    faq:
+        - question: What tool do I need to mine a Wall Torch?
+          answer: |
+              None — any tool or bare hands breaks it instantly, and it
+              always drops itself as an item.
+        - question: How do I craft Torches?
+          answer: |
+              Combine 1 coal (or charcoal) with 1 stick in a crafting grid to
+              produce 4 torches.
+        - question: Does a Wall Torch melt snow or ice?
+          answer: |
+              Yes, like standing torches, wall torches melt nearby snow layers
+              and ice within a short radius.
+        - question: Why place a Wall Torch instead of a standing Torch?
+          answer: |
+              A torch automatically becomes a wall torch when placed against
+              the side of a block rather than on top of one — useful for
+              lighting walls, corridors, and mineshaft supports.
     data_version: "1.21.5"
 ---
 

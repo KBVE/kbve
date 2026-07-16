@@ -1,5 +1,6 @@
 ---
 title: Resin Brick Stairs
+template: splash
 description: |
     Minecraft Resin Brick Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 346
     ref: resin_brick_stairs
     slug: resin-brick-stairs
+    content_rev: 1
     display_name: Resin Brick Stairs
     material: stone
     hardness: 1.5
@@ -21,13 +23,56 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: resin_brick_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            Resin Brick Stairs is the stair-shaped variant of Resin
+            Bricks, following standard stair placement and connection
+            rules for stepped construction.
+        lore: |
+            Added with the resin brick family in Java 1.21.4 (snapshot
+            24w44a) as part of the Pale Garden's decorative masonry set.
+    uses:
+        - title: Building & decoration
+          ref: resin_bricks
+          detail: |
+              Used purely for construction alongside Resin Bricks, Resin
+              Brick Slab, and Resin Brick Wall to build stepped, matching
+              structures.
+    found_in:
+        - location: Crafting table
+          detail: Crafted from 6 Resin Bricks in a staircase pattern, yielding 4 stairs.
+        - location: Stonecutter
+          detail: Cut from Resin Bricks at a 1:1 ratio.
+    faq:
+        - question: What tool do I need to mine Resin Brick Stairs?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe drops
+              nothing.
+        - question: Does Resin Brick Stairs generate naturally?
+          answer: |
+              No, it must be crafted or stonecutter-cut from Resin Bricks.
+        - question: Can Resin Brick Stairs be waterlogged?
+          answer: |
+              Yes, it supports waterlogging like other stair blocks.
+        - question: Is Resin Brick Stairs affected by Fortune?
+          answer: |
+              No, it always drops itself when mined with a pickaxe,
+              regardless of enchantments.
     data_version: "1.21.5"
 ---
 

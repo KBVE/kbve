@@ -1,5 +1,6 @@
 ---
 title: Minecart with Furnace
+template: splash
 description: |
     Minecraft Minecart with Furnace — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 803
     ref: furnace_minecart
     slug: furnace-minecart
+    content_rev: 1
     display_name: Minecart with Furnace
     category: transport
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The minecart with furnace, commonly called a furnace minecart, is a minecart fitted
+            with a furnace that can burn coal or charcoal to propel itself and push up to four
+            other minecarts along rails, forming a simple self-powered train.
+        lore: |
+            A little steam engine chugging along the rails, dragging its friends behind it.
+    faq:
+        - question: How do I craft a furnace minecart?
+          answer: |
+              Combine a furnace and a regular minecart using a shapeless crafting recipe.
+        - question: What fuel does a furnace minecart use?
+          answer: |
+              It runs exclusively on coal or charcoal; each piece of fuel adds 3600 ticks
+              (about 3 minutes) of powered movement, up to a maximum of roughly 27 minutes.
+        - question: How fast does a furnace minecart travel?
+          answer: |
+              When powered, it moves at about 4 meters per second, which is slightly slower
+              than normal player walking speed.
+        - question: Can it be used in Bedrock Edition?
+          answer: |
+              No, the furnace minecart's push-and-power behavior is exclusive to Java Edition
+              and Legacy Console Edition; it was intentionally left out of Bedrock Edition.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

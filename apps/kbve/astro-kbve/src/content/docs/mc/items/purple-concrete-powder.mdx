@@ -1,5 +1,6 @@
 ---
 title: Purple Concrete Powder
+template: splash
 description: |
     Minecraft Purple Concrete Powder — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 611
     ref: purple_concrete_powder
     slug: purple-concrete-powder
+    content_rev: 1
     display_name: Purple Concrete Powder
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Purple concrete powder is a gravity-affected building block crafted shapelessly from
+            purple dye, four sand, and four gravel. It instantly solidifies into purple concrete
+            the moment it touches a water source, flowing water, or a waterlogged block.
+        lore: |
+            Developer Jeb announced concrete powder on February 2, 2017, and it arrived in Java
+            Edition 1.12 with all 16 color variants; it became renewable in 1.16 once piglins
+            began bartering gravel.
+    faq:
+        - question: |
+              Why won't my purple concrete powder turn into concrete?
+          answer: |
+              The block must directly contact water, such as a source block, flowing water, or a
+              waterlogged block; falling through water in midair does not trigger the conversion.
+        - question: |
+              Can I use red sand instead of regular sand in the recipe?
+          answer: |
+              No, the recipe requires standard sand and does not accept red sand as a substitute.
+        - question: |
+              What's the best tool to mine purple concrete powder?
+          answer: |
+              A shovel mines it fastest, breaking it in about 0.1 seconds with a diamond or
+              netherite shovel.
+        - question: |
+              Is purple concrete powder renewable?
+          answer: |
+              Yes, since piglins can trade gravel through bartering, though gathering sand
+              naturally is usually more practical.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

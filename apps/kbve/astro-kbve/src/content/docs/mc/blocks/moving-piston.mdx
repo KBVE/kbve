@@ -1,5 +1,6 @@
 ---
 title: Moving Piston
+template: splash
 description: |
     Minecraft Moving Piston — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,54 @@ mc_block:
     id: 156
     ref: moving_piston
     slug: moving-piston
+    content_rev: 1
     display_name: Moving Piston
     material: redstone
     hardness: -1
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
-    placeable: true
+    placeable: false
     solid: true
     renewable: false
     diggable: false
     drops: []
-    tags: []
+    tags:
+        - redstone
+        - technical
+    about:
+        description: |
+            Moving Piston is a technical, unobtainable block that briefly
+            represents a piston and its pushed blocks while the piston head
+            is extending or retracting. It cannot be mined, placed, or
+            obtained in survival.
+        lore: |
+            It exists only for the duration of the piston animation, then
+            disappears once the piston finishes moving.
+    found_in:
+        - location: Redstone piston mechanisms
+          detail: Appears automatically and momentarily whenever a regular or sticky piston extends or retracts, then is removed once the motion completes.
+    faq:
+        - question: Can I mine or obtain a Moving Piston block?
+          answer: |
+              No. It is a technical block with no item form; it cannot be
+              broken, picked up, or placed by players, even in creative mode.
+        - question: What tool is needed to break it?
+          answer: |
+              None applies — it has no meaningful hardness and is not a
+              normal diggable block; it simply vanishes when the piston
+              animation ends.
+        - question: Why does this block exist at all?
+          answer: |
+              It lets the game render the smooth sliding animation of a
+              piston head and any blocks it pushes, rather than blocks
+              teleporting instantly to their new position.
+        - question: Does it drop anything?
+          answer: |
+              No. It produces no drops of any kind, with or without Silk
+              Touch or Fortune.
     data_version: "1.21.5"
 ---
 

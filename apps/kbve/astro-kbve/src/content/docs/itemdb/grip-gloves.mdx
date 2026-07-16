@@ -1,0 +1,42 @@
+---
+title: 'Grip Gloves'
+template: splash
+sidebar:
+    label: 'Grip Gloves'
+    hidden: true
+description: |
+    Fitted work gloves with tacky palms that hold a ladder rung, a thrown line, or a bad idea equally well.
+ref: 'grip-gloves'
+key: 622
+id: '01KXFBEGM2TK9NGT6Z4177DN43'
+name: 'Grip Gloves'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 35
+emoji: '🧤'
+img: '/assets/items/equipment/grip-gloves.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'SCFI09'
+  nodes:
+    - 'SCFI09_HNDL'
+    - 'SCFI09_HNDR'
+  slot_keys:
+    - 'HNDL'
+    - 'HNDR'
+equipment:
+  slot: 'hands'
+  bonuses:
+    armor: 1
+    extra:
+      weight: 1
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

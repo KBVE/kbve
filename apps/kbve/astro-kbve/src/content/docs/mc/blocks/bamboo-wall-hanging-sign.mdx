@@ -1,5 +1,6 @@
 ---
 title: Bamboo Hanging Sign
+template: splash
 description: |
     Minecraft Bamboo Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 244
     ref: bamboo_wall_hanging_sign
     slug: bamboo-wall-hanging-sign
+    content_rev: 1
     display_name: Bamboo Hanging Sign
     material: wood
     hardness: 1
@@ -24,10 +26,49 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo_wall_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The bamboo wall hanging sign is the variant of a hanging sign
+            attached directly to the side of a wall or block rather than
+            suspended from a bracket beneath a ledge.
+        lore: |
+            Hanging signs added a self-supporting, chain-mounted look to
+            sign text, distinct from the classic post and wall signs.
+    uses:
+        - title: Bamboo Hanging Sign
+          ref: bamboo_wall_hanging_sign
+          detail: |
+              Crafted from an iron chain and a block of stripped bamboo (or
+              stripped bamboo blocks), yielding six hanging signs.
+    found_in:
+        - location: Crafted by the player
+          detail: Made from an iron chain and stripped bamboo blocks at a crafting table.
+    faq:
+        - question: What tool do I need to mine a bamboo hanging sign?
+          answer: |
+              None required — any tool works, though an axe is fastest.
+        - question: Does a bamboo hanging sign burn?
+          answer: |
+              No, hanging signs are non-flammable and will not catch fire.
+        - question: Can a bamboo hanging sign hang from any block?
+          answer: |
+              Wall hanging signs must be attached to the side of a solid
+              block face rather than suspended below a ledge.
+        - question: Can I edit the text after placing it?
+          answer: |
+              Yes, until it is waxed with a honeycomb, which locks the text
+              permanently.
     data_version: "1.21.5"
 ---
 

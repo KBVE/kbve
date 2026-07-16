@@ -1,10 +1,6 @@
 import type { ServerCard, SortOption } from './types';
 import { CATEGORIES } from './types';
 import { listServers as listServersAxum } from './discordshEdge';
-import {
-	getCachedServers,
-	setCachedServers,
-} from './serverCache';
 
 // ── Category mapping ────────────────────────────────────────────────
 // The DB uses 1-based integer category IDs matching CATEGORIES array order.
@@ -30,18 +26,7 @@ export async function fetchServers(opts?: {
 	const page = opts?.page ?? 1;
 	const limit = opts?.limit ?? 24;
 
-	// Layer 1: IndexedDB cache
-	try {
-		const cached = await getCachedServers({ category, sort, page, limit });
-		if (cached) {
-			console.info('[fetchServers] Cache hit (IDB)');
-			return cached;
-		}
-	} catch (err) {
-		console.warn('[fetchServers] IDB cache read failed:', err);
-	}
-
-	// Layer 2: Axum backend
+	// Layer 1: Axum backend (caching handled by TanStack Query)
 	try {
 		const result = await listServersAxum({
 			limit,
@@ -56,15 +41,20 @@ export async function fetchServers(opts?: {
 				total: (result.total as number) ?? 0,
 			};
 
-			// Cache successful response
-			setCachedServers({ category, sort, page, limit }, data.servers, data.total).catch(
-				(err) => console.warn('[fetchServers] Cache write failed:', err),
+			// Empty success (no rows yet / dev server) → keep falling back
+			if (data.servers.length > 0) {
+				console.info('[fetchServers] Fetched from Axum backend');
+				return data;
+			}
+			console.warn(
+				'[fetchServers] Axum returned 0 servers, falling back',
 			);
-
-			console.info('[fetchServers] Fetched from Axum backend');
-			return data;
+		} else {
+			console.warn(
+				'[fetchServers] Axum error, falling back:',
+				result.error,
+			);
 		}
-		console.warn('[fetchServers] Axum error, falling back:', result.error);
 	} catch (err) {
 		console.warn('[fetchServers] Axum unreachable, falling back:', err);
 	}
@@ -117,7 +107,25 @@ async function fetchServersStatic(opts?: {
 // ── Helpers ─────────────────────────────────────────────────────────
 
 export function buildInviteUrl(code: string): string {
-	return `https://discord.gg/${code}`;
+	// Scheme is pinned and the code is encoded — API data can never break
+	// out of the discord.gg path.
+	return `https://discord.gg/${encodeURIComponent(code)}`;
+}
+
+/** Allow only http(s) image URLs from API data; anything else is dropped. */
+export function safeImageUrl(
+	url: string | null | undefined,
+): string | undefined {
+	if (!url) return undefined;
+	try {
+		const parsed = new URL(url, window.location.origin);
+		if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+			return parsed.href;
+		}
+	} catch {
+		// fall through
+	}
+	return undefined;
 }
 
 export function formatMemberCount(count: number): string {

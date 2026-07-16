@@ -1,5 +1,6 @@
 ---
 title: Cooked Mutton
+template: splash
 description: |
     Minecraft Cooked Mutton — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1195
     ref: cooked_mutton
     slug: cooked-mutton
+    content_rev: 1
     display_name: Cooked Mutton
     category: food
     rarity: common
@@ -22,6 +24,33 @@ mc_item:
         saturation: 115.200005
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Cooked mutton is produced by smelting raw mutton in a furnace, smoker, or campfire, or dropped
+            directly by sheep killed while on fire or with a Fire Aspect weapon. Looting increases the
+            yield up to 5 pieces per kill.
+        lore: |
+            Sometimes called "roast lambchops," cooked mutton restores 6 hunger points and 9.6 saturation,
+            making sheep farms a reliable renewable food source.
+    faq:
+        - question: |
+              How do you get cooked mutton?
+          answer: |
+              Smelt raw mutton in a furnace, smoker, or campfire, or kill a sheep while it is burning or
+              with a Fire Aspect enchanted weapon.
+        - question: |
+              How much hunger does cooked mutton restore?
+          answer: |
+              It restores 6 hunger points and 9.6 saturation, taking 1.6 seconds to eat.
+        - question: |
+              Does Looting affect cooked mutton drops?
+          answer: |
+              Yes, a burning sheep normally drops 1-2 cooked mutton, increasing up to 5 with Looting III.
+        - question: |
+              Can villagers give cooked mutton?
+          answer: |
+              Butcher villagers in Java Edition gift cooked mutton to players who have Hero of the Village
+              status.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Short Dry Grass
+template: splash
 description: |
     Minecraft Short Dry Grass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,73 @@ mc_block:
     id: 134
     ref: short_dry_grass
     slug: short-dry-grass
+    content_rev: 1
     display_name: Short Dry Grass
-    material: stone
+    material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
+    best_tool: shears
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: short_dry_grass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - shears_mineable
+        - overworld
+        - flammable
+        - non_solid
+    about:
+        description: |
+            Short Dry Grass is a decorative, non-solid plant block that
+            carpets the sand and terracotta of arid biomes, adding ambient
+            wind-howling sounds to desert scenery.
+        lore: |
+            Added in Java Edition 1.21.5 (25w06a) and Bedrock 1.21.70 as
+            part of the desert biome's visual refresh.
+    uses:
+        - title: Furnace Fuel
+          ref: short_dry_grass
+          detail: |
+              Burns for 5 seconds per block when used as furnace fuel, a
+              minor but renewable fuel source.
+        - title: Composting
+          ref: short_dry_grass
+          detail: |
+              Placing it in a composter has a 30% chance to raise the
+              compost level by one.
+    found_in:
+        - location: Deserts & Badlands
+          detail: Generates frequently on sand, red sand, and terracotta throughout desert and badlands variants.
+        - location: Abandoned Camps
+          detail: Also found scattered around abandoned camp structures.
+    faq:
+        - question: What tool do I need to collect Short Dry Grass?
+          answer: |
+              Shears or Silk Touch; breaking it with anything else destroys
+              the block without a drop.
+        - question: Is Short Dry Grass flammable?
+          answer: |
+              Yes, it catches fire from nearby flames and lava, so it can
+              spread wildfires in desert builds.
+        - question: Can bone meal affect Short Dry Grass?
+          answer: |
+              Yes, bone meal converts it into Tall Dry Grass, the two-block
+              tall variant.
+        - question: Does Short Dry Grass make sound?
+          answer: |
+              When placed on matching sand, red sand, or terracotta blocks,
+              it produces ambient wind-howling sounds characteristic of
+              desert biomes.
     data_version: "1.21.5"
 ---
 

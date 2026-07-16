@@ -1,5 +1,6 @@
 ---
 title: Pale Oak Door
+template: splash
 description: |
     Minecraft Pale Oak Door — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 750
     ref: pale_oak_door
     slug: pale-oak-door
+    content_rev: 1
     display_name: Pale Oak Door
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The pale oak door is a wooden door crafted from six pale oak planks that players, villagers, and most passive mobs can open and close, while blocking hostile mobs that lack the ability to break doors. It can be wired to redstone so that a signal opens or closes it automatically, and it doubles as furnace fuel.
+            Its bleached, ashen coloring matches the rest of the pale oak wood set found in the Pale Garden biome.
+        lore: |
+            Carved from timber grown in the fog-shrouded Pale Garden, the door carries the same pallid hue as its source grove.
+    faq:
+        - question: How do I craft a pale oak door?
+          answer: |
+              Place six pale oak planks in a crafting table, two planks per row across all three rows of one column, to craft three pale oak doors.
+        - question: Can zombies break down a pale oak door?
+          answer: |
+              On Hard difficulty, a small percentage of zombies and raid-spawned vindicators can break closed wooden doors, including pale oak doors.
+        - question: Does redstone open a pale oak door?
+          answer: |
+              Yes, weakly powering a block adjacent to the door will open it, and removing power will close it again.
+        - question: Can a pale oak door be used as furnace fuel?
+          answer: |
+              Yes, it smelts 1 item per door when burned as fuel, the same as other Overworld wood door types.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

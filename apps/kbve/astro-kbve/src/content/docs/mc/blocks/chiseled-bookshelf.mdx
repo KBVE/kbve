@@ -1,5 +1,6 @@
 ---
 title: Chiseled Bookshelf
+template: splash
 description: |
     Minecraft Chiseled Bookshelf — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 178
     ref: chiseled_bookshelf
     slug: chiseled-bookshelf
+    content_rev: 1
     display_name: Chiseled Bookshelf
     material: wood
     hardness: 1.5
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: chiseled_bookshelf
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Chiseled Bookshelf is a storage block that holds up to
+            six books in visible slots, each togglable by right-clicking.
+            It outputs a redstone comparator signal from 1 to 6 based on
+            the last slot placed into or removed from, making it useful
+            for redstone contraptions as well as decoration.
+        lore: |
+            Announced at Minecraft Live 2022 and released in Java Edition
+            1.20, the Chiseled Bookshelf gave bookshelves a functional,
+            redstone-readable role beyond enchanting-table boosts.
+    uses:
+        - title: Redstone Comparator Signal
+          ref: comparator
+          detail: |
+              Place a comparator facing the bookshelf to read a signal
+              strength of 1-6 corresponding to the highest occupied slot,
+              useful for item-detection and storage-indicator builds.
+    found_in:
+        - location: Crafting only
+          detail: Chiseled Bookshelves do not generate naturally; craft from planks and wooden slabs of the same wood type.
+    faq:
+        - question: What tool do I need to mine a Chiseled Bookshelf?
+          answer: |
+              Any tool works, and an axe is fastest. Without Silk Touch
+              the block itself does not drop, though any books stored
+              inside are dropped as items.
+        - question: Does it boost enchanting table power like a normal bookshelf?
+          answer: |
+              No. Chiseled Bookshelves do not increase enchanting table
+              levels; only regular Bookshelf blocks provide that bonus.
+        - question: How many books can it hold?
+          answer: |
+              Six. Each of the six slots accepts any book-type item,
+              including written books, enchanted books, and knowledge
+              books.
+        - question: Can hoppers automate it?
+          answer: |
+              Yes. Hoppers, hopper minecarts, and droppers can insert or
+              extract books from a Chiseled Bookshelf automatically.
     data_version: "1.21.5"
 ---
 

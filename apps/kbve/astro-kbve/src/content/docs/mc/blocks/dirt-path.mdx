@@ -1,5 +1,6 @@
 ---
 title: Dirt Path
+template: splash
 description: |
     Minecraft Dirt Path — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 634
     ref: dirt_path
     slug: dirt-path
+    content_rev: 1
     display_name: Dirt Path
     material: dirt
     hardness: 0.65
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dirt
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: dirt_path
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+    about:
+        description: |
+            Dirt Path is a decorative block, 15/16 of a block tall, made by
+            using a shovel on dirt or grass-family blocks. Villages use it to
+            mark walkways, and villagers and iron golems prefer to route
+            along it.
+        lore: |
+            Added in Java Edition 1.9 (snapshot 15w31a) under the name
+            "Grass Path," it was renamed to "Dirt Path" in version 1.17.
+    uses:
+        - title: Village Walkways
+          ref: dirt_path
+          detail: |
+              Marks pathways through villages and player builds; also
+              discourages hostile mob spawns on top of it.
+    found_in:
+        - location: Villages
+          detail: Generates as walkway blocks throughout village structures.
+        - location: Shoveled Dirt or Grass
+          detail: |
+              Created by using a shovel on dirt, grass blocks, coarse dirt,
+              mycelium, podzol, or rooted dirt with air above.
+    faq:
+        - question: What does Dirt Path drop when mined?
+          answer: |
+              In Java Edition it always drops dirt; in Bedrock Edition, a
+              Silk Touch tool lets you collect the dirt path block itself.
+        - question: Can I turn Dirt Path back into farmland?
+          answer: |
+              Yes, using a hoe on a dirt path converts it to farmland.
+        - question: Does placing a block on top destroy the path?
+          answer: |
+              Yes, placing any solid block on top of a dirt path converts it
+              back into a regular dirt block.
+        - question: What tool is best for making Dirt Path?
+          answer: |
+              Any shovel works; a golden shovel converts blocks fastest at
+              0.1 seconds per use.
     data_version: "1.21.5"
 ---
 

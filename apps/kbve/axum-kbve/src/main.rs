@@ -13,7 +13,7 @@ mod telemetry;
 mod transport;
 pub mod version;
 
-use tracing::{info, warn};
+use tracing::{error, info, warn};
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
 #[cfg(feature = "jemalloc")]
@@ -286,7 +286,16 @@ async fn main() -> anyhow::Result<()> {
     let http = tokio::spawn(transport::https::serve(state));
 
     tokio::select! {
-        _ = http => {},
+        res = http => {
+            // The HTTP server is meant to run for the process lifetime; if its
+            // task returns or panics, that's a crash — exit non-zero so the
+            // orchestrator restarts us instead of seeing a clean exit.
+            match res {
+                Ok(_) => error!("HTTP server task exited unexpectedly"),
+                Err(e) => error!("HTTP server task panicked: {e}"),
+            }
+            std::process::exit(1);
+        }
         _ = tokio::signal::ctrl_c() => {
             info!("shutdown signal received");
         }

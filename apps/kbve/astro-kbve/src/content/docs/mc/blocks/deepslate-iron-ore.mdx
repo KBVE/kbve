@@ -1,5 +1,6 @@
 ---
 title: Deepslate Iron Ore
+template: splash
 description: |
     Minecraft Deepslate Iron Ore — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 45
     ref: deepslate_iron_ore
     slug: deepslate-iron-ore
+    content_rev: 1
     display_name: Deepslate Iron Ore
     material: stone
     hardness: 4.5
     blast_resistance: 3
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,67 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: raw_iron
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: deepslate_iron_ore
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - ore
+        - overworld
+        - smeltable
+        - blast_resistant
+    about:
+        description: |
+            Deepslate Iron Ore is the deepslate variant of Iron Ore, dropping
+            raw iron that smelts into iron ingots. It generates in large
+            veins in the deep layers of the Overworld, alongside the more
+            common stone-based iron ore.
+        lore: |
+            Iron remains a survival staple, and its deepslate form ensures
+            players digging near bedrock still have easy access to tools,
+            armor, and buckets.
+    uses:
+        - title: Raw Iron and Iron Ingots
+          ref: iron_ingot
+          detail: |
+              Smelt raw iron in a furnace or blast furnace to produce iron
+              ingots, used to craft tools, armor, rails, and buckets.
+        - title: Experience
+          ref: experience
+          detail: |
+              Smelting raw iron grants experience points when the ingot is
+              removed from the furnace.
+    found_in:
+        - location: Deepslate Layers
+          detail: Part of three overlapping generation batches, most reliable around Y = 16.
+        - location: Large Ore Veins
+          detail: Large deepslate iron veins can generate deep underground, yielding many blocks at once.
+    faq:
+        - question: What tool do I need to mine Deepslate Iron Ore?
+          answer: |
+              A stone pickaxe or better. A wooden or golden pickaxe breaks it
+              with no drop.
+        - question: Does Deepslate Iron Ore drop iron ingots directly?
+          answer: |
+              No. It drops raw iron, which must be smelted into an iron
+              ingot.
+        - question: Is it harder to mine than regular Iron Ore?
+          answer: |
+              Yes. Its hardness is 4.5 versus 3 for the stone variant, so it
+              takes longer to break with the same tool.
+        - question: Where do large iron veins appear?
+          answer: |
+              Deepslate iron veins generate deep underground and can yield a
+              large cluster of ore blocks in one spot.
     data_version: "1.21.5"
 ---
 

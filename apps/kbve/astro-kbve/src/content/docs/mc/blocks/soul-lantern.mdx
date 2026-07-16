@@ -1,5 +1,6 @@
 ---
 title: Soul Lantern
+template: splash
 description: |
     Minecraft Soul Lantern — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 817
     ref: soul_lantern
     slug: soul-lantern
+    content_rev: 1
     display_name: Soul Lantern
     material: nether
     hardness: 3.5
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: soul_lantern
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+        - waterloggable
+    about:
+        description: |
+            Soul Lantern is a dimmer variant of the lantern, emitting light
+            level 10 instead of 15. It can hang from ceilings or sit on
+            floors and connects seamlessly to chains.
+        lore: |
+            Added in the Nether Update (1.16) as the lantern counterpart to
+            soul torches, sharing their piglin-repelling and Nether-soul
+            theming.
+    uses:
+        - title: Piglin Deterrent
+          detail: |
+              Like soul torches, soul lanterns repel piglins (but not
+              piglin brutes), making them useful for safe bases and farms
+              in the Nether.
+        - title: Ambient Lighting
+          detail: |
+              Because their lower light level does not melt snow or ice,
+              soul lanterns are preferred for lighting builds in snowy
+              biomes without destroying the terrain.
+    found_in:
+        - location: Ancient Cities
+          detail: Generates naturally as part of ancient city structures.
+        - location: Crafted
+          detail: |
+              Made from 8 iron nuggets surrounding 1 soul torch, yielding 1
+              soul lantern.
+    faq:
+        - question: What tool mines a Soul Lantern fastest?
+          answer: |
+              A pickaxe, though it can be broken with any tool or by hand
+              since it requires no minimum tool tier.
+        - question: Does Soul Lantern require Silk Touch to drop?
+          answer: |
+              No. It always drops itself when broken, with no Silk Touch
+              requirement.
+        - question: How is a Soul Lantern crafted?
+          answer: |
+              Surround a soul torch with 8 iron nuggets in a crafting grid
+              to produce 1 soul lantern.
+        - question: Why is a Soul Lantern dimmer than a regular lantern?
+          answer: |
+              It emits light level 10 versus the regular lantern's 15,
+              matching the reduced glow of soul fire and soul torches.
     data_version: "1.21.5"
 ---
 

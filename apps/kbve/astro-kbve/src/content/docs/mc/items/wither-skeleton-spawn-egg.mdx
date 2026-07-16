@@ -1,5 +1,6 @@
 ---
 title: Wither Skeleton Spawn Egg
+template: splash
 description: |
     Minecraft Wither Skeleton Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1141
     ref: wither_skeleton_spawn_egg
     slug: wither-skeleton-spawn-egg
+    content_rev: 1
     display_name: Wither Skeleton Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Wither Skeleton Spawn Egg instantly spawns a wither skeleton when used on a block.
+            Wither skeletons are tall, black skeleton variants wielding stone swords that naturally
+            spawn only in Nether fortresses, making this egg a convenient way to summon one anywhere.
+        lore: |
+            A tall, black variant of a skeleton armed with a stone sword, bringing supernatural decay
+            wherever it appears.
+    faq:
+        - question: Where do wither skeletons naturally spawn?
+          answer: |
+              Wither skeletons spawn exclusively in Nether fortresses at light levels 0-7, appearing
+              in groups of 5 on Java Edition and 2-3 on Bedrock Edition.
+        - question: What is dangerous about their attacks?
+          answer: |
+              Their melee attacks inflict the Wither effect for 10 seconds, turning the health bar
+              black and dealing damage that, unlike Poison, can be lethal.
+        - question: What do wither skeletons drop when defeated?
+          answer: |
+              They drop bones, coal, their stone sword, and occasionally a wither skeleton skull —
+              the only source of skulls needed to summon the Wither boss.
+        - question: Do wither skeletons have any special seasonal variants?
+          answer: |
+              During Halloween they have a chance to spawn wearing a carved pumpkin or jack o'lantern,
+              though these cosmetic items never drop on death.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

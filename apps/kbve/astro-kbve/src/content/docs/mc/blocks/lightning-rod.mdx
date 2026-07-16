@@ -1,5 +1,6 @@
 ---
 title: Lightning Rod
+template: splash
 description: |
     Minecraft Lightning Rod — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1040
     ref: lightning_rod
     slug: lightning-rod
+    content_rev: 1
     display_name: Lightning Rod
     material: stone
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lightning_rod
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            The Lightning Rod is a copper block that attracts nearby
+            lightning strikes to itself, protecting surrounding structures
+            from fire, and emits a brief redstone signal when struck.
+        lore: |
+            Revealed at Minecraft Live 2020, the lightning rod was pitched
+            by developer Ulraf after a real lightning strike damaged his
+            wooden house, and it shipped in Java Edition 1.17.
+    uses:
+        - title: Redstone Signal from Lightning
+          ref: redstone
+          detail: |
+              When struck by lightning, the rod emits a redstone signal at
+              full strength for 8 game ticks, letting players trigger
+              contraptions during storms.
+    found_in:
+        - location: Crafting
+          detail: Craft with 3 copper ingots arranged vertically in a crafting table.
+    faq:
+        - question: What tool do I need to mine a Lightning Rod?
+          answer: |
+              A stone pickaxe or better; mining with wood or your hands
+              destroys it without a drop.
+        - question: How far away can it attract lightning?
+          answer: |
+              Up to 128 blocks away in Java Edition (64 in Bedrock Edition),
+              redirecting nearby strikes to itself.
+        - question: Does it oxidize like other copper blocks?
+          answer: |
+              Yes, it weathers through four oxidation stages over time
+              unless waxed with honeycomb, and can be scraped back with an axe.
+        - question: Does it protect nearby blocks from fire?
+          answer: |
+              Yes, redirecting the strike to the rod prevents the lightning
+              from igniting fires on nearby flammable blocks.
     data_version: "1.21.5"
 ---
 

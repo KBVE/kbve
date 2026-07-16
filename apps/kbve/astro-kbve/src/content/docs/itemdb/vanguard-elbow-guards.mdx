@@ -1,0 +1,42 @@
+---
+title: 'Vanguard Elbow Guards'
+template: splash
+sidebar:
+    label: 'Vanguard Elbow Guards'
+    hidden: true
+description: |
+    Small cupped couters for both elbows. The difference between blocking a blow and dropping your sword.
+ref: 'vanguard-elbow-guards'
+key: 607
+id: '01KXFBEGM1SYAKA7HXQ9FSXK80'
+name: 'Vanguard Elbow Guards'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 30
+emoji: '🦾'
+img: '/assets/items/equipment/vanguard-elbow-guards.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'KNGT'
+  nodes:
+    - 'AEBL'
+    - 'AEBR'
+  slot_keys:
+    - 'AEBL'
+    - 'AEBR'
+equipment:
+  slot: 'hands'
+  bonuses:
+    armor: 2
+    extra:
+      weight: 2
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

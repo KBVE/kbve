@@ -1,5 +1,6 @@
 ---
 title: Red Mushroom Block
+template: splash
 description: |
     Minecraft Red Mushroom Block — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 375
     ref: red_mushroom_block
     slug: red-mushroom-block
+    content_rev: 1
     display_name: Red Mushroom Block
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Red mushroom blocks are the solid cap blocks that make up naturally generated
+            huge red mushrooms, textured with distinctive red pores on faces adjacent to
+            other identical blocks. They are best harvested with an axe, and a tool
+            enchanted with Silk Touch is required to collect the block itself rather than
+            loose mushroom items.
+        lore: |
+            Huge mushrooms were first teased by Notch in 2011 through a blurred changelog
+            image that fans painstakingly decoded pixel by pixel.
+    faq:
+        - question: How do I get red mushroom blocks?
+          answer: |
+              Break the caps of a naturally generated huge red mushroom. An axe is the
+              fastest tool, and Silk Touch is required to keep the block form instead of
+              dropping loose red mushrooms.
+        - question: Does Fortune increase mushroom drops?
+          answer: |
+              No. The Fortune enchantment has no effect on the drop rate from mushroom
+              blocks; each block has roughly an 11% chance to drop a mushroom item.
+        - question: Can red mushroom blocks be composted?
+          answer: |
+              Yes, placing one in a composter has an 85% chance to raise the compost
+              level by one.
+        - question: What determines the block's texture?
+          answer: |
+              Each face shows pore texture only where it touches another mushroom block
+              of the same type; exposed faces show the plain red cap texture instead.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

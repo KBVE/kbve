@@ -1,5 +1,6 @@
 ---
 title: Light Gray Candle
+template: splash
 description: |
     Minecraft Light Gray Candle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 1314
     ref: light_gray_candle
     slug: light-gray-candle
+    content_rev: 1
     display_name: Light Gray Candle
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Light Gray Candle is a dyeable light source block crafted by combining a
+            candle with light gray dye. When lit, a single candle emits a light level
+            of 3, and up to four candles can be placed in one block space for a
+            maximum light level of 12. It can also decorate an uneaten cake.
+        lore: |
+            One of sixteen candle colors added alongside the deep dark biome update,
+            offering a softer glow for decorative builds.
+    faq:
+        - question: How do I light a Light Gray Candle?
+          answer: |
+              Use flint and steel or a fire charge on the placed candle. It can be
+              extinguished again with water, a wind charge, or by right-clicking it.
+        - question: How bright is a Light Gray Candle?
+          answer: |
+              A single lit candle produces a light level of 3. Placing up to four
+              candles in the same block space and lighting them raises the light
+              level to a maximum of 12.
+        - question: Can Light Gray Candles be placed in water?
+          answer: |
+              Yes, candles are waterloggable, but a waterlogged candle cannot be lit
+              until the water is removed.
+        - question: Can I change a Light Gray Candle's color after placing it?
+          answer: |
+              No, once a candle has been dyed and crafted into a specific color it
+              cannot be re-dyed; you would need to break it and craft a new one.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

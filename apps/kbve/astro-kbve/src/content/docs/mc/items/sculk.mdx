@@ -1,5 +1,6 @@
 ---
 title: Sculk
+template: splash
 description: |
     Minecraft Sculk — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 400
     ref: sculk
     slug: sculk
+    content_rev: 1
     display_name: Sculk
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Sculk is a decorative block found abundantly in the Deep Dark biome, or generated
+            wherever a mob dies within range of a sculk catalyst. It features an animated
+            texture with faintly glowing spots but produces no light of its own. The block has
+            low hardness and is best broken with a hoe, dropping experience when mined without
+            Silk Touch.
+        lore: |
+            The name "sculk" derives from "skulk," meaning to keep out of sight with sinister
+            intent, fitting for this eerie block that spreads silently through the deep dark.
+    faq:
+        - question: Where does Sculk naturally spawn?
+          answer: |
+              Sculk generates in patch formations throughout the Deep Dark biome and can also be
+              found in Ancient City loot chests.
+        - question: How does Sculk spread?
+          answer: |
+              When mobs die within 8 blocks of a sculk catalyst, sculk blocks replace nearby
+              replaceable blocks like stone, dirt, and various ores, converting the area into a
+              sculk patch.
+        - question: What's special about mining Sculk?
+          answer: |
+              Sculk drops 1 experience point when destroyed with a tool that lacks Silk Touch,
+              and drops itself when destroyed with a Silk Touch tool.
+        - question: Does Sculk make noise or attract the Warden?
+          answer: |
+              No. Early development prototypes let players trigger loud noises simply by
+              stepping on sculk, attracting the Warden, but this mechanic was removed before
+              release for being unfairly punishing.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Polished Tuff Stairs
+template: splash
 description: |
     Minecraft Polished Tuff Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 949
     ref: polished_tuff_stairs
     slug: polished-tuff-stairs
+    content_rev: 1
     display_name: Polished Tuff Stairs
     material: stone
     hardness: 1.5
@@ -26,8 +28,45 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_tuff_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            Polished Tuff Stairs are decorative stair blocks crafted from
+            Polished Tuff, giving builders a terracotta-gray stone stair
+            option for elevated pathways and architectural detailing.
+        lore: |
+            Added during the experimental Update 1.21 phase before becoming
+            a standard feature in Java Edition 1.21.
+    found_in:
+        - location: Crafted from Polished Tuff
+          detail: 6 Polished Tuff blocks craft into 4 stairs.
+        - location: Stonecutter
+          detail: Cut 1 Tuff or Polished Tuff into 1 stair.
+    faq:
+        - question: What tool do I need to mine Polished Tuff Stairs?
+          answer: |
+              Any wooden pickaxe or better. Mining without one drops
+              nothing.
+        - question: Do Polished Tuff Stairs generate naturally?
+          answer: |
+              No. They must be crafted or cut with a stonecutter; they have
+              no natural world generation.
+        - question: Can Polished Tuff Stairs be waterlogged?
+          answer: |
+              Yes, they can hold water when placed in a water source,
+              useful for underwater or half-submerged builds.
+        - question: Are Polished Tuff Stairs flammable?
+          answer: |
+              No, being a stone-based block it does not burn.
     data_version: "1.21.5"
 ---
 

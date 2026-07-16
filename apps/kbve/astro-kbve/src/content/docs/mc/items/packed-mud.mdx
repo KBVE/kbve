@@ -1,5 +1,6 @@
 ---
 title: Packed Mud
+template: splash
 description: |
     Minecraft Packed Mud — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 366
     ref: packed_mud
     slug: packed-mud
+    content_rev: 1
     display_name: Packed Mud
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Packed mud is a building block crafted by combining a mud block with wheat,
+            firming the mud into a sturdier material. It serves mainly as an intermediate
+            step toward mud bricks and also generates naturally inside trail ruins
+            structures.
+        lore: |
+            Its recipe mirrors the ancient real-world technique of strengthening mud
+            bricks by mixing in straw before drying.
+    faq:
+        - question: |
+              How do you make packed mud in Minecraft?
+          answer: |
+              Craft it by combining 1 mud block with 1 wheat in a crafting grid.
+        - question: |
+              Where can you find packed mud without crafting it?
+          answer: |
+              Packed mud generates naturally inside trail ruins structures found underground.
+        - question: |
+              What is packed mud used for?
+          answer: |
+              It is primarily used to craft mud bricks, combining 4 packed mud blocks into
+              1 mud bricks block for construction and decoration.
+        - question: |
+              Is packed mud hard to mine?
+          answer: |
+              No, it has a low hardness of 1 and can be broken by hand, though a pickaxe
+              speeds up collection.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

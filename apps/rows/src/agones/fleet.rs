@@ -25,6 +25,33 @@ pub struct FleetStatus {
 }
 
 impl AgonesClient {
+    /// Count of GameServer objects in this tenant's fleet, ALL states included. This is the
+    /// Agones half of the fleet-restart "all old gone" barrier: a DB row can hit `status=0` while
+    /// its pod is still alive (flushing a save, mid-SIGTERM), so the barrier only opens when the
+    /// GameServer list itself is empty. Callers must cache this (see `rest::system`) — it is a
+    /// kube-apiserver LIST per call.
+    pub async fn count_gameservers(&self) -> Result<i64, AgonesError> {
+        let url = format!(
+            "/apis/agones.dev/v1/namespaces/{}/gameservers?labelSelector=agones.dev/fleet={}",
+            self.namespace, self.fleet
+        );
+
+        let req = http::Request::get(&url)
+            .body(Vec::new())
+            .map_err(|e| anyhow::anyhow!("Failed to build gameserver count request: {e}"))?;
+
+        let resp: serde_json::Value =
+            tokio::time::timeout(super::client::api_timeout(), self.client.request(req))
+                .await
+                .map_err(|_| anyhow::anyhow!("K8s gameserver count request timed out (10s)"))??;
+
+        Ok(resp
+            .get("items")
+            .and_then(|v| v.as_array())
+            .map(|a| a.len() as i64)
+            .unwrap_or(0))
+    }
+
     #[tracing::instrument(skip(self))]
     pub async fn fleet_status(&self) -> Result<FleetStatus, AgonesError> {
         let url = format!(

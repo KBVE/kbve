@@ -1,5 +1,6 @@
 ---
 title: Glow Item Frame
+template: splash
 description: |
     Minecraft Glow Item Frame — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 1157
     ref: glow_item_frame
     slug: glow-item-frame
+    content_rev: 1
     display_name: Glow Item Frame
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Glow Item Frame is a decoration block that displays a held item
+            or map while making it and the frame appear illuminated, even though
+            it emits no actual light. It is crafted by combining a regular item
+            frame with a glow ink sac.
+        lore: |
+            A frame lacquered with luminous ink so that whatever it holds seems
+            to glow softly against the dark, without ever lighting up the room.
+    faq:
+        - question: How do I craft a Glow Item Frame?
+          answer: |
+              Combine one item frame with one glow ink sac in a crafting grid to
+              produce a glow item frame.
+        - question: How is a Glow Item Frame different from a normal item frame?
+          answer: |
+              It behaves identically for placing, rotating, and displaying items
+              or maps, but the frame and its contents render with a glowing
+              visual effect in dark areas, despite not actually producing any
+              light level.
+        - question: Can Glow Item Frames be broken to get the ink sac back?
+          answer: |
+              No, breaking a glow item frame drops the frame itself (along with
+              any item it held) but not a glow ink sac.
+        - question: Can maps be displayed in a Glow Item Frame?
+          answer: |
+              Yes, filled maps placed in a glow item frame also take on the
+              glowing appearance, making them easier to read in dim caves or at
+              night.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

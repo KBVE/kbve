@@ -1,5 +1,6 @@
 ---
 title: Orange Tulip
+template: splash
 description: |
     Minecraft Orange Tulip — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,8 +14,9 @@ mc_block:
     id: 164
     ref: orange_tulip
     slug: orange-tulip
+    content_rev: 1
     display_name: Orange Tulip
-    material: stone
+    material: plant
     hardness: 0
     blast_resistance: 0
     best_tool: hand
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: orange_tulip
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - plant
+        - overworld
+    about:
+        description: |
+            Orange Tulip is one of four tulip color variants that grow in
+            plains, sunflower plains, and flower forest biomes. It breaks
+            instantly with any tool and drops itself for replanting or
+            crafting orange dye.
+        lore: |
+            Tulips share a mirrored texture pair across the orange and pink
+            variants, a texture-reuse trick from the flower's original art.
+    uses:
+        - title: Orange Dye
+          ref: orange_dye
+          detail: |
+              Craft an Orange Tulip alone in a crafting grid to produce 1
+              Orange Dye, used for dyeing wool, terracotta, and other blocks.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              Combine with a Bowl, Mushroom, and another flower near a
+              campfire, or craft directly, for a stew that grants Weakness.
+    found_in:
+        - location: Plains and Sunflower Plains
+          detail: Generates in scattered tulip-only patches within these biomes.
+        - location: Flower Forest
+          detail: Appears as part of the dense mixed-flower generation.
+    faq:
+        - question: What tool do I need to harvest an Orange Tulip?
+          answer: |
+              None. Any tool, or bare hands, breaks it instantly and drops
+              the flower itself.
+        - question: What dye does an Orange Tulip produce?
+          answer: |
+              Orange Dye, matching its visible color.
+        - question: Can I use Orange Tulip in Suspicious Stew?
+          answer: |
+              Yes, it imparts a short Weakness effect when brewed into
+              Suspicious Stew.
+        - question: Where do Orange Tulips grow?
+          answer: |
+              Plains, sunflower plains, and flower forest biomes, on grass
+              or dirt with adequate light.
     data_version: "1.21.5"
 ---
 

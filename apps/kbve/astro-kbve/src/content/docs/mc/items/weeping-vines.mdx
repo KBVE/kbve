@@ -1,5 +1,6 @@
 ---
 title: Weeping Vines
+template: splash
 description: |
     Minecraft Weeping Vines — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 254
     ref: weeping_vines
     slug: weeping-vines
+    content_rev: 1
     display_name: Weeping Vines
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Weeping vines are climbable, downward-growing vegetation found hanging from the ceilings of crimson forests in the Nether. Each tick a vine has a small chance to extend one block further down, stopping once it reaches the ground or a maximum length. Players can climb them like ordinary vines, and they drop reliably when cut with shears or a Silk Touch tool.
+        lore: |
+            Their drooping, blood-red tendrils mirror the crimson forest's fungal, meat-like aesthetic, hanging like vines wilting under the Nether's heat.
+    faq:
+        - question: Where do weeping vines generate?
+          answer: |
+              They generate naturally in crevices in the ceilings of crimson forests and on huge crimson fungi, and can also be grown by applying bone meal to crimson fungi.
+        - question: How fast do weeping vines grow?
+          answer: |
+              Each game tick, a vine has roughly a 10% chance to grow one block downward, and growth stops once it reaches the ground or hits its maximum length.
+        - question: How do I harvest weeping vines?
+          answer: |
+              Cutting them with shears or a Silk Touch tool always drops the vine itself; without those tools they only have a chance to drop.
+        - question: Can I climb weeping vines?
+          answer: |
+              Yes. Standing inside a weeping vine and holding the jump key lets you climb it just like a regular vine.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

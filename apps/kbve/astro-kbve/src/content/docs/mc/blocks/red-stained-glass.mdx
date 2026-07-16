@@ -1,5 +1,6 @@
 ---
 title: Red Stained Glass
+template: splash
 description: |
     Minecraft Red Stained Glass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 299
     ref: red_stained_glass
     slug: red-stained-glass
+    content_rev: 1
     display_name: Red Stained Glass
     material: glass
     hardness: 0.3
@@ -24,10 +26,62 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_stained_glass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - hand_mineable
+        - transparent
+        - impermeable
+        - non_flammable
+        - overworld
+    about:
+        description: |
+            Red Stained Glass is a dyed variant of glass that tints light
+            passing through it while remaining fully transparent.
+            Identical-colored panes of stained glass become invisible when
+            viewed through each other, creating seamless colored windows.
+        lore: |
+            Magenta stained glass generates naturally as windows in End
+            cities and End ships, hinting that the End's builders favored
+            colored glass architecture.
+    uses:
+        - title: Beacon beam coloring
+          ref: red_stained_glass
+          detail: |
+              Stacking different colored stained glass blocks in a beacon's
+              beam blends the colors, letting players customize the beam's
+              hue.
+        - title: Crafting Red Stained Glass Pane
+          ref: red_stained_glass_pane
+          detail: |
+              Six Red Stained Glass blocks craft 16 Red Stained Glass
+              Panes.
+    found_in:
+        - location: Crafting table
+          detail: 4 glass blocks + 1 red dye crafts 8 Red Stained Glass.
+        - location: End cities
+          detail: Magenta variant generates naturally as windows there, though red does not.
+    faq:
+        - question: What drops when I mine Red Stained Glass?
+          answer: |
+              Nothing without Silk Touch. With a Silk Touch tool it drops
+              itself as a block.
+        - question: What tool do I need to mine it?
+          answer: |
+              None — any tool or bare hands mines it at the same speed.
+        - question: Does light pass through colored?
+          answer: |
+              Yes, light passes through tinted to the glass's color, and
+              can be used to color beacon beams when stacked.
+        - question: Can Red Stained Glass be crafted into panes?
+          answer: |
+              Yes, six blocks craft into 16 Red Stained Glass Panes.
     data_version: "1.21.5"
 ---
 

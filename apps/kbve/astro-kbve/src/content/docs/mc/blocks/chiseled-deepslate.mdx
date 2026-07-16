@@ -1,5 +1,6 @@
 ---
 title: Chiseled Deepslate
+template: splash
 description: |
     Minecraft Chiseled Deepslate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,68 @@ mc_block:
     id: 1076
     ref: chiseled_deepslate
     slug: chiseled-deepslate
+    content_rev: 1
     display_name: Chiseled Deepslate
     material: stone
     hardness: 3.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: chiseled_deepslate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Chiseled Deepslate is a decorative deepslate variant carved with
+            a face-like pattern, used for detailing in deepslate-themed
+            builds. It is crafted from cobbled deepslate slabs or cut at a
+            stonecutter.
+        lore: |
+            Its blocky, symmetrical carving was intentionally designed to
+            evoke pareidolia — a face many players notice when the block is
+            stacked in structures.
+    uses:
+        - title: Decorative building
+          ref: cobbled_deepslate_slab
+          detail: |
+              Stack two Cobbled Deepslate Slabs vertically, or stonecut a
+              Cobbled Deepslate or Deepslate block, to produce Chiseled
+              Deepslate for detailing and trim work.
+    found_in:
+        - location: Ancient Cities
+          detail: Generates naturally within the Deep Dark biome's ancient city structures.
+        - location: Player-crafted
+          detail: Otherwise obtained by crafting or stonecutting deepslate variants.
+    faq:
+        - question: What tool do I need to mine Chiseled Deepslate?
+          answer: |
+              Any pickaxe, starting from wood. Mining without a pickaxe
+              yields no drop.
+        - question: Where does Chiseled Deepslate spawn naturally?
+          answer: |
+              It generates in ancient cities, the sculk-covered structures
+              found deep within the Deep Dark biome.
+        - question: What was Chiseled Deepslate called before release?
+          answer: |
+              It was referred to as "Chiseled Grimstone" during early Caves
+              & Cliffs snapshots before Mojang renamed the deepslate family.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops itself as a single block once mined with
+              any pickaxe.
     data_version: "1.21.5"
 ---
 

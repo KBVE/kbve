@@ -1,5 +1,6 @@
 ---
 title: Brown Candle
+template: splash
 description: |
     Minecraft Brown Candle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1318
     ref: brown_candle
     slug: brown-candle
+    content_rev: 1
     display_name: Brown Candle
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Brown Candle is a dyed variant of the candle, a light-emitting decorative
+            block that can be lit with flint and steel. Up to four identical candles
+            can be grouped in one block to increase the light level.
+        lore: |
+            First revealed at Minecraft Live 2020 alongside the deep dark biome
+            concept, candles brought dyeable, stackable lighting to the game.
+    faq:
+        - question: How do you craft a Brown Candle?
+          answer: |
+              Craft an undyed candle from string and honeycomb, then combine it with
+              brown dye to color it.
+        - question: How much light does a Brown Candle give off?
+          answer: |
+              A single lit candle emits light level 3; grouping four candles in one
+              block spot raises the light level up to 12.
+        - question: Can a Brown Candle be placed on a cake?
+          answer: |
+              Yes, placing a candle on an uneaten cake creates a decorated birthday
+              cake variant.
+        - question: How do you put out a Brown Candle?
+          answer: |
+              Lit candles can be extinguished with water, wind charges, or by
+              right-clicking them.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

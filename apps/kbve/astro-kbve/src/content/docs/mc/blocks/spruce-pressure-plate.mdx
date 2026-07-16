@@ -1,5 +1,6 @@
 ---
 title: Spruce Pressure Plate
+template: splash
 description: |
     Minecraft Spruce Pressure Plate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 249
     ref: spruce_pressure_plate
     slug: spruce-pressure-plate
+    content_rev: 1
     display_name: Spruce Pressure Plate
     material: redstone
     hardness: 0.5
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: spruce_pressure_plate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+        - redstone_component
+    about:
+        description: |
+            A Spruce Pressure Plate is a wooden redstone sensor that
+            detects any entity stepping onto it, emitting a full-strength
+            signal of 15 for a short time. It is transparent and can be
+            placed on top of most solid blocks, including fences and glass.
+        lore: |
+            These plates have existed since early alpha development and
+            remain one of the most essential redstone components for
+            entity detection.
+    uses:
+        - title: Entity Detection Circuits
+          ref: redstone
+          detail: |
+              Wired into redstone circuits to trigger doors, traps, mob
+              farms, and other automated mechanisms when a player, mob, or
+              item lands on the plate.
+    found_in:
+        - location: Crafted by the player
+          detail: Two matching spruce planks craft one spruce pressure plate.
+        - location: Villages and Trial Chambers
+          detail: Generates naturally in some village and trial chamber structures.
+    faq:
+        - question: What triggers a spruce pressure plate?
+          answer: |
+              Any entity — players, mobs, arrows, and dropped items —
+              except spectators and armor stand markers.
+        - question: How strong is the redstone signal?
+          answer: |
+              It always outputs the maximum signal strength of 15 while
+              activated.
+        - question: How long does it take to deactivate?
+          answer: |
+              It rechecks for entities every game tick and deactivates
+              roughly one tick after the last entity leaves.
+        - question: Can it be used as furnace fuel?
+          answer: |
+              Yes, wooden pressure plates smelt 1.5 items each, same as
+              other flammable wood items.
     data_version: "1.21.5"
 ---
 

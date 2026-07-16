@@ -1,5 +1,6 @@
 ---
 title: Allium
+template: splash
 description: |
     Minecraft Allium — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,76 @@ mc_block:
     id: 161
     ref: allium
     slug: allium
+    content_rev: 1
     display_name: Allium
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: allium
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - instant_break
+        - overworld
+        - flower
+        - compostable
+    about:
+        description: |
+            Allium is a purple flower found in flower forests and meadows.
+            It breaks instantly with any tool, can be bone-mealed onto
+            grass, and doubles as magenta dye and a bee-friendly plant.
+        lore: |
+            Allium was added in Java Edition 1.7.2 and later gained
+            suspicious stew and bee-breeding uses as those systems were
+            introduced.
+    uses:
+        - title: Magenta Dye
+          ref: magenta_dye
+          detail: |
+              Crafts into one magenta dye per allium, used to color wool,
+              concrete, and other dyeable blocks.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              Used in suspicious stew recipes to grant the player Fire
+              Resistance for 3 seconds.
+    found_in:
+        - location: Flower forest biome
+          detail: Generates abundantly on grass blocks as a common surface flower.
+        - location: Meadow biome
+          detail: Also generates naturally in meadows, added in the 1.18 update.
+        - location: Wandering Trader
+          detail: Purchasable for 1 emerald; potted allium also appears in woodland mansions.
+    faq:
+        - question: What tool do I need to mine Allium?
+          answer: |
+              None. Allium breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: What is Allium used for?
+          answer: |
+              It crafts into magenta dye, is an ingredient in suspicious
+              stew for temporary Fire Resistance, and can be fed to bees or
+              used to increase honey levels in hives.
+        - question: Can I grow more Allium?
+          answer: |
+              Yes. Applying bone meal to grass blocks in a flower forest or
+              meadow can spread allium, and it can be replanted after
+              breaking it with shears or by hand.
+        - question: Where is the best place to find Allium?
+          answer: |
+              Flower forest biomes generate the densest allium fields, while
+              meadows offer a mixed selection alongside other flowers.
     data_version: "1.21.5"
 ---
 

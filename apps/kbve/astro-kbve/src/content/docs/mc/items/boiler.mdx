@@ -1,0 +1,37 @@
+---
+title: Boiler
+template: splash
+description: |
+    Immersive Aircraft Boiler — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Boiler
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900012
+    ref: immersive_aircraft:boiler
+    slug: boiler
+    content_rev: 0
+    display_name: Boiler
+    category: material
+    rarity: common
+    stack_size: 64
+    tags:
+        - immersive_aircraft
+        - part
+    about:
+        description: |
+            Holds and burns the fuel that feeds an aircraft’s engine.
+        lore: |
+            Keep it stoked and keep flying.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

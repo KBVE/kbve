@@ -1,5 +1,6 @@
 ---
 title: Open Eyeblossom
+template: splash
 description: |
     Minecraft Open Eyeblossom — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 230
     ref: open_eyeblossom
     slug: open-eyeblossom
+    content_rev: 1
     display_name: Open Eyeblossom
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Open Eyeblossom is the nighttime state of the eyeblossom flower native to the
+            pale garden biome, opening after dark and closing again at dawn while emitting
+            particles as it changes. It can be traded from wandering traders, grown with bone
+            meal, crafted into orange dye, or used in suspicious stew to inflict Blindness.
+        lore: |
+            In the eerie pale garden, eyeblossoms awaken with the moonrise, their glowing eyes
+            opening in synchronized waves of ethereal light.
+    faq:
+        - question: When does an eyeblossom open?
+          answer: |
+              Eyeblossoms close during the day and open at night, and nearby eyeblossoms within
+              a 7x5x7 area synchronize their state changes together.
+        - question: Can bees breed using open eyeblossoms?
+          answer: |
+              No. Open eyeblossoms attract and can lead bees but cannot be used to breed them
+              or raise baby bees, unlike most other flowers.
+        - question: What happens if a bee touches an open eyeblossom?
+          answer: |
+              On any difficulty besides Peaceful, the bee is inflicted with Poison for a short
+              duration without becoming angry at the player.
+        - question: What can I craft with an open eyeblossom?
+          answer: |
+              It produces orange dye when crafted, and combined with a bowl and mushrooms it
+              makes suspicious stew that inflicts the Blindness effect.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

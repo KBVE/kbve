@@ -1,5 +1,6 @@
 ---
 title: Block of Raw Gold
+template: splash
 description: |
     Minecraft Block of Raw Gold — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1083
     ref: raw_gold_block
     slug: raw-gold-block
+    content_rev: 1
     display_name: Block of Raw Gold
     material: metal
     hardness: 5
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 3
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: raw_gold_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_iron_tool
+        - overworld
+    about:
+        description: |
+            Block of Raw Gold is a storage block that compacts nine Raw
+            Gold into a single space, saving inventory and chest slots. It
+            is mined faster with a pickaxe and requires an iron pickaxe or
+            better to drop.
+        lore: |
+            Added in Java Edition 1.17 alongside raw ore items, giving
+            players a way to stockpile gold without a furnace.
+    uses:
+        - title: Raw Gold Storage
+          ref: raw_gold
+          detail: |
+              Craft with nine Raw Gold in a 3x3 grid to compress it, or
+              place the block in a crafting grid to break it back down
+              into nine Raw Gold.
+    found_in:
+        - location: Crafted from Raw Gold
+          detail: Made by compressing nine Raw Gold items obtained from mining gold ore.
+        - location: Piglin bartering areas
+          detail: Piglins are drawn to and inspect any Block of Raw Gold placed nearby.
+    faq:
+        - question: What tool do I need to mine a Block of Raw Gold?
+          answer: |
+              An iron pickaxe or better. Lower tiers cannot break the
+              block for a drop.
+        - question: Can I smelt a Block of Raw Gold into a gold block?
+          answer: |
+              No. It must first be crafted back into nine Raw Gold items,
+              which can then be smelted individually into gold ingots.
+        - question: Do Piglins react to this block?
+          answer: |
+              Yes. Piglins run toward and inspect any Block of Raw Gold on
+              the ground, and mining or destroying one near a Piglin can
+              anger it.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one Block of Raw Gold regardless
+              of enchantments.
     data_version: "1.21.5"
 ---
 

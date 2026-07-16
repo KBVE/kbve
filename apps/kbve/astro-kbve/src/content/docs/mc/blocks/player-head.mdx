@@ -1,5 +1,6 @@
 ---
 title: Player Head
+template: splash
 description: |
     Minecraft Player Head — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 427
     ref: player_head
     slug: player-head
+    content_rev: 1
     display_name: Player Head
     material: stone
     hardness: 1
     blast_resistance: 1
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: player_head
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - not_flammable
+        - decoration
+    about:
+        description: |
+            A Player Head is a decorative skull block bearing a specific
+            player's skin, orientable in 16 directions when placed on the
+            floor. It is not obtainable in Survival through normal gameplay
+            and instead comes from the Creative inventory, commands, or
+            dispensers equipping it onto an entity.
+        lore: |
+            Before static mob heads existed, mapmaker Marc Watson created
+            the "MHF" (Marc's Head Format) player accounts so custom
+            textures like pumpkins or TNT could be worn as player heads.
+    uses:
+        - title: Decoration
+          ref: player_head
+          detail: |
+              Placed on floors or walls as a display piece; frequently used
+              to recreate mob or custom-texture heads via player skins
+              before dedicated mob head blocks existed.
+        - title: Wearable Head Slot
+          ref: player_head
+          detail: |
+              Worn in the helmet armor slot, overlaying the second layer of
+              the referenced player's skin.
+    found_in:
+        - location: Creative inventory
+          detail: The only standard way to obtain a Player Head in Survival is via Creative mode or commands.
+        - location: Dispenser placement
+          detail: A dispenser can place a Player Head onto an entity's empty helmet slot.
+    faq:
+        - question: Can I get a Player Head in Survival without commands?
+          answer: |
+              No. Vanilla Survival has no player-facing way to acquire a
+              Player Head; it must come from Creative mode, `/give`, or a
+              dispenser interaction.
+        - question: What tool do I need to mine it?
+          answer: |
+              None — any tool or bare hands break it at the same speed, and
+              it always drops itself.
+        - question: Does Silk Touch or Fortune affect it?
+          answer: |
+              No. It always drops exactly one Player Head regardless of
+              enchantments.
+        - question: Can I display someone else's skin on it?
+          answer: |
+              Yes, its NBT data references a player profile, so it displays
+              whichever account's skin was assigned when it was given.
     data_version: "1.21.5"
 ---
 

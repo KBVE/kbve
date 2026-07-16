@@ -1,5 +1,6 @@
 ---
 title: Poisonous Potato
+template: splash
 description: |
     Minecraft Poisonous Potato — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1162
     ref: poisonous_potato
     slug: poisonous-potato
+    content_rev: 1
     display_name: Poisonous Potato
     category: food
     rarity: common
@@ -22,6 +24,33 @@ mc_item:
         saturation: 4.8
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A poisonous potato is an uncommon food item with a 2% chance of dropping
+            from a fully grown potato crop, alongside the normal 2-5 regular potatoes.
+            Eating one restores 2 hunger points and 1.2 saturation but has a 60% chance
+            to inflict 5 seconds of Poison I, dealing up to 4 hearts of damage.
+        lore: |
+            Its sprouted, blemished skin mirrors real potatoes gone toxic with excess
+            glycoalkaloids, a deliberately useless item by design.
+    faq:
+        - question: How do I get a poisonous potato?
+          answer: |
+              Harvest fully grown potato crops — each has a 2% chance to yield one
+              poisonous potato in addition to the usual 2-5 regular potatoes. They can
+              also be found in shipwreck supply chests.
+        - question: What happens if I eat a poisonous potato?
+          answer: |
+              It restores 2 hunger and 1.2 saturation, but there is a 60% chance it
+              inflicts Poison I for 5 seconds, dealing roughly 4 hearts of damage.
+        - question: Can I plant or cook a poisonous potato?
+          answer: |
+              No. Unlike regular potatoes, it cannot be planted, baked into a baked
+              potato, or used in a composter.
+        - question: Is a poisonous potato useful for crafting?
+          answer: |
+              No, it has no crafting recipes; it exists purely as a risky food item
+              and stacks up to 64.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

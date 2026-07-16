@@ -1,5 +1,6 @@
 ---
 title: Sea Lantern
+template: splash
 description: |
     Minecraft Sea Lantern — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 539
     ref: sea_lantern
     slug: sea-lantern
+    content_rev: 1
     display_name: Sea Lantern
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Sea Lantern is an underwater light source that generates naturally throughout
+            ocean monuments and some ocean ruins. It emits the maximum light level of 15 and
+            features an animated, pulsing texture. It can also be crafted from prismarine
+            shards and prismarine crystals, and is used to help activate conduits.
+        lore: |
+            An ethereal beacon of the deep, the sea lantern illuminates underwater monuments
+            with its mysterious, rhythmic glow.
+    faq:
+        - question: How bright is a Sea Lantern?
+          answer: |
+              Sea lanterns emit a light level of 15, the brightest possible light level in the
+              game.
+        - question: Can I use Sea Lanterns to power a Conduit?
+          answer: |
+              Yes, sea lanterns activate conduits when incorporated into prismarine structures,
+              enabling the Conduit Power effect.
+        - question: What do I get if I mine a Sea Lantern without Silk Touch?
+          answer: |
+              The block drops 2-3 prismarine crystals, and the Fortune enchantment can increase
+              this up to 5 crystals in Java Edition.
+        - question: Do mobs spawn on Sea Lanterns?
+          answer: |
+              No, monsters cannot spawn on a sea lantern despite its partially transparent
+              properties.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

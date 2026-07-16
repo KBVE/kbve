@@ -1,5 +1,6 @@
 ---
 title: Crimson Fence Gate
+template: splash
 description: |
     Minecraft Crimson Fence Gate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 852
     ref: crimson_fence_gate
     slug: crimson-fence-gate
+    content_rev: 1
     display_name: Crimson Fence Gate
     material: nether
     hardness: 2
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crimson_fence_gate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+        - non_flammable
+    about:
+        description: |
+            Crimson Fence Gate is a passable opening for Crimson Fence
+            lines, crafted from Crimson Planks and sticks. It opens and
+            closes on right-click, redstone signal, or wind charge, and
+            being Nether wood it does not burn.
+        lore: |
+            Fence gates let builders wall off an area with fences while
+            still leaving a controllable entrance for themselves and
+            villagers.
+    uses:
+        - title: Fence Line Entrance
+          ref: crimson_fence
+          detail: |
+              Placed within a run of Crimson Fence, it lets players and
+              mobs pass through without breaking the fence's collision
+              barrier elsewhere.
+    found_in:
+        - location: Crafted from Crimson Planks and sticks
+          detail: One Crimson Plank plus sticks in a gate pattern crafts one Crimson Fence Gate.
+        - location: Nether structures
+          detail: Occasionally used in generated Nether builds alongside Crimson Fence.
+    faq:
+        - question: What tool do I need to mine Crimson Fence Gate?
+          answer: |
+              An axe is fastest, but no specific tool tier is required —
+              any tool or bare hands will break it.
+        - question: Does Crimson Fence Gate burn?
+          answer: |
+              No. Being Nether wood, it is non-flammable, unlike most
+              Overworld fence gate variants which burn for 5 minutes.
+        - question: How tall is a closed fence gate?
+          answer: |
+              1.5 blocks — tall enough to block most mobs while open gates
+              have no collision at all.
+        - question: Does it connect to fences and walls?
+          answer: |
+              It connects visually and functionally to matching wood
+              fences, but not to nether brick fences, glass panes, or iron
+              bars.
     data_version: "1.21.5"
 ---
 

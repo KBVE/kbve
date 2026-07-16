@@ -1,5 +1,6 @@
 ---
 title: Sea Pickle
+template: splash
 description: |
     Minecraft Sea Pickle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 755
     ref: sea_pickle
     slug: sea-pickle
+    content_rev: 1
     display_name: Sea Pickle
     material: plant
     hardness: 0
@@ -24,10 +26,65 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: sea_pickle
+          qty_min: 1
+          qty_max: 4
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - shovel_mineable
+        - pickaxe_mineable
+        - overworld
+        - non_flammable
+        - waterloggable
+    about:
+        description: |
+            Sea Pickle is a small underwater plant block that generates in
+            colonies of one to four pickles atop coral blocks, emitting a
+            soft light that scales with colony size.
+        lore: |
+            Its design is loosely inspired by real pyrosomes — free-floating
+            bioluminescent tunicates nicknamed "sea pickles" — though the
+            in-game block is stationary rather than free-drifting.
+    uses:
+        - title: Light Source
+          ref: sea_pickle
+          detail: |
+              A single pickle emits light level 6, and each additional
+              pickle in the same colony adds 3 more, up to level 15 for a
+              full four-pickle cluster.
+        - title: Lime Dye
+          ref: lime_dye
+          detail: |
+              Smelting a sea pickle in a furnace yields lime dye, useful for
+              dyeing wool, terracotta, and other colorable blocks.
+    found_in:
+        - location: Warm Ocean Coral Reefs
+          detail: Colonies of 1-4 pickles generate on top of living coral blocks in warm oceans.
+        - location: Wandering Traders
+          detail: Occasionally sold for 2 emeralds per sea pickle.
+    faq:
+        - question: What tool do I need to mine Sea Pickle?
+          answer: |
+              None — any tool or bare hands breaks it instantly, and it
+              always drops as an item.
+        - question: How many Sea Pickles drop from a colony?
+          answer: |
+              Breaking a pickle colony drops 1-4 sea pickles depending on
+              how many pickles were part of that colony.
+        - question: Can Sea Pickles multiply?
+          answer: |
+              Yes. Applying bone meal to a living coral block can spread
+              additional sea pickles nearby, making them a renewable
+              resource.
+        - question: What is Sea Pickle used for besides light?
+          answer: |
+              It composts at a 65% chance per item and smelts into lime dye,
+              in addition to being a compact underwater light source.
     data_version: "1.21.5"
 ---
 

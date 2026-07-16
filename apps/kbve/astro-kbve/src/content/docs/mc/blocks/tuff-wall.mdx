@@ -1,5 +1,6 @@
 ---
 title: Tuff Wall
+template: splash
 description: |
     Minecraft Tuff Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 946
     ref: tuff_wall
     slug: tuff-wall
+    content_rev: 1
     display_name: Tuff Wall
     material: stone
     hardness: 1.5
@@ -26,8 +28,49 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: tuff_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Tuff Wall is a decorative wall variant of tuff that raises a
+            half-block-high lip and connects to neighboring walls and solid
+            blocks, useful for fences, borders, and pillar caps.
+        lore: |
+            Added with the rest of the tuff block family in Java Edition
+            1.21 (snapshot 24w18a), part of the Trails & Tales update.
+    uses:
+        - title: Tuff
+          ref: tuff
+          detail: |
+              Crafted from 6 Tuff blocks in a wall pattern, or produced
+              1-for-1 from Tuff at a Stonecutter.
+    found_in:
+        - location: Crafting table or Stonecutter
+          detail: Not naturally generated; obtained only by crafting or cutting Tuff blocks.
+    faq:
+        - question: What tool do I need to mine Tuff Wall?
+          answer: |
+              Any pickaxe. There is no minimum tier requirement.
+        - question: Does Tuff Wall drop itself when mined?
+          answer: |
+              Yes, with any pickaxe, with or without Silk Touch.
+        - question: How do I get Tuff Wall?
+          answer: |
+              Craft 6 Tuff blocks in a wall pattern, or cut a single Tuff
+              block at a Stonecutter.
+        - question: Does Tuff Wall connect to fences or other walls?
+          answer: |
+              It connects to adjacent wall blocks and solid blocks like a
+              standard wall, forming a raised post where it doesn't connect
+              on both sides.
     data_version: "1.21.5"
 ---
 

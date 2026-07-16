@@ -1,0 +1,27 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.0.2
+Date: 2026-07-13
+  Changes:
+    - Orcs raised to 300 max HP (was 120) so a warrior survives a skirmish.
+    - Orcs are now at peace with biters (mutual cease-fire with the enemy force);
+      applies to existing saves on upgrade.
+  Features:
+    - Expanded gift whitelist: wood, stone, iron-ore, copper-ore, iron-gear-wheel,
+      sulfur, plastic-bar, firearm-magazine, piercing-rounds-magazine, grenade.
+---------------------------------------------------------------------------------------------------
+Version: 0.0.1
+Date: 2026-06-02
+  Features:
+    - Initial scaffold. Custom pre-rendered isometric Orc Warrior as a neutral creature.
+    - 16-direction sprites (256x256 frames) with separated body + shadow layers.
+    - Animations: idle, walk, run, attack (3 variants), death (armed + unarmed),
+      hit (armed / block / unarmed), roar.
+    - Dedicated `kbve-orcs` force created at runtime with per-player-force reputation
+      ranging [-100, +100], default 0 (neutral).
+    - Reputation deltas: kill orc = -5, gift item to orc = +1..+15 depending on item.
+    - Tier ladder (hostile / wary / neutral / friendly / revered) flips orc cease-fire
+      with each player force as reputation crosses thresholds.
+    - Gift mechanic: drop a whitelisted item entity within 4 tiles of an orc; nearest
+      orc consumes it and the dropper's force gains rep.
+    - `kbve-orc-tribute` item for clean rep gain via the KBVE Exchange (no recipe).
+    - Daily reputation decay toward 0 so state is not permanent across long games.

@@ -1,5 +1,6 @@
 ---
 title: Daylight Detector
+template: splash
 description: |
     Minecraft Daylight Detector — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 442
     ref: daylight_detector
     slug: daylight-detector
+    content_rev: 1
     display_name: Daylight Detector
     material: redstone
     hardness: 0.2
@@ -21,13 +23,66 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: daylight_detector
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - redstone_component
+    about:
+        description: |
+            The Daylight Detector is a redstone component that outputs a
+            signal strength proportional to the amount of visible sky
+            light hitting it. Right-clicking flips it into inverted mode,
+            which instead activates at night.
+        lore: |
+            Added in the Redstone Update (1.5) to give redstone circuits a
+            reliable way to react to the day/night cycle without timers.
+    uses:
+        - title: Automatic Lighting
+          ref: redstone_lamp
+          detail: |
+              Wired to redstone lamps in inverted mode, a Daylight
+              Detector switches lights on at dusk and off at dawn without
+              any player input.
+        - title: Day/Night-Triggered Farms
+          ref: redstone_dust
+          detail: |
+              Used to time mob farms, trapdoor doors, or clock-based
+              contraptions to the actual day/night cycle instead of a
+              redstone clock.
+    found_in:
+        - location: Crafting
+          detail: Not found naturally — must be crafted from glass, nether quartz, and a wooden slab.
+        - location: Woodland Mansions
+          detail: Occasionally present in decorative rooms within woodland mansions.
+    faq:
+        - question: What tool do I need to mine a Daylight Detector?
+          answer: |
+              None — it breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: How do I craft a Daylight Detector?
+          answer: |
+              Combine 3 Glass, 3 Nether Quartz, and 1 wooden slab of any
+              type in a crafting table.
+        - question: What is inverted mode?
+          answer: |
+              Right-clicking the detector toggles inverted mode, where it
+              outputs signal strength 15 minus the current sky light
+              level — useful for triggering things at night.
+        - question: Does it work in the Nether or underground?
+          answer: |
+              No. It only reads sky light, so it stays inactive in the
+              Nether, caves, or anywhere without direct sky exposure.
     data_version: "1.21.5"
 ---
 

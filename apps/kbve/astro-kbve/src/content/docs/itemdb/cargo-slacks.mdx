@@ -1,0 +1,40 @@
+---
+title: 'Cargo Slacks'
+template: splash
+sidebar:
+    label: 'Cargo Slacks'
+    hidden: true
+description: |
+    Reinforced work trousers with more pockets than contents. The waistband hides a wire loop nobody asks about.
+ref: 'cargo-slacks'
+key: 623
+id: '01KXFBEGM2NSNMQ0Z3RPFP5SH1'
+name: 'Cargo Slacks'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 45
+emoji: '👖'
+img: '/assets/items/equipment/cargo-slacks.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'SCFI09'
+  nodes:
+    - 'SCFI09_HIPS'
+  slot_keys:
+    - 'HIPS'
+equipment:
+  slot: 'legs'
+  bonuses:
+    armor: 1
+    extra:
+      weight: 1
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

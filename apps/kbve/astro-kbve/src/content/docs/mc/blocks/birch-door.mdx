@@ -1,5 +1,6 @@
 ---
 title: Birch Door
+template: splash
 description: |
     Minecraft Birch Door — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 615
     ref: birch_door
     slug: birch-door
+    content_rev: 1
     display_name: Birch Door
     material: wood
     hardness: 3
@@ -26,9 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
-    data_version: "1.21.5"
+    drops:
+        - ref: birch_door
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            The Birch Door is a two-tile-tall wooden door crafted from birch
+            planks that can be opened and closed by hand or with a redstone
+            signal. It blocks most mobs while letting players and villagers
+            pass through freely when opened.
+        lore: |
+            Doors have let players seal off shelters from zombies and
+            skeletons since the earliest versions of Minecraft.
+    uses:
+        - title: Furnace Fuel
+          ref: birch_door
+          detail: |
+              An Overworld wooden door can be burned in a furnace as fuel,
+              smelting one item per door.
+        - title: Air Pocket
+          ref: birch_door
+          detail: |
+              Placed underwater or in lava, a door creates a breathable air
+              pocket, letting players surface briefly without drowning.
+    found_in:
+        - location: Crafted from Birch Planks
+          detail: Six birch planks in a 3x2 grid craft three birch doors at a crafting table.
+        - location: Birch Forest villages and structures
+          detail: Some village and structure variants generate with wood-matched doors already placed.
+    faq:
+        - question: What tool breaks a Birch Door fastest?
+          answer: |
+              An axe. It is not required — any tool or bare hands can break
+              a door — but an axe is fastest.
+        - question: Does the Birch Door drop anything special?
+          answer: |
+              No. It always drops itself as a single item, regardless of
+              enchantments.
+        - question: Can Birch Doors burn?
+          answer: |
+              They will not catch fire from nearby flames, but they can
+              still ignite if directly exposed to lava.
+        - question: Can villagers open Birch Doors?
+          answer: |
+              Yes. Villagers, and most other passive mobs, can open wooden
+              doors on their own; most hostile mobs cannot.
 ---
 
 import MCBlockPanel from '@/components/mcdb/MCBlockPanel.astro';

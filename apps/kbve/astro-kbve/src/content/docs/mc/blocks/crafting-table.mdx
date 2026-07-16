@@ -1,5 +1,6 @@
 ---
 title: Crafting Table
+template: splash
 description: |
     Minecraft Crafting Table — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 193
     ref: crafting_table
     slug: crafting-table
+    content_rev: 1
     display_name: Crafting Table
     material: wood
     hardness: 2.5
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crafting_table
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - utility
+        - crafting
+        - flammable
+    about:
+        description: |
+            The Crafting Table is a utility block that opens a 3x3 crafting
+            grid, unlocking the full set of crafting recipes that the
+            inventory's 2x2 grid cannot make. It is one of the first blocks
+            most players build.
+        lore: |
+            Added in Java Edition Indev 0.31 (2010) as the "workbench" and
+            renamed Crafting Table in Beta 1.2. Its icon represented Java
+            Edition from 1.6.1 until 1.20 swapped it for a grass block.
+    uses:
+        - title: 3x3 Crafting
+          detail: |
+              Provides the full 3x3 crafting interface for recipes that the
+              inventory grid cannot produce, from tools and armor to complex
+              blocks.
+        - title: Furnace Fuel
+          detail: |
+              Can be burned as fuel in a furnace, smelting 1.5 items per
+              crafting table.
+    found_in:
+        - location: Crafting
+          detail: Four planks of any wood type arranged in a 2x2 square.
+        - location: Villages and Structures
+          detail: Generates in villages, swamp huts, igloos, pillager outposts, trail ruins, trial chambers, and abandoned camps.
+    faq:
+        - question: What tool breaks a crafting table fastest?
+          answer: |
+              An axe is fastest, but a crafting table can be broken by hand
+              and always drops itself.
+        - question: What is the crafting recipe?
+          answer: |
+              Place four wood planks of any type in a 2x2 square in your
+              inventory's crafting grid.
+        - question: Why use a crafting table instead of the inventory grid?
+          answer: |
+              The inventory only offers a 2x2 grid. A crafting table opens a
+              3x3 grid, giving access to every crafting recipe in the game.
     data_version: "1.21.5"
 ---
 

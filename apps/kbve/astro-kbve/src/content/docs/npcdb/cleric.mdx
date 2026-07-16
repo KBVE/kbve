@@ -1,5 +1,9 @@
 ---
 title: 'Cleric'
+template: splash
+sidebar:
+    label: 'Cleric'
+    hidden: true
 description: |
     Player support humanoid. Pale robe, gold trim, holy symbol. Heals nearby allies; reserved for higher-tier Barracks / temple recruitment once healing AI lands.
 ref: 'cleric'
@@ -39,7 +43,10 @@ faction:
     faction_id: 'player'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Support humanoid. Heals allies; weak in direct combat.
+
+</NpcLeaf>

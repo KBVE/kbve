@@ -1,5 +1,6 @@
 ---
 title: Redstone Wire
+template: splash
 description: |
     Minecraft Redstone Wire — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 189
     ref: redstone_wire
     slug: redstone-wire
+    content_rev: 1
     display_name: Redstone Wire
     material: redstone
     hardness: 0
@@ -23,11 +25,61 @@ mc_block:
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: redstone
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hand_mineable
+        - overworld
+        - redstone_component
+        - non_solid
+    about:
+        description: |
+            Redstone Wire is the placed form of redstone dust, forming
+            wire-like connections across the ground that transmit a power
+            signal up to 15 blocks, decreasing in strength with distance.
+        lore: |
+            Redstone wire has existed since the earliest redstone
+            implementation in Java Edition Alpha, forming the backbone of
+            in-game circuitry.
+    uses:
+        - title: Signal Transmission
+          ref: redstone_torch
+          detail: |
+              Placed on top of solid blocks, it links power sources like
+              levers, torches, and repeaters to mechanisms such as pistons,
+              doors, and dispensers.
+    found_in:
+        - location: Crafted from Redstone Dust
+          detail: |
+              Not generated on its own; placing redstone dust on a solid
+              surface creates redstone wire, which drops back to dust when
+              broken.
+    faq:
+        - question: What tool do I need to mine Redstone Wire?
+          answer: |
+              None — it breaks instantly with any tool or bare hands and
+              always drops one redstone dust.
+        - question: How far does a redstone signal travel?
+          answer: |
+              Up to 15 blocks along a wire before the signal strength
+              decays to zero, requiring a repeater to boost it further.
+        - question: Can redstone wire be placed on any block?
+          answer: |
+              No. It requires a solid, opaque block underneath; it cannot
+              be placed on transparent blocks like glass or on non-solid
+              blocks.
+        - question: Is Redstone Wire the same item as redstone dust?
+          answer: |
+              Yes. Redstone dust is the item form; placing it on the
+              ground turns it into the redstone wire block, and mining it
+              returns the dust.
     data_version: "1.21.5"
 ---
 

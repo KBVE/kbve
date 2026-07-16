@@ -1,5 +1,6 @@
 ---
 title: Crimson Fence
+template: splash
 description: |
     Minecraft Crimson Fence — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 848
     ref: crimson_fence
     slug: crimson-fence
+    content_rev: 1
     display_name: Crimson Fence
     material: nether
     hardness: 2
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crimson_fence
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+        - non_flammable
+    about:
+        description: |
+            Crimson Fence is a 1.5-block-tall barrier crafted from Crimson
+            Planks and sticks. It blocks most mobs and players while
+            letting arrows and thrown items pass through, and it never
+            burns since it is made of Nether wood.
+        lore: |
+            Fences let players enclose farms and yards without fully
+            blocking sightlines, and the Crimson variant carries that
+            utility safely into fire-prone Nether builds.
+    uses:
+        - title: Fence Gate Pairing
+          ref: crimson_fence_gate
+          detail: |
+              Combined with a Crimson Fence Gate, it forms a controllable
+              barrier line that keeps mobs and players contained while
+              allowing a passable entrance.
+    found_in:
+        - location: Crafted from Crimson Planks and sticks
+          detail: Four Crimson Planks and two sticks craft three Crimson Fences.
+        - location: Nether fortresses and bastion remnants
+          detail: Occasionally used to decorate generated Nether structures.
+    faq:
+        - question: What tool do I need to mine Crimson Fence?
+          answer: |
+              An axe is fastest, but any tool — or bare hands — will
+              break it since no minimum tool tier is required.
+        - question: Does Crimson Fence burn?
+          answer: |
+              No. Being Nether wood, it is fire-immune, unlike most
+              Overworld fence types.
+        - question: Does it connect to nether brick fences?
+          answer: |
+              No. Wooden fences, including Crimson, only connect to other
+              wooden fences of any type, not to nether brick fences.
+        - question: Can Crimson Fence be waterlogged?
+          answer: |
+              Yes. Fences are waterloggable, so they can be placed in a
+              water source without displacing it.
     data_version: "1.21.5"
 ---
 

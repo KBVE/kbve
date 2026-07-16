@@ -1,0 +1,43 @@
+---
+title: 'Hardcase Pouches'
+template: splash
+sidebar:
+    label: 'Hardcase Pouches'
+    hidden: true
+description: |
+    Three rigid lockable cases riding the back and both hips. What they hold survives; whether you do is separate.
+ref: 'hardcase-pouches'
+key: 631
+id: '01KXFBEGM3DN76CBB0TYC2F52G'
+name: 'Hardcase Pouches'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'uncommon'
+buy_price: 65
+emoji: '🧰'
+img: '/assets/items/equipment/hardcase-pouches.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'SCFI10'
+  nodes:
+    - 'SCFI10_AHPB'
+    - 'SCFI10_AHPL'
+    - 'SCFI10_AHPR'
+  slot_keys:
+    - 'AHPB'
+    - 'AHPL'
+    - 'AHPR'
+equipment:
+  slot: 'legs'
+  bonuses:
+    extra:
+      weight: 2
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

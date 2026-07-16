@@ -1,5 +1,6 @@
 ---
 title: Pink Wool
+template: splash
 description: |
     Minecraft Pink Wool — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 146
     ref: pink_wool
     slug: pink-wool
+    content_rev: 1
     display_name: Pink Wool
     material: wool
     hardness: 0.8
@@ -24,10 +26,61 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pink_wool
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Pink Wool is a dyed variant of Wool obtained by shearing pink
+            sheep, killing sheep, or dyeing any wool color with Pink Dye. It
+            breaks with any tool but shears are the fastest option.
+        lore: |
+            Wool has been in Minecraft since Survival Test, but dyeable
+            colored variants were added early in Beta to give builders a full
+            palette of blocks.
+    uses:
+        - title: Bed
+          ref: pink_bed
+          detail: |
+              Combine 3 Pink Wool with 3 planks to craft a Pink Bed, setting
+              your spawn point and skipping the night.
+        - title: Carpet
+          ref: pink_carpet
+          detail: |
+              Craft 2 Pink Wool into 3 Pink Carpet for a thin decorative
+              floor covering.
+    found_in:
+        - location: Pink Sheep
+          detail: Shearing yields 1-3 wool; killing an unsheared sheep drops 1.
+        - location: Crafting
+          detail: Dye any wool color with Pink Dye to convert it to Pink Wool.
+        - location: Shepherd Villager Trades
+          detail: Occasionally purchasable alongside other colored wool.
+    faq:
+        - question: What is the fastest way to mine Pink Wool?
+          answer: |
+              Shears break it instantly; any other tool or bare hands still
+              break it quickly since hardness is only 0.8.
+        - question: Does Pink Wool block sculk sensor vibrations?
+          answer: |
+              Yes. Wool of any color occludes vibrations, making it useful
+              for muffling sculk sensors.
+        - question: Can pink sheep spawn naturally?
+          answer: |
+              Yes, though rarely — sheep have a very small chance to spawn
+              with pink wool naturally.
+        - question: Is Pink Wool renewable?
+          answer: |
+              Yes. Sheep regrow wool after eating grass, and any wool color
+              can be re-dyed to pink.
     data_version: "1.21.5"
 ---
 

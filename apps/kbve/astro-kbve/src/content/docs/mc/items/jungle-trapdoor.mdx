@@ -1,5 +1,6 @@
 ---
 title: Jungle Trapdoor
+template: splash
 description: |
     Minecraft Jungle Trapdoor — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 767
     ref: jungle_trapdoor
     slug: jungle-trapdoor
+    content_rev: 1
     display_name: Jungle Trapdoor
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Jungle Trapdoor is a wooden block that can be opened or closed by right-clicking, or
+            triggered by a redstone signal, allowing it to act as a floor hatch or hidden door. It is
+            crafted from six Jungle Planks arranged in a 2x3 pattern, yielding two trapdoors.
+        lore: |
+            Jungle Trapdoors are transparent and waterloggable, letting them coexist with a water source
+            block in the same space.
+    faq:
+        - question: How do I craft a Jungle Trapdoor?
+          answer: |
+              Arrange six Jungle Planks in a 2x3 pattern in a crafting table to produce two Jungle
+              Trapdoors.
+        - question: Do Jungle Trapdoors need a support block?
+          answer: |
+              No, since Java Edition 1.9 trapdoors remain in place even if the block they were attached
+              to is removed.
+        - question: Can I open a Jungle Trapdoor without redstone?
+          answer: |
+              Yes, simply right-click the trapdoor to manually open or close it.
+        - question: Can water occupy the same space as a Jungle Trapdoor?
+          answer: |
+              Yes, Jungle Trapdoors are waterloggable, so a water source block can occupy the same
+              position.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

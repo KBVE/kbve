@@ -1,5 +1,6 @@
 ---
 title: Cobblestone Slab
+template: splash
 description: |
     Minecraft Cobblestone Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 583
     ref: cobblestone_slab
     slug: cobblestone-slab
+    content_rev: 1
     display_name: Cobblestone Slab
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cobblestone_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Cobblestone Slab is a decorative half-block variant of
+            cobblestone, placeable as a bottom or top half. Two slabs
+            stacked together form a full double slab identical to
+            cobblestone.
+        lore: |
+            Stone slabs were introduced in Java Edition Beta 1.3 and later
+            renamed to "Cobblestone Slab" in Beta 1.8 Pre-release.
+    uses:
+        - title: Building & Decoration
+          ref: cobblestone
+          detail: |
+              Used as a general-purpose building block for stairs,
+              terracing, and half-height detailing in stone builds.
+    found_in:
+        - location: Plains Villages, Pillager Outposts & Woodland Mansions
+          detail: Generates naturally as part of these overworld structures.
+        - location: Crafting table or stonecutter
+          detail: |
+              Crafted from 3 cobblestone (yields 6 slabs), or cut from
+              cobblestone or stone at a stonecutter.
+    faq:
+        - question: What tool do I need to mine Cobblestone Slab?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining without a pickaxe
+              destroys the block with no drop.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one slab regardless of
+              enchantments.
+        - question: Can two slabs form a full block?
+          answer: |
+              Yes, placing a second cobblestone slab against an existing
+              one combines them into a full, solid cobblestone-slab
+              double block.
+        - question: Where does it generate naturally?
+          answer: |
+              It appears in plains villages, pillager outposts, and
+              woodland mansions.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Lime Concrete
+template: splash
 description: |
     Minecraft Lime Concrete — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 683
     ref: lime_concrete
     slug: lime-concrete
+    content_rev: 1
     display_name: Lime Concrete
     material: stone
     hardness: 1.8
@@ -26,8 +28,50 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lime_concrete
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Lime Concrete is a solid, brightly colored building block formed
+            when Lime Concrete Powder touches water. It shares the sturdy,
+            fireproof feel of concrete with none of the block-update delay
+            of colored wool.
+        lore: |
+            Concrete arrived in Java Edition 17w06a (1.12, 2017); despite
+            being modeled on a near blast-proof material, the developers
+            gave it modest in-game blast resistance as a deliberate,
+            lighthearted design choice.
+    found_in:
+        - location: Trial Chambers
+          detail: Red and white concrete appear in trial chamber murals and vault rooms.
+        - location: Crafted from powder
+          detail: Formed instantly when Lime Concrete Powder contacts any water source, flowing water, or a waterlogged block.
+    faq:
+        - question: What tool do I need to mine Lime Concrete?
+          answer: |
+              Any pickaxe, starting from wood. Mining without a pickaxe
+              breaks the block but yields no drop.
+        - question: How is Lime Concrete made?
+          answer: |
+              Craft Lime Concrete Powder from lime dye, sand, and gravel,
+              then let it touch water — it hardens into solid concrete
+              instantly.
+        - question: Is Lime Concrete flammable?
+          answer: |
+              No. Unlike wool, concrete does not catch fire, making it a
+              safer choice near lava or in fire-prone builds.
+        - question: Does Fortune increase how much I get?
+          answer: |
+              No. Concrete always drops exactly one block per block mined,
+              regardless of Fortune.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Brain Coral Block
+template: splash
 description: |
     Minecraft Brain Coral Block — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 625
     ref: brain_coral_block
     slug: brain-coral-block
+    content_rev: 1
     display_name: Brain Coral Block
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A pink decorative solid block that naturally generates within coral reef structures in warm
+            ocean biomes. It must be mined with a Silk Touch pickaxe to keep its living form, and it
+            requires at least one adjacent water or waterlogged block to avoid turning into its grayscale
+            dead coral block variant.
+        lore: |
+            The vibrant corals of warm ocean reefs struggle to survive when separated from their
+            life-giving waters, slowly fading to gray.
+    faq:
+        - question: Does a brain coral block need water to stay alive?
+          answer: |
+              Yes—at least one of the six directly adjacent blocks must be water or a waterlogged block.
+              In Java Edition it dies within roughly 3 to 4.95 seconds without water; Bedrock Edition takes
+              about 2.25 seconds.
+        - question: Can a dead brain coral block be revived?
+          answer: |
+              No, once a coral block dies and turns gray, the transformation is permanent.
+        - question: How do I mine a brain coral block without killing it?
+          answer: |
+              Use a pickaxe enchanted with Silk Touch; a regular pickaxe yields the dead coral block instead.
+        - question: Is there a renewable source of brain coral blocks?
+          answer: |
+              Wandering traders occasionally sell individual coral blocks for 3 emeralds each, making them
+              obtainable without exploring coral reefs.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

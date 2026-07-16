@@ -1,5 +1,6 @@
 ---
 title: Milk Bucket
+template: splash
 description: |
     Minecraft Milk Bucket — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 956
     ref: milk_bucket
     slug: milk-bucket
+    content_rev: 1
     display_name: Milk Bucket
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A milk bucket is obtained by using an empty bucket on a cow, mooshroom, or goat. Drinking it
+            instantly clears every status effect on the player, making it a reliable emergency cure for
+            poison, wither, or other harmful buffs. It is also a required ingredient for baking cake.
+        lore: |
+            A simple farmhand's remedy that became an adventurer's universal antidote.
+    faq:
+        - question: Does milk cure fire damage?
+          answer: |
+              No. Fire is not classified as a status effect, so drinking milk does nothing to
+              extinguish flames or stop burning damage.
+        - question: Can I stack milk buckets?
+          answer: |
+              No, milk buckets are not stackable and each one takes up its own inventory slot.
+        - question: What happens to the bucket after drinking?
+          answer: |
+              The milk bucket is consumed and returns to you as an empty bucket, which can be
+              refilled again on a cow, mooshroom, or goat.
+        - question: Are there other ways to get milk besides milking an animal?
+          answer: |
+              Yes, milk buckets can be found in Trial Chambers supply chests, or purchased from
+              wandering traders for 2 emeralds.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

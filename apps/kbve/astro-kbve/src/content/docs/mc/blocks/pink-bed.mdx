@@ -1,5 +1,6 @@
 ---
 title: Pink Bed
+template: splash
 description: |
     Minecraft Pink Bed — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,8 +14,9 @@ mc_block:
     id: 116
     ref: pink_bed
     slug: pink-bed
+    content_rev: 1
     display_name: Pink Bed
-    material: stone
+    material: wood
     hardness: 0.2
     blast_resistance: 0.2
     best_tool: hand
@@ -26,8 +28,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pink_bed
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - non_flammable
+    about:
+        description: |
+            Pink Bed is a dyeable utility block made from pink wool and
+            planks. Sleeping in it at night skips to morning, and it sets
+            the player's Overworld respawn point when used.
+        lore: |
+            Beds have been part of Minecraft since its early days and
+            gained dye-based recoloring and expanded mechanics over later
+            updates.
+    uses:
+        - title: Respawn Point
+          ref: pink_bed
+          detail: |
+              Right-clicking a bed at night sets your spawn point and lets
+              you sleep through to morning, skipping monsters and resetting
+              thunderstorms if enough players sleep.
+    found_in:
+        - location: Crafting
+          detail: Craft with 3 pink wool and 3 planks of any wood type, or dye a white bed pink.
+        - location: Villages and igloos
+          detail: Colored beds generate naturally in village houses, igloos, and trial chambers.
+    faq:
+        - question: What tool do I need to mine Pink Bed?
+          answer: |
+              None — any tool or bare hands break it instantly, and no tool
+              speeds up the process.
+        - question: Can I use a bed in the Nether or the End?
+          answer: |
+              No. Beds explode instead of letting you sleep in those
+              dimensions, dealing damage to nearby entities.
+        - question: Does Pink Bed burn?
+          answer: |
+              It does not catch fire from nearby flames on its own, though
+              in Java Edition it can catch fire from direct lava contact.
+        - question: Can I recolor a bed after placing it?
+          answer: |
+              Yes. Combine any bed with a matching dye in a crafting grid to
+              change its color, including to pink.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Potted Blue Orchid
+template: splash
 description: |
     Minecraft Potted Blue Orchid — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 394
     ref: potted_blue_orchid
     slug: potted-blue-orchid
+    content_rev: 1
     display_name: Potted Blue Orchid
-    material: stone
+    material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,46 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: blue_orchid
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Potted Blue Orchid is a decorative pot arrangement holding a
+            single Blue Orchid flower. It breaks instantly with any tool or
+            by hand, returning both the pot and the flower.
+        lore: |
+            The blue orchid is named for the real-world Orchidaceae flower
+            family, though in Minecraft it generates only in swamp biomes.
+    found_in:
+        - location: Woodland Mansions
+          detail: Generates as potted decoration in some generated mansion rooms.
+        - location: Player-crafted
+          detail: Right-clicking a Flower Pot with a Blue Orchid places it inside.
+    faq:
+        - question: What does breaking Potted Blue Orchid drop?
+          answer: |
+              Both the Flower Pot and one Blue Orchid item, obtained
+              instantly with any tool or bare hands.
+        - question: Where do wild Blue Orchids grow?
+          answer: |
+              Exclusively in swamp biomes, on dirt and grass blocks, unlike
+              most other flowers which favor plains and forests.
+        - question: Can Potted Blue Orchid be used for dye?
+          answer: |
+              Not while potted, but once removed the Blue Orchid item crafts
+              into Light Blue Dye.
     data_version: "1.21.5"
 ---
 

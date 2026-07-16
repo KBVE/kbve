@@ -1,5 +1,6 @@
 ---
 title: Deepslate Tiles
+template: splash
 description: |
     Minecraft Deepslate Tiles — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1068
     ref: deepslate_tiles
     slug: deepslate-tiles
+    content_rev: 1
     display_name: Deepslate Tiles
     material: stone
     hardness: 3.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,67 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: deepslate_tiles
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Deepslate Tiles is a decorative variant of deepslate with a
+            refined, tiled appearance, crafted from Deepslate Bricks and
+            used extensively in ancient city architecture deep underground.
+        lore: |
+            Added during development for the Wild Update as part of the
+            Deep Dark biome overhaul, originally called "grimstone tiles"
+            before renaming and shipping with Java 1.19.
+    uses:
+        - title: Deepslate Tile Slab
+          ref: deepslate_tile_slab
+          detail: |
+              6 Deepslate Tiles craft into 6 Deepslate Tile Slabs for
+              half-height building.
+        - title: Deepslate Tile Stairs
+          ref: deepslate_tile_stairs
+          detail: |
+              6 Deepslate Tiles craft into 4 Deepslate Tile Stairs.
+        - title: Deepslate Tile Wall
+          ref: deepslate_tile_wall
+          detail: |
+              6 Deepslate Tiles craft into 6 Deepslate Tile Walls, and
+              smelting Deepslate Tiles produces Cracked Deepslate Tiles.
+    found_in:
+        - location: Ancient Cities
+          detail: Generates naturally as part of ancient city structures deep underground.
+        - location: Crafting/Stonecutting
+          detail: |
+              Crafted from 4 Deepslate Bricks into 4 tiles, or cut from
+              Deepslate, Cobbled Deepslate, Polished Deepslate, or
+              Deepslate Bricks using a stonecutter.
+    faq:
+        - question: What tool do I need to mine Deepslate Tiles?
+          answer: |
+              Any pickaxe, wood tier or better. Mining without one destroys
+              the block with no drop.
+        - question: How do I craft Deepslate Tiles?
+          answer: |
+              Craft 4 Deepslate Bricks together to get 4 Deepslate Tiles,
+              or cut Deepslate, Cobbled Deepslate, Polished Deepslate, or
+              Deepslate Bricks with a stonecutter.
+        - question: What happens if I smelt Deepslate Tiles?
+          answer: |
+              Smelting Deepslate Tiles in a furnace produces Cracked
+              Deepslate Tiles, a weathered-looking variant.
+        - question: Where does it generate naturally?
+          answer: |
+              In ancient cities, the deep dark structures found near the
+              bottom of the world.
     data_version: "1.21.5"
 ---
 

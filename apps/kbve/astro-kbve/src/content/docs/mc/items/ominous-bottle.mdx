@@ -1,5 +1,6 @@
 ---
 title: Ominous Bottle
+template: splash
 description: |
     Minecraft Ominous Bottle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1395
     ref: ominous_bottle
     slug: ominous-bottle
+    content_rev: 1
     display_name: Ominous Bottle
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Ominous Bottle is a stackable item that grants the drinker the Bad Omen status
+            effect, which later triggers a raid near villages or activates nearby trial spawners
+            as ominous trials. It is found in trial chamber vault chests and always drops from
+            raid captains that are not currently leading a raid.
+        lore: |
+            A mysterious vessel containing shadowy essence that marks the drinker with
+            misfortune, inviting danger wherever they venture.
+    faq:
+        - question: What happens if I drink an Ominous Bottle in a village?
+          answer: |
+              The Bad Omen effect converts into Raid Omen, triggering a raid; higher
+              amplification levels add more waves and better-equipped raiders.
+        - question: Where can I find Ominous Bottles?
+          answer: |
+              Trial chamber vault and ominous vault reward chests are the most reliable source,
+              and raid captains always drop one when killed outside of an active raid.
+        - question: Do multiple Ominous Bottles stack their effects?
+          answer: |
+              Not additively. Drinking a higher-level bottle upgrades an existing Bad Omen
+              effect, but a lower-level bottle will not downgrade a stronger one already active.
+        - question: Does the bottle trigger danger immediately when drunk?
+          answer: |
+              No. The Bad Omen effect only activates once you enter a village or approach a
+              trial spawner, so you can choose when to face the consequences.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

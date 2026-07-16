@@ -1,5 +1,6 @@
 ---
 title: Polished Basalt
+template: splash
 description: |
     Minecraft Polished Basalt — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,66 @@ mc_block:
     id: 276
     ref: polished_basalt
     slug: polished-basalt
+    content_rev: 1
     display_name: Polished Basalt
     material: nether
     hardness: 1.25
     blast_resistance: 4.2
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_basalt
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+    about:
+        description: |
+            Polished Basalt is the smoothed, pillar-like form of basalt,
+            showing a ringed pattern on its two end faces and a striped
+            pattern on its sides. Like raw basalt, it always orients to
+            point perpendicular to the face it was placed against.
+        lore: |
+            It first appeared in Java Edition 20w12a as a smelting-only
+            product before crafting and stonecutting recipes were added a
+            week later in 20w13a.
+    uses: []
+    found_in:
+        - location: Ancient cities
+          detail: Used as a structural and decorative block throughout ancient city generation.
+        - location: Bastion remnants
+          detail: Forms floors, pillars, and walls inside bastion remnant structures.
+        - location: Crafted from Basalt
+          detail: Four Basalt blocks craft four Polished Basalt, or one Basalt converts 1:1 via a stonecutter.
+    faq:
+        - question: What tool do I need to mine Polished Basalt?
+          answer: |
+              Any pickaxe, starting from wood. Mining without a pickaxe drops
+              nothing.
+        - question: Why does Polished Basalt look different depending on orientation?
+          answer: |
+              It always points perpendicular to the block face it was placed
+              on, so the ringed "end" texture faces the direction it was
+              placed toward.
+        - question: How do I get Polished Basalt?
+          answer: |
+              Craft four Basalt blocks together, cut one Basalt with a
+              stonecutter, or mine it directly from ancient cities and
+              bastion remnants.
+        - question: Does Silk Touch or Fortune affect its drops?
+          answer: |
+              No. It always drops exactly one block regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

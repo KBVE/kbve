@@ -1,5 +1,6 @@
 ---
 title: Orange Concrete Powder
+template: splash
 description: |
     Minecraft Orange Concrete Powder — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,35 @@ mc_item:
     id: 602
     ref: orange_concrete_powder
     slug: orange-concrete-powder
+    content_rev: 1
     display_name: Orange Concrete Powder
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Orange Concrete Powder is a gravity-affected block crafted from orange dye, sand, and gravel.
+            It falls like sand and gravel when unsupported, and instantly solidifies into solid orange
+            concrete whenever it touches water, whether placed in it, next to it, or falling into it.
+        lore: |
+            Builders drop stacks of concrete powder into water to flash-cast vivid, solid-colored walls in an instant.
+    faq:
+        - question: How do you craft Orange Concrete Powder?
+          answer: |
+              Combine 1 orange dye, 4 sand blocks, and 4 gravel blocks in a shapeless crafting recipe.
+        - question: What happens when Orange Concrete Powder touches water?
+          answer: |
+              It immediately hardens into solid Orange Concrete, whether it is placed into water, falls
+              into it, or is adjacent to a water source or waterlogged block.
+        - question: Does rain turn Orange Concrete Powder into concrete?
+          answer: |
+              No. Rain and splash potions do not trigger the transformation; only direct contact with a
+              water block does.
+        - question: Is Orange Concrete Powder affected by gravity?
+          answer: |
+              Yes. Like sand and gravel, it falls if there is no block supporting it from below.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

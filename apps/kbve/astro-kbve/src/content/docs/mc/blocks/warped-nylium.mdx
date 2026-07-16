@@ -1,5 +1,6 @@
 ---
 title: Warped Nylium
+template: splash
 description: |
     Minecraft Warped Nylium — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 825
     ref: warped_nylium
     slug: warped-nylium
+    content_rev: 1
     display_name: Warped Nylium
     material: nether
     hardness: 0.4
@@ -26,8 +28,62 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: warped_nylium
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+        - ref: netherrack
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - nether
+        - blast_resistant
+    about:
+        description: |
+            Warped Nylium is the fungal ground block that carpets the Warped
+            Forest biome in the Nether, colored teal-blue rather than the
+            crimson of its counterpart. It only spreads onto netherrack when
+            bone meal is applied, and it does not require light to persist.
+        lore: |
+            Its name blends "Nether" and "mycelium," nodding to the fungal
+            root network the block represents.
+    uses:
+        - title: Warped Forest Propagation
+          ref: warped_fungus
+          detail: |
+              Bone meal applied to netherrack next to existing Warped Nylium
+              spreads the biome's ground cover, letting players farm-grow
+              Warped Forest terrain and Warped Fungi outside the natural
+              biome.
+    found_in:
+        - location: Warped Forest biome
+          detail: Generates as the natural ground cover throughout Warped Forests in the Nether.
+        - location: Bone-mealed Netherrack
+          detail: Spreads onto adjacent netherrack when bone meal is applied to existing nylium.
+    faq:
+        - question: What does Warped Nylium drop when mined?
+          answer: |
+              Without Silk Touch it drops Netherrack; with Silk Touch it
+              drops itself. Any pickaxe tier works, but a pickaxe is required
+              to get a drop at all.
+        - question: Does Warped Nylium decay like a grass block?
+          answer: |
+              No. Unlike overworld grass blocks, it does not turn back into
+              netherrack from lack of light — it only reverts if covered by
+              certain blocks.
+        - question: Can I grow Warped Nylium myself?
+          answer: |
+              Yes. Apply bone meal to netherrack adjacent to existing Warped
+              Nylium to spread it.
+        - question: What can grow on Warped Nylium?
+          answer: |
+              Warped Fungi, Warped Roots, and Nether Sprouts can be planted
+              on it, and mushrooms can grow on it at any light level.
     data_version: "1.21.5"
 ---
 

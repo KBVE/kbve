@@ -1,5 +1,6 @@
 ---
 title: Cobblestone
+template: splash
 description: |
     Minecraft Cobblestone — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 35
     ref: cobblestone
     slug: cobblestone
+    content_rev: 1
     display_name: Cobblestone
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Cobblestone is a fundamental building material formed when flowing lava contacts water, with a hardness of 2 that requires a wooden pickaxe or better to mine. It underpins early-game crafting, forming stone tools, furnaces, brewing stands, pistons, and decorative variants like slabs, stairs, and walls.
+            Because it forms wherever lava meets water, cobblestone is infinitely renewable through simple farm contraptions, and it also generates naturally in structures like mineshafts, villages, and strongholds.
+        lore: |
+            Born where fire meets water, cobblestone shaped the earliest tools and fortresses of countless miners.
+    faq:
+        - question: How do I get cobblestone without mining stone?
+          answer: |
+              When water and flowing lava come into contact, the flowing lava is replaced by cobblestone, making it infinitely renewable through simple farming contraptions.
+        - question: Can I turn cobblestone back into stone?
+          answer: |
+              Yes, smelting cobblestone in a furnace with any fuel produces regular stone blocks, which also yield experience points.
+        - question: What's the fastest pickaxe for mining cobblestone?
+          answer: |
+              A netherite pickaxe breaks it in 0.35 seconds, while diamond takes 0.4 seconds and iron takes 0.5 seconds.
+        - question: Where does cobblestone naturally generate?
+          answer: |
+              It appears in monster rooms, villages, strongholds, ocean ruins, jungle pyramids, pillager outposts, woodland mansions, trail ruins, and trial chambers.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

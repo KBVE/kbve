@@ -1,5 +1,6 @@
 ---
 title: Stripped Birch Wood
+template: splash
 description: |
     Minecraft Stripped Birch Wood — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 81
     ref: stripped_birch_wood
     slug: stripped-birch-wood
+    content_rev: 1
     display_name: Stripped Birch Wood
     material: wood
     hardness: 2
@@ -24,10 +26,55 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_birch_wood
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Stripped Birch Wood shows birch's pale ring pattern on all six
+            faces rather than just the ends. It is made by stripping a
+            Birch Wood block with an axe, or by crafting stripped logs.
+        lore: |
+            All-bark wood blocks let builders wrap the log texture around
+            a full block without needing to orient logs sideways.
+    uses:
+        - title: Birch Planks
+          ref: birch_planks
+          detail: |
+              Crafts into Birch Planks and is a valid ingredient for
+              campfires, smokers, soul campfires, and furnace fuel.
+    found_in:
+        - location: Any Birch Wood block
+          detail: |
+              Obtained by using an axe on a placed Birch Wood block, or by
+              crafting four Stripped Birch Logs in a 2x2 grid for three
+              Stripped Birch Wood blocks.
+    faq:
+        - question: How do I make Stripped Birch Wood?
+          answer: |
+              Use an axe on a placed Birch Wood block, or craft four
+              Stripped Birch Logs together in a 2x2 pattern.
+        - question: What's the difference from Stripped Birch Log?
+          answer: |
+              Stripped Birch Wood shows the ring texture on every face,
+              while the log only shows it on the top and bottom.
+        - question: Is it flammable?
+          answer: |
+              Yes, it burns like other birch wood blocks and will catch
+              fire from lava or nearby flames.
+        - question: Can I use it as furnace fuel?
+          answer: |
+              Yes, it smelts about 1.5 items per block, the same as any
+              other wood or log block.
     data_version: "1.21.5"
 ---
 

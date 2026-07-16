@@ -1,5 +1,6 @@
 ---
 title: Waxed Weathered Copper Grate
+template: splash
 description: |
     Minecraft Waxed Weathered Copper Grate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1030
     ref: waxed_weathered_copper_grate
     slug: waxed-weathered-copper-grate
+    content_rev: 1
     display_name: Waxed Weathered Copper Grate
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_weathered_copper_grate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            The Waxed Weathered Copper Grate is a perforated, chain-link
+            style decorative block permanently held at the weathered
+            oxidation stage. It blocks mob spawning on top of it, does
+            not conduct redstone, and can be waterlogged.
+        lore: |
+            Grates were added as a lattice-textured copper variant for
+            floors, catwalks, and vents, letting builders show ductwork
+            or industrial detailing that keeps a consistent weathered
+            look forever once waxed.
+    uses:
+        - title: Decorative flooring and vents
+          ref: waxed_weathered_copper_grate
+          detail: |
+              Place as walkable flooring, ceiling grates, or vent
+              detailing; mobs cannot spawn on its surface.
+    found_in:
+        - location: Trial Chambers
+          detail: |
+              Generates naturally as waxed grates at various oxidation
+              stages, including weathered, throughout vault structures.
+        - location: Crafted or stonecut from Weathered Copper
+          detail: |
+              Craft 4 unwaxed Weathered Copper Grates from a Weathered
+              Copper block, or stonecut 1 block into 4 grates, then wax
+              with honeycomb.
+    faq:
+        - question: Does the waxed weathered copper grate still oxidize further?
+          answer: |
+              No. Waxing with honeycomb locks it at the weathered stage
+              permanently.
+        - question: What tool do I need to mine it?
+          answer: |
+              A stone pickaxe or better; lower tools or bare hands break
+              it without a drop.
+        - question: Does it conduct redstone or let mobs spawn on it?
+          answer: |
+              It does not conduct redstone signals, and mobs cannot spawn
+              on top of it, making it useful for safe walkways.
+        - question: Can it be waterlogged?
+          answer: |
+              Yes, like other grates it can hold water while still
+              letting the block function normally.
     data_version: "1.21.5"
 ---
 

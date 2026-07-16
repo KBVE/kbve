@@ -1,5 +1,6 @@
 ---
 title: Waxed Exposed Copper Grate
+template: splash
 description: |
     Minecraft Waxed Exposed Copper Grate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1029
     ref: waxed_exposed_copper_grate
     slug: waxed-exposed-copper-grate
+    content_rev: 1
     display_name: Waxed Exposed Copper Grate
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 0
     transparent: true
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_exposed_copper_grate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            Waxed Exposed Copper Grate is a decorative, chain-link-style
+            copper block locked at the exposed oxidation stage. It is
+            transparent to light and stops mobs from spawning on its
+            surface, and unlike other copper blocks it does not conduct
+            redstone.
+        lore: |
+            Copper Grates were announced at Minecraft Live 2023 and added
+            in Java Edition 1.21, inspired by real-world chain link fencing.
+    uses:
+        - title: Decorative Walkways and Vents
+          ref: waxed_exposed_copper_grate
+          detail: |
+              Used as see-through flooring, catwalks, or vents in
+              industrial-style builds where mob spawning must be blocked.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates naturally as wall-mounted walkways.
+        - location: Crafted or Stonecut
+          detail: Four matching copper blocks craft four grates; a stonecutter converts one copper block into four grates.
+    faq:
+        - question: What tool do I need to mine this grate?
+          answer: |
+              A stone pickaxe or better. Anything weaker destroys it without
+              a drop.
+        - question: Does this block let redstone signals pass through it?
+          answer: |
+              No. Unlike solid copper blocks, copper grates do not conduct
+              redstone at all.
+        - question: Can mobs spawn on top of it?
+          answer: |
+              No. Copper grates prevent mob spawning on their surface even
+              though they are transparent.
+        - question: Will it change color over time?
+          answer: |
+              No. The honeycomb wax coating permanently locks it at the
+              exposed stage, preventing further oxidation.
     data_version: "1.21.5"
 ---
 

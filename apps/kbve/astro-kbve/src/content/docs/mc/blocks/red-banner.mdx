@@ -1,5 +1,6 @@
 ---
 title: Red Banner
+template: splash
 description: |
     Minecraft Red Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 545
     ref: red_banner
     slug: red-banner
+    content_rev: 1
     display_name: Red Banner
     material: wood
     hardness: 1
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Red Banner is a tall, non-solid decoration block that displays
+            a solid red field and can carry up to six additional pattern
+            layers applied at a loom. It breaks instantly with any tool
+            but fastest with an axe.
+        lore: |
+            Banners were added in Java Edition 1.8 as a decorative,
+            customizable alternative to plain wool walls.
+    uses:
+        - title: Loom Patterns
+          ref: loom
+          detail: |
+              Combine a banner with dye and an optional pattern item at a
+              loom to add up to six stacked design layers.
+        - title: Shield Decoration
+          ref: shield
+          detail: |
+              Combine a patterned banner with a shield in a crafting grid
+              to transfer the banner's design onto the shield.
+    found_in:
+        - location: Crafting
+          detail: Craft from six wool of one color and a stick, arranged sign-style, to produce a banner of that base color.
+        - location: Generated structures
+          detail: Pre-patterned banners appear in structures such as woodland mansions, pillager outposts, and end cities.
+    faq:
+        - question: What tool breaks a banner fastest?
+          answer: |
+              An axe. Banners can still be broken instantly by hand or
+              any tool since they have very low hardness.
+        - question: Does a banner drop itself when broken?
+          answer: |
+              Yes, along with any pattern layers applied at a loom.
+        - question: Can I use a banner to mark a map?
+          answer: |
+              Yes, in Java Edition. Right-clicking a held map while
+              looking at a placed banner adds a colored marker at that
+              location.
+        - question: Is a banner flammable?
+          answer: |
+              It does not catch fire from nearby flames the way wool does,
+              but it will burn away if directly touched by lava.
     data_version: "1.21.5"
 ---
 

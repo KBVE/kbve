@@ -1,5 +1,6 @@
 ---
 title: Andesite Stairs
+template: splash
 description: |
     Minecraft Andesite Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 774
     ref: andesite_stairs
     slug: andesite-stairs
+    content_rev: 1
     display_name: Andesite Stairs
     material: stone
     hardness: 1.5
@@ -24,10 +26,56 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: andesite_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+        - waterloggable
+    about:
+        description: |
+            Andesite Stairs are a decorative stair variant of andesite,
+            crafted rather than found in world generation. They support
+            directional placement and inner/outer corner shapes for builds.
+        lore: |
+            Andesite Stairs were introduced in Java Edition 1.14 (18w43a)
+            and Bedrock Edition 1.9.0, completing andesite's building-block
+            family alongside slabs and walls.
+    uses:
+        - title: Building and Decoration
+          ref: andesite_stairs
+          detail: |
+              Used for roofs, staircases, and detailing in builds that use
+              andesite as a primary material.
+    found_in:
+        - location: Crafting table
+          detail: Six andesite blocks craft four stairs.
+        - location: Stonecutter
+          detail: One andesite block converts into one stair at a 1:1 ratio.
+    faq:
+        - question: What tool do I need to mine Andesite Stairs?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe yields
+              no drop.
+        - question: Do Andesite Stairs generate naturally?
+          answer: |
+              No. They must be crafted from andesite blocks or produced
+              with a stonecutter; they do not appear in world generation.
+        - question: Can Andesite Stairs be waterlogged?
+          answer: |
+              Yes. Stairs placed in water become waterlogged and continue
+              to behave like a water source visually.
+        - question: What shapes can Andesite Stairs form?
+          answer: |
+              Straight, inner corner, and outer corner shapes, with four
+              rotations each, allowing detailed roofing and staircases.
     data_version: "1.21.5"
 ---
 

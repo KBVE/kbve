@@ -1,5 +1,6 @@
 ---
 title: Stripped Mangrove Wood
+template: splash
 description: |
     Minecraft Stripped Mangrove Wood — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 87
     ref: stripped_mangrove_wood
     slug: stripped-mangrove-wood
+    content_rev: 1
     display_name: Stripped Mangrove Wood
     material: wood
     hardness: 2
@@ -26,8 +28,60 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stripped_mangrove_wood
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Stripped Mangrove Wood is the all-sides bark-free variant of
+            Mangrove Wood, made by crafting 4 Stripped Mangrove Logs
+            together. Every face shows the log's ring pattern, unlike the
+            plain sides of a stripped log.
+        lore: |
+            Mangrove wood variants were introduced in the 1.19 Wild
+            Update alongside the Mangrove Swamp biome, extending the
+            bark-free wood-block family the Nether Update established.
+    uses:
+        - title: Mangrove Planks
+          ref: mangrove_planks
+          detail: |
+              Smelts or crafts into 4 Mangrove Planks per block, usable
+              in any mangrove-wood recipe.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Burns in a furnace like other wood blocks, smelting 1.5
+              items per block.
+    found_in:
+        - location: Crafting Table
+          detail: Crafted from 4 Stripped Mangrove Logs in a 2x2 square, yielding 3 Stripped Mangrove Wood.
+        - location: Player-stripped Mangrove Wood
+          detail: Right-clicking a placed Mangrove Wood block with an axe strips it directly into this block.
+    faq:
+        - question: How do I get Stripped Mangrove Wood?
+          answer: |
+              Craft 4 Stripped Mangrove Logs in a square, or use an axe
+              directly on a placed Mangrove Wood block.
+        - question: Is Stripped Mangrove Wood flammable?
+          answer: |
+              Yes, it burns like all overworld wood blocks, so keep it
+              clear of lava and fire in builds.
+        - question: What tool mines it fastest?
+          answer: |
+              An axe. It has no minimum tool tier, so any tool or bare
+              hands will still break it and drop the block.
+        - question: How is Stripped Mangrove Wood different from the log?
+          answer: |
+              Wood shows the ringed texture on all six faces, while the
+              log only shows it on the top and bottom, with plain bark
+              on the sides.
     data_version: "1.21.5"
 ---
 

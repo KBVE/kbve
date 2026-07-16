@@ -1,5 +1,6 @@
 ---
 title: Block of Bamboo
+template: splash
 description: |
     Minecraft Block of Bamboo — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 60
     ref: bamboo_block
     slug: bamboo-block
+    content_rev: 1
     display_name: Block of Bamboo
     material: wood
     hardness: 2
@@ -24,10 +26,61 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Block of Bamboo is a compressed storage block crafted from nine
+            bamboo, giving it the appearance and log-like behavior of a full
+            wood block. An axe breaks it fastest, though any tool works.
+        lore: |
+            Introduced experimentally in Java Edition 22w45a and released
+            fully in Update 1.20 alongside the bamboo wood set.
+    uses:
+        - title: Bamboo Planks
+          ref: bamboo_planks
+          detail: |
+              Craft one Block of Bamboo into 2 Bamboo Planks, the base
+              material for the rest of the bamboo wood building set.
+        - title: Stripped Bamboo Block
+          ref: stripped_bamboo_block
+          detail: |
+              Strip with an axe to reveal the Stripped Bamboo Block variant
+              for building.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Smelts 1.5 items per block when used as furnace fuel.
+    found_in:
+        - location: Crafting Table
+          detail: Made from 9 bamboo arranged in a 3x3 grid; cannot be uncrafted.
+    faq:
+        - question: What tool mines Block of Bamboo fastest?
+          answer: |
+              An axe. It can also be broken by hand or any other tool, just
+              more slowly.
+        - question: Can I turn Block of Bamboo back into loose bamboo?
+          answer: |
+              No. Unlike most compressed storage blocks, it cannot be
+              uncrafted.
+        - question: Does Block of Bamboo make charcoal when smelted?
+          answer: |
+              No. It only serves as fuel; it cannot be smelted into another
+              item.
+        - question: Is Block of Bamboo flammable?
+          answer: |
+              Yes. Like other bamboo wood blocks it burns and spreads fire
+              if left near flames.
     data_version: "1.21.5"
 ---
 

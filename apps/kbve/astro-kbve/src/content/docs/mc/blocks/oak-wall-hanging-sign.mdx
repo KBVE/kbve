@@ -1,5 +1,6 @@
 ---
 title: Oak Hanging Sign
+template: splash
 description: |
     Minecraft Oak Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 233
     ref: oak_wall_hanging_sign
     slug: oak-wall-hanging-sign
+    content_rev: 1
     display_name: Oak Hanging Sign
     material: wood
     hardness: 1
@@ -24,10 +26,60 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oak_wall_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Oak Hanging Signs are wall-mounted signs that dangle from
+            iron chains beneath a block, offering a narrower text area
+            than standard signs with more flexible placement options.
+        lore: |
+            Hanging signs were announced at Minecraft Live 2022 and were
+            conceived in part from an idea by lead designer Agnes
+            Larsson's daughter.
+    uses:
+        - title: Labeling & Storage Signage
+          ref: oak_wall_hanging_sign
+          detail: |
+              Written on with up to four lines of text to label chests,
+              rooms, or shop stalls; text can be dyed and made glowing
+              with glow ink sac.
+        - title: Fluid Control
+          ref: oak_wall_hanging_sign
+          detail: |
+              Being non-solid, hanging signs block water and lava flow
+              while letting projectiles and some entities pass through.
+    found_in:
+        - location: Crafted from Stripped Oak Log
+          detail: Two stripped oak logs plus a chain craft six oak hanging signs.
+        - location: Trial Chambers & Trail Ruins
+          detail: Found as decorative loot-adjacent blocks in trial chamber and trail ruin structures.
+    faq:
+        - question: What tool do I need to mine an Oak Hanging Sign?
+          answer: |
+              None required — any tool works and an axe is fastest.
+        - question: What happens if I remove the block a hanging sign is attached to?
+          answer: |
+              The hanging sign immediately breaks and drops itself as an
+              item.
+        - question: Does an Oak Hanging Sign burn?
+          answer: |
+              No. It is non-flammable, though lava can ignite adjacent
+              air blocks around it.
+        - question: How is a Hanging Sign different from a regular sign?
+          answer: |
+              It hangs from chains below a block instead of sitting on
+              top of or against one, and it has a narrower text area
+              split across brackets.
     data_version: "1.21.5"
 ---
 

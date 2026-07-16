@@ -29,9 +29,9 @@ import {
 	XAxis,
 	YAxis,
 	CartesianGrid,
-	Tooltip,
 	ResponsiveContainer,
 } from 'recharts';
+import { AXIS_STROKE, ChartTooltip, GRID_STROKE } from './chartTheme';
 
 // ---------------------------------------------------------------------------
 // Chart helpers
@@ -46,15 +46,8 @@ const tickFormatter = (t: number) =>
 const tooltipLabelFormatter = (t: number) =>
 	new Date(t * 1000).toLocaleString();
 
-const tooltipStyle = {
-	background: 'var(--sl-color-bg-nav, #111)',
-	border: '1px solid var(--sl-color-gray-5, #262626)',
-	borderRadius: '8px',
-	color: 'var(--sl-color-text, #e6edf3)',
-};
-
-const axisStroke = 'var(--sl-color-gray-3, #8b949e)';
-const gridStroke = 'var(--sl-color-gray-5, #262626)';
+const axisStroke = AXIS_STROKE;
+const gridStroke = GRID_STROKE;
 
 // Skeleton sized to the parent chart's exact height — keeps the page
 // layout stable while the first range query is in flight (prevents the
@@ -476,8 +469,7 @@ export default function ReactGrafanaNodes() {
 								stroke={axisStroke}
 								fontSize={12}
 							/>
-							<Tooltip
-								contentStyle={tooltipStyle}
+							<ChartTooltip
 								labelFormatter={tooltipLabelFormatter}
 							/>
 							<Area
@@ -542,8 +534,7 @@ export default function ReactGrafanaNodes() {
 								stroke={axisStroke}
 								fontSize={12}
 							/>
-							<Tooltip
-								contentStyle={tooltipStyle}
+							<ChartTooltip
 								labelFormatter={tooltipLabelFormatter}
 								formatter={(v: number) => formatBytes(v)}
 							/>
@@ -608,8 +599,7 @@ export default function ReactGrafanaNodes() {
 								stroke={axisStroke}
 								fontSize={12}
 							/>
-							<Tooltip
-								contentStyle={tooltipStyle}
+							<ChartTooltip
 								labelFormatter={tooltipLabelFormatter}
 							/>
 							<Area

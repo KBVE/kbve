@@ -1,5 +1,6 @@
 ---
 title: Oak Button
+template: splash
 description: |
     Minecraft Oak Button — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 411
     ref: oak_button
     slug: oak-button
+    content_rev: 1
     display_name: Oak Button
     material: redstone
     hardness: 0.5
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oak_button
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - redstone_component
+    about:
+        description: |
+            The Oak Button is a small wooden redstone component crafted from
+            oak planks. It emits a short redstone pulse when pressed by a
+            player, a projectile, or certain mobs, making it a compact
+            switch for doors, dispensers, and other mechanisms.
+        lore: |
+            Wooden buttons were added in Java Edition 1.4.2 and gained an
+            oak-specific variant once the wood-type system was introduced.
+    uses:
+        - title: Redstone Switch
+          ref: redstone_dust
+          detail: |
+              Place on the side, top, or bottom of a block to create a
+              trigger for doors, trapdoors, dispensers, or note blocks.
+              Arrows and tridents can activate it without a player present.
+    found_in:
+        - location: Crafted from planks
+          detail: One oak plank crafts one oak button at a crafting table.
+        - location: Trial Chambers
+          detail: Oak buttons naturally generate as part of trial chamber structures.
+    faq:
+        - question: What tool do I need to mine an Oak Button?
+          answer: |
+              None — it can be broken by hand instantly, though an axe is
+              the fastest tool.
+        - question: How long does an Oak Button stay powered?
+          answer: |
+              A player press keeps it powered for about 1.5 seconds; an
+              arrow or trident keeps it powered until the projectile
+              despawns.
+        - question: Can mobs press an Oak Button?
+          answer: |
+              Not directly by walking into it, but arrows fired by
+              skeletons can trigger it.
+        - question: Is the Oak Button flammable?
+          answer: |
+              No — unlike some wooden blocks, buttons made from Overworld
+              wood types do not catch fire from nearby flames.
     data_version: "1.21.5"
 ---
 

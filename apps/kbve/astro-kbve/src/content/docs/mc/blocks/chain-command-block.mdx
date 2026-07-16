@@ -1,5 +1,6 @@
 ---
 title: Chain Command Block
+template: splash
 description: |
     Minecraft Chain Command Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 637
     ref: chain_command_block
     slug: chain-command-block
+    content_rev: 1
     display_name: Chain Command Block
     material: stone
     hardness: -1
@@ -27,7 +29,53 @@ mc_block:
     renewable: false
     diggable: false
     drops: []
-    tags: []
+    tags:
+        - indestructible
+        - creative_only
+        - blast_resistant
+        - redstone
+    about:
+        description: |
+            The Chain Command Block is the cyan-colored variant of the
+            command block, indestructible and obtainable only in Creative
+            mode or via `/give`. It does not execute on its own — it only
+            fires when a nearby impulse or repeating command block chains
+            a redstone-conditioned pulse into it.
+        lore: |
+            Command blocks were split into impulse, chain, and repeating
+            variants to make multi-step automated command sequences
+            practical to build without redstone spaghetti.
+    uses:
+        - title: Command Block
+          ref: command_block
+          detail: |
+              Chain command blocks are placed after an impulse command
+              block and set to "Needs Redstone Power: Always Active" so
+              they fire in sequence, letting a single trigger run a chain
+              of several commands back-to-back in the same tick.
+    found_in:
+        - location: Creative inventory (Operator Utilities)
+          detail: Available only when cheats are enabled; not obtainable in Survival by any legitimate means.
+    faq:
+        - question: Can I mine or break a Chain Command Block normally?
+          answer: |
+              No. It has -1 hardness, making it indestructible in
+              Survival; only a player in Creative mode can remove it.
+        - question: How is a Chain Command Block different from a regular one?
+          answer: |
+              A regular (impulse) command block fires once when powered.
+              A chain command block instead fires when the command block
+              behind it in the chain fires, letting several commands run
+              in a single sequence.
+        - question: Does it need redstone power to work?
+          answer: |
+              It can be set to "Always Active" so it ignores redstone and
+              simply triggers whenever the previous block in the chain
+              fires, or it can require its own redstone signal.
+        - question: Can explosions destroy it?
+          answer: |
+              No. Its blast resistance of 3,600,000 makes it effectively
+              immune to every in-game explosion, including the Wither and TNT.
     data_version: "1.21.5"
 ---
 

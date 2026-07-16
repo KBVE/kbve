@@ -1,5 +1,6 @@
 ---
 title: Mangrove Sign
+template: splash
 description: |
     Minecraft Mangrove Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 219
     ref: mangrove_wall_sign
     slug: mangrove-wall-sign
+    content_rev: 1
     display_name: Mangrove Sign
     material: wood
     hardness: 1
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mangrove_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Mangrove Wall Sign is the wall-mounted placement state of the
+            Mangrove Sign, created automatically when a sign is placed on
+            the side of a block instead of on top of one. It functions
+            identically to a standing sign otherwise.
+        lore: |
+            Mangrove signs were added in Java Edition 1.19 alongside the
+            mangrove swamp biome and the rest of the mangrove wood set.
+    uses:
+        - title: Waxed Sign
+          ref: honeycomb
+          detail: |
+              Applying a Honeycomb to a placed sign waxes it, locking the
+              text so it can no longer be edited — useful for permanent
+              shop or waypoint labels mounted on walls.
+    found_in:
+        - location: Crafting only
+          detail: |
+              Craft a Mangrove Sign from 6 Mangrove Planks and 1 Stick,
+              then place it against the side of a block to get this wall
+              orientation; not found naturally generated.
+    faq:
+        - question: What tool mines Mangrove Wall Sign fastest?
+          answer: |
+              An axe, though any tool or bare hands will break it since it
+              has no minimum tool tier requirement.
+        - question: What does it drop when broken?
+          answer: |
+              It drops a Mangrove Sign item, the same item used to place
+              both standing and wall signs.
+        - question: Can I edit the text after placing it?
+          answer: |
+              Yes, right-click the sign with an empty hand to open the
+              text editor, unless it has been waxed with a Honeycomb.
+        - question: Is it flammable?
+          answer: |
+              Yes, like all wooden blocks it can catch fire and burn away
+              if exposed to flames or lava.
     data_version: "1.21.5"
 ---
 

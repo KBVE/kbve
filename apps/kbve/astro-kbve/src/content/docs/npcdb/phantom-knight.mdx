@@ -1,5 +1,9 @@
 ---
 title: 'Phantom Knight'
+template: splash
+sidebar:
+    label: 'Phantom Knight'
+    hidden: true
 description: |
     The ghost of a fallen knight that charges through the battlefield, armor clanking with otherworldly echoes.
 ref: 'phantom-knight'
@@ -91,7 +95,10 @@ faction:
     faction_id: 'shadow-court'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 The ghost of a fallen knight that charges through the battlefield, armor clanking with otherworldly echoes.
+
+</NpcLeaf>

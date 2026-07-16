@@ -1,5 +1,6 @@
 ---
 title: Jigsaw Block
+template: splash
 description: |
     Minecraft Jigsaw Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 865
     ref: jigsaw
     slug: jigsaw
+    content_rev: 1
     display_name: Jigsaw Block
     material: stone
     hardness: -1
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: false
-    drops: []
-    tags: []
+    drops:
+        - ref: jigsaw
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - blast_resistant
+        - technical
+    about:
+        description: |
+            The Jigsaw Block is a technical block used to construct
+            multi-piece generated structures such as villages, bastion
+            remnants, ancient cities, and trial chambers. Its GUI lets
+            builders configure target pools, connections, and rotation.
+        lore: |
+            Added in Java Edition 1.14 to power the new data-driven village
+            and structure generation system.
+    uses:
+        - title: Structure Assembly
+          ref: structure_block
+          detail: |
+              Paired with structure blocks, jigsaw blocks connect template
+              pools together so the game can procedurally assemble large
+              multi-part structures piece by piece.
+    found_in:
+        - location: Creative Inventory
+          detail: Available only with Operator Utilities enabled, or via /give.
+        - location: Generated Structures
+          detail: |
+              Remains embedded in generated structures when "Keep Jigsaw" is
+              enabled during placement.
+    faq:
+        - question: Can I mine a Jigsaw Block in survival?
+          answer: |
+              No. It has a hardness of -1 and cannot be broken normally; it
+              is only obtainable via pick block, creative inventory, or commands.
+        - question: What happens to a jigsaw block after generation?
+          answer: |
+              It converts to its configured "Turns Into" block (air by
+              default) unless "Keep Jigsaw" is set to keep it in place.
+        - question: Is the Jigsaw Block affected by explosions?
+          answer: |
+              No. Its blast resistance of 3,600,000 makes it effectively
+              indestructible by any in-game explosion.
+        - question: Can pistons move a Jigsaw Block?
+          answer: |
+              No. It cannot be pushed or pulled by any piston variant.
     data_version: "1.21.5"
 ---
 

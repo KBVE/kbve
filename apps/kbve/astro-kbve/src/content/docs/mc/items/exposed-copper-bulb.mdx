@@ -1,5 +1,6 @@
 ---
 title: Exposed Copper Bulb
+template: splash
 description: |
     Minecraft Exposed Copper Bulb — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1384
     ref: exposed_copper_bulb
     slug: exposed-copper-bulb
+    content_rev: 1
     display_name: Exposed Copper Bulb
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Exposed Copper Bulb is the first oxidation stage of the copper bulb, a
+            redstone-powered light source. It toggles instantly between lit and unlit states when
+            pulsed with a redstone signal, emitting a slightly dimmer light than the fresh
+            unoxidized bulb.
+        lore: |
+            Copper bulbs were added alongside other copper redstone components to give copper
+            functional, mechanical uses beyond decoration.
+    faq:
+        - question: How do you craft an Exposed Copper Bulb?
+          answer: |
+              Combine an exposed block of copper, a blaze rod, and redstone dust at a crafting
+              table to yield four bulbs, or let an unwaxed copper bulb oxidize naturally.
+        - question: How bright is an Exposed Copper Bulb when lit?
+          answer: |
+              It emits a light level of 12 when powered, slightly dimmer than the unoxidized
+              bulb's light level of 15.
+        - question: Does the Exposed Copper Bulb need continuous power to stay lit?
+          answer: |
+              No, it toggles instantly between lit and unlit states on a redstone pulse and does
+              not need continuous power to remain in either state.
+        - question: Can you stop an Exposed Copper Bulb from oxidizing further?
+          answer: |
+              Yes, applying honeycomb waxes the bulb so it no longer oxidizes; an axe removes wax
+              or scrapes oxidation back one stage.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Flower Pot
+template: splash
 description: |
     Minecraft Flower Pot — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 380
     ref: flower_pot
     slug: flower-pot
+    content_rev: 1
     display_name: Flower Pot
     material: stone
     hardness: 0
@@ -23,11 +25,58 @@ mc_block:
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - decoration
+        - non_solid
+    about:
+        description: |
+            Flower Pot is a small decorative block crafted from bricks that
+            can hold a single sapling, flower, mushroom, or other small
+            plant. It breaks instantly and always drops itself, along with
+            any plant placed inside it.
+        lore: |
+            Flower pots have existed since the Adventure Update, giving
+            players a way to display plants indoors.
+    uses:
+        - title: Plant Display
+          ref: oak_sapling
+          detail: |
+              Right-clicking a flower pot with a compatible plant places
+              that plant inside it; right-clicking again removes the plant
+              and drops it.
+    found_in:
+        - location: Crafted
+          detail: Crafted from 3 bricks arranged in a small pot shape.
+        - location: Village houses
+          detail: Occasionally found already placed and potted with plants inside village houses.
+    faq:
+        - question: What plants can go in a Flower Pot?
+          answer: |
+              One-block-high flowers, saplings, ferns, dead bushes, cacti,
+              bamboo, azaleas, mangrove propagules, mushrooms, and Nether
+              fungi and roots.
+        - question: Does breaking a potted Flower Pot drop the plant too?
+          answer: |
+              Yes, breaking a flower pot drops both the pot and the potted
+              plant as separate items.
+        - question: What tool do I need to mine a Flower Pot?
+          answer: |
+              None, it breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: How do I craft a Flower Pot?
+          answer: |
+              Combine 3 bricks in a V shape in a crafting grid to produce
+              one flower pot.
     data_version: "1.21.5"
 ---
 

@@ -342,7 +342,7 @@ fn setup_camera(
     let texel_pad = 2.0 / render_h as f32;
     let quad_w = aspect + texel_pad * aspect;
     let quad_h = 1.0 + texel_pad;
-    if let Some(mesh) = meshes.get_mut(&mesh_handle) {
+    if let Some(mut mesh) = meshes.get_mut(&mesh_handle) {
         *mesh = Rectangle::new(quad_w, quad_h).into();
     }
     commands.spawn((
@@ -403,14 +403,14 @@ fn resize_render_target_on_window_change(
     let mut new_img =
         Image::new_target_texture(render_w, render_h, TextureFormat::Bgra8UnormSrgb, None);
     new_img.sampler = ImageSampler::nearest();
-    if let Some(slot) = images.get_mut(&assets.image) {
+    if let Some(mut slot) = images.get_mut(&assets.image) {
         *slot = new_img;
     }
 
     let texel_pad = 2.0 / render_h as f32;
     let quad_w = aspect + texel_pad * aspect;
     let quad_h = 1.0 + texel_pad;
-    if let Some(mesh) = meshes.get_mut(&assets.mesh) {
+    if let Some(mut mesh) = meshes.get_mut(&assets.mesh) {
         *mesh = Rectangle::new(quad_w, quad_h).into();
     }
 

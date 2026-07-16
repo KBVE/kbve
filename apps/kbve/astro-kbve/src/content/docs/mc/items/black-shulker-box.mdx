@@ -1,5 +1,6 @@
 ---
 title: Black Shulker Box
+template: splash
 description: |
     Minecraft Black Shulker Box — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 568
     ref: black_shulker_box
     slug: black-shulker-box
+    content_rev: 1
     display_name: Black Shulker Box
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Black Shulker Box is a portable storage block dyed black, crafted from a plain shulker box and black dye, or from two shulker shells and a chest. Unlike chests, it keeps all 27 slots of its contents when mined, making it ideal for moving items in bulk. Its color can be reset by washing it in a water-filled cauldron.
+        lore: |
+            A shell of endstone stained the color of the void it came from, hoarding treasures even as it is torn from the world.
+    faq:
+        - question: Does a Black Shulker Box keep its items when broken?
+          answer: |
+            Yes. Unlike chests, a shulker box retains everything stored inside when mined, so its 27 slots of items travel with the block as a portable inventory.
+        - question: How do I make a Black Shulker Box?
+          answer: |
+            Combine any shulker box with black dye in a crafting grid, or craft a fresh box from two shulker shells and a chest, then dye it. You can undye it later using a water-filled cauldron.
+        - question: Can redstone read how full a shulker box is?
+          answer: |
+            Yes. A redstone comparator can read the fullness of any shulker box, even ones that cannot be opened, which is not possible with chests.
+        - question: Why do piglins get angry when I open one?
+          answer: |
+            Piglins become hostile toward players who open or mine any shulker box, so keep your distance from them when accessing storage in the Nether or near bastions.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

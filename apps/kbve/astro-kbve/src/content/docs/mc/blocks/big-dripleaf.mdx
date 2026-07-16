@@ -1,5 +1,6 @@
 ---
 title: Big Dripleaf
+template: splash
 description: |
     Minecraft Big Dripleaf — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1053
     ref: big_dripleaf
     slug: big-dripleaf
+    content_rev: 1
     display_name: Big Dripleaf
     material: plant
     hardness: 0.1
@@ -24,10 +26,52 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Big Dripleaf is a tall lush-cave plant whose broad leaf tilts and
+            temporarily becomes non-solid when an entity stands on it,
+            dropping them through unless the leaf is redstone-powered.
+        lore: |
+            Announced at Minecraft Live 2020, Big Dripleaf shipped with lush
+            caves in the Caves & Cliffs update (1.17).
+    uses:
+        - title: Tilting Platform
+          ref: big_dripleaf
+          detail: |
+              Standing on the leaf tilts it after half a second and it
+              collapses fully a second later, making it useful for parkour,
+              traps, or one-way drops unless powered by redstone.
+    found_in:
+        - location: Lush Caves
+          detail: Generates naturally in clusters within lush cave biomes.
+        - location: Small dripleaf growth
+          detail: |
+              Bone meal applied to a small dripleaf converts it into a big
+              dripleaf, and further bone meal adds height.
+    faq:
+        - question: What tool do I need to mine a Big Dripleaf?
+          answer: |
+              None required — any tool or bare hands break it instantly.
+        - question: Does the Big Dripleaf drop an item when broken?
+          answer: |
+              No, breaking a big dripleaf does not drop itself as an item;
+              it can only be obtained by growing it from a small dripleaf.
+        - question: Why did I fall through the leaf?
+          answer: |
+              Standing on an unpowered big dripleaf makes it tilt and
+              collapse after about a second, dropping entities through
+              unless redstone power holds it flat.
+        - question: Can I stop the leaf from tilting?
+          answer: |
+              Yes, supplying redstone power to the leaf prevents it from
+              tilting under entity weight, though projectiles still make it
+              briefly non-solid.
     data_version: "1.21.5"
 ---
 

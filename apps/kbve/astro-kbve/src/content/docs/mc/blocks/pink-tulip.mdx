@@ -1,5 +1,6 @@
 ---
 title: Pink Tulip
+template: splash
 description: |
     Minecraft Pink Tulip — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 166
     ref: pink_tulip
     slug: pink-tulip
+    content_rev: 1
     display_name: Pink Tulip
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pink_tulip
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Pink Tulip is one of four tulip color variants that grow wild in
+            plains, sunflower plains, and flower forest biomes. It breaks
+            instantly with any tool and can be bone-mealed onto grass in
+            compatible biomes.
+        lore: |
+            Tulips were added in the Pretty Scary Update alongside the
+            expanded flower roster used for dye and decoration.
+    uses:
+        - title: Pink Dye
+          ref: pink_dye
+          detail: |
+              Craft one Pink Tulip into one Pink Dye, used to color wool,
+              banners, and other dyeable blocks.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              Combine with a mushroom and bowl to brew Suspicious Stew,
+              which grants a temporary Weakness effect.
+    found_in:
+        - location: Plains and Sunflower Plains
+          detail: Generates scattered among grass blocks alongside other flowers.
+        - location: Flower Forest
+          detail: Appears in dense clusters as part of the biome's flower carpet.
+        - location: Wandering Trader
+          detail: Purchasable for 1 emerald when offered in the trader's stock.
+    faq:
+        - question: What tool do I need to mine Pink Tulip?
+          answer: |
+              None. Any tool, or your bare hand, breaks it instantly.
+        - question: Does Pink Tulip make Pink Dye?
+          answer: |
+              Yes. Crafting a Pink Tulip yields one Pink Dye, the same color
+              produced by Pink Wool or Pink Petals.
+        - question: Can I farm Pink Tulips?
+          answer: |
+              Yes. Applying bone meal to grass blocks in plains or flower
+              forest biomes can spawn tulips and other flowers.
+        - question: Do bees interact with Pink Tulip?
+          answer: |
+              Yes. Like other flowers, it can be pollinated by bees and used
+              to breed them.
     data_version: "1.21.5"
 ---
 

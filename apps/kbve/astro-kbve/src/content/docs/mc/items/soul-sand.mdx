@@ -1,5 +1,6 @@
 ---
 title: Soul Sand
+template: splash
 description: |
     Minecraft Soul Sand — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,43 @@ mc_item:
     id: 348
     ref: soul_sand
     slug: soul-sand
+    content_rev: 1
     display_name: Soul Sand
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Soul Sand is a Nether block found mainly in soul sand valleys that slows any entity
+            walking across it by roughly 42% unless they wear Soul Speed boots. Placed underwater
+            it produces an upward bubble column, and it is required for growing nether wart,
+            crafting soul torches and campfires, and forming the base of a wither.
+        lore: |
+            Its name and unsettling drag on movement suggest it is bound up with the trapped souls
+            of the Nether's soul sand valleys.
+    faq:
+        - question: |
+              Why do I move so slowly when standing on Soul Sand?
+          answer: |
+              Soul Sand slows entities by about 42% and sinks them slightly; only Soul Speed
+              enchanted boots negate the slowdown.
+        - question: |
+              Can Soul Soil replace Soul Sand for growing nether wart?
+          answer: |
+              No, nether wart specifically requires Soul Sand to grow; Soul Soil will not work as a
+              substrate.
+        - question: |
+              How do Soul Sand bubble columns work?
+          answer: |
+              Placing Soul Sand beneath source water blocks creates a column that pushes entities
+              and items upward toward the surface.
+        - question: |
+              What is Soul Sand used for besides farming nether wart?
+          answer: |
+              It crafts soul torches and soul campfires, forms part of the wither's summoning base,
+              and can be obtained through piglin bartering.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

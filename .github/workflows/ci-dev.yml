@@ -20,7 +20,7 @@ jobs:
         name: 'Create/Update Dev to Main PR'
         runs-on: ubuntu-latest
         if: github.event_name == 'push' && github.ref_name == 'dev' && !contains(github.event.head_commit.message, '[skip-release-pr]')
-        timeout-minutes: 10
+        timeout-minutes: 20
         permissions:
             contents: read
             pull-requests: write
@@ -28,8 +28,9 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v7
               continue-on-error: true
+              timeout-minutes: 8
               with:
-                  fetch-depth: 0
+                  fetch-depth: 1
                   token: ${{ secrets.GITHUB_TOKEN }}
                   lfs: false
 

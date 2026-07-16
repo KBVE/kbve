@@ -1,5 +1,6 @@
 ---
 title: Bamboo Sign
+template: splash
 description: |
     Minecraft Bamboo Sign — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,35 @@ mc_item:
     id: 935
     ref: bamboo_sign
     slug: bamboo-sign
+    content_rev: 1
     display_name: Bamboo Sign
     category: decoration
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Bamboo Sign is crafted from bamboo planks and a stick, yielding three signs per recipe. Placed on the top or side of a block, it holds up to four lines of text used to label storage, share information, or mark areas of interest. Sign text can be recolored with dyes, made to glow and outline with a glow ink sac, and locked from further edits by applying honeycomb.
+        lore: |
+            A pale bamboo placard, carved and inked to guide travelers through the jungle.
+    faq:
+        - question: |
+            How do you craft a Bamboo Sign?
+          answer: |
+            Place six bamboo planks in two rows of three with a single stick beneath them; each craft produces three Bamboo Signs.
+        - question: |
+            How do you make sign text glow?
+          answer: |
+            Use a glow ink sac on the placed sign to make its text glow and gain a bright outline that is readable in the dark.
+        - question: |
+            Can you stop players from editing a sign?
+          answer: |
+            Yes. Applying honeycomb waxes the sign, which prevents its text from being edited by any player afterward.
+        - question: |
+            How many lines of text can a sign hold?
+          answer: |
+            Each side of a sign supports up to four lines of text, and dyes can be used to change the text color.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

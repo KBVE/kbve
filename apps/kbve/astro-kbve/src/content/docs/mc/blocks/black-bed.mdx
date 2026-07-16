@@ -1,5 +1,6 @@
 ---
 title: Black Bed
+template: splash
 description: |
     Minecraft Black Bed — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 125
     ref: black_bed
     slug: black-bed
+    content_rev: 1
     display_name: Black Bed
-    material: stone
+    material: wood
     hardness: 0.2
     blast_resistance: 0.2
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: black_bed
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            The Black Bed is a two-block furniture item crafted from black
+            wool and planks. Sleeping in it at night sets the player's
+            respawn point and skips to morning; used in the Nether or End
+            it instead explodes.
+        lore: |
+            Beds have let players skip the night since Beta 1.6, and their
+            explosive Nether/End behavior — discovered after 1.16 removed
+            natural bed use there — became a popular mob-farm and PvP
+            tactic known as "bed bombing."
+    uses:
+        - title: Respawn Point
+          ref: black_bed
+          detail: |
+              Right-click to set spawn; destroying the bed or leaving its
+              dimension invalidates that spawn point.
+        - title: Villager Housing
+          ref: black_bed
+          detail: |
+              Villagers claim beds as homes, sleep in them at night, and
+              need a spare bed nearby to breed.
+    found_in:
+        - location: Crafted from Wool + Planks
+          detail: 3 black wool and 3 planks (any wood type) craft 1 black bed.
+        - location: Shepherd Villager Trades
+          detail: Shepherds sell beds, including dyed colors, for 3 emeralds.
+    faq:
+        - question: What tool do I need to mine a bed?
+          answer: |
+              None — beds break instantly with any tool or bare hands.
+        - question: What happens if I sleep in a bed in the Nether?
+          answer: |
+              The bed explodes with a blast power of 5, higher than TNT,
+              instead of letting you sleep.
+        - question: Can pistons move beds?
+          answer: |
+              No, beds cannot be pushed by regular pistons or pulled by
+              sticky pistons.
+        - question: Does Silk Touch or Fortune change the drop?
+          answer: |
+              No, a bed always drops itself as a single item regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

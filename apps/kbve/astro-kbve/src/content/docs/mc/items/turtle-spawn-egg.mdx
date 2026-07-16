@@ -1,5 +1,6 @@
 ---
 title: Turtle Spawn Egg
+template: splash
 description: |
     Minecraft Turtle Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1133
     ref: turtle_spawn_egg
     slug: turtle-spawn-egg
+    content_rev: 1
     display_name: Turtle Spawn Egg
     category: spawn_egg
     rarity: common
@@ -20,6 +22,25 @@ mc_item:
     tier: turtle
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Turtle Spawn Egg is a Creative-mode-only item used to place a turtle directly into the world by pressing use on any surface, with the turtle appearing adjacent to that block. There is a 10% chance it spawns as a baby turtle instead of an adult.
+            Like other spawn eggs, it is non-renewable and obtainable only through the Creative inventory, pick-block on an existing turtle, or commands.
+        lore: |
+            Spawn eggs exist purely as a creative and testing tool, letting builders and map makers populate beaches with turtles without needing to trigger natural spawn conditions.
+    faq:
+        - question: How do you get a Turtle Spawn Egg?
+          answer: |
+            It is only available in Creative mode inventory, by pick-blocking an existing turtle, or via the /give command — it cannot be obtained in Survival.
+        - question: How do you use a Turtle Spawn Egg?
+          answer: |
+            Press use while pointing at any surface (top, bottom, or side) and a turtle spawns with its feet next to that block.
+        - question: Can a Turtle Spawn Egg create a baby turtle?
+          answer: |
+            Yes, there is a 10% chance the spawned turtle will be a baby instead of an adult.
+        - question: Is the Turtle Spawn Egg renewable?
+          answer: |
+            No, like all spawn eggs it is a non-renewable, creative-only item.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

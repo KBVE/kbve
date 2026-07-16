@@ -1,5 +1,6 @@
 ---
 title: Warped Door
+template: splash
 description: |
     Minecraft Warped Door — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 754
     ref: warped_door
     slug: warped-door
+    content_rev: 1
     display_name: Warped Door
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Warped Door is a two-block wooden door crafted from warped planks, giving
+            it a distinctive teal, otherworldly look that reflects its Nether origin. It
+            functions like any other wooden door, opening for players, villagers, piglins,
+            vindicators, and copper golems, and it can also be triggered by redstone.
+        lore: |
+            A door born from the twisted timber of the Nether, warped wood resists the
+            flames of its native realm while serving the same practical purpose as its
+            Overworld cousins.
+    faq:
+        - question: |
+              Can I obtain warped doors without visiting the Nether?
+          answer: |
+              No, warped doors are non-renewable in the Overworld since warped wood only
+              generates naturally in Nether warped forests.
+        - question: |
+              How do I craft a Warped Door?
+          answer: |
+              Arrange six warped planks in a 2x3 pattern in a crafting grid to produce
+              three warped doors.
+        - question: |
+              Will a Warped Door burn if it falls into lava?
+          answer: |
+              No, warped wood is tagged as non-flammable, so a warped door in lava does
+              not burn.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

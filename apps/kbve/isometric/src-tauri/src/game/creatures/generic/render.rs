@@ -5,7 +5,7 @@
 //! Visibility component management, and the SimulationCenter update from camera.
 
 use bevy::prelude::*;
-use bevy::render::storage::ShaderStorageBuffer;
+use bevy::render::storage::ShaderBuffer;
 
 use super::super::common::{GameTime, day_factor};
 use super::super::creature::{Creature, CreaturePoolIndex, SpriteData, SpriteHopState};
@@ -22,7 +22,7 @@ pub fn render_sprite_creatures(
     time: Res<Time>,
     game_time: Res<GameTime>,
     camera_q: Query<&Transform, With<IsometricCamera>>,
-    mut buffers: ResMut<Assets<ShaderStorageBuffer>>,
+    mut buffers: ResMut<Assets<ShaderBuffer>>,
     mut atlas_pool: ResMut<SpriteAtlasPool>,
     types: Res<SpriteCreatureTypes>,
     mut creature_q: Query<
@@ -133,7 +133,7 @@ pub fn render_sprite_creatures(
     }
 
     for entry in &atlas_pool.entries {
-        if let Some(buffer) = buffers.get_mut(&entry.anim_buffer) {
+        if let Some(mut buffer) = buffers.get_mut(&entry.anim_buffer) {
             buffer.set_data(entry.anim_data.as_slice());
         }
     }

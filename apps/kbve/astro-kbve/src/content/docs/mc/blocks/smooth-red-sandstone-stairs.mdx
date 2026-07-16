@@ -1,5 +1,6 @@
 ---
 title: Smooth Red Sandstone Stairs
+template: splash
 description: |
     Minecraft Smooth Red Sandstone Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 765
     ref: smooth_red_sandstone_stairs
     slug: smooth-red-sandstone-stairs
+    content_rev: 1
     display_name: Smooth Red Sandstone Stairs
     material: stone
     hardness: 2
@@ -26,8 +28,46 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: smooth_red_sandstone_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Smooth Red Sandstone Stairs are a decorative stair variant cut
+            from Smooth Red Sandstone. They follow standard stair placement,
+            with facing, half, and corner-shape options, and block light
+            partially in Java Edition.
+        lore: |
+            Introduced with the smooth sandstone family in Java Edition 1.14
+            to round out red sandstone as a full building set.
+    found_in:
+        - location: Crafted from Smooth Red Sandstone
+          detail: Six Smooth Red Sandstone blocks craft into four stairs, or one block converts 1:1 into a stair with a stonecutter.
+        - location: Not found naturally
+          detail: These stairs do not generate in any structure and must be crafted or stonecut.
+    faq:
+        - question: What tool do I need to mine Smooth Red Sandstone Stairs?
+          answer: |
+              Any pickaxe works — there is no minimum tier requirement for
+              the drop.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one stair block, regardless of
+              enchantments.
+        - question: How do I craft Smooth Red Sandstone Stairs?
+          answer: |
+              Arrange six Smooth Red Sandstone blocks in a stair pattern for
+              four stairs, or use a stonecutter for a 1:1 conversion.
+        - question: Are the stairs flammable?
+          answer: |
+              No. They cannot catch fire and have a blast resistance of 6,
+              the same as their parent block.
     data_version: "1.21.5"
 ---
 

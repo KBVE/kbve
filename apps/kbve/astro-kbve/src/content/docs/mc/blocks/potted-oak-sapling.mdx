@@ -1,5 +1,6 @@
 ---
 title: Potted Oak Sapling
+template: splash
 description: |
     Minecraft Potted Oak Sapling — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 382
     ref: potted_oak_sapling
     slug: potted-oak-sapling
+    content_rev: 1
     display_name: Potted Oak Sapling
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,49 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: oak_sapling
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Potted Oak Sapling is a decorative block made by placing an Oak
+            Sapling into a flower pot, displaying it on a small dirt mound
+            without taking up a plantable tile.
+        lore: |
+            Flower pots and potted saplings date back to Java Edition 1.4.2,
+            among the earliest decorative container blocks in the game.
+    found_in:
+        - location: Crafted by hand
+          detail: Place an Oak Sapling item into an empty Flower Pot to create it.
+        - location: Village mason houses and Woodland Mansions
+          detail: Pre-potted saplings occasionally decorate these structures.
+    faq:
+        - question: Does the potted sapling still grow into a tree?
+          answer: |
+              No. It is purely decorative in Java Edition, unlike a sapling
+              planted on dirt or grass which grows over time.
+        - question: What tool do I need to break it?
+          answer: |
+              None. It breaks instantly with any tool or bare hands.
+        - question: What does it drop?
+          answer: |
+              The empty Flower Pot and the Oak Sapling item drop as two
+              separate items.
+        - question: Is the potted sapling a separate block ID?
+          answer: |
+              Yes, in Java Edition potted_oak_sapling is its own block state
+              distinct from an empty flower pot; Bedrock instead tracks the
+              contained item on the pot block.
     data_version: "1.21.5"
 ---
 

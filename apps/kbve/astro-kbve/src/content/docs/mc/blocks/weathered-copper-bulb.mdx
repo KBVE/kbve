@@ -1,5 +1,6 @@
 ---
 title: Weathered Copper Bulb
+template: splash
 description: |
     Minecraft Weathered Copper Bulb — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,70 @@ mc_block:
     id: 1034
     ref: weathered_copper_bulb
     slug: weathered-copper-bulb
+    content_rev: 1
     display_name: Weathered Copper Bulb
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
-    light_emission: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
+    light_emission: 8
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: weathered_copper_bulb
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - blast_resistant
+        - redstone_component
+        - light_source
+    about:
+        description: |
+            The Weathered Copper Bulb is a redstone light source toggled
+            on or off by a redstone pulse, staying lit or dark without
+            needing continuous power. At the weathered oxidation stage
+            it emits a moderate light level of 8.
+        lore: |
+            Added in the Tricky Trials update, the copper bulb pairs
+            copper's weathering aesthetic with functional redstone lighting.
+    uses:
+        - title: Redstone Lighting
+          ref: weathered_copper_bulb
+          detail: |
+              Wired into redstone circuits as a toggleable light source
+              that latches its state from a single pulse, useful for
+              switches and lamps that don't need constant power.
+    found_in:
+        - location: Crafted from Weathered Copper
+          detail: A matching weathered copper block, blaze rod, and redstone dust craft 4 copper bulbs.
+        - location: Trial Chambers
+          detail: Generates naturally, lit and in random oxidation stages, as part of trial chamber vault mechanisms.
+    faq:
+        - question: What tool do I need to mine this block?
+          answer: |
+              A stone pickaxe or better. Anything weaker destroys it
+              without a drop.
+        - question: How much light does it emit at this oxidation stage?
+          answer: |
+              Weathered copper bulbs emit light level 8, compared to 15
+              for normal, 12 for exposed, and 4 for fully oxidized.
+        - question: Does it need continuous redstone power to stay lit?
+          answer: |
+              No. A single redstone pulse toggles it on or off, and it
+              holds that state until pulsed again.
+        - question: Does Silk Touch or Fortune affect its drops?
+          answer: |
+              No. It always drops itself as a single item regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

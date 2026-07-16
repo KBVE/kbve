@@ -1,5 +1,6 @@
 ---
 title: Cherry Stairs
+template: splash
 description: |
     Minecraft Cherry Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 485
     ref: cherry_stairs
     slug: cherry-stairs
+    content_rev: 1
     display_name: Cherry Stairs
     material: wood
     hardness: 2
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cherry_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Cherry Stairs are a step-shaped building block crafted from
+            Cherry Planks, used to build roofs, staircases, and
+            cherry-themed architecture with waterloggable, rotatable
+            steps.
+        lore: |
+            Wooden stairs are one of Minecraft's earliest blocks, dating
+            back to Infdev; the cherry variant arrived with the 1.20
+            "Trails & Tales" update.
+    uses:
+        - title: Building & Roofing
+          ref: cherry_stairs
+          detail: |
+              Placed to form rooftops, staircases, and decorative trim;
+              can be waterlogged for underwater builds.
+    found_in:
+        - location: Crafting table
+          detail: Six matching planks arranged in a stair pattern craft 4 stairs.
+        - location: Village and mansion structures
+          detail: Naturally generates in some structures depending on the wood type used there.
+    faq:
+        - question: What does a Cherry Stairs block drop when mined?
+          answer: |
+              It drops itself as an item.
+        - question: Is Cherry Stairs flammable?
+          answer: |
+              Yes, like most wooden stairs it catches fire and burns.
+        - question: Can Cherry Stairs be used as furnace fuel?
+          answer: |
+              Yes, Overworld wooden stairs smelt 1.5 items per block as
+              furnace fuel.
+        - question: Can Cherry Stairs be waterlogged?
+          answer: |
+              Yes, stairs can hold water when placed in or next to a water
+              source, useful for underwater or ocean builds.
     data_version: "1.21.5"
 ---
 

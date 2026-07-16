@@ -1,5 +1,6 @@
 ---
 title: Cookie
+template: splash
 description: |
     Minecraft Cookie — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1040
     ref: cookie
     slug: cookie
+    content_rev: 1
     display_name: Cookie
     category: food
     rarity: common
@@ -22,6 +24,34 @@ mc_item:
         saturation: 1.6
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Cookies are crafted from wheat and cocoa beans, yielding 8 per
+            batch, and restore only 2 hunger points and 0.4 saturation when
+            eaten. They stack to 64, making them a compact if inefficient
+            food source compared to other renewable foods.
+        lore: |
+            A humble baked treat, sweet enough for adventurers but deadly to
+            parrots that peck at it.
+    faq:
+        - question: How do you make cookies in Minecraft?
+          answer: |
+              Combine wheat and cocoa beans on a crafting grid to produce 8
+              cookies per craft.
+        - question: How much hunger do cookies restore?
+          answer: |
+              Each cookie restores 2 hunger points and 0.4 saturation, making
+              them a low-value but highly stackable food.
+        - question: Why shouldn't you feed a cookie to a parrot?
+          answer: |
+              Cookies are toxic to parrots — in Java Edition they kill the
+              parrot instantly, while in Bedrock Edition they inflict a
+              fatal poison effect.
+        - question: Are cookies useful for anything besides eating?
+          answer: |
+              Cookies can be placed in a composter with an 85% success
+              chance and can also be traded from farmer villagers for
+              emeralds.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

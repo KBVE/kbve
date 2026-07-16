@@ -525,16 +525,16 @@ impl Plugin for ProtocolPlugin {
             .add_direction(NetworkDirection::ServerToClient);
 
         // PlayerId: synced once on spawn, predicted + rollback
-        app.register_component::<PlayerId>().add_prediction();
+        app.component::<PlayerId>().replicate().predict();
 
         // PlayerColor: synced once on spawn, predicted
-        app.register_component::<PlayerColor>().add_prediction();
+        app.component::<PlayerColor>().replicate().predict();
 
         // PlayerVitals: server-authoritative, replicated to all clients
-        app.register_component::<PlayerVitals>().add_prediction();
+        app.component::<PlayerVitals>().replicate().predict();
 
         // PlayerName: replicated to all clients
-        app.register_component::<PlayerName>().add_prediction();
+        app.component::<PlayerName>().replicate().predict();
 
         // SetUsernameRequest: client → server
         app.register_message::<SetUsernameRequest>()
@@ -544,13 +544,13 @@ impl Plugin for ProtocolPlugin {
             .add_direction(NetworkDirection::ServerToClient);
 
         // Position: full sync with rollback
-        app.register_component::<Position>().add_prediction();
+        app.component::<Position>().replicate().predict();
 
         // Rotation: full sync with rollback
-        app.register_component::<Rotation>().add_prediction();
+        app.component::<Rotation>().replicate().predict();
 
         // LinearVelocity: predicted with rollback
-        app.register_component::<LinearVelocity>().add_prediction();
+        app.component::<LinearVelocity>().replicate().predict();
     }
 }
 

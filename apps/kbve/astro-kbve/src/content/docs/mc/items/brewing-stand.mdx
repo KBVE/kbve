@@ -1,5 +1,6 @@
 ---
 title: Brewing Stand
+template: splash
 description: |
     Minecraft Brewing Stand — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1064
     ref: brewing_stand
     slug: brewing-stand
+    content_rev: 1
     display_name: Brewing Stand
     category: brewing
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Brewing Stand is a functional block used to turn water bottles into potions with the
+            help of blaze powder fuel and various brewing ingredients. It also serves as the job site
+            block for the Cleric villager profession and can process up to three bottles at once.
+        lore: |
+            A blaze-rod tripod fused to cobbled stone, humming with faint heat as it distills raw ingredients into potent brews.
+    faq:
+        - question: How do you craft a Brewing Stand?
+          answer: |
+              Combine 1 Blaze Rod with 3 of any stone-tier block, such as cobblestone, blackstone, or
+              cobbled deepslate, in a crafting grid.
+        - question: How does a Brewing Stand work?
+          answer: |
+              It holds up to three potion bottles and one ingredient slot, consuming blaze powder as
+              fuel; each brew takes 20 seconds (400 ticks), and one piece of blaze powder fuels 20 brews.
+        - question: Where can you find Brewing Stands naturally?
+          answer: |
+              They generate in end ships (alongside two Potions of Instant Health II), igloo basements,
+              and village temple/church structures.
+        - question: What else does a Brewing Stand do besides brewing?
+          answer: |
+              It acts as a job site block that lets an unemployed villager become a Cleric, and in Java
+              Edition it emits a faint light level of 1.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

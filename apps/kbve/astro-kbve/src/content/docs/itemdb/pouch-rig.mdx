@@ -1,0 +1,45 @@
+---
+title: 'Pouch Rig'
+template: splash
+sidebar:
+    label: 'Pouch Rig'
+    hidden: true
+description: |
+    A four-pouch belt rig — front, back, both hips — for everything a jumpsuit forgot. Contents shift; the rig never does.
+ref: 'pouch-rig'
+key: 626
+id: '01KXFBEGM2KZ4CXZKFM2TYEA29'
+name: 'Pouch Rig'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 40
+emoji: '👝'
+img: '/assets/items/equipment/pouch-rig.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'SCFI09'
+  nodes:
+    - 'SCFI09_AHPF'
+    - 'SCFI09_AHPB'
+    - 'SCFI09_AHPL'
+    - 'SCFI09_AHPR'
+  slot_keys:
+    - 'AHPF'
+    - 'AHPB'
+    - 'AHPL'
+    - 'AHPR'
+equipment:
+  slot: 'legs'
+  bonuses:
+    extra:
+      weight: 2
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

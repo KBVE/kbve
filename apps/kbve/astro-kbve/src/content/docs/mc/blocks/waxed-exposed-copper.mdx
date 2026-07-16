@@ -1,5 +1,6 @@
 ---
 title: Waxed Exposed Copper
+template: splash
 description: |
     Minecraft Waxed Exposed Copper — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 994
     ref: waxed_exposed_copper
     slug: waxed-exposed-copper
+    content_rev: 1
     display_name: Waxed Exposed Copper
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: waxed_exposed_copper
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Waxed Exposed Copper is a full copper block locked at the
+            exposed oxidation stage — a shade darker and greener than fresh
+            copper — by a coat of honeycomb wax. It never progresses to the
+            weathered or oxidized stages.
+        lore: |
+            Block of Copper was added in Java Edition 1.17, and its
+            oxidation and waxing mechanics arrived in the 1.19 Wild Update.
+    uses:
+        - title: Weathered-Look Building Block
+          ref: waxed_exposed_copper
+          detail: |
+              Used to build structures that permanently show the greenish
+              "exposed" patina without further aging, useful for matching a
+              specific weathered aesthetic that stays fixed.
+        - title: Copper Golem Construction
+          ref: waxed_exposed_copper
+          detail: |
+              Paired with a carved pumpkin, copper blocks of any oxidation
+              stage can be assembled into a copper golem.
+    found_in:
+        - location: Trial Chambers
+          detail: Generates naturally as part of trial chamber structures.
+        - location: Crafted
+          detail: Nine copper ingots craft one copper block, then waxed with honeycomb and left to oxidize to the exposed stage before rewaxing, or aged via a lightning-free timeline.
+    faq:
+        - question: What tool do I need to mine this block?
+          answer: |
+              A stone pickaxe or better. Mining with anything weaker
+              destroys it without a drop.
+        - question: Will it keep oxidizing into weathered or oxidized copper?
+          answer: |
+              No. The honeycomb wax coating permanently halts oxidation at
+              the exposed stage.
+        - question: Can I turn it back into copper ingots?
+          answer: |
+              No. Only unwaxed, unoxidized copper blocks can be crafted back
+              into ingots; once waxed or oxidized, it stays a decorative
+              block.
+        - question: Can lightning or an axe change it back to fresh copper?
+          answer: |
+              No. Wax blocks the effect of lightning bolts, and an axe on a
+              waxed block only strips the wax, reverting it to a plain
+              (unwaxed) exposed copper block rather than fresh copper.
     data_version: "1.21.5"
 ---
 

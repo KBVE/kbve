@@ -1,5 +1,6 @@
 ---
 title: Soul Torch
+template: splash
 description: |
     Minecraft Soul Torch — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 278
     ref: soul_wall_torch
     slug: soul-wall-torch
+    content_rev: 1
     display_name: Soul Torch
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 10
     light_opacity: 0
@@ -26,8 +27,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: soul_torch
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - light_source
+        - nether
+    about:
+        description: |
+            The Soul Wall Torch is the wall-mounted variant of the Soul Torch,
+            attached to the side of a block instead of standing on top of one.
+            It emits the same teal light level of 10 and drops a regular Soul
+            Torch item when broken. It is placed by aiming a soul torch at a
+            block's side.
+        lore: |
+            The same cold Nether soul-fire, angled from a wall to cast its teal
+            glow across piglin-haunted corridors.
+    uses:
+        - title: Wall Lighting
+          ref: soul_torch
+          detail: |
+              Mounts on the side of blocks to light corridors and walls with a
+              teal glow where a floor-standing torch would get in the way.
+        - title: Piglin Repellent
+          ref: soul_torch
+          detail: |
+              Like the standing soul torch, it repels regular piglins (but not
+              piglin brutes), useful for lighting Nether passages safely.
+    found_in:
+        - location: Placed Against Walls
+          detail: Created whenever a soul torch is placed on the side of a solid block.
+        - location: Ancient Cities
+          detail: The soul torch item it drops generates in ancient city chests in the deep dark.
+    faq:
+        - question: What does a Soul Wall Torch drop?
+          answer: |
+              It drops a regular Soul Torch item — the same item as the
+              floor-standing variant.
+        - question: How is a Soul Wall Torch created?
+          answer: |
+              It is not crafted separately; it forms automatically when you
+              place a soul torch against the side of a block.
+        - question: Does the wall variant emit the same light?
+          answer: |
+              Yes. It emits light level 10, identical to the standing soul torch,
+              which is too dim to melt snow or ice.
+        - question: Does it repel piglins?
+          answer: |
+              Yes. Soul wall torches repel regular piglins but have no effect on
+              piglin brutes.
     data_version: "1.21.5"
 ---
 

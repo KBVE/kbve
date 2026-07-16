@@ -1,5 +1,6 @@
 ---
 title: Glowstone
+template: splash
 description: |
     Minecraft Glowstone — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 354
     ref: glowstone
     slug: glowstone
+    content_rev: 1
     display_name: Glowstone
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Glowstone is a light-emitting block that generates in crystalline blobs on the
+            ceilings and overhangs of the Nether, giving off the maximum light level of 15. It is
+            crafted from four glowstone dust and is used in redstone lamps and respawn anchors.
+        lore: |
+            A cluster of crystallized light clinging to the Nether's ceiling, glowing as brightly
+            as sunlight itself.
+    faq:
+        - question: How bright is Glowstone?
+          answer: |
+              It emits a light level of 15, the maximum possible, matching sea lanterns and jack
+              o'lanterns.
+        - question: Where does Glowstone generate?
+          answer: |
+              It forms naturally in crystalline blobs on the underside of ceilings and overhangs
+              across most Nether biomes, though it is rarer in soul sand valleys.
+        - question: How do I mine Glowstone without breaking it into dust?
+          answer: |
+              Use a Silk Touch-enchanted tool to collect the block intact; otherwise it breaks
+              into 2-4 glowstone dust, boosted further by Fortune.
+        - question: How do I craft Glowstone?
+          answer: |
+              Combine four glowstone dust in a 2x2 pattern on a crafting table.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

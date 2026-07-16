@@ -1,5 +1,6 @@
 ---
 title: Wolf Spawn Egg
+template: splash
 description: |
     Minecraft Wolf Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1142
     ref: wolf_spawn_egg
     slug: wolf-spawn-egg
+    content_rev: 1
     display_name: Wolf Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Wolf Spawn Egg instantly spawns a wolf when used on a block. Wolves are neutral
+            mobs found in forest and taiga biomes that can be tamed with bones to become loyal,
+            fighting companions with far more health than their wild counterparts.
+        lore: |
+            A spawn egg containing a wolf — a tameable neutral mob that becomes a fierce ally when
+            befriended with bones.
+    faq:
+        - question: How do I tame a wolf?
+          answer: |
+              Hold bones and use them on a wild wolf; each bone has a 1/3 chance of successfully
+              taming it.
+        - question: What do tamed wolves eat to heal?
+          answer: |
+              Tamed wolves heal from meat products, including rotten flesh and cooked porkchop.
+        - question: Can wolves wear armor?
+          answer: |
+              Yes, tamed adult wolves can equip wolf armor, which absorbs damage until its
+              durability runs out.
+        - question: Where do wolves naturally spawn?
+          answer: |
+              Wolves spawn in forest and taiga biomes, with their coat variant and spawn rate
+              depending on the specific biome.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

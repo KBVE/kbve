@@ -1,7 +1,10 @@
 ---
+import Header from '../components/header/Header.astro';
+import Footer from '../components/footer/Footer.astro';
 import { DroidProvider } from '@kbve/astro';
 import { OverlayShell } from '../components/overlay/OverlayShell';
 import { workerURLs } from '../lib/workers';
+import '../styles/global.css';
 
 interface Props {
 	title: string;
@@ -19,7 +22,9 @@ const {
 
 const siteUrl = 'https://discord.sh';
 const pageUrl = new URL(Astro.url.pathname, siteUrl).href;
-const fullOgImage = ogImage.startsWith('http') ? ogImage : new URL(ogImage, siteUrl).href;
+const fullOgImage = ogImage.startsWith('http')
+	? ogImage
+	: new URL(ogImage, siteUrl).href;
 ---
 
 <!doctype html>
@@ -33,7 +38,9 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : new URL(ogImage, site
 		<link rel="canonical" href={pageUrl} />
 		<title>{title}</title>
 
-		<!-- Open Graph -->
+		<link rel="preconnect" href="https://hcaptcha.com" />
+		<link rel="preconnect" href="https://assets.hcaptcha.com" />
+
 		<meta property="og:type" content={ogType} />
 		<meta property="og:url" content={pageUrl} />
 		<meta property="og:title" content={title} />
@@ -41,13 +48,15 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : new URL(ogImage, site
 		<meta property="og:image" content={fullOgImage} />
 		<meta property="og:site_name" content="Discord.sh" />
 
-		<!-- Twitter Card -->
 		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="twitter:title" content={title} />
 		<meta name="twitter:description" content={description} />
 		<meta name="twitter:image" content={fullOgImage} />
 	</head>
 	<body>
+		<Header />
+		<slot />
+		<Footer />
 		<DroidProvider
 			client:only="react"
 			workerURLs={workerURLs}
@@ -55,6 +64,5 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : new URL(ogImage, site
 			dataPath="/data/servers.json"
 		/>
 		<OverlayShell client:only="react" />
-		<slot />
 	</body>
 </html>

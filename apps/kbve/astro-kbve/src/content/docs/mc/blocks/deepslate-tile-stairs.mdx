@@ -1,5 +1,6 @@
 ---
 title: Deepslate Tile Stairs
+template: splash
 description: |
     Minecraft Deepslate Tile Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1069
     ref: deepslate_tile_stairs
     slug: deepslate-tile-stairs
+    content_rev: 1
     display_name: Deepslate Tile Stairs
     material: stone
     hardness: 3.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: deepslate_tile_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Deepslate Tile Stairs is a staircase variant of Deepslate Tiles,
+            used to build steps and roof lines with the same dark, refined
+            stone appearance. It generates naturally within ancient cities.
+        lore: |
+            Introduced alongside the rest of the deepslate tile family during
+            development for the Wild Update, initially under the placeholder
+            name "Grimstone Tile Stairs" before shipping in Java 1.19.
+    uses:
+        - title: Ancient City Architecture
+          ref: deepslate_tile_stairs
+          detail: |
+              Used for staircases, roofing, and decorative trim in ancient
+              city builds and deepslate-themed structures.
+    found_in:
+        - location: Ancient Cities
+          detail: Generates naturally as part of ancient city structures deep underground.
+        - location: Crafting/Stonecutting
+          detail: |
+              Crafted from 6 Deepslate Tiles into 4 stairs, or cut from
+              Deepslate, Cobbled Deepslate, Polished Deepslate, Deepslate
+              Bricks, or Deepslate Tiles using a stonecutter.
+    faq:
+        - question: What tool do I need to mine Deepslate Tile Stairs?
+          answer: |
+              Any pickaxe, wood tier or better. Without a pickaxe the block
+              breaks and drops nothing.
+        - question: How do I craft Deepslate Tile Stairs?
+          answer: |
+              Arrange 6 Deepslate Tiles in a staircase pattern in a crafting
+              grid to get 4 stairs, or use a stonecutter on Deepslate Tiles
+              or related deepslate blocks.
+        - question: Where do I find it naturally?
+          answer: |
+              Inside ancient cities, the deep dark structures generated near
+              the bottom of the world.
+        - question: Do stairs connect into corner shapes?
+          answer: |
+              Yes. Adjacent stairs automatically form inner and outer corner
+              shapes depending on their facing direction.
     data_version: "1.21.5"
 ---
 

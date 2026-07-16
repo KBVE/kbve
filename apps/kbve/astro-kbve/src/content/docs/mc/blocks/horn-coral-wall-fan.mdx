@@ -1,5 +1,6 @@
 ---
 title: Horn Coral Wall Fan
+template: splash
 description: |
     Minecraft Horn Coral Wall Fan — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,67 @@ mc_block:
     id: 754
     ref: horn_coral_wall_fan
     slug: horn-coral-wall-fan
+    content_rev: 1
     display_name: Horn Coral Wall Fan
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: horn_coral_fan
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - ocean
+        - coral
+        - waterloggable
+    about:
+        description: |
+            Horn Coral Wall Fan is the placement form a Horn Coral Fan takes
+            when attached to the side of a block; it is not obtainable as a
+            distinct item and instead drops a regular Horn Coral Fan when
+            harvested with Silk Touch.
+        lore: |
+            Added in Java Edition 1.13 as part of the coral fan family
+            introduced with the Update Aquatic.
+    uses:
+        - title: Building & decoration
+          ref: horn_coral_fan
+          detail: |
+              Automatically used when a player places a Horn Coral Fan
+              against a wall or vertical block face rather than on a
+              horizontal surface.
+    found_in:
+        - location: Bone meal on water near a wall
+          detail: Generates when a Horn Coral Fan item is placed against the side of a block, or occasionally from bone meal generation in warm oceans.
+    faq:
+        - question: Is Horn Coral Wall Fan a separate item?
+          answer: |
+              No. It is only a placement state of the Horn Coral Fan block;
+              picking it up with Silk Touch gives a regular Horn Coral Fan
+              item.
+        - question: What happens without adjacent water?
+          answer: |
+              It dies within a few seconds and turns into Dead Horn Coral
+              Wall Fan, just like the standing fan variant.
+        - question: Does it drop anything without Silk Touch?
+          answer: |
+              No, it breaks with no drop unless mined with a Silk Touch
+              tool.
+        - question: How do I place one?
+          answer: |
+              Place a Horn Coral Fan item against the side of a block; the
+              game automatically uses the wall fan block state.
     data_version: "1.21.5"
 ---
 

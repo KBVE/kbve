@@ -1,5 +1,6 @@
 ---
 title: Sugar Cane
+template: splash
 description: |
     Minecraft Sugar Cane — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 256
     ref: sugar_cane
     slug: sugar-cane
+    content_rev: 1
     display_name: Sugar Cane
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Sugar cane is a tall, renewable plant block that grows near water in most biomes, reaching
+            up to three blocks in height over time. It is a foundational early-game crop, harvested and
+            processed into paper and sugar to support crafting, farming, and brewing.
+        lore: |
+            Sugar cane thrives only where water flows, its stalks reaching skyward as patient farmers cultivate their harvests along endless waterways.
+    faq:
+        - question: How do I start a sugar cane farm?
+          answer: |
+              Place sugar cane on dirt, sand, or similar blocks directly adjacent to water. It will grow
+              additional blocks upward automatically over time without requiring special conditions like
+              light or bone meal.
+        - question: What's the fastest way to harvest sugar cane?
+          answer: |
+              Break the middle blocks of mature plants, leaving the bottom block to regrow. This preserves
+              the growth timer and allows faster cycling than destroying entire plants.
+        - question: Can sugar cane be used for anything besides paper and sugar?
+          answer: |
+              Sugar cane also serves as a decorative block in biome-themed builds, since its color changes
+              based on the biome's temperature and humidity.
+        - question: Why does my sugar cane keep dying?
+          answer: |
+              Sugar cane uproots when adjacent water is removed or when the supporting block disappears.
+              Pistons will also destroy it, so ensure your setup maintains constant water adjacency.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

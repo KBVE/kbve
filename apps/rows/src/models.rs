@@ -455,8 +455,21 @@ pub struct HealthResponse {
     pub uptime_seconds: u64,
     pub active_sessions: usize,
     pub active_instances: usize,
-    #[serde(skip_serializing_if = "Option::is_none")]
+    /// The authoritative served UE build version (`deploy_state.target_version` where
+    /// `rolled=true`, falling back to the in-memory ReportBuild value when the table is dark).
+    /// **This is the launcher's download target.** Explicitly `null` (not omitted) when there is
+    /// no authoritative target — the launcher must surface a maintenance/hold state and NOT
+    /// auto-download an arbitrary build.
     pub unreal_version: Option<String>,
+    /// A merged-but-not-yet-rolled version (`deploy_state.rolled=false`). Informational.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub pending_version: Option<String>,
+    /// `false` = the last rollout soak failed (`deploy_state.health='unhealthy'`). Advisory only —
+    /// never gates `/ready` (a bad game build must not deregister the ROWS API pod).
+    pub deploy_healthy: bool,
+    /// The version whose soak failed, when `deploy_healthy=false`.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub failing_version: Option<String>,
 }
 
 #[derive(sqlx::FromRow)]

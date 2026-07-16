@@ -1,5 +1,6 @@
 ---
 title: Sniffer Spawn Egg
+template: splash
 description: |
     Minecraft Sniffer Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,43 @@ mc_item:
     id: 1124
     ref: sniffer_spawn_egg
     slug: sniffer-spawn-egg
+    content_rev: 1
     display_name: Sniffer Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Sniffer Spawn Egg is a Creative-mode item used to instantly
+            spawn an adult Sniffer, the ancient mob that digs up torchflower and
+            other seeds from the ground. It can only be obtained through the
+            Creative inventory or commands, not through Survival crafting.
+        lore: |
+            Alongside the sniffer egg block, this spawn egg lets creators
+            summon the revived ancient creature directly for builds, testing,
+            or seed-farming setups.
+    faq:
+        - question: How do I get a Sniffer Spawn Egg?
+          answer: |
+              Sniffer Spawn Eggs can only be obtained from the Creative
+              inventory or by using a command such as /give; they are not
+              craftable in Survival.
+        - question: What happens when I use the Sniffer Spawn Egg?
+          answer: |
+              Using it on a block surface instantly spawns an adult sniffer at
+              that location, complete with its ambient sound.
+        - question: Is this different from the Sniffer Egg block?
+          answer: |
+              Yes, the Sniffer Egg is a placeable block that hatches naturally
+              over time, while the Sniffer Spawn Egg is a Creative-only item
+              that spawns an adult sniffer instantly.
+        - question: Can a sniffer from this egg dig up seeds?
+          answer: |
+              Yes, a sniffer spawned this way behaves like any other adult
+              sniffer and can sniff out and dig up ancient seeds from suitable
+              ground.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

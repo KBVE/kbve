@@ -101,7 +101,7 @@ fn spawn_equipment_panel(mut commands: Commands) {
             panel.spawn((
                 Text::new("Equipment (V to toggle)"),
                 TextFont {
-                    font_size: 11.0,
+                    font_size: bevy::text::FontSize::Px(11.0),
                     ..default()
                 },
                 TextColor(GOLD_TEXT),
@@ -139,7 +139,7 @@ fn spawn_equipment_panel(mut commands: Commands) {
                             slot_node.spawn((
                                 Text::new(""),
                                 TextFont {
-                                    font_size: 16.0,
+                                    font_size: bevy::text::FontSize::Px(16.0),
                                     ..default()
                                 },
                                 TextColor(ui_color::TEXT_PRIMARY),
@@ -150,7 +150,7 @@ fn spawn_equipment_panel(mut commands: Commands) {
                             slot_node.spawn((
                                 Text::new(*label),
                                 TextFont {
-                                    font_size: 8.0,
+                                    font_size: bevy::text::FontSize::Px(8.0),
                                     ..default()
                                 },
                                 TextColor(ui_color::TEXT_SECONDARY),

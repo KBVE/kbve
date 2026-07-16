@@ -1,5 +1,6 @@
 ---
 title: Cooked Cod
+template: splash
 description: |
     Minecraft Cooked Cod — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 999
     ref: cooked_cod
     slug: cooked-cod
+    content_rev: 1
     display_name: Cooked Cod
     category: food
     rarity: common
@@ -22,6 +24,33 @@ mc_item:
         saturation: 60
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Cooked cod is made by smelting raw cod in a furnace, smoker, or campfire, or salvaged from
+            buried treasure chests and traded from fisherman villagers. It also drops from aquatic mobs
+            such as guardians and dolphins if they burn to death.
+        lore: |
+            A modest but reliable meal, cooked cod restores half again its raw form's hunger and can also
+            be fed to wolves to restore a large chunk of their health.
+    faq:
+        - question: |
+              How do you get cooked cod?
+          answer: |
+              Smelt raw cod in a furnace, smoker, or campfire, find it in buried treasure chests, or trade
+              raw cod and an emerald to a fisherman villager.
+        - question: |
+              How much hunger does cooked cod restore?
+          answer: |
+              Cooked cod restores 5 hunger points and 6 saturation, with a 1.6 second eating time.
+        - question: |
+              Can mobs drop cooked cod?
+          answer: |
+              Yes, guardians, elder guardians, polar bears, dolphins, and cod can drop cooked cod if killed
+              by fire or a Fire Aspect weapon.
+        - question: |
+              Is cooked cod useful for taming or healing wolves?
+          answer: |
+              Yes, feeding cooked cod to a wolf that is not at full health heals it by 10 HP per item.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

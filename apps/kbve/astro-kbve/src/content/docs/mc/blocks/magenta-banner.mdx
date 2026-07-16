@@ -1,5 +1,6 @@
 ---
 title: Magenta Banner
+template: splash
 description: |
     Minecraft Magenta Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 533
     ref: magenta_banner
     slug: magenta-banner
+    content_rev: 1
     display_name: Magenta Banner
     material: wood
     hardness: 1
@@ -24,10 +26,60 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: magenta_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Magenta Banner is a decorative, non-solid block crafted from
+            Magenta Wool and a stick. It can be mounted on a wall or placed
+            standing, and sways gently in the wind.
+        lore: |
+            Banners were added in 1.8 as tall standing decorations and later
+            expanded in 1.14 with the Loom, allowing up to six layered
+            patterns per banner.
+    uses:
+        - title: Loom Patterns
+          ref: loom
+          detail: |
+              Apply up to 6 layers of dyes and banner pattern items on a
+              Loom to customize the Magenta Banner's design.
+        - title: Shield Decoration
+          ref: shield
+          detail: |
+              Combine a patterned banner with a blank shield at a crafting
+              table to transfer the design; the banner is consumed.
+    found_in:
+        - location: Crafting Table
+          detail: Crafted from 6 Magenta Wool and 1 Stick arranged in a sign-like pattern.
+        - location: Pillager Outposts and Woodland Mansions
+          detail: Certain undyed or patterned banners generate as loot or decoration in these structures.
+    faq:
+        - question: What tool do I need to mine a Magenta Banner?
+          answer: |
+              Any tool works; an axe is fastest, though the block breaks
+              quickly regardless.
+        - question: Does the Magenta Banner drop itself when broken?
+          answer: |
+              Yes, along with any patterns applied to it, since patterns are
+              stored as part of the banner item.
+        - question: Can I change a banner's base color after crafting?
+          answer: |
+              No, the base color is fixed at crafting time; only the pattern
+              layers added via a Loom can be changed or removed.
+        - question: Is there a difference between the standing and wall banner?
+          answer: |
+              Yes, the standing banner rotates in 16 directions on the
+              ground, while the wall banner mounts flush against a wall.
     data_version: "1.21.5"
 ---
 

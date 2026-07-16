@@ -1,5 +1,6 @@
 ---
 title: Crafter
+template: splash
 description: |
     Minecraft Crafter — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,70 @@ mc_block:
     id: 1092
     ref: crafter
     slug: crafter
+    content_rev: 1
     display_name: Crafter
     material: stone
     hardness: 1.5
     blast_resistance: 3.5
-    best_tool: hand
+    best_tool: pickaxe
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crafter
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - redstone_component
+    about:
+        description: |
+            The Crafter is a redstone-powered automation block that crafts
+            items on its own when triggered by a signal, holding up to nine
+            ingredients in a 3x3 grid like a crafting table.
+        lore: |
+            Added in Java Edition 1.21, the Crafter was the headline block
+            of the "Tricky Trials" update, enabling fully automated item
+            crafting for the first time.
+    uses:
+        - title: Automated crafting
+          ref: crafter
+          detail: |
+              Loaded with ingredients and a redstone signal, it waits 4
+              game ticks then crafts and ejects one item, repeating on each
+              new pulse. Individual slots can be toggled off to support
+              shaped recipes with fewer than 9 ingredients.
+    found_in:
+        - location: Crafted by the player
+          detail: |
+              Made with 1 crafting table, 1 dropper, 2 redstone dust, and 4
+              iron ingots arranged in a specific pattern; not found
+              naturally generated.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool works, but a pickaxe is fastest. It always drops
+              itself regardless of tool tier.
+        - question: How do I craft a Crafter?
+          answer: |
+              Combine a crafting table, a dropper, 2 redstone dust, and 4
+              iron ingots in the crafting grid.
+        - question: How does it output items?
+          answer: |
+              Crafted items eject out the front of the block, or transfer
+              directly into a container the Crafter is facing, such as a
+              hopper or chest.
+        - question: Can a Crafter craft another Crafter?
+          answer: |
+              Yes, and doing so unlocks a dedicated advancement.
     data_version: "1.21.5"
 ---
 

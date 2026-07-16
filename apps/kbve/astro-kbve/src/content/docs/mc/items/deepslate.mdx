@@ -1,5 +1,6 @@
 ---
 title: Deepslate
+template: splash
 description: |
     Minecraft Deepslate — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 8
     ref: deepslate
     slug: deepslate
+    content_rev: 1
     display_name: Deepslate
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Deepslate is the stone-type block that dominates the Overworld below Y=0, forming
+            gradually as stone transitions into it between Y=8 and Y=0. It has higher hardness
+            and blast resistance than stone, drops cobbled deepslate without Silk Touch, and
+            serves as the base ingredient for many deep-stone building variants.
+        lore: |
+            Deep beneath the surface, where light fears to venture, deepslate forms the
+            ancient foundation upon which the world's stone is built.
+    faq:
+        - question: How deep do I need to go to find deepslate?
+          answer: |
+              Stone begins transitioning to deepslate around Y=8, and deepslate becomes the
+              dominant block below Y=0.
+        - question: What do I get when I mine deepslate?
+          answer: |
+              Without Silk Touch, deepslate drops cobbled deepslate; with Silk Touch, it drops
+              the deepslate block itself.
+        - question: Why does deepslate take longer to mine than stone?
+          answer: |
+              Deepslate has a hardness of 3, roughly double that of stone, so it takes about
+              twice as long to break with the same pickaxe.
+        - question: What can deepslate be used for?
+          answer: |
+              Besides building, it can be stonecut or crafted into cobbled, polished, brick,
+              and tile variants along with their slabs, stairs, and walls.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

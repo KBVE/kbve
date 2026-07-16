@@ -1,5 +1,6 @@
 ---
 title: Light Gray Concrete Powder
+template: splash
 description: |
     Minecraft Light Gray Concrete Powder — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 702
     ref: light_gray_concrete_powder
     slug: light-gray-concrete-powder
+    content_rev: 1
     display_name: Light Gray Concrete Powder
     material: dirt
     hardness: 0.5
@@ -24,10 +26,58 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_gray_concrete_powder
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+        - gravity_affected
+    about:
+        description: |
+            Light Gray Concrete Powder is a gravity-affected block crafted
+            from light gray dye, sand, and gravel. It falls like sand when
+            unsupported and instantly hardens into solid Light Gray
+            Concrete on contact with any water.
+        lore: |
+            Concrete powder was teased by Mojang in early 2017 as a
+            building material bridging the gap between soft, muted wool
+            colors and vivid, glossy finishes.
+    uses:
+        - title: Light Gray Concrete
+          ref: light_gray_concrete
+          detail: |
+              Touching flowing water, a water source, or a waterlogged
+              block instantly converts the powder into solid Light Gray
+              Concrete, a popular fast building technique.
+    found_in:
+        - location: Crafted
+          detail: 1 light gray dye + 4 sand + 4 gravel (shapeless) yields 8 light gray concrete powder.
+        - location: Wandering Trader
+          detail: Sand purchased from wandering traders can be used to craft more concrete powder, making it renewable.
+    faq:
+        - question: What tool do I need to mine Light Gray Concrete Powder?
+          answer: |
+              None required, but a shovel breaks it fastest; it drops
+              itself regardless of tool used.
+        - question: What happens if I place it next to water?
+          answer: |
+              It immediately hardens into solid Light Gray Concrete, so it
+              cannot exist adjacent to water as loose powder.
+        - question: Does it fall like sand?
+          answer: |
+              Yes, concrete powder is gravity-affected and falls if the
+              block beneath it is removed, just like sand or gravel.
+        - question: Can suffocation or fall damage happen from concrete powder?
+          answer: |
+              Yes, like other falling blocks it deals suffocation damage
+              if it lands on a player's head and can be used in
+              trap-style builds.
     data_version: "1.21.5"
 ---
 

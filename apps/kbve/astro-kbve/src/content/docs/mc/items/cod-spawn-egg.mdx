@@ -1,5 +1,6 @@
 ---
 title: Cod Spawn Egg
+template: splash
 description: |
     Minecraft Cod Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,36 @@ mc_item:
     id: 1080
     ref: cod_spawn_egg
     slug: cod-spawn-egg
+    content_rev: 1
     display_name: Cod Spawn Egg
     category: food
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Cod Spawn Egg is a Creative-mode and command-only item that instantly spawns a cod
+            mob when used on a block or in water. It is found in the Aquatic tab of the creative
+            inventory and is primarily a world-building and testing tool rather than a survival item.
+        lore: |
+            A speckled egg that hatches an ocean-dwelling cod the instant it touches water or ground.
+    faq:
+        - question: How do you obtain a cod spawn egg?
+          answer: |
+              It can only be obtained in Creative mode, either via the Aquatic tab of the creative
+              inventory or by using pick block on an existing cod, or through commands.
+        - question: How do you use a cod spawn egg?
+          answer: |
+              Use it while pointing at a block surface, or in water, to spawn a cod adjacent to
+              that surface.
+        - question: Do cod spawned this way get removed on Peaceful difficulty?
+          answer: |
+              No, cod are not despawned on Peaceful difficulty like hostile mobs are.
+        - question: Where will a cod spawn egg actually spawn a cod?
+          answer: |
+              It prioritizes solid block surfaces within reach, but can also spawn cod directly in
+              water or lava source blocks if no surface is available.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

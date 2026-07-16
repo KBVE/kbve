@@ -1,5 +1,6 @@
 ---
 title: Oak Sign
+template: splash
 description: |
     Minecraft Oak Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 197
     ref: oak_sign
     slug: oak-sign
+    content_rev: 1
     display_name: Oak Sign
     material: wood
     hardness: 1
@@ -26,8 +28,62 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oak_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Oak Sign is a decorative wood block that displays up to four
+            lines of customizable text. It can stand upright or be attached
+            to a wall, and drops itself whether broken directly or by
+            removing its supporting block.
+        lore: |
+            Signs have let players leave written messages in-world since
+            very early Minecraft versions, later expanded with color, glow,
+            and waxing.
+    uses:
+        - title: Labeling and Navigation
+          ref: oak_sign
+          detail: |
+              Place to write custom text across four lines for labeling
+              chests, marking paths, or leaving messages for other players.
+        - title: Glow Ink Sac
+          ref: glow_ink_sac
+          detail: |
+              Apply glow ink sac to make the sign's text glow in the dark.
+        - title: Honeycomb Waxing
+          ref: honeycomb
+          detail: |
+              Waxing a sign with honeycomb locks its text so it can no
+              longer be edited.
+    found_in:
+        - location: Igloo basements
+          detail: Naturally generates in the secret basement room beneath igloos.
+        - location: Crafted from planks and a stick
+          detail: Six matching planks plus one stick craft 3 signs of that wood type.
+    faq:
+        - question: What happens to the drop if I remove the block a sign is attached to?
+          answer: |
+              The sign breaks and drops itself as an item, the same as
+              mining it directly.
+        - question: Can Oak Sign catch fire?
+          answer: |
+              It does not spread fire like planks, but in most editions it
+              can still ignite from direct contact with lava.
+        - question: Can I change sign text after placing it?
+          answer: |
+              Yes, until it has been waxed with honeycomb, which locks the
+              text permanently.
+        - question: What tool mines a sign fastest?
+          answer: |
+              An axe is fastest, though any tool or bare hands will break it
+              since no tool tier is required.
     data_version: "1.21.5"
 ---
 

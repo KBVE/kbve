@@ -1,7 +1,10 @@
 ---
 title: End Gateway
+template: splash
 description: |
-    Minecraft End Gateway — vanilla 1.21.5 block record (auto-generated).
+    Minecraft End Gateway — the bedrock-ringed portal block that
+    teleports players between the central End island and the outer
+    End Highlands.
 sidebar:
     label: End Gateway
     hidden: true
@@ -13,6 +16,7 @@ mc_block:
     id: 635
     ref: end_gateway
     slug: end-gateway
+    content_rev: 1
     display_name: End Gateway
     material: end
     hardness: -1
@@ -27,7 +31,46 @@ mc_block:
     renewable: false
     diggable: false
     drops: []
-    tags: []
+    tags:
+        - end
+        - blast_resistant
+        - unbreakable
+    about:
+        description: |
+            The End Gateway is an indestructible portal block ringed by
+            bedrock. It teleports entities either to the outer End
+            Highlands islands, or back to the central End island,
+            depending on where the gateway was generated.
+        lore: |
+            End Gateways were previewed at MINECON 2015 and added in
+            Java Edition 1.9, evolving from an earlier cube-shaped
+            design to their current octahedral appearance.
+    found_in:
+        - location: Central End island
+          detail: Up to 20 gateways spawn around the edge of the main island, one at a time, each time the ender dragon is defeated again.
+        - location: End Highlands (outer islands)
+          detail: Naturally generates throughout the outer End islands, teleporting entities back to the central End platform when entered.
+    faq:
+        - question: Can End Gateway be mined or obtained?
+          answer: |
+              No. It has no drops and cannot be broken in Survival; even
+              removing it in Creative still allows entities to enter the
+              linked gateway on the other end.
+        - question: How do I enter an End Gateway?
+          answer: |
+              Throw an ender pearl into it, fly into it with an elytra,
+              or swim through it in a water channel — players are too
+              large to walk directly into the 1-block gap.
+        - question: Where does an End Gateway send me?
+          answer: |
+              Central-island gateways send you to the outer End Highlands;
+              gateways found on outer islands send you back to the
+              central End platform.
+        - question: How many End Gateways can exist around the main island?
+          answer: |
+              Up to 20, spawned one at a time each time the ender dragon
+              is respawned and defeated again, at Y=75 roughly 96 blocks
+              from the center.
     data_version: "1.21.5"
 ---
 

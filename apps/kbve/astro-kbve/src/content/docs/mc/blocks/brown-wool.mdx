@@ -1,5 +1,6 @@
 ---
 title: Brown Wool
+template: splash
 description: |
     Minecraft Brown Wool — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 152
     ref: brown_wool
     slug: brown-wool
+    content_rev: 1
     display_name: Brown Wool
     material: wool
     hardness: 0.8
@@ -24,10 +26,59 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: brown_wool
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Brown Wool is a dye-colored wool block obtained from sheep or by
+            dyeing white wool. It is fast to mine with shears and always
+            drops itself with any tool, but it is highly flammable.
+        lore: |
+            Wool was one of Minecraft's earliest dyeable blocks, giving
+            players a soft, colorable material for beds, carpets, and
+            banners long before terracotta or concrete existed.
+    uses:
+        - title: Bed crafting
+          ref: brown_bed
+          detail: |
+              Combine 3 brown wool with 3 planks to craft a brown bed for
+              setting a spawn point and skipping the night.
+        - title: Carpet and banner crafting
+          ref: brown_carpet
+          detail: |
+              Craft 2 brown wool into 3 brown carpet, or 6 brown wool and a
+              stick into a brown banner.
+    found_in:
+        - location: Brown sheep
+          detail: Shear an adult brown sheep for 1–3 wool, or kill it for a single wool drop.
+        - location: Dyeing
+          detail: Dye any wool color with brown dye (from cocoa beans) to convert it to brown wool.
+    faq:
+        - question: What tool do I need to mine Brown Wool?
+          answer: |
+              None required — any tool or bare hands work, though shears are
+              the fastest at 0.25 seconds.
+        - question: Is Brown Wool flammable?
+          answer: |
+              Yes. Wool burns easily and spreads fire, so avoid placing it
+              near lava, furnaces, or campfires without care.
+        - question: Can I get Brown Wool without a brown sheep?
+          answer: |
+              Yes. Dye any color of wool with brown dye, made from cocoa
+              beans, to convert it to brown wool.
+        - question: Does Brown Wool block sound (sculk sensors)?
+          answer: |
+              Yes. Wool dampens vibrations, preventing sculk sensors and
+              warden detection through it.
     data_version: "1.21.5"
 ---
 

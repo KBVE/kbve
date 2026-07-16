@@ -1,5 +1,6 @@
 ---
 title: Cake with Light Gray Candle
+template: splash
 description: |
     Minecraft Cake with Light Gray Candle — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,69 @@ mc_block:
     id: 929
     ref: light_gray_candle_cake
     slug: light-gray-candle-cake
+    content_rev: 1
     display_name: Cake with Light Gray Candle
     material: stone
     hardness: 0.5
     blast_resistance: 0.5
-    best_tool: hand
     required_tool_tier: 0
-    light_emission: 0
+    light_emission: 3
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: light_gray_candle
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Cake with Light Gray Candle is the decorative block formed by
+            placing a Light Gray Candle on top of an uneaten cake. It
+            functions as both a cake and a light source, and can be lit
+            like any other candle.
+        lore: |
+            Candle cakes arrived in the Caves & Cliffs update alongside
+            candles, giving cakes a decorative lighting twist.
+    uses:
+        - title: Decorative Lighting
+          ref: light_gray_candle
+          detail: |
+              When lit with flint and steel, a fire charge, or a flaming
+              projectile, the candle atop the cake emits a light level of
+              3, the same as a single standalone candle.
+        - title: Edible Cake
+          ref: cake
+          detail: |
+              Right-clicking without a candle in hand eats a slice from the
+              cake, which removes the candle and drops it as an item,
+              reverting the block to a regular cake with one fewer slice.
+    found_in:
+        - location: Crafted, not naturally generated
+          detail: Place a light gray candle on top of a placed, uneaten cake block.
+    faq:
+        - question: What tool do I need to mine a candle cake?
+          answer: |
+              None — it breaks instantly by hand. Breaking it always drops
+              the candle; the cake itself does not drop.
+        - question: Can I eat the cake while the candle is lit?
+          answer: |
+              Yes, eating a slice removes and drops the candle regardless
+              of whether it was lit, extinguishing it in the process.
+        - question: How much light does it give off?
+          answer: |
+              A light gray candle cake emits light level 3 when lit, the
+              same as one unstacked candle.
+        - question: Does breaking it drop the cake too?
+          answer: |
+              No, only the light gray candle drops; the cake block is
+              destroyed without dropping an item.
     data_version: "1.21.5"
 ---
 

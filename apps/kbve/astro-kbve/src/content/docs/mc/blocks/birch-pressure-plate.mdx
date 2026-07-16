@@ -1,5 +1,6 @@
 ---
 title: Birch Pressure Plate
+template: splash
 description: |
     Minecraft Birch Pressure Plate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 250
     ref: birch_pressure_plate
     slug: birch-pressure-plate
+    content_rev: 1
     display_name: Birch Pressure Plate
     material: redstone
     hardness: 0.5
@@ -24,10 +26,58 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: birch_pressure_plate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+        - redstone_component
+    about:
+        description: |
+            The Birch Pressure Plate is a redstone component crafted from
+            two Birch Planks. It detects players, mobs, items, and other
+            entities standing on top of it and emits a redstone signal
+            while occupied.
+        lore: |
+            Wooden pressure plates were added in Alpha, originally requiring
+            three planks before the recipe was reduced to two in Beta 1.3.
+    uses:
+        - title: Redstone Circuits
+          ref: redstone_dust
+          detail: |
+              Emits a full-strength (15) redstone signal whenever an
+              entity rests on it, commonly used to trigger doors, traps,
+              and hidden mechanisms.
+    found_in:
+        - location: Village houses
+          detail: Naturally generates in some village house layouts alongside other wood types.
+        - location: Crafted from Birch Planks
+          detail: Two Birch Planks stacked vertically in a crafting grid craft one Birch Pressure Plate.
+    faq:
+        - question: What tool do I need to mine a Birch Pressure Plate?
+          answer: |
+              None required — it breaks instantly with any tool, though an
+              axe is the designated fastest tool.
+        - question: What triggers a wooden pressure plate?
+          answer: |
+              Any entity, including players, mobs, items, and arrows, will
+              activate it, unlike stone pressure plates which only respond
+              to players and mobs.
+        - question: How strong is the redstone signal?
+          answer: |
+              It emits the maximum signal strength of 15 while something
+              is on top of it, and checks every game tick for changes.
+        - question: Is the Birch Pressure Plate renewable?
+          answer: |
+              Yes, since it is crafted from Birch Planks, which come from
+              renewable Birch Logs.
     data_version: "1.21.5"
 ---
 

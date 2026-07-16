@@ -1,5 +1,6 @@
 ---
 title: Smooth Quartz Slab
+template: splash
 description: |
     Minecraft Smooth Quartz Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,66 @@ mc_block:
     id: 785
     ref: smooth_quartz_slab
     slug: smooth-quartz-slab
+    content_rev: 1
     display_name: Smooth Quartz Slab
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: smooth_quartz_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Smooth Quartz Slab is a half-height building block cut from
+            Smooth Quartz Blocks, sharing their clean, unpatterned white
+            surface. It can be waterlogged and stacked into a full block.
+        lore: |
+            Introduced alongside the other smooth quartz variants to give
+            builders an undecorated alternative to the pillar and chiseled
+            quartz forms.
+    uses:
+        - title: Building & Decoration
+          ref: smooth_quartz
+          detail: |
+              Crafted from three Smooth Quartz Blocks (yields six slabs) or
+              cut two-for-one from a single block using a stonecutter.
+    found_in:
+        - location: Bastion remnant bridges
+          detail: Two Smooth Quartz Slabs generate naturally on each bridge within a bastion remnant.
+    faq:
+        - question: What tool do I need to mine a Smooth Quartz Slab?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe yields
+              nothing.
+        - question: How do I craft Smooth Quartz Slabs?
+          answer: |
+              Arrange three Smooth Quartz Blocks in a horizontal row in a
+              crafting grid to get six slabs, or cut a single block for two
+              slabs with a stonecutter.
+        - question: Can two slabs be combined into a full block?
+          answer: |
+              Yes. Placing a Smooth Quartz Slab against another of the same
+              type in the same position forms a full Smooth Quartz Block
+              space.
+        - question: Does Silk Touch matter for this block?
+          answer: |
+              No. It always drops itself as a slab regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

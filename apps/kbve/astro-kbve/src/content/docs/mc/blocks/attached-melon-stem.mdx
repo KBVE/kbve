@@ -1,5 +1,6 @@
 ---
 title: Attached Melon Stem
+template: splash
 description: |
     Minecraft Attached Melon Stem — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 332
     ref: attached_melon_stem
     slug: attached-melon-stem
+    content_rev: 1
     display_name: Attached Melon Stem
     material: plant
     hardness: 0
@@ -26,8 +28,45 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: melon_seeds
+          qty_min: 0
+          qty_max: 3
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Attached Melon Stem is the fully grown state of a melon stem
+            once it has produced an adjacent melon block. It bends toward
+            the melon it is attached to and continues generating more
+            melons on other open sides.
+        lore: |
+            Introduced with farming crops in Java Edition Beta 1.8, it
+            represents the final growth stage of the planted melon seed.
+    found_in:
+        - location: Farmland
+          detail: |
+              Appears automatically once a fully-grown melon stem produces
+              a melon block on an adjacent dirt, mud, or moss block.
+    faq:
+        - question: Can I place an Attached Melon Stem manually?
+          answer: |
+              No. It only appears automatically when a regular melon stem
+              matures and grows a melon on an adjacent block.
+        - question: What does breaking it drop?
+          answer: |
+              0-3 melon seeds, with better odds the longer the original
+              stem had been growing.
+        - question: Does it need a tool to mine?
+          answer: |
+              No, it breaks instantly with any tool or by hand.
+        - question: Will it keep producing melons?
+          answer: |
+              Yes, as long as it has an open adjacent farmland-adjacent
+              block, the stem regrows a new melon after the old one is
+              harvested.
     data_version: "1.21.5"
 ---
 

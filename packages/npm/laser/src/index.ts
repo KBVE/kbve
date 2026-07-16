@@ -98,6 +98,29 @@ export type {
 	ContextGuardHandlers,
 } from './lib/webgl/context-guard';
 
+// WebGL — Parallax / Silhouette Occlusion Mapping (POM / SPOM) primitives
+export {
+	createPomUniforms,
+	toThreeUniforms,
+	POM_DEFAULTS,
+	POM_MAX_STEPS,
+	POM_VARYINGS,
+	DERIVE_TANGENT,
+	POM_MARCH,
+	SPOM_SILHOUETTE,
+	POM_SELF_SHADOW,
+	HEIGHT_HELPERS,
+	POM_SOURCE_BRICK,
+	POM_SOURCE_LUMA,
+	POM_SOURCE_MAP,
+	POM_WGSL_STUB,
+} from './lib/webgl/pom';
+export type {
+	PomUniformValues,
+	PomConfig,
+	PomMaterialType,
+} from './lib/webgl/pom';
+
 // ECS (bitecs) — full re-export of bitecs core API
 export * from './lib/ecs/bitecs';
 
@@ -301,10 +324,10 @@ export {
 export type { DiscordExternalSdk } from './lib/embed/discord-external';
 
 // Ads — framework-agnostic cross-promo model + boot-screen card + rotation pool
-export { AdCard } from './lib/ads/AdCard';
-export type { AdCardProps } from './lib/ads/AdCard';
-export { pickAd, AdRegistry, laserAds } from './lib/ads/registry';
-export type { AdCreative } from './lib/ads/types';
+export { AdCard } from './lib/promo/PromoCard';
+export type { AdCardProps } from './lib/promo/PromoCard';
+export { pickAd, AdRegistry, laserAds } from './lib/promo/registry';
+export type { AdCreative } from './lib/promo/types';
 
 // i18n — framework-agnostic translation store + React provider/hook
 export {

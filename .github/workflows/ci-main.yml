@@ -598,6 +598,11 @@ jobs:
                     dispatch_game_engine unreal_game ci-unreal.yml "$entry"
                   done < <(jq -c '.unreal_game[]? // empty' "$MANIFEST")
 
+                  echo "=== Vite Game ==="
+                  while IFS= read -r entry; do
+                    dispatch_game_engine vite_game ci-vite-game.yml "$entry"
+                  done < <(jq -c '.vite_game[]? // empty' "$MANIFEST")
+
                   echo ""
                   echo "=== Summary: ${DISPATCHED} dispatched, ${SKIPPED} skipped ==="
 

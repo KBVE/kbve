@@ -1,5 +1,6 @@
 ---
 title: Infested Stone Bricks
+template: splash
 description: |
     Minecraft Infested Stone Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 319
     ref: infested_stone_bricks
     slug: infested-stone-bricks
+    content_rev: 1
     display_name: Infested Stone Bricks
     material: stone
     hardness: 0.75
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stone_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - infested
+        - overworld
+    about:
+        description: |
+            Infested Stone Bricks look identical to ordinary Stone Bricks but
+            conceal a silverfish that bursts out the moment the block is
+            broken. They break about twice as fast as regular stone bricks,
+            which is the only visual tell before mining one.
+        lore: |
+            Known as "monster egg" blocks since Beta 1.8, they were renamed
+            to Infested blocks in the 1.13 update.
+    uses:
+        - title: Stone Bricks
+          ref: stone_bricks
+          detail: |
+              Mining with Silk Touch yields the plain Stone Bricks block
+              with no silverfish encounter, useful for safely clearing
+              stronghold corridors.
+    found_in:
+        - location: Strongholds
+          detail: Scattered through stronghold corridors and rooms, disguised among regular stone bricks.
+        - location: Igloo basements
+          detail: Hidden traps generated in the secret basement beneath some igloos.
+    faq:
+        - question: What drops when I mine Infested Stone Bricks normally?
+          answer: |
+              Nothing. The block breaks, releases an aggressive silverfish,
+              and leaves no item unless mined with Silk Touch.
+        - question: How can I tell it apart from normal Stone Bricks?
+          answer: |
+              It breaks roughly twice as fast as regular Stone Bricks and,
+              when placed under a note block, produces a different sound.
+        - question: Does Fortune help here?
+          answer: |
+              No. Fortune has no effect since the block never drops an item
+              without Silk Touch.
+        - question: Is it safe to mine near other infested blocks?
+          answer: |
+              Not always — attacking the emerging silverfish near other
+              infested blocks can trigger a chain reaction, spawning more
+              silverfish at once.
     data_version: "1.21.5"
 ---
 

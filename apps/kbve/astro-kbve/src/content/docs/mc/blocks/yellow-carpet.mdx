@@ -1,5 +1,6 @@
 ---
 title: Yellow Carpet
+template: splash
 description: |
     Minecraft Yellow Carpet — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 510
     ref: yellow_carpet
     slug: yellow-carpet
+    content_rev: 1
     display_name: Yellow Carpet
     material: wool
     hardness: 0.1
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: yellow_carpet
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Yellow Carpet is a thin, decorative floor covering crafted from
+            wool. Its single-pixel-tall hitbox blocks mob spawning and it
+            can be laid over llamas as a saddle blanket.
+        lore: |
+            Carpet was added in the Update Aquatic-era 1.13 alongside other
+            dyed block variants, extending wool's decorative options.
+    uses:
+        - title: Decorative flooring
+          ref: yellow_carpet
+          detail: |
+              Placed as a thin floor covering that still allows mobs to
+              stand on the block beneath while preventing spawns on top.
+        - title: Llama decoration
+          ref: yellow_carpet
+          detail: |
+              Equipped on a tamed llama or trader llama as a colored carpet
+              covering, purely cosmetic.
+    found_in:
+        - location: Crafted by the player
+          detail: Two yellow wool blocks in a horizontal row craft three yellow carpet.
+        - location: Villages and igloos
+          detail: Naturally generates in some village houses and structures with matching color themes.
+    faq:
+        - question: What drops when Yellow Carpet is mined?
+          answer: |
+              It always drops itself as an item, with no tool required.
+        - question: Can Yellow Carpet catch fire?
+          answer: |
+              Yes, like wool it is flammable and will burn if exposed to
+              fire or lava.
+        - question: Does carpet stop mobs from spawning?
+          answer: |
+              Yes. Its very short hitbox prevents most mobs from spawning on
+              top of it.
+        - question: Can I waterlog Yellow Carpet?
+          answer: |
+              Not in Java Edition. Bedrock Edition allows carpet to be
+              waterlogged when placed in water.
     data_version: "1.21.5"
 ---
 

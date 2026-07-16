@@ -1,5 +1,6 @@
 ---
 title: Cooked Salmon
+template: splash
 description: |
     Minecraft Cooked Salmon — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1000
     ref: cooked_salmon
     slug: cooked-salmon
+    content_rev: 1
     display_name: Cooked Salmon
     category: food
     rarity: common
@@ -22,6 +24,34 @@ mc_item:
         saturation: 115.200005
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Cooked salmon is made by cooking raw salmon in a furnace, smoker,
+            or campfire, and can also be obtained from buried treasure or by
+            trading with fisherman villagers. It restores 6 hunger points and
+            9.6 saturation, matching the nutrition of cooked mutton.
+        lore: |
+            A hearty catch of the sea, smoked over coals until it's ready for
+            a long voyage.
+    faq:
+        - question: How do you get cooked salmon?
+          answer: |
+              Cook raw salmon in a furnace, smoker, or campfire, find it in
+              buried treasure chests, or trade 6 raw salmon and an emerald
+              with a fisherman villager.
+        - question: How much food does cooked salmon restore?
+          answer: |
+              Cooked salmon restores 6 hunger points and 9.6 saturation,
+              the same nutritional value as cooked mutton.
+        - question: Can cooked salmon heal wolves?
+          answer: |
+              Yes, feeding cooked salmon to a wounded wolf heals it, though
+              in Bedrock Edition it cannot be used to breed or grow baby
+              wolves.
+        - question: Does cooked salmon have other uses?
+          answer: |
+              It can also be fed to nautiluses and zombie nautiluses in
+              addition to being a straightforward player food source.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

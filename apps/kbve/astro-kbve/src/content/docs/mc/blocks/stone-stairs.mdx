@@ -1,5 +1,6 @@
 ---
 title: Stone Stairs
+template: splash
 description: |
     Minecraft Stone Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 770
     ref: stone_stairs
     slug: stone-stairs
+    content_rev: 1
     display_name: Stone Stairs
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stone_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Stone Stairs are the decorative staircase variant of stone,
+            letting players build slopes and steps that match the plain
+            stone block's grey, weathered texture.
+        lore: |
+            Stone stairs appeared in a MINECON Earth 2017 musical sketch
+            before officially launching in the 1.14 Village & Pillage
+            update.
+    uses:
+        - title: Building & Terrain
+          ref: stone
+          detail: |
+              Used purely as a decorative and structural block for stairs,
+              roofs, and terraced builds matching stone architecture.
+    found_in:
+        - location: Crafted or stonecut
+          detail: |
+              Six stone blocks craft four stairs; a single stone block in a
+              stonecutter produces one stair.
+    faq:
+        - question: What tool do I need to mine Stone Stairs?
+          answer: |
+              At least a wooden pickaxe. Without one, the block breaks with
+              no drop.
+        - question: Are Stone Stairs waterloggable?
+          answer: |
+              Yes, they can hold water in their block space like slabs.
+        - question: What sound do Stone Stairs make in note blocks?
+          answer: |
+              They produce the Bass Drum instrument when a note block is
+              placed on top of them.
+        - question: What's the fastest way to get a lot of Stone Stairs?
+          answer: |
+              Use a stonecutter — one stone block instantly converts to one
+              stair, no crafting-grid arrangement needed.
     data_version: "1.21.5"
 ---
 

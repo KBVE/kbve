@@ -1,5 +1,6 @@
 ---
 title: Polished Deepslate Wall
+template: splash
 description: |
     Minecraft Polished Deepslate Wall — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1067
     ref: polished_deepslate_wall
     slug: polished-deepslate-wall
+    content_rev: 1
     display_name: Polished Deepslate Wall
     material: stone
     hardness: 3.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,52 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_deepslate_wall
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Polished Deepslate Wall is the wall variant of polished
+            deepslate, raising a short lip on placement that connects to
+            neighboring walls and posts for fencing-style stone barriers.
+        lore: |
+            Debuted as "Polished Grimstone Wall" in Java Edition 21w07a and
+            renamed the following snapshot, later used throughout ancient
+            city generation added in 1.19.
+    uses:
+        - title: Ancient City Barriers
+          ref: polished_deepslate
+          detail: |
+              Used in ancient city structures for low barriers and detailing,
+              and by players to build stone fences and decorative borders.
+    found_in:
+        - location: Ancient Cities
+          detail: Naturally generates as part of ancient city structures in the Deep Dark biome.
+        - location: Crafting or Stonecutting
+          detail: Craft six polished deepslate into six walls, or stonecut from deepslate, cobbled deepslate, or polished deepslate.
+    faq:
+        - question: What tool do I need to mine Polished Deepslate Wall?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining without a pickaxe
+              yields no drop.
+        - question: Does it drop itself with Silk Touch?
+          answer: |
+              Yes, it always drops itself whether or not Silk Touch is used.
+        - question: Do these walls block arrows and mob pathing?
+          answer: |
+              Yes, walls are taller than a half-block and act as a barrier,
+              blocking most mob pathing while allowing players to see over
+              them when not raised to a post.
+        - question: Can I waterlog a wall?
+          answer: |
+              Yes, walls placed in water become waterlogged like other
+              partial-height blocks.
     data_version: "1.21.5"
 ---
 

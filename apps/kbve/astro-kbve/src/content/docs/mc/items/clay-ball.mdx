@@ -1,5 +1,6 @@
 ---
 title: Clay Ball
+template: splash
 description: |
     Minecraft Clay Ball — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,32 @@ mc_item:
     id: 964
     ref: clay_ball
     slug: clay-ball
+    content_rev: 1
     display_name: Clay Ball
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A clay ball is the item obtained by breaking a clay block without Silk Touch, yielding four per block, and it can also be found in mason and desert village house chests or traded from mason villagers for emeralds.
+            Four clay balls craft back into a clay block, while a single clay ball smelts into a brick using any fuel source, making it the starting point for both terracotta-style building and brick construction.
+        lore: |
+            The item was simply called "Clay" until Java Edition 1.16, when it was renamed "Clay Ball" to match Bedrock Edition's naming.
+    faq:
+        - question: How do I get clay balls?
+          answer: |
+              Break a clay block without Silk Touch for four clay balls, find them in mason or desert village chests, or trade emeralds to a mason villager.
+        - question: What can clay balls be crafted or smelted into?
+          answer: |
+              Four clay balls craft into one clay block, and a single clay ball can be smelted in a furnace into a brick.
+        - question: Is clay ball the same as the clay block?
+          answer: |
+              No. The clay block is the source you mine, while clay balls are the individual items it drops; four clay balls remake one clay block.
+        - question: Was clay ball always called that?
+          answer: |
+              No, it was originally just named "Clay" and was renamed to "Clay Ball" in Java Edition 1.16 to align with Bedrock Edition's terminology.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

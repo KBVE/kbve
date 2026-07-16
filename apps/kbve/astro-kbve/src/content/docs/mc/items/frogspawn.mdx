@@ -1,5 +1,6 @@
 ---
 title: Frogspawn
+template: splash
 description: |
     Minecraft Frogspawn — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1330
     ref: frogspawn
     slug: frogspawn
+    content_rev: 1
     display_name: Frogspawn
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Frogspawn is a non-solid block created when two bred frogs travel to a water source
+            and deposit it. Left undisturbed on water for three to ten minutes, it hatches into
+            two to five tadpoles that later grow into adult frogs.
+        lore: |
+            A quiet cluster on the water's surface, counting down in silence to a burst of
+            tiny tadpoles.
+    faq:
+        - question: Can I collect frogspawn in Survival mode?
+          answer: |
+              No, frogspawn cannot be obtained as an item in Survival, even with a Silk Touch
+              tool; breaking it always drops nothing.
+        - question: How long does frogspawn take to hatch?
+          answer: |
+              It hatches into 2 to 5 tadpoles after roughly 3 to 10 minutes, and this timing is
+              not affected by the random tick speed game rule.
+        - question: Where can frogspawn be placed?
+          answer: |
+              It can only be placed on a water source block with air above it, or on a
+              waterlogged block that likewise has air above.
+        - question: What can destroy frogspawn?
+          answer: |
+              It has zero hardness and blast resistance, so it can be destroyed by falling
+              blocks, pistons, or by removing the water it rests on.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

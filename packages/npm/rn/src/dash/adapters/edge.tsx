@@ -278,7 +278,7 @@ export function createEdgeStream(
 		pollMs = 30_000,
 	} = opts;
 
-	return createStreamSource<never, EdgeFunctionItem>({
+	return createStreamSource<EdgeFunctionItem, EdgeFunctionItem>({
 		key: 'edge:functions',
 		pollMs,
 		cacheTtlMs: 30_000,

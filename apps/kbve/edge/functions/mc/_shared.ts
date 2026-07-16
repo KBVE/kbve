@@ -1,5 +1,6 @@
 // Re-export all shared utilities from the centralized module
 export {
+  AuthError,
   checkStaffPermissions,
   createServiceClient,
   createUserClient,

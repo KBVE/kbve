@@ -1,5 +1,6 @@
 ---
 title: Powder Snow
+template: splash
 description: |
     Minecraft Powder Snow — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 959
     ref: powder_snow
     slug: powder-snow
+    content_rev: 1
     display_name: Powder Snow
     material: snow
     hardness: 0.25
     blast_resistance: 0.25
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 1
@@ -27,7 +28,59 @@ mc_block:
     renewable: false
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - non_solid
+        - overworld
+    about:
+        description: |
+            Powder Snow is a non-solid snow block that entities sink into
+            and fall through, slowing movement and dealing freezing damage
+            over time. It has no drops when broken and must be collected
+            with a bucket, then melts instantly if placed in water.
+        lore: |
+            Announced at MINECON Live 2019 as "Snowier Snow," Powder Snow
+            was added in Java Edition 1.17 as part of the Caves & Cliffs
+            update.
+    uses:
+        - title: Fall Damage Prevention
+          ref: powder_snow_bucket
+          detail: |
+              Falling into powder snow negates fall damage, making it a
+              safer landing option than water in the Nether where water
+              cannot be placed.
+        - title: Freeze Trap
+          ref: powder_snow
+          detail: |
+              Mobs and players without leather armor take freezing damage
+              while submerged, and skeletons convert into strays after
+              roughly 7 seconds inside it.
+    found_in:
+        - location: Snowy Slopes and Grove biomes
+          detail: Generates naturally on the surface of these mountain biomes.
+        - location: Trial Chambers
+          detail: Appears in the chamber_2 room of the trial chamber structure.
+        - location: Cauldrons during snowfall
+          detail: Snowy-biome cauldrons slowly fill with collectable powder snow during snowfall.
+    faq:
+        - question: What tool do I need to mine Powder Snow?
+          answer: |
+              None — no tool speeds up breaking it, and it drops nothing
+              regardless of tool used. A bucket is required to collect it
+              as an item.
+        - question: Does Powder Snow protect against fall damage?
+          answer: |
+              Yes. Landing in powder snow, like landing in water, cancels
+              fall damage entirely — useful in the Nether where water can't
+              be placed.
+        - question: How do I avoid freezing in Powder Snow?
+          answer: |
+              Wear any single piece of leather armor. Leather boots
+              specifically also let you walk on top of powder snow instead
+              of sinking into it.
+        - question: Can Powder Snow be placed in water?
+          answer: |
+              No. Placing powder snow adjacent to or in water causes it to
+              melt immediately, similar to normal snow layers.
     data_version: "1.21.5"
 ---
 

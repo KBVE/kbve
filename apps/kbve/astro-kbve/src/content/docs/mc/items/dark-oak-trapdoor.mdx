@@ -1,5 +1,6 @@
 ---
 title: Dark Oak Trapdoor
+template: splash
 description: |
     Minecraft Dark Oak Trapdoor — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 770
     ref: dark_oak_trapdoor
     slug: dark-oak-trapdoor
+    content_rev: 1
     display_name: Dark Oak Trapdoor
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Dark Oak Trapdoor is a functional wooden block that players can
+            manually open and close, or trigger with a redstone signal. It can be
+            attached to the top or bottom half of a block and remains in place even
+            if its supporting block is later removed.
+        lore: |
+            Wooden trapdoors first appeared in Java Edition Beta 1.6, and dark oak
+            variants generate naturally only inside shipwrecks.
+    faq:
+        - question: How do I craft a Dark Oak Trapdoor?
+          answer: |
+              Arrange six dark oak planks in a 3x2 pattern on a crafting table to
+              produce two trapdoors.
+        - question: Can redstone open a Dark Oak Trapdoor?
+          answer: |
+              Yes, a redstone signal opens or closes the trapdoor immediately, the
+              same as a player right-clicking it.
+        - question: Where can I find one without crafting it?
+          answer: |
+              Dark oak trapdoors generate naturally inside shipwreck structures.
+        - question: Do wind charges affect Dark Oak Trapdoors?
+          answer: |
+              Yes, the wind burst from a thrown wind charge can open a closed
+              trapdoor or close an open one.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

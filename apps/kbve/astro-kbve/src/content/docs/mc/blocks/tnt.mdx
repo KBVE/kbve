@@ -1,5 +1,6 @@
 ---
 title: TNT
+template: splash
 description: |
     Minecraft TNT — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 176
     ref: tnt
     slug: tnt
+    content_rev: 1
     display_name: TNT
     material: stone
     hardness: 0
@@ -26,8 +28,64 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: tnt
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hand_mineable
+        - explosive
+        - redstone
+        - renewable_gunpowder
+    about:
+        description: |
+            TNT is an explosive block that, when ignited, becomes a primed TNT
+            entity and detonates after a 4 second fuse. The blast destroys
+            blocks and damages entities within its radius, with power 4.
+        lore: |
+            Crafted from gunpowder and sand, TNT is Minecraft's staple demolition
+            tool — used for mining, trap building, and clearing terrain. It can be
+            chained for massive coordinated explosions.
+    uses:
+        - title: Demolition and Mining
+          ref: tnt
+          detail: |
+              Ignite to blast away large volumes of stone and terrain, or to
+              open up cave systems and clear building sites.
+        - title: Traps and Contraptions
+          ref: tnt
+          detail: |
+              Wired to redstone or tripwires for trap doors, defensive walls,
+              and TNT cannons.
+    found_in:
+        - location: Desert Pyramid
+          detail: Nine blocks guard the hidden treasure chamber beneath the trap floor.
+        - location: Woodland Mansion
+          detail: Two blocks flank a trapped chest in certain mansion rooms.
+        - location: Crafting
+          detail: Crafted from 5 gunpowder and 4 sand (or red sand) in a checkerboard pattern.
+    faq:
+        - question: How do I break TNT without exploding it?
+          answer: |
+              TNT breaks instantly with any tool or by hand and drops itself as
+              a block, as long as it has not been ignited into primed TNT.
+        - question: Does TNT drop itself when it explodes?
+          answer: |
+              No. Once ignited it becomes a primed TNT entity and is consumed by
+              the explosion — it only drops as an item if you mine the placed
+              block before it is lit.
+        - question: How do I ignite TNT?
+          answer: |
+              Use flint and steel or a fire charge, a redstone signal, spreading
+              fire, a flaming projectile, or another explosion. The fuse is 4
+              seconds (80 game ticks); explosions light it with a random 10–30
+              tick fuse.
+        - question: Why did my TNT not destroy blocks underwater?
+          answer: |
+              TNT explosions still damage entities but cannot break blocks
+              submerged in water, so water is a common blast shield.
     data_version: "1.21.5"
 ---
 

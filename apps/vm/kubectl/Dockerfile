@@ -6,10 +6,11 @@
 #   [B] cargo-chef cook (cache musl deps)
 #   [C] Build kbve-kubectl static musl binary
 #   [D] Download kubectl static binary
-#   [Z] Alpine runtime with shell, curl, jq, kubectl, kbve-kubectl
+#   [Z] Alpine runtime with shell, curl, jq, bash, coreutils, openssl, kubectl, kbve-kubectl
 #
 # Features:
 #   - /bin/sh, sleep, sed, grep from Alpine base
+#   - bash, GNU coreutils (date -d), openssl for Job scripts
 #   - curl, jq via apk
 #   - kubectl static binary
 #   - kbve-kubectl: musl-static, no glibc dependency
@@ -92,7 +93,7 @@ RUN curl -fSL "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kub
 # ============================================================================
 FROM --platform=linux/amd64 alpine:3.21 AS runtime
 
-RUN apk add --no-cache ca-certificates curl jq && \
+RUN apk add --no-cache ca-certificates curl jq bash coreutils openssl && \
     addgroup -g 10001 appgroup && \
     adduser -D -u 10001 -G appgroup -s /sbin/nologin appuser && \
     mkdir -p /app /scripts && \

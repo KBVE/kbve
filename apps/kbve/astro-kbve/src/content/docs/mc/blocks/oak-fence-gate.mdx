@@ -1,5 +1,6 @@
 ---
 title: Oak Fence Gate
+template: splash
 description: |
     Minecraft Oak Fence Gate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 338
     ref: oak_fence_gate
     slug: oak-fence-gate
+    content_rev: 1
     display_name: Oak Fence Gate
     material: wood
     hardness: 2
@@ -21,13 +23,59 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: oak_fence_gate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Oak Fence Gate is a switchable barrier combining a door and
+            a fence, letting players and villagers pass through fence lines
+            without needing to jump. It can be opened manually, by
+            redstone, or with a wind charge.
+        lore: |
+            Fence gates were first shown publicly at PAX Prime in 2010 and
+            have since expanded with a matching gate for every wood type.
+    uses:
+        - title: Fence-Line Access
+          ref: oak_fence
+          detail: |
+              Crafted from two oak planks and two sticks, it connects
+              seamlessly with fences of any wood type to form an
+              openable section of a perimeter.
+    found_in:
+        - location: Crafted from planks and sticks
+          detail: Two oak planks plus two sticks craft one oak fence gate.
+        - location: Villages
+          detail: Naturally generates as part of many village house fences.
+    faq:
+        - question: What tool do I need to mine an Oak Fence Gate?
+          answer: |
+              None — it breaks with any tool or bare hands, though an axe
+              is fastest.
+        - question: Do mobs block against a closed Oak Fence Gate?
+          answer: |
+              Yes — while closed it blocks both movement and redstone
+              signals passing through; while open it is fully non-solid.
+        - question: Is the Oak Fence Gate flammable?
+          answer: |
+              Yes — Overworld wood fence gates can catch fire, unlike the
+              crimson and warped Nether wood variants.
+        - question: Can I connect an Oak Fence Gate to walls?
+          answer: |
+              Yes — fence gates lower slightly to line up with stone walls
+              for a clean-looking barrier.
     data_version: "1.21.5"
 ---
 

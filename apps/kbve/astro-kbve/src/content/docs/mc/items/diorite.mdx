@@ -1,5 +1,6 @@
 ---
 title: Diorite
+template: splash
 description: |
     Minecraft Diorite — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 4
     ref: diorite
     slug: diorite
+    content_rev: 1
     display_name: Diorite
     category: misc
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Diorite is a decorative stone that generates in large blobs underground in
+            the Overworld. It can be mined with any pickaxe and is combined with cobblestone
+            or nether quartz to produce andesite and granite, or polished into polished
+            diorite for building.
+        lore: |
+            In the real world diorite forms in cooled magma chambers and has a
+            salt-and-pepper look, though Minecraft's version is far easier to mine than
+            its real counterpart.
+    faq:
+        - question: What tool do I need to mine diorite?
+          answer: |
+              Any pickaxe works, but at least a wooden pickaxe is required to obtain the
+              block as a drop.
+        - question: How is diorite different from granite and andesite?
+          answer: |
+              They are cosmetically similar; diorite plus nether quartz makes granite,
+              and diorite plus cobblestone makes andesite.
+        - question: What is diorite used for?
+          answer: |
+              Building material, polished diorite, stairs, slabs, and walls, and it can
+              be sold to journeyman-level mason villagers for emeralds.
+        - question: Is diorite renewable?
+          answer: |
+              Yes — piglins can barter nether quartz for gold ingots, and combined with
+              renewable cobblestone this makes diorite a renewable resource.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

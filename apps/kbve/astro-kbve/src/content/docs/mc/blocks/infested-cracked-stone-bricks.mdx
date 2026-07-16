@@ -1,5 +1,6 @@
 ---
 title: Infested Cracked Stone Bricks
+template: splash
 description: |
     Minecraft Infested Cracked Stone Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 321
     ref: infested_cracked_stone_bricks
     slug: infested-cracked-stone-bricks
+    content_rev: 1
     display_name: Infested Cracked Stone Bricks
     material: stone
     hardness: 0.75
@@ -26,8 +28,51 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cracked_stone_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Infested Cracked Stone Bricks blend into stronghold ruins as
+            weathered stone brick decoration, but breaking one without
+            Silk Touch drops nothing and unleashes a hostile silverfish.
+        lore: |
+            The cracked texture visually implies age and decay, matching
+            the ruined-fortress theming of the strongholds where it
+            generates.
+    uses:
+        - title: Silk Touch Harvesting
+          ref: cracked_stone_bricks
+          detail: |
+              Mining with Silk Touch yields ordinary cracked stone bricks,
+              safe to reuse for decorative ruin-themed builds.
+    found_in:
+        - location: Strongholds
+          detail: Generates mixed into cracked stone brick sections of stronghold corridors and rooms.
+    faq:
+        - question: What happens if I mine it without Silk Touch?
+          answer: |
+              The block breaks, drops nothing, and spawns an aggressive
+              silverfish that attacks immediately.
+        - question: How do I identify it before mining?
+          answer: |
+              It looks identical to normal cracked stone bricks; the only
+              reliable tell is a note block played on it producing a
+              flute or harp sound.
+        - question: What tool should I use to mine it safely?
+          answer: |
+              Any pickaxe with Silk Touch, so it converts to the normal
+              block instead of releasing a silverfish.
+        - question: Is it affected by Fortune?
+          answer: |
+              No. Fortune has no effect on infested blocks; the only
+              enchantment that changes the drop is Silk Touch.
     data_version: "1.21.5"
 ---
 

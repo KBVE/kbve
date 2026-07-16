@@ -1,35 +1,156 @@
 ---
 title: DeadCode
 description: |
-   DeadCode is a theory that focuses on learning from archived code.
+    DeadCode is a theory that focuses on learning from archived code.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
 sidebar:
     label: DeadCode
     order: 42691
 unsplash: 1562577309-4932fdd64cd1
 img: https://images.unsplash.com/photo-1562577309-4932fdd64cd1?fit=crop&w=1400&h=700&q=75
 tags:
-  - social
-  - media
-  - health
+    - social
+    - media
+    - health
+bento:
+    badge: theory · archive · learning
+    title: 'Learning from the code we leave behind,'
+    accent: DeadCode.
+    lede: >-
+        A theory-craft that disintegrates, analyzes, and abstracts information
+        from archived codebases, libraries, frameworks, and applications — so the
+        vast amount of old code becomes a living reference for the programmers,
+        hackers, and researchers who come next.
+    ctas:
+        - label: What is DeadCode
+          href: '#information'
+          primary: true
+        - label: Why archive
+          href: '#history'
+        - label: Watch
+          href: '#videos'
+    aside:
+        icon: book
+        title: An archive worth keeping
+        body: >-
+            As codebases fade out or get replaced, the important functions and
+            modules go with them. DeadCode preserves those records as an
+            educational source — reference material rather than production
+            liability.
+        points:
+            - <strong>Disintegrate</strong> — break archived systems into legible parts.
+            - <strong>Analyze</strong> — study the patterns, flaws, and tradeoffs.
+            - <strong>Abstract</strong> — carry forward the lessons, not the debt.
+    stats:
+        - { label: Focus, value: Archived code, icon: database }
+        - { label: Discipline, value: Theory-craft, icon: book }
+        - { label: Audience, value: Learners, icon: eye }
+        - { label: Output, value: Reference, icon: box }
+    features:
+        - title: What is DeadCode
+          icon: code
+          href: '#information'
+          body: The theory-craft that disintegrates, analyzes, and abstracts archived codebases into something you can learn from.
+        - title: Why we archive
+          icon: database
+          href: '#history'
+          body: Keeping deprecated software, scripts, and libraries as reference material for future programmers, hackers, and researchers.
+        - title: Watch & learn
+          icon: video
+          href: '#videos'
+          body: Talks and breakdowns on the fundamental flaws newer languages inherit from the old ones.
+    related:
+        - title: Programming
+          href: /theory/programming/
+          copy: The craft DeadCode studies through the lens of what came before.
+          icon: code
+        - title: Emulation
+          href: /theory/emulation/
+          copy: Keeping old systems runnable so their code stays legible.
+          icon: server
+        - title: Automation
+          href: /theory/automation/
+          copy: Turning hard-won lessons from dead code into repeatable process.
+          icon: gears
+    features_eyebrow: On this page
+    features_heading: What this theory covers
+    related_eyebrow: Keep exploring
+    related_heading: Related theory
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - { name: Home, path: / }
+        - { name: Theory, path: /theory/ }
+        - { name: DeadCode, path: /theory/deadcode/ }
+    faq:
+        - question: What is DeadCode?
+          answer: >-
+              DeadCode is a theory-craft that disintegrates, analyzes, and abstracts
+              information from archived codebases, libraries, frameworks, and
+              applications, with the objective of helping people understand, learn,
+              and grow from the vast amount of old code.
+        - question: Why keep an archive of deprecated code?
+          answer: >-
+              As more and more codebases fade out or get replaced, keeping records of
+              important functions and modules serves as an educational source for
+              future programmers, hackers, and researchers.
+        - question: Who is DeadCode for?
+          answer: >-
+              Programmers, hackers, and researchers who want to learn from old and
+              deprecated software scripts and libraries as reference material.
 ---
 
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-## Information
+<BentoProse id="information" eyebrow="Start here" heading="Information">
 
 Deadcode is a theory-craft that disintegrates, analyzes and abstracts information from archived codes, libraries, frameworks and applications.
 There are multiple areas within the `deadcode` but the objective would be to help understand, learn and grow from the vast amount of old code.
 
-## History
+The focus is not to revive every abandoned project or treat old code as production-ready by default. Instead, Deadcode treats archived systems as study material: a way to understand why certain patterns worked, where they failed, and which ideas are still useful after the original runtime, hardware, or framework has faded away.
+
+Some areas are worth exploring precisely because they feel out of place in modern stacks. Older 32-bit SIMD optimizations, memory layouts, rendering tricks, network protocols, build systems, and platform-specific hacks can all show how developers solved hard constraints with limited resources. Even when those techniques should not be copied directly, they can reveal useful tradeoffs around performance, portability, simplicity, and maintainability.
+
+Deadcode can be broken into a few practical research paths:
+
+- `Disintegrate`: Separate an archived project into understandable parts, such as modules, data formats, algorithms, dependency chains, and platform assumptions.
+- `Analyze`: Study the choices inside those parts, including performance tricks, security risks, compatibility workarounds, and failure modes.
+- `Abstract`: Turn the useful lessons into notes, examples, reusable patterns, or warnings that can guide future projects without dragging the old technical debt forward.
+
+The goal is to make old code legible. Once a system becomes legible, it can become reference material for programmers, hackers, researchers, and builders who want to understand the lineage behind current tools.
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="history" eyebrow="Why archive" heading="History">
 
 We want to keep an archive of old / deprecated software scripts/libraries as a reference material for future programmers, hackers and researchers.
 As more and more codebases are fading out or being replaced, it might be wise to keep records of important functions and modules as an educational source of information.
 
+</BentoProse>
 
-## Videos
+<BentoProse id="videos" eyebrow="Watch & learn" heading="Videos">
 
 ```
 
 <VideoComponent iframe src="yt" id="8Ab3ArE8W3s" description="Jack Rusher breaks down different fundamental flaws that newer programming languages are carrying over from older languages." />
 
 ```
+
+</BentoProse>
+
+</BentoDoc>

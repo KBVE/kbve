@@ -1,5 +1,6 @@
 ---
 title: Donkey Spawn Egg
+template: splash
 description: |
     Minecraft Donkey Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1084
     ref: donkey_spawn_egg
     slug: donkey-spawn-egg
+    content_rev: 1
     display_name: Donkey Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Donkey Spawn Egg instantly spawns an adult donkey, a passive pack animal similar
+            to a horse but smaller, with long ears. Once tamed, donkeys can be ridden, equipped
+            with a chest for extra storage, and bred with horses to produce mules.
+        lore: |
+            A sturdy, long-eared beast of burden, prized for the chest it can carry rather than
+            the speed it lacks.
+    faq:
+        - question: What does the Donkey Spawn Egg do?
+          answer: |
+              Right-clicking a surface with it spawns an adult donkey at that location, just
+              like any other spawn egg.
+        - question: Can donkeys carry inventory?
+          answer: |
+              Yes, tamed donkeys can be equipped with a chest, giving them 15 extra inventory
+              slots — something regular horses cannot do.
+        - question: What happens if you breed a donkey with a horse?
+          answer: |
+              Breeding a donkey with a horse produces a mule, a sterile hybrid that can also
+              carry a chest but cannot reproduce further.
+        - question: How do you obtain a Donkey Spawn Egg?
+          answer: |
+              Spawn eggs are not available through normal survival gameplay; they must be
+              obtained via creative mode inventory or commands.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

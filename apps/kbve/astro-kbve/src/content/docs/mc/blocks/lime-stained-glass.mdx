@@ -1,5 +1,6 @@
 ---
 title: Lime Stained Glass
+template: splash
 description: |
     Minecraft Lime Stained Glass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 290
     ref: lime_stained_glass
     slug: lime-stained-glass
+    content_rev: 1
     display_name: Lime Stained Glass
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,53 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: lime_stained_glass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - fragile
+    about:
+        description: |
+            Lime Stained Glass is a transparent building block dyed lime,
+            used to tint light and decorate windows without blocking a
+            beacon's beam when placed above one.
+        lore: |
+            Stained glass blocks placed edge-to-edge in the same color
+            become invisible to each other when viewed through matching
+            glass, a quirk builders use for seamless colored windows.
+    uses:
+        - title: Lime Stained Glass Pane
+          ref: lime_stained_glass_pane
+          detail: |
+              Six Lime Stained Glass blocks craft into 16 Lime Stained
+              Glass Panes, a thinner and more area-efficient window block.
+        - title: Beacon Beam Coloring
+          ref: lime_stained_glass
+          detail: |
+              Placing lime stained glass in a beacon's beam path recolors
+              the beam lime, useful for marking bases from a distance.
+    found_in:
+        - location: Crafting only
+          detail: Craft 4 glass blocks with 1 lime dye for 8 lime stained glass blocks.
+    faq:
+        - question: What tool do I need to mine stained glass?
+          answer: |
+              None — any tool or bare hands works — but the block only
+              drops as an item when mined with Silk Touch.
+        - question: What happens if I mine it without Silk Touch?
+          answer: |
+              It shatters and drops nothing, the same as plain glass.
+        - question: Can stained glass change a beacon beam color?
+          answer: |
+              Yes. Stacking stained glass of one or more colors above a
+              beacon recolors its beam, mixing colors if multiple are used.
+        - question: Is it flammable?
+          answer: |
+              No. Glass does not catch fire from lava or nearby flames.
     data_version: "1.21.5"
 ---
 

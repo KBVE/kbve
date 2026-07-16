@@ -1,5 +1,6 @@
 ---
 title: Acacia Log
+template: splash
 description: |
     Minecraft Acacia Log — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 53
     ref: acacia_log
     slug: acacia-log
+    content_rev: 1
     display_name: Acacia Log
     material: wood
     hardness: 2
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: acacia_log
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Acacia Log is the trunk block of the acacia tree, found in
+            savanna biomes. It can be stripped with an axe to reveal a
+            cleaner striped pattern, and it burns as furnace fuel or smelts
+            into charcoal.
+        lore: |
+            Acacia trees generate with distinctive flat-topped, angled
+            canopies, echoing the silhouette of real-world savanna acacias.
+    uses:
+        - title: Acacia Planks
+          ref: acacia_planks
+          detail: |
+              Crafting one acacia log yields four acacia planks, the base
+              material for acacia furniture, doors, and building blocks.
+        - title: Stripped Acacia Log
+          ref: stripped_acacia_log
+          detail: |
+              Right-clicking with an axe strips the bark, producing a
+              lighter-colored variant used for detailed builds.
+    found_in:
+        - location: Savanna biomes
+          detail: Grows as the trunk of acacia trees across savanna and savanna plateau biomes.
+        - location: Villages and structures
+          detail: Appears in savanna villages and other generated structures that use local wood.
+    faq:
+        - question: What is the best tool to mine Acacia Log?
+          answer: |
+              An axe breaks it fastest, but any tool — or even bare hands —
+              will still drop the log.
+        - question: Does Acacia Log require a specific tool tier?
+          answer: |
+              No. It drops with any tool or no tool at all.
+        - question: Can Acacia Log burn?
+          answer: |
+              Yes, logs are flammable and can be used as furnace fuel,
+              smelting 1.5 items per log.
+        - question: What is Acacia Log used for?
+          answer: |
+              Mainly crafting into planks for building, plus stripping into
+              Stripped Acacia Log for decorative builds.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Jungle Sign
+template: splash
 description: |
     Minecraft Jungle Sign — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 929
     ref: jungle_sign
     slug: jungle-sign
+    content_rev: 1
     display_name: Jungle Sign
     category: decoration
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Jungle Sign is a non-solid block crafted from six Jungle Planks and a stick, producing
+            three signs, used to display customizable text for labeling and communication. Its text can
+            be dyed and made to glow with a glow ink sac, and the sign can be waxed with honeycomb to
+            prevent further edits.
+        lore: |
+            Signs are non-solid and let water or lava flow around them without being destroyed.
+    faq:
+        - question: How do I craft a Jungle Sign?
+          answer: |
+              Combine six Jungle Planks with a stick in a crafting table to produce three Jungle Signs.
+        - question: Can I change the text on a Jungle Sign after placing it?
+          answer: |
+              Yes, interact with the sign to open the edit menu and change its text, unless it has been
+              waxed.
+        - question: How do I make the text glow?
+          answer: |
+              Apply a glow ink sac to the sign to make its text glow; use a regular ink sac to remove the
+              glow effect.
+        - question: What happens if I wax a Jungle Sign?
+          answer: |
+              Waxing with honeycomb locks the text so it can no longer be edited without breaking and
+              replacing the sign.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

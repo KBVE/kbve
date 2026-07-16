@@ -1,5 +1,6 @@
 ---
 title: Deepslate Emerald Ore
+template: splash
 description: |
     Minecraft Deepslate Emerald Ore — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 368
     ref: deepslate_emerald_ore
     slug: deepslate-emerald-ore
+    content_rev: 1
     display_name: Deepslate Emerald Ore
     material: stone
     hardness: 4.5
     blast_resistance: 3
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 3
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,74 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: emerald
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+        - ref: deepslate_emerald_ore
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_iron_tool
+        - ore
+        - overworld
+        - blast_resistant
+    about:
+        description: |
+            Deepslate Emerald Ore is the deepslate variant of Emerald Ore,
+            appearing in the mountain biomes' deepslate layers. Emeralds are
+            the rarest of the common ores, prized mainly for villager
+            trading rather than crafting.
+        lore: |
+            Deepslate ore variants were added in the Caves & Cliffs update,
+            letting emeralds spawn in the deep slices of mountain terrain
+            where the deepslate layer pokes above Y = 0.
+    uses:
+        - title: Emerald
+          ref: emerald
+          detail: |
+              Mining drops one emerald; emeralds are the primary currency
+              for trading with villagers and wandering traders.
+        - title: Fortune Yield
+          detail: |
+              A Fortune enchanted pickaxe can drop up to 4 emeralds from a
+              single ore block.
+        - title: Silk Touch Collection
+          detail: |
+              With Silk Touch, the deepslate ore block itself drops instead
+              of an emerald.
+    found_in:
+        - location: Mountain Biomes
+          detail: |
+              Generates in Meadow, Grove, Jagged Peaks, Frozen Peaks, Stony
+              Peaks, and Windswept variants.
+        - location: Deepslate Layers
+          detail: Appears only where deepslate or tuff intersects mountain terrain, roughly Y = -16 to Y = 8.
+    faq:
+        - question: What tool do I need to mine Deepslate Emerald Ore?
+          answer: |
+              An iron pickaxe or better. Lower tiers break the block without
+              dropping anything.
+        - question: Where does Deepslate Emerald Ore generate?
+          answer: |
+              Only in mountain-type biomes, and only in the narrow band
+              where the deepslate layer reaches high enough to intersect
+              those mountains.
+        - question: Is it rarer than regular Emerald Ore?
+          answer: |
+              It generates in the same mountain biomes but only where
+              deepslate is present, making it noticeably less common overall
+              than the stone variant.
+        - question: What are emeralds used for?
+          answer: |
+              Almost exclusively villager and wandering trader commerce;
+              emeralds have no crafting recipes of their own besides emerald
+              blocks.
     data_version: "1.21.5"
 ---
 

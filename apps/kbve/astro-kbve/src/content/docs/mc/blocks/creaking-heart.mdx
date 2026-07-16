@@ -1,5 +1,6 @@
 ---
 title: Creaking Heart
+template: splash
 description: |
     Minecraft Creaking Heart — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 186
     ref: creaking_heart
     slug: creaking-heart
+    content_rev: 1
     display_name: Creaking Heart
     material: wood
     hardness: 10
@@ -24,10 +26,68 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: creaking_heart
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+        - ref: resin_clump
+          qty_min: 1
+          qty_max: 3
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Creaking Heart is a rare block found inside pale oak trees
+            in the pale garden biome. At night it can animate a nearby
+            Creaking, a hostile mob that is invulnerable while its heart
+            still stands.
+        lore: |
+            Added in the Java Edition 1.21.2 "Winter Drop", the Creaking
+            Heart introduced the pale garden biome's signature mob-linked
+            block mechanic.
+    uses:
+        - title: Spawns and protects a Creaking
+          ref: creaking
+          detail: |
+              When aligned between two pale oak logs at night, a Creaking
+              Heart can animate a Creaking, which takes no damage from any
+              source until its heart is destroyed.
+        - title: Crafting material
+          ref: pale_oak_wood
+          detail: |
+              Can be crafted from 2 pale oak logs and 1 block of resin,
+              letting players build custom Creaking encounters.
+    found_in:
+        - location: Pale Garden biome
+          detail: Roughly 10% of pale oak trees in the pale garden generate a Creaking Heart in their trunk.
+        - location: Crafted
+          detail: Craftable from pale oak logs and a block of resin.
+    faq:
+        - question: What tool do I need to mine it?
+          answer: |
+              An axe is fastest, but any tool or hand can break it since it
+              has no minimum tool tier requirement.
+        - question: What does it drop?
+          answer: |
+              Without Silk Touch it drops 1-3 Resin Clumps (more with
+              Fortune); with Silk Touch it drops the Creaking Heart block
+              itself.
+        - question: Is it safe to destroy?
+          answer: |
+              Breaking an active Creaking Heart instantly kills its linked
+              Creaking and counts as a kill for combat advancements.
+        - question: Can I place my own Creaking Heart?
+          answer: |
+              Yes, craft one and place it between two pale oak logs facing
+              correctly; at night it can activate and spawn a Creaking.
     data_version: "1.21.5"
 ---
 

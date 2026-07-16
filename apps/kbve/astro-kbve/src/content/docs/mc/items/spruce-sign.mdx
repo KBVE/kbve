@@ -1,5 +1,6 @@
 ---
 title: Spruce Sign
+template: splash
 description: |
     Minecraft Spruce Sign — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 927
     ref: spruce_sign
     slug: spruce-sign
+    content_rev: 1
     display_name: Spruce Sign
     category: decoration
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A Spruce Sign is a placeable wooden sign crafted from spruce planks and
+            sticks, letting players write up to four lines of text to label storage,
+            leave messages, or mark points of interest. It can be placed on the ground
+            or mounted on a wall, and its text can be dyed or made to glow.
+        lore: |
+            A weathered slat of spruce wood, waiting for chalk-pale letters to guide
+            travelers through the taiga.
+    faq:
+        - question: How do you craft a Spruce Sign?
+          answer: |
+              Combine spruce planks with a stick in the crafting grid to produce 3
+              spruce signs at once.
+        - question: How do you make sign text glow?
+          answer: |
+              Use a glow ink sac on the sign to give the text a luminous outline; using a
+              regular ink sac afterward removes the glow effect.
+        - question: Can Spruce Sign text be edited after placing it?
+          answer: |
+              Yes, until the sign is waxed. Applying honeycomb to a sign locks its text
+              permanently, preventing any further edits.
+        - question: Are Spruce Signs flammable?
+          answer: |
+              No, signs are non-flammable and can safely be used near lava or to help
+              redirect the flow of water and lava.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

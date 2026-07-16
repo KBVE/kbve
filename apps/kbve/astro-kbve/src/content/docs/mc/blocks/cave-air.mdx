@@ -1,5 +1,6 @@
 ---
 title: Cave Air
+template: splash
 description: |
     Minecraft Cave Air — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 762
     ref: cave_air
     slug: cave-air
+    content_rev: 1
     display_name: Cave Air
     material: air
     hardness: 0
@@ -28,6 +30,38 @@ mc_block:
     diggable: false
     drops: []
     tags: []
+    about:
+        description: |
+            Cave Air is an invisible variant of air that fills the natural
+            cavities carved out by cave and ravine generation underground.
+            It behaves identically to normal air but is tracked separately
+            by world generation so structures and caves can tell empty
+            carved space apart from surface sky.
+        lore: |
+            Cave air was split out from ordinary air internally as part of
+            the cave and structure generation overhaul, well before it was
+            ever exposed as a distinct, obtainable concept to players.
+    found_in:
+        - location: Underground caves and ravines
+          detail: Fills any cavity produced by cave, ravine, or aquifer carvers below the surface.
+        - location: Structure air pockets
+          detail: Some generated structures use cave air to mark interior empty space during placement.
+    faq:
+        - question: Can I pick up or place Cave Air?
+          answer: |
+              No. Like normal air, it cannot be obtained as an item and
+              `/give` does not work with it — it only exists as the
+              default empty state of a world position.
+        - question: Is Cave Air different from regular Air in gameplay?
+          answer: |
+              Functionally no. Both let mobs and players move through
+              freely and never suffocate anything. The distinction is
+              only used internally by generation and `/fill` logic.
+        - question: Why does my structure block show blue outlines in caves?
+          answer: |
+              Enabling "Show invisible blocks" on a structure block
+              renders cave air (and void air) as blue-edged cubes so
+              they're visible for editing purposes.
     data_version: "1.21.5"
 ---
 

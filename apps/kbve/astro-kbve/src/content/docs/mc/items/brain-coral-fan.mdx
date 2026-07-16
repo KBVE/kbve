@@ -1,5 +1,6 @@
 ---
 title: Brain Coral Fan
+template: splash
 description: |
     Minecraft Brain Coral Fan — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 640
     ref: brain_coral_fan
     slug: brain-coral-fan
+    content_rev: 1
     display_name: Brain Coral Fan
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A pink, non-solid decorative block that naturally spawns in coral reef structures within warm
+            ocean biomes. It can be placed on the tops and sides of blocks for underwater aesthetics, but
+            like other coral fans it needs adjacent water to remain alive and requires Silk Touch to
+            collect without dying.
+        lore: |
+            These delicate marine organisms thrive only where water flows freely, serving as vital markers
+            of a reef's vibrant ecosystem.
+    faq:
+        - question: How do I obtain a brain coral fan?
+          answer: |
+              It can be mined instantly, but only a tool enchanted with Silk Touch collects it as an item;
+              mining without Silk Touch destroys it. It naturally spawns in warm ocean coral reefs.
+        - question: What happens if a brain coral fan is placed outside of water?
+          answer: |
+              In Bedrock Edition it immediately turns into its dead coral fan variant, while in Java Edition
+              this transformation happens after roughly 3 to 4.95 seconds.
+        - question: Can pistons move a live brain coral fan?
+          answer: |
+              No. Live coral fans cannot be pushed by pistons—attempting to do so breaks the coral fan instead.
+        - question: Can I get more brain coral fans after finding them naturally?
+          answer: |
+              Using bone meal in warm ocean biomes has a chance of generating additional coral fans, making
+              them a renewable resource in the right biome.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

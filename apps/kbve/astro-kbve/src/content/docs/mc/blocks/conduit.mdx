@@ -1,5 +1,6 @@
 ---
 title: Conduit
+template: splash
 description: |
     Minecraft Conduit — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 757
     ref: conduit
     slug: conduit
+    content_rev: 1
     display_name: Conduit
     material: stone
     hardness: 3
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: conduit
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            The conduit is a crafted block that, once framed by 16 to 42
+            prismarine-family blocks, grants nearby players Conduit Power —
+            water breathing, night vision, and haste — while damaging
+            hostile mobs in water or rain.
+        lore: |
+            Introduced alongside the Update Aquatic, the conduit gave
+            players a reason to build permanent underwater bases instead of
+            just visiting them.
+    uses:
+        - title: Conduit Power
+          ref: conduit
+          detail: |
+              Build a frame of 16-42 prismarine, dark prismarine, or sea
+              lantern blocks around the conduit to activate it, granting the
+              Conduit Power status effect to players within range while in
+              water or rain.
+    found_in:
+        - location: Crafted only
+          detail: |
+              Made from 8 nautilus shells surrounding 1 heart of the sea in
+              a crafting grid; not found pre-built in the world.
+        - location: Ocean Monuments
+          detail: Heart of the sea and nautilus shells are commonly sourced from ocean exploration and drowned drops.
+    faq:
+        - question: What tool do I need to mine a conduit?
+          answer: |
+              Any tool works — a conduit always drops itself when broken,
+              regardless of the tool used.
+        - question: How many blocks does a conduit need to fully activate?
+          answer: |
+              42 prismarine-family blocks in the correct frame pattern give
+              maximum range; as few as 16 will activate it at reduced range.
+        - question: What does an active conduit do to mobs?
+          answer: |
+              It deals 4 damage every 2 seconds to hostile mobs within 8
+              blocks that are in water or rain.
+        - question: Is the conduit renewable?
+          answer: |
+              No. Nautilus shells and hearts of the sea cannot be crafted
+              from scratch, so conduits are effectively non-renewable.
     data_version: "1.21.5"
 ---
 

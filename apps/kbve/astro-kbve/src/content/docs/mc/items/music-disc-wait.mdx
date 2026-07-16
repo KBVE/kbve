@@ -1,5 +1,6 @@
 ---
 title: Music Disc
+template: splash
 description: |
     Minecraft Music Disc — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,37 @@ mc_item:
     id: 1244
     ref: music_disc_wait
     slug: music-disc-wait
+    content_rev: 1
     display_name: Music Disc
     category: music
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Music Disc (Wait) is a music disc composed by C418 that plays a 3 minute 57
+            second track when placed in a jukebox. It is dropped when a creeper is killed by
+            a skeleton or stray, and can also turn up as loot in various chests scattered
+            across generated structures.
+        lore: |
+            Its slow, drawn-out build gives the track an eerie, waiting quality that matches
+            its name.
+    faq:
+        - question: How do I get Music Disc (Wait)?
+          answer: |
+              Have a skeleton or stray finish off a creeper so it drops the disc, or search
+              structure loot chests for a chance at finding it.
+        - question: What does Music Disc (Wait) do?
+          answer: |
+              Inserting it into a jukebox plays its 3:57 ambient track composed by C418.
+        - question: Can Music Disc (Wait) be stacked in my inventory?
+          answer: |
+              No, all music discs have a stack size of 1 regardless of which track they hold.
+        - question: Does the jukebox output a redstone signal while playing this disc?
+          answer: |
+              Yes, each music disc produces a distinct comparator output level while its
+              jukebox is playing, useful for redstone contraptions.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

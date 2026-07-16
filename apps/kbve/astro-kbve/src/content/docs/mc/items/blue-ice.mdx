@@ -1,5 +1,6 @@
 ---
 title: Blue Ice
+template: splash
 description: |
     Minecraft Blue Ice — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,35 @@ mc_item:
     id: 649
     ref: blue_ice
     slug: blue-ice
+    content_rev: 1
     display_name: Blue Ice
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Blue Ice is the slipperiest block in Minecraft and the fastest surface for travel, letting boats reach top speeds far greater than on regular or packed ice. It is crafted from nine packed ice blocks and also generates on iceberg bottoms, in frozen oceans, snowy villages, and ancient cities. Unlike regular ice, it does not melt near light sources, making it perfect for permanent ice roads and item-transport currents.
+        lore: |
+            A block of ice so ancient and compressed that its heart glows the deep blue of a frozen sea.
+    faq:
+        - question: |
+            How do you craft Blue Ice?
+          answer: |
+            Blue Ice is crafted by arranging nine packed ice blocks in a full 3x3 crafting grid, which yields a single block of blue ice.
+        - question: |
+            Why is Blue Ice used for fast travel?
+          answer: |
+            It is the most slippery block in the game, allowing boats to reach a top speed of about 72.73 m/s, far faster than the roughly 40 m/s possible on normal ice.
+        - question: |
+            Does Blue Ice melt?
+          answer: |
+            No. Unlike regular ice, blue ice does not melt when placed near light sources, so ice roads built from it are permanent.
+        - question: |
+            Can Blue Ice be turned back into packed ice?
+          answer: |
+            No, the crafting recipe is one-way. Blue ice cannot be reverted to packed ice once made.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

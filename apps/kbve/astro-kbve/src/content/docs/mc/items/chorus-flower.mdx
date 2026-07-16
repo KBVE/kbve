@@ -1,5 +1,6 @@
 ---
 title: Chorus Flower
+template: splash
 description: |
     Minecraft Chorus Flower — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 313
     ref: chorus_flower
     slug: chorus-flower
+    content_rev: 1
     display_name: Chorus Flower
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Chorus Flower is the growing tip of a Chorus Plant found in The
+            End, and can be placed on End Stone to start new plants. It grows
+            upward through a branching algorithm whose success chance depends on
+            the plant's existing structure, eventually forming trees roughly 13-16
+            blocks tall.
+        lore: |
+            These strange purple blooms are the only vegetation known to thrive on
+            the barren stone of the End.
+    faq:
+        - question: How do I grow a Chorus Flower?
+          answer: |
+              Place a Chorus Flower on End Stone; it will attempt to grow upward
+              and branch outward over time, with success chance depending on the
+              plant's current shape.
+        - question: What do Chorus Flowers produce?
+          answer: |
+              Harvesting and replanting can yield between 1 and 8 flowers per
+              plant, eventually forming trees around 13-16 blocks tall.
+        - question: Is farming Chorus Flowers renewable?
+          answer: |
+              Yes, breaking a flower at growth stage five and replanting it on the
+              same plant can allow further growth, making it fully renewable.
+        - question: Where are Chorus Flowers found?
+          answer: |
+              They grow exclusively in The End dimension, on End Stone near End
+              cities and outer islands.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

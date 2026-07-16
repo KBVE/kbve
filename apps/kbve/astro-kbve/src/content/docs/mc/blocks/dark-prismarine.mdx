@@ -1,5 +1,6 @@
 ---
 title: Dark Prismarine
+template: splash
 description: |
     Minecraft Dark Prismarine — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,75 @@ mc_block:
     id: 497
     ref: dark_prismarine
     slug: dark-prismarine
+    content_rev: 1
     display_name: Dark Prismarine
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: dark_prismarine
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Dark Prismarine is a variant of prismarine crafted by dyeing
+            prismarine shards black. It forms the walls and treasure-room
+            floors of ocean monuments, framing the eight gold blocks guarded
+            by elder guardians.
+        lore: |
+            Added alongside prismarine in the Java Edition 1.8 update as
+            part of the ocean monument structure, its recipe switched from
+            ink sac to black dye in 1.15.
+    uses:
+        - title: Dark Prismarine Stairs and Slabs
+          ref: dark_prismarine_stairs
+          detail: |
+              Crafted like any stone block into stairs and slabs for
+              detailing monument-themed or underwater builds.
+        - title: Conduit Structures
+          ref: conduit
+          detail: |
+              Used alongside prismarine and sea lanterns to build the
+              frame that powers a Conduit, granting Conduit Power to
+              nearby players underwater.
+    found_in:
+        - location: Ocean Monuments
+          detail: Generates as the primary wall and floor block of ocean monuments in deep ocean biomes.
+        - location: Treasure Room
+          detail: Encases the eight gold blocks at the monument's core, requiring elder guardians to be defeated first.
+    faq:
+        - question: What tool do I need to mine Dark Prismarine?
+          answer: |
+              Any pickaxe, starting at wood tier. Mining without a
+              pickaxe drops nothing.
+        - question: How is Dark Prismarine crafted?
+          answer: |
+              Combine 8 Prismarine Shards with 1 Black Dye (or an Ink Sac
+              on Bedrock/Education Edition) to craft one Dark Prismarine
+              block.
+        - question: Where do I get Prismarine Shards?
+          answer: |
+              Guardians and elder guardians drop prismarine shards when
+              killed, making ocean monuments the best farming spot.
+        - question: Is Dark Prismarine renewable?
+          answer: |
+              Yes — since guardians drop shards and dye is craftable,
+              players can produce an unlimited supply.
     data_version: "1.21.5"
 ---
 

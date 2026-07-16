@@ -1,0 +1,41 @@
+---
+title: 'Mag Sneakers'
+template: splash
+sidebar:
+    label: 'Mag Sneakers'
+    hidden: true
+description: |
+    Low-profile runners with induction soles that grip deck plating. Squeak on tile like anything else.
+ref: 'mag-sneakers'
+key: 625
+id: '01KXFBEGM2C8FT10BWEQDRTV5S'
+name: 'Mag Sneakers'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 50
+emoji: '👟'
+img: '/assets/items/equipment/mag-sneakers.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'SCFI09'
+  nodes:
+    - 'SCFI09_FOTL'
+    - 'SCFI09_FOTR'
+  slot_keys:
+    - 'FOTL'
+    - 'FOTR'
+equipment:
+  slot: 'feet'
+  bonuses:
+    extra:
+      weight: 1
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

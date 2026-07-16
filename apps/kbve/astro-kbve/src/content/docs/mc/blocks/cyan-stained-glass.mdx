@@ -1,5 +1,6 @@
 ---
 title: Cyan Stained Glass
+template: splash
 description: |
     Minecraft Cyan Stained Glass — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,64 @@ mc_block:
     id: 294
     ref: cyan_stained_glass
     slug: cyan-stained-glass
+    content_rev: 1
     display_name: Cyan Stained Glass
     material: glass
     hardness: 0.3
     blast_resistance: 0.3
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cyan_stained_glass
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - needs_silk_touch
+    about:
+        description: |
+            Cyan Stained Glass is a transparent decorative block dyed cyan.
+            It only drops itself when mined with Silk Touch, otherwise it
+            shatters and drops nothing, like ordinary glass.
+        lore: |
+            Stained glass in this color naturally lines the windows of End
+            cities and End ships, tying cyan to the game's end-game
+            architecture.
+    uses:
+        - title: Colored windows and lighting
+          ref: cyan_stained_glass
+          detail: |
+              Placed above a beacon, a stack of cyan stained glass tints the
+              beacon beam cyan; it is also used decoratively for windows.
+    found_in:
+        - location: Crafting table
+          detail: Craft from 4 glass blocks plus 1 cyan dye to yield 8 blocks.
+        - location: End cities and end ships
+          detail: Magenta and other stained glass colors generate naturally as windows there; cyan is player-crafted only.
+    faq:
+        - question: Do I need Silk Touch to pick up Cyan Stained Glass?
+          answer: |
+              Yes. Breaking it without Silk Touch drops nothing, the same as
+              regular glass.
+        - question: Can mobs see through Cyan Stained Glass?
+          answer: |
+              No. Mobs treat stained glass as opaque and will not path or
+              spawn based on sight through it.
+        - question: Does Cyan Stained Glass affect beacon beams?
+          answer: |
+              Yes. Stacking it above a beacon tints the beam cyan.
+        - question: Is Cyan Stained Glass flammable?
+          answer: |
+              No, it cannot be set on fire and does not burn from lava
+              contact.
     data_version: "1.21.5"
 ---
 

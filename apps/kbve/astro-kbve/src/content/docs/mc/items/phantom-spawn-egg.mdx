@@ -1,5 +1,6 @@
 ---
 title: Phantom Spawn Egg
+template: splash
 description: |
     Minecraft Phantom Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 1108
     ref: phantom_spawn_egg
     slug: phantom-spawn-egg
+    content_rev: 1
     display_name: Phantom Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Phantom Spawn Egg is a Creative-mode and command-only item that instantly summons
+            a phantom on use. It cannot be obtained during normal Survival play; players acquire
+            it from the Creative inventory or by using pick block on an existing phantom.
+        lore: |
+            Bottled moonlight terror, ready to be unleashed the moment the egg cracks.
+    faq:
+        - question: |
+              Can I obtain a Phantom Spawn Egg in Survival mode?
+          answer: |
+              No. Spawn eggs are not obtainable in Survival; they can only be acquired in
+              Creative mode or through commands.
+        - question: |
+              What happens when the egg is used?
+          answer: |
+              A phantom spawns adjacent to the surface used, and its ambient sound plays
+              immediately.
+        - question: |
+              Does spawning a phantom this way behave differently than a natural spawn?
+          answer: |
+              Mobs summoned by spawn eggs generally lack certain natural-spawn conditions, and
+              wandering-trader-style despawn timers do not always apply the same way, though
+              phantoms otherwise act like normally spawned ones once created.
+        - question: |
+              Can the Phantom Spawn Egg be used on monster spawners?
+          answer: |
+              Yes. Any spawn egg, including the phantom's, can change which mob a monster spawner
+              produces.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

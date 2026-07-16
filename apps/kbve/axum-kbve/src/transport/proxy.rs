@@ -39,7 +39,7 @@ struct ServiceProxy {
 impl ServiceProxy {
     /// Authenticate the incoming request (JWT + DASHBOARD_VIEW) then forward
     /// to the upstream service.
-    async fn handle(&self, path: Option<Path<String>>, req: Request<Body>) -> Response {
+    async fn handle(&self, path: Option<Path<String>>, mut req: Request<Body>) -> Response {
         // `&Request<Body>` is not `Send` (Body is !Sync) — clone headers/query
         // before crossing the .await boundary.
         let req_headers = req.headers().clone();
@@ -51,6 +51,9 @@ impl ServiceProxy {
             return resp;
         }
 
+        // Client-supplied account scoping is never trusted on this path; only
+        // `handle_preauthorized` (fc-billing) may set it.
+        req.headers_mut().remove("x-kbve-account-id");
         self.forward_request(path, req, None).await
     }
 
@@ -58,7 +61,7 @@ impl ServiceProxy {
     async fn handle_method_aware(
         &self,
         path: Option<Path<String>>,
-        req: Request<Body>,
+        mut req: Request<Body>,
     ) -> Response {
         let req_headers = req.headers().clone();
         let raw_query = req.uri().query().map(|q| q.to_string());
@@ -80,6 +83,7 @@ impl ServiceProxy {
             return resp;
         }
 
+        req.headers_mut().remove("x-kbve-account-id");
         self.forward_request(path, req, None).await
     }
 
@@ -99,9 +103,10 @@ impl ServiceProxy {
     async fn handle_with_auth(
         &self,
         path: Option<Path<String>>,
-        req: Request<Body>,
+        mut req: Request<Body>,
         upstream_auth: String,
     ) -> Response {
+        req.headers_mut().remove("x-kbve-account-id");
         self.forward_request(path, req, Some(upstream_auth)).await
     }
 
@@ -111,17 +116,17 @@ impl ServiceProxy {
         req: Request<Body>,
         upstream_auth_override: Option<String>,
     ) -> Response {
-        let req_headers = req.headers().clone();
         let suffix = path.map(|Path(p)| p).unwrap_or_default();
-        let query = req
-            .uri()
-            .query()
-            .map(|q| format!("?{q}"))
-            .unwrap_or_default();
-        let upstream_url = format!("{}/{}{}", self.upstream, suffix, query);
+        let (parts, body) = req.into_parts();
 
-        let method = req.method().clone();
-        let mut headers = req_headers;
+        let mut upstream_url = format!("{}/{}", self.upstream, suffix);
+        if let Some(q) = parts.uri.query() {
+            upstream_url.push('?');
+            upstream_url.push_str(q);
+        }
+
+        let method = parts.method;
+        let mut headers = parts.headers;
 
         // RFC 7230 §6.1: hop-by-hop headers must not cross proxy boundaries.
         // accept-encoding is also removed so upstream never compresses — we
@@ -154,7 +159,7 @@ impl ServiceProxy {
             headers.insert(name.clone(), value.clone());
         }
 
-        let body_bytes = match axum::body::to_bytes(req.into_body(), 10 * 1024 * 1024).await {
+        let body_bytes = match axum::body::to_bytes(body, 10 * 1024 * 1024).await {
             Ok(b) => b,
             Err(_) => {
                 return (
@@ -336,11 +341,11 @@ impl ServiceProxy {
 
 /// Extract Bearer token from Authorization header, `?access_token=` query,
 /// or `kasm_session` / `dashboard_session` cookie.
-fn extract_auth_token(headers: &HeaderMap, query: Option<&str>) -> Option<String> {
+fn extract_auth_token<'a>(headers: &'a HeaderMap, query: Option<&'a str>) -> Option<&'a str> {
     if let Some(h) = headers.get(header::AUTHORIZATION) {
         if let Ok(s) = h.to_str() {
             if let Some(t) = extract_bearer_token(s) {
-                return Some(t.to_string());
+                return Some(t);
             }
         }
     }
@@ -348,7 +353,7 @@ fn extract_auth_token(headers: &HeaderMap, query: Option<&str>) -> Option<String
         for pair in qs.split('&') {
             if let Some(val) = pair.strip_prefix("access_token=") {
                 if !val.is_empty() {
-                    return Some(val.to_string());
+                    return Some(val);
                 }
             }
         }
@@ -363,7 +368,7 @@ fn extract_auth_token(headers: &HeaderMap, query: Option<&str>) -> Option<String
                     .or_else(|| pair.strip_prefix("sb-access-token="))
                 {
                     if !val.is_empty() {
-                        return Some(val.to_string());
+                        return Some(val);
                     }
                 }
             }
@@ -415,7 +420,7 @@ pub(crate) async fn require_dashboard_manage_with_query(
         }
     };
 
-    let token_info = match jwt_cache.verify_and_cache(&auth_token).await {
+    let token_info = match jwt_cache.verify_and_cache(auth_token).await {
         Ok(info) => info,
         Err(e) => {
             warn!("{service_name} proxy JWT rejected: {e}");
@@ -468,8 +473,6 @@ async fn require_dashboard_view_with_query(
         }
     };
 
-    let token = auth_token;
-
     let jwt_cache = match get_jwt_cache() {
         Some(c) => c,
         None => {
@@ -481,7 +484,7 @@ async fn require_dashboard_view_with_query(
         }
     };
 
-    let token_info = match jwt_cache.verify_and_cache(&token).await {
+    let token_info = match jwt_cache.verify_and_cache(auth_token).await {
         Ok(info) => info,
         Err(e) => {
             warn!("{service_name} proxy JWT rejected: {e}");
@@ -1517,7 +1520,7 @@ pub async fn kasm_workspaces_handler(req: Request<Body>) -> Response {
             let body = resp.text().await.unwrap_or_default();
             (
                 StatusCode::BAD_GATEWAY,
-                axum::Json(json!({"error": format!("K8s API returned {status}: {}", &body[..body.len().min(200)])})),
+                axum::Json(json!({"error": format!("K8s API returned {status}: {}", truncate_body(&body, 200))})),
             )
                 .into_response()
         }
@@ -1614,7 +1617,7 @@ pub async fn kasm_scale_handler(Path(name): Path<String>, req: Request<Body>) ->
             let body = resp.text().await.unwrap_or_default();
             (
                 StatusCode::BAD_GATEWAY,
-                axum::Json(json!({"error": format!("Scale failed {status}: {}", &body[..body.len().min(200)])})),
+                axum::Json(json!({"error": format!("Scale failed {status}: {}", truncate_body(&body, 200))})),
             )
                 .into_response()
         }
@@ -1671,6 +1674,27 @@ pub async fn kasm_launch_handler(req: Request<Body>) -> Response {
 const KASM_NAV_SHIM_PORT: u16 = 9998;
 const MAX_LAUNCH_URL_LEN: usize = 2048;
 
+fn truncate_body(s: &str, max: usize) -> &str {
+    if s.len() <= max {
+        return s;
+    }
+    let mut end = max;
+    while end > 0 && !s.is_char_boundary(end) {
+        end -= 1;
+    }
+    &s[..end]
+}
+
+fn ipv4_blocked(ip: &std::net::Ipv4Addr) -> bool {
+    ip.is_loopback()
+        || ip.is_private()
+        || ip.is_link_local()
+        || ip.is_broadcast()
+        || ip.is_documentation()
+        || ip.is_unspecified()
+        || ip.is_multicast()
+}
+
 fn url_passes_policy(raw: &str) -> Result<(), &'static str> {
     if raw.is_empty() || raw.len() > MAX_LAUNCH_URL_LEN {
         return Err("invalid url length");
@@ -1697,18 +1721,19 @@ fn url_passes_policy(raw: &str) -> Result<(), &'static str> {
             }
         }
         url::Host::Ipv4(ip) => {
-            if ip.is_loopback()
-                || ip.is_private()
-                || ip.is_link_local()
-                || ip.is_broadcast()
-                || ip.is_documentation()
-                || ip.is_unspecified()
-                || ip.is_multicast()
-            {
+            if ipv4_blocked(&ip) {
                 return Err("ipv4 host not allowed");
             }
         }
         url::Host::Ipv6(ip) => {
+            // IPv4-mapped/compatible forms (::ffff:127.0.0.1, ::169.254.169.254)
+            // must run the IPv4 policy or they slip past the IPv6 checks and
+            // reach loopback / link-local (cloud metadata).
+            if let Some(v4) = ip.to_ipv4_mapped().or_else(|| ip.to_ipv4()) {
+                if ipv4_blocked(&v4) {
+                    return Err("ipv6-mapped ipv4 host not allowed");
+                }
+            }
             if ip.is_loopback()
                 || ip.is_unspecified()
                 || ip.is_multicast()
@@ -1863,7 +1888,7 @@ pub async fn kasm_launch_url_handler(Path(name): Path<String>, req: Request<Body
 async fn relay_nav_response(workspace: &str, resp: reqwest::Response) -> Response {
     let upstream_status = resp.status();
     let body = resp.text().await.unwrap_or_default();
-    let truncated = &body[..body.len().min(512)];
+    let truncated = truncate_body(&body, 512);
 
     if upstream_status.is_success() {
         return axum::Json(json!({
@@ -3062,7 +3087,7 @@ mod tests {
     #[test]
     fn extract_auth_token_prefers_authorization_header() {
         let h = hdrs(&[(header::AUTHORIZATION.as_str(), "Bearer abc123")]);
-        assert_eq!(extract_auth_token(&h, None), Some("abc123".to_string()));
+        assert_eq!(extract_auth_token(&h, None), Some("abc123"));
     }
 
     #[test]
@@ -3070,20 +3095,20 @@ mod tests {
         let h = HeaderMap::new();
         assert_eq!(
             extract_auth_token(&h, Some("foo=1&access_token=xyz&bar=2")),
-            Some("xyz".to_string())
+            Some("xyz")
         );
     }
 
     #[test]
     fn extract_auth_token_accepts_kasm_session_cookie() {
         let h = hdrs(&[("cookie", "other=1; kasm_session=ksm-token")]);
-        assert_eq!(extract_auth_token(&h, None), Some("ksm-token".to_string()));
+        assert_eq!(extract_auth_token(&h, None), Some("ksm-token"));
     }
 
     #[test]
     fn extract_auth_token_accepts_dashboard_session_cookie() {
         let h = hdrs(&[("cookie", "dashboard_session=dash-token; foo=bar")]);
-        assert_eq!(extract_auth_token(&h, None), Some("dash-token".to_string()));
+        assert_eq!(extract_auth_token(&h, None), Some("dash-token"));
     }
 
     #[test]
@@ -3116,6 +3141,15 @@ mod tests {
         assert!(url_passes_policy("http://argo.argocd.svc/").is_err());
         assert!(url_passes_policy("http://foo.cluster.local/").is_err());
         assert!(url_passes_policy("http://bar.internal/").is_err());
+    }
+
+    #[test]
+    fn url_passes_policy_rejects_ipv4_mapped_ipv6() {
+        // IPv4-mapped / -compatible IPv6 must run the IPv4 blocklist, else
+        // loopback and link-local (cloud metadata) slip past the v6 checks.
+        assert!(url_passes_policy("http://[::ffff:127.0.0.1]/").is_err());
+        assert!(url_passes_policy("http://[::ffff:169.254.169.254]/").is_err());
+        assert!(url_passes_policy("http://[::ffff:10.0.0.1]/").is_err());
     }
 
     #[test]

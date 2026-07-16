@@ -6,6 +6,9 @@
 --   • apps/metrics  (Rust frontend telemetry)  → telemetry.*
 --   • Vector (DaemonSet)                        → observability.*
 --   • mc presence snapshots (apps/kbve)         → mc.*
+--   • factorio relay + factorio-ctl (agones)    → gameops.* (write)
+--   • firecracker microVM telemetry             → firecracker.*
+--   • axum-kbve dashboard proxy (apps/kbve)     → gameops.* (read)
 --
 -- `CREATE USER kbve_ingest ... IDENTIFIED WITH sha256_password` is issued by the
 -- bootstrap Job from a sealed secret (password never lands in git). This file
@@ -26,3 +29,8 @@ GRANT ALL ON logflare.* TO kbve_ingest ON CLUSTER 'cluster';
 GRANT ALL ON telemetry.* TO kbve_ingest ON CLUSTER 'cluster';
 GRANT ALL ON observability.* TO kbve_ingest ON CLUSTER 'cluster';
 GRANT ALL ON mc.* TO kbve_ingest ON CLUSTER 'cluster';
+-- gameops: factorio + sim telemetry (schemas/factorio.sql). Written by the
+-- relay/factorio-ctl pipelines, read by the axum-kbve dashboard proxy.
+GRANT ALL ON gameops.* TO kbve_ingest ON CLUSTER 'cluster';
+-- firecracker: microVM lifecycle telemetry (schemas/firecracker.sql).
+GRANT ALL ON firecracker.* TO kbve_ingest ON CLUSTER 'cluster';

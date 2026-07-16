@@ -18,7 +18,7 @@ serde = ["dep:serde", "dep:serde_json"]
 bincode = ["dep:serde", "dep:bincode"]
 
 [dependencies]
-bevy = { version = "0.18", default-features = false, features = ["bevy_state"] }
+bevy = { version = "0.19", default-features = false, features = ["bevy_state"] }
 serde = { version = "1", features = ["derive"], optional = true }
 serde_json = { version = "1", optional = true }
 bincode = { version = "2", features = ["serde"], optional = true }

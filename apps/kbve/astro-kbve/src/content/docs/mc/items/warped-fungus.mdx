@@ -1,5 +1,6 @@
 ---
 title: Warped Fungus
+template: splash
 description: |
     Minecraft Warped Fungus — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,45 @@ mc_item:
     id: 250
     ref: warped_fungus
     slug: warped-fungus
+    content_rev: 1
     display_name: Warped Fungus
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Warped Fungus is a small plant found throughout the Nether's warped forests,
+            mined instantly or grown by applying bone meal to warped nylium. It is used to
+            grow huge warped fungi into full Nether trees, craft warped fungus on a stick
+            for controlling striders, compost into bone meal, and repel hoglins that flee
+            from its presence.
+        lore: |
+            This ethereal blue fungus thrives in the warped forests of the Nether,
+            repelling hostile hoglins while seeding the massive luminescent trees that
+            define its home biome.
+    faq:
+        - question: |
+              Where does Warped Fungus naturally generate?
+          answer: |
+              It generates in warped forests and crimson forests in the Nether, and can
+              also be dropped by endermen that were holding it upon death.
+        - question: |
+              What blocks can Warped Fungus be planted on?
+          answer: |
+              It requires warped nylium, soul soil, mycelium, dirt variants, moss blocks,
+              mud, or muddy mangrove roots to be planted successfully.
+        - question: |
+              How does Warped Fungus deter hoglins?
+          answer: |
+              Hoglins actively avoid and flee up to 7 blocks from placed warped fungus,
+              making it useful for creating safe zones in crimson forests.
+        - question: |
+              Can Warped Fungus be composted?
+          answer: |
+              Yes, placing it in a composter has a 65% chance of raising the compost
+              level by one.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,5 +1,6 @@
 ---
 title: Turtle Egg
+template: splash
 description: |
     Minecraft Turtle Egg — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 713
     ref: turtle_egg
     slug: turtle-egg
+    content_rev: 1
     display_name: Turtle Egg
     material: stone
     hardness: 0.5
@@ -26,8 +28,46 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: turtle_egg
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - hand_mineable
+        - overworld
+        - fragile
+    about:
+        description: |
+            A Turtle Egg is a fragile block laid by sea turtles on sandy
+            beaches, holding a cluster of 1-4 eggs that crack and hatch
+            into baby turtles over several in-game nights.
+        lore: |
+            Introduced in Java Edition 1.13 (Update Aquatic) alongside sea
+            turtles, tying beach ecosystems to a breeding and hatching
+            mechanic.
+    found_in:
+        - location: Sandy beaches near oceans
+          detail: Bred turtles return to their home beach and lay a cluster of 1-4 eggs on sand, red sand, or suspicious sand.
+    faq:
+        - question: How do I pick up a Turtle Egg without breaking it?
+          answer: |
+              Mine it with any tool enchanted with Silk Touch; otherwise it
+              breaks and drops nothing.
+        - question: How long does a Turtle Egg take to hatch?
+          answer: |
+              It cracks three times before hatching, roughly 4-5 nights on
+              average, and cracks much faster at night than during the day.
+        - question: What breaks a Turtle Egg accidentally?
+          answer: |
+              Walking on it (except as a baby turtle or with Feather
+              Falling-suitable care), most mobs stepping on it, or any
+              non-Silk-Touch mining will destroy it.
+        - question: Do Turtle Eggs need sand to hatch?
+          answer: |
+              Yes, they must be placed on sand, red sand, or suspicious sand
+              to survive and eventually hatch into baby turtles.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Cooked Rabbit
+template: splash
 description: |
     Minecraft Cooked Rabbit — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1182
     ref: cooked_rabbit
     slug: cooked-rabbit
+    content_rev: 1
     display_name: Cooked Rabbit
     category: food
     rarity: common
@@ -22,6 +24,34 @@ mc_item:
         saturation: 60
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Cooked rabbit is prepared by cooking raw rabbit in a furnace, smoker,
+            or campfire, restoring 5 hunger points and 6 saturation when eaten.
+            It also serves as a key ingredient in rabbit stew, alongside carrot,
+            baked potato, mushroom, and a bowl.
+        lore: |
+            A warm, gamey meal favored by wandering adventurers and the wolves
+            they travel with.
+    faq:
+        - question: How do you cook rabbit meat?
+          answer: |
+              Place raw rabbit in a furnace, smoker, or campfire and it will
+              cook into cooked rabbit, yielding a small amount of experience
+              when collected.
+        - question: How much hunger does cooked rabbit restore?
+          answer: |
+              Eating cooked rabbit restores 5 hunger points and 6 saturation,
+              and in Java Edition can trigger a brief natural regeneration
+              boost if saturation is at zero.
+        - question: What can cooked rabbit be used for besides eating?
+          answer: |
+              It is a required ingredient for crafting rabbit stew and can be
+              fed to tamed wolves to heal and help breed them.
+        - question: Is cooked rabbit better than raw rabbit?
+          answer: |
+              Yes, cooking raw rabbit increases its hunger and saturation
+              value, making it far more efficient food than eating it raw.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

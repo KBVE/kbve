@@ -1,5 +1,6 @@
 ---
 title: Rooted Dirt
+template: splash
 description: |
     Minecraft Rooted Dirt — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1057
     ref: rooted_dirt
     slug: rooted-dirt
+    content_rev: 1
     display_name: Rooted Dirt
     material: dirt
     hardness: 0.5
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: rooted_dirt
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - overworld
+    about:
+        description: |
+            Rooted Dirt is a dirt variant found beneath azalea trees,
+            recognizable by the pale roots embedded in its surface. It
+            generates in a cross-shaped column reaching down toward lush
+            caves, and hanging roots grow from its underside.
+        lore: |
+            Added in the Caves & Cliffs update alongside azalea trees and
+            lush caves, giving dirt a rare decorative variant of its own.
+    uses:
+        - title: Hanging Roots
+          ref: hanging_roots
+          detail: |
+              Tilling Rooted Dirt with a hoe converts it to regular dirt
+              and drops a Hanging Roots item, which can be replanted on
+              the underside of blocks as decoration.
+        - title: Mud
+          ref: mud
+          detail: |
+              Using a water bottle on Rooted Dirt converts it into Mud,
+              useful for mud farms and mangrove swamp builds.
+    found_in:
+        - location: Beneath Azalea Trees
+          detail: Generates in a 5x5 cross-section extending down from azalea and flowering azalea trees.
+        - location: Lush Caves
+          detail: Common at the boundary where azalea root systems meet lush cave biomes.
+    faq:
+        - question: What tool do I need to mine Rooted Dirt?
+          answer: |
+              None required — it can be mined instantly with any tool or
+              bare hands, though a shovel is the conventional best tool.
+        - question: What happens if I till Rooted Dirt?
+          answer: |
+              A hoe converts it to regular dirt and drops a Hanging Roots
+              item that can be replanted elsewhere.
+        - question: Can grass or mycelium spread onto Rooted Dirt?
+          answer: |
+              No, Rooted Dirt does not accept grass or mycelium spreading
+              like ordinary dirt does.
+        - question: Where can I buy Rooted Dirt?
+          answer: |
+              Wandering traders sometimes sell it, offering 2 Rooted Dirt
+              for 1 emerald.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Music Disc
+template: splash
 description: |
     Minecraft Music Disc — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1239
     ref: music_disc_mellohi
     slug: music-disc-mellohi
+    content_rev: 1
     display_name: Music Disc
     category: music
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Music Disc "mellohi" is a 13-track disc composed by C418 that plays a mellow,
+            contemplative tune when placed in a jukebox. It drops when a creeper is killed
+            by a skeleton, wither skeleton, stray, bogged, or parched mob, making it a
+            renewable but uncommon reward from mob combat.
+        lore: |
+            The disc's soft, wistful melody is a favorite among players decorating cozy
+            builds with a working jukebox.
+    faq:
+        - question: How do I get the mellohi music disc?
+          answer: |
+              Kill a creeper with a skeleton, wither skeleton, stray, bogged, or parched
+              mob nearby; the creeper has a chance to drop mellohi (or another disc from
+              the same pool) on death.
+        - question: Who composed the mellohi track?
+          answer: |
+              C418 composed mellohi, along with most of the original Minecraft music discs.
+        - question: What redstone signal does mellohi produce?
+          answer: |
+              When played in a jukebox next to a comparator, mellohi outputs a comparator
+              signal strength of 7.
+        - question: Can I stack mellohi discs in my inventory?
+          answer: |
+              No, music discs are not stackable and always occupy one inventory slot per disc.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

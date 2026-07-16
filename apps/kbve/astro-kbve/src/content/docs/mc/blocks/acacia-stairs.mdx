@@ -1,5 +1,6 @@
 ---
 title: Acacia Stairs
+template: splash
 description: |
     Minecraft Acacia Stairs — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 484
     ref: acacia_stairs
     slug: acacia-stairs
+    content_rev: 1
     display_name: Acacia Stairs
     material: wood
     hardness: 2
@@ -26,8 +28,58 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: acacia_stairs
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - flammable
+        - overworld
+    about:
+        description: |
+            Acacia Stairs are a decorative and functional building block
+            crafted from acacia planks. They let players move smoothly
+            between elevations, can be placed in upside-down or sideways
+            orientations, and combine with other stairs to form corners.
+        lore: |
+            Wooden stairs date back to Infdev in 2010, with the acacia
+            variant added alongside the acacia tree in the Cats Update (1.2).
+    uses:
+        - title: Acacia Planks
+          ref: acacia_planks
+          detail: |
+              Six Acacia Planks arranged in a staircase pattern craft four
+              Acacia Stairs.
+        - title: Furnace Fuel
+          ref: furnace
+          detail: |
+              Like most wooden blocks, Acacia Stairs can be burned as
+              furnace fuel, smelting 1.5 items per stair block.
+    found_in:
+        - location: Crafting
+          detail: Made from six matching acacia planks to yield four stairs.
+        - location: Villages and generated structures
+          detail: Appear in savanna village houses, woodland mansions, and other acacia-themed structures.
+    faq:
+        - question: What tool mines Acacia Stairs fastest?
+          answer: |
+              An axe. Any tool, or even bare hands, will still break the
+              block and drop it — there is no minimum tool tier requirement.
+        - question: Do Acacia Stairs burn?
+          answer: |
+              Yes. Like other Overworld wood variants, Acacia Stairs are
+              flammable and can be destroyed by nearby fire.
+        - question: Can Acacia Stairs be placed upside down?
+          answer: |
+              Yes. Placing a stair block while aiming at the upper half of
+              the target block flips it into the upside-down orientation.
+        - question: What do Acacia Stairs drop when mined?
+          answer: |
+              They always drop themselves as an item, regardless of tool
+              used, since there is no minimum tool tier requirement.
     data_version: "1.21.5"
 ---
 

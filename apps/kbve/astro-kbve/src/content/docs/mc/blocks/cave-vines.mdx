@@ -1,5 +1,6 @@
 ---
 title: Cave Vines
+template: splash
 description: |
     Minecraft Cave Vines — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,71 @@ mc_block:
     id: 1043
     ref: cave_vines
     slug: cave-vines
+    content_rev: 1
     display_name: Cave Vines
     material: plant
     hardness: 0
     blast_resistance: 0
     best_tool: hand
     required_tool_tier: 0
-    light_emission: 0
+    light_emission: 14
     light_opacity: 0
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: glow_berries
+          qty_min: 1
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - climbable
+        - bee_growable
+        - overworld
+    about:
+        description: |
+            Cave Vines is the head block of a hanging vine — the topmost
+            segment attached to the ceiling that extends new Cave Vines
+            Plant segments downward over time. Like the rest of the vine,
+            it can bear Glow Berries and be climbed like a ladder.
+        lore: |
+            Cave vines were introduced in the Caves & Cliffs update as the
+            signature plant of the lush caves biome, giving players a
+            renewable food and light source deep underground.
+    uses:
+        - title: Glow Berries
+          ref: glow_berries
+          detail: |
+              Harvest berries by hand without breaking the vine, or break
+              the block to collect both the berries (if present) and end
+              the chain growing beneath it.
+    found_in:
+        - location: Lush Caves
+          detail: Generates attached to the ceiling of lush cave biomes as the anchor point for each vine chain.
+        - location: Bone-mealed cave ceilings
+          detail: Can be grown manually by applying bone meal to a cave-ceiling-adjacent vine segment.
+    faq:
+        - question: How do Cave Vines spread?
+          answer: |
+              Each tick has a small chance to extend the chain one block
+              downward as a new Cave Vines Plant segment, up to a maximum
+              length of 26 blocks; bone meal instantly grows a new segment.
+        - question: What tool do I need to mine Cave Vines?
+          answer: |
+              None — any tool or bare hands breaks it instantly, though it
+              is classified as axe-mineable for tool-tag purposes.
+        - question: Do bees interact with Cave Vines?
+          answer: |
+              Yes. Bees can pollinate cave vines, which has a chance to
+              spawn Glow Berries on nearby segments.
+        - question: Can I climb Cave Vines like a ladder?
+          answer: |
+              Yes, cave vines are climbable and slow the player's fall
+              and movement similar to a ladder or vines.
     data_version: "1.21.5"
 ---
 

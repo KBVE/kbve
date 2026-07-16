@@ -1,5 +1,9 @@
 ---
 title: 'Wolf'
+template: splash
+sidebar:
+    label: 'Wolf'
+    hidden: true
 description: |
     Forest-biome predator. Fast melee bite, packs spawn in Wolf Pack events near Farms. Beast faction — bites Player + Wildlife indiscriminately. Drops Wolf Pelt + Wolf Fang.
 ref: 'wolf'
@@ -37,7 +41,10 @@ faction:
     faction_id: 'beast'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Forest-biome predator. Fast melee bite, packs spawn near Farms during Wolf Pack events.
+
+</NpcLeaf>

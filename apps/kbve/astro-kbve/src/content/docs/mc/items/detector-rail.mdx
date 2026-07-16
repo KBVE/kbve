@@ -1,5 +1,6 @@
 ---
 title: Detector Rail
+template: splash
 description: |
     Minecraft Detector Rail — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,11 +14,45 @@ mc_item:
     id: 797
     ref: detector_rail
     slug: detector-rail
+    content_rev: 1
     display_name: Detector Rail
     category: redstone
     rarity: common
     stack_size: 64
     tags: []
+    about:
+        description: |
+            A detector rail is a redstone component that doubles as a
+            track for minecarts. When a minecart rolls over it, the rail
+            becomes powered and emits a redstone signal to adjacent dust,
+            repeaters, comparators, and mechanisms. A comparator facing
+            away from the rail can even read the fullness of a passing
+            minecart with a chest or hopper.
+        lore: |
+            Spiders, cave spiders, and wardens can cross a detector rail
+            freely while most other mobs avoid it, making it a handy
+            tool for selective mob-detection contraptions.
+    faq:
+        - question: How do you craft a detector rail?
+          answer: |
+              Combine 6 iron ingots, 1 redstone dust, and 1 stone
+              pressure plate on a crafting table to produce 6 detector
+              rails per craft.
+        - question: What does a detector rail actually detect?
+          answer: |
+              It senses any minecart passing over it and emits a
+              redstone signal for about the same duration as it takes
+              the minecart to cross.
+        - question: Can a detector rail tell how full a minecart is?
+          answer: |
+              Yes. A redstone comparator facing away from the detector
+              rail outputs a signal strength proportional to the
+              fullness of a minecart with a chest or hopper riding it.
+        - question: Do all mobs avoid walking on detector rails?
+          answer: |
+              No. Spiders, cave spiders, and wardens can walk across
+              detector rails normally, while most other mobs treat them
+              like an obstacle.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Polished Diorite Slab
+template: splash
 description: |
     Minecraft Polished Diorite Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 781
     ref: polished_diorite_slab
     slug: polished-diorite-slab
+    content_rev: 1
     display_name: Polished Diorite Slab
     material: stone
     hardness: 1.5
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: polished_diorite_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Polished Diorite Slab is the half-height variant of polished
+            diorite, a bright white-and-gray speckled stone finish popular
+            for clean, light-colored builds. It does not generate naturally
+            and must be crafted or stonecut.
+        lore: |
+            Added in Java Edition 18w43a (October 2018) alongside the other
+            polished stone slab variants, with a texture update the
+            following week in 18w44a.
+    uses:
+        - title: Light-Toned Masonry
+          ref: polished_diorite
+          detail: |
+              Used purely for building — pairs with polished diorite stairs
+              and walls for half-block detailing, trim, and stepped
+              surfaces in bright stone builds.
+    found_in:
+        - location: Crafting
+          detail: Craft three polished diorite in a row for six slabs.
+        - location: Stonecutting
+          detail: Stonecut diorite or polished diorite for a 1:2 conversion into slabs.
+    faq:
+        - question: Does Polished Diorite Slab generate naturally?
+          answer: |
+              No, it does not generate in any structure or terrain feature —
+              it is only obtained through crafting or stonecutting.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any pickaxe, wood tier or higher. Mining without a pickaxe
+              yields no drop.
+        - question: Does Silk Touch change the drop?
+          answer: |
+              No, it always drops itself as a slab whether or not Silk Touch
+              is used.
+        - question: What's the quickest way to make a lot of slabs?
+          answer: |
+              Stonecut raw diorite or polished diorite — one block converts
+              directly into two slabs at a stonecutter.
     data_version: "1.21.5"
 ---
 

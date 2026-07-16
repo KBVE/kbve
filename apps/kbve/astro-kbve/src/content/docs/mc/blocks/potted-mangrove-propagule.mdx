@@ -1,5 +1,6 @@
 ---
 title: Potted Mangrove Propagule
+template: splash
 description: |
     Minecraft Potted Mangrove Propagule — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 390
     ref: potted_mangrove_propagule
     slug: potted-mangrove-propagule
+    content_rev: 1
     display_name: Potted Mangrove Propagule
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,48 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: flower_pot
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: mangrove_propagule
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            Potted Mangrove Propagule is a decorative block made by placing
+            a Mangrove Propagule into a flower pot. Unlike a planted
+            propagule, the potted version never sprouts into a tree.
+        lore: |
+            Mangrove Propagules and their potted variant were added in Java
+            Edition 1.19 with the Wild Update's mangrove swamp biome.
+    found_in:
+        - location: Crafted by hand
+          detail: Place a Mangrove Propagule item into an empty Flower Pot to create it.
+        - location: Mangrove swamps
+          detail: The propagule item used to pot it is harvested from mangrove trees in swamp biomes.
+    faq:
+        - question: Will a potted mangrove propagule grow into a tree?
+          answer: |
+              No. Once inside a flower pot it is purely decorative and will
+              never grow, unlike a propagule planted on dirt or mud.
+        - question: What tool do I need to break it?
+          answer: |
+              None. It breaks instantly with any tool or bare hands.
+        - question: What does it drop?
+          answer: |
+              The empty Flower Pot and the Mangrove Propagule item drop as
+              two separate items.
+        - question: Can I retrieve the propagule without breaking the pot?
+          answer: |
+              Yes. Pressing use on the pot removes the propagule into your
+              inventory, leaving the empty pot behind.
     data_version: "1.21.5"
 ---
 

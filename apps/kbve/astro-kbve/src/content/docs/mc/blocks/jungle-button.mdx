@@ -1,5 +1,6 @@
 ---
 title: Jungle Button
+template: splash
 description: |
     Minecraft Jungle Button — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 414
     ref: jungle_button
     slug: jungle-button
+    content_rev: 1
     display_name: Jungle Button
     material: redstone
     hardness: 0.5
@@ -24,10 +26,55 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: jungle_button
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Jungle Button is a wooden redstone component crafted from
+            Jungle Planks. When pressed, it sends a brief redstone pulse
+            to adjacent blocks, and unlike stone buttons it can also be
+            triggered by arrows, tridents, and wind charges.
+        lore: |
+            Wooden buttons have existed since Beta 1.6, with jungle wood
+            variants introduced when jungle trees were added.
+    uses:
+        - title: Redstone Trigger
+          ref: redstone_dust
+          detail: |
+              Powers adjacent redstone dust, repeaters, comparators, or
+              directly-attached mechanisms for 1.5 seconds when pressed.
+    found_in:
+        - location: Crafted
+          detail: Made from a single Jungle Plank in the crafting grid.
+        - location: Desert Village Houses
+          detail: Occasionally generates on desert village house doors.
+    faq:
+        - question: What tool mines a Jungle Button fastest?
+          answer: |
+              An axe, though any tool or bare hands can break it since it
+              has a low 0.5 hardness.
+        - question: Is a Jungle Button flammable?
+          answer: |
+              Yes, being a wood-based block it can catch fire and burn
+              unlike the crimson and warped nether wood buttons.
+        - question: How long does a Jungle Button stay active?
+          answer: |
+              1.5 seconds (15 redstone ticks) after being pressed, before
+              it pops back up and the signal stops.
+        - question: Can projectiles activate a Jungle Button?
+          answer: |
+              Yes, arrows, tridents, and wind charges can trigger wooden
+              buttons, a behavior stone buttons do not share.
     data_version: "1.21.5"
 ---
 

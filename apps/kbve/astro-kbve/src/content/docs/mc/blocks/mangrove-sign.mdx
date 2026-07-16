@@ -1,5 +1,6 @@
 ---
 title: Mangrove Sign
+template: splash
 description: |
     Minecraft Mangrove Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 205
     ref: mangrove_sign
     slug: mangrove-sign
+    content_rev: 1
     display_name: Mangrove Sign
     material: wood
     hardness: 1
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: mangrove_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Mangrove Sign is a standing sign crafted from mangrove planks
+            and a stick, used to display custom text placed on the ground.
+            Like all wooden signs it breaks quickly and burns in fire, but
+            drops itself instantly with any tool or bare hands.
+        lore: |
+            Mangrove signs arrived in Java Edition 1.19 alongside the
+            mangrove swamp biome and the rest of the mangrove wood set.
+    uses:
+        - title: Waxed Sign
+          ref: honeycomb
+          detail: |
+              Applying a Honeycomb to a placed sign waxes it, locking the
+              text so it can no longer be edited — useful for permanent
+              shop or waypoint labels.
+    found_in:
+        - location: Crafting only
+          detail: |
+              Not found naturally in structures or loot tables; craft it
+              from 6 Mangrove Planks and 1 Stick to make 3 signs.
+    faq:
+        - question: What tool do I need to mine a Mangrove Sign?
+          answer: |
+              None. It breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: Does Mangrove Sign burn in fire?
+          answer: |
+              Yes, like other wooden blocks it is flammable and will burn
+              if exposed to fire or lava.
+        - question: Can I edit the text after placing it?
+          answer: |
+              Yes, right-click the sign with an empty hand to open the
+              text editor, unless it has been waxed with a Honeycomb.
+        - question: Can Mangrove Sign be used as furnace fuel?
+          answer: |
+              Yes, it smelts one item per sign, same as other overworld
+              wooden signs (nether wood signs cannot be used as fuel).
     data_version: "1.21.5"
 ---
 

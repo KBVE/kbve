@@ -1,5 +1,6 @@
 ---
 title: Nether Wart
+template: splash
 description: |
     Minecraft Nether Wart — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,8 +14,9 @@ mc_block:
     id: 353
     ref: nether_wart
     slug: nether-wart
+    content_rev: 1
     display_name: Nether Wart
-    material: nether
+    material: plant
     hardness: 0
     blast_resistance: 0
     best_tool: hand
@@ -23,11 +25,69 @@ mc_block:
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: nether_wart
+          qty_min: 1
+          qty_max: 4
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - nether
+        - plant
+        - instant_break
+        - crop
+    about:
+        description: |
+            Nether Wart is a crop grown only on soul sand, found naturally in
+            Nether fortresses and bastion remnants. It is the primary base
+            ingredient for brewing potions.
+        lore: |
+            Added in Beta 1.9 Prerelease, Nether Wart originally could only
+            grow inside the Nether until version 1.3.1 lifted that
+            restriction.
+    uses:
+        - title: Awkward Potion
+          ref: awkward_potion
+          detail: |
+              Brewed with water bottles in a brewing stand to make Awkward
+              Potion, the base for nearly every other potion effect.
+        - title: Nether Wart Block
+          ref: nether_wart_block
+          detail: |
+              Nine Nether Wart craft into one Nether Wart Block, though the
+              recipe cannot be reversed.
+        - title: Red Nether Bricks
+          ref: red_nether_bricks
+          detail: |
+              Combines with Nether Brick to craft Red Nether Bricks for
+              building.
+    found_in:
+        - location: Nether fortresses
+          detail: Grows in soul sand gardens near fortress stairwells and chests.
+        - location: Bastion remnants
+          detail: Found growing in housing unit courtyards.
+        - location: Planted by players
+          detail: Can be planted on soul sand (not soul soil) in any dimension since 1.3.1.
+    faq:
+        - question: What can Nether Wart be planted on?
+          answer: |
+              Only soul sand. Soul soil, despite its similar appearance, does
+              not allow Nether Wart to grow.
+        - question: How much does a mature Nether Wart plant drop?
+          answer: |
+              A fully grown (age 3) plant drops 2-4 Nether Wart, up to 7 with
+              Fortune III; immature plants drop only 1.
+        - question: Can bone meal speed up Nether Wart growth?
+          answer: |
+              No. Bone meal has no effect on Nether Wart; it grows purely on
+              random ticks, roughly every 11 minutes per stage on average.
+        - question: What is Nether Wart used for besides potions?
+          answer: |
+              Crafting Nether Wart Blocks and Red Nether Bricks, and it can
+              be sold to Cleric villagers for emeralds.
     data_version: "1.21.5"
 ---
 

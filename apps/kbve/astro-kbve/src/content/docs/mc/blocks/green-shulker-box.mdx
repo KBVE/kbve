@@ -1,5 +1,6 @@
 ---
 title: Green Shulker Box
+template: splash
 description: |
     Minecraft Green Shulker Box — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 659
     ref: green_shulker_box
     slug: green-shulker-box
+    content_rev: 1
     display_name: Green Shulker Box
     material: stone
     hardness: 2
@@ -24,10 +26,56 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: green_shulker_box
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+        - end
+    about:
+        description: |
+            Green Shulker Box is a portable, dyed storage container with 27
+            inventory slots that keeps its contents intact when broken and
+            picked back up, unlike a regular chest. It is crafted from a
+            Shulker Shell and a chest, then dyed green.
+        lore: |
+            Shulker boxes were added in Java Edition 1.11 (2016), giving
+            players their first truly movable storage.
+    uses:
+        - title: Portable Storage
+          ref: green_shulker_box
+          detail: |
+              Holds 27 slots of items that survive mining and re-placement,
+              making it ideal for organizing builds or carrying inventory
+              overflow between bases.
+    found_in:
+        - location: Crafting
+          detail: Craft a Shulker Shell with any Chest, then dye the resulting shulker box green with Green Dye.
+        - location: Shulker Shell source
+          detail: Shulker Shells drop from hostile Shulkers found in End cities.
+    faq:
+        - question: What tool do I need to mine a Green Shulker Box?
+          answer: |
+              Any tool works, but a pickaxe breaks it fastest. Mining it
+              with anything, including bare hands, still yields the box.
+        - question: Does mining it lose the items inside?
+          answer: |
+              No. The contents stay stored in the dropped item, so you can
+              safely relocate a full shulker box.
+        - question: Where do Shulker Shells come from?
+          answer: |
+              They drop from Shulkers, hostile mobs found only in End
+              cities.
+        - question: How do I change a shulker box's color?
+          answer: |
+              Combine any shulker box with a dye in a crafting grid to
+              recolor it without losing its contents.
     data_version: "1.21.5"
 ---
 

@@ -1,8 +1,5 @@
 ---
 import ReactNavBar from './ReactNavBar.tsx';
-import { DroidProvider } from '@kbve/astro';
-import { OverlayShell } from '../overlay/OverlayShell';
-import { workerURLs } from '../../lib/workers';
 
 const currentPath = Astro.url.pathname;
 ---
@@ -31,13 +28,11 @@ const currentPath = Astro.url.pathname;
 			</svg>
 		</a>
 		<a
-			href="/guides/getting-started"
+			href="/docs"
 			class:list={[
 				'nav-link',
 				{
-					active:
-						currentPath.startsWith('/guides') ||
-						currentPath.startsWith('/reference'),
+					active: currentPath.startsWith('/docs'),
 				},
 			]}
 			data-astro-prefetch
@@ -111,6 +106,11 @@ const currentPath = Astro.url.pathname;
 		</div>
 	</div>
 
+	{/* Add-bot CTA — desktop only */}
+	<a href="/discord" class="nav-cta">
+		<span class="nav-cta-prompt">$</span> add bot
+	</a>
+
 	{/* Single shared tooltip — positioned via $activeTooltip nanostore */}
 	<div id="nav-tooltip" class="nav-tooltip" aria-hidden="true">
 		<span id="nav-tooltip-text"></span>
@@ -138,15 +138,6 @@ const currentPath = Astro.url.pathname;
 
 	{/* React handles: auth state, portals, drawer, modal */}
 	<ReactNavBar client:only="react" currentPath={currentPath} />
-
-	{/* Single-mount providers — shared across all pages via NavBar */}
-	<DroidProvider
-		client:only="react"
-		workerURLs={workerURLs}
-		i18nPath="/i18n/db.json"
-		dataPath="/data/servers.json"
-	/>
-	<OverlayShell client:only="react" />
 </nav>
 
 <script>
@@ -294,6 +285,44 @@ const currentPath = Astro.url.pathname;
 		transition: opacity 150ms ease;
 		white-space: nowrap;
 		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	}
+
+	/* Add-bot CTA */
+	.nav-cta {
+		display: none;
+		align-items: center;
+		gap: 0.35rem;
+		margin-left: 0.5rem;
+		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+		font-size: 0.78rem;
+		font-weight: 600;
+		padding: 0.4rem 0.85rem;
+		border-radius: 0.5rem;
+		text-decoration: none;
+		color: #fff;
+		background: linear-gradient(
+			120deg,
+			var(--sl-color-accent, #8b5cf6),
+			#7c3aed 70%
+		);
+		box-shadow: 0 4px 16px
+			color-mix(in srgb, var(--sl-color-accent, #8b5cf6) 35%, transparent);
+		transition:
+			transform 150ms ease,
+			box-shadow 200ms ease;
+	}
+	.nav-cta:hover {
+		transform: translateY(-1px);
+		box-shadow: 0 6px 22px
+			color-mix(in srgb, var(--sl-color-accent, #8b5cf6) 50%, transparent);
+	}
+	.nav-cta-prompt {
+		opacity: 0.75;
+	}
+	@media (min-width: 768px) {
+		.nav-cta {
+			display: inline-flex;
+		}
 	}
 
 	.hamburger-btn {

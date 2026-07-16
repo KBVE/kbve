@@ -1,5 +1,6 @@
 ---
 title: Yellow Shulker Box
+template: splash
 description: |
     Minecraft Yellow Shulker Box — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 650
     ref: yellow_shulker_box
     slug: yellow-shulker-box
+    content_rev: 1
     display_name: Yellow Shulker Box
     material: stone
     hardness: 2
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: yellow_shulker_box
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Yellow Shulker Box is a portable storage container dyed yellow,
+            holding 27 slots of inventory that survive being mined and moved.
+            Unlike chests, its contents stay packed inside the item itself.
+        lore: |
+            Shulker boxes were added in 1.11, crafted from the shells dropped
+            by Shulkers guarding End cities.
+    uses:
+        - title: Portable Storage
+          ref: yellow_shulker_box
+          detail: |
+              Place it down to access 27 inventory slots, then mine it again
+              (any tool, no Silk Touch needed) to pack it back up with its
+              contents intact for transport.
+    found_in:
+        - location: Crafted, not found naturally
+          detail: Made from two Shulker Shells and one Chest; shells drop from Shulkers in End cities.
+        - location: Dye-recoloring
+          detail: Combine any shulker box with Yellow Dye in a crafting grid to recolor it without losing contents.
+    faq:
+        - question: Do I lose the items inside if I mine a Yellow Shulker Box?
+          answer: |
+              No. Mining it with any tool preserves its full inventory; the
+              box simply becomes an item again with everything still packed
+              inside.
+        - question: Does dyeing a shulker box empty it?
+          answer: |
+              No. Recoloring a shulker box with dye keeps its stored items
+              untouched.
+        - question: Can I stack multiple shulker boxes in my inventory?
+          answer: |
+              No. Shulker boxes never stack, even if empty, since each one
+              can independently hold its own set of items.
+        - question: How do I open a placed shulker box if there's a block above it?
+          answer: |
+              You can't normally, but placing an upside-down slab or a
+              top-mounted trapdoor above it still leaves enough clearance to
+              open the lid.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Cyan Concrete
+template: splash
 description: |
     Minecraft Cyan Concrete — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 687
     ref: cyan_concrete
     slug: cyan-concrete
+    content_rev: 1
     display_name: Cyan Concrete
     material: stone
     hardness: 1.8
     blast_resistance: 1.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cyan_concrete
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Cyan Concrete is a solid, non-flammable building block formed
+            when Cyan Concrete Powder touches water. It is harder than most
+            stone blocks and provides a vivid, saturated alternative to wool
+            or terracotta for builds.
+        lore: |
+            Concrete was added in Java Edition 1.12, arriving in all 16 dye
+            colors alongside its gravity-affected powder form.
+    uses:
+        - title: Decorative building
+          ref: cyan_concrete
+          detail: |
+              Used purely as a solid color block for construction; unlike
+              wool it cannot catch fire, making it safer near lava or in
+              Nether builds.
+    found_in:
+        - location: Water contact conversion
+          detail: Forms instantly wherever Cyan Concrete Powder touches a water source, flowing water, or waterlogged block.
+        - location: Trial Chamber murals
+          detail: Red and white concrete variants generate naturally in Trial Chamber decorations (1.21+); cyan is player-made only.
+    faq:
+        - question: What tool do I need to mine Cyan Concrete?
+          answer: |
+              Any pickaxe, wooden or better. Mining without a pickaxe drops
+              nothing.
+        - question: Is Cyan Concrete flammable?
+          answer: |
+              No. Unlike wool, concrete blocks never catch fire, making them
+              a safer decorative choice around lava or in the Nether.
+        - question: How is Cyan Concrete made?
+          answer: |
+              Craft Cyan Concrete Powder, then let it touch any water source,
+              flowing water, or a waterlogged block to convert it instantly.
+        - question: Is Cyan Concrete renewable?
+          answer: |
+              Yes, since its ingredients — sand, gravel, dye, and water — are
+              all renewable.
     data_version: "1.21.5"
 ---
 

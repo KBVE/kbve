@@ -1,5 +1,6 @@
 ---
 title: Purple Stained Glass
+template: splash
 description: |
     Minecraft Purple Stained Glass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,34 @@ mc_item:
     id: 511
     ref: purple_stained_glass
     slug: purple-stained-glass
+    content_rev: 1
     display_name: Purple Stained Glass
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Purple Stained Glass is a transparent decorative block crafted from
+            glass and Purple Dye. Players can see through it while mobs treat it as
+            an opaque barrier, and it can also tint a nearby beacon beam purple.
+        lore: |
+            Glass tinted with a violet pigment, casting the world beyond in a
+            twilight shade.
+    faq:
+        - question: How do I craft Purple Stained Glass?
+          answer: |
+              Combine eight Glass blocks with one Purple Dye in a crafting grid to
+              produce eight Purple Stained Glass blocks.
+        - question: Does Purple Stained Glass block mob sight?
+          answer: |
+              Yes, mobs cannot see through any color of stained glass, so it can be
+              used to separate areas while players can still see through it.
+        - question: Can it change a beacon's beam color?
+          answer: |
+              Yes, placing Purple Stained Glass in the beam above a beacon tints the
+              beam purple, and stacking multiple colors blends them together.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

@@ -1,0 +1,287 @@
+.mcdb {
+	display: block;
+	padding-block: 1rem;
+}
+.mcdb .bento-board {
+	border-radius: 18px;
+	overflow: hidden;
+}
+.mcdb .bento-card {
+	padding: 1rem 1.25rem;
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+}
+.mcdb-id {
+	flex-direction: row !important;
+	align-items: flex-start;
+	gap: 1rem;
+}
+.mcdb-id__icon {
+	flex-shrink: 0;
+	width: 84px;
+	height: 84px;
+	border-radius: 14px;
+	background:
+		repeating-linear-gradient(
+			45deg,
+			color-mix(in srgb, var(--sl-color-black) 18%, transparent) 0 6px,
+			transparent 6px 12px
+		),
+		linear-gradient(
+			135deg,
+			var(--sl-color-bg-nav) 0%,
+			var(--sl-color-bg-sidebar) 100%
+		);
+	border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+	padding: 10%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+.mcdb-id__icon img {
+	width: 64px;
+	height: 64px;
+	display: block;
+	image-rendering: pixelated;
+	object-fit: contain;
+}
+.mcdb-id__body {
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+	min-width: 0;
+}
+.mcdb-id__title {
+	margin: 0;
+	font-size: clamp(1.4rem, 2.5vw, 1.75rem);
+	font-weight: 800;
+	letter-spacing: -0.01em;
+	color: var(--sl-color-white, var(--sl-color-text));
+}
+.mcdb-id__chips {
+	display: flex;
+	gap: 0.4rem;
+	flex-wrap: wrap;
+}
+.mcdb-chip--kind {
+	color: var(--sl-color-accent-high, var(--sl-color-accent));
+	border-color: color-mix(in srgb, var(--sl-color-accent) 55%, transparent);
+	background: color-mix(in srgb, var(--sl-color-accent) 16%, transparent);
+}
+.mcdb-chip--rarity-uncommon {
+	color: rgb(120, 200, 120);
+}
+.mcdb-chip--rarity-rare {
+	color: rgb(120, 180, 240);
+}
+.mcdb-chip--rarity-epic {
+	color: rgb(210, 120, 240);
+}
+.mcdb-chip--muted {
+	color: var(--sl-color-gray-3);
+}
+.mcdb-chip--rev {
+	color: rgb(120, 200, 140);
+	border-color: color-mix(in srgb, rgb(120, 200, 140) 50%, transparent);
+	background: color-mix(in srgb, rgb(120, 200, 140) 14%, transparent);
+}
+.mcdb-id__ref {
+	align-self: flex-start;
+	font-size: 0.78rem;
+	padding: 0.05rem 0.45rem;
+	border-radius: 6px;
+	background: var(--sl-color-bg-inline-code);
+	color: var(--sl-color-text);
+}
+.mcdb-id__desc {
+	margin: 0.2rem 0 0;
+	color: var(--sl-color-gray-3);
+	line-height: 1.55;
+	font-size: 0.9rem;
+}
+.mcdb-stat {
+	gap: 0.2rem !important;
+}
+.mcdb-block__title {
+	margin: 0 0 0.2rem;
+	font-size: 1rem;
+	font-weight: 800;
+}
+.mcdb-chips {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: flex;
+	gap: 0.4rem;
+	flex-wrap: wrap;
+}
+.mcdb-chips a.bento-chip {
+	text-decoration: none;
+}
+.mcdb-chips a.bento-chip:hover {
+	color: var(--sl-color-accent-high, var(--sl-color-accent));
+	border-color: var(--sl-color-accent);
+}
+.mcdb-block__foot {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	gap: 1rem;
+	flex-wrap: wrap;
+	margin-top: 0.5rem;
+	padding-top: 0.5rem;
+	border-top: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+}
+.mcdb-block__market {
+	color: var(--sl-color-text-accent);
+	font-weight: 700;
+	text-decoration: none;
+}
+.mcdb-block__market:hover {
+	text-decoration: underline;
+}
+.mcdb-block__version {
+	color: var(--sl-color-gray-3);
+	font-size: 0.78rem;
+	font-variant-numeric: tabular-nums;
+}
+
+.mcdb-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: grid;
+	gap: 0.4rem;
+}
+.mcdb-list li {
+	padding: 0.55rem 0.8rem;
+	border-radius: 10px;
+	background: var(--sl-color-bg-nav);
+	border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+	font-size: 0.88rem;
+	line-height: 1.5;
+}
+.mcdb-list__label {
+	font-weight: 700;
+	color: var(--sl-color-white, var(--sl-color-text));
+}
+.mcdb-list__detail {
+	color: var(--sl-color-gray-3);
+}
+.mcdb-faq {
+	display: grid;
+	gap: 0.5rem;
+}
+.mcdb-faq__q {
+	font-weight: 700;
+	color: var(--sl-color-white, var(--sl-color-text));
+	margin: 0 0 0.15rem;
+}
+.mcdb-faq__a {
+	margin: 0;
+	color: var(--sl-color-gray-3);
+	line-height: 1.55;
+	font-size: 0.9rem;
+}
+
+.mcdb-recipes {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+	display: grid;
+	gap: 0.4rem;
+}
+.mcdb-recipes li {
+	padding: 0.5rem 0.75rem;
+	border-radius: 10px;
+	background: var(--sl-color-bg-nav);
+	border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+	display: flex;
+	gap: 0.75rem;
+	flex-wrap: wrap;
+	font-size: 0.85rem;
+}
+.mcdb-recipe-kind {
+	font-weight: 700;
+	text-transform: uppercase;
+	font-size: 0.7rem;
+	letter-spacing: 0.05em;
+	color: var(--sl-color-accent-high, var(--sl-color-accent));
+}
+.mcdb-recipe-card {
+	display: grid;
+	gap: 0.5rem;
+	padding: 0.75rem;
+	border-radius: 12px;
+	background: var(--sl-color-bg-nav);
+	border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+	margin-top: 0.5rem;
+}
+.mcdb-recipe-card__meta {
+	display: flex;
+	gap: 0.75rem;
+	flex-wrap: wrap;
+	align-items: center;
+}
+.mcdb-recipe-station {
+	font-size: 0.78rem;
+	color: var(--sl-color-gray-3);
+}
+.mcdb-recipe-yields {
+	font-size: 0.85rem;
+}
+.mcdb-grid-recipe {
+	display: grid;
+	grid-template-columns: repeat(var(--cols, 3), 72px);
+	gap: 0.4rem;
+	justify-content: start;
+}
+.mcdb-grid-cell {
+	width: 72px;
+	height: 72px;
+	border-radius: 10px;
+	background: var(--sl-color-bg-sidebar, var(--sl-color-bg-nav));
+	border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 0.15rem;
+	padding: 0.3rem;
+	font-size: 0.7rem;
+	text-align: center;
+}
+.mcdb-grid-qty {
+	font-weight: 800;
+	color: var(--sl-color-accent-high, var(--sl-color-accent));
+}
+.mcdb-grid-ref {
+	color: var(--sl-color-gray-3);
+	font-size: 0.65rem;
+	line-height: 1.1;
+	word-break: break-all;
+}
+.kbve-mc-tex {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	image-rendering: pixelated;
+	object-fit: contain;
+}
+.kbve-mc-tex--missing {
+	background: var(--sl-color-bg-nav);
+	border: 1px solid var(--sl-color-hairline, var(--sl-color-gray-5));
+	border-radius: 6px;
+	color: var(--sl-color-gray-3);
+	font-weight: 800;
+}
+.mcdb-grid-cell .kbve-mc-tex,
+.mcdb-grid-img.kbve-mc-tex {
+	max-width: 80%;
+	max-height: 80%;
+}
+.mcdb-recipe-img.kbve-mc-tex {
+	flex-shrink: 0;
+	margin-right: 0.25rem;
+}

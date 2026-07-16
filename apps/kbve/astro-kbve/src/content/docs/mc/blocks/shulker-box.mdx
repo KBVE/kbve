@@ -1,5 +1,6 @@
 ---
 title: Shulker Box
+template: splash
 description: |
     Minecraft Shulker Box — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 645
     ref: shulker_box
     slug: shulker-box
+    content_rev: 1
     display_name: Shulker Box
     material: stone
     hardness: 2
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: shulker_box
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            The Shulker Box is a portable, dyeable storage container crafted
+            from a Shulker Shell and a chest. Unlike every other storage
+            block, it keeps its 27-slot inventory intact when mined, so the
+            box (and everything inside it) can be picked up and moved
+            without losing contents.
+        lore: |
+            Added in the Combat Update (1.11) alongside the End City
+            structures where Shulkers are found, it quickly became the
+            backbone of end-game inventory management.
+    uses:
+        - title: Portable Storage
+          ref: chest
+          detail: |
+              Carries its full inventory when broken and re-placed, letting
+              players stockpile dozens of extra chests worth of items in
+              their own inventory or shulker-box "backpacks."
+        - title: Dyed Variants
+          ref: dye
+          detail: |
+              Combine with any dye to recolor the box; undyeing requires
+              washing it in a cauldron with water.
+    found_in:
+        - location: End Cities
+          detail: Generates inside End City towers, guarded by Shulkers that also drop Shulker Shells.
+        - location: Crafted
+          detail: Made from 1 Shulker Shell + 1 Chest at a crafting table.
+    faq:
+        - question: Does breaking a Shulker Box destroy its contents?
+          answer: |
+              No. It is the only storage block that preserves its inventory
+              as an item when mined, making it ideal for hauling large
+              amounts of gear.
+        - question: What tool should I use to mine it?
+          answer: |
+              A pickaxe is fastest, but it can be broken with any tool or
+              bare hands since it requires no minimum tool tier.
+        - question: Can I stack multiple Shulker Boxes in my inventory?
+          answer: |
+              No, filled or empty Shulker Box items do not stack, though
+              players commonly carry many of them to multiply storage space.
+        - question: Where do Shulker Shells come from?
+          answer: |
+              Shulkers, hostile mobs found in End City towers, drop Shulker
+              Shells on death with a small chance (higher with Looting).
     data_version: "1.21.5"
 ---
 

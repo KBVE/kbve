@@ -1,5 +1,6 @@
 ---
 title: Copper Bulb
+template: splash
 description: |
     Minecraft Copper Bulb — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,74 @@ mc_block:
     id: 1032
     ref: copper_bulb
     slug: copper-bulb
+    content_rev: 1
     display_name: Copper Bulb
     material: metal
     hardness: 3
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
-    light_emission: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
+    light_emission: 15
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: copper_bulb
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - redstone
+    about:
+        description: |
+            The copper bulb is a redstone-powered light source that toggles
+            between lit and unlit when it receives a pulse, rather than
+            needing continuous power like a redstone lamp.
+        lore: |
+            Introduced in the Trial Chambers update, copper bulbs gave
+            redstone builders a compact toggle-light block sourced from the
+            new trial chamber loot and copper's weathering mechanic.
+    uses:
+        - title: Redstone Toggle Light
+          ref: copper_bulb
+          detail: |
+              A single redstone pulse flips it between lit and unlit and it
+              holds that state, making it useful for flicker-free lighting
+              circuits and puzzle mechanisms.
+        - title: Comparator Signal
+          ref: comparator
+          detail: |
+              A comparator reads a lit copper bulb as signal strength 15
+              regardless of its oxidation stage.
+    found_in:
+        - location: Trial Chambers
+          detail: Naturally generates lit, waxed at various oxidation stages throughout trial chamber structures.
+        - location: Crafted
+          detail: Made from 1 block of copper, 1 blaze rod, and 1 redstone dust, yielding 4 bulbs.
+    faq:
+        - question: What tool do I need to mine a Copper Bulb?
+          answer: |
+              A stone pickaxe or better; anything weaker breaks it with no
+              drop.
+        - question: Does oxidation change how bright a Copper Bulb is?
+          answer: |
+              Yes. Light output drops from 15 (normal) to 12 (exposed), 8
+              (weathered), and 4 (oxidized).
+        - question: Does a Copper Bulb need constant redstone power to stay lit?
+          answer: |
+              No. It only needs a momentary pulse to toggle state, then
+              stays lit or unlit until pulsed again.
+        - question: Can I stop a Copper Bulb from oxidizing?
+          answer: |
+              Yes, apply honeycomb to wax it, locking its current oxidation
+              stage and light level in place.
     data_version: "1.21.5"
 ---
 

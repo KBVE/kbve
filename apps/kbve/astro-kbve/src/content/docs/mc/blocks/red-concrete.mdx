@@ -1,5 +1,6 @@
 ---
 title: Red Concrete
+template: splash
 description: |
     Minecraft Red Concrete — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,66 @@ mc_block:
     id: 692
     ref: red_concrete
     slug: red-concrete
+    content_rev: 1
     display_name: Red Concrete
     material: stone
     hardness: 1.8
     blast_resistance: 1.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_concrete
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Red Concrete is a solid, vividly colored building block formed
+            when Red Concrete Powder contacts water. It offers more
+            saturated color than stained terracotta and, unlike wool, does
+            not burn.
+        lore: |
+            Concrete debuted in Java Edition 1.12 alongside concrete
+            powder, giving builders a non-flammable, fully opaque
+            alternative to wool and terracotta.
+    uses:
+        - title: Building Material
+          ref: red_concrete
+          detail: |
+              Used purely for construction and decoration thanks to its
+              bright, solid color and resistance to fire.
+    found_in:
+        - location: Solidified Concrete Powder
+          detail: |
+              Formed instantly when Red Concrete Powder touches flowing or
+              source water.
+    faq:
+        - question: What tool do I need to mine Red Concrete?
+          answer: |
+              At least a wooden pickaxe. Mining without one drops nothing.
+        - question: Can I turn Red Concrete back into powder?
+          answer: |
+              No, the conversion from powder to concrete is one-way.
+        - question: Does Red Concrete burn?
+          answer: |
+              No. Unlike wool, concrete is non-flammable and safe near
+              lava and fire.
+        - question: Is Red Concrete renewable?
+          answer: |
+              Yes, since it comes from concrete powder, which is crafted
+              from fully renewable sand, gravel, and dye.
     data_version: "1.21.5"
 ---
 

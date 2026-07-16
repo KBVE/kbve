@@ -1,5 +1,6 @@
 ---
 title: Brown Egg
+template: splash
 description: |
     Minecraft Brown Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,42 @@ mc_item:
     id: 971
     ref: brown_egg
     slug: brown-egg
+    content_rev: 1
     display_name: Brown Egg
     category: misc
     rarity: common
     stack_size: 16
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The brown egg is a warm-biome variant of the standard egg, laid by brown chickens
+            that spawn in hot biomes. It functions as both a throwable projectile and a crafting
+            ingredient, with a small chance of hatching a warm-variant chick on impact.
+        lore: |
+            A speckled reminder that even chickens adapt their plumage and eggs to the climate they hatch in.
+    faq:
+        - question: |
+              How do I get a brown egg?
+          answer: |
+              Brown eggs are laid periodically by brown chickens, which spawn naturally in
+              warm biomes such as deserts and savannas. They can also occasionally be found
+              in village fletcher chests or trial chamber dispensers.
+        - question: |
+              What happens when I throw a brown egg?
+          answer: |
+              Thrown eggs have a 1/8 chance of spawning a chick, with a rarer chance of
+              spawning four at once. A brown egg specifically hatches a warm-variant chick.
+        - question: |
+              Can I use brown eggs in crafting recipes?
+          answer: |
+              Yes, brown eggs work the same as regular eggs in recipes like cake and
+              pumpkin pie, since egg color does not affect crafting outcomes.
+        - question: |
+              Do brown eggs deal damage when thrown at mobs?
+          answer: |
+              No, eggs deal no damage on impact. They only apply a small knockback effect,
+              making them useful for non-lethal crowd control.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

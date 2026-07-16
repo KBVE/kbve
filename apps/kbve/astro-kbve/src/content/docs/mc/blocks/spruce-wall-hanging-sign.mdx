@@ -1,5 +1,6 @@
 ---
 title: Spruce Hanging Sign
+template: splash
 description: |
     Minecraft Spruce Hanging Sign — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 234
     ref: spruce_wall_hanging_sign
     slug: spruce-wall-hanging-sign
+    content_rev: 1
     display_name: Spruce Hanging Sign
     material: wood
     hardness: 1
@@ -24,10 +26,57 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: spruce_wall_hanging_sign
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            A Spruce Hanging Sign is a chain-suspended sign attached to the
+            side of a block, wall, or the underside of another block. Like
+            standing signs it displays four lines of editable text on both
+            sides.
+        lore: |
+            Hanging signs were designed with input from the lead
+            developer's daughter, giving Minecraft its first sign type
+            built to dangle rather than stand.
+    uses:
+        - title: Spruce Hanging Sign
+          ref: spruce_wall_hanging_sign
+          detail: |
+              Craft from two iron chains and six stripped spruce logs or
+              stems to produce six hanging signs. Text can be dyed, made to
+              glow with a glow ink sac, or waxed shut with honeycomb.
+    found_in:
+        - location: Crafting table
+          detail: Made from iron chains and stripped spruce logs; not common structure loot.
+        - location: Trial Chambers and Trail Ruins
+          detail: Generates as decoration or labeled loot markers in these structures.
+    faq:
+        - question: What tool mines a Spruce Hanging Sign fastest?
+          answer: |
+              An axe. Any tool, or bare hands, still breaks it instantly
+              and it drops itself.
+        - question: What is a Spruce Hanging Sign crafted from?
+          answer: |
+              Two iron chains and six stripped spruce logs or stripped
+              spruce wood, yielding six hanging signs.
+        - question: How can a Spruce Hanging Sign be mounted?
+          answer: |
+              It can hang from the underside of a block, attach to the
+              side of a wall with self-supporting brackets, or hang below a
+              fence post.
+        - question: Does it burn like other spruce wood blocks?
+          answer: |
+              No, hanging signs are not flammable and will not ignite from
+              nearby fire the way spruce planks or logs do.
     data_version: "1.21.5"
 ---
 

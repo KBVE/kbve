@@ -1,5 +1,6 @@
 ---
 title: Glow Squid Spawn Egg
+template: splash
 description: |
     Minecraft Glow Squid Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,41 @@ mc_item:
     id: 1094
     ref: glow_squid_spawn_egg
     slug: glow-squid-spawn-egg
+    content_rev: 1
     display_name: Glow Squid Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Glow Squid Spawn Egg instantly spawns a glow squid when used on
+            a block, and is available only in Creative mode or via commands. It
+            is one of dozens of mob-specific spawn eggs used for testing,
+            building, or populating a world with a given creature.
+        lore: |
+            A speckled, faintly luminous egg said to hold a glow squid curled up
+            inside, waiting for a creator's hand to release it into dark water.
+    faq:
+        - question: How do I get a Glow Squid Spawn Egg?
+          answer: |
+              It is only obtainable in Creative mode, either from the Creative
+              inventory or by using pick block on an existing glow squid, or via
+              the /give command with the glow_squid_spawn_egg item.
+        - question: What does using the egg do?
+          answer: |
+              Using it on a block or in water spawns a glow squid at that
+              location, playing its ambient sound as it appears.
+        - question: Is the Glow Squid Spawn Egg consumed when used?
+          answer: |
+              In Survival mode spawn eggs are consumed on use, but since this
+              egg is Creative-only in practice, it is typically used freely from
+              the Creative inventory without being depleted.
+        - question: Can spawn eggs be used on spawners?
+          answer: |
+              Yes, using a glow squid spawn egg on a monster spawner changes
+              that spawner to produce glow squids instead of its default mob.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

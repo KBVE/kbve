@@ -1,5 +1,6 @@
 ---
 title: Warped Fence Gate
+template: splash
 description: |
     Minecraft Warped Fence Gate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 853
     ref: warped_fence_gate
     slug: warped-fence-gate
+    content_rev: 1
     display_name: Warped Fence Gate
     material: nether
     hardness: 2
@@ -24,10 +26,52 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: warped_fence_gate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+        - non_flammable
+    about:
+        description: |
+            The Warped Fence Gate is a controllable opening in a Warped
+            Fence line, letting players and villagers pass through while
+            keeping most mobs penned in. Being Nether wood, it never burns.
+        lore: |
+            Introduced with the Nether Update's warped wood set (1.16), it
+            pairs with Warped Fences for eerie blue Nether builds.
+    uses:
+        - title: Warped Fence
+          ref: warped_fence
+          detail: |
+              Connects seamlessly to Warped Fences and walls, forming an
+              enclosure with a controllable entry point that opens by hand,
+              redstone signal, or wind charge.
+    found_in:
+        - location: Crafted
+          detail: Made from two Warped Planks and four sticks at a crafting table, yielding one gate.
+    faq:
+        - question: What tool mines a Warped Fence Gate fastest?
+          answer: |
+              An axe, though any tool or bare hands will break it and drop
+              the gate itself.
+        - question: Does the Warped Fence Gate burn in fire or lava?
+          answer: |
+              No. Like all Nether wood blocks it is completely fire-immune.
+        - question: Can mobs jump over a closed fence gate?
+          answer: |
+              Closed gates stand 1.5 blocks tall, which blocks most mobs
+              from jumping over, though taller mobs may still cross.
+        - question: Can I open it with redstone?
+          answer: |
+              Yes, a redstone signal opens and closes the gate just like
+              interacting with it by hand.
     data_version: "1.21.5"
 ---
 

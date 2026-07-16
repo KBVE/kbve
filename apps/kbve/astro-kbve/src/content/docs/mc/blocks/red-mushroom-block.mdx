@@ -1,5 +1,6 @@
 ---
 title: Red Mushroom Block
+template: splash
 description: |
     Minecraft Red Mushroom Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 324
     ref: red_mushroom_block
     slug: red-mushroom-block
+    content_rev: 1
     display_name: Red Mushroom Block
     material: wood
     hardness: 0.2
@@ -24,10 +26,71 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_mushroom
+          qty_min: 0
+          qty_max: 2
+          silk_touch_only: false
+          affected_by_fortune: false
+        - ref: red_mushroom_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Red Mushroom Block forms the cap of a huge red mushroom. Cap
+            blocks generate with a spotted red-and-white pore texture on
+            their outer faces, distinct from the plain pore texture of the
+            stem.
+        lore: |
+            Huge mushrooms were first teased in a 2011 development
+            change-list before being officially revealed, letting mushrooms
+            grow into towering tree-sized structures.
+    uses:
+        - title: Composting
+          ref: composter
+          detail: |
+              Cap blocks have an 85% chance to raise a composter's level by
+              one when placed inside.
+        - title: Silk Touch Harvesting
+          ref: red_mushroom_block
+          detail: |
+              Mining with Silk Touch preserves the block's cap texture,
+              letting builders reuse it decoratively.
+    found_in:
+        - location: Huge Mushroom Structures
+          detail: |
+              Generates as the cap of huge red mushrooms, most common in
+              the Dark Forest and Mushroom Fields biomes.
+        - location: Bone Meal Growth
+          detail: |
+              Applying bone meal to a red mushroom on suitable ground can
+              instantly grow it into a huge mushroom.
+    faq:
+        - question: What tool do I need to mine Red Mushroom Block?
+          answer: |
+              None required, but an axe mines it fastest. Any tool works
+              since it has no minimum tier.
+        - question: What does breaking Red Mushroom Block drop?
+          answer: |
+              Without Silk Touch it drops 0-2 Red Mushroom items with low
+              odds (about 22% chance of 1-2). With Silk Touch it drops
+              itself, preserving the cap texture.
+        - question: Is Red Mushroom Block flammable?
+          answer: |
+              No, it does not catch fire on its own, though it can burn if
+              directly touched by lava or fire.
+        - question: Where do huge red mushrooms grow?
+          answer: |
+              They generate naturally in Dark Forest and Mushroom Fields
+              biomes, and can be grown elsewhere with bone meal in low
+              light on suitable blocks.
     data_version: "1.21.5"
 ---
 

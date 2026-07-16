@@ -1,5 +1,6 @@
 ---
 title: Pale Moss Block
+template: splash
 description: |
     Minecraft Pale Moss Block — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1096
     ref: pale_moss_block
     slug: pale-moss-block
+    content_rev: 1
     display_name: Pale Moss Block
     material: dirt
     hardness: 0.1
@@ -24,10 +26,55 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pale_moss_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - hoe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            Pale Moss Block is the pale garden biome's counterpart to the
+            regular moss block, offering the same fast growth-surface
+            behavior for most plants but with a washed-out gray-green look.
+            It always drops itself and, unusually for moss, is flammable.
+        lore: |
+            Introduced with the pale garden biome, its design blends the
+            look of Spanish moss and white moss into a single pale variant.
+    uses:
+        - title: Pale Moss Carpet
+          ref: pale_moss_carpet
+          detail: |
+              Craft 2 Pale Moss Blocks into 3 Pale Moss Carpets for a
+              thinner decorative floor covering.
+    found_in:
+        - location: Pale Garden
+          detail: Generates naturally as ground cover in pale moss patches throughout the biome.
+        - location: Wandering Trader
+          detail: Sold in pairs for 1 emerald.
+    faq:
+        - question: What tool do I need to mine Pale Moss Block?
+          answer: |
+              None required; it can be broken by hand, though a hoe is
+              fastest.
+        - question: Is Pale Moss Block flammable?
+          answer: |
+              Yes, unlike the regular moss block it catches fire from lava
+              and nearby flames.
+        - question: Does bone meal spread Pale Moss Block like regular moss?
+          answer: |
+              Bone meal spreads it onto nearby stone and dirt-type blocks,
+              but consumes the source block instead of leaving it intact.
+        - question: Can sniffer eggs hatch faster on Pale Moss Block?
+          answer: |
+              No, unlike regular moss blocks it does not speed up sniffer
+              egg hatching.
     data_version: "1.21.5"
 ---
 

@@ -1,0 +1,164 @@
+/**
+ * @file createRoundedBoxPoolGeometry.ts
+ * @description Helper utility function to generate a THREE.BufferGeometry representing a 3D pool shape
+ * with rounded/filleted vertical corners. It constructs the pool floor and vertical walls, with inward-pointing
+ * normals for correct lighting calculations.
+ */
+
+import * as THREE from 'three';
+
+const MIN_STRAIGHT_POOL_EDGE = 0.0;
+
+/**
+ * Creates a THREE.BufferGeometry representing a pool with rounded corners.
+ * Generates positions, normals, and indices for the pool floor and walls.
+ * The normals of the walls point inwards to facilitate rendering from the inside of the pool.
+ *
+ * @param R The corner radius of the pool's rounded corners.
+ * @param poolWidth The half-width of the pool along the X axis.
+ * @param poolHeight The depth/height of the pool along the Y axis.
+ * @param poolLength The half-length of the pool along the Z axis.
+ * @returns A buffer geometry object configured for rendering.
+ */
+export function createRoundedBoxPoolGeometry(
+	R: number,
+	poolWidth: number,
+	poolHeight: number,
+	poolLength: number,
+	rimHeight = 2.0 / 12.0,
+): THREE.BufferGeometry {
+	const geometry = new THREE.BufferGeometry();
+	const cornerRadius = Math.min(
+		R,
+		Math.max(0, Math.min(poolWidth, poolLength) - MIN_STRAIGHT_POOL_EDGE),
+	);
+
+	const positions: number[] = [];
+	const normals: number[] = [];
+	const indices: number[] = [];
+
+	const yFloor = -poolHeight;
+	const yRim = rimHeight;
+	const rSubX = poolWidth - cornerRadius;
+	const rSubZ = poolLength - cornerRadius;
+
+	const segmentsPerCorner = 16;
+	const totalPoints = 4 * segmentsPerCorner;
+
+	const floorVertices: THREE.Vector3[] = [];
+
+	// Generate perimeter points in counterclockwise order
+	for (let c = 0; c < 4; c++) {
+		let cx = 0,
+			cz = 0;
+		let startAngle = 0;
+		if (c === 0) {
+			// North-East
+			cx = rSubX;
+			cz = rSubZ;
+			startAngle = 0;
+		} else if (c === 1) {
+			// North-West
+			cx = -rSubX;
+			cz = rSubZ;
+			startAngle = Math.PI / 2;
+		} else if (c === 2) {
+			// South-West
+			cx = -rSubX;
+			cz = -rSubZ;
+			startAngle = Math.PI;
+		} else {
+			// South-East
+			cx = rSubX;
+			cz = -rSubZ;
+			startAngle = 1.5 * Math.PI;
+		}
+
+		for (let i = 0; i < segmentsPerCorner; i++) {
+			const angle = startAngle + (i / segmentsPerCorner) * (Math.PI / 2);
+			const x = cx + cornerRadius * Math.cos(angle);
+			const z = cz + cornerRadius * Math.sin(angle);
+			floorVertices.push(new THREE.Vector3(x, yFloor, z));
+		}
+	}
+
+	// Add center vertex for floor triangulation
+	positions.push(0, yFloor, 0);
+	normals.push(0, 1, 0);
+
+	// Add perimeter vertices for floor
+	for (let i = 0; i < totalPoints; i++) {
+		const v = floorVertices[i];
+		positions.push(v.x, v.y, v.z);
+		normals.push(0, 1, 0);
+	}
+
+	// Triangulate floor: connect center (index 0) to perimeter
+	for (let i = 0; i < totalPoints; i++) {
+		const next = (i + 1) % totalPoints;
+		indices.push(0, next + 1, i + 1);
+	}
+
+	// Generate wall normals
+	const wallNormals: THREE.Vector3[] = [];
+	for (let i = 0; i < totalPoints; i++) {
+		const v = floorVertices[i];
+		const normal = new THREE.Vector3();
+		if (cornerRadius > 0) {
+			const cx = Math.sign(v.x) * rSubX;
+			const cz = Math.sign(v.z) * rSubZ;
+			normal
+				.set(v.x - cx, 0, v.z - cz)
+				.normalize()
+				.negate(); // points inwards
+		} else {
+			if (Math.abs(v.x) >= poolWidth - 0.001) {
+				normal.set(-Math.sign(v.x), 0, 0);
+			} else {
+				normal.set(0, 0, -Math.sign(v.z));
+			}
+		}
+		wallNormals.push(normal);
+	}
+
+	// Add wall vertices (bottom and top for each point)
+	const wallStartIndex = positions.length / 3;
+
+	for (let i = 0; i < totalPoints; i++) {
+		const v = floorVertices[i];
+		const n = wallNormals[i];
+
+		// Bottom vertex
+		positions.push(v.x, yFloor, v.z);
+		normals.push(n.x, n.y, n.z);
+
+		// Top vertex
+		positions.push(v.x, yRim, v.z);
+		normals.push(n.x, n.y, n.z);
+	}
+
+	// Triangulate walls: connect bottom & top rings
+	for (let i = 0; i < totalPoints; i++) {
+		const next = (i + 1) % totalPoints;
+
+		const bCurr = wallStartIndex + 2 * i;
+		const tCurr = wallStartIndex + 2 * i + 1;
+		const bNext = wallStartIndex + 2 * next;
+		const tNext = wallStartIndex + 2 * next + 1;
+
+		indices.push(bCurr, bNext, tNext);
+		indices.push(bCurr, tNext, tCurr);
+	}
+
+	geometry.setAttribute(
+		'position',
+		new THREE.Float32BufferAttribute(positions, 3),
+	);
+	geometry.setAttribute(
+		'normal',
+		new THREE.Float32BufferAttribute(normals, 3),
+	);
+	geometry.setIndex(indices);
+
+	return geometry;
+}

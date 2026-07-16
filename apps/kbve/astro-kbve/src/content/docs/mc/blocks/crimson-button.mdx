@@ -1,5 +1,6 @@
 ---
 title: Crimson Button
+template: splash
 description: |
     Minecraft Crimson Button — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 856
     ref: crimson_button
     slug: crimson-button
+    content_rev: 1
     display_name: Crimson Button
     material: redstone
     hardness: 0.5
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crimson_button
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - nether
+        - non_flammable
+        - redstone_component
+    about:
+        description: |
+            Crimson Button is a redstone component crafted from Crimson
+            Planks. Like all Nether wood buttons, it does not burn, and it
+            can be pressed by players, arrows, tridents, or wind charges to
+            emit a brief redstone pulse.
+        lore: |
+            Nether wood buttons inherit the fire immunity of Crimson and
+            Warped stems, making them the go-to buttons near lava or in
+            Nether builds.
+    uses:
+        - title: Redstone Circuit
+          ref: crimson_planks
+          detail: |
+              Wired to doors, dispensers, or trapdoors, it supplies a
+              signal strength 15 pulse lasting about 1.5 seconds per press.
+    found_in:
+        - location: Crafted from Crimson Planks
+          detail: A single Crimson Plank crafts one Crimson Button.
+        - location: Trial chambers
+          detail: Buttons of various wood types can generate in trial chamber vaults and structures.
+    faq:
+        - question: What tool do I need to mine Crimson Button?
+          answer: |
+              Any tool works, and it can even be broken by hand — it has
+              only 0.5 hardness. An axe is fastest.
+        - question: Does Crimson Button burn in lava or fire?
+          answer: |
+              No. Being made from Nether wood, it is non-flammable and
+              immune to fire and lava, unlike Overworld wood buttons on
+              Bedrock Edition.
+        - question: How long does the redstone signal last?
+          answer: |
+              A manual press activates the button for 1.5 seconds (15
+              redstone ticks). Arrows or tridents keep it powered until
+              they despawn.
+        - question: Can it be used as furnace fuel?
+          answer: |
+              No. Unlike Overworld wood buttons, Nether wood buttons
+              (Crimson and Warped) do not work as smelting fuel.
     data_version: "1.21.5"
 ---
 

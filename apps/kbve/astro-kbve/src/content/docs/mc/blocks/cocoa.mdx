@@ -1,5 +1,6 @@
 ---
 title: Cocoa
+template: splash
 description: |
     Minecraft Cocoa — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 365
     ref: cocoa
     slug: cocoa
+    content_rev: 1
     display_name: Cocoa
     material: plant
     hardness: 0.2
@@ -24,10 +26,67 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cocoa_beans
+          qty_min: 1
+          qty_max: 3
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - plant
+    about:
+        description: |
+            Cocoa is the crop pod that grows on the sides of jungle logs,
+            producing Cocoa Beans as it matures through three visible
+            growth stages. It can only be placed on and grows solely from
+            naturally-generated jungle wood.
+        lore: |
+            Cocoa pods do not appear on jungle trees grown from saplings —
+            only on logs that generated as part of the original jungle
+            biome, a quirk that has persisted since their 1.3 introduction.
+    uses:
+        - title: Brown Dye
+          ref: brown_dye
+          detail: |
+              Cocoa Beans are used directly as Brown Dye for dyeing wool,
+              terracotta, and other dyeable blocks.
+        - title: Cookies
+          ref: cookie
+          detail: |
+              Combining Cocoa Beans with Wheat crafts Cookies, a quick and
+              cheap food source.
+        - title: Replanting
+          ref: cocoa
+          detail: |
+              Placing a Cocoa Bean on the side of a jungle log starts a new
+              Cocoa pod, letting players farm additional jungle logs into
+              cocoa plantations.
+    found_in:
+        - location: Jungle and sparse jungle biomes
+          detail: Generates naturally on the sides of jungle logs at various growth stages.
+        - location: Bonus chests
+          detail: A small chance to find Cocoa Beans in the world-spawn bonus chest.
+    faq:
+        - question: What tool should I use to harvest Cocoa?
+          answer: |
+              An axe is fastest, but any tool or bare hands will break it;
+              only the growth stage affects how many beans drop.
+        - question: How many beans does a fully grown Cocoa pod drop?
+          answer: |
+              Three Cocoa Beans at the final growth stage, versus one bean
+              at each of the two earlier stages.
+        - question: Can Cocoa be planted on any wood?
+          answer: |
+              No. It can only be placed on the side of a Jungle Log (or
+              jungle wood variants), not on other wood types.
+        - question: Does Fortune increase Cocoa Bean drops?
+          answer: |
+              No. Fortune has no effect on Cocoa; drop count depends only on
+              the pod's growth stage when broken.
     data_version: "1.21.5"
 ---
 

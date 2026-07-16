@@ -1,5 +1,6 @@
 ---
 title: Crimson Roots
+template: splash
 description: |
     Minecraft Crimson Roots — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 841
     ref: crimson_roots
     slug: crimson-roots
+    content_rev: 1
     display_name: Crimson Roots
     material: plant
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
@@ -26,8 +27,50 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: crimson_roots
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - nether
+    about:
+        description: |
+            Crimson Roots is a non-solid decorative plant resembling a
+            colony of tall, thin mushrooms that grows on crimson nylium
+            and soul soil. It has no hitbox and breaks instantly with any
+            tool.
+        lore: |
+            Part of the Nether Update's fungal ecosystem, crimson roots
+            add ground-level detail to crimson forests alongside fungi and
+            vines.
+    uses:
+        - title: Composting
+          ref: bone_meal
+          detail: |
+              Adding crimson roots to a composter has a 65% chance to
+              raise its level by one, and it can also be placed in a
+              flower pot for a potted decoration.
+    found_in:
+        - location: Crimson Forest
+          detail: Generates frequently on crimson nylium, and rarely in warped forests and soul sand valleys on soul soil.
+        - location: Bastion Remnant chests
+          detail: Occasionally found as loot in Bastion Remnant chests.
+    faq:
+        - question: Does Crimson Roots require a specific tool?
+          answer: |
+              No. It breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: Can Crimson Roots be planted anywhere?
+          answer: |
+              It can only be placed on nylium or soul soil; placing it on
+              other blocks is not possible, though it can also live in a
+              flower pot.
+        - question: Is Crimson Roots useful for crafting?
+          answer: |
+              No. It has no crafting recipes and exists purely for
+              decoration and minor composting.
     data_version: "1.21.5"
 ---
 

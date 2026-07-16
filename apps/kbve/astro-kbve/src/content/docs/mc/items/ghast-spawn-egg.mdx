@@ -1,5 +1,6 @@
 ---
 title: Ghast Spawn Egg
+template: splash
 description: |
     Minecraft Ghast Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 1093
     ref: ghast_spawn_egg
     slug: ghast-spawn-egg
+    content_rev: 1
     display_name: Ghast Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            A spawn egg is an item that instantly spawns a specific mob when used on a
+            surface. The Ghast Spawn Egg summons a ghast, with feet placed adjacent to the
+            surface it was used on, and plays the mob's ambient sound. It is obtainable only
+            in Creative mode or via commands, not through Survival crafting or drops.
+        lore: |
+            Renaming a spawn egg on an anvil before use can trigger special effects, such as
+            "Dinnerbone" flipping the spawned mob upside down.
+    faq:
+        - question: How do you get a Ghast Spawn Egg?
+          answer: |
+              It can only be obtained in Creative mode inventory or by using a command such
+              as `/give @s ghast_spawn_egg`; it cannot be crafted or found as a drop.
+        - question: What happens when you use it?
+          answer: |
+              Using the egg on a block surface instantly spawns a ghast with its feet next
+              to that surface, and the mob immediately plays its ambient sound.
+        - question: Can renaming it change the spawned mob?
+          answer: |
+              Yes. Renaming the egg on an anvil gives the spawned mob that name overhead, and
+              certain special names (like "Dinnerbone" or "Grumm") flip the mob upside down.
+        - question: Is the Ghast Spawn Egg consumed when used?
+          answer: |
+              In Survival mode it is consumed after use like other items, but in Creative
+              mode it remains in the inventory indefinitely.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

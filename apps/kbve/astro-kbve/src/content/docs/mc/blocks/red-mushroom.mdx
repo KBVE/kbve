@@ -1,5 +1,6 @@
 ---
 title: Red Mushroom
+template: splash
 description: |
     Minecraft Red Mushroom — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,79 @@ mc_block:
     id: 172
     ref: red_mushroom
     slug: red-mushroom
+    content_rev: 1
     display_name: Red Mushroom
     material: stone
     hardness: 0
     blast_resistance: 0
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: red_mushroom
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - nether
+    about:
+        description: |
+            Red Mushroom is a small, non-solid plant that spawns in
+            low-light areas of the Overworld and Nether. It breaks
+            instantly with any tool and can be grown into a huge mushroom
+            with bone meal on suitable ground.
+        lore: |
+            Modeled after the real-world Amanita muscaria (fly agaric), the
+            red mushroom has been a Minecraft staple since the game's
+            earliest versions.
+    uses:
+        - title: Mushroom Stew
+          ref: mushroom_stew
+          detail: |
+              Combine a Red Mushroom, a Brown Mushroom, and a bowl to craft
+              Mushroom Stew, a filling early-game food.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              Red Mushroom is one of several ingredients that can be
+              combined with a flower and bowl to craft Suspicious Stew.
+    found_in:
+        - location: Dark, Low-Light Areas
+          detail: |
+              Spawns naturally in light level 12 or below across caves,
+              forests, and the Nether.
+        - location: Mycelium, Podzol, and Nylium
+          detail: |
+              Grows at any light level, including full sunlight, when
+              placed on these special blocks.
+        - location: Mooshrooms
+          detail: |
+              Shearing a mooshroom drops 5 red mushrooms and turns it into
+              a regular cow.
+    faq:
+        - question: What tool do I need to mine Red Mushroom?
+          answer: |
+              None. It breaks instantly with any tool or bare hands and
+              always drops itself.
+        - question: Can Red Mushroom grow anywhere?
+          answer: |
+              It needs a light level of 12 or below on most blocks, but
+              grows regardless of light on mycelium, podzol, or nylium.
+        - question: What can I craft with Red Mushroom?
+          answer: |
+              Mushroom Stew, Suspicious Stew, and Rabbit Stew all use it as
+              an ingredient.
+        - question: How do I get a huge red mushroom?
+          answer: |
+              Apply bone meal to a placed Red Mushroom on suitable ground
+              in enough open space above it.
     data_version: "1.21.5"
 ---
 

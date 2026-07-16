@@ -1,4 +1,4 @@
-ARG FACTORIO_VERSION=2.0.76
+ARG FACTORIO_VERSION=2.0.77
 FROM factoriotools/factorio:${FACTORIO_VERSION}-rootless
 
 USER root

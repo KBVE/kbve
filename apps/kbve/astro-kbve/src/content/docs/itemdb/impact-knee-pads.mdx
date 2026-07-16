@@ -1,0 +1,42 @@
+---
+title: 'Impact Knee Pads'
+template: splash
+sidebar:
+    label: 'Impact Knee Pads'
+    hidden: true
+description: |
+    Ratchet-strap knee pair, the uniform of everyone who works low and gets up slow.
+ref: 'impact-knee-pads'
+key: 629
+id: '01KXFBEGM35YXPYHJSGR3CDAJ6'
+name: 'Impact Knee Pads'
+type_flags: 514
+consumable: false
+stackable: false
+rarity: 'common'
+buy_price: 25
+emoji: '🦵'
+img: '/assets/items/equipment/impact-knee-pads.png'
+action: 'equip'
+model:
+  pack: 'SIDEKICK'
+  set: 'SCFI09'
+  nodes:
+    - 'SCFI09_AKNL'
+    - 'SCFI09_AKNR'
+  slot_keys:
+    - 'AKNL'
+    - 'AKNR'
+equipment:
+  slot: 'legs'
+  bonuses:
+    armor: 1
+    extra:
+      weight: 1
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

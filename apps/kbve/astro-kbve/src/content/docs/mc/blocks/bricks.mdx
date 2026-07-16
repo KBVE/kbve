@@ -1,5 +1,6 @@
 ---
 title: Bricks
+template: splash
 description: |
     Minecraft Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 175
     ref: bricks
     slug: bricks
+    content_rev: 1
     display_name: Bricks
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,64 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Bricks is a reddish-orange building block crafted from four
+            Brick items. It requires a wooden pickaxe or better to mine
+            and is a common decorative material used across villages and
+            player builds.
+        lore: |
+            Unobtainable in the earliest versions of the game, Bricks
+            became craftable in Java Edition Alpha, and later gained a
+            full family of slabs, stairs, and walls.
+    uses:
+        - title: Brick Slab
+          ref: brick_slab
+          detail: |
+              Three Bricks in a row craft six Brick Slabs.
+        - title: Brick Stairs
+          ref: brick_stairs
+          detail: |
+              Six Bricks in a staircase pattern craft four Brick Stairs.
+        - title: Brick Wall
+          ref: brick_wall
+          detail: |
+              Six Bricks in a row craft six Brick Walls.
+    found_in:
+        - location: Ocean Ruins
+          detail: Generates as part of underwater ocean ruin structures.
+        - location: Plains Villages
+          detail: Used in armorer houses in plains-biome villages.
+        - location: Mason villager trades
+          detail: Mason villagers sell Brick items, making the block renewable through trading.
+    faq:
+        - question: What tool do I need to mine Bricks?
+          answer: |
+              A wooden pickaxe or better. Mining without a pickaxe drops
+              nothing.
+        - question: How do I craft Bricks?
+          answer: |
+              Arrange four Brick items in a 2x2 square in a crafting grid
+              to produce one Bricks block.
+        - question: Is Bricks renewable?
+          answer: |
+              Yes. Mason villagers trade Brick items, and Brick items can
+              be smelted from Clay Balls, making the block fully
+              renewable.
+        - question: Where does Bricks generate naturally?
+          answer: |
+              It appears in ocean ruins, plains village armorer houses,
+              and Trail Ruins structures.
     data_version: "1.21.5"
 ---
 

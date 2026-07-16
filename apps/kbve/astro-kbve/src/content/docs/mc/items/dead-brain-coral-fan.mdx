@@ -1,5 +1,6 @@
 ---
 title: Dead Brain Coral Fan
+template: splash
 description: |
     Minecraft Dead Brain Coral Fan — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,39 @@ mc_item:
     id: 645
     ref: dead_brain_coral_fan
     slug: dead-brain-coral-fan
+    content_rev: 1
     display_name: Dead Brain Coral Fan
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Dead Brain Coral Fan is a non-solid decoration block representing
+            a brain coral fan that has died from exposure to air. It can be
+            placed on the top or sides of blocks and is waterloggable, making it
+            useful for bleached-reef style builds.
+        lore: |
+            Dead coral fans were introduced in Java Edition 1.13-pre8, marking the
+            lifeless end state of coral fans removed from water.
+    faq:
+        - question: How do I obtain a Dead Brain Coral Fan?
+          answer: |
+              Place a living brain coral fan outside of water and it will die and
+              turn into the dead variant.
+        - question: Can I pick it up without Silk Touch?
+          answer: |
+              No, dead coral fans only drop as an item when mined with a Silk
+              Touch enchanted tool.
+        - question: Can it be pushed by pistons?
+          answer: |
+              Yes, in Java Edition it can be pushed by a piston as long as it
+              stays supported and does not float unsupported.
+        - question: Is the Dead Brain Coral Fan waterloggable?
+          answer: |
+              Yes, it can occupy the same space as water, allowing it to be
+              placed inside underwater builds.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

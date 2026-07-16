@@ -1,5 +1,6 @@
 ---
 title: Anvil
+template: splash
 description: |
     Minecraft Anvil — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,11 +14,30 @@ mc_item:
     id: 449
     ref: anvil
     slug: anvil
+    content_rev: 1
     display_name: Anvil
     category: misc
     rarity: common
     stack_size: 64
     tags: []
+    about:
+        description: |
+            The anvil is a utility block used to repair items, combine enchantments, and rename objects. It is crafted from three blocks of iron plus four iron ingots, for a total of 31 iron ingots. Each use has a 12% chance to degrade the anvil, which passes through chipped and damaged states before breaking.
+        lore: |
+            A heavy iron block that mends and empowers a smith's gear.
+    faq:
+        - question: How do I craft an anvil?
+          answer: |
+              Combine three blocks of iron along the top of the crafting grid with four iron ingots below, using 31 iron ingots in total.
+        - question: What can an anvil do?
+          answer: |
+              It repairs items using materials or a second matching item, applies enchanted books, combines enchantments into higher tiers, and renames items for one experience level.
+        - question: Why did my anvil break?
+          answer: |
+              Each use carries a 12% chance to degrade the anvil one stage; anvils survive about 25 uses on average before breaking.
+        - question: Can anvils damage players?
+          answer: |
+              Yes, a falling anvil deals 2 damage per block fallen after the first, capped at 40 damage.
     data_version: "1.21.5"
 ---
 

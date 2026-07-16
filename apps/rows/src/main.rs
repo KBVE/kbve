@@ -123,6 +123,22 @@ async fn main() -> anyhow::Result<()> {
         "Agones initialization complete"
     );
 
+    // Env is resolved at container creation: a pod scheduled before the sealed secret unsealed
+    // (optional: true secretKeyRef) runs WITHOUT the token until its next restart. The
+    // fleet-restart trigger/clear fail closed (401 everyone), but the legacy RestartFleet gate is
+    // conditional — with no token it stays open to any caller holding the tenant GUID. Surface
+    // that state loudly so it's alertable instead of silent.
+    if std::env::var("ROWS_FLEET_RESTART_TOKEN")
+        .map(|v| v.is_empty())
+        .unwrap_or(true)
+    {
+        tracing::warn!(
+            "ROWS_FLEET_RESTART_TOKEN is not set — /fleet-restart/trigger and /fleet-restart/clear \
+             reject all callers (fail closed), and the legacy RestartFleet remains UNGATED. If the \
+             sealed secret exists, this pod may have started before it unsealed — restart the pod."
+        );
+    }
+
     let app_state = state::AppState::builder()
         .db(pool)
         .db_ro(pool_ro)
@@ -130,6 +146,7 @@ async fn main() -> anyhow::Result<()> {
         .agones_config(&cfg.agones_namespace, &cfg.agones_fleet)
         .reaper_config(cfg.reaper.clone())
         .accept_new_joins(cfg.accept_new_joins)
+        .fleet_restart_stall_secs(cfg.fleet_restart_stall_secs)
         .mq(mq_producer)
         .agones(agones_client)
         .build()?;

@@ -15,8 +15,9 @@ data:
     PUBLIC_WS_URL: wss://ws.kbve.com
     PUBLIC_DISCORD_CLIENT_ID: placeholder-discord-client-id
     PUBLIC_ENV: production
-    RUST_LOG: debug
-    N8N_BASE_URL: http://n8n.n8n.svc.cluster.local:5678/webhook/
-    N8N_ALLOWED_PATHS: kbve/*,deploy-*
-    N8N_RATE_LIMIT: '1'
-    N8N_RATE_WINDOW: '5'
+    RUST_LOG: warn
+    WINDMILL_BASE_URL: http://windmill-app.windmill.svc.cluster.local:8000
+    WINDMILL_WORKSPACE: kbve
+    WINDMILL_ALLOWED_PATHS: 'f/discordsh/*'
+    WM_RATE_LIMIT: '1'
+    WM_RATE_WINDOW: '5'

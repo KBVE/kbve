@@ -1,5 +1,6 @@
 ---
 title: Orange Carpet
+template: splash
 description: |
     Minecraft Orange Carpet — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 507
     ref: orange_carpet
     slug: orange-carpet
+    content_rev: 1
     display_name: Orange Carpet
     material: wool
     hardness: 0.1
@@ -21,13 +23,62 @@ mc_block:
     required_tool_tier: 0
     light_emission: 0
     light_opacity: 0
-    transparent: false
+    transparent: true
     placeable: true
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: orange_carpet
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Orange Carpet is a thin, one-sixteenth-block-tall decoration
+            made from orange wool. It can be placed on non-solid blocks,
+            dampens sculk vibrations, and prevents most mob spawning.
+        lore: |
+            Carpets were introduced alongside stained clay and hardened
+            colors in the Update That Changed the World (1.7), giving wool
+            colors a low-profile decorative form.
+    uses:
+        - title: Llama Decoration
+          ref: llama
+          detail: |
+              Equip on a llama to give it a colored carpet pattern on its back.
+        - title: Sculk Sound Dampening
+          ref: sculk_sensor
+          detail: |
+              Place over sculk sensors or shriekers to muffle the
+              vibrations they detect, useful for stealth builds.
+    found_in:
+        - location: Savanna villages
+          detail: Generates naturally as flooring in some savanna village structures.
+        - location: Crafting table
+          detail: Craft two orange wool blocks side by side to yield three carpets.
+    faq:
+        - question: What tool do I need to mine Orange Carpet?
+          answer: |
+              None — it breaks instantly by hand or with any tool and
+              always drops itself.
+        - question: Does carpet stop mobs from spawning?
+          answer: |
+              Yes, like most non-transparent flooring, carpet placed on a
+              surface prevents hostile mobs from spawning on it.
+        - question: Can carpet be placed on non-solid blocks?
+          answer: |
+              Yes, carpet is one of the few blocks that can be placed
+              directly on top of snow layers, lily pads, and other
+              non-solid surfaces.
+        - question: Is it flammable?
+          answer: |
+              Yes, like wool it catches fire and burns away when exposed
+              to flames.
     data_version: "1.21.5"
 ---
 

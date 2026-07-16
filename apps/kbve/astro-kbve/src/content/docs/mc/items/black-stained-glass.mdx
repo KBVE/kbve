@@ -1,5 +1,6 @@
 ---
 title: Black Stained Glass
+template: splash
 description: |
     Minecraft Black Stained Glass — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 516
     ref: black_stained_glass
     slug: black-stained-glass
+    content_rev: 1
     display_name: Black Stained Glass
     category: block
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Black Stained Glass is a transparent decorative block made by surrounding 8 glass blocks with black dye in a crafting grid, yielding 8 dyed blocks. It lets light pass through while tinting the view, making it popular for dark windows and skylights. Like all glass, it only drops when broken with a Silk Touch tool and can be found naturally in trial chambers.
+        lore: |
+            Sand fused in fire and stained the color of midnight, letting light in while keeping the world at arm's length.
+    faq:
+        - question: How do I craft Black Stained Glass?
+          answer: |
+            Place 8 glass blocks around a single black dye in the center of a crafting grid to produce 8 black stained glass blocks at once.
+        - question: Do I need Silk Touch to collect it?
+          answer: |
+            Yes. Stained glass shatters and drops nothing when broken normally, so you must use a tool enchanted with Silk Touch to recover the block.
+        - question: Can I use it to color a beacon beam?
+          answer: |
+            Yes. Placing stained glass above a beacon tints the beam, and stacking different colors blends them, so black stained glass darkens the resulting beam color.
+        - question: Can mobs spawn on stained glass?
+          answer: |
+            No. Mobs cannot normally spawn on stained glass blocks, though they still treat it as visually opaque for line-of-sight purposes.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

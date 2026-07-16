@@ -1,5 +1,6 @@
 ---
 title: Horse Spawn Egg
+template: splash
 description: |
     Minecraft Horse Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1098
     ref: horse_spawn_egg
     slug: horse-spawn-egg
+    content_rev: 1
     display_name: Horse Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Horse Spawn Egg is a Creative-mode item used to summon a horse, a passive mob that comes in 35 color and marking combinations and serves as rideable transportation. Once tamed and saddled, horses offer far greater mobility than a sprinting player, jumping up to 5.9 blocks high and reaching speeds over 14 blocks per second.
+        lore: |
+            Every horse is born with randomly generated stats for speed, jump height, and health, so no two tamed steeds ride quite the same.
+    faq:
+        - question: How do I tame a horse?
+          answer: |
+              An adult horse can be tamed by repeatedly mounting it until it stops bucking the player off; feeding it items like golden apples increases its temper and speeds up the process.
+        - question: How do I breed horses?
+          answer: |
+              Tamed horses can be bred using golden carrots or golden apples, and they can even cross-breed with donkeys to produce mules.
+        - question: Do horses take fall damage like other mobs?
+          answer: |
+              Horses are more resilient than most mobs — they can safely fall 7 blocks before taking damage and only take half the normal fall damage afterward.
+        - question: Can I quickly remove a horse's saddle and armor?
+          answer: |
+              Yes, using shears on the horse removes its saddle and armor instantly, without needing to open its inventory.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

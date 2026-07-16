@@ -1,5 +1,6 @@
 ---
 title: Warped Trapdoor
+template: splash
 description: |
     Minecraft Warped Trapdoor — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,40 @@ mc_item:
     id: 775
     ref: warped_trapdoor
     slug: warped-trapdoor
+    content_rev: 1
     display_name: Warped Trapdoor
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Warped Trapdoor is the Nether-wood variant of the trapdoor family, crafted from
+            six warped planks to yield two trapdoors. It can be placed on the top or bottom half
+            of a block with the hinge on any side, opened or closed by hand or with a redstone
+            signal, and climbed like a ladder extension when mounted above one and left open.
+            Unlike most wooden trapdoors, it is immune to fire since it comes from nether wood.
+        lore: |
+            Grown from the pale, fungal warped stems of the Nether, this trapdoor carries none
+            of the Overworld's flammability, a quiet reminder of the alien wood it was cut from.
+    faq:
+        - question: Does the Warped Trapdoor burn in fire or lava?
+          answer: |
+              No. As a nether wood variant, it is non-flammable and will not catch fire from
+              lava, fire, or furnace flames.
+        - question: Can it be used as furnace fuel?
+          answer: |
+              No. Only Overworld wooden trapdoors count as furnace fuel; crimson and warped
+              trapdoors are explicitly excluded from that list.
+        - question: What is the crafting recipe?
+          answer: |
+              Six warped planks arranged across the top two rows of the crafting grid produce
+              two Warped Trapdoors.
+        - question: Can redstone or wind charges toggle it?
+          answer: |
+              Yes. A redstone pulse opens or closes it automatically, and a thrown wind charge's
+              burst will also toggle its open/closed state on impact.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

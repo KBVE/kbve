@@ -1,5 +1,6 @@
 ---
 title: Lava
+template: splash
 description: |
     Minecraft Lava — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,11 +14,11 @@ mc_block:
     id: 36
     ref: lava
     slug: lava
+    content_rev: 1
     display_name: Lava
     material: liquid
     hardness: 100
     blast_resistance: 100
-    best_tool: hand
     required_tool_tier: 0
     light_emission: 15
     light_opacity: 1
@@ -27,7 +28,67 @@ mc_block:
     renewable: false
     diggable: true
     drops: []
-    tags: []
+    tags:
+        - liquid
+        - overworld
+        - nether
+        - light_source
+        - hazard
+    about:
+        description: |
+            Lava is a hazardous, luminous fluid found underground and
+            across the Nether. It deals continuous fire damage to anything
+            that touches it, ignites flammable blocks nearby, and turns
+            into obsidian or basalt when it meets water or soul soil under
+            blue ice.
+        lore: |
+            One of Minecraft's original blocks, lava has been part of the
+            game since Classic 0.0.12a in 2009, anchoring core survival
+            danger and the crafting of obsidian.
+    uses:
+        - title: Lava Bucket
+          ref: lava_bucket
+          detail: |
+              Scoop a source block with an empty bucket to get a lava
+              bucket, usable as furnace fuel or to place lava elsewhere.
+        - title: Obsidian
+          ref: obsidian
+          detail: |
+              A lava source block turns to obsidian when touched by water;
+              flowing lava touched by water instead becomes cobblestone or
+              stone.
+        - title: Nether Portal fuel
+          ref: flint_and_steel
+          detail: |
+              Lava pools are commonly used alongside a Nether portal frame,
+              lit with flint and steel to activate the portal.
+    found_in:
+        - location: Overworld caves
+          detail: Forms lakes between Y=-55 and Y=-63, and smaller surface lakes above Y=0 in any biome.
+        - location: The Nether
+          detail: Forms vast oceans around Y=32 and smaller pockets below Y=19; also fills basins in Nether fortresses.
+        - location: Structures
+          detail: Found in stronghold End portal rooms, woodland mansions, and village blacksmith houses.
+    faq:
+        - question: How do I safely collect lava?
+          answer: |
+              Use an empty bucket on a lava source block to fill it into a
+              lava bucket, which can be carried and placed again.
+        - question: How much damage does lava deal?
+          answer: |
+              About 4 hit points per tick, plus 15 seconds of fire damage
+              afterward; unarmored players survive roughly 2.5 seconds,
+              netherite-armored players around 11 seconds.
+        - question: Does lava always cause fire to spread?
+          answer: |
+              Only flammable blocks within a small area directly above or
+              near the lava can ignite; not everything adjacent to lava
+              catches fire.
+        - question: What happens when lava meets water?
+          answer: |
+              A lava source becomes obsidian; flowing lava becomes
+              cobblestone or stone instead, which is the basis of
+              obsidian and cobblestone generators.
     data_version: "1.21.5"
 ---
 

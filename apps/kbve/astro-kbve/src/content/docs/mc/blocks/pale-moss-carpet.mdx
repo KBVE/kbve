@@ -1,5 +1,6 @@
 ---
 title: Pale Moss Carpet
+template: splash
 description: |
     Minecraft Pale Moss Carpet — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 1097
     ref: pale_moss_carpet
     slug: pale-moss-carpet
+    content_rev: 1
     display_name: Pale Moss Carpet
     material: dirt
     hardness: 0.1
@@ -26,8 +28,61 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: pale_moss_carpet
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flammable
+    about:
+        description: |
+            Pale Moss Carpet is a thin decorative block that grows on top
+            of pale moss and spreads bleached, vine-like tendrils down the
+            sides of neighboring blocks. It is the pale garden counterpart
+            to ordinary moss carpet, sharing the same muted, ashen palette
+            as the rest of the biome.
+        lore: |
+            Added alongside the pale garden biome in the Garden Awakens
+            drop (Java Edition 1.21.4), it reinforces the biome's quiet,
+            overgrown-ruin atmosphere.
+    uses:
+        - title: Decoration
+          ref: pale_moss_carpet
+          detail: |
+              Placed on pale moss blocks or bone-mealed into existence, it
+              drapes hanging vine-like growths over adjacent block faces,
+              used to dress up gardens, ruins, and pale-themed builds.
+        - title: Composting
+          ref: composter
+          detail: |
+              Can be placed in a composter for a 30% chance to raise the
+              compost level by one, a minor renewable-resource use.
+    found_in:
+        - location: Pale Gardens
+          detail: Generates naturally on pale moss patches throughout the pale garden biome.
+        - location: Bone Meal on Pale Moss
+          detail: Applying bone meal to a pale moss block grows pale moss carpet and pale hanging moss around it.
+    faq:
+        - question: What tool do I need to mine Pale Moss Carpet?
+          answer: |
+              None. It breaks instantly with any tool, or by hand, and
+              always drops itself.
+        - question: Does Pale Moss Carpet do anything besides look nice?
+          answer: |
+              It is purely decorative and a minor composting item; it has
+              no redstone or functional gameplay interactions.
+        - question: How do I get more Pale Moss Carpet?
+          answer: |
+              Craft it from pale moss blocks (2 moss blocks yield 3
+              carpets), or bone meal a pale moss block to grow it and
+              hanging moss naturally.
+        - question: Is Pale Moss Carpet flammable?
+          answer: |
+              Yes. Like other carpets it can catch fire and burn if
+              exposed to flames or lava.
     data_version: "1.21.5"
 ---
 

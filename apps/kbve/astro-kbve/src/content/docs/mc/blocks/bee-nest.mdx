@@ -1,5 +1,6 @@
 ---
 title: Bee Nest
+template: splash
 description: |
     Minecraft Bee Nest — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 870
     ref: bee_nest
     slug: bee-nest
+    content_rev: 1
     display_name: Bee Nest
     material: wood
     hardness: 0.3
@@ -24,10 +26,61 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bee_nest
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            A Bee Nest is a natural wood block that generates on certain
+            trees and houses up to three bees. It fills with honey as bees
+            pollinate nearby flowers, which players can harvest as honey
+            bottles or honeycomb.
+        lore: |
+            Added in Java Edition 1.15 (19w34a) alongside bees themselves,
+            the bee nest became renewable once saplings grown near flowers
+            gained a small chance to spawn one.
+    uses:
+        - title: Honey Bottle
+          ref: honey_bottle
+          detail: |
+              Right-click a full nest with a glass bottle to collect honey
+              without angering the bees inside.
+        - title: Honeycomb
+          ref: honeycomb
+          detail: |
+              Right-click a full nest with shears (ideally near a lit
+              campfire) to collect honeycomb while keeping bees calm.
+    found_in:
+        - location: Meadows
+          detail: Generates on nearly every eligible tree in this biome.
+        - location: Plains, sunflower plains, forests, and cherry groves
+          detail: Generates at low chance on trees within these biomes.
+    faq:
+        - question: What happens if I break a Bee Nest without Silk Touch?
+          answer: |
+              It drops nothing, and any bees inside become angry and fly
+              out to attack.
+        - question: How do I keep the bees safe when breaking the nest?
+          answer: |
+              Mine it with a Silk Touch tool; the nest drops itself with up
+              to three bees preserved inside.
+        - question: Is a Bee Nest renewable?
+          answer: |
+              Yes, saplings planted near flowers have a small chance to
+              grow into a tree with a bee nest attached.
+        - question: What tool breaks a Bee Nest fastest?
+          answer: |
+              An axe, though no specific tool tier is required to obtain
+              the drop with Silk Touch.
     data_version: "1.21.5"
 ---
 

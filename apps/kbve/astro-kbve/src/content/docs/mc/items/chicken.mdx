@@ -1,5 +1,6 @@
 ---
 title: Raw Chicken
+template: splash
 description: |
     Minecraft Raw Chicken — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_item:
     id: 1050
     ref: chicken
     slug: chicken
+    content_rev: 1
     display_name: Raw Chicken
     category: food
     rarity: common
@@ -22,6 +24,31 @@ mc_item:
         saturation: 4.8
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Raw Chicken is a food item obtained mainly by killing chickens, dropping
+            1 by default or up to 4 with Looting III. Eating it restores 2 hunger
+            points and 1.2 saturation, but carries a 30% chance of inflicting the
+            Hunger status effect for 30 seconds.
+        lore: |
+            Raw chicken has been part of Minecraft's food system since Beta 1.8,
+            representing one of the riskier raw meats to eat straight from the mob.
+    faq:
+        - question: Is it safe to eat Raw Chicken?
+          answer: |
+            It restores hunger and saturation, but has a 30% chance of causing the
+            Hunger effect for 30 seconds, so cooking it first is safer.
+        - question: Can Raw Chicken be used to tame or heal wolves?
+          answer: |
+            Yes, it can breed, heal, and speed up the growth of baby wolves, and
+            wolves suffer no food poisoning risk from eating it.
+        - question: How do I turn Raw Chicken into Cooked Chicken?
+          answer: |
+            Smelt it in a furnace, smoker, or campfire to remove the food poisoning
+            risk and increase its nutrition value.
+        - question: Can I sell Raw Chicken to villagers?
+          answer: |
+            Yes, butcher villagers buy 14 raw chicken in exchange for 1 emerald.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

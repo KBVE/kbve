@@ -1,5 +1,6 @@
 ---
 title: Magenta Wool
+template: splash
 description: |
     Minecraft Magenta Wool — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 215
     ref: magenta_wool
     slug: magenta-wool
+    content_rev: 1
     display_name: Magenta Wool
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Magenta Wool is a dyeable block most commonly obtained by shearing or killing sheep, or by
+            dyeing plain wool with magenta dye. It is a soft, flammable building material prized for
+            decoration, and it is the only common block that silences vibrations from footsteps near
+            sculk sensors and wardens.
+        lore: |
+            Soft, dyed fleece that muffles every footstep laid upon it.
+    faq:
+        - question: How do I get Magenta Wool?
+          answer: |
+              Shear a magenta sheep, kill one for a single drop, or craft it by dyeing plain wool with
+              magenta dye at a crafting table.
+        - question: Does Magenta Wool protect against explosions?
+          answer: |
+              No, wool has very low blast resistance and burns easily, so it is unsuitable for
+              explosion-proof or fireproof structures.
+        - question: What is Magenta Wool used for besides building?
+          answer: |
+              It is a crafting ingredient for beds, banners, and carpets, and it dampens vibrations so
+              mobs and players walking on it are not detected by sculk sensors or wardens.
+        - question: Can I get a rainbow-colored version from a "jeb_" sheep?
+          answer: |
+              No, a sheep named "jeb_" only cycles through rainbow colors visually; it still drops its
+              actual wool color, such as magenta, when sheared or killed.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

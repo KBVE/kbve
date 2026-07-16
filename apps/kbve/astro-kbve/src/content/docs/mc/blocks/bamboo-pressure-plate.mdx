@@ -1,5 +1,6 @@
 ---
 title: Bamboo Pressure Plate
+template: splash
 description: |
     Minecraft Bamboo Pressure Plate — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 257
     ref: bamboo_pressure_plate
     slug: bamboo-pressure-plate
+    content_rev: 1
     display_name: Bamboo Pressure Plate
     material: redstone
     hardness: 0.5
@@ -26,8 +28,50 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: bamboo_pressure_plate
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+    about:
+        description: |
+            Bamboo Pressure Plate is a redstone component crafted from
+            Bamboo Planks that detects entities standing on it and emits
+            a redstone signal. It behaves like other wooden pressure
+            plates, activating for players, mobs, items, and arrows.
+        lore: |
+            Wooden pressure plates date back to early Minecraft Alpha;
+            the bamboo variant arrived with the 1.20 bamboo wood set.
+    uses:
+        - title: Redstone triggers
+          ref: bamboo_pressure_plate
+          detail: |
+              Placed to trigger doors, dispensers, TNT, or other redstone
+              devices when stepped on, emitting a signal strength of 15.
+    found_in:
+        - location: Player crafting
+          detail: 2 Bamboo Planks arranged vertically craft into 1 Bamboo Pressure Plate.
+        - location: Generated structures
+          detail: Occasionally found in Trial Chambers loot.
+    faq:
+        - question: What tool do I need to mine a Bamboo Pressure Plate?
+          answer: |
+              None — any tool or bare hands work, though an axe is fastest.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No, it always drops itself regardless of enchantments.
+        - question: What triggers a Bamboo Pressure Plate?
+          answer: |
+              Players, mobs, items, and arrows landing on it; it
+              deactivates after 20 ticks with nothing detected.
+        - question: Can it be used as furnace fuel?
+          answer: |
+              Yes, like other Overworld wood pressure plates it burns for
+              1.5 items worth of smelting fuel.
     data_version: "1.21.5"
 ---
 

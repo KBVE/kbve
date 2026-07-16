@@ -1,5 +1,6 @@
 ---
 title: Stone Slab
+template: splash
 description: |
     Minecraft Stone Slab — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 578
     ref: stone_slab
     slug: stone-slab
+    content_rev: 1
     display_name: Stone Slab
     material: stone
     hardness: 2
     blast_resistance: 6
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 0
     transparent: false
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: stone_slab
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            The Stone Slab is a half-height building block cut from stone.
+            It can be placed as a bottom, top, or combined double slab, and
+            is one of the most common decorative blocks used to add
+            texture and detail to builds.
+        lore: |
+            Stone slabs joined the game in the 1.14 Village & Pillage
+            update alongside the full family of stone stair and slab
+            variants.
+    uses:
+        - title: Grindstone
+          ref: grindstone
+          detail: |
+              Two stone slabs, one stick, and two wooden planks craft a
+              grindstone, used to repair tools and remove enchantments.
+    found_in:
+        - location: Ruined portals
+          detail: Generates as rubble scattered around ruined portal structures.
+        - location: Crafted or stonecut
+          detail: |
+              Three stone blocks craft six slabs; a single stone block in a
+              stonecutter produces two slabs.
+    faq:
+        - question: What tool do I need to mine a Stone Slab?
+          answer: |
+              At least a wooden pickaxe. Mining without a pickaxe destroys
+              the block with no drop.
+        - question: Can I place two slabs to make a full block?
+          answer: |
+              Yes. Placing a second slab against an existing bottom or top
+              slab combines them into a full double-slab block.
+        - question: Is a Stone Slab waterloggable?
+          answer: |
+              Yes, a single (non-double) stone slab can hold water in its
+              block space.
+        - question: How many slabs come from one stone block?
+          answer: |
+              Crafting three stone blocks yields six slabs; stonecutting one
+              stone block yields two slabs.
     data_version: "1.21.5"
 ---
 

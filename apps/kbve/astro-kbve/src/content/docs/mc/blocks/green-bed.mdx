@@ -1,5 +1,6 @@
 ---
 title: Green Bed
+template: splash
 description: |
     Minecraft Green Bed — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 123
     ref: green_bed
     slug: green-bed
+    content_rev: 1
     display_name: Green Bed
     material: stone
     hardness: 0.2
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: green_bed
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+    about:
+        description: |
+            The green bed is a colored variant of the bed, used to set a
+            player's spawn point and skip the night. It breaks instantly
+            with any tool, or by hand, and always drops itself.
+        lore: |
+            Beds were introduced in the Adventure Update (Beta 1.8) and
+            gained dyeable color variants, including green, in 1.12.
+    uses:
+        - title: Spawn Point
+          ref: green_bed
+          detail: |
+              Sleeping in the bed while the sky light is 11 or below sets
+              the player's respawn point and skips the night if enough
+              players sleep.
+        - title: Nether/End Explosive
+          ref: green_bed
+          detail: |
+              Attempting to sleep in a bed outside the Overworld causes it
+              to explode with power 5, a trick used to break blocks like
+              ancient debris or damage the Ender Dragon.
+    found_in:
+        - location: Villages
+          detail: Beds matching the village's biome color spawn in villager houses.
+        - location: Crafting
+          detail: Craft from 3 green wool and 3 planks of any wood type.
+    faq:
+        - question: What tool do I need to mine a green bed?
+          answer: |
+              None. Any tool, or bare hands, breaks it instantly and it
+              always drops itself.
+        - question: Can I sleep through a thunderstorm with it?
+          answer: |
+              Yes. Sleeping is possible whenever the internal sky light is
+              11 or below, which includes both night and thunderstorms.
+        - question: Does breaking the bed drop two items since it occupies two blocks?
+          answer: |
+              No. Breaking either half of the bed drops a single bed item.
+        - question: Is the green bed affected by Silk Touch or Fortune?
+          answer: |
+              No. It always drops itself as a single item regardless of
+              enchantments.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Deepslate Coal Ore
+template: splash
 description: |
     Minecraft Deepslate Coal Ore — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 47
     ref: deepslate_coal_ore
     slug: deepslate-coal-ore
+    content_rev: 1
     display_name: Deepslate Coal Ore
     material: stone
     hardness: 4.5
     blast_resistance: 3
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,56 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: coal
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: true
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+        - ore
+    about:
+        description: |
+            Deepslate Coal Ore is the deepslate-hosted equivalent of coal
+            ore, generating deep underground where deepslate replaces
+            stone below Y=0.
+        lore: |
+            Added in the Caves & Cliffs update as part of the deepslate
+            ore family that appears in the game's deeper cave layers.
+    uses:
+        - title: Coal
+          ref: coal
+          detail: |
+              Mining without Silk Touch drops 1 coal, boosted to 2-4 with
+              Fortune. Coal fuels furnaces, crafts torches and campfires,
+              and combines with iron to make its own distinct crafting
+              uses.
+    found_in:
+        - location: Deep Underground (below Y=0)
+          detail: Rarely replaces deepslate or tuff below Y=8, most common near Y=-8 to Y=-63 alongside regular coal ore's lower range.
+        - location: Caves and ravines
+          detail: Exposed in deep cave systems and ravines that cut through the deepslate layer.
+    faq:
+        - question: What tool do I need to mine Deepslate Coal Ore?
+          answer: |
+              Any pickaxe, wood tier or higher. Without a pickaxe it drops
+              nothing.
+        - question: Does Fortune increase coal drops?
+          answer: |
+              Yes. Fortune I-III can yield up to 2, 3, or 4 coal per
+              block respectively.
+        - question: How is it different from regular Coal Ore?
+          answer: |
+              It has higher hardness (4.5 vs 3) so it takes longer to
+              mine, but the same blast resistance and identical drops.
+        - question: Should I use Silk Touch on it?
+          answer: |
+              Only if you want the ore block itself for decoration; Silk
+              Touch yields fewer resources than mining normally with
+              Fortune.
     data_version: "1.21.5"
 ---
 

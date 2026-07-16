@@ -1,5 +1,6 @@
 ---
 title: Gray Banner
+template: splash
 description: |
     Minecraft Gray Banner — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 538
     ref: gray_banner
     slug: gray-banner
+    content_rev: 1
     display_name: Gray Banner
     material: wood
     hardness: 1
@@ -23,11 +25,58 @@ mc_block:
     light_opacity: 0
     transparent: true
     placeable: true
-    solid: true
-    renewable: false
+    solid: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: gray_banner
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - axe_mineable
+        - overworld
+        - flammable
+    about:
+        description: |
+            The Gray Banner is a tall, non-solid decorative block woven
+            from wool that gently sways in place. It can be customized with
+            up to six pattern layers using a loom and dyes.
+        lore: |
+            Banners let players mark maps and craft heraldic designs that
+            can also be applied to shields.
+    uses:
+        - title: Loom Patterns
+          ref: banner_pattern
+          detail: |
+              Combine with dye and a banner pattern at a loom to add
+              emblem layers, or apply a banner's design to a shield at a
+              crafting table.
+    found_in:
+        - location: Woodland Mansions
+          detail: Naturally generates hanging in the banner room of woodland mansions.
+        - location: Crafted or Traded
+          detail: |
+              Crafted from six wool of one color and a stick, or bought
+              from expert-level shepherd villagers for 3 emeralds.
+    faq:
+        - question: What tool mines a banner fastest?
+          answer: |
+              An axe, though any tool works since banners have no minimum
+              tier requirement.
+        - question: Can I add patterns to a gray banner?
+          answer: |
+              Yes. Use a loom with dye and an optional pattern item to add
+              up to six layered designs.
+        - question: Is the gray banner solid?
+          answer: |
+              No. Banners have no collision, so entities and players can
+              walk straight through them despite their tall model.
+        - question: Can banners burn?
+          answer: |
+              Yes. Banners are flammable and can be destroyed by fire or
+              lava, or used as furnace fuel.
     data_version: "1.21.5"
 ---
 

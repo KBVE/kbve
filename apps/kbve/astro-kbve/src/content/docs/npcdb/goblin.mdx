@@ -1,5 +1,9 @@
 ---
 title: 'Goblin'
+template: splash
+sidebar:
+    label: 'Goblin'
+    hidden: true
 description: |
     Wiry humanoid raider — fast, frail, swings a club. The default Hostile-faction footsoldier of the Rareicon empire-builder; also recruitable as a Player goblin worker via Lost Goblin Band events.
 ref: 'goblin'
@@ -37,7 +41,10 @@ faction:
     faction_id: 'hostile'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Wiry humanoid raider — fast, frail, swings a club. Default Hostile footsoldier; recruitable through Lost Goblin Band events.
+
+</NpcLeaf>

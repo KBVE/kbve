@@ -1,5 +1,6 @@
 ---
 title: Blue Candle
+template: splash
 description: |
     Minecraft Blue Candle — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 1317
     ref: blue_candle
     slug: blue-candle
+    content_rev: 1
     display_name: Blue Candle
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Blue Candle is a blue-dyed variant of the candle, a decorative light-emitting block. It is crafted by combining a candle with blue dye, and up to four can be placed in a single block to increase the light output. A candle can also be placed on an uneaten cake to create a decorative candle cake.
+        lore: |
+            A slender blue taper of honeycomb and string, its small flame casting a quiet cobalt glow across the room.
+    faq:
+        - question: How do I craft a Blue Candle?
+          answer: |
+            Combine string and honeycomb to make a plain candle, then combine that candle with blue dye. The color cannot be changed once dyed.
+        - question: How much light does a Blue Candle give off?
+          answer: |
+            A single candle emits light level 3, and stacking up to four in one block raises the output to a maximum of light level 12.
+        - question: How do I light a Blue Candle?
+          answer: |
+            Use flint and steel, a fire charge, or a flaming projectile to ignite it. Water, wind charges, or interacting with it will put it out.
+        - question: Can I put a Blue Candle on a cake?
+          answer: |
+            Yes. Placing one candle on an uneaten cake makes a candle cake, and the candle drops back when the cake is eaten or broken.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

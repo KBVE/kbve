@@ -1,5 +1,6 @@
 ---
 title: Orange Terracotta
+template: splash
 description: |
     Minecraft Orange Terracotta — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 453
     ref: orange_terracotta
     slug: orange-terracotta
+    content_rev: 1
     display_name: Orange Terracotta
     material: stone
     hardness: 1.25
     blast_resistance: 4.2
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,54 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: orange_terracotta
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_wood_tool
+        - overworld
+    about:
+        description: |
+            Orange Terracotta is the orange-dyed variant of terracotta,
+            made by crafting plain terracotta with orange dye. It keeps
+            terracotta's non-flammable, blast-resistant nature while adding
+            a solid, matte orange color useful for detailed builds.
+        lore: |
+            Terracotta was added as "stained clay" in 1.6.1 and later renamed
+            to match its real-world ceramic namesake.
+    uses:
+        - title: Glazed Terracotta
+          ref: orange_glazed_terracotta
+          detail: |
+              Smelting Orange Terracotta in a furnace or blast furnace
+              produces Orange Glazed Terracotta, a glossy patterned block
+              popular for pixel-art builds.
+    found_in:
+        - location: Badlands villages
+          detail: Generates in badlands village houses and other terracotta-heavy structures.
+        - location: Crafted
+          detail: Craft 1 Terracotta with 1 Orange Dye to make 8 Orange Terracotta.
+    faq:
+        - question: What tool do I need to mine Orange Terracotta?
+          answer: |
+              At least a wooden pickaxe. Mining it with anything else, or by
+              hand, destroys the block without dropping it.
+        - question: Does Silk Touch or Fortune affect the drop?
+          answer: |
+              No. Orange Terracotta always drops itself as a single block
+              regardless of enchantments.
+        - question: Can Orange Terracotta burn?
+          answer: |
+              No. Like all terracotta, it is non-flammable and safe to use
+              near lava or fire.
+        - question: How do I get Orange Terracotta?
+          answer: |
+              Craft plain Terracotta with Orange Dye (8 output per craft), or
+              find it pre-generated in badlands village structures.
     data_version: "1.21.5"
 ---
 

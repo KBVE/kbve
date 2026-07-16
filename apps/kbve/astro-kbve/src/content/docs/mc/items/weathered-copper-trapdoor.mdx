@@ -1,5 +1,6 @@
 ---
 title: Weathered Copper Trapdoor
+template: splash
 description: |
     Minecraft Weathered Copper Trapdoor — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,31 @@ mc_item:
     id: 778
     ref: weathered_copper_trapdoor
     slug: weathered-copper-trapdoor
+    content_rev: 1
     display_name: Weathered Copper Trapdoor
     category: decoration
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The weathered copper trapdoor is a functional trapdoor crafted from copper ingots that has weathered to a green-and-brown finish. It opens and closes like any other trapdoor, whether by hand, redstone signal, or a wind charge, and can be waxed with honeycomb to freeze it at this stage. Unlike other copper blocks, deoxidizing it with an axe requires crouching while right-clicking.
+        lore: |
+            Copper trapdoors weather the same way copper roofing tarnishes outdoors, giving builds an aged, patina-covered look over time.
+    faq:
+        - question: How do I craft a weathered copper trapdoor?
+          answer: |
+              Craft one from four matching copper ingots, then let it oxidize naturally, or find weathered ones generated in trial chambers.
+        - question: Can I open it without redstone?
+          answer: |
+              Yes. Copper trapdoors can be opened by hand or with a wind charge, and they also respond to redstone power like normal trapdoors.
+        - question: How do I stop it from oxidizing further?
+          answer: |
+              Apply honeycomb to wax the trapdoor, which permanently halts oxidation at the weathered stage.
+        - question: How do I remove oxidation from a copper trapdoor?
+          answer: |
+              Crouch while right-clicking it with an axe. This is different from other copper blocks, which deoxidize without needing to crouch.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

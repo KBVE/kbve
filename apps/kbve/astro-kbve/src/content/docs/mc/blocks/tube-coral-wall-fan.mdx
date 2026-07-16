@@ -1,5 +1,6 @@
 ---
 title: Tube Coral Wall Fan
+template: splash
 description: |
     Minecraft Tube Coral Wall Fan — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 750
     ref: tube_coral_wall_fan
     slug: tube-coral-wall-fan
+    content_rev: 1
     display_name: Tube Coral Wall Fan
     material: stone
     hardness: 0
@@ -24,10 +26,55 @@ mc_block:
     transparent: true
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: tube_coral_fan
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: true
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - ocean
+        - non_solid
+    about:
+        description: |
+            Tube Coral Wall Fan is the wall-mounted form a Tube Coral Fan
+            takes when it grows or is placed against the side of a block
+            instead of on top of one. It behaves identically to the
+            standalone fan otherwise.
+        lore: |
+            Added in the Update Aquatic (1.13) so coral could decorate
+            vertical reef walls, not just floors.
+    uses:
+        - title: Reef wall decoration
+          ref: tube_coral_fan
+          detail: |
+              Automatically placed when a Tube Coral Fan is attached to a
+              vertical surface; used to decorate reef walls in underwater
+              builds.
+    found_in:
+        - location: Warm Ocean coral reefs
+          detail: Generates naturally on vertical reef surfaces in warm ocean biomes.
+        - location: Player placement
+          detail: Results from placing a Tube Coral Fan item against the side of a block.
+    faq:
+        - question: How is Tube Coral Wall Fan different from Tube Coral Fan?
+          answer: |
+              It is the same item, just the block state produced when
+              placed on a vertical face instead of a horizontal one.
+        - question: What tool do I need to mine it?
+          answer: |
+              Any tool breaks it instantly, but Silk Touch is required to
+              collect it as the living block.
+        - question: Does it die outside water like the floor variant?
+          answer: |
+              Yes, it needs adjacent water to stay alive and permanently
+              becomes a dead coral wall fan otherwise.
+        - question: Can it be pushed by pistons?
+          answer: |
+              No, live coral wall fans cannot be pushed by pistons.
     data_version: "1.21.5"
 ---
 

@@ -1,5 +1,6 @@
 ---
 title: Cornflower
+template: splash
 description: |
     Minecraft Cornflower — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 168
     ref: cornflower
     slug: cornflower
+    content_rev: 1
     display_name: Cornflower
     material: plant
     hardness: 0
@@ -26,8 +28,57 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: cornflower
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - overworld
+        - flower
+        - instant_break
+        - compostable
+    about:
+        description: |
+            Cornflower is a blue flower that breaks instantly with any tool
+            or by hand, always dropping itself. It is used to craft blue
+            dye and attracts bees.
+        lore: |
+            Added in Java Edition 1.14, Cornflower takes its real-world name
+            from a common weed once found in crop fields.
+    uses:
+        - title: Blue Dye
+          ref: blue_dye
+          detail: |
+              Craft one cornflower into one blue dye, usable for dyeing wool,
+              banners, and other colorable blocks.
+        - title: Suspicious Stew
+          ref: suspicious_stew
+          detail: |
+              Combine with a mushroom and bowl to make suspicious stew that
+              grants the Jump Boost effect for 5 seconds.
+    found_in:
+        - location: Plains and Meadow biomes
+          detail: Generates in plains, sunflower plains, flower forests, and meadows.
+        - location: Rare underground spawns
+          detail: Occasionally generates in dripstone caves and the deep dark in Java Edition.
+    faq:
+        - question: What tool do I need to mine Cornflower?
+          answer: |
+              None. It breaks instantly with any item or by hand.
+        - question: Does Fortune increase Cornflower drops?
+          answer: |
+              No. It always drops exactly one cornflower regardless of
+              enchantments.
+        - question: What is Cornflower used for?
+          answer: |
+              Crafting blue dye, making suspicious stew, breeding bees, and
+              composting.
+        - question: Where can I find Cornflower?
+          answer: |
+              Plains, sunflower plains, flower forests, and meadow biomes,
+              with rare appearances in dripstone caves and the deep dark.
     data_version: "1.21.5"
 ---
 

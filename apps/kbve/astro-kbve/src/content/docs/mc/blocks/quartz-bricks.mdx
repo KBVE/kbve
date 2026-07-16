@@ -1,5 +1,6 @@
 ---
 title: Quartz Bricks
+template: splash
 description: |
     Minecraft Quartz Bricks — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,21 +14,68 @@ mc_block:
     id: 902
     ref: quartz_bricks
     slug: quartz-bricks
+    content_rev: 1
     display_name: Quartz Bricks
     material: stone
     hardness: 0.8
     blast_resistance: 0.8
     best_tool: pickaxe
-    required_tool_tier: 0
+    required_tool_tier: 1
     light_emission: 0
     light_opacity: 15
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: quartz_bricks
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - overworld
+    about:
+        description: |
+            Quartz Bricks are a decorative block made from Blocks of Quartz,
+            giving the pale, seamless quartz look a brick-like texture for
+            builders. They carry the same hardness and appearance family as
+            other quartz variants but with no natural generation.
+        lore: |
+            Added in Java Edition 1.16 (snapshot 20w15a) as part of an
+            expansion of the quartz block family alongside Quartz Pillar and
+            Smooth Quartz.
+    uses:
+        - title: Decorative Building
+          ref: quartz_bricks
+          detail: |
+              Used purely for construction and detailing — quartz bricks
+              have no further crafting recipes beyond their own creation and
+              cutting into slabs or stairs via a stonecutter.
+    found_in:
+        - location: Crafting Table
+          detail: Craft 4 Blocks of Quartz in a 2x2 grid to yield 4 Quartz Bricks.
+        - location: Stonecutter
+          detail: Cut 1 Block of Quartz into 1 Quartz Brick.
+    faq:
+        - question: What tool do I need to mine Quartz Bricks?
+          answer: |
+              Any pickaxe, starting with wood. Mining without a pickaxe
+              yields nothing.
+        - question: Do Quartz Bricks drop themselves when mined?
+          answer: |
+              Yes, they always drop as themselves when mined with a
+              pickaxe — Silk Touch and Fortune have no effect.
+        - question: Can Quartz Bricks generate naturally?
+          answer: |
+              No. They only exist through crafting or stonecutting Blocks
+              of Quartz, so they are not found in any natural structure.
+        - question: What sound do Quartz Bricks make on note blocks?
+          answer: |
+              They produce a bass drum sound, the same as other stone-type
+              quartz blocks.
     data_version: "1.21.5"
 ---
 

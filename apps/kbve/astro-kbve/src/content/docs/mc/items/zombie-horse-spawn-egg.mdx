@@ -1,5 +1,6 @@
 ---
 title: Zombie Horse Spawn Egg
+template: splash
 description: |
     Minecraft Zombie Horse Spawn Egg — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 1146
     ref: zombie_horse_spawn_egg
     slug: zombie-horse-spawn-egg
+    content_rev: 1
     display_name: Zombie Horse Spawn Egg
     category: spawn_egg
     rarity: common
     stack_size: 64
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            The Zombie Horse Spawn Egg is a creative-mode and command item that summons an undead zombie
+            horse. Once spawned, it behaves like a passive horse that can be tamed, saddled, ridden, and
+            equipped with horse armor, and it can breathe underwater without sinking.
+        lore: |
+            In survival, zombie horses only appear as part of rare zombie horseman groups during thunderstorms.
+    faq:
+        - question: What does a Zombie Horse Spawn Egg do?
+          answer: |
+              Using it on a block instantly spawns a zombie horse, the undead horse variant normally seen
+              ridden by a zombie horseman during thunderstorms.
+        - question: Can a zombie horse spawned from the egg be ridden?
+          answer: |
+              Yes, once tamed through repeated riding attempts and equipped with a saddle, it can be ridden
+              and steered like a regular horse.
+        - question: Will the spawn egg produce a baby zombie horse?
+          answer: |
+              Occasionally. About 20% of zombie horses spawned from the egg are the otherwise unused baby
+              variant, while the rest are adults.
+        - question: How is a zombie horse different from a skeleton horse?
+          answer: |
+              Zombie horses float and breathe underwater instead of sinking, and outside of spawn eggs they
+              only appear naturally as part of rare zombie horseman groups in plains, savanna, and snowy
+              biomes at night or during thunderstorms.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

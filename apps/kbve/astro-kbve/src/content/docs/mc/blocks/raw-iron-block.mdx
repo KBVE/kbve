@@ -1,5 +1,6 @@
 ---
 title: Block of Raw Iron
+template: splash
 description: |
     Minecraft Block of Raw Iron — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,12 +14,13 @@ mc_block:
     id: 1081
     ref: raw_iron_block
     slug: raw-iron-block
+    content_rev: 1
     display_name: Block of Raw Iron
     material: metal
     hardness: 5
     blast_resistance: 6
-    best_tool: hand
-    required_tool_tier: 0
+    best_tool: pickaxe
+    required_tool_tier: 2
     light_emission: 0
     light_opacity: 15
     transparent: false
@@ -26,8 +28,55 @@ mc_block:
     solid: true
     renewable: false
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: raw_iron_block
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - pickaxe_mineable
+        - needs_stone_tool
+        - overworld
+    about:
+        description: |
+            Block of Raw Iron is a storage block that compacts nine Raw
+            Iron into a single space, saving inventory and chest slots. It
+            is mined faster with a pickaxe and requires a stone pickaxe or
+            better to drop.
+        lore: |
+            Added in Java Edition 1.17 alongside raw ore items, giving
+            players a way to stockpile iron without a furnace.
+    uses:
+        - title: Raw Iron Storage
+          ref: raw_iron
+          detail: |
+              Craft with nine Raw Iron in a 3x3 grid to compress it, or
+              place the block in a crafting grid to break it back down
+              into nine Raw Iron.
+    found_in:
+        - location: Crafted from Raw Iron
+          detail: Made by compressing nine Raw Iron items obtained from mining iron ore.
+        - location: Huge ore veins
+          detail: Rarely generates naturally below Y=0, with a small chance of replacing iron ore within a huge ore vein.
+    faq:
+        - question: What tool do I need to mine a Block of Raw Iron?
+          answer: |
+              A stone pickaxe or better. Mining with wood or bare hands
+              breaks the block with no drop.
+        - question: Can I smelt a Block of Raw Iron into an iron block?
+          answer: |
+              No. It must first be crafted back into nine Raw Iron items,
+              which can then be smelted individually into iron ingots.
+        - question: Can I find Blocks of Raw Iron naturally?
+          answer: |
+              Yes, though rarely. Huge ore veins below Y=0 have a small
+              chance of generating a Block of Raw Iron in place of an iron
+              ore block.
+        - question: Is it affected by Fortune or Silk Touch?
+          answer: |
+              No. It always drops exactly one Block of Raw Iron regardless
+              of enchantments.
     data_version: "1.21.5"
 ---
 

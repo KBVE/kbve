@@ -1,5 +1,9 @@
 ---
 title: 'Chicken'
+template: splash
+sidebar:
+    label: 'Chicken'
+    hidden: true
 description: |
     Passive farm fowl. Tiny HP pool, no needs, ambient grass-biome wildlife. Drops nothing meaningful — atmospheric.
 ref: 'chicken'
@@ -36,7 +40,10 @@ faction:
     faction_id: 'wildlife'
 ---
 
-import NPCDBPanel from '@/components/npcdb/NPCDBPanel.astro';
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
 
-<NPCDBPanel data={frontmatter} />
+<NpcLeaf data={frontmatter}>
+
 Passive farm fowl. Tiny HP pool, no needs, ambient grass-biome wildlife.
+
+</NpcLeaf>

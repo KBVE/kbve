@@ -11,6 +11,7 @@ use std::sync::mpsc;
 use std::time::Duration;
 
 use avian3d::prelude::*;
+use bevy::app::ScheduleRunnerPlugin;
 use bevy::prelude::*;
 use lightyear::prelude::server::*;
 use lightyear::prelude::*;
@@ -34,8 +35,9 @@ use bevy_skills::{BevySkillsPlugin, GrantXpMsg, SkillDef, SkillId, SkillProfile,
 /// Server tick rate: 20 Hz (matching client).
 const TICK_DURATION: Duration = Duration::from_millis(50);
 
-/// Replication send interval — how often the server sends entity updates.
-const REPLICATION_SEND_INTERVAL: Duration = Duration::from_millis(100);
+// NOTE: lightyear 0.28 dropped the per-sender send-interval config (ReplicationSender
+// is now a bare marker). The former 100ms server send throttle is no longer applied
+// per-sender; revisit via 0.28 global replication config once netcode is runtime-verified.
 
 /// Default WebSocket listen address for the game server.
 const DEFAULT_WS_ADDR: &str = "0.0.0.0:5000";
@@ -88,6 +90,16 @@ impl LegacyBroadcastFlag {
     fn is_legacy(self) -> bool {
         self.0
     }
+}
+
+/// Whether verbose netcode diagnostics (per-tick link/packet tracing observers
+/// and systems) are registered. Off by default — these iterate every Link every
+/// tick and are only useful when debugging transport/handshake issues.
+/// Enable with `GAME_NET_DEBUG=1`.
+fn gameserver_debug_enabled() -> bool {
+    std::env::var("GAME_NET_DEBUG")
+        .map(|v| matches!(v.as_str(), "1" | "true" | "TRUE" | "yes" | "YES"))
+        .unwrap_or(false)
 }
 
 /// Marker: client has not yet sent a valid AuthMessage.
@@ -750,15 +762,23 @@ fn lookup_username_cached(user_id: &str) -> Option<String> {
     None
 }
 
+const USERNAME_CACHE_SWEEP_AT: usize = 4096;
+
 fn store_username_cache(user_id: &str, username: &str) {
     if user_id.is_empty() {
         return;
     }
     if let Ok(mut guard) = USERNAME_CACHE.lock() {
-        guard.insert(
-            user_id.to_string(),
-            (username.to_string(), std::time::Instant::now()),
-        );
+        let now = std::time::Instant::now();
+        // Entries are otherwise only evicted when the same user_id is looked up
+        // again after TTL, so ids never queried again leak. Sweep expired
+        // entries once the map crosses a threshold to bound growth.
+        if guard.len() >= USERNAME_CACHE_SWEEP_AT {
+            guard.retain(|_, (_, inserted)| {
+                now.duration_since(*inserted).as_secs() < USERNAME_CACHE_TTL_SECS
+            });
+        }
+        guard.insert(user_id.to_string(), (username.to_string(), now));
     }
 }
 
@@ -773,7 +793,10 @@ fn run_bevy_app(
     let mut app = App::new();
 
     // Minimal headless Bevy — no window, no renderer
-    app.add_plugins(MinimalPlugins);
+    app.add_plugins(MinimalPlugins.set(ScheduleRunnerPlugin::run_loop(
+        Duration::from_secs_f64(1.0 / 60.0),
+    )));
+    app.add_plugins(bevy::state::app::StatesPlugin);
     app.add_plugins(bevy::transform::TransformPlugin);
 
     // avian3d physics (headless — disable transform sync plugins,
@@ -841,11 +864,7 @@ fn run_bevy_app(
     app.insert_resource(ProfileBridgeRx(std::sync::Mutex::new(profile_rx)));
 
     // Store WebTransport identity as a resource so the startup system can take it
-    if let Some(identity) = wt_identity {
-        app.insert_resource(PendingWtIdentity(Some(identity)));
-    } else {
-        app.insert_resource(PendingWtIdentity(None));
-    }
+    app.insert_resource(PendingWtIdentity(wt_identity));
     app.insert_resource(WtAddr(wt_addr));
 
     // Spawn separate server entities per transport (matching lightyear examples).
@@ -873,87 +892,87 @@ fn run_bevy_app(
     app.add_observer(handle_new_link);
     app.add_observer(handle_new_connection);
 
-    // Debug observers for connection lifecycle
-    app.add_observer(on_server_connecting);
-    app.add_observer(on_server_connected);
+    // Per-connection cleanup — MUST run in production. Despawns the player
+    // entity and evicts auth/inventory/equipment/cooldown state on disconnect;
+    // the only place those maps shrink. Not a diagnostic — never gate this.
     app.add_observer(on_server_disconnected);
 
-    // Debug observers for link/transport lifecycle — traces the path from
-    // WebSocket accept → per-client Link → Linked → Netcode processing
-    app.add_observer(debug_on_linking_added);
-    app.add_observer(debug_on_linked_added);
-    app.add_observer(debug_on_unlinked_added);
+    // Verbose netcode diagnostics — gated behind GAME_NET_DEBUG. These observers
+    // and per-tick systems trace the transport/handshake path (connection
+    // lifecycle, link/packet flow, orphaned links) and iterate every Link every
+    // tick, so they stay off in production.
+    if gameserver_debug_enabled() {
+        // Connection lifecycle (logging only)
+        app.add_observer(on_server_connecting);
+        app.add_observer(on_server_connected);
 
-    // Diagnostic: track LinkOf creation and Session addition
-    app.add_observer(|trigger: On<Add, LinkOf>| {
-        let entity = trigger.entity;
-        tracing::info!("[diag] LinkOf ADDED on entity {entity:?}");
-    });
-    // aeronet_io::Session observer removed — crate not a direct dependency.
-    // Session tracking is handled internally by lightyear.
-    app.add_observer(|trigger: On<Add, ReplicationSender>| {
-        let entity = trigger.entity;
-        tracing::info!("[diag] ReplicationSender ADDED on entity {entity:?}");
-    });
+        // Link/transport lifecycle — WebSocket accept → per-client Link → Linked
+        app.add_observer(debug_on_linking_added);
+        app.add_observer(debug_on_linked_added);
+        app.add_observer(debug_on_unlinked_added);
 
-    // Diagnostic: log Link buffer states every tick to trace packet flow
-    app.add_systems(Update, debug_link_packet_flow);
-    // Diagnostic: log ALL Link entities (even orphaned ones not in Server collection)
-    app.add_systems(Update, debug_all_links);
+        // LinkOf / ReplicationSender creation
+        app.add_observer(|trigger: On<Add, LinkOf>| {
+            let entity = trigger.entity;
+            tracing::info!("[diag] LinkOf ADDED on entity {entity:?}");
+        });
+        app.add_observer(|trigger: On<Add, ReplicationSender>| {
+            let entity = trigger.entity;
+            tracing::info!("[diag] ReplicationSender ADDED on entity {entity:?}");
+        });
 
-    // Process auth messages from clients (steps 2-3 of handshake)
-    app.add_systems(Update, process_auth_messages);
-    // Verify AuthAck echo (step 4 of handshake)
-    app.add_systems(Update, verify_auth_ack);
-    // Disconnect clients that never complete the handshake (PendingAuth /
-    // PendingAck) within `AUTH_HANDSHAKE_TIMEOUT_SECS` so half-open
-    // connections can't accumulate.
-    app.add_systems(Update, disconnect_stalled_auth);
+        // Per-tick link/packet tracing
+        app.add_systems(
+            Update,
+            (
+                debug_link_packet_flow,
+                debug_all_links,
+                server_debug_heartbeat,
+                server_debug_link_buffers,
+                server_debug_netcode_collection,
+            ),
+        );
+    }
 
-    // Receive position updates from clients and apply to their player entities
-    app.add_systems(Update, process_position_updates);
+    // Auth handshake + per-client request handlers. These systems are order
+    // independent (each reads its own message channel / marker query), so they
+    // run in one unordered batch. `disconnect_stalled_auth` reaps half-open
+    // PendingAuth/PendingAck connections past `AUTH_HANDSHAKE_TIMEOUT_SECS`.
+    app.add_systems(
+        Update,
+        (
+            process_auth_messages,
+            verify_auth_ack,
+            disconnect_stalled_auth,
+            process_position_updates,
+            process_damage_events,
+            process_collect_requests,
+            process_equip_requests,
+            process_unequip_requests,
+            process_craft_requests,
+            process_use_item_requests,
+            process_deploy_requests,
+        ),
+    );
 
-    // Process damage events from clients
-    app.add_systems(Update, process_damage_events);
-
-    // Process collect requests from clients
-    app.add_systems(Update, process_collect_requests);
-    app.add_systems(Update, process_equip_requests);
-    app.add_systems(Update, process_unequip_requests);
-    app.add_systems(Update, process_craft_requests);
-    app.add_systems(Update, process_use_item_requests);
-    app.add_systems(Update, process_deploy_requests);
-
-    // Tick respawn timer for collected objects
-    app.add_systems(Update, tick_respawns);
-
-    // Send collected objects state to newly connected clients
-    app.add_systems(Update, send_collected_state_to_new_clients);
-
-    // Process profile bridge responses (username lookups, set-username results)
-    app.add_systems(Update, process_profile_responses);
-
-    // Process set-username requests from clients
-    app.add_systems(Update, process_set_username_requests);
-
-    // Advance server day/night cycle
-    app.add_systems(Update, update_server_day_cycle);
-
-    // Broadcast time sync to all connected clients periodically
-    app.add_systems(Update, broadcast_time_sync);
-
-    // Send time sync immediately to newly authenticated clients
-    app.add_systems(Update, send_time_sync_to_new_clients);
-
-    // Process creature capture requests from clients
-    app.add_systems(Update, process_creature_captures);
-
-    // Send captured creatures state to newly connected clients
-    app.add_systems(Update, send_captured_state_to_new_clients);
-
-    // --- Server creature simulation (same logic as client) ---
-    app.add_systems(Update, sync_creature_game_time);
-    app.add_systems(Update, update_server_player_positions);
+    // World state broadcast + late-join sync + creature capture. Also order
+    // independent — each fans state out to newly connected/authenticated clients.
+    app.add_systems(
+        Update,
+        (
+            tick_respawns,
+            send_collected_state_to_new_clients,
+            process_profile_responses,
+            process_set_username_requests,
+            update_server_day_cycle,
+            broadcast_time_sync,
+            send_time_sync_to_new_clients,
+            process_creature_captures,
+            send_captured_state_to_new_clients,
+            sync_creature_game_time,
+            update_server_player_positions,
+        ),
+    );
     app.add_systems(
         Update,
         (
@@ -988,11 +1007,6 @@ fn run_bevy_app(
 
     // Timeout clients that never authenticate
     app.add_systems(Update, timeout_pending_auth);
-
-    // Periodic debug heartbeat
-    app.add_systems(Update, server_debug_heartbeat);
-    app.add_systems(Update, server_debug_link_buffers);
-    app.add_systems(Update, server_debug_netcode_collection);
 
     tracing::info!("game server Bevy app running");
     app.run();
@@ -1342,10 +1356,12 @@ fn on_server_disconnected(
     mut inventories: ResMut<PlayerInventories>,
     mut equipment: ResMut<PlayerEquipment>,
     mut cooldowns: ResMut<ConsumableCooldowns>,
+    mut set_username_attempts: ResMut<SetUsernameLastAttempt>,
 ) {
     let client_entity = trigger.entity;
     let user_id = authenticated.0.remove(&client_entity);
     let player_entity = client_player_map.0.remove(&client_entity);
+    set_username_attempts.0.remove(&client_entity);
     if let Some(pe) = player_entity {
         inventories.0.remove(&pe);
         equipment.0.remove(&pe);
@@ -1482,11 +1498,7 @@ fn server_debug_netcode_collection(
 fn handle_new_link(trigger: On<Add, LinkOf>, mut commands: Commands) {
     let link_entity = trigger.entity;
     tracing::info!("[gameserver] NEW LINK — entity {link_entity:?}, adding ReplicationSender");
-    commands.entity(link_entity).insert(ReplicationSender::new(
-        REPLICATION_SEND_INTERVAL,
-        SendUpdatesMode::SinceLastAck,
-        false,
-    ));
+    commands.entity(link_entity).insert(ReplicationSender);
 }
 
 /// When a client's netcode handshake completes (Connected added), mark as
@@ -1524,11 +1536,7 @@ fn handle_new_connection(
     commands.entity(client_entity).insert((
         PendingAuth,
         ConnectedAt(time.elapsed_secs()),
-        ReplicationSender::new(
-            REPLICATION_SEND_INTERVAL,
-            SendUpdatesMode::SinceLastAck,
-            false,
-        ),
+        ReplicationSender,
     ));
     tracing::info!("[gameserver] PendingAuth + ReplicationSender inserted for {client_entity:?}");
 }
@@ -1783,7 +1791,7 @@ fn spawn_player(
             SkillProfile::default(),
             // Target a specific server entity — avoids .single() failure when
             // multiple Server entities exist (WS + WT).
-            Replicate::new(lightyear::prelude::ReplicationMode::Server(
+            Replicate::new(lightyear_replication::send::ReplicationMode::Server(
                 server_entity,
                 NetworkTarget::All,
             )),

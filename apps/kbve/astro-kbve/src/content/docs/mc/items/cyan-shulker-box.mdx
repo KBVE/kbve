@@ -1,5 +1,6 @@
 ---
 title: Cyan Shulker Box
+template: splash
 description: |
     Minecraft Cyan Shulker Box — vanilla 1.21.5 item record (auto-generated).
 sidebar:
@@ -13,12 +14,38 @@ mc_item:
     id: 562
     ref: cyan_shulker_box
     slug: cyan-shulker-box
+    content_rev: 1
     display_name: Cyan Shulker Box
     category: misc
     rarity: common
     stack_size: 1
     tags: []
     data_version: "1.21.5"
+    about:
+        description: |
+            Cyan Shulker Box is a dyeable portable storage block with 27 inventory slots, crafted from a
+            chest and two shulker shells. Unlike other containers, it keeps its contents in item form
+            when broken, making it invaluable for transporting large amounts of cargo.
+        lore: |
+            Shulker Boxes let players stack many full inventories of items into a single item slot,
+            with strategic nesting able to carry tens of thousands of items across a single trip.
+    faq:
+        - question: How do I craft a Cyan Shulker Box?
+          answer: |
+              Combine a chest with two shulker shells to craft a plain shulker box, then dye it cyan
+              using cyan dye to get a Cyan Shulker Box.
+        - question: Does a Cyan Shulker Box lose its items when broken?
+          answer: |
+              No, breaking it drops the box as an item with its full inventory intact, unlike a normal
+              chest which spills its contents.
+        - question: Can I rename or re-dye a Cyan Shulker Box without losing items?
+          answer: |
+              Yes, both renaming it on an anvil and dyeing it a different color preserve its stored
+              contents.
+        - question: Where can I find Shulker Boxes if I don't want to craft one?
+          answer: |
+              Shulker shells are dropped by shulkers found in End cities, and shulker boxes themselves
+              can also be found generated within End city structures.
 ---
 
 import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';

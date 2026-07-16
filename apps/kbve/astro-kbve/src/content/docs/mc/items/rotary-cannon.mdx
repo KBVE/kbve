@@ -1,0 +1,37 @@
+---
+title: Rotary Cannon
+template: splash
+description: |
+    Immersive Aircraft Rotary Cannon — modded item on the KBVE Minecraft server.
+sidebar:
+    label: Rotary Cannon
+    hidden: true
+tags:
+    - minecraft
+    - mc
+    - mc-item
+    - immersive-aircraft
+    - modded
+mc_item:
+    id: 900024
+    ref: immersive_aircraft:rotary_cannon
+    slug: rotary-cannon
+    content_rev: 0
+    display_name: Rotary Cannon
+    category: weapon
+    rarity: common
+    stack_size: 1
+    tags:
+        - immersive_aircraft
+        - weapon
+    about:
+        description: |
+            A fast-firing aircraft cannon that runs on gunpowder.
+        lore: |
+            Rain lead from above.
+    data_version: "1.21.11"
+---
+
+import MCItemPanel from '@/components/mcdb/MCItemPanel.astro';
+
+<MCItemPanel data={frontmatter.mc_item} />

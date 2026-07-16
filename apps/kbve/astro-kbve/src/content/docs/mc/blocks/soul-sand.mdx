@@ -1,5 +1,6 @@
 ---
 title: Soul Sand
+template: splash
 description: |
     Minecraft Soul Sand — vanilla 1.21.5 block record (auto-generated).
 sidebar:
@@ -13,6 +14,7 @@ mc_block:
     id: 273
     ref: soul_sand
     slug: soul-sand
+    content_rev: 1
     display_name: Soul Sand
     material: sand
     hardness: 0.5
@@ -24,10 +26,69 @@ mc_block:
     transparent: false
     placeable: true
     solid: true
-    renewable: false
+    renewable: true
     diggable: true
-    drops: []
-    tags: []
+    drops:
+        - ref: soul_sand
+          qty_min: 1
+          qty_max: 1
+          silk_touch_only: false
+          affected_by_fortune: false
+    tags:
+        - shovel_mineable
+        - nether
+        - overworld
+    about:
+        description: |
+            Soul Sand is a Nether block that slows movement of any mob or
+            player not wearing Soul Speed boots by roughly 42%, makes
+            entities sink slightly into it, and creates upward bubble
+            columns when placed underwater.
+        lore: |
+            Its ghostly, half-buried skull texture and slow-moving nature
+            evoke the trapped souls of the Nether, giving the soul sand
+            valley biome its haunting theme.
+    uses:
+        - title: Nether Wart Farming
+          ref: nether_wart
+          detail: |
+              Nether wart can only be planted on soul sand, making it
+              essential for brewing-stand potion ingredients.
+        - title: Wither Construction
+          ref: wither_skeleton_skull
+          detail: |
+              Four soul sand (or soul soil) blocks arranged in a T-shape
+              with 3 wither skeleton skulls summon the Wither boss.
+        - title: Bubble Columns
+          detail: |
+              Underwater soul sand creates an upward-pushing bubble column,
+              useful for aquatic elevators.
+    found_in:
+        - location: Soul Sand Valley
+          detail: The primary source, generating abundantly throughout the biome.
+        - location: Nether Wastes
+          detail: Generates below Y=34 along lava shores and in Nether fortress rooms and bastion remnants.
+        - location: Piglin Bartering
+          detail: |
+              Piglins have roughly an 8.5% chance to barter 2–8 soul sand
+              for a gold ingot, making it renewable.
+    faq:
+        - question: Does Soul Sand slow me down?
+          answer: |
+              Yes, unless you wear boots enchanted with Soul Speed, movement
+              on or just above soul sand is slowed by about 42%.
+        - question: What tool should I use to mine Soul Sand?
+          answer: |
+              A shovel mines it fastest, but it can be broken with any tool
+              or by hand and always drops itself.
+        - question: Can I farm Nether Wart on Soul Soil instead?
+          answer: |
+              No. Nether wart can only be planted on soul sand, not soul
+              soil.
+        - question: Is Soul Sand renewable?
+          answer: |
+              Yes, via piglin bartering, which has a small chance to trade
+              gold ingots for 2–8 soul sand.
     data_version: "1.21.5"
 ---
 
