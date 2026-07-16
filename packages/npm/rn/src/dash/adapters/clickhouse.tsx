@@ -8,7 +8,7 @@ import type { StreamLens, StreamStore } from '../types';
 // Types
 // ---------------------------------------------------------------------------
 
-interface RawLogRow {
+export interface RawLogRow {
 	timestamp: string;
 	level?: string;
 	message?: string;
@@ -50,7 +50,7 @@ export interface ClickHouseStreamOptions {
 // Normalization
 // ---------------------------------------------------------------------------
 
-function normalize(raw: RawLogRow): LogItem {
+export function normalize(raw: RawLogRow): LogItem {
 	const level = (raw.level ?? 'info').toLowerCase();
 	const namespace = raw.pod_namespace ?? '';
 	const podName = raw.pod_name ?? '';
