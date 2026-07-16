@@ -204,7 +204,7 @@ fn is_path_safe(path: &str) -> bool {
     }
     if path
         .split('/')
-        .any(|seg| seg == ".." || seg == ".")
+        .any(|seg| seg.is_empty() || seg == ".." || seg == ".")
     {
         return false;
     }
@@ -587,6 +587,29 @@ mod tests {
             .await
             .unwrap_err();
         assert_eq!(err, RunError::PathNotAllowed);
+    }
+
+    #[tokio::test]
+    async fn run_rejects_empty_leaf_and_segments() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .respond_with(ResponseTemplate::new(200))
+            .expect(0)
+            .mount(&server)
+            .await;
+
+        let cfg = make_cfg(server.uri(), "f/discordsh/**", 10, 60);
+        // Folder root (empty leaf) and empty interior segment both rejected.
+        assert_eq!(
+            cfg.run("f/discordsh/", &[], &discord_ctx()).await.unwrap_err(),
+            RunError::PathNotAllowed
+        );
+        assert_eq!(
+            cfg.run("f/discordsh//x", &[], &discord_ctx())
+                .await
+                .unwrap_err(),
+            RunError::PathNotAllowed
+        );
     }
 
     #[tokio::test]
