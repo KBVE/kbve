@@ -33,7 +33,9 @@ export type StreamControl =
 			label?: string;
 			placeholder?: string;
 			options?: { label: string; value: string }[];
-			optionsFromMeta?: (meta: unknown) => { label: string; value: string }[];
+			optionsFromMeta?: (
+				meta: unknown,
+			) => { label: string; value: string }[];
 	  }
 	| {
 			kind: 'search';
@@ -164,6 +166,12 @@ export interface StreamFilter<TItem> {
 	label: string;
 	tone?: BadgeTone;
 	predicate: (item: TItem) => boolean;
+	/**
+	 * Optional server-side params applied while this filter is active (e.g.
+	 * `{ level: 'error' }`). Selecting the chip patches params + refetches;
+	 * deselecting (or switching chips) clears this filter's keys first.
+	 */
+	params?: StreamParams;
 }
 
 /**
