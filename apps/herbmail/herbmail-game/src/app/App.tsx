@@ -20,6 +20,7 @@ import { PhysicsBodies } from '../game/sab/PhysicsBodies';
 import { AOComposer } from '../game/render/AOComposer';
 import { AdaptiveQuality } from '../game/render/AdaptiveQuality';
 import { DungeonSky } from '../game/render/DungeonSky';
+import { SunShaft } from '../game/render/SunShaft';
 import { EagleEye } from '../game/render/EagleEye';
 import { HeldGripDebug } from '../game/character/HeldGripDebug';
 import { DebugStats, StatsProbe } from '../game/hud/DebugStats';
@@ -128,6 +129,7 @@ export function App() {
 				<Suspense fallback={null}>
 					<Oases />
 				</Suspense>
+				<SunShaft />
 				<Suspense fallback={null}>
 					<ThirdPersonPlayer url={CHARACTER_URL} />
 				</Suspense>

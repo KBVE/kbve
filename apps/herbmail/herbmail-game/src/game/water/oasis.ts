@@ -21,6 +21,7 @@ export interface OasisDef {
 	cz: number;
 	halfW: number;
 	halfL: number;
+	roomHalfMin: number;
 	surfaceY: number;
 	x0: number;
 	x1: number;
@@ -77,6 +78,7 @@ export function spawnRoomOases(desc: RoomDesc, ownerEid: number): void {
 			cz: z0 + l / 2,
 			halfW: w / 2,
 			halfL: l / 2,
+			roomHalfMin: (Math.min(p.rw, p.rh) * TILE) / 2,
 			surfaceY: -SURFACE_DROP,
 			x0,
 			x1: x0 + w,
@@ -167,6 +169,10 @@ function sub(cb: () => void): () => void {
 }
 
 function get(): OasisDef[] {
+	return snapshot;
+}
+
+export function getOases(): OasisDef[] {
 	return snapshot;
 }
 

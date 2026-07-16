@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { TILE, WALL_H } from '../config';
-import { PIT, OPEN, type Grid } from './grid';
+import { PIT, OPEN, SOLID, type Grid } from './grid';
 
 function buildSlab(grid: Grid, y: number, flip: boolean): THREE.BufferGeometry {
 	const w = grid.cols * TILE;
@@ -81,7 +81,8 @@ export function buildCeilingWithHoles(grid: Grid): THREE.BufferGeometry {
 	const idx: number[] = [];
 	for (let row = 0; row < grid.rows; row++) {
 		for (let col = 0; col < grid.cols; col++) {
-			if (grid.tileAt(col, row) & OPEN) continue;
+			const t = grid.tileAt(col, row);
+			if (t & OPEN && !(t & SOLID)) continue;
 			const x0 = (grid.originCol + col) * TILE;
 			const z0 = (grid.originRow + row) * TILE;
 			const b = pos.length / 3;

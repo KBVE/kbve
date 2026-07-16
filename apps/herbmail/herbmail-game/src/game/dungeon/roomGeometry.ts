@@ -5,6 +5,7 @@ import {
 	buildBays,
 	buildCeiling,
 	buildCeilingWithHoles,
+	buildOasisDomes,
 	buildCornerCoves,
 	buildCoves,
 	buildFloor,
@@ -25,6 +26,7 @@ export interface RoomGeoSet {
 	trim: THREE.BufferGeometry[];
 	cove: THREE.BufferGeometry[];
 	corner: THREE.BufferGeometry[];
+	domes: THREE.BufferGeometry[];
 	bays: { frames: THREE.BufferGeometry[]; backs: THREE.BufferGeometry[] };
 }
 
@@ -68,6 +70,7 @@ function buildSet(desc: RoomDesc): RoomGeoSet {
 		trim: dice(buildTrims(g, v)),
 		cove: dice(buildCoves(g)),
 		corner: dice(buildCornerCoves(g, v)),
+		domes: desc.oases.length ? dice(buildOasisDomes(g, desc.oases)) : [],
 		bays: { frames: dice(bays.frames), backs: dice(bays.backs) },
 	};
 }
@@ -87,6 +90,7 @@ function disposeSet(set: RoomGeoSet): void {
 	for (const c of set.trim) drop(c);
 	for (const c of set.cove) drop(c);
 	for (const c of set.corner) drop(c);
+	for (const c of set.domes) drop(c);
 	for (const c of set.bays.frames) drop(c);
 	for (const c of set.bays.backs) drop(c);
 }
