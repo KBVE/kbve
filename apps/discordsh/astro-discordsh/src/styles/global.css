@@ -35,6 +35,41 @@
 	--sl-color-border: #4c1d95;
 }
 
+@layer base {
+	html {
+		--dsh-bg: #0a0a0f;
+		background-color: var(--dsh-bg);
+		color-scheme: dark;
+	}
+	body {
+		margin: 0;
+		min-height: 100vh;
+		background-color: var(--dsh-bg);
+		background-image:
+			radial-gradient(
+				40rem 30rem at 15% -10%,
+				color-mix(in srgb, var(--sl-color-accent) 12%, transparent),
+				transparent 60%
+			),
+			radial-gradient(
+				40rem 30rem at 100% 0%,
+				color-mix(in srgb, #22d3ee 8%, transparent),
+				transparent 55%
+			);
+		background-attachment: fixed;
+		color: var(--sl-color-white, #f4f4f5);
+		font-family:
+			ui-sans-serif,
+			system-ui,
+			-apple-system,
+			'Segoe UI',
+			Roboto,
+			Helvetica,
+			Arial,
+			sans-serif;
+	}
+}
+
 @layer utilities {
 	.focus-ring {
 		@apply ring-violet-500 ring-offset-2 focus:outline-none focus-visible:ring-2;
