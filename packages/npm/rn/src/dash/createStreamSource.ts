@@ -1,9 +1,16 @@
 import { createSignal } from '@kbve/core';
 import { kvStore } from '../store/kv';
 import type { CacheEntry } from '../store/types';
-import type { StreamSourceConfig, StreamState, StreamStore } from './types';
+import * as SV from './savedViews';
+import type {
+	SavedView,
+	StreamParams,
+	StreamSourceConfig,
+	StreamState,
+	StreamStore,
+} from './types';
 
-const EMPTY = <TItem>(): StreamState<TItem> => ({
+const EMPTY = <TItem>(initialParams: StreamParams): StreamState<TItem> => ({
 	items: [],
 	meta: null,
 	loading: true,
@@ -17,7 +24,17 @@ const EMPTY = <TItem>(): StreamState<TItem> => ({
 	actionBusy: null,
 	actionError: null,
 	actionMsg: null,
+	params: initialParams,
+	views: [],
+	activeViewId: null,
 });
+
+function serializeParams(params: StreamParams): string {
+	const keys = Object.keys(params)
+		.filter((k) => params[k] !== undefined)
+		.sort();
+	return keys.map((k) => `${k}=${params[k]}`).join('&');
+}
 
 /**
  * Build a polling/caching data source for one stream of items. Domain code
@@ -37,11 +54,20 @@ export function createStreamSource<TRaw, TItem>(
 		signature = (item: TItem) => JSON.stringify(item),
 		pollMs,
 		cacheTtlMs,
+		initialParams = {},
+		defaultViews = [],
 	} = config;
 
-	const cacheKey = `dash:${key}`;
-	const metaCacheKey = `dash:${key}:meta`;
-	const signal = createSignal<StreamState<TItem>>(EMPTY<TItem>());
+	const signal = createSignal<StreamState<TItem>>(EMPTY<TItem>(initialParams));
+
+	const viewsKey = `dash:${key}:views`;
+	const persistViews = (views: SavedView[]) => {
+		try {
+			void kvStore.set(viewsKey, { value: views, storedAt: Date.now() });
+		} catch {
+			/* persistence unavailable (e.g. no Worker in this env) — in-memory state still updated */
+		}
+	};
 
 	// Reference-reuse caches: previous item by id + its fingerprint, so an
 	// unchanged item keeps its object identity across polls.
@@ -80,11 +106,15 @@ export function createStreamSource<TRaw, TItem>(
 		controller?.abort();
 		const ctrl = new AbortController();
 		controller = ctrl;
+		const params = signal.get().params;
+		const scopedKey = `dash:${key}:${serializeParams(params)}`;
 		try {
 			const [raw, meta] = await Promise.all([
-				fetch({ signal: ctrl.signal }),
+				fetch({ signal: ctrl.signal }, params),
 				fetchMeta
-					? fetchMeta({ signal: ctrl.signal }).catch(() => undefined)
+					? fetchMeta({ signal: ctrl.signal }, params).catch(
+							() => undefined,
+						)
 					: Promise.resolve(undefined),
 			]);
 			if (ctrl.signal.aborted) return;
@@ -98,12 +128,12 @@ export function createStreamSource<TRaw, TItem>(
 				lastUpdated: Date.now(),
 			});
 			if (cacheTtlMs) {
-				void kvStore.set(cacheKey, {
+				void kvStore.set(scopedKey, {
 					value: items,
 					storedAt: Date.now(),
 				});
 				if (fetchMeta) {
-					void kvStore.set(metaCacheKey, {
+					void kvStore.set(`${scopedKey}:meta`, {
 						value: meta ?? null,
 						storedAt: Date.now(),
 					});
@@ -120,11 +150,13 @@ export function createStreamSource<TRaw, TItem>(
 
 	const hydrate = async (): Promise<void> => {
 		if (!cacheTtlMs) return;
+		const params = signal.get().params;
+		const scopedKey = `dash:${key}:${serializeParams(params)}`;
 		try {
 			const [cached, cachedMeta] = await Promise.all([
-				kvStore.get<CacheEntry<TItem[]>>(cacheKey),
+				kvStore.get<CacheEntry<TItem[]>>(scopedKey),
 				fetchMeta
-					? kvStore.get<CacheEntry<unknown>>(metaCacheKey)
+					? kvStore.get<CacheEntry<unknown>>(`${scopedKey}:meta`)
 					: Promise.resolve(null),
 			]);
 			// Paint cached meta first so summary tiles render immediately —
@@ -153,6 +185,18 @@ export function createStreamSource<TRaw, TItem>(
 		start: () => {
 			if (started) return;
 			started = true;
+			void (async () => {
+				let stored: SavedView[] = [];
+				try {
+					const entry = await kvStore.get<{ value: SavedView[] }>(
+						viewsKey,
+					);
+					stored = entry?.value ?? [];
+				} catch {
+					/* ignore */
+				}
+				patch({ views: SV.seedViews(defaultViews, stored) });
+			})();
 			void hydrate().then(runFetch);
 			if (pollMs && pollMs > 0) {
 				timer = setInterval(() => void runFetch(), pollMs);
@@ -185,6 +229,60 @@ export function createStreamSource<TRaw, TItem>(
 				});
 			} finally {
 				patch({ actionBusy: null });
+			}
+		},
+		setParams: (patchParams) => {
+			patch({ params: { ...signal.get().params, ...patchParams } });
+			void runFetch();
+		},
+		resetParams: () => {
+			patch({ params: { ...initialParams } });
+			void runFetch();
+		},
+		saveView: (name) => {
+			const view: SavedView = {
+				id: SV.makeViewId(name, signal.get().views.length),
+				name,
+				params: { ...signal.get().params },
+			};
+			const views = SV.addView(signal.get().views, view);
+			patch({ views });
+			persistViews(views);
+		},
+		applyView: (id) => {
+			const view = signal.get().views.find((v) => v.id === id);
+			if (!view) return;
+			patch({ params: { ...view.params }, activeViewId: id });
+			void runFetch();
+		},
+		removeView: (id) => {
+			const views = SV.removeView(signal.get().views, id);
+			patch({ views });
+			persistViews(views);
+		},
+		renameView: (id, name) => {
+			const views = SV.renameView(signal.get().views, id, name);
+			patch({ views });
+			persistViews(views);
+		},
+		reorderViews: (ids) => {
+			const views = SV.reorderViews(signal.get().views, ids);
+			patch({ views });
+			persistViews(views);
+		},
+		exportViews: () => SV.exportViews(signal.get().views),
+		importViews: (json) => {
+			try {
+				const incoming = SV.importViews(json);
+				const merged = incoming.reduce(
+					(acc, v) => SV.addView(acc, v),
+					signal.get().views,
+				);
+				patch({ views: merged });
+				persistViews(merged);
+				return incoming.length;
+			} catch {
+				return 0;
 			}
 		},
 	};

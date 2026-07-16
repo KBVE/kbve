@@ -6,6 +6,8 @@ import { ErrorState } from '../ui/feedback/ErrorState';
 import { LoadingState } from '../ui/feedback/LoadingState';
 import { VirtualList } from '../ui/lists/VirtualList';
 import { StatGrid } from './StatGrid';
+import { ControlBar } from './controls/ControlBar';
+import { SavedViewTabs } from './controls/SavedViewTabs';
 import { useStream, useStreamLifecycle, useStreamSelector } from './useStream';
 import type {
 	StreamAction,
@@ -249,6 +251,22 @@ export function StreamView<TItem>({
 			{stats.length ? <StatGrid stats={stats} /> : null}
 			{lens.metaPanel ? lens.metaPanel(state.meta) : null}
 
+			{state.views.length ? (
+				<SavedViewTabs
+					store={storeU}
+					views={state.views}
+					activeViewId={state.activeViewId}
+				/>
+			) : null}
+			{lens.controls?.length ? (
+				<ControlBar
+					store={storeU}
+					controls={lens.controls}
+					params={state.params}
+					meta={state.meta}
+				/>
+			) : null}
+
 			<Stack direction="row" gap="sm" align="center" wrap>
 				{lens.filters?.length ? (
 					<FilterChips
@@ -268,6 +286,9 @@ export function StreamView<TItem>({
 						style={styles.search}
 					/>
 				) : null}
+				<Pressable onPress={() => void store.refresh()} style={styles.refresh}>
+					<Text variant="caption" tone="muted">↻ Refresh</Text>
+				</Pressable>
 			</Stack>
 
 			<VirtualList
@@ -365,6 +386,13 @@ const styles = StyleSheet.create({
 		paddingVertical: 4,
 		borderRadius: tokens.radius.pill,
 		borderWidth: 1,
+	},
+	refresh: {
+		paddingHorizontal: tokens.space.md,
+		paddingVertical: 4,
+		borderRadius: tokens.radius.pill,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
 	},
 	search: {
 		flexGrow: 1,

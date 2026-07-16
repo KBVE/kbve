@@ -90,7 +90,7 @@ export function createMinecraftStream(
 		],
 	} = opts;
 
-	return createStreamSource<never, MinecraftServerItem>({
+	return createStreamSource<MinecraftServerItem, MinecraftServerItem>({
 		key: 'minecraft:servers',
 		pollMs,
 		cacheTtlMs: 60_000,
