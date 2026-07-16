@@ -554,6 +554,140 @@
 	animation: auth-reveal 2s ease-in-out;
 }
 
+/* ── View transitions ─────────────────────────────────────────────
+   Cross-document VT: chrome stays pinned, terminals morph, content
+   slide-fades. */
 @view-transition {
 	navigation: auto;
+}
+
+/* Persistent chrome — morphs in place instead of crossfading */
+.dsh-header {
+	view-transition-name: dsh-header;
+}
+.site-footer {
+	view-transition-name: dsh-footer;
+}
+
+/* Terminal windows share one name → index hero term morphs into the
+   404 term (and back) on navigation */
+.term,
+.nf-term {
+	view-transition-name: dsh-term;
+}
+
+/* Page content: old slips down+fades, new drops in from above */
+::view-transition-old(root) {
+	animation: dsh-vt-out 180ms ease both;
+}
+::view-transition-new(root) {
+	animation: dsh-vt-in 260ms ease both;
+}
+@keyframes dsh-vt-out {
+	to {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+}
+@keyframes dsh-vt-in {
+	from {
+		opacity: 0;
+		transform: translateY(-8px);
+	}
+}
+
+/* Headlines morph between pages (index hero ↔ 404 heading) */
+.hero-title,
+.nf-heading {
+	view-transition-name: dsh-headline;
+}
+
+/* Primary/ghost CTAs fly between layouts (scoped: one per page) */
+.hero-cta .btn-primary,
+.nf-cta .btn-primary {
+	view-transition-name: dsh-cta-primary;
+}
+.hero-cta .btn-ghost,
+.nf-cta .btn-ghost {
+	view-transition-name: dsh-cta-ghost;
+}
+
+/* Logo rides its own track inside the pinned header */
+.dsh-logo {
+	view-transition-name: dsh-logo;
+}
+
+/* Chrome + terminal morphs: quick and snappy */
+::view-transition-group(dsh-header),
+::view-transition-group(dsh-footer),
+::view-transition-group(dsh-logo) {
+	animation-duration: 200ms;
+}
+::view-transition-group(dsh-term) {
+	animation-duration: 320ms;
+	animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+::view-transition-group(dsh-headline),
+::view-transition-group(dsh-cta-primary),
+::view-transition-group(dsh-cta-ghost) {
+	animation-duration: 280ms;
+	animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Incoming headline gets a soft blur-in on top of the morph */
+::view-transition-new(dsh-headline) {
+	animation: dsh-headline-in 280ms ease both;
+}
+@keyframes dsh-headline-in {
+	from {
+		filter: blur(6px);
+		opacity: 0.4;
+	}
+	to {
+		filter: blur(0);
+		opacity: 1;
+	}
+}
+
+/* ── Scroll-driven entrances (Chromium; others just render static) ──
+   Cards rise+fade as they enter the viewport. No JS, no observers. */
+@supports (animation-timeline: view()) {
+	.cmd-card,
+	.server-card,
+	.feature-card {
+		animation: dsh-rise linear both;
+		animation-timeline: view();
+		animation-range: entry 0% entry 55%;
+	}
+	.footer-main {
+		animation: dsh-rise linear both;
+		animation-timeline: view();
+		animation-range: entry 0% entry 70%;
+	}
+}
+@keyframes dsh-rise {
+	from {
+		opacity: 0;
+		transform: translateY(18px) scale(0.985);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.cmd-card,
+	.server-card,
+	.feature-card,
+	.footer-main {
+		animation: none !important;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	::view-transition-group(*),
+	::view-transition-old(*),
+	::view-transition-new(*) {
+		animation: none !important;
+	}
 }
