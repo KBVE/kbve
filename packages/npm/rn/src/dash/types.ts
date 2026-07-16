@@ -51,7 +51,7 @@ export interface StreamSourceConfig<TRaw, TItem> {
 	/** Cache key prefix; the source namespaces its own keys under it. */
 	key: string;
 	/** Fetch the raw payload list. Owns auth, URL, and transport (domain concern). */
-	fetch: (ctx: FetchContext, params: StreamParams) => Promise<TRaw[]>;
+	fetch: (ctx: FetchContext, params?: StreamParams) => Promise<TRaw[]>;
 	/** Project one raw record into the stable item shape the views render. */
 	normalize: (raw: TRaw) => TItem;
 	/** Stable identity for an item (dedupe, expand target, list key). */
@@ -73,7 +73,7 @@ export interface StreamSourceConfig<TRaw, TItem> {
 	 * refreshes. Surfaced to the lens's `stats` as the second argument. Should
 	 * resolve (not throw) on failure so it never blocks the item fetch.
 	 */
-	fetchMeta?: (ctx: FetchContext, params: StreamParams) => Promise<unknown>;
+	fetchMeta?: (ctx: FetchContext, params?: StreamParams) => Promise<unknown>;
 	/** Initial params for the stream. Defaults to empty. */
 	initialParams?: StreamParams;
 	/** Seeded views shown by default in the view picker. */
