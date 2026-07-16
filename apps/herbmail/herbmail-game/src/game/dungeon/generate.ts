@@ -80,6 +80,11 @@ export interface OasisSlot {
 	row: number;
 	w: number;
 	h: number;
+	// Room tile bounds (local grid), for the dome that vaults the whole room.
+	rc: number;
+	rr: number;
+	rw: number;
+	rh: number;
 }
 
 export interface RoomDesc {
@@ -449,18 +454,25 @@ function genOases(
 		for (let tr = row; tr < row + ph; tr++)
 			for (let tc = col; tc < col + w; tc++)
 				tiles[tr * cols + tc] = OASIS;
-		// Open the whole room's interior (dry floor + water) to the sky, not just
-		// the pool: the ceiling slab is skipped over OPEN tiles and they take sky
-		// lighting. Walls/columns/doorways keep their tile flags untouched.
+		// Open the whole room to the sky (floor, water AND its walls) so sky light
+		// reaches the walls, not just the floor. The ceiling is only skipped over
+		// non-solid OPEN tiles, so no gap opens above the room's boundary walls.
 		const rc0 = r.col0 * CELL;
 		const rr0 = r.row0 * CELL;
 		const rows = tiles.length / cols;
 		for (let tr = rr0; tr < rr0 + r.h * CELL && tr < rows; tr++)
-			for (let tc = rc0; tc < rc0 + r.w * CELL && tc < cols; tc++) {
-				const t = tiles[tr * cols + tc];
-				if (t === FLOOR || t & OASIS) tiles[tr * cols + tc] = t | OPEN;
-			}
-		out.push({ col, row, w, h: ph });
+			for (let tc = rc0; tc < rc0 + r.w * CELL && tc < cols; tc++)
+				tiles[tr * cols + tc] |= OPEN;
+		out.push({
+			col,
+			row,
+			w,
+			h: ph,
+			rc: rc0,
+			rr: rr0,
+			rw: r.w * CELL,
+			rh: r.h * CELL,
+		});
 	}
 	return out;
 }

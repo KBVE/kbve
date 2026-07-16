@@ -12,7 +12,8 @@ import type { OcclusionField } from '../dungeon/occlusion';
 import { heldLight } from './heldLight';
 import { playerAnchor } from './playerAnchor';
 import { bodyMotionSig } from '../dungeon/collision';
-import { VIEW_RANGE } from '../config';
+import { getOases } from '../water/oasis';
+import { VIEW_RANGE, WALL_H } from '../config';
 
 const HEAD_REACH = 1.122;
 const HEAD_OFFSET = 0.28;
@@ -29,6 +30,10 @@ const SWAP_RATIO = 0.55;
 const FADE_TIME = 0.18;
 const SHADOW_CASTERS = 2;
 const SHADOW_MOVE_EPS = 0.02;
+// Static sky-light that fills an oasis room — the "sun pooling in" through the
+// oculus, fed through the same shader path as torches so it lights the walls.
+const OASIS_LIGHT_INTENSITY = 2.2;
+const OASIS_LIGHT_Y = WALL_H * 0.5;
 // Hoisted so the mecs `each` name-map is cached (zero per-frame allocation).
 const LIGHT_TERMS = [LightEmitter, Transform3];
 
@@ -200,6 +205,30 @@ export class LightSystem {
 			l.pdist = 0;
 			l.intensity = heldLight.intensity * flick;
 			l.tier = 0;
+			this.active.push(l);
+		}
+
+		// Static sky-light per oasis: a bright, warm, non-flickering source at the
+		// room centre so the open room reads as daylit. tier -1 keeps it ahead of
+		// torches in the nearest-N cut when the player is inside.
+		for (const o of getOases()) {
+			const pdx = o.cx - playerAnchor.pos.x;
+			const pdz = o.cz - playerAnchor.pos.z;
+			const pd2 = pdx * pdx + pdz * pdz;
+			if (pd2 > CULL_SQ) continue;
+			const ddx = o.cx - camera.position.x;
+			const ddz = o.cz - camera.position.z;
+			const l = this.take();
+			l.x = o.cx;
+			l.y = OASIS_LIGHT_Y;
+			l.z = o.cz;
+			l.r = 1.0;
+			l.g = 0.93;
+			l.b = 0.78;
+			l.dist = ddx * ddx + ddz * ddz;
+			l.pdist = pd2;
+			l.intensity = OASIS_LIGHT_INTENSITY;
+			l.tier = -1;
 			this.active.push(l);
 		}
 

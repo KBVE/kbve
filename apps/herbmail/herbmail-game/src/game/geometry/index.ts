@@ -5,6 +5,7 @@ export {
 	buildCeiling,
 	buildCeilingWithHoles,
 } from './slabs';
+export { buildOasisDomes } from './domes';
 export { buildArches, buildTrims } from './arches';
 export { buildCoves } from './coves';
 export { buildCornerCoves } from './corners';

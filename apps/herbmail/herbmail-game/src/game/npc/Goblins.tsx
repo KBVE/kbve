@@ -1,12 +1,18 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { Character, type LocomotionClips } from '../character/Character';
 import type { CharacterMotor, MotorConfig } from '../character/CharacterMotor';
 import { CHARACTER_URL } from '../character/modelUrl';
-import { HUMAN_H, TILE } from '../config';
-import { dungeonSpawn, solidAtWorld, pitAtWorld } from '../dungeon/collision';
+import { HUMAN_H } from '../config';
 import { getDungeon } from '../dungeon/store';
 import { Transform3, Wander, isAlive } from '../mecs/props';
+import { playerAnchor } from '../render/playerAnchor';
+import {
+	enemyBudget,
+	farSpawnPoints,
+	noteProgress,
+	resetProgress,
+} from './spawn';
 import { despawnGoblin, spawnGoblin } from './goblinSim';
 
 const RESPAWN_DELAY = 3;
@@ -39,28 +45,23 @@ const GOBLIN_MOTOR: MotorConfig = {
 	jumpSpeed: 3,
 };
 
-const COUNT = 3;
-
-function spawnPoints(count: number): [number, number][] {
-	const [cx, , cz] = dungeonSpawn();
-	const out: [number, number][] = [];
-	for (let ring = 1; ring <= 3 && out.length < count; ring++) {
-		for (let i = 0; i < 8 && out.length < count; i++) {
-			const a = (i / 8) * Math.PI * 2 + ring * 0.7;
-			const x = cx + Math.cos(a) * TILE * ring;
-			const z = cz + Math.sin(a) * TILE * ring;
-			if (!solidAtWorld(x, z) && !pitAtWorld(x, z)) out.push([x, z]);
-		}
-	}
-	return out;
-}
-
 interface Slot {
 	x: number;
 	z: number;
 	eid: number;
 	gen: number;
 	respawnAt: number;
+}
+
+function makeGoblin(world: ReturnType<typeof getDungeon>['world'], x: number, z: number): number {
+	return spawnGoblin(
+		world,
+		x,
+		z,
+		GOBLIN_RADIUS,
+		GOBLIN_MOTOR.walkSpeed,
+		GOBLIN_MOTOR.runSpeed,
+	);
 }
 
 function makePuppet(slot: Slot): (motor: CharacterMotor, t: number) => void {
@@ -79,65 +80,51 @@ function makePuppet(slot: Slot): (motor: CharacterMotor, t: number) => void {
 const NOOP_MOVER = (): void => void 0;
 
 export function Goblins() {
-	const slots = useMemo<Slot[]>(
-		() =>
-			spawnPoints(COUNT).map(([x, z]) => ({
-				x,
-				z,
-				eid: -1,
-				gen: 0,
-				respawnAt: 0,
-			})),
-		[],
-	);
+	const slots = useRef<Slot[]>([]);
 	const [, force] = useState(0);
 
 	useEffect(() => {
 		const world = getDungeon().world;
-		for (const s of slots)
-			s.eid = spawnGoblin(
-				world,
-				s.x,
-				s.z,
-				GOBLIN_RADIUS,
-				GOBLIN_MOTOR.walkSpeed,
-				GOBLIN_MOTOR.runSpeed,
-			);
+		resetProgress();
+		for (const [x, z] of farSpawnPoints(enemyBudget()))
+			slots.current.push({ x, z, eid: makeGoblin(world, x, z), gen: 0, respawnAt: 0 });
+		force((n) => n + 1);
+		const list = slots.current;
 		return () => {
-			for (const s of slots) {
-				if (s.eid >= 0) despawnGoblin(world, s.eid);
-				s.eid = -1;
-			}
+			for (const s of list) if (s.eid >= 0) despawnGoblin(world, s.eid);
+			slots.current = [];
 		};
-	}, [slots]);
+	}, []);
 
-	// Death reconcile: castSystem despawns a goblin's ECS entity when its HP hits
-	// zero, but the puppet Character keeps a stale eid. Drop the dead puppet at
-	// once (corpse vanishes) and respawn a fresh goblin at a new point after a
-	// delay so the encounter stays populated instead of littering frozen bodies.
+	// Grow the encounter with depth, then reconcile deaths: castSystem flags a
+	// goblin dying (CS.DEAD) on lethal damage and npcSystem despawns it after its
+	// death clip. Drop the stale puppet and respawn at a fresh far point so the
+	// dungeon stays populated instead of littering frozen bodies.
 	useFrame((state) => {
 		const world = getDungeon().world;
 		const t = state.clock.elapsedTime;
+		if (playerAnchor.on) noteProgress(playerAnchor.pos.x, playerAnchor.pos.z);
 		let changed = false;
-		for (const s of slots) {
+
+		const want = enemyBudget();
+		if (slots.current.length < want)
+			for (const [x, z] of farSpawnPoints(want - slots.current.length)) {
+				slots.current.push({ x, z, eid: makeGoblin(world, x, z), gen: 0, respawnAt: 0 });
+				changed = true;
+			}
+
+		for (const s of slots.current) {
 			if (s.eid >= 0 && !isAlive(world, s.eid)) {
 				s.eid = -1;
 				s.gen++;
 				s.respawnAt = t + RESPAWN_DELAY;
 				changed = true;
 			} else if (s.eid < 0 && s.respawnAt > 0 && t >= s.respawnAt) {
-				const [nx, nz] = spawnPoints(1)[0] ?? [s.x, s.z];
+				const [nx, nz] = farSpawnPoints(1)[0] ?? [s.x, s.z];
 				s.x = nx;
 				s.z = nz;
 				s.respawnAt = 0;
-				s.eid = spawnGoblin(
-					world,
-					nx,
-					nz,
-					GOBLIN_RADIUS,
-					GOBLIN_MOTOR.walkSpeed,
-					GOBLIN_MOTOR.runSpeed,
-				);
+				s.eid = makeGoblin(world, nx, nz);
 				changed = true;
 			}
 		}
@@ -146,7 +133,7 @@ export function Goblins() {
 
 	return (
 		<>
-			{slots.map((s, i) =>
+			{slots.current.map((s, i) =>
 				s.eid < 0 ? null : (
 					<Character
 						key={`${i}-${s.gen}`}

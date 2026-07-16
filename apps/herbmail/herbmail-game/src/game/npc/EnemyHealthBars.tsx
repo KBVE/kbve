@@ -2,10 +2,10 @@ import { useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
 import { getDungeon } from '../dungeon/store';
-import { Health, Npc, Transform3, isAlive, query } from '../mecs/props';
+import { Health, Npc, Transform3, hasComponent, isAlive } from '../mecs/props';
+import { getTarget } from '../combat/targeting';
 import { NPC_GOBLIN, NPC_KURENAI } from './goblinSim';
 
-const MAX_BARS = 24;
 const BAR_W = 0.62;
 const BAR_H = 0.08;
 const BORDER = 0.016;
@@ -17,7 +17,6 @@ const HEAD_H: Record<number, number> = {
 const LAG_SPEED = 0.85;
 const FLASH_DECAY = 7;
 
-const NPC_TERMS = [Npc, Health, Transform3];
 const WHITE = new THREE.Color(0xffffff);
 const _c = new THREE.Color();
 
@@ -27,19 +26,6 @@ function colorFor(frac: number): number {
 	return 0xc43a2a;
 }
 
-interface Bar {
-	group: THREE.Group;
-	fg: THREE.Mesh;
-	fgMat: THREE.MeshBasicMaterial;
-	trail: THREE.Mesh;
-}
-
-interface HpState {
-	lag: number;
-	flash: number;
-	lastHp: number;
-}
-
 function leftAnchor(mesh: THREE.Mesh, frac: number): void {
 	mesh.scale.x = frac;
 	mesh.position.x = -(BAR_W * (1 - frac)) / 2;
@@ -47,101 +33,85 @@ function leftAnchor(mesh: THREE.Mesh, frac: number): void {
 
 export function EnemyHealthBars() {
 	const { camera } = useThree();
-	const root = useRef<THREE.Group>(null);
-	const state = useRef(new Map<number, HpState>());
-	const seen = useRef(new Set<number>());
+	const st = useRef({ eid: -1, lag: 1, flash: 0, lastHp: 0 });
 
-	const bars = useMemo<Bar[]>(() => {
+	const { group, fg, fgMat, trail } = useMemo(() => {
+		const g = new THREE.Group();
+		g.visible = false;
 		const bgGeo = new THREE.PlaneGeometry(
 			BAR_W + BORDER * 2,
 			BAR_H + BORDER * 2,
 		);
 		const barGeo = new THREE.PlaneGeometry(BAR_W, BAR_H);
-		const bgMat = new THREE.MeshBasicMaterial({
-			color: 0x000000,
+		const bg = new THREE.Mesh(
+			bgGeo,
+			new THREE.MeshBasicMaterial({ color: 0x000000, depthTest: false }),
+		);
+		bg.renderOrder = 9997;
+		bg.frustumCulled = false;
+		const trailMesh = new THREE.Mesh(
+			barGeo,
+			new THREE.MeshBasicMaterial({ color: 0xe8dcc0, depthTest: false }),
+		);
+		trailMesh.position.z = 0.0005;
+		trailMesh.renderOrder = 9998;
+		trailMesh.frustumCulled = false;
+		const fgMaterial = new THREE.MeshBasicMaterial({
+			color: 0x5fbf4a,
 			depthTest: false,
 		});
-		const trailMat = new THREE.MeshBasicMaterial({
-			color: 0xe8dcc0,
-			depthTest: false,
-		});
-		const out: Bar[] = [];
-		for (let i = 0; i < MAX_BARS; i++) {
-			const g = new THREE.Group();
-			g.visible = false;
-			const bg = new THREE.Mesh(bgGeo, bgMat);
-			bg.renderOrder = 9997;
-			bg.frustumCulled = false;
-			const trail = new THREE.Mesh(barGeo, trailMat);
-			trail.position.z = 0.0005;
-			trail.renderOrder = 9998;
-			trail.frustumCulled = false;
-			const fgMat = new THREE.MeshBasicMaterial({
-				color: 0x5fbf4a,
-				depthTest: false,
-			});
-			const fg = new THREE.Mesh(barGeo, fgMat);
-			fg.position.z = 0.001;
-			fg.renderOrder = 9999;
-			fg.frustumCulled = false;
-			g.add(bg, trail, fg);
-			out.push({ group: g, fg, fgMat, trail });
-		}
-		return out;
+		const fgMesh = new THREE.Mesh(barGeo, fgMaterial);
+		fgMesh.position.z = 0.001;
+		fgMesh.renderOrder = 9999;
+		fgMesh.frustumCulled = false;
+		g.add(bg, trailMesh, fgMesh);
+		return { group: g, fg: fgMesh, fgMat: fgMaterial, trail: trailMesh };
 	}, []);
 
 	useFrame((_, dt) => {
-		if (!root.current) return;
 		const world = getDungeon().world;
-		const eids = query(world, NPC_TERMS);
-		const map = state.current;
-		const live = seen.current;
-		live.clear();
-		let n = 0;
-		for (const eid of eids) {
-			if (n >= MAX_BARS) break;
-			if (!isAlive(world, eid)) continue;
-			const max = Health.maxHp[eid];
-			const hp = Health.hp[eid];
-			if (max <= 0 || hp <= 0) continue;
-			const frac = Math.min(1, hp / max);
-			live.add(eid);
-
-			let st = map.get(eid);
-			if (!st) {
-				st = { lag: frac, flash: 0, lastHp: hp };
-				map.set(eid, st);
-			}
-			if (hp < st.lastHp) st.flash = 1;
-			st.lastHp = hp;
-			st.lag =
-				frac < st.lag ? Math.max(frac, st.lag - LAG_SPEED * dt) : frac;
-			st.flash = Math.max(0, st.flash - FLASH_DECAY * dt);
-
-			const bar = bars[n++];
-			const g = bar.group;
-			g.position.set(
-				Transform3.px[eid],
-				Transform3.py[eid] + (HEAD_H[Npc.kind[eid]] ?? DEFAULT_HEAD_H),
-				Transform3.pz[eid],
-			);
-			g.quaternion.copy(camera.quaternion);
-			g.visible = true;
-			leftAnchor(bar.trail, st.lag);
-			leftAnchor(bar.fg, frac);
-			_c.setHex(colorFor(frac)).lerp(WHITE, st.flash);
-			bar.fgMat.color.copy(_c);
+		const eid = getTarget() ?? -1;
+		const valid =
+			eid >= 0 &&
+			isAlive(world, eid) &&
+			hasComponent(world, eid, Health) &&
+			Health.maxHp[eid] > 0 &&
+			Health.hp[eid] > 0;
+		if (!valid) {
+			group.visible = false;
+			st.current.eid = -1;
+			return;
 		}
-		for (let i = n; i < MAX_BARS; i++) bars[i].group.visible = false;
-		if (map.size > live.size)
-			for (const eid of map.keys()) if (!live.has(eid)) map.delete(eid);
+
+		const hp = Health.hp[eid];
+		const frac = Math.min(1, hp / Health.maxHp[eid]);
+		const s = st.current;
+		if (s.eid !== eid) {
+			s.eid = eid;
+			s.lag = frac;
+			s.flash = 0;
+			s.lastHp = hp;
+		}
+		if (hp < s.lastHp) s.flash = 1;
+		s.lastHp = hp;
+		s.lag = frac < s.lag ? Math.max(frac, s.lag - LAG_SPEED * dt) : frac;
+		s.flash = Math.max(0, s.flash - FLASH_DECAY * dt);
+
+		group.position.set(
+			Transform3.px[eid],
+			Transform3.py[eid] +
+				(hasComponent(world, eid, Npc)
+					? (HEAD_H[Npc.kind[eid]] ?? DEFAULT_HEAD_H)
+					: DEFAULT_HEAD_H),
+			Transform3.pz[eid],
+		);
+		group.quaternion.copy(camera.quaternion);
+		group.visible = true;
+		leftAnchor(trail, s.lag);
+		leftAnchor(fg, frac);
+		_c.setHex(colorFor(frac)).lerp(WHITE, s.flash);
+		fgMat.color.copy(_c);
 	});
 
-	return (
-		<group ref={root}>
-			{bars.map((b, i) => (
-				<primitive key={i} object={b.group} />
-			))}
-		</group>
-	);
+	return <primitive object={group} />;
 }
