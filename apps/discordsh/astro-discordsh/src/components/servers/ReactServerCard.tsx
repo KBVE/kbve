@@ -119,8 +119,8 @@ export const ReactServerCard = memo(function ReactServerCard({
 				</div>
 			</div>
 
-			{/* Vote + invite */}
-			<div className="flex flex-col items-center justify-center gap-1.5 min-w-14">
+			{/* Vote + invite — fixed-width column, buttons fill it equally */}
+			<div className="flex flex-col items-stretch justify-center gap-1.5 w-24 shrink-0">
 				<CardVoteButton
 					serverId={server.server_id}
 					serverName={server.name}

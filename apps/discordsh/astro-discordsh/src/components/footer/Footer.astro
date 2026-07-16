@@ -148,7 +148,7 @@ const currentYear = new Date().getFullYear();
 
 	.brand-desc {
 		margin-top: 0.75rem;
-		font-size: 0.8125rem;
+		font-size: var(--dsh-text-sm);
 		line-height: 1.6;
 		color: var(--sl-color-gray-2, #a1a1aa);
 	}
@@ -156,13 +156,16 @@ const currentYear = new Date().getFullYear();
 	.brand-sig {
 		display: inline-block;
 		margin-top: 0.9rem;
-		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+		font-family: var(--dsh-font-mono);
 		font-size: 0.7rem;
 		color: var(--sl-color-gray-2, #71717a);
 		background: rgba(0, 0, 0, 0.35);
 		border: 1px solid rgba(255, 255, 255, 0.06);
-		border-radius: 0.5rem;
+		border-radius: var(--dsh-radius-sm);
 		padding: 0.35rem 0.65rem;
+		max-width: 100%;
+		overflow-x: auto;
+		white-space: nowrap;
 	}
 	.sig-prompt {
 		color: #22d3ee;
@@ -175,8 +178,8 @@ const currentYear = new Date().getFullYear();
 	}
 
 	.footer-title {
-		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-		font-size: 0.72rem;
+		font-family: var(--dsh-font-mono);
+		font-size: var(--dsh-text-sm);
 		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 0.1em;
@@ -188,7 +191,7 @@ const currentYear = new Date().getFullYear();
 	}
 
 	.footer-col a {
-		font-size: 0.8125rem;
+		font-size: var(--dsh-text-sm);
 		color: var(--sl-color-gray-2, #a1a1aa);
 		text-decoration: none;
 		transition:
@@ -212,7 +215,7 @@ const currentYear = new Date().getFullYear();
 	}
 
 	.footer-bottom span {
-		font-size: 0.8125rem;
+		font-size: var(--dsh-text-sm);
 		color: var(--sl-color-gray-3, #71717a);
 	}
 

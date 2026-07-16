@@ -34,10 +34,11 @@ export function ExpandButton({
 }: ExpandButtonProps) {
 	const [hovered, setHovered] = useState(false);
 
-	// Spring for expanding the label width
-	const expand = useSpring({
-		maxWidth: hovered ? 120 : 0,
-		opacity: hovered ? 1 : 0,
+	// Label keeps its width at all times — only fades/slides on hover,
+	// so the button never changes size (no layout shift).
+	const reveal = useSpring({
+		opacity: hovered ? 1 : 0.55,
+		x: hovered ? 0 : -2,
 		config: { tension: 260, friction: 24 },
 	});
 
@@ -81,12 +82,12 @@ export function ExpandButton({
 			/>
 			{/* Icon (always visible) */}
 			{icon}
-			{/* Expanding label */}
+			{/* Label — width always reserved, fades in on hover */}
 			<animated.span
-				className="inline-block overflow-hidden whitespace-nowrap"
+				className="inline-block whitespace-nowrap"
 				style={{
-					maxWidth: expand.maxWidth,
-					opacity: expand.opacity,
+					opacity: reveal.opacity,
+					transform: reveal.x.to((v) => `translateX(${v}px)`),
 				}}>
 				{label}
 			</animated.span>

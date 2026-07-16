@@ -126,8 +126,8 @@ function GridInner() {
 			{/* Invisible hCaptcha container */}
 			<div ref={captchaRef} className="hidden" />
 
-			{/* Category filter pills */}
-			<div className="flex items-center gap-2 overflow-x-auto pb-2 mb-4">
+			{/* Category filter pills — wrap into rows, no horizontal scroll */}
+			<div className="flex flex-wrap items-center gap-2 mb-4">
 				<button
 					onClick={() => setCategory(null)}
 					className={`sg-pill ${!category ? 'sg-pill-active' : 'sg-pill-inactive'}`}>
