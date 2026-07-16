@@ -24,6 +24,8 @@ spec:
         metadata:
             labels:
                 app: chuckrpg
+            annotations:
+                kbve.com/config-revision: 2026-07-16-log-warn
         spec:
             serviceAccountName: chuckrpg
             automountServiceAccountToken: false

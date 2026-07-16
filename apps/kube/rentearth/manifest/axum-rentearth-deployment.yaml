@@ -24,6 +24,8 @@ spec:
         metadata:
             labels:
                 app: axum-rentearth
+            annotations:
+                kbve.com/config-revision: 2026-07-16-log-warn
         spec:
             serviceAccountName: rentearth-sa
             automountServiceAccountToken: false

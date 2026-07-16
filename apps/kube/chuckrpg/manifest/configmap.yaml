@@ -11,5 +11,5 @@ metadata:
 data:
     HTTP_HOST: 0.0.0.0
     HTTP_PORT: '4322'
-    RUST_LOG: info
+    RUST_LOG: warn
     ITCH_GAME_ID: '4645098'
