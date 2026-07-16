@@ -62,7 +62,7 @@ spec:
                                 name: forgejo-gate-supabase-jwt
                                 key: anon-key
                       - name: RUST_LOG
-                        value: info
+                        value: warn
                   resources:
                       requests:
                           memory: 64Mi

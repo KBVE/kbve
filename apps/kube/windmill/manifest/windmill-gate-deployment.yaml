@@ -79,7 +79,7 @@ spec:
                       - name: GATE_WINDMILL_WORKSPACE
                         value: kbve
                       - name: RUST_LOG
-                        value: info
+                        value: warn
                   resources:
                       requests:
                           memory: 64Mi
