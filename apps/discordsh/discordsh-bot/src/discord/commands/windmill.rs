@@ -7,7 +7,7 @@ use crate::discord::windmill::{DiscordContext, split_args};
 #[poise::command(slash_command, rename = "wm")]
 pub async fn wm(
     ctx: Context<'_>,
-    #[description = "Windmill path, e.g. f/deploy/restart or p/ops/status"] wm_path: String,
+    #[description = "Script name (e.g. poem) → f/discordsh/; only the f/discordsh/ folder is reachable"] wm_path: String,
     #[description = "Space-separated args"] args: Option<String>,
 ) -> Result<(), Error> {
     let Some(cfg) = ctx.data().app.windmill.clone() else {
