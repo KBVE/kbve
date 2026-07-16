@@ -11,7 +11,7 @@ import { removeEntity, resetPropsWorld, Transform3 } from '../mecs/props';
 import { invalidateSolidCache } from './collision';
 import { spawnRoomProps, despawnRoomProps } from '../prop/spawn';
 import { spawnRoomDoors, despawnRoomDoors, resetDoors } from '../door/doors';
-import { spawnRoomPools, despawnRoomPools, resetPools } from '../water/pools';
+import { spawnRoomOases, despawnRoomOases, resetOases } from '../water/oasis';
 import { spawnTorch } from '../prop/torch';
 import { spawnCrate } from '../prop/crate';
 import { resetBurn } from '../prop/burn';
@@ -128,14 +128,14 @@ function rebuild(x: number, z: number, sx: number, sy: number): void {
 			spawnRoomProps(dw, eid);
 			spawnRoomDoors(eid);
 			const d = dw.desc(eid);
-			if (d) spawnRoomPools(d, eid);
+			if (d) spawnRoomOases(d, eid);
 		}
 	}
 	for (const eid of prevMounted) {
 		if (!mset.has(eid)) {
 			despawnRoomProps(dw, eid);
 			despawnRoomDoors(eid);
-			despawnRoomPools(eid);
+			despawnRoomOases(eid);
 		}
 	}
 	prevMounted = mset;
@@ -219,7 +219,7 @@ export function resetDungeon(seed = DUNGEON_SEED): void {
 	prevMounted = new Set();
 	clearPlaced();
 	resetDoors();
-	resetPools();
+	resetOases();
 	rebuild(SECTOR_SPAN / 2, SECTOR_SPAN / 2, 0, 0);
 }
 

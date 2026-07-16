@@ -13,6 +13,7 @@ export interface DungeonMaterials {
 	ceiling: PsxMaterialImpl;
 	cove: PsxMaterialImpl;
 	corner: PsxMaterialImpl;
+	dome: PsxMaterialImpl;
 	bayFrame: PsxMaterialImpl;
 	bayBack: PsxMaterialImpl;
 }
@@ -88,6 +89,10 @@ export function useDungeonMaterials(
 				{ ...wallUniforms(tex.walls[2]), uTint: tint(TINT.cove) },
 				{ doubleSide: true, polygonOffsetFactor: -4 },
 			),
+			dome: makeMat(
+				{ ...wallUniforms(tex.walls[2]), uPom: 0 },
+				{ doubleSide: true },
+			),
 			bayFrame: makeMat(
 				{ uMap: tex.arch.color, uTint: tint(TINT.bay) },
 				{ doubleSide: true, polygonOffsetFactor: -3 },
@@ -108,6 +113,7 @@ export function useDungeonMaterials(
 			mats.ceiling,
 			mats.cove,
 			mats.corner,
+			mats.dome,
 			mats.bayFrame,
 			mats.bayBack,
 		];
@@ -129,6 +135,7 @@ export function useDungeonMaterials(
 				mats.ceiling,
 				mats.cove,
 				mats.corner,
+				mats.dome,
 				mats.bayFrame,
 				mats.bayBack,
 			]) {

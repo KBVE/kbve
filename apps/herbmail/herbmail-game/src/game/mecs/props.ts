@@ -32,6 +32,10 @@ export const MeshRef = world.stores.MeshRef;
 export const Collider = world.stores.Collider;
 export const LightEmitter = world.stores.LightEmitter;
 export const Health = world.stores.Health;
+export const Mana = world.stores.Mana;
+export const Energy = world.stores.Energy;
+export const Stamina = world.stores.Stamina;
+export const Combat = world.stores.Combat;
 export const Burn = world.stores.Burn;
 export const Stone = world.stores.Stone;
 export const FlameFx = world.stores.FlameFx;
@@ -48,7 +52,7 @@ export const CharState = world.stores.CharState;
 export const HeldItems = world.stores.HeldItems;
 export const Caster = world.stores.Caster;
 export const Cooldowns = world.stores.Cooldowns;
-export const Pool = world.stores.Pool;
+export const Oasis = world.stores.Oasis;
 
 // Reverse map: component accessor object -> its schema name, so the bitecs-shaped
 // shim can translate `addComponent(world, eid, Transform3)` into `add(eid,'Transform3')`.
@@ -182,14 +186,69 @@ interface StatBlock {
 	hp?: number;
 	maxHp?: number;
 	hpRegen?: number;
+	mp?: number;
+	maxMp?: number;
+	mpRegen?: number;
+	ep?: number;
+	maxEp?: number;
+	epRegen?: number;
+	sp?: number;
+	maxSp?: number;
+	spRegen?: number;
+	power?: number;
+	defense?: number;
 }
 export function applyStats(_w: World, eid: number, s: StatBlock): void {
-	if (s.maxHp === undefined && s.hp === undefined) return;
-	world.add(eid, 'Health');
-	const m = s.maxHp ?? s.hp ?? 0;
-	Health.hp[eid] = s.hp ?? m;
-	Health.maxHp[eid] = m;
-	Health.regen[eid] = s.hpRegen ?? 0;
+	if (s.maxHp !== undefined || s.hp !== undefined) {
+		world.add(eid, 'Health');
+		const m = s.maxHp ?? s.hp ?? 0;
+		Health.hp[eid] = s.hp ?? m;
+		Health.maxHp[eid] = m;
+		Health.regen[eid] = s.hpRegen ?? 0;
+	}
+	if (s.maxMp !== undefined || s.mp !== undefined) {
+		world.add(eid, 'Mana');
+		const m = s.maxMp ?? s.mp ?? 0;
+		Mana.value[eid] = s.mp ?? m;
+		Mana.max[eid] = m;
+		Mana.regen[eid] = s.mpRegen ?? 0;
+	}
+	if (s.maxEp !== undefined || s.ep !== undefined) {
+		world.add(eid, 'Energy');
+		const m = s.maxEp ?? s.ep ?? 0;
+		Energy.value[eid] = s.ep ?? m;
+		Energy.max[eid] = m;
+		Energy.regen[eid] = s.epRegen ?? 0;
+	}
+	if (s.maxSp !== undefined || s.sp !== undefined) {
+		world.add(eid, 'Stamina');
+		const m = s.maxSp ?? s.sp ?? 0;
+		Stamina.value[eid] = s.sp ?? m;
+		Stamina.max[eid] = m;
+		Stamina.regen[eid] = s.spRegen ?? 0;
+	}
+	if (s.power !== undefined || s.defense !== undefined) {
+		world.add(eid, 'Combat');
+		Combat.power[eid] = s.power ?? 0;
+		Combat.defense[eid] = s.defense ?? 0;
+	}
+}
+
+export function regenVitals(_w: World, eid: number, dt: number): void {
+	if (world.has(eid, 'Health') && Health.regen[eid] > 0)
+		Health.hp[eid] = Math.min(
+			Health.maxHp[eid],
+			Health.hp[eid] + Health.regen[eid] * dt,
+		);
+	for (const name of ['Mana', 'Energy', 'Stamina'] as const) {
+		if (!world.has(eid, name)) continue;
+		const store = world.stores[name];
+		if (store.regen[eid] > 0)
+			store.value[eid] = Math.min(
+				store.max[eid],
+				store.value[eid] + store.regen[eid] * dt,
+			);
+	}
 }
 
 // resetDungeon rebuilds the lattice from a new seed; wipe the shared world instead

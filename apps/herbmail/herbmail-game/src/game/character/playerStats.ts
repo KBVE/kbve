@@ -1,19 +1,18 @@
 import { useSyncExternalStore } from 'react';
 import {
-	addEntity,
 	applyStats,
 	createWorld,
-	EnergyPool,
-	HealthPool,
-	ManaPool,
-	regenPools,
-	StaminaPool,
-	type Pool,
+	Energy,
+	Health,
+	Mana,
+	regenVitals,
+	Stamina,
 	type World,
-} from '@kbve/laser/ecs';
+} from '../mecs/props';
+import { playerEid } from './playerEntity';
 
 const world: World = createWorld();
-const eid = addEntity(world);
+const eid = playerEid();
 
 applyStats(world, eid, {
 	hp: 100,
@@ -30,13 +29,14 @@ applyStats(world, eid, {
 	spRegen: 8,
 });
 
+export type PoolStore = { value: { [i: number]: number } };
+
 export const PlayerStats = {
 	world,
 	eid,
-	hp: HealthPool,
-	mp: ManaPool,
-	ep: EnergyPool,
-	sp: StaminaPool,
+	mp: Mana,
+	ep: Energy,
+	sp: Stamina,
 };
 
 export interface PoolSnapshot {
@@ -52,14 +52,14 @@ export interface PoolSnapshot {
 
 function read(): PoolSnapshot {
 	return {
-		hp: HealthPool.value[eid],
-		maxHp: HealthPool.max[eid],
-		mp: ManaPool.value[eid],
-		maxMp: ManaPool.max[eid],
-		ep: EnergyPool.value[eid],
-		maxEp: EnergyPool.max[eid],
-		sp: StaminaPool.value[eid],
-		maxSp: StaminaPool.max[eid],
+		hp: Health.hp[eid],
+		maxHp: Health.maxHp[eid],
+		mp: Mana.value[eid],
+		maxMp: Mana.max[eid],
+		ep: Energy.value[eid],
+		maxEp: Energy.max[eid],
+		sp: Stamina.value[eid],
+		maxSp: Stamina.max[eid],
 	};
 }
 
@@ -82,7 +82,7 @@ function changed(a: PoolSnapshot, b: PoolSnapshot): boolean {
 }
 
 export function tickPlayerStats(dt: number): void {
-	regenPools(world, dt);
+	regenVitals(world, eid, dt);
 	accum += dt;
 	if (accum < EMIT_INTERVAL) return;
 	accum = 0;
@@ -92,7 +92,7 @@ export function tickPlayerStats(dt: number): void {
 	for (const l of listeners) l();
 }
 
-export function spend(pool: Pool, amount: number): number {
+export function spend(pool: PoolStore, amount: number): number {
 	const taken = Math.min(pool.value[eid], amount);
 	pool.value[eid] -= taken;
 	return taken;

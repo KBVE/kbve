@@ -8,14 +8,31 @@ import {
 	addEntity,
 	applyStats,
 	each,
+	hasComponent,
+	removeComponent,
 	removeEntity,
 	type World,
 } from '../mecs/props';
+import { CS } from '../character/charState';
 import { makeMover, registerBody, type Body } from '../dungeon/collision';
 import { playerAnchor } from '../render/playerAnchor';
 import { sampleFlow, updateFlowField } from './flowField';
 
 export const NPC_GOBLIN = 1;
+export const NPC_KURENAI = 2;
+
+interface NpcStats {
+	hp: number;
+	power: number;
+	defense: number;
+}
+const NPC_STATS: Record<number, NpcStats> = {
+	[NPC_GOBLIN]: { hp: 20, power: 4, defense: 0 },
+	[NPC_KURENAI]: { hp: 60, power: 9, defense: 3 },
+};
+
+const DEATH_DUR = 1.6;
+const CS_DEAD = CS.DEAD;
 
 const WANDER_MIN = 1.5;
 const WANDER_MAX = 4;
@@ -46,6 +63,7 @@ interface NpcRuntime {
 	aggro: boolean;
 	orbitDir: number;
 	orbitUntil: number;
+	dyingRemaining: number;
 }
 const runtime = new Map<number, NpcRuntime>();
 
@@ -58,6 +76,7 @@ export function spawnGoblin(
 	radius: number,
 	walkSpeed: number,
 	chaseSpeed: number,
+	kind: number = NPC_GOBLIN,
 ): number {
 	const eid = addEntity(world);
 	addComponent(world, eid, Transform3);
@@ -66,10 +85,16 @@ export function spawnGoblin(
 	Transform3.px[eid] = x;
 	Transform3.py[eid] = 0;
 	Transform3.pz[eid] = z;
-	Npc.kind[eid] = NPC_GOBLIN;
+	Npc.kind[eid] = kind;
 	Npc.radius[eid] = radius;
 	Wander.until[eid] = 0;
-	applyStats(world, eid, { hp: 20, maxHp: 20 });
+	const stats = NPC_STATS[kind] ?? NPC_STATS[NPC_GOBLIN];
+	applyStats(world, eid, {
+		hp: stats.hp,
+		maxHp: stats.hp,
+		power: stats.power,
+		defense: stats.defense,
+	});
 	addComponent(world, eid, Targetable);
 	Targetable.radius[eid] = radius;
 	Targetable.priority[eid] = 1;
@@ -85,6 +110,7 @@ export function spawnGoblin(
 		aggro: false,
 		orbitDir: Math.random() < 0.5 ? 1 : -1,
 		orbitUntil: 0,
+		dyingRemaining: 0,
 	});
 	return eid;
 }
@@ -93,6 +119,26 @@ export function despawnGoblin(world: World, eid: number): void {
 	runtime.get(eid)?.unreg();
 	runtime.delete(eid);
 	removeEntity(world, eid);
+}
+
+// Death handoff: instead of removing the entity the instant HP hits zero, flag
+// it dying so the puppet plays its death clip. AI freezes, the corpse stops
+// being targetable, and npcSystem despawns it once DEATH_DUR elapses — then the
+// React reconcile respawns a fresh one at the pool slot.
+export function killGoblin(world: World, eid: number): void {
+	const rt = runtime.get(eid);
+	if (!rt || rt.dyingRemaining > 0) return;
+	rt.dyingRemaining = DEATH_DUR;
+	rt.aggro = false;
+	Wander.vx[eid] = 0;
+	Wander.vz[eid] = 0;
+	CharState.bits[eid] |= CS_DEAD;
+	if (hasComponent(world, eid, Targetable))
+		removeComponent(world, eid, Targetable);
+}
+
+export function isDying(eid: number): boolean {
+	return (runtime.get(eid)?.dyingRemaining ?? 0) > 0;
 }
 
 function separation(self: NpcRuntime, out: { x: number; z: number }): void {
@@ -125,12 +171,21 @@ function accumSep(
 
 const sep = { x: 0, z: 0 };
 
+const deadDrain: number[] = [];
+
 export function npcSystem(world: World, t: number, dt: number): void {
 	if (playerAnchor.on)
 		updateFlowField(playerAnchor.pos.x, playerAnchor.pos.z);
 	each(world, NPC_TERMS, (eid) => {
 		const rt = runtime.get(eid);
 		if (!rt) return;
+		if (rt.dyingRemaining > 0) {
+			rt.dyingRemaining -= dt;
+			Wander.vx[eid] = 0;
+			Wander.vz[eid] = 0;
+			if (rt.dyingRemaining <= 0) deadDrain.push(eid);
+			return;
+		}
 		const p = rt.body.pos;
 		p.x = Transform3.px[eid];
 		p.z = Transform3.pz[eid];
@@ -216,4 +271,8 @@ export function npcSystem(world: World, t: number, dt: number): void {
 			Transform3.dz[eid] = vz;
 		}
 	});
+	if (deadDrain.length) {
+		for (const eid of deadDrain) despawnGoblin(world, eid);
+		deadDrain.length = 0;
+	}
 }

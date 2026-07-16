@@ -1,7 +1,5 @@
 import * as THREE from 'three';
 
-// 1:1 port of the demo's LoadSceneAssets — its exact tiles.jpg and skybox
-// faces (vendored into public/textures/water/), same filtering flags.
 export interface WaterAssets {
 	tileTexture: THREE.Texture;
 	cubemap: THREE.CubeTexture;

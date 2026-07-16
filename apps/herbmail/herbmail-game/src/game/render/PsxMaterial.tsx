@@ -95,6 +95,9 @@ const fragment = /* glsl */ `
 	uniform int uLightCount;
 	uniform vec3 uLightPos[MAX_LIGHTS];
 	uniform vec3 uLightColor[MAX_LIGHTS];
+	uniform vec3 uSunDir;
+	uniform vec3 uSunColor;
+	uniform vec3 uSkyAmbient;
 	varying vec2 vUvCorrect;
 	varying vec2 vUvAffine;
 	varying float vW;
@@ -122,6 +125,24 @@ const fragment = /* glsl */ `
 		if (col < 0.0 || row < 0.0 || col >= uGridSize.x || row >= uGridSize.y) return 0.0;
 		vec2 uvp = (vec2(col, row) + 0.5) / uGridSize;
 		return texture2D(uMapTex, uvp).r;
+	}
+
+	// Open-sky exposure (G channel of the tile grid): 1 inside an oasis room, 0
+	// under a closed ceiling. Samples the 3x3 neighbourhood so oasis walls (which
+	// sit on the boundary tile) still catch the sky instead of going dark.
+	float skyAtWorld(vec2 p) {
+		vec2 local = (p - uGridOrigin) / GRID_TILE;
+		float best = 0.0;
+		for (int dy = -1; dy <= 1; dy++) {
+			for (int dx = -1; dx <= 1; dx++) {
+				float col = floor(local.x) + float(dx);
+				float row = floor(local.y) + float(dy);
+				if (col < 0.0 || row < 0.0 || col >= uGridSize.x || row >= uGridSize.y) continue;
+				vec2 uvp = (vec2(col, row) + 0.5) / uGridSize;
+				best = max(best, texture2D(uMapTex, uvp).g);
+			}
+		}
+		return best;
 	}
 
 	float visibility(vec2 frag, vec2 lp) {
@@ -220,6 +241,15 @@ const fragment = /* glsl */ `
 			light += uLightColor[i] * base * vis;
 		}
 
+		// Open-sky rooms (oasis) take a sky-ambient fill plus a directional sun/
+		// moon term, both masked by open-sky exposure so the closed dungeon is
+		// byte-for-byte unchanged.
+		float sky = skyAtWorld(vWorld.xz);
+		if (sky > 0.0) {
+			light += uSkyAmbient * sky;
+			light += uSunColor * max(dot(N, uSunDir), 0.0) * sky;
+		}
+
 		// Break tiling repetition without touching UV continuity: two octaves of
 		// low-frequency world-space value noise darken the albedo in patches
 		// (reads as damp/soot/wear), so identical brick tiles stop reading as a
@@ -267,6 +297,9 @@ const PsxMaterialBase = shaderMaterial(
 			{ length: MAX_LIGHTS },
 			() => new THREE.Vector3(),
 		),
+		uSunDir: new THREE.Vector3(0.35, 0.85, 0.4).normalize(),
+		uSunColor: new THREE.Vector3(0.85, 0.78, 0.6),
+		uSkyAmbient: new THREE.Vector3(0.6, 0.66, 0.8),
 	},
 	vertex,
 	fragment,

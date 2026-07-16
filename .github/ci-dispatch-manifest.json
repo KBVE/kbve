@@ -44,7 +44,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.232",
+			"version": "1.0.234",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -392,7 +392,7 @@
 		{
 			"key": "kubectl",
 			"app_name": "kbve-kubectl",
-			"version": "0.1.5",
+			"version": "0.1.6",
 			"version_toml": "apps/vm/kubectl/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kubectl.mdx",
 			"version_target": "apps/vm/kubectl/Cargo.toml",
@@ -408,6 +408,7 @@
 				"apps/kube/kubevirt/keda/scaled-jobs.yaml",
 				"apps/kube/agones/factorio/manifests/rotation-deployment.yaml",
 				"apps/kube/namespace/manifests/pod-gc-cronjob.yaml",
+				"apps/kube/ca-staleness-monitor/manifests/ca-staleness-monitor.yaml",
 				"apps/kube/crossplane/providers/s3-healthcheck-cronjob.yaml",
 				"apps/kube/github/runners/manifests/runner-reaper.yaml",
 				"apps/kube/forgejo/manifest/forgejo-oauth-register-job.yaml",
@@ -1337,7 +1338,7 @@
 				]
 			},
 			"source_path": "apps/herbmail/herbmail-game",
-			"version": "0.1.4",
+			"version": "0.1.9",
 			"version_toml": "apps/herbmail/herbmail-game/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/herbmail-game.mdx",
 			"runner": "ubuntu-latest",

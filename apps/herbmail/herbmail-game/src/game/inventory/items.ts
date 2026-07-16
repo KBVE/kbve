@@ -1,5 +1,6 @@
 import type { Footprint } from './grid';
 import { ARMOR_PIECES, pieceLabel } from '../character/armor';
+import { asset } from '../assetBase';
 
 // One inventory item kind. Footprint is the upright (rot=0) WxH in grid cells.
 // `equipId` links an item to a LOADOUT entry so double-clicking it equips.
@@ -92,7 +93,7 @@ for (const p of ARMOR_PIECES) {
 		label: pieceLabel(p.id),
 		fp: meta.fp,
 		color: meta.color,
-		icon: `/icons/items/${p.id}.png`,
+		icon: asset(`/icons/items/${p.id}.png`),
 		equipId: p.id,
 		armor: true,
 	};

@@ -25,6 +25,10 @@ export const PROPS_SCHEMA = {
 		flickerAmp: 'f32',
 	},
 	Health: { hp: 'f32', maxHp: 'f32', regen: 'f32' },
+	Mana: { value: 'f32', max: 'f32', regen: 'f32' },
+	Energy: { value: 'f32', max: 'f32', regen: 'f32' },
+	Stamina: { value: 'f32', max: 'f32', regen: 'f32' },
+	Combat: { power: 'f32', defense: 'f32' },
 	Burn: { dps: 'f32', remaining: 'f32', acc: 'f32', flameEid: 'i32' },
 	Stone: { seed: 'f32', size: 'f32', hardness: 'f32', ore: 'u8' },
 	FlameFx: { seed: 'f32' },
@@ -67,7 +71,7 @@ export const PROPS_SCHEMA = {
 	// Per-slot cooldown remaining (seconds) for the four special abilities.
 	Cooldowns: { s1: 'f32', s2: 'f32', s3: 'f32', s4: 'f32' },
 	// Water basin volume: center rides Transform3, extents/surface here.
-	Pool: { halfW: 'f32', halfL: 'f32', surfaceY: 'f32', ownerEid: 'i32' },
+	Oasis: { halfW: 'f32', halfL: 'f32', surfaceY: 'f32', ownerEid: 'i32' },
 } satisfies Schema;
 
 export const PROPS_CAP = 8192;

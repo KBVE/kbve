@@ -1,6 +1,7 @@
 import {
 	Caster,
 	CharState,
+	Combat,
 	Cooldowns,
 	Health,
 	Npc,
@@ -14,7 +15,7 @@ import { CastPhase, abilityBySlot, abilityById, type Ability } from './ability';
 import { PlayerStats, spend } from '../character/playerStats';
 import { playerEid } from '../character/playerEntity';
 import { getTarget, dropTarget } from './targeting';
-import { despawnGoblin } from '../npc/goblinSim';
+import { killGoblin } from '../npc/goblinSim';
 
 interface Intent {
 	eid: number;
@@ -97,14 +98,15 @@ function applyDamage(eid: number, ability: Ability, world: World): void {
 			const dot = (fx * dx + fz * dz) / dist;
 			if (dot < cosHalf) return;
 		}
-		Health.hp[t] -= ability.damage;
+		const def = hasComponent(world, t, Combat) ? Combat.defense[t] : 0;
+		Health.hp[t] -= Math.max(1, ability.damage - def);
 		if (Health.hp[t] <= 0) killTarget(t, world);
 	});
 }
 
 function killTarget(t: number, world: World): void {
 	if (getTarget() === t) dropTarget();
-	if (hasComponent(world, t, Npc)) despawnGoblin(world, t);
+	if (hasComponent(world, t, Npc)) killGoblin(world, t);
 }
 
 const DAMAGE_TERMS = [Targetable, Health, Transform3];

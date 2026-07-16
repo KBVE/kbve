@@ -3,11 +3,11 @@ import * as THREE from 'three';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
-import { TILE } from '../config';
-import { dungeonSpawn, solidAtWorld, pitAtWorld } from '../dungeon/collision';
+import { farSpawnPoints } from './spawn';
 import { getDungeon } from '../dungeon/store';
-import { Transform3, Wander, isAlive } from '../mecs/props';
-import { despawnGoblin, spawnGoblin } from './goblinSim';
+import { CharState, Transform3, Wander, isAlive } from '../mecs/props';
+import { CS } from '../character/charState';
+import { NPC_KURENAI, despawnGoblin, spawnGoblin } from './goblinSim';
 
 const KURENAI_URL = '/models/parts/kurenai.glb';
 useGLTF.preload(KURENAI_URL);
@@ -186,6 +186,24 @@ function KurenaiActor({ slot }: { slot: Slot }) {
 			Transform3.py[eid],
 			Transform3.pz[eid],
 		);
+		if (CharState.bits[eid] & CS.DEAD) {
+			if (current.current !== 'Death_D') {
+				const death = actions.get('Death_D');
+				const prev = actions.get(current.current);
+				if (death) {
+					death.reset();
+					death.clampWhenFinished = true;
+					death.setLoop(THREE.LoopOnce, 1);
+					death.play();
+					if (prev) prev.crossFadeTo(death, 0.12, false);
+					current.current = 'Death_D';
+				}
+			}
+			mixer.update(dt);
+			g.updateWorldMatrix(true, true);
+			updateSprings(springs, dt);
+			return;
+		}
 		const vx = Wander.vx[eid];
 		const vz = Wander.vz[eid];
 		const speed = Math.hypot(vx, vz);
@@ -223,24 +241,12 @@ function KurenaiActor({ slot }: { slot: Slot }) {
 	);
 }
 
-function spawnPoints(count: number): [number, number][] {
-	const [cx, , cz] = dungeonSpawn();
-	const out: [number, number][] = [];
-	for (let ring = 2; ring <= 4 && out.length < count; ring++) {
-		for (let i = 0; i < 8 && out.length < count; i++) {
-			const a = (i / 8) * Math.PI * 2 + ring * 1.3;
-			const x = cx + Math.cos(a) * TILE * ring;
-			const z = cz + Math.sin(a) * TILE * ring;
-			if (!solidAtWorld(x, z) && !pitAtWorld(x, z)) out.push([x, z]);
-		}
-	}
-	return out;
-}
+const KURENAI_MIN_RING = 12;
 
 export function KurenaiNpc() {
 	const slots = useMemo<Slot[]>(
 		() =>
-			spawnPoints(COUNT).map(([x, z]) => ({
+			farSpawnPoints(COUNT, KURENAI_MIN_RING).map(([x, z]) => ({
 				x,
 				z,
 				eid: -1,
@@ -261,6 +267,7 @@ export function KurenaiNpc() {
 				KURENAI_RADIUS,
 				WALK_SPEED,
 				RUN_SPEED,
+				NPC_KURENAI,
 			);
 		return () => {
 			for (const s of slots) {
@@ -281,7 +288,7 @@ export function KurenaiNpc() {
 				s.respawnAt = t + RESPAWN_DELAY;
 				changed = true;
 			} else if (s.eid < 0 && s.respawnAt > 0 && t >= s.respawnAt) {
-				const [nx, nz] = spawnPoints(1)[0] ?? [s.x, s.z];
+				const [nx, nz] = farSpawnPoints(1, KURENAI_MIN_RING)[0] ?? [s.x, s.z];
 				s.x = nx;
 				s.z = nz;
 				s.respawnAt = 0;
@@ -292,6 +299,7 @@ export function KurenaiNpc() {
 					KURENAI_RADIUS,
 					WALK_SPEED,
 					RUN_SPEED,
+					NPC_KURENAI,
 				);
 				changed = true;
 			}

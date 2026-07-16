@@ -1,4 +1,12 @@
-import { ARCH, FLOOR, WALL, COLUMN, POOL, type Grid } from '../geometry/grid';
+import {
+	ARCH,
+	FLOOR,
+	WALL,
+	COLUMN,
+	OASIS,
+	OPEN,
+	type Grid,
+} from '../geometry/grid';
 import { WALL_TEX_COUNT } from '../geometry/walls';
 import { hash01 } from '../geometry/rng';
 import {
@@ -67,11 +75,16 @@ export interface DoorSlot {
 	axis: 'x' | 'z';
 }
 
-export interface PoolSlot {
+export interface OasisSlot {
 	col: number;
 	row: number;
 	w: number;
 	h: number;
+	// Room tile bounds (local grid), for the dome that vaults the whole room.
+	rc: number;
+	rr: number;
+	rw: number;
+	rh: number;
 }
 
 export interface RoomDesc {
@@ -89,7 +102,7 @@ export interface RoomDesc {
 	columns: ColumnSlot[];
 	spawnSlots: SpawnSlot[];
 	doorways: DoorSlot[];
-	pools: PoolSlot[];
+	oases: OasisSlot[];
 }
 
 const NEIGHBORS: { di: number; bit: number; dc: number; dr: number }[] = [
@@ -215,7 +228,7 @@ export function genRoom(seed: number, cx: number, cy: number): RoomDesc {
 		columns: [],
 		spawnSlots: [],
 		doorways: [],
-		pools: [],
+		oases: [],
 	};
 }
 
@@ -403,22 +416,18 @@ function genColumns(
 	return out;
 }
 
-const POOL_KEEP = 0.3;
-const POOL_MAX = 6;
-const POOL_MIN = 3;
-const POOL_MARGIN = 2;
+const OASIS_KEEP = 0.3;
+const OASIS_MAX = 6;
+const OASIS_MIN = 3;
+const OASIS_MARGIN = 2;
 
-// Sink a water basin into big rooms: a POOL-tile rect centered in the room,
-// inset so a walkable ring always survives between rim and walls/doorways.
-// Runs before genColumns (isFloor rejects POOL) and only converts plain FLOOR,
-// so seam walls / arches carved by genDoorways are never eaten.
-function genPools(
+function genOases(
 	sector: ReturnType<typeof genSector>,
 	tiles: Uint8Array,
 	cols: number,
 	seed: number,
-): PoolSlot[] {
-	const out: PoolSlot[] = [];
+): OasisSlot[] {
+	const out: OasisSlot[] = [];
 	for (const r of sector.rooms) {
 		if (r.w < 2 || r.h < 2) continue;
 		const h = hash01(
@@ -426,12 +435,12 @@ function genPools(
 			Math.imul(sector.sx, 73856093) ^ Math.imul(sector.sy, 19349663),
 			(seed | 0) ^ 0x9001,
 		);
-		if (h >= POOL_KEEP) continue;
+		if (h >= OASIS_KEEP) continue;
 		const tw = r.w * CELL;
 		const th = r.h * CELL;
-		const w = Math.min(POOL_MAX, tw - POOL_MARGIN * 2);
-		const ph = Math.min(POOL_MAX, th - POOL_MARGIN * 2);
-		if (w < POOL_MIN || ph < POOL_MIN) continue;
+		const w = Math.min(OASIS_MAX, tw - OASIS_MARGIN * 2);
+		const ph = Math.min(OASIS_MAX, th - OASIS_MARGIN * 2);
+		if (w < OASIS_MIN || ph < OASIS_MIN) continue;
 		const col = r.col0 * CELL + ((tw - w) >> 1);
 		const row = r.row0 * CELL + ((th - ph) >> 1);
 		let clear = true;
@@ -443,8 +452,27 @@ function genPools(
 				}
 		if (!clear) continue;
 		for (let tr = row; tr < row + ph; tr++)
-			for (let tc = col; tc < col + w; tc++) tiles[tr * cols + tc] = POOL;
-		out.push({ col, row, w, h: ph });
+			for (let tc = col; tc < col + w; tc++)
+				tiles[tr * cols + tc] = OASIS;
+		// Open the whole room to the sky (floor, water AND its walls) so sky light
+		// reaches the walls, not just the floor. The ceiling is only skipped over
+		// non-solid OPEN tiles, so no gap opens above the room's boundary walls.
+		const rc0 = r.col0 * CELL;
+		const rr0 = r.row0 * CELL;
+		const rows = tiles.length / cols;
+		for (let tr = rr0; tr < rr0 + r.h * CELL && tr < rows; tr++)
+			for (let tc = rc0; tc < rc0 + r.w * CELL && tc < cols; tc++)
+				tiles[tr * cols + tc] |= OPEN;
+		out.push({
+			col,
+			row,
+			w,
+			h: ph,
+			rc: rc0,
+			rr: rr0,
+			rw: r.w * CELL,
+			rh: r.h * CELL,
+		});
 	}
 	return out;
 }
@@ -615,7 +643,7 @@ export function genSectorDesc(seed: number, sx: number, sy: number): RoomDesc {
 		...genConnectorDoors(tiles, cols, sector.connectors, seed, sx, sy),
 	);
 
-	const pools = genPools(sector, tiles, cols, seed);
+	const oases = genOases(sector, tiles, cols, seed);
 	const variant = Math.floor(hash01(sx, sy, seed | 0) * VARIANTS);
 	const torches = genTorchesGrid(tiles, cols, rows, variant);
 	const columns = genColumns(sector, tiles, cols, rows, variant);
@@ -635,6 +663,6 @@ export function genSectorDesc(seed: number, sx: number, sy: number): RoomDesc {
 		columns,
 		spawnSlots: [],
 		doorways,
-		pools,
+		oases,
 	};
 }

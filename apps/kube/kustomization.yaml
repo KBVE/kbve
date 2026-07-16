@@ -52,8 +52,7 @@ resources:
     - memes/application.yaml
     - jobboard/application.yaml
     - metrics/application.yaml
-    - n8n/application.yaml
-    # Windmill — workflow engine (n8n replacement candidate), windmill.kbve.com
+    # Windmill — workflow engine (replaced n8n), windmill.kbve.com
     - windmill/application.yaml
     - rabbitmq/application.yaml
     # rows = shared ROWS infra (ns `rows`): ows-valkey, externalsecrets, servicemonitor,
