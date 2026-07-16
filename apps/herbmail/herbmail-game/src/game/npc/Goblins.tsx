@@ -81,14 +81,11 @@ const NOOP_MOVER = (): void => void 0;
 
 export function Goblins() {
 	const slots = useRef<Slot[]>([]);
-	const [, force] = useState(0);
+	const [view, setView] = useState<Slot[]>([]);
 
 	useEffect(() => {
 		const world = getDungeon().world;
 		resetProgress();
-		for (const [x, z] of farSpawnPoints(enemyBudget()))
-			slots.current.push({ x, z, eid: makeGoblin(world, x, z), gen: 0, respawnAt: 0 });
-		force((n) => n + 1);
 		const list = slots.current;
 		return () => {
 			for (const s of list) if (s.eid >= 0) despawnGoblin(world, s.eid);
@@ -128,12 +125,12 @@ export function Goblins() {
 				changed = true;
 			}
 		}
-		if (changed) force((n) => n + 1);
+		if (changed) setView(slots.current.slice());
 	});
 
 	return (
 		<>
-			{slots.current.map((s, i) =>
+			{view.map((s, i) =>
 				s.eid < 0 ? null : (
 					<Character
 						key={`${i}-${s.gen}`}
