@@ -180,5 +180,25 @@ describe('ClickHouse Adapter', () => {
 			expect(errorStat.value).toBe(2);
 			expect(warnStat.value).toBe(1);
 		});
+
+		it('lens stats use meta totals when present', () => {
+			const meta = {
+				rows: [
+					{ level: 'error', cnt: 5 },
+					{ level: 'info', cnt: 95 },
+				],
+			};
+			const stats = clickhouseLens.stats!([], meta);
+			const total = stats.find((s) => s.id === 'total')!.value;
+			const errors = stats.find((s) => s.id === 'errors')!.value;
+			expect(total).toBe(100);
+			expect(errors).toBe(5);
+		});
+
+		it('lens stats fall back to items.length without meta', () => {
+			const items = [{ level: 'error' }, { level: 'info' }] as never[];
+			const stats = clickhouseLens.stats!(items, undefined);
+			expect(stats.find((s) => s.id === 'total')!.value).toBe(2);
+		});
 	});
 });

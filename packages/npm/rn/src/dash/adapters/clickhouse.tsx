@@ -3,6 +3,7 @@ import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
 import { createStreamSource } from '../createStreamSource';
 import type { StreamLens, StreamStore } from '../types';
+import { buildStatsTotals, CH_CONTROLS } from '../clickhouse/clickhouseStream';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -207,23 +208,23 @@ export const clickhouseLens: StreamLens<LogItem> = {
 			predicate: (it) => it.level === 'info',
 		},
 	],
-	stats: (items) => [
-		{ id: 'total', label: 'Total Logs', value: items.length },
-		{
-			id: 'errors',
-			label: 'Errors',
-			tone: 'danger',
-			value: items.filter((i) => i.level === 'error').length,
-		},
-		{
-			id: 'warnings',
-			label: 'Warnings',
-			tone: 'warning',
-			value: items.filter(
-				(i) => i.level === 'warn' || i.level === 'warning',
-			).length,
-		},
-	],
+	stats: (items, meta) => {
+		const t = meta
+			? buildStatsTotals(meta)
+			: {
+					total: items.length,
+					errors: items.filter((i) => i.level === 'error').length,
+					warnings: items.filter(
+						(i) => i.level === 'warn' || i.level === 'warning',
+					).length,
+				};
+		return [
+			{ id: 'total', label: 'Total Logs', value: t.total },
+			{ id: 'errors', label: 'Errors', tone: 'danger', value: t.errors },
+			{ id: 'warnings', label: 'Warnings', tone: 'warning', value: t.warnings },
+		];
+	},
+	controls: CH_CONTROLS,
 	row: (it) => (
 		<Surface padded={false} style={styles.row}>
 			<View
