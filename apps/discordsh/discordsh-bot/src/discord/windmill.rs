@@ -36,11 +36,11 @@ pub enum RunError {
 impl std::fmt::Display for RunError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::PathNotAllowed => write!(f, "Webhook path not in allowlist."),
+            Self::PathNotAllowed => write!(f, "Path not in allowlist."),
             Self::RateLimited => write!(f, "Rate limit hit. Wait a few seconds."),
             Self::TooManyArgs => write!(f, "Too many args (max {ARG_LIMIT})."),
             Self::ArgTooLong => write!(f, "Single arg too long (max {ARG_LEN_LIMIT})."),
-            Self::EmptyPath => write!(f, "Webhook path is empty."),
+            Self::EmptyPath => write!(f, "Path is empty."),
             Self::Upstream(s) => write!(f, "windmill upstream error: {s}"),
         }
     }
