@@ -23,11 +23,33 @@ import NavBar from '../navigation/NavBar.astro';
 		gap: var(--sl-nav-gap);
 		height: 3.5rem;
 		padding: 0 var(--sl-nav-pad-x);
-		background: var(--sl-color-bg-nav);
-		border-bottom: 1px solid var(--sl-color-hairline);
+		background: color-mix(in srgb, var(--sl-color-bg-nav) 72%, transparent);
+		backdrop-filter: blur(12px) saturate(1.4);
+		-webkit-backdrop-filter: blur(12px) saturate(1.4);
+		border-bottom: 1px solid
+			color-mix(
+				in srgb,
+				var(--sl-color-accent) 18%,
+				var(--sl-color-hairline)
+			);
 		position: sticky;
 		top: 0;
 		z-index: 40;
+	}
+	.dsh-header::after {
+		content: '';
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: -1px;
+		height: 1px;
+		background: linear-gradient(
+			90deg,
+			transparent,
+			color-mix(in srgb, var(--sl-color-accent) 45%, transparent) 50%,
+			transparent
+		);
+		pointer-events: none;
 	}
 	.dsh-brand {
 		display: inline-flex;

@@ -51,8 +51,8 @@ const CardVoteButton = memo(function CardVoteButton({
 
 // ── Server card (static shell) ──────────────────────────────────────
 // React.memo skips re-render when the server object reference is unchanged.
-// applyVote() in serverStore preserves references for non-voted cards,
-// so only the voted card's shell re-renders.
+// The optimistic vote update in ReactServerGrid preserves references for
+// non-voted cards, so only the voted card's shell re-renders.
 
 interface Props {
 	server: ServerCard;
