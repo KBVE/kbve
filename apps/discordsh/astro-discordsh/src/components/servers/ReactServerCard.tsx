@@ -1,7 +1,12 @@
 import { memo, useState, useCallback } from 'react';
 import { ArrowBigUp, Users, ExternalLink } from 'lucide-react';
 import type { ServerCard } from '@/lib/servers/types';
-import { CATEGORY_MAP, buildInviteUrl, formatMemberCount } from '@/lib/servers';
+import {
+	CATEGORY_MAP,
+	buildInviteUrl,
+	formatMemberCount,
+	safeImageUrl,
+} from '@/lib/servers';
 import { ExpandButton } from './ExpandButton';
 
 // ── Vote button (interactive island) ────────────────────────────────
@@ -67,6 +72,8 @@ export const ReactServerCard = memo(function ReactServerCard({
 		.map((id) => CATEGORY_MAP.get(id))
 		.filter(Boolean);
 
+	const iconUrl = safeImageUrl(server.icon_url);
+
 	const initials = server.name
 		.split(/\s+/)
 		.slice(0, 2)
@@ -78,9 +85,9 @@ export const ReactServerCard = memo(function ReactServerCard({
 		<div className="server-card flex items-stretch gap-4 p-4 rounded-xl sc-border sc-bg">
 			{/* Server icon */}
 			<div className="sc-icon-wrap">
-				{server.icon_url ? (
+				{iconUrl ? (
 					<img
-						src={server.icon_url}
+						src={iconUrl}
 						alt=""
 						loading="lazy"
 						decoding="async"
