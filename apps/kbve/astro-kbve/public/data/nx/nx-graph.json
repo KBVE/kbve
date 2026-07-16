@@ -1582,7 +1582,8 @@
                   "docker inspect ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder --format '{{range .Config.Env}}{{println .}}{{end}}' | grep -q '^PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1$' && echo 'PASS: Playwright browser download disabled'",
                   "echo '=== All chisel base image tests passed ==='",
                   "echo 'Runtime: user, workdir, jemalloc, libpq, CA bundle, no-shell, size<40MiB'",
-                  "echo 'Builder: rustc 1.96, cargo-chef, sccache, mold, protoc, brotli, gzip, libpq-dev, libssl-dev, node 24, pnpm, real-TLS, env hygiene'"
+                  "echo 'Builder: rustc 1.96, cargo-chef, sccache, mold, protoc, brotli, gzip, libpq-dev, libssl-dev, node 24, pnpm, real-TLS, env hygiene'",
+                  "docker rmi -f ghcr.io/kbve/chisel-ubuntu-axum:24.04 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder || true"
                 ],
                 "parallel": false
               },
@@ -1914,7 +1915,8 @@
                   "docker inspect ghcr.io/kbve/kasm-cloakbrowser:dev --format '{{.Config.User}}' | grep -q '^1000$' && echo 'PASS: drops to uid 1000'",
                   "docker run --rm --entrypoint /opt/cloakbrowser/cloakbrowser ghcr.io/kbve/kasm-cloakbrowser:dev --version && echo 'PASS: cloakbrowser binary runs --version'",
                   "docker run --rm --entrypoint cat ghcr.io/kbve/kasm-cloakbrowser:dev /dockerstartup/custom_startup.sh | grep -q CLOAK_BIN && echo 'PASS: custom_startup.sh installed'",
-                  "docker run --rm --entrypoint python3 ghcr.io/kbve/kasm-cloakbrowser:dev -c 'from cloakbrowser import launch; print(\"sdk-import-ok\")' | grep -q sdk-import-ok && echo 'PASS: python cloakbrowser sdk importable'"
+                  "docker run --rm --entrypoint python3 ghcr.io/kbve/kasm-cloakbrowser:dev -c 'from cloakbrowser import launch; print(\"sdk-import-ok\")' | grep -q sdk-import-ok && echo 'PASS: python cloakbrowser sdk importable'",
+                  "docker rmi -f ghcr.io/kbve/kasm-cloakbrowser:dev || true"
                 ],
                 "parallel": false
               },
@@ -3089,7 +3091,8 @@
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/steamcmd-ubuntu:24.04 steamcmd +quit | grep -q 'Steam Console Client' && echo 'PASS: steamcmd boots'",
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/steamcmd-ubuntu:24.04 bash -lc 'locale | grep -q en_US.UTF-8' && echo 'PASS: en_US.UTF-8 locale active'",
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/steamcmd-ubuntu:24.04 bash -lc 'which steamcmd' | grep -q /usr/local/bin/steamcmd && echo 'PASS: steamcmd on PATH'",
-                  "echo '=== steamcmd-ubuntu image OK ==='"
+                  "echo '=== steamcmd-ubuntu image OK ==='",
+                  "docker rmi -f ghcr.io/kbve/steamcmd-ubuntu:24.04 || true"
                 ],
                 "parallel": false
               },
@@ -7388,7 +7391,8 @@
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'zip -v' | grep -q 'Zip ' && echo 'PASS: zip on PATH'",
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'xz --version' | grep -q 'xz (XZ Utils)' && echo 'PASS: xz on PATH'",
                   "docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'gh --version' | grep -q 'gh version' && echo 'PASS: gh on PATH'",
-                  "echo '=== arc-runner image OK ==='"
+                  "echo '=== arc-runner image OK ==='",
+                  "docker rmi -f ghcr.io/kbve/arc-runner:latest || true"
                 ],
                 "parallel": false
               },
@@ -7794,7 +7798,8 @@
                   "docker run --rm --entrypoint bash ghcr.io/kbve/kasm-void:dev -c 'real=$(readlink -e /usr/share/discord/Discord); size=$(stat -c %s \"$real\"); [ \"$size\" -gt 1048576 ] || { echo \"Discord binary suspiciously small: $size bytes ($real)\" >&2; exit 1; }' && echo 'PASS: Discord binary larger than 1 MiB (not a stub)'",
                   "docker run --rm --entrypoint bash ghcr.io/kbve/kasm-void:dev -c 'real=$(readlink -e /usr/share/discord/Discord); missing=$(ldd \"$real\" 2>/dev/null | grep \"not found\" || true); [ -z \"$missing\" ] || { echo \"missing libs: $missing\" >&2; exit 1; }' && echo 'PASS: Discord shared lib deps resolve'",
                   "bash packages/docker/kasm-void/tests/nav-shim-smoke.sh",
-                  "bash packages/docker/kasm-void/tests/full-session-smoke.sh"
+                  "bash packages/docker/kasm-void/tests/full-session-smoke.sh",
+                  "docker rmi -f ghcr.io/kbve/kasm-void:dev || true"
                 ],
                 "parallel": false
               },
