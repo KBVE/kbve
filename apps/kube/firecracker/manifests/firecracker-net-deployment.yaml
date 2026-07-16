@@ -146,7 +146,7 @@ spec:
                   securityContext:
                       seccompProfile:
                           type: Localhost
-                          localhostProfile: operator/firecracker/firecracker-jailer.json
+                          localhostProfile: operator/firecracker-jailer.json
                       readOnlyRootFilesystem: true
                       # Firecracker jailer requires SYS_ADMIN (mount --make-private for
                       # pivot_root on shared-propagation emptyDir), SYS_CHROOT + MKNOD
