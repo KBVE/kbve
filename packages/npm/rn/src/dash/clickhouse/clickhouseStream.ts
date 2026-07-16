@@ -90,7 +90,7 @@ export function createClickHouseStream(opts: ClickHouseStreamOptions): StreamSto
 		},
 		fetchMeta: async ({ signal }, params: StreamParams) => {
 			const token = await getToken();
-			return post(baseUrl, token, buildBody('stats', { minutes: params.minutes }), signal);
+			return post(baseUrl, token, buildBody('stats', { minutes: params['minutes'] }), signal);
 		},
 	});
 }
