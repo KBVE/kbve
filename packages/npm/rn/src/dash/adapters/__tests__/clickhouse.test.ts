@@ -59,6 +59,15 @@ describe('ClickHouse Adapter', () => {
 			expect(warnFilter.predicate(warnLog)).toBe(true);
 		});
 
+		it('level chips carry server-side level params so the feed requeries', () => {
+			const byId = Object.fromEntries(
+				clickhouseLens.filters.map((f) => [f.id, f.params]),
+			);
+			expect(byId['error']).toEqual({ level: 'error' });
+			expect(byId['warn']).toEqual({ level: 'warn' });
+			expect(byId['info']).toEqual({ level: 'info' });
+		});
+
 		it('computes stats correctly', () => {
 			const items = [
 				{ level: 'error' },

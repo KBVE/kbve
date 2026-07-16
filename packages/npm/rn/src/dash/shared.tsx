@@ -1,10 +1,24 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Stack, Text, tokens } from './_ui';
 import type { BadgeTone } from './_ui';
 
 // ---------------------------------------------------------------------------
 // Shared Components
 // ---------------------------------------------------------------------------
+
+/** Hairline divider with a small uppercase section label — visual break between dashboard sections */
+export function SectionDivider({ label }: { label?: string }) {
+	if (!label) return <View style={styles.dividerLine} />;
+	return (
+		<Stack direction="row" gap="sm" align="center" style={styles.divider}>
+			<View style={styles.dividerLine} />
+			<Text variant="caption" tone="faint" style={styles.dividerLabel}>
+				{label}
+			</Text>
+			<View style={styles.dividerLine} />
+		</Stack>
+	);
+}
 
 /** Two-column fact display (label + value) — used in detail panels */
 export function Fact({ label, value }: { label: string; value: string }) {
@@ -119,6 +133,28 @@ export function statusColor(
 // ---------------------------------------------------------------------------
 
 /** Common adapter row/card/detail styles — reuse across all adapters */
+const styles = StyleSheet.create({
+	divider: {
+		marginTop: tokens.space.xs,
+	},
+	dividerLine: {
+		flexGrow: 1,
+		flexShrink: 1,
+		height: StyleSheet.hairlineWidth,
+		backgroundColor: tokens.color.border,
+	},
+	dividerLabel: {
+		fontSize: 10,
+		textTransform: 'uppercase',
+		letterSpacing: 1,
+		flexShrink: 0,
+	},
+	factValue: {
+		flexShrink: 1,
+		textAlign: 'right',
+	},
+});
+
 export const adapterStyles = StyleSheet.create({
 	row: {
 		flexDirection: 'row',
