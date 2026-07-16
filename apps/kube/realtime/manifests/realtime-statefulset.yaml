@@ -43,6 +43,8 @@ spec:
                       - containerPort: 9110
                         name: dist-end
                   env:
+                      - name: LOG_LEVEL
+                        value: warning
                       - name: HOSTNAME
                         valueFrom:
                             fieldRef:

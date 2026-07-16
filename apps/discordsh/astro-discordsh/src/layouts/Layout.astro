@@ -1,7 +1,9 @@
 ---
+import Header from '../components/header/Header.astro';
 import { DroidProvider } from '@kbve/astro';
 import { OverlayShell } from '../components/overlay/OverlayShell';
 import { workerURLs } from '../lib/workers';
+import '../styles/global.css';
 
 interface Props {
 	title: string;
@@ -33,7 +35,6 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : new URL(ogImage, site
 		<link rel="canonical" href={pageUrl} />
 		<title>{title}</title>
 
-		<!-- Open Graph -->
 		<meta property="og:type" content={ogType} />
 		<meta property="og:url" content={pageUrl} />
 		<meta property="og:title" content={title} />
@@ -41,13 +42,14 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : new URL(ogImage, site
 		<meta property="og:image" content={fullOgImage} />
 		<meta property="og:site_name" content="Discord.sh" />
 
-		<!-- Twitter Card -->
 		<meta name="twitter:card" content="summary_large_image" />
 		<meta name="twitter:title" content={title} />
 		<meta name="twitter:description" content={description} />
 		<meta name="twitter:image" content={fullOgImage} />
 	</head>
 	<body>
+		<Header />
+		<slot />
 		<DroidProvider
 			client:only="react"
 			workerURLs={workerURLs}
@@ -55,6 +57,5 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : new URL(ogImage, site
 			dataPath="/data/servers.json"
 		/>
 		<OverlayShell client:only="react" />
-		<slot />
 	</body>
 </html>
