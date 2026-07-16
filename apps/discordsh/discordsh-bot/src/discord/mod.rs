@@ -15,3 +15,4 @@ pub mod mention;
 pub mod relay;
 pub mod scheduler;
 pub mod windmill;
+pub mod windmill_embed;
