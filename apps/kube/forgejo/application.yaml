@@ -43,12 +43,15 @@ spec:
                       accessModes:
                           - ReadWriteOnce
                   podAnnotations:
-                      kbve.com/config-revision: 2026-06-29-restricted-default-no-org
+                      kbve.com/config-revision: 2026-07-16-log-level-warn
                   gitea:
                       admin:
                           existingSecret: forgejo-admin
                       config:
+                          log:
+                              LEVEL: warn
                           server:
+                              DISABLE_ROUTER_LOG: true
                               DOMAIN: git.kbve.com
                               ROOT_URL: https://git.kbve.com
                               SSH_DOMAIN: forgejo.kbve.com
