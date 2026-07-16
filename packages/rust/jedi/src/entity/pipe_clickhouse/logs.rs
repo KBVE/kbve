@@ -107,6 +107,17 @@ fn clamped_search(raw: &str) -> String {
     escape_clickhouse_string(&trimmed)
 }
 
+/// Level predicate — `warn` and `warning` are stored interchangeably by
+/// different emitters, so either input matches both spellings.
+fn level_condition(raw: &str) -> String {
+    let lvl = raw.to_lowercase();
+    if lvl == "warn" || lvl == "warning" {
+        "level IN ('warn', 'warning')".to_string()
+    } else {
+        format!("level = '{}'", escape_clickhouse_string(&lvl))
+    }
+}
+
 /// Build the `query` SQL — filtered SELECT against logs_distributed,
 /// ordered by timestamp DESC.
 pub fn build_query_sql(params: &LogsQueryParams) -> String {
@@ -130,10 +141,7 @@ pub fn build_query_sql(params: &LogsQueryParams) -> String {
         conditions.push(format!("service = '{}'", escape_clickhouse_string(svc)));
     }
     if let Some(lvl) = params.level.as_deref().filter(|s| !s.is_empty()) {
-        conditions.push(format!(
-            "level = '{}'",
-            escape_clickhouse_string(&lvl.to_lowercase())
-        ));
+        conditions.push(level_condition(lvl));
     }
     if let Some(search) = params.search.as_deref().filter(|s| !s.is_empty()) {
         conditions.push(format!("message ILIKE '%{}%'", clamped_search(search)));
@@ -483,6 +491,25 @@ mod tests {
         assert!(sql.contains("level = 'error'"));
         assert!(sql.contains("message ILIKE '%panic%'"));
         assert!(sql.contains("LIMIT 50"));
+    }
+
+    #[test]
+    fn warn_level_matches_warning_alias() {
+        for input in ["warn", "WARNING"] {
+            let sql = build_query_sql(&LogsQueryParams {
+                level: Some(input.into()),
+                ..Default::default()
+            });
+            assert!(
+                sql.contains("level IN ('warn', 'warning')"),
+                "level={input} should match both spellings: {sql}"
+            );
+        }
+        let sql = build_query_sql(&LogsQueryParams {
+            level: Some("error".into()),
+            ..Default::default()
+        });
+        assert!(sql.contains("level = 'error'"));
     }
 
     #[test]

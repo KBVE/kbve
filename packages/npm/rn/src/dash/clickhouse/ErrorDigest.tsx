@@ -1,9 +1,10 @@
 import { Pressable } from 'react-native';
-import { Stack, Text } from '../_ui';
+import { Stack } from '../_ui';
 import { useStream, useStreamLifecycle } from '../useStream';
 import type { StreamStore } from '../types';
 import type { LogItem } from '../adapters/clickhouse';
 import { errorGroupsLens, type ErrorGroupItem } from './errorGroupsStream';
+import { SectionDivider } from '../shared';
 
 export function ErrorDigest({
 	store,
@@ -17,16 +18,16 @@ export function ErrorDigest({
 	if (!state.items.length) return null;
 	return (
 		<Stack gap="xs">
-			<Text variant="label" tone="muted">
-				Error digest
-			</Text>
+			<SectionDivider label="Error Digest" />
 			{state.items.map((it) => (
 				<Pressable
 					key={store.id(it)}
 					onPress={() =>
-						primary.setParams({ pod_namespace: it.namespace || undefined, level: 'error' })
-					}
-				>
+						primary.setParams({
+							pod_namespace: it.namespace || undefined,
+							level: 'error',
+						})
+					}>
 					{errorGroupsLens.row(it, false)}
 				</Pressable>
 			))}

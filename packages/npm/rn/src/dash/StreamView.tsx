@@ -6,6 +6,7 @@ import { ErrorState } from '../ui/feedback/ErrorState';
 import { LoadingState } from '../ui/feedback/LoadingState';
 import { VirtualList } from '../ui/lists/VirtualList';
 import { StatGrid } from './StatGrid';
+import { SectionDivider } from './shared';
 import { ControlBar } from './controls/ControlBar';
 import { SavedViewTabs } from './controls/SavedViewTabs';
 import { useStream, useStreamLifecycle, useStreamSelector } from './useStream';
@@ -211,6 +212,17 @@ export function StreamView<TItem>({
 	useStreamLifecycle(store);
 	const state = useStream(store);
 
+	const pickFilter = (id: string | null) => {
+		const prev = lens.filters?.find((f) => f.id === state.filterId);
+		const next = lens.filters?.find((f) => f.id === id);
+		store.setFilter(id);
+		const patch: Record<string, string | number | undefined> = {};
+		if (prev?.params)
+			for (const k of Object.keys(prev.params)) patch[k] = undefined;
+		if (next?.params) Object.assign(patch, next.params);
+		if (Object.keys(patch).length) store.setParams(patch);
+	};
+
 	const visible = useMemo(() => {
 		const q = state.search.trim().toLowerCase();
 		const filter = lens.filters?.find((f) => f.id === state.filterId);
@@ -248,9 +260,17 @@ export function StreamView<TItem>({
 
 	return (
 		<Stack gap="md">
-			{stats.length ? <StatGrid stats={stats} /> : null}
+			{stats.length ? (
+				<>
+					<SectionDivider label="Summary" />
+					<StatGrid stats={stats} />
+				</>
+			) : null}
 			{lens.metaPanel ? lens.metaPanel(state.meta) : null}
 
+			{state.views.length || lens.controls?.length ? (
+				<SectionDivider label="Query" />
+			) : null}
 			{state.views.length ? (
 				<SavedViewTabs
 					store={storeU}
@@ -267,6 +287,7 @@ export function StreamView<TItem>({
 				/>
 			) : null}
 
+			<SectionDivider label="Feed" />
 			<Stack direction="row" gap="sm" align="center" wrap>
 				{lens.filters?.length ? (
 					<FilterChips
@@ -274,7 +295,7 @@ export function StreamView<TItem>({
 							lens.filters as readonly StreamFilter<unknown>[]
 						}
 						active={state.filterId}
-						onPick={store.setFilter}
+						onPick={pickFilter}
 					/>
 				) : null}
 				{lens.searchText ? (
@@ -286,8 +307,12 @@ export function StreamView<TItem>({
 						style={styles.search}
 					/>
 				) : null}
-				<Pressable onPress={() => void store.refresh()} style={styles.refresh}>
-					<Text variant="caption" tone="muted">↻ Refresh</Text>
+				<Pressable
+					onPress={() => void store.refresh()}
+					style={styles.refresh}>
+					<Text variant="caption" tone="muted">
+						↻ Refresh
+					</Text>
 				</Pressable>
 			</Stack>
 

@@ -106,18 +106,21 @@ export const clickhouseLens: StreamLens<LogItem> = {
 			label: 'Errors',
 			tone: 'danger',
 			predicate: (it) => it.level === 'error',
+			params: { level: 'error' },
 		},
 		{
 			id: 'warn',
 			label: 'Warnings',
 			tone: 'warning',
 			predicate: (it) => it.level === 'warn' || it.level === 'warning',
+			params: { level: 'warn' },
 		},
 		{
 			id: 'info',
 			label: 'Info',
 			tone: 'neutral',
 			predicate: (it) => it.level === 'info',
+			params: { level: 'info' },
 		},
 	],
 	stats: (items, meta) => {
@@ -133,7 +136,12 @@ export const clickhouseLens: StreamLens<LogItem> = {
 		return [
 			{ id: 'total', label: 'Total Logs', value: t.total },
 			{ id: 'errors', label: 'Errors', tone: 'danger', value: t.errors },
-			{ id: 'warnings', label: 'Warnings', tone: 'warning', value: t.warnings },
+			{
+				id: 'warnings',
+				label: 'Warnings',
+				tone: 'warning',
+				value: t.warnings,
+			},
 		];
 	},
 	controls: CH_CONTROLS,

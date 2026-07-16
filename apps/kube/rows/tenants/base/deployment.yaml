@@ -43,7 +43,7 @@ spec:
                       - name: METRICS_PORT
                         value: '4324'
                       - name: RUST_LOG
-                        value: 'info,tower_http=warn'
+                        value: 'warn,tower_http=warn'
                       - name: DB_MAX_CONNECTIONS
                         value: '20'
                       - name: OWS_API_KEY
