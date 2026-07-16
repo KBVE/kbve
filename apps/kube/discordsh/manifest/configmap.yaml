@@ -16,3 +16,8 @@ data:
     PUBLIC_DISCORD_CLIENT_ID: placeholder-discord-client-id
     PUBLIC_ENV: production
     RUST_LOG: debug
+    WINDMILL_BASE_URL: http://windmill-app.windmill.svc.cluster.local:8000
+    WINDMILL_WORKSPACE: kbve
+    WINDMILL_ALLOWED_PATHS: ''
+    WM_RATE_LIMIT: '1'
+    WM_RATE_WINDOW: '5'
