@@ -63,9 +63,9 @@ Layered, generic-additive. Nothing below changes existing call sites; every capa
     └── ClickHouseView.tsx    composes StreamView + NamespaceGrid + ErrorDigest
 ```
 
-Bridge/mounts:
+Bridge/mounts (route and component are separate layers — `ClickHouseView` never locates or owns its route):
 - Web: `apps/kbve/astro-kbve/src/components/rnweb/ReactClickHouseDashRN.tsx` renders `ClickHouseView`.
-- Native: mounted in the Expo app dashboard route (same `ClickHouseView`, native token provider).
+- Native: `apps/kbve/kbve-react-native` is a plain Expo app (no expo-router). `App.tsx` renders `<HomeView/>` from `@kbve/rn` inside `AuthGate`, with `OverlayHost` already mounted (so the `Sheet`-backed `Select` works). A `ClickHouseScreen` (thin wrapper: `<ClickHouseView/>` + native token provider) is registered in `@kbve/rn` and made reachable from `HomeView`'s navigation, mirroring the existing `HomeScreen` pattern. This gives an immediate native compile + runtime target without inventing a full native dashboard shell; it can later be relocated into a proper native dashboard/nav group without touching `ClickHouseView`.
 
 ### Core idea: params are server-side query state
 
@@ -113,9 +113,32 @@ export type StreamControl =
 controls?: readonly StreamControl[];
 ```
 
-`ControlBar` reads `state.params[control.param]`, renders RN primitives (`Pressable` segments, a platform-agnostic select, `TextInput` with internal debounce), and calls `store.setParams({ [param]: value })` on change. `optionsFromMeta` lets a `select` populate from the `fetchMeta` payload (e.g. namespace list from stats), avoiding a separate fetch.
+`ControlBar` reads `state.params[control.param]`, renders RN primitives (`Pressable` segments, the shared `Select` primitive below, `TextInput` with internal debounce), and calls `store.setParams({ [param]: value })` on change. `optionsFromMeta` lets a `select` populate from the `fetchMeta` payload (e.g. namespace list from stats), avoiding a separate fetch.
 
 `StreamView` renders `<ControlBar>` only when `lens.controls?.length`.
+
+#### Shared `Select` primitive (resolves the native-`<select>` gap)
+
+RN has no DOM `<select>`. Add a shared `Select` abstraction with one cross-platform contract; feature code (`ControlBar`, `ClickHouseView`) consumes only the contract and never imports a native picker directly.
+
+```ts
+// ui/controls/Select.types.ts
+export interface SelectOption<T extends string = string> { label: string; value: T; disabled?: boolean; }
+export interface SelectProps<T extends string = string> {
+  value?: T;
+  options: SelectOption<T>[];
+  placeholder?: string;
+  disabled?: boolean;
+  onValueChange: (value: T) => void;
+}
+```
+
+Platform split follows the package's existing convention — **base file = native, `.web` = web override** (mirrors `store/kv.ts` + `kv.web.ts`, `ui/theme` + `theme.web`). No `.native.tsx` suffix.
+
+- `ui/controls/Select.tsx` (native): a `Pressable` trigger that opens the existing `ui/overlays/Sheet` (`{ visible, onClose, placement:'bottom' }`) listing options; styled from `tokens`. Falls back to `Modal` only if `Sheet` proves unsuitable. Does **not** pull in `@react-native-picker/picker` — avoids a native dep.
+- `ui/controls/Select.web.tsx` (web): a real `<select>` styled from `tokens`.
+
+Re-export `Select` + types via `dash/_ui` so `ControlBar` imports it alongside `Text`/`Stack`. The `select`-kind control in `ControlBar` renders this `Select`.
 
 ### 3. True totals + namespace grid via `fetchMeta`
 
@@ -135,6 +158,7 @@ Generic engine `views/savedViews.ts`, persisted via `kvStore` (works web + nativ
 ```ts
 export interface SavedView { id: string; name: string; params: StreamParams; pollMs?: number | null; }
 
+// StreamSourceConfig gains:  defaultViews?: SavedView[];   // seeded presets
 // StreamState gains:  views: SavedView[]; activeViewId: string | null;
 // StreamStore gains:
 saveView(name: string): void;            // snapshot current params
@@ -147,6 +171,8 @@ importViews(json: string): number;        // returns count
 ```
 
 Persistence key: `dash:${storeKey}:views`. Tabs and presets are the same structure; "tab" = an open view, "preset" = a saved view the user can re-open. `StreamView` renders `SavedViewTabs` above the list when `state.views.length` or an explicit `enableViews` flag is set. Per-view polling reuses the existing `pollMs` timer, re-armed on `applyView`.
+
+**Optimized-in-advance (seeded default views):** the store hydrates `defaultViews` on first run (merged with any user-saved views from `kvStore`, user views winning on id). CH ships a small curated set so the dashboard is useful with zero setup, e.g. `Errors · 24h` (`{minutes:1440, level:'error'}`), `All · 6h` (`{minutes:360}`), `Warnings · 24h`. Because params are part of the cache key, applying a seeded view paints instantly from `kvStore` if that window was fetched before; on cold start the first paint uses the meta side-channel (no layout shift). Optionally the primary view can be prewarmed by kicking its `fetch` on mount so switching to it is instant. Seeded views are marked (`seeded:true` internally) so a user can hide but not accidentally lose them.
 
 ### 6. Error digest as a secondary stream
 
@@ -218,10 +244,25 @@ Backward-compat: existing dashboard adapter tests (Argo/Forgejo/Grafana/Kasm) un
 3. Verify Argo + Kasm dashboards still build/run (they only use `fetchIndexedLogs`).
 4. `IClickHouseSchema.ts` comment reference is harmless; leave or update.
 
-## Risks & open questions
+## Ship order (avoids both extremes: premature native dashboard vs never-mounted-on-native component)
 
-- **Worktree has no `node_modules`** (known gotcha): running vitest/tsc for `@kbve/rn` from the worktree cwd needs the main-tree toolchain or a targeted install. Verification step will resolve at run time (`--skip-nx-cache`, main-binary from worktree cwd).
-- **Platform-agnostic select**: RN has no native `<select>`; need a small `Pressable`-driven dropdown/menu that works web + native. Check whether `_ui` already has one before building.
-- **Native mount surface**: confirm the Expo app has a dashboard route to host `ClickHouseView`, or whether web-only mount ships first and native follows.
+1. Generic primitives in `@kbve/rn/dash`: params + `setParams`, `ControlBar`, clickable `StatGrid`, `savedViews` — with unit tests, existing dashboards untouched.
+2. Shared `Select` primitive (`Select.tsx` native / `Select.web.tsx`).
+3. CH composition: `clickhouseStream` + `errorGroupsStream` + `NamespaceGrid` + `ErrorDigest` + `ClickHouseView` (platform-neutral).
+4. Backend ALL sentinel re-applied + tests.
+5. Web mount: point `ReactClickHouseDashRN.tsx` at `ClickHouseView`; verify the live page.
+6. Minimal native mount: `ClickHouseScreen` reachable from `HomeView`; verify native compile + runtime.
+7. Delete the 9 dead `ReactCH*` files + slim `clickhouseService.ts`; verify Argo/Kasm still build.
+
+## Resolved decisions
+
+- **Native `<select>`** → shared `Select` primitive with `.web`/native split, native uses the existing `Sheet` overlay; feature code consumes the contract only. (See "Shared Select primitive".)
+- **Native mount** → no expo-router; register `ClickHouseScreen` in `@kbve/rn` reachable from `HomeView`; standalone/minimal now, integrate into a native dashboard shell later. (See "Bridge/mounts".)
+- **Saved views optimized in advance** → seeded `defaultViews` + params-scoped cache + optional primary-view prewarm. (See "Saved views".)
+
+## Risks & remaining unknowns
+
+- **Worktree has no `node_modules`** (known gotcha): running vitest/tsc for `@kbve/rn` from the worktree cwd needs the main-tree toolchain or a targeted install. Verification step resolves at run time (`--skip-nx-cache`, main-binary from worktree cwd).
 - **Query-tab polling** interaction with the global `pollMs` timer: one active view polls at a time (matches old per-active-tab behavior); multi-tab concurrent polling is explicitly out of scope.
+- **`ControlBar` layout on narrow native screens**: many controls (time range + 3 selects + search) may need to wrap/scroll; native validation in step 6 confirms.
 ```
