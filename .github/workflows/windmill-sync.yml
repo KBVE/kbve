@@ -1,0 +1,61 @@
+name: Windmill Sync
+
+# Push the repo-versioned Windmill scripts/flows (apps/windmill) into the
+# `kbve` workspace. Runs on the in-cluster arc runner because the Windmill
+# API (windmill-app:8000) is ClusterIP-only and windmill.kbve.com is behind
+# the staff-JWT gate — an external runner cannot reach it with a token.
+#
+# Prune-safe: apps/windmill/wmill.yaml scopes `includes: f/**`, so the push
+# only manages the f/ tree and never touches user-space (u/) scripts.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/windmill/**
+      - .github/workflows/windmill-sync.yml
+  workflow_dispatch: {}
+
+concurrency:
+  group: windmill-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    name: wmill sync push
+    runs-on: arc-runner-set-kbve
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    env:
+      WMILL_BASE_URL: http://windmill-app.windmill.svc.cluster.local:8000
+      WMILL_WORKSPACE: kbve
+      # Pin to match the deployed Windmill server image; bump alongside it.
+      WMILL_CLI_VERSION: "1.751.0"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Configure workspace
+        env:
+          WM_TOKEN: ${{ secrets.WINDMILL_SUPERADMIN_TOKEN }}
+        run: |
+          if [ -z "${WM_TOKEN}" ]; then
+            echo "::error::WINDMILL_SUPERADMIN_TOKEN secret is not set"
+            exit 1
+          fi
+          npx --yes "windmill-cli@${WMILL_CLI_VERSION}" workspace add \
+            "${WMILL_WORKSPACE}" "${WMILL_WORKSPACE}" "${WMILL_BASE_URL}" \
+            --token "${WM_TOKEN}"
+
+      - name: Preview (dry-run)
+        working-directory: apps/windmill
+        run: |
+          npx --yes "windmill-cli@${WMILL_CLI_VERSION}" sync push \
+            --workspace "${WMILL_WORKSPACE}" --skip-variables --dry-run
+
+      - name: Push scripts
+        working-directory: apps/windmill
+        run: |
+          npx --yes "windmill-cli@${WMILL_CLI_VERSION}" sync push \
+            --workspace "${WMILL_WORKSPACE}" --skip-variables --yes

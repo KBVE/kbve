@@ -72,7 +72,7 @@ import Layout from '../layouts/Layout.astro';
 
 	.nf-term {
 		text-align: left;
-		border-radius: 1rem;
+		border-radius: var(--dsh-radius-lg);
 		background: color-mix(in srgb, #0d0d14 92%, var(--sl-color-accent));
 		border: 1px solid
 			color-mix(in srgb, var(--sl-color-accent) 30%, #27272a);
@@ -106,15 +106,26 @@ import Layout from '../layouts/Layout.astro';
 	}
 	.nf-title {
 		margin-left: 0.6rem;
-		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+		font-family: var(--dsh-font-mono);
 		font-size: 0.72rem;
 		color: var(--sl-color-gray-2, #a1a1aa);
 	}
 	.nf-body {
-		padding: 1.25rem 1.4rem 1.5rem;
-		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-		font-size: 0.88rem;
+		padding: var(--dsh-space-md) 1.4rem 1.5rem;
+		font-family: var(--dsh-font-mono);
+		font-size: var(--dsh-text-sm);
 		line-height: 1.9;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+	.nf-line {
+		white-space: nowrap;
+	}
+	@media (max-width: 26rem) {
+		.nf-body {
+			font-size: 0.72rem;
+			padding: var(--dsh-space-sm) var(--dsh-space-md);
+		}
 	}
 	.nf-line {
 		margin: 0;
@@ -183,11 +194,11 @@ import Layout from '../layouts/Layout.astro';
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
-		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-		font-size: 0.95rem;
+		font-family: var(--dsh-font-mono);
+		font-size: var(--dsh-text-base);
 		font-weight: 600;
 		padding: 0.8rem 1.6rem;
-		border-radius: 0.75rem;
+		border-radius: var(--dsh-radius-md);
 		text-decoration: none;
 		transition:
 			transform 160ms ease,

@@ -18,6 +18,6 @@ data:
     RUST_LOG: warn
     WINDMILL_BASE_URL: http://windmill-app.windmill.svc.cluster.local:8000
     WINDMILL_WORKSPACE: kbve
-    WINDMILL_ALLOWED_PATHS: ''
+    WINDMILL_ALLOWED_PATHS: 'f/discordsh/*'
     WM_RATE_LIMIT: '1'
     WM_RATE_WINDOW: '5'

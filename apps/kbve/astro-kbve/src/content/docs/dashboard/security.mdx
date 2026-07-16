@@ -13,26 +13,26 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-07-13T11:18:30Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-07-16T10:14:40Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**29** critical/high severity findings across the monorepo.
+**3** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
 
 <CardGrid>
-  <Card title="5 Critical" icon="warning">
+  <Card title="3 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="24 High" icon="error">
+  <Card title="0 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="54 Medium" icon="information">
+  <Card title="27 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
-  <Card title="8 Low" icon="approve-check-circle">
+  <Card title="0 Low" icon="approve-check-circle">
     Low-severity findings across all ecosystems.
   </Card>
 </CardGrid>
@@ -41,10 +41,10 @@ Last generated: **2026-07-13T11:18:30Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **61** advisories
+    **0** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
-    **61** advisories
+    **63** advisories
   </Card>
   <Card title="Python" icon="seti:python">
     **0** advisories
@@ -62,10 +62,8 @@ Last generated: **2026-07-13T11:18:30Z** — updated daily by `ci-dashboard`.
 ```mermaid
 pie showData
     title Findings by Severity
-    "Critical" : 5
-    "High" : 24
-    "Medium" : 54
-    "Low" : 8
+    "Critical" : 3
+    "Medium" : 27
 ```
 
 ### Findings by Ecosystem
@@ -73,8 +71,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 61
-    "Cargo" : 61
+    "Cargo" : 63
     "CodeQL" : 5
 ```
 
@@ -83,79 +80,19 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 2 | 24 | 27 | 8 | 61 |
-| **Cargo** | 0 | 0 | 25 | 0 | 61 |
+| **npm** | 0 | 0 | 0 | 0 | 0 |
+| **Cargo** | 0 | 0 | 25 | 0 | 63 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 3 | 0 | 2 | 0 | 5 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 5 | 24 | 54 | 8 | 127 |
+| **Total** | 3 | 0 | 27 | 0 | 68 |
 
   </TabItem>
   <TabItem label="npm">
 
-| Severity | Package | Advisory | Link |
-|----------|---------|----------|------|
-| Critical | `vitest` | When Vitest UI server is listening, arbitrary file can be... | [Details](https://github.com/advisories/GHSA-5xrq-8626-4rwp) |
-| Critical | `shell-quote` | shell-quote quote() does not escape newlines in object .o... | [Details](https://github.com/advisories/GHSA-w7jw-789q-3m8p) |
-| High | `rollup` | Rollup 4 has Arbitrary File Write via Path Traversal | [Details](https://github.com/advisories/GHSA-mw96-cpmx-2vgc) |
-| High | `koa` | Koa has Host Header Injection via ctx.hostname | [Details](https://github.com/advisories/GHSA-7gcc-r8m5-44qm) |
-| High | `serialize-javascript` | Serialize JavaScript is Vulnerable to RCE via RegExp.flag... | [Details](https://github.com/advisories/GHSA-5c6j-r48x-rmvq) |
-| High | `svgo` | SVGO DoS through entity expansion in DOCTYPE (Billion Lau... | [Details](https://github.com/advisories/GHSA-xpqw-6gx7-v673) |
-| High | `tar` | tar has Hardlink Path Traversal via Drive-Relative Linkpath | [Details](https://github.com/advisories/GHSA-qffp-2rhf-9h96) |
-| High | `tar` | node-tar Symlink Path Traversal via Drive-Relative Linkpath | [Details](https://github.com/advisories/GHSA-9ppj-qmqm-q256) |
-| High | `flatted` | flatted vulnerable to unbounded recursion DoS in parse() ... | [Details](https://github.com/advisories/GHSA-25h7-pfq9-p65f) |
-| High | `flatted` | Prototype Pollution via parse() in NodeJS flatted | [Details](https://github.com/advisories/GHSA-rf6f-7fwh-wjgh) |
-| High | `path-to-regexp` | path-to-regexp vulnerable to Regular Expression Denial of... | [Details](https://github.com/advisories/GHSA-37ch-88jc-xwx2) |
-| High | `picomatch` | Picomatch has a ReDoS vulnerability via extglob quantifiers | [Details](https://github.com/advisories/GHSA-c2c7-rcm5-vvqj) |
-| High | `lodash` | lodash vulnerable to Code Injection via `_.template` impo... | [Details](https://github.com/advisories/GHSA-r5fr-rjxr-66jc) |
-| High | `fast-uri` | fast-uri vulnerable to path traversal via percent-encoded... | [Details](https://github.com/advisories/GHSA-q3j6-qgpj-74h6) |
-| High | `fast-uri` | fast-uri vulnerable to host confusion via percent-encoded... | [Details](https://github.com/advisories/GHSA-v39h-62p7-jpjc) |
-| High | `tmp` | tmp has Path Traversal via unsanitized prefix/postfix tha... | [Details](https://github.com/advisories/GHSA-ph9p-34f9-6g65) |
-| High | `form-data` | form-data: CRLF injection in form-data via unescaped mult... | [Details](https://github.com/advisories/GHSA-hmw2-7cc7-3qxx) |
-| High | `vite` | vite: `server.fs.deny` bypass on Windows alternate paths | [Details](https://github.com/advisories/GHSA-fx2h-pf6j-xcff) |
-| High | `vite` | vite: `server.fs.deny` bypass on Windows alternate paths | [Details](https://github.com/advisories/GHSA-fx2h-pf6j-xcff) |
-| High | `http-proxy-middleware` | http-proxy-middleware: multipart/form-data field injectio... | [Details](https://github.com/advisories/GHSA-gcq2-9pq2-cxqm) |
-| High | `undici` | undici vulnerable to TLS certificate validation bypass vi... | [Details](https://github.com/advisories/GHSA-vmh5-mc38-953g) |
-| High | `nodemailer` | Nodemailer: Message-level raw option bypasses disableFile... | [Details](https://github.com/advisories/GHSA-p6gq-j5cr-w38f) |
-| High | `undici` | undici WebSocket client vulnerable to denial of service v... | [Details](https://github.com/advisories/GHSA-vxpw-j846-p89q) |
-| High | `undici` | undici WebSocket client vulnerable to denial of service v... | [Details](https://github.com/advisories/GHSA-vxpw-j846-p89q) |
-| High | `undici` | undici vulnerable to cross-origin request routing via SOC... | [Details](https://github.com/advisories/GHSA-hm92-r4w5-c3mj) |
-| High | `ws` | ws: Memory exhaustion DoS from tiny fragments and data ch... | [Details](https://github.com/advisories/GHSA-96hv-2xvq-fx4p) |
-| Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
-| Medium | `js-yaml` | js-yaml has prototype pollution in merge (&lt;&lt;) | [Details](https://github.com/advisories/GHSA-mh29-5h37-fv8m) |
-| Medium | `mdast-util-to-hast` | mdast-util-to-hast has unsanitized class attribute | [Details](https://github.com/advisories/GHSA-4fh9-h7wg-q85m) |
-| Medium | `ajv` | ajv has ReDoS when using `$data` option | [Details](https://github.com/advisories/GHSA-2g4f-4pwh-qvx6) |
-| Medium | `ajv` | ajv has ReDoS when using `$data` option | [Details](https://github.com/advisories/GHSA-2g4f-4pwh-qvx6) |
-| Medium | `qs` | qs's arrayLimit bypass in its bracket notation allows DoS... | [Details](https://github.com/advisories/GHSA-6rw7-vpxm-498p) |
-| Medium | `brace-expansion` | brace-expansion: Zero-step sequence causes process hang a... | [Details](https://github.com/advisories/GHSA-f886-m6hf-6m8v) |
-| Medium | `picomatch` | Picomatch: Method Injection in POSIX Character Classes ca... | [Details](https://github.com/advisories/GHSA-3v7f-55p6-f55p) |
-| Medium | `yaml` | yaml is vulnerable to Stack Overflow via deeply nested YA... | [Details](https://github.com/advisories/GHSA-48c2-rrv3-qjmp) |
-| Medium | `yaml` | yaml is vulnerable to Stack Overflow via deeply nested YA... | [Details](https://github.com/advisories/GHSA-48c2-rrv3-qjmp) |
-| Medium | `lodash` | lodash vulnerable to Prototype Pollution via array path b... | [Details](https://github.com/advisories/GHSA-f23m-r3pf-42rh) |
-| Medium | `ws` | ws: Uninitialized memory disclosure | [Details](https://github.com/advisories/GHSA-58qx-3vcg-4xpx) |
-| Medium | `serialize-javascript` | Serialize JavaScript has CPU Exhaustion Denial of Service... | [Details](https://github.com/advisories/GHSA-qj8w-gfj5-8c6v) |
-| Medium | `uuid` | uuid: Missing buffer bounds check in v3/v5/v6 when buf is... | [Details](https://github.com/advisories/GHSA-w5hq-g745-h8pq) |
-| Medium | `qs` | qs has a remotely triggerable DoS: qs.stringify crashes w... | [Details](https://github.com/advisories/GHSA-q8mj-m7cp-5q26) |
-| Medium | `lodash` | Lodash has Prototype Pollution Vulnerability in `_.unset`... | [Details](https://github.com/advisories/GHSA-xxjr-mmjv-4gpg) |
-| Medium | `tar` | node-tar applies PAX size override to intermediary GNU lo... | [Details](https://github.com/advisories/GHSA-vmf3-w455-68vh) |
-| Medium | `vite` | launch-editor: NTLMv2 hash disclosure via UNC path handli... | [Details](https://github.com/advisories/GHSA-v6wh-96g9-6wx3) |
-| Medium | `vite` | launch-editor: NTLMv2 hash disclosure via UNC path handli... | [Details](https://github.com/advisories/GHSA-v6wh-96g9-6wx3) |
-| Medium | `launch-editor` | launch-editor: NTLMv2 hash disclosure via UNC path handli... | [Details](https://github.com/advisories/GHSA-v6wh-96g9-6wx3) |
-| Medium | `undici` | undici vulnerable to HTTP header injection via Set-Cookie... | [Details](https://github.com/advisories/GHSA-p88m-4jfj-68fv) |
-| Medium | `undici` | undici vulnerable to HTTP header injection via Set-Cookie... | [Details](https://github.com/advisories/GHSA-p88m-4jfj-68fv) |
-| Medium | `http-proxy-middleware` | http-proxy-middleware `router` host+path substring matchi... | [Details](https://github.com/advisories/GHSA-64mm-vxmg-q3vj) |
-| Medium | `http-proxy-middleware` | http-proxy-middleware `router` host+path substring matchi... | [Details](https://github.com/advisories/GHSA-64mm-vxmg-q3vj) |
-| Medium | `undici` | undici vulnerable to cross-user information disclosure vi... | [Details](https://github.com/advisories/GHSA-pr7r-676h-xcf6) |
-| Medium | `js-yaml` | JS-YAML: Quadratic-complexity DoS in merge key handling v... | [Details](https://github.com/advisories/GHSA-h67p-54hq-rp68) |
-| Medium | `js-yaml` | JS-YAML: Quadratic-complexity DoS in merge key handling v... | [Details](https://github.com/advisories/GHSA-h67p-54hq-rp68) |
-| Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
-| Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
-| Low | `esbuild` | esbuild allows arbitrary file read when running the devel... | [Details](https://github.com/advisories/GHSA-g7r4-m6w7-qqqr) |
-| Low | `@babel/core` | @babel/core: Arbitrary File Read via sourceMappingURL Com... | [Details](https://github.com/advisories/GHSA-4x5r-pxfx-6jf8) |
-| Low | `undici` | undici vulnerable to HTTP response queue poisoning via ke... | [Details](https://github.com/advisories/GHSA-35p6-xmwp-9g52) |
-| Low | `undici` | undici vulnerable to HTTP response queue poisoning via ke... | [Details](https://github.com/advisories/GHSA-35p6-xmwp-9g52) |
-| Low | `undici` | undici vulnerable to Set-Cookie SameSite attribute downgr... | [Details](https://github.com/advisories/GHSA-g8m3-5g58-fq7m) |
-| Low | `undici` | undici vulnerable to Set-Cookie SameSite attribute downgr... | [Details](https://github.com/advisories/GHSA-g8m3-5g58-fq7m) |
+:::tip[All Clear]
+No npm advisories found.
+:::
 
   </TabItem>
   <TabItem label="Cargo">
@@ -168,19 +105,19 @@ pie showData
 | Medium | `hickory-proto` | NSEC3 closest-encloser proof validation enters unbounded ... | [Details](https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-3v94-mw7p-v465) |
 | Medium | `postgres-protocol` | Unbounded SCRAM iteration count allows a malicious server... | [Details](https://github.com/rust-postgres/rust-postgres/commit/d40097a36a85068ea50a3afbf0ce154ba439e7f0) |
 | Medium | `postgres-protocol` | Panic decoding a malformed `hstore` value allows denial o... | [Details](https://github.com/rust-postgres/rust-postgres/commit/a7cf84b5c46431cbca9d8ff50508c23f446efa7d) |
-| Medium | `quick-xml` | Quadratic run time when checking a start tag for duplicat... | [Details](https://github.com/tafia/quick-xml/issues/969) |
 | Medium | `quick-xml` | Unbounded namespace-declaration allocation in `NsReader` ... | [Details](https://github.com/tafia/quick-xml/issues/970) |
 | Medium | `quick-xml` | Quadratic run time when checking a start tag for duplicat... | [Details](https://github.com/tafia/quick-xml/issues/969) |
 | Medium | `quick-xml` | Unbounded namespace-declaration allocation in `NsReader` ... | [Details](https://github.com/tafia/quick-xml/issues/970) |
+| Medium | `quick-xml` | Quadratic run time when checking a start tag for duplicat... | [Details](https://github.com/tafia/quick-xml/issues/969) |
 | Medium | `quinn-proto` |  Remote memory exhaustion in quinn-proto from unbounded o... | [Details](https://github.com/quinn-rs/quinn/pull/2694) |
 | Medium | `rsa` | Marvin Attack: potential key recovery through timing side... | [Details](https://github.com/RustCrypto/RSA/issues/626) |
 | Medium | `rustls-webpki` | Reachable panic in certificate revocation list parsing |  |
 | Medium | `rustls-webpki` | Name constraints were accepted for certificates asserting... |  |
 | Medium | `rustls-webpki` | Name constraints for URI names were incorrectly accepted |  |
 | Medium | `rustls-webpki` | Reachable panic in certificate revocation list parsing |  |
-| Medium | `rustls-webpki` | CRLs not considered authoritative by Distribution Point d... |  |
 | Medium | `rustls-webpki` | Name constraints were accepted for certificates asserting... |  |
 | Medium | `rustls-webpki` | Name constraints for URI names were incorrectly accepted |  |
+| Medium | `rustls-webpki` | CRLs not considered authoritative by Distribution Point d... |  |
 | Medium | `rustls-webpki` | Reachable panic in certificate revocation list parsing |  |
 | Medium | `rustls-webpki` | Name constraints were accepted for certificates asserting... |  |
 | Medium | `rustls-webpki` | Name constraints for URI names were incorrectly accepted |  |
@@ -223,6 +160,8 @@ pie showData
 | Info | `rand` | Rand is unsound with a custom logger using `rand::rng()` | [Details](https://github.com/rust-random/rand/pull/1763) |
 | Info | `rand` | Rand is unsound with a custom logger using `rand::rng()` | [Details](https://github.com/rust-random/rand/pull/1763) |
 | Info | `scc` | `Array::insert` violates exception safety if compare func... | [Details](https://codeberg.org/wvwwvwwv/scalable-concurrent-containers/issues/232) |
+| Info | `spin` |  |  |
+| Info | `spin` |  |  |
 
   </TabItem>
   <TabItem label="Python">

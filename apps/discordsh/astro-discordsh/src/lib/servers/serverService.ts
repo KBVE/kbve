@@ -107,7 +107,25 @@ async function fetchServersStatic(opts?: {
 // ── Helpers ─────────────────────────────────────────────────────────
 
 export function buildInviteUrl(code: string): string {
-	return `https://discord.gg/${code}`;
+	// Scheme is pinned and the code is encoded — API data can never break
+	// out of the discord.gg path.
+	return `https://discord.gg/${encodeURIComponent(code)}`;
+}
+
+/** Allow only http(s) image URLs from API data; anything else is dropped. */
+export function safeImageUrl(
+	url: string | null | undefined,
+): string | undefined {
+	if (!url) return undefined;
+	try {
+		const parsed = new URL(url, window.location.origin);
+		if (parsed.protocol === 'https:' || parsed.protocol === 'http:') {
+			return parsed.href;
+		}
+	} catch {
+		// fall through
+	}
+	return undefined;
 }
 
 export function formatMemberCount(count: number): string {

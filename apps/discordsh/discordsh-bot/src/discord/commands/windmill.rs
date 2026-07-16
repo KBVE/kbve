@@ -3,6 +3,7 @@ use tracing::{info, warn};
 
 use crate::discord::bot::{Context, Error};
 use crate::discord::windmill::{DiscordContext, split_args};
+use crate::discord::windmill_embed;
 
 #[poise::command(slash_command, rename = "wm")]
 pub async fn wm(
@@ -41,16 +42,36 @@ pub async fn wm(
                 args = arg_count,
                 "windmill run ok"
             );
-            let body = serde_json::to_string_pretty(&value).unwrap_or_else(|_| value.to_string());
-            let trimmed = truncate_for_discord(&body);
-            ctx.send(
+            let json_reply = || {
+                let body =
+                    serde_json::to_string_pretty(&value).unwrap_or_else(|_| value.to_string());
+                let trimmed = truncate_for_discord(&body);
                 CreateReply::default()
-                    .content(format!(
-                        "`/wm {path_for_log}` ok:\n```json\n{trimmed}\n```"
-                    ))
-                    .ephemeral(true),
-            )
-            .await?;
+                    .content(format!("`/wm {path_for_log}` ok:\n```json\n{trimmed}\n```"))
+                    .ephemeral(true)
+            };
+
+            // Try the rich embed first; if Discord rejects it (total size, bad
+            // URL, empty field), fall back to the JSON block so the job result
+            // is never lost.
+            match windmill_embed::embed_from_value(&value) {
+                Some(embed) => {
+                    if ctx
+                        .send(CreateReply::default().embed(embed).ephemeral(true))
+                        .await
+                        .is_err()
+                    {
+                        warn!(
+                            wm_path = %path_for_log,
+                            "embed send rejected; falling back to JSON"
+                        );
+                        ctx.send(json_reply()).await?;
+                    }
+                }
+                None => {
+                    ctx.send(json_reply()).await?;
+                }
+            }
         }
         Err(e) => {
             warn!(

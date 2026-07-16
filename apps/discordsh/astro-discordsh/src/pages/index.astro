@@ -183,8 +183,8 @@ const commands = [
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
-		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-		font-size: 0.75rem;
+		font-family: var(--dsh-font-mono);
+		font-size: var(--dsh-text-sm);
 		letter-spacing: 0.18em;
 		text-transform: uppercase;
 		color: var(--sl-color-accent-high, #c4b5fd);
@@ -246,11 +246,11 @@ const commands = [
 		display: inline-flex;
 		align-items: center;
 		gap: 0.5rem;
-		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-		font-size: 0.95rem;
+		font-family: var(--dsh-font-mono);
+		font-size: var(--dsh-text-base);
 		font-weight: 600;
 		padding: 0.8rem 1.6rem;
-		border-radius: 0.75rem;
+		border-radius: var(--dsh-radius-md);
 		text-decoration: none;
 		transition:
 			transform 160ms ease,
@@ -312,7 +312,7 @@ const commands = [
 	}
 	.stat-value {
 		display: block;
-		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+		font-family: var(--dsh-font-mono);
 		font-size: 1.6rem;
 		font-weight: 800;
 		background: linear-gradient(120deg, #fff, #a5b4fc);
@@ -321,7 +321,7 @@ const commands = [
 		color: transparent;
 	}
 	.stat-label {
-		font-size: 0.78rem;
+		font-size: var(--dsh-text-sm);
 		letter-spacing: 0.08em;
 		color: var(--sl-color-gray-2, #a1a1aa);
 	}
@@ -329,7 +329,7 @@ const commands = [
 	/* ── Terminal ─────────────────────────────────────────── */
 	.term {
 		position: relative;
-		border-radius: 1rem;
+		border-radius: var(--dsh-radius-lg);
 		background: color-mix(in srgb, #0d0d14 92%, var(--sl-color-accent));
 		border: 1px solid
 			color-mix(in srgb, var(--sl-color-accent) 30%, #27272a);
@@ -367,15 +367,23 @@ const commands = [
 	}
 	.term-title {
 		margin-left: 0.6rem;
-		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+		font-family: var(--dsh-font-mono);
 		font-size: 0.72rem;
 		color: var(--sl-color-gray-2, #a1a1aa);
 	}
 	.term-body {
-		padding: 1.25rem 1.4rem 1.6rem;
-		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-		font-size: 0.88rem;
+		padding: var(--dsh-space-md) 1.4rem 1.6rem;
+		font-family: var(--dsh-font-mono);
+		font-size: var(--dsh-text-sm);
 		line-height: 1.9;
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+	@media (max-width: 26rem) {
+		.term-body {
+			font-size: 0.72rem;
+			padding: var(--dsh-space-sm) var(--dsh-space-md);
+		}
 	}
 	.t-line {
 		margin: 0;
@@ -477,7 +485,7 @@ const commands = [
 	}
 	.hash {
 		color: var(--sl-color-accent, #8b5cf6);
-		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+		font-family: var(--dsh-font-mono);
 	}
 	.section-head p {
 		color: var(--sl-color-gray-2, #a1a1aa);
@@ -503,7 +511,7 @@ const commands = [
 	}
 	.cmd-card {
 		position: relative;
-		border-radius: 1rem;
+		border-radius: var(--dsh-radius-lg);
 		padding: 1.4rem 1.4rem 1.5rem;
 		background: linear-gradient(
 			160deg,
@@ -555,10 +563,10 @@ const commands = [
 		margin-bottom: 1rem;
 	}
 	.cmd-code {
-		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-		font-size: 0.8rem;
+		font-family: var(--dsh-font-mono);
+		font-size: var(--dsh-text-sm);
 		padding: 0.35rem 0.6rem;
-		border-radius: 0.5rem;
+		border-radius: var(--dsh-radius-sm);
 		background: rgba(0, 0, 0, 0.45);
 		border: 1px solid rgba(255, 255, 255, 0.07);
 		white-space: nowrap;
@@ -573,7 +581,7 @@ const commands = [
 		color: var(--sl-color-gray-2, #a1a1aa);
 	}
 	.cmd-tag {
-		font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+		font-family: var(--dsh-font-mono);
 		font-size: 0.65rem;
 		letter-spacing: 0.12em;
 		text-transform: uppercase;
@@ -598,12 +606,12 @@ const commands = [
 	}
 	.cmd-title {
 		margin: 0 0 0.45rem;
-		font-size: 1.12rem;
+		font-size: var(--dsh-text-lg);
 		font-weight: 750;
 	}
 	.cmd-body {
 		margin: 0;
-		font-size: 0.9rem;
+		font-size: var(--dsh-text-sm);
 		line-height: 1.55;
 		color: var(--sl-color-gray-2, #a1a1aa);
 	}
