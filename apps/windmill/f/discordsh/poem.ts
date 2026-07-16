@@ -8,6 +8,8 @@ type Poem = {
 type PoetryDbError = { status: number; reason: string };
 
 const BASE = "https://poetrydb.org";
+const MAX_LINES = 24;
+const POEM_COLOR = 0x8957e5;
 
 export async function main(
   args: string[] = [],
@@ -29,10 +31,18 @@ export async function main(
   }
 
   const poem = data[Math.floor(Math.random() * data.length)];
+  const lines = poem.lines.slice(0, MAX_LINES);
+  const requestedBy = (discord?.username as string) ?? null;
+
   return {
-    title: poem.title,
-    author: poem.author,
-    lines: poem.lines.length > 24 ? poem.lines.slice(0, 24) : poem.lines,
-    requestedBy: (discord?.username as string) ?? null,
+    embed: {
+      title: poem.title,
+      description: lines.join("\n"),
+      color: POEM_COLOR,
+      author: poem.author,
+      footer: requestedBy
+        ? `PoetryDB • requested by ${requestedBy}`
+        : "PoetryDB",
+    },
   };
 }
