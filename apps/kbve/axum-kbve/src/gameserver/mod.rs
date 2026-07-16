@@ -11,6 +11,7 @@ use std::sync::mpsc;
 use std::time::Duration;
 
 use avian3d::prelude::*;
+use bevy::app::ScheduleRunnerPlugin;
 use bevy::prelude::*;
 use lightyear::prelude::server::*;
 use lightyear::prelude::*;
@@ -792,7 +793,9 @@ fn run_bevy_app(
     let mut app = App::new();
 
     // Minimal headless Bevy — no window, no renderer
-    app.add_plugins(MinimalPlugins);
+    app.add_plugins(MinimalPlugins.set(ScheduleRunnerPlugin::run_loop(
+        Duration::from_secs_f64(1.0 / 60.0),
+    )));
     app.add_plugins(bevy::state::app::StatesPlugin);
     app.add_plugins(bevy::transform::TransformPlugin);
 
