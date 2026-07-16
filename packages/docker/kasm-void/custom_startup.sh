@@ -83,9 +83,11 @@ discord_loop() {
     [ -x "$DISCORD_SEED" ] && "$DISCORD_SEED" || true
     while true; do
         if ! pgrep -fa Discord 2>/dev/null | grep -qv "$DISCORD_SEED" ; then
-            echo "[startup] launching discord at $(date -Iseconds)"
-            [ -x "$DISCORD_SEED" ] && "$DISCORD_SEED" || true
-            "$DISCORD_STARTUP" >>/tmp/discord.log 2>&1 &
+            if ! pgrep -f "$DISCORD_STARTUP" >/dev/null 2>&1; then
+                echo "[startup] launching discord at $(date -Iseconds)"
+                [ -x "$DISCORD_SEED" ] && "$DISCORD_SEED" || true
+                "$DISCORD_STARTUP" >>/tmp/discord.log 2>&1 &
+            fi
         fi
         sleep 3
     done
