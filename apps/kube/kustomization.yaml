@@ -100,6 +100,9 @@ resources:
     - forgejo/application.yaml
 
     # Security Profiles Operator — SeccompProfile CRDs for Talos (no Localhost profiles)
+    # CRDs split into their own app (sync-wave 1) so a CRD apiVersion graduation
+    # applies ahead of the operator (wave 2) instead of wedging the whole app.
+    - security-profiles-operator/application-crds.yaml
     - security-profiles-operator/application.yaml
 
     # Firecracker — microVM runtime service (edge function Tier 2 isolation)
