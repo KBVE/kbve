@@ -15,9 +15,17 @@ metadata:
 spec:
     project: default
     sources:
-        - repoURL: https://github.com/kubernetes-sigs/security-profiles-operator
-          targetRevision: v1.0.0
-          path: deploy/helm/crds
+        # Vendored from kubernetes-sigs/security-profiles-operator
+        # deploy/helm/crds/crds.yaml @ v1.0.0, with conversion.strategy
+        # patched to None on securityprofilenodestatuses and
+        # securityprofilesoperatordaemons: the v1.0.0 conversion webhook
+        # never registers those two kinds in its scheme, so every
+        # v1alpha1 request fails and hot-loops (~80k errors/6h).
+        # Their v1/v1alpha1 schemas are round-trip compatible, so the
+        # webhook is unnecessary. Re-vendor + re-patch on SPO upgrades.
+        - repoURL: https://github.com/KBVE/kbve.git
+          targetRevision: main
+          path: apps/kube/security-profiles-operator/crds
           directory:
               recurse: false
               include: crds.yaml
