@@ -65,9 +65,9 @@ export const CH_CONTROLS: readonly StreamControl[] = [
 ];
 
 export const CH_DEFAULT_VIEWS: SavedView[] = [
-	{ id: 'errors-24h', name: 'Errors · 24h', params: { minutes: 1440, level: 'error' }, seeded: true },
-	{ id: 'all-6h', name: 'All · 6h', params: { minutes: 360 }, seeded: true },
-	{ id: 'warnings-24h', name: 'Warnings · 24h', params: { minutes: 1440, level: 'warn' }, seeded: true },
+	{ id: 'errors-24h', name: 'Errors · 24h', params: { minutes: 1440, level: 'error', limit: 500 }, seeded: true },
+	{ id: 'all-6h', name: 'All · 6h', params: { minutes: 360, limit: 500 }, seeded: true },
+	{ id: 'warnings-24h', name: 'Warnings · 24h', params: { minutes: 1440, level: 'warn', limit: 500 }, seeded: true },
 ];
 
 export function createClickHouseStream(opts: ClickHouseStreamOptions): StreamStore<LogItem> {

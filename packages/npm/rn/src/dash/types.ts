@@ -16,7 +16,7 @@ export interface SavedView {
 	name: string;
 	params: StreamParams;
 	pollMs?: number | null;
-	/** Seeded by the adapter's defaultViews; hidden-not-deleted on removal. */
+	/** Marks an adapter-seeded default view. removeView deletes it like any other; seeded defaults are re-added on next start(). */
 	seeded?: boolean;
 }
 

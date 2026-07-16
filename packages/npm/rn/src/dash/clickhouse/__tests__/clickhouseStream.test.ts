@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createClickHouseStream, buildStatsTotals } from '../clickhouseStream';
+import { createClickHouseStream, buildStatsTotals, CH_DEFAULT_VIEWS } from '../clickhouseStream';
 
 describe('clickhouseStream v2', () => {
 	const getToken = vi.fn(async () => 'tok');
@@ -22,6 +22,12 @@ describe('clickhouseStream v2', () => {
 		await Promise.resolve(); await Promise.resolve();
 		const last = fetchSpy.mock.calls.map((c) => JSON.parse(c[1].body)).filter((b) => b.command === 'query').pop();
 		expect(last.minutes).toBe(0);
+	});
+
+	it('every CH_DEFAULT_VIEWS entry preserves limit:500', () => {
+		for (const view of CH_DEFAULT_VIEWS) {
+			expect(view.params.limit).toBe(500);
+		}
 	});
 
 	it('buildStatsTotals sums count() from stats meta (uncapped)', () => {
