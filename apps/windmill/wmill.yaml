@@ -1,0 +1,5 @@
+defaultTs: bun
+includes:
+  - f/**
+excludes: []
+codebases: []

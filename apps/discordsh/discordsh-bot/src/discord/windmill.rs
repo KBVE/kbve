@@ -122,14 +122,18 @@ impl WindmillConfig {
         args: &[String],
         discord: &DiscordContext,
     ) -> Result<Value, RunError> {
-        let path = wm_path.trim().trim_start_matches('/');
-        if path.is_empty() {
+        let raw = wm_path.trim().trim_start_matches('/');
+        if raw.is_empty() {
             return Err(RunError::EmptyPath);
         }
-        if !is_path_safe(path) {
+        let path = resolve_path(raw);
+        if !is_path_safe(&path) {
             return Err(RunError::PathNotAllowed);
         }
-        if !self.path_allowed(path) {
+        if !path.starts_with(BOT_NAMESPACE) {
+            return Err(RunError::PathNotAllowed);
+        }
+        if !self.path_allowed(&path) {
             return Err(RunError::PathNotAllowed);
         }
         if args.len() > ARG_LIMIT {
@@ -170,7 +174,26 @@ impl WindmillConfig {
     }
 }
 
-/// Strict validation applied to the *trimmed* path before it is glob-matched
+/// The single Windmill folder the bot may ever reach. The trailing slash is
+/// load-bearing: it confines the namespace gate to children of the folder and
+/// blocks prefix-confusion (`f/discordshEVIL/...`). Bare `/wm` paths collapse
+/// into it; explicit paths outside it are rejected.
+const BOT_NAMESPACE: &str = "f/discordsh/";
+
+/// Collapse a bare path into the bot namespace. A path already carrying an
+/// `f/` or `p/` kind prefix is returned unchanged (and later rejected by the
+/// namespace gate unless it lives under [`BOT_NAMESPACE`]); anything else is
+/// prefixed with `f/discordsh/`. Collapse happens BEFORE [`is_path_safe`], so
+/// traversal via a bare path (`../x` → `f/discordsh/../x`) is still rejected.
+fn resolve_path(raw: &str) -> String {
+    if raw.starts_with("f/") || raw.starts_with("p/") {
+        raw.to_owned()
+    } else {
+        format!("{BOT_NAMESPACE}{raw}")
+    }
+}
+
+/// Strict validation applied to the *resolved* path before it is glob-matched
 /// or interpolated into the Windmill API URL. This is the last line of
 /// defense against path-traversal (`..`) and request-injection (`?`, `#`,
 /// whitespace, etc.) since `reqwest`/`url` normalize `..` segments *after*
@@ -181,7 +204,7 @@ fn is_path_safe(path: &str) -> bool {
     }
     if path
         .split('/')
-        .any(|seg| seg == ".." || seg == ".")
+        .any(|seg| seg.is_empty() || seg == ".." || seg == ".")
     {
         return false;
     }
@@ -250,6 +273,19 @@ mod tests {
         assert!(split_args("").is_empty());
     }
 
+    #[test]
+    fn resolve_path_collapses_bare_into_namespace() {
+        assert_eq!(resolve_path("poem"), "f/discordsh/poem");
+        assert_eq!(resolve_path("deploy/restart"), "f/discordsh/deploy/restart");
+    }
+
+    #[test]
+    fn resolve_path_leaves_explicit_prefixed_unchanged() {
+        assert_eq!(resolve_path("f/deploy/x"), "f/deploy/x");
+        assert_eq!(resolve_path("p/ops/x"), "p/ops/x");
+        assert_eq!(resolve_path("f/discordsh/poem"), "f/discordsh/poem");
+    }
+
     // ── Integration tests against a wiremock'd fake Windmill ────────
 
     use wiremock::matchers::{header, method, path};
@@ -282,7 +318,7 @@ mod tests {
     async fn run_success_calls_windmill() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
-            .and(path("/api/w/kbve/jobs/run_wait_result/f/deploy-prod"))
+            .and(path("/api/w/kbve/jobs/run_wait_result/f/discordsh/poem"))
             .and(header("authorization", "Bearer topsecret"))
             .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
                 "ok": true,
@@ -292,15 +328,29 @@ mod tests {
             .mount(&server)
             .await;
 
-        let cfg = make_cfg(server.uri(), "f/deploy-*", 10, 60);
+        let cfg = make_cfg(server.uri(), "f/discordsh/*", 10, 60);
         let args = vec!["alpha".to_owned(), "beta".to_owned()];
         let resp = cfg
-            .run("f/deploy-prod", &args, &discord_ctx())
+            .run("f/discordsh/poem", &args, &discord_ctx())
             .await
             .expect("run ok");
 
         assert_eq!(resp["ok"], serde_json::Value::Bool(true));
         assert_eq!(resp["echo"], serde_json::Value::String("hello".into()));
+    }
+
+    #[tokio::test]
+    async fn run_collapses_bare_path_into_namespace() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .and(path("/api/w/kbve/jobs/run_wait_result/f/discordsh/poem"))
+            .respond_with(ResponseTemplate::new(200).set_body_string("{}"))
+            .expect(1)
+            .mount(&server)
+            .await;
+
+        let cfg = make_cfg(server.uri(), "f/discordsh/*", 10, 60);
+        cfg.run("poem", &[], &discord_ctx()).await.unwrap();
     }
 
     #[tokio::test]
@@ -312,9 +362,61 @@ mod tests {
             .mount(&server)
             .await;
 
-        let cfg = make_cfg(server.uri(), "p/allowed-*", 10, 60);
+        let cfg = make_cfg(server.uri(), "f/discordsh/allowed-*", 10, 60);
         let err = cfg
-            .run("p/blocked", &[], &discord_ctx())
+            .run("f/discordsh/blocked", &[], &discord_ctx())
+            .await
+            .unwrap_err();
+        assert_eq!(err, RunError::PathNotAllowed);
+    }
+
+    #[tokio::test]
+    async fn run_rejects_explicit_path_outside_namespace() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .respond_with(ResponseTemplate::new(200))
+            .expect(0)
+            .mount(&server)
+            .await;
+
+        // Permissive allowlist — the namespace gate, not the glob, must reject.
+        let cfg = make_cfg(server.uri(), "f/**", 10, 60);
+        let err = cfg
+            .run("f/deploy/restart", &[], &discord_ctx())
+            .await
+            .unwrap_err();
+        assert_eq!(err, RunError::PathNotAllowed);
+    }
+
+    #[tokio::test]
+    async fn run_rejects_p_scripts_outside_namespace() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .respond_with(ResponseTemplate::new(200))
+            .expect(0)
+            .mount(&server)
+            .await;
+
+        let cfg = make_cfg(server.uri(), "p/**", 10, 60);
+        let err = cfg
+            .run("p/ops/anything", &[], &discord_ctx())
+            .await
+            .unwrap_err();
+        assert_eq!(err, RunError::PathNotAllowed);
+    }
+
+    #[tokio::test]
+    async fn run_rejects_namespace_prefix_confusion() {
+        let server = MockServer::start().await;
+        Mock::given(method("POST"))
+            .respond_with(ResponseTemplate::new(200))
+            .expect(0)
+            .mount(&server)
+            .await;
+
+        let cfg = make_cfg(server.uri(), "f/**", 10, 60);
+        let err = cfg
+            .run("f/discordshEVIL/x", &[], &discord_ctx())
             .await
             .unwrap_err();
         assert_eq!(err, RunError::PathNotAllowed);
@@ -324,14 +426,14 @@ mod tests {
     async fn run_strips_leading_slash() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
-            .and(path("/api/w/kbve/jobs/run_wait_result/f/kbve/start"))
+            .and(path("/api/w/kbve/jobs/run_wait_result/f/discordsh/start"))
             .respond_with(ResponseTemplate::new(200).set_body_string("{}"))
             .expect(1)
             .mount(&server)
             .await;
 
-        let cfg = make_cfg(server.uri(), "f/kbve/**", 10, 60);
-        cfg.run("/f/kbve/start", &[], &discord_ctx())
+        let cfg = make_cfg(server.uri(), "f/discordsh/**", 10, 60);
+        cfg.run("/f/discordsh/start", &[], &discord_ctx())
             .await
             .unwrap();
     }
@@ -340,15 +442,20 @@ mod tests {
     async fn run_rate_limited_second_call() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
-            .and(path("/api/w/kbve/jobs/run_wait_result/p/foo"))
+            .and(path("/api/w/kbve/jobs/run_wait_result/f/discordsh/foo"))
             .respond_with(ResponseTemplate::new(200).set_body_string("{}"))
             .expect(1)
             .mount(&server)
             .await;
 
-        let cfg = make_cfg(server.uri(), "p/foo", 1, 60);
-        cfg.run("p/foo", &[], &discord_ctx()).await.unwrap();
-        let err = cfg.run("p/foo", &[], &discord_ctx()).await.unwrap_err();
+        let cfg = make_cfg(server.uri(), "f/discordsh/foo", 1, 60);
+        cfg.run("f/discordsh/foo", &[], &discord_ctx())
+            .await
+            .unwrap();
+        let err = cfg
+            .run("f/discordsh/foo", &[], &discord_ctx())
+            .await
+            .unwrap_err();
         assert_eq!(err, RunError::RateLimited);
     }
 
@@ -356,14 +463,17 @@ mod tests {
     async fn run_upstream_error_propagates() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
-            .and(path("/api/w/kbve/jobs/run_wait_result/p/foo"))
+            .and(path("/api/w/kbve/jobs/run_wait_result/f/discordsh/foo"))
             .respond_with(ResponseTemplate::new(500).set_body_string("boom"))
             .expect(1)
             .mount(&server)
             .await;
 
-        let cfg = make_cfg(server.uri(), "p/foo", 10, 60);
-        let err = cfg.run("p/foo", &[], &discord_ctx()).await.unwrap_err();
+        let cfg = make_cfg(server.uri(), "f/discordsh/foo", 10, 60);
+        let err = cfg
+            .run("f/discordsh/foo", &[], &discord_ctx())
+            .await
+            .unwrap_err();
         match err {
             RunError::Upstream(s) => {
                 assert!(s.contains("500"));
@@ -382,9 +492,12 @@ mod tests {
             .mount(&server)
             .await;
 
-        let cfg = make_cfg(server.uri(), "p/foo", 10, 60);
+        let cfg = make_cfg(server.uri(), "f/discordsh/foo", 10, 60);
         let args: Vec<String> = (0..ARG_LIMIT + 1).map(|i| i.to_string()).collect();
-        let err = cfg.run("p/foo", &args, &discord_ctx()).await.unwrap_err();
+        let err = cfg
+            .run("f/discordsh/foo", &args, &discord_ctx())
+            .await
+            .unwrap_err();
         assert_eq!(err, RunError::TooManyArgs);
     }
 
@@ -397,16 +510,19 @@ mod tests {
             .mount(&server)
             .await;
 
-        let cfg = make_cfg(server.uri(), "p/foo", 10, 60);
+        let cfg = make_cfg(server.uri(), "f/discordsh/foo", 10, 60);
         let big = "x".repeat(ARG_LEN_LIMIT + 1);
-        let err = cfg.run("p/foo", &[big], &discord_ctx()).await.unwrap_err();
+        let err = cfg
+            .run("f/discordsh/foo", &[big], &discord_ctx())
+            .await
+            .unwrap_err();
         assert_eq!(err, RunError::ArgTooLong);
     }
 
     #[tokio::test]
     async fn run_empty_path_rejected() {
         let server = MockServer::start().await;
-        let cfg = make_cfg(server.uri(), "*", 10, 60);
+        let cfg = make_cfg(server.uri(), "f/discordsh/*", 10, 60);
         let err = cfg.run("   ", &[], &discord_ctx()).await.unwrap_err();
         assert_eq!(err, RunError::EmptyPath);
     }
@@ -415,7 +531,7 @@ mod tests {
     async fn run_body_contains_args_and_discord_context() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
-            .and(path("/api/w/kbve/jobs/run_wait_result/p/echo"))
+            .and(path("/api/w/kbve/jobs/run_wait_result/f/discordsh/echo"))
             .respond_with(|req: &Request| {
                 let body: serde_json::Value = serde_json::from_slice(&req.body).unwrap();
                 assert_eq!(body["discord"]["user_id"], "999");
@@ -429,8 +545,8 @@ mod tests {
             .mount(&server)
             .await;
 
-        let cfg = make_cfg(server.uri(), "p/echo", 10, 60);
-        cfg.run("p/echo", &["hello".to_owned()], &discord_ctx())
+        let cfg = make_cfg(server.uri(), "f/discordsh/echo", 10, 60);
+        cfg.run("f/discordsh/echo", &["hello".to_owned()], &discord_ctx())
             .await
             .unwrap();
     }
@@ -446,16 +562,16 @@ mod tests {
             .mount(&server)
             .await;
 
-        let cfg = make_cfg(server.uri(), "f/ok/**", 10, 60);
+        let cfg = make_cfg(server.uri(), "f/discordsh/**", 10, 60);
         let err = cfg
-            .run("f/ok/../../p/evil", &[], &discord_ctx())
+            .run("f/discordsh/ok/../../p/evil", &[], &discord_ctx())
             .await
             .unwrap_err();
         assert_eq!(err, RunError::PathNotAllowed);
     }
 
     #[tokio::test]
-    async fn run_rejects_traversal_via_wildcard_allowlist() {
+    async fn run_rejects_traversal_via_bare_collapse() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
             .respond_with(ResponseTemplate::new(200))
@@ -463,16 +579,18 @@ mod tests {
             .mount(&server)
             .await;
 
-        let cfg = make_cfg(server.uri(), "f/deploy-*", 10, 60);
+        // Bare path collapses to f/discordsh/../../p/x, then the `..` segment
+        // is rejected — the collapse cannot be used to escape the namespace.
+        let cfg = make_cfg(server.uri(), "f/discordsh/**", 10, 60);
         let err = cfg
-            .run("deploy-prod/../../p/x", &[], &discord_ctx())
+            .run("../../p/x", &[], &discord_ctx())
             .await
             .unwrap_err();
         assert_eq!(err, RunError::PathNotAllowed);
     }
 
     #[tokio::test]
-    async fn run_rejects_missing_kind_prefix() {
+    async fn run_rejects_empty_leaf_and_segments() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
             .respond_with(ResponseTemplate::new(200))
@@ -480,12 +598,18 @@ mod tests {
             .mount(&server)
             .await;
 
-        let cfg = make_cfg(server.uri(), "deploy-*", 10, 60);
-        let err = cfg
-            .run("deploy-prod", &[], &discord_ctx())
-            .await
-            .unwrap_err();
-        assert_eq!(err, RunError::PathNotAllowed);
+        let cfg = make_cfg(server.uri(), "f/discordsh/**", 10, 60);
+        // Folder root (empty leaf) and empty interior segment both rejected.
+        assert_eq!(
+            cfg.run("f/discordsh/", &[], &discord_ctx()).await.unwrap_err(),
+            RunError::PathNotAllowed
+        );
+        assert_eq!(
+            cfg.run("f/discordsh//x", &[], &discord_ctx())
+                .await
+                .unwrap_err(),
+            RunError::PathNotAllowed
+        );
     }
 
     #[tokio::test]
@@ -497,9 +621,9 @@ mod tests {
             .mount(&server)
             .await;
 
-        let cfg = make_cfg(server.uri(), "f/**", 10, 60);
+        let cfg = make_cfg(server.uri(), "f/discordsh/**", 10, 60);
         let err = cfg
-            .run("f/ok?token=leak", &[], &discord_ctx())
+            .run("f/discordsh/ok?token=leak", &[], &discord_ctx())
             .await
             .unwrap_err();
         assert_eq!(err, RunError::PathNotAllowed);
