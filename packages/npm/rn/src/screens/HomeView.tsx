@@ -15,6 +15,7 @@ import { defaultHostApi } from '../sandbox/hostApis';
 import { createWgpuPlugin } from '../examples/wgpuPlugin';
 import { createIsometricPlugin } from '../examples/isometricPlugin';
 import { openExternal } from '../platform/openExternal';
+import { ClickHouseScreen } from './ClickHouseScreen';
 
 const open = (url: string) => openExternal(url);
 
@@ -74,6 +75,7 @@ export function HomeView() {
 	const registry = useMemo(() => createPluginRegistry(), []);
 	const api = useMemo(() => defaultHostApi(), []);
 	const [launched, setLaunched] = useState(false);
+	const [showClickHouse, setShowClickHouse] = useState(false);
 
 	useEffect(() => {
 		const manifest = native ? createWgpuPlugin() : createIsometricPlugin();
@@ -101,6 +103,30 @@ export function HomeView() {
 					/>
 				</View>
 				<PluginHost registry={registry} slot="canvas" api={api} />
+			</View>
+		);
+	}
+
+	if (showClickHouse) {
+		return (
+			<View style={styles.root}>
+				<View
+					style={[
+						styles.canvasBar,
+						{ paddingTop: insets.top + tokens.space.sm },
+					]}>
+					<Text variant="label">ClickHouse · Dashboard</Text>
+					<Button
+						title="Close"
+						variant="ghost"
+						onPress={() => setShowClickHouse(false)}
+					/>
+				</View>
+				<ScrollView
+					showsVerticalScrollIndicator={false}
+					contentContainerStyle={styles.body}>
+					<ClickHouseScreen />
+				</ScrollView>
 			</View>
 		);
 	}
@@ -142,6 +168,14 @@ export function HomeView() {
 						variant="primary"
 						onPress={() => setLaunched(true)}
 					/>
+
+					{staff.isStaff ? (
+						<Button
+							title="📊  ClickHouse Dashboard"
+							variant="secondary"
+							onPress={() => setShowClickHouse(true)}
+						/>
+					) : null}
 
 					<Text variant="subtitle">Quick actions</Text>
 					<View style={styles.actions}>
