@@ -15,7 +15,7 @@ data:
     PUBLIC_WS_URL: wss://ws.kbve.com
     PUBLIC_DISCORD_CLIENT_ID: placeholder-discord-client-id
     PUBLIC_ENV: production
-    RUST_LOG: debug
+    RUST_LOG: warn
     WINDMILL_BASE_URL: http://windmill-app.windmill.svc.cluster.local:8000
     WINDMILL_WORKSPACE: kbve
     WINDMILL_ALLOWED_PATHS: ''
