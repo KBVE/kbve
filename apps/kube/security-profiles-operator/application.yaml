@@ -15,7 +15,7 @@ spec:
     project: default
     sources:
         - repoURL: https://github.com/kubernetes-sigs/security-profiles-operator
-          targetRevision: v0.9.1
+          targetRevision: v1.0.0
           path: deploy/helm
           helm:
               releaseName: security-profiles-operator
