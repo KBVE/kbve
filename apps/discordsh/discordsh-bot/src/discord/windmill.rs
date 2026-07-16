@@ -3,15 +3,11 @@ use std::time::Duration;
 
 use anyhow::{Result, anyhow};
 use globset::{Glob, GlobSet, GlobSetBuilder};
-use hmac::{Hmac, Mac};
 use serde::Serialize;
 use serde_json::Value;
-use sha2::Sha256;
 use tracing::info;
 
 use crate::discord::github_permissions::CommandRateLimiter;
-
-type HmacSha256 = Hmac<Sha256>;
 
 const DEFAULT_COOLDOWN_SECS: u64 = 5;
 const DEFAULT_MAX_PER_WINDOW: u32 = 1;
@@ -27,16 +23,8 @@ pub struct DiscordContext {
     pub channel_id: String,
 }
 
-#[derive(Debug, Serialize)]
-pub struct Payload<'a> {
-    pub webhook_path: &'a str,
-    pub args: &'a [String],
-    pub discord: &'a DiscordContext,
-    pub ts: i64,
-}
-
 #[derive(Debug, PartialEq, Eq)]
-pub enum ForwardError {
+pub enum RunError {
     PathNotAllowed,
     RateLimited,
     TooManyArgs,
@@ -45,7 +33,7 @@ pub enum ForwardError {
     Upstream(String),
 }
 
-impl std::fmt::Display for ForwardError {
+impl std::fmt::Display for RunError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::PathNotAllowed => write!(f, "Webhook path not in allowlist."),
@@ -53,55 +41,52 @@ impl std::fmt::Display for ForwardError {
             Self::TooManyArgs => write!(f, "Too many args (max {ARG_LIMIT})."),
             Self::ArgTooLong => write!(f, "Single arg too long (max {ARG_LEN_LIMIT})."),
             Self::EmptyPath => write!(f, "Webhook path is empty."),
-            Self::Upstream(s) => write!(f, "n8n upstream error: {s}"),
+            Self::Upstream(s) => write!(f, "windmill upstream error: {s}"),
         }
     }
 }
 
-impl std::error::Error for ForwardError {}
+impl std::error::Error for RunError {}
 
-pub struct N8nConfig {
+pub struct WindmillConfig {
     pub base_url: String,
-    pub hmac_secret: String,
+    pub token: String,
+    pub workspace: String,
     pub allowed_paths: GlobSet,
     pub rate_limiter: CommandRateLimiter,
     pub client: reqwest::Client,
 }
 
-impl N8nConfig {
+impl WindmillConfig {
     pub fn from_env() -> Option<Arc<Self>> {
-        let base_url = std::env::var("N8N_BASE_URL")
+        let base_url = std::env::var("WINDMILL_BASE_URL")
             .ok()
             .filter(|s| !s.is_empty())?;
-        let hmac_secret = std::env::var("N8N_HMAC_SECRET")
+        let token = std::env::var("WINDMILL_TOKEN")
             .ok()
             .filter(|s| !s.is_empty())?;
-        let allowed_raw = std::env::var("N8N_ALLOWED_PATHS")
+        let allowed_raw = std::env::var("WINDMILL_ALLOWED_PATHS")
             .ok()
             .filter(|s| !s.is_empty())?;
+        let workspace =
+            std::env::var("WINDMILL_WORKSPACE").unwrap_or_else(|_| "kbve".to_owned());
 
         let allowed_paths = match build_globset(&allowed_raw) {
             Ok(set) => set,
             Err(e) => {
-                tracing::error!(error = %e, "N8N_ALLOWED_PATHS invalid; /n8n disabled");
+                tracing::error!(error = %e, "WINDMILL_ALLOWED_PATHS invalid; /wm disabled");
                 return None;
             }
         };
 
-        let max = std::env::var("N8N_RATE_LIMIT")
+        let max = std::env::var("WM_RATE_LIMIT")
             .ok()
             .and_then(|s| s.parse().ok())
             .unwrap_or(DEFAULT_MAX_PER_WINDOW);
-        let window = std::env::var("N8N_RATE_WINDOW")
+        let window = std::env::var("WM_RATE_WINDOW")
             .ok()
             .and_then(|s| s.parse().ok())
             .unwrap_or(DEFAULT_COOLDOWN_SECS);
-
-        let base_url = if base_url.ends_with('/') {
-            base_url
-        } else {
-            format!("{base_url}/")
-        };
 
         let client = reqwest::Client::builder()
             .timeout(Duration::from_secs(REQUEST_TIMEOUT_SECS))
@@ -110,15 +95,17 @@ impl N8nConfig {
 
         info!(
             base_url = %base_url,
+            workspace = %workspace,
             patterns = %allowed_raw,
             cooldown_secs = window,
             max_per_window = max,
-            "n8n forwarder configured"
+            "windmill runner configured"
         );
 
         Some(Arc::new(Self {
             base_url,
-            hmac_secret,
+            token,
+            workspace,
             allowed_paths,
             rate_limiter: CommandRateLimiter::new(max, window),
             client,
@@ -129,61 +116,54 @@ impl N8nConfig {
         self.allowed_paths.is_match(path)
     }
 
-    pub async fn forward(
+    pub async fn run(
         &self,
-        webhook_path: &str,
+        wm_path: &str,
         args: &[String],
         discord: &DiscordContext,
-    ) -> Result<Value, ForwardError> {
-        let path = webhook_path.trim().trim_start_matches('/');
+    ) -> Result<Value, RunError> {
+        let path = wm_path.trim().trim_start_matches('/');
         if path.is_empty() {
-            return Err(ForwardError::EmptyPath);
+            return Err(RunError::EmptyPath);
         }
         if !self.path_allowed(path) {
-            return Err(ForwardError::PathNotAllowed);
+            return Err(RunError::PathNotAllowed);
         }
         if args.len() > ARG_LIMIT {
-            return Err(ForwardError::TooManyArgs);
+            return Err(RunError::TooManyArgs);
         }
         if args.iter().any(|a| a.len() > ARG_LEN_LIMIT) {
-            return Err(ForwardError::ArgTooLong);
+            return Err(RunError::ArgTooLong);
         }
 
         let user_key: u64 = discord.user_id.parse().unwrap_or(0);
         if user_key != 0 && !self.rate_limiter.check_user(user_key) {
-            return Err(ForwardError::RateLimited);
+            return Err(RunError::RateLimited);
         }
 
-        let ts = chrono::Utc::now().timestamp();
-        let payload = Payload {
-            webhook_path: path,
-            args,
-            discord,
-            ts,
-        };
-        let body = serde_json::to_vec(&payload)
-            .map_err(|e| ForwardError::Upstream(format!("encode: {e}")))?;
-        let signature = sign(&self.hmac_secret, ts, &body);
-        let url = format!("{}{}", self.base_url, path);
+        let body = serde_json::json!({ "args": args, "discord": discord });
+        let url = format!(
+            "{}/api/w/{}/jobs/run_wait_result/{}",
+            self.base_url.trim_end_matches('/'),
+            self.workspace,
+            path
+        );
 
         let resp = self
             .client
             .post(&url)
-            .header("Content-Type", "application/json")
-            .header("X-KBVE-Timestamp", ts.to_string())
-            .header("X-KBVE-Signature", format!("sha256={signature}"))
-            .body(body)
+            .bearer_auth(&self.token)
+            .json(&body)
             .send()
             .await
-            .map_err(|e| ForwardError::Upstream(format!("send: {e}")))?;
+            .map_err(|e| RunError::Upstream(format!("send: {e}")))?;
 
         let status = resp.status();
         let text = resp.text().await.unwrap_or_default();
         if !status.is_success() {
-            return Err(ForwardError::Upstream(format!("HTTP {status}: {text}")));
+            return Err(RunError::Upstream(format!("HTTP {status}: {text}")));
         }
-        let value: Value = serde_json::from_str(&text).unwrap_or(Value::String(text));
-        Ok(value)
+        Ok(serde_json::from_str(&text).unwrap_or(Value::String(text)))
     }
 }
 
@@ -198,15 +178,6 @@ fn build_globset(raw: &str) -> Result<GlobSet> {
         return Err(anyhow!("no glob patterns"));
     }
     builder.build().map_err(|e| anyhow!("globset build: {e}"))
-}
-
-pub fn sign(secret: &str, ts: i64, body: &[u8]) -> String {
-    let mut mac =
-        HmacSha256::new_from_slice(secret.as_bytes()).expect("HMAC accepts any key length");
-    mac.update(ts.to_string().as_bytes());
-    mac.update(b".");
-    mac.update(body);
-    hex::encode(mac.finalize().into_bytes())
 }
 
 pub fn split_args(raw: &str) -> Vec<String> {
@@ -251,31 +222,15 @@ mod tests {
     }
 
     #[test]
-    fn sign_stable() {
-        let s1 = sign("secret", 1000, b"{\"a\":1}");
-        let s2 = sign("secret", 1000, b"{\"a\":1}");
-        assert_eq!(s1, s2);
-        assert_eq!(s1.len(), 64);
-    }
-
-    #[test]
-    fn sign_changes_with_inputs() {
-        let base = sign("secret", 1000, b"body");
-        assert_ne!(base, sign("secret2", 1000, b"body"));
-        assert_ne!(base, sign("secret", 1001, b"body"));
-        assert_ne!(base, sign("secret", 1000, b"body2"));
-    }
-
-    #[test]
     fn split_args_basic() {
         assert_eq!(split_args("a b c"), vec!["a", "b", "c"]);
         assert_eq!(split_args("  a   b  "), vec!["a", "b"]);
         assert!(split_args("").is_empty());
     }
 
-    // ── Integration tests against a wiremock'd fake n8n ────────────
+    // ── Integration tests against a wiremock'd fake Windmill ────────
 
-    use wiremock::matchers::{header, header_exists, method, path};
+    use wiremock::matchers::{header, method, path};
     use wiremock::{Mock, MockServer, Request, ResponseTemplate};
 
     fn discord_ctx() -> DiscordContext {
@@ -287,14 +242,11 @@ mod tests {
         }
     }
 
-    fn make_cfg(base_url: String, allow: &str, max: u32, window: u64) -> Arc<N8nConfig> {
-        Arc::new(N8nConfig {
-            base_url: if base_url.ends_with('/') {
-                base_url
-            } else {
-                format!("{base_url}/")
-            },
-            hmac_secret: "topsecret".to_owned(),
+    fn make_cfg(base_url: String, allow: &str, max: u32, window: u64) -> Arc<WindmillConfig> {
+        Arc::new(WindmillConfig {
+            base_url,
+            token: "topsecret".to_owned(),
+            workspace: "kbve".to_owned(),
             allowed_paths: build_globset(allow).unwrap(),
             rate_limiter: CommandRateLimiter::new(max, window),
             client: reqwest::Client::builder()
@@ -305,13 +257,11 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn forward_success_signs_payload() {
+    async fn run_success_calls_windmill() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
-            .and(path("/deploy-prod"))
-            .and(header("Content-Type", "application/json"))
-            .and(header_exists("X-KBVE-Signature"))
-            .and(header_exists("X-KBVE-Timestamp"))
+            .and(path("/api/w/kbve/jobs/run_wait_result/deploy-prod"))
+            .and(header("authorization", "Bearer topsecret"))
             .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
                 "ok": true,
                 "echo": "hello",
@@ -323,49 +273,16 @@ mod tests {
         let cfg = make_cfg(server.uri(), "deploy-*", 10, 60);
         let args = vec!["alpha".to_owned(), "beta".to_owned()];
         let resp = cfg
-            .forward("deploy-prod", &args, &discord_ctx())
+            .run("deploy-prod", &args, &discord_ctx())
             .await
-            .expect("forward ok");
+            .expect("run ok");
 
         assert_eq!(resp["ok"], serde_json::Value::Bool(true));
         assert_eq!(resp["echo"], serde_json::Value::String("hello".into()));
     }
 
     #[tokio::test]
-    async fn forward_signature_matches_body() {
-        let server = MockServer::start().await;
-        Mock::given(method("POST"))
-            .and(path("/foo"))
-            .respond_with(ResponseTemplate::new(200).set_body_string("{}"))
-            .expect(1)
-            .mount(&server)
-            .await;
-
-        let cfg = make_cfg(server.uri(), "foo", 10, 60);
-        cfg.forward("foo", &[], &discord_ctx()).await.unwrap();
-
-        let req = &server.received_requests().await.unwrap()[0];
-        let ts = req
-            .headers
-            .get("X-KBVE-Timestamp")
-            .unwrap()
-            .to_str()
-            .unwrap()
-            .parse::<i64>()
-            .unwrap();
-        let sig_header = req
-            .headers
-            .get("X-KBVE-Signature")
-            .unwrap()
-            .to_str()
-            .unwrap();
-        let sig = sig_header.strip_prefix("sha256=").unwrap();
-        let expected = sign("topsecret", ts, &req.body);
-        assert_eq!(sig, expected);
-    }
-
-    #[tokio::test]
-    async fn forward_rejects_path_outside_allowlist() {
+    async fn run_rejects_path_outside_allowlist() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
             .respond_with(ResponseTemplate::new(200))
@@ -374,59 +291,54 @@ mod tests {
             .await;
 
         let cfg = make_cfg(server.uri(), "allowed-*", 10, 60);
-        let err = cfg
-            .forward("blocked", &[], &discord_ctx())
-            .await
-            .unwrap_err();
-        assert_eq!(err, ForwardError::PathNotAllowed);
+        let err = cfg.run("blocked", &[], &discord_ctx()).await.unwrap_err();
+        assert_eq!(err, RunError::PathNotAllowed);
     }
 
     #[tokio::test]
-    async fn forward_strips_leading_slash() {
+    async fn run_strips_leading_slash() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
-            .and(path("/kbve/start"))
+            .and(path("/api/w/kbve/jobs/run_wait_result/kbve/start"))
             .respond_with(ResponseTemplate::new(200).set_body_string("{}"))
             .expect(1)
             .mount(&server)
             .await;
 
         let cfg = make_cfg(server.uri(), "kbve/**", 10, 60);
-        cfg.forward("/kbve/start", &[], &discord_ctx())
-            .await
-            .unwrap();
+        cfg.run("/kbve/start", &[], &discord_ctx()).await.unwrap();
     }
 
     #[tokio::test]
-    async fn forward_rate_limited_second_call() {
+    async fn run_rate_limited_second_call() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
-            .and(path("/foo"))
+            .and(path("/api/w/kbve/jobs/run_wait_result/foo"))
             .respond_with(ResponseTemplate::new(200).set_body_string("{}"))
             .expect(1)
             .mount(&server)
             .await;
 
         let cfg = make_cfg(server.uri(), "foo", 1, 60);
-        cfg.forward("foo", &[], &discord_ctx()).await.unwrap();
-        let err = cfg.forward("foo", &[], &discord_ctx()).await.unwrap_err();
-        assert_eq!(err, ForwardError::RateLimited);
+        cfg.run("foo", &[], &discord_ctx()).await.unwrap();
+        let err = cfg.run("foo", &[], &discord_ctx()).await.unwrap_err();
+        assert_eq!(err, RunError::RateLimited);
     }
 
     #[tokio::test]
-    async fn forward_upstream_error_propagates() {
+    async fn run_upstream_error_propagates() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
-            .and(path("/foo"))
+            .and(path("/api/w/kbve/jobs/run_wait_result/foo"))
             .respond_with(ResponseTemplate::new(500).set_body_string("boom"))
             .expect(1)
             .mount(&server)
             .await;
 
         let cfg = make_cfg(server.uri(), "foo", 10, 60);
-        let err = cfg.forward("foo", &[], &discord_ctx()).await.unwrap_err();
+        let err = cfg.run("foo", &[], &discord_ctx()).await.unwrap_err();
         match err {
-            ForwardError::Upstream(s) => {
+            RunError::Upstream(s) => {
                 assert!(s.contains("500"));
                 assert!(s.contains("boom"));
             }
@@ -435,7 +347,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn forward_too_many_args_rejected() {
+    async fn run_too_many_args_rejected() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
             .respond_with(ResponseTemplate::new(200))
@@ -445,12 +357,12 @@ mod tests {
 
         let cfg = make_cfg(server.uri(), "foo", 10, 60);
         let args: Vec<String> = (0..ARG_LIMIT + 1).map(|i| i.to_string()).collect();
-        let err = cfg.forward("foo", &args, &discord_ctx()).await.unwrap_err();
-        assert_eq!(err, ForwardError::TooManyArgs);
+        let err = cfg.run("foo", &args, &discord_ctx()).await.unwrap_err();
+        assert_eq!(err, RunError::TooManyArgs);
     }
 
     #[tokio::test]
-    async fn forward_arg_too_long_rejected() {
+    async fn run_arg_too_long_rejected() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
             .respond_with(ResponseTemplate::new(200))
@@ -460,29 +372,25 @@ mod tests {
 
         let cfg = make_cfg(server.uri(), "foo", 10, 60);
         let big = "x".repeat(ARG_LEN_LIMIT + 1);
-        let err = cfg
-            .forward("foo", &[big], &discord_ctx())
-            .await
-            .unwrap_err();
-        assert_eq!(err, ForwardError::ArgTooLong);
+        let err = cfg.run("foo", &[big], &discord_ctx()).await.unwrap_err();
+        assert_eq!(err, RunError::ArgTooLong);
     }
 
     #[tokio::test]
-    async fn forward_empty_path_rejected() {
+    async fn run_empty_path_rejected() {
         let server = MockServer::start().await;
         let cfg = make_cfg(server.uri(), "*", 10, 60);
-        let err = cfg.forward("   ", &[], &discord_ctx()).await.unwrap_err();
-        assert_eq!(err, ForwardError::EmptyPath);
+        let err = cfg.run("   ", &[], &discord_ctx()).await.unwrap_err();
+        assert_eq!(err, RunError::EmptyPath);
     }
 
     #[tokio::test]
-    async fn forward_body_contains_discord_context() {
+    async fn run_body_contains_args_and_discord_context() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
-            .and(path("/echo"))
+            .and(path("/api/w/kbve/jobs/run_wait_result/echo"))
             .respond_with(|req: &Request| {
                 let body: serde_json::Value = serde_json::from_slice(&req.body).unwrap();
-                assert_eq!(body["webhook_path"], "echo");
                 assert_eq!(body["discord"]["user_id"], "999");
                 assert_eq!(body["discord"]["username"], "tester");
                 assert_eq!(body["discord"]["guild_id"], "42");
@@ -495,7 +403,7 @@ mod tests {
             .await;
 
         let cfg = make_cfg(server.uri(), "echo", 10, 60);
-        cfg.forward("echo", &["hello".to_owned()], &discord_ctx())
+        cfg.run("echo", &["hello".to_owned()], &discord_ctx())
             .await
             .unwrap();
     }

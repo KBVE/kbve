@@ -2,18 +2,18 @@ use poise::CreateReply;
 use tracing::{info, warn};
 
 use crate::discord::bot::{Context, Error};
-use crate::discord::n8n::{DiscordContext, split_args};
+use crate::discord::windmill::{DiscordContext, split_args};
 
-#[poise::command(slash_command, rename = "n8n")]
-pub async fn n8n(
+#[poise::command(slash_command, rename = "wm")]
+pub async fn wm(
     ctx: Context<'_>,
-    #[description = "Webhook path (must match N8N_ALLOWED_PATHS)"] webhook_path: String,
-    #[description = "Space-separated args forwarded to n8n"] args: Option<String>,
+    #[description = "Windmill path, e.g. f/deploy/restart or p/ops/status"] wm_path: String,
+    #[description = "Space-separated args"] args: Option<String>,
 ) -> Result<(), Error> {
-    let Some(cfg) = ctx.data().app.n8n.clone() else {
+    let Some(cfg) = ctx.data().app.windmill.clone() else {
         ctx.send(
             CreateReply::default()
-                .content("n8n forwarder is not configured on this bot.")
+                .content("Windmill runner is not configured on this bot.")
                 .ephemeral(true),
         )
         .await?;
@@ -21,7 +21,7 @@ pub async fn n8n(
     };
 
     let args = args.map(|s| split_args(&s)).unwrap_or_default();
-    let path_for_log = webhook_path.clone();
+    let path_for_log = wm_path.clone();
     let arg_count = args.len();
 
     let discord = DiscordContext {
@@ -33,20 +33,20 @@ pub async fn n8n(
 
     ctx.defer().await?;
 
-    match cfg.forward(&webhook_path, &args, &discord).await {
+    match cfg.run(&wm_path, &args, &discord).await {
         Ok(value) => {
             info!(
-                webhook_path = %path_for_log,
+                wm_path = %path_for_log,
                 user = %discord.username,
                 args = arg_count,
-                "n8n forward ok"
+                "windmill run ok"
             );
             let body = serde_json::to_string_pretty(&value).unwrap_or_else(|_| value.to_string());
             let trimmed = truncate_for_discord(&body);
             ctx.send(
                 CreateReply::default()
                     .content(format!(
-                        "`/n8n {path_for_log}` ok:\n```json\n{trimmed}\n```"
+                        "`/wm {path_for_log}` ok:\n```json\n{trimmed}\n```"
                     ))
                     .ephemeral(true),
             )
@@ -54,14 +54,14 @@ pub async fn n8n(
         }
         Err(e) => {
             warn!(
-                webhook_path = %path_for_log,
+                wm_path = %path_for_log,
                 user = %discord.username,
                 error = %e,
-                "n8n forward failed"
+                "windmill run failed"
             );
             ctx.send(
                 CreateReply::default()
-                    .content(format!("n8n error: {e}"))
+                    .content(format!("windmill error: {e}"))
                     .ephemeral(true),
             )
             .await?;

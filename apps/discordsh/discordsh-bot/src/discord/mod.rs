@@ -12,6 +12,6 @@ pub mod github;
 pub mod github_cache;
 pub mod github_permissions;
 pub mod mention;
-pub mod n8n;
+pub mod windmill;
 pub mod relay;
 pub mod scheduler;
