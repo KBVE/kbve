@@ -21,7 +21,9 @@ const {
 
 const siteUrl = 'https://discord.sh';
 const pageUrl = new URL(Astro.url.pathname, siteUrl).href;
-const fullOgImage = ogImage.startsWith('http') ? ogImage : new URL(ogImage, siteUrl).href;
+const fullOgImage = ogImage.startsWith('http')
+	? ogImage
+	: new URL(ogImage, siteUrl).href;
 ---
 
 <!doctype html>
@@ -34,6 +36,9 @@ const fullOgImage = ogImage.startsWith('http') ? ogImage : new URL(ogImage, site
 		<link rel="icon" type="image/x-icon" href="/favicon.ico" />
 		<link rel="canonical" href={pageUrl} />
 		<title>{title}</title>
+
+		<link rel="preconnect" href="https://hcaptcha.com" />
+		<link rel="preconnect" href="https://assets.hcaptcha.com" />
 
 		<meta property="og:type" content={ogType} />
 		<meta property="og:url" content={pageUrl} />

@@ -1,10 +1,84 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import AstroServerGrid from '../components/servers/AstroServerGrid.astro';
+
+const BOT_INVITE = '/discord';
+
+const stats = [
+	{ value: '2.5k+', label: 'Servers listed' },
+	{ value: '180k+', label: 'Members reached' },
+	{ value: '24/7', label: 'Bot uptime' },
+];
+
+const features = [
+	{
+		icon: '🎲',
+		title: 'Dungeon crawler',
+		body: 'Run /dungeon to raid The Glass Catacombs — classes, gear, party mode, boss fights, all inside Discord.',
+	},
+	{
+		icon: '🐙',
+		title: 'GitHub tools',
+		body: 'Query issues, PRs and repos with /github. Ship updates and track work without leaving chat.',
+	},
+	{
+		icon: '📊',
+		title: 'Server directory',
+		body: 'List your server, climb the vote board, and get discovered by players looking for their next home.',
+	},
+];
 ---
 
-<Layout title="Discord.sh — Discord Server Directory">
+<Layout title="Discord.sh — Discord Bot & Server Directory">
 	<main class="dsh-main">
-		<h1>Discord.sh</h1>
+		<section class="hero">
+			<span class="hero-eyebrow">Bot · Games · Topsite</span>
+			<h1 class="hero-title">
+				The Discord <span class="accent">bot</span> and
+				<span class="accent">server directory</span>
+			</h1>
+			<p class="hero-sub">
+				Add the bot for games and tools, or browse and grow your
+				community on the directory. One home for both.
+			</p>
+			<div class="hero-cta">
+				<a class="btn btn-primary" href={BOT_INVITE}>Add the Bot</a>
+				<a class="btn btn-ghost" href="#directory">Browse Servers</a>
+			</div>
+			<ul class="hero-stats">
+				{
+					stats.map((s) => (
+						<li>
+							<span class="stat-value">{s.value}</span>
+							<span class="stat-label">{s.label}</span>
+						</li>
+					))
+				}
+			</ul>
+		</section>
+
+		<section class="features">
+			{
+				features.map((f) => (
+					<article class="feature-card">
+						<span class="feature-icon">{f.icon}</span>
+						<h3 class="feature-title">{f.title}</h3>
+						<p class="feature-body">{f.body}</p>
+					</article>
+				))
+			}
+		</section>
+
+		<section id="directory" class="directory">
+			<header class="directory-head">
+				<h2>Server directory</h2>
+				<p>
+					Browse live communities. Vote for your favorites or list
+					your own.
+				</p>
+			</header>
+			<AstroServerGrid />
+		</section>
 	</main>
 </Layout>
 
@@ -12,6 +86,177 @@ import Layout from '../layouts/Layout.astro';
 	.dsh-main {
 		max-width: 72rem;
 		margin: 0 auto;
-		padding: 2rem 1rem;
+		padding: 0 1rem 4rem;
+		color: var(--sl-color-white, #f4f4f5);
+	}
+
+	/* Hero */
+	.hero {
+		position: relative;
+		text-align: center;
+		padding: 5rem 1rem 4rem;
+		overflow: hidden;
+	}
+	.hero::before {
+		content: '';
+		position: absolute;
+		inset: -40% 0 auto;
+		height: 130%;
+		background: radial-gradient(
+			60% 60% at 50% 0%,
+			color-mix(
+				in srgb,
+				var(--sl-color-accent, #8b5cf6) 28%,
+				transparent
+			),
+			transparent 70%
+		);
+		pointer-events: none;
+		z-index: -1;
+	}
+	.hero-eyebrow {
+		display: inline-block;
+		font-size: 0.75rem;
+		letter-spacing: 0.14em;
+		text-transform: uppercase;
+		color: var(--sl-color-accent, #8b5cf6);
+		border: 1px solid
+			color-mix(in srgb, var(--sl-color-accent, #8b5cf6) 40%, transparent);
+		border-radius: 999px;
+		padding: 0.3rem 0.85rem;
+		margin-bottom: 1.5rem;
+	}
+	.hero-title {
+		font-size: clamp(2.2rem, 6vw, 4rem);
+		line-height: 1.05;
+		font-weight: 800;
+		margin: 0 auto 1.25rem;
+		max-width: 20ch;
+	}
+	.hero-title .accent {
+		color: var(--sl-color-accent, #8b5cf6);
+	}
+	.hero-sub {
+		font-size: clamp(1rem, 2.2vw, 1.25rem);
+		color: var(--sl-color-gray-2, #a1a1aa);
+		max-width: 46ch;
+		margin: 0 auto 2rem;
+	}
+	.hero-cta {
+		display: flex;
+		gap: 0.75rem;
+		justify-content: center;
+		flex-wrap: wrap;
+	}
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		padding: 0.7rem 1.5rem;
+		border-radius: 0.65rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition:
+			transform 150ms ease,
+			box-shadow 200ms ease,
+			background-color 150ms ease;
+	}
+	.btn:hover {
+		transform: translateY(-2px);
+	}
+	.btn-primary {
+		background: var(--sl-color-accent, #8b5cf6);
+		color: #fff;
+		box-shadow: 0 8px 24px
+			color-mix(in srgb, var(--sl-color-accent, #8b5cf6) 45%, transparent);
+	}
+	.btn-ghost {
+		background: transparent;
+		color: var(--sl-color-white, #f4f4f5);
+		border: 1px solid var(--sl-color-gray-5, #3f3f46);
+	}
+	.btn-ghost:hover {
+		border-color: var(--sl-color-accent, #8b5cf6);
+	}
+	.hero-stats {
+		list-style: none;
+		display: flex;
+		gap: 2.5rem;
+		justify-content: center;
+		flex-wrap: wrap;
+		margin: 3rem 0 0;
+		padding: 0;
+	}
+	.hero-stats li {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+	.stat-value {
+		font-size: 1.75rem;
+		font-weight: 800;
+		color: var(--sl-color-white, #f4f4f5);
+	}
+	.stat-label {
+		font-size: 0.8rem;
+		color: var(--sl-color-gray-2, #a1a1aa);
+	}
+
+	/* Features */
+	.features {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+		gap: 1rem;
+		margin: 1rem 0 4rem;
+	}
+	.feature-card {
+		background: color-mix(
+			in srgb,
+			var(--sl-color-bg-nav, #18181b) 80%,
+			#000
+		);
+		border: 1px solid var(--sl-color-hairline, #27272a);
+		border-radius: 1rem;
+		padding: 1.5rem;
+		transition:
+			border-color 200ms ease,
+			transform 200ms ease;
+	}
+	.feature-card:hover {
+		border-color: color-mix(
+			in srgb,
+			var(--sl-color-accent, #8b5cf6) 50%,
+			transparent
+		);
+		transform: translateY(-3px);
+	}
+	.feature-icon {
+		font-size: 1.75rem;
+	}
+	.feature-title {
+		margin: 0.75rem 0 0.4rem;
+		font-size: 1.15rem;
+		font-weight: 700;
+	}
+	.feature-body {
+		margin: 0;
+		font-size: 0.925rem;
+		color: var(--sl-color-gray-2, #a1a1aa);
+		line-height: 1.5;
+	}
+
+	/* Directory */
+	.directory-head {
+		text-align: center;
+		margin-bottom: 1.5rem;
+	}
+	.directory-head h2 {
+		font-size: clamp(1.6rem, 4vw, 2.25rem);
+		font-weight: 800;
+		margin: 0 0 0.5rem;
+	}
+	.directory-head p {
+		color: var(--sl-color-gray-2, #a1a1aa);
+		margin: 0;
 	}
 </style>

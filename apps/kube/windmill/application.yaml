@@ -37,6 +37,8 @@ spec:
                           extraEnv:
                               - name: PG_SCHEMA
                                 value: windmill
+                              - name: RUST_LOG
+                                value: warn
                           resources:
                               requests:
                                   memory: 512Mi

@@ -57,9 +57,12 @@ spec:
                   envFrom:
                       - configMapRef:
                             name: discordsh-config
+                      - secretRef:
+                            name: discordsh-windmill-token
+                            optional: true
                   env:
                       - name: RUST_LOG
-                        value: discordsh_bot=debug,kbve=debug
+                        value: discordsh_bot=warn,kbve=warn
                       - name: FONT_PATH
                         value: /app/alagard.ttf
                       - name: SYMBOL_FONT_PATH
