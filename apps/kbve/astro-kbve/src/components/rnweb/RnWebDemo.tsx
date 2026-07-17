@@ -6,8 +6,12 @@ import {
 	Text,
 	Button,
 	Badge,
+	Divider,
+	AppBar,
+	TabBar,
 	tokens,
 } from '@kbve/rn-astro';
+import type { TabItem } from '@kbve/rn-astro';
 
 const BUTTON_VARIANTS = [
 	'primary',
@@ -17,8 +21,16 @@ const BUTTON_VARIANTS = [
 	'danger',
 ] as const;
 
+const NAV_TABS: TabItem[] = [
+	{ id: 'home', label: 'Home', icon: 'home' },
+	{ id: 'grid', label: 'Apps', icon: 'grid' },
+	{ id: 'chat', label: 'Chat', icon: 'chatbubble' },
+	{ id: 'sparkles', label: 'Discover', icon: 'sparkles' },
+];
+
 export default function RnWebDemo() {
 	const [count, setCount] = useState(0);
+	const [tab, setTab] = useState('home');
 
 	return (
 		<Gradient
@@ -63,6 +75,28 @@ export default function RnWebDemo() {
 							interactive state proves hydration
 						</Text>
 					</Stack>
+
+					<Divider />
+
+					<Text variant="subtitle">Nav chrome on web</Text>
+					<Text tone="muted">
+						AppBar + TabBar render via react-native-web with icons
+						drawn through react-native-svg (NavIcon.web) — no
+						@expo/vector-icons in the web bundle.
+					</Text>
+					<Surface
+						style={{
+							borderRadius: tokens.radius.md,
+							overflow: 'hidden',
+						}}>
+						<AppBar title="KBVE" subtitle="react-native-web nav" />
+						<TabBar
+							tabs={NAV_TABS}
+							active={tab}
+							onTabPress={setTab}
+						/>
+					</Surface>
+					<Text tone="faint">active tab: {tab}</Text>
 				</Stack>
 			</Surface>
 		</Gradient>

@@ -1,9 +1,14 @@
-// Web-safe UI barrel: identical to index.ts minus the ./nav barrel, whose
-// AppBar/TabBar pull @expo/vector-icons (ships untranspiled JSX, breaks web
-// bundlers). Footer and NavBar are web-safe (no icons) so they're re-exported
-// individually.
+// Web-safe UI barrel: identical to index.ts. The native ./nav AppBar/TabBar
+// pull @expo/vector-icons (ships untranspiled JSX, breaks web bundlers), so
+// AppBar/TabBar have .web.tsx variants that render icons via react-native-svg
+// (NavIcon.web). Web resolve extensions pick those; NavShell reaches them
+// transitively. Footer and NavBar are already icon-free.
 export * from './nav/Footer';
 export * from './nav/NavBar';
+export * from './nav/AppBar';
+export * from './nav/TabBar';
+export * from './nav/NavShell';
+export * from './nav/navStore';
 export * from './marketing';
 export * from './theme';
 export * from './ThemeProvider';
