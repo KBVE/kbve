@@ -124,8 +124,3 @@ export const docker = {
 	runContainer,
 	stopContainer,
 };
-
-/** @deprecated Use `gha.docker.runContainer`. */
-export const _$gha_runDockerContainer = runContainer;
-/** @deprecated Use `gha.docker.stopContainer`. */
-export const _$gha_stopDockerContainer = stopContainer;

@@ -11,7 +11,7 @@ vi.mock('util', () => ({
 }));
 
 // Import after mocks are set up
-const { _$gha_runDockerContainer, _$gha_stopDockerContainer, docker } =
+const { docker } =
 	await import('./docker');
 
 function mockGitHubContext(): GitHubContext {
@@ -50,7 +50,7 @@ function mockGitHubClient(): GitHubClient {
 	};
 }
 
-describe('_$gha_runDockerContainer', () => {
+describe('docker.runContainer', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 	});
@@ -60,7 +60,7 @@ describe('_$gha_runDockerContainer', () => {
 		const context = mockGitHubContext();
 
 		await expect(
-			_$gha_runDockerContainer(
+			docker.runContainer(
 				github,
 				context,
 				0,
@@ -75,7 +75,7 @@ describe('_$gha_runDockerContainer', () => {
 		const context = mockGitHubContext();
 
 		await expect(
-			_$gha_runDockerContainer(
+			docker.runContainer(
 				github,
 				context,
 				443,
@@ -90,7 +90,7 @@ describe('_$gha_runDockerContainer', () => {
 		const context = mockGitHubContext();
 
 		await expect(
-			_$gha_runDockerContainer(github, context, 8080, '', 'nginx:latest'),
+			docker.runContainer(github, context, 8080, '', 'nginx:latest'),
 		).rejects.toThrow('Invalid container name');
 	});
 
@@ -99,7 +99,7 @@ describe('_$gha_runDockerContainer', () => {
 		const context = mockGitHubContext();
 
 		await expect(
-			_$gha_runDockerContainer(github, context, 8080, 'mycontainer', ''),
+			docker.runContainer(github, context, 8080, 'mycontainer', ''),
 		).rejects.toThrow('Invalid container image name');
 	});
 
@@ -108,7 +108,7 @@ describe('_$gha_runDockerContainer', () => {
 		const github = mockGitHubClient();
 		const context = mockGitHubContext();
 
-		await _$gha_runDockerContainer(
+		await docker.runContainer(
 			github,
 			context,
 			8080,
@@ -138,7 +138,7 @@ describe('_$gha_runDockerContainer', () => {
 		const context = mockGitHubContext();
 
 		await expect(
-			_$gha_runDockerContainer(
+			docker.runContainer(
 				github,
 				context,
 				8080,
@@ -155,7 +155,7 @@ describe('_$gha_runDockerContainer', () => {
 	});
 });
 
-describe('_$gha_stopDockerContainer', () => {
+describe('docker.stopContainer', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 	});
@@ -165,7 +165,7 @@ describe('_$gha_stopDockerContainer', () => {
 		const context = mockGitHubContext();
 
 		await expect(
-			_$gha_stopDockerContainer(github, context, ''),
+			docker.stopContainer(github, context, ''),
 		).rejects.toThrow('Invalid container name');
 	});
 
@@ -174,7 +174,7 @@ describe('_$gha_stopDockerContainer', () => {
 		const github = mockGitHubClient();
 		const context = mockGitHubContext();
 
-		await _$gha_stopDockerContainer(github, context, 'mycontainer');
+		await docker.stopContainer(github, context, 'mycontainer');
 
 		expect(github.rest.issues.createComment).toHaveBeenCalledTimes(2);
 		expect(mockExecAsync).toHaveBeenCalledWith('docker', [
@@ -193,7 +193,7 @@ describe('_$gha_stopDockerContainer', () => {
 		const context = mockGitHubContext();
 
 		await expect(
-			_$gha_stopDockerContainer(github, context, 'mycontainer'),
+			docker.stopContainer(github, context, 'mycontainer'),
 		).rejects.toThrow('Container not running');
 	});
 
@@ -205,14 +205,16 @@ describe('_$gha_stopDockerContainer', () => {
 		const context = mockGitHubContext();
 
 		await expect(
-			_$gha_stopDockerContainer(github, context, 'mycontainer'),
+			docker.stopContainer(github, context, 'mycontainer'),
 		).rejects.toThrow('Remove failed');
 	});
 });
 
 describe('gha.docker group (v0.0.22)', () => {
-	it('members match aliases', () => {
-		expect(docker.runContainer).toBe(_$gha_runDockerContainer);
-		expect(docker.stopContainer).toBe(_$gha_stopDockerContainer);
+	it('exposes all 2 members as functions', () => {
+		for (const n of ['runContainer', 'stopContainer'])
+			expect(typeof (docker as Record<string, unknown>)[n]).toBe(
+				'function',
+			);
 	});
 });

@@ -1,14 +1,5 @@
 import {
-	_$gha_formatCommits,
-	_$gha_createOrUpdatePR,
 	pulls,
-	_$gha_categorizeApiCommits,
-	_$gha_generatePRTitle,
-	_$gha_formatDevBody,
-	_$gha_getPullRequestNumber,
-	_$gha_updatePullRequestBody,
-	_$gha_fetchAndCleanCommits,
-	_$gha_processAndUpdatePR,
 } from './pulls';
 import {
 	GitHubClient,
@@ -73,14 +64,14 @@ function emptyCommitCategory(): CommitCategory {
 	};
 }
 
-describe('_$gha_formatCommits', () => {
+describe('pulls.formatCommits', () => {
 	it('should format commits with all categories empty', () => {
 		const cleanedCommit: CleanedCommit = {
 			branch: 'main',
 			categorizedCommits: emptyCommitCategory(),
 		};
 
-		const result = _$gha_formatCommits(cleanedCommit);
+		const result = pulls.formatCommits(cleanedCommit);
 
 		expect(result).toContain('PR Report for main');
 		expect(result).toContain('KBVE Logo');
@@ -97,7 +88,7 @@ describe('_$gha_formatCommits', () => {
 			categorizedCommits: commits,
 		};
 
-		const result = _$gha_formatCommits(cleanedCommit);
+		const result = pulls.formatCommits(cleanedCommit);
 
 		expect(result).toContain('PR Report for dev');
 		expect(result).toContain('### Features:');
@@ -115,7 +106,7 @@ describe('_$gha_formatCommits', () => {
 			categorizedCommits: commits,
 		};
 
-		const result = _$gha_formatCommits(cleanedCommit);
+		const result = pulls.formatCommits(cleanedCommit);
 
 		expect(result).toContain('### Features:');
 		expect(result).toContain('### Fixes:');
@@ -130,13 +121,13 @@ describe('_$gha_formatCommits', () => {
 			categorizedCommits: emptyCommitCategory(),
 		};
 
-		const result = _$gha_formatCommits(cleanedCommit);
+		const result = pulls.formatCommits(cleanedCommit);
 
 		expect(result).toContain('welcome-to-docs');
 	});
 });
 
-describe('_$gha_createOrUpdatePR', () => {
+describe('pulls.createOrUpdatePR', () => {
 	it('should create a new PR when none exists', async () => {
 		const github = mockGitHubClient({
 			ref: 'refs/heads/feature-branch',
@@ -146,7 +137,7 @@ describe('_$gha_createOrUpdatePR', () => {
 		});
 		const context = mockGitHubContext();
 
-		await _$gha_createOrUpdatePR(github, context, 'main');
+		await pulls.createOrUpdatePR(github, context, 'main');
 
 		expect(github.rest.pulls.create).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -167,7 +158,7 @@ describe('_$gha_createOrUpdatePR', () => {
 		});
 		const context = mockGitHubContext();
 
-		await _$gha_createOrUpdatePR(github, context, 'main');
+		await pulls.createOrUpdatePR(github, context, 'main');
 
 		expect(github.rest.pulls.create).not.toHaveBeenCalled();
 		expect(github.rest.issues.createComment).toHaveBeenCalledWith(
@@ -192,7 +183,7 @@ describe('_$gha_createOrUpdatePR', () => {
 			},
 		});
 
-		await _$gha_createOrUpdatePR(github, context, 'main');
+		await pulls.createOrUpdatePR(github, context, 'main');
 
 		expect(github.rest.pulls.create).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -210,7 +201,7 @@ describe('_$gha_createOrUpdatePR', () => {
 			ref: 'refs/heads/fallback-branch',
 		});
 
-		await _$gha_createOrUpdatePR(github, context, 'main');
+		await pulls.createOrUpdatePR(github, context, 'main');
 
 		expect(github.rest.pulls.create).toHaveBeenCalledWith(
 			expect.objectContaining({
@@ -227,17 +218,12 @@ describe('_$gha_createOrUpdatePR', () => {
 
 		// context.ref is empty string, github.ref is undefined, no payload
 		await expect(
-			_$gha_createOrUpdatePR(github, context, 'main'),
+			pulls.createOrUpdatePR(github, context, 'main'),
 		).rejects.toThrow();
 	});
 });
 
 describe('gha.pulls group (v0.0.22)', () => {
-	it('group members match their _$gha_ aliases', () => {
-		expect(pulls.formatCommits).toBe(_$gha_formatCommits);
-		expect(pulls.createOrUpdatePR).toBe(_$gha_createOrUpdatePR);
-		expect(pulls.generatePRTitle).toBe(_$gha_generatePRTitle);
-	});
 	it('exposes all 9 members as functions', () => {
 		const names = [
 			'formatCommits',

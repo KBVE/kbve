@@ -1,12 +1,5 @@
 import { describe, it, expect } from 'vitest';
 import {
-	_$gha_failureIssueTitle,
-	_$gha_classifyCIFailure,
-	_$gha_parseFailureLog,
-	_$gha_buildFailureIssueBody,
-	_$gha_buildFailureComment,
-	_$gha_buildResolveComment,
-	_$gha_incrementFailureHistory,
 	CI_FAILURE_PATTERNS,
 	ci,
 } from './ci-failure';
@@ -21,44 +14,35 @@ describe('ci namespace', () => {
 		expect(ci.failurePatterns).toBe(CI_FAILURE_PATTERNS);
 	});
 
-	it('deprecated _$gha_* aliases point to the same functions', () => {
-		expect(_$gha_failureIssueTitle).toBe(ci.issueTitle);
-		expect(_$gha_classifyCIFailure).toBe(ci.classifyFailure);
-		expect(_$gha_parseFailureLog).toBe(ci.parseFailureLog);
-		expect(_$gha_buildFailureIssueBody).toBe(ci.buildIssueBody);
-		expect(_$gha_buildFailureComment).toBe(ci.buildComment);
-		expect(_$gha_buildResolveComment).toBe(ci.buildResolveComment);
-		expect(_$gha_incrementFailureHistory).toBe(ci.incrementHistory);
-	});
 });
 
-describe('_$gha_failureIssueTitle', () => {
+describe('ci.issueTitle', () => {
 	it('formats the canonical tracker title', () => {
-		expect(_$gha_failureIssueTitle('CI Main', 'build')).toBe(
+		expect(ci.issueTitle('CI Main', 'build')).toBe(
 			'[CI] CI Main / build — Failed',
 		);
 	});
 });
 
-describe('_$gha_classifyCIFailure', () => {
+describe('ci.classifyFailure', () => {
 	it('classifies Forgejo LFS auth failures', () => {
 		const log =
 			'batch response: Authentication required: ... info/lfs/objects/batch';
-		const reason = _$gha_classifyCIFailure(log);
+		const reason = ci.classifyFailure(log);
 		expect(reason).toContain('Forgejo LFS');
 		expect(reason).toContain('FORGEJO_TOKEN');
 	});
 
 	it('classifies out-of-memory kills', () => {
 		expect(
-			_$gha_classifyCIFailure(
+			ci.classifyFailure(
 				'Killed signal 9 - JavaScript heap out of memory',
 			),
 		).toContain('memory');
 	});
 
 	it('returns null when no pattern matches', () => {
-		expect(_$gha_classifyCIFailure('some unrelated output')).toBeNull();
+		expect(ci.classifyFailure('some unrelated output')).toBeNull();
 	});
 
 	it('matches the first pattern in registry order', () => {
@@ -66,10 +50,10 @@ describe('_$gha_classifyCIFailure', () => {
 	});
 });
 
-describe('_$gha_parseFailureLog', () => {
+describe('ci.parseFailureLog', () => {
 	it('strips ANSI escapes and GH timestamp prefixes', () => {
 		const raw = '2026-06-29T10:00:00.123Z [31mError: boom[0m';
-		const { snippet } = _$gha_parseFailureLog(raw);
+		const { snippet } = ci.parseFailureLog(raw);
 		expect(snippet).toContain('Error: boom');
 		expect(snippet).not.toContain('');
 		expect(snippet).not.toContain('2026-06-29');
@@ -83,7 +67,7 @@ describe('_$gha_parseFailureLog', () => {
 			'real failure here',
 			'##[endgroup]',
 		].join('\n');
-		const { snippet } = _$gha_parseFailureLog(raw);
+		const { snippet } = ci.parseFailureLog(raw);
 		expect(snippet).toContain('real failure here');
 		expect(snippet).not.toContain('Compiling foo');
 		expect(snippet).not.toContain('##[group]');
@@ -95,7 +79,7 @@ describe('_$gha_parseFailureLog', () => {
 		lines.push('error: the real one');
 		lines.push('trailing 1');
 		lines.push('trailing 2');
-		const { snippet } = _$gha_parseFailureLog(lines.join('\n'));
+		const { snippet } = ci.parseFailureLog(lines.join('\n'));
 		expect(snippet).toContain('error: the real one');
 		expect(snippet).toContain('trailing 1');
 		expect(snippet).not.toContain('line 10');
@@ -105,7 +89,7 @@ describe('_$gha_parseFailureLog', () => {
 	it('falls back to the tail when no error marker present', () => {
 		const lines: string[] = [];
 		for (let i = 0; i < 50; i++) lines.push(`plain ${i}`);
-		const { snippet } = _$gha_parseFailureLog(lines.join('\n'));
+		const { snippet } = ci.parseFailureLog(lines.join('\n'));
 		expect(snippet).toContain('plain 49');
 		expect(snippet).not.toContain('plain 10');
 	});
@@ -118,18 +102,18 @@ describe('_$gha_parseFailureLog', () => {
 			'',
 			'other text',
 		].join('\n');
-		const { nxTargets } = _$gha_parseFailureLog(raw);
+		const { nxTargets } = ci.parseFailureLog(raw);
 		expect(nxTargets).toBe('devops:lint api:build');
 	});
 
 	it('returns empty nxTargets when none present', () => {
-		expect(_$gha_parseFailureLog('nothing here').nxTargets).toBe('');
+		expect(ci.parseFailureLog('nothing here').nxTargets).toBe('');
 	});
 });
 
-describe('_$gha_buildFailureIssueBody', () => {
+describe('ci.buildIssueBody', () => {
 	it('includes title, metadata, log and history table', () => {
-		const body = _$gha_buildFailureIssueBody({
+		const body = ci.buildIssueBody({
 			title: '[CI] CI Main / build — Failed',
 			workflowName: 'CI Main',
 			jobName: 'build',
@@ -150,7 +134,7 @@ describe('_$gha_buildFailureIssueBody', () => {
 	});
 
 	it('embeds version marker and reason when provided', () => {
-		const body = _$gha_buildFailureIssueBody({
+		const body = ci.buildIssueBody({
 			title: 't',
 			workflowName: 'w',
 			jobName: 'j',
@@ -172,7 +156,7 @@ describe('_$gha_buildFailureIssueBody', () => {
 	});
 
 	it('omits optional lines when absent', () => {
-		const body = _$gha_buildFailureIssueBody({
+		const body = ci.buildIssueBody({
 			title: 't',
 			workflowName: 'w',
 			jobName: 'j',
@@ -190,9 +174,9 @@ describe('_$gha_buildFailureIssueBody', () => {
 	});
 });
 
-describe('_$gha_buildFailureComment', () => {
+describe('ci.buildComment', () => {
 	it('renders a failure comment with run and log', () => {
-		const c = _$gha_buildFailureComment({
+		const c = ci.buildComment({
 			failedStep: 'nx test',
 			runId: '9',
 			runUrl: 'u9',
@@ -207,9 +191,9 @@ describe('_$gha_buildFailureComment', () => {
 	});
 });
 
-describe('_$gha_buildResolveComment', () => {
+describe('ci.buildResolveComment', () => {
 	it('notes plain resolution', () => {
-		const c = _$gha_buildResolveComment({
+		const c = ci.buildResolveComment({
 			runId: '5',
 			runUrl: 'u5',
 			ref: 'r',
@@ -221,7 +205,7 @@ describe('_$gha_buildResolveComment', () => {
 	});
 
 	it('notes shipped version when provided', () => {
-		const c = _$gha_buildResolveComment({
+		const c = ci.buildResolveComment({
 			runId: '5',
 			runUrl: 'u5',
 			ref: 'r',
@@ -233,8 +217,8 @@ describe('_$gha_buildResolveComment', () => {
 	});
 });
 
-describe('_$gha_incrementFailureHistory', () => {
-	const base = _$gha_buildFailureIssueBody({
+describe('ci.incrementHistory', () => {
+	const base = ci.buildIssueBody({
 		title: '[CI] CI Main / build — Failed',
 		workflowName: 'CI Main',
 		jobName: 'build',
@@ -248,7 +232,7 @@ describe('_$gha_incrementFailureHistory', () => {
 	});
 
 	it('bumps the consecutive failure count', () => {
-		const next = _$gha_incrementFailureHistory(base, {
+		const next = ci.incrementHistory(base, {
 			runId: '101',
 			runUrl: 'https://example/run/101',
 			ref: 'refs/heads/dev',
@@ -259,7 +243,7 @@ describe('_$gha_incrementFailureHistory', () => {
 	});
 
 	it('appends a new history table row', () => {
-		const next = _$gha_incrementFailureHistory(base, {
+		const next = ci.incrementHistory(base, {
 			runId: '101',
 			runUrl: 'https://example/run/101',
 			ref: 'refs/heads/dev',
@@ -274,7 +258,7 @@ describe('_$gha_incrementFailureHistory', () => {
 	it('is idempotent on count formatting across multiple increments', () => {
 		let body = base;
 		for (let i = 0; i < 3; i++) {
-			body = _$gha_incrementFailureHistory(body, {
+			body = ci.incrementHistory(body, {
 				runId: `${200 + i}`,
 				runUrl: `u${i}`,
 				ref: 'r',

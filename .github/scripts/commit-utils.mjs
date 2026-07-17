@@ -2,9 +2,9 @@
 //
 // SOURCE OF TRUTH: packages/npm/devops/src/lib/client/github/pulls.ts
 // This file mirrors the pure functions in @kbve/devops:
-//   - _$gha_categorizeApiCommits  → categorizeCommits
-//   - _$gha_generatePRTitle       → generateTitle
-//   - _$gha_formatDevBody         → formatDevToMainBody
+//   - gha.pulls.categorizeApiCommits  → categorizeCommits
+//   - gha.pulls.generatePRTitle       → generateTitle
+//   - gha.pulls.formatDevBody         → formatDevToMainBody
 //
 // This shim exists because the PR creation jobs don't install npm
 // dependencies. When modifying categorization logic, update BOTH files.

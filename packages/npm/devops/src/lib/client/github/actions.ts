@@ -42,8 +42,3 @@ export const actions = {
 	kbveActionProcess,
 	findActionInTitleSafe,
 };
-
-/** @deprecated Use `gha.actions.findActionInTitle`. */
-export const _$gha_findActionInTitle = findActionInTitle;
-/** @deprecated Use `gha.actions.kbveActionProcess`. */
-export const _$gha_kbve_ActionProcess = kbveActionProcess;
