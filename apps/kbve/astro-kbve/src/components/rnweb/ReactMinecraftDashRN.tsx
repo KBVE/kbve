@@ -1,9 +1,8 @@
 import { useMemo } from 'react';
-import {
-	StreamView,
-	createMinecraftStream,
-	minecraftLens,
-} from '@kbve/rn/dash';
+import { useStore } from '@nanostores/react';
+import { ShieldOff } from 'lucide-react';
+import { McView } from '@kbve/rn/dash';
+import { homeService } from '@/components/dashboard/homeService';
 import { initSupa, getSupa } from '@/lib/supa';
 import { DASH_PROXY_BASE } from './dashProxyBase';
 
@@ -19,17 +18,43 @@ async function getToken(): Promise<string | null> {
 	}
 }
 
+const styles = {
+	centered: {
+		display: 'flex',
+		flexDirection: 'column' as const,
+		alignItems: 'center',
+		justifyContent: 'center',
+		gap: '1rem',
+		minHeight: '40vh',
+		textAlign: 'center' as const,
+	},
+	heading: {
+		margin: 0,
+		fontSize: '1.75rem',
+		color: 'var(--sl-color-text, #e6edf3)',
+	},
+	sub: {
+		margin: 0,
+		color: 'var(--sl-color-gray-3, #8b949e)',
+		maxWidth: '40rem',
+	},
+};
+
 export default function ReactMinecraftDashRN() {
-	const store = useMemo(
-		() => createMinecraftStream({ getToken, baseUrl: DASH_PROXY_BASE }),
-		[],
-	);
-	return (
-		<StreamView
-			store={store}
-			lens={minecraftLens}
-			layout="rows"
-			searchPlaceholder="filter by server / world"
-		/>
-	);
+	const isStaff = useStore(homeService.$isStaff);
+	const token = useMemo(() => getToken, []);
+
+	if (!isStaff) {
+		return (
+			<div style={styles.centered}>
+				<ShieldOff size={48} color="var(--sl-color-gray-3)" />
+				<h2 style={styles.heading}>Staff Access Required</h2>
+				<p style={styles.sub}>
+					The Minecraft control panel is restricted to KBVE staff.
+				</p>
+			</div>
+		);
+	}
+
+	return <McView getToken={token} baseUrl={DASH_PROXY_BASE} />;
 }
