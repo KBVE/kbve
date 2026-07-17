@@ -1,0 +1,55 @@
+syntax = "proto3";
+
+package kbve.workflow;
+
+// =============================================================================
+// Workflow — shared contract for the cross-surface workflows dashboard.
+//
+// Single source of truth for the enums + registry consumed by both the
+// React Native native canvas and the Astro web island (via @kbve/rn).
+//
+// The client node model (viewport coords, live status) is UI state and stays
+// in @kbve/rn — only the drift-prone bits (backends, statuses, tiers, and the
+// workflow registry shape) live here.
+// =============================================================================
+
+// Execution backend a workflow node targets.
+enum Backend {
+  BACKEND_UNSPECIFIED = 0;
+  BACKEND_EDGE        = 1;  // Supabase edge function
+  BACKEND_FIRECRACKER = 2;  // Firecracker micro-VM job
+  BACKEND_WINDMILL    = 3;  // Windmill script/flow
+}
+
+// Live status of a node on the canvas.
+enum NodeStatus {
+  NODE_STATUS_UNSPECIFIED = 0;
+  NODE_STATUS_IDLE        = 1;
+  NODE_STATUS_RUNNING     = 2;
+  NODE_STATUS_OK          = 3;
+  NODE_STATUS_ERR         = 4;
+}
+
+// Access tier — mirrors the Windmill sub-namespace gate for UX only; the
+// backend proxy is the real boundary.
+//   USER  → f/app/user/*  (any authenticated caller)
+//   STAFF → f/app/staff/* (is_staff)
+enum WorkflowTier {
+  WORKFLOW_TIER_UNSPECIFIED = 0;
+  WORKFLOW_TIER_USER        = 1;
+  WORKFLOW_TIER_STAFF       = 2;
+}
+
+// A single registry entry — a friendly key mapped to a concrete backend ref.
+message WorkflowDef {
+  string key = 1;            // stable friendly id, e.g. "poem"
+  Backend backend = 2;       // which executor runs it
+  string path = 3;           // backend-specific ref (windmill script path, edge fn name)
+  WorkflowTier tier = 4;     // access tier for UX gating
+  string label = 5;          // human label for the canvas
+}
+
+// The full set of workflows exposed to the dashboard.
+message WorkflowRegistry {
+  repeated WorkflowDef workflows = 1;
+}
