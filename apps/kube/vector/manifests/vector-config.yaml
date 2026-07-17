@@ -4,8 +4,8 @@ metadata:
     name: vector-config
     namespace: vector
     annotations:
-        kbve.sh/last-updated: '2026-06-29T00:00:00Z'
-        kbve.sh/config-version: v8-structured-metadata
+        kbve.sh/last-updated: '2026-07-17T00:00:00Z'
+        kbve.sh/config-version: v9-webhook-auth
     labels:
         kbve.com/category: observability
         kbve.com/stack: core
@@ -17,7 +17,7 @@ data:
         \    exclude_paths_glob_patterns:\n      - \"**/vector_*/**\"\n      - \"**/kube-system_*/**\"\
         \n    auto_partial_merge: true\n    data_dir: \"/vector-data-dir\"\n  alertmanager_webhook:\n\
         \    type: http_server\n    address: 0.0.0.0:9002\n    path: /alertmanager\n \
-        \   method: POST\n    decoding:\n      codec: json\n\ntransforms:\n  # mc-fabric\
+        \   method: POST\n    auth:\n      strategy: basic\n      username: alertmanager\n      password: \"${ALERTMANAGER_WEBHOOK_PASSWORD}\"\n    decoding:\n      codec: json\n\ntransforms:\n  # mc-fabric\
         \ multiline aggregation. Java stack traces emit one line\n  # per frame; the default\
         \ per-line ingest makes exception search\n  # useless. Route mc-fabric pods through\
         \ a `reduce` that joins\n  # continuation lines onto the preceding `[HH:MM:SS]`\

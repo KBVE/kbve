@@ -26,3 +26,11 @@ spec:
               - url: http://vector.vector.svc.cluster.local:9002/alertmanager
                 sendResolved: true
                 maxAlerts: 0
+                httpConfig:
+                    basicAuth:
+                        username:
+                            name: vector-webhook-auth
+                            key: username
+                        password:
+                            name: vector-webhook-auth
+                            key: password
