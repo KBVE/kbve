@@ -1,5 +1,15 @@
-export type Backend = 'edge' | 'firecracker' | 'windmill';
-export type NodeStatus = 'idle' | 'running' | 'ok' | 'err';
+import type {
+	BackendValue,
+	NodeStatusValue,
+} from './generated/workflow-schema';
+
+export type Backend = BackendValue;
+export type NodeStatus = NodeStatusValue;
+
+export type {
+	WorkflowDef,
+	WorkflowTierValue,
+} from './generated/workflow-schema';
 
 export interface WorkflowNode {
 	id: string;
