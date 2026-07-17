@@ -1,0 +1,43 @@
+{
+	"enums": {
+		"kbve.workflow.Backend": {
+			"mode": "const_array",
+			"stripPrefix": "BACKEND_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
+		},
+		"kbve.workflow.NodeStatus": {
+			"mode": "const_array",
+			"stripPrefix": "NODE_STATUS_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
+		},
+		"kbve.workflow.WorkflowTier": {
+			"mode": "const_array",
+			"stripPrefix": "WORKFLOW_TIER_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "Backends",
+			"sourceEnum": "kbve.workflow.Backend",
+			"typeName": "BackendValue",
+			"zodSchemaName": "BackendSchema"
+		},
+		{
+			"name": "NodeStatuses",
+			"sourceEnum": "kbve.workflow.NodeStatus",
+			"typeName": "NodeStatusValue",
+			"zodSchemaName": "NodeStatusSchema"
+		},
+		{
+			"name": "WorkflowTiers",
+			"sourceEnum": "kbve.workflow.WorkflowTier",
+			"typeName": "WorkflowTierValue",
+			"zodSchemaName": "WorkflowTierSchema"
+		}
+	]
+}

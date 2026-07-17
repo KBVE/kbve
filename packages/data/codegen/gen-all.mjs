@@ -239,6 +239,14 @@ const protos = [
 			},
 		],
 	},
+	{
+		name: 'workflow',
+		protoFile: 'kbve/workflow.proto',
+		package: 'kbve.workflow',
+		vendorTo: [
+			{ path: '../../npm/rn/src/workflows/generated/workflow-schema.ts' },
+		],
+	},
 ];
 
 // Optional filter: pass a proto name as CLI arg to regenerate only that one
