@@ -267,26 +267,3 @@ export const issues = {
 	lockIssue,
 	unlockIssue,
 };
-
-/** @deprecated Use `gha.issues.createComment`. */
-export const _$gha_createIssueComment = createComment;
-/** @deprecated Use `gha.issues.addReaction`. */
-export const _$gha_addReaction = addReaction;
-/** @deprecated Use `gha.issues.removeLabel`. */
-export const _$gha_removeLabel = removeLabel;
-/** @deprecated Use `gha.issues.addLabel`. */
-export const _$gha_addLabel = addLabel;
-/** @deprecated Use `gha.issues.verifyMatrixLabel`. */
-export const _$gha_verifyMatrixLabel = verifyMatrixLabel;
-/** @deprecated Use `gha.issues.addAssignees`. */
-export const _$gha_addAssignees = addAssignees;
-/** @deprecated Use `gha.issues.removeAssignees`. */
-export const _$gha_removeAssignees = removeAssignees;
-/** @deprecated Use `gha.issues.closeIssue`. */
-export const _$gha_closeIssue = closeIssue;
-/** @deprecated Use `gha.issues.reopenIssue`. */
-export const _$gha_reopenIssue = reopenIssue;
-/** @deprecated Use `gha.issues.lockIssue`. */
-export const _$gha_lockIssue = lockIssue;
-/** @deprecated Use `gha.issues.unlockIssue`. */
-export const _$gha_unlockIssue = unlockIssue;

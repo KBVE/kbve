@@ -1,5 +1,6 @@
 ---
 import AstroDroidFooter from './AstroDroidFooter.astro';
+import ReactNavBarStrip from '@/components/rnweb/ReactNavBarStrip.tsx';
 import SocialTooltip from '@kbve/astro/components/tooltip/social/SocialTooltip.astro';
 import SocialIcon from '@kbve/astro/components/social/icons/SocialIcon.astro';
 import { SOCIALS, withUtm } from '@kbve/astro/data/socials';
@@ -55,6 +56,9 @@ const currentYear = new Date().getFullYear();
 ---
 
 <footer id="kbve-footer" class="kf-footer not-content">
+	<div class="kf-rn-navbar" aria-label="react-native-web nav (test strip)">
+		<ReactNavBarStrip client:only="react" />
+	</div>
 	<div class="kf-container bento-frame">
 		<div class="kf-grid">
 			<div class="kf-brand">
@@ -225,6 +229,11 @@ const currentYear = new Date().getFullYear();
 
 	.kf-container {
 		padding: 0;
+	}
+
+	/* react-native-web NavBar test strip — sits above the bento footer grid */
+	.kf-rn-navbar {
+		border-bottom: 1px solid var(--bento-hairline);
 	}
 
 	/* Main grid: bento seams — 1px hairline gaps between cells */

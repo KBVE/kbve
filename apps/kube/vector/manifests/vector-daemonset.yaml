@@ -61,6 +61,11 @@ spec:
                             secretKeyRef:
                                 name: clickhouse-vector-credentials
                                 key: password
+                      - name: ALERTMANAGER_WEBHOOK_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: vector-alertmanager-webhook
+                                key: password
                   args:
                       - --config-dir
                       - /etc/vector/
