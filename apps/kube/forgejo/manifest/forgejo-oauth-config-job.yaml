@@ -43,6 +43,81 @@ spec:
                               sleep 5
                           done
                           echo "Forgejo is ready!"
+                - name: init-directories
+                  image: codeberg.org/forgejo/forgejo:12
+                  imagePullPolicy: IfNotPresent
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
+                  command:
+                      - /usr/sbin/init_directory_structure.sh
+                  env:
+                      - name: GITEA_APP_INI
+                        value: /data/gitea/conf/app.ini
+                      - name: GITEA_CUSTOM
+                        value: /data/gitea
+                      - name: GITEA_WORK_DIR
+                        value: /data
+                      - name: GITEA_TEMP
+                        value: /tmp/gitea
+                  volumeMounts:
+                      - name: init
+                        mountPath: /usr/sbin
+                      - name: temp
+                        mountPath: /tmp
+                      - name: data
+                        mountPath: /data
+                - name: init-app-ini
+                  image: codeberg.org/forgejo/forgejo:12
+                  imagePullPolicy: IfNotPresent
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
+                  command:
+                      - /usr/sbin/config_environment.sh
+                  env:
+                      - name: GITEA_APP_INI
+                        value: /data/gitea/conf/app.ini
+                      - name: GITEA_CUSTOM
+                        value: /data/gitea
+                      - name: GITEA_WORK_DIR
+                        value: /data
+                      - name: GITEA_TEMP
+                        value: /tmp/gitea
+                      - name: FORGEJO__DATABASE__PASSWD
+                        valueFrom:
+                            secretKeyRef:
+                                name: forgejo-db
+                                key: password
+                      - name: FORGEJO__SERVER__LFS_JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: forgejo-lfs-jwt
+                                key: secret
+                      - name: REDIS_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: valkey-auth
+                                key: valkey-password
+                      - name: FORGEJO__CACHE__HOST
+                        value: redis://default:$(REDIS_PASSWORD)@valkey.valkey.svc.cluster.local:6379/0?pool_size=100&idle_timeout=180s
+                      - name: FORGEJO__SESSION__PROVIDER_CONFIG
+                        value: redis://default:$(REDIS_PASSWORD)@valkey.valkey.svc.cluster.local:6379/2?pool_size=100&idle_timeout=180s
+                      - name: FORGEJO__QUEUE__CONN_STR
+                        value: redis://default:$(REDIS_PASSWORD)@valkey.valkey.svc.cluster.local:6379/1
+                  volumeMounts:
+                      - name: config
+                        mountPath: /usr/sbin
+                      - name: inline-config-sources
+                        mountPath: /env-to-ini-mounts/inlines/
+                      - name: temp
+                        mountPath: /tmp
+                      - name: data
+                        mountPath: /data
             containers:
                 - name: configure-oauth
                   image: codeberg.org/forgejo/forgejo:12
@@ -53,23 +128,14 @@ spec:
                           drop:
                               - ALL
                   env:
-                      - name: FORGEJO__database__DB_TYPE
-                        value: postgres
-                      - name: FORGEJO__database__HOST
-                        value: kilobase-rw.kilobase.svc.cluster.local:5432
-                      - name: FORGEJO__database__NAME
-                        value: supabase
-                      - name: FORGEJO__database__USER
-                        value: forgejo
-                      - name: FORGEJO__database__SCHEMA
-                        value: forgejo
-                      - name: FORGEJO__database__SSL_MODE
-                        value: require
-                      - name: FORGEJO__database__PASSWD
-                        valueFrom:
-                            secretKeyRef:
-                                name: forgejo-db
-                                key: password
+                      - name: GITEA_APP_INI
+                        value: /data/gitea/conf/app.ini
+                      - name: GITEA_CUSTOM
+                        value: /data/gitea
+                      - name: GITEA_WORK_DIR
+                        value: /data
+                      - name: GITEA_TEMP
+                        value: /tmp/gitea
                       - name: OAUTH_CLIENT_ID
                         valueFrom:
                             secretKeyRef:
@@ -87,8 +153,6 @@ spec:
                           set -e
 
                           echo "==> Checking if OAuth source 'kbve' already exists..."
-
-                          # Try to list auth sources and check if 'kbve' exists
                           if /usr/local/bin/forgejo admin auth list 2>/dev/null | grep -q "kbve"; then
                               echo "OAuth authentication source 'kbve' already exists. Skipping configuration."
                               exit 0
@@ -105,3 +169,24 @@ spec:
 
                           echo "==> OAuth authentication source 'kbve' configured successfully!"
                           echo "==> Users can now sign in with KBVE credentials"
+                  volumeMounts:
+                      - name: data
+                        mountPath: /data
+                      - name: temp
+                        mountPath: /tmp
+            volumes:
+                - name: init
+                  secret:
+                      secretName: forgejo-init
+                      defaultMode: 0755
+                - name: config
+                  secret:
+                      secretName: forgejo
+                      defaultMode: 0755
+                - name: inline-config-sources
+                  secret:
+                      secretName: forgejo-inline-config
+                - name: temp
+                  emptyDir: {}
+                - name: data
+                  emptyDir: {}
