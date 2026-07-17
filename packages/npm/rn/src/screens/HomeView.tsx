@@ -16,6 +16,7 @@ import { createWgpuPlugin } from '../examples/wgpuPlugin';
 import { createIsometricPlugin } from '../examples/isometricPlugin';
 import { openExternal } from '../platform/openExternal';
 import { ClickHouseScreen } from './ClickHouseScreen';
+import { McScreen } from './McScreen';
 
 const open = (url: string) => openExternal(url);
 
@@ -76,6 +77,7 @@ export function HomeView() {
 	const api = useMemo(() => defaultHostApi(), []);
 	const [launched, setLaunched] = useState(false);
 	const [showClickHouse, setShowClickHouse] = useState(false);
+	const [showMc, setShowMc] = useState(false);
 
 	useEffect(() => {
 		const manifest = native ? createWgpuPlugin() : createIsometricPlugin();
@@ -131,6 +133,30 @@ export function HomeView() {
 		);
 	}
 
+	if (showMc) {
+		return (
+			<View style={styles.root}>
+				<View
+					style={[
+						styles.canvasBar,
+						{ paddingTop: insets.top + tokens.space.sm },
+					]}>
+					<Text variant="label">Minecraft · GameOps</Text>
+					<Button
+						title="Close"
+						variant="ghost"
+						onPress={() => setShowMc(false)}
+					/>
+				</View>
+				<ScrollView
+					showsVerticalScrollIndicator={false}
+					contentContainerStyle={styles.body}>
+					<McScreen />
+				</ScrollView>
+			</View>
+		);
+	}
+
 	return (
 		<View style={styles.root}>
 			<ScrollView
@@ -174,6 +200,14 @@ export function HomeView() {
 							title="📊  ClickHouse Dashboard"
 							variant="secondary"
 							onPress={() => setShowClickHouse(true)}
+						/>
+					) : null}
+
+					{staff.isStaff ? (
+						<Button
+							title="⛏  Minecraft Dashboard"
+							variant="secondary"
+							onPress={() => setShowMc(true)}
 						/>
 					) : null}
 
