@@ -16628,6 +16628,10 @@
                   "types": "./src/dash/index.ts",
                   "import": "./src/dash/index.ts"
                 },
+                "./workflows": {
+                  "types": "./src/workflows/index.ts",
+                  "import": "./src/workflows/index.ts"
+                },
                 "./toasts": {
                   "types": "./src/toasts/index.ts",
                   "import": "./src/toasts/index.ts"
