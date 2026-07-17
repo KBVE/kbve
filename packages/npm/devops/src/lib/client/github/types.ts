@@ -156,10 +156,6 @@ export const context = {
 	extractRepo,
 };
 
-/** @deprecated Use `gha.context.extractIssue`. */
-export const _$gha_extractIssueContext = extractIssue;
-/** @deprecated Use `gha.context.extractRepo`. */
-export const _$gha_extractRepoContext = extractRepo;
 
 export type { CommitCategory, CleanedCommit, ApiCommit, CategorizedResult };
 export { COMMIT_CATEGORY_LABELS } from '../../../types';

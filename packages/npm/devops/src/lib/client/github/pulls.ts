@@ -388,22 +388,3 @@ export const pulls = {
 	processAndUpdatePR,
 	createOrUpdatePR,
 };
-
-/** @deprecated Use `gha.pulls.formatCommits`. */
-export const _$gha_formatCommits = formatCommits;
-/** @deprecated Use `gha.pulls.categorizeApiCommits`. */
-export const _$gha_categorizeApiCommits = categorizeApiCommits;
-/** @deprecated Use `gha.pulls.generatePRTitle`. */
-export const _$gha_generatePRTitle = generatePRTitle;
-/** @deprecated Use `gha.pulls.formatDevBody`. */
-export const _$gha_formatDevBody = formatDevBody;
-/** @deprecated Use `gha.pulls.getPullRequestNumber`. */
-export const _$gha_getPullRequestNumber = getPullRequestNumber;
-/** @deprecated Use `gha.pulls.updatePullRequestBody`. */
-export const _$gha_updatePullRequestBody = updatePullRequestBody;
-/** @deprecated Use `gha.pulls.fetchAndCleanCommits`. */
-export const _$gha_fetchAndCleanCommits = fetchAndCleanCommits;
-/** @deprecated Use `gha.pulls.processAndUpdatePR`. */
-export const _$gha_processAndUpdatePR = processAndUpdatePR;
-/** @deprecated Use `gha.pulls.createOrUpdatePR`. */
-export const _$gha_createOrUpdatePR = createOrUpdatePR;

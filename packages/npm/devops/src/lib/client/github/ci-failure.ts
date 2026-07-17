@@ -358,18 +358,3 @@ export const ci = {
 	buildResolveComment,
 	incrementHistory,
 };
-
-/** @deprecated Use `ci.issueTitle`. */
-export const _$gha_failureIssueTitle = issueTitle;
-/** @deprecated Use `ci.classifyFailure`. */
-export const _$gha_classifyCIFailure = classifyFailure;
-/** @deprecated Use `ci.parseFailureLog`. */
-export const _$gha_parseFailureLog = parseFailureLog;
-/** @deprecated Use `ci.buildIssueBody`. */
-export const _$gha_buildFailureIssueBody = buildIssueBody;
-/** @deprecated Use `ci.buildComment`. */
-export const _$gha_buildFailureComment = buildComment;
-/** @deprecated Use `ci.buildResolveComment`. */
-export const _$gha_buildResolveComment = buildResolveComment;
-/** @deprecated Use `ci.incrementHistory`. */
-export const _$gha_incrementFailureHistory = incrementHistory;

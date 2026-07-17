@@ -38,9 +38,9 @@ describe('ESM Import', () => {
 		expect(typeof yt.extractYoutubeId).toBe('function');
 
 		const gh = await import('../../devops/src/lib/client/github');
-		expect(typeof gh._$gha_kbve_ActionProcess).toBe('function');
-		expect(typeof gh._$gha_createIssueComment).toBe('function');
-		expect(typeof gh._$gha_addLabel).toBe('function');
-		expect(typeof gh._$gha_removeLabel).toBe('function');
+		expect(typeof gh.actions.kbveActionProcess).toBe('function');
+		expect(typeof gh.issues.createComment).toBe('function');
+		expect(typeof gh.issues.addLabel).toBe('function');
+		expect(typeof gh.issues.removeLabel).toBe('function');
 	});
 });

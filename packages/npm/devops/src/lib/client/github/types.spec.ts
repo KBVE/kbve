@@ -1,13 +1,28 @@
 import { describe, it, expect } from 'vitest';
-import {
-	context,
-	_$gha_extractIssueContext,
-	_$gha_extractRepoContext,
-} from './types';
+import { context } from './types';
+import type { GitHubContext } from './types';
 
-describe('gha.context group (v0.0.22)', () => {
-	it('members match aliases', () => {
-		expect(context.extractIssue).toBe(_$gha_extractIssueContext);
-		expect(context.extractRepo).toBe(_$gha_extractRepoContext);
+function mockContext(): GitHubContext {
+	return {
+		repo: { owner: 'KBVE', repo: 'kbve' },
+		issue: { number: 42 },
+		job: 'build',
+	} as GitHubContext;
+}
+
+describe('gha.context group', () => {
+	it('extractIssue returns owner, repo and issue_number', () => {
+		expect(context.extractIssue(mockContext())).toEqual({
+			owner: 'KBVE',
+			repo: 'kbve',
+			issue_number: 42,
+		});
+	});
+
+	it('extractRepo returns owner and repo', () => {
+		expect(context.extractRepo(mockContext())).toEqual({
+			owner: 'KBVE',
+			repo: 'kbve',
+		});
 	});
 });

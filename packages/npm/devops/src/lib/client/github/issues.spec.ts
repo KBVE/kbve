@@ -1,15 +1,4 @@
 import {
-	_$gha_createIssueComment,
-	_$gha_addReaction,
-	_$gha_removeLabel,
-	_$gha_addLabel,
-	_$gha_verifyMatrixLabel,
-	_$gha_addAssignees,
-	_$gha_removeAssignees,
-	_$gha_closeIssue,
-	_$gha_reopenIssue,
-	_$gha_lockIssue,
-	_$gha_unlockIssue,
 	issues,
 } from './issues';
 import { GitHubClient, GitHubContext } from './types';
@@ -52,12 +41,12 @@ function mockGitHubClient(overrides?: Partial<GitHubClient>): GitHubClient {
 	};
 }
 
-describe('_$gha_createIssueComment', () => {
+describe('issues.createComment', () => {
 	it('should call createComment with correct params', async () => {
 		const github = mockGitHubClient();
 		const context = mockGitHubContext();
 
-		await _$gha_createIssueComment(github, context, 'Hello World');
+		await issues.createComment(github, context, 'Hello World');
 
 		expect(github.rest.issues.createComment).toHaveBeenCalledWith({
 			owner: 'KBVE',
@@ -75,17 +64,17 @@ describe('_$gha_createIssueComment', () => {
 		const context = mockGitHubContext();
 
 		await expect(
-			_$gha_createIssueComment(github, context, 'test'),
+			issues.createComment(github, context, 'test'),
 		).rejects.toThrow('API Error');
 	});
 });
 
-describe('_$gha_addReaction', () => {
+describe('issues.addReaction', () => {
 	it('should call createForIssueComment with correct params', async () => {
 		const github = mockGitHubClient();
 		const context = mockGitHubContext();
 
-		await _$gha_addReaction(github, context, 123, '+1');
+		await issues.addReaction(github, context, 123, '+1');
 
 		expect(
 			github.rest.reactions.createForIssueComment,
@@ -98,7 +87,7 @@ describe('_$gha_addReaction', () => {
 	});
 });
 
-describe('_$gha_removeLabel', () => {
+describe('issues.removeLabel', () => {
 	it('should remove label when it exists on the issue', async () => {
 		const github = mockGitHubClient();
 		(
@@ -108,7 +97,7 @@ describe('_$gha_removeLabel', () => {
 		});
 		const context = mockGitHubContext();
 
-		await _$gha_removeLabel(github, context, 'bug');
+		await issues.removeLabel(github, context, 'bug');
 
 		expect(github.rest.issues.removeLabel).toHaveBeenCalledWith({
 			owner: 'KBVE',
@@ -127,13 +116,13 @@ describe('_$gha_removeLabel', () => {
 		});
 		const context = mockGitHubContext();
 
-		await _$gha_removeLabel(github, context, 'bug');
+		await issues.removeLabel(github, context, 'bug');
 
 		expect(github.rest.issues.removeLabel).not.toHaveBeenCalled();
 	});
 });
 
-describe('_$gha_addLabel', () => {
+describe('issues.addLabel', () => {
 	it('should add label when it does not exist on the issue', async () => {
 		const github = mockGitHubClient();
 		(
@@ -143,7 +132,7 @@ describe('_$gha_addLabel', () => {
 		});
 		const context = mockGitHubContext();
 
-		await _$gha_addLabel(github, context, 'bug');
+		await issues.addLabel(github, context, 'bug');
 
 		expect(github.rest.issues.addLabels).toHaveBeenCalledWith({
 			owner: 'KBVE',
@@ -162,13 +151,13 @@ describe('_$gha_addLabel', () => {
 		});
 		const context = mockGitHubContext();
 
-		await _$gha_addLabel(github, context, 'bug');
+		await issues.addLabel(github, context, 'bug');
 
 		expect(github.rest.issues.addLabels).not.toHaveBeenCalled();
 	});
 });
 
-describe('_$gha_verifyMatrixLabel', () => {
+describe('issues.verifyMatrixLabel', () => {
 	it('should add label 0 when no matrix labels are present', async () => {
 		const github = mockGitHubClient();
 		(
@@ -178,9 +167,9 @@ describe('_$gha_verifyMatrixLabel', () => {
 		});
 		const context = mockGitHubContext();
 
-		await _$gha_verifyMatrixLabel(github, context);
+		await issues.verifyMatrixLabel(github, context);
 
-		// It calls _$gha_addLabel which calls listLabelsOnIssue again then addLabels
+		// It calls issues.addLabel which calls listLabelsOnIssue again then addLabels
 		expect(github.rest.issues.addLabels).toHaveBeenCalled();
 	});
 
@@ -193,7 +182,7 @@ describe('_$gha_verifyMatrixLabel', () => {
 		});
 		const context = mockGitHubContext();
 
-		await _$gha_verifyMatrixLabel(github, context);
+		await issues.verifyMatrixLabel(github, context);
 
 		expect(github.rest.issues.removeLabel).not.toHaveBeenCalled();
 		expect(github.rest.issues.addLabels).not.toHaveBeenCalled();
@@ -208,20 +197,20 @@ describe('_$gha_verifyMatrixLabel', () => {
 		});
 		const context = mockGitHubContext();
 
-		await _$gha_verifyMatrixLabel(github, context);
+		await issues.verifyMatrixLabel(github, context);
 
 		// Should remove labels '1' and '3', keeping '5'
-		// removeLabel is called via _$gha_removeLabel which lists labels again
+		// removeLabel is called via issues.removeLabel which lists labels again
 		expect(github.rest.issues.listLabelsOnIssue).toHaveBeenCalled();
 	});
 });
 
-describe('_$gha_addAssignees', () => {
+describe('issues.addAssignees', () => {
 	it('should call addAssignees with correct params', async () => {
 		const github = mockGitHubClient();
 		const context = mockGitHubContext();
 
-		await _$gha_addAssignees(github, context, ['user1', 'user2']);
+		await issues.addAssignees(github, context, ['user1', 'user2']);
 
 		expect(github.rest.issues.addAssignees).toHaveBeenCalledWith({
 			owner: 'KBVE',
@@ -232,12 +221,12 @@ describe('_$gha_addAssignees', () => {
 	});
 });
 
-describe('_$gha_removeAssignees', () => {
+describe('issues.removeAssignees', () => {
 	it('should call removeAssignees with correct params', async () => {
 		const github = mockGitHubClient();
 		const context = mockGitHubContext();
 
-		await _$gha_removeAssignees(github, context, ['user1']);
+		await issues.removeAssignees(github, context, ['user1']);
 
 		expect(github.rest.issues.removeAssignees).toHaveBeenCalledWith({
 			owner: 'KBVE',
@@ -248,12 +237,12 @@ describe('_$gha_removeAssignees', () => {
 	});
 });
 
-describe('_$gha_closeIssue', () => {
+describe('issues.closeIssue', () => {
 	it('should update issue state to closed', async () => {
 		const github = mockGitHubClient();
 		const context = mockGitHubContext();
 
-		await _$gha_closeIssue(github, context);
+		await issues.closeIssue(github, context);
 
 		expect(github.rest.issues.update).toHaveBeenCalledWith({
 			owner: 'KBVE',
@@ -264,12 +253,12 @@ describe('_$gha_closeIssue', () => {
 	});
 });
 
-describe('_$gha_reopenIssue', () => {
+describe('issues.reopenIssue', () => {
 	it('should update issue state to open', async () => {
 		const github = mockGitHubClient();
 		const context = mockGitHubContext();
 
-		await _$gha_reopenIssue(github, context);
+		await issues.reopenIssue(github, context);
 
 		expect(github.rest.issues.update).toHaveBeenCalledWith({
 			owner: 'KBVE',
@@ -280,12 +269,12 @@ describe('_$gha_reopenIssue', () => {
 	});
 });
 
-describe('_$gha_lockIssue', () => {
+describe('issues.lockIssue', () => {
 	it('should lock issue without reason', async () => {
 		const github = mockGitHubClient();
 		const context = mockGitHubContext();
 
-		await _$gha_lockIssue(github, context);
+		await issues.lockIssue(github, context);
 
 		expect(github.rest.issues.lock).toHaveBeenCalledWith({
 			owner: 'KBVE',
@@ -299,7 +288,7 @@ describe('_$gha_lockIssue', () => {
 		const github = mockGitHubClient();
 		const context = mockGitHubContext();
 
-		await _$gha_lockIssue(github, context, 'spam');
+		await issues.lockIssue(github, context, 'spam');
 
 		expect(github.rest.issues.lock).toHaveBeenCalledWith({
 			owner: 'KBVE',
@@ -310,12 +299,12 @@ describe('_$gha_lockIssue', () => {
 	});
 });
 
-describe('_$gha_unlockIssue', () => {
+describe('issues.unlockIssue', () => {
 	it('should unlock issue', async () => {
 		const github = mockGitHubClient();
 		const context = mockGitHubContext();
 
-		await _$gha_unlockIssue(github, context);
+		await issues.unlockIssue(github, context);
 
 		expect(github.rest.issues.unlock).toHaveBeenCalledWith({
 			owner: 'KBVE',
@@ -326,11 +315,6 @@ describe('_$gha_unlockIssue', () => {
 });
 
 describe('gha.issues group (v0.0.22)', () => {
-	it('group members are the same references as their _$gha_ aliases', () => {
-		expect(issues.createComment).toBe(_$gha_createIssueComment);
-		expect(issues.verifyMatrixLabel).toBe(_$gha_verifyMatrixLabel);
-		expect(issues.unlockIssue).toBe(_$gha_unlockIssue);
-	});
 	it('exposes all 11 members as functions', () => {
 		const names = [
 			'createComment',
