@@ -32,7 +32,7 @@
 		{
 			"key": "agones_factorio_relay",
 			"app_name": "agones-factorio-relay",
-			"version": "0.0.7",
+			"version": "0.0.8",
 			"version_toml": "apps/agones/factorio/relay/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-factorio-relay.mdx",
 			"source_path": "apps/agones/factorio/relay",
@@ -44,7 +44,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.235",
+			"version": "1.0.238",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -181,7 +181,7 @@
 		{
 			"key": "discordsh",
 			"app_name": "discordsh",
-			"version": "0.1.44",
+			"version": "0.1.45",
 			"version_toml": "apps/discordsh/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh.mdx",
 			"version_target": "apps/discordsh/axum-discordsh/Cargo.toml",
@@ -195,7 +195,7 @@
 		{
 			"key": "discordsh_bot",
 			"app_name": "discordsh-bot",
-			"version": "0.1.21",
+			"version": "0.1.22",
 			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
 			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
@@ -1338,7 +1338,7 @@
 				]
 			},
 			"source_path": "apps/herbmail/herbmail-game",
-			"version": "0.1.9",
+			"version": "0.1.11",
 			"version_toml": "apps/herbmail/herbmail-game/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/herbmail-game.mdx",
 			"runner": "ubuntu-latest",
