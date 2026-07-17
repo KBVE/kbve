@@ -34,6 +34,9 @@
 			"@kbve/rn/ui": ["../../../packages/npm/rn/src/ui/index.web.ts"],
 			"@kbve/rn/ui/*": ["../../../packages/npm/rn/src/ui/*"],
 			"@kbve/rn/dash": ["../../../packages/npm/rn/src/dash/index.ts"],
+			"@kbve/rn/workflows": [
+				"../../../packages/npm/rn/src/workflows/index.ts"
+			],
 			"@kbve/rn/account": [
 				"../../../packages/npm/rn/src/account/index.ts"
 			],

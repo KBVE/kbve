@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-07-16T10:11:14.456Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-07-17T10:00:40.468Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -45,7 +45,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **3** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **198** items
+    **182** items
   </Card>
 </CardGrid>
 
@@ -62,7 +62,7 @@ pie showData
     "Error" : 23
     "Staging" : 2
     "Review" : 3
-    "Done" : 198
+    "Done" : 182
 ```
 
 ```mermaid
@@ -70,7 +70,7 @@ pie showData
     title Work State
     "Active (Todo+Staging+Review)" : 27
     "Blocked (Error+Support)" : 23
-    "Done" : 198
+    "Done" : 182
     "Planning (Theory+AI+Backlog)" : 82
 ```
 
@@ -99,7 +99,7 @@ flowchart LR
     Staging --> Review
     Review["Review<br/><strong>3</strong>"]
     Review --> Done
-    Done["Done<br/><strong>198</strong>"]
+    Done["Done<br/><strong>182</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -116,20 +116,20 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 187
-    "Issue" : 143
+    "Pull Request" : 175
+    "Issue" : 139
 ```
 
 #### Top Labels
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 187 |
-| enhancement | 95 |
-| dev→main | 85 |
-| atomic | 71 |
-| bug | 31 |
-| todo | 30 |
+| auto-pr | 175 |
+| enhancement | 93 |
+| dev→main | 80 |
+| atomic | 68 |
+| bug | 30 |
+| todo | 28 |
 | 0 | 15 |
 | rust | 14 |
 | 1 | 10 |
@@ -303,43 +303,19 @@ pie showData
 |---|-------|----------|-----------|--------|
 | [#13278](https://github.com/KBVE/kbve/pull/13278) | Atomic: ue ramdisk spec | — | — | auto-pr, atomic |
 | [#13572](https://github.com/KBVE/kbve/pull/13572) | Atomic: bump mdx spec | — | — | auto-pr, atomic |
-| [#14178](https://github.com/KBVE/kbve/pull/14178) | Release: 2 fixes → Main | — | — | auto-pr, dev→main |
+| [#14190](https://github.com/KBVE/kbve/pull/14190) | Release: 2 features, 1 chore → Main | — | — | auto-pr, dev→main |
 
-### Done (198)
+### Done (182)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
-| [#2267](https://github.com/KBVE/kbve/issues/2267) | [Concept] : CryptoThrone.com - King of the Hill App/Game | — | h0lybyte, BChip | 6 |
-| [#13083](https://github.com/KBVE/kbve/issues/13083) | [CRITICAL] nd-server Agones fleet dead on arrival — wrong SecretStore ref | — | — | bug |
 | [#13102](https://github.com/KBVE/kbve/issues/13102) | [MEDIUM] n8n PDB blocks node drains (minAvailable:1 on replicas:1) | — | — | bug |
 | [#13109](https://github.com/KBVE/kbve/issues/13109) | [MEDIUM] LB VIP 142.132.206.74 dropped from the pool | — | — | bug |
 | [#13110](https://github.com/KBVE/kbve/issues/13110) | [MEDIUM] Wildcard cert kbve-wt-tls has no explicit Certificate object | — | — | bug |
 | [#13275](https://github.com/KBVE/kbve/pull/13275) | Atomic: valkey harden | — | — | auto-pr, atomic |
 | [#13575](https://github.com/KBVE/kbve/pull/13575) | Atomic: rows drain fleet plan fix | — | — | auto-pr, atomic |
-| [#13672](https://github.com/KBVE/kbve/pull/13672) | Release: 3 fixes, 1 doc → Main | — | — | auto-pr, dev→main |
-| [#13675](https://github.com/KBVE/kbve/pull/13675) | chore(laser): update version.toml to 0.1.5 | — | — | auto-pr |
-| [#13677](https://github.com/KBVE/kbve/pull/13677) | Release: 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#13680](https://github.com/KBVE/kbve/pull/13680) | Release: 3 features, 3 fixes → Main | — | — | auto-pr, dev→main |
-| [#13683](https://github.com/KBVE/kbve/pull/13683) | Atomic: harden ci atom | — | — | auto-pr, atomic |
-| [#13684](https://github.com/KBVE/kbve/pull/13684) | chore(devops): update version.toml to 0.0.20 | — | — | auto-pr |
-| [#13685](https://github.com/KBVE/kbve/pull/13685) | Release: 1 feature, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#13687](https://github.com/KBVE/kbve/pull/13687) | Release: 3 features, 7 fixes, 1 doc, 1 perf, 4 chores → Main | — | — | auto-pr, dev→main |
-| [#13694](https://github.com/KBVE/kbve/pull/13694) | chore(dashboard): daily sync — 2026-07-02 | — | — | auto-pr |
-| [#13701](https://github.com/KBVE/kbve/pull/13701) | chore(devops): update version.toml to 0.0.21 | — | — | auto-pr |
-| [#13702](https://github.com/KBVE/kbve/pull/13702) | Atomic: arpg-server v0.1.23 post-publish sync | — | — | auto-pr, atomic |
-| [#13704](https://github.com/KBVE/kbve/pull/13704) | Release: 3 features, 3 fixes, 4 chores → Main | — | — | auto-pr, dev→main |
-| [#13708](https://github.com/KBVE/kbve/pull/13708) | Atomic: axum-kbve v1.0.220 post-publish sync | — | — | auto-pr, atomic |
-| [#13715](https://github.com/KBVE/kbve/pull/13715) | Atomic: arpg-web v0.1.23 post-publish sync | — | — | auto-pr, atomic |
-| [#13716](https://github.com/KBVE/kbve/pull/13716) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
-| [#13718](https://github.com/KBVE/kbve/issues/13718) | feat(rentearth): tree billboards — replace slime env placeholder with shared tre | — | — | enhancement, todo |
-| [#13719](https://github.com/KBVE/kbve/pull/13719) | Release: 3 features, 10 fixes, 2 docs, 1 perf, 1 refactor, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#13741](https://github.com/KBVE/kbve/issues/13741) | feat(world): shared deterministic heightmap — 1:1 across simgrid server, web, an | — | — | enhancement, todo |
 | [#13747](https://github.com/KBVE/kbve/issues/13747) | feat(arpg-web): iso height rendering — displaced chunk meshes for 1:1 terrain pa | — | — | enhancement, todo |
-| [#13750](https://github.com/KBVE/kbve/pull/13750) | chore(devops): update version.toml to 0.0.22 | — | — | auto-pr |
 | [#13757](https://github.com/KBVE/kbve/pull/13757) | Release: 9 features, 6 fixes, 2 docs, 1 perf, 8 chores → Main | — | — | auto-pr, dev→main |
-| [#13767](https://github.com/KBVE/kbve/pull/13767) | Atomic: arpg udp transport | — | — | auto-pr, atomic |
-| [#13772](https://github.com/KBVE/kbve/pull/13772) | Atomic: arpg udp transport | — | — | auto-pr, atomic |
-| [#13773](https://github.com/KBVE/kbve/pull/13773) | Atomic: simgrid clippy multiple of | — | — | auto-pr, atomic |
 | [#13784](https://github.com/KBVE/kbve/issues/13784) | perf(simgrid): Bytes-backed EncodedFrame to avoid per-writer buffer copy | — | — | enhancement, todo, rust |
 | [#13799](https://github.com/KBVE/kbve/issues/13799) | ARPG: death corpse holds full inventory but is never persisted — restart wipes i | — | — | bug |
 | [#13798](https://github.com/KBVE/kbve/issues/13798) | ARPG: PlacedBy/ShipOwner keyed by reused slot u16 — furniture theft + ship despa | — | — | bug |
@@ -507,6 +483,14 @@ pie showData
 | [#14161](https://github.com/KBVE/kbve/pull/14161) | Atomic: axum-kbve v1.0.236 post-publish sync | — | — | auto-pr, atomic |
 | [#14165](https://github.com/KBVE/kbve/pull/14165) | Atomic: herbmail-game v0.1.10 post-publish sync | — | — | auto-pr, atomic |
 | [#14166](https://github.com/KBVE/kbve/pull/14166) | Release: 1 feature, 5 fixes, 6 chores → Main | — | — | auto-pr, dev→main |
+| [#14178](https://github.com/KBVE/kbve/pull/14178) | Release: 2 features, 3 fixes, 1 doc, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#14179](https://github.com/KBVE/kbve/pull/14179) | chore(dashboard): daily sync — 2026-07-16 | — | — | auto-pr |
+| [#14184](https://github.com/KBVE/kbve/pull/14184) | Atomic: discordsh v0.1.45 post-publish sync | — | — | auto-pr, atomic |
+| [#14185](https://github.com/KBVE/kbve/pull/14185) | Atomic: discordsh-bot v0.1.22 post-publish sync | — | — | auto-pr, atomic |
+| [#14186](https://github.com/KBVE/kbve/pull/14186) | Release: 3 chores → Main | — | — | auto-pr, dev→main |
+| [#14187](https://github.com/KBVE/kbve/pull/14187) | Atomic: axum-kbve v1.0.237 post-publish sync | — | — | auto-pr, atomic |
+| [#14188](https://github.com/KBVE/kbve/pull/14188) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#14189](https://github.com/KBVE/kbve/pull/14189) | Atomic: herbmail-game v0.1.11 post-publish sync | — | — | auto-pr, atomic |
 
 ---
 

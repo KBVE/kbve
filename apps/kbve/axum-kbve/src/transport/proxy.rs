@@ -2000,6 +2000,68 @@ pub async fn firecracker_openapi_handler(req: Request<Body>) -> Response {
     }
 }
 
+static WINDMILL: OnceLock<ServiceProxy> = OnceLock::new();
+
+pub fn init_windmill_proxy() -> bool {
+    let upstream = std::env::var("WINDMILL_GATE_URL")
+        .unwrap_or_else(|_| "http://windmill-gate.windmill.svc.cluster.local:5678".into());
+
+    let client = Client::builder()
+        .redirect(reqwest::redirect::Policy::none())
+        .connect_timeout(Duration::from_secs(10))
+        .timeout(Duration::from_secs(60))
+        .build()
+        .expect("failed to build reqwest client for windmill proxy");
+
+    WINDMILL
+        .set(ServiceProxy {
+            name: "Windmill",
+            client,
+            upstream: upstream.trim_end_matches('/').to_string(),
+            upstream_token: None,
+            upstream_headers: Vec::new(),
+            iframe_safe: false,
+            streaming: false,
+        })
+        .is_ok()
+}
+
+/// Proxy for the Windmill dashboard canvas. Staff-gated at axum, then forwards
+/// the caller's Supabase token to windmill-gate, whose SSO bridge impersonates
+/// the user — so Windmill actions carry per-user attribution.
+pub async fn windmill_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
+    let headers = req.headers().clone();
+    let raw_query = req.uri().query().map(|q| q.to_string());
+
+    if let Err(resp) = require_dashboard_view(&headers, "Windmill").await {
+        return resp;
+    }
+
+    let token = match extract_auth_token(&headers, raw_query.as_deref()) {
+        Some(t) => t,
+        None => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                axum::Json(json!({"error": "Missing Authorization token for Windmill"})),
+            )
+                .into_response();
+        }
+    };
+
+    match WINDMILL.get() {
+        Some(proxy) => {
+            proxy
+                .handle_with_auth(path, req, format!("Bearer {token}"))
+                .await
+        }
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            axum::Json(json!({"error": "Windmill proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
 static FACTORIO: OnceLock<ServiceProxy> = OnceLock::new();
 
 pub fn init_factorio_proxy() -> bool {

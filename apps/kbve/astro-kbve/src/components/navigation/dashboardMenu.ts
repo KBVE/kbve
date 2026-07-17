@@ -34,6 +34,7 @@ export const dashboardNav: NavNode[] = [
 	},
 	{ label: 'API', link: '/dashboard/api/' },
 	{ label: 'Edge', link: '/dashboard/edge/' },
+	{ label: 'Workflows', link: '/dashboard/workflows/', staff: true },
 	{ label: 'ArgoCD', link: '/dashboard/argo/', staff: true },
 	{ label: 'ClickHouse', link: '/dashboard/clickhouse/', staff: true },
 	{ label: 'Forgejo', link: '/dashboard/forgejo/', staff: true },

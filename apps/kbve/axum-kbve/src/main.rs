@@ -216,6 +216,13 @@ async fn main() -> anyhow::Result<()> {
         info!("Firecracker proxy not configured (using default cluster URL)");
     }
 
+    // Windmill proxy (optional - for /dashboard/workflows, routes to windmill-gate)
+    if transport::proxy::init_windmill_proxy() {
+        info!("Windmill proxy initialized - /dashboard/workflows/proxy enabled");
+    } else {
+        info!("Windmill proxy not configured (using default cluster URL)");
+    }
+
     // Initialize Factorio proxy (optional - for /dashboard/factorio, routes to factorio-ctl)
     if transport::proxy::init_factorio_proxy() {
         info!("Factorio proxy initialized - /dashboard/factorio/proxy enabled");

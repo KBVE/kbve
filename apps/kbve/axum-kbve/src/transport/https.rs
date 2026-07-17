@@ -648,6 +648,14 @@ fn router(state: AppState) -> Router {
             any(super::proxy::firecracker_proxy_handler),
         )
         .route(
+            "/dashboard/workflows/proxy/{*path}",
+            any(super::proxy::windmill_proxy_handler),
+        )
+        .route(
+            "/dashboard/workflows/proxy",
+            any(super::proxy::windmill_proxy_handler),
+        )
+        .route(
             "/dashboard/factorio/proxy/{*path}",
             any(super::proxy::factorio_proxy_handler),
         )

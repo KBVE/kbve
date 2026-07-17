@@ -19,7 +19,12 @@ interface ControlBarProps<T> {
 	meta: unknown;
 }
 
-export function ControlBar<T>({ store, controls, params, meta }: ControlBarProps<T>) {
+export function ControlBar<T>({
+	store,
+	controls,
+	params,
+	meta,
+}: ControlBarProps<T>) {
 	return (
 		<Stack direction="row" gap="sm" align="center" wrap>
 			{controls.map((c) => {
@@ -31,10 +36,23 @@ export function ControlBar<T>({ store, controls, params, meta }: ControlBarProps
 								return (
 									<Pressable
 										key={String(o.value)}
-										onPress={() => store.setParams({ [c.param]: o.value })}
-										style={[styles.seg, on ? styles.segOn : null]}>
-										<Text variant="caption" weight={on ? 'medium' : undefined}
-											style={{ color: on ? tokens.color.onPrimary : tokens.color.textMuted }}>
+										onPress={() =>
+											store.setParams({
+												[c.param]: o.value,
+											})
+										}
+										style={[
+											styles.seg,
+											on ? styles.segOn : null,
+										]}>
+										<Text
+											variant="caption"
+											weight={on ? 'medium' : undefined}
+											style={{
+												color: on
+													? tokens.color.onPrimary
+													: tokens.color.textMuted,
+											}}>
 											{o.label}
 										</Text>
 									</Pressable>
@@ -51,7 +69,9 @@ export function ControlBar<T>({ store, controls, params, meta }: ControlBarProps
 							value={params[c.param] as string | undefined}
 							placeholder={c.placeholder ?? c.label}
 							options={opts}
-							onValueChange={(v) => store.setParams({ [c.param]: v || undefined })}
+							onValueChange={(v) =>
+								store.setParams({ [c.param]: v || undefined })
+							}
 						/>
 					);
 				}
@@ -61,7 +81,9 @@ export function ControlBar<T>({ store, controls, params, meta }: ControlBarProps
 						value={(params[c.param] as string) ?? ''}
 						placeholder={c.placeholder ?? 'Search…'}
 						debounceMs={c.debounceMs ?? 300}
-						onChange={(v) => store.setParams({ [c.param]: v || undefined })}
+						onChange={(v) =>
+							store.setParams({ [c.param]: v || undefined })
+						}
 					/>
 				);
 			})}
@@ -69,15 +91,24 @@ export function ControlBar<T>({ store, controls, params, meta }: ControlBarProps
 	);
 }
 
-function SearchControl({ value, placeholder, debounceMs, onChange }: {
-	value: string; placeholder: string; debounceMs: number; onChange: (v: string) => void;
+function SearchControl({
+	value,
+	placeholder,
+	debounceMs,
+	onChange,
+}: {
+	value: string;
+	placeholder: string;
+	debounceMs: number;
+	onChange: (v: string) => void;
 }) {
 	const [text, setText] = useState(value);
 	useEffect(() => setText(value), [value]);
 	useEffect(() => {
-		const t = setTimeout(() => { if (text !== value) onChange(text); }, debounceMs);
+		const t = setTimeout(() => {
+			if (text !== value) onChange(text);
+		}, debounceMs);
 		return () => clearTimeout(t);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [text, debounceMs]);
 	return (
 		<TextInput
@@ -91,7 +122,25 @@ function SearchControl({ value, placeholder, debounceMs, onChange }: {
 }
 
 const styles = StyleSheet.create({
-	seg: { paddingHorizontal: tokens.space.md, paddingVertical: 4, borderRadius: tokens.radius.pill, borderWidth: 1, borderColor: tokens.color.border },
-	segOn: { backgroundColor: tokens.color.primary, borderColor: tokens.color.primary },
-	search: { minWidth: 160, paddingHorizontal: tokens.space.md, paddingVertical: 6, color: tokens.color.text, backgroundColor: tokens.color.surface, borderRadius: tokens.radius.md, borderWidth: 1, borderColor: tokens.color.border },
+	seg: {
+		paddingHorizontal: tokens.space.md,
+		paddingVertical: 4,
+		borderRadius: tokens.radius.pill,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+	},
+	segOn: {
+		backgroundColor: tokens.color.primary,
+		borderColor: tokens.color.primary,
+	},
+	search: {
+		minWidth: 160,
+		paddingHorizontal: tokens.space.md,
+		paddingVertical: 6,
+		color: tokens.color.text,
+		backgroundColor: tokens.color.surface,
+		borderRadius: tokens.radius.md,
+		borderWidth: 1,
+		borderColor: tokens.color.border,
+	},
 });

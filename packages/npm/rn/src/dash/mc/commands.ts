@@ -206,13 +206,10 @@ export const MC_COMMANDS: CommandDef[] = [
 	},
 ];
 
-export function commandsForServer(
-	server: 'velocity' | 'lobby' | 'survival',
-): CommandDef[] {
-	const matches = (c: CommandDef): boolean => {
+export function commandsForServer(server: string): CommandDef[] {
+	return MC_COMMANDS.filter((c) => {
 		if (c.scope === 'shared') return true;
 		if (server === 'velocity') return c.scope === 'velocity';
 		return c.scope === 'backend';
-	};
-	return MC_COMMANDS.filter(matches);
+	});
 }

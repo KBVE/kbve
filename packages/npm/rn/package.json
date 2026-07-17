@@ -48,6 +48,10 @@
 			"types": "./src/dash/index.ts",
 			"import": "./src/dash/index.ts"
 		},
+		"./workflows": {
+			"types": "./src/workflows/index.ts",
+			"import": "./src/workflows/index.ts"
+		},
 		"./toasts": {
 			"types": "./src/toasts/index.ts",
 			"import": "./src/toasts/index.ts"
@@ -64,6 +68,7 @@
 		"@hcaptcha/react-native-hcaptcha": "^4.0.0",
 		"@kbve/core": "0.0.1",
 		"@react-native-async-storage/async-storage": "2.2.0",
+		"@shopify/react-native-skia": "2.6.9",
 		"@supabase/supabase-js": "^2.95.3",
 		"comlink": "^4.4.2",
 		"dexie": "^4.4.2",
