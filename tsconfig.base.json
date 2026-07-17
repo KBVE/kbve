@@ -41,6 +41,7 @@
 			"@kbve/rn/store": ["packages/npm/rn/src/store/index.ts"],
 			"@kbve/rn/dash": ["packages/npm/rn/src/dash/index.ts"],
 			"@kbve/rn/account": ["packages/npm/rn/src/account/index.ts"],
+			"@kbve/rn/workflows": ["packages/npm/rn/src/workflows/index.ts"],
 			"@kbve/rn-astro": ["packages/npm/rn-astro/src/index.ts"],
 			"@kbve/rn-astro/integration": [
 				"packages/npm/rn-astro/src/integration.ts"
