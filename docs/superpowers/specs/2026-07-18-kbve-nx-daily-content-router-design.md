@@ -103,7 +103,7 @@ No full YAML parse/redump — keeps diffs minimal on hand-authored bento frontma
   - `save()`, return changed `[relpath]`.
 
 **`cli.py`** (extend):
-- `router_main(argv)`: `kbve-nx-router --cadence daily [--json]` → prints GH matrix `{"include":[{"route":"journal"}, ...]}` for routes needing work, plus a `has_work` bool. Empty include when nothing pending.
+- `router_main(argv)`: `kbve-nx-router --cadence daily [--json]` → always prints valid JSON `{"include":[{"route":"journal"}, ...]}` (empty `include: []` when nothing pending). Writes two `GITHUB_OUTPUT` keys when `$GITHUB_OUTPUT` is set: `matrix=<json>` and `has_work=true|false`. Router runs each route's `plan()` (read-only) to decide inclusion — never writes.
 - `build_main(argv)`: `kbve-nx-build <route> [--dry-run] [--date MM-DD --year YYYY]` → runs `Builder.build_one`, prints changed paths (one per line), exit 0 (changed or skipped), non-zero on error.
 
 **`pyproject.toml`** `[project.scripts]`: add
@@ -120,13 +120,14 @@ on:
   schedule: [{ cron: '0 1 * * *' }]    # 8pm EST / 9pm EDT
   workflow_dispatch:
 permissions: { contents: write, pull-requests: write }
+concurrency: { group: daily-content, cancel-in-progress: false }
 
 jobs:
   router:
     outputs: { matrix, has_work }
     steps:
       - checkout ref: dev
-      - uv setup
+      - uv setup (mirror python-test-package.yml)
       - id: plan: kbve-nx-router --cadence daily --json → GITHUB_OUTPUT (matrix, has_work)
 
   builder:
@@ -140,9 +141,11 @@ jobs:
       - uv setup
       - kbve-nx-build ${{ matrix.route }}
       - git add content dir; git diff --cached --quiet && exit 0   # guard
-      - branch auto/daily-${{ matrix.route }}-<YYYY-MM-DD>; commit '[skip ci]'; push
+      - branch auto/daily-${{ matrix.route }}-<run-date YYYY-MM-DD>; commit '[skip ci]'; push
       - gh pr create --base dev --label auto-pr    # per-route PR, no auto-merge
 ```
+
+**CI setup detail:** mirror `.github/workflows/python-test-package.yml` for the uv/python environment (`astral-sh/setup-uv` + `uv sync` in `packages/python/kbve`, then `uv run kbve-nx-*`), or the equivalent `@nxlv/python` nx target. Branch date uses the workflow **run date** (UTC `YYYY-MM-DD`) for uniqueness, independent of the journal target date. `git config user.name/email` = `github-actions[bot]` as in `utils-update-version-toml.yml`.
 
 Second workflow (future): security/graph become on-demand callers or additional cadences reusing the same router/builder — no changes here.
 

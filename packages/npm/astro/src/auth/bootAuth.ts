@@ -178,6 +178,31 @@ export async function bootAuth(
 	}
 }
 
+const STAFF_TOKEN_ATTEMPTS = 6;
+const STAFF_TOKEN_DELAY_MS = 300;
+
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+/**
+ * Poll the gateway for an access token. resolveStaffFlag is fired
+ * fire-and-forget right after bootAuth, so on a cold load the
+ * worker-backed session may not be hydrated yet. Retry a few times
+ * instead of giving up on the first empty read.
+ */
+async function waitForAccessToken(
+	gateway: SupabaseGateway,
+): Promise<string | null> {
+	for (let attempt = 0; attempt < STAFF_TOKEN_ATTEMPTS; attempt++) {
+		const session = await gateway.getSession().catch(() => null);
+		const token = session?.session?.access_token;
+		if (token) return token;
+		if (attempt < STAFF_TOKEN_ATTEMPTS - 1) {
+			await sleep(STAFF_TOKEN_DELAY_MS);
+		}
+	}
+	return null;
+}
+
 /**
  * Resolve staff permissions for the current authenticated user.
  * Calls the Supabase RPC `staff_permissions` and upgrades auth flags
@@ -193,14 +218,14 @@ export async function resolveStaffFlag(
 ): Promise<void> {
 	const state = $auth.get();
 	if (state.tone !== 'auth' || !state.id) return;
+	const userId = state.id;
 
 	// Cache fast path — apply STAFF synchronously if the bitmask is
 	// still fresh, so the UI doesn't flicker while the RPC is in flight.
-	applyStaffFlagFromCache(state.id);
+	applyStaffFlagFromCache(userId);
 
 	try {
-		const session = await gateway.getSession().catch(() => null);
-		const token = session?.session?.access_token;
+		const token = await waitForAccessToken(gateway);
 		if (!token) {
 			console.warn('[resolveStaffFlag] No access token available');
 			return;
@@ -227,16 +252,22 @@ export async function resolveStaffFlag(
 		const permissions = await res.json();
 		// staff_permissions returns an integer bitmask; any non-zero value means staff
 		if (typeof permissions === 'number') {
-			setStaffPermsCache(state.id, permissions);
+			setStaffPermsCache(userId, permissions);
 			if (permissions > 0) {
 				console.log(
 					'[resolveStaffFlag] Staff permissions resolved:',
 					permissions,
 				);
-				$auth.set({
-					...state,
-					flags: AuthPresets.STAFF,
-				});
+				// Re-read $auth after the await — the pre-fetch snapshot is
+				// stale and may clobber concurrent auth updates. Only upgrade
+				// if the same user is still authenticated.
+				const current = $auth.get();
+				if (current.tone === 'auth' && current.id === userId) {
+					$auth.set({
+						...current,
+						flags: AuthPresets.STAFF,
+					});
+				}
 			}
 		}
 	} catch {
