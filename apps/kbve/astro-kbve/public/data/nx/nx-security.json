@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-07-17T10:04:15Z",
+  "generated_at": "2026-07-18T09:40:57Z",
   "summary": {
     "critical": 6,
-    "high": 24,
+    "high": 25,
     "medium": 55,
     "low": 8,
     "info": 38
   },
   "ecosystems": {
     "npm": {
-      "total": 63,
+      "total": 64,
       "severities": {
         "critical": 3,
-        "high": 24,
+        "high": 25,
         "medium": 28,
         "low": 8,
         "info": 0
@@ -458,6 +458,13 @@
           "severity": "low",
           "package": "@babel/core",
           "url": "https://github.com/advisories/GHSA-4x5r-pxfx-6jf8"
+        },
+        {
+          "id": "1123686",
+          "title": "adm-zip: Crafted ZIP file triggers 4GB memory allocation",
+          "severity": "high",
+          "package": "adm-zip",
+          "url": "https://github.com/advisories/GHSA-xcpc-8h2w-3j85"
         }
       ]
     },
