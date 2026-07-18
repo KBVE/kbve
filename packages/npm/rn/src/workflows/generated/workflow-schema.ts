@@ -32,11 +32,22 @@ export const NodeStatusSchema = z.enum(NodeStatuses);
 export const WorkflowTiers = [
 	'user',
 	'staff',
+	'system',
 ] as const;
 
 export type WorkflowTierValue = (typeof WorkflowTiers)[number];
 
 export const WorkflowTierSchema = z.enum(WorkflowTiers);
+
+export const Surfaces = [
+	'discord',
+	'web',
+	'shared',
+] as const;
+
+export type SurfaceValue = (typeof Surfaces)[number];
+
+export const SurfaceSchema = z.enum(Surfaces);
 
 // WorkflowDef
 export const WorkflowDefSchema = z
@@ -45,6 +56,7 @@ export const WorkflowDefSchema = z
 		backend: BackendSchema,
 		path: z.string(),
 		tier: WorkflowTierSchema,
+		surface: SurfaceSchema,
 		label: z.string(),
 	});
 

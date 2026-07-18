@@ -64,6 +64,8 @@ bento:
           href: '#kbve'
         - label: Deployment
           href: '#deploy'
+        - label: State & runs
+          href: '#state'
     aside:
         icon: route
         title: Code first, low-code second
@@ -101,6 +103,10 @@ bento:
           icon: deploy
           href: '#deploy'
           body: The monorepo-to-cluster sync pipeline, and what it took to ship /wm npm.
+        - title: State & Runs
+          icon: database
+          href: '#state'
+          body: Where Windmill keeps every job — the schema, the run tables, and the lifecycle of one execution.
     related:
         - title: n8n
           href: /application/n8n/
@@ -246,6 +252,8 @@ KBVE self-hosts Windmill on the cluster and drives it two ways: from **Discord**
 
 **Scripts live in the monorepo.** Every `/wm` target is a plain TypeScript file checked into `apps/windmill/` and written for the fast **Bun** runtime with zero dependencies. Each script returns a generic **embed contract** — a `{ embed: { title, description, fields, ... } }` object — and a single renderer in the bot turns that into a Discord message. Adding a new command is just adding a new script.
 
+**One core, many surfaces.** Scripts are organised by the surface that invokes them — `f/discordsh/*` for the Discord bot, `f/web/*` for the website dashboard — with reusable logic factored into a shared parent under `f/shared/*`. A surface script stays a thin wrapper: `f/discordsh/poem` and `f/web/poem` both import the same `fetchPoem()` from `f/shared/poem` and only differ in how they shape the result (a Discord embed versus a plain dashboard object). The logic lives once; each surface keeps its own tightly-scoped entry point.
+
 **Merge, and it syncs.** When a change to `apps/windmill/` lands on `main`, a CI job pushes the versioned scripts into the running Windmill workspace automatically — the repo is the source of truth, and going live is a merge, not a manual deploy.
 
 <Aside type="note">
@@ -279,6 +287,38 @@ Shipping a new `/wm` command is a **merge, not a manual deploy** — but a few p
 
 <Aside type="tip">
 The biggest lesson from the first go-live: a failed push surfaces as a vague *"credentials or instance is invalid"* even when the token is fine — the real cause was **network egress** and a **missing `folder.meta.yaml`**. Any new in-cluster service the runner must reach needs an explicit egress allow.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="state" eyebrow="Where runs live" heading="State & Runs">
+
+Windmill is **stateless in the container and stateful in Postgres** — there is no separate queue engine (no Redis, no Valkey). Every job, its arguments, its result, and its logs are rows in the database. For KBVE that database is our shared **Supabase Postgres**, and Windmill keeps all of its tables in a dedicated **`windmill` schema** so it never collides with app data.
+
+A single execution is identified by one **job id** (a UUID) and moves through three tables:
+
+| Table | Role in a run's lifecycle |
+| ----- | ------------------------- |
+| **`v2_job`** | The canonical record — created the moment a job is triggered. Holds the id, kind (`script` / `flow`), the runnable path, the caller, and the input args. |
+| **`v2_job_queue`** | The live queue — a row exists here only while the job is **pending or running**. Workers poll this table; when the job finishes the row is deleted. |
+| **`v2_job_completed`** | The terminal record — written when the job exits, carrying the **status** (`success` / `failure`), duration, completion time, and the result payload. |
+
+Log output streams to companion tables (`job_logs`, `job_result_stream_v2`), and per-run stats land in `job_stats` — all keyed off that same job id.
+
+**The lifecycle of one `/wm` run:**
+
+<Steps>
+
+1. **Trigger** — the Discord command calls the Windmill API. A row appears in `v2_job` (the args, the script path, who asked) and one in `v2_job_queue`.
+
+2. **Execute** — a worker claims the queued row, runs the script, and streams logs. For a lightweight `/wm` script this is a few hundred milliseconds.
+
+3. **Complete** — the worker deletes the `v2_job_queue` row and writes `v2_job_completed` with `status = success` and the duration. The result is returned to the bot, which renders the embed.
+
+</Steps>
+
+<Aside type="note">
+Because everything is a Postgres row, a run is fully auditable after the fact — you can trace any job id from `v2_job` (what ran) to `v2_job_completed` (how it ended) without the container being alive. That same durability is what lets the [dashboard workflows canvas](/dashboard/workflows/) reflect real execution state instead of a fire-and-forget call.
 </Aside>
 
 </BentoProse>

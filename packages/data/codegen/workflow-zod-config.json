@@ -17,6 +17,12 @@
 			"stripPrefix": "WORKFLOW_TIER_",
 			"caseTransform": "lowercase",
 			"skipUnspecified": true
+		},
+		"kbve.workflow.Surface": {
+			"mode": "const_array",
+			"stripPrefix": "SURFACE_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": true
 		}
 	},
 
@@ -38,6 +44,12 @@
 			"sourceEnum": "kbve.workflow.WorkflowTier",
 			"typeName": "WorkflowTierValue",
 			"zodSchemaName": "WorkflowTierSchema"
+		},
+		{
+			"name": "Surfaces",
+			"sourceEnum": "kbve.workflow.Surface",
+			"typeName": "SurfaceValue",
+			"zodSchemaName": "SurfaceSchema"
 		}
 	]
 }
