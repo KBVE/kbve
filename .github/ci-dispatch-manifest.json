@@ -195,7 +195,7 @@
 		{
 			"key": "discordsh_bot",
 			"app_name": "discordsh-bot",
-			"version": "0.1.22",
+			"version": "0.1.23",
 			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
 			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
@@ -454,7 +454,7 @@
 		{
 			"key": "mc_velocity",
 			"app_name": "mc-velocity",
-			"version": "1.1.11",
+			"version": "1.1.13",
 			"version_toml": "apps/mc/velocity/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/mc-velocity.mdx",
 			"source_path": "apps/mc/velocity",
