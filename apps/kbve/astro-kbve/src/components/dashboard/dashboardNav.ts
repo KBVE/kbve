@@ -96,6 +96,11 @@ export const DASHBOARD_NAV: DashboardNavEntry[] = [
 				href: '/dashboard/forgejo/',
 				icon: 'M6 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM18 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 15a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM6 9v1a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V9M12 12v3',
 			},
+			{
+				label: 'Workflows',
+				href: '/dashboard/workflows/',
+				icon: 'M3 3h6v6H3zM15 15h6v6h-6zM6 9v6a2 2 0 0 0 2 2h4M15 6h3a2 2 0 0 1 2 2v3',
+			},
 		],
 	},
 	{
