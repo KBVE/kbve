@@ -1,5 +1,6 @@
 use chrono::{DateTime, Utc};
 use diesel::QueryableByName;
+use diesel::result::OptionalExtension;
 use diesel::sql_query;
 use diesel::sql_types::{BigInt, Bool, Integer, Jsonb, Nullable, SmallInt, Text, Timestamptz};
 use diesel_async::{AsyncConnection, AsyncPgConnection, RunQueryDsl};
@@ -84,6 +85,49 @@ impl WalletClient {
                 Ok(r.account_id)
             })
             .await
+    }
+
+    /// Resolve a Discord snowflake to its linked KBVE `user_id`, or `None`
+    /// when no `auth.identities` discord row exists. Read-only; delegates to
+    /// the service_role-owned `tracker.find_claim_identity_by_discord_id`.
+    pub async fn user_for_discord_id(&self, discord_id: &str) -> Result<Option<Uuid>> {
+        let mut conn = self.read().await?;
+        #[derive(QueryableByName)]
+        struct UserRow {
+            #[diesel(sql_type = diesel::sql_types::Uuid)]
+            user_id: Uuid,
+        }
+        let row: Option<UserRow> =
+            sql_query("SELECT user_id FROM tracker.find_claim_identity_by_discord_id($1)")
+                .bind::<Text, _>(discord_id)
+                .get_result(&mut conn)
+                .await
+                .optional()
+                .map_err(WalletError::from_diesel)?;
+        Ok(row.map(|r| r.user_id))
+    }
+
+    /// Look up an existing `kind='user'` wallet account for a Supabase user,
+    /// WITHOUT creating one. Returns `None` when the user has never had a
+    /// wallet — a debit against a non-existent balance is a no-funds case, not
+    /// an onboarding trigger (unlike [`Self::service_account_for_user`]).
+    pub async fn account_for_user_readonly(&self, user_id: Uuid) -> Result<Option<Uuid>> {
+        let mut conn = self.read().await?;
+        #[derive(QueryableByName)]
+        struct AccountRow {
+            #[diesel(sql_type = diesel::sql_types::Uuid)]
+            account_id: Uuid,
+        }
+        let row: Option<AccountRow> = sql_query(
+            "SELECT id AS account_id FROM wallet.account \
+             WHERE kind = 'user' AND user_id = $1 LIMIT 1",
+        )
+        .bind::<diesel::sql_types::Uuid, _>(user_id)
+        .get_result(&mut conn)
+        .await
+        .optional()
+        .map_err(WalletError::from_diesel)?;
+        Ok(row.map(|r| r.account_id))
     }
 
     pub async fn redeem_coupon(

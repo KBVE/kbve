@@ -120,6 +120,33 @@ pub(crate) struct ServiceCreditUserDto {
     pub ledger_id: i64,
 }
 
+/// Debit keyed on a Discord snowflake. Resolves discord_id -> KBVE user_id
+/// (via `tracker.find_claim_identity_by_discord_id`) -> existing wallet
+/// account, then debits. Used by the discordsh `/wm` paid commands (e.g.
+/// `poem2`) which only know the caller's Discord id. `currency` defaults to
+/// `credits`, `source_kind` to `purchase`.
+#[derive(Deserialize, ToSchema)]
+pub(crate) struct ServiceDebitDiscordBody {
+    /// Discord snowflake (numeric string).
+    pub discord_id: String,
+    /// Positive amount in smallest unit (1 credit).
+    pub amount: i64,
+    pub currency: Option<String>,
+    pub source_kind: Option<String>,
+    pub reason: Option<String>,
+    pub ref_type: Option<String>,
+    pub ref_id: Option<i64>,
+    /// Caller-supplied. Replay-safe with payload-mismatch detection.
+    pub idempotency_key: Uuid,
+}
+
+#[derive(Serialize, ToSchema)]
+pub(crate) struct ServiceDebitDiscordDto {
+    pub user_id: Uuid,
+    pub account_id: Uuid,
+    pub ledger_id: i64,
+}
+
 #[derive(Deserialize, ToSchema)]
 pub(crate) struct ServiceTransferBody {
     pub from_account: Uuid,
@@ -728,6 +755,106 @@ pub(crate) async fn service_debit(
         Ok(ledger_id) => {
             invalidate_account_cache(account_id).await;
             Json(ServiceLedgerDto { ledger_id }).into_response()
+        }
+        Err(e) => wallet_error_response(e),
+    }
+}
+
+/// `POST /api/v1/wallet/service/debit-discord` — debit credits from the
+/// wallet linked to a Discord snowflake. Resolves discord_id -> user_id ->
+/// existing account, then debits. `404 discord_not_linked` when no KBVE
+/// account is linked; `402 insufficient_funds` when the user has no wallet or
+/// the balance would go negative.
+#[utoipa::path(
+    post,
+    path = "/api/v1/wallet/service/debit-discord",
+    tag = "wallet",
+    request_body = ServiceDebitDiscordBody,
+    responses(
+        (status = 200, description = "Resolved + debited", body = ServiceDebitDiscordDto),
+        (status = 400, description = "Invalid currency / source_kind / payload"),
+        (status = 401, description = "Missing / invalid bearer token"),
+        (status = 402, description = "Insufficient funds / no wallet"),
+        (status = 403, description = "service_role required"),
+        (status = 404, description = "Discord id not linked to a KBVE account"),
+        (status = 409, description = "Idempotency replay mismatch"),
+        (status = 503, description = "Wallet service unavailable"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn service_debit_discord(
+    headers: HeaderMap,
+    Json(body): Json<ServiceDebitDiscordBody>,
+) -> Response {
+    if let Err(resp) = require_service_role(&headers).await {
+        return resp;
+    }
+    let currency = match parse_currency(body.currency.as_deref().unwrap_or("credits")) {
+        Ok(c) => c,
+        Err(r) => return r,
+    };
+    let source_kind = match parse_source_kind(body.source_kind.as_deref().unwrap_or("purchase")) {
+        Ok(s) => s,
+        Err(r) => return r,
+    };
+    if let Err(r) = require_positive_amount(body.amount) {
+        return r;
+    }
+    let client = match get_wallet_client() {
+        Some(c) => c,
+        None => return service_unavailable(),
+    };
+
+    let user_id = match client.user_for_discord_id(&body.discord_id).await {
+        Ok(Some(u)) => u,
+        Ok(None) => {
+            return (
+                StatusCode::NOT_FOUND,
+                Json(json!({
+                    "error": "discord_not_linked",
+                    "message": "No KBVE account is linked to this Discord user",
+                })),
+            )
+                .into_response();
+        }
+        Err(e) => return wallet_error_response(e),
+    };
+
+    let account_id = match client.account_for_user_readonly(user_id).await {
+        Ok(Some(a)) => a,
+        Ok(None) => {
+            return (
+                StatusCode::PAYMENT_REQUIRED,
+                Json(json!({
+                    "error": "insufficient_funds",
+                    "message": "No wallet balance for this account",
+                })),
+            )
+                .into_response();
+        }
+        Err(e) => return wallet_error_response(e),
+    };
+
+    let req = DebitRequest {
+        account_id,
+        currency,
+        amount: body.amount,
+        source_kind,
+        reason: body.reason,
+        ref_type: body.ref_type,
+        ref_id: body.ref_id,
+        idempotency_key: body.idempotency_key,
+    };
+    match client.debit(req).await {
+        Ok(ledger_id) => {
+            invalidate_account_cache(account_id).await;
+            invalidate_caller_cache(user_id).await;
+            Json(ServiceDebitDiscordDto {
+                user_id,
+                account_id,
+                ledger_id,
+            })
+            .into_response()
         }
         Err(e) => wallet_error_response(e),
     }
