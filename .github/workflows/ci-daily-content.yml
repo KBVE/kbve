@@ -18,6 +18,7 @@ on:
 permissions:
     contents: write
     pull-requests: write
+    actions: write
 
 concurrency:
     group: daily-content
@@ -153,6 +154,7 @@ jobs:
                     --content-root "$GITHUB_WORKSPACE/apps/kbve/astro-kbve/src/content/docs"
 
             - name: Create PR
+              id: pr
               env:
                   GH_TOKEN: ${{ github.token }}
               run: |
@@ -170,9 +172,21 @@ jobs:
                   git commit -m "chore(content): daily ${{ matrix.route }} scaffold [skip ci]"
                   git push origin "${BRANCH}"
 
-                  gh pr create \
+                  PR_URL=$(gh pr create \
                     --base dev \
                     --head "${BRANCH}" \
                     --title "chore(content): daily ${{ matrix.route }} scaffold" \
-                    --body "Automated daily content update for route \`${{ matrix.route }}\`. Review and fill in before merge." \
-                    --label "auto-pr"
+                    --body "Automated daily content update for route \`${{ matrix.route }}\`." \
+                    --label "auto-pr")
+
+                  PR_NUM=$(echo "$PR_URL" | grep -o '[0-9]*$')
+                  echo "Created PR #${PR_NUM}"
+                  echo "pr_number=${PR_NUM}" >> "$GITHUB_OUTPUT"
+
+            - name: Dispatch auto-merge
+              if: steps.pr.outputs.pr_number != ''
+              uses: ./.github/actions/dispatch-auto-merge
+              with:
+                  pr_number: ${{ steps.pr.outputs.pr_number }}
+                  ref: dev
+                  github_token: ${{ github.token }}

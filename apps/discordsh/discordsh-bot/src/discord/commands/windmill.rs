@@ -5,10 +5,14 @@ use crate::discord::bot::{Context, Error};
 use crate::discord::windmill::{DiscordContext, split_args};
 use crate::discord::windmill_embed;
 
+/// Windmill script run when `/wm` is invoked with no script name — renders the
+/// self-listing command menu (`f/discordsh/help`).
+const WM_INDEX_PATH: &str = "help";
+
 #[poise::command(slash_command, rename = "wm")]
 pub async fn wm(
     ctx: Context<'_>,
-    #[description = "Script name (e.g. poem) → f/discordsh/; only the f/discordsh/ folder is reachable"] wm_path: String,
+    #[description = "Script name (e.g. poem) → f/discordsh/; blank lists every command"] wm_path: Option<String>,
     #[description = "Space-separated args"] args: Option<String>,
 ) -> Result<(), Error> {
     let Some(cfg) = ctx.data().app.windmill.clone() else {
@@ -21,6 +25,10 @@ pub async fn wm(
         return Ok(());
     };
 
+    let wm_path = wm_path
+        .map(|s| s.trim().to_owned())
+        .filter(|s| !s.is_empty())
+        .unwrap_or_else(|| WM_INDEX_PATH.to_owned());
     let args = args.map(|s| split_args(&s)).unwrap_or_default();
     let path_for_log = wm_path.clone();
     let arg_count = args.len();

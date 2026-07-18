@@ -1,0 +1,30 @@
+summary: List every available /wm command
+description: >-
+  /wm index. Queries the Windmill scripts API for the f/discordsh/ folder and
+  renders each surface script's summary as an embed — the menu bare /wm shows.
+  Self-updating: a new command appears here the moment its script syncs, no bot
+  rebuild. Uses the job-scoped WM_TOKEN. Bun runtime, no dependencies.
+kind: script
+lock: ''
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  order:
+    - args
+    - discord
+  properties:
+    args:
+      type: array
+      description: Ignored; present so the bot's generic {args, discord} call shape works.
+      items:
+        type: string
+      default: []
+    discord:
+      type: object
+      description: Discord invocation context injected by the bot.
+      properties:
+        user_id: { type: string }
+        username: { type: string }
+        guild_id: { type: string }
+        channel_id: { type: string }
+  required: []

@@ -1,0 +1,19 @@
+summary: Fetch a definition from Urban Dictionary (shared core)
+description: >-
+  Shared library parent. Exports fetchDefinition() imported by the surface
+  wrappers (f/discordsh/ud, f/discordsh/urbandictionary). SYSTEM tier — never
+  invoked directly from a browser; the proxy rejects any browser call outside
+  f/web/*. Bun, no deps.
+kind: script
+lock: ''
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  order:
+    - term
+  properties:
+    term:
+      type: string
+      description: Term to define; blank returns a random entry.
+      default: ''
+  required: []

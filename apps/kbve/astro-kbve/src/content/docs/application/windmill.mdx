@@ -247,10 +247,16 @@ KBVE self-hosts Windmill on the cluster and drives it two ways: from **Discord**
 
 | Command | What it does |
 | ------- | ------------ |
+| `/wm` | With no script name, lists every available command — see [the index below](#index) |
 | `/wm poem` | Fetches a random poem from PoetryDB — `/wm poem Emily Dickinson` filters by author |
 | `/wm npm` | Lists the maintained `@kbve` npm packages live from the registry — `/wm npm laser` filters to one |
+| `/wm ud` | Defines a term via Urban Dictionary — `/wm ud yeet`; `/wm urbandictionary` is a long-form alias |
 
 **Scripts live in the monorepo.** Every `/wm` target is a plain TypeScript file checked into `apps/windmill/` and written for the fast **Bun** runtime with zero dependencies. Each script returns a generic **embed contract** — a `{ embed: { title, description, fields, ... } }` object — and a single renderer in the bot turns that into a Discord message. Adding a new command is just adding a new script.
+
+<span id="index" />
+
+**A self-listing menu.** Invoking `/wm` with no script name runs `f/discordsh/help`, which queries Windmill's own scripts API (`scripts/list`, scoped to the `f/discordsh/` folder) and renders each surface script's `summary` as an embed field. The menu is **self-updating** — the moment a new command syncs into the workspace it appears in `/wm`, with no bot rebuild. The bot simply substitutes the `help` path when the slash-command argument is blank; the listing itself is a script like any other, so it uses the job-scoped `WM_TOKEN` and reaches the API over the cluster-internal address.
 
 **One core, many surfaces.** Scripts are organised by the surface that invokes them — `f/discordsh/*` for the Discord bot, `f/web/*` for the website dashboard — with reusable logic factored into a shared parent under `f/shared/*`. A surface script stays a thin wrapper: `f/discordsh/poem` and `f/web/poem` both import the same `fetchPoem()` from `f/shared/poem` and only differ in how they shape the result (a Discord embed versus a plain dashboard object). The logic lives once; each surface keeps its own tightly-scoped entry point.
 
