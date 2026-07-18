@@ -76,7 +76,9 @@ impl ServiceProxy {
                 .await
                 .map(|_| ())
         } else {
-            require_dashboard_view_with_query(&req_headers, raw_query.as_deref(), self.name).await
+            require_dashboard_view_with_query(&req_headers, raw_query.as_deref(), self.name)
+                .await
+                .map(|_| ())
         };
 
         if let Err(resp) = gate {
