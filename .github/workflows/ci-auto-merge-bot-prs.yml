@@ -164,19 +164,25 @@ jobs:
                         return;
                       }
 
-                      // 4. Title — three supported patterns:
+                      // 4. Title — four supported patterns:
                       //    a) "Atomic: <APP> v<VER> ..." — post-publish sync (manifest-validated)
                       //    b) "chore(<PKG>): update version.toml to <VER>" — post-publish version sync
                       //    c) "deploy(<SCOPE>): ..." — automated deploy PRs (path-prefix-validated)
+                      //    d) "chore(ci): sync ci-dispatch-manifest" — leading-edge manifest
+                      //       regen (ci-manifest-sync.yml). Manifest-only; closes the publish
+                      //       deadlock where a bumped MDX never triggers a publish because the
+                      //       manifest that gates it is still stale.
                       const atomicMatch = title.match(/^Atomic:\s+(.+?)\s+v(\d+\.\d+\.\d+)/);
                       const choreMatch = title.match(/^chore\(([a-zA-Z0-9_-]+)\):\s+update version\.toml to (\d+\.\d+\.\d+)/);
                       const deployMatch = title.match(/^deploy\(([a-zA-Z0-9_-]+)\):/);
+                      const manifestSyncMatch = title.match(/^chore\(ci\):\s+sync ci-dispatch-manifest$/);
 
-                      if (!atomicMatch && !choreMatch && !deployMatch) {
+                      if (!atomicMatch && !choreMatch && !deployMatch && !manifestSyncMatch) {
                         core.setFailed(
                           `Title '${title}' does not match "Atomic: <app> v<semver> ...", ` +
                           `"chore(<pkg>): update version.toml to <semver>", ` +
-                          `or "deploy(<scope>): ..." — aborting.`
+                          `"deploy(<scope>): ...", ` +
+                          `or "chore(ci): sync ci-dispatch-manifest" — aborting.`
                         );
                         return;
                       }
@@ -252,6 +258,18 @@ jobs:
                           return;
                         }
 
+                        blocked = changedFiles.filter(f => !allowedFiles.has(f));
+                      } else if (manifestSyncMatch) {
+                        // --- Path C: leading-edge manifest sync (manifest-only) ---
+                        // ci-manifest-sync.yml regenerates the dispatch manifest on
+                        // dev when the MDX bumps a version the stale manifest hasn't
+                        // caught up to. The ONLY permitted change is the manifest file
+                        // itself — anything else is out of scope and blocks.
+                        appName = 'ci-dispatch-manifest';
+                        core.info('[manifest-sync] manifest-only regen PR');
+                        const allowedFiles = new Set(
+                          ['.github/ci-dispatch-manifest.json'].map(sanitize)
+                        );
                         blocked = changedFiles.filter(f => !allowedFiles.has(f));
                       } else {
                         // --- Path B: deploy PRs (path-prefix-validated) ---
