@@ -300,6 +300,12 @@ ALTER FUNCTION store.service_order_for_pod(BIGINT) OWNER TO service_role;
 REVOKE ALL ON FUNCTION store.service_order_for_pod(BIGINT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION store.service_order_for_pod(BIGINT) TO service_role;
 
+-- store.topup was created in this migration; the definer RPCs run as
+-- service_role, so grant it (and the new sequence) explicitly.
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA store TO service_role;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA store TO service_role;
+REVOKE ALL ON store.topup FROM PUBLIC, anon, authenticated;
+
 NOTIFY pgrst, 'reload schema';
 
 -- migrate:down

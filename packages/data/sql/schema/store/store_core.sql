@@ -280,5 +280,10 @@ COMMENT ON TABLE store.topup IS
 --   access that project-wide DEFAULT PRIVILEGES might otherwise grant.
 -- ============================================================================
 
+-- The definer RPCs run as service_role, which needs explicit table + sequence
+-- grants (never rely on the implicit PUBLIC privileges the REVOKE below strips).
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA store TO service_role;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA store TO service_role;
+
 REVOKE ALL ON ALL TABLES IN SCHEMA store   FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON ALL TABLES IN SCHEMA private FROM PUBLIC, anon, authenticated;

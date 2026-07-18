@@ -1122,6 +1122,12 @@ ALTER FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) RO
 REVOKE ALL ON FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) TO service_role;
 
+-- The SECURITY DEFINER RPCs run as service_role, so service_role needs
+-- explicit table + sequence privileges (never rely on implicit PUBLIC grants,
+-- which the REVOKE below strips).
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA store TO service_role;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA store TO service_role;
+
 -- Defense-in-depth: store/private tables are reachable only via SECURITY
 -- DEFINER proxies (anon/authenticated have no schema USAGE). Explicitly revoke
 -- any table access that project-wide DEFAULT PRIVILEGES might otherwise grant.
