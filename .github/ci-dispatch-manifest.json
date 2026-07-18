@@ -539,7 +539,7 @@
 		{
 			"key": "devops",
 			"package_name": "devops",
-			"version": "0.0.22",
+			"version": "0.1.0",
 			"version_toml": "packages/npm/devops/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/devops.mdx",
 			"version_target": "packages/npm/devops/package.json"
