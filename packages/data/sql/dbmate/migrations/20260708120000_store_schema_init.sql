@@ -128,6 +128,30 @@ REVOKE ALL ON FUNCTION private.proxy_store_caller_account() FROM PUBLIC, anon, a
 GRANT EXECUTE ON FUNCTION private.proxy_store_caller_account() TO service_role;
 
 -- ============================================================================
+-- store.purchase — durable digital-purchase receipt. One row per
+--   (account, idempotency_key): binds a purchase request to its minted item so
+--   a replay returns the same item without re-charging, even after the item was
+--   later sold / transferred / consumed. Complements (does not replace) the
+--   one-owned-copy inventory unique index, which stays the business rule.
+-- ============================================================================
+CREATE TABLE store.purchase (
+    purchase_id     BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    account_id      UUID NOT NULL REFERENCES wallet.account(id),
+    product_id      UUID NOT NULL REFERENCES store.product(product_id),
+    item_id         UUID NOT NULL,
+    price           BIGINT NOT NULL CHECK (price >= 0),
+    currency        wallet.currency_kind NOT NULL,
+    ledger_id       BIGINT,
+    idempotency_key UUID NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (account_id, idempotency_key)
+);
+CREATE INDEX store_purchase_account_created_idx
+    ON store.purchase (account_id, created_at DESC);
+COMMENT ON TABLE store.purchase IS
+    'Durable digital purchase receipts. Per (account, idempotency_key) result binding for replay-safe service_buy.';
+
+-- ============================================================================
 -- store.service_buy — atomic: debit credits + mint inventory.item.
 --   Idempotent by ownership: if the caller already holds the product, returns
 --   the existing item id without charging. Fresh purchases debit via
@@ -145,10 +169,12 @@ CREATE OR REPLACE FUNCTION store.service_buy(
 RETURNS UUID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_product     store.product%ROWTYPE;
-    v_existing    UUID;
-    v_ledger_id   BIGINT;
-    v_item_id     UUID;
+    v_product         store.product%ROWTYPE;
+    v_existing        UUID;
+    v_receipt_product UUID;
+    v_receipt_item    UUID;
+    v_ledger_id       BIGINT;
+    v_item_id         UUID;
 BEGIN
     IF p_account IS NULL OR p_slug IS NULL OR p_idempotency_key IS NULL THEN
         RAISE EXCEPTION 'account, slug and idempotency_key are required'
@@ -171,6 +197,20 @@ BEGIN
             USING ERRCODE = 'P1001';
     END IF;
 
+    -- Durable key idempotency: a recorded receipt returns the same item
+    -- without re-charging, even if the item was later sold/transferred/
+    -- consumed. Reusing a key for a DIFFERENT product is rejected.
+    SELECT product_id, item_id INTO v_receipt_product, v_receipt_item
+      FROM store.purchase
+     WHERE account_id = p_account AND idempotency_key = p_idempotency_key;
+    IF FOUND THEN
+        IF v_receipt_product <> v_product.product_id THEN
+            RAISE EXCEPTION 'idempotency_key reused for a different product'
+                USING ERRCODE = '40001';
+        END IF;
+        RETURN v_receipt_item;
+    END IF;
+
     -- Dupe guard: one copy per account. held or escrowed both count as owned.
     SELECT id INTO v_existing
       FROM inventory.item
@@ -180,54 +220,64 @@ BEGIN
        AND state IN ('held', 'listing_escrow')
      LIMIT 1;
     IF v_existing IS NOT NULL THEN
-        RETURN v_existing;
-    END IF;
+        v_item_id := v_existing;
+    ELSE
+        -- Free products (price 0) skip the debit: wallet.service_debit rejects
+        -- non-positive amounts. Paid products debit authoritatively.
+        IF v_product.price > 0 THEN
+            v_ledger_id := wallet.service_debit(
+                p_account,
+                v_product.currency,
+                v_product.price,
+                'purchase'::wallet.source_kind,
+                'store purchase: ' || v_product.slug,
+                'store_product:' || v_product.slug,
+                NULL,
+                p_idempotency_key
+            );
+        END IF;
 
-    -- Free products (price 0) skip the debit: wallet.service_debit rejects
-    -- non-positive amounts. Paid products debit authoritatively.
-    IF v_product.price > 0 THEN
-        v_ledger_id := wallet.service_debit(
-            p_account,
-            v_product.currency,
-            v_product.price,
-            'purchase'::wallet.source_kind,
-            'store purchase: ' || v_product.slug,
-            'store_product:' || v_product.slug,
-            NULL,
-            p_idempotency_key
+        INSERT INTO inventory.item (
+            owner_account, kind, ref, qty, nbt, state, source, source_ref
+        ) VALUES (
+            p_account, 'store_product', v_product.slug, 1,
+            jsonb_build_object(
+                'product_id', v_product.product_id,
+                'title',      v_product.title,
+                'asset_ref',  v_product.asset_ref
+            ),
+            'held', 'store',
+            jsonb_build_object(
+                'product_id', v_product.product_id,
+                'slug',       v_product.slug,
+                'ledger_id',  v_ledger_id
+            )
+        )
+        RETURNING id INTO v_item_id;
+
+        INSERT INTO inventory.transition (item_id, from_state, to_state, actor, reason, metadata)
+        VALUES (
+            v_item_id, 'transit_in', 'held', 'store', 'store_purchase',
+            jsonb_build_object(
+                'product_id', v_product.product_id,
+                'slug',       v_product.slug,
+                'price',      v_product.price,
+                'currency',   v_product.currency,
+                'free',       (v_product.price = 0),
+                'ledger_id',  v_ledger_id
+            )
         );
     END IF;
 
-    INSERT INTO inventory.item (
-        owner_account, kind, ref, qty, nbt, state, source, source_ref
+    -- Record the durable receipt for this key (both fresh-mint and
+    -- already-owned paths), so a later replay returns this exact item.
+    INSERT INTO store.purchase (
+        account_id, product_id, item_id, price, currency, ledger_id, idempotency_key
     ) VALUES (
-        p_account, 'store_product', v_product.slug, 1,
-        jsonb_build_object(
-            'product_id', v_product.product_id,
-            'title',      v_product.title,
-            'asset_ref',  v_product.asset_ref
-        ),
-        'held', 'store',
-        jsonb_build_object(
-            'product_id', v_product.product_id,
-            'slug',       v_product.slug,
-            'ledger_id',  v_ledger_id
-        )
+        p_account, v_product.product_id, v_item_id, v_product.price,
+        v_product.currency, v_ledger_id, p_idempotency_key
     )
-    RETURNING id INTO v_item_id;
-
-    INSERT INTO inventory.transition (item_id, from_state, to_state, actor, reason, metadata)
-    VALUES (
-        v_item_id, 'transit_in', 'held', 'store', 'store_purchase',
-        jsonb_build_object(
-            'product_id', v_product.product_id,
-            'slug',       v_product.slug,
-            'price',      v_product.price,
-            'currency',   v_product.currency,
-            'free',       (v_product.price = 0),
-            'ledger_id',  v_ledger_id
-        )
-    );
+    ON CONFLICT (account_id, idempotency_key) DO NOTHING;
 
     RETURN v_item_id;
 END;
@@ -325,7 +375,11 @@ CREATE TABLE store.product_variant (
     status      TEXT NOT NULL DEFAULT 'active'
                 CHECK (status IN ('active', 'hidden', 'retired')),
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    -- Composite target so store.order can carry a (product_id, variant_id)
+    -- FK: guarantees an order's variant always belongs to its product, even
+    -- for direct/maintenance writes that bypass service_buy_physical.
+    CONSTRAINT store_variant_product_variant_uq UNIQUE (product_id, variant_id)
 );
 
 -- Serves the detail RPC's (product_id, status='active' ORDER BY created_at)
@@ -597,19 +651,37 @@ CREATE TABLE store.order (
     order_id         BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     account_id       UUID NOT NULL REFERENCES wallet.account(id),
     product_id       UUID NOT NULL REFERENCES store.product(product_id),
-    variant_id       UUID REFERENCES store.product_variant(variant_id),
+    variant_id       UUID,
     qty              BIGINT NOT NULL DEFAULT 1 CHECK (qty > 0),
+    -- Immutable purchase snapshots. An order is a receipt: money + presentation
+    -- fields are captured at buy time and never follow later catalog edits
+    -- (rename / retire / reprice / currency change). Refunds use order.currency,
+    -- never the live product row.
+    currency         wallet.currency_kind NOT NULL DEFAULT 'credits',
+    unit_price       BIGINT NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
+    product_slug     TEXT,
+    product_title    TEXT,
+    variant_sku      TEXT,
+    variant_attributes JSONB NOT NULL DEFAULT '{}'::jsonb
+                     CHECK (jsonb_typeof(variant_attributes) = 'object'),
     credits_amount   BIGINT NOT NULL CHECK (credits_amount >= 0),
     ledger_id        BIGINT,
     twin_item_id     UUID,
     status           store.order_status NOT NULL DEFAULT 'paid',
     shipping_address JSONB NOT NULL DEFAULT '{}'::jsonb
-                     CHECK (jsonb_typeof(shipping_address) = 'object'),
+                     CHECK (jsonb_typeof(shipping_address) = 'object'
+                            AND octet_length(shipping_address::text) <= 16384),
     tracking         JSONB NOT NULL DEFAULT '{}'::jsonb
-                     CHECK (jsonb_typeof(tracking) = 'object'),
+                     CHECK (jsonb_typeof(tracking) = 'object'
+                            AND octet_length(tracking::text) <= 16384),
     idempotency_key  UUID NOT NULL UNIQUE,
     created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+    updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+    -- Variant must belong to product_id (NULL variant allowed — PG skips the
+    -- composite FK when any referencing column is NULL).
+    CONSTRAINT store_order_product_variant_fk
+        FOREIGN KEY (product_id, variant_id)
+        REFERENCES store.product_variant (product_id, variant_id)
 );
 
 CREATE INDEX store_order_account_created_idx
@@ -669,7 +741,8 @@ DECLARE
     v_amount    BIGINT;
     v_existing  store.order%ROWTYPE;
     v_ledger_id BIGINT;
-    v_twin_id   UUID;
+    v_twin_id     UUID;
+    v_twin_minted BOOLEAN := false;
     v_order_id  BIGINT;
 BEGIN
     IF p_account IS NULL OR p_variant_id IS NULL OR p_idempotency_key IS NULL THEN
@@ -683,17 +756,25 @@ BEGIN
         RAISE EXCEPTION 'qty too large (max 1000)' USING ERRCODE = '22023';
     END IF;
 
+    -- Serialize on (account, idempotency_key) — the durable dedupe identity.
+    -- Two concurrent requests sharing a key (even with different variants, a
+    -- client bug) block here and resolve through the replay guard below instead
+    -- of racing into the raw unique-constraint 23505. Variant stock is
+    -- serialized separately by the FOR UPDATE row lock further down.
     PERFORM pg_advisory_xact_lock(
-        hashtextextended('store.service_buy_physical:' || p_account::text || ':' || p_variant_id::text, 0)
+        hashtextextended('store.buy_physical:' || p_account::text || ':' || p_idempotency_key::text, 0)
     );
 
     -- Idempotent replay: same key must describe the same order, else raise so
-    -- a client bug (reused key, different variant/qty) is loud, not silent.
+    -- a client bug (reused key, different variant/qty/address) is loud, not
+    -- silent. shipping_address is part of the fingerprint so a replay with a
+    -- corrected address is rejected rather than silently dropped.
     SELECT * INTO v_existing FROM store.order WHERE idempotency_key = p_idempotency_key;
     IF FOUND THEN
         IF v_existing.account_id <> p_account
            OR v_existing.variant_id IS DISTINCT FROM p_variant_id
-           OR v_existing.qty <> v_qty THEN
+           OR v_existing.qty <> v_qty
+           OR v_existing.shipping_address IS DISTINCT FROM COALESCE(p_shipping_address, '{}'::jsonb) THEN
             RAISE EXCEPTION 'idempotency_key reused with a different order payload'
                 USING ERRCODE = '40001';
         END IF;
@@ -721,6 +802,14 @@ BEGIN
     IF v_product.fulfillment NOT IN ('physical', 'both') THEN
         RAISE EXCEPTION 'product % is not a physical product', v_product.slug
             USING ERRCODE = '22023';
+    END IF;
+
+    -- A physical order needs a real shipping address BEFORE money moves. An
+    -- empty {} must never yield a paid, unfulfillable order. (Field-level
+    -- validation of the address contract is enforced at the transport layer.)
+    IF COALESCE(p_shipping_address, '{}'::jsonb) = '{}'::jsonb THEN
+        RAISE EXCEPTION 'shipping_address is required for physical orders'
+            USING ERRCODE = '23514';
     END IF;
 
     -- Overflow-safe amount.
@@ -773,6 +862,7 @@ BEGIN
                                    'slug', v_product.slug, 'twin', true)
             )
             RETURNING id INTO v_twin_id;
+            v_twin_minted := true;
 
             INSERT INTO inventory.transition (item_id, from_state, to_state, actor, reason, metadata)
             VALUES (v_twin_id, 'transit_in', 'held', 'store', 'store_purchase_twin',
@@ -780,13 +870,20 @@ BEGIN
         END IF;
     END IF;
 
+    -- twin_item_id is set ONLY when THIS order minted the twin. If the buyer
+    -- already owned the digital copy from a separate purchase, leave it NULL so
+    -- a refund of this order never revokes an entitlement it did not create.
     INSERT INTO store.order (
-        account_id, product_id, variant_id, qty, credits_amount,
-        ledger_id, twin_item_id, status, shipping_address, idempotency_key
+        account_id, product_id, variant_id, qty,
+        currency, unit_price, product_slug, product_title, variant_sku, variant_attributes,
+        credits_amount, ledger_id, twin_item_id, status, shipping_address, idempotency_key
     ) VALUES (
-        p_account, v_product.product_id, p_variant_id, v_qty, v_amount,
-        v_ledger_id, v_twin_id, 'paid',
-        COALESCE(p_shipping_address, '{}'::jsonb), p_idempotency_key
+        p_account, v_product.product_id, p_variant_id, v_qty,
+        v_product.currency, v_variant.price, v_product.slug, v_product.title,
+        v_variant.sku, v_variant.attributes,
+        v_amount, v_ledger_id,
+        CASE WHEN v_twin_minted THEN v_twin_id ELSE NULL END,
+        'paid', COALESCE(p_shipping_address, '{}'::jsonb), p_idempotency_key
     )
     RETURNING order_id INTO v_order_id;
 
@@ -920,7 +1017,6 @@ RETURNS VOID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
     v_order     store.order%ROWTYPE;
-    v_currency  wallet.currency_kind;
     v_refund_id BIGINT;
 BEGIN
     SELECT * INTO v_order FROM store.order WHERE order_id = p_order_id FOR UPDATE;
@@ -935,11 +1031,12 @@ BEGIN
             USING ERRCODE = '22023';
     END IF;
 
-    SELECT currency INTO v_currency FROM store.product WHERE product_id = v_order.product_id;
-
+    -- Refund in the currency snapshotted on the order, never the live product
+    -- row — an admin currency change after purchase must not misdenominate the
+    -- refund.
     IF v_order.credits_amount > 0 THEN
         v_refund_id := wallet.service_credit(
-            v_order.account_id, v_currency, v_order.credits_amount,
+            v_order.account_id, v_order.currency, v_order.credits_amount,
             'refund'::wallet.source_kind, COALESCE(p_reason, 'store order refund'),
             'store_refund', v_order.order_id,
             md5('store_refund:' || v_order.order_id::text)::uuid
@@ -1025,6 +1122,12 @@ ALTER FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) RO
 REVOKE ALL ON FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) TO service_role;
 
+-- Defense-in-depth: store/private tables are reachable only via SECURITY
+-- DEFINER proxies (anon/authenticated have no schema USAGE). Explicitly revoke
+-- any table access that project-wide DEFAULT PRIVILEGES might otherwise grant.
+REVOKE ALL ON ALL TABLES IN SCHEMA store FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON ALL TABLES IN SCHEMA private FROM PUBLIC, anon, authenticated;
+
 NOTIFY pgrst, 'reload schema';
 
 -- migrate:down
@@ -1059,6 +1162,7 @@ DROP FUNCTION IF EXISTS public.proxy_store_my_entitlements_readonly();
 DROP FUNCTION IF EXISTS store.service_buy(UUID, TEXT, UUID);
 DROP FUNCTION IF EXISTS private.proxy_store_caller_account();
 DROP INDEX IF EXISTS inventory.inventory_item_store_product_owned_uq;
+DROP TABLE IF EXISTS store.purchase;
 DROP TABLE IF EXISTS store.product;
 DROP SCHEMA IF EXISTS store;
 

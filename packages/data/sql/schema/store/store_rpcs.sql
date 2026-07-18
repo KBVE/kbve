@@ -171,10 +171,12 @@ CREATE OR REPLACE FUNCTION store.service_buy(
 RETURNS UUID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_product     store.product%ROWTYPE;
-    v_existing    UUID;
-    v_ledger_id   BIGINT;
-    v_item_id     UUID;
+    v_product         store.product%ROWTYPE;
+    v_existing        UUID;
+    v_receipt_product UUID;
+    v_receipt_item    UUID;
+    v_ledger_id       BIGINT;
+    v_item_id         UUID;
 BEGIN
     IF p_account IS NULL OR p_slug IS NULL OR p_idempotency_key IS NULL THEN
         RAISE EXCEPTION 'account, slug and idempotency_key are required'
@@ -197,6 +199,20 @@ BEGIN
             USING ERRCODE = 'P1001';
     END IF;
 
+    -- Durable key idempotency: a recorded receipt returns the same item
+    -- without re-charging, even if the item was later sold/transferred/
+    -- consumed. Reusing a key for a DIFFERENT product is rejected.
+    SELECT product_id, item_id INTO v_receipt_product, v_receipt_item
+      FROM store.purchase
+     WHERE account_id = p_account AND idempotency_key = p_idempotency_key;
+    IF FOUND THEN
+        IF v_receipt_product <> v_product.product_id THEN
+            RAISE EXCEPTION 'idempotency_key reused for a different product'
+                USING ERRCODE = '40001';
+        END IF;
+        RETURN v_receipt_item;
+    END IF;
+
     -- Dupe guard: one copy per account. held or escrowed both count as owned.
     SELECT id INTO v_existing
       FROM inventory.item
@@ -206,54 +222,64 @@ BEGIN
        AND state IN ('held', 'listing_escrow')
      LIMIT 1;
     IF v_existing IS NOT NULL THEN
-        RETURN v_existing;
-    END IF;
+        v_item_id := v_existing;
+    ELSE
+        -- Free products (price 0) skip the debit: wallet.service_debit rejects
+        -- non-positive amounts. Paid products debit authoritatively.
+        IF v_product.price > 0 THEN
+            v_ledger_id := wallet.service_debit(
+                p_account,
+                v_product.currency,
+                v_product.price,
+                'purchase'::wallet.source_kind,
+                'store purchase: ' || v_product.slug,
+                'store_product:' || v_product.slug,
+                NULL,
+                p_idempotency_key
+            );
+        END IF;
 
-    -- Free products (price 0) skip the debit: wallet.service_debit rejects
-    -- non-positive amounts. Paid products debit authoritatively.
-    IF v_product.price > 0 THEN
-        v_ledger_id := wallet.service_debit(
-            p_account,
-            v_product.currency,
-            v_product.price,
-            'purchase'::wallet.source_kind,
-            'store purchase: ' || v_product.slug,
-            'store_product:' || v_product.slug,
-            NULL,
-            p_idempotency_key
+        INSERT INTO inventory.item (
+            owner_account, kind, ref, qty, nbt, state, source, source_ref
+        ) VALUES (
+            p_account, 'store_product', v_product.slug, 1,
+            jsonb_build_object(
+                'product_id', v_product.product_id,
+                'title',      v_product.title,
+                'asset_ref',  v_product.asset_ref
+            ),
+            'held', 'store',
+            jsonb_build_object(
+                'product_id', v_product.product_id,
+                'slug',       v_product.slug,
+                'ledger_id',  v_ledger_id
+            )
+        )
+        RETURNING id INTO v_item_id;
+
+        INSERT INTO inventory.transition (item_id, from_state, to_state, actor, reason, metadata)
+        VALUES (
+            v_item_id, 'transit_in', 'held', 'store', 'store_purchase',
+            jsonb_build_object(
+                'product_id', v_product.product_id,
+                'slug',       v_product.slug,
+                'price',      v_product.price,
+                'currency',   v_product.currency,
+                'free',       (v_product.price = 0),
+                'ledger_id',  v_ledger_id
+            )
         );
     END IF;
 
-    INSERT INTO inventory.item (
-        owner_account, kind, ref, qty, nbt, state, source, source_ref
+    -- Record the durable receipt for this key (both fresh-mint and
+    -- already-owned paths), so a later replay returns this exact item.
+    INSERT INTO store.purchase (
+        account_id, product_id, item_id, price, currency, ledger_id, idempotency_key
     ) VALUES (
-        p_account, 'store_product', v_product.slug, 1,
-        jsonb_build_object(
-            'product_id', v_product.product_id,
-            'title',      v_product.title,
-            'asset_ref',  v_product.asset_ref
-        ),
-        'held', 'store',
-        jsonb_build_object(
-            'product_id', v_product.product_id,
-            'slug',       v_product.slug,
-            'ledger_id',  v_ledger_id
-        )
+        p_account, v_product.product_id, v_item_id, v_product.price,
+        v_product.currency, v_ledger_id, p_idempotency_key
     )
-    RETURNING id INTO v_item_id;
-
-    INSERT INTO inventory.transition (item_id, from_state, to_state, actor, reason, metadata)
-    VALUES (
-        v_item_id, 'transit_in', 'held', 'store', 'store_purchase',
-        jsonb_build_object(
-            'product_id', v_product.product_id,
-            'slug',       v_product.slug,
-            'price',      v_product.price,
-            'currency',   v_product.currency,
-            'free',       (v_product.price = 0),
-            'ledger_id',  v_ledger_id
-        )
-    );
+    ON CONFLICT (account_id, idempotency_key) DO NOTHING;
 
     RETURN v_item_id;
 END;
@@ -486,7 +512,8 @@ DECLARE
     v_amount    BIGINT;
     v_existing  store.order%ROWTYPE;
     v_ledger_id BIGINT;
-    v_twin_id   UUID;
+    v_twin_id     UUID;
+    v_twin_minted BOOLEAN := false;
     v_order_id  BIGINT;
 BEGIN
     IF p_account IS NULL OR p_variant_id IS NULL OR p_idempotency_key IS NULL THEN
@@ -500,17 +527,25 @@ BEGIN
         RAISE EXCEPTION 'qty too large (max 1000)' USING ERRCODE = '22023';
     END IF;
 
+    -- Serialize on (account, idempotency_key) — the durable dedupe identity.
+    -- Two concurrent requests sharing a key (even with different variants, a
+    -- client bug) block here and resolve through the replay guard below instead
+    -- of racing into the raw unique-constraint 23505. Variant stock is
+    -- serialized separately by the FOR UPDATE row lock further down.
     PERFORM pg_advisory_xact_lock(
-        hashtextextended('store.service_buy_physical:' || p_account::text || ':' || p_variant_id::text, 0)
+        hashtextextended('store.buy_physical:' || p_account::text || ':' || p_idempotency_key::text, 0)
     );
 
     -- Idempotent replay: same key must describe the same order, else raise so
-    -- a client bug (reused key, different variant/qty) is loud, not silent.
+    -- a client bug (reused key, different variant/qty/address) is loud, not
+    -- silent. shipping_address is part of the fingerprint so a replay with a
+    -- corrected address is rejected rather than silently dropped.
     SELECT * INTO v_existing FROM store.order WHERE idempotency_key = p_idempotency_key;
     IF FOUND THEN
         IF v_existing.account_id <> p_account
            OR v_existing.variant_id IS DISTINCT FROM p_variant_id
-           OR v_existing.qty <> v_qty THEN
+           OR v_existing.qty <> v_qty
+           OR v_existing.shipping_address IS DISTINCT FROM COALESCE(p_shipping_address, '{}'::jsonb) THEN
             RAISE EXCEPTION 'idempotency_key reused with a different order payload'
                 USING ERRCODE = '40001';
         END IF;
@@ -538,6 +573,14 @@ BEGIN
     IF v_product.fulfillment NOT IN ('physical', 'both') THEN
         RAISE EXCEPTION 'product % is not a physical product', v_product.slug
             USING ERRCODE = '22023';
+    END IF;
+
+    -- A physical order needs a real shipping address BEFORE money moves. An
+    -- empty {} must never yield a paid, unfulfillable order. (Field-level
+    -- validation of the address contract is enforced at the transport layer.)
+    IF COALESCE(p_shipping_address, '{}'::jsonb) = '{}'::jsonb THEN
+        RAISE EXCEPTION 'shipping_address is required for physical orders'
+            USING ERRCODE = '23514';
     END IF;
 
     -- Overflow-safe amount.
@@ -590,6 +633,7 @@ BEGIN
                                    'slug', v_product.slug, 'twin', true)
             )
             RETURNING id INTO v_twin_id;
+            v_twin_minted := true;
 
             INSERT INTO inventory.transition (item_id, from_state, to_state, actor, reason, metadata)
             VALUES (v_twin_id, 'transit_in', 'held', 'store', 'store_purchase_twin',
@@ -597,13 +641,20 @@ BEGIN
         END IF;
     END IF;
 
+    -- twin_item_id is set ONLY when THIS order minted the twin. If the buyer
+    -- already owned the digital copy from a separate purchase, leave it NULL so
+    -- a refund of this order never revokes an entitlement it did not create.
     INSERT INTO store.order (
-        account_id, product_id, variant_id, qty, credits_amount,
-        ledger_id, twin_item_id, status, shipping_address, idempotency_key
+        account_id, product_id, variant_id, qty,
+        currency, unit_price, product_slug, product_title, variant_sku, variant_attributes,
+        credits_amount, ledger_id, twin_item_id, status, shipping_address, idempotency_key
     ) VALUES (
-        p_account, v_product.product_id, p_variant_id, v_qty, v_amount,
-        v_ledger_id, v_twin_id, 'paid',
-        COALESCE(p_shipping_address, '{}'::jsonb), p_idempotency_key
+        p_account, v_product.product_id, p_variant_id, v_qty,
+        v_product.currency, v_variant.price, v_product.slug, v_product.title,
+        v_variant.sku, v_variant.attributes,
+        v_amount, v_ledger_id,
+        CASE WHEN v_twin_minted THEN v_twin_id ELSE NULL END,
+        'paid', COALESCE(p_shipping_address, '{}'::jsonb), p_idempotency_key
     )
     RETURNING order_id INTO v_order_id;
 
@@ -737,7 +788,6 @@ RETURNS VOID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
     v_order     store.order%ROWTYPE;
-    v_currency  wallet.currency_kind;
     v_refund_id BIGINT;
 BEGIN
     SELECT * INTO v_order FROM store.order WHERE order_id = p_order_id FOR UPDATE;
@@ -752,11 +802,12 @@ BEGIN
             USING ERRCODE = '22023';
     END IF;
 
-    SELECT currency INTO v_currency FROM store.product WHERE product_id = v_order.product_id;
-
+    -- Refund in the currency snapshotted on the order, never the live product
+    -- row — an admin currency change after purchase must not misdenominate the
+    -- refund.
     IF v_order.credits_amount > 0 THEN
         v_refund_id := wallet.service_credit(
-            v_order.account_id, v_currency, v_order.credits_amount,
+            v_order.account_id, v_order.currency, v_order.credits_amount,
             'refund'::wallet.source_kind, COALESCE(p_reason, 'store order refund'),
             'store_refund', v_order.order_id,
             md5('store_refund:' || v_order.order_id::text)::uuid
@@ -860,47 +911,69 @@ CREATE OR REPLACE FUNCTION store.service_apply_topup(
 RETURNS BIGINT
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_account    UUID;
-    v_existing   BIGINT;
-    v_ledger_id  BIGINT;
-    v_session_id TEXT := NULLIF(btrim(p_stripe_session_id), '');
+    v_account       UUID;
+    v_row           store.topup%ROWTYPE;
+    v_ledger_id     BIGINT;
+    v_event_id      TEXT := btrim(p_stripe_event_id);
+    v_session_id    TEXT := NULLIF(btrim(p_stripe_session_id), '');
+    v_currency_fiat TEXT := lower(btrim(COALESCE(p_currency_fiat, 'usd')));
 BEGIN
-    IF p_user_id IS NULL OR coalesce(length(p_stripe_event_id), 0) = 0
+    IF p_user_id IS NULL OR coalesce(length(v_event_id), 0) = 0
        OR p_credits IS NULL OR p_credits <= 0 THEN
         RAISE EXCEPTION 'user_id, stripe_event_id and positive credits are required'
             USING ERRCODE = '22004';
     END IF;
-
-    -- Session-level idempotency first: two distinct Stripe events can reference
-    -- the same Checkout Session (the thing that must not be credited twice).
-    -- Lock + check on the session so the duplicate returns the existing ledger
-    -- id instead of doing work and failing on store_topup_stripe_session_uq.
-    IF v_session_id IS NOT NULL THEN
-        PERFORM pg_advisory_xact_lock(
-            hashtextextended('store.topup.session:' || v_session_id, 0));
-        SELECT ledger_id INTO v_existing
-          FROM store.topup WHERE stripe_session_id = v_session_id;
-        IF FOUND THEN
-            RETURN v_existing;
-        END IF;
+    IF p_amount_cents IS NULL OR p_amount_cents <= 0 THEN
+        RAISE EXCEPTION 'amount_cents must be positive' USING ERRCODE = '22023';
     END IF;
-
-    -- Serialize concurrent webhook deliveries for this event so the losing
-    -- delivery returns the existing ledger id idempotently instead of hitting
-    -- the unique constraint and rolling back.
-    PERFORM pg_advisory_xact_lock(hashtextextended('store.topup:' || p_stripe_event_id, 0));
-
-    -- Idempotent replay: this Stripe event already applied (re-checked under lock).
-    SELECT ledger_id INTO v_existing
-      FROM store.topup WHERE stripe_event_id = p_stripe_event_id;
-    IF FOUND THEN
-        RETURN v_existing;
+    IF v_currency_fiat !~ '^[a-z]{3}$' THEN
+        RAISE EXCEPTION 'currency_fiat must be a 3-letter ISO code' USING ERRCODE = '22023';
     END IF;
 
     SELECT id INTO v_account
       FROM wallet.account WHERE kind = 'user' AND user_id = p_user_id;
     IF v_account IS NULL THEN
         RAISE EXCEPTION 'wallet_account_missing' USING ERRCODE = 'WLT01';
+    END IF;
+
+    -- Session-level idempotency first: two distinct Stripe events can reference
+    -- the same Checkout Session (the thing that must not be credited twice).
+    -- On replay, validate the recorded row's immutable fingerprint — a
+    -- duplicate carrying contradictory account/credits/fiat data fails loudly
+    -- rather than being accepted as a successful replay.
+    IF v_session_id IS NOT NULL THEN
+        PERFORM pg_advisory_xact_lock(
+            hashtextextended('store.topup.session:' || v_session_id, 0));
+        SELECT * INTO v_row FROM store.topup WHERE stripe_session_id = v_session_id;
+        IF FOUND THEN
+            IF v_row.account_id <> v_account
+               OR v_row.credits_granted <> p_credits
+               OR v_row.amount_cents <> p_amount_cents
+               OR v_row.currency_fiat <> v_currency_fiat THEN
+                RAISE EXCEPTION 'topup replay payload mismatch for session %', v_session_id
+                    USING ERRCODE = '40001';
+            END IF;
+            RETURN v_row.ledger_id;
+        END IF;
+    END IF;
+
+    -- Serialize concurrent webhook deliveries for this event so the losing
+    -- delivery returns the existing ledger id idempotently instead of hitting
+    -- the unique constraint and rolling back.
+    PERFORM pg_advisory_xact_lock(hashtextextended('store.topup:' || v_event_id, 0));
+
+    -- Idempotent replay: this Stripe event already applied (re-checked under
+    -- lock), with the same fingerprint validation.
+    SELECT * INTO v_row FROM store.topup WHERE stripe_event_id = v_event_id;
+    IF FOUND THEN
+        IF v_row.account_id <> v_account
+           OR v_row.credits_granted <> p_credits
+           OR v_row.amount_cents <> p_amount_cents
+           OR v_row.currency_fiat <> v_currency_fiat THEN
+            RAISE EXCEPTION 'topup replay payload mismatch for event %', v_event_id
+                USING ERRCODE = '40001';
+        END IF;
+        RETURN v_row.ledger_id;
     END IF;
 
     -- Deterministic wallet idempotency key derived from the Stripe event, so
@@ -914,16 +987,15 @@ BEGIN
         'stripe credit topup',
         'stripe_session',
         NULL,
-        md5('store_topup:' || p_stripe_event_id)::uuid
+        md5('store_topup:' || v_event_id)::uuid
     );
 
     INSERT INTO store.topup (
         account_id, stripe_event_id, stripe_session_id,
         credits_granted, amount_cents, currency_fiat, ledger_id
     ) VALUES (
-        v_account, p_stripe_event_id, v_session_id,
-        p_credits, COALESCE(p_amount_cents, 0),
-        COALESCE(p_currency_fiat, 'usd'), v_ledger_id
+        v_account, v_event_id, v_session_id,
+        p_credits, p_amount_cents, v_currency_fiat, v_ledger_id
     );
 
     RETURN v_ledger_id;
@@ -946,24 +1018,45 @@ CREATE OR REPLACE FUNCTION store.service_attach_pod_ref(
 RETURNS VOID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_new    JSONB := COALESCE(p_pod_ref, '{}'::jsonb);
-    v_status store.order_status;
+    v_new      JSONB := COALESCE(p_pod_ref, '{}'::jsonb);
+    v_order    store.order%ROWTYPE;
+    v_provider TEXT := NULLIF(btrim(v_new->>'provider'), '');
+    v_ext_id   TEXT := NULLIF(btrim(v_new->>'external_order_id'), '');
+    v_pstatus  TEXT := NULLIF(btrim(v_new->>'status'), '');
 BEGIN
     IF jsonb_typeof(v_new) <> 'object' THEN
         RAISE EXCEPTION 'pod_ref must be a JSON object' USING ERRCODE = '22023';
     END IF;
-    IF NOT EXISTS (SELECT 1 FROM store.order WHERE order_id = p_order_id) THEN
-        RAISE EXCEPTION 'order % not found', p_order_id USING ERRCODE = 'P1001';
+    IF octet_length(v_new::text) > 16384 THEN
+        RAISE EXCEPTION 'pod_ref too large' USING ERRCODE = '22023';
     END IF;
+
+    -- Only a physical/both order still in the fulfillment pipeline may carry a
+    -- POD reference — never a digital, cancelled, or refunded order.
+    SELECT o.* INTO v_order
+      FROM store.order o
+      JOIN store.product p ON p.product_id = o.product_id
+     WHERE o.order_id = p_order_id
+       AND p.fulfillment IN ('physical', 'both')
+       AND o.status IN ('paid', 'processing', 'shipped')
+     FOR UPDATE OF o;
+    IF v_order.order_id IS NULL THEN
+        RAISE EXCEPTION 'order % not eligible for a POD reference', p_order_id
+            USING ERRCODE = 'P1001';
+    END IF;
+
     -- Idempotent: POD adapters/webhooks retry the same payload. Only write +
     -- log an event when pod_ref actually changes.
     UPDATE store.order
-       SET pod_ref = v_new, updated_at = now()
-     WHERE order_id = p_order_id AND pod_ref IS DISTINCT FROM v_new
-     RETURNING status INTO v_status;
+       SET pod_ref               = v_new,
+           pod_provider          = COALESCE(v_provider, pod_provider),
+           pod_external_order_id = COALESCE(v_ext_id, pod_external_order_id),
+           pod_status            = COALESCE(v_pstatus, pod_status),
+           updated_at            = now()
+     WHERE order_id = p_order_id AND pod_ref IS DISTINCT FROM v_new;
     IF FOUND THEN
         INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
-        VALUES (p_order_id, v_status, v_status, 'pod', 'pod_ref attached', v_new);
+        VALUES (p_order_id, v_order.status, v_order.status, 'pod', 'pod_ref attached', v_new);
     END IF;
 END;
 $$;
@@ -974,35 +1067,54 @@ GRANT EXECUTE ON FUNCTION store.service_attach_pod_ref(BIGINT, JSONB) TO service
 -- Order payload the POD adapter needs to place a fulfillment order. Only a
 -- fulfillable physical/both order in paid|processing is eligible; anything
 -- else raises so a bad adapter call can't submit an invalid order.
+-- Atomically CLAIM an order for POD submission. Locks the order, verifies
+-- eligibility, rejects an already-claimed order, then stamps the claim
+-- (pod_submitted_at) so a crash/retry cannot submit the same order to the
+-- provider twice. Returns the submission payload incl. a deterministic
+-- submission_key the adapter must pass as the provider's idempotency key.
+-- VOLATILE (writes the claim) — call on a write connection.
 CREATE OR REPLACE FUNCTION store.service_order_for_pod(p_order_id BIGINT)
 RETURNS JSONB
-LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = '' AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_payload JSONB;
+    v_order   store.order%ROWTYPE;
+    v_product store.product%ROWTYPE;
+    v_variant store.product_variant%ROWTYPE;
 BEGIN
-    SELECT jsonb_build_object(
-        'order_id',         o.order_id,
-        'qty',              o.qty,
-        'status',           o.status,
-        'shipping_address', o.shipping_address,
-        'pod_ref',          o.pod_ref,
-        'sku',              v.sku,
-        'attributes',       v.attributes,
-        'product_slug',     p.slug,
-        'product_title',    p.title
-    )
-      INTO v_payload
-      FROM store.order o
-      JOIN store.product p ON p.product_id = o.product_id
-      LEFT JOIN store.product_variant v ON v.variant_id = o.variant_id
-     WHERE o.order_id = p_order_id
-       AND o.status IN ('paid', 'processing')
-       AND p.fulfillment IN ('physical', 'both');
-    IF v_payload IS NULL THEN
+    SELECT * INTO v_order FROM store.order WHERE order_id = p_order_id FOR UPDATE;
+    IF v_order.order_id IS NULL THEN
+        RAISE EXCEPTION 'order % not found', p_order_id USING ERRCODE = 'P1001';
+    END IF;
+
+    SELECT * INTO v_product FROM store.product WHERE product_id = v_order.product_id;
+    IF v_order.status NOT IN ('paid', 'processing')
+       OR v_product.fulfillment NOT IN ('physical', 'both') THEN
         RAISE EXCEPTION 'order % not eligible for POD fulfillment', p_order_id
             USING ERRCODE = 'P1001';
     END IF;
-    RETURN v_payload;
+    IF v_order.pod_submitted_at IS NOT NULL THEN
+        RAISE EXCEPTION 'order % already claimed for POD fulfillment', p_order_id
+            USING ERRCODE = '55006';
+    END IF;
+
+    SELECT * INTO v_variant FROM store.product_variant WHERE variant_id = v_order.variant_id;
+
+    UPDATE store.order
+       SET pod_status = 'claimed', pod_submitted_at = now(), updated_at = now()
+     WHERE order_id = p_order_id;
+
+    RETURN jsonb_build_object(
+        'order_id',         v_order.order_id,
+        'qty',              v_order.qty,
+        'status',           v_order.status,
+        'shipping_address', v_order.shipping_address,
+        'pod_ref',          v_order.pod_ref,
+        'sku',              COALESCE(v_variant.sku, v_order.variant_sku),
+        'attributes',       COALESCE(v_variant.attributes, v_order.variant_attributes),
+        'product_slug',     COALESCE(v_product.slug, v_order.product_slug),
+        'product_title',    COALESCE(v_product.title, v_order.product_title),
+        'submission_key',   md5('store_pod:' || v_order.order_id::text)
+    );
 END;
 $$;
 ALTER FUNCTION store.service_order_for_pod(BIGINT) OWNER TO service_role;
