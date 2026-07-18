@@ -138,10 +138,20 @@ CREATE TABLE store.purchase (
     purchase_id     BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     account_id      UUID NOT NULL REFERENCES wallet.account(id),
     product_id      UUID NOT NULL REFERENCES store.product(product_id),
-    item_id         UUID NOT NULL,
+    -- FK to the minted entitlement so a receipt can never point at a
+    -- nonexistent item (RESTRICT: inventory items are state-machined, not
+    -- hard-deleted, so a live receipt must always keep a valid reference).
+    item_id         UUID NOT NULL REFERENCES inventory.item(id),
+    -- price is the amount ACTUALLY charged for this receipt (0 for a free
+    -- product or an already-owned no-op), never the mutable catalog price, so
+    -- ledger_id IS NULL <=> price = 0.
     price           BIGINT NOT NULL CHECK (price >= 0),
     currency        wallet.currency_kind NOT NULL,
     ledger_id       BIGINT,
+    -- What the buy resolved to: a fresh mint vs. a lookup of an already-owned
+    -- copy (no debit, no mint). Keeps the receipt honest for accounting.
+    result_kind     TEXT NOT NULL DEFAULT 'minted'
+                    CHECK (result_kind IN ('minted', 'already_owned')),
     idempotency_key UUID NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (account_id, idempotency_key)
@@ -175,31 +185,42 @@ DECLARE
     v_receipt_item    UUID;
     v_ledger_id       BIGINT;
     v_item_id         UUID;
+    v_charged         BIGINT := 0;
+    v_result_kind     TEXT := 'minted';
 BEGIN
     IF p_account IS NULL OR p_slug IS NULL OR p_idempotency_key IS NULL THEN
         RAISE EXCEPTION 'account, slug and idempotency_key are required'
             USING ERRCODE = '22004';
     END IF;
 
-    -- Serialize concurrent buys of the same (account, product) so the
-    -- ownership dupe-guard below is race-safe: the loser blocks here, then
-    -- sees the existing item and returns it idempotently instead of double
-    -- debiting. Taken BEFORE the debit. The unique index is the backstop.
+    -- Two advisory locks in a canonical order (key BEFORE slug — same order in
+    -- every call, so no deadlock). The key lock serializes concurrent requests
+    -- sharing an idempotency_key even across different products, so the durable
+    -- receipt is authoritative (a cross-product replay can't slip past). The
+    -- slug lock serializes same-product buys so the one-copy ownership guard is
+    -- race-safe. Both are held for the txn; the unique indexes are backstops.
+    PERFORM pg_advisory_xact_lock(
+        hashtextextended('store.service_buy.key:' || p_account::text || ':' || p_idempotency_key::text, 0)
+    );
     PERFORM pg_advisory_xact_lock(
         hashtextextended('store.service_buy:' || p_account::text || ':' || p_slug, 0)
     );
 
+    -- Resolve the product by slug at ANY status: a durable replay must return
+    -- the recorded item even after the product was hidden/retired. Only a fresh
+    -- purchase (below) requires an active product.
     SELECT * INTO v_product
       FROM store.product
-     WHERE slug = p_slug AND status = 'active';
+     WHERE slug = p_slug;
     IF v_product.product_id IS NULL THEN
-        RAISE EXCEPTION 'store product % not found or not active', p_slug
+        RAISE EXCEPTION 'store product % not found', p_slug
             USING ERRCODE = 'P1001';
     END IF;
 
     -- Durable key idempotency: a recorded receipt returns the same item
     -- without re-charging, even if the item was later sold/transferred/
-    -- consumed. Reusing a key for a DIFFERENT product is rejected.
+    -- consumed or the product was retired. Reusing a key for a DIFFERENT
+    -- product is rejected. Checked BEFORE the active-status gate.
     SELECT product_id, item_id INTO v_receipt_product, v_receipt_item
       FROM store.purchase
      WHERE account_id = p_account AND idempotency_key = p_idempotency_key;
@@ -211,6 +232,12 @@ BEGIN
         RETURN v_receipt_item;
     END IF;
 
+    -- A NEW purchase requires an active product.
+    IF v_product.status <> 'active' THEN
+        RAISE EXCEPTION 'store product % not active', p_slug
+            USING ERRCODE = 'P1001';
+    END IF;
+
     -- Dupe guard: one copy per account. held or escrowed both count as owned.
     SELECT id INTO v_existing
       FROM inventory.item
@@ -220,7 +247,12 @@ BEGIN
        AND state IN ('held', 'listing_escrow')
      LIMIT 1;
     IF v_existing IS NOT NULL THEN
-        v_item_id := v_existing;
+        -- Already owned: no debit, no mint. The receipt records this as a
+        -- zero-charge 'already_owned' result so it never misrepresents the
+        -- catalog price as an amount paid.
+        v_item_id     := v_existing;
+        v_result_kind := 'already_owned';
+        v_charged     := 0;
     ELSE
         -- Free products (price 0) skip the debit: wallet.service_debit rejects
         -- non-positive amounts. Paid products debit authoritatively.
@@ -235,6 +267,7 @@ BEGIN
                 NULL,
                 p_idempotency_key
             );
+            v_charged := v_product.price;
         END IF;
 
         INSERT INTO inventory.item (
@@ -270,12 +303,13 @@ BEGIN
     END IF;
 
     -- Record the durable receipt for this key (both fresh-mint and
-    -- already-owned paths), so a later replay returns this exact item.
+    -- already-owned paths), so a later replay returns this exact item. price is
+    -- the amount actually charged, not the catalog price.
     INSERT INTO store.purchase (
-        account_id, product_id, item_id, price, currency, ledger_id, idempotency_key
+        account_id, product_id, item_id, price, currency, ledger_id, result_kind, idempotency_key
     ) VALUES (
-        p_account, v_product.product_id, v_item_id, v_product.price,
-        v_product.currency, v_ledger_id, p_idempotency_key
+        p_account, v_product.product_id, v_item_id, v_charged,
+        v_product.currency, v_ledger_id, v_result_kind, p_idempotency_key
     )
     ON CONFLICT (account_id, idempotency_key) DO NOTHING;
 
@@ -664,6 +698,15 @@ CREATE TABLE store.order (
     variant_sku      TEXT,
     variant_attributes JSONB NOT NULL DEFAULT '{}'::jsonb
                      CHECK (jsonb_typeof(variant_attributes) = 'object'),
+    -- Snapshot of the product's fulfillment mode at buy time. POD eligibility
+    -- reads THIS, never the live product row — a later catalog edit must not
+    -- make an already-paid order ineligible for fulfillment.
+    fulfillment      TEXT NOT NULL DEFAULT 'physical'
+                     CHECK (fulfillment IN ('physical', 'both')),
+    -- True only when this order decremented finite variant stock. A refund
+    -- restores stock only when this is set, so a later NULL<->finite stock-mode
+    -- change on the variant can't mis-restore (or fail to restore) inventory.
+    stock_reserved   BOOLEAN NOT NULL DEFAULT false,
     credits_amount   BIGINT NOT NULL CHECK (credits_amount >= 0),
     ledger_id        BIGINT,
     twin_item_id     UUID,
@@ -674,9 +717,14 @@ CREATE TABLE store.order (
     tracking         JSONB NOT NULL DEFAULT '{}'::jsonb
                      CHECK (jsonb_typeof(tracking) = 'object'
                             AND octet_length(tracking::text) <= 16384),
-    idempotency_key  UUID NOT NULL UNIQUE,
+    -- Dedupe identity is (account, idempotency_key): the advisory lock and the
+    -- replay query are both account-scoped, so uniqueness must be too. A global
+    -- unique key would turn a UUID collision across two accounts into a raw
+    -- 23505 rollback instead of the account-scoped replay path.
+    idempotency_key  UUID NOT NULL,
     created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT store_order_account_key_uq UNIQUE (account_id, idempotency_key),
     -- Variant must belong to product_id (NULL variant allowed — PG skips the
     -- composite FK when any referencing column is NULL).
     CONSTRAINT store_order_product_variant_fk
@@ -743,6 +791,7 @@ DECLARE
     v_ledger_id BIGINT;
     v_twin_id     UUID;
     v_twin_minted BOOLEAN := false;
+    v_stock_reserved BOOLEAN := false;
     v_order_id  BIGINT;
 BEGIN
     IF p_account IS NULL OR p_variant_id IS NULL OR p_idempotency_key IS NULL THEN
@@ -769,7 +818,8 @@ BEGIN
     -- a client bug (reused key, different variant/qty/address) is loud, not
     -- silent. shipping_address is part of the fingerprint so a replay with a
     -- corrected address is rejected rather than silently dropped.
-    SELECT * INTO v_existing FROM store.order WHERE idempotency_key = p_idempotency_key;
+    SELECT * INTO v_existing FROM store.order
+     WHERE account_id = p_account AND idempotency_key = p_idempotency_key;
     IF FOUND THEN
         IF v_existing.account_id <> p_account
            OR v_existing.variant_id IS DISTINCT FROM p_variant_id
@@ -826,6 +876,7 @@ BEGIN
         IF NOT FOUND THEN
             RAISE EXCEPTION 'variant % out of stock', p_variant_id USING ERRCODE = 'P1020';
         END IF;
+        v_stock_reserved := true;
     END IF;
 
     IF v_amount > 0 THEN
@@ -876,11 +927,13 @@ BEGIN
     INSERT INTO store.order (
         account_id, product_id, variant_id, qty,
         currency, unit_price, product_slug, product_title, variant_sku, variant_attributes,
+        fulfillment, stock_reserved,
         credits_amount, ledger_id, twin_item_id, status, shipping_address, idempotency_key
     ) VALUES (
         p_account, v_product.product_id, p_variant_id, v_qty,
         v_product.currency, v_variant.price, v_product.slug, v_product.title,
         v_variant.sku, v_variant.attributes,
+        v_product.fulfillment, v_stock_reserved,
         v_amount, v_ledger_id,
         CASE WHEN v_twin_minted THEN v_twin_id ELSE NULL END,
         'paid', COALESCE(p_shipping_address, '{}'::jsonb), p_idempotency_key
@@ -1016,8 +1069,10 @@ CREATE OR REPLACE FUNCTION store.service_refund_order(
 RETURNS VOID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_order     store.order%ROWTYPE;
-    v_refund_id BIGINT;
+    v_order      store.order%ROWTYPE;
+    v_refund_id  BIGINT;
+    v_twin_state TEXT;
+    v_twin_owner UUID;
 BEGIN
     SELECT * INTO v_order FROM store.order WHERE order_id = p_order_id FOR UPDATE;
     IF v_order.order_id IS NULL THEN
@@ -1043,19 +1098,35 @@ BEGIN
         );
     END IF;
 
-    IF v_order.variant_id IS NOT NULL THEN
+    -- Restore stock only if THIS order actually reserved finite stock. Reading
+    -- the order's snapshot (not the variant's current stock mode) means a
+    -- NULL<->finite change on the variant after purchase can't wrongly inflate
+    -- or skip the restore.
+    IF v_order.stock_reserved AND v_order.variant_id IS NOT NULL THEN
         UPDATE store.product_variant
            SET stock = stock + v_order.qty, updated_at = now()
          WHERE variant_id = v_order.variant_id AND stock IS NOT NULL;
     END IF;
 
+    -- Revoke the order-minted digital twin. Refunding while the buyer still
+    -- holds a sellable twin would be a double-dip (money back AND keeps the
+    -- entitlement's value). Only a twin still owned by this account and 'held'
+    -- is cleanly revocable; if it was sold, escrowed, transferred, or already
+    -- consumed, block the refund loudly for manual review rather than silently
+    -- completing. Locked FOR UPDATE so a concurrent transfer can't slip past.
     IF v_order.twin_item_id IS NOT NULL THEN
-        UPDATE inventory.item SET state = 'consumed', updated_at = now()
-         WHERE id = v_order.twin_item_id AND state = 'held';
-        IF FOUND THEN
+        SELECT state, owner_account INTO v_twin_state, v_twin_owner
+          FROM inventory.item WHERE id = v_order.twin_item_id FOR UPDATE;
+        IF v_twin_state = 'held' AND v_twin_owner = v_order.account_id THEN
+            UPDATE inventory.item SET state = 'consumed', updated_at = now()
+             WHERE id = v_order.twin_item_id;
             INSERT INTO inventory.transition (item_id, from_state, to_state, actor, reason, metadata)
             VALUES (v_order.twin_item_id, 'held', 'consumed', 'store', 'refund_revoke_twin',
                     jsonb_build_object('order_id', p_order_id));
+        ELSE
+            RAISE EXCEPTION 'order % twin no longer revocable (state=%, owner_moved=%)',
+                p_order_id, v_twin_state, (v_twin_owner IS DISTINCT FROM v_order.account_id)
+                USING ERRCODE = '55006';
         END IF;
     END IF;
 
@@ -1124,8 +1195,11 @@ GRANT EXECUTE ON FUNCTION store.service_list_orders(store.order_status, INTEGER,
 
 -- The SECURITY DEFINER RPCs run as service_role, so service_role needs
 -- explicit table + sequence privileges (never rely on implicit PUBLIC grants,
--- which the REVOKE below strips).
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA store TO service_role;
+-- which the REVOKE below strips). No RPC ever DELETEs a store row (append-only
+-- events, orders, receipts, top-ups are retained), so DELETE is withheld — the
+-- service contract is SELECT/INSERT/UPDATE only. (A dedicated NOLOGIN owner
+-- role granting callers EXECUTE-only remains a deferred hardening.)
+GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA store TO service_role;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA store TO service_role;
 
 -- Defense-in-depth: store/private tables are reachable only via SECURITY

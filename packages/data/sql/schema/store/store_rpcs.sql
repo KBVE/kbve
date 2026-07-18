@@ -177,31 +177,42 @@ DECLARE
     v_receipt_item    UUID;
     v_ledger_id       BIGINT;
     v_item_id         UUID;
+    v_charged         BIGINT := 0;
+    v_result_kind     TEXT := 'minted';
 BEGIN
     IF p_account IS NULL OR p_slug IS NULL OR p_idempotency_key IS NULL THEN
         RAISE EXCEPTION 'account, slug and idempotency_key are required'
             USING ERRCODE = '22004';
     END IF;
 
-    -- Serialize concurrent buys of the same (account, product) so the
-    -- ownership dupe-guard below is race-safe: the loser blocks here, then
-    -- sees the existing item and returns it idempotently instead of double
-    -- debiting. Taken BEFORE the debit. The unique index is the backstop.
+    -- Two advisory locks in a canonical order (key BEFORE slug — same order in
+    -- every call, so no deadlock). The key lock serializes concurrent requests
+    -- sharing an idempotency_key even across different products, so the durable
+    -- receipt is authoritative. The slug lock serializes same-product buys so the
+    -- one-copy ownership guard is race-safe. Both held for the txn; the unique
+    -- indexes are backstops.
+    PERFORM pg_advisory_xact_lock(
+        hashtextextended('store.service_buy.key:' || p_account::text || ':' || p_idempotency_key::text, 0)
+    );
     PERFORM pg_advisory_xact_lock(
         hashtextextended('store.service_buy:' || p_account::text || ':' || p_slug, 0)
     );
 
+    -- Resolve the product by slug at ANY status: a durable replay must return
+    -- the recorded item even after the product was hidden/retired. Only a fresh
+    -- purchase (below) requires an active product.
     SELECT * INTO v_product
       FROM store.product
-     WHERE slug = p_slug AND status = 'active';
+     WHERE slug = p_slug;
     IF v_product.product_id IS NULL THEN
-        RAISE EXCEPTION 'store product % not found or not active', p_slug
+        RAISE EXCEPTION 'store product % not found', p_slug
             USING ERRCODE = 'P1001';
     END IF;
 
     -- Durable key idempotency: a recorded receipt returns the same item
     -- without re-charging, even if the item was later sold/transferred/
-    -- consumed. Reusing a key for a DIFFERENT product is rejected.
+    -- consumed or the product was retired. Reusing a key for a DIFFERENT
+    -- product is rejected. Checked BEFORE the active-status gate.
     SELECT product_id, item_id INTO v_receipt_product, v_receipt_item
       FROM store.purchase
      WHERE account_id = p_account AND idempotency_key = p_idempotency_key;
@@ -213,6 +224,12 @@ BEGIN
         RETURN v_receipt_item;
     END IF;
 
+    -- A NEW purchase requires an active product.
+    IF v_product.status <> 'active' THEN
+        RAISE EXCEPTION 'store product % not active', p_slug
+            USING ERRCODE = 'P1001';
+    END IF;
+
     -- Dupe guard: one copy per account. held or escrowed both count as owned.
     SELECT id INTO v_existing
       FROM inventory.item
@@ -222,7 +239,12 @@ BEGIN
        AND state IN ('held', 'listing_escrow')
      LIMIT 1;
     IF v_existing IS NOT NULL THEN
-        v_item_id := v_existing;
+        -- Already owned: no debit, no mint. Recorded as a zero-charge
+        -- 'already_owned' result so the receipt never misrepresents the catalog
+        -- price as an amount paid.
+        v_item_id     := v_existing;
+        v_result_kind := 'already_owned';
+        v_charged     := 0;
     ELSE
         -- Free products (price 0) skip the debit: wallet.service_debit rejects
         -- non-positive amounts. Paid products debit authoritatively.
@@ -237,6 +259,7 @@ BEGIN
                 NULL,
                 p_idempotency_key
             );
+            v_charged := v_product.price;
         END IF;
 
         INSERT INTO inventory.item (
@@ -272,12 +295,13 @@ BEGIN
     END IF;
 
     -- Record the durable receipt for this key (both fresh-mint and
-    -- already-owned paths), so a later replay returns this exact item.
+    -- already-owned paths), so a later replay returns this exact item. price is
+    -- the amount actually charged, not the catalog price.
     INSERT INTO store.purchase (
-        account_id, product_id, item_id, price, currency, ledger_id, idempotency_key
+        account_id, product_id, item_id, price, currency, ledger_id, result_kind, idempotency_key
     ) VALUES (
-        p_account, v_product.product_id, v_item_id, v_product.price,
-        v_product.currency, v_ledger_id, p_idempotency_key
+        p_account, v_product.product_id, v_item_id, v_charged,
+        v_product.currency, v_ledger_id, v_result_kind, p_idempotency_key
     )
     ON CONFLICT (account_id, idempotency_key) DO NOTHING;
 
@@ -514,6 +538,7 @@ DECLARE
     v_ledger_id BIGINT;
     v_twin_id     UUID;
     v_twin_minted BOOLEAN := false;
+    v_stock_reserved BOOLEAN := false;
     v_order_id  BIGINT;
 BEGIN
     IF p_account IS NULL OR p_variant_id IS NULL OR p_idempotency_key IS NULL THEN
@@ -540,7 +565,8 @@ BEGIN
     -- a client bug (reused key, different variant/qty/address) is loud, not
     -- silent. shipping_address is part of the fingerprint so a replay with a
     -- corrected address is rejected rather than silently dropped.
-    SELECT * INTO v_existing FROM store.order WHERE idempotency_key = p_idempotency_key;
+    SELECT * INTO v_existing FROM store.order
+     WHERE account_id = p_account AND idempotency_key = p_idempotency_key;
     IF FOUND THEN
         IF v_existing.account_id <> p_account
            OR v_existing.variant_id IS DISTINCT FROM p_variant_id
@@ -597,6 +623,7 @@ BEGIN
         IF NOT FOUND THEN
             RAISE EXCEPTION 'variant % out of stock', p_variant_id USING ERRCODE = 'P1020';
         END IF;
+        v_stock_reserved := true;
     END IF;
 
     IF v_amount > 0 THEN
@@ -647,11 +674,13 @@ BEGIN
     INSERT INTO store.order (
         account_id, product_id, variant_id, qty,
         currency, unit_price, product_slug, product_title, variant_sku, variant_attributes,
+        fulfillment, stock_reserved,
         credits_amount, ledger_id, twin_item_id, status, shipping_address, idempotency_key
     ) VALUES (
         p_account, v_product.product_id, p_variant_id, v_qty,
         v_product.currency, v_variant.price, v_product.slug, v_product.title,
         v_variant.sku, v_variant.attributes,
+        v_product.fulfillment, v_stock_reserved,
         v_amount, v_ledger_id,
         CASE WHEN v_twin_minted THEN v_twin_id ELSE NULL END,
         'paid', COALESCE(p_shipping_address, '{}'::jsonb), p_idempotency_key
@@ -787,8 +816,10 @@ CREATE OR REPLACE FUNCTION store.service_refund_order(
 RETURNS VOID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_order     store.order%ROWTYPE;
-    v_refund_id BIGINT;
+    v_order      store.order%ROWTYPE;
+    v_refund_id  BIGINT;
+    v_twin_state TEXT;
+    v_twin_owner UUID;
 BEGIN
     SELECT * INTO v_order FROM store.order WHERE order_id = p_order_id FOR UPDATE;
     IF v_order.order_id IS NULL THEN
@@ -814,19 +845,35 @@ BEGIN
         );
     END IF;
 
-    IF v_order.variant_id IS NOT NULL THEN
+    -- Restore stock only if THIS order actually reserved finite stock. Reading
+    -- the order's snapshot (not the variant's current stock mode) means a
+    -- NULL<->finite change on the variant after purchase can't wrongly inflate
+    -- or skip the restore.
+    IF v_order.stock_reserved AND v_order.variant_id IS NOT NULL THEN
         UPDATE store.product_variant
            SET stock = stock + v_order.qty, updated_at = now()
          WHERE variant_id = v_order.variant_id AND stock IS NOT NULL;
     END IF;
 
+    -- Revoke the order-minted digital twin. Refunding while the buyer still
+    -- holds a sellable twin would be a double-dip (money back AND keeps the
+    -- entitlement's value). Only a twin still owned by this account and 'held'
+    -- is cleanly revocable; if it was sold, escrowed, transferred, or already
+    -- consumed, block the refund loudly for manual review rather than silently
+    -- completing. Locked FOR UPDATE so a concurrent transfer can't slip past.
     IF v_order.twin_item_id IS NOT NULL THEN
-        UPDATE inventory.item SET state = 'consumed', updated_at = now()
-         WHERE id = v_order.twin_item_id AND state = 'held';
-        IF FOUND THEN
+        SELECT state, owner_account INTO v_twin_state, v_twin_owner
+          FROM inventory.item WHERE id = v_order.twin_item_id FOR UPDATE;
+        IF v_twin_state = 'held' AND v_twin_owner = v_order.account_id THEN
+            UPDATE inventory.item SET state = 'consumed', updated_at = now()
+             WHERE id = v_order.twin_item_id;
             INSERT INTO inventory.transition (item_id, from_state, to_state, actor, reason, metadata)
             VALUES (v_order.twin_item_id, 'held', 'consumed', 'store', 'refund_revoke_twin',
                     jsonb_build_object('order_id', p_order_id));
+        ELSE
+            RAISE EXCEPTION 'order % twin no longer revocable (state=%, owner_moved=%)',
+                p_order_id, v_twin_state, (v_twin_owner IS DISTINCT FROM v_order.account_id)
+                USING ERRCODE = '55006';
         END IF;
     END IF;
 
@@ -926,6 +973,15 @@ BEGIN
     IF p_amount_cents IS NULL OR p_amount_cents <= 0 THEN
         RAISE EXCEPTION 'amount_cents must be positive' USING ERRCODE = '22023';
     END IF;
+    -- Enforce the runaway-amount caps BEFORE crediting the wallet, so an
+    -- over-bound value returns a deliberate 22023 instead of doing wasted
+    -- wallet work that then rolls back on the table CHECK.
+    IF p_credits > 100000000 THEN
+        RAISE EXCEPTION 'credits exceeds maximum' USING ERRCODE = '22023';
+    END IF;
+    IF p_amount_cents > 100000000 THEN
+        RAISE EXCEPTION 'amount_cents exceeds maximum' USING ERRCODE = '22023';
+    END IF;
     IF v_currency_fiat !~ '^[a-z]{3}$' THEN
         RAISE EXCEPTION 'currency_fiat must be a 3-letter ISO code' USING ERRCODE = '22023';
     END IF;
@@ -969,7 +1025,8 @@ BEGIN
         IF v_row.account_id <> v_account
            OR v_row.credits_granted <> p_credits
            OR v_row.amount_cents <> p_amount_cents
-           OR v_row.currency_fiat <> v_currency_fiat THEN
+           OR v_row.currency_fiat <> v_currency_fiat
+           OR v_row.stripe_session_id IS DISTINCT FROM v_session_id THEN
             RAISE EXCEPTION 'topup replay payload mismatch for event %', v_event_id
                 USING ERRCODE = '40001';
         END IF;
@@ -1020,6 +1077,7 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
     v_new      JSONB := COALESCE(p_pod_ref, '{}'::jsonb);
     v_order    store.order%ROWTYPE;
+    v_merged   JSONB;
     v_provider TEXT := NULLIF(btrim(v_new->>'provider'), '');
     v_ext_id   TEXT := NULLIF(btrim(v_new->>'external_order_id'), '');
     v_pstatus  TEXT := NULLIF(btrim(v_new->>'status'), '');
@@ -1032,12 +1090,13 @@ BEGIN
     END IF;
 
     -- Only a physical/both order still in the fulfillment pipeline may carry a
-    -- POD reference — never a digital, cancelled, or refunded order.
+    -- POD reference — never a digital, cancelled, or refunded order. Eligibility
+    -- reads the order's fulfillment SNAPSHOT, not the live product row, so a
+    -- catalog edit after checkout can't disqualify an already-paid order.
     SELECT o.* INTO v_order
       FROM store.order o
-      JOIN store.product p ON p.product_id = o.product_id
      WHERE o.order_id = p_order_id
-       AND p.fulfillment IN ('physical', 'both')
+       AND o.fulfillment IN ('physical', 'both')
        AND o.status IN ('paid', 'processing', 'shipped')
      FOR UPDATE OF o;
     IF v_order.order_id IS NULL THEN
@@ -1045,18 +1104,37 @@ BEGIN
             USING ERRCODE = 'P1001';
     END IF;
 
+    -- Provider identity is set-once. Once an order has a provider / external
+    -- order id, a later call may not rewrite it to a different value (the unique
+    -- index stops cross-order reuse; this stops in-place replacement). Status
+    -- and metadata stay mutable.
+    IF v_order.pod_provider IS NOT NULL AND v_provider IS NOT NULL
+       AND v_provider <> v_order.pod_provider THEN
+        RAISE EXCEPTION 'order % pod_provider is immutable once set', p_order_id
+            USING ERRCODE = '22023';
+    END IF;
+    IF v_order.pod_external_order_id IS NOT NULL AND v_ext_id IS NOT NULL
+       AND v_ext_id <> v_order.pod_external_order_id THEN
+        RAISE EXCEPTION 'order % pod_external_order_id is immutable once set', p_order_id
+            USING ERRCODE = '22023';
+    END IF;
+
+    -- Shallow-merge into the stored document so a partial webhook (e.g. just
+    -- {"status":"shipped"}) augments rather than erases prior provider metadata.
+    v_merged := v_order.pod_ref || v_new;
+
     -- Idempotent: POD adapters/webhooks retry the same payload. Only write +
-    -- log an event when pod_ref actually changes.
+    -- log an event when the merged pod_ref actually changes.
     UPDATE store.order
-       SET pod_ref               = v_new,
+       SET pod_ref               = v_merged,
            pod_provider          = COALESCE(v_provider, pod_provider),
            pod_external_order_id = COALESCE(v_ext_id, pod_external_order_id),
            pod_status            = COALESCE(v_pstatus, pod_status),
            updated_at            = now()
-     WHERE order_id = p_order_id AND pod_ref IS DISTINCT FROM v_new;
+     WHERE order_id = p_order_id AND pod_ref IS DISTINCT FROM v_merged;
     IF FOUND THEN
         INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
-        VALUES (p_order_id, v_order.status, v_order.status, 'pod', 'pod_ref attached', v_new);
+        VALUES (p_order_id, v_order.status, v_order.status, 'pod', 'pod_ref attached', v_merged);
     END IF;
 END;
 $$;
@@ -1086,33 +1164,53 @@ BEGIN
         RAISE EXCEPTION 'order % not found', p_order_id USING ERRCODE = 'P1001';
     END IF;
 
-    SELECT * INTO v_product FROM store.product WHERE product_id = v_order.product_id;
+    -- Eligibility from the order's fulfillment SNAPSHOT, not the live product,
+    -- so a post-checkout catalog edit can't disqualify a paid order.
     IF v_order.status NOT IN ('paid', 'processing')
-       OR v_product.fulfillment NOT IN ('physical', 'both') THEN
+       OR v_order.fulfillment NOT IN ('physical', 'both') THEN
         RAISE EXCEPTION 'order % not eligible for POD fulfillment', p_order_id
             USING ERRCODE = 'P1001';
     END IF;
-    IF v_order.pod_submitted_at IS NOT NULL THEN
+
+    -- Claim gate. A claim is permanent only once the provider accepted it
+    -- (external_order_id set). A still-fresh claim (submitted, not yet expired)
+    -- belongs to another worker. Otherwise — never claimed, or a stale claim
+    -- from a crashed worker — (re)claim is allowed; the deterministic
+    -- submission_key keeps a re-submit provider-side idempotent.
+    IF v_order.pod_external_order_id IS NOT NULL THEN
+        RAISE EXCEPTION 'order % already submitted to POD provider', p_order_id
+            USING ERRCODE = '55006';
+    END IF;
+    IF v_order.pod_submitted_at IS NOT NULL
+       AND v_order.pod_claim_expires_at IS NOT NULL
+       AND v_order.pod_claim_expires_at > now() THEN
         RAISE EXCEPTION 'order % already claimed for POD fulfillment', p_order_id
             USING ERRCODE = '55006';
     END IF;
 
+    SELECT * INTO v_product FROM store.product WHERE product_id = v_order.product_id;
     SELECT * INTO v_variant FROM store.product_variant WHERE variant_id = v_order.variant_id;
 
     UPDATE store.order
-       SET pod_status = 'claimed', pod_submitted_at = now(), updated_at = now()
+       SET pod_status           = 'claimed',
+           pod_submitted_at     = now(),
+           pod_claim_expires_at = now() + interval '15 minutes',
+           updated_at           = now()
      WHERE order_id = p_order_id;
 
+    -- Fulfillment payload prefers the immutable order snapshots over the live
+    -- catalog, so a rename / SKU change after checkout can't alter what is sent
+    -- to the provider.
     RETURN jsonb_build_object(
         'order_id',         v_order.order_id,
         'qty',              v_order.qty,
         'status',           v_order.status,
         'shipping_address', v_order.shipping_address,
         'pod_ref',          v_order.pod_ref,
-        'sku',              COALESCE(v_variant.sku, v_order.variant_sku),
-        'attributes',       COALESCE(v_variant.attributes, v_order.variant_attributes),
-        'product_slug',     COALESCE(v_product.slug, v_order.product_slug),
-        'product_title',    COALESCE(v_product.title, v_order.product_title),
+        'sku',              COALESCE(v_order.variant_sku, v_variant.sku),
+        'attributes',       COALESCE(NULLIF(v_order.variant_attributes, '{}'::jsonb), v_variant.attributes),
+        'product_slug',     COALESCE(v_order.product_slug, v_product.slug),
+        'product_title',    COALESCE(v_order.product_title, v_product.title),
         'submission_key',   md5('store_pod:' || v_order.order_id::text)
     );
 END;

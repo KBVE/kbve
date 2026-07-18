@@ -90,10 +90,19 @@ CREATE TABLE store.purchase (
     purchase_id     BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     account_id      UUID NOT NULL REFERENCES wallet.account(id),
     product_id      UUID NOT NULL REFERENCES store.product(product_id),
-    item_id         UUID NOT NULL,
+    -- FK to the minted entitlement (RESTRICT: inventory items are state-machined,
+    -- never hard-deleted) so a receipt can never point at a nonexistent item.
+    item_id         UUID NOT NULL REFERENCES inventory.item(id),
+    -- price is the amount ACTUALLY charged (0 for a free product or an
+    -- already-owned no-op), never the mutable catalog price; ledger_id IS NULL
+    -- <=> price = 0.
     price           BIGINT NOT NULL CHECK (price >= 0),
     currency        wallet.currency_kind NOT NULL,
     ledger_id       BIGINT,
+    -- What the buy resolved to: a fresh mint vs. a lookup of an already-owned
+    -- copy (no debit, no mint). Keeps the receipt honest for accounting.
+    result_kind     TEXT NOT NULL DEFAULT 'minted'
+                    CHECK (result_kind IN ('minted', 'already_owned')),
     idempotency_key UUID NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (account_id, idempotency_key)
@@ -157,6 +166,15 @@ CREATE TABLE store.order (
     variant_sku      TEXT,
     variant_attributes JSONB NOT NULL DEFAULT '{}'::jsonb
                      CHECK (jsonb_typeof(variant_attributes) = 'object'),
+    -- Snapshot of the product's fulfillment mode at buy time. POD eligibility
+    -- reads THIS, never the live product row — a later catalog edit must not
+    -- make an already-paid order ineligible for fulfillment.
+    fulfillment      TEXT NOT NULL DEFAULT 'physical'
+                     CHECK (fulfillment IN ('physical', 'both')),
+    -- True only when this order decremented finite variant stock. A refund
+    -- restores stock only when this is set, so a later NULL<->finite stock-mode
+    -- change on the variant can't mis-restore (or fail to restore) inventory.
+    stock_reserved   BOOLEAN NOT NULL DEFAULT false,
     credits_amount   BIGINT NOT NULL CHECK (credits_amount >= 0),
     ledger_id        BIGINT,
     twin_item_id     UUID,
@@ -170,16 +188,25 @@ CREATE TABLE store.order (
     -- Print-on-demand (Phase 4). pod_provider/pod_external_order_id are promoted
     -- from pod_ref into first-class columns so the external provider order id can
     -- be uniquely constrained; pod_ref keeps any provider-specific metadata.
-    -- pod_submitted_at doubles as the claim marker.
+    -- pod_submitted_at stamps a CLAIM; pod_claim_expires_at bounds it so a worker
+    -- that crashes after claiming (before the provider accepts) can't strand the
+    -- order — an expired claim is reclaimable. A claim is only permanent once
+    -- pod_external_order_id is set (provider accepted).
     pod_ref          JSONB NOT NULL DEFAULT '{}'::jsonb
                      CHECK (jsonb_typeof(pod_ref) = 'object'),
     pod_provider          TEXT,
     pod_external_order_id TEXT,
     pod_status            TEXT,
     pod_submitted_at      TIMESTAMPTZ,
-    idempotency_key  UUID NOT NULL UNIQUE,
+    pod_claim_expires_at  TIMESTAMPTZ,
+    -- Dedupe identity is (account, idempotency_key): the advisory lock and the
+    -- replay query are both account-scoped, so uniqueness must be too. A global
+    -- unique key would turn a UUID collision across two accounts into a raw
+    -- 23505 rollback instead of the account-scoped replay path.
+    idempotency_key  UUID NOT NULL,
     created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+    CONSTRAINT store_order_account_key_uq UNIQUE (account_id, idempotency_key),
     -- Variant must belong to product_id (NULL variant allowed — PG skips the
     -- composite FK when any referencing column is NULL).
     CONSTRAINT store_order_product_variant_fk
@@ -282,7 +309,9 @@ COMMENT ON TABLE store.topup IS
 
 -- The definer RPCs run as service_role, which needs explicit table + sequence
 -- grants (never rely on the implicit PUBLIC privileges the REVOKE below strips).
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA store TO service_role;
+-- No RPC ever DELETEs a store row (append-only events, orders, receipts, top-ups
+-- are retained), so DELETE is withheld — the contract is SELECT/INSERT/UPDATE.
+GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA store TO service_role;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA store TO service_role;
 
 REVOKE ALL ON ALL TABLES IN SCHEMA store   FROM PUBLIC, anon, authenticated;

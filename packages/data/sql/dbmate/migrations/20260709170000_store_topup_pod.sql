@@ -78,6 +78,15 @@ BEGIN
     IF p_amount_cents IS NULL OR p_amount_cents <= 0 THEN
         RAISE EXCEPTION 'amount_cents must be positive' USING ERRCODE = '22023';
     END IF;
+    -- Enforce the runaway-amount caps BEFORE crediting the wallet, so an
+    -- over-bound value returns a deliberate 22023 instead of doing wasted
+    -- wallet work that then rolls back on the table CHECK.
+    IF p_credits > 100000000 THEN
+        RAISE EXCEPTION 'credits exceeds maximum' USING ERRCODE = '22023';
+    END IF;
+    IF p_amount_cents > 100000000 THEN
+        RAISE EXCEPTION 'amount_cents exceeds maximum' USING ERRCODE = '22023';
+    END IF;
     IF v_currency_fiat !~ '^[a-z]{3}$' THEN
         RAISE EXCEPTION 'currency_fiat must be a 3-letter ISO code' USING ERRCODE = '22023';
     END IF;
@@ -121,7 +130,8 @@ BEGIN
         IF v_row.account_id <> v_account
            OR v_row.credits_granted <> p_credits
            OR v_row.amount_cents <> p_amount_cents
-           OR v_row.currency_fiat <> v_currency_fiat THEN
+           OR v_row.currency_fiat <> v_currency_fiat
+           OR v_row.stripe_session_id IS DISTINCT FROM v_session_id THEN
             RAISE EXCEPTION 'topup replay payload mismatch for event %', v_event_id
                 USING ERRCODE = '40001';
         END IF;
@@ -181,7 +191,12 @@ ALTER TABLE store.order
     ADD COLUMN IF NOT EXISTS pod_provider         TEXT,
     ADD COLUMN IF NOT EXISTS pod_external_order_id TEXT,
     ADD COLUMN IF NOT EXISTS pod_status           TEXT,
-    ADD COLUMN IF NOT EXISTS pod_submitted_at     TIMESTAMPTZ;
+    -- pod_submitted_at stamps a CLAIM; pod_claim_expires_at bounds it so a
+    -- worker that crashes after claiming (but before the provider accepts) does
+    -- not strand the order forever — an expired claim is reclaimable. A claim
+    -- is only permanent once pod_external_order_id is set (provider accepted).
+    ADD COLUMN IF NOT EXISTS pod_submitted_at     TIMESTAMPTZ,
+    ADD COLUMN IF NOT EXISTS pod_claim_expires_at TIMESTAMPTZ;
 
 -- One local order per external POD order — a provider id can't be attached to
 -- two orders.
@@ -199,6 +214,7 @@ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
     v_new      JSONB := COALESCE(p_pod_ref, '{}'::jsonb);
     v_order    store.order%ROWTYPE;
+    v_merged   JSONB;
     v_provider TEXT := NULLIF(btrim(v_new->>'provider'), '');
     v_ext_id   TEXT := NULLIF(btrim(v_new->>'external_order_id'), '');
     v_pstatus  TEXT := NULLIF(btrim(v_new->>'status'), '');
@@ -211,12 +227,13 @@ BEGIN
     END IF;
 
     -- Only a physical/both order still in the fulfillment pipeline may carry a
-    -- POD reference — never a digital, cancelled, or refunded order.
+    -- POD reference — never a digital, cancelled, or refunded order. Eligibility
+    -- reads the order's fulfillment SNAPSHOT, not the live product row, so a
+    -- catalog edit after checkout can't disqualify an already-paid order.
     SELECT o.* INTO v_order
       FROM store.order o
-      JOIN store.product p ON p.product_id = o.product_id
      WHERE o.order_id = p_order_id
-       AND p.fulfillment IN ('physical', 'both')
+       AND o.fulfillment IN ('physical', 'both')
        AND o.status IN ('paid', 'processing', 'shipped')
      FOR UPDATE OF o;
     IF v_order.order_id IS NULL THEN
@@ -224,18 +241,37 @@ BEGIN
             USING ERRCODE = 'P1001';
     END IF;
 
+    -- Provider identity is set-once. Once an order has a provider / external
+    -- order id, a later call may not rewrite it to a different value (the unique
+    -- index stops cross-order reuse; this stops in-place replacement). Status
+    -- and metadata stay mutable.
+    IF v_order.pod_provider IS NOT NULL AND v_provider IS NOT NULL
+       AND v_provider <> v_order.pod_provider THEN
+        RAISE EXCEPTION 'order % pod_provider is immutable once set', p_order_id
+            USING ERRCODE = '22023';
+    END IF;
+    IF v_order.pod_external_order_id IS NOT NULL AND v_ext_id IS NOT NULL
+       AND v_ext_id <> v_order.pod_external_order_id THEN
+        RAISE EXCEPTION 'order % pod_external_order_id is immutable once set', p_order_id
+            USING ERRCODE = '22023';
+    END IF;
+
+    -- Shallow-merge into the stored document so a partial webhook (e.g. just
+    -- {"status":"shipped"}) augments rather than erases prior provider metadata.
+    v_merged := v_order.pod_ref || v_new;
+
     -- Idempotent: POD adapters/webhooks retry the same payload. Only write +
-    -- log an event when pod_ref actually changes.
+    -- log an event when the merged pod_ref actually changes.
     UPDATE store.order
-       SET pod_ref               = v_new,
+       SET pod_ref               = v_merged,
            pod_provider          = COALESCE(v_provider, pod_provider),
            pod_external_order_id = COALESCE(v_ext_id, pod_external_order_id),
            pod_status            = COALESCE(v_pstatus, pod_status),
            updated_at            = now()
-     WHERE order_id = p_order_id AND pod_ref IS DISTINCT FROM v_new;
+     WHERE order_id = p_order_id AND pod_ref IS DISTINCT FROM v_merged;
     IF FOUND THEN
         INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
-        VALUES (p_order_id, v_order.status, v_order.status, 'pod', 'pod_ref attached', v_new);
+        VALUES (p_order_id, v_order.status, v_order.status, 'pod', 'pod_ref attached', v_merged);
     END IF;
 END;
 $$;
@@ -265,33 +301,53 @@ BEGIN
         RAISE EXCEPTION 'order % not found', p_order_id USING ERRCODE = 'P1001';
     END IF;
 
-    SELECT * INTO v_product FROM store.product WHERE product_id = v_order.product_id;
+    -- Eligibility from the order's fulfillment SNAPSHOT, not the live product,
+    -- so a post-checkout catalog edit can't disqualify a paid order.
     IF v_order.status NOT IN ('paid', 'processing')
-       OR v_product.fulfillment NOT IN ('physical', 'both') THEN
+       OR v_order.fulfillment NOT IN ('physical', 'both') THEN
         RAISE EXCEPTION 'order % not eligible for POD fulfillment', p_order_id
             USING ERRCODE = 'P1001';
     END IF;
-    IF v_order.pod_submitted_at IS NOT NULL THEN
+
+    -- Claim gate. A claim is permanent only once the provider accepted it
+    -- (external_order_id set). A still-fresh claim (submitted, not yet expired)
+    -- belongs to another worker. Otherwise — never claimed, or a stale claim
+    -- from a crashed worker — (re)claim is allowed; the deterministic
+    -- submission_key keeps a re-submit provider-side idempotent.
+    IF v_order.pod_external_order_id IS NOT NULL THEN
+        RAISE EXCEPTION 'order % already submitted to POD provider', p_order_id
+            USING ERRCODE = '55006';
+    END IF;
+    IF v_order.pod_submitted_at IS NOT NULL
+       AND v_order.pod_claim_expires_at IS NOT NULL
+       AND v_order.pod_claim_expires_at > now() THEN
         RAISE EXCEPTION 'order % already claimed for POD fulfillment', p_order_id
             USING ERRCODE = '55006';
     END IF;
 
+    SELECT * INTO v_product FROM store.product WHERE product_id = v_order.product_id;
     SELECT * INTO v_variant FROM store.product_variant WHERE variant_id = v_order.variant_id;
 
     UPDATE store.order
-       SET pod_status = 'claimed', pod_submitted_at = now(), updated_at = now()
+       SET pod_status           = 'claimed',
+           pod_submitted_at     = now(),
+           pod_claim_expires_at = now() + interval '15 minutes',
+           updated_at           = now()
      WHERE order_id = p_order_id;
 
+    -- Fulfillment payload prefers the immutable order snapshots over the live
+    -- catalog, so a rename / SKU change after checkout can't alter what is sent
+    -- to the provider.
     RETURN jsonb_build_object(
         'order_id',         v_order.order_id,
         'qty',              v_order.qty,
         'status',           v_order.status,
         'shipping_address', v_order.shipping_address,
         'pod_ref',          v_order.pod_ref,
-        'sku',              COALESCE(v_variant.sku, v_order.variant_sku),
-        'attributes',       COALESCE(v_variant.attributes, v_order.variant_attributes),
-        'product_slug',     COALESCE(v_product.slug, v_order.product_slug),
-        'product_title',    COALESCE(v_product.title, v_order.product_title),
+        'sku',              COALESCE(v_order.variant_sku, v_variant.sku),
+        'attributes',       COALESCE(NULLIF(v_order.variant_attributes, '{}'::jsonb), v_variant.attributes),
+        'product_slug',     COALESCE(v_order.product_slug, v_product.slug),
+        'product_title',    COALESCE(v_order.product_title, v_product.title),
         'submission_key',   md5('store_pod:' || v_order.order_id::text)
     );
 END;
@@ -302,7 +358,7 @@ GRANT EXECUTE ON FUNCTION store.service_order_for_pod(BIGINT) TO service_role;
 
 -- store.topup was created in this migration; the definer RPCs run as
 -- service_role, so grant it (and the new sequence) explicitly.
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA store TO service_role;
+GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA store TO service_role;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA store TO service_role;
 REVOKE ALL ON store.topup FROM PUBLIC, anon, authenticated;
 
@@ -318,7 +374,8 @@ ALTER TABLE store.order
     DROP COLUMN IF EXISTS pod_provider,
     DROP COLUMN IF EXISTS pod_external_order_id,
     DROP COLUMN IF EXISTS pod_status,
-    DROP COLUMN IF EXISTS pod_submitted_at;
+    DROP COLUMN IF EXISTS pod_submitted_at,
+    DROP COLUMN IF EXISTS pod_claim_expires_at;
 
 NOTIFY pgrst, 'reload schema';
 
