@@ -17,14 +17,14 @@ describe("summarize", () => {
     const now = 1_000_300;
     const s = summarize(objects, now, 7);
 
-    expect(s.baseBackupCount).toBe(2);
-    expect(s.walCount).toBe(2);
-    expect(s.totalSizeBytes).toBe(1000 + 200 + 800 + 16 + 16);
-    expect(s.latestBaseBackup).not.toBeNull();
-    expect(s.latestBaseBackup?.id).toBe("20260718T040000");
-    expect(s.latestBaseBackup?.sizeBytes).toBe(1200);
-    expect(s.latestBaseBackup?.time).toBe(1_000_050);
-    expect(s.latestBaseBackup?.ageSeconds).toBe(250);
+    expect(s.base_backup_count).toBe(2);
+    expect(s.wal_count).toBe(2);
+    expect(s.total_size_bytes).toBe(1000 + 200 + 800 + 16 + 16);
+    expect(s.latest_base_backup).not.toBeNull();
+    expect(s.latest_base_backup?.id).toBe("20260718T040000");
+    expect(s.latest_base_backup?.size_bytes).toBe(1200);
+    expect(s.latest_base_backup?.time).toBe(1_000_050);
+    expect(s.latest_base_backup?.age_seconds).toBe(250);
   });
 
   test("retentionOk true when latest base within window", () => {
@@ -34,27 +34,27 @@ describe("summarize", () => {
       obj("barman/backup/wals/x", 1, 6 * 86400),
     ];
     const s = summarize(objects, now, 7);
-    expect(s.retentionOk).toBe(true);
+    expect(s.retention_ok).toBe(true);
   });
 
   test("retentionOk false when latest base stale", () => {
     const now = 10 * 86400;
     const objects = [obj("barman/backup/base/old/data.tar.gz", 1, 1 * 86400)];
     const s = summarize(objects, now, 7);
-    expect(s.retentionOk).toBe(false);
+    expect(s.retention_ok).toBe(false);
   });
 
   test("retentionOk false when wal-only (no base)", () => {
     const now = 10 * 86400;
     const objects = [obj("barman/backup/wals/x", 1, 6 * 86400)];
     const s = summarize(objects, now, 7);
-    expect(s.retentionOk).toBe(false);
+    expect(s.retention_ok).toBe(false);
   });
 
   test("empty yields null latest, zero counts, retentionOk false", () => {
     const s = summarize([], 100, 7);
-    expect(s.latestBaseBackup).toBeNull();
-    expect(s.baseBackupCount).toBe(0);
-    expect(s.retentionOk).toBe(false);
+    expect(s.latest_base_backup).toBeNull();
+    expect(s.base_backup_count).toBe(0);
+    expect(s.retention_ok).toBe(false);
   });
 });

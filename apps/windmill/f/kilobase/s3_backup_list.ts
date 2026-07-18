@@ -64,5 +64,12 @@ export async function main(s3: S3Resource, prefix: string = DEFAULT_PREFIX) {
   const now = Math.floor(Date.now() / 1000);
   const summary = summarize(objects, now, RETENTION_DAYS);
 
-  return { summary, objects };
+  return {
+    summary,
+    objects: objects.map((o) => ({
+      key: o.key,
+      size: o.size,
+      last_modified: o.lastModified,
+    })),
+  };
 }

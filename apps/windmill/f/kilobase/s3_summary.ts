@@ -7,19 +7,19 @@ export type S3Object = {
 export type BaseBackup = {
   id: string;
   time: number;
-  sizeBytes: number;
-  ageSeconds: number;
+  size_bytes: number;
+  age_seconds: number;
 };
 
 export type BackupSummary = {
-  latestBaseBackup: BaseBackup | null;
-  baseBackupCount: number;
-  walCount: number;
-  totalSizeBytes: number;
-  oldestObjectAgeSeconds: number;
-  retentionDays: number;
-  retentionOk: boolean;
-  generatedAt: number;
+  latest_base_backup: BaseBackup | null;
+  base_backup_count: number;
+  wal_count: number;
+  total_size_bytes: number;
+  oldest_object_age_seconds: number;
+  retention_days: number;
+  retention_ok: boolean;
+  generated_at: number;
 };
 
 function baseId(key: string): string | null {
@@ -60,21 +60,21 @@ export function summarize(
   let latest: BaseBackup | null = null;
   for (const [id, { size, time }] of bases) {
     if (latest === null || time > latest.time) {
-      latest = { id, time, sizeBytes: size, ageSeconds: now - time };
+      latest = { id, time, size_bytes: size, age_seconds: now - time };
     }
   }
 
   const retentionWindow = retentionDays * 86400;
-  const retentionOk = latest !== null && latest.ageSeconds <= retentionWindow;
+  const retentionOk = latest !== null && latest.age_seconds <= retentionWindow;
 
   return {
-    latestBaseBackup: latest,
-    baseBackupCount: bases.size,
-    walCount,
-    totalSizeBytes: total,
-    oldestObjectAgeSeconds: oldestTs === null ? 0 : now - oldestTs,
-    retentionDays,
-    retentionOk,
-    generatedAt: now,
+    latest_base_backup: latest,
+    base_backup_count: bases.size,
+    wal_count: walCount,
+    total_size_bytes: total,
+    oldest_object_age_seconds: oldestTs === null ? 0 : now - oldestTs,
+    retention_days: retentionDays,
+    retention_ok: retentionOk,
+    generated_at: now,
   };
 }
