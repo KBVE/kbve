@@ -11,6 +11,7 @@ metadata:
         kbve.com/managed-by: argocd
     annotations:
         reloader.stakater.com/auto: 'true'
+        argocd.argoproj.io/sync-wave: '1'
 spec:
     selector:
         matchLabels:
