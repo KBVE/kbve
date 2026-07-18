@@ -68,7 +68,10 @@ pub fn summarize(objects: &[S3Object], _prefix: &str, now: i64, retention_days: 
         });
 
     let retention_window = retention_days as i64 * 86400;
-    let retention_ok = oldest_ts != i64::MAX && now - oldest_ts <= retention_window;
+    let retention_ok = latest
+        .as_ref()
+        .map(|b| b.age_seconds <= retention_window)
+        .unwrap_or(false);
 
     BackupSummary {
         latest_base_backup: latest,
@@ -112,17 +115,28 @@ mod tests {
     }
 
     #[test]
-    fn retention_ok_true_when_oldest_within_window() {
+    fn retention_ok_true_when_latest_base_within_window() {
         let now = 10 * 86400;
-        let objs = vec![obj("barman/backup/wals/x", 1, 4 * 86400)];
+        let objs = vec![
+            obj("barman/backup/base/recent/data.tar.gz", 1, 6 * 86400),
+            obj("barman/backup/wals/x", 1, 6 * 86400),
+        ];
         let s = summarize(&objs, "barman/backup/", now, 7);
         assert!(s.retention_ok);
     }
 
     #[test]
-    fn retention_ok_false_when_no_recent_base_backup() {
+    fn retention_ok_false_when_latest_base_stale() {
         let now = 10 * 86400;
         let objs = vec![obj("barman/backup/base/old/data.tar.gz", 1, 1 * 86400)];
+        let s = summarize(&objs, "barman/backup/", now, 7);
+        assert!(!s.retention_ok);
+    }
+
+    #[test]
+    fn retention_ok_false_when_wal_only_no_base() {
+        let now = 10 * 86400;
+        let objs = vec![obj("barman/backup/wals/x", 1, 6 * 86400)];
         let s = summarize(&objs, "barman/backup/", now, 7);
         assert!(!s.retention_ok);
     }
