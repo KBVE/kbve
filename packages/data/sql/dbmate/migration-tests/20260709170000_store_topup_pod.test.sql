@@ -71,8 +71,10 @@ DO $$
 DECLARE
     v_user UUID := (SELECT user_id FROM public.__store_topup_pod_fixture WHERE role = 'topup_user');
 BEGIN
+    -- 'dollars' is length 7 -> fails ^[a-z]{3}$ (uppercase 'USD' would just
+    -- normalize to 'usd' and be accepted, so test an invalid FORMAT instead).
     BEGIN
-        PERFORM store.service_apply_topup(v_user, 'evt_bad_fiat', 'cs_x', 100, 100, 'ZZZ');
+        PERFORM store.service_apply_topup(v_user, 'evt_bad_fiat', 'cs_x', 100, 100, 'dollars');
         RAISE EXCEPTION 'fail: invalid currency_fiat accepted';
     EXCEPTION WHEN sqlstate '22023' THEN NULL; END;
 
