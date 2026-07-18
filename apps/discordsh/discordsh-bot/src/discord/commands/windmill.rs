@@ -2,7 +2,7 @@ use poise::CreateReply;
 use tracing::{info, warn};
 
 use crate::discord::bot::{Context, Error};
-use crate::discord::windmill::{DiscordContext, split_args};
+use crate::discord::windmill::{DiscordContext, RunError, split_args, suggest_command};
 use crate::discord::windmill_embed;
 
 /// Windmill script run when `/wm` is invoked with no script name — renders the
@@ -88,15 +88,37 @@ pub async fn wm(
                 error = %e,
                 "windmill run failed"
             );
-            ctx.send(
-                CreateReply::default()
-                    .content(format!("windmill error: {e}"))
-                    .ephemeral(true),
-            )
-            .await?;
+            let content = match e {
+                // Unknown or blocked command name → guide to the menu rather
+                // than leaking that an allowlist rejected it, and suggest the
+                // closest real command when the miss looks like a typo.
+                RunError::PathNotAllowed => {
+                    let attempted = command_leaf(&path_for_log);
+                    let mut msg = format!("❓ Unknown command `/wm {attempted}`.");
+                    if let Some(near) = suggest_command(&attempted, &cfg.list_command_names().await) {
+                        msg.push_str(&format!(" Did you mean `/wm {near}`?"));
+                    }
+                    msg.push_str(" Run `/wm help` for the full list.");
+                    msg
+                }
+                other => format!("windmill error: {other}"),
+            };
+            ctx.send(CreateReply::default().content(content).ephemeral(true))
+                .await?;
         }
     }
     Ok(())
+}
+
+/// Reduce whatever the user typed to a safe, bare command name for display in
+/// the unknown-command hint: drop any folder/kind prefix (`f/discordsh/`,
+/// `p/…`) and remove every backtick so it can't break out of the code span.
+fn command_leaf(raw: &str) -> String {
+    raw.trim_matches('/')
+        .rsplit('/')
+        .next()
+        .unwrap_or(raw)
+        .replace('`', "")
 }
 
 fn truncate_for_discord(s: &str) -> String {
@@ -113,7 +135,21 @@ fn truncate_for_discord(s: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use super::truncate_for_discord;
+    use super::{command_leaf, truncate_for_discord};
+
+    #[test]
+    fn command_leaf_strips_prefix() {
+        assert_eq!(command_leaf("poem"), "poem");
+        assert_eq!(command_leaf("f/discordsh/poem"), "poem");
+        assert_eq!(command_leaf("/f/discordsh/poem/"), "poem");
+    }
+
+    #[test]
+    fn command_leaf_removes_backticks() {
+        // A code-span breakout attempt collapses to a bare token.
+        assert_eq!(command_leaf("po`em"), "poem");
+        assert_eq!(command_leaf("`inject`"), "inject");
+    }
 
     #[test]
     fn truncate_passthrough() {
