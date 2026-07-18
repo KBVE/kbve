@@ -234,6 +234,17 @@ async fn event_handler(
             if is_new.unwrap_or(false) {
                 info!(guild = %guild.name, id = %guild.id, "Joined new guild");
             }
+            // Park the bot in its voice channel. GuildCreate re-fires on every
+            // (re)connect for the shard that owns this guild, so this keeps the
+            // voice presence alive across reconnects.
+            if super::voice::target().is_some_and(|(g, _)| g == guild.id) {
+                super::voice::park(ctx);
+            }
+        }
+
+        // Rejoin the parked voice channel if the bot is moved or disconnected.
+        serenity::FullEvent::VoiceStateUpdate { new, .. } => {
+            super::voice::handle_voice_state_update(ctx, new);
         }
 
         serenity::FullEvent::GuildDelete { incomplete, .. } => {

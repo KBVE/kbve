@@ -19,6 +19,10 @@ askama = "0.15.4"
 dotenvy = "0.15"
 serenity = { version = "0.12.5", default-features = false, features = ["client", "gateway", "model", "rustls_backend", "cache"] }
 poise = "0.6.1"
+# Raw gateway frame type for sending a Voice State Update (op 4) via
+# ShardMessenger::websocket_message. Pinned to serenity's transitive
+# tokio-tungstenite so the `Message` type unifies to one crate instance.
+tokio-tungstenite = { version = "0.21", default-features = false }
 sysinfo = "0.38.2"
 reqwest = { version = "0.13.2", default-features = false, features = ["json", "rustls"] }
 dashmap = "6.1"
