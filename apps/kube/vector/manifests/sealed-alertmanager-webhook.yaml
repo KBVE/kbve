@@ -1,0 +1,13 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  name: vector-alertmanager-webhook
+  namespace: vector
+spec:
+  encryptedData:
+    password: AgCjYqd2LLvAzLQ7Le2zoTK1n4MGhVQImn3z46gOa66Tk/HxGK/MCOl+0sbIfmQG8vBGMSaffyCp5NygA0yjA9crbyp1Q3fG0y7AX2crv76mQRs4Is++cXyAfvh2c3rUomx4JCJkF/Yqj8eh2FSTbrJRvopakK5j995FpMLQvab5iO8qpXzIEzz2uHGWPejEzJ01d6jb87GIVT1NcENNxSvwjHkxNd71wP7wRM9AUBm8PXVF/Nyei17VKu2gGnd/iw+MvDXrAwClj/eiZhRYL6XMYQimhH7CubuTmYgFRf7QhzuJL/5tpi3UtDfxb2LrmGIuNe3Wb3eLKNO9b9NsM5kGVXnb4yqYgVIaroatylYlC/BUg9q0u9CLpOux3MoHJCgfWHZVitZWFkVnZJ+9N7lf/2rAgUMKZX5mS8q7ATtJqbvcgEtCMzlL/KyoFaLR+4KVroJ1FJwHaq+DXrC5jyB3KYv0VYmHEFv4oS61BV1i8S5sC0yepuUS5enISp7oGZPwYsZ0vHOq4SdIHsMIQk8Vwb7p6FWzx4VhhdrOvUH/FH+W509q8TzYuq5nkQjy/bDpnmsfDMUNcIBktHJMdp0o0uE0phFrNPYuD8Lf3DQoF46NPQSu0RuEdRDndc2v0GdNO5FE8UsVKo+AyIS8WP5JayuQlU3PBoX/HPJ2VEM4WcQAgOLAen1Jwa1cvgMhqODBB4jaROP8RztrbFVl21kY/XlpsobspMB8iv9wx0ybBDOBExxTJg9EtMB95Qyq2vc=
+  template:
+    metadata:
+      name: vector-alertmanager-webhook
+      namespace: vector
