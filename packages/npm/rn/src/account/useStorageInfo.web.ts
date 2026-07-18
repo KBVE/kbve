@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { StorageHook, StorageInfo } from './types';
 import { toStorageInfo } from './storageMath';
+import { clearStorage } from './clearStorage';
 
 async function read(): Promise<StorageInfo> {
 	let itemCount = 0;
@@ -41,19 +42,7 @@ export function useStorageInfo(): StorageHook {
 	}, [refresh]);
 
 	const clear = useCallback(async () => {
-		try {
-			localStorage.clear();
-		} catch {
-			void 0;
-		}
-		try {
-			if (typeof caches !== 'undefined') {
-				const keys = await caches.keys();
-				await Promise.all(keys.map((k) => caches.delete(k)));
-			}
-		} catch {
-			void 0;
-		}
+		await clearStorage();
 		refresh();
 	}, [refresh]);
 
