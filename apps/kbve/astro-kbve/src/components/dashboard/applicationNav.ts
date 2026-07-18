@@ -230,6 +230,11 @@ export const APPLICATION_NAV: DashboardNavGroup[] = [
 				copy: 'Workflow automation — nodes, triggers, and self-hosted pipelines.',
 			},
 			{
+				label: 'Windmill',
+				href: '/application/windmill/',
+				copy: 'Code-first workflow automation — scripts as APIs, crons, and our /wm Discord jobs.',
+			},
+			{
 				label: 'Machine Learning',
 				href: '/application/ml/',
 				copy: 'Models, training pipelines, and applied AI notes.',

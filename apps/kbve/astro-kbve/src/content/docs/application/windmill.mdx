@@ -62,6 +62,8 @@ bento:
           href: '#first-script'
         - label: KBVE workflows
           href: '#kbve'
+        - label: Deployment
+          href: '#deploy'
     aside:
         icon: route
         title: Code first, low-code second
@@ -95,6 +97,10 @@ bento:
           icon: zap
           href: '#kbve'
           body: How we trigger one-off Windmill scripts from Discord with the /wm command.
+        - title: Deployment
+          icon: deploy
+          href: '#deploy'
+          body: The monorepo-to-cluster sync pipeline, and what it took to ship /wm npm.
     related:
         - title: n8n
           href: /application/n8n/
@@ -244,6 +250,35 @@ KBVE self-hosts Windmill on the cluster and drives it two ways: from **Discord**
 
 <Aside type="note">
 This pattern replaced our earlier **n8n** setup. Code-first scripts in version control fit our monorepo far better than a click-built canvas — reviews, history, and rollbacks all come for free.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="deploy" eyebrow="Monorepo to cluster" heading="Deployment">
+
+Shipping a new `/wm` command is a **merge, not a manual deploy** — but a few pieces have to line up. Here is the exact path `/wm npm` took from a file to a live Discord command.
+
+<Steps>
+
+1. **Author the script**
+   Add `npm.ts` plus a `npm.script.yaml` manifest under `apps/windmill/f/discordsh/`, written for the **Bun** runtime with zero dependencies. Every folder in the tree also needs a `folder.meta.yaml` — a missing one fails the whole sync.
+
+2. **Scope the sync**
+   `apps/windmill/wmill.yaml` sets `includes: f/**`, so a push only manages the `f/` tree and never clobbers user-space scripts. The push also runs with `--skip-variables` so it can't touch stored secrets — it stays **prune-safe**.
+
+3. **CI on merge to main**
+   `.github/workflows/windmill-sync.yml` triggers on a push to `main` that touches `apps/windmill/**`. It runs `windmill-cli` **pinned to the deployed server version** (the CLI and server protocol are version-matched — a mismatch breaks the push).
+
+4. **Run inside the cluster**
+   The Windmill API is cluster-internal, so the sync job runs on a **self-hosted in-cluster runner** — an external runner cannot reach it. That runner's egress must explicitly allow it to reach the Windmill service, and the CI token's **workspace role must permit writing scripts** (an operator-only token gets a `401` on create).
+
+5. **Go live**
+   Merge lands → sync pushes `f/discordsh/npm` into the workspace → the bot's `/wm` **allowlist** already covers `f/discordsh/*` → `/wm npm` renders. No bot rebuild was needed because the path was already inside the allowed namespace and Windmill runs it as a **script**.
+
+</Steps>
+
+<Aside type="tip">
+The biggest lesson from the first go-live: a failed push surfaces as a vague *"credentials or instance is invalid"* even when the token is fine — the real cause was **network egress** and a **missing `folder.meta.yaml`**. Any new in-cluster service the runner must reach needs an explicit egress allow.
 </Aside>
 
 </BentoProse>

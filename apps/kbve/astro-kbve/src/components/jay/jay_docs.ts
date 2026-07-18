@@ -437,6 +437,26 @@ export const skillDocs: SkillDocsEntry[] = [
 		],
 	},
 	{
+		skillId: 'windmill',
+		docs: [
+			{
+				title: 'Windmill',
+				path: '/application/windmill/',
+				description: 'Code-first workflow automation',
+			},
+			{
+				title: 'n8n',
+				path: '/application/n8n/',
+				description: 'Node-based automation',
+			},
+			{
+				title: 'Docker',
+				path: '/application/docker/',
+				description: 'Containerization',
+			},
+		],
+	},
+	{
 		skillId: 'gcloud',
 		docs: [
 			{
