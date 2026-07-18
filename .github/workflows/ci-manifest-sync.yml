@@ -1,0 +1,121 @@
+name: CI - Manifest Sync
+
+# Closes the manifest deadlock. The dispatch manifest is the sole version
+# lever read on `main` (ci-main.yml), but it is only regenerated AFTER a
+# successful publish (utils-update-version-toml.yml). A brand-new version
+# bumped in the MDX with a stale manifest never triggers a publish, so the
+# post-publish self-heal never fires — the version sits unpublished forever.
+#
+# This workflow closes the LEADING gap: on every push to `dev` that touches
+# a manifest source, it regenerates the manifest and — if drifted — opens an
+# auto-PR back to `dev` through the SAME auto-merge queue as the post-publish
+# version.toml sync. The fresh manifest lands on `dev` before the release PR
+# flows to `main`, so the publish fires on the first attempt.
+#
+# No loop: the trigger paths exclude the manifest output itself, and the
+# sync commit carries [skip ci]; auto-merge is a workflow_dispatch, which
+# bypasses [skip ci], so the PR still merges.
+
+on:
+    push:
+        branches:
+            - dev
+        paths:
+            - 'apps/kbve/astro-kbve/src/content/**'
+            - 'apps/kbve/astro-kbve/src/content.config.ts'
+            - 'apps/kbve/astro-kbve/src/pages/api/ci-registry.json.ts'
+            - 'apps/kbve/astro-kbve/src/data/ci/**'
+            - 'apps/kbve/astro-kbve/src/data/schema/ICiProjectSchema.ts'
+            - 'apps/kbve/astro-kbve/scripts/gen-ci-manifest.mts'
+            - 'packages/data/proto/kbve/ci_registry.proto'
+            - 'packages/devops/**'
+    workflow_dispatch:
+
+# Share one queue with the post-publish version.toml sync so a manifest
+# regen never races an in-flight version bump onto dev.
+concurrency:
+    group: version-sync-manifest
+    cancel-in-progress: false
+
+permissions:
+    contents: read
+
+jobs:
+    sync:
+        name: Regenerate ci-dispatch-manifest on dev
+        runs-on: ubuntu-latest
+        timeout-minutes: 15
+        permissions:
+            contents: write
+            pull-requests: write
+            actions: write
+        steps:
+            - name: Checkout dev
+              uses: actions/checkout@v7
+              with:
+                  ref: dev
+
+            - uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+
+            - uses: pnpm/action-setup@v5
+              with:
+                  version: 10.33.0
+                  run_install: false
+
+            - id: pnpm-store
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+            - uses: actions/cache@v6
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - run: pnpm install --frozen-lockfile
+
+            - name: Regenerate ci-dispatch-manifest
+              run: npx nx run astro-kbve:gen:ci-manifest
+
+            - name: Create PR
+              id: pr
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+                  git add .github/ci-dispatch-manifest.json
+                  if git diff --cached --quiet; then
+                    echo "::notice::Manifest already in sync on dev — nothing to commit."
+                    exit 0
+                  fi
+
+                  SHORT_SHA="${GITHUB_SHA::7}"
+                  BRANCH="auto/manifest-sync-${SHORT_SHA}"
+
+                  # Reuse an existing open sync branch/PR head if the same source
+                  # commit fires twice; otherwise fresh branch off dev HEAD.
+                  git checkout -b "${BRANCH}"
+                  git commit -m "chore(ci): sync ci-dispatch-manifest [skip ci]"
+                  git push --force-with-lease origin "${BRANCH}"
+
+                  PR_URL=$(gh pr create \
+                    --base dev \
+                    --head "${BRANCH}" \
+                    --title "chore(ci): sync ci-dispatch-manifest" \
+                    --body "Automated manifest regen for source commit ${SHORT_SHA}. Keeps the dispatch manifest in lockstep with the project MDX so new versions publish on the first attempt." \
+                    --label "auto-pr" 2>/dev/null || gh pr view "${BRANCH}" --json url --jq '.url')
+
+                  PR_NUM=$(echo "$PR_URL" | grep -o '[0-9]*$')
+                  echo "Manifest sync PR #${PR_NUM}"
+                  echo "pr_number=${PR_NUM}" >> "$GITHUB_OUTPUT"
+
+            - name: Dispatch auto-merge
+              if: steps.pr.outputs.pr_number != ''
+              uses: ./.github/actions/dispatch-auto-merge
+              with:
+                  pr_number: ${{ steps.pr.outputs.pr_number }}
+                  github_token: ${{ github.token }}
