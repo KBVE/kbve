@@ -57,7 +57,17 @@ const currentYear = new Date().getFullYear();
 
 <footer id="kbve-footer" class="kf-footer not-content">
 	<div class="kf-rn-navbar" aria-label="react-native-web nav (test strip)">
-		<ReactNavBarStrip client:only="react" />
+		<ReactNavBarStrip client:only="react">
+			<div slot="fallback" class="kf-rn-navbar__skeleton" aria-hidden="true">
+				<span class="kf-rn-navbar__brand"></span>
+				<span class="kf-rn-navbar__links">
+					<span class="kf-rn-navbar__chip"></span>
+					<span class="kf-rn-navbar__chip"></span>
+					<span class="kf-rn-navbar__chip"></span>
+					<span class="kf-rn-navbar__chip"></span>
+				</span>
+			</div>
+		</ReactNavBarStrip>
 	</div>
 	<div class="kf-container bento-frame">
 		<div class="kf-grid">
@@ -231,9 +241,72 @@ const currentYear = new Date().getFullYear();
 		padding: 0;
 	}
 
-	/* react-native-web NavBar test strip — sits above the bento footer grid */
+	/* react-native-web NavBar test strip — sits above the bento footer grid.
+	   Reserve the NavBar's 60px height so the client:only island can't shift
+	   the footer when it hydrates (CLS = 0). The fallback skeleton fills the
+	   same box until React mounts. */
 	.kf-rn-navbar {
+		min-height: 60px;
 		border-bottom: 1px solid var(--bento-hairline);
+	}
+
+	.kf-rn-navbar__skeleton {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1.5rem;
+		width: 100%;
+		max-width: 1120px;
+		margin: 0 auto;
+		min-height: 60px;
+		padding: 0.5rem 2rem;
+		box-sizing: border-box;
+	}
+
+	.kf-rn-navbar__links {
+		display: flex;
+		align-items: center;
+		gap: 1.5rem;
+	}
+
+	.kf-rn-navbar__brand,
+	.kf-rn-navbar__chip {
+		display: inline-block;
+		height: 1rem;
+		border-radius: 0.375rem;
+		background: linear-gradient(
+			90deg,
+			var(--bento-cell-bg) 0%,
+			var(--bento-hairline) 50%,
+			var(--bento-cell-bg) 100%
+		);
+		background-size: 200% 100%;
+		animation: kf-rn-navbar-shimmer 1.3s ease-in-out infinite;
+	}
+
+	.kf-rn-navbar__brand {
+		width: 3.5rem;
+		height: 1.25rem;
+	}
+
+	.kf-rn-navbar__chip {
+		width: 3.5rem;
+	}
+
+	@keyframes kf-rn-navbar-shimmer {
+		0% {
+			background-position: 200% 0;
+		}
+		100% {
+			background-position: -200% 0;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.kf-rn-navbar__brand,
+		.kf-rn-navbar__chip {
+			animation: none;
+		}
 	}
 
 	/* Main grid: bento seams — 1px hairline gaps between cells */
