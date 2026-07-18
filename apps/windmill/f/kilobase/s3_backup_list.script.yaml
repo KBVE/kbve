@@ -1,0 +1,32 @@
+summary: List kilobase CNPG backup bucket + summarize
+description: >-
+  Lists the kilobase S3 backup bucket (barman layout: base/<id>/... and
+  wals/...) under the given prefix and returns a barman backup summary
+  alongside the raw object list. Read-only (ListObjectsV2 only). Reuses the
+  pure summarize() function so the JSON contract matches the axum service.
+kind: script
+lock: ''
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  order:
+    - s3
+    - prefix
+  properties:
+    s3:
+      type: object
+      description: >-
+        S3 resource for the kilobase backup bucket (region, bucket,
+        accessKey, secretKey), injected by Windmill from the configured S3
+        resource.
+      properties:
+        region: { type: string }
+        bucket: { type: string }
+        accessKey: { type: string }
+        secretKey: { type: string }
+    prefix:
+      type: string
+      description: Key prefix to list under.
+      default: barman/backup/
+  required:
+    - s3

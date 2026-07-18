@@ -9,6 +9,7 @@ mod mcp;
 mod openapi;
 mod proto;
 mod rcon;
+mod s3backup;
 mod telemetry;
 mod transport;
 pub mod version;

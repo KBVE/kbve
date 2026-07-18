@@ -12,7 +12,7 @@ tags:
 key: astro_kbve
 pipeline: docker
 app_name: axum-kbve
-version: "1.0.239"
+version: "1.0.240"
 source_path: apps/kbve/astro-kbve
 version_toml: apps/kbve/axum-kbve/version.toml
 version_target: apps/kbve/axum-kbve/Cargo.toml
@@ -114,6 +114,29 @@ export const faqs = [
 	},
 ];
 
+export const endpoints = [
+	{
+		title: 'GET /dashboard/kilobase/s3/summary',
+		icon: 'M5 11h14a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-6a2 2 0 0 1 2-2zM8 11V7a4 4 0 0 1 8 0v4',
+		body: 'A barman-aware backup summary for the kilobase CNPG backup bucket — latest base backup, WAL count, total size, and retention_ok, all in one call.',
+		points: [
+			'latest_base_backup — id, time, size_bytes, age_seconds (or null).',
+			'base_backup_count, wal_count, total_size_bytes, oldest_object_age_seconds.',
+			'retention_days + retention_ok — true only when a base backup exists and its age is within the retention window.',
+		],
+	},
+	{
+		title: 'GET /dashboard/kilobase/s3/objects',
+		icon: 'M4 7V4h16v3M9 20h6M12 4v16',
+		body: 'Paginated whole-bucket object listing for the kilobase backup bucket, backed by S3 ListObjectsV2 continuation tokens.',
+		points: [
+			'Query params — prefix, token, limit.',
+			'Each entry returns key, size, last_modified.',
+			'token in the response is passed back as the next request’s token to page forward.',
+		],
+	},
+];
+
 export const related = [
 	{
 		href: '/docs/project/metrics',
@@ -183,6 +206,7 @@ export const related = [
 		<nav class="bento-jump" aria-label="On this page">
 			<a class="bento-chip" href="#pillars">Reference</a>
 			<a class="bento-chip" href="#locker">Locker</a>
+			<a class="bento-chip" href="#endpoints">Endpoints</a>
 			<a class="bento-chip" href="#faq">FAQ</a>
 			<a class="bento-chip" href="#related">Related</a>
 		</nav>
@@ -242,6 +266,25 @@ export type kbveLocker = {
 ```
 
 		</div>
+	</div>
+</BentoShell>
+
+<BentoShell id="endpoints" eyebrow="Kilobase" heading="Backup dashboard endpoints">
+	<div class="bento-board bento-board--auto-wide">
+		{endpoints.map((e) => (
+			<div class="bento-cell bento-featurecard bento-card bento-card--glass bento-card--interactive">
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={e.icon} /></svg>
+				</span>
+				<h3 class="bento-featurecard__title">{e.title}</h3>
+				<p class="bento-featurecard__body">{e.body}</p>
+				<ul class="bento-list">
+					{e.points.map((pt) => (
+						<li>{pt}</li>
+					))}
+				</ul>
+			</div>
+		))}
 	</div>
 </BentoShell>
 

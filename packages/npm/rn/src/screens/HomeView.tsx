@@ -17,6 +17,7 @@ import { createIsometricPlugin } from '../examples/isometricPlugin';
 import { openExternal } from '../platform/openExternal';
 import { ClickHouseScreen } from './ClickHouseScreen';
 import { McScreen } from './McScreen';
+import { S3BackupScreen } from './S3BackupScreen';
 
 const open = (url: string) => openExternal(url);
 
@@ -78,6 +79,7 @@ export function HomeView() {
 	const [launched, setLaunched] = useState(false);
 	const [showClickHouse, setShowClickHouse] = useState(false);
 	const [showMc, setShowMc] = useState(false);
+	const [showS3Backup, setShowS3Backup] = useState(false);
 
 	useEffect(() => {
 		const manifest = native ? createWgpuPlugin() : createIsometricPlugin();
@@ -157,6 +159,30 @@ export function HomeView() {
 		);
 	}
 
+	if (showS3Backup) {
+		return (
+			<View style={styles.root}>
+				<View
+					style={[
+						styles.canvasBar,
+						{ paddingTop: insets.top + tokens.space.sm },
+					]}>
+					<Text variant="label">Kilobase · S3 Backups</Text>
+					<Button
+						title="Close"
+						variant="ghost"
+						onPress={() => setShowS3Backup(false)}
+					/>
+				</View>
+				<ScrollView
+					showsVerticalScrollIndicator={false}
+					contentContainerStyle={styles.body}>
+					<S3BackupScreen />
+				</ScrollView>
+			</View>
+		);
+	}
+
 	return (
 		<View style={styles.root}>
 			<ScrollView
@@ -208,6 +234,14 @@ export function HomeView() {
 							title="⛏  Minecraft Dashboard"
 							variant="secondary"
 							onPress={() => setShowMc(true)}
+						/>
+					) : null}
+
+					{staff.isStaff ? (
+						<Button
+							title="🗄  S3 Backups"
+							variant="secondary"
+							onPress={() => setShowS3Backup(true)}
 						/>
 					) : null}
 

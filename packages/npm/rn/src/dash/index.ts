@@ -18,6 +18,8 @@ export * from './adapters/vm';
 export * from './adapters/rows';
 export * from './adapters/factorio';
 export * from './adapters/minecraft';
+export * from './adapters/kilobaseBackup';
 export * from './clickhouse';
+export * from './S3BackupPanel';
 export { McView, ServerCard, RconConsole, createRconExec } from './mc';
 export type { McViewProps, RconExecFn } from './mc';
