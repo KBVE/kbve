@@ -181,6 +181,13 @@ export const hardSkills: Skill[] = [
 		link: '/application/n8n/',
 	},
 	{
+		id: 'windmill',
+		name: 'Windmill',
+		description: 'Code-first workflow automation — scripts as APIs, crons, and Discord /wm jobs',
+		level: 'intermediate',
+		link: '/application/windmill/',
+	},
+	{
 		id: 'gcloud',
 		name: 'GCloud',
 		description: 'Google Cloud Platform services and deployment',

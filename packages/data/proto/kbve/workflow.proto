@@ -21,6 +21,21 @@ enum Backend {
   BACKEND_WINDMILL    = 3;  // Windmill script/flow
 }
 
+// Which surface invokes a workflow. Orthogonal to WorkflowTier: a DISCORD and
+// a WEB script can both be USER-tier. Mirrors the windmill folder the script
+// lives in — the folder is the hardened invocation boundary, this enum is the
+// display/routing hint.
+//   DISCORD → f/discordsh/*  (bot /wm only)
+//   WEB     → f/web/*        (dashboard canvas only)
+//   SHARED  → f/shared/*     (a library parent imported by surface wrappers,
+//                             never invoked directly from a browser)
+enum Surface {
+  SURFACE_UNSPECIFIED = 0;
+  SURFACE_DISCORD     = 1;
+  SURFACE_WEB         = 2;
+  SURFACE_SHARED      = 3;
+}
+
 // Live status of a node on the canvas.
 enum NodeStatus {
   NODE_STATUS_UNSPECIFIED = 0;
@@ -30,23 +45,29 @@ enum NodeStatus {
   NODE_STATUS_ERR         = 4;
 }
 
-// Access tier — mirrors the Windmill sub-namespace gate for UX only; the
-// backend proxy is the real boundary.
-//   USER  → f/app/user/*  (any authenticated caller)
-//   STAFF → f/app/staff/* (is_staff)
+// Access tier for UX gating on the canvas. The backend proxy is the REAL
+// boundary and enforces by windmill path prefix — it never trusts this field.
+//   USER   → f/web/*        (any authenticated caller)
+//   STAFF  → f/web/staff/*  (is_staff)
+//   SYSTEM → internal only  (f/shared/*, f/kilobase/*) — never proxied to a
+//            browser; a browser invoke of a SYSTEM path is rejected outright.
 enum WorkflowTier {
   WORKFLOW_TIER_UNSPECIFIED = 0;
   WORKFLOW_TIER_USER        = 1;
   WORKFLOW_TIER_STAFF       = 2;
+  WORKFLOW_TIER_SYSTEM      = 3;
 }
 
 // A single registry entry — a friendly key mapped to a concrete backend ref.
+// `path` is the ONE source of truth for what actually runs; `tier` and
+// `surface` are presentation metadata the dashboard filters/gates on for UX.
 message WorkflowDef {
   string key = 1;            // stable friendly id, e.g. "poem"
   Backend backend = 2;       // which executor runs it
   string path = 3;           // backend-specific ref (windmill script path, edge fn name)
-  WorkflowTier tier = 4;     // access tier for UX gating
-  string label = 5;          // human label for the canvas
+  WorkflowTier tier = 4;     // access tier for UX gating (proxy enforces by path)
+  Surface surface = 5;       // which surface this entry is exposed on
+  string label = 6;          // human label for the canvas
 }
 
 // The full set of workflows exposed to the dashboard.

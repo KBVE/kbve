@@ -1,14 +1,17 @@
 import type {
 	BackendValue,
 	NodeStatusValue,
+	SurfaceValue,
 } from './generated/workflow-schema';
 
 export type Backend = BackendValue;
 export type NodeStatus = NodeStatusValue;
+export type Surface = SurfaceValue;
 
 export type {
 	WorkflowDef,
 	WorkflowTierValue,
+	SurfaceValue,
 } from './generated/workflow-schema';
 
 export interface WorkflowNode {
