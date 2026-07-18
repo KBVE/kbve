@@ -1,0 +1,28 @@
+summary: Define a term via Urban Dictionary (alias of ud)
+description: >-
+  /wm target. Long-form alias for /wm ud — re-exports the same handler so
+  /wm urbandictionary yeet works identically. Bun runtime, no dependencies.
+kind: script
+lock: ''
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  order:
+    - args
+    - discord
+  properties:
+    args:
+      type: array
+      description: Space-separated args from /wm; joined into the term to define.
+      items:
+        type: string
+      default: []
+    discord:
+      type: object
+      description: Discord invocation context injected by the bot.
+      properties:
+        user_id: { type: string }
+        username: { type: string }
+        guild_id: { type: string }
+        channel_id: { type: string }
+  required: []
