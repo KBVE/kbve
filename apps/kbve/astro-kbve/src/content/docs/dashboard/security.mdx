@@ -13,11 +13,11 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-07-17T10:04:15Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-07-18T09:40:57Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**30** critical/high severity findings across the monorepo.
+**31** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
@@ -26,7 +26,7 @@ Last generated: **2026-07-17T10:04:15Z** — updated daily by `ci-dashboard`.
   <Card title="6 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
-  <Card title="24 High" icon="error">
+  <Card title="25 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
   <Card title="55 Medium" icon="information">
@@ -41,7 +41,7 @@ Last generated: **2026-07-17T10:04:15Z** — updated daily by `ci-dashboard`.
 
 <CardGrid>
   <Card title="npm" icon="seti:npm">
-    **63** advisories
+    **64** advisories
   </Card>
   <Card title="Cargo" icon="seti:rust">
     **63** advisories
@@ -63,7 +63,7 @@ Last generated: **2026-07-17T10:04:15Z** — updated daily by `ci-dashboard`.
 pie showData
     title Findings by Severity
     "Critical" : 6
-    "High" : 24
+    "High" : 25
     "Medium" : 55
     "Low" : 8
 ```
@@ -73,7 +73,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 63
+    "npm" : 64
     "Cargo" : 63
     "CodeQL" : 5
 ```
@@ -83,12 +83,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 3 | 24 | 28 | 8 | 63 |
+| **npm** | 3 | 25 | 28 | 8 | 64 |
 | **Cargo** | 0 | 0 | 25 | 0 | 63 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 3 | 0 | 2 | 0 | 5 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 6 | 24 | 55 | 8 | 131 |
+| **Total** | 6 | 25 | 55 | 8 | 132 |
 
   </TabItem>
   <TabItem label="npm">
@@ -122,6 +122,7 @@ pie showData
 | High | `ws` | ws: Memory exhaustion DoS from tiny fragments and data ch... | [Details](https://github.com/advisories/GHSA-96hv-2xvq-fx4p) |
 | High | `vite` | vite: `server.fs.deny` bypass on Windows alternate paths | [Details](https://github.com/advisories/GHSA-fx2h-pf6j-xcff) |
 | High | `vite` | vite: `server.fs.deny` bypass on Windows alternate paths | [Details](https://github.com/advisories/GHSA-fx2h-pf6j-xcff) |
+| High | `adm-zip` | adm-zip: Crafted ZIP file triggers 4GB memory allocation | [Details](https://github.com/advisories/GHSA-xcpc-8h2w-3j85) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `js-yaml` | js-yaml has prototype pollution in merge (&lt;&lt;) | [Details](https://github.com/advisories/GHSA-mh29-5h37-fv8m) |
 | Medium | `mdast-util-to-hast` | mdast-util-to-hast has unsanitized class attribute | [Details](https://github.com/advisories/GHSA-4fh9-h7wg-q85m) |
