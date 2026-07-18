@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.entities.Member
 import net.dv8tion.jda.api.entities.Message
 import net.dv8tion.jda.api.entities.Webhook
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel
-import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent
 import net.dv8tion.jda.api.events.session.ReadyEvent
 import net.dv8tion.jda.api.exceptions.PermissionException
@@ -50,8 +49,6 @@ class DiscordBot(
     private val authorizedRoles: Set<String>,
     private val serverAliases: Map<String, String>,
     private val execRouter: ExecRouter,
-    /** Voice channel to idle in (self-muted + self-deafened); null disables it. */
-    private val voiceChannelId: String? = null,
 ) : ListenerAdapter() {
 
     private var jda: JDA? = null
@@ -63,26 +60,12 @@ class DiscordBot(
     @Volatile private var botUserId: String? = null
 
     fun start() {
-        logger.info(
-            "DiscordBot starting (channel={}, voiceChannel={}, authorizedRoles={})",
-            channelId, voiceChannelId ?: "disabled", authorizedRoles,
-        )
+        logger.info("DiscordBot starting (channel={}, authorizedRoles={})", channelId, authorizedRoles)
         try {
-            val voiceEnabled = !voiceChannelId.isNullOrBlank()
-            // VOICE_STATE cache is required for audio; only disable it when we
-            // aren't parking in a voice channel. GUILD_VOICE_STATES is already
-            // in JDA's default (non-privileged) intent set.
-            val disabledCaches = buildList {
-                add(CacheFlag.EMOJI)
-                add(CacheFlag.STICKER)
-                add(CacheFlag.SCHEDULED_EVENTS)
-                add(CacheFlag.ACTIVITY)
-                if (!voiceEnabled) add(CacheFlag.VOICE_STATE)
-            }
             jda = JDABuilder.createDefault(token)
-                .enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_VOICE_STATES)
+                .enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.MESSAGE_CONTENT, GatewayIntent.GUILD_MEMBERS)
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
-                .disableCache(disabledCaches)
+                .disableCache(CacheFlag.VOICE_STATE, CacheFlag.EMOJI, CacheFlag.STICKER, CacheFlag.SCHEDULED_EVENTS, CacheFlag.ACTIVITY)
                 .addEventListeners(this)
                 .build()
         } catch (t: Throwable) {
@@ -174,56 +157,6 @@ class DiscordBot(
             return
         }
         provisionWebhook(channel)
-        joinVoice(event.jda)
-    }
-
-    /**
-     * Park the bot in the configured voice channel, self-muted and
-     * self-deafened. Best-effort: a missing channel or permission failure is
-     * logged and the chat relay keeps working. JDA auto-reconnects the audio
-     * connection across gateway drops; [onGuildVoiceUpdate] handles being
-     * dragged out or moved.
-     */
-    private fun joinVoice(jda: JDA) {
-        val id = voiceChannelId?.takeIf { it.isNotBlank() } ?: return
-        val voiceChannel = jda.getVoiceChannelById(id)
-        if (voiceChannel == null) {
-            logger.error("Voice channel {} not found — bot not in the guild or ID is wrong; skipping voice presence", id)
-            return
-        }
-        try {
-            val audioManager = voiceChannel.guild.audioManager
-            // Set before connecting so the initial voice-state carries the flags.
-            audioManager.isSelfDeafened = true
-            audioManager.isSelfMuted = true
-            audioManager.openAudioConnection(voiceChannel)
-            logger.info("Parked bot in voice channel #{} (self-mute + self-deaf)", voiceChannel.name)
-        } catch (t: Throwable) {
-            logger.error("Failed to join voice channel {} — voice presence disabled", id, t)
-        }
-    }
-
-    /**
-     * Rejoin the parked voice channel if the bot itself is moved out or
-     * disconnected. No-op for every other member's voice changes and for the
-     * event our own join produces (already in the target channel).
-     */
-    override fun onGuildVoiceUpdate(event: GuildVoiceUpdateEvent) {
-        val id = voiceChannelId?.takeIf { it.isNotBlank() } ?: return
-        if (event.member.user.id != botUserId) return
-        // Still (or now) in the target channel — nothing to do.
-        if (event.channelJoined?.id == id) return
-
-        val voiceChannel = event.jda.getVoiceChannelById(id) ?: return
-        logger.warn("Bot left parked voice channel (now in {}); rejoining", event.channelJoined?.name ?: "none")
-        try {
-            val audioManager = voiceChannel.guild.audioManager
-            audioManager.isSelfDeafened = true
-            audioManager.isSelfMuted = true
-            audioManager.openAudioConnection(voiceChannel)
-        } catch (t: Throwable) {
-            logger.error("Failed to rejoin voice channel {}", id, t)
-        }
     }
 
     private fun provisionWebhook(channel: TextChannel) {

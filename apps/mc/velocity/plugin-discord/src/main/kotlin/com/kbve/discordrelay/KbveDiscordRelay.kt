@@ -31,13 +31,9 @@ import java.util.concurrent.ConcurrentHashMap
  * `kbve:relay-events` plugin-messaging channel — see [RelayEventChannel].
  *
  * Configuration (env vars):
- *   - DISCORD_BOT_TOKEN        : required; JDA login token
- *   - DISCORD_CHANNEL_ID       : optional; defaults to [DEFAULT_DISCORD_CHANNEL_ID]
- *   - DISCORD_CMD_ROLES        : optional CSV; defaults to [DEFAULT_AUTHORIZED_ROLES]
- *   - DISCORD_VOICE_CHANNEL_ID : optional; voice channel to idle in
- *                                (self-muted + self-deafened). Defaults to
- *                                [DEFAULT_VOICE_CHANNEL_ID]; set to 0/off/disabled
- *                                to turn the voice presence off.
+ *   - DISCORD_BOT_TOKEN   : required; JDA login token
+ *   - DISCORD_CHANNEL_ID  : optional; defaults to [DEFAULT_DISCORD_CHANNEL_ID]
+ *   - DISCORD_CMD_ROLES   : optional CSV; defaults to [DEFAULT_AUTHORIZED_ROLES]
  *
  * If DISCORD_BOT_TOKEN is unset the plugin logs once and stays inert —
  * useful for the e2e container test where no bot exists.
@@ -94,9 +90,6 @@ class KbveDiscordRelay @Inject constructor(
         } else {
             DEFAULT_AUTHORIZED_ROLES
         }
-        val voiceChannelId = (System.getenv("DISCORD_VOICE_CHANNEL_ID")?.trim()
-            ?.takeIf { it.isNotBlank() } ?: DEFAULT_VOICE_CHANNEL_ID)
-            .takeUnless { it.lowercase() in setOf("0", "off", "disabled") }
 
         logger.info("KBVE Discord Relay v1.2.0 initializing")
         val dispatcher = ChatDispatcher(server)
@@ -118,7 +111,6 @@ class KbveDiscordRelay @Inject constructor(
             authorizedRoles = roles,
             serverAliases = serverAliases,
             execRouter = router,
-            voiceChannelId = voiceChannelId,
         )
         instance.start()
         bot = instance
@@ -205,9 +197,6 @@ class KbveDiscordRelay @Inject constructor(
     companion object {
         // Default Discord channel for the chat relay.
         private const val DEFAULT_DISCORD_CHANNEL_ID = "1501071171804991651"
-
-        // Default voice channel the bot idles in (self-muted + self-deafened).
-        private const val DEFAULT_VOICE_CHANNEL_ID = "733345228471140445"
 
         // Roles allowed to invoke staff-gated commands (>cmd, >kick, ...).
         private val DEFAULT_AUTHORIZED_ROLES: Set<String> = setOf(
