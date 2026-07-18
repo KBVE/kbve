@@ -1,0 +1,1010 @@
+-- ============================================================================
+-- STORE RPCs — service-layer mutators + public proxies.
+--
+-- Reference mirror of the collapsed dbmate migrations:
+--   ../../dbmate/migrations/20260708120000_store_schema_init.sql
+--   ../../dbmate/migrations/20260709170000_store_topup_pod.sql
+-- Hand-authored review surface — do not run directly against the database;
+-- promote changes into a new dbmate migration when ready. Depends on
+-- store_core (schema/tables/enum) and the wallet schema (service_debit /
+-- service_credit / account). The order_event append-only trigger function
+-- lives in store_core beside the table it guards.
+--
+-- Caller helper (private, PostgREST never exposes):
+--   private.proxy_store_caller_account
+--
+-- Service functions (service_role only):
+--   store.service_buy / store.service_buy_physical
+--   store.service_upsert_product / store.service_set_product_status
+--   store.service_upsert_variant / store.service_set_variant_status
+--   store.service_advance_order / store.service_refund_order
+--   store.service_list_orders
+--   store.service_apply_topup
+--   store.service_attach_pod_ref / store.service_order_for_pod
+--
+-- Public proxies (mc-style schema-not-exposed pattern):
+--   public.proxy_store_catalog_readonly       — anon|authenticated|service_role
+--   public.proxy_store_product_detail_readonly — anon|authenticated|service_role
+--   public.proxy_store_buy                     — authenticated|service_role
+--   public.proxy_store_buy_physical            — authenticated|service_role
+--   public.proxy_store_my_entitlements_readonly — authenticated|service_role
+--   public.proxy_store_my_orders_readonly      — authenticated|service_role
+-- ============================================================================
+
+-- ============================================================================
+-- private.proxy_store_caller_account — auth.uid() -> wallet.account.id
+--   Raises 28000 on anon, WLT01 on missing account (Rust rw-pool fallback
+--   re-runs the read so the lazy-provision trigger fires).
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION private.proxy_store_caller_account()
+RETURNS UUID
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_user_id    UUID := auth.uid();
+    v_account_id UUID;
+BEGIN
+    IF v_user_id IS NULL THEN
+        RAISE EXCEPTION 'not_authenticated' USING ERRCODE = '28000';
+    END IF;
+    SELECT id INTO v_account_id
+      FROM wallet.account
+     WHERE kind = 'user' AND user_id = v_user_id;
+    IF v_account_id IS NULL THEN
+        RAISE EXCEPTION 'wallet_account_missing' USING ERRCODE = 'WLT01';
+    END IF;
+    RETURN v_account_id;
+END;
+$$;
+ALTER FUNCTION private.proxy_store_caller_account() OWNER TO service_role;
+REVOKE ALL ON FUNCTION private.proxy_store_caller_account() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION private.proxy_store_caller_account() TO service_role;
+
+-- ============================================================================
+-- Catalog / detail read proxies (anon-callable, STABLE).
+-- ============================================================================
+
+-- Keyset-paginated public catalog (anon). Avoids repeated unbounded sorted
+-- reads. Matches store_product_active_idx (created_at DESC, product_id DESC).
+CREATE FUNCTION public.proxy_store_catalog_readonly(
+    p_limit             INTEGER     DEFAULT 50,
+    p_before_created_at TIMESTAMPTZ DEFAULT NULL,
+    p_before_product_id UUID        DEFAULT NULL
+)
+RETURNS TABLE (
+    product_id    UUID,
+    slug          TEXT,
+    title         TEXT,
+    description   TEXT,
+    price         BIGINT,
+    currency      wallet.currency_kind,
+    fulfillment   TEXT,
+    asset_ref     JSONB,
+    variant_count BIGINT,
+    created_at    TIMESTAMPTZ
+)
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = '' AS $$
+BEGIN
+    -- Keyset cursor is a (created_at, product_id) pair: reject a half-supplied
+    -- cursor so a bad client can't produce inconsistent / repeated pages.
+    IF (p_before_created_at IS NULL) <> (p_before_product_id IS NULL) THEN
+        RAISE EXCEPTION 'cursor requires both before_created_at and before_product_id'
+            USING ERRCODE = '22023';
+    END IF;
+    RETURN QUERY
+    SELECT p.product_id, p.slug, p.title, p.description,
+           p.price, p.currency, p.fulfillment, p.asset_ref,
+           COALESCE(vc.n, 0) AS variant_count,
+           p.created_at
+      FROM store.product p
+      LEFT JOIN LATERAL (
+          SELECT count(*) AS n
+            FROM store.product_variant v
+           WHERE v.product_id = p.product_id AND v.status = 'active'
+      ) vc ON TRUE
+     WHERE p.status = 'active'
+       AND (p_before_created_at IS NULL
+            OR p.created_at < p_before_created_at
+            OR (p.created_at = p_before_created_at AND p.product_id < p_before_product_id))
+     ORDER BY p.created_at DESC, p.product_id DESC
+     LIMIT LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100);
+END;
+$$;
+ALTER FUNCTION public.proxy_store_catalog_readonly(INTEGER, TIMESTAMPTZ, UUID) OWNER TO service_role;
+ALTER FUNCTION public.proxy_store_catalog_readonly(INTEGER, TIMESTAMPTZ, UUID) ROWS 50;
+REVOKE ALL ON FUNCTION public.proxy_store_catalog_readonly(INTEGER, TIMESTAMPTZ, UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.proxy_store_catalog_readonly(INTEGER, TIMESTAMPTZ, UUID) TO anon, authenticated, service_role;
+
+CREATE OR REPLACE FUNCTION public.proxy_store_product_detail_readonly(p_slug TEXT)
+RETURNS TABLE (
+    product_id   UUID,
+    slug         TEXT,
+    title        TEXT,
+    description  TEXT,
+    price        BIGINT,
+    currency     wallet.currency_kind,
+    fulfillment  TEXT,
+    asset_ref    JSONB,
+    created_at   TIMESTAMPTZ,
+    variants     JSONB
+)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
+    SELECT p.product_id, p.slug, p.title, p.description,
+           p.price, p.currency, p.fulfillment, p.asset_ref, p.created_at,
+           COALESCE(
+               (SELECT jsonb_agg(
+                        jsonb_build_object(
+                            'variant_id', v.variant_id,
+                            'sku',        v.sku,
+                            'attributes', v.attributes,
+                            'price',      v.price,
+                            'stock',      v.stock
+                        )
+                        ORDER BY v.created_at
+                    )
+                  FROM store.product_variant v
+                 WHERE v.product_id = p.product_id AND v.status = 'active'),
+               '[]'::jsonb
+           ) AS variants
+      FROM store.product p
+     WHERE p.slug = p_slug AND p.status = 'active';
+$$;
+ALTER FUNCTION public.proxy_store_product_detail_readonly(TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_store_product_detail_readonly(TEXT) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.proxy_store_product_detail_readonly(TEXT) TO anon, authenticated, service_role;
+
+-- ============================================================================
+-- store.service_buy — atomic: debit credits + mint inventory.item.
+--   Idempotent by ownership: if the caller already holds the product, returns
+--   the existing item id without charging. Fresh purchases debit via
+--   wallet.service_debit (raises 53100 insufficient_funds) then mint. The
+--   debit ref_type embeds the slug so the wallet replay fingerprint is unique
+--   per product — reusing an idempotency_key across products cannot mint a
+--   second product for free.
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION store.service_buy(
+    p_account         UUID,
+    p_slug            TEXT,
+    p_idempotency_key UUID
+)
+RETURNS UUID
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_product     store.product%ROWTYPE;
+    v_existing    UUID;
+    v_ledger_id   BIGINT;
+    v_item_id     UUID;
+BEGIN
+    IF p_account IS NULL OR p_slug IS NULL OR p_idempotency_key IS NULL THEN
+        RAISE EXCEPTION 'account, slug and idempotency_key are required'
+            USING ERRCODE = '22004';
+    END IF;
+
+    -- Serialize concurrent buys of the same (account, product) so the
+    -- ownership dupe-guard below is race-safe: the loser blocks here, then
+    -- sees the existing item and returns it idempotently instead of double
+    -- debiting. Taken BEFORE the debit. The unique index is the backstop.
+    PERFORM pg_advisory_xact_lock(
+        hashtextextended('store.service_buy:' || p_account::text || ':' || p_slug, 0)
+    );
+
+    SELECT * INTO v_product
+      FROM store.product
+     WHERE slug = p_slug AND status = 'active';
+    IF v_product.product_id IS NULL THEN
+        RAISE EXCEPTION 'store product % not found or not active', p_slug
+            USING ERRCODE = 'P1001';
+    END IF;
+
+    -- Dupe guard: one copy per account. held or escrowed both count as owned.
+    SELECT id INTO v_existing
+      FROM inventory.item
+     WHERE owner_account = p_account
+       AND kind = 'store_product'
+       AND ref = p_slug
+       AND state IN ('held', 'listing_escrow')
+     LIMIT 1;
+    IF v_existing IS NOT NULL THEN
+        RETURN v_existing;
+    END IF;
+
+    -- Free products (price 0) skip the debit: wallet.service_debit rejects
+    -- non-positive amounts. Paid products debit authoritatively.
+    IF v_product.price > 0 THEN
+        v_ledger_id := wallet.service_debit(
+            p_account,
+            v_product.currency,
+            v_product.price,
+            'purchase'::wallet.source_kind,
+            'store purchase: ' || v_product.slug,
+            'store_product:' || v_product.slug,
+            NULL,
+            p_idempotency_key
+        );
+    END IF;
+
+    INSERT INTO inventory.item (
+        owner_account, kind, ref, qty, nbt, state, source, source_ref
+    ) VALUES (
+        p_account, 'store_product', v_product.slug, 1,
+        jsonb_build_object(
+            'product_id', v_product.product_id,
+            'title',      v_product.title,
+            'asset_ref',  v_product.asset_ref
+        ),
+        'held', 'store',
+        jsonb_build_object(
+            'product_id', v_product.product_id,
+            'slug',       v_product.slug,
+            'ledger_id',  v_ledger_id
+        )
+    )
+    RETURNING id INTO v_item_id;
+
+    INSERT INTO inventory.transition (item_id, from_state, to_state, actor, reason, metadata)
+    VALUES (
+        v_item_id, 'transit_in', 'held', 'store', 'store_purchase',
+        jsonb_build_object(
+            'product_id', v_product.product_id,
+            'slug',       v_product.slug,
+            'price',      v_product.price,
+            'currency',   v_product.currency,
+            'free',       (v_product.price = 0),
+            'ledger_id',  v_ledger_id
+        )
+    );
+
+    RETURN v_item_id;
+END;
+$$;
+ALTER FUNCTION store.service_buy(UUID, TEXT, UUID) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_buy(UUID, TEXT, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_buy(UUID, TEXT, UUID) TO service_role;
+COMMENT ON FUNCTION store.service_buy(UUID, TEXT, UUID) IS
+    'INTERNAL store RPC. Debits credits (source_kind=purchase) and mints inventory.item(kind=store_product, ref=slug). Idempotent per (account, product) via the held/escrow ownership check; debit ref_type embeds slug so replay fingerprints are per-product.';
+
+-- ============================================================================
+-- public.proxy_store_buy — authenticated purchase wrapper.
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION public.proxy_store_buy(
+    p_slug            TEXT,
+    p_idempotency_key UUID
+)
+RETURNS UUID
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_account UUID := private.proxy_store_caller_account();
+BEGIN
+    IF p_slug IS NULL OR p_idempotency_key IS NULL THEN
+        RAISE EXCEPTION 'slug and idempotency_key are required' USING ERRCODE = '22004';
+    END IF;
+    RETURN store.service_buy(v_account, p_slug, p_idempotency_key);
+END;
+$$;
+ALTER FUNCTION public.proxy_store_buy(TEXT, UUID) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_store_buy(TEXT, UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_store_buy(TEXT, UUID) TO authenticated, service_role;
+COMMENT ON FUNCTION public.proxy_store_buy(TEXT, UUID) IS
+    'PUBLIC store proxy. Authenticated buy wrapper. Resolves auth.uid() -> wallet account, then calls store.service_buy. Returns the minted inventory.item id.';
+
+-- ============================================================================
+-- public.proxy_store_my_entitlements_readonly — caller's owned products.
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION public.proxy_store_my_entitlements_readonly()
+RETURNS TABLE (
+    item_id     UUID,
+    slug        TEXT,
+    product_id  UUID,
+    title       TEXT,
+    granted_at  TIMESTAMPTZ
+)
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_account UUID := private.proxy_store_caller_account();
+BEGIN
+    RETURN QUERY
+    SELECT i.id,
+           i.ref AS slug,
+           (i.nbt->>'product_id')::uuid AS product_id,
+           i.nbt->>'title' AS title,
+           i.created_at AS granted_at
+      FROM inventory.item i
+     WHERE i.owner_account = v_account
+       AND i.kind = 'store_product'
+       AND i.state IN ('held', 'listing_escrow')
+     ORDER BY i.created_at DESC, i.id DESC;
+END;
+$$;
+ALTER FUNCTION public.proxy_store_my_entitlements_readonly() OWNER TO service_role;
+ALTER FUNCTION public.proxy_store_my_entitlements_readonly() ROWS 50;
+REVOKE ALL ON FUNCTION public.proxy_store_my_entitlements_readonly() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_store_my_entitlements_readonly() TO authenticated, service_role;
+COMMENT ON FUNCTION public.proxy_store_my_entitlements_readonly() IS
+    'PUBLIC store proxy. Caller-scoped (auth.uid()) list of owned store products. Raises WLT01 when the caller has no wallet account.';
+
+-- ============================================================================
+-- Staff admin RPCs. service_role-only; the Axum transport enforces
+-- forum.is_staff before calling. No public/PostgREST wrappers.
+-- Upserts skip no-op writes (ON CONFLICT DO UPDATE WHERE ... IS DISTINCT FROM,
+-- with an existing-id fallback when the update is skipped) to cut WAL/realtime
+-- churn.
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION store.service_upsert_product(
+    p_slug        TEXT,
+    p_title       TEXT,
+    p_description TEXT,
+    p_price       BIGINT,
+    p_fulfillment TEXT,
+    p_asset_ref   JSONB,
+    p_status      TEXT
+)
+RETURNS UUID
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_id UUID;
+BEGIN
+    -- The DO UPDATE WHERE skips no-op writes (avoids WAL / realtime churn).
+    -- A skipped update returns no row, so fall back to the existing id.
+    INSERT INTO store.product (slug, title, description, price, fulfillment, asset_ref, status)
+    VALUES (p_slug, p_title, p_description, p_price,
+            COALESCE(p_fulfillment, 'digital'),
+            COALESCE(p_asset_ref, '{}'::jsonb),
+            COALESCE(p_status, 'active'))
+    ON CONFLICT (slug) DO UPDATE
+        SET title       = excluded.title,
+            description = excluded.description,
+            price       = excluded.price,
+            fulfillment = excluded.fulfillment,
+            asset_ref   = excluded.asset_ref,
+            status      = excluded.status,
+            updated_at  = now()
+        WHERE store.product.title       IS DISTINCT FROM excluded.title
+           OR store.product.description IS DISTINCT FROM excluded.description
+           OR store.product.price       IS DISTINCT FROM excluded.price
+           OR store.product.fulfillment IS DISTINCT FROM excluded.fulfillment
+           OR store.product.asset_ref   IS DISTINCT FROM excluded.asset_ref
+           OR store.product.status      IS DISTINCT FROM excluded.status
+    RETURNING product_id INTO v_id;
+    IF v_id IS NULL THEN
+        SELECT product_id INTO v_id FROM store.product WHERE slug = p_slug;
+    END IF;
+    RETURN v_id;
+END;
+$$;
+ALTER FUNCTION store.service_upsert_product(TEXT, TEXT, TEXT, BIGINT, TEXT, JSONB, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_upsert_product(TEXT, TEXT, TEXT, BIGINT, TEXT, JSONB, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_upsert_product(TEXT, TEXT, TEXT, BIGINT, TEXT, JSONB, TEXT) TO service_role;
+
+CREATE OR REPLACE FUNCTION store.service_set_product_status(
+    p_product_id UUID,
+    p_status     TEXT
+)
+RETURNS VOID
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM store.product WHERE product_id = p_product_id) THEN
+        RAISE EXCEPTION 'store product % not found', p_product_id USING ERRCODE = 'P1001';
+    END IF;
+    -- No-op guard: skip the write (and WAL / realtime churn) when unchanged.
+    UPDATE store.product SET status = p_status, updated_at = now()
+     WHERE product_id = p_product_id AND status IS DISTINCT FROM p_status;
+END;
+$$;
+ALTER FUNCTION store.service_set_product_status(UUID, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_set_product_status(UUID, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_set_product_status(UUID, TEXT) TO service_role;
+
+CREATE OR REPLACE FUNCTION store.service_upsert_variant(
+    p_product_id UUID,
+    p_sku        TEXT,
+    p_attributes JSONB,
+    p_price      BIGINT,
+    p_stock      BIGINT,
+    p_status     TEXT
+)
+RETURNS UUID
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_id UUID;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM store.product WHERE product_id = p_product_id) THEN
+        RAISE EXCEPTION 'store product % not found', p_product_id USING ERRCODE = 'P1001';
+    END IF;
+    -- sku is globally unique; reject reusing one that belongs to another
+    -- product (ON CONFLICT (sku) would otherwise silently keep the old
+    -- product_id and mask the mistake).
+    IF EXISTS (SELECT 1 FROM store.product_variant
+                WHERE sku = p_sku AND product_id <> p_product_id) THEN
+        RAISE EXCEPTION 'sku % already belongs to another product', p_sku
+            USING ERRCODE = '23505';
+    END IF;
+    INSERT INTO store.product_variant (product_id, sku, attributes, price, stock, status)
+    VALUES (p_product_id, p_sku,
+            COALESCE(p_attributes, '{}'::jsonb),
+            p_price, p_stock,
+            COALESCE(p_status, 'active'))
+    ON CONFLICT (sku) DO UPDATE
+        SET attributes = excluded.attributes,
+            price      = excluded.price,
+            stock      = excluded.stock,
+            status     = excluded.status,
+            updated_at = now()
+        WHERE store.product_variant.attributes IS DISTINCT FROM excluded.attributes
+           OR store.product_variant.price      IS DISTINCT FROM excluded.price
+           OR store.product_variant.stock      IS DISTINCT FROM excluded.stock
+           OR store.product_variant.status     IS DISTINCT FROM excluded.status
+    RETURNING variant_id INTO v_id;
+    IF v_id IS NULL THEN
+        SELECT variant_id INTO v_id FROM store.product_variant WHERE sku = p_sku;
+    END IF;
+    RETURN v_id;
+END;
+$$;
+ALTER FUNCTION store.service_upsert_variant(UUID, TEXT, JSONB, BIGINT, BIGINT, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_upsert_variant(UUID, TEXT, JSONB, BIGINT, BIGINT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_upsert_variant(UUID, TEXT, JSONB, BIGINT, BIGINT, TEXT) TO service_role;
+
+CREATE OR REPLACE FUNCTION store.service_set_variant_status(
+    p_variant_id UUID,
+    p_status     TEXT
+)
+RETURNS VOID
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM store.product_variant WHERE variant_id = p_variant_id) THEN
+        RAISE EXCEPTION 'store variant % not found', p_variant_id USING ERRCODE = 'P1001';
+    END IF;
+    UPDATE store.product_variant SET status = p_status, updated_at = now()
+     WHERE variant_id = p_variant_id AND status IS DISTINCT FROM p_status;
+END;
+$$;
+ALTER FUNCTION store.service_set_variant_status(UUID, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_set_variant_status(UUID, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_set_variant_status(UUID, TEXT) TO service_role;
+
+-- ============================================================================
+-- store.service_buy_physical — debit + optional twin + paid order.
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION store.service_buy_physical(
+    p_account          UUID,
+    p_variant_id       UUID,
+    p_qty              BIGINT,
+    p_shipping_address JSONB,
+    p_idempotency_key  UUID
+)
+RETURNS BIGINT
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_variant   store.product_variant%ROWTYPE;
+    v_product   store.product%ROWTYPE;
+    v_qty       BIGINT := COALESCE(p_qty, 1);
+    v_amount    BIGINT;
+    v_existing  store.order%ROWTYPE;
+    v_ledger_id BIGINT;
+    v_twin_id   UUID;
+    v_order_id  BIGINT;
+BEGIN
+    IF p_account IS NULL OR p_variant_id IS NULL OR p_idempotency_key IS NULL THEN
+        RAISE EXCEPTION 'account, variant_id and idempotency_key are required'
+            USING ERRCODE = '22004';
+    END IF;
+    IF v_qty <= 0 THEN
+        RAISE EXCEPTION 'qty must be positive' USING ERRCODE = '22023';
+    END IF;
+    IF v_qty > 1000 THEN
+        RAISE EXCEPTION 'qty too large (max 1000)' USING ERRCODE = '22023';
+    END IF;
+
+    PERFORM pg_advisory_xact_lock(
+        hashtextextended('store.service_buy_physical:' || p_account::text || ':' || p_variant_id::text, 0)
+    );
+
+    -- Idempotent replay: same key must describe the same order, else raise so
+    -- a client bug (reused key, different variant/qty) is loud, not silent.
+    SELECT * INTO v_existing FROM store.order WHERE idempotency_key = p_idempotency_key;
+    IF FOUND THEN
+        IF v_existing.account_id <> p_account
+           OR v_existing.variant_id IS DISTINCT FROM p_variant_id
+           OR v_existing.qty <> v_qty THEN
+            RAISE EXCEPTION 'idempotency_key reused with a different order payload'
+                USING ERRCODE = '40001';
+        END IF;
+        RETURN v_existing.order_id;
+    END IF;
+
+    -- Lock the variant so price/stock are consistent against concurrent admin
+    -- edits for the rest of the txn.
+    SELECT * INTO v_variant
+      FROM store.product_variant
+     WHERE variant_id = p_variant_id AND status = 'active'
+     FOR UPDATE;
+    IF v_variant.variant_id IS NULL THEN
+        RAISE EXCEPTION 'store variant % not found or not active', p_variant_id
+            USING ERRCODE = 'P1001';
+    END IF;
+
+    SELECT * INTO v_product
+      FROM store.product
+     WHERE product_id = v_variant.product_id AND status = 'active';
+    IF v_product.product_id IS NULL THEN
+        RAISE EXCEPTION 'store product for variant % not active', p_variant_id
+            USING ERRCODE = 'P1001';
+    END IF;
+    IF v_product.fulfillment NOT IN ('physical', 'both') THEN
+        RAISE EXCEPTION 'product % is not a physical product', v_product.slug
+            USING ERRCODE = '22023';
+    END IF;
+
+    -- Overflow-safe amount.
+    IF v_variant.price > 0 AND v_qty > (9223372036854775000 / v_variant.price) THEN
+        RAISE EXCEPTION 'order amount overflow' USING ERRCODE = '22003';
+    END IF;
+    v_amount := v_variant.price * v_qty;
+
+    -- Atomic finite-stock decrement (NULL = unlimited).
+    IF v_variant.stock IS NOT NULL THEN
+        UPDATE store.product_variant
+           SET stock = stock - v_qty, updated_at = now()
+         WHERE variant_id = p_variant_id AND stock >= v_qty;
+        IF NOT FOUND THEN
+            RAISE EXCEPTION 'variant % out of stock', p_variant_id USING ERRCODE = 'P1020';
+        END IF;
+    END IF;
+
+    IF v_amount > 0 THEN
+        v_ledger_id := wallet.service_debit(
+            p_account,
+            v_product.currency,
+            v_amount,
+            'purchase'::wallet.source_kind,
+            'store order: ' || v_product.slug || ' x' || v_qty,
+            'store_variant:' || p_variant_id::text,
+            NULL,
+            p_idempotency_key
+        );
+    END IF;
+
+    -- fulfillment='both': mint a one-per-account digital twin if not owned.
+    IF v_product.fulfillment = 'both' THEN
+        SELECT id INTO v_twin_id
+          FROM inventory.item
+         WHERE owner_account = p_account
+           AND kind = 'store_product'
+           AND ref = v_product.slug
+           AND state IN ('held', 'listing_escrow')
+         LIMIT 1;
+        IF v_twin_id IS NULL THEN
+            INSERT INTO inventory.item (
+                owner_account, kind, ref, qty, nbt, state, source, source_ref
+            ) VALUES (
+                p_account, 'store_product', v_product.slug, 1,
+                jsonb_build_object('product_id', v_product.product_id,
+                                   'title', v_product.title, 'asset_ref', v_product.asset_ref),
+                'held', 'store',
+                jsonb_build_object('product_id', v_product.product_id,
+                                   'slug', v_product.slug, 'twin', true)
+            )
+            RETURNING id INTO v_twin_id;
+
+            INSERT INTO inventory.transition (item_id, from_state, to_state, actor, reason, metadata)
+            VALUES (v_twin_id, 'transit_in', 'held', 'store', 'store_purchase_twin',
+                    jsonb_build_object('product_id', v_product.product_id, 'slug', v_product.slug));
+        END IF;
+    END IF;
+
+    INSERT INTO store.order (
+        account_id, product_id, variant_id, qty, credits_amount,
+        ledger_id, twin_item_id, status, shipping_address, idempotency_key
+    ) VALUES (
+        p_account, v_product.product_id, p_variant_id, v_qty, v_amount,
+        v_ledger_id, v_twin_id, 'paid',
+        COALESCE(p_shipping_address, '{}'::jsonb), p_idempotency_key
+    )
+    RETURNING order_id INTO v_order_id;
+
+    INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
+    VALUES (v_order_id, NULL, 'paid', 'store', 'order created',
+            jsonb_build_object('variant_id', p_variant_id, 'qty', v_qty,
+                               'credits_amount', v_amount, 'ledger_id', v_ledger_id));
+
+    RETURN v_order_id;
+END;
+$$;
+ALTER FUNCTION store.service_buy_physical(UUID, UUID, BIGINT, JSONB, UUID) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_buy_physical(UUID, UUID, BIGINT, JSONB, UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_buy_physical(UUID, UUID, BIGINT, JSONB, UUID) TO service_role;
+
+CREATE OR REPLACE FUNCTION public.proxy_store_buy_physical(
+    p_variant_id       UUID,
+    p_qty              BIGINT,
+    p_shipping_address JSONB,
+    p_idempotency_key  UUID
+)
+RETURNS BIGINT
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_account UUID := private.proxy_store_caller_account();
+BEGIN
+    IF p_variant_id IS NULL OR p_idempotency_key IS NULL THEN
+        RAISE EXCEPTION 'variant_id and idempotency_key are required' USING ERRCODE = '22004';
+    END IF;
+    RETURN store.service_buy_physical(v_account, p_variant_id, p_qty, p_shipping_address, p_idempotency_key);
+END;
+$$;
+ALTER FUNCTION public.proxy_store_buy_physical(UUID, BIGINT, JSONB, UUID) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.proxy_store_buy_physical(UUID, BIGINT, JSONB, UUID) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_store_buy_physical(UUID, BIGINT, JSONB, UUID) TO authenticated, service_role;
+
+-- Caller-scoped order history, keyset-paginated.
+CREATE OR REPLACE FUNCTION public.proxy_store_my_orders_readonly(
+    p_limit             INTEGER     DEFAULT 50,
+    p_before_created_at TIMESTAMPTZ DEFAULT NULL,
+    p_before_id         BIGINT      DEFAULT NULL
+)
+RETURNS TABLE (
+    order_id       BIGINT,
+    product_id     UUID,
+    variant_id     UUID,
+    qty            BIGINT,
+    credits_amount BIGINT,
+    status         store.order_status,
+    tracking       JSONB,
+    created_at     TIMESTAMPTZ,
+    updated_at     TIMESTAMPTZ
+)
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_account UUID := private.proxy_store_caller_account();
+    v_limit   INTEGER := LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100);
+BEGIN
+    IF (p_before_created_at IS NULL) <> (p_before_id IS NULL) THEN
+        RAISE EXCEPTION 'cursor requires both before_created_at and before_id'
+            USING ERRCODE = '22023';
+    END IF;
+    RETURN QUERY
+    SELECT o.order_id, o.product_id, o.variant_id, o.qty, o.credits_amount,
+           o.status, o.tracking, o.created_at, o.updated_at
+      FROM store.order o
+     WHERE o.account_id = v_account
+       AND (p_before_created_at IS NULL
+            OR o.created_at < p_before_created_at
+            OR (o.created_at = p_before_created_at AND o.order_id < p_before_id))
+     ORDER BY o.created_at DESC, o.order_id DESC
+     LIMIT v_limit;
+END;
+$$;
+ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO service_role;
+ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) ROWS 50;
+REVOKE ALL ON FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) TO authenticated, service_role;
+
+-- ============================================================================
+-- Fulfillment (service_role; transport gates staff).
+--   advance_order moves FORWARD only. Cancellation = refund.
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION store.service_advance_order(
+    p_order_id  BIGINT,
+    p_to_status store.order_status,
+    p_tracking  JSONB,
+    p_note      TEXT
+)
+RETURNS VOID
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_from  store.order_status;
+    v_legal BOOLEAN;
+BEGIN
+    SELECT status INTO v_from FROM store.order WHERE order_id = p_order_id FOR UPDATE;
+    IF v_from IS NULL THEN
+        RAISE EXCEPTION 'order % not found', p_order_id USING ERRCODE = 'P1001';
+    END IF;
+
+    -- Forward-only fulfillment. To cancel/return money use service_refund_order.
+    v_legal := (v_from = 'paid'       AND p_to_status = 'processing')
+            OR (v_from = 'processing' AND p_to_status = 'shipped')
+            OR (v_from = 'shipped'    AND p_to_status = 'delivered');
+    IF NOT v_legal THEN
+        RAISE EXCEPTION 'illegal order transition % -> %', v_from, p_to_status
+            USING ERRCODE = '22023';
+    END IF;
+
+    UPDATE store.order
+       SET status = p_to_status,
+           tracking = CASE WHEN p_tracking IS NULL OR p_tracking = '{}'::jsonb
+                           THEN tracking ELSE p_tracking END,
+           updated_at = now()
+     WHERE order_id = p_order_id;
+
+    INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
+    VALUES (p_order_id, v_from, p_to_status, 'staff', p_note, COALESCE(p_tracking, '{}'::jsonb));
+END;
+$$;
+ALTER FUNCTION store.service_advance_order(BIGINT, store.order_status, JSONB, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_advance_order(BIGINT, store.order_status, JSONB, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_advance_order(BIGINT, store.order_status, JSONB, TEXT) TO service_role;
+
+CREATE OR REPLACE FUNCTION store.service_refund_order(
+    p_order_id BIGINT,
+    p_reason   TEXT
+)
+RETURNS VOID
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_order     store.order%ROWTYPE;
+    v_currency  wallet.currency_kind;
+    v_refund_id BIGINT;
+BEGIN
+    SELECT * INTO v_order FROM store.order WHERE order_id = p_order_id FOR UPDATE;
+    IF v_order.order_id IS NULL THEN
+        RAISE EXCEPTION 'order % not found', p_order_id USING ERRCODE = 'P1001';
+    END IF;
+    IF v_order.status IN ('refunded', 'cancelled') THEN
+        RETURN;  -- idempotent; already money-returned
+    END IF;
+    IF v_order.status NOT IN ('paid', 'processing', 'shipped', 'delivered') THEN
+        RAISE EXCEPTION 'order % not refundable (status=%)', p_order_id, v_order.status
+            USING ERRCODE = '22023';
+    END IF;
+
+    SELECT currency INTO v_currency FROM store.product WHERE product_id = v_order.product_id;
+
+    IF v_order.credits_amount > 0 THEN
+        v_refund_id := wallet.service_credit(
+            v_order.account_id, v_currency, v_order.credits_amount,
+            'refund'::wallet.source_kind, COALESCE(p_reason, 'store order refund'),
+            'store_refund', v_order.order_id,
+            md5('store_refund:' || v_order.order_id::text)::uuid
+        );
+    END IF;
+
+    IF v_order.variant_id IS NOT NULL THEN
+        UPDATE store.product_variant
+           SET stock = stock + v_order.qty, updated_at = now()
+         WHERE variant_id = v_order.variant_id AND stock IS NOT NULL;
+    END IF;
+
+    IF v_order.twin_item_id IS NOT NULL THEN
+        UPDATE inventory.item SET state = 'consumed', updated_at = now()
+         WHERE id = v_order.twin_item_id AND state = 'held';
+        IF FOUND THEN
+            INSERT INTO inventory.transition (item_id, from_state, to_state, actor, reason, metadata)
+            VALUES (v_order.twin_item_id, 'held', 'consumed', 'store', 'refund_revoke_twin',
+                    jsonb_build_object('order_id', p_order_id));
+        END IF;
+    END IF;
+
+    UPDATE store.order SET status = 'refunded', updated_at = now() WHERE order_id = p_order_id;
+
+    INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
+    VALUES (p_order_id, v_order.status, 'refunded', 'staff', COALESCE(p_reason, 'refund'),
+            jsonb_build_object('refund_ledger_id', v_refund_id, 'credits_amount', v_order.credits_amount));
+END;
+$$;
+ALTER FUNCTION store.service_refund_order(BIGINT, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_refund_order(BIGINT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_refund_order(BIGINT, TEXT) TO service_role;
+
+-- Two explicit branches instead of `p_status IS NULL OR o.status = p_status`
+-- so the planner gets a clean plan for each: PK scan (all) or the
+-- (status, order_id DESC) index (by status).
+CREATE OR REPLACE FUNCTION store.service_list_orders(
+    p_status    store.order_status,
+    p_limit     INTEGER,
+    p_before_id BIGINT
+)
+RETURNS TABLE (
+    order_id         BIGINT,
+    account_id       UUID,
+    product_id       UUID,
+    variant_id       UUID,
+    qty              BIGINT,
+    credits_amount   BIGINT,
+    status           store.order_status,
+    shipping_address JSONB,
+    tracking         JSONB,
+    created_at       TIMESTAMPTZ,
+    updated_at       TIMESTAMPTZ
+)
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_limit INTEGER := LEAST(GREATEST(COALESCE(p_limit, 50), 1), 200);
+BEGIN
+    IF p_status IS NULL THEN
+        RETURN QUERY
+        SELECT o.order_id, o.account_id, o.product_id, o.variant_id, o.qty,
+               o.credits_amount, o.status, o.shipping_address, o.tracking,
+               o.created_at, o.updated_at
+          FROM store.order o
+         WHERE p_before_id IS NULL OR o.order_id < p_before_id
+         ORDER BY o.order_id DESC
+         LIMIT v_limit;
+    ELSE
+        RETURN QUERY
+        SELECT o.order_id, o.account_id, o.product_id, o.variant_id, o.qty,
+               o.credits_amount, o.status, o.shipping_address, o.tracking,
+               o.created_at, o.updated_at
+          FROM store.order o
+         WHERE o.status = p_status
+           AND (p_before_id IS NULL OR o.order_id < p_before_id)
+         ORDER BY o.order_id DESC
+         LIMIT v_limit;
+    END IF;
+END;
+$$;
+ALTER FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) OWNER TO service_role;
+ALTER FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) ROWS 100;
+REVOKE ALL ON FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) TO service_role;
+
+-- ============================================================================
+-- Stripe credit on-ramp (Phase 3).
+--   service_apply_topup: resolve the wallet account from the auth user id
+--   (carried in Stripe session metadata), idempotently record the topup, and
+--   credit the wallet. Returns the ledger id (existing one on replay).
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION store.service_apply_topup(
+    p_user_id           UUID,
+    p_stripe_event_id   TEXT,
+    p_stripe_session_id TEXT,
+    p_credits           BIGINT,
+    p_amount_cents      BIGINT,
+    p_currency_fiat     TEXT
+)
+RETURNS BIGINT
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_account    UUID;
+    v_existing   BIGINT;
+    v_ledger_id  BIGINT;
+    v_session_id TEXT := NULLIF(btrim(p_stripe_session_id), '');
+BEGIN
+    IF p_user_id IS NULL OR coalesce(length(p_stripe_event_id), 0) = 0
+       OR p_credits IS NULL OR p_credits <= 0 THEN
+        RAISE EXCEPTION 'user_id, stripe_event_id and positive credits are required'
+            USING ERRCODE = '22004';
+    END IF;
+
+    -- Session-level idempotency first: two distinct Stripe events can reference
+    -- the same Checkout Session (the thing that must not be credited twice).
+    -- Lock + check on the session so the duplicate returns the existing ledger
+    -- id instead of doing work and failing on store_topup_stripe_session_uq.
+    IF v_session_id IS NOT NULL THEN
+        PERFORM pg_advisory_xact_lock(
+            hashtextextended('store.topup.session:' || v_session_id, 0));
+        SELECT ledger_id INTO v_existing
+          FROM store.topup WHERE stripe_session_id = v_session_id;
+        IF FOUND THEN
+            RETURN v_existing;
+        END IF;
+    END IF;
+
+    -- Serialize concurrent webhook deliveries for this event so the losing
+    -- delivery returns the existing ledger id idempotently instead of hitting
+    -- the unique constraint and rolling back.
+    PERFORM pg_advisory_xact_lock(hashtextextended('store.topup:' || p_stripe_event_id, 0));
+
+    -- Idempotent replay: this Stripe event already applied (re-checked under lock).
+    SELECT ledger_id INTO v_existing
+      FROM store.topup WHERE stripe_event_id = p_stripe_event_id;
+    IF FOUND THEN
+        RETURN v_existing;
+    END IF;
+
+    SELECT id INTO v_account
+      FROM wallet.account WHERE kind = 'user' AND user_id = p_user_id;
+    IF v_account IS NULL THEN
+        RAISE EXCEPTION 'wallet_account_missing' USING ERRCODE = 'WLT01';
+    END IF;
+
+    -- Deterministic wallet idempotency key derived from the Stripe event, so
+    -- the wallet ledger itself dedupes a topup even if this proc is retried
+    -- outside the advisory-lock window.
+    v_ledger_id := wallet.service_credit(
+        v_account,
+        'credits'::wallet.currency_kind,
+        p_credits,
+        'topup'::wallet.source_kind,
+        'stripe credit topup',
+        'stripe_session',
+        NULL,
+        md5('store_topup:' || p_stripe_event_id)::uuid
+    );
+
+    INSERT INTO store.topup (
+        account_id, stripe_event_id, stripe_session_id,
+        credits_granted, amount_cents, currency_fiat, ledger_id
+    ) VALUES (
+        v_account, p_stripe_event_id, v_session_id,
+        p_credits, COALESCE(p_amount_cents, 0),
+        COALESCE(p_currency_fiat, 'usd'), v_ledger_id
+    );
+
+    RETURN v_ledger_id;
+END;
+$$;
+ALTER FUNCTION store.service_apply_topup(UUID, TEXT, TEXT, BIGINT, BIGINT, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_apply_topup(UUID, TEXT, TEXT, BIGINT, BIGINT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_apply_topup(UUID, TEXT, TEXT, BIGINT, BIGINT, TEXT) TO service_role;
+
+-- ============================================================================
+-- Print-on-demand (Phase 4). POD external id/status ride on store.order.pod_ref;
+-- shipment webhooks advance the order to 'shipped' via service_advance_order.
+-- ============================================================================
+
+-- Attach / update the POD reference (external order id, provider, status).
+CREATE OR REPLACE FUNCTION store.service_attach_pod_ref(
+    p_order_id BIGINT,
+    p_pod_ref  JSONB
+)
+RETURNS VOID
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_new    JSONB := COALESCE(p_pod_ref, '{}'::jsonb);
+    v_status store.order_status;
+BEGIN
+    IF jsonb_typeof(v_new) <> 'object' THEN
+        RAISE EXCEPTION 'pod_ref must be a JSON object' USING ERRCODE = '22023';
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM store.order WHERE order_id = p_order_id) THEN
+        RAISE EXCEPTION 'order % not found', p_order_id USING ERRCODE = 'P1001';
+    END IF;
+    -- Idempotent: POD adapters/webhooks retry the same payload. Only write +
+    -- log an event when pod_ref actually changes.
+    UPDATE store.order
+       SET pod_ref = v_new, updated_at = now()
+     WHERE order_id = p_order_id AND pod_ref IS DISTINCT FROM v_new
+     RETURNING status INTO v_status;
+    IF FOUND THEN
+        INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
+        VALUES (p_order_id, v_status, v_status, 'pod', 'pod_ref attached', v_new);
+    END IF;
+END;
+$$;
+ALTER FUNCTION store.service_attach_pod_ref(BIGINT, JSONB) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_attach_pod_ref(BIGINT, JSONB) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_attach_pod_ref(BIGINT, JSONB) TO service_role;
+
+-- Order payload the POD adapter needs to place a fulfillment order. Only a
+-- fulfillable physical/both order in paid|processing is eligible; anything
+-- else raises so a bad adapter call can't submit an invalid order.
+CREATE OR REPLACE FUNCTION store.service_order_for_pod(p_order_id BIGINT)
+RETURNS JSONB
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_payload JSONB;
+BEGIN
+    SELECT jsonb_build_object(
+        'order_id',         o.order_id,
+        'qty',              o.qty,
+        'status',           o.status,
+        'shipping_address', o.shipping_address,
+        'pod_ref',          o.pod_ref,
+        'sku',              v.sku,
+        'attributes',       v.attributes,
+        'product_slug',     p.slug,
+        'product_title',    p.title
+    )
+      INTO v_payload
+      FROM store.order o
+      JOIN store.product p ON p.product_id = o.product_id
+      LEFT JOIN store.product_variant v ON v.variant_id = o.variant_id
+     WHERE o.order_id = p_order_id
+       AND o.status IN ('paid', 'processing')
+       AND p.fulfillment IN ('physical', 'both');
+    IF v_payload IS NULL THEN
+        RAISE EXCEPTION 'order % not eligible for POD fulfillment', p_order_id
+            USING ERRCODE = 'P1001';
+    END IF;
+    RETURN v_payload;
+END;
+$$;
+ALTER FUNCTION store.service_order_for_pod(BIGINT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_order_for_pod(BIGINT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_order_for_pod(BIGINT) TO service_role;
