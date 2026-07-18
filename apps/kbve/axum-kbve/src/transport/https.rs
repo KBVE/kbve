@@ -615,6 +615,7 @@ fn router(state: AppState) -> Router {
             any(super::proxy::forgejo_proxy_handler),
         )
         .merge(super::forgejo_api::routes())
+        .merge(crate::s3backup::routes::router())
         .route(
             "/dashboard/vm/proxy/{*path}",
             any(super::proxy::kubevirt_proxy_handler),

@@ -1,0 +1,24 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: kbve-kilobase-s3-access
+    namespace: kilobase
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['kilobase-s3-secret']
+      verbs: ['get', 'list', 'watch']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: kbve-kilobase-s3-access-binding
+    namespace: kilobase
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: kbve-kilobase-s3-access
+subjects:
+    - kind: ServiceAccount
+      name: kbve-external-secrets
+      namespace: kbve

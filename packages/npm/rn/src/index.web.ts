@@ -42,6 +42,7 @@ export * from './screens/HomeView';
 export * from './screens/DashboardScreen';
 export * from './screens/ChatScreen';
 export * from './screens/ClickHouseScreen';
+export * from './screens/S3BackupScreen';
 
 export * from './account/AccountScreen';
 export * from './account/types';

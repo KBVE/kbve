@@ -14,7 +14,10 @@ import os
 import sys
 import urllib.error
 
+from datetime import date
+
 from .alerts import ENDPOINTS, fetch_all, validate
+from .builder import Builder
 from .graph import parse_graph
 from .render import render_graph_mdx, render_security_json, render_security_mdx
 from .security import parse_all_ecosystems
@@ -143,6 +146,72 @@ def alerts_main(argv: list[str] | None = None) -> int:
     with open(args.out, "w") as f:
         json.dump(clean, f, indent=2)
     print(f"{args.endpoint}: {len(clean)} open alerts")
+    return 0
+
+
+def router_main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="kbve-nx-router",
+        description="Emit the routes needing work as a GH Actions matrix.",
+    )
+    parser.add_argument("--cadence", default="daily",
+                        help="Route cadence to select (default: daily).")
+    parser.add_argument("--json", action="store_true",
+                        help="Print the matrix JSON (default behavior).")
+    parser.add_argument("--content-root",
+                        help="Override the docs content root.")
+    args = parser.parse_args(argv)
+
+    builder = Builder(content_root=args.content_root)
+    results = builder.plan_all(args.cadence)
+    matrix = {"include": [{"route": r.route} for r in results if r.needs_work]}
+
+    print(json.dumps(matrix))
+
+    out = os.environ.get("GITHUB_OUTPUT")
+    if out:
+        has_work = "true" if matrix["include"] else "false"
+        with open(out, "a") as f:
+            f.write("matrix=%s\n" % json.dumps(matrix, separators=(",", ":")))
+            f.write("has_work=%s\n" % has_work)
+    return 0
+
+
+def build_main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        prog="kbve-nx-build",
+        description="Run a single content route and report changed files.",
+    )
+    parser.add_argument("route", help="Route name to build.")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Compute edits without writing.")
+    parser.add_argument("--date", help="Target date as MM-DD.")
+    parser.add_argument("--year", help="Target 4-digit year.")
+    parser.add_argument("--content-root",
+                        help="Override the docs content root.")
+    args = parser.parse_args(argv)
+
+    target = None
+    if args.date:
+        try:
+            month, day = (int(x) for x in args.date.split("-"))
+            year = int(args.year) if args.year else date.today().year
+            target = date(year, month, day)
+        except (ValueError, TypeError) as e:
+            print("Error: invalid --date/--year: %s" % e, file=sys.stderr)
+            return 2
+
+    builder = Builder(
+        content_root=args.content_root, date=target, dry_run=args.dry_run
+    )
+    try:
+        result = builder.build_one(args.route)
+    except KeyError as e:
+        print("Error: %s" % e, file=sys.stderr)
+        return 2
+
+    for path in result.changed:
+        print(path)
     return 0
 
 
