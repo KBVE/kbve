@@ -1,6 +1,7 @@
 ---
 import BentoShell from '@/components/hero/BentoShell.astro';
 import ReactForgejoDashRN from '@/components/rnweb/ReactForgejoDashRN';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
 ---
 
 <BentoShell
@@ -9,7 +10,9 @@ import ReactForgejoDashRN from '@/components/rnweb/ReactForgejoDashRN';
 	heading="Forgejo git repositories.">
 	<div class="svc-dash not-content">
 		<div class="svc-dash__stream not-content">
-			<ReactForgejoDashRN client:only="react" />
+			<ReactForgejoDashRN client:only="react">
+				<RnDashSkeleton slot="fallback" />
+			</ReactForgejoDashRN>
 		</div>
 	</div>
 </BentoShell>

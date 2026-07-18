@@ -1,6 +1,7 @@
 ---
 import BentoShell from '@/components/hero/BentoShell.astro';
 import ReactEdgeDashRN from '@/components/rnweb/ReactEdgeDashRN';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
 ---
 
 <BentoShell
@@ -9,7 +10,9 @@ import ReactEdgeDashRN from '@/components/rnweb/ReactEdgeDashRN';
 	heading="Supabase serverless health.">
 	<div class="svc-dash not-content">
 		<div class="svc-dash__stream not-content">
-			<ReactEdgeDashRN client:only="react" />
+			<ReactEdgeDashRN client:only="react">
+				<RnDashSkeleton slot="fallback" />
+			</ReactEdgeDashRN>
 		</div>
 	</div>
 </BentoShell>

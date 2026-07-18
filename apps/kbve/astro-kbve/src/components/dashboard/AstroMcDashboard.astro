@@ -1,6 +1,7 @@
 ---
 import BentoShell from '@/components/hero/BentoShell.astro';
 import ReactMinecraftDashRN from '@/components/rnweb/ReactMinecraftDashRN';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
 ---
 
 <BentoShell
@@ -9,7 +10,9 @@ import ReactMinecraftDashRN from '@/components/rnweb/ReactMinecraftDashRN';
 	heading="Minecraft server operations.">
 	<div class="svc-dash not-content">
 		<div class="svc-dash__stream not-content">
-			<ReactMinecraftDashRN client:only="react" />
+			<ReactMinecraftDashRN client:only="react">
+				<RnDashSkeleton slot="fallback" />
+			</ReactMinecraftDashRN>
 		</div>
 	</div>
 </BentoShell>

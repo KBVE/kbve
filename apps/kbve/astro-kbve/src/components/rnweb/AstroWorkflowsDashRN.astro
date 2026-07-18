@@ -1,9 +1,12 @@
 ---
 import ReactWorkflowsDashRN from './ReactWorkflowsDashRN';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
 ---
 
 <div class="wf-canvas not-content">
-	<ReactWorkflowsDashRN client:only="react" />
+	<ReactWorkflowsDashRN client:only="react">
+		<RnDashSkeleton slot="fallback" tiles={3} rows={5} />
+	</ReactWorkflowsDashRN>
 </div>
 
 <style>
