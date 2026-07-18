@@ -1,0 +1,286 @@
+---
+title: Windmill
+description: |
+    Windmill is an open-source developer platform that turns scripts in TypeScript, Python, Go, and Bash into
+    APIs, cron jobs, and UIs. This guide covers core concepts, self-hosting with Docker, writing your first
+    script, and how KBVE runs one-off Windmill jobs from Discord.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+sidebar:
+    label: Windmill
+    order: 1041
+unsplash: 1549605659-32d82da3a059
+img: https://images.unsplash.com/photo-1549605659-32d82da3a059?fit=crop&w=1400&h=700&q=75
+tags:
+    - automation
+    - workflow
+    - self-hosted
+sem: 1
+ogTitle: Windmill Guide — Scripts as APIs, Self-Hosting & Workflow Automation
+ogDescription: Learn Windmill, the open-source developer platform that turns TypeScript, Python, Go, and Bash scripts into APIs, cron jobs, flows, and UIs — core concepts, self-hosting with Docker, your first script, and how KBVE triggers one-off jobs from Discord.
+jsonld:
+    type: Article
+    keywords:
+        - windmill
+        - workflow automation
+        - scripts as apis
+        - self-hosted automation
+        - windmill docker
+        - developer platform
+    faq:
+        - question: What is Windmill?
+          answer: Windmill is an open-source developer platform that turns scripts written in TypeScript, Python, Go, Bash, and SQL into shareable APIs, scheduled cron jobs, multi-step flows, and internal UIs. You write plain code; Windmill auto-generates an input form from the function signature and handles execution, secrets, permissions, and logging.
+        - question: Is Windmill open source?
+          answer: Windmill's core is open source under the AGPLv3 license and can be self-hosted for free. There is also a paid enterprise edition and a managed cloud offering with additional features like distributed workers, audit logs, and SSO.
+        - question: How is Windmill different from n8n?
+          answer: n8n is node-based — you wire visual nodes on a canvas. Windmill is code-first — you write scripts in TypeScript, Python, Go, or Bash and Windmill wraps each one as an API, cron, or UI. Windmill also supports visual flows that chain scripts together, so you get both code-native ergonomics and a low-code composition layer.
+        - question: How do I self-host Windmill?
+          answer: The simplest route is Docker Compose. Run the ghcr.io/windmill-labs/windmill image backed by a Postgres database, add one or more worker containers, and expose the server behind a reverse proxy with TLS. Workers pull jobs from a Postgres-backed queue, so you scale throughput by adding worker replicas.
+        - question: Do Windmill scripts keep running and use resources when idle?
+          answer: No. A Windmill script is on-demand — a trigger starts it, it runs, it exits. Unless you attach a cron schedule or a long-polling flow, an idle script consumes no CPU. You only pay for execution time per invocation, which makes one-off command-triggered scripts extremely cheap to keep around.
+bento:
+    badge: application · automation · workflow
+    title: 'Turn scripts into,'
+    accent: infrastructure.
+    lede: >-
+        An open-source developer platform that wraps your TypeScript, Python,
+        Go, and Bash scripts as APIs, cron jobs, flows, and internal UIs — code
+        first, with auto-generated forms, managed secrets, and permissions.
+        This guide covers the core concepts, self-hosting with Docker, your
+        first script, and how KBVE triggers one-off jobs straight from Discord.
+    ctas:
+        - label: Core concepts
+          href: '#concepts'
+          primary: true
+        - label: Self-host
+          href: '#self-host'
+        - label: First script
+          href: '#first-script'
+        - label: KBVE workflows
+          href: '#kbve'
+        - label: Deployment
+          href: '#deploy'
+    aside:
+        icon: route
+        title: Code first, low-code second
+        body: >-
+            You write plain scripts; Windmill generates the input form from the
+            function signature and wraps each one as an API, cron, or UI. Flows
+            then chain scripts together visually when you need orchestration.
+        points:
+            - <strong>Scripts</strong> — a single function, wrapped as an API.
+            - <strong>Flows</strong> — scripts chained into a multi-step DAG.
+            - <strong>Apps</strong> — internal UIs built on top of scripts.
+    stats:
+        - { label: License, value: AGPLv3, icon: license }
+        - { label: Default port, value: '8000', icon: network }
+        - { label: Languages, value: TS · Py · Go · Bash, icon: code }
+        - { label: Idle cost, value: Zero, icon: zap }
+    features:
+        - title: Concepts
+          icon: book
+          href: '#concepts'
+          body: Scripts, flows, apps, workspaces, triggers, and workers — the vocabulary of the platform.
+        - title: Self-Host
+          icon: server
+          href: '#self-host'
+          body: A Docker Compose deployment with Postgres and a scalable worker pool.
+        - title: First Script
+          icon: route
+          href: '#first-script'
+          body: Write a function, let Windmill generate the form, run it as an API or on a schedule.
+        - title: KBVE Workflows
+          icon: zap
+          href: '#kbve'
+          body: How we trigger one-off Windmill scripts from Discord with the /wm command.
+        - title: Deployment
+          icon: deploy
+          href: '#deploy'
+          body: The monorepo-to-cluster sync pipeline, and what it took to ship /wm npm.
+    related:
+        - title: n8n
+          href: /application/n8n/
+          copy: The node-based automation tool Windmill replaced in our stack.
+          icon: route
+        - title: Docker
+          href: /application/docker/
+          copy: The container runtime behind the simplest Windmill deployment.
+          icon: package
+        - title: Supabase
+          href: /application/supabase/
+          copy: The Postgres platform Windmill stores its state in for us.
+          icon: database
+    theme:
+        hero_bg: https://images.unsplash.com/photo-1549605659-32d82da3a059?q=80&w=2400&auto=format&fit=crop
+        accent: '#f472b6'
+        accent2: '#38bdf8'
+        btn_fg: '#2a0a1c'
+    features_eyebrow: On this page
+    features_heading: What this guide covers
+    related_eyebrow: Keep exploring
+    related_heading: Related applications
+---
+
+import { Aside, Steps } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Start here" heading="Overview">
+
+**Windmill** is an open-source **developer platform** that turns plain scripts into infrastructure. Instead of wiring visual nodes, you write a function in **TypeScript, Python, Go, or Bash** — and Windmill wraps it as an **API**, a **cron job**, a step in a **flow**, or an internal **UI**, generating the input form straight from your function signature.
+
+Because it is **self-hostable** and code-first, your logic lives in version-controlled files and your data and secrets stay on your own infrastructure.
+
+This guide covers [core concepts](#concepts), [self-hosting](#self-host), your [first script](#first-script), and [how KBVE runs workflows](#kbve).
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="concepts" eyebrow="Platform vocabulary" heading="Concepts">
+
+| Term | Meaning |
+| ---- | ------- |
+| **Script** | A single function in TS/Python/Go/Bash, wrapped as a runnable API |
+| **Flow** | A multi-step DAG that chains scripts together with branching and loops |
+| **App** | An internal UI built on top of scripts and flows |
+| **Workspace** | An isolated tenant holding its own scripts, flows, secrets, and permissions |
+| **Trigger** | What starts a run — HTTP, schedule (cron), webhook, or a Discord command |
+| **Worker** | A container that pulls jobs from the Postgres-backed queue and executes them |
+
+A script is **on-demand**: it runs when triggered and then exits. Attach a **cron schedule** or a long-running **flow** only when you actually need something to keep ticking — otherwise an idle script costs nothing.
+
+</BentoProse>
+
+<BentoProse id="self-host" eyebrow="Docker deployment" heading="Self-Host">
+
+The simplest deployment is **Docker Compose** — a server, a Postgres database, and one or more workers:
+
+```yaml
+services:
+  windmill_server:
+    image: ghcr.io/windmill-labs/windmill:latest
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgres://windmill:changeme@db/windmill
+      - MODE=server
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  windmill_worker:
+    image: ghcr.io/windmill-labs/windmill:latest
+    environment:
+      - DATABASE_URL=postgres://windmill:changeme@db/windmill
+      - MODE=worker
+      - WORKER_GROUP=default
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  db:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=windmill
+      - POSTGRES_PASSWORD=changeme
+      - POSTGRES_DB=windmill
+    volumes:
+      - ./windmill-db:/var/lib/postgresql/data
+    restart: unless-stopped
+```
+
+<Aside type="tip">
+Windmill scales by **adding worker replicas** — every worker pulls from the same Postgres job queue, so throughput grows horizontally. Pin the image tag to a specific version in production and bump it deliberately, since the CLI and server protocol are version-matched.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="first-script" eyebrow="Function to API" heading="First Script">
+
+<Steps>
+
+1. **Write a function**
+   Every script exports a `main` function. Windmill reads its parameters and generates a typed input form automatically.
+
+   ```typescript
+   export async function main(name: string, count: number = 1) {
+     return Array.from({ length: count }, () => `hello ${name}`);
+   }
+   ```
+
+2. **Run it**
+   Fill the generated form and hit run, or call the script's auto-generated HTTP endpoint with a JSON body — same code, two entry points.
+
+3. **Schedule or webhook**
+   Attach a **cron schedule** to run it periodically, or a **webhook** to trigger it from an external service. Leave both off and it stays a pure on-demand job.
+
+4. **Compose into a flow**
+   When one script isn't enough, drop it into a **flow** to chain it with others, add branching, retries, and error handlers.
+
+</Steps>
+
+</BentoProse>
+
+<BentoProse id="kbve" eyebrow="Our workflow automation" heading="KBVE Workflows">
+
+KBVE self-hosts Windmill on the cluster and drives it two ways: from **Discord** and from the **monorepo**.
+
+**`/wm` — Discord-triggered scripts.** Our Discord bot exposes a `/wm` slash command that runs a Windmill script and renders the result as a rich embed. Because each script is a one-off — trigger, run, exit — there is **no idle CPU cost** to keeping dozens of these commands available. You only pay for the few hundred milliseconds each invocation actually runs.
+
+| Command | What it does |
+| ------- | ------------ |
+| `/wm poem` | Fetches a random poem from PoetryDB — `/wm poem Emily Dickinson` filters by author |
+| `/wm npm` | Lists the maintained `@kbve` npm packages live from the registry — `/wm npm laser` filters to one |
+
+**Scripts live in the monorepo.** Every `/wm` target is a plain TypeScript file checked into `apps/windmill/` and written for the fast **Bun** runtime with zero dependencies. Each script returns a generic **embed contract** — a `{ embed: { title, description, fields, ... } }` object — and a single renderer in the bot turns that into a Discord message. Adding a new command is just adding a new script.
+
+**Merge, and it syncs.** When a change to `apps/windmill/` lands on `main`, a CI job pushes the versioned scripts into the running Windmill workspace automatically — the repo is the source of truth, and going live is a merge, not a manual deploy.
+
+<Aside type="note">
+This pattern replaced our earlier **n8n** setup. Code-first scripts in version control fit our monorepo far better than a click-built canvas — reviews, history, and rollbacks all come for free.
+</Aside>
+
+</BentoProse>
+
+<BentoProse id="deploy" eyebrow="Monorepo to cluster" heading="Deployment">
+
+Shipping a new `/wm` command is a **merge, not a manual deploy** — but a few pieces have to line up. Here is the exact path `/wm npm` took from a file to a live Discord command.
+
+<Steps>
+
+1. **Author the script**
+   Add `npm.ts` plus a `npm.script.yaml` manifest under `apps/windmill/f/discordsh/`, written for the **Bun** runtime with zero dependencies. Every folder in the tree also needs a `folder.meta.yaml` — a missing one fails the whole sync.
+
+2. **Scope the sync**
+   `apps/windmill/wmill.yaml` sets `includes: f/**`, so a push only manages the `f/` tree and never clobbers user-space scripts. The push also runs with `--skip-variables` so it can't touch stored secrets — it stays **prune-safe**.
+
+3. **CI on merge to main**
+   `.github/workflows/windmill-sync.yml` triggers on a push to `main` that touches `apps/windmill/**`. It runs `windmill-cli` **pinned to the deployed server version** (the CLI and server protocol are version-matched — a mismatch breaks the push).
+
+4. **Run inside the cluster**
+   The Windmill API is cluster-internal, so the sync job runs on a **self-hosted in-cluster runner** — an external runner cannot reach it. That runner's egress must explicitly allow it to reach the Windmill service, and the CI token's **workspace role must permit writing scripts** (an operator-only token gets a `401` on create).
+
+5. **Go live**
+   Merge lands → sync pushes `f/discordsh/npm` into the workspace → the bot's `/wm` **allowlist** already covers `f/discordsh/*` → `/wm npm` renders. No bot rebuild was needed because the path was already inside the allowed namespace and Windmill runs it as a **script**.
+
+</Steps>
+
+<Aside type="tip">
+The biggest lesson from the first go-live: a failed push surfaces as a vague *"credentials or instance is invalid"* even when the token is fine — the real cause was **network egress** and a **missing `folder.meta.yaml`**. Any new in-cluster service the runner must reach needs an explicit egress allow.
+</Aside>
+
+</BentoProse>
+
+</BentoDoc>
