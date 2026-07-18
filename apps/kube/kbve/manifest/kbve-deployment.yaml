@@ -256,6 +256,16 @@ spec:
                             secretKeyRef:
                                 name: supabase-shared
                                 key: jwt-secret
+                      - name: AWS_ACCESS_KEY_ID
+                        valueFrom:
+                            secretKeyRef:
+                                name: kilobase-s3
+                                key: AWS_ACCESS_KEY_ID
+                      - name: AWS_SECRET_ACCESS_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: kilobase-s3
+                                key: AWS_SECRET_ACCESS_KEY
                   volumeMounts:
                       - name: pg-ca
                         mountPath: /etc/ssl/pgca

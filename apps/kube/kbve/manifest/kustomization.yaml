@@ -10,6 +10,7 @@ resources:
     - rows-customer-guid-externalsecret.yaml
     - forgejo-externalsecret.yaml
     - arpg-discord-externalsecret.yaml
+    - kilobase-s3-externalsecret.yaml
     - argocd-auth-sealedsecret.yaml
     - vibeshine-sealedsecret.yaml
     - kbve-internal-ca-cert.yaml
