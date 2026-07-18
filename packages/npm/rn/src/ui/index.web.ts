@@ -5,6 +5,7 @@
 // transitively. Footer and NavBar are already icon-free.
 export * from './nav/Footer';
 export * from './nav/NavBar';
+export * from './nav/NavItem.web';
 export * from './nav/AppBar';
 export * from './nav/TabBar';
 export * from './nav/NavShell';
