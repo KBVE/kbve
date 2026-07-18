@@ -18,6 +18,9 @@
 - axum runs in ns `kbve`; creds reach it only via a `kbve`-ns ExternalSecret — never cross-mount the `kilobase`-ns secret.
 - Summary JSON contract (identical across axum + Windmill):
   `{ latest_base_backup: {id, time, size_bytes, age_seconds} | null, base_backup_count, wal_count, total_size_bytes, oldest_object_age_seconds, retention_days, retention_ok, generated_at }`
+- `retention_ok` semantic (DR-correct, binding for A1 and C1): TRUE iff a base
+  backup exists AND the latest base backup's age ≤ retention window. WAL-only
+  (no base backup) and empty are both FALSE — you cannot restore without a base.
 
 ---
 
