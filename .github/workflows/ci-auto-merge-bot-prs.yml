@@ -176,13 +176,15 @@ jobs:
                       const choreMatch = title.match(/^chore\(([a-zA-Z0-9_-]+)\):\s+update version\.toml to (\d+\.\d+\.\d+)/);
                       const deployMatch = title.match(/^deploy\(([a-zA-Z0-9_-]+)\):/);
                       const manifestSyncMatch = title.match(/^chore\(ci\):\s+sync ci-dispatch-manifest$/);
+                      const contentMatch = title.match(/^chore\(content\):\s+daily\s+([a-z0-9-]+)\s+scaffold$/);
 
-                      if (!atomicMatch && !choreMatch && !deployMatch && !manifestSyncMatch) {
+                      if (!atomicMatch && !choreMatch && !deployMatch && !manifestSyncMatch && !contentMatch) {
                         core.setFailed(
                           `Title '${title}' does not match "Atomic: <app> v<semver> ...", ` +
                           `"chore(<pkg>): update version.toml to <semver>", ` +
                           `"deploy(<scope>): ...", ` +
-                          `or "chore(ci): sync ci-dispatch-manifest" — aborting.`
+                          `"chore(ci): sync ci-dispatch-manifest", ` +
+                          `or "chore(content): daily <route> scaffold" — aborting.`
                         );
                         return;
                       }
@@ -271,7 +273,7 @@ jobs:
                           ['.github/ci-dispatch-manifest.json'].map(sanitize)
                         );
                         blocked = changedFiles.filter(f => !allowedFiles.has(f));
-                      } else {
+                      } else if (deployMatch) {
                         // --- Path B: deploy PRs (path-prefix-validated) ---
                         // Allowed deploy scopes and their permitted file prefixes.
                         // Each scope maps to a directory — all files must be under it.
@@ -294,6 +296,24 @@ jobs:
                         core.info(`[deploy] Allowed prefix: '${allowedPrefix}'`);
 
                         blocked = changedFiles.filter(f => !f.startsWith(allowedPrefix));
+                      } else {
+                        // --- Path D: daily content routes (path-prefix-validated) ---
+                        // kbve.nx router→builder (ci-daily-content.yml) generates docs
+                        // MDX + companion JSON. All changed files must live under the
+                        // content docs tree or the public nx-data dir — nothing else.
+                        const route = contentMatch[1];
+                        appName = `content:${route}`;
+                        core.info(`[content] Extracted route: '${route}'`);
+
+                        const allowedPrefixes = [
+                          'apps/kbve/astro-kbve/src/content/docs/',
+                          'apps/kbve/astro-kbve/public/data/nx/',
+                        ];
+                        core.info(`[content] Allowed prefixes: ${allowedPrefixes.join(', ')}`);
+
+                        blocked = changedFiles.filter(
+                          f => !allowedPrefixes.some(p => f.startsWith(p))
+                        );
                       }
                       if (blocked.length > 0) {
                         core.setFailed(
