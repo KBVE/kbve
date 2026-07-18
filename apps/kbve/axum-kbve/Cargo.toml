@@ -100,6 +100,10 @@ uuid = { version = "1", features = ["v4", "serde"] }
 hmac = "0.12"
 sha2 = "0.10"
 
+# Kilobase S3 backup viewer (read-only ListObjectsV2 against barman backups)
+aws-config = { version = "1", features = ["behavior-version-latest"] }
+aws-sdk-s3 = "1"
+
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { version = "0.7", optional = true }
 
