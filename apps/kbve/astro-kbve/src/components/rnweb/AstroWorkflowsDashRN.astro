@@ -2,4 +2,21 @@
 import ReactWorkflowsDashRN from './ReactWorkflowsDashRN';
 ---
 
-<ReactWorkflowsDashRN client:only="react" />
+<div class="wf-canvas not-content">
+	<ReactWorkflowsDashRN client:only="react" />
+</div>
+
+<style>
+	.wf-canvas {
+		height: 70vh;
+		min-height: 480px;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.wf-canvas :global(astro-island) {
+		display: flex;
+		flex: 1 1 auto;
+		min-height: 0;
+	}
+</style>

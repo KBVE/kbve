@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { StorageHook, StorageInfo } from './types';
 import { toStorageInfo } from './storageMath';
+import { clearStorage } from './clearStorage';
 
 async function read(): Promise<StorageInfo> {
 	let itemCount = 0;
@@ -37,11 +38,10 @@ export function useStorageInfo(): StorageHook {
 
 	const clear = useCallback(async () => {
 		try {
-			await AsyncStorage.clear();
-		} catch {
-			void 0;
+			await clearStorage();
+		} finally {
+			refresh();
 		}
-		refresh();
 	}, [refresh]);
 
 	return { data, loading, refresh, clear };
