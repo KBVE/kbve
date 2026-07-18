@@ -1,6 +1,7 @@
 ---
 import BentoShell from '@/components/hero/BentoShell.astro';
 import ReactClickHouseDashRN from '@/components/rnweb/ReactClickHouseDashRN';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
 ---
 
 <BentoShell
@@ -9,7 +10,9 @@ import ReactClickHouseDashRN from '@/components/rnweb/ReactClickHouseDashRN';
 	heading="ClickHouse cluster logs.">
 	<div class="svc-dash not-content">
 		<div class="svc-dash__stream not-content">
-			<ReactClickHouseDashRN client:only="react" />
+			<ReactClickHouseDashRN client:only="react">
+				<RnDashSkeleton slot="fallback" />
+			</ReactClickHouseDashRN>
 		</div>
 	</div>
 </BentoShell>

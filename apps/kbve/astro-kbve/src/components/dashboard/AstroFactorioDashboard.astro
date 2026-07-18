@@ -1,6 +1,7 @@
 ---
 import BentoShell from '@/components/hero/BentoShell.astro';
 import ReactFactorioDashRN from '@/components/rnweb/ReactFactorioDashRN';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
 ---
 
 <BentoShell
@@ -9,7 +10,9 @@ import ReactFactorioDashRN from '@/components/rnweb/ReactFactorioDashRN';
 	heading="Factorio server operations.">
 	<div class="svc-dash not-content">
 		<div class="svc-dash__stream not-content">
-			<ReactFactorioDashRN client:only="react" />
+			<ReactFactorioDashRN client:only="react">
+				<RnDashSkeleton slot="fallback" />
+			</ReactFactorioDashRN>
 		</div>
 	</div>
 </BentoShell>

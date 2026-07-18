@@ -1,6 +1,7 @@
 ---
 import BentoShell from '@/components/hero/BentoShell.astro';
 import ReactVMDashRN from '@/components/rnweb/ReactVMDashRN';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
 ---
 
 <BentoShell
@@ -9,7 +10,9 @@ import ReactVMDashRN from '@/components/rnweb/ReactVMDashRN';
 	heading="KubeVirt virtual machines.">
 	<div class="svc-dash not-content">
 		<div class="svc-dash__stream not-content">
-			<ReactVMDashRN client:only="react" />
+			<ReactVMDashRN client:only="react">
+				<RnDashSkeleton slot="fallback" />
+			</ReactVMDashRN>
 		</div>
 	</div>
 </BentoShell>
