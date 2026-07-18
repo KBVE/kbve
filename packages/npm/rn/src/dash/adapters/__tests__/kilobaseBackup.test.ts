@@ -3,6 +3,7 @@ import {
 	retentionBadge,
 	mapObjectsResponse,
 	kilobaseBackupLens,
+	formatDuration,
 } from '../kilobaseBackup';
 import type { BackupSummary, RawObjectsResponse } from '../kilobaseBackup';
 
@@ -121,5 +122,74 @@ describe('kilobaseBackup adapter', () => {
 				'barman/backup/base/20260717T000000/data.tar',
 			);
 		});
+
+		const summary: BackupSummary = {
+			latest_base_backup: {
+				id: 'base-1',
+				time: '2026-07-17T00:00:00Z',
+				size_bytes: 1024,
+				age_seconds: 3600,
+			},
+			base_backup_count: 3,
+			wal_count: 42,
+			total_size_bytes: 5_000_000_000,
+			oldest_object_age_seconds: 604_800,
+			retention_days: 7,
+			retention_ok: true,
+			generated_at: '2026-07-17T01:00:00Z',
+		};
+
+		it('derives Total Size from the authoritative summary, not the loaded page', () => {
+			const items = [
+				{ id: 'a', key: 'a', size: 10, lastModified: '', age: '' },
+			] as any[];
+			const stats = kilobaseBackupLens.stats!(items, summary);
+			const sizeStat = stats.find((s) => s.id === 'size');
+			expect(sizeStat?.value).toBe('4.66 GB');
+		});
+
+		it('adds a Latest Backup Age stat from summary.latest_base_backup', () => {
+			const stats = kilobaseBackupLens.stats!([], summary);
+			const ageStat = stats.find((s) => s.id === 'latest_age');
+			expect(ageStat?.value).toBe('1h');
+			expect(ageStat?.tone).toBeUndefined();
+		});
+
+		it('flags a missing latest_base_backup as "none" with danger tone', () => {
+			const stats = kilobaseBackupLens.stats!([], {
+				...summary,
+				latest_base_backup: null,
+			});
+			const ageStat = stats.find((s) => s.id === 'latest_age');
+			expect(ageStat?.value).toBe('none');
+			expect(ageStat?.tone).toBe('danger');
+		});
+
+		it('falls back to page-derived stats when no summary is available', () => {
+			const items = [
+				{ id: 'a', key: 'a', size: 2048, lastModified: '', age: '' },
+			] as any[];
+			const stats = kilobaseBackupLens.stats!(items, undefined);
+			expect(stats.find((s) => s.id === 'latest_age')).toBeUndefined();
+			expect(stats.find((s) => s.id === 'size')?.value).toBe('2.0 KB');
+		});
+	});
+});
+
+describe('formatDuration', () => {
+	it('formats sub-minute durations in seconds', () => {
+		expect(formatDuration(30)).toBe('30s');
+	});
+
+	it('formats sub-hour durations in minutes', () => {
+		expect(formatDuration(600)).toBe('10m');
+	});
+
+	it('formats sub-day durations in hours', () => {
+		expect(formatDuration(21_600)).toBe('6h');
+	});
+
+	it('formats multi-day durations in days', () => {
+		expect(formatDuration(172_800)).toBe('2d');
 	});
 });

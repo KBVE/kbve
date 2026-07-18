@@ -82,6 +82,16 @@ function formatBytes(bytes: number): string {
 	return `${(mb / 1024).toFixed(2)} GB`;
 }
 
+/** Compact duration for stat tiles ("6h", "2d"), distinct from `formatAge`'s "6h ago" row copy. */
+export function formatDuration(seconds: number): string {
+	if (seconds < 60) return `${Math.round(seconds)}s`;
+	const min = Math.round(seconds / 60);
+	if (min < 60) return `${min}m`;
+	const hr = Math.round(min / 60);
+	if (hr < 24) return `${hr}h`;
+	return `${Math.round(hr / 24)}d`;
+}
+
 function normalizeObject(raw: RawS3Object): S3ObjectItem {
 	return {
 		id: raw.key,
@@ -204,38 +214,46 @@ export const kilobaseBackupLens: StreamLens<S3ObjectItem> = {
 	],
 	stats: (items, meta) => {
 		const summary = meta as BackupSummary | undefined;
-		const stats: StatModel[] = [
-			{ id: 'total', label: 'Objects', value: items.length },
+		if (!summary) {
+			return [
+				{ id: 'total', label: 'Objects', value: items.length },
+				{
+					id: 'size',
+					label: 'Total Size',
+					value: formatBytes(
+						items.reduce((sum, i) => sum + i.size, 0),
+					),
+				},
+			];
+		}
+		const badge = retentionBadge(summary);
+		return [
+			{
+				id: 'latest_age',
+				label: 'Latest Backup Age',
+				value: summary.latest_base_backup
+					? formatDuration(summary.latest_base_backup.age_seconds)
+					: 'none',
+				tone: summary.latest_base_backup ? undefined : 'danger',
+			},
+			{
+				id: 'base_backups',
+				label: 'Base Backups',
+				value: summary.base_backup_count,
+			},
+			{ id: 'wal_count', label: 'WALs', value: summary.wal_count },
 			{
 				id: 'size',
 				label: 'Total Size',
-				value: formatBytes(
-					items.reduce((sum, i) => sum + i.size, 0),
-				),
+				value: formatBytes(summary.total_size_bytes),
+			},
+			{
+				id: 'retention',
+				label: 'Retention',
+				tone: retentionTone(badge),
+				value: badge.toUpperCase(),
 			},
 		];
-		if (summary) {
-			const badge = retentionBadge(summary);
-			stats.push(
-				{
-					id: 'base_backups',
-					label: 'Base Backups',
-					value: summary.base_backup_count,
-				},
-				{
-					id: 'wal_count',
-					label: 'WAL Count',
-					value: summary.wal_count,
-				},
-				{
-					id: 'retention',
-					label: 'Retention',
-					tone: retentionTone(badge),
-					value: badge.toUpperCase(),
-				},
-			);
-		}
-		return stats;
 	},
 	row: (it) => (
 		<Surface padded={false} style={styles.row}>
