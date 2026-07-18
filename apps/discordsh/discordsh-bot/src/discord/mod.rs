@@ -14,5 +14,6 @@ pub mod github_permissions;
 pub mod mention;
 pub mod relay;
 pub mod scheduler;
+pub mod voice;
 pub mod windmill;
 pub mod windmill_embed;

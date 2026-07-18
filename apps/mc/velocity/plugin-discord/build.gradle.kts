@@ -16,12 +16,11 @@ dependencies {
     compileOnly("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
     kapt("com.velocitypowered:velocity-api:3.4.0-SNAPSHOT")
 
-    // JDA for Discord bot (inbound message events + webhook self-provision).
-    // Exclude opus-java + tink — voice + crypto we never use, keeps the fat jar lean.
-    implementation("net.dv8tion:JDA:5.2.1") {
-        exclude(module = "opus-java")
-        exclude(group = "com.google.crypto.tink", module = "tink")
-    }
+    // JDA for Discord bot (inbound message events + webhook self-provision +
+    // idle voice-channel presence). Voice needs JDA's audio stack: tink for the
+    // UDP encryption handshake and opus-java for the send system, so both are
+    // kept (previously excluded when the relay was text-only).
+    implementation("net.dv8tion:JDA:5.2.1")
 }
 
 kotlin {
