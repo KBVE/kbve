@@ -12096,6 +12096,24 @@
               },
               "configurations": {},
               "parallelism": true
+            },
+            "router": {
+              "executor": "@nxlv/python:run-commands",
+              "options": {
+                "command": "uv run kbve-nx-router --cadence daily --json",
+                "cwd": "packages/python/kbve"
+              },
+              "configurations": {},
+              "parallelism": true
+            },
+            "content-build": {
+              "executor": "@nxlv/python:run-commands",
+              "options": {
+                "command": "uv run kbve-nx-build journal",
+                "cwd": "packages/python/kbve"
+              },
+              "configurations": {},
+              "parallelism": true
             }
           },
           "name": "python-kbve",
@@ -12780,7 +12798,7 @@
             "description": "A DevOps helper library, providing better functions and extensions.",
             "js": {
               "packageName": "@kbve/devops",
-              "packageVersion": "0.0.22",
+              "packageVersion": "0.1.0",
               "packageExports": {
                 ".": {
                   "import": "./devops.es.js",
