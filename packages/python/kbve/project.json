@@ -74,6 +74,20 @@
 				"command": "uv run python -m grpc_tools.protoc --proto_path=../../../packages/data/proto/kbve --python_out=kbve/proto --grpc_python_out=kbve/proto --pyi_out=kbve/proto ../../../packages/data/proto/kbve/kbve.proto",
 				"cwd": "packages/python/kbve"
 			}
+		},
+		"router": {
+			"executor": "@nxlv/python:run-commands",
+			"options": {
+				"command": "uv run kbve-nx-router --cadence daily --json",
+				"cwd": "packages/python/kbve"
+			}
+		},
+		"content-build": {
+			"executor": "@nxlv/python:run-commands",
+			"options": {
+				"command": "uv run kbve-nx-build journal",
+				"cwd": "packages/python/kbve"
+			}
 		}
 	}
 }
