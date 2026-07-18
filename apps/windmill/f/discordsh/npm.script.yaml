@@ -1,0 +1,30 @@
+summary: List KBVE's maintained npm packages
+description: >-
+  /wm target. Fetches live metadata from the npm registry for the @kbve
+  packages we ship from the monorepo (packages/npm/*), sorted newest-publish
+  first. Optional first arg filters to a single package name (e.g. laser).
+  Bun runtime, no dependencies, fast cold start.
+kind: script
+lock: ''
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  order:
+    - args
+    - discord
+  properties:
+    args:
+      type: array
+      description: Space-separated args from /wm; args[0] optional package filter.
+      items:
+        type: string
+      default: []
+    discord:
+      type: object
+      description: Discord invocation context injected by the bot.
+      properties:
+        user_id: { type: string }
+        username: { type: string }
+        guild_id: { type: string }
+        channel_id: { type: string }
+  required: []
