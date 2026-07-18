@@ -18,6 +18,7 @@ from datetime import date
 
 from .alerts import ENDPOINTS, fetch_all, validate
 from .builder import Builder
+from .router import get
 from .graph import parse_graph
 from .render import render_graph_mdx, render_security_json, render_security_mdx
 from .security import parse_all_ecosystems
@@ -156,15 +157,31 @@ def router_main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--cadence", default="daily",
                         help="Route cadence to select (default: daily).")
+    parser.add_argument("--route", action="append", default=None,
+                        help="Select an explicit route by name (repeatable); "
+                             "bypasses --cadence.")
     parser.add_argument("--json", action="store_true",
                         help="Print the matrix JSON (default behavior).")
     parser.add_argument("--content-root",
                         help="Override the docs content root.")
     args = parser.parse_args(argv)
 
-    builder = Builder(content_root=args.content_root)
-    results = builder.plan_all(args.cadence)
-    matrix = {"include": [{"route": r.route} for r in results if r.needs_work]}
+    if args.route:
+        include = []
+        for name in args.route:
+            r = get(name)
+            include.append({"route": r.name, "needs": ",".join(r.needs)})
+        matrix = {"include": include}
+    else:
+        builder = Builder(content_root=args.content_root)
+        results = builder.plan_all(args.cadence)
+        include = []
+        for res in results:
+            if not res.needs_work:
+                continue
+            r = get(res.route)
+            include.append({"route": r.name, "needs": ",".join(r.needs)})
+        matrix = {"include": include}
 
     print(json.dumps(matrix))
 
@@ -189,6 +206,12 @@ def build_main(argv: list[str] | None = None) -> int:
     parser.add_argument("--year", help="Target 4-digit year.")
     parser.add_argument("--content-root",
                         help="Override the docs content root.")
+    parser.add_argument("--timestamp",
+                        help="ISO 8601 timestamp for the report.")
+    parser.add_argument("--workdir",
+                        help="Scratch dir for acquired raw JSON.")
+    parser.add_argument("--public-dir",
+                        help="Astro public data dir for JSON output.")
     args = parser.parse_args(argv)
 
     target = None
@@ -202,7 +225,9 @@ def build_main(argv: list[str] | None = None) -> int:
             return 2
 
     builder = Builder(
-        content_root=args.content_root, date=target, dry_run=args.dry_run
+        content_root=args.content_root, date=target, dry_run=args.dry_run,
+        public_dir=args.public_dir, workdir=args.workdir,
+        timestamp=args.timestamp,
     )
     try:
         result = builder.build_one(args.route)

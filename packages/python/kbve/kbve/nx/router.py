@@ -20,12 +20,13 @@ class Route:
     cadence: str
     plan: Callable[["BuildContext"], "PlanResult"]
     build: Callable[["BuildContext"], "BuildResult"]
+    needs: tuple[str, ...] = ()
 
 
 ROUTES: dict[str, Route] = {}
 
 
-def route(name: str, cadence: str):
+def route(name: str, cadence: str, needs: tuple[str, ...] = ()):
     """Class decorator registering a Route from ``plan``/``build`` methods."""
 
     def decorator(cls):
@@ -35,6 +36,7 @@ def route(name: str, cadence: str):
             cadence=cadence,
             plan=instance.plan,
             build=instance.build,
+            needs=tuple(needs),
         )
         return cls
 
