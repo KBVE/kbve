@@ -1,5 +1,16 @@
 ---
 import ReactArgoDashRN from './ReactArgoDashRN';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
 ---
 
-<ReactArgoDashRN client:only="react" />
+<div class="argo-rn not-content">
+	<ReactArgoDashRN client:only="react">
+		<RnDashSkeleton slot="fallback" />
+	</ReactArgoDashRN>
+</div>
+
+<style>
+	.argo-rn {
+		min-height: 60vh;
+	}
+</style>

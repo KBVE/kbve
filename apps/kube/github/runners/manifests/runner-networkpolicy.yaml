@@ -103,3 +103,20 @@ spec:
           ports:
               - port: 1234
                 protocol: TCP
+        # windmill-sync.yml → windmill-app (windmill-app.windmill.svc:8000) for
+        # `wmill sync push`. The public rule only opens 443/80/22 and excepts
+        # every private CIDR, so the in-cluster Windmill API (ClusterIP in
+        # 10.0.0.0/8, port 8000) is otherwise unreachable — `workspace add`
+        # dies with "fetch failed", which the CLI surfaces as "Credentials or
+        # instance is invalid". Scoped to the windmill-app pod in the windmill
+        # ns on 8000 only.
+        - to:
+              - namespaceSelector:
+                    matchLabels:
+                        kubernetes.io/metadata.name: windmill
+                podSelector:
+                    matchLabels:
+                        app.kubernetes.io/name: windmill-app
+          ports:
+              - port: 8000
+                protocol: TCP

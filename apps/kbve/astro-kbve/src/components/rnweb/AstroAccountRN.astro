@@ -1,5 +1,16 @@
 ---
 import ReactAccountRN from './ReactAccountRN';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
 ---
 
-<ReactAccountRN client:only="react" />
+<div class="acct-rn not-content">
+	<ReactAccountRN client:only="react">
+		<RnDashSkeleton slot="fallback" tiles={2} rows={4} />
+	</ReactAccountRN>
+</div>
+
+<style>
+	.acct-rn {
+		min-height: 60vh;
+	}
+</style>

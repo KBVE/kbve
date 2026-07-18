@@ -1,6 +1,7 @@
 ---
 import BentoShell from '@/components/hero/BentoShell.astro';
 import ReactGrafanaDashRN from '@/components/rnweb/ReactGrafanaDashRN';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
 ---
 
 <BentoShell
@@ -9,7 +10,9 @@ import ReactGrafanaDashRN from '@/components/rnweb/ReactGrafanaDashRN';
 	heading="Grafana alerts & cluster health.">
 	<div class="svc-dash not-content">
 		<div class="svc-dash__stream not-content">
-			<ReactGrafanaDashRN client:only="react" />
+			<ReactGrafanaDashRN client:only="react">
+				<RnDashSkeleton slot="fallback" />
+			</ReactGrafanaDashRN>
 		</div>
 	</div>
 </BentoShell>

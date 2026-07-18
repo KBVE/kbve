@@ -150,7 +150,7 @@ impl WindmillConfig {
 
         let body = serde_json::json!({ "args": args, "discord": discord });
         let url = format!(
-            "{}/api/w/{}/jobs/run_wait_result/{}",
+            "{}/api/w/{}/jobs/run_wait_result/{RUN_KIND_SCRIPT}/{}",
             self.base_url.trim_end_matches('/'),
             self.workspace,
             path
@@ -179,6 +179,15 @@ impl WindmillConfig {
 /// blocks prefix-confusion (`f/discordshEVIL/...`). Bare `/wm` paths collapse
 /// into it; explicit paths outside it are rejected.
 const BOT_NAMESPACE: &str = "f/discordsh/";
+
+/// Windmill's `run_wait_result/{kind}/{path}` route reads the segment right
+/// after `run_wait_result/` as the run-TYPE selector — `p` for a script, `f`
+/// for a flow — SEPARATE from the storage path (which itself starts with the
+/// `f/` folder root). Every path the bot reaches is a `f/discordsh/*` script,
+/// so the selector is always `p`; sending the bare storage path made Windmill
+/// read its leading `f/` folder root as "run a flow" and 404 with
+/// `flow not found`. Flow support would add an `f` selector variant.
+const RUN_KIND_SCRIPT: &str = "p";
 
 /// Collapse a bare path into the bot namespace. A path already carrying an
 /// `f/` or `p/` kind prefix is returned unchanged (and later rejected by the
@@ -318,7 +327,7 @@ mod tests {
     async fn run_success_calls_windmill() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
-            .and(path("/api/w/kbve/jobs/run_wait_result/f/discordsh/poem"))
+            .and(path("/api/w/kbve/jobs/run_wait_result/p/f/discordsh/poem"))
             .and(header("authorization", "Bearer topsecret"))
             .respond_with(ResponseTemplate::new(200).set_body_json(serde_json::json!({
                 "ok": true,
@@ -343,7 +352,7 @@ mod tests {
     async fn run_collapses_bare_path_into_namespace() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
-            .and(path("/api/w/kbve/jobs/run_wait_result/f/discordsh/poem"))
+            .and(path("/api/w/kbve/jobs/run_wait_result/p/f/discordsh/poem"))
             .respond_with(ResponseTemplate::new(200).set_body_string("{}"))
             .expect(1)
             .mount(&server)
@@ -426,7 +435,7 @@ mod tests {
     async fn run_strips_leading_slash() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
-            .and(path("/api/w/kbve/jobs/run_wait_result/f/discordsh/start"))
+            .and(path("/api/w/kbve/jobs/run_wait_result/p/f/discordsh/start"))
             .respond_with(ResponseTemplate::new(200).set_body_string("{}"))
             .expect(1)
             .mount(&server)
@@ -442,7 +451,7 @@ mod tests {
     async fn run_rate_limited_second_call() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
-            .and(path("/api/w/kbve/jobs/run_wait_result/f/discordsh/foo"))
+            .and(path("/api/w/kbve/jobs/run_wait_result/p/f/discordsh/foo"))
             .respond_with(ResponseTemplate::new(200).set_body_string("{}"))
             .expect(1)
             .mount(&server)
@@ -463,7 +472,7 @@ mod tests {
     async fn run_upstream_error_propagates() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
-            .and(path("/api/w/kbve/jobs/run_wait_result/f/discordsh/foo"))
+            .and(path("/api/w/kbve/jobs/run_wait_result/p/f/discordsh/foo"))
             .respond_with(ResponseTemplate::new(500).set_body_string("boom"))
             .expect(1)
             .mount(&server)
@@ -531,7 +540,7 @@ mod tests {
     async fn run_body_contains_args_and_discord_context() {
         let server = MockServer::start().await;
         Mock::given(method("POST"))
-            .and(path("/api/w/kbve/jobs/run_wait_result/f/discordsh/echo"))
+            .and(path("/api/w/kbve/jobs/run_wait_result/p/f/discordsh/echo"))
             .respond_with(|req: &Request| {
                 let body: serde_json::Value = serde_json::from_slice(&req.body).unwrap();
                 assert_eq!(body["discord"]["user_id"], "999");
