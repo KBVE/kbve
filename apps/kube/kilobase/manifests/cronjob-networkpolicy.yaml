@@ -2,9 +2,19 @@
 # CronJobs in kilobase (backup-restore-test, backup-watchdog) only need kubectl access.
 # Blocks all other outbound traffic (database, internet, other services).
 #
+# Cilium runs with kube-proxy replacement: it translates the kube-apiserver
+# ClusterIP (10.96.0.1:443) to the real control-plane endpoint (host:6443) at
+# the socket layer, BEFORE egress policy is evaluated. A k8s NetworkPolicy
+# ipBlock to 10.96.0.1/32 therefore never matches and every kubectl call times
+# out ("dial tcp 10.96.0.1:443: i/o timeout"), silently breaking the backup
+# drill. Use a Cilium toEntities: kube-apiserver rule instead — identity-based,
+# on 443/6443, survives control-plane IP changes. Same pattern as
+# github/runners/manifests/runner-apiserver-egress.yaml and
+# kasm/manifest/network-policy.yaml.
+#
 # Resolves: https://github.com/KBVE/kbve/issues/7656
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
 metadata:
     name: cronjob-egress-apiserver-only
     namespace: kilobase
@@ -13,31 +23,31 @@ metadata:
         app.kubernetes.io/component: network-policy
         app.kubernetes.io/managed-by: argocd
 spec:
-    podSelector:
+    endpointSelector:
         matchExpressions:
             - key: app.kubernetes.io/component
               operator: In
               values:
                   - backup-testing
                   - backup-watchdog
-    policyTypes:
-        - Egress
     egress:
-        # kube-apiserver (kubectl commands)
-        - to:
-              - ipBlock:
-                    cidr: 10.96.0.1/32
-          ports:
-              - protocol: TCP
-                port: 443
-        # DNS resolution (required for kubectl to resolve kubernetes.default.svc)
-        - to:
-              - namespaceSelector: {}
-                podSelector:
-                    matchLabels:
-                        k8s-app: kube-dns
-          ports:
-              - protocol: UDP
-                port: 53
-              - protocol: TCP
-                port: 53
+        # kube-apiserver (kubectl commands) — identity-based, not ClusterIP
+        - toEntities:
+              - kube-apiserver
+          toPorts:
+              - ports:
+                    - port: '443'
+                      protocol: TCP
+                    - port: '6443'
+                      protocol: TCP
+        # DNS resolution (kube-dns pods, matched by identity not ClusterIP)
+        - toEndpoints:
+              - matchLabels:
+                    k8s:io.kubernetes.pod.namespace: kube-system
+                    k8s-app: kube-dns
+          toPorts:
+              - ports:
+                    - port: '53'
+                      protocol: UDP
+                    - port: '53'
+                      protocol: TCP
