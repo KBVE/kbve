@@ -1,0 +1,150 @@
+---
+/**
+ * Reusable SSR skeleton for RN-web dashboard islands.
+ *
+ * Dropped into a `client:only="react"` island via `slot="fallback"`, it fills
+ * the reserved dashboard box (60vh) with a shimmer placeholder — a header row,
+ * a stat-tile strip, and list rows — so hydration of the heavy RN island shows
+ * no blank flash and no layout shift. Pure HTML/CSS: renders server-side with
+ * no JS. Honors `prefers-reduced-motion`.
+ *
+ * @prop tiles  number of stat tiles (default 4)
+ * @prop rows   number of list rows (default 6)
+ */
+interface Props {
+	tiles?: number;
+	rows?: number;
+}
+const { tiles = 4, rows = 6 } = Astro.props;
+---
+
+<div class="rnsk" aria-hidden="true">
+	<div class="rnsk__header">
+		<span class="rnsk__title rnsk__b"></span>
+		<div class="rnsk__controls">
+			<span class="rnsk__chip rnsk__b"></span>
+			<span class="rnsk__chip rnsk__b"></span>
+		</div>
+	</div>
+
+	<div class="rnsk__tiles">
+		{Array.from({ length: tiles }).map(() => <span class="rnsk__tile rnsk__b" />)}
+	</div>
+
+	<div class="rnsk__rows">
+		{
+			Array.from({ length: rows }).map(() => (
+				<div class="rnsk__row">
+					<span class="rnsk__dot rnsk__b" />
+					<span class="rnsk__line rnsk__b" />
+					<span class="rnsk__pill rnsk__b" />
+				</div>
+			))
+		}
+	</div>
+</div>
+
+<style>
+	.rnsk {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+		width: 100%;
+		height: 100%;
+		min-height: inherit;
+		padding: 1.25rem;
+		box-sizing: border-box;
+	}
+
+	.rnsk__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
+	.rnsk__controls {
+		display: flex;
+		gap: 0.75rem;
+	}
+
+	.rnsk__title {
+		width: 40%;
+		max-width: 18rem;
+		height: 1.5rem;
+	}
+
+	.rnsk__chip {
+		width: 5rem;
+		height: 2rem;
+	}
+
+	.rnsk__tiles {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+		gap: 0.75rem;
+	}
+
+	.rnsk__tile {
+		height: 5.5rem;
+	}
+
+	.rnsk__rows {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+	}
+
+	.rnsk__row {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+	}
+
+	.rnsk__dot {
+		width: 2rem;
+		height: 2rem;
+		border-radius: 999px;
+		flex-shrink: 0;
+	}
+
+	.rnsk__line {
+		flex: 1 1 auto;
+		height: 1rem;
+	}
+
+	.rnsk__pill {
+		width: 4.5rem;
+		height: 1.25rem;
+		flex-shrink: 0;
+	}
+
+	/* Shimmer block — bento tokens keep it on-theme in light + dark. */
+	.rnsk__b {
+		display: inline-block;
+		border-radius: 0.5rem;
+		background: linear-gradient(
+			90deg,
+			var(--bento-cell-bg, rgba(255, 255, 255, 0.04)) 0%,
+			var(--bento-hairline, rgba(255, 255, 255, 0.1)) 50%,
+			var(--bento-cell-bg, rgba(255, 255, 255, 0.04)) 100%
+		);
+		background-size: 200% 100%;
+		animation: rnsk-shimmer 1.3s ease-in-out infinite;
+	}
+
+	@keyframes rnsk-shimmer {
+		0% {
+			background-position: 200% 0;
+		}
+		100% {
+			background-position: -200% 0;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.rnsk__b {
+			animation: none;
+		}
+	}
+</style>

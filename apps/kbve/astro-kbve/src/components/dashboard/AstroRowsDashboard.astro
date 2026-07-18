@@ -1,6 +1,7 @@
 ---
 import BentoShell from '@/components/hero/BentoShell.astro';
 import ReactRowsDashRN from '@/components/rnweb/ReactRowsDashRN';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
 ---
 
 <BentoShell
@@ -9,7 +10,9 @@ import ReactRowsDashRN from '@/components/rnweb/ReactRowsDashRN';
 	heading="ROWS game server operations.">
 	<div class="svc-dash not-content">
 		<div class="svc-dash__stream not-content">
-			<ReactRowsDashRN client:only="react" />
+			<ReactRowsDashRN client:only="react">
+				<RnDashSkeleton slot="fallback" />
+			</ReactRowsDashRN>
 		</div>
 	</div>
 </BentoShell>

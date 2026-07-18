@@ -1,5 +1,16 @@
 ---
 import ReactGrafanaDashRN from './ReactGrafanaDashRN';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
 ---
 
-<ReactGrafanaDashRN client:only="react" />
+<div class="grafana-rn not-content">
+	<ReactGrafanaDashRN client:only="react">
+		<RnDashSkeleton slot="fallback" />
+	</ReactGrafanaDashRN>
+</div>
+
+<style>
+	.grafana-rn {
+		min-height: 60vh;
+	}
+</style>

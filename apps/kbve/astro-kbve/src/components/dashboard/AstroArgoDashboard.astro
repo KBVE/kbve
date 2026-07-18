@@ -1,6 +1,7 @@
 ---
 import BentoShell from '@/components/hero/BentoShell.astro';
 import ReactArgoDashRN from '@/components/rnweb/ReactArgoDashRN';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
 ---
 
 <BentoShell
@@ -9,7 +10,9 @@ import ReactArgoDashRN from '@/components/rnweb/ReactArgoDashRN';
 	heading="ArgoCD — application sync & health.">
 	<div class="argo-dash not-content">
 		<div class="argo-dash__stream not-content">
-			<ReactArgoDashRN client:only="react" />
+			<ReactArgoDashRN client:only="react">
+				<RnDashSkeleton slot="fallback" />
+			</ReactArgoDashRN>
 		</div>
 	</div>
 </BentoShell>
