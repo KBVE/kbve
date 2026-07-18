@@ -1,0 +1,18 @@
+summary: Fetch a poem from PoetryDB (web dashboard)
+description: >-
+  Web-surface wrapper for the workflows canvas. Imports fetchPoem() from the
+  shared core and returns a plain dashboard shape. USER tier — the proxy allows
+  browser invokes under f/web/*. Bun, no dependencies.
+kind: script
+lock: ''
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  order:
+    - author
+  properties:
+    author:
+      type: string
+      description: Optional author name; blank returns a random poem.
+      default: ''
+  required: []

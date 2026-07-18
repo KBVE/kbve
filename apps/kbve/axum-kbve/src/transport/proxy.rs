@@ -381,7 +381,9 @@ pub(crate) async fn require_dashboard_view(
     headers: &HeaderMap,
     service_name: &str,
 ) -> Result<(), Response> {
-    require_dashboard_view_with_query(headers, None, service_name).await
+    require_dashboard_view_with_query(headers, None, service_name)
+        .await
+        .map(|_| ())
 }
 
 /// Gate for sensitive proxy routes that need a higher privilege level than
@@ -455,7 +457,7 @@ async fn require_dashboard_view_with_query(
     headers: &HeaderMap,
     query: Option<&str>,
     service_name: &str,
-) -> Result<(), Response> {
+) -> Result<TokenInfo, Response> {
     let auth_token = match extract_auth_token(headers, query) {
         Some(t) => t,
         None => {
@@ -512,7 +514,7 @@ async fn require_dashboard_view_with_query(
             .into_response());
     }
 
-    Ok(())
+    Ok(token_info)
 }
 
 static GRAFANA: OnceLock<ServiceProxy> = OnceLock::new();
@@ -2029,12 +2031,72 @@ pub fn init_windmill_proxy() -> bool {
 /// Proxy for the Windmill dashboard canvas. Staff-gated at axum, then forwards
 /// the caller's Supabase token to windmill-gate, whose SSO bridge impersonates
 /// the user — so Windmill actions carry per-user attribution.
+/// Extract the runnable path from a Windmill job-run proxy path, if the request
+/// is an invocation. Returns the script/flow path (e.g. `f/web/poem`) so the
+/// proxy can enforce the surface boundary. Reads (poll result, scripts/list)
+/// return `None` and stay under the plain DASHBOARD_VIEW gate.
+fn windmill_runnable_path(proxy_path: &str) -> Option<&str> {
+    const MARKERS: [&str; 4] = [
+        "/jobs/run/p/",
+        "/jobs/run_wait_result/p/",
+        "/jobs/run/f/",
+        "/jobs/run_wait_result/f/",
+    ];
+    for marker in MARKERS {
+        if let Some(idx) = proxy_path.find(marker) {
+            return Some(&proxy_path[idx + marker.len()..]);
+        }
+    }
+    None
+}
+
 pub async fn windmill_proxy_handler(path: Option<Path<String>>, req: Request<Body>) -> Response {
     let headers = req.headers().clone();
     let raw_query = req.uri().query().map(|q| q.to_string());
 
-    if let Err(resp) = require_dashboard_view(&headers, "Windmill").await {
-        return resp;
+    let token_info =
+        match require_dashboard_view_with_query(&headers, raw_query.as_deref(), "Windmill").await {
+            Ok(info) => info,
+            Err(resp) => return resp,
+        };
+
+    // The windmill folder is the hardened invocation boundary. A browser may
+    // only run scripts under `f/web/*`; `f/web/staff/*` additionally requires
+    // DASHBOARD_MANAGE. Everything else (f/discordsh/*, f/shared/*,
+    // f/kilobase/*, u/*) is rejected — those surfaces are never browser-invoked.
+    if let Some(runnable) = path.as_ref().and_then(|Path(p)| windmill_runnable_path(p)) {
+        if !runnable.starts_with("f/web/") {
+            warn!(
+                user_id = %token_info.user_id,
+                runnable,
+                "Windmill proxy blocked invoke outside f/web/*"
+            );
+            return (
+                StatusCode::FORBIDDEN,
+                axum::Json(json!({
+                    "error": "Access restricted",
+                    "message": "This workflow is not invocable from the dashboard"
+                })),
+            )
+                .into_response();
+        }
+        if runnable.starts_with("f/web/staff/")
+            && !token_info.has_permission(staff_perm::DASHBOARD_MANAGE)
+        {
+            warn!(
+                user_id = %token_info.user_id,
+                runnable,
+                "Windmill proxy blocked staff workflow — missing DASHBOARD_MANAGE"
+            );
+            return (
+                StatusCode::FORBIDDEN,
+                axum::Json(json!({
+                    "error": "Access restricted",
+                    "message": "This workflow requires staff access"
+                })),
+            )
+                .into_response();
+        }
     }
 
     let token = match extract_auth_token(&headers, raw_query.as_deref()) {

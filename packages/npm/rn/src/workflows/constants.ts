@@ -5,8 +5,9 @@ export const WORKFLOWS: readonly WorkflowDef[] = [
 	{
 		key: 'poem',
 		backend: 'windmill',
-		path: 'f/app/user/poem',
+		path: 'f/web/poem',
 		tier: 'user',
+		surface: 'web',
 		label: 'Poem',
 	},
 ].map((w) => WorkflowDefSchema.parse(w));
