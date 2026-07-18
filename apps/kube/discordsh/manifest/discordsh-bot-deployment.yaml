@@ -52,7 +52,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: discordsh-bot
-                  image: ghcr.io/kbve/discordsh-bot:0.1.22
+                  image: ghcr.io/kbve/discordsh-bot:0.1.23
                   imagePullPolicy: Always
                   envFrom:
                       - configMapRef:
