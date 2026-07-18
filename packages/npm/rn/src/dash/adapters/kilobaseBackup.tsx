@@ -11,7 +11,7 @@ import type { StatModel, StreamLens, StreamStore } from '../types';
 export interface RawS3Object {
 	key: string;
 	size: number;
-	last_modified: string;
+	last_modified: number;
 }
 
 export interface RawObjectsResponse {
@@ -23,13 +23,13 @@ export interface S3ObjectItem {
 	id: string;
 	key: string;
 	size: number;
-	lastModified: string;
+	lastModified: number;
 	age: string;
 }
 
 export interface LatestBaseBackup {
 	id: string;
-	time: string;
+	time: number;
 	size_bytes: number;
 	age_seconds: number;
 }
@@ -42,7 +42,7 @@ export interface BackupSummary {
 	oldest_object_age_seconds: number;
 	retention_days: number;
 	retention_ok: boolean;
-	generated_at: string;
+	generated_at: number;
 }
 
 export interface KilobaseBackupStreamOptions {
@@ -58,9 +58,9 @@ export interface KilobaseBackupStreamOptions {
 // Normalization
 // ---------------------------------------------------------------------------
 
-function formatAge(timestamp: string): string {
+function formatAge(seconds: number): string {
 	try {
-		const then = new Date(timestamp).getTime();
+		const then = seconds * 1000;
 		const diffSec = Math.max(0, Math.round((Date.now() - then) / 1000));
 		if (diffSec < 60) return `${diffSec}s ago`;
 		const diffMin = Math.round(diffSec / 60);

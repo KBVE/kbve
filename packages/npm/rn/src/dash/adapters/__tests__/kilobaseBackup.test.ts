@@ -17,7 +17,7 @@ describe('kilobaseBackup adapter', () => {
 		const healthy: BackupSummary = {
 			latest_base_backup: {
 				id: 'base-1',
-				time: '2026-07-17T00:00:00Z',
+				time: 1_784_246_400,
 				size_bytes: 1024,
 				age_seconds: 3600,
 			},
@@ -27,7 +27,7 @@ describe('kilobaseBackup adapter', () => {
 			oldest_object_age_seconds: 604_800,
 			retention_days: 7,
 			retention_ok: true,
-			generated_at: '2026-07-17T01:00:00Z',
+			generated_at: 1_784_250_000,
 		};
 
 		it('returns warn when retention_ok is false', () => {
@@ -82,7 +82,7 @@ describe('kilobaseBackup adapter', () => {
 					{
 						key: 'barman/backup/base/20260717T000000/data.tar',
 						size: 2048,
-						last_modified: '2026-07-17T00:00:00Z',
+						last_modified: 1_784_246_400,
 					},
 				],
 				next_token: null,
@@ -93,8 +93,24 @@ describe('kilobaseBackup adapter', () => {
 				id: 'barman/backup/base/20260717T000000/data.tar',
 				key: 'barman/backup/base/20260717T000000/data.tar',
 				size: 2048,
-				lastModified: '2026-07-17T00:00:00Z',
+				lastModified: 1_784_246_400,
 			});
+		});
+
+		it('formats the age of a raw object from a unix-seconds last_modified', () => {
+			const nowSec = Math.floor(Date.now() / 1000);
+			const json: RawObjectsResponse = {
+				objects: [
+					{
+						key: 'barman/backup/wals/000000010000000000000001',
+						size: 512,
+						last_modified: nowSec - 3600,
+					},
+				],
+				next_token: null,
+			};
+			const { objects } = mapObjectsResponse(json);
+			expect(objects[0]?.age).toBe('1h ago');
 		});
 
 		it('defaults to empty objects when the response omits the field', () => {
@@ -126,7 +142,7 @@ describe('kilobaseBackup adapter', () => {
 		const summary: BackupSummary = {
 			latest_base_backup: {
 				id: 'base-1',
-				time: '2026-07-17T00:00:00Z',
+				time: 1_784_246_400,
 				size_bytes: 1024,
 				age_seconds: 3600,
 			},
@@ -136,7 +152,7 @@ describe('kilobaseBackup adapter', () => {
 			oldest_object_age_seconds: 604_800,
 			retention_days: 7,
 			retention_ok: true,
-			generated_at: '2026-07-17T01:00:00Z',
+			generated_at: 1_784_250_000,
 		};
 
 		it('derives Total Size from the authoritative summary, not the loaded page', () => {
