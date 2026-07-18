@@ -29,7 +29,7 @@ spec:
                 node.kbve.com/type: dedicated-server
             containers:
                 - name: velocity
-                  image: ghcr.io/kbve/mc-velocity:1.1.12
+                  image: ghcr.io/kbve/mc-velocity:1.1.13
                   env:
                       - name: TYPE
                         value: VELOCITY
