@@ -131,7 +131,10 @@ CREATE TABLE store.purchase (
     -- <=> price = 0.
     price           BIGINT NOT NULL CHECK (price >= 0),
     currency        wallet.currency_kind NOT NULL,
-    ledger_id       BIGINT,
+    -- FK to the wallet ledger (RI checks bypass RLS) so a receipt can't record a
+    -- fabricated ledger id. NULL when nothing was charged (free / already-owned).
+    -- RESTRICT: ledger rows are immutable accounting, never hard-deleted.
+    ledger_id       BIGINT REFERENCES wallet.ledger(id) ON DELETE RESTRICT,
     -- What the buy resolved to: a fresh mint vs. a lookup of an already-owned
     -- copy (no debit, no mint). Keeps the receipt honest for accounting.
     result_kind     TEXT NOT NULL DEFAULT 'minted'
@@ -242,7 +245,9 @@ CREATE TABLE store.order (
     -- change on the variant can't mis-restore (or fail to restore) inventory.
     stock_reserved   BOOLEAN NOT NULL DEFAULT false,
     credits_amount   BIGINT NOT NULL CHECK (credits_amount >= 0),
-    ledger_id        BIGINT,
+    -- FK to the wallet ledger (RI checks bypass RLS); NULL for a zero-amount order.
+    -- RESTRICT: ledger rows are immutable accounting, never hard-deleted.
+    ledger_id        BIGINT REFERENCES wallet.ledger(id) ON DELETE RESTRICT,
     -- FK so refund correctness (revoking the minted twin) can't hinge on a
     -- dangling id. RESTRICT: inventory items are state-machined, not deleted.
     twin_item_id     UUID REFERENCES inventory.item(id) ON DELETE RESTRICT,
@@ -315,20 +320,24 @@ CREATE TABLE store.order (
         FOREIGN KEY (product_id, variant_id)
         REFERENCES store.product_variant (product_id, variant_id),
     -- POD lifecycle invariants: reject contradictory column combinations from
-    -- maintenance / privileged writes. provider<->external are paired; a lease
-    -- keeps token+expiry together (both cleared on ACK, claimed_at retained for
-    -- audit) with expiry after the claim; a submission requires the full provider
-    -- identity.
+    -- maintenance / privileged writes. provider identity, external id and the
+    -- submit stamp are a paired TRIPLE: all absent (unsubmitted) or all present
+    -- (ACKed). A lease keeps token+expiry together (both cleared on ACK,
+    -- claimed_at retained for audit) with expiry after the claim. claimed_by
+    -- implies a claim; and a retained claimed_at must correspond to either an
+    -- active lease (token) or a completed submission.
     CONSTRAINT store_order_pod_identity_ck
-        CHECK ((pod_provider IS NULL) = (pod_external_order_id IS NULL)),
+        CHECK ((pod_provider IS NULL AND pod_external_order_id IS NULL AND pod_submitted_at IS NULL)
+            OR (pod_provider IS NOT NULL AND pod_external_order_id IS NOT NULL AND pod_submitted_at IS NOT NULL)),
     CONSTRAINT store_order_pod_lease_ck
         CHECK ((pod_claim_token IS NULL) = (pod_claim_expires_at IS NULL)),
     CONSTRAINT store_order_pod_claim_time_ck
         CHECK (pod_claim_expires_at IS NULL
                OR (pod_claimed_at IS NOT NULL AND pod_claim_expires_at > pod_claimed_at)),
-    CONSTRAINT store_order_pod_submit_ck
-        CHECK (pod_submitted_at IS NULL
-               OR (pod_provider IS NOT NULL AND pod_external_order_id IS NOT NULL))
+    CONSTRAINT store_order_pod_claimed_by_ck
+        CHECK (pod_claimed_by IS NULL OR pod_claimed_at IS NOT NULL),
+    CONSTRAINT store_order_pod_claimed_at_ck
+        CHECK (pod_claimed_at IS NULL OR pod_claim_token IS NOT NULL OR pod_submitted_at IS NOT NULL)
 );
 
 CREATE INDEX store_order_account_created_idx
@@ -388,22 +397,51 @@ CREATE TRIGGER store_order_event_no_update
 -- ============================================================================
 
 CREATE TABLE store.topup_package (
-    pack_id      TEXT PRIMARY KEY
-                 CHECK (pack_id = btrim(pack_id) AND length(pack_id) BETWEEN 1 AND 64),
-    credits      BIGINT NOT NULL CHECK (credits > 0 AND credits <= 100000000),
-    amount_cents BIGINT NOT NULL CHECK (amount_cents > 0 AND amount_cents <= 100000000),
-    active       BOOLEAN NOT NULL DEFAULT true,
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+    pack_id       TEXT PRIMARY KEY
+                  CHECK (pack_id = btrim(pack_id) AND length(pack_id) BETWEEN 1 AND 64),
+    credits       BIGINT NOT NULL CHECK (credits > 0 AND credits <= 100000000),
+    amount_cents  BIGINT NOT NULL CHECK (amount_cents > 0 AND amount_cents <= 100000000),
+    -- Binds the expected fiat currency so "100 cents" can't be satisfied by a
+    -- different currency (USD vs EUR vs JPY). service_apply_topup verifies the
+    -- Stripe currency equals this.
+    currency_fiat TEXT NOT NULL DEFAULT 'usd'
+                  CHECK (currency_fiat = lower(btrim(currency_fiat))
+                         AND currency_fiat ~ '^[a-z]{3}$'),
+    active        BOOLEAN NOT NULL DEFAULT true,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 COMMENT ON TABLE store.topup_package IS
-    'Server-authoritative Stripe credit packs. service_apply_topup derives the credit grant from this table by pack_id; the webhook never supplies a credit amount.';
+    'Server-authoritative Stripe credit packs. service_apply_topup derives the credit grant + expected currency from this table by pack_id; the webhook never supplies a credit amount.';
+
+-- Economic fields (credits/amount/currency) are immutable per pack_id: a durable
+-- identifier must not change meaning under recorded receipts. Only `active` may
+-- change; to reprice, mint a versioned pack (e.g. medium-v2). BEFORE UPDATE
+-- trigger raises 22023 on any economics change.
+CREATE OR REPLACE FUNCTION store.topup_package_economics_immutable()
+RETURNS TRIGGER
+LANGUAGE plpgsql SET search_path = '' AS $$
+BEGIN
+    IF NEW.pack_id      <> OLD.pack_id
+       OR NEW.credits      <> OLD.credits
+       OR NEW.amount_cents <> OLD.amount_cents
+       OR NEW.currency_fiat <> OLD.currency_fiat THEN
+        RAISE EXCEPTION 'store.topup_package economics are immutable (create a versioned pack_id)'
+            USING ERRCODE = '22023';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+ALTER FUNCTION store.topup_package_economics_immutable() OWNER TO service_role;
+CREATE TRIGGER store_topup_package_economics_immutable
+    BEFORE UPDATE ON store.topup_package
+    FOR EACH ROW EXECUTE FUNCTION store.topup_package_economics_immutable();
 
 -- Seed matches the axum checkout PACKS (small/medium/large). Checkout creation
 -- still lists these in Stripe; the grant authority lives here.
-INSERT INTO store.topup_package (pack_id, credits, amount_cents) VALUES
-    ('small',  100,  100),
-    ('medium', 550,  500),
-    ('large',  1200, 1000)
+INSERT INTO store.topup_package (pack_id, credits, amount_cents, currency_fiat) VALUES
+    ('small',  100,  100,  'usd'),
+    ('medium', 550,  500,  'usd'),
+    ('large',  1200, 1000, 'usd')
 ON CONFLICT (pack_id) DO NOTHING;
 
 -- ============================================================================
@@ -437,7 +475,9 @@ CREATE TABLE store.topup (
                       CHECK (currency_fiat ~ '^[a-z]{3}$'),
     -- A 'completed' top-up must correspond to a real wallet credit; enforce it
     -- so a direct/faulty insert can't record completion without a ledger row.
-    ledger_id         BIGINT NOT NULL,
+    -- FK to the ledger (RI checks bypass RLS) so the id can't be fabricated.
+    -- RESTRICT: ledger rows are immutable accounting, never hard-deleted.
+    ledger_id         BIGINT NOT NULL REFERENCES wallet.ledger(id) ON DELETE RESTRICT,
     status            TEXT NOT NULL DEFAULT 'completed'
                       CHECK (status IN ('completed', 'refunded')),
     created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -453,12 +493,18 @@ COMMENT ON TABLE store.topup IS
     'Stripe credit purchases. Idempotent on stripe_event_id. Credits the wallet via wallet.service_credit(source_kind=topup).';
 
 -- ============================================================================
--- TABLE: store.pod_webhook_event — append-only POD webhook receipts.
+-- TABLE: store.pod_webhook_event — durable, append-only POD webhook receipts.
 --   Provider-event dedupe identity (provider, provider_event_id) for auditing
---   delivery, detecting replays, and investigating provider disputes —
---   independent of the status no-op idempotency. The webhook SIGNATURE is still
---   verified in the transport before service_record_pod_webhook is called.
---   Reuses store.order_event_block_mutation as its BEFORE UPDATE/DELETE guard.
+--   delivery, detecting contradictory replays, and investigating provider
+--   disputes. order_id is nullable (an event may arrive before/without a
+--   resolvable local order); external_order_id keeps the provider reference so
+--   an orphan event is still reconcilable.
+--   PRIVACY: the caller stores an ALLOWLISTED, PII-reduced payload (event id,
+--   type, status, tracking numbers) — NOT the raw provider body with recipient
+--   name/address — because RLS does not protect backups/exports. The webhook
+--   SIGNATURE is still verified in the transport before service_apply_pod_shipment
+--   is called. Reuses store.order_event_block_mutation as its BEFORE UPDATE/DELETE
+--   guard.
 -- ============================================================================
 
 CREATE TABLE store.pod_webhook_event (
@@ -469,6 +515,10 @@ CREATE TABLE store.pod_webhook_event (
                       CHECK (provider_event_id = btrim(provider_event_id)
                              AND length(provider_event_id) BETWEEN 1 AND 255),
     order_id          BIGINT REFERENCES store.order(order_id),
+    external_order_id TEXT
+                      CHECK (external_order_id IS NULL
+                             OR (external_order_id = btrim(external_order_id)
+                                 AND length(external_order_id) BETWEEN 1 AND 255)),
     payload           JSONB NOT NULL DEFAULT '{}'::jsonb
                       CHECK (jsonb_typeof(payload) = 'object'
                              AND octet_length(payload::text) <= 65536),
@@ -567,18 +617,21 @@ REVOKE ALL ON ALL TABLES IN SCHEMA private FROM PUBLIC, anon, authenticated;
 --   REVOKE SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA store FROM service_role;
 --   REVOKE ALL ON ALL SEQUENCES IN SCHEMA store FROM service_role;
 --
---   -- Defense-in-depth RLS: ENABLE (not FORCE) on all 6 store tables. With no
---   -- policies, anon/authenticated (which also lack schema USAGE) are denied
---   -- direct access. FORCE is intentionally NOT used — it would subject the
---   -- table-owning store_api_owner to its own policy-less tables and break every
---   -- definer RPC. The owner/EXECUTE split, not RLS, is the real boundary
---   -- (service_role is BYPASSRLS in Supabase regardless).
+--   -- Defense-in-depth RLS: ENABLE (not FORCE) on all 8 store tables, including
+--   -- topup_package and the PII-bearing pod_webhook_event. With no policies,
+--   -- anon/authenticated (which also lack schema USAGE) are denied direct access.
+--   -- FORCE is intentionally NOT used — it would subject the table-owning
+--   -- store_api_owner to its own policy-less tables and break every definer RPC.
+--   -- The owner/EXECUTE split, not RLS, is the real boundary (service_role is
+--   -- BYPASSRLS in Supabase regardless).
 --   ALTER TABLE store.product         ENABLE ROW LEVEL SECURITY;
 --   ALTER TABLE store.product_variant ENABLE ROW LEVEL SECURITY;
 --   ALTER TABLE store.purchase        ENABLE ROW LEVEL SECURITY;
 --   ALTER TABLE store.order           ENABLE ROW LEVEL SECURITY;
 --   ALTER TABLE store.order_event     ENABLE ROW LEVEL SECURITY;
 --   ALTER TABLE store.topup           ENABLE ROW LEVEL SECURITY;
+--   ALTER TABLE store.topup_package   ENABLE ROW LEVEL SECURITY;
+--   ALTER TABLE store.pod_webhook_event ENABLE ROW LEVEL SECURITY;
 --
 --   -- Future store objects created by store_api_owner default to no PUBLIC/anon/
 --   -- authenticated access, so a later table/sequence/function can't silently
@@ -607,8 +660,17 @@ REVOKE ALL ON ALL TABLES IN SCHEMA private FROM PUBLIC, anon, authenticated;
 --   ALTER DEFAULT PRIVILEGES IN SCHEMA store
 --       REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC, anon, authenticated;
 --
---   -- Self-contained exposure boundary: anon/authenticated never received schema
---   -- USAGE, but revoke it explicitly so the store's reachability doesn't depend
---   -- on earlier migrations' grant history.
---   REVOKE ALL ON SCHEMA store, private FROM PUBLIC, anon, authenticated;
+--   -- Self-contained exposure boundary for the DEDICATED store schema. NOT
+--   -- private: private is shared (marketplace/wallet helpers), and a blanket
+--   -- schema-level REVOKE there could break unrelated invoker-rights functions
+--   -- other systems reference. The store's only private object
+--   -- (proxy_store_caller_account) is already REVOKEd FROM PUBLIC, anon,
+--   -- authenticated at its own definition.
+--   REVOKE ALL ON SCHEMA store FROM PUBLIC, anon, authenticated;
+--
+--   -- On DOWN, the migration-role ALTER DEFAULT PRIVILEGES in the store schema is
+--   -- intentionally NOT reversed: it only tightens future-object defaults in the
+--   -- dedicated store schema (revoke PUBLIC execute/access), which is safe to
+--   -- leave after rollback, and re-granting it would re-open that default. The
+--   -- store_api_owner-scoped defaults are cleared by DROP OWNED BY on role drop.
 -- ============================================================================

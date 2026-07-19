@@ -29,7 +29,7 @@
 --   store.service_list_orders
 --   store.service_apply_topup
 --   store.service_ack_pod_submission / store.service_update_pod_status
---   store.service_record_pod_webhook / store.service_order_for_pod
+--   store.service_apply_pod_shipment / store.service_order_for_pod
 --
 -- Public proxies (mc-style schema-not-exposed pattern):
 --   public.proxy_store_catalog_readonly       — anon|authenticated|service_role
@@ -1043,32 +1043,18 @@ BEGIN
         RAISE EXCEPTION 'currency_fiat must be a 3-letter ISO code' USING ERRCODE = '22023';
     END IF;
 
-    -- Credits are AUTHORITATIVE from the server-side pack table, never a
-    -- caller-supplied amount: the webhook can at most name a valid active pack.
-    SELECT * INTO v_pack FROM store.topup_package
-     WHERE pack_id = v_pack_id AND active;
-    IF v_pack.pack_id IS NULL THEN
-        RAISE EXCEPTION 'unknown or inactive topup pack %', v_pack_id USING ERRCODE = '22023';
-    END IF;
-    v_credits := v_pack.credits;
-    -- The Stripe-charged amount must match the pack's expected price, or the
-    -- pricing was tampered with / drifted — refuse rather than grant.
-    IF p_amount_cents <> v_pack.amount_cents THEN
-        RAISE EXCEPTION 'amount_cents % does not match pack % price %',
-            p_amount_cents, v_pack_id, v_pack.amount_cents USING ERRCODE = '22023';
-    END IF;
-
     SELECT id INTO v_account
       FROM wallet.account WHERE kind = 'user' AND user_id = p_user_id;
     IF v_account IS NULL THEN
         RAISE EXCEPTION 'wallet_account_missing' USING ERRCODE = 'WLT01';
     END IF;
 
-    -- Session-level idempotency first: two distinct Stripe events can reference
-    -- the same Checkout Session (the thing that must not be credited twice).
-    -- On replay, validate the recorded row's immutable fingerprint — a
-    -- duplicate carrying contradictory account/pack/credits/fiat data fails
-    -- loudly rather than being accepted as a successful replay.
+    -- Replay is validated against the IMMUTABLE recorded receipt, BEFORE loading
+    -- the (possibly since-deactivated or re-versioned) package — a completed
+    -- session must retry successfully even after the pack is deactivated. The
+    -- fingerprint compares the recorded pack_id/amount/currency, which (given
+    -- pack economics are immutable) pins the credits too. Session-level first:
+    -- two distinct Stripe events can reference the same Checkout Session.
     IF v_session_id IS NOT NULL THEN
         PERFORM pg_advisory_xact_lock(
             hashtextextended('store.topup.session:' || v_session_id, 0));
@@ -1076,7 +1062,6 @@ BEGIN
         IF FOUND THEN
             IF v_row.account_id <> v_account
                OR v_row.pack_id <> v_pack_id
-               OR v_row.credits_granted <> v_credits
                OR v_row.amount_cents <> p_amount_cents
                OR v_row.currency_fiat <> v_currency_fiat THEN
                 RAISE EXCEPTION 'topup replay payload mismatch for session %', v_session_id
@@ -1091,13 +1076,11 @@ BEGIN
     -- the unique constraint and rolling back.
     PERFORM pg_advisory_xact_lock(hashtextextended('store.topup:' || v_event_id, 0));
 
-    -- Idempotent replay: this Stripe event already applied (re-checked under
-    -- lock), with the same fingerprint validation.
+    -- Idempotent replay: this Stripe event already applied (re-checked under lock).
     SELECT * INTO v_row FROM store.topup WHERE stripe_event_id = v_event_id;
     IF FOUND THEN
         IF v_row.account_id <> v_account
            OR v_row.pack_id <> v_pack_id
-           OR v_row.credits_granted <> v_credits
            OR v_row.amount_cents <> p_amount_cents
            OR v_row.currency_fiat <> v_currency_fiat
            OR v_row.stripe_session_id IS DISTINCT FROM v_session_id THEN
@@ -1105,6 +1088,24 @@ BEGIN
                 USING ERRCODE = '40001';
         END IF;
         RETURN v_row.ledger_id;
+    END IF;
+
+    -- NEW top-up: only now require an ACTIVE package. Credits are AUTHORITATIVE
+    -- from the table (never a caller-supplied amount), the Stripe-charged amount
+    -- must equal the pack price, and the currency must equal the pack currency.
+    SELECT * INTO v_pack FROM store.topup_package
+     WHERE pack_id = v_pack_id AND active;
+    IF v_pack.pack_id IS NULL THEN
+        RAISE EXCEPTION 'unknown or inactive topup pack %', v_pack_id USING ERRCODE = '22023';
+    END IF;
+    v_credits := v_pack.credits;
+    IF p_amount_cents <> v_pack.amount_cents THEN
+        RAISE EXCEPTION 'amount_cents % does not match pack % price %',
+            p_amount_cents, v_pack_id, v_pack.amount_cents USING ERRCODE = '22023';
+    END IF;
+    IF v_currency_fiat <> v_pack.currency_fiat THEN
+        RAISE EXCEPTION 'currency % does not match pack % currency %',
+            v_currency_fiat, v_pack_id, v_pack.currency_fiat USING ERRCODE = '22023';
     END IF;
 
     -- Deterministic wallet idempotency key derived from the Checkout SESSION
@@ -1268,11 +1269,14 @@ BEGIN
         RAISE EXCEPTION 'pod_ref must be a JSON object under 16KB' USING ERRCODE = '22023';
     END IF;
 
+    -- 'delivered' is included so post-delivery provider events (proof-of-
+    -- delivery, corrected tracking) can still update metadata; refunded/cancelled
+    -- stay ineligible.
     SELECT o.* INTO v_order
       FROM store.order o
      WHERE o.order_id = p_order_id
        AND o.fulfillment IN ('physical', 'both')
-       AND o.status IN ('paid', 'processing', 'shipped')
+       AND o.status IN ('paid', 'processing', 'shipped', 'delivered')
      FOR UPDATE OF o;
     IF v_order.order_id IS NULL THEN
         RAISE EXCEPTION 'order % not eligible for a POD status update', p_order_id
@@ -1314,22 +1318,32 @@ ALTER FUNCTION store.service_update_pod_status(BIGINT, JSONB) OWNER TO service_r
 REVOKE ALL ON FUNCTION store.service_update_pod_status(BIGINT, JSONB) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION store.service_update_pod_status(BIGINT, JSONB) TO service_role;
 
--- service_record_pod_webhook — append-only receipt into store.pod_webhook_event.
--- Returns true when newly recorded, false on a duplicate (provider,
--- provider_event_id) — lets the caller detect a replay. The webhook SIGNATURE is
--- verified in the transport before this is called.
-CREATE OR REPLACE FUNCTION store.service_record_pod_webhook(
-    p_provider  TEXT,
-    p_event_id  TEXT,
-    p_order_id  BIGINT,
-    p_payload   JSONB
+-- Atomically record a POD shipment webhook AND apply its effect in ONE txn, so
+-- an event can't be durably recorded without its status advance (or vice versa).
+-- Dedupe is (provider, provider_event_id): a byte-different replay of the same
+-- event id is a contradiction (40001); an equivalent replay returns false
+-- without re-advancing. A newly-recorded event advances a 'processing' order to
+-- 'shipped' with tracking (a no-op if the order isn't in 'processing' — e.g.
+-- already shipped/delivered/refunded — so a late/out-of-order event still acks).
+-- Returns true when newly recorded. VOLATILE — write connection.
+CREATE OR REPLACE FUNCTION store.service_apply_pod_shipment(
+    p_provider          TEXT,
+    p_event_id          TEXT,
+    p_external_order_id TEXT,
+    p_order_id          BIGINT,
+    p_tracking          JSONB,
+    p_payload           JSONB
 )
 RETURNS BOOLEAN
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
     v_provider TEXT := lower(btrim(COALESCE(p_provider, '')));
     v_event_id TEXT := btrim(COALESCE(p_event_id, ''));
+    v_ext_id   TEXT := NULLIF(btrim(COALESCE(p_external_order_id, '')), '');
     v_payload  JSONB := COALESCE(p_payload, '{}'::jsonb);
+    v_tracking JSONB := COALESCE(p_tracking, '{}'::jsonb);
+    v_existing store.pod_webhook_event%ROWTYPE;
+    v_from     store.order_status;
     v_pk       BIGINT;
 BEGIN
     IF length(v_provider) = 0 OR length(v_event_id) = 0 THEN
@@ -1338,16 +1352,47 @@ BEGIN
     IF jsonb_typeof(v_payload) <> 'object' OR octet_length(v_payload::text) > 65536 THEN
         RAISE EXCEPTION 'payload must be a JSON object under 64KB' USING ERRCODE = '22023';
     END IF;
-    INSERT INTO store.pod_webhook_event (provider, provider_event_id, order_id, payload)
-    VALUES (v_provider, v_event_id, p_order_id, v_payload)
+
+    INSERT INTO store.pod_webhook_event (provider, provider_event_id, order_id, external_order_id, payload)
+    VALUES (v_provider, v_event_id, p_order_id, v_ext_id, v_payload)
     ON CONFLICT (provider, provider_event_id) DO NOTHING
     RETURNING event_pk INTO v_pk;
-    RETURN v_pk IS NOT NULL;
+
+    IF v_pk IS NULL THEN
+        -- Duplicate event id: a contradictory replay (different order / external
+        -- id / payload) is loud; an equivalent replay is a no-op false.
+        SELECT * INTO v_existing FROM store.pod_webhook_event
+         WHERE provider = v_provider AND provider_event_id = v_event_id;
+        IF v_existing.order_id IS DISTINCT FROM p_order_id
+           OR v_existing.external_order_id IS DISTINCT FROM v_ext_id
+           OR v_existing.payload IS DISTINCT FROM v_payload THEN
+            RAISE EXCEPTION 'contradictory replay of POD event %/%', v_provider, v_event_id
+                USING ERRCODE = '40001';
+        END IF;
+        RETURN false;
+    END IF;
+
+    -- Newly recorded: apply the shipment. Advance only a 'processing' order;
+    -- anything else is a benign no-op so a late/duplicate-state event still acks.
+    IF p_order_id IS NOT NULL THEN
+        SELECT status INTO v_from FROM store.order WHERE order_id = p_order_id FOR UPDATE;
+        IF v_from = 'processing' THEN
+            UPDATE store.order
+               SET status = 'shipped',
+                   tracking = CASE WHEN v_tracking = '{}'::jsonb THEN tracking ELSE v_tracking END,
+                   updated_at = now()
+             WHERE order_id = p_order_id;
+            INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
+            VALUES (p_order_id, v_from, 'shipped', 'pod', 'POD shipment', v_tracking);
+        END IF;
+    END IF;
+
+    RETURN true;
 END;
 $$;
-ALTER FUNCTION store.service_record_pod_webhook(TEXT, TEXT, BIGINT, JSONB) OWNER TO service_role;
-REVOKE ALL ON FUNCTION store.service_record_pod_webhook(TEXT, TEXT, BIGINT, JSONB) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION store.service_record_pod_webhook(TEXT, TEXT, BIGINT, JSONB) TO service_role;
+ALTER FUNCTION store.service_apply_pod_shipment(TEXT, TEXT, TEXT, BIGINT, JSONB, JSONB) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_apply_pod_shipment(TEXT, TEXT, TEXT, BIGINT, JSONB, JSONB) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_apply_pod_shipment(TEXT, TEXT, TEXT, BIGINT, JSONB, JSONB) TO service_role;
 
 -- Atomically LEASE an order for POD submission. Locks the order, verifies
 -- eligibility (from the fulfillment snapshot), rejects an already-submitted or
@@ -1365,8 +1410,6 @@ RETURNS JSONB
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
     v_order   store.order%ROWTYPE;
-    v_product store.product%ROWTYPE;
-    v_variant store.product_variant%ROWTYPE;
     v_token   UUID := gen_random_uuid();
 BEGIN
     SELECT * INTO v_order FROM store.order WHERE order_id = p_order_id FOR UPDATE;
@@ -1396,9 +1439,6 @@ BEGIN
             USING ERRCODE = '55006';
     END IF;
 
-    SELECT * INTO v_product FROM store.product WHERE product_id = v_order.product_id;
-    SELECT * INTO v_variant FROM store.product_variant WHERE variant_id = v_order.variant_id;
-
     UPDATE store.order
        SET pod_status           = 'claimed',
            pod_claimed_at       = now(),
@@ -1408,19 +1448,20 @@ BEGIN
            updated_at           = now()
      WHERE order_id = p_order_id;
 
-    -- Fulfillment payload prefers the immutable order snapshots over the live
-    -- catalog, so a rename / SKU change after checkout can't alter what is sent
-    -- to the provider.
+    -- Payload is built entirely from the order's immutable snapshots (which are
+    -- NOT NULL), so it never reads the live catalog: a rename / SKU change after
+    -- checkout can't alter what is sent to the provider, and there are no extra
+    -- product/variant lookups.
     RETURN jsonb_build_object(
         'order_id',         v_order.order_id,
         'qty',              v_order.qty,
         'status',           v_order.status,
         'shipping_address', v_order.shipping_address,
         'pod_ref',          v_order.pod_ref,
-        'sku',              COALESCE(v_order.variant_sku, v_variant.sku),
-        'attributes',       COALESCE(NULLIF(v_order.variant_attributes, '{}'::jsonb), v_variant.attributes),
-        'product_slug',     COALESCE(v_order.product_slug, v_product.slug),
-        'product_title',    COALESCE(v_order.product_title, v_product.title),
+        'sku',              v_order.variant_sku,
+        'attributes',       v_order.variant_attributes,
+        'product_slug',     v_order.product_slug,
+        'product_title',    v_order.product_title,
         'claim_token',      v_token,
         'submission_key',   md5('store_pod:' || v_order.order_id::text)
     );
