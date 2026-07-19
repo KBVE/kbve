@@ -69,7 +69,7 @@ impl EmbedDb {
         let sql = sql.to_string();
         let reader = self.reader.clone();
         tokio::task::spawn_blocking(move || {
-            let conn = reader.lock().map_err(|e| crate::EmbedError::Other(e.to_string()))?;
+            let conn = reader.lock().unwrap_or_else(|e| e.into_inner());
             crate::analytics::scalar_i64(&conn, &path, &sql)
         })
             .await
@@ -81,7 +81,7 @@ impl EmbedDb {
         let sql = sql.to_string();
         let reader = self.reader.clone();
         tokio::task::spawn_blocking(move || {
-            let conn = reader.lock().map_err(|e| crate::EmbedError::Other(e.to_string()))?;
+            let conn = reader.lock().unwrap_or_else(|e| e.into_inner());
             crate::analytics::scalar_f64(&conn, &path, &sql)
         })
             .await
@@ -93,7 +93,7 @@ impl EmbedDb {
         let sql = sql.to_string();
         let reader = self.reader.clone();
         tokio::task::spawn_blocking(move || {
-            let conn = reader.lock().map_err(|e| crate::EmbedError::Other(e.to_string()))?;
+            let conn = reader.lock().unwrap_or_else(|e| e.into_inner());
             crate::analytics::rows(&conn, &path, &sql)
         })
             .await
@@ -105,7 +105,7 @@ impl EmbedDb {
         let sql = sql.to_string();
         let reader = self.reader.clone();
         tokio::task::spawn_blocking(move || {
-            let conn = reader.lock().map_err(|e| crate::EmbedError::Other(e.to_string()))?;
+            let conn = reader.lock().unwrap_or_else(|e| e.into_inner());
             crate::analytics::query(&conn, &path, &sql)
         })
             .await
@@ -121,7 +121,7 @@ impl EmbedDb {
         let sql = sql.to_string();
         let reader = self.reader.clone();
         tokio::task::spawn_blocking(move || {
-            let conn = reader.lock().map_err(|e| crate::EmbedError::Other(e.to_string()))?;
+            let conn = reader.lock().unwrap_or_else(|e| e.into_inner());
             crate::analytics::scalar_string(&conn, &path, &sql)
         })
             .await
@@ -494,9 +494,11 @@ mod tests {
         db.execute("CREATE TABLE t (x INTEGER)", ()).await.unwrap();
         db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
         db.checkpoint().await.unwrap();
-        let rows = db.analytics_rows("SELECT TIMESTAMP '2021-01-01 00:00:00', DATE '2021-01-01' FROM t").await.unwrap();
+        let rows = db.analytics_rows("SELECT TIMESTAMP '2021-01-01 00:00:00' AT TIME ZONE 'UTC', DATE '2021-01-01' FROM t").await.unwrap();
         assert!(matches!(rows[0].get(0), Some(crate::EmbedValue::Timestamp(_))));
         assert!(matches!(rows[0].get(1), Some(crate::EmbedValue::Date(_))));
+        assert_eq!(rows[0].as_timestamp(0), Some(1_609_459_200_000_000));
+        assert_eq!(rows[0].as_date(1), Some(18628));
     }
 
     #[tokio::test]
