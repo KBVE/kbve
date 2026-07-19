@@ -10,7 +10,7 @@ metadata:
         kbve.com/managed-by: argocd
     annotations:
         configmap.reloader.stakater.com/reload: kube-root-ca.crt
-        secret.reloader.stakater.com/reload: supabase-shared,forgejo-deploy-keys,valkey-auth,arpg-discord,clickhouse-credentials,vibeshine-config
+        secret.reloader.stakater.com/reload: supabase-shared,forgejo-deploy-keys,valkey-auth,arpg-discord,clickhouse-credentials,vibeshine-config,cube-credentials
 spec:
     replicas: 1
     strategy:
@@ -113,6 +113,13 @@ spec:
                         valueFrom:
                             secretKeyRef:
                                 name: forgejo-deploy-keys
+                                key: api-token
+                      - name: CUBE_UPSTREAM_URL
+                        value: http://cube.cube.svc.cluster.local:4000
+                      - name: CUBE_API_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: cube-credentials
                                 key: api-token
                       - name: KUBEVIRT_API_URL
                         value: https://kubernetes.default.svc
