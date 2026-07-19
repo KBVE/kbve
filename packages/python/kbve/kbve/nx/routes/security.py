@@ -78,7 +78,7 @@ def _acquire(ctx: BuildContext) -> dict:
     return raw
 
 
-@route("security", "on-demand", needs=("node", "rust", "python", "token"))
+@route("security", "daily", needs=("node", "rust", "python", "token"))
 class SecurityRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
         return PlanResult(

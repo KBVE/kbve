@@ -43,7 +43,7 @@ def _acquire(ctx: BuildContext) -> dict:
     return json.loads(graph_file.read_text())
 
 
-@route("graph", "on-demand", needs=("node",))
+@route("graph", "daily", needs=("node",))
 class GraphRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
         return PlanResult(

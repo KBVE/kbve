@@ -31,11 +31,13 @@ def test_explicit_multiple_routes(capsys):
     }
 
 
-def test_daily_cadence_excludes_on_demand(capsys):
+def test_daily_cadence_includes_generated_routes(capsys):
+    # security and graph always regenerate (plan needs_work=True); journal's
+    # inclusion is date-dependent, so only assert the always-on routes here.
     matrix = _matrix(capsys, ["--cadence", "daily"])
     routes = [e["route"] for e in matrix["include"]]
-    assert "security" not in routes
-    assert "graph" not in routes
+    assert "security" in routes
+    assert "graph" in routes
 
 
 def test_matrix_entries_include_needs_key(capsys):
