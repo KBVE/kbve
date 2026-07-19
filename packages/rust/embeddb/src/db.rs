@@ -65,6 +65,22 @@ impl EmbedDb {
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
     }
 
+    pub async fn analytics_rows(&self, sql: &str) -> Result<Vec<crate::EmbedRow>> {
+        let path = self.path.clone();
+        let sql = sql.to_string();
+        tokio::task::spawn_blocking(move || crate::analytics::rows(&path, &sql))
+            .await
+            .map_err(|e| crate::EmbedError::Other(e.to_string()))?
+    }
+
+    pub async fn analytics_scalar_string(&self, sql: &str) -> Result<String> {
+        let path = self.path.clone();
+        let sql = sql.to_string();
+        tokio::task::spawn_blocking(move || crate::analytics::scalar_string(&path, &sql))
+            .await
+            .map_err(|e| crate::EmbedError::Other(e.to_string()))?
+    }
+
     pub async fn begin(&self) -> Result<crate::EmbedTx<'_>> {
         let tx = self.conn.unchecked_transaction().await?;
         Ok(crate::EmbedTx::new(tx))
@@ -213,6 +229,43 @@ mod tests {
         tx2.commit().await.unwrap();
         db.checkpoint().await.unwrap();
         assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 1);
+    }
+
+    #[tokio::test]
+    async fn analytics_rows_mixed_types() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("rows.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER, v REAL, name TEXT)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (?, ?, ?)", (1_i64, 1.5_f64, "a")).await.unwrap();
+        db.execute("INSERT INTO t VALUES (?, ?, ?)", (2_i64, 2.5_f64, "b")).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let rows = db.analytics_rows("SELECT id, v, name FROM t ORDER BY id").await.unwrap();
+        assert_eq!(rows.len(), 2);
+        assert_eq!(rows[0].as_i64(0), Some(1));
+        assert_eq!(rows[0].as_f64(1), Some(1.5));
+        assert_eq!(rows[0].as_str(2), Some("a"));
+        assert_eq!(rows[1].as_str(2), Some("b"));
+    }
+
+    #[tokio::test]
+    async fn analytics_rows_handles_null() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("null.db")).await.unwrap();
+        db.execute("CREATE TABLE t (a INTEGER, b TEXT)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1, NULL)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let rows = db.analytics_rows("SELECT a, b FROM t").await.unwrap();
+        assert_eq!(rows[0].get(1), Some(&crate::EmbedValue::Null));
+    }
+
+    #[tokio::test]
+    async fn analytics_scalar_string_reads_text() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("s.db")).await.unwrap();
+        db.execute("CREATE TABLE t (name TEXT)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (?)", ("hello",)).await.unwrap();
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.analytics_scalar_string("SELECT name FROM t").await.unwrap(), "hello");
     }
 
     #[tokio::test]
