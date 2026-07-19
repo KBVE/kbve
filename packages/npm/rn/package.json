@@ -44,6 +44,10 @@
 			"types": "./src/store/index.ts",
 			"import": "./src/store/index.ts"
 		},
+		"./markets": {
+			"types": "./src/markets/index.ts",
+			"import": "./src/markets/index.ts"
+		},
 		"./dash": {
 			"types": "./src/dash/index.ts",
 			"import": "./src/dash/index.ts"
