@@ -742,7 +742,11 @@ Expected: FAIL — `ProductCard` not found.
 - [ ] **Step 3: Write `store/ProductCard.tsx`**
 
 ```tsx
-import { Badge, Button, Stack, Surface, Text } from '@kbve/rn/ui';
+import { Badge } from '@kbve/rn/ui/primitives/Badge';
+import { Button } from '@kbve/rn/ui/primitives/Button';
+import { Stack } from '@kbve/rn/ui/primitives/Stack';
+import { Surface } from '@kbve/rn/ui/primitives/Surface';
+import { Text } from '@kbve/rn/ui/primitives/Text';
 import type { StoreProduct } from './types';
 
 export interface ProductCardProps {
@@ -803,14 +807,12 @@ export function ProductCard({
 
 ```tsx
 import { useEffect, useState } from 'react';
-import {
-	Button,
-	FormField,
-	Select,
-	Stack,
-	Surface,
-	Text,
-} from '@kbve/rn/ui';
+import { Button } from '@kbve/rn/ui/primitives/Button';
+import { FormField } from '@kbve/rn/ui/primitives/FormField';
+import { Select } from '@kbve/rn/ui/controls/Select';
+import { Stack } from '@kbve/rn/ui/primitives/Stack';
+import { Surface } from '@kbve/rn/ui/primitives/Surface';
+import { Text } from '@kbve/rn/ui/primitives/Text';
 import type { StoreApi } from './api';
 import type { ShippingAddress, StoreVariant } from './types';
 import { StoreApiError } from './errors';
@@ -1031,7 +1033,9 @@ Expected: FAIL — `StoreView` not found.
 - [ ] **Step 3: Write `store/OrderHistory.tsx`**
 
 ```tsx
-import { Stack, Surface, Text } from '@kbve/rn/ui';
+import { Stack } from '@kbve/rn/ui/primitives/Stack';
+import { Surface } from '@kbve/rn/ui/primitives/Surface';
+import { Text } from '@kbve/rn/ui/primitives/Text';
 import type { StoreOrder } from './types';
 
 export interface OrderHistoryProps {
@@ -1065,7 +1069,9 @@ export function OrderHistory({ orders }: OrderHistoryProps) {
 ```tsx
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Stack, Text, tokens } from '@kbve/rn/ui';
+import { Stack } from '@kbve/rn/ui/primitives/Stack';
+import { Text } from '@kbve/rn/ui/primitives/Text';
+import { tokens } from '@kbve/rn/ui/theme';
 import { createStoreApi } from './api';
 import { BuyCredits } from './BuyCredits';
 import { ProductCard } from './ProductCard';
@@ -1373,11 +1379,27 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 **Files:**
 - Create: `apps/kbve/astro-kbve/src/components/market/marketNav.ts`
-- Modify: `apps/kbve/astro-kbve/src/components/dashboard/MarkdownContent.astro`, `apps/kbve/astro-kbve/src/content/docs/store/index.mdx`
+- Modify: `apps/kbve/astro-kbve/src/components/dashboard/MarkdownContent.astro`, `apps/kbve/astro-kbve/src/content/docs/store/index.mdx`, `tsconfig.base.json`, `apps/kbve/astro-kbve/tsconfig.json`
 
 **Interfaces:**
 - Consumes: `DashboardNavEntry`, `DashboardNavGroup`, `DashboardNavItem`, `buildBreadcrumbIn`, `isActiveIn`, `BreadcrumbCrumb` from `../dashboard/dashboardNav`.
 - Produces: `MARKET_NAV`, `STORE_ROOT`, `MARKET_ROOT`, `buildStoreBreadcrumb`, `buildMarketBreadcrumb`.
+
+- [ ] **Step 0: Add the `@kbve/rn/markets` tsconfig path aliases** (the bridge in Task 6 imports `@kbve/rn/markets`; tsconfig paths are explicit per-subpath, no `@kbve/rn/*` wildcard, so the subpath won't resolve without these).
+
+In `tsconfig.base.json`, in `compilerOptions.paths`, after the `"@kbve/rn/dash"` line, add:
+
+```json
+"@kbve/rn/markets": ["packages/npm/rn/src/markets/index.ts"],
+```
+
+In `apps/kbve/astro-kbve/tsconfig.json`, in `compilerOptions.paths`, after the `"@kbve/rn/dash"` line, add:
+
+```json
+"@kbve/rn/markets": ["../../../packages/npm/rn/src/markets/index.ts"],
+```
+
+(No `.web` variant needed — `markets/index.ts` has no native-only code; its UI resolves through the existing `@kbve/rn/ui/*` alias whose `.web` variants win under vite's web resolve extensions.)
 
 - [ ] **Step 1: Write `components/market/marketNav.ts`**
 
@@ -1496,7 +1518,7 @@ Expected: no new type errors from `marketNav.ts` / `MarkdownContent.astro`.
 - [ ] **Step 7: Commit**
 
 ```bash
-git add apps/kbve/astro-kbve/src/components/market/marketNav.ts apps/kbve/astro-kbve/src/components/dashboard/MarkdownContent.astro apps/kbve/astro-kbve/src/content/docs/store/index.mdx
+git add tsconfig.base.json apps/kbve/astro-kbve/tsconfig.json apps/kbve/astro-kbve/src/components/market/marketNav.ts apps/kbve/astro-kbve/src/components/dashboard/MarkdownContent.astro apps/kbve/astro-kbve/src/content/docs/store/index.mdx
 git commit -m "feat(astro-kbve): Commerce gutter rail + splash for /store/
 
 Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
