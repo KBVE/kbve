@@ -1,0 +1,57 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: cube
+    namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/cube
+        kbve.com/manifest-path: apps/kube/cube
+        kbve.com/application-file: kube/cube/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: observability
+        kbve.com/stack: core
+spec:
+    project: default
+    sources:
+        # Cube Store (pre-aggregation engine)
+        - repoURL: https://gadsme.github.io/charts
+          targetRevision: 1.2.0
+          chart: cubestore
+          helm:
+              releaseName: cubestore
+              valueFiles:
+                  - $values/apps/kube/cube/manifests/cubestore-values.yaml
+        # Cube API + refresh worker
+        - repoURL: https://gadsme.github.io/charts
+          targetRevision: 3.3.0
+          chart: cube
+          helm:
+              releaseName: cube
+              valueFiles:
+                  - $values/apps/kube/cube/manifests/cube-values.yaml
+        # Raw manifests: schema ConfigMap (from model/), external-secrets, sealed api secret
+        - repoURL: https://github.com/kbve/kbve
+          targetRevision: main
+          path: apps/kube/cube
+        # Values reference for the helm sources above
+        - repoURL: https://github.com/kbve/kbve
+          targetRevision: main
+          ref: values
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: cube
+    syncPolicy:
+        automated:
+            selfHeal: true
+            prune: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+            - RespectIgnoreDifferences=true
+        retry:
+            limit: 5
+            backoff:
+                duration: 10s
+                factor: 2
+                maxDuration: 5m

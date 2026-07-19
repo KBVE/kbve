@@ -1,6 +1,12 @@
 # Cube API + refresh worker (gadsme/cube).
 # image.tag left unset -> chart uses appVersion (Cube 1.5.3), not latest.
 
+# Stakater Reloader restarts the deployments when the schema ConfigMap or
+# the credential Secrets change (the ConfigMap name is stable, so pods would
+# not otherwise pick up model edits).
+commonAnnotations:
+    reloader.stakater.com/auto: "true"
+
 config:
     devMode: false
     logLevel: "warn"
