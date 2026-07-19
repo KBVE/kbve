@@ -11,12 +11,23 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 from ..builder import BuildContext, BuildResult, PlanResult, repo_root_for
 from ..graph import parse_graph
 from ..render import render_graph_mdx
 from ..router import route
+
+_NX_GRAPH_TIMEOUT = 300
+
+
+class GraphAcquireError(Exception):
+    """Raised when the nx project graph cannot be produced or parsed."""
+
+
+def _warn(msg: str) -> None:
+    print("::warning::graph route: %s" % msg, file=sys.stderr)
 
 
 def _run_nx_graph(repo_root: Path, out_file: Path) -> None:
@@ -26,21 +37,40 @@ def _run_nx_graph(repo_root: Path, out_file: Path) -> None:
         ["pnpm", "nx", "graph", "--file=%s" % out_file, "--open=false"],
         cwd=str(repo_root),
         check=True,
+        timeout=_NX_GRAPH_TIMEOUT,
     )
+
+
+def _validate_graph(raw) -> dict:
+    """Ensure the payload has the expected nx-graph shape before parsing."""
+    if not isinstance(raw, dict) or "nodes" not in (raw.get("graph") or {}):
+        raise GraphAcquireError("unexpected nx graph schema (missing graph.nodes)")
+    if not raw["graph"]["nodes"]:
+        raise GraphAcquireError("nx graph has zero nodes")
+    return raw
 
 
 def _acquire(ctx: BuildContext) -> dict:
     src = ctx.inputs.get("graph_json")
     if src is not None:
-        if isinstance(src, dict):
-            return src
-        return json.loads(Path(src).read_text())
+        raw = src if isinstance(src, dict) else json.loads(Path(src).read_text())
+        return _validate_graph(raw)
 
     repo_root = repo_root_for(ctx.content_root)
     workdir = Path(ctx.workdir) if ctx.workdir else repo_root
     graph_file = workdir / "nx-graph.json"
-    _run_nx_graph(repo_root, graph_file)
-    return json.loads(graph_file.read_text())
+    try:
+        _run_nx_graph(repo_root, graph_file)
+        raw = json.loads(graph_file.read_text())
+    except (
+        subprocess.CalledProcessError,
+        subprocess.TimeoutExpired,
+        OSError,
+        ValueError,
+        json.JSONDecodeError,
+    ) as exc:
+        raise GraphAcquireError("nx graph acquisition failed (%s)" % exc) from exc
+    return _validate_graph(raw)
 
 
 @route("graph", "on-demand", needs=("node",))
@@ -51,7 +81,12 @@ class GraphRoute:
         )
 
     def build(self, ctx: BuildContext) -> BuildResult:
-        raw = _acquire(ctx)
+        try:
+            raw = _acquire(ctx)
+        except GraphAcquireError as exc:
+            _warn("%s — skipping graph regeneration" % exc)
+            return BuildResult("graph", [], True, "acquire failed: %s" % exc)
+
         graph = parse_graph(raw)
 
         public_dir = Path(ctx.public_dir)
