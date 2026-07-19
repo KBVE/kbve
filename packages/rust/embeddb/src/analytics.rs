@@ -39,26 +39,40 @@ fn value_from_ref(v: duckdb::types::ValueRef<'_>) -> Result<crate::EmbedValue> {
     use duckdb::types::ValueRef as V;
     Ok(match v {
         V::Null => crate::EmbedValue::Null,
-        V::Boolean(b) => crate::EmbedValue::Int(b as i64),
+        V::Boolean(b) => crate::EmbedValue::Bool(b),
         V::TinyInt(n) => crate::EmbedValue::Int(n as i64),
         V::SmallInt(n) => crate::EmbedValue::Int(n as i64),
         V::Int(n) => crate::EmbedValue::Int(n as i64),
         V::BigInt(n) => crate::EmbedValue::Int(n),
-        V::HugeInt(n) => i64::try_from(n)
-            .map(crate::EmbedValue::Int)
-            .map_err(|_| crate::EmbedError::Other(format!("i128 value out of i64 range: {}", n)))?,
+        V::HugeInt(n) => crate::EmbedValue::HugeInt(n),
         V::UTinyInt(n) => crate::EmbedValue::Int(n as i64),
         V::USmallInt(n) => crate::EmbedValue::Int(n as i64),
         V::UInt(n) => crate::EmbedValue::Int(n as i64),
-        V::UBigInt(n) => i64::try_from(n)
-            .map(crate::EmbedValue::Int)
-            .map_err(|_| crate::EmbedError::Other(format!("u64 value out of i64 range: {}", n)))?,
+        V::UBigInt(n) => match i64::try_from(n) {
+            Ok(v) => crate::EmbedValue::Int(v),
+            Err(_) => crate::EmbedValue::HugeInt(n as i128),
+        },
         V::Float(n) => crate::EmbedValue::Float(n as f64),
         V::Double(n) => crate::EmbedValue::Float(n),
+        V::Decimal(d) => crate::EmbedValue::Text(d.to_string()),
+        V::Timestamp(unit, v) => crate::EmbedValue::Timestamp(to_micros(unit, v)),
+        V::Date32(v) => crate::EmbedValue::Date(v),
+        V::Time64(unit, v) => crate::EmbedValue::Time(to_micros(unit, v)),
         V::Text(b) => crate::EmbedValue::Text(String::from_utf8_lossy(b).into_owned()),
         V::Blob(b) => crate::EmbedValue::Blob(b.to_vec()),
-        other => return Err(crate::EmbedError::Other(format!("unmapped duckdb type: {:?}", other))),
+        other => return Err(crate::EmbedError::Other(format!(
+            "unmapped duckdb type {:?}; cast to VARCHAR in SQL", other))),
     })
+}
+
+fn to_micros(unit: duckdb::types::TimeUnit, v: i64) -> i64 {
+    use duckdb::types::TimeUnit as U;
+    match unit {
+        U::Second => v.saturating_mul(1_000_000),
+        U::Millisecond => v.saturating_mul(1_000),
+        U::Microsecond => v,
+        U::Nanosecond => v / 1_000,
+    }
 }
 
 fn attached_conn(path: &Path, ext_dir: Option<&Path>) -> Result<duckdb::Connection> {

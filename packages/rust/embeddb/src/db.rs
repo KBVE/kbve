@@ -418,6 +418,40 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn analytics_rows_maps_bool_and_types() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("v.db")).await.unwrap();
+        db.execute("CREATE TABLE t (b INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let rows = db.analytics_rows("SELECT CAST(b AS BOOLEAN) FROM t").await.unwrap();
+        assert_eq!(rows[0].as_bool(0), Some(true));
+    }
+
+    #[tokio::test]
+    async fn analytics_rows_maps_ubigint_over_i64() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("u.db")).await.unwrap();
+        db.execute("CREATE TABLE t (x INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let rows = db.analytics_rows("SELECT 18446744073709551615::UBIGINT FROM t").await.unwrap();
+        assert_eq!(rows[0].as_i128(0), Some(18446744073709551615_i128));
+    }
+
+    #[tokio::test]
+    async fn analytics_rows_maps_timestamp_and_date() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("ts.db")).await.unwrap();
+        db.execute("CREATE TABLE t (x INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let rows = db.analytics_rows("SELECT TIMESTAMP '2021-01-01 00:00:00', DATE '2021-01-01' FROM t").await.unwrap();
+        assert!(matches!(rows[0].get(0), Some(crate::EmbedValue::Timestamp(_))));
+        assert!(matches!(rows[0].get(1), Some(crate::EmbedValue::Date(_))));
+    }
+
+    #[tokio::test]
     async fn migrate_failure_rolls_back_that_migration() {
         let dir = tempfile::tempdir().unwrap();
         let db = EmbedDb::open(dir.path().join("m3.db")).await.unwrap();
