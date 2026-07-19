@@ -24,3 +24,7 @@ impl QueryResult {
         self.rows.is_empty()
     }
 }
+
+pub trait FromEmbedRow: Sized {
+    fn from_row(row: &crate::EmbedRow, columns: &[String]) -> crate::Result<Self>;
+}

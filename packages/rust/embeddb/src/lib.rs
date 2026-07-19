@@ -14,3 +14,4 @@ pub use value::{EmbedValue, EmbedRow};
 pub use turso::IntoParams;
 pub use config::EmbedConfig;
 pub use query::QueryResult;
+pub use query::FromEmbedRow;

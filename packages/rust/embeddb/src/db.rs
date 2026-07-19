@@ -102,6 +102,15 @@ impl EmbedDb {
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
     }
 
+    pub async fn analytics_query_as<T: crate::FromEmbedRow>(&self, sql: &str) -> Result<Vec<T>> {
+        let q = self.analytics_query(sql).await?;
+        let mut out = Vec::with_capacity(q.rows.len());
+        for row in &q.rows {
+            out.push(T::from_row(row, &q.columns)?);
+        }
+        Ok(out)
+    }
+
     pub async fn begin(&self) -> Result<crate::EmbedTx<'_>> {
         let tx = self.conn.unchecked_transaction().await?;
         Ok(crate::EmbedTx::new(tx))
@@ -489,6 +498,28 @@ mod tests {
         db.execute("INSERT INTO t VALUES (5)", ()).await.unwrap();
         db.checkpoint().await.unwrap();
         assert_eq!(db.analytics_one("SELECT id FROM t").await.unwrap().unwrap().as_i64(0), Some(5));
+    }
+
+    #[tokio::test]
+    async fn analytics_query_as_maps_struct() {
+        #[derive(Debug, PartialEq)]
+        struct Rowt { id: i64, name: String }
+        impl crate::FromEmbedRow for Rowt {
+            fn from_row(row: &crate::EmbedRow, cols: &[String]) -> crate::Result<Self> {
+                let ci = |n: &str| cols.iter().position(|c| c == n)
+                    .ok_or_else(|| crate::EmbedError::Other(format!("missing col {n}")));
+                let id = row.as_i64(ci("id")?).ok_or_else(|| crate::EmbedError::Other("id".into()))?;
+                let name = row.as_str(ci("name")?).ok_or_else(|| crate::EmbedError::Other("name".into()))?.to_string();
+                Ok(Rowt { id, name })
+            }
+        }
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("as.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER, name TEXT)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1, 'a'), (2, 'b')", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let got: Vec<Rowt> = db.analytics_query_as("SELECT id, name FROM t ORDER BY id").await.unwrap();
+        assert_eq!(got, vec![Rowt{id:1,name:"a".into()}, Rowt{id:2,name:"b".into()}]);
     }
 
     #[tokio::test]
