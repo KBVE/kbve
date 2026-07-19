@@ -1,6 +1,6 @@
-import { Stack } from '@kbve/rn/ui/primitives/Stack';
-import { Surface } from '@kbve/rn/ui/primitives/Surface';
-import { Text } from '@kbve/rn/ui/primitives/Text';
+import { Stack } from '../../ui/primitives/Stack';
+import { Surface } from '../../ui/primitives/Surface';
+import { Text } from '../../ui/primitives/Text';
 import type { StoreOrder } from './types';
 
 export interface OrderHistoryProps {

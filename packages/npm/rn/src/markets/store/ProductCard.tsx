@@ -1,8 +1,8 @@
-import { Badge } from '@kbve/rn/ui/primitives/Badge';
-import { Button } from '@kbve/rn/ui/primitives/Button';
-import { Stack } from '@kbve/rn/ui/primitives/Stack';
-import { Surface } from '@kbve/rn/ui/primitives/Surface';
-import { Text } from '@kbve/rn/ui/primitives/Text';
+import { Badge } from '../../ui/primitives/Badge';
+import { Button } from '../../ui/primitives/Button';
+import { Stack } from '../../ui/primitives/Stack';
+import { Surface } from '../../ui/primitives/Surface';
+import { Text } from '../../ui/primitives/Text';
 import type { StoreProduct } from './types';
 
 export interface ProductCardProps {

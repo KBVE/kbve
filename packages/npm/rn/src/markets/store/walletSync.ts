@@ -8,5 +8,7 @@ export function notifyWalletRefresh(): void {
 		const ch = new B(WALLET_BROADCAST);
 		ch.postMessage({ type: 'refresh' });
 		ch.close();
-	} catch {}
+	} catch {
+		void 0;
+	}
 }
