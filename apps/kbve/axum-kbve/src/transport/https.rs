@@ -3098,7 +3098,7 @@ pub(crate) async fn auth_user_id(headers: &HeaderMap) -> Result<String, Response
     cache
         .verify_and_cache(&token)
         .await
-        .map(|info| info.user_id)
+        .map(|info| info.user_id.clone())
         .map_err(|e| {
             tracing::warn!(error = %e, "JWT verify failed in forum write");
             (
