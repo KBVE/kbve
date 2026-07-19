@@ -68,6 +68,9 @@ clickhouse = { version = "0.14", optional = true }
 axum-prometheus = { version = "0.10", optional = true }
 metrics = { version = "0.24", optional = true }
 lru = { version = "0.18", optional = true }
+# AWS / cloud object storage (optional)
+aws-config = { version = "1", optional = true, features = ["behavior-version-latest"] }
+aws-sdk-s3 = { version = "1", optional = true }
 
 [features]
 default = []
@@ -90,6 +93,7 @@ postgres = [
 ]
 valkey = ["dep:lru", "dep:fred"]
 observ = ["dep:tracing-subscriber"]
+aws = ["dep:aws-config", "dep:aws-sdk-s3"]
 
 [dependencies.tracing-subscriber]
 version = "0.3"

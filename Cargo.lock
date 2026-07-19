@@ -2313,8 +2313,6 @@ dependencies = [
  "anyhow",
  "askama 0.16.0",
  "avian3d",
- "aws-config",
- "aws-sdk-s3",
  "axum 0.8.9",
  "axum-extra",
  "axum-server",
@@ -9815,6 +9813,8 @@ version = "0.2.2"
 dependencies = [
  "ammonia",
  "async-trait",
+ "aws-config",
+ "aws-sdk-s3",
  "axum 0.8.9",
  "axum-prometheus",
  "bb8",
