@@ -4,11 +4,19 @@
 -- Reference mirror of the collapsed dbmate migrations:
 --   ../../dbmate/migrations/20260708120000_store_schema_init.sql
 --   ../../dbmate/migrations/20260709170000_store_topup_pod.sql
+--   ../../dbmate/migrations/20260709180000_store_privilege_hardening.sql
 -- Hand-authored review surface — do not run directly against the database;
 -- promote changes into a new dbmate migration when ready. Depends on
 -- store_core (schema/tables/enum) and the wallet schema (service_debit /
--- service_credit / account). The order_event append-only trigger function
--- lives in store_core beside the table it guards.
+-- service_credit / account). The order_event append-only trigger and the
+-- product slug-immutable trigger functions live in store_core beside the tables
+-- they guard.
+--
+-- Ownership (privilege hardening): the 'OWNER TO service_role' lines below
+-- mirror what the init/topup migrations write. The privilege-hardening migration
+-- then reassigns EVERY store function AND every public/private proxy_store_*
+-- function to the NOLOGIN role store_api_owner (see the PRIVILEGE MODEL section
+-- in store_core.sql). service_role keeps only its EXECUTE grants on the RPCs.
 --
 -- Caller helper (private, PostgREST never exposes):
 --   private.proxy_store_caller_account
@@ -20,7 +28,8 @@
 --   store.service_advance_order / store.service_refund_order
 --   store.service_list_orders
 --   store.service_apply_topup
---   store.service_attach_pod_ref / store.service_order_for_pod
+--   store.service_ack_pod_submission / store.service_update_pod_status
+--   store.service_order_for_pod
 --
 -- Public proxies (mc-style schema-not-exposed pattern):
 --   public.proxy_store_catalog_readonly       — anon|authenticated|service_role
@@ -142,8 +151,14 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
                         )
                         ORDER BY v.created_at
                     )
-                  FROM store.product_variant v
-                 WHERE v.product_id = p.product_id AND v.status = 'active'),
+                  -- Cap the embedded variant list so a product with a huge SKU
+                  -- count can't produce an oversized single response.
+                  FROM (SELECT vv.variant_id, vv.sku, vv.attributes, vv.price,
+                               vv.stock, vv.created_at
+                          FROM store.product_variant vv
+                         WHERE vv.product_id = p.product_id AND vv.status = 'active'
+                         ORDER BY vv.created_at
+                         LIMIT 200) v),
                '[]'::jsonb
            ) AS variants
       FROM store.product p
@@ -459,19 +474,34 @@ CREATE OR REPLACE FUNCTION store.service_upsert_variant(
 RETURNS UUID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_id UUID;
+    v_id         UUID;
+    v_owner_prod UUID;
+    v_old_stock  BIGINT;
+    v_stock_mode_known BOOLEAN := false;
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM store.product WHERE product_id = p_product_id) THEN
         RAISE EXCEPTION 'store product % not found', p_product_id USING ERRCODE = 'P1001';
     END IF;
     -- sku is globally unique; reject reusing one that belongs to another
-    -- product (ON CONFLICT (sku) would otherwise silently keep the old
-    -- product_id and mask the mistake).
+    -- product. Friendly pre-check (nice error), but NOT the correctness
+    -- mechanism — the ON CONFLICT WHERE below is the race-safe guarantee.
     IF EXISTS (SELECT 1 FROM store.product_variant
                 WHERE sku = p_sku AND product_id <> p_product_id) THEN
         RAISE EXCEPTION 'sku % already belongs to another product', p_sku
             USING ERRCODE = '23505';
     END IF;
+
+    -- Stock MODE (finite vs unlimited) is immutable once a variant exists:
+    -- flipping it while orders carry stock_reserved snapshots makes old
+    -- reservations ambiguous. To change mode, retire the variant and create a
+    -- new SKU. Capture the current mode to enforce it on the UPDATE path.
+    SELECT stock, true INTO v_old_stock, v_stock_mode_known
+      FROM store.product_variant WHERE sku = p_sku AND product_id = p_product_id;
+    IF v_stock_mode_known AND ((v_old_stock IS NULL) <> (p_stock IS NULL)) THEN
+        RAISE EXCEPTION 'variant % stock mode (finite/unlimited) is immutable; create a new SKU', p_sku
+            USING ERRCODE = '22023';
+    END IF;
+
     INSERT INTO store.product_variant (product_id, sku, attributes, price, stock, status)
     VALUES (p_product_id, p_sku,
             COALESCE(p_attributes, '{}'::jsonb),
@@ -483,13 +513,24 @@ BEGIN
             stock      = excluded.stock,
             status     = excluded.status,
             updated_at = now()
-        WHERE store.product_variant.attributes IS DISTINCT FROM excluded.attributes
-           OR store.product_variant.price      IS DISTINCT FROM excluded.price
-           OR store.product_variant.stock      IS DISTINCT FROM excluded.stock
-           OR store.product_variant.status     IS DISTINCT FROM excluded.status
+        -- product_id guard makes the upsert atomically reject a cross-product
+        -- SKU even under a concurrent insert that the pre-check above missed:
+        -- a conflict on another product's SKU updates nothing (v_id stays NULL).
+        WHERE store.product_variant.product_id = excluded.product_id
+          AND (store.product_variant.attributes IS DISTINCT FROM excluded.attributes
+            OR store.product_variant.price      IS DISTINCT FROM excluded.price
+            OR store.product_variant.stock      IS DISTINCT FROM excluded.stock
+            OR store.product_variant.status     IS DISTINCT FROM excluded.status)
     RETURNING variant_id INTO v_id;
     IF v_id IS NULL THEN
-        SELECT variant_id INTO v_id FROM store.product_variant WHERE sku = p_sku;
+        -- No row returned: either a no-op update (same product) or a conflict
+        -- on another product's SKU. Disambiguate and raise on cross-product.
+        SELECT variant_id INTO v_id FROM store.product_variant
+         WHERE sku = p_sku AND product_id = p_product_id;
+        IF v_id IS NULL THEN
+            RAISE EXCEPTION 'sku % already belongs to another product', p_sku
+                USING ERRCODE = '23505';
+        END IF;
     END IF;
     RETURN v_id;
 END;
@@ -601,11 +642,26 @@ BEGIN
             USING ERRCODE = '22023';
     END IF;
 
-    -- A physical order needs a real shipping address BEFORE money moves. An
-    -- empty {} must never yield a paid, unfulfillable order. (Field-level
-    -- validation of the address contract is enforced at the transport layer.)
+    -- A physical order needs a COMPLETE shipping address BEFORE money moves.
+    -- service_buy_physical is directly callable by service_role, so the address
+    -- contract is enforced HERE (in the trust boundary) rather than trusting the
+    -- transport: the minimum fulfillable set must be present and non-blank, and
+    -- the document bounded, or no paid order is created.
     IF COALESCE(p_shipping_address, '{}'::jsonb) = '{}'::jsonb THEN
         RAISE EXCEPTION 'shipping_address is required for physical orders'
+            USING ERRCODE = '23514';
+    END IF;
+    IF jsonb_typeof(p_shipping_address) <> 'object'
+       OR octet_length(p_shipping_address::text) > 16384 THEN
+        RAISE EXCEPTION 'shipping_address must be a JSON object under 16KB'
+            USING ERRCODE = '22023';
+    END IF;
+    IF coalesce(length(btrim(p_shipping_address->>'name')), 0)        = 0
+       OR coalesce(length(btrim(p_shipping_address->>'line1')), 0)    = 0
+       OR coalesce(length(btrim(p_shipping_address->>'city')), 0)     = 0
+       OR coalesce(length(btrim(p_shipping_address->>'postal_code')), 0) = 0
+       OR coalesce(length(btrim(p_shipping_address->>'country')), 0)  = 0 THEN
+        RAISE EXCEPTION 'shipping_address requires name, line1, city, postal_code, country'
             USING ERRCODE = '23514';
     END IF;
 
@@ -845,10 +901,10 @@ BEGIN
         );
     END IF;
 
-    -- Restore stock only if THIS order actually reserved finite stock. Reading
-    -- the order's snapshot (not the variant's current stock mode) means a
-    -- NULL<->finite change on the variant after purchase can't wrongly inflate
-    -- or skip the restore.
+    -- Restore stock only if THIS order actually reserved finite stock
+    -- (stock_reserved snapshot). Stock mode is immutable (service_upsert_variant
+    -- rejects finite<->unlimited flips), so a reserved order's variant is still
+    -- finite here and the restore is exact — never inflated, never skipped.
     IF v_order.stock_reserved AND v_order.variant_id IS NOT NULL THEN
         UPDATE store.product_variant
            SET stock = stock + v_order.qty, updated_at = now()
@@ -966,8 +1022,9 @@ DECLARE
     v_currency_fiat TEXT := lower(btrim(COALESCE(p_currency_fiat, 'usd')));
 BEGIN
     IF p_user_id IS NULL OR coalesce(length(v_event_id), 0) = 0
+       OR coalesce(length(v_session_id), 0) = 0
        OR p_credits IS NULL OR p_credits <= 0 THEN
-        RAISE EXCEPTION 'user_id, stripe_event_id and positive credits are required'
+        RAISE EXCEPTION 'user_id, stripe_event_id, stripe_session_id and positive credits are required'
             USING ERRCODE = '22004';
     END IF;
     IF p_amount_cents IS NULL OR p_amount_cents <= 0 THEN
@@ -1063,14 +1120,24 @@ REVOKE ALL ON FUNCTION store.service_apply_topup(UUID, TEXT, TEXT, BIGINT, BIGIN
 GRANT EXECUTE ON FUNCTION store.service_apply_topup(UUID, TEXT, TEXT, BIGINT, BIGINT, TEXT) TO service_role;
 
 -- ============================================================================
--- Print-on-demand (Phase 4). POD external id/status ride on store.order.pod_ref;
--- shipment webhooks advance the order to 'shipped' via service_advance_order.
+-- Print-on-demand (Phase 4). POD external id/status ride on store.order's
+-- promoted columns + pod_ref; shipment webhooks advance the order to 'shipped'
+-- via service_advance_order. Lease/ACK model: service_order_for_pod leases an
+-- order (fresh claim_token), service_ack_pod_submission confirms the provider
+-- submission (requires the token), service_update_pod_status carries later
+-- status/metadata-only updates.
 -- ============================================================================
 
--- Attach / update the POD reference (external order id, provider, status).
-CREATE OR REPLACE FUNCTION store.service_attach_pod_ref(
-    p_order_id BIGINT,
-    p_pod_ref  JSONB
+-- service_ack_pod_submission — record a CONFIRMED provider submission. Requires
+-- the lease token from service_order_for_pod (a worker whose lease was reclaimed
+-- is rejected -> no double-write), and a complete provider identity (provider +
+-- external_order_id). Sets pod_submitted_at, promotes the identity set-once, and
+-- shallow-merges pod_ref. This is the ONLY path that establishes external
+-- identity; a status webhook cannot masquerade as an acknowledgement.
+CREATE OR REPLACE FUNCTION store.service_ack_pod_submission(
+    p_order_id    BIGINT,
+    p_claim_token UUID,
+    p_pod_ref     JSONB
 )
 RETURNS VOID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
@@ -1078,21 +1145,23 @@ DECLARE
     v_new      JSONB := COALESCE(p_pod_ref, '{}'::jsonb);
     v_order    store.order%ROWTYPE;
     v_merged   JSONB;
-    v_provider TEXT := NULLIF(btrim(v_new->>'provider'), '');
+    v_provider TEXT := NULLIF(lower(btrim(v_new->>'provider')), '');
     v_ext_id   TEXT := NULLIF(btrim(v_new->>'external_order_id'), '');
     v_pstatus  TEXT := NULLIF(btrim(v_new->>'status'), '');
 BEGIN
-    IF jsonb_typeof(v_new) <> 'object' THEN
-        RAISE EXCEPTION 'pod_ref must be a JSON object' USING ERRCODE = '22023';
+    IF jsonb_typeof(v_new) <> 'object' OR octet_length(v_new::text) > 16384 THEN
+        RAISE EXCEPTION 'pod_ref must be a JSON object under 16KB' USING ERRCODE = '22023';
     END IF;
-    IF octet_length(v_new::text) > 16384 THEN
-        RAISE EXCEPTION 'pod_ref too large' USING ERRCODE = '22023';
+    IF p_claim_token IS NULL THEN
+        RAISE EXCEPTION 'claim token is required to acknowledge a POD submission'
+            USING ERRCODE = '22004';
+    END IF;
+    IF v_provider IS NULL OR v_ext_id IS NULL THEN
+        RAISE EXCEPTION 'POD acknowledgement requires provider and external_order_id'
+            USING ERRCODE = '22023';
     END IF;
 
-    -- Only a physical/both order still in the fulfillment pipeline may carry a
-    -- POD reference — never a digital, cancelled, or refunded order. Eligibility
-    -- reads the order's fulfillment SNAPSHOT, not the live product row, so a
-    -- catalog edit after checkout can't disqualify an already-paid order.
+    -- Eligibility from the fulfillment SNAPSHOT (not the live product row).
     SELECT o.* INTO v_order
       FROM store.order o
      WHERE o.order_id = p_order_id
@@ -1100,64 +1169,144 @@ BEGIN
        AND o.status IN ('paid', 'processing', 'shipped')
      FOR UPDATE OF o;
     IF v_order.order_id IS NULL THEN
-        RAISE EXCEPTION 'order % not eligible for a POD reference', p_order_id
+        RAISE EXCEPTION 'order % not eligible for a POD acknowledgement', p_order_id
             USING ERRCODE = 'P1001';
     END IF;
 
-    -- Provider identity is set-once. Once an order has a provider / external
-    -- order id, a later call may not rewrite it to a different value (the unique
-    -- index stops cross-order reuse; this stops in-place replacement). Status
-    -- and metadata stay mutable.
-    IF v_order.pod_provider IS NOT NULL AND v_provider IS NOT NULL
-       AND v_provider <> v_order.pod_provider THEN
+    -- The lease token must match the current claim: a stale worker whose lease
+    -- expired and was reclaimed by another worker holds an old token and is
+    -- rejected here, preventing both workers writing the same order.
+    IF v_order.pod_claim_token IS NULL OR v_order.pod_claim_token <> p_claim_token THEN
+        RAISE EXCEPTION 'order % POD claim token is stale or missing', p_order_id
+            USING ERRCODE = '55006';
+    END IF;
+
+    -- Provider identity is set-once (idempotent re-ACK with identical values is
+    -- allowed; a different value is rejected).
+    IF v_order.pod_provider IS NOT NULL AND v_order.pod_provider <> v_provider THEN
         RAISE EXCEPTION 'order % pod_provider is immutable once set', p_order_id
             USING ERRCODE = '22023';
     END IF;
-    IF v_order.pod_external_order_id IS NOT NULL AND v_ext_id IS NOT NULL
-       AND v_ext_id <> v_order.pod_external_order_id THEN
+    IF v_order.pod_external_order_id IS NOT NULL AND v_order.pod_external_order_id <> v_ext_id THEN
         RAISE EXCEPTION 'order % pod_external_order_id is immutable once set', p_order_id
             USING ERRCODE = '22023';
     END IF;
 
-    -- Shallow-merge into the stored document so a partial webhook (e.g. just
-    -- {"status":"shipped"}) augments rather than erases prior provider metadata.
     v_merged := v_order.pod_ref || v_new;
+    IF octet_length(v_merged::text) > 16384 THEN
+        RAISE EXCEPTION 'pod_ref too large after merge' USING ERRCODE = '22023';
+    END IF;
 
-    -- Idempotent: POD adapters/webhooks retry the same payload. Only write +
-    -- log an event when the merged pod_ref actually changes.
+    -- Change predicate covers pod_ref AND every promoted column + the submission
+    -- stamp, so a repair where the JSON already matches but a promoted column is
+    -- stale/null still writes.
     UPDATE store.order
        SET pod_ref               = v_merged,
-           pod_provider          = COALESCE(v_provider, pod_provider),
-           pod_external_order_id = COALESCE(v_ext_id, pod_external_order_id),
-           pod_status            = COALESCE(v_pstatus, pod_status),
+           pod_provider          = v_provider,
+           pod_external_order_id = v_ext_id,
+           pod_status            = COALESCE(v_pstatus, pod_status, 'submitted'),
+           pod_submitted_at      = COALESCE(pod_submitted_at, now()),
            updated_at            = now()
-     WHERE order_id = p_order_id AND pod_ref IS DISTINCT FROM v_merged;
+     WHERE order_id = p_order_id
+       AND (pod_ref               IS DISTINCT FROM v_merged
+         OR pod_provider          IS DISTINCT FROM v_provider
+         OR pod_external_order_id IS DISTINCT FROM v_ext_id
+         OR pod_status            IS DISTINCT FROM COALESCE(v_pstatus, pod_status, 'submitted')
+         OR pod_submitted_at      IS NULL);
     IF FOUND THEN
         INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
-        VALUES (p_order_id, v_order.status, v_order.status, 'pod', 'pod_ref attached', v_merged);
+        VALUES (p_order_id, v_order.status, v_order.status, 'pod', 'pod submission acked', v_merged);
     END IF;
 END;
 $$;
-ALTER FUNCTION store.service_attach_pod_ref(BIGINT, JSONB) OWNER TO service_role;
-REVOKE ALL ON FUNCTION store.service_attach_pod_ref(BIGINT, JSONB) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION store.service_attach_pod_ref(BIGINT, JSONB) TO service_role;
+ALTER FUNCTION store.service_ack_pod_submission(BIGINT, UUID, JSONB) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_ack_pod_submission(BIGINT, UUID, JSONB) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_ack_pod_submission(BIGINT, UUID, JSONB) TO service_role;
 
--- Order payload the POD adapter needs to place a fulfillment order. Only a
--- fulfillable physical/both order in paid|processing is eligible; anything
--- else raises so a bad adapter call can't submit an invalid order.
--- Atomically CLAIM an order for POD submission. Locks the order, verifies
--- eligibility, rejects an already-claimed order, then stamps the claim
--- (pod_submitted_at) so a crash/retry cannot submit the same order to the
--- provider twice. Returns the submission payload incl. a deterministic
--- submission_key the adapter must pass as the provider's idempotency key.
--- VOLATILE (writes the claim) — call on a write connection.
-CREATE OR REPLACE FUNCTION store.service_order_for_pod(p_order_id BIGINT)
+-- service_update_pod_status — status/metadata-only updates (e.g. provider
+-- webhooks) AFTER an external identity exists. Never establishes or mutates the
+-- provider identity; shallow-merges metadata into pod_ref.
+CREATE OR REPLACE FUNCTION store.service_update_pod_status(
+    p_order_id BIGINT,
+    p_pod_ref  JSONB
+)
+RETURNS VOID
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_new     JSONB := COALESCE(p_pod_ref, '{}'::jsonb);
+    v_order   store.order%ROWTYPE;
+    v_merged  JSONB;
+    v_pstatus TEXT := NULLIF(btrim(v_new->>'status'), '');
+BEGIN
+    IF jsonb_typeof(v_new) <> 'object' OR octet_length(v_new::text) > 16384 THEN
+        RAISE EXCEPTION 'pod_ref must be a JSON object under 16KB' USING ERRCODE = '22023';
+    END IF;
+
+    SELECT o.* INTO v_order
+      FROM store.order o
+     WHERE o.order_id = p_order_id
+       AND o.fulfillment IN ('physical', 'both')
+       AND o.status IN ('paid', 'processing', 'shipped')
+     FOR UPDATE OF o;
+    IF v_order.order_id IS NULL THEN
+        RAISE EXCEPTION 'order % not eligible for a POD status update', p_order_id
+            USING ERRCODE = 'P1001';
+    END IF;
+    IF v_order.pod_external_order_id IS NULL THEN
+        RAISE EXCEPTION 'order % has no POD submission to update', p_order_id
+            USING ERRCODE = 'P1001';
+    END IF;
+
+    -- Reject any attempt to change the provider identity via this path.
+    IF (v_new ? 'provider'
+        AND NULLIF(lower(btrim(v_new->>'provider')), '') IS DISTINCT FROM v_order.pod_provider)
+       OR (v_new ? 'external_order_id'
+           AND NULLIF(btrim(v_new->>'external_order_id'), '') IS DISTINCT FROM v_order.pod_external_order_id) THEN
+        RAISE EXCEPTION 'POD provider identity is immutable; update status/metadata only'
+            USING ERRCODE = '22023';
+    END IF;
+
+    v_merged := v_order.pod_ref || v_new;
+    IF octet_length(v_merged::text) > 16384 THEN
+        RAISE EXCEPTION 'pod_ref too large after merge' USING ERRCODE = '22023';
+    END IF;
+
+    UPDATE store.order
+       SET pod_ref    = v_merged,
+           pod_status = COALESCE(v_pstatus, pod_status),
+           updated_at = now()
+     WHERE order_id = p_order_id
+       AND (pod_ref    IS DISTINCT FROM v_merged
+         OR pod_status IS DISTINCT FROM COALESCE(v_pstatus, pod_status));
+    IF FOUND THEN
+        INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
+        VALUES (p_order_id, v_order.status, v_order.status, 'pod', 'pod status updated', v_merged);
+    END IF;
+END;
+$$;
+ALTER FUNCTION store.service_update_pod_status(BIGINT, JSONB) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_update_pod_status(BIGINT, JSONB) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_update_pod_status(BIGINT, JSONB) TO service_role;
+
+-- Atomically LEASE an order for POD submission. Locks the order, verifies
+-- eligibility (from the fulfillment snapshot), rejects an already-submitted or
+-- actively-leased order, then stamps a lease (pod_claimed_at + expiry + a fresh
+-- pod_claim_token + worker id). A worker crash before ACK lets the lease expire
+-- (15m) so the order is reclaimable — never permanently stranded. The returned
+-- claim_token must be presented to service_ack_pod_submission; a reclaimed
+-- worker's stale token is rejected there. submission_key is a deterministic
+-- provider idempotency key. VOLATILE (writes the lease) — write connection.
+CREATE OR REPLACE FUNCTION store.service_order_for_pod(
+    p_order_id   BIGINT,
+    p_claimed_by TEXT DEFAULT NULL
+)
 RETURNS JSONB
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
     v_order   store.order%ROWTYPE;
     v_product store.product%ROWTYPE;
     v_variant store.product_variant%ROWTYPE;
+    v_token   UUID := gen_random_uuid();
 BEGIN
     SELECT * INTO v_order FROM store.order WHERE order_id = p_order_id FOR UPDATE;
     IF v_order.order_id IS NULL THEN
@@ -1172,19 +1321,17 @@ BEGIN
             USING ERRCODE = 'P1001';
     END IF;
 
-    -- Claim gate. A claim is permanent only once the provider accepted it
-    -- (external_order_id set). A still-fresh claim (submitted, not yet expired)
-    -- belongs to another worker. Otherwise — never claimed, or a stale claim
-    -- from a crashed worker — (re)claim is allowed; the deterministic
-    -- submission_key keeps a re-submit provider-side idempotent.
-    IF v_order.pod_external_order_id IS NOT NULL THEN
+    -- Final once the provider accepted (submitted_at + external id). Otherwise
+    -- an unexpired lease belongs to another worker; a never-leased or expired
+    -- lease is (re)claimable.
+    IF v_order.pod_submitted_at IS NOT NULL OR v_order.pod_external_order_id IS NOT NULL THEN
         RAISE EXCEPTION 'order % already submitted to POD provider', p_order_id
             USING ERRCODE = '55006';
     END IF;
-    IF v_order.pod_submitted_at IS NOT NULL
+    IF v_order.pod_claimed_at IS NOT NULL
        AND v_order.pod_claim_expires_at IS NOT NULL
        AND v_order.pod_claim_expires_at > now() THEN
-        RAISE EXCEPTION 'order % already claimed for POD fulfillment', p_order_id
+        RAISE EXCEPTION 'order % already leased for POD fulfillment', p_order_id
             USING ERRCODE = '55006';
     END IF;
 
@@ -1193,8 +1340,10 @@ BEGIN
 
     UPDATE store.order
        SET pod_status           = 'claimed',
-           pod_submitted_at     = now(),
+           pod_claimed_at       = now(),
            pod_claim_expires_at = now() + interval '15 minutes',
+           pod_claim_token      = v_token,
+           pod_claimed_by       = NULLIF(btrim(p_claimed_by), ''),
            updated_at           = now()
      WHERE order_id = p_order_id;
 
@@ -1211,10 +1360,25 @@ BEGIN
         'attributes',       COALESCE(NULLIF(v_order.variant_attributes, '{}'::jsonb), v_variant.attributes),
         'product_slug',     COALESCE(v_order.product_slug, v_product.slug),
         'product_title',    COALESCE(v_order.product_title, v_product.title),
+        'claim_token',      v_token,
         'submission_key',   md5('store_pod:' || v_order.order_id::text)
     );
 END;
 $$;
-ALTER FUNCTION store.service_order_for_pod(BIGINT) OWNER TO service_role;
-REVOKE ALL ON FUNCTION store.service_order_for_pod(BIGINT) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION store.service_order_for_pod(BIGINT) TO service_role;
+ALTER FUNCTION store.service_order_for_pod(BIGINT, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_order_for_pod(BIGINT, TEXT) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_order_for_pod(BIGINT, TEXT) TO service_role;
+
+-- ============================================================================
+-- Public-RPC statement timeouts.
+--   Bound the wall-clock of the anon/authenticated-reachable RPCs so a
+--   pathological input or a slow plan can't tie up a backend indefinitely.
+--   Reads are cheap (3s); the buy paths add wallet-debit latency headroom (5s).
+-- ============================================================================
+
+ALTER FUNCTION public.proxy_store_catalog_readonly(INTEGER, TIMESTAMPTZ, UUID) SET statement_timeout = '3s';
+ALTER FUNCTION public.proxy_store_product_detail_readonly(TEXT) SET statement_timeout = '3s';
+ALTER FUNCTION public.proxy_store_my_entitlements_readonly() SET statement_timeout = '3s';
+ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) SET statement_timeout = '3s';
+ALTER FUNCTION public.proxy_store_buy(TEXT, UUID) SET statement_timeout = '5s';
+ALTER FUNCTION public.proxy_store_buy_physical(UUID, BIGINT, JSONB, UUID) SET statement_timeout = '5s';

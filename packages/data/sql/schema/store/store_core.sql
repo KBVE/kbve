@@ -6,10 +6,20 @@
 --   ../../dbmate/migrations/20260708120000_store_schema_init.sql
 --   ../../dbmate/migrations/20260709165000_wallet_source_kind_topup.sql
 --   ../../dbmate/migrations/20260709170000_store_topup_pod.sql
+--   ../../dbmate/migrations/20260709180000_store_privilege_hardening.sql
 -- Hand-authored review surface — do not run directly against the database;
 -- promote changes into a new dbmate migration when ready. Functions live in
--- store_rpcs.sql (except the order_event mutation-block trigger, which lives
--- here beside the table it guards, matching the wallet_core convention).
+-- store_rpcs.sql (except the order_event mutation-block trigger and the
+-- product slug-immutable trigger, which live here beside the tables they
+-- guard, matching the wallet_core convention).
+--
+-- Ownership (privilege hardening): after 20260709180000 every store table +
+-- enum, and every store proxy function in public/private, is OWNED BY the
+-- NOLOGIN role store_api_owner. service_role keeps EXECUTE on the RPCs only —
+-- no direct table access. The per-object 'OWNER TO service_role' lines below
+-- mirror what the init/topup migrations write; the hardening migration then
+-- reassigns them all to store_api_owner (see the PRIVILEGE MODEL section at the
+-- end of this file).
 --
 -- Mental model:
 --   The store is the PRIMARY (mint) market. A purchase debits credits via
@@ -68,6 +78,27 @@ CREATE INDEX store_product_active_idx
 COMMENT ON TABLE store.product IS
     'Store catalog. Fixed-price products. A purchase mints inventory.item(kind=store_product, ref=slug); ownership lives in inventory, not here. asset_ref is public (anon-readable).';
 
+-- slug is the durable product identity: inventory.item.ref, the debit ref_type,
+-- and digital replay all key on it. Freeze it after creation so a rename can't
+-- orphan entitlements or break an in-flight idempotent replay. BEFORE UPDATE OF
+-- slug trigger raises 22023 on any change.
+CREATE OR REPLACE FUNCTION store.product_slug_immutable()
+RETURNS TRIGGER
+LANGUAGE plpgsql SET search_path = '' AS $$
+BEGIN
+    IF NEW.slug IS DISTINCT FROM OLD.slug THEN
+        RAISE EXCEPTION 'store.product.slug is immutable (was %, got %)', OLD.slug, NEW.slug
+            USING ERRCODE = '22023';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+ALTER FUNCTION store.product_slug_immutable() OWNER TO service_role;
+
+CREATE TRIGGER store_product_slug_immutable
+    BEFORE UPDATE OF slug ON store.product
+    FOR EACH ROW EXECUTE FUNCTION store.product_slug_immutable();
+
 -- Hard invariant: at most one owned copy per (account, store product).
 -- Backstops the ownership dupe-guard against a concurrent double-mint.
 CREATE UNIQUE INDEX inventory_item_store_product_owned_uq
@@ -105,7 +136,16 @@ CREATE TABLE store.purchase (
                     CHECK (result_kind IN ('minted', 'already_owned')),
     idempotency_key UUID NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UNIQUE (account_id, idempotency_key)
+    UNIQUE (account_id, idempotency_key),
+    -- Enforce the accounting the comments describe: an already-owned lookup is
+    -- always a zero-charge no-op (no ledger); a mint charges iff price > 0.
+    CONSTRAINT store_purchase_accounting_ck CHECK (
+        (result_kind = 'already_owned' AND price = 0 AND ledger_id IS NULL)
+        OR (result_kind = 'minted' AND (
+                (price = 0 AND ledger_id IS NULL)
+                OR (price > 0 AND ledger_id IS NOT NULL)
+            ))
+    )
 );
 CREATE INDEX store_purchase_account_created_idx
     ON store.purchase (account_id, created_at DESC);
@@ -161,9 +201,10 @@ CREATE TABLE store.order (
     -- never the live product row.
     currency         wallet.currency_kind NOT NULL DEFAULT 'credits',
     unit_price       BIGINT NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
-    product_slug     TEXT,
-    product_title    TEXT,
-    variant_sku      TEXT,
+    -- Snapshot fields service_buy_physical always supplies -> NOT NULL.
+    product_slug     TEXT NOT NULL,
+    product_title    TEXT NOT NULL,
+    variant_sku      TEXT NOT NULL,
     variant_attributes JSONB NOT NULL DEFAULT '{}'::jsonb
                      CHECK (jsonb_typeof(variant_attributes) = 'object'),
     -- Snapshot of the product's fulfillment mode at buy time. POD eligibility
@@ -177,7 +218,9 @@ CREATE TABLE store.order (
     stock_reserved   BOOLEAN NOT NULL DEFAULT false,
     credits_amount   BIGINT NOT NULL CHECK (credits_amount >= 0),
     ledger_id        BIGINT,
-    twin_item_id     UUID,
+    -- FK so refund correctness (revoking the minted twin) can't hinge on a
+    -- dangling id. RESTRICT: inventory items are state-machined, not deleted.
+    twin_item_id     UUID REFERENCES inventory.item(id) ON DELETE RESTRICT,
     status           store.order_status NOT NULL DEFAULT 'paid',
     shipping_address JSONB NOT NULL DEFAULT '{}'::jsonb
                      CHECK (jsonb_typeof(shipping_address) = 'object'
@@ -188,17 +231,33 @@ CREATE TABLE store.order (
     -- Print-on-demand (Phase 4). pod_provider/pod_external_order_id are promoted
     -- from pod_ref into first-class columns so the external provider order id can
     -- be uniquely constrained; pod_ref keeps any provider-specific metadata.
-    -- pod_submitted_at stamps a CLAIM; pod_claim_expires_at bounds it so a worker
-    -- that crashes after claiming (before the provider accepts) can't strand the
-    -- order — an expired claim is reclaimable. A claim is only permanent once
-    -- pod_external_order_id is set (provider accepted).
+    -- Claim/submit lifecycle (distinct timestamps + a lease token):
+    --   pod_claimed_at       — a worker leased the order for submission
+    --   pod_claim_expires_at — lease bound; an expired lease is reclaimable so a
+    --                          crashed worker never strands the order
+    --   pod_claim_token      — lease token the claiming worker must present to
+    --                          ACK; a reclaimed stale worker is rejected
+    --   pod_claimed_by       — worker identity (observability)
+    --   pod_submitted_at     — set ONLY after the provider accepts (ACK); once
+    --                          set (with external_order_id) the claim is final
     pod_ref          JSONB NOT NULL DEFAULT '{}'::jsonb
-                     CHECK (jsonb_typeof(pod_ref) = 'object'),
-    pod_provider          TEXT,
-    pod_external_order_id TEXT,
-    pod_status            TEXT,
-    pod_submitted_at      TIMESTAMPTZ,
+                     CHECK (jsonb_typeof(pod_ref) = 'object'
+                            AND octet_length(pod_ref::text) <= 16384),
+    pod_provider          TEXT
+                     CHECK (pod_provider IS NULL
+                            OR (pod_provider = lower(btrim(pod_provider))
+                                AND length(pod_provider) BETWEEN 1 AND 64)),
+    pod_external_order_id TEXT
+                     CHECK (pod_external_order_id IS NULL
+                            OR length(btrim(pod_external_order_id)) BETWEEN 1 AND 255),
+    pod_status            TEXT
+                     CHECK (pod_status IS NULL
+                            OR length(btrim(pod_status)) BETWEEN 1 AND 64),
+    pod_claimed_at        TIMESTAMPTZ,
     pod_claim_expires_at  TIMESTAMPTZ,
+    pod_claim_token       UUID,
+    pod_claimed_by        TEXT,
+    pod_submitted_at      TIMESTAMPTZ,
     -- Dedupe identity is (account, idempotency_key): the advisory lock and the
     -- replay query are both account-scoped, so uniqueness must be too. A global
     -- unique key would turn a UUID collision across two accounts into a raw
@@ -207,6 +266,16 @@ CREATE TABLE store.order (
     created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT store_order_account_key_uq UNIQUE (account_id, idempotency_key),
+    -- Money integrity: a debit ledger exists iff money moved, and the captured
+    -- total equals unit_price * qty (numeric cast avoids bigint overflow in the
+    -- check itself).
+    CONSTRAINT store_order_ledger_ck CHECK (
+        (credits_amount = 0 AND ledger_id IS NULL)
+        OR (credits_amount > 0 AND ledger_id IS NOT NULL)
+    ),
+    CONSTRAINT store_order_amount_ck CHECK (
+        credits_amount::numeric = unit_price::numeric * qty::numeric
+    ),
     -- Variant must belong to product_id (NULL variant allowed — PG skips the
     -- composite FK when any referencing column is NULL).
     CONSTRAINT store_order_product_variant_fk
@@ -274,17 +343,22 @@ CREATE TABLE store.topup (
     stripe_event_id   TEXT NOT NULL UNIQUE   -- idempotency on the webhook
                       CHECK (stripe_event_id = btrim(stripe_event_id)
                              AND length(stripe_event_id) BETWEEN 1 AND 255),
-    stripe_session_id TEXT
-                      CHECK (stripe_session_id IS NULL
-                             OR (stripe_session_id = btrim(stripe_session_id)
-                                 AND length(stripe_session_id) BETWEEN 1 AND 255)),
+    -- The Checkout Session is the strongest economic-dedupe identity, so it is
+    -- mandatory + globally unique (this function only handles session-completion
+    -- top-ups). A future non-session Stripe flow would add a typed identity, not
+    -- relax this one.
+    stripe_session_id TEXT NOT NULL UNIQUE
+                      CHECK (stripe_session_id = btrim(stripe_session_id)
+                             AND length(stripe_session_id) BETWEEN 1 AND 255),
     credits_granted   BIGINT NOT NULL
                       CHECK (credits_granted > 0 AND credits_granted <= 100000000),
     amount_cents      BIGINT NOT NULL
                       CHECK (amount_cents > 0 AND amount_cents <= 100000000),
     currency_fiat     TEXT NOT NULL DEFAULT 'usd'
                       CHECK (currency_fiat ~ '^[a-z]{3}$'),
-    ledger_id         BIGINT,
+    -- A 'completed' top-up must correspond to a real wallet credit; enforce it
+    -- so a direct/faulty insert can't record completion without a ledger row.
+    ledger_id         BIGINT NOT NULL,
     status            TEXT NOT NULL DEFAULT 'completed'
                       CHECK (status IN ('completed', 'refunded')),
     created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -292,10 +366,9 @@ CREATE TABLE store.topup (
 
 CREATE INDEX store_topup_account_idx ON store.topup (account_id, created_at DESC);
 
--- A Checkout Session must never credit twice, even across distinct event ids.
-CREATE UNIQUE INDEX store_topup_stripe_session_uq
-    ON store.topup (stripe_session_id)
-    WHERE stripe_session_id IS NOT NULL;
+-- stripe_session_id is now NOT NULL UNIQUE (a plain column constraint), so the
+-- old partial `store_topup_stripe_session_uq` unique index is dropped — the
+-- Checkout Session still can't credit twice, enforced by the column UNIQUE.
 
 COMMENT ON TABLE store.topup IS
     'Stripe credit purchases. Idempotent on stripe_event_id. Credits the wallet via wallet.service_credit(source_kind=topup).';
@@ -307,8 +380,11 @@ COMMENT ON TABLE store.topup IS
 --   access that project-wide DEFAULT PRIVILEGES might otherwise grant.
 -- ============================================================================
 
--- The definer RPCs run as service_role, which needs explicit table + sequence
--- grants (never rely on the implicit PUBLIC privileges the REVOKE below strips).
+-- The init/topup migrations grant the definer RPCs' role (service_role at the
+-- time) explicit table + sequence access. The privilege-hardening migration
+-- (see PRIVILEGE MODEL below) REVOKES this blanket service_role access and
+-- replaces it with owner-scoped access under store_api_owner — the grants here
+-- mirror the pre-hardening state.
 -- No RPC ever DELETEs a store row (append-only events, orders, receipts, top-ups
 -- are retained), so DELETE is withheld — the contract is SELECT/INSERT/UPDATE.
 GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA store TO service_role;
@@ -316,3 +392,75 @@ GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA store TO service_role;
 
 REVOKE ALL ON ALL TABLES IN SCHEMA store   FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON ALL TABLES IN SCHEMA private FROM PUBLIC, anon, authenticated;
+
+-- ============================================================================
+-- PRIVILEGE MODEL — separate the store's function OWNER from the API role.
+--   Mirror of 20260709180000_store_privilege_hardening.sql.
+--
+-- Before hardening the store's SECURITY DEFINER RPCs ran as service_role, which
+-- also held direct SELECT/INSERT/UPDATE on every store table — anyone with the
+-- Supabase service key could bypass the RPC invariants and write orders /
+-- receipts / stock / top-ups / fulfillment directly. Hardening introduces a
+-- dedicated NOLOGIN role (store_api_owner) that OWNS the store tables + the
+-- definer functions; service_role keeps EXECUTE on the RPCs only, so the sole
+-- write path is the RPC that enforces the invariants.
+--
+--   -- Dedicated owner role (NOLOGIN NOINHERIT), created if absent.
+--   CREATE ROLE store_api_owner NOLOGIN NOINHERIT;
+--
+--   -- Reach its own objects + the cross-schema objects the definer bodies touch.
+--   GRANT USAGE ON SCHEMA store, private        TO store_api_owner;
+--   GRANT USAGE ON SCHEMA wallet, inventory     TO store_api_owner;
+--
+--   -- wallet: read accounts + move credits via the wallet's OWN definer funcs
+--   -- (EXECUTE only — ledger writes run under the wallet role, not this owner).
+--   GRANT SELECT ON wallet.account TO store_api_owner;
+--   -- wallet.account is FORCE-RLS + service_role-only policy; the store owner is
+--   -- not BYPASSRLS, so it needs an explicit READ policy to resolve accounts.
+--   CREATE POLICY "store_api_owner_read" ON wallet.account
+--       FOR SELECT TO store_api_owner USING (true);
+--   GRANT EXECUTE ON FUNCTION wallet.service_debit(...)  TO store_api_owner;
+--   GRANT EXECUTE ON FUNCTION wallet.service_credit(...) TO store_api_owner;
+--
+--   -- inventory: buy/refund paths mint, read, consume items + append transitions.
+--   GRANT SELECT, INSERT, UPDATE ON inventory.item       TO store_api_owner;
+--   GRANT SELECT, INSERT        ON inventory.transition  TO store_api_owner;
+--   GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA inventory TO store_api_owner;
+--
+--   -- Reassign ownership of every store table + enum, and every store proxy
+--   -- function in public/private, to store_api_owner (a DO loop in the migration)
+--   -- so the definer bodies execute AS store_api_owner. Indexes + IDENTITY
+--   -- sequences follow their table's owner.
+--   ALTER TABLE store.<t>    OWNER TO store_api_owner;   -- all store tables
+--   ALTER TYPE  store.order_status OWNER TO store_api_owner;
+--   ALTER FUNCTION store.<f>(...)  OWNER TO store_api_owner;   -- all store funcs
+--   ALTER FUNCTION public|private.proxy_store_*(...) OWNER TO store_api_owner;
+--
+--   -- service_role is now EXECUTE-only: strip the blanket table/sequence access
+--   -- the init/topup migrations granted (the RPC EXECUTE grants remain).
+--   REVOKE SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA store FROM service_role;
+--   REVOKE ALL ON ALL SEQUENCES IN SCHEMA store FROM service_role;
+--
+--   -- Defense-in-depth RLS: ENABLE (not FORCE) on all 6 store tables. With no
+--   -- policies, anon/authenticated (which also lack schema USAGE) are denied
+--   -- direct access. FORCE is intentionally NOT used — it would subject the
+--   -- table-owning store_api_owner to its own policy-less tables and break every
+--   -- definer RPC. The owner/EXECUTE split, not RLS, is the real boundary
+--   -- (service_role is BYPASSRLS in Supabase regardless).
+--   ALTER TABLE store.product         ENABLE ROW LEVEL SECURITY;
+--   ALTER TABLE store.product_variant ENABLE ROW LEVEL SECURITY;
+--   ALTER TABLE store.purchase        ENABLE ROW LEVEL SECURITY;
+--   ALTER TABLE store.order           ENABLE ROW LEVEL SECURITY;
+--   ALTER TABLE store.order_event     ENABLE ROW LEVEL SECURITY;
+--   ALTER TABLE store.topup           ENABLE ROW LEVEL SECURITY;
+--
+--   -- Future store objects created by store_api_owner default to no PUBLIC/anon/
+--   -- authenticated access, so a later table/sequence/function can't silently
+--   -- inherit unsafe privileges.
+--   ALTER DEFAULT PRIVILEGES FOR ROLE store_api_owner IN SCHEMA store
+--       REVOKE ALL ON TABLES    FROM PUBLIC, anon, authenticated;
+--   ALTER DEFAULT PRIVILEGES FOR ROLE store_api_owner IN SCHEMA store
+--       REVOKE ALL ON SEQUENCES FROM PUBLIC, anon, authenticated;
+--   ALTER DEFAULT PRIVILEGES FOR ROLE store_api_owner IN SCHEMA store
+--       REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC, anon, authenticated;
+-- ============================================================================
