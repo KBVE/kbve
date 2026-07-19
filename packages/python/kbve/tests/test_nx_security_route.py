@@ -108,7 +108,7 @@ def test_security_build_writes_mdx_and_json(tmp_path):
     text = mdx.read_text()
     assert text.startswith("---\n")
     assert "title: Security Audit Report" in text
-    assert "### Ecosystem Breakdown" in text
+    assert 'heading="Ecosystem breakdown"' in text
 
     payload = json.loads(js.read_text())
     assert "summary" in payload

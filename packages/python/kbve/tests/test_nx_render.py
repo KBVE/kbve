@@ -54,6 +54,52 @@ def test_security_mdx_frontmatter_and_clear():
     assert TS in mdx
 
 
+def test_security_mdx_bento_structure():
+    data = _security_data({})
+    mdx = render_security_mdx(data, TS)
+    assert "template: splash" in mdx
+    assert "import BentoShell from '@/components/hero/BentoShell.astro';" in mdx
+    assert "import BentoProse from '@/components/hero/BentoProse.astro';" in mdx
+    assert "bento-stat" in mdx
+    assert "bento-linkcard" in mdx
+    assert "<BentoProse" in mdx
+    assert "<CardGrid>" not in mdx
+    assert "<Card " not in mdx
+    assert 'id="findings"' in mdx
+    assert 'id="ecosystems"' in mdx
+
+
+def test_security_mdx_renders_counts_and_ecosystems():
+    data = {
+        "generated_at": TS,
+        "summary": {"critical": 2, "high": 1, "medium": 0,
+                    "low": 0, "info": 0},
+        "ecosystems": {
+            "npm": {
+                "total": 3,
+                "severities": {"critical": 2, "high": 1, "medium": 0,
+                               "low": 0, "info": 0},
+                "advisories": [
+                    {"severity": "critical", "package": "leftpad",
+                     "title": "RCE", "url": "https://x", "id": 1},
+                ],
+            },
+            "cargo": {"total": 0, "severities": {}, "advisories": []},
+            "python": {"total": 0, "severities": {}, "advisories": []},
+            "codeql": {"total": 0, "severities": {}, "alerts": []},
+            "dependabot": {"total": 0, "severities": {}, "alerts": []},
+        },
+    }
+    mdx = render_security_mdx(data, TS)
+    assert ">Critical<" in mdx
+    assert 'id="eco-npm"' in mdx
+    assert "Cargo" in mdx and "Python" in mdx
+    assert "CodeQL" in mdx and "Dependabot" in mdx
+    assert '"Critical" : 2' in mdx
+    assert "leftpad" in mdx
+    assert '<span class="bento-stat__value">2</span>' in mdx
+
+
 def test_security_json_roundtrip():
     data = _security_data({})
     out = json.loads(render_security_json(data))
@@ -86,6 +132,23 @@ def test_graph_mdx_render():
     assert mdx.startswith("---\ntitle: NX Dependency Graph\n")
     assert "web" in mdx and "ui" in mdx
     assert "```mermaid" in mdx
+
+
+def test_graph_mdx_bento_structure():
+    graph = parse_graph(_graph_fixture())
+    mdx = render_graph_mdx(graph, TS)
+    assert "template: splash" in mdx
+    assert "import BentoShell from '@/components/hero/BentoShell.astro';" in mdx
+    assert "import BentoProse from '@/components/hero/BentoProse.astro';" in mdx
+    assert "bento-stat" in mdx
+    assert "bento-linkcard" in mdx
+    assert "<BentoProse" in mdx
+    assert "<CardGrid>" not in mdx
+    assert "<Card " not in mdx
+    assert 'id="diagram"' in mdx
+    assert 'id="project-index"' in mdx
+    assert "graph LR" in mdx
+    assert '<span class="bento-stat__label">Apps</span>' in mdx
 
 
 # ── CLI entry points ────────────────────────────────────────────────
