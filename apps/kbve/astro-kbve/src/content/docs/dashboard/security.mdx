@@ -13,23 +13,23 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Security Audit Report
 
 :::note[Auto-generated]
-Last generated: **2026-07-18T09:40:57Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-07-19T06:37:07Z** — updated daily by `ci-dashboard`.
 :::
 
 :::caution[Action Required]
-**31** critical/high severity findings across the monorepo.
+**28** critical/high severity findings across the monorepo.
 :::
 
 ### Severity Overview
 
 <CardGrid>
-  <Card title="6 Critical" icon="warning">
+  <Card title="3 Critical" icon="warning">
     Critical-severity findings across all ecosystems.
   </Card>
   <Card title="25 High" icon="error">
     High-severity findings across all ecosystems.
   </Card>
-  <Card title="55 Medium" icon="information">
+  <Card title="53 Medium" icon="information">
     Medium-severity findings across all ecosystems.
   </Card>
   <Card title="8 Low" icon="approve-check-circle">
@@ -50,7 +50,7 @@ Last generated: **2026-07-18T09:40:57Z** — updated daily by `ci-dashboard`.
     **0** advisories
   </Card>
   <Card title="CodeQL" icon="magnifier">
-    **5** alerts
+    **0** alerts
   </Card>
   <Card title="Dependabot" icon="github">
     **0** alerts
@@ -62,9 +62,9 @@ Last generated: **2026-07-18T09:40:57Z** — updated daily by `ci-dashboard`.
 ```mermaid
 pie showData
     title Findings by Severity
-    "Critical" : 6
+    "Critical" : 3
     "High" : 25
-    "Medium" : 55
+    "Medium" : 53
     "Low" : 8
 ```
 
@@ -75,7 +75,6 @@ pie showData
     title Findings by Ecosystem
     "npm" : 64
     "Cargo" : 63
-    "CodeQL" : 5
 ```
 
 <Tabs>
@@ -86,9 +85,9 @@ pie showData
 | **npm** | 3 | 25 | 28 | 8 | 64 |
 | **Cargo** | 0 | 0 | 25 | 0 | 63 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
-| **CodeQL** | 3 | 0 | 2 | 0 | 5 |
+| **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 6 | 25 | 55 | 8 | 132 |
+| **Total** | 3 | 25 | 53 | 8 | 127 |
 
   </TabItem>
   <TabItem label="npm">
@@ -239,13 +238,9 @@ No python advisories found.
   </TabItem>
   <TabItem label="CodeQL">
 
-| Severity | Rule | Path | Link |
-|----------|------|------|------|
-| Critical | `rust/hard-coded-cryptographic-value` | `packages/rust/simgrid/src/blackjack/engine.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/512) |
-| Critical | `rust/hard-coded-cryptographic-value` | `packages/rust/simgrid/src/blackjack/engine.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/511) |
-| Critical | `rust/hard-coded-cryptographic-value` | `packages/rust/simgrid/src/blackjack/engine.rs` | [Details](https://github.com/KBVE/kbve/security/code-scanning/510) |
-| Medium | `js/shell-command-constructed-from-input` | `packages/npm/devops/src/lib/client/github/pulls.ts` | [Details](https://github.com/KBVE/kbve/security/code-scanning/517) |
-| Medium | `js/shell-command-constructed-from-input` | `packages/npm/devops/src/lib/client/github/pulls.ts` | [Details](https://github.com/KBVE/kbve/security/code-scanning/516) |
+:::tip[All Clear]
+No open CodeQL alerts.
+:::
 
   </TabItem>
   <TabItem label="Dependabot">
