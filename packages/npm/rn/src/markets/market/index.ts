@@ -5,3 +5,6 @@ export { useCountdown, formatCountdown } from './countdown';
 export type { Countdown } from './countdown';
 export { createMarketApi } from './api';
 export type { MarketApi, MarketApiOptions } from './api';
+export { WatchToggle } from './WatchToggle';
+export { getWatchList, isWatched, toggleWatch, subscribe } from './watchlist';
+export type { WatchEntry } from './watchlist';
