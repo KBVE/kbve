@@ -140,6 +140,35 @@ impl EmbedDb {
         Ok(out)
     }
 
+    pub async fn analytics_for_each<F>(&self, sql: &str, mut f: F) -> Result<u64>
+    where
+        F: FnMut(&crate::EmbedRow) + Send + 'static,
+    {
+        let path = self.path.clone();
+        let sql = sql.to_string();
+        let pool = self.reader.clone();
+        tokio::task::spawn_blocking(move || {
+            let guard = pool.checkout();
+            crate::analytics::for_each(&guard, &path, &sql, &mut f)
+        })
+            .await
+            .map_err(|e| crate::EmbedError::Other(e.to_string()))?
+    }
+
+    pub async fn execute_batch<I, P>(&self, sql: &str, params: I) -> Result<u64>
+    where
+        I: IntoIterator<Item = P>,
+        P: turso::IntoParams,
+    {
+        let tx = self.begin().await?;
+        let mut total = 0_u64;
+        for p in params {
+            total += tx.execute(sql, p).await?;
+        }
+        tx.commit().await?;
+        Ok(total)
+    }
+
     pub async fn begin(&self) -> Result<crate::EmbedTx<'_>> {
         let tx = self.conn.unchecked_transaction().await?;
         Ok(crate::EmbedTx::new(tx))
@@ -705,5 +734,60 @@ mod tests {
         for _ in 0..5 {
             assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 3);
         }
+    }
+
+    #[tokio::test]
+    async fn for_each_visits_all_rows() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("fe.db")).await.unwrap();
+        db.execute("CREATE TABLE t (v INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1), (2), (3), (4)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let sum = std::sync::Arc::new(std::sync::atomic::AtomicI64::new(0));
+        let s2 = sum.clone();
+        let n = db.analytics_for_each("SELECT v FROM t ORDER BY v", move |row| {
+            s2.fetch_add(row.as_i64(0).unwrap(), std::sync::atomic::Ordering::SeqCst);
+        }).await.unwrap();
+        assert_eq!(n, 4);
+        assert_eq!(sum.load(std::sync::atomic::Ordering::SeqCst), 10);
+    }
+
+    #[tokio::test]
+    async fn for_each_empty_calls_nothing() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("fee.db")).await.unwrap();
+        db.execute("CREATE TABLE t (v INTEGER)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let calls = std::sync::Arc::new(std::sync::atomic::AtomicU64::new(0));
+        let c2 = calls.clone();
+        let n = db.analytics_for_each("SELECT v FROM t", move |_| {
+            c2.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        }).await.unwrap();
+        assert_eq!(n, 0);
+        assert_eq!(calls.load(std::sync::atomic::Ordering::SeqCst), 0);
+    }
+
+    #[tokio::test]
+    async fn execute_batch_inserts_all() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("eb.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        let params: Vec<(i64,)> = (1..=5).map(|i| (i,)).collect();
+        let n = db.execute_batch("INSERT INTO t VALUES (?)", params).await.unwrap();
+        assert_eq!(n, 5);
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 5);
+    }
+
+    #[tokio::test]
+    async fn execute_batch_rolls_back_atomically() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("ebr.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER PRIMARY KEY)", ()).await.unwrap();
+        let params: Vec<(i64,)> = vec![(1,), (2,), (2,), (3,)];
+        let res = db.execute_batch("INSERT INTO t VALUES (?)", params).await;
+        assert!(res.is_err());
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 0);
     }
 }
