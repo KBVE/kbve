@@ -1,8 +1,10 @@
 use poise::CreateReply;
+use poise::serenity_prelude as serenity;
 use serde_json::Value;
 use tracing::{info, warn};
 
 use crate::discord::bot::{Context, Error};
+use crate::discord::components::build_wm_action_row;
 use crate::discord::windmill::{DiscordContext, RunError, split_args, suggest_command};
 use crate::discord::windmill_embed;
 
@@ -51,7 +53,9 @@ pub async fn wm(
                 args = arg_count,
                 "windmill run ok"
             );
-            send_value_reply(ctx, &value, &path_for_log, None).await?;
+            // Public embed + reroll button so anyone in the channel can re-run.
+            let row = build_wm_action_row(&wm_path, &args);
+            send_value_reply(ctx, &value, &path_for_log, None, row, false).await?;
         }
         // Unknown or blocked command name (and the defensive empty-path case)
         // → render the help menu itself, prefixed with a closest-match hint,
@@ -82,7 +86,10 @@ pub async fn wm(
             } else {
                 match cfg.run(WM_INDEX_PATH, &[], &discord).await {
                     Ok(value) => {
-                        send_value_reply(ctx, &value, WM_INDEX_PATH, Some(hint)).await?;
+                        // Hint is invoker-specific → keep the fallback ephemeral
+                        // and without a reroll button.
+                        send_value_reply(ctx, &value, WM_INDEX_PATH, Some(hint), None, true)
+                            .await?;
                     }
                     Err(help_err) => {
                         warn!(error = %help_err, "help menu fallback also failed");
@@ -123,6 +130,8 @@ async fn send_value_reply(
     value: &Value,
     label: &str,
     prefix: Option<String>,
+    action_row: Option<serenity::CreateActionRow>,
+    ephemeral: bool,
 ) -> Result<(), Error> {
     let json_reply = || {
         let body = serde_json::to_string_pretty(value).unwrap_or_else(|_| value.to_string());
@@ -131,16 +140,19 @@ async fn send_value_reply(
             Some(p) => format!("{p}\n`/wm {label}` ok:\n```json\n{trimmed}\n```"),
             None => format!("`/wm {label}` ok:\n```json\n{trimmed}\n```"),
         };
-        CreateReply::default().content(content).ephemeral(true)
+        CreateReply::default().content(content).ephemeral(ephemeral)
     };
 
     // Try the rich embed first; if Discord rejects it (total size, bad URL,
     // empty field), fall back to the JSON block so the job result is never lost.
     match windmill_embed::embed_from_value(value) {
         Some(embed) => {
-            let mut reply = CreateReply::default().embed(embed).ephemeral(true);
+            let mut reply = CreateReply::default().embed(embed).ephemeral(ephemeral);
             if let Some(p) = &prefix {
                 reply = reply.content(p.clone());
+            }
+            if let Some(row) = action_row {
+                reply = reply.components(vec![row]);
             }
             if ctx.send(reply).await.is_err() {
                 warn!(label, "embed send rejected; falling back to JSON");
