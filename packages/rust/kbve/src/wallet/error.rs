@@ -117,8 +117,13 @@ fn classify_message(msg: &str) -> Option<WalletError> {
     if m.contains("insufficient funds") {
         return Some(WalletError::InsufficientFunds);
     }
+    // POD shipment arrived before its order identity was ACKed — retryable.
+    if m.contains("no matching order") {
+        return Some(WalletError::NotFound(msg.to_string()));
+    }
     if m.contains("idempotency_key reused")
         || m.contains("replay parameter mismatch")
+        || m.contains("replay payload mismatch")
         || m.contains("current bid cache mismatch")
     {
         return Some(WalletError::ReplayMismatch);
@@ -156,6 +161,16 @@ fn classify_message(msg: &str) -> Option<WalletError> {
     }
     if m.contains("not yet wired") || m.contains("not implemented") {
         return Some(WalletError::Unimplemented(msg.to_string()));
+    }
+    // Topup webhook permanent validation failures (SQLSTATE 22023). These never
+    // succeed on retry, so they must classify as InvalidArgument and let the
+    // webhook ack rather than 500-loop until Stripe disables the endpoint.
+    if m.contains("does not match pack")
+        || m.contains("topup pack")
+        || m.contains("exceeds maximum")
+        || m.contains("3-letter iso")
+    {
+        return Some(WalletError::InvalidArgument(msg.to_string()));
     }
     if m.contains("must be positive") || m.contains("must differ") || m.contains("invalid") {
         return Some(WalletError::InvalidArgument(msg.to_string()));

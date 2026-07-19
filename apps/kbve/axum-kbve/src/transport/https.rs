@@ -522,6 +522,10 @@ fn router(state: AppState) -> Router {
             post(super::wallet::service_debit),
         )
         .route(
+            "/api/v1/wallet/service/debit-discord",
+            post(super::wallet::service_debit_discord),
+        )
+        .route(
             "/api/v1/wallet/service/transfer",
             post(super::wallet::service_transfer),
         )
@@ -562,6 +566,65 @@ fn router(state: AppState) -> Router {
             get(super::market::me_listings),
         )
         .route("/api/v1/market/me/bids", get(super::market::me_bids))
+        .route("/api/v1/store/products", get(super::store::list_products))
+        .route(
+            "/api/v1/store/products/{slug}",
+            get(super::store::product_detail),
+        )
+        .route(
+            "/api/v1/store/me/entitlements",
+            get(super::store::my_entitlements),
+        )
+        .route(
+            "/api/v1/store/products/{slug}/buy",
+            post(super::store::buy),
+        )
+        .route(
+            "/api/v1/store/staff/products",
+            post(super::store::staff_upsert_product),
+        )
+        .route(
+            "/api/v1/store/staff/products/{product_id}/status",
+            post(super::store::staff_set_product_status),
+        )
+        .route(
+            "/api/v1/store/staff/products/{product_id}/variants",
+            post(super::store::staff_upsert_variant),
+        )
+        .route(
+            "/api/v1/store/staff/variants/{variant_id}/status",
+            post(super::store::staff_set_variant_status),
+        )
+        .route(
+            "/api/v1/store/variants/{variant_id}/buy",
+            post(super::store::buy_physical),
+        )
+        .route("/api/v1/store/me/orders", get(super::store::my_orders))
+        .route(
+            "/api/v1/store/staff/orders",
+            get(super::store::staff_list_orders),
+        )
+        .route(
+            "/api/v1/store/staff/orders/{order_id}/advance",
+            post(super::store::staff_advance_order),
+        )
+        .route(
+            "/api/v1/store/staff/orders/{order_id}/refund",
+            post(super::store::staff_refund_order),
+        )
+        .route(
+            "/api/v1/wallet/topup/checkout",
+            post(super::topup::checkout),
+        )
+        .route(
+            "/api/v1/wallet/topup/webhook",
+            post(super::topup::webhook),
+        )
+        .route(
+            "/api/v1/store/staff/orders/{order_id}/submit-pod",
+            post(super::pod::submit_pod),
+        )
+        .route("/api/v1/store/pod/webhook", post(super::pod::webhook))
         .route("/forum/c/", get(forum_c_root_redirect))
         .route("/forum/c/{slug}", get(forum_c_redirect))
         .route("/forum/c/{slug}/", get(forum_c_redirect));

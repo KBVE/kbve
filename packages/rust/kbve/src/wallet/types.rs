@@ -97,6 +97,7 @@ pg_text_enum! {
         MarketFee          => "market_fee",
         Transfer           => "transfer",
         FirecrackerSession => "firecracker_session",
+        Topup              => "topup",
     }
 }
 
@@ -315,6 +316,131 @@ pub struct MarketBuyNowRequest {
 pub struct MarketCancelListingRequest {
     pub listing_id: i64,
     pub reason: Option<String>,
+}
+
+// ---------------------------------------------------------------------------
+// Store
+// ---------------------------------------------------------------------------
+
+/// Public catalog row. Matches `public.proxy_store_catalog_readonly`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreProductRow {
+    pub product_id: Uuid,
+    pub slug: String,
+    pub title: String,
+    pub description: Option<String>,
+    pub price: i64,
+    pub currency: CurrencyKind,
+    pub fulfillment: String,
+    pub asset_ref: serde_json::Value,
+    pub variant_count: i64,
+    pub created_at: DateTime<Utc>,
+}
+
+/// A concrete purchasable SKU. Matches a `variants[]` element from
+/// `public.proxy_store_product_detail_readonly`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreVariantRow {
+    pub variant_id: Uuid,
+    pub sku: String,
+    pub attributes: serde_json::Value,
+    pub price: i64,
+    pub stock: Option<i64>,
+}
+
+/// Product detail: the product plus its active variants.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreProductDetail {
+    pub product: StoreProductRow,
+    pub variants: Vec<StoreVariantRow>,
+}
+
+/// Staff write payload — upsert a product by slug.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreUpsertProduct {
+    pub slug: String,
+    pub title: String,
+    pub description: Option<String>,
+    pub price: i64,
+    pub fulfillment: String,
+    pub asset_ref: serde_json::Value,
+    pub status: String,
+}
+
+/// Staff write payload — upsert a variant by sku.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreUpsertVariant {
+    pub product_id: Uuid,
+    pub sku: String,
+    pub attributes: serde_json::Value,
+    pub price: i64,
+    pub stock: Option<i64>,
+    pub status: String,
+}
+
+/// Caller-scoped order row. Matches `proxy_store_my_orders_readonly`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreOrderRow {
+    pub order_id: i64,
+    pub product_id: Uuid,
+    pub variant_id: Option<Uuid>,
+    pub qty: i64,
+    pub credits_amount: i64,
+    pub status: String,
+    pub tracking: serde_json::Value,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+/// Staff order row — adds account + shipping address.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreOrderStaffRow {
+    pub order_id: i64,
+    pub account_id: Uuid,
+    pub product_id: Uuid,
+    pub variant_id: Option<Uuid>,
+    pub qty: i64,
+    pub credits_amount: i64,
+    pub status: String,
+    pub shipping_address: serde_json::Value,
+    pub tracking: serde_json::Value,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+/// Physical/both purchase payload.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreBuyPhysical {
+    pub variant_id: Uuid,
+    pub qty: i64,
+    pub shipping_address: serde_json::Value,
+    pub idempotency_key: Uuid,
+}
+
+/// Staff order-advance payload.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreAdvanceOrder {
+    pub order_id: i64,
+    pub to_status: String,
+    pub tracking: serde_json::Value,
+    pub note: Option<String>,
+}
+
+/// Caller-owned product. Matches `public.proxy_store_my_entitlements_readonly`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreEntitlementRow {
+    pub item_id: Uuid,
+    pub slug: String,
+    pub product_id: Uuid,
+    pub title: Option<String>,
+    pub granted_at: DateTime<Utc>,
+}
+
+/// Write-side payload for `public.proxy_store_buy`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StoreBuyRequest {
+    pub slug: String,
+    pub idempotency_key: Uuid,
 }
 
 // ---------------------------------------------------------------------------
