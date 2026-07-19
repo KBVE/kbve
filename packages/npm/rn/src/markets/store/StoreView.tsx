@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Stack } from '../../ui/primitives/Stack';
 import { Text } from '../../ui/primitives/Text';
-import { tokens } from '@kbve/rn/ui/theme';
+import { tokens } from '../../ui/theme';
 import { createStoreApi } from './api';
 import { BuyCredits } from './BuyCredits';
 import { ProductCard } from './ProductCard';
