@@ -580,6 +580,10 @@ fn router(state: AppState) -> Router {
             post(super::store::buy),
         )
         .route(
+            "/api/v1/store/service/buy-discord",
+            post(super::store::service_buy_discord),
+        )
+        .route(
             "/api/v1/store/staff/products",
             post(super::store::staff_upsert_product),
         )
