@@ -48,6 +48,11 @@ impl EmbedDb {
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
     }
 
+    pub async fn begin(&self) -> Result<crate::EmbedTx<'_>> {
+        let tx = self.conn.unchecked_transaction().await?;
+        Ok(crate::EmbedTx::new(tx))
+    }
+
     pub async fn close(self) -> Result<()> {
         drop(self.conn);
         Ok(())
@@ -137,5 +142,43 @@ mod tests {
         let avg = db.analytics_scalar_f64("SELECT avg(v) FROM t").await.unwrap();
         assert!((avg - 20.0).abs() < 1e-9);
         db.close().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn tx_commit_persists() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("c.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        let tx = db.begin().await.unwrap();
+        tx.execute("INSERT INTO t VALUES (?)", (1_i64,)).await.unwrap();
+        tx.execute("INSERT INTO t VALUES (?)", (2_i64,)).await.unwrap();
+        tx.commit().await.unwrap();
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 2);
+    }
+
+    #[tokio::test]
+    async fn tx_rollback_discards() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("r.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        let tx = db.begin().await.unwrap();
+        tx.execute("INSERT INTO t VALUES (?)", (1_i64,)).await.unwrap();
+        tx.rollback().await.unwrap();
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 0);
+    }
+
+    #[tokio::test]
+    async fn tx_drop_without_commit_rolls_back() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("d.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        {
+            let tx = db.begin().await.unwrap();
+            tx.execute("INSERT INTO t VALUES (?)", (1_i64,)).await.unwrap();
+        }
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 0);
     }
 }
