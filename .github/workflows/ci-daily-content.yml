@@ -68,6 +68,8 @@ jobs:
         needs: router
         if: needs.router.outputs.has_work == 'true'
         runs-on: ubuntu-latest
+        # report runs `nx run-many -t coverage` across several projects — slow.
+        timeout-minutes: 120
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.router.outputs.matrix) }}
