@@ -4,6 +4,7 @@ mod analytics;
 mod tx;
 mod value;
 mod config;
+mod migrate;
 
 pub use error::{EmbedError, Result};
 pub use db::EmbedDb;

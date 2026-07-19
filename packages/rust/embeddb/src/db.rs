@@ -98,6 +98,23 @@ impl EmbedDb {
         drop(self.conn);
         Ok(())
     }
+
+    pub(crate) async fn max_migration_version(&self) -> Result<i64> {
+        let mut rows = self
+            .conn
+            .query("SELECT COALESCE(MAX(version), -1) FROM _embeddb_migrations", ())
+            .await?;
+        let mut v = -1_i64;
+        if let Some(row) = rows.next().await? {
+            v = row.get::<i64>(0).unwrap_or(-1);
+        }
+        while rows.next().await?.is_some() {}
+        Ok(v)
+    }
+
+    pub async fn migrate(&self, migrations: &[&str]) -> Result<()> {
+        crate::migrate::run(self, migrations).await
+    }
 }
 
 #[cfg(test)]
@@ -298,5 +315,41 @@ mod tests {
         }
         db.checkpoint().await.unwrap();
         assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 0);
+    }
+
+    #[tokio::test]
+    async fn migrate_applies_and_is_idempotent() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("m.db")).await.unwrap();
+        let m = ["CREATE TABLE a (id INTEGER)", "CREATE TABLE b (id INTEGER)"];
+        db.migrate(&m).await.unwrap();
+        db.migrate(&m).await.unwrap();
+        db.execute("INSERT INTO a VALUES (1)", ()).await.unwrap();
+        db.execute("INSERT INTO b VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM a").await.unwrap(), 1);
+    }
+
+    #[tokio::test]
+    async fn migrate_appended_applies_only_new() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("m2.db")).await.unwrap();
+        db.migrate(&["CREATE TABLE a (id INTEGER)"]).await.unwrap();
+        db.migrate(&["CREATE TABLE a (id INTEGER)", "CREATE TABLE c (id INTEGER)"]).await.unwrap();
+        db.execute("INSERT INTO c VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM c").await.unwrap(), 1);
+    }
+
+    #[tokio::test]
+    async fn migrate_failure_rolls_back_that_migration() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("m3.db")).await.unwrap();
+        let err = db.migrate(&["CREATE TABLE a (id INTEGER)", "NOT VALID SQL"]).await;
+        assert!(err.is_err());
+        db.migrate(&["CREATE TABLE a (id INTEGER)"]).await.unwrap();
+        db.execute("INSERT INTO a VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM a").await.unwrap(), 1);
     }
 }
