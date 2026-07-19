@@ -39,6 +39,19 @@ impl EmbedDb {
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
     }
+
+    pub async fn analytics_scalar_f64(&self, sql: &str) -> Result<f64> {
+        let path = self.path.clone();
+        let sql = sql.to_string();
+        tokio::task::spawn_blocking(move || crate::analytics::scalar_f64(&path, &sql))
+            .await
+            .map_err(|e| crate::EmbedError::Other(e.to_string()))?
+    }
+
+    pub async fn close(self) -> Result<()> {
+        drop(self.conn);
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -101,5 +114,17 @@ mod tests {
 
         let count = db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap();
         assert_eq!(count, 3);
+    }
+
+    #[tokio::test]
+    async fn duckdb_avg_matches() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("a.db")).await.unwrap();
+        db.execute("CREATE TABLE t (v REAL)").await.unwrap();
+        db.execute("INSERT INTO t VALUES (10.0), (20.0), (30.0)").await.unwrap();
+        db.checkpoint().await.unwrap();
+        let avg = db.analytics_scalar_f64("SELECT avg(v) FROM t").await.unwrap();
+        assert!((avg - 20.0).abs() < 1e-9);
+        db.close().await.unwrap();
     }
 }
