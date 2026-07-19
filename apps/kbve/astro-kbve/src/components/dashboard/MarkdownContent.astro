@@ -27,6 +27,13 @@ import {
 	buildItemBreadcrumb,
 } from '../itemdb/itemNav';
 import { MAP_ROOT, buildMapNav, buildMapBreadcrumb } from '../mapdb/mapNav';
+import {
+	MARKET_NAV,
+	STORE_ROOT,
+	MARKET_ROOT,
+	buildStoreBreadcrumb,
+	buildMarketBreadcrumb,
+} from '../market/marketNav';
 import { getCollection } from 'astro:content';
 
 const pathname = Astro.url.pathname;
@@ -47,6 +54,9 @@ const isMc = pathname.startsWith('/mc/');
 const isNpcdb = pathname.startsWith('/npcdb/');
 const isItemdb = pathname.startsWith('/itemdb/');
 const isMapdb = pathname.startsWith('/mapdb/');
+const norm = (p: string) => (p.endsWith('/') ? p : `${p}/`);
+const isStore = norm(pathname) === '/store/';
+const isMarket = norm(pathname) === '/market/';
 
 const npcNav = isNpcdb ? buildNpcNav(await getCollection('npcdb')) : [];
 const itemNav = isItemdb ? buildItemNav(await getCollection('itemdb')) : [];
@@ -161,7 +171,27 @@ const shell = isDashboard
 												collapsible: true,
 												withToc: true,
 											}
-										: undefined;
+										: isStore
+											? {
+													entries: MARKET_NAV,
+													root: STORE_ROOT,
+													menuLabel: 'Commerce menu',
+													navLabel: 'Commerce',
+													crumbs: buildStoreBreadcrumb(pathname),
+													collapsible: true,
+													withToc: true,
+												}
+											: isMarket
+												? {
+														entries: MARKET_NAV,
+														root: MARKET_ROOT,
+														menuLabel: 'Commerce menu',
+														navLabel: 'Commerce',
+														crumbs: buildMarketBreadcrumb(pathname),
+														collapsible: true,
+														withToc: true,
+													}
+												: undefined;
 
 const crumbs = shell?.crumbs ?? [];
 ---
