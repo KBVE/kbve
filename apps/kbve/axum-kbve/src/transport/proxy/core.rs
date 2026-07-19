@@ -7,6 +7,7 @@ use axum::{
 };
 use reqwest::Client;
 use serde_json::json;
+use std::sync::Arc;
 use tracing::{debug, warn};
 
 use crate::auth::{
@@ -395,7 +396,7 @@ pub(super) async fn require_dashboard_permission(
     required_perm: i32,
     perm_label: &str,
     denied_message: &str,
-) -> Result<TokenInfo, Response> {
+) -> Result<Arc<TokenInfo>, Response> {
     let auth_token = match extract_auth_token(headers, query) {
         Some(t) => t,
         None => {
@@ -462,7 +463,7 @@ pub(crate) async fn require_dashboard_manage_with_query(
     headers: &HeaderMap,
     query: Option<&str>,
     service_name: &str,
-) -> Result<TokenInfo, Response> {
+) -> Result<Arc<TokenInfo>, Response> {
     require_dashboard_permission(
         headers,
         query,
@@ -478,7 +479,7 @@ pub(super) async fn require_dashboard_view_with_query(
     headers: &HeaderMap,
     query: Option<&str>,
     service_name: &str,
-) -> Result<TokenInfo, Response> {
+) -> Result<Arc<TokenInfo>, Response> {
     require_dashboard_permission(
         headers,
         query,

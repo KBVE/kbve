@@ -1,0 +1,65 @@
+# Cube API + refresh worker (gadsme/cube).
+# image.tag left unset -> chart uses appVersion (Cube 1.5.3), not latest.
+
+# Stakater Reloader restarts the deployments when the schema ConfigMap or
+# the credential Secrets change (the ConfigMap name is stable, so pods would
+# not otherwise pick up model edits).
+commonAnnotations:
+    reloader.stakater.com/auto: "true"
+
+config:
+    devMode: false
+    logLevel: "warn"
+    telemetry: false
+    # Load data models from the mounted ConfigMap at /cube/conf/model.
+    schemaPath: "model"
+    cacheAndQueueDriver: cubestore
+    apiSecretFromSecret:
+        name: cube-api-secret
+        key: api-secret
+    # Mount the cube-schema ConfigMap (generated from apps/kube/cube/model/).
+    volumes:
+        - name: schema
+          configMap:
+              name: cube-schema
+    volumeMounts:
+        - name: schema
+          readOnly: true
+          mountPath: /cube/conf/model
+
+# Cube API connects to the Cube Store router (same namespace).
+cubestore:
+    host: cubestore-router
+
+extraEnvVars:
+    - name: CUBEJS_DATASOURCES
+      value: "default,clickhouse"
+    # Required for cross-source rollup_join on this Cube version (verify on 1.5.3).
+    - name: CUBEJS_TESSERACT_SQL_PLANNER
+      value: "false"
+
+datasources:
+    # Default: Postgres (kilobase-rw -> supabase database)
+    default:
+        type: postgres
+        host: kilobase-rw.kilobase.svc
+        port: 5432
+        name: supabase
+        user: postgres
+        maxPool: 3
+        passFromSecret:
+            name: cube-pg-secret
+            key: pg-password
+    # Named: ClickHouse (renders as CUBEJS_DS_CLICKHOUSE_*)
+    clickhouse:
+        type: clickhouse
+        host: clickhouse-clickhouse-cluster.clickhouse.svc
+        port: 8123
+        user: default
+        passFromSecret:
+            name: cube-ch-secret
+            key: ch-password
+
+api:
+    # Number of Cube API replicas (chart key is apiCount). Worker is always 1.
+    apiCount: 2

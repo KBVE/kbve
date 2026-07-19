@@ -49,7 +49,7 @@ spec:
                       workerGroups:
                           - name: default
                             controller: Deployment
-                            replicas: 1
+                            replicas: 3
                             privileged: false
                             terminationGracePeriodSeconds: 600
                             extraEnv:
@@ -60,10 +60,10 @@ spec:
                             resources:
                                 requests:
                                     memory: 512Mi
-                                    cpu: 250m
+                                    cpu: 500m
                                 limits:
                                     memory: 2Gi
-                                    cpu: 1000m
+                                    cpu: 1500m
                           - name: native
                             controller: Deployment
                             replicas: 1

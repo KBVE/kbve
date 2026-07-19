@@ -24,8 +24,8 @@ impl TokenVerifier for GotrueVerifier {
             .await
             .map_err(|e| e.to_string())?;
         Ok(VerifiedUser {
-            sub: info.user_id,
-            kbve_username: info.kbve_username,
+            sub: info.user_id.clone(),
+            kbve_username: info.kbve_username.clone(),
         })
     }
 }
