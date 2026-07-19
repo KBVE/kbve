@@ -1,12 +1,12 @@
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use crate::Result;
 
 pub struct EmbedDb {
     path: PathBuf,
     conn: turso::Connection,
     config: crate::EmbedConfig,
-    reader: Arc<Mutex<duckdb::Connection>>,
+    reader: Arc<crate::pool::ReaderPool>,
 }
 
 impl std::fmt::Debug for EmbedDb {
@@ -35,8 +35,11 @@ impl EmbedDb {
         let conn = db.connect()?;
         let pragma = format!("PRAGMA journal_mode={}", config.journal_mode);
         conn.execute(&pragma, ()).await.ok();
-        let reader = crate::analytics::open_reader(config.duckdb_extension_dir.as_deref())?;
-        Ok(EmbedDb { path, conn, config, reader: Arc::new(Mutex::new(reader)) })
+        let reader = crate::pool::ReaderPool::build(
+            config.reader_pool_size,
+            config.duckdb_extension_dir.as_deref(),
+        )?;
+        Ok(EmbedDb { path, conn, config, reader: Arc::new(reader) })
     }
 
     pub fn path(&self) -> &Path {
@@ -64,13 +67,19 @@ impl EmbedDb {
         Err(crate::EmbedError::CheckpointBusy)
     }
 
+    pub async fn checkpoint_passive(&self) -> Result<()> {
+        let mut rows = self.conn.query("PRAGMA wal_checkpoint(PASSIVE)", ()).await?;
+        while rows.next().await?.is_some() {}
+        Ok(())
+    }
+
     pub async fn analytics_scalar_i64(&self, sql: &str) -> Result<i64> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let reader = self.reader.clone();
+        let pool = self.reader.clone();
         tokio::task::spawn_blocking(move || {
-            let conn = reader.lock().unwrap_or_else(|e| e.into_inner());
-            crate::analytics::scalar_i64(&conn, &path, &sql)
+            let guard = pool.checkout();
+            crate::analytics::scalar_i64(&guard, &path, &sql)
         })
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
@@ -79,10 +88,10 @@ impl EmbedDb {
     pub async fn analytics_scalar_f64(&self, sql: &str) -> Result<f64> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let reader = self.reader.clone();
+        let pool = self.reader.clone();
         tokio::task::spawn_blocking(move || {
-            let conn = reader.lock().unwrap_or_else(|e| e.into_inner());
-            crate::analytics::scalar_f64(&conn, &path, &sql)
+            let guard = pool.checkout();
+            crate::analytics::scalar_f64(&guard, &path, &sql)
         })
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
@@ -91,10 +100,10 @@ impl EmbedDb {
     pub async fn analytics_rows(&self, sql: &str) -> Result<Vec<crate::EmbedRow>> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let reader = self.reader.clone();
+        let pool = self.reader.clone();
         tokio::task::spawn_blocking(move || {
-            let conn = reader.lock().unwrap_or_else(|e| e.into_inner());
-            crate::analytics::rows(&conn, &path, &sql)
+            let guard = pool.checkout();
+            crate::analytics::rows(&guard, &path, &sql)
         })
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
@@ -103,10 +112,10 @@ impl EmbedDb {
     pub async fn analytics_query(&self, sql: &str) -> Result<crate::QueryResult> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let reader = self.reader.clone();
+        let pool = self.reader.clone();
         tokio::task::spawn_blocking(move || {
-            let conn = reader.lock().unwrap_or_else(|e| e.into_inner());
-            crate::analytics::query(&conn, &path, &sql)
+            let guard = pool.checkout();
+            crate::analytics::query(&guard, &path, &sql)
         })
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
@@ -119,10 +128,10 @@ impl EmbedDb {
     pub async fn analytics_scalar_string(&self, sql: &str) -> Result<String> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let reader = self.reader.clone();
+        let pool = self.reader.clone();
         tokio::task::spawn_blocking(move || {
-            let conn = reader.lock().unwrap_or_else(|e| e.into_inner());
-            crate::analytics::scalar_string(&conn, &path, &sql)
+            let guard = pool.checkout();
+            crate::analytics::scalar_string(&guard, &path, &sql)
         })
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
@@ -135,6 +144,35 @@ impl EmbedDb {
             out.push(T::from_row(row, &q.columns)?);
         }
         Ok(out)
+    }
+
+    pub async fn analytics_for_each<F>(&self, sql: &str, mut f: F) -> Result<u64>
+    where
+        F: FnMut(&crate::EmbedRow) + Send + 'static,
+    {
+        let path = self.path.clone();
+        let sql = sql.to_string();
+        let pool = self.reader.clone();
+        tokio::task::spawn_blocking(move || {
+            let guard = pool.checkout();
+            crate::analytics::for_each(&guard, &path, &sql, &mut f)
+        })
+            .await
+            .map_err(|e| crate::EmbedError::Other(e.to_string()))?
+    }
+
+    pub async fn execute_batch<I, P>(&self, sql: &str, params: I) -> Result<u64>
+    where
+        I: IntoIterator<Item = P>,
+        P: turso::IntoParams,
+    {
+        let tx = self.begin().await?;
+        let mut total = 0_u64;
+        for p in params {
+            total += tx.execute(sql, p).await?;
+        }
+        tx.commit().await?;
+        Ok(total)
     }
 
     pub async fn begin(&self) -> Result<crate::EmbedTx<'_>> {
@@ -344,7 +382,7 @@ mod tests {
     #[tokio::test]
     async fn open_with_custom_config() {
         let dir = tempfile::tempdir().unwrap();
-        let cfg = crate::EmbedConfig { journal_mode: "WAL".into(), duckdb_extension_dir: None, checkpoint_max_retries: 1 };
+        let cfg = crate::EmbedConfig { journal_mode: "WAL".into(), duckdb_extension_dir: None, checkpoint_max_retries: 1, reader_pool_size: 2 };
         let db = EmbedDb::open_with(dir.path().join("cfg.db"), cfg).await.unwrap();
         db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
         db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
@@ -642,5 +680,224 @@ mod tests {
         db.execute("INSERT INTO t VALUES (3)", ()).await.unwrap();
         db.checkpoint().await.unwrap();
         assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 3);
+    }
+
+    #[tokio::test]
+    async fn pool_concurrent_reads_all_correct() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = std::sync::Arc::new(EmbedDb::open(dir.path().join("pool.db")).await.unwrap());
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        for i in 1..=10 {
+            db.execute(&format!("INSERT INTO t VALUES ({i})"), ()).await.unwrap();
+        }
+        db.checkpoint().await.unwrap();
+        let mut handles = Vec::new();
+        for _ in 0..12 {
+            let db = db.clone();
+            handles.push(tokio::spawn(async move {
+                db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap()
+            }));
+        }
+        for h in handles {
+            assert_eq!(h.await.unwrap(), 10);
+        }
+    }
+
+    #[tokio::test]
+    async fn pool_exhaustion_recovers() {
+        let dir = tempfile::tempdir().unwrap();
+        let cfg = crate::EmbedConfig { reader_pool_size: 2, ..Default::default() };
+        let db = std::sync::Arc::new(EmbedDb::open_with(dir.path().join("ex.db"), cfg).await.unwrap());
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let mut handles = Vec::new();
+        for _ in 0..6 {
+            let db = db.clone();
+            handles.push(tokio::spawn(async move {
+                db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap()
+            }));
+        }
+        for h in handles {
+            assert_eq!(h.await.unwrap(), 1);
+        }
+    }
+
+    #[tokio::test]
+    async fn pool_cross_connection_freshness() {
+        let dir = tempfile::tempdir().unwrap();
+        let cfg = crate::EmbedConfig { reader_pool_size: 3, ..Default::default() };
+        let db = EmbedDb::open_with(dir.path().join("cf.db"), cfg).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        for _ in 0..5 {
+            assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 1);
+        }
+        db.execute("INSERT INTO t VALUES (2)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (3)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        for _ in 0..5 {
+            assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 3);
+        }
+    }
+
+    #[tokio::test]
+    async fn for_each_visits_all_rows() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("fe.db")).await.unwrap();
+        db.execute("CREATE TABLE t (v INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1), (2), (3), (4)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let sum = std::sync::Arc::new(std::sync::atomic::AtomicI64::new(0));
+        let s2 = sum.clone();
+        let n = db.analytics_for_each("SELECT v FROM t ORDER BY v", move |row| {
+            s2.fetch_add(row.as_i64(0).unwrap(), std::sync::atomic::Ordering::SeqCst);
+        }).await.unwrap();
+        assert_eq!(n, 4);
+        assert_eq!(sum.load(std::sync::atomic::Ordering::SeqCst), 10);
+    }
+
+    #[tokio::test]
+    async fn for_each_empty_calls_nothing() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("fee.db")).await.unwrap();
+        db.execute("CREATE TABLE t (v INTEGER)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let calls = std::sync::Arc::new(std::sync::atomic::AtomicU64::new(0));
+        let c2 = calls.clone();
+        let n = db.analytics_for_each("SELECT v FROM t", move |_| {
+            c2.fetch_add(1, std::sync::atomic::Ordering::SeqCst);
+        }).await.unwrap();
+        assert_eq!(n, 0);
+        assert_eq!(calls.load(std::sync::atomic::Ordering::SeqCst), 0);
+    }
+
+    #[tokio::test]
+    async fn execute_batch_inserts_all() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("eb.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        let params: Vec<(i64,)> = (1..=5).map(|i| (i,)).collect();
+        let n = db.execute_batch("INSERT INTO t VALUES (?)", params).await.unwrap();
+        assert_eq!(n, 5);
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 5);
+    }
+
+    #[tokio::test]
+    async fn execute_batch_rolls_back_atomically() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("ebr.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER PRIMARY KEY)", ()).await.unwrap();
+        let params: Vec<(i64,)> = vec![(1,), (2,), (2,), (3,)];
+        let res = db.execute_batch("INSERT INTO t VALUES (?)", params).await;
+        assert!(res.is_err());
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 0);
+    }
+
+    #[tokio::test]
+    async fn checkpoint_passive_makes_writes_visible() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("cpp.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1), (2)", ()).await.unwrap();
+        db.checkpoint_passive().await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 2);
+    }
+
+    #[tokio::test]
+    async fn wal_visibility_uncheckpointed_is_consistent() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("wal.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1), (2), (3)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        db.execute("INSERT INTO t VALUES (4), (5)", ()).await.unwrap();
+        let seen = db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap();
+        assert!(seen == 3 || seen == 5, "expected consistent snapshot (3 or 5), got {seen}");
+    }
+
+    #[tokio::test]
+    async fn uncheckpointed_writes_are_visible_to_reads() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("walvis.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1), (2), (3)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        db.execute("INSERT INTO t VALUES (4), (5)", ()).await.unwrap();
+        let seen = db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap();
+        assert_eq!(seen, 5, "DuckDB must reflect committed-but-uncheckpointed writes (v5 freshness contract)");
+    }
+
+    #[tokio::test]
+    async fn concurrent_writer_reader_never_torn() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = std::sync::Arc::new(EmbedDb::open(dir.path().join("conc.db")).await.unwrap());
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let writer = {
+            let db = db.clone();
+            tokio::spawn(async move {
+                for i in 0..50_i64 {
+                    db.execute("INSERT INTO t VALUES (?)", (i,)).await.unwrap();
+                    if i % 10 == 0 {
+                        db.checkpoint_passive().await.unwrap();
+                    }
+                }
+                db.checkpoint().await.unwrap();
+            })
+        };
+        let reader = {
+            let db = db.clone();
+            tokio::spawn(async move {
+                let mut last = 0_i64;
+                for _ in 0..20 {
+                    let n = db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap();
+                    assert!(n >= last, "count went backwards: {last} -> {n}");
+                    assert!((0..=50).contains(&n), "count out of range: {n}");
+                    last = n;
+                    tokio::task::yield_now().await;
+                }
+            })
+        };
+        writer.await.unwrap();
+        reader.await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 50);
+    }
+
+    #[tokio::test]
+    async fn derive_from_embed_row_round_trips() {
+        #[derive(Debug, PartialEq, crate::FromEmbedRow)]
+        struct Rec {
+            id: i64,
+            name: String,
+            note: Option<String>,
+        }
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("derive.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER, name TEXT, note TEXT)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1, 'a', NULL), (2, 'b', 'hi')", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let got: Vec<Rec> = db.analytics_query_as("SELECT id, name, note FROM t ORDER BY id").await.unwrap();
+        assert_eq!(got, vec![
+            Rec { id: 1, name: "a".into(), note: None },
+            Rec { id: 2, name: "b".into(), note: Some("hi".into()) },
+        ]);
+    }
+
+    #[tokio::test]
+    async fn derive_missing_column_errors() {
+        #[derive(Debug, crate::FromEmbedRow)]
+        struct Rec { id: i64, missing: i64 }
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("derive_err.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let res: Result<Vec<Rec>> = db.analytics_query_as("SELECT id FROM t").await;
+        assert!(res.is_err());
+        assert!(format!("{}", res.unwrap_err()).contains("missing"));
     }
 }

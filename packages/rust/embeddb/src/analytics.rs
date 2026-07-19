@@ -46,6 +46,29 @@ pub fn rows(conn: &duckdb::Connection, path: &Path, sql: &str) -> Result<Vec<cra
     Ok(query(conn, path, sql)?.rows)
 }
 
+pub fn for_each(
+    conn: &duckdb::Connection,
+    path: &Path,
+    sql: &str,
+    f: &mut dyn FnMut(&crate::EmbedRow),
+) -> Result<u64> {
+    attach_fresh(conn, path)?;
+    let mut stmt = conn.prepare(sql)?;
+    let mut rows = stmt.query([])?;
+    let ncols = rows.as_ref().map(|s| s.column_names().len()).unwrap_or_default();
+    let mut count = 0_u64;
+    while let Some(row) = rows.next()? {
+        let mut vals = Vec::with_capacity(ncols);
+        for i in 0..ncols {
+            vals.push(value_from_ref(row.get_ref(i)?)?);
+        }
+        let er = crate::EmbedRow(vals);
+        f(&er);
+        count += 1;
+    }
+    Ok(count)
+}
+
 fn value_from_ref(v: duckdb::types::ValueRef<'_>) -> Result<crate::EmbedValue> {
     use duckdb::types::ValueRef as V;
     Ok(match v {
