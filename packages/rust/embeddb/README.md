@@ -13,11 +13,23 @@ Turso (`libsql`) writes a real SQLite-format file, and DuckDB can attach to and 
 
 Because DuckDB attaches read-only and Turso owns all writes, only one process ever mutates the file, avoiding write contention between the two engines.
 
+The Turso write path is pure Rust and statically linked — no shared library to manage. The DuckDB analytics read path is *not* fully static end-to-end: `duckdb`'s `bundled` Cargo feature statically links DuckDB's core engine only. The `sqlite`/`sqlite_scanner` extension it loads at runtime is a separate artifact — see "Deployment note" below.
+
 ## Checkpoint-then-read model
 
 Turso writes to the file's WAL. DuckDB's SQLite reader sees the main database file, not the WAL, so a checkpoint must run before DuckDB can observe recent writes. Call `EmbedDb::checkpoint` (which issues `PRAGMA wal_checkpoint(TRUNCATE)`) after writes and before running analytics queries — skipping this step means DuckDB may read stale or incomplete data.
 
+`checkpoint` does not inspect the `(busy, log, checkpointed)` row that `PRAGMA wal_checkpoint(TRUNCATE)` returns. If the checkpoint comes back busy (another reader holding the WAL), the flush may be incomplete and a subsequent analytics read could see stale data. This is safe under the v1 single-writer/no-concurrent-live-reader model this crate assumes; a future revision may want to surface the busy state to callers.
+
 When done, call `EmbedDb::close` to drop the connection and release the file.
+
+## Deployment note: DuckDB sqlite extension
+
+`analytics_scalar_i64` / `analytics_scalar_f64` run `INSTALL sqlite; LOAD sqlite;` against the in-memory DuckDB connection before attaching the file. The `bundled` feature on the `duckdb` crate statically links DuckDB's core engine, but it does **not** include the `sqlite_scanner` extension. On first use, DuckDB downloads `sqlite_scanner.duckdb_extension` from `extensions.duckdb.org` into `~/.duckdb/extensions/...` and caches it there for subsequent calls.
+
+In an offline, distroless, or egress-denied deployment — the target environment for this crate — that download fails and every `analytics_*` call returns `EmbedError::Duck`, even though the write path and all local tests are unaffected.
+
+To support that environment, pre-stage `sqlite_scanner.duckdb_extension` (matching the DuckDB version pulled in by this crate) in a directory on the target, and set the `EMBEDDB_DUCKDB_EXTENSION_DIR` environment variable to that directory before calling any `analytics_*` method. When set, `embeddb` runs `SET extension_directory = '<dir>';` on the DuckDB connection before `INSTALL sqlite`, so `INSTALL` resolves from the pre-staged directory instead of the network and becomes a no-op if the extension is already present there. When unset (the default, including in this crate's own test suite), behavior is unchanged from before this note.
 
 ## Usage
 
