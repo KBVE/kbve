@@ -19,20 +19,26 @@ pub fn scalar_string(path: &Path, sql: &str, ext_dir: Option<&Path>) -> Result<S
     Ok(val)
 }
 
-pub fn rows(path: &Path, sql: &str, ext_dir: Option<&Path>) -> Result<Vec<crate::EmbedRow>> {
+pub fn query(path: &Path, sql: &str, ext_dir: Option<&Path>) -> Result<crate::QueryResult> {
     let conn = attached_conn(path, ext_dir)?;
     let mut stmt = conn.prepare(sql)?;
-    let mut out = Vec::new();
     let mut rows = stmt.query([])?;
+    let columns = rows.as_ref().map(|s| s.column_names()).unwrap_or_default();
+    let ncols = columns.len();
+    let mut out = Vec::new();
     while let Some(row) = rows.next()? {
-        let ncols = row.as_ref().column_count();
+        let ncols = if ncols > 0 { ncols } else { row.as_ref().column_count() };
         let mut vals = Vec::with_capacity(ncols);
         for i in 0..ncols {
             vals.push(value_from_ref(row.get_ref(i)?)?);
         }
         out.push(crate::EmbedRow(vals));
     }
-    Ok(out)
+    Ok(crate::QueryResult { columns, rows: out })
+}
+
+pub fn rows(path: &Path, sql: &str, ext_dir: Option<&Path>) -> Result<Vec<crate::EmbedRow>> {
+    Ok(query(path, sql, ext_dir)?.rows)
 }
 
 fn value_from_ref(v: duckdb::types::ValueRef<'_>) -> Result<crate::EmbedValue> {

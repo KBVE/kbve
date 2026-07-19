@@ -80,6 +80,19 @@ impl EmbedDb {
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
     }
 
+    pub async fn analytics_query(&self, sql: &str) -> Result<crate::QueryResult> {
+        let path = self.path.clone();
+        let sql = sql.to_string();
+        let ext_dir = self.config.duckdb_extension_dir.clone();
+        tokio::task::spawn_blocking(move || crate::analytics::query(&path, &sql, ext_dir.as_deref()))
+            .await
+            .map_err(|e| crate::EmbedError::Other(e.to_string()))?
+    }
+
+    pub async fn analytics_one(&self, sql: &str) -> Result<Option<crate::EmbedRow>> {
+        Ok(self.analytics_query(sql).await?.rows.into_iter().next())
+    }
+
     pub async fn analytics_scalar_string(&self, sql: &str) -> Result<String> {
         let path = self.path.clone();
         let sql = sql.to_string();
@@ -449,6 +462,33 @@ mod tests {
         let rows = db.analytics_rows("SELECT TIMESTAMP '2021-01-01 00:00:00', DATE '2021-01-01' FROM t").await.unwrap();
         assert!(matches!(rows[0].get(0), Some(crate::EmbedValue::Timestamp(_))));
         assert!(matches!(rows[0].get(1), Some(crate::EmbedValue::Date(_))));
+    }
+
+    #[tokio::test]
+    async fn analytics_query_columns_and_get() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("q.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER, name TEXT)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1, 'a')", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let q = db.analytics_query("SELECT id, name FROM t").await.unwrap();
+        assert_eq!(q.columns, vec!["id".to_string(), "name".to_string()]);
+        assert_eq!(q.column_index("name"), Some(1));
+        assert_eq!(q.get(0, "name"), Some(&crate::EmbedValue::Text("a".into())));
+        assert_eq!(q.get(0, "missing"), None);
+        assert_eq!(q.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn analytics_one_first_or_none() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("o.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        assert!(db.analytics_one("SELECT id FROM t").await.unwrap().is_none());
+        db.execute("INSERT INTO t VALUES (5)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.analytics_one("SELECT id FROM t").await.unwrap().unwrap().as_i64(0), Some(5));
     }
 
     #[tokio::test]
