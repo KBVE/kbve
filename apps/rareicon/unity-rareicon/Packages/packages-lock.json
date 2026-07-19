@@ -468,11 +468,11 @@
 			"url": "https://packages.unity.com"
 		},
 		"jp.hadashikick.vcontainer": {
-			"version": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.17.0",
+			"version": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.19.0",
 			"depth": 0,
 			"source": "git",
 			"dependencies": {},
-			"hash": "177dbda557fd652ce7f5d1647a3621653e094373"
+			"hash": "5401e5a7ebc4980a2b82141ffc26391a6547edd7"
 		},
 		"com.unity.modules.accessibility": {
 			"version": "1.0.0",
