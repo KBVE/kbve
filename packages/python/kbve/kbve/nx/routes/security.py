@@ -12,6 +12,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import sys
 from pathlib import Path
 
 from ..alerts import ENDPOINTS, fetch_all, validate
@@ -22,16 +23,35 @@ from ..security import parse_all_ecosystems
 
 _NPM_FALLBACK: dict = {"advisories": {}}
 _CARGO_FALLBACK: dict = {"vulnerabilities": {"found": 0}, "warnings": {}}
+_AUDIT_TIMEOUT = 120
 
 
-def _run_json(cmd: list[str], cwd: Path, fallback):
-    """Run ``cmd`` and parse stdout as JSON; degrade to ``fallback``."""
+def _warn(msg: str) -> None:
+    print("::warning::security route: %s" % msg, file=sys.stderr)
+
+
+def _run_json(cmd: list[str], cwd: Path, fallback, timeout: int = _AUDIT_TIMEOUT):
+    """Run ``cmd`` and parse stdout as JSON; degrade to ``fallback``.
+
+    Audit tools exit non-zero when findings exist — that is fine, we still
+    parse stdout. A missing binary, a hang, or non-JSON output degrades to the
+    empty fallback with a ``::warning::`` so an all-zero dashboard is never
+    silently mistaken for "secure".
+    """
+    tool = cmd[0]
     try:
         proc = subprocess.run(
-            cmd, cwd=str(cwd), capture_output=True, text=True
+            cmd, cwd=str(cwd), capture_output=True, text=True, timeout=timeout
         )
         return json.loads(proc.stdout)
+    except FileNotFoundError:
+        _warn("%s not found — using empty fallback" % tool)
+        return fallback
+    except subprocess.TimeoutExpired:
+        _warn("%s timed out after %ss — using empty fallback" % (tool, timeout))
+        return fallback
     except (OSError, ValueError, json.JSONDecodeError):
+        _warn("%s produced no valid JSON — using empty fallback" % tool)
         return fallback
 
 
@@ -56,7 +76,8 @@ def _acquire_alerts(endpoint: str):
     try:
         raw = fetch_all(ENDPOINTS[endpoint], token, 100, 30.0)
         return validate(raw)
-    except Exception:
+    except Exception as exc:
+        _warn("%s alert feed failed (%s) — using empty fallback" % (endpoint, exc))
         return []
 
 

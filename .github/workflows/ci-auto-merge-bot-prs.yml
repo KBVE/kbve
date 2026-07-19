@@ -400,6 +400,22 @@ jobs:
                               throw mergeErr;
                             }
                             core.warning(`Merge attempt ${i + 1} failed (status ${status}): ${mergeErr.message}. Retrying…`);
+                            // 405 often means the head branch is behind base
+                            // (branch protection "require up to date"). Bring it
+                            // up to date so the next retry can merge — plain
+                            // waiting never recovers a stale branch.
+                            if (status === 405) {
+                              try {
+                                await github.rest.pulls.updateBranch({
+                                  owner: context.repo.owner,
+                                  repo: context.repo.repo,
+                                  pull_number: prNumber,
+                                });
+                                core.info(`Updated PR #${prNumber} branch with base before retry.`);
+                              } catch (updErr) {
+                                core.info(`updateBranch failed (${updErr.message}) — continuing retry.`);
+                              }
+                            }
                           }
                         }
                         if (!merged) throw lastErr;
