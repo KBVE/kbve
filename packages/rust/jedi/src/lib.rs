@@ -11,6 +11,8 @@ mod tests {
 
 pub mod builder;
 pub mod entity;
+#[cfg(feature = "aws")]
+pub mod cloud;
 #[cfg(feature = "observ")]
 pub mod observ;
 pub mod jwks;
