@@ -854,4 +854,38 @@ mod tests {
         reader.await.unwrap();
         assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 50);
     }
+
+    #[tokio::test]
+    async fn derive_from_embed_row_round_trips() {
+        #[derive(Debug, PartialEq, crate::FromEmbedRow)]
+        struct Rec {
+            id: i64,
+            name: String,
+            note: Option<String>,
+        }
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("derive.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER, name TEXT, note TEXT)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1, 'a', NULL), (2, 'b', 'hi')", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let got: Vec<Rec> = db.analytics_query_as("SELECT id, name, note FROM t ORDER BY id").await.unwrap();
+        assert_eq!(got, vec![
+            Rec { id: 1, name: "a".into(), note: None },
+            Rec { id: 2, name: "b".into(), note: Some("hi".into()) },
+        ]);
+    }
+
+    #[tokio::test]
+    async fn derive_missing_column_errors() {
+        #[derive(Debug, crate::FromEmbedRow)]
+        struct Rec { id: i64, missing: i64 }
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("derive_err.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let res: Result<Vec<Rec>> = db.analytics_query_as("SELECT id FROM t").await;
+        assert!(res.is_err());
+        assert!(format!("{}", res.unwrap_err()).contains("missing"));
+    }
 }

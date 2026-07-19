@@ -3,6 +3,7 @@
 resolver = '2'
 members = [
 	'packages/rust/embeddb',
+	'packages/rust/embeddb-derive',
 	'packages/rust/kbve',
 	'packages/rust/erust',
 	'packages/rust/holy',

@@ -1,3 +1,5 @@
+extern crate self as embeddb;
+
 mod error;
 mod db;
 mod analytics;
@@ -7,6 +9,7 @@ mod config;
 mod migrate;
 mod query;
 mod pool;
+mod convert;
 
 pub use error::{EmbedError, Result};
 pub use db::EmbedDb;
@@ -16,3 +19,7 @@ pub use turso::IntoParams;
 pub use config::EmbedConfig;
 pub use query::QueryResult;
 pub use query::FromEmbedRow;
+pub use convert::FromEmbedValue;
+
+#[cfg(feature = "derive")]
+pub use embeddb_derive::FromEmbedRow;

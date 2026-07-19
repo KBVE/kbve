@@ -6909,10 +6909,20 @@ name = "embeddb"
 version = "0.0.1"
 dependencies = [
  "duckdb",
+ "embeddb-derive",
  "tempfile",
  "thiserror 1.0.69",
  "tokio",
  "turso",
+]
+
+[[package]]
+name = "embeddb-derive"
+version = "0.0.1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.117",
 ]
 
 [[package]]
