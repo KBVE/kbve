@@ -104,6 +104,53 @@ export const DASHBOARD_NAV: DashboardNavEntry[] = [
 		],
 	},
 	{
+		label: 'Insights',
+		visibility: 'staff',
+		eyebrow: 'Daily',
+		items: [
+			{
+				label: 'Kanban',
+				href: '/dashboard/kanban/',
+				icon: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
+			},
+			{
+				label: 'Dependency Graph',
+				href: '/dashboard/graph/',
+				icon: 'M5 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM19 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM19 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 5h10M7 5a7 7 0 0 0 7 7M17 5a7 7 0 0 0-7 7v5',
+			},
+			{
+				label: 'Workspace Report',
+				href: '/dashboard/report/',
+				icon: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8',
+			},
+			{
+				label: 'Security',
+				href: '/dashboard/security/',
+				icon: 'M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z',
+			},
+			{
+				label: 'CI Health',
+				href: '/dashboard/ci-health/',
+				icon: 'M22 12h-4l-3 9L9 3l-3 9H2',
+			},
+			{
+				label: 'Dependencies',
+				href: '/dashboard/deps/',
+				icon: 'M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
+			},
+			{
+				label: 'Activity',
+				href: '/dashboard/activity/',
+				icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9',
+			},
+			{
+				label: 'Releases',
+				href: '/dashboard/releases/',
+				icon: 'M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 7h.01',
+			},
+		],
+	},
+	{
 		label: 'GameOps',
 		visibility: 'staff',
 		href: '/dashboard/gameops/',
