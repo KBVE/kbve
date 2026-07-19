@@ -1,0 +1,37 @@
+# Cube Store — pre-aggregation engine (gadsme/cubestore).
+# image.tag left unset -> chart uses appVersion (Cube Store 1.5.3), not latest.
+
+config:
+    logLevel: "error"
+
+# Shared metadata + datasets volume (router + workers mount it, RWX).
+remoteDir:
+    persistence:
+        resourcePolicy: keep
+        size: 10Gi
+        accessModes:
+            - ReadWriteMany
+        storageClass: longhorn-sdb
+
+router:
+    httpPort: 3030
+    metaPort: 9999
+    # Expose the MySQL-protocol port so the Cube API can connect to the router.
+    mysqlPort: 3306
+    resources:
+        requests:
+            cpu: 200m
+            memory: 512Mi
+        limits:
+            cpu: "1"
+            memory: 1Gi
+
+workers:
+    workersCount: 1
+    resources:
+        requests:
+            cpu: 200m
+            memory: 512Mi
+        limits:
+            cpu: "1"
+            memory: 2Gi
