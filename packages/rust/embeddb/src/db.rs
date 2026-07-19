@@ -561,6 +561,74 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn analytics_query_empty_table_has_columns_no_rows() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("empty_q.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER, name TEXT)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let q = db.analytics_query("SELECT id, name FROM t").await.unwrap();
+        assert_eq!(q.columns, vec!["id".to_string(), "name".to_string()]);
+        assert!(q.rows.is_empty());
+        assert_eq!(q.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn analytics_query_as_empty_returns_empty_vec() {
+        struct Rowt;
+        impl crate::FromEmbedRow for Rowt {
+            fn from_row(_row: &crate::EmbedRow, _cols: &[String]) -> crate::Result<Self> {
+                Ok(Rowt)
+            }
+        }
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("empty_as.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let got: Vec<Rowt> = db.analytics_query_as("SELECT id FROM t").await.unwrap();
+        assert_eq!(got.len(), 0);
+    }
+
+    #[tokio::test]
+    async fn analytics_rows_decimal_maps_to_text() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("decimal.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let rows = db.analytics_rows("SELECT CAST(1.5 AS DECIMAL(4,2)) FROM t").await.unwrap();
+        assert_eq!(rows[0].get(0), Some(&crate::EmbedValue::Text("1.50".to_string())));
+    }
+
+    #[tokio::test]
+    async fn analytics_rows_unmapped_type_errors_with_cast_hint() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("interval.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let err = db.analytics_rows("SELECT INTERVAL '1' DAY FROM t").await.unwrap_err();
+        let msg = format!("{err}");
+        assert!(msg.contains("cast to VARCHAR"), "unexpected error message: {msg}");
+    }
+
+    #[tokio::test]
+    async fn analytics_query_sequential_reads_reflect_checkpoints() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("seq.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let q1 = db.analytics_query("SELECT id FROM t").await.unwrap();
+        assert_eq!(q1.len(), 1);
+
+        db.execute("INSERT INTO t VALUES (2)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (3)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let q2 = db.analytics_query("SELECT id FROM t").await.unwrap();
+        assert_eq!(q2.len(), 3);
+    }
+
+    #[tokio::test]
     async fn reused_reader_sees_fresh_data() {
         let dir = tempfile::tempdir().unwrap();
         let db = EmbedDb::open(dir.path().join("fresh.db")).await.unwrap();

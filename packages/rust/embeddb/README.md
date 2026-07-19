@@ -33,6 +33,16 @@ In an offline, distroless, or egress-denied deployment — the target environmen
 
 To support that environment, pre-stage `sqlite_scanner.duckdb_extension` (matching the DuckDB version pulled in by this crate) in a directory on the target, and set the `EMBEDDB_DUCKDB_EXTENSION_DIR` environment variable to that directory before calling any `analytics_*` method. When set, `embeddb` runs `SET extension_directory = '<dir>';` on the DuckDB connection before `INSTALL sqlite`, so `INSTALL` resolves from the pre-staged directory instead of the network and becomes a no-op if the extension is already present there. When unset (the default, including in this crate's own test suite), behavior is unchanged from before this note.
 
+## Nx targets
+
+This crate is an Nx project (`packages/rust/embeddb/project.json`) with `build`, `test`, `e2e`, and `lint` targets backed by `@monodon/rust`. Run them through Nx rather than calling `cargo` directly:
+
+```bash
+pnpm nx build embeddb
+pnpm nx test embeddb
+pnpm nx lint embeddb
+```
+
 ## Usage
 
 ```rust
@@ -112,7 +122,92 @@ assert_eq!(rows[0].as_f64(1), Some(1.5));
 assert_eq!(rows[0].as_str(2), Some("a"));
 ```
 
-Each `EmbedRow` wraps a `Vec<EmbedValue>`, one per selected column. `EmbedValue` is `Null | Int(i64) | Float(f64) | Text(String) | Blob(Vec<u8>)`. Use `EmbedRow::get` for the raw `&EmbedValue`, or the typed `as_i64` / `as_f64` / `as_str` accessors, which return `None` if the column is absent or holds a different variant.
+Each `EmbedRow` wraps a `Vec<EmbedValue>`, one per selected column. `EmbedValue` is:
+
+```rust
+pub enum EmbedValue {
+    Null,
+    Int(i64),
+    Float(f64),
+    Text(String),
+    Blob(Vec<u8>),
+    Bool(bool),
+    HugeInt(i128),
+    Timestamp(i64),
+    Date(i32),
+    Time(i64),
+}
+```
+
+`Timestamp`/`Time` are stored as microseconds (DuckDB's `SECOND`/`MILLISECOND`/`NANOSECOND` units are normalized to microseconds; `NANOSECOND` truncates, it does not round). `Date` is days since the Unix epoch (DuckDB's native `DATE` representation). `HugeInt` covers DuckDB `HUGEINT` and any `UBIGINT` value too large for `i64`, which otherwise maps to `Int`.
+
+Use `EmbedRow::get` for the raw `&EmbedValue`, or the typed accessors, which return `None` if the column is absent or holds a different variant: `as_i64`, `as_f64`, `as_str`, `as_bool`, `as_i128` (for `HugeInt`), `as_timestamp`, `as_date`, `as_time`.
+
+`DECIMAL` columns map to `EmbedValue::Text` holding DuckDB's formatted decimal string (e.g. `CAST(1.5 AS DECIMAL(4,2))` → `"1.50"`) rather than a lossy float conversion.
+
+Not every DuckDB type has a dedicated `EmbedValue` variant. An unmapped type (e.g. `INTERVAL`) returns `EmbedError::Other` with a message containing `cast to VARCHAR` — cast the column to `VARCHAR` in the SQL to read it as `EmbedValue::Text` instead:
+
+```rust
+db.analytics_rows("SELECT CAST(some_interval_col AS VARCHAR) FROM t").await?;
+```
+
+### Structured queries: `analytics_query`, `QueryResult`, `analytics_one`, `analytics_query_as`
+
+`analytics_rows` returns bare `Vec<EmbedRow>` with no column names. `analytics_query` returns a `QueryResult` that pairs the result rows with their column names:
+
+```rust
+pub struct QueryResult {
+    pub columns: Vec<String>,
+    pub rows: Vec<EmbedRow>,
+}
+```
+
+`QueryResult::column_index(name)` looks up a column's position, `QueryResult::get(row, name)` fetches a value by row index and column name in one call, and `len`/`is_empty` describe the row count:
+
+```rust
+let q = db.analytics_query("SELECT id, name FROM t ORDER BY id").await?;
+assert_eq!(q.columns, vec!["id".to_string(), "name".to_string()]);
+assert_eq!(q.get(0, "name"), Some(&embeddb::EmbedValue::Text("a".into())));
+```
+
+On an empty result set, `columns` still reflects the query's projected column names — only `rows` is empty.
+
+`analytics_one` runs a query and returns just the first row (`Option<EmbedRow>`), or `None` if the query matched nothing:
+
+```rust
+let first = db.analytics_one("SELECT id FROM t").await?;
+```
+
+`analytics_query_as<T>` maps each row into a caller-defined type `T: FromEmbedRow`:
+
+```rust
+pub trait FromEmbedRow: Sized {
+    fn from_row(row: &EmbedRow, columns: &[String]) -> embeddb::Result<Self>;
+}
+
+struct User { id: i64, name: String }
+
+impl FromEmbedRow for User {
+    fn from_row(row: &EmbedRow, columns: &[String]) -> embeddb::Result<Self> {
+        let idx = |n: &str| columns.iter().position(|c| c == n)
+            .ok_or_else(|| embeddb::EmbedError::Other(format!("missing col {n}")));
+        Ok(User {
+            id: row.as_i64(idx("id")?).ok_or_else(|| embeddb::EmbedError::Other("id".into()))?,
+            name: row.as_str(idx("name")?).ok_or_else(|| embeddb::EmbedError::Other("name".into()))?.to_string(),
+        })
+    }
+}
+
+let users: Vec<User> = db.analytics_query_as("SELECT id, name FROM t ORDER BY id").await?;
+```
+
+A query matching zero rows produces an empty `Vec<T>`.
+
+### Reader reuse
+
+`EmbedDb` holds one shared, long-lived DuckDB reader connection (`Arc<Mutex<duckdb::Connection>>`) instead of opening a fresh connection per analytics call. All `analytics_*` methods (`analytics_scalar_i64`, `analytics_scalar_f64`, `analytics_scalar_string`, `analytics_rows`, `analytics_query`, `analytics_one`, `analytics_query_as`) lock that same reader, re-`ATTACH` the file, and run their query on a blocking thread via `tokio::task::spawn_blocking`.
+
+Because the reader is behind a `Mutex`, concurrent analytics calls on the same `EmbedDb` serialize rather than running in parallel — correctness is preserved, but heavy concurrent analytics load is bottlenecked on a single DuckDB connection. Each call re-attaches before querying, so every read reflects the most recent `checkpoint`, not a snapshot taken when the reader was first opened.
 
 ### Schema migrations: `migrate`
 
