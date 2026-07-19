@@ -172,6 +172,63 @@ impl WindmillConfig {
         }
         Ok(serde_json::from_str(&text).unwrap_or(Value::String(text)))
     }
+
+    /// Best-effort list of the command leaf names reachable under the bot
+    /// namespace (`f/discordsh/*`), pulled live from Windmill's script index.
+    /// Used only to power the did-you-mean hint on an unknown command, so any
+    /// failure degrades to an empty list rather than surfacing an error.
+    pub async fn list_command_names(&self) -> Vec<String> {
+        let url = format!(
+            "{}/api/w/{}/scripts/list",
+            self.base_url.trim_end_matches('/'),
+            self.workspace
+        );
+        let Ok(resp) = self.client.get(&url).bearer_auth(&self.token).send().await else {
+            return Vec::new();
+        };
+        if !resp.status().is_success() {
+            return Vec::new();
+        }
+        let Ok(rows) = resp.json::<Vec<Value>>().await else {
+            return Vec::new();
+        };
+        rows.iter()
+            .filter_map(|r| r.get("path").and_then(Value::as_str))
+            .filter_map(|p| p.strip_prefix(BOT_NAMESPACE))
+            .filter(|leaf| !leaf.is_empty() && !leaf.contains('/'))
+            .map(str::to_owned)
+            .collect()
+    }
+}
+
+/// Suggest the closest known command to a mistyped one. Returns `Some(name)`
+/// only when a candidate is within a small edit distance, so an unrelated
+/// typo yields no misleading suggestion.
+pub fn suggest_command(attempted: &str, names: &[String]) -> Option<String> {
+    let attempted = attempted.to_lowercase();
+    let max_dist = 3usize;
+    names
+        .iter()
+        .map(|n| (levenshtein(&attempted, &n.to_lowercase()), n))
+        .filter(|(d, _)| *d <= max_dist && *d < attempted.len().max(1))
+        .min_by_key(|(d, _)| *d)
+        .map(|(_, n)| n.clone())
+}
+
+/// Standard iterative Levenshtein edit distance over Unicode scalar values.
+fn levenshtein(a: &str, b: &str) -> usize {
+    let b: Vec<char> = b.chars().collect();
+    let mut prev: Vec<usize> = (0..=b.len()).collect();
+    let mut cur = vec![0usize; b.len() + 1];
+    for (i, ca) in a.chars().enumerate() {
+        cur[0] = i + 1;
+        for (j, cb) in b.iter().enumerate() {
+            let cost = if ca == *cb { 0 } else { 1 };
+            cur[j + 1] = (prev[j + 1] + 1).min(cur[j] + 1).min(prev[j] + cost);
+        }
+        std::mem::swap(&mut prev, &mut cur);
+    }
+    prev[b.len()]
 }
 
 /// The single Windmill folder the bot may ever reach. The trailing slash is
@@ -241,6 +298,35 @@ pub fn split_args(raw: &str) -> Vec<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn levenshtein_basic() {
+        assert_eq!(levenshtein("poem", "poem"), 0);
+        assert_eq!(levenshtein("pomm", "poem"), 1);
+        assert_eq!(levenshtein("", "poem"), 4);
+        assert_eq!(levenshtein("npm", "ud"), 3);
+    }
+
+    #[test]
+    fn suggest_command_matches_close_typo() {
+        let names = vec!["poem".to_owned(), "npm".to_owned(), "ud".to_owned()];
+        assert_eq!(suggest_command("pomm", &names).as_deref(), Some("poem"));
+        assert_eq!(suggest_command("POEM", &names).as_deref(), Some("poem"));
+        assert_eq!(suggest_command("nmp", &names).as_deref(), Some("npm"));
+    }
+
+    #[test]
+    fn suggest_command_rejects_unrelated() {
+        let names = vec!["poem".to_owned(), "npm".to_owned(), "ud".to_owned()];
+        // Too far from any command, and a miss shorter than its own length.
+        assert_eq!(suggest_command("weather", &names), None);
+        assert_eq!(suggest_command("xy", &names), None);
+    }
+
+    #[test]
+    fn suggest_command_empty_list() {
+        assert_eq!(suggest_command("poem", &[]), None);
+    }
 
     #[test]
     fn globset_exact_match() {
