@@ -20,7 +20,8 @@ INSERT INTO public.__store_init_fixture (role, user_id) VALUES
     ('owner_both', gen_random_uuid()),   -- owns digital first, then buys physical
     ('fresh_phys', gen_random_uuid()),   -- buys physical fresh -> twin minted
     ('digi_buyer', gen_random_uuid()),   -- digital idempotency
-    ('refund_cur', gen_random_uuid());   -- currency snapshot on refund
+    ('refund_cur', gen_random_uuid()),   -- currency snapshot on refund
+    ('jwt_buyer',  gen_random_uuid());   -- JWT/owner proxy smoke test
 
 INSERT INTO auth.users (id)
 SELECT user_id FROM public.__store_init_fixture;
@@ -317,6 +318,58 @@ BEGIN
     EXCEPTION WHEN sqlstate '22023' THEN
         NULL;  -- expected
     END;
+END;
+$$;
+
+-- 11. JWT/owner smoke test: exercise the FULL authenticated proxy chain under
+--     the real `authenticated` role + the store_api_owner definer — auth.uid()
+--     -> private.proxy_store_caller_account -> service_buy, plus wallet.account
+--     RLS, inventory mint, and sequence access. The direct-service tests above
+--     never touch this path (that is exactly how the missing auth grant slipped
+--     past earlier CI), so validate it end to end.
+DO $$
+DECLARE
+    v_user  UUID := (SELECT user_id FROM public.__store_init_fixture WHERE role = 'jwt_buyer');
+    v_item  UUID;
+    v_cat   INT;
+    v_order BIGINT;
+BEGIN
+    PERFORM set_config('request.jwt.claims',
+        json_build_object('sub', v_user::text, 'role', 'authenticated')::text, true);
+    SET LOCAL ROLE authenticated;
+
+    -- authenticated-facing catalog read
+    SELECT count(*) INTO v_cat FROM public.proxy_store_catalog_readonly();
+    IF v_cat < 1 THEN
+        RESET ROLE;
+        RAISE EXCEPTION 'fail: authenticated catalog read returned nothing';
+    END IF;
+
+    -- authenticated digital purchase through the proxy chain
+    v_item := public.proxy_store_buy('test-dig-a', gen_random_uuid());
+    IF v_item IS NULL THEN
+        RESET ROLE;
+        RAISE EXCEPTION 'fail: authenticated proxy_store_buy returned null';
+    END IF;
+
+    -- caller-scoped entitlements include the freshly bought item
+    PERFORM 1 FROM public.proxy_store_my_entitlements_readonly() WHERE item_id = v_item;
+    IF NOT FOUND THEN
+        RESET ROLE;
+        RAISE EXCEPTION 'fail: purchased item not in authenticated entitlements';
+    END IF;
+
+    -- authenticated physical purchase through the proxy chain
+    v_order := public.proxy_store_buy_physical(
+        (SELECT variant_id FROM store.product_variant WHERE sku = 'SKU-PHYS'),
+        1, jsonb_build_object('name','J','line1','1 St','city','C','postal_code','1','country','US'),
+        gen_random_uuid());
+    IF v_order IS NULL THEN
+        RESET ROLE;
+        RAISE EXCEPTION 'fail: authenticated proxy_store_buy_physical returned null';
+    END IF;
+
+    RESET ROLE;
 END;
 $$;
 

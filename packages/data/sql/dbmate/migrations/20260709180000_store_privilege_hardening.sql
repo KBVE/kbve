@@ -128,13 +128,16 @@ ALTER FUNCTION private.proxy_store_caller_account() OWNER TO store_api_owner;
 REVOKE SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA store FROM service_role;
 REVOKE ALL ON ALL SEQUENCES IN SCHEMA store FROM service_role;
 
--- Defense-in-depth RLS (ENABLE, not FORCE — see header).
+-- Defense-in-depth RLS (ENABLE, not FORCE — see header). Covers every store
+-- table, including topup_package and the PII-bearing pod_webhook_event.
 ALTER TABLE store.product         ENABLE ROW LEVEL SECURITY;
 ALTER TABLE store.product_variant ENABLE ROW LEVEL SECURITY;
 ALTER TABLE store.purchase        ENABLE ROW LEVEL SECURITY;
 ALTER TABLE store.order           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE store.order_event     ENABLE ROW LEVEL SECURITY;
 ALTER TABLE store.topup           ENABLE ROW LEVEL SECURITY;
+ALTER TABLE store.topup_package   ENABLE ROW LEVEL SECURITY;
+ALTER TABLE store.pod_webhook_event ENABLE ROW LEVEL SECURITY;
 
 -- Future store objects created by store_api_owner default to no PUBLIC/anon/
 -- authenticated access, so a later table/sequence/function can't silently
@@ -162,10 +165,12 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA store
 ALTER DEFAULT PRIVILEGES IN SCHEMA store
     REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC, anon, authenticated;
 
--- Self-contained exposure boundary: anon/authenticated never received schema
--- USAGE, but revoke it explicitly here so the store's reachability doesn't
--- depend on earlier migrations' grant history.
-REVOKE ALL ON SCHEMA store, private FROM PUBLIC, anon, authenticated;
+-- Self-contained exposure boundary for the DEDICATED store schema. NOT private:
+-- private is shared (marketplace/wallet helpers), and a blanket schema-level
+-- REVOKE there could break unrelated invoker-rights functions other systems
+-- reference. The store's only private object (proxy_store_caller_account) is
+-- already REVOKEd FROM PUBLIC, anon, authenticated at its own definition.
+REVOKE ALL ON SCHEMA store FROM PUBLIC, anon, authenticated;
 
 NOTIFY pgrst, 'reload schema';
 
@@ -219,6 +224,14 @@ ALTER TABLE store.purchase        DISABLE ROW LEVEL SECURITY;
 ALTER TABLE store.order           DISABLE ROW LEVEL SECURITY;
 ALTER TABLE store.order_event     DISABLE ROW LEVEL SECURITY;
 ALTER TABLE store.topup           DISABLE ROW LEVEL SECURITY;
+ALTER TABLE store.topup_package   DISABLE ROW LEVEL SECURITY;
+ALTER TABLE store.pod_webhook_event DISABLE ROW LEVEL SECURITY;
+
+-- NOTE (intentional): the migration-role ALTER DEFAULT PRIVILEGES in the store
+-- schema (up) is NOT reversed here — it only tightens future-object defaults in
+-- the dedicated store schema (revoke PUBLIC execute/access), which is safe to
+-- leave in place after rollback and re-granting it would re-open that default.
+-- DROP OWNED BY below clears the store_api_owner-scoped default privileges.
 
 GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA store TO service_role;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA store TO service_role;

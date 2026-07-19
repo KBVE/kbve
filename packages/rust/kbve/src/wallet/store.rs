@@ -511,13 +511,17 @@ impl WalletClient {
         Ok(row.value)
     }
 
-    /// Record a POD webhook receipt (append-only audit + provider-event dedupe).
-    /// Returns true when newly recorded, false on a duplicate provider event.
-    pub async fn store_record_pod_webhook(
+    /// Atomically record a POD shipment webhook and apply its status advance in
+    /// one txn. Returns true when newly recorded/applied, false on an equivalent
+    /// replay (a contradictory replay errors). `payload` must be PII-reduced.
+    #[allow(clippy::too_many_arguments)]
+    pub async fn store_apply_pod_shipment(
         &self,
         provider: String,
         provider_event_id: String,
+        external_order_id: Option<String>,
         order_id: Option<i64>,
+        tracking: serde_json::Value,
         payload: serde_json::Value,
     ) -> Result<bool> {
         #[derive(QueryableByName)]
@@ -527,11 +531,13 @@ impl WalletClient {
         }
         let mut conn = self.write().await?;
         let row: ScalarBool = sql_query(
-            "SELECT store.service_record_pod_webhook($1, $2, $3, $4) AS value",
+            "SELECT store.service_apply_pod_shipment($1, $2, $3, $4, $5, $6) AS value",
         )
         .bind::<Text, _>(provider)
         .bind::<Text, _>(provider_event_id)
+        .bind::<Nullable<Text>, _>(external_order_id)
         .bind::<Nullable<diesel::sql_types::BigInt>, _>(order_id)
+        .bind::<Jsonb, _>(tracking)
         .bind::<Jsonb, _>(payload)
         .get_result(&mut *conn)
         .await

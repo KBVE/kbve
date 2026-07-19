@@ -308,6 +308,48 @@ BEGIN
 END;
 $$;
 
+-- 9. Atomic POD shipment: records the event + advances processing->shipped in
+--    one call; an equivalent replay is false; a contradictory replay is 40001.
+DO $$
+DECLARE
+    v_acct  UUID;
+    v_var   UUID := (SELECT variant_id FROM store.product_variant WHERE sku = 'SKU-POD');
+    v_order BIGINT;
+    v_new   BOOLEAN;
+    v_dup   BOOLEAN;
+    v_st    store.order_status;
+BEGIN
+    SELECT id INTO v_acct FROM wallet.account a
+      JOIN public.__store_topup_pod_fixture f ON f.user_id = a.user_id
+     WHERE f.role = 'pod_buyer';
+
+    v_order := store.service_buy_physical(v_acct, v_var, 1,
+        jsonb_build_object('name','S','line1','2 St','city','C','postal_code','2','country','US'),
+        gen_random_uuid());
+    PERFORM store.service_advance_order(v_order, 'processing'::store.order_status, '{}'::jsonb, 'proc');
+
+    v_new := store.service_apply_pod_shipment('printful', 'evt_ship_1', 'EXT-SHIP', v_order,
+        jsonb_build_object('number','1Z'), jsonb_build_object('type','shipped'));
+    IF NOT v_new THEN RAISE EXCEPTION 'fail: first shipment event not newly recorded'; END IF;
+    SELECT status INTO v_st FROM store.order WHERE order_id = v_order;
+    IF v_st <> 'shipped' THEN RAISE EXCEPTION 'fail: order not advanced to shipped (%).', v_st; END IF;
+
+    -- Equivalent replay -> false, no error.
+    v_dup := store.service_apply_pod_shipment('printful', 'evt_ship_1', 'EXT-SHIP', v_order,
+        jsonb_build_object('number','1Z'), jsonb_build_object('type','shipped'));
+    IF v_dup THEN RAISE EXCEPTION 'fail: replayed shipment event recorded as new'; END IF;
+
+    -- Contradictory replay (same event id, different payload) -> 40001.
+    BEGIN
+        PERFORM store.service_apply_pod_shipment('printful', 'evt_ship_1', 'EXT-SHIP', v_order,
+            '{}'::jsonb, jsonb_build_object('type','delivered'));
+        RAISE EXCEPTION 'fail: contradictory shipment replay accepted';
+    EXCEPTION WHEN sqlstate '40001' THEN
+        NULL;  -- expected
+    END;
+END;
+$$;
+
 -- ASSERT_AFTER_DOWN
 
 -- Down drops the topup table + POD columns; store.order itself survives.

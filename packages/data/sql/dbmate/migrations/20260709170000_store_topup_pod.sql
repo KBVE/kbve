@@ -21,22 +21,50 @@ $$;
 -- can do is name a valid pack. amount_cents is the pack's expected fiat price;
 -- service_apply_topup rejects a Stripe amount that doesn't match it.
 CREATE TABLE store.topup_package (
-    pack_id      TEXT PRIMARY KEY
-                 CHECK (pack_id = btrim(pack_id) AND length(pack_id) BETWEEN 1 AND 64),
-    credits      BIGINT NOT NULL CHECK (credits > 0 AND credits <= 100000000),
-    amount_cents BIGINT NOT NULL CHECK (amount_cents > 0 AND amount_cents <= 100000000),
-    active       BOOLEAN NOT NULL DEFAULT true,
-    created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+    pack_id       TEXT PRIMARY KEY
+                  CHECK (pack_id = btrim(pack_id) AND length(pack_id) BETWEEN 1 AND 64),
+    credits       BIGINT NOT NULL CHECK (credits > 0 AND credits <= 100000000),
+    amount_cents  BIGINT NOT NULL CHECK (amount_cents > 0 AND amount_cents <= 100000000),
+    -- Binds the expected fiat currency so "100 cents" can't be satisfied by a
+    -- different currency (USD vs EUR vs JPY). service_apply_topup verifies the
+    -- Stripe currency equals this.
+    currency_fiat TEXT NOT NULL DEFAULT 'usd'
+                  CHECK (currency_fiat = lower(btrim(currency_fiat))
+                         AND currency_fiat ~ '^[a-z]{3}$'),
+    active        BOOLEAN NOT NULL DEFAULT true,
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 COMMENT ON TABLE store.topup_package IS
-    'Server-authoritative Stripe credit packs. service_apply_topup derives the credit grant from this table by pack_id; the webhook never supplies a credit amount.';
+    'Server-authoritative Stripe credit packs. service_apply_topup derives the credit grant + expected currency from this table by pack_id; the webhook never supplies a credit amount.';
+
+-- Economic fields (credits/amount/currency) are immutable per pack_id: a durable
+-- identifier must not change meaning under recorded receipts. Only `active` may
+-- change; to reprice, mint a versioned pack (e.g. medium-v2).
+CREATE OR REPLACE FUNCTION store.topup_package_economics_immutable()
+RETURNS TRIGGER
+LANGUAGE plpgsql SET search_path = '' AS $$
+BEGIN
+    IF NEW.pack_id      <> OLD.pack_id
+       OR NEW.credits      <> OLD.credits
+       OR NEW.amount_cents <> OLD.amount_cents
+       OR NEW.currency_fiat <> OLD.currency_fiat THEN
+        RAISE EXCEPTION 'store.topup_package economics are immutable (create a versioned pack_id)'
+            USING ERRCODE = '22023';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+ALTER FUNCTION store.topup_package_economics_immutable() OWNER TO service_role;
+CREATE TRIGGER store_topup_package_economics_immutable
+    BEFORE UPDATE ON store.topup_package
+    FOR EACH ROW EXECUTE FUNCTION store.topup_package_economics_immutable();
 
 -- Seed matches the axum checkout PACKS (small/medium/large). Checkout creation
 -- still lists these in Stripe; the grant authority lives here.
-INSERT INTO store.topup_package (pack_id, credits, amount_cents) VALUES
-    ('small',  100,  100),
-    ('medium', 550,  500),
-    ('large',  1200, 1000)
+INSERT INTO store.topup_package (pack_id, credits, amount_cents, currency_fiat) VALUES
+    ('small',  100,  100,  'usd'),
+    ('medium', 550,  500,  'usd'),
+    ('large',  1200, 1000, 'usd')
 ON CONFLICT (pack_id) DO NOTHING;
 
 CREATE TABLE store.topup (
@@ -63,7 +91,8 @@ CREATE TABLE store.topup (
                       CHECK (currency_fiat ~ '^[a-z]{3}$'),
     -- A 'completed' top-up must correspond to a real wallet credit; enforce it
     -- so a direct/faulty insert can't record completion without a ledger row.
-    ledger_id         BIGINT NOT NULL,
+    -- FK to the ledger (RI checks bypass RLS) so the id can't be fabricated.
+    ledger_id         BIGINT NOT NULL REFERENCES wallet.ledger(id) ON DELETE RESTRICT,
     status            TEXT NOT NULL DEFAULT 'completed'
                       CHECK (status IN ('completed', 'refunded')),
     created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -114,32 +143,18 @@ BEGIN
         RAISE EXCEPTION 'currency_fiat must be a 3-letter ISO code' USING ERRCODE = '22023';
     END IF;
 
-    -- Credits are AUTHORITATIVE from the server-side pack table, never a
-    -- caller-supplied amount: the webhook can at most name a valid active pack.
-    SELECT * INTO v_pack FROM store.topup_package
-     WHERE pack_id = v_pack_id AND active;
-    IF v_pack.pack_id IS NULL THEN
-        RAISE EXCEPTION 'unknown or inactive topup pack %', v_pack_id USING ERRCODE = '22023';
-    END IF;
-    v_credits := v_pack.credits;
-    -- The Stripe-charged amount must match the pack's expected price, or the
-    -- pricing was tampered with / drifted — refuse rather than grant.
-    IF p_amount_cents <> v_pack.amount_cents THEN
-        RAISE EXCEPTION 'amount_cents % does not match pack % price %',
-            p_amount_cents, v_pack_id, v_pack.amount_cents USING ERRCODE = '22023';
-    END IF;
-
     SELECT id INTO v_account
       FROM wallet.account WHERE kind = 'user' AND user_id = p_user_id;
     IF v_account IS NULL THEN
         RAISE EXCEPTION 'wallet_account_missing' USING ERRCODE = 'WLT01';
     END IF;
 
-    -- Session-level idempotency first: two distinct Stripe events can reference
-    -- the same Checkout Session (the thing that must not be credited twice).
-    -- On replay, validate the recorded row's immutable fingerprint — a
-    -- duplicate carrying contradictory account/pack/credits/fiat data fails
-    -- loudly rather than being accepted as a successful replay.
+    -- Replay is validated against the IMMUTABLE recorded receipt, BEFORE loading
+    -- the (possibly since-deactivated or re-versioned) package — a completed
+    -- session must retry successfully even after the pack is deactivated. The
+    -- fingerprint compares the recorded pack_id/amount/currency, which (given
+    -- pack economics are immutable) pins the credits too. Session-level first:
+    -- two distinct Stripe events can reference the same Checkout Session.
     IF v_session_id IS NOT NULL THEN
         PERFORM pg_advisory_xact_lock(
             hashtextextended('store.topup.session:' || v_session_id, 0));
@@ -147,7 +162,6 @@ BEGIN
         IF FOUND THEN
             IF v_row.account_id <> v_account
                OR v_row.pack_id <> v_pack_id
-               OR v_row.credits_granted <> v_credits
                OR v_row.amount_cents <> p_amount_cents
                OR v_row.currency_fiat <> v_currency_fiat THEN
                 RAISE EXCEPTION 'topup replay payload mismatch for session %', v_session_id
@@ -162,13 +176,11 @@ BEGIN
     -- the unique constraint and rolling back.
     PERFORM pg_advisory_xact_lock(hashtextextended('store.topup:' || v_event_id, 0));
 
-    -- Idempotent replay: this Stripe event already applied (re-checked under
-    -- lock), with the same fingerprint validation.
+    -- Idempotent replay: this Stripe event already applied (re-checked under lock).
     SELECT * INTO v_row FROM store.topup WHERE stripe_event_id = v_event_id;
     IF FOUND THEN
         IF v_row.account_id <> v_account
            OR v_row.pack_id <> v_pack_id
-           OR v_row.credits_granted <> v_credits
            OR v_row.amount_cents <> p_amount_cents
            OR v_row.currency_fiat <> v_currency_fiat
            OR v_row.stripe_session_id IS DISTINCT FROM v_session_id THEN
@@ -176,6 +188,24 @@ BEGIN
                 USING ERRCODE = '40001';
         END IF;
         RETURN v_row.ledger_id;
+    END IF;
+
+    -- NEW top-up: only now require an ACTIVE package. Credits are AUTHORITATIVE
+    -- from the table (never a caller-supplied amount), the Stripe-charged amount
+    -- must equal the pack price, and the currency must equal the pack currency.
+    SELECT * INTO v_pack FROM store.topup_package
+     WHERE pack_id = v_pack_id AND active;
+    IF v_pack.pack_id IS NULL THEN
+        RAISE EXCEPTION 'unknown or inactive topup pack %', v_pack_id USING ERRCODE = '22023';
+    END IF;
+    v_credits := v_pack.credits;
+    IF p_amount_cents <> v_pack.amount_cents THEN
+        RAISE EXCEPTION 'amount_cents % does not match pack % price %',
+            p_amount_cents, v_pack_id, v_pack.amount_cents USING ERRCODE = '22023';
+    END IF;
+    IF v_currency_fiat <> v_pack.currency_fiat THEN
+        RAISE EXCEPTION 'currency % does not match pack % currency %',
+            v_currency_fiat, v_pack_id, v_pack.currency_fiat USING ERRCODE = '22023';
     END IF;
 
     -- Deterministic wallet idempotency key derived from the Checkout SESSION
@@ -270,16 +300,23 @@ ALTER TABLE store.order
 -- token+expiry together (both cleared on ACK, claimed_at retained for audit)
 -- with expiry after the claim; a submission requires the full provider identity.
 ALTER TABLE store.order
+    -- provider identity, external id and the submit stamp are a paired triple:
+    -- all absent (unsubmitted) or all present (ACKed). A lease keeps token+expiry
+    -- together (both cleared on ACK) with expiry after the claim. claimed_by
+    -- implies a claim; and a retained claimed_at must correspond to either an
+    -- active lease (token) or a completed submission.
     ADD CONSTRAINT store_order_pod_identity_ck
-        CHECK ((pod_provider IS NULL) = (pod_external_order_id IS NULL)),
+        CHECK ((pod_provider IS NULL AND pod_external_order_id IS NULL AND pod_submitted_at IS NULL)
+            OR (pod_provider IS NOT NULL AND pod_external_order_id IS NOT NULL AND pod_submitted_at IS NOT NULL)),
     ADD CONSTRAINT store_order_pod_lease_ck
         CHECK ((pod_claim_token IS NULL) = (pod_claim_expires_at IS NULL)),
     ADD CONSTRAINT store_order_pod_claim_time_ck
         CHECK (pod_claim_expires_at IS NULL
                OR (pod_claimed_at IS NOT NULL AND pod_claim_expires_at > pod_claimed_at)),
-    ADD CONSTRAINT store_order_pod_submit_ck
-        CHECK (pod_submitted_at IS NULL
-               OR (pod_provider IS NOT NULL AND pod_external_order_id IS NOT NULL));
+    ADD CONSTRAINT store_order_pod_claimed_by_ck
+        CHECK (pod_claimed_by IS NULL OR pod_claimed_at IS NOT NULL),
+    ADD CONSTRAINT store_order_pod_claimed_at_ck
+        CHECK (pod_claimed_at IS NULL OR pod_claim_token IS NOT NULL OR pod_submitted_at IS NOT NULL);
 
 -- One local order per external POD order — a provider id can't be attached to
 -- two orders.
@@ -408,11 +445,14 @@ BEGIN
         RAISE EXCEPTION 'pod_ref must be a JSON object under 16KB' USING ERRCODE = '22023';
     END IF;
 
+    -- 'delivered' is included so post-delivery provider events (proof-of-
+    -- delivery, corrected tracking) can still update metadata; refunded/cancelled
+    -- stay ineligible.
     SELECT o.* INTO v_order
       FROM store.order o
      WHERE o.order_id = p_order_id
        AND o.fulfillment IN ('physical', 'both')
-       AND o.status IN ('paid', 'processing', 'shipped')
+       AND o.status IN ('paid', 'processing', 'shipped', 'delivered')
      FOR UPDATE OF o;
     IF v_order.order_id IS NULL THEN
         RAISE EXCEPTION 'order % not eligible for a POD status update', p_order_id
@@ -455,9 +495,14 @@ REVOKE ALL ON FUNCTION store.service_update_pod_status(BIGINT, JSONB) FROM PUBLI
 GRANT EXECUTE ON FUNCTION store.service_update_pod_status(BIGINT, JSONB) TO service_role;
 
 -- Durable, append-only POD webhook receipts. Provider-event dedupe identity
--- (provider, provider_event_id) for auditing delivery, detecting replays, and
--- investigating provider disputes — independent of the status no-op idempotency.
--- The webhook SIGNATURE is still verified in the transport before this is called.
+-- (provider, provider_event_id) for auditing delivery, detecting contradictory
+-- replays, and investigating provider disputes. order_id is nullable (an event
+-- may arrive before/without a resolvable local order); external_order_id keeps
+-- the provider reference so an orphan event is still reconcilable.
+-- PRIVACY: the caller stores an ALLOWLISTED, PII-reduced payload (event id,
+-- type, status, tracking numbers) — NOT the raw provider body with recipient
+-- name/address — because RLS does not protect backups/exports. The webhook
+-- SIGNATURE is still verified in the transport before this is called.
 CREATE TABLE store.pod_webhook_event (
     event_pk          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     provider          TEXT NOT NULL
@@ -466,6 +511,10 @@ CREATE TABLE store.pod_webhook_event (
                       CHECK (provider_event_id = btrim(provider_event_id)
                              AND length(provider_event_id) BETWEEN 1 AND 255),
     order_id          BIGINT REFERENCES store.order(order_id),
+    external_order_id TEXT
+                      CHECK (external_order_id IS NULL
+                             OR (external_order_id = btrim(external_order_id)
+                                 AND length(external_order_id) BETWEEN 1 AND 255)),
     payload           JSONB NOT NULL DEFAULT '{}'::jsonb
                       CHECK (jsonb_typeof(payload) = 'object'
                              AND octet_length(payload::text) <= 65536),
@@ -478,20 +527,32 @@ CREATE TRIGGER store_pod_webhook_event_no_mutate
     BEFORE UPDATE OR DELETE ON store.pod_webhook_event
     FOR EACH ROW EXECUTE FUNCTION store.order_event_block_mutation();
 
--- Record a webhook receipt. Returns true when newly recorded, false on a
--- duplicate (provider, provider_event_id) — lets the caller detect replay.
-CREATE OR REPLACE FUNCTION store.service_record_pod_webhook(
-    p_provider  TEXT,
-    p_event_id  TEXT,
-    p_order_id  BIGINT,
-    p_payload   JSONB
+-- Atomically record a POD shipment webhook AND apply its effect in ONE txn, so
+-- an event can't be durably recorded without its status advance (or vice versa).
+-- Dedupe is (provider, provider_event_id): a byte-different replay of the same
+-- event id is a contradiction (40001); an equivalent replay returns false
+-- without re-advancing. A newly-recorded event advances a 'processing' order to
+-- 'shipped' with tracking (a no-op if the order isn't in 'processing' — e.g.
+-- already shipped/delivered/refunded — so a late/out-of-order event still acks).
+-- Returns true when newly recorded. VOLATILE — write connection.
+CREATE OR REPLACE FUNCTION store.service_apply_pod_shipment(
+    p_provider          TEXT,
+    p_event_id          TEXT,
+    p_external_order_id TEXT,
+    p_order_id          BIGINT,
+    p_tracking          JSONB,
+    p_payload           JSONB
 )
 RETURNS BOOLEAN
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
     v_provider TEXT := lower(btrim(COALESCE(p_provider, '')));
     v_event_id TEXT := btrim(COALESCE(p_event_id, ''));
+    v_ext_id   TEXT := NULLIF(btrim(COALESCE(p_external_order_id, '')), '');
     v_payload  JSONB := COALESCE(p_payload, '{}'::jsonb);
+    v_tracking JSONB := COALESCE(p_tracking, '{}'::jsonb);
+    v_existing store.pod_webhook_event%ROWTYPE;
+    v_from     store.order_status;
     v_pk       BIGINT;
 BEGIN
     IF length(v_provider) = 0 OR length(v_event_id) = 0 THEN
@@ -500,16 +561,47 @@ BEGIN
     IF jsonb_typeof(v_payload) <> 'object' OR octet_length(v_payload::text) > 65536 THEN
         RAISE EXCEPTION 'payload must be a JSON object under 64KB' USING ERRCODE = '22023';
     END IF;
-    INSERT INTO store.pod_webhook_event (provider, provider_event_id, order_id, payload)
-    VALUES (v_provider, v_event_id, p_order_id, v_payload)
+
+    INSERT INTO store.pod_webhook_event (provider, provider_event_id, order_id, external_order_id, payload)
+    VALUES (v_provider, v_event_id, p_order_id, v_ext_id, v_payload)
     ON CONFLICT (provider, provider_event_id) DO NOTHING
     RETURNING event_pk INTO v_pk;
-    RETURN v_pk IS NOT NULL;
+
+    IF v_pk IS NULL THEN
+        -- Duplicate event id: a contradictory replay (different order / external
+        -- id / payload) is loud; an equivalent replay is a no-op false.
+        SELECT * INTO v_existing FROM store.pod_webhook_event
+         WHERE provider = v_provider AND provider_event_id = v_event_id;
+        IF v_existing.order_id IS DISTINCT FROM p_order_id
+           OR v_existing.external_order_id IS DISTINCT FROM v_ext_id
+           OR v_existing.payload IS DISTINCT FROM v_payload THEN
+            RAISE EXCEPTION 'contradictory replay of POD event %/%', v_provider, v_event_id
+                USING ERRCODE = '40001';
+        END IF;
+        RETURN false;
+    END IF;
+
+    -- Newly recorded: apply the shipment. Advance only a 'processing' order;
+    -- anything else is a benign no-op so a late/duplicate-state event still acks.
+    IF p_order_id IS NOT NULL THEN
+        SELECT status INTO v_from FROM store.order WHERE order_id = p_order_id FOR UPDATE;
+        IF v_from = 'processing' THEN
+            UPDATE store.order
+               SET status = 'shipped',
+                   tracking = CASE WHEN v_tracking = '{}'::jsonb THEN tracking ELSE v_tracking END,
+                   updated_at = now()
+             WHERE order_id = p_order_id;
+            INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
+            VALUES (p_order_id, v_from, 'shipped', 'pod', 'POD shipment', v_tracking);
+        END IF;
+    END IF;
+
+    RETURN true;
 END;
 $$;
-ALTER FUNCTION store.service_record_pod_webhook(TEXT, TEXT, BIGINT, JSONB) OWNER TO service_role;
-REVOKE ALL ON FUNCTION store.service_record_pod_webhook(TEXT, TEXT, BIGINT, JSONB) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION store.service_record_pod_webhook(TEXT, TEXT, BIGINT, JSONB) TO service_role;
+ALTER FUNCTION store.service_apply_pod_shipment(TEXT, TEXT, TEXT, BIGINT, JSONB, JSONB) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_apply_pod_shipment(TEXT, TEXT, TEXT, BIGINT, JSONB, JSONB) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_apply_pod_shipment(TEXT, TEXT, TEXT, BIGINT, JSONB, JSONB) TO service_role;
 
 -- Atomically LEASE an order for POD submission. Locks the order, verifies
 -- eligibility (from the fulfillment snapshot), rejects an already-submitted or
@@ -527,8 +619,6 @@ RETURNS JSONB
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
     v_order   store.order%ROWTYPE;
-    v_product store.product%ROWTYPE;
-    v_variant store.product_variant%ROWTYPE;
     v_token   UUID := gen_random_uuid();
 BEGIN
     SELECT * INTO v_order FROM store.order WHERE order_id = p_order_id FOR UPDATE;
@@ -558,9 +648,6 @@ BEGIN
             USING ERRCODE = '55006';
     END IF;
 
-    SELECT * INTO v_product FROM store.product WHERE product_id = v_order.product_id;
-    SELECT * INTO v_variant FROM store.product_variant WHERE variant_id = v_order.variant_id;
-
     UPDATE store.order
        SET pod_status           = 'claimed',
            pod_claimed_at       = now(),
@@ -570,19 +657,20 @@ BEGIN
            updated_at           = now()
      WHERE order_id = p_order_id;
 
-    -- Fulfillment payload prefers the immutable order snapshots over the live
-    -- catalog, so a rename / SKU change after checkout can't alter what is sent
-    -- to the provider.
+    -- Payload is built entirely from the order's immutable snapshots (which are
+    -- NOT NULL), so it never reads the live catalog: a rename / SKU change after
+    -- checkout can't alter what is sent to the provider, and there are no extra
+    -- product/variant lookups.
     RETURN jsonb_build_object(
         'order_id',         v_order.order_id,
         'qty',              v_order.qty,
         'status',           v_order.status,
         'shipping_address', v_order.shipping_address,
         'pod_ref',          v_order.pod_ref,
-        'sku',              COALESCE(v_order.variant_sku, v_variant.sku),
-        'attributes',       COALESCE(NULLIF(v_order.variant_attributes, '{}'::jsonb), v_variant.attributes),
-        'product_slug',     COALESCE(v_order.product_slug, v_product.slug),
-        'product_title',    COALESCE(v_order.product_title, v_product.title),
+        'sku',              v_order.variant_sku,
+        'attributes',       v_order.variant_attributes,
+        'product_slug',     v_order.product_slug,
+        'product_title',    v_order.product_title,
         'claim_token',      v_token,
         'submission_key',   md5('store_pod:' || v_order.order_id::text)
     );
@@ -602,7 +690,7 @@ NOTIFY pgrst, 'reload schema';
 
 -- migrate:down
 
-DROP FUNCTION IF EXISTS store.service_record_pod_webhook(TEXT, TEXT, BIGINT, JSONB);
+DROP FUNCTION IF EXISTS store.service_apply_pod_shipment(TEXT, TEXT, TEXT, BIGINT, JSONB, JSONB);
 DROP TABLE IF EXISTS store.pod_webhook_event;
 DROP FUNCTION IF EXISTS store.service_order_for_pod(BIGINT, TEXT);
 DROP FUNCTION IF EXISTS store.service_update_pod_status(BIGINT, JSONB);
@@ -623,6 +711,8 @@ NOTIFY pgrst, 'reload schema';
 
 DROP FUNCTION IF EXISTS store.service_apply_topup(UUID, TEXT, TEXT, TEXT, BIGINT, TEXT);
 DROP TABLE IF EXISTS store.topup;
+DROP TRIGGER IF EXISTS store_topup_package_economics_immutable ON store.topup_package;
+DROP FUNCTION IF EXISTS store.topup_package_economics_immutable();
 DROP TABLE IF EXISTS store.topup_package;
 
 NOTIFY pgrst, 'reload schema';

@@ -242,44 +242,50 @@ pub(crate) async fn webhook(headers: HeaderMap, body: Bytes) -> Response {
         "url": data.get("shipment").and_then(|s| s.get("tracking_url")),
     });
 
-    let client = match get_wallet_client() {
-        Some(c) => c,
-        None => return service_unavailable(),
-    };
-
-    // Best-effort append-only audit of the provider event (dedupe by event id),
-    // independent of the status advance below. Never blocks the ack.
     let provider_event_id = event
         .get("id")
         .and_then(|v| v.as_str())
         .map(|s| s.to_string())
         .unwrap_or_else(|| format!("pod-evt-{order_id}"));
-    if let Err(e) = client
-        .store_record_pod_webhook(
+    let provider_external_id = data
+        .get("order")
+        .and_then(|o| o.get("id"))
+        .or_else(|| data.get("id"))
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
+
+    // PII-reduced audit payload: identifiers + type + tracking ONLY — never the
+    // recipient name/address from the raw provider body (RLS doesn't protect
+    // backups/exports).
+    let safe_payload = json!({
+        "type": event_type,
+        "event_id": provider_event_id.clone(),
+        "external_order_id": provider_external_id.clone(),
+        "tracking": tracking.clone(),
+    });
+
+    let client = match get_wallet_client() {
+        Some(c) => c,
+        None => return service_unavailable(),
+    };
+
+    // One atomic call: record the receipt + advance the order to shipped in a
+    // single txn (dedupe by provider event id). Errors are acked so the provider
+    // stops retrying; a contradictory replay is logged.
+    match client
+        .store_apply_pod_shipment(
             "printful".to_string(),
             provider_event_id,
+            provider_external_id,
             Some(order_id),
-            event.clone(),
+            tracking,
+            safe_payload,
         )
         .await
     {
-        tracing::warn!("record pod webhook failed: {:?}", e);
-    }
-
-    match client
-        .store_advance_order(kbve::wallet::StoreAdvanceOrder {
-            order_id,
-            to_status: "shipped".to_string(),
-            tracking,
-            note: Some("POD shipment".to_string()),
-        })
-        .await
-    {
-        Ok(()) => StatusCode::OK.into_response(),
+        Ok(_) => StatusCode::OK.into_response(),
         Err(e) => {
-            // Illegal transition (already shipped) is fine — ack so the
-            // provider stops retrying.
-            tracing::warn!("pod webhook advance: {:?}", e);
+            tracing::warn!("pod shipment apply: {:?}", e);
             StatusCode::OK.into_response()
         }
     }

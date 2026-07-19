@@ -167,7 +167,9 @@ CREATE TABLE store.purchase (
     -- ledger_id IS NULL <=> price = 0.
     price           BIGINT NOT NULL CHECK (price >= 0),
     currency        wallet.currency_kind NOT NULL,
-    ledger_id       BIGINT,
+    -- FK to the wallet ledger (RI checks bypass RLS) so a receipt can't record a
+    -- fabricated ledger id. NULL when nothing was charged (free / already-owned).
+    ledger_id       BIGINT REFERENCES wallet.ledger(id) ON DELETE RESTRICT,
     -- What the buy resolved to: a fresh mint vs. a lookup of an already-owned
     -- copy (no debit, no mint). Keeps the receipt honest for accounting.
     result_kind     TEXT NOT NULL DEFAULT 'minted'
@@ -792,7 +794,8 @@ CREATE TABLE store.order (
     -- change on the variant can't mis-restore (or fail to restore) inventory.
     stock_reserved   BOOLEAN NOT NULL DEFAULT false,
     credits_amount   BIGINT NOT NULL CHECK (credits_amount >= 0),
-    ledger_id        BIGINT,
+    -- FK to the wallet ledger (RI checks bypass RLS); NULL for a zero-amount order.
+    ledger_id        BIGINT REFERENCES wallet.ledger(id) ON DELETE RESTRICT,
     -- FK so refund correctness (revoking the minted twin) can't hinge on a
     -- dangling id. RESTRICT: inventory items are state-machined, not deleted.
     twin_item_id     UUID REFERENCES inventory.item(id) ON DELETE RESTRICT,
