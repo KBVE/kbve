@@ -67,6 +67,12 @@ impl EmbedDb {
         Err(crate::EmbedError::CheckpointBusy)
     }
 
+    pub async fn checkpoint_passive(&self) -> Result<()> {
+        let mut rows = self.conn.query("PRAGMA wal_checkpoint(PASSIVE)", ()).await?;
+        while rows.next().await?.is_some() {}
+        Ok(())
+    }
+
     pub async fn analytics_scalar_i64(&self, sql: &str) -> Result<i64> {
         let path = self.path.clone();
         let sql = sql.to_string();
@@ -789,5 +795,63 @@ mod tests {
         assert!(res.is_err());
         db.checkpoint().await.unwrap();
         assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 0);
+    }
+
+    #[tokio::test]
+    async fn checkpoint_passive_makes_writes_visible() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("cpp.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1), (2)", ()).await.unwrap();
+        db.checkpoint_passive().await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 2);
+    }
+
+    #[tokio::test]
+    async fn wal_visibility_uncheckpointed_is_consistent() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("wal.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1), (2), (3)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        db.execute("INSERT INTO t VALUES (4), (5)", ()).await.unwrap();
+        let seen = db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap();
+        assert!(seen == 3 || seen == 5, "expected consistent snapshot (3 or 5), got {seen}");
+    }
+
+    #[tokio::test]
+    async fn concurrent_writer_reader_never_torn() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = std::sync::Arc::new(EmbedDb::open(dir.path().join("conc.db")).await.unwrap());
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let writer = {
+            let db = db.clone();
+            tokio::spawn(async move {
+                for i in 0..50_i64 {
+                    db.execute("INSERT INTO t VALUES (?)", (i,)).await.unwrap();
+                    if i % 10 == 0 {
+                        db.checkpoint_passive().await.unwrap();
+                    }
+                }
+                db.checkpoint().await.unwrap();
+            })
+        };
+        let reader = {
+            let db = db.clone();
+            tokio::spawn(async move {
+                let mut last = 0_i64;
+                for _ in 0..20 {
+                    let n = db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap();
+                    assert!(n >= last, "count went backwards: {last} -> {n}");
+                    assert!((0..=50).contains(&n), "count out of range: {n}");
+                    last = n;
+                    tokio::task::yield_now().await;
+                }
+            })
+        };
+        writer.await.unwrap();
+        reader.await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 50);
     }
 }
