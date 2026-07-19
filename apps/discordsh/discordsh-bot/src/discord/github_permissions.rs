@@ -189,6 +189,7 @@ fn parse_permissions(s: &str) -> serenity::Permissions {
             "MANAGE_GUILD" => serenity::Permissions::MANAGE_GUILD,
             "MANAGE_MESSAGES" => serenity::Permissions::MANAGE_MESSAGES,
             "MANAGE_CHANNELS" => serenity::Permissions::MANAGE_CHANNELS,
+            "MANAGE_THREADS" => serenity::Permissions::MANAGE_THREADS,
             "MANAGE_ROLES" => serenity::Permissions::MANAGE_ROLES,
             "SEND_MESSAGES" => serenity::Permissions::SEND_MESSAGES,
             "VIEW_CHANNEL" => serenity::Permissions::VIEW_CHANNEL,
@@ -284,6 +285,12 @@ mod tests {
         let perms = parse_permissions("ADMINISTRATOR,MANAGE_MESSAGES");
         assert!(perms.contains(serenity::Permissions::ADMINISTRATOR));
         assert!(perms.contains(serenity::Permissions::MANAGE_MESSAGES));
+    }
+
+    #[test]
+    fn parse_permissions_manage_threads() {
+        let perms = parse_permissions("MANAGE_THREADS");
+        assert!(perms.contains(serenity::Permissions::MANAGE_THREADS));
     }
 
     #[test]

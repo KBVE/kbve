@@ -1143,114 +1143,281 @@ async fn create(
     }
 }
 
-// ── /github close ───────────────────────────────────────────────────
+// ── /github close + reopen ──────────────────────────────────────────
 
-/// Close an issue or pull request.
-#[poise::command(slash_command)]
-async fn close(
+const REVERSE_DIRECTION: &str = "discord_to_github";
+
+/// Gate for Discord-driven GitHub state changes: the invoker must hold
+/// MANAGE_THREADS (administrators bypass). Sends an ephemeral notice + returns
+/// `false` when denied. Missing member context (DM) falls through to `true`; the
+/// command still requires a guild for token resolution.
+async fn require_manage_threads(ctx: Context<'_>) -> Result<bool, Error> {
+    if let Some(member) = ctx.author_member().await {
+        let perms = member
+            .permissions
+            .unwrap_or_else(poise::serenity_prelude::Permissions::empty);
+        if !perms.administrator() && !perms.manage_threads() {
+            send_error(
+                ctx,
+                "You need the **Manage Threads** permission to close or reopen issues.",
+            )
+            .await?;
+            return Ok(false);
+        }
+    }
+    Ok(true)
+}
+
+fn neutralize_at(s: &str) -> String {
+    s.replace('@', "@\u{200b}")
+}
+
+/// GitHub attribution comment for a Discord-driven state change. Mentions are
+/// neutralized so nothing pings a GitHub user once mirrored.
+fn state_change_comment(author: &str, reopen: bool, is_pull_request: bool) -> String {
+    let who = neutralize_at(author.trim());
+    let action = if reopen { "reopened" } else { "closed" };
+    let kind = if is_pull_request { "pull request" } else { "issue" };
+    if who.is_empty() {
+        format!("_(via Discord)_ {action} this {kind}.")
+    } else {
+        format!("**{who}** _(via Discord)_ {action} this {kind}.")
+    }
+}
+
+/// Only GitHub's two `state_reason` values are accepted; anything else rejects.
+fn validate_close_reason(reason: &Option<String>) -> Result<Option<String>, String> {
+    match reason.as_deref().map(str::trim).filter(|s| !s.is_empty()) {
+        None => Ok(None),
+        Some("completed") => Ok(Some("completed".to_owned())),
+        Some("not_planned") => Ok(Some("not_planned".to_owned())),
+        Some(other) => Err(format!(
+            "Invalid reason `{other}`. Use `completed` or `not_planned`."
+        )),
+    }
+}
+
+struct StateTarget {
+    owner: String,
+    repo: String,
+    number: u64,
+    is_pull_request: bool,
+    current_state: Option<String>,
+}
+
+/// Resolve the issue/PR to act on: an explicit number (with optional repo), or
+/// the issue mirrored to the current forum thread when no number is given.
+async fn resolve_state_target(
     ctx: Context<'_>,
-    #[description = "Issue or PR number"] number: u64,
-    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
+    number: Option<u64>,
+    repo: &Option<String>,
+) -> Result<StateTarget, String> {
+    let store = &ctx.data().app.github_store;
+    if let Some(number) = number {
+        let (owner, repo_name) = parse_repo(repo, &ctx.data().app.default_repo);
+        let cached = if store.is_enabled() {
+            store
+                .get_issue(&owner, &repo_name, number as u32)
+                .await
+                .ok()
+                .flatten()
+        } else {
+            None
+        };
+        return Ok(StateTarget {
+            is_pull_request: cached.as_ref().map(|c| c.is_pull_request).unwrap_or(false),
+            current_state: cached.map(|c| c.state),
+            owner,
+            repo: repo_name,
+            number,
+        });
+    }
+
+    if !store.is_enabled() {
+        return Err("Provide an issue number — thread lookup is unavailable.".to_owned());
+    }
+    let thread_id = ctx.channel_id().get() as i64;
+    let issue = store
+        .get_issue_by_thread_id(thread_id)
+        .await
+        .map_err(|e| format!("Thread lookup failed: {e}"))?
+        .ok_or_else(|| {
+            "This channel isn't a linked GitHub thread. Run this inside a synced issue/PR thread, or pass a number.".to_owned()
+        })?;
+    Ok(StateTarget {
+        owner: issue.owner,
+        repo: issue.repo,
+        number: issue.number as u64,
+        is_pull_request: issue.is_pull_request,
+        current_state: Some(issue.state),
+    })
+}
+
+/// Post the attribution comment and record a mirror row keyed on the interaction
+/// snowflake so the forward `commented` webhook echo-skips it (no dup in-thread).
+/// Best-effort: a failure here never blocks the state change.
+async fn post_state_attribution(
+    ctx: Context<'_>,
+    gh: &GitHubClient,
+    target: &StateTarget,
+    reopen: bool,
+) {
+    let store = &ctx.data().app.github_store;
+    if !store.is_enabled() {
+        return;
+    }
+    let author = ctx
+        .author()
+        .global_name
+        .clone()
+        .unwrap_or_else(|| ctx.author().name.clone());
+    let body = state_change_comment(&author, reopen, target.is_pull_request);
+    let interaction_id = ctx.id() as i64;
+    let channel_id = ctx.channel_id().get() as i64;
+
+    match store
+        .claim_comment_mirror(
+            interaction_id,
+            channel_id,
+            &target.owner,
+            &target.repo,
+            target.number as u32,
+            REVERSE_DIRECTION,
+            Some(&author),
+        )
+        .await
+    {
+        Ok(false) => return,
+        Ok(true) => {}
+        Err(e) => {
+            warn!(error = %e, number = target.number, "gh state: mirror claim failed; posting without echo-guard");
+        }
+    }
+
+    match gh
+        .create_comment(&target.owner, &target.repo, target.number, &body)
+        .await
+    {
+        Ok(c) => {
+            if let Err(e) = store.set_comment_mirror_github_id(interaction_id, c.id as i64).await {
+                warn!(error = %e, comment_id = c.id, "gh state: finalize mirror failed; forward echo-guard may miss");
+            }
+        }
+        Err(e) => warn!(error = %e, number = target.number, "gh state: attribution comment failed"),
+    }
+}
+
+/// Shared driver for `/github close` and `/github reopen`. GitHub stays the
+/// source of truth; the resulting `closed`/`reopened` webhook flows forward to
+/// archive/unarchive the thread — this command never touches thread state.
+async fn run_state_change(
+    ctx: Context<'_>,
+    number: Option<u64>,
+    repo: Option<String>,
+    reopen: bool,
+    reason: Option<String>,
 ) -> Result<(), Error> {
-    if !check_tier(ctx, CommandTier::Admin).await? {
+    if !require_manage_threads(ctx).await? {
         return Ok(());
     }
+    let reason = if reopen {
+        None
+    } else {
+        match validate_close_reason(&reason) {
+            Ok(r) => r,
+            Err(msg) => return send_error(ctx, &msg).await,
+        }
+    };
     ctx.defer().await?;
 
-    match tokio::time::timeout(COMMAND_TIMEOUT, async {
+    let outcome = tokio::time::timeout(COMMAND_TIMEOUT, async {
         let gh = get_github_client(ctx).await?;
-        let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
-        let full_name = format!("{}/{}", owner, repo_name);
+        let target = resolve_state_target(ctx, number, &repo).await?;
+        let full_name = format!("{}/{}", target.owner, target.repo);
+        let desired = if reopen { "open" } else { "closed" };
+
+        if target.current_state.as_deref() == Some(desired) {
+            return Err(format!("#{} is already {desired}.", target.number));
+        }
+
+        post_state_attribution(ctx, &gh, &target, reopen).await;
 
         let req = UpdateIssueRequest {
-            state: Some("closed".to_owned()),
+            state: Some(desired.to_owned()),
+            state_reason: reason.clone(),
             ..Default::default()
         };
+        gh.update_issue(&target.owner, &target.repo, target.number, &req)
+            .await
+            .map_err(|e| {
+                format!(
+                    "Failed to {} #{}: {e}",
+                    if reopen { "reopen" } else { "close" },
+                    target.number
+                )
+            })?;
 
-        match gh.update_issue(&owner, &repo_name, number, &req).await {
-            Ok(_) => {
-                ctx.data()
-                    .app
-                    .github_cache
-                    .invalidate_issue(&owner, &repo_name, number);
-                info!(user = %ctx.author().name, issue = number, "Issue closed via Discord");
-
-                let embed = poise::serenity_prelude::CreateEmbed::new()
-                    .title(format!("Closed #{number}"))
-                    .description(format!("Issue closed in `{full_name}`"))
-                    .color(branding::GH_GRAY)
-                    .author(branding::embed_author())
-                    .footer(branding::embed_footer(None));
-
-                ctx.send(poise::CreateReply::default().embed(embed))
-                    .await
-                    .map_err(|e| e.to_string())?;
-                Ok(())
-            }
-            Err(e) => Err(format!("Failed to close #{number}: {e}")),
-        }
+        ctx.data()
+            .app
+            .github_cache
+            .invalidate_issue(&target.owner, &target.repo, target.number);
+        ctx.data()
+            .app
+            .github_store
+            .invalidate(&target.owner, &target.repo, target.number as u32);
+        info!(user = %ctx.author().name, issue = target.number, reopen, "Issue state changed via Discord");
+        Ok((target.number, full_name))
     })
-    .await
-    {
-        Ok(Ok(())) => Ok(()),
+    .await;
+
+    match outcome {
+        Ok(Ok((number, full_name))) => {
+            let (title, desc, color) = if reopen {
+                (
+                    format!("Reopened #{number}"),
+                    format!("Issue reopened in `{full_name}`"),
+                    branding::GH_GREEN,
+                )
+            } else {
+                (
+                    format!("Closed #{number}"),
+                    format!("Issue closed in `{full_name}`"),
+                    branding::GH_GRAY,
+                )
+            };
+            let embed = poise::serenity_prelude::CreateEmbed::new()
+                .title(title)
+                .description(desc)
+                .color(color)
+                .author(branding::embed_author())
+                .footer(branding::embed_footer(None));
+            ctx.send(poise::CreateReply::default().embed(embed)).await?;
+            Ok(())
+        }
         Ok(Err(msg)) => send_error(ctx, &msg).await,
         Err(_) => send_error(ctx, "The request timed out — please try again.").await,
     }
 }
 
-// ── /github reopen ──────────────────────────────────────────────────
+/// Close an issue or pull request. Run inside a linked thread to omit the number.
+#[poise::command(slash_command)]
+async fn close(
+    ctx: Context<'_>,
+    #[description = "Issue or PR number (optional inside a linked thread)"] number: Option<u64>,
+    #[description = "Close reason: completed or not_planned"] reason: Option<String>,
+    #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
+) -> Result<(), Error> {
+    run_state_change(ctx, number, repo, false, reason).await
+}
 
-/// Reopen a closed issue or pull request.
+/// Reopen a closed issue or pull request. Run inside a linked thread to omit the number.
 #[poise::command(slash_command)]
 async fn reopen(
     ctx: Context<'_>,
-    #[description = "Issue or PR number"] number: u64,
+    #[description = "Issue or PR number (optional inside a linked thread)"] number: Option<u64>,
     #[description = "Repository (owner/repo, default from env)"] repo: Option<String>,
 ) -> Result<(), Error> {
-    if !check_tier(ctx, CommandTier::Admin).await? {
-        return Ok(());
-    }
-    ctx.defer().await?;
-
-    match tokio::time::timeout(COMMAND_TIMEOUT, async {
-        let gh = get_github_client(ctx).await?;
-        let (owner, repo_name) = parse_repo(&repo, &ctx.data().app.default_repo);
-        let full_name = format!("{}/{}", owner, repo_name);
-
-        let req = UpdateIssueRequest {
-            state: Some("open".to_owned()),
-            ..Default::default()
-        };
-
-        match gh.update_issue(&owner, &repo_name, number, &req).await {
-            Ok(_) => {
-                ctx.data()
-                    .app
-                    .github_cache
-                    .invalidate_issue(&owner, &repo_name, number);
-                info!(user = %ctx.author().name, issue = number, "Issue reopened via Discord");
-
-                let embed = poise::serenity_prelude::CreateEmbed::new()
-                    .title(format!("Reopened #{number}"))
-                    .description(format!("Issue reopened in `{full_name}`"))
-                    .color(branding::GH_GREEN)
-                    .author(branding::embed_author())
-                    .footer(branding::embed_footer(None));
-
-                ctx.send(poise::CreateReply::default().embed(embed))
-                    .await
-                    .map_err(|e| e.to_string())?;
-                Ok(())
-            }
-            Err(e) => Err(format!("Failed to reopen #{number}: {e}")),
-        }
-    })
-    .await
-    {
-        Ok(Ok(())) => Ok(()),
-        Ok(Err(msg)) => send_error(ctx, &msg).await,
-        Err(_) => send_error(ctx, "The request timed out — please try again.").await,
-    }
+    run_state_change(ctx, number, repo, true, None).await
 }
 
 // ── /github comment ─────────────────────────────────────────────────
@@ -1877,5 +2044,58 @@ async fn merge(
         Ok(Ok(())) => Ok(()),
         Ok(Err(msg)) => send_error(ctx, &msg).await,
         Err(_) => send_error(ctx, "The request timed out — please try again.").await,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn state_comment_close_issue() {
+        let body = state_change_comment("h0lyMac", false, false);
+        assert_eq!(body, "**h0lyMac** _(via Discord)_ closed this issue.");
+    }
+
+    #[test]
+    fn state_comment_reopen_pull_request() {
+        let body = state_change_comment("mod", true, true);
+        assert_eq!(body, "**mod** _(via Discord)_ reopened this pull request.");
+    }
+
+    #[test]
+    fn state_comment_neutralizes_mentions() {
+        let body = state_change_comment("@everyone", false, false);
+        assert!(!body.contains("@everyone"));
+        assert!(body.contains("@\u{200b}everyone"));
+    }
+
+    #[test]
+    fn state_comment_blank_author_omits_prefix() {
+        let body = state_change_comment("   ", false, false);
+        assert_eq!(body, "_(via Discord)_ closed this issue.");
+    }
+
+    #[test]
+    fn reason_none_and_empty_are_none() {
+        assert_eq!(validate_close_reason(&None), Ok(None));
+        assert_eq!(validate_close_reason(&Some("  ".to_owned())), Ok(None));
+    }
+
+    #[test]
+    fn reason_accepts_github_values() {
+        assert_eq!(
+            validate_close_reason(&Some("completed".to_owned())),
+            Ok(Some("completed".to_owned()))
+        );
+        assert_eq!(
+            validate_close_reason(&Some(" not_planned ".to_owned())),
+            Ok(Some("not_planned".to_owned()))
+        );
+    }
+
+    #[test]
+    fn reason_rejects_unknown() {
+        assert!(validate_close_reason(&Some("wontfix".to_owned())).is_err());
     }
 }
