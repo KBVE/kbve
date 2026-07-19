@@ -52,7 +52,8 @@ jobs:
         working-directory: apps/windmill
         run: |
           npx --yes "windmill-cli@${WMILL_CLI_VERSION}" generate-metadata \
-            --workspace "${WMILL_WORKSPACE}" --lock-only --yes
+            --workspace "${WMILL_WORKSPACE}" --lock-only --yes \
+            --includes 'f/discordsh/**,f/shared/**'
 
       - name: Preview (dry-run)
         working-directory: apps/windmill
