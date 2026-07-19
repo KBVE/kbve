@@ -31,6 +31,14 @@ impl EmbedDb {
         while rows.next().await?.is_some() {}
         Ok(())
     }
+
+    pub async fn analytics_scalar_i64(&self, sql: &str) -> Result<i64> {
+        let path = self.path.clone();
+        let sql = sql.to_string();
+        tokio::task::spawn_blocking(move || crate::analytics::scalar_i64(&path, &sql))
+            .await
+            .map_err(|e| crate::EmbedError::Other(e.to_string()))?
+    }
 }
 
 #[cfg(test)]
@@ -63,5 +71,19 @@ mod tests {
         db.execute("CREATE TABLE t (id INTEGER)").await.unwrap();
         db.execute("INSERT INTO t VALUES (1)").await.unwrap();
         db.checkpoint().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn duckdb_reads_turso_written_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("x.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER, v REAL)").await.unwrap();
+        for i in 1..=5 {
+            db.execute(&format!("INSERT INTO t VALUES ({}, {}.0)", i, i * 10)).await.unwrap();
+        }
+        db.checkpoint().await.unwrap();
+
+        let count = db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap();
+        assert_eq!(count, 5);
     }
 }
