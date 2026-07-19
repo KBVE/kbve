@@ -4,7 +4,7 @@ use crate::Result;
 pub fn scalar_i64(path: &Path, sql: &str) -> Result<i64> {
     let conn = duckdb::Connection::open_in_memory()?;
     prepare_sqlite_scanner(&conn)?;
-    let attach = format!("ATTACH '{}' AS src (TYPE sqlite, READ_ONLY);", sql_quote_path(path));
+    let attach = format!("ATTACH '{}' AS src (TYPE sqlite, READ_ONLY);", sql_quote_str(crate::db::path_str(path)?));
     conn.execute_batch(&attach)?;
     conn.execute_batch("USE src;")?;
     let val: i64 = conn.query_row(sql, [], |r| r.get(0))?;
@@ -14,7 +14,7 @@ pub fn scalar_i64(path: &Path, sql: &str) -> Result<i64> {
 pub fn scalar_f64(path: &Path, sql: &str) -> Result<f64> {
     let conn = duckdb::Connection::open_in_memory()?;
     prepare_sqlite_scanner(&conn)?;
-    let attach = format!("ATTACH '{}' AS src (TYPE sqlite, READ_ONLY);", sql_quote_path(path));
+    let attach = format!("ATTACH '{}' AS src (TYPE sqlite, READ_ONLY);", sql_quote_str(crate::db::path_str(path)?));
     conn.execute_batch(&attach)?;
     conn.execute_batch("USE src;")?;
     let val: f64 = conn.query_row(sql, [], |r| r.get(0))?;
@@ -32,8 +32,4 @@ fn prepare_sqlite_scanner(conn: &duckdb::Connection) -> Result<()> {
 
 fn sql_quote_str(s: &str) -> String {
     s.replace('\'', "''")
-}
-
-fn sql_quote_path(path: &Path) -> String {
-    sql_quote_str(&path.display().to_string())
 }

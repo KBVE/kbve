@@ -6,6 +6,8 @@ pub enum EmbedError {
     Duck(#[from] duckdb::Error),
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
+    #[error("non-utf8 path: {0}")]
+    NonUtf8Path(std::path::PathBuf),
     #[error("{0}")]
     Other(String),
 }

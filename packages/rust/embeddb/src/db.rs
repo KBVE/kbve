@@ -1,15 +1,20 @@
 use std::path::{Path, PathBuf};
 use crate::Result;
 
+#[derive(Debug)]
 pub struct EmbedDb {
     path: PathBuf,
     conn: turso::Connection,
 }
 
+pub(crate) fn path_str(path: &Path) -> Result<&str> {
+    path.to_str().ok_or_else(|| crate::EmbedError::NonUtf8Path(path.to_path_buf()))
+}
+
 impl EmbedDb {
     pub async fn open(path: impl AsRef<Path>) -> Result<EmbedDb> {
         let path = path.as_ref().to_path_buf();
-        let db = turso::Builder::new_local(path.to_str().unwrap())
+        let db = turso::Builder::new_local(path_str(&path)?)
             .build()
             .await?;
         let conn = db.connect()?;
@@ -62,6 +67,17 @@ impl EmbedDb {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn open_non_utf8_path_errors() {
+        use std::os::unix::ffi::OsStrExt;
+        use std::ffi::OsStr;
+        let dir = tempfile::tempdir().unwrap();
+        let bad = dir.path().join(OsStr::from_bytes(b"bad\xFFname.db"));
+        let err = EmbedDb::open(&bad).await.unwrap_err();
+        assert!(matches!(err, crate::EmbedError::NonUtf8Path(_)));
+    }
 
     #[tokio::test]
     async fn open_creates_file() {
