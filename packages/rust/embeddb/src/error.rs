@@ -6,6 +6,10 @@ pub enum EmbedError {
     Duck(#[from] duckdb::Error),
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
+    #[error("non-utf8 path: {0}")]
+    NonUtf8Path(std::path::PathBuf),
+    #[error("checkpoint busy after retries")]
+    CheckpointBusy,
     #[error("{0}")]
     Other(String),
 }
@@ -21,5 +25,21 @@ mod tests {
         let io = std::io::Error::new(std::io::ErrorKind::NotFound, "nope");
         let e: EmbedError = io.into();
         assert!(matches!(e, EmbedError::Io(_)));
+    }
+
+    #[test]
+    fn non_utf8_path_displays() {
+        let e = EmbedError::NonUtf8Path(std::path::PathBuf::from("bad\u{FFFD}name.db"));
+        let msg = format!("{}", e);
+        assert!(!msg.is_empty());
+        assert!(msg.contains("non-utf8 path"));
+    }
+
+    #[test]
+    fn checkpoint_busy_displays() {
+        let e = EmbedError::CheckpointBusy;
+        let msg = format!("{}", e);
+        assert!(!msg.is_empty());
+        assert_eq!(msg, "checkpoint busy after retries");
     }
 }
