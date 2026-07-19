@@ -1,0 +1,19 @@
+summary: Fetch advice from Advice Slip (shared core)
+description: >-
+  Shared library parent. Exports fetchAdvice() imported by the surface wrapper
+  (f/discordsh/advice). Source: api.adviceslip.com. Blank returns random advice;
+  a query searches slips and returns a random match. SYSTEM tier — never invoked
+  directly from a browser. Bun, no deps.
+kind: script
+lock: ''
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  order:
+    - query
+  properties:
+    query:
+      type: string
+      description: Optional search term; blank returns random advice.
+      default: ''
+  required: []
