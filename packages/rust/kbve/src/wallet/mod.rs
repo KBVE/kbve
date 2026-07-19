@@ -32,6 +32,7 @@ pub mod error;
 pub mod market;
 pub mod proxy;
 pub mod service;
+pub mod store;
 pub mod types;
 
 #[cfg(test)]

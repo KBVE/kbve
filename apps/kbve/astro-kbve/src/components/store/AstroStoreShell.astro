@@ -1,0 +1,28 @@
+---
+import ReactStoreCard from './ReactStoreCard';
+import StoreCatalog from './StoreCatalog';
+import OrderHistory from './OrderHistory';
+import BuyCredits from './BuyCredits';
+import './store.css';
+---
+
+<section class="kbve-store not-content kbve-dashboard-page">
+	<header class="kbve-store__header">
+		<h1>Store</h1>
+		<p>
+			Spend credits to unlock collectibles and merch. Purchases mint an
+			inventory item you own — and can later list on the marketplace.
+		</p>
+	</header>
+
+	<BuyCredits client:only="react" />
+
+	<div class="kbve-store__grid">
+		<ReactStoreCard client:only="react" />
+	</div>
+
+	<h2>All products</h2>
+	<StoreCatalog client:only="react" />
+
+	<OrderHistory client:only="react" />
+</section>

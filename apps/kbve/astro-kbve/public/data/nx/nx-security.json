@@ -1,994 +1,958 @@
 {
-  "generated_at": "2026-07-18T09:40:57Z",
-  "summary": {
-    "critical": 6,
-    "high": 25,
-    "medium": 55,
-    "low": 8,
-    "info": 38
-  },
-  "ecosystems": {
-    "npm": {
-      "total": 64,
-      "severities": {
-        "critical": 3,
-        "high": 25,
-        "medium": 28,
-        "low": 8,
-        "info": 0
-      },
-      "advisories": [
-        {
-          "id": "1111772",
-          "title": "vue-template-compiler vulnerable to client-side Cross-Site Scripting (XSS)",
-          "severity": "medium",
-          "package": "vue-template-compiler",
-          "url": "https://github.com/advisories/GHSA-g3ch-rx76-35fx"
-        },
-        {
-          "id": "1112704",
-          "title": "jsdiff has a Denial of Service vulnerability in parsePatch and applyPatch",
-          "severity": "low",
-          "package": "diff",
-          "url": "https://github.com/advisories/GHSA-73rr-hh4g-fpgx"
-        },
-        {
-          "id": "1112715",
-          "title": "js-yaml has prototype pollution in merge (<<)",
-          "severity": "medium",
-          "package": "js-yaml",
-          "url": "https://github.com/advisories/GHSA-mh29-5h37-fv8m"
-        },
-        {
-          "id": "1113048",
-          "title": "mdast-util-to-hast has unsanitized class attribute",
-          "severity": "medium",
-          "package": "mdast-util-to-hast",
-          "url": "https://github.com/advisories/GHSA-4fh9-h7wg-q85m"
-        },
-        {
-          "id": "1113161",
-          "title": "qs's arrayLimit bypass in comma parsing allows denial of service",
-          "severity": "low",
-          "package": "qs",
-          "url": "https://github.com/advisories/GHSA-w7fw-mjwx-w883"
-        },
-        {
-          "id": "1113515",
-          "title": "Rollup 4 has Arbitrary File Write via Path Traversal",
-          "severity": "high",
-          "package": "rollup",
-          "url": "https://github.com/advisories/GHSA-mw96-cpmx-2vgc"
-        },
-        {
-          "id": "1113564",
-          "title": "Koa has Host Header Injection via ctx.hostname",
-          "severity": "high",
-          "package": "koa",
-          "url": "https://github.com/advisories/GHSA-7gcc-r8m5-44qm"
-        },
-        {
-          "id": "1113686",
-          "title": "Serialize JavaScript is Vulnerable to RCE via RegExp.flags and Date.prototype.toISOString()",
-          "severity": "high",
-          "package": "serialize-javascript",
-          "url": "https://github.com/advisories/GHSA-5c6j-r48x-rmvq"
-        },
-        {
-          "id": "1113714",
-          "title": "ajv has ReDoS when using `$data` option",
-          "severity": "medium",
-          "package": "ajv",
-          "url": "https://github.com/advisories/GHSA-2g4f-4pwh-qvx6"
-        },
-        {
-          "id": "1113715",
-          "title": "ajv has ReDoS when using `$data` option",
-          "severity": "medium",
-          "package": "ajv",
-          "url": "https://github.com/advisories/GHSA-2g4f-4pwh-qvx6"
-        },
-        {
-          "id": "1113719",
-          "title": "qs's arrayLimit bypass in its bracket notation allows DoS via memory exhaustion",
-          "severity": "medium",
-          "package": "qs",
-          "url": "https://github.com/advisories/GHSA-6rw7-vpxm-498p"
-        },
-        {
-          "id": "1114151",
-          "title": "SVGO DoS through entity expansion in DOCTYPE (Billion Laughs)",
-          "severity": "high",
-          "package": "svgo",
-          "url": "https://github.com/advisories/GHSA-xpqw-6gx7-v673"
-        },
-        {
-          "id": "1114200",
-          "title": "tar has Hardlink Path Traversal via Drive-Relative Linkpath",
-          "severity": "high",
-          "package": "tar",
-          "url": "https://github.com/advisories/GHSA-qffp-2rhf-9h96"
-        },
-        {
-          "id": "1114302",
-          "title": "node-tar Symlink Path Traversal via Drive-Relative Linkpath",
-          "severity": "high",
-          "package": "tar",
-          "url": "https://github.com/advisories/GHSA-9ppj-qmqm-q256"
-        },
-        {
-          "id": "1114526",
-          "title": "flatted vulnerable to unbounded recursion DoS in parse() revive phase",
-          "severity": "high",
-          "package": "flatted",
-          "url": "https://github.com/advisories/GHSA-25h7-pfq9-p65f"
-        },
-        {
-          "id": "1115357",
-          "title": "Prototype Pollution via parse() in NodeJS flatted",
-          "severity": "high",
-          "package": "flatted",
-          "url": "https://github.com/advisories/GHSA-rf6f-7fwh-wjgh"
-        },
-        {
-          "id": "1115527",
-          "title": "path-to-regexp vulnerable to Regular Expression Denial of Service via multiple route parameters",
-          "severity": "high",
-          "package": "path-to-regexp",
-          "url": "https://github.com/advisories/GHSA-37ch-88jc-xwx2"
-        },
-        {
-          "id": "1115540",
-          "title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
-          "severity": "medium",
-          "package": "brace-expansion",
-          "url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v"
-        },
-        {
-          "id": "1115551",
-          "title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
-          "severity": "medium",
-          "package": "picomatch",
-          "url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
-        },
-        {
-          "id": "1115554",
-          "title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
-          "severity": "high",
-          "package": "picomatch",
-          "url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj"
-        },
-        {
-          "id": "1115555",
-          "title": "yaml is vulnerable to Stack Overflow via deeply nested YAML collections",
-          "severity": "medium",
-          "package": "yaml",
-          "url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
-        },
-        {
-          "id": "1115556",
-          "title": "yaml is vulnerable to Stack Overflow via deeply nested YAML collections",
-          "severity": "medium",
-          "package": "yaml",
-          "url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
-        },
-        {
-          "id": "1115806",
-          "title": "lodash vulnerable to Code Injection via `_.template` imports key names",
-          "severity": "high",
-          "package": "lodash",
-          "url": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc"
-        },
-        {
-          "id": "1115810",
-          "title": "lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`",
-          "severity": "medium",
-          "package": "lodash",
-          "url": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
-        },
-        {
-          "id": "1117870",
-          "title": "fast-uri vulnerable to path traversal via percent-encoded dot segments",
-          "severity": "high",
-          "package": "fast-uri",
-          "url": "https://github.com/advisories/GHSA-q3j6-qgpj-74h6"
-        },
-        {
-          "id": "1117884",
-          "title": "fast-uri vulnerable to host confusion via percent-encoded authority delimiters",
-          "severity": "high",
-          "package": "fast-uri",
-          "url": "https://github.com/advisories/GHSA-v39h-62p7-jpjc"
-        },
-        {
-          "id": "1119108",
-          "title": "ws: Uninitialized memory disclosure",
-          "severity": "medium",
-          "package": "ws",
-          "url": "https://github.com/advisories/GHSA-58qx-3vcg-4xpx"
-        },
-        {
-          "id": "1119440",
-          "title": "Serialize JavaScript has CPU Exhaustion Denial of Service via crafted array-like objects",
-          "severity": "medium",
-          "package": "serialize-javascript",
-          "url": "https://github.com/advisories/GHSA-qj8w-gfj5-8c6v"
-        },
-        {
-          "id": "1119441",
-          "title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
-          "severity": "medium",
-          "package": "uuid",
-          "url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq"
-        },
-        {
-          "id": "1119502",
-          "title": "qs has a remotely triggerable DoS: qs.stringify crashes with TypeError on null/undefined entries in comma-format arrays when encodeValuesOnly is set",
-          "severity": "medium",
-          "package": "qs",
-          "url": "https://github.com/advisories/GHSA-q8mj-m7cp-5q26"
-        },
-        {
-          "id": "1120127",
-          "title": "When Vitest UI server is listening, arbitrary file can be read and executed",
-          "severity": "critical",
-          "package": "vitest",
-          "url": "https://github.com/advisories/GHSA-5xrq-8626-4rwp"
-        },
-        {
-          "id": "1120370",
-          "title": "Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions",
-          "severity": "medium",
-          "package": "lodash",
-          "url": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg"
-        },
-        {
-          "id": "1120422",
-          "title": "shell-quote quote() does not escape newlines in object .op values",
-          "severity": "critical",
-          "package": "shell-quote",
-          "url": "https://github.com/advisories/GHSA-w7jw-789q-3m8p"
-        },
-        {
-          "id": "1120654",
-          "title": "tmp has Path Traversal via unsanitized prefix/postfix that enables directory escape",
-          "severity": "high",
-          "package": "tmp",
-          "url": "https://github.com/advisories/GHSA-ph9p-34f9-6g65"
-        },
-        {
-          "id": "1120680",
-          "title": "esbuild allows arbitrary file read when running the development server on Windows",
-          "severity": "low",
-          "package": "esbuild",
-          "url": "https://github.com/advisories/GHSA-g7r4-m6w7-qqqr"
-        },
-        {
-          "id": "1120743",
-          "title": "form-data: CRLF injection in form-data via unescaped multipart field names and filenames",
-          "severity": "high",
-          "package": "form-data",
-          "url": "https://github.com/advisories/GHSA-hmw2-7cc7-3qxx"
-        },
-        {
-          "id": "1120782",
-          "title": "node-tar applies PAX size override to intermediary GNU long-name/long-link headers, causing tar parser interpretation differential (file smuggling)",
-          "severity": "medium",
-          "package": "tar",
-          "url": "https://github.com/advisories/GHSA-vmf3-w455-68vh"
-        },
-        {
-          "id": "1120785",
-          "title": "launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows",
-          "severity": "medium",
-          "package": "vite",
-          "url": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3"
-        },
-        {
-          "id": "1120786",
-          "title": "launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows",
-          "severity": "medium",
-          "package": "vite",
-          "url": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3"
-        },
-        {
-          "id": "1120787",
-          "title": "launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows",
-          "severity": "medium",
-          "package": "launch-editor",
-          "url": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3"
-        },
-        {
-          "id": "1121163",
-          "title": "http-proxy-middleware: multipart/form-data field injection via unescaped CRLF in `fixRequestBody`",
-          "severity": "high",
-          "package": "http-proxy-middleware",
-          "url": "https://github.com/advisories/GHSA-gcq2-9pq2-cxqm"
-        },
-        {
-          "id": "1121187",
-          "title": "undici vulnerable to TLS certificate validation bypass via dropped requestTls in SOCKS5 ProxyAgent",
-          "severity": "high",
-          "package": "undici",
-          "url": "https://github.com/advisories/GHSA-vmh5-mc38-953g"
-        },
-        {
-          "id": "1121191",
-          "title": "Nodemailer: Message-level raw option bypasses disableFileAccess/disableUrlAccess, enabling arbitrary file read and full-response SSRF in the delivered message",
-          "severity": "high",
-          "package": "nodemailer",
-          "url": "https://github.com/advisories/GHSA-p6gq-j5cr-w38f"
-        },
-        {
-          "id": "1121241",
-          "title": "undici vulnerable to HTTP header injection via Set-Cookie percent-decoding",
-          "severity": "medium",
-          "package": "undici",
-          "url": "https://github.com/advisories/GHSA-p88m-4jfj-68fv"
-        },
-        {
-          "id": "1121242",
-          "title": "undici vulnerable to HTTP header injection via Set-Cookie percent-decoding",
-          "severity": "medium",
-          "package": "undici",
-          "url": "https://github.com/advisories/GHSA-p88m-4jfj-68fv"
-        },
-        {
-          "id": "1121244",
-          "title": "undici WebSocket client vulnerable to denial of service via fragment count bypass",
-          "severity": "high",
-          "package": "undici",
-          "url": "https://github.com/advisories/GHSA-vxpw-j846-p89q"
-        },
-        {
-          "id": "1121245",
-          "title": "undici WebSocket client vulnerable to denial of service via fragment count bypass",
-          "severity": "high",
-          "package": "undici",
-          "url": "https://github.com/advisories/GHSA-vxpw-j846-p89q"
-        },
-        {
-          "id": "1121247",
-          "title": "undici vulnerable to cross-origin request routing via SOCKS5 proxy pool reuse",
-          "severity": "high",
-          "package": "undici",
-          "url": "https://github.com/advisories/GHSA-hm92-r4w5-c3mj"
-        },
-        {
-          "id": "1121249",
-          "title": "undici vulnerable to HTTP response queue poisoning via keep-alive socket reuse",
-          "severity": "low",
-          "package": "undici",
-          "url": "https://github.com/advisories/GHSA-35p6-xmwp-9g52"
-        },
-        {
-          "id": "1121250",
-          "title": "undici vulnerable to HTTP response queue poisoning via keep-alive socket reuse",
-          "severity": "low",
-          "package": "undici",
-          "url": "https://github.com/advisories/GHSA-35p6-xmwp-9g52"
-        },
-        {
-          "id": "1121254",
-          "title": "undici vulnerable to Set-Cookie SameSite attribute downgrade via permissive substring matching",
-          "severity": "low",
-          "package": "undici",
-          "url": "https://github.com/advisories/GHSA-g8m3-5g58-fq7m"
-        },
-        {
-          "id": "1121255",
-          "title": "undici vulnerable to Set-Cookie SameSite attribute downgrade via permissive substring matching",
-          "severity": "low",
-          "package": "undici",
-          "url": "https://github.com/advisories/GHSA-g8m3-5g58-fq7m"
-        },
-        {
-          "id": "1121360",
-          "title": "http-proxy-middleware `router` host+path substring matching allows Host-header-driven backend routing bypass",
-          "severity": "medium",
-          "package": "http-proxy-middleware",
-          "url": "https://github.com/advisories/GHSA-64mm-vxmg-q3vj"
-        },
-        {
-          "id": "1121361",
-          "title": "http-proxy-middleware `router` host+path substring matching allows Host-header-driven backend routing bypass",
-          "severity": "medium",
-          "package": "http-proxy-middleware",
-          "url": "https://github.com/advisories/GHSA-64mm-vxmg-q3vj"
-        },
-        {
-          "id": "1121428",
-          "title": "undici vulnerable to cross-user information disclosure via shared cache whitespace bypass",
-          "severity": "medium",
-          "package": "undici",
-          "url": "https://github.com/advisories/GHSA-pr7r-676h-xcf6"
-        },
-        {
-          "id": "1121859",
-          "title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
-          "severity": "medium",
-          "package": "js-yaml",
-          "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68"
-        },
-        {
-          "id": "1121860",
-          "title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
-          "severity": "medium",
-          "package": "js-yaml",
-          "url": "https://github.com/advisories/GHSA-h67p-54hq-rp68"
-        },
-        {
-          "id": "1123259",
-          "title": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
-          "severity": "high",
-          "package": "ws",
-          "url": "https://github.com/advisories/GHSA-96hv-2xvq-fx4p"
-        },
-        {
-          "id": "1123482",
-          "title": "websocket-driver: Resource limit bypass via message compression",
-          "severity": "medium",
-          "package": "websocket-driver",
-          "url": "https://github.com/advisories/GHSA-mp7j-qc5w-4988"
-        },
-        {
-          "id": "1123483",
-          "title": "websocket-driver: Message corruption via abuse of protocol length headers",
-          "severity": "critical",
-          "package": "websocket-driver",
-          "url": "https://github.com/advisories/GHSA-xv26-6w52-cph6"
-        },
-        {
-          "id": "1123526",
-          "title": "vite: `server.fs.deny` bypass on Windows alternate paths",
-          "severity": "high",
-          "package": "vite",
-          "url": "https://github.com/advisories/GHSA-fx2h-pf6j-xcff"
-        },
-        {
-          "id": "1123527",
-          "title": "vite: `server.fs.deny` bypass on Windows alternate paths",
-          "severity": "high",
-          "package": "vite",
-          "url": "https://github.com/advisories/GHSA-fx2h-pf6j-xcff"
-        },
-        {
-          "id": "1123528",
-          "title": "@babel/core: Arbitrary File Read via sourceMappingURL Comment",
-          "severity": "low",
-          "package": "@babel/core",
-          "url": "https://github.com/advisories/GHSA-4x5r-pxfx-6jf8"
-        },
-        {
-          "id": "1123686",
-          "title": "adm-zip: Crafted ZIP file triggers 4GB memory allocation",
-          "severity": "high",
-          "package": "adm-zip",
-          "url": "https://github.com/advisories/GHSA-xcpc-8h2w-3j85"
-        }
-      ]
-    },
-    "cargo": {
-      "total": 63,
-      "severities": {
-        "critical": 0,
-        "high": 0,
-        "medium": 25,
-        "low": 0,
-        "info": 38
-      },
-      "advisories": [
-        {
-          "id": "RUSTSEC-2026-0193",
-          "title": "mXSS in ammonia via MathML `annotation-xml` encoding strip",
-          "severity": "medium",
-          "package": "ammonia",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0204",
-          "title": "Invalid pointer dereference in `fmt::Pointer` impl for `Atomic` and `Shared` when the underlying pointer is invalid",
-          "severity": "medium",
-          "package": "crossbeam-epoch",
-          "url": "https://github.com/crossbeam-rs/crossbeam/pull/1276"
-        },
-        {
-          "id": "RUSTSEC-2026-0119",
-          "title": "CPU exhaustion during message encoding due to O(n\u00b2) name compression",
-          "severity": "medium",
-          "package": "hickory-proto",
-          "url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-q2qq-hmj6-3wpp"
-        },
-        {
-          "id": "RUSTSEC-2026-0118",
-          "title": "NSEC3 closest-encloser proof validation enters unbounded loop on cross-zone responses",
-          "severity": "medium",
-          "package": "hickory-proto",
-          "url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-3v94-mw7p-v465"
-        },
-        {
-          "id": "RUSTSEC-2026-0179",
-          "title": "Unbounded SCRAM iteration count allows a malicious server to cause CPU-exhaustion denial of service",
-          "severity": "medium",
-          "package": "postgres-protocol",
-          "url": "https://github.com/rust-postgres/rust-postgres/commit/d40097a36a85068ea50a3afbf0ce154ba439e7f0"
-        },
-        {
-          "id": "RUSTSEC-2026-0180",
-          "title": "Panic decoding a malformed `hstore` value allows denial of service",
-          "severity": "medium",
-          "package": "postgres-protocol",
-          "url": "https://github.com/rust-postgres/rust-postgres/commit/a7cf84b5c46431cbca9d8ff50508c23f446efa7d"
-        },
-        {
-          "id": "RUSTSEC-2026-0195",
-          "title": "Unbounded namespace-declaration allocation in `NsReader` enables memory-exhaustion denial of service",
-          "severity": "medium",
-          "package": "quick-xml",
-          "url": "https://github.com/tafia/quick-xml/issues/970"
-        },
-        {
-          "id": "RUSTSEC-2026-0194",
-          "title": "Quadratic run time when checking a start tag for duplicate attribute names",
-          "severity": "medium",
-          "package": "quick-xml",
-          "url": "https://github.com/tafia/quick-xml/issues/969"
-        },
-        {
-          "id": "RUSTSEC-2026-0195",
-          "title": "Unbounded namespace-declaration allocation in `NsReader` enables memory-exhaustion denial of service",
-          "severity": "medium",
-          "package": "quick-xml",
-          "url": "https://github.com/tafia/quick-xml/issues/970"
-        },
-        {
-          "id": "RUSTSEC-2026-0194",
-          "title": "Quadratic run time when checking a start tag for duplicate attribute names",
-          "severity": "medium",
-          "package": "quick-xml",
-          "url": "https://github.com/tafia/quick-xml/issues/969"
-        },
-        {
-          "id": "RUSTSEC-2026-0185",
-          "title": " Remote memory exhaustion in quinn-proto from unbounded out-of-order stream reassembly",
-          "severity": "medium",
-          "package": "quinn-proto",
-          "url": "https://github.com/quinn-rs/quinn/pull/2694"
-        },
-        {
-          "id": "RUSTSEC-2023-0071",
-          "title": "Marvin Attack: potential key recovery through timing sidechannels",
-          "severity": "medium",
-          "package": "rsa",
-          "url": "https://github.com/RustCrypto/RSA/issues/626"
-        },
-        {
-          "id": "RUSTSEC-2026-0104",
-          "title": "Reachable panic in certificate revocation list parsing",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0099",
-          "title": "Name constraints were accepted for certificates asserting a wildcard name",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0098",
-          "title": "Name constraints for URI names were incorrectly accepted",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0104",
-          "title": "Reachable panic in certificate revocation list parsing",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0099",
-          "title": "Name constraints were accepted for certificates asserting a wildcard name",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0098",
-          "title": "Name constraints for URI names were incorrectly accepted",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0049",
-          "title": "CRLs not considered authoritative by Distribution Point due to faulty matching logic",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0104",
-          "title": "Reachable panic in certificate revocation list parsing",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0099",
-          "title": "Name constraints were accepted for certificates asserting a wildcard name",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2026-0098",
-          "title": "Name constraints for URI names were incorrectly accepted",
-          "severity": "medium",
-          "package": "rustls-webpki",
-          "url": null
-        },
-        {
-          "id": "RUSTSEC-2024-0363",
-          "title": "Binary Protocol Misinterpretation caused by Truncating or Overflowing Casts",
-          "severity": "medium",
-          "package": "sqlx",
-          "url": "https://github.com/launchbadge/sqlx/issues/3440"
-        },
-        {
-          "id": "RUSTSEC-2026-0121",
-          "title": "Denial of service in Steamworks game clients/servers using P2P authentication",
-          "severity": "medium",
-          "package": "steamworks",
-          "url": "https://github.com/Noxime/steamworks-rs/issues/321"
-        },
-        {
-          "id": "RUSTSEC-2026-0178",
-          "title": "Panic on a `DataRow` with fewer fields than columns allows denial of service",
-          "severity": "medium",
-          "package": "tokio-postgres",
-          "url": "https://github.com/rust-postgres/rust-postgres/commit/7a00ffa9ad4d951ec0a4564b52f1780fa9d353c1"
-        },
-        {
-          "id": "RUSTSEC-2024-0413",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "atk",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0416",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "atk-sys",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2025-0141",
-          "title": "Bincode is unmaintained",
-          "severity": "info",
-          "package": "bincode",
-          "url": "https://git.sr.ht/~stygianentity/bincode/tree/v3.0/item/README.md"
-        },
-        {
-          "id": "RUSTSEC-2024-0388",
-          "title": "`derivative` is unmaintained; consider using an alternative",
-          "severity": "info",
-          "package": "derivative",
-          "url": "https://github.com/mcarton/rust-derivative/issues/117"
-        },
-        {
-          "id": "RUSTSEC-2025-0057",
-          "title": "fxhash - no longer maintained",
-          "severity": "info",
-          "package": "fxhash",
-          "url": "https://github.com/cbreeden/fxhash/issues/20"
-        },
-        {
-          "id": "RUSTSEC-2024-0412",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gdk",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0418",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gdk-sys",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0411",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gdkwayland-sys",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0417",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gdkx11",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0414",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gdkx11-sys",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0415",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gtk",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0420",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gtk-sys",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0419",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gtk3-macros",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0436",
-          "title": "paste - no longer maintained",
-          "severity": "info",
-          "package": "paste",
-          "url": "https://github.com/dtolnay/paste"
-        },
-        {
-          "id": "RUSTSEC-2024-0370",
-          "title": "proc-macro-error is unmaintained",
-          "severity": "info",
-          "package": "proc-macro-error",
-          "url": "https://gitlab.com/CreepySkeleton/proc-macro-error/-/issues/20"
-        },
-        {
-          "id": "RUSTSEC-2026-0173",
-          "title": "proc-macro-error2 is unmaintained",
-          "severity": "info",
-          "package": "proc-macro-error2",
-          "url": "https://github.com/GnomedDev/proc-macro-error-2/issues/17"
-        },
-        {
-          "id": "RUSTSEC-2025-0134",
-          "title": "rustls-pemfile is unmaintained",
-          "severity": "info",
-          "package": "rustls-pemfile",
-          "url": "https://github.com/rustls/pemfile/issues/61"
-        },
-        {
-          "id": "RUSTSEC-2025-0134",
-          "title": "rustls-pemfile is unmaintained",
-          "severity": "info",
-          "package": "rustls-pemfile",
-          "url": "https://github.com/rustls/pemfile/issues/61"
-        },
-        {
-          "id": "RUSTSEC-2026-0206",
-          "title": "`rustybuzz` is unmaintained",
-          "severity": "info",
-          "package": "rustybuzz",
-          "url": "https://github.com/harfbuzz/rustybuzz/issues/166"
-        },
-        {
-          "id": "RUSTSEC-2021-0127",
-          "title": "serde_cbor is unmaintained",
-          "severity": "info",
-          "package": "serde_cbor",
-          "url": "https://github.com/pyfisch/cbor"
-        },
-        {
-          "id": "RUSTSEC-2026-0192",
-          "title": "`ttf-parser` is unmaintained",
-          "severity": "info",
-          "package": "ttf-parser",
-          "url": "https://github.com/harfbuzz/ttf-parser/issues/217"
-        },
-        {
-          "id": "RUSTSEC-2025-0081",
-          "title": "`unic-char-property` is unmaintained",
-          "severity": "info",
-          "package": "unic-char-property",
-          "url": "https://github.com/rustsec/advisory-db/issues/2414"
-        },
-        {
-          "id": "RUSTSEC-2025-0075",
-          "title": "`unic-char-range` is unmaintained",
-          "severity": "info",
-          "package": "unic-char-range",
-          "url": "https://github.com/rustsec/advisory-db/issues/2414"
-        },
-        {
-          "id": "RUSTSEC-2025-0080",
-          "title": "`unic-common` is unmaintained",
-          "severity": "info",
-          "package": "unic-common",
-          "url": "https://github.com/rustsec/advisory-db/issues/2414"
-        },
-        {
-          "id": "RUSTSEC-2025-0100",
-          "title": "`unic-ucd-ident` is unmaintained",
-          "severity": "info",
-          "package": "unic-ucd-ident",
-          "url": "https://github.com/rustsec/advisory-db/issues/2414"
-        },
-        {
-          "id": "RUSTSEC-2025-0098",
-          "title": "`unic-ucd-version` is unmaintained",
-          "severity": "info",
-          "package": "unic-ucd-version",
-          "url": "https://github.com/rustsec/advisory-db/issues/2414"
-        },
-        {
-          "id": "RUSTSEC-2026-0190",
-          "title": "Unsoundness in `Error::downcast_mut()`",
-          "severity": "info",
-          "package": "anyhow",
-          "url": "https://github.com/dtolnay/anyhow/issues/451"
-        },
-        {
-          "id": "RUSTSEC-2026-0172",
-          "title": "Possible use after free when deserializing a SQLite database via `SqliteConnection::deserialize_readonly_database`",
-          "severity": "info",
-          "package": "diesel",
-          "url": "https://github.com/diesel-rs/diesel/commit/1bc2ea46d9840e8d9af844239d3c84f37fe7d84b"
-        },
-        {
-          "id": "RUSTSEC-2024-0429",
-          "title": "Unsoundness in `Iterator` and `DoubleEndedIterator` impls for `glib::VariantStrIter`",
-          "severity": "info",
-          "package": "glib",
-          "url": "https://github.com/gtk-rs/gtk-rs-core/pull/1343"
-        },
-        {
-          "id": "RUSTSEC-2026-0002",
-          "title": "`IterMut` violates Stacked Borrows by invalidating internal pointer",
-          "severity": "info",
-          "package": "lru",
-          "url": "https://github.com/jeromefroe/lru-rs/pull/224"
-        },
-        {
-          "id": "RUSTSEC-2026-0186",
-          "title": "Unchecked pointer offset in crate `memmap2`",
-          "severity": "info",
-          "package": "memmap2",
-          "url": "https://github.com/RazrFalcon/memmap2-rs/issues/169"
-        },
-        {
-          "id": "RUSTSEC-2026-0097",
-          "title": "Rand is unsound with a custom logger using `rand::rng()`",
-          "severity": "info",
-          "package": "rand",
-          "url": "https://github.com/rust-random/rand/pull/1763"
-        },
-        {
-          "id": "RUSTSEC-2026-0097",
-          "title": "Rand is unsound with a custom logger using `rand::rng()`",
-          "severity": "info",
-          "package": "rand",
-          "url": "https://github.com/rust-random/rand/pull/1763"
-        },
-        {
-          "id": "RUSTSEC-2026-0097",
-          "title": "Rand is unsound with a custom logger using `rand::rng()`",
-          "severity": "info",
-          "package": "rand",
-          "url": "https://github.com/rust-random/rand/pull/1763"
-        },
-        {
-          "id": "RUSTSEC-2026-0097",
-          "title": "Rand is unsound with a custom logger using `rand::rng()`",
-          "severity": "info",
-          "package": "rand",
-          "url": "https://github.com/rust-random/rand/pull/1763"
-        },
-        {
-          "id": "RUSTSEC-2026-0205",
-          "title": "`Array::insert` violates exception safety if compare function panics, leading to potential Double-Free",
-          "severity": "info",
-          "package": "scc",
-          "url": "https://codeberg.org/wvwwvwwv/scalable-concurrent-containers/issues/232"
-        },
-        {
-          "id": "",
-          "title": "",
-          "severity": "info",
-          "package": "spin",
-          "url": ""
-        },
-        {
-          "id": "",
-          "title": "",
-          "severity": "info",
-          "package": "spin",
-          "url": ""
-        }
-      ]
-    },
-    "python": {
-      "total": 0,
-      "severities": {
-        "critical": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0,
-        "info": 0
-      },
-      "advisories": []
-    },
-    "codeql": {
-      "total": 5,
-      "severities": {
-        "critical": 3,
-        "high": 0,
-        "medium": 2,
-        "low": 0,
-        "info": 0
-      },
-      "alerts": [
-        {
-          "rule_id": "js/shell-command-constructed-from-input",
-          "description": "Unsafe shell command constructed from library input",
-          "severity": "medium",
-          "path": "packages/npm/devops/src/lib/client/github/pulls.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/517"
-        },
-        {
-          "rule_id": "js/shell-command-constructed-from-input",
-          "description": "Unsafe shell command constructed from library input",
-          "severity": "medium",
-          "path": "packages/npm/devops/src/lib/client/github/pulls.ts",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/516"
-        },
-        {
-          "rule_id": "rust/hard-coded-cryptographic-value",
-          "description": "Hard-coded cryptographic value",
-          "severity": "critical",
-          "path": "packages/rust/simgrid/src/blackjack/engine.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/512"
-        },
-        {
-          "rule_id": "rust/hard-coded-cryptographic-value",
-          "description": "Hard-coded cryptographic value",
-          "severity": "critical",
-          "path": "packages/rust/simgrid/src/blackjack/engine.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/511"
-        },
-        {
-          "rule_id": "rust/hard-coded-cryptographic-value",
-          "description": "Hard-coded cryptographic value",
-          "severity": "critical",
-          "path": "packages/rust/simgrid/src/blackjack/engine.rs",
-          "url": "https://github.com/KBVE/kbve/security/code-scanning/510"
-        }
-      ]
-    },
-    "dependabot": {
-      "total": 0,
-      "severities": {
-        "critical": 0,
-        "high": 0,
-        "medium": 0,
-        "low": 0,
-        "info": 0
-      },
-      "alerts": []
-    }
-  }
+	"generated_at": "2026-07-19T06:37:07Z",
+	"summary": {
+		"critical": 3,
+		"high": 25,
+		"medium": 53,
+		"low": 8,
+		"info": 38
+	},
+	"ecosystems": {
+		"npm": {
+			"total": 64,
+			"severities": {
+				"critical": 3,
+				"high": 25,
+				"medium": 28,
+				"low": 8,
+				"info": 0
+			},
+			"advisories": [
+				{
+					"id": "1111772",
+					"title": "vue-template-compiler vulnerable to client-side Cross-Site Scripting (XSS)",
+					"severity": "medium",
+					"package": "vue-template-compiler",
+					"url": "https://github.com/advisories/GHSA-g3ch-rx76-35fx"
+				},
+				{
+					"id": "1112704",
+					"title": "jsdiff has a Denial of Service vulnerability in parsePatch and applyPatch",
+					"severity": "low",
+					"package": "diff",
+					"url": "https://github.com/advisories/GHSA-73rr-hh4g-fpgx"
+				},
+				{
+					"id": "1112715",
+					"title": "js-yaml has prototype pollution in merge (<<)",
+					"severity": "medium",
+					"package": "js-yaml",
+					"url": "https://github.com/advisories/GHSA-mh29-5h37-fv8m"
+				},
+				{
+					"id": "1113048",
+					"title": "mdast-util-to-hast has unsanitized class attribute",
+					"severity": "medium",
+					"package": "mdast-util-to-hast",
+					"url": "https://github.com/advisories/GHSA-4fh9-h7wg-q85m"
+				},
+				{
+					"id": "1113161",
+					"title": "qs's arrayLimit bypass in comma parsing allows denial of service",
+					"severity": "low",
+					"package": "qs",
+					"url": "https://github.com/advisories/GHSA-w7fw-mjwx-w883"
+				},
+				{
+					"id": "1113515",
+					"title": "Rollup 4 has Arbitrary File Write via Path Traversal",
+					"severity": "high",
+					"package": "rollup",
+					"url": "https://github.com/advisories/GHSA-mw96-cpmx-2vgc"
+				},
+				{
+					"id": "1113564",
+					"title": "Koa has Host Header Injection via ctx.hostname",
+					"severity": "high",
+					"package": "koa",
+					"url": "https://github.com/advisories/GHSA-7gcc-r8m5-44qm"
+				},
+				{
+					"id": "1113686",
+					"title": "Serialize JavaScript is Vulnerable to RCE via RegExp.flags and Date.prototype.toISOString()",
+					"severity": "high",
+					"package": "serialize-javascript",
+					"url": "https://github.com/advisories/GHSA-5c6j-r48x-rmvq"
+				},
+				{
+					"id": "1113714",
+					"title": "ajv has ReDoS when using `$data` option",
+					"severity": "medium",
+					"package": "ajv",
+					"url": "https://github.com/advisories/GHSA-2g4f-4pwh-qvx6"
+				},
+				{
+					"id": "1113715",
+					"title": "ajv has ReDoS when using `$data` option",
+					"severity": "medium",
+					"package": "ajv",
+					"url": "https://github.com/advisories/GHSA-2g4f-4pwh-qvx6"
+				},
+				{
+					"id": "1113719",
+					"title": "qs's arrayLimit bypass in its bracket notation allows DoS via memory exhaustion",
+					"severity": "medium",
+					"package": "qs",
+					"url": "https://github.com/advisories/GHSA-6rw7-vpxm-498p"
+				},
+				{
+					"id": "1114151",
+					"title": "SVGO DoS through entity expansion in DOCTYPE (Billion Laughs)",
+					"severity": "high",
+					"package": "svgo",
+					"url": "https://github.com/advisories/GHSA-xpqw-6gx7-v673"
+				},
+				{
+					"id": "1114200",
+					"title": "tar has Hardlink Path Traversal via Drive-Relative Linkpath",
+					"severity": "high",
+					"package": "tar",
+					"url": "https://github.com/advisories/GHSA-qffp-2rhf-9h96"
+				},
+				{
+					"id": "1114302",
+					"title": "node-tar Symlink Path Traversal via Drive-Relative Linkpath",
+					"severity": "high",
+					"package": "tar",
+					"url": "https://github.com/advisories/GHSA-9ppj-qmqm-q256"
+				},
+				{
+					"id": "1114526",
+					"title": "flatted vulnerable to unbounded recursion DoS in parse() revive phase",
+					"severity": "high",
+					"package": "flatted",
+					"url": "https://github.com/advisories/GHSA-25h7-pfq9-p65f"
+				},
+				{
+					"id": "1115357",
+					"title": "Prototype Pollution via parse() in NodeJS flatted",
+					"severity": "high",
+					"package": "flatted",
+					"url": "https://github.com/advisories/GHSA-rf6f-7fwh-wjgh"
+				},
+				{
+					"id": "1115527",
+					"title": "path-to-regexp vulnerable to Regular Expression Denial of Service via multiple route parameters",
+					"severity": "high",
+					"package": "path-to-regexp",
+					"url": "https://github.com/advisories/GHSA-37ch-88jc-xwx2"
+				},
+				{
+					"id": "1115540",
+					"title": "brace-expansion: Zero-step sequence causes process hang and memory exhaustion",
+					"severity": "medium",
+					"package": "brace-expansion",
+					"url": "https://github.com/advisories/GHSA-f886-m6hf-6m8v"
+				},
+				{
+					"id": "1115551",
+					"title": "Picomatch: Method Injection in POSIX Character Classes causes incorrect Glob Matching",
+					"severity": "medium",
+					"package": "picomatch",
+					"url": "https://github.com/advisories/GHSA-3v7f-55p6-f55p"
+				},
+				{
+					"id": "1115554",
+					"title": "Picomatch has a ReDoS vulnerability via extglob quantifiers",
+					"severity": "high",
+					"package": "picomatch",
+					"url": "https://github.com/advisories/GHSA-c2c7-rcm5-vvqj"
+				},
+				{
+					"id": "1115555",
+					"title": "yaml is vulnerable to Stack Overflow via deeply nested YAML collections",
+					"severity": "medium",
+					"package": "yaml",
+					"url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
+				},
+				{
+					"id": "1115556",
+					"title": "yaml is vulnerable to Stack Overflow via deeply nested YAML collections",
+					"severity": "medium",
+					"package": "yaml",
+					"url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
+				},
+				{
+					"id": "1115806",
+					"title": "lodash vulnerable to Code Injection via `_.template` imports key names",
+					"severity": "high",
+					"package": "lodash",
+					"url": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc"
+				},
+				{
+					"id": "1115810",
+					"title": "lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`",
+					"severity": "medium",
+					"package": "lodash",
+					"url": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
+				},
+				{
+					"id": "1117870",
+					"title": "fast-uri vulnerable to path traversal via percent-encoded dot segments",
+					"severity": "high",
+					"package": "fast-uri",
+					"url": "https://github.com/advisories/GHSA-q3j6-qgpj-74h6"
+				},
+				{
+					"id": "1117884",
+					"title": "fast-uri vulnerable to host confusion via percent-encoded authority delimiters",
+					"severity": "high",
+					"package": "fast-uri",
+					"url": "https://github.com/advisories/GHSA-v39h-62p7-jpjc"
+				},
+				{
+					"id": "1119108",
+					"title": "ws: Uninitialized memory disclosure",
+					"severity": "medium",
+					"package": "ws",
+					"url": "https://github.com/advisories/GHSA-58qx-3vcg-4xpx"
+				},
+				{
+					"id": "1119440",
+					"title": "Serialize JavaScript has CPU Exhaustion Denial of Service via crafted array-like objects",
+					"severity": "medium",
+					"package": "serialize-javascript",
+					"url": "https://github.com/advisories/GHSA-qj8w-gfj5-8c6v"
+				},
+				{
+					"id": "1119441",
+					"title": "uuid: Missing buffer bounds check in v3/v5/v6 when buf is provided",
+					"severity": "medium",
+					"package": "uuid",
+					"url": "https://github.com/advisories/GHSA-w5hq-g745-h8pq"
+				},
+				{
+					"id": "1119502",
+					"title": "qs has a remotely triggerable DoS: qs.stringify crashes with TypeError on null/undefined entries in comma-format arrays when encodeValuesOnly is set",
+					"severity": "medium",
+					"package": "qs",
+					"url": "https://github.com/advisories/GHSA-q8mj-m7cp-5q26"
+				},
+				{
+					"id": "1120127",
+					"title": "When Vitest UI server is listening, arbitrary file can be read and executed",
+					"severity": "critical",
+					"package": "vitest",
+					"url": "https://github.com/advisories/GHSA-5xrq-8626-4rwp"
+				},
+				{
+					"id": "1120370",
+					"title": "Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions",
+					"severity": "medium",
+					"package": "lodash",
+					"url": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg"
+				},
+				{
+					"id": "1120422",
+					"title": "shell-quote quote() does not escape newlines in object .op values",
+					"severity": "critical",
+					"package": "shell-quote",
+					"url": "https://github.com/advisories/GHSA-w7jw-789q-3m8p"
+				},
+				{
+					"id": "1120654",
+					"title": "tmp has Path Traversal via unsanitized prefix/postfix that enables directory escape",
+					"severity": "high",
+					"package": "tmp",
+					"url": "https://github.com/advisories/GHSA-ph9p-34f9-6g65"
+				},
+				{
+					"id": "1120680",
+					"title": "esbuild allows arbitrary file read when running the development server on Windows",
+					"severity": "low",
+					"package": "esbuild",
+					"url": "https://github.com/advisories/GHSA-g7r4-m6w7-qqqr"
+				},
+				{
+					"id": "1120743",
+					"title": "form-data: CRLF injection in form-data via unescaped multipart field names and filenames",
+					"severity": "high",
+					"package": "form-data",
+					"url": "https://github.com/advisories/GHSA-hmw2-7cc7-3qxx"
+				},
+				{
+					"id": "1120782",
+					"title": "node-tar applies PAX size override to intermediary GNU long-name/long-link headers, causing tar parser interpretation differential (file smuggling)",
+					"severity": "medium",
+					"package": "tar",
+					"url": "https://github.com/advisories/GHSA-vmf3-w455-68vh"
+				},
+				{
+					"id": "1120785",
+					"title": "launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows",
+					"severity": "medium",
+					"package": "vite",
+					"url": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3"
+				},
+				{
+					"id": "1120786",
+					"title": "launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows",
+					"severity": "medium",
+					"package": "vite",
+					"url": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3"
+				},
+				{
+					"id": "1120787",
+					"title": "launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows",
+					"severity": "medium",
+					"package": "launch-editor",
+					"url": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3"
+				},
+				{
+					"id": "1121163",
+					"title": "http-proxy-middleware: multipart/form-data field injection via unescaped CRLF in `fixRequestBody`",
+					"severity": "high",
+					"package": "http-proxy-middleware",
+					"url": "https://github.com/advisories/GHSA-gcq2-9pq2-cxqm"
+				},
+				{
+					"id": "1121187",
+					"title": "undici vulnerable to TLS certificate validation bypass via dropped requestTls in SOCKS5 ProxyAgent",
+					"severity": "high",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-vmh5-mc38-953g"
+				},
+				{
+					"id": "1121191",
+					"title": "Nodemailer: Message-level raw option bypasses disableFileAccess/disableUrlAccess, enabling arbitrary file read and full-response SSRF in the delivered message",
+					"severity": "high",
+					"package": "nodemailer",
+					"url": "https://github.com/advisories/GHSA-p6gq-j5cr-w38f"
+				},
+				{
+					"id": "1121241",
+					"title": "undici vulnerable to HTTP header injection via Set-Cookie percent-decoding",
+					"severity": "medium",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-p88m-4jfj-68fv"
+				},
+				{
+					"id": "1121242",
+					"title": "undici vulnerable to HTTP header injection via Set-Cookie percent-decoding",
+					"severity": "medium",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-p88m-4jfj-68fv"
+				},
+				{
+					"id": "1121244",
+					"title": "undici WebSocket client vulnerable to denial of service via fragment count bypass",
+					"severity": "high",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-vxpw-j846-p89q"
+				},
+				{
+					"id": "1121245",
+					"title": "undici WebSocket client vulnerable to denial of service via fragment count bypass",
+					"severity": "high",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-vxpw-j846-p89q"
+				},
+				{
+					"id": "1121247",
+					"title": "undici vulnerable to cross-origin request routing via SOCKS5 proxy pool reuse",
+					"severity": "high",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-hm92-r4w5-c3mj"
+				},
+				{
+					"id": "1121249",
+					"title": "undici vulnerable to HTTP response queue poisoning via keep-alive socket reuse",
+					"severity": "low",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-35p6-xmwp-9g52"
+				},
+				{
+					"id": "1121250",
+					"title": "undici vulnerable to HTTP response queue poisoning via keep-alive socket reuse",
+					"severity": "low",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-35p6-xmwp-9g52"
+				},
+				{
+					"id": "1121254",
+					"title": "undici vulnerable to Set-Cookie SameSite attribute downgrade via permissive substring matching",
+					"severity": "low",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-g8m3-5g58-fq7m"
+				},
+				{
+					"id": "1121255",
+					"title": "undici vulnerable to Set-Cookie SameSite attribute downgrade via permissive substring matching",
+					"severity": "low",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-g8m3-5g58-fq7m"
+				},
+				{
+					"id": "1121360",
+					"title": "http-proxy-middleware `router` host+path substring matching allows Host-header-driven backend routing bypass",
+					"severity": "medium",
+					"package": "http-proxy-middleware",
+					"url": "https://github.com/advisories/GHSA-64mm-vxmg-q3vj"
+				},
+				{
+					"id": "1121361",
+					"title": "http-proxy-middleware `router` host+path substring matching allows Host-header-driven backend routing bypass",
+					"severity": "medium",
+					"package": "http-proxy-middleware",
+					"url": "https://github.com/advisories/GHSA-64mm-vxmg-q3vj"
+				},
+				{
+					"id": "1121428",
+					"title": "undici vulnerable to cross-user information disclosure via shared cache whitespace bypass",
+					"severity": "medium",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-pr7r-676h-xcf6"
+				},
+				{
+					"id": "1121859",
+					"title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+					"severity": "medium",
+					"package": "js-yaml",
+					"url": "https://github.com/advisories/GHSA-h67p-54hq-rp68"
+				},
+				{
+					"id": "1121860",
+					"title": "JS-YAML: Quadratic-complexity DoS in merge key handling via repeated aliases",
+					"severity": "medium",
+					"package": "js-yaml",
+					"url": "https://github.com/advisories/GHSA-h67p-54hq-rp68"
+				},
+				{
+					"id": "1123259",
+					"title": "ws: Memory exhaustion DoS from tiny fragments and data chunks",
+					"severity": "high",
+					"package": "ws",
+					"url": "https://github.com/advisories/GHSA-96hv-2xvq-fx4p"
+				},
+				{
+					"id": "1123482",
+					"title": "websocket-driver: Resource limit bypass via message compression",
+					"severity": "medium",
+					"package": "websocket-driver",
+					"url": "https://github.com/advisories/GHSA-mp7j-qc5w-4988"
+				},
+				{
+					"id": "1123483",
+					"title": "websocket-driver: Message corruption via abuse of protocol length headers",
+					"severity": "critical",
+					"package": "websocket-driver",
+					"url": "https://github.com/advisories/GHSA-xv26-6w52-cph6"
+				},
+				{
+					"id": "1123526",
+					"title": "vite: `server.fs.deny` bypass on Windows alternate paths",
+					"severity": "high",
+					"package": "vite",
+					"url": "https://github.com/advisories/GHSA-fx2h-pf6j-xcff"
+				},
+				{
+					"id": "1123527",
+					"title": "vite: `server.fs.deny` bypass on Windows alternate paths",
+					"severity": "high",
+					"package": "vite",
+					"url": "https://github.com/advisories/GHSA-fx2h-pf6j-xcff"
+				},
+				{
+					"id": "1123528",
+					"title": "@babel/core: Arbitrary File Read via sourceMappingURL Comment",
+					"severity": "low",
+					"package": "@babel/core",
+					"url": "https://github.com/advisories/GHSA-4x5r-pxfx-6jf8"
+				},
+				{
+					"id": "1123686",
+					"title": "adm-zip: Crafted ZIP file triggers 4GB memory allocation",
+					"severity": "high",
+					"package": "adm-zip",
+					"url": "https://github.com/advisories/GHSA-xcpc-8h2w-3j85"
+				}
+			]
+		},
+		"cargo": {
+			"total": 63,
+			"severities": {
+				"critical": 0,
+				"high": 0,
+				"medium": 25,
+				"low": 0,
+				"info": 38
+			},
+			"advisories": [
+				{
+					"id": "RUSTSEC-2026-0193",
+					"title": "mXSS in ammonia via MathML `annotation-xml` encoding strip",
+					"severity": "medium",
+					"package": "ammonia",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0204",
+					"title": "Invalid pointer dereference in `fmt::Pointer` impl for `Atomic` and `Shared` when the underlying pointer is invalid",
+					"severity": "medium",
+					"package": "crossbeam-epoch",
+					"url": "https://github.com/crossbeam-rs/crossbeam/pull/1276"
+				},
+				{
+					"id": "RUSTSEC-2026-0119",
+					"title": "CPU exhaustion during message encoding due to O(n\u00b2) name compression",
+					"severity": "medium",
+					"package": "hickory-proto",
+					"url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-q2qq-hmj6-3wpp"
+				},
+				{
+					"id": "RUSTSEC-2026-0118",
+					"title": "NSEC3 closest-encloser proof validation enters unbounded loop on cross-zone responses",
+					"severity": "medium",
+					"package": "hickory-proto",
+					"url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-3v94-mw7p-v465"
+				},
+				{
+					"id": "RUSTSEC-2026-0179",
+					"title": "Unbounded SCRAM iteration count allows a malicious server to cause CPU-exhaustion denial of service",
+					"severity": "medium",
+					"package": "postgres-protocol",
+					"url": "https://github.com/rust-postgres/rust-postgres/commit/d40097a36a85068ea50a3afbf0ce154ba439e7f0"
+				},
+				{
+					"id": "RUSTSEC-2026-0180",
+					"title": "Panic decoding a malformed `hstore` value allows denial of service",
+					"severity": "medium",
+					"package": "postgres-protocol",
+					"url": "https://github.com/rust-postgres/rust-postgres/commit/a7cf84b5c46431cbca9d8ff50508c23f446efa7d"
+				},
+				{
+					"id": "RUSTSEC-2026-0195",
+					"title": "Unbounded namespace-declaration allocation in `NsReader` enables memory-exhaustion denial of service",
+					"severity": "medium",
+					"package": "quick-xml",
+					"url": "https://github.com/tafia/quick-xml/issues/970"
+				},
+				{
+					"id": "RUSTSEC-2026-0194",
+					"title": "Quadratic run time when checking a start tag for duplicate attribute names",
+					"severity": "medium",
+					"package": "quick-xml",
+					"url": "https://github.com/tafia/quick-xml/issues/969"
+				},
+				{
+					"id": "RUSTSEC-2026-0195",
+					"title": "Unbounded namespace-declaration allocation in `NsReader` enables memory-exhaustion denial of service",
+					"severity": "medium",
+					"package": "quick-xml",
+					"url": "https://github.com/tafia/quick-xml/issues/970"
+				},
+				{
+					"id": "RUSTSEC-2026-0194",
+					"title": "Quadratic run time when checking a start tag for duplicate attribute names",
+					"severity": "medium",
+					"package": "quick-xml",
+					"url": "https://github.com/tafia/quick-xml/issues/969"
+				},
+				{
+					"id": "RUSTSEC-2026-0185",
+					"title": " Remote memory exhaustion in quinn-proto from unbounded out-of-order stream reassembly",
+					"severity": "medium",
+					"package": "quinn-proto",
+					"url": "https://github.com/quinn-rs/quinn/pull/2694"
+				},
+				{
+					"id": "RUSTSEC-2023-0071",
+					"title": "Marvin Attack: potential key recovery through timing sidechannels",
+					"severity": "medium",
+					"package": "rsa",
+					"url": "https://github.com/RustCrypto/RSA/issues/626"
+				},
+				{
+					"id": "RUSTSEC-2026-0104",
+					"title": "Reachable panic in certificate revocation list parsing",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0099",
+					"title": "Name constraints were accepted for certificates asserting a wildcard name",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0098",
+					"title": "Name constraints for URI names were incorrectly accepted",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0104",
+					"title": "Reachable panic in certificate revocation list parsing",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0099",
+					"title": "Name constraints were accepted for certificates asserting a wildcard name",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0098",
+					"title": "Name constraints for URI names were incorrectly accepted",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0049",
+					"title": "CRLs not considered authoritative by Distribution Point due to faulty matching logic",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0104",
+					"title": "Reachable panic in certificate revocation list parsing",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0099",
+					"title": "Name constraints were accepted for certificates asserting a wildcard name",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0098",
+					"title": "Name constraints for URI names were incorrectly accepted",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2024-0363",
+					"title": "Binary Protocol Misinterpretation caused by Truncating or Overflowing Casts",
+					"severity": "medium",
+					"package": "sqlx",
+					"url": "https://github.com/launchbadge/sqlx/issues/3440"
+				},
+				{
+					"id": "RUSTSEC-2026-0121",
+					"title": "Denial of service in Steamworks game clients/servers using P2P authentication",
+					"severity": "medium",
+					"package": "steamworks",
+					"url": "https://github.com/Noxime/steamworks-rs/issues/321"
+				},
+				{
+					"id": "RUSTSEC-2026-0178",
+					"title": "Panic on a `DataRow` with fewer fields than columns allows denial of service",
+					"severity": "medium",
+					"package": "tokio-postgres",
+					"url": "https://github.com/rust-postgres/rust-postgres/commit/7a00ffa9ad4d951ec0a4564b52f1780fa9d353c1"
+				},
+				{
+					"id": "RUSTSEC-2024-0413",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "atk",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2024-0416",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "atk-sys",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2025-0141",
+					"title": "Bincode is unmaintained",
+					"severity": "info",
+					"package": "bincode",
+					"url": "https://git.sr.ht/~stygianentity/bincode/tree/v3.0/item/README.md"
+				},
+				{
+					"id": "RUSTSEC-2024-0388",
+					"title": "`derivative` is unmaintained; consider using an alternative",
+					"severity": "info",
+					"package": "derivative",
+					"url": "https://github.com/mcarton/rust-derivative/issues/117"
+				},
+				{
+					"id": "RUSTSEC-2025-0057",
+					"title": "fxhash - no longer maintained",
+					"severity": "info",
+					"package": "fxhash",
+					"url": "https://github.com/cbreeden/fxhash/issues/20"
+				},
+				{
+					"id": "RUSTSEC-2024-0412",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "gdk",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2024-0418",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "gdk-sys",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2024-0411",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "gdkwayland-sys",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2024-0417",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "gdkx11",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2024-0414",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "gdkx11-sys",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2024-0415",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "gtk",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2024-0420",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "gtk-sys",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2024-0419",
+					"title": "gtk-rs GTK3 bindings - no longer maintained",
+					"severity": "info",
+					"package": "gtk3-macros",
+					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
+				},
+				{
+					"id": "RUSTSEC-2024-0436",
+					"title": "paste - no longer maintained",
+					"severity": "info",
+					"package": "paste",
+					"url": "https://github.com/dtolnay/paste"
+				},
+				{
+					"id": "RUSTSEC-2024-0370",
+					"title": "proc-macro-error is unmaintained",
+					"severity": "info",
+					"package": "proc-macro-error",
+					"url": "https://gitlab.com/CreepySkeleton/proc-macro-error/-/issues/20"
+				},
+				{
+					"id": "RUSTSEC-2026-0173",
+					"title": "proc-macro-error2 is unmaintained",
+					"severity": "info",
+					"package": "proc-macro-error2",
+					"url": "https://github.com/GnomedDev/proc-macro-error-2/issues/17"
+				},
+				{
+					"id": "RUSTSEC-2025-0134",
+					"title": "rustls-pemfile is unmaintained",
+					"severity": "info",
+					"package": "rustls-pemfile",
+					"url": "https://github.com/rustls/pemfile/issues/61"
+				},
+				{
+					"id": "RUSTSEC-2025-0134",
+					"title": "rustls-pemfile is unmaintained",
+					"severity": "info",
+					"package": "rustls-pemfile",
+					"url": "https://github.com/rustls/pemfile/issues/61"
+				},
+				{
+					"id": "RUSTSEC-2026-0206",
+					"title": "`rustybuzz` is unmaintained",
+					"severity": "info",
+					"package": "rustybuzz",
+					"url": "https://github.com/harfbuzz/rustybuzz/issues/166"
+				},
+				{
+					"id": "RUSTSEC-2021-0127",
+					"title": "serde_cbor is unmaintained",
+					"severity": "info",
+					"package": "serde_cbor",
+					"url": "https://github.com/pyfisch/cbor"
+				},
+				{
+					"id": "RUSTSEC-2026-0192",
+					"title": "`ttf-parser` is unmaintained",
+					"severity": "info",
+					"package": "ttf-parser",
+					"url": "https://github.com/harfbuzz/ttf-parser/issues/217"
+				},
+				{
+					"id": "RUSTSEC-2025-0081",
+					"title": "`unic-char-property` is unmaintained",
+					"severity": "info",
+					"package": "unic-char-property",
+					"url": "https://github.com/rustsec/advisory-db/issues/2414"
+				},
+				{
+					"id": "RUSTSEC-2025-0075",
+					"title": "`unic-char-range` is unmaintained",
+					"severity": "info",
+					"package": "unic-char-range",
+					"url": "https://github.com/rustsec/advisory-db/issues/2414"
+				},
+				{
+					"id": "RUSTSEC-2025-0080",
+					"title": "`unic-common` is unmaintained",
+					"severity": "info",
+					"package": "unic-common",
+					"url": "https://github.com/rustsec/advisory-db/issues/2414"
+				},
+				{
+					"id": "RUSTSEC-2025-0100",
+					"title": "`unic-ucd-ident` is unmaintained",
+					"severity": "info",
+					"package": "unic-ucd-ident",
+					"url": "https://github.com/rustsec/advisory-db/issues/2414"
+				},
+				{
+					"id": "RUSTSEC-2025-0098",
+					"title": "`unic-ucd-version` is unmaintained",
+					"severity": "info",
+					"package": "unic-ucd-version",
+					"url": "https://github.com/rustsec/advisory-db/issues/2414"
+				},
+				{
+					"id": "RUSTSEC-2026-0190",
+					"title": "Unsoundness in `Error::downcast_mut()`",
+					"severity": "info",
+					"package": "anyhow",
+					"url": "https://github.com/dtolnay/anyhow/issues/451"
+				},
+				{
+					"id": "RUSTSEC-2026-0172",
+					"title": "Possible use after free when deserializing a SQLite database via `SqliteConnection::deserialize_readonly_database`",
+					"severity": "info",
+					"package": "diesel",
+					"url": "https://github.com/diesel-rs/diesel/commit/1bc2ea46d9840e8d9af844239d3c84f37fe7d84b"
+				},
+				{
+					"id": "RUSTSEC-2024-0429",
+					"title": "Unsoundness in `Iterator` and `DoubleEndedIterator` impls for `glib::VariantStrIter`",
+					"severity": "info",
+					"package": "glib",
+					"url": "https://github.com/gtk-rs/gtk-rs-core/pull/1343"
+				},
+				{
+					"id": "RUSTSEC-2026-0002",
+					"title": "`IterMut` violates Stacked Borrows by invalidating internal pointer",
+					"severity": "info",
+					"package": "lru",
+					"url": "https://github.com/jeromefroe/lru-rs/pull/224"
+				},
+				{
+					"id": "RUSTSEC-2026-0186",
+					"title": "Unchecked pointer offset in crate `memmap2`",
+					"severity": "info",
+					"package": "memmap2",
+					"url": "https://github.com/RazrFalcon/memmap2-rs/issues/169"
+				},
+				{
+					"id": "RUSTSEC-2026-0097",
+					"title": "Rand is unsound with a custom logger using `rand::rng()`",
+					"severity": "info",
+					"package": "rand",
+					"url": "https://github.com/rust-random/rand/pull/1763"
+				},
+				{
+					"id": "RUSTSEC-2026-0097",
+					"title": "Rand is unsound with a custom logger using `rand::rng()`",
+					"severity": "info",
+					"package": "rand",
+					"url": "https://github.com/rust-random/rand/pull/1763"
+				},
+				{
+					"id": "RUSTSEC-2026-0097",
+					"title": "Rand is unsound with a custom logger using `rand::rng()`",
+					"severity": "info",
+					"package": "rand",
+					"url": "https://github.com/rust-random/rand/pull/1763"
+				},
+				{
+					"id": "RUSTSEC-2026-0097",
+					"title": "Rand is unsound with a custom logger using `rand::rng()`",
+					"severity": "info",
+					"package": "rand",
+					"url": "https://github.com/rust-random/rand/pull/1763"
+				},
+				{
+					"id": "RUSTSEC-2026-0205",
+					"title": "`Array::insert` violates exception safety if compare function panics, leading to potential Double-Free",
+					"severity": "info",
+					"package": "scc",
+					"url": "https://codeberg.org/wvwwvwwv/scalable-concurrent-containers/issues/232"
+				},
+				{
+					"id": "",
+					"title": "",
+					"severity": "info",
+					"package": "spin",
+					"url": ""
+				},
+				{
+					"id": "",
+					"title": "",
+					"severity": "info",
+					"package": "spin",
+					"url": ""
+				}
+			]
+		},
+		"python": {
+			"total": 0,
+			"severities": {
+				"critical": 0,
+				"high": 0,
+				"medium": 0,
+				"low": 0,
+				"info": 0
+			},
+			"advisories": []
+		},
+		"codeql": {
+			"total": 0,
+			"severities": {
+				"critical": 0,
+				"high": 0,
+				"medium": 0,
+				"low": 0,
+				"info": 0
+			},
+			"alerts": []
+		},
+		"dependabot": {
+			"total": 0,
+			"severities": {
+				"critical": 0,
+				"high": 0,
+				"medium": 0,
+				"low": 0,
+				"info": 0
+			},
+			"alerts": []
+		}
+	}
 }
