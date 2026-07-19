@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useStore } from '@nanostores/react';
 import { ShieldOff } from 'lucide-react';
 import { McView } from '@kbve/rn/dash';
-import { homeService } from '@/components/dashboard/homeService';
+import { $isStaff } from '@kbve/droid';
 import { initSupa, getSupa } from '@/lib/supa';
 import { DASH_PROXY_BASE } from './dashProxyBase';
 
@@ -41,7 +41,7 @@ const styles = {
 };
 
 export default function ReactMinecraftDashRN() {
-	const isStaff = useStore(homeService.$isStaff);
+	const isStaff = useStore($isStaff);
 	const token = useMemo(() => getToken, []);
 
 	if (!isStaff) {
