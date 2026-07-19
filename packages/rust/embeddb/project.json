@@ -1,0 +1,47 @@
+{
+	"name": "embeddb",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/rust/embeddb/src",
+	"tags": [],
+	"targets": {
+		"build": {
+			"executor": "@monodon/rust:build",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/embeddb"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"test": {
+			"executor": "@monodon/rust:test",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/embeddb"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["nx test embeddb"],
+				"parallel": false
+			}
+		},
+		"lint": {
+			"executor": "@monodon/rust:lint",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/embeddb"
+			}
+		}
+	}
+}

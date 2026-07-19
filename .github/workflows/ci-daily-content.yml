@@ -68,6 +68,8 @@ jobs:
         needs: router
         if: needs.router.outputs.has_work == 'true'
         runs-on: ubuntu-latest
+        # report runs `nx run-many -t coverage` across several projects — slow.
+        timeout-minutes: 120
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.router.outputs.matrix) }}
@@ -142,10 +144,20 @@ jobs:
                   pip install pip-audit
                   echo "pip-audit installed: $(pip-audit --version)"
 
+            - name: Install protoc
+              if: contains(matrix.needs, 'protoc')
+              run: |
+                  set -euo pipefail
+                  PROTOC_VERSION=29.5
+                  curl -sLO "https://github.com/protocolbuffers/protobuf/releases/download/v${PROTOC_VERSION}/protoc-${PROTOC_VERSION}-linux-x86_64.zip"
+                  sudo unzip -o "protoc-${PROTOC_VERSION}-linux-x86_64.zip" -d /usr/local
+                  protoc --version
+
             - name: Build route ${{ matrix.route }}
               working-directory: packages/python/kbve
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  UNITY_PAT: ${{ secrets.UNITY_PAT }}
               run: |
                   uv run kbve-nx-build "${{ matrix.route }}" \
                     --timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
@@ -161,7 +173,7 @@ jobs:
                   git config user.name "github-actions[bot]"
                   git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-                  git add apps/kbve/astro-kbve/src/content/docs apps/kbve/astro-kbve/public/data/nx
+                  git add apps/kbve/astro-kbve/src/content/docs apps/kbve/astro-kbve/public/data/nx apps/kbve/astro-kbve/src/data
                   if git diff --cached --quiet; then
                     echo "::notice::No pending changes for route ${{ matrix.route }} — nothing to commit."
                     exit 0

@@ -308,6 +308,7 @@ jobs:
                         const allowedPrefixes = [
                           'apps/kbve/astro-kbve/src/content/docs/',
                           'apps/kbve/astro-kbve/public/data/nx/',
+                          'apps/kbve/astro-kbve/src/data/',
                         ];
                         core.info(`[content] Allowed prefixes: ${allowedPrefixes.join(', ')}`);
 

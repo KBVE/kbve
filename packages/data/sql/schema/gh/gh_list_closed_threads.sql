@@ -10,6 +10,14 @@
 -- new dbmate migration when ready. Depends on gh_core.sql.
 -- ============================================================================
 
+CREATE INDEX IF NOT EXISTS issue_closed_thread_backfill_idx
+    ON gh.issue (closed_at DESC NULLS LAST, owner, repo, number DESC)
+    WHERE state = 'closed'
+      AND discord_thread_id IS NOT NULL;
+
+-- NULL closed_at rows sort LAST (lowest reconcile priority), kept eligible not
+-- excluded. Index column order/direction mirrors the ORDER BY so the scan skips
+-- the sort.
 CREATE OR REPLACE FUNCTION gh.list_closed_issue_threads(p_limit INT DEFAULT 500)
 RETURNS SETOF gh.issue
 LANGUAGE sql
@@ -23,7 +31,7 @@ AS $$
     FROM gh.issue
     WHERE state = 'closed'
       AND discord_thread_id IS NOT NULL
-    ORDER BY owner, repo, number
+    ORDER BY closed_at DESC NULLS LAST, owner, repo, number DESC
     LIMIT LEAST(GREATEST(p_limit, 1), 2000);
 $$;
 
@@ -32,6 +40,6 @@ REVOKE ALL ON FUNCTION gh.list_closed_issue_threads(INT) FROM PUBLIC, anon, auth
 GRANT EXECUTE ON FUNCTION gh.list_closed_issue_threads(INT) TO service_role;
 
 COMMENT ON FUNCTION gh.list_closed_issue_threads(INT) IS
-'Closed issues that still carry a discord_thread_id, ordered (owner,repo,number), capped at 2000. Feeds the one-shot GH_SYNC_BACKFILL_ON_START sweep that archives/locks threads for issues closed before VS6 was live.';
+'Closed issues that still carry a discord_thread_id, most-recently-closed first (closed_at DESC), capped at 2000. Feeds the one-shot GH_SYNC_BACKFILL_ON_START sweep that archives/locks threads for issues closed before VS6 was live.';
 
 NOTIFY pgrst, 'reload schema';

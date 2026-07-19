@@ -1,0 +1,31 @@
+summary: KBVE store — view products and buy links (/wm store)
+description: >-
+  Free /wm target. args[0] is a subcommand router: empty/view/catalog shows the
+  storefront embed with the current products and a deep link to kbve.com/store;
+  buy is a placeholder for the native Discord purchase (phase B, calls axum
+  service_buy by discord id); help lists the subcommands. Static — no axum or
+  Windmill variables, so it works before the web store is even deployed.
+kind: script
+lock: ''
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  order:
+    - args
+    - discord
+  properties:
+    args:
+      type: array
+      description: Space-separated args from /wm; args[0] is the subcommand.
+      items:
+        type: string
+      default: []
+    discord:
+      type: object
+      description: Discord invocation context injected by the bot.
+      properties:
+        user_id: { type: string }
+        username: { type: string }
+        guild_id: { type: string }
+        channel_id: { type: string }
+  required: []

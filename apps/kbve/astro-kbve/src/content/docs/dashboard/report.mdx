@@ -2,44 +2,91 @@
 title: NX Workspace Report
 description: |
     Daily auto-generated NX workspace report for the KBVE monorepo.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
 sidebar:
     label: Report
     order: 100
-editUrl: false
 ---
 
-import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
+import BentoShell from '@/components/hero/BentoShell.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 import AstroNxReport from '@/components/dashboard/AstroNxReport.astro';
 
-## NX Workspace Report
+<div class="nx-report" data-dash-report>
 
-:::note[Auto-generated]
-Last generated: **2026-07-19T09:55:46Z** — updated daily by `ci-dashboard`.
-:::
+<section class="bento-hero bento-section not-content" aria-label="NX workspace report">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
+					<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+					<span>auto-generated · daily</span>
+				</span>
+				<h1 class="bento-title">
+					NX workspace
+					<span class="bento-title__accent">report.</span>
+				</h1>
+				<p class="bento-lede">Node <strong>24.18.0</strong> · Nx <strong>23.0.2</strong> · pnpm <strong>10.33.0</strong> on <strong>linux-x64</strong>.</p>
+				<p class="bento-lede">Last generated <strong>2026-07-19T00:00:00Z</strong>.</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="#insights">
+						View insights
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="#raw">Raw output</a>
+					<a class="bento-btn bento-btn--ghost" href="/dashboard/">Dashboard home</a>
+				</div>
+			</div>
 
-### Environment
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96 12 12.01l8.73-5.05M12 22.08V12" /></svg>
+					</span>
+					<span class="bento-stat__value">24.18.0</span>
+					<span class="bento-stat__label">Node</span>
+				</div>
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4zM13 13h7v7h-7zM13 4h7v7h-7zM4 13h7v7H4z" /></svg>
+					</span>
+					<span class="bento-stat__value">23.0.2</span>
+					<span class="bento-stat__label">Nx</span>
+				</div>
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+					</span>
+					<span class="bento-stat__value">10.33.0</span>
+					<span class="bento-stat__label">pnpm</span>
+				</div>
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h20v14H2zM8 21h8M12 17v4" /></svg>
+					</span>
+					<span class="bento-stat__value">linux-x64</span>
+					<span class="bento-stat__label">OS</span>
+				</div>
+		</div>
+		<nav class="bento-jump" aria-label="On this page">
+			<a class="bento-chip" href="#insights">Insights</a>
+			<a class="bento-chip" href="#raw">Raw output</a>
+		</nav>
+	</div>
+</section>
 
-<CardGrid>
-  <Card title="Node" icon="seti:nodejs">
-    24.18.0
-  </Card>
-  <Card title="Nx" icon="setting">
-    23.0.2
-  </Card>
-  <Card title="pnpm" icon="rocket">
-    10.33.0
-  </Card>
-  <Card title="OS" icon="linux">
-    linux-x64
-  </Card>
-</CardGrid>
+<BentoShell id="insights" eyebrow="Workspace" heading="Report insights">
+	<AstroNxReport />
+</BentoShell>
 
-<AstroNxReport />
+<BentoProse id="raw" heading="Raw output">
 
-### Raw output
-
-<Tabs>
-  <TabItem label="NX Report">
+### NX Report
 
 ```
 The `nxViteTsPaths` plugin from `@nx/vite/plugins/nx-tsconfig-paths.plugin` is deprecated and will be removed in Nx v24. Replace it with `tsconfigPaths()` from the `vite-tsconfig-paths` package. See https://nx.dev/docs/technologies/build-tools/vite/guides/configure-vite for details.
@@ -93,10 +140,10 @@ Community plugins:
 ---------------------------------------
 Cache Usage: 0.00 B / 14.43 GB
 
+
 ```
 
-  </TabItem>
-  <TabItem label="LOC Statistics">
+### LOC Statistics
 
 ```
 ───────────────────────────────────────────────────────────────────────────────
@@ -155,8 +202,7 @@ Processed 95471345 bytes, 95.471 megabytes (SI)
 ───────────────────────────────────────────────────────────────────────────────
 ```
 
-  </TabItem>
-  <TabItem label="Coverage">
+### Coverage
 
 ```
 
@@ -717,14 +763,18 @@ All files          |   75.46 |    57.22 |   75.07 |   76.66 |
 
 
  NX   Successfully ran target coverage for 4 projects
-
-
-
 ```
 
-  </TabItem>
-</Tabs>
+</BentoProse>
+
+<BentoProse id="about">
 
 ---
 
-*Auto-generated by [ci-dashboard.yml](https://github.com/KBVE/kbve/actions/workflows/ci-dashboard.yml)*
+*Auto-generated by [ci-daily-content.yml](https://github.com/KBVE/kbve/actions/workflows/ci-daily-content.yml)*
+
+</BentoProse>
+
+</div>
+
+<style is:global>{`.nx-report{--bento-accent:#10b981;--bento-accent-2:#38bdf8}`}</style>

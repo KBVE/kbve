@@ -382,6 +382,37 @@ impl ProfileService {
         }))
     }
 
+    /// Resolve a single display avatar URL for a user_id, preferring Discord,
+    /// then GitHub, then Twitch. Returns None when no provider exposes an avatar
+    /// or the providers RPC fails.
+    pub async fn get_avatar_url_by_user_id(&self, user_id: &str) -> Option<String> {
+        let providers = self.get_user_providers(user_id).await.ok()?;
+        let (discord, github, twitch) = Self::extract_provider_infos(&providers);
+        discord
+            .and_then(|d| d.avatar_url)
+            .or_else(|| github.and_then(|g| g.avatar_url))
+            .or_else(|| twitch.and_then(|t| t.avatar_url))
+    }
+
+    /// Batch avatar resolution: one providers RPC per id, run sequentially to
+    /// keep the PostgREST connection pool calm. Missing avatars are simply
+    /// absent from the returned map.
+    pub async fn get_avatars_by_ids(
+        &self,
+        ids: &[String],
+    ) -> std::collections::HashMap<String, String> {
+        let mut out = std::collections::HashMap::new();
+        let mut deduped: Vec<&String> = ids.iter().collect();
+        deduped.sort();
+        deduped.dedup();
+        for id in deduped {
+            if let Some(url) = self.get_avatar_url_by_user_id(id).await {
+                out.insert(id.clone(), url);
+            }
+        }
+        out
+    }
+
     /// Set username for authenticated user using service_add_username RPC
     /// This validates the username at the Axum level before calling the RPC
     /// The RPC also validates and normalizes at the database level (belt and suspenders)

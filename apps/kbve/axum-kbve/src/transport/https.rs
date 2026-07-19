@@ -670,6 +670,14 @@ fn router(state: AppState) -> Router {
             any(super::proxy::clickhouse_logs_proxy_handler),
         )
         .route(
+            "/dashboard/cube/proxy/{*path}",
+            any(super::proxy::cube_proxy_handler),
+        )
+        .route(
+            "/dashboard/cube/proxy",
+            any(super::proxy::cube_proxy_handler),
+        )
+        .route(
             "/dashboard/forgejo/proxy/{*path}",
             any(super::proxy::forgejo_proxy_handler),
         )
@@ -2560,6 +2568,7 @@ fn build_feed_items_html(
 fn build_comments_html(
     rows: &[CommentRow],
     usernames_by_id: &std::collections::HashMap<String, String>,
+    avatars_by_id: &std::collections::HashMap<String, String>,
 ) -> String {
     let mut out = String::with_capacity(rows.len() * 512);
     let ctx = forum_render_ctx();
@@ -2570,6 +2579,10 @@ fn build_comments_html(
             depth: row.depth,
             author_id: row.author_id.clone(),
             author_username: resolve_username(usernames_by_id, &row.author_id),
+            author_avatar_url: avatars_by_id
+                .get(&row.author_id)
+                .cloned()
+                .unwrap_or_default(),
             created_at_human: humanize_ts(&row.created_at),
             score: row.score,
             body_raw: row.body.clone(),
@@ -3078,7 +3091,19 @@ async fn forum_thread_handler(Path(slug_or_id): Path<String>) -> Response {
         None => std::collections::HashMap::new(),
     };
 
-    let comments_html = build_comments_html(&comments, &usernames_by_id);
+    let avatars_by_id = match get_profile_service() {
+        Some(profile_svc) => {
+            let mut ids: Vec<String> = Vec::with_capacity(comments.len() + 1);
+            ids.push(thread.author_id.clone());
+            for c in &comments {
+                ids.push(c.author_id.clone());
+            }
+            profile_svc.get_avatars_by_ids(&ids).await
+        }
+        None => std::collections::HashMap::new(),
+    };
+
+    let comments_html = build_comments_html(&comments, &usernames_by_id, &avatars_by_id);
     let meta_description = plain_excerpt(&body_rendered.html, META_DESCRIPTION_CHARS);
     let thread_slug_or_id = thread.slug.clone().unwrap_or_else(|| thread.id.clone());
 
@@ -3095,7 +3120,10 @@ async fn forum_thread_handler(Path(slug_or_id): Path<String>) -> Response {
         space_slug: space.slug.clone(),
         space_name: space.name.clone(),
         author_username: resolve_username(&usernames_by_id, &thread.author_id),
-        author_avatar_url: String::new(),
+        author_avatar_url: avatars_by_id
+            .get(&thread.author_id)
+            .cloned()
+            .unwrap_or_default(),
         created_at_human: humanize_ts(&thread.created_at),
         last_activity_human: humanize_opt(thread.last_activity_at.as_deref()),
         score: thread.score,

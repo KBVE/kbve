@@ -3,3 +3,6 @@
 from . import journal  # noqa: F401
 from . import graph  # noqa: F401
 from . import security  # noqa: F401
+from . import proto  # noqa: F401
+from . import report  # noqa: F401
+from . import kanban  # noqa: F401

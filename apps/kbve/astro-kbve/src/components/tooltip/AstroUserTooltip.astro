@@ -1,0 +1,128 @@
+---
+/**
+ * Global user tooltip singleton. Mount once (via AstroFooter) so every page
+ * shares a single hover profile card. Author links (`<a href="/@name">`)
+ * across the site trigger it through delegated listeners — no per-link markup.
+ */
+---
+
+<div id="kbve-user-tooltip" class="kut not-content" role="tooltip" hidden></div>
+
+<script>
+	import { initUserTooltip } from './userTooltipService';
+
+	const start = () => initUserTooltip();
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', start, { once: true });
+	} else {
+		start();
+	}
+	// Astro view transitions re-run scripts; init is idempotent per document.
+	document.addEventListener('astro:page-load', start);
+</script>
+
+<style is:global>
+	.kut {
+		position: fixed;
+		z-index: 9999;
+		max-width: 18rem;
+		padding: 0.75rem 0.85rem;
+		border-radius: 0.75rem;
+		background: var(--sl-color-bg-nav, #10131a);
+		color: var(--sl-color-white, #f5f7fa);
+		border: 1px solid var(--sl-color-hairline, rgba(255, 255, 255, 0.12));
+		box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+		font-size: 0.85rem;
+		line-height: 1.35;
+		pointer-events: none;
+		opacity: 0;
+		transform: translateY(4px);
+		transition:
+			opacity 0.12s ease,
+			transform 0.12s ease;
+	}
+	.kut[data-open='true'] {
+		opacity: 1;
+		transform: translateY(0);
+	}
+
+	.kut__head {
+		display: flex;
+		align-items: center;
+		gap: 0.6rem;
+	}
+	.kut__avatar {
+		flex: 0 0 auto;
+		width: 40px;
+		height: 40px;
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 0.6rem;
+		overflow: hidden;
+		background: var(--sl-color-accent-low, rgba(120, 130, 255, 0.25));
+		font-weight: 700;
+		text-transform: uppercase;
+	}
+	.kut__avatar-img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+	.kut__names {
+		display: flex;
+		flex-direction: column;
+		min-width: 0;
+	}
+	.kut__display {
+		font-weight: 600;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+	.kut__handle {
+		color: var(--sl-color-text-accent, #9aa7ff);
+		text-decoration: none;
+		font-size: 0.8rem;
+	}
+	.kut__badges {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+		margin-top: 0.55rem;
+	}
+	.kut__badge {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0.1rem 0.45rem;
+		border-radius: 999px;
+		font-size: 0.7rem;
+		font-weight: 600;
+		background: var(--sl-color-gray-6, rgba(255, 255, 255, 0.08));
+		color: var(--sl-color-gray-1, #cbd2e0);
+	}
+	.kut__badge--discord {
+		color: #c7ceff;
+	}
+	.kut__badge--github {
+		color: #e6e6e6;
+	}
+	.kut__badge--twitch {
+		color: #d6b8ff;
+	}
+	.kut__badge--guild {
+		color: #9ff5c4;
+	}
+	.kut__live {
+		color: #ff5c5c;
+		font-weight: 700;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.kut {
+			transition: none;
+			transform: none;
+		}
+	}
+</style>

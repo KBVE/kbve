@@ -218,6 +218,29 @@ simple_proxy!(
     }
 );
 
+simple_proxy!(
+    CUBE,
+    CUBE_SPEC,
+    init_cube_proxy,
+    cube_proxy_handler,
+    ProxySpec {
+        name: "Cube",
+        upstream_env: "CUBE_UPSTREAM_URL",
+        upstream_default: Some("http://cube.cube.svc.cluster.local:4000"),
+        // The dashboard kit posts to /dashboard/cube/proxy/load, which forwards
+        // to <upstream>/cubejs-api/v1/load — Cube's REST load endpoint.
+        upstream_suffix: Some("/cubejs-api/v1"),
+        // Static long-lived Cube JWT (HS256, signed with CUBEJS_API_SECRET),
+        // injected as the upstream Bearer. Cube runs in production mode so a
+        // token is required.
+        token_env: Some("CUBE_API_TOKEN"),
+        ca_cert_env: None,
+        connect_timeout: Duration::from_secs(5),
+        timeout: Duration::from_secs(30),
+        gate: GateMode::View,
+    }
+);
+
 static FACTORIO: OnceLock<ServiceProxy> = OnceLock::new();
 
 pub fn init_factorio_proxy() -> bool {
