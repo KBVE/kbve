@@ -40,6 +40,7 @@
 			"@kbve/rn/ui/*": ["packages/npm/rn/src/ui/*"],
 			"@kbve/rn/store": ["packages/npm/rn/src/store/index.ts"],
 			"@kbve/rn/dash": ["packages/npm/rn/src/dash/index.ts"],
+			"@kbve/rn/markets": ["packages/npm/rn/src/markets/index.ts"],
 			"@kbve/rn/account": ["packages/npm/rn/src/account/index.ts"],
 			"@kbve/rn/workflows": ["packages/npm/rn/src/workflows/index.ts"],
 			"@kbve/rn-astro": ["packages/npm/rn-astro/src/index.ts"],

@@ -1,3 +1,4 @@
+import re
 import shutil
 from datetime import date
 from pathlib import Path
@@ -13,7 +14,15 @@ FIXTURE = Path(find_content_dir(None)) / "journal" / "07-19.mdx"
 def _setup(tmp_path):
     journal = tmp_path / "journal"
     journal.mkdir()
-    shutil.copy(FIXTURE, journal / "07-19.mdx")
+    dst = journal / "07-19.mdx"
+    text = FIXTURE.read_text(encoding="utf-8")
+    text = re.sub(
+        r'<BentoProse id="2026".*?</BentoProse>\n\n',
+        "",
+        text,
+        flags=re.S,
+    )
+    dst.write_text(text, encoding="utf-8")
     return tmp_path
 
 

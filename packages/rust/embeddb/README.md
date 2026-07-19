@@ -19,7 +19,9 @@ The Turso write path is pure Rust and statically linked — no shared library to
 
 ## Checkpoint-then-read model
 
-Turso writes to the file's WAL. DuckDB's SQLite reader sees the main database file, not the WAL, so a checkpoint must run before DuckDB can observe recent writes. Call `EmbedDb::checkpoint` (which issues `PRAGMA wal_checkpoint(TRUNCATE)`) after writes and before running analytics queries — skipping this step means DuckDB may read stale or incomplete data.
+Turso writes to the file's WAL. DuckDB's `sqlite_scanner` replays uncheckpointed WAL frames when attached read-only, so analytics reads reflect all committed writes regardless of checkpoint status — a checkpoint is **not** required for DuckDB to observe recent writes. See "WAL-visibility freshness contract" under "v5" below for the authoritative statement and the measurements behind it.
+
+`EmbedDb::checkpoint` (which issues `PRAGMA wal_checkpoint(TRUNCATE)`) and `checkpoint_passive` (`PRAGMA wal_checkpoint(PASSIVE)`, see "v5" below) exist for WAL truncation and file-size compaction, not for read visibility. Call `checkpoint` when you want to bound WAL growth or reclaim disk space, not merely to make recent writes visible to analytics queries.
 
 `checkpoint` inspects the `(busy, log, checkpointed)` row that `PRAGMA wal_checkpoint(TRUNCATE)` returns. If it comes back busy (another reader holding the WAL), `checkpoint` retries (yielding between attempts) up to `EmbedConfig::checkpoint_max_retries` times. If it is still busy after retries, `checkpoint` returns `EmbedError::CheckpointBusy` instead of silently returning `Ok` over a possibly-incomplete flush.
 
@@ -224,3 +226,87 @@ db.migrate(&migrations).await?;
 `migrate` is append-only and idempotent: calling it again with the same slice is a no-op, and calling it with the same prefix plus new entries appended applies only the new entries. Each migration runs in its own transaction; if a migration fails, that transaction is rolled back and the error is returned, leaving previously-applied migrations intact and no partial record for the failed one — so migrating with the same (or a fixed) slice afterward will retry it.
 
 Each migration string is executed as a single statement via `tx.execute`. A string containing multiple statements (e.g. `"CREATE TABLE x (id INTEGER); CREATE INDEX idx_x ON x (id)"`) will only apply the first statement, yet the whole string is still recorded as applied — so the remaining statements silently never run. Callers must split multi-statement migrations into one array entry per statement.
+
+## v5
+
+### Reader pool: `EmbedConfig::reader_pool_size`
+
+v4's "Reader reuse" section above describes a single shared DuckDB reader connection behind a `Mutex`, which serializes all concurrent `analytics_*` calls. v5 replaces that single connection with a pool of DuckDB reader connections sized by `EmbedConfig::reader_pool_size` (default `4`). Concurrent `analytics_*` calls now check out a connection from the pool and run in parallel instead of queuing behind one lock:
+
+```rust
+use embeddb::{EmbedConfig, EmbedDb};
+
+let cfg = EmbedConfig { reader_pool_size: 8, ..Default::default() };
+let db = EmbedDb::open_with("data.db", cfg).await?;
+```
+
+### Streaming rows: `analytics_for_each`
+
+`analytics_query` and `analytics_rows` materialize the full result set into a `Vec` before returning. `analytics_for_each` instead streams each row through a callback and never builds that intermediate `Vec`, returning the number of rows visited:
+
+```rust
+let mut total = 0_i64;
+let n = db.analytics_for_each("SELECT v FROM t ORDER BY v", |row| {
+    total += row.as_i64(0).unwrap_or(0);
+}).await?;
+```
+
+The callback must be `FnMut + Send + 'static` and runs on a blocking thread, so accumulate results via `Arc`/atomics or a channel rather than capturing non-`Send` state; there is also no early-stop, so use `analytics_query` when you need column names or must be able to stop iterating early.
+
+### Batched writes: `execute_batch`
+
+`execute_batch` runs many parameter sets for the same SQL statement inside a single transaction, committing once at the end. If any one execution fails, the whole batch rolls back atomically instead of leaving a partially-applied set of rows:
+
+```rust
+let params: Vec<(i64, f64)> = (0..1000).map(|i| (i, i as f64)).collect();
+let n = db.execute_batch("INSERT INTO t VALUES (?, ?)", params).await?;
+```
+
+### Non-blocking checkpoint: `checkpoint_passive`
+
+`EmbedDb::checkpoint` issues `PRAGMA wal_checkpoint(TRUNCATE)`, which blocks new writers until it completes and truncates the WAL file. `checkpoint_passive` issues `PRAGMA wal_checkpoint(PASSIVE)` instead: it checkpoints as many WAL frames as it can without blocking writers or readers, and simply checkpoints fewer frames (or none) if the WAL is busy, rather than retrying or erroring:
+
+```rust
+db.checkpoint_passive().await?;
+```
+
+### Typed rows: `#[derive(FromEmbedRow)]` and `FromEmbedValue`
+
+The `embeddb-derive` crate provides a `#[derive(FromEmbedRow)]` proc macro that generates a `FromEmbedRow` impl for a plain struct with named fields, mapping each field to the same-named result column via that field's `FromEmbedValue` implementation:
+
+```rust
+use embeddb::FromEmbedRow;
+
+#[derive(Debug, PartialEq, FromEmbedRow)]
+struct Rec {
+    id: i64,
+    name: String,
+    note: Option<String>,
+}
+
+let rows: Vec<Rec> = db.analytics_query_as("SELECT id, name, note FROM t ORDER BY id").await?;
+```
+
+`FromEmbedValue` is implemented for `i64`, `f64`, `String`, `bool`, `i128`, `Vec<u8>`, and `Option<T>` for any `T: FromEmbedValue` (mapping SQL `NULL` to `None`). A field whose column is missing from the query's result set, or whose value doesn't convert to the field's type, makes the derived `from_row` return an error rather than panicking.
+
+The `derive` Cargo feature is on by default and pulls in `embeddb-derive`. Building with `--no-default-features` drops the proc-macro dependency: `FromEmbedRow` and `FromEmbedValue` (and all other APIs) remain available, but the `#[derive(FromEmbedRow)]` macro itself is not — implement `FromEmbedRow` by hand in that configuration.
+
+### WAL-visibility freshness contract
+
+A Task 3 spike measured what DuckDB's `sqlite_scanner` actually sees when attached read-only to a file Turso is concurrently writing. Contrary to the "checkpoint before every read" framing in "Checkpoint-then-read model" above, the scanner replays uncheckpointed WAL frames directly: a read performed after 3 checkpointed inserts plus 2 further, uncheckpointed inserts returned all 5 rows, not just the 3 checkpointed ones. A concurrent writer/reader test over the same file showed row counts observed by the reader are monotonic and non-decreasing, and never torn (no partial row ever seen) — DuckDB attaches `READ_ONLY`, so it observes a consistent view of the file even mid-write.
+
+The freshness contract this crate now documents: **analytics reads reflect all committed writes, including writes not yet checkpointed.** A live concurrent reader alongside an active writer is safe. `checkpoint` and `checkpoint_passive` still matter for WAL truncation and file-size compaction — an unbounded WAL grows without a checkpoint — but they are not required for read visibility, and callers that only need "see the latest committed data" no longer need to checkpoint before every analytics call.
+
+### Benchmarks
+
+`benches/embeddb_bench.rs` is a `criterion` benchmark binary (`harness = false`) covering `execute_batch` write throughput and parallel `analytics_scalar_f64` reads across `reader_pool_size` values of 1 and 4. Build it with:
+
+```bash
+cargo build -p embeddb --benches
+```
+
+Run it (slow — not part of the normal test loop) with:
+
+```bash
+cargo bench -p embeddb
+```

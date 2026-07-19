@@ -1,28 +1,63 @@
 ---
-import ReactStoreCard from './ReactStoreCard';
-import StoreCatalog from './StoreCatalog';
-import OrderHistory from './OrderHistory';
-import BuyCredits from './BuyCredits';
-import './store.css';
+import BentoShell from '@/components/hero/BentoShell.astro';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
+import ReactStoreRN from './ReactStoreRN';
+
+const backdrop = 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?q=80&w=2400&auto=format&fit=crop';
 ---
 
-<section class="kbve-store not-content kbve-dashboard-page">
-	<header class="kbve-store__header">
-		<h1>Store</h1>
-		<p>
-			Spend credits to unlock collectibles and merch. Purchases mint an
-			inventory item you own — and can later list on the marketplace.
-		</p>
-	</header>
+<div class="store-hub" style={`--bento-hero-bg: url('${backdrop}')`}>
+	<section class="bento-hero bento-section not-content" aria-label="KBVE Store">
+		<div class="bento-hero__bg" aria-hidden="true"></div>
+		<div class="bento-hero__frame bento-frame">
+			<div class="bento-board bento-board--hero">
+				<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+					<span class="bento-badge bento-chip"><span>store</span></span>
+					<h1 class="bento-title">Spend credits,
+						<span class="bento-title__accent">own the drop.</span></h1>
+					<p class="bento-lede">
+						Buy collectibles and merch with credits. Every purchase mints an
+						inventory item you own — and can later list on the marketplace.
+					</p>
+					<div class="bento-cta">
+						<a class="bento-btn bento-btn--primary" href="#store">Browse the store
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+						</a>
+						<a class="bento-btn bento-btn--ghost" href="/market/">Marketplace</a>
+					</div>
+				</div>
+				{[
+					{ v: 'Own it', l: 'Purchases mint inventory items' },
+					{ v: 'Trade later', l: 'List on the marketplace' },
+					{ v: 'Credits → items', l: 'Top up with Stripe' },
+				].map((s) => (
+					<div class="bento-cell bento-stat bento-card bento-card--glass">
+						<span class="bento-stat__value">{s.v}</span>
+						<span class="bento-stat__label">{s.l}</span>
+					</div>
+				))}
+			</div>
+		</div>
+	</section>
 
-	<BuyCredits client:only="react" />
+	<BentoShell id="store" eyebrow="Browse" heading="Store">
+		<div class="store-island">
+			<ReactStoreRN client:only="react">
+				<RnDashSkeleton slot="fallback" tiles={3} rows={4} />
+			</ReactStoreRN>
+		</div>
+		<div id="orders" aria-hidden="true"></div>
+	</BentoShell>
+</div>
 
-	<div class="kbve-store__grid">
-		<ReactStoreCard client:only="react" />
-	</div>
+<style>
+	.store-island { min-height: 60vh; }
+</style>
 
-	<h2>All products</h2>
-	<StoreCatalog client:only="react" />
-
-	<OrderHistory client:only="react" />
-</section>
+<style is:global>
+	.store-hub {
+		--bento-accent: #fbbf24;
+		--bento-accent-2: #f59e0b;
+		--bento-btn-fg: #3a2a05;
+	}
+</style>

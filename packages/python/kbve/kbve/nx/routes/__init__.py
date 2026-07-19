@@ -6,3 +6,4 @@ from . import security  # noqa: F401
 from . import proto  # noqa: F401
 from . import report  # noqa: F401
 from . import kanban  # noqa: F401
+from . import ci_health  # noqa: F401
