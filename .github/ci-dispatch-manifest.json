@@ -1368,7 +1368,7 @@
 	"summary": {
 		"docker": 36,
 		"npm": 4,
-		"crates": 25,
+		"crates": 27,
 		"python": 2,
 		"unreal": 27,
 		"ue5_server": 1,
@@ -1377,6 +1377,6 @@
 		"unreal_game": 4,
 		"bevy_game": 0,
 		"vite_game": 1,
-		"total": 101
+		"total": 103
 	}
 }
