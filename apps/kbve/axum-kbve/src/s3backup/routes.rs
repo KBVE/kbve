@@ -1,6 +1,11 @@
+use crate::db::forum::get_forum_service;
 use crate::s3backup::client::{list_all, list_page, make_client, S3Config};
 use crate::s3backup::summary::summarize;
-use axum::{extract::Query, http::StatusCode, response::IntoResponse, routing::get, Json, Router};
+use crate::transport::https::auth_user_id;
+use axum::{
+    extract::Query, http::HeaderMap, http::StatusCode, response::IntoResponse,
+    response::Response, routing::get, Json, Router,
+};
 use serde::Deserialize;
 use serde_json::json;
 
@@ -11,7 +16,30 @@ fn now_secs() -> i64 {
         .unwrap_or(0)
 }
 
-async fn summary_handler() -> impl IntoResponse {
+/// Bearer-authed staff gate. These endpoints expose the database backup
+/// bucket, so we verify the caller in-process (defense-in-depth) rather
+/// than trusting only the upstream gateway.
+async fn require_staff(headers: &HeaderMap) -> Result<(), Response> {
+    let user_id = auth_user_id(headers).await?;
+    let is_staff = match get_forum_service() {
+        Some(svc) => svc.is_staff(&user_id).await.unwrap_or(false),
+        None => false,
+    };
+    if is_staff {
+        Ok(())
+    } else {
+        Err((
+            StatusCode::FORBIDDEN,
+            Json(json!({"error": "staff_required"})),
+        )
+            .into_response())
+    }
+}
+
+async fn summary_handler(headers: HeaderMap) -> Response {
+    if let Err(resp) = require_staff(&headers).await {
+        return resp;
+    }
     let cfg = S3Config::from_env();
     let client = make_client(&cfg).await;
     match list_all(&client, &cfg.bucket, &cfg.prefix).await {
@@ -34,7 +62,10 @@ struct ObjectsQuery {
     limit: Option<i32>,
 }
 
-async fn objects_handler(Query(q): Query<ObjectsQuery>) -> impl IntoResponse {
+async fn objects_handler(headers: HeaderMap, Query(q): Query<ObjectsQuery>) -> Response {
+    if let Err(resp) = require_staff(&headers).await {
+        return resp;
+    }
     let cfg = S3Config::from_env();
     let client = make_client(&cfg).await;
     let prefix = q.prefix.unwrap_or_default();
