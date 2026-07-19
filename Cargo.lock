@@ -2232,7 +2232,7 @@ dependencies = [
 
 [[package]]
 name = "axum-discordsh"
-version = "0.1.45"
+version = "0.1.46"
 dependencies = [
  "anyhow",
  "askama 0.15.6",
