@@ -278,8 +278,19 @@ pub(crate) async fn webhook(headers: HeaderMap, body: Bytes) -> Response {
         .await
     {
         Ok(_) => StatusCode::OK.into_response(),
+        // Permanent failures — bad pack/amount/currency, or a contradictory
+        // replay. These never succeed on retry, so ack (200) rather than let
+        // Stripe retry for days and eventually disable the endpoint.
+        Err(
+            e @ (kbve::wallet::WalletError::InvalidArgument(_)
+            | kbve::wallet::WalletError::NullArgument(_)
+            | kbve::wallet::WalletError::ReplayMismatch),
+        ) => {
+            tracing::warn!("topup apply rejected (permanent): {:?}", e);
+            StatusCode::OK.into_response()
+        }
         Err(e) => {
-            tracing::error!("topup apply failed: {:?}", e);
+            tracing::error!("topup apply failed (transient): {:?}", e);
             // 500 makes Stripe retry; the apply is idempotent on event id.
             (
                 StatusCode::INTERNAL_SERVER_ERROR,

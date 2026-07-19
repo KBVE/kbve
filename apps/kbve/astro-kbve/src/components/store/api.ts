@@ -190,7 +190,7 @@ export type ShippingAddress = {
 	line2?: string;
 	city: string;
 	region: string;
-	postal: string;
+	postal_code: string;
 	country: string;
 };
 

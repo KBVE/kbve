@@ -107,7 +107,7 @@ pub(crate) async fn submit_pod(headers: HeaderMap, Path(order_id): Path<i64>) ->
             "address2": addr.get("line2"),
             "city": addr.get("city"),
             "state_code": addr.get("region"),
-            "zip": addr.get("postal"),
+            "zip": addr.get("postal_code"),
             "country_code": addr.get("country"),
         },
         "items": [{

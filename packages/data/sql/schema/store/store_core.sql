@@ -112,6 +112,18 @@ CREATE INDEX inventory_item_store_entitlements_read_idx
     ON inventory.item (owner_account, created_at DESC, id DESC)
     WHERE kind = 'store_product' AND state IN ('held', 'listing_escrow');
 
+-- Seed the proof-of-concept product.
+INSERT INTO store.product (slug, title, description, price, currency, asset_ref)
+VALUES (
+    'i-am-an-idiot',
+    'I am an idiot',
+    'A WebGL collectible card. Hidden until purchased for 10 credits.',
+    10,
+    'credits',
+    jsonb_build_object('kind', 'webgl_card', 'variant', 'idiot')
+)
+ON CONFLICT (slug) DO NOTHING;
+
 -- ============================================================================
 -- TABLE: store.purchase — durable digital-purchase receipt.
 --   One row per (account, idempotency_key): binds a purchase request to its
@@ -155,6 +167,9 @@ CREATE TABLE store.purchase (
 );
 CREATE INDEX store_purchase_account_created_idx
     ON store.purchase (account_id, created_at DESC);
+-- Each wallet ledger row backs exactly one purchase receipt.
+CREATE UNIQUE INDEX store_purchase_ledger_uq
+    ON store.purchase (ledger_id) WHERE ledger_id IS NOT NULL;
 COMMENT ON TABLE store.purchase IS
     'Durable digital purchase receipts. Per (account, idempotency_key) result binding for replay-safe service_buy.';
 
@@ -350,6 +365,11 @@ CREATE TABLE store.order (
 
 CREATE INDEX store_order_account_created_idx
     ON store.order (account_id, created_at DESC, order_id DESC);
+-- Each wallet ledger row backs exactly one order (debit) / one refund.
+CREATE UNIQUE INDEX store_order_ledger_uq
+    ON store.order (ledger_id) WHERE ledger_id IS NOT NULL;
+CREATE UNIQUE INDEX store_order_refund_ledger_uq
+    ON store.order (refund_ledger_id) WHERE refund_ledger_id IS NOT NULL;
 CREATE INDEX store_order_open_idx
     ON store.order (status, updated_at)
     WHERE status IN ('paid', 'processing');
@@ -513,6 +533,9 @@ CREATE TABLE store.topup (
 );
 
 CREATE INDEX store_topup_account_idx ON store.topup (account_id, created_at DESC);
+-- Each wallet ledger row backs exactly one completed top-up. Not partial:
+-- ledger_id is NOT NULL on store.topup.
+CREATE UNIQUE INDEX store_topup_ledger_uq ON store.topup (ledger_id);
 
 -- stripe_session_id is now NOT NULL UNIQUE (a plain column constraint), so the
 -- old partial `store_topup_stripe_session_uq` unique index is dropped — the
@@ -525,9 +548,11 @@ COMMENT ON TABLE store.topup IS
 -- TABLE: store.pod_webhook_event — durable, append-only POD webhook receipts.
 --   Provider-event dedupe identity (provider, provider_event_id) for auditing
 --   delivery, detecting contradictory replays, and investigating provider
---   disputes. order_id is nullable (an event may arrive before/without a
---   resolvable local order); external_order_id keeps the provider reference so
---   an orphan event is still reconcilable.
+--   disputes. order_id + external_order_id are BOTH required and always agree:
+--   the apply function resolves the order from (provider, external_order_id)
+--   and only records a receipt once a match is found — an unmatched event raises
+--   a retryable no-match error instead of persisting an un-reconcilable orphan,
+--   so a receipt is never stranded and the caller never routes by a chosen id.
 --   PRIVACY: the caller stores an ALLOWLISTED, PII-reduced payload (event id,
 --   type, status, tracking numbers) — NOT the raw provider body with recipient
 --   name/address — because RLS does not protect backups/exports. The webhook
@@ -543,36 +568,35 @@ CREATE TABLE store.pod_webhook_event (
     provider_event_id TEXT NOT NULL
                       CHECK (provider_event_id = btrim(provider_event_id)
                              AND length(provider_event_id) BETWEEN 1 AND 255),
-    -- order_id is resolved INTERNALLY from (provider, external_order_id) by the
-    -- apply function (the caller never supplies it), so it can never disagree
-    -- with the provider identity. NULL only for an orphan (no matching order).
-    order_id          BIGINT REFERENCES store.order(order_id),
-    external_order_id TEXT
-                      CHECK (external_order_id IS NULL
-                             OR (external_order_id = btrim(external_order_id)
-                                 AND length(external_order_id) BETWEEN 1 AND 255)),
+    -- order_id + external_order_id are BOTH required and always agree: the apply
+    -- function resolves the order from (provider, external_order_id) and only
+    -- records a receipt once a match is found (an unmatched event raises a
+    -- retryable error instead of persisting an un-reconcilable orphan), so a
+    -- receipt is never stranded and the caller never routes by a chosen id.
+    order_id          BIGINT NOT NULL REFERENCES store.order(order_id),
+    external_order_id TEXT NOT NULL
+                      CHECK (external_order_id = btrim(external_order_id)
+                             AND length(external_order_id) BETWEEN 1 AND 255),
+    -- Effective tracking actually stored on the order (event tracking if
+    -- non-empty, else the order's current), so the receipt matches the order.
     tracking          JSONB NOT NULL DEFAULT '{}'::jsonb
                       CHECK (jsonb_typeof(tracking) = 'object'
                              AND octet_length(tracking::text) <= 16384),
-    -- Outcome recorded AT INSERT (append-only friendly): the effect the event
-    -- had given the order's state when it arrived.
-    outcome           TEXT NOT NULL DEFAULT 'orphan'
-                      CHECK (outcome IN ('applied', 'orphan', 'noop_terminal')),
-    applied_order_status store.order_status,
+    -- Outcome recorded AT INSERT (append-only): the effect the event had given
+    -- the order's state when it arrived.
+    outcome           TEXT NOT NULL
+                      CHECK (outcome IN ('applied', 'noop_terminal')),
+    applied_order_status store.order_status NOT NULL,
     payload           JSONB NOT NULL DEFAULT '{}'::jsonb
                       CHECK (jsonb_typeof(payload) = 'object'
                              AND octet_length(payload::text) <= 65536),
     received_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (provider, provider_event_id),
-    -- Every receipt carries at least one routing identity.
-    CONSTRAINT store_pod_webhook_identity_ck
-        CHECK (order_id IS NOT NULL OR external_order_id IS NOT NULL)
+    -- An 'applied' event always shipped the order.
+    CONSTRAINT store_pod_webhook_outcome_ck
+        CHECK (outcome <> 'applied' OR applied_order_status = 'shipped')
 );
 CREATE INDEX store_pod_webhook_event_order_idx ON store.pod_webhook_event (order_id, received_at);
--- Reconciliation queue for orphan events (arrived without a resolvable order).
-CREATE INDEX store_pod_webhook_orphan_external_idx
-    ON store.pod_webhook_event (provider, external_order_id, received_at)
-    WHERE order_id IS NULL AND external_order_id IS NOT NULL;
 
 CREATE TRIGGER store_pod_webhook_event_no_mutate
     BEFORE UPDATE OR DELETE ON store.pod_webhook_event

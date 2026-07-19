@@ -1327,9 +1327,11 @@ GRANT EXECUTE ON FUNCTION store.service_update_pod_status(BIGINT, JSONB) TO serv
 -- Dedupe is (provider, provider_event_id): a byte-different replay (order /
 -- external id / tracking / payload) is a contradiction (40001); an equivalent
 -- replay returns false. A newly-recorded event advances a paid|processing order
--- to 'shipped' with tracking so an early event isn't lost; a terminal order is a
--- benign no-op; no matching order is recorded as an orphan for reconciliation.
--- Returns true when newly recorded. VOLATILE — write connection.
+-- to 'shipped' with tracking (a paid order through both transitions as two
+-- events) so an early event isn't lost; a terminal order is a benign no-op; no
+-- matching order raises a retryable no-match error (P1001) rather than persisting
+-- a stranded orphan receipt. Returns true when newly recorded. VOLATILE — write
+-- connection.
 CREATE OR REPLACE FUNCTION store.service_apply_pod_shipment(
     p_provider          TEXT,
     p_event_id          TEXT,
@@ -1365,15 +1367,24 @@ BEGIN
         RAISE EXCEPTION 'tracking must be a JSON object under 16KB' USING ERRCODE = '22023';
     END IF;
 
-    -- Resolve + lock the order by its provider identity (never a caller order id).
+    -- Resolve + lock the order by its provider identity (never a caller order
+    -- id). No match => a retryable error rather than a stranded orphan receipt:
+    -- a shipment can only precede its ACK by a race, and the provider retry will
+    -- resolve once the ACK records the identity. (NotFound -> 503 in transport.)
     SELECT * INTO v_order FROM store.order
      WHERE pod_provider = v_provider AND pod_external_order_id = v_ext_id
      FOR UPDATE;
-    v_order_id := v_order.order_id;   -- NULL when no matching order (orphan)
+    IF v_order.order_id IS NULL THEN
+        RAISE EXCEPTION 'pod shipment: no matching order for %/%', v_provider, v_ext_id
+            USING ERRCODE = 'P1001';
+    END IF;
+    v_order_id := v_order.order_id;
 
-    IF v_order_id IS NULL THEN
-        v_outcome := 'orphan';
-    ELSIF v_order.status IN ('paid', 'processing') THEN
+    -- Effective tracking = event tracking if non-empty, else the order's current
+    -- tracking, so the stored receipt matches what the order ends up with.
+    v_tracking := CASE WHEN v_tracking = '{}'::jsonb THEN v_order.tracking ELSE v_tracking END;
+
+    IF v_order.status IN ('paid', 'processing') THEN
         v_outcome := 'applied';
         v_applied := 'shipped';
     ELSE
@@ -1392,7 +1403,7 @@ BEGIN
 
     IF v_pk IS NULL THEN
         -- Duplicate event id: a contradictory replay is loud; an equivalent one
-        -- is a no-op false. Tracking is part of the fingerprint.
+        -- is a no-op false. Effective tracking is part of the fingerprint.
         SELECT * INTO v_existing FROM store.pod_webhook_event
          WHERE provider = v_provider AND provider_event_id = v_event_id;
         IF v_existing.order_id IS DISTINCT FROM v_order_id
@@ -1405,16 +1416,19 @@ BEGIN
         RETURN false;
     END IF;
 
-    -- Newly recorded: apply the shipment for a paid|processing order (forward
-    -- advance, so an early event isn't permanently lost). Terminal/orphan = no-op.
+    -- Newly recorded: apply the shipment for a paid|processing order. To respect
+    -- the declared lifecycle (paid -> processing -> shipped) and its audit trail,
+    -- a paid order is fast-forwarded through BOTH transitions as two events.
     IF v_outcome = 'applied' THEN
+        IF v_order.status = 'paid' THEN
+            INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
+            VALUES (v_order_id, 'paid', 'processing', 'pod', 'POD shipment (auto-processing)', v_tracking);
+        END IF;
         UPDATE store.order
-           SET status = 'shipped',
-               tracking = CASE WHEN v_tracking = '{}'::jsonb THEN tracking ELSE v_tracking END,
-               updated_at = now()
+           SET status = 'shipped', tracking = v_tracking, updated_at = now()
          WHERE order_id = v_order_id;
         INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
-        VALUES (v_order_id, v_order.status, 'shipped', 'pod', 'POD shipment', v_tracking);
+        VALUES (v_order_id, 'processing', 'shipped', 'pod', 'POD shipment', v_tracking);
     END IF;
 
     RETURN true;

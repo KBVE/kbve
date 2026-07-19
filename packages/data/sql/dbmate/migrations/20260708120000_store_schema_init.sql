@@ -1399,6 +1399,7 @@ DROP FUNCTION IF EXISTS public.proxy_store_my_entitlements_readonly();
 DROP FUNCTION IF EXISTS store.service_buy(UUID, TEXT, UUID);
 DROP FUNCTION IF EXISTS private.proxy_store_caller_account();
 DROP INDEX IF EXISTS inventory.inventory_item_store_product_owned_uq;
+DROP INDEX IF EXISTS inventory.inventory_item_store_entitlements_read_idx;
 DROP TABLE IF EXISTS store.purchase;
 DROP TRIGGER IF EXISTS store_product_slug_immutable ON store.product;
 DROP FUNCTION IF EXISTS store.product_slug_immutable();

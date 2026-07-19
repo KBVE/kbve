@@ -24,7 +24,7 @@ const EMPTY_ADDR: ShippingAddress = {
 	line2: '',
 	city: '',
 	region: '',
-	postal: '',
+	postal_code: '',
 	country: '',
 };
 
@@ -145,7 +145,7 @@ export function CheckoutModal({
 								['line2', 'Address line 2'],
 								['city', 'City'],
 								['region', 'State / region'],
-								['postal', 'Postal code'],
+								['postal_code', 'Postal code'],
 								['country', 'Country'],
 							] as [keyof ShippingAddress, string][]
 						).map(([k, label]) => (
@@ -165,6 +165,7 @@ export function CheckoutModal({
 								!addr.name ||
 								!addr.line1 ||
 								!addr.city ||
+								!addr.postal_code ||
 								!addr.country
 							}
 							onClick={() => void submit()}>
