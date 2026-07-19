@@ -1,0 +1,42 @@
+services:
+  cube_api:
+    image: cubejs/cube:latest
+    restart: always
+    ports:
+      - "4000:4000"
+    env_file: .env
+    environment:
+      - CUBEJS_DEV_MODE=true
+      - CUBEJS_CUBESTORE_HOST=cubestore
+      - CUBEJS_DB_MAX_POOL=5
+      - CUBEJS_DATASOURCES=default,clickhouse
+    volumes:
+      - ../model:/cube/conf/model
+      - ./cube.js:/cube/conf/cube.js:ro
+    depends_on:
+      - cube_refresh_worker
+      - cubestore
+
+  cube_refresh_worker:
+    image: cubejs/cube:latest
+    restart: always
+    env_file: .env
+    environment:
+      - CUBEJS_REFRESH_WORKER=true
+      - CUBEJS_DEV_MODE=true
+      - CUBEJS_CUBESTORE_HOST=cubestore
+      - CUBEJS_DB_MAX_POOL=5
+      - CUBEJS_DATASOURCES=default,clickhouse
+    volumes:
+      - ../model:/cube/conf/model
+      - ./cube.js:/cube/conf/cube.js:ro
+
+  cubestore:
+    image: cubejs/cubestore:latest
+    restart: always
+    environment:
+      - CUBESTORE_SERVER_NAME=cubestore:9999
+      - CUBESTORE_META_PORT=9999
+      - CUBESTORE_REMOTE_DIR=/cube/data
+    volumes:
+      - ./.cubestore:/cube/data
