@@ -163,10 +163,18 @@ mod tests {
         let db = EmbedDb::open(dir.path().join("r.db")).await.unwrap();
         db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
         let tx = db.begin().await.unwrap();
-        tx.execute("INSERT INTO t VALUES (?)", (1_i64,)).await.unwrap();
+        let n = tx.execute("INSERT INTO t VALUES (?)", (1_i64,)).await.unwrap();
+        assert_eq!(n, 1);
         tx.rollback().await.unwrap();
         db.checkpoint().await.unwrap();
         assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 0);
+
+        let tx2 = db.begin().await.unwrap();
+        let n2 = tx2.execute("INSERT INTO t VALUES (?)", (2_i64,)).await.unwrap();
+        assert_eq!(n2, 1);
+        tx2.commit().await.unwrap();
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 1);
     }
 
     #[tokio::test]

@@ -72,3 +72,5 @@ tx.commit().await?;
 ```
 
 Dropping an `EmbedTx` without calling `commit` discards the transaction's writes (rolled back on the connection's next use, not synchronously at drop).
+
+`EmbedDb::execute` and `EmbedDb::begin` share the same underlying `turso::Connection`. While a transaction is open, use the `tx` handle for writes — calling `db.execute(...)` on the same `EmbedDb` runs that statement inside the open transaction instead of autocommitting independently.
