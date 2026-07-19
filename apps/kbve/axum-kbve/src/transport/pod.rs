@@ -66,13 +66,31 @@ pub(crate) async fn submit_pod(headers: HeaderMap, Path(order_id): Path<i64>) ->
         Some(c) => c,
         None => return service_unavailable(),
     };
-    let order = match client.store_order_for_pod(order_id).await {
+    let order = match client
+        .store_order_for_pod(order_id, Some("axum-pod-submit".to_string()))
+        .await
+    {
         Ok(Some(o)) => o,
         Ok(None) => {
             return (StatusCode::NOT_FOUND, Json(json!({"error": "not_found"}))).into_response();
         }
         Err(e) => {
             tracing::error!("pod order fetch failed: {:?}", e);
+            return service_unavailable();
+        }
+    };
+
+    // Lease token from the claim — required to acknowledge the submission. A
+    // worker whose lease expired and was reclaimed holds a stale token and its
+    // ack is rejected, so it cannot double-write this order.
+    let claim_token = match order
+        .get("claim_token")
+        .and_then(|v| v.as_str())
+        .and_then(|s| uuid::Uuid::parse_str(s).ok())
+    {
+        Some(t) => t,
+        None => {
+            tracing::error!("pod claim missing claim_token for order {order_id}");
             return service_unavailable();
         }
     };
@@ -133,11 +151,14 @@ pub(crate) async fn submit_pod(headers: HeaderMap, Path(order_id): Path<i64>) ->
 
     let pod_ref = json!({
         "provider": "printful",
-        "external_id": external_id,
+        "external_order_id": external_id,
         "submitted": true,
     });
-    if let Err(e) = client.store_attach_pod_ref(order_id, pod_ref).await {
-        tracing::error!("attach pod_ref failed: {:?}", e);
+    if let Err(e) = client
+        .store_ack_pod_submission(order_id, claim_token, pod_ref)
+        .await
+    {
+        tracing::error!("ack pod submission failed: {:?}", e);
         return service_unavailable();
     }
     // Best-effort advance paid → processing.

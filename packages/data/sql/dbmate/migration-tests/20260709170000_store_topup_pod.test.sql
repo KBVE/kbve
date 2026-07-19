@@ -98,14 +98,15 @@ INSERT INTO store.product_variant (product_id, sku, price)
 SELECT product_id, 'SKU-POD', 10 FROM store.product WHERE slug = 'test-pod'
 ON CONFLICT (sku) DO NOTHING;
 
--- 3. POD claim is atomic: first claim stamps pod_submitted_at, a second claim
---    of the same order is rejected (55006).
+-- 3. POD lease is atomic: the first lease stamps pod_claimed_at + a token, and
+--    a second lease of the still-leased order is rejected (55006).
 DO $$
 DECLARE
     v_acct  UUID;
     v_var   UUID := (SELECT variant_id FROM store.product_variant WHERE sku = 'SKU-POD');
     v_order BIGINT;
-    v_sub   TIMESTAMPTZ;
+    v_claim JSONB;
+    v_at    TIMESTAMPTZ;
 BEGIN
     SELECT id INTO v_acct FROM wallet.account a
       JOIN public.__store_topup_pod_fixture f ON f.user_id = a.user_id
@@ -116,22 +117,25 @@ BEGIN
         jsonb_build_object('name','P','line1','9 St','city','C','postal_code','9','country','US'),
         gen_random_uuid());
 
-    PERFORM store.service_order_for_pod(v_order);
-    SELECT pod_submitted_at INTO v_sub FROM store.order WHERE order_id = v_order;
-    IF v_sub IS NULL THEN
-        RAISE EXCEPTION 'fail: claim did not stamp pod_submitted_at';
+    v_claim := store.service_order_for_pod(v_order, 'worker-1');
+    IF (v_claim->>'claim_token') IS NULL THEN
+        RAISE EXCEPTION 'fail: lease did not return a claim_token';
+    END IF;
+    SELECT pod_claimed_at INTO v_at FROM store.order WHERE order_id = v_order;
+    IF v_at IS NULL THEN
+        RAISE EXCEPTION 'fail: lease did not stamp pod_claimed_at';
     END IF;
 
     BEGIN
-        PERFORM store.service_order_for_pod(v_order);
-        RAISE EXCEPTION 'fail: order was claimed for POD twice';
+        PERFORM store.service_order_for_pod(v_order, 'worker-2');
+        RAISE EXCEPTION 'fail: order was leased for POD twice';
     EXCEPTION WHEN sqlstate '55006' THEN
         NULL;  -- expected
     END;
 END;
 $$;
 
--- 4. attach_pod_ref rejects an ineligible (refunded) order.
+-- 4. ack_pod_submission rejects an ineligible (refunded) order.
 DO $$
 DECLARE
     v_acct  UUID;
@@ -149,21 +153,24 @@ BEGIN
     PERFORM store.service_refund_order(v_order, 'test');
 
     BEGIN
-        PERFORM store.service_attach_pod_ref(v_order, jsonb_build_object('provider','printful'));
-        RAISE EXCEPTION 'fail: pod_ref attached to a refunded order';
+        PERFORM store.service_ack_pod_submission(v_order, gen_random_uuid(),
+            jsonb_build_object('provider','printful','external_order_id','EXT-R'));
+        RAISE EXCEPTION 'fail: ack accepted for a refunded order';
     EXCEPTION WHEN sqlstate 'P1001' THEN
         NULL;  -- expected
     END;
 END;
 $$;
 
--- 5. External POD order id is unique across local orders.
+-- 5. External POD order id is unique across local orders (lease + ack each).
 DO $$
 DECLARE
     v_acct UUID;
     v_var  UUID := (SELECT variant_id FROM store.product_variant WHERE sku = 'SKU-POD');
     v_o1   BIGINT;
     v_o2   BIGINT;
+    v_t1   UUID;
+    v_t2   UUID;
     v_ref  JSONB := jsonb_build_object('provider','printful','external_order_id','EXT-1');
 BEGIN
     SELECT id INTO v_acct FROM wallet.account a
@@ -177,11 +184,66 @@ BEGIN
         jsonb_build_object('name','U2','line1','6 St','city','C','postal_code','6','country','US'),
         gen_random_uuid());
 
-    PERFORM store.service_attach_pod_ref(v_o1, v_ref);
+    v_t1 := (store.service_order_for_pod(v_o1, 'w')->>'claim_token')::uuid;
+    v_t2 := (store.service_order_for_pod(v_o2, 'w')->>'claim_token')::uuid;
+    PERFORM store.service_ack_pod_submission(v_o1, v_t1, v_ref);
     BEGIN
-        PERFORM store.service_attach_pod_ref(v_o2, v_ref);
-        RAISE EXCEPTION 'fail: same external POD id attached to two orders';
+        PERFORM store.service_ack_pod_submission(v_o2, v_t2, v_ref);
+        RAISE EXCEPTION 'fail: same external POD id acked on two orders';
     EXCEPTION WHEN unique_violation THEN
+        NULL;  -- expected
+    END;
+END;
+$$;
+
+-- 6. ack requires the current lease token: a stale/wrong token is rejected.
+DO $$
+DECLARE
+    v_acct  UUID;
+    v_var   UUID := (SELECT variant_id FROM store.product_variant WHERE sku = 'SKU-POD');
+    v_order BIGINT;
+BEGIN
+    SELECT id INTO v_acct FROM wallet.account a
+      JOIN public.__store_topup_pod_fixture f ON f.user_id = a.user_id
+     WHERE f.role = 'pod_buyer';
+
+    v_order := store.service_buy_physical(v_acct, v_var, 1,
+        jsonb_build_object('name','T','line1','5 St','city','C','postal_code','5','country','US'),
+        gen_random_uuid());
+    PERFORM store.service_order_for_pod(v_order, 'worker-1');
+
+    BEGIN
+        PERFORM store.service_ack_pod_submission(v_order, gen_random_uuid(),
+            jsonb_build_object('provider','printful','external_order_id','EXT-2'));
+        RAISE EXCEPTION 'fail: ack accepted a stale claim token';
+    EXCEPTION WHEN sqlstate '55006' THEN
+        NULL;  -- expected
+    END;
+END;
+$$;
+
+-- 7. ack requires a complete provider identity (provider + external_order_id).
+DO $$
+DECLARE
+    v_acct  UUID;
+    v_var   UUID := (SELECT variant_id FROM store.product_variant WHERE sku = 'SKU-POD');
+    v_order BIGINT;
+    v_tok   UUID;
+BEGIN
+    SELECT id INTO v_acct FROM wallet.account a
+      JOIN public.__store_topup_pod_fixture f ON f.user_id = a.user_id
+     WHERE f.role = 'pod_buyer';
+
+    v_order := store.service_buy_physical(v_acct, v_var, 1,
+        jsonb_build_object('name','I','line1','4 St','city','C','postal_code','4','country','US'),
+        gen_random_uuid());
+    v_tok := (store.service_order_for_pod(v_order, 'w')->>'claim_token')::uuid;
+
+    BEGIN
+        PERFORM store.service_ack_pod_submission(v_order, v_tok,
+            jsonb_build_object('provider','printful'));
+        RAISE EXCEPTION 'fail: ack accepted without external_order_id';
+    EXCEPTION WHEN sqlstate '22023' THEN
         NULL;  -- expected
     END;
 END;

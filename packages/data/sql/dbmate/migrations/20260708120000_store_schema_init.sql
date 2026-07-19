@@ -72,6 +72,26 @@ CREATE INDEX store_product_active_idx
 COMMENT ON TABLE store.product IS
     'Store catalog. Fixed-price products. A purchase mints inventory.item(kind=store_product, ref=slug); ownership lives in inventory, not here. asset_ref is public (anon-readable).';
 
+-- slug is the durable product identity: inventory.item.ref, the debit
+-- ref_type, and digital replay all key on it. Freeze it after creation so a
+-- rename can't orphan entitlements or break an in-flight idempotent replay.
+CREATE OR REPLACE FUNCTION store.product_slug_immutable()
+RETURNS TRIGGER
+LANGUAGE plpgsql SET search_path = '' AS $$
+BEGIN
+    IF NEW.slug IS DISTINCT FROM OLD.slug THEN
+        RAISE EXCEPTION 'store.product.slug is immutable (was %, got %)', OLD.slug, NEW.slug
+            USING ERRCODE = '22023';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+ALTER FUNCTION store.product_slug_immutable() OWNER TO service_role;
+
+CREATE TRIGGER store_product_slug_immutable
+    BEFORE UPDATE OF slug ON store.product
+    FOR EACH ROW EXECUTE FUNCTION store.product_slug_immutable();
+
 -- Hard invariant: at most one owned copy of a given store product per account.
 -- Backstops the ownership dupe-guard in store.service_buy against a
 -- concurrent double-mint race (both callers pass the SELECT check, both mint).
@@ -154,7 +174,16 @@ CREATE TABLE store.purchase (
                     CHECK (result_kind IN ('minted', 'already_owned')),
     idempotency_key UUID NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UNIQUE (account_id, idempotency_key)
+    UNIQUE (account_id, idempotency_key),
+    -- Enforce the accounting the comments describe: an already-owned lookup is
+    -- always a zero-charge no-op (no ledger); a mint charges iff price > 0.
+    CONSTRAINT store_purchase_accounting_ck CHECK (
+        (result_kind = 'already_owned' AND price = 0 AND ledger_id IS NULL)
+        OR (result_kind = 'minted' AND (
+                (price = 0 AND ledger_id IS NULL)
+                OR (price > 0 AND ledger_id IS NOT NULL)
+            ))
+    )
 );
 CREATE INDEX store_purchase_account_created_idx
     ON store.purchase (account_id, created_at DESC);
@@ -507,8 +536,14 @@ LANGUAGE sql STABLE SECURITY DEFINER SET search_path = '' AS $$
                         )
                         ORDER BY v.created_at
                     )
-                  FROM store.product_variant v
-                 WHERE v.product_id = p.product_id AND v.status = 'active'),
+                  -- Cap the embedded variant list so a product with a huge SKU
+                  -- count can't produce an oversized single response.
+                  FROM (SELECT vv.variant_id, vv.sku, vv.attributes, vv.price,
+                               vv.stock, vv.created_at
+                          FROM store.product_variant vv
+                         WHERE vv.product_id = p.product_id AND vv.status = 'active'
+                         ORDER BY vv.created_at
+                         LIMIT 200) v),
                '[]'::jsonb
            ) AS variants
       FROM store.product p
@@ -599,19 +634,34 @@ CREATE OR REPLACE FUNCTION store.service_upsert_variant(
 RETURNS UUID
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
-    v_id UUID;
+    v_id         UUID;
+    v_owner_prod UUID;
+    v_old_stock  BIGINT;
+    v_stock_mode_known BOOLEAN := false;
 BEGIN
     IF NOT EXISTS (SELECT 1 FROM store.product WHERE product_id = p_product_id) THEN
         RAISE EXCEPTION 'store product % not found', p_product_id USING ERRCODE = 'P1001';
     END IF;
     -- sku is globally unique; reject reusing one that belongs to another
-    -- product (ON CONFLICT (sku) would otherwise silently keep the old
-    -- product_id and mask the mistake).
+    -- product. Friendly pre-check (nice error), but NOT the correctness
+    -- mechanism — the ON CONFLICT WHERE below is the race-safe guarantee.
     IF EXISTS (SELECT 1 FROM store.product_variant
                 WHERE sku = p_sku AND product_id <> p_product_id) THEN
         RAISE EXCEPTION 'sku % already belongs to another product', p_sku
             USING ERRCODE = '23505';
     END IF;
+
+    -- Stock MODE (finite vs unlimited) is immutable once a variant exists:
+    -- flipping it while orders carry stock_reserved snapshots makes old
+    -- reservations ambiguous. To change mode, retire the variant and create a
+    -- new SKU. Capture the current mode to enforce it on the UPDATE path.
+    SELECT stock, true INTO v_old_stock, v_stock_mode_known
+      FROM store.product_variant WHERE sku = p_sku AND product_id = p_product_id;
+    IF v_stock_mode_known AND ((v_old_stock IS NULL) <> (p_stock IS NULL)) THEN
+        RAISE EXCEPTION 'variant % stock mode (finite/unlimited) is immutable; create a new SKU', p_sku
+            USING ERRCODE = '22023';
+    END IF;
+
     INSERT INTO store.product_variant (product_id, sku, attributes, price, stock, status)
     VALUES (p_product_id, p_sku,
             COALESCE(p_attributes, '{}'::jsonb),
@@ -623,13 +673,24 @@ BEGIN
             stock      = excluded.stock,
             status     = excluded.status,
             updated_at = now()
-        WHERE store.product_variant.attributes IS DISTINCT FROM excluded.attributes
-           OR store.product_variant.price      IS DISTINCT FROM excluded.price
-           OR store.product_variant.stock      IS DISTINCT FROM excluded.stock
-           OR store.product_variant.status     IS DISTINCT FROM excluded.status
+        -- product_id guard makes the upsert atomically reject a cross-product
+        -- SKU even under a concurrent insert that the pre-check above missed:
+        -- a conflict on another product's SKU updates nothing (v_id stays NULL).
+        WHERE store.product_variant.product_id = excluded.product_id
+          AND (store.product_variant.attributes IS DISTINCT FROM excluded.attributes
+            OR store.product_variant.price      IS DISTINCT FROM excluded.price
+            OR store.product_variant.stock      IS DISTINCT FROM excluded.stock
+            OR store.product_variant.status     IS DISTINCT FROM excluded.status)
     RETURNING variant_id INTO v_id;
     IF v_id IS NULL THEN
-        SELECT variant_id INTO v_id FROM store.product_variant WHERE sku = p_sku;
+        -- No row returned: either a no-op update (same product) or a conflict
+        -- on another product's SKU. Disambiguate and raise on cross-product.
+        SELECT variant_id INTO v_id FROM store.product_variant
+         WHERE sku = p_sku AND product_id = p_product_id;
+        IF v_id IS NULL THEN
+            RAISE EXCEPTION 'sku % already belongs to another product', p_sku
+                USING ERRCODE = '23505';
+        END IF;
     END IF;
     RETURN v_id;
 END;
@@ -693,9 +754,10 @@ CREATE TABLE store.order (
     -- never the live product row.
     currency         wallet.currency_kind NOT NULL DEFAULT 'credits',
     unit_price       BIGINT NOT NULL DEFAULT 0 CHECK (unit_price >= 0),
-    product_slug     TEXT,
-    product_title    TEXT,
-    variant_sku      TEXT,
+    -- Snapshot fields service_buy_physical always supplies -> NOT NULL.
+    product_slug     TEXT NOT NULL,
+    product_title    TEXT NOT NULL,
+    variant_sku      TEXT NOT NULL,
     variant_attributes JSONB NOT NULL DEFAULT '{}'::jsonb
                      CHECK (jsonb_typeof(variant_attributes) = 'object'),
     -- Snapshot of the product's fulfillment mode at buy time. POD eligibility
@@ -709,7 +771,9 @@ CREATE TABLE store.order (
     stock_reserved   BOOLEAN NOT NULL DEFAULT false,
     credits_amount   BIGINT NOT NULL CHECK (credits_amount >= 0),
     ledger_id        BIGINT,
-    twin_item_id     UUID,
+    -- FK so refund correctness (revoking the minted twin) can't hinge on a
+    -- dangling id. RESTRICT: inventory items are state-machined, not deleted.
+    twin_item_id     UUID REFERENCES inventory.item(id) ON DELETE RESTRICT,
     status           store.order_status NOT NULL DEFAULT 'paid',
     shipping_address JSONB NOT NULL DEFAULT '{}'::jsonb
                      CHECK (jsonb_typeof(shipping_address) = 'object'
@@ -725,6 +789,16 @@ CREATE TABLE store.order (
     created_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
     updated_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT store_order_account_key_uq UNIQUE (account_id, idempotency_key),
+    -- Money integrity: a debit ledger exists iff money moved, and the captured
+    -- total equals unit_price * qty (numeric cast avoids bigint overflow in the
+    -- check itself).
+    CONSTRAINT store_order_ledger_ck CHECK (
+        (credits_amount = 0 AND ledger_id IS NULL)
+        OR (credits_amount > 0 AND ledger_id IS NOT NULL)
+    ),
+    CONSTRAINT store_order_amount_ck CHECK (
+        credits_amount::numeric = unit_price::numeric * qty::numeric
+    ),
     -- Variant must belong to product_id (NULL variant allowed — PG skips the
     -- composite FK when any referencing column is NULL).
     CONSTRAINT store_order_product_variant_fk
@@ -854,11 +928,26 @@ BEGIN
             USING ERRCODE = '22023';
     END IF;
 
-    -- A physical order needs a real shipping address BEFORE money moves. An
-    -- empty {} must never yield a paid, unfulfillable order. (Field-level
-    -- validation of the address contract is enforced at the transport layer.)
+    -- A physical order needs a COMPLETE shipping address BEFORE money moves.
+    -- service_buy_physical is directly callable by service_role, so the address
+    -- contract is enforced HERE (in the trust boundary) rather than trusting the
+    -- transport: the minimum fulfillable set must be present and non-blank, and
+    -- the document bounded, or no paid order is created.
     IF COALESCE(p_shipping_address, '{}'::jsonb) = '{}'::jsonb THEN
         RAISE EXCEPTION 'shipping_address is required for physical orders'
+            USING ERRCODE = '23514';
+    END IF;
+    IF jsonb_typeof(p_shipping_address) <> 'object'
+       OR octet_length(p_shipping_address::text) > 16384 THEN
+        RAISE EXCEPTION 'shipping_address must be a JSON object under 16KB'
+            USING ERRCODE = '22023';
+    END IF;
+    IF coalesce(length(btrim(p_shipping_address->>'name')), 0)        = 0
+       OR coalesce(length(btrim(p_shipping_address->>'line1')), 0)    = 0
+       OR coalesce(length(btrim(p_shipping_address->>'city')), 0)     = 0
+       OR coalesce(length(btrim(p_shipping_address->>'postal_code')), 0) = 0
+       OR coalesce(length(btrim(p_shipping_address->>'country')), 0)  = 0 THEN
+        RAISE EXCEPTION 'shipping_address requires name, line1, city, postal_code, country'
             USING ERRCODE = '23514';
     END IF;
 
@@ -1098,10 +1187,10 @@ BEGIN
         );
     END IF;
 
-    -- Restore stock only if THIS order actually reserved finite stock. Reading
-    -- the order's snapshot (not the variant's current stock mode) means a
-    -- NULL<->finite change on the variant after purchase can't wrongly inflate
-    -- or skip the restore.
+    -- Restore stock only if THIS order actually reserved finite stock
+    -- (stock_reserved snapshot). Stock mode is immutable (service_upsert_variant
+    -- rejects finite<->unlimited flips), so a reserved order's variant is still
+    -- finite here and the restore is exact — never inflated, never skipped.
     IF v_order.stock_reserved AND v_order.variant_id IS NOT NULL THEN
         UPDATE store.product_variant
            SET stock = stock + v_order.qty, updated_at = now()
@@ -1193,12 +1282,21 @@ ALTER FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) RO
 REVOKE ALL ON FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION store.service_list_orders(store.order_status, INTEGER, BIGINT) TO service_role;
 
--- The SECURITY DEFINER RPCs run as service_role, so service_role needs
--- explicit table + sequence privileges (never rely on implicit PUBLIC grants,
--- which the REVOKE below strips). No RPC ever DELETEs a store row (append-only
--- events, orders, receipts, top-ups are retained), so DELETE is withheld — the
--- service contract is SELECT/INSERT/UPDATE only. (A dedicated NOLOGIN owner
--- role granting callers EXECUTE-only remains a deferred hardening.)
+-- Bound the wall-clock of the anon/authenticated-reachable RPCs so a pathological
+-- input or a slow plan can't tie up a backend indefinitely. Reads are cheap
+-- (3s); the buy paths add wallet-debit latency headroom (5s).
+ALTER FUNCTION public.proxy_store_catalog_readonly(INTEGER, TIMESTAMPTZ, UUID) SET statement_timeout = '3s';
+ALTER FUNCTION public.proxy_store_product_detail_readonly(TEXT) SET statement_timeout = '3s';
+ALTER FUNCTION public.proxy_store_my_entitlements_readonly() SET statement_timeout = '3s';
+ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) SET statement_timeout = '3s';
+ALTER FUNCTION public.proxy_store_buy(TEXT, UUID) SET statement_timeout = '5s';
+ALTER FUNCTION public.proxy_store_buy_physical(UUID, BIGINT, JSONB, UUID) SET statement_timeout = '5s';
+
+-- The SECURITY DEFINER RPCs run as the store owner role; service_role callers
+-- receive EXECUTE only. The blanket table access granted here is REVOKED and
+-- replaced by owner-scoped access in the privilege-hardening migration. No RPC
+-- ever DELETEs a store row (append-only events, orders, receipts, top-ups are
+-- retained), so DELETE is withheld regardless.
 GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA store TO service_role;
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA store TO service_role;
 
@@ -1243,6 +1341,8 @@ DROP FUNCTION IF EXISTS store.service_buy(UUID, TEXT, UUID);
 DROP FUNCTION IF EXISTS private.proxy_store_caller_account();
 DROP INDEX IF EXISTS inventory.inventory_item_store_product_owned_uq;
 DROP TABLE IF EXISTS store.purchase;
+DROP TRIGGER IF EXISTS store_product_slug_immutable ON store.product;
+DROP FUNCTION IF EXISTS store.product_slug_immutable();
 DROP TABLE IF EXISTS store.product;
 DROP SCHEMA IF EXISTS store;
 

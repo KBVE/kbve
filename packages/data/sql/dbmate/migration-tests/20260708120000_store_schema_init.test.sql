@@ -260,11 +260,61 @@ BEGIN
      WHERE f.role = 'digi_buyer';
     BEGIN
         INSERT INTO store.order (account_id, product_id, variant_id, qty,
+                                 product_slug, product_title, variant_sku,
                                  credits_amount, shipping_address, idempotency_key)
-        VALUES (v_acct, v_prod, v_var, 1, 0,
+        VALUES (v_acct, v_prod, v_var, 1, 'x', 'x', 'x', 0,
                 jsonb_build_object('name','E'), gen_random_uuid());
         RAISE EXCEPTION 'fail: order with cross-product variant was accepted';
     EXCEPTION WHEN foreign_key_violation THEN
+        NULL;  -- expected
+    END;
+END;
+$$;
+
+-- 8. product slug is immutable after creation.
+DO $$
+BEGIN
+    BEGIN
+        UPDATE store.product SET slug = 'test-dig-a-renamed' WHERE slug = 'test-dig-a';
+        RAISE EXCEPTION 'fail: product slug was mutated';
+    EXCEPTION WHEN sqlstate '22023' THEN
+        NULL;  -- expected
+    END;
+END;
+$$;
+
+-- 9. order money integrity: a debit ledger must exist iff money moved.
+DO $$
+DECLARE
+    v_acct UUID := (SELECT id FROM wallet.account a
+                      JOIN public.__store_init_fixture f ON f.user_id = a.user_id
+                     WHERE f.role = 'digi_buyer');
+    v_prod UUID := (SELECT product_id FROM store.product WHERE slug = 'test-both');
+    v_var  UUID := (SELECT variant_id FROM store.product_variant WHERE sku = 'SKU-BOTH');
+BEGIN
+    BEGIN
+        INSERT INTO store.order (account_id, product_id, variant_id, qty,
+                                 unit_price, product_slug, product_title, variant_sku,
+                                 credits_amount, ledger_id, shipping_address, idempotency_key)
+        VALUES (v_acct, v_prod, v_var, 1, 10, 'x', 'x', 'x', 10, NULL,
+                jsonb_build_object('name','E'), gen_random_uuid());
+        RAISE EXCEPTION 'fail: paid order with null ledger was accepted';
+    EXCEPTION WHEN check_violation THEN
+        NULL;  -- expected
+    END;
+END;
+$$;
+
+-- 10. variant stock mode (finite<->unlimited) is immutable.
+DO $$
+DECLARE
+    v_prod UUID := (SELECT product_id FROM store.product WHERE slug = 'test-both');
+BEGIN
+    -- SKU-BOTH was created with unlimited stock (NULL); flipping to finite fails.
+    BEGIN
+        PERFORM store.service_upsert_variant(v_prod, 'SKU-BOTH', '{}'::jsonb, 10, 5, 'active');
+        RAISE EXCEPTION 'fail: stock mode flip (unlimited->finite) was accepted';
+    EXCEPTION WHEN sqlstate '22023' THEN
         NULL;  -- expected
     END;
 END;

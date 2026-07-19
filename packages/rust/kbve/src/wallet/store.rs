@@ -515,23 +515,52 @@ impl WalletClient {
     // Print-on-demand (Phase 4)
     // -------------------------------------------------------------------
 
-    pub async fn store_order_for_pod(&self, order_id: i64) -> Result<Option<serde_json::Value>> {
+    /// Lease an order for POD submission. Returns the claim payload (incl.
+    /// `claim_token`, which must be passed to `store_ack_pod_submission`).
+    pub async fn store_order_for_pod(
+        &self,
+        order_id: i64,
+        claimed_by: Option<String>,
+    ) -> Result<Option<serde_json::Value>> {
         let mut conn = self.write().await?;
-        let row: ScalarJson = sql_query("SELECT store.service_order_for_pod($1) AS value")
+        let row: ScalarJson = sql_query("SELECT store.service_order_for_pod($1, $2) AS value")
             .bind::<diesel::sql_types::BigInt, _>(order_id)
+            .bind::<Nullable<Text>, _>(claimed_by)
             .get_result(&mut *conn)
             .await
             .map_err(WalletError::from_diesel)?;
         Ok(row.value)
     }
 
-    pub async fn store_attach_pod_ref(
+    /// Acknowledge a confirmed provider submission. Requires the lease token
+    /// from `store_order_for_pod` and a complete provider identity in `pod_ref`
+    /// (`provider` + `external_order_id`).
+    pub async fn store_ack_pod_submission(
+        &self,
+        order_id: i64,
+        claim_token: Uuid,
+        pod_ref: serde_json::Value,
+    ) -> Result<()> {
+        let mut conn = self.write().await?;
+        sql_query("SELECT store.service_ack_pod_submission($1, $2, $3)")
+            .bind::<diesel::sql_types::BigInt, _>(order_id)
+            .bind::<diesel::sql_types::Uuid, _>(claim_token)
+            .bind::<Jsonb, _>(pod_ref)
+            .execute(&mut *conn)
+            .await
+            .map_err(WalletError::from_diesel)?;
+        Ok(())
+    }
+
+    /// Status/metadata-only POD update (e.g. provider webhook) after an external
+    /// identity exists. Never mutates the provider identity.
+    pub async fn store_update_pod_status(
         &self,
         order_id: i64,
         pod_ref: serde_json::Value,
     ) -> Result<()> {
         let mut conn = self.write().await?;
-        sql_query("SELECT store.service_attach_pod_ref($1, $2)")
+        sql_query("SELECT store.service_update_pod_status($1, $2)")
             .bind::<diesel::sql_types::BigInt, _>(order_id)
             .bind::<Jsonb, _>(pod_ref)
             .execute(&mut *conn)
