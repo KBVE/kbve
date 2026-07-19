@@ -20,6 +20,11 @@ impl EmbedDb {
     pub fn path(&self) -> &Path {
         &self.path
     }
+
+    pub async fn execute(&self, sql: &str) -> Result<u64> {
+        let affected = self.conn.execute(sql, ()).await?;
+        Ok(affected)
+    }
 }
 
 #[cfg(test)]
@@ -33,5 +38,15 @@ mod tests {
         let db = EmbedDb::open(&p).await.unwrap();
         assert_eq!(db.path(), p.as_path());
         assert!(p.exists());
+    }
+
+    #[tokio::test]
+    async fn execute_creates_and_inserts() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("w.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER, v REAL)").await.unwrap();
+        db.execute("INSERT INTO t VALUES (1, 10.0)").await.unwrap();
+        let n = db.execute("INSERT INTO t VALUES (2, 20.0)").await.unwrap();
+        assert_eq!(n, 1);
     }
 }
