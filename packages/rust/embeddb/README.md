@@ -40,8 +40,8 @@ use embeddb::EmbedDb;
 async fn main() -> embeddb::Result<()> {
     let db = EmbedDb::open("data.db").await?;
 
-    db.execute("CREATE TABLE t (v REAL)").await?;
-    db.execute("INSERT INTO t VALUES (10.0), (20.0), (30.0)").await?;
+    db.execute("CREATE TABLE t (v REAL)", ()).await?;
+    db.execute("INSERT INTO t VALUES (10.0), (20.0), (30.0)", ()).await?;
 
     db.checkpoint().await?;
 
@@ -52,3 +52,23 @@ async fn main() -> embeddb::Result<()> {
     Ok(())
 }
 ```
+
+`execute` takes a SQL string and anything implementing `turso::IntoParams` — `()` for no parameters, or a tuple of bound values:
+
+```rust
+db.execute("CREATE TABLE t (id INTEGER, name TEXT)", ()).await?;
+db.execute("INSERT INTO t VALUES (?, ?)", (1_i64, "a")).await?;
+```
+
+### Transactions
+
+`EmbedDb::begin` returns an `EmbedTx` handle with its own `execute`, plus `commit`/`rollback` to end it:
+
+```rust
+let tx = db.begin().await?;
+tx.execute("INSERT INTO t VALUES (?, ?)", (2_i64, "b")).await?;
+tx.execute("INSERT INTO t VALUES (?, ?)", (3_i64, "c")).await?;
+tx.commit().await?;
+```
+
+Dropping an `EmbedTx` without calling `commit` discards the transaction's writes (rolled back on the connection's next use, not synchronously at drop).
