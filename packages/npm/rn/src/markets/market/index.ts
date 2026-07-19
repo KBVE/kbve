@@ -8,3 +8,5 @@ export type { MarketApi, MarketApiOptions } from './api';
 export { WatchToggle } from './WatchToggle';
 export { getWatchList, isWatched, toggleWatch, subscribe } from './watchlist';
 export type { WatchEntry } from './watchlist';
+export { ItemIcon } from './ItemIcon';
+export { EnchantList } from './EnchantList';
