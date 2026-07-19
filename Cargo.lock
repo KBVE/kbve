@@ -5713,6 +5713,7 @@ dependencies = [
  "once_cell",
  "oorandom",
  "plotters",
+ "rayon",
  "regex",
  "serde",
  "serde_derive",
@@ -6908,6 +6909,7 @@ checksum = "4ef6b89e5b37196644d8796de5268852ff179b44e96276cf4290264843743bb7"
 name = "embeddb"
 version = "0.0.1"
 dependencies = [
+ "criterion",
  "duckdb",
  "embeddb-derive",
  "tempfile",
