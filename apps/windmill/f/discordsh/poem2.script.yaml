@@ -1,0 +1,32 @@
+summary: Fetch a poem from PoetryDB (costs credits)
+description: >-
+  Paid /wm target. Same as poem, but debits credits from the caller's linked
+  KBVE wallet before returning. Resolves discord.user_id -> KBVE account via
+  axum /api/v1/wallet/service/debit-discord. The poem is fetched first; the
+  charge only happens on a deliverable poem, and a failed charge never reveals
+  it. Requires Windmill variables f/discordsh/axum_base_url and
+  f/discordsh/axum_service_token (secret service_role JWT).
+kind: script
+lock: ''
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  order:
+    - args
+    - discord
+  properties:
+    args:
+      type: array
+      description: Space-separated args from /wm; args[0] optional author.
+      items:
+        type: string
+      default: []
+    discord:
+      type: object
+      description: Discord invocation context injected by the bot.
+      properties:
+        user_id: { type: string }
+        username: { type: string }
+        guild_id: { type: string }
+        channel_id: { type: string }
+  required: []

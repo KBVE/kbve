@@ -1,0 +1,14 @@
+---
+import StoreAdmin from './StoreAdmin';
+import StaffOrderQueue from './StaffOrderQueue';
+import './store.css';
+---
+
+<section class="kbve-store not-content kbve-dashboard-page">
+	<header class="kbve-store__header">
+		<h1>Store Admin</h1>
+		<p>Manage products, variants, and fulfill orders. Staff only.</p>
+	</header>
+	<StoreAdmin client:only="react" />
+	<StaffOrderQueue client:only="react" />
+</section>

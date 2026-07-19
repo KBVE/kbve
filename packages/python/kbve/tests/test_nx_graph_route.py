@@ -81,3 +81,17 @@ def test_graph_build_accepts_path_input(tmp_path):
     get("graph").build(ctx)
     assert (ctx.content_root / "dashboard" / "graph.mdx").exists()
     assert (ctx.public_dir / "nx-graph.json").exists()
+
+
+def test_graph_build_skips_on_bad_schema(tmp_path):
+    ctx = _ctx(tmp_path, {"graph_json": {"bogus": 1}})
+    result = get("graph").build(ctx)
+    assert result.skipped is True
+    assert not (ctx.content_root / "dashboard" / "graph.mdx").exists()
+
+
+def test_graph_build_skips_on_empty_nodes(tmp_path):
+    ctx = _ctx(tmp_path, {"graph_json": {"graph": {"nodes": {}, "dependencies": {}}}})
+    result = get("graph").build(ctx)
+    assert result.skipped is True
+    assert not (ctx.public_dir / "nx-graph.json").exists()

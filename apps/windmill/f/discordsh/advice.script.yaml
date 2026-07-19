@@ -1,0 +1,29 @@
+summary: Get a piece of advice from Advice Slip
+description: >-
+  /wm target. Returns advice — blank picks a random slip, or pass a term to
+  search: /wm advice love. Source: api.adviceslip.com. Bun runtime, no
+  dependencies.
+kind: script
+lock: ''
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  order:
+    - args
+    - discord
+  properties:
+    args:
+      type: array
+      description: Space-separated args from /wm; joined as an optional search term.
+      items:
+        type: string
+      default: []
+    discord:
+      type: object
+      description: Discord invocation context injected by the bot.
+      properties:
+        user_id: { type: string }
+        username: { type: string }
+        guild_id: { type: string }
+        channel_id: { type: string }
+  required: []

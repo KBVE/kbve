@@ -54,239 +54,10 @@ jobs:
                       }
 
     # ══════════════════════════════════════════════════════════
-    # Job 1: Security Audit (pnpm, cargo, pip, CodeQL, Dependabot)
-    # ══════════════════════════════════════════════════════════
-    security:
-        name: Security Audit
-        needs: guard
-        if: needs.guard.outputs.allowed == 'true'
-        runs-on: ubuntu-latest
-        timeout-minutes: 60
-        permissions:
-            contents: read
-            security-events: read
-
-        steps:
-            - name: Audit log
-              run: |
-                  echo "::notice::Dashboard security: actor=${{ github.actor }}, event=${{ github.event_name }}, run=${{ github.run_id }}, time=$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-
-            - name: Checkout dev branch
-              uses: actions/checkout@v7
-              with:
-                  ref: dev
-                  fetch-depth: 1
-
-            - name: Setup Node v24
-              uses: actions/setup-node@v6
-              with:
-                  node-version: 24
-
-            - name: Setup pnpm v10
-              uses: pnpm/action-setup@v5
-              with:
-                  version: 10.33.0
-                  run_install: false
-
-            - name: Install pnpm Dependencies
-              run: pnpm install --frozen-lockfile
-
-            - name: Setup Python
-              uses: actions/setup-python@v6
-              with:
-                  python-version: '3.12'
-
-            - name: Setup Rust toolchain
-              run: |
-                  set -euo pipefail
-                  if command -v rustup &>/dev/null; then
-                    rustup update stable
-                  else
-                    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
-                    echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-                  fi
-
-            - name: Install build tools
-              run: |
-                  set -euo pipefail
-                  if ! command -v cc &>/dev/null; then
-                    apt-get update -qq && apt-get install -y -qq build-essential pkg-config libssl-dev
-                    echo "build-essential installed"
-                  else
-                    echo "cc already available: $(cc --version | head -1)"
-                  fi
-
-            - name: Install audit tools
-              run: |
-                  set -euo pipefail
-                  if ! command -v cargo-audit &>/dev/null; then
-                    cargo install cargo-audit --locked
-                    echo "cargo-audit installed: $(cargo audit --version)"
-                  else
-                    echo "cargo-audit already available: $(cargo audit --version)"
-                  fi
-                  pip install pip-audit
-                  echo "pip-audit installed: $(pip-audit --version)"
-
-            - name: Generate metadata
-              id: meta
-              run: |
-                  echo "report_date=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
-                  echo "report_timestamp=$(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$GITHUB_OUTPUT"
-
-            - name: Run pnpm audit
-              run: |
-                  set -euo pipefail
-                  pnpm audit --json > /tmp/pnpm-audit.json 2>/dev/null || true
-                  if ! python3 -c "import json; json.load(open('/tmp/pnpm-audit.json'))" 2>/dev/null; then
-                    echo '{"advisories":{}}' > /tmp/pnpm-audit.json
-                    echo "pnpm audit output was not valid JSON — wrote empty fallback"
-                  fi
-                  echo "pnpm audit captured ($(wc -c < /tmp/pnpm-audit.json | xargs) bytes)"
-
-            - name: Run cargo audit
-              run: |
-                  set -euo pipefail
-                  cargo audit --json > /tmp/cargo-audit.json 2>/dev/null || true
-                  if ! python3 -c "import json; json.load(open('/tmp/cargo-audit.json'))" 2>/dev/null; then
-                    echo '{"vulnerabilities":{"found":0},"warnings":{}}' > /tmp/cargo-audit.json
-                    echo "cargo audit output was not valid JSON — wrote empty fallback"
-                  fi
-                  echo "cargo audit captured ($(wc -c < /tmp/cargo-audit.json | xargs) bytes)"
-
-            - name: Run pip audit
-              run: |
-                  set -euo pipefail
-                  FOUND_REQS=0
-                  echo '[]' > /tmp/pip-audit.json
-
-                  for req_file in $(find packages/python -name 'requirements*.txt' -o -name 'pyproject.toml' 2>/dev/null | head -20); do
-                    if [[ "$req_file" == *.txt ]]; then
-                      pip-audit --requirement "$req_file" --format=json >> /tmp/pip-audit-partial.json 2>/dev/null || true
-                      FOUND_REQS=1
-                    fi
-                  done
-
-                  if [ "$FOUND_REQS" -eq 0 ]; then
-                    pip-audit --format=json > /tmp/pip-audit.json 2>/dev/null || true
-                  fi
-
-                  echo "pip audit captured ($(wc -c < /tmp/pip-audit.json | xargs) bytes)"
-
-            - name: Fetch CodeQL alerts
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  python3 scripts/fetch-github-alerts.py \
-                    --endpoint code-scanning \
-                    --out /tmp/codeql-alerts.json
-
-            - name: Fetch Dependabot alerts
-              env:
-                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-              run: |
-                  python3 scripts/fetch-github-alerts.py \
-                    --endpoint dependabot \
-                    --out /tmp/dependabot-alerts.json
-
-            - name: Aggregate security data
-              run: |
-                  set -euo pipefail
-                  python3 -c "
-                  import json
-                  data = {
-                      'npm': json.load(open('/tmp/pnpm-audit.json')),
-                      'cargo': json.load(open('/tmp/cargo-audit.json')),
-                      'python': json.load(open('/tmp/pip-audit.json')),
-                      'codeql': json.load(open('/tmp/codeql-alerts.json')),
-                      'dependabot': json.load(open('/tmp/dependabot-alerts.json')),
-                  }
-                  json.dump(data, open('/tmp/nx-security-raw.json', 'w'), indent=2)
-                  print(f'Aggregated {len(data)} ecosystems')
-                  "
-
-            - name: Build Security JSON
-              run: |
-                  set -euo pipefail
-                  DEST="apps/kbve/astro-kbve/public/data/nx/nx-security.json"
-                  mkdir -p "$(dirname "$DEST")"
-                  python3 scripts/nx-security-to-mdx.py \
-                    --input /tmp/nx-security-raw.json \
-                    --json-out "$DEST" \
-                    --timestamp "${{ steps.meta.outputs.report_timestamp }}"
-                  echo "Security JSON written ($(wc -c < "$DEST" | xargs) bytes)"
-
-            - name: Build Security MDX
-              run: |
-                  set -euo pipefail
-                  DEST="apps/kbve/astro-kbve/src/content/docs/dashboard/security.mdx"
-                  mkdir -p "$(dirname "$DEST")"
-                  python3 scripts/nx-security-to-mdx.py \
-                    --input /tmp/nx-security-raw.json \
-                    --mdx-out "$DEST" \
-                    --timestamp "${{ steps.meta.outputs.report_timestamp }}"
-                  echo "Security MDX written ($(wc -c < "$DEST" | xargs) bytes)"
-
-            - name: Validate generated files
-              run: |
-                  set -euo pipefail
-                  MDX="apps/kbve/astro-kbve/src/content/docs/dashboard/security.mdx"
-                  JSON="apps/kbve/astro-kbve/public/data/nx/nx-security.json"
-
-                  if [ ! -s "$MDX" ]; then
-                    echo "::error::Generated MDX is empty: $MDX"
-                    exit 1
-                  fi
-                  if ! head -1 "$MDX" | grep -q '^---$'; then
-                    echo "::error::Missing YAML frontmatter in $MDX"
-                    exit 1
-                  fi
-                  echo "OK: $MDX ($(wc -c < "$MDX" | xargs) bytes)"
-
-                  if [ ! -s "$JSON" ]; then
-                    echo "::error::Generated JSON is empty: $JSON"
-                    exit 1
-                  fi
-                  python3 -c "import json; d=json.load(open('$JSON')); assert 'summary' in d; assert 'ecosystems' in d"
-                  echo "OK: $JSON ($(wc -c < "$JSON" | xargs) bytes)"
-
-            - name: Upload security artifacts
-              uses: actions/upload-artifact@v7
-              with:
-                  name: dashboard-security
-                  retention-days: 1
-                  path: |
-                      apps/kbve/astro-kbve/src/content/docs/dashboard/security.mdx
-                      apps/kbve/astro-kbve/public/data/nx/nx-security.json
-
-            - name: Upload raw audit payloads on failure
-              if: failure()
-              uses: actions/upload-artifact@v7
-              with:
-                  name: dashboard-security-debug
-                  retention-days: 3
-                  if-no-files-found: ignore
-                  path: |
-                      /tmp/pnpm-audit.json
-                      /tmp/cargo-audit.json
-                      /tmp/pip-audit.json
-                      /tmp/pip-audit-partial.json
-                      /tmp/codeql-alerts.json
-                      /tmp/dependabot-alerts.json
-                      /tmp/nx-security-raw.json
-
-            - name: Cleanup
-              if: always()
-              run: |
-                  rm -f /tmp/pnpm-audit.json /tmp/cargo-audit.json /tmp/pip-audit.json \
-                    /tmp/pip-audit-partial.json /tmp/codeql-alerts.json /tmp/dependabot-alerts.json \
-                    /tmp/nx-security-raw.json
-
-    # ══════════════════════════════════════════════════════════
-    # Job 2: NX Report + Graph (versions, LOC, coverage, deps)
+    # Job 2: NX Report (versions, LOC, coverage, deps)
     # ══════════════════════════════════════════════════════════
     report:
-        name: NX Report & Graph
+        name: NX Report
         needs: guard
         if: needs.guard.outputs.allowed == 'true'
         runs-on: ubuntu-latest
@@ -356,26 +127,6 @@ jobs:
                     exit 1
                   fi
                   echo "NX report validated ($(wc -l < /tmp/nx-report-raw.txt) lines)"
-
-            - name: Generate NX Graph JSON
-              run: |
-                  set -euo pipefail
-                  pnpm nx graph --file=/tmp/nx-graph.json --open=false
-                  rm -rf static 2>/dev/null || true
-
-            - name: Validate NX Graph JSON
-              run: |
-                  set -euo pipefail
-                  if [ ! -s /tmp/nx-graph.json ]; then
-                    echo "::error::NX graph JSON is empty"
-                    exit 1
-                  fi
-                  NODE_COUNT=$(python3 -c "import json; d=json.load(open('/tmp/nx-graph.json')); print(len(d['graph']['nodes']))")
-                  if [ "$NODE_COUNT" -eq 0 ]; then
-                    echo "::error::NX graph has zero nodes"
-                    exit 1
-                  fi
-                  echo "NX graph validated ($NODE_COUNT nodes)"
 
             - name: Install scc
               run: |
@@ -493,13 +244,6 @@ jobs:
                     printf '%s\n' '*Auto-generated by [ci-dashboard.yml](https://github.com/KBVE/kbve/actions/workflows/ci-dashboard.yml)*'
                   } > "$DEST"
 
-            - name: Build NX Graph MDX
-              run: |
-                  set -euo pipefail
-                  DEST="apps/kbve/astro-kbve/src/content/docs/dashboard/graph.mdx"
-                  TIMESTAMP="${{ steps.nx-report.outputs.report_timestamp }}"
-                  python3 scripts/nx-graph-to-mdx.py /tmp/nx-graph.json "$DEST" "$TIMESTAMP"
-
             - name: Build NX Report JSON
               run: |
                   set -euo pipefail
@@ -538,30 +282,20 @@ jobs:
 
                   echo "NX report JSON written ($(wc -c < "$DEST" | xargs) bytes)"
 
-            - name: Copy NX Graph JSON
-              run: |
-                  set -euo pipefail
-                  DEST="apps/kbve/astro-kbve/public/data/nx/nx-graph.json"
-                  cp /tmp/nx-graph.json "$DEST"
-                  echo "NX graph JSON copied ($(wc -c < "$DEST" | xargs) bytes)"
-
             - name: Validate generated MDX files
               run: |
                   set -euo pipefail
                   REPORT="apps/kbve/astro-kbve/src/content/docs/dashboard/report.mdx"
-                  GRAPH="apps/kbve/astro-kbve/src/content/docs/dashboard/graph.mdx"
 
-                  for f in "$REPORT" "$GRAPH"; do
-                    if [ ! -s "$f" ]; then
-                      echo "::error::Generated file is empty: $f"
-                      exit 1
-                    fi
-                    if ! head -1 "$f" | grep -q '^---$'; then
-                      echo "::error::Missing YAML frontmatter in $f"
-                      exit 1
-                    fi
-                    echo "OK: $f ($(wc -c < "$f" | xargs) bytes)"
-                  done
+                  if [ ! -s "$REPORT" ]; then
+                    echo "::error::Generated file is empty: $REPORT"
+                    exit 1
+                  fi
+                  if ! head -1 "$REPORT" | grep -q '^---$'; then
+                    echo "::error::Missing YAML frontmatter in $REPORT"
+                    exit 1
+                  fi
+                  echo "OK: $REPORT ($(wc -c < "$REPORT" | xargs) bytes)"
 
             - name: Upload report artifacts
               uses: actions/upload-artifact@v7
@@ -570,14 +304,12 @@ jobs:
                   retention-days: 1
                   path: |
                       apps/kbve/astro-kbve/src/content/docs/dashboard/report.mdx
-                      apps/kbve/astro-kbve/src/content/docs/dashboard/graph.mdx
                       apps/kbve/astro-kbve/public/data/nx/nx-report.json
-                      apps/kbve/astro-kbve/public/data/nx/nx-graph.json
 
             - name: Cleanup
               if: always()
               run: |
-                  rm -f /tmp/nx-report-raw.txt /tmp/nx-graph.json /tmp/loc-stats.txt /tmp/coverage-report.txt
+                  rm -f /tmp/nx-report-raw.txt /tmp/loc-stats.txt /tmp/coverage-report.txt
 
     # ══════════════════════════════════════════════════════════
     # Job 3: Kanban Sync (GitHub Projects v2)
@@ -1112,7 +844,7 @@ jobs:
     # ══════════════════════════════════════════════════════════
     commit:
         name: Commit & PR
-        needs: [guard, security, report, kanban, proto_drift]
+        needs: [guard, report, kanban, proto_drift]
         if: always() && needs.guard.outputs.allowed == 'true'
         runs-on: ubuntu-latest
         timeout-minutes: 30
@@ -1157,13 +889,9 @@ jobs:
                       # Artifact path was stripped — match by filename
                       BASENAME="$(basename "$f")"
                       case "$BASENAME" in
-                        security.mdx) DEST="apps/kbve/astro-kbve/src/content/docs/dashboard/security.mdx" ;;
                         report.mdx)   DEST="apps/kbve/astro-kbve/src/content/docs/dashboard/report.mdx" ;;
-                        graph.mdx)    DEST="apps/kbve/astro-kbve/src/content/docs/dashboard/graph.mdx" ;;
                         kanban-data.mdx) DEST="apps/kbve/astro-kbve/src/content/docs/dashboard/kanban-data.mdx" ;;
-                        nx-security.json) DEST="apps/kbve/astro-kbve/public/data/nx/nx-security.json" ;;
                         nx-report.json)   DEST="apps/kbve/astro-kbve/public/data/nx/nx-report.json" ;;
-                        nx-graph.json)    DEST="apps/kbve/astro-kbve/public/data/nx/nx-graph.json" ;;
                         nx-kanban.json)   DEST="apps/kbve/astro-kbve/src/data/nx-kanban.json" ;;
                         nx-proto.json)    DEST="apps/kbve/astro-kbve/public/data/nx/nx-proto.json" ;;
                         *) echo "  SKIP: $BASENAME (unknown)"; continue ;;
@@ -1180,7 +908,7 @@ jobs:
               run: |
                   set -euo pipefail
                   DASHBOARD="apps/kbve/astro-kbve/src/content/docs/dashboard"
-                  for old in nx-security.mdx nx-report.mdx nx-graph.mdx nx-kanban.mdx; do
+                  for old in nx-report.mdx nx-kanban.mdx; do
                     if [ -f "$DASHBOARD/$old" ]; then
                       git rm "$DASHBOARD/$old" 2>/dev/null || rm -f "$DASHBOARD/$old"
                       echo "Removed old $old"
@@ -1192,13 +920,9 @@ jobs:
                   set -euo pipefail
                   STAGED=0
                   for f in \
-                    apps/kbve/astro-kbve/src/content/docs/dashboard/security.mdx \
                     apps/kbve/astro-kbve/src/content/docs/dashboard/report.mdx \
-                    apps/kbve/astro-kbve/src/content/docs/dashboard/graph.mdx \
                     apps/kbve/astro-kbve/src/content/docs/dashboard/kanban-data.mdx \
-                    apps/kbve/astro-kbve/public/data/nx/nx-security.json \
                     apps/kbve/astro-kbve/public/data/nx/nx-report.json \
-                    apps/kbve/astro-kbve/public/data/nx/nx-graph.json \
                     apps/kbve/astro-kbve/public/data/nx/nx-proto.json \
                     apps/kbve/astro-kbve/src/data/nx-kanban.json \
                     apps/kbve/astro-kbve/public/data/nx/nx-kanban.json; do
@@ -1261,20 +985,16 @@ jobs:
                     --title "chore(dashboard): daily sync — ${REPORT_DATE}" \
                     --body "$(cat <<'PRBODY'
                   ## Summary
-                  - Daily consolidated dashboard sync: security audit, NX report, dependency graph, kanban board
-                  - Security: pnpm, cargo, pip audits + CodeQL + Dependabot alerts
+                  - Daily consolidated dashboard sync: NX report, kanban board
                   - Report: NX environment, LOC stats, coverage
-                  - Graph: dependency diagram with mermaid visualization
                   - Kanban: project board snapshot with pipeline flow diagrams
 
                   ## Content
-                  - `dashboard/security.mdx` — security audit page
                   - `dashboard/report.mdx` — NX workspace report
-                  - `dashboard/graph.mdx` — dependency graph with mermaid diagram
                   - `dashboard/kanban-data.mdx` — project board static data snapshot
 
                   ## Test plan
-                  - Verify all 4 dashboard pages render at `/dashboard/{security,report,graph,kanban}/`
+                  - Verify all dashboard pages render at `/dashboard/{report,kanban}/`
                   - Check mermaid diagrams render correctly
                   - Verify JSON data files are valid
 
@@ -1376,20 +1096,6 @@ jobs:
                       }
 
     # ── Failure tracker ──────────────────────────────────────
-    track-security:
-        name: Track Security Job
-        if: always()
-        needs: [security]
-        permissions:
-            issues: write
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
-        with:
-            workflow_name: 'CI - Daily Dashboard'
-            job_name: 'Security Audit'
-            run_id: ${{ github.run_id }}
-            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: ${{ needs.security.result }}
-
     track-report:
         name: Track Report Job
         if: always()
@@ -1399,7 +1105,7 @@ jobs:
         uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
         with:
             workflow_name: 'CI - Daily Dashboard'
-            job_name: 'NX Report & Graph'
+            job_name: 'NX Report'
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             status: ${{ needs.report.result }}

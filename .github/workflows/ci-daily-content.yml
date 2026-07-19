@@ -167,20 +167,31 @@ jobs:
                     exit 0
                   fi
 
+                  # Stable per-route/day branch. Force-push so a same-day
+                  # re-run (nightly + manual dispatch, or an Actions re-run)
+                  # updates the existing branch in place instead of failing on
+                  # a non-fast-forward push.
                   BRANCH="auto/daily-${{ matrix.route }}-$(date -u +%Y-%m-%d)"
-                  git checkout -b "${BRANCH}"
+                  git checkout -B "${BRANCH}"
                   git commit -m "chore(content): daily ${{ matrix.route }} scaffold [skip ci]"
-                  git push origin "${BRANCH}"
+                  git push --force origin "${BRANCH}"
 
-                  PR_URL=$(gh pr create \
-                    --base dev \
-                    --head "${BRANCH}" \
-                    --title "chore(content): daily ${{ matrix.route }} scaffold" \
-                    --body "Automated daily content update for route \`${{ matrix.route }}\`." \
-                    --label "auto-pr")
-
-                  PR_NUM=$(echo "$PR_URL" | grep -o '[0-9]*$')
-                  echo "Created PR #${PR_NUM}"
+                  # Reuse an already-open PR for this branch (force-push updated
+                  # it in place) instead of opening a duplicate.
+                  PR_NUM=$(gh pr list --head "${BRANCH}" --base dev --state open \
+                    --json number --jq '.[0].number // empty')
+                  if [ -z "${PR_NUM}" ]; then
+                    PR_URL=$(gh pr create \
+                      --base dev \
+                      --head "${BRANCH}" \
+                      --title "chore(content): daily ${{ matrix.route }} scaffold" \
+                      --body "Automated daily content update for route \`${{ matrix.route }}\`." \
+                      --label "auto-pr")
+                    PR_NUM=$(echo "$PR_URL" | grep -o '[0-9]*$')
+                    echo "Created PR #${PR_NUM}"
+                  else
+                    echo "Reusing open PR #${PR_NUM} (force-pushed update)"
+                  fi
                   echo "pr_number=${PR_NUM}" >> "$GITHUB_OUTPUT"
 
             - name: Dispatch auto-merge

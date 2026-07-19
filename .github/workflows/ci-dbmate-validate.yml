@@ -136,6 +136,25 @@ jobs:
                   DATABASE_URL: postgresql://supabase_admin:postgres@localhost:54322/supabase?sslmode=disable&search_path=dbmate,public
               run: dbmate --no-dump-schema --migrations-dir migrations up
 
+            # Store money-path invariant tests. The DB is fully migrated here, so
+            # we run each companion .test.sql's SEED + ASSERT_AFTER_UP against it
+            # (the ASSERT_AFTER_DOWN sections are exercised by test-migration.sh
+            # locally; the up/rollback/up steps above already prove down applies).
+            - name: Store invariant tests
+              working-directory: packages/data/sql/dbmate
+              run: |
+                  set -euo pipefail
+                  for base in 20260708120000_store_schema_init 20260709170000_store_topup_pod; do
+                    echo "== store invariant test: ${base} =="
+                    awk '
+                      /^-- (SEED|ASSERT_AFTER_UP) *$/ { on=1; next }
+                      /^-- ASSERT_AFTER_DOWN *$/      { on=0 }
+                      on { print }
+                    ' "migration-tests/${base}.test.sql" \
+                      | PGPASSWORD=postgres psql -h localhost -p 54322 \
+                          -U supabase_admin -d supabase -v ON_ERROR_STOP=1 -X -q
+                  done
+
             - name: Tear down kilobase
               if: always()
               working-directory: packages/data/sql/dbmate
