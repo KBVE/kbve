@@ -86,4 +86,20 @@ mod tests {
         let count = db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap();
         assert_eq!(count, 5);
     }
+
+    #[tokio::test]
+    async fn analytics_handles_quoted_path() {
+        let dir = tempfile::tempdir().unwrap();
+        let quoted_dir = dir.path().join("o'brien");
+        std::fs::create_dir_all(&quoted_dir).unwrap();
+        let db = EmbedDb::open(quoted_dir.join("q.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER, v REAL)").await.unwrap();
+        for i in 1..=3 {
+            db.execute(&format!("INSERT INTO t VALUES ({}, {}.0)", i, i * 10)).await.unwrap();
+        }
+        db.checkpoint().await.unwrap();
+
+        let count = db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap();
+        assert_eq!(count, 3);
+    }
 }
