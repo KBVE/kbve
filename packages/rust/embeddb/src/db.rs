@@ -1,6 +1,8 @@
 use std::path::{Path, PathBuf};
 use crate::Result;
 
+const DEFAULT_CHECKPOINT_RETRIES: u32 = 5;
+
 #[derive(Debug)]
 pub struct EmbedDb {
     path: PathBuf,
@@ -32,9 +34,19 @@ impl EmbedDb {
     }
 
     pub async fn checkpoint(&self) -> Result<()> {
-        let mut rows = self.conn.query("PRAGMA wal_checkpoint(TRUNCATE)", ()).await?;
-        while rows.next().await?.is_some() {}
-        Ok(())
+        for _ in 0..=DEFAULT_CHECKPOINT_RETRIES {
+            let mut rows = self.conn.query("PRAGMA wal_checkpoint(TRUNCATE)", ()).await?;
+            let mut busy = 0_i64;
+            if let Some(row) = rows.next().await? {
+                busy = row.get::<i64>(0).unwrap_or(0);
+            }
+            while rows.next().await?.is_some() {}
+            if busy == 0 {
+                return Ok(());
+            }
+            tokio::task::yield_now().await;
+        }
+        Err(crate::EmbedError::CheckpointBusy)
     }
 
     pub async fn analytics_scalar_i64(&self, sql: &str) -> Result<i64> {
@@ -116,6 +128,16 @@ mod tests {
         db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
         db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
         db.checkpoint().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn checkpoint_reports_success_on_idle_db() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("cp.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 1);
     }
 
     #[tokio::test]

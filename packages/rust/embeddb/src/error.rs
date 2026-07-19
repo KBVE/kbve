@@ -8,6 +8,8 @@ pub enum EmbedError {
     Io(#[from] std::io::Error),
     #[error("non-utf8 path: {0}")]
     NonUtf8Path(std::path::PathBuf),
+    #[error("checkpoint busy after retries")]
+    CheckpointBusy,
     #[error("{0}")]
     Other(String),
 }
