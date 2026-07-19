@@ -388,13 +388,16 @@ pub(crate) async fn require_dashboard_view(
         .map(|_| ())
 }
 
-/// Gate for sensitive proxy routes that need a higher privilege level than
-/// plain DASHBOARD_VIEW (e.g. network-enabled firecracker). Requires the
-/// same JWT checks plus DASHBOARD_MANAGE permission.
-pub(crate) async fn require_dashboard_manage_with_query(
+/// Shared JWT + permission gate for proxy routes. Verifies the token, then
+/// checks it carries `required_perm`. `perm_label` names the permission in the
+/// deny log; `denied_message` is returned to the client on a 403.
+async fn require_dashboard_permission(
     headers: &HeaderMap,
     query: Option<&str>,
     service_name: &str,
+    required_perm: i32,
+    perm_label: &str,
+    denied_message: &str,
 ) -> Result<TokenInfo, Response> {
     let auth_token = match extract_auth_token(headers, query) {
         Some(t) => t,
@@ -436,17 +439,17 @@ pub(crate) async fn require_dashboard_manage_with_query(
         }
     };
 
-    if !token_info.has_permission(staff_perm::DASHBOARD_MANAGE) {
+    if !token_info.has_permission(required_perm) {
         warn!(
             user_id = %token_info.user_id,
             permissions = format!("0x{:08x}", token_info.staff_permissions),
-            "{service_name} proxy access denied — missing DASHBOARD_MANAGE permission"
+            "{service_name} proxy access denied — missing {perm_label} permission"
         );
         return Err((
             StatusCode::FORBIDDEN,
             axum::Json(json!({
                 "error": "Access restricted",
-                "message": "This feature requires DASHBOARD_MANAGE permission"
+                "message": denied_message
             })),
         )
             .into_response());
@@ -455,68 +458,39 @@ pub(crate) async fn require_dashboard_manage_with_query(
     Ok(token_info)
 }
 
+/// Gate for sensitive proxy routes that need a higher privilege level than
+/// plain DASHBOARD_VIEW (e.g. network-enabled firecracker). Requires the
+/// same JWT checks plus DASHBOARD_MANAGE permission.
+pub(crate) async fn require_dashboard_manage_with_query(
+    headers: &HeaderMap,
+    query: Option<&str>,
+    service_name: &str,
+) -> Result<TokenInfo, Response> {
+    require_dashboard_permission(
+        headers,
+        query,
+        service_name,
+        staff_perm::DASHBOARD_MANAGE,
+        "DASHBOARD_MANAGE",
+        "This feature requires DASHBOARD_MANAGE permission",
+    )
+    .await
+}
+
 async fn require_dashboard_view_with_query(
     headers: &HeaderMap,
     query: Option<&str>,
     service_name: &str,
 ) -> Result<TokenInfo, Response> {
-    let auth_token = match extract_auth_token(headers, query) {
-        Some(t) => t,
-        None => {
-            warn!(
-                "{service_name} proxy access denied — missing Authorization header / access_token"
-            );
-            return Err((
-                StatusCode::UNAUTHORIZED,
-                axum::Json(json!({
-                    "error": "Missing Authorization header or access_token query param",
-                    "hint": "Include 'Authorization: Bearer <token>' header or ?access_token=<token>"
-                })),
-            )
-                .into_response());
-        }
-    };
-
-    let jwt_cache = match get_jwt_cache() {
-        Some(c) => c,
-        None => {
-            return Err((
-                StatusCode::SERVICE_UNAVAILABLE,
-                axum::Json(json!({"error": "JWT validation not configured"})),
-            )
-                .into_response());
-        }
-    };
-
-    let token_info = match jwt_cache.verify_and_cache(auth_token).await {
-        Ok(info) => info,
-        Err(e) => {
-            warn!("{service_name} proxy JWT rejected: {e}");
-            return Err((
-                StatusCode::UNAUTHORIZED,
-                axum::Json(json!({"error": "Invalid or expired token"})),
-            )
-                .into_response());
-        }
-    };
-
-    if !token_info.has_permission(staff_perm::DASHBOARD_VIEW) {
-        warn!(
-            user_id = %token_info.user_id,
-            permissions = format!("0x{:08x}", token_info.staff_permissions),
-            "{service_name} proxy access denied — missing DASHBOARD_VIEW permission"
-        );
-        return Err((
-            StatusCode::FORBIDDEN,
-            axum::Json(json!({
-                "error": "Access restricted",
-                "message": "You do not have permission to access the dashboard"
-            })),
-        )
-            .into_response());
-    }
-
-    Ok(token_info)
+    require_dashboard_permission(
+        headers,
+        query,
+        service_name,
+        staff_perm::DASHBOARD_VIEW,
+        "DASHBOARD_VIEW",
+        "You do not have permission to access the dashboard",
+    )
+    .await
 }
 
 static GRAFANA: OnceLock<ServiceProxy> = OnceLock::new();
