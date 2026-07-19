@@ -1,26 +1,26 @@
 use std::path::Path;
 use crate::Result;
 
-pub fn scalar_i64(path: &Path, sql: &str) -> Result<i64> {
-    let conn = attached_conn(path)?;
+pub fn scalar_i64(path: &Path, sql: &str, ext_dir: Option<&Path>) -> Result<i64> {
+    let conn = attached_conn(path, ext_dir)?;
     let val: i64 = conn.query_row(sql, [], |r| r.get(0))?;
     Ok(val)
 }
 
-pub fn scalar_f64(path: &Path, sql: &str) -> Result<f64> {
-    let conn = attached_conn(path)?;
+pub fn scalar_f64(path: &Path, sql: &str, ext_dir: Option<&Path>) -> Result<f64> {
+    let conn = attached_conn(path, ext_dir)?;
     let val: f64 = conn.query_row(sql, [], |r| r.get(0))?;
     Ok(val)
 }
 
-pub fn scalar_string(path: &Path, sql: &str) -> Result<String> {
-    let conn = attached_conn(path)?;
+pub fn scalar_string(path: &Path, sql: &str, ext_dir: Option<&Path>) -> Result<String> {
+    let conn = attached_conn(path, ext_dir)?;
     let val: String = conn.query_row(sql, [], |r| r.get(0))?;
     Ok(val)
 }
 
-pub fn rows(path: &Path, sql: &str) -> Result<Vec<crate::EmbedRow>> {
-    let conn = attached_conn(path)?;
+pub fn rows(path: &Path, sql: &str, ext_dir: Option<&Path>) -> Result<Vec<crate::EmbedRow>> {
+    let conn = attached_conn(path, ext_dir)?;
     let mut stmt = conn.prepare(sql)?;
     let mut out = Vec::new();
     let mut rows = stmt.query([])?;
@@ -57,17 +57,21 @@ fn value_from_ref(v: duckdb::types::ValueRef<'_>) -> Result<crate::EmbedValue> {
     })
 }
 
-fn attached_conn(path: &Path) -> Result<duckdb::Connection> {
+fn attached_conn(path: &Path, ext_dir: Option<&Path>) -> Result<duckdb::Connection> {
     let conn = duckdb::Connection::open_in_memory()?;
-    prepare_sqlite_scanner(&conn)?;
+    prepare_sqlite_scanner(&conn, ext_dir)?;
     let attach = format!("ATTACH '{}' AS src (TYPE sqlite, READ_ONLY);", sql_quote_str(crate::db::path_str(path)?));
     conn.execute_batch(&attach)?;
     conn.execute_batch("USE src;")?;
     Ok(conn)
 }
 
-fn prepare_sqlite_scanner(conn: &duckdb::Connection) -> Result<()> {
-    if let Ok(dir) = std::env::var("EMBEDDB_DUCKDB_EXTENSION_DIR") {
+fn prepare_sqlite_scanner(conn: &duckdb::Connection, ext_dir: Option<&Path>) -> Result<()> {
+    let dir = match ext_dir {
+        Some(p) => Some(p.to_string_lossy().into_owned()),
+        None => std::env::var("EMBEDDB_DUCKDB_EXTENSION_DIR").ok(),
+    };
+    if let Some(dir) = dir {
         let set_dir = format!("SET extension_directory = '{}';", sql_quote_str(&dir));
         conn.execute_batch(&set_dir)?;
     }

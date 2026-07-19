@@ -1,12 +1,11 @@
 use std::path::{Path, PathBuf};
 use crate::Result;
 
-const DEFAULT_CHECKPOINT_RETRIES: u32 = 5;
-
 #[derive(Debug)]
 pub struct EmbedDb {
     path: PathBuf,
     conn: turso::Connection,
+    config: crate::EmbedConfig,
 }
 
 pub(crate) fn path_str(path: &Path) -> Result<&str> {
@@ -15,13 +14,18 @@ pub(crate) fn path_str(path: &Path) -> Result<&str> {
 
 impl EmbedDb {
     pub async fn open(path: impl AsRef<Path>) -> Result<EmbedDb> {
+        EmbedDb::open_with(path, crate::EmbedConfig::default()).await
+    }
+
+    pub async fn open_with(path: impl AsRef<Path>, config: crate::EmbedConfig) -> Result<EmbedDb> {
         let path = path.as_ref().to_path_buf();
         let db = turso::Builder::new_local(path_str(&path)?)
             .build()
             .await?;
         let conn = db.connect()?;
-        conn.execute("PRAGMA journal_mode=WAL", ()).await.ok();
-        Ok(EmbedDb { path, conn })
+        let pragma = format!("PRAGMA journal_mode={}", config.journal_mode);
+        conn.execute(&pragma, ()).await.ok();
+        Ok(EmbedDb { path, conn, config })
     }
 
     pub fn path(&self) -> &Path {
@@ -34,7 +38,7 @@ impl EmbedDb {
     }
 
     pub async fn checkpoint(&self) -> Result<()> {
-        for _ in 0..=DEFAULT_CHECKPOINT_RETRIES {
+        for _ in 0..=self.config.checkpoint_max_retries {
             let mut rows = self.conn.query("PRAGMA wal_checkpoint(TRUNCATE)", ()).await?;
             let mut busy = 0_i64;
             if let Some(row) = rows.next().await? {
@@ -52,7 +56,8 @@ impl EmbedDb {
     pub async fn analytics_scalar_i64(&self, sql: &str) -> Result<i64> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        tokio::task::spawn_blocking(move || crate::analytics::scalar_i64(&path, &sql))
+        let ext_dir = self.config.duckdb_extension_dir.clone();
+        tokio::task::spawn_blocking(move || crate::analytics::scalar_i64(&path, &sql, ext_dir.as_deref()))
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
     }
@@ -60,7 +65,8 @@ impl EmbedDb {
     pub async fn analytics_scalar_f64(&self, sql: &str) -> Result<f64> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        tokio::task::spawn_blocking(move || crate::analytics::scalar_f64(&path, &sql))
+        let ext_dir = self.config.duckdb_extension_dir.clone();
+        tokio::task::spawn_blocking(move || crate::analytics::scalar_f64(&path, &sql, ext_dir.as_deref()))
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
     }
@@ -68,7 +74,8 @@ impl EmbedDb {
     pub async fn analytics_rows(&self, sql: &str) -> Result<Vec<crate::EmbedRow>> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        tokio::task::spawn_blocking(move || crate::analytics::rows(&path, &sql))
+        let ext_dir = self.config.duckdb_extension_dir.clone();
+        tokio::task::spawn_blocking(move || crate::analytics::rows(&path, &sql, ext_dir.as_deref()))
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
     }
@@ -76,7 +83,8 @@ impl EmbedDb {
     pub async fn analytics_scalar_string(&self, sql: &str) -> Result<String> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        tokio::task::spawn_blocking(move || crate::analytics::scalar_string(&path, &sql))
+        let ext_dir = self.config.duckdb_extension_dir.clone();
+        tokio::task::spawn_blocking(move || crate::analytics::scalar_string(&path, &sql, ext_dir.as_deref()))
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
     }
@@ -266,6 +274,17 @@ mod tests {
         db.execute("INSERT INTO t VALUES (?)", ("hello",)).await.unwrap();
         db.checkpoint().await.unwrap();
         assert_eq!(db.analytics_scalar_string("SELECT name FROM t").await.unwrap(), "hello");
+    }
+
+    #[tokio::test]
+    async fn open_with_custom_config() {
+        let dir = tempfile::tempdir().unwrap();
+        let cfg = crate::EmbedConfig { journal_mode: "WAL".into(), duckdb_extension_dir: None, checkpoint_max_retries: 1 };
+        let db = EmbedDb::open_with(dir.path().join("cfg.db"), cfg).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 1);
     }
 
     #[tokio::test]
