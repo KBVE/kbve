@@ -512,15 +512,15 @@ impl WalletClient {
     }
 
     /// Atomically record a POD shipment webhook and apply its status advance in
-    /// one txn. Returns true when newly recorded/applied, false on an equivalent
-    /// replay (a contradictory replay errors). `payload` must be PII-reduced.
-    #[allow(clippy::too_many_arguments)]
+    /// one txn. The local order is resolved internally from
+    /// (provider, external_order_id) — the caller never supplies an order id.
+    /// Returns true when newly recorded, false on an equivalent replay (a
+    /// contradictory replay errors). `payload` must be PII-reduced.
     pub async fn store_apply_pod_shipment(
         &self,
         provider: String,
         provider_event_id: String,
-        external_order_id: Option<String>,
-        order_id: Option<i64>,
+        external_order_id: String,
         tracking: serde_json::Value,
         payload: serde_json::Value,
     ) -> Result<bool> {
@@ -531,12 +531,11 @@ impl WalletClient {
         }
         let mut conn = self.write().await?;
         let row: ScalarBool = sql_query(
-            "SELECT store.service_apply_pod_shipment($1, $2, $3, $4, $5, $6) AS value",
+            "SELECT store.service_apply_pod_shipment($1, $2, $3, $4, $5) AS value",
         )
         .bind::<Text, _>(provider)
         .bind::<Text, _>(provider_event_id)
-        .bind::<Nullable<Text>, _>(external_order_id)
-        .bind::<Nullable<diesel::sql_types::BigInt>, _>(order_id)
+        .bind::<Text, _>(external_order_id)
         .bind::<Jsonb, _>(tracking)
         .bind::<Jsonb, _>(payload)
         .get_result(&mut *conn)

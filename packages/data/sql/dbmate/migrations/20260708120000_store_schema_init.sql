@@ -17,6 +17,17 @@ BEGIN
     IF to_regclass('inventory.item') IS NULL THEN
         RAISE EXCEPTION 'missing inventory.item — apply inventory schema first';
     END IF;
+    -- FK target for store.purchase/order.ledger_id: verify the table + its PK on
+    -- id exist before we depend on them.
+    IF to_regclass('wallet.ledger') IS NULL THEN
+        RAISE EXCEPTION 'missing wallet.ledger — apply wallet schema first';
+    END IF;
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+         WHERE conrelid = 'wallet.ledger'::regclass AND contype = 'p'
+    ) THEN
+        RAISE EXCEPTION 'wallet.ledger has no primary key to reference';
+    END IF;
 END
 $$;
 
@@ -796,6 +807,9 @@ CREATE TABLE store.order (
     credits_amount   BIGINT NOT NULL CHECK (credits_amount >= 0),
     -- FK to the wallet ledger (RI checks bypass RLS); NULL for a zero-amount order.
     ledger_id        BIGINT REFERENCES wallet.ledger(id) ON DELETE RESTRICT,
+    -- Typed refund-credit ledger id (set by service_refund_order), so a refund is
+    -- auditable from a column, not JSON extraction.
+    refund_ledger_id BIGINT REFERENCES wallet.ledger(id) ON DELETE RESTRICT,
     -- FK so refund correctness (revoking the minted twin) can't hinge on a
     -- dangling id. RESTRICT: inventory items are state-machined, not deleted.
     twin_item_id     UUID REFERENCES inventory.item(id) ON DELETE RESTRICT,
@@ -823,6 +837,10 @@ CREATE TABLE store.order (
     ),
     CONSTRAINT store_order_amount_ck CHECK (
         credits_amount::numeric = unit_price::numeric * qty::numeric
+    ),
+    -- A refunded order with money captured must carry its refund ledger id.
+    CONSTRAINT store_order_refund_ledger_ck CHECK (
+        status <> 'refunded' OR credits_amount = 0 OR refund_ledger_id IS NOT NULL
     ),
     -- Variant must belong to product_id (NULL variant allowed — PG skips the
     -- composite FK when any referencing column is NULL).
@@ -1244,7 +1262,9 @@ BEGIN
         END IF;
     END IF;
 
-    UPDATE store.order SET status = 'refunded', updated_at = now() WHERE order_id = p_order_id;
+    UPDATE store.order
+       SET status = 'refunded', refund_ledger_id = v_refund_id, updated_at = now()
+     WHERE order_id = p_order_id;
 
     INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
     VALUES (p_order_id, v_order.status, 'refunded', 'staff', COALESCE(p_reason, 'refund'),

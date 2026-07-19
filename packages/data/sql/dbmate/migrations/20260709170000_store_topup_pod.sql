@@ -12,6 +12,10 @@ BEGIN
     ) IS NULL THEN
         RAISE EXCEPTION 'missing wallet.service_credit';
     END IF;
+    -- FK target for store.topup.ledger_id.
+    IF to_regclass('wallet.ledger') IS NULL THEN
+        RAISE EXCEPTION 'missing wallet.ledger';
+    END IF;
 END
 $$;
 
@@ -32,7 +36,11 @@ CREATE TABLE store.topup_package (
                   CHECK (currency_fiat = lower(btrim(currency_fiat))
                          AND currency_fiat ~ '^[a-z]{3}$'),
     active        BOOLEAN NOT NULL DEFAULT true,
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    -- Composite target so a topup receipt can carry a FK proving its recorded
+    -- economics equal this pack's (economics are immutable per pack_id).
+    CONSTRAINT store_topup_package_economics_uq
+        UNIQUE (pack_id, credits, amount_cents, currency_fiat)
 );
 COMMENT ON TABLE store.topup_package IS
     'Server-authoritative Stripe credit packs. service_apply_topup derives the credit grant + expected currency from this table by pack_id; the webhook never supplies a credit amount.';
@@ -93,9 +101,19 @@ CREATE TABLE store.topup (
     -- so a direct/faulty insert can't record completion without a ledger row.
     -- FK to the ledger (RI checks bypass RLS) so the id can't be fabricated.
     ledger_id         BIGINT NOT NULL REFERENCES wallet.ledger(id) ON DELETE RESTRICT,
+    -- Only 'completed' exists: there is no topup-refund flow (no refund ledger /
+    -- timestamp / balance-reversal invariant), so a 'refunded' status would be
+    -- unbacked. Add it together with that machinery when refunds are built.
     status            TEXT NOT NULL DEFAULT 'completed'
-                      CHECK (status IN ('completed', 'refunded')),
-    created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+                      CHECK (status IN ('completed')),
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    -- Composite FK proving the recorded economics equal the referenced pack's
+    -- (which are immutable), so a direct/maintenance write can't create a receipt
+    -- whose credits/amount/currency contradict its pack.
+    CONSTRAINT store_topup_package_economics_fk
+        FOREIGN KEY (pack_id, credits_granted, amount_cents, currency_fiat)
+        REFERENCES store.topup_package (pack_id, credits, amount_cents, currency_fiat)
+        ON DELETE RESTRICT
 );
 
 CREATE INDEX store_topup_account_idx ON store.topup (account_id, created_at DESC);
@@ -324,6 +342,14 @@ CREATE UNIQUE INDEX store_order_pod_external_uq
     ON store.order (pod_provider, pod_external_order_id)
     WHERE pod_provider IS NOT NULL AND pod_external_order_id IS NOT NULL;
 
+-- Supports a POD reaper/queue scanning for claimable (never-submitted, expired-
+-- or un-leased) physical orders by claim expiry.
+CREATE INDEX store_order_pod_claimable_idx
+    ON store.order (pod_claim_expires_at, order_id)
+    WHERE fulfillment IN ('physical', 'both')
+      AND status IN ('paid', 'processing')
+      AND pod_submitted_at IS NULL;
+
 -- service_ack_pod_submission — record a CONFIRMED provider submission. Requires
 -- the lease token from service_order_for_pod (a worker whose lease was reclaimed
 -- is rejected -> no double-write), and a complete provider identity (provider +
@@ -510,36 +536,55 @@ CREATE TABLE store.pod_webhook_event (
     provider_event_id TEXT NOT NULL
                       CHECK (provider_event_id = btrim(provider_event_id)
                              AND length(provider_event_id) BETWEEN 1 AND 255),
+    -- order_id is resolved INTERNALLY from (provider, external_order_id) by the
+    -- apply function (the caller never supplies it), so it can never disagree
+    -- with the provider identity. NULL only for an orphan (no matching order).
     order_id          BIGINT REFERENCES store.order(order_id),
     external_order_id TEXT
                       CHECK (external_order_id IS NULL
                              OR (external_order_id = btrim(external_order_id)
                                  AND length(external_order_id) BETWEEN 1 AND 255)),
+    tracking          JSONB NOT NULL DEFAULT '{}'::jsonb
+                      CHECK (jsonb_typeof(tracking) = 'object'
+                             AND octet_length(tracking::text) <= 16384),
+    -- Outcome recorded AT INSERT (append-only friendly): the effect the event
+    -- had given the order's state when it arrived.
+    outcome           TEXT NOT NULL DEFAULT 'orphan'
+                      CHECK (outcome IN ('applied', 'orphan', 'noop_terminal')),
+    applied_order_status store.order_status,
     payload           JSONB NOT NULL DEFAULT '{}'::jsonb
                       CHECK (jsonb_typeof(payload) = 'object'
                              AND octet_length(payload::text) <= 65536),
     received_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UNIQUE (provider, provider_event_id)
+    UNIQUE (provider, provider_event_id),
+    -- Every receipt carries at least one routing identity.
+    CONSTRAINT store_pod_webhook_identity_ck
+        CHECK (order_id IS NOT NULL OR external_order_id IS NOT NULL)
 );
 CREATE INDEX store_pod_webhook_event_order_idx ON store.pod_webhook_event (order_id, received_at);
+-- Reconciliation queue for orphan events (arrived without a resolvable order).
+CREATE INDEX store_pod_webhook_orphan_external_idx
+    ON store.pod_webhook_event (provider, external_order_id, received_at)
+    WHERE order_id IS NULL AND external_order_id IS NOT NULL;
 
 CREATE TRIGGER store_pod_webhook_event_no_mutate
     BEFORE UPDATE OR DELETE ON store.pod_webhook_event
     FOR EACH ROW EXECUTE FUNCTION store.order_event_block_mutation();
 
--- Atomically record a POD shipment webhook AND apply its effect in ONE txn, so
--- an event can't be durably recorded without its status advance (or vice versa).
--- Dedupe is (provider, provider_event_id): a byte-different replay of the same
--- event id is a contradiction (40001); an equivalent replay returns false
--- without re-advancing. A newly-recorded event advances a 'processing' order to
--- 'shipped' with tracking (a no-op if the order isn't in 'processing' — e.g.
--- already shipped/delivered/refunded — so a late/out-of-order event still acks).
+-- Atomically record a POD shipment webhook AND apply its effect in ONE txn. The
+-- local order is resolved INTERNALLY from (provider, external_order_id) — the
+-- caller never supplies an order id — so a routing bug can't mark the wrong
+-- order shipped and the receipt's order id always matches the provider identity.
+-- Dedupe is (provider, provider_event_id): a byte-different replay (order /
+-- external id / tracking / payload) is a contradiction (40001); an equivalent
+-- replay returns false. A newly-recorded event advances a paid|processing order
+-- to 'shipped' with tracking so an early event isn't lost; a terminal order is a
+-- benign no-op; no matching order is recorded as an orphan for reconciliation.
 -- Returns true when newly recorded. VOLATILE — write connection.
 CREATE OR REPLACE FUNCTION store.service_apply_pod_shipment(
     p_provider          TEXT,
     p_event_id          TEXT,
     p_external_order_id TEXT,
-    p_order_id          BIGINT,
     p_tracking          JSONB,
     p_payload           JSONB
 )
@@ -552,28 +597,58 @@ DECLARE
     v_payload  JSONB := COALESCE(p_payload, '{}'::jsonb);
     v_tracking JSONB := COALESCE(p_tracking, '{}'::jsonb);
     v_existing store.pod_webhook_event%ROWTYPE;
-    v_from     store.order_status;
+    v_order    store.order%ROWTYPE;
+    v_order_id BIGINT;
+    v_outcome  TEXT;
+    v_applied  store.order_status;
     v_pk       BIGINT;
 BEGIN
     IF length(v_provider) = 0 OR length(v_event_id) = 0 THEN
         RAISE EXCEPTION 'provider and provider_event_id are required' USING ERRCODE = '22004';
     END IF;
+    IF v_ext_id IS NULL THEN
+        RAISE EXCEPTION 'external_order_id is required to route a POD shipment' USING ERRCODE = '22004';
+    END IF;
     IF jsonb_typeof(v_payload) <> 'object' OR octet_length(v_payload::text) > 65536 THEN
         RAISE EXCEPTION 'payload must be a JSON object under 64KB' USING ERRCODE = '22023';
     END IF;
+    IF jsonb_typeof(v_tracking) <> 'object' OR octet_length(v_tracking::text) > 16384 THEN
+        RAISE EXCEPTION 'tracking must be a JSON object under 16KB' USING ERRCODE = '22023';
+    END IF;
 
-    INSERT INTO store.pod_webhook_event (provider, provider_event_id, order_id, external_order_id, payload)
-    VALUES (v_provider, v_event_id, p_order_id, v_ext_id, v_payload)
+    -- Resolve + lock the order by its provider identity (never a caller order id).
+    SELECT * INTO v_order FROM store.order
+     WHERE pod_provider = v_provider AND pod_external_order_id = v_ext_id
+     FOR UPDATE;
+    v_order_id := v_order.order_id;   -- NULL when no matching order (orphan)
+
+    IF v_order_id IS NULL THEN
+        v_outcome := 'orphan';
+    ELSIF v_order.status IN ('paid', 'processing') THEN
+        v_outcome := 'applied';
+        v_applied := 'shipped';
+    ELSE
+        v_outcome := 'noop_terminal';
+        v_applied := v_order.status;
+    END IF;
+
+    INSERT INTO store.pod_webhook_event (
+        provider, provider_event_id, order_id, external_order_id,
+        tracking, outcome, applied_order_status, payload
+    )
+    VALUES (v_provider, v_event_id, v_order_id, v_ext_id,
+            v_tracking, v_outcome, v_applied, v_payload)
     ON CONFLICT (provider, provider_event_id) DO NOTHING
     RETURNING event_pk INTO v_pk;
 
     IF v_pk IS NULL THEN
-        -- Duplicate event id: a contradictory replay (different order / external
-        -- id / payload) is loud; an equivalent replay is a no-op false.
+        -- Duplicate event id: a contradictory replay is loud; an equivalent one
+        -- is a no-op false. Tracking is part of the fingerprint.
         SELECT * INTO v_existing FROM store.pod_webhook_event
          WHERE provider = v_provider AND provider_event_id = v_event_id;
-        IF v_existing.order_id IS DISTINCT FROM p_order_id
+        IF v_existing.order_id IS DISTINCT FROM v_order_id
            OR v_existing.external_order_id IS DISTINCT FROM v_ext_id
+           OR v_existing.tracking IS DISTINCT FROM v_tracking
            OR v_existing.payload IS DISTINCT FROM v_payload THEN
             RAISE EXCEPTION 'contradictory replay of POD event %/%', v_provider, v_event_id
                 USING ERRCODE = '40001';
@@ -581,27 +656,24 @@ BEGIN
         RETURN false;
     END IF;
 
-    -- Newly recorded: apply the shipment. Advance only a 'processing' order;
-    -- anything else is a benign no-op so a late/duplicate-state event still acks.
-    IF p_order_id IS NOT NULL THEN
-        SELECT status INTO v_from FROM store.order WHERE order_id = p_order_id FOR UPDATE;
-        IF v_from = 'processing' THEN
-            UPDATE store.order
-               SET status = 'shipped',
-                   tracking = CASE WHEN v_tracking = '{}'::jsonb THEN tracking ELSE v_tracking END,
-                   updated_at = now()
-             WHERE order_id = p_order_id;
-            INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
-            VALUES (p_order_id, v_from, 'shipped', 'pod', 'POD shipment', v_tracking);
-        END IF;
+    -- Newly recorded: apply the shipment for a paid|processing order (forward
+    -- advance, so an early event isn't permanently lost). Terminal/orphan = no-op.
+    IF v_outcome = 'applied' THEN
+        UPDATE store.order
+           SET status = 'shipped',
+               tracking = CASE WHEN v_tracking = '{}'::jsonb THEN tracking ELSE v_tracking END,
+               updated_at = now()
+         WHERE order_id = v_order_id;
+        INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
+        VALUES (v_order_id, v_order.status, 'shipped', 'pod', 'POD shipment', v_tracking);
     END IF;
 
     RETURN true;
 END;
 $$;
-ALTER FUNCTION store.service_apply_pod_shipment(TEXT, TEXT, TEXT, BIGINT, JSONB, JSONB) OWNER TO service_role;
-REVOKE ALL ON FUNCTION store.service_apply_pod_shipment(TEXT, TEXT, TEXT, BIGINT, JSONB, JSONB) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION store.service_apply_pod_shipment(TEXT, TEXT, TEXT, BIGINT, JSONB, JSONB) TO service_role;
+ALTER FUNCTION store.service_apply_pod_shipment(TEXT, TEXT, TEXT, JSONB, JSONB) OWNER TO service_role;
+REVOKE ALL ON FUNCTION store.service_apply_pod_shipment(TEXT, TEXT, TEXT, JSONB, JSONB) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION store.service_apply_pod_shipment(TEXT, TEXT, TEXT, JSONB, JSONB) TO service_role;
 
 -- Atomically LEASE an order for POD submission. Locks the order, verifies
 -- eligibility (from the fulfillment snapshot), rejects an already-submitted or
@@ -690,12 +762,13 @@ NOTIFY pgrst, 'reload schema';
 
 -- migrate:down
 
-DROP FUNCTION IF EXISTS store.service_apply_pod_shipment(TEXT, TEXT, TEXT, BIGINT, JSONB, JSONB);
+DROP FUNCTION IF EXISTS store.service_apply_pod_shipment(TEXT, TEXT, TEXT, JSONB, JSONB);
 DROP TABLE IF EXISTS store.pod_webhook_event;
 DROP FUNCTION IF EXISTS store.service_order_for_pod(BIGINT, TEXT);
 DROP FUNCTION IF EXISTS store.service_update_pod_status(BIGINT, JSONB);
 DROP FUNCTION IF EXISTS store.service_ack_pod_submission(BIGINT, UUID, JSONB);
 DROP INDEX IF EXISTS store.store_order_pod_external_uq;
+DROP INDEX IF EXISTS store.store_order_pod_claimable_idx;
 ALTER TABLE store.order
     DROP COLUMN IF EXISTS pod_ref,
     DROP COLUMN IF EXISTS pod_provider,

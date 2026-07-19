@@ -226,13 +226,17 @@ pub(crate) async fn webhook(headers: HeaderMap, body: Bytes) -> Response {
     }
 
     let data = event.get("data").cloned().unwrap_or(json!({}));
-    let external_id = data
+
+    // The provider's own order id (== the stored pod_external_order_id); the DB
+    // resolves the local order from it, so we never route by a caller-chosen
+    // local id. No provider id -> nothing to route; ack.
+    let Some(provider_external_id) = data
         .get("order")
-        .and_then(|o| o.get("external_id"))
-        .or_else(|| data.get("external_id"))
-        .and_then(|v| v.as_str());
-    let order_id: Option<i64> = external_id.and_then(|s| s.parse().ok());
-    let Some(order_id) = order_id else {
+        .and_then(|o| o.get("id"))
+        .or_else(|| data.get("id"))
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string())
+    else {
         return StatusCode::OK.into_response();
     };
 
@@ -246,13 +250,7 @@ pub(crate) async fn webhook(headers: HeaderMap, body: Bytes) -> Response {
         .get("id")
         .and_then(|v| v.as_str())
         .map(|s| s.to_string())
-        .unwrap_or_else(|| format!("pod-evt-{order_id}"));
-    let provider_external_id = data
-        .get("order")
-        .and_then(|o| o.get("id"))
-        .or_else(|| data.get("id"))
-        .and_then(|v| v.as_str())
-        .map(|s| s.to_string());
+        .unwrap_or_else(|| format!("pod-evt-{provider_external_id}"));
 
     // PII-reduced audit payload: identifiers + type + tracking ONLY — never the
     // recipient name/address from the raw provider body (RLS doesn't protect
@@ -269,15 +267,14 @@ pub(crate) async fn webhook(headers: HeaderMap, body: Bytes) -> Response {
         None => return service_unavailable(),
     };
 
-    // One atomic call: record the receipt + advance the order to shipped in a
-    // single txn (dedupe by provider event id). Errors are acked so the provider
-    // stops retrying; a contradictory replay is logged.
+    // One atomic call: resolve the order by (provider, external id), record the
+    // receipt + advance to shipped in a single txn (dedupe by provider event id).
+    // Errors are acked so the provider stops retrying; a contradiction is logged.
     match client
         .store_apply_pod_shipment(
             "printful".to_string(),
             provider_event_id,
             provider_external_id,
-            Some(order_id),
             tracking,
             safe_payload,
         )
