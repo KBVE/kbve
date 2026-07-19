@@ -33,6 +33,7 @@ services:
       - CUBEJS_CUBESTORE_HOST=cubestore
       - CUBEJS_DB_MAX_POOL=5
       - CUBEJS_DATASOURCES=default,clickhouse
+      - CUBEJS_TESSERACT_SQL_PLANNER=false
     volumes:
       - ../model:/cube/conf/model
       - ./cube.js:/cube/conf/cube.js:ro
@@ -54,6 +55,7 @@ services:
       - CUBEJS_CUBESTORE_HOST=cubestore
       - CUBEJS_DB_MAX_POOL=5
       - CUBEJS_DATASOURCES=default,clickhouse
+      - CUBEJS_TESSERACT_SQL_PLANNER=false
     volumes:
       - ../model:/cube/conf/model
       - ./cube.js:/cube/conf/cube.js:ro
