@@ -19,7 +19,9 @@ The Turso write path is pure Rust and statically linked — no shared library to
 
 ## Checkpoint-then-read model
 
-Turso writes to the file's WAL. DuckDB's SQLite reader sees the main database file, not the WAL, so a checkpoint must run before DuckDB can observe recent writes. Call `EmbedDb::checkpoint` (which issues `PRAGMA wal_checkpoint(TRUNCATE)`) after writes and before running analytics queries — skipping this step means DuckDB may read stale or incomplete data.
+Turso writes to the file's WAL. DuckDB's `sqlite_scanner` replays uncheckpointed WAL frames when attached read-only, so analytics reads reflect all committed writes regardless of checkpoint status — a checkpoint is **not** required for DuckDB to observe recent writes. See "WAL-visibility freshness contract" under "v5" below for the authoritative statement and the measurements behind it.
+
+`EmbedDb::checkpoint` (which issues `PRAGMA wal_checkpoint(TRUNCATE)`) and `checkpoint_passive` (`PRAGMA wal_checkpoint(PASSIVE)`, see "v5" below) exist for WAL truncation and file-size compaction, not for read visibility. Call `checkpoint` when you want to bound WAL growth or reclaim disk space, not merely to make recent writes visible to analytics queries.
 
 `checkpoint` inspects the `(busy, log, checkpointed)` row that `PRAGMA wal_checkpoint(TRUNCATE)` returns. If it comes back busy (another reader holding the WAL), `checkpoint` retries (yielding between attempts) up to `EmbedConfig::checkpoint_max_retries` times. If it is still busy after retries, `checkpoint` returns `EmbedError::CheckpointBusy` instead of silently returning `Ok` over a possibly-incomplete flush.
 
