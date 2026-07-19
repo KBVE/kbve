@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Button } from '@kbve/rn/ui/primitives/Button';
-import { FormField } from '@kbve/rn/ui/primitives/FormField';
-import { Select } from '@kbve/rn/ui/controls/Select';
-import { Stack } from '@kbve/rn/ui/primitives/Stack';
-import { Surface } from '@kbve/rn/ui/primitives/Surface';
-import { Text } from '@kbve/rn/ui/primitives/Text';
+import { Button } from '../../ui/primitives/Button';
+import { FormField } from '../../ui/primitives/FormField';
+import { Select } from '../../ui/controls/Select';
+import { Stack } from '../../ui/primitives/Stack';
+import { Surface } from '../../ui/primitives/Surface';
+import { Text } from '../../ui/primitives/Text';
 import type { StoreApi } from './api';
 import type { ShippingAddress, StoreVariant } from './types';
 import { StoreApiError } from './errors';

@@ -183,6 +183,8 @@ pub struct UpdateIssueRequest {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub state: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub state_reason: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub labels: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub assignees: Option<Vec<String>>,
@@ -282,4 +284,30 @@ pub struct GitHubRateLimit {
     pub remaining: u32,
     pub limit: u32,
     pub reset: u64,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn update_issue_omits_none_state_reason() {
+        let req = UpdateIssueRequest {
+            state: Some("closed".to_owned()),
+            ..Default::default()
+        };
+        let json = serde_json::to_string(&req).unwrap();
+        assert_eq!(json, r#"{"state":"closed"}"#);
+    }
+
+    #[test]
+    fn update_issue_serializes_state_reason() {
+        let req = UpdateIssueRequest {
+            state: Some("closed".to_owned()),
+            state_reason: Some("not_planned".to_owned()),
+            ..Default::default()
+        };
+        let json = serde_json::to_string(&req).unwrap();
+        assert!(json.contains(r#""state_reason":"not_planned""#));
+    }
 }
