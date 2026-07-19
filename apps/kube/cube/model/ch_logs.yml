@@ -1,0 +1,40 @@
+cubes:
+  - name: ch_logs
+    sql_table: observability.logs_raw
+    data_source: clickhouse
+    description: Raw observability logs from ClickHouse (17M+ rows)
+
+    measures:
+      - name: count
+        type: count
+
+    dimensions:
+      - name: timestamp
+        sql: timestamp
+        type: time
+      - name: service
+        sql: service
+        type: string
+      - name: level
+        sql: level
+        type: string
+      - name: pod_namespace
+        sql: pod_namespace
+        type: string
+
+    pre_aggregations:
+      - name: logs_by_day
+        measures:
+          - ch_logs.count
+        dimensions:
+          - ch_logs.level
+          - ch_logs.service
+        time_dimension: ch_logs.timestamp
+        granularity: day
+        refresh_key:
+          every: 1 hour
+        indexes:
+          - name: level_service
+            columns:
+              - ch_logs.level
+              - ch_logs.service

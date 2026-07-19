@@ -1,0 +1,27 @@
+cubes:
+  - name: pg_users
+    sql_table: auth.users
+    description: Supabase auth users (curated - no PII/credential columns exposed)
+
+    measures:
+      - name: count
+        type: count
+      - name: confirmed_count
+        type: count
+        filters:
+          - sql: "{CUBE}.email_confirmed_at IS NOT NULL"
+
+    dimensions:
+      - name: id
+        sql: id
+        type: string
+        primary_key: true
+      - name: role
+        sql: role
+        type: string
+      - name: created_at
+        sql: created_at
+        type: time
+      - name: last_sign_in_at
+        sql: last_sign_in_at
+        type: time

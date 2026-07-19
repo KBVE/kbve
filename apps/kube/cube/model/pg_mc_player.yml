@@ -1,0 +1,30 @@
+cubes:
+  - name: pg_mc_player
+    sql_table: mc.player
+    description: Minecraft player registry (Postgres). Join target for CH snapshots federation.
+
+    measures:
+      - name: count
+        type: count
+
+    dimensions:
+      - name: player_uuid
+        sql: player_uuid
+        type: string
+        primary_key: true
+      - name: player_name
+        sql: player_name
+        type: string
+      - name: server_id
+        sql: server_id
+        type: string
+
+    pre_aggregations:
+      - name: players_rollup
+        dimensions:
+          - pg_mc_player.player_uuid
+          - pg_mc_player.player_name
+        indexes:
+          - name: by_uuid
+            columns:
+              - pg_mc_player.player_uuid
