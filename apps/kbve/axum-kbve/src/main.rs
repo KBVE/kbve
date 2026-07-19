@@ -187,6 +187,12 @@ async fn main() -> anyhow::Result<()> {
         warn!("Forgejo proxy not configured (FORGEJO_UPSTREAM_URL not set)");
     }
 
+    if transport::proxy::init_cube_proxy() {
+        info!("Cube proxy initialized - /dashboard/cube/proxy enabled");
+    } else {
+        warn!("Cube proxy not configured (CUBE_API_TOKEN not set)");
+    }
+
     if transport::forgejo_api::init_forgejo_api() {
         info!("Forgejo typed API initialized - /dashboard/forgejo/api/* enabled");
     }

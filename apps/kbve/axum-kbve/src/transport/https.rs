@@ -670,6 +670,14 @@ fn router(state: AppState) -> Router {
             any(super::proxy::clickhouse_logs_proxy_handler),
         )
         .route(
+            "/dashboard/cube/proxy/{*path}",
+            any(super::proxy::cube_proxy_handler),
+        )
+        .route(
+            "/dashboard/cube/proxy",
+            any(super::proxy::cube_proxy_handler),
+        )
+        .route(
             "/dashboard/forgejo/proxy/{*path}",
             any(super::proxy::forgejo_proxy_handler),
         )
