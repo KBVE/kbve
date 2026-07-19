@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## Project Board Snapshot
 
 :::note[Auto-generated]
-Last synced: **2026-07-18T09:37:20.174Z** — updated daily by `ci-dashboard`.
+Last synced: **2026-07-19T09:53:57.621Z** — updated daily by `ci-dashboard`.
 Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 :::
 
@@ -21,7 +21,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 
 <CardGrid>
   <Card title="Theory" icon="star">
-    **72** items
+    **73** items
   </Card>
   <Card title="AI" icon="rocket">
     **1** items
@@ -33,7 +33,7 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **6** items
   </Card>
   <Card title="Error" icon="warning">
-    **24** items
+    **23** items
   </Card>
   <Card title="Support" icon="information">
     **0** items
@@ -42,10 +42,10 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
     **2** items
   </Card>
   <Card title="Review" icon="approve-check">
-    **2** items
+    **3** items
   </Card>
   <Card title="Done" icon="approve-check-circle">
-    **194** items
+    **223** items
   </Card>
 </CardGrid>
 
@@ -55,23 +55,23 @@ Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
 ```mermaid
 pie showData
     title Items by Status
-    "Theory" : 72
+    "Theory" : 73
     "AI" : 1
     "Todo" : 22
     "Backlog" : 6
-    "Error" : 24
+    "Error" : 23
     "Staging" : 2
-    "Review" : 2
-    "Done" : 194
+    "Review" : 3
+    "Done" : 223
 ```
 
 ```mermaid
 pie showData
     title Work State
-    "Active (Todo+Staging+Review)" : 26
-    "Blocked (Error+Support)" : 24
-    "Done" : 194
-    "Planning (Theory+AI+Backlog)" : 79
+    "Active (Todo+Staging+Review)" : 27
+    "Blocked (Error+Support)" : 23
+    "Done" : 223
+    "Planning (Theory+AI+Backlog)" : 80
 ```
 
   </TabItem>
@@ -83,7 +83,7 @@ flowchart LR
     classDef active fill:#3b82f6,stroke:#1d4ed8,color:#fff
     classDef blocked fill:#ef4444,stroke:#b91c1c,color:#fff
     classDef done fill:#10b981,stroke:#059669,color:#fff
-    Theory["Theory<br/><strong>72</strong>"]
+    Theory["Theory<br/><strong>73</strong>"]
     Theory --> AI
     AI["AI<br/><strong>1</strong>"]
     AI --> Todo
@@ -91,15 +91,15 @@ flowchart LR
     Todo --> Backlog
     Backlog["Backlog<br/><strong>6</strong>"]
     Backlog --> Error
-    Error["Error<br/><strong>24</strong>"]
+    Error["Error<br/><strong>23</strong>"]
     Error --> Support
     Support["Support<br/><strong>0</strong>"]
     Support --> Staging
     Staging["Staging<br/><strong>2</strong>"]
     Staging --> Review
-    Review["Review<br/><strong>2</strong>"]
+    Review["Review<br/><strong>3</strong>"]
     Review --> Done
-    Done["Done<br/><strong>194</strong>"]
+    Done["Done<br/><strong>223</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -116,29 +116,29 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 189
-    "Issue" : 134
+    "Pull Request" : 217
+    "Issue" : 136
 ```
 
 #### Top Labels
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 189 |
-| enhancement | 91 |
-| dev→main | 86 |
-| atomic | 72 |
+| auto-pr | 217 |
+| dev→main | 99 |
+| enhancement | 93 |
+| atomic | 78 |
 | todo | 27 |
 | bug | 27 |
+| rust | 16 |
 | 0 | 15 |
-| rust | 14 |
 | 1 | 10 |
 | unity | 8 |
 
   </TabItem>
 </Tabs>
 
-### Theory (72)
+### Theory (73)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -214,6 +214,7 @@ pie showData
 | [#13796](https://github.com/KBVE/kbve/issues/13796) | ARPG: server-side hotbar/spell loadout representation | — | — | enhancement |
 | [#13801](https://github.com/KBVE/kbve/issues/13801) | ARPG: pet battle disconnect handling + vitals commit-back before real rosters en | — | — | enhancement |
 | [#14132](https://github.com/KBVE/kbve/issues/14132) | [FEATURE] /wm — generic Windmill job runner in discordsh (replaces dead /n8n) | — | — | enhancement |
+| [#14305](https://github.com/KBVE/kbve/issues/14305) | jedi crate cleanups: jwks key caching, cache eviction, hygiene | — | — | enhancement, rust |
 
 ### AI (1)
 
@@ -259,7 +260,7 @@ pie showData
 | [#11250](https://github.com/KBVE/kbve/issues/11250) | feat(ci-dbmate-deploy): bake migrations into OCI image for cap-free deploys | — | — | enhancement, backlog |
 | [#13556](https://github.com/KBVE/kbve/issues/13556) | ROWS: server-authoritative zone travel + anti-teleport (client-supplied zone hon | — | — | security, backlog |
 
-### Error (24)
+### Error (23)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -286,7 +287,6 @@ pie showData
 | [#13113](https://github.com/KBVE/kbve/issues/13113) | [MEDIUM] rabbitmq RoleBinding omits rows-chuckrpg-prod | — | — | bug |
 | [#13119](https://github.com/KBVE/kbve/issues/13119) | [LOW] Cilium API-version skew (v2alpha1 L2 policy vs v2 pool) | — | — | bug |
 | [#14008](https://github.com/KBVE/kbve/issues/14008) | ROWS fleet-restart (#13575) — audit follow-ups &amp; pre-enablement gates | — | — | bug, security |
-| [#14234](https://github.com/KBVE/kbve/issues/14234) | windmill-sync.yml fails at `workspace add` — Credentials or instance is invalid  | — | — | bug |
 
 ### Staging (2)
 
@@ -295,14 +295,15 @@ pie showData
 | [#2208](https://github.com/KBVE/kbve/issues/2208) | [Concept] Service Page Enchancemnts | — | h0lybyte, dladeira | 4 |
 | [#6943](https://github.com/KBVE/kbve/issues/6943) | Phase 2: Frontend - Orchestration Tab | — | — | todo |
 
-### Review (2)
+### Review (3)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
 | [#13278](https://github.com/KBVE/kbve/pull/13278) | Atomic: ue ramdisk spec | — | — | auto-pr, atomic |
 | [#13572](https://github.com/KBVE/kbve/pull/13572) | Atomic: bump mdx spec | — | — | auto-pr, atomic |
+| [#14324](https://github.com/KBVE/kbve/pull/14324) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
 
-### Done (194)
+### Done (223)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -313,13 +314,7 @@ pie showData
 | [#13351](https://github.com/KBVE/kbve/issues/13351) | Upgrade astro-kbve to Astro 7 (build-speed: markdown/MDX-heavy static site) | — | — | enhancement |
 | [#13575](https://github.com/KBVE/kbve/pull/13575) | Atomic: rows drain fleet plan fix | — | — | auto-pr, atomic |
 | [#13784](https://github.com/KBVE/kbve/issues/13784) | perf(simgrid): Bytes-backed EncodedFrame to avoid per-writer buffer copy | — | — | enhancement, todo, rust |
-| [#13844](https://github.com/KBVE/kbve/pull/13844) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
-| [#13845](https://github.com/KBVE/kbve/pull/13845) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
-| [#13848](https://github.com/KBVE/kbve/pull/13848) | chore(dashboard): daily sync — 2026-07-04 | — | — | auto-pr |
-| [#13849](https://github.com/KBVE/kbve/pull/13849) | Release: 2 features, 1 fix, 1 build, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#13855](https://github.com/KBVE/kbve/pull/13855) | Atomic: chisel-ubuntu-axum v24.04.10 post-publish sync | — | — | auto-pr, atomic |
 | [#13856](https://github.com/KBVE/kbve/pull/13856) | Release: 1 feature, 2 fixes, 1 CI, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#13857](https://github.com/KBVE/kbve/pull/13857) | Atomic: irc-gateway v0.1.28 post-publish sync | — | — | auto-pr, atomic |
 | [#13862](https://github.com/KBVE/kbve/pull/13862) | Atomic: axum-kbve v1.0.221 post-publish sync | — | — | auto-pr, atomic |
 | [#13863](https://github.com/KBVE/kbve/pull/13863) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
 | [#13865](https://github.com/KBVE/kbve/pull/13865) | Release: 2 features, 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
@@ -494,12 +489,47 @@ pie showData
 | [#14229](https://github.com/KBVE/kbve/pull/14229) | ci(auto-merge): allow manifest-sync PRs through the bot merge queue | — | — | auto-pr |
 | [#14230](https://github.com/KBVE/kbve/pull/14230) | Release: 1 feature, 1 CI, 2 chores → Main | — | — | auto-pr, dev→main |
 | [#14231](https://github.com/KBVE/kbve/pull/14231) | Atomic: axum-kbve v1.0.239 post-publish sync | — | — | auto-pr, atomic |
+| [#14234](https://github.com/KBVE/kbve/issues/14234) | windmill-sync.yml fails at `workspace add` — Credentials or instance is invalid  | — | — | bug |
 | [#14235](https://github.com/KBVE/kbve/pull/14235) | Release: 1 feature, 2 fixes, 1 doc → Main | — | — | auto-pr, dev→main |
 | [#14239](https://github.com/KBVE/kbve/pull/14239) | Release: 1 doc, 2 chores → Main | — | — | auto-pr, dev→main |
 | [#14241](https://github.com/KBVE/kbve/pull/14241) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
 | [#14245](https://github.com/KBVE/kbve/pull/14245) | Release: 2 features, 2 fixes → Main | — | — | auto-pr, dev→main |
 | [#14249](https://github.com/KBVE/kbve/pull/14249) | Release: 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#14251](https://github.com/KBVE/kbve/pull/14251) | Atomic: discordsh-bot v0.1.24 post-publish sync | — | — | auto-pr, atomic |
+| [#14252](https://github.com/KBVE/kbve/pull/14252) | Atomic: axum-kbve v1.0.240 post-publish sync | — | — | auto-pr, atomic |
+| [#14253](https://github.com/KBVE/kbve/pull/14253) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14254](https://github.com/KBVE/kbve/pull/14254) | chore(dashboard): daily sync — 2026-07-18 | — | — | auto-pr |
+| [#14256](https://github.com/KBVE/kbve/pull/14256) | Release: 1 feature → Main | — | — | auto-pr, dev→main |
+| [#14259](https://github.com/KBVE/kbve/pull/14259) | Release: 2 features, 1 doc → Main | — | — | auto-pr, dev→main |
+| [#14261](https://github.com/KBVE/kbve/pull/14261) | Release: 1 feature, 1 CI, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14262](https://github.com/KBVE/kbve/pull/14262) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14267](https://github.com/KBVE/kbve/pull/14267) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
+| [#14268](https://github.com/KBVE/kbve/pull/14268) | Release: 1 doc, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#14269](https://github.com/KBVE/kbve/issues/14269) | Optimize &amp; de-boilerplate the axum-kbve proxy ecosystem | — | — | enhancement, rust |
+| [#14271](https://github.com/KBVE/kbve/pull/14271) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14272](https://github.com/KBVE/kbve/pull/14272) | Atomic: axum-kbve v1.0.241 post-publish sync | — | — | auto-pr, atomic |
+| [#14273](https://github.com/KBVE/kbve/pull/14273) | Release: 1 feature, 1 refactor, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14275](https://github.com/KBVE/kbve/pull/14275) | Atomic: discordsh-bot v0.1.25 post-publish sync | — | — | auto-pr, atomic |
+| [#14280](https://github.com/KBVE/kbve/pull/14280) | Release: 2 features, 1 CI, 1 perf, 1 refactor → Main | — | — | auto-pr, dev→main |
+| [#14283](https://github.com/KBVE/kbve/pull/14283) | chore(content): daily journal scaffold | — | — | auto-pr |
+| [#14284](https://github.com/KBVE/kbve/pull/14284) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
+| [#14286](https://github.com/KBVE/kbve/pull/14286) | Release: 2 features, 1 fix, 1 doc, 1 perf, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#14290](https://github.com/KBVE/kbve/pull/14290) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14291](https://github.com/KBVE/kbve/pull/14291) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14293](https://github.com/KBVE/kbve/pull/14293) | Release: 1 feature, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#14294](https://github.com/KBVE/kbve/pull/14294) | Atomic: discordsh-bot v0.1.26 post-publish sync | — | — | auto-pr, atomic |
+| [#14295](https://github.com/KBVE/kbve/pull/14295) | Atomic: discordsh v0.1.46 post-publish sync | — | — | auto-pr, atomic |
+| [#14296](https://github.com/KBVE/kbve/pull/14296) | Atomic: axum-kbve v1.0.242 post-publish sync | — | — | auto-pr, atomic |
+| [#14298](https://github.com/KBVE/kbve/pull/14298) | chore(content): daily graph scaffold | — | — | auto-pr |
+| [#14300](https://github.com/KBVE/kbve/pull/14300) | chore(content): daily security scaffold | — | — | auto-pr |
+| [#14303](https://github.com/KBVE/kbve/pull/14303) | Release: 2 features, 1 fix, 1 perf, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14304](https://github.com/KBVE/kbve/pull/14304) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14309](https://github.com/KBVE/kbve/pull/14309) | Release: 2 features, 2 fixes, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14311](https://github.com/KBVE/kbve/pull/14311) | Atomic: discordsh-bot v0.1.27 post-publish sync | — | — | auto-pr, atomic |
+| [#14318](https://github.com/KBVE/kbve/pull/14318) | Release: 2 features, 1 refactor, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#14319](https://github.com/KBVE/kbve/pull/14319) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14322](https://github.com/KBVE/kbve/pull/14322) | Release: 2 fixes → Main | — | — | auto-pr, dev→main |
+| [#14323](https://github.com/KBVE/kbve/pull/14323) | Atomic: axum-kbve v1.0.243 post-publish sync | — | — | auto-pr, atomic |
 
 ---
 
