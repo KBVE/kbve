@@ -75,7 +75,9 @@ impl TokenInfo {
 /// JWT verification cache backed by GoTrue + a token-keyed DashMap.
 #[derive(Clone)]
 pub struct JwtCache {
-    tokens: Arc<DashMap<String, TokenInfo>>,
+    /// Verified tokens keyed by the raw JWT. Stored behind `Arc` so a cache hit
+    /// clones a refcount, not the whole `TokenInfo` (several owned `String`s).
+    tokens: Arc<DashMap<String, Arc<TokenInfo>>>,
     /// Tokens currently being verified against GoTrue. Lets concurrent cold
     /// requests for the same token wait on one round-trip (single-flight)
     /// instead of each stampeding Supabase.
@@ -101,7 +103,7 @@ impl JwtCache {
     }
 
     /// Return a cached, non-expired token if present.
-    pub fn get(&self, token: &str) -> Option<TokenInfo> {
+    pub fn get(&self, token: &str) -> Option<Arc<TokenInfo>> {
         if let Some(entry) = self.tokens.get(token) {
             let info = entry.value().clone();
             if !info.is_expired() {
@@ -115,7 +117,7 @@ impl JwtCache {
 
     /// Cache hit returns immediately; a miss verifies with GoTrue then caches.
     /// Concurrent misses for the same token are coalesced into one round-trip.
-    pub async fn verify_and_cache(&self, token: &str) -> Result<TokenInfo, JwtCacheError> {
+    pub async fn verify_and_cache(&self, token: &str) -> Result<Arc<TokenInfo>, JwtCacheError> {
         if let Some(info) = self.get(token) {
             return Ok(info);
         }
@@ -145,7 +147,7 @@ impl JwtCache {
         };
 
         let api_start = Instant::now();
-        let result = self.verify_with_supabase(token).await;
+        let result = self.verify_with_supabase(token).await.map(Arc::new);
         if let Ok(ref token_info) = result {
             self.insert(token.to_string(), token_info.clone());
             info!(
@@ -267,7 +269,7 @@ impl JwtCache {
         }
     }
 
-    fn insert(&self, token: String, info: TokenInfo) {
+    fn insert(&self, token: String, info: Arc<TokenInfo>) {
         if self.tokens.len() >= MAX_CACHE_SIZE {
             self.evict_oldest(MAX_CACHE_SIZE / 10);
         }
