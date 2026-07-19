@@ -287,17 +287,15 @@ jobs:
                   set -euo pipefail
                   REPORT="apps/kbve/astro-kbve/src/content/docs/dashboard/report.mdx"
 
-                  for f in "$REPORT"; do
-                    if [ ! -s "$f" ]; then
-                      echo "::error::Generated file is empty: $f"
-                      exit 1
-                    fi
-                    if ! head -1 "$f" | grep -q '^---$'; then
-                      echo "::error::Missing YAML frontmatter in $f"
-                      exit 1
-                    fi
-                    echo "OK: $f ($(wc -c < "$f" | xargs) bytes)"
-                  done
+                  if [ ! -s "$REPORT" ]; then
+                    echo "::error::Generated file is empty: $REPORT"
+                    exit 1
+                  fi
+                  if ! head -1 "$REPORT" | grep -q '^---$'; then
+                    echo "::error::Missing YAML frontmatter in $REPORT"
+                    exit 1
+                  fi
+                  echo "OK: $REPORT ($(wc -c < "$REPORT" | xargs) bytes)"
 
             - name: Upload report artifacts
               uses: actions/upload-artifact@v7
