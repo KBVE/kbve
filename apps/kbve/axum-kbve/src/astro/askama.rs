@@ -290,6 +290,7 @@ pub struct ForumCommentPartial {
     /// compare against the signed-in user and show/hide edit buttons.
     pub author_id: String,
     pub author_username: String,
+    pub author_avatar_url: String,
     pub created_at_human: String,
     pub score: i64,
     /// Raw markdown body — emitted in a hidden `<template>` so the

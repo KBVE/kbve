@@ -1,6 +1,9 @@
 <article class="forum-comment" data-depth="{{ depth }}" data-comment-id="{{ id }}" data-author-id="{{ author_id }}" id="c{{ id }}">
   <header class="forum-comment__header">
-    <a href="/@{{ author_username }}">@{{ author_username }}</a>
+    <a class="forum-comment__author" href="/@{{ author_username }}">
+      <span class="forum-comment__avatar" data-avatar="{{ author_avatar_url }}" data-letter="{{ author_username }}"></span>
+      <span>@{{ author_username }}</span>
+    </a>
     · {{ created_at_human }}
     · {{ score }} pts
     <details class="forum-comment__menu" hidden>
