@@ -489,11 +489,10 @@ async fn backfill_closed_threads(store: &Arc<GithubStore>, http: &Arc<serenity::
 /// reopen→unarchive+unlock). Event-driven only (never a reconcile loop), so a
 /// human who manually re-opens a thread is not repeatedly re-archived.
 ///
-/// On close the archive and lock are SEPARATE best-effort calls: the archive
-/// lands first, then (if `GH_SYNC_LOCK_ON_CLOSE`) a second call re-asserts
-/// archived + adds the lock, so a lock failure (e.g. missing MANAGE_THREADS)
-/// never costs us the archive. All steps log + continue without failing the
-/// event delivery.
+/// Archive and lock are applied in ONE edit: Discord rejects any edit to an
+/// already-archived thread ("Thread is archived"), so a separate follow-up lock
+/// call can never land. Setting `archived` + `locked` together on the still-open
+/// thread locks it atomically. Best-effort — logs and continues on failure.
 async fn set_thread_archived(http: &Arc<serenity::Http>, issue: &CachedIssue, archived: bool) {
     let Some(thread_id) = issue.discord_thread_id else {
         return;
@@ -501,7 +500,6 @@ async fn set_thread_archived(http: &Arc<serenity::Http>, issue: &CachedIssue, ar
     let thread = serenity::ChannelId::new(thread_id as u64);
 
     if !archived {
-        // Reopen: unarchive + unlock in one call.
         edit_thread_step(
             http,
             thread,
@@ -514,29 +512,12 @@ async fn set_thread_archived(http: &Arc<serenity::Http>, issue: &CachedIssue, ar
         return;
     }
 
-    // Close: archive first so it lands even if a later lock is rejected.
-    let archived_ok = edit_thread_step(
-        http,
-        thread,
-        EditThread::new().archived(true),
-        issue.number,
-        thread_id,
-        "archive",
-    )
-    .await;
-
-    // Then try to lock (re-assert archived so the thread stays archived).
-    if archived_ok && lock_on_close_enabled() {
-        edit_thread_step(
-            http,
-            thread,
-            EditThread::new().archived(true).locked(true),
-            issue.number,
-            thread_id,
-            "lock",
-        )
-        .await;
-    }
+    let builder = if lock_on_close_enabled() {
+        EditThread::new().archived(true).locked(true)
+    } else {
+        EditThread::new().archived(true)
+    };
+    edit_thread_step(http, thread, builder, issue.number, thread_id, "archive").await;
 }
 
 async fn edit_thread_step(
