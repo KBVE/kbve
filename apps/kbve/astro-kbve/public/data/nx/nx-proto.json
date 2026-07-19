@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-07-18T09:37:57.979Z",
+  "generated_at": "2026-07-19T09:54:36.774Z",
   "summary": {
     "total_protos": 46,
     "registered": 37,
     "orphaned": 8,
     "utility_only": 1,
     "total_messages": 822,
-    "total_enums": 169
+    "total_enums": 170
   },
   "protos": [
     {
@@ -1211,11 +1211,12 @@
       ],
       "enums": [
         "Backend",
+        "Surface",
         "NodeStatus",
         "WorkflowTier"
       ],
       "message_count": 2,
-      "enum_count": 3,
+      "enum_count": 4,
       "codegen": {
         "registered": true,
         "name": "workflow",
@@ -1778,7 +1779,7 @@
     "packages/data/proto/referral/referral.proto",
     "packages/data/proto/wallet/wallet.proto"
   ],
-  "checked_at": "2026-07-18T09:37:58Z",
+  "checked_at": "2026-07-19T09:54:36Z",
   "drift_detected": true,
   "drift_files": [
     "packages/data/codegen/generated/agents-schema.ts",
