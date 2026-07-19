@@ -9,6 +9,8 @@ Turso (`libsql`) writes a real SQLite-format file, and DuckDB can attach to and 
 ## Write / read split
 
 - **Writes** go through `EmbedDb`, backed by a `turso::Connection`. `EmbedDb::open` opens (creating if needed) the file in WAL journal mode. `EmbedDb::execute` runs a single write/DDL statement and returns the affected row count.
+
+`EmbedDb::open` (and `open_with`) require the path to be valid UTF-8. A non-UTF-8 path returns `EmbedError::NonUtf8Path` rather than panicking.
 - **Reads for analytics** go through DuckDB. `EmbedDb::analytics_scalar_i64` / `EmbedDb::analytics_scalar_f64` open a fresh in-memory DuckDB connection, `ATTACH` the same file read-only via the `sqlite` extension, and run a scalar query against it.
 
 Because DuckDB attaches read-only and Turso owns all writes, only one process ever mutates the file, avoiding write contention between the two engines.
@@ -19,7 +21,7 @@ The Turso write path is pure Rust and statically linked — no shared library to
 
 Turso writes to the file's WAL. DuckDB's SQLite reader sees the main database file, not the WAL, so a checkpoint must run before DuckDB can observe recent writes. Call `EmbedDb::checkpoint` (which issues `PRAGMA wal_checkpoint(TRUNCATE)`) after writes and before running analytics queries — skipping this step means DuckDB may read stale or incomplete data.
 
-`checkpoint` does not inspect the `(busy, log, checkpointed)` row that `PRAGMA wal_checkpoint(TRUNCATE)` returns. If the checkpoint comes back busy (another reader holding the WAL), the flush may be incomplete and a subsequent analytics read could see stale data. This is safe under the v1 single-writer/no-concurrent-live-reader model this crate assumes; a future revision may want to surface the busy state to callers.
+`checkpoint` inspects the `(busy, log, checkpointed)` row that `PRAGMA wal_checkpoint(TRUNCATE)` returns. If it comes back busy (another reader holding the WAL), `checkpoint` retries (yielding between attempts) up to `EmbedConfig::checkpoint_max_retries` times. If it is still busy after retries, `checkpoint` returns `EmbedError::CheckpointBusy` instead of silently returning `Ok` over a possibly-incomplete flush.
 
 When done, call `EmbedDb::close` to drop the connection and release the file.
 
@@ -74,3 +76,54 @@ tx.commit().await?;
 Dropping an `EmbedTx` without calling `commit` discards the transaction's writes (rolled back on the connection's next use, not synchronously at drop).
 
 `EmbedDb::execute` and `EmbedDb::begin` share the same underlying `turso::Connection`. While a transaction is open, use the `tx` handle for writes — calling `db.execute(...)` on the same `EmbedDb` runs that statement inside the open transaction instead of autocommitting independently.
+
+### Configuration: `EmbedConfig` + `open_with`
+
+`EmbedDb::open` uses `EmbedConfig::default()` (`journal_mode: "WAL"`, no `duckdb_extension_dir`, `checkpoint_max_retries: 5`). To override any of these, build an `EmbedConfig` and pass it to `EmbedDb::open_with`:
+
+```rust
+use embeddb::{EmbedConfig, EmbedDb};
+
+let cfg = EmbedConfig {
+    journal_mode: "WAL".into(),
+    duckdb_extension_dir: None,
+    checkpoint_max_retries: 10,
+};
+let db = EmbedDb::open_with("data.db", cfg).await?;
+```
+
+`checkpoint_max_retries` controls how many times `EmbedDb::checkpoint` retries a busy WAL checkpoint before returning `EmbedError::CheckpointBusy` (see "Checkpoint-then-read model" above). `duckdb_extension_dir` is a per-`EmbedDb` override for the `EMBEDDB_DUCKDB_EXTENSION_DIR` environment variable described in "Deployment note" below.
+
+### Analytics rows: `analytics_rows`, `EmbedRow`, `EmbedValue`, `analytics_scalar_string`
+
+Alongside the scalar helpers (`analytics_scalar_i64`, `analytics_scalar_f64`), `analytics_scalar_string` reads a single text value, and `analytics_rows` reads an entire result set into `Vec<EmbedRow>`:
+
+```rust
+db.execute("CREATE TABLE t (id INTEGER, v REAL, name TEXT)", ()).await?;
+db.execute("INSERT INTO t VALUES (?, ?, ?)", (1_i64, 1.5_f64, "a")).await?;
+db.checkpoint().await?;
+
+let name = db.analytics_scalar_string("SELECT name FROM t WHERE id = 1").await?;
+assert_eq!(name, "a");
+
+let rows = db.analytics_rows("SELECT id, v, name FROM t ORDER BY id").await?;
+assert_eq!(rows[0].as_i64(0), Some(1));
+assert_eq!(rows[0].as_f64(1), Some(1.5));
+assert_eq!(rows[0].as_str(2), Some("a"));
+```
+
+Each `EmbedRow` wraps a `Vec<EmbedValue>`, one per selected column. `EmbedValue` is `Null | Int(i64) | Float(f64) | Text(String) | Blob(Vec<u8>)`. Use `EmbedRow::get` for the raw `&EmbedValue`, or the typed `as_i64` / `as_f64` / `as_str` accessors, which return `None` if the column is absent or holds a different variant.
+
+### Schema migrations: `migrate`
+
+`EmbedDb::migrate` takes an ordered slice of DDL/DML strings and applies only the ones not yet recorded as applied, tracked in an internal `_embeddb_migrations` table keyed by index:
+
+```rust
+let migrations = [
+    "CREATE TABLE a (id INTEGER)",
+    "CREATE TABLE b (id INTEGER)",
+];
+db.migrate(&migrations).await?;
+```
+
+`migrate` is append-only and idempotent: calling it again with the same slice is a no-op, and calling it with the same prefix plus new entries appended applies only the new entries. Each migration runs in its own transaction; if a migration fails, that transaction is rolled back and the error is returned, leaving previously-applied migrations intact and no partial record for the failed one — so migrating with the same (or a fixed) slice afterward will retry it.

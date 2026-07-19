@@ -26,4 +26,20 @@ mod tests {
         let e: EmbedError = io.into();
         assert!(matches!(e, EmbedError::Io(_)));
     }
+
+    #[test]
+    fn non_utf8_path_displays() {
+        let e = EmbedError::NonUtf8Path(std::path::PathBuf::from("bad\u{FFFD}name.db"));
+        let msg = format!("{}", e);
+        assert!(!msg.is_empty());
+        assert!(msg.contains("non-utf8 path"));
+    }
+
+    #[test]
+    fn checkpoint_busy_displays() {
+        let e = EmbedError::CheckpointBusy;
+        let msg = format!("{}", e);
+        assert!(!msg.is_empty());
+        assert_eq!(msg, "checkpoint busy after retries");
+    }
 }

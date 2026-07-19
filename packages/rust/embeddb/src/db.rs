@@ -342,6 +342,71 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn analytics_rows_empty_table_returns_empty_vec() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("empty.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let rows = db.analytics_rows("SELECT id FROM t").await.unwrap();
+        assert_eq!(rows, Vec::<crate::EmbedRow>::new());
+    }
+
+    #[tokio::test]
+    async fn analytics_scalar_string_round_trips_quote() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("quote_string.db")).await.unwrap();
+        db.execute("CREATE TABLE t (name TEXT)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (?)", ("o'brien",)).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let name = db.analytics_scalar_string("SELECT name FROM t").await.unwrap();
+        assert_eq!(name, "o'brien");
+    }
+
+    #[tokio::test]
+    async fn analytics_rows_blob_round_trips() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("blob.db")).await.unwrap();
+        db.execute("CREATE TABLE t (b BLOB)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (X'00FF')", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let rows = db.analytics_rows("SELECT b FROM t").await.unwrap();
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].get(0), Some(&crate::EmbedValue::Blob(vec![0x00, 0xFF])));
+    }
+
+    #[tokio::test]
+    async fn analytics_rows_multi_row_ordering() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("order.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER, v REAL, name TEXT)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (?, ?, ?)", (3_i64, 30.0_f64, "c")).await.unwrap();
+        db.execute("INSERT INTO t VALUES (?, ?, ?)", (1_i64, 10.0_f64, "a")).await.unwrap();
+        db.execute("INSERT INTO t VALUES (?, ?, ?)", (2_i64, 20.0_f64, "b")).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let rows = db.analytics_rows("SELECT id, v, name FROM t ORDER BY id").await.unwrap();
+        assert_eq!(
+            rows,
+            vec![
+                crate::EmbedRow(vec![
+                    crate::EmbedValue::Int(1),
+                    crate::EmbedValue::Float(10.0),
+                    crate::EmbedValue::Text("a".into()),
+                ]),
+                crate::EmbedRow(vec![
+                    crate::EmbedValue::Int(2),
+                    crate::EmbedValue::Float(20.0),
+                    crate::EmbedValue::Text("b".into()),
+                ]),
+                crate::EmbedRow(vec![
+                    crate::EmbedValue::Int(3),
+                    crate::EmbedValue::Float(30.0),
+                    crate::EmbedValue::Text("c".into()),
+                ]),
+            ]
+        );
+    }
+
+    #[tokio::test]
     async fn migrate_failure_rolls_back_that_migration() {
         let dir = tempfile::tempdir().unwrap();
         let db = EmbedDb::open(dir.path().join("m3.db")).await.unwrap();
