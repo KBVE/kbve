@@ -2,7 +2,7 @@
 
 mod cache;
 mod discord;
-mod forum;
+pub mod forum;
 mod kv_cache;
 pub mod mc;
 mod mc_lot;
