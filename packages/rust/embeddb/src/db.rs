@@ -820,6 +820,18 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn uncheckpointed_writes_are_visible_to_reads() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("walvis.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1), (2), (3)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        db.execute("INSERT INTO t VALUES (4), (5)", ()).await.unwrap();
+        let seen = db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap();
+        assert_eq!(seen, 5, "DuckDB must reflect committed-but-uncheckpointed writes (v5 freshness contract)");
+    }
+
+    #[tokio::test]
     async fn concurrent_writer_reader_never_torn() {
         let dir = tempfile::tempdir().unwrap();
         let db = std::sync::Arc::new(EmbedDb::open(dir.path().join("conc.db")).await.unwrap());

@@ -26,6 +26,7 @@ impl FromEmbedValue for f64 {
     fn from_embed_value(v: Option<&EmbedValue>) -> Result<Self> {
         match v {
             Some(EmbedValue::Float(n)) => Ok(*n),
+            Some(EmbedValue::Int(n)) => Ok(*n as f64),
             Some(other) => Err(mismatch("f64", other)),
             None => Err(absent("f64")),
         }
@@ -103,5 +104,11 @@ mod tests {
     #[test]
     fn missing_non_option_errors() {
         assert!(i64::from_embed_value(None).is_err());
+    }
+
+    #[test]
+    fn f64_accepts_int_and_float() {
+        assert_eq!(f64::from_embed_value(Some(&EmbedValue::Int(4))).unwrap(), 4.0);
+        assert_eq!(f64::from_embed_value(Some(&EmbedValue::Float(2.5))).unwrap(), 2.5);
     }
 }

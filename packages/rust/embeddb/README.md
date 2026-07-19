@@ -251,6 +251,8 @@ let n = db.analytics_for_each("SELECT v FROM t ORDER BY v", |row| {
 }).await?;
 ```
 
+The callback must be `FnMut + Send + 'static` and runs on a blocking thread, so accumulate results via `Arc`/atomics or a channel rather than capturing non-`Send` state; there is also no early-stop, so use `analytics_query` when you need column names or must be able to stop iterating early.
+
 ### Batched writes: `execute_batch`
 
 `execute_batch` runs many parameter sets for the same SQL statement inside a single transaction, committing once at the end. If any one execution fails, the whole batch rolls back atomically instead of leaving a partially-applied set of rows:
