@@ -48,6 +48,12 @@ jobs:
             "${WMILL_WORKSPACE}" "${WMILL_WORKSPACE}" "${WMILL_BASE_URL}" \
             --token "${WM_TOKEN}"
 
+      - name: Generate lockfiles
+        working-directory: apps/windmill
+        run: |
+          npx --yes "windmill-cli@${WMILL_CLI_VERSION}" generate-metadata \
+            --workspace "${WMILL_WORKSPACE}" --lock-only --yes
+
       - name: Preview (dry-run)
         working-directory: apps/windmill
         run: |

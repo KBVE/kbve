@@ -1,0 +1,29 @@
+summary: Tell a joke from a rotating set of sources
+description: >-
+  /wm target. Returns a joke — blank picks a random source, or pin one:
+  /wm joke dad, /wm joke chuck (Chuck Norris), /wm joke twopart. Two-part
+  jokes hide the punchline behind a spoiler. Bun runtime, no dependencies.
+kind: script
+lock: ''
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  order:
+    - args
+    - discord
+  properties:
+    args:
+      type: array
+      description: Space-separated args from /wm; args[0] optional joke source.
+      items:
+        type: string
+      default: []
+    discord:
+      type: object
+      description: Discord invocation context injected by the bot.
+      properties:
+        user_id: { type: string }
+        username: { type: string }
+        guild_id: { type: string }
+        channel_id: { type: string }
+  required: []

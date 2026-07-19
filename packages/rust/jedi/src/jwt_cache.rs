@@ -7,8 +7,10 @@
 //! implementation. Staff permissions are pulled from a PostgREST RPC.
 
 use dashmap::DashMap;
+use dashmap::mapref::entry::Entry;
 use std::sync::{Arc, OnceLock};
 use std::time::{Duration, Instant};
+use tokio::sync::Notify;
 use tokio::time;
 use tracing::{debug, info, warn};
 
@@ -74,6 +76,10 @@ impl TokenInfo {
 #[derive(Clone)]
 pub struct JwtCache {
     tokens: Arc<DashMap<String, TokenInfo>>,
+    /// Tokens currently being verified against GoTrue. Lets concurrent cold
+    /// requests for the same token wait on one round-trip (single-flight)
+    /// instead of each stampeding Supabase.
+    inflight: Arc<DashMap<String, Arc<Notify>>>,
     supabase_url: String,
     supabase_anon_key: String,
     http_client: reqwest::Client,
@@ -84,6 +90,7 @@ impl JwtCache {
         info!(url = %supabase_url, "initializing JWT cache");
         Self {
             tokens: Arc::new(DashMap::new()),
+            inflight: Arc::new(DashMap::new()),
             supabase_url,
             supabase_anon_key,
             http_client: reqwest::Client::builder()
@@ -107,23 +114,102 @@ impl JwtCache {
     }
 
     /// Cache hit returns immediately; a miss verifies with GoTrue then caches.
+    /// Concurrent misses for the same token are coalesced into one round-trip.
     pub async fn verify_and_cache(&self, token: &str) -> Result<TokenInfo, JwtCacheError> {
         if let Some(info) = self.get(token) {
             return Ok(info);
         }
+
+        // Single-flight: the first caller for a cold token becomes the leader and
+        // does the GoTrue round-trip; concurrent callers wait for it, then read
+        // the cache. A missed wake-up (or a leader error) just re-loops — the
+        // waiter re-checks the cache and may become the next leader itself.
+        let notify = loop {
+            if let Some(info) = self.get(token) {
+                return Ok(info);
+            }
+            match self.inflight.entry(token.to_string()) {
+                Entry::Vacant(e) => {
+                    let n = Arc::new(Notify::new());
+                    e.insert(n.clone());
+                    break n;
+                }
+                Entry::Occupied(e) => {
+                    let n = e.get().clone();
+                    drop(e);
+                    // Bounded so a missed notification can never hang the caller;
+                    // the upstream http_client timeout is 5s.
+                    let _ = time::timeout(Duration::from_secs(6), n.notified()).await;
+                }
+            }
+        };
+
         let api_start = Instant::now();
-        let token_info = self.verify_with_supabase(token).await?;
-        self.insert(token.to_string(), token_info.clone());
-        info!(
-            user_id = %token_info.user_id,
-            username = %token_info.kbve_username,
-            supabase_api_ms = %api_start.elapsed().as_millis(),
-            "JWT verified via Supabase API and cached"
-        );
-        Ok(token_info)
+        let result = self.verify_with_supabase(token).await;
+        if let Ok(ref token_info) = result {
+            self.insert(token.to_string(), token_info.clone());
+            info!(
+                user_id = %token_info.user_id,
+                username = %token_info.kbve_username,
+                supabase_api_ms = %api_start.elapsed().as_millis(),
+                "JWT verified via Supabase API and cached"
+            );
+        }
+        self.inflight.remove(token);
+        notify.notify_waiters();
+        result
     }
 
     async fn verify_with_supabase(&self, token: &str) -> Result<TokenInfo, JwtCacheError> {
+        // Decode `exp` locally first — an already-expired token is rejected
+        // without touching the network.
+        let claims = decode_jwt_claims(token).unwrap_or_default();
+        let expires_at = claims["exp"]
+            .as_i64()
+            .ok_or_else(|| JwtCacheError::InvalidToken("missing exp claim".into()))?;
+        if chrono::Utc::now().timestamp() >= expires_at {
+            return Err(JwtCacheError::TokenExpired);
+        }
+
+        // User verification and staff-permission lookup are independent GoTrue /
+        // PostgREST calls — run them concurrently, then discard the perms result
+        // if user verification failed.
+        let (user_res, staff_permissions) =
+            tokio::join!(self.fetch_user(token), self.fetch_staff_permissions(token));
+        let user_data = user_res?;
+
+        let user_id = user_data["id"]
+            .as_str()
+            .ok_or_else(|| JwtCacheError::InvalidResponse("missing user id".into()))?
+            .to_string();
+        let email = user_data["email"].as_str().map(|s| s.to_string());
+        let role = user_data["role"]
+            .as_str()
+            .unwrap_or("authenticated")
+            .to_string();
+
+        // The canonical KBVE username rides the GoTrue user_metadata (set by the
+        // custom access-token hook); fall back to the JWT claim, then the user id.
+        let kbve_username = user_data["user_metadata"]["kbve_username"]
+            .as_str()
+            .or_else(|| claims["kbve_username"].as_str())
+            .map(|s| s.to_string())
+            .filter(|s| !s.is_empty())
+            .unwrap_or_else(|| user_id.clone());
+
+        Ok(TokenInfo {
+            user_id,
+            kbve_username,
+            email,
+            role,
+            staff_permissions,
+            expires_at,
+            verified_at: Instant::now(),
+        })
+    }
+
+    /// GoTrue `/auth/v1/user` verification; returns the parsed user object.
+    async fn fetch_user(&self, token: &str) -> Result<serde_json::Value, JwtCacheError> {
         let url = format!("{}/auth/v1/user", self.supabase_url);
         let response = self
             .http_client
@@ -152,46 +238,10 @@ impl JwtCache {
             )));
         }
 
-        let user_data: serde_json::Value = response
+        response
             .json()
             .await
-            .map_err(|e| JwtCacheError::InvalidResponse(e.to_string()))?;
-
-        let user_id = user_data["id"]
-            .as_str()
-            .ok_or_else(|| JwtCacheError::InvalidResponse("missing user id".into()))?
-            .to_string();
-        let email = user_data["email"].as_str().map(|s| s.to_string());
-        let role = user_data["role"]
-            .as_str()
-            .unwrap_or("authenticated")
-            .to_string();
-
-        // The canonical KBVE username rides the GoTrue user_metadata (set by the
-        // custom access-token hook); fall back to the JWT claim, then the user id.
-        let claims = decode_jwt_claims(token).unwrap_or_default();
-        let kbve_username = user_data["user_metadata"]["kbve_username"]
-            .as_str()
-            .or_else(|| claims["kbve_username"].as_str())
-            .map(|s| s.to_string())
-            .filter(|s| !s.is_empty())
-            .unwrap_or_else(|| user_id.clone());
-
-        let expires_at = claims["exp"]
-            .as_i64()
-            .ok_or_else(|| JwtCacheError::InvalidToken("missing exp claim".into()))?;
-
-        let staff_permissions = self.fetch_staff_permissions(token).await;
-
-        Ok(TokenInfo {
-            user_id,
-            kbve_username,
-            email,
-            role,
-            staff_permissions,
-            expires_at,
-            verified_at: Instant::now(),
-        })
+            .map_err(|e| JwtCacheError::InvalidResponse(e.to_string()))
     }
 
     /// Staff permission bitmask via PostgREST RPC; 0 on any error.
@@ -393,5 +443,17 @@ mod tests {
         let claims = decode_jwt_claims("h.eyJleHAiOjEyMywia2J2ZV91c2VybmFtZSI6ImFsIn0.s").unwrap();
         assert_eq!(claims["exp"].as_i64(), Some(123));
         assert_eq!(claims["kbve_username"].as_str(), Some("al"));
+    }
+
+    // exp=123 (1970) is long past, so verify_with_supabase must reject it via the
+    // local pre-check before any network call. The unroutable upstream means this
+    // test would error with SupabaseApiError (or stall) if the pre-check regressed.
+    #[tokio::test]
+    async fn expired_token_short_circuits_without_network() {
+        let cache = JwtCache::new("http://127.0.0.1:9/unused".into(), "anon".into());
+        let token = "h.eyJleHAiOjEyMywia2J2ZV91c2VybmFtZSI6ImFsIn0.s";
+        let err = cache.verify_and_cache(token).await.unwrap_err();
+        assert!(matches!(err, JwtCacheError::TokenExpired));
+        assert_eq!(cache.size(), 0);
     }
 }

@@ -1,0 +1,47 @@
+cubes:
+  - name: ch_mc_snapshots
+    sql_table: mc.player_snapshots
+    data_source: clickhouse
+    description: Minecraft player snapshots (ClickHouse). Federated to Postgres player registry via player_uuid.
+
+    joins:
+      - name: pg_mc_player
+        relationship: many_to_one
+        sql: "{ch_mc_snapshots.uuid} = {pg_mc_player.player_uuid}"
+
+    measures:
+      - name: count
+        type: count
+
+    dimensions:
+      - name: uuid
+        sql: uuid
+        type: string
+        primary_key: true
+      - name: timestamp
+        sql: timestamp
+        type: time
+      - name: server
+        sql: server
+        type: string
+
+    pre_aggregations:
+      - name: snapshots_rollup
+        measures:
+          - ch_mc_snapshots.count
+        dimensions:
+          - ch_mc_snapshots.uuid
+        indexes:
+          - name: by_uuid
+            columns:
+              - ch_mc_snapshots.uuid
+
+      - name: snapshots_by_player
+        type: rollup_join
+        measures:
+          - ch_mc_snapshots.count
+        dimensions:
+          - pg_mc_player.player_name
+        rollups:
+          - pg_mc_player.players_rollup
+          - ch_mc_snapshots.snapshots_rollup

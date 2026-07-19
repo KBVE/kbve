@@ -1,0 +1,19 @@
+summary: Fetch a joke from a rotating set of sources (shared core)
+description: >-
+  Shared library parent. Exports fetchJoke() imported by the surface wrapper
+  (f/discordsh/joke). Sources: dad (icanhazdadjoke), chuck (api.chucknorris.io),
+  twopart (official-joke-api). Blank picks a random source; a name/alias pins
+  one. SYSTEM tier — never invoked directly from a browser. Bun, no deps.
+kind: script
+lock: ''
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  order:
+    - source
+  properties:
+    source:
+      type: string
+      description: Optional source (dad, chuck, twopart); blank returns a random one.
+      default: ''
+  required: []
