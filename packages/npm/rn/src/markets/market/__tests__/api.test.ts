@@ -69,17 +69,18 @@ describe('createMarketApi', () => {
 		expect(await api.myAccountId()).toBeNull();
 	});
 
-	it('non-OK JSON error surfaces message + status + code', async () => {
+	it('non-OK JSON error surfaces human message over slug; code = error slug', async () => {
 		(global.fetch as any).mockResolvedValue({
 			ok: false,
 			status: 409,
-			text: async () => JSON.stringify({ error: 'outbid', code: 'M12' }),
+			text: async () =>
+				JSON.stringify({ error: 'invalid_argument', message: 'amount must be a positive integer' }),
 		});
 		const api = createMarketApi({ getToken: token });
 		const err = await api.placeBid(1, 5).catch((e) => e);
 		expect(err).toBeInstanceOf(MarketApiError);
 		expect(err.status).toBe(409);
-		expect(err.code).toBe('M12');
-		expect(err.message).toBe('outbid');
+		expect(err.message).toBe('amount must be a positive integer');
+		expect(err.code).toBe('invalid_argument');
 	});
 });

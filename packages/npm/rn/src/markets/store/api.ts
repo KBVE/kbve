@@ -63,11 +63,11 @@ export function createStoreApi(opts: StoreApiOptions): StoreApi {
 			json = undefined;
 		}
 		if (!res.ok) {
-			const j = (json ?? {}) as { error?: string; message?: string; code?: string };
+			const j = (json ?? {}) as { error?: string; message?: string; detail?: string };
 			throw new StoreApiError(
-				j.error ?? j.message ?? (text || `HTTP ${res.status}`),
+				j.message ?? j.error ?? j.detail ?? (text || `HTTP ${res.status}`),
 				res.status,
-				j.code,
+				j.error,
 			);
 		}
 		return json as T;

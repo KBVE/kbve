@@ -87,12 +87,12 @@ export function createMarketApi(opts: MarketApiOptions): MarketApi {
 			const j = (json ?? {}) as {
 				error?: string;
 				message?: string;
-				code?: string;
+				detail?: string;
 			};
 			throw new MarketApiError(
-				j.error ?? j.message ?? (text || `HTTP ${res.status}`),
+				j.message ?? j.error ?? j.detail ?? (text || `HTTP ${res.status}`),
 				res.status,
-				j.code,
+				j.error,
 			);
 		}
 		return json as T;
