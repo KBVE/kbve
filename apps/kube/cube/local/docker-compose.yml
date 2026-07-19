@@ -1,4 +1,27 @@
 services:
+  # In-network port-forward sidecar: runs kubectl port-forward for both DBs and
+  # exposes them ONLY on the compose network (never published to the host).
+  # Cube reaches Postgres at kubefwd:5432 and ClickHouse at kube-forward:8123.
+  kubefwd:
+    image: bitnami/kubectl:latest
+    user: root
+    environment:
+      - KUBECONFIG=/root/.kube/config
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - >
+        while true; do kubectl port-forward --address 0.0.0.0 -n kilobase svc/kilobase-rw 5432:5432; echo "pg forward dropped, reconnecting"; sleep 1; done &
+        while true; do kubectl port-forward --address 0.0.0.0 -n clickhouse svc/clickhouse-clickhouse-cluster 8123:8123; echo "ch forward dropped, reconnecting"; sleep 1; done &
+        wait
+    volumes:
+      - ${HOME}/.kube/config:/root/.kube/config:ro
+    healthcheck:
+      test: ["CMD", "bash", "-c", "</dev/tcp/localhost/5432 && </dev/tcp/localhost/8123"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
+
   cube_api:
     image: cubejs/cube:latest
     restart: always
@@ -14,8 +37,12 @@ services:
       - ../model:/cube/conf/model
       - ./cube.js:/cube/conf/cube.js:ro
     depends_on:
-      - cube_refresh_worker
-      - cubestore
+      kubefwd:
+        condition: service_healthy
+      cube_refresh_worker:
+        condition: service_started
+      cubestore:
+        condition: service_started
 
   cube_refresh_worker:
     image: cubejs/cube:latest
@@ -30,9 +57,13 @@ services:
     volumes:
       - ../model:/cube/conf/model
       - ./cube.js:/cube/conf/cube.js:ro
+    depends_on:
+      kubefwd:
+        condition: service_healthy
 
   cubestore:
     image: cubejs/cubestore:latest
+    platform: linux/amd64
     restart: always
     environment:
       - CUBESTORE_SERVER_NAME=cubestore:9999
