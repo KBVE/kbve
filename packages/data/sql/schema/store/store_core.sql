@@ -1,6 +1,8 @@
 -- ============================================================================
--- STORE CORE — schema, order_status enum, catalog/purchase/order/topup tables,
--- indexes, table grants, and the order_event append-only trigger.
+-- STORE CORE — schema, order_status enum, catalog/purchase/variant/order/
+-- topup_package/topup/pod_webhook_event tables, indexes, table grants, and the
+-- order_event append-only + product slug-immutable + variant stock-mode-immutable
+-- triggers.
 --
 -- Reference mirror of the collapsed dbmate migrations:
 --   ../../dbmate/migrations/20260708120000_store_schema_init.sql
@@ -184,6 +186,29 @@ CREATE INDEX store_product_variant_active_product_created_idx
 COMMENT ON TABLE store.product_variant IS
     'Concrete purchasable SKUs of a store.product. Priced in credits (parent product currency). NULL stock = unlimited.';
 
+-- Refund correctness (stock_reserved restore) depends on the finite/unlimited
+-- stock MODE never changing under an outstanding order. service_upsert_variant
+-- rejects a mode flip for a clear application error, but enforce it at the table
+-- boundary too so a direct owner write / future maintenance function can't
+-- silently break the invariant. BEFORE UPDATE OF stock trigger raises 22023 on
+-- any finite<->unlimited flip.
+CREATE OR REPLACE FUNCTION store.variant_stock_mode_immutable()
+RETURNS TRIGGER
+LANGUAGE plpgsql SET search_path = '' AS $$
+BEGIN
+    IF (OLD.stock IS NULL) <> (NEW.stock IS NULL) THEN
+        RAISE EXCEPTION 'store.product_variant stock mode (finite/unlimited) is immutable'
+            USING ERRCODE = '22023';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+ALTER FUNCTION store.variant_stock_mode_immutable() OWNER TO service_role;
+
+CREATE TRIGGER store_variant_stock_mode_immutable
+    BEFORE UPDATE OF stock ON store.product_variant
+    FOR EACH ROW EXECUTE FUNCTION store.variant_stock_mode_immutable();
+
 -- ============================================================================
 -- TABLE: store.order — physical/both orders. Born 'paid'.
 --   pod_ref carries the print-on-demand provider's external id/status.
@@ -243,20 +268,28 @@ CREATE TABLE store.order (
     pod_ref          JSONB NOT NULL DEFAULT '{}'::jsonb
                      CHECK (jsonb_typeof(pod_ref) = 'object'
                             AND octet_length(pod_ref::text) <= 16384),
+    -- pod_external_order_id / pod_status are stored ALREADY-trimmed (a value
+    -- differing from its btrim is rejected, not silently stored with whitespace
+    -- that would undermine external-id uniqueness).
     pod_provider          TEXT
                      CHECK (pod_provider IS NULL
                             OR (pod_provider = lower(btrim(pod_provider))
                                 AND length(pod_provider) BETWEEN 1 AND 64)),
     pod_external_order_id TEXT
                      CHECK (pod_external_order_id IS NULL
-                            OR length(btrim(pod_external_order_id)) BETWEEN 1 AND 255),
+                            OR (pod_external_order_id = btrim(pod_external_order_id)
+                                AND length(pod_external_order_id) BETWEEN 1 AND 255)),
     pod_status            TEXT
                      CHECK (pod_status IS NULL
-                            OR length(btrim(pod_status)) BETWEEN 1 AND 64),
+                            OR (pod_status = btrim(pod_status)
+                                AND length(pod_status) BETWEEN 1 AND 64)),
     pod_claimed_at        TIMESTAMPTZ,
     pod_claim_expires_at  TIMESTAMPTZ,
     pod_claim_token       UUID,
-    pod_claimed_by        TEXT,
+    pod_claimed_by        TEXT
+                     CHECK (pod_claimed_by IS NULL
+                            OR (pod_claimed_by = btrim(pod_claimed_by)
+                                AND length(pod_claimed_by) BETWEEN 1 AND 128)),
     pod_submitted_at      TIMESTAMPTZ,
     -- Dedupe identity is (account, idempotency_key): the advisory lock and the
     -- replay query are both account-scoped, so uniqueness must be too. A global
@@ -280,7 +313,22 @@ CREATE TABLE store.order (
     -- composite FK when any referencing column is NULL).
     CONSTRAINT store_order_product_variant_fk
         FOREIGN KEY (product_id, variant_id)
-        REFERENCES store.product_variant (product_id, variant_id)
+        REFERENCES store.product_variant (product_id, variant_id),
+    -- POD lifecycle invariants: reject contradictory column combinations from
+    -- maintenance / privileged writes. provider<->external are paired; a lease
+    -- keeps token+expiry together (both cleared on ACK, claimed_at retained for
+    -- audit) with expiry after the claim; a submission requires the full provider
+    -- identity.
+    CONSTRAINT store_order_pod_identity_ck
+        CHECK ((pod_provider IS NULL) = (pod_external_order_id IS NULL)),
+    CONSTRAINT store_order_pod_lease_ck
+        CHECK ((pod_claim_token IS NULL) = (pod_claim_expires_at IS NULL)),
+    CONSTRAINT store_order_pod_claim_time_ck
+        CHECK (pod_claim_expires_at IS NULL
+               OR (pod_claimed_at IS NOT NULL AND pod_claim_expires_at > pod_claimed_at)),
+    CONSTRAINT store_order_pod_submit_ck
+        CHECK (pod_submitted_at IS NULL
+               OR (pod_provider IS NOT NULL AND pod_external_order_id IS NOT NULL))
 );
 
 CREATE INDEX store_order_account_created_idx
@@ -331,6 +379,34 @@ CREATE TRIGGER store_order_event_no_update
     FOR EACH ROW EXECUTE FUNCTION store.order_event_block_mutation();
 
 -- ============================================================================
+-- TABLE: store.topup_package — server-authoritative Stripe credit packs.
+--   service_apply_topup derives the credit grant from HERE by pack_id; the
+--   webhook forwards only a pack_id (+ the Stripe-charged amount) and never a
+--   credit amount, so a compromised/buggy handler can at most name a valid pack.
+--   amount_cents is the pack's expected fiat price; service_apply_topup rejects
+--   a Stripe amount that doesn't match it.
+-- ============================================================================
+
+CREATE TABLE store.topup_package (
+    pack_id      TEXT PRIMARY KEY
+                 CHECK (pack_id = btrim(pack_id) AND length(pack_id) BETWEEN 1 AND 64),
+    credits      BIGINT NOT NULL CHECK (credits > 0 AND credits <= 100000000),
+    amount_cents BIGINT NOT NULL CHECK (amount_cents > 0 AND amount_cents <= 100000000),
+    active       BOOLEAN NOT NULL DEFAULT true,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+COMMENT ON TABLE store.topup_package IS
+    'Server-authoritative Stripe credit packs. service_apply_topup derives the credit grant from this table by pack_id; the webhook never supplies a credit amount.';
+
+-- Seed matches the axum checkout PACKS (small/medium/large). Checkout creation
+-- still lists these in Stripe; the grant authority lives here.
+INSERT INTO store.topup_package (pack_id, credits, amount_cents) VALUES
+    ('small',  100,  100),
+    ('medium', 550,  500),
+    ('large',  1200, 1000)
+ON CONFLICT (pack_id) DO NOTHING;
+
+-- ============================================================================
 -- TABLE: store.topup — Stripe credit purchases (the credit on-ramp).
 --   Idempotent on stripe_event_id; credits via wallet.service_credit('topup').
 -- ============================================================================
@@ -340,6 +416,9 @@ CREATE TRIGGER store_order_event_no_update
 CREATE TABLE store.topup (
     topup_id          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     account_id        UUID NOT NULL REFERENCES wallet.account(id),
+    -- The pack named at checkout; the credit grant authority lives in
+    -- store.topup_package, not in the webhook payload.
+    pack_id           TEXT NOT NULL REFERENCES store.topup_package(pack_id),
     stripe_event_id   TEXT NOT NULL UNIQUE   -- idempotency on the webhook
                       CHECK (stripe_event_id = btrim(stripe_event_id)
                              AND length(stripe_event_id) BETWEEN 1 AND 255),
@@ -372,6 +451,35 @@ CREATE INDEX store_topup_account_idx ON store.topup (account_id, created_at DESC
 
 COMMENT ON TABLE store.topup IS
     'Stripe credit purchases. Idempotent on stripe_event_id. Credits the wallet via wallet.service_credit(source_kind=topup).';
+
+-- ============================================================================
+-- TABLE: store.pod_webhook_event — append-only POD webhook receipts.
+--   Provider-event dedupe identity (provider, provider_event_id) for auditing
+--   delivery, detecting replays, and investigating provider disputes —
+--   independent of the status no-op idempotency. The webhook SIGNATURE is still
+--   verified in the transport before service_record_pod_webhook is called.
+--   Reuses store.order_event_block_mutation as its BEFORE UPDATE/DELETE guard.
+-- ============================================================================
+
+CREATE TABLE store.pod_webhook_event (
+    event_pk          BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    provider          TEXT NOT NULL
+                      CHECK (provider = lower(btrim(provider)) AND length(provider) BETWEEN 1 AND 64),
+    provider_event_id TEXT NOT NULL
+                      CHECK (provider_event_id = btrim(provider_event_id)
+                             AND length(provider_event_id) BETWEEN 1 AND 255),
+    order_id          BIGINT REFERENCES store.order(order_id),
+    payload           JSONB NOT NULL DEFAULT '{}'::jsonb
+                      CHECK (jsonb_typeof(payload) = 'object'
+                             AND octet_length(payload::text) <= 65536),
+    received_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (provider, provider_event_id)
+);
+CREATE INDEX store_pod_webhook_event_order_idx ON store.pod_webhook_event (order_id, received_at);
+
+CREATE TRIGGER store_pod_webhook_event_no_mutate
+    BEFORE UPDATE OR DELETE ON store.pod_webhook_event
+    FOR EACH ROW EXECUTE FUNCTION store.order_event_block_mutation();
 
 -- ============================================================================
 -- TABLE GRANTS — defense-in-depth.
@@ -411,6 +519,11 @@ REVOKE ALL ON ALL TABLES IN SCHEMA private FROM PUBLIC, anon, authenticated;
 --   -- Reach its own objects + the cross-schema objects the definer bodies touch.
 --   GRANT USAGE ON SCHEMA store, private        TO store_api_owner;
 --   GRANT USAGE ON SCHEMA wallet, inventory     TO store_api_owner;
+--   -- private.proxy_store_caller_account() resolves auth.uid(); the new owner is
+--   -- not service_role, so grant the auth access explicitly (a runtime blocker
+--   -- for the authenticated proxy path otherwise).
+--   GRANT USAGE ON SCHEMA auth               TO store_api_owner;
+--   GRANT EXECUTE ON FUNCTION auth.uid()     TO store_api_owner;
 --
 --   -- wallet: read accounts + move credits via the wallet's OWN definer funcs
 --   -- (EXECUTE only — ledger writes run under the wallet role, not this owner).
@@ -423,7 +536,11 @@ REVOKE ALL ON ALL TABLES IN SCHEMA private FROM PUBLIC, anon, authenticated;
 --   GRANT EXECUTE ON FUNCTION wallet.service_credit(...) TO store_api_owner;
 --
 --   -- inventory: buy/refund paths mint, read, consume items + append transitions.
---   GRANT SELECT, INSERT, UPDATE ON inventory.item       TO store_api_owner;
+--   -- The ONLY column a refund updates is state (+ updated_at), so UPDATE is
+--   -- column-scoped rather than whole-row, keeping the owner from touching
+--   -- owner_account, qty, nbt, etc. on arbitrary items.
+--   GRANT SELECT, INSERT           ON inventory.item      TO store_api_owner;
+--   GRANT UPDATE (state, updated_at) ON inventory.item    TO store_api_owner;
 --   GRANT SELECT, INSERT        ON inventory.transition  TO store_api_owner;
 --   GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA inventory TO store_api_owner;
 --
@@ -434,7 +551,16 @@ REVOKE ALL ON ALL TABLES IN SCHEMA private FROM PUBLIC, anon, authenticated;
 --   ALTER TABLE store.<t>    OWNER TO store_api_owner;   -- all store tables
 --   ALTER TYPE  store.order_status OWNER TO store_api_owner;
 --   ALTER FUNCTION store.<f>(...)  OWNER TO store_api_owner;   -- all store funcs
---   ALTER FUNCTION public|private.proxy_store_*(...) OWNER TO store_api_owner;
+--   -- The public/private proxies live in SHARED schemas, so they are reassigned
+--   -- by EXACT signature (never by name pattern) — the boundary can't silently
+--   -- widen to an unrelated same-prefix function or miss a differently-named one:
+--   ALTER FUNCTION public.proxy_store_catalog_readonly(INTEGER, TIMESTAMPTZ, UUID) OWNER TO store_api_owner;
+--   ALTER FUNCTION public.proxy_store_product_detail_readonly(TEXT)                OWNER TO store_api_owner;
+--   ALTER FUNCTION public.proxy_store_my_entitlements_readonly()                   OWNER TO store_api_owner;
+--   ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO store_api_owner;
+--   ALTER FUNCTION public.proxy_store_buy(TEXT, UUID)                              OWNER TO store_api_owner;
+--   ALTER FUNCTION public.proxy_store_buy_physical(UUID, BIGINT, JSONB, UUID)      OWNER TO store_api_owner;
+--   ALTER FUNCTION private.proxy_store_caller_account()                            OWNER TO store_api_owner;
 --
 --   -- service_role is now EXECUTE-only: strip the blanket table/sequence access
 --   -- the init/topup migrations granted (the RPC EXECUTE grants remain).
@@ -463,4 +589,26 @@ REVOKE ALL ON ALL TABLES IN SCHEMA private FROM PUBLIC, anon, authenticated;
 --       REVOKE ALL ON SEQUENCES FROM PUBLIC, anon, authenticated;
 --   ALTER DEFAULT PRIVILEGES FOR ROLE store_api_owner IN SCHEMA store
 --       REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC, anon, authenticated;
+--   -- Cover the store proxies the owner may create in the SHARED public/private
+--   -- schemas too (functions only — a blanket table default there would touch
+--   -- unrelated schemas).
+--   ALTER DEFAULT PRIVILEGES FOR ROLE store_api_owner IN SCHEMA public
+--       REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC, anon, authenticated;
+--   ALTER DEFAULT PRIVILEGES FOR ROLE store_api_owner IN SCHEMA private
+--       REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC, anon, authenticated;
+--
+--   -- Also cover the MIGRATION role for the DEDICATED store schema only. NOT for
+--   -- public/private (shared): a blanket migration-role default there would strip
+--   -- EXECUTE from unrelated future functions. Shared-schema proxies are instead
+--   -- protected by the explicit REVOKE ALL ... FROM PUBLIC, anon, authenticated
+--   -- after every proxy is created (see schema_init / topup_pod).
+--   ALTER DEFAULT PRIVILEGES IN SCHEMA store
+--       REVOKE ALL ON TABLES FROM PUBLIC, anon, authenticated;
+--   ALTER DEFAULT PRIVILEGES IN SCHEMA store
+--       REVOKE EXECUTE ON FUNCTIONS FROM PUBLIC, anon, authenticated;
+--
+--   -- Self-contained exposure boundary: anon/authenticated never received schema
+--   -- USAGE, but revoke it explicitly so the store's reachability doesn't depend
+--   -- on earlier migrations' grant history.
+--   REVOKE ALL ON SCHEMA store, private FROM PUBLIC, anon, authenticated;
 -- ============================================================================
