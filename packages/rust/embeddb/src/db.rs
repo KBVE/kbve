@@ -1,12 +1,12 @@
 use std::path::{Path, PathBuf};
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 use crate::Result;
 
 pub struct EmbedDb {
     path: PathBuf,
     conn: turso::Connection,
     config: crate::EmbedConfig,
-    reader: Arc<Mutex<duckdb::Connection>>,
+    reader: Arc<crate::pool::ReaderPool>,
 }
 
 impl std::fmt::Debug for EmbedDb {
@@ -35,8 +35,11 @@ impl EmbedDb {
         let conn = db.connect()?;
         let pragma = format!("PRAGMA journal_mode={}", config.journal_mode);
         conn.execute(&pragma, ()).await.ok();
-        let reader = crate::analytics::open_reader(config.duckdb_extension_dir.as_deref())?;
-        Ok(EmbedDb { path, conn, config, reader: Arc::new(Mutex::new(reader)) })
+        let reader = crate::pool::ReaderPool::build(
+            config.reader_pool_size,
+            config.duckdb_extension_dir.as_deref(),
+        )?;
+        Ok(EmbedDb { path, conn, config, reader: Arc::new(reader) })
     }
 
     pub fn path(&self) -> &Path {
@@ -67,10 +70,10 @@ impl EmbedDb {
     pub async fn analytics_scalar_i64(&self, sql: &str) -> Result<i64> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let reader = self.reader.clone();
+        let pool = self.reader.clone();
         tokio::task::spawn_blocking(move || {
-            let conn = reader.lock().unwrap_or_else(|e| e.into_inner());
-            crate::analytics::scalar_i64(&conn, &path, &sql)
+            let guard = pool.checkout();
+            crate::analytics::scalar_i64(&guard, &path, &sql)
         })
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
@@ -79,10 +82,10 @@ impl EmbedDb {
     pub async fn analytics_scalar_f64(&self, sql: &str) -> Result<f64> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let reader = self.reader.clone();
+        let pool = self.reader.clone();
         tokio::task::spawn_blocking(move || {
-            let conn = reader.lock().unwrap_or_else(|e| e.into_inner());
-            crate::analytics::scalar_f64(&conn, &path, &sql)
+            let guard = pool.checkout();
+            crate::analytics::scalar_f64(&guard, &path, &sql)
         })
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
@@ -91,10 +94,10 @@ impl EmbedDb {
     pub async fn analytics_rows(&self, sql: &str) -> Result<Vec<crate::EmbedRow>> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let reader = self.reader.clone();
+        let pool = self.reader.clone();
         tokio::task::spawn_blocking(move || {
-            let conn = reader.lock().unwrap_or_else(|e| e.into_inner());
-            crate::analytics::rows(&conn, &path, &sql)
+            let guard = pool.checkout();
+            crate::analytics::rows(&guard, &path, &sql)
         })
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
@@ -103,10 +106,10 @@ impl EmbedDb {
     pub async fn analytics_query(&self, sql: &str) -> Result<crate::QueryResult> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let reader = self.reader.clone();
+        let pool = self.reader.clone();
         tokio::task::spawn_blocking(move || {
-            let conn = reader.lock().unwrap_or_else(|e| e.into_inner());
-            crate::analytics::query(&conn, &path, &sql)
+            let guard = pool.checkout();
+            crate::analytics::query(&guard, &path, &sql)
         })
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
@@ -119,10 +122,10 @@ impl EmbedDb {
     pub async fn analytics_scalar_string(&self, sql: &str) -> Result<String> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let reader = self.reader.clone();
+        let pool = self.reader.clone();
         tokio::task::spawn_blocking(move || {
-            let conn = reader.lock().unwrap_or_else(|e| e.into_inner());
-            crate::analytics::scalar_string(&conn, &path, &sql)
+            let guard = pool.checkout();
+            crate::analytics::scalar_string(&guard, &path, &sql)
         })
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
@@ -344,7 +347,7 @@ mod tests {
     #[tokio::test]
     async fn open_with_custom_config() {
         let dir = tempfile::tempdir().unwrap();
-        let cfg = crate::EmbedConfig { journal_mode: "WAL".into(), duckdb_extension_dir: None, checkpoint_max_retries: 1 };
+        let cfg = crate::EmbedConfig { journal_mode: "WAL".into(), duckdb_extension_dir: None, checkpoint_max_retries: 1, reader_pool_size: 2 };
         let db = EmbedDb::open_with(dir.path().join("cfg.db"), cfg).await.unwrap();
         db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
         db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
@@ -642,5 +645,65 @@ mod tests {
         db.execute("INSERT INTO t VALUES (3)", ()).await.unwrap();
         db.checkpoint().await.unwrap();
         assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 3);
+    }
+
+    #[tokio::test]
+    async fn pool_concurrent_reads_all_correct() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = std::sync::Arc::new(EmbedDb::open(dir.path().join("pool.db")).await.unwrap());
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        for i in 1..=10 {
+            db.execute(&format!("INSERT INTO t VALUES ({i})"), ()).await.unwrap();
+        }
+        db.checkpoint().await.unwrap();
+        let mut handles = Vec::new();
+        for _ in 0..12 {
+            let db = db.clone();
+            handles.push(tokio::spawn(async move {
+                db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap()
+            }));
+        }
+        for h in handles {
+            assert_eq!(h.await.unwrap(), 10);
+        }
+    }
+
+    #[tokio::test]
+    async fn pool_exhaustion_recovers() {
+        let dir = tempfile::tempdir().unwrap();
+        let cfg = crate::EmbedConfig { reader_pool_size: 2, ..Default::default() };
+        let db = std::sync::Arc::new(EmbedDb::open_with(dir.path().join("ex.db"), cfg).await.unwrap());
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let mut handles = Vec::new();
+        for _ in 0..6 {
+            let db = db.clone();
+            handles.push(tokio::spawn(async move {
+                db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap()
+            }));
+        }
+        for h in handles {
+            assert_eq!(h.await.unwrap(), 1);
+        }
+    }
+
+    #[tokio::test]
+    async fn pool_cross_connection_freshness() {
+        let dir = tempfile::tempdir().unwrap();
+        let cfg = crate::EmbedConfig { reader_pool_size: 3, ..Default::default() };
+        let db = EmbedDb::open_with(dir.path().join("cf.db"), cfg).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        for _ in 0..5 {
+            assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 1);
+        }
+        db.execute("INSERT INTO t VALUES (2)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (3)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        for _ in 0..5 {
+            assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 3);
+        }
     }
 }

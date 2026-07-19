@@ -6,6 +6,7 @@ mod value;
 mod config;
 mod migrate;
 mod query;
+mod pool;
 
 pub use error::{EmbedError, Result};
 pub use db::EmbedDb;
