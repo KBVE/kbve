@@ -25,6 +25,12 @@ impl EmbedDb {
         let affected = self.conn.execute(sql, ()).await?;
         Ok(affected)
     }
+
+    pub async fn checkpoint(&self) -> Result<()> {
+        let mut rows = self.conn.query("PRAGMA wal_checkpoint(TRUNCATE)", ()).await?;
+        while rows.next().await?.is_some() {}
+        Ok(())
+    }
 }
 
 #[cfg(test)]
@@ -48,5 +54,14 @@ mod tests {
         db.execute("INSERT INTO t VALUES (1, 10.0)").await.unwrap();
         let n = db.execute("INSERT INTO t VALUES (2, 20.0)").await.unwrap();
         assert_eq!(n, 1);
+    }
+
+    #[tokio::test]
+    async fn checkpoint_after_write_ok() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("c.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)").await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)").await.unwrap();
+        db.checkpoint().await.unwrap();
     }
 }
