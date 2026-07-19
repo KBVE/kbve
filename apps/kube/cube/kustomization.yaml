@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: cube
+
+# Raw manifests (secrets/RBAC-in-cube). The gadsme cube + cubestore helm
+# charts are separate ArgoCD sources; application.yaml is intentionally not
+# listed here so kustomize does not render the Application itself.
+resources:
+    - manifests/external-secret.yaml
+    - manifests/api-secret-sealed.yaml
+
+# Generate the Cube data-model ConfigMap from the Phase A models (single
+# source of truth). Mounted at /cube/conf/model by the cube helm values.
+configMapGenerator:
+    - name: cube-schema
+      files:
+          - model/ch_logs.yml
+          - model/ch_mc_snapshots.yml
+          - model/pg_mc_player.yml
+          - model/pg_users.yml
+
+generatorOptions:
+    disableNameSuffixHash: true
