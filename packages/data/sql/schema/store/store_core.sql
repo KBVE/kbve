@@ -249,6 +249,9 @@ CREATE TABLE store.order (
     -- FK to the wallet ledger (RI checks bypass RLS); NULL for a zero-amount order.
     -- RESTRICT: ledger rows are immutable accounting, never hard-deleted.
     ledger_id        BIGINT REFERENCES wallet.ledger(id) ON DELETE RESTRICT,
+    -- Typed refund-credit ledger id (set by service_refund_order), so a refund is
+    -- auditable from a column, not JSON extraction.
+    refund_ledger_id BIGINT REFERENCES wallet.ledger(id) ON DELETE RESTRICT,
     -- FK so refund correctness (revoking the minted twin) can't hinge on a
     -- dangling id. RESTRICT: inventory items are state-machined, not deleted.
     twin_item_id     UUID REFERENCES inventory.item(id) ON DELETE RESTRICT,
@@ -315,6 +318,10 @@ CREATE TABLE store.order (
     CONSTRAINT store_order_amount_ck CHECK (
         credits_amount::numeric = unit_price::numeric * qty::numeric
     ),
+    -- A refunded order with money captured must carry its refund ledger id.
+    CONSTRAINT store_order_refund_ledger_ck CHECK (
+        status <> 'refunded' OR credits_amount = 0 OR refund_ledger_id IS NOT NULL
+    ),
     -- Variant must belong to product_id (NULL variant allowed — PG skips the
     -- composite FK when any referencing column is NULL).
     CONSTRAINT store_order_product_variant_fk
@@ -354,6 +361,13 @@ CREATE INDEX store_order_status_order_id_idx
 CREATE UNIQUE INDEX store_order_pod_external_uq
     ON store.order (pod_provider, pod_external_order_id)
     WHERE pod_provider IS NOT NULL AND pod_external_order_id IS NOT NULL;
+-- Supports a POD reaper/queue scanning for claimable (never-submitted, expired-
+-- or un-leased) physical orders by claim expiry.
+CREATE INDEX store_order_pod_claimable_idx
+    ON store.order (pod_claim_expires_at, order_id)
+    WHERE fulfillment IN ('physical', 'both')
+      AND status IN ('paid', 'processing')
+      AND pod_submitted_at IS NULL;
 
 COMMENT ON TABLE store.order IS
     'Physical/both store orders. Born paid (debit precedes insert in one txn). advance_order moves forward; refund credits back + restores stock + revokes twin.';
@@ -409,7 +423,11 @@ CREATE TABLE store.topup_package (
                   CHECK (currency_fiat = lower(btrim(currency_fiat))
                          AND currency_fiat ~ '^[a-z]{3}$'),
     active        BOOLEAN NOT NULL DEFAULT true,
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
+    -- Composite target so a topup receipt can carry a FK proving its recorded
+    -- economics equal this pack's (economics are immutable per pack_id).
+    CONSTRAINT store_topup_package_economics_uq
+        UNIQUE (pack_id, credits, amount_cents, currency_fiat)
 );
 COMMENT ON TABLE store.topup_package IS
     'Server-authoritative Stripe credit packs. service_apply_topup derives the credit grant + expected currency from this table by pack_id; the webhook never supplies a credit amount.';
@@ -479,9 +497,19 @@ CREATE TABLE store.topup (
     -- FK to the ledger (RI checks bypass RLS) so the id can't be fabricated.
     -- RESTRICT: ledger rows are immutable accounting, never hard-deleted.
     ledger_id         BIGINT NOT NULL REFERENCES wallet.ledger(id) ON DELETE RESTRICT,
+    -- Only 'completed' exists: there is no topup-refund flow (no refund ledger /
+    -- timestamp / balance-reversal invariant), so a 'refunded' status would be
+    -- unbacked. Add it together with that machinery when refunds are built.
     status            TEXT NOT NULL DEFAULT 'completed'
-                      CHECK (status IN ('completed', 'refunded')),
-    created_at        TIMESTAMPTZ NOT NULL DEFAULT now()
+                      CHECK (status IN ('completed')),
+    created_at        TIMESTAMPTZ NOT NULL DEFAULT now(),
+    -- Composite FK proving the recorded economics equal the referenced pack's
+    -- (which are immutable), so a direct/maintenance write can't create a receipt
+    -- whose credits/amount/currency contradict its pack.
+    CONSTRAINT store_topup_package_economics_fk
+        FOREIGN KEY (pack_id, credits_granted, amount_cents, currency_fiat)
+        REFERENCES store.topup_package (pack_id, credits, amount_cents, currency_fiat)
+        ON DELETE RESTRICT
 );
 
 CREATE INDEX store_topup_account_idx ON store.topup (account_id, created_at DESC);
@@ -515,18 +543,36 @@ CREATE TABLE store.pod_webhook_event (
     provider_event_id TEXT NOT NULL
                       CHECK (provider_event_id = btrim(provider_event_id)
                              AND length(provider_event_id) BETWEEN 1 AND 255),
+    -- order_id is resolved INTERNALLY from (provider, external_order_id) by the
+    -- apply function (the caller never supplies it), so it can never disagree
+    -- with the provider identity. NULL only for an orphan (no matching order).
     order_id          BIGINT REFERENCES store.order(order_id),
     external_order_id TEXT
                       CHECK (external_order_id IS NULL
                              OR (external_order_id = btrim(external_order_id)
                                  AND length(external_order_id) BETWEEN 1 AND 255)),
+    tracking          JSONB NOT NULL DEFAULT '{}'::jsonb
+                      CHECK (jsonb_typeof(tracking) = 'object'
+                             AND octet_length(tracking::text) <= 16384),
+    -- Outcome recorded AT INSERT (append-only friendly): the effect the event
+    -- had given the order's state when it arrived.
+    outcome           TEXT NOT NULL DEFAULT 'orphan'
+                      CHECK (outcome IN ('applied', 'orphan', 'noop_terminal')),
+    applied_order_status store.order_status,
     payload           JSONB NOT NULL DEFAULT '{}'::jsonb
                       CHECK (jsonb_typeof(payload) = 'object'
                              AND octet_length(payload::text) <= 65536),
     received_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
-    UNIQUE (provider, provider_event_id)
+    UNIQUE (provider, provider_event_id),
+    -- Every receipt carries at least one routing identity.
+    CONSTRAINT store_pod_webhook_identity_ck
+        CHECK (order_id IS NOT NULL OR external_order_id IS NOT NULL)
 );
 CREATE INDEX store_pod_webhook_event_order_idx ON store.pod_webhook_event (order_id, received_at);
+-- Reconciliation queue for orphan events (arrived without a resolvable order).
+CREATE INDEX store_pod_webhook_orphan_external_idx
+    ON store.pod_webhook_event (provider, external_order_id, received_at)
+    WHERE order_id IS NULL AND external_order_id IS NOT NULL;
 
 CREATE TRIGGER store_pod_webhook_event_no_mutate
     BEFORE UPDATE OR DELETE ON store.pod_webhook_event
