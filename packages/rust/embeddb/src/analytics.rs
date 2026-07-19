@@ -27,7 +27,6 @@ pub fn query(path: &Path, sql: &str, ext_dir: Option<&Path>) -> Result<crate::Qu
     let ncols = columns.len();
     let mut out = Vec::new();
     while let Some(row) = rows.next()? {
-        let ncols = if ncols > 0 { ncols } else { row.as_ref().column_count() };
         let mut vals = Vec::with_capacity(ncols);
         for i in 0..ncols {
             vals.push(value_from_ref(row.get_ref(i)?)?);
