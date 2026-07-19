@@ -53,6 +53,20 @@ host, so no credentialed database ports are exposed to your LAN.
 - Postgres RW service: `kilobase-rw` (namespace `kilobase`), app data in the `supabase` database
 - ClickHouse HTTP service: `clickhouse-clickhouse-cluster` (namespace `clickhouse`), analytics DBs include `observability`, `telemetry`, `mc`, `gameops`
 
+## Data models
+
+Validated cubes in `../model/` (portable to Phase B unchanged):
+
+- `pg_users` — Postgres `auth.users`, signups over time (curated: no PII/credential columns).
+- `ch_logs` — ClickHouse `observability.logs_raw` (17.4M rows) with a daily `logs_by_day` rollup served from Cube Store.
+- `pg_mc_player` + `ch_mc_snapshots` — federated `rollup_join` across Postgres ↔ ClickHouse on `player_uuid` (proves cross-source join; PG `mc.player` is currently empty so joined attrs are null).
+
+Cross-source `rollup_join` on this Cube image requires:
+- `CUBEJS_TESSERACT_SQL_PLANNER=false` (set in compose) — the default Tesseract planner rejects rollup_join.
+- an `indexes:` block on both rollups covering the join key.
+
+ClickHouse pre-aggregations additionally require an `indexes:` block ("ClickHouse doesn't support pre-aggregations without indexes").
+
 ## Troubleshooting
 
 - **Cube can't reach a database:** check `docker compose logs kubefwd` — the WAN port-forward to kilobase drops periodically and auto-reconnects (~1s gap). Cube's connection pool retries through these.

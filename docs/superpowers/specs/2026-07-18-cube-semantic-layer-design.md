@@ -96,6 +96,24 @@ consumers ──► Cube API (SQL/REST/GraphQL)
 - **A:** federated query returns correct joined PG+CH result; a ClickHouse cube served from a pre-aggregation (verify via Cube's query plan / pre-agg hit); models committed.
 - **B:** ArgoCD app syncs healthy; Cube API reachable in-cluster; PG connection via `pooler-ro` confirmed (or documented fallback); pre-aggregation refresh runs; same federated query passes against in-cluster endpoints.
 
+## Phase A outcomes — findings that bind Phase B
+
+Phase A is complete and validated live. Corrections and requirements discovered during implementation, all of which Phase B must carry:
+
+- **Service names (plan assumptions were wrong):**
+  - Postgres RW service is `kilobase-rw` (ns `kilobase`) — NOT `supabase-cluster-rw`. The CNPG *cluster resource* is named `supabase-cluster` (hence `supabase-cluster-*` secrets), but the Services are renamed `kilobase-*`.
+  - Application data lives in the `supabase` **database** (not `postgres`). Set `CUBEJS_DB_NAME=supabase`.
+  - ClickHouse HTTP service is `clickhouse-clickhouse-cluster` (ns `clickhouse`), ports 8123/9000.
+- **RO pooler is NOT deployed.** No `*-pooler-*` Service exists in `kilobase`; `pooler.yaml` references `supabase-cluster` and is unreconciled. Phase B connects to `kilobase-rw.kilobase.svc:5432` directly. The session-mode-pooler plan is deferred until that pooler is actually reconciled (issue #7593).
+- **Cross-source federation requires, on this Cube version (`cubejs/cube:latest`):**
+  - `CUBEJS_TESSERACT_SQL_PLANNER=false` — the default Tesseract planner rejects `rollup_join`.
+  - An `indexes:` block on BOTH sides' rollups covering the join key (Cube Store errors otherwise).
+  - Pin an exact Cube image tag at B and re-verify the flag is still needed on that tag.
+- **ClickHouse pre-aggregations require an explicit `indexes:` block** ("ClickHouse doesn't support pre-aggregations without indexes").
+- **Cube Store has no arm64 image** — irrelevant on x86 cluster nodes, but the local harness pins `platform: linux/amd64`.
+- **Secrets for local/dev:** PG superuser = `supabase-postgres` secret (kilobase); ClickHouse = `clickhouse-admin-credentials` secret (clickhouse).
+- **Validated model set (`apps/kube/cube/model/`):** `pg_users` (auth.users signups), `ch_logs` (17.4M observability logs + daily rollup), `pg_mc_player` + `ch_mc_snapshots` (federated rollup_join). All portable to B unchanged; only connectivity env differs.
+
 ## Deferred (explicitly not now)
 
 - Metabase deployment + Metabase→Cube SQL-API wiring.
