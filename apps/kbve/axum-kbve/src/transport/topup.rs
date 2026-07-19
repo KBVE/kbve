@@ -235,15 +235,12 @@ pub(crate) async fn webhook(headers: HeaderMap, body: Bytes) -> Response {
     let session_id = session.get("id").and_then(|s| s.as_str());
     let metadata = session.get("metadata").cloned().unwrap_or(json!({}));
     let user_id_str = metadata.get("user_id").and_then(|u| u.as_str());
-    // Credits are re-derived from the server-side pack table keyed by the
-    // pack_id we set at checkout — never trusted from the (round-tripped)
-    // metadata amount, so a webhook-layer bug can't grant arbitrary credits.
-    let credits: i64 = metadata
-        .get("pack_id")
-        .and_then(|p| p.as_str())
-        .and_then(pack)
-        .map(|(credits, _)| credits)
-        .unwrap_or(0);
+    // Forward only the pack_id we set at checkout; the credit grant is derived
+    // authoritatively from the server-side pack table in the database, so a
+    // webhook-layer bug can't grant arbitrary credits. Validate the pack exists
+    // locally before acting so an unknown pack is a no-op ack, not an error loop.
+    let pack_id = metadata.get("pack_id").and_then(|p| p.as_str());
+    let pack_valid = pack_id.map(|p| pack(p).is_some()).unwrap_or(false);
     let amount_cents = session
         .get("amount_total")
         .and_then(|a| a.as_i64())
@@ -254,7 +251,9 @@ pub(crate) async fn webhook(headers: HeaderMap, body: Bytes) -> Response {
         .unwrap_or("usd")
         .to_string();
 
-    let (Some(uid_str), true) = (user_id_str, credits > 0 && !event_id.is_empty()) else {
+    let (Some(uid_str), Some(pack_id), true) =
+        (user_id_str, pack_id, pack_valid && !event_id.is_empty())
+    else {
         // Nothing actionable, but acknowledge so Stripe stops retrying.
         return StatusCode::OK.into_response();
     };
@@ -272,7 +271,7 @@ pub(crate) async fn webhook(headers: HeaderMap, body: Bytes) -> Response {
             user_id,
             event_id.to_string(),
             session_id.map(|s| s.to_string()),
-            credits,
+            pack_id.to_string(),
             amount_cents,
             currency,
         )

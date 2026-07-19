@@ -491,7 +491,7 @@ impl WalletClient {
         user_id: Uuid,
         stripe_event_id: String,
         stripe_session_id: Option<String>,
-        credits: i64,
+        pack_id: String,
         amount_cents: i64,
         currency_fiat: String,
     ) -> Result<i64> {
@@ -502,9 +502,37 @@ impl WalletClient {
         .bind::<diesel::sql_types::Uuid, _>(user_id)
         .bind::<Text, _>(stripe_event_id)
         .bind::<Nullable<Text>, _>(stripe_session_id)
-        .bind::<diesel::sql_types::BigInt, _>(credits)
+        .bind::<Text, _>(pack_id)
         .bind::<diesel::sql_types::BigInt, _>(amount_cents)
         .bind::<Text, _>(currency_fiat)
+        .get_result(&mut *conn)
+        .await
+        .map_err(WalletError::from_diesel)?;
+        Ok(row.value)
+    }
+
+    /// Record a POD webhook receipt (append-only audit + provider-event dedupe).
+    /// Returns true when newly recorded, false on a duplicate provider event.
+    pub async fn store_record_pod_webhook(
+        &self,
+        provider: String,
+        provider_event_id: String,
+        order_id: Option<i64>,
+        payload: serde_json::Value,
+    ) -> Result<bool> {
+        #[derive(QueryableByName)]
+        struct ScalarBool {
+            #[diesel(sql_type = diesel::sql_types::Bool)]
+            value: bool,
+        }
+        let mut conn = self.write().await?;
+        let row: ScalarBool = sql_query(
+            "SELECT store.service_record_pod_webhook($1, $2, $3, $4) AS value",
+        )
+        .bind::<Text, _>(provider)
+        .bind::<Text, _>(provider_event_id)
+        .bind::<Nullable<diesel::sql_types::BigInt>, _>(order_id)
+        .bind::<Jsonb, _>(payload)
         .get_result(&mut *conn)
         .await
         .map_err(WalletError::from_diesel)?;

@@ -246,6 +246,26 @@ pub(crate) async fn webhook(headers: HeaderMap, body: Bytes) -> Response {
         Some(c) => c,
         None => return service_unavailable(),
     };
+
+    // Best-effort append-only audit of the provider event (dedupe by event id),
+    // independent of the status advance below. Never blocks the ack.
+    let provider_event_id = event
+        .get("id")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string())
+        .unwrap_or_else(|| format!("pod-evt-{order_id}"));
+    if let Err(e) = client
+        .store_record_pod_webhook(
+            "printful".to_string(),
+            provider_event_id,
+            Some(order_id),
+            event.clone(),
+        )
+        .await
+    {
+        tracing::warn!("record pod webhook failed: {:?}", e);
+    }
+
     match client
         .store_advance_order(kbve::wallet::StoreAdvanceOrder {
             order_id,

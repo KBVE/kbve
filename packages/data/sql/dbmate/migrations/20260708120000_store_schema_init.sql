@@ -454,6 +454,28 @@ CREATE INDEX store_product_variant_active_product_created_idx
 COMMENT ON TABLE store.product_variant IS
     'Concrete purchasable SKUs of a store.product. Priced in credits (parent product currency). NULL stock = unlimited.';
 
+-- Refund correctness (stock_reserved restore) depends on the finite/unlimited
+-- stock MODE never changing under an outstanding order. service_upsert_variant
+-- rejects a mode flip for a clear application error, but enforce it at the table
+-- boundary too so a direct owner write / future maintenance function can't
+-- silently break the invariant.
+CREATE OR REPLACE FUNCTION store.variant_stock_mode_immutable()
+RETURNS TRIGGER
+LANGUAGE plpgsql SET search_path = '' AS $$
+BEGIN
+    IF (OLD.stock IS NULL) <> (NEW.stock IS NULL) THEN
+        RAISE EXCEPTION 'store.product_variant stock mode (finite/unlimited) is immutable'
+            USING ERRCODE = '22023';
+    END IF;
+    RETURN NEW;
+END;
+$$;
+ALTER FUNCTION store.variant_stock_mode_immutable() OWNER TO service_role;
+
+CREATE TRIGGER store_variant_stock_mode_immutable
+    BEFORE UPDATE OF stock ON store.product_variant
+    FOR EACH ROW EXECUTE FUNCTION store.variant_stock_mode_immutable();
+
 -- ============================================================================
 -- Catalog / detail read proxies.
 -- ============================================================================
@@ -1284,13 +1306,17 @@ GRANT EXECUTE ON FUNCTION store.service_list_orders(store.order_status, INTEGER,
 
 -- Bound the wall-clock of the anon/authenticated-reachable RPCs so a pathological
 -- input or a slow plan can't tie up a backend indefinitely. Reads are cheap
--- (3s); the buy paths add wallet-debit latency headroom (5s).
+-- (3s). The buy paths take advisory + row locks then call wallet/inventory, so
+-- they also get a lock_timeout (fail fast on contention) plus more
+-- statement_timeout headroom for expected wallet latency.
 ALTER FUNCTION public.proxy_store_catalog_readonly(INTEGER, TIMESTAMPTZ, UUID) SET statement_timeout = '3s';
 ALTER FUNCTION public.proxy_store_product_detail_readonly(TEXT) SET statement_timeout = '3s';
 ALTER FUNCTION public.proxy_store_my_entitlements_readonly() SET statement_timeout = '3s';
 ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) SET statement_timeout = '3s';
-ALTER FUNCTION public.proxy_store_buy(TEXT, UUID) SET statement_timeout = '5s';
-ALTER FUNCTION public.proxy_store_buy_physical(UUID, BIGINT, JSONB, UUID) SET statement_timeout = '5s';
+ALTER FUNCTION public.proxy_store_buy(TEXT, UUID) SET statement_timeout = '10s';
+ALTER FUNCTION public.proxy_store_buy(TEXT, UUID) SET lock_timeout = '3s';
+ALTER FUNCTION public.proxy_store_buy_physical(UUID, BIGINT, JSONB, UUID) SET statement_timeout = '10s';
+ALTER FUNCTION public.proxy_store_buy_physical(UUID, BIGINT, JSONB, UUID) SET lock_timeout = '3s';
 
 -- The SECURITY DEFINER RPCs run as the store owner role; service_role callers
 -- receive EXECUTE only. The blanket table access granted here is REVOKED and
@@ -1331,6 +1357,8 @@ DROP FUNCTION IF EXISTS store.service_upsert_product(TEXT, TEXT, TEXT, BIGINT, T
 DROP FUNCTION IF EXISTS public.proxy_store_product_detail_readonly(TEXT);
 DROP FUNCTION IF EXISTS public.proxy_store_catalog_readonly(INTEGER, TIMESTAMPTZ, UUID);
 
+DROP TRIGGER IF EXISTS store_variant_stock_mode_immutable ON store.product_variant;
+DROP FUNCTION IF EXISTS store.variant_stock_mode_immutable();
 DROP TABLE IF EXISTS store.product_variant;
 
 NOTIFY pgrst, 'reload schema';

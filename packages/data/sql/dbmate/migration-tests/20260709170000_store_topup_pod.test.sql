@@ -37,28 +37,36 @@ $$;
 
 -- ASSERT_AFTER_UP
 
--- 1. Top-up applies once, replays idempotently (same event -> same ledger,
---    one row), and a replay with a contradictory payload fails loudly.
+-- 1. Top-up applies once (credits derived from the server pack), replays
+--    idempotently (same event -> same ledger, one row), and a replay naming a
+--    different pack fails loudly.
 DO $$
 DECLARE
     v_user UUID := (SELECT user_id FROM public.__store_topup_pod_fixture WHERE role = 'topup_user');
     v_l1   BIGINT;
     v_l2   BIGINT;
     v_n    INT;
+    v_cr   BIGINT;
 BEGIN
-    v_l1 := store.service_apply_topup(v_user, 'evt_test_1', 'cs_test_1', 100, 100, 'usd');
-    v_l2 := store.service_apply_topup(v_user, 'evt_test_1', 'cs_test_1', 100, 100, 'usd');
+    v_l1 := store.service_apply_topup(v_user, 'evt_test_1', 'cs_test_1', 'small', 100, 'usd');
+    v_l2 := store.service_apply_topup(v_user, 'evt_test_1', 'cs_test_1', 'small', 100, 'usd');
     IF v_l1 IS DISTINCT FROM v_l2 THEN
         RAISE EXCEPTION 'fail: topup replay returned a different ledger id';
     END IF;
-    SELECT count(*) INTO v_n FROM store.topup WHERE stripe_event_id = 'evt_test_1';
+    SELECT count(*), max(credits_granted) INTO v_n, v_cr
+      FROM store.topup WHERE stripe_event_id = 'evt_test_1';
     IF v_n <> 1 THEN
         RAISE EXCEPTION 'fail: expected one topup row, got %', v_n;
     END IF;
+    -- Credits must be the pack's authoritative value (small = 100), not caller input.
+    IF v_cr <> 100 THEN
+        RAISE EXCEPTION 'fail: credits_granted % not derived from pack', v_cr;
+    END IF;
 
-    -- Same event id, different credits -> fingerprint mismatch (40001).
+    -- Same session, different pack (amount matches that pack) -> fingerprint
+    -- mismatch (40001).
     BEGIN
-        PERFORM store.service_apply_topup(v_user, 'evt_test_1', 'cs_test_1', 999, 100, 'usd');
+        PERFORM store.service_apply_topup(v_user, 'evt_test_1', 'cs_test_1', 'medium', 500, 'usd');
         RAISE EXCEPTION 'fail: contradictory topup replay was accepted';
     EXCEPTION WHEN sqlstate '40001' THEN
         NULL;  -- expected
@@ -66,27 +74,38 @@ BEGIN
 END;
 $$;
 
--- 2. Top-up input validation: fiat regex, positive cents, whitespace event id.
+-- 2. Top-up input validation: fiat regex, positive cents, whitespace event id,
+--    unknown pack, and Stripe amount not matching the pack price.
 DO $$
 DECLARE
     v_user UUID := (SELECT user_id FROM public.__store_topup_pod_fixture WHERE role = 'topup_user');
 BEGIN
-    -- 'dollars' is length 7 -> fails ^[a-z]{3}$ (uppercase 'USD' would just
-    -- normalize to 'usd' and be accepted, so test an invalid FORMAT instead).
     BEGIN
-        PERFORM store.service_apply_topup(v_user, 'evt_bad_fiat', 'cs_x', 100, 100, 'dollars');
+        PERFORM store.service_apply_topup(v_user, 'evt_bad_fiat', 'cs_x', 'small', 100, 'dollars');
         RAISE EXCEPTION 'fail: invalid currency_fiat accepted';
     EXCEPTION WHEN sqlstate '22023' THEN NULL; END;
 
     BEGIN
-        PERFORM store.service_apply_topup(v_user, 'evt_zero_cents', 'cs_y', 100, 0, 'usd');
+        PERFORM store.service_apply_topup(v_user, 'evt_zero_cents', 'cs_y', 'small', 0, 'usd');
         RAISE EXCEPTION 'fail: zero amount_cents accepted';
     EXCEPTION WHEN sqlstate '22023' THEN NULL; END;
 
     BEGIN
-        PERFORM store.service_apply_topup(v_user, '   ', 'cs_z', 100, 100, 'usd');
+        PERFORM store.service_apply_topup(v_user, '   ', 'cs_z', 'small', 100, 'usd');
         RAISE EXCEPTION 'fail: whitespace stripe_event_id accepted';
     EXCEPTION WHEN sqlstate '22004' THEN NULL; END;
+
+    -- Unknown pack -> 22023 (never grants).
+    BEGIN
+        PERFORM store.service_apply_topup(v_user, 'evt_bad_pack', 'cs_p', 'nonexistent', 100, 'usd');
+        RAISE EXCEPTION 'fail: unknown pack accepted';
+    EXCEPTION WHEN sqlstate '22023' THEN NULL; END;
+
+    -- Stripe amount not matching the pack price -> 22023 (price tampering).
+    BEGIN
+        PERFORM store.service_apply_topup(v_user, 'evt_bad_amt', 'cs_a', 'small', 999, 'usd');
+        RAISE EXCEPTION 'fail: mismatched amount_cents accepted';
+    EXCEPTION WHEN sqlstate '22023' THEN NULL; END;
 END;
 $$;
 
@@ -244,6 +263,46 @@ BEGIN
             jsonb_build_object('provider','printful'));
         RAISE EXCEPTION 'fail: ack accepted without external_order_id';
     EXCEPTION WHEN sqlstate '22023' THEN
+        NULL;  -- expected
+    END;
+END;
+$$;
+
+-- 8. ACK finalizes the lease: clears the claim token + expiry, stamps
+--    pod_submitted_at and the provider identity (claimed_at kept for audit).
+DO $$
+DECLARE
+    v_acct  UUID;
+    v_var   UUID := (SELECT variant_id FROM store.product_variant WHERE sku = 'SKU-POD');
+    v_order BIGINT;
+    v_tok   UUID;
+    v_row   store.order%ROWTYPE;
+BEGIN
+    SELECT id INTO v_acct FROM wallet.account a
+      JOIN public.__store_topup_pod_fixture f ON f.user_id = a.user_id
+     WHERE f.role = 'pod_buyer';
+
+    v_order := store.service_buy_physical(v_acct, v_var, 1,
+        jsonb_build_object('name','F','line1','3 St','city','C','postal_code','3','country','US'),
+        gen_random_uuid());
+    v_tok := (store.service_order_for_pod(v_order, 'w')->>'claim_token')::uuid;
+    PERFORM store.service_ack_pod_submission(v_order, v_tok,
+        jsonb_build_object('provider','printful','external_order_id','EXT-FIN'));
+
+    SELECT * INTO v_row FROM store.order WHERE order_id = v_order;
+    IF v_row.pod_claim_token IS NOT NULL OR v_row.pod_claim_expires_at IS NOT NULL THEN
+        RAISE EXCEPTION 'fail: ACK did not clear the lease token/expiry';
+    END IF;
+    IF v_row.pod_submitted_at IS NULL OR v_row.pod_external_order_id <> 'EXT-FIN'
+       OR v_row.pod_claimed_at IS NULL THEN
+        RAISE EXCEPTION 'fail: ACK did not finalize the submission';
+    END IF;
+
+    -- A finalized order can no longer be re-leased.
+    BEGIN
+        PERFORM store.service_order_for_pod(v_order, 'w2');
+        RAISE EXCEPTION 'fail: re-leased an already-submitted order';
+    EXCEPTION WHEN sqlstate '55006' THEN
         NULL;  -- expected
     END;
 END;
