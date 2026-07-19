@@ -73,7 +73,7 @@ def _acquire(ctx: BuildContext) -> dict:
     return _validate_graph(raw)
 
 
-@route("graph", "on-demand", needs=("node",))
+@route("graph", "daily", needs=("node",))
 class GraphRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
         return PlanResult(
