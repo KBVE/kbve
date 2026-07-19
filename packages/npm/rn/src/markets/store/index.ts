@@ -6,3 +6,5 @@ export { openCheckout } from './openCheckout';
 export { createStoreApi } from './api';
 export type { StoreApi, StoreApiOptions } from './api';
 export { BuyCredits } from './BuyCredits';
+export { ProductCard } from './ProductCard';
+export { CheckoutModal } from './CheckoutModal';
