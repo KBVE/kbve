@@ -1,0 +1,40 @@
+---
+import BentoShell from '@/components/hero/BentoShell.astro';
+import ReactCubeDashRN from '@/components/rnweb/ReactCubeDashRN';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
+---
+
+<BentoShell
+	id="cube-dashboard-wrapper"
+	eyebrow="Analytics"
+	heading="Cube semantic layer.">
+	<div class="svc-dash not-content">
+		<div class="svc-dash__stream not-content">
+			<ReactCubeDashRN client:only="react">
+				<RnDashSkeleton slot="fallback" />
+			</ReactCubeDashRN>
+		</div>
+	</div>
+</BentoShell>
+
+<style>
+	.svc-dash {
+		padding: 1.5rem 1rem 3rem;
+	}
+
+	@media (min-width: 640px) {
+		.svc-dash {
+			padding-inline: 1.5rem;
+		}
+	}
+
+	.svc-dash__stream {
+		min-height: 60vh;
+	}
+
+	:global(@keyframes spin) {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+</style>
