@@ -2,62 +2,148 @@
 title: Security Audit Report
 description: |
     Daily auto-generated security audit for the KBVE monorepo.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
 sidebar:
     label: Security
     order: 102
-editUrl: false
 ---
 
-import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
+import BentoShell from '@/components/hero/BentoShell.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Security Audit Report
+<div class="sec-report" data-dash-report>
 
-:::note[Auto-generated]
-Last generated: **2026-07-19T06:37:07Z** — updated daily by `ci-dashboard`.
-:::
+<section class="bento-hero bento-section not-content" aria-label="Security audit">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
+					<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z" /></svg>
+					<span>auto-generated · daily</span>
+				</span>
+				<h1 class="bento-title">
+					Security posture
+					<span class="bento-title__accent">across every ecosystem.</span>
+				</h1>
+				<p class="bento-lede"><strong>28</strong> critical/high severity findings across the monorepo — triage before merge.</p>
+				<p class="bento-lede">Last generated <strong>2026-07-19T00:00:00Z</strong>.</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="#findings">
+						View findings
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="#ecosystems">Ecosystems</a>
+					<a class="bento-btn bento-btn--ghost" href="/dashboard/">Dashboard home</a>
+				</div>
+			</div>
 
-:::caution[Action Required]
-**28** critical/high severity findings across the monorepo.
-:::
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01" /></svg>
+					</span>
+					<span class="bento-stat__value">3</span>
+					<span class="bento-stat__label">Critical</span>
+				</div>
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 8v4M12 16h.01" /></svg>
+					</span>
+					<span class="bento-stat__value">25</span>
+					<span class="bento-stat__label">High</span>
+				</div>
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 16v-4M12 8h.01" /></svg>
+					</span>
+					<span class="bento-stat__value">53</span>
+					<span class="bento-stat__label">Medium</span>
+				</div>
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4 12 14.01l-3-3" /></svg>
+					</span>
+					<span class="bento-stat__value">8</span>
+					<span class="bento-stat__label">Low</span>
+				</div>
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7" /></svg>
+					</span>
+					<span class="bento-stat__value">38</span>
+					<span class="bento-stat__label">Info</span>
+				</div>
+		</div>
+		<nav class="bento-jump" aria-label="On this page">
+			<a class="bento-chip" href="#ecosystems">Ecosystems</a>
+			<a class="bento-chip" href="#findings">Findings</a>
+		</nav>
+	</div>
+</section>
 
-### Severity Overview
+<BentoShell id="ecosystems" eyebrow="Coverage" heading="Ecosystem breakdown">
+	<div class="bento-board bento-board--cols-3">
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#eco-npm">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96 12 12.01l8.73-5.05M12 22.08V12" /></svg>
+			</span>
+			<span class="bento-linkcard__title">npm</span>
+			<span class="bento-linkcard__copy">64 advisories</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#eco-cargo">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+			</span>
+			<span class="bento-linkcard__title">Cargo</span>
+			<span class="bento-linkcard__copy">63 advisories</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#eco-python">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 18l6-6-6-6M8 6l-6 6 6 6" /></svg>
+			</span>
+			<span class="bento-linkcard__title">Python</span>
+			<span class="bento-linkcard__copy">0 advisories</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#eco-codeql">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 21l-6-6M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z" /></svg>
+			</span>
+			<span class="bento-linkcard__title">CodeQL</span>
+			<span class="bento-linkcard__copy">0 alerts</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#eco-dependabot">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 3v12M18 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM15 6a9 9 0 0 1-9 9" /></svg>
+			</span>
+			<span class="bento-linkcard__title">Dependabot</span>
+			<span class="bento-linkcard__copy">0 alerts</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+	</div>
+</BentoShell>
 
-<CardGrid>
-  <Card title="3 Critical" icon="warning">
-    Critical-severity findings across all ecosystems.
-  </Card>
-  <Card title="25 High" icon="error">
-    High-severity findings across all ecosystems.
-  </Card>
-  <Card title="53 Medium" icon="information">
-    Medium-severity findings across all ecosystems.
-  </Card>
-  <Card title="8 Low" icon="approve-check-circle">
-    Low-severity findings across all ecosystems.
-  </Card>
-</CardGrid>
+<BentoProse id="findings" heading="Advisories">
 
-### Ecosystem Breakdown
-
-<CardGrid>
-  <Card title="npm" icon="seti:npm">
-    **64** advisories
-  </Card>
-  <Card title="Cargo" icon="seti:rust">
-    **63** advisories
-  </Card>
-  <Card title="Python" icon="seti:python">
-    **0** advisories
-  </Card>
-  <Card title="CodeQL" icon="magnifier">
-    **0** alerts
-  </Card>
-  <Card title="Dependabot" icon="github">
-    **0** alerts
-  </Card>
-</CardGrid>
-
-### Severity Distribution
+### Severity distribution
 
 ```mermaid
 pie showData
@@ -68,7 +154,7 @@ pie showData
     "Low" : 8
 ```
 
-### Findings by Ecosystem
+### Findings by ecosystem
 
 ```mermaid
 pie showData
@@ -77,8 +163,7 @@ pie showData
     "Cargo" : 63
 ```
 
-<Tabs>
-  <TabItem label="Summary">
+### Summary
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
@@ -89,8 +174,9 @@ pie showData
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
 | **Total** | 3 | 25 | 53 | 8 | 127 |
 
-  </TabItem>
-  <TabItem label="npm">
+<span id="eco-npm"></span>
+
+### npm
 
 | Severity | Package | Advisory | Link |
 |----------|---------|----------|------|
@@ -159,8 +245,9 @@ pie showData
 | Low | `undici` | undici vulnerable to Set-Cookie SameSite attribute downgr... | [Details](https://github.com/advisories/GHSA-g8m3-5g58-fq7m) |
 | Low | `@babel/core` | @babel/core: Arbitrary File Read via sourceMappingURL Com... | [Details](https://github.com/advisories/GHSA-4x5r-pxfx-6jf8) |
 
-  </TabItem>
-  <TabItem label="Cargo">
+<span id="eco-cargo"></span>
+
+### Cargo
 
 | Severity | Package | Advisory | Link |
 |----------|---------|----------|------|
@@ -228,30 +315,40 @@ pie showData
 | Info | `spin` |  |  |
 | Info | `spin` |  |  |
 
-  </TabItem>
-  <TabItem label="Python">
+<span id="eco-python"></span>
+
+### Python
 
 :::tip[All Clear]
 No python advisories found.
 :::
 
-  </TabItem>
-  <TabItem label="CodeQL">
+<span id="eco-codeql"></span>
+
+### CodeQL
 
 :::tip[All Clear]
 No open CodeQL alerts.
 :::
 
-  </TabItem>
-  <TabItem label="Dependabot">
+<span id="eco-dependabot"></span>
+
+### Dependabot
 
 :::tip[All Clear]
 No open Dependabot alerts.
 :::
 
-  </TabItem>
-</Tabs>
+</BentoProse>
+
+<BentoProse id="about">
 
 ---
 
-*Auto-generated by [ci-dashboard.yml](https://github.com/KBVE/kbve/actions/workflows/ci-dashboard.yml)*
+*Auto-generated by [ci-daily-content.yml](https://github.com/KBVE/kbve/actions/workflows/ci-daily-content.yml)*
+
+</BentoProse>
+
+</div>
+
+<style is:global>{`.sec-report{--bento-accent:#f59e0b;--bento-accent-2:#f43f5e}`}</style>
