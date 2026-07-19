@@ -13,7 +13,7 @@ import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
 ## NX Dependency Graph
 
 :::note[Auto-generated]
-Last generated: **2026-07-18T09:38:55Z** — updated daily by `ci-dashboard`.
+Last generated: **2026-07-19T06:30:28Z** — updated daily by `ci-dashboard`.
 :::
 
 <CardGrid>
@@ -23,11 +23,11 @@ Last generated: **2026-07-18T09:38:55Z** — updated daily by `ci-dashboard`.
   <Card title="24 E2es" icon="approve-check-circle">
     arc-runner-e2e, aria2-proxy-e2e, arpg-e2e, astro-cryptothrone-e2e, astro-e2e, astro-kbve-e2e + 18 more
   </Card>
-  <Card title="55 Libs" icon="puzzle">
-    arc-runner, aria2-proxy, astro, behavior_statetree, bevy_battle, bevy_behavior + 49 more
+  <Card title="56 Libs" icon="puzzle">
+    arc-runner, aria2-proxy, astro, behavior_statetree, bevy_battle, bevy_behavior + 50 more
   </Card>
   <Card title="154 Dependencies" icon="random">
-    Across 137 projects in the monorepo.
+    Across 138 projects in the monorepo.
   </Card>
 </CardGrid>
 
@@ -58,7 +58,7 @@ pie showData
     title Projects by Type
     "Apps" : 58
     "E2es" : 24
-    "Libs" : 55
+    "Libs" : 56
 ```
 
 ### Hub Connectivity
@@ -236,7 +236,7 @@ graph LR
     uniti["uniti"] --> bevy_pathfinder["bevy_pathfinder"]
     uniti["uniti"] --> bevy_skills["bevy_skills"]
     class _kbve_source,agones_factorio,agones_factorio_relay,angelscript,arpg,arpg_server,arpg_web,astro_chuckrpg,astro_cryptothrone,astro_discordsh,astro_herbmail,astro_irc,astro_kbve,astro_memes,astro_rareicon,axum_chuckrpg,axum_cryptothrone,axum_discordsh,axum_herbmail,axum_kbve,axum_memes,axum_rareicon,axum_rentearth,chuck_launcher,cryptothrone,cryptothrone_server,deathslayer_launcher,desktop_kbve,discordsh,discordsh_bot,edge,factorio_ctl,firecracker_ctl,herbmail,herbmail_game,iot_edge_worker,irc,irc_gateway,isometric,jobboard,kbve_gate,kbve_kubectl,kbve_orc,kbve_react_native,kbve_spider,kilobase,mc,mc_lobby,mc_velocity,memes,met,notification_bot,pydesk,rentearth_web,rows,unity_rareicon,unreal_cleanroom,unreal_rentearth app
-    class arc_runner,aria2_proxy,astro,behavior_statetree,bevy_battle,bevy_behavior,bevy_cam,bevy_chat,bevy_db,bevy_inventory,bevy_items,bevy_kbve_net,bevy_mapdb,bevy_npc,bevy_pathfinder,bevy_player,bevy_quests,bevy_skills,bevy_spells,bevy_statemachine,bevy_supa,bevy_tasker,chat,chisel_ubuntu_axum,core,data_proto,data_sql,devops,droid,erust,firecracker_node_web,firecracker_python_net,firecracker_python_web,fx,holy,isometric_game,jedi,kasm_cloakbrowser,kasm_void,kbve,kbve_desktop,kbve_tauri,kbve_wgpu,khashvault,laser,mc_auth,observ,python_fudster,python_kbve,q,rn,rn_astro,simgrid,steamcmd_ubuntu,uniti lib
+    class arc_runner,aria2_proxy,astro,behavior_statetree,bevy_battle,bevy_behavior,bevy_cam,bevy_chat,bevy_db,bevy_inventory,bevy_items,bevy_kbve_net,bevy_mapdb,bevy_npc,bevy_pathfinder,bevy_player,bevy_quests,bevy_skills,bevy_spells,bevy_statemachine,bevy_supa,bevy_tasker,chat,chisel_ubuntu_axum,core,data_proto,data_sql,devops,droid,embeddb,erust,firecracker_node_web,firecracker_python_net,firecracker_python_web,fx,holy,isometric_game,jedi,kasm_cloakbrowser,kasm_void,kbve,kbve_desktop,kbve_tauri,kbve_wgpu,khashvault,laser,mc_auth,observ,python_fudster,python_kbve,q,rn,rn_astro,simgrid,steamcmd_ubuntu,uniti lib
     class arc_runner_e2e,aria2_proxy_e2e,arpg_e2e,astro_cryptothrone_e2e,astro_e2e,astro_kbve_e2e,astro_rareicon_e2e,axum_chuckrpg_e2e,axum_discordsh_e2e,axum_kbve_e2e,axum_rareicon_e2e,devops_e2e,discordsh_bot_e2e,discordsh_e2e,droid_e2e,edge_e2e,firecracker_ctl_e2e,herbmail_e2e,irc_e2e,khashvault_e2e,kubectl_e2e,laser_e2e,memes_e2e,metrics_e2e e2e
 ```
 
@@ -325,6 +325,7 @@ graph LR
 | **droid-e2e** | e2e | `packages/npm/droid-e2e` | 2 | 0 |
 | **edge** | app | `apps/kbve/edge` | 0 | 1 |
 | **edge-e2e** | e2e | `apps/kbve/edge-e2e` | 1 | 0 |
+| **embeddb** | lib | `packages/rust/embeddb` | 0 | 0 |
 | **erust** | lib | `packages/rust/erust` | 1 | 1 |
 | **factorio-ctl** | app | `apps/vm/factorio-ctl` | 1 | 0 |
 | **firecracker-ctl** | app | `apps/vm/firecracker-ctl` | 1 | 1 |

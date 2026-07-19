@@ -51,6 +51,18 @@ export const dashboardNav: NavNode[] = [
 			{ label: 'Minecraft', link: '/dashboard/gameops/mc/' },
 		],
 	},
+	{
+		label: 'Cloud',
+		staff: true,
+		items: [
+			{
+				label: 'AWS',
+				items: [
+					{ label: 'S3', link: '/dashboard/cloud/aws/s3/' },
+				],
+			},
+		],
+	},
 ];
 
 export const appsNav: NavNode[] = [

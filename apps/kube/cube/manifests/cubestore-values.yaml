@@ -4,6 +4,11 @@
 config:
     logLevel: "error"
 
+# statsd-prometheus-exporter sidecar crashloops without a configured metrics
+# UDP port; we don't collect Cube Store statsd metrics yet, so disable it.
+exporter:
+    enabled: false
+
 # Shared metadata + datasets volume (router + workers mount it, RWX).
 remoteDir:
     persistence:

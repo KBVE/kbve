@@ -170,7 +170,7 @@ impl ServiceProxy {
             }
         };
 
-        self.forward(&upstream_url, method, &headers, body_bytes)
+        self.forward(&upstream_url, method, headers, body_bytes)
             .await
     }
 
@@ -179,15 +179,17 @@ impl ServiceProxy {
         &self,
         upstream_url: &str,
         method: axum::http::Method,
-        headers: &HeaderMap,
+        headers: HeaderMap,
         body_bytes: Bytes,
     ) -> Response {
         debug!(%upstream_url, %method, "proxying to {}", self.name);
 
+        // axum and reqwest both ride `http::HeaderMap`, so the prepared header
+        // map is handed to reqwest directly — no per-header re-parse/rebuild.
         let upstream_req = self
             .client
             .request(method.clone(), upstream_url)
-            .headers(reqwest_headers(headers))
+            .headers(headers)
             .body(body_bytes);
 
         let upstream_resp = match upstream_req.send().await {
@@ -222,15 +224,9 @@ impl ServiceProxy {
         let status =
             StatusCode::from_u16(upstream_status).unwrap_or(StatusCode::INTERNAL_SERVER_ERROR);
 
-        // `append` preserves multi-value headers (Set-Cookie, Vary).
-        let mut resp_headers = HeaderMap::new();
-        for (k, v) in upstream_resp.headers() {
-            if let Ok(name) = axum::http::HeaderName::from_bytes(k.as_str().as_bytes()) {
-                if let Ok(val) = HeaderValue::from_bytes(v.as_bytes()) {
-                    resp_headers.append(name, val);
-                }
-            }
-        }
+        // reqwest's response headers are the same `http::HeaderMap` axum uses,
+        // so clone directly — multi-value headers (Set-Cookie, Vary) are kept.
+        let mut resp_headers = upstream_resp.headers().clone();
 
         // RFC 7230 §6.1: strip hop-by-hop headers from the upstream response.
         // transfer-encoding — body is buffered; axum will set content-length.
@@ -489,20 +485,6 @@ pub(super) async fn require_dashboard_view_with_query(
         "You do not have permission to access the dashboard",
     )
     .await
-}
-
-
-pub(super) fn reqwest_headers(headers: &HeaderMap) -> reqwest::header::HeaderMap {
-    let mut out = reqwest::header::HeaderMap::new();
-    for (k, v) in headers {
-        if let Ok(name) = reqwest::header::HeaderName::from_bytes(k.as_str().as_bytes()) {
-            if let Ok(val) = reqwest::header::HeaderValue::from_bytes(v.as_bytes()) {
-                // `append` preserves multi-value headers (Accept, Cookie, ...).
-                out.append(name, val);
-            }
-        }
-    }
-    out
 }
 
 #[cfg(test)]
