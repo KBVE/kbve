@@ -1,11 +1,21 @@
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
 use crate::Result;
 
-#[derive(Debug)]
 pub struct EmbedDb {
     path: PathBuf,
     conn: turso::Connection,
     config: crate::EmbedConfig,
+    reader: Arc<Mutex<duckdb::Connection>>,
+}
+
+impl std::fmt::Debug for EmbedDb {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("EmbedDb")
+            .field("path", &self.path)
+            .field("config", &self.config)
+            .finish()
+    }
 }
 
 pub(crate) fn path_str(path: &Path) -> Result<&str> {
@@ -25,7 +35,8 @@ impl EmbedDb {
         let conn = db.connect()?;
         let pragma = format!("PRAGMA journal_mode={}", config.journal_mode);
         conn.execute(&pragma, ()).await.ok();
-        Ok(EmbedDb { path, conn, config })
+        let reader = crate::analytics::open_reader(config.duckdb_extension_dir.as_deref())?;
+        Ok(EmbedDb { path, conn, config, reader: Arc::new(Mutex::new(reader)) })
     }
 
     pub fn path(&self) -> &Path {
@@ -56,8 +67,11 @@ impl EmbedDb {
     pub async fn analytics_scalar_i64(&self, sql: &str) -> Result<i64> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let ext_dir = self.config.duckdb_extension_dir.clone();
-        tokio::task::spawn_blocking(move || crate::analytics::scalar_i64(&path, &sql, ext_dir.as_deref()))
+        let reader = self.reader.clone();
+        tokio::task::spawn_blocking(move || {
+            let conn = reader.lock().map_err(|e| crate::EmbedError::Other(e.to_string()))?;
+            crate::analytics::scalar_i64(&conn, &path, &sql)
+        })
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
     }
@@ -65,8 +79,11 @@ impl EmbedDb {
     pub async fn analytics_scalar_f64(&self, sql: &str) -> Result<f64> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let ext_dir = self.config.duckdb_extension_dir.clone();
-        tokio::task::spawn_blocking(move || crate::analytics::scalar_f64(&path, &sql, ext_dir.as_deref()))
+        let reader = self.reader.clone();
+        tokio::task::spawn_blocking(move || {
+            let conn = reader.lock().map_err(|e| crate::EmbedError::Other(e.to_string()))?;
+            crate::analytics::scalar_f64(&conn, &path, &sql)
+        })
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
     }
@@ -74,8 +91,11 @@ impl EmbedDb {
     pub async fn analytics_rows(&self, sql: &str) -> Result<Vec<crate::EmbedRow>> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let ext_dir = self.config.duckdb_extension_dir.clone();
-        tokio::task::spawn_blocking(move || crate::analytics::rows(&path, &sql, ext_dir.as_deref()))
+        let reader = self.reader.clone();
+        tokio::task::spawn_blocking(move || {
+            let conn = reader.lock().map_err(|e| crate::EmbedError::Other(e.to_string()))?;
+            crate::analytics::rows(&conn, &path, &sql)
+        })
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
     }
@@ -83,8 +103,11 @@ impl EmbedDb {
     pub async fn analytics_query(&self, sql: &str) -> Result<crate::QueryResult> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let ext_dir = self.config.duckdb_extension_dir.clone();
-        tokio::task::spawn_blocking(move || crate::analytics::query(&path, &sql, ext_dir.as_deref()))
+        let reader = self.reader.clone();
+        tokio::task::spawn_blocking(move || {
+            let conn = reader.lock().map_err(|e| crate::EmbedError::Other(e.to_string()))?;
+            crate::analytics::query(&conn, &path, &sql)
+        })
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
     }
@@ -96,8 +119,11 @@ impl EmbedDb {
     pub async fn analytics_scalar_string(&self, sql: &str) -> Result<String> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let ext_dir = self.config.duckdb_extension_dir.clone();
-        tokio::task::spawn_blocking(move || crate::analytics::scalar_string(&path, &sql, ext_dir.as_deref()))
+        let reader = self.reader.clone();
+        tokio::task::spawn_blocking(move || {
+            let conn = reader.lock().map_err(|e| crate::EmbedError::Other(e.to_string()))?;
+            crate::analytics::scalar_string(&conn, &path, &sql)
+        })
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
     }
@@ -532,5 +558,19 @@ mod tests {
         db.execute("INSERT INTO a VALUES (1)", ()).await.unwrap();
         db.checkpoint().await.unwrap();
         assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM a").await.unwrap(), 1);
+    }
+
+    #[tokio::test]
+    async fn reused_reader_sees_fresh_data() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("fresh.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 1);
+        db.execute("INSERT INTO t VALUES (2)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (3)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 3);
     }
 }

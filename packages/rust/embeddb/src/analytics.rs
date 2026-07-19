@@ -1,26 +1,32 @@
 use std::path::Path;
 use crate::Result;
 
-pub fn scalar_i64(path: &Path, sql: &str, ext_dir: Option<&Path>) -> Result<i64> {
-    let conn = attached_conn(path, ext_dir)?;
+pub fn open_reader(ext_dir: Option<&Path>) -> Result<duckdb::Connection> {
+    let conn = duckdb::Connection::open_in_memory()?;
+    prepare_sqlite_scanner(&conn, ext_dir)?;
+    Ok(conn)
+}
+
+pub fn scalar_i64(conn: &duckdb::Connection, path: &Path, sql: &str) -> Result<i64> {
+    attach_fresh(conn, path)?;
     let val: i64 = conn.query_row(sql, [], |r| r.get(0))?;
     Ok(val)
 }
 
-pub fn scalar_f64(path: &Path, sql: &str, ext_dir: Option<&Path>) -> Result<f64> {
-    let conn = attached_conn(path, ext_dir)?;
+pub fn scalar_f64(conn: &duckdb::Connection, path: &Path, sql: &str) -> Result<f64> {
+    attach_fresh(conn, path)?;
     let val: f64 = conn.query_row(sql, [], |r| r.get(0))?;
     Ok(val)
 }
 
-pub fn scalar_string(path: &Path, sql: &str, ext_dir: Option<&Path>) -> Result<String> {
-    let conn = attached_conn(path, ext_dir)?;
+pub fn scalar_string(conn: &duckdb::Connection, path: &Path, sql: &str) -> Result<String> {
+    attach_fresh(conn, path)?;
     let val: String = conn.query_row(sql, [], |r| r.get(0))?;
     Ok(val)
 }
 
-pub fn query(path: &Path, sql: &str, ext_dir: Option<&Path>) -> Result<crate::QueryResult> {
-    let conn = attached_conn(path, ext_dir)?;
+pub fn query(conn: &duckdb::Connection, path: &Path, sql: &str) -> Result<crate::QueryResult> {
+    attach_fresh(conn, path)?;
     let mut stmt = conn.prepare(sql)?;
     let mut rows = stmt.query([])?;
     let columns = rows.as_ref().map(|s| s.column_names()).unwrap_or_default();
@@ -36,8 +42,8 @@ pub fn query(path: &Path, sql: &str, ext_dir: Option<&Path>) -> Result<crate::Qu
     Ok(crate::QueryResult { columns, rows: out })
 }
 
-pub fn rows(path: &Path, sql: &str, ext_dir: Option<&Path>) -> Result<Vec<crate::EmbedRow>> {
-    Ok(query(path, sql, ext_dir)?.rows)
+pub fn rows(conn: &duckdb::Connection, path: &Path, sql: &str) -> Result<Vec<crate::EmbedRow>> {
+    Ok(query(conn, path, sql)?.rows)
 }
 
 fn value_from_ref(v: duckdb::types::ValueRef<'_>) -> Result<crate::EmbedValue> {
@@ -80,13 +86,12 @@ fn to_micros(unit: duckdb::types::TimeUnit, v: i64) -> i64 {
     }
 }
 
-fn attached_conn(path: &Path, ext_dir: Option<&Path>) -> Result<duckdb::Connection> {
-    let conn = duckdb::Connection::open_in_memory()?;
-    prepare_sqlite_scanner(&conn, ext_dir)?;
+fn attach_fresh(conn: &duckdb::Connection, path: &Path) -> Result<()> {
+    let _ = conn.execute_batch("USE memory; DETACH src;");
     let attach = format!("ATTACH '{}' AS src (TYPE sqlite, READ_ONLY);", sql_quote_str(crate::db::path_str(path)?));
     conn.execute_batch(&attach)?;
     conn.execute_batch("USE src;")?;
-    Ok(conn)
+    Ok(())
 }
 
 fn prepare_sqlite_scanner(conn: &duckdb::Connection, ext_dir: Option<&Path>) -> Result<()> {
