@@ -10,6 +10,14 @@
 -- new dbmate migration when ready. Depends on gh_core.sql.
 -- ============================================================================
 
+CREATE INDEX IF NOT EXISTS issue_closed_thread_backfill_idx
+    ON gh.issue (closed_at DESC NULLS LAST, owner, repo, number DESC)
+    WHERE state = 'closed'
+      AND discord_thread_id IS NOT NULL;
+
+-- NULL closed_at rows sort LAST (lowest reconcile priority), kept eligible not
+-- excluded. Index column order/direction mirrors the ORDER BY so the scan skips
+-- the sort.
 CREATE OR REPLACE FUNCTION gh.list_closed_issue_threads(p_limit INT DEFAULT 500)
 RETURNS SETOF gh.issue
 LANGUAGE sql
