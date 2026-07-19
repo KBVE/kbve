@@ -8,3 +8,6 @@ export type { StoreApi, StoreApiOptions } from './api';
 export { BuyCredits } from './BuyCredits';
 export { ProductCard } from './ProductCard';
 export { CheckoutModal } from './CheckoutModal';
+export { OrderHistory } from './OrderHistory';
+export { StoreView } from './StoreView';
+export type { StoreViewProps } from './StoreView';

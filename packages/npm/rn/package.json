@@ -40,6 +40,10 @@
 			"types": "./src/ui/*.tsx",
 			"import": "./src/ui/*.tsx"
 		},
+		"./ui/theme": {
+			"types": "./src/ui/theme.ts",
+			"import": "./src/ui/theme.ts"
+		},
 		"./store": {
 			"types": "./src/store/index.ts",
 			"import": "./src/store/index.ts"
