@@ -1141,11 +1141,11 @@ GRANT EXECUTE ON FUNCTION store.service_apply_topup(UUID, TEXT, TEXT, TEXT, BIGI
 
 -- ============================================================================
 -- Print-on-demand (Phase 4). POD external id/status ride on store.order's
--- promoted columns + pod_ref; shipment webhooks advance the order to 'shipped'
--- via service_advance_order. Lease/ACK model: service_order_for_pod leases an
--- order (fresh claim_token), service_ack_pod_submission confirms the provider
--- submission (requires the token), service_update_pod_status carries later
--- status/metadata-only updates.
+-- promoted columns + pod_ref; shipment webhooks atomically record a receipt AND
+-- advance the order to 'shipped' via service_apply_pod_shipment. Lease/ACK model:
+-- service_order_for_pod leases an order (fresh claim_token),
+-- service_ack_pod_submission confirms the provider submission (requires the
+-- token), service_update_pod_status carries later status/metadata-only updates.
 -- ============================================================================
 
 -- service_ack_pod_submission — record a CONFIRMED provider submission. Requires

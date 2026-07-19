@@ -2,7 +2,7 @@
 -- STORE CORE — schema, order_status enum, catalog/purchase/variant/order/
 -- topup_package/topup/pod_webhook_event tables, indexes, table grants, and the
 -- order_event append-only + product slug-immutable + variant stock-mode-immutable
--- triggers.
+-- + topup_package economics-immutable triggers.
 --
 -- Reference mirror of the collapsed dbmate migrations:
 --   ../../dbmate/migrations/20260708120000_store_schema_init.sql
@@ -11,9 +11,10 @@
 --   ../../dbmate/migrations/20260709180000_store_privilege_hardening.sql
 -- Hand-authored review surface — do not run directly against the database;
 -- promote changes into a new dbmate migration when ready. Functions live in
--- store_rpcs.sql (except the order_event mutation-block trigger and the
--- product slug-immutable trigger, which live here beside the tables they
--- guard, matching the wallet_core convention).
+-- store_rpcs.sql (except the order_event mutation-block trigger, the product
+-- slug-immutable trigger, and the topup_package economics-immutable trigger,
+-- which live here beside the tables they guard, matching the wallet_core
+-- convention).
 --
 -- Ownership (privilege hardening): after 20260709180000 every store table +
 -- enum, and every store proxy function in public/private, is OWNED BY the

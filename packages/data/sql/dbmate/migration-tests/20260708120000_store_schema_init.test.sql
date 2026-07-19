@@ -333,6 +333,10 @@ DECLARE
     v_item  UUID;
     v_cat   INT;
     v_order BIGINT;
+    -- Resolve the variant id AS SUPERUSER before dropping to authenticated:
+    -- authenticated has no USAGE on schema store, so it can only reach the store
+    -- through the SECURITY DEFINER proxies, never a direct table read.
+    v_var   UUID := (SELECT variant_id FROM store.product_variant WHERE sku = 'SKU-PHYS');
 BEGIN
     -- Session-scoped (is_local=false) so the claims survive the nested proxy
     -- calls under psql autocommit; set both GUC forms auth.uid() may read.
@@ -361,7 +365,7 @@ BEGIN
 
     -- authenticated physical purchase through the proxy chain
     v_order := public.proxy_store_buy_physical(
-        (SELECT variant_id FROM store.product_variant WHERE sku = 'SKU-PHYS'),
+        v_var,
         1, jsonb_build_object('name','J','line1','1 St','city','C','postal_code','1','country','US'),
         gen_random_uuid());
     IF v_order IS NULL THEN
