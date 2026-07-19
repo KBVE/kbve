@@ -1,0 +1,34 @@
+summary: Resolve a Discord user's KBVE profile + wallet balance (shared core)
+description: >-
+  Shared library parent. Exports fetchProfile() imported by the surface wrapper
+  (f/discordsh/profile). Resolves a Discord snowflake to KBVE username + wallet
+  balance via the public.proxy_discord_profile PostgREST RPC (service_role),
+  with a best-effort short-TTL Valkey cache in front (graceful — a cache miss or
+  absent client falls through to the DB). SYSTEM tier — never invoked directly
+  from a browser. Bun, no deps.
+kind: script
+lock: ''
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  order:
+    - discordId
+    - sb
+    - valkeyUrl
+  properties:
+    discordId:
+      type: string
+      description: Discord snowflake to resolve.
+      default: ''
+    sb:
+      type: object
+      description: Supabase resource — project url + service_role key.
+      properties:
+        url: { type: string }
+        service_key: { type: string }
+    valkeyUrl:
+      type: string
+      description: Optional Valkey connection URL for balance caching.
+      default: ''
+  required:
+    - sb

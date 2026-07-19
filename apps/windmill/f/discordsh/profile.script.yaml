@@ -1,0 +1,45 @@
+summary: Show your KBVE profile — username, credits, khash
+description: >-
+  /wm target. Resolves the invoking Discord user to their linked KBVE profile
+  and wallet balance (credits + khash) and renders it as an ephemeral embed —
+  only the invoker sees it. Read-only preview; spending is a later phase. Unlinked
+  users get a prompt to sign in with Discord at kbve.com. Bun runtime, no deps.
+  Requires the f/discordsh/kbve_supabase resource (url + service_key); Valkey URL
+  variable is optional caching.
+kind: script
+lock: ''
+schema:
+  $schema: https://json-schema.org/draft/2020-12/schema
+  type: object
+  order:
+    - args
+    - discord
+    - sb
+    - valkeyUrl
+  properties:
+    args:
+      type: array
+      description: Ignored; present for the bot's generic {args, discord} call shape.
+      items:
+        type: string
+      default: []
+    discord:
+      type: object
+      description: Discord invocation context injected by the bot.
+      properties:
+        user_id: { type: string }
+        username: { type: string }
+        guild_id: { type: string }
+        channel_id: { type: string }
+    sb:
+      type: object
+      description: Supabase resource (url + service_key), injected from the workspace resource.
+      properties:
+        url: { type: string }
+        service_key: { type: string }
+      default: $res:f/discordsh/kbve_supabase
+    valkeyUrl:
+      type: string
+      description: Optional Valkey URL for balance caching; blank disables the cache.
+      default: $var:f/discordsh/valkey_url
+  required: []
