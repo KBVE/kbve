@@ -31,9 +31,9 @@ config:
 cubestore:
     host: cubestore-router
 
+# NOTE: the chart auto-emits CUBEJS_DATASOURCES from the datasources map,
+# so do NOT set it here (duplicate env keys are rejected by ServerSideApply).
 extraEnvVars:
-    - name: CUBEJS_DATASOURCES
-      value: "default,clickhouse"
     # Required for cross-source rollup_join on this Cube version (verify on 1.5.3).
     - name: CUBEJS_TESSERACT_SQL_PLANNER
       value: "false"
