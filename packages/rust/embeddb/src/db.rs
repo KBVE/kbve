@@ -21,8 +21,8 @@ impl EmbedDb {
         &self.path
     }
 
-    pub async fn execute(&self, sql: &str) -> Result<u64> {
-        let affected = self.conn.execute(sql, ()).await?;
+    pub async fn execute(&self, sql: &str, params: impl turso::IntoParams) -> Result<u64> {
+        let affected = self.conn.execute(sql, params).await?;
         Ok(affected)
     }
 
@@ -71,9 +71,20 @@ mod tests {
     async fn execute_creates_and_inserts() {
         let dir = tempfile::tempdir().unwrap();
         let db = EmbedDb::open(dir.path().join("w.db")).await.unwrap();
-        db.execute("CREATE TABLE t (id INTEGER, v REAL)").await.unwrap();
-        db.execute("INSERT INTO t VALUES (1, 10.0)").await.unwrap();
-        let n = db.execute("INSERT INTO t VALUES (2, 20.0)").await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER, v REAL)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1, 10.0)", ()).await.unwrap();
+        let n = db.execute("INSERT INTO t VALUES (?, ?)", (2_i64, 20.0_f64)).await.unwrap();
+        assert_eq!(n, 1);
+    }
+
+    #[tokio::test]
+    async fn execute_bound_param_preserves_quote() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("q.db")).await.unwrap();
+        db.execute("CREATE TABLE t (name TEXT)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (?)", ("o'brien",)).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let n = db.analytics_scalar_i64("SELECT count(*) FROM t WHERE name = 'o''brien'").await.unwrap();
         assert_eq!(n, 1);
     }
 
@@ -81,8 +92,8 @@ mod tests {
     async fn checkpoint_after_write_ok() {
         let dir = tempfile::tempdir().unwrap();
         let db = EmbedDb::open(dir.path().join("c.db")).await.unwrap();
-        db.execute("CREATE TABLE t (id INTEGER)").await.unwrap();
-        db.execute("INSERT INTO t VALUES (1)").await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
         db.checkpoint().await.unwrap();
     }
 
@@ -90,9 +101,9 @@ mod tests {
     async fn duckdb_reads_turso_written_file() {
         let dir = tempfile::tempdir().unwrap();
         let db = EmbedDb::open(dir.path().join("x.db")).await.unwrap();
-        db.execute("CREATE TABLE t (id INTEGER, v REAL)").await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER, v REAL)", ()).await.unwrap();
         for i in 1..=5 {
-            db.execute(&format!("INSERT INTO t VALUES ({}, {}.0)", i, i * 10)).await.unwrap();
+            db.execute(&format!("INSERT INTO t VALUES ({}, {}.0)", i, i * 10), ()).await.unwrap();
         }
         db.checkpoint().await.unwrap();
 
@@ -106,9 +117,9 @@ mod tests {
         let quoted_dir = dir.path().join("o'brien");
         std::fs::create_dir_all(&quoted_dir).unwrap();
         let db = EmbedDb::open(quoted_dir.join("q.db")).await.unwrap();
-        db.execute("CREATE TABLE t (id INTEGER, v REAL)").await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER, v REAL)", ()).await.unwrap();
         for i in 1..=3 {
-            db.execute(&format!("INSERT INTO t VALUES ({}, {}.0)", i, i * 10)).await.unwrap();
+            db.execute(&format!("INSERT INTO t VALUES ({}, {}.0)", i, i * 10), ()).await.unwrap();
         }
         db.checkpoint().await.unwrap();
 
@@ -120,8 +131,8 @@ mod tests {
     async fn duckdb_avg_matches() {
         let dir = tempfile::tempdir().unwrap();
         let db = EmbedDb::open(dir.path().join("a.db")).await.unwrap();
-        db.execute("CREATE TABLE t (v REAL)").await.unwrap();
-        db.execute("INSERT INTO t VALUES (10.0), (20.0), (30.0)").await.unwrap();
+        db.execute("CREATE TABLE t (v REAL)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (10.0), (20.0), (30.0)", ()).await.unwrap();
         db.checkpoint().await.unwrap();
         let avg = db.analytics_scalar_f64("SELECT avg(v) FROM t").await.unwrap();
         assert!((avg - 20.0).abs() < 1e-9);
