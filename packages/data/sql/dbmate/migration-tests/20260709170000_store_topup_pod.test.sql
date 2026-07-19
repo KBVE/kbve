@@ -377,6 +377,127 @@ BEGIN
 END;
 $$;
 
+-- 10. A shipment landing on a still-PAID order is fast-forwarded through BOTH
+--     declared transitions (paid->processing->shipped) as two order_events, so
+--     the lifecycle audit trail is never skipped.
+DO $$
+DECLARE
+    v_acct  UUID;
+    v_var   UUID := (SELECT variant_id FROM store.product_variant WHERE sku = 'SKU-POD');
+    v_order BIGINT;
+    v_tok   UUID;
+    v_st    store.order_status;
+    v_proc  INT;
+    v_ship  INT;
+BEGIN
+    SELECT id INTO v_acct FROM wallet.account a
+      JOIN public.__store_topup_pod_fixture f ON f.user_id = a.user_id
+     WHERE f.role = 'pod_buyer';
+
+    v_order := store.service_buy_physical(v_acct, v_var, 1,
+        jsonb_build_object('name','FF','line1','1 St','city','C','postal_code','1','country','US'),
+        gen_random_uuid());
+    v_tok := (store.service_order_for_pod(v_order, 'w')->>'claim_token')::uuid;
+    -- ACK sets the provider identity but leaves the order in 'paid' (no advance).
+    PERFORM store.service_ack_pod_submission(v_order, v_tok,
+        jsonb_build_object('provider','printful','external_order_id','EXT-FF'));
+    SELECT status INTO v_st FROM store.order WHERE order_id = v_order;
+    IF v_st <> 'paid' THEN RAISE EXCEPTION 'fail: order not still paid pre-shipment (%).', v_st; END IF;
+
+    PERFORM store.service_apply_pod_shipment('printful', 'evt_ff_1', 'EXT-FF',
+        jsonb_build_object('number','2Z'), jsonb_build_object('type','shipped'));
+
+    SELECT status INTO v_st FROM store.order WHERE order_id = v_order;
+    IF v_st <> 'shipped' THEN RAISE EXCEPTION 'fail: paid order not advanced to shipped (%).', v_st; END IF;
+
+    SELECT count(*) INTO v_proc FROM store.order_event
+     WHERE order_id = v_order AND from_status = 'paid' AND to_status = 'processing';
+    SELECT count(*) INTO v_ship FROM store.order_event
+     WHERE order_id = v_order AND from_status = 'processing' AND to_status = 'shipped';
+    IF v_proc <> 1 OR v_ship <> 1 THEN
+        RAISE EXCEPTION 'fail: fast-forward audit trail missing (paid->processing=%, processing->shipped=%)',
+            v_proc, v_ship;
+    END IF;
+END;
+$$;
+
+-- 11. Two DISTINCT Stripe events for one Checkout Session credit exactly once:
+--     the session-level dedupe returns the first event's ledger and never inserts
+--     a second topup row (so one physical session = one credit).
+DO $$
+DECLARE
+    v_user UUID := (SELECT user_id FROM public.__store_topup_pod_fixture WHERE role = 'topup_user');
+    v_l1   BIGINT;
+    v_l2   BIGINT;
+    v_n    INT;
+BEGIN
+    v_l1 := store.service_apply_topup(v_user, 'evt_share_a', 'cs_share', 'small', 100, 'usd');
+    v_l2 := store.service_apply_topup(v_user, 'evt_share_b', 'cs_share', 'small', 100, 'usd');
+    IF v_l1 IS DISTINCT FROM v_l2 THEN
+        RAISE EXCEPTION 'fail: distinct events on one session split into ledgers % / %', v_l1, v_l2;
+    END IF;
+    SELECT count(*) INTO v_n FROM store.topup WHERE stripe_session_id = 'cs_share';
+    IF v_n <> 1 THEN
+        RAISE EXCEPTION 'fail: session credited % topup rows, expected 1', v_n;
+    END IF;
+END;
+$$;
+
+-- 12. service_update_pod_status merges status/metadata without touching the
+--     order lifecycle, rejects a provider-identity change, and refuses an order
+--     with no prior submission.
+DO $$
+DECLARE
+    v_acct  UUID;
+    v_var   UUID := (SELECT variant_id FROM store.product_variant WHERE sku = 'SKU-POD');
+    v_order BIGINT;
+    v_bare  BIGINT;
+    v_tok   UUID;
+    v_row   store.order%ROWTYPE;
+BEGIN
+    SELECT id INTO v_acct FROM wallet.account a
+      JOIN public.__store_topup_pod_fixture f ON f.user_id = a.user_id
+     WHERE f.role = 'pod_buyer';
+
+    v_order := store.service_buy_physical(v_acct, v_var, 1,
+        jsonb_build_object('name','UP','line1','0 St','city','C','postal_code','0','country','US'),
+        gen_random_uuid());
+    v_tok := (store.service_order_for_pod(v_order, 'w')->>'claim_token')::uuid;
+    PERFORM store.service_ack_pod_submission(v_order, v_tok,
+        jsonb_build_object('provider','printful','external_order_id','EXT-UPD'));
+
+    PERFORM store.service_update_pod_status(v_order,
+        jsonb_build_object('status','in_transit','tracking_url','http://x/1'));
+    SELECT * INTO v_row FROM store.order WHERE order_id = v_order;
+    IF v_row.pod_status <> 'in_transit' THEN
+        RAISE EXCEPTION 'fail: pod_status not merged (%).', v_row.pod_status;
+    END IF;
+    IF v_row.pod_ref->>'tracking_url' <> 'http://x/1' THEN
+        RAISE EXCEPTION 'fail: pod_ref metadata not shallow-merged';
+    END IF;
+    -- Lifecycle status is untouched by a POD metadata update (still shipped-or-earlier).
+    IF v_row.status NOT IN ('paid', 'processing') THEN
+        RAISE EXCEPTION 'fail: update_pod_status changed the order lifecycle (%).', v_row.status;
+    END IF;
+
+    -- Changing the provider identity via this path is rejected.
+    BEGIN
+        PERFORM store.service_update_pod_status(v_order,
+            jsonb_build_object('external_order_id','EXT-OTHER'));
+        RAISE EXCEPTION 'fail: provider identity mutated via update_pod_status';
+    EXCEPTION WHEN sqlstate '22023' THEN NULL; END;
+
+    -- An order with no prior submission cannot be status-updated.
+    v_bare := store.service_buy_physical(v_acct, v_var, 1,
+        jsonb_build_object('name','NB','line1','A St','city','C','postal_code','A','country','US'),
+        gen_random_uuid());
+    BEGIN
+        PERFORM store.service_update_pod_status(v_bare, jsonb_build_object('status','x'));
+        RAISE EXCEPTION 'fail: status update accepted for an unsubmitted order';
+    EXCEPTION WHEN sqlstate 'P1001' THEN NULL; END;
+END;
+$$;
+
 -- ASSERT_AFTER_DOWN
 
 -- Down drops the topup table + POD columns; store.order itself survives.
