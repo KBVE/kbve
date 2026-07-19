@@ -127,3 +127,5 @@ db.migrate(&migrations).await?;
 ```
 
 `migrate` is append-only and idempotent: calling it again with the same slice is a no-op, and calling it with the same prefix plus new entries appended applies only the new entries. Each migration runs in its own transaction; if a migration fails, that transaction is rolled back and the error is returned, leaving previously-applied migrations intact and no partial record for the failed one — so migrating with the same (or a fixed) slice afterward will retry it.
+
+Each migration string is executed as a single statement via `tx.execute`. A string containing multiple statements (e.g. `"CREATE TABLE x (id INTEGER); CREATE INDEX idx_x ON x (id)"`) will only apply the first statement, yet the whole string is still recorded as applied — so the remaining statements silently never run. Callers must split multi-statement migrations into one array entry per statement.

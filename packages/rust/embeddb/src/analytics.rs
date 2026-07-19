@@ -44,11 +44,15 @@ fn value_from_ref(v: duckdb::types::ValueRef<'_>) -> Result<crate::EmbedValue> {
         V::SmallInt(n) => crate::EmbedValue::Int(n as i64),
         V::Int(n) => crate::EmbedValue::Int(n as i64),
         V::BigInt(n) => crate::EmbedValue::Int(n),
-        V::HugeInt(n) => crate::EmbedValue::Int(n as i64),
+        V::HugeInt(n) => i64::try_from(n)
+            .map(crate::EmbedValue::Int)
+            .map_err(|_| crate::EmbedError::Other(format!("i128 value out of i64 range: {}", n)))?,
         V::UTinyInt(n) => crate::EmbedValue::Int(n as i64),
         V::USmallInt(n) => crate::EmbedValue::Int(n as i64),
         V::UInt(n) => crate::EmbedValue::Int(n as i64),
-        V::UBigInt(n) => crate::EmbedValue::Int(n as i64),
+        V::UBigInt(n) => i64::try_from(n)
+            .map(crate::EmbedValue::Int)
+            .map_err(|_| crate::EmbedError::Other(format!("u64 value out of i64 range: {}", n)))?,
         V::Float(n) => crate::EmbedValue::Float(n as f64),
         V::Double(n) => crate::EmbedValue::Float(n),
         V::Text(b) => crate::EmbedValue::Text(String::from_utf8_lossy(b).into_owned()),

@@ -407,6 +407,17 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn analytics_rows_large_int_in_range() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("bigint.db")).await.unwrap();
+        db.execute("CREATE TABLE t (v INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (?)", (i64::MAX,)).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let rows = db.analytics_rows("SELECT v FROM t").await.unwrap();
+        assert_eq!(rows[0].get(0), Some(&crate::EmbedValue::Int(i64::MAX)));
+    }
+
+    #[tokio::test]
     async fn migrate_failure_rolls_back_that_migration() {
         let dir = tempfile::tempdir().unwrap();
         let db = EmbedDb::open(dir.path().join("m3.db")).await.unwrap();
