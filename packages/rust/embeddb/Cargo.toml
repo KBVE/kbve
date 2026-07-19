@@ -1,0 +1,16 @@
+[package]
+name = "embeddb"
+version = "0.0.1"
+edition = "2021"
+description = "Single-file embedded DB: Turso write path + DuckDB analytics read path"
+license = "MIT"
+
+[dependencies]
+turso = "0.7"
+duckdb = { version = "1", features = ["bundled"] }
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
+thiserror = "1"
+
+[dev-dependencies]
+tempfile = "3"
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
