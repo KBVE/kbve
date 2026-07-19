@@ -117,6 +117,8 @@ CREATE TABLE store.topup (
 );
 
 CREATE INDEX store_topup_account_idx ON store.topup (account_id, created_at DESC);
+-- Each wallet ledger row backs exactly one completed top-up.
+CREATE UNIQUE INDEX store_topup_ledger_uq ON store.topup (ledger_id);
 
 COMMENT ON TABLE store.topup IS
     'Stripe credit purchases. Idempotent on stripe_event_id. Credits the wallet via wallet.service_credit(source_kind=topup).';
@@ -536,36 +538,35 @@ CREATE TABLE store.pod_webhook_event (
     provider_event_id TEXT NOT NULL
                       CHECK (provider_event_id = btrim(provider_event_id)
                              AND length(provider_event_id) BETWEEN 1 AND 255),
-    -- order_id is resolved INTERNALLY from (provider, external_order_id) by the
-    -- apply function (the caller never supplies it), so it can never disagree
-    -- with the provider identity. NULL only for an orphan (no matching order).
-    order_id          BIGINT REFERENCES store.order(order_id),
-    external_order_id TEXT
-                      CHECK (external_order_id IS NULL
-                             OR (external_order_id = btrim(external_order_id)
-                                 AND length(external_order_id) BETWEEN 1 AND 255)),
+    -- order_id + external_order_id are BOTH required and always agree: the apply
+    -- function resolves the order from (provider, external_order_id) and only
+    -- records a receipt once a match is found (an unmatched event raises a
+    -- retryable error instead of persisting an un-reconcilable orphan), so a
+    -- receipt is never stranded and the caller never routes by a chosen id.
+    order_id          BIGINT NOT NULL REFERENCES store.order(order_id),
+    external_order_id TEXT NOT NULL
+                      CHECK (external_order_id = btrim(external_order_id)
+                             AND length(external_order_id) BETWEEN 1 AND 255),
+    -- Effective tracking actually stored on the order (event tracking if
+    -- non-empty, else the order's current), so the receipt matches the order.
     tracking          JSONB NOT NULL DEFAULT '{}'::jsonb
                       CHECK (jsonb_typeof(tracking) = 'object'
                              AND octet_length(tracking::text) <= 16384),
-    -- Outcome recorded AT INSERT (append-only friendly): the effect the event
-    -- had given the order's state when it arrived.
-    outcome           TEXT NOT NULL DEFAULT 'orphan'
-                      CHECK (outcome IN ('applied', 'orphan', 'noop_terminal')),
-    applied_order_status store.order_status,
+    -- Outcome recorded AT INSERT (append-only): the effect the event had given
+    -- the order's state when it arrived.
+    outcome           TEXT NOT NULL
+                      CHECK (outcome IN ('applied', 'noop_terminal')),
+    applied_order_status store.order_status NOT NULL,
     payload           JSONB NOT NULL DEFAULT '{}'::jsonb
                       CHECK (jsonb_typeof(payload) = 'object'
                              AND octet_length(payload::text) <= 65536),
     received_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
     UNIQUE (provider, provider_event_id),
-    -- Every receipt carries at least one routing identity.
-    CONSTRAINT store_pod_webhook_identity_ck
-        CHECK (order_id IS NOT NULL OR external_order_id IS NOT NULL)
+    -- An 'applied' event always shipped the order.
+    CONSTRAINT store_pod_webhook_outcome_ck
+        CHECK (outcome <> 'applied' OR applied_order_status = 'shipped')
 );
 CREATE INDEX store_pod_webhook_event_order_idx ON store.pod_webhook_event (order_id, received_at);
--- Reconciliation queue for orphan events (arrived without a resolvable order).
-CREATE INDEX store_pod_webhook_orphan_external_idx
-    ON store.pod_webhook_event (provider, external_order_id, received_at)
-    WHERE order_id IS NULL AND external_order_id IS NOT NULL;
 
 CREATE TRIGGER store_pod_webhook_event_no_mutate
     BEFORE UPDATE OR DELETE ON store.pod_webhook_event
@@ -616,15 +617,24 @@ BEGIN
         RAISE EXCEPTION 'tracking must be a JSON object under 16KB' USING ERRCODE = '22023';
     END IF;
 
-    -- Resolve + lock the order by its provider identity (never a caller order id).
+    -- Resolve + lock the order by its provider identity (never a caller order
+    -- id). No match => a retryable error rather than a stranded orphan receipt:
+    -- a shipment can only precede its ACK by a race, and the provider retry will
+    -- resolve once the ACK records the identity. (NotFound -> 503 in transport.)
     SELECT * INTO v_order FROM store.order
      WHERE pod_provider = v_provider AND pod_external_order_id = v_ext_id
      FOR UPDATE;
-    v_order_id := v_order.order_id;   -- NULL when no matching order (orphan)
+    IF v_order.order_id IS NULL THEN
+        RAISE EXCEPTION 'pod shipment: no matching order for %/%', v_provider, v_ext_id
+            USING ERRCODE = 'P1001';
+    END IF;
+    v_order_id := v_order.order_id;
 
-    IF v_order_id IS NULL THEN
-        v_outcome := 'orphan';
-    ELSIF v_order.status IN ('paid', 'processing') THEN
+    -- Effective tracking = event tracking if non-empty, else the order's current
+    -- tracking, so the stored receipt matches what the order ends up with.
+    v_tracking := CASE WHEN v_tracking = '{}'::jsonb THEN v_order.tracking ELSE v_tracking END;
+
+    IF v_order.status IN ('paid', 'processing') THEN
         v_outcome := 'applied';
         v_applied := 'shipped';
     ELSE
@@ -643,7 +653,7 @@ BEGIN
 
     IF v_pk IS NULL THEN
         -- Duplicate event id: a contradictory replay is loud; an equivalent one
-        -- is a no-op false. Tracking is part of the fingerprint.
+        -- is a no-op false. Effective tracking is part of the fingerprint.
         SELECT * INTO v_existing FROM store.pod_webhook_event
          WHERE provider = v_provider AND provider_event_id = v_event_id;
         IF v_existing.order_id IS DISTINCT FROM v_order_id
@@ -656,16 +666,19 @@ BEGIN
         RETURN false;
     END IF;
 
-    -- Newly recorded: apply the shipment for a paid|processing order (forward
-    -- advance, so an early event isn't permanently lost). Terminal/orphan = no-op.
+    -- Newly recorded: apply the shipment for a paid|processing order. To respect
+    -- the declared lifecycle (paid -> processing -> shipped) and its audit trail,
+    -- a paid order is fast-forwarded through BOTH transitions as two events.
     IF v_outcome = 'applied' THEN
+        IF v_order.status = 'paid' THEN
+            INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
+            VALUES (v_order_id, 'paid', 'processing', 'pod', 'POD shipment (auto-processing)', v_tracking);
+        END IF;
         UPDATE store.order
-           SET status = 'shipped',
-               tracking = CASE WHEN v_tracking = '{}'::jsonb THEN tracking ELSE v_tracking END,
-               updated_at = now()
+           SET status = 'shipped', tracking = v_tracking, updated_at = now()
          WHERE order_id = v_order_id;
         INSERT INTO store.order_event (order_id, from_status, to_status, actor, note, metadata)
-        VALUES (v_order_id, v_order.status, 'shipped', 'pod', 'POD shipment', v_tracking);
+        VALUES (v_order_id, 'processing', 'shipped', 'pod', 'POD shipment', v_tracking);
     END IF;
 
     RETURN true;

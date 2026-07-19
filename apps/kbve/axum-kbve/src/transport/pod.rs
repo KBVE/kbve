@@ -281,6 +281,17 @@ pub(crate) async fn webhook(headers: HeaderMap, body: Bytes) -> Response {
         .await
     {
         Ok(_) => StatusCode::OK.into_response(),
+        // No order yet matches this provider identity (shipment raced ahead of
+        // the ACK). Return 503 so the provider retries once the ACK records it.
+        Err(kbve::wallet::WalletError::NotFound(_)) => {
+            tracing::info!("pod shipment: order not yet resolvable, requesting retry");
+            (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({"error": "order not yet resolvable"})),
+            )
+                .into_response()
+        }
+        // Contradiction / validation — ack so the provider stops retrying.
         Err(e) => {
             tracing::warn!("pod shipment apply: {:?}", e);
             StatusCode::OK.into_response()

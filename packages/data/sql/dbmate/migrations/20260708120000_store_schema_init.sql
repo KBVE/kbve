@@ -200,6 +200,9 @@ CREATE TABLE store.purchase (
 );
 CREATE INDEX store_purchase_account_created_idx
     ON store.purchase (account_id, created_at DESC);
+-- Each wallet ledger row backs exactly one purchase receipt.
+CREATE UNIQUE INDEX store_purchase_ledger_uq
+    ON store.purchase (ledger_id) WHERE ledger_id IS NOT NULL;
 COMMENT ON TABLE store.purchase IS
     'Durable digital purchase receipts. Per (account, idempotency_key) result binding for replay-safe service_buy.';
 
@@ -851,6 +854,11 @@ CREATE TABLE store.order (
 
 CREATE INDEX store_order_account_created_idx
     ON store.order (account_id, created_at DESC, order_id DESC);
+-- Each wallet ledger row backs exactly one order (debit) / one refund.
+CREATE UNIQUE INDEX store_order_ledger_uq
+    ON store.order (ledger_id) WHERE ledger_id IS NOT NULL;
+CREATE UNIQUE INDEX store_order_refund_ledger_uq
+    ON store.order (refund_ledger_id) WHERE refund_ledger_id IS NOT NULL;
 CREATE INDEX store_order_open_idx
     ON store.order (status, updated_at)
     WHERE status IN ('paid', 'processing');

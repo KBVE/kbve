@@ -363,13 +363,17 @@ BEGIN
         NULL;  -- expected
     END;
 
-    -- Unknown external id -> orphan receipt (order_id NULL), still true/recorded.
-    v_orph := store.service_apply_pod_shipment('printful', 'evt_orphan_1', 'EXT-UNKNOWN',
-        '{}'::jsonb, jsonb_build_object('type','shipped'));
-    IF NOT v_orph THEN RAISE EXCEPTION 'fail: orphan event not recorded'; END IF;
-    PERFORM 1 FROM store.pod_webhook_event
-     WHERE provider_event_id = 'evt_orphan_1' AND order_id IS NULL AND outcome = 'orphan';
-    IF NOT FOUND THEN RAISE EXCEPTION 'fail: orphan event not recorded as orphan'; END IF;
+    -- Unknown external id -> retryable P1001 (no un-reconcilable orphan is
+    -- persisted); nothing recorded.
+    BEGIN
+        PERFORM store.service_apply_pod_shipment('printful', 'evt_orphan_1', 'EXT-UNKNOWN',
+            jsonb_build_object('number','7Z'), jsonb_build_object('type','shipped'));
+        RAISE EXCEPTION 'fail: unmatched shipment event was accepted';
+    EXCEPTION WHEN sqlstate 'P1001' THEN
+        NULL;  -- expected (retryable)
+    END;
+    PERFORM 1 FROM store.pod_webhook_event WHERE provider_event_id = 'evt_orphan_1';
+    IF FOUND THEN RAISE EXCEPTION 'fail: unmatched shipment event was persisted'; END IF;
 END;
 $$;
 

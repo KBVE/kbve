@@ -117,6 +117,10 @@ fn classify_message(msg: &str) -> Option<WalletError> {
     if m.contains("insufficient funds") {
         return Some(WalletError::InsufficientFunds);
     }
+    // POD shipment arrived before its order identity was ACKed — retryable.
+    if m.contains("no matching order") {
+        return Some(WalletError::NotFound(msg.to_string()));
+    }
     if m.contains("idempotency_key reused")
         || m.contains("replay parameter mismatch")
         || m.contains("current bid cache mismatch")
