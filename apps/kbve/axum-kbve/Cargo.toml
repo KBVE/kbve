@@ -92,17 +92,13 @@ tokio-tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }
 webpki-roots = "0.26"
 
 # Workspace path dependencies
-jedi = { path = "../../../packages/rust/jedi", features = ["clickhouse", "forgejo", "postgres", "valkey"] }
+jedi = { path = "../../../packages/rust/jedi", features = ["aws", "clickhouse", "forgejo", "postgres", "valkey"] }
 kbve = { path = "../../../packages/rust/kbve", features = ["wallet"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 
 # Referral handler hashes client IP + subnet before any DB write.
 hmac = "0.12"
 sha2 = "0.10"
-
-# Kilobase S3 backup viewer (read-only ListObjectsV2 against barman backups)
-aws-config = { version = "1", features = ["behavior-version-latest"] }
-aws-sdk-s3 = "1"
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { version = "0.7", optional = true }

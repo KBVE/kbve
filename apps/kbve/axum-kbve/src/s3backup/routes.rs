@@ -1,7 +1,6 @@
 use crate::db::forum::get_forum_service;
-use crate::s3backup::client::{list_all, list_page, make_client, S3Config};
-use crate::s3backup::summary::summarize;
 use crate::transport::https::auth_user_id;
+use jedi::cloud::s3::{list_all, list_page, make_client, summarize, S3Config};
 use axum::{
     extract::Query, http::HeaderMap, http::StatusCode, response::IntoResponse,
     response::Response, routing::get, Json, Router,
