@@ -1,7 +1,7 @@
 services:
   # In-network port-forward sidecar: runs kubectl port-forward for both DBs and
   # exposes them ONLY on the compose network (never published to the host).
-  # Cube reaches Postgres at kubefwd:5432 and ClickHouse at kube-forward:8123.
+  # Cube reaches Postgres at kubefwd:5432 and ClickHouse at kubefwd:8123.
   kubefwd:
     image: bitnami/kubectl:latest
     user: root

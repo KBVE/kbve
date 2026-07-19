@@ -19,7 +19,7 @@ host, so no credentialed database ports are exposed to your LAN.
    kubectl get secret -n kilobase supabase-postgres -o jsonpath='{.data.password}' | base64 -d   # -> CUBEJS_DB_PASS
    kubectl get secret -n clickhouse clickhouse-admin-credentials -o jsonpath='{.data.password}' | base64 -d  # -> CUBEJS_DS_CLICKHOUSE_DB_PASS
    ```
-   The sidecar mounts `~/.kube/config` read-only and uses your current kube context.
+   The sidecar mounts `~/.kube/config` read-only and uses your current kube context. Your kubeconfig must use in-file token/cert auth (embedded `client-certificate-data`/`client-key-data` or a token), not an `exec` credential plugin — the `bitnami/kubectl` container cannot run host auth plugins.
 
 2. **Start the stack** (the sidecar's healthcheck gates Cube startup until both forwards are up):
    ```bash

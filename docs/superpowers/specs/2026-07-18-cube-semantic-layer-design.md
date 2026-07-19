@@ -25,9 +25,9 @@ Run Cube locally via docker-compose. Point it at live cluster DBs through `kubec
 - `cubestore` (pre-aggregation engine, local single-node).
 - Volume-mounted `model/` dir for `.yml`/`.js` data models (the artifact we actually care about producing).
 
-**Connectivity (A):**
-- Postgres: `kubectl port-forward svc/supabase-cluster-rw -n kilobase 5432` → Cube connects direct to the cluster RW service. (Pooler not used locally — single instance, no fan-in benefit.)
-- ClickHouse: `kubectl port-forward` the CH service in the `clickhouse` namespace (HTTP 8123 / native 9000 per driver).
+**Connectivity (A):** _(superseded during implementation — see "Phase A outcomes" below for the actual approach: an in-network `kubefwd` sidecar and the corrected service names `kilobase-rw` / `clickhouse-clickhouse-cluster`.)_
+- Postgres: port-forward the CNPG RW service → Cube connects direct. (Pooler not used locally — single instance, no fan-in benefit.)
+- ClickHouse: port-forward the CH service in the `clickhouse` namespace (HTTP 8123 / native 9000 per driver).
 - Cube Postgres pool: `CUBEJS_DB_MAX_POOL` ~5 (small, single instance).
 
 **Data-model strategy:**
