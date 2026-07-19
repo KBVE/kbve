@@ -65,7 +65,7 @@ export function createStoreApi(opts: StoreApiOptions): StoreApi {
 		if (!res.ok) {
 			const j = (json ?? {}) as { error?: string; message?: string; code?: string };
 			throw new StoreApiError(
-				j.error ?? j.message ?? text ?? `HTTP ${res.status}`,
+				j.error ?? j.message ?? (text || `HTTP ${res.status}`),
 				res.status,
 				j.code,
 			);

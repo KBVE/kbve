@@ -71,4 +71,17 @@ describe('createStoreApi', () => {
 		const api = createStoreApi({ getToken: token });
 		expect(await api.topupCheckout('small')).toEqual({ checkout_url: 'https://pay' });
 	});
+
+	it('non-OK empty body falls back to HTTP status message', async () => {
+		(global.fetch as any).mockResolvedValue({
+			ok: false,
+			status: 500,
+			text: async () => '',
+		});
+		const api = createStoreApi({ getToken: token });
+		const err = await api.buyProduct('x').catch((e) => e);
+		expect(err).toBeInstanceOf(StoreApiError);
+		expect(err.status).toBe(500);
+		expect(err.message).toBe('HTTP 500');
+	});
 });
