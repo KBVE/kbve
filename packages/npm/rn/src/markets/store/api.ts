@@ -1,10 +1,14 @@
 import { StoreApiError } from './errors';
 import { newIdempotencyKey } from './keys';
 import type {
+	OrderStatus,
 	ShippingAddress,
+	StaffProductBody,
+	StaffVariantBody,
 	StoreEntitlement,
 	StoreItem,
 	StoreOrder,
+	StoreOrderStaff,
 	StoreProduct,
 	StoreProductDetail,
 } from './types';
@@ -25,6 +29,17 @@ export interface StoreApi {
 		body: { qty: number; shipping_address: ShippingAddress },
 	): Promise<{ order_id: number }>;
 	topupCheckout(packId: string): Promise<{ checkout_url: string }>;
+	staffUpsertProduct(body: StaffProductBody): Promise<{ id: string }>;
+	staffSetProductStatus(productId: string, status: string): Promise<void>;
+	staffUpsertVariant(productId: string, body: StaffVariantBody): Promise<{ id: string }>;
+	staffSetVariantStatus(variantId: string, status: string): Promise<void>;
+	staffListOrders(status?: OrderStatus): Promise<StoreOrderStaff[]>;
+	staffAdvanceOrder(
+		orderId: number,
+		body: { to_status: OrderStatus; tracking?: Record<string, unknown>; note?: string },
+	): Promise<void>;
+	staffRefundOrder(orderId: number, reason?: string): Promise<void>;
+	staffSubmitPod(orderId: number): Promise<{ order_id: number; external_id: string }>;
 }
 
 interface Req {
@@ -101,6 +116,49 @@ export function createStoreApi(opts: StoreApiOptions): StoreApi {
 				path: '/api/v1/wallet/topup/checkout',
 				method: 'POST',
 				body: { pack_id: packId },
+				auth: true,
+			}),
+		staffUpsertProduct: (body) =>
+			call<{ id: string }>({ path: '/api/v1/store/staff/products', method: 'POST', body, auth: true }),
+		staffSetProductStatus: (productId, status) =>
+			call<void>({
+				path: `/api/v1/store/staff/products/${encodeURIComponent(productId)}/status`,
+				method: 'POST',
+				body: { status },
+				auth: true,
+			}),
+		staffUpsertVariant: (productId, body) =>
+			call<{ id: string }>({
+				path: `/api/v1/store/staff/products/${encodeURIComponent(productId)}/variants`,
+				method: 'POST',
+				body,
+				auth: true,
+			}),
+		staffSetVariantStatus: (variantId, status) =>
+			call<void>({
+				path: `/api/v1/store/staff/variants/${encodeURIComponent(variantId)}/status`,
+				method: 'POST',
+				body: { status },
+				auth: true,
+			}),
+		staffListOrders: (status) =>
+			call<StoreOrderStaff[]>({
+				path: `/api/v1/store/staff/orders${status ? `?status=${encodeURIComponent(status)}` : ''}`,
+				auth: true,
+			}),
+		staffAdvanceOrder: (orderId, body) =>
+			call<void>({ path: `/api/v1/store/staff/orders/${orderId}/advance`, method: 'POST', body, auth: true }),
+		staffRefundOrder: (orderId, reason) =>
+			call<void>({
+				path: `/api/v1/store/staff/orders/${orderId}/refund`,
+				method: 'POST',
+				body: { reason },
+				auth: true,
+			}),
+		staffSubmitPod: (orderId) =>
+			call<{ order_id: number; external_id: string }>({
+				path: `/api/v1/store/staff/orders/${orderId}/submit-pod`,
+				method: 'POST',
 				auth: true,
 			}),
 	};

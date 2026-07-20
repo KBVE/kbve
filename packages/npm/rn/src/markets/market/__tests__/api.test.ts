@@ -83,4 +83,27 @@ describe('createMarketApi', () => {
 		expect(err.message).toBe('amount must be a positive integer');
 		expect(err.code).toBe('invalid_argument');
 	});
+
+	it('myListings GETs personal listings with cursor, bearer', async () => {
+		(global.fetch as any).mockResolvedValue({ ok: true, status: 200, text: async () => '[]' });
+		const api = createMarketApi({ getToken: token, baseUrl: 'https://x' });
+		await api.myListings({ limit: 50 });
+		const [url, init] = (global.fetch as any).mock.calls[0];
+		expect(url).toBe('https://x/api/v1/market/me/listings?limit=50');
+		expect(init.headers.Authorization).toBe('Bearer tok');
+	});
+
+	it('myBids GETs personal bids with before_placed_at cursor', async () => {
+		(global.fetch as any).mockResolvedValue({ ok: true, status: 200, text: async () => '[]' });
+		const api = createMarketApi({ getToken: token, baseUrl: '' });
+		await api.myBids({ limit: 10, before_placed_at: '2020', before_id: 3 });
+		const [url] = (global.fetch as any).mock.calls[0];
+		expect(url).toBe('/api/v1/market/me/bids?limit=10&before_placed_at=2020&before_id=3');
+	});
+
+	it('myListings without token throws 401 without fetch', async () => {
+		const api = createMarketApi({ getToken: async () => null });
+		await expect(api.myListings()).rejects.toMatchObject({ name: 'MarketApiError', status: 401 });
+		expect(global.fetch).not.toHaveBeenCalled();
+	});
 });

@@ -1,10 +1,13 @@
 import { MarketApiError } from './errors';
 import { newIdempotencyKey } from '../shared';
 import type {
+	BidCursor,
 	Cursor,
 	IdResponse,
 	MarketListing,
 	MarketListingDetail,
+	MyBid,
+	MyListing,
 } from './types';
 
 export interface MarketApiOptions {
@@ -26,6 +29,8 @@ export interface MarketApi {
 	placeBid(id: number, amount: number): Promise<IdResponse>;
 	buyNow(id: number): Promise<IdResponse>;
 	cancelListing(id: number, reason?: string | null): Promise<void>;
+	myListings(c?: Cursor): Promise<MyListing[]>;
+	myBids(c?: BidCursor): Promise<MyBid[]>;
 }
 
 function query(
@@ -148,6 +153,24 @@ export function createMarketApi(opts: MarketApiOptions): MarketApi {
 				path: `/api/v1/market/listings/${id}/cancel`,
 				method: 'POST',
 				body: { reason },
+				auth: true,
+			}),
+		myListings: (c = {}) =>
+			call<MyListing[]>({
+				path: `/api/v1/market/me/listings${query({
+					limit: c.limit ?? 25,
+					before_created_at: c.before_created_at,
+					before_id: c.before_id,
+				})}`,
+				auth: true,
+			}),
+		myBids: (c = {}) =>
+			call<MyBid[]>({
+				path: `/api/v1/market/me/bids${query({
+					limit: c.limit ?? 25,
+					before_placed_at: c.before_placed_at,
+					before_id: c.before_id,
+				})}`,
 				auth: true,
 			}),
 	};

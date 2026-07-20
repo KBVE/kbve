@@ -84,4 +84,47 @@ describe('createStoreApi', () => {
 		expect(err.status).toBe(500);
 		expect(err.message).toBe('HTTP 500');
 	});
+
+	it('staffUpsertProduct POSTs bearer to staff products, returns id', async () => {
+		(global.fetch as any).mockResolvedValue({
+			ok: true,
+			status: 200,
+			text: async () => JSON.stringify({ id: 'p9' }),
+		});
+		const api = createStoreApi({ getToken: token, baseUrl: '' });
+		const res = await api.staffUpsertProduct({ slug: 's', title: 't', price: 10 });
+		expect(res).toEqual({ id: 'p9' });
+		const [url, init] = (global.fetch as any).mock.calls[0];
+		expect(url).toBe('/api/v1/store/staff/products');
+		expect(init.method).toBe('POST');
+		expect(init.headers.Authorization).toBe('Bearer tok');
+		expect(JSON.parse(init.body).idempotency_key).toBeUndefined();
+	});
+
+	it('staffListOrders GETs staff orders with status query', async () => {
+		(global.fetch as any).mockResolvedValue({
+			ok: true,
+			status: 200,
+			text: async () => '[]',
+		});
+		const api = createStoreApi({ getToken: token, baseUrl: 'https://x' });
+		await api.staffListOrders('paid');
+		const [url] = (global.fetch as any).mock.calls[0];
+		expect(url).toBe('https://x/api/v1/store/staff/orders?status=paid');
+	});
+
+	it('staffAdvanceOrder POSTs to advance with body', async () => {
+		(global.fetch as any).mockResolvedValue({ ok: true, status: 200, text: async () => '' });
+		const api = createStoreApi({ getToken: token, baseUrl: '' });
+		await api.staffAdvanceOrder(5, { to_status: 'shipped', tracking: { number: 'AB' } });
+		const [url, init] = (global.fetch as any).mock.calls[0];
+		expect(url).toBe('/api/v1/store/staff/orders/5/advance');
+		expect(JSON.parse(init.body)).toEqual({ to_status: 'shipped', tracking: { number: 'AB' } });
+	});
+
+	it('staff call without token throws 401 without fetch', async () => {
+		const api = createStoreApi({ getToken: async () => null });
+		await expect(api.staffListOrders()).rejects.toMatchObject({ name: 'StoreApiError', status: 401 });
+		expect(global.fetch).not.toHaveBeenCalled();
+	});
 });
