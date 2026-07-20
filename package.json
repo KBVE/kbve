@@ -3,7 +3,7 @@
 	"version": "0.0.0",
 	"license": "MIT",
 	"private": true,
-	"packageManager": "pnpm@10.33.0",
+	"packageManager": "pnpm@11.15.0",
 	"devDependencies": {
 		"@astrojs/check": "^0.9.9",
 		"@astrojs/markdown-remark": "^7.2.1",

@@ -11,7 +11,7 @@ on:
             pnpm_version:
                 description: 'PNPM version'
                 required: false
-                default: '10.33.0'
+                default: '11.15.0'
                 type: string
             build_command:
                 description: 'Build command for the project'
