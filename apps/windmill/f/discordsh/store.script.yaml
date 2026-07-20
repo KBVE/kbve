@@ -1,12 +1,13 @@
-summary: KBVE store — view products, check credits, buy with credits (/wm store)
+summary: KBVE store — view products, check credits, list owned, buy with credits (/wm store)
 description: >-
   args[0] is a subcommand router: empty/view/catalog shows the storefront embed
   with the current products and a deep link to kbve.com/store; balance shows the
-  caller's credits via axum /api/v1/wallet/service/balance-discord; buy [slug]
-  spends the caller's credits and mints the entitlement via axum
-  /api/v1/store/service/buy-discord (both resolve discord.user_id -> KBVE
+  caller's credits via axum /api/v1/wallet/service/balance-discord; inventory
+  lists owned collectibles via axum /api/v1/store/service/inventory-discord; buy
+  [slug] spends the caller's credits and mints the entitlement via axum
+  /api/v1/store/service/buy-discord (all resolve discord.user_id -> KBVE
   account, buy defaults to the featured card); help lists the subcommands.
-  balance + buy require Windmill variables f/discordsh/axum_base_url and
+  balance + inventory + buy require Windmill variables f/discordsh/axum_base_url and
   f/discordsh/axum_service_token (secret service_role JWT); view/help/catalog are
   static.
 kind: script

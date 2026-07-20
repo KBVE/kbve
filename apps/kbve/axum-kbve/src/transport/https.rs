@@ -588,6 +588,10 @@ fn router(state: AppState) -> Router {
             post(super::store::service_buy_discord),
         )
         .route(
+            "/api/v1/store/service/inventory-discord",
+            post(super::store::service_inventory_discord),
+        )
+        .route(
             "/api/v1/store/staff/products",
             post(super::store::staff_upsert_product),
         )
