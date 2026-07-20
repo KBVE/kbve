@@ -1,14 +1,62 @@
 ---
-import StoreAdmin from './StoreAdmin';
-import StaffOrderQueue from './StaffOrderQueue';
-import './store.css';
+import BentoShell from '@/components/hero/BentoShell.astro';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
+import ReactStoreAdminRN from './ReactStoreAdminRN';
+
+const backdrop = 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?q=80&w=2400&auto=format&fit=crop';
 ---
 
-<section class="kbve-store not-content kbve-dashboard-page">
-	<header class="kbve-store__header">
-		<h1>Store Admin</h1>
-		<p>Manage products, variants, and fulfill orders. Staff only.</p>
-	</header>
-	<StoreAdmin client:only="react" />
-	<StaffOrderQueue client:only="react" />
-</section>
+<div class="store-admin-hub" style={`--bento-hero-bg: url('${backdrop}')`}>
+	<section class="bento-hero bento-section not-content" aria-label="Store Admin">
+		<div class="bento-hero__bg" aria-hidden="true"></div>
+		<div class="bento-hero__frame bento-frame">
+			<div class="bento-board bento-board--hero">
+				<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+					<span class="bento-badge bento-chip"><span>staff</span></span>
+					<h1 class="bento-title">Run the store,
+						<span class="bento-title__accent">mint the drops.</span></h1>
+					<p class="bento-lede">
+						Manage products, variants, and the fulfillment queue. Staff only —
+						every action is audited against your account.
+					</p>
+					<div class="bento-cta">
+						<a class="bento-btn bento-btn--primary" href="#admin">Open console
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+						</a>
+						<a class="bento-btn bento-btn--ghost" href="/store/">Customer store</a>
+					</div>
+				</div>
+				{[
+					{ v: 'Catalog', l: 'Products & variants' },
+					{ v: 'Fulfillment', l: 'Advance, ship, refund' },
+					{ v: 'Audited', l: 'Staff-gated actions' },
+				].map((s) => (
+					<div class="bento-cell bento-stat bento-card bento-card--glass">
+						<span class="bento-stat__value">{s.v}</span>
+						<span class="bento-stat__label">{s.l}</span>
+					</div>
+				))}
+			</div>
+		</div>
+	</section>
+
+	<BentoShell id="admin" eyebrow="Staff" heading="Store Admin">
+		<div class="admin-island">
+			<ReactStoreAdminRN client:only="react">
+				<RnDashSkeleton slot="fallback" tiles={3} rows={4} />
+			</ReactStoreAdminRN>
+		</div>
+	</BentoShell>
+</div>
+
+<style>
+	.admin-island { min-height: 60vh; }
+</style>
+
+<style is:global>
+	.store-admin-hub {
+		--bento-accent: #fbbf24;
+		--bento-accent-2: #f59e0b;
+		--bento-btn-fg: #3a2a05;
+	}
+</style>
