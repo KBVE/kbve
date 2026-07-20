@@ -1,50 +1,87 @@
 ---
-import MarketBrowse from './MarketBrowse';
-import MarketCreateForm from './MarketCreateForm';
-import './market.css';
+import BentoShell from '@/components/hero/BentoShell.astro';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
+import ReactMarketRN from './ReactMarketRN';
+
+const backdrop = 'https://images.unsplash.com/photo-1607083206869-4c7672e72a8a?q=80&w=2400&auto=format&fit=crop';
 ---
 
-<section class="kbve-market not-content kbve-dashboard-page">
-	<header class="kbve-market__header">
-		<div>
-			<h1>Marketplace</h1>
-			<p>
-				Player-driven listings settled in KHash. A 1% KBVE Treasury fee
-				applies on every sale. Auction bids hold your KHash in escrow
-				until you're outbid or the listing settles.
-			</p>
+<div class="market-hub" style={`--bento-hero-bg: url('${backdrop}')`}>
+	<section class="bento-hero bento-section not-content" aria-label="KBVE Marketplace">
+		<div class="bento-hero__bg" aria-hidden="true"></div>
+		<div class="bento-hero__frame bento-frame">
+			<div class="bento-board bento-board--hero">
+				<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+					<span class="bento-badge bento-chip"><span>marketplace</span></span>
+					<h1 class="bento-title">Trade with KHash,
+						<span class="bento-title__accent">settle with escrow.</span></h1>
+					<p class="bento-lede">
+						Player-driven listings settled in KHash. A 1% KBVE Treasury fee
+						applies on every sale. Auction bids hold your KHash in escrow
+						until you're outbid or the listing settles.
+					</p>
+					<div class="bento-cta">
+						<a class="bento-btn bento-btn--primary" href="#market">Browse the market
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+						</a>
+						<a class="bento-btn bento-btn--ghost" href="/store/">Store</a>
+						<button
+							type="button"
+							class="kbve-search-trigger"
+							data-kbve-search-trigger
+							aria-label="Open universal search">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								width="16"
+								height="16"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true">
+								<circle cx="11" cy="11" r="7"></circle>
+								<path d="m20 20-3-3"></path>
+							</svg>
+							<span class="kbve-search-trigger__label">Search…</span>
+							<span class="kbve-search-trigger__keycap" data-kbve-search-keycap>
+								Ctrl+K
+							</span>
+						</button>
+					</div>
+				</div>
+				{[
+					{ v: 'Settled in KHash', l: 'Every sale clears in KHash' },
+					{ v: '1% Treasury fee', l: 'Flat fee on every sale' },
+					{ v: 'Escrow bids', l: 'Bids hold KHash until settled' },
+				].map((s) => (
+					<div class="bento-cell bento-stat bento-card bento-card--glass">
+						<span class="bento-stat__value">{s.v}</span>
+						<span class="bento-stat__label">{s.l}</span>
+					</div>
+				))}
+			</div>
 		</div>
-		<button
-			type="button"
-			class="kbve-search-trigger"
-			data-kbve-search-trigger
-			aria-label="Open universal search">
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				width="16"
-				height="16"
-				viewBox="0 0 24 24"
-				fill="none"
-				stroke="currentColor"
-				stroke-width="2"
-				stroke-linecap="round"
-				stroke-linejoin="round"
-				aria-hidden="true">
-				<circle cx="11" cy="11" r="7"></circle>
-				<path d="m20 20-3-3"></path>
-			</svg>
-			<span class="kbve-search-trigger__label">Search…</span>
-			<span class="kbve-search-trigger__keycap" data-kbve-search-keycap>
-				Ctrl+K
-			</span>
-		</button>
-	</header>
+	</section>
 
-	<details class="kbve-market__create">
-		<summary>Create a listing</summary>
-		<MarketCreateForm client:only="react" />
-	</details>
+	<BentoShell id="market" eyebrow="Browse" heading="Marketplace">
+		<div class="market-island">
+			<ReactMarketRN client:only="react">
+				<RnDashSkeleton slot="fallback" tiles={3} rows={4} />
+			</ReactMarketRN>
+		</div>
+	</BentoShell>
+</div>
 
-	<h2 class="kbve-market__section">Active Listings</h2>
-	<MarketBrowse client:only="react" />
-</section>
+<style>
+	.market-island { min-height: 60vh; }
+</style>
+
+<style is:global>
+	.market-hub {
+		--bento-accent: #a78bfa;
+		--bento-accent-2: #22d3ee;
+		--bento-btn-fg: #1a1033;
+	}
+</style>

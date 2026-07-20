@@ -48,18 +48,18 @@ describe('createStoreApi', () => {
 		expect(global.fetch).not.toHaveBeenCalled();
 	});
 
-	it('non-OK JSON body surfaces error message + status + code', async () => {
+	it('non-OK JSON body surfaces human message over slug; code = error slug', async () => {
 		(global.fetch as any).mockResolvedValue({
 			ok: false,
 			status: 402,
-			text: async () => JSON.stringify({ error: 'insufficient', code: 'P1001' }),
+			text: async () => JSON.stringify({ error: 'insufficient_funds', message: 'not enough credits' }),
 		});
 		const api = createStoreApi({ getToken: token });
 		const err = await api.buyProduct('x').catch((e) => e);
 		expect(err).toBeInstanceOf(StoreApiError);
 		expect(err.status).toBe(402);
-		expect(err.code).toBe('P1001');
-		expect(err.message).toBe('insufficient');
+		expect(err.message).toBe('not enough credits');
+		expect(err.code).toBe('insufficient_funds');
 	});
 
 	it('topupCheckout returns checkout_url', async () => {

@@ -33,6 +33,8 @@ bento:
           primary: true
         - label: NodeJS
           href: '#nodejs'
+        - label: pnpm
+          href: '#pnpm'
         - label: Bun
           href: '#bun'
         - label: Tools
@@ -62,6 +64,10 @@ bento:
           icon: server
           href: '#nodejs'
           body: Install Node with nvm on Ubuntu, Windows, or MacOS — then meet Bun, the fast all-in-one runtime, bundler, and package manager.
+        - title: pnpm workspaces
+          icon: package
+          href: '#pnpm'
+          body: The fast, disk-efficient package manager behind the KBVE monorepo — version pinning, workspaces, and pnpm 11's allowBuilds.
         - title: Frameworks and UI
           icon: code
           href: '#react'
@@ -758,6 +764,97 @@ Option B: Brew Install Node (directly)
 2.  Once installed, open a terminal window and type node -v to check the installed version.
 
 </Steps>
+
+</BentoProse>
+
+<BentoProse id="pnpm" eyebrow="Fast, disk-efficient package manager" heading="pnpm">
+
+[pnpm](https://pnpm.io/) is a drop-in replacement for `npm` that installs packages into a single content-addressable store and hard-links them into each project's `node_modules`. That makes installs fast and saves gigabytes of disk across many projects — the reason it is the package manager for the KBVE monorepo.
+
+### Install
+
+pnpm ships with recent Node via [Corepack](https://nodejs.org/api/corepack.html), which is the recommended way to get the exact version a repo pins:
+
+```bash
+# Corepack (bundled with Node) — respects the repo's packageManager pin
+corepack enable
+corepack prepare pnpm@latest --activate
+
+# Homebrew
+brew install pnpm
+
+# Standalone script
+curl -fsSL https://get.pnpm.io/install.sh | sh -
+```
+
+Verify with `pnpm --version`.
+
+### Pinning the version (packageManager)
+
+Add a `packageManager` field to the root `package.json` so every machine and CI runner self-switches to the same pnpm — pnpm ≥10 honors it automatically:
+
+```json
+{
+  "packageManager": "pnpm@11.15.0"
+}
+```
+
+Inside the repo, `pnpm --version` then reports the pinned version regardless of what is installed globally.
+
+### Everyday commands
+
+<Steps>
+
+1.  **Install the workspace** (respects `pnpm-lock.yaml`):
+
+    ```bash
+    pnpm install
+    pnpm install --frozen-lockfile   # CI: fail if the lockfile is out of date
+    ```
+
+2.  **Add / remove dependencies:**
+
+    ```bash
+    pnpm add react react-dom
+    pnpm add -D vite
+    pnpm remove react-dom
+    ```
+
+3.  **Run scripts and binaries:**
+
+    ```bash
+    pnpm dev                # runs the "dev" script
+    pnpm exec eslint .      # run a workspace-local binary
+    pnpm dlx create-astro   # one-off, like npx
+    ```
+
+4.  **Workspaces** — target a single package in a monorepo:
+
+    ```bash
+    pnpm --filter @kbve/astro-kbve build
+    ```
+
+</Steps>
+
+### Workspace config & build scripts
+
+pnpm keeps monorepo settings in `pnpm-workspace.yaml` — `packages`, `overrides`, `minimumReleaseAge`, and `allowBuilds`. As of **pnpm 11**, the older `onlyBuiltDependencies` / `neverBuiltDependencies` / `ignoredBuiltDependencies` keys were removed and unified into a single `allowBuilds` map. Packages not listed are treated as *unreviewed*, and pnpm 11 **hard-errors** on them (a non-zero exit, where pnpm 10 only warned):
+
+```yaml
+# pnpm-workspace.yaml
+allowBuilds:
+  esbuild: true        # allowed to run its postinstall build script
+  sharp: true
+  '@bufbuild/buf': false   # deliberately skipped, and acknowledged so it does not error
+```
+
+Set `true` for dependencies whose native/postinstall build you trust, and `false` for ones you intentionally skip. This keeps supply-chain risk explicit — no package silently runs install scripts.
+
+<Aside type="tip" title="Upgrading pnpm across a monorepo">
+
+Bump the `packageManager` field, every CI `pnpm/action-setup` `version:` pin, and any Dockerfile `PNPM_VERSION` arg together, then run `pnpm install` to reconcile. The first install after a major bump purges `node_modules` (built by the old pnpm) — pass `CI=true` (or set `confirmModulesPurge: false`) to auto-accept it non-interactively.
+
+</Aside>
 
 </BentoProse>
 

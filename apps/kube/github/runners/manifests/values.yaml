@@ -36,7 +36,7 @@ template:
         # Init container to copy externals for DinD
         initContainers:
             - name: init-dind-externals
-              image: ghcr.io/kbve/arc-runner:0.1.6
+              image: ghcr.io/kbve/arc-runner:0.1.7
               command:
                   [
                       'cp',
@@ -50,7 +50,7 @@ template:
                     mountPath: /home/runner/tmpDir
         containers:
             - name: runner
-              image: ghcr.io/kbve/arc-runner:0.1.6
+              image: ghcr.io/kbve/arc-runner:0.1.7
               # Fix sudoers for root before starting runner (Unity builder uses sudo)
               command:
                   [
