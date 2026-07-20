@@ -1,0 +1,433 @@
+{
+  "generated_at": "2026-07-20T04:35:59Z",
+  "window": {
+    "days": 7,
+    "since": "2026-07-13"
+  },
+  "totals": {
+    "runs": 1000,
+    "success": 900,
+    "failure": 33,
+    "cancelled": 61,
+    "skipped": 0,
+    "other": 6,
+    "flaky": 0,
+    "success_rate": 96.5,
+    "avg_duration_s": 285
+  },
+  "totals_24h": {
+    "runs": 510,
+    "success": 440,
+    "failure": 14,
+    "success_rate": 96.9
+  },
+  "workflows": [
+    {
+      "name": "CI - CodeQL",
+      "runs": 344,
+      "success": 318,
+      "failure": 0,
+      "cancelled": 25,
+      "skipped": 0,
+      "other": 1,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 225
+    },
+    {
+      "name": "CI - Dev",
+      "runs": 220,
+      "success": 181,
+      "failure": 11,
+      "cancelled": 26,
+      "skipped": 0,
+      "other": 2,
+      "flaky": 0,
+      "success_rate": 94.3,
+      "avg_duration_s": 438
+    },
+    {
+      "name": "CI - Manifest Guard",
+      "runs": 92,
+      "success": 88,
+      "failure": 0,
+      "cancelled": 3,
+      "skipped": 0,
+      "other": 1,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 145
+    },
+    {
+      "name": "CI - Actionlint",
+      "runs": 58,
+      "success": 50,
+      "failure": 1,
+      "cancelled": 7,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 98.0,
+      "avg_duration_s": 34
+    },
+    {
+      "name": "CI - dbmate validate",
+      "runs": 31,
+      "success": 27,
+      "failure": 4,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 87.1,
+      "avg_duration_s": 228
+    },
+    {
+      "name": "CI - Bevy",
+      "runs": 30,
+      "success": 30,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 25
+    },
+    {
+      "name": "CI - Forgejo Mirror",
+      "runs": 30,
+      "success": 30,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 68
+    },
+    {
+      "name": "CI - Main",
+      "runs": 30,
+      "success": 30,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 108
+    },
+    {
+      "name": "CI - Manifest Sync",
+      "runs": 30,
+      "success": 30,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 199
+    },
+    {
+      "name": "Auto-merge bot PRs",
+      "runs": 28,
+      "success": 26,
+      "failure": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 1,
+      "flaky": 0,
+      "success_rate": 96.3,
+      "avg_duration_s": 31
+    },
+    {
+      "name": "CI - Docker / axum-kbve",
+      "runs": 21,
+      "success": 15,
+      "failure": 6,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 71.4,
+      "avg_duration_s": 1924
+    },
+    {
+      "name": "Windmill Sync",
+      "runs": 17,
+      "success": 8,
+      "failure": 9,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 47.1,
+      "avg_duration_s": 60
+    },
+    {
+      "name": "CI - Docker / discordsh-bot",
+      "runs": 14,
+      "success": 14,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 1005
+    },
+    {
+      "name": "CI - Docker / discordsh",
+      "runs": 12,
+      "success": 12,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 980
+    },
+    {
+      "name": "CI - MC Smoke",
+      "runs": 11,
+      "success": 11,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 162
+    },
+    {
+      "name": "CI - Publish / python / python-kbve",
+      "runs": 7,
+      "success": 6,
+      "failure": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 85.7,
+      "avg_duration_s": 169
+    },
+    {
+      "name": "CI - Publish / npm / devops",
+      "runs": 6,
+      "success": 6,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 241
+    },
+    {
+      "name": "Organize Labels",
+      "runs": 6,
+      "success": 6,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 18
+    },
+    {
+      "name": "Daily Content",
+      "runs": 4,
+      "success": 3,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 1,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 166
+    },
+    {
+      "name": "CI - Atomic Branches",
+      "runs": 2,
+      "success": 2,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 433
+    },
+    {
+      "name": "CI - Daily Dashboard",
+      "runs": 2,
+      "success": 2,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 617
+    },
+    {
+      "name": "CI - Docker / mc-velocity",
+      "runs": 2,
+      "success": 2,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 602
+    },
+    {
+      "name": "CI - Registry Cleanup (GHCR)",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 40
+    },
+    {
+      "name": "CI - dbmate deploy",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 368
+    },
+    {
+      "name": "Graph Update: uv in /packages/python/kbve #1466055207",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 58
+    }
+  ],
+  "recent_failures": [
+    {
+      "name": "CI - Dev",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29706938622",
+      "finished_at": "2026-07-19T23:22:27Z"
+    },
+    {
+      "name": "CI - Dev",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29706106763",
+      "finished_at": "2026-07-19T22:36:59Z"
+    },
+    {
+      "name": "CI - Dev",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29704942824",
+      "finished_at": "2026-07-19T22:12:13Z"
+    },
+    {
+      "name": "CI - Dev",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29704778860",
+      "finished_at": "2026-07-19T21:51:55Z"
+    },
+    {
+      "name": "CI - Dev",
+      "branch": "dev",
+      "event": "push",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29704776992",
+      "finished_at": "2026-07-19T21:41:49Z"
+    },
+    {
+      "name": "CI - Dev",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29702552151",
+      "finished_at": "2026-07-19T21:18:57Z"
+    },
+    {
+      "name": "CI - Publish / python / python-kbve",
+      "branch": "main",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29703926669",
+      "finished_at": "2026-07-19T21:14:41Z"
+    },
+    {
+      "name": "CI - Docker / axum-kbve",
+      "branch": "main",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29680120761",
+      "finished_at": "2026-07-19T08:47:03Z"
+    },
+    {
+      "name": "CI - Dev",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29679329622",
+      "finished_at": "2026-07-19T08:36:40Z"
+    },
+    {
+      "name": "CI - Dev",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29677483778",
+      "finished_at": "2026-07-19T07:25:12Z"
+    },
+    {
+      "name": "CI - Docker / axum-kbve",
+      "branch": "main",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29677652775",
+      "finished_at": "2026-07-19T07:20:16Z"
+    },
+    {
+      "name": "CI - Actionlint",
+      "branch": "feat/kbve-nx-stage3-retire",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29677274309",
+      "finished_at": "2026-07-19T06:57:41Z"
+    },
+    {
+      "name": "Windmill Sync",
+      "branch": "dev",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29674012141",
+      "finished_at": "2026-07-19T04:54:38Z"
+    },
+    {
+      "name": "Windmill Sync",
+      "branch": "main",
+      "event": "push",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29673723134",
+      "finished_at": "2026-07-19T04:43:32Z"
+    },
+    {
+      "name": "CI - dbmate validate",
+      "branch": "feat/astro-kbve-store-poc",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29670890063",
+      "finished_at": "2026-07-19T02:56:54Z"
+    }
+  ]
+}
