@@ -134,6 +134,40 @@ def test_graph_mdx_render():
     assert "```mermaid" in mdx
 
 
+def _big_graph(n=60):
+    nodes = {"core": {"type": "lib", "data": {"root": "libs/core"}}}
+    deps = {"core": []}
+    for i in range(n):
+        name = f"lib{i}"
+        nodes[name] = {"type": "lib", "data": {"root": f"libs/{name}"}}
+        deps[name] = [{"source": name, "target": "core", "type": "static"}]
+    return {"graph": {"nodes": nodes, "dependencies": deps}}
+
+
+def test_graph_mdx_caps_large_diagram():
+    import re
+
+    from kbve.nx.render import _MAX_DIAGRAM_NODES
+
+    graph = parse_graph(_big_graph(60))
+    mdx = render_graph_mdx(graph, TS)
+    # capped note is present for oversized graphs
+    assert "most-connected projects" in mdx
+    # the mermaid diagram renders at most _MAX_DIAGRAM_NODES distinct nodes
+    start = mdx.index("graph LR")
+    block = mdx[start:mdx.index("```", start)]
+    labels = set(re.findall(r'\["([^"]+)"\]', block))
+    assert 0 < len(labels) <= _MAX_DIAGRAM_NODES
+    # nothing hidden — every project still appears in the full index table
+    assert "lib59" in mdx
+
+
+def test_graph_mdx_small_not_capped():
+    graph = parse_graph(_graph_fixture())
+    mdx = render_graph_mdx(graph, TS)
+    assert "most-connected projects" not in mdx
+
+
 def test_graph_mdx_bento_structure():
     graph = parse_graph(_graph_fixture())
     mdx = render_graph_mdx(graph, TS)
