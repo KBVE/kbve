@@ -128,7 +128,7 @@ jobs:
                   git -c lfs.url="$URL" lfs pull -I "${PROJECT_PATH}/**"
 
             - name: Setup Node.js ${{ env.NODE_VERSION }}
-              uses: actions/setup-node@v6
+              uses: actions/setup-node@v7
               with:
                   node-version: ${{ env.NODE_VERSION }}
 
