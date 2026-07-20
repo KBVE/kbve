@@ -85,6 +85,12 @@ pub struct FfiGhostUnit {
     pub time_since_attack: f32,
     pub attack_kind: u8,
     pub target_mode: u8,
+
+    // Per-character attributes (npcdb base ±20%). 0 = absent (pre-v4 save) → Unity rolls fresh.
+    pub strength: u8,
+    pub agility: u8,
+    pub intellect: u8,
+    pub will: u8,
 }
 
 /// Mirror of the C# `UnloadedBuildingRecord`. Field order + types must
@@ -329,7 +335,7 @@ struct DirtySnapshot {
     per_chunk: Vec<FlushSnapshot>,
 }
 
-const SCHEMA_VERSION: i64 = 3;
+const SCHEMA_VERSION: i64 = 4;
 
 fn init_schema(conn: &Connection) -> rusqlite::Result<()> {
     conn.execute_batch(
@@ -371,7 +377,11 @@ fn init_schema(conn: &Connection) -> rusqlite::Result<()> {
             attack_cooldown REAL NOT NULL DEFAULT 0,
             time_since_attack REAL NOT NULL DEFAULT 0,
             attack_kind INTEGER NOT NULL DEFAULT 0,
-            target_mode INTEGER NOT NULL DEFAULT 0
+            target_mode INTEGER NOT NULL DEFAULT 0,
+            strength INTEGER NOT NULL DEFAULT 0,
+            agility INTEGER NOT NULL DEFAULT 0,
+            intellect INTEGER NOT NULL DEFAULT 0,
+            will INTEGER NOT NULL DEFAULT 0
          );
          CREATE INDEX IF NOT EXISTS idx_units_chunk ON units(cx, cy);
          CREATE TABLE IF NOT EXISTS buildings (
@@ -515,6 +525,15 @@ fn migrate_schema(conn: &Connection) -> rusqlite::Result<()> {
         )?;
     }
 
+    if current < 4 {
+        conn.execute_batch(
+            "ALTER TABLE units ADD COLUMN strength INTEGER NOT NULL DEFAULT 0;
+             ALTER TABLE units ADD COLUMN agility INTEGER NOT NULL DEFAULT 0;
+             ALTER TABLE units ADD COLUMN intellect INTEGER NOT NULL DEFAULT 0;
+             ALTER TABLE units ADD COLUMN will INTEGER NOT NULL DEFAULT 0;",
+        )?;
+    }
+
     conn.execute(
         "INSERT OR REPLACE INTO meta (key, value) VALUES ('schema_version', ?1)",
         [SCHEMA_VERSION.to_string()],
@@ -561,7 +580,8 @@ fn load_all_from_db(conn: &Connection) -> rusqlite::Result<HashMap<ChunkKey, Chu
                 energy, energy_max, energy_per_second,
                 last_tick_secs,
                 attack_damage, attack_range, attack_cooldown, time_since_attack,
-                attack_kind, target_mode
+                attack_kind, target_mode,
+                strength, agility, intellect, will
          FROM units",
     )?;
     let rows = stmt.query_map([], |row| {
@@ -597,6 +617,10 @@ fn load_all_from_db(conn: &Connection) -> rusqlite::Result<HashMap<ChunkKey, Chu
             time_since_attack: row.get(28)?,
             attack_kind: row.get::<_, i64>(29)? as u8,
             target_mode: row.get::<_, i64>(30)? as u8,
+            strength: row.get::<_, i64>(31)? as u8,
+            agility: row.get::<_, i64>(32)? as u8,
+            intellect: row.get::<_, i64>(33)? as u8,
+            will: row.get::<_, i64>(34)? as u8,
         };
         Ok(((cx, cy), unit))
     })?;
@@ -766,8 +790,9 @@ fn flush_dirty(
                   energy, energy_max, energy_per_second,
                   last_tick_secs,
                   attack_damage, attack_range, attack_cooldown, time_since_attack,
-                  attack_kind, target_mode)
-                 VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,?22,?23,?24,?25,?26,?27,?28,?29,?30,?31)",
+                  attack_kind, target_mode,
+                  strength, agility, intellect, will)
+                 VALUES (?1,?2,?3,?4,?5,?6,?7,?8,?9,?10,?11,?12,?13,?14,?15,?16,?17,?18,?19,?20,?21,?22,?23,?24,?25,?26,?27,?28,?29,?30,?31,?32,?33,?34,?35)",
             ) {
                 Ok(s) => s,
                 Err(_) => continue,
@@ -805,6 +830,10 @@ fn flush_dirty(
                     u.time_since_attack,
                     u.attack_kind as i64,
                     u.target_mode as i64,
+                    u.strength as i64,
+                    u.agility as i64,
+                    u.intellect as i64,
+                    u.will as i64,
                 ]);
             }
         }
@@ -1012,7 +1041,7 @@ pub unsafe extern "C" fn uniti_world_free(world: *mut c_void) {
 /// load the dylib if the value drifts from the C# constant. Catches the
 /// silent-corruption case where the Rust side is rebuilt without
 /// regenerating the C# bindings (or vice-versa).
-pub const UNITI_FFI_SCHEMA_VERSION: u32 = 3;
+pub const UNITI_FFI_SCHEMA_VERSION: u32 = 4;
 
 /// Returns the current FFI schema version. Unity calls this once on
 /// `WorldStoreSystem` boot and aborts if the returned value doesn't

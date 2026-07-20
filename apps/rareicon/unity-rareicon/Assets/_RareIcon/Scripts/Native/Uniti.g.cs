@@ -1078,6 +1078,10 @@ namespace RareIcon.Native
         public float time_since_attack;
         public byte attack_kind;
         public byte target_mode;
+        public byte strength;
+        public byte agility;
+        public byte intellect;
+        public byte will;
     }
 
     /// <summary>

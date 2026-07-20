@@ -3,7 +3,8 @@
     "rootNamespace": "RareIcon.Tests",
     "references": [
         "UnityEngine.TestRunner",
-        "UnityEditor.TestRunner"
+        "UnityEditor.TestRunner",
+        "RareIcon.Game"
     ],
     "includePlatforms": [
         "Editor"

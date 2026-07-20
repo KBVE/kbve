@@ -11,3 +11,5 @@ export { CheckoutModal } from './CheckoutModal';
 export { OrderHistory } from './OrderHistory';
 export { StoreView } from './StoreView';
 export type { StoreViewProps } from './StoreView';
+export { StoreAdminView } from './StoreAdminView';
+export type { StoreAdminViewProps } from './StoreAdminView';

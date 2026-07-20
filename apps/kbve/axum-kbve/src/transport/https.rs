@@ -526,6 +526,10 @@ fn router(state: AppState) -> Router {
             post(super::wallet::service_debit_discord),
         )
         .route(
+            "/api/v1/wallet/service/balance-discord",
+            post(super::wallet::service_balance_discord),
+        )
+        .route(
             "/api/v1/wallet/service/transfer",
             post(super::wallet::service_transfer),
         )
@@ -578,6 +582,10 @@ fn router(state: AppState) -> Router {
         .route(
             "/api/v1/store/products/{slug}/buy",
             post(super::store::buy),
+        )
+        .route(
+            "/api/v1/store/service/buy-discord",
+            post(super::store::service_buy_discord),
         )
         .route(
             "/api/v1/store/staff/products",
