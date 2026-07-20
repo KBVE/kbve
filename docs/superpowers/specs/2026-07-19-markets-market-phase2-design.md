@@ -36,8 +36,10 @@ market/
   api.ts            # createMarketApi({getToken, baseUrl}) -> MarketApi (public + authed, injects idempotency_key)
   format.ts         # KHash/price formatting (port of components/market/format.ts)
   countdown.ts      # expiry countdown formatting + a useCountdown hook (port of components/market/countdown.ts)
+  ItemIcon.tsx      # item thumbnail (mc-texture CDN + onError fallback chain; RN Image; solid-color kind tile instead of CSS gradient)
+  EnchantList.tsx   # compact enchant chips (port of components/market/enchants.ts + EnchantList.tsx)
   ListingCard.tsx   # one listing tile (item, current bid / buy-now, countdown, watch)
-  MarketBrowse.tsx  # active-listings grid + cursor "load more" + live countdown
+  MarketBrowse.tsx  # active-listings grid + kind filter + cursor "load more" + live countdown
   MarketCreateForm.tsx # sell: raw item-id (UUID) field + qty/buy-now/min-bid + expiry-duration Select -> createListing
   ListingDetail.tsx # bid / buy-now / cancel + bid history + countdown + owner/bidder states
   WatchToggle.tsx   # local watchlist toggle (port of watchlist.ts storage)
