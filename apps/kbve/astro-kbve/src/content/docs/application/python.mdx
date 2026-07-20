@@ -41,6 +41,8 @@ jsonld:
           answer: Pydantic is a data-validation library that uses Python type hints to parse and validate data at runtime. It powers FastAPI's request and response models, coercing and checking incoming JSON against your declared types and raising clear errors on mismatch.
         - question: Which Python version should I use?
           answer: Use the latest stable Python 3 release for new projects to get current syntax, performance, and security fixes. Pin the version per project with a virtual environment or a tool like pyenv so upgrades never break existing work.
+        - question: What is uv and should I use it instead of pip?
+          answer: uv is a fast Python package and project manager written in Rust that replaces pip, virtualenv, and pip-tools with a single tool. It resolves and installs dependencies 10-100x faster, writes a uv.lock for reproducible installs, and can install and pin the Python toolchain itself. Use uv for new projects and CI; pip still works everywhere and remains the fallback.
 bento:
     badge: application · programming · backend
     title: 'Readable power,'
@@ -57,6 +59,8 @@ bento:
           primary: true
         - label: Virtual environments
           href: '#virtual-environments'
+        - label: uv
+          href: '#uv'
         - label: FastAPI
           href: '#fastapi'
         - label: Pydantic
@@ -87,6 +91,10 @@ bento:
           icon: package
           href: '#virtual-environments'
           body: Create and activate isolated environments, then install, list, and upgrade packages from PyPI.
+        - title: uv — fast toolchain
+          icon: bolt
+          href: '#uv'
+          body: A Rust-based drop-in for pip, venv, and pip-tools — resolves and installs 10-100x faster, with a lockfile and pinned toolchain.
         - title: FastAPI + Pydantic
           icon: bolt
           href: '#fastapi'
@@ -299,6 +307,86 @@ pip install requests
         ```
 
 </Steps>
+
+</BentoProse>
+
+<BentoProse id="uv" eyebrow="Fast toolchain" heading="uv">
+
+[uv](https://docs.astral.sh/uv/) is a fast Python package and project manager written in Rust (by Astral, the makers of Ruff). It replaces `pip`, `virtualenv`, `pip-tools`, and much of `pyenv` with one tool — resolving and installing dependencies 10-100x faster, with a `uv.lock` for reproducible installs and the ability to install and pin the Python interpreter itself.
+
+### Install
+
+```bash
+# macOS / Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Homebrew
+brew install uv
+
+# Windows (PowerShell)
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
+
+Verify with `uv --version`.
+
+### Everyday commands
+
+<Steps>
+
+1.  **Create a project or environment:**
+
+    ```bash
+    uv init my_project      # scaffold a new project (pyproject.toml)
+    uv venv                 # create a .venv in the current directory
+    ```
+
+2.  **Add and remove dependencies** (updates `pyproject.toml` + `uv.lock`):
+
+    ```bash
+    uv add fastapi uvicorn
+    uv remove uvicorn
+    ```
+
+3.  **Sync the environment to the lockfile** (what CI runs):
+
+    ```bash
+    uv sync                 # install exactly what uv.lock pins
+    uv sync --frozen        # fail if the lockfile is out of date
+    ```
+
+4.  **Run a command inside the project environment** (no manual activate):
+
+    ```bash
+    uv run python main.py
+    uv run pytest
+    ```
+
+5.  **Use the pip-compatible interface** when you need it:
+
+    ```bash
+    uv pip install requests
+    uv pip list
+    ```
+
+6.  **Manage Python versions:**
+
+    ```bash
+    uv python install 3.12
+    uv python pin 3.12      # writes .python-version
+    ```
+
+</Steps>
+
+### Pinning the uv version
+
+For reproducible builds, pin the exact `uv` release in a `uv.toml` at the repo root so every machine and CI runner uses the same resolver:
+
+```toml
+# uv.toml
+required-version = "==0.11.29"
+```
+
+An install with a mismatched `uv` then fails fast (`error: Required uv version ==0.11.29 does not match the running version`) instead of silently drifting. Bump the pin and `uv self update` (or `brew upgrade uv`) together.
 
 </BentoProse>
 
