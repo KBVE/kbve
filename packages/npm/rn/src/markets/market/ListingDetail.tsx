@@ -6,7 +6,6 @@ import { FormField } from '../../ui/primitives/FormField';
 import { Stack } from '../../ui/primitives/Stack';
 import { Surface } from '../../ui/primitives/Surface';
 import { Text } from '../../ui/primitives/Text';
-import { tokens } from '../../ui/theme';
 import { notifyWalletRefresh } from '../shared';
 import type { MarketApi } from './api';
 import { MarketApiError } from './errors';
