@@ -1,0 +1,17 @@
+---
+import MonorepoGraphExplorer from './graphExplorer/MonorepoGraphExplorer';
+---
+
+<div id="graph-explorer-shell" class="graph-explorer-shell not-content">
+	<MonorepoGraphExplorer client:only="react" />
+</div>
+
+<style>
+	.graph-explorer-shell {
+		position: fixed;
+		inset: var(--sl-nav-height, 3.5rem) 0 0
+			var(--sl-content-inline-start, 0);
+		background: #0a0e16;
+		z-index: 1;
+	}
+</style>
