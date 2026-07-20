@@ -6,6 +6,7 @@ import { Button } from '../ui/primitives/Button';
 import { Stack } from '../ui/primitives/Stack';
 import { StoreView } from '../markets/store/StoreView';
 import { MarketView } from '../markets/market/MarketView';
+import { openExternal } from '../platform/openExternal';
 
 type Tab = 'store' | 'market';
 
@@ -28,7 +29,12 @@ export function MarketsScreen() {
 			{tab === 'store' ? (
 				<StoreView getToken={getToken} baseUrl="https://kbve.com" authenticated={authenticated} />
 			) : (
-				<MarketView getToken={getToken} baseUrl="https://kbve.com" authenticated={authenticated} />
+				<MarketView
+					getToken={getToken}
+					baseUrl="https://kbve.com"
+					authenticated={authenticated}
+					onOpen={(id) => openExternal('https://kbve.com/market/listing/?id=' + id)}
+				/>
 			)}
 		</View>
 	);
