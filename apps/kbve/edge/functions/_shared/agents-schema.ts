@@ -3,16 +3,16 @@
  *
  * Source: ../descriptors/agents.binpb
  * Config: ../agents-zod-config.json
- * Generated: 2026-06-22T21:31:58.927Z
+ * Generated: 2026-07-20T00:37:21.617Z
  */
 
-import { z } from 'https://deno.land/x/zod@v3.23.8/mod.ts';
+import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 
 export const TokenServices = [
-	'github_webhook',
-	'github',
-	'github_repos',
-	'discordsh_config',
+  "github_webhook",
+  "github",
+  "github_repos",
+  "discordsh_config",
 ] as const;
 
 export type TokenServiceValue = (typeof TokenServices)[number];
@@ -21,91 +21,122 @@ export const TokenServiceSchema = z.enum(TokenServices);
 
 // PeekTokenResponse
 export const PeekTokenResponseSchema = z
-	.object({
-		value: z.string().optional(),
-	});
+  .object({
+    value: z.string().optional(),
+  });
 
 export type PeekTokenResponse = z.infer<typeof PeekTokenResponseSchema>;
 
 // PeekTokenRequest
 export const PeekTokenRequestSchema = z
-	.object({
-		server_id: z.string().regex(/^\d{17,20}$/, 'Must be a valid Discord snowflake (17-20 digits)'),
-		service: z.string().regex(/^[a-z0-9_]{2,32}$/, 'Service must be 2-32 chars: lowercase a-z, 0-9, underscore'),
-	});
+  .object({
+    server_id: z.string().regex(
+      /^\d{17,20}$/,
+      "Must be a valid Discord snowflake (17-20 digits)",
+    ),
+    service: z.string().regex(
+      /^[a-z0-9_]{2,32}$/,
+      "Service must be 2-32 chars: lowercase a-z, 0-9, underscore",
+    ),
+  });
 
 export type PeekTokenRequest = z.infer<typeof PeekTokenRequestSchema>;
 
 // ToggleTokenRequest
 export const ToggleTokenRequestSchema = z
-	.object({
-		server_id: z.string().regex(/^\d{17,20}$/, 'Must be a valid Discord snowflake (17-20 digits)'),
-		token_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'token_id must be a UUID'),
-		is_active: z.boolean(),
-	});
+  .object({
+    server_id: z.string().regex(
+      /^\d{17,20}$/,
+      "Must be a valid Discord snowflake (17-20 digits)",
+    ),
+    token_id: z.string().regex(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+      "token_id must be a UUID",
+    ),
+    is_active: z.boolean(),
+  });
 
 export type ToggleTokenRequest = z.infer<typeof ToggleTokenRequestSchema>;
 
 // DeleteTokenRequest
 export const DeleteTokenRequestSchema = z
-	.object({
-		server_id: z.string().regex(/^\d{17,20}$/, 'Must be a valid Discord snowflake (17-20 digits)'),
-		token_id: z.string().regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i, 'token_id must be a UUID'),
-	});
+  .object({
+    server_id: z.string().regex(
+      /^\d{17,20}$/,
+      "Must be a valid Discord snowflake (17-20 digits)",
+    ),
+    token_id: z.string().regex(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+      "token_id must be a UUID",
+    ),
+  });
 
 export type DeleteTokenRequest = z.infer<typeof DeleteTokenRequestSchema>;
 
 // AgentTokenRow
 export const AgentTokenRowSchema = z
-	.object({
-		token_id: z.string(),
-		token_name: z.string(),
-		service: z.string(),
-		description: z.string().nullish(),
-		is_active: z.boolean(),
-		created_at: z.string(),
-		updated_at: z.string().nullish(),
-	});
+  .object({
+    token_id: z.string(),
+    token_name: z.string(),
+    service: z.string(),
+    description: z.string().nullish(),
+    is_active: z.boolean(),
+    created_at: z.string(),
+    updated_at: z.string().nullish(),
+  });
 
 export type AgentTokenRow = z.infer<typeof AgentTokenRowSchema>;
 
 // ListTokensResponse
 export const ListTokensResponseSchema = z
-	.object({
-		tokens: z.array(AgentTokenRowSchema).optional(),
-	});
+  .object({
+    tokens: z.array(AgentTokenRowSchema).optional(),
+  });
 
 export type ListTokensResponse = z.infer<typeof ListTokensResponseSchema>;
 
 // ListTokensRequest
 export const ListTokensRequestSchema = z
-	.object({
-		server_id: z.string().regex(/^\d{17,20}$/, 'Must be a valid Discord snowflake (17-20 digits)'),
-	});
+  .object({
+    server_id: z.string().regex(
+      /^\d{17,20}$/,
+      "Must be a valid Discord snowflake (17-20 digits)",
+    ),
+  });
 
 export type ListTokensRequest = z.infer<typeof ListTokensRequestSchema>;
 
 // SetTokenRequest
 export const SetTokenRequestSchema = z
-	.object({
-		server_id: z.string().regex(/^\d{17,20}$/, 'Must be a valid Discord snowflake (17-20 digits)'),
-		service: z.string().regex(/^[a-z0-9_]{2,32}$/, 'Service must be 2-32 chars: lowercase a-z, 0-9, underscore'),
-		token_name: z.string().regex(/^[a-z0-9_-]{3,64}$/, 'Token name must be 3-64 lowercase chars: a-z, 0-9, underscore, dash'),
-		token_value: z.string().min(10, 'Token value must be 10-8000 characters').max(8000, 'Token value must be 10-8000 characters'),
-		description: z.string().optional(),
-	});
+  .object({
+    server_id: z.string().regex(
+      /^\d{17,20}$/,
+      "Must be a valid Discord snowflake (17-20 digits)",
+    ),
+    service: z.string().regex(
+      /^[a-z0-9_]{2,32}$/,
+      "Service must be 2-32 chars: lowercase a-z, 0-9, underscore",
+    ),
+    token_name: z.string().regex(
+      /^[a-z0-9_-]{3,64}$/,
+      "Token name must be 3-64 lowercase chars: a-z, 0-9, underscore, dash",
+    ),
+    token_value: z.string().min(10, "Token value must be 10-8000 characters")
+      .max(8000, "Token value must be 10-8000 characters"),
+    description: z.string().optional(),
+  });
 
 export type SetTokenRequest = z.infer<typeof SetTokenRequestSchema>;
 
 // AgentError
 export const AgentErrorSchema = z
-	.object({
-		success: z.boolean(),
-		message: z.string(),
-		code: z.number(),
-		sqlstate: z.string().optional(),
-		hint: z.string().optional(),
-		context: z.string().optional(),
-	});
+  .object({
+    success: z.boolean(),
+    message: z.string(),
+    code: z.number(),
+    sqlstate: z.string().optional(),
+    hint: z.string().optional(),
+    context: z.string().optional(),
+  });
 
 export type AgentError = z.infer<typeof AgentErrorSchema>;
