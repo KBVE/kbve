@@ -1,0 +1,17 @@
+---
+import ReactGraphExplorer from './graphExplorer/ReactGraphExplorer';
+---
+
+<div id="graph-explorer-shell" class="graph-explorer-shell not-content">
+	<ReactGraphExplorer client:only="react" />
+</div>
+
+<style>
+	.graph-explorer-shell {
+		position: fixed;
+		inset: var(--sl-nav-height, 3.5rem) 0 0
+			var(--sl-content-inline-start, 0);
+		background: #0b0f17;
+		z-index: 1;
+	}
+</style>
