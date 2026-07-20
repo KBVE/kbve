@@ -243,7 +243,11 @@ export function ListingDetail({
 				) : null}
 
 				{active && !authenticated ? (
-					<Pressable accessibilityRole="button">
+					<Pressable
+						accessibilityRole="button"
+						onPress={() => {
+							window.location.href = '/login/';
+						}}>
 						<Text tone="primary">Sign in to bid or buy</Text>
 					</Pressable>
 				) : null}
