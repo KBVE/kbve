@@ -46,8 +46,8 @@ utoipa = { version = "5", features = ["axum_extras", "chrono", "uuid"] }
 # MCP server. Re-uses the utoipa OpenAPI spec to expose every annotated
 # handler as an MCP tool at /api/mcp. Token passthrough lets clients BYO
 # bearer; the upstream call is dispatched against the local axum listener.
-rmcp = { version = "1.6.0", default-features = false, features = ["server", "transport-streamable-http-server", "tower", "macros"] }
-rmcp-openapi = { version = "0.26.6", features = ["authorization-token-passthrough"] }
+rmcp = { version = "1.8.0", default-features = false, features = ["server", "transport-streamable-http-server", "tower", "macros"] }
+rmcp-openapi = { version = "0.31.3", features = ["authorization-token-passthrough"] }
 url = "2"
 http = "1"
 

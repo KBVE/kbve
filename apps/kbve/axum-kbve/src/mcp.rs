@@ -36,7 +36,7 @@ pub fn build_service() -> Option<McpService> {
 
     let spec = serde_json::to_value(ApiDoc::openapi()).expect("ApiDoc::openapi() must serialise");
 
-    let mut server = Server::new(spec, base_url, None, None, false, false);
+    let mut server = Server::new(spec, base_url, None, None, false, false, false);
     server.name = Some("kbve".to_string());
     server.version = Some(crate::version::current().to_string());
     server.title = Some("KBVE MCP".to_string());
