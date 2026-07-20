@@ -56,3 +56,9 @@ export interface Cursor {
 	before_created_at?: string | null;
 	before_id?: number | null;
 }
+
+export interface BidCursor {
+	limit?: number;
+	before_placed_at?: string | null;
+	before_id?: number | null;
+}
