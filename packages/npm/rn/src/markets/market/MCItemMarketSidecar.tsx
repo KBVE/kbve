@@ -44,11 +44,6 @@ function buyNowSort(a: MarketListing, b: MarketListing): number {
 	return av - bv;
 }
 
-function formatAmount(n: number | null): string {
-	if (n === null) return '—';
-	return n.toLocaleString();
-}
-
 function median(sortedAsc: number[]): number | null {
 	if (sortedAsc.length === 0) return null;
 	const mid = Math.floor(sortedAsc.length / 2);
@@ -224,9 +219,9 @@ export function MCItemMarketSidecar({
 
 	const statItems: Array<{ label: string; value: string }> = [
 		{ label: 'Listings', value: String(stats.count) },
-		{ label: 'Min Buy Now', value: formatAmount(stats.minBuyNow) },
-		{ label: 'Median Buy Now', value: formatAmount(stats.medianBuyNow) },
-		{ label: 'Max Buy Now', value: formatAmount(stats.maxBuyNow) },
+		{ label: 'Min Buy Now', value: formatKhash(stats.minBuyNow) },
+		{ label: 'Median Buy Now', value: formatKhash(stats.medianBuyNow) },
+		{ label: 'Max Buy Now', value: formatKhash(stats.maxBuyNow) },
 		{ label: 'Bid Range', value: bidRange },
 		{
 			label: 'Next Expiry',

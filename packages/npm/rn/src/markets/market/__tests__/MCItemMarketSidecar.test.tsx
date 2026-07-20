@@ -20,9 +20,10 @@ describe('MCItemMarketSidecar', () => {
 	});
 	it('renders matching listing stats + a card', async () => {
 		(global.fetch as any).mockResolvedValue({ ok: true, status: 200, text: async () => JSON.stringify([ROW]) });
-		const { findByText } = render(<MCItemMarketSidecar itemRef="diamond" />);
+		const { findByText, findAllByText } = render(<MCItemMarketSidecar itemRef="diamond" />);
 		expect(await findByText(/Other live listings/)).toBeTruthy();
-		expect(await findByText(/500 KHash/)).toBeTruthy();
+		const hits = await findAllByText(/500 KHash/);
+		expect(hits.length).toBeGreaterThan(0);
 	});
 	it('shows empty state when nothing matches', async () => {
 		(global.fetch as any).mockResolvedValue({ ok: true, status: 200, text: async () => '[]' });
