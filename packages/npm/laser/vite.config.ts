@@ -16,8 +16,8 @@ export default defineConfig({
 		nxCopyAssetsPlugin(['*.md']),
 		dts({
 			entryRoot: 'src',
-			tsConfigFilePath: path.join(__dirname, 'tsconfig.lib.json'),
-			skipDiagnostics: true,
+			tsconfigPath: path.join(__dirname, 'tsconfig.lib.json'),
+			outDir: '../../../dist/packages/npm/laser',
 		}),
 	],
 

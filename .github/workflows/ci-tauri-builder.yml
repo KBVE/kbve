@@ -133,7 +133,7 @@ jobs:
               run: cargo install tauri-cli --locked
 
             - name: Setup Node v24
-              uses: actions/setup-node@v6
+              uses: actions/setup-node@v7
               with:
                   node-version: 24
 
@@ -235,7 +235,7 @@ jobs:
               run: cargo install tauri-cli --locked
 
             - name: Setup Node v24
-              uses: actions/setup-node@v6
+              uses: actions/setup-node@v7
               with:
                   node-version: 24
 
@@ -340,7 +340,7 @@ jobs:
               run: cargo install tauri-cli --locked
 
             - name: Setup Node v24
-              uses: actions/setup-node@v6
+              uses: actions/setup-node@v7
               with:
                   node-version: 24
 
@@ -431,7 +431,7 @@ jobs:
               run: cargo install wasm-pack --locked
 
             - name: Setup Node v24
-              uses: actions/setup-node@v6
+              uses: actions/setup-node@v7
               with:
                   node-version: 24
 

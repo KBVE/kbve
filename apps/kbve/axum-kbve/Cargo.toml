@@ -1,7 +1,7 @@
 [package]
 name = "axum-kbve"
 authors = ["kbve", "h0lybyte"]
-version = "1.0.245"
+version = "1.0.246"
 edition = "2021"
 rust-version.workspace = true
 publish = false
@@ -97,8 +97,8 @@ kbve = { path = "../../../packages/rust/kbve", features = ["wallet"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 
 # Referral handler hashes client IP + subnet before any DB write.
-hmac = "0.12"
-sha2 = "0.10"
+hmac = "0.13"
+sha2 = "0.11"
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { version = "0.7", optional = true }

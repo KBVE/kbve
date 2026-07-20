@@ -43,6 +43,9 @@ export * from './screens/DashboardScreen';
 export * from './screens/ChatScreen';
 export * from './screens/ClickHouseScreen';
 export * from './screens/S3BackupScreen';
+export { MarketsScreen } from './screens/MarketsScreen';
+
+export * from './markets';
 
 export * from './account/AccountScreen';
 export * from './account/types';

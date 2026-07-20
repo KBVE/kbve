@@ -14,7 +14,7 @@ use axum::{
     http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
 };
-use hmac::{Hmac, Mac};
+use hmac::{Hmac, KeyInit, Mac};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sha2::Sha256;
@@ -83,7 +83,10 @@ pub(crate) async fn checkout(headers: HeaderMap, Json(body): Json<CheckoutBody>)
     let (credits, cents) = match pack(&body.pack_id) {
         Some(p) => p,
         None => {
-            return (StatusCode::BAD_REQUEST, Json(json!({"error": "unknown pack"})))
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(json!({"error": "unknown pack"})),
+            )
                 .into_response();
         }
     };
@@ -211,12 +214,19 @@ pub(crate) async fn webhook(headers: HeaderMap, body: Bytes) -> Response {
         .and_then(|v| v.to_str().ok())
         .unwrap_or("");
     if !verify_signature(&secret, sig, &body) {
-        return (StatusCode::BAD_REQUEST, Json(json!({"error": "bad signature"}))).into_response();
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({"error": "bad signature"})),
+        )
+            .into_response();
     }
     let event: serde_json::Value = match serde_json::from_slice(&body) {
         Ok(v) => v,
         Err(_) => {
-            return (StatusCode::BAD_REQUEST, Json(json!({"error": "bad payload"})))
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(json!({"error": "bad payload"})),
+            )
                 .into_response();
         }
     };

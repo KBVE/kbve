@@ -3,7 +3,7 @@ import { MCItemSchema } from '@/data/schema';
 import MCTextureImage from './MCTextureImage';
 import MCTooltipMount from './MCTooltipMount.astro';
 import MCItemJsonLd from './MCItemJsonLd.astro';
-import MCItemMarketSidecar from '@/components/market/MCItemMarketSidecar';
+import ReactMCItemMarketRN from '@/components/market/ReactMCItemMarketRN';
 
 const { data } = Astro.props;
 const item = MCItemSchema.parse(data);
@@ -327,7 +327,7 @@ if (item.mining) {
 
 			<div class="bento-card bento-cell--wide mcdb-block">
 				<h3 class="mcdb-block__title">Marketplace</h3>
-				<MCItemMarketSidecar client:visible ref={item.ref} />
+				<ReactMCItemMarketRN client:visible itemRef={item.ref} />
 				<div class="mcdb-block__foot">
 					<a
 						href={`/market/?kind=mc_item&q=${item.ref}`}

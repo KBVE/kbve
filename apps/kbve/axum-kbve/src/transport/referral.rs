@@ -15,7 +15,7 @@ use axum::{
     http::{HeaderMap, StatusCode, header},
     response::{IntoResponse, Response},
 };
-use hmac::{Hmac, Mac};
+use hmac::{Hmac, KeyInit, Mac};
 use kbve::referral::{RecordClickInput, ReferralError};
 use serde::Deserialize;
 use serde_json::json;

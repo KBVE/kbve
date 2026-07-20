@@ -7,6 +7,8 @@ export { createStoreApi } from './api';
 export type { StoreApi, StoreApiOptions } from './api';
 export { BuyCredits } from './BuyCredits';
 export { ProductCard } from './ProductCard';
+export { IdiotCard } from './IdiotCard';
+export type { IdiotCardProps } from './IdiotCard';
 export { CheckoutModal } from './CheckoutModal';
 export { OrderHistory } from './OrderHistory';
 export { StoreView } from './StoreView';

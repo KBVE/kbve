@@ -18,6 +18,7 @@ import { openExternal } from '../platform/openExternal';
 import { ClickHouseScreen } from './ClickHouseScreen';
 import { McScreen } from './McScreen';
 import { S3BackupScreen } from './S3BackupScreen';
+import { MarketsScreen } from './MarketsScreen';
 
 const open = (url: string) => openExternal(url);
 
@@ -80,6 +81,7 @@ export function HomeView() {
 	const [showClickHouse, setShowClickHouse] = useState(false);
 	const [showMc, setShowMc] = useState(false);
 	const [showS3Backup, setShowS3Backup] = useState(false);
+	const [showMarkets, setShowMarkets] = useState(false);
 
 	useEffect(() => {
 		const manifest = native ? createWgpuPlugin() : createIsometricPlugin();
@@ -154,6 +156,30 @@ export function HomeView() {
 					showsVerticalScrollIndicator={false}
 					contentContainerStyle={styles.body}>
 					<McScreen />
+				</ScrollView>
+			</View>
+		);
+	}
+
+	if (showMarkets) {
+		return (
+			<View style={styles.root}>
+				<View
+					style={[
+						styles.canvasBar,
+						{ paddingTop: insets.top + tokens.space.sm },
+					]}>
+					<Text variant="label">Store · Marketplace</Text>
+					<Button
+						title="Close"
+						variant="ghost"
+						onPress={() => setShowMarkets(false)}
+					/>
+				</View>
+				<ScrollView
+					showsVerticalScrollIndicator={false}
+					contentContainerStyle={styles.body}>
+					<MarketsScreen />
 				</ScrollView>
 			</View>
 		);
@@ -244,6 +270,12 @@ export function HomeView() {
 							onPress={() => setShowS3Backup(true)}
 						/>
 					) : null}
+
+					<Button
+						title="🛒  Store & Marketplace"
+						variant="secondary"
+						onPress={() => setShowMarkets(true)}
+					/>
 
 					<Text variant="subtitle">Quick actions</Text>
 					<View style={styles.actions}>

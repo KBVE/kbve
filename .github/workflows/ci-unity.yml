@@ -214,7 +214,7 @@ jobs:
 
             - name: Setup Node
               if: ${{ contains(inputs.project_path, 'rareicon') }}
-              uses: actions/setup-node@v6
+              uses: actions/setup-node@v7
               with:
                   node-version: 24
                   cache: pnpm
@@ -340,7 +340,7 @@ jobs:
 
             - name: Setup Node
               if: ${{ contains(inputs.project_path, 'rareicon') }}
-              uses: actions/setup-node@v6
+              uses: actions/setup-node@v7
               with:
                   node-version: 24
                   cache: pnpm

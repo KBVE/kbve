@@ -38,7 +38,7 @@ jobs:
                   ref: dev
 
             - name: Setup Python
-              uses: actions/setup-python@v6
+              uses: actions/setup-python@v7
               with:
                   python-version: '3.12'
 
@@ -80,7 +80,7 @@ jobs:
                   ref: dev
 
             - name: Setup Python
-              uses: actions/setup-python@v6
+              uses: actions/setup-python@v7
               with:
                   python-version: '3.12'
 
@@ -97,7 +97,7 @@ jobs:
 
             - name: Setup Node v24
               if: contains(matrix.needs, 'node')
-              uses: actions/setup-node@v6
+              uses: actions/setup-node@v7
               with:
                   node-version: 24
 

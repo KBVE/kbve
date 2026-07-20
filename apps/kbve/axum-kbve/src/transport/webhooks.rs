@@ -5,7 +5,7 @@ use axum::{
     http::{HeaderMap, StatusCode},
     response::{IntoResponse, Response},
 };
-use hmac::{Hmac, Mac};
+use hmac::{Hmac, KeyInit, Mac};
 use jedi::entity::error::JediError;
 use jedi::state::pg::{PgCallerReadFut, PgCluster, tokio_postgres::Transaction};
 use serde_json::{Value, json};
