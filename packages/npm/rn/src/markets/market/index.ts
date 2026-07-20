@@ -20,3 +20,5 @@ export { ListingDetail } from './ListingDetail';
 export type { ListingDetailProps } from './ListingDetail';
 export { ListingDetailView } from './ListingDetailView';
 export type { ListingDetailViewProps } from './ListingDetailView';
+export { MarketView } from './MarketView';
+export type { MarketViewProps } from './MarketView';
