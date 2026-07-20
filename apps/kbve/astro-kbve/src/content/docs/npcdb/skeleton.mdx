@@ -1,0 +1,43 @@
+---
+title: Skeleton
+template: splash
+sidebar:
+  label: Skeleton
+  hidden: true
+description: undead unit. Migrated from NPCDB compiled table.
+ref: skeleton
+id: 01KSAV00000000000000000024
+name: Skeleton
+name_key: creature.skeleton
+unit_type: 24
+default_weapon: 0
+dialogue_tree_id: 0
+type_flags: 1
+rarity: common
+personality: stoic
+rank: normal
+family: undead
+level: 1
+stats:
+  attack: 4
+  defense: 1
+  speed: 2
+  armor: 0
+  hp: 35
+  max_hp: 35
+  strength: 9
+  agility: 9
+  intelligence: 2
+  will: 4
+  move_speed: 0.45
+faction:
+  faction_id: hostile
+---
+
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
+
+<NpcLeaf data={frontmatter}>
+
+Reanimated bones — undead footsoldier raised on skeleton nights.
+
+</NpcLeaf>

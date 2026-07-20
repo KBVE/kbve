@@ -27,10 +27,6 @@ namespace RareIcon
         public int2   CapitalHex;
         public bool   CapitalHasFood;
 
-        public bool   HasFarm;
-        public Entity NearestFarm;
-        public int2   FarmHex;
-
         public NativeList<NeedyCave> NeedyCaves;
 
         public JobHandle PipelineHandle;

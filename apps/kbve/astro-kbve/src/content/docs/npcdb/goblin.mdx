@@ -9,6 +9,10 @@ description: |
 ref: 'goblin'
 id: '01KSAVBCDKGE0N89F6ZPH846Z8'
 name: 'Goblin'
+name_key: 'creature.goblin'
+unit_type: 1
+default_weapon: 1
+dialogue_tree_id: 0
 type_flags: 1
 rarity: 'common'
 personality: 'aggressive'
@@ -16,12 +20,26 @@ rank: 'normal'
 family: 'humanoid'
 level: 1
 stats:
-    hp: 30
-    max_hp: 30
+    hp: 40
+    max_hp: 40
     attack: 4
     defense: 1
     speed: 4
     armor: 0
+    max_mp: 30
+    max_ep: 100
+    intelligence: 4
+    strength: 8
+    agility: 12
+    will: 5
+    hp_regen: 0
+    mp_regen: 0.5
+    ep_regen: 5.0
+    move_speed: 0.7
+    max_hunger: 100
+    max_fatigue: 100
+    hunger_per_sec: 0.285
+    fatigue_per_sec: 0.20
 behavior:
     movement_type: 'random_wander'
     first_strike: false

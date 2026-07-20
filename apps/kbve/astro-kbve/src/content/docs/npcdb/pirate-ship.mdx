@@ -1,44 +1,55 @@
 ---
-title: 'Pirate Ship'
+title: Pirate Ship
 template: splash
 sidebar:
-    label: 'Pirate Ship'
-    hidden: true
-description: |
-    Hostile coastal raider. PirateCove-spawned via PirateCoveRaidSystem; water-locked, arrow attack, slightly weaker than the player Galley but spawned in waves. The ocean sister to the Bandit raid line.
-ref: 'pirate-ship'
-id: '01KSAVQR3VN6ZE4AVMV0V4Z6BV'
-name: 'Pirate Ship'
+  label: Pirate Ship
+  hidden: true
+description: >
+  Hostile coastal raider. PirateCove-spawned via PirateCoveRaidSystem;
+  water-locked, arrow attack, slightly weaker than the player Galley but spawned
+  in waves. The ocean sister to the Bandit raid line.
+ref: pirate-ship
+id: 01KSAVQR3VN6ZE4AVMV0V4Z6BV
+name: Pirate Ship
 type_flags: 1
-rarity: 'uncommon'
-personality: 'aggressive'
-rank: 'elite'
-family: 'humanoid'
+rarity: uncommon
+personality: aggressive
+rank: elite
+family: humanoid
 level: 4
 stats:
-    hp: 120
-    max_hp: 120
-    attack: 6
-    defense: 3
-    speed: 4
-    armor: 1
+  hp: 120
+  max_hp: 120
+  attack: 6
+  defense: 3
+  speed: 4
+  armor: 1
+  strength: 14
+  agility: 10
+  intelligence: 5
+  will: 10
+  move_speed: 0.55
 behavior:
-    movement_type: 'patrol'
-    first_strike: false
+  movement_type: patrol
+  first_strike: false
 flavor_text:
-    - action: 'attack'
-      messages:
-        - "The pirate ship looses a ragged volley! {target} takes {dmg} damage!"
-        - "A jeering crew fires from the deck — {target} reels for {dmg} damage!"
-    - action: 'death'
-      messages:
-        - "The pirate ship lists badly, then slips beneath the waves with its haul."
+  - action: attack
+    messages:
+      - 'The pirate ship looses a ragged volley! {target} takes {dmg} damage!'
+      - 'A jeering crew fires from the deck — {target} reels for {dmg} damage!'
+  - action: death
+    messages:
+      - 'The pirate ship lists badly, then slips beneath the waves with its haul.'
 abilities:
-    - id: 'attack'
-      name: 'Cannon Volley'
-      damage: 6
+  - id: attack
+    name: Cannon Volley
+    damage: 6
 faction:
-    faction_id: 'hostile'
+  faction_id: hostile
+name_key: creature.pirate_ship
+unit_type: 20
+default_weapon: 0
+dialogue_tree_id: 0
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';

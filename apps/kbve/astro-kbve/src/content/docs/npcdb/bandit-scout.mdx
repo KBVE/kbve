@@ -1,49 +1,63 @@
 ---
-title: 'Bandit Scout'
+title: Bandit Scout
 template: splash
 sidebar:
-    label: 'Bandit Scout'
-    hidden: true
-description: |
-    Hostile recon unit dispatched by Bandit Camps every 90s. Wanders far from the camp, marks discovered Player buildings into KnownPlayerHexesSingleton so HuntJob can divert raid waves to outposts beyond the camp's local TargetingRadius. No weapon — flees combat.
-ref: 'bandit-scout'
-id: '01KSAVTYT9RBX566KHNYHGEREA'
-name: 'Bandit Scout'
+  label: Bandit Scout
+  hidden: true
+description: >
+  Hostile recon unit dispatched by Bandit Camps every 90s. Wanders far from the
+  camp, marks discovered Player buildings into KnownPlayerHexesSingleton so
+  HuntJob can divert raid waves to outposts beyond the camp's local
+  TargetingRadius. No weapon — flees combat.
+ref: bandit-scout
+id: 01KSAVTYT9RBX566KHNYHGEREA
+name: Bandit Scout
 type_flags: 1
-rarity: 'uncommon'
-personality: 'fearful'
-rank: 'normal'
-family: 'humanoid'
+rarity: uncommon
+personality: fearful
+rank: normal
+family: humanoid
 level: 2
 stats:
-    hp: 45
-    max_hp: 45
-    attack: 2
-    defense: 1
-    speed: 6
-    armor: 0
+  hp: 45
+  max_hp: 45
+  attack: 2
+  defense: 1
+  speed: 6
+  armor: 0
+  max_ep: 120
+  strength: 7
+  agility: 15
+  intelligence: 8
+  will: 7
+  move_speed: 0.95
+  ep_regen: 6
 behavior:
-    movement_type: 'random_wander'
-    first_strike: false
+  movement_type: random_wander
+  first_strike: false
 flavor_text:
-    - action: 'flee'
-      messages:
-        - "The bandit scout sprints back toward camp the moment things turn south!"
-    - action: 'death'
-      messages:
-        - "The bandit scout drops mid-stride, intel never delivered."
+  - action: flee
+    messages:
+      - The bandit scout sprints back toward camp the moment things turn south!
+  - action: death
+    messages:
+      - 'The bandit scout drops mid-stride, intel never delivered.'
 abilities:
-    - id: 'attack'
-      name: 'Desperate Jab'
-      damage: 2
+  - id: attack
+    name: Desperate Jab
+    damage: 2
 faction:
-    faction_id: 'hostile'
+  faction_id: hostile
 equipment:
-    equipped:
-        - slot: 'head'
-          item_ref: 'hood'
-        - slot: 'chest'
-          item_ref: 'leather'
+  equipped:
+    - slot: head
+      item_ref: hood
+    - slot: chest
+      item_ref: leather
+name_key: creature.bandit_scout
+unit_type: 22
+default_weapon: 0
+dialogue_tree_id: 0
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';

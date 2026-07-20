@@ -1,3 +1,6 @@
+using System.Collections.Generic;
+using KBVE.Proto.Npc;
+
 namespace RareIcon
 {
     /// <summary>Behavioural taxonomy driving high-level AI / damage modifiers without coupling to UnitType.</summary>
@@ -424,10 +427,27 @@ namespace RareIcon
 
         static void Add(NPCDef def) => _byId[def.UnitType] = def;
 
-        /// <summary>Look up the def by UnitType; returns a fallback for unknown IDs so spawn code never null-derefs.</summary>
+        static readonly HashSet<byte> _warnedMissingProto = new();
+
+        /// <summary>Look up the def by UnitType. Proto (npcdb.binpb) is the source of truth: when the registry is
+        /// loaded and carries a migrated entry for this UnitType, build the def from it. Otherwise fall back to the
+        /// compiled table (pre-load spawns, or types not yet migrated), warning once per UnitType so the gap is visible.</summary>
         public static NPCDef Get(byte unitType)
         {
             EnsureInit();
+
+            if (NpcdbCache.IsLoaded)
+            {
+                if (NpcdbCache.TryGetByUnitType(unitType, out var proto)
+                    && proto.Stats != null
+                    && proto.Stats.MaxHp > 0)
+                    return FromProto(unitType, proto);
+
+                if (unitType != UnitType.None && _warnedMissingProto.Add(unitType))
+                    UnityEngine.Debug.LogWarning(
+                        $"[NPCDB] UnitType {unitType} has no migrated npcdb entry — using compiled fallback.");
+            }
+
             var def = _byId[unitType];
             if (def.NameKey == null)
                 return new NPCDef(unitType, "creature.unknown", NPCCategory.Humanoid,
@@ -436,5 +456,40 @@ namespace RareIcon
                     defaultWeapon: WeaponType.None);
             return def;
         }
+
+        static NPCDef FromProto(byte unitType, Npc n)
+        {
+            var s = n.Stats;
+            return new NPCDef(
+                unitType:      unitType,
+                nameKey:       n.HasNameKey ? n.NameKey : "creature.unknown",
+                category:      MapCategory(n.Family),
+                maxHealth:     s.MaxHp,
+                maxEnergy:     s.HasMaxEp ? s.MaxEp : 0f,
+                maxMana:       s.HasMaxMp ? s.MaxMp : 0f,
+                maxHunger:     s.HasMaxHunger ? s.MaxHunger : 0f,
+                maxFatigue:    s.HasMaxFatigue ? s.MaxFatigue : 0f,
+                moveSpeed:     s.MoveSpeed,
+                healthRegen:   s.HpRegen,
+                energyRegen:   s.EpRegen,
+                manaRegen:     s.MpRegen,
+                hungerPerSec:  s.HungerPerSec,
+                fatiguePerSec: s.FatiguePerSec,
+                strength:      (byte)(s.HasStrength ? s.Strength : 0),
+                agility:       (byte)(s.HasAgility ? s.Agility : 0),
+                intellect:     (byte)(s.HasIntelligence ? s.Intelligence : 0),
+                will:          (byte)(s.HasWill ? s.Will : 0),
+                defaultWeapon: (byte)(n.HasDefaultWeapon ? n.DefaultWeapon : 0),
+                dialogueTreeId:(ushort)(n.HasDialogueTreeId ? n.DialogueTreeId : 0));
+        }
+
+        static NPCCategory MapCategory(CreatureFamily family) => family switch
+        {
+            CreatureFamily.Beast     => NPCCategory.Beast,
+            CreatureFamily.Undead    => NPCCategory.Undead,
+            CreatureFamily.Elemental => NPCCategory.Elemental,
+            CreatureFamily.Humanoid  => NPCCategory.Humanoid,
+            _                        => NPCCategory.Humanoid,
+        };
     }
 }

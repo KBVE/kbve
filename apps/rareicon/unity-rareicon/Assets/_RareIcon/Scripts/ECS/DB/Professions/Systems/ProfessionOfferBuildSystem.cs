@@ -84,17 +84,6 @@ namespace RareIcon
             db.Capital    = capital;
             db.CapitalHex = db.HasCapital ? SystemAPI.GetComponent<Building>(capital).RootHex : default;
 
-            db.HasFarm     = false;
-            db.NearestFarm = Entity.Null;
-            db.FarmHex     = default;
-            foreach (var (b, e) in SystemAPI.Query<RefRO<Building>>().WithEntityAccess().WithAll<FarmTag>())
-            {
-                db.NearestFarm = e;
-                db.FarmHex     = b.ValueRO.RootHex;
-                db.HasFarm     = true;
-                break;
-            }
-
             foreach (var (statusRO, buildingRO, e) in
                      SystemAPI.Query<RefRO<CaveFoodStatus>, RefRO<Building>>()
                               .WithAll<GoblinCaveTag>()
@@ -159,8 +148,11 @@ namespace RareIcon
                 });
             }
 
-            if (db.HasFarm)
-                offers.Add(new TaskOffer { Kind = ProfessionKind.Farmer, Variant = OfferVariant.Default, Hex = db.FarmHex, Target = db.NearestFarm });
+            foreach (var (farmBuilding, farmEntity) in
+                     SystemAPI.Query<RefRO<Building>>().WithAll<FarmTag>().WithEntityAccess())
+            {
+                offers.Add(new TaskOffer { Kind = ProfessionKind.Farmer, Variant = OfferVariant.Default, Hex = farmBuilding.ValueRO.RootHex, Target = farmEntity });
+            }
 
             for (int ci = 0; ci < db.NeedyCaves.Length; ci++)
                 offers.Add(new TaskOffer { Kind = ProfessionKind.Looter, Variant = OfferVariant.LooterDeliver, Hex = db.NeedyCaves[ci].Hex, Target = db.NeedyCaves[ci].Entity });

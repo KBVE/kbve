@@ -1,44 +1,55 @@
 ---
-title: 'Fishing Boat'
+title: Fishing Boat
 template: splash
 sidebar:
-    label: 'Fishing Boat'
-    hidden: true
-description: |
-    Craftsman-built water-locked vessel. Slow, mid HP, harpoon-tipped ranged attack against Whales + Beasts. Spawned by Docks; lives in river / ocean tiles only.
-ref: 'fishing-boat'
-id: '01KSAVJR1ASDVMRD9B29PHBXWV'
-name: 'Fishing Boat'
+  label: Fishing Boat
+  hidden: true
+description: >
+  Craftsman-built water-locked vessel. Slow, mid HP, harpoon-tipped ranged
+  attack against Whales + Beasts. Spawned by Docks; lives in river / ocean tiles
+  only.
+ref: fishing-boat
+id: 01KSAVJR1ASDVMRD9B29PHBXWV
+name: Fishing Boat
 type_flags: 1
-rarity: 'common'
-personality: 'stoic'
-rank: 'normal'
-family: 'humanoid'
+rarity: common
+personality: stoic
+rank: normal
+family: humanoid
 level: 3
 stats:
-    hp: 80
-    max_hp: 80
-    attack: 4
-    defense: 2
-    speed: 3
-    armor: 1
+  hp: 80
+  max_hp: 80
+  attack: 4
+  defense: 2
+  speed: 3
+  armor: 1
+  strength: 8
+  agility: 6
+  intelligence: 4
+  will: 6
+  move_speed: 0.42
 behavior:
-    movement_type: 'random_wander'
-    first_strike: false
+  movement_type: random_wander
+  first_strike: false
 flavor_text:
-    - action: 'attack'
-      messages:
-        - "The fishing boat's harpoon plunges into {target}! {dmg} damage!"
-        - "A whaling line whips through the water — {target} takes {dmg} damage!"
-    - action: 'death'
-      messages:
-        - "The fishing boat splinters apart and slips beneath the waves."
+  - action: attack
+    messages:
+      - 'The fishing boat''s harpoon plunges into {target}! {dmg} damage!'
+      - 'A whaling line whips through the water — {target} takes {dmg} damage!'
+  - action: death
+    messages:
+      - The fishing boat splinters apart and slips beneath the waves.
 abilities:
-    - id: 'attack'
-      name: 'Harpoon'
-      damage: 4
+  - id: attack
+    name: Harpoon
+    damage: 4
 faction:
-    faction_id: 'player'
+  faction_id: player
+name_key: creature.fishing_boat
+unit_type: 17
+default_weapon: 0
+dialogue_tree_id: 0
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';

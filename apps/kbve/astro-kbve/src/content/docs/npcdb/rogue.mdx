@@ -1,44 +1,60 @@
 ---
-title: 'Rogue'
+title: Rogue
 template: splash
 sidebar:
-    label: 'Rogue'
-    hidden: true
-description: |
-    Player melee skirmisher. Dual-dagger, dark cloak, face scarf. Fast and high-attack but glassy — picks off stragglers, dies fast in line combat.
-ref: 'rogue'
-id: '01KSAVZ000000000000000ROGE'
-name: 'Rogue'
+  label: Rogue
+  hidden: true
+description: >
+  Player melee skirmisher. Dual-dagger, dark cloak, face scarf. Fast and
+  high-attack but glassy — picks off stragglers, dies fast in line combat.
+ref: rogue
+id: 01KSAVZ000000000000000ROGE
+name: Rogue
 type_flags: 1
-rarity: 'uncommon'
-personality: 'cunning'
-rank: 'normal'
-family: 'humanoid'
+rarity: uncommon
+personality: cunning
+rank: normal
+family: humanoid
 level: 3
 stats:
-    hp: 45
-    max_hp: 45
-    attack: 9
-    defense: 1
-    speed: 6
-    armor: 0
+  hp: 45
+  max_hp: 45
+  attack: 9
+  defense: 1
+  speed: 6
+  armor: 0
+  max_ep: 130
+  strength: 11
+  agility: 16
+  intelligence: 9
+  will: 8
+  move_speed: 0.95
+  ep_regen: 7
+  max_hunger: 130
+  max_fatigue: 90
+  hunger_per_sec: 0.3
+  fatigue_per_sec: 0.22
 behavior:
-    movement_type: 'aggressive'
-    first_strike: true
+  movement_type: aggressive
+  first_strike: true
 flavor_text:
-    - action: 'attack'
-      messages:
-        - "The rogue slips behind {target} — twin daggers flash! {dmg} damage!"
-        - "{target} catches a blade between the ribs — {dmg} damage!"
-    - action: 'death'
-      messages:
-        - "The rogue staggers, cloak settling over the still form."
+  - action: attack
+    messages:
+      - 'The rogue slips behind {target} — twin daggers flash! {dmg} damage!'
+      - '{target} catches a blade between the ribs — {dmg} damage!'
+  - action: death
+    messages:
+      - 'The rogue staggers, cloak settling over the still form.'
 abilities:
-    - id: 'attack'
-      name: 'Twin Strike'
-      damage: 9
+  - id: attack
+    name: Twin Strike
+    damage: 9
 faction:
-    faction_id: 'player'
+  faction_id: player
+name_key: creature.rogue
+unit_type: 7
+default_weapon: 0
+dialogue_tree_id: 0
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';

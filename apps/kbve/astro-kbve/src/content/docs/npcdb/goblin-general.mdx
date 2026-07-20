@@ -1,44 +1,63 @@
 ---
-title: 'Goblin General'
+title: Goblin General
 template: splash
 sidebar:
-    label: 'Goblin General'
-    hidden: true
-description: |
-    Hostile warlord goblin. Chestplate, spiked crown, warpaint. Tougher than a regular Goblin, anchors larger raid waves and elite hostile garrisons.
-ref: 'goblin-general'
-id: '01KSAVZ00000000000000GGNRL'
-name: 'Goblin General'
+  label: Goblin General
+  hidden: true
+description: >
+  Hostile warlord goblin. Chestplate, spiked crown, warpaint. Tougher than a
+  regular Goblin, anchors larger raid waves and elite hostile garrisons.
+ref: goblin-general
+id: 01KSAVZ00000000000000GGNRL
+name: Goblin General
 type_flags: 1
-rarity: 'rare'
-personality: 'aggressive'
-rank: 'elite'
-family: 'humanoid'
+rarity: rare
+personality: aggressive
+rank: elite
+family: humanoid
 level: 5
 stats:
-    hp: 140
-    max_hp: 140
-    attack: 11
-    defense: 3
-    speed: 4
-    armor: 3
+  hp: 140
+  max_hp: 140
+  attack: 11
+  defense: 3
+  speed: 4
+  armor: 3
+  max_ep: 150
+  max_mp: 30
+  strength: 16
+  agility: 12
+  intelligence: 9
+  will: 12
+  move_speed: 0.75
+  hp_regen: 0.2
+  ep_regen: 6
+  mp_regen: 0.3
+  max_hunger: 180
+  max_fatigue: 130
+  hunger_per_sec: 0.32
+  fatigue_per_sec: 0.22
 behavior:
-    movement_type: 'patrol'
-    first_strike: false
+  movement_type: patrol
+  first_strike: false
 flavor_text:
-    - action: 'attack'
-      messages:
-        - "The goblin general roars — {target} takes {dmg} crushing damage!"
-        - "Spiked crown gleaming, the warlord cleaves into {target} for {dmg}!"
-    - action: 'death'
-      messages:
-        - "The goblin general topples, warpaint streaked with blood."
+  - action: attack
+    messages:
+      - 'The goblin general roars — {target} takes {dmg} crushing damage!'
+      - 'Spiked crown gleaming, the warlord cleaves into {target} for {dmg}!'
+  - action: death
+    messages:
+      - 'The goblin general topples, warpaint streaked with blood.'
 abilities:
-    - id: 'attack'
-      name: 'Warlord Cleave'
-      damage: 11
+  - id: attack
+    name: Warlord Cleave
+    damage: 11
 faction:
-    faction_id: 'hostile'
+  faction_id: hostile
+name_key: creature.goblin_general
+unit_type: 16
+default_weapon: 1
+dialogue_tree_id: 0
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';

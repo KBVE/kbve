@@ -1,40 +1,51 @@
 ---
-title: 'Cow'
+title: Cow
 template: splash
 sidebar:
-    label: 'Cow'
-    hidden: true
-description: |
-    Largest passive livestock. Slowest move speed, biggest HP pool of the farm trio. Drops Meat in bulk when killed; herd into Farms for steady food production.
-ref: 'cow'
-id: '01KSAV880T75RMTKD004K83GDQ'
-name: 'Cow'
+  label: Cow
+  hidden: true
+description: >
+  Largest passive livestock. Slowest move speed, biggest HP pool of the farm
+  trio. Drops Meat in bulk when killed; herd into Farms for steady food
+  production.
+ref: cow
+id: 01KSAV880T75RMTKD004K83GDQ
+name: Cow
 type_flags: 1
-rarity: 'common'
-personality: 'fearful'
-rank: 'normal'
-family: 'beast'
+rarity: common
+personality: fearful
+rank: normal
+family: beast
 level: 1
 stats:
-    hp: 40
-    max_hp: 40
-    attack: 2
-    defense: 1
-    speed: 2
-    armor: 0
+  hp: 40
+  max_hp: 40
+  attack: 2
+  defense: 1
+  speed: 2
+  armor: 0
+  strength: 6
+  agility: 3
+  intelligence: 2
+  will: 3
+  move_speed: 0.3
 behavior:
-    movement_type: 'random_wander'
-    first_strike: false
+  movement_type: random_wander
+  first_strike: false
 flavor_text:
-    - action: 'death'
-      messages:
-        - "The cow lows softly and lies down for the last time."
+  - action: death
+    messages:
+      - The cow lows softly and lies down for the last time.
 abilities:
-    - id: 'attack'
-      name: 'Headbutt'
-      damage: 2
+  - id: attack
+    name: Headbutt
+    damage: 2
 faction:
-    faction_id: 'wildlife'
+  faction_id: wildlife
+name_key: creature.cow
+unit_type: 12
+default_weapon: 0
+dialogue_tree_id: 0
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';

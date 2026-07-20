@@ -205,6 +205,13 @@ message NpcStats {
   optional int32 evasion = 20;         // Base dodge modifier (100 = neutral)
   optional int32 crit_rate = 21;       // Base crit chance, in basis points or %
   optional float crit_damage = 22;     // Crit multiplier (e.g. 1.5 = +50%)
+  // Real-time colony-sim needs (RareIcon UnitStats). max_hp/max_mp/max_ep above map to health/mana/energy.
+  optional float move_speed = 23;        // World units per WanderStep (fractional; `speed` above is coarse int rank)
+  optional int32 max_hunger = 24;        // Hunger pool ceiling
+  optional int32 max_fatigue = 25;       // Fatigue pool ceiling
+  optional int32 will = 26;              // Fourth attribute alongside strength/agility/intelligence
+  optional float hunger_per_sec = 27;    // Hunger accrual rate
+  optional float fatigue_per_sec = 28;   // Fatigue accrual rate
 }
 
 // Elemental affinity with magnitude (for multi-element resistance/weakness)
@@ -551,6 +558,12 @@ message Npc {
   // Stats
   NpcStats stats = 18;
 
+  // Engine bridge — RareIcon real-time ECS. Optional; ignored by turn-based / other-game consumers.
+  optional int32 unit_type = 54;        // Maps to RareIcon UnitType enum; loader keys spawn table by this
+  optional int32 default_weapon = 55;   // RareIcon WeaponType enum baseline loadout
+  optional int32 dialogue_tree_id = 56; // Numeric FirstContact dialogue id (0 = silent)
+  optional string name_key = 57;        // Locale key, e.g. "creature.goblin"
+
   // Combat
   repeated NpcAbility abilities = 19;
   repeated ElementalAffinity weaknesses = 35;
@@ -616,4 +629,5 @@ message Npc {
 
 message NpcRegistry {
   repeated Npc npcs = 1;
+  optional string content_version = 2;  // Build stamp for future multiplayer server/client parity checks
 }

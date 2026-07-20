@@ -759,6 +759,8 @@ namespace RareIcon
                     if (!em.HasComponent<WallTag>(entity)) em.AddComponent<WallTag>(entity);
                     break;
             }
+
+            if (!em.HasComponent<NeedsStaffing>(entity)) em.AddComponent<NeedsStaffing>(entity);
         }
 
         /// <summary>Deterministic per-hex animal spawn roll. Low biome-gated chance; no-ops for most hexes.</summary>
