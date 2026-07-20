@@ -151,6 +151,26 @@ def _dominant_community(nodes: list[dict]) -> int:
     return c.most_common(1)[0][0] if c else 0
 
 
+# Raw Graphify relations collapsed into a small palette for edge coloring.
+REL_ORDER = ["imports", "calls", "references", "contains", "extends", "other"]
+_REL_BUCKET = {
+    "imports": "imports", "imports_from": "imports", "re_exports": "imports",
+    "calls": "calls", "method": "calls", "invokes": "calls",
+    "references": "references", "uses": "references",
+    "contains": "contains", "defines": "contains",
+    "extends": "extends", "implements": "extends", "inherits": "extends",
+}
+_REL_IDX = {r: i for i, r in enumerate(REL_ORDER)}
+
+
+def _rel_idx(rel: str) -> int:
+    return _REL_IDX[_REL_BUCKET.get(rel, "other")]
+
+
+def _dominant_rel(counter: Counter) -> int:
+    return counter.most_common(1)[0][0] if counter else _REL_IDX["other"]
+
+
 def build(data: dict, out_dir: str, scale: float, seed: int) -> dict:
     raw_nodes = [n for n in data["nodes"] if _keep(n)]
     kept_ids = {n["id"] for n in raw_nodes}
@@ -169,25 +189,31 @@ def build(data: dict, out_dir: str, scale: float, seed: int) -> dict:
     # Aggregate symbol edges into cross-dir (tier 0), intra-dir file edges
     # (tier 1) and intra-dir symbol edges (tier 2).
     dir_edge_w: dict[tuple[str, str], float] = defaultdict(float)
+    dir_edge_rel: dict[tuple[str, str], Counter] = defaultdict(Counter)
     file_edge_w: dict[str, dict[tuple[str, str], float]] = defaultdict(
         lambda: defaultdict(float))
-    sym_edges: dict[str, list[tuple[str, str, float]]] = defaultdict(list)
+    file_edge_rel: dict[str, dict[tuple[str, str], Counter]] = defaultdict(
+        lambda: defaultdict(Counter))
+    sym_edges: dict[str, list[tuple[str, str, float, int]]] = defaultdict(list)
     for e in data["links"]:
         s, t = e.get("source"), e.get("target")
         if s not in kept_ids or t not in kept_ids or s == t:
             continue
         w = float(e.get("weight", 1.0))
+        ri = _rel_idx(e.get("relation", "other"))
         ds, dt = node_dir[s], node_dir[t]
         if ds != dt:
             key = (ds, dt) if ds < dt else (dt, ds)
             dir_edge_w[key] += w
+            dir_edge_rel[key][ri] += w
             continue
         # Same directory: record file-level and symbol-level edges.
         fs, ft = by_id[s]["source_file"], by_id[t]["source_file"]
         if fs != ft:
             fk = (fs, ft) if fs < ft else (ft, fs)
             file_edge_w[ds][fk] += w
-        sym_edges[ds].append((s, t, w))
+            file_edge_rel[ds][fk][ri] += w
+        sym_edges[ds].append((s, t, w, ri))
 
     # Tier 0: directory super-graph + layout.
     dg = nx.Graph()
@@ -229,7 +255,8 @@ def build(data: dict, out_dir: str, scale: float, seed: int) -> dict:
         })
 
     dir_edges_out = [
-        [dir_index[a], dir_index[b], round(w, 2)]
+        [dir_index[a], dir_index[b], round(w, 2),
+         _dominant_rel(dir_edge_rel[(a, b)])]
         for (a, b), w in dir_edge_w.items()
         if a in dir_index and b in dir_index
     ]
@@ -293,12 +320,13 @@ def build(data: dict, out_dir: str, scale: float, seed: int) -> dict:
                 })
 
         file_edges_out = [
-            [file_index[a], file_index[b], round(w, 2)]
+            [file_index[a], file_index[b], round(w, 2),
+             _dominant_rel(file_edge_rel[d][(a, b)])]
             for (a, b), w in file_edge_w[d].items()
         ]
         sym_edges_out = [
-            [sym_index[s], sym_index[t], round(w, 2)]
-            for s, t, w in sym_edges[d]
+            [sym_index[s], sym_index[t], round(w, 2), ri]
+            for s, t, w, ri in sym_edges[d]
             if s in sym_index and t in sym_index
         ]
 
@@ -323,6 +351,7 @@ def build(data: dict, out_dir: str, scale: float, seed: int) -> dict:
             "dirEdges": len(dir_edges_out),
             "built_at_commit": data.get("built_at_commit", ""),
             "scale": scale,
+            "relations": REL_ORDER,
         },
         "dirs": dirs_out,
         "dirEdges": dir_edges_out,

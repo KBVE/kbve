@@ -11,6 +11,9 @@ export interface DirNode {
 	c: number;
 }
 
+/** Edge as emitted by graphify_tiered.py: [source, target, weight, relIdx]. */
+export type Edge = [number, number, number, number];
+
 export interface Overview {
 	meta: {
 		dirs: number;
@@ -19,9 +22,10 @@ export interface Overview {
 		dirEdges: number;
 		built_at_commit: string;
 		scale: number;
+		relations: string[];
 	};
 	dirs: DirNode[];
-	dirEdges: [number, number, number][];
+	dirEdges: Edge[];
 }
 
 export interface FileNode {
@@ -49,9 +53,28 @@ export interface DirChunk {
 	r: number;
 	files: FileNode[];
 	symbols: SymbolNode[];
-	fileEdges: [number, number, number][];
-	symbolEdges: [number, number, number][];
+	fileEdges: Edge[];
+	symbolEdges: Edge[];
 }
+
+/** Palette for edge relation buckets (index matches meta.relations order). */
+export const REL_COLORS: [number, number, number][] = [
+	[0.4, 0.8, 1.0], // imports    — cyan
+	[1.0, 0.72, 0.3], // calls     — amber
+	[0.62, 0.62, 0.72], // references — grey
+	[0.5, 0.85, 0.55], // contains  — green
+	[0.95, 0.5, 0.85], // extends   — magenta
+	[0.45, 0.5, 0.62], // other     — slate
+];
+
+export const REL_LABELS = [
+	'imports',
+	'calls',
+	'references',
+	'contains',
+	'extends',
+	'other',
+];
 
 interface State {
 	overview: Overview | null;
