@@ -34,6 +34,9 @@ export async function main(args: string[] = [], discord: Discord = {}) {
     case "balance":
     case "credits":
       return balance(discord);
+    case "inventory":
+    case "collection":
+      return inventory(discord);
     case "help":
       return helpEmbed();
     default:
@@ -53,7 +56,8 @@ function catalogEmbed(discord: Discord) {
       url: STORE_URL,
       description:
         "Spend credits to unlock collectibles you actually own. " +
-        `Buy right here with \`/wm store buy\`, check yours with \`/wm store balance\`, ` +
+        `Buy right here with \`/wm store buy\`, check credits with \`/wm store balance\`, ` +
+        `see what you own with \`/wm store inventory\`, ` +
         `or browse at [kbve.com/store](${STORE_URL}) — sign in with Discord.`,
       color: BRAND,
       fields,
@@ -181,6 +185,72 @@ async function balance(discord: Discord) {
   };
 }
 
+async function inventory(discord: Discord) {
+  const discordId = discord.user_id;
+  if (!discordId) {
+    return errEmbed("Missing Discord identity", "Could not read your Discord id.");
+  }
+
+  const base = (await wmill.getVariable("f/discordsh/axum_base_url")).replace(/\/+$/, "");
+  const token = await wmill.getVariable("f/discordsh/axum_service_token");
+  let resp: Response;
+  try {
+    resp = await fetch(`${base}/api/v1/store/service/inventory-discord`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ discord_id: discordId }),
+    });
+  } catch (_e) {
+    return errEmbed("Store unavailable", "Could not reach the store service.");
+  }
+
+  if (resp.status === 404) {
+    return errEmbed(
+      "Account not linked",
+      `Link your Discord to your KBVE account — sign in at [kbve.com/store](${STORE_URL}).`,
+    );
+  }
+  if (!resp.ok) {
+    return errEmbed("Collection unavailable", `Store returned ${resp.status}.`);
+  }
+
+  const data = (await resp.json()) as {
+    items?: { slug: string; title?: string | null }[];
+  };
+  const items = data.items ?? [];
+  if (items.length === 0) {
+    return {
+      embed: {
+        title: "Your collection",
+        url: STORE_URL,
+        description:
+          `Nothing here yet. Unlock your first collectible with \`/wm store buy\` — ` +
+          `browse at [kbve.com/store](${STORE_URL}).`,
+        color: BRAND,
+        footer: {
+          text: `${STORE_URL.replace(/^https?:\/\//, "")} · ${discord.username ?? "you"}`,
+        },
+      },
+    };
+  }
+
+  const lines = items.map((it) => `• **${it.title ?? it.slug}** \`${it.slug}\``);
+  return {
+    embed: {
+      title: `Your collection — ${items.length} item${items.length === 1 ? "" : "s"}`,
+      url: STORE_URL,
+      description: `${lines.join("\n")}\n\nReveal them at [kbve.com/store](${STORE_URL}).`,
+      color: OK,
+      footer: {
+        text: `${STORE_URL.replace(/^https?:\/\//, "")} · ${discord.username ?? "you"}`,
+      },
+    },
+  };
+}
+
 function helpEmbed() {
   return {
     embed: {
@@ -189,6 +259,7 @@ function helpEmbed() {
         "`/wm store` — view the store\n" +
         "`/wm store balance` — check your credits\n" +
         "`/wm store buy [slug]` — purchase with your credits (defaults to the featured card)\n" +
+        "`/wm store inventory` — list the collectibles you own\n" +
         "`/wm store help` — this message",
       color: BRAND,
     },

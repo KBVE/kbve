@@ -277,6 +277,84 @@ pub(crate) async fn service_buy_discord(
     }
 }
 
+/// Inventory keyed on a Discord snowflake. Resolves discord_id -> KBVE user_id
+/// then lists the caller's owned products. Used by the discordsh
+/// `/wm store inventory` command. service_role only.
+#[derive(Deserialize, ToSchema)]
+pub(crate) struct StoreInventoryDiscordBody {
+    /// Discord snowflake (numeric string).
+    pub discord_id: String,
+}
+
+#[derive(Serialize, ToSchema)]
+pub(crate) struct StoreInventoryDiscordDto {
+    pub user_id: Uuid,
+    pub items: Vec<StoreEntitlementDto>,
+}
+
+/// `POST /api/v1/store/service/inventory-discord` — resolve a Discord id to a
+/// KBVE account and list its owned products. `404 discord_not_linked` when no
+/// KBVE account is linked; an unlinked-but-valid account returns an empty list.
+#[utoipa::path(
+    post,
+    path = "/api/v1/store/service/inventory-discord",
+    tag = "store",
+    request_body = StoreInventoryDiscordBody,
+    responses(
+        (status = 200, description = "Resolved owned products", body = StoreInventoryDiscordDto),
+        (status = 401, description = "Missing / invalid bearer token"),
+        (status = 403, description = "service_role required"),
+        (status = 404, description = "Discord id not linked to a KBVE account"),
+        (status = 503, description = "Wallet service unavailable"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn service_inventory_discord(
+    headers: HeaderMap,
+    Json(body): Json<StoreInventoryDiscordBody>,
+) -> Response {
+    if let Err(resp) = require_service_role(&headers).await {
+        return resp;
+    }
+    let client = match get_wallet_client() {
+        Some(c) => c,
+        None => return service_unavailable(),
+    };
+
+    let user_id = match client.user_for_discord_id(&body.discord_id).await {
+        Ok(Some(u)) => u,
+        Ok(None) => {
+            return (
+                StatusCode::NOT_FOUND,
+                Json(json!({
+                    "error": "discord_not_linked",
+                    "message": "No KBVE account is linked to this Discord user",
+                })),
+            )
+                .into_response();
+        }
+        Err(e) => return wallet_error_response(e),
+    };
+
+    match client.store_my_entitlements(user_id).await {
+        Ok(rows) => Json(StoreInventoryDiscordDto {
+            user_id,
+            items: rows
+                .into_iter()
+                .map(|r| StoreEntitlementDto {
+                    item_id: r.item_id,
+                    slug: r.slug,
+                    product_id: r.product_id,
+                    title: r.title,
+                    granted_at: r.granted_at.to_rfc3339(),
+                })
+                .collect(),
+        })
+        .into_response(),
+        Err(e) => wallet_error_response(e),
+    }
+}
+
 #[derive(Serialize, ToSchema)]
 pub(crate) struct StoreVariantDto {
     pub variant_id: Uuid,
