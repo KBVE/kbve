@@ -31,6 +31,9 @@ export async function main(args: string[] = [], discord: Discord = {}) {
       return catalogEmbed(discord);
     case "buy":
       return buy(args.slice(1), discord);
+    case "balance":
+    case "credits":
+      return balance(discord);
     case "help":
       return helpEmbed();
     default:
@@ -50,7 +53,8 @@ function catalogEmbed(discord: Discord) {
       url: STORE_URL,
       description:
         "Spend credits to unlock collectibles you actually own. " +
-        `Buy right here with \`/wm store buy\`, or browse at [kbve.com/store](${STORE_URL}) — sign in with Discord.`,
+        `Buy right here with \`/wm store buy\`, check yours with \`/wm store balance\`, ` +
+        `or browse at [kbve.com/store](${STORE_URL}) — sign in with Discord.`,
       color: BRAND,
       fields,
       footer: {
@@ -128,12 +132,62 @@ async function buy(rest: string[], discord: Discord) {
   };
 }
 
+async function balance(discord: Discord) {
+  const discordId = discord.user_id;
+  if (!discordId) {
+    return errEmbed("Missing Discord identity", "Could not read your Discord id.");
+  }
+
+  const base = (await wmill.getVariable("f/discordsh/axum_base_url")).replace(/\/+$/, "");
+  const token = await wmill.getVariable("f/discordsh/axum_service_token");
+  let resp: Response;
+  try {
+    resp = await fetch(`${base}/api/v1/wallet/service/balance-discord`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ discord_id: discordId }),
+    });
+  } catch (_e) {
+    return errEmbed("Wallet unavailable", "Could not reach the wallet service.");
+  }
+
+  if (resp.status === 404) {
+    return errEmbed(
+      "Account not linked",
+      `Link your Discord to your KBVE account — sign in at [kbve.com/store](${STORE_URL}).`,
+    );
+  }
+  if (!resp.ok) {
+    return errEmbed("Balance unavailable", `Wallet returned ${resp.status}.`);
+  }
+
+  const data = (await resp.json()) as { credits?: number };
+  const credits = data.credits ?? 0;
+  return {
+    embed: {
+      title: "Your credits",
+      url: STORE_URL,
+      description:
+        `**${credits} credits**\n\n` +
+        `Spend them with \`/wm store buy\`, or browse at [kbve.com/store](${STORE_URL}).`,
+      color: BRAND,
+      footer: {
+        text: `${STORE_URL.replace(/^https?:\/\//, "")} · ${discord.username ?? "you"}`,
+      },
+    },
+  };
+}
+
 function helpEmbed() {
   return {
     embed: {
       title: "/wm store",
       description:
         "`/wm store` — view the store\n" +
+        "`/wm store balance` — check your credits\n" +
         "`/wm store buy [slug]` — purchase with your credits (defaults to the featured card)\n" +
         "`/wm store help` — this message",
       color: BRAND,

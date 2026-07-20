@@ -526,6 +526,10 @@ fn router(state: AppState) -> Router {
             post(super::wallet::service_debit_discord),
         )
         .route(
+            "/api/v1/wallet/service/balance-discord",
+            post(super::wallet::service_balance_discord),
+        )
+        .route(
             "/api/v1/wallet/service/transfer",
             post(super::wallet::service_transfer),
         )
