@@ -44,7 +44,7 @@ def test_app_server_no_defaults():
 def test_app_server_health_endpoint():
     """Test that /health HTTP endpoint is registered."""
     server = AppServer()
-    routes = [r.path for r in server.http.app.routes]
+    routes = list(server.http.app.openapi()["paths"].keys())
     assert "/health" in routes
 
 
