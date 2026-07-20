@@ -161,8 +161,8 @@ def _entry(item: dict[str, Any]) -> tuple[str | None, dict[str, Any]]:
         "url": content.get("url"),
         "assignees": [a["login"]
                       for a in (content.get("assignees") or {}).get("nodes", [])],
-        "labels": [l["name"]
-                   for l in (content.get("labels") or {}).get("nodes", [])],
+        "labels": [lbl["name"]
+                   for lbl in (content.get("labels") or {}).get("nodes", [])],
         "matrix": matrix,
         "date": date,
         "milestone": (content.get("milestone") or {}).get("title"),

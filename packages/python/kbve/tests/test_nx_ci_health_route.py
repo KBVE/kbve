@@ -31,7 +31,7 @@ def _run(name, concl, start, end, attempt=1, branch="dev", event="push"):
         "updated_at": end,
         "head_branch": branch,
         "event": event,
-        "html_url": f"https://github.com/KBVE/kbve/actions/runs/1",
+        "html_url": "https://github.com/KBVE/kbve/actions/runs/1",
     }
 
 

@@ -60,7 +60,6 @@ def test_aggregate_summary():
 
 
 def test_releases_build_writes(tmp_path):
-    manifest = {"crates": [{"crate_name": "kbve", "version": "0.0.1"}]}
     # resolve() will hit the network for the real fetch; instead inject rows
     rows = [{"ecosystem": "crates", "name": "kbve", "local": "0.0.1",
              "published": "0.0.1", "status": "published"}]

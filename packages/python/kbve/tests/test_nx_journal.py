@@ -1,5 +1,4 @@
 import re
-import shutil
 from datetime import date
 from pathlib import Path
 
