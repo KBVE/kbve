@@ -1,44 +1,55 @@
 ---
-title: 'Zombie'
+title: Zombie
 template: splash
 sidebar:
-    label: 'Zombie'
-    hidden: true
-description: |
-    Slow, undead horde unit. Spawns at night via ZombieNightSpawnSystem and around demolished shrines. Bite/claw melee, prefers to chase Player units, doesn't fatigue.
-ref: 'zombie'
-id: '01KSAVP0BZN4KBB5Y1P62RVVWS'
-name: 'Zombie'
+  label: Zombie
+  hidden: true
+description: >
+  Slow, undead horde unit. Spawns at night via ZombieNightSpawnSystem and around
+  demolished shrines. Bite/claw melee, prefers to chase Player units, doesn't
+  fatigue.
+ref: zombie
+id: 01KSAVP0BZN4KBB5Y1P62RVVWS
+name: Zombie
 type_flags: 1
-rarity: 'common'
-personality: 'aggressive'
-rank: 'normal'
-family: 'undead'
+rarity: common
+personality: aggressive
+rank: normal
+family: undead
 level: 2
 stats:
-    hp: 50
-    max_hp: 50
-    attack: 4
-    defense: 1
-    speed: 2
-    armor: 0
+  hp: 50
+  max_hp: 50
+  attack: 4
+  defense: 1
+  speed: 2
+  armor: 0
+  strength: 10
+  agility: 4
+  intelligence: 1
+  will: 3
+  move_speed: 0.28
 behavior:
-    movement_type: 'random_wander'
-    first_strike: false
+  movement_type: random_wander
+  first_strike: false
 flavor_text:
-    - action: 'attack'
-      messages:
-        - "The zombie sinks rotted teeth into {target}! {dmg} damage!"
-        - "Cold, dead hands rake across {target} — {dmg} damage!"
-    - action: 'death'
-      messages:
-        - "The zombie collapses and stops twitching for good."
+  - action: attack
+    messages:
+      - 'The zombie sinks rotted teeth into {target}! {dmg} damage!'
+      - 'Cold, dead hands rake across {target} — {dmg} damage!'
+  - action: death
+    messages:
+      - The zombie collapses and stops twitching for good.
 abilities:
-    - id: 'attack'
-      name: 'Bite'
-      damage: 4
+  - id: attack
+    name: Bite
+    damage: 4
 faction:
-    faction_id: 'hostile'
+  faction_id: hostile
+name_key: creature.zombie
+unit_type: 15
+default_weapon: 0
+dialogue_tree_id: 12
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';

@@ -1,43 +1,53 @@
 ---
-title: 'Chicken'
+title: Chicken
 template: splash
 sidebar:
-    label: 'Chicken'
-    hidden: true
-description: |
-    Passive farm fowl. Tiny HP pool, no needs, ambient grass-biome wildlife. Drops nothing meaningful — atmospheric.
-ref: 'chicken'
-id: '01KSAVKEYE51RE3HX4T4G1BNRV'
-name: 'Chicken'
+  label: Chicken
+  hidden: true
+description: >
+  Passive farm fowl. Tiny HP pool, no needs, ambient grass-biome wildlife. Drops
+  nothing meaningful — atmospheric.
+ref: chicken
+id: 01KSAVKEYE51RE3HX4T4G1BNRV
+name: Chicken
 type_flags: 1
-rarity: 'common'
-personality: 'fearful'
-rank: 'normal'
-family: 'beast'
+rarity: common
+personality: fearful
+rank: normal
+family: beast
 level: 1
 stats:
-    hp: 5
-    max_hp: 5
-    attack: 1
-    defense: 0
-    speed: 3
-    armor: 0
+  hp: 5
+  max_hp: 5
+  attack: 1
+  defense: 0
+  speed: 3
+  armor: 0
+  strength: 1
+  agility: 10
+  intelligence: 1
+  will: 1
+  move_speed: 0.45
 behavior:
-    movement_type: 'random_wander'
-    first_strike: false
+  movement_type: random_wander
+  first_strike: false
 flavor_text:
-    - action: 'attack'
-      messages:
-        - "The chicken pecks at {target}'s ankle! {dmg} damage!"
-    - action: 'death'
-      messages:
-        - "The chicken keels over with a final, indignant cluck."
+  - action: attack
+    messages:
+      - 'The chicken pecks at {target}''s ankle! {dmg} damage!'
+  - action: death
+    messages:
+      - 'The chicken keels over with a final, indignant cluck.'
 abilities:
-    - id: 'attack'
-      name: 'Peck'
-      damage: 1
+  - id: attack
+    name: Peck
+    damage: 1
 faction:
-    faction_id: 'wildlife'
+  faction_id: wildlife
+name_key: creature.chicken
+unit_type: 10
+default_weapon: 0
+dialogue_tree_id: 0
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';

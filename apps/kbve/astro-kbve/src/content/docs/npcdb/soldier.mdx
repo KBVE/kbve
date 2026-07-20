@@ -1,52 +1,70 @@
 ---
-title: 'Soldier'
+title: Soldier
 template: splash
 sidebar:
-    label: 'Soldier'
-    hidden: true
-description: |
-    Standard Player infantry. Balanced stats, the workhorse of every Barracks roster.
-ref: 'soldier'
-id: '01KSAVJJEH5P7XCW5ZRTA6YR4N'
-name: 'Soldier'
+  label: Soldier
+  hidden: true
+description: >
+  Standard Player infantry. Balanced stats, the workhorse of every Barracks
+  roster.
+ref: soldier
+id: 01KSAVJJEH5P7XCW5ZRTA6YR4N
+name: Soldier
 type_flags: 1
-rarity: 'common'
-personality: 'stoic'
-rank: 'normal'
-family: 'humanoid'
+rarity: common
+personality: stoic
+rank: normal
+family: humanoid
 level: 2
 stats:
-    hp: 70
-    max_hp: 70
-    attack: 6
-    defense: 2
-    speed: 5
-    armor: 2
+  hp: 70
+  max_hp: 70
+  attack: 6
+  defense: 2
+  speed: 5
+  armor: 2
+  max_ep: 200
+  strength: 12
+  agility: 12
+  intelligence: 9
+  will: 9
+  move_speed: 0.8
+  ep_regen: 7
+  max_hunger: 180
+  max_fatigue: 110
+  hunger_per_sec: 0.285
+  fatigue_per_sec: 0.2
 behavior:
-    movement_type: 'patrol'
-    first_strike: false
+  movement_type: patrol
+  first_strike: false
 flavor_text:
-    - action: 'attack'
-      messages:
-        - "The soldier strikes with disciplined precision! {dmg} damage to {target}!"
-        - "A trained swing finds its mark on {target}. {dmg} damage!"
-    - action: 'death'
-      messages:
-        - "The soldier falls in formation, banner still gripped tight."
+  - action: attack
+    messages:
+      - >-
+        The soldier strikes with disciplined precision! {dmg} damage to
+        {target}!
+      - 'A trained swing finds its mark on {target}. {dmg} damage!'
+  - action: death
+    messages:
+      - 'The soldier falls in formation, banner still gripped tight.'
 abilities:
-    - id: 'attack'
-      name: 'Sword Strike'
-      damage: 6
+  - id: attack
+    name: Sword Strike
+    damage: 6
 faction:
-    faction_id: 'player'
+  faction_id: player
 equipment:
-    equipped:
-      - slot: 'off_hand'
-        item_ref: 'wooden-shield'
-      - slot: 'main_hand'
-        item_ref: 'rusty-sword'
-      - slot: 'chest'
-        item_ref: 'chain-mail'
+  equipped:
+    - slot: off_hand
+      item_ref: wooden-shield
+    - slot: main_hand
+      item_ref: rusty-sword
+    - slot: chest
+      item_ref: chain-mail
+name_key: creature.soldier
+unit_type: 3
+default_weapon: 0
+dialogue_tree_id: 0
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';

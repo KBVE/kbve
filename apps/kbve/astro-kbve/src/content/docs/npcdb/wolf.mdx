@@ -1,44 +1,55 @@
 ---
-title: 'Wolf'
+title: Wolf
 template: splash
 sidebar:
-    label: 'Wolf'
-    hidden: true
-description: |
-    Forest-biome predator. Fast melee bite, packs spawn in Wolf Pack events near Farms. Beast faction — bites Player + Wildlife indiscriminately. Drops Wolf Pelt + Wolf Fang.
-ref: 'wolf'
-id: '01KSAVCWA0E408E163EMXV0M45'
-name: 'Wolf'
+  label: Wolf
+  hidden: true
+description: >
+  Forest-biome predator. Fast melee bite, packs spawn in Wolf Pack events near
+  Farms. Beast faction — bites Player + Wildlife indiscriminately. Drops Wolf
+  Pelt + Wolf Fang.
+ref: wolf
+id: 01KSAVCWA0E408E163EMXV0M45
+name: Wolf
 type_flags: 1
-rarity: 'uncommon'
-personality: 'aggressive'
-rank: 'normal'
-family: 'beast'
+rarity: uncommon
+personality: aggressive
+rank: normal
+family: beast
 level: 2
 stats:
-    hp: 35
-    max_hp: 35
-    attack: 5
-    defense: 1
-    speed: 5
-    armor: 0
+  hp: 35
+  max_hp: 35
+  attack: 5
+  defense: 1
+  speed: 5
+  armor: 0
+  strength: 9
+  agility: 14
+  intelligence: 3
+  will: 6
+  move_speed: 0.65
 behavior:
-    movement_type: 'random_wander'
-    first_strike: true
+  movement_type: random_wander
+  first_strike: true
 flavor_text:
-    - action: 'attack'
-      messages:
-        - "The wolf lunges and tears into {target}! {dmg} damage!"
-        - "Fangs sink deep — {target} bleeds for {dmg} damage!"
-    - action: 'death'
-      messages:
-        - "The wolf yelps once, then falls silent."
+  - action: attack
+    messages:
+      - 'The wolf lunges and tears into {target}! {dmg} damage!'
+      - 'Fangs sink deep — {target} bleeds for {dmg} damage!'
+  - action: death
+    messages:
+      - 'The wolf yelps once, then falls silent.'
 abilities:
-    - id: 'attack'
-      name: 'Bite'
-      damage: 5
+  - id: attack
+    name: Bite
+    damage: 5
 faction:
-    faction_id: 'beast'
+  faction_id: beast
+name_key: creature.wolf
+unit_type: 13
+default_weapon: 0
+dialogue_tree_id: 0
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';

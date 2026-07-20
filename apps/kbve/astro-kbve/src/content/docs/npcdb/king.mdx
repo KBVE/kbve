@@ -1,52 +1,73 @@
 ---
-title: 'King'
+title: King
 template: splash
 sidebar:
-    label: 'King'
-    hidden: true
-description: |
-    Player avatar. Crowned warrior — high HP, ranged crossbow loadout, drives the empire-builder loop. Rarely seen on the front line by mid-game; lose him and the run ends.
-ref: 'king'
-id: '01KSAV57D0DKQNWXJ8AC01V8PQ'
-name: 'King'
+  label: King
+  hidden: true
+description: >
+  Player avatar. Crowned warrior — high HP, ranged crossbow loadout, drives the
+  empire-builder loop. Rarely seen on the front line by mid-game; lose him and
+  the run ends.
+ref: king
+id: 01KSAV57D0DKQNWXJ8AC01V8PQ
+name: King
 type_flags: 1
-rarity: 'legendary'
-personality: 'noble'
-rank: 'world_boss'
-family: 'humanoid'
+rarity: legendary
+personality: noble
+rank: world_boss
+family: humanoid
 level: 8
 stats:
-    hp: 200
-    max_hp: 200
-    attack: 10
-    defense: 4
-    speed: 4
-    armor: 3
+  hp: 200
+  max_hp: 200
+  attack: 10
+  defense: 4
+  speed: 4
+  armor: 3
+  max_ep: 220
+  max_mp: 100
+  strength: 14
+  agility: 11
+  intelligence: 14
+  will: 16
+  move_speed: 0.7
+  ep_regen: 7
+  mp_regen: 2
+  max_hunger: 220
+  max_fatigue: 120
+  hunger_per_sec: 0.3135
+  fatigue_per_sec: 0.22
 behavior:
-    movement_type: 'scripted'
-    first_strike: false
+  movement_type: scripted
+  first_strike: false
 flavor_text:
-    - action: 'attack'
-      messages:
-        - "The King looses a crossbow bolt! {target} reels for {dmg} damage!"
-        - "A snapped quarrel arcs through the air. {target} takes {dmg} damage!"
-    - action: 'death'
-      messages:
-        - "The King falls. The crown rolls free across the field — the run ends here."
+  - action: attack
+    messages:
+      - 'The King looses a crossbow bolt! {target} reels for {dmg} damage!'
+      - 'A snapped quarrel arcs through the air. {target} takes {dmg} damage!'
+  - action: death
+    messages:
+      - >-
+        The King falls. The crown rolls free across the field — the run ends
+        here.
 abilities:
-    - id: 'attack'
-      name: 'Crossbow Volley'
-      damage: 10
+  - id: attack
+    name: Crossbow Volley
+    damage: 10
 faction:
-    faction_id: 'player'
+  faction_id: player
 equipment:
-    equipped:
-      - slot: 'off_hand'
-        item_ref: 'gold-plated-shield'
-      - slot: 'main_hand'
-        item_ref: 'iron-sword'
-      - slot: 'chest'
-        item_ref: 'iron-armor'
+  equipped:
+    - slot: off_hand
+      item_ref: gold-plated-shield
+    - slot: main_hand
+      item_ref: iron-sword
+    - slot: chest
+      item_ref: iron-armor
+name_key: creature.king
+unit_type: 5
+default_weapon: 2
+dialogue_tree_id: 0
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';

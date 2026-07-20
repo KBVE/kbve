@@ -1,46 +1,66 @@
 ---
-title: 'Cleric'
+title: Cleric
 template: splash
 sidebar:
-    label: 'Cleric'
-    hidden: true
-description: |
-    Player support humanoid. Pale robe, gold trim, holy symbol. Heals nearby allies; reserved for higher-tier Barracks / temple recruitment once healing AI lands.
-ref: 'cleric'
-id: '01KSAVZ000000000000000CLRC'
-name: 'Cleric'
+  label: Cleric
+  hidden: true
+description: >
+  Player support humanoid. Pale robe, gold trim, holy symbol. Heals nearby
+  allies; reserved for higher-tier Barracks / temple recruitment once healing AI
+  lands.
+ref: cleric
+id: 01KSAVZ000000000000000CLRC
+name: Cleric
 type_flags: 1
-rarity: 'uncommon'
-personality: 'noble'
-rank: 'normal'
-family: 'humanoid'
+rarity: uncommon
+personality: noble
+rank: normal
+family: humanoid
 level: 3
 stats:
-    hp: 60
-    max_hp: 60
-    attack: 3
-    defense: 2
-    speed: 4
-    armor: 1
+  hp: 60
+  max_hp: 60
+  attack: 3
+  defense: 2
+  speed: 4
+  armor: 1
+  max_ep: 100
+  max_mp: 120
+  strength: 9
+  agility: 9
+  intelligence: 14
+  will: 14
+  move_speed: 0.7
+  hp_regen: 0.3
+  ep_regen: 5
+  mp_regen: 1.5
+  max_hunger: 150
+  max_fatigue: 100
+  hunger_per_sec: 0.3
+  fatigue_per_sec: 0.2
 behavior:
-    movement_type: 'patrol'
-    first_strike: false
+  movement_type: patrol
+  first_strike: false
 flavor_text:
-    - action: 'attack'
-      messages:
-        - "The cleric strikes with a glowing mace — {target} takes {dmg} damage!"
-    - action: 'death'
-      messages:
-        - "The cleric falls, holy symbol fading to grey."
+  - action: attack
+    messages:
+      - 'The cleric strikes with a glowing mace — {target} takes {dmg} damage!'
+  - action: death
+    messages:
+      - 'The cleric falls, holy symbol fading to grey.'
 abilities:
-    - id: 'attack'
-      name: 'Sanctified Blow'
-      damage: 3
-    - id: 'heal'
-      name: 'Mend'
-      damage: 0
+  - id: attack
+    name: Sanctified Blow
+    damage: 3
+  - id: heal
+    name: Mend
+    damage: 0
 faction:
-    faction_id: 'player'
+  faction_id: player
+name_key: creature.cleric
+unit_type: 8
+default_weapon: 0
+dialogue_tree_id: 0
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';

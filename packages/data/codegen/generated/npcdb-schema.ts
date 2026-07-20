@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/npcdb.binpb
  * Config: ../npcdb-zod-config.json
- * Generated: 2026-06-28T10:41:44.005Z
+ * Generated: 2026-07-20T00:37:21.602Z
  */
 
 import { z } from 'zod';
@@ -256,6 +256,12 @@ export const NpcStatsSchema = z
 		evasion: z.number().nullable().optional(),
 		crit_rate: z.number().nullable().optional(),
 		crit_damage: z.number().nullable().optional(),
+		move_speed: z.number().nullable().optional(),
+		max_hunger: z.number().nullable().optional(),
+		max_fatigue: z.number().nullable().optional(),
+		will: z.number().nullable().optional(),
+		hunger_per_sec: z.number().nullable().optional(),
+		fatigue_per_sec: z.number().nullable().optional(),
 	})
 	.passthrough();
 
@@ -605,6 +611,10 @@ export const NpcSchema = z.object({
 	level_min: z.number().optional(),
 	level_max: z.number().optional(),
 	stats: NpcStatsSchema.optional(),
+	unit_type: z.number().optional(),
+	default_weapon: z.number().optional(),
+	dialogue_tree_id: z.number().optional(),
+	name_key: z.string().optional(),
 	abilities: z.array(NpcAbilitySchema).optional(),
 	weaknesses: z.array(ElementalAffinitySchema).optional(),
 	resistances: z.array(ElementalAffinitySchema).optional(),
@@ -638,6 +648,7 @@ export type Npc = z.infer<typeof NpcSchema>;
 // NpcRegistry
 export const NpcRegistrySchema = z.object({
 	npcs: z.array(NpcSchema).optional(),
+	content_version: z.string().optional(),
 });
 
 export type NpcRegistry = z.infer<typeof NpcRegistrySchema>;
