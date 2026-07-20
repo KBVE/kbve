@@ -183,3 +183,13 @@ apps/**/unreal-*/DerivedDataCache/
 
 # Per-machine UE plugin settings overrides (gitignored AnonKey, etc).
 apps/**/unreal-*/Config/Local*.ini
+
+# Husky-managed hook bootstrap dir. Regenerated on every install by `prepare`;
+# git-lfs also rewrites these, causing phantom diffs. Never track.
+.husky/_/
+.husky/_/post-checkout
+.husky/_/post-commit
+.husky/_/post-merge
+.husky/_/pre-push
+.husky/_/pre-commit
+.husky/_/pre-rebase
