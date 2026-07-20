@@ -93,7 +93,10 @@
 	},
 	"peerDependencies": {
 		"react": ">=18",
-		"react-native": ">=0.74"
+		"react-native": ">=0.74",
+		"@react-three/fiber": "^9.6.1",
+		"@react-three/drei": "^10.7.7",
+		"three": "^0.184.0"
 	},
 	"peerDependenciesMeta": {
 		"react": {
@@ -101,6 +104,15 @@
 		},
 		"react-native": {
 			"optional": false
+		},
+		"@react-three/fiber": {
+			"optional": true
+		},
+		"@react-three/drei": {
+			"optional": true
+		},
+		"three": {
+			"optional": true
 		}
 	},
 	"publishConfig": {

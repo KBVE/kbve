@@ -6,6 +6,7 @@ import { tokens } from '../../ui/theme';
 import { createStoreApi } from './api';
 import { BuyCredits } from './BuyCredits';
 import { ProductCard } from './ProductCard';
+import { IdiotCard } from './IdiotCard';
 import { CheckoutModal } from './CheckoutModal';
 import { OrderHistory } from './OrderHistory';
 import { StoreApiError } from './errors';
@@ -19,8 +20,15 @@ export interface StoreViewProps {
 	authenticated: boolean;
 }
 
-export function StoreView({ getToken, baseUrl = '', authenticated }: StoreViewProps) {
-	const api = useMemo(() => createStoreApi({ getToken, baseUrl }), [getToken, baseUrl]);
+export function StoreView({
+	getToken,
+	baseUrl = '',
+	authenticated,
+}: StoreViewProps) {
+	const api = useMemo(
+		() => createStoreApi({ getToken, baseUrl }),
+		[getToken, baseUrl],
+	);
 	const [products, setProducts] = useState<StoreProduct[]>([]);
 	const [entitlements, setEntitlements] = useState<StoreEntitlement[]>([]);
 	const [orders, setOrders] = useState<StoreOrder[]>([]);
@@ -63,13 +71,19 @@ export function StoreView({ getToken, baseUrl = '', authenticated }: StoreViewPr
 			try {
 				await api.buyProduct(slug);
 				notifyWalletRefresh();
-				setEntitlements(await api.myEntitlements().catch(() => entitlements));
+				setEntitlements(
+					await api.myEntitlements().catch(() => entitlements),
+				);
 			} catch (e) {
 				if (e instanceof StoreApiError && e.status === 409) {
 					notifyWalletRefresh();
-					setEntitlements(await api.myEntitlements().catch(() => entitlements));
+					setEntitlements(
+						await api.myEntitlements().catch(() => entitlements),
+					);
 				} else {
-					setError(e instanceof Error ? e.message : 'purchase failed');
+					setError(
+						e instanceof Error ? e.message : 'purchase failed',
+					);
 				}
 			} finally {
 				setBusySlug(null);
@@ -85,17 +99,22 @@ export function StoreView({ getToken, baseUrl = '', authenticated }: StoreViewPr
 		<Stack gap="lg">
 			<BuyCredits api={api} authenticated={authenticated} />
 			{error ? (
-				<Text variant="caption" tone="danger">{error}</Text>
+				<Text variant="caption" tone="danger">
+					{error}
+				</Text>
 			) : null}
 			{featured ? (
-				<ProductCard
-					product={featured}
-					owned={owns(featured.slug)}
-					authenticated={authenticated}
-					busy={busySlug === featured.slug}
-					onBuyDigital={(s) => void buyDigital(s)}
-					onBuyPhysical={setCheckoutSlug}
-				/>
+				<Stack gap="md">
+					<IdiotCard revealed={owns(featured.slug)} />
+					<ProductCard
+						product={featured}
+						owned={owns(featured.slug)}
+						authenticated={authenticated}
+						busy={busySlug === featured.slug}
+						onBuyDigital={(s) => void buyDigital(s)}
+						onBuyPhysical={setCheckoutSlug}
+					/>
+				</Stack>
 			) : null}
 			<Text variant="subtitle">All products</Text>
 			<View style={styles.grid}>
