@@ -21,7 +21,7 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 use super::https::auth_user_id;
-use super::wallet::{resolve_user, service_unavailable, wallet_error_response};
+use super::wallet::{require_service_role, resolve_user, service_unavailable, wallet_error_response};
 use crate::db::{get_forum_service, get_wallet_client};
 
 /// Gate a staff-only route. Mirrors transport/mc_lot.rs::require_staff.
@@ -196,6 +196,83 @@ pub(crate) async fn buy(
     };
     match client.store_buy(user_id, req).await {
         Ok(item_id) => Json(StoreItemDto { item_id }).into_response(),
+        Err(e) => wallet_error_response(e),
+    }
+}
+
+/// Buy keyed on a Discord snowflake. Resolves discord_id -> KBVE user_id then
+/// runs the same credits-debit + entitlement-mint as the caller `buy` path.
+/// Used by the discordsh `/wm store buy` command, which only knows the
+/// caller's Discord id. service_role only.
+#[derive(Deserialize, ToSchema)]
+pub(crate) struct StoreBuyDiscordBody {
+    /// Discord snowflake (numeric string).
+    pub discord_id: String,
+    /// Product slug to purchase.
+    pub slug: String,
+    /// Caller-supplied. Replays return the original inventory item id.
+    pub idempotency_key: Uuid,
+}
+
+#[derive(Serialize, ToSchema)]
+pub(crate) struct StoreItemDiscordDto {
+    pub user_id: Uuid,
+    /// The minted (or already-owned) inventory.item id.
+    pub item_id: Uuid,
+}
+
+/// `POST /api/v1/store/service/buy-discord` — resolve a Discord id to a KBVE
+/// account, spend credits, mint the item. `404 discord_not_linked` when no
+/// KBVE account is linked; `402 insufficient_credits` on an empty balance.
+#[utoipa::path(
+    post,
+    path = "/api/v1/store/service/buy-discord",
+    tag = "store",
+    request_body = StoreBuyDiscordBody,
+    responses(
+        (status = 200, description = "Purchased / already owned", body = StoreItemDiscordDto),
+        (status = 401, description = "Missing / invalid bearer token"),
+        (status = 402, description = "Insufficient credits"),
+        (status = 403, description = "service_role required"),
+        (status = 404, description = "Discord id not linked / product not found"),
+        (status = 409, description = "Idempotency key reused with a different payload"),
+        (status = 503, description = "Wallet service unavailable"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn service_buy_discord(
+    headers: HeaderMap,
+    Json(body): Json<StoreBuyDiscordBody>,
+) -> Response {
+    if let Err(resp) = require_service_role(&headers).await {
+        return resp;
+    }
+    let client = match get_wallet_client() {
+        Some(c) => c,
+        None => return service_unavailable(),
+    };
+
+    let user_id = match client.user_for_discord_id(&body.discord_id).await {
+        Ok(Some(u)) => u,
+        Ok(None) => {
+            return (
+                StatusCode::NOT_FOUND,
+                Json(json!({
+                    "error": "discord_not_linked",
+                    "message": "No KBVE account is linked to this Discord user",
+                })),
+            )
+                .into_response();
+        }
+        Err(e) => return wallet_error_response(e),
+    };
+
+    let req = StoreBuyRequest {
+        slug: body.slug,
+        idempotency_key: body.idempotency_key,
+    };
+    match client.store_buy(user_id, req).await {
+        Ok(item_id) => Json(StoreItemDiscordDto { user_id, item_id }).into_response(),
         Err(e) => wallet_error_response(e),
     }
 }

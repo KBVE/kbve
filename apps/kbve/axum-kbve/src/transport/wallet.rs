@@ -147,6 +147,24 @@ pub(crate) struct ServiceDebitDiscordDto {
     pub ledger_id: i64,
 }
 
+/// Balance lookup keyed on a Discord snowflake. Resolves discord_id -> KBVE
+/// user_id, then reads the balance from the read-only pool (rw fallback
+/// provisions a missing account). Used by the discordsh `/wm store balance`
+/// command to show credits before a purchase.
+#[derive(Deserialize, ToSchema)]
+pub(crate) struct ServiceBalanceDiscordBody {
+    /// Discord snowflake (numeric string).
+    pub discord_id: String,
+}
+
+#[derive(Serialize, ToSchema)]
+pub(crate) struct ServiceBalanceDiscordDto {
+    pub user_id: Uuid,
+    pub account_id: Uuid,
+    pub credits: i64,
+    pub khash: i64,
+}
+
 #[derive(Deserialize, ToSchema)]
 pub(crate) struct ServiceTransferBody {
     pub from_account: Uuid,
@@ -856,6 +874,63 @@ pub(crate) async fn service_debit_discord(
             })
             .into_response()
         }
+        Err(e) => wallet_error_response(e),
+    }
+}
+
+/// `POST /api/v1/wallet/service/balance-discord` — read the credit balance of
+/// the wallet linked to a Discord snowflake. Resolves discord_id -> user_id,
+/// then reads `user_balance` (read-only pool, rw fallback provisions a missing
+/// account). `404 discord_not_linked` when no KBVE account is linked.
+#[utoipa::path(
+    post,
+    path = "/api/v1/wallet/service/balance-discord",
+    tag = "wallet",
+    request_body = ServiceBalanceDiscordBody,
+    responses(
+        (status = 200, description = "Resolved balance", body = ServiceBalanceDiscordDto),
+        (status = 401, description = "Missing / invalid bearer token"),
+        (status = 403, description = "service_role required"),
+        (status = 404, description = "Discord id not linked to a KBVE account"),
+        (status = 503, description = "Wallet service unavailable"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn service_balance_discord(
+    headers: HeaderMap,
+    Json(body): Json<ServiceBalanceDiscordBody>,
+) -> Response {
+    if let Err(resp) = require_service_role(&headers).await {
+        return resp;
+    }
+    let client = match get_wallet_client() {
+        Some(c) => c,
+        None => return service_unavailable(),
+    };
+
+    let user_id = match client.user_for_discord_id(&body.discord_id).await {
+        Ok(Some(u)) => u,
+        Ok(None) => {
+            return (
+                StatusCode::NOT_FOUND,
+                Json(json!({
+                    "error": "discord_not_linked",
+                    "message": "No KBVE account is linked to this Discord user",
+                })),
+            )
+                .into_response();
+        }
+        Err(e) => return wallet_error_response(e),
+    };
+
+    match client.user_balance(user_id).await {
+        Ok(bal) => Json(ServiceBalanceDiscordDto {
+            user_id,
+            account_id: bal.account_id,
+            credits: bal.credits,
+            khash: bal.khash,
+        })
+        .into_response(),
         Err(e) => wallet_error_response(e),
     }
 }
