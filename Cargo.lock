@@ -2326,7 +2326,7 @@ dependencies = [
  "dashmap 6.1.0",
  "dotenvy",
  "futures-util",
- "hmac 0.12.1",
+ "hmac 0.13.0",
  "http 1.4.0",
  "http-body-util",
  "jedi",
