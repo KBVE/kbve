@@ -1,0 +1,184 @@
+{
+  "generated_at": "2026-07-20T04:36:00Z",
+  "window": {
+    "days": 7,
+    "since": "2026-07-13T04:36:00Z"
+  },
+  "commits": {
+    "total": 433,
+    "authors": 4,
+    "leaderboard": [
+      {
+        "author": "h0lybyte",
+        "commits": 352
+      },
+      {
+        "author": "github-actions[bot]",
+        "commits": 70
+      },
+      {
+        "author": "dependabot[bot]",
+        "commits": 6
+      },
+      {
+        "author": "Fudster",
+        "commits": 5
+      }
+    ],
+    "recent": [
+      {
+        "sha": "d9ade12",
+        "author": "h0lybyte",
+        "message": "Merge pull request #14347 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/d9ade12e298a4b9135f03f62a2847e554fe4f9f8",
+        "date": "2026-07-19T23:13:41Z"
+      },
+      {
+        "sha": "8ee59aa",
+        "author": "h0lybyte",
+        "message": "chore(docs): remove completed plans & specs (batch 3)",
+        "url": "https://github.com/KBVE/kbve/commit/8ee59aa542ee66d2a83945c31b33aa32173fbe33",
+        "date": "2026-07-19T23:11:04Z"
+      },
+      {
+        "sha": "6fbc7c1",
+        "author": "h0lybyte",
+        "message": "chore(deps): updating the rareicon vcontainer to v1.19.0",
+        "url": "https://github.com/KBVE/kbve/commit/6fbc7c1c9f22b1ac75a80f3b9d9c3517bad1d25c",
+        "date": "2026-07-19T23:07:54Z"
+      },
+      {
+        "sha": "077d9f9",
+        "author": "h0lybyte",
+        "message": "chore(docs): remove completed plans & specs (batch 2)",
+        "url": "https://github.com/KBVE/kbve/commit/077d9f944616690297060bdc0f87792e057e2eb6",
+        "date": "2026-07-19T22:54:37Z"
+      },
+      {
+        "sha": "f29bd74",
+        "author": "h0lybyte",
+        "message": "feat(dashboard): Insights nav group for generated daily pages (#14351)",
+        "url": "https://github.com/KBVE/kbve/commit/f29bd74506c423847ec6be240f2b565b299f47d2",
+        "date": "2026-07-19T22:52:36Z"
+      },
+      {
+        "sha": "0965384",
+        "author": "h0lybyte",
+        "message": "feat(discordsh): thread-aware /github close & reopen with attribution (#14350)",
+        "url": "https://github.com/KBVE/kbve/commit/09653841a90a6438a660a93332417000f6b38330",
+        "date": "2026-07-19T22:52:11Z"
+      },
+      {
+        "sha": "e3feff8",
+        "author": "h0lybyte",
+        "message": "feat(kbve-nx): deps, activity, releases routes (bento) (#14349)",
+        "url": "https://github.com/KBVE/kbve/commit/e3feff8639e631f4c646ac86fde3a0c17bb5c489",
+        "date": "2026-07-19T22:52:00Z"
+      },
+      {
+        "sha": "1f2156b",
+        "author": "h0lybyte",
+        "message": "chore(docs): remove completed implementation plans",
+        "url": "https://github.com/KBVE/kbve/commit/1f2156b3a26b63bbc9bdb89c9723f443417e0d09",
+        "date": "2026-07-19T22:44:09Z"
+      },
+      {
+        "sha": "361bf96",
+        "author": "h0lybyte",
+        "message": "chore(rn): resolving the lint errors.",
+        "url": "https://github.com/KBVE/kbve/commit/361bf96409ec0fd1af1d173c118cb4790c2831cf",
+        "date": "2026-07-19T22:29:29Z"
+      },
+      {
+        "sha": "8da33b6",
+        "author": "h0lybyte",
+        "message": "Merge pull request #14341 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/8da33b68ad177effad559107c428471151ad6c2e",
+        "date": "2026-07-19T22:25:10Z"
+      },
+      {
+        "sha": "09229d7",
+        "author": "h0lybyte",
+        "message": "docs(journal): updating the world cup details.",
+        "url": "https://github.com/KBVE/kbve/commit/09229d7c72d5bdae6c0bd4c0ca25faced1e1134b",
+        "date": "2026-07-19T22:24:56Z"
+      },
+      {
+        "sha": "5856d0c",
+        "author": "h0lybyte",
+        "message": "fix(python): updating the tests for the journals.",
+        "url": "https://github.com/KBVE/kbve/commit/5856d0ced13b7500d90fbd43358fe18261b02398",
+        "date": "2026-07-19T22:21:32Z"
+      }
+    ]
+  },
+  "pull_requests": {
+    "merged": 277,
+    "recent": [
+      {
+        "number": 14364,
+        "title": "chore(codegen): resync stale zod schemas + markets Phase 2 docs",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14364"
+      },
+      {
+        "number": 14362,
+        "title": "rareicon: npcdb proto source-of-truth + rehydrate staffing fix",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14362"
+      },
+      {
+        "number": 14361,
+        "title": "feat: Add Graphify semantic knowledge graph integration",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14361"
+      },
+      {
+        "number": 14360,
+        "title": "feat(embeddb): v6 lazy reader + crate release scaffold (derive publishes 0.1.0, embeddb held)",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14360"
+      },
+      {
+        "number": 14352,
+        "title": "fix(dashboard): kanban board blank state + right-edge clipping",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14352"
+      },
+      {
+        "number": 14347,
+        "title": "Release: 3 features, 5 chores \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/14347"
+      },
+      {
+        "number": 14351,
+        "title": "feat(dashboard): Insights nav group for generated daily pages",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14351"
+      },
+      {
+        "number": 14350,
+        "title": "feat(discordsh): thread-aware /github close & reopen with attribution",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14350"
+      },
+      {
+        "number": 14349,
+        "title": "feat(kbve-nx): deps, activity, releases routes (bento)",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14349"
+      },
+      {
+        "number": 14341,
+        "title": "Release: 3 features, 2 fixes, 1 chore \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/14341"
+      }
+    ]
+  },
+  "issues": {
+    "opened": 275,
+    "closed": 283
+  }
+}
