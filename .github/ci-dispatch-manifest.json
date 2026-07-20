@@ -801,7 +801,7 @@
 			"key": "py_lib_kbve",
 			"package_name": "python-kbve",
 			"pypi_name": "kbve",
-			"version": "1.0.13",
+			"version": "1.0.14",
 			"version_toml": "packages/python/kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/python-kbve.mdx",
 			"version_target": "packages/python/kbve/pyproject.toml"
