@@ -25,7 +25,7 @@ template:
     spec:
         initContainers:
             - name: init-dind-externals
-              image: ghcr.io/kbve/arc-runner:0.1.6
+              image: ghcr.io/kbve/arc-runner:0.1.7
               command:
                   [
                       'cp',
@@ -39,7 +39,7 @@ template:
                     mountPath: /home/runner/tmpDir
         containers:
             - name: runner
-              image: ghcr.io/kbve/arc-runner:0.1.6
+              image: ghcr.io/kbve/arc-runner:0.1.7
               command: ['/home/runner/run.sh']
               env:
                   - name: DOCKER_HOST
