@@ -936,7 +936,6 @@ def render_kanban_mdx(payload: dict, timestamp: str) -> str:
     project = payload["project"]
     summary = payload["summary"]
     columns = payload["columns"]
-    total = project.get("total_items", 0)
     tracked = sum(summary.values())
     active = sum(summary.get(c, 0) for c in _ACTIVE_COLS)
     blocked = sum(summary.get(c, 0) for c in _BLOCKED_COLS)
@@ -971,14 +970,14 @@ def render_kanban_mdx(payload: dict, timestamp: str) -> str:
     elif blocked > 0:
         lede = (
             f"<strong>{tracked}</strong> item{'s' if tracked != 1 else ''}"
-            f" on the board — <strong>{active}</strong> active,"
-            f" <strong>{blocked}</strong> blocked."
+            f" on the board — <strong>{active}</strong> active, "
+            f"<strong>{blocked}</strong> blocked."
         )
     else:
         lede = (
             f"<strong>{tracked}</strong> item{'s' if tracked != 1 else ''}"
-            f" on the board — <strong>{active}</strong> active,"
-            f" <strong>{done}</strong> done."
+            f" on the board — <strong>{active}</strong> active, "
+            f"<strong>{done}</strong> done."
         )
 
     out.write('<div class="kanban-report" data-dash-report>\n\n')
@@ -1370,7 +1369,7 @@ def render_ci_health_mdx(payload: dict, timestamp: str) -> str:
             out.write(f'    "{_mermaid_label(wf["name"])}" : {wf["runs"]}\n')
         out.write("```\n\n")
 
-    out.write(f"### Last 24 hours\n\n")
+    out.write("### Last 24 hours\n\n")
     out.write(
         f"**{t24['runs']}** runs · **{t24['success']}** ok ·"
         f" **{t24['failure']}** failed · **{t24['success_rate']}%** success"

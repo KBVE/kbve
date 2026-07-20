@@ -15,3 +15,6 @@ per-file-ignores =
 	# pycodestyle mis-tokenizes f-string format specs / string content (PEP 701, py3.12)
 	kbve/sprite/model_sprites.py: E231, E702
 	kbve/sprite/ship_footprint.py: E231
+	kbve/nx/routes/activity.py: E231
+	tests/test_nx_activity_route.py: E231
+	tests/test_nx_kanban_route.py: E231
