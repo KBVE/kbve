@@ -1,5 +1,7 @@
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
+import { MapControls } from '@react-three/drei';
+import type { MapControls as MapControlsImpl } from 'three-stdlib';
 import * as THREE from 'three';
 import {
 	communityColor,
@@ -9,9 +11,11 @@ import {
 const CIRCLE = new THREE.CircleGeometry(1, 24);
 const NODE_CIRCLE = new THREE.CircleGeometry(1, 12);
 
-// Zoom thresholds (orthographic camera.zoom) that gate the LOD layers.
-const NODE_FADE_IN = 0.6;
-const COMMUNITY_FADE_OUT = 2.2;
+// LOD thresholds expressed as multiples of the fit zoom, so the member layer
+// fades in at the same *relative* zoom regardless of graph size (the absolute
+// fit zoom shrinks as the graph grows toward 10k nodes).
+const NODE_FADE_IN_MULT = 2.2;
+const COMMUNITY_FADE_OUT_MULT = 6;
 
 interface Props {
 	data: LayeredGraph;
@@ -25,29 +29,35 @@ interface Props {
  */
 export default function GraphScene({ data }: Props) {
 	const { camera, size } = useThree();
+	const controls = useRef<MapControlsImpl>(null);
+	const fitZoom = useRef(1);
 	const communityMesh = useRef<THREE.InstancedMesh>(null);
 	const nodeMesh = useRef<THREE.InstancedMesh>(null);
 	const nodeGroup = useRef<THREE.Group>(null);
 
-	// Fit the camera to the graph bounds on first mount.
+	// Fit the camera to the graph bounds on first mount. The ortho camera and
+	// the MapControls target must share the same (cx, cy) so the view looks
+	// straight down at the graph centre — otherwise the controls pull the
+	// camera back toward the origin and the graph slides off-screen.
 	useEffect(() => {
 		const xs = data.communities.map((c) => c.x);
 		const ys = data.communities.map((c) => c.y);
-		const minX = Math.min(...xs);
-		const maxX = Math.max(...xs);
-		const minY = Math.min(...ys);
-		const maxY = Math.max(...ys);
-		const cx = (minX + maxX) / 2;
-		const cy = (minY + maxY) / 2;
-		const spanX = Math.max(maxX - minX, 1);
-		const spanY = Math.max(maxY - minY, 1);
+		const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+		const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+		const spanX = Math.max(Math.max(...xs) - Math.min(...xs), 1);
+		const spanY = Math.max(Math.max(...ys) - Math.min(...ys), 1);
 		const zoom = Math.min(
-			size.width / (spanX * 1.4),
-			size.height / (spanY * 1.4),
+			size.width / (spanX * 1.3),
+			size.height / (spanY * 1.3),
 		);
 		camera.position.set(cx, cy, 100);
 		(camera as THREE.OrthographicCamera).zoom = zoom;
 		camera.updateProjectionMatrix();
+		fitZoom.current = zoom;
+		if (controls.current) {
+			controls.current.target.set(cx, cy, 0);
+			controls.current.update();
+		}
 	}, [data, camera, size.width, size.height]);
 
 	// Community instances (matrices + colors).
@@ -122,8 +132,11 @@ export default function GraphScene({ data }: Props) {
 	// LOD: drive per-layer opacity from the camera zoom each frame.
 	useFrame(() => {
 		const zoom = (camera as THREE.OrthographicCamera).zoom;
+		const fz = fitZoom.current;
+		const nodeIn = fz * NODE_FADE_IN_MULT;
+		const commOut = fz * COMMUNITY_FADE_OUT_MULT;
 		const nodeT = THREE.MathUtils.clamp(
-			(zoom - NODE_FADE_IN) / (COMMUNITY_FADE_OUT - NODE_FADE_IN),
+			(zoom - nodeIn) / (commOut - nodeIn),
 			0,
 			1,
 		);
@@ -138,6 +151,13 @@ export default function GraphScene({ data }: Props) {
 
 	return (
 		<>
+			<MapControls
+				ref={controls}
+				enableRotate={false}
+				screenSpacePanning
+				minZoom={0.02}
+				maxZoom={12}
+			/>
 			<lineSegments geometry={communityEdgeGeo}>
 				<lineBasicMaterial
 					color="#64748b"

@@ -1,5 +1,4 @@
 import { Canvas } from '@react-three/fiber';
-import { MapControls } from '@react-three/drei';
 import { useGraphLayout } from './useGraphLayout';
 import GraphScene from './GraphScene';
 
@@ -40,12 +39,6 @@ export default function ReactGraphExplorer({ url }: Props) {
 					>
 						<color attach="background" args={['#0b0f17']} />
 						<GraphScene data={data} />
-						<MapControls
-							enableRotate={false}
-							screenSpacePanning
-							minZoom={0.05}
-							maxZoom={12}
-						/>
 					</Canvas>
 					<div className="graph-explorer__legend">
 						<strong>{data.meta.nodes.toLocaleString()}</strong>{' '}
