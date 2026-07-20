@@ -17,7 +17,10 @@ namespace RareIcon
         public ushort Inv1Id, Inv1Qty;
         public ushort Inv2Id, Inv2Qty;
         public ushort Inv3Id, Inv3Qty;
+        public byte Strength, Agility, Intellect, Will;
+        public byte HasAttributes;
     }
+
 
     /// <summary>Spawns the initial King + ally-goblin cluster and exposes static spawn helpers for chunk-reload + hostile waves.</summary>
     [WorldSystemFilter(WorldSystemFilterFlags.LocalSimulation | WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
