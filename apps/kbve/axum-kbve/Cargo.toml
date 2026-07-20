@@ -97,7 +97,7 @@ kbve = { path = "../../../packages/rust/kbve", features = ["wallet"] }
 uuid = { version = "1", features = ["v4", "serde"] }
 
 # Referral handler hashes client IP + subnet before any DB write.
-hmac = "0.12"
+hmac = "0.13"
 sha2 = "0.10"
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
