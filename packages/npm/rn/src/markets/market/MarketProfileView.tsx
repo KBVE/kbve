@@ -114,6 +114,7 @@ export function MarketProfileView({
 				}),
 			);
 			if (cancelled) return;
+			if (!pairs.some(Boolean)) return;
 			setBidRefs((prev) => {
 				const next = new Map(prev);
 				for (const p of pairs) {
