@@ -24,3 +24,5 @@ export { MarketView } from './MarketView';
 export type { MarketViewProps } from './MarketView';
 export { MarketProfileView } from './MarketProfileView';
 export type { MarketProfileViewProps } from './MarketProfileView';
+export { MCItemMarketSidecar } from './MCItemMarketSidecar';
+export type { MCItemMarketSidecarProps } from './MCItemMarketSidecar';
