@@ -83,3 +83,26 @@ export const CREDIT_PACKS: CreditPack[] = [
 ];
 
 export const FEATURED_SLUG = 'i-am-an-idiot';
+
+export interface StaffProductBody {
+	slug: string;
+	title: string;
+	description?: string | null;
+	price: number;
+	fulfillment?: Fulfillment;
+	asset_ref?: Record<string, unknown>;
+	status?: string;
+}
+
+export interface StaffVariantBody {
+	sku: string;
+	attributes?: Record<string, unknown>;
+	price: number;
+	stock?: number | null;
+	status?: string;
+}
+
+export interface StoreOrderStaff extends StoreOrder {
+	account_id: string;
+	shipping_address: Record<string, unknown>;
+}
