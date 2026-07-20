@@ -435,25 +435,35 @@ namespace RareIcon
                             Inv1Id = g.inv1_id, Inv1Qty = g.inv1_qty,
                             Inv2Id = g.inv2_id, Inv2Qty = g.inv2_qty,
                             Inv3Id = g.inv3_id, Inv3Qty = g.inv3_qty,
+                            Strength = g.strength, Agility = g.agility, Intellect = g.intellect, Will = g.will,
+                            HasAttributes = (byte)((g.strength | g.agility | g.intellect | g.will) != 0 ? 1 : 0),
                         };
 
                         uint rng = (uint)g.q * 0x9E3779B1u
                                  ^ (uint)g.r * 0x85EBCA77u
                                  ^ ((uint)i + 1u);
                         rng |= 1u;
+                        Entity spawned;
                         if (g.unit_type == UnitType.King)
                         {
-                            UnitSpawnSystem.SpawnKingAt(em, hex, state);
+                            spawned = UnitSpawnSystem.SpawnKingAt(em, hex, state);
                         }
                         else if (g.unit_type == UnitType.Chicken
                               || g.unit_type == UnitType.Sheep
                               || g.unit_type == UnitType.Cow)
                         {
-                            UnitSpawnSystem.SpawnAnimalAt(em, hex, rng, g.unit_type, state);
+                            spawned = UnitSpawnSystem.SpawnAnimalAt(em, hex, rng, g.unit_type, state);
                         }
                         else
                         {
-                            UnitSpawnSystem.SpawnGoblinAt(em, hex, rng, state);
+                            spawned = UnitSpawnSystem.SpawnGoblinAt(em, hex, rng, state);
+                        }
+
+                        if (state.HasAttributes != 0 && em.Exists(spawned))
+                        {
+                            var attrs = new UnitAttributes { Strength = state.Strength, Agility = state.Agility, Intellect = state.Intellect, Will = state.Will };
+                            if (em.HasComponent<UnitAttributes>(spawned)) em.SetComponentData(spawned, attrs);
+                            else em.AddComponentData(spawned, attrs);
                         }
                     }
                 }

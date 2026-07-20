@@ -24,6 +24,16 @@ namespace RareIcon
         public float Max;
     }
 
+    /// <summary>Per-character attributes rolled at spawn from the npcdb base (±20%), persisted exactly across save/load.
+    /// Display/flavor only for now; gameplay effects (STR→damage, AGI→speed, INT→aptitude, WILL→resist) are a later pass.</summary>
+    public struct UnitAttributes : IComponentData
+    {
+        public byte Strength;
+        public byte Agility;
+        public byte Intellect;
+        public byte Will;
+    }
+
     /// <summary>Food deficit. 0 = full, Max = starving. Refilled by ConsumeFoodExecutor; ticked up by NeedAccumulationSystem.</summary>
 
     public struct Hunger : IComponentData

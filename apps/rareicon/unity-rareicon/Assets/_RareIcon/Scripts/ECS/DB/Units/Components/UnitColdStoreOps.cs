@@ -33,6 +33,10 @@ namespace RareIcon
             time_since_attack  = rec.TimeSinceAttack,
             attack_kind        = rec.AttackKind,
             target_mode        = rec.TargetMode,
+            strength           = rec.Strength,
+            agility            = rec.Agility,
+            intellect          = rec.Intellect,
+            will               = rec.Will,
         };
 
         public static UnloadedUnitRecord FromFfi(in FfiGhostUnit f) => new UnloadedUnitRecord
@@ -61,6 +65,10 @@ namespace RareIcon
             TimeSinceAttack = f.time_since_attack,
             AttackKind      = f.attack_kind,
             TargetMode      = f.target_mode,
+            Strength        = f.strength,
+            Agility         = f.agility,
+            Intellect       = f.intellect,
+            Will            = f.will,
         };
 
         public static UnloadedUnitRecord Snapshot(EntityManager em, Entity entity, float nowSecs = 0f)
@@ -134,6 +142,15 @@ namespace RareIcon
                 rec.AttackRange     = s.Range;
                 rec.AttackCooldown  = s.Cooldown;
                 rec.TimeSinceAttack = s.TimeSinceCast;
+            }
+
+            if (em.HasComponent<UnitAttributes>(entity))
+            {
+                var a = em.GetComponentData<UnitAttributes>(entity);
+                rec.Strength  = a.Strength;
+                rec.Agility   = a.Agility;
+                rec.Intellect = a.Intellect;
+                rec.Will      = a.Will;
             }
 
             byte flags = 0;

@@ -46,6 +46,7 @@ namespace RareIcon
         Label _detailTitle;
         Label _detailActivity;
         Label _detailTraits;
+        Label _detailAttrs;
         VisualElement _detailStats;
         VisualElement _jobsSection;
         UIControls.StepperHandle[] _jobSteppers;
@@ -118,6 +119,10 @@ namespace RareIcon
             _detailHu = new StatBar("HU", "hu", _detailStats);
             _detailFt = new StatBar("FT", "ft", _detailStats);
             _detail.Add(_detailStats);
+
+            _detailAttrs = new Label(string.Empty);
+            _detailAttrs.AddToClassList("roster-detail__attrs");
+            _detail.Add(_detailAttrs);
 
             BuildJobs(_detail);
 
@@ -317,6 +322,7 @@ namespace RareIcon
             _detailActivity.text = string.Empty;
             _detailTraits.text = string.Empty;
             _detailTraits.AddToClassList("is-hidden");
+            _detailAttrs.text = string.Empty;
             _detailHp.Clear(); _detailEn.Clear(); _detailHu.Clear(); _detailFt.Clear();
             _jobsSection.style.display = DisplayStyle.None;
             _jumpBtn.SetEnabled(false);
@@ -363,6 +369,13 @@ namespace RareIcon
             UpdateBar(em, entity, _detailFt, has: em.HasComponent<Fatigue>(entity),
                 value: em.HasComponent<Fatigue>(entity) ? em.GetComponentData<Fatigue>(entity).Value : 0f,
                 max:   em.HasComponent<Fatigue>(entity) ? em.GetComponentData<Fatigue>(entity).Max   : 0f);
+
+            if (em.HasComponent<UnitAttributes>(entity))
+            {
+                var a = em.GetComponentData<UnitAttributes>(entity);
+                _detailAttrs.text = $"STR {a.Strength}   AGI {a.Agility}   INT {a.Intellect}   WILL {a.Will}";
+            }
+            else _detailAttrs.text = string.Empty;
 
             var snapshot = _activity.CurrentFor(entity);
             string activityLabel = _locale.GetActivityName(snapshot.Kind);

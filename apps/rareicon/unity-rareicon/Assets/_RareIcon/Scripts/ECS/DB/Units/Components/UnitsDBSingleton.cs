@@ -60,6 +60,12 @@ namespace RareIcon
         public byte   AttackKind;
         public byte   TargetMode;
 
+        /// <summary>Per-character attributes (npcdb base ±20%). 0 = absent (pre-v4 save) → roll fresh on hydrate.</summary>
+        public byte   Strength;
+        public byte   Agility;
+        public byte   Intellect;
+        public byte   Will;
+
         public byte   Type;
         public byte   Faction;
         public byte   Flags;
