@@ -151,6 +151,9 @@ importers:
       bitecs:
         specifier: ^0.4.0
         version: 0.4.0
+      canvaskit-wasm:
+        specifier: ^0.41.0
+        version: 0.41.0
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -163,15 +166,30 @@ importers:
       cross-fetch:
         specifier: ^4.0.0
         version: 4.1.0(encoding@0.1.13)
+      d3-array:
+        specifier: ^3.2.4
+        version: 3.2.4
       d3-force:
         specifier: ^3.0.0
         version: 3.0.0
       d3-geo:
         specifier: ^3.1.1
         version: 3.1.1
+      d3-hierarchy:
+        specifier: ^3.1.2
+        version: 3.1.2
+      d3-sankey:
+        specifier: ^0.12.3
+        version: 0.12.3
+      d3-scale:
+        specifier: ^4.0.2
+        version: 4.0.2
       d3-shape:
         specifier: ^3.2.0
         version: 3.2.0
+      d3-time-format:
+        specifier: ^4.1.0
+        version: 4.1.0
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
@@ -689,6 +707,9 @@ importers:
       typescript:
         specifier: 5.9.3
         version: 5.9.3
+      unified:
+        specifier: ^11.0.5
+        version: 11.0.5
       unist-util-visit:
         specifier: ^5.1.0
         version: 5.1.0
