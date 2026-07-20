@@ -1,0 +1,86 @@
+---
+title: EmbedDB Derive — FromEmbedRow Macro Crate
+description: embeddb-derive provides the #[derive(FromEmbedRow)] procedural macro for the embeddb single-file embedded database — maps analytics rows into structs by column name.
+sem: 1
+sidebar:
+    label: EmbedDB Derive Crate
+    order: 73
+tags:
+    - crates
+    - rust
+key: embeddb_derive_crate
+pipeline: crates
+package_name: embeddb-derive
+version: "0.1.0"
+source_path: packages/rust/embeddb-derive
+version_toml: packages/rust/embeddb-derive/version.toml
+author: h0lybyte
+license: MIT
+status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the embeddb-derive crate?
+          answer: embeddb-derive is the procedural macro crate for embeddb. It provides #[derive(FromEmbedRow)], which generates a FromEmbedRow implementation that maps a DuckDB analytics row into a struct by matching each field to a column name.
+        - question: How does it relate to embeddb?
+          answer: It is a companion crate to embeddb. The embeddb crate re-exports the derive under its default-on derive feature, so consumers write #[derive(FromEmbedRow)] and use embeddb::FromEmbedRow from a single dependency.
+        - question: What field types does the derive support?
+          answer: Fields convert through the FromEmbedValue trait — i64, f64, String, bool, i128, Vec<u8>, and Option<T> (None for a null or absent column). A missing column or type mismatch on a non-Option field returns an error naming the column.
+bento:
+    badge: crates · rust
+    title: Row-to-struct derive for
+    accent: embeddb
+    lede: >-
+        The #[derive(FromEmbedRow)] procedural macro for embeddb — maps DuckDB
+        analytics rows into your structs by column name, with Option and
+        type-checked conversions.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/embeddb-derive
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+    aside:
+        icon: package
+        title: Companion to embeddb
+        body: >-
+            Re-exported through <a href="/project/embeddb-crate/">embeddb</a>'s
+            default derive feature, so #[derive(FromEmbedRow)] works from a single
+            dependency.
+        points:
+            - <strong>By name</strong> — fields map to columns by identifier, not position.
+            - <strong>Typed</strong> — conversions go through FromEmbedValue with clear errors.
+    stats:
+        - { label: Package, value: embeddb-derive, icon: package }
+        - { label: Edition, value: "2021", icon: rust }
+        - { label: Version, value: "0.1.0", icon: branch }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: FromEmbedRow derive
+          icon: package
+          body: Generates a FromEmbedRow impl mapping analytics rows into structs by column name.
+        - title: Typed conversions
+          icon: shield
+          body: Fields convert through FromEmbedValue — i64, f64, String, bool, i128, Vec<u8>, Option<T>.
+        - title: Clear errors
+          icon: key
+          body: Missing column or type mismatch on a non-Option field errors, naming the column.
+    related:
+        - title: EmbedDB
+          href: /project/embeddb-crate/
+          copy: The single-file Turso + DuckDB embedded database this derive serves.
+          icon: database
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related crates
+---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

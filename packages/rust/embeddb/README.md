@@ -310,3 +310,11 @@ Run it (slow — not part of the normal test loop) with:
 ```bash
 cargo bench -p embeddb
 ```
+
+## Publishing
+
+The MDX file at `apps/kbve/astro-kbve/src/content/docs/project/embeddb-crate.mdx` (and, for the companion crate, `embeddb-derive-crate.mdx`) is the source of truth for the published version — its `version:` frontmatter field drives what the publish pipeline writes into `Cargo.toml` at release time.
+
+`version.toml` in each crate root carries the last-published marker (seeded at `0.0.1` for both crates) plus a `publish` flag the pipeline reads to decide whether to publish at all.
+
+`embeddb-derive` publishes first (`publish = true`, target `0.1.0`). `embeddb` itself is held (`publish = false`) until `embeddb-derive` is live on crates.io and its path dependency can be replaced with a registry dependency; once that's true, `embeddb`'s `version.toml` is flipped to `publish = true` and it publishes on the next pass.
