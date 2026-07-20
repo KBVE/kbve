@@ -64,7 +64,7 @@ ENV CARGO_INCREMENTAL=0
 
 # ── Node.js + pnpm (for Astro frontend builds) ──────────────────────
 ARG NODE_VERSION=24
-ARG PNPM_VERSION=10.33.0
+ARG PNPM_VERSION=11.15.0
 RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - && \
     apt-get install -y --no-install-recommends nodejs && \
     rm -rf /var/lib/apt/lists/* && \

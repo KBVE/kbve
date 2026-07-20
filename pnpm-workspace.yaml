@@ -15,13 +15,16 @@ overrides:
   'minimatch@>=9.0.0 <9.0.7': 9.0.7
   'minimatch@>=10.0.0 <10.2.3': 10.2.3
   'postcss@<8.5.10': '>=8.5.10'
-onlyBuiltDependencies:
-  - '@parcel/watcher'
-  - '@swc/core'
-  - core-js
-  - core-js-pure
-  - esbuild
-  - grpc-tools
-  - nx
-  - sharp
-  - styled-components
+allowBuilds:
+  '@parcel/watcher': true
+  '@swc/core': true
+  core-js: true
+  core-js-pure: true
+  esbuild: true
+  grpc-tools: true
+  nx: true
+  sharp: true
+  styled-components: true
+  '@bufbuild/buf': false
+  unrs-resolver: false
+  vue-demi: false
