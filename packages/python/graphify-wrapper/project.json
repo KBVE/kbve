@@ -1,0 +1,99 @@
+{
+	"name": "graphify-wrapper",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/python/graphify-wrapper/graphify_wrapper",
+	"tags": ["python", "library", "graphify", "analysis"],
+	"targets": {
+		"lock": {
+			"executor": "@nxlv/python:run-commands",
+			"options": {
+				"command": "uv lock",
+				"cwd": "packages/python/graphify-wrapper"
+			}
+		},
+		"add": {
+			"executor": "@nxlv/python:add",
+			"options": {}
+		},
+		"update": {
+			"executor": "@nxlv/python:update",
+			"options": {}
+		},
+		"remove": {
+			"executor": "@nxlv/python:remove",
+			"options": {}
+		},
+		"build": {
+			"executor": "@nxlv/python:build",
+			"outputs": ["{projectRoot}/dist"],
+			"options": {
+				"outputPath": "packages/python/graphify-wrapper/dist",
+				"publish": false,
+				"lockedVersions": true,
+				"bundleLocalDependencies": true
+			}
+		},
+		"install": {
+			"executor": "@nxlv/python:install",
+			"options": {
+				"silent": false,
+				"args": "",
+				"verbose": false,
+				"debug": false
+			}
+		},
+		"lint": {
+			"executor": "@nxlv/python:flake8",
+			"outputs": [
+				"{workspaceRoot}/reports/packages/python/graphify-wrapper/pylint.txt"
+			],
+			"options": {
+				"outputFile": "reports/packages/python/graphify-wrapper/pylint.txt"
+			}
+		},
+		"test": {
+			"executor": "@nxlv/python:run-commands",
+			"outputs": [
+				"{workspaceRoot}/reports/packages/python/graphify-wrapper/unittests",
+				"{workspaceRoot}/coverage/packages/python/graphify-wrapper"
+			],
+			"options": {
+				"command": "uv run pytest tests/",
+				"cwd": "packages/python/graphify-wrapper"
+			}
+		},
+		"build-monorepo": {
+			"executor": "@nxlv/python:run-commands",
+			"options": {
+				"command": "uv run kbve-graph-build --scope monorepo --output ../../../packages/data/graphify/output/monorepo",
+				"cwd": "packages/python/graphify-wrapper"
+			},
+			"description": "Build knowledge graph for entire monorepo"
+		},
+		"build-app": {
+			"executor": "@nxlv/python:run-commands",
+			"options": {
+				"command": "uv run kbve-graph-build --scope app --name {args.app} --output ../../../packages/data/graphify/output/apps/{args.app}",
+				"cwd": "packages/python/graphify-wrapper"
+			},
+			"description": "Build knowledge graph for specific app (use --app=<name>)"
+		},
+		"query": {
+			"executor": "@nxlv/python:run-commands",
+			"options": {
+				"command": "uv run kbve-graph-query --graph ../../../packages/data/graphify/output/monorepo/graph.json --query '{args.q}'",
+				"cwd": "packages/python/graphify-wrapper"
+			},
+			"description": "Query the knowledge graph (use --q='your question')"
+		},
+		"export-web": {
+			"executor": "@nxlv/python:run-commands",
+			"options": {
+				"command": "uv run kbve-graph-export --input ../../../packages/data/graphify/output/monorepo/graph.json --output ../../../apps/kbve/astro-kbve/public/graphify/monorepo.json",
+				"cwd": "packages/python/graphify-wrapper"
+			},
+			"description": "Export graph data to web-accessible JSON format"
+		}
+	}
+}
