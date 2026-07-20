@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { genSectorDesc, SECTOR_TILES } from './generate';
-import { DOORWAY } from '../geometry/grid';
+import { DOORWAY, OPEN } from '../geometry/grid';
 import { WALL, ARCH } from '../geometry/grid';
 
 const SEED = 1337;
@@ -57,7 +57,8 @@ describe('door generation', () => {
 		for (let sy = -2; sy <= 2; sy++)
 			for (let sx = -2; sx <= 2; sx++) {
 				const d = genSectorDesc(SEED, sx, sy);
-				const tile = (c: number, r: number) => d.tiles[r * d.cols + c];
+				const tile = (c: number, r: number) =>
+					d.tiles[r * d.cols + c] & ~OPEN;
 
 				const north = genSectorDesc(SEED, sx, sy - 1);
 				for (const w of north.doorways.filter((x) => x.lr === edge)) {
