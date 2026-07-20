@@ -41,7 +41,7 @@ spec:
                               topologyKey: kubernetes.io/hostname
             containers:
                 - name: kbve
-                  image: ghcr.io/kbve/kbve:1.0.246
+                  image: ghcr.io/kbve/kbve:1.0.247
                   imagePullPolicy: Always
                   ports:
                       - name: http
