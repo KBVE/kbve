@@ -3,57 +3,50 @@
  *
  * Source: ../descriptors/workflow.binpb
  * Config: ../workflow-zod-config.json
- * Generated: 2026-07-17T16:46:57.424Z
+ * Generated: 2026-07-20T00:37:21.642Z
  */
 
 import { z } from 'zod';
 
-export const Backends = [
-	'edge',
-	'firecracker',
-	'windmill',
-] as const;
+export const Backends = ['edge', 'firecracker', 'windmill'] as const;
 
 export type BackendValue = (typeof Backends)[number];
 
 export const BackendSchema = z.enum(Backends);
 
-export const NodeStatuses = [
-	'idle',
-	'running',
-	'ok',
-	'err',
-] as const;
+export const NodeStatuses = ['idle', 'running', 'ok', 'err'] as const;
 
 export type NodeStatusValue = (typeof NodeStatuses)[number];
 
 export const NodeStatusSchema = z.enum(NodeStatuses);
 
-export const WorkflowTiers = [
-	'user',
-	'staff',
-] as const;
+export const WorkflowTiers = ['user', 'staff', 'system'] as const;
 
 export type WorkflowTierValue = (typeof WorkflowTiers)[number];
 
 export const WorkflowTierSchema = z.enum(WorkflowTiers);
 
+export const Surfaces = ['discord', 'web', 'shared'] as const;
+
+export type SurfaceValue = (typeof Surfaces)[number];
+
+export const SurfaceSchema = z.enum(Surfaces);
+
 // WorkflowDef
-export const WorkflowDefSchema = z
-	.object({
-		key: z.string(),
-		backend: BackendSchema,
-		path: z.string(),
-		tier: WorkflowTierSchema,
-		label: z.string(),
-	});
+export const WorkflowDefSchema = z.object({
+	key: z.string(),
+	backend: BackendSchema,
+	path: z.string(),
+	tier: WorkflowTierSchema,
+	surface: SurfaceSchema,
+	label: z.string(),
+});
 
 export type WorkflowDef = z.infer<typeof WorkflowDefSchema>;
 
 // WorkflowRegistry
-export const WorkflowRegistrySchema = z
-	.object({
-		workflows: z.array(WorkflowDefSchema).optional(),
-	});
+export const WorkflowRegistrySchema = z.object({
+	workflows: z.array(WorkflowDefSchema).optional(),
+});
 
 export type WorkflowRegistry = z.infer<typeof WorkflowRegistrySchema>;

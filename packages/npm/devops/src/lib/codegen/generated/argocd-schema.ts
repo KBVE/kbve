@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/argocd.binpb
  * Config: ../argocd-zod-config.json
- * Generated: 2026-06-22T21:31:58.923Z
+ * Generated: 2026-07-20T00:37:21.614Z
  */
 
 import { z } from 'zod';
