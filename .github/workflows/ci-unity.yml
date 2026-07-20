@@ -210,7 +210,7 @@ jobs:
               if: ${{ contains(inputs.project_path, 'rareicon') }}
               uses: pnpm/action-setup@v4
               with:
-                  version: 10.18.3
+                  version: 11.15.0
 
             - name: Setup Node
               if: ${{ contains(inputs.project_path, 'rareicon') }}
@@ -336,7 +336,7 @@ jobs:
               if: ${{ contains(inputs.project_path, 'rareicon') }}
               uses: pnpm/action-setup@v4
               with:
-                  version: 10.18.3
+                  version: 11.15.0
 
             - name: Setup Node
               if: ${{ contains(inputs.project_path, 'rareicon') }}

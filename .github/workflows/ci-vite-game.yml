@@ -35,7 +35,7 @@ permissions: {}
 
 env:
     NODE_VERSION: '24'
-    PNPM_VERSION: '10.33.0'
+    PNPM_VERSION: '11.15.0'
 
 jobs:
     queue_guard:
