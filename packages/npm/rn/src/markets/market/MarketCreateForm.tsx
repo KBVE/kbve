@@ -4,7 +4,6 @@ import { Button } from '../../ui/primitives/Button';
 import { FormField } from '../../ui/primitives/FormField';
 import { Stack } from '../../ui/primitives/Stack';
 import { Text } from '../../ui/primitives/Text';
-import { tokens } from '../../ui/theme';
 import { Select } from '../../ui/controls/Select';
 import type { SelectOption } from '../../ui/controls/Select.types';
 import type { MarketApi } from './api';

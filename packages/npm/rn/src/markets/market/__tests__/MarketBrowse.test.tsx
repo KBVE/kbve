@@ -1,5 +1,5 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render } from '@testing-library/react';
 import { MarketBrowse } from '../MarketBrowse';
 import type { MarketApi } from '../api';
 
@@ -31,7 +31,6 @@ function stubApi(over: Partial<MarketApi> = {}): MarketApi {
 }
 
 describe('MarketBrowse', () => {
-	beforeEach(() => {});
 	it('loads and renders a listing card with its buy-now price', async () => {
 		const { findByText } = render(
 			<MarketBrowse api={stubApi()} onOpen={vi.fn()} />,
