@@ -1,0 +1,59 @@
+# Graphify Configuration for KBVE Monorepo
+# See: https://github.com/Graphify-Labs/graphify
+
+# LLM Backend Configuration
+llm:
+    # Options: ollama, openai, anthropic, gemini, bedrock, azure
+    provider: ollama
+    model: llama3
+    # For Anthropic Claude (uncomment to use):
+    # provider: anthropic
+    # model: claude-3-5-sonnet-20241022
+    # api_key: ${ANTHROPIC_API_KEY}
+
+# File/Directory Ignoring
+ignore:
+    - node_modules
+    - dist
+    - build
+    - .nx
+    - coverage
+    - reports
+    - '*.lock'
+    - '*.log'
+    - .git
+    - __pycache__
+    - '*.pyc'
+    - target # Rust build artifacts
+    - Cargo.lock
+    - uv.lock
+    - pnpm-lock.yaml
+
+# Analysis Settings
+extractors:
+    # Tree-sitter AST extraction (always enabled, no LLM cost)
+    - tree-sitter
+
+    # Semantic analysis for docs/comments (optional, uses LLM)
+    # Disable with --no-semantic flag for faster builds
+    # - semantic
+
+# Supported Languages (auto-detected)
+languages:
+    - typescript
+    - javascript
+    - python
+    - rust
+    - go
+    - java
+    - lua # Factorio mods
+
+# Output Settings
+output:
+    format: json
+    confidence_threshold: 0.5 # Min confidence for inferred edges
+
+# Community Detection
+graph:
+    leiden_resolution: 1.0 # Higher = more communities
+    min_community_size: 3 # Minimum nodes per community
