@@ -1,56 +1,190 @@
 ---
-title: Kanban Raw Data
+title: Kanban Board Snapshot
 description: |
-    Daily auto-generated raw data snapshot of the KBVE project board.
+    Daily auto-generated snapshot of the KBVE project board.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
 sidebar:
     label: Kanban Data
     order: 111
-editUrl: false
 ---
 
-import { Card, CardGrid, Tabs, TabItem } from '@astrojs/starlight/components';
+import BentoShell from '@/components/hero/BentoShell.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
 
-## Project Board Snapshot
+<div class="kanban-report" data-dash-report>
 
-:::note[Auto-generated]
-Last synced: **2026-07-19T09:53:57.621Z** — updated daily by `ci-dashboard`.
-Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
-:::
+<section class="bento-hero bento-section not-content" aria-label="Project board">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
+					<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" /></svg>
+					<span>auto-generated · daily</span>
+				</span>
+				<h1 class="bento-title">
+					Project board
+					<span class="bento-title__accent">across every column.</span>
+				</h1>
+				<p class="bento-lede"><strong>348</strong> items on the board — <strong>27</strong> active, <strong>23</strong> blocked.</p>
+				<p class="bento-lede">Last generated <strong>2026-07-20T04:36:00Z</strong>.</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="#columns">
+						View columns
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="https://github.com/orgs/KBVE/projects/5">Open board</a>
+					<a class="bento-btn bento-btn--ghost" href="/dashboard/">Dashboard home</a>
+				</div>
+			</div>
 
-### Summary
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+					</span>
+					<span class="bento-stat__value">348</span>
+					<span class="bento-stat__label">Tracked</span>
+				</div>
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7z" /></svg>
+					</span>
+					<span class="bento-stat__value">27</span>
+					<span class="bento-stat__label">Active</span>
+				</div>
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /></svg>
+					</span>
+					<span class="bento-stat__value">23</span>
+					<span class="bento-stat__label">Blocked</span>
+				</div>
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 15 9l7 .5-5.3 4.6L18.5 21 12 17l-6.5 4 1.8-6.9L2 9.5 9 9z" /></svg>
+					</span>
+					<span class="bento-stat__value">80</span>
+					<span class="bento-stat__label">Planning</span>
+				</div>
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1M22 4 12 14.01l-3-3" /></svg>
+					</span>
+					<span class="bento-stat__value">218</span>
+					<span class="bento-stat__label">Done</span>
+				</div>
+		</div>
+		<nav class="bento-jump" aria-label="On this page">
+			<a class="bento-chip" href="#columns">Columns</a>
+			<a class="bento-chip" href="#flow">Pipeline</a>
+			<a class="bento-chip" href="#board">Board</a>
+		</nav>
+	</div>
+</section>
 
-<CardGrid>
-  <Card title="Theory" icon="star">
-    **73** items
-  </Card>
-  <Card title="AI" icon="rocket">
-    **1** items
-  </Card>
-  <Card title="Todo" icon="list-format">
-    **22** items
-  </Card>
-  <Card title="Backlog" icon="document">
-    **6** items
-  </Card>
-  <Card title="Error" icon="warning">
-    **23** items
-  </Card>
-  <Card title="Support" icon="information">
-    **0** items
-  </Card>
-  <Card title="Staging" icon="setting">
-    **2** items
-  </Card>
-  <Card title="Review" icon="approve-check">
-    **3** items
-  </Card>
-  <Card title="Done" icon="approve-check-circle">
-    **223** items
-  </Card>
-</CardGrid>
+<BentoShell id="columns" eyebrow="Board" heading="Column breakdown">
+	<div class="bento-board bento-board--cols-3">
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#col-theory">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 15 9l7 .5-5.3 4.6L18.5 21 12 17l-6.5 4 1.8-6.9L2 9.5 9 9z" /></svg>
+			</span>
+			<span class="bento-linkcard__title">Theory</span>
+			<span class="bento-linkcard__copy">73 items</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#col-ai">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 2v2m6-2v2M9 20v2m6-2v2M2 9h2m-2 6h2m16-6h2m-2 6h2M6 6h12v12H6zM9 9h6v6H9z" /></svg>
+			</span>
+			<span class="bento-linkcard__title">AI</span>
+			<span class="bento-linkcard__copy">1 item</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#col-todo">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" /></svg>
+			</span>
+			<span class="bento-linkcard__title">Todo</span>
+			<span class="bento-linkcard__copy">22 items</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#col-backlog">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+			</span>
+			<span class="bento-linkcard__title">Backlog</span>
+			<span class="bento-linkcard__copy">6 items</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#col-error">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /></svg>
+			</span>
+			<span class="bento-linkcard__title">Error</span>
+			<span class="bento-linkcard__copy">23 items</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#col-support">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 6a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM4.9 4.9l3.5 3.5m7.2 7.2 3.5 3.5m0-14.2-3.5 3.5m-7.2 7.2-3.5 3.5" /></svg>
+			</span>
+			<span class="bento-linkcard__title">Support</span>
+			<span class="bento-linkcard__copy">0 items</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#col-staging">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" /></svg>
+			</span>
+			<span class="bento-linkcard__title">Staging</span>
+			<span class="bento-linkcard__copy">2 items</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#col-review">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /></svg>
+			</span>
+			<span class="bento-linkcard__title">Review</span>
+			<span class="bento-linkcard__copy">3 items</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#col-done">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1M22 4 12 14.01l-3-3" /></svg>
+			</span>
+			<span class="bento-linkcard__title">Done</span>
+			<span class="bento-linkcard__copy">218 items</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+	</div>
+</BentoShell>
 
-<Tabs>
-  <TabItem label="Distribution">
+<BentoProse id="flow" heading="Pipeline flow">
+
+### Items by status
 
 ```mermaid
 pie showData
@@ -62,20 +196,21 @@ pie showData
     "Error" : 23
     "Staging" : 2
     "Review" : 3
-    "Done" : 223
+    "Done" : 218
 ```
+
+### Work state
 
 ```mermaid
 pie showData
     title Work State
     "Active (Todo+Staging+Review)" : 27
     "Blocked (Error+Support)" : 23
-    "Done" : 223
+    "Done" : 218
     "Planning (Theory+AI+Backlog)" : 80
 ```
 
-  </TabItem>
-  <TabItem label="Pipeline">
+### Pipeline
 
 ```mermaid
 flowchart LR
@@ -99,35 +234,34 @@ flowchart LR
     Staging --> Review
     Review["Review<br/><strong>3</strong>"]
     Review --> Done
-    Done["Done<br/><strong>223</strong>"]
+    Done["Done<br/><strong>218</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
     class Done done
 ```
 
-:::tip[Legend]
-**Purple** = Planning &nbsp; **Blue** = Active &nbsp; **Red** = Blocked &nbsp; **Green** = Done
-:::
-
-  </TabItem>
-  <TabItem label="Breakdown">
+### Items by type
 
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 217
-    "Issue" : 136
+    "Pull Request" : 211
+    "Issue" : 137
 ```
 
-#### Top Labels
+</BentoProse>
+
+<BentoProse id="board" heading="Board detail">
+
+### Top labels
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 217 |
-| dev→main | 99 |
-| enhancement | 93 |
-| atomic | 78 |
+| auto-pr | 211 |
+| dev→main | 95 |
+| enhancement | 94 |
+| atomic | 75 |
 | todo | 27 |
 | bug | 27 |
 | rust | 16 |
@@ -135,8 +269,7 @@ pie showData
 | 1 | 10 |
 | unity | 8 |
 
-  </TabItem>
-</Tabs>
+<span id="col-theory"></span>
 
 ### Theory (73)
 
@@ -216,11 +349,15 @@ pie showData
 | [#14132](https://github.com/KBVE/kbve/issues/14132) | [FEATURE] /wm — generic Windmill job runner in discordsh (replaces dead /n8n) | — | — | enhancement |
 | [#14305](https://github.com/KBVE/kbve/issues/14305) | jedi crate cleanups: jwks key caching, cache eviction, hygiene | — | — | enhancement, rust |
 
+<span id="col-ai"></span>
+
 ### AI (1)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
 | [#4906](https://github.com/KBVE/kbve/issues/4906) | [Bug] : [Unity] : Character Orchestrator | — | h0lybyte | 0, bug, unity |
+
+<span id="col-todo"></span>
 
 ### Todo (22)
 
@@ -249,6 +386,8 @@ pie showData
 | [#13787](https://github.com/KBVE/kbve/issues/13787) | perf(axum-kbve): borrow auth token via Cow in extract_auth_token | — | — | enhancement, todo, rust |
 | [#13789](https://github.com/KBVE/kbve/issues/13789) | [EPIC] ARPG character persistence — Supabase item ledger + tokio write-behind | — | — | enhancement, todo, rust |
 
+<span id="col-backlog"></span>
+
 ### Backlog (6)
 
 | # | Title | Priority | Assignees | Labels |
@@ -259,6 +398,8 @@ pie showData
 | [#7548](https://github.com/KBVE/kbve/issues/7548) | feat(memes): responsive bento grid feed + dedicated meme pages | — | h0lybyte | 1, backlog |
 | [#11250](https://github.com/KBVE/kbve/issues/11250) | feat(ci-dbmate-deploy): bake migrations into OCI image for cap-free deploys | — | — | enhancement, backlog |
 | [#13556](https://github.com/KBVE/kbve/issues/13556) | ROWS: server-authoritative zone travel + anti-teleport (client-supplied zone hon | — | — | security, backlog |
+
+<span id="col-error"></span>
 
 ### Error (23)
 
@@ -288,6 +429,16 @@ pie showData
 | [#13119](https://github.com/KBVE/kbve/issues/13119) | [LOW] Cilium API-version skew (v2alpha1 L2 policy vs v2 pool) | — | — | bug |
 | [#14008](https://github.com/KBVE/kbve/issues/14008) | ROWS fleet-restart (#13575) — audit follow-ups &amp; pre-enablement gates | — | — | bug, security |
 
+<span id="col-support"></span>
+
+### Support (0)
+
+:::tip[Empty]
+No items in **Support**.
+:::
+
+<span id="col-staging"></span>
+
 ### Staging (2)
 
 | # | Title | Priority | Assignees | Labels |
@@ -295,15 +446,19 @@ pie showData
 | [#2208](https://github.com/KBVE/kbve/issues/2208) | [Concept] Service Page Enchancemnts | — | h0lybyte, dladeira | 4 |
 | [#6943](https://github.com/KBVE/kbve/issues/6943) | Phase 2: Frontend - Orchestration Tab | — | — | todo |
 
+<span id="col-review"></span>
+
 ### Review (3)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
 | [#13278](https://github.com/KBVE/kbve/pull/13278) | Atomic: ue ramdisk spec | — | — | auto-pr, atomic |
 | [#13572](https://github.com/KBVE/kbve/pull/13572) | Atomic: bump mdx spec | — | — | auto-pr, atomic |
-| [#14324](https://github.com/KBVE/kbve/pull/14324) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#14363](https://github.com/KBVE/kbve/pull/14363) | Release: 2 features, 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
 
-### Done (223)
+<span id="col-done"></span>
+
+### Done (218)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -314,19 +469,6 @@ pie showData
 | [#13351](https://github.com/KBVE/kbve/issues/13351) | Upgrade astro-kbve to Astro 7 (build-speed: markdown/MDX-heavy static site) | — | — | enhancement |
 | [#13575](https://github.com/KBVE/kbve/pull/13575) | Atomic: rows drain fleet plan fix | — | — | auto-pr, atomic |
 | [#13784](https://github.com/KBVE/kbve/issues/13784) | perf(simgrid): Bytes-backed EncodedFrame to avoid per-writer buffer copy | — | — | enhancement, todo, rust |
-| [#13856](https://github.com/KBVE/kbve/pull/13856) | Release: 1 feature, 2 fixes, 1 CI, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#13862](https://github.com/KBVE/kbve/pull/13862) | Atomic: axum-kbve v1.0.221 post-publish sync | — | — | auto-pr, atomic |
-| [#13863](https://github.com/KBVE/kbve/pull/13863) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
-| [#13865](https://github.com/KBVE/kbve/pull/13865) | Release: 2 features, 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#13867](https://github.com/KBVE/kbve/pull/13867) | Release: 2 features, 3 docs, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#13868](https://github.com/KBVE/kbve/pull/13868) | Atomic: axum-kbve v1.0.222 post-publish sync | — | — | auto-pr, atomic |
-| [#13869](https://github.com/KBVE/kbve/pull/13869) | Atomic: axum-kbve v1.0.223 post-publish sync | — | — | auto-pr, atomic |
-| [#13870](https://github.com/KBVE/kbve/pull/13870) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
-| [#13871](https://github.com/KBVE/kbve/pull/13871) | chore(dashboard): daily sync — 2026-07-05 | — | — | auto-pr |
-| [#13873](https://github.com/KBVE/kbve/pull/13873) | Release: 2 fixes, 3 chores → Main | — | — | auto-pr, dev→main |
-| [#13877](https://github.com/KBVE/kbve/pull/13877) | Release: 7 commits → Main | — | — | auto-pr, dev→main |
-| [#13878](https://github.com/KBVE/kbve/pull/13878) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
-| [#13879](https://github.com/KBVE/kbve/pull/13879) | Atomic: axum-kbve v1.0.224 post-publish sync | — | — | auto-pr, atomic |
 | [#13882](https://github.com/KBVE/kbve/pull/13882) | Release: 2 features, 1 fix, 2 docs, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#13887](https://github.com/KBVE/kbve/pull/13887) | Atomic: axum-kbve v1.0.225 post-publish sync | — | — | auto-pr, atomic |
 | [#13888](https://github.com/KBVE/kbve/pull/13888) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
@@ -530,7 +672,27 @@ pie showData
 | [#14319](https://github.com/KBVE/kbve/pull/14319) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
 | [#14322](https://github.com/KBVE/kbve/pull/14322) | Release: 2 fixes → Main | — | — | auto-pr, dev→main |
 | [#14323](https://github.com/KBVE/kbve/pull/14323) | Atomic: axum-kbve v1.0.243 post-publish sync | — | — | auto-pr, atomic |
+| [#14324](https://github.com/KBVE/kbve/pull/14324) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14325](https://github.com/KBVE/kbve/pull/14325) | chore(dashboard): daily sync — 2026-07-19 | — | — | auto-pr |
+| [#14328](https://github.com/KBVE/kbve/pull/14328) | Release: 8 features, 2 fixes, 4 docs, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14335](https://github.com/KBVE/kbve/pull/14335) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14341](https://github.com/KBVE/kbve/pull/14341) | Release: 3 features, 2 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#14342](https://github.com/KBVE/kbve/issues/14342) | epic(discordsh): explicit GitHub close/reopen from Discord (/gh close, /gh reope | — | — | enhancement |
+| [#14344](https://github.com/KBVE/kbve/pull/14344) | Atomic: axum-kbve v1.0.244 post-publish sync | — | — | auto-pr, atomic |
+| [#14347](https://github.com/KBVE/kbve/pull/14347) | Release: 3 features, 5 chores → Main | — | — | auto-pr, dev→main |
+
+</BentoProse>
+
+<BentoProse id="about">
 
 ---
 
-*Auto-generated by [ci-dashboard.yml](https://github.com/KBVE/kbve/actions/workflows/ci-dashboard.yml)*
+Source: [KBVE Project Board](https://github.com/orgs/KBVE/projects/5)
+
+*Auto-generated by [ci-daily-content.yml](https://github.com/KBVE/kbve/actions/workflows/ci-daily-content.yml)*
+
+</BentoProse>
+
+</div>
+
+<style is:global>{`.kanban-report{--bento-accent:#8b5cf6;--bento-accent-2:#3b82f6}`}</style>
