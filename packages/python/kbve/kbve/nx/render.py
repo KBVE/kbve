@@ -21,6 +21,11 @@ from ..mdx.escape import escape_mdx
 from .graph import GraphData, mermaid_id, top_hubs
 from .security import SEVERITY_ORDER
 
+# Mermaid/dagre client-side layout is ~quadratic; beyond ~40 nodes the
+# browser tab hangs or crashes. Cap the inline dependency diagram to the
+# most-connected projects — the full set stays in the table + JSON.
+_MAX_DIAGRAM_NODES = 40
+
 SEVERITY_LABELS = {
     "critical": "Critical",
     "high": "High",
@@ -589,23 +594,60 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
         out.write("```\n\n")
 
     out.write("### Graph\n\n")
-    if len(seen_edges) <= 200:
-        mermaid_lines = ["graph LR"]
-        for ptype, (_, style) in TYPE_STYLES.items():
-            mermaid_lines.append(f"    classDef {ptype} {style}")
-        for src, targets in sorted(edges_by_source.items()):
-            src_id = mermaid_id(src)
-            for tgt in sorted(targets):
-                tgt_id = mermaid_id(tgt)
-                mermaid_lines.append(
-                    f'    {src_id}["{src}"]'
-                    f' --> {tgt_id}["{tgt}"]'
-                )
-        for ptype, node_names in by_type.items():
-            if ptype in TYPE_STYLES:
-                ids = ",".join(mermaid_id(n) for n in node_names)
+    # Mermaid renders flowcharts client-side via dagre, which is roughly
+    # quadratic — a full monorepo graph (150+ nodes) hangs or crashes the
+    # browser tab. Cap the inline diagram to the most-connected projects (a
+    # readable hub view); the full set stays in the Project index table and
+    # the companion JSON, so nothing is hidden.
+    if len(nodes) <= _MAX_DIAGRAM_NODES:
+        diagram_nodes = set(nodes)
+        capped = False
+    else:
+        ranked = sorted(
+            rows,
+            key=lambda r: (r.dep_count + r.dependent_count,
+                           r.dependent_count, r.name),
+            reverse=True,
+        )
+        diagram_nodes = {r.name for r in ranked[:_MAX_DIAGRAM_NODES]}
+        capped = True
+
+    if capped:
+        out.write(
+            ":::note\n"
+            f"Showing the <strong>{_MAX_DIAGRAM_NODES}</strong> most-connected"
+            f" projects of <strong>{len(nodes)}</strong> — the full graph is"
+            " too large to render inline. Every project is listed in the"
+            " [Project index](#project-index) below.\n"
+            ":::\n\n"
+        )
+
+    mermaid_lines = ["graph LR"]
+    for ptype, (_, style) in TYPE_STYLES.items():
+        mermaid_lines.append(f"    classDef {ptype} {style}")
+    shown_edges = 0
+    for src, targets in sorted(edges_by_source.items()):
+        if src not in diagram_nodes:
+            continue
+        src_id = mermaid_id(src)
+        for tgt in sorted(targets):
+            if tgt not in diagram_nodes:
+                continue
+            tgt_id = mermaid_id(tgt)
+            mermaid_lines.append(
+                f'    {src_id}["{src}"]'
+                f' --> {tgt_id}["{tgt}"]'
+            )
+            shown_edges += 1
+    for ptype, node_names in by_type.items():
+        if ptype in TYPE_STYLES:
+            ids = ",".join(
+                mermaid_id(n) for n in node_names if n in diagram_nodes
+            )
+            if ids:
                 mermaid_lines.append("    class {} {}".format(ids, ptype))
 
+    if shown_edges > 0:
         out.write("```mermaid\n")
         out.write("\n".join(mermaid_lines))
         out.write("\n```\n\n")
@@ -619,8 +661,7 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
     else:
         out.write(
             ":::caution\n"
-            "Dependency diagram omitted — "
-            "too many edges for inline rendering.\n"
+            "No dependency edges among the top projects to diagram.\n"
             ":::\n\n"
         )
 
