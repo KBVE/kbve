@@ -1,0 +1,258 @@
+{
+  "generated_at": "2026-07-20T04:35:41Z",
+  "summary": {
+    "pending": 3,
+    "behind": 1,
+    "unpublished": 5,
+    "published": 24,
+    "skipped": 0
+  },
+  "ecosystems": {
+    "crates": {
+      "total": 27,
+      "pending": 2
+    },
+    "npm": {
+      "total": 4,
+      "pending": 1
+    },
+    "python": {
+      "total": 2,
+      "pending": 0
+    }
+  },
+  "rows": [
+    {
+      "ecosystem": "crates",
+      "name": "bevy_battle",
+      "local": "0.1.0",
+      "published": "0.1.0",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "bevy_behavior",
+      "local": "0.1.0",
+      "published": "0.1.0",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "bevy_cam",
+      "local": "0.1.0",
+      "published": "0.1.0",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "bevy_chat",
+      "local": "0.1.0",
+      "published": "0.1.0",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "bevy_db",
+      "local": "0.1.0",
+      "published": "0.1.0",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "bevy_inventory",
+      "local": "0.1.0",
+      "published": "0.1.0",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "bevy_items",
+      "local": "0.1.0",
+      "published": "0.1.0",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "bevy_kbve_net",
+      "local": "0.1.0",
+      "published": "0.1.0",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "bevy_mapdb",
+      "local": "0.1.0",
+      "published": "0.1.0",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "bevy_npc",
+      "local": "0.1.0",
+      "published": "0.1.0",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "bevy_pathfinder",
+      "local": "0.1.1",
+      "published": "0.1.1",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "bevy_player",
+      "local": "0.1.0",
+      "published": "0.1.0",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "bevy_quests",
+      "local": "0.1.0",
+      "published": "0.1.0",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "bevy_skills",
+      "local": "0.1.0",
+      "published": "0.1.0",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "bevy_spells",
+      "local": "0.1.0",
+      "published": "0.1.0",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "bevy_statemachine",
+      "local": "0.1.0",
+      "published": "0.1.0",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "bevy_supa",
+      "local": "0.1.0",
+      "published": "0.1.0",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "bevy_tasker",
+      "local": "0.1.1",
+      "published": "0.1.1",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "embeddb",
+      "local": "0.1.0",
+      "published": null,
+      "status": "unpublished"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "embeddb-derive",
+      "local": "0.1.0",
+      "published": null,
+      "status": "unpublished"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "erust",
+      "local": "0.1.7",
+      "published": "0.1.6",
+      "status": "pending"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "holy",
+      "local": "0.2.1",
+      "published": "0.2.1",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "jedi",
+      "local": "0.2.2",
+      "published": "0.2.2",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "kbve",
+      "local": "0.1.26",
+      "published": "0.1.25",
+      "status": "pending"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "q",
+      "local": "0.1.1",
+      "published": "0.1.1",
+      "status": "published"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "soul",
+      "local": "0.1.1",
+      "published": null,
+      "status": "unpublished"
+    },
+    {
+      "ecosystem": "crates",
+      "name": "uniti",
+      "local": "0.1.0",
+      "published": "0.1.0",
+      "status": "published"
+    },
+    {
+      "ecosystem": "npm",
+      "name": "devops",
+      "local": "0.1.0",
+      "published": "0.0.0",
+      "status": "pending"
+    },
+    {
+      "ecosystem": "npm",
+      "name": "droid",
+      "local": "0.1.1",
+      "published": "0.175.0",
+      "status": "behind"
+    },
+    {
+      "ecosystem": "npm",
+      "name": "khashvault",
+      "local": "1.0.12",
+      "published": null,
+      "status": "unpublished"
+    },
+    {
+      "ecosystem": "npm",
+      "name": "laser",
+      "local": "0.1.5",
+      "published": null,
+      "status": "unpublished"
+    },
+    {
+      "ecosystem": "python",
+      "name": "python-fudster",
+      "local": "1.0.3",
+      "published": "1.0.3",
+      "status": "published"
+    },
+    {
+      "ecosystem": "python",
+      "name": "python-kbve",
+      "local": "1.0.13",
+      "published": "1.0.13",
+      "status": "published"
+    }
+  ],
+  "total": 33
+}

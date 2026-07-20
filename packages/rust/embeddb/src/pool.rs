@@ -58,6 +58,28 @@ impl Drop for ReaderGuard<'_> {
     }
 }
 
+pub(crate) struct LazyReaderPool {
+    size: usize,
+    ext_dir: Option<std::path::PathBuf>,
+    inner: std::sync::Mutex<Option<std::sync::Arc<ReaderPool>>>,
+}
+
+impl LazyReaderPool {
+    pub(crate) fn new(size: usize, ext_dir: Option<std::path::PathBuf>) -> Self {
+        LazyReaderPool { size, ext_dir, inner: std::sync::Mutex::new(None) }
+    }
+
+    pub(crate) fn get(&self) -> crate::Result<std::sync::Arc<ReaderPool>> {
+        let mut guard = self.inner.lock().unwrap_or_else(|e| e.into_inner());
+        if let Some(pool) = guard.as_ref() {
+            return Ok(pool.clone());
+        }
+        let pool = std::sync::Arc::new(ReaderPool::build(self.size, self.ext_dir.as_deref())?);
+        *guard = Some(pool.clone());
+        Ok(pool)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

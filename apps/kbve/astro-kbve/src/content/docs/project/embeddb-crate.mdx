@@ -1,0 +1,92 @@
+---
+title: EmbedDB — Single-File Turso + DuckDB Crate
+description: embeddb is a single-file embedded database pairing Turso (async write path) with DuckDB (analytics read path) over one SQLite-format file, with a parallel reader pool, streaming reads, batched writes, and a FromEmbedRow derive.
+sem: 1
+sidebar:
+    label: EmbedDB Crate
+    order: 74
+tags:
+    - crates
+    - rust
+key: embeddb_crate
+pipeline: crates
+package_name: embeddb
+version: "0.1.0"
+source_path: packages/rust/embeddb
+version_toml: packages/rust/embeddb/version.toml
+author: h0lybyte
+license: MIT
+status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the embeddb crate?
+          answer: embeddb is a foundational Rust library providing a single-file embedded database. It pairs Turso (a pure-Rust async SQLite rewrite) as the write path with DuckDB as the analytics read path over one SQLite-format file, so a single file gives both transactional writes and columnar analytics.
+        - question: What does embeddb provide?
+          answer: Parameterized writes and transactions via Turso, a DuckDB reader pool for parallel analytics, streaming row callbacks, batched writes, migrations and config, a rich EmbedValue type set, QueryResult with column names, and a FromEmbedRow derive for mapping rows into structs.
+        - question: How does concurrency and freshness work?
+          answer: Turso owns all writes; DuckDB attaches the same file read-only for analytics. DuckDB replays uncheckpointed WAL frames, so analytics reflect committed writes even before a checkpoint, and concurrent reads stay consistent. The reader pool builds lazily on the first analytics call, so write-only use never loads the analytics engine.
+bento:
+    badge: crates · rust
+    title: Single-file embedded DB for
+    accent: kbve
+    lede: >-
+        Turso (async write) paired with DuckDB (analytics read) over one
+        SQLite-format file — parallel reader pool, streaming reads, batched
+        writes, and a FromEmbedRow derive.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/packages/rust/embeddb
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+    aside:
+        icon: database
+        title: One file, two engines
+        body: >-
+            Turso writes and DuckDB analytics over a single SQLite-format file.
+            The derive macro ships in
+            <a href="/project/embeddb-derive-crate/">embeddb-derive</a>.
+        points:
+            - <strong>Write</strong> — Turso async, parameterized, transactions.
+            - <strong>Read</strong> — DuckDB pool, streaming, columnar analytics.
+    stats:
+        - { label: Package, value: embeddb, icon: package }
+        - { label: Edition, value: "2021", icon: rust }
+        - { label: Version, value: "0.1.0", icon: branch }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Turso write path
+          icon: database
+          body: Pure-Rust async SQLite rewrite for parameterized writes, transactions, and batched inserts.
+        - title: DuckDB analytics pool
+          icon: activity
+          body: A pooled read-only DuckDB reader for parallel columnar analytics over the same file, built lazily on first use.
+        - title: Streaming + batch
+          icon: server
+          body: analytics_for_each streams rows without materializing; execute_batch runs many writes in one transaction.
+        - title: Row mapping
+          icon: package
+          body: EmbedValue type set, QueryResult with column names, and #[derive(FromEmbedRow)] for structs.
+        - title: Live-read freshness
+          icon: shield
+          body: DuckDB replays uncheckpointed WAL, so analytics reflect committed writes without a forced checkpoint.
+    related:
+        - title: EmbedDB Derive
+          href: /project/embeddb-derive-crate/
+          copy: The FromEmbedRow procedural macro companion crate.
+          icon: package
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related crates
+---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />

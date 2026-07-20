@@ -1,0 +1,40 @@
+[project]
+name = "graphify-wrapper"
+version = "0.1.0"
+description = "KBVE wrapper for Graphify knowledge graph generation with Nx integration"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "graphifyy[neo4j,pdf,sql]>=0.1.0,<1.0",
+    "pyyaml>=6.0,<7.0",
+    "click>=8.1,<9.0",
+]
+
+[project.scripts]
+kbve-graph-build = "graphify_wrapper.cli:build_main"
+kbve-graph-query = "graphify_wrapper.cli:query_main"
+kbve-graph-export = "graphify_wrapper.cli:export_main"
+
+[dependency-groups]
+dev = [
+    "autopep8==2.0.2",
+    "flake8==6.0.0",
+    "pytest==8.3.3",
+    "pytest-sugar==0.9.7",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["graphify_wrapper"]
+
+[tool.coverage.report]
+exclude_lines = ['if TYPE_CHECKING:']
+show_missing = true
+
+[tool.pytest.ini_options]
+addopts = "--cov --cov-report html:'../../../coverage/packages/python/graphify-wrapper/html' --cov-report xml:'../../../coverage/packages/python/graphify-wrapper/coverage.xml'"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

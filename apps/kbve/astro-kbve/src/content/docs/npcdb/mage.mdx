@@ -1,44 +1,62 @@
 ---
-title: 'Mage'
+title: Mage
 template: splash
 sidebar:
-    label: 'Mage'
-    hidden: true
-description: |
-    Cloth-armoured spellcaster. Light HP, big mana pool, flings ranged spells from the back line.
-ref: 'mage'
-id: '01KSAVAEF2667PTP0HAG228QA5'
-name: 'Mage'
+  label: Mage
+  hidden: true
+description: >
+  Cloth-armoured spellcaster. Light HP, big mana pool, flings ranged spells from
+  the back line.
+ref: mage
+id: 01KSAVAEF2667PTP0HAG228QA5
+name: Mage
 type_flags: 1
-rarity: 'rare'
-personality: 'cunning'
-rank: 'elite'
-family: 'humanoid'
+rarity: rare
+personality: cunning
+rank: elite
+family: humanoid
 level: 4
 stats:
-    hp: 45
-    max_hp: 45
-    attack: 9
-    defense: 4
-    speed: 4
-    armor: 0
+  hp: 45
+  max_hp: 45
+  attack: 9
+  defense: 4
+  speed: 4
+  armor: 0
+  max_ep: 140
+  max_mp: 150
+  strength: 6
+  agility: 9
+  intelligence: 17
+  will: 15
+  move_speed: 0.65
+  ep_regen: 4.5
+  mp_regen: 4
+  max_hunger: 150
+  max_fatigue: 100
+  hunger_per_sec: 0.2375
+  fatigue_per_sec: 0.28
 behavior:
-    movement_type: 'patrol'
-    first_strike: true
+  movement_type: patrol
+  first_strike: true
 flavor_text:
-    - action: 'attack'
-      messages:
-        - "The mage hurls a glowing bolt at {target}! {dmg} damage!"
-        - "Arcane sigils flare — {target} reels for {dmg} damage!"
-    - action: 'death'
-      messages:
-        - "The mage's robes burn out as the spellfire flickers and dies."
+  - action: attack
+    messages:
+      - 'The mage hurls a glowing bolt at {target}! {dmg} damage!'
+      - 'Arcane sigils flare — {target} reels for {dmg} damage!'
+  - action: death
+    messages:
+      - The mage's robes burn out as the spellfire flickers and dies.
 abilities:
-    - id: 'attack'
-      name: 'Arcane Bolt'
-      damage: 9
+  - id: attack
+    name: Arcane Bolt
+    damage: 9
 faction:
-    faction_id: 'player'
+  faction_id: player
+name_key: creature.mage
+unit_type: 4
+default_weapon: 0
+dialogue_tree_id: 0
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';

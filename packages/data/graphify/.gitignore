@@ -1,0 +1,7 @@
+# Ignore all output files (rebuilt by CI)
+output/*
+!output/.gitkeep
+
+# Temporary files
+*.tmp
+*.bak

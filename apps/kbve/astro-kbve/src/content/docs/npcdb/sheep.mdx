@@ -1,40 +1,50 @@
 ---
-title: 'Sheep'
+title: Sheep
 template: splash
 sidebar:
-    label: 'Sheep'
-    hidden: true
-description: |
-    Passive grazing livestock. Slow, harmless. Drops Wool / Meat when killed; herds farm Migration events spawn flocks.
-ref: 'sheep'
-id: '01KSAVAAWG80N798A1T6G6E9MD'
-name: 'Sheep'
+  label: Sheep
+  hidden: true
+description: >
+  Passive grazing livestock. Slow, harmless. Drops Wool / Meat when killed;
+  herds farm Migration events spawn flocks.
+ref: sheep
+id: 01KSAVAAWG80N798A1T6G6E9MD
+name: Sheep
 type_flags: 1
-rarity: 'common'
-personality: 'fearful'
-rank: 'normal'
-family: 'beast'
+rarity: common
+personality: fearful
+rank: normal
+family: beast
 level: 1
 stats:
-    hp: 20
-    max_hp: 20
-    attack: 1
-    defense: 0
-    speed: 2
-    armor: 0
+  hp: 20
+  max_hp: 20
+  attack: 1
+  defense: 0
+  speed: 2
+  armor: 0
+  strength: 3
+  agility: 5
+  intelligence: 2
+  will: 2
+  move_speed: 0.35
 behavior:
-    movement_type: 'random_wander'
-    first_strike: false
+  movement_type: random_wander
+  first_strike: false
 flavor_text:
-    - action: 'death'
-      messages:
-        - "The sheep crumples mid-bleat."
+  - action: death
+    messages:
+      - The sheep crumples mid-bleat.
 abilities:
-    - id: 'attack'
-      name: 'Headbutt'
-      damage: 1
+  - id: attack
+    name: Headbutt
+    damage: 1
 faction:
-    faction_id: 'wildlife'
+  faction_id: wildlife
+name_key: creature.sheep
+unit_type: 11
+default_weapon: 0
+dialogue_tree_id: 0
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';

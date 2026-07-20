@@ -2262,6 +2262,147 @@
 					"implicitDependencies": ["discordsh-bot"]
 				}
 			},
+			"graphify-wrapper": {
+				"name": "graphify-wrapper",
+				"type": "lib",
+				"data": {
+					"root": "packages/python/graphify-wrapper",
+					"targets": {
+						"build": {
+							"dependsOn": ["^build"],
+							"inputs": ["production", "^production"],
+							"cache": true,
+							"executor": "@nxlv/python:build",
+							"outputs": ["{projectRoot}/dist"],
+							"options": {
+								"outputPath": "packages/python/graphify-wrapper/dist",
+								"publish": false,
+								"lockedVersions": true,
+								"bundleLocalDependencies": true
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"lint": {
+							"inputs": [
+								"default",
+								"{workspaceRoot}/.eslintrc.json",
+								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.js"
+							],
+							"cache": true,
+							"executor": "@nxlv/python:flake8",
+							"outputs": [
+								"{workspaceRoot}/reports/packages/python/graphify-wrapper/pylint.txt"
+							],
+							"options": {
+								"outputFile": "reports/packages/python/graphify-wrapper/pylint.txt"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"test": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "@nxlv/python:run-commands",
+							"outputs": [
+								"{workspaceRoot}/reports/packages/python/graphify-wrapper/unittests",
+								"{workspaceRoot}/coverage/packages/python/graphify-wrapper"
+							],
+							"options": {
+								"command": "uv run pytest tests/",
+								"cwd": "packages/python/graphify-wrapper"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"lock": {
+							"executor": "@nxlv/python:run-commands",
+							"options": {
+								"command": "uv lock",
+								"cwd": "packages/python/graphify-wrapper"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"add": {
+							"executor": "@nxlv/python:add",
+							"options": {},
+							"configurations": {},
+							"parallelism": true
+						},
+						"update": {
+							"executor": "@nxlv/python:update",
+							"options": {},
+							"configurations": {},
+							"parallelism": true
+						},
+						"remove": {
+							"executor": "@nxlv/python:remove",
+							"options": {},
+							"configurations": {},
+							"parallelism": true
+						},
+						"install": {
+							"executor": "@nxlv/python:install",
+							"options": {
+								"silent": false,
+								"args": "",
+								"verbose": false,
+								"debug": false
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"build-monorepo": {
+							"executor": "@nxlv/python:run-commands",
+							"description": "Build knowledge graph for entire monorepo",
+							"options": {
+								"command": "uv run kbve-graph-build --scope monorepo --output ../../../packages/data/graphify/output/monorepo",
+								"cwd": "packages/python/graphify-wrapper"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"build-app": {
+							"executor": "@nxlv/python:run-commands",
+							"description": "Build knowledge graph for specific app (use --app=<name>)",
+							"options": {
+								"command": "uv run kbve-graph-build --scope app --name {args.app} --output ../../../packages/data/graphify/output/apps/{args.app}",
+								"cwd": "packages/python/graphify-wrapper"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"query": {
+							"executor": "@nxlv/python:run-commands",
+							"description": "Query the knowledge graph (use --q='your question')",
+							"options": {
+								"command": "uv run kbve-graph-query --graph ../../../packages/data/graphify/output/monorepo/graph.json --query '{args.q}'",
+								"cwd": "packages/python/graphify-wrapper"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"export-web": {
+							"executor": "@nxlv/python:run-commands",
+							"description": "Export graph data to web-accessible JSON format",
+							"options": {
+								"command": "uv run kbve-graph-export --input ../../../packages/data/graphify/output/monorepo/graph.json --output ../../../apps/kbve/astro-kbve/public/graphify/monorepo.json",
+								"cwd": "packages/python/graphify-wrapper"
+							},
+							"configurations": {},
+							"parallelism": true
+						}
+					},
+					"name": "graphify-wrapper",
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"projectType": "library",
+					"sourceRoot": "packages/python/graphify-wrapper/graphify_wrapper",
+					"tags": ["python", "library", "graphify", "analysis"],
+					"implicitDependencies": []
+				}
+			},
 			"kbve-desktop": {
 				"name": "kbve-desktop",
 				"type": "lib",
@@ -5270,6 +5411,91 @@
 							"isInPackageManagerWorkspaces": false
 						}
 					}
+				}
+			},
+			"embeddb-derive": {
+				"name": "embeddb-derive",
+				"type": "lib",
+				"data": {
+					"root": "packages/rust/embeddb-derive",
+					"name": "embeddb-derive",
+					"release": {
+						"version": {
+							"versionActions": "@monodon/rust/src/release/version-actions"
+						}
+					},
+					"targets": {
+						"nx-release-publish": {
+							"dependsOn": ["^nx-release-publish"],
+							"executor": "@monodon/rust:release-publish",
+							"options": {},
+							"configurations": {},
+							"parallelism": true
+						},
+						"build": {
+							"dependsOn": ["^build"],
+							"inputs": ["production", "^production"],
+							"cache": true,
+							"executor": "@monodon/rust:build",
+							"outputs": ["{options.target-dir}"],
+							"options": {
+								"target-dir": "dist/target/embeddb-derive"
+							},
+							"configurations": {
+								"production": {
+									"release": true
+								}
+							},
+							"parallelism": true
+						},
+						"test": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "@monodon/rust:test",
+							"outputs": ["{options.target-dir}"],
+							"options": {
+								"target-dir": "dist/target/embeddb-derive"
+							},
+							"configurations": {
+								"production": {
+									"release": true
+								}
+							},
+							"parallelism": true
+						},
+						"e2e": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"options": {
+								"commands": ["nx test embeddb-derive"],
+								"parallel": false
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"lint": {
+							"inputs": [
+								"default",
+								"{workspaceRoot}/.eslintrc.json",
+								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.js"
+							],
+							"cache": true,
+							"executor": "@monodon/rust:lint",
+							"outputs": ["{options.target-dir}"],
+							"options": {
+								"target-dir": "dist/target/embeddb-derive"
+							},
+							"configurations": {},
+							"parallelism": true
+						}
+					},
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"projectType": "library",
+					"sourceRoot": "packages/rust/embeddb-derive/src",
+					"tags": [],
+					"implicitDependencies": []
 				}
 			},
 			"unity-rareicon": {
@@ -9108,10 +9334,71 @@
 							"options": {},
 							"configurations": {},
 							"parallelism": true
+						},
+						"build": {
+							"dependsOn": ["^build"],
+							"inputs": ["production", "^production"],
+							"cache": true,
+							"executor": "@monodon/rust:build",
+							"outputs": ["{options.target-dir}"],
+							"options": {
+								"target-dir": "dist/target/embeddb"
+							},
+							"configurations": {
+								"production": {
+									"release": true
+								}
+							},
+							"parallelism": true
+						},
+						"test": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "@monodon/rust:test",
+							"outputs": ["{options.target-dir}"],
+							"options": {
+								"target-dir": "dist/target/embeddb"
+							},
+							"configurations": {
+								"production": {
+									"release": true
+								}
+							},
+							"parallelism": true
+						},
+						"e2e": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"options": {
+								"commands": ["nx test embeddb"],
+								"parallel": false
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"lint": {
+							"inputs": [
+								"default",
+								"{workspaceRoot}/.eslintrc.json",
+								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.js"
+							],
+							"cache": true,
+							"executor": "@monodon/rust:lint",
+							"outputs": ["{options.target-dir}"],
+							"options": {
+								"target-dir": "dist/target/embeddb"
+							},
+							"configurations": {},
+							"parallelism": true
 						}
 					},
-					"implicitDependencies": [],
-					"tags": []
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"projectType": "library",
+					"sourceRoot": "packages/rust/embeddb/src",
+					"tags": [],
+					"implicitDependencies": []
 				}
 			},
 			"rn-astro": {
@@ -14610,9 +14897,17 @@
 									"types": "./src/ui/*.tsx",
 									"import": "./src/ui/*.tsx"
 								},
+								"./ui/theme": {
+									"types": "./src/ui/theme.ts",
+									"import": "./src/ui/theme.ts"
+								},
 								"./store": {
 									"types": "./src/store/index.ts",
 									"import": "./src/store/index.ts"
+								},
+								"./markets": {
+									"types": "./src/markets/index.ts",
+									"import": "./src/markets/index.ts"
 								},
 								"./dash": {
 									"types": "./src/dash/index.ts",
@@ -16049,6 +16344,7 @@
 					"type": "implicit"
 				}
 			],
+			"graphify-wrapper": [],
 			"kbve-desktop": [
 				{
 					"source": "kbve-desktop",
@@ -16325,6 +16621,7 @@
 					"type": "implicit"
 				}
 			],
+			"embeddb-derive": [],
 			"unity-rareicon": [],
 			"axum-chuckrpg": [
 				{
@@ -16656,7 +16953,13 @@
 					"type": "static"
 				}
 			],
-			"embeddb": [],
+			"embeddb": [
+				{
+					"source": "embeddb",
+					"target": "embeddb-derive",
+					"type": "static"
+				}
+			],
 			"rn-astro": [
 				{
 					"source": "rn-astro",

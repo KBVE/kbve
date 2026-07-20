@@ -634,6 +634,456 @@ and the same spec can be handed to many agents in parallel.
 
 </BentoProse>
 
+<BentoProse id="graphify" eyebrow="Knowledge graphs" heading="Graphify">
+
+Graphify is a semantic knowledge graph tool that analyzes codebases to create queryable relationship graphs showing file-level connections, semantic relationships, community detection (subsystems), and highly-connected nodes. It combines tree-sitter AST parsing with optional LLM-powered semantic analysis to understand code architecture at scale.
+
+### Architecture
+
+The KBVE monorepo integrates Graphify across three layers:
+
+```
+packages/python/graphify-wrapper/   # Python wrapper package
+packages/data/graphify/              # Graph data storage
+apps/kbve/astro-kbve/src/pages/api/graphify/  # API endpoints
+```
+
+**Python Wrapper Package** provides CLI commands and Nx targets for building graphs, querying relationships, and exporting data. The package uses `uv` for dependency management and includes a test suite.
+
+**Data Storage** holds configuration files (`.graphify.yml`), build scripts, and generated graph outputs. Graphs are stored as JSON with accompanying HTML visualizations and markdown reports.
+
+**API Endpoints** expose graph data via REST endpoints, making semantic knowledge queryable from web applications and development tools.
+
+### Prerequisites
+
+Before installing Graphify, ensure you have:
+
+- **Python 3.12+** (Graphify requires &lt;3.13 due to Leiden algorithm dependency)
+- **uv package manager** (already installed in monorepo)
+- **Node.js 18+** (for Nx commands)
+
+<Aside type="caution">
+  **Python 3.13 is not supported** - The Leiden algorithm used for community
+  detection requires Python &lt;3.13. Use `python3 --version` to verify your version.
+</Aside>
+
+### Installation
+
+<Steps>
+
+1. **Install Graphify CLI globally**
+
+   ```bash
+   uv tool install graphifyy
+   graphify --version
+   ```
+
+2. **Install Python package dependencies**
+
+   ```bash
+   pnpm nx run graphify-wrapper:install
+   pnpm nx run graphify-wrapper:lock
+   ```
+
+3. **Verify setup with a test build**
+
+   ```bash
+   pnpm nx run graphify-wrapper:build-app --app=herbmail
+   ls packages/data/graphify/output/apps/herbmail/
+   # Should see: graph.json, graph.html, GRAPH_REPORT.md
+
+   # View the HTML visualization
+   open packages/data/graphify/output/apps/herbmail/graph.html
+   ```
+
+</Steps>
+
+### Known Issues
+
+**uv Version Mismatch**: If you encounter version conflicts (workspace requires `uv==0.11.28` but system has newer):
+
+**Workarounds**:
+1. Use shell script directly: `./packages/data/graphify/scripts/build-monorepo-graph.sh`
+2. Install globally: `pip install graphifyy`
+3. Use uvx: `uvx --from graphifyy graphify`
+4. Update workspace uv version or downgrade system uv
+
+### Building Graphs
+
+**Option 1: Using Shell Script (Recommended)**:
+
+```bash
+# Build entire monorepo
+./packages/data/graphify/scripts/build-monorepo-graph.sh
+
+# View results
+open packages/data/graphify/output/monorepo/graph.html
+```
+
+**Option 2: Using Nx Targets**:
+
+```bash
+# Full monorepo (AST-only mode, fast, no LLM)
+pnpm nx run graphify-wrapper:build-monorepo
+
+# Specific application
+pnpm nx run graphify-wrapper:build-app --app=laser
+pnpm nx run graphify-wrapper:build-app --app=discordsh
+
+# Specific package
+cd packages/python/graphify-wrapper
+uv run kbve-graph-build --scope package --name rust/jedi --output ../../../packages/data/graphify/output/packages/jedi
+```
+
+**Option 3: Direct Graphify CLI**:
+
+```bash
+graphify . \
+  --output packages/data/graphify/output/monorepo \
+  --config packages/data/graphify/configs/.graphify.yml \
+  --no-semantic
+```
+
+**With Semantic Analysis** (thorough, uses LLM):
+
+```bash
+./packages/data/graphify/scripts/build-monorepo-graph.sh --semantic
+```
+
+### Querying Graphs
+
+```bash
+# Semantic search
+pnpm nx run graphify-wrapper:query --q="Where is user authentication handled?"
+
+# Path tracing between components
+graphify path packages/data/graphify/output/monorepo/graph.json "astro-kbve" "bevy_inventory"
+
+# Explain a specific node
+graphify explain packages/data/graphify/output/monorepo/graph.json "packages/rust/jedi/src/auth.rs"
+```
+
+### LLM Backend Configuration
+
+Edit `packages/data/graphify/configs/.graphify.yml` to choose your LLM backend:
+
+**Ollama (Local, Free)**:
+
+```yaml
+llm:
+    provider: ollama
+    model: llama3
+```
+
+**Anthropic Claude (API, Paid)**:
+
+```yaml
+llm:
+    provider: anthropic
+    model: claude-3-5-sonnet-20241022
+    api_key: ${ANTHROPIC_API_KEY}
+```
+
+Set the environment variable:
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...
+```
+
+**Custom Ignore Patterns**:
+
+```yaml
+ignore:
+    - custom/path/**
+    - '*.generated.ts'
+```
+
+**AST-Only (No LLM, Fastest)**:
+
+```bash
+# Default mode - uses tree-sitter for static analysis only
+pnpm nx run graphify-wrapper:build-monorepo
+```
+
+<Aside>
+  **Performance tip**: AST-only mode completes in 5-10 minutes vs 20-30 minutes
+  for full semantic analysis. Use AST mode for rapid iteration, semantic mode
+  for deep architectural insights. For large monorepos, use Anthropic Claude API
+  (faster than Ollama).
+</Aside>
+
+### Exporting for Web
+
+```bash
+# Export graph to public web directory
+pnpm nx run graphify-wrapper:export-web
+
+# Output location: apps/kbve/astro-kbve/public/graphify/monorepo.json
+```
+
+### API Endpoints
+
+Start the dev server to access graph data:
+
+```bash
+pnpm nx run astro-kbve:serve
+
+# Then visit:
+# http://localhost:4321/api/graphify/monorepo.json
+# http://localhost:4321/api/graphify/apps/herbmail.json
+```
+
+Once graphs are built, access them via REST endpoints:
+
+**Full Monorepo Graph**:
+
+```
+GET /api/graphify/monorepo.json
+
+Response:
+{
+  "metadata": {
+    "source": "graphify",
+    "type": "semantic-knowledge-graph",
+    "scope": "monorepo",
+    "generated": "2026-07-19T..."
+  },
+  "graph": {
+    "nodes": [...],
+    "edges": [...],
+    "communities": [...]
+  }
+}
+```
+
+**App-Specific Graph**:
+
+```
+GET /api/graphify/apps/{app}.json
+
+Example: GET /api/graphify/apps/herbmail.json
+```
+
+### Data Flow
+
+```
+1. Source Code (apps/, packages/)
+   ↓
+2. Graphify CLI (tree-sitter AST + optional LLM)
+   ↓
+3. graph.json (packages/data/graphify/output/)
+   ↓
+4. API Endpoint (/api/graphify/*.json)
+   ↓
+5. Web UI (future: /dashboard/graph/)
+```
+
+### Package Management
+
+Maintain the Python wrapper package with these Nx targets:
+
+```bash
+# Install dependencies
+pnpm nx run graphify-wrapper:install
+
+# Lock dependencies
+pnpm nx run graphify-wrapper:lock
+
+# Run tests
+pnpm nx run graphify-wrapper:test
+
+# Lint code
+pnpm nx run graphify-wrapper:lint
+
+# Build package
+pnpm nx run graphify-wrapper:build
+```
+
+### File Structure
+
+The integration creates this file structure:
+
+```
+packages/python/graphify-wrapper/
+├── pyproject.toml
+├── project.json
+├── .python-version
+├── .flake8
+├── README.md
+├── QUICK_START.md
+├── graphify_wrapper/
+│   ├── __init__.py
+│   └── cli.py
+└── tests/
+    └── test_cli.py
+
+packages/data/graphify/
+├── configs/
+│   └── .graphify.yml
+├── scripts/
+│   └── build-monorepo-graph.sh
+├── output/
+│   └── .gitkeep
+├── .gitignore
+└── README.md
+
+apps/kbve/astro-kbve/src/pages/api/graphify/
+├── monorepo.json.ts
+└── apps/
+    └── [app].json.ts
+```
+
+### Troubleshooting
+
+**Error**: `graphify: command not found`
+
+```bash
+uv tool install graphifyy
+which graphify  # Should show path
+```
+
+**Error**: `Python 3.13 not supported`
+
+```bash
+# Check Python version
+python3 --version
+
+# Install Python 3.12 if needed (macOS)
+brew install python@3.12
+
+# Verify wrapper uses correct version
+cat packages/python/graphify-wrapper/.python-version  # Should be 3.12
+```
+
+**Error**: `No module named 'graphifyy'`
+
+```bash
+cd packages/python/graphify-wrapper
+uv sync
+```
+
+**Slow Build Times**: Full monorepo with semantic analysis takes 20-30 minutes. Solutions:
+1. Use AST-only mode (default): ~5-10 min
+2. Build per-app instead of full monorepo
+3. Use Anthropic Claude API (faster than Ollama)
+
+**Memory Issues**: For very large graphs:
+
+```bash
+NODE_OPTIONS=--max-old-space-size=8192 pnpm nx run graphify-wrapper:build-monorepo
+```
+
+**Large Graph Files**: If `graph.json` exceeds 10MB, use Git LFS:
+
+```bash
+git lfs track "packages/data/graphify/output/**/*.json"
+git add .gitattributes
+git commit -m "chore: track graph files with LFS"
+```
+
+Or keep graphs in `.gitignore` and rebuild via CI.
+
+### Development Workflow
+
+<Steps>
+
+1. **Install dependencies**
+   ```bash
+   pnpm nx run graphify-wrapper:install
+   ```
+
+2. **Build a small graph for testing**
+   ```bash
+   pnpm nx run graphify-wrapper:build-app --app=herbmail
+   ```
+
+3. **View the HTML visualization**
+   ```bash
+   open packages/data/graphify/output/apps/herbmail/graph.html
+   ```
+
+4. **Query the graph**
+   ```bash
+   pnpm nx run graphify-wrapper:query --q="test query"
+   ```
+
+5. **Run tests**
+   ```bash
+   cd packages/python/graphify-wrapper
+   uv run pytest
+   ```
+
+</Steps>
+
+### CI/CD Automation
+
+Create `.github/workflows/ci-daily-graph.yml` for automated daily graph builds:
+
+```yaml
+name: Daily Knowledge Graph Build
+
+on:
+    schedule:
+        - cron: '0 6 * * *' # 6am UTC daily
+    workflow_dispatch:
+
+jobs:
+    build-graph:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup Python
+              uses: actions/setup-python@v5
+              with:
+                  python-version: '3.12'
+
+            - name: Install uv
+              run: pip install uv
+
+            - name: Install Graphify
+              run: uv tool install graphifyy
+
+            - name: Build Monorepo Graph
+              run: pnpm nx run graphify-wrapper:build-monorepo
+
+            - name: Export for Web
+              run: pnpm nx run graphify-wrapper:export-web
+
+            - name: Commit Graph Data
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git add apps/kbve/astro-kbve/public/graphify/
+                  git diff --staged --quiet || git commit -m "chore(graph): daily knowledge graph update"
+                  git push
+```
+
+### Web Visualization
+
+The graph can be visualized using the existing `@xyflow/react` + `d3-force` infrastructure. See `/dashboard/graph/` for the current Nx dependency graph implementation that can be extended for Graphify.
+
+### Future Enhancements
+
+**Web UI Integration**:
+- Add graph switcher to `/dashboard/graph/` page
+- Create `<GraphifyExplorer />` React component
+- Use existing `@xyflow/react` + `d3-force` infrastructure
+
+**Advanced Features**:
+- Custom extractors for Nx metadata, Proto definitions, and Bevy ECS systems
+- Semantic search API endpoint
+- Path tracing between components
+- Community detection visualization
+
+### Resources
+
+- [Graphify Documentation](https://github.com/Graphify-Labs/graphify) - Official Graphify project
+- [Package README](../../packages/python/graphify-wrapper/README.md) - Python wrapper documentation
+- [Data Storage README](../../packages/data/graphify/README.md) - Data storage configuration
+
+</BentoProse>
+
 </BentoDoc>
 
 <section class="bento-section not-content">

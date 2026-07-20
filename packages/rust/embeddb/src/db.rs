@@ -6,7 +6,7 @@ pub struct EmbedDb {
     path: PathBuf,
     conn: turso::Connection,
     config: crate::EmbedConfig,
-    reader: Arc<crate::pool::ReaderPool>,
+    reader: Arc<crate::pool::LazyReaderPool>,
 }
 
 impl std::fmt::Debug for EmbedDb {
@@ -35,10 +35,10 @@ impl EmbedDb {
         let conn = db.connect()?;
         let pragma = format!("PRAGMA journal_mode={}", config.journal_mode);
         conn.execute(&pragma, ()).await.ok();
-        let reader = crate::pool::ReaderPool::build(
+        let reader = crate::pool::LazyReaderPool::new(
             config.reader_pool_size,
-            config.duckdb_extension_dir.as_deref(),
-        )?;
+            config.duckdb_extension_dir.clone(),
+        );
         Ok(EmbedDb { path, conn, config, reader: Arc::new(reader) })
     }
 
@@ -76,8 +76,9 @@ impl EmbedDb {
     pub async fn analytics_scalar_i64(&self, sql: &str) -> Result<i64> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let pool = self.reader.clone();
+        let reader = self.reader.clone();
         tokio::task::spawn_blocking(move || {
+            let pool = reader.get()?;
             let guard = pool.checkout();
             crate::analytics::scalar_i64(&guard, &path, &sql)
         })
@@ -88,8 +89,9 @@ impl EmbedDb {
     pub async fn analytics_scalar_f64(&self, sql: &str) -> Result<f64> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let pool = self.reader.clone();
+        let reader = self.reader.clone();
         tokio::task::spawn_blocking(move || {
+            let pool = reader.get()?;
             let guard = pool.checkout();
             crate::analytics::scalar_f64(&guard, &path, &sql)
         })
@@ -100,8 +102,9 @@ impl EmbedDb {
     pub async fn analytics_rows(&self, sql: &str) -> Result<Vec<crate::EmbedRow>> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let pool = self.reader.clone();
+        let reader = self.reader.clone();
         tokio::task::spawn_blocking(move || {
+            let pool = reader.get()?;
             let guard = pool.checkout();
             crate::analytics::rows(&guard, &path, &sql)
         })
@@ -112,8 +115,9 @@ impl EmbedDb {
     pub async fn analytics_query(&self, sql: &str) -> Result<crate::QueryResult> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let pool = self.reader.clone();
+        let reader = self.reader.clone();
         tokio::task::spawn_blocking(move || {
+            let pool = reader.get()?;
             let guard = pool.checkout();
             crate::analytics::query(&guard, &path, &sql)
         })
@@ -128,8 +132,9 @@ impl EmbedDb {
     pub async fn analytics_scalar_string(&self, sql: &str) -> Result<String> {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let pool = self.reader.clone();
+        let reader = self.reader.clone();
         tokio::task::spawn_blocking(move || {
+            let pool = reader.get()?;
             let guard = pool.checkout();
             crate::analytics::scalar_string(&guard, &path, &sql)
         })
@@ -152,8 +157,9 @@ impl EmbedDb {
     {
         let path = self.path.clone();
         let sql = sql.to_string();
-        let pool = self.reader.clone();
+        let reader = self.reader.clone();
         tokio::task::spawn_blocking(move || {
+            let pool = reader.get()?;
             let guard = pool.checkout();
             crate::analytics::for_each(&guard, &path, &sql, &mut f)
         })
@@ -899,5 +905,33 @@ mod tests {
         let res: Result<Vec<Rec>> = db.analytics_query_as("SELECT id FROM t").await;
         assert!(res.is_err());
         assert!(format!("{}", res.unwrap_err()).contains("missing"));
+    }
+
+    #[tokio::test]
+    async fn reader_builds_lazily_on_first_analytics() {
+        let dir = tempfile::tempdir().unwrap();
+        let bogus = dir.path().join("not-a-real-extension-dir-file");
+        std::fs::write(&bogus, b"x").unwrap();
+        let cfg = crate::EmbedConfig {
+            duckdb_extension_dir: Some(bogus),
+            ..Default::default()
+        };
+        let db = EmbedDb::open_with(dir.path().join("lazy.db"), cfg).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        let res = db.analytics_scalar_i64("SELECT count(*) FROM t").await;
+        assert!(res.is_err(), "expected lazy reader build to fail on bogus extension dir");
+    }
+
+    #[tokio::test]
+    async fn lazy_reader_reused_across_calls() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("reuse.db")).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1), (2)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 2);
+        assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 2);
     }
 }

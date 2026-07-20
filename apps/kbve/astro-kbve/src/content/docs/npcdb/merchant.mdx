@@ -1,49 +1,66 @@
 ---
-title: 'Merchant'
+title: Merchant
 template: splash
 sidebar:
-    label: 'Merchant'
-    hidden: true
-description: |
-    Civilian humanoid trader. Flat cap, coin pouch. No combat role; used as the visual base for Innkeepers (one per Inn, swapped per tier). Future Caravan/Bazaar AI will reuse this body.
-ref: 'merchant'
-id: '01KSAVZ000000000000000MRCH'
-name: 'Merchant'
+  label: Merchant
+  hidden: true
+description: >
+  Civilian humanoid trader. Flat cap, coin pouch. No combat role; used as the
+  visual base for Innkeepers (one per Inn, swapped per tier). Future
+  Caravan/Bazaar AI will reuse this body.
+ref: merchant
+id: 01KSAVZ000000000000000MRCH
+name: Merchant
 type_flags: 1
-rarity: 'common'
-personality: 'noble'
-rank: 'normal'
-family: 'humanoid'
+rarity: common
+personality: noble
+rank: normal
+family: humanoid
 level: 1
 stats:
-    hp: 30
-    max_hp: 30
-    attack: 1
-    defense: 0
-    speed: 3
-    armor: 0
+  hp: 30
+  max_hp: 30
+  attack: 1
+  defense: 0
+  speed: 3
+  armor: 0
+  max_ep: 80
+  strength: 6
+  agility: 8
+  intelligence: 12
+  will: 10
+  move_speed: 0.6
+  ep_regen: 4
+  max_hunger: 150
+  max_fatigue: 100
+  hunger_per_sec: 0.3
+  fatigue_per_sec: 0.18
 behavior:
-    movement_type: 'patrol'
-    first_strike: false
+  movement_type: patrol
+  first_strike: false
 flavor_text:
-    - action: 'attack'
-      messages:
-        - "The merchant swings a coin-laden purse at {target}! {dmg} damage!"
-    - action: 'death'
-      messages:
-        - "Coins clatter across the cobbles as the merchant falls."
+  - action: attack
+    messages:
+      - 'The merchant swings a coin-laden purse at {target}! {dmg} damage!'
+  - action: death
+    messages:
+      - Coins clatter across the cobbles as the merchant falls.
 abilities:
-    - id: 'attack'
-      name: 'Pouch Swing'
-      damage: 1
+  - id: attack
+    name: Pouch Swing
+    damage: 1
 faction:
-    faction_id: 'player'
+  faction_id: player
 shop_items:
-    - 'potion'
-    - 'elixir'
-    - 'swift-tonic'
-    - 'iron-sword'
-    - 'iron-shield'
+  - potion
+  - elixir
+  - swift-tonic
+  - iron-sword
+  - iron-shield
+name_key: creature.merchant
+unit_type: 9
+default_weapon: 0
+dialogue_tree_id: 0
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';

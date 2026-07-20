@@ -1,44 +1,55 @@
 ---
-title: 'Galley'
+title: Galley
 template: splash
 sidebar:
-    label: 'Galley'
-    hidden: true
-description: |
-    Player warship — Shipyard-built (Dock T1+). Water-locked, ranged arrow loadout, decent HP. Sister combat boat to the FishingBoat economy hull; kept on cadence by ShipyardGalleyProductionSystem.
-ref: 'galley'
-id: '01KSAV4D81ZJNBH8W8MS410ZX4'
-name: 'Galley'
+  label: Galley
+  hidden: true
+description: >
+  Player warship — Shipyard-built (Dock T1+). Water-locked, ranged arrow
+  loadout, decent HP. Sister combat boat to the FishingBoat economy hull; kept
+  on cadence by ShipyardGalleyProductionSystem.
+ref: galley
+id: 01KSAV4D81ZJNBH8W8MS410ZX4
+name: Galley
 type_flags: 1
-rarity: 'uncommon'
-personality: 'stoic'
-rank: 'elite'
-family: 'humanoid'
+rarity: uncommon
+personality: stoic
+rank: elite
+family: humanoid
 level: 4
 stats:
-    hp: 140
-    max_hp: 140
-    attack: 7
-    defense: 3
-    speed: 4
-    armor: 2
+  hp: 140
+  max_hp: 140
+  attack: 7
+  defense: 3
+  speed: 4
+  armor: 2
+  strength: 14
+  agility: 8
+  intelligence: 6
+  will: 10
+  move_speed: 0.5
 behavior:
-    movement_type: 'random_wander'
-    first_strike: false
+  movement_type: random_wander
+  first_strike: false
 flavor_text:
-    - action: 'attack'
-      messages:
-        - "The galley looses an arrow volley at {target}! {dmg} damage!"
-        - "Twin bow archers strike {target}! {dmg} damage!"
-    - action: 'death'
-      messages:
-        - "The galley founders, oars dragging into the depths."
+  - action: attack
+    messages:
+      - 'The galley looses an arrow volley at {target}! {dmg} damage!'
+      - 'Twin bow archers strike {target}! {dmg} damage!'
+  - action: death
+    messages:
+      - 'The galley founders, oars dragging into the depths.'
 abilities:
-    - id: 'attack'
-      name: 'Arrow Volley'
-      damage: 7
+  - id: attack
+    name: Arrow Volley
+    damage: 7
 faction:
-    faction_id: 'player'
+  faction_id: player
+name_key: creature.galley
+unit_type: 19
+default_weapon: 0
+dialogue_tree_id: 0
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';

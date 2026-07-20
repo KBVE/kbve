@@ -791,21 +791,30 @@ const sectionNames = [
 <style>
 	/* ── Snap container ── */
 	.kb-snap-container {
-		position: relative;
-		height: 100vh;
-		width: 100vw;
-		margin-left: calc(-50vw + 50%);
+		position: fixed;
+		inset: var(--sl-nav-height, 3.5rem) 0 0
+			var(--sl-content-inline-start, 0);
 		overflow: hidden;
 		background: var(--sl-color-bg, #0a0a0a);
+		z-index: 1;
 	}
 
 	/* ── Sections ── */
 	.kb-section {
-		width: 100%;
-		top: calc(var(--sl-nav-height, 3.5rem) + 3.5rem);
-		height: calc(100vh - var(--sl-nav-height, 3.5rem) - 3.5rem);
-		position: fixed;
+		position: absolute;
+		top: 3.5rem;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		width: auto;
+		height: auto;
 		visibility: hidden;
+	}
+	/* Progressive enhancement: the first section is visible without JS so a
+	   failed GSAP init (or blocked import) shows the Summary instead of a
+	   blank board. GSAP takes over visibility once it hydrates. */
+	.kb-section[data-section='0'] {
+		visibility: visible;
 	}
 	.kb-section-outer,
 	.kb-section-inner {

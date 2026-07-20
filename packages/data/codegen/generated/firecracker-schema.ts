@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/firecracker.binpb
  * Config: ../firecracker-zod-config.json
- * Generated: 2026-06-22T21:31:58.937Z
+ * Generated: 2026-07-20T00:37:21.623Z
  */
 
 import { z } from 'zod';

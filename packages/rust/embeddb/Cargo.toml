@@ -10,7 +10,7 @@ turso = "0.7"
 duckdb = { version = "1", features = ["bundled"] }
 tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
 thiserror = "1"
-embeddb-derive = { version = "0.0.1", path = "../embeddb-derive", optional = true }
+embeddb-derive = { version = "0.1.0", path = "../embeddb-derive", optional = true }
 
 [features]
 default = ["derive"]
