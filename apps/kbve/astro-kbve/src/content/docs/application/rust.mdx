@@ -1111,6 +1111,28 @@ Askama uses Jinja2-style syntax. Here are the most common patterns used in Astro
 
 </BentoProse>
 
+<BentoProse id="embeddb" eyebrow="In-house crate" heading="EmbedDB">
+
+EmbedDB is a single-file embedded database that pairs two Rust engines over one SQLite-format file: **Turso** (a pure-Rust async rewrite of SQLite) drives the write path, and **DuckDB** (bundled) drives the analytics read path. One file gives you both transactional writes and columnar analytics — no server, no separate storage.
+
+It is published on crates.io as [`embeddb`](https://crates.io/crates/embeddb) and complements the heavier data stack (Postgres, ClickHouse, Cube) rather than replacing it: reach for it when you want an embedded, in-process store with real analytics, such as a Windmill worker or a distroless service.
+
+**Why the split.** The write path is truly static — Turso is pure Rust, so no C toolchain and clean in a distroless image. DuckDB reads the Turso-written file directly through its `sqlite_scanner` extension (`ATTACH ... TYPE sqlite, READ_ONLY`), giving fast columnar queries over the same bytes. The DuckDB reader is **lazy**: it only builds on the first analytics call, so a write-only consumer never touches the extension.
+
+**What it provides.**
+
+- Parameterized writes and handle-style transactions (`begin` / `commit` / `rollback`), plus batched writes in a single atomic transaction.
+- A typed `EmbedValue` model (int, float, text, blob, bool, hugeint, temporal) with `EmbedRow` / `QueryResult` accessors.
+- Analytics reads: scalar, row vectors, streaming (`analytics_for_each`), and typed mapping via `analytics_query_as::<T>`.
+- A parallel **reader pool** so analytics queries run concurrently, each connection loading `sqlite_scanner` once.
+- **Live concurrent reads are safe** — DuckDB replays uncheckpointed Turso WAL frames, so reads reflect all committed writes (checkpoint or not) and are never torn.
+
+### embeddb-derive
+
+[`embeddb-derive`](https://crates.io/crates/embeddb-derive) is the companion proc-macro crate providing `#[derive(FromEmbedRow)]`. It maps a DuckDB analytics row into a struct by matching each field to a column **by name**, converting through the `FromEmbedValue` trait. It ships behind the default `derive` feature; building `--no-default-features` drops the macro and nothing else.
+
+</BentoProse>
+
 <BentoProse id="ci" eyebrow="Build pipelines" heading="CI">
 
 For continuous integration, we recommend checking out our [git](/application/git/) section for more information.
