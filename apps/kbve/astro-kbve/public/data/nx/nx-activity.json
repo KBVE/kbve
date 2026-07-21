@@ -1,184 +1,184 @@
 {
-  "generated_at": "2026-07-20T04:36:00Z",
+  "generated_at": "2026-07-21T04:15:57Z",
   "window": {
     "days": 7,
-    "since": "2026-07-13T04:36:00Z"
+    "since": "2026-07-14T04:15:57Z"
   },
   "commits": {
-    "total": 433,
+    "total": 408,
     "authors": 4,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 352
+        "commits": 324
       },
       {
         "author": "github-actions[bot]",
-        "commits": 70
-      },
-      {
-        "author": "dependabot[bot]",
-        "commits": 6
+        "commits": 75
       },
       {
         "author": "Fudster",
         "commits": 5
+      },
+      {
+        "author": "dependabot[bot]",
+        "commits": 4
       }
     ],
     "recent": [
       {
-        "sha": "d9ade12",
+        "sha": "eeb70fc",
         "author": "h0lybyte",
-        "message": "Merge pull request #14347 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/d9ade12e298a4b9135f03f62a2847e554fe4f9f8",
-        "date": "2026-07-19T23:13:41Z"
+        "message": "Merge pull request #14437 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/eeb70fc2288101e600ed19a945df4e5987860035",
+        "date": "2026-07-21T01:23:27Z"
       },
       {
-        "sha": "8ee59aa",
-        "author": "h0lybyte",
-        "message": "chore(docs): remove completed plans & specs (batch 3)",
-        "url": "https://github.com/KBVE/kbve/commit/8ee59aa542ee66d2a83945c31b33aa32173fbe33",
-        "date": "2026-07-19T23:11:04Z"
+        "sha": "51fe7c1",
+        "author": "github-actions[bot]",
+        "message": "chore(axum-kbve): post-publish sync to v1.0.247 (#14436)",
+        "url": "https://github.com/KBVE/kbve/commit/51fe7c1d4b5bffbaf93cb5fd0e3969670104699a",
+        "date": "2026-07-20T23:53:21Z"
       },
       {
-        "sha": "6fbc7c1",
-        "author": "h0lybyte",
-        "message": "chore(deps): updating the rareicon vcontainer to v1.19.0",
-        "url": "https://github.com/KBVE/kbve/commit/6fbc7c1c9f22b1ac75a80f3b9d9c3517bad1d25c",
-        "date": "2026-07-19T23:07:54Z"
+        "sha": "430667b",
+        "author": "github-actions[bot]",
+        "message": "chore(python-kbve): update version.toml to 1.0.14 [skip ci] (#14435)",
+        "url": "https://github.com/KBVE/kbve/commit/430667b64d98e73359dfe10d01ee00e63c19f405",
+        "date": "2026-07-20T23:35:58Z"
       },
       {
-        "sha": "077d9f9",
+        "sha": "9fd06e9",
         "author": "h0lybyte",
-        "message": "chore(docs): remove completed plans & specs (batch 2)",
-        "url": "https://github.com/KBVE/kbve/commit/077d9f944616690297060bdc0f87792e057e2eb6",
-        "date": "2026-07-19T22:54:37Z"
+        "message": "Merge pull request #14426 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/9fd06e97e55c5b62ec0e0216f4bb34699f27a560",
+        "date": "2026-07-20T23:23:04Z"
       },
       {
-        "sha": "f29bd74",
+        "sha": "5cc1d8d",
         "author": "h0lybyte",
-        "message": "feat(dashboard): Insights nav group for generated daily pages (#14351)",
-        "url": "https://github.com/KBVE/kbve/commit/f29bd74506c423847ec6be240f2b565b299f47d2",
-        "date": "2026-07-19T22:52:36Z"
+        "message": "fix(herbmail-game): mask OPEN bit in mirror-gate door assertions (#14433)",
+        "url": "https://github.com/KBVE/kbve/commit/5cc1d8d696c12029d16318c1e1155845bf36d83d",
+        "date": "2026-07-20T23:22:38Z"
       },
       {
-        "sha": "0965384",
-        "author": "h0lybyte",
-        "message": "feat(discordsh): thread-aware /github close & reopen with attribution (#14350)",
-        "url": "https://github.com/KBVE/kbve/commit/09653841a90a6438a660a93332417000f6b38330",
-        "date": "2026-07-19T22:52:11Z"
+        "sha": "f4e1b2f",
+        "author": "github-actions[bot]",
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14432)",
+        "url": "https://github.com/KBVE/kbve/commit/f4e1b2fa9a516b0e974aa60f70e2653b9d6412c1",
+        "date": "2026-07-20T22:37:33Z"
       },
       {
-        "sha": "e3feff8",
+        "sha": "32bedbe",
         "author": "h0lybyte",
-        "message": "feat(kbve-nx): deps, activity, releases routes (bento) (#14349)",
-        "url": "https://github.com/KBVE/kbve/commit/e3feff8639e631f4c646ac86fde3a0c17bb5c489",
-        "date": "2026-07-19T22:52:00Z"
+        "message": "chore(python-kbve): bump 1.0.13 \u2192 1.0.14 to republish with starlette route fix (#14431)",
+        "url": "https://github.com/KBVE/kbve/commit/32bedbe836484cb1f06b754c0b116dc4cd81d6bb",
+        "date": "2026-07-20T22:35:30Z"
       },
       {
-        "sha": "1f2156b",
-        "author": "h0lybyte",
-        "message": "chore(docs): remove completed implementation plans",
-        "url": "https://github.com/KBVE/kbve/commit/1f2156b3a26b63bbc9bdb89c9723f443417e0d09",
-        "date": "2026-07-19T22:44:09Z"
+        "sha": "5e9a1d2",
+        "author": "github-actions[bot]",
+        "message": "chore(laser): update version.toml to 0.1.6 [skip ci] (#14428)",
+        "url": "https://github.com/KBVE/kbve/commit/5e9a1d2a37b9bbc67a4acacfb352022f45021941",
+        "date": "2026-07-20T22:20:36Z"
       },
       {
-        "sha": "361bf96",
+        "sha": "368c244",
         "author": "h0lybyte",
-        "message": "chore(rn): resolving the lint errors.",
-        "url": "https://github.com/KBVE/kbve/commit/361bf96409ec0fd1af1d173c118cb4790c2831cf",
-        "date": "2026-07-19T22:29:29Z"
+        "message": "fix(kbve): updating the mcp to v0.31.3",
+        "url": "https://github.com/KBVE/kbve/commit/368c24494183e76bdb347aafe95a43fb7daa9b32",
+        "date": "2026-07-20T22:20:28Z"
       },
       {
-        "sha": "8da33b6",
-        "author": "h0lybyte",
-        "message": "Merge pull request #14341 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/8da33b68ad177effad559107c428471151ad6c2e",
-        "date": "2026-07-19T22:25:10Z"
+        "sha": "c701015",
+        "author": "github-actions[bot]",
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14427)",
+        "url": "https://github.com/KBVE/kbve/commit/c701015be556519a21dbc151a894f90ab8dd5914",
+        "date": "2026-07-20T22:12:45Z"
       },
       {
-        "sha": "09229d7",
+        "sha": "3dc0769",
         "author": "h0lybyte",
-        "message": "docs(journal): updating the world cup details.",
-        "url": "https://github.com/KBVE/kbve/commit/09229d7c72d5bdae6c0bd4c0ca25faced1e1134b",
-        "date": "2026-07-19T22:24:56Z"
+        "message": "chore(kbve): preparing the release of v1.0.247",
+        "url": "https://github.com/KBVE/kbve/commit/3dc0769fa5eda4ebad556bf2761bc30febd86885",
+        "date": "2026-07-20T22:10:32Z"
       },
       {
-        "sha": "5856d0c",
+        "sha": "59af2e6",
         "author": "h0lybyte",
-        "message": "fix(python): updating the tests for the journals.",
-        "url": "https://github.com/KBVE/kbve/commit/5856d0ced13b7500d90fbd43358fe18261b02398",
-        "date": "2026-07-19T22:21:32Z"
+        "message": "Merge pull request #14422 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/59af2e6d352327149c19afdde73b15fa534ca9e9",
+        "date": "2026-07-20T22:09:52Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 277,
+    "merged": 286,
     "recent": [
       {
-        "number": 14364,
-        "title": "chore(codegen): resync stale zod schemas + markets Phase 2 docs",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14364"
-      },
-      {
-        "number": 14362,
-        "title": "rareicon: npcdb proto source-of-truth + rehydrate staffing fix",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14362"
-      },
-      {
-        "number": 14361,
-        "title": "feat: Add Graphify semantic knowledge graph integration",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14361"
-      },
-      {
-        "number": 14360,
-        "title": "feat(embeddb): v6 lazy reader + crate release scaffold (derive publishes 0.1.0, embeddb held)",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14360"
-      },
-      {
-        "number": 14352,
-        "title": "fix(dashboard): kanban board blank state + right-edge clipping",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14352"
-      },
-      {
-        "number": 14347,
-        "title": "Release: 3 features, 5 chores \u2192 Main",
+        "number": 14437,
+        "title": "Release: 2 chores \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14347"
+        "url": "https://github.com/KBVE/kbve/pull/14437"
       },
       {
-        "number": 14351,
-        "title": "feat(dashboard): Insights nav group for generated daily pages",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14351"
-      },
-      {
-        "number": 14350,
-        "title": "feat(discordsh): thread-aware /github close & reopen with attribution",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14350"
-      },
-      {
-        "number": 14349,
-        "title": "feat(kbve-nx): deps, activity, releases routes (bento)",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14349"
-      },
-      {
-        "number": 14341,
-        "title": "Release: 3 features, 2 fixes, 1 chore \u2192 Main",
+        "number": 14436,
+        "title": "Atomic: axum-kbve v1.0.247 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14341"
+        "url": "https://github.com/KBVE/kbve/pull/14436"
+      },
+      {
+        "number": 14435,
+        "title": "chore(python-kbve): update version.toml to 1.0.14",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/14435"
+      },
+      {
+        "number": 14426,
+        "title": "Release: 2 fixes, 5 chores \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/14426"
+      },
+      {
+        "number": 14433,
+        "title": "fix(herbmail-game): mask OPEN bit in mirror-gate door assertions",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14433"
+      },
+      {
+        "number": 14432,
+        "title": "chore(ci): sync ci-dispatch-manifest",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/14432"
+      },
+      {
+        "number": 14431,
+        "title": "chore(python-kbve): bump 1.0.13 \u2192 1.0.14 (republish w/ starlette route fix)",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14431"
+      },
+      {
+        "number": 14428,
+        "title": "chore(laser): update version.toml to 0.1.6",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/14428"
+      },
+      {
+        "number": 14427,
+        "title": "chore(ci): sync ci-dispatch-manifest",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/14427"
+      },
+      {
+        "number": 14422,
+        "title": "Release: 1 feature, 2 fixes, 1 doc, 5 chores \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/14422"
       }
     ]
   },
   "issues": {
-    "opened": 275,
-    "closed": 283
+    "opened": 296,
+    "closed": 288
   }
 }
