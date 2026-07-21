@@ -294,7 +294,7 @@
 		{
 			"key": "herbmail",
 			"app_name": "herbmail",
-			"version": "0.1.1",
+			"version": "0.1.2",
 			"version_toml": "apps/herbmail/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/herbmail.mdx",
 			"version_target": "apps/herbmail/axum-herbmail/Cargo.toml",

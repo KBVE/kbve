@@ -31,8 +31,8 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					Project board
 					<span class="bento-title__accent">across every column.</span>
 				</h1>
-				<p class="bento-lede"><strong>348</strong> items on the board — <strong>27</strong> active, <strong>23</strong> blocked.</p>
-				<p class="bento-lede">Last generated <strong>2026-07-20T04:36:00Z</strong>.</p>
+				<p class="bento-lede"><strong>374</strong> items on the board — <strong>29</strong> active, <strong>23</strong> blocked.</p>
+				<p class="bento-lede">Last generated <strong>2026-07-21T04:15:57Z</strong>.</p>
 				<div class="bento-cta">
 					<a class="bento-btn bento-btn--primary" href="#columns">
 						View columns
@@ -47,14 +47,14 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
 					</span>
-					<span class="bento-stat__value">348</span>
+					<span class="bento-stat__value">374</span>
 					<span class="bento-stat__label">Tracked</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7z" /></svg>
 					</span>
-					<span class="bento-stat__value">27</span>
+					<span class="bento-stat__value">29</span>
 					<span class="bento-stat__label">Active</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
@@ -75,7 +75,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1M22 4 12 14.01l-3-3" /></svg>
 					</span>
-					<span class="bento-stat__value">218</span>
+					<span class="bento-stat__value">242</span>
 					<span class="bento-stat__label">Done</span>
 				</div>
 		</div>
@@ -164,7 +164,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /></svg>
 			</span>
 			<span class="bento-linkcard__title">Review</span>
-			<span class="bento-linkcard__copy">3 items</span>
+			<span class="bento-linkcard__copy">5 items</span>
 			<span class="bento-linkcard__go" aria-hidden="true">
 				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 			</span>
@@ -174,7 +174,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1M22 4 12 14.01l-3-3" /></svg>
 			</span>
 			<span class="bento-linkcard__title">Done</span>
-			<span class="bento-linkcard__copy">218 items</span>
+			<span class="bento-linkcard__copy">242 items</span>
 			<span class="bento-linkcard__go" aria-hidden="true">
 				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 			</span>
@@ -195,8 +195,8 @@ pie showData
     "Backlog" : 6
     "Error" : 23
     "Staging" : 2
-    "Review" : 3
-    "Done" : 218
+    "Review" : 5
+    "Done" : 242
 ```
 
 ### Work state
@@ -204,9 +204,9 @@ pie showData
 ```mermaid
 pie showData
     title Work State
-    "Active (Todo+Staging+Review)" : 27
+    "Active (Todo+Staging+Review)" : 29
     "Blocked (Error+Support)" : 23
-    "Done" : 218
+    "Done" : 242
     "Planning (Theory+AI+Backlog)" : 80
 ```
 
@@ -232,9 +232,9 @@ flowchart LR
     Support --> Staging
     Staging["Staging<br/><strong>2</strong>"]
     Staging --> Review
-    Review["Review<br/><strong>3</strong>"]
+    Review["Review<br/><strong>5</strong>"]
     Review --> Done
-    Done["Done<br/><strong>218</strong>"]
+    Done["Done<br/><strong>242</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -246,7 +246,7 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 211
+    "Pull Request" : 237
     "Issue" : 137
 ```
 
@@ -258,10 +258,10 @@ pie showData
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 211 |
-| dev→main | 95 |
+| auto-pr | 237 |
+| dev→main | 99 |
 | enhancement | 94 |
-| atomic | 75 |
+| atomic | 78 |
 | todo | 27 |
 | bug | 27 |
 | rust | 16 |
@@ -448,17 +448,19 @@ No items in **Support**.
 
 <span id="col-review"></span>
 
-### Review (3)
+### Review (5)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
 | [#13278](https://github.com/KBVE/kbve/pull/13278) | Atomic: ue ramdisk spec | — | — | auto-pr, atomic |
 | [#13572](https://github.com/KBVE/kbve/pull/13572) | Atomic: bump mdx spec | — | — | auto-pr, atomic |
-| [#14363](https://github.com/KBVE/kbve/pull/14363) | Release: 2 features, 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#14438](https://github.com/KBVE/kbve/pull/14438) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
+| [#14439](https://github.com/KBVE/kbve/pull/14439) | chore(content): daily journal scaffold | — | — | auto-pr |
+| [#14440](https://github.com/KBVE/kbve/pull/14440) | chore(content): daily releases scaffold | — | — | auto-pr |
 
 <span id="col-done"></span>
 
-### Done (218)
+### Done (242)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -469,13 +471,6 @@ No items in **Support**.
 | [#13351](https://github.com/KBVE/kbve/issues/13351) | Upgrade astro-kbve to Astro 7 (build-speed: markdown/MDX-heavy static site) | — | — | enhancement |
 | [#13575](https://github.com/KBVE/kbve/pull/13575) | Atomic: rows drain fleet plan fix | — | — | auto-pr, atomic |
 | [#13784](https://github.com/KBVE/kbve/issues/13784) | perf(simgrid): Bytes-backed EncodedFrame to avoid per-writer buffer copy | — | — | enhancement, todo, rust |
-| [#13882](https://github.com/KBVE/kbve/pull/13882) | Release: 2 features, 1 fix, 2 docs, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#13887](https://github.com/KBVE/kbve/pull/13887) | Atomic: axum-kbve v1.0.225 post-publish sync | — | — | auto-pr, atomic |
-| [#13888](https://github.com/KBVE/kbve/pull/13888) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
-| [#13892](https://github.com/KBVE/kbve/pull/13892) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
-| [#13894](https://github.com/KBVE/kbve/pull/13894) | chore(dashboard): daily sync — 2026-07-06 | — | — | auto-pr |
-| [#13896](https://github.com/KBVE/kbve/pull/13896) | Atomic: axum-kbve v1.0.226 post-publish sync | — | — | auto-pr, atomic |
-| [#13897](https://github.com/KBVE/kbve/pull/13897) | Release: 1 feature, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#13898](https://github.com/KBVE/kbve/pull/13898) | Release: 2 features, 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
 | [#13904](https://github.com/KBVE/kbve/pull/13904) | Atomic: arpg-web v0.1.25 post-publish sync | — | — | auto-pr, atomic |
 | [#13905](https://github.com/KBVE/kbve/pull/13905) | Atomic: arpg-server v0.1.25 post-publish sync | — | — | auto-pr, atomic |
@@ -680,6 +675,37 @@ No items in **Support**.
 | [#14342](https://github.com/KBVE/kbve/issues/14342) | epic(discordsh): explicit GitHub close/reopen from Discord (/gh close, /gh reope | — | — | enhancement |
 | [#14344](https://github.com/KBVE/kbve/pull/14344) | Atomic: axum-kbve v1.0.244 post-publish sync | — | — | auto-pr, atomic |
 | [#14347](https://github.com/KBVE/kbve/pull/14347) | Release: 3 features, 5 chores → Main | — | — | auto-pr, dev→main |
+| [#14363](https://github.com/KBVE/kbve/pull/14363) | Release: 2 features, 1 fix, 1 doc, 1 refactor, 12 chores → Main | — | — | auto-pr, dev→main |
+| [#14365](https://github.com/KBVE/kbve/pull/14365) | chore(content): daily releases scaffold | — | — | auto-pr |
+| [#14366](https://github.com/KBVE/kbve/pull/14366) | chore(content): daily journal scaffold | — | — | auto-pr |
+| [#14367](https://github.com/KBVE/kbve/pull/14367) | chore(content): daily activity scaffold | — | — | auto-pr |
+| [#14368](https://github.com/KBVE/kbve/pull/14368) | chore(content): daily kanban scaffold | — | — | auto-pr |
+| [#14369](https://github.com/KBVE/kbve/pull/14369) | chore(content): daily ci-health scaffold | — | — | auto-pr |
+| [#14370](https://github.com/KBVE/kbve/pull/14370) | chore(content): daily proto scaffold | — | — | auto-pr |
+| [#14371](https://github.com/KBVE/kbve/pull/14371) | chore(content): daily graph scaffold | — | — | auto-pr |
+| [#14372](https://github.com/KBVE/kbve/pull/14372) | chore(content): daily report scaffold | — | — | auto-pr |
+| [#14373](https://github.com/KBVE/kbve/pull/14373) | chore(content): daily security scaffold | — | — | auto-pr |
+| [#14374](https://github.com/KBVE/kbve/pull/14374) | chore(content): daily deps scaffold | — | — | auto-pr |
+| [#14377](https://github.com/KBVE/kbve/pull/14377) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14378](https://github.com/KBVE/kbve/pull/14378) | chore(embeddb-derive): update version.toml to 0.1.0 | — | — | auto-pr |
+| [#14379](https://github.com/KBVE/kbve/pull/14379) | Release: 1 fix, 1 doc, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#14380](https://github.com/KBVE/kbve/pull/14380) | Atomic: axum-kbve v1.0.245 post-publish sync | — | — | auto-pr, atomic |
+| [#14400](https://github.com/KBVE/kbve/pull/14400) | Atomic: chisel-ubuntu-axum v24.04.11 post-publish sync | — | — | auto-pr, atomic |
+| [#14401](https://github.com/KBVE/kbve/pull/14401) | Release: 1 feature, 1 fix, 1 doc, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14402](https://github.com/KBVE/kbve/pull/14402) | Atomic: arc-runner v0.1.7 post-publish sync | — | — | auto-pr, atomic |
+| [#14406](https://github.com/KBVE/kbve/pull/14406) | Release: 3 features, 2 fixes, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#14408](https://github.com/KBVE/kbve/pull/14408) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14414](https://github.com/KBVE/kbve/pull/14414) | Release: 2 features, 3 fixes, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14417](https://github.com/KBVE/kbve/pull/14417) | chore(embeddb): update version.toml to 0.1.0 | — | — | auto-pr |
+| [#14421](https://github.com/KBVE/kbve/pull/14421) | Atomic: axum-kbve v1.0.246 post-publish sync | — | — | auto-pr, atomic |
+| [#14422](https://github.com/KBVE/kbve/pull/14422) | Release: 1 feature, 2 fixes, 1 doc, 5 chores → Main | — | — | auto-pr, dev→main |
+| [#14426](https://github.com/KBVE/kbve/pull/14426) | Release: 2 fixes, 5 chores → Main | — | — | auto-pr, dev→main |
+| [#14427](https://github.com/KBVE/kbve/pull/14427) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14428](https://github.com/KBVE/kbve/pull/14428) | chore(laser): update version.toml to 0.1.6 | — | — | auto-pr |
+| [#14432](https://github.com/KBVE/kbve/pull/14432) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14435](https://github.com/KBVE/kbve/pull/14435) | chore(python-kbve): update version.toml to 1.0.14 | — | — | auto-pr |
+| [#14436](https://github.com/KBVE/kbve/pull/14436) | Atomic: axum-kbve v1.0.247 post-publish sync | — | — | auto-pr, atomic |
+| [#14437](https://github.com/KBVE/kbve/pull/14437) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
 
 </BentoProse>
 

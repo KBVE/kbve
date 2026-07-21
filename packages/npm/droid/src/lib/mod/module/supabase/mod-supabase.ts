@@ -24,9 +24,8 @@ export const mod = {
 
 	async loadSupabaseClient() {
 		try {
-			const supabaseModule = await import(
-				'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
-			);
+			const supabaseModule =
+				await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
 			console.log('[mod-supabase] Supabase module loaded');
 			return supabaseModule.createClient;
 		} catch (err) {
@@ -45,7 +44,10 @@ export const mod = {
 		}
 	},
 
-	async queryTestTable() {
+	async queryTestTable(): Promise<{
+		data: unknown[] | null;
+		error: unknown;
+	}> {
 		if (!supabase)
 			throw new Error(
 				'Supabase not configured. Call `configure()` first.',
@@ -54,7 +56,10 @@ export const mod = {
 		return { data, error };
 	},
 
-	async insertTest(payload: Record<string, unknown>) {
+	async insertTest(payload: Record<string, unknown>): Promise<{
+		data: unknown[] | null;
+		error: unknown;
+	}> {
 		if (!supabase)
 			throw new Error(
 				'Supabase not configured. Call `configure()` first.',

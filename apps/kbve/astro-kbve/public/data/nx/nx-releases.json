@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-07-20T04:35:41Z",
+  "generated_at": "2026-07-21T04:15:54Z",
   "summary": {
     "pending": 3,
     "behind": 1,
-    "unpublished": 5,
-    "published": 24,
+    "unpublished": 3,
+    "published": 26,
     "skipped": 0
   },
   "ecosystems": {
@@ -152,15 +152,15 @@
       "ecosystem": "crates",
       "name": "embeddb",
       "local": "0.1.0",
-      "published": null,
-      "status": "unpublished"
+      "published": "0.1.0",
+      "status": "published"
     },
     {
       "ecosystem": "crates",
       "name": "embeddb-derive",
       "local": "0.1.0",
-      "published": null,
-      "status": "unpublished"
+      "published": "0.1.0",
+      "status": "published"
     },
     {
       "ecosystem": "crates",
@@ -222,7 +222,7 @@
       "ecosystem": "npm",
       "name": "droid",
       "local": "0.1.1",
-      "published": "0.175.0",
+      "published": "0.176.0",
       "status": "behind"
     },
     {
@@ -235,7 +235,7 @@
     {
       "ecosystem": "npm",
       "name": "laser",
-      "local": "0.1.5",
+      "local": "0.1.6",
       "published": null,
       "status": "unpublished"
     },
@@ -249,8 +249,8 @@
     {
       "ecosystem": "python",
       "name": "python-kbve",
-      "local": "1.0.13",
-      "published": "1.0.13",
+      "local": "1.0.14",
+      "published": "1.0.14",
       "status": "published"
     }
   ],
