@@ -169,5 +169,8 @@
 			}
 		}
 	},
-	"analytics": false
+  "analytics": false,
+  "migrate": {
+    "agentic": true
+  }
 }
