@@ -32,8 +32,8 @@ import AstroNxReport from '@/components/dashboard/AstroNxReport.astro';
 					NX workspace
 					<span class="bento-title__accent">report.</span>
 				</h1>
-				<p class="bento-lede">Node <strong>24.18.0</strong> · Nx <strong>23.0.2</strong> · pnpm <strong>10.33.0</strong> on <strong>linux-x64</strong>.</p>
-				<p class="bento-lede">Last generated <strong>2026-07-20T04:36:35Z</strong>.</p>
+				<p class="bento-lede">Node <strong>24.18.0</strong> · Nx <strong>23.0.2</strong> · pnpm <strong>11.15.0</strong> on <strong>linux-x64</strong>.</p>
+				<p class="bento-lede">Last generated <strong>2026-07-21T04:16:34Z</strong>.</p>
 				<div class="bento-cta">
 					<a class="bento-btn bento-btn--primary" href="#insights">
 						View insights
@@ -62,7 +62,7 @@ import AstroNxReport from '@/components/dashboard/AstroNxReport.astro';
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
 					</span>
-					<span class="bento-stat__value">10.33.0</span>
+					<span class="bento-stat__value">11.15.0</span>
 					<span class="bento-stat__label">pnpm</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
@@ -89,13 +89,17 @@ import AstroNxReport from '@/components/dashboard/AstroNxReport.astro';
 ### NX Report
 
 ```
+Already up to date
+Done in 426ms using pnpm v11.15.0
+Already up to date
+Done in 427ms using pnpm v11.15.0
 
  NX   Report complete - copy this into the issue template
 
 Node           : 24.18.0
 OS             : linux-x64
 Native Target  : x86_64-linux
-pnpm           : 10.33.0
+pnpm           : 11.15.0
 daemon         : Disabled
 
 nx                     : 23.0.2
@@ -134,8 +138,8 @@ Cache Usage: 0.00 B / 14.43 GB
 
 Both esbuild and oxc options were set. oxc options will be used and esbuild options will be ignored. The following esbuild options were set: `{ keepNames: true }`
 The `nxViteTsPaths` plugin from `@nx/vite/plugins/nx-tsconfig-paths.plugin` is deprecated and will be removed in Nx v24. Replace it with `tsconfigPaths()` from the `vite-tsconfig-paths` package. See https://nx.dev/docs/technologies/build-tools/vite/guides/configure-vite for details.
-The `nxViteTsPaths` plugin from `@nx/vite/plugins/nx-tsconfig-paths.plugin` is deprecated and will be removed in Nx v24. Replace it with `tsconfigPaths()` from the `vite-tsconfig-paths` package. See https://nx.dev/docs/technologies/build-tools/vite/guides/configure-vite for details.
 Both esbuild and oxc options were set. oxc options will be used and esbuild options will be ignored. The following esbuild options were set: `{ keepNames: true }`
+The `nxViteTsPaths` plugin from `@nx/vite/plugins/nx-tsconfig-paths.plugin` is deprecated and will be removed in Nx v24. Replace it with `tsconfigPaths()` from the `vite-tsconfig-paths` package. See https://nx.dev/docs/technologies/build-tools/vite/guides/configure-vite for details.
 The `nxCopyAssetsPlugin` plugin from `@nx/vite/plugins/nx-copy-assets.plugin` is deprecated and will be removed in Nx v24. Use Vite's native `publicDir` option or the `vite-plugin-static-copy` package instead. See https://nx.dev/docs/technologies/build-tools/vite/guides/configure-vite for details.
 Both esbuild and oxc options were set. oxc options will be used and esbuild options will be ignored. The following esbuild options were set: `{ keepNames: true }`
 The `nxCopyAssetsPlugin` plugin from `@nx/vite/plugins/nx-copy-assets.plugin` is deprecated and will be removed in Nx v24. Use Vite's native `publicDir` option or the `vite-plugin-static-copy` package instead. See https://nx.dev/docs/technologies/build-tools/vite/guides/configure-vite for details.
@@ -146,22 +150,22 @@ Both esbuild and oxc options were set. oxc options will be used and esbuild opti
 ### LOC Statistics
 
 ```
-github.com/AlDanial/cloc v 2.06  T=22.59 s (809.8 files/s, 147197.6 lines/s)
+github.com/AlDanial/cloc v 2.06  T=24.02 s (767.0 files/s, 138853.9 lines/s)
 ----------------------------------------------------------------------------------
 Language                        files          blank        comment           code
 ----------------------------------------------------------------------------------
-Markdown                         9046          69736             33         785032
-Python                           1479          71284          94904         284877
-TypeScript                       2220          27669          18443         274452
+Markdown                         9054          70175             33         787379
+Python                           1480          71349          94960         285206
+TypeScript                       2261          27995          18484         278967
 C                                  99          30420          91440         263961
-JSON                              384            129              0         253433
-Rust                              894          21978          26371         202691
-YAML                              720          11128           3339          90858
-C#                                832          13158           7166          79853
-C# Generated                        6           3893           6270          67603
+JSON                              457            129              0         254947
+Rust                              894          21995          26399         202936
+YAML                              720          11108           3339          90874
+C#                                835          13144           7176          79665
+C# Generated                        6           3893           6270          67607
 C/C++ Header                      544          15515          53432          63783
 SQL                               271           8626          11892          58671
-Astro                             339           5514           1838          58281
+Astro                             340           5528           1841          58460
 JavaScript                        175           5434          13377          49753
 C++                               326           5683           1416          34309
 XML                                40            235              3          30285
@@ -170,10 +174,10 @@ HLSL                               95           1839           1924           99
 Protocol Buffers                   59           1998           3959           9373
 CSS                                25            708            322           7492
 HTML                               64            576            104           6490
-Bourne Shell                       78           1073           1323           6038
+Bourne Shell                       79           1080           1331           6058
 Lua                                22            475            179           4489
 Java                               70            884           1217           4445
-TOML                              148            421            326           2876
+TOML                              149            421            326           2877
 GLSL                               24            452           1394           2847
 Dockerfile                         50            872           1178           2770
 OpenCL                              9            119            240           2109
@@ -202,7 +206,7 @@ Ruby                                1              3              0             
 Properties                          1              0              0              7
 Titanium Style Sheet                1              0              0              1
 ----------------------------------------------------------------------------------
-SUM:                            18293         303954         344686        2676480
+SUM:                            18422         304788         344832        2685462
 ----------------------------------------------------------------------------------
 
 One or more files took longer to process than expected.
@@ -226,6 +230,10 @@ Line count, exceeded timeout:  ./apps/vm/firecracker-ctl/src/main.rs
 ### Coverage
 
 ```
+Already up to date
+Done in 424ms using pnpm v11.15.0
+Already up to date
+Done in 425ms using pnpm v11.15.0
 
  NX   Running target coverage for 4 projects:
 
@@ -246,22 +254,22 @@ The `nxCopyAssetsPlugin` plugin from `@nx/vite/plugins/nx-copy-assets.plugin` is
  RUN  v4.0.9 /home/runner/work/kbve/kbve/packages/npm/devops
       Coverage enabled with v8
 
- ✓ src/lib/codegen/__tests__/field-mapper.spec.ts (46 tests) 39ms
- ✓ src/lib/codegen/__tests__/emitter.spec.ts (19 tests) 37ms
- ✓ src/lib/client/github/ci-failure.spec.ts (29 tests) 53ms
- ✓ src/lib/codegen/__tests__/enum-mapper.spec.ts (22 tests) 39ms
+ ✓ src/lib/codegen/__tests__/field-mapper.spec.ts (46 tests) 51ms
+ ✓ src/lib/codegen/__tests__/emitter.spec.ts (19 tests) 35ms
+ ✓ src/lib/codegen/__tests__/enum-mapper.spec.ts (22 tests) 48ms
+ ✓ src/lib/client/github/ci-failure.spec.ts (29 tests) 92ms
 stderr | src/lib/client/github/issues.spec.ts > issues.createComment > should throw when API call fails
 Error creating issue comment: Error: API Error
     at /home/runner/work/kbve/kbve/packages/npm/devops/src/lib/client/github/issues.spec.ts:63:23
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:157:11
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:753:26
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1636:20
     at new Promise (&lt;anonymous>)
-    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
+    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1602:10)
+    at runTest (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1309:12)
     at processTicksAndRejections (node:internal/process/task_queues:104:5)
-    at runSuite (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
-    at runSuite (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
+    at runSuite (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1468:8)
+    at runSuite (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1468:8)
 
 stdout | src/lib/client/github/issues.spec.ts > issues.verifyMatrixLabel > should add label 0 when no matrix labels are present
 No matrix labels present. Added label: 0
@@ -269,8 +277,8 @@ No matrix labels present. Added label: 0
 stdout | src/lib/client/github/issues.spec.ts > issues.verifyMatrixLabel > should keep highest label and remove lower ones when multiple matrix labels exist
 Removed lower labels, kept highest label: 5
 
- ✓ src/lib/client/github/issues.spec.ts (18 tests) 60ms
- ✓ src/lib/codegen/__tests__/topo-sort.spec.ts (15 tests) 42ms
+ ✓ src/lib/client/github/issues.spec.ts (18 tests) 83ms
+ ✓ src/lib/codegen/__tests__/topo-sort.spec.ts (15 tests) 60ms
 stdout | src/lib/client/github/pulls.spec.ts > pulls.createOrUpdatePR > should create a new PR when none exists
 GitHub Event Name: undefined
 Using github.ref: feature-branch
@@ -307,29 +315,29 @@ Unable to determine the reference branch.
 Error creating or updating pull request: Error: Unable to determine the reference branch.
     at Object.createOrUpdatePR (/home/runner/work/kbve/kbve/packages/npm/devops/src/lib/client/github/pulls.ts:224:10)
     at /home/runner/work/kbve/kbve/packages/npm/devops/src/lib/client/github/pulls.spec.ts:221:10
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:157:11
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:753:26
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1636:20
     at new Promise (&lt;anonymous>)
-    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
+    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1602:10)
+    at runTest (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1309:12)
     at processTicksAndRejections (node:internal/process/task_queues:104:5)
-    at runSuite (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
+    at runSuite (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1468:8)
 
- ✓ src/lib/client/github/pulls.spec.ts (10 tests) 95ms
- ✓ src/lib/sanitization.spec.ts (54 tests) 817ms
-     ✓ should convert markdown to JSON-safe string  515ms
+ ✓ src/lib/client/github/pulls.spec.ts (10 tests) 81ms
+ ✓ src/lib/sanitization.spec.ts (54 tests) 1039ms
+     ✓ should convert markdown to JSON-safe string  684ms
 stderr | src/lib/client/github/docker.spec.ts > docker.runContainer > should throw on invalid port
 Error sanitizing input: Error: Invalid port number. Port must be a number between 1 and 65535.
     at sanitizePort (/home/runner/work/kbve/kbve/packages/npm/devops/src/lib/sanitization.ts:137:9)
     at Object.runContainer (/home/runner/work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.ts:25:19)
     at /home/runner/work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.spec.ts:63:11
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:157:11
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:753:26
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1636:20
     at new Promise (&lt;anonymous>)
-    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
+    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1602:10)
+    at runTest (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1309:12)
     at processTicksAndRejections (node:internal/process/task_queues:104:5)
 
 stderr | src/lib/client/github/docker.spec.ts > docker.runContainer > should throw on restricted port
@@ -337,12 +345,12 @@ Error sanitizing input: Error: Port 443 is restricted and cannot be used.
     at sanitizePort (/home/runner/work/kbve/kbve/packages/npm/devops/src/lib/sanitization.ts:143:9)
     at Object.runContainer (/home/runner/work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.ts:25:19)
     at /home/runner/work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.spec.ts:78:11
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:157:11
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:753:26
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1636:20
     at new Promise (&lt;anonymous>)
-    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
+    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1602:10)
+    at runTest (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1309:12)
     at processTicksAndRejections (node:internal/process/task_queues:104:5)
 
 stderr | src/lib/client/github/docker.spec.ts > docker.runContainer > should throw on empty container name
@@ -350,12 +358,12 @@ Error sanitizing input: Error: Invalid container name. Container name must be al
     at sanitizeContainerName (/home/runner/work/kbve/kbve/packages/npm/devops/src/lib/sanitization.ts:158:9)
     at Object.runContainer (/home/runner/work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.ts:26:19)
     at /home/runner/work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.spec.ts:93:11
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:157:11
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:753:26
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1636:20
     at new Promise (&lt;anonymous>)
-    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
+    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1602:10)
+    at runTest (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1309:12)
     at processTicksAndRejections (node:internal/process/task_queues:104:5)
 
 stderr | src/lib/client/github/docker.spec.ts > docker.runContainer > should throw on empty image name
@@ -363,12 +371,12 @@ Error sanitizing input: Error: Invalid container image name. Image name must be 
     at sanitizeContainerImage (/home/runner/work/kbve/kbve/packages/npm/devops/src/lib/sanitization.ts:175:9)
     at Object.runContainer (/home/runner/work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.ts:27:20)
     at /home/runner/work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.spec.ts:102:11
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:157:11
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:753:26
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1636:20
     at new Promise (&lt;anonymous>)
-    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
+    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1602:10)
+    at runTest (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1309:12)
     at processTicksAndRejections (node:internal/process/task_queues:104:5)
 
 stdout | src/lib/client/github/docker.spec.ts > docker.runContainer > should succeed with valid inputs when exec succeeds
@@ -377,27 +385,27 @@ Docker container started successfully: container-id-123
 stderr | src/lib/client/github/docker.spec.ts > docker.runContainer > should report error and throw when exec fails
 Error running Docker container: Error: Docker not found
     at /home/runner/work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.spec.ts:136:35
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:157:11
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:753:26
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1636:20
     at new Promise (&lt;anonymous>)
-    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
+    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1602:10)
+    at runTest (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1309:12)
     at processTicksAndRejections (node:internal/process/task_queues:104:5)
-    at runSuite (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
-    at runSuite (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
+    at runSuite (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1468:8)
+    at runSuite (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1468:8)
 
 stderr | src/lib/client/github/docker.spec.ts > docker.stopContainer > should throw on invalid container name
 Error sanitizing container name: Error: Invalid container name. Container name must be alphanumeric and can include underscores.
     at sanitizeContainerName (/home/runner/work/kbve/kbve/packages/npm/devops/src/lib/sanitization.ts:158:9)
     at Object.stopContainer (/home/runner/work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.ts:70:19)
     at /home/runner/work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.spec.ts:168:11
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:157:11
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:753:26
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1636:20
     at new Promise (&lt;anonymous>)
-    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
+    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1602:10)
+    at runTest (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1309:12)
     at processTicksAndRejections (node:internal/process/task_queues:104:5)
 
 stdout | src/lib/client/github/docker.spec.ts > docker.stopContainer > should succeed when both stop and remove succeed
@@ -409,15 +417,15 @@ Docker container removed successfully: ok
 stderr | src/lib/client/github/docker.spec.ts > docker.stopContainer > should throw when stop command fails
 Error stopping Docker container: Error: Container not running
     at /home/runner/work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.spec.ts:191:35
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:157:11
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:753:26
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1636:20
     at new Promise (&lt;anonymous>)
-    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
+    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1602:10)
+    at runTest (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1309:12)
     at processTicksAndRejections (node:internal/process/task_queues:104:5)
-    at runSuite (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
-    at runSuite (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
+    at runSuite (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1468:8)
+    at runSuite (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1468:8)
 
 stdout | src/lib/client/github/docker.spec.ts > docker.stopContainer > should throw when stop succeeds but remove fails
 Docker container stopped successfully: stopped
@@ -425,39 +433,39 @@ Docker container stopped successfully: stopped
 stderr | src/lib/client/github/docker.spec.ts > docker.stopContainer > should throw when stop succeeds but remove fails
 Error removing Docker container: Error: Remove failed
     at /home/runner/work/kbve/kbve/packages/npm/devops/src/lib/client/github/docker.spec.ts:203:27
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:157:11
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:753:26
-    at file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1636:20
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:157:11
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:753:26
+    at file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1636:20
     at new Promise (&lt;anonymous>)
-    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1602:10)
-    at runTest (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1309:12)
+    at runWithTimeout (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1602:10)
+    at runTest (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1309:12)
     at processTicksAndRejections (node:internal/process/task_queues:104:5)
-    at runSuite (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
-    at runSuite (file:///home/runner/work/kbve/kbve/node_modules/@vitest/runner/dist/index.js:1468:8)
+    at runSuite (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1468:8)
+    at runSuite (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1468:8)
 
- ✓ src/lib/client/github/docker.spec.ts (11 tests) 94ms
+ ✓ src/lib/client/github/docker.spec.ts (11 tests) 122ms
 stderr | src/lib/client/yt.spec.ts > fetchYoutubeTitle > should return null for an invalid YouTube URL
 Invalid YouTube URL
 
 stderr | src/lib/client/yt.spec.ts > fetchYoutubeTitle > should return null if the title is not found
 No valid video found on the page
 
- ✓ src/lib/codegen/__tests__/argocd-schema.spec.ts (6 tests) 50ms
- ✓ src/lib/client/yt.spec.ts (10 tests) 706ms
-     ✓ should return the title of the YouTube video  627ms
- ✓ src/lib/client/github/actions.spec.ts (10 tests) 34ms
- ✓ src/lib/client/github/retry.spec.ts (6 tests) 17ms
- ✓ src/lib/ci/manifest.spec.ts (4 tests) 31ms
- ✓ src/index.spec.ts (7 tests) 22ms
- ✓ src/lib/api.spec.ts (5 tests) 843ms
-     ✓ _message should sanitize message correctly  812ms
- ✓ src/lib/client/github/gha.spec.ts (3 tests) 8ms
- ✓ src/lib/client/github/types.spec.ts (2 tests) 8ms
+ ✓ src/lib/client/yt.spec.ts (10 tests) 647ms
+     ✓ should return the title of the YouTube video  569ms
+ ✓ src/lib/client/github/actions.spec.ts (10 tests) 21ms
+ ✓ src/lib/codegen/__tests__/argocd-schema.spec.ts (6 tests) 48ms
+ ✓ src/lib/client/github/retry.spec.ts (6 tests) 41ms
+ ✓ src/lib/ci/manifest.spec.ts (4 tests) 40ms
+ ✓ src/lib/api.spec.ts (5 tests) 328ms
+     ✓ _message should sanitize message correctly  318ms
+ ✓ src/lib/client/github/gha.spec.ts (3 tests) 21ms
+ ✓ src/lib/client/github/types.spec.ts (2 tests) 23ms
+ ✓ src/index.spec.ts (7 tests) 7ms
 
  Test Files  18 passed (18)
       Tests  277 passed (277)
-   Start at  04:37:32
-   Duration  12.02s (transform 1.49s, setup 0ms, collect 19.79s, tests 2.99s, environment 8ms, prepare 1.27s)
+   Start at  04:17:42
+   Duration  11.99s (transform 1.57s, setup 0ms, collect 18.68s, tests 2.79s, environment 4ms, prepare 1.51s)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|-------------------
@@ -519,19 +527,19 @@ The `nxCopyAssetsPlugin` plugin from `@nx/vite/plugins/nx-copy-assets.plugin` is
  RUN  v4.0.9 /home/runner/work/kbve/kbve/packages/npm/droid
       Coverage enabled with v8
 
- ✓ src/lib/sw-recovery.spec.ts (7 tests) 26ms
- ✓ src/lib/workers/events.spec.ts (13 tests) 80ms
- ✓ src/lib/state/ui.spec.ts (16 tests) 29ms
- ✓ src/lib/types/bento.spec.ts (13 tests) 80ms
- ✓ src/lib/gateway/capabilities.spec.ts (10 tests) 24ms
- ✓ src/lib/types/event-schemas.spec.ts (17 tests) 109ms
- ✓ src/lib/state/toasts.spec.ts (9 tests) 32ms
- ✓ src/lib/state/welcome-toast.spec.ts (7 tests) 89ms
- ✓ src/lib/types/event-types.spec.ts (11 tests) 58ms
- ✓ src/lib/state/bento.spec.ts (8 tests) 35ms
- ✓ src/lib/state/auth.spec.ts (5 tests) 7ms
- ✓ src/lib/workers/ws-worker.spec.ts (5 tests) 16ms
- ✓ src/lib/mod/module/supabase/mod-supabase.spec.ts (4 tests) 9ms
+ ✓ src/lib/workers/events.spec.ts (13 tests) 76ms
+ ✓ src/lib/sw-recovery.spec.ts (7 tests) 27ms
+ ✓ src/lib/state/ui.spec.ts (16 tests) 43ms
+ ✓ src/lib/gateway/capabilities.spec.ts (10 tests) 41ms
+ ✓ src/lib/types/bento.spec.ts (13 tests) 38ms
+ ✓ src/lib/types/event-schemas.spec.ts (17 tests) 37ms
+ ✓ src/lib/state/toasts.spec.ts (9 tests) 40ms
+ ✓ src/lib/state/welcome-toast.spec.ts (7 tests) 72ms
+ ✓ src/lib/types/event-types.spec.ts (11 tests) 40ms
+ ✓ src/lib/state/bento.spec.ts (8 tests) 29ms
+ ✓ src/lib/state/auth.spec.ts (5 tests) 20ms
+ ✓ src/lib/workers/ws-worker.spec.ts (5 tests) 27ms
+ ✓ src/lib/mod/module/supabase/mod-supabase.spec.ts (4 tests) 23ms
 stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
 [DROID]: droid&lt;T>
 
@@ -554,13 +562,13 @@ stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.
 stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
 [DROID]: droid&lt;T> => await WorkerRefs + URLs
 
- ✓ src/lib/droid.spec.ts (1 test) 318ms
-     ✓ should initialize and attach to window.kbve  315ms
+ ✓ src/lib/droid.spec.ts (1 test) 490ms
+     ✓ should initialize and attach to window.kbve  488ms
 
  Test Files  14 passed (14)
       Tests  126 passed (126)
-   Start at  04:37:32
-   Duration  15.95s (transform 1.27s, setup 1.38s, collect 3.69s, tests 911ms, environment 29.46s, prepare 1.83s)
+   Start at  04:17:42
+   Duration  18.13s (transform 1.24s, setup 1.80s, collect 3.30s, tests 1.00s, environment 31.46s, prepare 2.14s)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|-------------------
@@ -582,7 +590,7 @@ All files          |   25.61 |    18.38 |   20.05 |   26.11 |
  lib/mod           |      20 |       10 |   16.66 |   22.72 |                   
   mod-manager.ts   |      20 |       10 |   16.66 |   22.72 | 19-66             
  ...odule/supabase |   38.46 |    33.33 |   66.66 |   38.46 |                   
-  mod-supabase.ts  |   38.46 |    33.33 |   66.66 |   38.46 | 26-44,53-54,62-66 
+  mod-supabase.ts  |   38.46 |    33.33 |   66.66 |   38.46 | 26-43,55-56,67-71 
  lib/state         |   67.16 |    40.17 |   66.66 |   65.94 |                   
   auth.ts          |   47.82 |    12.82 |      60 |      50 | ...-78,88-121,138 
   bento.ts         |     100 |      100 |     100 |     100 |                   
@@ -622,23 +630,23 @@ The `nxCopyAssetsPlugin` plugin from `@nx/vite/plugins/nx-copy-assets.plugin` is
  RUN  v4.0.9 /home/runner/work/kbve/kbve/packages/npm/khashvault
       Coverage enabled with v8
 
- ✓ src/lib/pgp/pgp.spec.ts (4 tests) 223ms
- ✓ src/lib/aes/aes.spec.ts (7 tests) 936ms
-     ✓ should encrypt and decrypt with a password  449ms
-     ✓ should fail with wrong password  444ms
- ✓ src/lib/storage/storage.spec.ts (7 tests) 37ms
- ✓ src/lib/kdf/kdf.spec.ts (5 tests) 1742ms
-     ✓ should produce same key with same password and salt  630ms
-     ✓ should produce different keys with different passwords  513ms
- ✓ src/lib/storage/indexeddb.spec.ts (7 tests) 55ms
- ✓ src/lib/keys/keys.spec.ts (6 tests) 41ms
- ✓ src/lib/worker/worker.spec.ts (5 tests) 15ms
- ✓ src/lib/hash/hash.spec.ts (7 tests) 11ms
+ ✓ src/lib/pgp/pgp.spec.ts (4 tests) 356ms
+ ✓ src/lib/aes/aes.spec.ts (7 tests) 1178ms
+     ✓ should encrypt and decrypt with a password  689ms
+     ✓ should fail with wrong password  440ms
+ ✓ src/lib/storage/storage.spec.ts (7 tests) 43ms
+ ✓ src/lib/kdf/kdf.spec.ts (5 tests) 1736ms
+     ✓ should produce same key with same password and salt  653ms
+     ✓ should produce different keys with different passwords  675ms
+ ✓ src/lib/keys/keys.spec.ts (6 tests) 43ms
+ ✓ src/lib/storage/indexeddb.spec.ts (7 tests) 77ms
+ ✓ src/lib/hash/hash.spec.ts (7 tests) 12ms
+ ✓ src/lib/worker/worker.spec.ts (5 tests) 8ms
 
  Test Files  8 passed (8)
       Tests  48 passed (48)
-   Start at  04:37:47
-   Duration  4.41s (transform 347ms, setup 479ms, collect 698ms, tests 3.06s, environment 4.40s, prepare 724ms)
+   Start at  04:17:58
+   Duration  5.43s (transform 462ms, setup 722ms, collect 796ms, tests 3.45s, environment 5.80s, prepare 549ms)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|--------------------------------
@@ -675,31 +683,31 @@ The `nxCopyAssetsPlugin` plugin from `@nx/vite/plugins/nx-copy-assets.plugin` is
  RUN  v4.0.9 /home/runner/work/kbve/kbve/packages/npm/laser
       Coverage enabled with v8
 
- ✓ src/lib/net/postcard-wire.spec.ts (23 tests) 70ms
- ✓ src/lib/core/events.spec.ts (14 tests) 33ms
- ✓ src/lib/phaser/ambient-dust.spec.ts (7 tests) 59ms
- ✓ src/lib/phaser/player-controller.spec.ts (6 tests) 38ms
- ✓ src/lib/auth/game-auth.spec.ts (12 tests) 23ms
- ✓ src/lib/phaser/use-phaser-event.spec.tsx (7 tests) 137ms
- ✓ src/lib/spatial/quadtree.spec.ts (8 tests) 18ms
- ✓ src/lib/phaser/PhaserGame.spec.tsx (10 tests) 218ms
- ✓ src/lib/mecs/sab.spec.ts (10 tests) 32ms
- ✓ src/lib/net/postcard.spec.ts (7 tests) 11ms
- ✓ src/lib/ecs/store.spec.ts (7 tests) 16ms
- ✓ src/lib/net/protocol.spec.ts (7 tests) 14ms
- ✓ src/lib/phaser/gpu-sprite-layer.spec.ts (4 tests) 39ms
+ ✓ src/lib/core/events.spec.ts (14 tests) 49ms
+ ✓ src/lib/net/postcard-wire.spec.ts (23 tests) 59ms
+ ✓ src/lib/auth/game-auth.spec.ts (12 tests) 43ms
+ ✓ src/lib/phaser/ambient-dust.spec.ts (7 tests) 39ms
+ ✓ src/lib/phaser/player-controller.spec.ts (6 tests) 47ms
+ ✓ src/lib/spatial/quadtree.spec.ts (8 tests) 26ms
+ ✓ src/lib/phaser/use-phaser-event.spec.tsx (7 tests) 80ms
+ ✓ src/lib/phaser/PhaserGame.spec.tsx (10 tests) 241ms
+ ✓ src/lib/net/postcard.spec.ts (7 tests) 38ms
+ ✓ src/lib/mecs/sab.spec.ts (10 tests) 34ms
+ ✓ src/lib/ecs/store.spec.ts (7 tests) 15ms
+ ✓ src/lib/net/protocol.spec.ts (7 tests) 32ms
+ ✓ src/lib/phaser/gpu-sprite-layer.spec.ts (4 tests) 80ms
+ ✓ src/lib/phaser/monsters/bird.spec.ts (9 tests) 21ms
+ ✓ src/lib/phaser/arrow-projectile.spec.ts (2 tests) 25ms
  ✓ src/lib/core/invariant.spec.ts (5 tests) 12ms
- ✓ src/lib/phaser/monsters/bird.spec.ts (9 tests) 29ms
- ✓ src/lib/phaser/arrow-projectile.spec.ts (2 tests) 11ms
- ✓ src/lib/i18n/store.spec.ts (8 tests) 6ms
- ✓ src/lib/r3f/use-game-loop.spec.tsx (3 tests) 36ms
+ ✓ src/lib/i18n/store.spec.ts (8 tests) 8ms
  ✓ src/lib/webgl/pom/uniforms.spec.ts (7 tests) 8ms
- ✓ src/lib/phaser/object-pool.spec.ts (3 tests) 9ms
- ✓ src/lib/combat/combat.test.ts (6 tests) 11ms
- ✓ src/lib/determ/heightfield.spec.ts (3 tests) 7ms
- ✓ src/lib/phaser/use-phaser.spec.tsx (3 tests) 39ms
- ✓ src/lib/promo/registry.spec.ts (5 tests) 5ms
- ✓ src/lib/tile/path.spec.ts (5 tests) 44ms
+ ✓ src/lib/r3f/use-game-loop.spec.tsx (3 tests) 32ms
+ ✓ src/lib/phaser/object-pool.spec.ts (3 tests) 6ms
+ ✓ src/lib/determ/heightfield.spec.ts (3 tests) 5ms
+ ✓ src/lib/combat/combat.test.ts (6 tests) 7ms
+ ✓ src/lib/phaser/use-phaser.spec.tsx (3 tests) 42ms
+ ✓ src/lib/promo/registry.spec.ts (5 tests) 6ms
+ ✓ src/lib/tile/path.spec.ts (5 tests) 32ms
  ✓ src/lib/phaser/keyboard-map.spec.ts (2 tests) 10ms
  ✓ src/lib/determ/determ.test.ts (5 tests) 5ms
 stderr | src/lib/r3f/Stage.spec.tsx > Stage > should render a Canvas wrapper
@@ -713,13 +721,13 @@ stderr | src/lib/r3f/Stage.spec.tsx > Stage > should pass className to Canvas
 stderr | src/lib/r3f/Stage.spec.tsx > Stage > should render children inside Canvas
 &lt;ambientLight /> is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
 
- ✓ src/lib/r3f/Stage.spec.tsx (3 tests) 44ms
- ✓ src/lib/ecs/helpers.spec.ts (4 tests) 84ms
+ ✓ src/lib/r3f/Stage.spec.tsx (3 tests) 47ms
+ ✓ src/lib/ecs/helpers.spec.ts (4 tests) 71ms
 
  Test Files  29 passed (29)
       Tests  195 passed (195)
-   Start at  04:37:32
-   Duration  25.46s (transform 12.84s, setup 0ms, collect 16.07s, tests 1.07s, environment 40.61s, prepare 2.55s)
+   Start at  04:17:42
+   Duration  26.46s (transform 8.62s, setup 0ms, collect 12.17s, tests 1.12s, environment 42.87s, prepare 2.90s)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|-------------------
