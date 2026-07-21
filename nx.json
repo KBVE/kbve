@@ -13,8 +13,7 @@
 		"lint": {
 			"inputs": [
 				"default",
-				"{workspaceRoot}/.eslintrc.json",
-				"{workspaceRoot}/.eslintignore",
+				"{workspaceRoot}/eslint.config.mjs",
 				"{workspaceRoot}/eslint.config.js"
 			],
 			"cache": true
@@ -27,8 +26,7 @@
 			"inputs": [
 				"default",
 				"^default",
-				"{workspaceRoot}/.eslintrc.json",
-				"{workspaceRoot}/.eslintignore",
+				"{workspaceRoot}/eslint.config.mjs",
 				"{workspaceRoot}/eslint.config.js",
 				"{workspaceRoot}/tools/eslint-rules/**/*"
 			],
@@ -66,7 +64,7 @@
 		"default": ["{projectRoot}/**/*", "sharedGlobals"],
 		"production": [
 			"default",
-			"!{projectRoot}/.eslintrc.json",
+			"!{projectRoot}/eslint.config.mjs",
 			"!{projectRoot}/eslint.config.js",
 			"!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
 			"!{projectRoot}/tsconfig.spec.json",
@@ -169,8 +167,8 @@
 			}
 		}
 	},
-  "analytics": false,
-  "migrate": {
-    "agentic": true
-  }
+	"analytics": false,
+	"migrate": {
+		"agentic": true
+	}
 }
