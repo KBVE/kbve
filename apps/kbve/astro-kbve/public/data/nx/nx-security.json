@@ -1,20 +1,20 @@
 {
-	"generated_at": "2026-07-20T04:39:25Z",
+	"generated_at": "2026-07-21T04:19:57Z",
 	"summary": {
-		"critical": 3,
-		"high": 25,
-		"medium": 53,
-		"low": 8,
+		"critical": 4,
+		"high": 32,
+		"medium": 67,
+		"low": 9,
 		"info": 38
 	},
 	"ecosystems": {
 		"npm": {
-			"total": 64,
+			"total": 87,
 			"severities": {
-				"critical": 3,
-				"high": 25,
-				"medium": 28,
-				"low": 8,
+				"critical": 4,
+				"high": 32,
+				"medium": 42,
+				"low": 9,
 				"info": 0
 			},
 			"advisories": [
@@ -66,13 +66,6 @@
 					"severity": "high",
 					"package": "koa",
 					"url": "https://github.com/advisories/GHSA-7gcc-r8m5-44qm"
-				},
-				{
-					"id": "1113686",
-					"title": "Serialize JavaScript is Vulnerable to RCE via RegExp.flags and Date.prototype.toISOString()",
-					"severity": "high",
-					"package": "serialize-javascript",
-					"url": "https://github.com/advisories/GHSA-5c6j-r48x-rmvq"
 				},
 				{
 					"id": "1113714",
@@ -465,6 +458,174 @@
 					"severity": "high",
 					"package": "adm-zip",
 					"url": "https://github.com/advisories/GHSA-xcpc-8h2w-3j85"
+				},
+				{
+					"id": "1123882",
+					"title": "Axios: Excessive recursion in formDataToJSON can cause denial of service",
+					"severity": "medium",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-42h9-826w-cgv3"
+				},
+				{
+					"id": "1123884",
+					"title": "Axios: Prototype pollution auth subfields can inject Basic auth",
+					"severity": "medium",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-xj6q-8x83-jv6g"
+				},
+				{
+					"id": "1123885",
+					"title": "Axios: Deep formToJSON Key Recursion Can Cause Denial of Service",
+					"severity": "medium",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-pmv8-rq9r-6j72"
+				},
+				{
+					"id": "1123896",
+					"title": "brace-expansion: DoS via exponential-time expansion of consecutive non-expanding {} groups",
+					"severity": "high",
+					"package": "brace-expansion",
+					"url": "https://github.com/advisories/GHSA-3jxr-9vmj-r5cp"
+				},
+				{
+					"id": "1123897",
+					"title": "brace-expansion: DoS via exponential-time expansion of consecutive non-expanding {} groups",
+					"severity": "high",
+					"package": "brace-expansion",
+					"url": "https://github.com/advisories/GHSA-3jxr-9vmj-r5cp"
+				},
+				{
+					"id": "1123898",
+					"title": "brace-expansion: DoS via exponential-time expansion of consecutive non-expanding {} groups",
+					"severity": "high",
+					"package": "brace-expansion",
+					"url": "https://github.com/advisories/GHSA-3jxr-9vmj-r5cp"
+				},
+				{
+					"id": "1123899",
+					"title": "Astro: Reflected XSS via unescaped View Transition animation properties",
+					"severity": "medium",
+					"package": "astro",
+					"url": "https://github.com/advisories/GHSA-4g3v-8h47-v7g6"
+				},
+				{
+					"id": "1123911",
+					"title": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
+					"severity": "high",
+					"package": "js-yaml",
+					"url": "https://github.com/advisories/GHSA-52cp-r559-cp3m"
+				},
+				{
+					"id": "1123912",
+					"title": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
+					"severity": "high",
+					"package": "js-yaml",
+					"url": "https://github.com/advisories/GHSA-52cp-r559-cp3m"
+				},
+				{
+					"id": "1123939",
+					"title": "node-tar: Process crash via PAX numeric path type confusion",
+					"severity": "medium",
+					"package": "tar",
+					"url": "https://github.com/advisories/GHSA-w8wr-v893-vjvp"
+				},
+				{
+					"id": "1123940",
+					"title": "node-tar: Decompression/parse DoS via unlimited input",
+					"severity": "critical",
+					"package": "tar",
+					"url": "https://github.com/advisories/GHSA-23hp-3jrh-7fpw"
+				},
+				{
+					"id": "1123941",
+					"title": "node-tar: Negative tar entry size causes infinite loop in archive replace",
+					"severity": "high",
+					"package": "tar",
+					"url": "https://github.com/advisories/GHSA-8x88-c5mf-7j5w"
+				},
+				{
+					"id": "1123942",
+					"title": "node-tar: Uncaught Exception DoS via NUL byte in PAX path/linkpath records",
+					"severity": "medium",
+					"package": "tar",
+					"url": "https://github.com/advisories/GHSA-gvwx-54wh-qm9j"
+				},
+				{
+					"id": "1123944",
+					"title": "shell-quote: Quadratic-complexity Denial of Service in `parse()` (CWE-407)",
+					"severity": "high",
+					"package": "shell-quote",
+					"url": "https://github.com/advisories/GHSA-395f-4hp3-45gv"
+				},
+				{
+					"id": "1123957",
+					"title": "Axios: Fetch adapter `ReadableStream` uploads bypass `maxBodyLength`",
+					"severity": "medium",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-jqh4-m9w3-8hp9"
+				},
+				{
+					"id": "1123959",
+					"title": "Axios: Prototype pollution gadgets can alter axios request construction",
+					"severity": "medium",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-mmx7-hfxf-jppx"
+				},
+				{
+					"id": "1123961",
+					"title": "Axios: NO_PROXY bypass for 0.0.0.0 local addresses in axios",
+					"severity": "medium",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-f4gw-2p7v-4548"
+				},
+				{
+					"id": "1123965",
+					"title": "webpack-dev-server vulnerable to cross-site request forgery via internal developer endpoints",
+					"severity": "medium",
+					"package": "webpack-dev-server",
+					"url": "https://github.com/advisories/GHSA-f5vj-f2hx-8m93"
+				},
+				{
+					"id": "1123966",
+					"title": "webpack-dev-server vulnerable to denial of service via a malformed Host or Origin header",
+					"severity": "medium",
+					"package": "webpack-dev-server",
+					"url": "https://github.com/advisories/GHSA-m28w-2pqf-7qgj"
+				},
+				{
+					"id": "1123967",
+					"title": "Axios Node HTTP adapter can use an inherited proxy after interceptor config cloning",
+					"severity": "high",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-gcfj-64vw-6mp9"
+				},
+				{
+					"id": "1123969",
+					"title": "Axios form serializer maxDepth bypass via {} metatoken",
+					"severity": "medium",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-hcpx-6fm6-wx23"
+				},
+				{
+					"id": "1123971",
+					"title": "Axios: Nested axios option objects can consume polluted prototype values",
+					"severity": "medium",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-7q8q-rj6j-mhjq"
+				},
+				{
+					"id": "1123973",
+					"title": "Axios: HTTP/2 streamed uploads bypass `maxBodyLength`",
+					"severity": "medium",
+					"package": "axios",
+					"url": "https://github.com/advisories/GHSA-mwf2-3pr3-8698"
+				},
+				{
+					"id": "1123977",
+					"title": "body-parser vulnerable to denial of service when invalid limit value silently disables size enforcement",
+					"severity": "low",
+					"package": "body-parser",
+					"url": "https://github.com/advisories/GHSA-v422-hmwv-36x6"
 				}
 			]
 		},
