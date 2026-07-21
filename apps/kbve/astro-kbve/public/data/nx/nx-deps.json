@@ -1,7 +1,7 @@
 {
-	"generated_at": "2026-07-20T04:39:36Z",
+	"generated_at": "2026-07-21T04:19:47Z",
 	"node": {
-		"count": 125,
+		"count": 127,
 		"major": 32,
 		"items": [
 			{
@@ -82,6 +82,14 @@
 				"wanted": "5.2.2",
 				"latest": "5.4.0",
 				"type": "dependencies",
+				"major": false
+			},
+			{
+				"name": "@nanostores/persistent",
+				"current": "1.3.4",
+				"wanted": "1.3.4",
+				"latest": "1.3.5",
+				"type": "devDependencies",
 				"major": false
 			},
 			{
@@ -320,7 +328,7 @@
 				"name": "@tanstack/query-core",
 				"current": "5.100.5",
 				"wanted": "5.100.5",
-				"latest": "5.101.2",
+				"latest": "5.101.3",
 				"type": "dependencies",
 				"major": false
 			},
@@ -328,7 +336,7 @@
 				"name": "@tanstack/react-query",
 				"current": "5.101.0",
 				"wanted": "5.101.0",
-				"latest": "5.101.2",
+				"latest": "5.101.3",
 				"type": "dependencies",
 				"major": false
 			},
@@ -336,7 +344,7 @@
 				"name": "@tanstack/react-query-persist-client",
 				"current": "5.101.0",
 				"wanted": "5.101.0",
-				"latest": "5.101.2",
+				"latest": "5.101.3",
 				"type": "dependencies",
 				"major": false
 			},
@@ -472,7 +480,7 @@
 				"name": "astro",
 				"current": "7.0.9",
 				"wanted": "7.0.9",
-				"latest": "7.1.1",
+				"latest": "7.1.2",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -507,6 +515,14 @@
 				"latest": "57.0.3",
 				"type": "dependencies",
 				"major": true
+			},
+			{
+				"name": "canvaskit-wasm",
+				"current": "0.41.0",
+				"wanted": "0.41.0",
+				"latest": "0.41.1",
+				"type": "dependencies",
+				"major": false
 			},
 			{
 				"name": "cssnano",
@@ -1007,7 +1023,7 @@
 		]
 	},
 	"rust": {
-		"count": 291,
+		"count": 289,
 		"major": 0,
 		"items": [
 			{
@@ -1265,7 +1281,7 @@
 			{
 				"name": "clap",
 				"current": "4.6.0",
-				"latest": "4.6.2",
+				"latest": "4.6.3",
 				"major": false
 			},
 			{
@@ -1277,7 +1293,7 @@
 			{
 				"name": "clap_derive",
 				"current": "4.6.0",
-				"latest": "4.6.1",
+				"latest": "4.6.3",
 				"major": false
 			},
 			{
@@ -1691,7 +1707,7 @@
 			{
 				"name": "hyper",
 				"current": "1.9.0",
-				"latest": "1.10.1",
+				"latest": "1.11.0",
 				"major": false
 			},
 			{
@@ -1787,7 +1803,7 @@
 			{
 				"name": "libc",
 				"current": "0.2.184",
-				"latest": "0.2.186",
+				"latest": "0.2.187",
 				"major": false
 			},
 			{
@@ -2121,21 +2137,9 @@
 				"major": false
 			},
 			{
-				"name": "rmcp",
-				"current": "1.6.0",
-				"latest": "1.8.0",
-				"major": false
-			},
-			{
 				"name": "rmcp-actix-web",
 				"current": "0.12.6",
 				"latest": "0.12.16",
-				"major": false
-			},
-			{
-				"name": "rmcp-macros",
-				"current": "1.6.0",
-				"latest": "1.8.0",
 				"major": false
 			},
 			{
@@ -2243,7 +2247,7 @@
 			{
 				"name": "serde_json",
 				"current": "1.0.149",
-				"latest": "1.0.150",
+				"latest": "1.0.151",
 				"major": false
 			},
 			{
@@ -2429,7 +2433,7 @@
 			{
 				"name": "time",
 				"current": "0.3.47",
-				"latest": "0.3.53",
+				"latest": "0.3.54",
 				"major": false
 			},
 			{
@@ -2441,7 +2445,7 @@
 			{
 				"name": "time-macros",
 				"current": "0.2.27",
-				"latest": "0.2.31",
+				"latest": "0.2.32",
 				"major": false
 			},
 			{
@@ -2453,7 +2457,7 @@
 			{
 				"name": "tokio",
 				"current": "1.51.0",
-				"latest": "1.53.0",
+				"latest": "1.53.1",
 				"major": false
 			},
 			{
@@ -2699,13 +2703,13 @@
 			{
 				"name": "zerocopy",
 				"current": "0.8.48",
-				"latest": "0.8.54",
+				"latest": "0.8.55",
 				"major": false
 			},
 			{
 				"name": "zerocopy-derive",
 				"current": "0.8.48",
-				"latest": "0.8.54",
+				"latest": "0.8.55",
 				"major": false
 			},
 			{
