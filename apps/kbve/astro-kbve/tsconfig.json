@@ -47,6 +47,7 @@
 			"@kbve/rn-astro/integration": [
 				"../../../packages/npm/rn-astro/src/integration.ts"
 			]
-		}
+		},
+		"ignoreDeprecations": "6.0"
 	}
 }

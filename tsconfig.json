@@ -1,5 +1,7 @@
 {
-  "compilerOptions": {},
-  "extends": "expo/tsconfig.base",
-  "exclude": ["node_modules", "dist", "build"]
+	"compilerOptions": {
+		"ignoreDeprecations": "6.0"
+	},
+	"extends": "expo/tsconfig.base",
+	"exclude": ["node_modules", "dist", "build"]
 }

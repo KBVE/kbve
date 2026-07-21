@@ -8,7 +8,9 @@
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,
 		"resolveJsonModule": true,
-		"isolatedModules": true
+		"isolatedModules": true,
+		"noUncheckedSideEffectImports": false,
+		"types": ["*"]
 	},
 	"include": ["e2e/**/*.ts", "vitest.config.ts"]
 }

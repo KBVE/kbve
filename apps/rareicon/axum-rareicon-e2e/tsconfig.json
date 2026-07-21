@@ -5,7 +5,10 @@
 		"moduleResolution": "bundler",
 		"strict": true,
 		"esModuleInterop": true,
-		"skipLibCheck": true
+		"skipLibCheck": true,
+		"noUncheckedSideEffectImports": false,
+		"types": ["*"],
+		"ignoreDeprecations": "6.0"
 	},
 	"include": ["e2e/**/*.ts"]
 }

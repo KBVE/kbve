@@ -5,7 +5,8 @@
 		"moduleResolution": "Bundler",
 		"target": "ES2022",
 		"lib": ["ES2022"],
-		"types": ["vitest/globals", "node"]
+		"types": ["vitest/globals", "node"],
+		"ignoreDeprecations": "6.0"
 	},
 	"include": ["e2e/**/*.ts"]
 }
