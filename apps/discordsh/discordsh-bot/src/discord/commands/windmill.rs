@@ -15,8 +15,8 @@ const WM_INDEX_PATH: &str = "help";
 #[poise::command(slash_command, rename = "wm")]
 pub async fn wm(
     ctx: Context<'_>,
-    #[description = "Script name (e.g. poem) → f/discordsh/; blank lists every command"] wm_path: Option<String>,
-    #[description = "Space-separated args"] args: Option<String>,
+    #[description = "Command + args (e.g. poem Emily Dickinson); blank lists every command"]
+    args: Option<String>,
 ) -> Result<(), Error> {
     let Some(cfg) = ctx.data().app.windmill.clone() else {
         ctx.send(
@@ -28,11 +28,13 @@ pub async fn wm(
         return Ok(());
     };
 
-    let wm_path = wm_path
-        .map(|s| s.trim().to_owned())
-        .filter(|s| !s.is_empty())
-        .unwrap_or_else(|| WM_INDEX_PATH.to_owned());
-    let args = args.map(|s| split_args(&s)).unwrap_or_default();
+    let mut tokens = args.map(|s| split_args(&s)).unwrap_or_default();
+    let wm_path = if tokens.is_empty() {
+        WM_INDEX_PATH.to_owned()
+    } else {
+        tokens.remove(0)
+    };
+    let args = tokens;
     let path_for_log = wm_path.clone();
     let arg_count = args.len();
 
