@@ -2282,7 +2282,7 @@ dependencies = [
 
 [[package]]
 name = "axum-herbmail"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "anyhow",
  "askama 0.15.6",
@@ -6403,7 +6403,7 @@ dependencies = [
 
 [[package]]
 name = "discordsh-bot"
-version = "0.1.27"
+version = "0.1.28"
 dependencies = [
  "anyhow",
  "askama 0.15.6",

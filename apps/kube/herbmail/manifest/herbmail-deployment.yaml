@@ -35,7 +35,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: herbmail
-                  image: ghcr.io/kbve/herbmail:0.1.1
+                  image: ghcr.io/kbve/herbmail:0.1.2
                   imagePullPolicy: Always
                   ports:
                       - containerPort: 4321
