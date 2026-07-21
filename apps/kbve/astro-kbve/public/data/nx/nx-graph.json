@@ -13745,7 +13745,7 @@
 						"description": "Phaser + React Three Fiber integration layer for React 19",
 						"js": {
 							"packageName": "@kbve/laser",
-							"packageVersion": "0.1.5",
+							"packageVersion": "0.1.6",
 							"packageExports": {
 								".": {
 									"import": "./laser.es.js",
@@ -17010,11 +17010,6 @@
 				},
 				{
 					"source": "astro-kbve",
-					"target": "rn-astro",
-					"type": "static"
-				},
-				{
-					"source": "astro-kbve",
 					"target": "rn",
 					"type": "static"
 				},
@@ -17022,6 +17017,11 @@
 					"source": "astro-kbve",
 					"target": "rn",
 					"type": "dynamic"
+				},
+				{
+					"source": "astro-kbve",
+					"target": "rn-astro",
+					"type": "static"
 				}
 			],
 			"factorio-ctl": [
