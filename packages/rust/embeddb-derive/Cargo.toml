@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 description = "derive macro for embeddb FromEmbedRow"
 license = "MIT"
+homepage = "https://kbve.com/application/rust/#embeddb-derive"
+repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/embeddb-derive"
 
 [lib]
 proc-macro = true

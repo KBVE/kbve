@@ -6,7 +6,9 @@
 		"strict": true,
 		"esModuleInterop": true,
 		"skipLibCheck": true,
-		"types": ["node", "vitest/globals"]
+		"types": ["node", "vitest/globals"],
+		"noUncheckedSideEffectImports": false,
+		"ignoreDeprecations": "6.0"
 	},
 	"include": ["e2e/**/*.ts", "vitest.config.ts"]
 }

@@ -84,4 +84,4 @@ data:
         \          allow:\n            - admin\n\n  ## Protected Dashboard - catch all\
         \ remaining routes\n  - name: dashboard\n    _comment: 'Studio: /* -> studio-gate (kbve-gate JWT is_staff) -> http://studio:3000/*'\n\
         \    url: http://studio-gate:5678/\n    routes:\n      - name: dashboard-all\n    \
-        \    strip_path: true\n        paths:\n          - /\n"
+        \    strip_path: true\n        preserve_host: true\n        paths:\n          - /\n"

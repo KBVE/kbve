@@ -1,9 +1,0 @@
-node_modules
-
-**/.astro/
-
-# Deno edge functions — use Deno imports, not Node
-apps/kbve/edge/
-
-# Generated isometric WASM client bundle (exact build output; lint must not touch)
-apps/kbve/astro-kbve/public/isometric/

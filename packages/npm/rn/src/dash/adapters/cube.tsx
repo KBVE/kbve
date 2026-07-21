@@ -6,7 +6,14 @@ import { tokens } from '../_ui';
 import type { TrendSeries } from '../TrendChart';
 import type { StatModel } from '../types';
 import type { CubeRow } from '../cube/cubeApi';
-import { fmtInt } from '../cube/cubeApi';
+import { fmtInt, fmtPct } from '../cube/cubeApi';
+
+export interface RankedRow {
+	key: string;
+	label: string;
+	value: number;
+	badge?: string;
+}
 
 const num = (v: unknown): number => {
 	const n = Number(v ?? 0);
@@ -60,6 +67,39 @@ export function signupsToSeries(rows: CubeRow[]): TrendSeries[] {
 		: [];
 }
 
+function topByDimension(
+	rows: CubeRow[],
+	dimKey: string,
+	measureKey: string,
+): RankedRow[] {
+	const byDim = new Map<string, number>();
+	for (const r of rows) {
+		const raw = r[dimKey];
+		if (raw == null || raw === '') continue;
+		const label = String(raw);
+		byDim.set(label, (byDim.get(label) ?? 0) + num(r[measureKey]));
+	}
+	return [...byDim.entries()]
+		.map(([label, value]) => ({ key: label, label, value }))
+		.sort((a, b) => b.value - a.value);
+}
+
+export function topServicesToRows(rows: CubeRow[]): RankedRow[] {
+	return topByDimension(rows, 'ch_logs.service', 'ch_logs.count');
+}
+
+export function topNamespacesToRows(rows: CubeRow[]): RankedRow[] {
+	return topByDimension(rows, 'ch_logs.pod_namespace', 'ch_logs.count');
+}
+
+export function mcPlayersToRows(rows: CubeRow[]): RankedRow[] {
+	return topByDimension(
+		rows,
+		'pg_mc_player.player_name',
+		'ch_mc_snapshots.count',
+	);
+}
+
 /** Flat stat tiles: total logs, error logs, total users. */
 export function buildCubeStats(logs: CubeRow[], signups: CubeRow[]): StatModel[] {
 	let total = 0;
@@ -72,9 +112,36 @@ export function buildCubeStats(logs: CubeRow[], signups: CubeRow[]): StatModel[]
 		}
 	}
 	const users = signups.reduce((a, r) => a + num(r['pg_users.count']), 0);
+	const errorRate = total > 0 ? (errors / total) * 100 : 0;
+
+	const signupPoints = signups
+		.map((r) => ({
+			t: ms(r['pg_users.created_at.month'] ?? r['pg_users.created_at']),
+			v: num(r['pg_users.count']),
+		}))
+		.filter((p) => p.t)
+		.sort((a, b) => a.t - b.t);
+	const last = signupPoints.at(-1)?.v ?? 0;
+	const prev = signupPoints.at(-2)?.v ?? 0;
+	const delta = last - prev;
+	const deltaTone: StatModel['tone'] =
+		delta > 0 ? 'success' : delta < 0 ? 'danger' : 'neutral';
+
 	return [
 		{ id: 'logs', label: 'Total logs', value: fmtInt(total), tone: 'primary' },
 		{ id: 'errors', label: 'Errors', value: fmtInt(errors), tone: 'danger' },
+		{
+			id: 'errorRate',
+			label: 'Error rate',
+			value: fmtPct(errorRate),
+			tone: 'danger',
+		},
 		{ id: 'users', label: 'Users', value: fmtInt(users), tone: 'success' },
+		{
+			id: 'signupDelta',
+			label: 'Signups Δ (mo)',
+			value: `${delta >= 0 ? '+' : ''}${fmtInt(delta)}`,
+			tone: deltaTone,
+		},
 	];
 }

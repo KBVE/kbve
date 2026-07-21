@@ -26,7 +26,11 @@
 			"@kbve/jobboard-schema": [
 				"../../../packages/data/codegen/generated/jobboard-schema.ts"
 			]
-		}
+		},
+		"noUncheckedSideEffectImports": false,
+		"types": ["*"],
+		"esModuleInterop": false,
+		"ignoreDeprecations": "6.0"
 	},
 	"include": ["src"]
 }

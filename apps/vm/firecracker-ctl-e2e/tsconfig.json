@@ -8,7 +8,10 @@
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,
 		"resolveJsonModule": true,
-		"isolatedModules": true
+		"isolatedModules": true,
+		"noUncheckedSideEffectImports": false,
+		"types": ["*"],
+		"ignoreDeprecations": "6.0"
 	},
 	"include": ["e2e/**/*.ts", "vitest.config.ts"]
 }

@@ -3,6 +3,7 @@
 	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
 	"sourceRoot": "apps/chuckrpg/chuck-launcher",
+	"tags": [],
 	"targets": {
 		"lint": {
 			"executor": "@nx/eslint:lint",
@@ -63,6 +64,5 @@
 				}
 			}
 		}
-	},
-	"tags": []
+	}
 }

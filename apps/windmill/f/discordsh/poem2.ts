@@ -83,7 +83,7 @@ export async function main(args: string[] = [], discord: Discord = {}) {
       description,
       color: 0x8b5cf6,
       author: by ? { name: by } : undefined,
-      footer: { text: `${COST} credits · requested by ${discord.username ?? "you"}` },
+      footer: `${COST} credits · requested by ${discord.username ?? "you"}`,
     },
   };
 }

@@ -33,6 +33,7 @@
 			"@kbve/npcdb-schema": [
 				"../../../packages/data/codegen/generated/npcdb-schema.ts"
 			]
-		}
+		},
+		"ignoreDeprecations": "6.0"
 	}
 }
