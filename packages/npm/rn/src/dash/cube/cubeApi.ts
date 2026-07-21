@@ -46,3 +46,31 @@ export function fmtInt(v: number): string {
 	if (v >= 1_000) return `${(v / 1_000).toFixed(1)}k`;
 	return String(Math.round(v));
 }
+
+export function fmtPct(v: number): string {
+	if (!Number.isFinite(v)) return '0.0%';
+	return `${v.toFixed(1)}%`;
+}
+
+export type RangeKey = '24h' | '7d' | '30d' | 'all';
+
+export function rangeToDateRange(k: RangeKey): string | undefined {
+	switch (k) {
+		case '24h':
+			return 'last 24 hours';
+		case '7d':
+			return 'last 7 days';
+		case '30d':
+			return 'last 30 days';
+		case 'all':
+			return undefined;
+	}
+}
+
+export function rangeToGranularity(
+	k: RangeKey,
+	base: 'day' | 'month',
+): CubeTimeDimension['granularity'] {
+	if (k === '24h') return 'hour';
+	return base;
+}
