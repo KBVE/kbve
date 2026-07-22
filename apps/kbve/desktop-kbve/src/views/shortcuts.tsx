@@ -2,11 +2,7 @@ import { useEffect, useState } from 'react';
 import { SettingsCard } from '../components/SettingsCard';
 import { SettingsRow } from '../components/SettingsRow';
 import { ToggleSwitch } from '../components/ToggleSwitch';
-import {
-	commands,
-	type ShortcutBinding,
-	type PasteMethod,
-} from '../bindings';
+import { commands, type ShortcutBinding, type PasteMethod } from '../bindings';
 
 const PASTE_METHODS: { value: PasteMethod; label: string }[] = [
 	{ value: 'ctrl_v', label: 'Ctrl/Cmd + V' },
@@ -36,6 +32,7 @@ export function ShortcutsView() {
 	};
 
 	useEffect(() => {
+		// eslint-disable-next-line react-hooks/set-state-in-effect
 		load();
 	}, []);
 
@@ -76,6 +73,7 @@ export function ShortcutsView() {
 						label={b.name}
 						description={b.description}>
 						<BindingEditor
+							key={b.current_binding}
 							binding={b}
 							onSave={(v) => save(b.id, v)}
 							onReset={() => reset(b.id)}
@@ -134,7 +132,6 @@ function BindingEditor({
 	onReset: () => void;
 }) {
 	const [value, setValue] = useState(binding.current_binding);
-	useEffect(() => setValue(binding.current_binding), [binding.current_binding]);
 	const dirty = value !== binding.current_binding;
 
 	return (
