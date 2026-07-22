@@ -157,26 +157,32 @@ impl Transcoder {
     }
 
     pub async fn request(&self, id: &str) -> RequestOutcome {
-        let meta = match self.store.get(id) {
-            Some(m) => m,
-            None => return RequestOutcome::NotFound,
-        };
-        match next_status(&meta.transcode, &meta.state, self.enabled) {
-            Decision::Reject(RequestOutcome::InProgress(TranscodeStatus::Ready)) => {
-                match meta.transcode_path {
-                    Some(p) => RequestOutcome::Ready(p),
-                    None => RequestOutcome::InProgress(TranscodeStatus::Ready),
+        let result = self.store.update(id, |m| {
+            match next_status(&m.transcode, &m.state, self.enabled) {
+                Decision::Reject(RequestOutcome::InProgress(TranscodeStatus::Ready)) => {
+                    match &m.transcode_path {
+                        Some(p) => RequestOutcome::Ready(p.clone()),
+                        None => RequestOutcome::InProgress(TranscodeStatus::Ready),
+                    }
+                }
+                Decision::Reject(outcome) => outcome,
+                Decision::Enqueue => {
+                    m.transcode = TranscodeStatus::Pending;
+                    m.transcode_error = None;
+                    RequestOutcome::Started
                 }
             }
-            Decision::Reject(outcome) => outcome,
-            Decision::Enqueue => {
-                let mut m = meta.clone();
-                m.transcode = TranscodeStatus::Pending;
-                m.transcode_error = None;
-                let _ = self.store.upsert(m);
-                self.spawn_job(id.to_string(), meta);
+        });
+        match result {
+            Ok(Some(RequestOutcome::Started)) => {
+                if let Some(meta) = self.store.get(id) {
+                    self.spawn_job(id.to_string(), meta);
+                }
                 RequestOutcome::Started
             }
+            Ok(Some(outcome)) => outcome,
+            Ok(None) => RequestOutcome::NotFound,
+            Err(_) => RequestOutcome::NotFound,
         }
     }
 
@@ -185,11 +191,10 @@ impl Transcoder {
         tokio::spawn(async move {
             if let Err(e) = this.run_job(&id, &meta).await {
                 tracing::error!(id = %id, error = %e, "transcode failed");
-                if let Some(mut m) = this.store.get(&id) {
+                let _ = this.store.update(&id, |m| {
                     m.transcode = TranscodeStatus::Failed;
                     m.transcode_error = Some(e.to_string());
-                    let _ = this.store.upsert(m);
-                }
+                });
             }
         });
     }
@@ -205,13 +210,12 @@ impl Transcoder {
             .unwrap_or_else(|| "media".into());
         let dest = src_dir.join(format!("{stem}.reel.mp4"));
 
-        if let Some(mut m) = self.store.get(id) {
+        let _ = self.store.update(id, |m| {
             m.transcode = match route {
                 Route::Remux => TranscodeStatus::Remuxing,
                 Route::Encode => TranscodeStatus::Encoding,
             };
-            let _ = self.store.upsert(m);
-        }
+        });
 
         match route {
             Route::Remux => {
@@ -224,12 +228,11 @@ impl Transcoder {
             }
         }
 
-        if let Some(mut m) = self.store.get(id) {
+        let _ = self.store.update(id, |m| {
             m.transcode = TranscodeStatus::Ready;
             m.transcode_path = Some(dest.display().to_string());
             m.transcode_error = None;
-            let _ = self.store.upsert(m);
-        }
+        });
         Ok(())
     }
 }

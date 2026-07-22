@@ -77,6 +77,21 @@ impl StateStore {
         self.persist(&g)?;
         Ok(removed)
     }
+
+    pub fn update<F, R>(&self, id: &str, f: F) -> anyhow::Result<Option<R>>
+    where
+        F: FnOnce(&mut Metadata) -> R,
+    {
+        let mut g = self.inner.lock().unwrap();
+        match g.get_mut(id) {
+            Some(m) => {
+                let r = f(m);
+                self.persist(&g)?;
+                Ok(Some(r))
+            }
+            None => Ok(None),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -130,6 +145,24 @@ mod tests {
         s.upsert(meta("a", 100)).unwrap();
         assert_eq!(s.remove("a").unwrap().unwrap().id, "a");
         assert!(s.get("a").is_none());
+    }
+
+    #[test]
+    fn update_mutates_in_place_and_preserves_other_fields() {
+        let dir = tempdir().unwrap();
+        let s = StateStore::load(dir.path().join("s.json")).unwrap();
+        s.upsert(meta("a", 100)).unwrap();
+        let got = s
+            .update("a", |m| {
+                m.transcode = TranscodeStatus::Pending;
+                m.last_access
+            })
+            .unwrap();
+        assert_eq!(got, Some(100));
+        let m = s.get("a").unwrap();
+        assert_eq!(m.transcode, TranscodeStatus::Pending);
+        assert_eq!(m.last_access, 100);
+        assert!(s.update("missing", |_m| ()).unwrap().is_none());
     }
 
     #[test]
