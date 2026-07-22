@@ -1,8 +1,10 @@
+mod agones_health;
+mod ch_writer;
 mod config;
 mod event;
-mod rest_client;
+mod irc_bridge;
 mod poller;
-mod agones_health;
+mod rest_client;
 
 use anyhow::Result;
 
