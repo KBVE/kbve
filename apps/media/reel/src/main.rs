@@ -1,5 +1,6 @@
 mod config;
 mod mover;
+mod reaper;
 mod state;
 
 #[tokio::main]
