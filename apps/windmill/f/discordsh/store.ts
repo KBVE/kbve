@@ -61,9 +61,7 @@ function catalogEmbed(discord: Discord) {
         `or browse at [kbve.com/store](${STORE_URL}) — sign in with Discord.`,
       color: BRAND,
       fields,
-      footer: {
-        text: `${STORE_URL.replace(/^https?:\/\//, "")} · requested by ${discord.username ?? "you"}`,
-      },
+      footer: `${STORE_URL.replace(/^https?:\/\//, "")} · requested by ${discord.username ?? "you"}`,
     },
   };
 }
@@ -129,9 +127,7 @@ async function buy(rest: string[], discord: Discord) {
       description:
         `It's yours. Reveal your card at [kbve.com/store](${STORE_URL}) — sign in with Discord and it'll be waiting in your collection.`,
       color: OK,
-      footer: {
-        text: `${product.price} · ${discord.username ?? "you"}`,
-      },
+      footer: `${product.price} · ${discord.username ?? "you"}`,
     },
   };
 }
@@ -178,9 +174,7 @@ async function balance(discord: Discord) {
         `**${credits} credits**\n\n` +
         `Spend them with \`/wm store buy\`, or browse at [kbve.com/store](${STORE_URL}).`,
       color: BRAND,
-      footer: {
-        text: `${STORE_URL.replace(/^https?:\/\//, "")} · ${discord.username ?? "you"}`,
-      },
+      footer: `${STORE_URL.replace(/^https?:\/\//, "")} · ${discord.username ?? "you"}`,
     },
   };
 }
@@ -230,9 +224,7 @@ async function inventory(discord: Discord) {
           `Nothing here yet. Unlock your first collectible with \`/wm store buy\` — ` +
           `browse at [kbve.com/store](${STORE_URL}).`,
         color: BRAND,
-        footer: {
-          text: `${STORE_URL.replace(/^https?:\/\//, "")} · ${discord.username ?? "you"}`,
-        },
+        footer: `${STORE_URL.replace(/^https?:\/\//, "")} · ${discord.username ?? "you"}`,
       },
     };
   }
@@ -244,9 +236,7 @@ async function inventory(discord: Discord) {
       url: STORE_URL,
       description: `${lines.join("\n")}\n\nReveal them at [kbve.com/store](${STORE_URL}).`,
       color: OK,
-      footer: {
-        text: `${STORE_URL.replace(/^https?:\/\//, "")} · ${discord.username ?? "you"}`,
-      },
+      footer: `${STORE_URL.replace(/^https?:\/\//, "")} · ${discord.username ?? "you"}`,
     },
   };
 }

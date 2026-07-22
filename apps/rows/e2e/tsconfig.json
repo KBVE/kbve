@@ -3,7 +3,8 @@
 	"compilerOptions": {
 		"module": "ESNext",
 		"moduleResolution": "Bundler",
-		"target": "ESNext"
+		"target": "ESNext",
+		"ignoreDeprecations": "6.0"
 	},
 	"include": ["e2e/**/*.ts"]
 }

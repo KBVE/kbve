@@ -1,1 +1,1 @@
-{"default":{"identifier":"default","description":"Capability for the main window","local":true,"windows":["main"],"permissions":["core:default","opener:default","store:default","deep-link:default"]}}
+{"default":{"identifier":"default","description":"Capability for the main window","local":true,"windows":["main"],"permissions":["core:default","opener:default","store:default","deep-link:default","os:default","fs:default","process:default","clipboard-manager:default","global-shortcut:default","macos-permissions:default"]}}

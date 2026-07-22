@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 description = "Single-file embedded DB: Turso write path + DuckDB analytics read path"
 license = "MIT"
+homepage = "https://kbve.com/application/rust/#embeddb"
+repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/embeddb"
 
 [dependencies]
 turso = "0.7"

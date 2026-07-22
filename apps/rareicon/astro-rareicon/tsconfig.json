@@ -18,6 +18,7 @@
 				"../../../packages/data/codegen/generated/index.ts"
 			],
 			"@kbve/proto/*": ["../../../packages/data/codegen/generated/*"]
-		}
+		},
+		"ignoreDeprecations": "6.0"
 	}
 }

@@ -26,7 +26,10 @@
 			"@kbve/itemdb-schema": [
 				"../../../../packages/data/codegen/generated/itemdb-schema.ts"
 			]
-		}
+		},
+		"noUncheckedSideEffectImports": false,
+		"esModuleInterop": false,
+		"ignoreDeprecations": "6.0"
 	},
 	"include": ["src", "vite.config.ts"]
 }

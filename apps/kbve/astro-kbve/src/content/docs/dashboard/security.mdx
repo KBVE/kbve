@@ -31,8 +31,8 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					Security posture
 					<span class="bento-title__accent">across every ecosystem.</span>
 				</h1>
-				<p class="bento-lede"><strong>36</strong> critical/high severity findings across the monorepo — triage before merge.</p>
-				<p class="bento-lede">Last generated <strong>2026-07-21T04:19:57Z</strong>.</p>
+				<p class="bento-lede"><strong>43</strong> critical/high severity findings across the monorepo — triage before merge.</p>
+				<p class="bento-lede">Last generated <strong>2026-07-22T04:21:02Z</strong>.</p>
 				<div class="bento-cta">
 					<a class="bento-btn bento-btn--primary" href="#findings">
 						View findings
@@ -54,21 +54,21 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 8v4M12 16h.01" /></svg>
 					</span>
-					<span class="bento-stat__value">32</span>
+					<span class="bento-stat__value">39</span>
 					<span class="bento-stat__label">High</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 16v-4M12 8h.01" /></svg>
 					</span>
-					<span class="bento-stat__value">67</span>
+					<span class="bento-stat__value">66</span>
 					<span class="bento-stat__label">Medium</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4 12 14.01l-3-3" /></svg>
 					</span>
-					<span class="bento-stat__value">9</span>
+					<span class="bento-stat__value">10</span>
 					<span class="bento-stat__label">Low</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
@@ -93,7 +93,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96 12 12.01l8.73-5.05M12 22.08V12" /></svg>
 			</span>
 			<span class="bento-linkcard__title">npm</span>
-			<span class="bento-linkcard__copy">87 advisories</span>
+			<span class="bento-linkcard__copy">94 advisories</span>
 			<span class="bento-linkcard__go" aria-hidden="true">
 				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 			</span>
@@ -149,9 +149,9 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 pie showData
     title Findings by Severity
     "Critical" : 4
-    "High" : 32
-    "Medium" : 67
-    "Low" : 9
+    "High" : 39
+    "Medium" : 66
+    "Low" : 10
 ```
 
 ### Findings by ecosystem
@@ -159,7 +159,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 87
+    "npm" : 94
     "Cargo" : 63
 ```
 
@@ -167,12 +167,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 4 | 32 | 42 | 9 | 87 |
+| **npm** | 4 | 39 | 41 | 10 | 94 |
 | **Cargo** | 0 | 0 | 25 | 0 | 63 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 4 | 32 | 67 | 9 | 150 |
+| **Total** | 4 | 39 | 66 | 10 | 157 |
 
 <span id="eco-npm"></span>
 
@@ -197,7 +197,6 @@ pie showData
 | High | `fast-uri` | fast-uri vulnerable to path traversal via percent-encoded... | [Details](https://github.com/advisories/GHSA-q3j6-qgpj-74h6) |
 | High | `fast-uri` | fast-uri vulnerable to host confusion via percent-encoded... | [Details](https://github.com/advisories/GHSA-v39h-62p7-jpjc) |
 | High | `tmp` | tmp has Path Traversal via unsanitized prefix/postfix tha... | [Details](https://github.com/advisories/GHSA-ph9p-34f9-6g65) |
-| High | `form-data` | form-data: CRLF injection in form-data via unescaped mult... | [Details](https://github.com/advisories/GHSA-hmw2-7cc7-3qxx) |
 | High | `http-proxy-middleware` | http-proxy-middleware: multipart/form-data field injectio... | [Details](https://github.com/advisories/GHSA-gcq2-9pq2-cxqm) |
 | High | `undici` | undici vulnerable to TLS certificate validation bypass vi... | [Details](https://github.com/advisories/GHSA-vmh5-mc38-953g) |
 | High | `nodemailer` | Nodemailer: Message-level raw option bypasses disableFile... | [Details](https://github.com/advisories/GHSA-p6gq-j5cr-w38f) |
@@ -216,8 +215,15 @@ pie showData
 | High | `tar` | node-tar: Negative tar entry size causes infinite loop in... | [Details](https://github.com/advisories/GHSA-8x88-c5mf-7j5w) |
 | High | `shell-quote` | shell-quote: Quadratic-complexity Denial of Service in `p... | [Details](https://github.com/advisories/GHSA-395f-4hp3-45gv) |
 | High | `axios` | Axios Node HTTP adapter can use an inherited proxy after ... | [Details](https://github.com/advisories/GHSA-gcfj-64vw-6mp9) |
+| High | `immutable` | Immutable.js `List` 32-bit trie overflow → unrecoverable DoS | [Details](https://github.com/advisories/GHSA-v56q-mh7h-f735) |
+| High | `fast-uri` | fast-uri vulnerable to host confusion via failed IDN cano... | [Details](https://github.com/advisories/GHSA-4c8g-83qw-93j6) |
+| High | `immutable` | Immutabl: Hash-collision algorithmic complexity denial of... | [Details](https://github.com/advisories/GHSA-xvcm-6775-5m9r) |
+| High | `svgo` | SVGO removeScripts plugin leaves some executable scripts ... | [Details](https://github.com/advisories/GHSA-2p49-hgcm-8545) |
+| High | `svgo` | SVGO removeScripts plugin leaves some executable scripts ... | [Details](https://github.com/advisories/GHSA-2p49-hgcm-8545) |
+| High | `fast-uri` | fast-uri vulnerable to host confusion via literal backsla... | [Details](https://github.com/advisories/GHSA-v2hh-gcrm-f6hx) |
+| High | `sharp` | sharp inherited vulnerabilities in libvips: CVE-2026-3332... | [Details](https://github.com/advisories/GHSA-f88m-g3jw-g9cj) |
+| High | `fast-xml-parser` | fast-xml-parser: Repeated DOCTYPE declarations reset enti... | [Details](https://github.com/advisories/GHSA-8r6m-32jq-jx6q) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
-| Medium | `js-yaml` | js-yaml has prototype pollution in merge (&lt;&lt;) | [Details](https://github.com/advisories/GHSA-mh29-5h37-fv8m) |
 | Medium | `mdast-util-to-hast` | mdast-util-to-hast has unsanitized class attribute | [Details](https://github.com/advisories/GHSA-4fh9-h7wg-q85m) |
 | Medium | `ajv` | ajv has ReDoS when using `$data` option | [Details](https://github.com/advisories/GHSA-2g4f-4pwh-qvx6) |
 | Medium | `ajv` | ajv has ReDoS when using `$data` option | [Details](https://github.com/advisories/GHSA-2g4f-4pwh-qvx6) |
@@ -267,6 +273,7 @@ pie showData
 | Low | `undici` | undici vulnerable to Set-Cookie SameSite attribute downgr... | [Details](https://github.com/advisories/GHSA-g8m3-5g58-fq7m) |
 | Low | `@babel/core` | @babel/core: Arbitrary File Read via sourceMappingURL Com... | [Details](https://github.com/advisories/GHSA-4x5r-pxfx-6jf8) |
 | Low | `body-parser` | body-parser vulnerable to denial of service when invalid ... | [Details](https://github.com/advisories/GHSA-v422-hmwv-36x6) |
+| Low | `dompurify` | DOMPurify: `CUSTOM_ELEMENT_HANDLING` bypasses `afterSanit... | [Details](https://github.com/advisories/GHSA-c2j3-45gr-mqc4) |
 
 <span id="eco-cargo"></span>
 
