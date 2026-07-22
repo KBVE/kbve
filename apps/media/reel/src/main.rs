@@ -1,4 +1,5 @@
 mod config;
+mod mover;
 mod state;
 
 #[tokio::main]
