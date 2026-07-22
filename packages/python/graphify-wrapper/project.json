@@ -79,6 +79,17 @@
 			},
 			"description": "Build knowledge graph for specific app (use --app=<name>)"
 		},
+		"build-tiered": {
+			"executor": "@nxlv/python:run-commands",
+			"outputs": [
+				"{workspaceRoot}/apps/kbve/astro-kbve/public/graphify"
+			],
+			"options": {
+				"command": "bash ../../data/graphify/scripts/build-tiered-graph.sh",
+				"cwd": "packages/python/graphify-wrapper"
+			},
+			"description": "Rebuild tiered LOD graph consumed by the dashboard Graph Explorer"
+		},
 		"query": {
 			"executor": "@nxlv/python:run-commands",
 			"options": {

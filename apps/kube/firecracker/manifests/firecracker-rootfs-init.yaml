@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-    name: firecracker-rootfs-init-v11
+    name: firecracker-rootfs-init-v16
     namespace: firecracker
     labels:
         app: firecracker-rootfs-init
@@ -29,9 +29,9 @@ spec:
                       - /bin/sh
                       - -c
                   args:
-                      - "set -eu\nOUTPUT=\"/rootfs\"\nKERNEL_URL=\"https://s3.amazonaws.com/spec.ccfc.min/firecracker-ci/v1.11/x86_64/vmlinux-5.10.225\"\
+                      - "set -eu\nOUTPUT=\"/rootfs\"\nKERNEL_URL=\"https://s3.amazonaws.com/spec.ccfc.min/firecracker-ci/v1.15/x86_64/vmlinux-6.1.155\"\
                         \n\necho \"=== Firecracker rootfs init ===\"\n\napk add --no-cache curl\
-                        \ e2fsprogs\n\n# --- vmlinux kernel ---\nif [ ! -f \"${OUTPUT}/vmlinux\"\
+                        \ e2fsprogs\n\n# --- vmlinux kernel ---\nrm -f \"${OUTPUT}/vmlinux\"\nif [ ! -f \"${OUTPUT}/vmlinux\"\
                         \ ]; then\n    echo \"[1/4] Downloading vmlinux kernel...\"\n    curl -fSL\
                         \ \"${KERNEL_URL}\" -o \"${OUTPUT}/vmlinux\"\n    chmod 644 \"${OUTPUT}/vmlinux\"\
                         \n    echo \"  Kernel: $(wc -c < ${OUTPUT}/vmlinux) bytes\"\nelse\n    echo\

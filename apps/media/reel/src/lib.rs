@@ -1,7 +1,9 @@
 pub mod api;
 pub mod config;
 pub mod engine;
+pub mod hls;
 pub mod mover;
 pub mod reaper;
 pub mod state;
+pub mod stream;
 pub mod transcode;

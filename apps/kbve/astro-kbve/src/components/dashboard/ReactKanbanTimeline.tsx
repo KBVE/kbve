@@ -20,18 +20,9 @@ export default function ReactKanbanTimeline({ sectionIndex }: Props) {
 	const [data] = useKanbanData();
 	const svgRef = useRef<SVGSVGElement>(null);
 	const wrapRef = useRef<HTMLDivElement>(null);
-	const rendered = useRef(false);
 
 	useEffect(() => {
-		if (
-			!active ||
-			!data ||
-			rendered.current ||
-			!svgRef.current ||
-			!wrapRef.current
-		)
-			return;
-		rendered.current = true;
+		if (!active || !data || !svgRef.current || !wrapRef.current) return;
 
 		const tooltip = createChartTooltip(wrapRef.current, 'timeline');
 
@@ -46,7 +37,11 @@ export default function ReactKanbanTimeline({ sectionIndex }: Props) {
 			}
 		}
 
-		if (items.length === 0) return;
+		if (items.length === 0)
+			return () => {
+				tooltip.hide();
+				tooltip.el.remove();
+			};
 
 		const width = 900;
 		const height = 400;
@@ -168,6 +163,12 @@ export default function ReactKanbanTimeline({ sectionIndex }: Props) {
 				circle.style.opacity = '0.8';
 			});
 		}
+
+		return () => {
+			while (svg.firstChild) svg.removeChild(svg.firstChild);
+			tooltip.hide();
+			tooltip.el.remove();
+		};
 	}, [active, data]);
 
 	return (
@@ -190,13 +191,25 @@ export default function ReactKanbanTimeline({ sectionIndex }: Props) {
 				}}>
 				Items by Date
 			</h3>
-			<svg
-				ref={svgRef}
-				width={900}
-				height={400}
-				viewBox="0 0 900 400"
-				style={{ maxWidth: '100%', height: 'auto' }}
-			/>
+			{active ? (
+				<svg
+					ref={svgRef}
+					width={900}
+					height={400}
+					viewBox="0 0 900 400"
+					style={{ maxWidth: '100%', height: 'auto' }}
+				/>
+			) : (
+				<div
+					style={{
+						width: '100%',
+						maxWidth: 900,
+						aspectRatio: '900 / 400',
+						borderRadius: 12,
+						background: 'var(--sl-color-gray-6, #1a1a1a)',
+					}}
+				/>
+			)}
 		</div>
 	);
 }

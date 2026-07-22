@@ -17,18 +17,9 @@ export default function ReactKanbanDonut({ sectionIndex }: Props) {
 	const [data] = useKanbanData();
 	const svgRef = useRef<SVGSVGElement>(null);
 	const wrapRef = useRef<HTMLDivElement>(null);
-	const rendered = useRef(false);
 
 	useEffect(() => {
-		if (
-			!active ||
-			!data ||
-			rendered.current ||
-			!svgRef.current ||
-			!wrapRef.current
-		)
-			return;
-		rendered.current = true;
+		if (!active || !data || !svgRef.current || !wrapRef.current) return;
 
 		const tooltip = createChartTooltip(wrapRef.current, 'donut');
 		const summary = data.summary;
@@ -120,6 +111,12 @@ export default function ReactKanbanDonut({ sectionIndex }: Props) {
 		text2.setAttribute('font-weight', '500');
 		text2.textContent = 'TOTAL ITEMS';
 		g.appendChild(text2);
+
+		return () => {
+			while (svg.firstChild) svg.removeChild(svg.firstChild);
+			tooltip.hide();
+			tooltip.el.remove();
+		};
 	}, [active, data]);
 
 	return (
@@ -142,13 +139,25 @@ export default function ReactKanbanDonut({ sectionIndex }: Props) {
 				}}>
 				Column Distribution
 			</h3>
-			<svg
-				ref={svgRef}
-				width={420}
-				height={420}
-				viewBox="0 0 420 420"
-				style={{ maxWidth: '100%', height: 'auto' }}
-			/>
+			{active ? (
+				<svg
+					ref={svgRef}
+					width={420}
+					height={420}
+					viewBox="0 0 420 420"
+					style={{ maxWidth: '100%', height: 'auto' }}
+				/>
+			) : (
+				<div
+					style={{
+						width: '100%',
+						maxWidth: 420,
+						aspectRatio: '1 / 1',
+						borderRadius: 12,
+						background: 'var(--sl-color-gray-6, #1a1a1a)',
+					}}
+				/>
+			)}
 		</div>
 	);
 }

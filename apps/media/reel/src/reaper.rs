@@ -1,7 +1,8 @@
 use crate::state;
 
 pub fn select_expired(items: &[state::Metadata], ttl_secs: u64, now: u64) -> Vec<String> {
-    items.iter()
+    items
+        .iter()
         .filter(|m| now.saturating_sub(m.last_access) > ttl_secs)
         .map(|m| m.id.clone())
         .collect()
@@ -14,12 +15,22 @@ fn now_secs() -> u64 {
         .unwrap_or(0)
 }
 
-pub async fn reap_loop(engine: crate::engine::Engine, ttl_secs: u64, interval_secs: u64) {
+pub async fn reap_loop(
+    engine: crate::engine::Engine,
+    hls: crate::hls::HlsManager,
+    ttl_secs: u64,
+    interval_secs: u64,
+) {
     let mut ticker = tokio::time::interval(std::time::Duration::from_secs(interval_secs));
     loop {
         ticker.tick().await;
-        if let Err(e) = engine.reap_expired(ttl_secs, now_secs()).await {
-            tracing::error!(error = %e, "reap cycle failed");
+        match engine.reap_expired(ttl_secs, now_secs()).await {
+            Ok(reaped) => {
+                for id in reaped {
+                    hls.abort(&id).await;
+                }
+            }
+            Err(e) => tracing::error!(error = %e, "reap cycle failed"),
         }
     }
 }
@@ -27,14 +38,23 @@ pub async fn reap_loop(engine: crate::engine::Engine, ttl_secs: u64, interval_se
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::{Metadata, TorrentState, TranscodeStatus};
+    use crate::state::{HlsStatus, Metadata, TorrentState, TranscodeStatus};
 
     fn meta(id: &str, last_access: u64) -> Metadata {
         Metadata {
-            id: id.into(), name: id.into(), path: format!("/lib/{id}"),
-            size: 1, completed_at: Some(last_access), last_access,
+            id: id.into(),
+            name: id.into(),
+            path: format!("/lib/{id}"),
+            size: 1,
+            completed_at: Some(last_access),
+            last_access,
             state: TorrentState::Seeding,
-            transcode: TranscodeStatus::None, transcode_path: None, transcode_error: None,
+            transcode: TranscodeStatus::None,
+            transcode_path: None,
+            transcode_error: None,
+            hls: HlsStatus::None,
+            hls_dir: None,
+            hls_error: None,
         }
     }
 

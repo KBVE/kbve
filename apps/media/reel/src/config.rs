@@ -14,6 +14,9 @@ pub struct Config {
     pub encode_concurrency: usize,
     pub ffmpeg_bin: String,
     pub ffprobe_bin: String,
+    pub stream_enabled: bool,
+    pub hls_enabled: bool,
+    pub hls_segment_secs: u64,
 }
 
 fn env_or(key: &str, default: &str) -> String {
@@ -49,6 +52,9 @@ pub fn load_from_env() -> anyhow::Result<Config> {
         encode_concurrency: env_u64("REEL_ENCODE_CONCURRENCY", 1)? as usize,
         ffmpeg_bin: env_or("REEL_FFMPEG_BIN", "ffmpeg"),
         ffprobe_bin: env_or("REEL_FFPROBE_BIN", "ffprobe"),
+        stream_enabled: env_bool("REEL_STREAM_ENABLED", true),
+        hls_enabled: env_bool("REEL_HLS_ENABLED", true),
+        hls_segment_secs: env_u64("REEL_HLS_SEGMENT_SECS", 4)?,
     })
 }
 
@@ -62,7 +68,8 @@ mod tests {
                   "REEL_LIBRARY_DIR","REEL_STATE_FILE","REEL_API_ADDR",
                   "REEL_VPN_CHECK_URL","REEL_API_TOKEN","REEL_TRANSCODE_ENABLED",
                   "REEL_REMUX_CONCURRENCY","REEL_ENCODE_CONCURRENCY",
-                  "REEL_FFMPEG_BIN","REEL_FFPROBE_BIN"] {
+                  "REEL_FFMPEG_BIN","REEL_FFPROBE_BIN","REEL_STREAM_ENABLED",
+                  "REEL_HLS_ENABLED","REEL_HLS_SEGMENT_SECS"] {
             std::env::remove_var(k);
         }
     }
@@ -105,6 +112,33 @@ mod tests {
         let c2 = load_from_env().unwrap();
         assert!(!c2.transcode_enabled);
         assert_eq!(c2.encode_concurrency, 2);
+        clear();
+    }
+
+    #[test]
+    #[serial]
+    fn stream_defaults_and_overrides() {
+        clear();
+        let c = load_from_env().unwrap();
+        assert!(c.stream_enabled);
+        std::env::set_var("REEL_STREAM_ENABLED", "false");
+        let c2 = load_from_env().unwrap();
+        assert!(!c2.stream_enabled);
+        clear();
+    }
+
+    #[test]
+    #[serial]
+    fn hls_defaults_and_overrides() {
+        clear();
+        let c = load_from_env().unwrap();
+        assert!(c.hls_enabled);
+        assert_eq!(c.hls_segment_secs, 4);
+        std::env::set_var("REEL_HLS_ENABLED", "false");
+        std::env::set_var("REEL_HLS_SEGMENT_SECS", "8");
+        let c2 = load_from_env().unwrap();
+        assert!(!c2.hls_enabled);
+        assert_eq!(c2.hls_segment_secs, 8);
         clear();
     }
 }

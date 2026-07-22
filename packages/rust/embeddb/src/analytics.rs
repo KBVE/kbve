@@ -1,5 +1,5 @@
-use std::path::Path;
 use crate::Result;
+use std::path::Path;
 
 pub fn open_reader(ext_dir: Option<&Path>) -> Result<duckdb::Connection> {
     let conn = duckdb::Connection::open_in_memory()?;
@@ -55,7 +55,10 @@ pub fn for_each(
     attach_fresh(conn, path)?;
     let mut stmt = conn.prepare(sql)?;
     let mut rows = stmt.query([])?;
-    let ncols = rows.as_ref().map(|s| s.column_names().len()).unwrap_or_default();
+    let ncols = rows
+        .as_ref()
+        .map(|s| s.column_names().len())
+        .unwrap_or_default();
     let mut count = 0_u64;
     while let Some(row) = rows.next()? {
         let mut vals = Vec::with_capacity(ncols);
@@ -94,8 +97,12 @@ fn value_from_ref(v: duckdb::types::ValueRef<'_>) -> Result<crate::EmbedValue> {
         V::Time64(unit, v) => crate::EmbedValue::Time(to_micros(unit, v)),
         V::Text(b) => crate::EmbedValue::Text(String::from_utf8_lossy(b).into_owned()),
         V::Blob(b) => crate::EmbedValue::Blob(b.to_vec()),
-        other => return Err(crate::EmbedError::Other(format!(
-            "unmapped duckdb type {:?}; cast to VARCHAR in SQL", other))),
+        other => {
+            return Err(crate::EmbedError::Other(format!(
+                "unmapped duckdb type {:?}; cast to VARCHAR in SQL",
+                other
+            )));
+        }
     })
 }
 
@@ -111,7 +118,10 @@ fn to_micros(unit: duckdb::types::TimeUnit, v: i64) -> i64 {
 
 fn attach_fresh(conn: &duckdb::Connection, path: &Path) -> Result<()> {
     let _ = conn.execute_batch("USE memory; DETACH src;");
-    let attach = format!("ATTACH '{}' AS src (TYPE sqlite, READ_ONLY);", sql_quote_str(crate::db::path_str(path)?));
+    let attach = format!(
+        "ATTACH '{}' AS src (TYPE sqlite, READ_ONLY);",
+        sql_quote_str(crate::db::path_str(path)?)
+    );
     conn.execute_batch(&attach)?;
     conn.execute_batch("USE src;")?;
     Ok(())
@@ -132,4 +142,65 @@ fn prepare_sqlite_scanner(conn: &duckdb::Connection, ext_dir: Option<&Path>) -> 
 
 fn sql_quote_str(s: &str) -> String {
     s.replace('\'', "''")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use duckdb::types::TimeUnit as U;
+
+    #[test]
+    fn sql_quote_str_no_quote_unchanged() {
+        assert_eq!(sql_quote_str("/var/data/db.sqlite"), "/var/data/db.sqlite");
+    }
+
+    #[test]
+    fn sql_quote_str_doubles_single_quote() {
+        assert_eq!(sql_quote_str("o'brien"), "o''brien");
+    }
+
+    #[test]
+    fn sql_quote_str_doubles_every_quote() {
+        assert_eq!(sql_quote_str("a'b'c"), "a''b''c");
+        assert_eq!(sql_quote_str("''"), "''''");
+    }
+
+    #[test]
+    fn sql_quote_str_empty() {
+        assert_eq!(sql_quote_str(""), "");
+    }
+
+    #[test]
+    fn to_micros_second_scales_up() {
+        assert_eq!(to_micros(U::Second, 5), 5_000_000);
+    }
+
+    #[test]
+    fn to_micros_millisecond_scales_up() {
+        assert_eq!(to_micros(U::Millisecond, 5), 5_000);
+    }
+
+    #[test]
+    fn to_micros_microsecond_passthrough() {
+        assert_eq!(to_micros(U::Microsecond, 12_345), 12_345);
+    }
+
+    #[test]
+    fn to_micros_nanosecond_scales_down() {
+        assert_eq!(to_micros(U::Nanosecond, 5_000), 5);
+        assert_eq!(to_micros(U::Nanosecond, 1_999), 1);
+    }
+
+    #[test]
+    fn to_micros_second_saturates_on_overflow() {
+        assert_eq!(to_micros(U::Second, i64::MAX), i64::MAX);
+        assert_eq!(to_micros(U::Second, i64::MIN), i64::MIN);
+    }
+
+    #[test]
+    fn open_reader_yields_usable_connection() {
+        let conn = open_reader(None).unwrap();
+        let n: i64 = conn.query_row("SELECT 1 + 1", [], |r| r.get(0)).unwrap();
+        assert_eq!(n, 2);
+    }
 }

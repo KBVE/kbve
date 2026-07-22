@@ -463,6 +463,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "agones-palworld-relay"
+version = "0.0.1"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "futures",
+ "jedi",
+ "reqwest 0.12.28",
+ "rustls 0.23.42",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.19",
+ "tokio",
+ "tokio-rustls 0.26.4",
+ "tracing",
+ "tracing-subscriber",
+ "uuid",
+ "webpki-roots 0.26.11",
+]
+
+[[package]]
 name = "ahash"
 version = "0.7.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -15390,6 +15411,7 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.19",
  "tokio",
+ "tokio-util",
  "tower 0.5.3",
  "tracing",
  "tracing-subscriber",

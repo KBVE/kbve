@@ -317,6 +317,13 @@ export default defineConfig({
 					items: [{ autogenerate: { directory: 'store' } }],
 				},
 				{
+					label: 'Media',
+					collapsed: true,
+					items: [
+						{ label: 'Reel', link: '/media/reel/', attrs: { 'data-auth-visibility': 'auth' } },
+					],
+				},
+				{
 					label: 'Gaming',
 					collapsed: true,
 					items: [
