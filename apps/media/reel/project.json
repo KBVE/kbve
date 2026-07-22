@@ -37,7 +37,17 @@
         "load": true
       },
       "configurations": {
-        "local": { "load": true, "push": false, "tags": ["kbve/reel:latest"] }
+        "local": { "load": true, "push": false, "tags": ["kbve/reel:latest"] },
+        "production": {
+          "load": true,
+          "push": false,
+          "metadata": {
+            "images": ["ghcr.io/kbve/reel", "kbve/reel"],
+            "tags": ["latest"]
+          },
+          "cache-from": ["type=registry,ref=ghcr.io/kbve/reel:buildcache"],
+          "cache-to": ["type=registry,ref=ghcr.io/kbve/reel:buildcache,mode=max"]
+        }
       }
     },
     "container": {
@@ -49,6 +59,12 @@
           "commands": [
             "./kbve.sh -nx reel:containerx",
             "VERSION=$(grep '^version' apps/media/reel/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/reel:latest kbve/reel:$VERSION && echo \"Tagged kbve/reel:$VERSION\""
+          ]
+        },
+        "production": {
+          "commands": [
+            "./kbve.sh -nx reel:containerx --configuration=production",
+            "VERSION=$(grep '^version' apps/media/reel/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/reel:latest ghcr.io/kbve/reel:latest && docker tag kbve/reel:latest ghcr.io/kbve/reel:$VERSION && echo \"Tagged ghcr.io/kbve/reel:$VERSION\""
           ]
         }
       }

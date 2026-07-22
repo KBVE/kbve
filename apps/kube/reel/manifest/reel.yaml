@@ -2,8 +2,10 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: reel-data
+  namespace: reel
 spec:
   accessModes: ["ReadWriteOnce"]
+  storageClassName: longhorn
   resources:
     requests:
       storage: 50Gi
@@ -12,6 +14,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: reel
+  namespace: reel
 spec:
   replicas: 1
   selector:
@@ -19,6 +22,8 @@ spec:
   template:
     metadata:
       labels: { app: reel }
+      annotations:
+        secret.reloader.stakater.com/reload: vpn-wireguard
     spec:
       containers:
         - name: gluetun
@@ -27,12 +32,13 @@ spec:
             capabilities:
               add: ["NET_ADMIN"]
           envFrom:
-            - secretRef: { name: reel-vpn }
+            - secretRef: { name: vpn-wireguard }
           env:
             - { name: FIREWALL, value: "on" }
             - { name: FIREWALL_INPUT_PORTS, value: "8080" }
+            - { name: FIREWALL_OUTBOUND_SUBNETS, value: "10.0.0.0/8,172.16.0.0/12" }
         - name: reel
-          image: REPLACE_WITH_REGISTRY/reel:latest
+          image: ghcr.io/kbve/reel:latest
           env:
             - { name: REEL_API_ADDR, value: "0.0.0.0:8080" }
             - { name: REEL_ACTIVE_DIR, value: "/data/active" }
@@ -43,6 +49,17 @@ spec:
             - secretRef: { name: reel-api }
           ports:
             - containerPort: 8080
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            initialDelaySeconds: 10
+            periodSeconds: 20
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: "2", memory: 2Gi }
           volumeMounts:
             - { name: data, mountPath: /data }
       volumes:
@@ -53,6 +70,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: reel
+  namespace: reel
 spec:
   selector: { app: reel }
   ports:

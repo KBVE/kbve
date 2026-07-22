@@ -1,0 +1,40 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: reel
+    namespace: argocd
+    finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    annotations:
+        kbve.com/source-path: kube/reel
+        kbve.com/manifest-path: apps/kube/reel/manifest
+        kbve.com/application-file: kube/reel/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: application
+        kbve.com/stack: media
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/KBVE/kbve
+        targetRevision: HEAD
+        path: apps/kube/reel/manifest
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: reel
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+            allowEmpty: false
+        syncOptions:
+            - CreateNamespace=true
+            - PrunePropagationPolicy=foreground
+            - PruneLast=true
+        retry:
+            limit: 5
+            backoff:
+                duration: 5s
+                factor: 2
+                maxDuration: 3m
+    revisionHistoryLimit: 3

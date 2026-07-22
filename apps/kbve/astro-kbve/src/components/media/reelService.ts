@@ -20,7 +20,7 @@ export interface ReelDetail {
 }
 
 const REEL_PATH: string =
-	(import.meta.env.PUBLIC_REEL_BASE as string | undefined) ?? '/api/reel';
+	(import.meta.env.PUBLIC_REEL_BASE as string | undefined) ?? '/api/v1/reel';
 const MEDIA_BASE = `${DASH_PROXY_BASE}${REEL_PATH}`;
 const MANIFEST_MIME = 'application/vnd.apple.mpegurl';
 
@@ -38,13 +38,13 @@ export function mediaUrl(id: string, suffix: string, token: string | null): stri
 	const base = `${MEDIA_BASE}/torrents/${encodeURIComponent(id)}${suffix}`;
 	if (!token) return base;
 	const sep = suffix.includes('?') ? '&' : '?';
-	return `${base}${sep}token=${encodeURIComponent(token)}`;
+	return `${base}${sep}access_token=${encodeURIComponent(token)}`;
 }
 
 export function withToken(url: string, token: string): string {
-	if (url.includes('token=')) return url;
+	if (url.includes('access_token=')) return url;
 	const sep = url.includes('?') ? '&' : '?';
-	return `${url}${sep}token=${encodeURIComponent(token)}`;
+	return `${url}${sep}access_token=${encodeURIComponent(token)}`;
 }
 
 export type ProbeAction = 'raw' | 'raw-leeching' | 'hls' | 'poll' | 'error';
