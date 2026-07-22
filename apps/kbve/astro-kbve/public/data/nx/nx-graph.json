@@ -499,8 +499,7 @@
 							"inputs": [
 								"default",
 								"^default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js",
 								"{workspaceRoot}/tools/eslint-rules/**/*"
 							],
@@ -739,11 +738,11 @@
 								"{workspaceRoot}/dist/apps/astro-cryptothrone"
 							],
 							"options": {
-								"cwd": "apps/cryptothrone/astro-cryptothrone",
 								"commands": [
 									"(cd \"$(git rev-parse --show-toplevel)\" && ./kbve.sh -lfs cryptothrone pull --include='apps/cryptothrone/astro-cryptothrone/public/assets/**') || echo 'cryptothrone LFS pull skipped (no creds / offline) \u2014 assets may be pointer stubs'",
 									"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
 								],
+								"cwd": "apps/cryptothrone/astro-cryptothrone",
 								"parallel": false
 							},
 							"configurations": {},
@@ -883,8 +882,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -903,12 +901,12 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run bevy_statemachine:test",
 									"nx run bevy_statemachine:check-wasm",
 									"nx run bevy_statemachine:check-desktop"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -1103,24 +1101,10 @@
 							},
 							"parallelism": true
 						},
-						"coverage": {
-							"cache": false,
-							"inputs": ["default", "^production"],
-							"executor": "nx:run-commands",
-							"options": {
-								"commands": [
-									"cargo llvm-cov -p axum-cryptothrone --ignore-filename-regex 'main\\.rs' --fail-under-lines 80 --summary-only"
-								],
-								"parallel": false
-							},
-							"configurations": {},
-							"parallelism": true
-						},
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -1140,6 +1124,19 @@
 								"commands": [
 									"nx test axum-cryptothrone",
 									"nx e2e astro-cryptothrone-e2e"
+								],
+								"parallel": false
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"coverage": {
+							"cache": false,
+							"inputs": ["default", "^production"],
+							"executor": "nx:run-commands",
+							"options": {
+								"commands": [
+									"cargo llvm-cov -p axum-cryptothrone --ignore-filename-regex 'main\\.rs' --fail-under-lines 80 --summary-only"
 								],
 								"parallel": false
 							},
@@ -1296,8 +1293,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -1316,12 +1312,12 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run bevy_pathfinder:test",
 									"nx run bevy_pathfinder:check-wasm",
 									"nx run bevy_pathfinder:check-desktop"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -1621,8 +1617,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -1641,12 +1636,12 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run bevy_inventory:test",
 									"nx run bevy_inventory:check-wasm",
 									"nx run bevy_inventory:check-desktop"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -2029,8 +2024,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -2049,12 +2043,12 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run bevy_behavior:test",
 									"nx run bevy_behavior:check-wasm",
 									"nx run bevy_behavior:check-desktop"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -2143,8 +2137,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -2163,12 +2156,12 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run bevy_kbve_net:test",
 									"nx run bevy_kbve_net:check-wasm",
 									"nx run bevy_kbve_net:check-desktop"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -2283,24 +2276,6 @@
 							"configurations": {},
 							"parallelism": true
 						},
-						"lint": {
-							"inputs": [
-								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
-								"{workspaceRoot}/eslint.config.js"
-							],
-							"cache": true,
-							"executor": "@nxlv/python:flake8",
-							"outputs": [
-								"{workspaceRoot}/reports/packages/python/graphify-wrapper/pylint.txt"
-							],
-							"options": {
-								"outputFile": "reports/packages/python/graphify-wrapper/pylint.txt"
-							},
-							"configurations": {},
-							"parallelism": true
-						},
 						"test": {
 							"inputs": ["default", "^production"],
 							"cache": true,
@@ -2312,6 +2287,23 @@
 							"options": {
 								"command": "uv run pytest tests/",
 								"cwd": "packages/python/graphify-wrapper"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"lint": {
+							"inputs": [
+								"default",
+								"{workspaceRoot}/eslint.config.mjs",
+								"{workspaceRoot}/eslint.config.js"
+							],
+							"cache": true,
+							"executor": "@nxlv/python:flake8",
+							"outputs": [
+								"{workspaceRoot}/reports/packages/python/graphify-wrapper/pylint.txt"
+							],
+							"options": {
+								"outputFile": "reports/packages/python/graphify-wrapper/pylint.txt"
 							},
 							"configurations": {},
 							"parallelism": true
@@ -2583,8 +2575,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -2700,24 +2691,6 @@
 							"configurations": {},
 							"parallelism": true
 						},
-						"lint": {
-							"inputs": [
-								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
-								"{workspaceRoot}/eslint.config.js"
-							],
-							"cache": true,
-							"executor": "@nxlv/python:flake8",
-							"outputs": [
-								"{workspaceRoot}/reports/apps/discordsh/notification-bot/pylint.txt"
-							],
-							"options": {
-								"outputFile": "reports/apps/discordsh/notification-bot/pylint.txt"
-							},
-							"configurations": {},
-							"parallelism": true
-						},
 						"test": {
 							"inputs": ["default", "^production"],
 							"cache": true,
@@ -2729,6 +2702,23 @@
 							"options": {
 								"command": "uv run pytest tests/",
 								"cwd": "apps/discordsh/notification-bot"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"lint": {
+							"inputs": [
+								"default",
+								"{workspaceRoot}/eslint.config.mjs",
+								"{workspaceRoot}/eslint.config.js"
+							],
+							"cache": true,
+							"executor": "@nxlv/python:flake8",
+							"outputs": [
+								"{workspaceRoot}/reports/apps/discordsh/notification-bot/pylint.txt"
+							],
+							"options": {
+								"outputFile": "reports/apps/discordsh/notification-bot/pylint.txt"
 							},
 							"configurations": {},
 							"parallelism": true
@@ -3258,8 +3248,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -3278,12 +3267,12 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run bevy_battle:test",
 									"nx run bevy_battle:check-wasm",
 									"nx run bevy_battle:check-desktop"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -3372,8 +3361,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -3392,12 +3380,12 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run bevy_player:test",
 									"nx run bevy_player:check-wasm",
 									"nx run bevy_player:check-desktop"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -3486,8 +3474,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -3506,12 +3493,12 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run bevy_quests:test",
 									"nx run bevy_quests:check-wasm",
 									"nx run bevy_quests:check-desktop"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -3600,8 +3587,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -3620,12 +3606,12 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run bevy_skills:test",
 									"nx run bevy_skills:check-wasm",
 									"nx run bevy_skills:check-desktop"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -3714,8 +3700,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -3734,12 +3719,12 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run bevy_spells:test",
 									"nx run bevy_spells:check-wasm",
 									"nx run bevy_spells:check-desktop"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -3828,8 +3813,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -3848,12 +3832,12 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run bevy_tasker:test",
 									"nx run bevy_tasker:check-wasm",
 									"nx run bevy_tasker:check-desktop"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -3997,8 +3981,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -4254,8 +4237,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -4274,12 +4256,12 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run bevy_items:test",
 									"nx run bevy_items:check-wasm",
 									"nx run bevy_items:check-desktop"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -4368,8 +4350,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -4388,12 +4369,12 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run bevy_mapdb:test",
 									"nx run bevy_mapdb:check-wasm",
 									"nx run bevy_mapdb:check-desktop"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -4476,12 +4457,12 @@
 								"{workspaceRoot}/dist/apps/astro-chuckrpg"
 							],
 							"options": {
-								"cwd": "apps/chuckrpg/astro-chuckrpg",
 								"commands": [
 									"rm -rf .astro",
 									"nx exec -- astro sync",
 									"nx exec -- astro build"
 								],
+								"cwd": "apps/chuckrpg/astro-chuckrpg",
 								"parallel": false
 							},
 							"configurations": {},
@@ -4535,10 +4516,10 @@
 								"{workspaceRoot}/dist/apps/astro-herbmail"
 							],
 							"options": {
-								"cwd": "apps/herbmail/astro-herbmail",
 								"commands": [
 									"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
 								],
+								"cwd": "apps/herbmail/astro-herbmail",
 								"parallel": false
 							},
 							"configurations": {},
@@ -4619,12 +4600,12 @@
 								"{workspaceRoot}/dist/apps/astro-rareicon"
 							],
 							"options": {
-								"cwd": "apps/rareicon/astro-rareicon",
 								"commands": [
 									"rm -rf .astro",
 									"nx exec -- astro sync",
 									"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro build"
 								],
+								"cwd": "apps/rareicon/astro-rareicon",
 								"parallel": false
 							},
 							"configurations": {},
@@ -4884,8 +4865,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -4904,12 +4884,12 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run bevy_chat:test",
 									"nx run bevy_chat:check-wasm",
 									"nx run bevy_chat:check-desktop"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -4998,8 +4978,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -5018,12 +4997,12 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run bevy_supa:test",
 									"nx run bevy_supa:check-wasm",
 									"nx run bevy_supa:check-desktop"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -5077,8 +5056,7 @@
 							"inputs": [
 								"default",
 								"^default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js",
 								"{workspaceRoot}/tools/eslint-rules/**/*"
 							],
@@ -5463,22 +5441,10 @@
 							},
 							"parallelism": true
 						},
-						"e2e": {
-							"inputs": ["default", "^production"],
-							"cache": true,
-							"executor": "nx:run-commands",
-							"options": {
-								"commands": ["nx test embeddb-derive"],
-								"parallel": false
-							},
-							"configurations": {},
-							"parallelism": true
-						},
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -5486,6 +5452,17 @@
 							"outputs": ["{options.target-dir}"],
 							"options": {
 								"target-dir": "dist/target/embeddb-derive"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"e2e": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"options": {
+								"commands": ["nx test embeddb-derive"],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -5613,8 +5590,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -5782,8 +5758,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -5861,8 +5836,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -5881,12 +5855,12 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run bevy_cam:test",
 									"nx run bevy_cam:check-wasm",
 									"nx run bevy_cam:check-desktop"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -5975,8 +5949,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -5995,12 +5968,12 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run bevy_npc:test",
 									"nx run bevy_npc:check-wasm",
 									"nx run bevy_npc:check-desktop"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -6105,8 +6078,7 @@
 							"inputs": [
 								"default",
 								"^default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js",
 								"{workspaceRoot}/tools/eslint-rules/**/*"
 							],
@@ -6615,8 +6587,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -6829,8 +6800,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -6849,12 +6819,12 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run bevy_db:test",
 									"nx run bevy_db:check-wasm",
 									"nx run bevy_db:check-desktop"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -7238,8 +7208,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -7258,11 +7227,11 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"parallel": false,
 								"commands": [
 									"nx run uniti:lint",
 									"nx run uniti:test"
-								]
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -7510,8 +7479,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -7787,8 +7755,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -7871,11 +7838,18 @@
 				"data": {
 					"root": "apps/vm/iot/edge-worker",
 					"targets": {
+						"test": {
+							"inputs": ["default", "^production"],
+							"cache": false,
+							"executor": "nx:noop",
+							"configurations": {},
+							"options": {},
+							"parallelism": true
+						},
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -7888,14 +7862,6 @@
 								"parallel": false
 							},
 							"configurations": {},
-							"parallelism": true
-						},
-						"test": {
-							"inputs": ["default", "^production"],
-							"cache": false,
-							"executor": "nx:noop",
-							"configurations": {},
-							"options": {},
 							"parallelism": true
 						}
 					},
@@ -8059,8 +8025,7 @@
 							"cache": true,
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"outputs": ["{options.outputFile}"],
@@ -8357,11 +8322,25 @@
 							"configurations": {},
 							"parallelism": true
 						},
+						"test": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "@nxlv/python:run-commands",
+							"outputs": [
+								"{workspaceRoot}/reports/packages/python/fudster/unittests",
+								"{workspaceRoot}/coverage/packages/python/fudster"
+							],
+							"options": {
+								"command": "uv run pytest tests/",
+								"cwd": "packages/python/fudster"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -8382,21 +8361,6 @@
 							"options": {
 								"commands": ["nx test python-fudster"],
 								"parallel": false
-							},
-							"configurations": {},
-							"parallelism": true
-						},
-						"test": {
-							"inputs": ["default", "^production"],
-							"cache": true,
-							"executor": "@nxlv/python:run-commands",
-							"outputs": [
-								"{workspaceRoot}/reports/packages/python/fudster/unittests",
-								"{workspaceRoot}/coverage/packages/python/fudster"
-							],
-							"options": {
-								"command": "uv run pytest tests/",
-								"cwd": "packages/python/fudster"
 							},
 							"configurations": {},
 							"parallelism": true
@@ -8487,8 +8451,8 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"cwd": "packages/npm/astro-e2e",
-								"commands": ["nx exec -- astro build"]
+								"commands": ["nx exec -- astro build"],
+								"cwd": "packages/npm/astro-e2e"
 							},
 							"configurations": {},
 							"parallelism": true
@@ -8596,10 +8560,10 @@
 								"{workspaceRoot}/dist/apps/astro-memes"
 							],
 							"options": {
-								"cwd": "apps/memes/astro-memes",
 								"commands": [
 									"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
 								],
+								"cwd": "apps/memes/astro-memes",
 								"parallel": false
 							},
 							"configurations": {},
@@ -8692,8 +8656,7 @@
 							"inputs": [
 								"default",
 								"^default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js",
 								"{workspaceRoot}/tools/eslint-rules/**/*"
 							],
@@ -9184,8 +9147,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -9366,22 +9328,10 @@
 							},
 							"parallelism": true
 						},
-						"e2e": {
-							"inputs": ["default", "^production"],
-							"cache": true,
-							"executor": "nx:run-commands",
-							"options": {
-								"commands": ["nx test embeddb"],
-								"parallel": false
-							},
-							"configurations": {},
-							"parallelism": true
-						},
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -9389,6 +9339,17 @@
 							"outputs": ["{options.target-dir}"],
 							"options": {
 								"target-dir": "dist/target/embeddb"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"e2e": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"options": {
+								"commands": ["nx test embeddb"],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -9411,8 +9372,7 @@
 							"inputs": [
 								"default",
 								"^default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js",
 								"{workspaceRoot}/tools/eslint-rules/**/*"
 							],
@@ -9520,8 +9480,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -9859,10 +9818,10 @@
 							"executor": "nx:run-commands",
 							"outputs": ["{workspaceRoot}/dist/apps/astro-kbve"],
 							"options": {
-								"cwd": "apps/kbve/astro-kbve",
 								"commands": [
 									"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro build"
 								],
+								"cwd": "apps/kbve/astro-kbve",
 								"parallel": false
 							},
 							"configurations": {},
@@ -9874,10 +9833,10 @@
 							"executor": "nx:run-commands",
 							"dependsOn": ["build"],
 							"options": {
-								"cwd": "apps/kbve/astro-kbve",
 								"commands": [
 									"pnpm exec playwright test --config=playwright.config.ts"
 								],
+								"cwd": "apps/kbve/astro-kbve",
 								"parallel": false
 							},
 							"configurations": {
@@ -10514,8 +10473,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -10638,8 +10596,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -10833,11 +10790,25 @@
 							"configurations": {},
 							"parallelism": true
 						},
+						"test": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "@nxlv/python:run-commands",
+							"outputs": [
+								"{workspaceRoot}/reports/packages/python/kbve/unittests",
+								"{workspaceRoot}/coverage/packages/python/kbve"
+							],
+							"options": {
+								"command": "uv run pytest tests/",
+								"cwd": "packages/python/kbve"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -10858,21 +10829,6 @@
 							"options": {
 								"commands": ["nx test python-kbve"],
 								"parallel": false
-							},
-							"configurations": {},
-							"parallelism": true
-						},
-						"test": {
-							"inputs": ["default", "^production"],
-							"cache": true,
-							"executor": "@nxlv/python:run-commands",
-							"outputs": [
-								"{workspaceRoot}/reports/packages/python/kbve/unittests",
-								"{workspaceRoot}/coverage/packages/python/kbve"
-							],
-							"options": {
-								"command": "uv run pytest tests/",
-								"cwd": "packages/python/kbve"
 							},
 							"configurations": {},
 							"parallelism": true
@@ -11074,8 +11030,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -11285,8 +11240,7 @@
 							"cache": true,
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"outputs": ["{options.outputFile}"],
@@ -11626,22 +11580,10 @@
 							},
 							"parallelism": true
 						},
-						"e2e": {
-							"inputs": ["default", "^production"],
-							"cache": true,
-							"executor": "nx:run-commands",
-							"options": {
-								"commands": ["nx test erust"],
-								"parallel": false
-							},
-							"configurations": {},
-							"parallelism": true
-						},
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -11649,6 +11591,17 @@
 							"outputs": ["{options.target-dir}"],
 							"options": {
 								"target-dir": "dist/target/erust"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"e2e": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"options": {
+								"commands": ["nx test erust"],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -11671,8 +11624,7 @@
 							"inputs": [
 								"default",
 								"^default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js",
 								"{workspaceRoot}/tools/eslint-rules/**/*"
 							],
@@ -11879,8 +11831,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -12026,8 +11977,7 @@
 							"inputs": [
 								"default",
 								"^default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js",
 								"{workspaceRoot}/tools/eslint-rules/**/*"
 							],
@@ -12457,12 +12407,12 @@
 							"executor": "nx:run-commands",
 							"outputs": ["{workspaceRoot}/dist/apps/astro-irc"],
 							"options": {
-								"cwd": "apps/irc/astro-irc",
 								"commands": [
 									"rm -rf .astro",
 									"npx astro sync",
 									"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" npx astro build"
 								],
+								"cwd": "apps/irc/astro-irc",
 								"parallel": false
 							},
 							"configurations": {},
@@ -12558,8 +12508,7 @@
 							"cache": true,
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"outputs": ["{options.outputFile}"],
@@ -12914,22 +12863,10 @@
 							},
 							"parallelism": true
 						},
-						"e2e": {
-							"inputs": ["default", "^production"],
-							"cache": true,
-							"executor": "nx:run-commands",
-							"options": {
-								"commands": ["nx test holy"],
-								"parallel": false
-							},
-							"configurations": {},
-							"parallelism": true
-						},
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -12937,6 +12874,17 @@
 							"outputs": ["{options.target-dir}"],
 							"options": {
 								"target-dir": "dist/target/holy"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"e2e": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"options": {
+								"commands": ["nx test holy"],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -13002,8 +12950,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -13119,22 +13066,10 @@
 							},
 							"parallelism": true
 						},
-						"e2e": {
-							"inputs": ["default", "^production"],
-							"cache": true,
-							"executor": "nx:run-commands",
-							"options": {
-								"commands": ["nx test kbve"],
-								"parallel": false
-							},
-							"configurations": {},
-							"parallelism": true
-						},
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -13142,6 +13077,17 @@
 							"outputs": ["{options.target-dir}"],
 							"options": {
 								"target-dir": "dist/target/kbve"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"e2e": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"options": {
+								"commands": ["nx test kbve"],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -13175,8 +13121,7 @@
 							"inputs": [
 								"default",
 								"^default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js",
 								"{workspaceRoot}/tools/eslint-rules/**/*"
 							],
@@ -13260,10 +13205,10 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"cwd": "apps/kbve/kilobase",
 								"commands": [
 									"cargo pgrx package --pg-config $PG_CONFIG_PATH --features pg17--out-dir='../../../dist/target/kilobase'"
 								],
+								"cwd": "apps/kbve/kilobase",
 								"parallel": false
 							},
 							"configurations": {},
@@ -13287,8 +13232,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -13314,8 +13258,8 @@
 								"{projectRoot}/test-results/test-results.json"
 							],
 							"options": {
-								"cwd": "apps/kbve/kilobase",
 								"commands": ["bash kilobase_dev.sh e2e"],
+								"cwd": "apps/kbve/kilobase",
 								"parallel": false
 							},
 							"configurations": {},
@@ -13519,8 +13463,7 @@
 							"cache": true,
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"outputs": ["{options.outputFile}"],
@@ -13788,8 +13731,7 @@
 							"inputs": [
 								"default",
 								"^default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js",
 								"{workspaceRoot}/tools/eslint-rules/**/*"
 							],
@@ -13873,8 +13815,7 @@
 							"inputs": [
 								"default",
 								"^default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js",
 								"{workspaceRoot}/tools/eslint-rules/**/*"
 							],
@@ -14510,8 +14451,7 @@
 							"inputs": [
 								"default",
 								"^default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js",
 								"{workspaceRoot}/tools/eslint-rules/**/*"
 							],
@@ -14623,8 +14563,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -14770,8 +14709,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -14835,8 +14773,7 @@
 							"inputs": [
 								"default",
 								"^default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js",
 								"{workspaceRoot}/tools/eslint-rules/**/*"
 							],
@@ -15235,8 +15172,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -15524,8 +15460,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
@@ -15632,24 +15567,6 @@
 							"configurations": {},
 							"parallelism": true
 						},
-						"lint": {
-							"inputs": [
-								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
-								"{workspaceRoot}/eslint.config.js"
-							],
-							"cache": true,
-							"executor": "@nxlv/python:flake8",
-							"outputs": [
-								"{workspaceRoot}/reports/apps/pydesk/pylint.txt"
-							],
-							"options": {
-								"outputFile": "reports/apps/pydesk/pylint.txt"
-							},
-							"configurations": {},
-							"parallelism": true
-						},
 						"test": {
 							"inputs": ["default", "^production"],
 							"cache": true,
@@ -15661,6 +15578,23 @@
 							"options": {
 								"command": "uv run pytest tests/",
 								"cwd": "apps/pydesk"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"lint": {
+							"inputs": [
+								"default",
+								"{workspaceRoot}/eslint.config.mjs",
+								"{workspaceRoot}/eslint.config.js"
+							],
+							"cache": true,
+							"executor": "@nxlv/python:flake8",
+							"outputs": [
+								"{workspaceRoot}/reports/apps/pydesk/pylint.txt"
+							],
+							"options": {
+								"outputFile": "reports/apps/pydesk/pylint.txt"
 							},
 							"configurations": {},
 							"parallelism": true
@@ -15803,8 +15737,7 @@
 						"lint": {
 							"inputs": [
 								"default",
-								"{workspaceRoot}/.eslintrc.json",
-								"{workspaceRoot}/.eslintignore",
+								"{workspaceRoot}/eslint.config.mjs",
 								"{workspaceRoot}/eslint.config.js"
 							],
 							"cache": true,
