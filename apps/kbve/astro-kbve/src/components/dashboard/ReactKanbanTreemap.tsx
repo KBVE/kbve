@@ -17,18 +17,9 @@ export default function ReactKanbanTreemap({ sectionIndex }: Props) {
 	const [data] = useKanbanData();
 	const svgRef = useRef<SVGSVGElement>(null);
 	const wrapRef = useRef<HTMLDivElement>(null);
-	const rendered = useRef(false);
 
 	useEffect(() => {
-		if (
-			!active ||
-			!data ||
-			rendered.current ||
-			!svgRef.current ||
-			!wrapRef.current
-		)
-			return;
-		rendered.current = true;
+		if (!active || !data || !svgRef.current || !wrapRef.current) return;
 
 		const tooltip = createChartTooltip(wrapRef.current, 'treemap');
 		const summary = data.summary;
@@ -128,6 +119,11 @@ export default function ReactKanbanTreemap({ sectionIndex }: Props) {
 				rect.style.opacity = '0.85';
 			});
 		}
+
+		return () => {
+			while (svg.firstChild) svg.removeChild(svg.firstChild);
+			tooltip.el.remove();
+		};
 	}, [active, data]);
 
 	return (
@@ -150,13 +146,29 @@ export default function ReactKanbanTreemap({ sectionIndex }: Props) {
 				}}>
 				Column Size Treemap
 			</h3>
-			<svg
-				ref={svgRef}
-				width={800}
-				height={450}
-				viewBox="0 0 800 450"
-				style={{ maxWidth: '100%', height: 'auto', borderRadius: 10 }}
-			/>
+			{active ? (
+				<svg
+					ref={svgRef}
+					width={800}
+					height={450}
+					viewBox="0 0 800 450"
+					style={{
+						maxWidth: '100%',
+						height: 'auto',
+						borderRadius: 10,
+					}}
+				/>
+			) : (
+				<div
+					style={{
+						width: '100%',
+						maxWidth: 800,
+						aspectRatio: '800 / 450',
+						borderRadius: 12,
+						background: 'var(--sl-color-gray-6, #1a1a1a)',
+					}}
+				/>
+			)}
 		</div>
 	);
 }

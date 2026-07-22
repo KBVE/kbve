@@ -17,18 +17,9 @@ export default function ReactKanbanSankey({ sectionIndex }: Props) {
 	const [data] = useKanbanData();
 	const svgRef = useRef<SVGSVGElement>(null);
 	const wrapRef = useRef<HTMLDivElement>(null);
-	const rendered = useRef(false);
 
 	useEffect(() => {
-		if (
-			!active ||
-			!data ||
-			rendered.current ||
-			!svgRef.current ||
-			!wrapRef.current
-		)
-			return;
-		rendered.current = true;
+		if (!active || !data || !svgRef.current || !wrapRef.current) return;
 
 		const tooltip = createChartTooltip(wrapRef.current, 'sankey');
 
@@ -89,7 +80,7 @@ export default function ReactKanbanSankey({ sectionIndex }: Props) {
 			});
 		}
 
-		if (links.length === 0) return;
+		if (links.length === 0) return () => tooltip.el.remove();
 
 		const sankeyGen = sankey<any, any>()
 			.nodeId((d: any) => d.index)
@@ -215,6 +206,11 @@ export default function ReactKanbanSankey({ sectionIndex }: Props) {
 				svg.appendChild(text);
 			}
 		}
+
+		return () => {
+			while (svg.firstChild) svg.removeChild(svg.firstChild);
+			tooltip.el.remove();
+		};
 	}, [active, data]);
 
 	return (
@@ -237,13 +233,25 @@ export default function ReactKanbanSankey({ sectionIndex }: Props) {
 				}}>
 				Pipeline Flow
 			</h3>
-			<svg
-				ref={svgRef}
-				width={900}
-				height={420}
-				viewBox="0 0 900 420"
-				style={{ maxWidth: '100%', height: 'auto' }}
-			/>
+			{active ? (
+				<svg
+					ref={svgRef}
+					width={900}
+					height={420}
+					viewBox="0 0 900 420"
+					style={{ maxWidth: '100%', height: 'auto' }}
+				/>
+			) : (
+				<div
+					style={{
+						width: '100%',
+						maxWidth: 900,
+						aspectRatio: '900 / 420',
+						borderRadius: 12,
+						background: 'var(--sl-color-gray-6, #1a1a1a)',
+					}}
+				/>
+			)}
 		</div>
 	);
 }

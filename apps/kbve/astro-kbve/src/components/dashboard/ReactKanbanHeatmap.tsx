@@ -14,12 +14,9 @@ export default function ReactKanbanHeatmap({ sectionIndex }: Props) {
 	const active = useKanbanSection(sectionIndex);
 	const [data] = useKanbanData();
 	const containerRef = useRef<HTMLDivElement>(null);
-	const rendered = useRef(false);
 
 	useEffect(() => {
-		if (!active || !data || rendered.current || !containerRef.current)
-			return;
-		rendered.current = true;
+		if (!active || !data || !containerRef.current) return;
 
 		const container = containerRef.current;
 		const tooltip = createChartTooltip(container, 'heatmap');
@@ -51,7 +48,7 @@ export default function ReactKanbanHeatmap({ sectionIndex }: Props) {
 		}
 
 		const dates = Object.keys(dateCounts).sort();
-		if (dates.length === 0) return;
+		if (dates.length === 0) return () => tooltip.el.remove();
 
 		// Measure container width to compute cell size
 		const containerWidth = container.offsetWidth;
@@ -282,6 +279,12 @@ export default function ReactKanbanHeatmap({ sectionIndex }: Props) {
 		svg.appendChild(totalText);
 
 		container.appendChild(svg);
+
+		return () => {
+			while (container.firstChild)
+				container.removeChild(container.firstChild);
+			tooltip.el.remove();
+		};
 	}, [active, data]);
 
 	return (
@@ -304,7 +307,22 @@ export default function ReactKanbanHeatmap({ sectionIndex }: Props) {
 				}}>
 				Activity Heatmap
 			</h3>
-			<div ref={containerRef} style={{ width: '100%', maxWidth: 1100 }} />
+			{active ? (
+				<div
+					ref={containerRef}
+					style={{ width: '100%', maxWidth: 1100 }}
+				/>
+			) : (
+				<div
+					style={{
+						width: '100%',
+						maxWidth: 1100,
+						height: 220,
+						borderRadius: 12,
+						background: 'var(--sl-color-gray-6, #1a1a1a)',
+					}}
+				/>
+			)}
 		</div>
 	);
 }

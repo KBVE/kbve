@@ -131,7 +131,13 @@ export default function ReactKanbanBoard({ sectionIndex }: Props) {
 					display: 'flex',
 					alignItems: 'center',
 					justifyContent: 'center',
+					width: '100%',
 					height: '100%',
+					minHeight: 320,
+					borderRadius: 12,
+					background: active
+						? 'transparent'
+						: 'var(--sl-color-gray-6, #1a1a1a)',
 					color: 'var(--sl-color-gray-4)',
 					fontSize: '0.85rem',
 				}}>
