@@ -156,6 +156,11 @@ fn specta_builder() -> Builder<tauri::Wry> {
         commands::transcription::set_model_unload_timeout,
         commands::transcription::get_model_load_status,
         commands::transcription::unload_model_manually,
+        // dictation: shortcuts
+        shortcut::change_binding,
+        shortcut::reset_binding,
+        shortcut::change_ptt_setting,
+        shortcut::change_paste_method_setting,
     ])
 }
 
