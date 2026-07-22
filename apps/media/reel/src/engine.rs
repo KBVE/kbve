@@ -144,6 +144,27 @@ impl Engine {
         }
         Ok(removed.is_some())
     }
+
+    pub async fn reap_expired(&self, ttl_secs: u64, now: u64) -> anyhow::Result<Vec<String>> {
+        let expired = crate::reaper::select_expired(&self.store.list(), ttl_secs, now);
+        let mut reaped = Vec::new();
+        for id in expired {
+            let meta = self.store.get(&id);
+            match self.delete(&id).await {
+                Ok(true) => {
+                    if let Some(m) = meta {
+                        tracing::info!(id = %id, name = %m.name, size = m.size, "reaped");
+                    } else {
+                        tracing::info!(id = %id, "reaped");
+                    }
+                    reaped.push(id);
+                }
+                Ok(false) => {}
+                Err(e) => tracing::warn!(id = %id, error = %e, "reap delete failed"),
+            }
+        }
+        Ok(reaped)
+    }
 }
 
 #[cfg(test)]

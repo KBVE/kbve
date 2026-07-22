@@ -30,6 +30,7 @@ spec:
             - secretRef: { name: reel-vpn }
           env:
             - { name: FIREWALL, value: "on" }
+            - { name: FIREWALL_INPUT_PORTS, value: "8080" }
         - name: reel
           image: REPLACE_WITH_REGISTRY/reel:latest
           env:

@@ -11,7 +11,7 @@ async fn main() -> anyhow::Result<()> {
     let eng = engine::Engine::start(&cfg, store.clone()).await?;
 
     tokio::spawn(reaper::reap_loop(
-        store.clone(),
+        eng.clone(),
         cfg.ttl_secs,
         cfg.reap_interval_secs,
     ));
