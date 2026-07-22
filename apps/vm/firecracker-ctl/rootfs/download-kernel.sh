@@ -1,8 +1,9 @@
 #!/bin/sh
-# Download a pre-built Firecracker-compatible Linux kernel.
+# Download a pre-built Firecracker-compatible Linux kernel from the CI bucket.
 #
-# Firecracker maintains pre-built vmlinux binaries on their GitHub releases.
-# These kernels are minimal (no modules, no initrd needed) and boot in ~125ms.
+# Firecracker publishes minimal vmlinux binaries (no modules/initrd) under
+# s3.amazonaws.com/spec.ccfc.min/firecracker-ci/<ci>/<arch>/vmlinux-<kernel>.
+# Release-asset kernels were removed; only firecracker/jailer tgz ship there.
 #
 # Usage:
 #   ./download-kernel.sh [output_dir]
@@ -12,15 +13,15 @@
 
 set -eu
 
-FC_KERNEL_VERSION="${FC_KERNEL_VERSION:-5.10}"
-FC_VERSION="${FC_VERSION:-1.15.1}"
+FC_CI_VERSION="${FC_CI_VERSION:-v1.15}"
+FC_KERNEL_VERSION="${FC_KERNEL_VERSION:-6.1.155}"
 OUTPUT_DIR="${1:-.}"
 ARCH="x86_64"
 
-KERNEL_URL="https://github.com/firecracker-microvm/firecracker/releases/download/v${FC_VERSION}/vmlinux-${FC_KERNEL_VERSION}.bin"
+KERNEL_URL="https://s3.amazonaws.com/spec.ccfc.min/firecracker-ci/${FC_CI_VERSION}/${ARCH}/vmlinux-${FC_KERNEL_VERSION}"
 OUTPUT_FILE="${OUTPUT_DIR}/vmlinux"
 
-echo "Downloading Firecracker kernel ${FC_KERNEL_VERSION} (Firecracker v${FC_VERSION})..."
+echo "Downloading Firecracker kernel ${FC_KERNEL_VERSION} (CI ${FC_CI_VERSION}, ${ARCH})..."
 echo "  URL: ${KERNEL_URL}"
 echo "  Output: ${OUTPUT_FILE}"
 
