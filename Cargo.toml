@@ -49,6 +49,7 @@ members = [
 	'apps/mc/mc_auth',
 	'packages/rust/bevy/uniti',
 	'apps/agones/factorio/relay',
+	'apps/agones/palworld/relay',
 	'packages/rust/simgrid',
 	'apps/agones/cryptothrone/server',
 	'apps/agones/arpg/server',
