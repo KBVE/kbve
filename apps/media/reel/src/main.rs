@@ -29,6 +29,7 @@ async fn main() -> anyhow::Result<()> {
         store,
         token: cfg.api_token.clone(),
         transcoder,
+        stream_enabled: cfg.stream_enabled,
     });
     let listener = tokio::net::TcpListener::bind(&cfg.api_addr).await?;
     tracing::info!(addr = %cfg.api_addr, "reel listening");
