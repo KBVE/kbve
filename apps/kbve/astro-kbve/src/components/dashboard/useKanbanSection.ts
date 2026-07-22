@@ -1,39 +1,38 @@
 import { useEffect, useState } from 'react';
 
 /**
- * Hook that watches for a section becoming active via the GSAP controller.
- * The GSAP script sets `data-active-section` on `<html>` with the current index.
- * Once a section has been activated, `hasActivated` stays true permanently
- * (charts render once and stay).
+ * Hook that tracks whether a section is in the live-set published on
+ * `document.documentElement.dataset.liveSections`. Returns true while
+ * the section index is present in the comma-separated list; reacts to
+ * changes via MutationObserver. Charts mount/unmount as sections enter/leave.
  */
 export function useKanbanSection(sectionIndex: number): boolean {
-	const [hasActivated, setHasActivated] = useState(false);
+	const [live, setLive] = useState(false);
 
 	useEffect(() => {
-		if (hasActivated) return;
-
-		const check = () => {
-			const attr = document.documentElement.getAttribute(
-				'data-active-section',
-			);
-			if (attr != null && parseInt(attr, 10) === sectionIndex) {
-				setHasActivated(true);
-			}
+		const read = () => {
+			const attr =
+				document.documentElement.getAttribute('data-live-sections') ??
+				'';
+			const set = attr
+				.split(',')
+				.map((s) => parseInt(s, 10))
+				.filter((n) => !Number.isNaN(n));
+			setLive(set.includes(sectionIndex));
 		};
 
-		// Check immediately in case we're already on this section
-		check();
+		read();
 
-		const observer = new MutationObserver(check);
+		const observer = new MutationObserver(read);
 		observer.observe(document.documentElement, {
 			attributes: true,
-			attributeFilter: ['data-active-section'],
+			attributeFilter: ['data-live-sections'],
 		});
 
 		return () => observer.disconnect();
-	}, [sectionIndex, hasActivated]);
+	}, [sectionIndex]);
 
-	return hasActivated;
+	return live;
 }
 
 /**

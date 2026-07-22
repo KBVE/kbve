@@ -26,13 +26,10 @@ const COLORS = [
 export default function ReactKanbanAssignees({ sectionIndex }: Props) {
 	const active = useKanbanSection(sectionIndex);
 	const [data] = useKanbanData();
-	const rendered = useRef(false);
 	const containerRef = useRef<HTMLDivElement>(null);
 
 	useEffect(() => {
-		if (!active || !data || rendered.current || !containerRef.current)
-			return;
-		rendered.current = true;
+		if (!active || !data || !containerRef.current) return;
 
 		// Count items per assignee
 		const assigneeCounts: Record<string, number> = {};
@@ -205,6 +202,11 @@ export default function ReactKanbanAssignees({ sectionIndex }: Props) {
 		wrapper.appendChild(barSvg);
 		wrapper.appendChild(donutSvg);
 		container.appendChild(wrapper);
+
+		return () => {
+			while (container.firstChild)
+				container.removeChild(container.firstChild);
+		};
 	}, [active, data]);
 
 	return (
@@ -227,7 +229,22 @@ export default function ReactKanbanAssignees({ sectionIndex }: Props) {
 				}}>
 				Contributors
 			</h3>
-			<div ref={containerRef} style={{ width: '100%', maxWidth: 800 }} />
+			{active ? (
+				<div
+					ref={containerRef}
+					style={{ width: '100%', maxWidth: 800 }}
+				/>
+			) : (
+				<div
+					style={{
+						width: '100%',
+						maxWidth: 800,
+						height: 300,
+						borderRadius: 12,
+						background: 'var(--sl-color-gray-6, #1a1a1a)',
+					}}
+				/>
+			)}
 		</div>
 	);
 }
