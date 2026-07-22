@@ -131,7 +131,7 @@
 	},
 	"dependencies": {
 		"@astropub/worker": "^0.2.0",
-		"@bufbuild/protobuf": "^2.11.0",
+		"@bufbuild/protobuf": "^2.12.1",
 		"@codemirror/lang-javascript": "^6.2.5",
 		"@codemirror/lang-python": "^6.2.1",
 		"@codemirror/legacy-modes": "^6.5.3",
