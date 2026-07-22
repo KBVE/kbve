@@ -173,6 +173,14 @@ async fn stream_file(
                     Err(_) => return StatusCode::CONFLICT.into_response(),
                 },
             };
+            let ct = crate::stream::content_type_for(&path.to_string_lossy());
+            if head_only {
+                let total = match tokio::fs::metadata(&path).await {
+                    Ok(m) => m.len(),
+                    Err(_) => return StatusCode::NOT_FOUND.into_response(),
+                };
+                return crate::stream::head_response(total, range, ct);
+            }
             let file = match tokio::fs::File::open(&path).await {
                 Ok(f) => f,
                 Err(_) => return StatusCode::NOT_FOUND.into_response(),
@@ -181,7 +189,6 @@ async fn stream_file(
                 Ok(m) => m.len(),
                 Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
             };
-            let ct = crate::stream::content_type_for(&path.to_string_lossy());
             crate::stream::serve_range(file, total, range, ct, head_only).await
         }
         state::TorrentState::Leeching => {
@@ -199,12 +206,15 @@ async fn stream_file(
                 .find(|f| f.index == idx)
                 .map(|f| f.name.clone())
                 .unwrap_or_default();
+            let total = files.iter().find(|f| f.index == idx).map(|f| f.len).unwrap_or(0);
+            let ct = crate::stream::content_type_for(&name);
+            if head_only {
+                return crate::stream::head_response(total, range, ct);
+            }
             let stream = match st.engine.open_stream(&id, idx) {
                 Ok(s) => s,
                 Err(_) => return StatusCode::TOO_EARLY.into_response(),
             };
-            let total = files.iter().find(|f| f.index == idx).map(|f| f.len).unwrap_or(0);
-            let ct = crate::stream::content_type_for(&name);
             crate::stream::serve_range(stream, total, range, ct, head_only).await
         }
         _ => StatusCode::CONFLICT.into_response(),
