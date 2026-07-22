@@ -319,7 +319,7 @@ fn stream_router(store: state::StateStore, token: Option<String>, stream_enabled
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::{Metadata, StateStore, TorrentState, TranscodeStatus};
+    use crate::state::{HlsStatus, Metadata, StateStore, TorrentState, TranscodeStatus};
     use axum::body::Body;
     use axum::http::{Request, StatusCode};
     use http_body_util::BodyExt;
@@ -341,6 +341,9 @@ mod tests {
             transcode: TranscodeStatus::None,
             transcode_path: None,
             transcode_error: None,
+            hls: HlsStatus::None,
+            hls_dir: None,
+            hls_error: None,
         })
         .unwrap();
         s
@@ -388,6 +391,9 @@ mod tests {
             transcode: TranscodeStatus::None,
             transcode_path: None,
             transcode_error: None,
+            hls: HlsStatus::None,
+            hls_dir: None,
+            hls_error: None,
         })
         .unwrap();
         let app = transcode_router(transcoder_with(s), None);

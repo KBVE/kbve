@@ -27,7 +27,7 @@ pub async fn reap_loop(engine: crate::engine::Engine, ttl_secs: u64, interval_se
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::{Metadata, TorrentState, TranscodeStatus};
+    use crate::state::{HlsStatus, Metadata, TorrentState, TranscodeStatus};
 
     fn meta(id: &str, last_access: u64) -> Metadata {
         Metadata {
@@ -35,6 +35,7 @@ mod tests {
             size: 1, completed_at: Some(last_access), last_access,
             state: TorrentState::Seeding,
             transcode: TranscodeStatus::None, transcode_path: None, transcode_error: None,
+            hls: HlsStatus::None, hls_dir: None, hls_error: None,
         }
     }
 

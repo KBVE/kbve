@@ -369,7 +369,7 @@ mod tests {
 #[cfg(test)]
 mod transcoder_tests {
     use super::*;
-    use crate::state::{Metadata, StateStore, TorrentState, TranscodeStatus};
+    use crate::state::{HlsStatus, Metadata, StateStore, TorrentState, TranscodeStatus};
 
     fn meta(id: &str, transcode: TranscodeStatus) -> Metadata {
         Metadata {
@@ -383,6 +383,9 @@ mod transcoder_tests {
             transcode,
             transcode_path: None,
             transcode_error: None,
+            hls: HlsStatus::None,
+            hls_dir: None,
+            hls_error: None,
         }
     }
 
