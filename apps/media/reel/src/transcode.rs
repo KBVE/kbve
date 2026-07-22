@@ -1,5 +1,8 @@
+use crate::state::{StateStore, TorrentState, TranscodeStatus};
 use std::path::{Path, PathBuf};
+use std::sync::Arc;
 use tokio::process::Command;
+use tokio::sync::Semaphore;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ProbeResult {
@@ -95,6 +98,142 @@ pub async fn encode(ffmpeg_bin: &str, src: &Path, dest: &Path) -> anyhow::Result
     .await
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub enum RequestOutcome {
+    Ready(String),
+    InProgress(TranscodeStatus),
+    Started,
+    NotFound,
+    NotCompleted,
+    Disabled,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum Decision {
+    Reject(RequestOutcome),
+    Enqueue,
+}
+
+pub fn next_status(current: &TranscodeStatus, state: &TorrentState, enabled: bool) -> Decision {
+    if !enabled {
+        return Decision::Reject(RequestOutcome::Disabled);
+    }
+    if *state != TorrentState::Seeding {
+        return Decision::Reject(RequestOutcome::NotCompleted);
+    }
+    match current {
+        TranscodeStatus::None | TranscodeStatus::Failed => Decision::Enqueue,
+        other => Decision::Reject(RequestOutcome::InProgress(other.clone())),
+    }
+}
+
+#[derive(Clone)]
+pub struct Transcoder {
+    store: StateStore,
+    remux_sem: Arc<Semaphore>,
+    encode_sem: Arc<Semaphore>,
+    ffmpeg_bin: String,
+    ffprobe_bin: String,
+    enabled: bool,
+}
+
+impl Transcoder {
+    pub fn new(
+        store: StateStore,
+        remux_conc: usize,
+        encode_conc: usize,
+        ffmpeg_bin: String,
+        ffprobe_bin: String,
+        enabled: bool,
+    ) -> Self {
+        Self {
+            store,
+            remux_sem: Arc::new(Semaphore::new(remux_conc.max(1))),
+            encode_sem: Arc::new(Semaphore::new(encode_conc.max(1))),
+            ffmpeg_bin,
+            ffprobe_bin,
+            enabled,
+        }
+    }
+
+    pub async fn request(&self, id: &str) -> RequestOutcome {
+        let meta = match self.store.get(id) {
+            Some(m) => m,
+            None => return RequestOutcome::NotFound,
+        };
+        match next_status(&meta.transcode, &meta.state, self.enabled) {
+            Decision::Reject(RequestOutcome::InProgress(TranscodeStatus::Ready)) => {
+                match meta.transcode_path {
+                    Some(p) => RequestOutcome::Ready(p),
+                    None => RequestOutcome::InProgress(TranscodeStatus::Ready),
+                }
+            }
+            Decision::Reject(outcome) => outcome,
+            Decision::Enqueue => {
+                let mut m = meta.clone();
+                m.transcode = TranscodeStatus::Pending;
+                m.transcode_error = None;
+                let _ = self.store.upsert(m);
+                self.spawn_job(id.to_string(), meta);
+                RequestOutcome::Started
+            }
+        }
+    }
+
+    fn spawn_job(&self, id: String, meta: crate::state::Metadata) {
+        let this = self.clone();
+        tokio::spawn(async move {
+            if let Err(e) = this.run_job(&id, &meta).await {
+                tracing::error!(id = %id, error = %e, "transcode failed");
+                if let Some(mut m) = this.store.get(&id) {
+                    m.transcode = TranscodeStatus::Failed;
+                    m.transcode_error = Some(e.to_string());
+                    let _ = this.store.upsert(m);
+                }
+            }
+        });
+    }
+
+    async fn run_job(&self, id: &str, meta: &crate::state::Metadata) -> anyhow::Result<()> {
+        let src_dir = std::path::PathBuf::from(&meta.path);
+        let primary = pick_primary_file(&src_dir)?;
+        let probe = probe(&self.ffprobe_bin, &primary).await?;
+        let route = decide_route(&probe);
+        let stem = primary
+            .file_stem()
+            .map(|s| s.to_string_lossy().into_owned())
+            .unwrap_or_else(|| "media".into());
+        let dest = src_dir.join(format!("{stem}.reel.mp4"));
+
+        if let Some(mut m) = self.store.get(id) {
+            m.transcode = match route {
+                Route::Remux => TranscodeStatus::Remuxing,
+                Route::Encode => TranscodeStatus::Encoding,
+            };
+            let _ = self.store.upsert(m);
+        }
+
+        match route {
+            Route::Remux => {
+                let _permit = self.remux_sem.acquire().await?;
+                remux(&self.ffmpeg_bin, &primary, &dest).await?;
+            }
+            Route::Encode => {
+                let _permit = self.encode_sem.acquire().await?;
+                encode(&self.ffmpeg_bin, &primary, &dest).await?;
+            }
+        }
+
+        if let Some(mut m) = self.store.get(id) {
+            m.transcode = TranscodeStatus::Ready;
+            m.transcode_path = Some(dest.display().to_string());
+            m.transcode_error = None;
+            let _ = self.store.upsert(m);
+        }
+        Ok(())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -123,5 +262,54 @@ mod tests {
         std::fs::write(dir.path().join("small.mkv"), b"aa").unwrap();
         std::fs::write(dir.path().join("big.mkv"), b"aaaaaaaa").unwrap();
         assert_eq!(pick_primary_file(dir.path()).unwrap(), dir.path().join("big.mkv"));
+    }
+}
+
+#[cfg(test)]
+mod transcoder_tests {
+    use super::*;
+    use crate::state::{TorrentState, TranscodeStatus};
+
+    #[test]
+    fn disabled_rejects() {
+        assert_eq!(
+            next_status(&TranscodeStatus::None, &TorrentState::Seeding, false),
+            Decision::Reject(RequestOutcome::Disabled)
+        );
+    }
+    #[test]
+    fn not_seeding_rejected() {
+        assert_eq!(
+            next_status(&TranscodeStatus::None, &TorrentState::Leeching, true),
+            Decision::Reject(RequestOutcome::NotCompleted)
+        );
+    }
+    #[test]
+    fn ready_is_idempotent() {
+        assert_eq!(
+            next_status(&TranscodeStatus::Ready, &TorrentState::Seeding, true),
+            Decision::Reject(RequestOutcome::InProgress(TranscodeStatus::Ready))
+        );
+    }
+    #[test]
+    fn in_flight_not_requeued() {
+        assert_eq!(
+            next_status(&TranscodeStatus::Encoding, &TorrentState::Seeding, true),
+            Decision::Reject(RequestOutcome::InProgress(TranscodeStatus::Encoding))
+        );
+    }
+    #[test]
+    fn none_enqueues() {
+        assert_eq!(
+            next_status(&TranscodeStatus::None, &TorrentState::Seeding, true),
+            Decision::Enqueue
+        );
+    }
+    #[test]
+    fn failed_re_enqueues() {
+        assert_eq!(
+            next_status(&TranscodeStatus::Failed, &TorrentState::Seeding, true),
+            Decision::Enqueue
+        );
     }
 }
