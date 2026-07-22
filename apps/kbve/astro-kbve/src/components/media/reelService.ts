@@ -70,18 +70,21 @@ export function backoffMs(attempt: number): number {
 
 export class ReelPlayer {
 	private hls: { destroy: () => void } | null = null;
-	private aborted = false;
+	private generation = 0;
 	private pollTimer: ReturnType<typeof setTimeout> | null = null;
+	private video: HTMLVideoElement | null = null;
 
 	async start(video: HTMLVideoElement, id: string): Promise<void> {
-		this.stop(false);
-		this.aborted = false;
+		const gen = ++this.generation;
+		this.teardown();
+		this.video = video;
 		$reelError.set(null);
 		$reelNotice.set(null);
 		$reelName.set(null);
 		$reelState.set('loading');
 
 		const token = await mediaToken();
+		if (this.generation !== gen) return;
 		if (!token) {
 			this.fail('sign in to watch');
 			return;
@@ -91,8 +94,10 @@ export class ReelPlayer {
 			const detail = await authedApiFetch<ReelDetail>(
 				`${REEL_PATH}/torrents/${encodeURIComponent(id)}`,
 			);
+			if (this.generation !== gen) return;
 			$reelName.set(detail?.name ?? null);
 		} catch (e) {
+			if (this.generation !== gen) return;
 			if (e instanceof ApiError && e.status === 404) {
 				this.fail('torrent not found');
 				return;
@@ -106,7 +111,7 @@ export class ReelPlayer {
 		}
 
 		$reelState.set('probing');
-		await this.probe(video, id, token, 0);
+		await this.probe(video, id, token, 0, gen);
 	}
 
 	private async probe(
@@ -114,28 +119,30 @@ export class ReelPlayer {
 		id: string,
 		token: string,
 		attempt: number,
+		gen: number,
 	): Promise<void> {
-		if (this.aborted) return;
+		if (this.generation !== gen) return;
 		const manifestUrl = mediaUrl(id, '/manifest.m3u8', token);
 		let status: number;
 		try {
 			const resp = await fetch(manifestUrl, { cache: 'no-store' });
 			status = resp.status;
 		} catch {
+			if (this.generation !== gen) return;
 			this.fail('network error reaching reel');
 			return;
 		}
-		if (this.aborted) return;
+		if (this.generation !== gen) return;
 
 		switch (nextFromManifestStatus(status)) {
 			case 'raw':
-				this.playRaw(video, id, token, false);
+				this.playRaw(video, id, token, false, gen);
 				return;
 			case 'raw-leeching':
-				this.playRaw(video, id, token, true);
+				this.playRaw(video, id, token, true, gen);
 				return;
 			case 'hls':
-				await this.playHls(video, manifestUrl, token);
+				await this.playHls(video, manifestUrl, token, gen);
 				return;
 			case 'poll':
 				if (attempt >= MAX_POLLS) {
@@ -143,7 +150,7 @@ export class ReelPlayer {
 					return;
 				}
 				this.pollTimer = setTimeout(() => {
-					void this.probe(video, id, token, attempt + 1);
+					void this.probe(video, id, token, attempt + 1, gen);
 				}, backoffMs(attempt));
 				return;
 			case 'error':
@@ -161,8 +168,9 @@ export class ReelPlayer {
 		id: string,
 		token: string,
 		leeching: boolean,
+		gen: number,
 	): void {
-		if (this.aborted) return;
+		if (this.generation !== gen) return;
 		video.src = mediaUrl(id, '/stream', token);
 		$reelState.set('raw');
 		if (leeching) {
@@ -175,8 +183,9 @@ export class ReelPlayer {
 		video: HTMLVideoElement,
 		manifestUrl: string,
 		token: string,
+		gen: number,
 	): Promise<void> {
-		if (this.aborted) return;
+		if (this.generation !== gen) return;
 		if (video.canPlayType(MANIFEST_MIME)) {
 			video.src = manifestUrl;
 			$reelState.set('hls');
@@ -184,7 +193,7 @@ export class ReelPlayer {
 			return;
 		}
 		const Hls = (await import('hls.js')).default;
-		if (this.aborted) return;
+		if (this.generation !== gen) return;
 		if (!Hls.isSupported()) {
 			this.fail('HLS is not supported in this browser');
 			return;
@@ -204,14 +213,7 @@ export class ReelPlayer {
 		void video.play().catch(() => undefined);
 	}
 
-	private fail(message: string): void {
-		$reelError.set(message);
-		$reelState.set('error');
-		this.stop(false);
-	}
-
-	stop(reset = true): void {
-		this.aborted = true;
+	private teardown(): void {
 		if (this.pollTimer) {
 			clearTimeout(this.pollTimer);
 			this.pollTimer = null;
@@ -224,7 +226,28 @@ export class ReelPlayer {
 			}
 			this.hls = null;
 		}
+	}
+
+	private fail(message: string): void {
+		$reelError.set(message);
+		$reelState.set('error');
+		this.teardown();
+	}
+
+	stop(reset = true): void {
+		this.generation++;
+		this.teardown();
+		if (this.video) {
+			try {
+				this.video.pause();
+				this.video.removeAttribute('src');
+				this.video.load();
+			} catch {
+				void 0;
+			}
+		}
 		if (reset) {
+			this.video = null;
 			$reelState.set('idle');
 			$reelError.set(null);
 			$reelNotice.set(null);

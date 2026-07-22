@@ -63,10 +63,7 @@ fn check_auth_q(headers: &HeaderMap, query: Option<&str>, token: &Option<String>
     if check_auth(headers, token) {
         return true;
     }
-    match token {
-        None => true,
-        Some(t) => token_from_query(query).as_deref() == Some(t.as_str()),
-    }
+    matches!(token, Some(t) if token_from_query(query).as_deref() == Some(t.as_str()))
 }
 
 async fn list(State(st): State<AppStateStub>, headers: HeaderMap) -> impl IntoResponse {
