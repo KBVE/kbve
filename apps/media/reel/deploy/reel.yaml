@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: reel-data
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reel
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: reel }
+  template:
+    metadata:
+      labels: { app: reel }
+    spec:
+      containers:
+        - name: gluetun
+          image: qmcgaw/gluetun
+          securityContext:
+            capabilities:
+              add: ["NET_ADMIN"]
+          envFrom:
+            - secretRef: { name: reel-vpn }
+          env:
+            - { name: FIREWALL, value: "on" }
+            - { name: FIREWALL_INPUT_PORTS, value: "8080" }
+        - name: reel
+          image: REPLACE_WITH_REGISTRY/reel:latest
+          env:
+            - { name: REEL_API_ADDR, value: "0.0.0.0:8080" }
+            - { name: REEL_ACTIVE_DIR, value: "/data/active" }
+            - { name: REEL_LIBRARY_DIR, value: "/data/library" }
+            - { name: REEL_STATE_FILE, value: "/data/reel-state.json" }
+            - { name: REEL_TTL_SECS, value: "21600" }
+          envFrom:
+            - secretRef: { name: reel-api }
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - { name: data, mountPath: /data }
+      volumes:
+        - name: data
+          persistentVolumeClaim: { claimName: reel-data }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: reel
+spec:
+  selector: { app: reel }
+  ports:
+    - { port: 8080, targetPort: 8080 }

@@ -44,7 +44,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.247",
+			"version": "1.0.249",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -236,7 +236,7 @@
 		{
 			"key": "firecracker_ctl",
 			"app_name": "firecracker-ctl",
-			"version": "0.1.41",
+			"version": "0.1.42",
 			"version_toml": "apps/vm/firecracker-ctl/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/firecracker-ctl.mdx",
 			"version_target": "apps/vm/firecracker-ctl/Cargo.toml",

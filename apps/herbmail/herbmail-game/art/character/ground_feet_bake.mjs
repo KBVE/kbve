@@ -1,8 +1,11 @@
 globalThis.self=globalThis;
-import * as THREE from '/Users/alappatel/Documents/GitHub/kbve/node_modules/three/build/three.core.js';
+import * as THREE from 'three';
 import fs from 'fs';
-import { GLTFLoader } from '/Users/alappatel/Documents/GitHub/kbve/node_modules/three/examples/jsm/loaders/GLTFLoader.js';
-const IN='/Users/alappatel/Documents/GitHub/kbve/apps/herbmail/herbmail-game/public/models/character-anim.glb';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
+const ROOT=resolve(dirname(fileURLToPath(import.meta.url)),'../..');
+const IN=ROOT+'/public/models/character-anim.glb';
 const OUT=process.argv[2];
 const CLIPS=process.argv.slice(3);
 const _bw=new THREE.Vector3(),_cur=new THREE.Vector3(),_des=new THREE.Vector3(),_q=new THREE.Quaternion(),_wq=new THREE.Quaternion(),_pq=new THREE.Quaternion();

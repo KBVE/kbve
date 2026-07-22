@@ -1,0 +1,58 @@
+{
+  "name": "reel",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/media/reel/src",
+  "targets": {
+    "build": {
+      "executor": "@monodon/rust:build",
+      "outputs": ["{options.target-dir}"],
+      "options": { "target-dir": "dist/target/reel" },
+      "configurations": { "production": { "release": true } }
+    },
+    "test": {
+      "executor": "@monodon/rust:test",
+      "outputs": ["{options.target-dir}"],
+      "options": { "target-dir": "dist/target/reel" },
+      "configurations": { "production": { "release": true } }
+    },
+    "lint": {
+      "executor": "@monodon/rust:lint",
+      "outputs": ["{options.target-dir}"],
+      "options": { "target-dir": "dist/target/reel" }
+    },
+    "run": {
+      "executor": "@monodon/rust:run",
+      "outputs": ["{options.target-dir}"],
+      "options": { "target-dir": "dist/target/reel" },
+      "configurations": { "production": { "release": true } }
+    },
+    "containerx": {
+      "executor": "@nx-tools/nx-container:build",
+      "defaultConfiguration": "local",
+      "options": {
+        "engine": "docker",
+        "context": ".",
+        "file": "apps/media/reel/Dockerfile",
+        "load": true
+      },
+      "configurations": {
+        "local": { "load": true, "push": false, "tags": ["kbve/reel:latest"] }
+      }
+    },
+    "container": {
+      "executor": "nx:run-commands",
+      "defaultConfiguration": "local",
+      "options": { "parallel": false },
+      "configurations": {
+        "local": {
+          "commands": [
+            "./kbve.sh -nx reel:containerx",
+            "VERSION=$(grep '^version' apps/media/reel/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/reel:latest kbve/reel:$VERSION && echo \"Tagged kbve/reel:$VERSION\""
+          ]
+        }
+      }
+    }
+  },
+  "tags": []
+}
