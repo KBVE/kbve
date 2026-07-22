@@ -5,6 +5,7 @@ use serde::Deserialize;
 use serde_json::json;
 
 #[derive(Debug, Clone, Deserialize)]
+#[allow(dead_code)]
 pub struct InfoResp {
     pub version: String,
     pub servername: String,
@@ -19,6 +20,7 @@ pub struct MetricsResp {
 }
 
 #[derive(Debug, Clone, Deserialize)]
+#[allow(dead_code)]
 pub struct Player {
     #[serde(default)]
     pub name: String,
@@ -93,6 +95,7 @@ impl RestClient {
         Ok(())
     }
 
+    #[allow(dead_code)]
     pub async fn shutdown(&self, waittime: u32, message: &str) -> Result<()> {
         self.http
             .post(self.url("shutdown"))
