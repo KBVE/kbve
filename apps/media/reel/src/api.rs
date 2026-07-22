@@ -254,19 +254,41 @@ async fn manifest(
     };
     let _ = st.store.touch(&id, now_secs());
 
+    match meta.hls {
+        state::HlsStatus::Live | state::HlsStatus::Ready => match meta.hls_dir {
+            Some(dir) => return serve_manifest_file(&dir).await,
+            None => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+        },
+        state::HlsStatus::Starting => {
+            return (
+                StatusCode::ACCEPTED,
+                Json(serde_json::json!({"status": "starting"})),
+            )
+                .into_response();
+        }
+        state::HlsStatus::None | state::HlsStatus::Failed => {}
+    }
+
     if meta.state != state::TorrentState::Seeding {
         return StatusCode::TOO_EARLY.into_response();
     }
 
-    let primary = match transcode::pick_primary_file(std::path::Path::new(&meta.path)) {
-        Ok(p) => p,
-        Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    let delivery = match st.hls.cached_delivery(&id) {
+        Some(d) => d,
+        None => {
+            let primary = match transcode::pick_primary_file(std::path::Path::new(&meta.path)) {
+                Ok(p) => p,
+                Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            };
+            let probe = match transcode::probe(&st.ffprobe_bin, &primary).await {
+                Ok(p) => p,
+                Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            };
+            let d = transcode::decide_delivery(&probe);
+            st.hls.cache_delivery(&id, d);
+            d
+        }
     };
-    let probe = match transcode::probe(&st.ffprobe_bin, &primary).await {
-        Ok(p) => p,
-        Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
-    };
-    let delivery = transcode::decide_delivery(&probe);
     if delivery == transcode::Delivery::RawProgressive {
         return (
             StatusCode::CONFLICT,
@@ -498,13 +520,28 @@ fn hls_manifest_router(
         if !st.hls.enabled() {
             return StatusCode::SERVICE_UNAVAILABLE.into_response();
         }
-        match st.store.get(&id) {
-            Some(m) if m.state != state::TorrentState::Seeding => {
-                StatusCode::TOO_EARLY.into_response()
+        let meta = match st.store.get(&id) {
+            Some(m) => m,
+            None => return StatusCode::NOT_FOUND.into_response(),
+        };
+        match meta.hls {
+            state::HlsStatus::Live | state::HlsStatus::Ready => match meta.hls_dir {
+                Some(dir) => return serve_manifest_file(&dir).await,
+                None => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            },
+            state::HlsStatus::Starting => {
+                return (
+                    StatusCode::ACCEPTED,
+                    Json(serde_json::json!({"status": "starting"})),
+                )
+                    .into_response();
             }
-            Some(_) => StatusCode::OK.into_response(),
-            None => StatusCode::NOT_FOUND.into_response(),
+            state::HlsStatus::None | state::HlsStatus::Failed => {}
         }
+        if meta.state != state::TorrentState::Seeding {
+            return StatusCode::TOO_EARLY.into_response();
+        }
+        StatusCode::OK.into_response()
     }
 
     Router::new()
@@ -780,6 +817,46 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(res.status(), StatusCode::TOO_EARLY);
+    }
+
+    #[tokio::test]
+    async fn manifest_live_with_hls_dir_serves_200() {
+        let dir = tempdir().unwrap();
+        let hls_dir = dir.path().join("hls");
+        std::fs::create_dir_all(&hls_dir).unwrap();
+        std::fs::write(hls_dir.join("index.m3u8"), b"#EXTM3U\n").unwrap();
+        let s = StateStore::load(dir.path().join("s.json")).unwrap();
+        s.upsert(Metadata {
+            id: "1".into(),
+            name: "movie".into(),
+            path: "/lib/movie.mp4".into(),
+            size: 5,
+            completed_at: Some(10),
+            last_access: 10,
+            state: TorrentState::Seeding,
+            transcode: TranscodeStatus::None,
+            transcode_path: None,
+            transcode_error: None,
+            hls: HlsStatus::Live,
+            hls_dir: Some(hls_dir.display().to_string()),
+            hls_error: None,
+        })
+        .unwrap();
+        std::mem::forget(dir);
+        let app = hls_manifest_router(s.clone(), None, hls_manager_with(s, true));
+        let res = app
+            .oneshot(
+                Request::get("/torrents/1/manifest.m3u8")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::OK);
+        assert_eq!(
+            res.headers().get("content-type").unwrap(),
+            "application/vnd.apple.mpegurl"
+        );
     }
 
     #[tokio::test]

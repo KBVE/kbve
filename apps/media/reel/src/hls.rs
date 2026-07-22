@@ -81,6 +81,7 @@ pub struct HlsManager {
     segment_secs: u32,
     enabled: bool,
     children: Arc<Mutex<HashMap<String, Child>>>,
+    delivery_cache: Arc<Mutex<HashMap<String, Delivery>>>,
 }
 
 impl HlsManager {
@@ -98,7 +99,18 @@ impl HlsManager {
             segment_secs,
             enabled,
             children: Arc::new(Mutex::new(HashMap::new())),
+            delivery_cache: Arc::new(Mutex::new(HashMap::new())),
         }
+    }
+
+    pub fn cached_delivery(&self, id: &str) -> Option<Delivery> {
+        let g = self.delivery_cache.lock().unwrap();
+        g.get(id).copied()
+    }
+
+    pub fn cache_delivery(&self, id: &str, d: Delivery) {
+        let mut g = self.delivery_cache.lock().unwrap();
+        g.insert(id.to_string(), d);
     }
 
     pub fn enabled(&self) -> bool {
@@ -174,7 +186,15 @@ impl HlsManager {
         let src_dir = PathBuf::from(&meta.path);
         let primary = pick_primary_file(&src_dir)?;
         let hls_dir = src_dir.join("hls");
+        if hls_dir.exists() {
+            let _ = std::fs::remove_dir_all(&hls_dir);
+        }
         std::fs::create_dir_all(&hls_dir)?;
+        let hls_dir_str = hls_dir.display().to_string();
+        let _ = self.store.update(id, |m| {
+            m.hls_dir = Some(hls_dir_str.clone());
+            ((), true)
+        });
 
         let mut args: Vec<String> = vec![
             "-y".into(),
@@ -229,13 +249,11 @@ impl HlsManager {
         let this = self.clone();
         let id = id.to_string();
         let index_path = hls_dir.join("index.m3u8");
-        let hls_dir_str = hls_dir.display().to_string();
         tokio::spawn(async move {
             for _ in 0..100 {
                 if index_path.exists() {
                     let _ = this.store.update(&id, |m| {
                         m.hls = HlsStatus::Live;
-                        m.hls_dir = Some(hls_dir_str.clone());
                         ((), true)
                     });
                     break;
@@ -339,5 +357,15 @@ mod mgr_tests {
         let mgr = HlsManager::new(store, 1, "ffmpeg".into(), 4, true);
         mgr.abort("unknown-id").await;
         assert!(mgr.take_child("unknown-id").is_none());
+    }
+
+    #[test]
+    fn cached_delivery_none_then_some() {
+        let dir = std::env::temp_dir().join(format!("reel-hls-test-cache-{}", std::process::id()));
+        let store = StateStore::load(dir.join("state.json")).unwrap();
+        let mgr = HlsManager::new(store, 1, "ffmpeg".into(), 4, true);
+        assert_eq!(mgr.cached_delivery("1"), None);
+        mgr.cache_delivery("1", Delivery::RemuxHls);
+        assert_eq!(mgr.cached_delivery("1"), Some(Delivery::RemuxHls));
     }
 }
