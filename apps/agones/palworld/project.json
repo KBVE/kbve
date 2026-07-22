@@ -1,0 +1,59 @@
+{
+	"name": "agones-palworld",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/agones/palworld",
+	"targets": {
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		},
+		"container": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/agones/palworld/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/agones-palworld:latest"]
+				},
+				"production": {
+					"push": true,
+					"tags": ["ghcr.io/kbve/agones-palworld:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/agones-palworld:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/agones-palworld:buildcache,mode=max"
+					]
+				}
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"dependsOn": [
+				{
+					"target": "container",
+					"projects": ["agones-palworld"],
+					"params": "forward"
+				}
+			],
+			"cache": false,
+			"options": {
+				"commands": ["echo 'agones-palworld e2e: pending Task 10'"],
+				"parallel": false,
+				"cwd": "apps/agones/palworld"
+			},
+			"configurations": {
+				"ci": {}
+			}
+		}
+	},
+	"tags": ["scope:agones"]
+}
