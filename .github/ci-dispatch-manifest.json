@@ -533,6 +533,18 @@
 			"has_test": true
 		},
 		{
+			"key": "reel",
+			"app_name": "reel",
+			"version": "0.1.1",
+			"version_toml": "apps/media/reel/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/reel.mdx",
+			"version_target": "apps/media/reel/Cargo.toml",
+			"source_path": "apps/media/reel",
+			"runner": "ubuntu-latest",
+			"image": "kbve/reel",
+			"has_test": false
+		},
+		{
 			"key": "rows",
 			"app_name": "rows",
 			"version": "0.1.38",
@@ -1391,7 +1403,7 @@
 		}
 	],
 	"summary": {
-		"docker": 38,
+		"docker": 39,
 		"npm": 4,
 		"crates": 27,
 		"python": 2,
@@ -1402,6 +1414,6 @@
 		"unreal_game": 4,
 		"bevy_game": 0,
 		"vite_game": 1,
-		"total": 105
+		"total": 106
 	}
 }

@@ -53,7 +53,7 @@ fn token_from_query(query: Option<&str>) -> Option<String> {
     query?.split('&').find_map(|pair| {
         let mut it = pair.splitn(2, '=');
         match (it.next(), it.next()) {
-            (Some("token"), Some(v)) => Some(v.to_string()),
+            (Some("access_token"), Some(v)) => Some(v.to_string()),
             _ => None,
         }
     })
@@ -732,14 +732,18 @@ mod tests {
 
     #[test]
     fn token_from_query_extracts_token() {
-        assert_eq!(token_from_query(Some("token=abc")).as_deref(), Some("abc"));
         assert_eq!(
-            token_from_query(Some("foo=1&token=abc&bar=2")).as_deref(),
+            token_from_query(Some("access_token=abc")).as_deref(),
+            Some("abc")
+        );
+        assert_eq!(
+            token_from_query(Some("foo=1&access_token=abc&bar=2")).as_deref(),
             Some("abc")
         );
         assert_eq!(token_from_query(Some("foo=1")), None);
+        assert_eq!(token_from_query(Some("token=abc")), None);
         assert_eq!(token_from_query(None), None);
-        assert_eq!(token_from_query(Some("token=")).as_deref(), Some(""));
+        assert_eq!(token_from_query(Some("access_token=")).as_deref(), Some(""));
     }
 
     #[test]
@@ -750,9 +754,9 @@ mod tests {
         hdr.insert("Authorization", "Bearer secret".parse().unwrap());
 
         assert!(check_auth_q(&hdr, None, &token));
-        assert!(check_auth_q(&empty, Some("token=secret"), &token));
-        assert!(check_auth_q(&empty, Some("x=1&token=secret"), &token));
-        assert!(!check_auth_q(&empty, Some("token=wrong"), &token));
+        assert!(check_auth_q(&empty, Some("access_token=secret"), &token));
+        assert!(check_auth_q(&empty, Some("x=1&access_token=secret"), &token));
+        assert!(!check_auth_q(&empty, Some("access_token=wrong"), &token));
         assert!(!check_auth_q(&empty, None, &token));
         assert!(!check_auth_q(&empty, Some("nope=secret"), &token));
         assert!(check_auth_q(&empty, None, &None));

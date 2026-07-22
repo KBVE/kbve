@@ -1,0 +1,93 @@
+---
+title: Reel — Ephemeral Media Fetch & Stream
+description: Reel is a Rust/Axum media service that fetches legal torrents behind a VPN, keeps them as an ephemeral hot-cache, and progressively streams them to the browser as raw MP4 or live HLS.
+sem: 1
+sidebar:
+    label: Reel
+    order: 421
+unsplash: 1478720568477-152d9b164e26
+img: https://images.unsplash.com/photo-1478720568477-152d9b164e26?fit=crop&w=1400&h=700&q=75
+tags:
+    - media
+    - rust
+key: reel
+pipeline: docker
+app_name: reel
+version: "0.1.1"
+source_path: apps/media/reel
+version_toml: apps/media/reel/version.toml
+version_target: apps/media/reel/Cargo.toml
+runner: ubuntu-latest
+image: kbve/reel
+has_test: false
+author: h0lybyte
+license: KBVE
+status: active
+kube:
+    stack: application
+    environment: prod
+    tier: api
+    owner: h0lybyte
+    criticality: low
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+bento:
+    badge: media · rust
+    title: Ephemeral media fetch & stream
+    accent: Reel
+    lede: >-
+        A Rust/Axum service that fetches legal torrents behind a WireGuard VPN,
+        holds the content as an ephemeral hot-cache reaped on idle, and
+        progressively streams it to the browser as raw MP4 or live HLS.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/media/reel
+          primary: true
+          external: true
+        - label: How it works
+          href: "#product"
+    stats:
+        - { label: App, value: reel, icon: server }
+        - { label: Stack, value: Rust + Axum, icon: rust }
+        - { label: Delivery, value: MP4 + HLS, icon: activity }
+        - { label: Status, value: active, icon: check }
+    features:
+        - title: VPN-isolated fetch
+          icon: shield
+          body: librqbit embedded in the binary leeches and seeds legal torrents entirely behind a Gluetun/WireGuard sidecar with a killswitch — no traffic leaves the tunnel.
+        - title: Ephemeral hot-cache
+          icon: zap
+          body: Content is a cache, not a library — a TTL reaper deletes entries after they go idle, freeing disk and stopping seeding through one unified delete path.
+        - title: Progressive delivery
+          icon: activity
+          body: ffprobe picks the cheapest correct route per file — raw byte-range MP4 while still downloading, remux-HLS, or transcode-HLS — so anything plays in the browser.
+        - title: Same-origin player
+          icon: server
+          body: An astro-kbve hls.js island streams through the axum-kbve proxy at /api/v1/reel, staff-gated, with the service token injected server-side.
+---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="product" eyebrow="Overview" heading="What reel does">
+
+Reel is an internal media service. It embeds `librqbit` to fetch **legal** torrents
+behind a WireGuard VPN, keeps the content as an ephemeral hot-cache (reaped after an
+idle TTL, not a permanent library), and progressively delivers it to the browser.
+
+### Pipeline
+
+- **Fetch** — librqbit leeches and seeds behind a Gluetun killswitch; a reaper deletes idle entries.
+- **Transcode** — ffprobe routes each file to remux (faststart MP4) or re-encode.
+- **Stream** — byte-range progressive MP4 while still downloading; HLS for containers/codecs the browser can't play raw.
+- **Player** — an astro-kbve hls.js island at `/media/reel/`, proxied same-origin through axum-kbve at `/api/v1/reel`, staff-gated.
+
+</BentoProse>
+
+</BentoDoc>

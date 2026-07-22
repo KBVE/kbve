@@ -41,7 +41,7 @@ spec:
                               topologyKey: kubernetes.io/hostname
             containers:
                 - name: kbve
-                  image: ghcr.io/kbve/kbve:1.0.249
+                  image: ghcr.io/kbve/kbve:1.0.250
                   imagePullPolicy: Always
                   ports:
                       - name: http
@@ -239,6 +239,14 @@ spec:
                             secretKeyRef:
                                 name: vibeshine-config
                                 key: webrtc-token
+                                optional: true
+                      - name: REEL_UPSTREAM_URL
+                        value: http://reel.reel.svc.cluster.local:8080
+                      - name: REEL_API_TOKEN
+                        valueFrom:
+                            secretKeyRef:
+                                name: reel-config
+                                key: api-token
                                 optional: true
                       - name: DISCORD_CLIENT_ID
                         valueFrom:
