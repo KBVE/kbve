@@ -5,10 +5,28 @@ pub struct Moved {
     pub size: u64,
 }
 
+fn dir_size(dir: &Path) -> anyhow::Result<u64> {
+    let mut total = 0u64;
+    for entry in std::fs::read_dir(dir)? {
+        let entry = entry?;
+        let file_type = entry.file_type()?;
+        if file_type.is_dir() {
+            total += dir_size(&entry.path())?;
+        } else if file_type.is_file() {
+            total += entry.metadata()?.len();
+        }
+    }
+    Ok(total)
+}
+
 pub fn move_completed(src: &Path, library_dir: &Path) -> anyhow::Result<Moved> {
     let meta = std::fs::metadata(src)
         .map_err(|e| anyhow::anyhow!("source unavailable {}: {e}", src.display()))?;
-    let size = meta.len();
+    let size = if meta.is_dir() {
+        dir_size(src)?
+    } else {
+        meta.len()
+    };
     if size == 0 {
         anyhow::bail!("source is empty: {}", src.display());
     }
@@ -55,5 +73,22 @@ mod tests {
         std::fs::write(&src, b"").unwrap();
         let res = move_completed(&src, &dir.path().join("lib"));
         assert!(res.is_err());
+    }
+
+    #[test]
+    fn moves_directory_to_library() {
+        let dir = tempdir().unwrap();
+        let active = dir.path().join("active");
+        let library = dir.path().join("library");
+        let src = active.join("torrent-out");
+        std::fs::create_dir_all(&src).unwrap();
+        std::fs::write(src.join("movie.mp4"), b"data12345").unwrap();
+
+        let moved = move_completed(&src, &library).unwrap();
+        assert_eq!(moved.dest, library.join("torrent-out"));
+        assert_eq!(moved.size, 9);
+        assert!(!src.exists());
+        assert!(moved.dest.exists());
+        assert!(moved.dest.join("movie.mp4").exists());
     }
 }

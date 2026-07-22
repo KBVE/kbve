@@ -1,5 +1,4 @@
 use crate::state;
-use std::path::PathBuf;
 
 pub fn select_expired(items: &[state::Metadata], ttl_secs: u64, now: u64) -> Vec<String> {
     items.iter()
@@ -37,20 +36,17 @@ fn now_secs() -> u64 {
         .unwrap_or(0)
 }
 
-pub async fn reap_loop(
-    store: state::StateStore,
-    ttl_secs: u64,
-    interval_secs: u64,
-    library_dir: PathBuf,
-) {
+pub async fn reap_loop(store: state::StateStore, ttl_secs: u64, interval_secs: u64) {
     let mut ticker = tokio::time::interval(std::time::Duration::from_secs(interval_secs));
     loop {
         ticker.tick().await;
-        let lib = library_dir.clone();
-        let delete = move |m: &state::Metadata| -> anyhow::Result<()> {
-            let target = lib.join(std::path::Path::new(&m.path).file_name()
-                .ok_or_else(|| anyhow::anyhow!("bad path"))?);
-            if target.exists() { std::fs::remove_file(&target)?; }
+        let delete = |m: &state::Metadata| -> anyhow::Result<()> {
+            let target = std::path::Path::new(&m.path);
+            if target.is_dir() {
+                std::fs::remove_dir_all(target)?;
+            } else if target.is_file() {
+                std::fs::remove_file(target)?;
+            }
             Ok(())
         };
         if let Err(e) = reap_once(&store, ttl_secs, now_secs(), &delete) {

@@ -13,7 +13,12 @@ pub fn is_vpn_ip(ip: IpAddr) -> bool {
         IpAddr::V4(v4) => {
             !(v4.is_private() || v4.is_loopback() || v4.is_link_local() || v4.is_unspecified())
         }
-        IpAddr::V6(v6) => !(v6.is_loopback() || v6.is_unspecified()),
+        IpAddr::V6(v6) => {
+            let octets = v6.octets();
+            let is_unique_local = octets[0] & 0xfe == 0xfc;
+            let is_link_local = octets[0] == 0xfe && octets[1] & 0xc0 == 0x80;
+            !(v6.is_loopback() || v6.is_unspecified() || is_unique_local || is_link_local)
+        }
     }
 }
 
@@ -157,5 +162,20 @@ mod tests {
     #[test]
     fn public_ip_is_vpn() {
         assert!(is_vpn_ip("203.0.113.7".parse::<IpAddr>().unwrap()));
+    }
+
+    #[test]
+    fn ipv6_unique_local_is_not_vpn() {
+        assert!(!is_vpn_ip("fc00::1".parse::<IpAddr>().unwrap()));
+    }
+
+    #[test]
+    fn ipv6_link_local_is_not_vpn() {
+        assert!(!is_vpn_ip("fe80::1".parse::<IpAddr>().unwrap()));
+    }
+
+    #[test]
+    fn ipv6_public_is_vpn() {
+        assert!(is_vpn_ip("2606:4700::1111".parse::<IpAddr>().unwrap()));
     }
 }
