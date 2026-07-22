@@ -512,7 +512,7 @@ const prCount = Object.values(columns)
 	<!-- ═══ Section 9: Item Browser ═══ -->
 	<section class="kb-section" data-section="9">
 		<div class="kb-section-content kb-browser-section">
-			<ReactKanbanBrowser client:only="react" />
+			<ReactKanbanBrowser client:only="react" sectionIndex={9} />
 		</div>
 	</section>
 </div>
@@ -1031,7 +1031,7 @@ const prCount = Object.values(columns)
 	/* ── Responsive: hide heavy D3 charts on mobile, adapt layouts ── */
 	@media (max-width: 640px) {
 		.kb-section-content {
-			padding: calc(var(--sl-nav-height, 3.5rem) + 0.5rem) 1rem 1rem;
+			padding: 1rem;
 		}
 		.kb-stats-row {
 			gap: 0.5rem;

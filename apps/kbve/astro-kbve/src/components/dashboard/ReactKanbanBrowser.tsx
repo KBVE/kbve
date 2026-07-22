@@ -2,58 +2,17 @@ import { useEffect, useRef, useState, useCallback } from 'react';
 import { Loader2, GitPullRequest, CircleDot, ExternalLink } from 'lucide-react';
 import { openTooltip, closeTooltip } from '@kbve/droid';
 import { showItemModal } from './kanbanItemModal';
+import {
+	useKanbanSection,
+	useKanbanData,
+	COLUMN_COLORS,
+	COLUMN_ORDER,
+	type KanbanItem,
+} from './useKanbanSection';
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-interface KanbanItem {
-	type: 'ISSUE' | 'PULL_REQUEST';
-	number: number;
-	title: string;
-	state: string;
-	url: string;
-	assignees: string[];
-	labels: string[];
-	matrix: string | null;
-	date: string;
-	milestone: string | null;
+interface Props {
+	sectionIndex: number;
 }
-
-interface KanbanData {
-	generated_at: string;
-	project: { title: string; url: string; total_items: number };
-	summary: Record<string, number>;
-	columns: Record<string, KanbanItem[]>;
-}
-
-// ---------------------------------------------------------------------------
-// Constants
-// ---------------------------------------------------------------------------
-
-const COLUMN_COLORS: Record<string, string> = {
-	Theory: '#8b5cf6',
-	AI: '#06b6d4',
-	Todo: '#3b82f6',
-	Backlog: '#6366f1',
-	Error: '#ef4444',
-	Support: '#f59e0b',
-	Staging: '#f97316',
-	Review: '#eab308',
-	Done: '#22c55e',
-};
-
-const COLUMN_ORDER = [
-	'Theory',
-	'AI',
-	'Todo',
-	'Backlog',
-	'Error',
-	'Support',
-	'Staging',
-	'Review',
-	'Done',
-];
 
 const DONE_DISPLAY_LIMIT = 25;
 
@@ -284,35 +243,33 @@ function ItemRow({
 // Main — interactive tabbed item browser
 // ---------------------------------------------------------------------------
 
-export default function ReactKanbanBrowser() {
-	const [data, setData] = useState<KanbanData | null>(null);
-	const [error, setError] = useState<string | null>(null);
+export default function ReactKanbanBrowser({ sectionIndex }: Props) {
+	const active = useKanbanSection(sectionIndex);
+	const [data, error] = useKanbanData();
 	const [activeTab, setActiveTab] = useState('Theory');
 	const { tipRef, show, move, hide } = useKanbanTooltip();
+	const tabInitialized = useRef(false);
 
 	useEffect(() => {
-		let cancelled = false;
-		fetch('/data/nx/nx-kanban.json', { signal: AbortSignal.timeout(10000) })
-			.then((r) => {
-				if (!r.ok) throw new Error(`HTTP ${r.status}`);
-				return r.json();
-			})
-			.then((d: KanbanData) => {
-				if (!cancelled) {
-					setData(d);
-					const first = COLUMN_ORDER.find(
-						(c) => c !== 'Done' && (d.columns[c]?.length ?? 0) > 0,
-					);
-					if (first) setActiveTab(first);
-				}
-			})
-			.catch((e) => {
-				if (!cancelled) setError(e.message);
-			});
-		return () => {
-			cancelled = true;
-		};
-	}, []);
+		if (!data || tabInitialized.current) return;
+		tabInitialized.current = true;
+		const first = COLUMN_ORDER.find(
+			(c) => c !== 'Done' && (data.columns[c]?.length ?? 0) > 0,
+		);
+		if (first) setActiveTab(first);
+	}, [data]);
+
+	if (!active) {
+		return (
+			<div
+				style={{
+					minHeight: 400,
+					background: 'var(--sl-color-gray-6, #1a1a1a)',
+					borderRadius: 12,
+				}}
+			/>
+		);
+	}
 
 	if (error) {
 		return (
