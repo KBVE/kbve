@@ -3013,6 +3013,7 @@ dependencies = [
  "futures-util",
  "hound",
  "log",
+ "natural",
  "once_cell",
  "ort",
  "portable-pty",
@@ -3027,6 +3028,7 @@ dependencies = [
  "signal-hook",
  "specta",
  "specta-typescript",
+ "strsim",
  "tar",
  "tauri",
  "tauri-build",
@@ -3401,6 +3403,15 @@ dependencies = [
  "security-framework",
  "security-framework-sys",
  "tempfile",
+]
+
+[[package]]
+name = "natural"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "65e6b44f8ddc659cde3555e0140d3441ad26cb03a1410774af1f9a19097c1867"
+dependencies = [
+ "rust-stemmers",
 ]
 
 [[package]]
@@ -4824,6 +4835,16 @@ checksum = "796e8d2b6696392a43bea58116b667fb4c29727dc5abd27d6acf338bb4f688c7"
 dependencies = [
  "cfg-if",
  "ordered-multimap",
+]
+
+[[package]]
+name = "rust-stemmers"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e46a2036019fdb888131db7a4c847a1063a7493f971ed94ea82c67eada63ca54"
+dependencies = [
+ "serde",
+ "serde_derive",
 ]
 
 [[package]]
