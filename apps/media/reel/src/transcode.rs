@@ -8,6 +8,7 @@ use tokio::sync::Semaphore;
 pub struct ProbeResult {
     pub video_codec: Option<String>,
     pub audio_codec: Option<String>,
+    pub container: Option<String>,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -16,11 +17,31 @@ pub enum Route {
     Encode,
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum Delivery {
+    RawProgressive,
+    RemuxHls,
+    TranscodeHls,
+}
+
 pub fn decide_route(p: &ProbeResult) -> Route {
     if p.video_codec.as_deref() == Some("h264") && p.audio_codec.as_deref() == Some("aac") {
         Route::Remux
     } else {
         Route::Encode
+    }
+}
+
+pub fn decide_delivery(p: &ProbeResult) -> Delivery {
+    let compat_codecs = p.video_codec.as_deref() == Some("h264") && p.audio_codec.as_deref() == Some("aac");
+    if !compat_codecs {
+        return Delivery::TranscodeHls;
+    }
+    let is_mp4 = p.container.as_deref().map(|c| c.contains("mp4")).unwrap_or(false);
+    if is_mp4 {
+        Delivery::RawProgressive
+    } else {
+        Delivery::RemuxHls
     }
 }
 
@@ -58,7 +79,7 @@ pub fn pick_primary_file(dir: &Path) -> anyhow::Result<PathBuf> {
 
 pub async fn probe(ffprobe_bin: &str, path: &Path) -> anyhow::Result<ProbeResult> {
     let out = Command::new(ffprobe_bin)
-        .args(["-v", "quiet", "-print_format", "json", "-show_streams"])
+        .args(["-v", "quiet", "-print_format", "json", "-show_streams", "-show_format"])
         .arg(path)
         .output()
         .await?;
@@ -79,7 +100,12 @@ pub async fn probe(ffprobe_bin: &str, path: &Path) -> anyhow::Result<ProbeResult
             }
         }
     }
-    Ok(ProbeResult { video_codec: video, audio_codec: audio })
+    let container = json
+        .get("format")
+        .and_then(|f| f.get("format_name"))
+        .and_then(|v| v.as_str())
+        .map(String::from);
+    Ok(ProbeResult { video_codec: video, audio_codec: audio, container })
 }
 
 async fn run_ffmpeg(ffmpeg_bin: &str, args: &[&str], src: &Path, dest: &Path) -> anyhow::Result<()> {
@@ -273,24 +299,56 @@ impl Transcoder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    fn pr(v: Option<&str>, a: Option<&str>) -> ProbeResult {
-        ProbeResult { video_codec: v.map(String::from), audio_codec: a.map(String::from) }
+    fn pr(v: Option<&str>, a: Option<&str>, c: Option<&str>) -> ProbeResult {
+        ProbeResult { video_codec: v.map(String::from), audio_codec: a.map(String::from), container: c.map(String::from) }
     }
     #[test]
     fn h264_aac_remuxes() {
-        assert_eq!(decide_route(&pr(Some("h264"), Some("aac"))), Route::Remux);
+        assert_eq!(decide_route(&pr(Some("h264"), Some("aac"), None)), Route::Remux);
     }
     #[test]
     fn hevc_encodes() {
-        assert_eq!(decide_route(&pr(Some("hevc"), Some("aac"))), Route::Encode);
+        assert_eq!(decide_route(&pr(Some("hevc"), Some("aac"), None)), Route::Encode);
     }
     #[test]
     fn non_aac_audio_encodes() {
-        assert_eq!(decide_route(&pr(Some("h264"), Some("ac3"))), Route::Encode);
+        assert_eq!(decide_route(&pr(Some("h264"), Some("ac3"), None)), Route::Encode);
     }
     #[test]
     fn missing_codecs_encode() {
-        assert_eq!(decide_route(&pr(None, None)), Route::Encode);
+        assert_eq!(decide_route(&pr(None, None, None)), Route::Encode);
+    }
+    #[test]
+    fn mp4_h264_aac_is_raw() {
+        assert_eq!(
+            decide_delivery(&pr(Some("h264"), Some("aac"), Some("mov,mp4,m4a,3gp,3g2,mj2"))),
+            Delivery::RawProgressive
+        );
+    }
+    #[test]
+    fn mkv_h264_aac_is_remux_hls() {
+        assert_eq!(
+            decide_delivery(&pr(Some("h264"), Some("aac"), Some("matroska,webm"))),
+            Delivery::RemuxHls
+        );
+    }
+    #[test]
+    fn hevc_is_transcode_hls() {
+        assert_eq!(
+            decide_delivery(&pr(Some("hevc"), Some("aac"), Some("matroska,webm"))),
+            Delivery::TranscodeHls
+        );
+    }
+    #[test]
+    fn non_aac_is_transcode_hls() {
+        assert_eq!(
+            decide_delivery(&pr(Some("h264"), Some("ac3"), Some("mov,mp4,m4a"))),
+            Delivery::TranscodeHls
+        );
+    }
+    #[test]
+    fn missing_is_transcode_hls() {
+        assert_eq!(decide_delivery(&pr(None, None, None)), Delivery::TranscodeHls);
     }
     #[test]
     fn picks_largest_file() {
