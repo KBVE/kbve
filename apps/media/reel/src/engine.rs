@@ -103,6 +103,9 @@ impl Engine {
             transcode: state::TranscodeStatus::None,
             transcode_path: None,
             transcode_error: None,
+            hls: state::HlsStatus::None,
+            hls_dir: None,
+            hls_error: None,
         })?;
 
         let store = self.store.clone();
@@ -127,6 +130,9 @@ impl Engine {
                         transcode: state::TranscodeStatus::None,
                         transcode_path: None,
                         transcode_error: None,
+                        hls: state::HlsStatus::None,
+                        hls_dir: None,
+                        hls_error: None,
                     });
                     tracing::info!(id = %id_task, "moved to library");
                 }
