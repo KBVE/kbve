@@ -49,6 +49,23 @@ fn check_auth(headers: &HeaderMap, token: &Option<String>) -> bool {
     }
 }
 
+fn token_from_query(query: Option<&str>) -> Option<String> {
+    query?.split('&').find_map(|pair| {
+        let mut it = pair.splitn(2, '=');
+        match (it.next(), it.next()) {
+            (Some("token"), Some(v)) => Some(v.to_string()),
+            _ => None,
+        }
+    })
+}
+
+fn check_auth_q(headers: &HeaderMap, query: Option<&str>, token: &Option<String>) -> bool {
+    if check_auth(headers, token) {
+        return true;
+    }
+    matches!(token, Some(t) if token_from_query(query).as_deref() == Some(t.as_str()))
+}
+
 async fn list(State(st): State<AppStateStub>, headers: HeaderMap) -> impl IntoResponse {
     if !check_auth(&headers, &st.token) {
         return StatusCode::UNAUTHORIZED.into_response();
@@ -155,9 +172,10 @@ async fn stream_file(
     State(st): State<AppState>,
     headers: HeaderMap,
     Path(id): Path<String>,
+    axum::extract::RawQuery(query): axum::extract::RawQuery,
     method: axum::http::Method,
 ) -> impl IntoResponse {
-    if !check_auth(&headers, &st.token) {
+    if !check_auth_q(&headers, query.as_deref(), &st.token) {
         return StatusCode::UNAUTHORIZED.into_response();
     }
     if !st.stream_enabled {
@@ -241,8 +259,9 @@ async fn manifest(
     State(st): State<AppState>,
     headers: HeaderMap,
     Path(id): Path<String>,
+    axum::extract::RawQuery(query): axum::extract::RawQuery,
 ) -> impl IntoResponse {
-    if !check_auth(&headers, &st.token) {
+    if !check_auth_q(&headers, query.as_deref(), &st.token) {
         return StatusCode::UNAUTHORIZED.into_response();
     }
     if !st.hls.enabled() {
@@ -344,9 +363,10 @@ async fn hls_segment(
     State(st): State<AppState>,
     headers: HeaderMap,
     Path((id, segment)): Path<(String, String)>,
+    axum::extract::RawQuery(query): axum::extract::RawQuery,
     method: axum::http::Method,
 ) -> impl IntoResponse {
-    if !check_auth(&headers, &st.token) {
+    if !check_auth_q(&headers, query.as_deref(), &st.token) {
         return StatusCode::UNAUTHORIZED.into_response();
     }
     if !hls::valid_segment_name(&segment) {
@@ -708,6 +728,34 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(ok.status(), StatusCode::OK);
+    }
+
+    #[test]
+    fn token_from_query_extracts_token() {
+        assert_eq!(token_from_query(Some("token=abc")).as_deref(), Some("abc"));
+        assert_eq!(
+            token_from_query(Some("foo=1&token=abc&bar=2")).as_deref(),
+            Some("abc")
+        );
+        assert_eq!(token_from_query(Some("foo=1")), None);
+        assert_eq!(token_from_query(None), None);
+        assert_eq!(token_from_query(Some("token=")).as_deref(), Some(""));
+    }
+
+    #[test]
+    fn check_auth_q_accepts_header_or_query() {
+        let token = Some("secret".to_string());
+        let empty = HeaderMap::new();
+        let mut hdr = HeaderMap::new();
+        hdr.insert("Authorization", "Bearer secret".parse().unwrap());
+
+        assert!(check_auth_q(&hdr, None, &token));
+        assert!(check_auth_q(&empty, Some("token=secret"), &token));
+        assert!(check_auth_q(&empty, Some("x=1&token=secret"), &token));
+        assert!(!check_auth_q(&empty, Some("token=wrong"), &token));
+        assert!(!check_auth_q(&empty, None, &token));
+        assert!(!check_auth_q(&empty, Some("nope=secret"), &token));
+        assert!(check_auth_q(&empty, None, &None));
     }
 
     #[tokio::test]
