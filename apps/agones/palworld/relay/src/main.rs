@@ -1,5 +1,6 @@
 mod config;
 mod event;
+mod rest_client;
 
 use anyhow::Result;
 
