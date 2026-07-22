@@ -33,7 +33,7 @@ export function initKanbanViewManager(): () => void {
 			overwrite: 'auto',
 		});
 
-	gsap.set(sections, { y: 12 });
+	gsap.set(sections, { opacity: 0, y: 12 });
 
 	const triggers = sections.map((section, i) =>
 		ScrollTrigger.create({
@@ -48,10 +48,18 @@ export function initKanbanViewManager(): () => void {
 		}),
 	);
 
+	ScrollTrigger.refresh();
+
+	// Reveal whichever sections are already active at init so above-the-fold
+	// sections (e.g. Summary) appear immediately instead of waiting for a
+	// scroll-crossing onEnter/onEnterBack event.
+	triggers.forEach((t, i) => {
+		if (t.isActive) reveal(sections[i]);
+	});
+
 	// Seed the initial live-set from whichever section is nearest the top.
 	const firstActive = triggers.findIndex((t) => t.isActive);
 	publishLive(firstActive >= 0 ? firstActive : 0);
-	ScrollTrigger.refresh();
 
 	return () => {
 		triggers.forEach((t) => t.kill());

@@ -37,7 +37,11 @@ export default function ReactKanbanTimeline({ sectionIndex }: Props) {
 			}
 		}
 
-		if (items.length === 0) return () => tooltip.el.remove();
+		if (items.length === 0)
+			return () => {
+				tooltip.hide();
+				tooltip.el.remove();
+			};
 
 		const width = 900;
 		const height = 400;
@@ -162,6 +166,7 @@ export default function ReactKanbanTimeline({ sectionIndex }: Props) {
 
 		return () => {
 			while (svg.firstChild) svg.removeChild(svg.firstChild);
+			tooltip.hide();
 			tooltip.el.remove();
 		};
 	}, [active, data]);

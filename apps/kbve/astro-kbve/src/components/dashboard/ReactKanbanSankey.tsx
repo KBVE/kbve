@@ -80,7 +80,11 @@ export default function ReactKanbanSankey({ sectionIndex }: Props) {
 			});
 		}
 
-		if (links.length === 0) return () => tooltip.el.remove();
+		if (links.length === 0)
+			return () => {
+				tooltip.hide();
+				tooltip.el.remove();
+			};
 
 		const sankeyGen = sankey<any, any>()
 			.nodeId((d: any) => d.index)
@@ -209,6 +213,7 @@ export default function ReactKanbanSankey({ sectionIndex }: Props) {
 
 		return () => {
 			while (svg.firstChild) svg.removeChild(svg.firstChild);
+			tooltip.hide();
 			tooltip.el.remove();
 		};
 	}, [active, data]);

@@ -122,6 +122,7 @@ export default function ReactKanbanTreemap({ sectionIndex }: Props) {
 
 		return () => {
 			while (svg.firstChild) svg.removeChild(svg.firstChild);
+			tooltip.hide();
 			tooltip.el.remove();
 		};
 	}, [active, data]);

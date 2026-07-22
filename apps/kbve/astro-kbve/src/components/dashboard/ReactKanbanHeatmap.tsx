@@ -48,7 +48,11 @@ export default function ReactKanbanHeatmap({ sectionIndex }: Props) {
 		}
 
 		const dates = Object.keys(dateCounts).sort();
-		if (dates.length === 0) return () => tooltip.el.remove();
+		if (dates.length === 0)
+			return () => {
+				tooltip.hide();
+				tooltip.el.remove();
+			};
 
 		// Measure container width to compute cell size
 		const containerWidth = container.offsetWidth;
@@ -283,6 +287,7 @@ export default function ReactKanbanHeatmap({ sectionIndex }: Props) {
 		return () => {
 			while (container.firstChild)
 				container.removeChild(container.firstChild);
+			tooltip.hide();
 			tooltip.el.remove();
 		};
 	}, [active, data]);
