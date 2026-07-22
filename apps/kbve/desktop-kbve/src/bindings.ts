@@ -434,6 +434,263 @@ async changePasteMethodSetting(method: string) : Promise<Result<null, string>> {
     if(e instanceof Error) throw e;
     else return { status: "error", error: e  as any };
 }
+},
+async onichanEnable() : Promise<void> {
+    await TAURI_INVOKE("onichan_enable");
+},
+async onichanDisable() : Promise<void> {
+    await TAURI_INVOKE("onichan_disable");
+},
+async onichanIsActive() : Promise<boolean> {
+    return await TAURI_INVOKE("onichan_is_active");
+},
+async onichanGetMode() : Promise<OnichanMode> {
+    return await TAURI_INVOKE("onichan_get_mode");
+},
+async onichanSetMode(mode: OnichanMode) : Promise<void> {
+    await TAURI_INVOKE("onichan_set_mode", { mode });
+},
+async onichanProcessInput(text: string) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("onichan_process_input", { text }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async onichanSpeak(text: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("onichan_speak", { text }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async onichanClearHistory() : Promise<void> {
+    await TAURI_INVOKE("onichan_clear_history");
+},
+async onichanGetHistory() : Promise<ConversationMessage[]> {
+    return await TAURI_INVOKE("onichan_get_history");
+},
+async getOnichanModels() : Promise<OnichanModelInfo[]> {
+    return await TAURI_INVOKE("get_onichan_models");
+},
+async getOnichanLlmModels() : Promise<OnichanModelInfo[]> {
+    return await TAURI_INVOKE("get_onichan_llm_models");
+},
+async getOnichanTtsModels() : Promise<OnichanModelInfo[]> {
+    return await TAURI_INVOKE("get_onichan_tts_models");
+},
+async downloadOnichanModel(modelId: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("download_onichan_model", { modelId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async deleteOnichanModel(modelId: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("delete_onichan_model", { modelId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async loadLocalLlm(modelId: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("load_local_llm", { modelId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async unloadLocalLlm() : Promise<void> {
+    await TAURI_INVOKE("unload_local_llm");
+},
+async isLocalLlmLoaded() : Promise<boolean> {
+    return await TAURI_INVOKE("is_local_llm_loaded");
+},
+async getLocalLlmModelName() : Promise<string | null> {
+    return await TAURI_INVOKE("get_local_llm_model_name");
+},
+async localLlmChat(systemPrompt: string, userMessage: string, maxTokens: number) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("local_llm_chat", { systemPrompt, userMessage, maxTokens }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async loadLocalTts(modelId: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("load_local_tts", { modelId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async unloadLocalTts() : Promise<void> {
+    await TAURI_INVOKE("unload_local_tts");
+},
+async isLocalTtsLoaded() : Promise<boolean> {
+    return await TAURI_INVOKE("is_local_tts_loaded");
+},
+async localTtsSpeak(text: string) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("local_tts_speak", { text }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async onichanStartConversation() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("onichan_start_conversation") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async onichanStopConversation() : Promise<void> {
+    await TAURI_INVOKE("onichan_stop_conversation");
+},
+async onichanIsConversationRunning() : Promise<boolean> {
+    return await TAURI_INVOKE("onichan_is_conversation_running");
+},
+/**
+ * Get the current status of the memory system
+ */
+async getMemoryStatus() : Promise<Result<MemoryStatus, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_memory_status") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Query memories semantically (for all users)
+ */
+async queryAllMemories(query: string, limit: number) : Promise<Result<MemoryMessage[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("query_all_memories", { query, limit }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get total count of all memories
+ * Note: Returns 0 if sidecar is not running to avoid spawning it just to check count
+ */
+async getMemoryCount() : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_memory_count") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Clear all memories
+ */
+async clearAllMemories() : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("clear_all_memories") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Cleanup old memories based on TTL
+ */
+async cleanupOldMemories(ttlDays: number) : Promise<Result<number, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("cleanup_old_memories", { ttlDays }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * List available embedding models
+ */
+async listEmbeddingModels() : Promise<Result<EmbeddingModelInfo[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_embedding_models") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Load an embedding model by ID
+ */
+async loadEmbeddingModel(modelId: string) : Promise<Result<string, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("load_embedding_model", { modelId }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Get the currently loaded embedding model
+ */
+async getCurrentEmbeddingModel() : Promise<Result<EmbeddingModelInfo | null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("get_current_embedding_model") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Stop the memory sidecar
+ */
+async stopMemorySidecar() : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("stop_memory_sidecar") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * Browse recent memories without semantic search
+ * Supports filtering by user_id and is_bot
+ */
+async browseRecentMemories(limit: number, userId: string | null, isBot: boolean | null) : Promise<Result<MemoryMessage[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("browse_recent_memories", { limit, userId, isBot }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+/**
+ * List unique users with memory counts
+ */
+async listMemoryUsers() : Promise<Result<MemoryUserInfo[], string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("list_memory_users") };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
+},
+async getSidecarQuickConfig() : Promise<SidecarQuickConfig> {
+    return await TAURI_INVOKE("get_sidecar_quick_config");
+},
+async setSidecarQuickConfigField(key: string, value: string | null) : Promise<Result<null, string>> {
+    try {
+    return { status: "ok", data: await TAURI_INVOKE("set_sidecar_quick_config_field", { key, value }) };
+} catch (e) {
+    if(e instanceof Error) throw e;
+    else return { status: "error", error: e  as any };
+}
 }
 }
 
@@ -451,7 +708,15 @@ export type AppSettings = { bindings: Partial<{ [key in string]: ShortcutBinding
 export type AudioDevice = { index: string; name: string; is_default: boolean }
 export type BindingResponse = { success: boolean; binding: ShortcutBinding | null; error: string | null }
 export type ClipboardHandling = "dont_modify" | "copy_to_clipboard"
+/**
+ * Message in the conversation
+ */
+export type ConversationMessage = { role: string; content: string }
 export type CustomSounds = { start: boolean; stop: boolean }
+/**
+ * Embedding model info returned from sidecar
+ */
+export type EmbeddingModelInfo = { id: string; name: string; description: string; dimension: number; size_mb: number; is_downloaded: boolean; is_loaded: boolean }
 export type EngineType = "Whisper" | "Parakeet" | "Moonshine"
 /**
  * Output mode for filler word detection
@@ -476,9 +741,45 @@ export type FillerOutputMode =
 export type JsonValue = null | boolean | number | string | JsonValue[] | Partial<{ [key in string]: JsonValue }>
 export type LLMPrompt = { id: string; name: string; prompt: string }
 export type LogLevel = "trace" | "debug" | "info" | "warn" | "error"
+/**
+ * A memory message from the sidecar
+ */
+export type MemoryMessage = { id: string; user_id: string; content: string; is_bot: boolean; timestamp: number; similarity: number | null }
+/**
+ * Status information about the memory system
+ */
+export type MemoryStatus = { is_running: boolean; model_loaded: boolean; total_memories: number }
+/**
+ * User info with memory count
+ */
+export type MemoryUserInfo = { user_id: string; memory_count: number }
 export type ModelInfo = { id: string; name: string; description: string; filename: string; url: string | null; size_mb: number; is_downloaded: boolean; is_downloading: boolean; partial_size: number; is_directory: boolean; engine_type: EngineType; accuracy_score: number; speed_score: number }
 export type ModelLoadStatus = { is_loaded: boolean; current_model: string | null }
 export type ModelUnloadTimeout = "never" | "immediately" | "min_2" | "min_5" | "min_10" | "min_15" | "hour_1" | "sec_5"
+/**
+ * Mode for Onichan LLM processing
+ */
+export type OnichanMode = "Cloud" | "Local"
+/**
+ * Information about an Onichan model (LLM or TTS)
+ */
+export type OnichanModelInfo = { id: string; name: string; description: string; filename: string; url: string | null; size_mb: number; is_downloaded: boolean; is_downloading: boolean; partial_size: number; model_type: OnichanModelType; 
+/**
+ * For LLM models: context size
+ */
+context_size: number | null; 
+/**
+ * For TTS models: sample rate
+ */
+sample_rate: number | null; 
+/**
+ * For TTS models: voice name/style
+ */
+voice_name: string | null }
+/**
+ * Type of Onichan model
+ */
+export type OnichanModelType = "Llm" | "Tts"
 export type OverlayPosition = "none" | "top" | "bottom"
 export type PasteMethod = "ctrl_v" | "direct" | "none" | "shift_insert" | "ctrl_shift_v"
 export type PostProcessProvider = { id: string; label: string; base_url: string; allow_base_url_edit?: boolean; models_endpoint?: string | null }
@@ -489,6 +790,7 @@ export type RecordingRetentionPeriod = "never" | "preserve_limit" | "days_3" | "
  */
 export type SessionDto = { access_token: string; refresh_token: string; token_type: string; expires_in: number; expires_at: number | null; user: SupabaseUserDto }
 export type ShortcutBinding = { id: string; name: string; description: string; default_binding: string; current_binding: string }
+export type SidecarQuickConfig = { last_llm_model_id: string | null; last_tts_model_id: string | null; last_discord_guild_id: string | null; last_discord_channel_id: string | null; last_discord_guild_name: string | null; last_discord_channel_name: string | null; last_embedding_model_id: string | null }
 export type SoundTheme = "marimba" | "pop" | "custom"
 /**
  * specta-friendly mirror of `erust::supabase::SupabaseUser`.

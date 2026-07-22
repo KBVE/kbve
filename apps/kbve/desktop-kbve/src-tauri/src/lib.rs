@@ -6,7 +6,13 @@ pub mod clipboard;
 pub mod commands;
 pub mod helpers;
 pub mod input;
+pub mod local_llm;
+pub mod local_tts;
 pub mod managers;
+pub mod memory;
+pub mod onichan;
+pub mod onichan_conversation;
+pub mod onichan_models;
 pub mod overlay;
 pub mod pty;
 pub mod settings;
@@ -170,6 +176,48 @@ fn specta_builder() -> Builder<tauri::Wry> {
         shortcut::reset_binding,
         shortcut::change_ptt_setting,
         shortcut::change_paste_method_setting,
+        // onichan: assistant
+        commands::onichan::onichan_enable,
+        commands::onichan::onichan_disable,
+        commands::onichan::onichan_is_active,
+        commands::onichan::onichan_get_mode,
+        commands::onichan::onichan_set_mode,
+        commands::onichan::onichan_process_input,
+        commands::onichan::onichan_speak,
+        commands::onichan::onichan_clear_history,
+        commands::onichan::onichan_get_history,
+        commands::onichan::get_onichan_models,
+        commands::onichan::get_onichan_llm_models,
+        commands::onichan::get_onichan_tts_models,
+        commands::onichan::download_onichan_model,
+        commands::onichan::delete_onichan_model,
+        commands::onichan::load_local_llm,
+        commands::onichan::unload_local_llm,
+        commands::onichan::is_local_llm_loaded,
+        commands::onichan::get_local_llm_model_name,
+        commands::onichan::local_llm_chat,
+        commands::onichan::load_local_tts,
+        commands::onichan::unload_local_tts,
+        commands::onichan::is_local_tts_loaded,
+        commands::onichan::local_tts_speak,
+        commands::onichan::onichan_start_conversation,
+        commands::onichan::onichan_stop_conversation,
+        commands::onichan::onichan_is_conversation_running,
+        // onichan: memory
+        commands::memory::get_memory_status,
+        commands::memory::query_all_memories,
+        commands::memory::get_memory_count,
+        commands::memory::clear_all_memories,
+        commands::memory::cleanup_old_memories,
+        commands::memory::list_embedding_models,
+        commands::memory::load_embedding_model,
+        commands::memory::get_current_embedding_model,
+        commands::memory::stop_memory_sidecar,
+        commands::memory::browse_recent_memories,
+        commands::memory::list_memory_users,
+        // onichan: sidecar quick-config
+        commands::sidecar_config::get_sidecar_quick_config,
+        commands::sidecar_config::set_sidecar_quick_config_field,
     ])
 }
 
@@ -267,11 +315,73 @@ pub fn run() {
             );
             app.manage(recording_manager);
             app.manage(model_manager);
-            app.manage(transcription_manager);
+            app.manage(transcription_manager.clone());
             app.manage(ManagedToggleState::default());
 
             // Register the global dictation hotkeys (transcribe / cancel).
             shortcut::init_shortcuts(&dict_handle);
+
+            // Onichan pillar: local LLM/TTS/vector-memory sidecar drivers +
+            // the STT->LLM->TTS orchestration. Sidecar binaries are staged by
+            // src-tauri/sidecars/build.sh (dev) or bundled as resources (prod).
+            let sidecar_triple = if cfg!(target_os = "macos") {
+                if cfg!(target_arch = "aarch64") {
+                    "aarch64-apple-darwin"
+                } else {
+                    "x86_64-apple-darwin"
+                }
+            } else if cfg!(target_os = "linux") {
+                if cfg!(target_arch = "aarch64") {
+                    "aarch64-unknown-linux-gnu"
+                } else {
+                    "x86_64-unknown-linux-gnu"
+                }
+            } else {
+                "x86_64-pc-windows-msvc"
+            };
+            let sidecar_res_dir = dict_handle.path().resource_dir().ok();
+            let sidecar_path = |name: &str| -> std::path::PathBuf {
+                let file = format!("{}-{}", name, sidecar_triple);
+                if cfg!(debug_assertions) {
+                    std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+                        .join("sidecars")
+                        .join(&file)
+                } else if let Some(dir) = &sidecar_res_dir {
+                    dir.join(&file)
+                } else {
+                    std::path::PathBuf::from(&file)
+                }
+            };
+
+            let onichan_manager = Arc::new(onichan::OnichanManager::new(&dict_handle));
+            let onichan_model_manager = Arc::new(
+                onichan_models::OnichanModelManager::new(&dict_handle)
+                    .expect("Failed to initialize onichan model manager"),
+            );
+            let local_llm_manager =
+                Arc::new(local_llm::LocalLlmManager::new(sidecar_path("llm-sidecar")));
+            let local_tts_manager =
+                Arc::new(local_tts::LocalTtsManager::new(sidecar_path("tts-sidecar")));
+            let memory_manager =
+                Arc::new(memory::MemoryManager::new(sidecar_path("memory-sidecar")));
+
+            onichan_manager.set_llm_manager(local_llm_manager.clone());
+            onichan_manager.set_tts_manager(local_tts_manager.clone());
+            onichan_manager.set_memory_manager(memory_manager.clone());
+
+            let onichan_conversation_manager =
+                Arc::new(onichan_conversation::OnichanConversationManager::new(
+                    &dict_handle,
+                    transcription_manager,
+                    onichan_manager.clone(),
+                ));
+
+            app.manage(onichan_manager);
+            app.manage(onichan_model_manager);
+            app.manage(local_llm_manager);
+            app.manage(local_tts_manager);
+            app.manage(memory_manager);
+            app.manage(onichan_conversation_manager);
 
             // System tray reflecting recording state (idle/recording/transcribing).
             let initial_theme = tray::get_current_theme(&dict_handle);
