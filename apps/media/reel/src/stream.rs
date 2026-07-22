@@ -1,6 +1,6 @@
 use axum::body::Body;
 use axum::http::{header, StatusCode};
-use axum::response::{IntoResponse, Response};
+use axum::response::Response;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncSeek, AsyncSeekExt};
 use tokio_util::io::ReaderStream;
 
@@ -64,11 +64,12 @@ where
     let spec = match parse_range(range, total) {
         Ok(s) => s,
         Err(()) => {
-            return (
-                StatusCode::RANGE_NOT_SATISFIABLE,
-                [(header::CONTENT_RANGE, format!("bytes */{total}"))],
-            )
-                .into_response();
+            return Response::builder()
+                .status(StatusCode::RANGE_NOT_SATISFIABLE)
+                .header(header::ACCEPT_RANGES, "bytes")
+                .header(header::CONTENT_RANGE, format!("bytes */{total}"))
+                .body(Body::empty())
+                .unwrap();
         }
     };
 
@@ -92,7 +93,13 @@ where
             let body = if head_only {
                 Body::empty()
             } else {
-                reader.seek(std::io::SeekFrom::Start(start)).await.unwrap();
+                if reader.seek(std::io::SeekFrom::Start(start)).await.is_err() {
+                    return Response::builder()
+                        .status(StatusCode::INTERNAL_SERVER_ERROR)
+                        .header(header::ACCEPT_RANGES, "bytes")
+                        .body(Body::empty())
+                        .unwrap();
+                }
                 Body::from_stream(ReaderStream::new(reader.take(len)))
             };
             Response::builder()
@@ -154,6 +161,15 @@ mod tests {
         let data = std::io::Cursor::new(vec![0u8; 50]);
         let resp = serve_range(data, 50, None, "video/mp4", false).await;
         assert_eq!(resp.status(), StatusCode::OK);
+        assert_eq!(resp.headers().get("accept-ranges").unwrap(), "bytes");
+    }
+
+    #[tokio::test]
+    async fn serve_range_416_has_accept_ranges() {
+        use axum::http::StatusCode;
+        let data = std::io::Cursor::new(vec![0u8; 100]);
+        let resp = serve_range(data, 100, Some("bytes=100-"), "video/mp4", false).await;
+        assert_eq!(resp.status(), StatusCode::RANGE_NOT_SATISFIABLE);
         assert_eq!(resp.headers().get("accept-ranges").unwrap(), "bytes");
     }
 }
