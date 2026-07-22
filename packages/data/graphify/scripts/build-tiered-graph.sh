@@ -28,7 +28,10 @@ graphify cluster-only "$ROOT" --no-viz --no-label
 
 echo "📐 [3/3] precomputing tiered LOD layout…"
 rm -rf "$OUT"
-uv run --with networkx --with numpy --with scipy python \
+# Pin the scientific stack: the force layout (spring/forceatlas2, seed 1337) is
+# only reproducible for a fixed networkx/numpy/scipy — floating them churns node
+# coordinates on every rebuild and buries real code changes in layout noise.
+uv run --with 'networkx==3.4.2' --with 'numpy==2.2.6' --with 'scipy==1.15.3' python \
 	"$SCRIPT_DIR/graphify_tiered.py" "$GRAPH" "$OUT"
 
 echo "✅ wrote $OUT"

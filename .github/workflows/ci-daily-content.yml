@@ -3,6 +3,7 @@ name: Daily Content
 on:
     schedule:
         - cron: '0 1 * * *'
+        - cron: '0 2 * * 1'
     workflow_dispatch:
         inputs:
             route:
@@ -56,9 +57,13 @@ jobs:
             - name: Plan routes
               id: plan
               working-directory: packages/python/kbve
+              env:
+                  SCHEDULE: ${{ github.event.schedule }}
               run: |
                   if [ -n "${{ github.event.inputs.route }}" ]; then
                     uv run kbve-nx-router --route "${{ github.event.inputs.route }}" --json
+                  elif [ "$SCHEDULE" = "0 2 * * 1" ]; then
+                    uv run kbve-nx-router --cadence weekly --json
                   else
                     uv run kbve-nx-router --cadence "${{ github.event.inputs.cadence || 'daily' }}" --json
                   fi
@@ -144,6 +149,14 @@ jobs:
                   pip install pip-audit
                   echo "pip-audit installed: $(pip-audit --version)"
 
+            - name: Install graphify CLI
+              if: contains(matrix.needs, 'graphify')
+              run: |
+                  set -euo pipefail
+                  uv tool install 'graphifyy<1.0'
+                  echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+                  graphify --version
+
             - name: Install protoc
               if: contains(matrix.needs, 'protoc')
               run: |
@@ -173,7 +186,7 @@ jobs:
                   git config user.name "github-actions[bot]"
                   git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-                  git add apps/kbve/astro-kbve/src/content/docs apps/kbve/astro-kbve/public/data/nx apps/kbve/astro-kbve/src/data
+                  git add apps/kbve/astro-kbve/src/content/docs apps/kbve/astro-kbve/public/data/nx apps/kbve/astro-kbve/src/data apps/kbve/astro-kbve/public/graphify
                   if git diff --cached --quiet; then
                     echo "::notice::No pending changes for route ${{ matrix.route }} — nothing to commit."
                     exit 0
