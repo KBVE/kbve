@@ -529,7 +529,7 @@ const prCount = Object.values(columns)
 		border-radius: 12px;
 		border: 1px solid var(--sl-color-gray-5, #262626);
 		background: var(--sl-color-bg-nav, #111);
-		opacity: 1;
+		opacity: 0;
 	}
 	.kb-section-content {
 		display: flex;
@@ -1050,4 +1050,27 @@ const prCount = Object.values(columns)
 			display: none;
 		}
 	}
+
+	@media (scripting: none) {
+		.kb-section {
+			opacity: 1;
+		}
+	}
 </style>
+
+<script>
+	import { initKanbanViewManager } from './kanbanViewManager';
+	import { onSwap } from '@kbve/astro/utils/clientRouter';
+
+	let teardown: (() => void) | null = null;
+
+	document.addEventListener('astro:page-load', () => {
+		teardown?.();
+		teardown = initKanbanViewManager();
+	});
+
+	onSwap(() => {
+		teardown?.();
+		teardown = null;
+	});
+</script>
