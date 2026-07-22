@@ -29,6 +29,15 @@ pub struct ShortcutToggleStates {
 
 pub type ManagedToggleState = Mutex<ShortcutToggleStates>;
 
+/// Bring the main window to the foreground (used by the tray "settings" item).
+fn show_main_window(app: &tauri::AppHandle) {
+    if let Some(window) = app.get_webview_window("main") {
+        let _ = window.show();
+        let _ = window.unminimize();
+        let _ = window.set_focus();
+    }
+}
+
 use auth::{
     auth_authorize_url, auth_complete, auth_refresh, auth_restore, auth_session, auth_sign_out,
 };
@@ -263,6 +272,42 @@ pub fn run() {
 
             // Register the global dictation hotkeys (transcribe / cancel).
             shortcut::init_shortcuts(&dict_handle);
+
+            // System tray reflecting recording state (idle/recording/transcribing).
+            let initial_theme = tray::get_current_theme(&dict_handle);
+            let initial_icon_path = tray::get_icon_path(initial_theme, tray::TrayIconState::Idle);
+            if let Ok(icon_abs) = dict_handle
+                .path()
+                .resolve(initial_icon_path, tauri::path::BaseDirectory::Resource)
+            {
+                if let Ok(image) = tauri::image::Image::from_path(icon_abs) {
+                    match tauri::tray::TrayIconBuilder::new()
+                        .icon(image)
+                        .show_menu_on_left_click(true)
+                        .icon_as_template(true)
+                        .on_menu_event(|app, event| match event.id.as_ref() {
+                            "settings" => show_main_window(app),
+                            "cancel" => utils::cancel_current_operation(app),
+                            "quit" => app.exit(0),
+                            _ => {}
+                        })
+                        .build(&dict_handle)
+                    {
+                        Ok(tray) => {
+                            app.manage(tray);
+                            utils::update_tray_menu(
+                                &dict_handle,
+                                &utils::TrayIconState::Idle,
+                                None,
+                            );
+                        }
+                        Err(e) => log::warn!("Failed to build tray icon: {}", e),
+                    }
+                }
+            }
+
+            // Hidden recording overlay window (shown during record/transcribe).
+            utils::create_recording_overlay(&dict_handle);
 
             Ok(())
         })
