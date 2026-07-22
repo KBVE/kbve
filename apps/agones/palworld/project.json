@@ -46,7 +46,12 @@
 			],
 			"cache": false,
 			"options": {
-				"commands": ["echo 'agones-palworld e2e: pending Task 10'"],
+				"commands": [
+					"docker rm -f agones-palworld-e2e 2>/dev/null || true",
+					"docker run -d --name agones-palworld-e2e -p 8211:8211/udp -p 8212:8212/tcp -p 25575:25575/tcp -e PUID=1000 -e PGID=1000 -e PORT=8211 -e PLAYERS=4 -e SERVER_NAME=e2e -e ADMIN_PASSWORD=e2e-admin -e RCON_ENABLED=true -e REST_API_ENABLED=true -e REST_API_PORT=8212 -e MULTITHREADING=true kbve/agones-palworld:latest",
+					"echo 'Waiting for Palworld to come up...' && for i in $(seq 1 600); do if curl -fsS -u admin:e2e-admin http://127.0.0.1:8212/v1/api/info >/dev/null 2>&1; then echo 'Palworld ready after '\"$i\"'s'; break; fi; if [ $i -eq 600 ]; then echo 'Palworld did not start in 600s'; docker logs agones-palworld-e2e 2>&1 | tail -120; docker rm -f agones-palworld-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+					"PALWORLD_HOST=127.0.0.1 PALWORLD_REST=8212 PALWORLD_ADMIN_PASSWORD=e2e-admin npx vitest run; EC=$?; echo '--- container logs ---'; docker logs agones-palworld-e2e 2>&1 | tail -120; docker rm -f agones-palworld-e2e 2>/dev/null || true; exit $EC"
+				],
 				"parallel": false,
 				"cwd": "apps/agones/palworld"
 			},
