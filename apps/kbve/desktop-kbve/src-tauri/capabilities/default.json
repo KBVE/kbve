@@ -7,6 +7,12 @@
 		"core:default",
 		"opener:default",
 		"store:default",
-		"deep-link:default"
+		"deep-link:default",
+		"os:default",
+		"fs:default",
+		"process:default",
+		"clipboard-manager:default",
+		"global-shortcut:default",
+		"macos-permissions:default"
 	]
 }

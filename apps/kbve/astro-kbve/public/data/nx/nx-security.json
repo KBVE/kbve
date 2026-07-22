@@ -1,20 +1,20 @@
 {
-	"generated_at": "2026-07-21T04:19:57Z",
+	"generated_at": "2026-07-22T04:21:02Z",
 	"summary": {
 		"critical": 4,
-		"high": 32,
-		"medium": 67,
-		"low": 9,
+		"high": 39,
+		"medium": 66,
+		"low": 10,
 		"info": 38
 	},
 	"ecosystems": {
 		"npm": {
-			"total": 87,
+			"total": 94,
 			"severities": {
 				"critical": 4,
-				"high": 32,
-				"medium": 42,
-				"low": 9,
+				"high": 39,
+				"medium": 41,
+				"low": 10,
 				"info": 0
 			},
 			"advisories": [
@@ -31,13 +31,6 @@
 					"severity": "low",
 					"package": "diff",
 					"url": "https://github.com/advisories/GHSA-73rr-hh4g-fpgx"
-				},
-				{
-					"id": "1112715",
-					"title": "js-yaml has prototype pollution in merge (<<)",
-					"severity": "medium",
-					"package": "js-yaml",
-					"url": "https://github.com/advisories/GHSA-mh29-5h37-fv8m"
 				},
 				{
 					"id": "1113048",
@@ -255,13 +248,6 @@
 					"severity": "low",
 					"package": "esbuild",
 					"url": "https://github.com/advisories/GHSA-g7r4-m6w7-qqqr"
-				},
-				{
-					"id": "1120743",
-					"title": "form-data: CRLF injection in form-data via unescaped multipart field names and filenames",
-					"severity": "high",
-					"package": "form-data",
-					"url": "https://github.com/advisories/GHSA-hmw2-7cc7-3qxx"
 				},
 				{
 					"id": "1120782",
@@ -626,6 +612,69 @@
 					"severity": "low",
 					"package": "body-parser",
 					"url": "https://github.com/advisories/GHSA-v422-hmwv-36x6"
+				},
+				{
+					"id": "1124007",
+					"title": "Immutable.js `List` 32-bit trie overflow \u2192 unrecoverable DoS",
+					"severity": "high",
+					"package": "immutable",
+					"url": "https://github.com/advisories/GHSA-v56q-mh7h-f735"
+				},
+				{
+					"id": "1124015",
+					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
+					"severity": "high",
+					"package": "fast-uri",
+					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
+				},
+				{
+					"id": "1124017",
+					"title": "Immutabl: Hash-collision algorithmic complexity denial of service in Immutable.Map/Set",
+					"severity": "high",
+					"package": "immutable",
+					"url": "https://github.com/advisories/GHSA-xvcm-6775-5m9r"
+				},
+				{
+					"id": "1124019",
+					"title": "SVGO removeScripts plugin leaves some executable scripts intact",
+					"severity": "high",
+					"package": "svgo",
+					"url": "https://github.com/advisories/GHSA-2p49-hgcm-8545"
+				},
+				{
+					"id": "1124020",
+					"title": "SVGO removeScripts plugin leaves some executable scripts intact",
+					"severity": "high",
+					"package": "svgo",
+					"url": "https://github.com/advisories/GHSA-2p49-hgcm-8545"
+				},
+				{
+					"id": "1124022",
+					"title": "DOMPurify: `CUSTOM_ELEMENT_HANDLING` bypasses `afterSanitizeElements` for allowed custom elements.",
+					"severity": "low",
+					"package": "dompurify",
+					"url": "https://github.com/advisories/GHSA-c2j3-45gr-mqc4"
+				},
+				{
+					"id": "1124064",
+					"title": "fast-uri vulnerable to host confusion via literal backslash authority delimiter",
+					"severity": "high",
+					"package": "fast-uri",
+					"url": "https://github.com/advisories/GHSA-v2hh-gcrm-f6hx"
+				},
+				{
+					"id": "1124066",
+					"title": "sharp inherited vulnerabilities in libvips: CVE-2026-33327, CVE-2026-33328, CVE-2026-35590, CVE-2026-35591",
+					"severity": "high",
+					"package": "sharp",
+					"url": "https://github.com/advisories/GHSA-f88m-g3jw-g9cj"
+				},
+				{
+					"id": "1124067",
+					"title": "fast-xml-parser: Repeated DOCTYPE declarations reset entity expansion limits",
+					"severity": "high",
+					"package": "fast-xml-parser",
+					"url": "https://github.com/advisories/GHSA-8r6m-32jq-jx6q"
 				}
 			]
 		},

@@ -25,7 +25,6 @@ members = [
 	'apps/jobboard',
 	'apps/metrics',
 	'apps/kbve/isometric/src-tauri',
-	'apps/kbve/desktop-kbve/src-tauri',
 	'packages/rust/bevy/bevy_inventory',
 	'packages/rust/bevy/bevy_statemachine',
 	'packages/rust/bevy/bevy_player',
@@ -54,10 +53,12 @@ members = [
 	'apps/agones/cryptothrone/server',
 	'apps/agones/arpg/server',
 	'packages/rust/kbve_wgpu',
+	'apps/media/reel',
 ]
 
 exclude = [
 	'packages/rust/bevy/uniti/fuzz',
+	'apps/kbve/desktop-kbve/src-tauri',
 ]
 
 [workspace.package]
