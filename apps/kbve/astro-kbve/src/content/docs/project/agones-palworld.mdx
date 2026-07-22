@@ -1,0 +1,160 @@
+---
+title: Agones Palworld — Managed Dedicated Server
+description: Agones-managed Palworld dedicated server on the thijsvanloef/palworld-server-docker base, with a REST-poll prestop shim for clean Agones shutdowns.
+sem: 1
+sidebar:
+    label: Agones Palworld
+    order: 462
+tags:
+    - agones
+    - palworld
+    - gameserver
+    - docker
+key: agones_palworld
+pipeline: docker
+app_name: agones-palworld
+version: "0.0.1"
+source_path: apps/agones/palworld
+version_toml: apps/agones/palworld/version.toml
+runner: ubuntu-latest
+image: kbve/agones-palworld
+deployment_yaml: apps/kube/agones/palworld/manifests/gameserver.yaml
+has_test: true
+e2e_name: agones-palworld
+test_framework: typescript
+author: h0lybyte
+license: KBVE
+status: active
+kube:
+    stack: agones
+    environment: prod
+    tier: server
+    owner: h0lybyte
+    criticality: high
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the Agones Palworld image?
+          answer: A KBVE-baked Palworld dedicated-server OCI image built to run as an Agones GameServer on the production Kubernetes cluster, layered on the thijsvanloef/palworld-server-docker base with its built-in REST API.
+        - question: How does the Agones lifecycle shim work?
+          answer: The shim relies on the base image's own REST-API readiness (no custom Ready/Health loop) and adds a prestop hook that polls the Palworld REST API and issues a graceful shutdown before Agones tears the pod down, so a SIGTERM never truncates an in-progress save.
+        - question: Can the image run locally without Agones?
+          answer: Yes. The prestop hook only fires from the Kubernetes preStop lifecycle hook, so a plain docker run works without an Agones controller.
+bento:
+    badge: gameserver · agones · palworld
+    title: Managed dedicated
+    accent: Palworld
+    lede: >-
+        A KBVE-baked Palworld dedicated-server image built to run as an Agones
+        GameServer on the production Kubernetes cluster — a thin layer over the
+        thijsvanloef/palworld-server-docker base with a REST-poll prestop shim
+        for clean shutdowns.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/agones/palworld
+          primary: true
+          external: true
+        - label: Features
+          href: "#features"
+        - label: Runtime knobs
+          href: "#runtime"
+    aside:
+        icon: server
+        title: REST-poll prestop shim
+        body: >-
+            <code>shim/agones-shim-prestop.sh</code> polls the base image's
+            REST API and issues a graceful shutdown request before the pod
+            terminates, so a Kubernetes-initiated shutdown gets a clean
+            autosave instead of a SIGTERM truncation.
+        points:
+            - <strong>REST-native</strong> — no custom Ready/Health loop, defers to the base image's REST API.
+            - <strong>Local-friendly</strong> — prestop hook only fires from the Kubernetes lifecycle, so plain docker run works standalone.
+    stats:
+        - { label: Image, value: kbve/agones-palworld, icon: box }
+        - { label: Base, value: thijsvanloef/palworld-server-docker, icon: package }
+        - { label: Orchestration, value: Agones, icon: server }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: REST-poll prestop
+          icon: activity
+          body: Polls the base image's REST API and requests a graceful shutdown from the Kubernetes preStop hook before SIGTERM lands.
+        - title: REST API surface
+          icon: network
+          body: Ports 8211 (UDP game), 8212 (REST API), and 25575 (RCON) exposed for the sidecar relay to poll info/metrics/players and issue admin actions.
+        - title: Agones GameServer
+          icon: server
+          body: Runs as a two-container Agones GameServer pod — game container plus agones-palworld-relay sidecar bridging REST polling to the Agones SDK.
+        - title: Persistent saves
+          icon: package
+          body: Save directory mounted from a PVC so world state survives pod restarts and rotations.
+    related:
+        - title: Agones Palworld Relay
+          href: /project/agones-palworld-relay/
+          copy: REST-poll sidecar bridging Agones health/ready, ClickHouse telemetry, and one-way IRC.
+          icon: network
+        - title: Agones
+          href: /project/agones/
+          copy: The game-server orchestration platform.
+          icon: server
+    related_heading: Related
+---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="How it fits together" heading="Overview">
+
+KBVE-baked Palworld dedicated-server image, designed to run as an Agones `GameServer` on the production Kubernetes cluster (issue #14503).
+
+The image is a thin layer on top of `thijsvanloef/palworld-server-docker:latest`:
+
+- **REST-poll prestop shim** — `shim/agones-shim-prestop.sh` runs from the Kubernetes `preStop` lifecycle hook, polls the base image's REST API, and issues a graceful shutdown request so an Agones-initiated pod termination gets a clean autosave instead of a raw SIGTERM.
+- **No custom Ready/Health loop** — unlike the Factorio image, Palworld's Agones readiness and health are driven entirely by the sidecar relay polling the REST API and forwarding state to the Agones SDK; the game container itself stays vanilla.
+- **REST API surface** — the base image ships a REST API on `8212` (info/metrics/players/announce/shutdown), which both the prestop hook and the `agones-palworld-relay` sidecar use instead of log-tailing or RCON for day-to-day polling.
+- **RCON kept, gated** — RCON on `25575` remains available for admin actions the REST API doesn't cover, gated behind the relay.
+
+</BentoProse>
+
+<BentoProse id="phasing" eyebrow="Roadmap" heading="Phasing">
+
+| Phase | Scope |
+|---|---|
+| 0 | Custom image + REST-poll prestop shim (this entry) |
+| 1 | `apps/kube/agones/palworld/` GameServer + UDP/TCP exposure |
+| 2 | `agones-palworld-relay` sidecar (`apps/agones/palworld/relay/`, Rust) — REST poller + Agones health/ready + ClickHouse gameops telemetry + one-way IRC |
+| 3 | PVC-backed saves + SealedSecret-driven credentials + RCON password |
+| 4 | CI publish — Docker build/push for both containers (this task, #14503) |
+
+</BentoProse>
+
+<BentoProse id="runtime" eyebrow="Configuration" heading="Container & runtime knobs">
+
+`kbve/agones-palworld` (local) / `ghcr.io/kbve/agones-palworld` (production), built via the standard nx container target:
+
+```bash
+./kbve.sh -nx agones-palworld:container
+```
+
+| Env | Default | Notes |
+|---|---|---|
+| `PORT` | `8211` | UDP game listen port |
+| `PLAYERS` | _(base image default)_ | Max player count |
+| `SERVER_NAME` | _(base image default)_ | Displayed server name |
+| `ADMIN_PASSWORD` | _(required)_ | Base image admin password, also used by the REST API |
+| `RCON_ENABLED` | `true` | Enables RCON on `25575` |
+| `REST_API_ENABLED` | `true` | Enables the base image's REST API on `8212` |
+| `REST_API_PORT` | `8212` | REST API listen port, polled by the prestop shim and the relay sidecar |
+| `MULTITHREADING` | `true` | Base image multithreading flag |
+
+**References** — Issue #14503 (Palworld Agones integration) · thijsvanloef/palworld-server-docker (upstream base image) · [Agones GameServer CRD](https://agones.dev/site/docs/reference/gameserver/).
+
+</BentoProse>
+
+</BentoDoc>
