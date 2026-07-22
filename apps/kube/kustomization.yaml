@@ -53,6 +53,8 @@ resources:
     - memes/application.yaml
     - jobboard/application.yaml
     - metrics/application.yaml
+    # Reel — ephemeral legal-torrent media fetcher/streamer (Gluetun + WireGuard)
+    - reel/application.yaml
     # Windmill — workflow engine (replaced n8n), windmill.kbve.com
     - windmill/application.yaml
     - rabbitmq/application.yaml
