@@ -1,5 +1,5 @@
 use crate::state::{HlsStatus, Metadata, StateStore, TorrentState};
-use crate::transcode::{pick_primary_file, Delivery};
+use crate::transcode::{Delivery, pick_primary_file};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
@@ -29,7 +29,15 @@ mod tests {
     }
     #[test]
     fn rejects_traversal() {
-        for n in ["../x", ".../x", "a/b", "/etc/passwd", "seg.ts", "index.m3u", "seg01.ts.."] {
+        for n in [
+            "../x",
+            ".../x",
+            "a/b",
+            "/etc/passwd",
+            "seg.ts",
+            "index.m3u",
+            "seg01.ts..",
+        ] {
             assert!(!valid_segment_name(n), "{n}");
         }
     }
@@ -101,8 +109,9 @@ impl HlsManager {
         if delivery == Delivery::RawProgressive {
             return StartOutcome::RawProgressive;
         }
-        let result = self.store.update(id, |m| {
-            match next_hls(&m.hls, &m.state, self.enabled) {
+        let result = self
+            .store
+            .update(id, |m| match next_hls(&m.hls, &m.state, self.enabled) {
                 HlsDecision::Reject(StartOutcome::InProgress(HlsStatus::Ready)) => {
                     let outcome = match &m.hls_dir {
                         Some(dir) => StartOutcome::Ready(dir.clone()),
@@ -116,8 +125,7 @@ impl HlsManager {
                     m.hls_error = None;
                     (StartOutcome::Started, true)
                 }
-            }
-        });
+            });
         match result {
             Ok(Some(StartOutcome::Started)) => {
                 if let Some(meta) = self.store.get(id) {
@@ -304,11 +312,17 @@ mod mgr_tests {
     }
     #[test]
     fn none_starts() {
-        assert_eq!(next_hls(&HlsStatus::None, &TorrentState::Seeding, true), HlsDecision::Start);
+        assert_eq!(
+            next_hls(&HlsStatus::None, &TorrentState::Seeding, true),
+            HlsDecision::Start
+        );
     }
     #[test]
     fn failed_restarts() {
-        assert_eq!(next_hls(&HlsStatus::Failed, &TorrentState::Seeding, true), HlsDecision::Start);
+        assert_eq!(
+            next_hls(&HlsStatus::Failed, &TorrentState::Seeding, true),
+            HlsDecision::Start
+        );
     }
     #[test]
     fn live_in_progress() {
@@ -316,5 +330,14 @@ mod mgr_tests {
             next_hls(&HlsStatus::Live, &TorrentState::Seeding, true),
             HlsDecision::Reject(StartOutcome::InProgress(HlsStatus::Live))
         );
+    }
+
+    #[tokio::test]
+    async fn abort_unknown_is_noop() {
+        let dir = std::env::temp_dir().join(format!("reel-hls-test-{}", std::process::id()));
+        let store = StateStore::load(dir.join("state.json")).unwrap();
+        let mgr = HlsManager::new(store, 1, "ffmpeg".into(), 4, true);
+        mgr.abort("unknown-id").await;
+        assert!(mgr.take_child("unknown-id").is_none());
     }
 }

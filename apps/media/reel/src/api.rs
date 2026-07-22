@@ -24,7 +24,10 @@ pub struct AppStateStub {
 
 impl From<&AppState> for AppStateStub {
     fn from(s: &AppState) -> Self {
-        Self { store: s.store.clone(), token: s.token.clone() }
+        Self {
+            store: s.store.clone(),
+            token: s.token.clone(),
+        }
     }
 }
 
@@ -110,6 +113,7 @@ async fn remove(
     if !check_auth(&headers, &st.token) {
         return StatusCode::UNAUTHORIZED.into_response();
     }
+    st.hls.abort(&id).await;
     match st.engine.delete(&id).await {
         Ok(true) => StatusCode::NO_CONTENT.into_response(),
         Ok(false) => StatusCode::NOT_FOUND.into_response(),
@@ -126,15 +130,21 @@ async fn transcode_start(
         return StatusCode::UNAUTHORIZED.into_response();
     }
     match st.transcoder.request(&id).await {
-        transcode::RequestOutcome::Ready(p) => {
-            (StatusCode::OK, Json(serde_json::json!({"status":"ready","path":p}))).into_response()
-        }
-        transcode::RequestOutcome::Started => {
-            (StatusCode::ACCEPTED, Json(serde_json::json!({"status":"pending"}))).into_response()
-        }
-        transcode::RequestOutcome::InProgress(s) => {
-            (StatusCode::ACCEPTED, Json(serde_json::json!({"status": format!("{s:?}")}))).into_response()
-        }
+        transcode::RequestOutcome::Ready(p) => (
+            StatusCode::OK,
+            Json(serde_json::json!({"status":"ready","path":p})),
+        )
+            .into_response(),
+        transcode::RequestOutcome::Started => (
+            StatusCode::ACCEPTED,
+            Json(serde_json::json!({"status":"pending"})),
+        )
+            .into_response(),
+        transcode::RequestOutcome::InProgress(s) => (
+            StatusCode::ACCEPTED,
+            Json(serde_json::json!({"status": format!("{s:?}")})),
+        )
+            .into_response(),
         transcode::RequestOutcome::NotFound => StatusCode::NOT_FOUND.into_response(),
         transcode::RequestOutcome::NotCompleted => StatusCode::CONFLICT.into_response(),
         transcode::RequestOutcome::Disabled => StatusCode::SERVICE_UNAVAILABLE.into_response(),
@@ -208,7 +218,11 @@ async fn stream_file(
                 .find(|f| f.index == idx)
                 .map(|f| f.name.clone())
                 .unwrap_or_default();
-            let total = files.iter().find(|f| f.index == idx).map(|f| f.len).unwrap_or(0);
+            let total = files
+                .iter()
+                .find(|f| f.index == idx)
+                .map(|f| f.len)
+                .unwrap_or(0);
             let ct = crate::stream::content_type_for(&name);
             if head_only {
                 return crate::stream::head_response(total, range, ct);
@@ -269,11 +283,17 @@ async fn manifest(
                     return serve_manifest_file(&dir).await;
                 }
             }
-            (StatusCode::ACCEPTED, Json(serde_json::json!({"status": format!("{status:?}")}))).into_response()
+            (
+                StatusCode::ACCEPTED,
+                Json(serde_json::json!({"status": format!("{status:?}")})),
+            )
+                .into_response()
         }
-        hls::StartOutcome::Started => {
-            (StatusCode::ACCEPTED, Json(serde_json::json!({"status": "started"}))).into_response()
-        }
+        hls::StartOutcome::Started => (
+            StatusCode::ACCEPTED,
+            Json(serde_json::json!({"status": "started"})),
+        )
+            .into_response(),
         hls::StartOutcome::NotFound => StatusCode::NOT_FOUND.into_response(),
         hls::StartOutcome::NotCompleted => StatusCode::TOO_EARLY.into_response(),
         hls::StartOutcome::RawProgressive => (
@@ -360,7 +380,10 @@ pub fn router(state: AppState) -> Router {
         .route("/torrents/{id}/transcode", post(transcode_start))
         .route("/torrents/{id}/stream", get(stream_file).head(stream_file))
         .route("/torrents/{id}/manifest.m3u8", get(manifest))
-        .route("/torrents/{id}/hls/{segment}", get(hls_segment).head(hls_segment))
+        .route(
+            "/torrents/{id}/hls/{segment}",
+            get(hls_segment).head(hls_segment),
+        )
         .with_state(state);
     Router::new()
         .route("/healthz", get(|| async { "ok" }))
@@ -390,15 +413,21 @@ fn transcode_router(transcoder: transcode::Transcoder, token: Option<String>) ->
             return StatusCode::UNAUTHORIZED.into_response();
         }
         match st.transcoder.request(&id).await {
-            transcode::RequestOutcome::Ready(p) => {
-                (StatusCode::OK, Json(serde_json::json!({"status":"ready","path":p}))).into_response()
-            }
-            transcode::RequestOutcome::Started => {
-                (StatusCode::ACCEPTED, Json(serde_json::json!({"status":"pending"}))).into_response()
-            }
-            transcode::RequestOutcome::InProgress(s) => {
-                (StatusCode::ACCEPTED, Json(serde_json::json!({"status": format!("{s:?}")}))).into_response()
-            }
+            transcode::RequestOutcome::Ready(p) => (
+                StatusCode::OK,
+                Json(serde_json::json!({"status":"ready","path":p})),
+            )
+                .into_response(),
+            transcode::RequestOutcome::Started => (
+                StatusCode::ACCEPTED,
+                Json(serde_json::json!({"status":"pending"})),
+            )
+                .into_response(),
+            transcode::RequestOutcome::InProgress(s) => (
+                StatusCode::ACCEPTED,
+                Json(serde_json::json!({"status": format!("{s:?}")})),
+            )
+                .into_response(),
             transcode::RequestOutcome::NotFound => StatusCode::NOT_FOUND.into_response(),
             transcode::RequestOutcome::NotCompleted => StatusCode::CONFLICT.into_response(),
             transcode::RequestOutcome::Disabled => StatusCode::SERVICE_UNAVAILABLE.into_response(),
@@ -438,11 +467,19 @@ fn stream_router(store: state::StateStore, token: Option<String>, stream_enabled
 
     Router::new()
         .route("/torrents/{id}/stream", get(handler).head(handler))
-        .with_state(StreamState { store, token, stream_enabled })
+        .with_state(StreamState {
+            store,
+            token,
+            stream_enabled,
+        })
 }
 
 #[cfg(test)]
-fn hls_manifest_router(store: state::StateStore, token: Option<String>, hls: hls::HlsManager) -> Router {
+fn hls_manifest_router(
+    store: state::StateStore,
+    token: Option<String>,
+    hls: hls::HlsManager,
+) -> Router {
     #[derive(Clone)]
     struct ManifestState {
         store: state::StateStore,
@@ -640,7 +677,11 @@ mod tests {
     async fn stream_disabled_is_503() {
         let app = stream_router(store_with_one(), None, false);
         let res = app
-            .oneshot(Request::get("/torrents/1/stream").body(Body::empty()).unwrap())
+            .oneshot(
+                Request::get("/torrents/1/stream")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
             .await
             .unwrap();
         assert_eq!(res.status(), StatusCode::SERVICE_UNAVAILABLE);
@@ -650,7 +691,11 @@ mod tests {
     async fn stream_missing_id_is_404() {
         let app = stream_router(store_with_one(), None, true);
         let res = app
-            .oneshot(Request::get("/torrents/999/stream").body(Body::empty()).unwrap())
+            .oneshot(
+                Request::get("/torrents/999/stream")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
             .await
             .unwrap();
         assert_eq!(res.status(), StatusCode::NOT_FOUND);
@@ -660,7 +705,11 @@ mod tests {
     async fn stream_requires_auth_when_token_set() {
         let app = stream_router(store_with_one(), Some("secret".into()), true);
         let res = app
-            .oneshot(Request::get("/torrents/1/stream").body(Body::empty()).unwrap())
+            .oneshot(
+                Request::get("/torrents/1/stream")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
             .await
             .unwrap();
         assert_eq!(res.status(), StatusCode::UNAUTHORIZED);
@@ -675,7 +724,11 @@ mod tests {
         let store = store_with_one();
         let app = hls_manifest_router(store.clone(), None, hls_manager_with(store, true));
         let res = app
-            .oneshot(Request::get("/torrents/999/manifest.m3u8").body(Body::empty()).unwrap())
+            .oneshot(
+                Request::get("/torrents/999/manifest.m3u8")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
             .await
             .unwrap();
         assert_eq!(res.status(), StatusCode::NOT_FOUND);
@@ -686,7 +739,11 @@ mod tests {
         let store = store_with_one();
         let app = hls_manifest_router(store.clone(), None, hls_manager_with(store, false));
         let res = app
-            .oneshot(Request::get("/torrents/1/manifest.m3u8").body(Body::empty()).unwrap())
+            .oneshot(
+                Request::get("/torrents/1/manifest.m3u8")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
             .await
             .unwrap();
         assert_eq!(res.status(), StatusCode::SERVICE_UNAVAILABLE);
@@ -715,7 +772,11 @@ mod tests {
         .unwrap();
         let app = hls_manifest_router(s.clone(), None, hls_manager_with(s, true));
         let res = app
-            .oneshot(Request::get("/torrents/1/manifest.m3u8").body(Body::empty()).unwrap())
+            .oneshot(
+                Request::get("/torrents/1/manifest.m3u8")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
             .await
             .unwrap();
         assert_eq!(res.status(), StatusCode::TOO_EARLY);
@@ -725,7 +786,11 @@ mod tests {
     async fn hls_segment_rejects_bad_name_is_400() {
         let app = hls_segment_router(store_with_one(), None);
         let res = app
-            .oneshot(Request::get("/torrents/1/hls/seg.ts").body(Body::empty()).unwrap())
+            .oneshot(
+                Request::get("/torrents/1/hls/seg.ts")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
             .await
             .unwrap();
         assert_eq!(res.status(), StatusCode::BAD_REQUEST);
@@ -735,7 +800,11 @@ mod tests {
     async fn hls_segment_missing_dir_is_404() {
         let app = hls_segment_router(store_with_one(), None);
         let res = app
-            .oneshot(Request::get("/torrents/1/hls/seg00001.ts").body(Body::empty()).unwrap())
+            .oneshot(
+                Request::get("/torrents/1/hls/seg00001.ts")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
             .await
             .unwrap();
         assert_eq!(res.status(), StatusCode::NOT_FOUND);

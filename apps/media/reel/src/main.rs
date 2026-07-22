@@ -18,12 +18,6 @@ async fn main() -> anyhow::Result<()> {
         cfg.transcode_enabled,
     );
 
-    tokio::spawn(reaper::reap_loop(
-        eng.clone(),
-        cfg.ttl_secs,
-        cfg.reap_interval_secs,
-    ));
-
     let hls = reel::hls::HlsManager::new(
         store.clone(),
         cfg.encode_concurrency,
@@ -31,6 +25,13 @@ async fn main() -> anyhow::Result<()> {
         cfg.hls_segment_secs as u32,
         cfg.hls_enabled,
     );
+
+    tokio::spawn(reaper::reap_loop(
+        eng.clone(),
+        hls.clone(),
+        cfg.ttl_secs,
+        cfg.reap_interval_secs,
+    ));
 
     let app = api::router(api::AppState {
         engine: eng,
