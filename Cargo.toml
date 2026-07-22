@@ -54,6 +54,7 @@ members = [
 	'apps/agones/cryptothrone/server',
 	'apps/agones/arpg/server',
 	'packages/rust/kbve_wgpu',
+	'apps/media/reel',
 ]
 
 exclude = [
