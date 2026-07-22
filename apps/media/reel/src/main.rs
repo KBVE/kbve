@@ -1,9 +1,4 @@
-mod api;
-mod config;
-mod engine;
-mod mover;
-mod reaper;
-mod state;
+use reel::{api, config, engine, reaper, state};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

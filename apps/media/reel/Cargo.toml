@@ -6,6 +6,14 @@ edition = "2021"
 rust-version.workspace = true
 publish = false
 
+[lib]
+name = "reel"
+path = "src/lib.rs"
+
+[[bin]]
+name = "reel"
+path = "src/main.rs"
+
 [dependencies]
 anyhow = "1.0"
 thiserror = "2"
