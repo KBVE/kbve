@@ -159,6 +159,21 @@ fn specta_builder() -> Builder<tauri::Wry> {
     ])
 }
 
+#[cfg(test)]
+mod bindings_export {
+    /// Regenerates src/bindings.ts from the current command set.
+    /// Run with `cargo test export_bindings` (or it runs on `cargo test`).
+    #[test]
+    fn export_bindings() {
+        super::specta_builder()
+            .export(
+                specta_typescript::Typescript::default().bigint(specta_typescript::BigIntExportBehavior::Number),
+                "../src/bindings.ts",
+            )
+            .expect("failed to export typescript bindings");
+    }
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let builder = specta_builder();
@@ -166,7 +181,7 @@ pub fn run() {
     #[cfg(debug_assertions)]
     builder
         .export(
-            specta_typescript::Typescript::default(),
+            specta_typescript::Typescript::default().bigint(specta_typescript::BigIntExportBehavior::Number),
             "../src/bindings.ts",
         )
         .expect("failed to export typescript bindings");
