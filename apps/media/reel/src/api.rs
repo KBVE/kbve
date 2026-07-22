@@ -11,6 +11,7 @@ pub struct AppState {
     pub store: state::StateStore,
     pub token: Option<String>,
     pub transcoder: transcode::Transcoder,
+    pub stream_enabled: bool,
 }
 
 #[derive(Clone)]
@@ -138,6 +139,78 @@ async fn transcode_start(
     }
 }
 
+async fn stream_file(
+    State(st): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<String>,
+    method: axum::http::Method,
+) -> impl IntoResponse {
+    if !check_auth(&headers, &st.token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    if !st.stream_enabled {
+        return StatusCode::SERVICE_UNAVAILABLE.into_response();
+    }
+    let meta = match st.store.get(&id) {
+        Some(m) => m,
+        None => return StatusCode::NOT_FOUND.into_response(),
+    };
+    let head_only = method == axum::http::Method::HEAD;
+    let range = headers.get("range").and_then(|h| h.to_str().ok());
+    let _ = st.store.touch(&id, now_secs());
+
+    match meta.state {
+        state::TorrentState::Seeding => {
+            let path = if meta.transcode == state::TranscodeStatus::Ready {
+                meta.transcode_path.clone().map(std::path::PathBuf::from)
+            } else {
+                None
+            };
+            let path = match path {
+                Some(p) => p,
+                None => match transcode::pick_primary_file(std::path::Path::new(&meta.path)) {
+                    Ok(p) => p,
+                    Err(_) => return StatusCode::CONFLICT.into_response(),
+                },
+            };
+            let file = match tokio::fs::File::open(&path).await {
+                Ok(f) => f,
+                Err(_) => return StatusCode::NOT_FOUND.into_response(),
+            };
+            let total = match file.metadata().await {
+                Ok(m) => m.len(),
+                Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            };
+            let ct = crate::stream::content_type_for(&path.to_string_lossy());
+            crate::stream::serve_range(file, total, range, ct, head_only).await
+        }
+        state::TorrentState::Leeching => {
+            let files = match st.engine.list_files(&id) {
+                Ok(Some(f)) => f,
+                Ok(None) => return StatusCode::TOO_EARLY.into_response(),
+                Err(_) => return StatusCode::TOO_EARLY.into_response(),
+            };
+            let idx = match engine::primary_file_index(&files) {
+                Some(i) => i,
+                None => return StatusCode::CONFLICT.into_response(),
+            };
+            let name = files
+                .iter()
+                .find(|f| f.index == idx)
+                .map(|f| f.name.clone())
+                .unwrap_or_default();
+            let stream = match st.engine.open_stream(&id, idx) {
+                Ok(s) => s,
+                Err(_) => return StatusCode::TOO_EARLY.into_response(),
+            };
+            let total = files.iter().find(|f| f.index == idx).map(|f| f.len).unwrap_or(0);
+            let ct = crate::stream::content_type_for(&name);
+            crate::stream::serve_range(stream, total, range, ct, head_only).await
+        }
+        _ => StatusCode::CONFLICT.into_response(),
+    }
+}
+
 fn store_scoped_router(state: AppStateStub) -> Router {
     Router::new()
         .route("/torrents", get(list))
@@ -152,6 +225,7 @@ pub fn router(state: AppState) -> Router {
         .route("/torrents", post(add))
         .route("/torrents/{id}", axum::routing::delete(remove))
         .route("/torrents/{id}/transcode", post(transcode_start))
+        .route("/torrents/{id}/stream", get(stream_file).head(stream_file))
         .with_state(state);
     Router::new()
         .route("/healthz", get(|| async { "ok" }))
@@ -199,6 +273,37 @@ fn transcode_router(transcoder: transcode::Transcoder, token: Option<String>) ->
     Router::new()
         .route("/torrents/{id}/transcode", post(handler))
         .with_state(TranscodeState { transcoder, token })
+}
+
+#[cfg(test)]
+fn stream_router(store: state::StateStore, token: Option<String>, stream_enabled: bool) -> Router {
+    #[derive(Clone)]
+    struct StreamState {
+        store: state::StateStore,
+        token: Option<String>,
+        stream_enabled: bool,
+    }
+
+    async fn handler(
+        State(st): State<StreamState>,
+        headers: HeaderMap,
+        Path(id): Path<String>,
+    ) -> impl IntoResponse {
+        if !check_auth(&headers, &st.token) {
+            return StatusCode::UNAUTHORIZED.into_response();
+        }
+        if !st.stream_enabled {
+            return StatusCode::SERVICE_UNAVAILABLE.into_response();
+        }
+        match st.store.get(&id) {
+            Some(_) => StatusCode::OK.into_response(),
+            None => StatusCode::NOT_FOUND.into_response(),
+        }
+    }
+
+    Router::new()
+        .route("/torrents/{id}/stream", get(handler).head(handler))
+        .with_state(StreamState { store, token, stream_enabled })
 }
 
 #[cfg(test)]
@@ -320,5 +425,35 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(ok.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn stream_disabled_is_503() {
+        let app = stream_router(store_with_one(), None, false);
+        let res = app
+            .oneshot(Request::get("/torrents/1/stream").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    #[tokio::test]
+    async fn stream_missing_id_is_404() {
+        let app = stream_router(store_with_one(), None, true);
+        let res = app
+            .oneshot(Request::get("/torrents/999/stream").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn stream_requires_auth_when_token_set() {
+        let app = stream_router(store_with_one(), Some("secret".into()), true);
+        let res = app
+            .oneshot(Request::get("/torrents/1/stream").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::UNAUTHORIZED);
     }
 }
