@@ -2,6 +2,7 @@ mod config;
 mod event;
 mod rest_client;
 mod poller;
+mod agones_health;
 
 use anyhow::Result;
 
