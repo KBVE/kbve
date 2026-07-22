@@ -80,6 +80,10 @@ ferrous-opencc = "0.2.3"
 # ndarray-0.16 expectations. rc.10 keeps a single ndarray 0.16 in the graph.
 ort = "=2.0.0-rc.10"
 
+# Fuzzy custom-word replacement in transcribed text (audio_toolkit/text.rs).
+strsim = "0.11.0"
+natural = "0.5.0"
+
 # Global hotkey action chain: capture keyboard, simulate paste.
 enigo = "0.6.1"
 rdev = { git = "https://github.com/rustdesk-org/rdev" }

@@ -1,12 +1,13 @@
 use crate::{config, mover, state};
 use std::net::IpAddr;
 use std::path::PathBuf;
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use librqbit::api::TorrentIdOrHash;
-use librqbit::{AddTorrent, AddTorrentOptions, Session};
+use librqbit::{AddTorrent, AddTorrentOptions, ManagedTorrent, Session};
+use tokio::io::{AsyncRead, AsyncSeek};
 
 pub fn is_vpn_ip(ip: IpAddr) -> bool {
     match ip {
@@ -168,6 +169,68 @@ impl Engine {
     }
 }
 
+#[derive(Clone, Debug, PartialEq)]
+pub struct FileEntry {
+    pub index: usize,
+    pub name: String,
+    pub len: u64,
+}
+
+fn is_media_name(name: &str) -> bool {
+    let lower = name.to_ascii_lowercase();
+    [".mp4", ".mkv", ".webm", ".avi", ".mov", ".m4v", ".ts"]
+        .iter()
+        .any(|ext| lower.ends_with(ext))
+}
+
+pub fn primary_file_index(files: &[FileEntry]) -> Option<usize> {
+    files
+        .iter()
+        .filter(|f| is_media_name(&f.name))
+        .max_by_key(|f| f.len)
+        .map(|f| f.index)
+}
+
+impl Engine {
+    fn handle(&self, id: &str) -> Option<Arc<ManagedTorrent>> {
+        let tid = id.parse::<usize>().ok()?;
+        self.session.get(TorrentIdOrHash::Id(tid))
+    }
+
+    pub fn list_files(&self, id: &str) -> anyhow::Result<Option<Vec<FileEntry>>> {
+        let handle = match self.handle(id) {
+            Some(h) => h,
+            None => return Ok(None),
+        };
+        let files = handle.with_metadata(|m| {
+            m.file_infos
+                .iter()
+                .enumerate()
+                .map(|(index, fi)| FileEntry {
+                    index,
+                    name: fi.relative_filename.to_string_lossy().into_owned(),
+                    len: fi.len,
+                })
+                .collect::<Vec<_>>()
+        });
+        match files {
+            Ok(v) => Ok(Some(v)),
+            Err(_) => Ok(None),
+        }
+    }
+
+    pub fn open_stream(
+        &self,
+        id: &str,
+        file_id: usize,
+    ) -> anyhow::Result<impl AsyncRead + AsyncSeek + Send + 'static> {
+        let handle = self
+            .handle(id)
+            .ok_or_else(|| anyhow::anyhow!("no managed torrent for id {id}"))?;
+        handle.stream(file_id)
+    }
+}
+
 pub fn remove_entry_files(path: &str, transcode_path: Option<&str>) {
     for p in std::iter::once(path).chain(transcode_path) {
         let pb = std::path::Path::new(p);
@@ -223,5 +286,42 @@ mod tests {
     #[test]
     fn ipv6_public_is_vpn() {
         assert!(is_vpn_ip("2606:4700::1111".parse::<IpAddr>().unwrap()));
+    }
+
+    #[test]
+    fn primary_file_index_picks_largest_media() {
+        let files = vec![
+            FileEntry {
+                index: 0,
+                name: "sample.nfo".into(),
+                len: 10,
+            },
+            FileEntry {
+                index: 1,
+                name: "movie.mkv".into(),
+                len: 900,
+            },
+            FileEntry {
+                index: 2,
+                name: "poster.jpg".into(),
+                len: 5000,
+            },
+            FileEntry {
+                index: 3,
+                name: "clip.mp4".into(),
+                len: 100,
+            },
+        ];
+        assert_eq!(primary_file_index(&files), Some(1));
+    }
+
+    #[test]
+    fn primary_file_index_none_when_no_media() {
+        let files = vec![FileEntry {
+            index: 0,
+            name: "readme.txt".into(),
+            len: 10,
+        }];
+        assert_eq!(primary_file_index(&files), None);
     }
 }

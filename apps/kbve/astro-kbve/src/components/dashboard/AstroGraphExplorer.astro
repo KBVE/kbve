@@ -8,10 +8,13 @@ import MonorepoGraphExplorer from './graphExplorer/MonorepoGraphExplorer';
 
 <style>
 	.graph-explorer-shell {
-		position: fixed;
-		inset: var(--sl-nav-height, 3.5rem) 0 0
-			var(--sl-content-inline-start, 0);
+		position: relative;
+		width: 100%;
+		height: min(78vh, 900px);
+		min-height: 520px;
+		border-radius: 12px;
+		overflow: hidden;
 		background: #0a0e16;
-		z-index: 1;
+		border: 1px solid var(--bento-hairline, rgba(148, 163, 184, 0.18));
 	}
 </style>

@@ -2,8 +2,10 @@ globalThis.self = globalThis;
 import * as THREE from 'three';
 import fs from 'fs';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { fileURLToPath } from 'url';
+import { dirname, resolve } from 'path';
 
-const ROOT = '/Users/alappatel/Documents/GitHub/kbve/apps/herbmail/herbmail-game';
+const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const TARGET = process.env.TARGET || ROOT + '/public/models/character-anim.glb';
 const SOURCE = process.env.SOURCE || ROOT + '/public/models/m2m-character.glb';
 const OUT = process.argv[2];

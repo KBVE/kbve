@@ -1,7 +1,33 @@
+pub mod actions;
+pub mod audio_feedback;
+pub mod audio_toolkit;
 pub mod auth;
+pub mod clipboard;
+pub mod commands;
+pub mod helpers;
+pub mod input;
+pub mod managers;
+pub mod overlay;
 pub mod pty;
+pub mod settings;
+pub mod shortcut;
 pub mod terminal;
+pub mod tray;
+pub mod tray_i18n;
+pub mod utils;
+pub mod vad_model;
 mod views;
+
+use std::collections::HashMap;
+use std::sync::Mutex;
+
+/// Tracks toggle-mode shortcut activation state (binding_id -> is_active).
+#[derive(Default)]
+pub struct ShortcutToggleStates {
+    pub active_toggles: HashMap<String, bool>,
+}
+
+pub type ManagedToggleState = Mutex<ShortcutToggleStates>;
 
 use auth::{
     auth_authorize_url, auth_complete, auth_refresh, auth_restore, auth_session, auth_sign_out,
@@ -89,7 +115,63 @@ fn specta_builder() -> Builder<tauri::Wry> {
         auth_restore,
         auth_refresh,
         auth_sign_out,
+        // dictation: app/core
+        commands::cancel_operation,
+        commands::get_app_dir_path,
+        commands::get_app_settings,
+        commands::get_default_settings,
+        commands::get_log_dir_path,
+        commands::open_recordings_folder,
+        commands::open_log_dir,
+        commands::open_app_data_dir,
+        commands::reset_app_data,
+        // dictation: models
+        commands::models::get_available_models,
+        commands::models::get_model_info,
+        commands::models::download_model,
+        commands::models::delete_model,
+        commands::models::set_active_model,
+        commands::models::get_current_model,
+        commands::models::get_transcription_model_status,
+        commands::models::is_model_loading,
+        commands::models::has_any_models_available,
+        commands::models::has_any_models_or_downloads,
+        commands::models::cancel_download,
+        commands::models::get_recommended_first_model,
+        // dictation: audio
+        commands::audio::check_custom_sounds,
+        commands::audio::update_microphone_mode,
+        commands::audio::get_microphone_mode,
+        commands::audio::get_available_microphones,
+        commands::audio::set_selected_microphone,
+        commands::audio::get_selected_microphone,
+        commands::audio::get_available_output_devices,
+        commands::audio::set_selected_output_device,
+        commands::audio::get_selected_output_device,
+        commands::audio::play_test_sound,
+        commands::audio::set_clamshell_microphone,
+        commands::audio::get_clamshell_microphone,
+        commands::audio::is_recording,
+        // dictation: transcription
+        commands::transcription::set_model_unload_timeout,
+        commands::transcription::get_model_load_status,
+        commands::transcription::unload_model_manually,
     ])
+}
+
+#[cfg(test)]
+mod bindings_export {
+    /// Regenerates src/bindings.ts from the current command set.
+    /// Run with `cargo test export_bindings` (or it runs on `cargo test`).
+    #[test]
+    fn export_bindings() {
+        super::specta_builder()
+            .export(
+                specta_typescript::Typescript::default().bigint(specta_typescript::BigIntExportBehavior::Number),
+                "../src/bindings.ts",
+            )
+            .expect("failed to export typescript bindings");
+    }
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -99,7 +181,7 @@ pub fn run() {
     #[cfg(debug_assertions)]
     builder
         .export(
-            specta_typescript::Typescript::default(),
+            specta_typescript::Typescript::default().bigint(specta_typescript::BigIntExportBehavior::Number),
             "../src/bindings.ts",
         )
         .expect("failed to export typescript bindings");
@@ -147,6 +229,35 @@ pub fn run() {
             let pty_manager = Arc::new(pty::PtyManager::new(tx));
             app.manage(pty_manager);
             terminal::spawn_event_pump(app.handle().clone(), rx);
+
+            // Dictation engine: keyboard-sim state + the three managers.
+            // Order matters: TranscriptionManager depends on ModelManager.
+            let dict_handle = app.handle().clone();
+            app.manage(
+                input::EnigoState::new().expect("Failed to initialize input state (Enigo)"),
+            );
+            let recording_manager = Arc::new(
+                managers::audio::AudioRecordingManager::new(&dict_handle)
+                    .expect("Failed to initialize recording manager"),
+            );
+            let model_manager = Arc::new(
+                managers::model::ModelManager::new(&dict_handle)
+                    .expect("Failed to initialize model manager"),
+            );
+            let transcription_manager = Arc::new(
+                managers::transcription::TranscriptionManager::new(
+                    &dict_handle,
+                    model_manager.clone(),
+                )
+                .expect("Failed to initialize transcription manager"),
+            );
+            app.manage(recording_manager);
+            app.manage(model_manager);
+            app.manage(transcription_manager);
+            app.manage(ManagedToggleState::default());
+
+            // Register the global dictation hotkeys (transcribe / cancel).
+            shortcut::init_shortcuts(&dict_handle);
 
             Ok(())
         })
