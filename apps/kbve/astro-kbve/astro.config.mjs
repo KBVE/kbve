@@ -320,7 +320,7 @@ export default defineConfig({
 					label: 'Media',
 					collapsed: true,
 					items: [
-						{ label: 'Reel', link: '/media/reel/', attrs: { 'data-auth-visibility': 'auth' } },
+						{ label: 'Reel', link: '/media/reel/', attrs: { 'data-auth-visibility': 'staff' } },
 					],
 				},
 				{
