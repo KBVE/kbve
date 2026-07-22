@@ -1,4 +1,4 @@
-use crate::{engine, state};
+use crate::{engine, state, transcode};
 use axum::extract::{Path, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::IntoResponse;
@@ -10,6 +10,7 @@ pub struct AppState {
     pub engine: engine::Engine,
     pub store: state::StateStore,
     pub token: Option<String>,
+    pub transcoder: transcode::Transcoder,
 }
 
 #[derive(Clone)]
@@ -113,6 +114,30 @@ async fn remove(
     }
 }
 
+async fn transcode_start(
+    State(st): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<String>,
+) -> impl IntoResponse {
+    if !check_auth(&headers, &st.token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    match st.transcoder.request(&id).await {
+        transcode::RequestOutcome::Ready(p) => {
+            (StatusCode::OK, Json(serde_json::json!({"status":"ready","path":p}))).into_response()
+        }
+        transcode::RequestOutcome::Started => {
+            (StatusCode::ACCEPTED, Json(serde_json::json!({"status":"pending"}))).into_response()
+        }
+        transcode::RequestOutcome::InProgress(s) => {
+            (StatusCode::ACCEPTED, Json(serde_json::json!({"status": format!("{s:?}")}))).into_response()
+        }
+        transcode::RequestOutcome::NotFound => StatusCode::NOT_FOUND.into_response(),
+        transcode::RequestOutcome::NotCompleted => StatusCode::CONFLICT.into_response(),
+        transcode::RequestOutcome::Disabled => StatusCode::SERVICE_UNAVAILABLE.into_response(),
+    }
+}
+
 fn store_scoped_router(state: AppStateStub) -> Router {
     Router::new()
         .route("/torrents", get(list))
@@ -126,6 +151,7 @@ pub fn router(state: AppState) -> Router {
     let engine_router = Router::new()
         .route("/torrents", post(add))
         .route("/torrents/{id}", axum::routing::delete(remove))
+        .route("/torrents/{id}/transcode", post(transcode_start))
         .with_state(state);
     Router::new()
         .route("/healthz", get(|| async { "ok" }))
@@ -139,9 +165,46 @@ fn store_router(store: state::StateStore, token: Option<String>) -> Router {
 }
 
 #[cfg(test)]
+fn transcode_router(transcoder: transcode::Transcoder, token: Option<String>) -> Router {
+    #[derive(Clone)]
+    struct TranscodeState {
+        transcoder: transcode::Transcoder,
+        token: Option<String>,
+    }
+
+    async fn handler(
+        State(st): State<TranscodeState>,
+        headers: HeaderMap,
+        Path(id): Path<String>,
+    ) -> impl IntoResponse {
+        if !check_auth(&headers, &st.token) {
+            return StatusCode::UNAUTHORIZED.into_response();
+        }
+        match st.transcoder.request(&id).await {
+            transcode::RequestOutcome::Ready(p) => {
+                (StatusCode::OK, Json(serde_json::json!({"status":"ready","path":p}))).into_response()
+            }
+            transcode::RequestOutcome::Started => {
+                (StatusCode::ACCEPTED, Json(serde_json::json!({"status":"pending"}))).into_response()
+            }
+            transcode::RequestOutcome::InProgress(s) => {
+                (StatusCode::ACCEPTED, Json(serde_json::json!({"status": format!("{s:?}")}))).into_response()
+            }
+            transcode::RequestOutcome::NotFound => StatusCode::NOT_FOUND.into_response(),
+            transcode::RequestOutcome::NotCompleted => StatusCode::CONFLICT.into_response(),
+            transcode::RequestOutcome::Disabled => StatusCode::SERVICE_UNAVAILABLE.into_response(),
+        }
+    }
+
+    Router::new()
+        .route("/torrents/{id}/transcode", post(handler))
+        .with_state(TranscodeState { transcoder, token })
+}
+
+#[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::{Metadata, StateStore, TorrentState};
+    use crate::state::{Metadata, StateStore, TorrentState, TranscodeStatus};
     use axum::body::Body;
     use axum::http::{Request, StatusCode};
     use http_body_util::BodyExt;
@@ -160,6 +223,9 @@ mod tests {
             completed_at: Some(10),
             last_access: 10,
             state: TorrentState::Seeding,
+            transcode: TranscodeStatus::None,
+            transcode_path: None,
+            transcode_error: None,
         })
         .unwrap();
         s
@@ -182,6 +248,54 @@ mod tests {
         let app = store_router(store_with_one(), None);
         let res = app
             .oneshot(Request::get("/torrents/999").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::NOT_FOUND);
+    }
+
+    fn transcoder_with(store: StateStore) -> transcode::Transcoder {
+        transcode::Transcoder::new(store, 1, 1, "ffmpeg".into(), "ffprobe".into(), true)
+    }
+
+    #[tokio::test]
+    async fn transcode_not_completed_is_409() {
+        let dir = tempdir().unwrap();
+        let s = StateStore::load(dir.path().join("s.json")).unwrap();
+        std::mem::forget(dir);
+        s.upsert(Metadata {
+            id: "1".into(),
+            name: "movie".into(),
+            path: "/lib/movie.mp4".into(),
+            size: 5,
+            completed_at: None,
+            last_access: 10,
+            state: TorrentState::Leeching,
+            transcode: TranscodeStatus::None,
+            transcode_path: None,
+            transcode_error: None,
+        })
+        .unwrap();
+        let app = transcode_router(transcoder_with(s), None);
+        let res = app
+            .oneshot(
+                Request::post("/torrents/1/transcode")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::CONFLICT);
+    }
+
+    #[tokio::test]
+    async fn transcode_missing_id_is_404() {
+        let app = transcode_router(transcoder_with(store_with_one()), None);
+        let res = app
+            .oneshot(
+                Request::post("/torrents/999/transcode")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
             .await
             .unwrap();
         assert_eq!(res.status(), StatusCode::NOT_FOUND);

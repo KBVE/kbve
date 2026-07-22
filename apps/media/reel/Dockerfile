@@ -4,7 +4,7 @@ COPY . .
 RUN cargo build --release -p reel --target-dir /app/target
 
 FROM debian:bookworm-slim AS runtime
-RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates ffmpeg \
     && rm -rf /var/lib/apt/lists/*
 COPY --from=build /app/target/release/reel /usr/local/bin/reel
 VOLUME ["/data"]

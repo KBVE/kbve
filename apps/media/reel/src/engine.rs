@@ -99,6 +99,9 @@ impl Engine {
             completed_at: None,
             last_access: now_secs(),
             state: state::TorrentState::Leeching,
+            transcode: state::TranscodeStatus::None,
+            transcode_path: None,
+            transcode_error: None,
         })?;
 
         let store = self.store.clone();
@@ -120,6 +123,9 @@ impl Engine {
                         completed_at: Some(now),
                         last_access: now,
                         state: state::TorrentState::Seeding,
+                        transcode: state::TranscodeStatus::None,
+                        transcode_path: None,
+                        transcode_error: None,
                     });
                     tracing::info!(id = %id_task, "moved to library");
                 }
@@ -135,12 +141,7 @@ impl Engine {
             let _ = self.session.delete(TorrentIdOrHash::Id(tid), true).await;
         }
         if let Some(m) = &removed {
-            let p = std::path::Path::new(&m.path);
-            if p.is_dir() {
-                let _ = std::fs::remove_dir_all(p);
-            } else if p.exists() {
-                let _ = std::fs::remove_file(p);
-            }
+            remove_entry_files(&m.path, m.transcode_path.as_deref());
         }
         Ok(removed.is_some())
     }
@@ -167,10 +168,34 @@ impl Engine {
     }
 }
 
+pub fn remove_entry_files(path: &str, transcode_path: Option<&str>) {
+    for p in std::iter::once(path).chain(transcode_path) {
+        let pb = std::path::Path::new(p);
+        if pb.is_dir() {
+            let _ = std::fs::remove_dir_all(pb);
+        } else if pb.exists() {
+            let _ = std::fs::remove_file(pb);
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use std::net::IpAddr;
+
+    #[test]
+    fn remove_entry_files_deletes_source_and_transcode() {
+        let dir = tempfile::tempdir().unwrap();
+        let src = dir.path().join("srcdir");
+        std::fs::create_dir_all(&src).unwrap();
+        std::fs::write(src.join("a.mkv"), b"x").unwrap();
+        let tc = dir.path().join("out.reel.mp4");
+        std::fs::write(&tc, b"y").unwrap();
+        remove_entry_files(&src.display().to_string(), Some(&tc.display().to_string()));
+        assert!(!src.exists());
+        assert!(!tc.exists());
+    }
 
     #[test]
     fn private_and_loopback_are_not_vpn() {
