@@ -1,8 +1,8 @@
 {
-	"generated_at": "2026-07-21T04:19:47Z",
+	"generated_at": "2026-07-22T04:20:49Z",
 	"node": {
-		"count": 127,
-		"major": 32,
+		"count": 118,
+		"major": 31,
 		"items": [
 			{
 				"name": "@axe-core/playwright",
@@ -48,7 +48,7 @@
 				"name": "@bufbuild/protobuf",
 				"current": "2.11.0",
 				"wanted": "2.11.0",
-				"latest": "2.12.1",
+				"latest": "2.13.0",
 				"type": "dependencies",
 				"major": false
 			},
@@ -73,6 +73,14 @@
 				"current": "6.41.0",
 				"wanted": "6.41.0",
 				"latest": "6.43.6",
+				"type": "dependencies",
+				"major": false
+			},
+			{
+				"name": "@hcaptcha/react-native-hcaptcha",
+				"current": "4.0.0",
+				"wanted": "4.0.0",
+				"latest": "4.1.0",
 				"type": "dependencies",
 				"major": false
 			},
@@ -117,110 +125,6 @@
 				"major": false
 			},
 			{
-				"name": "@nx/devkit",
-				"current": "23.0.2",
-				"wanted": "23.0.2",
-				"latest": "23.1.0",
-				"type": "devDependencies",
-				"major": false
-			},
-			{
-				"name": "@nx/esbuild",
-				"current": "23.0.2",
-				"wanted": "23.0.2",
-				"latest": "23.1.0",
-				"type": "devDependencies",
-				"major": false
-			},
-			{
-				"name": "@nx/eslint",
-				"current": "23.0.2",
-				"wanted": "23.0.2",
-				"latest": "23.1.0",
-				"type": "devDependencies",
-				"major": false
-			},
-			{
-				"name": "@nx/eslint-plugin",
-				"current": "23.0.2",
-				"wanted": "23.0.2",
-				"latest": "23.1.0",
-				"type": "devDependencies",
-				"major": false
-			},
-			{
-				"name": "@nx/js",
-				"current": "23.0.2",
-				"wanted": "23.0.2",
-				"latest": "23.1.0",
-				"type": "devDependencies",
-				"major": false
-			},
-			{
-				"name": "@nx/node",
-				"current": "23.0.2",
-				"wanted": "23.0.2",
-				"latest": "23.1.0",
-				"type": "devDependencies",
-				"major": false
-			},
-			{
-				"name": "@nx/playwright",
-				"current": "23.0.2",
-				"wanted": "23.0.2",
-				"latest": "23.1.0",
-				"type": "devDependencies",
-				"major": false
-			},
-			{
-				"name": "@nx/react",
-				"current": "23.0.2",
-				"wanted": "23.0.2",
-				"latest": "23.1.0",
-				"type": "devDependencies",
-				"major": false
-			},
-			{
-				"name": "@nx/vite",
-				"current": "23.0.2",
-				"wanted": "23.0.2",
-				"latest": "23.1.0",
-				"type": "devDependencies",
-				"major": false
-			},
-			{
-				"name": "@nx/vitest",
-				"current": "23.0.2",
-				"wanted": "23.0.2",
-				"latest": "23.1.0",
-				"type": "devDependencies",
-				"major": false
-			},
-			{
-				"name": "@nx/web",
-				"current": "23.0.2",
-				"wanted": "23.0.2",
-				"latest": "23.1.0",
-				"type": "devDependencies",
-				"major": false
-			},
-			{
-				"name": "@nx/webpack",
-				"current": "23.0.2",
-				"wanted": "23.0.2",
-				"latest": "23.1.0",
-				"type": "devDependencies",
-				"major": false
-			},
-			{
-				"name": "@nx/workspace",
-				"current": "23.0.2",
-				"wanted": "23.0.2",
-				"latest": "23.1.0",
-				"type": "devDependencies",
-				"major": false
-			},
-			{
 				"name": "@nxlv/python",
 				"current": "22.2.1",
 				"wanted": "22.2.1",
@@ -253,10 +157,18 @@
 				"major": true
 			},
 			{
+				"name": "@react-spring/web",
+				"current": "10.0.3",
+				"wanted": "10.0.3",
+				"latest": "10.1.2",
+				"type": "dependencies",
+				"major": false
+			},
+			{
 				"name": "@scalar/api-reference",
 				"current": "1.55.3",
 				"wanted": "1.55.3",
-				"latest": "1.62.9",
+				"latest": "1.63.0",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -280,7 +192,7 @@
 				"name": "@supabase/supabase-js",
 				"current": "2.95.3",
 				"wanted": "2.95.3",
-				"latest": "2.110.7",
+				"latest": "2.110.8",
 				"type": "dependencies",
 				"major": false
 			},
@@ -328,7 +240,7 @@
 				"name": "@tanstack/query-core",
 				"current": "5.100.5",
 				"wanted": "5.100.5",
-				"latest": "5.101.3",
+				"latest": "5.101.4",
 				"type": "dependencies",
 				"major": false
 			},
@@ -336,7 +248,7 @@
 				"name": "@tanstack/react-query",
 				"current": "5.101.0",
 				"wanted": "5.101.0",
-				"latest": "5.101.3",
+				"latest": "5.101.4",
 				"type": "dependencies",
 				"major": false
 			},
@@ -344,7 +256,7 @@
 				"name": "@tanstack/react-query-persist-client",
 				"current": "5.101.0",
 				"wanted": "5.101.0",
-				"latest": "5.101.3",
+				"latest": "5.101.4",
 				"type": "dependencies",
 				"major": false
 			},
@@ -371,6 +283,14 @@
 				"latest": "2.4.4",
 				"type": "dependencies",
 				"major": false
+			},
+			{
+				"name": "@testing-library/jest-dom",
+				"current": "6.9.1",
+				"wanted": "6.9.1",
+				"latest": "7.0.0",
+				"type": "devDependencies",
+				"major": true
 			},
 			{
 				"name": "@types/dompurify",
@@ -422,19 +342,19 @@
 			},
 			{
 				"name": "@typescript-eslint/eslint-plugin",
-				"current": "7.18.0",
-				"wanted": "7.18.0",
-				"latest": "8.64.0",
+				"current": "8.64.0",
+				"wanted": "8.64.0",
+				"latest": "8.65.0",
 				"type": "devDependencies",
-				"major": true
+				"major": false
 			},
 			{
 				"name": "@typescript-eslint/parser",
-				"current": "7.18.0",
-				"wanted": "7.18.0",
-				"latest": "8.64.0",
+				"current": "8.64.0",
+				"wanted": "8.64.0",
+				"latest": "8.65.0",
 				"type": "devDependencies",
-				"major": true
+				"major": false
 			},
 			{
 				"name": "@vitejs/plugin-react",
@@ -480,7 +400,7 @@
 				"name": "astro",
 				"current": "7.0.9",
 				"wanted": "7.0.9",
-				"latest": "7.1.2",
+				"latest": "7.1.3",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -566,19 +486,11 @@
 			},
 			{
 				"name": "eslint",
-				"current": "8.57.0",
-				"wanted": "8.57.0",
+				"current": "9.39.5",
+				"wanted": "9.39.5",
 				"latest": "10.7.0",
 				"type": "devDependencies",
 				"major": true
-			},
-			{
-				"name": "eslint-config-prettier",
-				"current": "10.1.2",
-				"wanted": "10.1.2",
-				"latest": "10.1.8",
-				"type": "devDependencies",
-				"major": false
 			},
 			{
 				"name": "expo",
@@ -696,7 +608,7 @@
 				"name": "marked",
 				"current": "18.0.2",
 				"wanted": "18.0.2",
-				"latest": "18.0.6",
+				"latest": "18.0.7",
 				"type": "dependencies",
 				"major": false
 			},
@@ -720,15 +632,15 @@
 				"name": "monocart-reporter",
 				"current": "2.11.2",
 				"wanted": "2.11.2",
-				"latest": "2.12.2",
+				"latest": "2.12.3",
 				"type": "devDependencies",
 				"major": false
 			},
 			{
-				"name": "nx",
-				"current": "23.0.2",
-				"wanted": "23.0.2",
-				"latest": "23.1.0",
+				"name": "nanostores",
+				"current": "1.4.0",
+				"wanted": "1.4.0",
+				"latest": "1.4.1",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -744,7 +656,7 @@
 				"name": "postcss",
 				"current": "8.5.14",
 				"wanted": "8.5.14",
-				"latest": "8.5.20",
+				"latest": "8.5.21",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -768,7 +680,7 @@
 				"name": "prettier",
 				"current": "3.8.1",
 				"wanted": "3.8.1",
-				"latest": "3.9.5",
+				"latest": "3.9.6",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -776,7 +688,7 @@
 				"name": "react",
 				"current": "19.2.3",
 				"wanted": "19.2.3",
-				"latest": "19.2.7",
+				"latest": "19.2.8",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -784,7 +696,7 @@
 				"name": "react-dom",
 				"current": "19.2.3",
 				"wanted": "19.2.3",
-				"latest": "19.2.7",
+				"latest": "19.2.8",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -808,7 +720,7 @@
 				"name": "react-is",
 				"current": "19.2.4",
 				"wanted": "19.2.4",
-				"latest": "19.2.7",
+				"latest": "19.2.8",
 				"type": "dependencies",
 				"major": false
 			},
@@ -885,6 +797,22 @@
 				"major": false
 			},
 			{
+				"name": "react-window",
+				"current": "2.2.7",
+				"wanted": "2.2.7",
+				"latest": "2.3.0",
+				"type": "dependencies",
+				"major": false
+			},
+			{
+				"name": "recharts",
+				"current": "3.9.2",
+				"wanted": "3.9.2",
+				"latest": "3.10.0",
+				"type": "dependencies",
+				"major": false
+			},
+			{
 				"name": "shiki",
 				"current": "1.29.2",
 				"wanted": "1.29.2",
@@ -950,8 +878,8 @@
 			},
 			{
 				"name": "typescript",
-				"current": "5.9.3",
-				"wanted": "5.9.3",
+				"current": "6.0.3",
+				"wanted": "6.0.3",
 				"latest": "7.0.2",
 				"type": "devDependencies",
 				"major": true
@@ -1023,7 +951,7 @@
 		]
 	},
 	"rust": {
-		"count": 289,
+		"count": 300,
 		"major": 0,
 		"items": [
 			{
@@ -1077,7 +1005,7 @@
 			{
 				"name": "ammonia",
 				"current": "4.1.2",
-				"latest": "4.1.3",
+				"latest": "4.1.4",
 				"major": false
 			},
 			{
@@ -1165,6 +1093,12 @@
 				"major": false
 			},
 			{
+				"name": "aws-config",
+				"current": "1.9.0",
+				"latest": "1.10.0",
+				"major": false
+			},
+			{
 				"name": "aws-lc-rs",
 				"current": "1.16.2",
 				"latest": "1.17.3",
@@ -1174,6 +1108,54 @@
 				"name": "aws-lc-sys",
 				"current": "0.39.1",
 				"latest": "0.43.0",
+				"major": false
+			},
+			{
+				"name": "aws-runtime",
+				"current": "1.8.1",
+				"latest": "1.9.0",
+				"major": false
+			},
+			{
+				"name": "aws-sdk-s3",
+				"current": "1.138.1",
+				"latest": "1.139.0",
+				"major": false
+			},
+			{
+				"name": "aws-sdk-sso",
+				"current": "1.103.0",
+				"latest": "1.104.0",
+				"major": false
+			},
+			{
+				"name": "aws-sdk-ssooidc",
+				"current": "1.105.0",
+				"latest": "1.106.0",
+				"major": false
+			},
+			{
+				"name": "aws-sdk-sts",
+				"current": "1.108.0",
+				"latest": "1.109.0",
+				"major": false
+			},
+			{
+				"name": "aws-smithy-query",
+				"current": "0.61.1",
+				"latest": "0.62.0",
+				"major": false
+			},
+			{
+				"name": "aws-smithy-xml",
+				"current": "0.61.1",
+				"latest": "0.62.0",
+				"major": false
+			},
+			{
+				"name": "aws-types",
+				"current": "1.4.0",
+				"latest": "1.5.0",
 				"major": false
 			},
 			{
@@ -1281,7 +1263,7 @@
 			{
 				"name": "clap",
 				"current": "4.6.0",
-				"latest": "4.6.3",
+				"latest": "4.6.4",
 				"major": false
 			},
 			{
@@ -1293,7 +1275,7 @@
 			{
 				"name": "clap_derive",
 				"current": "4.6.0",
-				"latest": "4.6.3",
+				"latest": "4.6.4",
 				"major": false
 			},
 			{
@@ -1603,6 +1585,12 @@
 				"major": false
 			},
 			{
+				"name": "glob",
+				"current": "0.3.3",
+				"latest": "0.3.4",
+				"major": false
+			},
+			{
 				"name": "globset",
 				"current": "0.4.18",
 				"latest": "0.4.19",
@@ -1725,7 +1713,7 @@
 			{
 				"name": "impl-more",
 				"current": "0.1.9",
-				"latest": "0.3.1",
+				"latest": "0.3.2",
 				"major": false
 			},
 			{
@@ -1803,7 +1791,7 @@
 			{
 				"name": "libc",
 				"current": "0.2.184",
-				"latest": "0.2.187",
+				"latest": "0.2.189",
 				"major": false
 			},
 			{
@@ -2473,6 +2461,12 @@
 				"major": false
 			},
 			{
+				"name": "tokio-util",
+				"current": "0.7.18",
+				"latest": "0.7.19",
+				"major": false
+			},
+			{
 				"name": "toml",
 				"current": "1.1.2+spec-1.1.0",
 				"latest": "1.1.3+spec-1.1.0",
@@ -2667,7 +2661,7 @@
 			{
 				"name": "xxhash-rust",
 				"current": "0.8.16",
-				"latest": "0.8.17",
+				"latest": "0.8.18",
 				"major": false
 			},
 			{
@@ -2762,6 +2756,6 @@
 			}
 		]
 	},
-	"total": 416,
-	"major_total": 32
+	"total": 418,
+	"major_total": 31
 }
