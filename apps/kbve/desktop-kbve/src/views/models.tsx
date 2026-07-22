@@ -28,6 +28,7 @@ export function ModelsView() {
 	}, []);
 
 	useEffect(() => {
+		// eslint-disable-next-line react-hooks/set-state-in-effect
 		refresh();
 	}, [refresh]);
 
@@ -117,7 +118,9 @@ export function ModelsView() {
 											</span>
 										)}
 									</span>
-									<span className="text-caption" style={muted}>
+									<span
+										className="text-caption"
+										style={muted}>
 										{m.engine_type} · {m.size_mb} MB ·{' '}
 										{m.description}
 									</span>
