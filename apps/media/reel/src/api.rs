@@ -1,4 +1,4 @@
-use crate::{engine, state, transcode};
+use crate::{engine, hls, state, transcode};
 use axum::extract::{Path, State};
 use axum::http::{HeaderMap, StatusCode};
 use axum::response::IntoResponse;
@@ -12,6 +12,8 @@ pub struct AppState {
     pub token: Option<String>,
     pub transcoder: transcode::Transcoder,
     pub stream_enabled: bool,
+    pub hls: hls::HlsManager,
+    pub ffprobe_bin: String,
 }
 
 #[derive(Clone)]
@@ -221,6 +223,126 @@ async fn stream_file(
     }
 }
 
+async fn manifest(
+    State(st): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<String>,
+) -> impl IntoResponse {
+    if !check_auth(&headers, &st.token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    if !st.hls.enabled() {
+        return StatusCode::SERVICE_UNAVAILABLE.into_response();
+    }
+    let meta = match st.store.get(&id) {
+        Some(m) => m,
+        None => return StatusCode::NOT_FOUND.into_response(),
+    };
+    let _ = st.store.touch(&id, now_secs());
+
+    let primary = match transcode::pick_primary_file(std::path::Path::new(&meta.path)) {
+        Ok(p) => p,
+        Err(_) => return StatusCode::CONFLICT.into_response(),
+    };
+    let probe = match transcode::probe(&st.ffprobe_bin, &primary).await {
+        Ok(p) => p,
+        Err(_) => return StatusCode::CONFLICT.into_response(),
+    };
+    let delivery = transcode::decide_delivery(&probe);
+    if delivery == transcode::Delivery::RawProgressive {
+        return (
+            StatusCode::CONFLICT,
+            Json(serde_json::json!({"delivery": "raw_progressive"})),
+        )
+            .into_response();
+    }
+    if meta.state != state::TorrentState::Seeding {
+        return StatusCode::TOO_EARLY.into_response();
+    }
+
+    match st.hls.request(&id, delivery).await {
+        hls::StartOutcome::Ready(dir) => serve_manifest_file(&dir).await,
+        hls::StartOutcome::InProgress(status) => {
+            if matches!(status, state::HlsStatus::Ready | state::HlsStatus::Live) {
+                if let Some(dir) = st.store.get(&id).and_then(|m| m.hls_dir) {
+                    return serve_manifest_file(&dir).await;
+                }
+            }
+            (StatusCode::ACCEPTED, Json(serde_json::json!({"status": format!("{status:?}")}))).into_response()
+        }
+        hls::StartOutcome::Started => {
+            (StatusCode::ACCEPTED, Json(serde_json::json!({"status": "started"}))).into_response()
+        }
+        hls::StartOutcome::NotFound => StatusCode::NOT_FOUND.into_response(),
+        hls::StartOutcome::NotCompleted => StatusCode::TOO_EARLY.into_response(),
+        hls::StartOutcome::RawProgressive => (
+            StatusCode::CONFLICT,
+            Json(serde_json::json!({"delivery": "raw_progressive"})),
+        )
+            .into_response(),
+        hls::StartOutcome::Disabled => StatusCode::SERVICE_UNAVAILABLE.into_response(),
+    }
+}
+
+async fn serve_manifest_file(dir: &str) -> axum::response::Response {
+    let path = std::path::Path::new(dir).join("index.m3u8");
+    let file = match tokio::fs::File::open(&path).await {
+        Ok(f) => f,
+        Err(_) => return StatusCode::NOT_FOUND.into_response(),
+    };
+    let total = match file.metadata().await {
+        Ok(m) => m.len(),
+        Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    };
+    crate::stream::serve_range(file, total, None, "application/vnd.apple.mpegurl", false).await
+}
+
+async fn hls_segment(
+    State(st): State<AppState>,
+    headers: HeaderMap,
+    Path((id, segment)): Path<(String, String)>,
+    method: axum::http::Method,
+) -> impl IntoResponse {
+    if !check_auth(&headers, &st.token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    if !hls::valid_segment_name(&segment) {
+        return StatusCode::BAD_REQUEST.into_response();
+    }
+    let meta = match st.store.get(&id) {
+        Some(m) => m,
+        None => return StatusCode::NOT_FOUND.into_response(),
+    };
+    let dir = match meta.hls_dir {
+        Some(d) => d,
+        None => return StatusCode::NOT_FOUND.into_response(),
+    };
+    let path = std::path::Path::new(&dir).join(&segment);
+    let head_only = method == axum::http::Method::HEAD;
+    let range = headers.get("range").and_then(|h| h.to_str().ok());
+    let ct = if segment.ends_with(".ts") {
+        "video/mp2t"
+    } else {
+        "application/vnd.apple.mpegurl"
+    };
+    if head_only {
+        let total = match tokio::fs::metadata(&path).await {
+            Ok(m) => m.len(),
+            Err(_) => return StatusCode::NOT_FOUND.into_response(),
+        };
+        return crate::stream::head_response(total, range, ct);
+    }
+    let file = match tokio::fs::File::open(&path).await {
+        Ok(f) => f,
+        Err(_) => return StatusCode::NOT_FOUND.into_response(),
+    };
+    let total = match file.metadata().await {
+        Ok(m) => m.len(),
+        Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    };
+    crate::stream::serve_range(file, total, range, ct, head_only).await
+}
+
 fn store_scoped_router(state: AppStateStub) -> Router {
     Router::new()
         .route("/torrents", get(list))
@@ -236,6 +358,8 @@ pub fn router(state: AppState) -> Router {
         .route("/torrents/{id}", axum::routing::delete(remove))
         .route("/torrents/{id}/transcode", post(transcode_start))
         .route("/torrents/{id}/stream", get(stream_file).head(stream_file))
+        .route("/torrents/{id}/manifest.m3u8", get(manifest))
+        .route("/torrents/{id}/hls/{segment}", get(hls_segment).head(hls_segment))
         .with_state(state);
     Router::new()
         .route("/healthz", get(|| async { "ok" }))
@@ -314,6 +438,71 @@ fn stream_router(store: state::StateStore, token: Option<String>, stream_enabled
     Router::new()
         .route("/torrents/{id}/stream", get(handler).head(handler))
         .with_state(StreamState { store, token, stream_enabled })
+}
+
+#[cfg(test)]
+fn hls_manifest_router(store: state::StateStore, token: Option<String>, hls: hls::HlsManager) -> Router {
+    #[derive(Clone)]
+    struct ManifestState {
+        store: state::StateStore,
+        token: Option<String>,
+        hls: hls::HlsManager,
+    }
+
+    async fn handler(
+        State(st): State<ManifestState>,
+        headers: HeaderMap,
+        Path(id): Path<String>,
+    ) -> impl IntoResponse {
+        if !check_auth(&headers, &st.token) {
+            return StatusCode::UNAUTHORIZED.into_response();
+        }
+        if !st.hls.enabled() {
+            return StatusCode::SERVICE_UNAVAILABLE.into_response();
+        }
+        match st.store.get(&id) {
+            Some(_) => StatusCode::OK.into_response(),
+            None => StatusCode::NOT_FOUND.into_response(),
+        }
+    }
+
+    Router::new()
+        .route("/torrents/{id}/manifest.m3u8", get(handler))
+        .with_state(ManifestState { store, token, hls })
+}
+
+#[cfg(test)]
+fn hls_segment_router(store: state::StateStore, token: Option<String>) -> Router {
+    #[derive(Clone)]
+    struct SegmentState {
+        store: state::StateStore,
+        token: Option<String>,
+    }
+
+    async fn handler(
+        State(st): State<SegmentState>,
+        headers: HeaderMap,
+        Path((id, segment)): Path<(String, String)>,
+    ) -> impl IntoResponse {
+        if !check_auth(&headers, &st.token) {
+            return StatusCode::UNAUTHORIZED.into_response();
+        }
+        if !hls::valid_segment_name(&segment) {
+            return StatusCode::BAD_REQUEST.into_response();
+        }
+        let meta = match st.store.get(&id) {
+            Some(m) => m,
+            None => return StatusCode::NOT_FOUND.into_response(),
+        };
+        match meta.hls_dir {
+            Some(_) => StatusCode::OK.into_response(),
+            None => StatusCode::NOT_FOUND.into_response(),
+        }
+    }
+
+    Router::new()
+        .route("/torrents/{id}/hls/{segment}", get(handler))
+        .with_state(SegmentState { store, token })
 }
 
 #[cfg(test)]
@@ -471,5 +660,51 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(res.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    fn hls_manager_with(store: StateStore, enabled: bool) -> crate::hls::HlsManager {
+        crate::hls::HlsManager::new(store, 1, "ffmpeg".into(), 4, enabled)
+    }
+
+    #[tokio::test]
+    async fn manifest_missing_id_is_404() {
+        let store = store_with_one();
+        let app = hls_manifest_router(store.clone(), None, hls_manager_with(store, true));
+        let res = app
+            .oneshot(Request::get("/torrents/999/manifest.m3u8").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn manifest_hls_disabled_is_503() {
+        let store = store_with_one();
+        let app = hls_manifest_router(store.clone(), None, hls_manager_with(store, false));
+        let res = app
+            .oneshot(Request::get("/torrents/1/manifest.m3u8").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    #[tokio::test]
+    async fn hls_segment_rejects_bad_name_is_400() {
+        let app = hls_segment_router(store_with_one(), None);
+        let res = app
+            .oneshot(Request::get("/torrents/1/hls/seg.ts").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::BAD_REQUEST);
+    }
+
+    #[tokio::test]
+    async fn hls_segment_missing_dir_is_404() {
+        let app = hls_segment_router(store_with_one(), None);
+        let res = app
+            .oneshot(Request::get("/torrents/1/hls/seg00001.ts").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::NOT_FOUND);
     }
 }

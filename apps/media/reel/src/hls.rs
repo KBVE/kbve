@@ -93,6 +93,10 @@ impl HlsManager {
         }
     }
 
+    pub fn enabled(&self) -> bool {
+        self.enabled
+    }
+
     pub async fn request(&self, id: &str, delivery: Delivery) -> StartOutcome {
         if delivery == Delivery::RawProgressive {
             return StartOutcome::RawProgressive;

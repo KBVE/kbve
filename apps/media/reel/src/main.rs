@@ -24,12 +24,22 @@ async fn main() -> anyhow::Result<()> {
         cfg.reap_interval_secs,
     ));
 
+    let hls = reel::hls::HlsManager::new(
+        store.clone(),
+        cfg.encode_concurrency,
+        cfg.ffmpeg_bin.clone(),
+        cfg.hls_segment_secs as u32,
+        cfg.hls_enabled,
+    );
+
     let app = api::router(api::AppState {
         engine: eng,
         store,
         token: cfg.api_token.clone(),
         transcoder,
         stream_enabled: cfg.stream_enabled,
+        hls,
+        ffprobe_bin: cfg.ffprobe_bin.clone(),
     });
     let listener = tokio::net::TcpListener::bind(&cfg.api_addr).await?;
     tracing::info!(addr = %cfg.api_addr, "reel listening");
