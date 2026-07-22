@@ -1,0 +1,161 @@
+use crate::{config, mover, state};
+use std::net::IpAddr;
+use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::Arc;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+use librqbit::api::TorrentIdOrHash;
+use librqbit::{AddTorrent, AddTorrentOptions, Session};
+
+pub fn is_vpn_ip(ip: IpAddr) -> bool {
+    match ip {
+        IpAddr::V4(v4) => {
+            !(v4.is_private() || v4.is_loopback() || v4.is_link_local() || v4.is_unspecified())
+        }
+        IpAddr::V6(v6) => !(v6.is_loopback() || v6.is_unspecified()),
+    }
+}
+
+pub async fn vpn_preflight(check_url: &str) -> anyhow::Result<IpAddr> {
+    let body = reqwest::get(check_url).await?.text().await?;
+    let ip: IpAddr = body
+        .trim()
+        .parse()
+        .map_err(|_| anyhow::anyhow!("vpn check returned non-ip: {body}"))?;
+    if !is_vpn_ip(ip) {
+        anyhow::bail!("egress ip {ip} is not a public/vpn address; refusing to start");
+    }
+    Ok(ip)
+}
+
+fn now_secs() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0)
+}
+
+static ADD_COUNTER: AtomicU64 = AtomicU64::new(0);
+
+fn unique_subdir() -> String {
+    let n = ADD_COUNTER.fetch_add(1, Ordering::Relaxed);
+    let nanos = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_nanos())
+        .unwrap_or(0);
+    format!("{nanos}-{n}")
+}
+
+#[derive(Clone)]
+pub struct Engine {
+    session: Arc<Session>,
+    store: state::StateStore,
+    active_dir: PathBuf,
+    library_dir: PathBuf,
+}
+
+impl Engine {
+    pub async fn start(cfg: &config::Config, store: state::StateStore) -> anyhow::Result<Self> {
+        let ip = vpn_preflight(&cfg.vpn_check_url).await?;
+        tracing::info!(%ip, "vpn preflight ok");
+        std::fs::create_dir_all(&cfg.active_dir)?;
+        std::fs::create_dir_all(&cfg.library_dir)?;
+        let session = Session::new(cfg.active_dir.clone()).await?;
+        Ok(Self {
+            session,
+            store,
+            active_dir: cfg.active_dir.clone(),
+            library_dir: cfg.library_dir.clone(),
+        })
+    }
+
+    pub async fn add(&self, source: &str) -> anyhow::Result<String> {
+        let out_dir = self.active_dir.join(unique_subdir());
+        let opts = AddTorrentOptions {
+            output_folder: Some(out_dir.to_string_lossy().into_owned()),
+            ..Default::default()
+        };
+        let resp = self
+            .session
+            .add_torrent(AddTorrent::from_url(source), Some(opts))
+            .await?;
+        let handle = resp
+            .into_handle()
+            .ok_or_else(|| anyhow::anyhow!("torrent is list-only, no handle"))?;
+        let id = handle.id().to_string();
+        let name = handle.name().unwrap_or_else(|| id.clone());
+
+        self.store.upsert(state::Metadata {
+            id: id.clone(),
+            name: name.clone(),
+            path: String::new(),
+            size: 0,
+            completed_at: None,
+            last_access: now_secs(),
+            state: state::TorrentState::Leeching,
+        })?;
+
+        let store = self.store.clone();
+        let library_dir = self.library_dir.clone();
+        let id_task = id.clone();
+        tokio::spawn(async move {
+            if let Err(e) = handle.wait_until_completed().await {
+                tracing::error!(id = %id_task, error = %e, "torrent failed");
+                return;
+            }
+            match mover::move_completed(&out_dir, &library_dir) {
+                Ok(moved) => {
+                    let now = now_secs();
+                    let _ = store.upsert(state::Metadata {
+                        id: id_task.clone(),
+                        name,
+                        path: moved.dest.display().to_string(),
+                        size: moved.size,
+                        completed_at: Some(now),
+                        last_access: now,
+                        state: state::TorrentState::Seeding,
+                    });
+                    tracing::info!(id = %id_task, "moved to library");
+                }
+                Err(e) => tracing::error!(id = %id_task, error = %e, "move failed"),
+            }
+        });
+        Ok(id)
+    }
+
+    pub async fn delete(&self, id: &str) -> anyhow::Result<bool> {
+        let removed = self.store.remove(id)?;
+        if let Ok(tid) = id.parse::<usize>() {
+            let _ = self.session.delete(TorrentIdOrHash::Id(tid), true).await;
+        }
+        if let Some(m) = &removed {
+            let p = std::path::Path::new(&m.path);
+            if p.is_dir() {
+                let _ = std::fs::remove_dir_all(p);
+            } else if p.exists() {
+                let _ = std::fs::remove_file(p);
+            }
+        }
+        Ok(removed.is_some())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::net::IpAddr;
+
+    #[test]
+    fn private_and_loopback_are_not_vpn() {
+        assert!(!is_vpn_ip("127.0.0.1".parse::<IpAddr>().unwrap()));
+        assert!(!is_vpn_ip("10.0.0.5".parse::<IpAddr>().unwrap()));
+        assert!(!is_vpn_ip("192.168.1.2".parse::<IpAddr>().unwrap()));
+        assert!(!is_vpn_ip("172.16.0.1".parse::<IpAddr>().unwrap()));
+    }
+
+    #[test]
+    fn public_ip_is_vpn() {
+        assert!(is_vpn_ip("203.0.113.7".parse::<IpAddr>().unwrap()));
+    }
+}
