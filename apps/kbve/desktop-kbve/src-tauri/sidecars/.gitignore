@@ -1,0 +1,6 @@
+# Per-crate build output
+*/target/
+# Staged externalBin binaries (produced by build.sh)
+llm-sidecar-*
+tts-sidecar-*
+memory-sidecar-*

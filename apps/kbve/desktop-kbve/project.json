@@ -52,8 +52,16 @@
 				"cwd": "apps/kbve/desktop-kbve/src-tauri"
 			}
 		},
+		"build:sidecars": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["export PATH=\"$HOME/.cargo/bin:$PATH\" && bash sidecars/build.sh"],
+				"cwd": "apps/kbve/desktop-kbve/src-tauri"
+			}
+		},
 		"build:tauri": {
 			"executor": "nx:run-commands",
+			"dependsOn": ["build:sidecars"],
 			"options": {
 				"commands": ["cargo tauri build"],
 				"cwd": "apps/kbve/desktop-kbve"

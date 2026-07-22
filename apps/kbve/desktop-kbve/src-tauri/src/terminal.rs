@@ -71,6 +71,7 @@ pub fn spawn_event_pump(app: AppHandle, mut rx: mpsc::Receiver<PtyEvent>) {
 }
 
 #[tauri::command]
+#[specta::specta]
 pub async fn terminal_open(
     pane_id: String,
     cols: u16,
@@ -90,6 +91,7 @@ pub async fn terminal_open(
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn terminal_write(
     pane_id: String,
     data: String,
@@ -99,6 +101,7 @@ pub fn terminal_write(
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn terminal_resize(
     pane_id: String,
     rows: u16,
@@ -109,6 +112,7 @@ pub fn terminal_resize(
 }
 
 #[tauri::command]
+#[specta::specta]
 pub fn terminal_close(pane_id: String, state: State<'_, Arc<PtyManager>>) -> Result<(), PtyError> {
     state.kill(&pane_id)
 }

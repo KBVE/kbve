@@ -35,7 +35,7 @@ pub enum ViewCommand {
 }
 
 /// A point-in-time snapshot of a view's state, returned via GetSnapshot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 pub struct ViewSnapshot {
     pub view_id: String,
     pub status: ViewStatus,
@@ -43,7 +43,7 @@ pub struct ViewSnapshot {
 }
 
 /// The lifecycle status of a view actor.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default, specta::Type)]
 #[serde(rename_all = "snake_case")]
 pub enum ViewStatus {
     /// Registered but not yet started.
