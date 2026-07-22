@@ -1,0 +1,180 @@
+apiVersion: agones.dev/v1
+kind: GameServer
+metadata:
+    name: palworld
+    namespace: palworld
+    labels:
+        app: palworld
+        app.kubernetes.io/part-of: palworld
+spec:
+    container: palworld
+    ports:
+        - name: game
+          portPolicy: Static
+          hostPort: 8211
+          containerPort: 8211
+          protocol: UDP
+    health:
+        initialDelaySeconds: 300
+        periodSeconds: 15
+        failureThreshold: 20
+    sdkServer:
+        logLevel: Info
+    template:
+        metadata:
+            labels:
+                app: palworld
+                app.kubernetes.io/part-of: palworld
+        spec:
+            terminationGracePeriodSeconds: 120
+            securityContext:
+                fsGroup: 1000
+                seccompProfile:
+                    type: RuntimeDefault
+            volumes:
+                - name: palworld-saves
+                  persistentVolumeClaim:
+                      claimName: palworld-saves
+            containers:
+                - name: palworld
+                  image: ghcr.io/kbve/agones-palworld:0.0.1
+                  imagePullPolicy: IfNotPresent
+                  env:
+                      - name: PUID
+                        value: '1000'
+                      - name: PGID
+                        value: '1000'
+                      - name: SERVER_NAME
+                        value: 'KBVE Palworld'
+                      - name: PORT
+                        value: '8211'
+                      - name: PLAYERS
+                        value: '16'
+                      - name: RCON_ENABLED
+                        value: 'true'
+                      - name: RCON_PORT
+                        value: '25575'
+                      - name: REST_API_ENABLED
+                        value: 'true'
+                      - name: REST_API_PORT
+                        value: '8212'
+                      - name: MULTITHREADING
+                        value: 'true'
+                      - name: BACKUP_ENABLED
+                        value: 'true'
+                      - name: ADMIN_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: palworld-rcon
+                                key: admin_password
+                      - name: SERVER_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: palworld-credentials
+                                key: server_password
+                                optional: true
+                  ports:
+                      - containerPort: 8211
+                        protocol: UDP
+                      - containerPort: 27015
+                        protocol: UDP
+                      - containerPort: 25575
+                        protocol: TCP
+                      - containerPort: 8212
+                        protocol: TCP
+                  volumeMounts:
+                      - name: palworld-saves
+                        mountPath: /palworld/Pal/Saved
+                  resources:
+                      requests:
+                          cpu: '2'
+                          memory: '8Gi'
+                      limits:
+                          cpu: '6'
+                          memory: '16Gi'
+                  securityContext:
+                      allowPrivilegeEscalation: true
+                      capabilities:
+                          drop:
+                              - ALL
+                          add:
+                              - CHOWN
+                              - SETUID
+                              - SETGID
+                              - DAC_OVERRIDE
+                              - FOWNER
+                  lifecycle:
+                      preStop:
+                          exec:
+                              command:
+                                  - /usr/local/bin/agones-shim-prestop
+                - name: palworld-relay
+                  image: ghcr.io/kbve/agones-palworld-relay:0.0.1
+                  imagePullPolicy: IfNotPresent
+                  env:
+                      - name: PALWORLD_REST_ADDR
+                        value: 'http://127.0.0.1:8212'
+                      - name: PALWORLD_ADMIN_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: palworld-rcon
+                                key: admin_password
+                      - name: PALWORLD_RCON_ADDR
+                        value: '127.0.0.1:25575'
+                      - name: PALWORLD_SERVER_ID
+                        value: 'palworld-1'
+                      - name: IRC_SERVER
+                        value: 'ergo-irc-service.irc.svc.cluster.local'
+                      - name: IRC_PORT
+                        value: '6667'
+                      - name: IRC_USE_TLS
+                        value: 'false'
+                      - name: IRC_NICK
+                        value: 'palworld-bot'
+                      - name: IRC_CHANNEL
+                        value: '#general'
+                      - name: AGONES_SDK_HTTP
+                        value: 'http://127.0.0.1:9358'
+                      - name: AGONES_HEALTH_INTERVAL_SECS
+                        value: '5'
+                      - name: AGONES_REST_PROBE_TIMEOUT_SECS
+                        value: '2'
+                      - name: AGONES_INITIAL_READY_DELAY_SECS
+                        value: '60'
+                      - name: CLICKHOUSE_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: endpoint
+                                optional: true
+                      - name: CLICKHOUSE_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: username
+                                optional: true
+                      - name: CLICKHOUSE_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: clickhouse-credentials
+                                key: password
+                                optional: true
+                      - name: CLICKHOUSE_DATABASE
+                        value: 'gameops'
+                      - name: RUST_LOG
+                        value: 'info,agones_palworld_relay=debug'
+                  resources:
+                      requests:
+                          cpu: '50m'
+                          memory: '64Mi'
+                      limits:
+                          cpu: '500m'
+                          memory: '256Mi'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      runAsNonRoot: true
+                      runAsUser: 1000
+                      capabilities:
+                          drop:
+                              - ALL

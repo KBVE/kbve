@@ -1,0 +1,33 @@
+services:
+    palworld:
+        build:
+            context: ../../..
+            dockerfile: apps/agones/palworld/Dockerfile
+            platforms:
+                - linux/amd64
+        platform: linux/amd64
+        image: kbve/agones-palworld:local
+        container_name: palworld-local
+        restart: unless-stopped
+        ports:
+            - '8211:8211/udp'
+            - '27015:27015/udp'
+            - '25575:25575/tcp'
+            - '8212:8212/tcp'
+        environment:
+            PUID: 1000
+            PGID: 1000
+            PORT: 8211
+            PLAYERS: 16
+            SERVER_NAME: KBVE-Palworld-Local
+            ADMIN_PASSWORD: ${ADMIN_PASSWORD:-localadmin}
+            RCON_ENABLED: true
+            RCON_PORT: 25575
+            REST_API_ENABLED: true
+            REST_API_PORT: 8212
+            MULTITHREADING: true
+        volumes:
+            - palworld-saves:/palworld/Pal/Saved
+
+volumes:
+    palworld-saves:

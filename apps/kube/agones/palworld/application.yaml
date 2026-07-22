@@ -1,0 +1,31 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: agones-palworld
+    namespace: argocd
+    labels:
+        app.kubernetes.io/part-of: palworld
+    annotations:
+        kbve.com/source-path: kube/agones/palworld
+        kbve.com/manifest-path: apps/kube/agones/palworld/manifests
+        kbve.com/application-file: kube/agones/palworld/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/kbve/kbve
+        targetRevision: main
+        path: apps/kube/agones/palworld/manifests
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: palworld
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        syncOptions:
+            - CreateNamespace=false
+            - ServerSideApply=true

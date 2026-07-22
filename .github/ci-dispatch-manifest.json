@@ -42,6 +42,31 @@
 			"has_test": false
 		},
 		{
+			"key": "agones_palworld",
+			"app_name": "agones-palworld",
+			"version": "0.0.1",
+			"version_toml": "apps/agones/palworld/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-palworld.mdx",
+			"source_path": "apps/agones/palworld",
+			"runner": "ubuntu-latest",
+			"image": "kbve/agones-palworld",
+			"e2e_name": "agones-palworld",
+			"deployment_yaml": "apps/kube/agones/palworld/manifests/gameserver.yaml",
+			"has_test": true
+		},
+		{
+			"key": "agones_palworld_relay",
+			"app_name": "agones-palworld-relay",
+			"version": "0.0.1",
+			"version_toml": "apps/agones/palworld/relay/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-palworld-relay.mdx",
+			"source_path": "apps/agones/palworld/relay",
+			"runner": "ubuntu-latest",
+			"image": "kbve/agones-palworld-relay",
+			"deployment_yaml": "apps/kube/agones/palworld/manifests/gameserver.yaml",
+			"has_test": false
+		},
+		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
 			"version": "1.0.250",
@@ -1378,7 +1403,7 @@
 		}
 	],
 	"summary": {
-		"docker": 37,
+		"docker": 39,
 		"npm": 4,
 		"crates": 27,
 		"python": 2,
@@ -1389,6 +1414,6 @@
 		"unreal_game": 4,
 		"bevy_game": 0,
 		"vite_game": 1,
-		"total": 104
+		"total": 106
 	}
 }

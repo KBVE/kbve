@@ -1,0 +1,90 @@
+{
+	"name": "agones-palworld-relay",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/agones/palworld/relay/src",
+	"targets": {
+		"build": {
+			"executor": "@monodon/rust:build",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/agones-palworld-relay"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"test": {
+			"executor": "@monodon/rust:test",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/agones-palworld-relay"
+			}
+		},
+		"lint": {
+			"executor": "@monodon/rust:lint",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/agones-palworld-relay"
+			}
+		},
+		"container": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx agones-palworld-relay:containerx",
+						"VERSION=$(sed -n 's/^version *= *\"\\(.*\\)\"/\\1/p' apps/agones/palworld/relay/version.toml | head -1) && docker tag kbve/agones-palworld-relay:latest kbve/agones-palworld-relay:$VERSION && echo \"Tagged kbve/agones-palworld-relay:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx agones-palworld-relay:containerx --configuration=production",
+						"VERSION=$(sed -n 's/^version *= *\"\\(.*\\)\"/\\1/p' apps/agones/palworld/relay/version.toml | head -1) && docker tag kbve/agones-palworld-relay:latest kbve/agones-palworld-relay:$VERSION && docker tag kbve/agones-palworld-relay:latest ghcr.io/kbve/agones-palworld-relay:latest && docker tag kbve/agones-palworld-relay:latest ghcr.io/kbve/agones-palworld-relay:$VERSION && echo \"Tagged ghcr.io/kbve/agones-palworld-relay:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/agones/palworld/relay/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/agones-palworld-relay:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": [
+							"ghcr.io/kbve/agones-palworld-relay",
+							"kbve/agones-palworld-relay"
+						],
+						"tags": ["latest"]
+					},
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/agones-palworld-relay:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/agones-palworld-relay:buildcache,mode=max"
+					]
+				}
+			}
+		}
+	},
+	"tags": ["scope:agones"]
+}
