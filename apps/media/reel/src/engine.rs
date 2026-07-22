@@ -99,6 +99,9 @@ impl Engine {
             completed_at: None,
             last_access: now_secs(),
             state: state::TorrentState::Leeching,
+            transcode: state::TranscodeStatus::None,
+            transcode_path: None,
+            transcode_error: None,
         })?;
 
         let store = self.store.clone();
@@ -120,6 +123,9 @@ impl Engine {
                         completed_at: Some(now),
                         last_access: now,
                         state: state::TorrentState::Seeding,
+                        transcode: state::TranscodeStatus::None,
+                        transcode_path: None,
+                        transcode_error: None,
                     });
                     tracing::info!(id = %id_task, "moved to library");
                 }

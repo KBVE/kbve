@@ -5,6 +5,9 @@ use std::sync::{Arc, Mutex};
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub enum TorrentState { Queued, Leeching, Seeding, Reaped }
 
+#[derive(Clone, Debug, PartialEq, Default, serde::Serialize, serde::Deserialize)]
+pub enum TranscodeStatus { #[default] None, Pending, Remuxing, Encoding, Ready, Failed }
+
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Metadata {
     pub id: String,
@@ -14,6 +17,12 @@ pub struct Metadata {
     pub completed_at: Option<u64>,
     pub last_access: u64,
     pub state: TorrentState,
+    #[serde(default)]
+    pub transcode: TranscodeStatus,
+    #[serde(default)]
+    pub transcode_path: Option<String>,
+    #[serde(default)]
+    pub transcode_error: Option<String>,
 }
 
 #[derive(Clone)]
@@ -80,6 +89,7 @@ mod tests {
             id: id.into(), name: format!("t-{id}"), path: format!("/lib/{id}"),
             size: 10, completed_at: Some(last_access), last_access,
             state: TorrentState::Seeding,
+            transcode: TranscodeStatus::None, transcode_path: None, transcode_error: None,
         }
     }
 
@@ -120,5 +130,18 @@ mod tests {
         s.upsert(meta("a", 100)).unwrap();
         assert_eq!(s.remove("a").unwrap().unwrap().id, "a");
         assert!(s.get("a").is_none());
+    }
+
+    #[test]
+    fn old_json_without_transcode_fields_loads_with_defaults() {
+        let dir = tempfile::tempdir().unwrap();
+        let p = dir.path().join("state.json");
+        let legacy = r#"{"1":{"id":"1","name":"m","path":"/lib/m","size":3,"completed_at":10,"last_access":10,"state":"Seeding"}}"#;
+        std::fs::write(&p, legacy).unwrap();
+        let s = StateStore::load(p).unwrap();
+        let m = s.get("1").unwrap();
+        assert_eq!(m.transcode, TranscodeStatus::None);
+        assert!(m.transcode_path.is_none());
+        assert!(m.transcode_error.is_none());
     }
 }

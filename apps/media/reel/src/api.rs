@@ -141,7 +141,7 @@ fn store_router(store: state::StateStore, token: Option<String>) -> Router {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::state::{Metadata, StateStore, TorrentState};
+    use crate::state::{Metadata, StateStore, TorrentState, TranscodeStatus};
     use axum::body::Body;
     use axum::http::{Request, StatusCode};
     use http_body_util::BodyExt;
@@ -160,6 +160,9 @@ mod tests {
             completed_at: Some(10),
             last_access: 10,
             state: TorrentState::Seeding,
+            transcode: TranscodeStatus::None,
+            transcode_path: None,
+            transcode_error: None,
         })
         .unwrap();
         s
