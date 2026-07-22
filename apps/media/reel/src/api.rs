@@ -240,13 +240,17 @@ async fn manifest(
     };
     let _ = st.store.touch(&id, now_secs());
 
+    if meta.state != state::TorrentState::Seeding {
+        return StatusCode::TOO_EARLY.into_response();
+    }
+
     let primary = match transcode::pick_primary_file(std::path::Path::new(&meta.path)) {
         Ok(p) => p,
-        Err(_) => return StatusCode::CONFLICT.into_response(),
+        Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     };
     let probe = match transcode::probe(&st.ffprobe_bin, &primary).await {
         Ok(p) => p,
-        Err(_) => return StatusCode::CONFLICT.into_response(),
+        Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     };
     let delivery = transcode::decide_delivery(&probe);
     if delivery == transcode::Delivery::RawProgressive {
@@ -255,9 +259,6 @@ async fn manifest(
             Json(serde_json::json!({"delivery": "raw_progressive"})),
         )
             .into_response();
-    }
-    if meta.state != state::TorrentState::Seeding {
-        return StatusCode::TOO_EARLY.into_response();
     }
 
     match st.hls.request(&id, delivery).await {
@@ -461,6 +462,9 @@ fn hls_manifest_router(store: state::StateStore, token: Option<String>, hls: hls
             return StatusCode::SERVICE_UNAVAILABLE.into_response();
         }
         match st.store.get(&id) {
+            Some(m) if m.state != state::TorrentState::Seeding => {
+                StatusCode::TOO_EARLY.into_response()
+            }
             Some(_) => StatusCode::OK.into_response(),
             None => StatusCode::NOT_FOUND.into_response(),
         }
@@ -686,6 +690,35 @@ mod tests {
             .await
             .unwrap();
         assert_eq!(res.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    #[tokio::test]
+    async fn manifest_leeching_is_425() {
+        let dir = tempdir().unwrap();
+        let s = StateStore::load(dir.path().join("s.json")).unwrap();
+        std::mem::forget(dir);
+        s.upsert(Metadata {
+            id: "1".into(),
+            name: "movie".into(),
+            path: "/lib/movie.mp4".into(),
+            size: 5,
+            completed_at: None,
+            last_access: 10,
+            state: TorrentState::Leeching,
+            transcode: TranscodeStatus::None,
+            transcode_path: None,
+            transcode_error: None,
+            hls: HlsStatus::None,
+            hls_dir: None,
+            hls_error: None,
+        })
+        .unwrap();
+        let app = hls_manifest_router(s.clone(), None, hls_manager_with(s, true));
+        let res = app
+            .oneshot(Request::get("/torrents/1/manifest.m3u8").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+        assert_eq!(res.status(), StatusCode::TOO_EARLY);
     }
 
     #[tokio::test]
