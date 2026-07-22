@@ -1,4 +1,5 @@
 mod config;
+mod event;
 
 use anyhow::Result;
 
