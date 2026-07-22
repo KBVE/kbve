@@ -37,6 +37,14 @@ pub fn pick_primary_file(dir: &Path) -> anyhow::Result<PathBuf> {
             if path.is_dir() {
                 stack.push(path);
             } else {
+                let is_reel_output = path
+                    .file_name()
+                    .and_then(|n| n.to_str())
+                    .map(|n| n.ends_with(".reel.mp4"))
+                    .unwrap_or(false);
+                if is_reel_output {
+                    continue;
+                }
                 let len = entry.metadata()?.len();
                 if best.as_ref().map(|(b, _)| len > *b).unwrap_or(true) {
                     best = Some((len, path));
@@ -76,7 +84,14 @@ pub async fn probe(ffprobe_bin: &str, path: &Path) -> anyhow::Result<ProbeResult
 
 async fn run_ffmpeg(ffmpeg_bin: &str, args: &[&str], src: &Path, dest: &Path) -> anyhow::Result<()> {
     let mut cmd = Command::new(ffmpeg_bin);
-    cmd.arg("-y").arg("-i").arg(src).args(args).arg(dest);
+    cmd.arg("-y")
+        .arg("-nostats")
+        .arg("-loglevel")
+        .arg("error")
+        .arg("-i")
+        .arg(src)
+        .args(args)
+        .arg(dest);
     let out = cmd.output().await?;
     if !out.status.success() {
         anyhow::bail!("ffmpeg failed: {}", String::from_utf8_lossy(&out.stderr));
@@ -146,30 +161,45 @@ impl Transcoder {
         ffprobe_bin: String,
         enabled: bool,
     ) -> Self {
-        Self {
+        let this = Self {
             store,
             remux_sem: Arc::new(Semaphore::new(remux_conc.max(1))),
             encode_sem: Arc::new(Semaphore::new(encode_conc.max(1))),
             ffmpeg_bin,
             ffprobe_bin,
             enabled,
+        };
+        for m in this.store.list() {
+            let in_flight = matches!(
+                m.transcode,
+                TranscodeStatus::Pending | TranscodeStatus::Remuxing | TranscodeStatus::Encoding
+            );
+            if in_flight {
+                let _ = this.store.update(&m.id, |m| {
+                    m.transcode = TranscodeStatus::Failed;
+                    m.transcode_error = Some("interrupted by restart".into());
+                    ((), true)
+                });
+            }
         }
+        this
     }
 
     pub async fn request(&self, id: &str) -> RequestOutcome {
         let result = self.store.update(id, |m| {
             match next_status(&m.transcode, &m.state, self.enabled) {
                 Decision::Reject(RequestOutcome::InProgress(TranscodeStatus::Ready)) => {
-                    match &m.transcode_path {
+                    let outcome = match &m.transcode_path {
                         Some(p) => RequestOutcome::Ready(p.clone()),
                         None => RequestOutcome::InProgress(TranscodeStatus::Ready),
-                    }
+                    };
+                    (outcome, false)
                 }
-                Decision::Reject(outcome) => outcome,
+                Decision::Reject(outcome) => (outcome, false),
                 Decision::Enqueue => {
                     m.transcode = TranscodeStatus::Pending;
                     m.transcode_error = None;
-                    RequestOutcome::Started
+                    (RequestOutcome::Started, true)
                 }
             }
         });
@@ -194,6 +224,7 @@ impl Transcoder {
                 let _ = this.store.update(&id, |m| {
                     m.transcode = TranscodeStatus::Failed;
                     m.transcode_error = Some(e.to_string());
+                    ((), true)
                 });
             }
         });
@@ -215,6 +246,7 @@ impl Transcoder {
                 Route::Remux => TranscodeStatus::Remuxing,
                 Route::Encode => TranscodeStatus::Encoding,
             };
+            ((), true)
         });
 
         match route {
@@ -232,6 +264,7 @@ impl Transcoder {
             m.transcode = TranscodeStatus::Ready;
             m.transcode_path = Some(dest.display().to_string());
             m.transcode_error = None;
+            ((), true)
         });
         Ok(())
     }
@@ -266,12 +299,34 @@ mod tests {
         std::fs::write(dir.path().join("big.mkv"), b"aaaaaaaa").unwrap();
         assert_eq!(pick_primary_file(dir.path()).unwrap(), dir.path().join("big.mkv"));
     }
+    #[test]
+    fn excludes_stale_reel_output() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("big.reel.mp4"), b"aaaaaaaa").unwrap();
+        std::fs::write(dir.path().join("movie.mkv"), b"aa").unwrap();
+        assert_eq!(pick_primary_file(dir.path()).unwrap(), dir.path().join("movie.mkv"));
+    }
 }
 
 #[cfg(test)]
 mod transcoder_tests {
     use super::*;
-    use crate::state::{TorrentState, TranscodeStatus};
+    use crate::state::{Metadata, StateStore, TorrentState, TranscodeStatus};
+
+    fn meta(id: &str, transcode: TranscodeStatus) -> Metadata {
+        Metadata {
+            id: id.into(),
+            name: format!("t-{id}"),
+            path: format!("/lib/{id}"),
+            size: 10,
+            completed_at: Some(1),
+            last_access: 1,
+            state: TorrentState::Seeding,
+            transcode,
+            transcode_path: None,
+            transcode_error: None,
+        }
+    }
 
     #[test]
     fn disabled_rejects() {
@@ -314,5 +369,35 @@ mod transcoder_tests {
             next_status(&TranscodeStatus::Failed, &TorrentState::Seeding, true),
             Decision::Enqueue
         );
+    }
+
+    #[tokio::test]
+    async fn new_resets_in_flight_to_failed() {
+        let dir = tempfile::tempdir().unwrap();
+        let store = StateStore::load(dir.path().join("state.json")).unwrap();
+        store.upsert(meta("pending", TranscodeStatus::Pending)).unwrap();
+        store.upsert(meta("encoding", TranscodeStatus::Encoding)).unwrap();
+        store.upsert(meta("ready", TranscodeStatus::Ready)).unwrap();
+        store.upsert(meta("none", TranscodeStatus::None)).unwrap();
+
+        let _transcoder = Transcoder::new(
+            store.clone(),
+            1,
+            1,
+            "ffmpeg".into(),
+            "ffprobe".into(),
+            true,
+        );
+
+        let pending = store.get("pending").unwrap();
+        assert_eq!(pending.transcode, TranscodeStatus::Failed);
+        assert_eq!(pending.transcode_error.as_deref(), Some("interrupted by restart"));
+
+        let encoding = store.get("encoding").unwrap();
+        assert_eq!(encoding.transcode, TranscodeStatus::Failed);
+        assert_eq!(encoding.transcode_error.as_deref(), Some("interrupted by restart"));
+
+        assert_eq!(store.get("ready").unwrap().transcode, TranscodeStatus::Ready);
+        assert_eq!(store.get("none").unwrap().transcode, TranscodeStatus::None);
     }
 }

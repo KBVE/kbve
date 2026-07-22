@@ -80,13 +80,17 @@ impl StateStore {
 
     pub fn update<F, R>(&self, id: &str, f: F) -> anyhow::Result<Option<R>>
     where
-        F: FnOnce(&mut Metadata) -> R,
+        F: FnOnce(&mut Metadata) -> (R, bool),
     {
         let mut g = self.inner.lock().unwrap();
         match g.get_mut(id) {
             Some(m) => {
-                let r = f(m);
-                self.persist(&g)?;
+                let (r, dirty) = f(m);
+                if dirty {
+                    let snap = g.clone();
+                    drop(g);
+                    self.persist(&snap)?;
+                }
                 Ok(Some(r))
             }
             None => Ok(None),
@@ -155,14 +159,26 @@ mod tests {
         let got = s
             .update("a", |m| {
                 m.transcode = TranscodeStatus::Pending;
-                m.last_access
+                (m.last_access, true)
             })
             .unwrap();
         assert_eq!(got, Some(100));
         let m = s.get("a").unwrap();
         assert_eq!(m.transcode, TranscodeStatus::Pending);
         assert_eq!(m.last_access, 100);
-        assert!(s.update("missing", |_m| ()).unwrap().is_none());
+        assert!(s.update("missing", |_m| ((), true)).unwrap().is_none());
+    }
+
+    #[test]
+    fn update_without_dirty_flag_does_not_change_persisted_state() {
+        let dir = tempdir().unwrap();
+        let s = StateStore::load(dir.path().join("s.json")).unwrap();
+        s.upsert(meta("a", 100)).unwrap();
+        let got = s.update("a", |m| (m.last_access, false)).unwrap();
+        assert_eq!(got, Some(100));
+        let m = s.get("a").unwrap();
+        assert_eq!(m.last_access, 100);
+        assert_eq!(m.transcode, TranscodeStatus::None);
     }
 
     #[test]
