@@ -15,9 +15,9 @@ spec:
           containerPort: 8211
           protocol: UDP
     health:
-        initialDelaySeconds: 60
+        initialDelaySeconds: 300
         periodSeconds: 15
-        failureThreshold: 5
+        failureThreshold: 20
     sdkServer:
         logLevel: Info
     template:
@@ -93,10 +93,16 @@ spec:
                           cpu: '6'
                           memory: '16Gi'
                   securityContext:
-                      allowPrivilegeEscalation: false
+                      allowPrivilegeEscalation: true
                       capabilities:
                           drop:
                               - ALL
+                          add:
+                              - CHOWN
+                              - SETUID
+                              - SETGID
+                              - DAC_OVERRIDE
+                              - FOWNER
                   lifecycle:
                       preStop:
                           exec:
