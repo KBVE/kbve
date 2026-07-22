@@ -22,6 +22,8 @@ spec:
   template:
     metadata:
       labels: { app: reel }
+      annotations:
+        secret.reloader.stakater.com/reload: vpn-wireguard
     spec:
       containers:
         - name: gluetun
@@ -30,7 +32,7 @@ spec:
             capabilities:
               add: ["NET_ADMIN"]
           envFrom:
-            - secretRef: { name: reel-vpn }
+            - secretRef: { name: vpn-wireguard }
           env:
             - { name: FIREWALL, value: "on" }
             - { name: FIREWALL_INPUT_PORTS, value: "8080" }
