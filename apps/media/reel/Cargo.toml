@@ -25,6 +25,7 @@ tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 axum = { version = "0.8.5", features = ["macros", "json"] }
 reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
 librqbit = "8"
+tokio-util = { version = "0.7", features = ["io"] }
 
 [dev-dependencies]
 tempfile = "3"
