@@ -247,6 +247,9 @@ importers:
       happy-dom:
         specifier: 20.10.6
         version: 20.10.6
+      hls.js:
+        specifier: ^1.5.20
+        version: 1.6.16
       html-react-parser:
         specifier: ^5.1.18
         version: 5.2.3(@types/react@19.2.9)(react@19.2.3)
@@ -10727,8 +10730,8 @@ packages:
     resolution: {integrity: sha512-Xwwo44whKBVCYoliBQwaPvtd/2tYFkRQtXDWj1nackaV2JPXx3L0+Jvd8/qCJ2p+ML0/XVkJ2q+Mr+UVdpJK5w==}
     engines: {node: '>=12.0.0'}
 
-  hls.js@1.5.17:
-    resolution: {integrity: sha512-wA66nnYFvQa1o4DO/BFgLNRKnBTVXpNeldGRBJ2Y0SvFtdwvFKCbqa9zhHoZLoxHhZ+jYsj3aIBkWQQCPNOhMw==}
+  hls.js@1.6.16:
+    resolution: {integrity: sha512-VSIRpLfRwlAAdGL4wiTucx2ScRipo0ed1FBatWkyt832jC4CReKstga6yIhYVwGu9LOBjuX9wzmRMeQdBJtzEA==}
 
   hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
@@ -22930,7 +22933,7 @@ snapshots:
       cross-env: 7.0.3
       detect-gpu: 5.0.70
       glsl-noise: 0.0.0
-      hls.js: 1.5.17
+      hls.js: 1.6.16
       maath: 0.10.8(@types/three@0.176.0)(three@0.184.0)
       meshline: 3.3.1(three@0.184.0)
       react: 19.2.3
@@ -29984,7 +29987,7 @@ snapshots:
 
   highlight.js@11.11.1: {}
 
-  hls.js@1.5.17: {}
+  hls.js@1.6.16: {}
 
   hoist-non-react-statics@3.3.2:
     dependencies:
