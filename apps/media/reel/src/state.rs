@@ -57,7 +57,7 @@ impl StateStore {
     pub fn touch(&self, id: &str, now: u64) -> anyhow::Result<bool> {
         let mut g = self.inner.lock().unwrap();
         match g.get_mut(id) {
-            Some(m) => { m.last_access = now; let snap = g.clone(); drop(g); self.persist(&snap)?; Ok(true) }
+            Some(m) => { m.last_access = now; self.persist(&g)?; Ok(true) }
             None => Ok(false),
         }
     }
