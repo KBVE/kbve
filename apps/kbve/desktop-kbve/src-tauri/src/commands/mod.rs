@@ -1,5 +1,8 @@
 pub mod audio;
+pub mod memory;
 pub mod models;
+pub mod onichan;
+pub mod sidecar_config;
 pub mod transcription;
 
 use crate::settings::{get_settings, AppSettings, SETTINGS_STORE_PATH};
