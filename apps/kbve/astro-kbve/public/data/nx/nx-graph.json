@@ -2366,6 +2366,19 @@
 							"configurations": {},
 							"parallelism": true
 						},
+						"build-tiered": {
+							"executor": "@nxlv/python:run-commands",
+							"outputs": [
+								"{workspaceRoot}/apps/kbve/astro-kbve/public/graphify"
+							],
+							"description": "Rebuild tiered LOD graph consumed by the dashboard Graph Explorer",
+							"options": {
+								"command": "bash ../../data/graphify/scripts/build-tiered-graph.sh",
+								"cwd": "packages/python/graphify-wrapper"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
 						"query": {
 							"executor": "@nxlv/python:run-commands",
 							"description": "Query the knowledge graph (use --q='your question')",
@@ -2393,30 +2406,6 @@
 					"sourceRoot": "packages/python/graphify-wrapper/graphify_wrapper",
 					"tags": ["python", "library", "graphify", "analysis"],
 					"implicitDependencies": []
-				}
-			},
-			"kbve-desktop": {
-				"name": "kbve-desktop",
-				"type": "lib",
-				"data": {
-					"root": "apps/kbve/desktop-kbve/src-tauri",
-					"name": "kbve-desktop",
-					"release": {
-						"version": {
-							"versionActions": "@monodon/rust/src/release/version-actions"
-						}
-					},
-					"targets": {
-						"nx-release-publish": {
-							"dependsOn": ["^nx-release-publish"],
-							"executor": "@monodon/rust:release-publish",
-							"options": {},
-							"configurations": {},
-							"parallelism": true
-						}
-					},
-					"implicitDependencies": [],
-					"tags": []
 				}
 			},
 			"axum-chuckrpg-e2e": {
@@ -6666,6 +6655,127 @@
 					"implicitDependencies": []
 				}
 			},
+			"agones-palworld-relay": {
+				"name": "agones-palworld-relay",
+				"type": "app",
+				"data": {
+					"root": "apps/agones/palworld/relay",
+					"name": "agones-palworld-relay",
+					"release": {
+						"version": {
+							"versionActions": "@monodon/rust/src/release/version-actions"
+						}
+					},
+					"targets": {
+						"build": {
+							"dependsOn": ["^build"],
+							"inputs": ["production", "^production"],
+							"cache": true,
+							"executor": "@monodon/rust:build",
+							"outputs": ["{options.target-dir}"],
+							"options": {
+								"target-dir": "dist/target/agones-palworld-relay"
+							},
+							"configurations": {
+								"production": {
+									"release": true
+								}
+							},
+							"parallelism": true
+						},
+						"test": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "@monodon/rust:test",
+							"outputs": ["{options.target-dir}"],
+							"options": {
+								"target-dir": "dist/target/agones-palworld-relay"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"lint": {
+							"inputs": [
+								"default",
+								"{workspaceRoot}/eslint.config.mjs",
+								"{workspaceRoot}/eslint.config.js"
+							],
+							"cache": true,
+							"executor": "@monodon/rust:lint",
+							"outputs": ["{options.target-dir}"],
+							"options": {
+								"target-dir": "dist/target/agones-palworld-relay"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"container": {
+							"executor": "nx:run-commands",
+							"defaultConfiguration": "local",
+							"options": {
+								"parallel": false
+							},
+							"configurations": {
+								"local": {
+									"commands": [
+										"./kbve.sh -nx agones-palworld-relay:containerx",
+										"VERSION=$(sed -n 's/^version *= *\"\\(.*\\)\"/\\1/p' apps/agones/palworld/relay/version.toml | head -1) && docker tag kbve/agones-palworld-relay:latest kbve/agones-palworld-relay:$VERSION && echo \"Tagged kbve/agones-palworld-relay:$VERSION\""
+									]
+								},
+								"production": {
+									"commands": [
+										"./kbve.sh -nx agones-palworld-relay:containerx --configuration=production",
+										"VERSION=$(sed -n 's/^version *= *\"\\(.*\\)\"/\\1/p' apps/agones/palworld/relay/version.toml | head -1) && docker tag kbve/agones-palworld-relay:latest kbve/agones-palworld-relay:$VERSION && docker tag kbve/agones-palworld-relay:latest ghcr.io/kbve/agones-palworld-relay:latest && docker tag kbve/agones-palworld-relay:latest ghcr.io/kbve/agones-palworld-relay:$VERSION && echo \"Tagged ghcr.io/kbve/agones-palworld-relay:$VERSION\""
+									]
+								}
+							},
+							"parallelism": true
+						},
+						"containerx": {
+							"executor": "@nx-tools/nx-container:build",
+							"defaultConfiguration": "local",
+							"options": {
+								"engine": "docker",
+								"context": ".",
+								"file": "apps/agones/palworld/relay/Dockerfile",
+								"load": true
+							},
+							"configurations": {
+								"local": {
+									"load": true,
+									"push": false,
+									"tags": [
+										"kbve/agones-palworld-relay:latest"
+									]
+								},
+								"production": {
+									"load": true,
+									"push": false,
+									"metadata": {
+										"images": [
+											"ghcr.io/kbve/agones-palworld-relay",
+											"kbve/agones-palworld-relay"
+										],
+										"tags": ["latest"]
+									},
+									"cache-from": [
+										"type=registry,ref=ghcr.io/kbve/agones-palworld-relay:buildcache"
+									],
+									"cache-to": [
+										"type=registry,ref=ghcr.io/kbve/agones-palworld-relay:buildcache,mode=max"
+									]
+								}
+							},
+							"parallelism": true
+						}
+					},
+					"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+					"projectType": "application",
+					"sourceRoot": "apps/agones/palworld/relay/src",
+					"tags": ["scope:agones"],
+					"implicitDependencies": []
+				}
+			},
 			"arc-runner": {
 				"name": "arc-runner",
 				"type": "lib",
@@ -8752,8 +8862,20 @@
 							"configurations": {},
 							"parallelism": true
 						},
+						"build:sidecars": {
+							"executor": "nx:run-commands",
+							"options": {
+								"commands": [
+									"export PATH=\"$HOME/.cargo/bin:$PATH\" && bash sidecars/build.sh"
+								],
+								"cwd": "apps/kbve/desktop-kbve/src-tauri"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
 						"build:tauri": {
 							"executor": "nx:run-commands",
+							"dependsOn": ["build:sidecars"],
 							"options": {
 								"commands": ["cargo tauri build"],
 								"cwd": "apps/kbve/desktop-kbve"
@@ -9575,6 +9697,86 @@
 					"name": "agones-factorio",
 					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"sourceRoot": "apps/agones/factorio",
+					"tags": ["scope:agones"],
+					"implicitDependencies": []
+				}
+			},
+			"agones-palworld": {
+				"name": "agones-palworld",
+				"type": "app",
+				"data": {
+					"root": "apps/agones/palworld",
+					"projectType": "application",
+					"metadata": {},
+					"targets": {
+						"test": {
+							"inputs": ["default", "^production"],
+							"cache": false,
+							"executor": "nx:noop",
+							"options": {},
+							"configurations": {},
+							"parallelism": true
+						},
+						"e2e": {
+							"inputs": ["default", "^production"],
+							"cache": false,
+							"executor": "nx:run-commands",
+							"dependsOn": [
+								{
+									"target": "container",
+									"projects": ["agones-palworld"],
+									"params": "forward"
+								}
+							],
+							"options": {
+								"commands": [
+									"docker rm -f agones-palworld-e2e 2>/dev/null || true",
+									"docker run -d --name agones-palworld-e2e -p 8211:8211/udp -p 8212:8212/tcp -p 25575:25575/tcp -e PUID=1000 -e PGID=1000 -e PORT=8211 -e PLAYERS=4 -e SERVER_NAME=e2e -e ADMIN_PASSWORD=e2e-admin -e RCON_ENABLED=true -e REST_API_ENABLED=true -e REST_API_PORT=8212 -e MULTITHREADING=true kbve/agones-palworld:latest",
+									"echo 'Waiting for Palworld to come up...' && for i in $(seq 1 600); do if curl -fsS -u admin:e2e-admin http://127.0.0.1:8212/v1/api/info >/dev/null 2>&1; then echo 'Palworld ready after '\"$i\"'s'; break; fi; if [ $i -eq 600 ]; then echo 'Palworld did not start in 600s'; docker logs agones-palworld-e2e 2>&1 | tail -120; docker rm -f agones-palworld-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+									"PALWORLD_HOST=127.0.0.1 PALWORLD_REST=8212 PALWORLD_ADMIN_PASSWORD=e2e-admin npx vitest run; EC=$?; echo '--- container logs ---'; docker logs agones-palworld-e2e 2>&1 | tail -120; docker rm -f agones-palworld-e2e 2>/dev/null || true; exit $EC"
+								],
+								"parallel": false,
+								"cwd": "apps/agones/palworld"
+							},
+							"configurations": {
+								"ci": {}
+							},
+							"parallelism": true
+						},
+						"container": {
+							"executor": "@nx-tools/nx-container:build",
+							"defaultConfiguration": "local",
+							"options": {
+								"engine": "docker",
+								"context": ".",
+								"file": "apps/agones/palworld/Dockerfile",
+								"load": true
+							},
+							"configurations": {
+								"local": {
+									"load": true,
+									"push": false,
+									"tags": ["kbve/agones-palworld:latest"]
+								},
+								"production": {
+									"push": true,
+									"tags": [
+										"ghcr.io/kbve/agones-palworld:latest"
+									],
+									"cache-from": [
+										"type=registry,ref=ghcr.io/kbve/agones-palworld:buildcache"
+									],
+									"cache-to": [
+										"type=registry,ref=ghcr.io/kbve/agones-palworld:buildcache,mode=max"
+									]
+								}
+							},
+							"parallelism": true
+						}
+					},
+					"name": "agones-palworld",
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "apps/agones/palworld",
 					"tags": ["scope:agones"],
 					"implicitDependencies": []
 				}
@@ -14763,6 +14965,142 @@
 					"implicitDependencies": []
 				}
 			},
+			"reel": {
+				"name": "reel",
+				"type": "app",
+				"data": {
+					"root": "apps/media/reel",
+					"name": "reel",
+					"release": {
+						"version": {
+							"versionActions": "@monodon/rust/src/release/version-actions"
+						}
+					},
+					"targets": {
+						"build": {
+							"dependsOn": ["^build"],
+							"inputs": ["production", "^production"],
+							"cache": true,
+							"executor": "@monodon/rust:build",
+							"outputs": ["{options.target-dir}"],
+							"options": {
+								"target-dir": "dist/target/reel"
+							},
+							"configurations": {
+								"production": {
+									"release": true
+								}
+							},
+							"parallelism": true
+						},
+						"test": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "@monodon/rust:test",
+							"outputs": ["{options.target-dir}"],
+							"options": {
+								"target-dir": "dist/target/reel"
+							},
+							"configurations": {
+								"production": {
+									"release": true
+								}
+							},
+							"parallelism": true
+						},
+						"lint": {
+							"inputs": [
+								"default",
+								"{workspaceRoot}/eslint.config.mjs",
+								"{workspaceRoot}/eslint.config.js"
+							],
+							"cache": true,
+							"executor": "@monodon/rust:lint",
+							"outputs": ["{options.target-dir}"],
+							"options": {
+								"target-dir": "dist/target/reel"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"run": {
+							"executor": "@monodon/rust:run",
+							"outputs": ["{options.target-dir}"],
+							"options": {
+								"target-dir": "dist/target/reel"
+							},
+							"configurations": {
+								"production": {
+									"release": true
+								}
+							},
+							"parallelism": true
+						},
+						"containerx": {
+							"executor": "@nx-tools/nx-container:build",
+							"defaultConfiguration": "local",
+							"options": {
+								"engine": "docker",
+								"context": ".",
+								"file": "apps/media/reel/Dockerfile",
+								"load": true
+							},
+							"configurations": {
+								"local": {
+									"load": true,
+									"push": false,
+									"tags": ["kbve/reel:latest"]
+								},
+								"production": {
+									"load": true,
+									"push": false,
+									"metadata": {
+										"images": [
+											"ghcr.io/kbve/reel",
+											"kbve/reel"
+										],
+										"tags": ["latest"]
+									},
+									"cache-from": [
+										"type=registry,ref=ghcr.io/kbve/reel:buildcache"
+									],
+									"cache-to": [
+										"type=registry,ref=ghcr.io/kbve/reel:buildcache,mode=max"
+									]
+								}
+							},
+							"parallelism": true
+						},
+						"container": {
+							"executor": "nx:run-commands",
+							"defaultConfiguration": "local",
+							"options": {
+								"parallel": false
+							},
+							"configurations": {
+								"local": {
+									"commands": [
+										"./kbve.sh -nx reel:containerx",
+										"VERSION=$(grep '^version' apps/media/reel/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/reel:latest kbve/reel:$VERSION && echo \"Tagged kbve/reel:$VERSION\""
+									]
+								},
+								"production": {
+									"commands": [
+										"./kbve.sh -nx reel:containerx --configuration=production",
+										"VERSION=$(grep '^version' apps/media/reel/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/reel:latest ghcr.io/kbve/reel:latest && docker tag kbve/reel:latest ghcr.io/kbve/reel:$VERSION && echo \"Tagged ghcr.io/kbve/reel:$VERSION\""
+									]
+								}
+							},
+							"parallelism": true
+						}
+					},
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"projectType": "application",
+					"sourceRoot": "apps/media/reel/src",
+					"tags": [],
+					"implicitDependencies": []
+				}
+			},
 			"rn": {
 				"name": "rn",
 				"type": "lib",
@@ -16278,13 +16616,6 @@
 				}
 			],
 			"graphify-wrapper": [],
-			"kbve-desktop": [
-				{
-					"source": "kbve-desktop",
-					"target": "erust",
-					"type": "static"
-				}
-			],
 			"axum-chuckrpg-e2e": [
 				{
 					"source": "axum-chuckrpg-e2e",
@@ -16639,6 +16970,13 @@
 					"type": "static"
 				}
 			],
+			"agones-palworld-relay": [
+				{
+					"source": "agones-palworld-relay",
+					"target": "jedi",
+					"type": "static"
+				}
+			],
 			"arc-runner": [],
 			"behavior_statetree": [
 				{
@@ -16908,6 +17246,7 @@
 				}
 			],
 			"agones-factorio": [],
+			"agones-palworld": [],
 			"arpg-web": [
 				{
 					"source": "arpg-web",
@@ -17158,6 +17497,7 @@
 					"type": "static"
 				}
 			],
+			"reel": [],
 			"rn": [
 				{
 					"source": "rn",

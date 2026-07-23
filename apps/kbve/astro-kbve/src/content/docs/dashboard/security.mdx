@@ -32,7 +32,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-title__accent">across every ecosystem.</span>
 				</h1>
 				<p class="bento-lede"><strong>43</strong> critical/high severity findings across the monorepo — triage before merge.</p>
-				<p class="bento-lede">Last generated <strong>2026-07-22T04:21:02Z</strong>.</p>
+				<p class="bento-lede">Last generated <strong>2026-07-23T04:19:40Z</strong>.</p>
 				<div class="bento-cta">
 					<a class="bento-btn bento-btn--primary" href="#findings">
 						View findings
@@ -61,7 +61,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 16v-4M12 8h.01" /></svg>
 					</span>
-					<span class="bento-stat__value">66</span>
+					<span class="bento-stat__value">56</span>
 					<span class="bento-stat__label">Medium</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
@@ -75,7 +75,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7" /></svg>
 					</span>
-					<span class="bento-stat__value">38</span>
+					<span class="bento-stat__value">30</span>
 					<span class="bento-stat__label">Info</span>
 				</div>
 		</div>
@@ -103,7 +103,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
 			</span>
 			<span class="bento-linkcard__title">Cargo</span>
-			<span class="bento-linkcard__copy">63 advisories</span>
+			<span class="bento-linkcard__copy">45 advisories</span>
 			<span class="bento-linkcard__go" aria-hidden="true">
 				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 			</span>
@@ -150,7 +150,7 @@ pie showData
     title Findings by Severity
     "Critical" : 4
     "High" : 39
-    "Medium" : 66
+    "Medium" : 56
     "Low" : 10
 ```
 
@@ -160,7 +160,7 @@ pie showData
 pie showData
     title Findings by Ecosystem
     "npm" : 94
-    "Cargo" : 63
+    "Cargo" : 45
 ```
 
 ### Summary
@@ -168,11 +168,11 @@ pie showData
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
 | **npm** | 4 | 39 | 41 | 10 | 94 |
-| **Cargo** | 0 | 0 | 25 | 0 | 63 |
+| **Cargo** | 0 | 0 | 15 | 0 | 45 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 4 | 39 | 66 | 10 | 157 |
+| **Total** | 4 | 39 | 56 | 10 | 139 |
 
 <span id="eco-npm"></span>
 
@@ -216,13 +216,13 @@ pie showData
 | High | `shell-quote` | shell-quote: Quadratic-complexity Denial of Service in `p... | [Details](https://github.com/advisories/GHSA-395f-4hp3-45gv) |
 | High | `axios` | Axios Node HTTP adapter can use an inherited proxy after ... | [Details](https://github.com/advisories/GHSA-gcfj-64vw-6mp9) |
 | High | `immutable` | Immutable.js `List` 32-bit trie overflow → unrecoverable DoS | [Details](https://github.com/advisories/GHSA-v56q-mh7h-f735) |
-| High | `fast-uri` | fast-uri vulnerable to host confusion via failed IDN cano... | [Details](https://github.com/advisories/GHSA-4c8g-83qw-93j6) |
 | High | `immutable` | Immutabl: Hash-collision algorithmic complexity denial of... | [Details](https://github.com/advisories/GHSA-xvcm-6775-5m9r) |
 | High | `svgo` | SVGO removeScripts plugin leaves some executable scripts ... | [Details](https://github.com/advisories/GHSA-2p49-hgcm-8545) |
 | High | `svgo` | SVGO removeScripts plugin leaves some executable scripts ... | [Details](https://github.com/advisories/GHSA-2p49-hgcm-8545) |
 | High | `fast-uri` | fast-uri vulnerable to host confusion via literal backsla... | [Details](https://github.com/advisories/GHSA-v2hh-gcrm-f6hx) |
 | High | `sharp` | sharp inherited vulnerabilities in libvips: CVE-2026-3332... | [Details](https://github.com/advisories/GHSA-f88m-g3jw-g9cj) |
 | High | `fast-xml-parser` | fast-xml-parser: Repeated DOCTYPE declarations reset enti... | [Details](https://github.com/advisories/GHSA-8r6m-32jq-jx6q) |
+| High | `fast-uri` | fast-uri vulnerable to host confusion via failed IDN cano... | [Details](https://github.com/advisories/GHSA-4c8g-83qw-93j6) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `mdast-util-to-hast` | mdast-util-to-hast has unsanitized class attribute | [Details](https://github.com/advisories/GHSA-4fh9-h7wg-q85m) |
 | Medium | `ajv` | ajv has ReDoS when using `$data` option | [Details](https://github.com/advisories/GHSA-2g4f-4pwh-qvx6) |
@@ -281,17 +281,11 @@ pie showData
 
 | Severity | Package | Advisory | Link |
 |----------|---------|----------|------|
-| Medium | `ammonia` | mXSS in ammonia via MathML `annotation-xml` encoding strip |  |
-| Medium | `crossbeam-epoch` | Invalid pointer dereference in `fmt::Pointer` impl for `A... | [Details](https://github.com/crossbeam-rs/crossbeam/pull/1276) |
-| Medium | `hickory-proto` | CPU exhaustion during message encoding due to O(n²) name ... | [Details](https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-q2qq-hmj6-3wpp) |
-| Medium | `hickory-proto` | NSEC3 closest-encloser proof validation enters unbounded ... | [Details](https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-3v94-mw7p-v465) |
-| Medium | `postgres-protocol` | Unbounded SCRAM iteration count allows a malicious server... | [Details](https://github.com/rust-postgres/rust-postgres/commit/d40097a36a85068ea50a3afbf0ce154ba439e7f0) |
-| Medium | `postgres-protocol` | Panic decoding a malformed `hstore` value allows denial o... | [Details](https://github.com/rust-postgres/rust-postgres/commit/a7cf84b5c46431cbca9d8ff50508c23f446efa7d) |
+| Medium | `ammonia` | XSS in ammonia via SVG `animate` and `set` animation tags |  |
 | Medium | `quick-xml` | Unbounded namespace-declaration allocation in `NsReader` ... | [Details](https://github.com/tafia/quick-xml/issues/970) |
 | Medium | `quick-xml` | Quadratic run time when checking a start tag for duplicat... | [Details](https://github.com/tafia/quick-xml/issues/969) |
 | Medium | `quick-xml` | Unbounded namespace-declaration allocation in `NsReader` ... | [Details](https://github.com/tafia/quick-xml/issues/970) |
 | Medium | `quick-xml` | Quadratic run time when checking a start tag for duplicat... | [Details](https://github.com/tafia/quick-xml/issues/969) |
-| Medium | `quinn-proto` |  Remote memory exhaustion in quinn-proto from unbounded o... | [Details](https://github.com/quinn-rs/quinn/pull/2694) |
 | Medium | `rsa` | Marvin Attack: potential key recovery through timing side... | [Details](https://github.com/RustCrypto/RSA/issues/626) |
 | Medium | `rustls-webpki` | Reachable panic in certificate revocation list parsing |  |
 | Medium | `rustls-webpki` | Name constraints were accepted for certificates asserting... |  |
@@ -300,17 +294,15 @@ pie showData
 | Medium | `rustls-webpki` | Name constraints were accepted for certificates asserting... |  |
 | Medium | `rustls-webpki` | Name constraints for URI names were incorrectly accepted |  |
 | Medium | `rustls-webpki` | CRLs not considered authoritative by Distribution Point d... |  |
-| Medium | `rustls-webpki` | Reachable panic in certificate revocation list parsing |  |
-| Medium | `rustls-webpki` | Name constraints were accepted for certificates asserting... |  |
-| Medium | `rustls-webpki` | Name constraints for URI names were incorrectly accepted |  |
 | Medium | `sqlx` | Binary Protocol Misinterpretation caused by Truncating or... | [Details](https://github.com/launchbadge/sqlx/issues/3440) |
 | Medium | `steamworks` | Denial of service in Steamworks game clients/servers usin... | [Details](https://github.com/Noxime/steamworks-rs/issues/321) |
-| Medium | `tokio-postgres` | Panic on a `DataRow` with fewer fields than columns allow... | [Details](https://github.com/rust-postgres/rust-postgres/commit/7a00ffa9ad4d951ec0a4564b52f1780fa9d353c1) |
 | Info | `atk` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
 | Info | `atk-sys` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
+| Info | `backoff` | `backoff` is unmaintained. | [Details](https://github.com/ihrwein/backoff/issues/66) |
 | Info | `bincode` | Bincode is unmaintained | [Details](https://git.sr.ht/~stygianentity/bincode/tree/v3.0/item/README.md) |
+| Info | `bincode` | Bincode is unmaintained | [Details](https://git.sr.ht/~stygianentity/bincode/tree/v3.0/item/README.md) |
+| Info | `crypto-hash` | crypto-hash crate is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/1633) |
 | Info | `derivative` | `derivative` is unmaintained; consider using an alternative | [Details](https://github.com/mcarton/rust-derivative/issues/117) |
-| Info | `fxhash` | fxhash - no longer maintained | [Details](https://github.com/cbreeden/fxhash/issues/20) |
 | Info | `gdk` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
 | Info | `gdk-sys` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
 | Info | `gdkwayland-sys` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
@@ -319,9 +311,9 @@ pie showData
 | Info | `gtk` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
 | Info | `gtk-sys` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
 | Info | `gtk3-macros` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
+| Info | `instant` | `instant` is unmaintained |  |
 | Info | `paste` | paste - no longer maintained | [Details](https://github.com/dtolnay/paste) |
 | Info | `proc-macro-error` | proc-macro-error is unmaintained | [Details](https://gitlab.com/CreepySkeleton/proc-macro-error/-/issues/20) |
-| Info | `proc-macro-error2` | proc-macro-error2 is unmaintained | [Details](https://github.com/GnomedDev/proc-macro-error-2/issues/17) |
 | Info | `rustls-pemfile` | rustls-pemfile is unmaintained | [Details](https://github.com/rustls/pemfile/issues/61) |
 | Info | `rustls-pemfile` | rustls-pemfile is unmaintained | [Details](https://github.com/rustls/pemfile/issues/61) |
 | Info | `rustybuzz` | `rustybuzz` is unmaintained | [Details](https://github.com/harfbuzz/rustybuzz/issues/166) |
@@ -332,18 +324,8 @@ pie showData
 | Info | `unic-common` | `unic-common` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
 | Info | `unic-ucd-ident` | `unic-ucd-ident` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
 | Info | `unic-ucd-version` | `unic-ucd-version` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
-| Info | `anyhow` | Unsoundness in `Error::downcast_mut()` | [Details](https://github.com/dtolnay/anyhow/issues/451) |
-| Info | `diesel` | Possible use after free when deserializing a SQLite datab... | [Details](https://github.com/diesel-rs/diesel/commit/1bc2ea46d9840e8d9af844239d3c84f37fe7d84b) |
 | Info | `glib` | Unsoundness in `Iterator` and `DoubleEndedIterator` impls... | [Details](https://github.com/gtk-rs/gtk-rs-core/pull/1343) |
 | Info | `lru` | `IterMut` violates Stacked Borrows by invalidating intern... | [Details](https://github.com/jeromefroe/lru-rs/pull/224) |
-| Info | `memmap2` | Unchecked pointer offset in crate `memmap2` | [Details](https://github.com/RazrFalcon/memmap2-rs/issues/169) |
-| Info | `rand` | Rand is unsound with a custom logger using `rand::rng()` | [Details](https://github.com/rust-random/rand/pull/1763) |
-| Info | `rand` | Rand is unsound with a custom logger using `rand::rng()` | [Details](https://github.com/rust-random/rand/pull/1763) |
-| Info | `rand` | Rand is unsound with a custom logger using `rand::rng()` | [Details](https://github.com/rust-random/rand/pull/1763) |
-| Info | `rand` | Rand is unsound with a custom logger using `rand::rng()` | [Details](https://github.com/rust-random/rand/pull/1763) |
-| Info | `scc` | `Array::insert` violates exception safety if compare func... | [Details](https://codeberg.org/wvwwvwwv/scalable-concurrent-containers/issues/232) |
-| Info | `spin` |  |  |
-| Info | `spin` |  |  |
 
 <span id="eco-python"></span>
 
