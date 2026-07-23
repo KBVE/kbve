@@ -55,7 +55,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: runner-install
-                  image: ghcr.io/kbve/kubectl:0.1.6
+                  image: ghcr.io/kbve/kubectl:0.1.7
                   command: ['/bin/sh', '/scripts/install-runner.sh']
                   securityContext:
                       allowPrivilegeEscalation: false
