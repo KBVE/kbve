@@ -63,7 +63,7 @@ pub struct MembershipApplication {
     #[prost(string, tag = "11")]
     pub created_at: ::prost::alloc::string::String,
 }
-#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+#[derive(Clone, PartialEq, ::prost::Message)]
 pub struct TalentProfile {
     #[prost(bytes = "vec", tag = "1")]
     pub user_id: ::prost::alloc::vec::Vec<u8>,
@@ -89,6 +89,9 @@ pub struct TalentProfile {
     pub skill_ids: ::prost::alloc::vec::Vec<u64>,
     #[prost(string, tag = "12")]
     pub updated_at: ::prost::alloc::string::String,
+    /// Extended profile data (bio, location, avatar, links) from central profile.extended_profiles
+    #[prost(message, optional, tag = "13")]
+    pub extended: ::core::option::Option<super::kbve::profile::ExtendedProfile>,
 }
 #[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
 pub struct ClientProfile {
@@ -337,14 +340,6 @@ pub struct Ack {
     pub message: ::prost::alloc::string::String,
 }
 /// Membership API envelope: string ids so one message serves REST JSON + gRPC.
-#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Hash, ::prost::Message)]
-pub struct ProfileLink {
-    /// github/linkedin/website/x/itch/artstation/other
-    #[prost(string, tag = "1")]
-    pub kind: ::prost::alloc::string::String,
-    #[prost(string, tag = "2")]
-    pub url: ::prost::alloc::string::String,
-}
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
 pub struct ProfileDraft {
     #[prost(string, optional, tag = "1")]
@@ -359,8 +354,9 @@ pub struct ProfileDraft {
     #[prost(string, optional, tag = "4")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub location: ::core::option::Option<::prost::alloc::string::String>,
+    /// Reuse shared ProfileLink from kbve.profile
     #[prost(message, repeated, tag = "5")]
-    pub links: ::prost::alloc::vec::Vec<ProfileLink>,
+    pub links: ::prost::alloc::vec::Vec<super::kbve::profile::ProfileLink>,
     #[prost(uint64, repeated, tag = "6")]
     pub discipline_ids: ::prost::alloc::vec::Vec<u64>,
 }
