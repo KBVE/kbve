@@ -37,6 +37,7 @@ async fn hls_transcode_integration() {
         completed_at: Some(0),
         last_access: 0,
         state: reel::state::TorrentState::Seeding,
+        error: None,
         transcode: reel::state::TranscodeStatus::None,
         transcode_path: None,
         transcode_error: None,

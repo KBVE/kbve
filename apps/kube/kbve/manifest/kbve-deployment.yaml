@@ -10,7 +10,7 @@ metadata:
         kbve.com/managed-by: argocd
     annotations:
         configmap.reloader.stakater.com/reload: kube-root-ca.crt
-        secret.reloader.stakater.com/reload: supabase-shared,forgejo-deploy-keys,valkey-auth,arpg-discord,clickhouse-credentials,vibeshine-config,cube-credentials
+        secret.reloader.stakater.com/reload: supabase-shared,forgejo-deploy-keys,valkey-auth,arpg-discord,clickhouse-credentials,vibeshine-config,cube-credentials,reel-config
 spec:
     replicas: 1
     strategy:

@@ -84,7 +84,18 @@ impl Engine {
         tracing::info!(%ip, "vpn preflight ok");
         std::fs::create_dir_all(&cfg.active_dir)?;
         std::fs::create_dir_all(&cfg.library_dir)?;
-        let session = Session::new(cfg.active_dir.clone()).await?;
+        let opts = librqbit::SessionOptions {
+            ratelimits: librqbit::limits::LimitsConfig {
+                upload_bps: cfg.upload_limit_bps.and_then(std::num::NonZeroU32::new),
+                download_bps: None,
+            },
+            ..Default::default()
+        };
+        if let Some(bps) = opts.ratelimits.upload_bps {
+            tracing::info!(upload_bps = bps.get(), "seeding upload rate limit enabled");
+        }
+        let session = Session::new_with_opts(cfg.active_dir.clone(), opts).await?;
+        reconcile_on_start(&store);
         Ok(Self {
             session,
             store,
@@ -159,6 +170,7 @@ impl Engine {
             completed_at: None,
             last_access: now_secs(),
             state: state::TorrentState::Leeching,
+            error: None,
             transcode: state::TranscodeStatus::None,
             transcode_path: None,
             transcode_error: None,
@@ -173,6 +185,11 @@ impl Engine {
         tokio::spawn(async move {
             if let Err(e) = handle.wait_until_completed().await {
                 tracing::error!(id = %id_task, error = %e, "torrent failed");
+                let _ = store.update(&id_task, |m| {
+                    m.state = state::TorrentState::Failed;
+                    m.error = Some(format!("download failed: {e}"));
+                    ((), true)
+                });
                 return;
             }
             match mover::move_completed(&out_dir, &library_dir) {
@@ -186,6 +203,7 @@ impl Engine {
                         completed_at: Some(now),
                         last_access: now,
                         state: state::TorrentState::Seeding,
+                        error: None,
                         transcode: state::TranscodeStatus::None,
                         transcode_path: None,
                         transcode_error: None,
@@ -195,7 +213,14 @@ impl Engine {
                     });
                     tracing::info!(id = %id_task, "moved to library");
                 }
-                Err(e) => tracing::error!(id = %id_task, error = %e, "move failed"),
+                Err(e) => {
+                    tracing::error!(id = %id_task, error = %e, "move failed");
+                    let _ = store.update(&id_task, |m| {
+                        m.state = state::TorrentState::Failed;
+                        m.error = Some(format!("move failed: {e}"));
+                        ((), true)
+                    });
+                }
             }
         });
         Ok(id)
@@ -296,6 +321,23 @@ impl Engine {
     }
 }
 
+pub fn needs_fail_on_restart(state: &state::TorrentState) -> bool {
+    matches!(state, state::TorrentState::Leeching)
+}
+
+fn reconcile_on_start(store: &state::StateStore) {
+    for m in store.list() {
+        if needs_fail_on_restart(&m.state) {
+            let _ = store.update(&m.id, |m| {
+                m.state = state::TorrentState::Failed;
+                m.error = Some("interrupted by restart; not resumable".into());
+                ((), true)
+            });
+            tracing::warn!(id = %m.id, name = %m.name, "leeching torrent failed on restart (no session persistence)");
+        }
+    }
+}
+
 pub async fn vpn_watchdog_loop(engine: Engine, interval_secs: u64) {
     let mut ticker = tokio::time::interval(std::time::Duration::from_secs(interval_secs));
     ticker.tick().await;
@@ -332,6 +374,53 @@ mod tests {
         remove_entry_files(&src.display().to_string(), Some(&tc.display().to_string()));
         assert!(!src.exists());
         assert!(!tc.exists());
+    }
+
+    #[test]
+    fn needs_fail_on_restart_only_leeching() {
+        use state::TorrentState::*;
+        assert!(needs_fail_on_restart(&Leeching));
+        assert!(!needs_fail_on_restart(&Seeding));
+        assert!(!needs_fail_on_restart(&Failed));
+        assert!(!needs_fail_on_restart(&Reaped));
+    }
+
+    #[test]
+    fn reconcile_fails_stranded_leeching_keeps_seeding() {
+        let dir = tempfile::tempdir().unwrap();
+        let store = state::StateStore::load(dir.path().join("s.json")).unwrap();
+        let mut leech = mk_meta("1", state::TorrentState::Leeching);
+        leech.name = "dl".into();
+        store.upsert(leech).unwrap();
+        store
+            .upsert(mk_meta("2", state::TorrentState::Seeding))
+            .unwrap();
+
+        reconcile_on_start(&store);
+
+        let a = store.get("1").unwrap();
+        assert_eq!(a.state, state::TorrentState::Failed);
+        assert!(a.error.as_deref().unwrap().contains("restart"));
+        assert_eq!(store.get("2").unwrap().state, state::TorrentState::Seeding);
+    }
+
+    fn mk_meta(id: &str, st: state::TorrentState) -> state::Metadata {
+        state::Metadata {
+            id: id.into(),
+            name: id.into(),
+            path: format!("/lib/{id}"),
+            size: 1,
+            completed_at: None,
+            last_access: 0,
+            state: st,
+            error: None,
+            transcode: state::TranscodeStatus::None,
+            transcode_path: None,
+            transcode_error: None,
+            hls: state::HlsStatus::None,
+            hls_dir: None,
+            hls_error: None,
+        }
     }
 
     #[test]
