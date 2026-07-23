@@ -1,184 +1,184 @@
 {
-  "generated_at": "2026-07-22T04:17:06Z",
+  "generated_at": "2026-07-23T04:15:37Z",
   "window": {
     "days": 7,
-    "since": "2026-07-15T04:17:06Z"
+    "since": "2026-07-16T04:15:37Z"
   },
   "commits": {
-    "total": 380,
+    "total": 412,
     "authors": 4,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 282
+        "commits": 291
       },
       {
         "author": "github-actions[bot]",
-        "commits": 89
-      },
-      {
-        "author": "Fudster",
-        "commits": 5
+        "commits": 108
       },
       {
         "author": "dependabot[bot]",
-        "commits": 4
+        "commits": 7
+      },
+      {
+        "author": "Fudster",
+        "commits": 6
       }
     ],
     "recent": [
       {
-        "sha": "d5df785",
+        "sha": "59cb1b3",
         "author": "h0lybyte",
-        "message": "Merge pull request #14468 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/d5df7857576f145ed36702409f82bfc856e5905d",
-        "date": "2026-07-21T12:03:23Z"
+        "message": "Merge pull request #14531 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/59cb1b3ee9065aee031de2f45d8edaa3fc612ddf",
+        "date": "2026-07-23T03:51:04Z"
       },
       {
-        "sha": "0053d7a",
+        "sha": "5f54fe0",
         "author": "github-actions[bot]",
-        "message": "chore(axum-kbve): post-publish sync to v1.0.248 (#14467)",
-        "url": "https://github.com/KBVE/kbve/commit/0053d7afb96e1295f548568e0b182d9d47174e59",
-        "date": "2026-07-21T10:58:45Z"
+        "message": "chore(agones-palworld): post-publish sync to v0.0.3 (#14532)",
+        "url": "https://github.com/KBVE/kbve/commit/5f54fe0edd06d5498ea6d6beb5fe8c4000a14c8d",
+        "date": "2026-07-23T03:36:49Z"
       },
       {
-        "sha": "b2022ec",
-        "author": "h0lybyte",
-        "message": "Merge pull request #14457 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/b2022ec10f119206ad35d39d975065a6036bc749",
-        "date": "2026-07-21T10:26:32Z"
-      },
-      {
-        "sha": "6a36d8f",
-        "author": "h0lybyte",
-        "message": "fix(kong): preserve_host on studio dashboard route so gate mints public redirect_to (#14465)",
-        "url": "https://github.com/KBVE/kbve/commit/6a36d8f9b655176edf2334c6c335b5b7047cb872",
-        "date": "2026-07-21T10:26:22Z"
-      },
-      {
-        "sha": "1933ad4",
+        "sha": "ab94a27",
         "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14464)",
-        "url": "https://github.com/KBVE/kbve/commit/1933ad4ea9a3b9b227c487b3337b5ac67c166f4f",
-        "date": "2026-07-21T09:54:01Z"
+        "message": "chore(agones-palworld-relay): post-publish sync to v0.0.3 (#14530)",
+        "url": "https://github.com/KBVE/kbve/commit/ab94a27962a3fdeef9ffdb92d7e42f52a9de0768",
+        "date": "2026-07-23T03:34:54Z"
       },
       {
-        "sha": "07cd76a",
+        "sha": "bee6a2b",
         "author": "h0lybyte",
-        "message": "chore(kbve): preparing the release of v1.0.248",
-        "url": "https://github.com/KBVE/kbve/commit/07cd76a2adcbb4819a43ca846684cb85e2043392",
-        "date": "2026-07-21T09:51:28Z"
+        "message": "Merge pull request #14526 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/bee6a2bc4fd3e15521fb304240383fe3561a15a2",
+        "date": "2026-07-23T03:26:01Z"
       },
       {
-        "sha": "57b715e",
+        "sha": "7d26d0f",
         "author": "github-actions[bot]",
-        "message": "feat(dashboard): add Cube to dashboard siderail + menu nav (#14463)",
-        "url": "https://github.com/KBVE/kbve/commit/57b715eac5128f502dee21aace038579052ad052",
-        "date": "2026-07-21T09:50:56Z"
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14528)",
+        "url": "https://github.com/KBVE/kbve/commit/7d26d0f83d3372ae578a8b05f3d87c7118a8d067",
+        "date": "2026-07-23T02:44:36Z"
       },
       {
-        "sha": "2692bca",
+        "sha": "60f73db",
+        "author": "h0lybyte",
+        "message": "feat(agones-palworld): in-game chat -> IRC via native-Linux UE4SS (#14527)",
+        "url": "https://github.com/KBVE/kbve/commit/60f73db99b545bed205c87f07b1abecab65fdfc4",
+        "date": "2026-07-23T02:42:30Z"
+      },
+      {
+        "sha": "e7801a6",
+        "author": "h0lybyte",
+        "message": "fix(agones-palworld): bump gameserver RAM to 32Gi limit / 16Gi request (#14525)",
+        "url": "https://github.com/KBVE/kbve/commit/e7801a69db32db1d6b4f88ed73f8d856732b5b76",
+        "date": "2026-07-23T02:12:11Z"
+      },
+      {
+        "sha": "5117ae6",
+        "author": "Fudster",
+        "message": "Merge pull request #14522 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/5117ae6eb2bab45f301ad99774615d25050ef238",
+        "date": "2026-07-23T01:15:24Z"
+      },
+      {
+        "sha": "5cbee06",
         "author": "github-actions[bot]",
-        "message": "feat(dashboard): cube polish \u2014 range control, top services/namespaces, MC players, derived stats (#14462)",
-        "url": "https://github.com/KBVE/kbve/commit/2692bca58e2ecae03fd156ec331c022346c1b57f",
-        "date": "2026-07-21T08:12:22Z"
+        "message": "chore(agones-palworld): post-publish sync to v0.0.2 (#14523)",
+        "url": "https://github.com/KBVE/kbve/commit/5cbee06360d1256bcccf5a45b206d3409d5443f6",
+        "date": "2026-07-23T01:12:02Z"
       },
       {
-        "sha": "6fc5449",
+        "sha": "5b2ee98",
         "author": "h0lybyte",
-        "message": "chore: [nx migration] 23-1-0-add-ignore-deprecations-for-ts6",
-        "url": "https://github.com/KBVE/kbve/commit/6fc54490a450cefd579964ae5a7206324a31795e",
-        "date": "2026-07-21T07:51:09Z"
+        "message": "feat(reel): seal reel-api token once in ns reel, sync to kbve via ESO (#14520)",
+        "url": "https://github.com/KBVE/kbve/commit/5b2ee9881c4f500b5f035076f8ead973effea012",
+        "date": "2026-07-23T01:10:14Z"
       },
       {
-        "sha": "bb49a0a",
-        "author": "h0lybyte",
-        "message": "chore: [nx migration] update-23-1-0-convert-to-flat-config",
-        "url": "https://github.com/KBVE/kbve/commit/bb49a0a7a9989ec0f4214330160a38a6e0fe6306",
-        "date": "2026-07-21T07:45:53Z"
+        "sha": "935be41",
+        "author": "github-actions[bot]",
+        "message": "chore(agones-palworld-relay): post-publish sync to v0.0.2 (#14521)",
+        "url": "https://github.com/KBVE/kbve/commit/935be412ac7520be4dd3d472b6acb78d6dbea488",
+        "date": "2026-07-23T01:08:13Z"
       },
       {
-        "sha": "8510d61",
+        "sha": "5096b31",
         "author": "h0lybyte",
-        "message": "chore: [nx migration] checkpoint before running migrations",
-        "url": "https://github.com/KBVE/kbve/commit/8510d618bddf2b7e04a3f4a43aecc01d4670dbf9",
-        "date": "2026-07-21T06:46:39Z"
-      },
-      {
-        "sha": "091e605",
-        "author": "h0lybyte",
-        "message": "fix(dashboard): kanban page on splash template for fullscreen gsap snap (#14458)",
-        "url": "https://github.com/KBVE/kbve/commit/091e605531fce84d3e14295b9fc0e4621a67e7ff",
-        "date": "2026-07-21T07:03:01Z"
+        "message": "Merge pull request #14518 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/5096b3134e40a86b4af0389dbf840153ce3d58ff",
+        "date": "2026-07-23T01:00:33Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 291,
+    "merged": 340,
     "recent": [
       {
-        "number": 14468,
-        "title": "Release: 1 chore \u2192 Main",
+        "number": 14531,
+        "title": "Release: 2 chores \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14468"
+        "url": "https://github.com/KBVE/kbve/pull/14531"
       },
       {
-        "number": 14467,
-        "title": "Atomic: axum-kbve v1.0.248 post-publish sync",
+        "number": 14532,
+        "title": "Atomic: agones-palworld v0.0.3 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14467"
+        "url": "https://github.com/KBVE/kbve/pull/14532"
       },
       {
-        "number": 14457,
-        "title": "Release: 2 features, 2 fixes, 1 doc, 4 chores \u2192 Main",
+        "number": 14530,
+        "title": "Atomic: agones-palworld-relay v0.0.3 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14457"
+        "url": "https://github.com/KBVE/kbve/pull/14530"
       },
       {
-        "number": 14465,
-        "title": "fix(kong): preserve_host on studio dashboard route",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14465"
+        "number": 14526,
+        "title": "Release: 1 feature, 1 fix \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/14526"
       },
       {
-        "number": 14464,
+        "number": 14528,
         "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14464"
+        "url": "https://github.com/KBVE/kbve/pull/14528"
       },
       {
-        "number": 14463,
-        "title": "Atomic: dashboard nav",
+        "number": 14527,
+        "title": "feat(agones-palworld): in-game chat -> IRC via native-Linux UE4SS",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14527"
+      },
+      {
+        "number": 14525,
+        "title": "fix(agones-palworld): bump gameserver RAM to 32Gi",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14525"
+      },
+      {
+        "number": 14522,
+        "title": "Release: 1 feature, 2 chores \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14463"
+        "url": "https://github.com/KBVE/kbve/pull/14522"
       },
       {
-        "number": 14462,
-        "title": "Atomic: dashboard polish",
+        "number": 14523,
+        "title": "Atomic: agones-palworld v0.0.2 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14462"
+        "url": "https://github.com/KBVE/kbve/pull/14523"
       },
       {
-        "number": 14458,
-        "title": "fix(dashboard): kanban page on splash template for fullscreen gsap snap",
+        "number": 14520,
+        "title": "feat(reel): seal reel-api token once + ESO to kbve (unblock reel pod)",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14458"
-      },
-      {
-        "number": 14456,
-        "title": "docs(embeddb): crate homepage/repository links + rust.mdx section",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14456"
-      },
-      {
-        "number": 14455,
-        "title": "fix(discordsh): /wm embeds \u2014 footer string not {text} (bot dumped JSON)",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14455"
+        "url": "https://github.com/KBVE/kbve/pull/14520"
       }
     ]
   },
   "issues": {
-    "opened": 299,
-    "closed": 292
+    "opened": 347,
+    "closed": 343
   }
 }
