@@ -31,8 +31,8 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					Dependency graph
 					<span class="bento-title__accent">across the monorepo.</span>
 				</h1>
-				<p class="bento-lede"><strong>140</strong> projects wired by <strong>155</strong> dependency edges.</p>
-				<p class="bento-lede">Last generated <strong>2026-07-22T04:17:46Z</strong>.</p>
+				<p class="bento-lede"><strong>142</strong> projects wired by <strong>155</strong> dependency edges.</p>
+				<p class="bento-lede">Last generated <strong>2026-07-23T04:16:14Z</strong>.</p>
 				<div class="bento-cta">
 					<a class="bento-btn bento-btn--primary" href="#diagram">
 						View diagram
@@ -47,14 +47,14 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09zM12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z" /></svg>
 					</span>
-					<span class="bento-stat__value">58</span>
+					<span class="bento-stat__value">61</span>
 					<span class="bento-stat__label">Apps</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4zM13 13h7v7h-7zM13 4h7v7h-7zM4 13h7v7H4z" /></svg>
 					</span>
-					<span class="bento-stat__value">58</span>
+					<span class="bento-stat__value">57</span>
 					<span class="bento-stat__label">Libs</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
@@ -87,7 +87,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4zM13 13h7v7h-7zM13 4h7v7h-7zM4 13h7v7H4z" /></svg>
 			</span>
 			<span class="bento-linkcard__title">jedi</span>
-			<span class="bento-linkcard__copy">17 projects depend on this lib · packages/rust/jedi</span>
+			<span class="bento-linkcard__copy">18 projects depend on this lib · packages/rust/jedi</span>
 		</div>
 		<div class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive">
 			<span class="bento-icon-tile">
@@ -127,9 +127,9 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 ```mermaid
 pie showData
     title Projects by Type
-    "Apps" : 58
+    "Apps" : 61
     "E2es" : 24
-    "Libs" : 58
+    "Libs" : 57
 ```
 
 ### Hub connectivity
@@ -137,7 +137,7 @@ pie showData
 ```mermaid
 pie showData
     title Dependents per Hub
-    "jedi" : 17
+    "jedi" : 18
     "droid" : 13
     "kbve" : 12
     "astro" : 11
@@ -147,7 +147,7 @@ pie showData
 ### Graph
 
 :::note
-Showing the <strong>40</strong> most-connected projects of <strong>140</strong> — the full graph is too large to render inline. Every project is listed in the [Project index](#project-index) below.
+Showing the <strong>40</strong> most-connected projects of <strong>142</strong> — the full graph is too large to render inline. Every project is listed in the [Project index](#project-index) below.
 :::
 
 ```mermaid
@@ -248,6 +248,8 @@ graph LR
 | **@kbve/source** | app | `.` | 1 | 0 |
 | **agones-factorio** | app | `apps/agones/factorio` | 0 | 0 |
 | **agones-factorio-relay** | app | `apps/agones/factorio/relay` | 1 | 0 |
+| **agones-palworld** | app | `apps/agones/palworld` | 0 | 0 |
+| **agones-palworld-relay** | app | `apps/agones/palworld/relay` | 1 | 0 |
 | **angelscript** | app | `apps/angelscript` | 0 | 0 |
 | **arc-runner** | lib | `packages/docker/arc-runner` | 0 | 1 |
 | **arc-runner-e2e** | e2e | `packages/docker/arc-runner-e2e` | 1 | 0 |
@@ -323,7 +325,7 @@ graph LR
 | **edge-e2e** | e2e | `apps/kbve/edge-e2e` | 1 | 0 |
 | **embeddb** | lib | `packages/rust/embeddb` | 1 | 0 |
 | **embeddb-derive** | lib | `packages/rust/embeddb-derive` | 0 | 1 |
-| **erust** | lib | `packages/rust/erust` | 1 | 1 |
+| **erust** | lib | `packages/rust/erust` | 1 | 0 |
 | **factorio-ctl** | app | `apps/vm/factorio-ctl` | 1 | 0 |
 | **firecracker-ctl** | app | `apps/vm/firecracker-ctl` | 1 | 1 |
 | **firecracker-ctl-e2e** | e2e | `apps/vm/firecracker-ctl-e2e` | 1 | 0 |
@@ -342,12 +344,11 @@ graph LR
 | **irc-gateway** | app | `apps/irc/irc-gateway` | 3 | 1 |
 | **isometric** | app | `apps/kbve/isometric` | 0 | 0 |
 | **isometric-game** | lib | `apps/kbve/isometric/src-tauri` | 10 | 1 |
-| **jedi** | lib | `packages/rust/jedi` | 0 | 17 |
+| **jedi** | lib | `packages/rust/jedi` | 0 | 18 |
 | **jobboard** | app | `apps/jobboard` | 5 | 0 |
 | **kasm-cloakbrowser** | lib | `packages/docker/kasm-cloakbrowser` | 0 | 0 |
 | **kasm-void** | lib | `packages/docker/kasm-void` | 0 | 0 |
 | **kbve** | lib | `packages/rust/kbve` | 2 | 12 |
-| **kbve-desktop** | lib | `apps/kbve/desktop-kbve/src-tauri` | 1 | 0 |
 | **kbve-gate** | app | `apps/kbve/kbve-gate` | 1 | 0 |
 | **kbve-kubectl** | app | `apps/vm/kubectl` | 0 | 1 |
 | **kbve-orc** | app | `apps/agones/factorio/mods-src/kbve-orc` | 0 | 0 |
@@ -375,6 +376,7 @@ graph LR
 | **python-fudster** | lib | `packages/python/fudster` | 0 | 0 |
 | **python-kbve** | lib | `packages/python/kbve` | 0 | 0 |
 | **q** | lib | `packages/rust/q` | 2 | 0 |
+| **reel** | app | `apps/media/reel` | 0 | 0 |
 | **rentearth-web** | app | `apps/rentearth/axum-rentearth/web` | 0 | 0 |
 | **rn** | lib | `packages/npm/rn` | 1 | 6 |
 | **rn-astro** | lib | `packages/npm/rn-astro` | 1 | 1 |
@@ -399,6 +401,15 @@ graph LR
 
 <details>
 <summary><strong>agones-factorio-relay</strong> (1 dep)</summary>
+
+| Target | Type |
+|--------|------|
+| jedi | static |
+
+</details>
+
+<details>
+<summary><strong>agones-palworld-relay</strong> (1 dep)</summary>
 
 | Target | Type |
 |--------|------|
@@ -1086,15 +1097,6 @@ graph LR
 |--------|------|
 | holy | static |
 | jedi | static |
-
-</details>
-
-<details>
-<summary><strong>kbve-desktop</strong> (1 dep)</summary>
-
-| Target | Type |
-|--------|------|
-| erust | static |
 
 </details>
 
