@@ -35,6 +35,9 @@ spec:
                 - name: palworld-saves
                   persistentVolumeClaim:
                       claimName: palworld-saves
+                - name: palworld-backups
+                  persistentVolumeClaim:
+                      claimName: palworld-backups
                 - name: chat-relay
                   emptyDir: {}
             containers:
@@ -67,7 +70,7 @@ spec:
                       - name: COMMUNITY_SERVER
                         value: 'false'
                       - name: BACKUP_ENABLED
-                        value: 'false'
+                        value: 'true'
                       - name: RESTART_ENABLED
                         value: 'false'
                       - name: PLAYER_DETECTION_ENABLED
@@ -95,6 +98,8 @@ spec:
                   volumeMounts:
                       - name: palworld-saves
                         mountPath: /palworld/Pal/Saved
+                      - name: palworld-backups
+                        mountPath: /palworld/backups
                       - name: chat-relay
                         mountPath: /shared/chat
                   resources:
