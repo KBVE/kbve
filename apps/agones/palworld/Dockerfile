@@ -29,6 +29,15 @@ RUN set -eux; \
     grep -q '^ConsoleEnabled = 1' /opt/ue4ss/UE4SS-settings.ini; \
     grep -q '^bUseUObjectArrayCache = false' /opt/ue4ss/UE4SS-settings.ini
 
+ARG UE4SS_SO_URL=https://github.com/XarminaEu/ue4ss-linux/releases/download/v3.0.1-linux/libUE4SS-linux-x64.so
+ARG UE4SS_SO_SHA256=93f4c6e8aad5fc92792091fe4da983a2ea7d4f3a8de4f570180e13a51cdb6cab
+
+RUN set -eux; \
+    curl -fsSL "$UE4SS_SO_URL" -o /tmp/libUE4SS.so; \
+    echo "$UE4SS_SO_SHA256  /tmp/libUE4SS.so" | sha256sum -c -; \
+    install -m 0644 /tmp/libUE4SS.so /opt/ue4ss/libUE4SS.so; \
+    rm /tmp/libUE4SS.so
+
 COPY apps/agones/palworld/mods/PalChatRelay /opt/ue4ss/Mods/PalChatRelay
 COPY apps/agones/palworld/ue4ss-launch.sh /usr/local/bin/ue4ss-launch
 RUN set -eux; \
