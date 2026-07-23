@@ -10,8 +10,7 @@ local function now_ms()
 end
 
 local function sanitize(s)
-    s = s:gsub("[\t\r\n]", " ")
-    return s
+    return (s:gsub("[\t\r\n]", " "))
 end
 
 local function append(player, text)
@@ -24,22 +23,38 @@ local function append(player, text)
     f:close()
 end
 
+local function on_chat(self, chat_param)
+    local ok, player, text = pcall(function()
+        local p = chat_param:get()
+        return tostring(p.SenderPlayerName:ToString()), tostring(p.Message:ToString())
+    end)
+    if ok and player and text and #text > 0 then
+        append(player, text)
+    end
+end
+
+local registered = false
+local function try_register()
+    if registered then
+        return
+    end
+    if pcall(RegisterHook, CHAT_FUNC, on_chat) then
+        registered = true
+        log("chat hook registered on " .. CHAT_FUNC)
+    else
+        log("chat function not ready; will retry")
+    end
+end
+
 log("loaded; chat log = " .. CHAT_LOG)
 
-local ok, err = pcall(function()
-    RegisterHook(CHAT_FUNC, function(self, chat_param)
-        local hok, player, text = pcall(function()
-            local p = chat_param:get()
-            return tostring(p.SenderPlayerName:ToString()), tostring(p.Message:ToString())
-        end)
-        if hok and player and text and #text > 0 then
-            append(player, text)
-        end
+-- The chat manager class is not loaded at mod-init; defer registration so
+-- RegisterHook does not error at startup. Retry a few times as the world loads.
+try_register()
+if not registered then
+    pcall(function()
+        ExecuteWithDelay(20000, try_register)
+        ExecuteWithDelay(60000, try_register)
+        ExecuteWithDelay(120000, try_register)
     end)
-end)
-
-if ok then
-    log("hook registered on " .. CHAT_FUNC)
-else
-    log("hook registration FAILED on " .. CHAT_FUNC .. " : " .. tostring(err))
 end

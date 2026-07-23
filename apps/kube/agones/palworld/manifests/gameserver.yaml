@@ -72,6 +72,8 @@ spec:
                         value: 'false'
                       - name: RCON_PLAYER_DETECTION
                         value: 'false'
+                      - name: WORKSHOP_MOD_UPDATE_CRON
+                        value: '0 0 31 2 *'
                       - name: ADMIN_PASSWORD
                         valueFrom:
                             secretKeyRef:
