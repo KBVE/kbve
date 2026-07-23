@@ -19,5 +19,6 @@ COPY apps/agones/palworld/overlay.sh /opt/palchatrelay/overlay.sh
 COPY apps/agones/palworld/shim/agones-shim-prestop.sh /usr/local/bin/agones-shim-prestop
 RUN chmod +x /opt/palchatrelay/overlay.sh /usr/local/bin/agones-shim-prestop \
     && chmod -R a+rX /opt/palchatrelay \
+    && chown -R 1000:1000 /opt/palchatrelay \
     && mkdir -p /shared/chat \
     && chown -R 1000:1000 /shared/chat
