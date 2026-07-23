@@ -125,8 +125,9 @@ where
                 }
                 if let Some(msg) = parse_privmsg(&trimmed, &cfg.irc_channel, &cfg.irc_nick) {
                     let rest = rest.clone();
+                    let announcement = format_incoming(&msg.nick, &msg.text);
                     tokio::spawn(async move {
-                        if let Err(e) = rest.announce(&format!("[IRC {}] {}", msg.nick, msg.text)).await {
+                        if let Err(e) = rest.announce(&announcement).await {
                             warn!(error = %e, "irc -> announce failed");
                         }
                     });
@@ -177,6 +178,17 @@ fn parse_privmsg(line: &str, expected_channel: &str, self_nick: &str) -> Option<
         channel: target.to_string(),
         text,
     })
+}
+
+pub(crate) fn format_incoming(nick: &str, text: &str) -> String {
+    if let Some(body) = text.strip_prefix("[CHAT] ") {
+        if let Some((sender, rest)) = body.split_once(": ") {
+            if !sender.is_empty() && !sender.contains(' ') {
+                return format!("[{sender}] {rest}");
+            }
+        }
+    }
+    format!("[IRC {nick}] {text}")
 }
 
 fn format_for_irc(ev: &GameEvent, last_players: &mut Option<u64>) -> Option<String> {
@@ -235,8 +247,14 @@ mod tests {
     #[test]
     fn join_leave_stats_are_dropped() {
         let mut lp = None;
-        assert_eq!(format_for_irc(&ev(GameEventKind::Join, Some("Al"), ""), &mut lp), None);
-        assert_eq!(format_for_irc(&ev(GameEventKind::Leave, Some("Al"), ""), &mut lp), None);
+        assert_eq!(
+            format_for_irc(&ev(GameEventKind::Join, Some("Al"), ""), &mut lp),
+            None
+        );
+        assert_eq!(
+            format_for_irc(&ev(GameEventKind::Leave, Some("Al"), ""), &mut lp),
+            None
+        );
         let mut stats = ev(GameEventKind::Stats, None, "");
         stats.fields.insert("kind".into(), "snapshot".into());
         stats.fields.insert("players".into(), "3".into());
@@ -246,6 +264,29 @@ mod tests {
     #[test]
     fn empty_chat_is_dropped() {
         let mut lp = None;
-        assert_eq!(format_for_irc(&ev(GameEventKind::Chat, Some("Al"), "   "), &mut lp), None);
+        assert_eq!(
+            format_for_irc(&ev(GameEventKind::Chat, Some("Al"), "   "), &mut lp),
+            None
+        );
+    }
+
+    #[test]
+    fn discord_relay_is_unwrapped() {
+        assert_eq!(
+            format_incoming("discordsh-bot", "[CHAT] Fudster@Discord: hello world"),
+            "[Fudster@Discord] hello world"
+        );
+    }
+
+    #[test]
+    fn plain_irc_keeps_nick_prefix() {
+        assert_eq!(
+            format_incoming("Alice", "hey there"),
+            "[IRC Alice] hey there"
+        );
+        assert_eq!(
+            format_incoming("Alice", "note: this"),
+            "[IRC Alice] note: this"
+        );
     }
 }

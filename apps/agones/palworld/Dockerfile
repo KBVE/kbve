@@ -21,11 +21,13 @@ RUN set -eux; \
     sed -i \
         -e 's/^GuiConsoleEnabled = .*/GuiConsoleEnabled = 0/' \
         -e 's/^GuiConsoleVisible = .*/GuiConsoleVisible = 0/' \
-        -e 's/^ConsoleEnabled = .*/ConsoleEnabled = 0/' \
+        -e 's/^ConsoleEnabled = .*/ConsoleEnabled = 1/' \
         -e 's/^DumpOffsetsAndSizes = .*/DumpOffsetsAndSizes = 0/' \
+        -e 's/^bUseUObjectArrayCache = .*/bUseUObjectArrayCache = false/' \
         /opt/ue4ss/UE4SS-settings.ini; \
     grep -q '^GuiConsoleEnabled = 0' /opt/ue4ss/UE4SS-settings.ini; \
-    grep -q '^ConsoleEnabled = 0' /opt/ue4ss/UE4SS-settings.ini
+    grep -q '^ConsoleEnabled = 1' /opt/ue4ss/UE4SS-settings.ini; \
+    grep -q '^bUseUObjectArrayCache = false' /opt/ue4ss/UE4SS-settings.ini
 
 COPY apps/agones/palworld/mods/PalChatRelay /opt/ue4ss/Mods/PalChatRelay
 COPY apps/agones/palworld/ue4ss-launch.sh /usr/local/bin/ue4ss-launch
