@@ -7,37 +7,18 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends curl jq ca-certificates && \
     rm -rf /var/lib/apt/lists/*
 
-ARG UE4SS_URL=https://github.com/NullPrism/RE-UE4SS-Linux/releases/download/linux-v0.1.0/RE-UE4SS-Linux-0.1.0-x86_64.tar.gz
-ARG UE4SS_SHA256=15f9f368f51619918f29f5adbae6a0411056896c65b76b30980be4899b0f48da
-
-RUN set -eux; \
-    mkdir -p /opt/ue4ss; \
-    curl -fsSL "$UE4SS_URL" -o /tmp/ue4ss.tar.gz; \
-    echo "$UE4SS_SHA256  /tmp/ue4ss.tar.gz" | sha256sum -c -; \
-    tar xzf /tmp/ue4ss.tar.gz -C /opt/ue4ss --strip-components=1; \
-    rm /tmp/ue4ss.tar.gz; \
-    test -f /opt/ue4ss/libUE4SS.so; \
-    test -f /opt/ue4ss/run_ue4ss.sh; \
-    sed -i \
-        -e 's/^GuiConsoleEnabled = .*/GuiConsoleEnabled = 0/' \
-        -e 's/^GuiConsoleVisible = .*/GuiConsoleVisible = 0/' \
-        -e 's/^ConsoleEnabled = .*/ConsoleEnabled = 1/' \
-        -e 's/^DumpOffsetsAndSizes = .*/DumpOffsetsAndSizes = 0/' \
-        -e 's/^bUseUObjectArrayCache = .*/bUseUObjectArrayCache = false/' \
-        /opt/ue4ss/UE4SS-settings.ini; \
-    grep -q '^GuiConsoleEnabled = 0' /opt/ue4ss/UE4SS-settings.ini; \
-    grep -q '^ConsoleEnabled = 1' /opt/ue4ss/UE4SS-settings.ini; \
-    grep -q '^bUseUObjectArrayCache = false' /opt/ue4ss/UE4SS-settings.ini
-
 ARG UE4SS_SO_URL=https://github.com/XarminaEu/ue4ss-linux/releases/download/v3.0.1-linux/libUE4SS-linux-x64.so
 ARG UE4SS_SO_SHA256=93f4c6e8aad5fc92792091fe4da983a2ea7d4f3a8de4f570180e13a51cdb6cab
 
 RUN set -eux; \
+    mkdir -p /opt/ue4ss/Mods; \
     curl -fsSL "$UE4SS_SO_URL" -o /tmp/libUE4SS.so; \
     echo "$UE4SS_SO_SHA256  /tmp/libUE4SS.so" | sha256sum -c -; \
     install -m 0644 /tmp/libUE4SS.so /opt/ue4ss/libUE4SS.so; \
     rm /tmp/libUE4SS.so
 
+COPY apps/agones/palworld/ue4ss/UE4SS-settings.ini /opt/ue4ss/UE4SS-settings.ini
+COPY apps/agones/palworld/mods/mods.txt /opt/ue4ss/Mods/mods.txt
 COPY apps/agones/palworld/mods/PalChatRelay /opt/ue4ss/Mods/PalChatRelay
 COPY apps/agones/palworld/ue4ss-launch.sh /usr/local/bin/ue4ss-launch
 RUN set -eux; \
