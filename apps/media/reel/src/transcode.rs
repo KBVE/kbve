@@ -284,7 +284,7 @@ impl Transcoder {
         let this = self.clone();
         tokio::spawn(async move {
             if let Err(e) = this.run_job(&id, &meta).await {
-                tracing::error!(id = %id, error = %e, "transcode failed");
+                crate::telemetry::transcode_failed(&id, &e.to_string());
                 let _ = this.store.update(&id, |m| {
                     m.transcode = TranscodeStatus::Failed;
                     m.transcode_error = Some(e.to_string());
