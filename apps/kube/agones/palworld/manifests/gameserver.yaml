@@ -78,11 +78,7 @@ spec:
                                 name: palworld-rcon
                                 key: admin_password
                       - name: SERVER_PASSWORD
-                        valueFrom:
-                            secretKeyRef:
-                                name: palworld-credentials
-                                key: server_password
-                                optional: true
+                        value: ''
                   ports:
                       - containerPort: 8211
                         protocol: UDP
