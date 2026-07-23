@@ -55,9 +55,20 @@ pub async fn wm(
                 args = arg_count,
                 "windmill run ok"
             );
-            // Public embed + reroll button so anyone in the channel can re-run.
-            let row = build_wm_action_row(&wm_path, &args);
-            send_value_reply(ctx, &value, &path_for_log, None, row, false).await?;
+            // A script may return a top-level `ephemeral: true` (e.g. profile,
+            // which shows a private wallet balance) → keep it invoker-only and
+            // drop the public reroll button. Everything else stays public with
+            // a reroll so anyone in the channel can re-run.
+            let ephemeral = value
+                .get("ephemeral")
+                .and_then(Value::as_bool)
+                .unwrap_or(false);
+            let row = if ephemeral {
+                None
+            } else {
+                build_wm_action_row(&wm_path, &args)
+            };
+            send_value_reply(ctx, &value, &path_for_log, None, row, ephemeral).await?;
         }
         // Unknown or blocked command name (and the defensive empty-path case)
         // → render the help menu itself, prefixed with a closest-match hint,
