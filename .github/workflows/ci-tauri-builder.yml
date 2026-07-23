@@ -30,6 +30,21 @@ on:
                 required: false
                 type: string
                 default: 'linux,macos,windows,wasm'
+            features:
+                description: 'Cargo features to enable (space/comma list, e.g. "appstore")'
+                required: false
+                type: string
+                default: ''
+            config:
+                description: 'Extra tauri config to merge via -c (path relative to project_path, e.g. src-tauri/tauri.appstore.conf.json)'
+                required: false
+                type: string
+                default: ''
+            appstore:
+                description: 'macOS build targets the Mac App Store (sandboxed .app → .pkg → App Store Connect upload)'
+                required: false
+                type: boolean
+                default: false
 
 jobs:
     # --- Fork guard for self-hosted runners ---
@@ -165,7 +180,12 @@ jobs:
             - name: Build Tauri App
               shell: bash
               working-directory: ${{ inputs.project_path }}
-              run: cargo tauri build
+              run: |
+                  ARGS=""
+                  [ -n "${{ inputs.features }}" ] && ARGS="$ARGS --features ${{ inputs.features }}"
+                  [ -n "${{ inputs.config }}" ] && ARGS="$ARGS -c ${{ inputs.config }}"
+                  echo "cargo tauri build$ARGS"
+                  cargo tauri build $ARGS
               env:
                   CI: true
                   APPIMAGE_EXTRACT_AND_RUN: '1'
@@ -268,9 +288,15 @@ jobs:
             - name: Build Tauri App
               shell: bash
               working-directory: ${{ inputs.project_path }}
-              run: cargo tauri build
+              run: |
+                  ARGS=""
+                  [ -n "${{ inputs.features }}" ] && ARGS="$ARGS --features ${{ inputs.features }}"
+                  [ -n "${{ inputs.config }}" ] && ARGS="$ARGS -c ${{ inputs.config }}"
+                  echo "cargo tauri build$ARGS"
+                  cargo tauri build $ARGS
               env:
                   CI: true
+                  # App Store variant signs with the App Store cert (below step); Developer ID / notarize path uses these.
                   APPLE_CERTIFICATE: ${{ inputs.notarize && secrets.APPLE_CERTIFICATE || '' }}
                   APPLE_CERTIFICATE_PASSWORD: ${{ inputs.notarize && secrets.APPLE_CERTIFICATE_PASSWORD || '' }}
                   APPLE_SIGNING_IDENTITY: ${{ inputs.notarize && secrets.APPLE_SIGNING_IDENTITY || '' }}
@@ -287,6 +313,67 @@ jobs:
                       dist/target/release/bundle/macos/*.app
                   if-no-files-found: warn
                   retention-days: 14
+
+            # --- Mac App Store: sign sandboxed .app → .pkg → App Store Connect upload ---
+            # App Store uses a DIFFERENT cert class than notarization: Apple Distribution
+            # (app) + Mac Installer Distribution (.pkg) — the existing APPLE_CERTIFICATE is
+            # Developer ID and cannot sign for the store. Upload reuses APPLE_ID/APPLE_PASSWORD
+            # (app-specific password). Cert secret absent → warn + skip (sandboxed .app is
+            # still built + uploaded above so the variant is testable before certs land).
+            - name: Package + upload to App Store Connect
+              if: inputs.appstore && success()
+              shell: bash
+              env:
+                  # New — App Store distribution certs (one p12 may hold both app + installer certs).
+                  APPSTORE_CERT: ${{ secrets.APPLE_APPSTORE_CERTIFICATE }}
+                  APPSTORE_CERT_PASSWORD: ${{ secrets.APPLE_APPSTORE_CERTIFICATE_PASSWORD }}
+                  APP_IDENTITY: ${{ secrets.APPLE_APPSTORE_APP_IDENTITY }}
+                  INSTALLER_IDENTITY: ${{ secrets.APPLE_APPSTORE_INSTALLER_IDENTITY }}
+                  PROVISIONING_PROFILE: ${{ secrets.APPLE_APPSTORE_PROVISIONING_PROFILE }}
+                  # Reused from the existing notarization secret set.
+                  APPLE_ID: ${{ secrets.APPLE_ID }}
+                  APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+                  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+              working-directory: ${{ inputs.project_path }}
+              run: |
+                  set -euo pipefail
+                  if [ -z "${APPSTORE_CERT:-}" ]; then
+                    echo "::warning::App Store distribution cert not set (APPLE_APPSTORE_CERTIFICATE). Skipping package+upload; sandboxed .app artifact is available."
+                    exit 0
+                  fi
+
+                  # shellcheck disable=SC2012
+                  APP_PATH=$(ls -d dist/target/release/bundle/macos/*.app | head -n1)
+                  echo "App bundle: $APP_PATH"
+
+                  # Import App Store app + installer signing certs into a temp keychain.
+                  KEYCHAIN="$RUNNER_TEMP/appstore.keychain-db"
+                  KP="$(uuidgen)"
+                  security create-keychain -p "$KP" "$KEYCHAIN"
+                  security set-keychain-settings -lut 21600 "$KEYCHAIN"
+                  security unlock-keychain -p "$KP" "$KEYCHAIN"
+                  echo "$APPSTORE_CERT" | base64 --decode > "$RUNNER_TEMP/appstore.p12"
+                  security import "$RUNNER_TEMP/appstore.p12" -P "$APPSTORE_CERT_PASSWORD" -A -t cert -f pkcs12 -k "$KEYCHAIN"
+                  security list-keychain -d user -s "$KEYCHAIN" login.keychain-db
+                  security set-key-partition-list -S apple-tool:,apple: -k "$KP" "$KEYCHAIN" >/dev/null
+
+                  # Embed provisioning profile (Mac App Store type).
+                  if [ -n "${PROVISIONING_PROFILE:-}" ]; then
+                    echo "$PROVISIONING_PROFILE" | base64 --decode > "$APP_PATH/Contents/embedded.provisionprofile"
+                  fi
+
+                  # Re-sign the sandboxed app with the Apple Distribution identity + entitlements, then wrap in a .pkg.
+                  codesign --force --deep --options runtime \
+                    --entitlements src-tauri/entitlements.appstore.plist \
+                    --sign "$APP_IDENTITY" "$APP_PATH"
+                  PKG_PATH="$RUNNER_TEMP/${{ inputs.app_name }}.pkg"
+                  productbuild --component "$APP_PATH" /Applications --sign "$INSTALLER_IDENTITY" "$PKG_PATH"
+
+                  # Upload to App Store Connect (reuses the app-specific password).
+                  xcrun altool --upload-app -f "$PKG_PATH" -t macos \
+                    -u "$APPLE_ID" -p "$APPLE_PASSWORD"
+
+                  security delete-keychain "$KEYCHAIN" || true
 
             - name: Create test marker
               if: success()
@@ -373,7 +460,12 @@ jobs:
             - name: Build Tauri App
               shell: bash
               working-directory: ${{ inputs.project_path }}
-              run: cargo tauri build
+              run: |
+                  ARGS=""
+                  [ -n "${{ inputs.features }}" ] && ARGS="$ARGS --features ${{ inputs.features }}"
+                  [ -n "${{ inputs.config }}" ] && ARGS="$ARGS -c ${{ inputs.config }}"
+                  echo "cargo tauri build$ARGS"
+                  cargo tauri build $ARGS
               env:
                   CI: true
 
