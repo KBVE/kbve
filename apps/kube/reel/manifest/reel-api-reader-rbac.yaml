@@ -1,0 +1,29 @@
+# Grants the kbve-namespace ESO ServiceAccount read access to the reel-api
+# secret in ns reel, so axum-kbve's ExternalSecret (apps/kube/kbve/manifest/
+# reel-externalsecret.yaml) can sync the token into ns kbve. Lives in the reel
+# app (dir-recurse, no namespace transformer) so it stays in ns reel — the kbve
+# app's kustomization would rewrite it to ns kbve.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: kbve-read-reel-api
+    namespace: reel
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['reel-api']
+      verbs: ['get']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: kbve-read-reel-api
+    namespace: reel
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: kbve-read-reel-api
+subjects:
+    - kind: ServiceAccount
+      name: kbve-reel-external-secrets
+      namespace: kbve
