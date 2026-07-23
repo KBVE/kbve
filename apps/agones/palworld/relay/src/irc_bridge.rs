@@ -180,27 +180,22 @@ fn parse_privmsg(line: &str, expected_channel: &str, self_nick: &str) -> Option<
 }
 
 fn format_for_irc(ev: &GameEvent, last_players: &mut Option<u64>) -> Option<String> {
+    let _ = last_players;
     match ev.kind {
-        GameEventKind::Join => {
-            let player = ev.player.as_deref().unwrap_or("unknown");
-            Some(format!("{player} joined"))
-        }
-        GameEventKind::Leave => {
-            let player = ev.player.as_deref().unwrap_or("unknown");
-            Some(format!("{player} left"))
-        }
-        GameEventKind::Stats => {
-            if ev.field("kind") != Some("snapshot") {
+        GameEventKind::Chat => {
+            let text = ev.text.trim();
+            if text.is_empty() {
                 return None;
             }
-            let players: u64 = ev.field("players").and_then(|v| v.parse().ok()).unwrap_or(0);
-            if *last_players == Some(players) {
-                return None;
+            match ev.player.as_deref() {
+                Some(player) => Some(format!("<{player}> {text}")),
+                None => Some(text.to_string()),
             }
-            *last_players = Some(players);
-            Some(format!("players online: {players}"))
         }
-        GameEventKind::Chat | GameEventKind::Command => None,
+        GameEventKind::Join
+        | GameEventKind::Leave
+        | GameEventKind::Stats
+        | GameEventKind::Command => None,
     }
 }
 
@@ -213,4 +208,44 @@ fn truncate(s: &str, max: usize) -> String {
         cut -= 1;
     }
     s[..cut].to_string()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::collections::HashMap;
+
+    fn ev(kind: GameEventKind, player: Option<&str>, text: &str) -> GameEvent {
+        GameEvent {
+            kind,
+            player: player.map(String::from),
+            text: text.to_string(),
+            raw: String::new(),
+            fields: HashMap::new(),
+        }
+    }
+
+    #[test]
+    fn chat_is_relayed() {
+        let mut lp = None;
+        let out = format_for_irc(&ev(GameEventKind::Chat, Some("Alice"), "hi"), &mut lp);
+        assert_eq!(out, Some("<Alice> hi".to_string()));
+    }
+
+    #[test]
+    fn join_leave_stats_are_dropped() {
+        let mut lp = None;
+        assert_eq!(format_for_irc(&ev(GameEventKind::Join, Some("Al"), ""), &mut lp), None);
+        assert_eq!(format_for_irc(&ev(GameEventKind::Leave, Some("Al"), ""), &mut lp), None);
+        let mut stats = ev(GameEventKind::Stats, None, "");
+        stats.fields.insert("kind".into(), "snapshot".into());
+        stats.fields.insert("players".into(), "3".into());
+        assert_eq!(format_for_irc(&stats, &mut lp), None);
+    }
+
+    #[test]
+    fn empty_chat_is_dropped() {
+        let mut lp = None;
+        assert_eq!(format_for_irc(&ev(GameEventKind::Chat, Some("Al"), "   "), &mut lp), None);
+    }
 }

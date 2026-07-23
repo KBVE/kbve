@@ -35,6 +35,8 @@ spec:
                 - name: palworld-saves
                   persistentVolumeClaim:
                       claimName: palworld-saves
+                - name: chat-relay
+                  emptyDir: {}
             containers:
                 - name: palworld
                   image: ghcr.io/kbve/agones-palworld:0.0.2
@@ -85,6 +87,8 @@ spec:
                   volumeMounts:
                       - name: palworld-saves
                         mountPath: /palworld/Pal/Saved
+                      - name: chat-relay
+                        mountPath: /palworld/chat-relay
                   resources:
                       requests:
                           cpu: '4'
@@ -163,6 +167,12 @@ spec:
                         value: 'gameops'
                       - name: RUST_LOG
                         value: 'info,agones_palworld_relay=debug'
+                      - name: CHAT_LOG_PATH
+                        value: /palworld/chat-relay/chat.log
+                  volumeMounts:
+                      - name: chat-relay
+                        mountPath: /palworld/chat-relay
+                        readOnly: true
                   resources:
                       requests:
                           cpu: '50m'

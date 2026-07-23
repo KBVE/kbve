@@ -13,7 +13,7 @@ tags:
 key: agones_palworld
 pipeline: docker
 app_name: agones-palworld
-version: "0.0.2"
+version: "0.0.3"
 source_path: apps/agones/palworld
 version_toml: apps/agones/palworld/version.toml
 runner: ubuntu-latest
@@ -116,7 +116,8 @@ KBVE-baked Palworld dedicated-server image, designed to run as an Agones `GameSe
 The image is a thin layer on top of `thijsvanloef/palworld-server-docker:latest`:
 
 - **REST-poll prestop shim** — `shim/agones-shim-prestop.sh` runs from the Kubernetes `preStop` lifecycle hook, polls the base image's REST API, and issues a graceful shutdown request so an Agones-initiated pod termination gets a clean autosave instead of a raw SIGTERM.
-- **No custom Ready/Health loop** — unlike the Factorio image, Palworld's Agones readiness and health are driven entirely by the sidecar relay polling the REST API and forwarding state to the Agones SDK; the game container itself stays vanilla.
+- **No custom Ready/Health loop** — unlike the Factorio image, Palworld's Agones readiness and health are driven entirely by the sidecar relay polling the REST API and forwarding state to the Agones SDK; the game container stays close to stock apart from the UE4SS chat layer below.
+- **Native-Linux UE4SS chat layer** — the image bakes in a pinned RE-UE4SS-Linux runtime (`libUE4SS.so`, `LD_PRELOAD`-injected into the ELF `PalServer-Linux-Shipping`, no Proton) plus a `PalChatRelay` Lua mod that hooks the chat function and appends messages to a shared log the relay tails into IRC. The runtime is sha256-pinned; the mod is the only enabled UE4SS mod.
 - **REST API surface** — the base image ships a REST API on `8212` (info/metrics/players/announce/shutdown), which both the prestop hook and the `agones-palworld-relay` sidecar use instead of log-tailing or RCON for day-to-day polling.
 - **RCON kept, gated** — RCON on `25575` remains available for admin actions the REST API doesn't cover, gated behind the relay.
 
