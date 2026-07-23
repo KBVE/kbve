@@ -444,6 +444,7 @@ mod transcoder_tests {
             completed_at: Some(1),
             last_access: 1,
             state: TorrentState::Seeding,
+            error: None,
             transcode,
             transcode_path: None,
             transcode_error: None,

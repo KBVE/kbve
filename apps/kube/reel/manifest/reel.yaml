@@ -45,6 +45,7 @@ spec:
             - { name: REEL_LIBRARY_DIR, value: "/data/library" }
             - { name: REEL_STATE_FILE, value: "/data/reel-state.json" }
             - { name: REEL_TTL_SECS, value: "21600" }
+            - { name: REEL_UPLOAD_LIMIT_BPS, value: "2097152" }
           envFrom:
             - secretRef: { name: reel-api }
           ports:

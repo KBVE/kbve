@@ -92,7 +92,7 @@ impl HlsManager {
         segment_secs: u32,
         enabled: bool,
     ) -> Self {
-        Self {
+        let this = Self {
             store,
             encode_sem: Arc::new(Semaphore::new(encode_conc.max(1))),
             ffmpeg_bin,
@@ -100,7 +100,17 @@ impl HlsManager {
             enabled,
             children: Arc::new(Mutex::new(HashMap::new())),
             delivery_cache: Arc::new(Mutex::new(HashMap::new())),
+        };
+        for m in this.store.list() {
+            if matches!(m.hls, HlsStatus::Starting | HlsStatus::Live) {
+                let _ = this.store.update(&m.id, |m| {
+                    m.hls = HlsStatus::Failed;
+                    m.hls_error = Some("interrupted by restart".into());
+                    ((), true)
+                });
+            }
         }
+        this
     }
 
     pub fn cached_delivery(&self, id: &str) -> Option<Delivery> {

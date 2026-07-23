@@ -1,0 +1,96 @@
+---
+title: Graph
+description: |
+    Unified, searchable graph of the KBVE monorepo — NX project dependencies,
+    the Graphify semantic code graph, and the docs site graph, cross-linked.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
+sidebar:
+    label: Graph
+    order: 99
+---
+
+import BentoShell from '@/components/hero/BentoShell.astro';
+import GraphHub from '@/components/graph/GraphHub';
+import nxGraph from '../../../public/data/nx/nx-graph.json';
+import overview from '../../../public/graphify/overview.json';
+
+export const projects = Object.keys(nxGraph.graph.nodes).length;
+export const dirs = overview.meta.dirs;
+export const symbols = overview.meta.symbols;
+
+<div class="graph-hub-page" data-graph-hub-page>
+
+<section class="bento-hero bento-section not-content" aria-label="Unified monorepo graph">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
+					<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="6" r="2" /><circle cx="19" cy="6" r="2" /><circle cx="12" cy="18" r="2" /><path d="M6.5 7.5 11 16M17.5 7.5 13 16M7 6h10" /></svg>
+					<span>one graph · three feeds</span>
+				</span>
+				<h1 class="bento-title">
+					The whole monorepo,
+					<span class="bento-title__accent">searchable and cross-linked.</span>
+				</h1>
+				<p class="bento-lede">Search any project to see its <strong>NX dependencies</strong>, its <strong>Graphify</strong> code area, and its <strong>docs</strong> — all in one place, each linking out to its full view.</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="#hub">
+						Start searching
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="/dashboard/graph/">NX graph</a>
+					<a class="bento-btn bento-btn--ghost" href="/dashboard/graph-explorer/">Graphify</a>
+				</div>
+			</div>
+
+			<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h7v7H4zM13 13h7v7h-7zM13 4h7v7h-7zM4 13h7v7H4z" /></svg>
+				</span>
+				<span class="bento-stat__value">{projects}</span>
+				<span class="bento-stat__label">Projects</span>
+			</div>
+			<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" /></svg>
+				</span>
+				<span class="bento-stat__value">{dirs}</span>
+				<span class="bento-stat__label">Directories</span>
+			</div>
+			<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7V4h16v3M9 20h6M12 4v16" /></svg>
+				</span>
+				<span class="bento-stat__value">{(symbols / 1000).toFixed(0)}k</span>
+				<span class="bento-stat__label">Symbols</span>
+			</div>
+			<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
+				</span>
+				<span class="bento-stat__value">3</span>
+				<span class="bento-stat__label">Feeds</span>
+			</div>
+		</div>
+
+		<nav class="bento-jump" aria-label="On this page">
+			<a class="bento-chip" href="#hub">Search</a>
+			<a class="bento-chip" href="/dashboard/graph/">NX</a>
+			<a class="bento-chip" href="/dashboard/graph-explorer/">Graphify</a>
+		</nav>
+	</div>
+</section>
+
+<BentoShell id="hub" eyebrow="Unified · cross-linked" heading="Explore the graph">
+	<GraphHub client:only="react" />
+</BentoShell>
+
+</div>
+
+<style is:global>{`.graph-hub-page{--bento-accent:#a78bfa;--bento-accent-2:#38bdf8}`}</style>

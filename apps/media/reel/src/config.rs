@@ -9,6 +9,7 @@ pub struct Config {
     pub api_addr: String,
     pub vpn_check_url: String,
     pub vpn_watchdog_secs: u64,
+    pub upload_limit_bps: Option<u32>,
     pub api_token: Option<String>,
     pub transcode_enabled: bool,
     pub remux_concurrency: usize,
@@ -48,6 +49,10 @@ pub fn load_from_env() -> anyhow::Result<Config> {
         api_addr: env_or("REEL_API_ADDR", "0.0.0.0:8080"),
         vpn_check_url: env_or("REEL_VPN_CHECK_URL", "https://api.ipify.org"),
         vpn_watchdog_secs: env_u64("REEL_VPN_WATCHDOG_SECS", 60)?,
+        upload_limit_bps: match env_u64("REEL_UPLOAD_LIMIT_BPS", 0)? {
+            0 => None,
+            n => Some(n.min(u32::MAX as u64) as u32),
+        },
         api_token: std::env::var("REEL_API_TOKEN").ok(),
         transcode_enabled: env_bool("REEL_TRANSCODE_ENABLED", true),
         remux_concurrency: env_u64("REEL_REMUX_CONCURRENCY", 3)? as usize,
@@ -68,7 +73,7 @@ mod tests {
     fn clear() {
         for k in ["REEL_TTL_SECS","REEL_REAP_INTERVAL_SECS","REEL_ACTIVE_DIR",
                   "REEL_LIBRARY_DIR","REEL_STATE_FILE","REEL_API_ADDR",
-                  "REEL_VPN_CHECK_URL","REEL_VPN_WATCHDOG_SECS","REEL_API_TOKEN","REEL_TRANSCODE_ENABLED",
+                  "REEL_VPN_CHECK_URL","REEL_VPN_WATCHDOG_SECS","REEL_UPLOAD_LIMIT_BPS","REEL_API_TOKEN","REEL_TRANSCODE_ENABLED",
                   "REEL_REMUX_CONCURRENCY","REEL_ENCODE_CONCURRENCY",
                   "REEL_FFMPEG_BIN","REEL_FFPROBE_BIN","REEL_STREAM_ENABLED",
                   "REEL_HLS_ENABLED","REEL_HLS_SEGMENT_SECS"] {
@@ -84,6 +89,7 @@ mod tests {
         assert_eq!(c.ttl_secs, 21600);
         assert_eq!(c.reap_interval_secs, 300);
         assert_eq!(c.vpn_watchdog_secs, 60);
+        assert!(c.upload_limit_bps.is_none());
         assert_eq!(c.active_dir, std::path::PathBuf::from("/data/active"));
         assert_eq!(c.api_addr, "0.0.0.0:8080");
         assert!(c.api_token.is_none());
@@ -98,6 +104,18 @@ mod tests {
         let c = load_from_env().unwrap();
         assert_eq!(c.ttl_secs, 60);
         assert_eq!(c.api_token.as_deref(), Some("secret"));
+        clear();
+    }
+
+    #[test]
+    #[serial]
+    fn upload_limit_parses_zero_as_unlimited() {
+        clear();
+        assert!(load_from_env().unwrap().upload_limit_bps.is_none());
+        std::env::set_var("REEL_UPLOAD_LIMIT_BPS", "0");
+        assert!(load_from_env().unwrap().upload_limit_bps.is_none());
+        std::env::set_var("REEL_UPLOAD_LIMIT_BPS", "1048576");
+        assert_eq!(load_from_env().unwrap().upload_limit_bps, Some(1_048_576));
         clear();
     }
 
