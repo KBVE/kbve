@@ -28,6 +28,7 @@ pub async fn run(cfg: Config) -> Result<()> {
         .build()?;
 
     let mut sent_ready = false;
+    let mut rest_seen = false;
     let started = time::Instant::now();
     let mut ticker = time::interval(interval);
     ticker.set_missed_tick_behavior(time::MissedTickBehavior::Delay);
@@ -35,8 +36,19 @@ pub async fn run(cfg: Config) -> Result<()> {
     loop {
         ticker.tick().await;
 
-        if probe.info().await.is_err() {
-            debug!("rest probe failed; skipping Agones heartbeat");
+        let rest_ok = probe.info().await.is_ok();
+        if rest_ok {
+            rest_seen = true;
+        }
+
+        // Liveness heartbeat. Keep beating /health unconditionally until the
+        // server has been up at least once, so Agones does not mark the
+        // GameServer Unhealthy and kill the pod during the slow Windows-under-
+        // Wine first boot (SteamCMD download + world-gen can exceed the health
+        // grace window). Once the server has been ready, gate on REST so a
+        // genuine post-boot crash is still detected as Unhealthy.
+        if rest_seen && !rest_ok {
+            debug!("post-boot REST probe failed; withholding Agones heartbeat");
             continue;
         }
 
@@ -44,9 +56,9 @@ pub async fn run(cfg: Config) -> Result<()> {
             warn!(url = %health_url, error = %e, "Agones /health POST failed");
             continue;
         }
-        debug!(url = %health_url, "Agones /health heartbeat sent");
+        debug!(rest_ok, "Agones /health heartbeat sent");
 
-        if !sent_ready && started.elapsed() >= initial_delay {
+        if rest_ok && !sent_ready && started.elapsed() >= initial_delay {
             match client.post(&ready_url).body("{}").send().await {
                 Ok(_) => {
                     sent_ready = true;

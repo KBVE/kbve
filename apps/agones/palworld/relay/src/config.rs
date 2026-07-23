@@ -86,12 +86,23 @@ fn parse_env_bool(name: &str, default: bool) -> bool {
         .unwrap_or(default)
 }
 
+/// Serializes tests that mutate the process-global environment. `Config`
+/// tests set/remove env vars, so they must not run concurrently with each
+/// other (or with other crates' tests that build a `Config`). Poison-tolerant
+/// so one failing test does not cascade.
+#[cfg(test)]
+pub(crate) fn env_test_guard() -> std::sync::MutexGuard<'static, ()> {
+    static ENV_TEST_LOCK: std::sync::Mutex<()> = std::sync::Mutex::new(());
+    ENV_TEST_LOCK.lock().unwrap_or_else(|e| e.into_inner())
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
     fn defaults_apply_when_unset() {
+        let _g = super::env_test_guard();
         unsafe {
             std::env::set_var("PALWORLD_ADMIN_PASSWORD", "pw");
             std::env::remove_var("PALWORLD_REST_ADDR");
@@ -106,6 +117,7 @@ mod tests {
 
     #[test]
     fn chat_log_path_defaults_none_and_reads_env() {
+        let _g = super::env_test_guard();
         unsafe {
             std::env::set_var("PALWORLD_ADMIN_PASSWORD", "pw");
             std::env::remove_var("CHAT_LOG_PATH");
@@ -122,6 +134,7 @@ mod tests {
 
     #[test]
     fn admin_password_required() {
+        let _g = super::env_test_guard();
         unsafe {
             std::env::remove_var("PALWORLD_ADMIN_PASSWORD");
         }

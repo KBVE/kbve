@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use anyhow::Result;
 use tokio::io::{AsyncBufReadExt, AsyncSeekExt, BufReader};
@@ -9,6 +9,43 @@ use tracing::{debug, info, warn};
 
 use crate::config::Config;
 use crate::event::{GameEvent, GameEventKind};
+
+const DEDUP_WINDOW: Duration = Duration::from_millis(1500);
+
+/// Suppresses identical chat lines seen within a short window. The UE4SS chat
+/// hook can fire more than once for a single message (pre/post + engine
+/// re-broadcast), producing duplicate lines in the log.
+pub(crate) struct Dedup {
+    window: Duration,
+    seen: HashMap<String, Instant>,
+}
+
+impl Dedup {
+    pub(crate) fn new(window: Duration) -> Self {
+        Self {
+            window,
+            seen: HashMap::new(),
+        }
+    }
+
+    /// Returns true if this key has not been seen within the window (and
+    /// records it). Old entries are pruned on each call.
+    pub(crate) fn allow(&mut self, key: &str, now: Instant) -> bool {
+        self.seen
+            .retain(|_, t| now.saturating_duration_since(*t) < self.window);
+        match self.seen.get(key) {
+            Some(&t) if now.saturating_duration_since(t) < self.window => false,
+            _ => {
+                self.seen.insert(key.to_string(), now);
+                true
+            }
+        }
+    }
+}
+
+fn dedup_key(ev: &GameEvent) -> String {
+    format!("{}\u{0}{}", ev.player.as_deref().unwrap_or(""), ev.text)
+}
 
 pub fn parse_chat_line(line: &str) -> Option<GameEvent> {
     let line = line.trim_end_matches(['\r', '\n']);
@@ -39,6 +76,7 @@ pub async fn run(cfg: Config, tx: Sender<GameEvent>) -> Result<()> {
     info!(path = %path, "chat_tail following chat log");
 
     let mut pos: u64 = 0;
+    let mut dedup = Dedup::new(DEDUP_WINDOW);
     let mut ticker = time::interval(Duration::from_millis(500));
     ticker.set_missed_tick_behavior(time::MissedTickBehavior::Delay);
 
@@ -86,7 +124,11 @@ pub async fn run(cfg: Config, tx: Sender<GameEvent>) -> Result<()> {
             }
             pos += n as u64;
             if let Some(ev) = parse_chat_line(&line) {
-                let _ = tx.send(ev);
+                if dedup.allow(&dedup_key(&ev), Instant::now()) {
+                    let _ = tx.send(ev);
+                } else {
+                    debug!(player = ?ev.player, "chat_tail: deduped duplicate line");
+                }
             }
         }
     }
@@ -155,7 +197,41 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
     }
 
+    #[test]
+    fn dedup_suppresses_identical_within_window() {
+        let mut d = Dedup::new(Duration::from_millis(1500));
+        let t0 = Instant::now();
+        assert!(d.allow("Alice\u{0}hi", t0));
+        assert!(!d.allow("Alice\u{0}hi", t0 + Duration::from_millis(500)));
+        assert!(!d.allow("Alice\u{0}hi", t0 + Duration::from_millis(1499)));
+    }
+
+    #[test]
+    fn dedup_allows_after_window() {
+        let mut d = Dedup::new(Duration::from_millis(1500));
+        let t0 = Instant::now();
+        assert!(d.allow("Alice\u{0}hi", t0));
+        assert!(d.allow("Alice\u{0}hi", t0 + Duration::from_millis(1600)));
+    }
+
+    #[test]
+    fn dedup_allows_distinct_keys() {
+        let mut d = Dedup::new(Duration::from_millis(1500));
+        let t0 = Instant::now();
+        assert!(d.allow("Alice\u{0}hi", t0));
+        assert!(d.allow("Bob\u{0}hi", t0));
+        assert!(d.allow("Alice\u{0}bye", t0));
+    }
+
+    #[test]
+    fn dedup_key_separates_player_and_text() {
+        let a = parse_chat_line("1\tAli\tce-hi").unwrap();
+        let b = parse_chat_line("1\tAlice\t-hi").unwrap();
+        assert_ne!(dedup_key(&a), dedup_key(&b));
+    }
+
     fn base_test_config() -> Config {
+        let _g = crate::config::env_test_guard();
         unsafe {
             std::env::set_var("PALWORLD_ADMIN_PASSWORD", "pw");
         }

@@ -191,17 +191,32 @@ pub(crate) fn format_incoming(nick: &str, text: &str) -> String {
     format!("[IRC {nick}] {text}")
 }
 
+const IRC_MAX_MSG: usize = 400;
+
+/// Strips control characters (C0/C1, DEL) — this removes IRC formatting codes
+/// (color \x03, bold \x02, etc.) and any stray control bytes — then trims.
+fn sanitize_irc(s: &str) -> String {
+    let cleaned: String = s.chars().filter(|c| !c.is_control()).collect();
+    cleaned.trim().to_string()
+}
+
 fn format_for_irc(ev: &GameEvent, last_players: &mut Option<u64>) -> Option<String> {
     let _ = last_players;
     match ev.kind {
         GameEventKind::Chat => {
-            let text = ev.text.trim();
+            let text = sanitize_irc(&ev.text);
             if text.is_empty() {
                 return None;
             }
-            match ev.player.as_deref() {
+            let text = truncate(&text, IRC_MAX_MSG);
+            let player = ev
+                .player
+                .as_deref()
+                .map(sanitize_irc)
+                .filter(|p| !p.is_empty());
+            match player {
                 Some(player) => Some(format!("<{player}> {text}")),
-                None => Some(text.to_string()),
+                None => Some(text),
             }
         }
         GameEventKind::Join
@@ -268,6 +283,43 @@ mod tests {
             format_for_irc(&ev(GameEventKind::Chat, Some("Al"), "   "), &mut lp),
             None
         );
+    }
+
+    #[test]
+    fn strips_irc_control_codes() {
+        let mut lp = None;
+        let out = format_for_irc(
+            &ev(GameEventKind::Chat, Some("A\x02li\x03ce"), "he\x03llo\x0f"),
+            &mut lp,
+        );
+        assert_eq!(out, Some("<Alice> hello".to_string()));
+    }
+
+    #[test]
+    fn control_only_chat_is_dropped() {
+        let mut lp = None;
+        assert_eq!(
+            format_for_irc(&ev(GameEventKind::Chat, Some("Al"), "\x02\x03\x0f"), &mut lp),
+            None
+        );
+    }
+
+    #[test]
+    fn control_only_player_drops_prefix() {
+        let mut lp = None;
+        assert_eq!(
+            format_for_irc(&ev(GameEventKind::Chat, Some("\x02\x03"), "hi"), &mut lp),
+            Some("hi".to_string())
+        );
+    }
+
+    #[test]
+    fn long_message_is_capped() {
+        let mut lp = None;
+        let long = "x".repeat(600);
+        let out = format_for_irc(&ev(GameEventKind::Chat, Some("Al"), &long), &mut lp).unwrap();
+        // "<Al> " + 400 chars
+        assert_eq!(out, format!("<Al> {}", "x".repeat(400)));
     }
 
     #[test]
