@@ -1,6 +1,6 @@
 ---
 title: Agones Palworld Relay
-description: Rust sidecar for the Agones-managed Palworld server — polls the base image's REST API, bridges Agones health/ready, writes gameops telemetry to ClickHouse, and relays events one-way to kbve IRC.
+description: Rust sidecar for the Agones-managed Palworld server — polls the base image's REST API, bridges Agones health/ready, writes gameops telemetry to ClickHouse, and relays in-game chat one-way to kbve IRC.
 sem: 1
 sidebar:
     label: Agones Palworld Relay
@@ -15,7 +15,7 @@ tags:
 key: agones_palworld_relay
 pipeline: docker
 app_name: agones-palworld-relay
-version: "0.0.2"
+version: "0.0.3"
 source_path: apps/agones/palworld/relay
 version_toml: apps/agones/palworld/relay/version.toml
 runner: ubuntu-latest
@@ -44,7 +44,7 @@ jsonld:
         - question: Why REST polling instead of RCON or log-tail like the Factorio relay?
           answer: The thijsvanloef/palworld-server-docker base image ships a REST API (info/metrics/players/announce/shutdown) that is more structured and reliable than scraping Palworld's server log, so the relay polls it directly and only falls back to RCON for admin actions the REST surface doesn't cover.
         - question: How does chat reach Discord?
-          answer: The relay forwards player join/leave and server events one-way to the kbve IRC network, and the existing irc-gateway service already relays IRC to Discord, so IRC is the single integration point the game needs.
+          answer: The relay forwards in-game chat one-way to the kbve IRC network via a native-Linux UE4SS mod that hooks the chat function and writes to a shared log the relay tails, and the existing irc-gateway service already relays IRC to Discord, so IRC is the single integration point the game needs. Join/leave stay in ClickHouse and no longer reach IRC.
 bento:
     badge: agones · palworld · relay · rust · irc · clickhouse
     title: Sidecar relay for
@@ -89,7 +89,7 @@ bento:
           body: Drives the Agones SDK health and ready calls from REST poll success instead of a separate probe loop.
         - title: One-way IRC bridge
           icon: message
-          body: Forwards join/leave and server events to the configured channel (default #general) on the existing kbve IRC network; IRC → Discord is already wired by irc-gateway.
+          body: Forwards in-game chat to the configured channel (default #general) on the existing kbve IRC network via a UE4SS chat hook and shared log tail; IRC → Discord is already wired by irc-gateway. Join/leave stay in ClickHouse, not IRC.
         - title: ClickHouse writer
           icon: database
           body: Inserts snapshots and player events into gameops.palworld_* tables for observability.
@@ -118,7 +118,7 @@ Roles, one process:
 
 - **REST poller** — polls `PALWORLD_REST_ADDR` (default `http://127.0.0.1:8212`) for `info`, `metrics`, and `players`, diffing successive player lists into typed `GameEvent`s for join/leave.
 - **Agones health/ready** — a successful REST poll drives the Agones SDK `Health()` heartbeat and `Ready()` call (after `AGONES_INITIAL_READY_DELAY_SECS`), so there is a single source of liveness truth instead of a separate probe.
-- **One-way IRC bridge** — forwards join/leave and server events to the configured channel (default `#general`) on the existing kbve IRC network. IRC → Discord is already wired by the `irc-gateway` service, so this is the single integration point the game needs. The bridge is one-way (game → IRC only); no chat is relayed back into the game.
+- **One-way IRC bridge** — forwards in-game chat to the configured channel (default `#general`) on the existing kbve IRC network. Chat is captured by a native-Linux UE4SS mod (`PalChatRelay`) that hooks the Palworld chat function in-process and appends each message to a shared log the relay tails. IRC → Discord is already wired by the `irc-gateway` service, so this is the single integration point the game needs. The bridge is one-way (game → IRC only); no chat is relayed back into the game. Join/leave and snapshot events continue to flow to ClickHouse but are no longer forwarded to IRC.
 - **ClickHouse writer** — inserts snapshots and player events into `gameops.palworld_*` tables.
 - **RCON, kept and gated** — `PALWORLD_RCON_ADDR` (default `127.0.0.1:25575`) remains available for admin actions the REST surface doesn't cover.
 

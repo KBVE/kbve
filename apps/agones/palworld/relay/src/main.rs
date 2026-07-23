@@ -1,5 +1,6 @@
 mod agones_health;
 mod ch_writer;
+mod chat_tail;
 mod config;
 mod event;
 mod irc_bridge;
@@ -47,6 +48,7 @@ async fn main() -> Result<()> {
     )?);
 
     let poller_handle = tokio::spawn(poller::run(cfg.clone(), game_tx.clone()));
+    let chat_handle = tokio::spawn(chat_tail::run(cfg.clone(), game_tx.clone()));
     let irc_handle = tokio::spawn(irc_bridge::run(cfg.clone(), game_tx.subscribe(), rest.clone()));
     let ch_handle = tokio::spawn(ch_writer::run(cfg.clone(), game_tx.subscribe()));
     let agones_handle = tokio::spawn(agones_health::run(cfg.clone()));
@@ -55,6 +57,7 @@ async fn main() -> Result<()> {
 
     tokio::select! {
         r = poller_handle => r??,
+        r = chat_handle => r??,
         r = irc_handle => r??,
         r = ch_handle => r??,
         r = agones_handle => r??,

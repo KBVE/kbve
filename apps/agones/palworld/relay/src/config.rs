@@ -24,6 +24,7 @@ pub struct Config {
     pub agones_rest_probe_timeout_secs: u64,
     pub agones_initial_ready_delay_secs: u64,
     pub poll_interval_secs: u64,
+    pub chat_log_path: Option<String>,
 }
 
 impl Config {
@@ -59,6 +60,7 @@ impl Config {
                 60,
             )?,
             poll_interval_secs: parse_env_u64("PALWORLD_POLL_INTERVAL_SECS", 10)?,
+            chat_log_path: std::env::var("CHAT_LOG_PATH").ok(),
         })
     }
 }
@@ -100,6 +102,22 @@ mod tests {
         assert_eq!(cfg.poll_interval_secs, 10);
         assert_eq!(cfg.agones_initial_ready_delay_secs, 60);
         assert_eq!(cfg.clickhouse_database, "gameops");
+    }
+
+    #[test]
+    fn chat_log_path_defaults_none_and_reads_env() {
+        unsafe {
+            std::env::set_var("PALWORLD_ADMIN_PASSWORD", "pw");
+            std::env::remove_var("CHAT_LOG_PATH");
+        }
+        assert_eq!(Config::from_env().unwrap().chat_log_path, None);
+        unsafe {
+            std::env::set_var("CHAT_LOG_PATH", "/shared/chat.log");
+        }
+        assert_eq!(
+            Config::from_env().unwrap().chat_log_path,
+            Some("/shared/chat.log".to_string())
+        );
     }
 
     #[test]
