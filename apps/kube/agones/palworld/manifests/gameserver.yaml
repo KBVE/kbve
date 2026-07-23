@@ -35,17 +35,22 @@ spec:
                 - name: palworld-saves
                   persistentVolumeClaim:
                       claimName: palworld-saves
+                - name: palworld-backups
+                  persistentVolumeClaim:
+                      claimName: palworld-backups
                 - name: chat-relay
                   emptyDir: {}
             containers:
                 - name: palworld
-                  image: ghcr.io/kbve/agones-palworld:0.0.6
+                  image: ghcr.io/kbve/agones-palworld:0.0.7
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PUID
                         value: '1000'
                       - name: PGID
                         value: '1000'
+                      - name: SERVER_SETTINGS_MODE
+                        value: 'auto'
                       - name: SERVER_NAME
                         value: 'KBVE Palworld'
                       - name: PUBLIC_PORT
@@ -65,7 +70,7 @@ spec:
                       - name: COMMUNITY_SERVER
                         value: 'false'
                       - name: BACKUP_ENABLED
-                        value: 'false'
+                        value: 'true'
                       - name: RESTART_ENABLED
                         value: 'false'
                       - name: PLAYER_DETECTION_ENABLED
@@ -93,6 +98,8 @@ spec:
                   volumeMounts:
                       - name: palworld-saves
                         mountPath: /palworld/Pal/Saved
+                      - name: palworld-backups
+                        mountPath: /palworld/backups
                       - name: chat-relay
                         mountPath: /shared/chat
                   resources:

@@ -120,9 +120,7 @@ impl Engine {
         let prev_ok = self.vpn_ok.load(Ordering::Relaxed);
         match next_vpn_action(prev_ok, now_ok) {
             VpnAction::Pause => {
-                tracing::error!(
-                    "vpn egress check failed; pausing all torrents (possible ip leak)"
-                );
+                crate::telemetry::vpn_leak();
                 for h in self.all_handles() {
                     if let Err(e) = self.session.pause(&h).await {
                         tracing::warn!(error = %e, "torrent pause failed");
@@ -130,7 +128,7 @@ impl Engine {
                 }
             }
             VpnAction::Resume => {
-                tracing::info!("vpn egress restored; resuming torrents");
+                crate::telemetry::vpn_restored();
                 for h in self.all_handles() {
                     if let Err(e) = self.session.unpause(&h).await {
                         tracing::warn!(error = %e, "torrent unpause failed");
@@ -178,13 +176,14 @@ impl Engine {
             hls_dir: None,
             hls_error: None,
         })?;
+        crate::telemetry::torrent_added(&id, source.split_once(':').map(|(s, _)| s).unwrap_or("unknown"));
 
         let store = self.store.clone();
         let library_dir = self.library_dir.clone();
         let id_task = id.clone();
         tokio::spawn(async move {
             if let Err(e) = handle.wait_until_completed().await {
-                tracing::error!(id = %id_task, error = %e, "torrent failed");
+                crate::telemetry::torrent_failed(&id_task, "download", &e.to_string());
                 let _ = store.update(&id_task, |m| {
                     m.state = state::TorrentState::Failed;
                     m.error = Some(format!("download failed: {e}"));
@@ -211,10 +210,10 @@ impl Engine {
                         hls_dir: None,
                         hls_error: None,
                     });
-                    tracing::info!(id = %id_task, "moved to library");
+                    crate::telemetry::torrent_completed(&id_task, moved.size);
                 }
                 Err(e) => {
-                    tracing::error!(id = %id_task, error = %e, "move failed");
+                    crate::telemetry::torrent_failed(&id_task, "move", &e.to_string());
                     let _ = store.update(&id_task, |m| {
                         m.state = state::TorrentState::Failed;
                         m.error = Some(format!("move failed: {e}"));
@@ -244,10 +243,9 @@ impl Engine {
             let meta = self.store.get(&id);
             match self.delete(&id).await {
                 Ok(true) => {
-                    if let Some(m) = meta {
-                        tracing::info!(id = %id, name = %m.name, size = m.size, "reaped");
-                    } else {
-                        tracing::info!(id = %id, "reaped");
+                    match meta {
+                        Some(m) => crate::telemetry::reaped(&id, &m.name, m.size),
+                        None => crate::telemetry::reaped(&id, "", 0),
                     }
                     reaped.push(id);
                 }
@@ -333,7 +331,7 @@ fn reconcile_on_start(store: &state::StateStore) {
                 m.error = Some("interrupted by restart; not resumable".into());
                 ((), true)
             });
-            tracing::warn!(id = %m.id, name = %m.name, "leeching torrent failed on restart (no session persistence)");
+            crate::telemetry::reconcile_failed(&m.id, &m.name);
         }
     }
 }
