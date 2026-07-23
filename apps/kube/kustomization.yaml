@@ -74,6 +74,7 @@ resources:
     - agones/cryptothrone/application.yaml
     - agones/arpg/application.yaml
     - agones/factorio/application.yaml
+    - agones/palworld/application.yaml
     - chuckrpg/application.yaml
     # RareIcon — bullet-hell roguelite website + API
     - rareicon/application.yaml
