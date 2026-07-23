@@ -39,13 +39,15 @@ spec:
                   emptyDir: {}
             containers:
                 - name: palworld
-                  image: ghcr.io/kbve/agones-palworld:0.0.6
+                  image: ghcr.io/kbve/agones-palworld:0.0.7
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PUID
                         value: '1000'
                       - name: PGID
                         value: '1000'
+                      - name: SERVER_SETTINGS_MODE
+                        value: 'auto'
                       - name: SERVER_NAME
                         value: 'KBVE Palworld'
                       - name: PUBLIC_PORT
