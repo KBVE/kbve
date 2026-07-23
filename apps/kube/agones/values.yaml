@@ -63,6 +63,7 @@ gameservers:
         - factorio
         - cryptothrone
         - arpg
+        - palworld
 
     # Port range for game server host ports.
     minPort: 7000
