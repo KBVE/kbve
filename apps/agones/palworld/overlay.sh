@@ -31,6 +31,19 @@ else
     echo "PalChatRelay : 1" >> "${MODS_TXT}"
 fi
 
+# Headless server has no GPU: force the UE4SS GUI/OpenGL console off (it hangs
+# or crashes the game under Xvfb). Keep the text console on for logging.
+SETTINGS="${UE4SS_DIR}/UE4SS-settings.ini"
+if [[ -f "${SETTINGS}" ]]; then
+    sed -i -E 's/^([[:space:]]*GuiConsoleEnabled[[:space:]]*=).*/\1 0/I' "${SETTINGS}"
+    sed -i -E 's/^([[:space:]]*GuiConsoleVisible[[:space:]]*=).*/\1 0/I' "${SETTINGS}"
+    sed -i -E 's/^([[:space:]]*ConsoleEnabled[[:space:]]*=).*/\1 1/I' "${SETTINGS}"
+    echo "[palchatrelay-overlay] patched UE4SS-settings.ini (GuiConsole off):"
+    grep -iE 'ConsoleEnabled|GuiConsole' "${SETTINGS}" | sed 's/^/  /'
+else
+    echo "[palchatrelay-overlay] WARN: UE4SS-settings.ini not found at ${SETTINGS}"
+fi
+
 CHAT_DIR="${PALWORLD_CHAT_LOG_DIR:-/shared/chat}"
 mkdir -p "${CHAT_DIR}" 2>/dev/null || true
 
