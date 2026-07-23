@@ -1,11 +1,11 @@
 {
-	"generated_at": "2026-07-22T04:21:02Z",
+	"generated_at": "2026-07-23T04:19:40Z",
 	"summary": {
 		"critical": 4,
 		"high": 39,
-		"medium": 66,
+		"medium": 56,
 		"low": 10,
-		"info": 38
+		"info": 30
 	},
 	"ecosystems": {
 		"npm": {
@@ -621,13 +621,6 @@
 					"url": "https://github.com/advisories/GHSA-v56q-mh7h-f735"
 				},
 				{
-					"id": "1124015",
-					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
-					"severity": "high",
-					"package": "fast-uri",
-					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
-				},
-				{
 					"id": "1124017",
 					"title": "Immutabl: Hash-collision algorithmic complexity denial of service in Immutable.Map/Set",
 					"severity": "high",
@@ -675,62 +668,34 @@
 					"severity": "high",
 					"package": "fast-xml-parser",
 					"url": "https://github.com/advisories/GHSA-8r6m-32jq-jx6q"
+				},
+				{
+					"id": "1124073",
+					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
+					"severity": "high",
+					"package": "fast-uri",
+					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
 				}
 			]
 		},
 		"cargo": {
-			"total": 63,
+			"total": 45,
 			"severities": {
 				"critical": 0,
 				"high": 0,
-				"medium": 25,
+				"medium": 15,
 				"low": 0,
-				"info": 38
+				"info": 30
 			},
 			"advisories": [
 				{
-					"id": "RUSTSEC-2026-0193",
-					"title": "mXSS in ammonia via MathML `annotation-xml` encoding strip",
+					"id": "RUSTSEC-2026-0213",
+					"title": "XSS in ammonia via SVG `animate` and `set` animation tags",
 					"severity": "medium",
 					"package": "ammonia",
 					"url": null
 				},
 				{
-					"id": "RUSTSEC-2026-0204",
-					"title": "Invalid pointer dereference in `fmt::Pointer` impl for `Atomic` and `Shared` when the underlying pointer is invalid",
-					"severity": "medium",
-					"package": "crossbeam-epoch",
-					"url": "https://github.com/crossbeam-rs/crossbeam/pull/1276"
-				},
-				{
-					"id": "RUSTSEC-2026-0119",
-					"title": "CPU exhaustion during message encoding due to O(n\u00b2) name compression",
-					"severity": "medium",
-					"package": "hickory-proto",
-					"url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-q2qq-hmj6-3wpp"
-				},
-				{
-					"id": "RUSTSEC-2026-0118",
-					"title": "NSEC3 closest-encloser proof validation enters unbounded loop on cross-zone responses",
-					"severity": "medium",
-					"package": "hickory-proto",
-					"url": "https://github.com/hickory-dns/hickory-dns/security/advisories/GHSA-3v94-mw7p-v465"
-				},
-				{
-					"id": "RUSTSEC-2026-0179",
-					"title": "Unbounded SCRAM iteration count allows a malicious server to cause CPU-exhaustion denial of service",
-					"severity": "medium",
-					"package": "postgres-protocol",
-					"url": "https://github.com/rust-postgres/rust-postgres/commit/d40097a36a85068ea50a3afbf0ce154ba439e7f0"
-				},
-				{
-					"id": "RUSTSEC-2026-0180",
-					"title": "Panic decoding a malformed `hstore` value allows denial of service",
-					"severity": "medium",
-					"package": "postgres-protocol",
-					"url": "https://github.com/rust-postgres/rust-postgres/commit/a7cf84b5c46431cbca9d8ff50508c23f446efa7d"
-				},
-				{
 					"id": "RUSTSEC-2026-0195",
 					"title": "Unbounded namespace-declaration allocation in `NsReader` enables memory-exhaustion denial of service",
 					"severity": "medium",
@@ -757,13 +722,6 @@
 					"severity": "medium",
 					"package": "quick-xml",
 					"url": "https://github.com/tafia/quick-xml/issues/969"
-				},
-				{
-					"id": "RUSTSEC-2026-0185",
-					"title": " Remote memory exhaustion in quinn-proto from unbounded out-of-order stream reassembly",
-					"severity": "medium",
-					"package": "quinn-proto",
-					"url": "https://github.com/quinn-rs/quinn/pull/2694"
 				},
 				{
 					"id": "RUSTSEC-2023-0071",
@@ -822,27 +780,6 @@
 					"url": null
 				},
 				{
-					"id": "RUSTSEC-2026-0104",
-					"title": "Reachable panic in certificate revocation list parsing",
-					"severity": "medium",
-					"package": "rustls-webpki",
-					"url": null
-				},
-				{
-					"id": "RUSTSEC-2026-0099",
-					"title": "Name constraints were accepted for certificates asserting a wildcard name",
-					"severity": "medium",
-					"package": "rustls-webpki",
-					"url": null
-				},
-				{
-					"id": "RUSTSEC-2026-0098",
-					"title": "Name constraints for URI names were incorrectly accepted",
-					"severity": "medium",
-					"package": "rustls-webpki",
-					"url": null
-				},
-				{
 					"id": "RUSTSEC-2024-0363",
 					"title": "Binary Protocol Misinterpretation caused by Truncating or Overflowing Casts",
 					"severity": "medium",
@@ -855,13 +792,6 @@
 					"severity": "medium",
 					"package": "steamworks",
 					"url": "https://github.com/Noxime/steamworks-rs/issues/321"
-				},
-				{
-					"id": "RUSTSEC-2026-0178",
-					"title": "Panic on a `DataRow` with fewer fields than columns allows denial of service",
-					"severity": "medium",
-					"package": "tokio-postgres",
-					"url": "https://github.com/rust-postgres/rust-postgres/commit/7a00ffa9ad4d951ec0a4564b52f1780fa9d353c1"
 				},
 				{
 					"id": "RUSTSEC-2024-0413",
@@ -878,6 +808,13 @@
 					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
 				},
 				{
+					"id": "RUSTSEC-2025-0012",
+					"title": "`backoff` is unmaintained.",
+					"severity": "info",
+					"package": "backoff",
+					"url": "https://github.com/ihrwein/backoff/issues/66"
+				},
+				{
 					"id": "RUSTSEC-2025-0141",
 					"title": "Bincode is unmaintained",
 					"severity": "info",
@@ -885,18 +822,25 @@
 					"url": "https://git.sr.ht/~stygianentity/bincode/tree/v3.0/item/README.md"
 				},
 				{
+					"id": "RUSTSEC-2025-0141",
+					"title": "Bincode is unmaintained",
+					"severity": "info",
+					"package": "bincode",
+					"url": "https://git.sr.ht/~stygianentity/bincode/tree/v3.0/item/README.md"
+				},
+				{
+					"id": "RUSTSEC-2025-0060",
+					"title": "crypto-hash crate is unmaintained",
+					"severity": "info",
+					"package": "crypto-hash",
+					"url": "https://github.com/rustsec/advisory-db/issues/1633"
+				},
+				{
 					"id": "RUSTSEC-2024-0388",
 					"title": "`derivative` is unmaintained; consider using an alternative",
 					"severity": "info",
 					"package": "derivative",
 					"url": "https://github.com/mcarton/rust-derivative/issues/117"
-				},
-				{
-					"id": "RUSTSEC-2025-0057",
-					"title": "fxhash - no longer maintained",
-					"severity": "info",
-					"package": "fxhash",
-					"url": "https://github.com/cbreeden/fxhash/issues/20"
 				},
 				{
 					"id": "RUSTSEC-2024-0412",
@@ -955,6 +899,13 @@
 					"url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
 				},
 				{
+					"id": "RUSTSEC-2024-0384",
+					"title": "`instant` is unmaintained",
+					"severity": "info",
+					"package": "instant",
+					"url": null
+				},
+				{
 					"id": "RUSTSEC-2024-0436",
 					"title": "paste - no longer maintained",
 					"severity": "info",
@@ -967,13 +918,6 @@
 					"severity": "info",
 					"package": "proc-macro-error",
 					"url": "https://gitlab.com/CreepySkeleton/proc-macro-error/-/issues/20"
-				},
-				{
-					"id": "RUSTSEC-2026-0173",
-					"title": "proc-macro-error2 is unmaintained",
-					"severity": "info",
-					"package": "proc-macro-error2",
-					"url": "https://github.com/GnomedDev/proc-macro-error-2/issues/17"
 				},
 				{
 					"id": "RUSTSEC-2025-0134",
@@ -1046,20 +990,6 @@
 					"url": "https://github.com/rustsec/advisory-db/issues/2414"
 				},
 				{
-					"id": "RUSTSEC-2026-0190",
-					"title": "Unsoundness in `Error::downcast_mut()`",
-					"severity": "info",
-					"package": "anyhow",
-					"url": "https://github.com/dtolnay/anyhow/issues/451"
-				},
-				{
-					"id": "RUSTSEC-2026-0172",
-					"title": "Possible use after free when deserializing a SQLite database via `SqliteConnection::deserialize_readonly_database`",
-					"severity": "info",
-					"package": "diesel",
-					"url": "https://github.com/diesel-rs/diesel/commit/1bc2ea46d9840e8d9af844239d3c84f37fe7d84b"
-				},
-				{
 					"id": "RUSTSEC-2024-0429",
 					"title": "Unsoundness in `Iterator` and `DoubleEndedIterator` impls for `glib::VariantStrIter`",
 					"severity": "info",
@@ -1072,62 +1002,6 @@
 					"severity": "info",
 					"package": "lru",
 					"url": "https://github.com/jeromefroe/lru-rs/pull/224"
-				},
-				{
-					"id": "RUSTSEC-2026-0186",
-					"title": "Unchecked pointer offset in crate `memmap2`",
-					"severity": "info",
-					"package": "memmap2",
-					"url": "https://github.com/RazrFalcon/memmap2-rs/issues/169"
-				},
-				{
-					"id": "RUSTSEC-2026-0097",
-					"title": "Rand is unsound with a custom logger using `rand::rng()`",
-					"severity": "info",
-					"package": "rand",
-					"url": "https://github.com/rust-random/rand/pull/1763"
-				},
-				{
-					"id": "RUSTSEC-2026-0097",
-					"title": "Rand is unsound with a custom logger using `rand::rng()`",
-					"severity": "info",
-					"package": "rand",
-					"url": "https://github.com/rust-random/rand/pull/1763"
-				},
-				{
-					"id": "RUSTSEC-2026-0097",
-					"title": "Rand is unsound with a custom logger using `rand::rng()`",
-					"severity": "info",
-					"package": "rand",
-					"url": "https://github.com/rust-random/rand/pull/1763"
-				},
-				{
-					"id": "RUSTSEC-2026-0097",
-					"title": "Rand is unsound with a custom logger using `rand::rng()`",
-					"severity": "info",
-					"package": "rand",
-					"url": "https://github.com/rust-random/rand/pull/1763"
-				},
-				{
-					"id": "RUSTSEC-2026-0205",
-					"title": "`Array::insert` violates exception safety if compare function panics, leading to potential Double-Free",
-					"severity": "info",
-					"package": "scc",
-					"url": "https://codeberg.org/wvwwvwwv/scalable-concurrent-containers/issues/232"
-				},
-				{
-					"id": "",
-					"title": "",
-					"severity": "info",
-					"package": "spin",
-					"url": ""
-				},
-				{
-					"id": "",
-					"title": "",
-					"severity": "info",
-					"package": "spin",
-					"url": ""
 				}
 			]
 		},
