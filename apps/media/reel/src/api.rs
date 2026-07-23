@@ -628,6 +628,7 @@ mod tests {
             completed_at: Some(10),
             last_access: 10,
             state: TorrentState::Seeding,
+            error: None,
             transcode: TranscodeStatus::None,
             transcode_path: None,
             transcode_error: None,
@@ -678,6 +679,7 @@ mod tests {
             completed_at: None,
             last_access: 10,
             state: TorrentState::Leeching,
+            error: None,
             transcode: TranscodeStatus::None,
             transcode_path: None,
             transcode_error: None,
@@ -854,6 +856,7 @@ mod tests {
             completed_at: None,
             last_access: 10,
             state: TorrentState::Leeching,
+            error: None,
             transcode: TranscodeStatus::None,
             transcode_path: None,
             transcode_error: None,
@@ -875,7 +878,7 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn manifest_live_with_hls_dir_serves_200() {
+    async fn manifest_ready_with_hls_dir_serves_200() {
         let dir = tempdir().unwrap();
         let hls_dir = dir.path().join("hls");
         std::fs::create_dir_all(&hls_dir).unwrap();
@@ -889,10 +892,11 @@ mod tests {
             completed_at: Some(10),
             last_access: 10,
             state: TorrentState::Seeding,
+            error: None,
             transcode: TranscodeStatus::None,
             transcode_path: None,
             transcode_error: None,
-            hls: HlsStatus::Live,
+            hls: HlsStatus::Ready,
             hls_dir: Some(hls_dir.display().to_string()),
             hls_error: None,
         })

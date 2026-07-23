@@ -66,6 +66,7 @@ mod tests {
             completed_at: Some(last_access),
             last_access,
             state: TorrentState::Seeding,
+            error: None,
             transcode: TranscodeStatus::None,
             transcode_path: None,
             transcode_error: None,
