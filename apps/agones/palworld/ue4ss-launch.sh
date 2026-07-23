@@ -18,8 +18,8 @@ export PALWORLD_CHAT_LOG="${PALWORLD_CHAT_LOG:-/palworld/chat-relay/chat.log}"
 export UE4SS_CRASH_LOG_DIR="$STAGE/UE4SS-crashes"
 
 if ! grep -q 'LD_PRELOAD=.*libUE4SS\.so' "$WRAPPER"; then
-    sed -i "s|\"\$UE_PROJECT_ROOT/Pal/Binaries/Linux/PalServer-Linux-Shipping\"|LD_PRELOAD=\"$STAGE/libUE4SS.so\" &|" "$WRAPPER"
+    sed -i "s|\"\$UE_PROJECT_ROOT/Pal/Binaries/Linux/PalServer-Linux-Shipping\" Pal \"\$@\"|LD_PRELOAD=\"$STAGE/libUE4SS.so\" &|" "$WRAPPER"
 fi
-grep -q 'LD_PRELOAD=.*libUE4SS\.so' "$WRAPPER"
+grep -q 'LD_PRELOAD=.*libUE4SS\.so.*PalServer-Linux-Shipping.* Pal ' "$WRAPPER"
 
 exec "$@"
