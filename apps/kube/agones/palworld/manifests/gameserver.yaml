@@ -87,11 +87,11 @@ spec:
                         mountPath: /palworld/Pal/Saved
                   resources:
                       requests:
-                          cpu: '2'
-                          memory: '8Gi'
+                          cpu: '4'
+                          memory: '16Gi'
                       limits:
                           cpu: '6'
-                          memory: '16Gi'
+                          memory: '32Gi'
                   securityContext:
                       allowPrivilegeEscalation: true
                       capabilities:
