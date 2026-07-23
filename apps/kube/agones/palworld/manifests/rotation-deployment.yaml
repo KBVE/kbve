@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: palworld-rotator
+    namespace: palworld
+    labels:
+        app: palworld-rotator
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+        kbve.com/managed-by: argocd
+spec:
+    replicas: 1
+    strategy:
+        type: Recreate
+    selector:
+        matchLabels:
+            app: palworld-rotator
+    template:
+        metadata:
+            labels:
+                app: palworld-rotator
+        spec:
+            serviceAccountName: palworld-rotator
+            automountServiceAccountToken: true
+            terminationGracePeriodSeconds: 30
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: rotator
+                  image: ghcr.io/kbve/kubectl:0.1.6
+                  imagePullPolicy: IfNotPresent
+                  args:
+                      - rotate-gameserver
+                      - --watch
+                      - --interval=15
+                      - --namespace=palworld
+                      - --gameserver=palworld
+                      - --container=palworld
+                      - --delete-timeout=180
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
+                      readOnlyRootFilesystem: true
+                  livenessProbe:
+                      exec:
+                          command:
+                              - /bin/sh
+                              - -c
+                              - test $(( $(date +%s) - $(stat -c %Y /tmp/.rotator-heartbeat) )) -lt
+                                60
+                      initialDelaySeconds: 20
+                      periodSeconds: 20
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+                  resources:
+                      requests:
+                          cpu: 25m
+                          memory: 64Mi
+                      limits:
+                          cpu: 100m
+                          memory: 128Mi
+                  volumeMounts:
+                      - name: tmp
+                        mountPath: /tmp
+            volumes:
+                - name: tmp
+                  emptyDir:
+                      sizeLimit: 16Mi

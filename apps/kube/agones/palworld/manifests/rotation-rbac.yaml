@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: palworld-rotator
+    namespace: palworld
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: palworld-rotator
+    namespace: palworld
+rules:
+    - apiGroups: ['']
+      resources: ['pods']
+      verbs: ['get', 'list']
+    - apiGroups: ['agones.dev']
+      resources: ['gameservers']
+      verbs: ['get', 'list', 'watch', 'delete']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: palworld-rotator
+    namespace: palworld
+subjects:
+    - kind: ServiceAccount
+      name: palworld-rotator
+      namespace: palworld
+roleRef:
+    kind: Role
+    name: palworld-rotator
+    apiGroup: rbac.authorization.k8s.io
