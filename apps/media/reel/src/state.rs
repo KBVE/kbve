@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
-pub enum TorrentState { Queued, Leeching, Seeding, Reaped }
+pub enum TorrentState { Leeching, Seeding, Reaped, Failed }
 
 #[derive(Clone, Debug, PartialEq, Default, serde::Serialize, serde::Deserialize)]
 pub enum TranscodeStatus { #[default] None, Pending, Remuxing, Encoding, Ready, Failed }
@@ -20,6 +20,8 @@ pub struct Metadata {
     pub completed_at: Option<u64>,
     pub last_access: u64,
     pub state: TorrentState,
+    #[serde(default)]
+    pub error: Option<String>,
     #[serde(default)]
     pub transcode: TranscodeStatus,
     #[serde(default)]
@@ -116,7 +118,7 @@ mod tests {
         Metadata {
             id: id.into(), name: format!("t-{id}"), path: format!("/lib/{id}"),
             size: 10, completed_at: Some(last_access), last_access,
-            state: TorrentState::Seeding,
+            state: TorrentState::Seeding, error: None,
             transcode: TranscodeStatus::None, transcode_path: None, transcode_error: None,
             hls: HlsStatus::None, hls_dir: None, hls_error: None,
         }
