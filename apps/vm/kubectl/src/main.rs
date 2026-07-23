@@ -441,11 +441,6 @@ async fn rotate_once(
 
     tracing::info!("desired={desired} running={running} state={state}");
 
-    if desired.is_empty() {
-        tracing::info!("missing gs — nothing to rotate");
-        return Ok(());
-    }
-
     let timeout_arg = format!("--timeout={delete_timeout}s");
     let wrapper_timeout = Duration::from_secs(delete_timeout.saturating_add(30));
     let delete_args = [
@@ -457,34 +452,64 @@ async fn rotate_once(
         "--ignore-not-found",
     ];
 
+    match rotate_decision(&desired, &running, &state) {
+        RotateDecision::Skip(reason) => {
+            tracing::info!("no rotation: {reason}");
+            Ok(())
+        }
+        RotateDecision::Delete(reason) => {
+            tracing::warn!(
+                "rotating gs ({reason}): running={running} desired={desired} state={state}"
+            );
+            kubectl_output_with_timeout(&delete_args, wrapper_timeout)
+                .await
+                .map_err(|e| format!("rotate delete failed: {e}"))?;
+            tracing::info!("delete sent; ArgoCD selfHeal will recreate from {desired}");
+            Ok(())
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+enum RotateDecision {
+    Skip(String),
+    Delete(&'static str),
+}
+
+/// Decides whether to recreate a GameServer, given its desired image (from the
+/// GS spec, which ArgoCD keeps in sync with git), the running pod image, and the
+/// Agones state. Recreation is a `kubectl delete` — ArgoCD selfHeal recreates
+/// the GS at the desired image.
+fn rotate_decision(desired: &str, running: &str, state: &str) -> RotateDecision {
+    if desired.is_empty() {
+        return RotateDecision::Skip("missing gs".into());
+    }
+    // Unhealthy with no pod: nothing to preserve, recreate to recover.
     if state == "Unhealthy" && running.is_empty() {
-        tracing::warn!("gs Unhealthy with no pod — recovering by deleting gs");
-        kubectl_output_with_timeout(&delete_args, wrapper_timeout)
-            .await
-            .map_err(|e| format!("recovery delete failed: {e}"))?;
-        tracing::info!("delete sent; ArgoCD selfHeal will recreate from {desired}");
-        return Ok(());
+        return RotateDecision::Delete("unhealthy-no-pod");
     }
-
     if running.is_empty() {
-        tracing::info!("missing pod (state={state}) — nothing to rotate");
-        return Ok(());
+        return RotateDecision::Skip(format!("missing pod (state={state})"));
     }
+    // No image drift. A freshly recreated pod already runs the desired image, so
+    // it is never rotated here — even while it is Unhealthy during a slow boot.
+    // This is what prevents a delete loop.
     if desired == running {
-        tracing::info!("images match — no rotation needed");
-        return Ok(());
+        return RotateDecision::Skip("images match".into());
     }
-    if state != "Ready" && state != "Allocated" {
-        tracing::info!("gs not Ready/Allocated (state={state}) — skipping rotate");
-        return Ok(());
+    // Image drift below.
+    match state {
+        // Healthy: graceful roll to the new image.
+        "Ready" | "Allocated" => RotateDecision::Delete("drift-healthy"),
+        // Stuck on the OLD image and it will never become Ready (e.g. a bad
+        // image, or a boot bug fixed by the new image). Recreate to adopt it.
+        // Without this, an Unhealthy GS with drift deadlocks and needs a manual
+        // `kubectl delete gameserver`.
+        "Unhealthy" => RotateDecision::Delete("drift-unhealthy-stuck"),
+        // Transient boot states (Scheduled/Starting/RequestReady/...): a pod is
+        // actively coming up; defer so an in-progress boot is not interrupted.
+        _ => RotateDecision::Skip(format!("drift but state={state} — deferring until boot settles")),
     }
-
-    tracing::info!("image drift detected: {running} -> {desired}; rotating");
-    kubectl_output_with_timeout(&delete_args, wrapper_timeout)
-        .await
-        .map_err(|e| format!("delete failed: {e}"))?;
-    tracing::info!("delete sent; ArgoCD selfHeal will recreate from {desired}");
-    Ok(())
 }
 
 const HEARTBEAT_PATH: &str = "/tmp/.rotator-heartbeat";
@@ -569,5 +594,60 @@ async fn main() -> ExitCode {
             )
             .await
         }
+    }
+}
+
+#[cfg(test)]
+mod rotate_tests {
+    use super::{rotate_decision, RotateDecision};
+
+    fn del(d: &str, r: &str, s: &str) -> bool {
+        matches!(rotate_decision(d, r, s), RotateDecision::Delete(_))
+    }
+
+    #[test]
+    fn healthy_drift_rotates() {
+        assert!(del("0.0.6", "0.0.5", "Ready"));
+        assert!(del("0.0.6", "0.0.5", "Allocated"));
+    }
+
+    #[test]
+    fn unhealthy_drift_rotates_the_deadlock_case() {
+        // The bug: Unhealthy GS stuck on the old image with drift used to be
+        // skipped forever, needing a manual delete. Now it rotates.
+        assert!(del("0.0.6", "0.0.5", "Unhealthy"));
+    }
+
+    #[test]
+    fn unhealthy_no_pod_recovers() {
+        assert!(del("0.0.6", "", "Unhealthy"));
+    }
+
+    #[test]
+    fn fresh_booting_pod_never_rotates_no_delete_loop() {
+        // Newly recreated pod already runs the desired image; even while it is
+        // Unhealthy during a slow boot it must NOT be rotated.
+        assert!(!del("0.0.6", "0.0.6", "Unhealthy"));
+        assert!(!del("0.0.6", "0.0.6", "Scheduled"));
+        assert!(!del("0.0.6", "0.0.6", "Ready"));
+    }
+
+    #[test]
+    fn transient_states_with_drift_defer() {
+        assert!(!del("0.0.6", "0.0.5", "Scheduled"));
+        assert!(!del("0.0.6", "0.0.5", "Starting"));
+        assert!(!del("0.0.6", "0.0.5", "RequestReady"));
+    }
+
+    #[test]
+    fn missing_gs_or_pod_skips() {
+        assert!(!del("", "", "Ready"));
+        assert!(!del("0.0.6", "", "Ready"));
+        assert!(!del("0.0.6", "", "Scheduled"));
+    }
+
+    #[test]
+    fn matching_images_skip() {
+        assert!(!del("0.0.6", "0.0.6", "Allocated"));
     }
 }
