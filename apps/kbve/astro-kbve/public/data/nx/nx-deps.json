@@ -1,9 +1,17 @@
 {
-	"generated_at": "2026-07-22T04:20:49Z",
+	"generated_at": "2026-07-23T04:19:11Z",
 	"node": {
 		"count": 118,
 		"major": 31,
 		"items": [
+			{
+				"name": "@astrojs/starlight",
+				"current": "0.41.3",
+				"wanted": "0.41.3",
+				"latest": "0.41.4",
+				"type": "devDependencies",
+				"major": false
+			},
 			{
 				"name": "@axe-core/playwright",
 				"current": "4.11.3",
@@ -46,17 +54,9 @@
 			},
 			{
 				"name": "@bufbuild/protobuf",
-				"current": "2.11.0",
-				"wanted": "2.11.0",
+				"current": "2.12.1",
+				"wanted": "2.12.1",
 				"latest": "2.13.0",
-				"type": "dependencies",
-				"major": false
-			},
-			{
-				"name": "@codemirror/legacy-modes",
-				"current": "6.5.2",
-				"wanted": "6.5.2",
-				"latest": "6.5.3",
 				"type": "dependencies",
 				"major": false
 			},
@@ -184,7 +184,7 @@
 				"name": "@shopify/react-native-skia",
 				"current": "2.6.9",
 				"wanted": "2.6.9",
-				"latest": "2.9.0",
+				"latest": "2.9.1",
 				"type": "dependencies",
 				"major": false
 			},
@@ -246,8 +246,8 @@
 			},
 			{
 				"name": "@tanstack/react-query",
-				"current": "5.101.0",
-				"wanted": "5.101.0",
+				"current": "5.101.2",
+				"wanted": "5.101.2",
 				"latest": "5.101.4",
 				"type": "dependencies",
 				"major": false
@@ -360,7 +360,7 @@
 				"name": "@vitejs/plugin-react",
 				"current": "6.0.2",
 				"wanted": "6.0.2",
-				"latest": "6.0.3",
+				"latest": "6.0.4",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -560,7 +560,7 @@
 				"name": "happy-dom",
 				"current": "20.10.6",
 				"wanted": "20.10.6",
-				"latest": "20.11.0",
+				"latest": "20.11.1",
 				"type": "dependencies",
 				"major": false
 			},
@@ -584,7 +584,7 @@
 				"name": "lint-staged",
 				"current": "16.4.0",
 				"wanted": "16.4.0",
-				"latest": "17.1.0",
+				"latest": "17.1.1",
 				"type": "devDependencies",
 				"major": true
 			},
@@ -616,7 +616,7 @@
 				"name": "mdream",
 				"current": "1.4.1",
 				"wanted": "1.4.1",
-				"latest": "1.5.3",
+				"latest": "1.5.5",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -656,7 +656,7 @@
 				"name": "postcss",
 				"current": "8.5.14",
 				"wanted": "8.5.14",
-				"latest": "8.5.21",
+				"latest": "8.5.22",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -744,7 +744,7 @@
 				"name": "react-native-reanimated",
 				"current": "4.3.1",
 				"wanted": "4.3.1",
-				"latest": "4.5.2",
+				"latest": "4.5.3",
 				"type": "dependencies",
 				"major": false
 			},
@@ -951,163 +951,97 @@
 		]
 	},
 	"rust": {
-		"count": 300,
+		"count": 56,
 		"major": 0,
 		"items": [
 			{
-				"name": "accesskit",
-				"current": "0.24.0",
-				"latest": "0.24.1",
+				"name": "alsa",
+				"current": "0.10.0",
+				"latest": "0.11.0",
 				"major": false
 			},
 			{
-				"name": "accesskit_atspi_common",
-				"current": "0.18.0",
-				"latest": "0.18.1",
-				"major": false
-			},
-			{
-				"name": "accesskit_macos",
-				"current": "0.26.0",
-				"latest": "0.26.3",
-				"major": false
-			},
-			{
-				"name": "accesskit_unix",
-				"current": "0.21.0",
-				"latest": "0.21.1",
-				"major": false
-			},
-			{
-				"name": "actix-http",
-				"current": "3.12.1",
-				"latest": "3.13.1",
-				"major": false
-			},
-			{
-				"name": "actix-web",
-				"current": "4.13.0",
-				"latest": "4.14.0",
-				"major": false
-			},
-			{
-				"name": "agones",
-				"current": "1.57.0",
-				"latest": "1.59.0",
-				"major": false
-			},
-			{
-				"name": "alloc-stdlib",
-				"current": "0.2.2",
-				"latest": "0.2.4",
+				"name": "alsa-sys",
+				"current": "0.3.1",
+				"latest": "0.4.0",
 				"major": false
 			},
 			{
 				"name": "ammonia",
-				"current": "4.1.2",
+				"current": "4.1.3",
 				"latest": "4.1.4",
 				"major": false
 			},
 			{
-				"name": "amq-protocol",
-				"current": "10.0.1",
-				"latest": "10.6.2",
+				"name": "arrow",
+				"current": "58.3.0",
+				"latest": "58.4.0",
 				"major": false
 			},
 			{
-				"name": "amq-protocol-tcp",
-				"current": "10.0.1",
-				"latest": "10.6.2",
+				"name": "arrow-arith",
+				"current": "58.3.0",
+				"latest": "58.4.0",
 				"major": false
 			},
 			{
-				"name": "amq-protocol-types",
-				"current": "10.0.1",
-				"latest": "10.6.2",
+				"name": "arrow-array",
+				"current": "58.3.0",
+				"latest": "58.4.0",
 				"major": false
 			},
 			{
-				"name": "amq-protocol-uri",
-				"current": "10.0.1",
-				"latest": "10.6.2",
+				"name": "arrow-buffer",
+				"current": "58.3.0",
+				"latest": "58.4.0",
 				"major": false
 			},
 			{
-				"name": "anyhow",
-				"current": "1.0.102",
-				"latest": "1.0.104",
+				"name": "arrow-cast",
+				"current": "58.3.0",
+				"latest": "58.4.0",
 				"major": false
 			},
 			{
-				"name": "arc-swap",
-				"current": "1.9.1",
-				"latest": "1.9.2",
+				"name": "arrow-data",
+				"current": "58.3.0",
+				"latest": "58.4.0",
 				"major": false
 			},
 			{
-				"name": "arrayvec",
-				"current": "0.7.6",
-				"latest": "0.7.8",
+				"name": "arrow-ord",
+				"current": "58.3.0",
+				"latest": "58.4.0",
 				"major": false
 			},
 			{
-				"name": "asn1-rs",
-				"current": "0.7.1",
-				"latest": "0.7.2",
+				"name": "arrow-row",
+				"current": "58.3.0",
+				"latest": "58.4.0",
 				"major": false
 			},
 			{
-				"name": "async-compression",
-				"current": "0.4.41",
-				"latest": "0.4.42",
+				"name": "arrow-schema",
+				"current": "58.3.0",
+				"latest": "58.4.0",
 				"major": false
 			},
 			{
-				"name": "async-rs",
-				"current": "0.8.2",
-				"latest": "0.8.11",
+				"name": "arrow-select",
+				"current": "58.3.0",
+				"latest": "58.4.0",
 				"major": false
 			},
 			{
-				"name": "async-trait",
-				"current": "0.1.89",
-				"latest": "0.1.91",
-				"major": false
-			},
-			{
-				"name": "atomicow",
-				"current": "1.1.0",
-				"latest": "1.2.0",
-				"major": false
-			},
-			{
-				"name": "autocfg",
-				"current": "1.5.0",
-				"latest": "1.5.1",
-				"major": false
-			},
-			{
-				"name": "avian_derive",
-				"current": "0.2.2",
-				"latest": "0.2.3",
+				"name": "arrow-string",
+				"current": "58.3.0",
+				"latest": "58.4.0",
 				"major": false
 			},
 			{
 				"name": "aws-config",
 				"current": "1.9.0",
 				"latest": "1.10.0",
-				"major": false
-			},
-			{
-				"name": "aws-lc-rs",
-				"current": "1.16.2",
-				"latest": "1.17.3",
-				"major": false
-			},
-			{
-				"name": "aws-lc-sys",
-				"current": "0.39.1",
-				"latest": "0.43.0",
 				"major": false
 			},
 			{
@@ -1159,429 +1093,39 @@
 				"major": false
 			},
 			{
-				"name": "bitflags",
-				"current": "2.11.0",
-				"latest": "2.13.1",
-				"major": false
-			},
-			{
-				"name": "bitvec",
-				"current": "1.0.1",
-				"latest": "1.1.1",
-				"major": false
-			},
-			{
-				"name": "blake3",
-				"current": "1.8.4",
-				"latest": "1.8.5",
-				"major": false
-			},
-			{
-				"name": "block-buffer",
-				"current": "0.12.0",
-				"latest": "0.12.1",
-				"major": false
-			},
-			{
-				"name": "bon",
-				"current": "3.9.1",
-				"latest": "3.9.3",
-				"major": false
-			},
-			{
-				"name": "bon-macros",
-				"current": "3.9.1",
-				"latest": "3.9.3",
-				"major": false
-			},
-			{
-				"name": "brotli",
-				"current": "8.0.2",
-				"latest": "8.0.4",
-				"major": false
-			},
-			{
-				"name": "brotli-decompressor",
-				"current": "5.0.0",
-				"latest": "5.0.3",
-				"major": false
-			},
-			{
-				"name": "bstr",
-				"current": "1.12.1",
-				"latest": "1.13.0",
-				"major": false
-			},
-			{
-				"name": "bumpalo",
-				"current": "3.20.2",
-				"latest": "3.20.3",
-				"major": false
-			},
-			{
-				"name": "bytemuck",
-				"current": "1.25.0",
-				"latest": "1.25.2",
-				"major": false
-			},
-			{
-				"name": "bytemuck_derive",
-				"current": "1.10.2",
-				"latest": "1.11.0",
-				"major": false
-			},
-			{
-				"name": "bytes",
-				"current": "1.11.1",
-				"latest": "1.12.1",
-				"major": false
-			},
-			{
-				"name": "camino",
-				"current": "1.2.2",
-				"latest": "1.2.4",
-				"major": false
-			},
-			{
-				"name": "cfg_aliases",
-				"current": "0.2.1",
-				"latest": "0.2.2",
-				"major": false
-			},
-			{
-				"name": "chacha20",
-				"current": "0.10.0",
-				"latest": "0.10.1",
-				"major": false
-			},
-			{
-				"name": "chrono",
-				"current": "0.4.44",
-				"latest": "0.4.45",
-				"major": false
-			},
-			{
 				"name": "clap",
-				"current": "4.6.0",
+				"current": "4.6.3",
 				"latest": "4.6.4",
-				"major": false
-			},
-			{
-				"name": "clap_builder",
-				"current": "4.6.0",
-				"latest": "4.6.2",
 				"major": false
 			},
 			{
 				"name": "clap_derive",
-				"current": "4.6.0",
+				"current": "4.6.3",
 				"latest": "4.6.4",
 				"major": false
 			},
 			{
-				"name": "cmov",
-				"current": "0.5.3",
-				"latest": "0.5.4",
-				"major": false
-			},
-			{
-				"name": "color",
-				"current": "0.3.2",
-				"latest": "0.3.3",
-				"major": false
-			},
-			{
-				"name": "compression-codecs",
-				"current": "0.4.37",
-				"latest": "0.4.38",
-				"major": false
-			},
-			{
-				"name": "compression-core",
-				"current": "0.4.31",
-				"latest": "0.4.32",
-				"major": false
-			},
-			{
-				"name": "console_log",
-				"current": "1.0.0",
-				"latest": "1.1.0",
-				"major": false
-			},
-			{
-				"name": "crc-catalog",
-				"current": "2.4.0",
-				"latest": "2.5.0",
-				"major": false
-			},
-			{
-				"name": "crossbeam-channel",
-				"current": "0.5.15",
-				"latest": "0.5.16",
-				"major": false
-			},
-			{
-				"name": "crossbeam-deque",
-				"current": "0.8.6",
-				"latest": "0.8.7",
-				"major": false
-			},
-			{
-				"name": "crossbeam-epoch",
-				"current": "0.9.18",
-				"latest": "0.9.20",
-				"major": false
-			},
-			{
-				"name": "crossbeam-queue",
-				"current": "0.3.12",
-				"latest": "0.3.13",
-				"major": false
-			},
-			{
-				"name": "crossbeam-utils",
-				"current": "0.8.21",
-				"latest": "0.8.22",
-				"major": false
-			},
-			{
-				"name": "crypto-common",
-				"current": "0.2.1",
-				"latest": "0.2.2",
-				"major": false
-			},
-			{
-				"name": "csbindgen",
-				"current": "1.9.7",
-				"latest": "1.9.8",
-				"major": false
-			},
-			{
-				"name": "ctor",
-				"current": "0.2.9",
-				"latest": "0.8.0",
-				"major": false
-			},
-			{
-				"name": "dashmap",
-				"current": "6.1.0",
-				"latest": "6.2.1",
-				"major": false
-			},
-			{
-				"name": "data-encoding",
-				"current": "2.10.0",
-				"latest": "2.11.0",
-				"major": false
-			},
-			{
-				"name": "diesel",
-				"current": "2.3.9",
-				"latest": "2.3.11",
-				"major": false
-			},
-			{
-				"name": "diesel-async",
-				"current": "0.9.0",
-				"latest": "0.9.2",
-				"major": false
-			},
-			{
-				"name": "diesel_derives",
-				"current": "2.3.7",
-				"latest": "2.3.9",
-				"major": false
-			},
-			{
-				"name": "digest",
-				"current": "0.11.2",
-				"latest": "0.11.3",
-				"major": false
-			},
-			{
-				"name": "displaydoc",
-				"current": "0.2.5",
-				"latest": "0.2.6",
-				"major": false
-			},
-			{
-				"name": "ecolor",
-				"current": "0.34.1",
-				"latest": "0.34.3",
-				"major": false
-			},
-			{
-				"name": "eframe",
-				"current": "0.34.1",
-				"latest": "0.34.3",
-				"major": false
-			},
-			{
-				"name": "egui",
-				"current": "0.34.1",
-				"latest": "0.34.3",
-				"major": false
-			},
-			{
-				"name": "egui-wgpu",
-				"current": "0.34.1",
-				"latest": "0.34.3",
-				"major": false
-			},
-			{
-				"name": "egui-winit",
-				"current": "0.34.1",
-				"latest": "0.34.3",
-				"major": false
-			},
-			{
-				"name": "egui_glow",
-				"current": "0.34.1",
-				"latest": "0.34.3",
-				"major": false
-			},
-			{
-				"name": "either",
-				"current": "1.15.0",
-				"latest": "1.16.0",
-				"major": false
-			},
-			{
-				"name": "emath",
-				"current": "0.34.1",
-				"latest": "0.34.3",
-				"major": false
-			},
-			{
-				"name": "embed-resource",
-				"current": "3.0.8",
-				"latest": "3.0.11",
-				"major": false
-			},
-			{
-				"name": "enum-ordinalize",
-				"current": "4.3.2",
-				"latest": "4.4.1",
-				"major": false
-			},
-			{
-				"name": "enum-ordinalize-derive",
-				"current": "4.3.2",
-				"latest": "4.4.1",
-				"major": false
-			},
-			{
-				"name": "epaint",
-				"current": "0.34.1",
-				"latest": "0.34.3",
-				"major": false
-			},
-			{
-				"name": "epaint_default_fonts",
-				"current": "0.34.1",
-				"latest": "0.34.3",
-				"major": false
-			},
-			{
-				"name": "fastrand",
-				"current": "2.4.1",
-				"latest": "2.5.0",
-				"major": false
-			},
-			{
-				"name": "fax",
-				"current": "0.2.6",
-				"latest": "0.2.7",
-				"major": false
-			},
-			{
-				"name": "fs-err",
-				"current": "3.3.0",
-				"latest": "3.3.1",
-				"major": false
-			},
-			{
-				"name": "futures",
-				"current": "0.3.32",
-				"latest": "0.3.33",
-				"major": false
-			},
-			{
-				"name": "futures-channel",
-				"current": "0.3.32",
-				"latest": "0.3.33",
-				"major": false
-			},
-			{
-				"name": "futures-core",
-				"current": "0.3.32",
-				"latest": "0.3.33",
-				"major": false
-			},
-			{
-				"name": "futures-executor",
-				"current": "0.3.32",
-				"latest": "0.3.33",
-				"major": false
-			},
-			{
-				"name": "futures-io",
-				"current": "0.3.32",
-				"latest": "0.3.33",
-				"major": false
-			},
-			{
-				"name": "futures-macro",
-				"current": "0.3.32",
-				"latest": "0.3.33",
-				"major": false
-			},
-			{
-				"name": "futures-sink",
-				"current": "0.3.32",
-				"latest": "0.3.33",
-				"major": false
-			},
-			{
-				"name": "futures-task",
-				"current": "0.3.32",
-				"latest": "0.3.33",
-				"major": false
-			},
-			{
-				"name": "futures-timer",
-				"current": "3.0.3",
-				"latest": "3.0.4",
-				"major": false
-			},
-			{
-				"name": "futures-util",
-				"current": "0.3.32",
-				"latest": "0.3.33",
-				"major": false
-			},
-			{
-				"name": "gdextension-api",
-				"current": "0.5.0",
-				"latest": "0.5.1",
-				"major": false
-			},
-			{
-				"name": "gif",
-				"current": "0.14.1",
+				"name": "coreaudio-rs",
+				"current": "0.13.0",
 				"latest": "0.14.2",
 				"major": false
 			},
 			{
-				"name": "gilrs",
-				"current": "0.11.1",
-				"latest": "0.11.2",
+				"name": "cpal",
+				"current": "0.17.1",
+				"latest": "0.17.3",
 				"major": false
 			},
 			{
-				"name": "gilrs-core",
-				"current": "0.6.7",
-				"latest": "0.6.8",
+				"name": "duckdb",
+				"current": "1.10504.0",
+				"latest": "1.10505.0",
+				"major": false
+			},
+			{
+				"name": "foreign-types-macros",
+				"current": "0.2.3",
+				"latest": "0.2.4",
 				"major": false
 			},
 			{
@@ -1591,873 +1135,75 @@
 				"major": false
 			},
 			{
-				"name": "globset",
-				"current": "0.4.18",
-				"latest": "0.4.19",
-				"major": false
-			},
-			{
-				"name": "godot",
-				"current": "0.5.3",
-				"latest": "0.5.4",
-				"major": false
-			},
-			{
-				"name": "godot-bindings",
-				"current": "0.5.3",
-				"latest": "0.5.4",
-				"major": false
-			},
-			{
-				"name": "godot-cell",
-				"current": "0.5.3",
-				"latest": "0.5.4",
-				"major": false
-			},
-			{
-				"name": "godot-codegen",
-				"current": "0.5.3",
-				"latest": "0.5.4",
-				"major": false
-			},
-			{
-				"name": "godot-core",
-				"current": "0.5.3",
-				"latest": "0.5.4",
-				"major": false
-			},
-			{
-				"name": "godot-ffi",
-				"current": "0.5.3",
-				"latest": "0.5.4",
-				"major": false
-			},
-			{
-				"name": "godot-macros",
-				"current": "0.5.3",
-				"latest": "0.5.4",
-				"major": false
-			},
-			{
-				"name": "grid",
-				"current": "1.0.0",
-				"latest": "1.0.1",
-				"major": false
-			},
-			{
-				"name": "h2",
-				"current": "0.4.13",
-				"latest": "0.4.15",
-				"major": false
-			},
-			{
-				"name": "heapless",
-				"current": "0.9.2",
-				"latest": "0.9.3",
-				"major": false
-			},
-			{
-				"name": "hickory-proto",
-				"current": "0.25.2",
-				"latest": "0.26.1",
-				"major": false
-			},
-			{
-				"name": "hickory-resolver",
-				"current": "0.25.2",
-				"latest": "0.26.1",
-				"major": false
-			},
-			{
-				"name": "http",
-				"current": "1.4.0",
-				"latest": "1.4.2",
-				"major": false
-			},
-			{
-				"name": "http-body",
-				"current": "1.0.1",
-				"latest": "1.1.0",
-				"major": false
-			},
-			{
-				"name": "http-body-util",
-				"current": "0.1.3",
-				"latest": "0.1.4",
-				"major": false
-			},
-			{
-				"name": "hybrid-array",
-				"current": "0.4.10",
-				"latest": "0.4.13",
-				"major": false
-			},
-			{
-				"name": "hyper",
-				"current": "1.9.0",
-				"latest": "1.11.0",
-				"major": false
-			},
-			{
-				"name": "hyper-rustls",
-				"current": "0.27.7",
-				"latest": "0.27.9",
-				"major": false
-			},
-			{
-				"name": "idna_adapter",
-				"current": "1.2.1",
-				"latest": "1.2.2",
-				"major": false
-			},
-			{
 				"name": "impl-more",
-				"current": "0.1.9",
+				"current": "0.3.1",
 				"latest": "0.3.2",
 				"major": false
 			},
 			{
-				"name": "indexmap",
-				"current": "2.13.1",
-				"latest": "2.14.0",
-				"major": false
-			},
-			{
-				"name": "inotify",
-				"current": "0.11.1",
-				"latest": "0.11.4",
-				"major": false
-			},
-			{
-				"name": "inotify-sys",
-				"current": "0.1.5",
-				"latest": "0.1.8",
-				"major": false
-			},
-			{
-				"name": "jiff",
-				"current": "0.2.23",
-				"latest": "0.2.34",
-				"major": false
-			},
-			{
-				"name": "jiff-static",
-				"current": "0.2.23",
-				"latest": "0.2.34",
-				"major": false
-			},
-			{
-				"name": "jobserver",
-				"current": "0.1.34",
-				"latest": "0.1.35",
-				"major": false
-			},
-			{
-				"name": "json-patch",
-				"current": "4.1.0",
-				"latest": "4.2.0",
-				"major": false
-			},
-			{
-				"name": "jsonpath-rust",
-				"current": "1.0.4",
-				"latest": "1.0.5",
-				"major": false
-			},
-			{
-				"name": "jsonschema",
-				"current": "0.46.4",
-				"latest": "0.46.10",
-				"major": false
-			},
-			{
-				"name": "jsonwebtoken",
-				"current": "10.3.0",
-				"latest": "10.4.0",
-				"major": false
-			},
-			{
-				"name": "kurbo",
-				"current": "0.13.0",
-				"latest": "0.13.1",
-				"major": false
-			},
-			{
-				"name": "lapin",
-				"current": "4.4.0",
-				"latest": "4.10.0",
-				"major": false
-			},
-			{
 				"name": "libc",
-				"current": "0.2.184",
+				"current": "0.2.188",
 				"latest": "0.2.189",
 				"major": false
 			},
 			{
-				"name": "libredox",
-				"current": "0.1.15",
-				"latest": "0.1.18",
-				"major": false
-			},
-			{
-				"name": "log",
-				"current": "0.4.29",
-				"latest": "0.4.33",
-				"major": false
-			},
-			{
-				"name": "matrixmultiply",
-				"current": "0.3.10",
-				"latest": "0.3.11",
-				"major": false
-			},
-			{
-				"name": "memchr",
-				"current": "2.8.0",
-				"latest": "2.8.3",
-				"major": false
-			},
-			{
-				"name": "memmap2",
-				"current": "0.9.10",
-				"latest": "0.9.11",
-				"major": false
-			},
-			{
-				"name": "metrics",
-				"current": "0.24.3",
-				"latest": "0.24.6",
-				"major": false
-			},
-			{
-				"name": "metrics-exporter-prometheus",
-				"current": "0.18.1",
-				"latest": "0.18.3",
-				"major": false
-			},
-			{
-				"name": "metrics-util",
-				"current": "0.20.1",
-				"latest": "0.20.4",
-				"major": false
-			},
-			{
-				"name": "mio",
-				"current": "1.2.0",
-				"latest": "1.2.2",
-				"major": false
-			},
-			{
-				"name": "muda",
-				"current": "0.17.2",
-				"latest": "0.19.3",
-				"major": false
-			},
-			{
-				"name": "no_std_io2",
-				"current": "0.9.3",
-				"latest": "0.9.4",
-				"major": false
-			},
-			{
-				"name": "num-bigint",
-				"current": "0.4.6",
-				"latest": "0.4.8",
-				"major": false
-			},
-			{
-				"name": "num-conv",
-				"current": "0.2.1",
-				"latest": "0.2.2",
-				"major": false
-			},
-			{
-				"name": "num-iter",
-				"current": "0.1.45",
-				"latest": "0.1.46",
-				"major": false
-			},
-			{
-				"name": "octets",
-				"current": "0.3.5",
-				"latest": "0.3.6",
-				"major": false
-			},
-			{
-				"name": "open",
-				"current": "5.3.3",
-				"latest": "5.4.0",
-				"major": false
-			},
-			{
-				"name": "orbclient",
-				"current": "0.3.51",
-				"latest": "0.3.55",
-				"major": false
-			},
-			{
-				"name": "pastey",
-				"current": "0.2.2",
-				"latest": "0.2.3",
-				"major": false
-			},
-			{
-				"name": "peniko",
-				"current": "0.6.0",
-				"latest": "0.6.1",
+				"name": "libduckdb-sys",
+				"current": "1.10504.0",
+				"latest": "1.10505.0",
 				"major": false
 			},
 			{
 				"name": "pest",
-				"current": "2.8.6",
-				"latest": "2.8.7",
+				"current": "2.8.7",
+				"latest": "2.8.8",
 				"major": false
 			},
 			{
 				"name": "pest_derive",
-				"current": "2.8.6",
-				"latest": "2.8.7",
+				"current": "2.8.7",
+				"latest": "2.8.8",
 				"major": false
 			},
 			{
 				"name": "pest_generator",
-				"current": "2.8.6",
-				"latest": "2.8.7",
+				"current": "2.8.7",
+				"latest": "2.8.8",
 				"major": false
 			},
 			{
 				"name": "pest_meta",
-				"current": "2.8.6",
-				"latest": "2.8.7",
+				"current": "2.8.7",
+				"latest": "2.8.8",
 				"major": false
 			},
 			{
-				"name": "pin-project",
-				"current": "1.1.11",
-				"latest": "1.1.13",
+				"name": "proc-macro-error-attr3",
+				"current": "3.0.2",
+				"latest": "3.0.3",
 				"major": false
 			},
 			{
-				"name": "pin-project-internal",
-				"current": "1.1.11",
-				"latest": "1.1.13",
-				"major": false
-			},
-			{
-				"name": "pkg-config",
-				"current": "0.3.32",
-				"latest": "0.3.33",
-				"major": false
-			},
-			{
-				"name": "plist",
-				"current": "1.8.0",
-				"latest": "1.10.0",
-				"major": false
-			},
-			{
-				"name": "poise",
-				"current": "0.6.1",
-				"latest": "0.6.2",
-				"major": false
-			},
-			{
-				"name": "portable-atomic",
-				"current": "1.13.1",
-				"latest": "1.14.0",
-				"major": false
-			},
-			{
-				"name": "portable-atomic-util",
-				"current": "0.2.6",
-				"latest": "0.2.7",
-				"major": false
-			},
-			{
-				"name": "postgres",
-				"current": "0.19.13",
-				"latest": "0.19.14",
-				"major": false
-			},
-			{
-				"name": "postgres-protocol",
-				"current": "0.6.11",
-				"latest": "0.6.12",
-				"major": false
-			},
-			{
-				"name": "postgres-types",
-				"current": "0.2.13",
-				"latest": "0.2.14",
-				"major": false
-			},
-			{
-				"name": "proc-macro2",
-				"current": "1.0.106",
-				"latest": "1.0.107",
-				"major": false
-			},
-			{
-				"name": "profiling",
-				"current": "1.0.17",
-				"latest": "1.0.18",
-				"major": false
-			},
-			{
-				"name": "prost",
-				"current": "0.14.3",
-				"latest": "0.14.4",
-				"major": false
-			},
-			{
-				"name": "prost-build",
-				"current": "0.14.3",
-				"latest": "0.14.4",
-				"major": false
-			},
-			{
-				"name": "prost-derive",
-				"current": "0.14.3",
-				"latest": "0.14.4",
-				"major": false
-			},
-			{
-				"name": "prost-types",
-				"current": "0.14.3",
-				"latest": "0.14.4",
-				"major": false
-			},
-			{
-				"name": "pulldown-cmark",
-				"current": "0.13.3",
-				"latest": "0.13.4",
-				"major": false
-			},
-			{
-				"name": "pxfm",
-				"current": "0.1.28",
-				"latest": "0.1.30",
-				"major": false
-			},
-			{
-				"name": "quinn",
-				"current": "0.11.9",
-				"latest": "0.11.11",
-				"major": false
-			},
-			{
-				"name": "quinn-proto",
-				"current": "0.11.14",
-				"latest": "0.11.16",
-				"major": false
-			},
-			{
-				"name": "quinn-udp",
-				"current": "0.5.14",
-				"latest": "0.5.15",
-				"major": false
-			},
-			{
-				"name": "quote",
-				"current": "1.0.45",
-				"latest": "1.0.47",
-				"major": false
-			},
-			{
-				"name": "rand_pcg",
-				"current": "0.2.1",
-				"latest": "0.10.2",
-				"major": false
-			},
-			{
-				"name": "rayon",
-				"current": "1.11.0",
-				"latest": "1.12.0",
-				"major": false
-			},
-			{
-				"name": "redox_syscall",
-				"current": "0.7.3",
-				"latest": "0.9.0",
-				"major": false
-			},
-			{
-				"name": "ref-cast",
-				"current": "1.0.25",
-				"latest": "1.0.26",
-				"major": false
-			},
-			{
-				"name": "ref-cast-impl",
-				"current": "1.0.25",
-				"latest": "1.0.26",
-				"major": false
-			},
-			{
-				"name": "referencing",
-				"current": "0.46.4",
-				"latest": "0.46.10",
-				"major": false
-			},
-			{
-				"name": "regex",
-				"current": "1.12.3",
-				"latest": "1.13.1",
-				"major": false
-			},
-			{
-				"name": "regex-automata",
-				"current": "0.4.14",
-				"latest": "0.4.16",
-				"major": false
-			},
-			{
-				"name": "regex-syntax",
-				"current": "0.8.10",
-				"latest": "0.8.11",
-				"major": false
-			},
-			{
-				"name": "reqwest",
-				"current": "0.13.2",
-				"latest": "0.13.4",
-				"major": false
-			},
-			{
-				"name": "rmcp-actix-web",
-				"current": "0.12.6",
-				"latest": "0.12.16",
-				"major": false
-			},
-			{
-				"name": "ron",
-				"current": "0.12.1",
-				"latest": "0.12.2",
-				"major": false
-			},
-			{
-				"name": "rust-embed",
-				"current": "8.11.0",
-				"latest": "8.12.0",
-				"major": false
-			},
-			{
-				"name": "rust-embed-impl",
-				"current": "8.11.0",
-				"latest": "8.12.0",
-				"major": false
-			},
-			{
-				"name": "rust-embed-utils",
-				"current": "8.11.0",
-				"latest": "8.12.0",
-				"major": false
-			},
-			{
-				"name": "rustc-hash",
-				"current": "2.1.2",
-				"latest": "2.1.3",
-				"major": false
-			},
-			{
-				"name": "rustls",
-				"current": "0.23.37",
-				"latest": "0.23.42",
-				"major": false
-			},
-			{
-				"name": "rustls-connector",
-				"current": "0.22.0",
-				"latest": "0.23.6",
-				"major": false
-			},
-			{
-				"name": "rustls-native-certs",
-				"current": "0.8.3",
-				"latest": "0.8.4",
-				"major": false
-			},
-			{
-				"name": "rustls-pki-types",
-				"current": "1.14.0",
-				"latest": "1.15.0",
-				"major": false
-			},
-			{
-				"name": "rustls-platform-verifier",
-				"current": "0.6.2",
-				"latest": "0.7.0",
-				"major": false
-			},
-			{
-				"name": "rustls-webpki",
-				"current": "0.103.10",
-				"latest": "0.103.13",
-				"major": false
-			},
-			{
-				"name": "rustversion",
-				"current": "1.0.22",
-				"latest": "1.0.23",
-				"major": false
-			},
-			{
-				"name": "ruzstd",
-				"current": "0.8.2",
-				"latest": "0.8.3",
-				"major": false
-			},
-			{
-				"name": "self_cell",
-				"current": "1.2.2",
-				"latest": "1.3.0",
-				"major": false
-			},
-			{
-				"name": "serde",
-				"current": "1.0.228",
-				"latest": "1.0.229",
-				"major": false
-			},
-			{
-				"name": "serde_core",
-				"current": "1.0.228",
-				"latest": "1.0.229",
-				"major": false
-			},
-			{
-				"name": "serde_derive",
-				"current": "1.0.228",
-				"latest": "1.0.229",
-				"major": false
-			},
-			{
-				"name": "serde_json",
-				"current": "1.0.149",
-				"latest": "1.0.151",
-				"major": false
-			},
-			{
-				"name": "serde_repr",
-				"current": "0.1.20",
-				"latest": "0.1.21",
-				"major": false
-			},
-			{
-				"name": "serde_with",
-				"current": "3.18.0",
-				"latest": "3.21.0",
-				"major": false
-			},
-			{
-				"name": "serde_with_macros",
-				"current": "3.18.0",
-				"latest": "3.21.0",
-				"major": false
-			},
-			{
-				"name": "serial_test",
-				"current": "3.4.0",
-				"latest": "3.5.0",
-				"major": false
-			},
-			{
-				"name": "serial_test_derive",
-				"current": "3.4.0",
-				"latest": "3.5.0",
-				"major": false
-			},
-			{
-				"name": "sha1",
-				"current": "0.10.6",
-				"latest": "0.10.7",
-				"major": false
-			},
-			{
-				"name": "simd-adler32",
-				"current": "0.3.9",
-				"latest": "0.3.10",
-				"major": false
-			},
-			{
-				"name": "simd_cesu8",
-				"current": "1.1.1",
-				"latest": "1.2.0",
-				"major": false
-			},
-			{
-				"name": "smallvec",
-				"current": "1.15.1",
-				"latest": "1.15.2",
-				"major": false
-			},
-			{
-				"name": "socket2",
-				"current": "0.6.3",
-				"latest": "0.6.5",
+				"name": "proc-macro-error3",
+				"current": "3.0.2",
+				"latest": "3.0.3",
 				"major": false
 			},
 			{
 				"name": "sse-stream",
-				"current": "0.2.3",
-				"latest": "0.2.4",
+				"current": "0.2.4",
+				"latest": "0.2.5",
 				"major": false
 			},
 			{
-				"name": "swash",
-				"current": "0.2.7",
-				"latest": "0.2.10",
+				"name": "syn",
+				"current": "3.0.2",
+				"latest": "3.0.3",
 				"major": false
 			},
 			{
-				"name": "tao",
-				"current": "0.34.8",
-				"latest": "0.35.3",
-				"major": false
-			},
-			{
-				"name": "target-triple",
-				"current": "1.0.0",
-				"latest": "1.0.1",
-				"major": false
-			},
-			{
-				"name": "tauri",
-				"current": "2.10.3",
-				"latest": "2.11.5",
-				"major": false
-			},
-			{
-				"name": "tauri-build",
-				"current": "2.5.6",
-				"latest": "2.6.3",
-				"major": false
-			},
-			{
-				"name": "tauri-codegen",
-				"current": "2.5.5",
-				"latest": "2.6.3",
-				"major": false
-			},
-			{
-				"name": "tauri-macros",
-				"current": "2.5.5",
-				"latest": "2.6.3",
-				"major": false
-			},
-			{
-				"name": "tauri-plugin",
-				"current": "2.5.4",
-				"latest": "2.6.3",
-				"major": false
-			},
-			{
-				"name": "tauri-plugin-opener",
-				"current": "2.5.3",
-				"latest": "2.5.4",
-				"major": false
-			},
-			{
-				"name": "tauri-plugin-single-instance",
-				"current": "2.4.2",
-				"latest": "2.4.3",
-				"major": false
-			},
-			{
-				"name": "tauri-plugin-store",
-				"current": "2.4.2",
-				"latest": "2.4.4",
-				"major": false
-			},
-			{
-				"name": "tauri-runtime",
-				"current": "2.10.1",
-				"latest": "2.11.3",
-				"major": false
-			},
-			{
-				"name": "tauri-runtime-wry",
-				"current": "2.10.1",
-				"latest": "2.11.4",
-				"major": false
-			},
-			{
-				"name": "tauri-utils",
-				"current": "2.8.3",
-				"latest": "2.9.3",
-				"major": false
-			},
-			{
-				"name": "tauri-winres",
-				"current": "0.3.5",
-				"latest": "0.3.6",
-				"major": false
-			},
-			{
-				"name": "tcp-stream",
-				"current": "0.34.3",
-				"latest": "0.34.14",
-				"major": false
-			},
-			{
-				"name": "thiserror",
-				"current": "2.0.18",
-				"latest": "2.0.19",
-				"major": false
-			},
-			{
-				"name": "thiserror-impl",
-				"current": "2.0.18",
-				"latest": "2.0.19",
-				"major": false
-			},
-			{
-				"name": "thread_local",
-				"current": "1.1.9",
-				"latest": "1.1.10",
-				"major": false
-			},
-			{
-				"name": "time",
-				"current": "0.3.47",
-				"latest": "0.3.54",
-				"major": false
-			},
-			{
-				"name": "time-core",
-				"current": "0.1.8",
-				"latest": "0.1.9",
-				"major": false
-			},
-			{
-				"name": "time-macros",
-				"current": "0.2.27",
-				"latest": "0.2.32",
-				"major": false
-			},
-			{
-				"name": "tinyvec",
-				"current": "1.11.0",
-				"latest": "1.12.0",
-				"major": false
-			},
-			{
-				"name": "tokio",
-				"current": "1.51.0",
-				"latest": "1.53.1",
-				"major": false
-			},
-			{
-				"name": "tokio-macros",
-				"current": "2.7.0",
-				"latest": "2.7.1",
-				"major": false
-			},
-			{
-				"name": "tokio-postgres",
-				"current": "0.7.17",
-				"latest": "0.7.18",
+				"name": "tokio-stream",
+				"current": "0.1.18",
+				"latest": "0.1.19",
 				"major": false
 			},
 			{
@@ -2467,295 +1213,85 @@
 				"major": false
 			},
 			{
-				"name": "toml",
-				"current": "1.1.2+spec-1.1.0",
-				"latest": "1.1.3+spec-1.1.0",
+				"name": "turso",
+				"current": "0.7.0",
+				"latest": "0.7.1",
 				"major": false
 			},
 			{
-				"name": "toml_edit",
-				"current": "0.25.11+spec-1.1.0",
-				"latest": "0.25.13+spec-1.1.0",
+				"name": "turso_core",
+				"current": "0.7.0",
+				"latest": "0.7.1",
 				"major": false
 			},
 			{
-				"name": "toml_writer",
-				"current": "1.1.1+spec-1.1.0",
-				"latest": "1.1.2+spec-1.1.0",
+				"name": "turso_ext",
+				"current": "0.7.0",
+				"latest": "0.7.1",
 				"major": false
 			},
 			{
-				"name": "tonic",
-				"current": "0.14.5",
-				"latest": "0.14.6",
+				"name": "turso_macros",
+				"current": "0.7.0",
+				"latest": "0.7.1",
 				"major": false
 			},
 			{
-				"name": "tonic-build",
-				"current": "0.14.5",
-				"latest": "0.14.6",
+				"name": "turso_parser",
+				"current": "0.7.0",
+				"latest": "0.7.1",
 				"major": false
 			},
 			{
-				"name": "tonic-health",
-				"current": "0.14.5",
-				"latest": "0.14.6",
+				"name": "turso_sdk_kit",
+				"current": "0.7.0",
+				"latest": "0.7.1",
 				"major": false
 			},
 			{
-				"name": "tonic-prost",
-				"current": "0.14.5",
-				"latest": "0.14.6",
+				"name": "turso_sdk_kit_macros",
+				"current": "0.7.0",
+				"latest": "0.7.1",
 				"major": false
 			},
 			{
-				"name": "tonic-prost-build",
-				"current": "0.14.5",
-				"latest": "0.14.6",
+				"name": "turso_sync_engine",
+				"current": "0.7.0",
+				"latest": "0.7.1",
 				"major": false
 			},
 			{
-				"name": "tonic-reflection",
-				"current": "0.14.5",
-				"latest": "0.14.6",
+				"name": "turso_sync_sdk_kit",
+				"current": "0.7.0",
+				"latest": "0.7.1",
 				"major": false
 			},
 			{
-				"name": "tower-http",
-				"current": "0.6.8",
-				"latest": "0.6.11",
+				"name": "wayland-backend",
+				"current": "0.3.15",
+				"latest": "0.3.16",
 				"major": false
 			},
 			{
-				"name": "tray-icon",
-				"current": "0.21.3",
-				"latest": "0.24.1",
+				"name": "wayland-client",
+				"current": "0.31.14",
+				"latest": "0.31.15",
 				"major": false
 			},
 			{
-				"name": "triomphe",
-				"current": "0.1.15",
-				"latest": "0.1.16",
-				"major": false
-			},
-			{
-				"name": "trybuild",
-				"current": "1.0.116",
-				"latest": "1.0.118",
-				"major": false
-			},
-			{
-				"name": "twox-hash",
-				"current": "2.1.2",
-				"latest": "2.1.3",
-				"major": false
-			},
-			{
-				"name": "typenum",
-				"current": "1.19.0",
-				"latest": "1.20.1",
-				"major": false
-			},
-			{
-				"name": "typesize",
-				"current": "0.1.14",
-				"latest": "0.1.15",
-				"major": false
-			},
-			{
-				"name": "typewit",
-				"current": "1.15.1",
-				"latest": "1.15.2",
-				"major": false
-			},
-			{
-				"name": "unicode-segmentation",
-				"current": "1.13.2",
-				"latest": "1.13.3",
-				"major": false
-			},
-			{
-				"name": "utoipa",
-				"current": "5.4.0",
-				"latest": "5.5.0",
-				"major": false
-			},
-			{
-				"name": "utoipa-gen",
-				"current": "5.4.0",
-				"latest": "5.5.0",
-				"major": false
-			},
-			{
-				"name": "uuid",
-				"current": "1.23.0",
-				"latest": "1.24.0",
-				"major": false
-			},
-			{
-				"name": "wasip2",
-				"current": "1.0.2+wasi-0.2.9",
-				"latest": "1.0.4+wasi-0.2.12",
-				"major": false
-			},
-			{
-				"name": "wayland-protocols",
-				"current": "0.32.12",
-				"latest": "0.32.13",
-				"major": false
-			},
-			{
-				"name": "webbrowser",
-				"current": "1.2.0",
-				"latest": "1.2.1",
-				"major": false
-			},
-			{
-				"name": "webpki-root-certs",
-				"current": "1.0.6",
-				"latest": "1.0.9",
-				"major": false
-			},
-			{
-				"name": "webpki-roots",
-				"current": "1.0.6",
-				"latest": "1.0.9",
-				"major": false
-			},
-			{
-				"name": "wgpu-core",
-				"current": "29.0.1",
-				"latest": "29.0.4",
-				"major": false
-			},
-			{
-				"name": "wgpu-core-deps-windows-linux-android",
-				"current": "29.0.0",
-				"latest": "29.0.4",
-				"major": false
-			},
-			{
-				"name": "wgpu-hal",
-				"current": "29.0.1",
-				"latest": "29.0.4",
-				"major": false
-			},
-			{
-				"name": "whoami",
-				"current": "2.1.1",
-				"latest": "2.1.2",
-				"major": false
-			},
-			{
-				"name": "winnow",
-				"current": "1.0.1",
-				"latest": "1.0.4",
-				"major": false
-			},
-			{
-				"name": "wit-bindgen",
-				"current": "0.51.0",
-				"latest": "0.57.1",
+				"name": "wayland-scanner",
+				"current": "0.31.10",
+				"latest": "0.31.11",
 				"major": false
 			},
 			{
 				"name": "xxhash-rust",
-				"current": "0.8.16",
+				"current": "0.8.17",
 				"latest": "0.8.18",
-				"major": false
-			},
-			{
-				"name": "yoke",
-				"current": "0.8.2",
-				"latest": "0.8.3",
-				"major": false
-			},
-			{
-				"name": "zbus",
-				"current": "5.14.0",
-				"latest": "5.18.0",
-				"major": false
-			},
-			{
-				"name": "zbus_macros",
-				"current": "5.14.0",
-				"latest": "5.18.0",
-				"major": false
-			},
-			{
-				"name": "zbus_names",
-				"current": "4.3.1",
-				"latest": "4.3.4",
-				"major": false
-			},
-			{
-				"name": "zbus_xml",
-				"current": "5.1.0",
-				"latest": "5.2.1",
-				"major": false
-			},
-			{
-				"name": "zerocopy",
-				"current": "0.8.48",
-				"latest": "0.8.55",
-				"major": false
-			},
-			{
-				"name": "zerocopy-derive",
-				"current": "0.8.48",
-				"latest": "0.8.55",
-				"major": false
-			},
-			{
-				"name": "zerofrom",
-				"current": "0.1.7",
-				"latest": "0.1.8",
-				"major": false
-			},
-			{
-				"name": "zeroize",
-				"current": "1.8.2",
-				"latest": "1.9.0",
-				"major": false
-			},
-			{
-				"name": "zeroize_derive",
-				"current": "1.4.3",
-				"latest": "1.5.0",
-				"major": false
-			},
-			{
-				"name": "zlib-rs",
-				"current": "0.6.3",
-				"latest": "0.6.6",
-				"major": false
-			},
-			{
-				"name": "zmij",
-				"current": "1.0.21",
-				"latest": "1.0.23",
-				"major": false
-			},
-			{
-				"name": "zvariant",
-				"current": "5.10.0",
-				"latest": "5.13.1",
-				"major": false
-			},
-			{
-				"name": "zvariant_derive",
-				"current": "5.10.0",
-				"latest": "5.13.1",
-				"major": false
-			},
-			{
-				"name": "zvariant_utils",
-				"current": "3.3.0",
-				"latest": "3.5.0",
 				"major": false
 			}
 		]
 	},
-	"total": 418,
+	"total": 174,
 	"major_total": 31
 }
