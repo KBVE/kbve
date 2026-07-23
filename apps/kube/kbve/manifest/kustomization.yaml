@@ -13,7 +13,7 @@ resources:
     - kilobase-s3-externalsecret.yaml
     - argocd-auth-sealedsecret.yaml
     - vibeshine-sealedsecret.yaml
-    - reel-sealedsecret.yaml
+    - reel-externalsecret.yaml
     - cube-credentials-sealed.yaml
     - kbve-internal-ca-cert.yaml
     - kbve-wt-cert.yaml
