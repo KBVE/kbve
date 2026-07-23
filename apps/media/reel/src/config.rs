@@ -8,6 +8,7 @@ pub struct Config {
     pub state_file: PathBuf,
     pub api_addr: String,
     pub vpn_check_url: String,
+    pub vpn_watchdog_secs: u64,
     pub api_token: Option<String>,
     pub transcode_enabled: bool,
     pub remux_concurrency: usize,
@@ -46,6 +47,7 @@ pub fn load_from_env() -> anyhow::Result<Config> {
         state_file: PathBuf::from(env_or("REEL_STATE_FILE", "/data/reel-state.json")),
         api_addr: env_or("REEL_API_ADDR", "0.0.0.0:8080"),
         vpn_check_url: env_or("REEL_VPN_CHECK_URL", "https://api.ipify.org"),
+        vpn_watchdog_secs: env_u64("REEL_VPN_WATCHDOG_SECS", 60)?,
         api_token: std::env::var("REEL_API_TOKEN").ok(),
         transcode_enabled: env_bool("REEL_TRANSCODE_ENABLED", true),
         remux_concurrency: env_u64("REEL_REMUX_CONCURRENCY", 3)? as usize,
@@ -66,7 +68,7 @@ mod tests {
     fn clear() {
         for k in ["REEL_TTL_SECS","REEL_REAP_INTERVAL_SECS","REEL_ACTIVE_DIR",
                   "REEL_LIBRARY_DIR","REEL_STATE_FILE","REEL_API_ADDR",
-                  "REEL_VPN_CHECK_URL","REEL_API_TOKEN","REEL_TRANSCODE_ENABLED",
+                  "REEL_VPN_CHECK_URL","REEL_VPN_WATCHDOG_SECS","REEL_API_TOKEN","REEL_TRANSCODE_ENABLED",
                   "REEL_REMUX_CONCURRENCY","REEL_ENCODE_CONCURRENCY",
                   "REEL_FFMPEG_BIN","REEL_FFPROBE_BIN","REEL_STREAM_ENABLED",
                   "REEL_HLS_ENABLED","REEL_HLS_SEGMENT_SECS"] {
@@ -81,6 +83,7 @@ mod tests {
         let c = load_from_env().unwrap();
         assert_eq!(c.ttl_secs, 21600);
         assert_eq!(c.reap_interval_secs, 300);
+        assert_eq!(c.vpn_watchdog_secs, 60);
         assert_eq!(c.active_dir, std::path::PathBuf::from("/data/active"));
         assert_eq!(c.api_addr, "0.0.0.0:8080");
         assert!(c.api_token.is_none());
