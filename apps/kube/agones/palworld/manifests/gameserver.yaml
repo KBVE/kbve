@@ -39,7 +39,7 @@ spec:
                   emptyDir: {}
             containers:
                 - name: palworld
-                  image: ghcr.io/kbve/agones-palworld:0.0.3
+                  image: ghcr.io/kbve/agones-palworld:0.0.5
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PUID
