@@ -2,7 +2,7 @@ use crate::{config, mover, state};
 use std::net::IpAddr;
 use std::path::PathBuf;
 use std::sync::Arc;
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use librqbit::api::TorrentIdOrHash;
@@ -53,12 +53,29 @@ fn unique_subdir() -> String {
     format!("{nanos}-{n}")
 }
 
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum VpnAction {
+    None,
+    Pause,
+    Resume,
+}
+
+pub fn next_vpn_action(prev_ok: bool, now_ok: bool) -> VpnAction {
+    match (prev_ok, now_ok) {
+        (true, false) => VpnAction::Pause,
+        (false, true) => VpnAction::Resume,
+        _ => VpnAction::None,
+    }
+}
+
 #[derive(Clone)]
 pub struct Engine {
     session: Arc<Session>,
     store: state::StateStore,
     active_dir: PathBuf,
     library_dir: PathBuf,
+    vpn_check_url: String,
+    vpn_ok: Arc<AtomicBool>,
 }
 
 impl Engine {
@@ -73,10 +90,52 @@ impl Engine {
             store,
             active_dir: cfg.active_dir.clone(),
             library_dir: cfg.library_dir.clone(),
+            vpn_check_url: cfg.vpn_check_url.clone(),
+            vpn_ok: Arc::new(AtomicBool::new(true)),
         })
     }
 
+    pub fn vpn_ok(&self) -> bool {
+        self.vpn_ok.load(Ordering::Relaxed)
+    }
+
+    fn all_handles(&self) -> Vec<Arc<ManagedTorrent>> {
+        self.session
+            .with_torrents(|it| it.map(|(_, h)| h.clone()).collect())
+    }
+
+    pub async fn vpn_recheck(&self) -> bool {
+        let now_ok = vpn_preflight(&self.vpn_check_url).await.is_ok();
+        let prev_ok = self.vpn_ok.load(Ordering::Relaxed);
+        match next_vpn_action(prev_ok, now_ok) {
+            VpnAction::Pause => {
+                tracing::error!(
+                    "vpn egress check failed; pausing all torrents (possible ip leak)"
+                );
+                for h in self.all_handles() {
+                    if let Err(e) = self.session.pause(&h).await {
+                        tracing::warn!(error = %e, "torrent pause failed");
+                    }
+                }
+            }
+            VpnAction::Resume => {
+                tracing::info!("vpn egress restored; resuming torrents");
+                for h in self.all_handles() {
+                    if let Err(e) = self.session.unpause(&h).await {
+                        tracing::warn!(error = %e, "torrent unpause failed");
+                    }
+                }
+            }
+            VpnAction::None => {}
+        }
+        self.vpn_ok.store(now_ok, Ordering::Relaxed);
+        now_ok
+    }
+
     pub async fn add(&self, source: &str) -> anyhow::Result<String> {
+        if !self.vpn_ok() {
+            anyhow::bail!("vpn egress unavailable; refusing to add torrent");
+        }
         let out_dir = self.active_dir.join(unique_subdir());
         let opts = AddTorrentOptions {
             output_folder: Some(out_dir.to_string_lossy().into_owned()),
@@ -237,6 +296,15 @@ impl Engine {
     }
 }
 
+pub async fn vpn_watchdog_loop(engine: Engine, interval_secs: u64) {
+    let mut ticker = tokio::time::interval(std::time::Duration::from_secs(interval_secs));
+    ticker.tick().await;
+    loop {
+        ticker.tick().await;
+        engine.vpn_recheck().await;
+    }
+}
+
 pub fn remove_entry_files(path: &str, transcode_path: Option<&str>) {
     for p in std::iter::once(path).chain(transcode_path) {
         let pb = std::path::Path::new(p);
@@ -264,6 +332,14 @@ mod tests {
         remove_entry_files(&src.display().to_string(), Some(&tc.display().to_string()));
         assert!(!src.exists());
         assert!(!tc.exists());
+    }
+
+    #[test]
+    fn vpn_action_transitions() {
+        assert_eq!(next_vpn_action(true, true), VpnAction::None);
+        assert_eq!(next_vpn_action(true, false), VpnAction::Pause);
+        assert_eq!(next_vpn_action(false, true), VpnAction::Resume);
+        assert_eq!(next_vpn_action(false, false), VpnAction::None);
     }
 
     #[test]

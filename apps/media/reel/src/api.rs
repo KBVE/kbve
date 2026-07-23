@@ -382,6 +382,9 @@ async fn hls_segment(
     };
     let path = std::path::Path::new(&dir).join(&segment);
     let head_only = method == axum::http::Method::HEAD;
+    if !head_only {
+        let _ = st.store.touch(&id, now_secs());
+    }
     let range = headers.get("range").and_then(|h| h.to_str().ok());
     let ct = if segment.ends_with(".ts") {
         "video/mp2t"
