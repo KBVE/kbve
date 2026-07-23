@@ -12,6 +12,7 @@ on:
                     - chuck-launcher
                     - isometric
                     - desktop-kbve
+                    - desktop-kbve-appstore
 
 permissions:
     contents: read
@@ -22,26 +23,47 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 2
         outputs:
+            project: ${{ steps.map.outputs.project }}
             project_path: ${{ steps.map.outputs.project_path }}
             notarize: ${{ steps.map.outputs.notarize }}
             platforms: ${{ steps.map.outputs.platforms }}
+            features: ${{ steps.map.outputs.features }}
+            config: ${{ steps.map.outputs.config }}
+            appstore: ${{ steps.map.outputs.appstore }}
         steps:
             - id: map
               shell: bash
               run: |
+                  # defaults (a build off these unless the case overrides)
+                  echo "features=" >> "$GITHUB_OUTPUT"
+                  echo "config=" >> "$GITHUB_OUTPUT"
+                  echo "appstore=false" >> "$GITHUB_OUTPUT"
                   case "${{ inputs.app }}" in
                     chuck-launcher)
+                      echo "project=chuck-launcher" >> "$GITHUB_OUTPUT"
                       echo "project_path=apps/chuckrpg/chuck-launcher" >> "$GITHUB_OUTPUT"
                       echo "notarize=true" >> "$GITHUB_OUTPUT"
                       echo "platforms=macos" >> "$GITHUB_OUTPUT" ;;
                     isometric)
+                      echo "project=isometric" >> "$GITHUB_OUTPUT"
                       echo "project_path=apps/kbve/isometric" >> "$GITHUB_OUTPUT"
                       echo "notarize=false" >> "$GITHUB_OUTPUT"
                       echo "platforms=linux,macos,windows,wasm" >> "$GITHUB_OUTPUT" ;;
                     desktop-kbve)
+                      # Developer ID / self-distributed: full-power DMG (global hotkey + auto-paste).
+                      echo "project=desktop-kbve" >> "$GITHUB_OUTPUT"
+                      echo "project_path=apps/kbve/desktop-kbve" >> "$GITHUB_OUTPUT"
+                      echo "notarize=true" >> "$GITHUB_OUTPUT"
+                      echo "platforms=linux,macos,windows" >> "$GITHUB_OUTPUT" ;;
+                    desktop-kbve-appstore)
+                      # Mac App Store: sandboxed variant. clipboard-only paste, no enigo inject.
+                      echo "project=desktop-kbve" >> "$GITHUB_OUTPUT"
                       echo "project_path=apps/kbve/desktop-kbve" >> "$GITHUB_OUTPUT"
                       echo "notarize=false" >> "$GITHUB_OUTPUT"
-                      echo "platforms=linux,macos,windows" >> "$GITHUB_OUTPUT" ;;
+                      echo "platforms=macos" >> "$GITHUB_OUTPUT"
+                      echo "features=appstore" >> "$GITHUB_OUTPUT"
+                      echo "config=src-tauri/tauri.appstore.conf.json" >> "$GITHUB_OUTPUT"
+                      echo "appstore=true" >> "$GITHUB_OUTPUT" ;;
                     *)
                       echo "unknown app: ${{ inputs.app }}" >&2; exit 1 ;;
                   esac
@@ -51,9 +73,12 @@ jobs:
         needs: resolve
         uses: ./.github/workflows/ci-tauri-builder.yml
         with:
-            project: ${{ inputs.app }}
+            project: ${{ needs.resolve.outputs.project }}
             project_path: ${{ needs.resolve.outputs.project_path }}
             app_name: ${{ inputs.app }}
             notarize: ${{ fromJSON(needs.resolve.outputs.notarize) }}
             platforms: ${{ needs.resolve.outputs.platforms }}
+            features: ${{ needs.resolve.outputs.features }}
+            config: ${{ needs.resolve.outputs.config }}
+            appstore: ${{ fromJSON(needs.resolve.outputs.appstore) }}
         secrets: inherit

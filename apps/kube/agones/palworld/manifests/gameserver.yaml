@@ -39,7 +39,7 @@ spec:
                   emptyDir: {}
             containers:
                 - name: palworld
-                  image: ghcr.io/kbve/agones-palworld:0.0.5
+                  image: ghcr.io/kbve/agones-palworld:0.0.6
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PUID
@@ -119,7 +119,7 @@ spec:
                               command:
                                   - /usr/local/bin/agones-shim-prestop
                 - name: palworld-relay
-                  image: ghcr.io/kbve/agones-palworld-relay:0.0.5
+                  image: ghcr.io/kbve/agones-palworld-relay:0.0.6
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PALWORLD_REST_ADDR

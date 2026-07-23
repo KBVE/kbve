@@ -1,5 +1,9 @@
+#[cfg(not(feature = "appstore"))]
 use crate::input::{self, EnigoState};
-use crate::settings::{get_settings, ClipboardHandling, PasteMethod};
+#[cfg(not(feature = "appstore"))]
+use crate::settings::ClipboardHandling;
+use crate::settings::{get_settings, PasteMethod};
+#[cfg(not(feature = "appstore"))]
 use enigo::Enigo;
 use log::info;
 use tauri::{AppHandle, Manager};
@@ -11,6 +15,7 @@ use crate::utils::is_wayland;
 use std::process::Command;
 
 /// Pastes text using the clipboard: saves current content, writes text, sends paste keystroke, restores clipboard.
+#[cfg(not(feature = "appstore"))]
 fn paste_via_clipboard(
     enigo: &mut Enigo,
     text: &str,
@@ -349,6 +354,7 @@ fn send_key_combo_via_xdotool(paste_method: &PasteMethod) -> Result<(), String> 
 }
 
 /// Types text directly by simulating individual key presses.
+#[cfg(not(feature = "appstore"))]
 fn paste_direct(enigo: &mut Enigo, text: &str) -> Result<(), String> {
     #[cfg(target_os = "linux")]
     {
@@ -361,6 +367,7 @@ fn paste_direct(enigo: &mut Enigo, text: &str) -> Result<(), String> {
     input::paste_text_direct(enigo, text)
 }
 
+#[cfg(not(feature = "appstore"))]
 pub fn paste(text: String, app_handle: AppHandle) -> Result<(), String> {
     let settings = get_settings(&app_handle);
     let paste_method = settings.paste_method;
@@ -403,6 +410,39 @@ pub fn paste(text: String, app_handle: AppHandle) -> Result<(), String> {
             .write_text(&text)
             .map_err(|e| format!("Failed to copy to clipboard: {}", e))?;
     }
+
+    Ok(())
+}
+
+/// App Store (sandboxed) paste path. The macOS App Store sandbox forbids injecting
+/// keystrokes into other apps (no Accessibility / CGEvent posting), so we cannot
+/// auto-paste. Transcript is written to the clipboard and a `dictation-copied`
+/// event is emitted for the UI to prompt the user to press Cmd+V.
+#[cfg(feature = "appstore")]
+pub fn paste(text: String, app_handle: AppHandle) -> Result<(), String> {
+    use tauri::Emitter;
+
+    let settings = get_settings(&app_handle);
+
+    let text = if settings.append_trailing_space {
+        format!("{} ", text)
+    } else {
+        text
+    };
+
+    if settings.paste_method == PasteMethod::None {
+        info!("PasteMethod::None selected - skipping clipboard write");
+        return Ok(());
+    }
+
+    info!("App Store sandbox: writing transcript to clipboard (no auto-paste)");
+
+    let clipboard = app_handle.clipboard();
+    clipboard
+        .write_text(&text)
+        .map_err(|e| format!("Failed to write to clipboard: {}", e))?;
+
+    let _ = app_handle.emit("dictation-copied", &text);
 
     Ok(())
 }

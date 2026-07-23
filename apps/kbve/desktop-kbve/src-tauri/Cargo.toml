@@ -32,6 +32,13 @@ path = "src/main.rs"
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
 
+[features]
+default = []
+# Mac App Store variant: sandbox forbids injecting keystrokes into other apps,
+# so the paste path degrades to clipboard-only (user presses Cmd+V). Global
+# hotkey survives (global-hotkey uses Carbon RegisterEventHotKey, not CGEventTap).
+appstore = []
+
 [dependencies]
 erust = { path = "../../../../packages/rust/erust", default-features = false, features = ["tauri"] }
 tauri = { version = "2.9", features = [
