@@ -11,9 +11,8 @@ pub async fn run(_cfg: Config, pool: RconPool, mut rx: Receiver<IrcMessage>) -> 
     info!("rcon_client started — bridging IRC -> game console (parity, unused by default)");
 
     while let Some(msg) = rx.recv().await {
-        let nick = sanitize(&msg.nick);
-        let text = sanitize(&msg.text);
-        let cmd = format!("broadcast [IRC {nick}] {text}");
+        let line = sanitize(&crate::irc_bridge::format_incoming(&msg.nick, &msg.text));
+        let cmd = format!("broadcast {line}");
         debug!(?msg, "rcon broadcast(...)");
         if let Err(e) = pool.exec(&cmd).await {
             warn!(error = %e, "rcon exec failed for irc bridge message");
