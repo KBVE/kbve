@@ -48,33 +48,39 @@ spec:
                         value: '1000'
                       - name: SERVER_NAME
                         value: 'KBVE Palworld'
-                      - name: PORT
+                      - name: PUBLIC_PORT
                         value: '8211'
-                      - name: PLAYERS
+                      - name: MAX_PLAYERS
                         value: '16'
                       - name: RCON_ENABLED
                         value: 'true'
                       - name: RCON_PORT
                         value: '25575'
-                      - name: REST_API_ENABLED
+                      - name: RESTAPI_ENABLED
                         value: 'true'
-                      - name: REST_API_PORT
+                      - name: RESTAPI_PORT
                         value: '8212'
-                      - name: MULTITHREADING
+                      - name: MULTITHREAD_ENABLED
                         value: 'true'
+                      - name: COMMUNITY_SERVER
+                        value: 'false'
                       - name: BACKUP_ENABLED
-                        value: 'true'
+                        value: 'false'
+                      - name: RESTART_ENABLED
+                        value: 'false'
+                      - name: PLAYER_DETECTION_ENABLED
+                        value: 'false'
+                      - name: RCON_PLAYER_DETECTION
+                        value: 'false'
+                      - name: WORKSHOP_MOD_UPDATE_CRON
+                        value: '0 4 1 1 *'
                       - name: ADMIN_PASSWORD
                         valueFrom:
                             secretKeyRef:
                                 name: palworld-rcon
                                 key: admin_password
                       - name: SERVER_PASSWORD
-                        valueFrom:
-                            secretKeyRef:
-                                name: palworld-credentials
-                                key: server_password
-                                optional: true
+                        value: ''
                   ports:
                       - containerPort: 8211
                         protocol: UDP
@@ -88,7 +94,7 @@ spec:
                       - name: palworld-saves
                         mountPath: /palworld/Pal/Saved
                       - name: chat-relay
-                        mountPath: /palworld/chat-relay
+                        mountPath: /shared/chat
                   resources:
                       requests:
                           cpu: '4'
@@ -168,10 +174,10 @@ spec:
                       - name: RUST_LOG
                         value: 'info,agones_palworld_relay=debug'
                       - name: CHAT_LOG_PATH
-                        value: /palworld/chat-relay/chat.log
+                        value: /shared/chat/chat.log
                   volumeMounts:
                       - name: chat-relay
-                        mountPath: /palworld/chat-relay
+                        mountPath: /shared/chat
                         readOnly: true
                   resources:
                       requests:
