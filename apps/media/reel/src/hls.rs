@@ -182,7 +182,7 @@ impl HlsManager {
         let this = self.clone();
         tokio::spawn(async move {
             if let Err(e) = this.run_hls(&id, &meta, delivery).await {
-                tracing::error!(id = %id, error = %e, "hls start failed");
+                crate::telemetry::hls_failed(&id, &e.to_string());
                 let _ = this.store.update(&id, |m| {
                     m.hls = HlsStatus::Failed;
                     m.hls_error = Some(e.to_string());

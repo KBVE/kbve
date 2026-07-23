@@ -38,6 +38,13 @@ fn now_secs() -> u64 {
         .unwrap_or(0)
 }
 
+fn served_bytes(range: Option<&str>, total: u64) -> u64 {
+    match crate::stream::parse_range(range, total) {
+        Ok(Some(r)) => r.end.saturating_sub(r.start) + 1,
+        _ => total,
+    }
+}
+
 fn check_auth(headers: &HeaderMap, token: &Option<String>) -> bool {
     match token {
         None => true,
@@ -219,6 +226,7 @@ async fn stream_file(
                 Ok(m) => m.len(),
                 Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
             };
+            crate::telemetry::stream_served(&id, served_bytes(range, total), "progressive", range.is_some());
             crate::stream::serve_range(file, total, range, ct, head_only).await
         }
         state::TorrentState::Leeching => {
@@ -249,6 +257,7 @@ async fn stream_file(
                 Ok(s) => s,
                 Err(_) => return StatusCode::TOO_EARLY.into_response(),
             };
+            crate::telemetry::stream_served(&id, served_bytes(range, total), "leeching", range.is_some());
             crate::stream::serve_range(stream, total, range, ct, head_only).await
         }
         _ => StatusCode::CONFLICT.into_response(),
@@ -406,6 +415,7 @@ async fn hls_segment(
         Ok(m) => m.len(),
         Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     };
+    crate::telemetry::stream_served(&id, served_bytes(range, total), "hls", range.is_some());
     crate::stream::serve_range(file, total, range, ct, head_only).await
 }
 

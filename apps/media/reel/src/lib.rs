@@ -6,4 +6,5 @@ pub mod mover;
 pub mod reaper;
 pub mod state;
 pub mod stream;
+pub mod telemetry;
 pub mod transcode;

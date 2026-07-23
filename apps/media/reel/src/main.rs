@@ -2,9 +2,19 @@ use reel::{api, config, engine, reaper, state};
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    tracing_subscriber::fmt()
-        .with_env_filter(tracing_subscriber::EnvFilter::from_default_env())
-        .init();
+    let log_json = std::env::var("REEL_LOG_JSON")
+        .map(|v| !(v.eq_ignore_ascii_case("false") || v == "0"))
+        .unwrap_or(true);
+    let filter = tracing_subscriber::EnvFilter::from_default_env();
+    if log_json {
+        tracing_subscriber::fmt()
+            .with_env_filter(filter)
+            .json()
+            .flatten_event(true)
+            .init();
+    } else {
+        tracing_subscriber::fmt().with_env_filter(filter).init();
+    }
 
     let cfg = config::load_from_env()?;
     let store = state::StateStore::load(cfg.state_file.clone())?;
@@ -34,6 +44,8 @@ async fn main() -> anyhow::Result<()> {
     ));
 
     tokio::spawn(engine::vpn_watchdog_loop(eng.clone(), cfg.vpn_watchdog_secs));
+
+    tokio::spawn(state::persist_loop(store.clone(), cfg.state_flush_ms));
 
     let app = api::router(api::AppState {
         engine: eng,
