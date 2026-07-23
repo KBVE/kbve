@@ -1,7 +1,7 @@
 # Palworld Wine + UE4SS Chat Relay — Design
 
 **Date:** 2026-07-23
-**Status:** Approved — implementing
+**Status:** Implemented — 0.0.5 shipped (#14559); UE4SS validated in-cluster; 0.0.6 boot-hardening in flight (#14564)
 
 ## Goal
 
@@ -136,3 +136,37 @@ Revert the diagnostic terminal e2e back to a real test, adapted for Wine:
 - Web manager (ripps818 bundles none in the server image; the 1tsmejp manager
   is out of scope — Agones + relay own orchestration).
 - PalSchema / Workshop mods (available via this base, but not this task).
+
+## Outcomes (as built)
+
+**UE4SS works in-cluster (pivot validated).** On the live 0.0.5 pod the Windows
+UE4SS resolved every internal the Linux binary lacked — `MainExe @ 0x140000000`,
+`GUObjectArray` / `TUObjectArray` / `UWorld` member offsets, and all lifecycle
+hooks attached (`LoadMap`, `InitGameState`, `BeginPlay`). Windows-tuned
+patternsleuth AOB matches, exactly as predicted. `PalChatRelay` stages into
+`Win64/ue4ss/Mods` and loads.
+
+**CI gate reality.** A GitHub runner (4c/16Gi, restricted egress) cannot drive a
+full Windows-Palworld-under-Wine boot — the UE engine never initializes there.
+So the e2e gate verifies container-up + UE4SS + `PalChatRelay` load (best-effort
+REST/vitest); full boot + REST + live chat→IRC are validated in-cluster.
+
+**Boot-hardening (0.0.6, #14564).** The 0.0.5 relay skipped the Agones `/health`
+heartbeat whenever REST was down, so during the slow Wine world-load Agones
+marked the GameServer Unhealthy and killed the pod mid-boot (`exitCode 7`,
+graceful shutdown). 0.0.6 beats `/health` unconditionally until the server has
+been ready once (liveness = relay alive), then gates on REST so a real post-boot
+crash still registers; `/ready` stays REST-gated. Also: chat dedup (UE4SS hook
+can double-fire) + IRC sanitize/length-cap, and `WORKSHOP_MOD_UPDATE_CRON=""`
+(documented disable — the periodic re-install purges UE4SS mid-run).
+
+**Known follow-ups.** Okaetsu UE4SS ships `DumpOffsetsAndSizes` on (verbose
+offset spam in logs — harmless, quiet later). Whether REST binds after an
+uninterrupted boot is the open question 0.0.6 unblocks. The exact chat UFunction
+(`/Script/Pal.PalNetworkChatManager:BroadcastChat`) + hook timing need a live
+client to confirm; `RegisterHook` is deferred + retried to tolerate load order.
+
+## Related
+- Base gameserver + relay: [`2026-07-22-palworld-agones-design.md`](./2026-07-22-palworld-agones-design.md)
+- Superseded native attempt (why Linux is impossible):
+  [`2026-07-22-palworld-ue4ss-chat-relay-design.md`](./2026-07-22-palworld-ue4ss-chat-relay-design.md)

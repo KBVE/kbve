@@ -1,7 +1,18 @@
 # Palworld In-Game Chat → IRC via Native-Linux UE4SS
 
+> **⚠️ SUPERSEDED (2026-07-23).** This native-Linux UE4SS approach is abandoned.
+> A probe of the actual Steam binary proved it impossible: `PalServer-Linux-Shipping`
+> is export-stripped (`.symtab = 0`; of 25,299 exported `FUNC` symbols in `.dynsym`,
+> **zero** are the UE reflection internals UE4SS needs — `GUObjectArray`,
+> `ProcessEvent`, `GMalloc`, `GNatives`, ...). UE4SS Linux resolves only via `dlsym`
+> or a manual `UE4SS_Addresses.ini`, and patternsleuth AOB is Windows-only, so
+> `GUObjectArray` never resolves and Lua mods never start. Replaced by
+> Windows-Palworld-under-Wine: see
+> **[`2026-07-23-palworld-wine-ue4ss-chat-design.md`](./2026-07-23-palworld-wine-ue4ss-chat-design.md)**.
+> Kept as the record of why the native path cannot work.
+
 Date: 2026-07-22
-Status: Approved design
+Status: **SUPERSEDED** by the Wine design (2026-07-23)
 Branch: `worktree-palworld-ue4ss`
 
 ## Problem

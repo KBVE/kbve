@@ -1,7 +1,7 @@
 # Palworld Server + Agones SDK Integration — Design
 
 **Date:** 2026-07-22
-**Status:** Approved (design), pending implementation plan
+**Status:** Implemented & shipped (#14503). Chat layer added later via Wine UE4SS — see [`2026-07-23-palworld-wine-ue4ss-chat-design.md`](./2026-07-23-palworld-wine-ue4ss-chat-design.md).
 **Owner:** h0lybyte / kbve
 **Issue:** kbve/kbve#14503
 

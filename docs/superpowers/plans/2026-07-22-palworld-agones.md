@@ -1,5 +1,11 @@
 # Palworld Server + Agones SDK Integration — Implementation Plan
 
+> **✅ SHIPPED (#14503).** This plan is implemented — Agones `GameServer` + relay
+> sidecar are live. In-game chat was added later via Windows UE4SS under Wine
+> (base image pivoted from `thijsvanloef` to `ripps818`); see
+> [`docs/superpowers/specs/2026-07-23-palworld-wine-ue4ss-chat-design.md`](../specs/2026-07-23-palworld-wine-ue4ss-chat-design.md).
+> Retained for historical/reference context.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Ship a Palworld dedicated server as an Agones `GameServer` in the kbve ecosystem, 1:1 with `apps/agones/factorio`: upstream game container + Rust relay sidecar driving Agones health/ready, gameops ClickHouse telemetry, and a one-way IRC bridge.

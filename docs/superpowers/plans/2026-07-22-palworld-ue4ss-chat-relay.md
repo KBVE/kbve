@@ -1,5 +1,14 @@
 # Palworld UE4SS Chat Relay Implementation Plan
 
+> **⚠️ SUPERSEDED (2026-07-23) — DO NOT EXECUTE.** The native-Linux UE4SS runtime
+> this plan builds on (`NullPrism/RE-UE4SS-Linux`) cannot work: the Steam Palworld
+> Linux binary is export-stripped, so UE4SS can't resolve the UE internals
+> (`GUObjectArray`, `ProcessEvent`, ...) and Lua mods never start. Replaced by
+> Windows-Palworld-under-Wine — see
+> [`docs/superpowers/specs/2026-07-23-palworld-wine-ue4ss-chat-design.md`](../specs/2026-07-23-palworld-wine-ue4ss-chat-design.md).
+> The relay-side work (chat_tail, IRC chat-only formatting, shared chat-log
+> volume) carried over unchanged; only the UE4SS injection layer was replaced.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Relay in-game Palworld chat to kbve IRC on the native-Linux server via UE4SS, and stop relaying join/leave to IRC.
