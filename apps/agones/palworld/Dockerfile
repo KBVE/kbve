@@ -10,6 +10,7 @@
 FROM ghcr.io/ripps818/docker-palworld-dedicated-server-wine@sha256:243508cd48c49208aca3edafb3369ea2b7b432c58a151cba33617c7a91676316
 
 ENV INSTALL_UE4SS_EXPERIMENTAL=true \
+    SERVER_SETTINGS_MODE=auto \
     CUSTOM_SCRIPT_ENABLED=true \
     CUSTOM_SCRIPT_PATH=/opt/palchatrelay/overlay.sh \
     PALWORLD_CHAT_LOG=Z:/shared/chat/chat.log
