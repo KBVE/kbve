@@ -569,6 +569,13 @@ fn prune_args(
     ]
 }
 
+fn parse_dedicated_server_name(ini: &str) -> Option<String> {
+    ini.split(|c: char| matches!(c, '(' | ')' | ',' | '\n' | '\r'))
+        .find_map(|field| field.trim().strip_prefix("DedicatedServerName="))
+        .map(|v| v.trim().trim_matches('"').to_string())
+        .filter(|s| !s.is_empty())
+}
+
 const HEARTBEAT_PATH: &str = "/tmp/.rotator-heartbeat";
 
 fn touch_heartbeat() {
@@ -736,5 +743,23 @@ mod rotate_tests {
         assert!(s.contains("ls -1t '/palworld/backups'/backup-*.tar.gz"));
         assert!(s.contains("tail -n +6"));
         assert!(s.contains("xargs -r rm -f"));
+    }
+
+    #[test]
+    fn parse_world_plain_line() {
+        let ini = "[/Script/Pal.PalGameLocalSettings]\nDedicatedServerName=CB8B6E\n";
+        assert_eq!(super::parse_dedicated_server_name(ini).as_deref(), Some("CB8B6E"));
+    }
+
+    #[test]
+    fn parse_world_option_settings_block() {
+        let ini = "OptionSettings=(Difficulty=None,DedicatedServerName=\"CB8B6E\",PublicPort=8211)";
+        assert_eq!(super::parse_dedicated_server_name(ini).as_deref(), Some("CB8B6E"));
+    }
+
+    #[test]
+    fn parse_world_none_when_absent() {
+        assert_eq!(super::parse_dedicated_server_name("[Settings]\nFoo=bar\n"), None);
+        assert_eq!(super::parse_dedicated_server_name("DedicatedServerName=\n"), None);
     }
 }
