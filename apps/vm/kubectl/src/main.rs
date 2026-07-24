@@ -544,6 +544,31 @@ ls -l '{archive}'"
     ]
 }
 
+fn prune_args(
+    pod: &str,
+    namespace: &str,
+    container: &str,
+    backup_dir: &str,
+    keep: u32,
+) -> Vec<String> {
+    let start = keep.saturating_add(1);
+    let script = format!(
+        "ls -1t '{backup_dir}'/backup-*.tar.gz 2>/dev/null | tail -n +{start} | xargs -r rm -f"
+    );
+    vec![
+        "exec".to_string(),
+        pod.to_string(),
+        "-n".to_string(),
+        namespace.to_string(),
+        "-c".to_string(),
+        container.to_string(),
+        "--".to_string(),
+        "sh".to_string(),
+        "-c".to_string(),
+        script,
+    ]
+}
+
 const HEARTBEAT_PATH: &str = "/tmp/.rotator-heartbeat";
 
 fn touch_heartbeat() {
@@ -701,5 +726,15 @@ mod rotate_tests {
         assert!(script.contains("Config/WindowsServer/GameUserSettings.ini"));
         assert!(script.contains("Config/WindowsServer/PalWorldSettings.ini"));
         assert!(!script.contains("-C '/palworld/Pal/Saved' 'Saved'"));
+    }
+
+    #[test]
+    fn prune_args_keeps_n_newest() {
+        let a = super::prune_args("palworld", "palworld", "palworld", "/palworld/backups", 5);
+        assert_eq!(&a[0..7], &["exec", "palworld", "-n", "palworld", "-c", "palworld", "--"]);
+        let s = a.last().unwrap();
+        assert!(s.contains("ls -1t '/palworld/backups'/backup-*.tar.gz"));
+        assert!(s.contains("tail -n +6"));
+        assert!(s.contains("xargs -r rm -f"));
     }
 }
