@@ -1,103 +1,91 @@
 {
-  "generated_at": "2026-07-23T04:15:38Z",
+  "generated_at": "2026-07-24T04:14:07Z",
   "window": {
     "days": 7,
-    "since": "2026-07-16"
+    "since": "2026-07-17"
   },
   "totals": {
     "runs": 1000,
-    "success": 850,
-    "failure": 45,
-    "cancelled": 103,
+    "success": 861,
+    "failure": 42,
+    "cancelled": 94,
     "skipped": 1,
-    "other": 1,
+    "other": 2,
     "flaky": 0,
-    "success_rate": 95.0,
-    "avg_duration_s": 416
+    "success_rate": 95.3,
+    "avg_duration_s": 365
   },
   "totals_24h": {
-    "runs": 332,
-    "success": 286,
-    "failure": 12,
-    "success_rate": 96.0
+    "runs": 266,
+    "success": 229,
+    "failure": 15,
+    "success_rate": 93.9
   },
   "workflows": [
     {
       "name": "CI - CodeQL",
-      "runs": 341,
-      "success": 310,
+      "runs": 333,
+      "success": 307,
       "failure": 0,
-      "cancelled": 31,
+      "cancelled": 26,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 219
+      "avg_duration_s": 196
     },
     {
       "name": "CI - Dev",
-      "runs": 227,
-      "success": 156,
-      "failure": 23,
-      "cancelled": 47,
+      "runs": 229,
+      "success": 169,
+      "failure": 17,
+      "cancelled": 41,
       "skipped": 1,
-      "other": 0,
+      "other": 1,
       "flaky": 0,
-      "success_rate": 87.2,
-      "avg_duration_s": 951
+      "success_rate": 90.9,
+      "avg_duration_s": 833
     },
     {
       "name": "CI - Manifest Guard",
-      "runs": 91,
-      "success": 75,
-      "failure": 9,
-      "cancelled": 7,
+      "runs": 93,
+      "success": 81,
+      "failure": 4,
+      "cancelled": 8,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 89.3,
-      "avg_duration_s": 157
+      "success_rate": 95.3,
+      "avg_duration_s": 126
     },
     {
       "name": "Auto-merge bot PRs",
-      "runs": 62,
-      "success": 62,
+      "runs": 72,
+      "success": 72,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 36
+      "avg_duration_s": 35
     },
     {
       "name": "CI - Manifest Sync",
-      "runs": 32,
+      "runs": 30,
       "success": 29,
-      "failure": 3,
+      "failure": 1,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 90.6,
-      "avg_duration_s": 201
-    },
-    {
-      "name": "CI - Main",
-      "runs": 26,
-      "success": 26,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 116
+      "success_rate": 96.7,
+      "avg_duration_s": 137
     },
     {
       "name": "CI - Bevy",
-      "runs": 25,
-      "success": 25,
+      "runs": 27,
+      "success": 27,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
@@ -108,8 +96,8 @@
     },
     {
       "name": "CI - Forgejo Mirror",
-      "runs": 25,
-      "success": 25,
+      "runs": 27,
+      "success": 27,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
@@ -119,76 +107,88 @@
       "avg_duration_s": 72
     },
     {
-      "name": "CI - Actionlint",
-      "runs": 24,
-      "success": 19,
+      "name": "CI - Main",
+      "runs": 27,
+      "success": 27,
       "failure": 0,
-      "cancelled": 5,
+      "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 35
+      "avg_duration_s": 115
+    },
+    {
+      "name": "CI - Actionlint",
+      "runs": 26,
+      "success": 20,
+      "failure": 0,
+      "cancelled": 6,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 32
+    },
+    {
+      "name": "CI - Docker / agones-palworld",
+      "runs": 22,
+      "success": 5,
+      "failure": 13,
+      "cancelled": 4,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 27.8,
+      "avg_duration_s": 756
+    },
+    {
+      "name": "CI - Docker / axum-kbve",
+      "runs": 20,
+      "success": 18,
+      "failure": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 90.0,
+      "avg_duration_s": 1485
     },
     {
       "name": "CI - MC Smoke",
-      "runs": 23,
-      "success": 21,
+      "runs": 18,
+      "success": 16,
       "failure": 0,
       "cancelled": 2,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 180
-    },
-    {
-      "name": "CI - Docker / axum-kbve",
-      "runs": 20,
-      "success": 16,
-      "failure": 4,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 80.0,
-      "avg_duration_s": 2036
+      "avg_duration_s": 174
     },
     {
       "name": "CI - MC Gradle Cache",
-      "runs": 16,
-      "success": 11,
-      "failure": 0,
-      "cancelled": 5,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 328
-    },
-    {
-      "name": "CI - MC Mods Cache",
-      "runs": 16,
-      "success": 12,
+      "runs": 11,
+      "success": 7,
       "failure": 0,
       "cancelled": 4,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 213
+      "avg_duration_s": 290
     },
     {
-      "name": "CI - Publish / python / python-kbve",
-      "runs": 6,
-      "success": 4,
-      "failure": 2,
-      "cancelled": 0,
+      "name": "CI - MC Mods Cache",
+      "runs": 11,
+      "success": 8,
+      "failure": 0,
+      "cancelled": 3,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 66.7,
-      "avg_duration_s": 310
+      "success_rate": 100.0,
+      "avg_duration_s": 211
     },
     {
       "name": "Organize Labels",
@@ -201,18 +201,6 @@
       "flaky": 0,
       "success_rate": 100.0,
       "avg_duration_s": 20
-    },
-    {
-      "name": "CI - Docker / discordsh",
-      "runs": 5,
-      "success": 5,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 988
     },
     {
       "name": "CI - Docker / herbmail",
@@ -239,6 +227,18 @@
       "avg_duration_s": 506
     },
     {
+      "name": "CI - Docker / agones-palworld-relay",
+      "runs": 4,
+      "success": 4,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 387
+    },
+    {
       "name": "Daily Content",
       "runs": 4,
       "success": 3,
@@ -251,7 +251,7 @@
       "avg_duration_s": 268
     },
     {
-      "name": "CI - Docker / discordsh-bot",
+      "name": "CI - Docker / discordsh",
       "runs": 3,
       "success": 3,
       "failure": 0,
@@ -260,7 +260,19 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 991
+      "avg_duration_s": 981
+    },
+    {
+      "name": "CI - Publish / python / python-kbve",
+      "runs": 3,
+      "success": 2,
+      "failure": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 66.7,
+      "avg_duration_s": 411
     },
     {
       "name": "Windmill Sync",
@@ -287,7 +299,7 @@
       "avg_duration_s": 634
     },
     {
-      "name": "CI - Docker / agones-palworld",
+      "name": "CI - Docker / discordsh-bot",
       "runs": 2,
       "success": 2,
       "failure": 0,
@@ -296,19 +308,7 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 560
-    },
-    {
-      "name": "CI - Docker / agones-palworld-relay",
-      "runs": 2,
-      "success": 2,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 388
+      "avg_duration_s": 994
     },
     {
       "name": "CI - Publish / crates / embeddb",
@@ -335,18 +335,6 @@
       "avg_duration_s": 350
     },
     {
-      "name": "CI - Docker / arc-runner",
-      "runs": 1,
-      "success": 1,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 695
-    },
-    {
       "name": "CI - Docker / axum-chuckrpg",
       "runs": 1,
       "success": 1,
@@ -359,18 +347,6 @@
       "avg_duration_s": 750
     },
     {
-      "name": "CI - Docker / chisel-ubuntu-axum",
-      "runs": 1,
-      "success": 1,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 487
-    },
-    {
       "name": "CI - Docker / cryptothrone",
       "runs": 1,
       "success": 0,
@@ -381,18 +357,6 @@
       "flaky": 0,
       "success_rate": 0.0,
       "avg_duration_s": 761
-    },
-    {
-      "name": "CI - Docker / edge",
-      "runs": 1,
-      "success": 1,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 397
     },
     {
       "name": "CI - Docker / firecracker-ctl",
@@ -417,6 +381,18 @@
       "flaky": 0,
       "success_rate": 100.0,
       "avg_duration_s": 962
+    },
+    {
+      "name": "CI - Docker / kbve-kubectl",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 781
     },
     {
       "name": "CI - Docker / memes",
@@ -455,30 +431,6 @@
       "avg_duration_s": 3097
     },
     {
-      "name": "CI - Publish / crates / embeddb-derive",
-      "runs": 1,
-      "success": 1,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 343
-    },
-    {
-      "name": "Graph Update: uv in /apps/agones/factorio/mods-src/kbve-orc, /apps/agones/factorio/mods-src/kbve-spider, /apps/discordsh/notification-bot, /apps/pydesk, /packages/python/fudster, /packages/python/graphify-wrapper, /packages/python/kbve #1467269314",
-      "runs": 1,
-      "success": 1,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 64
-    },
-    {
       "name": "Graph Update: uv in /packages/python/kbve #1469686979",
       "runs": 1,
       "success": 1,
@@ -515,54 +467,6 @@
       "avg_duration_s": 63
     },
     {
-      "name": "cargo in /. - Update #1467363704",
-      "runs": 1,
-      "success": 0,
-      "failure": 0,
-      "cancelled": 1,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 0.0,
-      "avg_duration_s": 3309
-    },
-    {
-      "name": "github_actions in /. - Update #1467363697",
-      "runs": 1,
-      "success": 1,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 118
-    },
-    {
-      "name": "npm_and_yarn in / for @bufbuild/protobuf - Update #1467578025",
-      "runs": 1,
-      "success": 1,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 162
-    },
-    {
-      "name": "npm_and_yarn in / for @codemirror/legacy-modes - Update #1467578045",
-      "runs": 1,
-      "success": 1,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 156
-    },
-    {
       "name": "npm_and_yarn in / for @codemirror/legacy-modes - Update #1470665113",
       "runs": 1,
       "success": 1,
@@ -575,30 +479,6 @@
       "avg_duration_s": 188
     },
     {
-      "name": "npm_and_yarn in / for @tanstack/react-query - Update #1467578023",
-      "runs": 1,
-      "success": 1,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 154
-    },
-    {
-      "name": "npm_and_yarn in / for expo-dev-client - Update #1467578043",
-      "runs": 1,
-      "success": 1,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 164
-    },
-    {
       "name": "npm_and_yarn in / for expo-dev-client - Update #1470665139",
       "runs": 1,
       "success": 1,
@@ -609,137 +489,113 @@
       "flaky": 0,
       "success_rate": 100.0,
       "avg_duration_s": 183
-    },
-    {
-      "name": "npm_and_yarn in / for postcss-merge-rules - Update #1467578037",
-      "runs": 1,
-      "success": 1,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 161
-    },
-    {
-      "name": "npm_and_yarn in /. - Update #1467363698",
-      "runs": 1,
-      "success": 0,
-      "failure": 0,
-      "cancelled": 1,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 0.0,
-      "avg_duration_s": 3306
     }
   ],
   "recent_failures": [
     {
-      "name": "CI - Manifest Guard",
-      "branch": "palworld-seal-followup",
+      "name": "CI - Dev",
+      "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/29965147497",
-      "finished_at": "2026-07-22T23:09:19Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/30043064850",
+      "finished_at": "2026-07-23T21:43:42Z"
     },
     {
       "name": "CI - Dev",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/29962006228",
-      "finished_at": "2026-07-22T23:06:30Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/30043539909",
+      "finished_at": "2026-07-23T21:38:20Z"
     },
     {
-      "name": "CI - Manifest Guard",
-      "branch": "dev",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/29962161369",
-      "finished_at": "2026-07-22T22:15:51Z"
-    },
-    {
-      "name": "CI - Manifest Sync",
-      "branch": "dev",
-      "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/29962119296",
-      "finished_at": "2026-07-22T22:15:13Z"
-    },
-    {
-      "name": "CI - Manifest Guard",
-      "branch": "dev",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/29962121330",
-      "finished_at": "2026-07-22T22:14:59Z"
-    },
-    {
-      "name": "CI - Dev",
-      "branch": "dev",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/29950531534",
-      "finished_at": "2026-07-22T20:42:48Z"
-    },
-    {
-      "name": "CI - Dev",
-      "branch": "dev",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/29945739205",
-      "finished_at": "2026-07-22T19:49:30Z"
-    },
-    {
-      "name": "CI - Manifest Guard",
-      "branch": "worktree-reel-phase3b",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/29951427997",
-      "finished_at": "2026-07-22T19:33:50Z"
-    },
-    {
-      "name": "CI - Dev",
-      "branch": "dev",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/29945407986",
-      "finished_at": "2026-07-22T18:58:56Z"
-    },
-    {
-      "name": "CI - Dev",
-      "branch": "dev",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/29934002787",
-      "finished_at": "2026-07-22T17:13:32Z"
-    },
-    {
-      "name": "CI - Dev",
-      "branch": "dev",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/29933514183",
-      "finished_at": "2026-07-22T16:20:13Z"
-    },
-    {
-      "name": "CI - Dev",
-      "branch": "dev",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/29911484494",
-      "finished_at": "2026-07-22T10:52:56Z"
-    },
-    {
-      "name": "CI - Docker / cryptothrone",
+      "name": "CI - Docker / agones-palworld",
       "branch": "main",
       "event": "workflow_dispatch",
-      "url": "https://github.com/KBVE/kbve/actions/runs/29822347657",
-      "finished_at": "2026-07-21T10:41:05Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/30032503262",
+      "finished_at": "2026-07-23T18:29:09Z"
     },
     {
-      "name": "CI - Docker / memes",
-      "branch": "main",
+      "name": "CI - Docker / agones-palworld",
+      "branch": "worktree-palworld-uobjectcache",
       "event": "workflow_dispatch",
-      "url": "https://github.com/KBVE/kbve/actions/runs/29822359889",
-      "finished_at": "2026-07-21T10:35:52Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/29996807887",
+      "finished_at": "2026-07-23T10:03:20Z"
     },
     {
-      "name": "CI - Docker / herbmail",
+      "name": "CI - Docker / agones-palworld",
+      "branch": "worktree-palworld-uobjectcache",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29995107502",
+      "finished_at": "2026-07-23T09:45:22Z"
+    },
+    {
+      "name": "CI - Docker / agones-palworld",
+      "branch": "worktree-palworld-uobjectcache",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29994374843",
+      "finished_at": "2026-07-23T09:21:57Z"
+    },
+    {
+      "name": "CI - Docker / agones-palworld",
+      "branch": "worktree-palworld-uobjectcache",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29993945487",
+      "finished_at": "2026-07-23T09:11:48Z"
+    },
+    {
+      "name": "CI - Docker / agones-palworld",
+      "branch": "worktree-palworld-uobjectcache",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29988745246",
+      "finished_at": "2026-07-23T07:37:00Z"
+    },
+    {
+      "name": "CI - Docker / agones-palworld",
+      "branch": "worktree-palworld-uobjectcache",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29987414681",
+      "finished_at": "2026-07-23T07:17:33Z"
+    },
+    {
+      "name": "CI - Docker / agones-palworld",
+      "branch": "worktree-palworld-uobjectcache",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29986672686",
+      "finished_at": "2026-07-23T07:03:45Z"
+    },
+    {
+      "name": "CI - Docker / agones-palworld",
+      "branch": "worktree-palworld-uobjectcache",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29985986590",
+      "finished_at": "2026-07-23T06:52:14Z"
+    },
+    {
+      "name": "CI - Docker / agones-palworld",
+      "branch": "worktree-palworld-e2e-feedback",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29984252168",
+      "finished_at": "2026-07-23T06:30:06Z"
+    },
+    {
+      "name": "CI - Docker / agones-palworld",
+      "branch": "worktree-palworld-e2e-feedback",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29983563230",
+      "finished_at": "2026-07-23T06:17:00Z"
+    },
+    {
+      "name": "CI - Docker / agones-palworld",
       "branch": "main",
       "event": "workflow_dispatch",
-      "url": "https://github.com/KBVE/kbve/actions/runs/29787115788",
-      "finished_at": "2026-07-20T23:31:43Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/29982441025",
+      "finished_at": "2026-07-23T05:51:43Z"
+    },
+    {
+      "name": "CI - Docker / agones-palworld",
+      "branch": "main",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/29980273992",
+      "finished_at": "2026-07-23T04:57:14Z"
     }
   ]
 }
