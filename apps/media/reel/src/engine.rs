@@ -311,11 +311,28 @@ impl Engine {
         &self,
         id: &str,
         file_id: usize,
-    ) -> anyhow::Result<impl AsyncRead + AsyncSeek + Send + 'static> {
+    ) -> anyhow::Result<impl AsyncRead + AsyncSeek + Send + Unpin + 'static> {
         let handle = self
             .handle(id)
             .ok_or_else(|| anyhow::anyhow!("no managed torrent for id {id}"))?;
         handle.stream(file_id)
+    }
+}
+
+pub trait ReadSeek: AsyncRead + AsyncSeek + Send + Unpin {}
+impl<T: AsyncRead + AsyncSeek + Send + Unpin> ReadSeek for T {}
+
+pub trait MediaSource: Send + Sync {
+    fn entries(&self, id: &str) -> anyhow::Result<Option<Vec<FileEntry>>>;
+    fn open(&self, id: &str, file_id: usize) -> anyhow::Result<Box<dyn ReadSeek>>;
+}
+
+impl MediaSource for Engine {
+    fn entries(&self, id: &str) -> anyhow::Result<Option<Vec<FileEntry>>> {
+        self.list_files(id)
+    }
+    fn open(&self, id: &str, file_id: usize) -> anyhow::Result<Box<dyn ReadSeek>> {
+        Ok(Box::new(self.open_stream(id, file_id)?))
     }
 }
 
