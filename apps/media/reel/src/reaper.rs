@@ -67,6 +67,7 @@ mod tests {
             last_access,
             state: TorrentState::Seeding,
             error: None,
+            active_path: None,
             transcode: TranscodeStatus::None,
             transcode_path: None,
             transcode_error: None,
