@@ -101,7 +101,7 @@ spec:
                             type: RuntimeDefault
                     containers:
                         - name: scan
-                          image: ghcr.io/kbve/kubectl:0.1.7
+                          image: ghcr.io/kbve/kubectl:0.1.8
                           imagePullPolicy: IfNotPresent
                           securityContext:
                               allowPrivilegeEscalation: false
