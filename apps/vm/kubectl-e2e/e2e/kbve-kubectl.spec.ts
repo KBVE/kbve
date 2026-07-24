@@ -106,6 +106,15 @@ describe('kbve-kubectl CLI', () => {
 		expect(out).toContain('--delete-timeout');
 	});
 
+	it('should list backup flags in rotate-gameserver help', () => {
+		const out = dockerExec('kbve-kubectl rotate-gameserver --help');
+		expect(out).toContain('--backup');
+		expect(out).toContain('--world');
+		expect(out).toContain('--save-path');
+		expect(out).toContain('--backup-dir');
+		expect(out).toContain('--backup-keep');
+	});
+
 	it('should fail rotate-gameserver with missing required args', () => {
 		const result = dockerExecSafe('kbve-kubectl rotate-gameserver');
 		expect(result.exitCode).not.toBe(0);
