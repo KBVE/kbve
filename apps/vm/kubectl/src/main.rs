@@ -532,7 +532,6 @@ fn rotate_decision(desired: &str, running: &str, state: &str) -> RotateDecision 
     }
 }
 
-#[derive(Clone)]
 struct BackupOpts {
     enabled: bool,
     world: String,
@@ -592,7 +591,6 @@ async fn backup_before_rotate(
     Ok(format!("backup-{world}-{ts}.tar.gz"))
 }
 
-#[allow(clippy::too_many_arguments)]
 fn backup_tar_args(
     pod: &str,
     namespace: &str,
@@ -651,7 +649,7 @@ fn prune_args(
 }
 
 fn parse_dedicated_server_name(ini: &str) -> Option<String> {
-    ini.split(|c: char| matches!(c, '(' | ')' | ',' | '\n' | '\r'))
+    ini.split(['(', ')', ',', '\n', '\r'])
         .find_map(|field| field.trim().strip_prefix("DedicatedServerName="))
         .map(|v| v.trim().trim_matches('"').to_string())
         .filter(|s| !s.is_empty())
