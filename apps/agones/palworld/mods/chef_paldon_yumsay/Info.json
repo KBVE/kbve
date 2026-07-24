@@ -1,0 +1,16 @@
+{
+  "ModName": "chef_paldon_yumsay",
+  "PackageName": "ChefPaldonYumsay",
+  "Thumbnail": "workshop/thumbnail.png",
+  "Version": "0.0.1",
+  "DebugMode": false,
+  "MinRevision": 82182,
+  "Author": "KBVE",
+  "License": "MIT",
+  "Dependencies": [],
+  "Tags": ["Gameplay"],
+  "InstallRule": [
+    { "Type": "Paks", "Targets": ["./Paks/"] },
+    { "Type": "Paks", "IsServer": true, "Targets": ["./Paks/"] }
+  ]
+}
