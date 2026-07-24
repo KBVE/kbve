@@ -1,17 +1,9 @@
 {
-	"generated_at": "2026-07-23T04:19:11Z",
+	"generated_at": "2026-07-24T04:17:41Z",
 	"node": {
-		"count": 118,
+		"count": 116,
 		"major": 31,
 		"items": [
-			{
-				"name": "@astrojs/starlight",
-				"current": "0.41.3",
-				"wanted": "0.41.3",
-				"latest": "0.41.4",
-				"type": "devDependencies",
-				"major": false
-			},
 			{
 				"name": "@axe-core/playwright",
 				"current": "4.11.3",
@@ -184,7 +176,7 @@
 				"name": "@shopify/react-native-skia",
 				"current": "2.6.9",
 				"wanted": "2.6.9",
-				"latest": "2.9.1",
+				"latest": "2.10.0",
 				"type": "dependencies",
 				"major": false
 			},
@@ -397,14 +389,6 @@
 				"major": false
 			},
 			{
-				"name": "astro",
-				"current": "7.0.9",
-				"wanted": "7.0.9",
-				"latest": "7.1.3",
-				"type": "devDependencies",
-				"major": false
-			},
-			{
 				"name": "astro-compressor",
 				"current": "1.2.0",
 				"wanted": "1.2.0",
@@ -432,7 +416,7 @@
 				"name": "babel-preset-expo",
 				"current": "56.0.15",
 				"wanted": "56.0.15",
-				"latest": "57.0.3",
+				"latest": "57.0.4",
 				"type": "dependencies",
 				"major": true
 			},
@@ -496,7 +480,7 @@
 				"name": "expo",
 				"current": "56.0.11",
 				"wanted": "56.0.11",
-				"latest": "57.0.7",
+				"latest": "57.0.8",
 				"type": "dependencies",
 				"major": true
 			},
@@ -504,7 +488,7 @@
 				"name": "expo-auth-session",
 				"current": "56.0.14",
 				"wanted": "56.0.14",
-				"latest": "57.0.4",
+				"latest": "57.0.5",
 				"type": "dependencies",
 				"major": true
 			},
@@ -512,7 +496,7 @@
 				"name": "expo-build-properties",
 				"current": "56.0.19",
 				"wanted": "56.0.19",
-				"latest": "57.0.6",
+				"latest": "57.0.7",
 				"type": "dependencies",
 				"major": true
 			},
@@ -520,7 +504,7 @@
 				"name": "expo-dev-client",
 				"current": "56.0.20",
 				"wanted": "56.0.20",
-				"latest": "57.0.7",
+				"latest": "57.0.9",
 				"type": "dependencies",
 				"major": true
 			},
@@ -528,7 +512,7 @@
 				"name": "expo-linking",
 				"current": "56.0.14",
 				"wanted": "56.0.14",
-				"latest": "57.0.3",
+				"latest": "57.0.4",
 				"type": "dependencies",
 				"major": true
 			},
@@ -544,7 +528,7 @@
 				"name": "expo-web-browser",
 				"current": "56.0.5",
 				"wanted": "56.0.5",
-				"latest": "57.0.1",
+				"latest": "57.0.2",
 				"type": "dependencies",
 				"major": true
 			},
@@ -584,7 +568,7 @@
 				"name": "lint-staged",
 				"current": "16.4.0",
 				"wanted": "16.4.0",
-				"latest": "17.1.1",
+				"latest": "17.2.0",
 				"type": "devDependencies",
 				"major": true
 			},
@@ -592,7 +576,7 @@
 				"name": "lucide",
 				"current": "0.575.0",
 				"wanted": "0.575.0",
-				"latest": "1.25.0",
+				"latest": "1.26.0",
 				"type": "dependencies",
 				"major": true
 			},
@@ -600,7 +584,7 @@
 				"name": "lucide-react",
 				"current": "0.575.0",
 				"wanted": "0.575.0",
-				"latest": "1.25.0",
+				"latest": "1.26.0",
 				"type": "dependencies",
 				"major": true
 			},
@@ -616,7 +600,7 @@
 				"name": "mdream",
 				"current": "1.4.1",
 				"wanted": "1.4.1",
-				"latest": "1.5.5",
+				"latest": "1.5.6",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -776,7 +760,7 @@
 				"name": "react-native-webgpu",
 				"current": "0.5.15",
 				"wanted": "0.5.15",
-				"latest": "0.6.1",
+				"latest": "0.6.2",
 				"type": "dependencies",
 				"major": false
 			},
@@ -951,7 +935,7 @@
 		]
 	},
 	"rust": {
-		"count": 56,
+		"count": 62,
 		"major": 0,
 		"items": [
 			{
@@ -1081,6 +1065,18 @@
 				"major": false
 			},
 			{
+				"name": "aws-smithy-runtime",
+				"current": "1.12.0",
+				"latest": "1.12.1",
+				"major": false
+			},
+			{
+				"name": "aws-smithy-runtime-api",
+				"current": "1.13.0",
+				"latest": "1.14.0",
+				"major": false
+			},
+			{
 				"name": "aws-smithy-xml",
 				"current": "0.61.1",
 				"latest": "0.62.0",
@@ -1090,6 +1086,12 @@
 				"name": "aws-types",
 				"current": "1.4.0",
 				"latest": "1.5.0",
+				"major": false
+			},
+			{
+				"name": "branches",
+				"current": "0.4.4",
+				"latest": "0.4.5",
 				"major": false
 			},
 			{
@@ -1123,6 +1125,12 @@
 				"major": false
 			},
 			{
+				"name": "font-types",
+				"current": "0.12.1",
+				"latest": "0.12.2",
+				"major": false
+			},
+			{
 				"name": "foreign-types-macros",
 				"current": "0.2.3",
 				"latest": "0.2.4",
@@ -1137,7 +1145,13 @@
 			{
 				"name": "impl-more",
 				"current": "0.3.1",
-				"latest": "0.3.2",
+				"latest": "0.3.5",
+				"major": false
+			},
+			{
+				"name": "jsonpath-rust",
+				"current": "1.0.5",
+				"latest": "1.0.6",
 				"major": false
 			},
 			{
@@ -1186,6 +1200,12 @@
 				"name": "proc-macro-error3",
 				"current": "3.0.2",
 				"latest": "3.0.3",
+				"major": false
+			},
+			{
+				"name": "rustls-pki-types",
+				"current": "1.15.0",
+				"latest": "1.15.1",
 				"major": false
 			},
 			{
@@ -1292,6 +1312,6 @@
 			}
 		]
 	},
-	"total": 174,
+	"total": 178,
 	"major_total": 31
 }
