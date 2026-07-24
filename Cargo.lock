@@ -6524,7 +6524,7 @@ dependencies = [
 
 [[package]]
 name = "discordsh-bot"
-version = "0.1.28"
+version = "0.1.29"
 dependencies = [
  "anyhow",
  "askama 0.15.6",
