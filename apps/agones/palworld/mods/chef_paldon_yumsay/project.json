@@ -1,0 +1,33 @@
+{
+  "name": "agones-palworld-chef-food",
+  "$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/agones/palworld/mods/chef_paldon_yumsay",
+  "targets": {
+    "validate": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "cwd": "apps/agones/palworld/mods/chef_paldon_yumsay",
+        "command": "python3 build/validate_foods.py foods"
+      }
+    },
+    "generate-placeholders": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "cwd": "apps/agones/palworld/mods/chef_paldon_yumsay",
+        "command": "python3 build/gen_placeholders.py"
+      }
+    },
+    "cook": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "cwd": "apps/agones/palworld/mods/chef_paldon_yumsay",
+        "command": "bash build/cook.sh"
+      }
+    }
+  },
+  "tags": ["scope:agones"]
+}
