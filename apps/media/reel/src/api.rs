@@ -150,29 +150,7 @@ async fn transcode_start(
     headers: HeaderMap,
     Path(id): Path<String>,
 ) -> impl IntoResponse {
-    if !check_auth(&headers, &st.token) {
-        return StatusCode::UNAUTHORIZED.into_response();
-    }
-    match st.transcoder.request(&id).await {
-        transcode::RequestOutcome::Ready(p) => (
-            StatusCode::OK,
-            Json(serde_json::json!({"status":"ready","path":p})),
-        )
-            .into_response(),
-        transcode::RequestOutcome::Started => (
-            StatusCode::ACCEPTED,
-            Json(serde_json::json!({"status":"pending"})),
-        )
-            .into_response(),
-        transcode::RequestOutcome::InProgress(s) => (
-            StatusCode::ACCEPTED,
-            Json(serde_json::json!({"status": format!("{s:?}")})),
-        )
-            .into_response(),
-        transcode::RequestOutcome::NotFound => StatusCode::NOT_FOUND.into_response(),
-        transcode::RequestOutcome::NotCompleted => StatusCode::CONFLICT.into_response(),
-        transcode::RequestOutcome::Disabled => StatusCode::SERVICE_UNAVAILABLE.into_response(),
-    }
+    transcode_core(&headers, &st.token, &st.transcoder, &id).await
 }
 
 async fn stream_file(
@@ -182,86 +160,17 @@ async fn stream_file(
     axum::extract::RawQuery(query): axum::extract::RawQuery,
     method: axum::http::Method,
 ) -> impl IntoResponse {
-    if !check_auth_q(&headers, query.as_deref(), &st.token) {
-        return StatusCode::UNAUTHORIZED.into_response();
-    }
-    if !st.stream_enabled {
-        return StatusCode::SERVICE_UNAVAILABLE.into_response();
-    }
-    let meta = match st.store.get(&id) {
-        Some(m) => m,
-        None => return StatusCode::NOT_FOUND.into_response(),
-    };
-    let head_only = method == axum::http::Method::HEAD;
-    let range = headers.get("range").and_then(|h| h.to_str().ok());
-    let _ = st.store.touch(&id, now_secs());
-
-    match meta.state {
-        state::TorrentState::Seeding => {
-            let path = if meta.transcode == state::TranscodeStatus::Ready {
-                meta.transcode_path.clone().map(std::path::PathBuf::from)
-            } else {
-                None
-            };
-            let path = match path {
-                Some(p) => p,
-                None => match transcode::pick_primary_file(std::path::Path::new(&meta.path)) {
-                    Ok(p) => p,
-                    Err(_) => return StatusCode::CONFLICT.into_response(),
-                },
-            };
-            let ct = crate::stream::content_type_for(&path.to_string_lossy());
-            if head_only {
-                let total = match tokio::fs::metadata(&path).await {
-                    Ok(m) => m.len(),
-                    Err(_) => return StatusCode::NOT_FOUND.into_response(),
-                };
-                return crate::stream::head_response(total, range, ct);
-            }
-            let file = match tokio::fs::File::open(&path).await {
-                Ok(f) => f,
-                Err(_) => return StatusCode::NOT_FOUND.into_response(),
-            };
-            let total = match file.metadata().await {
-                Ok(m) => m.len(),
-                Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
-            };
-            crate::telemetry::stream_served(&id, served_bytes(range, total), "progressive", range.is_some());
-            crate::stream::serve_range(file, total, range, ct, head_only).await
-        }
-        state::TorrentState::Leeching => {
-            let files = match st.engine.list_files(&id) {
-                Ok(Some(f)) => f,
-                Ok(None) => return StatusCode::TOO_EARLY.into_response(),
-                Err(_) => return StatusCode::TOO_EARLY.into_response(),
-            };
-            let idx = match engine::primary_file_index(&files) {
-                Some(i) => i,
-                None => return StatusCode::CONFLICT.into_response(),
-            };
-            let name = files
-                .iter()
-                .find(|f| f.index == idx)
-                .map(|f| f.name.clone())
-                .unwrap_or_default();
-            let total = files
-                .iter()
-                .find(|f| f.index == idx)
-                .map(|f| f.len)
-                .unwrap_or(0);
-            let ct = crate::stream::content_type_for(&name);
-            if head_only {
-                return crate::stream::head_response(total, range, ct);
-            }
-            let stream = match st.engine.open_stream(&id, idx) {
-                Ok(s) => s,
-                Err(_) => return StatusCode::TOO_EARLY.into_response(),
-            };
-            crate::telemetry::stream_served(&id, served_bytes(range, total), "leeching", range.is_some());
-            crate::stream::serve_range(stream, total, range, ct, head_only).await
-        }
-        _ => StatusCode::CONFLICT.into_response(),
-    }
+    stream_core(
+        &headers,
+        query.as_deref(),
+        &st.token,
+        st.stream_enabled,
+        &st.store,
+        &st.engine,
+        &id,
+        &method,
+    )
+    .await
 }
 
 async fn manifest(
@@ -270,36 +179,19 @@ async fn manifest(
     Path(id): Path<String>,
     axum::extract::RawQuery(query): axum::extract::RawQuery,
 ) -> impl IntoResponse {
-    if !check_auth_q(&headers, query.as_deref(), &st.token) {
-        return StatusCode::UNAUTHORIZED.into_response();
-    }
-    if !st.hls.enabled() {
-        return StatusCode::SERVICE_UNAVAILABLE.into_response();
-    }
-    let meta = match st.store.get(&id) {
-        Some(m) => m,
-        None => return StatusCode::NOT_FOUND.into_response(),
+    let meta = match manifest_status_core(
+        &headers,
+        query.as_deref(),
+        &st.token,
+        st.hls.enabled(),
+        &st.store,
+        &id,
+    )
+    .await
+    {
+        ManifestStep::Done(resp) => return resp,
+        ManifestStep::Proceed(m) => m,
     };
-    let _ = st.store.touch(&id, now_secs());
-
-    match meta.hls {
-        state::HlsStatus::Live | state::HlsStatus::Ready => match meta.hls_dir {
-            Some(dir) => return serve_manifest_file(&dir).await,
-            None => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
-        },
-        state::HlsStatus::Starting => {
-            return (
-                StatusCode::ACCEPTED,
-                Json(serde_json::json!({"status": "starting"})),
-            )
-                .into_response();
-        }
-        state::HlsStatus::None | state::HlsStatus::Failed => {}
-    }
-
-    if meta.state != state::TorrentState::Seeding {
-        return StatusCode::TOO_EARLY.into_response();
-    }
 
     let delivery = match st.hls.cached_delivery(&id) {
         Some(d) => d,
@@ -375,13 +267,208 @@ async fn hls_segment(
     axum::extract::RawQuery(query): axum::extract::RawQuery,
     method: axum::http::Method,
 ) -> impl IntoResponse {
-    if !check_auth_q(&headers, query.as_deref(), &st.token) {
+    hls_segment_core(
+        &headers,
+        query.as_deref(),
+        &st.token,
+        &st.store,
+        &id,
+        &segment,
+        &method,
+    )
+    .await
+}
+
+pub(crate) async fn transcode_core(
+    headers: &HeaderMap,
+    token: &Option<String>,
+    transcoder: &transcode::Transcoder,
+    id: &str,
+) -> axum::response::Response {
+    if !check_auth(headers, token) {
         return StatusCode::UNAUTHORIZED.into_response();
     }
-    if !hls::valid_segment_name(&segment) {
+    match transcoder.request(id).await {
+        transcode::RequestOutcome::Ready(p) => (
+            StatusCode::OK,
+            Json(serde_json::json!({"status":"ready","path":p})),
+        )
+            .into_response(),
+        transcode::RequestOutcome::Started => (
+            StatusCode::ACCEPTED,
+            Json(serde_json::json!({"status":"pending"})),
+        )
+            .into_response(),
+        transcode::RequestOutcome::InProgress(s) => (
+            StatusCode::ACCEPTED,
+            Json(serde_json::json!({"status": format!("{s:?}")})),
+        )
+            .into_response(),
+        transcode::RequestOutcome::NotFound => StatusCode::NOT_FOUND.into_response(),
+        transcode::RequestOutcome::NotCompleted => StatusCode::CONFLICT.into_response(),
+        transcode::RequestOutcome::Disabled => StatusCode::SERVICE_UNAVAILABLE.into_response(),
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+pub(crate) async fn stream_core<S: engine::MediaSource>(
+    headers: &HeaderMap,
+    query: Option<&str>,
+    token: &Option<String>,
+    stream_enabled: bool,
+    store: &state::StateStore,
+    source: &S,
+    id: &str,
+    method: &axum::http::Method,
+) -> axum::response::Response {
+    if !check_auth_q(headers, query, token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    if !stream_enabled {
+        return StatusCode::SERVICE_UNAVAILABLE.into_response();
+    }
+    let meta = match store.get(id) {
+        Some(m) => m,
+        None => return StatusCode::NOT_FOUND.into_response(),
+    };
+    let head_only = *method == axum::http::Method::HEAD;
+    let range = headers.get("range").and_then(|h| h.to_str().ok());
+    let _ = store.touch(id, now_secs());
+
+    match meta.state {
+        state::TorrentState::Seeding => {
+            let path = if meta.transcode == state::TranscodeStatus::Ready {
+                meta.transcode_path.clone().map(std::path::PathBuf::from)
+            } else {
+                None
+            };
+            let path = match path {
+                Some(p) => p,
+                None => match transcode::pick_primary_file(std::path::Path::new(&meta.path)) {
+                    Ok(p) => p,
+                    Err(_) => return StatusCode::CONFLICT.into_response(),
+                },
+            };
+            let ct = crate::stream::content_type_for(&path.to_string_lossy());
+            if head_only {
+                let total = match tokio::fs::metadata(&path).await {
+                    Ok(m) => m.len(),
+                    Err(_) => return StatusCode::NOT_FOUND.into_response(),
+                };
+                return crate::stream::head_response(total, range, ct);
+            }
+            let file = match tokio::fs::File::open(&path).await {
+                Ok(f) => f,
+                Err(_) => return StatusCode::NOT_FOUND.into_response(),
+            };
+            let total = match file.metadata().await {
+                Ok(m) => m.len(),
+                Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+            };
+            crate::telemetry::stream_served(id, served_bytes(range, total), "progressive", range.is_some());
+            crate::stream::serve_range(file, total, range, ct, head_only).await
+        }
+        state::TorrentState::Leeching => {
+            let files = match source.entries(id) {
+                Ok(Some(f)) => f,
+                Ok(None) => return StatusCode::TOO_EARLY.into_response(),
+                Err(_) => return StatusCode::TOO_EARLY.into_response(),
+            };
+            let idx = match engine::primary_file_index(&files) {
+                Some(i) => i,
+                None => return StatusCode::CONFLICT.into_response(),
+            };
+            let name = files
+                .iter()
+                .find(|f| f.index == idx)
+                .map(|f| f.name.clone())
+                .unwrap_or_default();
+            let total = files
+                .iter()
+                .find(|f| f.index == idx)
+                .map(|f| f.len)
+                .unwrap_or(0);
+            let ct = crate::stream::content_type_for(&name);
+            if head_only {
+                return crate::stream::head_response(total, range, ct);
+            }
+            let stream = match source.open(id, idx) {
+                Ok(s) => s,
+                Err(_) => return StatusCode::TOO_EARLY.into_response(),
+            };
+            crate::telemetry::stream_served(id, served_bytes(range, total), "leeching", range.is_some());
+            crate::stream::serve_range(stream, total, range, ct, head_only).await
+        }
+        _ => StatusCode::CONFLICT.into_response(),
+    }
+}
+
+pub(crate) enum ManifestStep {
+    Done(axum::response::Response),
+    Proceed(state::Metadata),
+}
+
+pub(crate) async fn manifest_status_core(
+    headers: &HeaderMap,
+    query: Option<&str>,
+    token: &Option<String>,
+    hls_enabled: bool,
+    store: &state::StateStore,
+    id: &str,
+) -> ManifestStep {
+    if !check_auth_q(headers, query, token) {
+        return ManifestStep::Done(StatusCode::UNAUTHORIZED.into_response());
+    }
+    if !hls_enabled {
+        return ManifestStep::Done(StatusCode::SERVICE_UNAVAILABLE.into_response());
+    }
+    let meta = match store.get(id) {
+        Some(m) => m,
+        None => return ManifestStep::Done(StatusCode::NOT_FOUND.into_response()),
+    };
+    let _ = store.touch(id, now_secs());
+
+    match meta.hls {
+        state::HlsStatus::Live | state::HlsStatus::Ready => {
+            return match &meta.hls_dir {
+                Some(dir) => ManifestStep::Done(serve_manifest_file(dir).await),
+                None => ManifestStep::Done(StatusCode::INTERNAL_SERVER_ERROR.into_response()),
+            };
+        }
+        state::HlsStatus::Starting => {
+            return ManifestStep::Done(
+                (
+                    StatusCode::ACCEPTED,
+                    Json(serde_json::json!({"status": "starting"})),
+                )
+                    .into_response(),
+            );
+        }
+        state::HlsStatus::None | state::HlsStatus::Failed => {}
+    }
+
+    if meta.state != state::TorrentState::Seeding {
+        return ManifestStep::Done(StatusCode::TOO_EARLY.into_response());
+    }
+    ManifestStep::Proceed(meta)
+}
+
+pub(crate) async fn hls_segment_core(
+    headers: &HeaderMap,
+    query: Option<&str>,
+    token: &Option<String>,
+    store: &state::StateStore,
+    id: &str,
+    segment: &str,
+    method: &axum::http::Method,
+) -> axum::response::Response {
+    if !check_auth_q(headers, query, token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    if !hls::valid_segment_name(segment) {
         return StatusCode::BAD_REQUEST.into_response();
     }
-    let meta = match st.store.get(&id) {
+    let meta = match store.get(id) {
         Some(m) => m,
         None => return StatusCode::NOT_FOUND.into_response(),
     };
@@ -389,10 +476,10 @@ async fn hls_segment(
         Some(d) => d,
         None => return StatusCode::NOT_FOUND.into_response(),
     };
-    let path = std::path::Path::new(&dir).join(&segment);
-    let head_only = method == axum::http::Method::HEAD;
+    let path = std::path::Path::new(&dir).join(segment);
+    let head_only = *method == axum::http::Method::HEAD;
     if !head_only {
-        let _ = st.store.touch(&id, now_secs());
+        let _ = store.touch(id, now_secs());
     }
     let range = headers.get("range").and_then(|h| h.to_str().ok());
     let ct = if segment.ends_with(".ts") {
@@ -415,7 +502,7 @@ async fn hls_segment(
         Ok(m) => m.len(),
         Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
     };
-    crate::telemetry::stream_served(&id, served_bytes(range, total), "hls", range.is_some());
+    crate::telemetry::stream_served(id, served_bytes(range, total), "hls", range.is_some());
     crate::stream::serve_range(file, total, range, ct, head_only).await
 }
 
@@ -452,171 +539,6 @@ fn store_router(store: state::StateStore, token: Option<String>) -> Router {
 }
 
 #[cfg(test)]
-fn transcode_router(transcoder: transcode::Transcoder, token: Option<String>) -> Router {
-    #[derive(Clone)]
-    struct TranscodeState {
-        transcoder: transcode::Transcoder,
-        token: Option<String>,
-    }
-
-    async fn handler(
-        State(st): State<TranscodeState>,
-        headers: HeaderMap,
-        Path(id): Path<String>,
-    ) -> impl IntoResponse {
-        if !check_auth(&headers, &st.token) {
-            return StatusCode::UNAUTHORIZED.into_response();
-        }
-        match st.transcoder.request(&id).await {
-            transcode::RequestOutcome::Ready(p) => (
-                StatusCode::OK,
-                Json(serde_json::json!({"status":"ready","path":p})),
-            )
-                .into_response(),
-            transcode::RequestOutcome::Started => (
-                StatusCode::ACCEPTED,
-                Json(serde_json::json!({"status":"pending"})),
-            )
-                .into_response(),
-            transcode::RequestOutcome::InProgress(s) => (
-                StatusCode::ACCEPTED,
-                Json(serde_json::json!({"status": format!("{s:?}")})),
-            )
-                .into_response(),
-            transcode::RequestOutcome::NotFound => StatusCode::NOT_FOUND.into_response(),
-            transcode::RequestOutcome::NotCompleted => StatusCode::CONFLICT.into_response(),
-            transcode::RequestOutcome::Disabled => StatusCode::SERVICE_UNAVAILABLE.into_response(),
-        }
-    }
-
-    Router::new()
-        .route("/torrents/{id}/transcode", post(handler))
-        .with_state(TranscodeState { transcoder, token })
-}
-
-#[cfg(test)]
-fn stream_router(store: state::StateStore, token: Option<String>, stream_enabled: bool) -> Router {
-    #[derive(Clone)]
-    struct StreamState {
-        store: state::StateStore,
-        token: Option<String>,
-        stream_enabled: bool,
-    }
-
-    async fn handler(
-        State(st): State<StreamState>,
-        headers: HeaderMap,
-        Path(id): Path<String>,
-    ) -> impl IntoResponse {
-        if !check_auth(&headers, &st.token) {
-            return StatusCode::UNAUTHORIZED.into_response();
-        }
-        if !st.stream_enabled {
-            return StatusCode::SERVICE_UNAVAILABLE.into_response();
-        }
-        match st.store.get(&id) {
-            Some(_) => StatusCode::OK.into_response(),
-            None => StatusCode::NOT_FOUND.into_response(),
-        }
-    }
-
-    Router::new()
-        .route("/torrents/{id}/stream", get(handler).head(handler))
-        .with_state(StreamState {
-            store,
-            token,
-            stream_enabled,
-        })
-}
-
-#[cfg(test)]
-fn hls_manifest_router(
-    store: state::StateStore,
-    token: Option<String>,
-    hls: hls::HlsManager,
-) -> Router {
-    #[derive(Clone)]
-    struct ManifestState {
-        store: state::StateStore,
-        token: Option<String>,
-        hls: hls::HlsManager,
-    }
-
-    async fn handler(
-        State(st): State<ManifestState>,
-        headers: HeaderMap,
-        Path(id): Path<String>,
-    ) -> impl IntoResponse {
-        if !check_auth(&headers, &st.token) {
-            return StatusCode::UNAUTHORIZED.into_response();
-        }
-        if !st.hls.enabled() {
-            return StatusCode::SERVICE_UNAVAILABLE.into_response();
-        }
-        let meta = match st.store.get(&id) {
-            Some(m) => m,
-            None => return StatusCode::NOT_FOUND.into_response(),
-        };
-        match meta.hls {
-            state::HlsStatus::Live | state::HlsStatus::Ready => match meta.hls_dir {
-                Some(dir) => return serve_manifest_file(&dir).await,
-                None => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
-            },
-            state::HlsStatus::Starting => {
-                return (
-                    StatusCode::ACCEPTED,
-                    Json(serde_json::json!({"status": "starting"})),
-                )
-                    .into_response();
-            }
-            state::HlsStatus::None | state::HlsStatus::Failed => {}
-        }
-        if meta.state != state::TorrentState::Seeding {
-            return StatusCode::TOO_EARLY.into_response();
-        }
-        StatusCode::OK.into_response()
-    }
-
-    Router::new()
-        .route("/torrents/{id}/manifest.m3u8", get(handler))
-        .with_state(ManifestState { store, token, hls })
-}
-
-#[cfg(test)]
-fn hls_segment_router(store: state::StateStore, token: Option<String>) -> Router {
-    #[derive(Clone)]
-    struct SegmentState {
-        store: state::StateStore,
-        token: Option<String>,
-    }
-
-    async fn handler(
-        State(st): State<SegmentState>,
-        headers: HeaderMap,
-        Path((id, segment)): Path<(String, String)>,
-    ) -> impl IntoResponse {
-        if !check_auth(&headers, &st.token) {
-            return StatusCode::UNAUTHORIZED.into_response();
-        }
-        if !hls::valid_segment_name(&segment) {
-            return StatusCode::BAD_REQUEST.into_response();
-        }
-        let meta = match st.store.get(&id) {
-            Some(m) => m,
-            None => return StatusCode::NOT_FOUND.into_response(),
-        };
-        match meta.hls_dir {
-            Some(_) => StatusCode::OK.into_response(),
-            None => StatusCode::NOT_FOUND.into_response(),
-        }
-    }
-
-    Router::new()
-        .route("/torrents/{id}/hls/{segment}", get(handler))
-        .with_state(SegmentState { store, token })
-}
-
-#[cfg(test)]
 mod tests {
     use super::*;
     use crate::state::{HlsStatus, Metadata, StateStore, TorrentState, TranscodeStatus};
@@ -625,6 +547,36 @@ mod tests {
     use http_body_util::BodyExt;
     use tempfile::tempdir;
     use tower::ServiceExt;
+
+    use axum::http::Method;
+
+    struct FakeSource {
+        entries: Option<Vec<crate::engine::FileEntry>>,
+        data: Vec<u8>,
+    }
+
+    impl crate::engine::MediaSource for FakeSource {
+        fn entries(&self, _id: &str) -> anyhow::Result<Option<Vec<crate::engine::FileEntry>>> {
+            Ok(self.entries.clone())
+        }
+        fn open(
+            &self,
+            _id: &str,
+            _file_id: usize,
+        ) -> anyhow::Result<Box<dyn crate::engine::ReadSeek>> {
+            Ok(Box::new(std::io::Cursor::new(self.data.clone())))
+        }
+    }
+
+    fn no_source() -> FakeSource {
+        FakeSource { entries: None, data: vec![] }
+    }
+
+    fn bearer(token: &str) -> HeaderMap {
+        let mut h = HeaderMap::new();
+        h.insert("Authorization", format!("Bearer {token}").parse().unwrap());
+        h
+    }
 
     fn store_with_one() -> StateStore {
         let dir = tempdir().unwrap();
@@ -698,30 +650,28 @@ mod tests {
             hls_error: None,
         })
         .unwrap();
-        let app = transcode_router(transcoder_with(s), None);
-        let res = app
-            .oneshot(
-                Request::post("/torrents/1/transcode")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let res = transcode_core(&HeaderMap::new(), &None, &transcoder_with(s), "1").await;
         assert_eq!(res.status(), StatusCode::CONFLICT);
     }
 
     #[tokio::test]
     async fn transcode_missing_id_is_404() {
-        let app = transcode_router(transcoder_with(store_with_one()), None);
-        let res = app
-            .oneshot(
-                Request::post("/torrents/999/transcode")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let res =
+            transcode_core(&HeaderMap::new(), &None, &transcoder_with(store_with_one()), "999")
+                .await;
         assert_eq!(res.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn transcode_requires_auth_when_token_set() {
+        let res = transcode_core(
+            &HeaderMap::new(),
+            &Some("secret".into()),
+            &transcoder_with(store_with_one()),
+            "1",
+        )
+        .await;
+        assert_eq!(res.status(), StatusCode::UNAUTHORIZED);
     }
 
     #[tokio::test]
@@ -779,78 +729,177 @@ mod tests {
 
     #[tokio::test]
     async fn stream_disabled_is_503() {
-        let app = stream_router(store_with_one(), None, false);
-        let res = app
-            .oneshot(
-                Request::get("/torrents/1/stream")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let res = stream_core(
+            &HeaderMap::new(), None, &None, false,
+            &store_with_one(), &no_source(), "1", &Method::GET,
+        )
+        .await;
         assert_eq!(res.status(), StatusCode::SERVICE_UNAVAILABLE);
     }
 
     #[tokio::test]
     async fn stream_missing_id_is_404() {
-        let app = stream_router(store_with_one(), None, true);
-        let res = app
-            .oneshot(
-                Request::get("/torrents/999/stream")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let res = stream_core(
+            &HeaderMap::new(), None, &None, true,
+            &store_with_one(), &no_source(), "999", &Method::GET,
+        )
+        .await;
         assert_eq!(res.status(), StatusCode::NOT_FOUND);
     }
 
     #[tokio::test]
     async fn stream_requires_auth_when_token_set() {
-        let app = stream_router(store_with_one(), Some("secret".into()), true);
-        let res = app
-            .oneshot(
-                Request::get("/torrents/1/stream")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let res = stream_core(
+            &HeaderMap::new(), None, &Some("secret".into()), true,
+            &store_with_one(), &no_source(), "1", &Method::GET,
+        )
+        .await;
         assert_eq!(res.status(), StatusCode::UNAUTHORIZED);
     }
 
-    fn hls_manager_with(store: StateStore, enabled: bool) -> crate::hls::HlsManager {
-        crate::hls::HlsManager::new(store, 1, "ffmpeg".into(), 4, enabled)
+    #[tokio::test]
+    async fn stream_seeding_serves_real_file_200() {
+        let dir = tempdir().unwrap();
+        let lib = dir.path().join("lib");
+        std::fs::create_dir_all(&lib).unwrap();
+        std::fs::write(lib.join("movie.mp4"), b"hello reel bytes").unwrap();
+        let s = StateStore::load(dir.path().join("state.json")).unwrap();
+        s.upsert(Metadata {
+            id: "1".into(),
+            name: "movie".into(),
+            path: lib.display().to_string(),
+            size: 16,
+            completed_at: Some(10),
+            last_access: 10,
+            state: TorrentState::Seeding,
+            error: None,
+            transcode: TranscodeStatus::None,
+            transcode_path: None,
+            transcode_error: None,
+            hls: HlsStatus::None,
+            hls_dir: None,
+            hls_error: None,
+        })
+        .unwrap();
+        std::mem::forget(dir);
+        let res = stream_core(
+            &HeaderMap::new(), None, &None, true,
+            &s, &no_source(), "1", &Method::GET,
+        )
+        .await;
+        assert_eq!(res.status(), StatusCode::OK);
+        let body = res.into_body().collect().await.unwrap().to_bytes();
+        assert_eq!(&body[..], b"hello reel bytes");
+    }
+
+    #[tokio::test]
+    async fn stream_leeching_serves_from_source_200() {
+        let dir = tempdir().unwrap();
+        let s = StateStore::load(dir.path().join("s.json")).unwrap();
+        std::mem::forget(dir);
+        s.upsert(Metadata {
+            id: "1".into(),
+            name: "movie".into(),
+            path: "/lib/movie.mkv".into(),
+            size: 0,
+            completed_at: None,
+            last_access: 0,
+            state: TorrentState::Leeching,
+            error: None,
+            transcode: TranscodeStatus::None,
+            transcode_path: None,
+            transcode_error: None,
+            hls: HlsStatus::None,
+            hls_dir: None,
+            hls_error: None,
+        })
+        .unwrap();
+        let source = FakeSource {
+            entries: Some(vec![crate::engine::FileEntry {
+                index: 0,
+                name: "movie.mkv".into(),
+                len: 5,
+            }]),
+            data: b"12345".to_vec(),
+        };
+        let res = stream_core(
+            &HeaderMap::new(), None, &None, true,
+            &s, &source, "1", &Method::GET,
+        )
+        .await;
+        assert_eq!(res.status(), StatusCode::OK);
+        let body = res.into_body().collect().await.unwrap().to_bytes();
+        assert_eq!(&body[..], b"12345");
+    }
+
+    #[tokio::test]
+    async fn stream_failed_state_is_409() {
+        let dir = tempdir().unwrap();
+        let s = StateStore::load(dir.path().join("s.json")).unwrap();
+        std::mem::forget(dir);
+        s.upsert(Metadata {
+            id: "1".into(),
+            name: "x".into(),
+            path: "/lib/x".into(),
+            size: 0,
+            completed_at: None,
+            last_access: 0,
+            state: TorrentState::Failed,
+            error: Some("boom".into()),
+            transcode: TranscodeStatus::None,
+            transcode_path: None,
+            transcode_error: None,
+            hls: HlsStatus::None,
+            hls_dir: None,
+            hls_error: None,
+        })
+        .unwrap();
+        let res = stream_core(
+            &HeaderMap::new(), None, &None, true,
+            &s, &no_source(), "1", &Method::GET,
+        )
+        .await;
+        assert_eq!(res.status(), StatusCode::CONFLICT);
+    }
+
+    fn manifest_done(step: ManifestStep) -> axum::response::Response {
+        match step {
+            ManifestStep::Done(r) => r,
+            ManifestStep::Proceed(_) => panic!("expected Done, got Proceed"),
+        }
     }
 
     #[tokio::test]
     async fn manifest_missing_id_is_404() {
-        let store = store_with_one();
-        let app = hls_manifest_router(store.clone(), None, hls_manager_with(store, true));
-        let res = app
-            .oneshot(
-                Request::get("/torrents/999/manifest.m3u8")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let res = manifest_done(
+            manifest_status_core(&HeaderMap::new(), None, &None, true, &store_with_one(), "999").await,
+        );
         assert_eq!(res.status(), StatusCode::NOT_FOUND);
     }
 
     #[tokio::test]
     async fn manifest_hls_disabled_is_503() {
-        let store = store_with_one();
-        let app = hls_manifest_router(store.clone(), None, hls_manager_with(store, false));
-        let res = app
-            .oneshot(
-                Request::get("/torrents/1/manifest.m3u8")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let res = manifest_done(
+            manifest_status_core(&HeaderMap::new(), None, &None, false, &store_with_one(), "1").await,
+        );
         assert_eq!(res.status(), StatusCode::SERVICE_UNAVAILABLE);
+    }
+
+    #[tokio::test]
+    async fn manifest_requires_auth_when_token_set() {
+        let res = manifest_done(
+            manifest_status_core(
+                &HeaderMap::new(), None, &Some("secret".into()), true, &store_with_one(), "1",
+            )
+            .await,
+        );
+        assert_eq!(res.status(), StatusCode::UNAUTHORIZED);
+    }
+
+    #[tokio::test]
+    async fn manifest_seeding_none_proceeds_to_delivery() {
+        let res = manifest_status_core(&HeaderMap::new(), None, &None, true, &store_with_one(), "1").await;
+        assert!(matches!(res, ManifestStep::Proceed(_)));
     }
 
     #[tokio::test]
@@ -875,15 +924,9 @@ mod tests {
             hls_error: None,
         })
         .unwrap();
-        let app = hls_manifest_router(s.clone(), None, hls_manager_with(s, true));
-        let res = app
-            .oneshot(
-                Request::get("/torrents/1/manifest.m3u8")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let res = manifest_done(
+            manifest_status_core(&HeaderMap::new(), None, &None, true, &s, "1").await,
+        );
         assert_eq!(res.status(), StatusCode::TOO_EARLY);
     }
 
@@ -912,15 +955,9 @@ mod tests {
         })
         .unwrap();
         std::mem::forget(dir);
-        let app = hls_manifest_router(s.clone(), None, hls_manager_with(s, true));
-        let res = app
-            .oneshot(
-                Request::get("/torrents/1/manifest.m3u8")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let res = manifest_done(
+            manifest_status_core(&HeaderMap::new(), None, &None, true, &s, "1").await,
+        );
         assert_eq!(res.status(), StatusCode::OK);
         assert_eq!(
             res.headers().get("content-type").unwrap(),
@@ -930,29 +967,66 @@ mod tests {
 
     #[tokio::test]
     async fn hls_segment_rejects_bad_name_is_400() {
-        let app = hls_segment_router(store_with_one(), None);
-        let res = app
-            .oneshot(
-                Request::get("/torrents/1/hls/seg.ts")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let res = hls_segment_core(
+            &HeaderMap::new(), None, &None, &store_with_one(), "1", "seg.ts", &Method::GET,
+        )
+        .await;
         assert_eq!(res.status(), StatusCode::BAD_REQUEST);
     }
 
     #[tokio::test]
     async fn hls_segment_missing_dir_is_404() {
-        let app = hls_segment_router(store_with_one(), None);
-        let res = app
-            .oneshot(
-                Request::get("/torrents/1/hls/seg00001.ts")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
-            .await
-            .unwrap();
+        let res = hls_segment_core(
+            &HeaderMap::new(), None, &None, &store_with_one(), "1", "seg00001.ts", &Method::GET,
+        )
+        .await;
+        assert_eq!(res.status(), StatusCode::NOT_FOUND);
+    }
+
+    #[tokio::test]
+    async fn hls_segment_serves_real_segment_200() {
+        let dir = tempdir().unwrap();
+        let hls_dir = dir.path().join("hls");
+        std::fs::create_dir_all(&hls_dir).unwrap();
+        std::fs::write(hls_dir.join("seg00001.ts"), b"tsdata").unwrap();
+        let s = StateStore::load(dir.path().join("s.json")).unwrap();
+        s.upsert(Metadata {
+            id: "1".into(),
+            name: "movie".into(),
+            path: "/lib/movie.mp4".into(),
+            size: 5,
+            completed_at: Some(10),
+            last_access: 10,
+            state: TorrentState::Seeding,
+            error: None,
+            transcode: TranscodeStatus::None,
+            transcode_path: None,
+            transcode_error: None,
+            hls: HlsStatus::Ready,
+            hls_dir: Some(hls_dir.display().to_string()),
+            hls_error: None,
+        })
+        .unwrap();
+        std::mem::forget(dir);
+        let res = hls_segment_core(
+            &HeaderMap::new(), None, &None, &s, "1", "seg00001.ts", &Method::GET,
+        )
+        .await;
+        assert_eq!(res.status(), StatusCode::OK);
+        assert_eq!(res.headers().get("content-type").unwrap(), "video/mp2t");
+        let body = res.into_body().collect().await.unwrap().to_bytes();
+        assert_eq!(&body[..], b"tsdata");
+    }
+
+    #[tokio::test]
+    async fn auth_via_bearer_header_passes_core() {
+        let res = transcode_core(
+            &bearer("secret"),
+            &Some("secret".into()),
+            &transcoder_with(store_with_one()),
+            "999",
+        )
+        .await;
         assert_eq!(res.status(), StatusCode::NOT_FOUND);
     }
 }
