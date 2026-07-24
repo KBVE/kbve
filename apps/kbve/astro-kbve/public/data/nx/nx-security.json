@@ -1,19 +1,19 @@
 {
-	"generated_at": "2026-07-23T04:19:40Z",
+	"generated_at": "2026-07-24T04:17:53Z",
 	"summary": {
 		"critical": 4,
 		"high": 39,
-		"medium": 56,
+		"medium": 55,
 		"low": 10,
 		"info": 30
 	},
 	"ecosystems": {
 		"npm": {
-			"total": 94,
+			"total": 93,
 			"severities": {
 				"critical": 4,
 				"high": 39,
-				"medium": 41,
+				"medium": 40,
 				"low": 10,
 				"info": 0
 			},
@@ -488,13 +488,6 @@
 					"url": "https://github.com/advisories/GHSA-3jxr-9vmj-r5cp"
 				},
 				{
-					"id": "1123899",
-					"title": "Astro: Reflected XSS via unescaped View Transition animation properties",
-					"severity": "medium",
-					"package": "astro",
-					"url": "https://github.com/advisories/GHSA-4g3v-8h47-v7g6"
-				},
-				{
 					"id": "1123911",
 					"title": "js-yaml: YAML merge-key chains can force quadratic CPU consumption",
 					"severity": "high",
@@ -670,7 +663,7 @@
 					"url": "https://github.com/advisories/GHSA-8r6m-32jq-jx6q"
 				},
 				{
-					"id": "1124073",
+					"id": "1124231",
 					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
 					"severity": "high",
 					"package": "fast-uri",
