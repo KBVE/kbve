@@ -9,6 +9,10 @@ export interface DirNode {
 	n: number;
 	files: number;
 	c: number;
+	/** Doc reference for this code area (e.g. ``/application/rust/``). */
+	ref?: string;
+	/** NX projects rooted in this directory (unified-graph overlay). */
+	nx?: { projects: { name: string; type?: string }[] };
 }
 
 /** Edge as emitted by graphify_tiered.py: [source, target, weight, relIdx]. */
@@ -65,6 +69,7 @@ export const REL_COLORS: [number, number, number][] = [
 	[0.5, 0.85, 0.55], // contains  — green
 	[0.95, 0.5, 0.85], // extends   — magenta
 	[0.45, 0.5, 0.62], // other     — slate
+	[0.72, 0.4, 1.0], // depends   — violet (NX project deps)
 ];
 
 export const REL_LABELS = [
@@ -74,6 +79,7 @@ export const REL_LABELS = [
 	'contains',
 	'extends',
 	'other',
+	'depends',
 ];
 
 interface State {
@@ -106,16 +112,14 @@ export function useMonorepoGraph(base = '/graphify') {
 				return r.json();
 			})
 			.then((overview: Overview) => {
-				if (alive)
-					setState({ overview, loading: false, error: null });
+				if (alive) setState({ overview, loading: false, error: null });
 			})
 			.catch((e: unknown) => {
 				if (alive)
 					setState({
 						overview: null,
 						loading: false,
-						error:
-							e instanceof Error ? e.message : 'load failed',
+						error: e instanceof Error ? e.message : 'load failed',
 					});
 			});
 		return () => {
@@ -127,8 +131,7 @@ export function useMonorepoGraph(base = '/graphify') {
 		(slug: string): Promise<DirChunk | null> => {
 			if (chunks.current.has(slug))
 				return Promise.resolve(chunks.current.get(slug)!);
-			if (inflight.current.has(slug))
-				return inflight.current.get(slug)!;
+			if (inflight.current.has(slug)) return inflight.current.get(slug)!;
 			const p = fetch(`${base}/dir/${slug}.json`)
 				.then((r) => {
 					if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -165,7 +168,10 @@ export function communityColor(id: number): [number, number, number] {
 }
 
 /** Deterministic color for a directory index (evenly spaced hues). */
-export function dirColor(index: number, total: number): [number, number, number] {
+export function dirColor(
+	index: number,
+	total: number,
+): [number, number, number] {
 	return hslToRgb((index / Math.max(total, 1)) % 1, 0.55, 0.62);
 }
 

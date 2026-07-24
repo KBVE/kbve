@@ -15,7 +15,7 @@ sidebar:
 ---
 
 import BentoShell from '@/components/hero/BentoShell.astro';
-import GraphHub from '@/components/graph/GraphHub';
+import AstroGraphExplorer from '@/components/dashboard/AstroGraphExplorer.astro';
 import nxGraph from '../../../public/data/nx/nx-graph.json';
 import overview from '../../../public/graphify/overview.json';
 
@@ -36,12 +36,12 @@ export const symbols = overview.meta.symbols;
 				</span>
 				<h1 class="bento-title">
 					The whole monorepo,
-					<span class="bento-title__accent">searchable and cross-linked.</span>
+					<span class="bento-title__accent">one living graph.</span>
 				</h1>
-				<p class="bento-lede">Search any project to see its <strong>NX dependencies</strong>, its <strong>Graphify</strong> code area, and its <strong>docs</strong> — all in one place, each linking out to its full view.</p>
+				<p class="bento-lede">One graph fuses <strong>Graphify</strong> code analysis, <strong>NX</strong> dependency edges, and <strong>doc references</strong>. Scroll to drill from directories into files and symbols; click a node for its projects and docs.</p>
 				<div class="bento-cta">
 					<a class="bento-btn bento-btn--primary" href="#hub">
-						Start searching
+						Open the graph
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
 					</a>
 					<a class="bento-btn bento-btn--ghost" href="/dashboard/graph/">NX graph</a>
@@ -87,10 +87,13 @@ export const symbols = overview.meta.symbols;
 	</div>
 </section>
 
-<BentoShell id="hub" eyebrow="Unified · cross-linked" heading="Explore the graph">
-	<GraphHub client:only="react" />
+<BentoShell id="hub" eyebrow="Unified · Graphify + NX + docs" heading="Explore the graph">
+	<AstroGraphExplorer />
+	<p class="graph-hub-fallback">
+		Prefer a searchable list? <a href="/graph/list/">Open the list view →</a>
+	</p>
 </BentoShell>
 
 </div>
 
-<style is:global>{`.graph-hub-page{--bento-accent:#a78bfa;--bento-accent-2:#38bdf8}`}</style>
+<style is:global>{`.graph-hub-page{--bento-accent:#a78bfa;--bento-accent-2:#38bdf8}.graph-hub-fallback{margin:12px 0 0;font-size:0.8rem;color:#94a3b8;text-align:center}.graph-hub-fallback a{color:#38bdf8}`}</style>
