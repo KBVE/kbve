@@ -1,0 +1,21 @@
+[h1]chef_paldon_yumsay[/h1]
+
+Open-source custom food pack for Palworld. Adds new cooking recipes built from existing
+in-game ingredients. Data-only pak; no UE4SS or runtime scripts required.
+
+[h2]New foods[/h2]
+[list]
+[*][b]Roasted Vegetables[/b]: 2 Carrot, 2 Onion. Restores satiety and gives a small Work
+Speed effect.
+[*][b]Hearty Stew[/b]: 2 Potato, 1 Carrot, 1 Onion. Restores a large amount of satiety and
+gives an Attack Up effect.
+[/list]
+
+[h2]Install notes[/h2]
+[list]
+[*]Data-only pak mod. No UE4SS required.
+[*]Dedicated servers: install on both the client and the server.
+[/list]
+
+[h2]Source[/h2]
+Open source under MIT. Contributions welcome.

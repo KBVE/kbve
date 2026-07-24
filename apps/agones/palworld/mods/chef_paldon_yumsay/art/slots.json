@@ -1,0 +1,8 @@
+{
+  "slots": [
+    { "path": "workshop/thumbnail.png", "width": 512, "height": 512 },
+    { "path": "workshop/preview.png", "width": 1280, "height": 720 },
+    { "path": "art/icon_roasted_vegetables.png", "width": 128, "height": 128 },
+    { "path": "art/icon_hearty_stew.png", "width": 128, "height": 128 }
+  ]
+}

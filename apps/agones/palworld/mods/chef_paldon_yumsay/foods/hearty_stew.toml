@@ -1,0 +1,24 @@
+[food]
+id = "Food_HeartyStew"
+name = "Hearty Stew"
+description = "A hearty stew of potatoes, carrots, and onions. Eating it increases Attack."
+icon = "/Game/Pal/Texture/ItemIcon/T_itemicon_Food_MammorestCurry"
+stack_size = 50
+rank = 2
+
+[recipe]
+work_amount = 400
+workbench_tier = 2
+output_count = 1
+ingredients = [
+  { id = "Potato", count = 2 },
+  { id = "Carrot", count = 1 },
+  { id = "Onion", count = 1 },
+]
+
+[effect]
+satiety = 400
+sanity = 50
+status_effect = "AttackUp"
+magnitude = 0.25
+duration = 600
