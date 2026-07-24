@@ -512,6 +512,38 @@ fn rotate_decision(desired: &str, running: &str, state: &str) -> RotateDecision 
     }
 }
 
+fn backup_tar_args(
+    pod: &str,
+    namespace: &str,
+    container: &str,
+    save_path: &str,
+    world: &str,
+    backup_dir: &str,
+    ts: &str,
+) -> Vec<String> {
+    let archive = format!("{backup_dir}/backup-{world}-{ts}.tar.gz");
+    let script = format!(
+        "set -eu; mkdir -p '{backup_dir}'; \
+tar czf '{archive}' -C '{save_path}' \
+'SaveGames/0/{world}' \
+'Config/WindowsServer/GameUserSettings.ini' \
+'Config/WindowsServer/PalWorldSettings.ini'; \
+ls -l '{archive}'"
+    );
+    vec![
+        "exec".to_string(),
+        pod.to_string(),
+        "-n".to_string(),
+        namespace.to_string(),
+        "-c".to_string(),
+        container.to_string(),
+        "--".to_string(),
+        "sh".to_string(),
+        "-c".to_string(),
+        script,
+    ]
+}
+
 const HEARTBEAT_PATH: &str = "/tmp/.rotator-heartbeat";
 
 fn touch_heartbeat() {
@@ -649,5 +681,25 @@ mod rotate_tests {
     #[test]
     fn matching_images_skip() {
         assert!(!del("0.0.6", "0.0.6", "Allocated"));
+    }
+
+    #[test]
+    fn backup_tar_args_scopes_to_world_and_config() {
+        let a = super::backup_tar_args(
+            "palworld", "palworld", "palworld",
+            "/palworld/Pal/Saved", "CB8B6E", "/palworld/backups", "1737",
+        );
+        assert_eq!(a[0], "exec");
+        assert_eq!(a[1], "palworld");
+        assert_eq!(&a[2..7], &["-n", "palworld", "-c", "palworld", "--"]);
+        assert_eq!(a[7], "sh");
+        assert_eq!(a[8], "-c");
+        let script = a.last().unwrap();
+        assert!(script.contains("/palworld/backups/backup-CB8B6E-1737.tar.gz"));
+        assert!(script.contains("-C '/palworld/Pal/Saved'"));
+        assert!(script.contains("'SaveGames/0/CB8B6E'"));
+        assert!(script.contains("Config/WindowsServer/GameUserSettings.ini"));
+        assert!(script.contains("Config/WindowsServer/PalWorldSettings.ini"));
+        assert!(!script.contains("-C '/palworld/Pal/Saved' 'Saved'"));
     }
 }
