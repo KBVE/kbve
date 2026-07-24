@@ -1,13 +1,17 @@
 use crate::{config, mover, state};
+use std::collections::HashMap;
 use std::net::IpAddr;
 use std::path::PathBuf;
-use std::sync::Arc;
+use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::sync::{Arc, Mutex};
+use std::task::{Context, Poll};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use librqbit::api::TorrentIdOrHash;
-use librqbit::{AddTorrent, AddTorrentOptions, ManagedTorrent, Session};
+use librqbit::{AddTorrent, AddTorrentOptions, ManagedTorrent, Session, SessionPersistenceConfig};
 use tokio::io::{AsyncRead, AsyncSeek};
+use tokio::sync::Notify;
 
 pub fn is_vpn_ip(ip: IpAddr) -> bool {
     match ip {
@@ -35,12 +39,7 @@ pub async fn vpn_preflight(check_url: &str) -> anyhow::Result<IpAddr> {
     Ok(ip)
 }
 
-fn now_secs() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0)
-}
+use crate::util::now_secs;
 
 static ADD_COUNTER: AtomicU64 = AtomicU64::new(0);
 
@@ -76,7 +75,11 @@ pub struct Engine {
     library_dir: PathBuf,
     vpn_check_url: String,
     vpn_ok: Arc<AtomicBool>,
+    active_leech: Arc<Mutex<HashMap<String, u32>>>,
+    drain: Arc<Notify>,
 }
+
+const LEECH_DRAIN_CAP: Duration = Duration::from_secs(6 * 3600);
 
 impl Engine {
     pub async fn start(cfg: &config::Config, store: state::StateStore) -> anyhow::Result<Self> {
@@ -84,7 +87,12 @@ impl Engine {
         tracing::info!(%ip, "vpn preflight ok");
         std::fs::create_dir_all(&cfg.active_dir)?;
         std::fs::create_dir_all(&cfg.library_dir)?;
+        std::fs::create_dir_all(&cfg.session_dir)?;
         let opts = librqbit::SessionOptions {
+            fastresume: true,
+            persistence: Some(SessionPersistenceConfig::Json {
+                folder: Some(cfg.session_dir.clone()),
+            }),
             ratelimits: librqbit::limits::LimitsConfig {
                 upload_bps: cfg.upload_limit_bps.and_then(std::num::NonZeroU32::new),
                 download_bps: None,
@@ -95,15 +103,18 @@ impl Engine {
             tracing::info!(upload_bps = bps.get(), "seeding upload rate limit enabled");
         }
         let session = Session::new_with_opts(cfg.active_dir.clone(), opts).await?;
-        reconcile_on_start(&store);
-        Ok(Self {
+        let engine = Self {
             session,
             store,
             active_dir: cfg.active_dir.clone(),
             library_dir: cfg.library_dir.clone(),
             vpn_check_url: cfg.vpn_check_url.clone(),
             vpn_ok: Arc::new(AtomicBool::new(true)),
-        })
+            active_leech: Arc::new(Mutex::new(HashMap::new())),
+            drain: Arc::new(Notify::new()),
+        };
+        engine.resume_on_start();
+        Ok(engine)
     }
 
     pub fn vpn_ok(&self) -> bool {
@@ -157,7 +168,7 @@ impl Engine {
         let handle = resp
             .into_handle()
             .ok_or_else(|| anyhow::anyhow!("torrent is list-only, no handle"))?;
-        let id = handle.id().to_string();
+        let id = handle.info_hash().as_string();
         let name = handle.name().unwrap_or_else(|| id.clone());
 
         self.store.upsert(state::Metadata {
@@ -169,6 +180,7 @@ impl Engine {
             last_access: now_secs(),
             state: state::TorrentState::Leeching,
             error: None,
+            active_path: Some(out_dir.to_string_lossy().into_owned()),
             transcode: state::TranscodeStatus::None,
             transcode_path: None,
             transcode_error: None,
@@ -178,24 +190,38 @@ impl Engine {
         })?;
         crate::telemetry::torrent_added(&id, source.split_once(':').map(|(s, _)| s).unwrap_or("unknown"));
 
+        self.spawn_completion_watcher(handle, out_dir, id.clone(), name);
+        Ok(id)
+    }
+
+    fn spawn_completion_watcher(
+        &self,
+        handle: Arc<ManagedTorrent>,
+        out_dir: PathBuf,
+        id: String,
+        name: String,
+    ) {
         let store = self.store.clone();
         let library_dir = self.library_dir.clone();
-        let id_task = id.clone();
+        let session = self.session.clone();
+        let active_leech = self.active_leech.clone();
+        let drain = self.drain.clone();
         tokio::spawn(async move {
             if let Err(e) = handle.wait_until_completed().await {
-                crate::telemetry::torrent_failed(&id_task, "download", &e.to_string());
-                let _ = store.update(&id_task, |m| {
+                crate::telemetry::torrent_failed(&id, "download", &e.to_string());
+                let _ = store.update(&id, |m| {
                     m.state = state::TorrentState::Failed;
                     m.error = Some(format!("download failed: {e}"));
                     ((), true)
                 });
+                delete_from_session(&session, &id, true).await;
                 return;
             }
             match mover::move_completed(&out_dir, &library_dir) {
                 Ok(moved) => {
                     let now = now_secs();
                     let _ = store.upsert(state::Metadata {
-                        id: id_task.clone(),
+                        id: id.clone(),
                         name,
                         path: moved.dest.display().to_string(),
                         size: moved.size,
@@ -203,6 +229,7 @@ impl Engine {
                         last_access: now,
                         state: state::TorrentState::Seeding,
                         error: None,
+                        active_path: None,
                         transcode: state::TranscodeStatus::None,
                         transcode_path: None,
                         transcode_error: None,
@@ -210,25 +237,54 @@ impl Engine {
                         hls_dir: None,
                         hls_error: None,
                     });
-                    crate::telemetry::torrent_completed(&id_task, moved.size);
+                    crate::telemetry::torrent_completed(&id, moved.size);
+                    wait_leech_drained(&active_leech, &drain, &id).await;
+                    delete_from_session(&session, &id, false).await;
                 }
                 Err(e) => {
-                    crate::telemetry::torrent_failed(&id_task, "move", &e.to_string());
-                    let _ = store.update(&id_task, |m| {
+                    crate::telemetry::torrent_failed(&id, "move", &e.to_string());
+                    let _ = store.update(&id, |m| {
                         m.state = state::TorrentState::Failed;
                         m.error = Some(format!("move failed: {e}"));
                         ((), true)
                     });
+                    delete_from_session(&session, &id, true).await;
                 }
             }
         });
-        Ok(id)
+    }
+
+    fn resume_on_start(&self) {
+        for m in self.store.list() {
+            if !needs_resume_watch(&m.state) {
+                continue;
+            }
+            match (self.handle(&m.id), m.active_path.clone()) {
+                (Some(handle), Some(active_path)) => {
+                    self.spawn_completion_watcher(
+                        handle,
+                        PathBuf::from(active_path),
+                        m.id.clone(),
+                        m.name.clone(),
+                    );
+                    crate::telemetry::torrent_added(&m.id, "resume");
+                }
+                _ => {
+                    let _ = self.store.update(&m.id, |m| {
+                        m.state = state::TorrentState::Failed;
+                        m.error = Some("interrupted by restart; not restored".into());
+                        ((), true)
+                    });
+                    crate::telemetry::reconcile_failed(&m.id, &m.name);
+                }
+            }
+        }
     }
 
     pub async fn delete(&self, id: &str) -> anyhow::Result<bool> {
         let removed = self.store.remove(id)?;
-        if let Ok(tid) = id.parse::<usize>() {
-            let _ = self.session.delete(TorrentIdOrHash::Id(tid), true).await;
+        if let Ok(tid) = TorrentIdOrHash::parse(id) {
+            let _ = self.session.delete(tid, true).await;
         }
         if let Some(m) = &removed {
             remove_entry_files(&m.path, m.transcode_path.as_deref());
@@ -281,8 +337,8 @@ pub fn primary_file_index(files: &[FileEntry]) -> Option<usize> {
 
 impl Engine {
     fn handle(&self, id: &str) -> Option<Arc<ManagedTorrent>> {
-        let tid = id.parse::<usize>().ok()?;
-        self.session.get(TorrentIdOrHash::Id(tid))
+        let tid = TorrentIdOrHash::parse(id).ok()?;
+        self.session.get(tid)
     }
 
     pub fn list_files(&self, id: &str) -> anyhow::Result<Option<Vec<FileEntry>>> {
@@ -317,6 +373,86 @@ impl Engine {
             .ok_or_else(|| anyhow::anyhow!("no managed torrent for id {id}"))?;
         handle.stream(file_id)
     }
+
+    fn leech_enter(&self, id: &str) -> LeechGuard {
+        *self
+            .active_leech
+            .lock()
+            .unwrap()
+            .entry(id.to_string())
+            .or_insert(0) += 1;
+        LeechGuard {
+            active: self.active_leech.clone(),
+            drain: self.drain.clone(),
+            id: id.to_string(),
+        }
+    }
+}
+
+pub struct LeechGuard {
+    active: Arc<Mutex<HashMap<String, u32>>>,
+    drain: Arc<Notify>,
+    id: String,
+}
+
+impl Drop for LeechGuard {
+    fn drop(&mut self) {
+        {
+            let mut g = self.active.lock().unwrap();
+            if let Some(n) = g.get_mut(&self.id) {
+                *n = n.saturating_sub(1);
+                if *n == 0 {
+                    g.remove(&self.id);
+                }
+            }
+        }
+        self.drain.notify_waiters();
+    }
+}
+
+struct GuardedReader<R> {
+    inner: R,
+    _guard: LeechGuard,
+}
+
+impl<R: AsyncRead + Unpin> AsyncRead for GuardedReader<R> {
+    fn poll_read(
+        mut self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+        buf: &mut tokio::io::ReadBuf<'_>,
+    ) -> Poll<std::io::Result<()>> {
+        Pin::new(&mut self.inner).poll_read(cx, buf)
+    }
+}
+
+impl<R: AsyncSeek + Unpin> AsyncSeek for GuardedReader<R> {
+    fn start_seek(mut self: Pin<&mut Self>, position: std::io::SeekFrom) -> std::io::Result<()> {
+        Pin::new(&mut self.inner).start_seek(position)
+    }
+    fn poll_complete(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<std::io::Result<u64>> {
+        Pin::new(&mut self.inner).poll_complete(cx)
+    }
+}
+
+async fn wait_leech_drained(
+    active: &Arc<Mutex<HashMap<String, u32>>>,
+    drain: &Arc<Notify>,
+    id: &str,
+) {
+    let fut = async {
+        loop {
+            let notified = drain.notified();
+            tokio::pin!(notified);
+            notified.as_mut().enable();
+            if active.lock().unwrap().get(id).copied().unwrap_or(0) == 0 {
+                return;
+            }
+            notified.await;
+        }
+    };
+    if tokio::time::timeout(LEECH_DRAIN_CAP, fut).await.is_err() {
+        tracing::warn!(id = %id, "leech stream drain timed out; deleting torrent anyway");
+    }
 }
 
 pub trait ReadSeek: AsyncRead + AsyncSeek + Send + Unpin {}
@@ -332,23 +468,23 @@ impl MediaSource for Engine {
         self.list_files(id)
     }
     fn open(&self, id: &str, file_id: usize) -> anyhow::Result<Box<dyn ReadSeek>> {
-        Ok(Box::new(self.open_stream(id, file_id)?))
+        let reader = self.open_stream(id, file_id)?;
+        let guard = self.leech_enter(id);
+        Ok(Box::new(GuardedReader {
+            inner: reader,
+            _guard: guard,
+        }))
     }
 }
 
-pub fn needs_fail_on_restart(state: &state::TorrentState) -> bool {
+pub fn needs_resume_watch(state: &state::TorrentState) -> bool {
     matches!(state, state::TorrentState::Leeching)
 }
 
-fn reconcile_on_start(store: &state::StateStore) {
-    for m in store.list() {
-        if needs_fail_on_restart(&m.state) {
-            let _ = store.update(&m.id, |m| {
-                m.state = state::TorrentState::Failed;
-                m.error = Some("interrupted by restart; not resumable".into());
-                ((), true)
-            });
-            crate::telemetry::reconcile_failed(&m.id, &m.name);
+async fn delete_from_session(session: &Session, id: &str, delete_files: bool) {
+    if let Ok(tid) = TorrentIdOrHash::parse(id) {
+        if let Err(e) = session.delete(tid, delete_files).await {
+            tracing::debug!(id = %id, error = %e, "session delete after terminal state failed");
         }
     }
 }
@@ -392,50 +528,60 @@ mod tests {
     }
 
     #[test]
-    fn needs_fail_on_restart_only_leeching() {
+    fn needs_resume_watch_only_leeching() {
         use state::TorrentState::*;
-        assert!(needs_fail_on_restart(&Leeching));
-        assert!(!needs_fail_on_restart(&Seeding));
-        assert!(!needs_fail_on_restart(&Failed));
-        assert!(!needs_fail_on_restart(&Reaped));
+        assert!(needs_resume_watch(&Leeching));
+        assert!(!needs_resume_watch(&Seeding));
+        assert!(!needs_resume_watch(&Failed));
+        assert!(!needs_resume_watch(&Reaped));
     }
 
-    #[test]
-    fn reconcile_fails_stranded_leeching_keeps_seeding() {
-        let dir = tempfile::tempdir().unwrap();
-        let store = state::StateStore::load(dir.path().join("s.json")).unwrap();
-        let mut leech = mk_meta("1", state::TorrentState::Leeching);
-        leech.name = "dl".into();
-        store.upsert(leech).unwrap();
-        store
-            .upsert(mk_meta("2", state::TorrentState::Seeding))
-            .unwrap();
-
-        reconcile_on_start(&store);
-
-        let a = store.get("1").unwrap();
-        assert_eq!(a.state, state::TorrentState::Failed);
-        assert!(a.error.as_deref().unwrap().contains("restart"));
-        assert_eq!(store.get("2").unwrap().state, state::TorrentState::Seeding);
-    }
-
-    fn mk_meta(id: &str, st: state::TorrentState) -> state::Metadata {
-        state::Metadata {
-            id: id.into(),
-            name: id.into(),
-            path: format!("/lib/{id}"),
-            size: 1,
-            completed_at: None,
-            last_access: 0,
-            state: st,
-            error: None,
-            transcode: state::TranscodeStatus::None,
-            transcode_path: None,
-            transcode_error: None,
-            hls: state::HlsStatus::None,
-            hls_dir: None,
-            hls_error: None,
+    fn mk_guard(
+        active: &Arc<Mutex<HashMap<String, u32>>>,
+        drain: &Arc<Notify>,
+        id: &str,
+    ) -> LeechGuard {
+        *active.lock().unwrap().entry(id.to_string()).or_insert(0) += 1;
+        LeechGuard {
+            active: active.clone(),
+            drain: drain.clone(),
+            id: id.to_string(),
         }
+    }
+
+    #[tokio::test]
+    async fn drain_returns_immediately_when_no_streams() {
+        let active = Arc::new(Mutex::new(HashMap::new()));
+        let drain = Arc::new(Notify::new());
+        tokio::time::timeout(
+            Duration::from_secs(1),
+            wait_leech_drained(&active, &drain, "none"),
+        )
+        .await
+        .expect("must return without waiting");
+    }
+
+    #[tokio::test]
+    async fn drain_waits_until_all_guards_dropped() {
+        let active = Arc::new(Mutex::new(HashMap::new()));
+        let drain = Arc::new(Notify::new());
+        let g1 = mk_guard(&active, &drain, "x");
+        let g2 = mk_guard(&active, &drain, "x");
+
+        let (a2, d2) = (active.clone(), drain.clone());
+        let waiter = tokio::spawn(async move { wait_leech_drained(&a2, &d2, "x").await });
+
+        tokio::time::sleep(Duration::from_millis(20)).await;
+        assert!(!waiter.is_finished(), "two streams in flight");
+        drop(g1);
+        tokio::time::sleep(Duration::from_millis(20)).await;
+        assert!(!waiter.is_finished(), "one still in flight");
+        drop(g2);
+        tokio::time::timeout(Duration::from_secs(1), waiter)
+            .await
+            .expect("drain must complete after last guard drops")
+            .unwrap();
+        assert!(active.lock().unwrap().get("x").is_none(), "entry cleaned up");
     }
 
     #[test]

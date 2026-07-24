@@ -30,6 +30,8 @@ pub struct Metadata {
     #[serde(default)]
     pub error: Option<String>,
     #[serde(default)]
+    pub active_path: Option<String>,
+    #[serde(default)]
     pub transcode: TranscodeStatus,
     #[serde(default)]
     pub transcode_path: Option<String>,
@@ -175,7 +177,7 @@ mod tests {
         Metadata {
             id: id.into(), name: format!("t-{id}"), path: format!("/lib/{id}"),
             size: 10, completed_at: Some(last_access), last_access,
-            state: TorrentState::Seeding, error: None,
+            state: TorrentState::Seeding, error: None, active_path: None,
             transcode: TranscodeStatus::None, transcode_path: None, transcode_error: None,
             hls: HlsStatus::None, hls_dir: None, hls_error: None,
         }
@@ -293,6 +295,25 @@ mod tests {
         assert_eq!(m.transcode, TranscodeStatus::None);
         assert!(m.transcode_path.is_none());
         assert!(m.transcode_error.is_none());
+    }
+
+    #[test]
+    fn active_path_roundtrips_and_defaults_none_on_legacy() {
+        let dir = tempfile::tempdir().unwrap();
+        let p = dir.path().join("state.json");
+        let legacy = r#"{"1":{"id":"1","name":"m","path":"/lib/m","size":3,"completed_at":10,"last_access":10,"state":"Seeding"}}"#;
+        std::fs::write(&p, legacy).unwrap();
+        assert!(StateStore::load(p.clone()).unwrap().get("1").unwrap().active_path.is_none());
+        let s = StateStore::load(p.clone()).unwrap();
+        s.update("1", |m| {
+            m.active_path = Some("/data/active/abc".into());
+            ((), true)
+        })
+        .unwrap();
+        assert_eq!(
+            StateStore::load(p).unwrap().get("1").unwrap().active_path.as_deref(),
+            Some("/data/active/abc")
+        );
     }
 
     #[test]

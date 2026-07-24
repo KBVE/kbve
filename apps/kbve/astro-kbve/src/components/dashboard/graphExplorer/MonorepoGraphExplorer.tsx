@@ -1,10 +1,6 @@
 import { useMemo, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
-import {
-	useMonorepoGraph,
-	REL_COLORS,
-	REL_LABELS,
-} from './useMonorepoGraph';
+import { useMonorepoGraph, REL_COLORS, REL_LABELS } from './useMonorepoGraph';
 import TieredGraphScene, {
 	type ColorMode,
 	type HoverInfo,
@@ -19,6 +15,8 @@ interface PickedDir {
 	label: string;
 	n: number;
 	files: number;
+	ref?: string;
+	nx?: { projects: { name: string; type?: string }[] };
 }
 
 const rgb = (c: [number, number, number]) =>
@@ -55,10 +53,10 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 			.slice(0, 8);
 	}, [overview, query]);
 
-	const focus = (id: string, label: string, n: number, files: number) => {
+	const focus = (d: PickedDir) => {
 		seq.current += 1;
-		setFocusRequest({ id, seq: seq.current });
-		setPicked({ id, label, n, files });
+		setFocusRequest({ id: d.id, seq: seq.current });
+		setPicked(d);
 		setQuery('');
 	};
 
@@ -80,8 +78,7 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 							near: 0.1,
 							far: 1000,
 						}}
-						dpr={[1, 2]}
-					>
+						dpr={[1, 2]}>
 						<color attach="background" args={['#0a0e16']} />
 						<TieredGraphScene
 							overview={overview}
@@ -99,9 +96,7 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 
 					<div className="mgx__legend">
 						<strong>{overview.meta.dirs}</strong> dirs ·{' '}
-						<strong>
-							{overview.meta.files.toLocaleString()}
-						</strong>{' '}
+						<strong>{overview.meta.files.toLocaleString()}</strong>{' '}
 						files ·{' '}
 						<strong>
 							{overview.meta.symbols.toLocaleString()}
@@ -133,15 +128,7 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 										<li key={d.id}>
 											<button
 												type="button"
-												onClick={() =>
-													focus(
-														d.id,
-														d.label,
-														d.n,
-														d.files,
-													)
-												}
-											>
+												onClick={() => focus(d)}>
 												{d.label}
 												<span>{d.n}</span>
 											</button>
@@ -153,8 +140,7 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 						<button
 							type="button"
 							className={colorMode === 'dir' ? 'is-active' : ''}
-							onClick={() => setColorMode('dir')}
-						>
+							onClick={() => setColorMode('dir')}>
 							Color: directory
 						</button>
 						<button
@@ -162,8 +148,7 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 							className={
 								colorMode === 'community' ? 'is-active' : ''
 							}
-							onClick={() => setColorMode('community')}
-						>
+							onClick={() => setColorMode('community')}>
 							Color: community
 						</button>
 					</div>
@@ -177,10 +162,31 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 								{picked.n.toLocaleString()} symbols ·{' '}
 								{picked.files} files
 							</div>
+							{picked.nx && picked.nx.projects.length > 0 && (
+								<div className="mgx__panel-nx">
+									{picked.nx.projects.slice(0, 8).map((p) => (
+										<span
+											key={p.name}
+											className="mgx__nx-chip"
+											data-type={p.type}>
+											{p.name}
+										</span>
+									))}
+									{picked.nx.projects.length > 8 && (
+										<span className="mgx__nx-chip">
+											+{picked.nx.projects.length - 8}
+										</span>
+									)}
+								</div>
+							)}
+							{picked.ref && (
+								<a className="mgx__panel-ref" href={picked.ref}>
+									Read the docs →
+								</a>
+							)}
 							<button
 								type="button"
-								onClick={() => setPicked(null)}
-							>
+								onClick={() => setPicked(null)}>
 								dismiss
 							</button>
 						</div>
@@ -195,14 +201,14 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 									window.innerWidth - 260,
 								),
 								top: hover.y + 14,
-							}}
-						>
+							}}>
 							<span
-								className={`mgx__kind mgx__kind--${hover.kind}`}
-							>
+								className={`mgx__kind mgx__kind--${hover.kind}`}>
 								{hover.kind}
 							</span>
-							<span className="mgx__tip-label">{hover.label}</span>
+							<span className="mgx__tip-label">
+								{hover.label}
+							</span>
 							<span className="mgx__tip-sub">{hover.sub}</span>
 						</div>
 					)}
@@ -362,6 +368,28 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 					max-width: 260px;
 				}
 				.mgx__panel-title { font-weight: 600; }
+					.mgx__panel-nx { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 6px; }
+					.mgx__nx-chip {
+						font-size: 0.64rem;
+						padding: 1px 6px;
+						border-radius: 5px;
+						background: rgba(184, 148, 255, 0.16);
+						color: #d8c7ff;
+						border: 1px solid rgba(184, 148, 255, 0.3);
+					}
+					.mgx__nx-chip[data-type='app'] {
+						background: rgba(56, 189, 248, 0.16);
+						color: #bae6fd;
+						border-color: rgba(56, 189, 248, 0.3);
+					}
+					.mgx__panel-ref {
+						display: inline-block;
+						margin-bottom: 8px;
+						color: #38bdf8;
+						font-size: 0.72rem;
+						text-decoration: none;
+					}
+					.mgx__panel-ref:hover { text-decoration: underline; }
 				.mgx__panel-sub {
 					color: #94a3b8;
 					font-size: 0.7rem;

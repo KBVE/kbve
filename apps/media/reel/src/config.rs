@@ -5,6 +5,7 @@ pub struct Config {
     pub reap_interval_secs: u64,
     pub active_dir: PathBuf,
     pub library_dir: PathBuf,
+    pub session_dir: PathBuf,
     pub state_file: PathBuf,
     pub api_addr: String,
     pub vpn_check_url: String,
@@ -35,17 +36,24 @@ fn env_u64(key: &str, default: u64) -> anyhow::Result<u64> {
 
 fn env_bool(key: &str, default: bool) -> bool {
     match std::env::var(key) {
+        Ok(v) if v.trim().is_empty() => default,
         Ok(v) => !(v.eq_ignore_ascii_case("false") || v == "0"),
         Err(_) => default,
     }
 }
 
 pub fn load_from_env() -> anyhow::Result<Config> {
+    let active_dir = PathBuf::from(env_or("REEL_ACTIVE_DIR", "/data/active"));
+    let session_dir = match std::env::var("REEL_SESSION_DIR") {
+        Ok(v) => PathBuf::from(v),
+        Err(_) => active_dir.join(".session"),
+    };
     Ok(Config {
         ttl_secs: env_u64("REEL_TTL_SECS", 21600)?,
         reap_interval_secs: env_u64("REEL_REAP_INTERVAL_SECS", 300)?,
-        active_dir: PathBuf::from(env_or("REEL_ACTIVE_DIR", "/data/active")),
+        active_dir: active_dir.clone(),
         library_dir: PathBuf::from(env_or("REEL_LIBRARY_DIR", "/data/library")),
+        session_dir,
         state_file: PathBuf::from(env_or("REEL_STATE_FILE", "/data/reel-state.json")),
         api_addr: env_or("REEL_API_ADDR", "0.0.0.0:8080"),
         vpn_check_url: env_or("REEL_VPN_CHECK_URL", "https://api.ipify.org"),
@@ -74,7 +82,7 @@ mod tests {
 
     fn clear() {
         for k in ["REEL_TTL_SECS","REEL_REAP_INTERVAL_SECS","REEL_ACTIVE_DIR",
-                  "REEL_LIBRARY_DIR","REEL_STATE_FILE","REEL_API_ADDR",
+                  "REEL_LIBRARY_DIR","REEL_SESSION_DIR","REEL_STATE_FILE","REEL_API_ADDR",
                   "REEL_VPN_CHECK_URL","REEL_VPN_WATCHDOG_SECS","REEL_STATE_FLUSH_MS","REEL_UPLOAD_LIMIT_BPS","REEL_API_TOKEN","REEL_TRANSCODE_ENABLED",
                   "REEL_REMUX_CONCURRENCY","REEL_ENCODE_CONCURRENCY",
                   "REEL_FFMPEG_BIN","REEL_FFPROBE_BIN","REEL_STREAM_ENABLED",
@@ -94,6 +102,7 @@ mod tests {
         assert_eq!(c.state_flush_ms, 1000);
         assert!(c.upload_limit_bps.is_none());
         assert_eq!(c.active_dir, std::path::PathBuf::from("/data/active"));
+        assert_eq!(c.session_dir, std::path::PathBuf::from("/data/active/.session"));
         assert_eq!(c.api_addr, "0.0.0.0:8080");
         assert!(c.api_token.is_none());
     }
@@ -107,6 +116,17 @@ mod tests {
         let c = load_from_env().unwrap();
         assert_eq!(c.ttl_secs, 60);
         assert_eq!(c.api_token.as_deref(), Some("secret"));
+        clear();
+    }
+
+    #[test]
+    #[serial]
+    fn session_dir_defaults_under_active_and_overrides() {
+        clear();
+        std::env::set_var("REEL_ACTIVE_DIR", "/mnt/act");
+        assert_eq!(load_from_env().unwrap().session_dir, std::path::PathBuf::from("/mnt/act/.session"));
+        std::env::set_var("REEL_SESSION_DIR", "/mnt/sess");
+        assert_eq!(load_from_env().unwrap().session_dir, std::path::PathBuf::from("/mnt/sess"));
         clear();
     }
 
@@ -136,6 +156,17 @@ mod tests {
         let c2 = load_from_env().unwrap();
         assert!(!c2.transcode_enabled);
         assert_eq!(c2.encode_concurrency, 2);
+        clear();
+    }
+
+    #[test]
+    #[serial]
+    fn env_bool_empty_falls_back_to_default() {
+        clear();
+        std::env::set_var("REEL_TRANSCODE_ENABLED", "");
+        assert!(load_from_env().unwrap().transcode_enabled, "empty must not read as false");
+        std::env::set_var("REEL_STREAM_ENABLED", "   ");
+        assert!(load_from_env().unwrap().stream_enabled, "whitespace must not read as false");
         clear();
     }
 

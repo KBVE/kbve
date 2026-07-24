@@ -25,12 +25,7 @@ pub fn select_expired(items: &[state::Metadata], ttl_secs: u64, now: u64) -> Vec
         .collect()
 }
 
-fn now_secs() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0)
-}
+use crate::util::now_secs;
 
 pub async fn reap_loop(
     engine: crate::engine::Engine,
@@ -67,6 +62,7 @@ mod tests {
             last_access,
             state: TorrentState::Seeding,
             error: None,
+            active_path: None,
             transcode: TranscodeStatus::None,
             transcode_path: None,
             transcode_error: None,
