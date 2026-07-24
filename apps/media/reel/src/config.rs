@@ -36,6 +36,7 @@ fn env_u64(key: &str, default: u64) -> anyhow::Result<u64> {
 
 fn env_bool(key: &str, default: bool) -> bool {
     match std::env::var(key) {
+        Ok(v) if v.trim().is_empty() => default,
         Ok(v) => !(v.eq_ignore_ascii_case("false") || v == "0"),
         Err(_) => default,
     }
@@ -155,6 +156,17 @@ mod tests {
         let c2 = load_from_env().unwrap();
         assert!(!c2.transcode_enabled);
         assert_eq!(c2.encode_concurrency, 2);
+        clear();
+    }
+
+    #[test]
+    #[serial]
+    fn env_bool_empty_falls_back_to_default() {
+        clear();
+        std::env::set_var("REEL_TRANSCODE_ENABLED", "");
+        assert!(load_from_env().unwrap().transcode_enabled, "empty must not read as false");
+        std::env::set_var("REEL_STREAM_ENABLED", "   ");
+        assert!(load_from_env().unwrap().stream_enabled, "whitespace must not read as false");
         clear();
     }
 
