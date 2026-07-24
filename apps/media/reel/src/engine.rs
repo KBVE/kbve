@@ -1,13 +1,17 @@
 use crate::{config, mover, state};
+use std::collections::HashMap;
 use std::net::IpAddr;
 use std::path::PathBuf;
-use std::sync::Arc;
+use std::pin::Pin;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::sync::{Arc, Mutex};
+use std::task::{Context, Poll};
+use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use librqbit::api::TorrentIdOrHash;
 use librqbit::{AddTorrent, AddTorrentOptions, ManagedTorrent, Session, SessionPersistenceConfig};
 use tokio::io::{AsyncRead, AsyncSeek};
+use tokio::sync::Notify;
 
 pub fn is_vpn_ip(ip: IpAddr) -> bool {
     match ip {
@@ -35,12 +39,7 @@ pub async fn vpn_preflight(check_url: &str) -> anyhow::Result<IpAddr> {
     Ok(ip)
 }
 
-fn now_secs() -> u64 {
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0)
-}
+use crate::util::now_secs;
 
 static ADD_COUNTER: AtomicU64 = AtomicU64::new(0);
 
@@ -76,7 +75,11 @@ pub struct Engine {
     library_dir: PathBuf,
     vpn_check_url: String,
     vpn_ok: Arc<AtomicBool>,
+    active_leech: Arc<Mutex<HashMap<String, u32>>>,
+    drain: Arc<Notify>,
 }
+
+const LEECH_DRAIN_CAP: Duration = Duration::from_secs(6 * 3600);
 
 impl Engine {
     pub async fn start(cfg: &config::Config, store: state::StateStore) -> anyhow::Result<Self> {
@@ -107,6 +110,8 @@ impl Engine {
             library_dir: cfg.library_dir.clone(),
             vpn_check_url: cfg.vpn_check_url.clone(),
             vpn_ok: Arc::new(AtomicBool::new(true)),
+            active_leech: Arc::new(Mutex::new(HashMap::new())),
+            drain: Arc::new(Notify::new()),
         };
         engine.resume_on_start();
         Ok(engine)
@@ -199,6 +204,8 @@ impl Engine {
         let store = self.store.clone();
         let library_dir = self.library_dir.clone();
         let session = self.session.clone();
+        let active_leech = self.active_leech.clone();
+        let drain = self.drain.clone();
         tokio::spawn(async move {
             if let Err(e) = handle.wait_until_completed().await {
                 crate::telemetry::torrent_failed(&id, "download", &e.to_string());
@@ -231,6 +238,7 @@ impl Engine {
                         hls_error: None,
                     });
                     crate::telemetry::torrent_completed(&id, moved.size);
+                    wait_leech_drained(&active_leech, &drain, &id).await;
                     delete_from_session(&session, &id, false).await;
                 }
                 Err(e) => {
@@ -365,6 +373,86 @@ impl Engine {
             .ok_or_else(|| anyhow::anyhow!("no managed torrent for id {id}"))?;
         handle.stream(file_id)
     }
+
+    fn leech_enter(&self, id: &str) -> LeechGuard {
+        *self
+            .active_leech
+            .lock()
+            .unwrap()
+            .entry(id.to_string())
+            .or_insert(0) += 1;
+        LeechGuard {
+            active: self.active_leech.clone(),
+            drain: self.drain.clone(),
+            id: id.to_string(),
+        }
+    }
+}
+
+pub struct LeechGuard {
+    active: Arc<Mutex<HashMap<String, u32>>>,
+    drain: Arc<Notify>,
+    id: String,
+}
+
+impl Drop for LeechGuard {
+    fn drop(&mut self) {
+        {
+            let mut g = self.active.lock().unwrap();
+            if let Some(n) = g.get_mut(&self.id) {
+                *n = n.saturating_sub(1);
+                if *n == 0 {
+                    g.remove(&self.id);
+                }
+            }
+        }
+        self.drain.notify_waiters();
+    }
+}
+
+struct GuardedReader<R> {
+    inner: R,
+    _guard: LeechGuard,
+}
+
+impl<R: AsyncRead + Unpin> AsyncRead for GuardedReader<R> {
+    fn poll_read(
+        mut self: Pin<&mut Self>,
+        cx: &mut Context<'_>,
+        buf: &mut tokio::io::ReadBuf<'_>,
+    ) -> Poll<std::io::Result<()>> {
+        Pin::new(&mut self.inner).poll_read(cx, buf)
+    }
+}
+
+impl<R: AsyncSeek + Unpin> AsyncSeek for GuardedReader<R> {
+    fn start_seek(mut self: Pin<&mut Self>, position: std::io::SeekFrom) -> std::io::Result<()> {
+        Pin::new(&mut self.inner).start_seek(position)
+    }
+    fn poll_complete(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<std::io::Result<u64>> {
+        Pin::new(&mut self.inner).poll_complete(cx)
+    }
+}
+
+async fn wait_leech_drained(
+    active: &Arc<Mutex<HashMap<String, u32>>>,
+    drain: &Arc<Notify>,
+    id: &str,
+) {
+    let fut = async {
+        loop {
+            let notified = drain.notified();
+            tokio::pin!(notified);
+            notified.as_mut().enable();
+            if active.lock().unwrap().get(id).copied().unwrap_or(0) == 0 {
+                return;
+            }
+            notified.await;
+        }
+    };
+    if tokio::time::timeout(LEECH_DRAIN_CAP, fut).await.is_err() {
+        tracing::warn!(id = %id, "leech stream drain timed out; deleting torrent anyway");
+    }
 }
 
 pub trait ReadSeek: AsyncRead + AsyncSeek + Send + Unpin {}
@@ -380,7 +468,12 @@ impl MediaSource for Engine {
         self.list_files(id)
     }
     fn open(&self, id: &str, file_id: usize) -> anyhow::Result<Box<dyn ReadSeek>> {
-        Ok(Box::new(self.open_stream(id, file_id)?))
+        let reader = self.open_stream(id, file_id)?;
+        let guard = self.leech_enter(id);
+        Ok(Box::new(GuardedReader {
+            inner: reader,
+            _guard: guard,
+        }))
     }
 }
 
@@ -441,6 +534,54 @@ mod tests {
         assert!(!needs_resume_watch(&Seeding));
         assert!(!needs_resume_watch(&Failed));
         assert!(!needs_resume_watch(&Reaped));
+    }
+
+    fn mk_guard(
+        active: &Arc<Mutex<HashMap<String, u32>>>,
+        drain: &Arc<Notify>,
+        id: &str,
+    ) -> LeechGuard {
+        *active.lock().unwrap().entry(id.to_string()).or_insert(0) += 1;
+        LeechGuard {
+            active: active.clone(),
+            drain: drain.clone(),
+            id: id.to_string(),
+        }
+    }
+
+    #[tokio::test]
+    async fn drain_returns_immediately_when_no_streams() {
+        let active = Arc::new(Mutex::new(HashMap::new()));
+        let drain = Arc::new(Notify::new());
+        tokio::time::timeout(
+            Duration::from_secs(1),
+            wait_leech_drained(&active, &drain, "none"),
+        )
+        .await
+        .expect("must return without waiting");
+    }
+
+    #[tokio::test]
+    async fn drain_waits_until_all_guards_dropped() {
+        let active = Arc::new(Mutex::new(HashMap::new()));
+        let drain = Arc::new(Notify::new());
+        let g1 = mk_guard(&active, &drain, "x");
+        let g2 = mk_guard(&active, &drain, "x");
+
+        let (a2, d2) = (active.clone(), drain.clone());
+        let waiter = tokio::spawn(async move { wait_leech_drained(&a2, &d2, "x").await });
+
+        tokio::time::sleep(Duration::from_millis(20)).await;
+        assert!(!waiter.is_finished(), "two streams in flight");
+        drop(g1);
+        tokio::time::sleep(Duration::from_millis(20)).await;
+        assert!(!waiter.is_finished(), "one still in flight");
+        drop(g2);
+        tokio::time::timeout(Duration::from_secs(1), waiter)
+            .await
+            .expect("drain must complete after last guard drops")
+            .unwrap();
+        assert!(active.lock().unwrap().get("x").is_none(), "entry cleaned up");
     }
 
     #[test]

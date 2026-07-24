@@ -31,12 +31,7 @@ impl From<&AppState> for AppStateStub {
     }
 }
 
-fn now_secs() -> u64 {
-    std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .unwrap_or(0)
-}
+use crate::util::now_secs;
 
 fn served_bytes(range: Option<&str>, total: u64) -> u64 {
     match crate::stream::parse_range(range, total) {
@@ -45,13 +40,25 @@ fn served_bytes(range: Option<&str>, total: u64) -> u64 {
     }
 }
 
+fn ct_eq(a: &[u8], b: &[u8]) -> bool {
+    if a.len() != b.len() {
+        return false;
+    }
+    let mut diff = 0u8;
+    for (x, y) in a.iter().zip(b) {
+        diff |= x ^ y;
+    }
+    diff == 0
+}
+
 fn check_auth(headers: &HeaderMap, token: &Option<String>) -> bool {
     match token {
         None => true,
         Some(t) => headers
             .get("Authorization")
             .and_then(|h| h.to_str().ok())
-            .map(|h| h == format!("Bearer {t}"))
+            .and_then(|h| h.strip_prefix("Bearer "))
+            .map(|got| ct_eq(got.as_bytes(), t.as_bytes()))
             .unwrap_or(false),
     }
 }
@@ -70,7 +77,7 @@ fn check_auth_q(headers: &HeaderMap, query: Option<&str>, token: &Option<String>
     if check_auth(headers, token) {
         return true;
     }
-    matches!(token, Some(t) if token_from_query(query).as_deref() == Some(t.as_str()))
+    matches!((token, token_from_query(query)), (Some(t), Some(q)) if ct_eq(q.as_bytes(), t.as_bytes()))
 }
 
 async fn list(State(st): State<AppStateStub>, headers: HeaderMap) -> impl IntoResponse {
@@ -576,6 +583,24 @@ mod tests {
         let mut h = HeaderMap::new();
         h.insert("Authorization", format!("Bearer {token}").parse().unwrap());
         h
+    }
+
+    #[test]
+    fn ct_eq_matches_only_equal_slices() {
+        assert!(ct_eq(b"secret", b"secret"));
+        assert!(!ct_eq(b"secret", b"secreu"));
+        assert!(!ct_eq(b"secret", b"secre"));
+        assert!(!ct_eq(b"", b"x"));
+        assert!(ct_eq(b"", b""));
+    }
+
+    #[test]
+    fn check_auth_accepts_correct_bearer_rejects_wrong() {
+        let tok = Some("tok123".to_string());
+        assert!(check_auth(&bearer("tok123"), &tok));
+        assert!(!check_auth(&bearer("wrong"), &tok));
+        assert!(!check_auth(&HeaderMap::new(), &tok));
+        assert!(check_auth(&HeaderMap::new(), &None));
     }
 
     fn store_with_one() -> StateStore {
