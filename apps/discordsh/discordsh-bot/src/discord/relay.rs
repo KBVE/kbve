@@ -125,6 +125,7 @@ fn platform_tag(platform: &str) -> String {
         "isometric" => "I".to_owned(),
         "rareicon" => "R".to_owned(),
         "minecraft" => "M".to_owned(),
+        "palworld" => "PAL".to_owned(),
         "system" => "SYS".to_owned(),
         "irc" => "IRC".to_owned(),
         other => other

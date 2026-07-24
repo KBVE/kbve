@@ -215,8 +215,8 @@ fn format_for_irc(ev: &GameEvent, last_players: &mut Option<u64>) -> Option<Stri
                 .map(sanitize_irc)
                 .filter(|p| !p.is_empty());
             match player {
-                Some(player) => Some(format!("<{player}> {text}")),
-                None => Some(text),
+                Some(player) => Some(format!("[CHAT] {player}@palworld: {text}")),
+                None => Some(format!("[CHAT] server@palworld: {text}")),
             }
         }
         GameEventKind::Join
@@ -256,7 +256,7 @@ mod tests {
     fn chat_is_relayed() {
         let mut lp = None;
         let out = format_for_irc(&ev(GameEventKind::Chat, Some("Alice"), "hi"), &mut lp);
-        assert_eq!(out, Some("<Alice> hi".to_string()));
+        assert_eq!(out, Some("[CHAT] Alice@palworld: hi".to_string()));
     }
 
     #[test]
@@ -292,7 +292,7 @@ mod tests {
             &ev(GameEventKind::Chat, Some("A\x02li\x03ce"), "he\x03llo\x0f"),
             &mut lp,
         );
-        assert_eq!(out, Some("<Alice> hello".to_string()));
+        assert_eq!(out, Some("[CHAT] Alice@palworld: hello".to_string()));
     }
 
     #[test]
@@ -305,11 +305,11 @@ mod tests {
     }
 
     #[test]
-    fn control_only_player_drops_prefix() {
+    fn control_only_player_falls_back_to_server() {
         let mut lp = None;
         assert_eq!(
             format_for_irc(&ev(GameEventKind::Chat, Some("\x02\x03"), "hi"), &mut lp),
-            Some("hi".to_string())
+            Some("[CHAT] server@palworld: hi".to_string())
         );
     }
 
@@ -318,8 +318,7 @@ mod tests {
         let mut lp = None;
         let long = "x".repeat(600);
         let out = format_for_irc(&ev(GameEventKind::Chat, Some("Al"), &long), &mut lp).unwrap();
-        // "<Al> " + 400 chars
-        assert_eq!(out, format!("<Al> {}", "x".repeat(400)));
+        assert_eq!(out, format!("[CHAT] Al@palworld: {}", "x".repeat(400)));
     }
 
     #[test]
