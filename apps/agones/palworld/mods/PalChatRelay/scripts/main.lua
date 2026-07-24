@@ -2,19 +2,14 @@ local CHAT_LOG = os.getenv("PALWORLD_CHAT_LOG") or "/shared/chat/chat.log"
 local RETRY_MS = 15000
 
 local CANDIDATES = {
+    "/Script/Pal.PalGameStateInGame:BroadcastChatMessage",
     "/Script/Pal.PalNetworkChatManager:BroadcastChat",
     "/Script/Pal.PalNetworkChatManager:BroadcastChatMessage",
-    "/Script/Pal.PalNetworkChatManager:RecvChat",
-    "/Script/Pal.PalNetworkChatManager:OnRecvChatMessage",
-    "/Script/Pal.PalNetworkChatManager:ReceiveChatMessage",
-    "/Script/Pal.PalNetworkChatManager:SendChatMessage",
-    "/Script/Pal.PalPlayerControllerInGameForServer:RequestSendChat",
 }
 
 local CLASS_PROBES = {
+    "/Script/Pal.PalGameStateInGame",
     "/Script/Pal.PalNetworkChatManager",
-    "/Script/Pal.Default__PalNetworkChatManager",
-    "/Script/Pal.PalPlayerControllerInGameForServer",
 }
 
 local function log(msg)
@@ -42,10 +37,9 @@ end
 local function extract(param)
     local ok, player, text = pcall(function()
         local p = param:get()
-        local name = (p.SenderPlayerName and tostring(p.SenderPlayerName:ToString()))
+        local name = (p.Sender and tostring(p.Sender:ToString()))
+            or (p.SenderPlayerName and tostring(p.SenderPlayerName:ToString()))
             or (p.PlayerName and tostring(p.PlayerName:ToString()))
-            or (p.SenderName and tostring(p.SenderName:ToString()))
-            or (p.Name and tostring(p.Name:ToString()))
             or "?"
         local msg = (p.Message and tostring(p.Message:ToString()))
             or (p.Text and tostring(p.Text:ToString()))
