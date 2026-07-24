@@ -126,7 +126,7 @@ spec:
                               command:
                                   - /usr/local/bin/agones-shim-prestop
                 - name: palworld-relay
-                  image: ghcr.io/kbve/agones-palworld-relay:0.0.6
+                  image: ghcr.io/kbve/agones-palworld-relay:0.0.7
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PALWORLD_REST_ADDR
