@@ -60,6 +60,22 @@ def test_empty_ingredients_fails():
             validate_dir(d)
 
 
+def test_small_negative_float_fails():
+    with tempfile.TemporaryDirectory() as d:
+        bad = GOOD.replace("satiety = 80", "satiety = -0.5")
+        _write(d, "bad.toml", bad)
+        with pytest.raises(ValueError, match="satiety"):
+            validate_dir(d)
+
+
+def test_non_numeric_field_fails():
+    with tempfile.TemporaryDirectory() as d:
+        bad = GOOD.replace("stack_size = 50", 'stack_size = "lots"')
+        _write(d, "bad.toml", bad)
+        with pytest.raises(ValueError, match="stack_size"):
+            validate_dir(d)
+
+
 def test_duplicate_ids_fail():
     with tempfile.TemporaryDirectory() as d:
         _write(d, "a.toml", GOOD)

@@ -11,6 +11,12 @@ _REQUIRED = {
 }
 
 
+def _num(path, field, value):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        raise ValueError(f"{path}: {field} must be a number, got {value!r}")
+    return value
+
+
 def _check_one(path, data):
     for section, keys in _REQUIRED.items():
         if section not in data:
@@ -22,13 +28,13 @@ def _check_one(path, data):
     food = data["food"]
     if not str(food["id"]).startswith("Food_"):
         raise ValueError(f"{path}: food.id must start with 'Food_'")
-    if int(food["stack_size"]) <= 0:
+    if _num(path, "food.stack_size", food["stack_size"]) <= 0:
         raise ValueError(f"{path}: food.stack_size must be > 0")
 
     recipe = data["recipe"]
-    if int(recipe["work_amount"]) <= 0:
+    if _num(path, "recipe.work_amount", recipe["work_amount"]) <= 0:
         raise ValueError(f"{path}: recipe.work_amount must be > 0")
-    if int(recipe["output_count"]) <= 0:
+    if _num(path, "recipe.output_count", recipe["output_count"]) <= 0:
         raise ValueError(f"{path}: recipe.output_count must be > 0")
     ingredients = recipe["ingredients"]
     if not ingredients:
@@ -36,12 +42,12 @@ def _check_one(path, data):
     for ing in ingredients:
         if "id" not in ing or "count" not in ing:
             raise ValueError(f"{path}: each ingredient needs id and count")
-        if int(ing["count"]) <= 0:
+        if _num(path, "ingredient count", ing["count"]) <= 0:
             raise ValueError(f"{path}: ingredient count must be > 0")
 
     effect = data["effect"]
     for numeric in ("satiety", "sanity", "duration"):
-        if int(effect[numeric]) < 0:
+        if _num(path, f"effect.{numeric}", effect[numeric]) < 0:
             raise ValueError(f"{path}: effect.{numeric} must be >= 0")
 
 
