@@ -44,7 +44,7 @@
 		{
 			"key": "agones_palworld",
 			"app_name": "agones-palworld",
-			"version": "0.0.9",
+			"version": "0.0.10",
 			"version_toml": "apps/agones/palworld/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-palworld.mdx",
 			"source_path": "apps/agones/palworld",
