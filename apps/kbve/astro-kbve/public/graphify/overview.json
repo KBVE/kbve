@@ -1,1 +1,1115 @@
-{"meta":{"dirs":69,"files":6502,"symbols":66742,"dirEdges":135,"built_at_commit":"bd099ec97dcc1eebab335c4db83194a74166b848","scale":6000.0,"relations":["imports","calls","references","contains","extends","other"]},"dirs":[{"id":"_agents__skills","label":".agents/skills","x":-964.48,"y":-29.29,"r":85.68,"n":36,"files":2,"c":936},{"id":"_eslintrc_json","label":".eslintrc.json","x":-2835.6,"y":-880.08,"r":76.56,"n":4,"files":1,"c":2819},{"id":"_github__deprecated","label":".github/deprecated","x":-2948.5,"y":-264.22,"r":83.62,"n":26,"files":4,"c":1791},{"id":"_github__scripts","label":".github/scripts","x":171.13,"y":-611.37,"r":86.05,"n":38,"files":5,"c":1703},{"id":"_github__skills","label":".github/skills","x":-302.32,"y":636.91,"r":85.68,"n":36,"files":2,"c":960},{"id":"_husky__pre-push","label":".husky/pre-push","x":343.55,"y":-2797.58,"r":75.22,"n":2,"files":1,"c":4185},{"id":"_opencode__skills","label":".opencode/skills","x":-994.88,"y":350.54,"r":85.68,"n":36,"files":2,"c":963},{"id":"_prettierrc_mjs","label":".prettierrc.mjs","x":1025.75,"y":2763.96,"r":74.28,"n":1,"files":1,"c":12617},{"id":"@astrojs__starlight","label":"@astrojs/starlight","x":-229.28,"y":920.35,"r":77.58,"n":6,"files":6,"c":355},{"id":"apps__agones","label":"apps/agones","x":-230.9,"y":1299.96,"r":182.04,"n":2331,"files":222,"c":17},{"id":"apps__angelscript","label":"apps/angelscript","x":2799.83,"y":-367.41,"r":80.22,"n":13,"files":1,"c":1575},{"id":"apps__chuckrpg","label":"apps/chuckrpg","x":474.28,"y":-852.62,"r":131.26,"n":676,"files":105,"c":305},{"id":"apps__cryptothrone","label":"apps/cryptothrone","x":-1059.15,"y":-490.86,"r":140.87,"n":913,"files":164,"c":23},{"id":"apps__deathslayer","label":"apps/deathslayer","x":-37.19,"y":446.13,"r":98.48,"n":135,"files":12,"c":601},{"id":"apps__discordsh","label":"apps/discordsh","x":-438.7,"y":-1432.0,"r":184.47,"n":2435,"files":185,"c":10},{"id":"apps__herbmail","label":"apps/herbmail","x":630.44,"y":1133.83,"r":170.14,"n":1854,"files":241,"c":41},{"id":"apps__irc","label":"apps/irc","x":-348.56,"y":301.55,"r":124.82,"n":537,"files":89,"c":465},{"id":"apps__jobboard","label":"apps/jobboard","x":132.15,"y":1023.49,"r":131.96,"n":692,"files":77,"c":14},{"id":"apps__kbve","label":"apps/kbve","x":670.74,"y":-1380.0,"r":311.53,"n":11045,"files":1345,"c":39},{"id":"apps__kube","label":"apps/kube","x":428.7,"y":-81.51,"r":89.95,"n":62,"files":26,"c":2589},{"id":"apps__mc","label":"apps/mc","x":521.32,"y":-452.97,"r":151.15,"n":1206,"files":149,"c":220},{"id":"apps__memes","label":"apps/memes","x":-1012.26,"y":692.96,"r":132.9,"n":714,"files":74,"c":36},{"id":"apps__metrics","label":"apps/metrics","x":180.0,"y":-303.53,"r":101.45,"n":167,"files":13,"c":424},{"id":"apps__pydesk","label":"apps/pydesk","x":250.07,"y":592.47,"r":103.91,"n":196,"files":11,"c":232},{"id":"apps__rareicon","label":"apps/rareicon","x":-763.37,"y":-962.03,"r":266.75,"n":7301,"files":643,"c":7},{"id":"apps__rentearth","label":"apps/rentearth","x":1081.08,"y":614.83,"r":173.24,"n":1973,"files":214,"c":90},{"id":"apps__rows","label":"apps/rows","x":-641.49,"y":554.25,"r":141.95,"n":942,"files":61,"c":49},{"id":"apps__vm","label":"apps/vm","x":371.87,"y":257.1,"r":132.9,"n":714,"files":49,"c":155},{"id":"apps__windmill","label":"apps/windmill","x":-667.03,"y":-43.73,"r":92.13,"n":78,"files":17,"c":2027},{"id":"astro:components","label":"astro:components","x":-777.63,"y":-309.0,"r":74.28,"n":1,"files":1,"c":236},{"id":"astro:content","label":"astro:content","x":-740.79,"y":233.01,"r":74.28,"n":1,"files":1,"c":505},{"id":"babel_config_json","label":"babel.config.json","x":953.36,"y":-2704.74,"r":75.22,"n":2,"files":1,"c":3526},{"id":"d3-geo","label":"d3-geo","x":-1481.53,"y":2675.44,"r":74.28,"n":1,"files":1,"c":12453},{"id":"glbclips_mjs","label":"glbclips.mjs","x":2791.09,"y":1042.95,"r":77.1,"n":5,"files":1,"c":3031},{"id":"gsap","label":"gsap","x":-852.82,"y":2785.05,"r":74.28,"n":1,"files":1,"c":12462},{"id":"gsap__Observer","label":"gsap/Observer","x":-67.86,"y":-464.85,"r":74.28,"n":1,"files":1,"c":608},{"id":"gsap__ScrollTrigger","label":"gsap/ScrollTrigger","x":-612.46,"y":-526.4,"r":74.28,"n":1,"files":1,"c":608},{"id":"kbve_sh","label":"kbve.sh","x":-315.24,"y":-775.18,"r":85.29,"n":34,"files":1,"c":766},{"id":"marked","label":"marked","x":-1940.65,"y":2285.12,"r":74.28,"n":1,"files":1,"c":12463},{"id":"node:fs","label":"node:fs","x":406.52,"y":846.32,"r":74.28,"n":1,"files":1,"c":1289},{"id":"node:url","label":"node:url","x":-228.45,"y":-249.6,"r":74.28,"n":1,"files":1,"c":1289},{"id":"nx_json","label":"nx.json","x":2971.46,"y":280.46,"r":91.74,"n":75,"files":1,"c":1372},{"id":"package_json","label":"package.json","x":726.34,"y":186.11,"r":108.61,"n":258,"files":1,"c":33},{"id":"packages__data","label":"packages/data","x":-605.97,"y":995.7,"r":180.92,"n":2284,"files":82,"c":25},{"id":"packages__docker","label":"packages/docker","x":772.95,"y":-156.82,"r":117.47,"n":398,"files":27,"c":417},{"id":"packages__npm","label":"packages/npm","x":1191.72,"y":86.3,"r":246.75,"n":5879,"files":935,"c":12},{"id":"packages__python","label":"packages/python","x":631.62,"y":575.41,"r":157.95,"n":1422,"files":173,"c":121},{"id":"packages__rust","label":"packages/rust","x":22.77,"y":-1100.41,"r":263.78,"n":7080,"files":504,"c":4},{"id":"packages__unity","label":"packages/unity","x":-6.79,"y":50.22,"r":178.59,"n":2187,"files":249,"c":54},{"id":"packages__unreal","label":"packages/unreal","x":1083.77,"y":-665.17,"r":330.0,"n":12814,"files":771,"c":0},{"id":"project_json","label":"project.json","x":-746.84,"y":-2933.16,"r":82.69,"n":22,"files":1,"c":1189},{"id":"react","label":"react","x":-2923.48,"y":930.44,"r":74.28,"n":1,"files":1,"c":12619},{"id":"react-dom__client","label":"react-dom/client","x":-2619.08,"y":1424.02,"r":74.28,"n":1,"files":1,"c":12618},{"id":"scripts__check-version-drift_sh","label":"scripts/check-version-drift.sh","x":-2208.73,"y":-1926.43,"r":78.45,"n":8,"files":1,"c":2477},{"id":"scripts__ci","label":"scripts/ci","x":-2405.16,"y":1925.11,"r":75.22,"n":2,"files":1,"c":4401},{"id":"scripts__deno-fmt_sh","label":"scripts/deno-fmt.sh","x":1924.52,"y":2245.67,"r":75.22,"n":2,"files":1,"c":4402},{"id":"scripts__deploy_isometric_quick_sh","label":"scripts/deploy_isometric_quick.sh","x":-1972.31,"y":-2353.08,"r":78.84,"n":9,"files":1,"c":2314},{"id":"scripts__kubectl-namespace-orphan-check_sh","label":"scripts/kubectl-namespace-orphan-check.sh","x":-1379.46,"y":-2684.55,"r":75.22,"n":2,"files":1,"c":4403},{"id":"scripts__populate-item-recipes_py","label":"scripts/populate-item-recipes.py","x":-2971.46,"y":356.66,"r":76.56,"n":4,"files":1,"c":2882},{"id":"scripts__populate-npc-data_py","label":"scripts/populate-npc-data.py","x":239.77,"y":3000.0,"r":77.58,"n":6,"files":1,"c":2187},{"id":"scripts__resolve-docker-digests_sh","label":"scripts/resolve-docker-digests.sh","x":2044.97,"y":-2091.34,"r":75.22,"n":2,"files":1,"c":4404},{"id":"scripts__vm-windows-bootstrap_ps1","label":"scripts/vm-windows-bootstrap.ps1","x":-2630.6,"y":-1456.58,"r":75.95,"n":3,"files":1,"c":3626},{"id":"tools__scripts","label":"tools/scripts","x":-85.87,"y":-3000.0,"r":76.56,"n":4,"files":2,"c":4405},{"id":"topojson-client","label":"topojson-client","x":2823.05,"y":-955.36,"r":74.28,"n":1,"files":1,"c":12620},{"id":"tsconfig_base_json","label":"tsconfig.base.json","x":1466.14,"y":-2594.13,"r":87.63,"n":47,"files":1,"c":1569},{"id":"tsconfig_json","label":"tsconfig.json","x":2427.62,"y":1656.15,"r":76.56,"n":4,"files":1,"c":2476},{"id":"virtual:starlight__components","label":"virtual:starlight/components","x":-498.67,"y":-279.5,"r":77.58,"n":6,"files":6,"c":977},{"id":"virtual:starlight__user-config","label":"virtual:starlight/user-config","x":-334.61,"y":-496.29,"r":74.28,"n":1,"files":1,"c":977},{"id":"world-atlas__countries-110m_json","label":"world-atlas/countries-110m.json","x":-26.99,"y":738.71,"r":74.28,"n":1,"files":1,"c":307}],"dirEdges":[[0,45,1.0,5],[3,18,1.0,5],[3,23,2.0,5],[4,45,1.0,5],[6,45,1.0,5],[9,47,200.0,2],[9,18,43.0,5],[9,27,17.0,2],[9,45,261.0,0],[9,12,15.0,5],[9,15,11.0,5],[9,23,8.0,5],[9,24,10.0,5],[9,43,6.0,5],[11,18,4.0,5],[11,45,21.0,0],[8,11,3.0,0],[8,12,2.0,0],[8,14,2.0,0],[8,15,2.0,0],[8,16,2.0,0],[8,21,2.0,0],[8,24,3.0,0],[11,66,5.0,0],[11,67,1.0,0],[12,67,1.0,0],[15,67,1.0,0],[16,67,1.0,0],[21,67,1.0,0],[24,67,1.0,0],[12,66,5.0,0],[15,66,5.0,0],[16,66,5.0,0],[21,66,5.0,0],[24,66,5.0,0],[14,45,35.0,0],[16,45,39.0,0],[18,45,645.0,0],[24,45,10.0,0],[11,47,20.0,2],[11,48,2.0,1],[11,25,2.0,1],[11,49,3.0,2],[12,18,21.0,5],[12,45,190.0,0],[12,43,18.0,0],[12,23,2.0,5],[12,15,1.0,5],[12,47,24.0,2],[12,48,3.0,1],[13,47,12.0,2],[13,18,1.0,5],[14,18,8.0,0],[14,43,3.0,0],[15,45,57.0,0],[21,45,79.0,0],[14,47,449.0,2],[14,48,4.0,1],[14,37,3.0,0],[14,25,1.0,4],[14,19,1.0,0],[15,18,41.0,5],[15,23,5.0,5],[15,43,5.0,5],[15,21,2.0,5],[16,18,3.0,5],[16,47,25.0,2],[16,22,1.0,1],[16,48,6.0,1],[17,47,44.0,2],[17,48,14.0,1],[17,18,39.0,2],[17,43,30.0,0],[17,45,125.0,0],[17,23,7.0,5],[18,23,98.0,5],[18,43,401.0,0],[18,24,5.0,2],[18,25,2.0,5],[18,20,4.0,5],[18,27,97.0,2],[18,47,882.0,2],[18,19,1.0,5],[18,21,1.0,5],[18,30,11.0,0],[24,30,3.0,0],[18,35,1.0,0],[35,45,1.0,0],[35,47,1.0,0],[18,39,1.0,0],[18,40,1.0,0],[8,18,3.0,0],[18,29,1.0,0],[18,68,1.0,5],[18,66,1.0,0],[18,28,1.0,5],[18,48,102.0,1],[18,49,10.0,4],[20,47,73.0,2],[20,27,3.0,2],[20,43,1.0,4],[21,23,2.0,5],[21,47,44.0,2],[21,48,11.0,1],[22,47,31.0,2],[22,48,3.0,1],[23,45,26.0,5],[23,24,5.0,5],[23,43,1.0,2],[23,37,1.0,0],[23,46,8.0,1],[24,43,36.0,0],[24,48,24.0,0],[24,49,11.0,2],[25,47,10.0,4],[25,48,2.0,1],[25,49,143.0,2],[25,42,1.0,0],[25,45,1.0,1],[25,26,1.0,4],[26,47,171.0,2],[26,48,68.0,1],[27,47,150.0,2],[27,48,16.0,1],[27,43,2.0,4],[28,45,2.0,5],[37,46,1.0,0],[42,49,7.0,0],[43,45,26.0,0],[43,47,11.0,4],[44,46,1.0,0],[36,45,1.0,0],[45,48,1.0,1],[46,49,3.0,2],[47,48,14.0,1]]}
+{
+	"meta": {
+		"dirs": 69,
+		"files": 6502,
+		"symbols": 66742,
+		"dirEdges": 135,
+		"built_at_commit": "bd099ec97dcc1eebab335c4db83194a74166b848",
+		"scale": 6000.0,
+		"relations": [
+			"imports",
+			"calls",
+			"references",
+			"contains",
+			"extends",
+			"other",
+			"depends"
+		],
+		"nxEdges": 27,
+		"nxProjects": 140,
+		"docRefs": 23
+	},
+	"dirs": [
+		{
+			"id": "_agents__skills",
+			"label": ".agents/skills",
+			"x": -964.48,
+			"y": -29.29,
+			"r": 85.68,
+			"n": 36,
+			"files": 2,
+			"c": 936
+		},
+		{
+			"id": "_eslintrc_json",
+			"label": ".eslintrc.json",
+			"x": -2835.6,
+			"y": -880.08,
+			"r": 76.56,
+			"n": 4,
+			"files": 1,
+			"c": 2819
+		},
+		{
+			"id": "_github__deprecated",
+			"label": ".github/deprecated",
+			"x": -2948.5,
+			"y": -264.22,
+			"r": 83.62,
+			"n": 26,
+			"files": 4,
+			"c": 1791
+		},
+		{
+			"id": "_github__scripts",
+			"label": ".github/scripts",
+			"x": 171.13,
+			"y": -611.37,
+			"r": 86.05,
+			"n": 38,
+			"files": 5,
+			"c": 1703
+		},
+		{
+			"id": "_github__skills",
+			"label": ".github/skills",
+			"x": -302.32,
+			"y": 636.91,
+			"r": 85.68,
+			"n": 36,
+			"files": 2,
+			"c": 960
+		},
+		{
+			"id": "_husky__pre-push",
+			"label": ".husky/pre-push",
+			"x": 343.55,
+			"y": -2797.58,
+			"r": 75.22,
+			"n": 2,
+			"files": 1,
+			"c": 4185
+		},
+		{
+			"id": "_opencode__skills",
+			"label": ".opencode/skills",
+			"x": -994.88,
+			"y": 350.54,
+			"r": 85.68,
+			"n": 36,
+			"files": 2,
+			"c": 963
+		},
+		{
+			"id": "_prettierrc_mjs",
+			"label": ".prettierrc.mjs",
+			"x": 1025.75,
+			"y": 2763.96,
+			"r": 74.28,
+			"n": 1,
+			"files": 1,
+			"c": 12617
+		},
+		{
+			"id": "@astrojs__starlight",
+			"label": "@astrojs/starlight",
+			"x": -229.28,
+			"y": 920.35,
+			"r": 77.58,
+			"n": 6,
+			"files": 6,
+			"c": 355
+		},
+		{
+			"id": "apps__agones",
+			"label": "apps/agones",
+			"x": -230.9,
+			"y": 1299.96,
+			"r": 182.04,
+			"n": 2331,
+			"files": 222,
+			"c": 17,
+			"nx": {
+				"projects": [
+					{ "name": "kbve-spider", "type": "app" },
+					{ "name": "kbve-orc", "type": "app" },
+					{ "name": "cryptothrone-server", "type": "app" },
+					{ "name": "agones-factorio-relay", "type": "app" },
+					{ "name": "agones-palworld-relay", "type": "app" },
+					{ "name": "arpg-e2e", "type": "e2e" },
+					{ "name": "arpg-server", "type": "app" },
+					{ "name": "agones-factorio", "type": "app" },
+					{ "name": "agones-palworld", "type": "app" },
+					{ "name": "arpg-web", "type": "app" },
+					{ "name": "arpg", "type": "app" }
+				]
+			},
+			"ref": "/project/agones/"
+		},
+		{
+			"id": "apps__angelscript",
+			"label": "apps/angelscript",
+			"x": 2799.83,
+			"y": -367.41,
+			"r": 80.22,
+			"n": 13,
+			"files": 1,
+			"c": 1575,
+			"nx": { "projects": [{ "name": "angelscript", "type": "app" }] }
+		},
+		{
+			"id": "apps__chuckrpg",
+			"label": "apps/chuckrpg",
+			"x": 474.28,
+			"y": -852.62,
+			"r": 131.26,
+			"n": 676,
+			"files": 105,
+			"c": 305,
+			"nx": {
+				"projects": [
+					{ "name": "axum-chuckrpg-e2e", "type": "e2e" },
+					{ "name": "unreal-cleanroom", "type": "app" },
+					{ "name": "astro-chuckrpg", "type": "app" },
+					{ "name": "chuck-launcher", "type": "app" },
+					{ "name": "axum-chuckrpg", "type": "app" }
+				]
+			},
+			"ref": "/project/chuckrpg/"
+		},
+		{
+			"id": "apps__cryptothrone",
+			"label": "apps/cryptothrone",
+			"x": -1059.15,
+			"y": -490.86,
+			"r": 140.87,
+			"n": 913,
+			"files": 164,
+			"c": 23,
+			"nx": {
+				"projects": [
+					{ "name": "astro-cryptothrone-e2e", "type": "e2e" },
+					{ "name": "astro-cryptothrone", "type": "app" },
+					{ "name": "axum-cryptothrone", "type": "app" },
+					{ "name": "cryptothrone", "type": "app" }
+				]
+			},
+			"ref": "/project/cryptothrone/"
+		},
+		{
+			"id": "apps__deathslayer",
+			"label": "apps/deathslayer",
+			"x": -37.19,
+			"y": 446.13,
+			"r": 98.48,
+			"n": 135,
+			"files": 12,
+			"c": 601,
+			"nx": {
+				"projects": [{ "name": "deathslayer-launcher", "type": "app" }]
+			}
+		},
+		{
+			"id": "apps__discordsh",
+			"label": "apps/discordsh",
+			"x": -438.7,
+			"y": -1432.0,
+			"r": 184.47,
+			"n": 2435,
+			"files": 185,
+			"c": 10,
+			"nx": {
+				"projects": [
+					{ "name": "axum-discordsh-e2e", "type": "e2e" },
+					{ "name": "discordsh-bot-e2e", "type": "e2e" },
+					{ "name": "notification-bot", "type": "app" },
+					{ "name": "astro-discordsh", "type": "app" },
+					{ "name": "axum-discordsh", "type": "app" },
+					{ "name": "discordsh-bot", "type": "app" },
+					{ "name": "discordsh-e2e", "type": "e2e" },
+					{ "name": "discordsh", "type": "app" }
+				]
+			},
+			"ref": "/project/discordsh/"
+		},
+		{
+			"id": "apps__herbmail",
+			"label": "apps/herbmail",
+			"x": 630.44,
+			"y": 1133.83,
+			"r": 170.14,
+			"n": 1854,
+			"files": 241,
+			"c": 41,
+			"nx": {
+				"projects": [
+					{ "name": "astro-herbmail", "type": "app" },
+					{ "name": "axum-herbmail", "type": "app" },
+					{ "name": "herbmail-game", "type": "app" },
+					{ "name": "herbmail-e2e", "type": "e2e" },
+					{ "name": "herbmail", "type": "app" }
+				]
+			},
+			"ref": "/project/herbmail/"
+		},
+		{
+			"id": "apps__irc",
+			"label": "apps/irc",
+			"x": -348.56,
+			"y": 301.55,
+			"r": 124.82,
+			"n": 537,
+			"files": 89,
+			"c": 465,
+			"nx": {
+				"projects": [
+					{ "name": "irc-gateway", "type": "app" },
+					{ "name": "astro-irc", "type": "app" },
+					{ "name": "irc-e2e", "type": "e2e" },
+					{ "name": "irc", "type": "app" }
+				]
+			},
+			"ref": "/project/irc-gateway/"
+		},
+		{
+			"id": "apps__jobboard",
+			"label": "apps/jobboard",
+			"x": 132.15,
+			"y": 1023.49,
+			"r": 131.96,
+			"n": 692,
+			"files": 77,
+			"c": 14,
+			"nx": { "projects": [{ "name": "jobboard", "type": "app" }] },
+			"ref": "/project/jobboard/"
+		},
+		{
+			"id": "apps__kbve",
+			"label": "apps/kbve",
+			"x": 670.74,
+			"y": -1380.0,
+			"r": 311.53,
+			"n": 11045,
+			"files": 1345,
+			"c": 39,
+			"nx": {
+				"projects": [
+					{ "name": "isometric-game", "type": "lib" },
+					{ "name": "kbve-react-native", "type": "app" },
+					{ "name": "astro-kbve-e2e", "type": "e2e" },
+					{ "name": "axum-kbve-e2e", "type": "e2e" },
+					{ "name": "desktop-kbve", "type": "app" },
+					{ "name": "astro-kbve", "type": "app" },
+					{ "name": "axum-kbve", "type": "app" },
+					{ "name": "isometric", "type": "app" },
+					{ "name": "kbve-gate", "type": "app" },
+					{ "name": "edge-e2e", "type": "e2e" },
+					{ "name": "kilobase", "type": "app" },
+					{ "name": "edge", "type": "app" }
+				]
+			},
+			"ref": "/music/kbve/"
+		},
+		{
+			"id": "apps__kube",
+			"label": "apps/kube",
+			"x": 428.7,
+			"y": -81.51,
+			"r": 89.95,
+			"n": 62,
+			"files": 26,
+			"c": 2589
+		},
+		{
+			"id": "apps__mc",
+			"label": "apps/mc",
+			"x": 521.32,
+			"y": -452.97,
+			"r": 151.15,
+			"n": 1206,
+			"files": 149,
+			"c": 220,
+			"nx": {
+				"projects": [
+					{ "name": "behavior_statetree", "type": "lib" },
+					{ "name": "mc-velocity", "type": "app" },
+					{ "name": "mc_auth", "type": "lib" },
+					{ "name": "mc-lobby", "type": "app" },
+					{ "name": "mc", "type": "app" }
+				]
+			},
+			"ref": "/project/mc/"
+		},
+		{
+			"id": "apps__memes",
+			"label": "apps/memes",
+			"x": -1012.26,
+			"y": 692.96,
+			"r": 132.9,
+			"n": 714,
+			"files": 74,
+			"c": 36,
+			"nx": {
+				"projects": [
+					{ "name": "astro-memes", "type": "app" },
+					{ "name": "axum-memes", "type": "app" },
+					{ "name": "memes-e2e", "type": "e2e" },
+					{ "name": "memes", "type": "app" }
+				]
+			},
+			"ref": "/project/memes/"
+		},
+		{
+			"id": "apps__metrics",
+			"label": "apps/metrics",
+			"x": 180.0,
+			"y": -303.53,
+			"r": 101.45,
+			"n": 167,
+			"files": 13,
+			"c": 424,
+			"nx": {
+				"projects": [
+					{ "name": "metrics-e2e", "type": "e2e" },
+					{ "name": "met", "type": "app" }
+				]
+			},
+			"ref": "/project/metrics/"
+		},
+		{
+			"id": "apps__pydesk",
+			"label": "apps/pydesk",
+			"x": 250.07,
+			"y": 592.47,
+			"r": 103.91,
+			"n": 196,
+			"files": 11,
+			"c": 232,
+			"nx": { "projects": [{ "name": "pydesk", "type": "app" }] }
+		},
+		{
+			"id": "apps__rareicon",
+			"label": "apps/rareicon",
+			"x": -763.37,
+			"y": -962.03,
+			"r": 266.75,
+			"n": 7301,
+			"files": 643,
+			"c": 7,
+			"nx": {
+				"projects": [
+					{ "name": "astro-rareicon-e2e", "type": "e2e" },
+					{ "name": "axum-rareicon-e2e", "type": "e2e" },
+					{ "name": "astro-rareicon", "type": "app" },
+					{ "name": "unity-rareicon", "type": "app" },
+					{ "name": "axum-rareicon", "type": "app" }
+				]
+			},
+			"ref": "/arcade/rareicon/"
+		},
+		{
+			"id": "apps__rentearth",
+			"label": "apps/rentearth",
+			"x": 1081.08,
+			"y": 614.83,
+			"r": 173.24,
+			"n": 1973,
+			"files": 214,
+			"c": 90,
+			"nx": {
+				"projects": [
+					{ "name": "rentearth-web", "type": "app" },
+					{ "name": "unreal-rentearth", "type": "app" },
+					{ "name": "axum-rentearth", "type": "app" }
+				]
+			},
+			"ref": "/project/unreal-rentearth/"
+		},
+		{
+			"id": "apps__rows",
+			"label": "apps/rows",
+			"x": -641.49,
+			"y": 554.25,
+			"r": 141.95,
+			"n": 942,
+			"files": 61,
+			"c": 49,
+			"nx": { "projects": [{ "name": "rows", "type": "app" }] },
+			"ref": "/project/rows/"
+		},
+		{
+			"id": "apps__vm",
+			"label": "apps/vm",
+			"x": 371.87,
+			"y": 257.1,
+			"r": 132.9,
+			"n": 714,
+			"files": 49,
+			"c": 155,
+			"nx": {
+				"projects": [
+					{ "name": "firecracker-ctl-e2e", "type": "e2e" },
+					{ "name": "aria2-proxy-e2e", "type": "e2e" },
+					{ "name": "firecracker-ctl", "type": "app" },
+					{ "name": "iot-edge-worker", "type": "app" },
+					{ "name": "factorio-ctl", "type": "app" },
+					{ "name": "aria2-proxy", "type": "lib" },
+					{ "name": "kubectl-e2e", "type": "e2e" },
+					{ "name": "kbve-kubectl", "type": "app" }
+				]
+			},
+			"ref": "/dashboard/vm/"
+		},
+		{
+			"id": "apps__windmill",
+			"label": "apps/windmill",
+			"x": -667.03,
+			"y": -43.73,
+			"r": 92.13,
+			"n": 78,
+			"files": 17,
+			"c": 2027,
+			"ref": "/application/windmill/"
+		},
+		{
+			"id": "astro:components",
+			"label": "astro:components",
+			"x": -777.63,
+			"y": -309.0,
+			"r": 74.28,
+			"n": 1,
+			"files": 1,
+			"c": 236
+		},
+		{
+			"id": "astro:content",
+			"label": "astro:content",
+			"x": -740.79,
+			"y": 233.01,
+			"r": 74.28,
+			"n": 1,
+			"files": 1,
+			"c": 505
+		},
+		{
+			"id": "babel_config_json",
+			"label": "babel.config.json",
+			"x": 953.36,
+			"y": -2704.74,
+			"r": 75.22,
+			"n": 2,
+			"files": 1,
+			"c": 3526
+		},
+		{
+			"id": "d3-geo",
+			"label": "d3-geo",
+			"x": -1481.53,
+			"y": 2675.44,
+			"r": 74.28,
+			"n": 1,
+			"files": 1,
+			"c": 12453
+		},
+		{
+			"id": "glbclips_mjs",
+			"label": "glbclips.mjs",
+			"x": 2791.09,
+			"y": 1042.95,
+			"r": 77.1,
+			"n": 5,
+			"files": 1,
+			"c": 3031
+		},
+		{
+			"id": "gsap",
+			"label": "gsap",
+			"x": -852.82,
+			"y": 2785.05,
+			"r": 74.28,
+			"n": 1,
+			"files": 1,
+			"c": 12462
+		},
+		{
+			"id": "gsap__Observer",
+			"label": "gsap/Observer",
+			"x": -67.86,
+			"y": -464.85,
+			"r": 74.28,
+			"n": 1,
+			"files": 1,
+			"c": 608,
+			"ref": "/mc/blocks/observer/"
+		},
+		{
+			"id": "gsap__ScrollTrigger",
+			"label": "gsap/ScrollTrigger",
+			"x": -612.46,
+			"y": -526.4,
+			"r": 74.28,
+			"n": 1,
+			"files": 1,
+			"c": 608
+		},
+		{
+			"id": "kbve_sh",
+			"label": "kbve.sh",
+			"x": -315.24,
+			"y": -775.18,
+			"r": 85.29,
+			"n": 34,
+			"files": 1,
+			"c": 766
+		},
+		{
+			"id": "marked",
+			"label": "marked",
+			"x": -1940.65,
+			"y": 2285.12,
+			"r": 74.28,
+			"n": 1,
+			"files": 1,
+			"c": 12463
+		},
+		{
+			"id": "node:fs",
+			"label": "node:fs",
+			"x": 406.52,
+			"y": 846.32,
+			"r": 74.28,
+			"n": 1,
+			"files": 1,
+			"c": 1289
+		},
+		{
+			"id": "node:url",
+			"label": "node:url",
+			"x": -228.45,
+			"y": -249.6,
+			"r": 74.28,
+			"n": 1,
+			"files": 1,
+			"c": 1289
+		},
+		{
+			"id": "nx_json",
+			"label": "nx.json",
+			"x": 2971.46,
+			"y": 280.46,
+			"r": 91.74,
+			"n": 75,
+			"files": 1,
+			"c": 1372
+		},
+		{
+			"id": "package_json",
+			"label": "package.json",
+			"x": 726.34,
+			"y": 186.11,
+			"r": 108.61,
+			"n": 258,
+			"files": 1,
+			"c": 33
+		},
+		{
+			"id": "packages__data",
+			"label": "packages/data",
+			"x": -605.97,
+			"y": 995.7,
+			"r": 180.92,
+			"n": 2284,
+			"files": 82,
+			"c": 25,
+			"nx": {
+				"projects": [
+					{ "name": "data-proto", "type": "lib" },
+					{ "name": "data-sql", "type": "lib" }
+				]
+			}
+		},
+		{
+			"id": "packages__docker",
+			"label": "packages/docker",
+			"x": 772.95,
+			"y": -156.82,
+			"r": 117.47,
+			"n": 398,
+			"files": 27,
+			"c": 417,
+			"nx": {
+				"projects": [
+					{ "name": "firecracker-python-net", "type": "lib" },
+					{ "name": "firecracker-python-web", "type": "lib" },
+					{ "name": "firecracker-node-web", "type": "lib" },
+					{ "name": "chisel-ubuntu-axum", "type": "lib" },
+					{ "name": "kasm-cloakbrowser", "type": "lib" },
+					{ "name": "steamcmd-ubuntu", "type": "lib" },
+					{ "name": "arc-runner-e2e", "type": "e2e" },
+					{ "name": "arc-runner", "type": "lib" },
+					{ "name": "kasm-void", "type": "lib" }
+				]
+			},
+			"ref": "/application/docker/"
+		},
+		{
+			"id": "packages__npm",
+			"label": "packages/npm",
+			"x": 1191.72,
+			"y": 86.3,
+			"r": 246.75,
+			"n": 5879,
+			"files": 935,
+			"c": 12,
+			"nx": {
+				"projects": [
+					{ "name": "khashvault-e2e", "type": "e2e" },
+					{ "name": "devops-e2e", "type": "e2e" },
+					{ "name": "khashvault", "type": "lib" },
+					{ "name": "astro-e2e", "type": "e2e" },
+					{ "name": "droid-e2e", "type": "e2e" },
+					{ "name": "laser-e2e", "type": "e2e" },
+					{ "name": "rn-astro", "type": "lib" },
+					{ "name": "devops", "type": "lib" },
+					{ "name": "observ", "type": "lib" },
+					{ "name": "astro", "type": "lib" },
+					{ "name": "droid", "type": "lib" },
+					{ "name": "kbve-tauri", "type": "lib" },
+					{ "name": "laser", "type": "lib" },
+					{ "name": "chat", "type": "lib" },
+					{ "name": "core", "type": "lib" },
+					{ "name": "fx", "type": "lib" },
+					{ "name": "rn", "type": "lib" }
+				]
+			},
+			"ref": "/project/khashvault/"
+		},
+		{
+			"id": "packages__python",
+			"label": "packages/python",
+			"x": 631.62,
+			"y": 575.41,
+			"r": 157.95,
+			"n": 1422,
+			"files": 173,
+			"c": 121,
+			"nx": {
+				"projects": [
+					{ "name": "graphify-wrapper", "type": "lib" },
+					{ "name": "python-fudster", "type": "lib" },
+					{ "name": "python-kbve", "type": "lib" }
+				]
+			},
+			"ref": "/application/python/"
+		},
+		{
+			"id": "packages__rust",
+			"label": "packages/rust",
+			"x": 22.77,
+			"y": -1100.41,
+			"r": 263.78,
+			"n": 7080,
+			"files": 504,
+			"c": 4,
+			"nx": {
+				"projects": [
+					{ "name": "bevy_statemachine", "type": "lib" },
+					{ "name": "bevy_pathfinder", "type": "lib" },
+					{ "name": "bevy_inventory", "type": "lib" },
+					{ "name": "bevy_behavior", "type": "lib" },
+					{ "name": "bevy_kbve_net", "type": "lib" },
+					{ "name": "bevy_battle", "type": "lib" },
+					{ "name": "bevy_player", "type": "lib" },
+					{ "name": "bevy_quests", "type": "lib" },
+					{ "name": "bevy_skills", "type": "lib" },
+					{ "name": "bevy_spells", "type": "lib" },
+					{ "name": "bevy_tasker", "type": "lib" },
+					{ "name": "bevy_items", "type": "lib" },
+					{ "name": "bevy_mapdb", "type": "lib" },
+					{ "name": "bevy_chat", "type": "lib" },
+					{ "name": "bevy_supa", "type": "lib" },
+					{ "name": "embeddb-derive", "type": "lib" },
+					{ "name": "bevy_cam", "type": "lib" },
+					{ "name": "bevy_npc", "type": "lib" },
+					{ "name": "bevy_db", "type": "lib" },
+					{ "name": "uniti", "type": "lib" },
+					{ "name": "kbve_wgpu", "type": "lib" },
+					{ "name": "embeddb", "type": "lib" },
+					{ "name": "simgrid", "type": "lib" },
+					{ "name": "erust", "type": "lib" },
+					{ "name": "holy", "type": "lib" },
+					{ "name": "jedi", "type": "lib" },
+					{ "name": "kbve", "type": "lib" },
+					{ "name": "q", "type": "lib" }
+				]
+			},
+			"ref": "/application/rust/"
+		},
+		{
+			"id": "packages__unity",
+			"label": "packages/unity",
+			"x": -6.79,
+			"y": 50.22,
+			"r": 178.59,
+			"n": 2187,
+			"files": 249,
+			"c": 54,
+			"ref": "/application/unity/"
+		},
+		{
+			"id": "packages__unreal",
+			"label": "packages/unreal",
+			"x": 1083.77,
+			"y": -665.17,
+			"r": 330.0,
+			"n": 12814,
+			"files": 771,
+			"c": 0,
+			"ref": "/application/unreal/"
+		},
+		{
+			"id": "project_json",
+			"label": "project.json",
+			"x": -746.84,
+			"y": -2933.16,
+			"r": 82.69,
+			"n": 22,
+			"files": 1,
+			"c": 1189
+		},
+		{
+			"id": "react",
+			"label": "react",
+			"x": -2923.48,
+			"y": 930.44,
+			"r": 74.28,
+			"n": 1,
+			"files": 1,
+			"c": 12619
+		},
+		{
+			"id": "react-dom__client",
+			"label": "react-dom/client",
+			"x": -2619.08,
+			"y": 1424.02,
+			"r": 74.28,
+			"n": 1,
+			"files": 1,
+			"c": 12618
+		},
+		{
+			"id": "scripts__check-version-drift_sh",
+			"label": "scripts/check-version-drift.sh",
+			"x": -2208.73,
+			"y": -1926.43,
+			"r": 78.45,
+			"n": 8,
+			"files": 1,
+			"c": 2477
+		},
+		{
+			"id": "scripts__ci",
+			"label": "scripts/ci",
+			"x": -2405.16,
+			"y": 1925.11,
+			"r": 75.22,
+			"n": 2,
+			"files": 1,
+			"c": 4401
+		},
+		{
+			"id": "scripts__deno-fmt_sh",
+			"label": "scripts/deno-fmt.sh",
+			"x": 1924.52,
+			"y": 2245.67,
+			"r": 75.22,
+			"n": 2,
+			"files": 1,
+			"c": 4402
+		},
+		{
+			"id": "scripts__deploy_isometric_quick_sh",
+			"label": "scripts/deploy_isometric_quick.sh",
+			"x": -1972.31,
+			"y": -2353.08,
+			"r": 78.84,
+			"n": 9,
+			"files": 1,
+			"c": 2314
+		},
+		{
+			"id": "scripts__kubectl-namespace-orphan-check_sh",
+			"label": "scripts/kubectl-namespace-orphan-check.sh",
+			"x": -1379.46,
+			"y": -2684.55,
+			"r": 75.22,
+			"n": 2,
+			"files": 1,
+			"c": 4403
+		},
+		{
+			"id": "scripts__populate-item-recipes_py",
+			"label": "scripts/populate-item-recipes.py",
+			"x": -2971.46,
+			"y": 356.66,
+			"r": 76.56,
+			"n": 4,
+			"files": 1,
+			"c": 2882
+		},
+		{
+			"id": "scripts__populate-npc-data_py",
+			"label": "scripts/populate-npc-data.py",
+			"x": 239.77,
+			"y": 3000.0,
+			"r": 77.58,
+			"n": 6,
+			"files": 1,
+			"c": 2187
+		},
+		{
+			"id": "scripts__resolve-docker-digests_sh",
+			"label": "scripts/resolve-docker-digests.sh",
+			"x": 2044.97,
+			"y": -2091.34,
+			"r": 75.22,
+			"n": 2,
+			"files": 1,
+			"c": 4404
+		},
+		{
+			"id": "scripts__vm-windows-bootstrap_ps1",
+			"label": "scripts/vm-windows-bootstrap.ps1",
+			"x": -2630.6,
+			"y": -1456.58,
+			"r": 75.95,
+			"n": 3,
+			"files": 1,
+			"c": 3626
+		},
+		{
+			"id": "tools__scripts",
+			"label": "tools/scripts",
+			"x": -85.87,
+			"y": -3000.0,
+			"r": 76.56,
+			"n": 4,
+			"files": 2,
+			"c": 4405
+		},
+		{
+			"id": "topojson-client",
+			"label": "topojson-client",
+			"x": 2823.05,
+			"y": -955.36,
+			"r": 74.28,
+			"n": 1,
+			"files": 1,
+			"c": 12620
+		},
+		{
+			"id": "tsconfig_base_json",
+			"label": "tsconfig.base.json",
+			"x": 1466.14,
+			"y": -2594.13,
+			"r": 87.63,
+			"n": 47,
+			"files": 1,
+			"c": 1569
+		},
+		{
+			"id": "tsconfig_json",
+			"label": "tsconfig.json",
+			"x": 2427.62,
+			"y": 1656.15,
+			"r": 76.56,
+			"n": 4,
+			"files": 1,
+			"c": 2476
+		},
+		{
+			"id": "virtual:starlight__components",
+			"label": "virtual:starlight/components",
+			"x": -498.67,
+			"y": -279.5,
+			"r": 77.58,
+			"n": 6,
+			"files": 6,
+			"c": 977
+		},
+		{
+			"id": "virtual:starlight__user-config",
+			"label": "virtual:starlight/user-config",
+			"x": -334.61,
+			"y": -496.29,
+			"r": 74.28,
+			"n": 1,
+			"files": 1,
+			"c": 977
+		},
+		{
+			"id": "world-atlas__countries-110m_json",
+			"label": "world-atlas/countries-110m.json",
+			"x": -26.99,
+			"y": 738.71,
+			"r": 74.28,
+			"n": 1,
+			"files": 1,
+			"c": 307
+		}
+	],
+	"dirEdges": [
+		[0, 45, 1.0, 5],
+		[3, 18, 1.0, 5],
+		[3, 23, 2.0, 5],
+		[4, 45, 1.0, 5],
+		[6, 45, 1.0, 5],
+		[9, 47, 200.0, 2],
+		[9, 18, 43.0, 5],
+		[9, 27, 17.0, 2],
+		[9, 45, 261.0, 0],
+		[9, 12, 15.0, 5],
+		[9, 15, 11.0, 5],
+		[9, 23, 8.0, 5],
+		[9, 24, 10.0, 5],
+		[9, 43, 6.0, 5],
+		[11, 18, 4.0, 5],
+		[11, 45, 21.0, 0],
+		[8, 11, 3.0, 0],
+		[8, 12, 2.0, 0],
+		[8, 14, 2.0, 0],
+		[8, 15, 2.0, 0],
+		[8, 16, 2.0, 0],
+		[8, 21, 2.0, 0],
+		[8, 24, 3.0, 0],
+		[11, 66, 5.0, 0],
+		[11, 67, 1.0, 0],
+		[12, 67, 1.0, 0],
+		[15, 67, 1.0, 0],
+		[16, 67, 1.0, 0],
+		[21, 67, 1.0, 0],
+		[24, 67, 1.0, 0],
+		[12, 66, 5.0, 0],
+		[15, 66, 5.0, 0],
+		[16, 66, 5.0, 0],
+		[21, 66, 5.0, 0],
+		[24, 66, 5.0, 0],
+		[14, 45, 35.0, 0],
+		[16, 45, 39.0, 0],
+		[18, 45, 645.0, 0],
+		[24, 45, 10.0, 0],
+		[11, 47, 20.0, 2],
+		[11, 48, 2.0, 1],
+		[11, 25, 2.0, 1],
+		[11, 49, 3.0, 2],
+		[12, 18, 21.0, 5],
+		[12, 45, 190.0, 0],
+		[12, 43, 18.0, 0],
+		[12, 23, 2.0, 5],
+		[12, 15, 1.0, 5],
+		[12, 47, 24.0, 2],
+		[12, 48, 3.0, 1],
+		[13, 47, 12.0, 2],
+		[13, 18, 1.0, 5],
+		[14, 18, 8.0, 0],
+		[14, 43, 3.0, 0],
+		[15, 45, 57.0, 0],
+		[21, 45, 79.0, 0],
+		[14, 47, 449.0, 2],
+		[14, 48, 4.0, 1],
+		[14, 37, 3.0, 0],
+		[14, 25, 1.0, 4],
+		[14, 19, 1.0, 0],
+		[15, 18, 41.0, 5],
+		[15, 23, 5.0, 5],
+		[15, 43, 5.0, 5],
+		[15, 21, 2.0, 5],
+		[16, 18, 3.0, 5],
+		[16, 47, 25.0, 2],
+		[16, 22, 1.0, 1],
+		[16, 48, 6.0, 1],
+		[17, 47, 44.0, 2],
+		[17, 48, 14.0, 1],
+		[17, 18, 39.0, 2],
+		[17, 43, 30.0, 0],
+		[17, 45, 125.0, 0],
+		[17, 23, 7.0, 5],
+		[18, 23, 98.0, 5],
+		[18, 43, 401.0, 0],
+		[18, 24, 5.0, 2],
+		[18, 25, 2.0, 5],
+		[18, 20, 4.0, 5],
+		[18, 27, 97.0, 2],
+		[18, 47, 882.0, 2],
+		[18, 19, 1.0, 5],
+		[18, 21, 1.0, 5],
+		[18, 30, 11.0, 0],
+		[24, 30, 3.0, 0],
+		[18, 35, 1.0, 0],
+		[35, 45, 1.0, 0],
+		[35, 47, 1.0, 0],
+		[18, 39, 1.0, 0],
+		[18, 40, 1.0, 0],
+		[8, 18, 3.0, 0],
+		[18, 29, 1.0, 0],
+		[18, 68, 1.0, 5],
+		[18, 66, 1.0, 0],
+		[18, 28, 1.0, 5],
+		[18, 48, 102.0, 1],
+		[18, 49, 10.0, 4],
+		[20, 47, 73.0, 2],
+		[20, 27, 3.0, 2],
+		[20, 43, 1.0, 4],
+		[21, 23, 2.0, 5],
+		[21, 47, 44.0, 2],
+		[21, 48, 11.0, 1],
+		[22, 47, 31.0, 2],
+		[22, 48, 3.0, 1],
+		[23, 45, 26.0, 5],
+		[23, 24, 5.0, 5],
+		[23, 43, 1.0, 2],
+		[23, 37, 1.0, 0],
+		[23, 46, 8.0, 1],
+		[24, 43, 36.0, 0],
+		[24, 48, 24.0, 0],
+		[24, 49, 11.0, 2],
+		[25, 47, 10.0, 4],
+		[25, 48, 2.0, 1],
+		[25, 49, 143.0, 2],
+		[25, 42, 1.0, 0],
+		[25, 45, 1.0, 1],
+		[25, 26, 1.0, 4],
+		[26, 47, 171.0, 2],
+		[26, 48, 68.0, 1],
+		[27, 47, 150.0, 2],
+		[27, 48, 16.0, 1],
+		[27, 43, 2.0, 4],
+		[28, 45, 2.0, 5],
+		[37, 46, 1.0, 0],
+		[42, 49, 7.0, 0],
+		[43, 45, 26.0, 0],
+		[43, 47, 11.0, 4],
+		[44, 46, 1.0, 0],
+		[36, 45, 1.0, 0],
+		[45, 48, 1.0, 1],
+		[46, 49, 3.0, 2],
+		[47, 48, 14.0, 1],
+		[9, 45, 3, 6],
+		[9, 47, 9, 6],
+		[11, 45, 4, 6],
+		[11, 47, 1, 6],
+		[12, 45, 4, 6],
+		[12, 47, 2, 6],
+		[13, 45, 1, 6],
+		[14, 45, 2, 6],
+		[14, 47, 15, 6],
+		[15, 45, 3, 6],
+		[15, 47, 2, 6],
+		[16, 45, 4, 6],
+		[16, 47, 3, 6],
+		[17, 45, 4, 6],
+		[17, 47, 1, 6],
+		[18, 45, 12, 6],
+		[18, 47, 17, 6],
+		[20, 47, 5, 6],
+		[21, 45, 2, 6],
+		[21, 47, 2, 6],
+		[22, 47, 2, 6],
+		[24, 45, 2, 6],
+		[24, 47, 1, 6],
+		[25, 47, 1, 6],
+		[26, 47, 2, 6],
+		[27, 47, 2, 6],
+		[47, 18, 1, 6]
+	]
+}

@@ -1,10 +1,4 @@
-import {
-	useEffect,
-	useLayoutEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useThree, useFrame, type ThreeEvent } from '@react-three/fiber';
 import { MapControls } from '@react-three/drei';
 import type { MapControls as MapControlsImpl } from 'three-stdlib';
@@ -40,6 +34,8 @@ interface DirNodeLike {
 	label: string;
 	n: number;
 	files: number;
+	ref?: string;
+	nx?: { projects: { name: string; type?: string }[] };
 }
 
 interface Props {
@@ -148,7 +144,14 @@ export default function TieredGraphScene({
 		startFly(d.x, d.y, fitZoom.current * 6);
 		setActiveSlug(d.id);
 		loadDir(d.id).then((c) => c && setChunkVersion((v) => v + 1));
-		onPickDir({ id: d.id, label: d.label, n: d.n, files: d.files });
+		onPickDir({
+			id: d.id,
+			label: d.label,
+			n: d.n,
+			files: d.files,
+			ref: d.ref,
+			nx: d.nx,
+		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [focusRequest]);
 
@@ -292,14 +295,17 @@ export default function TieredGraphScene({
 			</lineSegments>
 			{dirHiEdgeGeo && (
 				<lineSegments geometry={dirHiEdgeGeo}>
-					<lineBasicMaterial vertexColors transparent opacity={0.95} />
+					<lineBasicMaterial
+						vertexColors
+						transparent
+						opacity={0.95}
+					/>
 				</lineSegments>
 			)}
 
 			<instancedMesh
 				ref={dirOutline}
-				args={[CIRCLE, undefined, overview.dirs.length]}
-			>
+				args={[CIRCLE, undefined, overview.dirs.length]}>
 				<meshBasicMaterial transparent opacity={0.9} />
 			</instancedMesh>
 
@@ -334,11 +340,12 @@ export default function TieredGraphScene({
 						label: d.label,
 						n: d.n,
 						files: d.files,
+						ref: d.ref,
+						nx: d.nx,
 					});
 					loadDir(d.id);
 					startFly(d.x, d.y, fitZoom.current * 6);
-				}}
-			>
+				}}>
 				<meshBasicMaterial ref={dirMat} transparent opacity={0.9} />
 			</instancedMesh>
 
@@ -396,10 +403,7 @@ function DirDetail({
 	const fileLabelOp = useRef(0);
 	const [hoverFile, setHoverFile] = useState<number | null>(null);
 
-	const fileAdj = useMemo(
-		() => buildAdjacency(chunk.fileEdges),
-		[chunk],
-	);
+	const fileAdj = useMemo(() => buildAdjacency(chunk.fileEdges), [chunk]);
 
 	useLayoutEffect(() => {
 		const mesh = fileMesh.current;
@@ -455,7 +459,10 @@ function DirDetail({
 	}, [chunk, colorMode, dirIndex, dirTotal]);
 
 	const fileEdgeGeo = useMemo(
-		() => buildEdgeGeo(chunk.files, chunk.fileEdges, 0.5, { minBright: 0.35 }),
+		() =>
+			buildEdgeGeo(chunk.files, chunk.fileEdges, 0.5, {
+				minBright: 0.35,
+			}),
 		[chunk],
 	);
 	const fileHiEdgeGeo = useMemo(() => {
@@ -466,9 +473,10 @@ function DirDetail({
 		});
 	}, [chunk, hoverFile]);
 	const symEdgeGeo = useMemo(
-		() => buildEdgeGeo(chunk.symbols, chunk.symbolEdges, 1.5, {
-			minBright: 0.25,
-		}),
+		() =>
+			buildEdgeGeo(chunk.symbols, chunk.symbolEdges, 1.5, {
+				minBright: 0.25,
+			}),
 		[chunk],
 	);
 
@@ -498,7 +506,8 @@ function DirDetail({
 			1,
 		);
 		if (fileGroup.current) fileGroup.current.visible = fileT > 0.02;
-		if (fileMat.current) fileMat.current.opacity = fileT * (1 - symT * 0.55);
+		if (fileMat.current)
+			fileMat.current.opacity = fileT * (1 - symT * 0.55);
 		if (symGroup.current) symGroup.current.visible = symT > 0.02;
 		if (symMat.current) symMat.current.opacity = symT;
 		fileLabelOp.current = fileT * (1 - symT * 0.7);
@@ -549,8 +558,7 @@ function DirDetail({
 							'_blank',
 							'noopener',
 						);
-					}}
-				>
+					}}>
 					<meshBasicMaterial ref={fileMat} transparent opacity={0} />
 				</instancedMesh>
 			</group>
@@ -589,8 +597,7 @@ function DirDetail({
 								'_blank',
 								'noopener',
 							);
-					}}
-				>
+					}}>
 					<meshBasicMaterial ref={symMat} transparent opacity={0} />
 				</instancedMesh>
 			</group>

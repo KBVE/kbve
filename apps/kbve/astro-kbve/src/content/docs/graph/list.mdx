@@ -1,0 +1,31 @@
+---
+title: Graph — List View
+description: |
+    Searchable list fallback for the unified monorepo graph — projects,
+    directories, NX dependencies, and doc references.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
+sidebar:
+    label: Graph List
+    order: 100
+---
+
+import BentoShell from '@/components/hero/BentoShell.astro';
+import GraphHub from '@/components/graph/GraphHub';
+
+<div class="graph-hub-page" data-graph-hub-page>
+
+<BentoShell id="hub" eyebrow="Fallback · searchable list" heading="Graph — list view">
+	<p class="graph-hub-fallback">
+		<a href="/graph/">← Back to the unified graph</a>
+	</p>
+	<GraphHub client:only="react" />
+</BentoShell>
+
+</div>
+
+<style is:global>{`.graph-hub-page{--bento-accent:#a78bfa;--bento-accent-2:#38bdf8}.graph-hub-fallback{margin:0 0 12px;font-size:0.8rem;color:#94a3b8}.graph-hub-fallback a{color:#38bdf8}`}</style>
