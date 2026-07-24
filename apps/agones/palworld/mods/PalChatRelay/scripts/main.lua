@@ -59,7 +59,7 @@ local function on_chat(self, a, b)
     if (not text or #text == 0) and b ~= nil then
         player, text = extract(b)
     end
-    if player and text and #text > 0 then
+    if player and text and #text > 0 and player:upper() ~= "SYSTEM" then
         append(player, text)
     end
 end
