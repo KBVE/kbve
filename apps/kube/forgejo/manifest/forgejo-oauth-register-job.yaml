@@ -74,7 +74,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: register-client
-                  image: ghcr.io/kbve/kubectl:0.1.6
+                  image: ghcr.io/kbve/kubectl:0.1.7
                   imagePullPolicy: IfNotPresent
                   securityContext:
                       allowPrivilegeEscalation: false

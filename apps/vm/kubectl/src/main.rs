@@ -77,6 +77,16 @@ enum Commands {
         watch: bool,
         #[arg(long, default_value = "15")]
         interval: u64,
+        #[arg(long)]
+        backup: bool,
+        #[arg(long, default_value = "")]
+        world: String,
+        #[arg(long, default_value = "/palworld/Pal/Saved")]
+        save_path: String,
+        #[arg(long, default_value = "/palworld/backups")]
+        backup_dir: String,
+        #[arg(long, default_value = "5")]
+        backup_keep: u32,
     },
 }
 
@@ -399,6 +409,7 @@ async fn rotate_once(
     gameserver: &str,
     container: &str,
     delete_timeout: u64,
+    backup: &BackupOpts,
 ) -> Result<(), String> {
     let gs_ref = format!("gs/{gameserver}");
     let pod_ref = format!("pod/{gameserver}");
@@ -458,6 +469,15 @@ async fn rotate_once(
             Ok(())
         }
         RotateDecision::Delete(reason) => {
+            if backup.enabled {
+                match backup_before_rotate(namespace, gameserver, container, backup).await {
+                    Ok(name) => tracing::info!("pre-rotate backup created: {name}"),
+                    Err(e) => {
+                        tracing::error!("pre-rotate backup FAILED, aborting rotation this pass: {e}");
+                        return Ok(());
+                    }
+                }
+            }
             tracing::warn!(
                 "rotating gs ({reason}): running={running} desired={desired} state={state}"
             );
@@ -512,6 +532,129 @@ fn rotate_decision(desired: &str, running: &str, state: &str) -> RotateDecision 
     }
 }
 
+struct BackupOpts {
+    enabled: bool,
+    world: String,
+    save_path: String,
+    backup_dir: String,
+    keep: u32,
+}
+
+fn epoch_secs() -> String {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs().to_string())
+        .unwrap_or_else(|_| "0".to_string())
+}
+
+async fn resolve_world(
+    namespace: &str,
+    pod: &str,
+    container: &str,
+    save_path: &str,
+) -> Result<String, String> {
+    let path = format!("{save_path}/Config/WindowsServer/GameUserSettings.ini");
+    let script = format!("cat '{path}'");
+    let ini = kubectl_output(&[
+        "exec", pod, "-n", namespace, "-c", container, "--", "sh", "-c", &script,
+    ])
+    .await
+    .map_err(|e| format!("read GameUserSettings.ini: {e}"))?;
+    parse_dedicated_server_name(&ini).ok_or_else(|| "DedicatedServerName not found".to_string())
+}
+
+async fn backup_before_rotate(
+    namespace: &str,
+    gameserver: &str,
+    container: &str,
+    opts: &BackupOpts,
+) -> Result<String, String> {
+    let world = if opts.world.is_empty() {
+        resolve_world(namespace, gameserver, container, &opts.save_path).await?
+    } else {
+        opts.world.clone()
+    };
+    let ts = epoch_secs();
+    let args = backup_tar_args(
+        gameserver, namespace, container, &opts.save_path, &world, &opts.backup_dir, &ts,
+    );
+    let refs: Vec<&str> = args.iter().map(String::as_str).collect();
+    let out = kubectl_output_with_timeout(&refs, Duration::from_secs(120))
+        .await
+        .map_err(|e| format!("backup exec failed: {e}"))?;
+    tracing::info!("backup ok: {out}");
+    let pa = prune_args(gameserver, namespace, container, &opts.backup_dir, opts.keep);
+    let prefs: Vec<&str> = pa.iter().map(String::as_str).collect();
+    if let Err(e) = kubectl_output(&prefs).await {
+        tracing::warn!("backup prune failed (non-fatal): {e}");
+    }
+    Ok(format!("backup-{world}-{ts}.tar.gz"))
+}
+
+fn backup_tar_args(
+    pod: &str,
+    namespace: &str,
+    container: &str,
+    save_path: &str,
+    world: &str,
+    backup_dir: &str,
+    ts: &str,
+) -> Vec<String> {
+    let archive = format!("{backup_dir}/backup-{world}-{ts}.tar.gz");
+    let script = format!(
+        "set -eu; mkdir -p '{backup_dir}'; \
+tar czf '{archive}' -C '{save_path}' \
+'SaveGames/0/{world}' \
+'Config/WindowsServer/GameUserSettings.ini' \
+'Config/WindowsServer/PalWorldSettings.ini'; \
+ls -l '{archive}'"
+    );
+    vec![
+        "exec".to_string(),
+        pod.to_string(),
+        "-n".to_string(),
+        namespace.to_string(),
+        "-c".to_string(),
+        container.to_string(),
+        "--".to_string(),
+        "sh".to_string(),
+        "-c".to_string(),
+        script,
+    ]
+}
+
+fn prune_args(
+    pod: &str,
+    namespace: &str,
+    container: &str,
+    backup_dir: &str,
+    keep: u32,
+) -> Vec<String> {
+    let start = keep.saturating_add(1);
+    let script = format!(
+        "ls -1t '{backup_dir}'/backup-*.tar.gz 2>/dev/null | tail -n +{start} | xargs -r rm -f"
+    );
+    vec![
+        "exec".to_string(),
+        pod.to_string(),
+        "-n".to_string(),
+        namespace.to_string(),
+        "-c".to_string(),
+        container.to_string(),
+        "--".to_string(),
+        "sh".to_string(),
+        "-c".to_string(),
+        script,
+    ]
+}
+
+fn parse_dedicated_server_name(ini: &str) -> Option<String> {
+    ini.split(['(', ')', ',', '\n', '\r'])
+        .find_map(|field| field.trim().strip_prefix("DedicatedServerName="))
+        .map(|v| v.trim().trim_matches('"').to_string())
+        .filter(|s| !s.is_empty())
+}
+
 const HEARTBEAT_PATH: &str = "/tmp/.rotator-heartbeat";
 
 fn touch_heartbeat() {
@@ -527,9 +670,10 @@ async fn cmd_rotate_gameserver(
     delete_timeout: u64,
     watch: bool,
     interval: u64,
+    backup: &BackupOpts,
 ) -> ExitCode {
     if !watch {
-        return match rotate_once(namespace, gameserver, container, delete_timeout).await {
+        return match rotate_once(namespace, gameserver, container, delete_timeout, backup).await {
             Ok(()) => ExitCode::SUCCESS,
             Err(e) => {
                 tracing::error!("{e}");
@@ -551,7 +695,7 @@ async fn cmd_rotate_gameserver(
     let mut ticker = tokio::time::interval(Duration::from_secs(interval.max(1)));
     loop {
         ticker.tick().await;
-        if let Err(e) = rotate_once(namespace, gameserver, container, delete_timeout).await {
+        if let Err(e) = rotate_once(namespace, gameserver, container, delete_timeout, backup).await {
             tracing::error!("rotate pass failed: {e}");
         }
     }
@@ -583,7 +727,19 @@ async fn main() -> ExitCode {
             delete_timeout,
             watch,
             interval,
+            backup,
+            world,
+            save_path,
+            backup_dir,
+            backup_keep,
         } => {
+            let backup_opts = BackupOpts {
+                enabled: backup,
+                world,
+                save_path,
+                backup_dir,
+                keep: backup_keep,
+            };
             cmd_rotate_gameserver(
                 &namespace,
                 &gameserver,
@@ -591,6 +747,7 @@ async fn main() -> ExitCode {
                 delete_timeout,
                 watch,
                 interval,
+                &backup_opts,
             )
             .await
         }
@@ -649,5 +806,66 @@ mod rotate_tests {
     #[test]
     fn matching_images_skip() {
         assert!(!del("0.0.6", "0.0.6", "Allocated"));
+    }
+
+    #[test]
+    fn backup_tar_args_scopes_to_world_and_config() {
+        let a = super::backup_tar_args(
+            "palworld", "palworld", "palworld",
+            "/palworld/Pal/Saved", "CB8B6E", "/palworld/backups", "1737",
+        );
+        assert_eq!(a[0], "exec");
+        assert_eq!(a[1], "palworld");
+        assert_eq!(&a[2..7], &["-n", "palworld", "-c", "palworld", "--"]);
+        assert_eq!(a[7], "sh");
+        assert_eq!(a[8], "-c");
+        let script = a.last().unwrap();
+        assert!(script.contains("/palworld/backups/backup-CB8B6E-1737.tar.gz"));
+        assert!(script.contains("-C '/palworld/Pal/Saved'"));
+        assert!(script.contains("'SaveGames/0/CB8B6E'"));
+        assert!(script.contains("Config/WindowsServer/GameUserSettings.ini"));
+        assert!(script.contains("Config/WindowsServer/PalWorldSettings.ini"));
+        assert!(!script.contains("-C '/palworld/Pal/Saved' 'Saved'"));
+    }
+
+    #[test]
+    fn prune_args_keeps_n_newest() {
+        let a = super::prune_args("palworld", "palworld", "palworld", "/palworld/backups", 5);
+        assert_eq!(&a[0..7], &["exec", "palworld", "-n", "palworld", "-c", "palworld", "--"]);
+        let s = a.last().unwrap();
+        assert!(s.contains("ls -1t '/palworld/backups'/backup-*.tar.gz"));
+        assert!(s.contains("tail -n +6"));
+        assert!(s.contains("xargs -r rm -f"));
+    }
+
+    #[test]
+    fn parse_world_plain_line() {
+        let ini = "[/Script/Pal.PalGameLocalSettings]\nDedicatedServerName=CB8B6E\n";
+        assert_eq!(super::parse_dedicated_server_name(ini).as_deref(), Some("CB8B6E"));
+    }
+
+    #[test]
+    fn parse_world_option_settings_block() {
+        let ini = "OptionSettings=(Difficulty=None,DedicatedServerName=\"CB8B6E\",PublicPort=8211)";
+        assert_eq!(super::parse_dedicated_server_name(ini).as_deref(), Some("CB8B6E"));
+    }
+
+    #[test]
+    fn parse_world_none_when_absent() {
+        assert_eq!(super::parse_dedicated_server_name("[Settings]\nFoo=bar\n"), None);
+        assert_eq!(super::parse_dedicated_server_name("DedicatedServerName=\n"), None);
+    }
+
+    #[test]
+    fn backup_opts_disabled_by_default_is_noop_shape() {
+        let opts = super::BackupOpts {
+            enabled: false,
+            world: String::new(),
+            save_path: "/palworld/Pal/Saved".to_string(),
+            backup_dir: "/palworld/backups".to_string(),
+            keep: 5,
+        };
+        assert!(!opts.enabled);
+        assert_eq!(opts.keep, 5);
     }
 }

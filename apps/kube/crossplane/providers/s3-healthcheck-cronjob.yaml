@@ -91,7 +91,7 @@ spec:
                             type: RuntimeDefault
                     containers:
                         - name: healthcheck
-                          image: ghcr.io/kbve/kubectl:0.1.6
+                          image: ghcr.io/kbve/kubectl:0.1.7
                           securityContext:
                               allowPrivilegeEscalation: false
                               readOnlyRootFilesystem: true

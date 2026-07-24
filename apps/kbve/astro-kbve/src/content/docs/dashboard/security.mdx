@@ -32,7 +32,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-title__accent">across every ecosystem.</span>
 				</h1>
 				<p class="bento-lede"><strong>43</strong> critical/high severity findings across the monorepo — triage before merge.</p>
-				<p class="bento-lede">Last generated <strong>2026-07-23T04:19:40Z</strong>.</p>
+				<p class="bento-lede">Last generated <strong>2026-07-24T04:17:53Z</strong>.</p>
 				<div class="bento-cta">
 					<a class="bento-btn bento-btn--primary" href="#findings">
 						View findings
@@ -61,7 +61,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 16v-4M12 8h.01" /></svg>
 					</span>
-					<span class="bento-stat__value">56</span>
+					<span class="bento-stat__value">55</span>
 					<span class="bento-stat__label">Medium</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
@@ -93,7 +93,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96 12 12.01l8.73-5.05M12 22.08V12" /></svg>
 			</span>
 			<span class="bento-linkcard__title">npm</span>
-			<span class="bento-linkcard__copy">94 advisories</span>
+			<span class="bento-linkcard__copy">93 advisories</span>
 			<span class="bento-linkcard__go" aria-hidden="true">
 				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 			</span>
@@ -150,7 +150,7 @@ pie showData
     title Findings by Severity
     "Critical" : 4
     "High" : 39
-    "Medium" : 56
+    "Medium" : 55
     "Low" : 10
 ```
 
@@ -159,7 +159,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 94
+    "npm" : 93
     "Cargo" : 45
 ```
 
@@ -167,12 +167,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 4 | 39 | 41 | 10 | 94 |
+| **npm** | 4 | 39 | 40 | 10 | 93 |
 | **Cargo** | 0 | 0 | 15 | 0 | 45 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 4 | 39 | 56 | 10 | 139 |
+| **Total** | 4 | 39 | 55 | 10 | 138 |
 
 <span id="eco-npm"></span>
 
@@ -253,7 +253,6 @@ pie showData
 | Medium | `axios` | Axios: Excessive recursion in formDataToJSON can cause de... | [Details](https://github.com/advisories/GHSA-42h9-826w-cgv3) |
 | Medium | `axios` | Axios: Prototype pollution auth subfields can inject Basi... | [Details](https://github.com/advisories/GHSA-xj6q-8x83-jv6g) |
 | Medium | `axios` | Axios: Deep formToJSON Key Recursion Can Cause Denial of ... | [Details](https://github.com/advisories/GHSA-pmv8-rq9r-6j72) |
-| Medium | `astro` | Astro: Reflected XSS via unescaped View Transition animat... | [Details](https://github.com/advisories/GHSA-4g3v-8h47-v7g6) |
 | Medium | `tar` | node-tar: Process crash via PAX numeric path type confusion | [Details](https://github.com/advisories/GHSA-w8wr-v893-vjvp) |
 | Medium | `tar` | node-tar: Uncaught Exception DoS via NUL byte in PAX path... | [Details](https://github.com/advisories/GHSA-gvwx-54wh-qm9j) |
 | Medium | `axios` | Axios: Fetch adapter `ReadableStream` uploads bypass `max... | [Details](https://github.com/advisories/GHSA-jqh4-m9w3-8hp9) |

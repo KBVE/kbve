@@ -31,7 +31,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: rotator
-                  image: ghcr.io/kbve/kubectl:0.1.7
+                  image: ghcr.io/kbve/kubectl:0.1.8
                   imagePullPolicy: IfNotPresent
                   args:
                       - rotate-gameserver
@@ -41,6 +41,10 @@ spec:
                       - --gameserver=palworld
                       - --container=palworld
                       - --delete-timeout=180
+                      - --backup
+                      - --save-path=/palworld/Pal/Saved
+                      - --backup-dir=/palworld/backups
+                      - --backup-keep=5
                   securityContext:
                       allowPrivilegeEscalation: false
                       capabilities:
