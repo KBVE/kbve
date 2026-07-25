@@ -80,6 +80,7 @@ pub struct Engine {
     metadata_timeout: Duration,
     stall_timeout: Duration,
     stall_check: Duration,
+    trackers: Arc<Mutex<Arc<Vec<String>>>>,
 }
 
 const LEECH_DRAIN_CAP: Duration = Duration::from_secs(6 * 3600);
@@ -122,6 +123,7 @@ impl Engine {
             metadata_timeout: Duration::from_secs(cfg.metadata_timeout_secs),
             stall_timeout: Duration::from_secs(cfg.stall_timeout_secs),
             stall_check: Duration::from_secs(cfg.stall_check_secs.max(1)),
+            trackers: Arc::new(Mutex::new(Arc::new(cfg.extra_trackers.clone()))),
         };
         engine.resume_on_start();
         Ok(engine)
@@ -167,8 +169,10 @@ impl Engine {
             anyhow::bail!("vpn egress unavailable; refusing to add torrent");
         }
         let out_dir = self.active_dir.join(unique_subdir());
+        let trackers = self.trackers.lock().unwrap().clone();
         let opts = AddTorrentOptions {
             output_folder: Some(out_dir.to_string_lossy().into_owned()),
+            trackers: (!trackers.is_empty()).then(|| (*trackers).clone()),
             ..Default::default()
         };
         let resp = self
@@ -564,6 +568,35 @@ pub async fn vpn_watchdog_loop(engine: Engine, interval_secs: u64) {
     loop {
         ticker.tick().await;
         engine.vpn_recheck().await;
+    }
+}
+
+impl Engine {
+    pub async fn refresh_trackers(&self, url: &str) -> anyhow::Result<usize> {
+        let text = reqwest::get(url).await?.text().await?;
+        let list = config::parse_trackers(&text);
+        if list.is_empty() {
+            anyhow::bail!("fetched tracker list from {url} was empty");
+        }
+        let n = list.len();
+        *self.trackers.lock().unwrap() = Arc::new(list);
+        Ok(n)
+    }
+}
+
+pub async fn tracker_refresh_loop(engine: Engine, url: String, interval_secs: u64) {
+    match engine.refresh_trackers(&url).await {
+        Ok(n) => tracing::info!(count = n, %url, "tracker list loaded"),
+        Err(e) => tracing::warn!(error = %e, %url, "tracker list fetch failed; using embedded defaults"),
+    }
+    let mut ticker = tokio::time::interval(std::time::Duration::from_secs(interval_secs.max(60)));
+    ticker.tick().await;
+    loop {
+        ticker.tick().await;
+        match engine.refresh_trackers(&url).await {
+            Ok(n) => tracing::info!(count = n, "tracker list refreshed"),
+            Err(e) => tracing::warn!(error = %e, "tracker list refresh failed; keeping previous"),
+        }
     }
 }
 

@@ -45,6 +45,14 @@ async fn main() -> anyhow::Result<()> {
 
     tokio::spawn(engine::vpn_watchdog_loop(eng.clone(), cfg.vpn_watchdog_secs));
 
+    if let Some(url) = cfg.trackers_url.clone() {
+        tokio::spawn(engine::tracker_refresh_loop(
+            eng.clone(),
+            url,
+            cfg.trackers_refresh_secs,
+        ));
+    }
+
     tokio::spawn(state::persist_loop(store.clone(), cfg.state_flush_ms));
 
     let app = api::router(api::AppState {
