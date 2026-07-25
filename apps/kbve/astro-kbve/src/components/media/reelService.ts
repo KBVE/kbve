@@ -19,6 +19,34 @@ export interface ReelDetail {
 	[key: string]: unknown;
 }
 
+export type ReelTorrentState = 'Leeching' | 'Seeding' | 'Reaped' | 'Failed';
+export type ReelTranscodeStatus =
+	| 'None'
+	| 'Pending'
+	| 'Remuxing'
+	| 'Encoding'
+	| 'Ready'
+	| 'Failed';
+export type ReelHlsStatus = 'None' | 'Starting' | 'Live' | 'Ready' | 'Failed';
+
+export interface ReelTorrent {
+	id: string;
+	name: string;
+	size: number;
+	state: ReelTorrentState;
+	completed_at?: number | null;
+	last_access: number;
+	error?: string | null;
+	transcode: ReelTranscodeStatus;
+	transcode_error?: string | null;
+	hls: ReelHlsStatus;
+	hls_error?: string | null;
+}
+
+export const $reelList = atom<ReelTorrent[]>([]);
+export const $reelListError = atom<string | null>(null);
+export const $reelListLoading = atom<boolean>(false);
+
 const REEL_PATH: string =
 	(import.meta.env.PUBLIC_REEL_BASE as string | undefined) ?? '/api/v1/reel';
 const MEDIA_BASE = `${DASH_PROXY_BASE}${REEL_PATH}`;
@@ -45,6 +73,50 @@ export function withToken(url: string, token: string): string {
 	if (url.includes('access_token=')) return url;
 	const sep = url.includes('?') ? '&' : '?';
 	return `${url}${sep}access_token=${encodeURIComponent(token)}`;
+}
+
+export async function listTorrents(): Promise<ReelTorrent[]> {
+	return authedApiFetch<ReelTorrent[]>(`${REEL_PATH}/torrents`);
+}
+
+export async function addTorrent(source: string): Promise<string> {
+	const res = await authedApiFetch<{ id: string }>(`${REEL_PATH}/torrents`, {
+		method: 'POST',
+		body: JSON.stringify({ source }),
+	});
+	return res.id;
+}
+
+export async function deleteTorrent(id: string): Promise<void> {
+	await authedApiFetch<void>(
+		`${REEL_PATH}/torrents/${encodeURIComponent(id)}`,
+		{ method: 'DELETE' },
+	);
+}
+
+export async function startTranscode(id: string): Promise<void> {
+	await authedApiFetch<void>(
+		`${REEL_PATH}/torrents/${encodeURIComponent(id)}/transcode`,
+		{ method: 'POST' },
+	);
+}
+
+export async function refreshReelList(): Promise<void> {
+	$reelListLoading.set(true);
+	try {
+		$reelList.set(await listTorrents());
+		$reelListError.set(null);
+	} catch (e) {
+		$reelListError.set(
+			e instanceof ApiError && e.status === 401
+				? 'sign in as staff to manage reels'
+				: e instanceof Error
+					? e.message
+					: String(e),
+		);
+	} finally {
+		$reelListLoading.set(false);
+	}
 }
 
 export type ProbeAction = 'raw' | 'raw-leeching' | 'hls' | 'poll' | 'error';
