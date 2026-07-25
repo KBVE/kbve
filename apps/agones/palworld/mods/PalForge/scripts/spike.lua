@@ -13,6 +13,15 @@ local SETTER_CANDIDATES = {
     "OnUpdateText",
 }
 local PROBE_TEXT = "PalForge R2 probe"
+local LOAD_CANDIDATES = { "StaticLoadObject", "LoadObject", "LoadAsset" }
+
+local function is_valid(obj)
+    if not obj then
+        return false
+    end
+    local ok, v = pcall(function() return obj:IsValid() end)
+    return ok and v
+end
 
 local function trim(s)
     return (s:gsub("^%s+", ""):gsub("%s+$", ""))
@@ -38,11 +47,31 @@ function M.handle(sender, msg, emit, loc_fn, static_find, find_first, find_all)
 
     emit("signprobe: start (recon)")
 
-    local cls = try(emit, "class", function()
+    local cls = try(emit, "class find", function()
         return static_find(SIGNBOARD_CLASS)
     end)
-    if cls then
-        try(emit, "class:IsValid", function() return cls:IsValid() end)
+    local cls_valid = is_valid(cls)
+    emit("signprobe class find:IsValid -> " .. tostring(cls_valid))
+    if not cls_valid then
+        emit("signprobe class not loaded; trying load candidates")
+        for _, name in ipairs(LOAD_CANDIDATES) do
+            local loader = _G[name]
+            if type(loader) ~= "function" then
+                emit("signprobe load " .. name .. " -> global absent")
+            else
+                local loaded = try(emit, "load " .. name, function()
+                    return loader(SIGNBOARD_CLASS)
+                end)
+                if is_valid(loaded) then
+                    emit("signprobe load " .. name .. " -> VALID class")
+                    cls = loaded
+                    cls_valid = true
+                    break
+                end
+            end
+        end
+    end
+    if cls_valid then
         try(emit, "class:GetFullName", function() return cls:GetFullName() end)
     end
 
