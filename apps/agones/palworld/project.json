@@ -5,8 +5,15 @@
 	"sourceRoot": "apps/agones/palworld",
 	"targets": {
 		"test": {
-			"executor": "nx:noop",
-			"cache": false
+			"executor": "nx:run-commands",
+			"cache": true,
+			"options": {
+				"cwd": "apps/agones/palworld",
+				"parallel": false,
+				"commands": [
+					"docker run --rm -v \"$PWD/mods/PalForge:/mod\" -w /mod nickblah/lua:5.4 lua test/harness.lua /mod/scripts"
+				]
+			}
 		},
 		"container": {
 			"executor": "@nx-tools/nx-container:build",
