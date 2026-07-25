@@ -31,8 +31,8 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					Project board
 					<span class="bento-title__accent">across every column.</span>
 				</h1>
-				<p class="bento-lede"><strong>409</strong> items on the board — <strong>28</strong> active, <strong>23</strong> blocked.</p>
-				<p class="bento-lede">Last generated <strong>2026-07-24T04:14:06Z</strong>.</p>
+				<p class="bento-lede"><strong>432</strong> items on the board — <strong>28</strong> active, <strong>23</strong> blocked.</p>
+				<p class="bento-lede">Last generated <strong>2026-07-25T04:10:22Z</strong>.</p>
 				<div class="bento-cta">
 					<a class="bento-btn bento-btn--primary" href="#columns">
 						View columns
@@ -47,7 +47,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
 					</span>
-					<span class="bento-stat__value">409</span>
+					<span class="bento-stat__value">432</span>
 					<span class="bento-stat__label">Tracked</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
@@ -75,7 +75,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1M22 4 12 14.01l-3-3" /></svg>
 					</span>
-					<span class="bento-stat__value">276</span>
+					<span class="bento-stat__value">299</span>
 					<span class="bento-stat__label">Done</span>
 				</div>
 		</div>
@@ -174,7 +174,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1M22 4 12 14.01l-3-3" /></svg>
 			</span>
 			<span class="bento-linkcard__title">Done</span>
-			<span class="bento-linkcard__copy">276 items</span>
+			<span class="bento-linkcard__copy">299 items</span>
 			<span class="bento-linkcard__go" aria-hidden="true">
 				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 			</span>
@@ -196,7 +196,7 @@ pie showData
     "Error" : 23
     "Staging" : 2
     "Review" : 4
-    "Done" : 276
+    "Done" : 299
 ```
 
 ### Work state
@@ -206,7 +206,7 @@ pie showData
     title Work State
     "Active (Todo+Staging+Review)" : 28
     "Blocked (Error+Support)" : 23
-    "Done" : 276
+    "Done" : 299
     "Planning (Theory+AI+Backlog)" : 82
 ```
 
@@ -234,7 +234,7 @@ flowchart LR
     Staging --> Review
     Review["Review<br/><strong>4</strong>"]
     Review --> Done
-    Done["Done<br/><strong>276</strong>"]
+    Done["Done<br/><strong>299</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -246,7 +246,7 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 269
+    "Pull Request" : 292
     "Issue" : 140
 ```
 
@@ -258,10 +258,10 @@ pie showData
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 269 |
+| auto-pr | 292 |
+| dev→main | 100 |
 | enhancement | 97 |
-| dev→main | 95 |
-| atomic | 74 |
+| atomic | 77 |
 | bug | 27 |
 | todo | 26 |
 | rust | 16 |
@@ -456,12 +456,12 @@ No items in **Support**.
 |---|-------|----------|-----------|--------|
 | [#13278](https://github.com/KBVE/kbve/pull/13278) | Atomic: ue ramdisk spec | — | — | auto-pr, atomic |
 | [#13572](https://github.com/KBVE/kbve/pull/13572) | Atomic: bump mdx spec | — | — | auto-pr, atomic |
-| [#14579](https://github.com/KBVE/kbve/pull/14579) | Release: 1 test, 5 chores → Main | — | — | auto-pr, dev→main |
-| [#14585](https://github.com/KBVE/kbve/pull/14585) | chore(content): daily releases scaffold | — | — | auto-pr |
+| [#14629](https://github.com/KBVE/kbve/pull/14629) | Release: 1 feature → Main | — | — | auto-pr, dev→main |
+| [#14630](https://github.com/KBVE/kbve/pull/14630) | chore(content): daily journal scaffold | — | — | auto-pr |
 
 <span id="col-done"></span>
 
-### Done (276)
+### Done (299)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
@@ -470,13 +470,6 @@ No items in **Support**.
 | [#13109](https://github.com/KBVE/kbve/issues/13109) | [MEDIUM] LB VIP 142.132.206.74 dropped from the pool | — | — | bug |
 | [#13275](https://github.com/KBVE/kbve/pull/13275) | Atomic: valkey harden | — | — | auto-pr, atomic |
 | [#13351](https://github.com/KBVE/kbve/issues/13351) | Upgrade astro-kbve to Astro 7 (build-speed: markdown/MDX-heavy static site) | — | — | enhancement |
-| [#13575](https://github.com/KBVE/kbve/pull/13575) | Atomic: rows drain fleet plan fix | — | — | auto-pr, atomic |
-| [#13993](https://github.com/KBVE/kbve/pull/13993) | Release: 11 features, 4 fixes, 1 chore → Main | — | — | auto-pr, dev→main |
-| [#14009](https://github.com/KBVE/kbve/pull/14009) | Release: 4 features, 2 fixes → Main | — | — | auto-pr, dev→main |
-| [#14012](https://github.com/KBVE/kbve/pull/14012) | Atomic: mc v1.0.66 post-publish sync | — | — | auto-pr, atomic |
-| [#14013](https://github.com/KBVE/kbve/pull/14013) | Release: 2 features, 1 fix, 1 doc, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#14015](https://github.com/KBVE/kbve/pull/14015) | chore(dashboard): daily sync — 2026-07-10 | — | — | auto-pr |
-| [#14016](https://github.com/KBVE/kbve/pull/14016) | Atomic: rows v0.1.38 post-publish sync | — | — | auto-pr, atomic |
 | [#14017](https://github.com/KBVE/kbve/pull/14017) | Release: 8 features, 4 fixes, 1 doc, 4 chores → Main | — | — | auto-pr, dev→main |
 | [#14019](https://github.com/KBVE/kbve/pull/14019) | chore(dashboard): daily sync — 2026-07-11 | — | — | auto-pr |
 | [#14022](https://github.com/KBVE/kbve/pull/14022) | Atomic: edge v0.1.47 post-publish sync | — | — | auto-pr, atomic |
@@ -737,10 +730,40 @@ No items in **Support**.
 | [#14573](https://github.com/KBVE/kbve/pull/14573) | Release: 2 features, 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
 | [#14574](https://github.com/KBVE/kbve/pull/14574) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
 | [#14578](https://github.com/KBVE/kbve/pull/14578) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14579](https://github.com/KBVE/kbve/pull/14579) | Release: 1 test, 5 chores → Main | — | — | auto-pr, dev→main |
 | [#14580](https://github.com/KBVE/kbve/pull/14580) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
 | [#14581](https://github.com/KBVE/kbve/pull/14581) | Atomic: kbve-kubectl v0.1.7 post-publish sync | — | — | auto-pr, atomic |
 | [#14582](https://github.com/KBVE/kbve/pull/14582) | Atomic: agones-palworld v0.0.7 post-publish sync | — | — | auto-pr, atomic |
 | [#14583](https://github.com/KBVE/kbve/pull/14583) | Atomic: axum-kbve v1.0.251 post-publish sync | — | — | auto-pr, atomic |
+| [#14585](https://github.com/KBVE/kbve/pull/14585) | chore(content): daily releases scaffold | — | — | auto-pr |
+| [#14586](https://github.com/KBVE/kbve/pull/14586) | chore(content): daily journal scaffold | — | — | auto-pr |
+| [#14587](https://github.com/KBVE/kbve/pull/14587) | chore(content): daily activity scaffold | — | — | auto-pr |
+| [#14588](https://github.com/KBVE/kbve/pull/14588) | chore(content): daily kanban scaffold | — | — | auto-pr |
+| [#14589](https://github.com/KBVE/kbve/pull/14589) | chore(content): daily ci-health scaffold | — | — | auto-pr |
+| [#14590](https://github.com/KBVE/kbve/pull/14590) | chore(content): daily proto scaffold | — | — | auto-pr |
+| [#14591](https://github.com/KBVE/kbve/pull/14591) | chore(content): daily graph scaffold | — | — | auto-pr |
+| [#14592](https://github.com/KBVE/kbve/pull/14592) | chore(content): daily report scaffold | — | — | auto-pr |
+| [#14593](https://github.com/KBVE/kbve/pull/14593) | chore(content): daily deps scaffold | — | — | auto-pr |
+| [#14594](https://github.com/KBVE/kbve/pull/14594) | chore(content): daily security scaffold | — | — | auto-pr |
+| [#14596](https://github.com/KBVE/kbve/pull/14596) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14597](https://github.com/KBVE/kbve/pull/14597) | Atomic: kbve-kubectl v0.1.8 post-publish sync | — | — | auto-pr, atomic |
+| [#14598](https://github.com/KBVE/kbve/pull/14598) | Release: 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14600](https://github.com/KBVE/kbve/pull/14600) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14601](https://github.com/KBVE/kbve/pull/14601) | Atomic: agones-palworld v0.0.8 post-publish sync | — | — | auto-pr, atomic |
+| [#14602](https://github.com/KBVE/kbve/pull/14602) | Release: 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#14604](https://github.com/KBVE/kbve/pull/14604) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14605](https://github.com/KBVE/kbve/pull/14605) | Atomic: agones-palworld v0.0.9 post-publish sync | — | — | auto-pr, atomic |
+| [#14606](https://github.com/KBVE/kbve/pull/14606) | Release: 1 feature, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#14611](https://github.com/KBVE/kbve/pull/14611) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14617](https://github.com/KBVE/kbve/pull/14617) | Release: 2 features, 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14619](https://github.com/KBVE/kbve/pull/14619) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
+| [#14620](https://github.com/KBVE/kbve/pull/14620) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14621](https://github.com/KBVE/kbve/pull/14621) | Atomic: agones-palworld-relay v0.0.7 post-publish sync | — | — | auto-pr, atomic |
+| [#14622](https://github.com/KBVE/kbve/pull/14622) | Release: 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14623](https://github.com/KBVE/kbve/pull/14623) | Atomic: discordsh-bot v0.1.29 post-publish sync | — | — | auto-pr, atomic |
+| [#14625](https://github.com/KBVE/kbve/pull/14625) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14626](https://github.com/KBVE/kbve/pull/14626) | Atomic: agones-palworld v0.0.11 post-publish sync | — | — | auto-pr, atomic |
+| [#14627](https://github.com/KBVE/kbve/pull/14627) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
 
 </BentoProse>
 
