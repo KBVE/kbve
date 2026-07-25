@@ -117,5 +117,5 @@ local function schedule()
     end
 end
 
-log("loaded (spawn/setter pending Phase 0 spike; /pos command active)")
+log("loaded (spawn/setter pending Phase 0 spike; !pos command active)")
 schedule()

@@ -1,6 +1,7 @@
 ---
 import BentoShell from '@/components/hero/BentoShell.astro';
 import ReactReelPlayer from '@/components/media/ReactReelPlayer';
+import ReactReelConsole from '@/components/media/ReactReelConsole';
 ---
 
 <BentoShell
@@ -10,6 +11,9 @@ import ReactReelPlayer from '@/components/media/ReactReelPlayer';
 	<div class="reel-dash not-content">
 		<div class="reel-dash__stream not-content">
 			<ReactReelPlayer client:only="react" />
+		</div>
+		<div class="reel-dash__console not-content">
+			<ReactReelConsole client:only="react" />
 		</div>
 	</div>
 </BentoShell>
@@ -92,5 +96,177 @@ import ReactReelPlayer from '@/components/media/ReactReelPlayer';
 	:global(.reel-player__controls button:disabled) {
 		opacity: 0.5;
 		cursor: not-allowed;
+	}
+
+	.reel-dash__console {
+		margin-top: 2rem;
+	}
+
+	:global(.reel-console) {
+		border: 1px solid #27272a;
+		border-radius: 0.75rem;
+		padding: 1.25rem;
+		background: #0c0c0e;
+	}
+
+	:global(.reel-console__header) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		margin-bottom: 1rem;
+	}
+
+	:global(.reel-console__header h3) {
+		margin: 0;
+		font-size: 1rem;
+		color: #e5e7eb;
+	}
+
+	:global(.reel-console__gate) {
+		color: #9ca3af;
+		font-size: 0.875rem;
+		margin: 0;
+	}
+
+	:global(.reel-console__add) {
+		display: flex;
+		gap: 0.5rem;
+		margin-bottom: 1rem;
+	}
+
+	:global(.reel-console__add input) {
+		flex: 1;
+		min-width: 0;
+		padding: 0.5rem 0.75rem;
+		border-radius: 0.5rem;
+		border: 1px solid #3f3f46;
+		background: #18181b;
+		color: #e5e7eb;
+		font-size: 0.875rem;
+	}
+
+	:global(.reel-console__refresh),
+	:global(.reel-console__add button),
+	:global(.reel-console__btn) {
+		padding: 0.5rem 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid #3f3f46;
+		background: #18181b;
+		color: #e5e7eb;
+		cursor: pointer;
+		font-size: 0.8125rem;
+		text-decoration: none;
+		display: inline-flex;
+		align-items: center;
+	}
+
+	:global(.reel-console__btn--danger) {
+		border-color: #7f1d1d;
+		color: #fca5a5;
+	}
+
+	:global(.reel-console__refresh:disabled),
+	:global(.reel-console__add button:disabled),
+	:global(.reel-console__btn:disabled),
+	:global(.reel-console__btn[aria-disabled='true']) {
+		opacity: 0.5;
+		cursor: not-allowed;
+		pointer-events: none;
+	}
+
+	:global(.reel-console__error) {
+		color: #f87171;
+		font-size: 0.8125rem;
+		margin: 0 0 0.75rem;
+	}
+
+	:global(.reel-console__list) {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	:global(.reel-console__empty) {
+		color: #71717a;
+		font-size: 0.875rem;
+		padding: 0.75rem 0;
+	}
+
+	:global(.reel-console__row) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.75rem;
+		border: 1px solid #27272a;
+		border-radius: 0.5rem;
+		background: #131316;
+		flex-wrap: wrap;
+	}
+
+	:global(.reel-console__meta) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		min-width: 0;
+	}
+
+	:global(.reel-console__name) {
+		color: #e5e7eb;
+		font-size: 0.875rem;
+		font-weight: 600;
+		word-break: break-word;
+	}
+
+	:global(.reel-console__sub) {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		color: #9ca3af;
+		font-size: 0.75rem;
+	}
+
+	:global(.reel-console__rowerr) {
+		color: #f87171;
+		font-size: 0.75rem;
+	}
+
+	:global(.reel-console__badge) {
+		padding: 0.05rem 0.5rem;
+		border-radius: 999px;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		background: #27272a;
+		color: #d4d4d8;
+	}
+
+	:global(.reel-console__badge--seeding) {
+		background: #064e3b;
+		color: #6ee7b7;
+	}
+
+	:global(.reel-console__badge--leeching) {
+		background: #78350f;
+		color: #fcd34d;
+	}
+
+	:global(.reel-console__badge--failed) {
+		background: #7f1d1d;
+		color: #fca5a5;
+	}
+
+	:global(.reel-console__badge--reaped) {
+		background: #3f3f46;
+		color: #a1a1aa;
+	}
+
+	:global(.reel-console__actions) {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
 	}
 </style>
