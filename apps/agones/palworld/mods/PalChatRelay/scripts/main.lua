@@ -3,13 +3,10 @@ local RETRY_MS = 15000
 
 local CANDIDATES = {
     "/Script/Pal.PalGameStateInGame:BroadcastChatMessage",
-    "/Script/Pal.PalNetworkChatManager:BroadcastChat",
-    "/Script/Pal.PalNetworkChatManager:BroadcastChatMessage",
 }
 
 local CLASS_PROBES = {
     "/Script/Pal.PalGameStateInGame",
-    "/Script/Pal.PalNetworkChatManager",
 }
 
 local function log(msg)
