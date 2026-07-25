@@ -43,16 +43,16 @@ function M.player_location(sender, finder)
 end
 
 function M.handle(sender, msg, emit, finder)
-    if type(msg) ~= "string" or trim(msg):lower() ~= "/pos" then
+    if type(msg) ~= "string" or trim(msg):lower() ~= "!pos" then
         return false
     end
     local loc = M.player_location(sender, finder)
     if loc then
         emit(string.format(
-            "/pos %s -> X=%.1f Y=%.1f Z=%.1f",
+            "!pos %s -> X=%.1f Y=%.1f Z=%.1f",
             tostring(sender), loc.x, loc.y, loc.z))
     else
-        emit("/pos " .. tostring(sender) .. " -> location unresolved")
+        emit("!pos " .. tostring(sender) .. " -> location unresolved")
     end
     return true
 end

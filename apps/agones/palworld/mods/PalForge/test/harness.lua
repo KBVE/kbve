@@ -64,20 +64,20 @@ local function finder_with(name, x, y, z)
     end
 end
 
-local h1 = pos.handle("Al", "/pos", emit, finder_with("Al", 100, 200, 300))
+local h1 = pos.handle("Al", "!pos", emit, finder_with("Al", 100, 200, 300))
 local n_after_h1 = #pos_emits
-local h2 = pos.handle("Al", "hello world", emit, finder_with("Al", 1, 2, 3))
+local h2 = pos.handle("Al", "/pos", emit, finder_with("Al", 1, 2, 3))
 local n_after_h2 = #pos_emits
-local h3 = pos.handle("Al", "  /POS ", emit, finder_with("Al", 5, 6, 7))
-local h4 = pos.handle("Bob", "/pos", emit, function(_) return {} end)
+local h3 = pos.handle("Al", "  !POS ", emit, finder_with("Al", 5, 6, 7))
+local h4 = pos.handle("Bob", "!pos", emit, function(_) return {} end)
 
 local pos_ok = h1 == true
     and h2 == false
     and n_after_h2 == n_after_h1
     and h3 == true
     and h4 == true
-    and pos_emits[1] == "/pos Al -> X=100.0 Y=200.0 Z=300.0"
-    and pos_emits[2] == "/pos Al -> X=5.0 Y=6.0 Z=7.0"
+    and pos_emits[1] == "!pos Al -> X=100.0 Y=200.0 Z=300.0"
+    and pos_emits[2] == "!pos Al -> X=5.0 Y=6.0 Z=7.0"
     and pos_emits[3]:find("location unresolved", 1, true) ~= nil
 
 _print("=== results ===")
