@@ -16,6 +16,7 @@ ENV INSTALL_UE4SS_EXPERIMENTAL=true \
     PALWORLD_CHAT_LOG=Z:/shared/chat/chat.log
 
 COPY apps/agones/palworld/mods/PalChatRelay /opt/palchatrelay/PalChatRelay
+COPY apps/agones/palworld/mods/PalForge /opt/palchatrelay/PalForge
 COPY apps/agones/palworld/overlay.sh /opt/palchatrelay/overlay.sh
 COPY apps/agones/palworld/shim/agones-shim-prestop.sh /usr/local/bin/agones-shim-prestop
 RUN chmod +x /opt/palchatrelay/overlay.sh /usr/local/bin/agones-shim-prestop \

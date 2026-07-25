@@ -31,6 +31,22 @@ else
     echo "PalChatRelay : 1" >> "${MODS_TXT}"
 fi
 
+FORGE_SRC=/opt/palchatrelay/PalForge
+if [[ -d "${FORGE_SRC}" ]]; then
+    echo "[palchatrelay-overlay] staging PalForge into ${MODS_DIR}"
+    rm -rf "${MODS_DIR}/PalForge"
+    cp -a "${FORGE_SRC}" "${MODS_DIR}/PalForge"
+    rm -rf "${MODS_DIR}/PalForge/test"
+    if [[ -d "${MODS_DIR}/PalForge/scripts" ]] && [[ ! -d "${MODS_DIR}/PalForge/Scripts" ]]; then
+        mv "${MODS_DIR}/PalForge/scripts" "${MODS_DIR}/PalForge/Scripts"
+    fi
+    if grep -qiE '^[[:space:]]*PalForge[[:space:]]*:' "${MODS_TXT}"; then
+        sed -i -E 's|^[[:space:]]*PalForge[[:space:]]*:.*|PalForge : 1|I' "${MODS_TXT}"
+    else
+        echo "PalForge : 1" >> "${MODS_TXT}"
+    fi
+fi
+
 # Headless server has no GPU: force the UE4SS GUI/OpenGL console off (it hangs
 # or crashes the game under Xvfb). Keep the text console on for logging.
 SETTINGS="${UE4SS_DIR}/UE4SS-settings.ini"
