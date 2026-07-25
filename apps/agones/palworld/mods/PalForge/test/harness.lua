@@ -80,6 +80,29 @@ local pos_ok = h1 == true
     and pos_emits[2] == "!pos Al -> X=5.0 Y=6.0 Z=7.0"
     and pos_emits[3]:find("location unresolved", 1, true) ~= nil
 
+_print("=== spike.lua command ===")
+local spike = require("spike")
+local sp_emits = {}
+local function sp_emit(m)
+    sp_emits[#sp_emits + 1] = m
+    _print("  spike: " .. m)
+end
+local mock_static = function()
+    return { IsValid = function() return true end, GetFullName = function() return "SignboardClass" end }
+end
+local mock_find = function()
+    return { GetFullName = function() return "PalGameWorld_0" end }
+end
+local mock_loc = function()
+    return { x = 1, y = 2, z = 3 }
+end
+local s1 = spike.handle("Al", "!signprobe", sp_emit, mock_loc, mock_static, mock_find)
+local s2 = spike.handle("Al", "nope", sp_emit, mock_loc, mock_static, mock_find)
+local spike_ok = s1 == true
+    and s2 == false
+    and sp_emits[1]:find("signprobe: start", 1, true) ~= nil
+    and sp_emits[#sp_emits]:find("done", 1, true) ~= nil
+
 _print("=== results ===")
 _print(string.format(
     "placed=%d pending=%d setter_callable=%d setter_absent=%d pos_ok=%s",
@@ -90,6 +113,7 @@ local ok = calls.pending == 1
     and calls.setter_callable == 1
     and calls.setter_absent == 4
     and pos_ok
+    and spike_ok
 
 if ok then
     _print("HARNESS PASS")

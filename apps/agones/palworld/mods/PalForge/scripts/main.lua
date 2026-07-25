@@ -9,14 +9,41 @@ local SIGNBOARD_CLASS =
 local placed = false
 local chat_registered = false
 
+local CHAT_LOG = os.getenv("PALWORLD_CHAT_LOG") or "/shared/chat/chat.log"
+
 local function log(msg)
     print("[" .. MOD .. "] " .. msg)
+end
+
+local function now_ms()
+    return string.format("%d", os.time() * 1000)
+end
+
+local function chat_write(sender, text)
+    local f = io.open(CHAT_LOG, "a")
+    if not f then
+        return
+    end
+    local clean = text:gsub("[\t\r\n]", " ")
+    f:write(now_ms() .. "\t" .. sender .. "\t" .. clean .. "\n")
+    f:close()
+end
+
+local function pos_emit(msg)
+    log(msg)
+    chat_write(MOD, msg)
 end
 
 local ok_pos, pos = pcall(require, "pos")
 if not ok_pos or type(pos) ~= "table" then
     log("pos module load failed: " .. tostring(pos))
-    pos = { handle = function() return false end }
+    pos = { handle = function() return false end, player_location = function() return nil end }
+end
+
+local ok_spike, spike = pcall(require, "spike")
+if not ok_spike or type(spike) ~= "table" then
+    log("spike module load failed: " .. tostring(spike))
+    spike = { handle = function() return false end }
 end
 
 local function load_signs()
@@ -86,7 +113,8 @@ local function on_chat(_, a, b)
         sender, text = extract(b)
     end
     if sender and text and #text > 0 then
-        pcall(pos.handle, sender, text, log)
+        pcall(pos.handle, sender, text, pos_emit)
+        pcall(spike.handle, sender, text, pos_emit, pos.player_location)
     end
 end
 

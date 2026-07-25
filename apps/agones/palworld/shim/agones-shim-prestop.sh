@@ -19,11 +19,16 @@ curl -fsS -u "$auth" -X POST "$base/announce" \
     -H 'Content-Type: application/json' \
     -d "{\"message\":\"Server restarting in ${WARN_SECS}s — progress will be saved.\"}" >/dev/null 2>&1 || true
 
+echo "[prestop] requesting graceful shutdown (waittime=${WARN_SECS}s, save)"
+curl -fsS -u "$auth" -X POST "$base/shutdown" \
+    -H 'Content-Type: application/json' \
+    -d "{\"waittime\":${WARN_SECS},\"message\":\"Server restarting in ${WARN_SECS}s. See you in a minute.\"}" >/dev/null 2>&1 || true
+
 if [ "$WARN_SECS" -gt 0 ] 2>/dev/null; then
     sleep "$WARN_SECS"
 fi
 
-echo "[prestop] requesting graceful shutdown (save)"
+echo "[prestop] final shutdown (force save)"
 curl -fsS -u "$auth" -X POST "$base/shutdown" \
     -H 'Content-Type: application/json' \
     -d "{\"waittime\":1,\"message\":\"Restarting now. See you in a minute.\"}" >/dev/null 2>&1 || true
