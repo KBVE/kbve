@@ -45,10 +45,12 @@ async fn main() -> anyhow::Result<()> {
 
     tokio::spawn(engine::vpn_watchdog_loop(eng.clone(), cfg.vpn_watchdog_secs));
 
-    if let Some(url) = cfg.trackers_url.clone() {
+    if !cfg.trackers_urls.is_empty() {
         tokio::spawn(engine::tracker_refresh_loop(
             eng.clone(),
-            url,
+            cfg.trackers_urls.clone(),
+            cfg.trackers_cache.clone(),
+            cfg.extra_trackers.clone(),
             cfg.trackers_refresh_secs,
         ));
     }

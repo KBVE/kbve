@@ -14,7 +14,8 @@ pub struct Config {
     pub stall_timeout_secs: u64,
     pub stall_check_secs: u64,
     pub extra_trackers: Vec<String>,
-    pub trackers_url: Option<String>,
+    pub trackers_urls: Vec<String>,
+    pub trackers_cache: PathBuf,
     pub trackers_refresh_secs: u64,
     pub state_flush_ms: u64,
     pub upload_limit_bps: Option<u32>,
@@ -29,8 +30,10 @@ pub struct Config {
     pub hls_segment_secs: u64,
 }
 
-pub const DEFAULT_TRACKERS_URL: &str =
-    "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt";
+pub const DEFAULT_TRACKERS_URLS: &[&str] = &[
+    "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best.txt",
+    "https://raw.githubusercontent.com/ngosang/trackerslist/master/trackers_best_ip.txt",
+];
 
 const DEFAULT_TRACKERS: &[&str] = &[
     "udp://tracker.opentrackr.org:1337/announce",
@@ -55,6 +58,17 @@ pub fn parse_trackers(text: &str) -> Vec<String> {
         })
         .map(str::to_string)
         .collect()
+}
+
+pub fn merge_trackers<I: IntoIterator<Item = String>>(lists: I) -> Vec<String> {
+    let mut seen = std::collections::HashSet::new();
+    let mut out = Vec::new();
+    for t in lists {
+        if seen.insert(t.clone()) {
+            out.push(t);
+        }
+    }
+    out
 }
 
 fn env_or(key: &str, default: &str) -> String {
@@ -99,15 +113,23 @@ pub fn load_from_env() -> anyhow::Result<Config> {
             Ok(v) if !v.trim().is_empty() => parse_trackers(&v.replace(',', "\n")),
             _ => DEFAULT_TRACKERS.iter().map(|s| s.to_string()).collect(),
         },
-        trackers_url: match env_or("REEL_TRACKERS_URL", DEFAULT_TRACKERS_URL) {
-            v if v.trim().is_empty()
-                || v.eq_ignore_ascii_case("none")
-                || v.eq_ignore_ascii_case("off") =>
+        trackers_urls: match std::env::var("REEL_TRACKERS_URLS") {
+            Ok(v)
+                if v.trim().is_empty()
+                    || v.eq_ignore_ascii_case("none")
+                    || v.eq_ignore_ascii_case("off") =>
             {
-                None
+                Vec::new()
             }
-            v => Some(v),
+            Ok(v) => v
+                .split([',', '\n'])
+                .map(str::trim)
+                .filter(|s| s.starts_with("http"))
+                .map(str::to_string)
+                .collect(),
+            Err(_) => DEFAULT_TRACKERS_URLS.iter().map(|s| s.to_string()).collect(),
         },
+        trackers_cache: PathBuf::from(env_or("REEL_TRACKERS_CACHE", "/data/reel-trackers.txt")),
         trackers_refresh_secs: env_u64("REEL_TRACKERS_REFRESH_SECS", 21600)?,
         state_flush_ms: env_u64("REEL_STATE_FLUSH_MS", crate::state::DEFAULT_STATE_FLUSH_MS)?,
         upload_limit_bps: match env_u64("REEL_UPLOAD_LIMIT_BPS", 0)? {
@@ -136,7 +158,7 @@ mod tests {
                   "REEL_LIBRARY_DIR","REEL_SESSION_DIR","REEL_STATE_FILE","REEL_API_ADDR",
                   "REEL_VPN_CHECK_URL","REEL_VPN_WATCHDOG_SECS","REEL_METADATA_TIMEOUT_SECS",
                   "REEL_STALL_TIMEOUT_SECS","REEL_STALL_CHECK_SECS",
-                  "REEL_TRACKERS","REEL_TRACKERS_URL","REEL_TRACKERS_REFRESH_SECS",
+                  "REEL_TRACKERS","REEL_TRACKERS_URLS","REEL_TRACKERS_CACHE","REEL_TRACKERS_REFRESH_SECS",
                   "REEL_STATE_FLUSH_MS","REEL_UPLOAD_LIMIT_BPS","REEL_API_TOKEN","REEL_TRANSCODE_ENABLED",
                   "REEL_REMUX_CONCURRENCY","REEL_ENCODE_CONCURRENCY",
                   "REEL_FFMPEG_BIN","REEL_FFPROBE_BIN","REEL_STREAM_ENABLED",
@@ -158,7 +180,9 @@ mod tests {
         assert_eq!(c.stall_check_secs, 15);
         assert!(!c.extra_trackers.is_empty(), "embedded default trackers present");
         assert!(c.extra_trackers.iter().all(|t| t.starts_with("udp://") || t.starts_with("http")));
-        assert_eq!(c.trackers_url.as_deref(), Some(DEFAULT_TRACKERS_URL));
+        assert_eq!(c.trackers_urls.len(), DEFAULT_TRACKERS_URLS.len());
+        assert!(c.trackers_urls.iter().all(|u| u.starts_with("https://")));
+        assert_eq!(c.trackers_cache, std::path::PathBuf::from("/data/reel-trackers.txt"));
         assert_eq!(c.trackers_refresh_secs, 21600);
         assert_eq!(c.state_flush_ms, 1000);
         assert!(c.upload_limit_bps.is_none());
@@ -184,16 +208,34 @@ mod tests {
 
     #[test]
     #[serial]
-    fn trackers_url_disables_with_none() {
+    fn trackers_urls_disable_and_override() {
         clear();
-        std::env::set_var("REEL_TRACKERS_URL", "none");
-        assert!(load_from_env().unwrap().trackers_url.is_none());
-        std::env::set_var("REEL_TRACKERS_URL", "https://example/t.txt");
+        std::env::set_var("REEL_TRACKERS_URLS", "none");
+        assert!(load_from_env().unwrap().trackers_urls.is_empty());
+        std::env::set_var("REEL_TRACKERS_URLS", "https://a/t.txt, https://b/t.txt");
         assert_eq!(
-            load_from_env().unwrap().trackers_url.as_deref(),
-            Some("https://example/t.txt")
+            load_from_env().unwrap().trackers_urls,
+            vec!["https://a/t.txt", "https://b/t.txt"]
         );
         clear();
+    }
+
+    #[test]
+    fn merge_trackers_dedups_preserving_order() {
+        let got = merge_trackers(
+            [
+                "udp://a/announce",
+                "udp://b/announce",
+                "udp://a/announce",
+                "udp://c/announce",
+            ]
+            .iter()
+            .map(|s| s.to_string()),
+        );
+        assert_eq!(
+            got,
+            vec!["udp://a/announce", "udp://b/announce", "udp://c/announce"]
+        );
     }
 
     #[test]

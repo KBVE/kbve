@@ -123,7 +123,10 @@ impl Engine {
             metadata_timeout: Duration::from_secs(cfg.metadata_timeout_secs),
             stall_timeout: Duration::from_secs(cfg.stall_timeout_secs),
             stall_check: Duration::from_secs(cfg.stall_check_secs.max(1)),
-            trackers: Arc::new(Mutex::new(Arc::new(cfg.extra_trackers.clone()))),
+            trackers: Arc::new(Mutex::new(Arc::new(seed_trackers(
+                &cfg.trackers_cache,
+                &cfg.extra_trackers,
+            )))),
         };
         engine.resume_on_start();
         Ok(engine)
@@ -571,31 +574,80 @@ pub async fn vpn_watchdog_loop(engine: Engine, interval_secs: u64) {
     }
 }
 
+fn seed_trackers(cache: &std::path::Path, embedded: &[String]) -> Vec<String> {
+    let cached = std::fs::read_to_string(cache)
+        .ok()
+        .map(|t| config::parse_trackers(&t))
+        .unwrap_or_default();
+    let merged = config::merge_trackers(embedded.iter().cloned().chain(cached));
+    tracing::info!(count = merged.len(), "tracker list seeded");
+    merged
+}
+
 impl Engine {
-    pub async fn refresh_trackers(&self, url: &str) -> anyhow::Result<usize> {
-        let text = reqwest::get(url).await?.text().await?;
-        let list = config::parse_trackers(&text);
-        if list.is_empty() {
-            anyhow::bail!("fetched tracker list from {url} was empty");
+    pub async fn refresh_trackers(
+        &self,
+        urls: &[String],
+        cache: &std::path::Path,
+        embedded: &[String],
+    ) -> anyhow::Result<usize> {
+        let mut fetched: Vec<String> = Vec::new();
+        let mut ok = 0usize;
+        for url in urls {
+            match reqwest::get(url).await.and_then(|r| r.error_for_status()) {
+                Ok(resp) => match resp.text().await {
+                    Ok(text) => {
+                        fetched.extend(config::parse_trackers(&text));
+                        ok += 1;
+                    }
+                    Err(e) => tracing::warn!(error = %e, %url, "tracker list read failed"),
+                },
+                Err(e) => tracing::warn!(error = %e, %url, "tracker list fetch failed"),
+            }
         }
-        let n = list.len();
-        *self.trackers.lock().unwrap() = Arc::new(list);
+        if ok == 0 {
+            anyhow::bail!("all {} tracker sources failed", urls.len());
+        }
+        let merged = config::merge_trackers(embedded.iter().cloned().chain(fetched));
+        if let Err(e) = write_cache(cache, &merged) {
+            tracing::warn!(error = %e, cache = %cache.display(), "tracker cache write failed");
+        }
+        let n = merged.len();
+        *self.trackers.lock().unwrap() = Arc::new(merged);
         Ok(n)
+    }
+
+    pub fn tracker_count(&self) -> usize {
+        self.trackers.lock().unwrap().len()
     }
 }
 
-pub async fn tracker_refresh_loop(engine: Engine, url: String, interval_secs: u64) {
-    match engine.refresh_trackers(&url).await {
-        Ok(n) => tracing::info!(count = n, %url, "tracker list loaded"),
-        Err(e) => tracing::warn!(error = %e, %url, "tracker list fetch failed; using embedded defaults"),
+fn write_cache(cache: &std::path::Path, list: &[String]) -> std::io::Result<()> {
+    let tmp = cache.with_extension("tmp");
+    std::fs::write(&tmp, list.join("\n"))?;
+    std::fs::rename(&tmp, cache)
+}
+
+pub async fn tracker_refresh_loop(
+    engine: Engine,
+    urls: Vec<String>,
+    cache: PathBuf,
+    embedded: Vec<String>,
+    interval_secs: u64,
+) {
+    match engine.refresh_trackers(&urls, &cache, &embedded).await {
+        Ok(n) => tracing::info!(count = n, sources = urls.len(), "tracker list loaded"),
+        Err(e) => {
+            tracing::warn!(error = %e, "tracker fetch failed; using cache/embedded seed")
+        }
     }
     let mut ticker = tokio::time::interval(std::time::Duration::from_secs(interval_secs.max(60)));
     ticker.tick().await;
     loop {
         ticker.tick().await;
-        match engine.refresh_trackers(&url).await {
+        match engine.refresh_trackers(&urls, &cache, &embedded).await {
             Ok(n) => tracing::info!(count = n, "tracker list refreshed"),
-            Err(e) => tracing::warn!(error = %e, "tracker list refresh failed; keeping previous"),
+            Err(e) => tracing::warn!(error = %e, "tracker refresh failed; keeping previous"),
         }
     }
 }
