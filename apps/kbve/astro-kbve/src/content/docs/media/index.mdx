@@ -1,0 +1,49 @@
+---
+title: Media
+description: KBVE media console — stream ephemeral legal torrents, manage transcodes, and monitor the reel pipeline.
+template: splash
+tableOfContents: false
+graph:
+    visible: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
+sidebar:
+    label: Media
+    order: 6
+    attrs:
+        data-auth-visibility: staff
+unsplash: 1478720568477-152d9b164e26
+img: https://images.unsplash.com/photo-1478720568477-152d9b164e26?fit=crop&w=1400&h=700&q=75
+tags:
+    - media
+    - reel
+    - streaming
+    - staff
+---
+
+import { Card, CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
+
+<Aside type="caution" title="Staff only">
+	Media tools stream and transcode ephemeral legal torrents behind the VPN fail-safe. Access is limited to staff accounts.
+</Aside>
+
+The media console is the home for KBVE's streaming pipeline — fetch, transcode, and play ephemeral legal media on demand.
+
+<CardGrid>
+	<LinkCard
+		title="Reel Player"
+		href="/media/reel/"
+		description="Stream a legal torrent as progressive MP4 or live HLS, straight in the browser."
+	/>
+	<Card title="Transcode Queue" icon="setting">
+		Remux and encode status for in-flight media. Coming soon.
+	</Card>
+	<Card title="Library" icon="open-book">
+		Browse completed media before it is reaped. Coming soon.
+	</Card>
+	<Card title="VPN Health" icon="shield">
+		Fail-safe egress checks that gate every fetch. Coming soon.
+	</Card>
+</CardGrid>
