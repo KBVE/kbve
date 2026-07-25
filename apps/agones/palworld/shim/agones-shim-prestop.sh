@@ -28,6 +28,11 @@ if [ "$WARN_SECS" -gt 0 ] 2>/dev/null; then
     sleep "$WARN_SECS"
 fi
 
+echo "[prestop] final shutdown (force save)"
+curl -fsS -u "$auth" -X POST "$base/shutdown" \
+    -H 'Content-Type: application/json' \
+    -d "{\"waittime\":1,\"message\":\"Restarting now. See you in a minute.\"}" >/dev/null 2>&1 || true
+
 sleep 3
 
 echo "[prestop] done"
