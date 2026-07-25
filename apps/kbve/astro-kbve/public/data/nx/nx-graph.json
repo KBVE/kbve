@@ -1,6 +1,51 @@
 {
 	"graph": {
 		"nodes": {
+			"agones-palworld-chef-food": {
+				"name": "agones-palworld-chef-food",
+				"type": "app",
+				"data": {
+					"root": "apps/agones/palworld/mods/chef_paldon_yumsay",
+					"name": "agones-palworld-chef-food",
+					"$schema": "../../../../../node_modules/nx/schemas/project-schema.json",
+					"projectType": "application",
+					"sourceRoot": "apps/agones/palworld/mods/chef_paldon_yumsay",
+					"tags": ["scope:agones"],
+					"targets": {
+						"validate": {
+							"executor": "nx:run-commands",
+							"cache": false,
+							"options": {
+								"cwd": "apps/agones/palworld/mods/chef_paldon_yumsay",
+								"command": "python3 build/validate_foods.py foods"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"generate-placeholders": {
+							"executor": "nx:run-commands",
+							"cache": false,
+							"options": {
+								"cwd": "apps/agones/palworld/mods/chef_paldon_yumsay",
+								"command": "python3 build/gen_placeholders.py"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"cook": {
+							"executor": "nx:run-commands",
+							"cache": false,
+							"options": {
+								"cwd": "apps/agones/palworld/mods/chef_paldon_yumsay",
+								"command": "bash build/cook.sh"
+							},
+							"configurations": {},
+							"parallelism": true
+						}
+					},
+					"implicitDependencies": []
+				}
+			},
 			"kbve-spider": {
 				"name": "kbve-spider",
 				"type": "app",
@@ -16522,6 +16567,7 @@
 			}
 		},
 		"dependencies": {
+			"agones-palworld-chef-food": [],
 			"kbve-spider": [],
 			"astro-cryptothrone-e2e": [
 				{
