@@ -77,9 +77,17 @@ pub struct Engine {
     vpn_ok: Arc<AtomicBool>,
     active_leech: Arc<Mutex<HashMap<String, u32>>>,
     drain: Arc<Notify>,
+    metadata_timeout: Duration,
+    stall_timeout: Duration,
+    stall_check: Duration,
+    trackers: Arc<Mutex<Arc<Vec<String>>>>,
 }
 
 const LEECH_DRAIN_CAP: Duration = Duration::from_secs(6 * 3600);
+
+pub fn is_stalled(prev_bytes: u64, cur_bytes: u64, idle_secs: u64, stall_timeout_secs: u64) -> bool {
+    cur_bytes <= prev_bytes && idle_secs >= stall_timeout_secs
+}
 
 impl Engine {
     pub async fn start(cfg: &config::Config, store: state::StateStore) -> anyhow::Result<Self> {
@@ -112,6 +120,13 @@ impl Engine {
             vpn_ok: Arc::new(AtomicBool::new(true)),
             active_leech: Arc::new(Mutex::new(HashMap::new())),
             drain: Arc::new(Notify::new()),
+            metadata_timeout: Duration::from_secs(cfg.metadata_timeout_secs),
+            stall_timeout: Duration::from_secs(cfg.stall_timeout_secs),
+            stall_check: Duration::from_secs(cfg.stall_check_secs.max(1)),
+            trackers: Arc::new(Mutex::new(Arc::new(seed_trackers(
+                &cfg.trackers_cache,
+                &cfg.extra_trackers,
+            )))),
         };
         engine.resume_on_start();
         Ok(engine)
@@ -157,8 +172,10 @@ impl Engine {
             anyhow::bail!("vpn egress unavailable; refusing to add torrent");
         }
         let out_dir = self.active_dir.join(unique_subdir());
+        let trackers = self.trackers.lock().unwrap().clone();
         let opts = AddTorrentOptions {
             output_folder: Some(out_dir.to_string_lossy().into_owned()),
+            trackers: (!trackers.is_empty()).then(|| (*trackers).clone()),
             ..Default::default()
         };
         let resp = self
@@ -206,8 +223,67 @@ impl Engine {
         let session = self.session.clone();
         let active_leech = self.active_leech.clone();
         let drain = self.drain.clone();
+        let metadata_timeout = self.metadata_timeout;
+        let stall_timeout = self.stall_timeout;
+        let stall_check = self.stall_check;
         tokio::spawn(async move {
-            if let Err(e) = handle.wait_until_completed().await {
+            match tokio::time::timeout(metadata_timeout, handle.wait_until_initialized()).await {
+                Err(_) => {
+                    let reason = format!(
+                        "could not resolve torrent metadata within {}s — no peers responded (dead magnet or unreachable trackers)",
+                        metadata_timeout.as_secs()
+                    );
+                    crate::telemetry::torrent_failed(&id, "metadata", &reason);
+                    let _ = store.update(&id, |m| {
+                        m.state = state::TorrentState::Failed;
+                        m.error = Some(reason);
+                        ((), true)
+                    });
+                    delete_from_session(&session, &id, true).await;
+                    return;
+                }
+                Ok(Err(e)) => {
+                    let reason = format!("metadata resolution failed: {e}");
+                    crate::telemetry::torrent_failed(&id, "metadata", &reason);
+                    let _ = store.update(&id, |m| {
+                        m.state = state::TorrentState::Failed;
+                        m.error = Some(reason);
+                        ((), true)
+                    });
+                    delete_from_session(&session, &id, true).await;
+                    return;
+                }
+                Ok(Ok(())) => {}
+            }
+
+            let completed = handle.wait_until_completed();
+            tokio::pin!(completed);
+            let mut last_bytes = 0u64;
+            let mut idle_secs = 0u64;
+            let outcome: anyhow::Result<()> = loop {
+                tokio::select! {
+                    r = &mut completed => break r,
+                    _ = tokio::time::sleep(stall_check) => {
+                        let s = handle.stats();
+                        if s.finished {
+                            break Ok(());
+                        }
+                        if s.progress_bytes > last_bytes {
+                            last_bytes = s.progress_bytes;
+                            idle_secs = 0;
+                        } else {
+                            idle_secs = idle_secs.saturating_add(stall_check.as_secs());
+                        }
+                        if is_stalled(last_bytes, s.progress_bytes, idle_secs, stall_timeout.as_secs()) {
+                            break Err(anyhow::anyhow!(
+                                "no data received for {}s — no seeders have the content",
+                                stall_timeout.as_secs()
+                            ));
+                        }
+                    }
+                }
+            };
+            if let Err(e) = outcome {
                 crate::telemetry::torrent_failed(&id, "download", &e.to_string());
                 let _ = store.update(&id, |m| {
                     m.state = state::TorrentState::Failed;
@@ -498,6 +574,84 @@ pub async fn vpn_watchdog_loop(engine: Engine, interval_secs: u64) {
     }
 }
 
+fn seed_trackers(cache: &std::path::Path, embedded: &[String]) -> Vec<String> {
+    let cached = std::fs::read_to_string(cache)
+        .ok()
+        .map(|t| config::parse_trackers(&t))
+        .unwrap_or_default();
+    let merged = config::merge_trackers(embedded.iter().cloned().chain(cached));
+    tracing::info!(count = merged.len(), "tracker list seeded");
+    merged
+}
+
+impl Engine {
+    pub async fn refresh_trackers(
+        &self,
+        urls: &[String],
+        cache: &std::path::Path,
+        embedded: &[String],
+    ) -> anyhow::Result<usize> {
+        let mut fetched: Vec<String> = Vec::new();
+        let mut ok = 0usize;
+        for url in urls {
+            match reqwest::get(url).await.and_then(|r| r.error_for_status()) {
+                Ok(resp) => match resp.text().await {
+                    Ok(text) => {
+                        fetched.extend(config::parse_trackers(&text));
+                        ok += 1;
+                    }
+                    Err(e) => tracing::warn!(error = %e, %url, "tracker list read failed"),
+                },
+                Err(e) => tracing::warn!(error = %e, %url, "tracker list fetch failed"),
+            }
+        }
+        if ok == 0 {
+            anyhow::bail!("all {} tracker sources failed", urls.len());
+        }
+        let merged = config::merge_trackers(embedded.iter().cloned().chain(fetched));
+        if let Err(e) = write_cache(cache, &merged) {
+            tracing::warn!(error = %e, cache = %cache.display(), "tracker cache write failed");
+        }
+        let n = merged.len();
+        *self.trackers.lock().unwrap() = Arc::new(merged);
+        Ok(n)
+    }
+
+    pub fn tracker_count(&self) -> usize {
+        self.trackers.lock().unwrap().len()
+    }
+}
+
+fn write_cache(cache: &std::path::Path, list: &[String]) -> std::io::Result<()> {
+    let tmp = cache.with_extension("tmp");
+    std::fs::write(&tmp, list.join("\n"))?;
+    std::fs::rename(&tmp, cache)
+}
+
+pub async fn tracker_refresh_loop(
+    engine: Engine,
+    urls: Vec<String>,
+    cache: PathBuf,
+    embedded: Vec<String>,
+    interval_secs: u64,
+) {
+    match engine.refresh_trackers(&urls, &cache, &embedded).await {
+        Ok(n) => tracing::info!(count = n, sources = urls.len(), "tracker list loaded"),
+        Err(e) => {
+            tracing::warn!(error = %e, "tracker fetch failed; using cache/embedded seed")
+        }
+    }
+    let mut ticker = tokio::time::interval(std::time::Duration::from_secs(interval_secs.max(60)));
+    ticker.tick().await;
+    loop {
+        ticker.tick().await;
+        match engine.refresh_trackers(&urls, &cache, &embedded).await {
+            Ok(n) => tracing::info!(count = n, "tracker list refreshed"),
+            Err(e) => tracing::warn!(error = %e, "tracker refresh failed; keeping previous"),
+        }
+    }
+}
+
 pub fn remove_entry_files(path: &str, transcode_path: Option<&str>) {
     for p in std::iter::once(path).chain(transcode_path) {
         let pb = std::path::Path::new(p);
@@ -525,6 +679,15 @@ mod tests {
         remove_entry_files(&src.display().to_string(), Some(&tc.display().to_string()));
         assert!(!src.exists());
         assert!(!tc.exists());
+    }
+
+    #[test]
+    fn is_stalled_detects_no_progress_past_timeout() {
+        assert!(!is_stalled(0, 0, 100, 300), "under timeout not stalled");
+        assert!(!is_stalled(100, 200, 300, 300), "progress resets — not stalled");
+        assert!(is_stalled(500, 500, 300, 300), "no progress at timeout is stalled");
+        assert!(is_stalled(500, 500, 315, 300), "no progress past timeout is stalled");
+        assert!(!is_stalled(0, 1, 999, 300), "any forward progress not stalled");
     }
 
     #[test]
