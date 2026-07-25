@@ -31,8 +31,8 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					Security posture
 					<span class="bento-title__accent">across every ecosystem.</span>
 				</h1>
-				<p class="bento-lede"><strong>43</strong> critical/high severity findings across the monorepo — triage before merge.</p>
-				<p class="bento-lede">Last generated <strong>2026-07-24T04:17:53Z</strong>.</p>
+				<p class="bento-lede"><strong>45</strong> critical/high severity findings across the monorepo — triage before merge.</p>
+				<p class="bento-lede">Last generated <strong>2026-07-25T04:14:12Z</strong>.</p>
 				<div class="bento-cta">
 					<a class="bento-btn bento-btn--primary" href="#findings">
 						View findings
@@ -54,14 +54,14 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 8v4M12 16h.01" /></svg>
 					</span>
-					<span class="bento-stat__value">39</span>
+					<span class="bento-stat__value">41</span>
 					<span class="bento-stat__label">High</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 16v-4M12 8h.01" /></svg>
 					</span>
-					<span class="bento-stat__value">55</span>
+					<span class="bento-stat__value">56</span>
 					<span class="bento-stat__label">Medium</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
@@ -93,7 +93,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96 12 12.01l8.73-5.05M12 22.08V12" /></svg>
 			</span>
 			<span class="bento-linkcard__title">npm</span>
-			<span class="bento-linkcard__copy">93 advisories</span>
+			<span class="bento-linkcard__copy">96 advisories</span>
 			<span class="bento-linkcard__go" aria-hidden="true">
 				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 			</span>
@@ -149,8 +149,8 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 pie showData
     title Findings by Severity
     "Critical" : 4
-    "High" : 39
-    "Medium" : 55
+    "High" : 41
+    "Medium" : 56
     "Low" : 10
 ```
 
@@ -159,7 +159,7 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 93
+    "npm" : 96
     "Cargo" : 45
 ```
 
@@ -167,12 +167,12 @@ pie showData
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 4 | 39 | 40 | 10 | 93 |
+| **npm** | 4 | 41 | 41 | 10 | 96 |
 | **Cargo** | 0 | 0 | 15 | 0 | 45 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 4 | 39 | 55 | 10 | 138 |
+| **Total** | 4 | 41 | 56 | 10 | 141 |
 
 <span id="eco-npm"></span>
 
@@ -223,6 +223,8 @@ pie showData
 | High | `sharp` | sharp inherited vulnerabilities in libvips: CVE-2026-3332... | [Details](https://github.com/advisories/GHSA-f88m-g3jw-g9cj) |
 | High | `fast-xml-parser` | fast-xml-parser: Repeated DOCTYPE declarations reset enti... | [Details](https://github.com/advisories/GHSA-8r6m-32jq-jx6q) |
 | High | `fast-uri` | fast-uri vulnerable to host confusion via failed IDN cano... | [Details](https://github.com/advisories/GHSA-4c8g-83qw-93j6) |
+| High | `postcss` | PostCSS: Path Traversal in Previous Source Map Auto-Loadi... | [Details](https://github.com/advisories/GHSA-r28c-9q8g-f849) |
+| High | `brace-expansion` | brace-expansion: DoS via unbounded expansion length causi... | [Details](https://github.com/advisories/GHSA-mh99-v99m-4gvg) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `mdast-util-to-hast` | mdast-util-to-hast has unsanitized class attribute | [Details](https://github.com/advisories/GHSA-4fh9-h7wg-q85m) |
 | Medium | `ajv` | ajv has ReDoS when using `$data` option | [Details](https://github.com/advisories/GHSA-2g4f-4pwh-qvx6) |
@@ -263,6 +265,7 @@ pie showData
 | Medium | `axios` | Axios form serializer maxDepth bypass via &#123;&#125; metatoken | [Details](https://github.com/advisories/GHSA-hcpx-6fm6-wx23) |
 | Medium | `axios` | Axios: Nested axios option objects can consume polluted p... | [Details](https://github.com/advisories/GHSA-7q8q-rj6j-mhjq) |
 | Medium | `axios` | Axios: HTTP/2 streamed uploads bypass `maxBodyLength` | [Details](https://github.com/advisories/GHSA-mwf2-3pr3-8698) |
+| Medium | `tar` | node-tar: Uncontrolled recursion in mapHas/filesFilter al... | [Details](https://github.com/advisories/GHSA-r292-9mhp-454m) |
 | Low | `diff` | jsdiff has a Denial of Service vulnerability in parsePatc... | [Details](https://github.com/advisories/GHSA-73rr-hh4g-fpgx) |
 | Low | `qs` | qs's arrayLimit bypass in comma parsing allows denial of ... | [Details](https://github.com/advisories/GHSA-w7fw-mjwx-w883) |
 | Low | `esbuild` | esbuild allows arbitrary file read when running the devel... | [Details](https://github.com/advisories/GHSA-g7r4-m6w7-qqqr) |
@@ -281,18 +284,18 @@ pie showData
 | Severity | Package | Advisory | Link |
 |----------|---------|----------|------|
 | Medium | `ammonia` | XSS in ammonia via SVG `animate` and `set` animation tags |  |
-| Medium | `quick-xml` | Unbounded namespace-declaration allocation in `NsReader` ... | [Details](https://github.com/tafia/quick-xml/issues/970) |
 | Medium | `quick-xml` | Quadratic run time when checking a start tag for duplicat... | [Details](https://github.com/tafia/quick-xml/issues/969) |
 | Medium | `quick-xml` | Unbounded namespace-declaration allocation in `NsReader` ... | [Details](https://github.com/tafia/quick-xml/issues/970) |
 | Medium | `quick-xml` | Quadratic run time when checking a start tag for duplicat... | [Details](https://github.com/tafia/quick-xml/issues/969) |
+| Medium | `quick-xml` | Unbounded namespace-declaration allocation in `NsReader` ... | [Details](https://github.com/tafia/quick-xml/issues/970) |
 | Medium | `rsa` | Marvin Attack: potential key recovery through timing side... | [Details](https://github.com/RustCrypto/RSA/issues/626) |
-| Medium | `rustls-webpki` | Reachable panic in certificate revocation list parsing |  |
-| Medium | `rustls-webpki` | Name constraints were accepted for certificates asserting... |  |
 | Medium | `rustls-webpki` | Name constraints for URI names were incorrectly accepted |  |
-| Medium | `rustls-webpki` | Reachable panic in certificate revocation list parsing |  |
 | Medium | `rustls-webpki` | Name constraints were accepted for certificates asserting... |  |
+| Medium | `rustls-webpki` | Reachable panic in certificate revocation list parsing |  |
 | Medium | `rustls-webpki` | Name constraints for URI names were incorrectly accepted |  |
 | Medium | `rustls-webpki` | CRLs not considered authoritative by Distribution Point d... |  |
+| Medium | `rustls-webpki` | Name constraints were accepted for certificates asserting... |  |
+| Medium | `rustls-webpki` | Reachable panic in certificate revocation list parsing |  |
 | Medium | `sqlx` | Binary Protocol Misinterpretation caused by Truncating or... | [Details](https://github.com/launchbadge/sqlx/issues/3440) |
 | Medium | `steamworks` | Denial of service in Steamworks game clients/servers usin... | [Details](https://github.com/Noxime/steamworks-rs/issues/321) |
 | Info | `atk` | gtk-rs GTK3 bindings - no longer maintained | [Details](https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6) |
