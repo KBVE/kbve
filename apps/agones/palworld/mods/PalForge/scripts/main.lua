@@ -37,7 +37,13 @@ end
 local ok_pos, pos = pcall(require, "pos")
 if not ok_pos or type(pos) ~= "table" then
     log("pos module load failed: " .. tostring(pos))
-    pos = { handle = function() return false end }
+    pos = { handle = function() return false end, player_location = function() return nil end }
+end
+
+local ok_spike, spike = pcall(require, "spike")
+if not ok_spike or type(spike) ~= "table" then
+    log("spike module load failed: " .. tostring(spike))
+    spike = { handle = function() return false end }
 end
 
 local function load_signs()
@@ -108,6 +114,7 @@ local function on_chat(_, a, b)
     end
     if sender and text and #text > 0 then
         pcall(pos.handle, sender, text, pos_emit)
+        pcall(spike.handle, sender, text, pos_emit, pos.player_location)
     end
 end
 
