@@ -2,13 +2,21 @@ local MOD = "PalForge"
 local RETRY_MS = 15000
 
 local GAMESTATE = "/Script/Pal.PalGameStateInGame"
+local CHAT_FN = "/Script/Pal.PalGameStateInGame:BroadcastChatMessage"
 local SIGNBOARD_CLASS =
     "/Game/Pal/Blueprint/MapObject/BuildObject/BP_BuildObject_Signboard.BP_BuildObject_Signboard_C"
 
 local placed = false
+local chat_registered = false
 
 local function log(msg)
     print("[" .. MOD .. "] " .. msg)
+end
+
+local ok_pos, pos = pcall(require, "pos")
+if not ok_pos or type(pos) ~= "table" then
+    log("pos module load failed: " .. tostring(pos))
+    pos = { handle = function() return false end }
 end
 
 local function load_signs()
@@ -59,6 +67,39 @@ local function place_all()
     end
 end
 
+local function extract(param)
+    local ok, sender, text = pcall(function()
+        local p = param:get()
+        local name = (p.Sender and tostring(p.Sender:ToString())) or "?"
+        local msg = (p.Message and tostring(p.Message:ToString())) or ""
+        return name, msg
+    end)
+    if ok then
+        return sender, text
+    end
+    return nil, nil
+end
+
+local function on_chat(_, a, b)
+    local sender, text = extract(a)
+    if (not text or #text == 0) and b ~= nil then
+        sender, text = extract(b)
+    end
+    if sender and text and #text > 0 then
+        pcall(pos.handle, sender, text, log)
+    end
+end
+
+local function register_chat()
+    if chat_registered then
+        return
+    end
+    if pcall(RegisterHook, CHAT_FN, on_chat) then
+        chat_registered = true
+        log("chat command hook registered on " .. CHAT_FN)
+    end
+end
+
 local function world_ready()
     local ok, obj = pcall(StaticFindObject, GAMESTATE)
     return ok and obj and obj:IsValid()
@@ -67,11 +108,14 @@ end
 local function schedule()
     if world_ready() then
         place_all()
-        return
+        register_chat()
+    else
+        log("world not ready; retry in " .. (RETRY_MS / 1000) .. "s")
     end
-    log("world not ready; retry in " .. (RETRY_MS / 1000) .. "s")
-    pcall(ExecuteWithDelay, RETRY_MS, schedule)
+    if not chat_registered then
+        pcall(ExecuteWithDelay, RETRY_MS, schedule)
+    end
 end
 
-log("loaded (spawn/setter pending Phase 0 spike)")
+log("loaded (spawn/setter pending Phase 0 spike; /pos command active)")
 schedule()
