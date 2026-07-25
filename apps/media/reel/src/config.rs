@@ -10,6 +10,9 @@ pub struct Config {
     pub api_addr: String,
     pub vpn_check_url: String,
     pub vpn_watchdog_secs: u64,
+    pub metadata_timeout_secs: u64,
+    pub stall_timeout_secs: u64,
+    pub stall_check_secs: u64,
     pub state_flush_ms: u64,
     pub upload_limit_bps: Option<u32>,
     pub api_token: Option<String>,
@@ -58,6 +61,9 @@ pub fn load_from_env() -> anyhow::Result<Config> {
         api_addr: env_or("REEL_API_ADDR", "0.0.0.0:8080"),
         vpn_check_url: env_or("REEL_VPN_CHECK_URL", "https://api.ipify.org"),
         vpn_watchdog_secs: env_u64("REEL_VPN_WATCHDOG_SECS", 60)?,
+        metadata_timeout_secs: env_u64("REEL_METADATA_TIMEOUT_SECS", 120)?,
+        stall_timeout_secs: env_u64("REEL_STALL_TIMEOUT_SECS", 300)?,
+        stall_check_secs: env_u64("REEL_STALL_CHECK_SECS", 15)?,
         state_flush_ms: env_u64("REEL_STATE_FLUSH_MS", crate::state::DEFAULT_STATE_FLUSH_MS)?,
         upload_limit_bps: match env_u64("REEL_UPLOAD_LIMIT_BPS", 0)? {
             0 => None,
@@ -83,7 +89,9 @@ mod tests {
     fn clear() {
         for k in ["REEL_TTL_SECS","REEL_REAP_INTERVAL_SECS","REEL_ACTIVE_DIR",
                   "REEL_LIBRARY_DIR","REEL_SESSION_DIR","REEL_STATE_FILE","REEL_API_ADDR",
-                  "REEL_VPN_CHECK_URL","REEL_VPN_WATCHDOG_SECS","REEL_STATE_FLUSH_MS","REEL_UPLOAD_LIMIT_BPS","REEL_API_TOKEN","REEL_TRANSCODE_ENABLED",
+                  "REEL_VPN_CHECK_URL","REEL_VPN_WATCHDOG_SECS","REEL_METADATA_TIMEOUT_SECS",
+                  "REEL_STALL_TIMEOUT_SECS","REEL_STALL_CHECK_SECS",
+                  "REEL_STATE_FLUSH_MS","REEL_UPLOAD_LIMIT_BPS","REEL_API_TOKEN","REEL_TRANSCODE_ENABLED",
                   "REEL_REMUX_CONCURRENCY","REEL_ENCODE_CONCURRENCY",
                   "REEL_FFMPEG_BIN","REEL_FFPROBE_BIN","REEL_STREAM_ENABLED",
                   "REEL_HLS_ENABLED","REEL_HLS_SEGMENT_SECS"] {
@@ -99,6 +107,9 @@ mod tests {
         assert_eq!(c.ttl_secs, 21600);
         assert_eq!(c.reap_interval_secs, 300);
         assert_eq!(c.vpn_watchdog_secs, 60);
+        assert_eq!(c.metadata_timeout_secs, 120);
+        assert_eq!(c.stall_timeout_secs, 300);
+        assert_eq!(c.stall_check_secs, 15);
         assert_eq!(c.state_flush_ms, 1000);
         assert!(c.upload_limit_bps.is_none());
         assert_eq!(c.active_dir, std::path::PathBuf::from("/data/active"));

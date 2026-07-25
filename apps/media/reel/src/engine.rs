@@ -77,9 +77,16 @@ pub struct Engine {
     vpn_ok: Arc<AtomicBool>,
     active_leech: Arc<Mutex<HashMap<String, u32>>>,
     drain: Arc<Notify>,
+    metadata_timeout: Duration,
+    stall_timeout: Duration,
+    stall_check: Duration,
 }
 
 const LEECH_DRAIN_CAP: Duration = Duration::from_secs(6 * 3600);
+
+pub fn is_stalled(prev_bytes: u64, cur_bytes: u64, idle_secs: u64, stall_timeout_secs: u64) -> bool {
+    cur_bytes <= prev_bytes && idle_secs >= stall_timeout_secs
+}
 
 impl Engine {
     pub async fn start(cfg: &config::Config, store: state::StateStore) -> anyhow::Result<Self> {
@@ -112,6 +119,9 @@ impl Engine {
             vpn_ok: Arc::new(AtomicBool::new(true)),
             active_leech: Arc::new(Mutex::new(HashMap::new())),
             drain: Arc::new(Notify::new()),
+            metadata_timeout: Duration::from_secs(cfg.metadata_timeout_secs),
+            stall_timeout: Duration::from_secs(cfg.stall_timeout_secs),
+            stall_check: Duration::from_secs(cfg.stall_check_secs.max(1)),
         };
         engine.resume_on_start();
         Ok(engine)
@@ -206,8 +216,67 @@ impl Engine {
         let session = self.session.clone();
         let active_leech = self.active_leech.clone();
         let drain = self.drain.clone();
+        let metadata_timeout = self.metadata_timeout;
+        let stall_timeout = self.stall_timeout;
+        let stall_check = self.stall_check;
         tokio::spawn(async move {
-            if let Err(e) = handle.wait_until_completed().await {
+            match tokio::time::timeout(metadata_timeout, handle.wait_until_initialized()).await {
+                Err(_) => {
+                    let reason = format!(
+                        "could not resolve torrent metadata within {}s — no peers responded (dead magnet or unreachable trackers)",
+                        metadata_timeout.as_secs()
+                    );
+                    crate::telemetry::torrent_failed(&id, "metadata", &reason);
+                    let _ = store.update(&id, |m| {
+                        m.state = state::TorrentState::Failed;
+                        m.error = Some(reason);
+                        ((), true)
+                    });
+                    delete_from_session(&session, &id, true).await;
+                    return;
+                }
+                Ok(Err(e)) => {
+                    let reason = format!("metadata resolution failed: {e}");
+                    crate::telemetry::torrent_failed(&id, "metadata", &reason);
+                    let _ = store.update(&id, |m| {
+                        m.state = state::TorrentState::Failed;
+                        m.error = Some(reason);
+                        ((), true)
+                    });
+                    delete_from_session(&session, &id, true).await;
+                    return;
+                }
+                Ok(Ok(())) => {}
+            }
+
+            let completed = handle.wait_until_completed();
+            tokio::pin!(completed);
+            let mut last_bytes = 0u64;
+            let mut idle_secs = 0u64;
+            let outcome: anyhow::Result<()> = loop {
+                tokio::select! {
+                    r = &mut completed => break r,
+                    _ = tokio::time::sleep(stall_check) => {
+                        let s = handle.stats();
+                        if s.finished {
+                            break Ok(());
+                        }
+                        if s.progress_bytes > last_bytes {
+                            last_bytes = s.progress_bytes;
+                            idle_secs = 0;
+                        } else {
+                            idle_secs = idle_secs.saturating_add(stall_check.as_secs());
+                        }
+                        if is_stalled(last_bytes, s.progress_bytes, idle_secs, stall_timeout.as_secs()) {
+                            break Err(anyhow::anyhow!(
+                                "no data received for {}s — no seeders have the content",
+                                stall_timeout.as_secs()
+                            ));
+                        }
+                    }
+                }
+            };
+            if let Err(e) = outcome {
                 crate::telemetry::torrent_failed(&id, "download", &e.to_string());
                 let _ = store.update(&id, |m| {
                     m.state = state::TorrentState::Failed;
@@ -525,6 +594,15 @@ mod tests {
         remove_entry_files(&src.display().to_string(), Some(&tc.display().to_string()));
         assert!(!src.exists());
         assert!(!tc.exists());
+    }
+
+    #[test]
+    fn is_stalled_detects_no_progress_past_timeout() {
+        assert!(!is_stalled(0, 0, 100, 300), "under timeout not stalled");
+        assert!(!is_stalled(100, 200, 300, 300), "progress resets — not stalled");
+        assert!(is_stalled(500, 500, 300, 300), "no progress at timeout is stalled");
+        assert!(is_stalled(500, 500, 315, 300), "no progress past timeout is stalled");
+        assert!(!is_stalled(0, 1, 999, 300), "any forward progress not stalled");
     }
 
     #[test]
