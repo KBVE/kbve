@@ -73,5 +73,5 @@ local function schedule()
     pcall(ExecuteWithDelay, RETRY_MS, schedule)
 end
 
-log("loaded (skeleton; not yet integrated into server)")
+log("loaded (spawn/setter pending Phase 0 spike)")
 schedule()

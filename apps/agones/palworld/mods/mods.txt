@@ -1,1 +1,2 @@
 PalChatRelay : 1
+PalForge : 1
