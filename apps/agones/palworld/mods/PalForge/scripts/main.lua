@@ -116,7 +116,9 @@ local function on_chat(_, a, b)
         pcall(pos.handle, sender, text, pos_emit)
         pcall(spike.handle, sender, text, pos_emit, pos.player_location)
         pcall(spike.spawn, sender, text, pos_emit, pos.player_location)
+        pcall(spike.clear, sender, text, pos_emit)
         pcall(spike.httptest, sender, text, pos_emit)
+        pcall(spike.curltest, sender, text, pos_emit)
     end
 end
 
