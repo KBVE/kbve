@@ -251,6 +251,48 @@ end
 local HTTP_GLOBALS = { "http", "socket", "curl", "https", "ssl" }
 local HTTP_MODULES = { "socket", "socket.http", "ssl", "ssl.https", "http", "http.request" }
 
+local CURL_CANDIDATES = { "curl --version", "curl.exe --version" }
+
+function M.curltest(sender, msg, emit)
+    if type(msg) ~= "string" or trim(msg):lower() ~= "!curltest" then
+        return false
+    end
+    emit("curltest: start (runs 'curl --version' only; NO network)")
+
+    local ok0 = pcall(function()
+        local h = io.popen("echo palforge_popen_ok")
+        if h then
+            local out = h:read("*l")
+            h:close()
+            emit("curltest popen echo -> " .. tostring(out))
+        else
+            emit("curltest popen echo -> no handle")
+        end
+    end)
+    if not ok0 then
+        emit("curltest popen echo -> ERR (io.popen blocked)")
+    end
+
+    for _, cmd in ipairs(CURL_CANDIDATES) do
+        local ok = pcall(function()
+            local h = io.popen(cmd .. " 2>&1")
+            if not h then
+                emit("curltest " .. cmd .. " -> no handle")
+                return
+            end
+            local out = h:read("*l")
+            h:close()
+            emit("curltest " .. cmd .. " -> " .. tostring(out))
+        end)
+        if not ok then
+            emit("curltest " .. cmd .. " -> ERR")
+        end
+    end
+
+    emit("curltest: done")
+    return true
+end
+
 function M.httptest(sender, msg, emit)
     if type(msg) ~= "string" or trim(msg):lower() ~= "!httptest" then
         return false
