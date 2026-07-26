@@ -1,55 +1,67 @@
 {
-  "generated_at": "2026-07-25T04:10:27Z",
+  "generated_at": "2026-07-26T04:25:44Z",
   "window": {
     "days": 7,
-    "since": "2026-07-18"
+    "since": "2026-07-19"
   },
   "totals": {
     "runs": 1000,
-    "success": 900,
-    "failure": 35,
-    "cancelled": 62,
+    "success": 902,
+    "failure": 31,
+    "cancelled": 63,
     "skipped": 0,
-    "other": 3,
+    "other": 4,
     "flaky": 1,
-    "success_rate": 96.3,
-    "avg_duration_s": 340
+    "success_rate": 96.7,
+    "avg_duration_s": 325
   },
   "totals_24h": {
-    "runs": 183,
-    "success": 176,
+    "runs": 156,
+    "success": 146,
     "failure": 1,
-    "success_rate": 99.4
+    "success_rate": 99.3
   },
   "workflows": [
     {
       "name": "CI - CodeQL",
-      "runs": 333,
-      "success": 311,
+      "runs": 344,
+      "success": 321,
       "failure": 0,
-      "cancelled": 21,
+      "cancelled": 22,
       "skipped": 0,
       "other": 1,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 198
+      "avg_duration_s": 201
     },
     {
       "name": "CI - Dev",
-      "runs": 224,
-      "success": 182,
-      "failure": 14,
-      "cancelled": 27,
+      "runs": 225,
+      "success": 186,
+      "failure": 10,
+      "cancelled": 28,
       "skipped": 0,
       "other": 1,
       "flaky": 0,
-      "success_rate": 92.9,
-      "avg_duration_s": 721
+      "success_rate": 94.9,
+      "avg_duration_s": 653
+    },
+    {
+      "name": "CI - Manifest Guard",
+      "runs": 95,
+      "success": 84,
+      "failure": 4,
+      "cancelled": 6,
+      "skipped": 0,
+      "other": 1,
+      "flaky": 0,
+      "success_rate": 95.5,
+      "avg_duration_s": 128
     },
     {
       "name": "Auto-merge bot PRs",
-      "runs": 90,
-      "success": 90,
+      "runs": 91,
+      "success": 91,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
@@ -59,21 +71,9 @@
       "avg_duration_s": 36
     },
     {
-      "name": "CI - Manifest Guard",
-      "runs": 90,
-      "success": 80,
-      "failure": 4,
-      "cancelled": 6,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 95.2,
-      "avg_duration_s": 124
-    },
-    {
       "name": "CI - Bevy",
-      "runs": 32,
-      "success": 32,
+      "runs": 33,
+      "success": 33,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
@@ -84,51 +84,51 @@
     },
     {
       "name": "CI - Forgejo Mirror",
-      "runs": 32,
-      "success": 32,
+      "runs": 33,
+      "success": 33,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 72
+      "avg_duration_s": 71
     },
     {
       "name": "CI - Main",
-      "runs": 32,
-      "success": 32,
+      "runs": 33,
+      "success": 33,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 112
+      "avg_duration_s": 110
     },
     {
       "name": "CI - Manifest Sync",
-      "runs": 32,
-      "success": 31,
+      "runs": 33,
+      "success": 32,
       "failure": 1,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 96.9,
-      "avg_duration_s": 138
+      "success_rate": 97.0,
+      "avg_duration_s": 140
     },
     {
       "name": "CI - Docker / agones-palworld",
-      "runs": 26,
-      "success": 9,
+      "runs": 29,
+      "success": 12,
       "failure": 13,
       "cancelled": 4,
       "skipped": 0,
       "other": 0,
       "flaky": 1,
-      "success_rate": 40.9,
-      "avg_duration_s": 745
+      "success_rate": 48.0,
+      "avg_duration_s": 756
     },
     {
       "name": "CI - Docker / axum-kbve",
@@ -140,34 +140,22 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 1577
+      "avg_duration_s": 1575
     },
     {
       "name": "CI - Actionlint",
-      "runs": 19,
-      "success": 16,
+      "runs": 17,
+      "success": 14,
       "failure": 0,
       "cancelled": 3,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 33
+      "avg_duration_s": 32
     },
     {
       "name": "CI - MC Smoke",
-      "runs": 10,
-      "success": 10,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 193
-    },
-    {
-      "name": "Organize Labels",
       "runs": 6,
       "success": 6,
       "failure": 0,
@@ -176,7 +164,7 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 20
+      "avg_duration_s": 199
     },
     {
       "name": "CI - Docker / agones-palworld-relay",
@@ -191,30 +179,6 @@
       "avg_duration_s": 393
     },
     {
-      "name": "CI - Docker / discordsh",
-      "runs": 5,
-      "success": 5,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 991
-    },
-    {
-      "name": "CI - Docker / herbmail",
-      "runs": 5,
-      "success": 4,
-      "failure": 1,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 80.0,
-      "avg_duration_s": 736
-    },
-    {
       "name": "Daily Content",
       "runs": 5,
       "success": 4,
@@ -224,31 +188,19 @@
       "other": 1,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 281
+      "avg_duration_s": 284
     },
     {
-      "name": "CI - Docker / discordsh-bot",
-      "runs": 4,
-      "success": 4,
+      "name": "CI - Docker / discordsh",
+      "runs": 3,
+      "success": 3,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 1035
-    },
-    {
-      "name": "CI - MC Gradle Cache",
-      "runs": 3,
-      "success": 2,
-      "failure": 0,
-      "cancelled": 1,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 323
+      "avg_duration_s": 1004
     },
     {
       "name": "CI - Atomic Branches",
@@ -260,7 +212,31 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 634
+      "avg_duration_s": 540
+    },
+    {
+      "name": "CI - Docker / discordsh-bot",
+      "runs": 2,
+      "success": 2,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 1075
+    },
+    {
+      "name": "CI - Docker / herbmail",
+      "runs": 2,
+      "success": 2,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 784
     },
     {
       "name": "CI - Docker / kbve-kubectl",
@@ -275,7 +251,7 @@
       "avg_duration_s": 670
     },
     {
-      "name": "CI - MC Mods Cache",
+      "name": "Organize Labels",
       "runs": 2,
       "success": 2,
       "failure": 0,
@@ -284,31 +260,7 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 272
-    },
-    {
-      "name": "CI - Publish / npm / laser",
-      "runs": 2,
-      "success": 2,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 350
-    },
-    {
-      "name": "CI - Publish / python / python-kbve",
-      "runs": 2,
-      "success": 2,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 472
+      "avg_duration_s": 26
     },
     {
       "name": "CI - Docker / axum-chuckrpg",
@@ -383,6 +335,30 @@
       "avg_duration_s": 526
     },
     {
+      "name": "CI - E2E / palforge-integrate",
+      "runs": 1,
+      "success": 0,
+      "failure": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 0.0,
+      "avg_duration_s": 3272
+    },
+    {
+      "name": "CI - Publish / python / python-kbve",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 267
+    },
+    {
       "name": "Graph Update: pip in /apps/agones/palworld/mods/chef_paldon_yumsay/build #1479977683",
       "runs": 1,
       "success": 1,
@@ -393,18 +369,6 @@
       "flaky": 0,
       "success_rate": 100.0,
       "avg_duration_s": 61
-    },
-    {
-      "name": "Graph Update: uv in /packages/python/kbve #1469686979",
-      "runs": 1,
-      "success": 1,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 77
     },
     {
       "name": "Windmill Sync",
@@ -468,6 +432,13 @@
     }
   ],
   "recent_failures": [
+    {
+      "name": "CI - E2E / palforge-integrate",
+      "branch": "palforge-integrate",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/30146591424",
+      "finished_at": "2026-07-25T06:49:44Z"
+    },
     {
       "name": "CI - Dev",
       "branch": "dev",
@@ -565,13 +536,6 @@
       "event": "workflow_dispatch",
       "url": "https://github.com/KBVE/kbve/actions/runs/29983563230",
       "finished_at": "2026-07-23T06:17:00Z"
-    },
-    {
-      "name": "CI - Docker / agones-palworld",
-      "branch": "main",
-      "event": "workflow_dispatch",
-      "url": "https://github.com/KBVE/kbve/actions/runs/29982441025",
-      "finished_at": "2026-07-23T05:51:43Z"
     }
   ]
 }
