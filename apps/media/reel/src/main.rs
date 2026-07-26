@@ -57,6 +57,7 @@ async fn main() -> anyhow::Result<()> {
 
     tokio::spawn(state::persist_loop(store.clone(), cfg.state_flush_ms));
 
+    let store_for_flush = store.clone();
     let app = api::router(api::AppState {
         engine: eng,
         store,
@@ -68,6 +69,34 @@ async fn main() -> anyhow::Result<()> {
     });
     let listener = tokio::net::TcpListener::bind(&cfg.api_addr).await?;
     tracing::info!(addr = %cfg.api_addr, "reel listening");
-    axum::serve(listener, app).await?;
+    axum::serve(listener, app)
+        .with_graceful_shutdown(shutdown_signal())
+        .await?;
+    tracing::info!("shutdown signal received; flushing state");
+    if let Err(e) = store_for_flush.flush() {
+        tracing::warn!(error = %e, "state flush on shutdown failed");
+    }
     Ok(())
+}
+
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        let _ = tokio::signal::ctrl_c().await;
+    };
+    #[cfg(unix)]
+    let terminate = async {
+        match tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate()) {
+            Ok(mut sig) => {
+                sig.recv().await;
+            }
+            Err(e) => tracing::warn!(error = %e, "failed to install SIGTERM handler"),
+        }
+    };
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {}
+        _ = terminate => {}
+    }
 }
