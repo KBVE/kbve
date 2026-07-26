@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-07-25T04:10:18Z",
+  "generated_at": "2026-07-26T04:26:14Z",
   "window": {
     "days": 7,
-    "since": "2026-07-18T04:10:18Z"
+    "since": "2026-07-19T04:26:14Z"
   },
   "commits": {
-    "total": 410,
+    "total": 383,
     "authors": 4,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 266
+        "commits": 232
       },
       {
         "author": "github-actions[bot]",
-        "commits": 135
+        "commits": 142
       },
       {
         "author": "dependabot[bot]",
@@ -27,158 +27,158 @@
     ],
     "recent": [
       {
-        "sha": "e08cd94",
+        "sha": "9e38664",
         "author": "h0lybyte",
-        "message": "Merge pull request #14627 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/e08cd94e65b64af920787a87e96d6735f745a08d",
-        "date": "2026-07-25T01:11:15Z"
+        "message": "Merge pull request #14660 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/9e386640e0dcb0f7237a2e9ae2db8b8a85e88dec",
+        "date": "2026-07-25T11:37:09Z"
       },
       {
-        "sha": "dcb4a79",
+        "sha": "c9a5167",
         "author": "github-actions[bot]",
-        "message": "chore(agones-palworld): post-publish sync to v0.0.11 (#14626)",
-        "url": "https://github.com/KBVE/kbve/commit/dcb4a7975e4be164f6ec05e4a679cc1d3ba3428c",
-        "date": "2026-07-25T00:35:19Z"
+        "message": "chore(agones-palworld): post-publish sync to v0.0.14 (#14659)",
+        "url": "https://github.com/KBVE/kbve/commit/c9a516782a03be0500a02e4600db596786563fee",
+        "date": "2026-07-25T11:18:06Z"
       },
       {
-        "sha": "8ef714b",
-        "author": "h0lybyte",
-        "message": "Merge pull request #14622 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/8ef714b4aedcd2a1448509654aa72315aef71d1f",
-        "date": "2026-07-25T00:21:13Z"
-      },
-      {
-        "sha": "65d7bf1",
+        "sha": "f3bcb4f",
         "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14625)",
-        "url": "https://github.com/KBVE/kbve/commit/65d7bf17f95338365e60397b06659fd10d914a37",
-        "date": "2026-07-25T00:05:22Z"
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14658)",
+        "url": "https://github.com/KBVE/kbve/commit/f3bcb4f1767cfe53647377a71751f51b28b6ce47",
+        "date": "2026-07-25T11:04:05Z"
       },
       {
-        "sha": "96e4baf",
+        "sha": "8f352e6",
         "author": "h0lybyte",
-        "message": "fix(palworld): prune fabricated chat-hook candidates from PalChatRelay (#14624)",
-        "url": "https://github.com/KBVE/kbve/commit/96e4baf007b3527dafbb1d987f6f2ca229add874",
-        "date": "2026-07-25T00:02:56Z"
+        "message": "Merge pull request #14657 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/8f352e6e0d7e88aab44ed84a31d3f7eef4e3a028",
+        "date": "2026-07-25T11:03:41Z"
       },
       {
-        "sha": "c479da2",
+        "sha": "189bed8",
+        "author": "h0lybyte",
+        "message": "feat(palworld): 0.0.14 \u2014 prestop waittime + !cmd suppress + pos-to-PAL + !signprobe (#14656)",
+        "url": "https://github.com/KBVE/kbve/commit/189bed81d334b8c3384ecbfd6e721c2470c6c496",
+        "date": "2026-07-25T11:01:57Z"
+      },
+      {
+        "sha": "b7ad151",
+        "author": "h0lybyte",
+        "message": "Merge pull request #14654 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/b7ad151d128269f2714b8b99fb2ed6ae0a107c94",
+        "date": "2026-07-25T10:05:58Z"
+      },
+      {
+        "sha": "f572483",
         "author": "github-actions[bot]",
-        "message": "chore(discordsh-bot): post-publish sync to v0.1.29 (#14623)",
-        "url": "https://github.com/KBVE/kbve/commit/c479da274863547f549627e15b3bee8fe2089978",
-        "date": "2026-07-24T22:35:44Z"
+        "message": "chore(axum-kbve): post-publish sync to v1.0.252 (#14655)",
+        "url": "https://github.com/KBVE/kbve/commit/f57248389dacf7f89b7c80948891871dedac8ea3",
+        "date": "2026-07-25T09:51:49Z"
       },
       {
-        "sha": "5cba852",
+        "sha": "1f17511",
         "author": "github-actions[bot]",
-        "message": "chore(agones-palworld-relay): post-publish sync to v0.0.7 (#14621)",
-        "url": "https://github.com/KBVE/kbve/commit/5cba852d425bccf43c2bc84d2e128e1cc777e397",
-        "date": "2026-07-24T22:24:18Z"
+        "message": "chore(agones-palworld): post-publish sync to v0.0.13 (#14653)",
+        "url": "https://github.com/KBVE/kbve/commit/1f17511b5b89cf283e41a7e78ecf4e537b691dde",
+        "date": "2026-07-25T09:36:28Z"
       },
       {
-        "sha": "0ad49db",
+        "sha": "38854fc",
         "author": "h0lybyte",
-        "message": "Merge pull request #14619 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/0ad49dbfbdaa3c594efa7bc2bfe5d81ac80232d6",
-        "date": "2026-07-24T22:15:38Z"
+        "message": "Merge pull request #14649 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/38854fc7487435f7a59c2f6108773c3e5d098415",
+        "date": "2026-07-25T09:21:39Z"
       },
       {
-        "sha": "eb3dc88",
+        "sha": "83aef7e",
         "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14620)",
-        "url": "https://github.com/KBVE/kbve/commit/eb3dc88537c8db7a7d783963ef09c3fefff9a11d",
-        "date": "2026-07-24T22:12:12Z"
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14652)",
+        "url": "https://github.com/KBVE/kbve/commit/83aef7e473cba8d77bf30eae6b134062e07908eb",
+        "date": "2026-07-25T09:20:45Z"
       },
       {
-        "sha": "9985ad0",
+        "sha": "94987ae",
         "author": "h0lybyte",
-        "message": "fix(palworld): emit structured chat wire format so Discord shows [PAL] <player> (#14618)",
-        "url": "https://github.com/KBVE/kbve/commit/9985ad03858e794ff174b58f1bf3cef3aeb74e62",
-        "date": "2026-07-24T22:09:58Z"
+        "message": "fix(palforge): use !pos not /pos (Palworld eats slash commands) (#14651)",
+        "url": "https://github.com/KBVE/kbve/commit/94987ae99d8cce41ee349183d4311f95a5366ab7",
+        "date": "2026-07-25T09:18:31Z"
       },
       {
-        "sha": "222be8e",
-        "author": "h0lybyte",
-        "message": "Merge pull request #14617 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/222be8e67637896f471c5ddcfbf0774c2cbb4bad",
-        "date": "2026-07-24T20:40:46Z"
-      },
-      {
-        "sha": "e19e072",
-        "author": "h0lybyte",
-        "message": "feat(graph): unify /graph/ into one graph digested at the wrapper level (#14616)",
-        "url": "https://github.com/KBVE/kbve/commit/e19e0729c13802c95fb259cba635c57522cc88d2",
-        "date": "2026-07-24T20:34:26Z"
+        "sha": "b2bec2f",
+        "author": "github-actions[bot]",
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14650)",
+        "url": "https://github.com/KBVE/kbve/commit/b2bec2f2015e1f24d955c1b6b5204dbd968fa0d8",
+        "date": "2026-07-25T08:51:45Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 366,
+    "merged": 348,
     "recent": [
       {
-        "number": 14628,
-        "title": "feat(palworld): scaffold PalForge world-objects mod (not integrated)",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14628"
-      },
-      {
-        "number": 14627,
-        "title": "Release: 1 chore \u2192 Main",
+        "number": 14668,
+        "title": "chore(content): daily journal scaffold",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14627"
+        "url": "https://github.com/KBVE/kbve/pull/14668"
       },
       {
-        "number": 14626,
-        "title": "Atomic: agones-palworld v0.0.11 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14626"
-      },
-      {
-        "number": 14622,
-        "title": "Release: 1 fix, 2 chores \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14622"
-      },
-      {
-        "number": 14625,
+        "number": 14667,
         "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14625"
+        "url": "https://github.com/KBVE/kbve/pull/14667"
       },
       {
-        "number": 14624,
-        "title": "fix(palworld): prune fabricated chat-hook candidates from PalChatRelay",
+        "number": 14666,
+        "title": "Atomic: palworld hatch time",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/14666"
+      },
+      {
+        "number": 14665,
+        "title": "chore(reel): bump to 0.1.2 (stall-timeout + tracker injection)",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14624"
+        "url": "https://github.com/KBVE/kbve/pull/14665"
       },
       {
-        "number": 14623,
-        "title": "Atomic: discordsh-bot v0.1.29 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14623"
-      },
-      {
-        "number": 14621,
-        "title": "Atomic: agones-palworld-relay v0.0.7 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14621"
-      },
-      {
-        "number": 14619,
-        "title": "Release: 1 fix \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14619"
-      },
-      {
-        "number": 14620,
+        "number": 14664,
         "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14620"
+        "url": "https://github.com/KBVE/kbve/pull/14664"
+      },
+      {
+        "number": 14662,
+        "title": "feat(palforge): !signprobe probes existing signboard setter (R2)",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14662"
+      },
+      {
+        "number": 14661,
+        "title": "feat(reel): fail unresolvable torrents with a reason instead of hanging",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14661"
+      },
+      {
+        "number": 14660,
+        "title": "Release: 2 chores \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/14660"
+      },
+      {
+        "number": 14659,
+        "title": "Atomic: agones-palworld v0.0.14 post-publish sync",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/14659"
+      },
+      {
+        "number": 14658,
+        "title": "chore(ci): sync ci-dispatch-manifest",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/14658"
       }
     ]
   },
   "issues": {
-    "opened": 373,
-    "closed": 368
+    "opened": 356,
+    "closed": 350
   }
 }
