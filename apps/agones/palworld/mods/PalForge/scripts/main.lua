@@ -115,6 +115,7 @@ local function on_chat(_, a, b)
     if sender and text and #text > 0 then
         pcall(pos.handle, sender, text, pos_emit)
         pcall(spike.handle, sender, text, pos_emit, pos.player_location)
+        pcall(spike.spawn, sender, text, pos_emit, pos.player_location)
     end
 end
 
