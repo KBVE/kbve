@@ -147,6 +147,19 @@ local clear_ok = c1 == true
     and emitted(cl_emits, "signclear: done")
     and spawned.destroyed == true
 
+_print("=== spike.curltest command ===")
+local ct_emits = {}
+local function ct_emit(m)
+    ct_emits[#ct_emits + 1] = m
+    _print("  curl: " .. m)
+end
+local ct1 = spike.curltest("Al", "!curltest", ct_emit)
+local ct2 = spike.curltest("Al", "nope", ct_emit)
+local curltest_ok = ct1 == true
+    and ct2 == false
+    and ct_emits[1]:find("curltest: start", 1, true) ~= nil
+    and ct_emits[#ct_emits]:find("curltest: done", 1, true) ~= nil
+
 _print("=== spike.httptest command ===")
 local ht_emits = {}
 local function ht_emit(m)
@@ -173,6 +186,7 @@ local ok = calls.pending == 1
     and spike_ok
     and spawn_ok
     and clear_ok
+    and curltest_ok
     and httptest_ok
 
 if ok then
