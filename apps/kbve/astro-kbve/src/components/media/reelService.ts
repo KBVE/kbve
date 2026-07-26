@@ -168,6 +168,18 @@ export class ReelPlayer {
 			);
 			if (this.generation !== gen) return;
 			$reelName.set(detail?.name ?? null);
+			if (detail?.state === 'Failed') {
+				this.fail(
+					typeof detail.error === 'string' && detail.error
+						? detail.error
+						: 'this reel failed to download',
+				);
+				return;
+			}
+			if (detail?.state === 'Reaped') {
+				this.fail('this reel expired and was removed — re-add it to watch');
+				return;
+			}
 		} catch (e) {
 			if (this.generation !== gen) return;
 			if (e instanceof ApiError && e.status === 404) {
