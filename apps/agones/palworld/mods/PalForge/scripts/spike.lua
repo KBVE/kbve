@@ -175,12 +175,31 @@ function M.spawn(sender, msg, emit, loc_fn, deps)
     if is_valid(actor) then
         emit("signspawn: ACTOR SPAWNED")
         try(emit, "actor:GetFullName", function() return actor:GetFullName() end)
-        for _, s in ipairs(SETTER_CANDIDATES) do
-            try(emit, "spawn setter " .. s, function()
-                actor[s](actor, SPAWN_TEXT)
-                return "called"
+
+        try(emit, "SetReplicates(true)", function() actor:SetReplicates(true) return "ok" end)
+        try(emit, "SetReplicateMovement(true)", function() actor:SetReplicateMovement(true) return "ok" end)
+        try(emit, "ForceNetUpdate", function() actor:ForceNetUpdate() return "ok" end)
+        try(emit, "SetActorHiddenInGame(false)", function() actor:SetActorHiddenInGame(false) return "ok" end)
+        try(emit, "SetActorEnableCollision(true)", function() actor:SetActorEnableCollision(true) return "ok" end)
+        try(emit, "OnUpdateText", function() actor:OnUpdateText(SPAWN_TEXT) return "ok" end)
+
+        emit("signspawn: scanning actor properties")
+        local hits = 0
+        pcall(function()
+            actor:ForEachProperty(function(prop)
+                local name = tostring(prop:GetName())
+                local low = name:lower()
+                if low:find("mesh") or low:find("model") or low:find("widget")
+                    or low:find("param") or low:find("sign") or low:find("concrete")
+                    or low:find("root") then
+                    hits = hits + 1
+                    if hits <= 20 then
+                        emit("prop " .. name)
+                    end
+                end
             end)
-        end
+        end)
+        emit("signspawn: relevant props = " .. hits)
     else
         emit("signspawn: no actor from world:SpawnActor")
     end

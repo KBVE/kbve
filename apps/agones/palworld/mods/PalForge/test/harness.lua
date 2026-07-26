@@ -132,7 +132,6 @@ end
 local spawn_ok = w1 == true
     and w2 == false
     and emitted(sw_emits, "ACTOR SPAWNED")
-    and emitted(sw_emits, "spawn setter SetText -> OK")
     and sw_emits[#sw_emits]:find("signspawn: done", 1, true) ~= nil
 
 _print("=== spike.httptest command ===")
