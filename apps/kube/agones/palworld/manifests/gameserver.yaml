@@ -53,8 +53,14 @@ spec:
                         value: 'auto'
                       - name: SERVER_NAME
                         value: 'KBVE Palworld'
+                      - name: SERVER_DESCRIPTION
+                        value: 'KBVE community server — crossplay Steam/Xbox/PS5. Search: kbve'
+                      - name: PUBLIC_IP
+                        value: '142.132.206.74'
                       - name: PUBLIC_PORT
                         value: '8211'
+                      - name: CROSSPLAY_PLATFORMS
+                        value: '(Steam,Xbox,PS5,Mac)'
                       - name: MAX_PLAYERS
                         value: '16'
                       - name: RCON_ENABLED
@@ -68,7 +74,7 @@ spec:
                       - name: MULTITHREAD_ENABLED
                         value: 'true'
                       - name: COMMUNITY_SERVER
-                        value: 'false'
+                        value: 'true'
                       - name: BACKUP_ENABLED
                         value: 'true'
                       - name: RESTART_ENABLED
