@@ -1,5 +1,4 @@
 import { atom } from 'nanostores';
-import { getAccessToken } from '@kbve/astro';
 import { authedApiFetch, ApiError } from '@/lib/apiFetch';
 import { DASH_PROXY_BASE } from '@/components/rnweb/dashProxyBase';
 
@@ -56,10 +55,27 @@ const MAX_POLLS = 25;
 const BACKOFF_BASE_MS = 1000;
 const BACKOFF_CAP_MS = 5000;
 
+let mediaTokenCache: { token: string; expiresAtMs: number } | null = null;
+
 async function mediaToken(): Promise<string | null> {
 	const dev = import.meta.env.PUBLIC_REEL_TOKEN as string | undefined;
 	if (dev) return dev;
-	return getAccessToken();
+	if (mediaTokenCache && mediaTokenCache.expiresAtMs > Date.now()) {
+		return mediaTokenCache.token;
+	}
+	try {
+		const res = await authedApiFetch<{ token: string; exp: number }>(
+			`${REEL_PATH}/media-token`,
+		);
+		mediaTokenCache = {
+			token: res.token,
+			expiresAtMs: Date.now() + Math.max(0, res.exp - 30) * 1000,
+		};
+		return res.token;
+	} catch {
+		mediaTokenCache = null;
+		return null;
+	}
 }
 
 export function mediaUrl(id: string, suffix: string, token: string | null): string {

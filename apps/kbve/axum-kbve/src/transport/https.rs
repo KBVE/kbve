@@ -764,6 +764,10 @@ fn router(state: AppState) -> Router {
             any(super::proxy::vibeshine_webrtc_handler),
         )
         .route(
+            "/api/v1/reel/media-token",
+            axum::routing::get(super::proxy::reel_media_token_handler),
+        )
+        .route(
             "/api/v1/reel/{*rest}",
             any(super::proxy::reel_proxy_handler),
         )
