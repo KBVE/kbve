@@ -104,11 +104,10 @@ local spike_ok = s1 == true
     and sp_emits[#sp_emits]:find("done", 1, true) ~= nil
 
 _print("=== spike.spawn command ===")
-local spawned = {
-    IsValid = function() return true end,
-    GetFullName = function() return "Signboard_spawned_1" end,
-    SetText = function() return true end,
-}
+local spawned = { destroyed = false }
+spawned.IsValid = function() return not spawned.destroyed end
+spawned.GetFullName = function() return "Signboard_spawned_1" end
+spawned.K2_DestroyActor = function() spawned.destroyed = true end
 local spawn_deps = {
     static_find = function() return { IsValid = function() return false end } end,
     load_asset = function() return { IsValid = function() return true end } end,
@@ -132,8 +131,21 @@ end
 local spawn_ok = w1 == true
     and w2 == false
     and emitted(sw_emits, "ACTOR SPAWNED")
-    and emitted(sw_emits, "spawn setter SetText -> OK")
     and sw_emits[#sw_emits]:find("signspawn: done", 1, true) ~= nil
+
+_print("=== spike.clear command ===")
+local cl_emits = {}
+local function cl_emit(m)
+    cl_emits[#cl_emits + 1] = m
+    _print("  clear: " .. m)
+end
+local c1 = spike.clear("Al", "!signclear", cl_emit)
+local c2 = spike.clear("Al", "nope", cl_emit)
+local clear_ok = c1 == true
+    and c2 == false
+    and emitted(cl_emits, "destroyed=1")
+    and emitted(cl_emits, "signclear: done")
+    and spawned.destroyed == true
 
 _print("=== spike.httptest command ===")
 local ht_emits = {}
@@ -160,6 +172,7 @@ local ok = calls.pending == 1
     and pos_ok
     and spike_ok
     and spawn_ok
+    and clear_ok
     and httptest_ok
 
 if ok then
