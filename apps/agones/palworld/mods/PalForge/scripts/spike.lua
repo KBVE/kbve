@@ -189,4 +189,35 @@ function M.spawn(sender, msg, emit, loc_fn, deps)
     return true
 end
 
+local HTTP_GLOBALS = { "http", "socket", "curl", "https", "ssl" }
+local HTTP_MODULES = { "socket", "socket.http", "ssl", "ssl.https", "http", "http.request" }
+
+function M.httptest(sender, msg, emit)
+    if type(msg) ~= "string" or trim(msg):lower() ~= "!httptest" then
+        return false
+    end
+
+    emit("httptest: start (capability detection only; NO network, NO exec)")
+
+    emit("httptest package -> " .. type(package))
+    if type(package) == "table" then
+        emit("httptest package.loadlib -> " .. type(package.loadlib))
+        emit("httptest package.cpath -> " .. tostring(package.cpath))
+    end
+    emit("httptest os.execute -> " .. type(os.execute))
+    emit("httptest io.popen -> " .. type(io.popen))
+
+    for _, g in ipairs(HTTP_GLOBALS) do
+        emit("httptest global " .. g .. " -> " .. type(_G[g]))
+    end
+
+    for _, name in ipairs(HTTP_MODULES) do
+        local ok, mod = pcall(require, name)
+        emit("httptest require " .. name .. " -> " .. (ok and type(mod) or "absent"))
+    end
+
+    emit("httptest: done (nothing loaded, nothing sent)")
+    return true
+end
+
 return M

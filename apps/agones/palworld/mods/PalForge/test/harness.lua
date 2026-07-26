@@ -135,6 +135,19 @@ local spawn_ok = w1 == true
     and emitted(sw_emits, "spawn setter SetText -> OK")
     and sw_emits[#sw_emits]:find("signspawn: done", 1, true) ~= nil
 
+_print("=== spike.httptest command ===")
+local ht_emits = {}
+local function ht_emit(m)
+    ht_emits[#ht_emits + 1] = m
+    _print("  http: " .. m)
+end
+local ht1 = spike.httptest("Al", "!httptest", ht_emit)
+local ht2 = spike.httptest("Al", "nope", ht_emit)
+local httptest_ok = ht1 == true
+    and ht2 == false
+    and ht_emits[1]:find("httptest: start", 1, true) ~= nil
+    and ht_emits[#ht_emits]:find("httptest: done", 1, true) ~= nil
+
 _print("=== results ===")
 _print(string.format(
     "placed=%d pending=%d setter_callable=%d setter_absent=%d pos_ok=%s",
@@ -147,6 +160,7 @@ local ok = calls.pending == 1
     and pos_ok
     and spike_ok
     and spawn_ok
+    and httptest_ok
 
 if ok then
     _print("HARNESS PASS")
