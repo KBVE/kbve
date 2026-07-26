@@ -13,6 +13,7 @@ local SETTER_CANDIDATES = {
     "OnUpdateText",
 }
 local PROBE_TEXT = "PalForge R2 probe"
+local SPAWN_TEXT = "PalForge spawn test"
 local LOAD_CANDIDATES = { "StaticLoadObject", "LoadObject", "LoadAsset" }
 
 local function is_valid(obj)
@@ -30,10 +31,10 @@ end
 local function try(emit, label, fn)
     local ok, res = pcall(fn)
     if ok then
-        emit("signprobe " .. label .. " -> OK " .. tostring(res))
+        emit(label .. " -> OK " .. tostring(res))
         return res
     end
-    emit("signprobe " .. label .. " -> ERR " .. tostring(res))
+    emit(label .. " -> ERR " .. tostring(res))
     return nil
 end
 
@@ -114,6 +115,108 @@ function M.handle(sender, msg, emit, loc_fn, static_find, find_first, find_all)
     end
 
     emit("signprobe: done (inspect UE4SS.log; a working setter changes an existing sign's text)")
+    return true
+end
+
+local function resolve_class(emit, static_find, load_asset)
+    local c = static_find(SIGNBOARD_CLASS)
+    if is_valid(c) then
+        emit("signspawn class -> found (loaded)")
+        return c
+    end
+    if type(load_asset) == "function" then
+        local ok, loaded = pcall(load_asset, SIGNBOARD_CLASS)
+        if ok and is_valid(loaded) then
+            emit("signspawn class -> LoadAsset OK")
+            return loaded
+        end
+    end
+    emit("signspawn class -> unresolved")
+    return nil
+end
+
+function M.spawn(sender, msg, emit, loc_fn, deps)
+    if type(msg) ~= "string" or trim(msg):lower() ~= "!signspawn" then
+        return false
+    end
+    deps = deps or {}
+    local static_find = deps.static_find or StaticFindObject
+    local find_first = deps.find_first or FindFirstOf
+    local load_asset = deps.load_asset or LoadAsset
+
+    emit("signspawn: start")
+
+    local cls = resolve_class(emit, static_find, load_asset)
+    if not cls then
+        emit("signspawn: abort — no class")
+        return true
+    end
+
+    local world = find_first("World")
+    if not is_valid(world) then
+        emit("signspawn: abort — no world")
+        return true
+    end
+
+    local loc = loc_fn and loc_fn(sender) or nil
+    if not loc then
+        emit("signspawn: abort — no location")
+        return true
+    end
+    emit(string.format("signspawn at X=%.1f Y=%.1f Z=%.1f", loc.x, loc.y, loc.z))
+
+    local location = { X = loc.x, Y = loc.y, Z = loc.z }
+    local rotation = { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
+
+    local actor = try(emit, "world:SpawnActor", function()
+        return world:SpawnActor(cls, location, rotation)
+    end)
+
+    if is_valid(actor) then
+        emit("signspawn: ACTOR SPAWNED")
+        try(emit, "actor:GetFullName", function() return actor:GetFullName() end)
+        for _, s in ipairs(SETTER_CANDIDATES) do
+            try(emit, "spawn setter " .. s, function()
+                actor[s](actor, SPAWN_TEXT)
+                return "called"
+            end)
+        end
+    else
+        emit("signspawn: no actor from world:SpawnActor")
+    end
+
+    emit("signspawn: done")
+    return true
+end
+
+local HTTP_GLOBALS = { "http", "socket", "curl", "https", "ssl" }
+local HTTP_MODULES = { "socket", "socket.http", "ssl", "ssl.https", "http", "http.request" }
+
+function M.httptest(sender, msg, emit)
+    if type(msg) ~= "string" or trim(msg):lower() ~= "!httptest" then
+        return false
+    end
+
+    emit("httptest: start (capability detection only; NO network, NO exec)")
+
+    emit("httptest package -> " .. type(package))
+    if type(package) == "table" then
+        emit("httptest package.loadlib -> " .. type(package.loadlib))
+        emit("httptest package.cpath -> " .. tostring(package.cpath))
+    end
+    emit("httptest os.execute -> " .. type(os.execute))
+    emit("httptest io.popen -> " .. type(io.popen))
+
+    for _, g in ipairs(HTTP_GLOBALS) do
+        emit("httptest global " .. g .. " -> " .. type(_G[g]))
+    end
+
+    for _, name in ipairs(HTTP_MODULES) do
+        local ok, mod = pcall(require, name)
+        emit("httptest require " .. name .. " -> " .. (ok and type(mod) or "absent"))
+    end
+
+    emit("httptest: done (nothing loaded, nothing sent)")
     return true
 end
 

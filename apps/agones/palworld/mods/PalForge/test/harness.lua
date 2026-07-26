@@ -103,6 +103,51 @@ local spike_ok = s1 == true
     and sp_emits[1]:find("signprobe: start", 1, true) ~= nil
     and sp_emits[#sp_emits]:find("done", 1, true) ~= nil
 
+_print("=== spike.spawn command ===")
+local spawned = {
+    IsValid = function() return true end,
+    GetFullName = function() return "Signboard_spawned_1" end,
+    SetText = function() return true end,
+}
+local spawn_deps = {
+    static_find = function() return { IsValid = function() return false end } end,
+    load_asset = function() return { IsValid = function() return true end } end,
+    find_first = function()
+        return { IsValid = function() return true end, SpawnActor = function() return spawned end }
+    end,
+}
+local sw_emits = {}
+local function sw_emit(m)
+    sw_emits[#sw_emits + 1] = m
+    _print("  spawn: " .. m)
+end
+local w1 = spike.spawn("Al", "!signspawn", sw_emit, mock_loc, spawn_deps)
+local w2 = spike.spawn("Al", "nope", sw_emit, mock_loc, spawn_deps)
+local function emitted(list, needle)
+    for _, m in ipairs(list) do
+        if m:find(needle, 1, true) then return true end
+    end
+    return false
+end
+local spawn_ok = w1 == true
+    and w2 == false
+    and emitted(sw_emits, "ACTOR SPAWNED")
+    and emitted(sw_emits, "spawn setter SetText -> OK")
+    and sw_emits[#sw_emits]:find("signspawn: done", 1, true) ~= nil
+
+_print("=== spike.httptest command ===")
+local ht_emits = {}
+local function ht_emit(m)
+    ht_emits[#ht_emits + 1] = m
+    _print("  http: " .. m)
+end
+local ht1 = spike.httptest("Al", "!httptest", ht_emit)
+local ht2 = spike.httptest("Al", "nope", ht_emit)
+local httptest_ok = ht1 == true
+    and ht2 == false
+    and ht_emits[1]:find("httptest: start", 1, true) ~= nil
+    and ht_emits[#ht_emits]:find("httptest: done", 1, true) ~= nil
+
 _print("=== results ===")
 _print(string.format(
     "placed=%d pending=%d setter_callable=%d setter_absent=%d pos_ok=%s",
@@ -114,6 +159,8 @@ local ok = calls.pending == 1
     and calls.setter_absent == 4
     and pos_ok
     and spike_ok
+    and spawn_ok
+    and httptest_ok
 
 if ok then
     _print("HARNESS PASS")
