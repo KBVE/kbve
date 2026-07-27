@@ -50,6 +50,22 @@ export default function ReactReelConsole() {
 		if (isStaff) void refreshReelList();
 	}, [isStaff]);
 
+	useEffect(() => {
+		if (!isStaff) return;
+		const active = list.some(
+			(t) =>
+				t.state === 'Leeching' ||
+				t.transcode === 'Pending' ||
+				t.transcode === 'Remuxing' ||
+				t.transcode === 'Encoding' ||
+				t.hls === 'Starting' ||
+				t.hls === 'Live',
+		);
+		if (!active) return;
+		const timer = setInterval(() => void refreshReelList(), 4000);
+		return () => clearInterval(timer);
+	}, [isStaff, list]);
+
 	const add = useCallback(async () => {
 		const src = source.trim();
 		if (!src) return;
