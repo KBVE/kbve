@@ -87,6 +87,8 @@ spec:
                         value: 'True'
                       - name: ALLOW_GLOBAL_PALBOX_IMPORT
                         value: 'False'
+                      - name: ENABLE_INVADER_ENEMY
+                        value: 'True'
                       - name: MULTITHREAD_ENABLED
                         value: 'true'
                       - name: COMMUNITY_SERVER
