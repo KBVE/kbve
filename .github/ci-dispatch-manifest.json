@@ -542,6 +542,7 @@
 			"source_path": "apps/media/reel",
 			"runner": "ubuntu-latest",
 			"image": "kbve/reel",
+			"deployment_yaml": "apps/kube/reel/manifest/reel.yaml",
 			"has_test": false
 		},
 		{
