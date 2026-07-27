@@ -71,10 +71,12 @@ spec:
                         value: 'true'
                       - name: RESTAPI_PORT
                         value: '8212'
-                      # Hours to hatch an egg. Base-image default is 72; halved
-                      # for faster breeding turnaround on the KBVE server.
                       - name: PAL_EGG_DEFAULT_HATCHING_TIME
-                        value: '36.000000'
+                        value: '12.000000'
+                      - name: SUPPLY_DROP_SPAN
+                        value: '60'
+                      - name: ITEM_WEIGHT_RATE
+                        value: '0.500000'
                       - name: MULTITHREAD_ENABLED
                         value: 'true'
                       - name: COMMUNITY_SERVER
