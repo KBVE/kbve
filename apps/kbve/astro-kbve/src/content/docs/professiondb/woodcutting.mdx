@@ -1,0 +1,46 @@
+---
+title: 'Woodcutting'
+description: |
+    Fell trees for logs. A gathering discipline supplying construction,
+    smithing fuel, and crafting.
+ref: 'woodcutting'
+key: 2
+id: '01KPROFWOODCUT00000000002'
+name: 'Woodcutting'
+category: 'gathering'
+emoji: '🪓'
+max_level: 99
+experience_curve:
+  kind: 'polynomial'
+  base_xp: 45
+  growth_factor: 1.55
+  max_level: 99
+actions:
+  - ref: 'chop-oak-log'
+    name: 'Chop Oak Log'
+    description: 'Fell an oak for sturdy logs.'
+    outputs:
+      - item_ref: 'oak-log'
+        quantity: 1
+    required_level: 1
+    xp_reward: 12
+    duration_ms: 3000
+    tool_refs:
+      - 'bronze-axe'
+  - ref: 'chop-willow-log'
+    name: 'Chop Willow Log'
+    outputs:
+      - item_ref: 'willow-log'
+        quantity: 1
+    required_level: 20
+    xp_reward: 40
+    duration_ms: 3500
+    tool_refs:
+      - 'steel-axe'
+unlocks:
+  - level: 20
+    action_ref: 'chop-willow-log'
+    description: 'Willow trees become harvestable.'
+---
+
+Woodcutting fells trees for logs, supplying construction, fuel, and crafting.
