@@ -1,1 +1,113 @@
-{"dir":"@astrojs/starlight","center":[-229.28,920.35],"r":77.58,"files":[{"i":0,"label":"Footer.astro","path":"@astrojs/starlight/components/Footer.astro","x":-47.73,"y":920.35,"n":1},{"i":1,"label":"MarkdownContent.astro","path":"@astrojs/starlight/components/MarkdownContent.astro","x":-138.5,"y":1077.57,"n":1},{"i":2,"label":"PageSidebar.astro","path":"@astrojs/starlight/components/PageSidebar.astro","x":-320.05,"y":1077.57,"n":1},{"i":3,"label":"Sidebar.astro","path":"@astrojs/starlight/components/Sidebar.astro","x":-410.82,"y":920.35,"n":1},{"i":4,"label":"ThemeProvider.astro","path":"@astrojs/starlight/components/ThemeProvider.astro","x":-320.05,"y":763.12,"n":1},{"i":5,"label":"props","path":"@astrojs/starlight/props","x":-138.5,"y":763.12,"n":1}],"symbols":[{"i":0,"f":0,"label":"@astrojs/starlight/components/Footer.astro","x":-47.73,"y":920.35,"c":355,"loc":""},{"i":1,"f":1,"label":"@astrojs/starlight/components/MarkdownContent.astro","x":-138.5,"y":1077.57,"c":160,"loc":""},{"i":2,"f":2,"label":"@astrojs/starlight/components/PageSidebar.astro","x":-320.05,"y":1077.57,"c":521,"loc":""},{"i":3,"f":3,"label":"@astrojs/starlight/components/Sidebar.astro","x":-410.82,"y":920.35,"c":59,"loc":""},{"i":4,"f":4,"label":"@astrojs/starlight/components/ThemeProvider.astro","x":-320.05,"y":763.12,"c":3710,"loc":""},{"i":5,"f":5,"label":"@astrojs/starlight/props","x":-138.5,"y":763.12,"c":355,"loc":""}],"fileEdges":[],"symbolEdges":[]}
+{
+	"dir": "@astrojs/starlight",
+	"center": [163.36, 626.46],
+	"r": 77.58,
+	"files": [
+		{
+			"i": 0,
+			"label": "Footer.astro",
+			"path": "@astrojs/starlight/components/Footer.astro",
+			"x": 344.9,
+			"y": 626.46,
+			"n": 1
+		},
+		{
+			"i": 1,
+			"label": "MarkdownContent.astro",
+			"path": "@astrojs/starlight/components/MarkdownContent.astro",
+			"x": 254.13,
+			"y": 783.68,
+			"n": 1
+		},
+		{
+			"i": 2,
+			"label": "PageSidebar.astro",
+			"path": "@astrojs/starlight/components/PageSidebar.astro",
+			"x": 72.59,
+			"y": 783.68,
+			"n": 1
+		},
+		{
+			"i": 3,
+			"label": "Sidebar.astro",
+			"path": "@astrojs/starlight/components/Sidebar.astro",
+			"x": -18.18,
+			"y": 626.46,
+			"n": 1
+		},
+		{
+			"i": 4,
+			"label": "ThemeProvider.astro",
+			"path": "@astrojs/starlight/components/ThemeProvider.astro",
+			"x": 72.59,
+			"y": 469.24,
+			"n": 1
+		},
+		{
+			"i": 5,
+			"label": "props",
+			"path": "@astrojs/starlight/props",
+			"x": 254.13,
+			"y": 469.24,
+			"n": 1
+		}
+	],
+	"symbols": [
+		{
+			"i": 0,
+			"f": 0,
+			"label": "components/Footer.astro",
+			"x": 344.9,
+			"y": 626.46,
+			"c": 273,
+			"loc": ""
+		},
+		{
+			"i": 1,
+			"f": 1,
+			"label": "components/MarkdownContent.astro",
+			"x": 254.13,
+			"y": 783.68,
+			"c": 212,
+			"loc": ""
+		},
+		{
+			"i": 2,
+			"f": 2,
+			"label": "components/PageSidebar.astro",
+			"x": 72.59,
+			"y": 783.68,
+			"c": 530,
+			"loc": ""
+		},
+		{
+			"i": 3,
+			"f": 3,
+			"label": "components/Sidebar.astro",
+			"x": -18.18,
+			"y": 626.46,
+			"c": 36,
+			"loc": ""
+		},
+		{
+			"i": 4,
+			"f": 4,
+			"label": "components/ThemeProvider.astro",
+			"x": 72.59,
+			"y": 469.24,
+			"c": 3696,
+			"loc": ""
+		},
+		{
+			"i": 5,
+			"f": 5,
+			"label": "@astrojs/starlight/props",
+			"x": 254.13,
+			"y": 469.24,
+			"c": 273,
+			"loc": ""
+		}
+	],
+	"fileEdges": [],
+	"symbolEdges": []
+}

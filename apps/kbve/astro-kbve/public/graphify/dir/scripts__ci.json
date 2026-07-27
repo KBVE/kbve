@@ -1,1 +1,37 @@
-{"dir":"scripts/ci","center":[-2405.16,1925.11],"r":75.22,"files":[{"i":0,"label":"retry-transient.sh","path":"scripts/ci/retry-transient.sh","x":-2405.16,"y":1925.11,"n":2}],"symbols":[{"i":0,"f":0,"label":"retry-transient.sh","x":-2398.33,"y":1925.11,"c":4401,"loc":"L1"},{"i":1,"f":0,"label":"retry-transient.sh script","x":-2413.88,"y":1933.1,"c":4401,"loc":"L1"}],"fileEdges":[],"symbolEdges":[[0,1,1.0,3]]}
+{
+	"dir": "scripts/ci",
+	"center": [1996.36, 2192.86],
+	"r": 75.22,
+	"files": [
+		{
+			"i": 0,
+			"label": "retry-transient.sh",
+			"path": "scripts/ci/retry-transient.sh",
+			"x": 1996.36,
+			"y": 2192.86,
+			"n": 2
+		}
+	],
+	"symbols": [
+		{
+			"i": 0,
+			"f": 0,
+			"label": "retry-transient.sh",
+			"x": 2003.19,
+			"y": 2192.86,
+			"c": 4384,
+			"loc": "L1"
+		},
+		{
+			"i": 1,
+			"f": 0,
+			"label": "retry-transient.sh script",
+			"x": 1987.64,
+			"y": 2200.85,
+			"c": 4384,
+			"loc": "L1"
+		}
+	],
+	"fileEdges": [],
+	"symbolEdges": [[0, 1, 1.0, 3]]
+}
