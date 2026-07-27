@@ -146,6 +146,44 @@ pub fn is_stalled(prev_bytes: u64, cur_bytes: u64, idle_secs: u64, stall_timeout
     cur_bytes <= prev_bytes && idle_secs >= stall_timeout_secs
 }
 
+fn magnet_with_trackers(source: &str, trackers: &[String]) -> String {
+    if trackers.is_empty() {
+        return source.to_string();
+    }
+    match url::Url::parse(source) {
+        Ok(mut u) => {
+            {
+                let mut qp = u.query_pairs_mut();
+                for t in trackers {
+                    qp.append_pair("tr", t);
+                }
+            }
+            u.to_string()
+        }
+        Err(_) => source.to_string(),
+    }
+}
+
+fn leeching_meta(id: &str, name: &str, out_dir: &std::path::Path) -> state::Metadata {
+    state::Metadata {
+        id: id.to_string(),
+        name: name.to_string(),
+        path: String::new(),
+        size: 0,
+        completed_at: None,
+        last_access: now_secs(),
+        state: state::TorrentState::Leeching,
+        error: None,
+        active_path: Some(out_dir.to_string_lossy().into_owned()),
+        transcode: state::TranscodeStatus::None,
+        transcode_path: None,
+        transcode_error: None,
+        hls: state::HlsStatus::None,
+        hls_dir: None,
+        hls_error: None,
+    }
+}
+
 impl Engine {
     pub async fn start(cfg: &config::Config, store: state::StateStore) -> anyhow::Result<Self> {
         let ip = vpn_preflight(&cfg.vpn_check_urls).await?;
@@ -244,37 +282,88 @@ impl Engine {
             trackers: (!trackers.is_empty()).then(|| (*trackers).clone()),
             ..Default::default()
         };
-        let resp = self
-            .session
-            .add_torrent(AddTorrent::from_url(source), Some(opts))
-            .await?;
+
+        // librqbit's add_torrent() blocks until it resolves metadata from
+        // peers, which hangs indefinitely for a magnet with no live seeders.
+        // A magnet already carries its info_hash, so register it immediately
+        // and resolve in the background — the watcher marks it Failed if
+        // metadata never arrives, instead of hanging the HTTP request.
+        if let Some((id, name)) = librqbit::Magnet::parse(source)
+            .ok()
+            .and_then(|m| m.as_id20().map(|h| (h.as_string(), m.name.clone())))
+        {
+            let name = name.unwrap_or_else(|| id.clone());
+            self.store
+                .upsert(leeching_meta(&id, &name, &out_dir))?;
+            crate::telemetry::torrent_added(&id, "magnet");
+            let this = self.clone();
+            let source = magnet_with_trackers(source, trackers.as_slice());
+            let (id_bg, name_bg) = (id.clone(), name);
+            tokio::spawn(async move {
+                this.resolve_and_watch(source, opts, out_dir, id_bg, name_bg)
+                    .await;
+            });
+            return Ok(id);
+        }
+
+        // Non-magnet source (http/https .torrent URL): resolve inline, but
+        // bounded so the request can't hang forever.
+        let resp = match tokio::time::timeout(
+            self.metadata_timeout,
+            self.session.add_torrent(AddTorrent::from_url(source), Some(opts)),
+        )
+        .await
+        {
+            Ok(r) => r?,
+            Err(_) => anyhow::bail!("timed out resolving torrent metadata"),
+        };
         let handle = resp
             .into_handle()
             .ok_or_else(|| anyhow::anyhow!("torrent is list-only, no handle"))?;
         let id = handle.info_hash().as_string();
         let name = handle.name().unwrap_or_else(|| id.clone());
-
-        self.store.upsert(state::Metadata {
-            id: id.clone(),
-            name: name.clone(),
-            path: String::new(),
-            size: 0,
-            completed_at: None,
-            last_access: now_secs(),
-            state: state::TorrentState::Leeching,
-            error: None,
-            active_path: Some(out_dir.to_string_lossy().into_owned()),
-            transcode: state::TranscodeStatus::None,
-            transcode_path: None,
-            transcode_error: None,
-            hls: state::HlsStatus::None,
-            hls_dir: None,
-            hls_error: None,
-        })?;
-        crate::telemetry::torrent_added(&id, source.split_once(':').map(|(s, _)| s).unwrap_or("unknown"));
-
+        self.store.upsert(leeching_meta(&id, &name, &out_dir))?;
+        crate::telemetry::torrent_added(&id, "url");
         self.spawn_completion_watcher(handle, out_dir, id.clone(), name);
         Ok(id)
+    }
+
+    async fn resolve_and_watch(
+        &self,
+        source: String,
+        opts: AddTorrentOptions,
+        out_dir: PathBuf,
+        id: String,
+        name: String,
+    ) {
+        match tokio::time::timeout(
+            self.metadata_timeout,
+            self.session.add_torrent(AddTorrent::from_url(&source), Some(opts)),
+        )
+        .await
+        {
+            Ok(Ok(resp)) => match resp.into_handle() {
+                Some(handle) => self.spawn_completion_watcher(handle, out_dir, id, name),
+                None => self.mark_failed(&id, "torrent is list-only, no handle"),
+            },
+            Ok(Err(e)) => self.mark_failed(&id, &format!("could not add torrent: {e}")),
+            Err(_) => self.mark_failed(
+                &id,
+                &format!(
+                    "could not resolve torrent metadata within {}s — no peers responded (dead magnet or unreachable trackers)",
+                    self.metadata_timeout.as_secs()
+                ),
+            ),
+        }
+    }
+
+    fn mark_failed(&self, id: &str, reason: &str) {
+        crate::telemetry::torrent_failed(id, "metadata", reason);
+        let _ = self.store.update(id, |m| {
+            m.state = state::TorrentState::Failed;
+            m.error = Some(reason.to_string());
+            ((), true)
+        });
     }
 
     fn spawn_completion_watcher(
@@ -829,6 +918,22 @@ mod tests {
         assert_eq!(next_vpn_action(true, false), VpnAction::Pause);
         assert_eq!(next_vpn_action(false, true), VpnAction::Resume);
         assert_eq!(next_vpn_action(false, false), VpnAction::None);
+    }
+
+    #[test]
+    fn magnet_with_trackers_appends_and_encodes() {
+        let src = "magnet:?xt=urn:btih:ULA23RTI7QS33SYTPVBQMC3WZUCDU763&dn=tears";
+        let out = magnet_with_trackers(
+            src,
+            &[
+                "udp://tracker.opentrackr.org:1337/announce".to_string(),
+                "https://x/announce".to_string(),
+            ],
+        );
+        let parsed = librqbit::Magnet::parse(&out).unwrap();
+        assert!(parsed.trackers.iter().any(|t| t.contains("opentrackr")));
+        assert!(parsed.trackers.iter().any(|t| t.contains("https://x/announce")));
+        assert_eq!(magnet_with_trackers(src, &[]), src, "empty list is a no-op");
     }
 
     #[test]

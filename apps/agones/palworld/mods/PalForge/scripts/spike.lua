@@ -52,6 +52,39 @@ local function try(emit, label, fn)
     return nil
 end
 
+local function value_desc(obj, pname)
+    local desc = "nil/unread"
+    pcall(function()
+        local v = obj[pname]
+        if v == nil then
+            desc = "nil"
+        elseif type(v) == "userdata" then
+            local fn = "?"
+            pcall(function() fn = tostring(v:GetFullName()) end)
+            desc = (is_valid(v) and "OBJ " or "obj(invalid) ") .. fn
+        else
+            desc = type(v) .. " " .. tostring(v)
+        end
+    end)
+    return desc
+end
+
+local function dump_all_props(emit, obj, cap)
+    cap = cap or 80
+    local n = 0
+    pcall(function()
+        obj:ForEachProperty(function(prop)
+            n = n + 1
+            if n <= cap then
+                local pname = tostring(prop:GetName())
+                emit("  ." .. pname .. " = " .. value_desc(obj, pname))
+            end
+        end)
+    end)
+    emit("  (total props = " .. n .. ")")
+    return n
+end
+
 function M.handle(sender, msg, emit, loc_fn, static_find, find_first, find_all)
     if type(msg) ~= "string" or trim(msg):lower() ~= "!signprobe" then
         return false
@@ -198,23 +231,8 @@ function M.spawn(sender, msg, emit, loc_fn, deps)
         try(emit, "SetActorEnableCollision(true)", function() actor:SetActorEnableCollision(true) return "ok" end)
         try(emit, "OnUpdateText", function() actor:OnUpdateText(SPAWN_TEXT) return "ok" end)
 
-        emit("signspawn: scanning actor properties")
-        local hits = 0
-        pcall(function()
-            actor:ForEachProperty(function(prop)
-                local name = tostring(prop:GetName())
-                local low = name:lower()
-                if low:find("mesh") or low:find("model") or low:find("widget")
-                    or low:find("param") or low:find("sign") or low:find("concrete")
-                    or low:find("root") then
-                    hits = hits + 1
-                    if hits <= 20 then
-                        emit("prop " .. name)
-                    end
-                end
-            end)
-        end)
-        emit("signspawn: relevant props = " .. hits)
+        emit("signspawn: full property dump (find the model/mesh slot)")
+        dump_all_props(emit, actor, 80)
     else
         emit("signspawn: no actor from world:SpawnActor")
     end
@@ -251,26 +269,21 @@ end
 local SUBSYSTEM_CANDIDATES = {
     "PalMapObjectSubsystem",
     "PalMapObjectConcreteModelBase",
+    "PalMapObjectModel",
     "PalBuildInternalManager",
     "PalBuildObjectManager",
     "PalBuildObjectInterface",
     "PalWorldMapObjectManager",
+    "PalMapObjectManager",
+    "PalGameInstanceInGame",
+    "PalPlayerBuildComponent",
 }
 
-local INSPECT_HINTS = {
-    "mesh", "model", "component", "root", "concrete", "sign",
-    "widget", "static", "instance", "collision", "text",
+local MODEL_CLASSES = {
+    "PalMapObjectSignboardModel",
+    "PalMapObjectConcreteModel",
+    "PalMapObjectConcreteModelBase",
 }
-
-local function hint_match(name)
-    local low = name:lower()
-    for _, h in ipairs(INSPECT_HINTS) do
-        if low:find(h, 1, true) then
-            return true
-        end
-    end
-    return false
-end
 
 local function is_tracked(actor)
     for _, a in ipairs(spawned) do
@@ -295,11 +308,40 @@ function M.signinspect(sender, msg, emit, find_first, find_all)
         emit("subsystem " .. name .. " -> " .. (is_valid(s) and "VALID" or "absent"))
     end
 
+    for _, cname in ipairs(MODEL_CLASSES) do
+        local models = find_all(cname)
+        if type(models) == "table" and #models > 0 then
+            emit("model " .. cname .. " -> " .. #models .. " instance(s)")
+            local m = models[1]
+            local mfull = "?"
+            pcall(function() mfull = tostring(m:GetFullName()) end)
+            emit("  first: " .. mfull)
+            try(emit, "  model:GetSignboardText", function()
+                return tostring(m:GetSignboardText():ToString())
+            end)
+            dump_all_props(emit, m, 60)
+        else
+            emit("model " .. cname .. " -> none")
+        end
+    end
+
     local boards = try(emit, "FindAllOf(signboard)", function()
         return find_all(SIGNBOARD_SHORT)
     end)
-    if type(boards) ~= "table" or #boards == 0 then
-        emit("signinspect: no signboard instances (place one first)")
+    if type(boards) ~= "table" then
+        boards = {}
+    end
+    for _, a in ipairs(spawned) do
+        local seen = false
+        for _, b in ipairs(boards) do
+            if b == a then seen = true break end
+        end
+        if not seen then
+            boards[#boards + 1] = a
+        end
+    end
+    if #boards == 0 then
+        emit("signinspect: no signboard instances (FindAllOf nil + none tracked; place/spawn one first)")
         emit("signinspect: done")
         return true
     end
@@ -311,33 +353,7 @@ function M.signinspect(sender, msg, emit, find_first, find_all)
         pcall(function() full = tostring(b:GetFullName()) end)
         emit(string.format("--- instance %d [%s] %s", i, tag, full))
 
-        local hits = 0
-        pcall(function()
-            b:ForEachProperty(function(prop)
-                local pname = tostring(prop:GetName())
-                if not hint_match(pname) then
-                    return
-                end
-                local vdesc = "nil/unread"
-                pcall(function()
-                    local v = b[pname]
-                    if v == nil then
-                        vdesc = "nil"
-                    elseif type(v) == "userdata" then
-                        local fn = "?"
-                        pcall(function() fn = tostring(v:GetFullName()) end)
-                        vdesc = "obj " .. fn
-                    else
-                        vdesc = type(v) .. " " .. tostring(v)
-                    end
-                end)
-                hits = hits + 1
-                if hits <= 30 then
-                    emit("  prop " .. pname .. " = " .. vdesc)
-                end
-            end)
-        end)
-        emit(string.format("  instance %d relevant props = %d", i, hits))
+        dump_all_props(emit, b, 80)
     end
 
     emit("signinspect: done (populated model/mesh props on PLACED = what bare spawn lacks)")
