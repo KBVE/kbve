@@ -1,0 +1,40 @@
+{
+	"enums": {
+		"profession.ProfessionCategory": {
+			"mode": "const_array",
+			"stripPrefix": "PROFESSION_CATEGORY_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
+		},
+		"profession.CurveKind": {
+			"mode": "const_array",
+			"stripPrefix": "CURVE_KIND_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
+		}
+	},
+
+	"constArrays": [
+		{
+			"name": "ProfessionCategories",
+			"sourceEnum": "profession.ProfessionCategory",
+			"typeName": "ProfessionCategoryValue",
+			"zodSchemaName": "ProfessionCategorySchema"
+		},
+		{
+			"name": "CurveKinds",
+			"sourceEnum": "profession.CurveKind",
+			"typeName": "CurveKindValue",
+			"zodSchemaName": "CurveKindSchema"
+		}
+	],
+
+	"passthrough": [],
+
+	"nullable": [],
+
+	"refinements": {
+		"profession.Profession.max_level": ".min(0).max(9999)",
+		"profession.ProfessionAction.required_level": ".min(0).max(9999)"
+	}
+}

@@ -1,0 +1,155 @@
+syntax = "proto3";
+
+package profession;
+
+option csharp_namespace = "KBVE.Proto.Profession";
+
+// =============================================================================
+// professiondb — universal, engine-agnostic catalog of gathering & production
+// disciplines (mining, farming, smithing, cooking, alchemy, ...). Shared across
+// every KBVE game (rareicon DOTS, herbmail bitecs, arpg server, UE clients).
+//
+// DEFINITION ONLY. This DB holds the static shape of a profession: its xp curve,
+// the actions a unit can perform, and what those actions unlock/consume/produce.
+// Per-unit progression (which unit has Mining L14, current xp) is RUNTIME STATE
+// and lives on the entity + each game's persist layer — NOT here.
+//
+// The MDX frontmatter under astro-kbve/src/content/docs/professiondb/*.mdx is the
+// source of truth; this proto is the wire/codegen shape every consumer decodes.
+// Item/tool references are plain itemdb refs (slug or ULID), matching the string
+// -ref convention used by npcdb LootEntry / EquipmentEntry.
+// =============================================================================
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+// Broad discipline class. Distinguishes resource-yielding gathering from
+// input-consuming production; SUPPORT covers utility disciplines (e.g. cooking
+// buffs, enchanting) that don't cleanly fall in either bucket.
+enum ProfessionCategory {
+  PROFESSION_CATEGORY_UNSPECIFIED = 0;
+  PROFESSION_CATEGORY_GATHERING = 1;   // mining, farming, fishing, woodcutting
+  PROFESSION_CATEGORY_PRODUCTION = 2;  // smithing, alchemy, cooking, crafting
+  PROFESSION_CATEGORY_SUPPORT = 3;     // enchanting, utility, hybrid
+}
+
+// How much experience each level costs — the shape of the curve. Concrete
+// parameters live in ExperienceCurve; TABLE uses the explicit level_table.
+enum CurveKind {
+  CURVE_KIND_UNSPECIFIED = 0;
+  CURVE_KIND_LINEAR = 1;        // cost = base_xp * level
+  CURVE_KIND_POLYNOMIAL = 2;    // cost = base_xp * level^growth_factor
+  CURVE_KIND_EXPONENTIAL = 3;   // cost = base_xp * growth_factor^level
+  CURVE_KIND_TABLE = 4;         // cost = level_table[level] (explicit per-level)
+}
+
+// =============================================================================
+// Sub-messages
+// =============================================================================
+
+// A quantity of an itemdb item — used for both action inputs and outputs.
+message ResourceAmount {
+  string item_ref = 1;          // itemdb slug or ULID
+  optional string item_name = 2; // denormalized label (informational)
+  uint32 quantity = 3;          // default 1
+  optional float chance = 4;    // 0.0–1.0 yield probability (default 1.0)
+}
+
+// XP-per-level curve for a profession.
+message ExperienceCurve {
+  CurveKind kind = 1;
+  uint32 base_xp = 2;            // cost anchor for the first level
+  optional float growth_factor = 3; // exponent/base for polynomial/exponential
+  uint32 max_level = 4;         // level ceiling
+  repeated uint32 level_table = 5;  // explicit per-level cost (CURVE_KIND_TABLE only)
+}
+
+// A single performable activity within a profession (e.g. "Mine copper ore",
+// "Smith iron dagger"). An action is a recipe edge: itemdb refs in, itemdb refs
+// out. It is NOT another profession.
+message ProfessionAction {
+  string ref = 1;               // URL-safe id, e.g. "mine-copper-ore"
+  string name = 2;
+  optional string description = 3;
+
+  repeated ResourceAmount inputs = 4;   // consumed on perform (empty = pure gather)
+  repeated ResourceAmount outputs = 5;  // produced on perform
+
+  uint32 required_level = 6;    // profession level gate (default 0)
+  uint32 xp_reward = 7;         // xp granted per successful perform
+  optional uint32 duration_ms = 8;  // time to perform one action
+
+  repeated string tool_refs = 9;    // itemdb tool refs permitting/speeding the action
+  optional string emoji = 10;
+  optional string icon = 11;
+}
+
+// A milestone reached at a given profession level — reveals content or grants a
+// passive. Referenced targets are game-defined slugs (action ref, recipe, title).
+message ProfessionUnlock {
+  uint32 level = 1;             // level at which the unlock fires
+  optional string action_ref = 2;   // ProfessionAction.ref becoming available
+  optional string reward_ref = 3;   // generic reward slug (title, recipe, perk)
+  optional string description = 4;  // player-facing unlock text
+}
+
+// Generic extension slot — arbitrary key-value pairs for game-specific data
+// without schema churn (mirrors NpcExtension).
+message ProfessionExtension {
+  string key = 1;               // namespace, e.g. "rareicon.station_ref"
+  oneof value {
+    string string_value = 2;
+    int64 int_value = 3;
+    double float_value = 4;
+    bool bool_value = 5;
+    bytes bytes_value = 6;
+  }
+}
+
+// =============================================================================
+// Core Profession Definition
+// =============================================================================
+
+message Profession {
+  // Identity
+  string ref = 1;               // URL-safe id, e.g. "mining"
+  uint32 key = 2;               // stable numeric id (enum-bridge for engines)
+  string id = 3;                // ULID
+  string name = 4;
+  optional string description = 5;
+  optional string lore = 6;
+
+  // Classification
+  ProfessionCategory category = 7;
+  repeated string tags = 8;     // free-form filtering tags
+
+  // Visual
+  optional string emoji = 9;
+  optional string icon = 10;
+  optional string img = 11;
+
+  // Progression
+  uint32 max_level = 12;        // convenience mirror of experience_curve.max_level
+  ExperienceCurve experience_curve = 13;
+
+  // Content
+  repeated ProfessionAction actions = 14;
+  repeated ProfessionUnlock unlocks = 15;
+
+  // Extensions — game-specific key-value pairs
+  repeated ProfessionExtension extensions = 16;
+
+  // Metadata
+  optional string credits = 17;
+  optional bool drafted = 18;   // hidden from production
+}
+
+// =============================================================================
+// Registry
+// =============================================================================
+
+message ProfessionRegistry {
+  repeated Profession professions = 1;
+  optional string content_version = 2;  // build stamp for cross-game parity checks
+}
