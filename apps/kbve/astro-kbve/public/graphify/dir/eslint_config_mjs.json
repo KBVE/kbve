@@ -1,0 +1,28 @@
+{
+	"dir": "eslint.config.mjs",
+	"center": [90.48, 56.48],
+	"r": 74.28,
+	"files": [
+		{
+			"i": 0,
+			"label": "eslint.config.mjs",
+			"path": "eslint.config.mjs",
+			"x": 90.48,
+			"y": 56.48,
+			"n": 1
+		}
+	],
+	"symbols": [
+		{
+			"i": 0,
+			"f": 0,
+			"label": "eslint.config.mjs",
+			"x": 90.48,
+			"y": 56.48,
+			"c": 1425,
+			"loc": "L1"
+		}
+	],
+	"fileEdges": [],
+	"symbolEdges": []
+}

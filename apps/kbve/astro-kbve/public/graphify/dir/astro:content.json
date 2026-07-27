@@ -1,1 +1,28 @@
-{"dir":"astro:content","center":[-740.79,233.01],"r":74.28,"files":[{"i":0,"label":"astro:content","path":"astro:content","x":-740.79,"y":233.01,"n":1}],"symbols":[{"i":0,"f":0,"label":"astro:content","x":-740.79,"y":233.01,"c":505,"loc":""}],"fileEdges":[],"symbolEdges":[]}
+{
+	"dir": "astro:content",
+	"center": [-900.14, -103.87],
+	"r": 74.28,
+	"files": [
+		{
+			"i": 0,
+			"label": "astro:content",
+			"path": "astro:content",
+			"x": -900.14,
+			"y": -103.87,
+			"n": 1
+		}
+	],
+	"symbols": [
+		{
+			"i": 0,
+			"f": 0,
+			"label": "astro:content",
+			"x": -900.14,
+			"y": -103.87,
+			"c": 782,
+			"loc": ""
+		}
+	],
+	"fileEdges": [],
+	"symbolEdges": []
+}
