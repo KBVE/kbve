@@ -1,1 +1,69 @@
-{"dir":"tsconfig.json","center":[2427.62,1656.15],"r":76.56,"files":[{"i":0,"label":"tsconfig.json","path":"tsconfig.json","x":2427.62,"y":1656.15,"n":4}],"symbols":[{"i":0,"f":0,"label":"tsconfig.json","x":2433.27,"y":1656.15,"c":2476,"loc":"L1"},{"i":1,"f":0,"label":"compilerOptions","x":2420.39,"y":1662.77,"c":2476,"loc":"L2"},{"i":2,"f":0,"label":"extends","x":2428.72,"y":1643.55,"c":2476,"loc":"L3"},{"i":3,"f":0,"label":"exclude","x":2436.72,"y":1668.03,"c":2476,"loc":"L4"}],"fileEdges":[],"symbolEdges":[[0,1,1.0,3],[0,3,1.0,3],[0,2,1.0,3]]}
+{
+	"dir": "tsconfig.json",
+	"center": [-2993.37, 661.19],
+	"r": 77.1,
+	"files": [
+		{
+			"i": 0,
+			"label": "tsconfig.json",
+			"path": "tsconfig.json",
+			"x": -2993.37,
+			"y": 661.19,
+			"n": 5
+		}
+	],
+	"symbols": [
+		{
+			"i": 0,
+			"f": 0,
+			"label": "tsconfig.json",
+			"x": -2988.01,
+			"y": 661.19,
+			"c": 2336,
+			"loc": "L1"
+		},
+		{
+			"i": 1,
+			"f": 0,
+			"label": "compilerOptions",
+			"x": -3000.21,
+			"y": 667.45,
+			"c": 2336,
+			"loc": "L2"
+		},
+		{
+			"i": 2,
+			"f": 0,
+			"label": "ignoreDeprecations",
+			"x": -2992.32,
+			"y": 649.25,
+			"c": 2336,
+			"loc": "L3"
+		},
+		{
+			"i": 3,
+			"f": 0,
+			"label": "extends",
+			"x": -2984.75,
+			"y": 672.44,
+			"c": 2336,
+			"loc": "L5"
+		},
+		{
+			"i": 4,
+			"f": 0,
+			"label": "exclude",
+			"x": -3009.2,
+			"y": 658.39,
+			"c": 2336,
+			"loc": "L6"
+		}
+	],
+	"fileEdges": [],
+	"symbolEdges": [
+		[0, 1, 1.0, 3],
+		[0, 4, 1.0, 3],
+		[0, 3, 1.0, 3],
+		[1, 2, 1.0, 3]
+	]
+}
