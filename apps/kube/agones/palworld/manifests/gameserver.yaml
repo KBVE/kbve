@@ -81,6 +81,12 @@ spec:
                         value: 'True'
                       - name: BASE_CAMP_WORKER_MAXNUM
                         value: '35'
+                      - name: SERVER_REPLICATE_PAWN_CULL_DISTANCE
+                        value: '10000.000000'
+                      - name: ALLOW_GLOBAL_PALBOX_EXPORT
+                        value: 'True'
+                      - name: ALLOW_GLOBAL_PALBOX_IMPORT
+                        value: 'False'
                       - name: MULTITHREAD_ENABLED
                         value: 'true'
                       - name: COMMUNITY_SERVER
