@@ -147,6 +147,33 @@ local clear_ok = c1 == true
     and emitted(cl_emits, "signclear: done")
     and spawned.destroyed == true
 
+_print("=== spike.signinspect command ===")
+local si_emits = {}
+local function si_emit(m)
+    si_emits[#si_emits + 1] = m
+    _print("  inspect: " .. m)
+end
+local function si_board(full)
+    return {
+        GetFullName = function() return full end,
+        ForEachProperty = function(_, cb)
+            cb({ GetName = function() return "StaticMeshComponent" end })
+            cb({ GetName = function() return "UnrelatedFlag" end })
+        end,
+    }
+end
+local si_find_first = function() return { IsValid = function() return true end } end
+local si_find_all = function() return { si_board("Signboard_placed_A") } end
+local si1 = spike.signinspect("Al", "!signinspect", si_emit, si_find_first, si_find_all)
+local si2 = spike.signinspect("Al", "nope", si_emit, si_find_first, si_find_all)
+local si_empty = spike.signinspect("Al", "!signinspect", si_emit, si_find_first, function() return {} end)
+local signinspect_ok = si1 == true
+    and si2 == false
+    and si_empty == true
+    and emitted(si_emits, "signinspect: start")
+    and emitted(si_emits, "instances -> 1")
+    and emitted(si_emits, "signinspect: done")
+
 _print("=== spike.curltest command ===")
 local ct_emits = {}
 local function ct_emit(m)
@@ -186,6 +213,7 @@ local ok = calls.pending == 1
     and spike_ok
     and spawn_ok
     and clear_ok
+    and signinspect_ok
     and curltest_ok
     and httptest_ok
 
