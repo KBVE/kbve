@@ -152,6 +152,7 @@ async fn remove(
         return StatusCode::UNAUTHORIZED.into_response();
     }
     st.hls.abort(&id).await;
+    st.transcoder.abort(&id).await;
     match st.engine.delete(&id).await {
         Ok(true) => StatusCode::NO_CONTENT.into_response(),
         Ok(false) => StatusCode::NOT_FOUND.into_response(),
