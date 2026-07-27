@@ -174,6 +174,26 @@ local signinspect_ok = si1 == true
     and emitted(si_emits, "instances -> 1")
     and emitted(si_emits, "signinspect: done")
 
+_print("=== spike.signtrace command ===")
+local st_emits = {}
+local function st_emit(m)
+    st_emits[#st_emits + 1] = m
+    _print("  trace: " .. m)
+end
+local st_deps = {
+    register = function() return true end,
+    load_asset = function() return true end,
+}
+local st1 = spike.signtrace("Al", "!signtrace", st_emit, st_deps)
+local st2 = spike.signtrace("Al", "nope", st_emit, st_deps)
+local st3 = spike.signtrace("Al", "!signtrace", st_emit, st_deps)
+local signtrace_ok = st1 == true
+    and st2 == false
+    and st3 == true
+    and emitted(st_emits, "signtrace: arming")
+    and emitted(st_emits, "armed=true")
+    and emitted(st_emits, "already armed")
+
 _print("=== spike.curltest command ===")
 local ct_emits = {}
 local function ct_emit(m)
@@ -214,6 +234,7 @@ local ok = calls.pending == 1
     and spawn_ok
     and clear_ok
     and signinspect_ok
+    and signtrace_ok
     and curltest_ok
     and httptest_ok
 
