@@ -168,6 +168,16 @@ impl HlsManager {
         }
     }
 
+    pub async fn abort_all(&self) {
+        let children: Vec<Child> = {
+            let mut g = self.children.lock().unwrap();
+            g.drain().map(|(_, c)| c).collect()
+        };
+        for mut child in children {
+            let _ = child.kill().await;
+        }
+    }
+
     fn take_child(&self, id: &str) -> Option<Child> {
         let mut g = self.children.lock().unwrap();
         g.remove(id)

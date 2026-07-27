@@ -39,6 +39,7 @@ async fn main() -> anyhow::Result<()> {
     tokio::spawn(reaper::reap_loop(
         eng.clone(),
         hls.clone(),
+        transcoder.clone(),
         cfg.ttl_secs,
         cfg.reap_interval_secs,
     ));
@@ -58,6 +59,8 @@ async fn main() -> anyhow::Result<()> {
     tokio::spawn(state::persist_loop(store.clone(), cfg.state_flush_ms));
 
     let store_for_flush = store.clone();
+    let transcoder_for_shutdown = transcoder.clone();
+    let hls_for_shutdown = hls.clone();
     let app = api::router(api::AppState {
         engine: eng,
         store,
@@ -72,7 +75,9 @@ async fn main() -> anyhow::Result<()> {
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())
         .await?;
-    tracing::info!("shutdown signal received; flushing state");
+    tracing::info!("shutdown signal received; killing ffmpeg children and flushing state");
+    transcoder_for_shutdown.abort_all().await;
+    hls_for_shutdown.abort_all().await;
     if let Err(e) = store_for_flush.flush() {
         tracing::warn!(error = %e, "state flush on shutdown failed");
     }

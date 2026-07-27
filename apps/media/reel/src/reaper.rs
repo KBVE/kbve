@@ -30,6 +30,7 @@ use crate::util::now_secs;
 pub async fn reap_loop(
     engine: crate::engine::Engine,
     hls: crate::hls::HlsManager,
+    transcoder: crate::transcode::Transcoder,
     ttl_secs: u64,
     interval_secs: u64,
 ) {
@@ -40,6 +41,7 @@ pub async fn reap_loop(
             Ok(reaped) => {
                 for id in reaped {
                     hls.abort(&id).await;
+                    transcoder.abort(&id).await;
                 }
             }
             Err(e) => tracing::error!(error = %e, "reap cycle failed"),
