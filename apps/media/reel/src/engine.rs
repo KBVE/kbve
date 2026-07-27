@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use std::net::IpAddr;
 use std::path::PathBuf;
 use std::pin::Pin;
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll};
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -38,16 +38,60 @@ fn http_client() -> &'static reqwest::Client {
     })
 }
 
-pub async fn vpn_preflight(check_url: &str) -> anyhow::Result<IpAddr> {
-    let body = http_client().get(check_url).send().await?.text().await?;
-    let ip: IpAddr = body
-        .trim()
-        .parse()
-        .map_err(|_| anyhow::anyhow!("vpn check returned non-ip: {body}"))?;
-    if !is_vpn_ip(ip) {
-        anyhow::bail!("egress ip {ip} is not a public/vpn address; refusing to start");
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub enum VpnStatus {
+    Confirmed(IpAddr),
+    Leak(IpAddr),
+    Unverified,
+}
+
+async fn probe_ip(url: &str) -> Option<IpAddr> {
+    let body = http_client().get(url).send().await.ok()?.text().await.ok()?;
+    body.trim().parse().ok()
+}
+
+pub async fn vpn_status(urls: &[String]) -> VpnStatus {
+    for url in urls {
+        if let Some(ip) = probe_ip(url).await {
+            return if is_vpn_ip(ip) {
+                VpnStatus::Confirmed(ip)
+            } else {
+                VpnStatus::Leak(ip)
+            };
+        }
     }
-    Ok(ip)
+    VpnStatus::Unverified
+}
+
+pub fn decide_vpn(status: VpnStatus, prev_ok: bool, streak: u32, threshold: u32) -> (bool, u32) {
+    match status {
+        VpnStatus::Confirmed(_) => (true, 0),
+        VpnStatus::Leak(_) => (false, 0),
+        VpnStatus::Unverified => {
+            let s = streak.saturating_add(1);
+            if s >= threshold.max(1) {
+                (false, s)
+            } else {
+                (prev_ok, s)
+            }
+        }
+    }
+}
+
+pub async fn vpn_preflight(urls: &[String]) -> anyhow::Result<IpAddr> {
+    for attempt in 0..5u32 {
+        match vpn_status(urls).await {
+            VpnStatus::Confirmed(ip) => return Ok(ip),
+            VpnStatus::Leak(ip) => {
+                anyhow::bail!("egress ip {ip} is not a public/vpn address; refusing to start")
+            }
+            VpnStatus::Unverified => {
+                tracing::warn!(attempt, "vpn preflight: no check endpoint reachable; retrying");
+                tokio::time::sleep(Duration::from_secs(3)).await;
+            }
+        }
+    }
+    anyhow::bail!("vpn preflight failed: no check endpoint reachable after retries")
 }
 
 use crate::util::now_secs;
@@ -84,8 +128,10 @@ pub struct Engine {
     store: state::StateStore,
     active_dir: PathBuf,
     library_dir: PathBuf,
-    vpn_check_url: String,
+    vpn_check_urls: Vec<String>,
+    vpn_leak_threshold: u32,
     vpn_ok: Arc<AtomicBool>,
+    vpn_fail_streak: Arc<AtomicU32>,
     active_leech: Arc<Mutex<HashMap<String, u32>>>,
     drain: Arc<Notify>,
     metadata_timeout: Duration,
@@ -102,7 +148,7 @@ pub fn is_stalled(prev_bytes: u64, cur_bytes: u64, idle_secs: u64, stall_timeout
 
 impl Engine {
     pub async fn start(cfg: &config::Config, store: state::StateStore) -> anyhow::Result<Self> {
-        let ip = vpn_preflight(&cfg.vpn_check_url).await?;
+        let ip = vpn_preflight(&cfg.vpn_check_urls).await?;
         tracing::info!(%ip, "vpn preflight ok");
         std::fs::create_dir_all(&cfg.active_dir)?;
         std::fs::create_dir_all(&cfg.library_dir)?;
@@ -127,8 +173,10 @@ impl Engine {
             store,
             active_dir: cfg.active_dir.clone(),
             library_dir: cfg.library_dir.clone(),
-            vpn_check_url: cfg.vpn_check_url.clone(),
+            vpn_check_urls: cfg.vpn_check_urls.clone(),
+            vpn_leak_threshold: cfg.vpn_leak_threshold,
             vpn_ok: Arc::new(AtomicBool::new(true)),
+            vpn_fail_streak: Arc::new(AtomicU32::new(0)),
             active_leech: Arc::new(Mutex::new(HashMap::new())),
             drain: Arc::new(Notify::new()),
             metadata_timeout: Duration::from_secs(cfg.metadata_timeout_secs),
@@ -153,8 +201,15 @@ impl Engine {
     }
 
     pub async fn vpn_recheck(&self) -> bool {
-        let now_ok = vpn_preflight(&self.vpn_check_url).await.is_ok();
+        let status = vpn_status(&self.vpn_check_urls).await;
         let prev_ok = self.vpn_ok.load(Ordering::Relaxed);
+        let streak = self.vpn_fail_streak.load(Ordering::Relaxed);
+        let (now_ok, new_streak) =
+            decide_vpn(status, prev_ok, streak, self.vpn_leak_threshold);
+        self.vpn_fail_streak.store(new_streak, Ordering::Relaxed);
+        if matches!(status, VpnStatus::Unverified) && !now_ok && prev_ok {
+            tracing::warn!(streak = new_streak, "vpn check unverified past threshold; pausing");
+        }
         match next_vpn_action(prev_ok, now_ok) {
             VpnAction::Pause => {
                 crate::telemetry::vpn_leak();
@@ -774,6 +829,26 @@ mod tests {
         assert_eq!(next_vpn_action(true, false), VpnAction::Pause);
         assert_eq!(next_vpn_action(false, true), VpnAction::Resume);
         assert_eq!(next_vpn_action(false, false), VpnAction::None);
+    }
+
+    #[test]
+    fn decide_vpn_debounces_transient_failures() {
+        let ip = "1.2.3.4".parse().unwrap();
+        assert_eq!(decide_vpn(VpnStatus::Confirmed(ip), false, 5, 3), (true, 0));
+        assert_eq!(decide_vpn(VpnStatus::Leak(ip), true, 0, 3), (false, 0));
+
+        let (ok1, s1) = decide_vpn(VpnStatus::Unverified, true, 0, 3);
+        assert_eq!((ok1, s1), (true, 1), "1st flake holds prev ok");
+        let (ok2, s2) = decide_vpn(VpnStatus::Unverified, ok1, s1, 3);
+        assert_eq!((ok2, s2), (true, 2), "2nd flake still holds");
+        let (ok3, s3) = decide_vpn(VpnStatus::Unverified, ok2, s2, 3);
+        assert_eq!((ok3, s3), (false, 3), "3rd flake trips the pause");
+
+        assert_eq!(
+            decide_vpn(VpnStatus::Confirmed(ip), false, 3, 3),
+            (true, 0),
+            "confirm resets streak and resumes"
+        );
     }
 
     #[test]
