@@ -77,6 +77,8 @@ spec:
                         value: '60'
                       - name: ITEM_WEIGHT_RATE
                         value: '0.500000'
+                      - name: ENABLE_PREDATOR_BOSS_PAL
+                        value: 'True'
                       - name: MULTITHREAD_ENABLED
                         value: 'true'
                       - name: COMMUNITY_SERVER
