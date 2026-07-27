@@ -146,6 +146,24 @@ pub fn is_stalled(prev_bytes: u64, cur_bytes: u64, idle_secs: u64, stall_timeout
     cur_bytes <= prev_bytes && idle_secs >= stall_timeout_secs
 }
 
+fn magnet_with_trackers(source: &str, trackers: &[String]) -> String {
+    if trackers.is_empty() {
+        return source.to_string();
+    }
+    match url::Url::parse(source) {
+        Ok(mut u) => {
+            {
+                let mut qp = u.query_pairs_mut();
+                for t in trackers {
+                    qp.append_pair("tr", t);
+                }
+            }
+            u.to_string()
+        }
+        Err(_) => source.to_string(),
+    }
+}
+
 fn leeching_meta(id: &str, name: &str, out_dir: &std::path::Path) -> state::Metadata {
     state::Metadata {
         id: id.to_string(),
@@ -279,7 +297,7 @@ impl Engine {
                 .upsert(leeching_meta(&id, &name, &out_dir))?;
             crate::telemetry::torrent_added(&id, "magnet");
             let this = self.clone();
-            let source = source.to_string();
+            let source = magnet_with_trackers(source, trackers.as_slice());
             let (id_bg, name_bg) = (id.clone(), name);
             tokio::spawn(async move {
                 this.resolve_and_watch(source, opts, out_dir, id_bg, name_bg)
@@ -900,6 +918,22 @@ mod tests {
         assert_eq!(next_vpn_action(true, false), VpnAction::Pause);
         assert_eq!(next_vpn_action(false, true), VpnAction::Resume);
         assert_eq!(next_vpn_action(false, false), VpnAction::None);
+    }
+
+    #[test]
+    fn magnet_with_trackers_appends_and_encodes() {
+        let src = "magnet:?xt=urn:btih:ULA23RTI7QS33SYTPVBQMC3WZUCDU763&dn=tears";
+        let out = magnet_with_trackers(
+            src,
+            &[
+                "udp://tracker.opentrackr.org:1337/announce".to_string(),
+                "https://x/announce".to_string(),
+            ],
+        );
+        let parsed = librqbit::Magnet::parse(&out).unwrap();
+        assert!(parsed.trackers.iter().any(|t| t.contains("opentrackr")));
+        assert!(parsed.trackers.iter().any(|t| t.contains("https://x/announce")));
+        assert_eq!(magnet_with_trackers(src, &[]), src, "empty list is a no-op");
     }
 
     #[test]
