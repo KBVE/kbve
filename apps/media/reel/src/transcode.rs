@@ -214,6 +214,7 @@ pub struct Transcoder {
     ffmpeg_bin: String,
     ffprobe_bin: String,
     enabled: bool,
+    children: Arc<std::sync::Mutex<std::collections::HashMap<String, tokio::process::Child>>>,
 }
 
 impl Transcoder {
@@ -232,6 +233,7 @@ impl Transcoder {
             ffmpeg_bin,
             ffprobe_bin,
             enabled,
+            children: Arc::new(std::sync::Mutex::new(std::collections::HashMap::new())),
         };
         for m in this.store.list() {
             let in_flight = matches!(
@@ -294,6 +296,67 @@ impl Transcoder {
         });
     }
 
+    async fn run_tracked(
+        &self,
+        id: &str,
+        args: &[&str],
+        src: &std::path::Path,
+        dest: &std::path::Path,
+    ) -> anyhow::Result<()> {
+        use tokio::io::AsyncReadExt;
+        let mut cmd = Command::new(&self.ffmpeg_bin);
+        cmd.arg("-y")
+            .arg("-nostats")
+            .arg("-loglevel")
+            .arg("error")
+            .arg("-i")
+            .arg(src)
+            .args(args)
+            .arg(dest)
+            .stderr(std::process::Stdio::piped());
+        let mut child = cmd.spawn()?;
+        let mut stderr = child.stderr.take();
+        self.children
+            .lock()
+            .unwrap()
+            .insert(id.to_string(), child);
+
+        let mut errbuf = String::new();
+        if let Some(e) = stderr.as_mut() {
+            let _ = e.read_to_string(&mut errbuf).await;
+        }
+
+        let mut child = match self.take_child(id) {
+            Some(c) => c,
+            None => anyhow::bail!("transcode aborted"),
+        };
+        let status = child.wait().await?;
+        if !status.success() {
+            anyhow::bail!("ffmpeg failed: {errbuf}");
+        }
+        Ok(())
+    }
+
+    fn take_child(&self, id: &str) -> Option<tokio::process::Child> {
+        self.children.lock().unwrap().remove(id)
+    }
+
+    pub async fn abort(&self, id: &str) {
+        if let Some(mut child) = self.take_child(id) {
+            let _ = child.kill().await;
+        }
+    }
+
+    pub async fn abort_all(&self) {
+        let children: Vec<tokio::process::Child> = {
+            let mut g = self.children.lock().unwrap();
+            g.drain().map(|(_, c)| c).collect()
+        };
+        for mut child in children {
+            let _ = child.kill().await;
+        }
+    }
+
     async fn run_job(&self, id: &str, meta: &crate::state::Metadata) -> anyhow::Result<()> {
         let src_dir = std::path::PathBuf::from(&meta.path);
         let primary = pick_primary_file(&src_dir)?;
@@ -316,11 +379,18 @@ impl Transcoder {
         match route {
             Route::Remux => {
                 let _permit = self.remux_sem.acquire().await?;
-                remux(&self.ffmpeg_bin, &primary, &dest).await?;
+                self.run_tracked(id, &["-c", "copy", "-movflags", "+faststart"], &primary, &dest)
+                    .await?;
             }
             Route::Encode => {
                 let _permit = self.encode_sem.acquire().await?;
-                encode(&self.ffmpeg_bin, &primary, &dest).await?;
+                self.run_tracked(
+                    id,
+                    &["-c:v", "libx264", "-c:a", "aac", "-movflags", "+faststart"],
+                    &primary,
+                    &dest,
+                )
+                .await?;
             }
         }
 

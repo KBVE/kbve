@@ -27,8 +27,19 @@ pub fn is_vpn_ip(ip: IpAddr) -> bool {
     }
 }
 
+fn http_client() -> &'static reqwest::Client {
+    static CLIENT: std::sync::OnceLock<reqwest::Client> = std::sync::OnceLock::new();
+    CLIENT.get_or_init(|| {
+        reqwest::Client::builder()
+            .connect_timeout(Duration::from_secs(5))
+            .timeout(Duration::from_secs(15))
+            .build()
+            .unwrap_or_default()
+    })
+}
+
 pub async fn vpn_preflight(check_url: &str) -> anyhow::Result<IpAddr> {
-    let body = reqwest::get(check_url).await?.text().await?;
+    let body = http_client().get(check_url).send().await?.text().await?;
     let ip: IpAddr = body
         .trim()
         .parse()
@@ -226,6 +237,7 @@ impl Engine {
         let metadata_timeout = self.metadata_timeout;
         let stall_timeout = self.stall_timeout;
         let stall_check = self.stall_check;
+        let vpn_ok = self.vpn_ok.clone();
         tokio::spawn(async move {
             match tokio::time::timeout(metadata_timeout, handle.wait_until_initialized()).await {
                 Err(_) => {
@@ -267,6 +279,10 @@ impl Engine {
                         let s = handle.stats();
                         if s.finished {
                             break Ok(());
+                        }
+                        if !vpn_ok.load(Ordering::Relaxed) {
+                            idle_secs = 0;
+                            continue;
                         }
                         if s.progress_bytes > last_bytes {
                             last_bytes = s.progress_bytes;
@@ -594,7 +610,12 @@ impl Engine {
         let mut fetched: Vec<String> = Vec::new();
         let mut ok = 0usize;
         for url in urls {
-            match reqwest::get(url).await.and_then(|r| r.error_for_status()) {
+            match http_client()
+                .get(url)
+                .send()
+                .await
+                .and_then(|r| r.error_for_status())
+            {
                 Ok(resp) => match resp.text().await {
                     Ok(text) => {
                         fetched.extend(config::parse_trackers(&text));

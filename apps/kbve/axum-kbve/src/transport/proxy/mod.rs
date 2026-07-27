@@ -6,6 +6,7 @@ mod guacamole;
 mod kasm;
 mod kubevirt;
 mod reel;
+mod reel_token;
 mod simple;
 mod vibeshine;
 mod windmill;
