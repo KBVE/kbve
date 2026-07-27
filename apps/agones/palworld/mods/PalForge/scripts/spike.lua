@@ -248,6 +248,102 @@ function M.clear(sender, msg, emit)
     return true
 end
 
+local SUBSYSTEM_CANDIDATES = {
+    "PalMapObjectSubsystem",
+    "PalMapObjectConcreteModelBase",
+    "PalBuildInternalManager",
+    "PalBuildObjectManager",
+    "PalBuildObjectInterface",
+    "PalWorldMapObjectManager",
+}
+
+local INSPECT_HINTS = {
+    "mesh", "model", "component", "root", "concrete", "sign",
+    "widget", "static", "instance", "collision", "text",
+}
+
+local function hint_match(name)
+    local low = name:lower()
+    for _, h in ipairs(INSPECT_HINTS) do
+        if low:find(h, 1, true) then
+            return true
+        end
+    end
+    return false
+end
+
+local function is_tracked(actor)
+    for _, a in ipairs(spawned) do
+        if a == actor then
+            return true
+        end
+    end
+    return false
+end
+
+function M.signinspect(sender, msg, emit, find_first, find_all)
+    if type(msg) ~= "string" or trim(msg):lower() ~= "!signinspect" then
+        return false
+    end
+    find_first = find_first or FindFirstOf
+    find_all = find_all or FindAllOf
+
+    emit("signinspect: start (read-only; compares placed sign vs bare spawn)")
+
+    for _, name in ipairs(SUBSYSTEM_CANDIDATES) do
+        local s = find_first(name)
+        emit("subsystem " .. name .. " -> " .. (is_valid(s) and "VALID" or "absent"))
+    end
+
+    local boards = try(emit, "FindAllOf(signboard)", function()
+        return find_all(SIGNBOARD_SHORT)
+    end)
+    if type(boards) ~= "table" or #boards == 0 then
+        emit("signinspect: no signboard instances (place one first)")
+        emit("signinspect: done")
+        return true
+    end
+    emit("signinspect instances -> " .. #boards)
+
+    for i, b in ipairs(boards) do
+        local tag = is_tracked(b) and "SPAWNED(bare)" or "PLACED?"
+        local full = "?"
+        pcall(function() full = tostring(b:GetFullName()) end)
+        emit(string.format("--- instance %d [%s] %s", i, tag, full))
+
+        local hits = 0
+        pcall(function()
+            b:ForEachProperty(function(prop)
+                local pname = tostring(prop:GetName())
+                if not hint_match(pname) then
+                    return
+                end
+                local vdesc = "nil/unread"
+                pcall(function()
+                    local v = b[pname]
+                    if v == nil then
+                        vdesc = "nil"
+                    elseif type(v) == "userdata" then
+                        local fn = "?"
+                        pcall(function() fn = tostring(v:GetFullName()) end)
+                        vdesc = "obj " .. fn
+                    else
+                        vdesc = type(v) .. " " .. tostring(v)
+                    end
+                end)
+                hits = hits + 1
+                if hits <= 30 then
+                    emit("  prop " .. pname .. " = " .. vdesc)
+                end
+            end)
+        end)
+        emit(string.format("  instance %d relevant props = %d", i, hits))
+    end
+
+    emit("signinspect: done (populated model/mesh props on PLACED = what bare spawn lacks)")
+    return true
+end
+
 local HTTP_GLOBALS = { "http", "socket", "curl", "https", "ssl" }
 local HTTP_MODULES = { "socket", "socket.http", "ssl", "ssl.https", "http", "http.request" }
 
