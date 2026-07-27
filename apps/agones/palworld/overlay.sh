@@ -47,6 +47,37 @@ if [[ -d "${FORGE_SRC}" ]]; then
     fi
 fi
 
+# PalSchema (Okaetsu) — C++ dll framework fetched (pinned+sha256) into
+# /opt/palchatrelay/PalSchema by the Dockerfile. Stage the whole mod folder
+# (dlls/main.dll + enabled.txt + mods/) into ue4ss/Mods, then layer our KBVE
+# JSON overlay (mods/PalSchema/mods/*) on top of the framework's mods/ dir.
+SCHEMA_SRC=/opt/palchatrelay/PalSchema
+if [[ -d "${SCHEMA_SRC}" ]]; then
+    echo "[palchatrelay-overlay] staging PalSchema into ${MODS_DIR}"
+    rm -rf "${MODS_DIR}/PalSchema"
+    cp -a "${SCHEMA_SRC}" "${MODS_DIR}/PalSchema"
+    mkdir -p "${MODS_DIR}/PalSchema/mods"
+
+    SCHEMA_OVERLAY=/opt/palchatrelay/PalSchema-overlay/mods
+    if [[ -d "${SCHEMA_OVERLAY}" ]]; then
+        shopt -s nullglob dotglob
+        overlay_files=("${SCHEMA_OVERLAY}"/*)
+        if (( ${#overlay_files[@]} )); then
+            echo "[palchatrelay-overlay] layering KBVE PalSchema JSON overlay"
+            cp -a "${SCHEMA_OVERLAY}"/. "${MODS_DIR}/PalSchema/mods/"
+        fi
+        shopt -u nullglob dotglob
+    fi
+
+    if grep -qiE '^[[:space:]]*PalSchema[[:space:]]*:' "${MODS_TXT}"; then
+        sed -i -E 's|^[[:space:]]*PalSchema[[:space:]]*:.*|PalSchema : 1|I' "${MODS_TXT}"
+    else
+        echo "PalSchema : 1" >> "${MODS_TXT}"
+    fi
+else
+    echo "[palchatrelay-overlay] WARN: PalSchema not found at ${SCHEMA_SRC} (Dockerfile fetch failed?)"
+fi
+
 # Headless server has no GPU: force the UE4SS GUI/OpenGL console off (it hangs
 # or crashes the game under Xvfb). Keep the text console on for logging.
 SETTINGS="${UE4SS_DIR}/UE4SS-settings.ini"
