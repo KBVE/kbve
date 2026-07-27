@@ -9,6 +9,8 @@ pub struct Config {
     pub state_file: PathBuf,
     pub api_addr: String,
     pub vpn_check_url: String,
+    pub vpn_check_urls: Vec<String>,
+    pub vpn_leak_threshold: u32,
     pub vpn_watchdog_secs: u64,
     pub metadata_timeout_secs: u64,
     pub stall_timeout_secs: u64,
@@ -71,6 +73,40 @@ pub fn merge_trackers<I: IntoIterator<Item = String>>(lists: I) -> Vec<String> {
     out
 }
 
+pub const DEFAULT_VPN_CHECK_URLS: &[&str] = &[
+    "https://api.ipify.org",
+    "https://ifconfig.me/ip",
+    "https://icanhazip.com",
+    "https://ipinfo.io/ip",
+];
+
+fn vpn_check_urls_from_env() -> Vec<String> {
+    if let Ok(v) = std::env::var("REEL_VPN_CHECK_URLS") {
+        let list: Vec<String> = v
+            .split([',', '\n'])
+            .map(str::trim)
+            .filter(|s| s.starts_with("http"))
+            .map(String::from)
+            .collect();
+        if !list.is_empty() {
+            return list;
+        }
+    }
+    let mut urls: Vec<String> = Vec::new();
+    if let Ok(u) = std::env::var("REEL_VPN_CHECK_URL") {
+        let u = u.trim();
+        if u.starts_with("http") {
+            urls.push(u.to_string());
+        }
+    }
+    for d in DEFAULT_VPN_CHECK_URLS {
+        if !urls.iter().any(|x| x == d) {
+            urls.push((*d).to_string());
+        }
+    }
+    urls
+}
+
 fn env_or(key: &str, default: &str) -> String {
     std::env::var(key).unwrap_or_else(|_| default.to_string())
 }
@@ -105,6 +141,8 @@ pub fn load_from_env() -> anyhow::Result<Config> {
         state_file: PathBuf::from(env_or("REEL_STATE_FILE", "/data/reel-state.json")),
         api_addr: env_or("REEL_API_ADDR", "0.0.0.0:8080"),
         vpn_check_url: env_or("REEL_VPN_CHECK_URL", "https://api.ipify.org"),
+        vpn_check_urls: vpn_check_urls_from_env(),
+        vpn_leak_threshold: env_u64("REEL_VPN_LEAK_THRESHOLD", 3)?.max(1) as u32,
         vpn_watchdog_secs: env_u64("REEL_VPN_WATCHDOG_SECS", 60)?,
         metadata_timeout_secs: env_u64("REEL_METADATA_TIMEOUT_SECS", 120)?,
         stall_timeout_secs: env_u64("REEL_STALL_TIMEOUT_SECS", 300)?,
@@ -156,7 +194,7 @@ mod tests {
     fn clear() {
         for k in ["REEL_TTL_SECS","REEL_REAP_INTERVAL_SECS","REEL_ACTIVE_DIR",
                   "REEL_LIBRARY_DIR","REEL_SESSION_DIR","REEL_STATE_FILE","REEL_API_ADDR",
-                  "REEL_VPN_CHECK_URL","REEL_VPN_WATCHDOG_SECS","REEL_METADATA_TIMEOUT_SECS",
+                  "REEL_VPN_CHECK_URL","REEL_VPN_CHECK_URLS","REEL_VPN_LEAK_THRESHOLD","REEL_VPN_WATCHDOG_SECS","REEL_METADATA_TIMEOUT_SECS",
                   "REEL_STALL_TIMEOUT_SECS","REEL_STALL_CHECK_SECS",
                   "REEL_TRACKERS","REEL_TRACKERS_URLS","REEL_TRACKERS_CACHE","REEL_TRACKERS_REFRESH_SECS",
                   "REEL_STATE_FLUSH_MS","REEL_UPLOAD_LIMIT_BPS","REEL_API_TOKEN","REEL_TRANSCODE_ENABLED",
@@ -175,6 +213,9 @@ mod tests {
         assert_eq!(c.ttl_secs, 21600);
         assert_eq!(c.reap_interval_secs, 300);
         assert_eq!(c.vpn_watchdog_secs, 60);
+        assert_eq!(c.vpn_leak_threshold, 3);
+        assert_eq!(c.vpn_check_urls.len(), DEFAULT_VPN_CHECK_URLS.len());
+        assert!(c.vpn_check_urls.iter().all(|u| u.starts_with("https://")));
         assert_eq!(c.metadata_timeout_secs, 120);
         assert_eq!(c.stall_timeout_secs, 300);
         assert_eq!(c.stall_check_secs, 15);
@@ -245,6 +286,23 @@ mod tests {
         std::env::set_var("REEL_TRACKERS", "udp://x:1/announce, wss://skip, https://y:2/announce");
         let c = load_from_env().unwrap();
         assert_eq!(c.extra_trackers, vec!["udp://x:1/announce", "https://y:2/announce"]);
+        clear();
+    }
+
+    #[test]
+    #[serial]
+    fn vpn_check_urls_override_and_legacy_prepend() {
+        clear();
+        std::env::set_var("REEL_VPN_CHECK_URLS", "https://a/ip, https://b/ip");
+        assert_eq!(
+            load_from_env().unwrap().vpn_check_urls,
+            vec!["https://a/ip", "https://b/ip"]
+        );
+        std::env::remove_var("REEL_VPN_CHECK_URLS");
+        std::env::set_var("REEL_VPN_CHECK_URL", "https://custom/ip");
+        let urls = load_from_env().unwrap().vpn_check_urls;
+        assert_eq!(urls.first().map(String::as_str), Some("https://custom/ip"));
+        assert!(urls.len() > 1, "defaults appended as fallback");
         clear();
     }
 
