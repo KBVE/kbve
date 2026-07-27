@@ -87,6 +87,13 @@ async fn list(State(st): State<AppStateStub>, headers: HeaderMap) -> impl IntoRe
     Json(st.store.list()).into_response()
 }
 
+async fn live_stats(State(st): State<AppState>, headers: HeaderMap) -> impl IntoResponse {
+    if !check_auth(&headers, &st.token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    Json(st.engine.live_stats()).into_response()
+}
+
 async fn get_one(
     State(st): State<AppStateStub>,
     headers: HeaderMap,
@@ -532,6 +539,7 @@ fn store_scoped_router(state: AppStateStub) -> Router {
 pub fn router(state: AppState) -> Router {
     let stub = AppStateStub::from(&state);
     let engine_router = Router::new()
+        .route("/stats", get(live_stats))
         .route("/torrents", post(add))
         .route("/torrents/{id}", axum::routing::delete(remove))
         .route("/torrents/{id}/transcode", post(transcode_start))

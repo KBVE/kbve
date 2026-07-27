@@ -42,9 +42,22 @@ export interface ReelTorrent {
 	hls_error?: string | null;
 }
 
+export interface ReelLive {
+	id: string;
+	progress_bytes: number;
+	total_bytes: number;
+	finished: boolean;
+	download_mbps: number;
+	upload_mbps: number;
+	peers_live: number;
+	peers_seen: number;
+	peers_connecting: number;
+}
+
 export const $reelList = atom<ReelTorrent[]>([]);
 export const $reelListError = atom<string | null>(null);
 export const $reelListLoading = atom<boolean>(false);
+export const $reelLive = atom<Record<string, ReelLive>>({});
 
 const REEL_PATH: string =
 	(import.meta.env.PUBLIC_REEL_BASE as string | undefined) ?? '/api/v1/reel';
@@ -117,10 +130,24 @@ export async function startTranscode(id: string): Promise<void> {
 	);
 }
 
+export async function fetchLiveStats(): Promise<ReelLive[]> {
+	return authedApiFetch<ReelLive[]>(`${REEL_PATH}/stats`);
+}
+
+export async function refreshLiveStats(): Promise<void> {
+	try {
+		const stats = await fetchLiveStats();
+		$reelLive.set(Object.fromEntries(stats.map((s) => [s.id, s])));
+	} catch {
+		/* stats are best-effort; keep the last snapshot */
+	}
+}
+
 export async function refreshReelList(): Promise<void> {
 	$reelListLoading.set(true);
 	try {
-		$reelList.set(await listTorrents());
+		const [list] = await Promise.all([listTorrents(), refreshLiveStats()]);
+		$reelList.set(list);
 		$reelListError.set(null);
 	} catch (e) {
 		$reelListError.set(
