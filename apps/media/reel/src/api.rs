@@ -130,6 +130,13 @@ async fn add(
     if !check_auth(&headers, &st.token) {
         return StatusCode::UNAUTHORIZED.into_response();
     }
+    if !st.engine.vpn_ok() {
+        return (
+            StatusCode::SERVICE_UNAVAILABLE,
+            "vpn egress unavailable; try again shortly",
+        )
+            .into_response();
+    }
     match st.engine.add(&req.source).await {
         Ok(id) => Json(serde_json::json!({ "id": id })).into_response(),
         Err(e) => (StatusCode::BAD_REQUEST, e.to_string()).into_response(),
