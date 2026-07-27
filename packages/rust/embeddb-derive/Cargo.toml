@@ -11,6 +11,6 @@ repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/embeddb-deriv
 proc-macro = true
 
 [dependencies]
-syn = { version = "2", features = ["full"] }
+syn = { version = "3", features = ["full"] }
 quote = "1"
 proc-macro2 = "1"
