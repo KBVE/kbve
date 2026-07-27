@@ -79,7 +79,7 @@ spec:
                         value: '0.500000'
                       - name: ENABLE_PREDATOR_BOSS_PAL
                         value: 'True'
-                      - name: BASE_CAMP_WORKER_MAX_NUM
+                      - name: BASE_CAMP_WORKER_MAXNUM
                         value: '35'
                       - name: MULTITHREAD_ENABLED
                         value: 'true'
