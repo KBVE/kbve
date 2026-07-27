@@ -38,7 +38,7 @@ spec:
             - { name: FIREWALL_INPUT_PORTS, value: "8080" }
             - { name: FIREWALL_OUTBOUND_SUBNETS, value: "10.0.0.0/8,172.16.0.0/12" }
         - name: reel
-          image: ghcr.io/kbve/reel:latest
+          image: ghcr.io/kbve/reel:0.1.6
           env:
             - { name: REEL_API_ADDR, value: "0.0.0.0:8080" }
             - { name: REEL_ACTIVE_DIR, value: "/data/active" }
