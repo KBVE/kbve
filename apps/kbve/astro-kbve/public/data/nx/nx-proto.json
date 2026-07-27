@@ -1,12 +1,12 @@
 {
-	"generated_at": "2026-07-26T04:27:24.893Z",
+	"generated_at": "2026-07-27T04:38:13.550Z",
 	"summary": {
-		"total_protos": 46,
+		"total_protos": 47,
 		"registered": 37,
-		"orphaned": 8,
+		"orphaned": 9,
 		"utility_only": 1,
-		"total_messages": 822,
-		"total_enums": 170
+		"total_messages": 829,
+		"total_enums": 172
 	},
 	"protos": [
 		{
@@ -1494,6 +1494,29 @@
 			}
 		},
 		{
+			"proto": "packages/data/proto/profession/professiondb.proto",
+			"package": "profession",
+			"messages": [
+				"ResourceAmount",
+				"ExperienceCurve",
+				"ProfessionAction",
+				"ProfessionUnlock",
+				"ProfessionExtension",
+				"Profession",
+				"ProfessionRegistry"
+			],
+			"enums": ["ProfessionCategory", "CurveKind"],
+			"message_count": 7,
+			"enum_count": 2,
+			"codegen": {
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
+			}
+		},
+		{
 			"proto": "packages/data/proto/quest/questdb.proto",
 			"package": "quest",
 			"messages": [
@@ -1693,10 +1716,11 @@
 		"packages/data/proto/kbve/mc/mc_blocks.proto",
 		"packages/data/proto/kbve/mc/mc_enchants.proto",
 		"packages/data/proto/kbve/mc/mc_items.proto",
+		"packages/data/proto/profession/professiondb.proto",
 		"packages/data/proto/referral/referral.proto",
 		"packages/data/proto/wallet/wallet.proto"
 	],
-	"checked_at": "2026-07-26T04:26:53Z",
+	"checked_at": "2026-07-27T04:37:39Z",
 	"drift_detected": false,
 	"drift_files": []
 }
