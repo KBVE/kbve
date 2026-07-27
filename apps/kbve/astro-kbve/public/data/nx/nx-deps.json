@@ -1,7 +1,7 @@
 {
-	"generated_at": "2026-07-26T04:29:16Z",
+	"generated_at": "2026-07-27T04:40:47Z",
 	"node": {
-		"count": 118,
+		"count": 119,
 		"major": 31,
 		"items": [
 			{
@@ -69,6 +69,14 @@
 				"major": false
 			},
 			{
+				"name": "@gltf-transform/core",
+				"current": "4.4.1",
+				"wanted": "4.4.1",
+				"latest": "4.4.2",
+				"type": "devDependencies",
+				"major": false
+			},
+			{
 				"name": "@hcaptcha/react-native-hcaptcha",
 				"current": "4.0.0",
 				"wanted": "4.0.0",
@@ -80,7 +88,7 @@
 				"name": "@hookform/resolvers",
 				"current": "5.2.2",
 				"wanted": "5.2.2",
-				"latest": "5.4.3",
+				"latest": "5.5.7",
 				"type": "dependencies",
 				"major": false
 			},
@@ -592,7 +600,7 @@
 				"name": "lucide",
 				"current": "0.575.0",
 				"wanted": "0.575.0",
-				"latest": "1.26.0",
+				"latest": "1.27.0",
 				"type": "dependencies",
 				"major": true
 			},
@@ -600,7 +608,7 @@
 				"name": "lucide-react",
 				"current": "0.575.0",
 				"wanted": "0.575.0",
-				"latest": "1.26.0",
+				"latest": "1.27.0",
 				"type": "dependencies",
 				"major": true
 			},
@@ -1352,6 +1360,6 @@
 			}
 		]
 	},
-	"total": 184,
+	"total": 185,
 	"major_total": 31
 }
