@@ -1,0 +1,49 @@
+---
+title: 'Farming'
+description: |
+    Plant, tend, and harvest crops. A gathering discipline that feeds cooking
+    and alchemy.
+ref: 'farming'
+key: 4
+id: '01KPROFFARMING000000000004'
+name: 'Farming'
+category: 'gathering'
+emoji: '🌾'
+max_level: 99
+experience_curve:
+  kind: 'polynomial'
+  base_xp: 42
+  growth_factor: 1.5
+  max_level: 99
+actions:
+  - ref: 'grow-wheat'
+    name: 'Grow Wheat'
+    description: 'Plant, water, and harvest a wheat crop.'
+    inputs:
+      - item_ref: 'wheat-seed'
+        quantity: 1
+    outputs:
+      - item_ref: 'wheat'
+        quantity: 3
+        chance: 1.0
+    required_level: 1
+    xp_reward: 20
+    duration_ms: 8000
+  - ref: 'grow-herb'
+    name: 'Grow Herb'
+    inputs:
+      - item_ref: 'herb-seed'
+        quantity: 1
+    outputs:
+      - item_ref: 'guam-leaf'
+        quantity: 2
+    required_level: 18
+    xp_reward: 45
+    duration_ms: 9000
+unlocks:
+  - level: 18
+    action_ref: 'grow-herb'
+    description: 'Herb patches unlock for alchemy supply.'
+---
+
+Farming plants, tends, and harvests crops, feeding cooking and alchemy.

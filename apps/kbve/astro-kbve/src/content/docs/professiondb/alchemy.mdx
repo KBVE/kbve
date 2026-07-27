@@ -1,0 +1,55 @@
+---
+title: 'Alchemy'
+description: |
+    Brew potions from herbs and reagents. A production discipline consuming
+    farming output.
+ref: 'alchemy'
+key: 7
+id: '01KPROFALCHEMY000000000007'
+name: 'Alchemy'
+category: 'production'
+emoji: '⚗️'
+max_level: 99
+experience_curve:
+  kind: 'polynomial'
+  base_xp: 55
+  growth_factor: 1.65
+  max_level: 99
+actions:
+  - ref: 'brew-attack-potion'
+    name: 'Brew Attack Potion'
+    inputs:
+      - item_ref: 'guam-leaf'
+        quantity: 1
+      - item_ref: 'eye-of-newt'
+        quantity: 1
+    outputs:
+      - item_ref: 'attack-potion'
+        quantity: 1
+    required_level: 3
+    xp_reward: 25
+    duration_ms: 4000
+    tool_refs:
+      - 'vial'
+  - ref: 'brew-health-potion'
+    name: 'Brew Health Potion'
+    inputs:
+      - item_ref: 'marrentill'
+        quantity: 1
+      - item_ref: 'red-spiders-egg'
+        quantity: 1
+    outputs:
+      - item_ref: 'health-potion'
+        quantity: 1
+    required_level: 12
+    xp_reward: 50
+    duration_ms: 4500
+    tool_refs:
+      - 'vial'
+unlocks:
+  - level: 12
+    action_ref: 'brew-health-potion'
+    description: 'Health potions become brewable.'
+---
+
+Alchemy brews potions from herbs and reagents, consuming farming output.
