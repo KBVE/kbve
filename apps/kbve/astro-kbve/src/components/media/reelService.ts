@@ -142,11 +142,6 @@ export function mediaUrl(id: string, suffix: string, token: string | null): stri
 	return `${base}${sep}access_token=${encodeURIComponent(token)}`;
 }
 
-export function withToken(url: string, token: string): string {
-	if (url.includes('access_token=')) return url;
-	const sep = url.includes('?') ? '&' : '?';
-	return `${url}${sep}access_token=${encodeURIComponent(token)}`;
-}
 
 export async function listTorrents(): Promise<ReelTorrent[]> {
 	return authedApiFetch<ReelTorrent[]>(`${REEL_PATH}/torrents`);
@@ -327,10 +322,12 @@ export class ReelPlayer {
 		gen: number,
 	): Promise<void> {
 		if (this.generation !== gen) return;
-		const manifestUrl = mediaUrl(id, '/manifest.m3u8', token);
 		let status: number;
 		try {
-			const resp = await fetch(manifestUrl, { cache: 'no-store' });
+			const resp = await fetch(mediaUrl(id, '/manifest.m3u8', null), {
+				cache: 'no-store',
+				headers: { Authorization: `Bearer ${token}` },
+			});
 			status = resp.status;
 		} catch {
 			if (this.generation !== gen) return;
@@ -347,7 +344,7 @@ export class ReelPlayer {
 				this.playRaw(video, id, token, true, gen);
 				return;
 			case 'hls':
-				await this.playHls(video, manifestUrl, token, gen);
+				await this.playHls(video, id, token, gen);
 				return;
 			case 'poll':
 				if (attempt >= MAX_POLLS) {
@@ -394,14 +391,16 @@ export class ReelPlayer {
 
 	private async playHls(
 		video: HTMLVideoElement,
-		manifestUrl: string,
+		id: string,
 		token: string,
 		gen: number,
 	): Promise<void> {
 		if (this.generation !== gen) return;
 		if (video.canPlayType(MANIFEST_MIME)) {
+			// A <video> element can't send headers, so the native-HLS path
+			// still carries the short-lived scoped token in the query string.
 			this.attachVideoError(video, gen);
-			video.src = manifestUrl;
+			video.src = mediaUrl(id, '/manifest.m3u8', token);
 			$reelState.set('hls');
 			void video.play().catch(() => undefined);
 			return;
@@ -412,16 +411,19 @@ export class ReelPlayer {
 			this.fail('HLS is not supported in this browser');
 			return;
 		}
+		// hls.js drives its own XHRs, so the token rides in the Authorization
+		// header — never in the manifest/segment URLs (no Referer/log leak).
 		const hls = new Hls({
 			xhrSetup: (xhr: XMLHttpRequest, url: string) => {
-				xhr.open('GET', withToken(url, token), true);
+				xhr.open('GET', url, true);
+				xhr.setRequestHeader('Authorization', `Bearer ${token}`);
 			},
 		});
 		this.hls = hls;
 		hls.on(Hls.Events.ERROR, (_evt, data) => {
 			if (data.fatal) this.fail(`HLS error: ${data.type}`);
 		});
-		hls.loadSource(manifestUrl);
+		hls.loadSource(mediaUrl(id, '/manifest.m3u8', null));
 		hls.attachMedia(video);
 		$reelState.set('hls');
 		void video.play().catch(() => undefined);

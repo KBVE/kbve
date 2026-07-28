@@ -50,6 +50,12 @@ pub fn decide_delivery(p: &ProbeResult) -> Delivery {
     }
 }
 
+pub async fn pick_primary_file_async(dir: PathBuf) -> anyhow::Result<PathBuf> {
+    tokio::task::spawn_blocking(move || pick_primary_file(&dir))
+        .await
+        .map_err(|e| anyhow::anyhow!("pick_primary_file task failed: {e}"))?
+}
+
 pub fn pick_primary_file(dir: &Path) -> anyhow::Result<PathBuf> {
     if dir.is_file() {
         return Ok(dir.to_path_buf());
