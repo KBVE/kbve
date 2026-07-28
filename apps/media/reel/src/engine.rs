@@ -84,12 +84,12 @@ pub fn parse_forwarded_port(raw: &str) -> Option<u16> {
     }
 }
 
-async fn await_forwarded_port(path: &std::path::Path, wait_secs: u64) -> Option<u16> {
+async fn await_forwarded_port(path: &std::path::Path, wait_secs: u64, stable_secs: u64) -> Option<u16> {
     let mut waited = 0u64;
-    loop {
+    let mut current = loop {
         if let Ok(raw) = std::fs::read_to_string(path) {
             if let Some(port) = parse_forwarded_port(&raw) {
-                return Some(port);
+                break port;
             }
         }
         if waited >= wait_secs {
@@ -97,6 +97,58 @@ async fn await_forwarded_port(path: &std::path::Path, wait_secs: u64) -> Option<
         }
         tokio::time::sleep(Duration::from_secs(1)).await;
         waited += 1;
+    };
+    let mut steady = 0u64;
+    let cap = stable_secs.saturating_mul(2);
+    let mut elapsed = 0u64;
+    while steady < stable_secs && elapsed < cap {
+        tokio::time::sleep(Duration::from_secs(1)).await;
+        elapsed += 1;
+        match std::fs::read_to_string(path)
+            .ok()
+            .and_then(|r| parse_forwarded_port(&r))
+        {
+            Some(p) if p == current => steady += 1,
+            Some(p) => {
+                tracing::info!(from = current, to = p, "forwarded port changed during startup; re-stabilizing");
+                current = p;
+                steady = 0;
+            }
+            None => steady = 0,
+        }
+    }
+    Some(current)
+}
+
+pub async fn forwarded_port_watch_loop(engine: Engine, interval_secs: u64, restart: Arc<Notify>) {
+    if engine.bt_port_file.is_none() {
+        return;
+    }
+    let interval = Duration::from_secs(interval_secs.max(5));
+    let mut mismatches = 0u32;
+    loop {
+        tokio::time::sleep(interval).await;
+        match (engine.forwarded_port(), engine.bt_listen_port()) {
+            (Some(forwarded), Some(listen)) if forwarded != listen => {
+                mismatches += 1;
+                tracing::warn!(
+                    forwarded,
+                    listen,
+                    mismatches,
+                    "VPN forwarded port no longer matches BitTorrent listener"
+                );
+                if mismatches >= 2 {
+                    tracing::warn!(
+                        forwarded,
+                        listen,
+                        "vpn_forwarded_port_changed: restarting to rebind listener to the forwarded port"
+                    );
+                    restart.notify_one();
+                    return;
+                }
+            }
+            _ => mismatches = 0,
+        }
     }
 }
 
@@ -228,7 +280,7 @@ impl Engine {
         std::fs::create_dir_all(&cfg.library_dir)?;
         std::fs::create_dir_all(&cfg.session_dir)?;
         let listen_port_range = match &cfg.bt_port_file {
-            Some(path) => match await_forwarded_port(path, cfg.bt_port_wait_secs).await {
+            Some(path) => match await_forwarded_port(path, cfg.bt_port_wait_secs, cfg.bt_port_stable_secs).await {
                 Some(port) => {
                     tracing::info!(port, "using VPN forwarded port for BitTorrent listener");
                     Some(port..port.saturating_add(1))
@@ -989,6 +1041,30 @@ mod tests {
         assert_eq!(parse_forwarded_port(""), None);
         assert_eq!(parse_forwarded_port("notaport"), None);
         assert_eq!(parse_forwarded_port("70000"), None);
+    }
+
+    #[tokio::test]
+    async fn await_forwarded_port_returns_none_when_never_written() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("forwarded_port");
+        assert_eq!(await_forwarded_port(&path, 1, 1).await, None);
+    }
+
+    #[tokio::test]
+    async fn await_forwarded_port_adopts_late_settled_value() {
+        use std::io::Write;
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("forwarded_port");
+        std::fs::File::create(&path)
+            .unwrap()
+            .write_all(b"33078")
+            .unwrap();
+        let p2 = path.clone();
+        tokio::spawn(async move {
+            tokio::time::sleep(Duration::from_millis(1200)).await;
+            std::fs::write(&p2, b"43287").unwrap();
+        });
+        assert_eq!(await_forwarded_port(&path, 2, 2).await, Some(43287));
     }
 
     #[test]
