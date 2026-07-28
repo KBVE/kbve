@@ -13,9 +13,13 @@ pub struct InfoResp {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct MetricsResp {
+    #[serde(default)]
     pub serverfps: i64,
+    #[serde(default)]
     pub currentplayernum: i64,
+    #[serde(rename = "uptime", alias = "serveruptime", default)]
     pub serveruptime: i64,
+    #[serde(default)]
     pub serverframetime: f64,
 }
 
@@ -61,15 +65,21 @@ impl RestClient {
     }
 
     async fn get_json<T: serde::de::DeserializeOwned>(&self, path: &str) -> Result<T> {
-        let resp = self
+        let body = self
             .http
             .get(self.url(path))
             .basic_auth("admin", Some(&self.admin_password))
             .send()
             .await
             .with_context(|| format!("GET {path} failed"))?
-            .error_for_status()?;
-        Ok(resp.json::<T>().await?)
+            .error_for_status()?
+            .text()
+            .await
+            .with_context(|| format!("GET {path}: read body failed"))?;
+        serde_json::from_str::<T>(&body).with_context(|| {
+            let snippet: String = body.chars().take(240).collect();
+            format!("GET {path}: decode failed, body={snippet}")
+        })
     }
 
     pub async fn info(&self) -> Result<InfoResp> {
@@ -113,11 +123,21 @@ mod tests {
     use super::*;
 
     #[test]
-    fn parse_metrics() {
-        let j = r#"{"serverfps":58,"currentplayernum":3,"serveruptime":1200,"serverframetime":16.9,"maxplayernum":32}"#;
+    fn parse_metrics_real_uptime_field() {
+        let j = r#"{"serverfps":58,"currentplayernum":3,"serverframetime":16.9,"maxplayernum":32,"uptime":1200}"#;
         let m: MetricsResp = serde_json::from_str(j).unwrap();
         assert_eq!(m.currentplayernum, 3);
         assert_eq!(m.serverfps, 58);
+        assert_eq!(m.serveruptime, 1200);
+    }
+
+    #[test]
+    fn parse_metrics_legacy_alias_and_missing_fields() {
+        let m: MetricsResp = serde_json::from_str(r#"{"serveruptime":42}"#).unwrap();
+        assert_eq!(m.serveruptime, 42);
+        assert_eq!(m.serverfps, 0);
+        let empty: MetricsResp = serde_json::from_str("{}").unwrap();
+        assert_eq!(empty.serveruptime, 0);
     }
 
     #[test]

@@ -77,6 +77,7 @@ pub async fn run(cfg: Config, tx: Sender<GameEvent>) -> Result<()> {
 
     let mut pos: u64 = 0;
     let mut dedup = Dedup::new(DEDUP_WINDOW);
+    let mut missing = false;
     let mut ticker = time::interval(Duration::from_millis(500));
     ticker.set_missed_tick_behavior(time::MissedTickBehavior::Delay);
 
@@ -84,9 +85,18 @@ pub async fn run(cfg: Config, tx: Sender<GameEvent>) -> Result<()> {
         ticker.tick().await;
 
         let file = match tokio::fs::File::open(&path).await {
-            Ok(f) => f,
+            Ok(f) => {
+                if missing {
+                    info!(path = %path, "chat_tail: chat log now present");
+                    missing = false;
+                }
+                f
+            }
             Err(e) => {
-                debug!(error = %e, "chat_tail: chat log not open yet");
+                if !missing {
+                    debug!(error = %e, "chat_tail: chat log not open yet (suppressing until present)");
+                    missing = true;
+                }
                 continue;
             }
         };
