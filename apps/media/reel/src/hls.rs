@@ -47,6 +47,7 @@ fn delivery_label(d: Delivery) -> &'static str {
     match d {
         Delivery::RawProgressive => "raw_progressive",
         Delivery::RemuxHls => "remux_hls",
+        Delivery::CopyVideoHls => "copy_video_hls",
         Delivery::TranscodeHls => "transcode_hls",
     }
 }
@@ -251,6 +252,12 @@ impl HlsManager {
             Delivery::RemuxHls => {
                 args.push("-c".into());
                 args.push("copy".into());
+            }
+            Delivery::CopyVideoHls => {
+                args.push("-c:v".into());
+                args.push("copy".into());
+                args.push("-c:a".into());
+                args.push("aac".into());
             }
             Delivery::TranscodeHls => {
                 args.push("-c:v".into());

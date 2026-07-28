@@ -377,6 +377,7 @@ async fn manifest(
                 match d {
                     transcode::Delivery::RawProgressive => "raw_progressive",
                     transcode::Delivery::RemuxHls => "remux_hls",
+                    transcode::Delivery::CopyVideoHls => "copy_video_hls",
                     transcode::Delivery::TranscodeHls => "transcode_hls",
                 },
             );
