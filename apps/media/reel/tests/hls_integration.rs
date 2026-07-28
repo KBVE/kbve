@@ -48,7 +48,7 @@ async fn hls_transcode_integration() {
     };
     store.upsert(entry).unwrap();
 
-    let mgr = reel::hls::HlsManager::new(store.clone(), 1, "ffmpeg".into(), 4, true);
+    let mgr = reel::hls::HlsManager::new(store.clone(), 1, "ffmpeg".into(), 4, true, 1);
     let outcome = mgr
         .request("test-hls", reel::transcode::Delivery::TranscodeHls)
         .await;

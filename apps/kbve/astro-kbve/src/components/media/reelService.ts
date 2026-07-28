@@ -208,8 +208,17 @@ export async function refreshReelList(): Promise<void> {
 		});
 		$reelListError.set(null);
 	} catch (e) {
+		// While polling (we already have a snapshot), a transient auth gap
+		// (401 during a token refresh) or an upstream blip (502/503 while the
+		// reel pod rolls) shouldn't wipe the view or flash an error — keep the
+		// last good data and let the next tick recover.
+		const status = e instanceof ApiError ? e.status : 0;
+		const transient = status === 401 || status === 502 || status === 503;
+		if (transient && $reelList.get().length > 0) {
+			return;
+		}
 		$reelListError.set(
-			e instanceof ApiError && e.status === 401
+			status === 401
 				? 'sign in as staff to manage reels'
 				: e instanceof Error
 					? e.message

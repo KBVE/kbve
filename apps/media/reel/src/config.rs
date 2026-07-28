@@ -25,6 +25,7 @@ pub struct Config {
     pub transcode_enabled: bool,
     pub remux_concurrency: usize,
     pub encode_concurrency: usize,
+    pub encode_threads: usize,
     pub ffmpeg_bin: String,
     pub ffprobe_bin: String,
     pub stream_enabled: bool,
@@ -181,6 +182,7 @@ pub fn load_from_env() -> anyhow::Result<Config> {
         transcode_enabled: env_bool("REEL_TRANSCODE_ENABLED", true),
         remux_concurrency: env_u64("REEL_REMUX_CONCURRENCY", 3)? as usize,
         encode_concurrency: env_u64("REEL_ENCODE_CONCURRENCY", 1)? as usize,
+        encode_threads: env_u64("REEL_ENCODE_THREADS", 1)? as usize,
         ffmpeg_bin: env_or("REEL_FFMPEG_BIN", "ffmpeg"),
         ffprobe_bin: env_or("REEL_FFPROBE_BIN", "ffprobe"),
         stream_enabled: env_bool("REEL_STREAM_ENABLED", true),
@@ -206,7 +208,7 @@ mod tests {
                   "REEL_STALL_TIMEOUT_SECS","REEL_STALL_CHECK_SECS",
                   "REEL_TRACKERS","REEL_TRACKERS_URLS","REEL_TRACKERS_CACHE","REEL_TRACKERS_REFRESH_SECS",
                   "REEL_STATE_FLUSH_MS","REEL_UPLOAD_LIMIT_BPS","REEL_API_TOKEN","REEL_TRANSCODE_ENABLED",
-                  "REEL_REMUX_CONCURRENCY","REEL_ENCODE_CONCURRENCY",
+                  "REEL_REMUX_CONCURRENCY","REEL_ENCODE_CONCURRENCY","REEL_ENCODE_THREADS",
                   "REEL_FFMPEG_BIN","REEL_FFPROBE_BIN","REEL_STREAM_ENABLED",
                   "REEL_HLS_ENABLED","REEL_HLS_SEGMENT_SECS",
                   "REEL_BT_PORT_FILE","REEL_BT_PORT_WAIT_SECS"] {
@@ -360,6 +362,7 @@ mod tests {
         assert!(c.transcode_enabled);
         assert_eq!(c.remux_concurrency, 3);
         assert_eq!(c.encode_concurrency, 1);
+        assert_eq!(c.encode_threads, 1);
         assert_eq!(c.ffmpeg_bin, "ffmpeg");
         std::env::set_var("REEL_TRANSCODE_ENABLED", "false");
         std::env::set_var("REEL_ENCODE_CONCURRENCY", "2");

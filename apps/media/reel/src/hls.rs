@@ -99,6 +99,7 @@ pub struct HlsManager {
     ffmpeg_bin: String,
     segment_secs: u32,
     enabled: bool,
+    encode_threads: usize,
     children: Arc<Mutex<HashMap<String, Child>>>,
     delivery_cache: Arc<Mutex<HashMap<String, Delivery>>>,
 }
@@ -110,6 +111,7 @@ impl HlsManager {
         ffmpeg_bin: String,
         segment_secs: u32,
         enabled: bool,
+        encode_threads: usize,
     ) -> Self {
         let this = Self {
             store,
@@ -117,6 +119,7 @@ impl HlsManager {
             ffmpeg_bin,
             segment_secs,
             enabled,
+            encode_threads,
             children: Arc::new(Mutex::new(HashMap::new())),
             delivery_cache: Arc::new(Mutex::new(HashMap::new())),
         };
@@ -254,6 +257,10 @@ impl HlsManager {
                 args.push("libx264".into());
                 args.push("-preset".into());
                 args.push("veryfast".into());
+                if self.encode_threads > 0 {
+                    args.push("-threads".into());
+                    args.push(self.encode_threads.to_string());
+                }
                 args.push("-c:a".into());
                 args.push("aac".into());
             }
@@ -418,7 +425,7 @@ mod mgr_tests {
     async fn abort_unknown_is_noop() {
         let dir = std::env::temp_dir().join(format!("reel-hls-test-{}", std::process::id()));
         let store = StateStore::load(dir.join("state.json")).unwrap();
-        let mgr = HlsManager::new(store, 1, "ffmpeg".into(), 4, true);
+        let mgr = HlsManager::new(store, 1, "ffmpeg".into(), 4, true, 1);
         mgr.abort("unknown-id").await;
         assert!(mgr.take_child("unknown-id").is_none());
     }
@@ -427,7 +434,7 @@ mod mgr_tests {
     fn cached_delivery_none_then_some() {
         let dir = std::env::temp_dir().join(format!("reel-hls-test-cache-{}", std::process::id()));
         let store = StateStore::load(dir.join("state.json")).unwrap();
-        let mgr = HlsManager::new(store, 1, "ffmpeg".into(), 4, true);
+        let mgr = HlsManager::new(store, 1, "ffmpeg".into(), 4, true, 1);
         assert_eq!(mgr.cached_delivery("1"), None);
         mgr.cache_delivery("1", Delivery::RemuxHls);
         assert_eq!(mgr.cached_delivery("1"), Some(Delivery::RemuxHls));

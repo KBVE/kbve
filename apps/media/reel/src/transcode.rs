@@ -220,6 +220,7 @@ pub struct Transcoder {
     ffmpeg_bin: String,
     ffprobe_bin: String,
     enabled: bool,
+    encode_threads: usize,
     children: Arc<std::sync::Mutex<std::collections::HashMap<String, tokio::process::Child>>>,
 }
 
@@ -231,6 +232,7 @@ impl Transcoder {
         ffmpeg_bin: String,
         ffprobe_bin: String,
         enabled: bool,
+        encode_threads: usize,
     ) -> Self {
         let this = Self {
             store,
@@ -239,6 +241,7 @@ impl Transcoder {
             ffmpeg_bin,
             ffprobe_bin,
             enabled,
+            encode_threads,
             children: Arc::new(std::sync::Mutex::new(std::collections::HashMap::new())),
         };
         for m in this.store.list() {
@@ -397,13 +400,14 @@ impl Transcoder {
             }
             Route::Encode => {
                 let _permit = self.encode_sem.acquire().await?;
-                self.run_tracked(
-                    id,
-                    &["-c:v", "libx264", "-c:a", "aac", "-movflags", "+faststart"],
-                    &primary,
-                    &dest,
-                )
-                .await?;
+                let threads = self.encode_threads.to_string();
+                let mut args: Vec<&str> = vec!["-c:v", "libx264"];
+                if self.encode_threads > 0 {
+                    args.push("-threads");
+                    args.push(&threads);
+                }
+                args.extend_from_slice(&["-c:a", "aac", "-movflags", "+faststart"]);
+                self.run_tracked(id, &args, &primary, &dest).await?;
             }
         }
 
@@ -596,7 +600,7 @@ mod transcoder_tests {
         store.upsert(meta("none", TranscodeStatus::None)).unwrap();
 
         let _transcoder =
-            Transcoder::new(store.clone(), 1, 1, "ffmpeg".into(), "ffprobe".into(), true);
+            Transcoder::new(store.clone(), 1, 1, "ffmpeg".into(), "ffprobe".into(), true, 1);
 
         let pending = store.get("pending").unwrap();
         assert_eq!(pending.transcode, TranscodeStatus::Failed);
