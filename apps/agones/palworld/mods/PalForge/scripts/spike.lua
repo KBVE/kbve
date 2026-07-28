@@ -448,6 +448,129 @@ function M.signtrace(sender, msg, emit, deps)
     return true
 end
 
+local ID_MODEL_CLASSES = { "PalMapObjectConcreteModelBase" }
+
+local function read_id(model)
+    local s = nil
+    pcall(function()
+        local id = model:TryGetMapObjectId()
+        s = id
+        pcall(function() s = id:ToString() end)
+        s = tostring(s)
+    end)
+    if s == nil or s == "" or s == "nil" then
+        return nil
+    end
+    return s
+end
+
+local function collect_ids(find_all)
+    local set = {}
+    for _, cname in ipairs(ID_MODEL_CLASSES) do
+        local models = find_all(cname)
+        if type(models) == "table" then
+            for _, m in ipairs(models) do
+                local s = read_id(m)
+                if s then
+                    set[s] = (set[s] or 0) + 1
+                end
+            end
+        end
+    end
+    return set
+end
+
+function M.mapids(sender, msg, emit, deps)
+    if type(msg) ~= "string" or trim(msg):lower() ~= "!mapids" then
+        return false
+    end
+    deps = deps or {}
+    local find_all = deps.find_all or FindAllOf
+
+    emit("mapids: start (read-only; live model MapObjectIds)")
+    local set = collect_ids(find_all)
+
+    local total, shown = 0, 0
+    local signs = {}
+    for id, n in pairs(set) do
+        total = total + 1
+        if id:lower():find("sign", 1, true) then
+            signs[#signs + 1] = id .. " (x" .. n .. ")"
+        end
+        if shown < 25 then
+            emit("mapid " .. id .. " x" .. n)
+            shown = shown + 1
+        end
+    end
+    emit("mapids: unique ids = " .. total .. " (showed " .. shown .. ")")
+    if #signs > 0 then
+        emit("mapids SIGN matches -> " .. table.concat(signs, " | "))
+    else
+        emit("mapids: no id containing 'sign' among live models")
+    end
+    emit("mapids: done")
+    return true
+end
+
+function M.signtry(sender, msg, emit, loc_fn, deps)
+    if type(msg) ~= "string" then
+        return false
+    end
+    local body = trim(msg)
+    local id = body:match("^[!]signtry%s+(.+)$")
+    if not id then
+        if body:lower() == "!signtry" then
+            emit("signtry: usage !signtry <MapObjectId> (id must exist among live models)")
+            return true
+        end
+        return false
+    end
+    id = trim(id)
+
+    deps = deps or {}
+    local find_first = deps.find_first or FindFirstOf
+    local find_all = deps.find_all or FindAllOf
+
+    emit("signtry: request id='" .. id .. "'")
+
+    local known = collect_ids(find_all)
+    if not known[id] then
+        emit("signtry: REFUSED — id '" .. id .. "' not found among live models (avoid null-row crash). Run !mapids.")
+        return true
+    end
+    emit("signtry: id validated (x" .. known[id] .. " live)")
+
+    local mgr = find_first("PalMapObjectManager")
+    if not is_valid(mgr) then
+        emit("signtry: abort — PalMapObjectManager not found")
+        return true
+    end
+
+    local loc = loc_fn and loc_fn(sender) or nil
+    if not loc then
+        emit("signtry: abort — no location")
+        return true
+    end
+
+    local location = { X = loc.x, Y = loc.y, Z = loc.z }
+    local rotation = { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
+
+    emit(string.format(
+        "signtry: CALLING RequestSpawnMapObject_Server id='%s' loc=%.1f,%.1f,%.1f (may crash — pre-logged)",
+        id, loc.x, loc.y, loc.z))
+
+    local ok, res = pcall(function()
+        return mgr:RequestSpawnMapObject_Server(id, location, rotation)
+    end)
+
+    emit("signtry: RETURNED ok=" .. tostring(ok) .. " res=" .. tostring(res))
+    if ok and res == true then
+        emit("signtry: SUCCESS — LOOK for the object")
+    end
+    emit("signtry: done")
+    return true
+end
+
 local HTTP_GLOBALS = { "http", "socket", "curl", "https", "ssl" }
 local HTTP_MODULES = { "socket", "socket.http", "ssl", "ssl.https", "http", "http.request" }
 
