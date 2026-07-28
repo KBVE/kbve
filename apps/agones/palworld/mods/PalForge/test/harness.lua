@@ -174,6 +174,43 @@ local signinspect_ok = si1 == true
     and emitted(si_emits, "instances -> 1")
     and emitted(si_emits, "signinspect: done")
 
+_print("=== spike.mapids + signtry commands ===")
+local function id_model(id)
+    return { TryGetMapObjectId = function() return { ToString = function() return id end } end }
+end
+local dbg_find_all = function() return { id_model("Signboard"), id_model("CampFire"), id_model("Signboard") } end
+local dbg_find_first = function()
+    return {
+        IsValid = function() return true end,
+        RequestSpawnMapObject_Server = function(_, id) return id == "Signboard" end,
+    }
+end
+local mi_emits = {}
+local function mi_emit(m) mi_emits[#mi_emits + 1] = m; _print("  mapids: " .. m) end
+local mi1 = spike.mapids("Al", "!mapids", mi_emit, { find_all = dbg_find_all })
+local mi2 = spike.mapids("Al", "nope", mi_emit, { find_all = dbg_find_all })
+local mapids_ok = mi1 == true
+    and mi2 == false
+    and emitted(mi_emits, "mapids: start")
+    and emitted(mi_emits, "SIGN matches")
+    and emitted(mi_emits, "mapids: done")
+
+local sy_emits = {}
+local function sy_emit(m) sy_emits[#sy_emits + 1] = m; _print("  signtry: " .. m) end
+local sy_deps = { find_all = dbg_find_all, find_first = dbg_find_first }
+local sy_ok_call = spike.signtry("Al", "!signtry Signboard", sy_emit, mock_loc, sy_deps)
+local sy_refuse = spike.signtry("Al", "!signtry Bogus", sy_emit, mock_loc, sy_deps)
+local sy_usage = spike.signtry("Al", "!signtry", sy_emit, mock_loc, sy_deps)
+local sy_pass = spike.signtry("Al", "nope", sy_emit, mock_loc, sy_deps)
+local signtry_ok = sy_ok_call == true
+    and sy_refuse == true
+    and sy_usage == true
+    and sy_pass == false
+    and emitted(sy_emits, "id validated")
+    and emitted(sy_emits, "CALLING RequestSpawnMapObject_Server")
+    and emitted(sy_emits, "SUCCESS")
+    and emitted(sy_emits, "REFUSED")
+
 _print("=== spike.signtrace command ===")
 local st_emits = {}
 local function st_emit(m)
@@ -234,6 +271,8 @@ local ok = calls.pending == 1
     and spawn_ok
     and clear_ok
     and signinspect_ok
+    and mapids_ok
+    and signtry_ok
     and signtrace_ok
     and curltest_ok
     and httptest_ok
