@@ -248,6 +248,11 @@ impl HlsManager {
             "-i".into(),
             primary.display().to_string(),
         ];
+        args.extend(
+            crate::transcode::MAP_VIDEO_AUDIO
+                .iter()
+                .map(|s| s.to_string()),
+        );
         match delivery {
             Delivery::RemuxHls => {
                 args.push("-c".into());

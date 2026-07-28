@@ -4,6 +4,8 @@ use std::sync::Arc;
 use tokio::process::Command;
 use tokio::sync::Semaphore;
 
+pub(crate) const MAP_VIDEO_AUDIO: &[&str] = &["-map", "0:V:0", "-map", "0:a:0?"];
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct ProbeResult {
     pub video_codec: Option<String>,
@@ -78,7 +80,8 @@ pub fn decide_delivery(p: &ProbeResult) -> Delivery {
     if p.video_codec.as_deref() != Some("h264") {
         return Delivery::TranscodeHls;
     }
-    if p.audio_codec.as_deref() != Some("aac") {
+    let audio_ok = p.audio_codec.is_none() || p.audio_codec.as_deref() == Some("aac");
+    if !audio_ok {
         return Delivery::CopyVideoHls;
     }
     let is_mp4 = p
@@ -156,6 +159,10 @@ pub async fn probe(ffprobe_bin: &str, path: &Path) -> anyhow::Result<ProbeResult
         anyhow::bail!("ffprobe failed: {}", String::from_utf8_lossy(&out.stderr));
     }
     let json: serde_json::Value = serde_json::from_slice(&out.stdout)?;
+    Ok(parse_probe_json(&json))
+}
+
+pub fn parse_probe_json(json: &serde_json::Value) -> ProbeResult {
     let mut video = None;
     let mut audio = None;
     if let Some(streams) = json.get("streams").and_then(|s| s.as_array()) {
@@ -165,8 +172,14 @@ pub async fn probe(ffprobe_bin: &str, path: &Path) -> anyhow::Result<ProbeResult
                 .get("codec_name")
                 .and_then(|v| v.as_str())
                 .map(String::from);
+            let is_cover = s
+                .get("disposition")
+                .and_then(|d| d.get("attached_pic"))
+                .and_then(|v| v.as_i64())
+                .unwrap_or(0)
+                == 1;
             match kind {
-                Some("video") if video.is_none() => video = codec,
+                Some("video") if video.is_none() && !is_cover => video = codec,
                 Some("audio") if audio.is_none() => audio = codec,
                 _ => {}
             }
@@ -182,12 +195,12 @@ pub async fn probe(ffprobe_bin: &str, path: &Path) -> anyhow::Result<ProbeResult
         .and_then(|v| v.as_str())
         .and_then(|s| s.parse::<f64>().ok())
         .filter(|d| *d > 0.0);
-    Ok(ProbeResult {
+    ProbeResult {
         video_codec: video,
         audio_codec: audio,
         container,
         duration_secs,
-    })
+    }
 }
 
 async fn run_ffmpeg(
@@ -532,7 +545,8 @@ impl Transcoder {
                 Route::Remux => {
                     let _permit = self.remux_sem.acquire().await?;
                     let audio_aac = probe.audio_codec.as_deref() == Some("aac");
-                    let mut args: Vec<&str> = vec!["-c:v", "copy"];
+                    let mut args: Vec<&str> = MAP_VIDEO_AUDIO.to_vec();
+                    args.extend_from_slice(&["-c:v", "copy"]);
                     if audio_aac {
                         args.extend_from_slice(&["-c:a", "copy"]);
                     } else {
@@ -544,7 +558,8 @@ impl Transcoder {
                 Route::Encode => {
                     let _permit = self.encode_sem.acquire().await?;
                     let threads = self.encode_threads.to_string();
-                    let mut args: Vec<&str> = vec!["-c:v", "libx264"];
+                    let mut args: Vec<&str> = MAP_VIDEO_AUDIO.to_vec();
+                    args.extend_from_slice(&["-c:v", "libx264"]);
                     if self.encode_threads > 0 {
                         args.push("-threads");
                         args.push(&threads);
@@ -686,6 +701,37 @@ mod tests {
             decide_delivery(&pr(None, None, None)),
             Delivery::TranscodeHls
         );
+    }
+    #[test]
+    fn probe_skips_cover_art_video_stream() {
+        let json = serde_json::json!({
+            "streams": [
+                {"codec_type": "video", "codec_name": "mjpeg", "disposition": {"attached_pic": 1}},
+                {"codec_type": "video", "codec_name": "h264"},
+                {"codec_type": "audio", "codec_name": "aac"}
+            ],
+            "format": {"format_name": "mov,mp4,m4a", "duration": "12.5"}
+        });
+        let p = parse_probe_json(&json);
+        assert_eq!(p.video_codec.as_deref(), Some("h264"), "cover art skipped");
+        assert_eq!(p.audio_codec.as_deref(), Some("aac"));
+        assert_eq!(p.duration_secs, Some(12.5));
+        assert_eq!(decide_route(&p), Route::Remux, "not misrouted to encode");
+    }
+    #[test]
+    fn probe_handles_no_audio_stream() {
+        let json = serde_json::json!({
+            "streams": [{"codec_type": "video", "codec_name": "h264"}],
+            "format": {"format_name": "avi"}
+        });
+        let p = parse_probe_json(&json);
+        assert_eq!(p.video_codec.as_deref(), Some("h264"));
+        assert_eq!(p.audio_codec, None);
+        assert_eq!(decide_delivery(&p), Delivery::RemuxHls, "h264 no-audio remuxes");
+    }
+    #[test]
+    fn map_selects_real_video_and_optional_audio() {
+        assert_eq!(MAP_VIDEO_AUDIO, &["-map", "0:V:0", "-map", "0:a:0?"]);
     }
     #[test]
     fn picks_largest_file() {

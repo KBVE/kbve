@@ -13,7 +13,7 @@ tags:
 key: reel
 pipeline: docker
 app_name: reel
-version: "0.1.18"
+version: "0.1.19"
 source_path: apps/media/reel
 version_toml: apps/media/reel/version.toml
 version_target: apps/media/reel/Cargo.toml
@@ -211,6 +211,17 @@ or container, instead of kicking off a full re-encode. A true video re-encode
 (`-c:v libx264`) is reserved for genuinely incompatible video — hevc/av1/mpeg2 —
 where there's no way around it. h264+aac in an mp4 still streams raw with no ffmpeg
 at all.
+
+Container edge cases are handled explicitly so odd files don't wedge ffmpeg. Every
+ffmpeg invocation maps exactly the first real video stream and (optionally) the first
+audio stream — `-map 0:V:0 -map 0:a:0?` — which drops subtitle, data, and attachment
+streams. Without that, an MKV or AVI carrying subtitle tracks makes a `-c copy`
+remux fail outright (subrip/ass can't be muxed into MPEG-TS or MP4). The optional
+audio map (`?`) means a video with no audio track transcodes cleanly instead of
+erroring. ffprobe also ignores **attached-picture** streams (embedded cover art,
+reported as an mjpeg/png "video") when detecting the codec, so an h264 file with a
+poster frame routes as h264 rather than being mistaken for an image and sent to a
+full re-encode.
 
 </BentoProse>
 
