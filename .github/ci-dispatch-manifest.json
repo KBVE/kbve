@@ -44,7 +44,7 @@
 		{
 			"key": "agones_palworld",
 			"app_name": "agones-palworld",
-			"version": "0.0.27",
+			"version": "0.0.28",
 			"version_toml": "apps/agones/palworld/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-palworld.mdx",
 			"source_path": "apps/agones/palworld",
@@ -69,7 +69,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.254",
+			"version": "1.0.255",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",

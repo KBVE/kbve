@@ -144,11 +144,19 @@ container via an `emptyDir`). reel reads that file at startup (`REEL_BT_PORT_FIL
 and pins librqbit's peer listener to it, so the port announced to trackers matches
 the forwarded port — real inbound peers, and a stabler swarm.
 
-The provider + PF flags live in a **reel-scoped** sealed secret (`reel-gluetun`,
-sealed via `apps/kube/reel/seal-gluetun-secret.sh`), layered over the shared
-`vpn-wireguard` secret so kasm/firecracker are untouched — and so the provider
-name stays out of the repo. If the forwarded-port file never appears, reel falls
-back to a random port (no inbound peers) rather than failing to start.
+The provider + PF flags live in a **reel-scoped** secret (`reel-gluetun`) sealed
+into the single `kasm` VPN vault alongside `vpn-wireguard`, then pulled into the
+reel namespace by ESO — the same path every reel VPN secret takes, so there's one
+source of truth and no SealedSecret-vs-ESO drift. It's layered **last** in the
+gluetun `envFrom` so it overrides the shared config for reel only; kasm/firecracker
+are untouched, and the provider name stays encrypted (out of the repo). Because the
+shared secret is a *custom-provider* WireGuard config that pins one server endpoint,
+and a real provider selects its own server for NAT-PMP, `reel-gluetun` blanks the
+inherited `WIREGUARD_ENDPOINT_IP` / `WIREGUARD_ENDPOINT_PORT` / `WIREGUARD_PUBLIC_KEY`
+(gluetun refuses to start with a pinned endpoint under provider server-selection)
+while keeping the client `WIREGUARD_ADDRESSES` + `WIREGUARD_PRIVATE_KEY`. If the
+forwarded-port file never appears, reel falls back to a random port (no inbound
+peers) rather than failing to start.
 
 `GET /status` reports whether it's actually working: `bt_listen_port` (the port
 librqbit announces), `forwarded_port` (what gluetun currently forwards), and
