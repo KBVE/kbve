@@ -164,6 +164,26 @@
 				"command": "npx tsx scripts/gen-ci-manifest.mts --check"
 			}
 		},
+		"gen:palworld-shops": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{projectRoot}/src/content/docs/palworld/palshop/*.mdx",
+				"{projectRoot}/scripts/generate-palworld-shops.mjs",
+				"{projectRoot}/scripts/validate-palworld-shops.mjs"
+			],
+			"outputs": [
+				"{workspaceRoot}/apps/agones/palworld/mods/PalSchema/mods/KBVEShops/raw/kbve-shops.json"
+			],
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"parallel": false,
+				"commands": [
+					"node scripts/validate-palworld-shops.mjs",
+					"node scripts/generate-palworld-shops.mjs"
+				]
+			},
+			"cache": true
+		},
 		"sync:unreal": {
 			"executor": "nx:run-commands",
 			"options": {
