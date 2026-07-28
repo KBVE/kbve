@@ -201,6 +201,88 @@ import ReactReelConsole from '@/components/media/ReactReelConsole';
 		font-weight: 600;
 	}
 
+	:global(.reel-console__idle) {
+		color: #9ca3af;
+		font-size: 0.72rem;
+	}
+
+	:global(.reel-bar) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		margin-top: 0.15rem;
+		min-width: 0;
+	}
+
+	:global(.reel-bar__track) {
+		position: relative;
+		height: 6px;
+		border-radius: 999px;
+		background: #27272a;
+		overflow: hidden;
+	}
+
+	:global(.reel-bar__fill) {
+		height: 100%;
+		border-radius: 999px;
+		transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+	}
+
+	:global(.reel-bar--download .reel-bar__fill) {
+		background: linear-gradient(90deg, #34d399, #10b981);
+	}
+
+	:global(.reel-bar--transcode .reel-bar__fill) {
+		background: linear-gradient(90deg, #fbbf24, #f59e0b);
+	}
+
+	:global(.reel-bar--hls .reel-bar__fill) {
+		background: linear-gradient(90deg, #60a5fa, #3b82f6);
+	}
+
+	:global(.reel-bar__track--indeterminate .reel-bar__fill) {
+		width: 35%;
+		animation: reel-indet 1.2s ease-in-out infinite;
+	}
+
+	@keyframes reel-indet {
+		0% {
+			margin-left: -35%;
+		}
+		100% {
+			margin-left: 100%;
+		}
+	}
+
+	:global(.reel-bar__meta) {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem 0.75rem;
+		justify-content: space-between;
+		font-size: 0.7rem;
+	}
+
+	:global(.reel-bar__primary) {
+		color: #d4d4d8;
+		font-variant-numeric: tabular-nums;
+	}
+
+	:global(.reel-bar__secondary) {
+		color: #9ca3af;
+		font-variant-numeric: tabular-nums;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		:global(.reel-bar__fill) {
+			transition: none;
+		}
+		:global(.reel-bar__track--indeterminate .reel-bar__fill) {
+			animation: none;
+			width: 100%;
+			opacity: 0.4;
+		}
+	}
+
 	:global(.reel-console__list) {
 		list-style: none;
 		margin: 0;

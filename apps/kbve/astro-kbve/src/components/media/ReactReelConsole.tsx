@@ -11,6 +11,9 @@ import {
 	deleteTorrent,
 	startTranscode,
 	refreshReelList,
+	formatEta,
+	formatSpeed,
+	downloadEtaSecs,
 	type ReelTorrent,
 	type ReelLive,
 } from './reelService';
@@ -46,27 +49,110 @@ function fmtSize(bytes: number): string {
 	return `${v.toFixed(v < 10 && i > 0 ? 1 : 0)} ${units[i]}`;
 }
 
-function progressLine(t: ReelTorrent, live: ReelLive | undefined): string {
+interface BarModel {
+	variant: 'download' | 'transcode' | 'hls';
+	pct: number | null; // null → indeterminate
+	primary: string;
+	secondary?: string;
+}
+
+function joinDot(parts: (string | null | undefined)[]): string | undefined {
+	const kept = parts.filter((p): p is string => !!p);
+	return kept.length ? kept.join(' · ') : undefined;
+}
+
+function rowProgress(t: ReelTorrent, live: ReelLive | undefined): BarModel | null {
 	if (t.state === 'Leeching') {
-		if (!live || live.total_bytes === 0) {
-			const seen = live?.peers_seen ?? 0;
-			return seen > 0
-				? `resolving metadata • ${seen} peer${seen === 1 ? '' : 's'} seen`
-				: 'searching for peers…';
+		if (live && live.total_bytes > 0) {
+			const pct = Math.min(
+				100,
+				Math.floor((live.progress_bytes / live.total_bytes) * 100),
+			);
+			const eta = downloadEtaSecs(
+				live.progress_bytes,
+				live.total_bytes,
+				live.download_mbps,
+			);
+			return {
+				variant: 'download',
+				pct,
+				primary: `${pct}% · ${fmtSize(live.progress_bytes)} / ${fmtSize(live.total_bytes)}`,
+				secondary: joinDot([
+					live.download_mbps
+						? `${live.download_mbps.toFixed(1)} MiB/s`
+						: null,
+					`${live.peers_live} peer${live.peers_live === 1 ? '' : 's'}`,
+					eta != null ? formatEta(eta) : null,
+				]),
+			};
 		}
-		const pct = Math.min(
-			100,
-			Math.floor((live.progress_bytes / live.total_bytes) * 100),
-		);
-		const speed = live.download_mbps
-			? ` • ${live.download_mbps.toFixed(1)} MB/s`
-			: '';
-		return `${pct}% of ${fmtSize(live.total_bytes)}${speed} • ${live.peers_live} peer${live.peers_live === 1 ? '' : 's'}`;
+		const seen = live?.peers_seen ?? 0;
+		return {
+			variant: 'download',
+			pct: null,
+			primary: seen > 0 ? 'resolving metadata' : 'searching for peers…',
+			secondary: seen > 0 ? `${seen} seen` : undefined,
+		};
 	}
+	if (t.state === 'Seeding') {
+		if (t.transcode === 'Remuxing' || t.transcode === 'Encoding') {
+			const p = t.transcode_progress;
+			const pct = p?.pct ?? 0;
+			return {
+				variant: 'transcode',
+				pct,
+				primary: `transcoding ${pct}%`,
+				secondary: joinDot([
+					formatSpeed(p?.speed),
+					p?.eta_secs != null ? formatEta(p.eta_secs) : null,
+				]),
+			};
+		}
+		if (t.hls === 'Starting') {
+			return { variant: 'hls', pct: null, primary: 'preparing HLS…' };
+		}
+	}
+	return null;
+}
+
+function idleText(t: ReelTorrent, live: ReelLive | undefined): string {
 	if (t.state === 'Seeding' && live && live.upload_mbps) {
-		return `seeding • ↑ ${live.upload_mbps.toFixed(1)} MB/s • ${live.peers_live} peer${live.peers_live === 1 ? '' : 's'}`;
+		return `seeding · ↑ ${live.upload_mbps.toFixed(1)} MiB/s · ${live.peers_live} peer${live.peers_live === 1 ? '' : 's'}`;
 	}
+	if (t.state === 'Seeding') return `ready · ${fmtSize(t.size)}`;
 	return fmtSize(t.size);
+}
+
+function ProgressBar({ model }: { model: BarModel }) {
+	const indeterminate = model.pct == null;
+	return (
+		<div className={`reel-bar reel-bar--${model.variant}`}>
+			<div
+				className={`reel-bar__track${indeterminate ? ' reel-bar__track--indeterminate' : ''}`}
+				role="progressbar"
+				aria-label={model.primary}
+				aria-valuemin={0}
+				aria-valuemax={100}
+				{...(indeterminate
+					? {}
+					: { 'aria-valuenow': model.pct as number })}>
+				<div
+					className="reel-bar__fill"
+					style={
+						indeterminate ? undefined : { width: `${model.pct}%` }
+					}
+				/>
+			</div>
+			<div className="reel-bar__meta">
+				<span className="reel-bar__primary">{model.primary}</span>
+				{model.secondary && (
+					<span className="reel-bar__secondary">
+						{model.secondary}
+					</span>
+				)}
+			</div>
+		</div>
+	);
 }
 
 export default function ReactReelConsole() {
@@ -248,14 +334,17 @@ export default function ReactReelConsole() {
 											? (PHASE_LABEL[t.phase] ?? t.phase)
 											: t.state}
 									</span>
-									<span>{progressLine(t, live[t.id])}</span>
-									{t.transcode !== 'None' && (
-										<span>transcode: {t.transcode}</span>
-									)}
-									{t.hls !== 'None' && (
-										<span>hls: {t.hls}</span>
-									)}
 								</span>
+								{(() => {
+									const model = rowProgress(t, live[t.id]);
+									return model ? (
+										<ProgressBar model={model} />
+									) : (
+										<span className="reel-console__idle">
+											{idleText(t, live[t.id])}
+										</span>
+									);
+								})()}
 								{(t.error ||
 									t.transcode_error ||
 									t.hls_error) && (

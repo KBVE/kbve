@@ -66,12 +66,23 @@ struct TorrentView {
     phase: &'static str,
     #[serde(skip_serializing_if = "Option::is_none")]
     live: Option<engine::TorrentLive>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    transcode_progress: Option<transcode::TranscodeProgress>,
 }
 
 impl TorrentView {
-    fn build(meta: state::Metadata, live: Option<engine::TorrentLive>) -> Self {
+    fn build(
+        meta: state::Metadata,
+        live: Option<engine::TorrentLive>,
+        transcode_progress: Option<transcode::TranscodeProgress>,
+    ) -> Self {
         let phase = derive_phase(&meta, live.as_ref());
-        Self { meta, phase, live }
+        Self {
+            meta,
+            phase,
+            live,
+            transcode_progress,
+        }
     }
 }
 
@@ -177,7 +188,8 @@ async fn status(State(st): State<AppState>, headers: HeaderMap) -> impl IntoResp
             state::TorrentState::Reaped => {}
         }
         let l = live.remove(&meta.id);
-        torrents.push(TorrentView::build(meta, l));
+        let progress = st.transcoder.progress_of(&meta.id);
+        torrents.push(TorrentView::build(meta, l, progress));
     }
     let bt_listen_port = st.engine.bt_listen_port();
     let forwarded_port = st.engine.forwarded_port();
@@ -206,7 +218,8 @@ async fn status_one(
         None => return StatusCode::NOT_FOUND.into_response(),
     };
     let live = st.engine.live_stats_map().remove(&id);
-    Json(TorrentView::build(meta, live)).into_response()
+    let progress = st.transcoder.progress_of(&id);
+    Json(TorrentView::build(meta, live, progress)).into_response()
 }
 
 async fn get_one(
@@ -924,7 +937,7 @@ mod tests {
     }
 
     fn transcoder_with(store: StateStore) -> transcode::Transcoder {
-        transcode::Transcoder::new(store, 1, 1, "ffmpeg".into(), "ffprobe".into(), true)
+        transcode::Transcoder::new(store, 1, 1, "ffmpeg".into(), "ffprobe".into(), true, 1)
     }
 
     #[tokio::test]
