@@ -75,6 +75,14 @@ local signrepair_ok = r1 == true
     and emitted(rp_emits, "-> 0")
     and emitted(rp_emits, "repaired=1")
 
+local cl_emits = {}
+local function cl_emit(m) cl_emits[#cl_emits + 1] = m; _print("  signs: " .. m) end
+local c1 = signs.handle("Al", "!signclaim", cl_emit, sign_ctx)
+local c2 = signs.handle("Al", "nope", cl_emit, sign_ctx)
+local signclaim_ok = c1 == true and c2 == false
+    and emitted(cl_emits, "WRITING BuildPlayerUId")
+    and emitted(cl_emits, "claimed=1")
+
 _print("=== diag.lua ===")
 local diag = require("diag")
 local d_emits = {}
@@ -87,10 +95,10 @@ local diag_ok = dh == true and dc == true and dn == false
     and emitted(d_emits, "curltest: done")
 
 _print("=== results ===")
-_print(string.format("pos=%s signhp=%s signrepair=%s diag=%s",
-    tostring(pos_ok), tostring(signhp_ok), tostring(signrepair_ok), tostring(diag_ok)))
+_print(string.format("pos=%s signhp=%s signrepair=%s signclaim=%s diag=%s",
+    tostring(pos_ok), tostring(signhp_ok), tostring(signrepair_ok), tostring(signclaim_ok), tostring(diag_ok)))
 
-if pos_ok and signhp_ok and signrepair_ok and diag_ok then
+if pos_ok and signhp_ok and signrepair_ok and signclaim_ok and diag_ok then
     _print("HARNESS PASS")
     os.exit(0)
 else

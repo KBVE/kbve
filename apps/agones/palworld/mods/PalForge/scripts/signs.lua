@@ -48,6 +48,42 @@ local function cmd_signhp(emit, find_all)
     emit("signhp: done")
 end
 
+local KBVE_SERVER_GUID = { A = 0x4B425645, B = 0x00000001, C = 0x00000000, D = 0x00000000 }
+
+local function read_owner(model)
+    local s = nil
+    pcall(function()
+        local g = model:GetBuildPlayerUId_BP()
+        s = g
+        pcall(function() s = g:ToString() end)
+        s = tostring(s)
+    end)
+    return s
+end
+
+local function cmd_signclaim(emit, find_all)
+    emit("signclaim: start (re-own BuildPlayerUId to KBVE server guid; FGuid write — may crash, pre-logged)")
+    local models = sign_models(find_all)
+    if #models == 0 then
+        emit("signclaim: no signboard models loaded")
+        emit("signclaim: done")
+        return
+    end
+    local claimed = 0
+    for i, m in ipairs(models) do
+        if i > 5 then break end
+        local full = full_name(m)
+        local before = read_owner(m)
+        emit("signclaim: WRITING BuildPlayerUId on " .. full .. " (before=" .. tostring(before) .. ")")
+        local ok = pcall(function() m.BuildPlayerUId = KBVE_SERVER_GUID end)
+        local after = read_owner(m)
+        emit("signclaim: " .. full .. " owner " .. tostring(before) .. " -> " .. tostring(after) ..
+            " (write_ok=" .. tostring(ok) .. ")")
+        claimed = claimed + 1
+    end
+    emit("signclaim: done claimed=" .. claimed)
+end
+
 local function cmd_signrepair(emit, find_all)
     emit("signrepair: start (zeroes deterioration on loaded signs; property write only)")
     local models = sign_models(find_all)
@@ -89,6 +125,10 @@ function M.handle(sender, text, emit, ctx)
     end
     if cmd == "!signrepair" then
         cmd_signrepair(emit, find_all)
+        return true
+    end
+    if cmd == "!signclaim" then
+        cmd_signclaim(emit, find_all)
         return true
     end
     return false
