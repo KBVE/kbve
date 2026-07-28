@@ -35,8 +35,11 @@ function parseScalar(raw) {
 function parseFlowItem(inner) {
 	const out = {};
 	for (const pair of inner.split(',')) {
+		if (pair.trim() === '') continue;
 		const idx = pair.indexOf(':');
-		if (idx === -1) continue;
+		if (idx === -1) {
+			throw new Error(`malformed flow item segment (no colon): "${pair.trim()}" in { ${inner} }`);
+		}
 		const key = pair.slice(0, idx).trim();
 		out[key] = parseScalar(pair.slice(idx + 1));
 	}
@@ -64,7 +67,10 @@ export function parsePalshop(frontmatter) {
 		const act = line.match(/^\s+action:\s*(\S+)\s*$/);
 		if (act) { action = act[1]; continue; }
 		const item = line.match(/^\s*-\s*\{(.+)\}\s*$/);
-		if (item) items.push(parseFlowItem(item[1]));
+		if (item) { items.push(parseFlowItem(item[1])); continue; }
+		if (/^\s*-/.test(line)) {
+			throw new Error(`malformed item line (expected "- { ... }"): ${line.trim()}`);
+		}
 	}
 	if (!shopId) throw new Error('palshop block missing shopId');
 	return { shopId, action, items };
@@ -94,6 +100,7 @@ export function buildTable(shops) {
 }
 
 async function main() {
+	const check = process.argv.includes('--check');
 	const files = (await readdir(PALSHOP_DIR)).filter((f) => f.endsWith('.mdx'));
 	const shops = [];
 	for (const f of files) {
@@ -102,9 +109,19 @@ async function main() {
 		if (!fm || !/^palshop:\s*$/m.test(fm)) continue;
 		shops.push(parsePalshop(fm));
 	}
-	const table = buildTable(shops);
+	const out = JSON.stringify(buildTable(shops), null, 4) + '\n';
+	if (check) {
+		let existing = null;
+		try { existing = await readFile(OUTPUT, 'utf-8'); } catch {}
+		if (existing !== out) {
+			console.error('[palworld-shops] DRIFT: committed kbve-shops.json is stale — run the generator and commit the result');
+			process.exit(1);
+		}
+		console.log('[palworld-shops] check: in sync');
+		return;
+	}
 	await mkdir(dirname(OUTPUT), { recursive: true });
-	await writeFile(OUTPUT, JSON.stringify(table, null, 4) + '\n', 'utf-8');
+	await writeFile(OUTPUT, out, 'utf-8');
 	console.log(`[palworld-shops] wrote ${shops.length} shop(s) -> ${OUTPUT}`);
 }
 

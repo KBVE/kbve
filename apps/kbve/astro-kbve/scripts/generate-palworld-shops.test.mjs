@@ -67,3 +67,21 @@ test('KNOWN_SHOPS contains the eight rows', () => {
 	assert.equal(KNOWN_SHOPS.length, 8);
 	assert.ok(KNOWN_SHOPS.includes('Village_Shop_1'));
 });
+
+test('parsePalshop throws on a comma inside a value', () => {
+	const fm = `palshop:
+    shopId: Village_Shop_1
+    action: Clear
+    items:
+        - { id: PalSphere, type: Normal, price: 1,000, num: 1, stock: 0 }`;
+	assert.throws(() => parsePalshop(fm), /no colon/);
+});
+
+test('parsePalshop throws on a malformed item line', () => {
+	const fm = `palshop:
+    shopId: Village_Shop_1
+    action: Clear
+    items:
+        - id: PalSphere, type: Normal, price: 100, num: 1, stock: 0`;
+	assert.throws(() => parsePalshop(fm), /malformed item line/);
+});
