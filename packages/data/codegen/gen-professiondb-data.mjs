@@ -51,7 +51,7 @@ const ENUM_PREFIX = {
 	kind: 'CURVE_KIND_',
 };
 
-const ASTRO_ONLY_FIELDS = new Set(['title', 'kind', 'profession']);
+const ASTRO_ONLY_FIELDS = new Set(['title']);
 
 function snakeToCamel(key) {
 	return key.replace(/_([a-z0-9])/g, (_, c) => c.toUpperCase());
@@ -107,7 +107,8 @@ function loadProfessionsFromMdx() {
 
 		if (data.kind === 'profession') {
 			if (!data.id || !data.ref || !data.name) continue;
-			professions.set(data.ref, transform(data));
+			const { kind: _kind, ...rest } = data;
+			professions.set(data.ref, transform(rest));
 		} else if (data.kind === 'action') {
 			if (data.profession !== folder) {
 				throw new Error(
@@ -127,7 +128,8 @@ function loadProfessionsFromMdx() {
 			seenActionRefs.add(data.ref);
 			seenActionKeys.add(data.key);
 			const list = actionsByProfession.get(data.profession) ?? [];
-			list.push(transform(data));
+			const { kind: _kind, profession: _profession, ...rest } = data;
+			list.push(transform(rest));
 			actionsByProfession.set(data.profession, list);
 		}
 	}
