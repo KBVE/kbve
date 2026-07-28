@@ -34,6 +34,7 @@ import {
 	createFileRegistry,
 } from '@bufbuild/protobuf';
 import { FileDescriptorSetSchema } from '@bufbuild/protobuf/wkt';
+import { main as generateXref } from './gen-professiondb-xref.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
@@ -173,6 +174,8 @@ function main() {
 	const wire = toBinary(registryDesc, msg);
 	writeFileSync(outputBinPath, wire);
 	console.log(`Wrote ${outputBinPath} (${wire.length} bytes)`);
+
+	generateXref();
 }
 
 main();

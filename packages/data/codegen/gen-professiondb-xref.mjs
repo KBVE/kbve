@@ -11,7 +11,7 @@ const outPath = resolve(generatedDir, 'xref-index.json');
 
 const CONTENT_VERSION = 'phase1';
 
-function main() {
+export function main() {
 	const items = JSON.parse(readFileSync(itemdbPath, 'utf8')).items ?? [];
 	const professions =
 		JSON.parse(readFileSync(professiondbPath, 'utf8')).professions ?? [];
@@ -63,4 +63,4 @@ function main() {
 	console.log('\n[xref] warn-only mode — build not failed.');
 }
 
-main();
+if (process.argv[1] === fileURLToPath(import.meta.url)) main();
