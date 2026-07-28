@@ -59,6 +59,440 @@
                         "OverridePrice": 1000,
                         "ProductNum": 1,
                         "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Potion_Low",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 80,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Opium",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 150,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Meat_ChickenPal",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 60,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Meat_SheepBall",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 80,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Meat_Boar",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 100,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "ChickenSaute",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 150,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "GrilledSheepHerbs",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 180,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Egg",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 30,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Berries",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 20,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Wheat",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 25,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Wool",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 40,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Leather",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 60,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Milk",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 35,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "BerrySeeds",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 50,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "WheatSeeds",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 60,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Bone",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 30,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Horn",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 50,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "PalFluid",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 40,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "ElectricOrgan",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 120,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Venom",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 100,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "FireOrgan",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 120,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "IceOrgan",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 120,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Arrow",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 10,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Arrow_Poison",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 40,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Arrow_Fire",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 40,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Accessory_Nonkilling",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 500,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Head003_5",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 200,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Head004_5",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 200,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Head011_5",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 200,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Head012_5",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 200,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Head013_5",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 200,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Head015_5",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 200,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Head016_5",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 200,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "HeadEquip028",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 200,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Meat_CowPal",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 120,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Meat_BerryGoat",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 90,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Meat_Deer",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 110,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Chowder",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 200,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "DeerStew",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 280,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "DeerLocoMoco",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 300,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Eaglestew",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 260,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "StewedIceDeer",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 300,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "MushroomJuice",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 90,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Cake",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 1500,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Cake02",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 2500,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Cake03",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 3000,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Cake04",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 5000,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Cake05",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 50000,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Honey",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 80,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Sweet",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 60,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Flour",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 40,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Mushroom",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 30,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Carrot",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 20,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Lettuce",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 25,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Tomato",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 25,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Onion",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 20,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Potato",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 20,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "CarrotSeeds",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 40,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "LettuceSeeds",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 45,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "TomatoSeeds",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 45,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "OnionSeeds",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 40,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "PotatoSeeds",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 40,
+                        "ProductNum": 1,
+                        "Stock": 0
                     }
                 ]
             }
