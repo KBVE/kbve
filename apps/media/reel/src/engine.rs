@@ -63,18 +63,17 @@ pub async fn vpn_status(urls: &[String]) -> VpnStatus {
     VpnStatus::Unverified
 }
 
-pub fn decide_vpn(status: VpnStatus, prev_ok: bool, streak: u32, threshold: u32) -> (bool, u32) {
+pub fn decide_vpn(status: VpnStatus, prev_ok: bool, streak: u32, _threshold: u32) -> (bool, u32) {
     match status {
         VpnStatus::Confirmed(_) => (true, 0),
         VpnStatus::Leak(_) => (false, 0),
-        VpnStatus::Unverified => {
-            let s = streak.saturating_add(1);
-            if s >= threshold.max(1) {
-                (false, s)
-            } else {
-                (prev_ok, s)
-            }
-        }
+        // Unverified means the check endpoints were unreachable — NOT that the
+        // tunnel leaked. Under heavy download the probes compete for tunnel
+        // bandwidth and time out, so pausing here would falsely drop every peer
+        // and thrash the swarm. Hold the previous state and lean on the gluetun
+        // killswitch (which blocks all non-tunnel egress) as the real barrier;
+        // only a Confirmed leak (a real non-VPN egress IP) forces a pause.
+        VpnStatus::Unverified => (prev_ok, streak.saturating_add(1)),
     }
 }
 
@@ -1090,8 +1089,15 @@ mod tests {
         let (ok2, s2) = decide_vpn(VpnStatus::Unverified, ok1, s1, 3);
         assert_eq!((ok2, s2), (true, 2), "2nd flake still holds");
         let (ok3, s3) = decide_vpn(VpnStatus::Unverified, ok2, s2, 3);
-        assert_eq!((ok3, s3), (false, 3), "3rd flake trips the pause");
+        assert_eq!((ok3, s3), (true, 3), "unverified never pauses — killswitch is the barrier");
+        let (ok4, s4) = decide_vpn(VpnStatus::Unverified, ok3, s3, 3);
+        assert_eq!((ok4, s4), (true, 4), "still holds past threshold");
 
+        assert_eq!(
+            decide_vpn(VpnStatus::Leak(ip), true, 9, 3),
+            (false, 0),
+            "a confirmed leak still pauses immediately"
+        );
         assert_eq!(
             decide_vpn(VpnStatus::Confirmed(ip), false, 3, 3),
             (true, 0),

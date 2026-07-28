@@ -38,6 +38,7 @@ spec:
             - { name: FIREWALL, value: "on" }
             - { name: FIREWALL_INPUT_PORTS, value: "8080" }
             - { name: FIREWALL_OUTBOUND_SUBNETS, value: "10.0.0.0/8,172.16.0.0/12" }
+            - { name: WIREGUARD_MTU, value: "1320" }
           volumeMounts:
             - { name: gluetun-run, mountPath: /tmp/gluetun }
         - name: reel
@@ -53,6 +54,7 @@ spec:
             - { name: RUST_LOG, value: "reel=debug,warn,librqbit::torrent_state::live=error" }
             - { name: REEL_LOG_JSON, value: "true" }
             - { name: REEL_BT_PORT_FILE, value: "/tmp/gluetun/forwarded_port" }
+            - { name: REEL_ENCODE_THREADS, value: "1" }
           envFrom:
             - secretRef: { name: reel-api }
           ports:
@@ -61,10 +63,14 @@ spec:
             httpGet: { path: /healthz, port: 8080 }
             initialDelaySeconds: 5
             periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 6
           livenessProbe:
             httpGet: { path: /healthz, port: 8080 }
             initialDelaySeconds: 10
             periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 6
           resources:
             requests: { cpu: 100m, memory: 128Mi }
             limits: { cpu: "2", memory: 2Gi }

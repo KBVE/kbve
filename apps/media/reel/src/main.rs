@@ -27,6 +27,7 @@ async fn main() -> anyhow::Result<()> {
         cfg.ffmpeg_bin.clone(),
         cfg.ffprobe_bin.clone(),
         cfg.transcode_enabled,
+        cfg.encode_threads,
     );
 
     let hls = reel::hls::HlsManager::new(
@@ -35,6 +36,7 @@ async fn main() -> anyhow::Result<()> {
         cfg.ffmpeg_bin.clone(),
         cfg.hls_segment_secs as u32,
         cfg.hls_enabled,
+        cfg.encode_threads,
     );
 
     tokio::spawn(reaper::reap_loop(

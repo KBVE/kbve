@@ -924,7 +924,7 @@ mod tests {
     }
 
     fn transcoder_with(store: StateStore) -> transcode::Transcoder {
-        transcode::Transcoder::new(store, 1, 1, "ffmpeg".into(), "ffprobe".into(), true)
+        transcode::Transcoder::new(store, 1, 1, "ffmpeg".into(), "ffprobe".into(), true, 1)
     }
 
     #[tokio::test]
