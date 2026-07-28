@@ -28,8 +28,36 @@ pub fn reconcile_failed(id: &str, name: &str) {
     );
 }
 
+pub fn probe_decided(id: &str, video: &str, audio: &str, container: &str, delivery: &str) {
+    tracing::info!(
+        event = "probe_decided",
+        id,
+        video,
+        audio,
+        container,
+        delivery,
+        "probe routed delivery"
+    );
+}
+
+pub fn transcode_started(id: &str, route: &str) {
+    tracing::info!(event = "transcode_started", id, route, "transcode started");
+}
+
+pub fn transcode_ready(id: &str, path: &str) {
+    tracing::info!(event = "transcode_ready", id, path, "transcode ready");
+}
+
 pub fn transcode_failed(id: &str, reason: &str) {
     tracing::error!(event = "transcode_failed", id, reason, "transcode failed");
+}
+
+pub fn hls_started(id: &str, delivery: &str) {
+    tracing::info!(event = "hls_started", id, delivery, "hls started");
+}
+
+pub fn hls_ready(id: &str) {
+    tracing::info!(event = "hls_ready", id, "hls ready");
 }
 
 pub fn hls_failed(id: &str, reason: &str) {

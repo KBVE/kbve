@@ -362,6 +362,13 @@ impl Transcoder {
         let primary = pick_primary_file(&src_dir)?;
         let probe = probe(&self.ffprobe_bin, &primary).await?;
         let route = decide_route(&probe);
+        crate::telemetry::transcode_started(
+            id,
+            match route {
+                Route::Remux => "remux",
+                Route::Encode => "encode",
+            },
+        );
         let stem = primary
             .file_stem()
             .map(|s| s.to_string_lossy().into_owned())
@@ -400,6 +407,7 @@ impl Transcoder {
             m.transcode_error = None;
             ((), true)
         });
+        crate::telemetry::transcode_ready(id, &dest.display().to_string());
         Ok(())
     }
 }

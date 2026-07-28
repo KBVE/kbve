@@ -28,11 +28,23 @@ export type ReelTranscodeStatus =
 	| 'Failed';
 export type ReelHlsStatus = 'None' | 'Starting' | 'Live' | 'Ready' | 'Failed';
 
+export type ReelPhase =
+	| 'resolving-metadata'
+	| 'connecting'
+	| 'downloading'
+	| 'moving'
+	| 'ready'
+	| 'transcoding'
+	| 'streaming-hls'
+	| 'failed'
+	| 'reaped';
+
 export interface ReelTorrent {
 	id: string;
 	name: string;
 	size: number;
 	state: ReelTorrentState;
+	phase?: ReelPhase;
 	completed_at?: number | null;
 	last_access: number;
 	error?: string | null;
@@ -54,10 +66,36 @@ export interface ReelLive {
 	peers_connecting: number;
 }
 
+export interface ReelCounts {
+	total: number;
+	leeching: number;
+	seeding: number;
+	failed: number;
+}
+
+export interface ReelStatusTorrent extends ReelTorrent {
+	phase: ReelPhase;
+	live?: ReelLive;
+}
+
+export interface ReelStatusReport {
+	vpn_ok: boolean;
+	trackers: number;
+	counts: ReelCounts;
+	torrents: ReelStatusTorrent[];
+}
+
+export interface ReelHealth {
+	vpn_ok: boolean;
+	trackers: number;
+	counts: ReelCounts;
+}
+
 export const $reelList = atom<ReelTorrent[]>([]);
 export const $reelListError = atom<string | null>(null);
 export const $reelListLoading = atom<boolean>(false);
 export const $reelLive = atom<Record<string, ReelLive>>({});
+export const $reelHealth = atom<ReelHealth | null>(null);
 
 const REEL_PATH: string =
 	(import.meta.env.PUBLIC_REEL_BASE as string | undefined) ?? '/api/v1/reel';
@@ -143,11 +181,27 @@ export async function refreshLiveStats(): Promise<void> {
 	}
 }
 
+export async function fetchStatus(): Promise<ReelStatusReport> {
+	return authedApiFetch<ReelStatusReport>(`${REEL_PATH}/status`);
+}
+
 export async function refreshReelList(): Promise<void> {
 	$reelListLoading.set(true);
 	try {
-		const [list] = await Promise.all([listTorrents(), refreshLiveStats()]);
-		$reelList.set(list);
+		const report = await fetchStatus();
+		$reelList.set(report.torrents);
+		$reelLive.set(
+			Object.fromEntries(
+				report.torrents
+					.filter((t) => t.live)
+					.map((t) => [t.id, t.live as ReelLive]),
+			),
+		);
+		$reelHealth.set({
+			vpn_ok: report.vpn_ok,
+			trackers: report.trackers,
+			counts: report.counts,
+		});
 		$reelListError.set(null);
 	} catch (e) {
 		$reelListError.set(
@@ -181,6 +235,21 @@ export function nextFromManifestStatus(status: number): ProbeAction {
 
 export function backoffMs(attempt: number): number {
 	return Math.min(BACKOFF_BASE_MS * Math.pow(1.5, attempt), BACKOFF_CAP_MS);
+}
+
+export function mediaErrorMessage(err: MediaError | null | undefined): string {
+	switch (err?.code) {
+		case 1:
+			return 'playback aborted';
+		case 2:
+			return 'network error while streaming';
+		case 3:
+			return "browser can't decode this file — try Transcode to HLS";
+		case 4:
+			return "this container/codec isn't playable raw — try Transcode to HLS";
+		default:
+			return 'playback failed';
+	}
 }
 
 export class ReelPlayer {
@@ -298,12 +367,20 @@ export class ReelPlayer {
 		gen: number,
 	): void {
 		if (this.generation !== gen) return;
+		this.attachVideoError(video, gen);
 		video.src = mediaUrl(id, '/stream', token);
 		$reelState.set('raw');
 		if (leeching) {
 			$reelNotice.set('still downloading — playing the available portion');
 		}
 		void video.play().catch(() => undefined);
+	}
+
+	private attachVideoError(video: HTMLVideoElement, gen: number): void {
+		video.onerror = () => {
+			if (this.generation !== gen) return;
+			this.fail(mediaErrorMessage(video.error));
+		};
 	}
 
 	private async playHls(
@@ -314,6 +391,7 @@ export class ReelPlayer {
 	): Promise<void> {
 		if (this.generation !== gen) return;
 		if (video.canPlayType(MANIFEST_MIME)) {
+			this.attachVideoError(video, gen);
 			video.src = manifestUrl;
 			$reelState.set('hls');
 			void video.play().catch(() => undefined);
@@ -344,6 +422,9 @@ export class ReelPlayer {
 		if (this.pollTimer) {
 			clearTimeout(this.pollTimer);
 			this.pollTimer = null;
+		}
+		if (this.video) {
+			this.video.onerror = null;
 		}
 		if (this.hls) {
 			try {
