@@ -88,6 +88,30 @@ enum Commands {
         #[arg(long, default_value = "5")]
         backup_keep: u32,
     },
+    /// Restart an Agones GameServer unconditionally (for config/env changes that
+    /// leave the image tag unchanged, which rotate-gameserver deliberately skips)
+    RestartGameserver {
+        #[arg(long)]
+        namespace: String,
+        #[arg(long)]
+        gameserver: String,
+        #[arg(long, default_value = "palworld")]
+        container: String,
+        #[arg(long, default_value = "180")]
+        delete_timeout: u64,
+        #[arg(long, default_value = "600")]
+        ready_timeout: u64,
+        #[arg(long)]
+        backup: bool,
+        #[arg(long, default_value = "")]
+        world: String,
+        #[arg(long, default_value = "/palworld/Pal/Saved")]
+        save_path: String,
+        #[arg(long, default_value = "/palworld/backups")]
+        backup_dir: String,
+        #[arg(long, default_value = "5")]
+        backup_keep: u32,
+    },
 }
 
 // ---------------------------------------------------------------------------
@@ -701,6 +725,95 @@ async fn cmd_rotate_gameserver(
     }
 }
 
+async fn gs_state(namespace: &str, gameserver: &str) -> String {
+    kubectl_output(&[
+        "-n",
+        namespace,
+        "get",
+        &format!("gs/{gameserver}"),
+        "-o",
+        "jsonpath={.status.state}",
+    ])
+    .await
+    .unwrap_or_default()
+}
+
+async fn wait_for_ready(namespace: &str, gameserver: &str, ready_timeout: u64) -> Result<(), String> {
+    let deadline = tokio::time::Instant::now() + Duration::from_secs(ready_timeout);
+    let mut ticker = tokio::time::interval(Duration::from_secs(10));
+    loop {
+        ticker.tick().await;
+        let state = gs_state(namespace, gameserver).await;
+        tracing::info!("waiting for Ready: state={state}");
+        if state == "Ready" || state == "Allocated" {
+            return Ok(());
+        }
+        if tokio::time::Instant::now() >= deadline {
+            return Err(format!(
+                "timed out after {ready_timeout}s waiting for {gameserver} Ready (state={state})"
+            ));
+        }
+    }
+}
+
+/// Unconditional restart: backup, delete the GameServer (ArgoCD selfHeal
+/// recreates it from the desired spec, picking up env/config changes), then wait
+/// for it to come back Ready. Unlike rotate-gameserver this does NOT gate on
+/// image drift — it exists for config-only changes where the image tag is
+/// unchanged.
+async fn cmd_restart_gameserver(
+    namespace: &str,
+    gameserver: &str,
+    container: &str,
+    delete_timeout: u64,
+    ready_timeout: u64,
+    backup: &BackupOpts,
+) -> ExitCode {
+    let state = gs_state(namespace, gameserver).await;
+    if state.is_empty() {
+        tracing::error!("gameserver {gameserver} not found in {namespace}");
+        return ExitCode::FAILURE;
+    }
+    tracing::info!("restart requested: gs={gameserver} ns={namespace} state={state}");
+
+    if backup.enabled {
+        match backup_before_rotate(namespace, gameserver, container, backup).await {
+            Ok(name) => tracing::info!("pre-restart backup created: {name}"),
+            Err(e) => {
+                tracing::error!("pre-restart backup FAILED, aborting restart: {e}");
+                return ExitCode::FAILURE;
+            }
+        }
+    }
+
+    let timeout_arg = format!("--timeout={delete_timeout}s");
+    let wrapper_timeout = Duration::from_secs(delete_timeout.saturating_add(30));
+    let delete_args = [
+        "-n",
+        namespace,
+        "delete",
+        &format!("gs/{gameserver}"),
+        &timeout_arg,
+        "--ignore-not-found",
+    ];
+    tracing::warn!("deleting gs {gameserver}; ArgoCD selfHeal will recreate from desired spec");
+    if let Err(e) = kubectl_output_with_timeout(&delete_args, wrapper_timeout).await {
+        tracing::error!("restart delete failed: {e}");
+        return ExitCode::FAILURE;
+    }
+
+    match wait_for_ready(namespace, gameserver, ready_timeout).await {
+        Ok(()) => {
+            tracing::info!("restart complete: {gameserver} is Ready");
+            ExitCode::SUCCESS
+        }
+        Err(e) => {
+            tracing::error!("{e}");
+            ExitCode::FAILURE
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
@@ -747,6 +860,35 @@ async fn main() -> ExitCode {
                 delete_timeout,
                 watch,
                 interval,
+                &backup_opts,
+            )
+            .await
+        }
+        Commands::RestartGameserver {
+            namespace,
+            gameserver,
+            container,
+            delete_timeout,
+            ready_timeout,
+            backup,
+            world,
+            save_path,
+            backup_dir,
+            backup_keep,
+        } => {
+            let backup_opts = BackupOpts {
+                enabled: backup,
+                world,
+                save_path,
+                backup_dir,
+                keep: backup_keep,
+            };
+            cmd_restart_gameserver(
+                &namespace,
+                &gameserver,
+                &container,
+                delete_timeout,
+                ready_timeout,
                 &backup_opts,
             )
             .await
