@@ -4,8 +4,8 @@ metadata:
     name: vector-config
     namespace: vector
     annotations:
-        kbve.sh/last-updated: '2026-07-17T00:00:00Z'
-        kbve.sh/config-version: v9-webhook-auth
+        kbve.sh/last-updated: '2026-07-27T00:00:00Z'
+        kbve.sh/config-version: v10-tracing-level-fix
     labels:
         kbve.com/category: observability
         kbve.com/stack: core
@@ -136,7 +136,7 @@ data:
         \       string(.metadata.parsed.error_severity) ??\n               \"\"\n\n  \
         \    # If no metadata level, parse from raw message\n      if .level == \"\" {\n\
         \          msg = string(.event_message) ?? \"\"\n          # ClickHouse: <Error>,\
-        \ <Warning>, <Fatal>, <Critical>\n          if match(msg, r'<(Fatal|Error|Critical)>')\
+        \ <Warning>, <Fatal>, <Critical>\n          # Rust tracing fmt: \"<ISO8601> LEVEL target: ...\" — leading level wins over error= fields\n          tp, terr = parse_regex(msg, r'^\\S+\\s+(?P<lvl>TRACE|DEBUG|INFO|WARN|ERROR)\\s')\n          if terr == null {\n              .level = downcase(string(tp.lvl) ?? \"info\")\n          } else if match(msg, r'<(Fatal|Error|Critical)>')\
         \ {\n              .level = \"error\"\n          } else if match(msg, r'<Warning>')\
         \ {\n              .level = \"warn\"\n          } else if match(msg, r'<Debug>')\
         \ || match(msg, r'<Trace>') {\n              .level = \"debug\"\n          # kube-system:\

@@ -81,6 +81,9 @@ export interface ReelStatusTorrent extends ReelTorrent {
 export interface ReelStatusReport {
 	vpn_ok: boolean;
 	trackers: number;
+	bt_listen_port?: number;
+	forwarded_port?: number;
+	inbound_ready: boolean;
 	counts: ReelCounts;
 	torrents: ReelStatusTorrent[];
 }
@@ -88,6 +91,9 @@ export interface ReelStatusReport {
 export interface ReelHealth {
 	vpn_ok: boolean;
 	trackers: number;
+	bt_listen_port?: number;
+	forwarded_port?: number;
+	inbound_ready: boolean;
 	counts: ReelCounts;
 }
 
@@ -200,6 +206,9 @@ export async function refreshReelList(): Promise<void> {
 		$reelHealth.set({
 			vpn_ok: report.vpn_ok,
 			trackers: report.trackers,
+			bt_listen_port: report.bt_listen_port,
+			forwarded_port: report.forwarded_port,
+			inbound_ready: report.inbound_ready,
 			counts: report.counts,
 		});
 		$reelListError.set(null);
