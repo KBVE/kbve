@@ -62,11 +62,12 @@ pub enum Route {
 pub enum Delivery {
     RawProgressive,
     RemuxHls,
+    CopyVideoHls,
     TranscodeHls,
 }
 
 pub fn decide_route(p: &ProbeResult) -> Route {
-    if p.video_codec.as_deref() == Some("h264") && p.audio_codec.as_deref() == Some("aac") {
+    if p.video_codec.as_deref() == Some("h264") {
         Route::Remux
     } else {
         Route::Encode
@@ -74,10 +75,11 @@ pub fn decide_route(p: &ProbeResult) -> Route {
 }
 
 pub fn decide_delivery(p: &ProbeResult) -> Delivery {
-    let compat_codecs =
-        p.video_codec.as_deref() == Some("h264") && p.audio_codec.as_deref() == Some("aac");
-    if !compat_codecs {
+    if p.video_codec.as_deref() != Some("h264") {
         return Delivery::TranscodeHls;
+    }
+    if p.audio_codec.as_deref() != Some("aac") {
+        return Delivery::CopyVideoHls;
     }
     let is_mp4 = p
         .container
@@ -529,14 +531,15 @@ impl Transcoder {
             match route {
                 Route::Remux => {
                     let _permit = self.remux_sem.acquire().await?;
-                    self.run_tracked(
-                        id,
-                        &["-c", "copy", "-movflags", "+faststart"],
-                        &primary,
-                        &dest,
-                        duration,
-                    )
-                    .await
+                    let audio_aac = probe.audio_codec.as_deref() == Some("aac");
+                    let mut args: Vec<&str> = vec!["-c:v", "copy"];
+                    if audio_aac {
+                        args.extend_from_slice(&["-c:a", "copy"]);
+                    } else {
+                        args.extend_from_slice(&["-c:a", "aac"]);
+                    }
+                    args.extend_from_slice(&["-movflags", "+faststart"]);
+                    self.run_tracked(id, &args, &primary, &dest, duration).await
                 }
                 Route::Encode => {
                     let _permit = self.encode_sem.acquire().await?;
@@ -626,10 +629,11 @@ mod tests {
         );
     }
     #[test]
-    fn non_aac_audio_encodes() {
+    fn h264_non_aac_audio_still_remuxes() {
         assert_eq!(
             decide_route(&pr(Some("h264"), Some("ac3"), None)),
-            Route::Encode
+            Route::Remux,
+            "h264 video is copied; only audio is transcoded"
         );
     }
     #[test]
@@ -662,10 +666,18 @@ mod tests {
         );
     }
     #[test]
-    fn non_aac_is_transcode_hls() {
+    fn h264_non_aac_mp4_is_copy_video_hls() {
         assert_eq!(
             decide_delivery(&pr(Some("h264"), Some("ac3"), Some("mov,mp4,m4a"))),
-            Delivery::TranscodeHls
+            Delivery::CopyVideoHls,
+            "h264 video copied, audio transcoded to aac — no video re-encode"
+        );
+    }
+    #[test]
+    fn h264_non_aac_mkv_is_copy_video_hls() {
+        assert_eq!(
+            decide_delivery(&pr(Some("h264"), Some("eac3"), Some("matroska,webm"))),
+            Delivery::CopyVideoHls
         );
     }
     #[test]
