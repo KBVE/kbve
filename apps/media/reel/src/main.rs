@@ -61,6 +61,13 @@ async fn main() -> anyhow::Result<()> {
 
     tokio::spawn(state::persist_loop(store.clone(), cfg.state_flush_ms));
 
+    let restart = std::sync::Arc::new(tokio::sync::Notify::new());
+    tokio::spawn(engine::forwarded_port_watch_loop(
+        eng.clone(),
+        cfg.bt_port_watch_secs,
+        restart.clone(),
+    ));
+
     let store_for_flush = store.clone();
     let transcoder_for_shutdown = transcoder.clone();
     let hls_for_shutdown = hls.clone();
@@ -76,7 +83,7 @@ async fn main() -> anyhow::Result<()> {
     let listener = tokio::net::TcpListener::bind(&cfg.api_addr).await?;
     tracing::info!(addr = %cfg.api_addr, "reel listening");
     axum::serve(listener, app)
-        .with_graceful_shutdown(shutdown_signal())
+        .with_graceful_shutdown(shutdown_signal(restart))
         .await?;
     tracing::info!("shutdown signal received; killing ffmpeg children and flushing state");
     transcoder_for_shutdown.abort_all().await;
@@ -87,7 +94,7 @@ async fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn shutdown_signal() {
+async fn shutdown_signal(restart: std::sync::Arc<tokio::sync::Notify>) {
     let ctrl_c = async {
         let _ = tokio::signal::ctrl_c().await;
     };
@@ -106,5 +113,8 @@ async fn shutdown_signal() {
     tokio::select! {
         _ = ctrl_c => {}
         _ = terminate => {}
+        _ = restart.notified() => {
+            tracing::warn!("restart requested by forwarded-port watcher");
+        }
     }
 }

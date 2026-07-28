@@ -33,6 +33,8 @@ pub struct Config {
     pub hls_segment_secs: u64,
     pub bt_port_file: Option<PathBuf>,
     pub bt_port_wait_secs: u64,
+    pub bt_port_stable_secs: u64,
+    pub bt_port_watch_secs: u64,
 }
 
 pub const DEFAULT_TRACKERS_URLS: &[&str] = &[
@@ -193,6 +195,8 @@ pub fn load_from_env() -> anyhow::Result<Config> {
             _ => None,
         },
         bt_port_wait_secs: env_u64("REEL_BT_PORT_WAIT_SECS", 20)?,
+        bt_port_stable_secs: env_u64("REEL_BT_PORT_STABLE_SECS", 45)?,
+        bt_port_watch_secs: env_u64("REEL_BT_PORT_WATCH_SECS", 30)?,
     })
 }
 
@@ -244,6 +248,8 @@ mod tests {
         assert!(c.api_token.is_none());
         assert!(c.bt_port_file.is_none());
         assert_eq!(c.bt_port_wait_secs, 20);
+        assert_eq!(c.bt_port_stable_secs, 45);
+        assert_eq!(c.bt_port_watch_secs, 30);
     }
 
     #[test]

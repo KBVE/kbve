@@ -13,7 +13,7 @@ tags:
 key: reel
 pipeline: docker
 app_name: reel
-version: "0.1.16"
+version: "0.1.17"
 source_path: apps/media/reel
 version_toml: apps/media/reel/version.toml
 version_target: apps/media/reel/Cargo.toml
@@ -162,6 +162,16 @@ peers) rather than failing to start.
 librqbit announces), `forwarded_port` (what gluetun currently forwards), and
 `inbound_ready` (true only when the two match). The staff console shows this as
 `● inbound :PORT` vs `○ outbound-only`.
+
+The forwarded port is **dynamic** — NAT-PMP settles on a port a few seconds after
+the tunnel comes up (the first value written can differ from the final one), and it
+rotates on every VPN reconnect. So reel doesn't trust a single early read: at startup
+it waits for the value to hold steady (`REEL_BT_PORT_STABLE_SECS`) before binding
+librqbit's listener, and a watcher (`REEL_BT_PORT_WATCH_SECS`) then compares the
+live `forwarded_port` against the bound `bt_listen_port` — on a durable mismatch it
+logs `vpn_forwarded_port_changed` and exits for a clean restart, so restart-resume
+rebinds the listener to the new port with no torrent loss. Without this the announced
+port silently drifts from the real forwarded port and inbound peers hit a dead port.
 
 Port forwarding uses NAT-PMP against the WireGuard gateway (`10.2.0.1`), so
 `FIREWALL_OUTBOUND_SUBNETS` must **not** cover the tunnel gateway — a broad
