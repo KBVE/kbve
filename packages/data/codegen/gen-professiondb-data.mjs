@@ -18,7 +18,12 @@
  *   node packages/data/codegen/gen-professiondb-data.mjs
  */
 
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import {
+	readFileSync,
+	writeFileSync,
+	readdirSync,
+	statSync,
+} from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
@@ -46,7 +51,7 @@ const ENUM_PREFIX = {
 	kind: 'CURVE_KIND_',
 };
 
-const ASTRO_ONLY_FIELDS = new Set(['title']);
+const ASTRO_ONLY_FIELDS = new Set(['title', 'kind', 'profession']);
 
 function snakeToCamel(key) {
 	return key.replace(/_([a-z0-9])/g, (_, c) => c.toUpperCase());
@@ -75,19 +80,70 @@ function transform(node, parentFieldCamel) {
 	return node;
 }
 
-function loadProfessionsFromMdx() {
-	const files = readdirSync(professiondbDir).filter(
-		(f) => f.endsWith('.mdx') && f !== 'index.mdx',
-	);
-	const professions = [];
-	for (const file of files) {
-		const full = resolve(professiondbDir, file);
-		const { data } = matter(readFileSync(full, 'utf8'));
-		if (!data.id || !data.ref || !data.name) continue;
-		if (data.drafted === true) continue;
-		professions.push(transform(data));
+function walkMdx(dir) {
+	const out = [];
+	for (const name of readdirSync(dir)) {
+		const full = resolve(dir, name);
+		if (statSync(full).isDirectory()) {
+			out.push(...walkMdx(full));
+		} else if (name.endsWith('.mdx')) {
+			out.push(full);
+		}
 	}
-	return professions;
+	return out;
+}
+
+function loadProfessionsFromMdx() {
+	const files = walkMdx(professiondbDir);
+	const professions = new Map();
+	const actionsByProfession = new Map();
+	const seenActionRefs = new Set();
+	const seenActionKeys = new Set();
+
+	for (const full of files) {
+		const { data } = matter(readFileSync(full, 'utf8'));
+		if (data.drafted === true) continue;
+		const folder = full.split('/').slice(-2, -1)[0];
+
+		if (data.kind === 'profession') {
+			if (!data.id || !data.ref || !data.name) continue;
+			professions.set(data.ref, transform(data));
+		} else if (data.kind === 'action') {
+			if (data.profession !== folder) {
+				throw new Error(
+					`professiondb: action ${data.ref} has profession='${data.profession}' but lives in folder '${folder}'`,
+				);
+			}
+			if (seenActionRefs.has(data.ref)) {
+				throw new Error(
+					`professiondb: duplicate action ref '${data.ref}'`,
+				);
+			}
+			if (seenActionKeys.has(data.key)) {
+				throw new Error(
+					`professiondb: duplicate action key '${data.key}'`,
+				);
+			}
+			seenActionRefs.add(data.ref);
+			seenActionKeys.add(data.key);
+			const list = actionsByProfession.get(data.profession) ?? [];
+			list.push(transform(data));
+			actionsByProfession.set(data.profession, list);
+		}
+	}
+
+	for (const [profRef, actions] of actionsByProfession) {
+		const prof = professions.get(profRef);
+		if (!prof) {
+			throw new Error(
+				`professiondb: actions reference profession '${profRef}' with no index.mdx`,
+			);
+		}
+		actions.sort((a, b) => a.key - b.key);
+		prof.actions = actions;
+	}
+
+	return [...professions.values()];
 }
 
 function main() {

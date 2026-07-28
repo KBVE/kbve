@@ -10,15 +10,25 @@
       "emoji": "⚗️",
       "maxLevel": 99,
       "experienceCurve": {
-        "kind": "CURVE_KIND_POLYNOMIAL",
         "baseXp": 55,
         "growthFactor": 1.65,
         "maxLevel": 99
       },
+      "unlocks": [
+        {
+          "level": 12,
+          "actionRef": "brew-health-potion",
+          "description": "Health potions become brewable."
+        }
+      ],
       "actions": [
         {
           "ref": "brew-attack-potion",
+          "key": 13,
           "name": "Brew Attack Potion",
+          "requiredLevel": 3,
+          "xpReward": 25,
+          "durationMs": 4000,
           "inputs": [
             {
               "itemRef": "guam-leaf",
@@ -35,16 +45,17 @@
               "quantity": 1
             }
           ],
-          "requiredLevel": 3,
-          "xpReward": 25,
-          "durationMs": 4000,
           "toolRefs": [
             "vial"
           ]
         },
         {
           "ref": "brew-health-potion",
+          "key": 14,
           "name": "Brew Health Potion",
+          "requiredLevel": 12,
+          "xpReward": 50,
+          "durationMs": 4500,
           "inputs": [
             {
               "itemRef": "marrentill",
@@ -61,19 +72,9 @@
               "quantity": 1
             }
           ],
-          "requiredLevel": 12,
-          "xpReward": 50,
-          "durationMs": 4500,
           "toolRefs": [
             "vial"
           ]
-        }
-      ],
-      "unlocks": [
-        {
-          "level": 12,
-          "actionRef": "brew-health-potion",
-          "description": "Health potions become brewable."
         }
       ]
     },
@@ -87,15 +88,25 @@
       "emoji": "🍳",
       "maxLevel": 99,
       "experienceCurve": {
-        "kind": "CURVE_KIND_POLYNOMIAL",
         "baseXp": 40,
         "growthFactor": 1.5,
         "maxLevel": 99
       },
+      "unlocks": [
+        {
+          "level": 5,
+          "actionRef": "bake-bread",
+          "description": "Baking unlocks with a mill and oven."
+        }
+      ],
       "actions": [
         {
           "ref": "cook-shrimp",
+          "key": 11,
           "name": "Cook Shrimp",
+          "requiredLevel": 1,
+          "xpReward": 10,
+          "durationMs": 2500,
           "inputs": [
             {
               "itemRef": "raw-shrimp",
@@ -108,14 +119,15 @@
               "quantity": 1,
               "chance": 0.9
             }
-          ],
-          "requiredLevel": 1,
-          "xpReward": 10,
-          "durationMs": 2500
+          ]
         },
         {
           "ref": "bake-bread",
+          "key": 12,
           "name": "Bake Bread",
+          "requiredLevel": 5,
+          "xpReward": 18,
+          "durationMs": 3000,
           "inputs": [
             {
               "itemRef": "wheat",
@@ -127,17 +139,7 @@
               "itemRef": "bread",
               "quantity": 1
             }
-          ],
-          "requiredLevel": 5,
-          "xpReward": 18,
-          "durationMs": 3000
-        }
-      ],
-      "unlocks": [
-        {
-          "level": 5,
-          "actionRef": "bake-bread",
-          "description": "Baking unlocks with a mill and oven."
+          ]
         }
       ]
     },
@@ -151,16 +153,25 @@
       "emoji": "🌾",
       "maxLevel": 99,
       "experienceCurve": {
-        "kind": "CURVE_KIND_POLYNOMIAL",
         "baseXp": 42,
         "growthFactor": 1.5,
         "maxLevel": 99
       },
+      "unlocks": [
+        {
+          "level": 18,
+          "actionRef": "grow-herb",
+          "description": "Herb patches unlock for alchemy supply."
+        }
+      ],
       "actions": [
         {
           "ref": "grow-wheat",
+          "key": 7,
           "name": "Grow Wheat",
-          "description": "Plant, water, and harvest a wheat crop.",
+          "requiredLevel": 1,
+          "xpReward": 20,
+          "durationMs": 8000,
           "inputs": [
             {
               "itemRef": "wheat-seed",
@@ -173,14 +184,15 @@
               "quantity": 3,
               "chance": 1
             }
-          ],
-          "requiredLevel": 1,
-          "xpReward": 20,
-          "durationMs": 8000
+          ]
         },
         {
           "ref": "grow-herb",
+          "key": 8,
           "name": "Grow Herb",
+          "requiredLevel": 18,
+          "xpReward": 45,
+          "durationMs": 9000,
           "inputs": [
             {
               "itemRef": "herb-seed",
@@ -192,17 +204,7 @@
               "itemRef": "guam-leaf",
               "quantity": 2
             }
-          ],
-          "requiredLevel": 18,
-          "xpReward": 45,
-          "durationMs": 9000
-        }
-      ],
-      "unlocks": [
-        {
-          "level": 18,
-          "actionRef": "grow-herb",
-          "description": "Herb patches unlock for alchemy supply."
+          ]
         }
       ]
     },
@@ -216,50 +218,51 @@
       "emoji": "🎣",
       "maxLevel": 99,
       "experienceCurve": {
-        "kind": "CURVE_KIND_POLYNOMIAL",
         "baseXp": 40,
         "growthFactor": 1.5,
         "maxLevel": 99
       },
+      "unlocks": [
+        {
+          "level": 20,
+          "actionRef": "catch-trout",
+          "description": "Trout become catchable with a rod."
+        }
+      ],
       "actions": [
         {
           "ref": "catch-shrimp",
+          "key": 5,
           "name": "Catch Shrimp",
+          "requiredLevel": 1,
+          "xpReward": 8,
+          "durationMs": 3000,
           "outputs": [
             {
               "itemRef": "raw-shrimp",
               "quantity": 1
             }
           ],
-          "requiredLevel": 1,
-          "xpReward": 8,
-          "durationMs": 3000,
           "toolRefs": [
             "small-net"
           ]
         },
         {
           "ref": "catch-trout",
+          "key": 6,
           "name": "Catch Trout",
+          "requiredLevel": 20,
+          "xpReward": 30,
+          "durationMs": 3500,
           "outputs": [
             {
               "itemRef": "raw-trout",
               "quantity": 1
             }
           ],
-          "requiredLevel": 20,
-          "xpReward": 30,
-          "durationMs": 3500,
           "toolRefs": [
             "fishing-rod"
           ]
-        }
-      ],
-      "unlocks": [
-        {
-          "level": 20,
-          "actionRef": "catch-trout",
-          "description": "Trout become catchable with a rod."
         }
       ]
     },
@@ -273,52 +276,51 @@
       "emoji": "⛏️",
       "maxLevel": 99,
       "experienceCurve": {
-        "kind": "CURVE_KIND_POLYNOMIAL",
         "baseXp": 50,
         "growthFactor": 1.6,
         "maxLevel": 99
       },
+      "unlocks": [
+        {
+          "level": 15,
+          "actionRef": "mine-iron-ore",
+          "description": "Iron veins become workable."
+        }
+      ],
       "actions": [
         {
           "ref": "mine-copper-ore",
+          "key": 1,
           "name": "Mine Copper Ore",
-          "description": "Chip copper ore from a surface vein.",
+          "requiredLevel": 1,
+          "xpReward": 10,
+          "durationMs": 3000,
           "outputs": [
             {
               "itemRef": "copper-ore",
               "quantity": 1
             }
           ],
-          "requiredLevel": 1,
-          "xpReward": 10,
-          "durationMs": 3000,
           "toolRefs": [
             "bronze-pickaxe"
           ]
         },
         {
           "ref": "mine-iron-ore",
+          "key": 2,
           "name": "Mine Iron Ore",
-          "description": "Break iron ore from a rock face.",
+          "requiredLevel": 15,
+          "xpReward": 35,
+          "durationMs": 4000,
           "outputs": [
             {
               "itemRef": "iron-ore",
               "quantity": 1
             }
           ],
-          "requiredLevel": 15,
-          "xpReward": 35,
-          "durationMs": 4000,
           "toolRefs": [
             "steel-pickaxe"
           ]
-        }
-      ],
-      "unlocks": [
-        {
-          "level": 15,
-          "actionRef": "mine-iron-ore",
-          "description": "Iron veins become workable."
         }
       ]
     },
@@ -332,16 +334,25 @@
       "emoji": "🔨",
       "maxLevel": 99,
       "experienceCurve": {
-        "kind": "CURVE_KIND_POLYNOMIAL",
         "baseXp": 60,
         "growthFactor": 1.7,
         "maxLevel": 99
       },
+      "unlocks": [
+        {
+          "level": 4,
+          "actionRef": "forge-bronze-dagger",
+          "description": "Bronze weaponry becomes forgeable."
+        }
+      ],
       "actions": [
         {
           "ref": "smelt-bronze-bar",
+          "key": 9,
           "name": "Smelt Bronze Bar",
-          "description": "Smelt copper and tin into a bronze bar.",
+          "requiredLevel": 1,
+          "xpReward": 15,
+          "durationMs": 4000,
           "inputs": [
             {
               "itemRef": "copper-ore",
@@ -357,14 +368,15 @@
               "itemRef": "bronze-bar",
               "quantity": 1
             }
-          ],
-          "requiredLevel": 1,
-          "xpReward": 15,
-          "durationMs": 4000
+          ]
         },
         {
           "ref": "forge-bronze-dagger",
+          "key": 10,
           "name": "Forge Bronze Dagger",
+          "requiredLevel": 4,
+          "xpReward": 25,
+          "durationMs": 5000,
           "inputs": [
             {
               "itemRef": "bronze-bar",
@@ -377,19 +389,9 @@
               "quantity": 1
             }
           ],
-          "requiredLevel": 4,
-          "xpReward": 25,
-          "durationMs": 5000,
           "toolRefs": [
             "hammer"
           ]
-        }
-      ],
-      "unlocks": [
-        {
-          "level": 4,
-          "actionRef": "forge-bronze-dagger",
-          "description": "Bronze weaponry becomes forgeable."
         }
       ]
     },
@@ -403,51 +405,51 @@
       "emoji": "🪓",
       "maxLevel": 99,
       "experienceCurve": {
-        "kind": "CURVE_KIND_POLYNOMIAL",
         "baseXp": 45,
         "growthFactor": 1.55,
         "maxLevel": 99
       },
+      "unlocks": [
+        {
+          "level": 20,
+          "actionRef": "chop-willow-log",
+          "description": "Willow trees become harvestable."
+        }
+      ],
       "actions": [
         {
           "ref": "chop-oak-log",
+          "key": 3,
           "name": "Chop Oak Log",
-          "description": "Fell an oak for sturdy logs.",
+          "requiredLevel": 1,
+          "xpReward": 12,
+          "durationMs": 3000,
           "outputs": [
             {
               "itemRef": "oak-log",
               "quantity": 1
             }
           ],
-          "requiredLevel": 1,
-          "xpReward": 12,
-          "durationMs": 3000,
           "toolRefs": [
             "bronze-axe"
           ]
         },
         {
           "ref": "chop-willow-log",
+          "key": 4,
           "name": "Chop Willow Log",
+          "requiredLevel": 20,
+          "xpReward": 40,
+          "durationMs": 3500,
           "outputs": [
             {
               "itemRef": "willow-log",
               "quantity": 1
             }
           ],
-          "requiredLevel": 20,
-          "xpReward": 40,
-          "durationMs": 3500,
           "toolRefs": [
             "steel-axe"
           ]
-        }
-      ],
-      "unlocks": [
-        {
-          "level": 20,
-          "actionRef": "chop-willow-log",
-          "description": "Willow trees become harvestable."
         }
       ]
     }
