@@ -6,6 +6,7 @@ import {
 	$reelListError,
 	$reelListLoading,
 	$reelLive,
+	$reelHealth,
 	addTorrent,
 	deleteTorrent,
 	startTranscode,
@@ -19,6 +20,18 @@ const STATE_BADGE: Record<string, string> = {
 	Seeding: 'reel-console__badge--seeding',
 	Reaped: 'reel-console__badge--reaped',
 	Failed: 'reel-console__badge--failed',
+};
+
+const PHASE_LABEL: Record<string, string> = {
+	'resolving-metadata': 'resolving metadata',
+	connecting: 'connecting to peers',
+	downloading: 'downloading',
+	moving: 'moving to library',
+	ready: 'ready',
+	transcoding: 'transcoding',
+	'streaming-hls': 'streaming (HLS)',
+	failed: 'failed',
+	reaped: 'reaped',
 };
 
 function fmtSize(bytes: number): string {
@@ -61,6 +74,7 @@ export default function ReactReelConsole() {
 	const listError = useStore($reelListError);
 	const loading = useStore($reelListLoading);
 	const live = useStore($reelLive);
+	const health = useStore($reelHealth);
 	const isStaff = useStore(homeService.$isStaff);
 
 	const [source, setSource] = useState('');
@@ -160,6 +174,24 @@ export default function ReactReelConsole() {
 				</button>
 			</div>
 
+			{health && (
+				<p className="reel-console__health">
+					<span
+						className={
+							health.vpn_ok
+								? 'reel-console__health-ok'
+								: 'reel-console__health-bad'
+						}>
+						{health.vpn_ok ? '● VPN ok' : '● VPN down'}
+					</span>
+					<span>{health.trackers} trackers</span>
+					<span>
+						{health.counts.seeding} seeding · {health.counts.leeching}{' '}
+						leeching · {health.counts.failed} failed
+					</span>
+				</p>
+			)}
+
 			<form
 				className="reel-console__add"
 				onSubmit={(e) => {
@@ -202,7 +234,9 @@ export default function ReactReelConsole() {
 										className={`reel-console__badge ${
 											STATE_BADGE[t.state] ?? ''
 										}`}>
-										{t.state}
+										{t.phase
+											? (PHASE_LABEL[t.phase] ?? t.phase)
+											: t.state}
 									</span>
 									<span>{progressLine(t, live[t.id])}</span>
 									{t.transcode !== 'None' && (
