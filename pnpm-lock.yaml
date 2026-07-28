@@ -283,9 +283,6 @@ importers:
       postprocessing:
         specifier: ^6.39.2
         version: 6.39.2(three@0.184.0)
-      react-helmet-async:
-        specifier: ^2.0.5
-        version: 2.0.5(react@19.2.3)
       react-hook-form:
         specifier: ^7.53.1
         version: 7.55.0(react@19.2.3)
@@ -13803,11 +13800,6 @@ packages:
     peerDependencies:
       react: 19.2.3
       react-dom: 19.2.3
-
-  react-helmet-async@2.0.5:
-    resolution: {integrity: sha512-rYUYHeus+i27MvFE+Jaa4WsyBKGkL6qVgbJvSBoX8mbsWoABJXdEO0bZyi0F6i+4f0NuIb8AvqPMj3iXFHkMwg==}
-    peerDependencies:
-      react: 19.2.3
 
   react-hook-form@7.55.0:
     resolution: {integrity: sha512-XRnjsH3GVMQz1moZTW53MxfoWN7aDpUg/GpVNc4A3eXRVNdGXfbzJ4vM4aLQ8g6XCUh1nIbx70aaNCl7kxnjog==}
@@ -33907,7 +33899,8 @@ snapshots:
       react: 19.2.3
       scheduler: 0.27.0
 
-  react-fast-compare@3.2.2: {}
+  react-fast-compare@3.2.2:
+    optional: true
 
   react-freeze@1.0.4(react@19.2.3):
     dependencies:
@@ -33924,13 +33917,6 @@ snapshots:
       react-fast-compare: 3.2.2
       shallowequal: 1.1.0
     optional: true
-
-  react-helmet-async@2.0.5(react@19.2.3):
-    dependencies:
-      invariant: 2.2.4
-      react: 19.2.3
-      react-fast-compare: 3.2.2
-      shallowequal: 1.1.0
 
   react-hook-form@7.55.0(react@19.2.3):
     dependencies:
@@ -35051,7 +35037,8 @@ snapshots:
     dependencies:
       kind-of: 6.0.3
 
-  shallowequal@1.1.0: {}
+  shallowequal@1.1.0:
+    optional: true
 
   sharp@0.34.5:
     dependencies:

@@ -216,7 +216,6 @@
 		"phaser": "^4.2.0",
 		"pngjs": "^7.0.0",
 		"postprocessing": "^6.39.2",
-		"react-helmet-async": "^2.0.5",
 		"react-hook-form": "^7.53.1",
 		"react-is": "19.2.4",
 		"react-native": "0.85.3",

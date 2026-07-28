@@ -41,6 +41,7 @@ end
 
 local pos = require_module("pos", { handle = function() return false end, player_location = function() return nil end })
 local signs = require_module("signs", { handle = function() return false end })
+local guardian = require_module("guardian", { handle = function() return false end })
 local diag = require_module("diag", { handle = function() return false end })
 
 local function extract(param)
@@ -60,6 +61,7 @@ local function dispatch(sender, text)
     local ctx = { locate = pos.player_location }
     pcall(pos.handle, sender, text, emit, pos.player_location)
     pcall(signs.handle, sender, text, emit, ctx)
+    pcall(guardian.handle, sender, text, emit, ctx)
     pcall(diag.handle, sender, text, emit)
 end
 
@@ -99,5 +101,5 @@ local function schedule()
     end
 end
 
-log("loaded (commands: !pos !signhp !signrepair !httptest !curltest)")
+log("loaded (commands: !pos !signhp !signrepair !signclaim !guardstart !guardstop !guardstatus !guardtick !httptest !curltest)")
 schedule()
