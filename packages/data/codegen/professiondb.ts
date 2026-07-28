@@ -11,6 +11,7 @@
  * `Profession` type.
  */
 import rawProfessiondb from './generated/professiondb-data.json';
+import rawXref from './generated/xref-index.json';
 import type {
 	Profession,
 	ProfessionRegistry,
@@ -84,4 +85,28 @@ export function getProfession(ref: string): Profession | undefined {
 		refIndex = new Map(loadProfessions().map((p) => [p.ref, p]));
 	}
 	return refIndex.get(ref);
+}
+
+type XrefIndex = {
+	content_version: string;
+	slug_to_key: Record<string, number>;
+	produced_by: Record<string, number[]>;
+	input_to: Record<string, number[]>;
+	tool_for: Record<string, number[]>;
+};
+
+export function loadXrefIndex(): XrefIndex {
+	return rawXref as XrefIndex;
+}
+
+export function getActionsProducing(itemKey: number): number[] {
+	return (rawXref as XrefIndex).produced_by[String(itemKey)] ?? [];
+}
+
+export function getActionsUsing(itemKey: number): number[] {
+	return (rawXref as XrefIndex).input_to[String(itemKey)] ?? [];
+}
+
+export function getActionsForTool(itemKey: number): number[] {
+	return (rawXref as XrefIndex).tool_for[String(itemKey)] ?? [];
 }

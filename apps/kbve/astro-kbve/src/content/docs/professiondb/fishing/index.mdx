@@ -1,5 +1,6 @@
 ---
 title: 'Fishing'
+kind: 'profession'
 description: |
     Catch fish from rivers, lakes, and the sea. A gathering discipline that
     feeds cooking.
@@ -15,27 +16,6 @@ experience_curve:
   base_xp: 40
   growth_factor: 1.5
   max_level: 99
-actions:
-  - ref: 'catch-shrimp'
-    name: 'Catch Shrimp'
-    outputs:
-      - item_ref: 'raw-shrimp'
-        quantity: 1
-    required_level: 1
-    xp_reward: 8
-    duration_ms: 3000
-    tool_refs:
-      - 'small-net'
-  - ref: 'catch-trout'
-    name: 'Catch Trout'
-    outputs:
-      - item_ref: 'raw-trout'
-        quantity: 1
-    required_level: 20
-    xp_reward: 30
-    duration_ms: 3500
-    tool_refs:
-      - 'fishing-rod'
 unlocks:
   - level: 20
     action_ref: 'catch-trout'

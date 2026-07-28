@@ -1,15 +1,10 @@
-/**
- * Astro content collection schema for professiondb entries.
- *
- * Game-logic fields come from the proto-generated ProfessionSchema
- * (packages/data/codegen/generated/professiondb-schema.ts).
- */
 import { z } from 'astro/zod';
 import {
 	ProfessionSchema,
 	ProfessionCategorySchema,
 	CurveKindSchema,
 } from '@kbve/proto/professiondb-schema';
+import { IProfessionActionSchema } from './IProfessionActionSchema';
 
 export { ProfessionCategorySchema, CurveKindSchema };
 export type {
@@ -22,6 +17,16 @@ export type {
 	CurveKindValue,
 } from '@kbve/proto/professiondb-schema';
 
-export const IProfessionSchema = ProfessionSchema.passthrough();
+export const IProfessionSchema = ProfessionSchema.extend({
+	kind: z.literal('profession'),
+	title: z.string().optional(),
+}).passthrough();
 
 export type IProfession = z.infer<typeof IProfessionSchema>;
+
+export const IProfessionEntrySchema = z.discriminatedUnion('kind', [
+	IProfessionSchema,
+	IProfessionActionSchema,
+]);
+
+export type IProfessionEntry = z.infer<typeof IProfessionEntrySchema>;
