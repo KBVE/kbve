@@ -75,6 +75,65 @@ local signrepair_ok = r1 == true
     and emitted(rp_emits, "-> 0")
     and emitted(rp_emits, "repaired=1")
 
+local cl_emits = {}
+local function cl_emit(m) cl_emits[#cl_emits + 1] = m; _print("  signs: " .. m) end
+local c1 = signs.handle("Al", "!signclaim", cl_emit, sign_ctx)
+local c2 = signs.handle("Al", "nope", cl_emit, sign_ctx)
+local signclaim_ok = c1 == true and c2 == false
+    and emitted(cl_emits, "WRITING BuildPlayerUId")
+    and emitted(cl_emits, "claimed=1")
+
+_print("=== guardian.lua ===")
+local guardian = require("guardian")
+local function guardian_model(owner, loc, deter)
+    return {
+        GetFullName = function() return "PalMapObjectSignboardModel_G" end,
+        GetBuildPlayerUId_BP = function() return owner end,
+        GetMapObjectModelWorldLocation = function() return loc end,
+        DeteriorationDamage = deter,
+        DeteriorationTotalDamage = deter,
+    }
+end
+local OURS_STR = "4B425645-00000001-00000000-00000000"
+local g_cfg = {
+    max_per_tick = 20, keep_radius = 5000.0, sweep_damage = 999.0,
+    zones = { { x = 0, y = 0, z = 0, radius = 1000.0 } },
+}
+local g_guid = { A = 0x4B425645, B = 1, C = 0, D = 0 }
+local g_signs = { { coords = { 100000, 100000, 100000 } } }
+
+local m_owner = guardian_model(OURS_STR, { X = 500000, Y = 0, Z = 0 }, 50)
+local m_coord = guardian_model("SOMEPLAYER", { X = 100000, Y = 100000, Z = 100000 }, 50)
+local m_foreign = guardian_model("SOMEPLAYER", { X = 0, Y = 0, Z = 0 }, 50)
+local m_unknown = guardian_model("SOMEPLAYER", nil, 50)
+local g_find = function() return { m_owner, m_coord, m_foreign, m_unknown } end
+
+local g_emits = {}
+local function g_emit(m) g_emits[#g_emits + 1] = m; _print("  guardian: " .. m) end
+local tick = guardian.tick(g_emit, g_find, { cfg = g_cfg, guid = g_guid, signs = g_signs })
+local classify_ok = tick.kept == 2 and tick.swept == 1 and tick.skipped == 1
+    and m_owner.DeteriorationDamage == 0.0
+    and m_coord.DeteriorationDamage == 0.0
+    and m_foreign.DeteriorationDamage == 999.0
+    and m_unknown.DeteriorationDamage == 50
+
+local gr_emits = {}
+local function gr_emit(m) gr_emits[#gr_emits + 1] = m; _print("  guardian: " .. m) end
+local g_ctx = { find_all = function() return {} end, schedule = function() end }
+local gs0 = guardian.handle("Al", "!guardstatus", gr_emit, g_ctx)
+local gstart = guardian.handle("Al", "!guardstart", gr_emit, g_ctx)
+local gs1 = guardian.handle("Al", "!guardstatus", gr_emit, g_ctx)
+local gstop = guardian.handle("Al", "!guardstop", gr_emit, g_ctx)
+local gtick = guardian.handle("Al", "!guardtick", gr_emit, g_ctx)
+local gnope = guardian.handle("Al", "nope", gr_emit, g_ctx)
+local route_ok = gs0 == true and gstart == true and gs1 == true
+    and gstop == true and gtick == true and gnope == false
+    and emitted(gr_emits, "running=false")
+    and emitted(gr_emits, "running=true")
+    and emitted(gr_emits, "guardian: STOP")
+    and emitted(gr_emits, "manual single tick")
+local guardian_ok = classify_ok and route_ok
+
 _print("=== diag.lua ===")
 local diag = require("diag")
 local d_emits = {}
@@ -87,10 +146,11 @@ local diag_ok = dh == true and dc == true and dn == false
     and emitted(d_emits, "curltest: done")
 
 _print("=== results ===")
-_print(string.format("pos=%s signhp=%s signrepair=%s diag=%s",
-    tostring(pos_ok), tostring(signhp_ok), tostring(signrepair_ok), tostring(diag_ok)))
+_print(string.format("pos=%s signhp=%s signrepair=%s signclaim=%s guardian=%s diag=%s",
+    tostring(pos_ok), tostring(signhp_ok), tostring(signrepair_ok), tostring(signclaim_ok),
+    tostring(guardian_ok), tostring(diag_ok)))
 
-if pos_ok and signhp_ok and signrepair_ok and diag_ok then
+if pos_ok and signhp_ok and signrepair_ok and signclaim_ok and guardian_ok and diag_ok then
     _print("HARNESS PASS")
     os.exit(0)
 else
