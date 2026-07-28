@@ -181,6 +181,7 @@ impl HlsManager {
     }
 
     pub async fn abort(&self, id: &str) {
+        self.delivery_cache.lock().unwrap().remove(id);
         let child = self.take_child(id);
         if let Some(mut child) = child {
             let _ = child.kill().await;

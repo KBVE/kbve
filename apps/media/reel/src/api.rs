@@ -87,8 +87,17 @@ struct Counts {
 struct StatusReport {
     vpn_ok: bool,
     trackers: usize,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    bt_listen_port: Option<u16>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    forwarded_port: Option<u16>,
+    inbound_ready: bool,
     counts: Counts,
     torrents: Vec<TorrentView>,
+}
+
+fn inbound_ready(listen: Option<u16>, forwarded: Option<u16>) -> bool {
+    matches!((listen, forwarded), (Some(l), Some(f)) if l == f)
 }
 
 fn served_bytes(range: Option<&str>, total: u64) -> u64 {
@@ -170,9 +179,14 @@ async fn status(State(st): State<AppState>, headers: HeaderMap) -> impl IntoResp
         let l = live.remove(&meta.id);
         torrents.push(TorrentView::build(meta, l));
     }
+    let bt_listen_port = st.engine.bt_listen_port();
+    let forwarded_port = st.engine.forwarded_port();
     Json(StatusReport {
         vpn_ok: st.engine.vpn_ok(),
         trackers: st.engine.tracker_count(),
+        bt_listen_port,
+        forwarded_port,
+        inbound_ready: inbound_ready(bt_listen_port, forwarded_port),
         counts,
         torrents,
     })
@@ -827,6 +841,15 @@ mod tests {
         m.transcode = TranscodeStatus::None;
         m.hls = HlsStatus::Live;
         assert_eq!(derive_phase(&m, None), "streaming-hls");
+    }
+
+    #[test]
+    fn inbound_ready_requires_matching_ports() {
+        assert!(inbound_ready(Some(51820), Some(51820)));
+        assert!(!inbound_ready(Some(51820), Some(6881)));
+        assert!(!inbound_ready(Some(51820), None));
+        assert!(!inbound_ready(None, Some(51820)));
+        assert!(!inbound_ready(None, None));
     }
 
     #[test]

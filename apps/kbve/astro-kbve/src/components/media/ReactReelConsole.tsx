@@ -185,6 +185,16 @@ export default function ReactReelConsole() {
 						{health.vpn_ok ? '● VPN ok' : '● VPN down'}
 					</span>
 					<span>{health.trackers} trackers</span>
+					<span
+						className={
+							health.inbound_ready
+								? 'reel-console__health-ok'
+								: undefined
+						}>
+						{health.inbound_ready
+							? `● inbound :${health.forwarded_port}`
+							: '○ outbound-only'}
+					</span>
 					<span>
 						{health.counts.seeding} seeding · {health.counts.leeching}{' '}
 						leeching · {health.counts.failed} failed

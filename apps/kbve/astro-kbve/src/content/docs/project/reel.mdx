@@ -13,7 +13,7 @@ tags:
 key: reel
 pipeline: docker
 app_name: reel
-version: "0.1.11"
+version: "0.1.12"
 source_path: apps/media/reel
 version_toml: apps/media/reel/version.toml
 version_target: apps/media/reel/Cargo.toml
@@ -149,6 +149,11 @@ sealed via `apps/kube/reel/seal-gluetun-secret.sh`), layered over the shared
 `vpn-wireguard` secret so kasm/firecracker are untouched — and so the provider
 name stays out of the repo. If the forwarded-port file never appears, reel falls
 back to a random port (no inbound peers) rather than failing to start.
+
+`GET /status` reports whether it's actually working: `bt_listen_port` (the port
+librqbit announces), `forwarded_port` (what gluetun currently forwards), and
+`inbound_ready` (true only when the two match). The staff console shows this as
+`● inbound :PORT` vs `○ outbound-only`.
 
 </BentoProse>
 

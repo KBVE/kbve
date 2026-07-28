@@ -161,6 +161,7 @@ pub struct Engine {
     stall_timeout: Duration,
     stall_check: Duration,
     trackers: Arc<Mutex<Arc<Vec<String>>>>,
+    bt_port_file: Option<PathBuf>,
 }
 
 const LEECH_DRAIN_CAP: Duration = Duration::from_secs(6 * 3600);
@@ -278,6 +279,7 @@ impl Engine {
                 &cfg.trackers_cache,
                 &cfg.extra_trackers,
             )))),
+            bt_port_file: cfg.bt_port_file.clone(),
         };
         engine.resume_on_start();
         Ok(engine)
@@ -893,6 +895,15 @@ impl Engine {
 
     pub fn tracker_count(&self) -> usize {
         self.trackers.lock().unwrap().len()
+    }
+
+    pub fn bt_listen_port(&self) -> Option<u16> {
+        self.session.tcp_listen_port()
+    }
+
+    pub fn forwarded_port(&self) -> Option<u16> {
+        let path = self.bt_port_file.as_ref()?;
+        parse_forwarded_port(&std::fs::read_to_string(path).ok()?)
     }
 }
 
