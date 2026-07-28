@@ -5,6 +5,7 @@ export * from './ITileSchema';
 export * from './INpcSchema';
 export * from './ISpellSchema';
 export * from './IProfessionSchema';
+export * from './IProfessionActionSchema';
 export * from './osrs';
 export * from './mc';
 export * from './ICiProjectSchema';
