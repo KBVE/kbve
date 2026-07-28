@@ -212,6 +212,37 @@ local signtry_ok = sy_ok_call == true
     and emitted(sy_emits, "SUCCESS")
     and emitted(sy_emits, "REFUSED")
 
+_print("=== spike.signhp + signrepair commands ===")
+local function sign_model_mock(deter)
+    local d = deter
+    return {
+        GetFullName = function() return "PalMapObjectSignboardModel_1" end,
+        IsDamaged = function() return d > 0 end,
+        DeteriorationDamage = d,
+        DeteriorationTotalDamage = d,
+    }
+end
+local hp_find_all = function() return { sign_model_mock(50) } end
+local hp_emits = {}
+local function hp_emit(m) hp_emits[#hp_emits + 1] = m; _print("  signhp: " .. m) end
+local hp1 = spike.signhp("Al", "!signhp", hp_emit, { find_all = hp_find_all })
+local hp2 = spike.signhp("Al", "nope", hp_emit, { find_all = hp_find_all })
+local signhp_ok = hp1 == true
+    and hp2 == false
+    and emitted(hp_emits, "signhp: start")
+    and emitted(hp_emits, "DeteriorationDamage = 50")
+    and emitted(hp_emits, "signhp: done")
+
+local rp_emits = {}
+local function rp_emit(m) rp_emits[#rp_emits + 1] = m; _print("  signrepair: " .. m) end
+local rp1 = spike.signrepair("Al", "!signrepair", rp_emit, { find_all = hp_find_all })
+local rp2 = spike.signrepair("Al", "nope", rp_emit, { find_all = hp_find_all })
+local signrepair_ok = rp1 == true
+    and rp2 == false
+    and emitted(rp_emits, "WRITING deterioration=0")
+    and emitted(rp_emits, "-> 0")
+    and emitted(rp_emits, "repaired=1")
+
 _print("=== spike.signtrace command ===")
 local st_emits = {}
 local function st_emit(m)
@@ -274,6 +305,8 @@ local ok = calls.pending == 1
     and signinspect_ok
     and mapids_ok
     and signtry_ok
+    and signhp_ok
+    and signrepair_ok
     and signtrace_ok
     and curltest_ok
     and httptest_ok
