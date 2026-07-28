@@ -50,6 +50,7 @@ export interface ReelTorrent {
 	error?: string | null;
 	transcode: ReelTranscodeStatus;
 	transcode_error?: string | null;
+	transcode_progress?: number | null;
 	hls: ReelHlsStatus;
 	hls_error?: string | null;
 }

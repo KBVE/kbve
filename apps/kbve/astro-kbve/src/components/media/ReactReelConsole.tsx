@@ -250,7 +250,14 @@ export default function ReactReelConsole() {
 									</span>
 									<span>{progressLine(t, live[t.id])}</span>
 									{t.transcode !== 'None' && (
-										<span>transcode: {t.transcode}</span>
+										<span>
+											transcode: {t.transcode}
+											{t.transcode_progress != null &&
+											(t.transcode === 'Remuxing' ||
+												t.transcode === 'Encoding')
+												? ` ${t.transcode_progress}%`
+												: ''}
+										</span>
 									)}
 									{t.hls !== 'None' && (
 										<span>hls: {t.hls}</span>
