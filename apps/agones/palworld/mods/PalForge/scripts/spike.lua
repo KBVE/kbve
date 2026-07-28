@@ -413,6 +413,26 @@ function M.signtrace(sender, msg, emit, deps)
             pcall(function()
                 emit("TRACE   model outer = " .. tostring(model:GetOuter():GetFullName()))
             end)
+
+            local id_read = false
+            pcall(function()
+                local id = model:TryGetMapObjectId()
+                local s = id
+                pcall(function() s = id:ToString() end)
+                emit("TRACE   MapObjectId (TryGetMapObjectId) = " .. tostring(s))
+                id_read = true
+            end)
+            if not id_read then
+                emit("TRACE   MapObjectId -> TryGetMapObjectId unavailable")
+            end
+            for _, field in ipairs({ "MapObjectMasterDataId", "BuildObjectId" }) do
+                pcall(function()
+                    local v = model[field]
+                    local s = v
+                    pcall(function() s = v:ToString() end)
+                    emit("TRACE   " .. field .. " = " .. tostring(s))
+                end)
+            end
         end)
     end
 
