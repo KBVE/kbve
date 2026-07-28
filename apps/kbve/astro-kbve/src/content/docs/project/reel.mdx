@@ -13,7 +13,7 @@ tags:
 key: reel
 pipeline: docker
 app_name: reel
-version: "0.1.12"
+version: "0.1.13"
 source_path: apps/media/reel
 version_toml: apps/media/reel/version.toml
 version_target: apps/media/reel/Cargo.toml
@@ -154,6 +154,11 @@ back to a random port (no inbound peers) rather than failing to start.
 librqbit announces), `forwarded_port` (what gluetun currently forwards), and
 `inbound_ready` (true only when the two match). The staff console shows this as
 `● inbound :PORT` vs `○ outbound-only`.
+
+Request-path media scans (`pick_primary_file`) run on a blocking thread pool so a
+large library tree can't stall the async runtime, and the hls.js player carries
+its scoped token in the `Authorization` header rather than the URL query — the
+token never lands in a manifest/segment request URL or a `Referer`.
 
 </BentoProse>
 

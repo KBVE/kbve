@@ -333,7 +333,7 @@ async fn manifest(
     let delivery = match st.hls.cached_delivery(&id) {
         Some(d) => d,
         None => {
-            let primary = match transcode::pick_primary_file(std::path::Path::new(&meta.path)) {
+            let primary = match transcode::pick_primary_file_async(std::path::PathBuf::from(&meta.path)).await {
                 Ok(p) => p,
                 Err(e) => {
                     tracing::warn!(id = %id, path = %meta.path, error = %e, "manifest: no primary media file");
@@ -506,7 +506,7 @@ pub(crate) async fn stream_core<S: engine::MediaSource>(
             };
             let path = match path {
                 Some(p) => p,
-                None => match transcode::pick_primary_file(std::path::Path::new(&meta.path)) {
+                None => match transcode::pick_primary_file_async(std::path::PathBuf::from(&meta.path)).await {
                     Ok(p) => p,
                     Err(e) => {
                         tracing::warn!(id = %id, path = %meta.path, error = %e, "stream: no primary media file");
