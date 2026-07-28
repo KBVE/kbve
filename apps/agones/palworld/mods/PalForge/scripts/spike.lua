@@ -413,6 +413,26 @@ function M.signtrace(sender, msg, emit, deps)
             pcall(function()
                 emit("TRACE   model outer = " .. tostring(model:GetOuter():GetFullName()))
             end)
+
+            local id_read = false
+            pcall(function()
+                local id = model:TryGetMapObjectId()
+                local s = id
+                pcall(function() s = id:ToString() end)
+                emit("TRACE   MapObjectId (TryGetMapObjectId) = " .. tostring(s))
+                id_read = true
+            end)
+            if not id_read then
+                emit("TRACE   MapObjectId -> TryGetMapObjectId unavailable")
+            end
+            for _, field in ipairs({ "MapObjectMasterDataId", "BuildObjectId" }) do
+                pcall(function()
+                    local v = model[field]
+                    local s = v
+                    pcall(function() s = v:ToString() end)
+                    emit("TRACE   " .. field .. " = " .. tostring(s))
+                end)
+            end
         end)
     end
 
@@ -428,62 +448,126 @@ function M.signtrace(sender, msg, emit, deps)
     return true
 end
 
-local MAPOBJ_ID_CANDIDATES = {
-    "Signboard",
-    "SignBoard",
-    "Sign",
-    "Signboard_Wood",
-    "Signboard01",
-    "BuildObject_Signboard",
-}
+local ID_MODEL_CLASSES = { "PalMapObjectConcreteModelBase" }
 
-function M.signplace(sender, msg, emit, loc_fn, deps)
-    if type(msg) ~= "string" or trim(msg):lower() ~= "!signplace" then
+local function read_id(model)
+    local s = nil
+    pcall(function()
+        local id = model:TryGetMapObjectId()
+        s = id
+        pcall(function() s = id:ToString() end)
+        s = tostring(s)
+    end)
+    if s == nil or s == "" or s == "nil" then
+        return nil
+    end
+    return s
+end
+
+local function collect_ids(find_all)
+    local set = {}
+    for _, cname in ipairs(ID_MODEL_CLASSES) do
+        local models = find_all(cname)
+        if type(models) == "table" then
+            for _, m in ipairs(models) do
+                local s = read_id(m)
+                if s then
+                    set[s] = (set[s] or 0) + 1
+                end
+            end
+        end
+    end
+    return set
+end
+
+function M.mapids(sender, msg, emit, deps)
+    if type(msg) ~= "string" or trim(msg):lower() ~= "!mapids" then
         return false
     end
     deps = deps or {}
-    local find_first = deps.find_first or FindFirstOf
+    local find_all = deps.find_all or FindAllOf
 
-    emit("signplace: start (native server spawn = ownerless + saved + no-decay)")
+    emit("mapids: start (read-only; live model MapObjectIds)")
+    local set = collect_ids(find_all)
+
+    local total, shown = 0, 0
+    local signs = {}
+    for id, n in pairs(set) do
+        total = total + 1
+        if id:lower():find("sign", 1, true) then
+            signs[#signs + 1] = id .. " (x" .. n .. ")"
+        end
+        if shown < 25 then
+            emit("mapid " .. id .. " x" .. n)
+            shown = shown + 1
+        end
+    end
+    emit("mapids: unique ids = " .. total .. " (showed " .. shown .. ")")
+    if #signs > 0 then
+        emit("mapids SIGN matches -> " .. table.concat(signs, " | "))
+    else
+        emit("mapids: no id containing 'sign' among live models")
+    end
+    emit("mapids: done")
+    return true
+end
+
+function M.signtry(sender, msg, emit, loc_fn, deps)
+    if type(msg) ~= "string" then
+        return false
+    end
+    local body = trim(msg)
+    local id = body:match("^[!]signtry%s+(.+)$")
+    if not id then
+        if body:lower() == "!signtry" then
+            emit("signtry: usage !signtry <MapObjectId> (id must exist among live models)")
+            return true
+        end
+        return false
+    end
+    id = trim(id)
+
+    deps = deps or {}
+    local find_first = deps.find_first or FindFirstOf
+    local find_all = deps.find_all or FindAllOf
+
+    emit("signtry: request id='" .. id .. "'")
+
+    local known = collect_ids(find_all)
+    if not known[id] then
+        emit("signtry: REFUSED — id '" .. id .. "' not found among live models (avoid null-row crash). Run !mapids.")
+        return true
+    end
+    emit("signtry: id validated (x" .. known[id] .. " live)")
 
     local mgr = find_first("PalMapObjectManager")
     if not is_valid(mgr) then
-        emit("signplace: abort — PalMapObjectManager not found")
+        emit("signtry: abort — PalMapObjectManager not found")
         return true
     end
 
     local loc = loc_fn and loc_fn(sender) or nil
     if not loc then
-        emit("signplace: abort — no location")
+        emit("signtry: abort — no location")
         return true
     end
-    emit(string.format("signplace at X=%.1f Y=%.1f Z=%.1f", loc.x, loc.y, loc.z))
 
     local location = { X = loc.x, Y = loc.y, Z = loc.z }
     local rotation = { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
 
-    local placed_id = nil
-    for _, id in ipairs(MAPOBJ_ID_CANDIDATES) do
-        local ok, res = pcall(function()
-            return mgr:RequestSpawnMapObject_Server(id, location, rotation)
-        end)
-        if not ok then
-            emit("signplace id=" .. id .. " -> ERR " .. tostring(res))
-        else
-            emit("signplace id=" .. id .. " -> " .. tostring(res))
-            if res == true then
-                placed_id = id
-                break
-            end
-        end
-    end
+    emit(string.format(
+        "signtry: CALLING RequestSpawnMapObject_Server id='%s' loc=%.1f,%.1f,%.1f (may crash — pre-logged)",
+        id, loc.x, loc.y, loc.z))
 
-    if placed_id then
-        emit("signplace: SUCCESS via MapObjectId '" .. placed_id .. "' — LOOK for the sign")
-    else
-        emit("signplace: no candidate id returned true (need correct MapObjectId)")
+    local ok, res = pcall(function()
+        return mgr:RequestSpawnMapObject_Server(id, location, rotation)
+    end)
+
+    emit("signtry: RETURNED ok=" .. tostring(ok) .. " res=" .. tostring(res))
+    if ok and res == true then
+        emit("signtry: SUCCESS — LOOK for the object")
     end
-    emit("signplace: done")
+    emit("signtry: done")
     return true
 end
 
