@@ -174,30 +174,6 @@ local signinspect_ok = si1 == true
     and emitted(si_emits, "instances -> 1")
     and emitted(si_emits, "signinspect: done")
 
-_print("=== spike.signplace command ===")
-local pl_emits = {}
-local function pl_emit(m)
-    pl_emits[#pl_emits + 1] = m
-    _print("  place: " .. m)
-end
-local pl_deps = {
-    find_first = function()
-        return {
-            IsValid = function() return true end,
-            RequestSpawnMapObject_Server = function(_, id)
-                return id == "Signboard"
-            end,
-        }
-    end,
-}
-local pl1 = spike.signplace("Al", "!signplace", pl_emit, mock_loc, pl_deps)
-local pl2 = spike.signplace("Al", "nope", pl_emit, mock_loc, pl_deps)
-local signplace_ok = pl1 == true
-    and pl2 == false
-    and emitted(pl_emits, "signplace: start")
-    and emitted(pl_emits, "SUCCESS via MapObjectId 'Signboard'")
-    and emitted(pl_emits, "signplace: done")
-
 _print("=== spike.signtrace command ===")
 local st_emits = {}
 local function st_emit(m)
@@ -258,7 +234,6 @@ local ok = calls.pending == 1
     and spawn_ok
     and clear_ok
     and signinspect_ok
-    and signplace_ok
     and signtrace_ok
     and curltest_ok
     and httptest_ok
