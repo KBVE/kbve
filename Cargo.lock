@@ -2357,7 +2357,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.255"
+version = "1.0.256"
 dependencies = [
  "anyhow",
  "askama 0.16.0",
@@ -15398,7 +15398,7 @@ dependencies = [
 
 [[package]]
 name = "reel"
-version = "0.1.18"
+version = "0.1.19"
 dependencies = [
  "anyhow",
  "axum 0.8.9",
