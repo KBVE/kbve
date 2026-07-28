@@ -9,6 +9,20 @@ pub struct ProbeResult {
     pub video_codec: Option<String>,
     pub audio_codec: Option<String>,
     pub container: Option<String>,
+    pub duration_secs: Option<f64>,
+}
+
+pub fn progress_pct(out_time_us: u64, duration_secs: f64) -> u8 {
+    if duration_secs <= 0.0 {
+        return 0;
+    }
+    let pct = (out_time_us as f64 / 1_000_000.0) / duration_secs * 100.0;
+    pct.clamp(0.0, 100.0) as u8
+}
+
+pub fn parse_progress_line(line: &str) -> Option<(&str, &str)> {
+    let (k, v) = line.split_once('=')?;
+    Some((k.trim(), v.trim()))
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -129,15 +143,21 @@ pub async fn probe(ffprobe_bin: &str, path: &Path) -> anyhow::Result<ProbeResult
             }
         }
     }
-    let container = json
-        .get("format")
+    let format = json.get("format");
+    let container = format
         .and_then(|f| f.get("format_name"))
         .and_then(|v| v.as_str())
         .map(String::from);
+    let duration_secs = format
+        .and_then(|f| f.get("duration"))
+        .and_then(|v| v.as_str())
+        .and_then(|s| s.parse::<f64>().ok())
+        .filter(|d| *d > 0.0);
     Ok(ProbeResult {
         video_codec: video,
         audio_codec: audio,
         container,
+        duration_secs,
     })
 }
 
@@ -222,6 +242,7 @@ pub struct Transcoder {
     enabled: bool,
     encode_threads: usize,
     children: Arc<std::sync::Mutex<std::collections::HashMap<String, tokio::process::Child>>>,
+    progress: Arc<std::sync::Mutex<std::collections::HashMap<String, u8>>>,
 }
 
 impl Transcoder {
@@ -243,6 +264,7 @@ impl Transcoder {
             enabled,
             encode_threads,
             children: Arc::new(std::sync::Mutex::new(std::collections::HashMap::new())),
+            progress: Arc::new(std::sync::Mutex::new(std::collections::HashMap::new())),
         };
         for m in this.store.list() {
             let in_flight = matches!(
@@ -311,24 +333,57 @@ impl Transcoder {
         args: &[&str],
         src: &std::path::Path,
         dest: &std::path::Path,
+        duration_secs: Option<f64>,
     ) -> anyhow::Result<()> {
         use tokio::io::AsyncReadExt;
         let mut cmd = Command::new(&self.ffmpeg_bin);
-        cmd.arg("-y")
-            .arg("-nostats")
-            .arg("-loglevel")
+        cmd.arg("-y").arg("-nostats");
+        if duration_secs.is_some() {
+            cmd.arg("-progress")
+                .arg("pipe:1")
+                .arg("-stats_period")
+                .arg("1");
+        }
+        cmd.arg("-loglevel")
             .arg("error")
             .arg("-i")
             .arg(src)
             .args(args)
             .arg(dest)
             .stderr(std::process::Stdio::piped());
+        if duration_secs.is_some() {
+            cmd.stdout(std::process::Stdio::piped());
+        }
         let mut child = cmd.spawn()?;
+        let stdout = child.stdout.take();
         let mut stderr = child.stderr.take();
         self.children
             .lock()
             .unwrap()
             .insert(id.to_string(), child);
+
+        if let (Some(stdout), Some(dur)) = (stdout, duration_secs) {
+            use tokio::io::AsyncBufReadExt;
+            let this = self.clone();
+            let id = id.to_string();
+            tokio::spawn(async move {
+                let mut lines = tokio::io::BufReader::new(stdout).lines();
+                while let Ok(Some(line)) = lines.next_line().await {
+                    if let Some((k, v)) = parse_progress_line(&line) {
+                        match k {
+                            // ffmpeg reports both keys in microseconds
+                            "out_time_us" | "out_time_ms" => {
+                                if let Ok(us) = v.parse::<u64>() {
+                                    this.set_progress(&id, progress_pct(us, dur));
+                                }
+                            }
+                            "progress" if v == "end" => this.set_progress(&id, 100),
+                            _ => {}
+                        }
+                    }
+                }
+            });
+        }
 
         let mut errbuf = String::new();
         if let Some(e) = stderr.as_mut() {
@@ -348,6 +403,18 @@ impl Transcoder {
 
     fn take_child(&self, id: &str) -> Option<tokio::process::Child> {
         self.children.lock().unwrap().remove(id)
+    }
+
+    fn set_progress(&self, id: &str, pct: u8) {
+        self.progress.lock().unwrap().insert(id.to_string(), pct);
+    }
+
+    fn clear_progress(&self, id: &str) {
+        self.progress.lock().unwrap().remove(id);
+    }
+
+    pub fn progress_of(&self, id: &str) -> Option<u8> {
+        self.progress.lock().unwrap().get(id).copied()
     }
 
     pub async fn abort(&self, id: &str) {
@@ -391,25 +458,38 @@ impl Transcoder {
             };
             ((), true)
         });
+        self.set_progress(id, 0);
+        let duration = probe.duration_secs;
 
-        match route {
-            Route::Remux => {
-                let _permit = self.remux_sem.acquire().await?;
-                self.run_tracked(id, &["-c", "copy", "-movflags", "+faststart"], &primary, &dest)
-                    .await?;
-            }
-            Route::Encode => {
-                let _permit = self.encode_sem.acquire().await?;
-                let threads = self.encode_threads.to_string();
-                let mut args: Vec<&str> = vec!["-c:v", "libx264"];
-                if self.encode_threads > 0 {
-                    args.push("-threads");
-                    args.push(&threads);
+        let result = async {
+            match route {
+                Route::Remux => {
+                    let _permit = self.remux_sem.acquire().await?;
+                    self.run_tracked(
+                        id,
+                        &["-c", "copy", "-movflags", "+faststart"],
+                        &primary,
+                        &dest,
+                        duration,
+                    )
+                    .await
                 }
-                args.extend_from_slice(&["-c:a", "aac", "-movflags", "+faststart"]);
-                self.run_tracked(id, &args, &primary, &dest).await?;
+                Route::Encode => {
+                    let _permit = self.encode_sem.acquire().await?;
+                    let threads = self.encode_threads.to_string();
+                    let mut args: Vec<&str> = vec!["-c:v", "libx264"];
+                    if self.encode_threads > 0 {
+                        args.push("-threads");
+                        args.push(&threads);
+                    }
+                    args.extend_from_slice(&["-c:a", "aac", "-movflags", "+faststart"]);
+                    self.run_tracked(id, &args, &primary, &dest, duration).await
+                }
             }
         }
+        .await;
+        self.clear_progress(id);
+        result?;
 
         let _ = self.store.update(id, |m| {
             m.transcode = TranscodeStatus::Ready;
@@ -430,7 +510,24 @@ mod tests {
             video_codec: v.map(String::from),
             audio_codec: a.map(String::from),
             container: c.map(String::from),
+            duration_secs: None,
         }
+    }
+
+    #[test]
+    fn progress_pct_computes_and_clamps() {
+        assert_eq!(progress_pct(0, 100.0), 0);
+        assert_eq!(progress_pct(50_000_000, 100.0), 50);
+        assert_eq!(progress_pct(100_000_000, 100.0), 100);
+        assert_eq!(progress_pct(200_000_000, 100.0), 100, "clamps over 100");
+        assert_eq!(progress_pct(50_000_000, 0.0), 0, "no duration → 0");
+    }
+
+    #[test]
+    fn parse_progress_line_splits_key_value() {
+        assert_eq!(parse_progress_line("out_time_us=4560000"), Some(("out_time_us", "4560000")));
+        assert_eq!(parse_progress_line("progress=end"), Some(("progress", "end")));
+        assert_eq!(parse_progress_line("garbage"), None);
     }
     #[test]
     fn h264_aac_remuxes() {
