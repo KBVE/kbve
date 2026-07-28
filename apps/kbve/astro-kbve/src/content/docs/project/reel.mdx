@@ -163,6 +163,13 @@ librqbit announces), `forwarded_port` (what gluetun currently forwards), and
 `inbound_ready` (true only when the two match). The staff console shows this as
 `● inbound :PORT` vs `○ outbound-only`.
 
+Port forwarding uses NAT-PMP against the WireGuard gateway (`10.2.0.1`), so
+`FIREWALL_OUTBOUND_SUBNETS` must **not** cover the tunnel gateway — a broad
+`10.0.0.0/8` swallows it and gluetun routes the NAT-PMP request outside the tunnel
+(`getting external IPv4 address … i/o timeout`, no forwarded port). It's scoped to
+the cluster pod + service CIDRs (`10.244.0.0/16`, `10.96.0.0/12`) instead, which
+excludes `10.2.0.0/16` while still letting reel answer in-cluster health probes.
+
 Request-path media scans (`pick_primary_file`) run on a blocking thread pool so a
 large library tree can't stall the async runtime, and the hls.js player carries
 its scoped token in the `Authorization` header rather than the URL query — the
