@@ -12,6 +12,7 @@ import {
 	IMapObjectSchema,
 	INpcSchema,
 	ISpellSchema,
+	IProfessionSchema,
 	ITileSchema,
 	OSRSExtendedSchema,
 	ICiProjectSchema,
@@ -109,6 +110,14 @@ const spelldb = defineCollection({
 	schema: ISpellSchema,
 });
 
+const professiondb = defineCollection({
+	loader: glob({
+		pattern: '**/*.mdx',
+		base: './src/content/docs/professiondb',
+	}),
+	schema: IProfessionSchema,
+});
+
 const tiledb = defineCollection({
 	loader: glob({
 		pattern: '**/*.mdx',
@@ -198,6 +207,7 @@ export const collections = {
 	questdb,
 	npcdb,
 	spelldb,
+	professiondb,
 	application,
 	gdd,
 	project,

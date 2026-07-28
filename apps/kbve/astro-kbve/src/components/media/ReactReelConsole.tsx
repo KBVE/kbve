@@ -5,11 +5,13 @@ import {
 	$reelList,
 	$reelListError,
 	$reelListLoading,
+	$reelLive,
 	addTorrent,
 	deleteTorrent,
 	startTranscode,
 	refreshReelList,
 	type ReelTorrent,
+	type ReelLive,
 } from './reelService';
 
 const STATE_BADGE: Record<string, string> = {
@@ -31,10 +33,34 @@ function fmtSize(bytes: number): string {
 	return `${v.toFixed(v < 10 && i > 0 ? 1 : 0)} ${units[i]}`;
 }
 
+function progressLine(t: ReelTorrent, live: ReelLive | undefined): string {
+	if (t.state === 'Leeching') {
+		if (!live || live.total_bytes === 0) {
+			const seen = live?.peers_seen ?? 0;
+			return seen > 0
+				? `resolving metadata • ${seen} peer${seen === 1 ? '' : 's'} seen`
+				: 'searching for peers…';
+		}
+		const pct = Math.min(
+			100,
+			Math.floor((live.progress_bytes / live.total_bytes) * 100),
+		);
+		const speed = live.download_mbps
+			? ` • ${live.download_mbps.toFixed(1)} MB/s`
+			: '';
+		return `${pct}% of ${fmtSize(live.total_bytes)}${speed} • ${live.peers_live} peer${live.peers_live === 1 ? '' : 's'}`;
+	}
+	if (t.state === 'Seeding' && live && live.upload_mbps) {
+		return `seeding • ↑ ${live.upload_mbps.toFixed(1)} MB/s • ${live.peers_live} peer${live.peers_live === 1 ? '' : 's'}`;
+	}
+	return fmtSize(t.size);
+}
+
 export default function ReactReelConsole() {
 	const list = useStore($reelList);
 	const listError = useStore($reelListError);
 	const loading = useStore($reelListLoading);
+	const live = useStore($reelLive);
 	const isStaff = useStore(homeService.$isStaff);
 
 	const [source, setSource] = useState('');
@@ -178,7 +204,7 @@ export default function ReactReelConsole() {
 										}`}>
 										{t.state}
 									</span>
-									<span>{fmtSize(t.size)}</span>
+									<span>{progressLine(t, live[t.id])}</span>
 									{t.transcode !== 'None' && (
 										<span>transcode: {t.transcode}</span>
 									)}

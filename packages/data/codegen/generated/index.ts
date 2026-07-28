@@ -29,6 +29,7 @@ export * from './osrs-schema.js';
 export * from './ows-schema.js';
 export * from './pool-schema.js';
 export * from './profile-schema.js';
+export * from './professiondb-schema.js';
 export * from './questdb-schema.js';
 export * from './redis-schema.js';
 export * from './rows-schema.js';

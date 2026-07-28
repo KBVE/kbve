@@ -285,9 +285,16 @@ local MODEL_CLASSES = {
     "PalMapObjectConcreteModelBase",
 }
 
+local function full_name(obj)
+    local fn = nil
+    pcall(function() fn = tostring(obj:GetFullName()) end)
+    return fn
+end
+
 local function is_tracked(actor)
+    local target = full_name(actor)
     for _, a in ipairs(spawned) do
-        if a == actor then
+        if a == actor or (target and full_name(a) == target) then
             return true
         end
     end
@@ -332,9 +339,13 @@ function M.signinspect(sender, msg, emit, find_first, find_all)
         boards = {}
     end
     for _, a in ipairs(spawned) do
+        local afull = full_name(a)
         local seen = false
         for _, b in ipairs(boards) do
-            if b == a then seen = true break end
+            if b == a or (afull and full_name(b) == afull) then
+                seen = true
+                break
+            end
         end
         if not seen then
             boards[#boards + 1] = a
@@ -357,6 +368,63 @@ function M.signinspect(sender, msg, emit, find_first, find_all)
     end
 
     emit("signinspect: done (populated model/mesh props on PLACED = what bare spawn lacks)")
+    return true
+end
+
+local SIGNBOARD_ONSETMODEL_CANDS = {
+    "/Game/Pal/Blueprint/MapObject/BuildObject/BP_BuildObject_Signboard.BP_BuildObject_Signboard_C:OnSetConcreteModel",
+    "BP_BuildObject_Signboard_C:OnSetConcreteModel",
+}
+local trace_registered = false
+
+function M.signtrace(sender, msg, emit, deps)
+    if type(msg) ~= "string" or trim(msg):lower() ~= "!signtrace" then
+        return false
+    end
+    deps = deps or {}
+    local register = deps.register or RegisterHook
+    local load_asset = deps.load_asset or LoadAsset
+
+    if trace_registered then
+        emit("signtrace: already armed — place a signboard and watch for TRACE")
+        return true
+    end
+
+    emit("signtrace: arming OnSetConcreteModel hook (force-load class first)")
+    pcall(load_asset, SIGNBOARD_CLASS)
+
+    local function cb(ctx, model_param)
+        pcall(function()
+            local actor = ctx and ctx:get()
+            local afull = "?"
+            pcall(function() afull = tostring(actor:GetFullName()) end)
+            emit("TRACE OnSetConcreteModel actor=" .. afull)
+
+            local model = model_param and model_param:get()
+            if not model then
+                emit("TRACE   model = nil")
+                return
+            end
+            local mfull, mcls = "?", "?"
+            pcall(function() mfull = tostring(model:GetFullName()) end)
+            pcall(function() mcls = tostring(model:GetClass():GetFullName()) end)
+            emit("TRACE   model class = " .. mcls)
+            emit("TRACE   model full  = " .. mfull)
+            pcall(function()
+                emit("TRACE   model outer = " .. tostring(model:GetOuter():GetFullName()))
+            end)
+        end)
+    end
+
+    for _, fn in ipairs(SIGNBOARD_ONSETMODEL_CANDS) do
+        local ok = pcall(register, fn, cb)
+        emit("signtrace hook " .. fn .. " -> " .. (ok and "registered" or "FAILED"))
+        if ok then
+            trace_registered = true
+            break
+        end
+    end
+    emit("signtrace: armed=" .. tostring(trace_registered) .. " — now MANUALLY place a signboard")
     return true
 end
 

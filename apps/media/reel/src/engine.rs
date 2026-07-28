@@ -146,6 +146,19 @@ pub fn is_stalled(prev_bytes: u64, cur_bytes: u64, idle_secs: u64, stall_timeout
     cur_bytes <= prev_bytes && idle_secs >= stall_timeout_secs
 }
 
+#[derive(serde::Serialize)]
+pub struct TorrentLive {
+    pub id: String,
+    pub progress_bytes: u64,
+    pub total_bytes: u64,
+    pub finished: bool,
+    pub download_mbps: f64,
+    pub upload_mbps: f64,
+    pub peers_live: usize,
+    pub peers_seen: usize,
+    pub peers_connecting: usize,
+}
+
 fn magnet_with_trackers(source: &str, trackers: &[String]) -> String {
     if trackers.is_empty() {
         return source.to_string();
@@ -774,12 +787,46 @@ impl Engine {
             anyhow::bail!("all {} tracker sources failed", urls.len());
         }
         let merged = config::merge_trackers(embedded.iter().cloned().chain(fetched));
+        let current = self.trackers.lock().unwrap().clone();
+        if merged == *current {
+            return Ok(merged.len());
+        }
         if let Err(e) = write_cache(cache, &merged) {
             tracing::warn!(error = %e, cache = %cache.display(), "tracker cache write failed");
         }
         let n = merged.len();
         *self.trackers.lock().unwrap() = Arc::new(merged);
         Ok(n)
+    }
+
+    pub fn live_stats(&self) -> Vec<TorrentLive> {
+        self.session.with_torrents(|it| {
+            it.map(|(_, h)| {
+                let s = h.stats();
+                let (down, up, live, seen, connecting) = match s.live.as_ref() {
+                    Some(l) => (
+                        l.download_speed.mbps,
+                        l.upload_speed.mbps,
+                        l.snapshot.peer_stats.live,
+                        l.snapshot.peer_stats.seen,
+                        l.snapshot.peer_stats.connecting,
+                    ),
+                    None => (0.0, 0.0, 0, 0, 0),
+                };
+                TorrentLive {
+                    id: h.info_hash().as_string(),
+                    progress_bytes: s.progress_bytes,
+                    total_bytes: s.total_bytes,
+                    finished: s.finished,
+                    download_mbps: down,
+                    upload_mbps: up,
+                    peers_live: live,
+                    peers_seen: seen,
+                    peers_connecting: connecting,
+                }
+            })
+            .collect()
+        })
     }
 
     pub fn tracker_count(&self) -> usize {
@@ -793,6 +840,15 @@ fn write_cache(cache: &std::path::Path, list: &[String]) -> std::io::Result<()> 
     std::fs::rename(&tmp, cache)
 }
 
+fn cache_is_fresh(cache: &std::path::Path, max_age_secs: u64) -> bool {
+    std::fs::metadata(cache)
+        .and_then(|m| m.modified())
+        .ok()
+        .and_then(|t| t.elapsed().ok())
+        .map(|age| age.as_secs() < max_age_secs)
+        .unwrap_or(false)
+}
+
 pub async fn tracker_refresh_loop(
     engine: Engine,
     urls: Vec<String>,
@@ -800,10 +856,14 @@ pub async fn tracker_refresh_loop(
     embedded: Vec<String>,
     interval_secs: u64,
 ) {
-    match engine.refresh_trackers(&urls, &cache, &embedded).await {
-        Ok(n) => tracing::info!(count = n, sources = urls.len(), "tracker list loaded"),
-        Err(e) => {
-            tracing::warn!(error = %e, "tracker fetch failed; using cache/embedded seed")
+    if cache_is_fresh(&cache, interval_secs.max(60)) {
+        tracing::info!("tracker cache is fresh; deferring initial fetch to first interval");
+    } else {
+        match engine.refresh_trackers(&urls, &cache, &embedded).await {
+            Ok(n) => tracing::info!(count = n, sources = urls.len(), "tracker list loaded"),
+            Err(e) => {
+                tracing::warn!(error = %e, "tracker fetch failed; using cache/embedded seed")
+            }
         }
     }
     let mut ticker = tokio::time::interval(std::time::Duration::from_secs(interval_secs.max(60)));

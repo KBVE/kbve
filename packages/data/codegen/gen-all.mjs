@@ -48,6 +48,11 @@ const protos = [
 		package: 'spell',
 	},
 	{
+		name: 'professiondb',
+		protoFile: 'profession/professiondb.proto',
+		package: 'profession',
+	},
+	{
 		name: 'questdb',
 		protoFile: 'quest/questdb.proto',
 		package: 'quest',
