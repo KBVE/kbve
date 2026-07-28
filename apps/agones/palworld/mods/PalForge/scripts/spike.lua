@@ -413,6 +413,26 @@ function M.signtrace(sender, msg, emit, deps)
             pcall(function()
                 emit("TRACE   model outer = " .. tostring(model:GetOuter():GetFullName()))
             end)
+
+            local id_read = false
+            pcall(function()
+                local id = model:TryGetMapObjectId()
+                local s = id
+                pcall(function() s = id:ToString() end)
+                emit("TRACE   MapObjectId (TryGetMapObjectId) = " .. tostring(s))
+                id_read = true
+            end)
+            if not id_read then
+                emit("TRACE   MapObjectId -> TryGetMapObjectId unavailable")
+            end
+            for _, field in ipairs({ "MapObjectMasterDataId", "BuildObjectId" }) do
+                pcall(function()
+                    local v = model[field]
+                    local s = v
+                    pcall(function() s = v:ToString() end)
+                    emit("TRACE   " .. field .. " = " .. tostring(s))
+                end)
+            end
         end)
     end
 
@@ -425,65 +445,6 @@ function M.signtrace(sender, msg, emit, deps)
         end
     end
     emit("signtrace: armed=" .. tostring(trace_registered) .. " — now MANUALLY place a signboard")
-    return true
-end
-
-local MAPOBJ_ID_CANDIDATES = {
-    "Signboard",
-    "SignBoard",
-    "Sign",
-    "Signboard_Wood",
-    "Signboard01",
-    "BuildObject_Signboard",
-}
-
-function M.signplace(sender, msg, emit, loc_fn, deps)
-    if type(msg) ~= "string" or trim(msg):lower() ~= "!signplace" then
-        return false
-    end
-    deps = deps or {}
-    local find_first = deps.find_first or FindFirstOf
-
-    emit("signplace: start (native server spawn = ownerless + saved + no-decay)")
-
-    local mgr = find_first("PalMapObjectManager")
-    if not is_valid(mgr) then
-        emit("signplace: abort — PalMapObjectManager not found")
-        return true
-    end
-
-    local loc = loc_fn and loc_fn(sender) or nil
-    if not loc then
-        emit("signplace: abort — no location")
-        return true
-    end
-    emit(string.format("signplace at X=%.1f Y=%.1f Z=%.1f", loc.x, loc.y, loc.z))
-
-    local location = { X = loc.x, Y = loc.y, Z = loc.z }
-    local rotation = { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
-
-    local placed_id = nil
-    for _, id in ipairs(MAPOBJ_ID_CANDIDATES) do
-        local ok, res = pcall(function()
-            return mgr:RequestSpawnMapObject_Server(id, location, rotation)
-        end)
-        if not ok then
-            emit("signplace id=" .. id .. " -> ERR " .. tostring(res))
-        else
-            emit("signplace id=" .. id .. " -> " .. tostring(res))
-            if res == true then
-                placed_id = id
-                break
-            end
-        end
-    end
-
-    if placed_id then
-        emit("signplace: SUCCESS via MapObjectId '" .. placed_id .. "' — LOOK for the sign")
-    else
-        emit("signplace: no candidate id returned true (need correct MapObjectId)")
-    end
-    emit("signplace: done")
     return true
 end
 
