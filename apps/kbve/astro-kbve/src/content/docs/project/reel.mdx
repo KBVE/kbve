@@ -13,7 +13,7 @@ tags:
 key: reel
 pipeline: docker
 app_name: reel
-version: "0.1.15"
+version: "0.1.16"
 source_path: apps/media/reel
 version_toml: apps/media/reel/version.toml
 version_target: apps/media/reel/Cargo.toml
@@ -160,12 +160,15 @@ large library tree can't stall the async runtime, and the hls.js player carries
 its scoped token in the `Authorization` header rather than the URL query — the
 token never lands in a manifest/segment request URL or a `Referer`.
 
-Transcode jobs report **live progress**: ffprobe reads the source duration, ffmpeg
-streams `-progress`, and reel derives a percent (0–100) held in memory (never
-persisted). `GET /status` surfaces it as `transcode_progress` and the console
-shows `transcode: Encoding 42%`. Input coverage is whatever the bundled ffmpeg
-supports — h264+aac passes through (remux), everything else re-encodes to h264/aac
-MP4.
+Transcode jobs report **live progress with an ETA**: ffprobe reads the source
+duration, ffmpeg streams `-progress`, and reel derives `{pct, speed, eta_secs}`
+held in memory (never persisted). `GET /status` surfaces it as
+`transcode_progress`. The staff console renders animated determinate bars for
+both **download** (percent, throughput, peers, ETA) and **transcode** (percent,
+encode speed ×, ETA), plus an indeterminate shimmer while resolving metadata or
+preparing HLS — all theme-aware and reduced-motion friendly. Input coverage is
+whatever the bundled ffmpeg supports — h264+aac passes through (remux),
+everything else re-encodes to h264/aac MP4.
 
 </BentoProse>
 

@@ -50,9 +50,15 @@ export interface ReelTorrent {
 	error?: string | null;
 	transcode: ReelTranscodeStatus;
 	transcode_error?: string | null;
-	transcode_progress?: number | null;
+	transcode_progress?: ReelTranscodeProgress | null;
 	hls: ReelHlsStatus;
 	hls_error?: string | null;
+}
+
+export interface ReelTranscodeProgress {
+	pct: number;
+	speed: number;
+	eta_secs?: number | null;
 }
 
 export interface ReelLive {
@@ -134,6 +140,37 @@ async function mediaToken(): Promise<string | null> {
 		mediaTokenCache = null;
 		return null;
 	}
+}
+
+export function formatEta(secs: number | null | undefined): string {
+	if (secs == null || !Number.isFinite(secs) || secs < 0) return '';
+	if (secs < 1) return 'almost done';
+	if (secs < 60) return `~${Math.round(secs)}s left`;
+	if (secs < 3600) {
+		const m = Math.floor(secs / 60);
+		const s = Math.round(secs % 60);
+		return s > 0 ? `~${m}m ${s}s left` : `~${m}m left`;
+	}
+	const h = Math.floor(secs / 3600);
+	const m = Math.round((secs % 3600) / 60);
+	return m > 0 ? `~${h}h ${m}m left` : `~${h}h left`;
+}
+
+export function formatSpeed(x: number | null | undefined): string {
+	if (x == null || !Number.isFinite(x) || x <= 0) return '';
+	return `${x.toFixed(x < 10 ? 1 : 0)}×`;
+}
+
+// librqbit reports speed in MiB/s
+export function downloadEtaSecs(
+	progressBytes: number,
+	totalBytes: number,
+	mibps: number,
+): number | null {
+	const remaining = totalBytes - progressBytes;
+	const bytesPerSec = mibps * 1024 * 1024;
+	if (remaining <= 0 || bytesPerSec <= 0) return null;
+	return remaining / bytesPerSec;
 }
 
 export function mediaUrl(id: string, suffix: string, token: string | null): string {
