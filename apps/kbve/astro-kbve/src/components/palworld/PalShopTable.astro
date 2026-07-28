@@ -1,0 +1,42 @@
+---
+import type { PalShop } from '@/data/schema';
+
+interface Props {
+	shop: PalShop;
+}
+
+const { shop } = Astro.props;
+const priceLabel = (p: number) => (p === 0 ? 'Free' : `${p.toLocaleString()} G`);
+const stockLabel = (s: number) => (s === 0 ? 'Unlimited' : String(s));
+---
+
+<div class="palshop">
+	<div class="palshop__meta">
+		<span class="palshop__id">{shop.shopId}</span>
+		<span class="palshop__count">{shop.items.length} items</span>
+	</div>
+	<table class="palshop__table">
+		<thead>
+			<tr><th>Item</th><th>Price</th><th>Qty</th><th>Stock</th></tr>
+		</thead>
+		<tbody>
+			{shop.items.map((it) => (
+				<tr>
+					<td>{it.id}</td>
+					<td>{priceLabel(it.price)}</td>
+					<td>{it.num}</td>
+					<td>{stockLabel(it.stock)}</td>
+				</tr>
+			))}
+		</tbody>
+	</table>
+</div>
+
+<style>
+	.palshop { margin: 1rem 0; }
+	.palshop__meta { display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.5rem; font-size: 0.85rem; opacity: 0.8; }
+	.palshop__id { font-family: var(--sl-font-mono, monospace); }
+	.palshop__table { width: 100%; border-collapse: collapse; }
+	.palshop__table th, .palshop__table td { text-align: left; padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--sl-color-gray-5); }
+	.palshop__table th { font-weight: 600; }
+</style>
