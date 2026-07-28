@@ -55,7 +55,7 @@ spec:
             - { name: REEL_LOG_JSON, value: "true" }
             - { name: REEL_BT_PORT_FILE, value: "/tmp/gluetun/forwarded_port" }
             - { name: REEL_BT_PORT_STABLE_SECS, value: "45" }
-            - { name: REEL_BT_PORT_WATCH_SECS, value: "30" }
+            - { name: REEL_BT_PORT_WATCH_SECS, value: "86400" }
             - { name: REEL_ENCODE_THREADS, value: "1" }
           envFrom:
             - secretRef: { name: reel-api }
