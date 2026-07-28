@@ -164,14 +164,22 @@ librqbit announces), `forwarded_port` (what gluetun currently forwards), and
 `● inbound :PORT` vs `○ outbound-only`.
 
 The forwarded port is **dynamic** — NAT-PMP settles on a port a few seconds after
-the tunnel comes up (the first value written can differ from the final one), and it
-rotates on every VPN reconnect. So reel doesn't trust a single early read: at startup
-it waits for the value to hold steady (`REEL_BT_PORT_STABLE_SECS`) before binding
-librqbit's listener, and a watcher (`REEL_BT_PORT_WATCH_SECS`) then compares the
-live `forwarded_port` against the bound `bt_listen_port` — on a durable mismatch it
-logs `vpn_forwarded_port_changed` and exits for a clean restart, so restart-resume
-rebinds the listener to the new port with no torrent loss. Without this the announced
-port silently drifts from the real forwarded port and inbound peers hit a dead port.
+the tunnel comes up (the first value written can differ from the final one). So reel
+doesn't trust a single early read: at startup it waits for the value to hold steady
+(`REEL_BT_PORT_STABLE_SECS`) before binding librqbit's listener, and a watcher
+(`REEL_BT_PORT_WATCH_SECS`) compares the live `forwarded_port` against the bound
+`bt_listen_port` — on a durable mismatch it logs `vpn_forwarded_port_changed` and
+exits for a clean restart so restart-resume rebinds with no torrent loss.
+
+That rebind only makes sense when the port is otherwise **stable**. On the current
+provider exit it isn't — gluetun's NAT-PMP renewal returns a *new* external port
+roughly every 90s (`requested as N but received M`), so the forwarded port rotates
+continuously and can never match a pinned socket. Chasing it would restart-loop, so
+`REEL_BT_PORT_WATCH_SECS` is set very high to disable the rebind: reel binds its
+startup port once and stays put. The service runs **outbound-only** (fine for
+well-seeded torrents; peer stability comes from the VPN watchdog + MTU + encode-cap
+fixes, not inbound PF). If a future exit holds the port, lowering the interval
+re-enables live rebind.
 
 Port forwarding uses NAT-PMP against the WireGuard gateway (`10.2.0.1`), so
 `FIREWALL_OUTBOUND_SUBNETS` must **not** cover the tunnel gateway — a broad
