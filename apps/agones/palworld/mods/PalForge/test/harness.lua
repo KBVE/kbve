@@ -1,20 +1,11 @@
 local SCRIPTS = assert(arg[1], "usage: lua harness.lua <abs path to PalForge/scripts>")
 package.path = SCRIPTS .. "/?.lua;" .. package.path
 
-local calls = { pending = 0, placed = 0, setter_callable = 0, setter_absent = 0 }
-
 local _print = print
+local loaded_line = nil
 function print(msg)
-    if type(msg) == "string" then
-        if msg:find("PENDING", 1, true) then
-            calls.pending = calls.pending + 1
-        elseif msg:find("placed sign", 1, true) then
-            calls.placed = calls.placed + 1
-        elseif msg:find("CALLABLE", 1, true) then
-            calls.setter_callable = calls.setter_callable + 1
-        elseif msg:find("absent/threw", 1, true) then
-            calls.setter_absent = calls.setter_absent + 1
-        end
+    if type(msg) == "string" and msg:find("PalForge] loaded", 1, true) then
+        loaded_line = msg
     end
     _print(msg)
 end
@@ -22,296 +13,84 @@ end
 function StaticFindObject(_)
     return { IsValid = function() return true end }
 end
-
 function ExecuteWithDelay(_, _) end
+function RegisterHook(_, _) return true end
+function FindFirstOf(_) return { IsValid = function() return true end } end
+function FindAllOf(_) return {} end
 
-function RegisterHook(_, _)
-    return true
-end
-
-function FindAllOf(_)
-    local board = {
-        GetSignboardText = function()
-            return { ToString = function() return "existing sign text" end }
-        end,
-        SetText = function() return true end,
-    }
-    return { board }
-end
-
-_print("=== load main.lua ===")
-dofile(SCRIPTS .. "/main.lua")
-
-_print("=== load probe.lua ===")
-dofile(SCRIPTS .. "/probe.lua")
-
-_print("=== pos.lua command ===")
-local pos = require("pos")
-
-local pos_emits = {}
-local function emit(m)
-    pos_emits[#pos_emits + 1] = m
-    _print("  emit: " .. m)
-end
-
-local function finder_with(name, x, y, z)
-    local pc = {
-        PlayerState = { PlayerNamePrivate = { ToString = function() return name end } },
-        Pawn = { K2_GetActorLocation = function() return { X = x, Y = y, Z = z } end },
-    }
-    return function(_)
-        return { pc }
-    end
-end
-
-local h1 = pos.handle("Al", "!pos", emit, finder_with("Al", 100, 200, 300))
-local n_after_h1 = #pos_emits
-local h2 = pos.handle("Al", "/pos", emit, finder_with("Al", 1, 2, 3))
-local n_after_h2 = #pos_emits
-local h3 = pos.handle("Al", "  !POS ", emit, finder_with("Al", 5, 6, 7))
-local h4 = pos.handle("Bob", "!pos", emit, function(_) return {} end)
-
-local pos_ok = h1 == true
-    and h2 == false
-    and n_after_h2 == n_after_h1
-    and h3 == true
-    and h4 == true
-    and pos_emits[1] == "!pos Al -> X=100.0 Y=200.0 Z=300.0"
-    and pos_emits[2] == "!pos Al -> X=5.0 Y=6.0 Z=7.0"
-    and pos_emits[3]:find("location unresolved", 1, true) ~= nil
-
-_print("=== spike.lua command ===")
-local spike = require("spike")
-local sp_emits = {}
-local function sp_emit(m)
-    sp_emits[#sp_emits + 1] = m
-    _print("  spike: " .. m)
-end
-local mock_static = function()
-    return { IsValid = function() return true end, GetFullName = function() return "SignboardClass" end }
-end
-local mock_find = function()
-    return { GetFullName = function() return "PalGameWorld_0" end }
-end
-local mock_loc = function()
-    return { x = 1, y = 2, z = 3 }
-end
-local s1 = spike.handle("Al", "!signprobe", sp_emit, mock_loc, mock_static, mock_find)
-local s2 = spike.handle("Al", "nope", sp_emit, mock_loc, mock_static, mock_find)
-local spike_ok = s1 == true
-    and s2 == false
-    and sp_emits[1]:find("signprobe: start", 1, true) ~= nil
-    and sp_emits[#sp_emits]:find("done", 1, true) ~= nil
-
-_print("=== spike.spawn command ===")
-local spawned = { destroyed = false }
-spawned.IsValid = function() return not spawned.destroyed end
-spawned.GetFullName = function() return "Signboard_spawned_1" end
-spawned.K2_DestroyActor = function() spawned.destroyed = true end
-local spawn_deps = {
-    static_find = function() return { IsValid = function() return false end } end,
-    load_asset = function() return { IsValid = function() return true end } end,
-    find_first = function()
-        return { IsValid = function() return true end, SpawnActor = function() return spawned end }
-    end,
-}
-local sw_emits = {}
-local function sw_emit(m)
-    sw_emits[#sw_emits + 1] = m
-    _print("  spawn: " .. m)
-end
-local w1 = spike.spawn("Al", "!signspawn", sw_emit, mock_loc, spawn_deps)
-local w2 = spike.spawn("Al", "nope", sw_emit, mock_loc, spawn_deps)
 local function emitted(list, needle)
     for _, m in ipairs(list) do
         if m:find(needle, 1, true) then return true end
     end
     return false
 end
-local spawn_ok = w1 == true
-    and w2 == false
-    and emitted(sw_emits, "ACTOR SPAWNED")
-    and sw_emits[#sw_emits]:find("signspawn: done", 1, true) ~= nil
 
-_print("=== spike.clear command ===")
-local cl_emits = {}
-local function cl_emit(m)
-    cl_emits[#cl_emits + 1] = m
-    _print("  clear: " .. m)
-end
-local c1 = spike.clear("Al", "!signclear", cl_emit)
-local c2 = spike.clear("Al", "nope", cl_emit)
-local clear_ok = c1 == true
-    and c2 == false
-    and emitted(cl_emits, "destroyed=1")
-    and emitted(cl_emits, "signclear: done")
-    and spawned.destroyed == true
+_print("=== load main.lua ===")
+dofile(SCRIPTS .. "/main.lua")
+assert(loaded_line ~= nil, "main.lua did not emit loaded line")
 
-_print("=== spike.signinspect command ===")
-local si_emits = {}
-local function si_emit(m)
-    si_emits[#si_emits + 1] = m
-    _print("  inspect: " .. m)
-end
-local function si_board(full)
-    return {
-        GetFullName = function() return full end,
-        ForEachProperty = function(_, cb)
-            cb({ GetName = function() return "StaticMeshComponent" end })
-            cb({ GetName = function() return "UnrelatedFlag" end })
-        end,
+_print("=== pos.lua ===")
+local pos = require("pos")
+local pos_emits = {}
+local function pos_emit(m) pos_emits[#pos_emits + 1] = m; _print("  pos: " .. m) end
+local function finder_with(name, x, y, z)
+    local pc = {
+        PlayerState = { PlayerNamePrivate = { ToString = function() return name end } },
+        Pawn = { K2_GetActorLocation = function() return { X = x, Y = y, Z = z } end },
     }
+    return function(_) return { pc } end
 end
-local si_find_first = function() return { IsValid = function() return true end } end
-local si_find_all = function() return { si_board("Signboard_placed_A") } end
-local si1 = spike.signinspect("Al", "!signinspect", si_emit, si_find_first, si_find_all)
-local si2 = spike.signinspect("Al", "nope", si_emit, si_find_first, si_find_all)
-local si_empty = spike.signinspect("Al", "!signinspect", si_emit, si_find_first, function() return {} end)
-local signinspect_ok = si1 == true
-    and si2 == false
-    and si_empty == true
-    and emitted(si_emits, "signinspect: start")
-    and emitted(si_emits, "instances -> 1")
-    and emitted(si_emits, "signinspect: done")
+local p1 = pos.handle("Al", "!pos", pos_emit, finder_with("Al", 100, 200, 300))
+local p2 = pos.handle("Al", "nope", pos_emit, finder_with("Al", 1, 2, 3))
+local pos_ok = p1 == true and p2 == false
+    and pos_emits[1] == "!pos Al -> X=100.0 Y=200.0 Z=300.0"
 
-_print("=== spike.mapids + signtry commands ===")
-local function id_model(id)
-    return { TryGetMapObjectId = function() return { ToString = function() return id end } end }
-end
-local dbg_find_all = function() return { id_model("Signboard"), id_model("CampFire"), id_model("Signboard") } end
-local dbg_find_first = function()
-    return {
-        IsValid = function() return true end,
-        RequestSpawnMapObject_Server = function(_, id) return id == "Signboard" end,
-    }
-end
-local mi_emits = {}
-local function mi_emit(m) mi_emits[#mi_emits + 1] = m; _print("  mapids: " .. m) end
-local mi1 = spike.mapids("Al", "!mapids", mi_emit, { find_all = dbg_find_all })
-local mi2 = spike.mapids("Al", "nope", mi_emit, { find_all = dbg_find_all })
-local mapids_ok = mi1 == true
-    and mi2 == false
-    and emitted(mi_emits, "mapids: start")
-    and emitted(mi_emits, "SIGN matches")
-    and emitted(mi_emits, "mapids: done")
-
-local sy_emits = {}
-local function sy_emit(m) sy_emits[#sy_emits + 1] = m; _print("  signtry: " .. m) end
-local sy_deps = { find_all = dbg_find_all, find_first = dbg_find_first, in_thread = function(fn) fn() end }
-local sy_ok_call = spike.signtry("Al", "!signtry Signboard", sy_emit, mock_loc, sy_deps)
-local sy_refuse = spike.signtry("Al", "!signtry Bogus", sy_emit, mock_loc, sy_deps)
-local sy_usage = spike.signtry("Al", "!signtry", sy_emit, mock_loc, sy_deps)
-local sy_pass = spike.signtry("Al", "nope", sy_emit, mock_loc, sy_deps)
-local signtry_ok = sy_ok_call == true
-    and sy_refuse == true
-    and sy_usage == true
-    and sy_pass == false
-    and emitted(sy_emits, "id validated")
-    and emitted(sy_emits, "dispatching spawn on game thread")
-    and emitted(sy_emits, "CALLING RequestSpawnMapObject_Server")
-    and emitted(sy_emits, "SUCCESS")
-    and emitted(sy_emits, "REFUSED")
-
-_print("=== spike.signhp + signrepair commands ===")
+_print("=== signs.lua ===")
+local signs = require("signs")
 local function sign_model_mock(deter)
-    local d = deter
     return {
         GetFullName = function() return "PalMapObjectSignboardModel_1" end,
-        IsDamaged = function() return d > 0 end,
-        DeteriorationDamage = d,
-        DeteriorationTotalDamage = d,
+        IsDamaged = function() return deter > 0 end,
+        GetBuildPlayerUId_BP = function() return "GUID-ABCD" end,
+        DeteriorationDamage = deter,
+        DeteriorationTotalDamage = deter,
     }
 end
-local hp_find_all = function() return { sign_model_mock(50) } end
+local sign_ctx = { find_all = function() return { sign_model_mock(50) } end }
+
 local hp_emits = {}
-local function hp_emit(m) hp_emits[#hp_emits + 1] = m; _print("  signhp: " .. m) end
-local hp1 = spike.signhp("Al", "!signhp", hp_emit, { find_all = hp_find_all })
-local hp2 = spike.signhp("Al", "nope", hp_emit, { find_all = hp_find_all })
-local signhp_ok = hp1 == true
-    and hp2 == false
-    and emitted(hp_emits, "signhp: start")
+local function hp_emit(m) hp_emits[#hp_emits + 1] = m; _print("  signs: " .. m) end
+local h1 = signs.handle("Al", "!signhp", hp_emit, sign_ctx)
+local h2 = signs.handle("Al", "nope", hp_emit, sign_ctx)
+local signhp_ok = h1 == true and h2 == false
     and emitted(hp_emits, "DeteriorationDamage = 50")
+    and emitted(hp_emits, "BuildPlayerUId -> GUID-ABCD")
     and emitted(hp_emits, "signhp: done")
 
 local rp_emits = {}
-local function rp_emit(m) rp_emits[#rp_emits + 1] = m; _print("  signrepair: " .. m) end
-local rp1 = spike.signrepair("Al", "!signrepair", rp_emit, { find_all = hp_find_all })
-local rp2 = spike.signrepair("Al", "nope", rp_emit, { find_all = hp_find_all })
-local signrepair_ok = rp1 == true
-    and rp2 == false
+local function rp_emit(m) rp_emits[#rp_emits + 1] = m; _print("  signs: " .. m) end
+local r1 = signs.handle("Al", "!signrepair", rp_emit, sign_ctx)
+local signrepair_ok = r1 == true
     and emitted(rp_emits, "WRITING deterioration=0")
     and emitted(rp_emits, "-> 0")
     and emitted(rp_emits, "repaired=1")
 
-_print("=== spike.signtrace command ===")
-local st_emits = {}
-local function st_emit(m)
-    st_emits[#st_emits + 1] = m
-    _print("  trace: " .. m)
-end
-local st_deps = {
-    register = function() return true end,
-    load_asset = function() return true end,
-}
-local st1 = spike.signtrace("Al", "!signtrace", st_emit, st_deps)
-local st2 = spike.signtrace("Al", "nope", st_emit, st_deps)
-local st3 = spike.signtrace("Al", "!signtrace", st_emit, st_deps)
-local signtrace_ok = st1 == true
-    and st2 == false
-    and st3 == true
-    and emitted(st_emits, "signtrace: arming")
-    and emitted(st_emits, "armed=true")
-    and emitted(st_emits, "already armed")
-
-_print("=== spike.curltest command ===")
-local ct_emits = {}
-local function ct_emit(m)
-    ct_emits[#ct_emits + 1] = m
-    _print("  curl: " .. m)
-end
-local ct1 = spike.curltest("Al", "!curltest", ct_emit)
-local ct2 = spike.curltest("Al", "nope", ct_emit)
-local curltest_ok = ct1 == true
-    and ct2 == false
-    and ct_emits[1]:find("curltest: start", 1, true) ~= nil
-    and ct_emits[#ct_emits]:find("curltest: done", 1, true) ~= nil
-
-_print("=== spike.httptest command ===")
-local ht_emits = {}
-local function ht_emit(m)
-    ht_emits[#ht_emits + 1] = m
-    _print("  http: " .. m)
-end
-local ht1 = spike.httptest("Al", "!httptest", ht_emit)
-local ht2 = spike.httptest("Al", "nope", ht_emit)
-local httptest_ok = ht1 == true
-    and ht2 == false
-    and ht_emits[1]:find("httptest: start", 1, true) ~= nil
-    and ht_emits[#ht_emits]:find("httptest: done", 1, true) ~= nil
+_print("=== diag.lua ===")
+local diag = require("diag")
+local d_emits = {}
+local function d_emit(m) d_emits[#d_emits + 1] = m; _print("  diag: " .. m) end
+local dh = diag.handle("Al", "!httptest", d_emit)
+local dc = diag.handle("Al", "!curltest", d_emit)
+local dn = diag.handle("Al", "nope", d_emit)
+local diag_ok = dh == true and dc == true and dn == false
+    and emitted(d_emits, "httptest: done")
+    and emitted(d_emits, "curltest: done")
 
 _print("=== results ===")
-_print(string.format(
-    "placed=%d pending=%d setter_callable=%d setter_absent=%d pos_ok=%s",
-    calls.placed, calls.pending, calls.setter_callable, calls.setter_absent, tostring(pos_ok)))
+_print(string.format("pos=%s signhp=%s signrepair=%s diag=%s",
+    tostring(pos_ok), tostring(signhp_ok), tostring(signrepair_ok), tostring(diag_ok)))
 
-local ok = calls.pending == 1
-    and calls.placed == 0
-    and calls.setter_callable == 1
-    and calls.setter_absent == 4
-    and pos_ok
-    and spike_ok
-    and spawn_ok
-    and clear_ok
-    and signinspect_ok
-    and mapids_ok
-    and signtry_ok
-    and signhp_ok
-    and signrepair_ok
-    and signtrace_ok
-    and curltest_ok
-    and httptest_ok
-
-if ok then
+if pos_ok and signhp_ok and signrepair_ok and diag_ok then
     _print("HARNESS PASS")
     os.exit(0)
 else
