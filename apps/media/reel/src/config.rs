@@ -30,6 +30,8 @@ pub struct Config {
     pub stream_enabled: bool,
     pub hls_enabled: bool,
     pub hls_segment_secs: u64,
+    pub bt_port_file: Option<PathBuf>,
+    pub bt_port_wait_secs: u64,
 }
 
 pub const DEFAULT_TRACKERS_URLS: &[&str] = &[
@@ -184,6 +186,11 @@ pub fn load_from_env() -> anyhow::Result<Config> {
         stream_enabled: env_bool("REEL_STREAM_ENABLED", true),
         hls_enabled: env_bool("REEL_HLS_ENABLED", true),
         hls_segment_secs: env_u64("REEL_HLS_SEGMENT_SECS", 4)?,
+        bt_port_file: match std::env::var("REEL_BT_PORT_FILE") {
+            Ok(v) if !v.trim().is_empty() => Some(PathBuf::from(v.trim())),
+            _ => None,
+        },
+        bt_port_wait_secs: env_u64("REEL_BT_PORT_WAIT_SECS", 20)?,
     })
 }
 
@@ -201,7 +208,8 @@ mod tests {
                   "REEL_STATE_FLUSH_MS","REEL_UPLOAD_LIMIT_BPS","REEL_API_TOKEN","REEL_TRANSCODE_ENABLED",
                   "REEL_REMUX_CONCURRENCY","REEL_ENCODE_CONCURRENCY",
                   "REEL_FFMPEG_BIN","REEL_FFPROBE_BIN","REEL_STREAM_ENABLED",
-                  "REEL_HLS_ENABLED","REEL_HLS_SEGMENT_SECS"] {
+                  "REEL_HLS_ENABLED","REEL_HLS_SEGMENT_SECS",
+                  "REEL_BT_PORT_FILE","REEL_BT_PORT_WAIT_SECS"] {
             std::env::remove_var(k);
         }
     }
@@ -232,6 +240,8 @@ mod tests {
         assert_eq!(c.session_dir, std::path::PathBuf::from("/data/active/.session"));
         assert_eq!(c.api_addr, "0.0.0.0:8080");
         assert!(c.api_token.is_none());
+        assert!(c.bt_port_file.is_none());
+        assert_eq!(c.bt_port_wait_secs, 20);
     }
 
     #[test]

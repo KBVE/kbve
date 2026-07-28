@@ -23,7 +23,7 @@ spec:
     metadata:
       labels: { app: reel }
       annotations:
-        secret.reloader.stakater.com/reload: vpn-wireguard
+        secret.reloader.stakater.com/reload: vpn-wireguard,reel-gluetun
     spec:
       containers:
         - name: gluetun
@@ -33,10 +33,13 @@ spec:
               add: ["NET_ADMIN"]
           envFrom:
             - secretRef: { name: vpn-wireguard }
+            - secretRef: { name: reel-gluetun, optional: true }
           env:
             - { name: FIREWALL, value: "on" }
             - { name: FIREWALL_INPUT_PORTS, value: "8080" }
             - { name: FIREWALL_OUTBOUND_SUBNETS, value: "10.0.0.0/8,172.16.0.0/12" }
+          volumeMounts:
+            - { name: gluetun-run, mountPath: /tmp/gluetun }
         - name: reel
           image: ghcr.io/kbve/reel:0.1.10
           env:
@@ -49,6 +52,7 @@ spec:
             - { name: REEL_UPLOAD_LIMIT_BPS, value: "2097152" }
             - { name: RUST_LOG, value: "reel=debug,warn,librqbit::torrent_state::live=error" }
             - { name: REEL_LOG_JSON, value: "true" }
+            - { name: REEL_BT_PORT_FILE, value: "/tmp/gluetun/forwarded_port" }
           envFrom:
             - secretRef: { name: reel-api }
           ports:
@@ -66,9 +70,12 @@ spec:
             limits: { cpu: "2", memory: 2Gi }
           volumeMounts:
             - { name: data, mountPath: /data }
+            - { name: gluetun-run, mountPath: /tmp/gluetun, readOnly: true }
       volumes:
         - name: data
           persistentVolumeClaim: { claimName: reel-data }
+        - name: gluetun-run
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service

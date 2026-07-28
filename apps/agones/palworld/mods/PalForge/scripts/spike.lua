@@ -555,19 +555,34 @@ function M.signtry(sender, msg, emit, loc_fn, deps)
     local location = { X = loc.x, Y = loc.y, Z = loc.z }
     local rotation = { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
 
-    emit(string.format(
-        "signtry: CALLING RequestSpawnMapObject_Server id='%s' loc=%.1f,%.1f,%.1f (may crash — pre-logged)",
-        id, loc.x, loc.y, loc.z))
+    local in_thread = deps.in_thread or ExecuteInGameThread
+    emit("signtry: ExecuteInGameThread -> " .. type(in_thread))
 
-    local ok, res = pcall(function()
-        return mgr:RequestSpawnMapObject_Server(id, location, rotation)
-    end)
-
-    emit("signtry: RETURNED ok=" .. tostring(ok) .. " res=" .. tostring(res))
-    if ok and res == true then
-        emit("signtry: SUCCESS — LOOK for the object")
+    local function do_spawn()
+        emit(string.format(
+            "signtry: CALLING RequestSpawnMapObject_Server id='%s' loc=%.1f,%.1f,%.1f",
+            id, loc.x, loc.y, loc.z))
+        local ok, res = pcall(function()
+            return mgr:RequestSpawnMapObject_Server(id, location, rotation)
+        end)
+        emit("signtry: RETURNED ok=" .. tostring(ok) .. " res=" .. tostring(res))
+        if ok and res == true then
+            emit("signtry: SUCCESS — LOOK for the object")
+        end
+        emit("signtry: done")
     end
-    emit("signtry: done")
+
+    if type(in_thread) == "function" then
+        emit("signtry: dispatching spawn on game thread (may crash — pre-logged)")
+        local disp_ok = pcall(in_thread, do_spawn)
+        if not disp_ok then
+            emit("signtry: ExecuteInGameThread dispatch ERR — falling back to direct")
+            do_spawn()
+        end
+    else
+        emit("signtry: no ExecuteInGameThread — direct call (may crash — pre-logged)")
+        do_spawn()
+    end
     return true
 end
 

@@ -13,7 +13,7 @@ tags:
 key: reel
 pipeline: docker
 app_name: reel
-version: "0.1.10"
+version: "0.1.11"
 source_path: apps/media/reel
 version_toml: apps/media/reel/version.toml
 version_target: apps/media/reel/Cargo.toml
@@ -132,6 +132,23 @@ Vector into ClickHouse): `torrent_added`, `torrent_completed`, `torrent_failed`
 heartbeat logs progress + live peer count each stall-check tick. The default log
 filter is `info` (`reel=debug`) so the happy path is visible without setting
 `RUST_LOG`.
+
+### VPN port forwarding (inbound peers)
+
+Public UDP trackers reject the shared VPN exit IP, and without an open inbound
+port the swarm is outbound-connect only — fine for well-seeded TCP-tracked
+torrents, thin for everything else. When the gluetun sidecar's VPN provider
+supports NAT-PMP port forwarding, `VPN_PORT_FORWARDING=on` makes gluetun request
+a dynamic port and write it to `/tmp/gluetun/forwarded_port` (shared with the reel
+container via an `emptyDir`). reel reads that file at startup (`REEL_BT_PORT_FILE`)
+and pins librqbit's peer listener to it, so the port announced to trackers matches
+the forwarded port — real inbound peers, and a stabler swarm.
+
+The provider + PF flags live in a **reel-scoped** sealed secret (`reel-gluetun`,
+sealed via `apps/kube/reel/seal-gluetun-secret.sh`), layered over the shared
+`vpn-wireguard` secret so kasm/firecracker are untouched — and so the provider
+name stays out of the repo. If the forwarded-port file never appears, reel falls
+back to a random port (no inbound peers) rather than failing to start.
 
 </BentoProse>
 

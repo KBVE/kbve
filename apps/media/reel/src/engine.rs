@@ -78,6 +78,29 @@ pub fn decide_vpn(status: VpnStatus, prev_ok: bool, streak: u32, threshold: u32)
     }
 }
 
+pub fn parse_forwarded_port(raw: &str) -> Option<u16> {
+    match raw.trim().parse::<u16>() {
+        Ok(p) if p != 0 => Some(p),
+        _ => None,
+    }
+}
+
+async fn await_forwarded_port(path: &std::path::Path, wait_secs: u64) -> Option<u16> {
+    let mut waited = 0u64;
+    loop {
+        if let Ok(raw) = std::fs::read_to_string(path) {
+            if let Some(port) = parse_forwarded_port(&raw) {
+                return Some(port);
+            }
+        }
+        if waited >= wait_secs {
+            return None;
+        }
+        tokio::time::sleep(Duration::from_secs(1)).await;
+        waited += 1;
+    }
+}
+
 pub async fn vpn_preflight(urls: &[String]) -> anyhow::Result<IpAddr> {
     for attempt in 0..5u32 {
         match vpn_status(urls).await {
@@ -204,6 +227,22 @@ impl Engine {
         std::fs::create_dir_all(&cfg.active_dir)?;
         std::fs::create_dir_all(&cfg.library_dir)?;
         std::fs::create_dir_all(&cfg.session_dir)?;
+        let listen_port_range = match &cfg.bt_port_file {
+            Some(path) => match await_forwarded_port(path, cfg.bt_port_wait_secs).await {
+                Some(port) => {
+                    tracing::info!(port, "using VPN forwarded port for BitTorrent listener");
+                    Some(port..port.saturating_add(1))
+                }
+                None => {
+                    tracing::warn!(
+                        path = %path.display(),
+                        "forwarded-port file not ready; BitTorrent listener uses a random port (no inbound peers)"
+                    );
+                    None
+                }
+            },
+            None => None,
+        };
         let opts = librqbit::SessionOptions {
             fastresume: true,
             persistence: Some(SessionPersistenceConfig::Json {
@@ -213,6 +252,8 @@ impl Engine {
                 upload_bps: cfg.upload_limit_bps.and_then(std::num::NonZeroU32::new),
                 download_bps: None,
             },
+            listen_port_range,
+            enable_upnp_port_forwarding: false,
             ..Default::default()
         };
         if let Some(bps) = opts.ratelimits.upload_bps {
@@ -925,6 +966,16 @@ mod tests {
         remove_entry_files(&src.display().to_string(), Some(&tc.display().to_string()));
         assert!(!src.exists());
         assert!(!tc.exists());
+    }
+
+    #[test]
+    fn parse_forwarded_port_accepts_valid_rejects_junk() {
+        assert_eq!(parse_forwarded_port("51820"), Some(51820));
+        assert_eq!(parse_forwarded_port("  42069\n"), Some(42069));
+        assert_eq!(parse_forwarded_port("0"), None);
+        assert_eq!(parse_forwarded_port(""), None);
+        assert_eq!(parse_forwarded_port("notaport"), None);
+        assert_eq!(parse_forwarded_port("70000"), None);
     }
 
     #[test]
