@@ -25,6 +25,8 @@ import {
 	PALWORLD_ROOT,
 	buildPalworldBreadcrumb,
 } from '../palworld/palworldNav';
+import { adaptStarlightSidebar } from './starlightNav';
+import type { StarlightEntry } from './starlightNav';
 import { NPC_ROOT, buildNpcNav, buildNpcBreadcrumb } from '../npcdb/npcNav';
 import {
 	ITEM_ROOT,
@@ -65,6 +67,12 @@ const isGaming = pathname.startsWith('/gaming/') || isGamingRoot(pathname);
 const isOsrsItem = pathname.startsWith('/osrs/') && pathname !== '/osrs/';
 const isMc = pathname.startsWith('/mc/');
 const isPalworld = pathname.startsWith('/palworld/');
+
+const routeSidebar = (Astro.locals.starlightRoute?.sidebar ??
+	[]) as StarlightEntry[];
+const palShell = isPalworld
+	? adaptStarlightSidebar(routeSidebar, pathname)
+	: null;
 const isNpcdb = pathname.startsWith('/npcdb/');
 const isItemdb = pathname.startsWith('/itemdb/');
 const isMapdb = pathname.startsWith('/mapdb/');
@@ -146,17 +154,27 @@ const shell = isDashboard
 									withToc: true,
 								}
 							: isPalworld
-								? {
-										entries: PALWORLD_NAV,
-										root: PALWORLD_ROOT,
-										menuLabel: 'Palworld',
-										navLabel: 'Palworld',
-										crumbs: buildPalworldBreadcrumb(
-											pathname,
-										),
-										collapsible: true,
-										withToc: true,
-									}
+								? palShell
+									? {
+											entries: palShell.entries,
+											root: palShell.root,
+											menuLabel: palShell.navLabel,
+											navLabel: palShell.navLabel,
+											crumbs: palShell.crumbs,
+											collapsible: true,
+											withToc: true,
+										}
+									: {
+											entries: PALWORLD_NAV,
+											root: PALWORLD_ROOT,
+											menuLabel: 'Palworld',
+											navLabel: 'Palworld',
+											crumbs: buildPalworldBreadcrumb(
+												pathname,
+											),
+											collapsible: true,
+											withToc: true,
+										}
 								: isNpcdb
 									? {
 											entries: npcNav,
