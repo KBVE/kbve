@@ -1,0 +1,271 @@
+---
+title: Palworld
+template: splash
+description: The KBVE Palworld server — how to join, what to expect, and where to find the technical notes.
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
+sidebar:
+    label: Overview
+    order: 1
+tags:
+    - palworld
+    - pal
+ogTitle: KBVE Palworld — Managed Dedicated Server
+ogDescription: Join the KBVE Palworld server — an Agones-managed dedicated world on Kubernetes with a REST-driven relay, RCON admin bridge, and custom modifications on the way.
+ogImage: https://images.unsplash.com/photo-1538481199705-c710c4e965fc?fit=crop&w=1400&h=700&q=75
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - name: Home
+          path: /
+        - name: Palworld
+          path: /palworld/
+---
+
+import BentoShell from '@/components/hero/BentoShell.astro';
+
+export const backdrop = 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?q=80&w=2400&auto=format&fit=crop';
+
+export const stats = [
+	{ label: 'Server type', value: 'Dedicated', icon: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96 12 12.01l8.73-5.05M12 22.08V12' },
+	{ label: 'Game port', value: '8211 · UDP', icon: 'M4 17l6-6-6-6M12 19h8' },
+	{ label: 'Fleet', value: 'Agones', icon: 'M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.7-.84.7-2.13-.1-2.91a2.18 2.18 0 0 0-2.9-.09zM12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z' },
+	{ label: 'Base image', value: 'palworld-docker', icon: 'M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' },
+];
+
+export const features = [
+	{ n: '01', title: 'Managed dedicated server', desc: 'A KBVE-baked Palworld image layered on the thijsvanloef/palworld-server-docker base, running as a first-class dedicated world.', icon: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z' },
+	{ n: '02', title: 'REST-driven relay', desc: 'A sidecar relay polls the Palworld REST API (port 8212) for server info, metrics, and the live player list — factorio-parity, REST-primary.', icon: 'M4 17l6-6-6-6M12 19h8' },
+	{ n: '03', title: 'RCON admin bridge', desc: 'Admin actions route over RCON (port 25575). A one-way IRC bridge to irc.kbve.com mirrors server events into chat.', icon: 'M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2M6 6h12v12H6zM9 9h6v6H9z' },
+	{ n: '04', title: 'Clean Agones lifecycle', desc: 'Fleet-managed by Agones on Kubernetes. A REST-poll prestop shim issues a graceful shutdown so a SIGTERM never truncates an in-progress save.', icon: 'M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.7-.84.7-2.13-.1-2.91a2.18 2.18 0 0 0-2.9-.09zM12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z' },
+];
+
+export const related = [
+	{ href: '/project/agones-palworld/', title: 'Technical notes', copy: 'Docker build, Agones fleet config, REST-poll prestop shim, exposed ports.', icon: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z' },
+	{ href: '/project/agones-palworld-relay/', title: 'Relay bridge', copy: 'The REST-primary relay: info/metrics/players polling, RCON actions, and the one-way IRC bridge.', icon: 'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zM2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z' },
+	{ href: 'https://github.com/KBVE/kbve/tree/main/apps/agones/palworld', title: 'Source on GitHub', copy: 'Image build, version.toml, and gameserver manifests under apps/agones/palworld.', icon: 'M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22' },
+];
+
+<div class="pal-hub" style={`--bento-hero-bg: url('${backdrop}')`} data-pal-hub>
+
+<section class="bento-hero bento-section not-content" aria-label="KBVE Palworld server">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
+					<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" /></svg>
+					<span>kbve palworld · dedicated server</span>
+				</span>
+				<h1 class="bento-title">
+					Play on the
+					<span class="bento-title__accent">KBVE Palworld server.</span>
+				</h1>
+				<p class="bento-lede">
+					A KBVE-baked Palworld dedicated world, fleet-managed by Agones
+					on Kubernetes — with a REST-driven relay, an RCON admin bridge,
+					and custom modifications on the way.
+				</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="#features">
+						What to expect
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="/project/agones-palworld/">Technical notes</a>
+					<a class="bento-btn bento-btn--ghost" href="/project/agones-palworld-relay/">Relay bridge</a>
+				</div>
+			</div>
+
+			{stats.map((s) => (
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={s.icon} /></svg>
+					</span>
+					<span class="bento-stat__value">{s.value}</span>
+					<span class="bento-stat__label">{s.label}</span>
+				</div>
+			))}
+		</div>
+
+		<nav class="bento-jump" aria-label="On this page">
+			<a class="bento-chip" href="#features">The server</a>
+			<a class="bento-chip" href="#stack">Custom stack</a>
+			<a class="bento-chip" href="#mods">Custom mods</a>
+			<a class="bento-chip" href="#related">Dig deeper</a>
+		</nav>
+	</div>
+</section>
+
+<BentoShell id="features" eyebrow="What to expect" heading="Built to run clean on Agones">
+	<div class="bento-board bento-board--cols-2">
+		{features.map((f) => (
+			<div class="bento-cell bento-rulecard bento-card bento-card--glass bento-card--interactive">
+				<div class="bento-rulecard__top">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={f.icon} /></svg>
+					</span>
+					<span class="bento-rulecard__num">{f.n}</span>
+				</div>
+				<h3 class="bento-rulecard__title">{f.title}</h3>
+				<p class="bento-rulecard__desc">{f.desc}</p>
+			</div>
+		))}
+	</div>
+</BentoShell>
+
+<BentoShell id="stack" eyebrow="Deep dive" heading="The KBVE custom Palworld stack">
+	<div class="bento-board bento-board--cols-2">
+		<article class="bento-cell bento-card bento-card--glass pal-article pal-article--wide">
+			<p>
+				KBVE runs Palworld as a first-class, fleet-managed workload — not
+				a one-off box. Our dedicated-server image layers custom lifecycle
+				and telemetry on top of the
+				<code>thijsvanloef/palworld-server-docker</code> base, so the
+				Palworld server behaves like every other KBVE game server:
+				provisioned by Agones, observed over the Palworld REST API, and
+				driven from the same relay that powers our Factorio and Minecraft
+				fleets.
+			</p>
+			<p>
+				The custom work lives above the vanilla server. A REST-primary
+				relay polls server info, metrics, and the live player list; RCON
+				drives admin automation; and a one-way IRC bridge mirrors
+				join, leave, and save events into chat. That plumbing is the
+				foundation for our own gameplay modifications next — UE4SS-based
+				scripting for tweaks and quality-of-life changes specific to the
+				KBVE world.
+			</p>
+		</article>
+		<aside class="bento-cell bento-card bento-card--glass pal-article">
+			<h3 class="bento-rulecard__title">Why custom?</h3>
+			<p>
+				Vanilla dedicated servers drift, truncate saves on shutdown, and
+				give you no operational visibility. Wrapping Palworld in the KBVE
+				stack gives clean Agones shutdowns, metrics, and a scripting
+				surface we control — the same reliability contract as the rest of
+				our fleet.
+			</p>
+		</aside>
+	</div>
+</BentoShell>
+
+<BentoShell id="mods" eyebrow="Modding" heading="Custom modifications">
+	<div class="bento-board bento-board--cols-2">
+		<div class="bento-cell bento-card bento-card--glass pal-howto">
+			<h3 class="bento-rulecard__title">The KBVE Palworld eco-system</h3>
+			<p class="bento-rulecard__desc">
+				This section grows into the home for our custom Palworld
+				modifications — server tweaks, quality-of-life mods, and the
+				tooling around them. As mods ship, they land here with setup
+				notes and config references.
+			</p>
+		</div>
+		<div class="bento-cell bento-card bento-card--glass pal-howto">
+			<h3 class="bento-rulecard__title">UE4SS mod loader</h3>
+			<p class="bento-rulecard__desc">
+				Palworld runs on Unreal Engine, so mods load through
+				<strong>UE4SS</strong> (Unreal Engine 4/5 Scripting System). We
+				bake it into the server image so Lua and C++ mods are live at
+				boot. Rough shape:
+			</p>
+			<ul class="pal-steps">
+				<li>
+					Drop UE4SS next to the server binary in
+					<code>Pal/Binaries/Win64</code> — on the Linux dedicated
+					build this is the Proton prefix path.
+				</li>
+				<li>
+					Put each mod under <code>Mods/&lt;ModName&gt;/</code> and
+					enable it in <code>Mods/mods.txt</code>.
+				</li>
+				<li>
+					Lua entrypoint is <code>Scripts/main.lua</code>; iterate with
+					the UE4SS live console and hot-reload.
+				</li>
+			</ul>
+			<p class="bento-rulecard__desc pal-note">
+				Note: Palworld dedicated on Linux runs under Proton — UE4SS loads
+				through the prefix, and our image bakes that path so mods stay
+				portable across the fleet.
+			</p>
+		</div>
+	</div>
+</BentoShell>
+
+<BentoShell id="related" eyebrow="Keep going" heading="Dig deeper">
+	<div class="bento-board bento-board--cols-3">
+		{related.map((r) => (
+			<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href={r.href}>
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={r.icon} /></svg>
+				</span>
+				<span class="bento-linkcard__title">{r.title}</span>
+				<span class="bento-linkcard__copy">{r.copy}</span>
+				<span class="bento-linkcard__go" aria-hidden="true">
+					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+				</span>
+			</a>
+		))}
+	</div>
+</BentoShell>
+
+</div>
+
+<style is:global>{`
+	.pal-hub {
+		--bento-accent: #2f7fd1;
+		--bento-accent-2: #4fb0e0;
+	}
+
+	.pal-hub .bento-shell .bento-shell__header {
+		padding: 2rem 1.25rem 1rem;
+		border-left: 3px solid color-mix(in srgb, var(--bento-accent) 70%, transparent);
+	}
+
+	.pal-hub .pal-howto,
+	.pal-hub .pal-article {
+		display: flex;
+		flex-direction: column;
+		gap: 0.6rem;
+		justify-content: center;
+		padding: 1.25rem 1.35rem;
+	}
+
+	.pal-hub .pal-article--wide {
+		gap: 0.9rem;
+	}
+
+	.pal-hub .pal-article p {
+		margin: 0;
+		color: var(--sl-color-gray-2);
+		line-height: 1.6;
+	}
+
+	.pal-hub .pal-article code,
+	.pal-hub .pal-steps code {
+		font-size: 0.85em;
+		padding: 0.05rem 0.35rem;
+		border-radius: 4px;
+		background-color: color-mix(in srgb, var(--sl-color-white) 7%, transparent);
+	}
+
+	.pal-hub .pal-steps {
+		margin: 0.2rem 0 0;
+		padding-left: 1.1rem;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		color: var(--sl-color-gray-2);
+		line-height: 1.5;
+		font-size: 0.9rem;
+	}
+
+	.pal-hub .pal-note {
+		margin-top: 0.4rem;
+		font-size: 0.82rem;
+		color: var(--sl-color-gray-3);
+	}
+`}</style>

@@ -333,6 +333,11 @@ export default defineConfig({
 							collapsed: true,
 							items: [{ autogenerate: { directory: 'mc' } }],
 						},
+						{
+							label: 'Palworld',
+							collapsed: true,
+							items: [{ autogenerate: { directory: 'palworld' } }],
+						},
 						
 						{ label: 'BitCraft', link: '/gaming/bitcraft/' },
 						{ label: 'League of Legends', link: '/gaming/lol/' },

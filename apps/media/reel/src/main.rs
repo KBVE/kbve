@@ -5,7 +5,8 @@ async fn main() -> anyhow::Result<()> {
     let log_json = std::env::var("REEL_LOG_JSON")
         .map(|v| !(v.eq_ignore_ascii_case("false") || v == "0"))
         .unwrap_or(true);
-    let filter = tracing_subscriber::EnvFilter::from_default_env();
+    let filter = tracing_subscriber::EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new("info,reel=debug"));
     if log_json {
         tracing_subscriber::fmt()
             .with_env_filter(filter)

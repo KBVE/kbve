@@ -13,7 +13,7 @@ tags:
 key: reel
 pipeline: docker
 app_name: reel
-version: "0.1.9"
+version: "0.1.10"
 source_path: apps/media/reel
 version_toml: apps/media/reel/version.toml
 version_target: apps/media/reel/Cargo.toml
@@ -88,6 +88,50 @@ idle TTL, not a permanent library), and progressively delivers it to the browser
 - **Transcode** — ffprobe routes each file to remux (faststart MP4) or re-encode.
 - **Stream** — byte-range progressive MP4 while still downloading; HLS for containers/codecs the browser can't play raw.
 - **Player** — an astro-kbve hls.js island at `/media/reel/`, proxied same-origin through axum-kbve at `/api/v1/reel`, staff-gated.
+
+</BentoProse>
+
+<BentoProse id="observability" eyebrow="Operations" heading="Observability & diagnostics">
+
+Every torrent moves through an explicit **phase** so an operator can tell exactly
+where it is — and, when it stops, why.
+
+### Phases
+
+`resolving-metadata` → `connecting` → `downloading` → `moving` → `ready`, with
+`transcoding` / `streaming-hls` once seeding, and `failed` on any terminal error.
+The phase is derived from persisted state plus the live librqbit snapshot, so a
+torrent stuck at `connecting` (metadata resolved, zero bytes) is distinct from one
+still `resolving-metadata` (no peers responding at all).
+
+### Status endpoints
+
+- `GET /status` — one call for the whole service: `vpn_ok`, tracker count, counts
+  by state (`leeching`/`seeding`/`failed`), and every torrent as a merged view
+  (persisted metadata + derived `phase` + live peers/speed/progress).
+- `GET /torrents/{id}/status` — the same merged view for a single torrent.
+- `GET /stats` — raw librqbit live snapshot (peers seen/live/connecting, mbps).
+- `GET /torrents` · `GET /torrents/{id}` — persisted metadata only.
+
+### Error surfacing
+
+Failures no longer collapse to an opaque status code. A `failed` torrent returns
+its stored reason as a JSON body on `/stream` and `/manifest.m3u8`
+(`{"state":"failed","error":"…"}`), and the reason names the phase it died in —
+`could not resolve torrent metadata within Ns — no peers responded`,
+`no data received for Ns — no seeders`, `move failed`, `ffprobe failed`. HLS
+failures now capture the ffmpeg stderr tail instead of just the exit code.
+
+### Structured log events
+
+All lifecycle transitions emit a stable `event=` field (JSON on stdout, tailed by
+Vector into ClickHouse): `torrent_added`, `torrent_completed`, `torrent_failed`
+(with `phase` + `reason`), `probe_decided`, `transcode_started`,
+`transcode_ready`, `transcode_failed`, `hls_started`, `hls_ready`, `hls_failed`,
+`stream_served`, `vpn_leak`, `vpn_restored`, `reaped`. A per-torrent leech
+heartbeat logs progress + live peer count each stall-check tick. The default log
+filter is `info` (`reel=debug`) so the happy path is visible without setting
+`RUST_LOG`.
 
 </BentoProse>
 

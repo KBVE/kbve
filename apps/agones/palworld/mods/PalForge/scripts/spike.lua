@@ -428,6 +428,65 @@ function M.signtrace(sender, msg, emit, deps)
     return true
 end
 
+local MAPOBJ_ID_CANDIDATES = {
+    "Signboard",
+    "SignBoard",
+    "Sign",
+    "Signboard_Wood",
+    "Signboard01",
+    "BuildObject_Signboard",
+}
+
+function M.signplace(sender, msg, emit, loc_fn, deps)
+    if type(msg) ~= "string" or trim(msg):lower() ~= "!signplace" then
+        return false
+    end
+    deps = deps or {}
+    local find_first = deps.find_first or FindFirstOf
+
+    emit("signplace: start (native server spawn = ownerless + saved + no-decay)")
+
+    local mgr = find_first("PalMapObjectManager")
+    if not is_valid(mgr) then
+        emit("signplace: abort — PalMapObjectManager not found")
+        return true
+    end
+
+    local loc = loc_fn and loc_fn(sender) or nil
+    if not loc then
+        emit("signplace: abort — no location")
+        return true
+    end
+    emit(string.format("signplace at X=%.1f Y=%.1f Z=%.1f", loc.x, loc.y, loc.z))
+
+    local location = { X = loc.x, Y = loc.y, Z = loc.z }
+    local rotation = { Pitch = 0.0, Yaw = 0.0, Roll = 0.0 }
+
+    local placed_id = nil
+    for _, id in ipairs(MAPOBJ_ID_CANDIDATES) do
+        local ok, res = pcall(function()
+            return mgr:RequestSpawnMapObject_Server(id, location, rotation)
+        end)
+        if not ok then
+            emit("signplace id=" .. id .. " -> ERR " .. tostring(res))
+        else
+            emit("signplace id=" .. id .. " -> " .. tostring(res))
+            if res == true then
+                placed_id = id
+                break
+            end
+        end
+    end
+
+    if placed_id then
+        emit("signplace: SUCCESS via MapObjectId '" .. placed_id .. "' — LOOK for the sign")
+    else
+        emit("signplace: no candidate id returned true (need correct MapObjectId)")
+    end
+    emit("signplace: done")
+    return true
+end
+
 local HTTP_GLOBALS = { "http", "socket", "curl", "https", "ssl" }
 local HTTP_MODULES = { "socket", "socket.http", "ssl", "ssl.https", "http", "http.request" }
 
