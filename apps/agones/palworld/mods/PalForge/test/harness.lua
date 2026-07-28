@@ -197,7 +197,7 @@ local mapids_ok = mi1 == true
 
 local sy_emits = {}
 local function sy_emit(m) sy_emits[#sy_emits + 1] = m; _print("  signtry: " .. m) end
-local sy_deps = { find_all = dbg_find_all, find_first = dbg_find_first }
+local sy_deps = { find_all = dbg_find_all, find_first = dbg_find_first, in_thread = function(fn) fn() end }
 local sy_ok_call = spike.signtry("Al", "!signtry Signboard", sy_emit, mock_loc, sy_deps)
 local sy_refuse = spike.signtry("Al", "!signtry Bogus", sy_emit, mock_loc, sy_deps)
 local sy_usage = spike.signtry("Al", "!signtry", sy_emit, mock_loc, sy_deps)
@@ -207,6 +207,7 @@ local signtry_ok = sy_ok_call == true
     and sy_usage == true
     and sy_pass == false
     and emitted(sy_emits, "id validated")
+    and emitted(sy_emits, "dispatching spawn on game thread")
     and emitted(sy_emits, "CALLING RequestSpawnMapObject_Server")
     and emitted(sy_emits, "SUCCESS")
     and emitted(sy_emits, "REFUSED")
