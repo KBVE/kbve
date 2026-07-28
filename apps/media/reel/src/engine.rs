@@ -434,6 +434,20 @@ impl Engine {
                     r = &mut completed => break r,
                     _ = tokio::time::sleep(stall_check) => {
                         let s = handle.stats();
+                        let (dl_mbps, peers_live) = s
+                            .live
+                            .as_ref()
+                            .map(|l| (l.download_speed.mbps, l.snapshot.peer_stats.live))
+                            .unwrap_or((0.0, 0));
+                        tracing::debug!(
+                            id = %id,
+                            progress_bytes = s.progress_bytes,
+                            total_bytes = s.total_bytes,
+                            peers_live,
+                            dl_mbps,
+                            idle_secs,
+                            "leech heartbeat"
+                        );
                         if s.finished {
                             break Ok(());
                         }
@@ -827,6 +841,13 @@ impl Engine {
             })
             .collect()
         })
+    }
+
+    pub fn live_stats_map(&self) -> HashMap<String, TorrentLive> {
+        self.live_stats()
+            .into_iter()
+            .map(|t| (t.id.clone(), t))
+            .collect()
     }
 
     pub fn tracker_count(&self) -> usize {

@@ -33,6 +33,64 @@ impl From<&AppState> for AppStateStub {
 
 use crate::util::now_secs;
 
+fn derive_phase(m: &state::Metadata, live: Option<&engine::TorrentLive>) -> &'static str {
+    use state::{HlsStatus, TorrentState, TranscodeStatus};
+    match m.state {
+        TorrentState::Failed => "failed",
+        TorrentState::Reaped => "reaped",
+        TorrentState::Leeching => match live {
+            Some(l) if l.finished => "moving",
+            Some(l) if l.total_bytes > 0 && l.progress_bytes > 0 => "downloading",
+            Some(l) if l.total_bytes > 0 => "connecting",
+            _ => "resolving-metadata",
+        },
+        TorrentState::Seeding => {
+            if matches!(m.hls, HlsStatus::Live) {
+                "streaming-hls"
+            } else if matches!(
+                m.transcode,
+                TranscodeStatus::Pending | TranscodeStatus::Remuxing | TranscodeStatus::Encoding
+            ) {
+                "transcoding"
+            } else {
+                "ready"
+            }
+        }
+    }
+}
+
+#[derive(serde::Serialize)]
+struct TorrentView {
+    #[serde(flatten)]
+    meta: state::Metadata,
+    phase: &'static str,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    live: Option<engine::TorrentLive>,
+}
+
+impl TorrentView {
+    fn build(meta: state::Metadata, live: Option<engine::TorrentLive>) -> Self {
+        let phase = derive_phase(&meta, live.as_ref());
+        Self { meta, phase, live }
+    }
+}
+
+#[derive(serde::Serialize, Default)]
+struct Counts {
+    total: usize,
+    leeching: usize,
+    seeding: usize,
+    failed: usize,
+}
+
+#[derive(serde::Serialize)]
+struct StatusReport {
+    vpn_ok: bool,
+    trackers: usize,
+    counts: Counts,
+    torrents: Vec<TorrentView>,
+}
+
 fn served_bytes(range: Option<&str>, total: u64) -> u64 {
     match crate::stream::parse_range(range, total) {
         Ok(Some(r)) => r.end.saturating_sub(r.start) + 1,
@@ -92,6 +150,49 @@ async fn live_stats(State(st): State<AppState>, headers: HeaderMap) -> impl Into
         return StatusCode::UNAUTHORIZED.into_response();
     }
     Json(st.engine.live_stats()).into_response()
+}
+
+async fn status(State(st): State<AppState>, headers: HeaderMap) -> impl IntoResponse {
+    if !check_auth(&headers, &st.token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let mut live = st.engine.live_stats_map();
+    let mut counts = Counts::default();
+    let mut torrents = Vec::new();
+    for meta in st.store.list() {
+        counts.total += 1;
+        match meta.state {
+            state::TorrentState::Leeching => counts.leeching += 1,
+            state::TorrentState::Seeding => counts.seeding += 1,
+            state::TorrentState::Failed => counts.failed += 1,
+            state::TorrentState::Reaped => {}
+        }
+        let l = live.remove(&meta.id);
+        torrents.push(TorrentView::build(meta, l));
+    }
+    Json(StatusReport {
+        vpn_ok: st.engine.vpn_ok(),
+        trackers: st.engine.tracker_count(),
+        counts,
+        torrents,
+    })
+    .into_response()
+}
+
+async fn status_one(
+    State(st): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<String>,
+) -> impl IntoResponse {
+    if !check_auth(&headers, &st.token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let meta = match st.store.get(&id) {
+        Some(m) => m,
+        None => return StatusCode::NOT_FOUND.into_response(),
+    };
+    let live = st.engine.live_stats_map().remove(&id);
+    Json(TorrentView::build(meta, live)).into_response()
 }
 
 async fn get_one(
@@ -220,13 +321,38 @@ async fn manifest(
         None => {
             let primary = match transcode::pick_primary_file(std::path::Path::new(&meta.path)) {
                 Ok(p) => p,
-                Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+                Err(e) => {
+                    tracing::warn!(id = %id, path = %meta.path, error = %e, "manifest: no primary media file");
+                    return (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        Json(serde_json::json!({"error": e.to_string()})),
+                    )
+                        .into_response();
+                }
             };
             let probe = match transcode::probe(&st.ffprobe_bin, &primary).await {
                 Ok(p) => p,
-                Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+                Err(e) => {
+                    tracing::warn!(id = %id, error = %e, "manifest: ffprobe failed");
+                    return (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        Json(serde_json::json!({"error": e.to_string()})),
+                    )
+                        .into_response();
+                }
             };
             let d = transcode::decide_delivery(&probe);
+            crate::telemetry::probe_decided(
+                &id,
+                probe.video_codec.as_deref().unwrap_or("none"),
+                probe.audio_codec.as_deref().unwrap_or("none"),
+                probe.container.as_deref().unwrap_or("none"),
+                match d {
+                    transcode::Delivery::RawProgressive => "raw_progressive",
+                    transcode::Delivery::RemuxHls => "remux_hls",
+                    transcode::Delivery::TranscodeHls => "transcode_hls",
+                },
+            );
             st.hls.cache_delivery(&id, d);
             d
         }
@@ -368,24 +494,36 @@ pub(crate) async fn stream_core<S: engine::MediaSource>(
                 Some(p) => p,
                 None => match transcode::pick_primary_file(std::path::Path::new(&meta.path)) {
                     Ok(p) => p,
-                    Err(_) => return StatusCode::CONFLICT.into_response(),
+                    Err(e) => {
+                        tracing::warn!(id = %id, path = %meta.path, error = %e, "stream: no primary media file");
+                        return StatusCode::CONFLICT.into_response();
+                    }
                 },
             };
             let ct = crate::stream::content_type_for(&path.to_string_lossy());
             if head_only {
                 let total = match tokio::fs::metadata(&path).await {
                     Ok(m) => m.len(),
-                    Err(_) => return StatusCode::NOT_FOUND.into_response(),
+                    Err(e) => {
+                        tracing::warn!(id = %id, path = %path.display(), error = %e, "stream: head stat failed");
+                        return StatusCode::NOT_FOUND.into_response();
+                    }
                 };
                 return crate::stream::head_response(total, range, ct);
             }
             let file = match tokio::fs::File::open(&path).await {
                 Ok(f) => f,
-                Err(_) => return StatusCode::NOT_FOUND.into_response(),
+                Err(e) => {
+                    tracing::warn!(id = %id, path = %path.display(), error = %e, "stream: file open failed");
+                    return StatusCode::NOT_FOUND.into_response();
+                }
             };
             let total = match file.metadata().await {
                 Ok(m) => m.len(),
-                Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+                Err(e) => {
+                    tracing::warn!(id = %id, error = %e, "stream: file stat failed");
+                    return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+                }
             };
             crate::telemetry::stream_served(id, served_bytes(range, total), "progressive", range.is_some());
             crate::stream::serve_range(file, total, range, ct, head_only).await
@@ -394,11 +532,17 @@ pub(crate) async fn stream_core<S: engine::MediaSource>(
             let files = match source.entries(id) {
                 Ok(Some(f)) => f,
                 Ok(None) => return StatusCode::TOO_EARLY.into_response(),
-                Err(_) => return StatusCode::TOO_EARLY.into_response(),
+                Err(e) => {
+                    tracing::warn!(id = %id, error = %e, "stream: leech entries unavailable");
+                    return StatusCode::TOO_EARLY.into_response();
+                }
             };
             let idx = match engine::primary_file_index(&files) {
                 Some(i) => i,
-                None => return StatusCode::CONFLICT.into_response(),
+                None => {
+                    tracing::warn!(id = %id, "stream: no media file in leeching torrent");
+                    return StatusCode::CONFLICT.into_response();
+                }
             };
             let name = files
                 .iter()
@@ -416,11 +560,22 @@ pub(crate) async fn stream_core<S: engine::MediaSource>(
             }
             let stream = match source.open(id, idx) {
                 Ok(s) => s,
-                Err(_) => return StatusCode::TOO_EARLY.into_response(),
+                Err(e) => {
+                    tracing::warn!(id = %id, error = %e, "stream: leech open failed");
+                    return StatusCode::TOO_EARLY.into_response();
+                }
             };
             crate::telemetry::stream_served(id, served_bytes(range, total), "leeching", range.is_some());
             crate::stream::serve_range(stream, total, range, ct, head_only).await
         }
+        state::TorrentState::Failed => (
+            StatusCode::CONFLICT,
+            Json(serde_json::json!({
+                "state": "failed",
+                "error": meta.error.unwrap_or_else(|| "torrent failed".into()),
+            })),
+        )
+            .into_response(),
         _ => StatusCode::CONFLICT.into_response(),
     }
 }
@@ -470,7 +625,18 @@ pub(crate) async fn manifest_status_core(
     }
 
     if meta.state != state::TorrentState::Seeding {
-        return ManifestStep::Done(StatusCode::TOO_EARLY.into_response());
+        let resp = match meta.state {
+            state::TorrentState::Failed => (
+                StatusCode::CONFLICT,
+                Json(serde_json::json!({
+                    "state": "failed",
+                    "error": meta.error.clone().unwrap_or_else(|| "torrent failed".into()),
+                })),
+            )
+                .into_response(),
+            _ => StatusCode::TOO_EARLY.into_response(),
+        };
+        return ManifestStep::Done(resp);
     }
     ManifestStep::Proceed(meta)
 }
@@ -518,11 +684,17 @@ pub(crate) async fn hls_segment_core(
     }
     let file = match tokio::fs::File::open(&path).await {
         Ok(f) => f,
-        Err(_) => return StatusCode::NOT_FOUND.into_response(),
+        Err(e) => {
+            tracing::warn!(id = %id, segment, path = %path.display(), error = %e, "hls segment open failed");
+            return StatusCode::NOT_FOUND.into_response();
+        }
     };
     let total = match file.metadata().await {
         Ok(m) => m.len(),
-        Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+        Err(e) => {
+            tracing::warn!(id = %id, segment, error = %e, "hls segment stat failed");
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }
     };
     crate::telemetry::stream_served(id, served_bytes(range, total), "hls", range.is_some());
     crate::stream::serve_range(file, total, range, ct, head_only).await
@@ -540,6 +712,8 @@ pub fn router(state: AppState) -> Router {
     let stub = AppStateStub::from(&state);
     let engine_router = Router::new()
         .route("/stats", get(live_stats))
+        .route("/status", get(status))
+        .route("/torrents/{id}/status", get(status_one))
         .route("/torrents", post(add))
         .route("/torrents/{id}", axum::routing::delete(remove))
         .route("/torrents/{id}/transcode", post(transcode_start))
@@ -599,6 +773,66 @@ mod tests {
         let mut h = HeaderMap::new();
         h.insert("Authorization", format!("Bearer {token}").parse().unwrap());
         h
+    }
+
+    fn meta_for(state: TorrentState) -> Metadata {
+        Metadata {
+            id: "1".into(),
+            name: "m".into(),
+            path: "/lib/m".into(),
+            size: 0,
+            completed_at: None,
+            last_access: 0,
+            state,
+            error: None,
+            active_path: None,
+            transcode: TranscodeStatus::None,
+            transcode_path: None,
+            transcode_error: None,
+            hls: HlsStatus::None,
+            hls_dir: None,
+            hls_error: None,
+        }
+    }
+
+    fn live_for(progress: u64, total: u64, finished: bool) -> crate::engine::TorrentLive {
+        crate::engine::TorrentLive {
+            id: "1".into(),
+            progress_bytes: progress,
+            total_bytes: total,
+            finished,
+            download_mbps: 0.0,
+            upload_mbps: 0.0,
+            peers_live: 0,
+            peers_seen: 0,
+            peers_connecting: 0,
+        }
+    }
+
+    #[test]
+    fn phase_leeching_reflects_live_progress() {
+        let m = meta_for(TorrentState::Leeching);
+        assert_eq!(derive_phase(&m, None), "resolving-metadata");
+        assert_eq!(derive_phase(&m, Some(&live_for(0, 100, false))), "connecting");
+        assert_eq!(derive_phase(&m, Some(&live_for(50, 100, false))), "downloading");
+        assert_eq!(derive_phase(&m, Some(&live_for(100, 100, true))), "moving");
+    }
+
+    #[test]
+    fn phase_seeding_reflects_transcode_and_hls() {
+        let mut m = meta_for(TorrentState::Seeding);
+        assert_eq!(derive_phase(&m, None), "ready");
+        m.transcode = TranscodeStatus::Encoding;
+        assert_eq!(derive_phase(&m, None), "transcoding");
+        m.transcode = TranscodeStatus::None;
+        m.hls = HlsStatus::Live;
+        assert_eq!(derive_phase(&m, None), "streaming-hls");
+    }
+
+    #[test]
+    fn phase_failed_and_reaped() {
+        assert_eq!(derive_phase(&meta_for(TorrentState::Failed), None), "failed");
+        assert_eq!(derive_phase(&meta_for(TorrentState::Reaped), None), "reaped");
     }
 
     #[test]

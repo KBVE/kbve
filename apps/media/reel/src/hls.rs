@@ -43,6 +43,25 @@ mod tests {
     }
 }
 
+fn delivery_label(d: Delivery) -> &'static str {
+    match d {
+        Delivery::RawProgressive => "raw_progressive",
+        Delivery::RemuxHls => "remux_hls",
+        Delivery::TranscodeHls => "transcode_hls",
+    }
+}
+
+fn ffmpeg_tail(buf: &Arc<Mutex<String>>) -> String {
+    let s = buf.lock().unwrap();
+    let trimmed = s.trim();
+    if trimmed.is_empty() {
+        return "no stderr captured".into();
+    }
+    let mut tail: Vec<char> = trimmed.chars().rev().take(500).collect();
+    tail.reverse();
+    tail.into_iter().collect::<String>().replace('\n', " ")
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum StartOutcome {
     Started,
@@ -258,8 +277,21 @@ impl HlsManager {
         };
 
         let mut cmd = Command::new(&self.ffmpeg_bin);
-        cmd.args(&args);
-        let child = cmd.spawn()?;
+        cmd.args(&args).stderr(std::process::Stdio::piped());
+        let mut child = cmd.spawn()?;
+
+        let errbuf = Arc::new(Mutex::new(String::new()));
+        if let Some(mut stderr) = child.stderr.take() {
+            let buf = errbuf.clone();
+            tokio::spawn(async move {
+                use tokio::io::AsyncReadExt;
+                let mut s = String::new();
+                let _ = stderr.read_to_string(&mut s).await;
+                *buf.lock().unwrap() = s;
+            });
+        }
+
+        crate::telemetry::hls_started(id, delivery_label(delivery));
 
         {
             let mut g = self.children.lock().unwrap();
@@ -270,15 +302,21 @@ impl HlsManager {
         let id = id.to_string();
         let index_path = hls_dir.join("index.m3u8");
         tokio::spawn(async move {
+            let mut went_live = false;
             for _ in 0..100 {
                 if index_path.exists() {
                     let _ = this.store.update(&id, |m| {
                         m.hls = HlsStatus::Live;
                         ((), true)
                     });
+                    tracing::info!(id = %id, "hls manifest live");
+                    went_live = true;
                     break;
                 }
                 tokio::time::sleep(std::time::Duration::from_millis(100)).await;
+            }
+            if !went_live {
+                tracing::warn!(id = %id, "hls manifest not produced within 10s; ffmpeg may still be starting");
             }
 
             let exit_result = loop {
@@ -300,18 +338,23 @@ impl HlsManager {
                         m.hls_error = None;
                         ((), true)
                     });
+                    crate::telemetry::hls_ready(&id);
                 }
                 Some(Ok(status)) => {
+                    let reason = format!("ffmpeg exited: {status}: {}", ffmpeg_tail(&errbuf));
+                    crate::telemetry::hls_failed(&id, &reason);
                     let _ = this.store.update(&id, |m| {
                         m.hls = HlsStatus::Failed;
-                        m.hls_error = Some(format!("ffmpeg exited: {status}"));
+                        m.hls_error = Some(reason.clone());
                         ((), true)
                     });
                 }
                 Some(Err(e)) => {
+                    let reason = e.to_string();
+                    crate::telemetry::hls_failed(&id, &reason);
                     let _ = this.store.update(&id, |m| {
                         m.hls = HlsStatus::Failed;
-                        m.hls_error = Some(e.to_string());
+                        m.hls_error = Some(reason.clone());
                         ((), true)
                     });
                 }
