@@ -7,6 +7,7 @@ export * from './ISpellSchema';
 export * from './IProfessionSchema';
 export * from './osrs';
 export * from './mc';
+export * from './palworld';
 export * from './ICiProjectSchema';
 export * from './IClickHouseSchema';
 export * from './IForumSchema';

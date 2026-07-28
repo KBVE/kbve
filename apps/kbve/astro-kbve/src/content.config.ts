@@ -22,6 +22,7 @@ import {
 	MCSchematicFrontmatterSchema,
 	MCLotFrontmatterSchema,
 	MCPoiFrontmatterSchema,
+	PalShopSchema,
 } from '@/data/schema';
 import { ProjectSchemaWithEngine } from '@/data/ci/project-schema';
 
@@ -142,6 +143,7 @@ export const collections = {
 				mc_schematic: MCSchematicFrontmatterSchema.optional(),
 				mc_lot: MCLotFrontmatterSchema.optional(),
 				mc_poi: MCPoiFrontmatterSchema.optional(),
+				palshop: PalShopSchema.optional(),
 				'yt-tracks': z.array(z.string()).optional(),
 				'yt-sets': z.array(z.string()).optional(),
 				// Journal post metadata consumed by the RSS feed

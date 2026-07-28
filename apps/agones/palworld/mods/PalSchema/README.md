@@ -31,3 +31,12 @@ Get the digest from:
 gh api repos/Okaetsu/PalSchema/releases/latest \
   --jq '.assets[] | select(.name|endswith(".zip")) | {name, digest}'
 ```
+
+## Shops (KBVEShops)
+
+Shop tables (`DT_ItemShopCreateData`) are generated from MDX frontmatter under
+`apps/kbve/astro-kbve/src/content/docs/palworld/palshop/*.mdx` by
+`scripts/generate-palworld-shops.mjs` (nx target `astro-kbve:gen:palworld-shops`).
+Edit the MDX, regenerate, commit both. Item ids and layout take structural
+reference from the Hex Reworked Shop (Nexus) PalSchema mod; all prices, stock,
+and curation are KBVE-authored.
