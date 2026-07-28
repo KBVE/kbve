@@ -2,57 +2,55 @@
 
 Server-authored persistent world objects for the Agones Palworld server.
 UE4SS Lua mod, sibling to `PalChatRelay`. Drives Palworld's own native build
-objects from a git-versioned config — no custom meshes, no custom text
-rendering.
+objects — no custom meshes, no custom text rendering.
 
-**Feature #1:** readable signposts (a physical post players walk up to and
-read). Later object types (protected structures, landmarks, spawn decor) reuse
-the same place-from-config loop.
+**Feature #1:** readable signposts that persist and are maintained by the
+server. Text is server-authored; the sign is kept alive against decay.
 
 ## Status
 
-**Skeleton — NOT integrated into the server yet.** `mods.txt`, `overlay.sh`,
-and the `agones-palworld` MDX are intentionally untouched. Placement is stubbed
-pending the Phase 0 live spike (see below).
+Integrated and live. Command results are written to the shared chat log
+(sender `PalForge`) and surface in Discord/IRC as `[PAL] PalForge: …`.
 
 ## Layout
 
 | File | Role |
 |------|------|
-| `scripts/main.lua` | Loader, world-ready trigger, place-from-config loop. `spawn_signboard` / `set_sign_text` are stubs until the spike resolves them. |
-| `scripts/signboards.lua` | Config as a Lua table (`{ signs = { { coords, rot, text } } }`). Zero-dependency; UE4SS Lua has no TOML parser. Source of truth in git. |
-| `scripts/probe.lua` | Phase 0 spike tool. Finds existing signboards, confirms `GetSignboardText`, tries candidate text setters. Run manually on the live server; do not ship. |
+| `scripts/main.lua` | Loader, world-ready trigger, chat hook, command dispatch to the modules below. |
+| `scripts/pos.lua` | Resolves a player's world location. Command: `!pos`. |
+| `scripts/signs.lua` | The sign feature. Commands: `!signhp` (read deterioration/HP/owner), `!signrepair` (zero deterioration — property write). |
+| `scripts/diag.lua` | Safe capability probes: `!httptest`, `!curltest` (no network). |
+| `scripts/signboards.lua` | Config as a Lua table (`{ signs = { { coords, rot, text } } }`). UE4SS Lua has no TOML parser; source of truth in git. |
 
-## The native signboard
+Each module exposes `handle(sender, text, emit, ctx)` and owns its own command
+parsing; `main.lua` just calls each in turn. `emit` logs and appends to the
+shared chat log.
 
-From the DrRak72/Palworld-Modding-Reference SDK dump:
+## Sign approach
 
-- `ABP_BuildObject_Signboard_C : APalBuildObject` — spawnable, replicated,
-  save-persisted. Path
-  `/Game/Pal/Blueprint/MapObject/BuildObject/BP_BuildObject_Signboard.BP_BuildObject_Signboard_C`.
-- Text lives on native `PalMapObjectSignboardModel` (getter `GetSignboardText`,
-  delegate `UpdateSignboardTextDelegate`). Actor refresh `OnUpdateText(FString)`.
-  3D render widget `WBP_Ingame_Signboard_3DText.UpdateText`.
+Palworld exposes no safe server-side spawn for build objects — the native
+`RequestSpawnMapObject_Server` aborts the process when called from a bare Lua
+context (it assumes a full build-request context), and there is no non-prod
+Palworld to iterate on. So the sign is **hand-placed** by staff (native,
+visible, saved) and maintained by PalForge:
 
-## Open unknowns (Phase 0 spike)
+- **Text:** server-authored via `PalMapObjectSignboardModel` (`OnUpdateText` /
+  `GetSignboardText`), re-applied from `signboards.lua`.
+- **Persistence:** global build deterioration stays **on** (so abandoned player
+  builds are still garbage-collected), but PalForge zeroes the deterioration
+  accumulators (`DeteriorationDamage` / `DeteriorationTotalDamage`) on its own
+  signs on a cycle — a property write, not the crash-prone repair RPC.
+- **Ownership (planned):** `PalMapObjectModel.BuildPlayerUId` is
+  `BlueprintReadWrite`/replicated, so a hand-placed sign's owner can be
+  rewritten to a canonical server id via the same safe-write path.
 
-- **R1 — spawn.** Can Lua spawn `BP_BuildObject_Signboard_C` at a coordinate
-  with a valid concrete model? Bare `SpawnActor` may need the build system
-  (foundation / guild / owner) path.
-- **R2 — text setter.** Native setter name on `PalMapObjectSignboardModel`
-  (only the getter is dumped). `probe.lua` tries candidates against a live
-  signboard.
+## Reference
 
-Fallback if both fail: proximity-chat signs (invisible trigger → send text via
-the known-working `BroadcastChatMessage` path).
+Native signboard: `ABP_BuildObject_Signboard_C : APalBuildObject`
+(`/Game/Pal/Blueprint/MapObject/BuildObject/BP_BuildObject_Signboard.BP_BuildObject_Signboard_C`).
+Model class `PalMapObjectSignboardModel`, owned by `PalMapObjectManager`.
+Field/function names from `localcc/PalworldModdingKit` (`PalMapObjectManager.h`,
+`PalMapObjectModel.h`, `PalMapObjectSignboardModel.h`).
 
-## Integration (later, once the spike resolves R1/R2)
-
-1. Fill `spawn_signboard` / `set_sign_text` in `main.lua` with the confirmed
-   mechanism.
-2. Add `PalForge:1` to `apps/agones/palworld/mods/mods.txt`.
-3. Stage `PalForge/scripts` in `overlay.sh` (same pattern as `PalChatRelay`).
-4. Bump the `agones-palworld` MDX version (deploy lever).
-
-See `docs/superpowers/specs/2026-07-24-palforge-design.md` and the
-`project_palworld_agones` memory.
+See the `project_palworld_agones` memory for the full spike history (why
+server-spawn is parked, the crash root cause, and the safe-write decision).
