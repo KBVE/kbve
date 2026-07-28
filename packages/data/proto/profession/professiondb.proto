@@ -83,6 +83,9 @@ message ProfessionAction {
   repeated string tool_refs = 9;    // itemdb tool refs permitting/speeding the action
   optional string emoji = 10;
   optional string icon = 11;
+
+  uint32 key = 12;
+  optional string facility_ref = 13;
 }
 
 // A milestone reached at a given profession level — reveals content or grants a

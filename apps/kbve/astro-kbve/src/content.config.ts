@@ -12,7 +12,7 @@ import {
 	IMapObjectSchema,
 	INpcSchema,
 	ISpellSchema,
-	IProfessionSchema,
+	IProfessionEntrySchema,
 	ITileSchema,
 	OSRSExtendedSchema,
 	ICiProjectSchema,
@@ -116,7 +116,7 @@ const professiondb = defineCollection({
 		pattern: '**/*.mdx',
 		base: './src/content/docs/professiondb',
 	}),
-	schema: IProfessionSchema,
+	schema: IProfessionEntrySchema,
 });
 
 const tiledb = defineCollection({
