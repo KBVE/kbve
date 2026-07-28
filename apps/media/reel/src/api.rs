@@ -67,14 +67,14 @@ struct TorrentView {
     #[serde(skip_serializing_if = "Option::is_none")]
     live: Option<engine::TorrentLive>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    transcode_progress: Option<u8>,
+    transcode_progress: Option<transcode::TranscodeProgress>,
 }
 
 impl TorrentView {
     fn build(
         meta: state::Metadata,
         live: Option<engine::TorrentLive>,
-        transcode_progress: Option<u8>,
+        transcode_progress: Option<transcode::TranscodeProgress>,
     ) -> Self {
         let phase = derive_phase(&meta, live.as_ref());
         Self {

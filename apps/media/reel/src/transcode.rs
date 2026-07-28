@@ -25,6 +25,33 @@ pub fn parse_progress_line(line: &str) -> Option<(&str, &str)> {
     Some((k.trim(), v.trim()))
 }
 
+pub fn parse_speed(v: &str) -> Option<f32> {
+    let v = v.trim().trim_end_matches('x').trim();
+    if v.eq_ignore_ascii_case("n/a") {
+        return None;
+    }
+    v.parse::<f32>().ok().filter(|s| *s > 0.0)
+}
+
+pub fn eta_secs(duration_secs: f64, out_time_us: u64, speed: f32) -> Option<u32> {
+    if speed <= 0.05 || duration_secs <= 0.0 {
+        return None;
+    }
+    let remaining = duration_secs - (out_time_us as f64 / 1_000_000.0);
+    if remaining <= 0.0 {
+        return Some(0);
+    }
+    Some((remaining / speed as f64).round().max(0.0) as u32)
+}
+
+#[derive(Clone, Copy, Debug, serde::Serialize)]
+pub struct TranscodeProgress {
+    pub pct: u8,
+    pub speed: f32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub eta_secs: Option<u32>,
+}
+
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Route {
     Remux,
@@ -242,7 +269,7 @@ pub struct Transcoder {
     enabled: bool,
     encode_threads: usize,
     children: Arc<std::sync::Mutex<std::collections::HashMap<String, tokio::process::Child>>>,
-    progress: Arc<std::sync::Mutex<std::collections::HashMap<String, u8>>>,
+    progress: Arc<std::sync::Mutex<std::collections::HashMap<String, TranscodeProgress>>>,
 }
 
 impl Transcoder {
@@ -368,16 +395,46 @@ impl Transcoder {
             let id = id.to_string();
             tokio::spawn(async move {
                 let mut lines = tokio::io::BufReader::new(stdout).lines();
+                let mut last_us = 0u64;
+                let mut last_speed = 0.0f32;
                 while let Ok(Some(line)) = lines.next_line().await {
                     if let Some((k, v)) = parse_progress_line(&line) {
                         match k {
                             // ffmpeg reports both keys in microseconds
                             "out_time_us" | "out_time_ms" => {
                                 if let Ok(us) = v.parse::<u64>() {
-                                    this.set_progress(&id, progress_pct(us, dur));
+                                    last_us = us;
+                                    this.set_progress(
+                                        &id,
+                                        TranscodeProgress {
+                                            pct: progress_pct(last_us, dur),
+                                            speed: last_speed,
+                                            eta_secs: eta_secs(dur, last_us, last_speed),
+                                        },
+                                    );
                                 }
                             }
-                            "progress" if v == "end" => this.set_progress(&id, 100),
+                            "speed" => {
+                                if let Some(s) = parse_speed(v) {
+                                    last_speed = s;
+                                    this.set_progress(
+                                        &id,
+                                        TranscodeProgress {
+                                            pct: progress_pct(last_us, dur),
+                                            speed: last_speed,
+                                            eta_secs: eta_secs(dur, last_us, last_speed),
+                                        },
+                                    );
+                                }
+                            }
+                            "progress" if v == "end" => this.set_progress(
+                                &id,
+                                TranscodeProgress {
+                                    pct: 100,
+                                    speed: last_speed,
+                                    eta_secs: Some(0),
+                                },
+                            ),
                             _ => {}
                         }
                     }
@@ -405,15 +462,15 @@ impl Transcoder {
         self.children.lock().unwrap().remove(id)
     }
 
-    fn set_progress(&self, id: &str, pct: u8) {
-        self.progress.lock().unwrap().insert(id.to_string(), pct);
+    fn set_progress(&self, id: &str, p: TranscodeProgress) {
+        self.progress.lock().unwrap().insert(id.to_string(), p);
     }
 
     fn clear_progress(&self, id: &str) {
         self.progress.lock().unwrap().remove(id);
     }
 
-    pub fn progress_of(&self, id: &str) -> Option<u8> {
+    pub fn progress_of(&self, id: &str) -> Option<TranscodeProgress> {
         self.progress.lock().unwrap().get(id).copied()
     }
 
@@ -458,7 +515,14 @@ impl Transcoder {
             };
             ((), true)
         });
-        self.set_progress(id, 0);
+        self.set_progress(
+            id,
+            TranscodeProgress {
+                pct: 0,
+                speed: 0.0,
+                eta_secs: None,
+            },
+        );
         let duration = probe.duration_secs;
 
         let result = async {
@@ -528,6 +592,24 @@ mod tests {
         assert_eq!(parse_progress_line("out_time_us=4560000"), Some(("out_time_us", "4560000")));
         assert_eq!(parse_progress_line("progress=end"), Some(("progress", "end")));
         assert_eq!(parse_progress_line("garbage"), None);
+    }
+
+    #[test]
+    fn parse_speed_strips_x_and_rejects_na() {
+        assert_eq!(parse_speed("1.85x"), Some(1.85));
+        assert_eq!(parse_speed(" 2x "), Some(2.0));
+        assert_eq!(parse_speed("N/A"), None);
+        assert_eq!(parse_speed("0x"), None);
+        assert_eq!(parse_speed("junk"), None);
+    }
+
+    #[test]
+    fn eta_secs_from_remaining_over_speed() {
+        // 100s total, 40s done, 2x → 30s remaining wall-clock
+        assert_eq!(eta_secs(100.0, 40_000_000, 2.0), Some(30));
+        assert_eq!(eta_secs(100.0, 100_000_000, 2.0), Some(0), "done → 0");
+        assert_eq!(eta_secs(100.0, 40_000_000, 0.0), None, "no speed → none");
+        assert_eq!(eta_secs(0.0, 0, 2.0), None, "no duration → none");
     }
     #[test]
     fn h264_aac_remuxes() {
