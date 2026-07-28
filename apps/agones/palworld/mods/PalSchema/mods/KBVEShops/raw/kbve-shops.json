@@ -1,0 +1,67 @@
+{
+    "DT_ItemShopCreateData": {
+        "Village_Shop_1": {
+            "productDataArray": {
+                "Action": "Clear",
+                "Items": [
+                    {
+                        "StaticItemId": "PalSphere",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 100,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "PalSphere_Mega",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 800,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Shield_01",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 300,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "ClothArmorCold",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 500,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "ClothArmorHeat",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 500,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Herbs",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 50,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "Medicines",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 200,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    },
+                    {
+                        "StaticItemId": "LuxuryMedicines",
+                        "ProductType": "EPalItemShopProductType::Normal",
+                        "OverridePrice": 1000,
+                        "ProductNum": 1,
+                        "Stock": 0
+                    }
+                ]
+            }
+        }
+    }
+}

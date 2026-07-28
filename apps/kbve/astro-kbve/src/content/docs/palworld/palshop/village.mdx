@@ -1,0 +1,30 @@
+---
+title: Village Shop
+template: splash
+description: The KBVE Palworld Village shop — starter spheres, armor, and supplies.
+sidebar:
+    label: Village Shop
+    order: 2
+tags:
+    - palworld
+    - shop
+palshop:
+    shopId: Village_Shop_1
+    action: Clear
+    items:
+        - { id: PalSphere, type: Normal, price: 100, num: 1, stock: 0 }
+        - { id: PalSphere_Mega, type: Normal, price: 800, num: 1, stock: 0 }
+        - { id: Shield_01, type: Normal, price: 300, num: 1, stock: 0 }
+        - { id: ClothArmorCold, type: Normal, price: 500, num: 1, stock: 0 }
+        - { id: ClothArmorHeat, type: Normal, price: 500, num: 1, stock: 0 }
+        - { id: Herbs, type: Normal, price: 50, num: 1, stock: 0 }
+        - { id: Medicines, type: Normal, price: 200, num: 1, stock: 0 }
+        - { id: LuxuryMedicines, type: Normal, price: 1000, num: 1, stock: 0 }
+---
+
+import PalShopTable from '@/components/palworld/PalShopTable.astro';
+
+The **Village Shop** stocks starter gear for new arrivals — capture spheres,
+climate armor, and healing supplies at fixed prices.
+
+<PalShopTable shop={frontmatter.palshop} />
