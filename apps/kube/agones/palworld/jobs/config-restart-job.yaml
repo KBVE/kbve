@@ -1,0 +1,57 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: palworld-config-restart
+    namespace: palworld
+    labels:
+        app.kubernetes.io/part-of: palworld
+        app.kubernetes.io/component: config-restart
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+spec:
+    ttlSecondsAfterFinished: 3600
+    backoffLimit: 0
+    template:
+        metadata:
+            labels:
+                app.kubernetes.io/part-of: palworld
+                app.kubernetes.io/component: config-restart
+        spec:
+            serviceAccountName: palworld-rotator
+            automountServiceAccountToken: true
+            restartPolicy: Never
+            terminationGracePeriodSeconds: 30
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: restart
+                  image: ghcr.io/kbve/kubectl:0.1.9
+                  imagePullPolicy: IfNotPresent
+                  args:
+                      - restart-gameserver
+                      - --namespace=palworld
+                      - --gameserver=palworld
+                      - --container=palworld
+                      - --delete-timeout=180
+                      - --ready-timeout=600
+                      - --backup
+                      - --save-path=/palworld/Pal/Saved
+                      - --backup-dir=/palworld/backups
+                      - --backup-keep=5
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+                  resources:
+                      requests:
+                          cpu: 25m
+                          memory: 64Mi
+                      limits:
+                          cpu: 100m
+                          memory: 128Mi
