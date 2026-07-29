@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState, useEffect } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { useMonorepoGraph, REL_COLORS, REL_LABELS } from './useMonorepoGraph';
 import TieredGraphScene, {
@@ -44,6 +44,8 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 	} | null>(null);
 	const seq = useRef(0);
 	const [labelHost, setLabelHost] = useState<HTMLDivElement | null>(null);
+	const [zoomTrigger, setZoomTrigger] = useState<{ delta: number; seq: number } | null>(null);
+	const [resetTrigger, setResetTrigger] = useState(0);
 
 	const matches = useMemo(() => {
 		if (!overview || query.trim().length < 2) return [];
@@ -59,6 +61,52 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 		setPicked(d);
 		setQuery('');
 	};
+
+	const handleZoomIn = () => {
+		seq.current += 1;
+		setZoomTrigger({ delta: 1.3, seq: seq.current });
+	};
+
+	const handleZoomOut = () => {
+		seq.current += 1;
+		setZoomTrigger({ delta: 0.7, seq: seq.current });
+	};
+
+	const handleResetView = () => {
+		setResetTrigger((r) => r + 1);
+		setPicked(null);
+	};
+
+	// Keyboard shortcuts for navigation
+	useEffect(() => {
+		const handleKeyboard = (e: KeyboardEvent) => {
+			// Ignore if user is typing in an input
+			if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+				return;
+			}
+
+			switch (e.key) {
+				case '+':
+				case '=':
+					e.preventDefault();
+					handleZoomIn();
+					break;
+				case '-':
+				case '_':
+					e.preventDefault();
+					handleZoomOut();
+					break;
+				case 'r':
+				case 'R':
+					e.preventDefault();
+					handleResetView();
+					break;
+			}
+		};
+
+		window.addEventListener('keydown', handleKeyboard);
+		return () => window.removeEventListener('keydown', handleKeyboard);
+	}, []);
 
 	return (
 		<div className="mgx" data-monorepo-graph>
@@ -87,6 +135,8 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 							colorMode={colorMode}
 							labelHost={labelHost}
 							focusRequest={focusRequest}
+							zoomTrigger={zoomTrigger}
+							resetTrigger={resetTrigger}
 							onHover={setHover}
 							onPickDir={setPicked}
 						/>
@@ -101,8 +151,49 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 						<strong>
 							{overview.meta.symbols.toLocaleString()}
 						</strong>{' '}
-						symbols — scroll to drill in, drag to pan, click to open
-						source
+						symbols
+					</div>
+
+					<div className="mgx__nav-controls">
+						<button
+							type="button"
+							onClick={handleZoomIn}
+							title="Zoom in (+)"
+							aria-label="Zoom in">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+								<circle cx="11" cy="11" r="8" />
+								<path d="M21 21l-4.35-4.35" />
+								<line x1="11" y1="8" x2="11" y2="14" />
+								<line x1="8" y1="11" x2="14" y2="11" />
+							</svg>
+						</button>
+						<button
+							type="button"
+							onClick={handleZoomOut}
+							title="Zoom out (-)"
+							aria-label="Zoom out">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+								<circle cx="11" cy="11" r="8" />
+								<path d="M21 21l-4.35-4.35" />
+								<line x1="8" y1="11" x2="14" y2="11" />
+							</svg>
+						</button>
+						<button
+							type="button"
+							onClick={handleResetView}
+							title="Reset view (R)"
+							aria-label="Reset view">
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+								<path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+								<path d="M21 3v5h-5" />
+								<path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+								<path d="M3 21v-5h5" />
+							</svg>
+						</button>
+					</div>
+
+					<div className="mgx__hints">
+						<strong>Navigation:</strong> Scroll/pinch to zoom · Drag to pan · Click nodes to explore<br/><span style="font-size: 0.7rem; opacity: 0.85;"><kbd>+</kbd>/<kbd>-</kbd> zoom · <kbd>R</kbd> reset</span>
 					</div>
 
 					<div className="mgx__rels">
@@ -246,7 +337,7 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 					top: 0;
 					left: 0;
 					white-space: nowrap;
-					font-size: 0.68rem;
+					font-size: 0.8rem;
 					font-weight: 500;
 					color: #e2e8f0;
 					text-shadow: 0 1px 3px rgba(2, 6, 14, 0.95),
@@ -257,15 +348,88 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 					position: absolute;
 					left: 12px;
 					bottom: 12px;
-					padding: 6px 10px;
+					padding: 8px 12px;
 					border-radius: 8px;
-					background: rgba(12, 18, 30, 0.72);
+					background: rgba(12, 18, 30, 0.82);
 					color: #cbd5e1;
-					font-size: 0.72rem;
-					backdrop-filter: blur(6px);
+					font-size: 0.8rem;
+					backdrop-filter: blur(8px);
 					pointer-events: none;
+					border: 1px solid rgba(148, 163, 184, 0.2);
 				}
 				.mgx__legend strong { color: #e2e8f0; }
+				.mgx__hints {
+					position: absolute;
+					left: 12px;
+					top: 12px;
+					padding: 8px 12px;
+					border-radius: 8px;
+					background: rgba(12, 18, 30, 0.82);
+					color: #cbd5e1;
+					font-size: 0.8rem;
+					backdrop-filter: blur(8px);
+					pointer-events: none;
+					border: 1px solid rgba(148, 163, 184, 0.2);
+					max-width: 420px;
+				}
+				.mgx__hints strong { color: #e2e8f0; }
+				.mgx__hints kbd {
+					display: inline-block;
+					padding: 2px 6px;
+					font-size: 0.7rem;
+					font-family: ui-monospace, monospace;
+					background: rgba(148, 163, 184, 0.2);
+					border: 1px solid rgba(148, 163, 184, 0.4);
+					border-radius: 4px;
+					color: #e2e8f0;
+					box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+				}
+				.mgx__nav-controls {
+					position: absolute;
+					left: 12px;
+					bottom: 56px;
+					display: flex;
+					flex-direction: column;
+					gap: 6px;
+				}
+				.mgx__nav-controls button {
+					width: 40px;
+					height: 40px;
+					padding: 8px;
+					border-radius: 8px;
+					border: 1px solid rgba(148, 163, 184, 0.3);
+					background: rgba(12, 18, 30, 0.82);
+					color: #cbd5e1;
+					cursor: pointer;
+					backdrop-filter: blur(8px);
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					transition: all 0.2s ease;
+				}
+				.mgx__nav-controls button:hover {
+					background: rgba(56, 189, 248, 0.2);
+					border-color: #38bdf8;
+					color: #e0f2fe;
+					transform: scale(1.05);
+				}
+				.mgx__nav-controls button svg {
+					width: 20px;
+					height: 20px;
+				}
+				@media (pointer: coarse) {
+					.mgx__nav-controls button {
+						width: 48px;
+						height: 48px;
+					}
+					.mgx__controls > button {
+						padding: 8px 14px;
+						min-height: 44px;
+					}
+					.mgx__search input {
+						min-height: 44px;
+					}
+				}
 				.mgx__rels {
 					position: absolute;
 					right: 12px;
@@ -273,22 +437,23 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 					display: flex;
 					flex-wrap: wrap;
 					gap: 8px;
-					padding: 6px 10px;
+					padding: 8px 12px;
 					border-radius: 8px;
-					background: rgba(12, 18, 30, 0.72);
-					backdrop-filter: blur(6px);
+					background: rgba(12, 18, 30, 0.82);
+					backdrop-filter: blur(8px);
 					pointer-events: none;
 					max-width: 340px;
+					border: 1px solid rgba(148, 163, 184, 0.2);
 				}
 				.mgx__rel {
 					display: inline-flex;
 					align-items: center;
-					gap: 4px;
+					gap: 5px;
 					color: #cbd5e1;
-					font-size: 0.66rem;
+					font-size: 0.75rem;
 				}
 				.mgx__rel i {
-					width: 10px;
+					width: 12px;
 					height: 3px;
 					border-radius: 2px;
 				}
@@ -301,29 +466,40 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 					align-items: flex-start;
 				}
 				.mgx__controls > button {
-					padding: 5px 10px;
+					padding: 6px 12px;
 					border-radius: 8px;
 					border: 1px solid rgba(148, 163, 184, 0.3);
-					background: rgba(12, 18, 30, 0.72);
+					background: rgba(12, 18, 30, 0.82);
 					color: #cbd5e1;
-					font-size: 0.72rem;
+					font-size: 0.8rem;
 					cursor: pointer;
-					backdrop-filter: blur(6px);
+					backdrop-filter: blur(8px);
+					transition: all 0.2s ease;
+				}
+				.mgx__controls > button:hover {
+					background: rgba(56, 189, 248, 0.15);
+					border-color: rgba(56, 189, 248, 0.5);
 				}
 				.mgx__controls > button.is-active {
 					border-color: #38bdf8;
 					color: #e0f2fe;
+					background: rgba(56, 189, 248, 0.2);
 				}
 				.mgx__search { position: relative; }
 				.mgx__search input {
-					width: 170px;
-					padding: 5px 10px;
+					width: 180px;
+					padding: 6px 12px;
 					border-radius: 8px;
 					border: 1px solid rgba(148, 163, 184, 0.3);
 					background: rgba(12, 18, 30, 0.82);
 					color: #e2e8f0;
-					font-size: 0.72rem;
-					backdrop-filter: blur(6px);
+					font-size: 0.8rem;
+					backdrop-filter: blur(8px);
+					transition: border-color 0.2s ease;
+				}
+				.mgx__search input:focus {
+					outline: none;
+					border-color: #38bdf8;
 				}
 				.mgx__search ul {
 					position: absolute;
@@ -343,17 +519,24 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 					justify-content: space-between;
 					gap: 8px;
 					width: 100%;
-					padding: 5px 8px;
+					padding: 6px 10px;
 					border: none;
 					background: none;
 					color: #cbd5e1;
-					font-size: 0.72rem;
+					font-size: 0.78rem;
 					cursor: pointer;
 					border-radius: 5px;
 					text-align: left;
+					transition: background 0.2s ease;
 				}
-				.mgx__search li button:hover { background: rgba(56, 189, 248, 0.15); }
-				.mgx__search li button span { color: #64748b; }
+				.mgx__search li button:hover {
+					background: rgba(56, 189, 248, 0.2);
+					color: #e0f2fe;
+				}
+				.mgx__search li button span {
+					color: #64748b;
+					font-size: 0.7rem;
+				}
 				.mgx__panel {
 					position: absolute;
 					left: 12px;
@@ -409,20 +592,22 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 					pointer-events: none;
 					display: flex;
 					flex-direction: column;
-					gap: 2px;
-					padding: 6px 9px;
+					gap: 4px;
+					padding: 10px 12px;
 					border-radius: 8px;
-					background: rgba(2, 6, 14, 0.92);
-					border: 1px solid rgba(148, 163, 184, 0.25);
-					max-width: 240px;
+					background: rgba(2, 6, 14, 0.95);
+					border: 1px solid rgba(148, 163, 184, 0.3);
+					max-width: 280px;
+					backdrop-filter: blur(8px);
 				}
 				.mgx__kind {
-					font-size: 0.6rem;
+					font-size: 0.65rem;
 					text-transform: uppercase;
-					letter-spacing: 0.04em;
+					letter-spacing: 0.05em;
+					font-weight: 600;
 					color: #0a0e16;
 					background: #38bdf8;
-					padding: 0 5px;
+					padding: 2px 6px;
 					border-radius: 4px;
 					align-self: flex-start;
 				}
@@ -430,12 +615,13 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 				.mgx__kind--symbol { background: #f0abfc; }
 				.mgx__tip-label {
 					color: #e2e8f0;
-					font-size: 0.76rem;
+					font-size: 0.85rem;
+					font-weight: 500;
 					word-break: break-word;
 				}
 				.mgx__tip-sub {
 					color: #94a3b8;
-					font-size: 0.66rem;
+					font-size: 0.75rem;
 					word-break: break-word;
 				}
 			`}</style>
