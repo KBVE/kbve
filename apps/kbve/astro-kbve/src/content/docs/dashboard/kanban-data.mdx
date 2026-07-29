@@ -31,8 +31,8 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					Project board
 					<span class="bento-title__accent">across every column.</span>
 				</h1>
-				<p class="bento-lede"><strong>495</strong> items on the board — <strong>28</strong> active, <strong>23</strong> blocked.</p>
-				<p class="bento-lede">Last generated <strong>2026-07-28T04:09:15Z</strong>.</p>
+				<p class="bento-lede"><strong>553</strong> items on the board — <strong>27</strong> active, <strong>23</strong> blocked.</p>
+				<p class="bento-lede">Last generated <strong>2026-07-29T04:11:29Z</strong>.</p>
 				<div class="bento-cta">
 					<a class="bento-btn bento-btn--primary" href="#columns">
 						View columns
@@ -47,14 +47,14 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
 					</span>
-					<span class="bento-stat__value">495</span>
+					<span class="bento-stat__value">553</span>
 					<span class="bento-stat__label">Tracked</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h7l-1 8 10-12h-7z" /></svg>
 					</span>
-					<span class="bento-stat__value">28</span>
+					<span class="bento-stat__value">27</span>
 					<span class="bento-stat__label">Active</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
@@ -75,7 +75,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1M22 4 12 14.01l-3-3" /></svg>
 					</span>
-					<span class="bento-stat__value">362</span>
+					<span class="bento-stat__value">421</span>
 					<span class="bento-stat__label">Done</span>
 				</div>
 		</div>
@@ -164,7 +164,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" /></svg>
 			</span>
 			<span class="bento-linkcard__title">Review</span>
-			<span class="bento-linkcard__copy">4 items</span>
+			<span class="bento-linkcard__copy">3 items</span>
 			<span class="bento-linkcard__go" aria-hidden="true">
 				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 			</span>
@@ -174,7 +174,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1M22 4 12 14.01l-3-3" /></svg>
 			</span>
 			<span class="bento-linkcard__title">Done</span>
-			<span class="bento-linkcard__copy">362 items</span>
+			<span class="bento-linkcard__copy">421 items</span>
 			<span class="bento-linkcard__go" aria-hidden="true">
 				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 			</span>
@@ -195,8 +195,8 @@ pie showData
     "Backlog" : 6
     "Error" : 23
     "Staging" : 2
-    "Review" : 4
-    "Done" : 362
+    "Review" : 3
+    "Done" : 421
 ```
 
 ### Work state
@@ -204,9 +204,9 @@ pie showData
 ```mermaid
 pie showData
     title Work State
-    "Active (Todo+Staging+Review)" : 28
+    "Active (Todo+Staging+Review)" : 27
     "Blocked (Error+Support)" : 23
-    "Done" : 362
+    "Done" : 421
     "Planning (Theory+AI+Backlog)" : 82
 ```
 
@@ -232,9 +232,9 @@ flowchart LR
     Support --> Staging
     Staging["Staging<br/><strong>2</strong>"]
     Staging --> Review
-    Review["Review<br/><strong>4</strong>"]
+    Review["Review<br/><strong>3</strong>"]
     Review --> Done
-    Done["Done<br/><strong>362</strong>"]
+    Done["Done<br/><strong>421</strong>"]
     class Theory,AI,Backlog planning
     class Todo,Staging,Review active
     class Error,Support blocked
@@ -246,7 +246,7 @@ flowchart LR
 ```mermaid
 pie showData
     title Items by Type
-    "Pull Request" : 355
+    "Pull Request" : 413
     "Issue" : 140
 ```
 
@@ -258,10 +258,10 @@ pie showData
 
 | Label | Count |
 |-------|:-----:|
-| auto-pr | 355 |
-| dev→main | 111 |
+| auto-pr | 413 |
+| dev→main | 129 |
+| atomic | 102 |
 | enhancement | 97 |
-| atomic | 89 |
 | bug | 27 |
 | todo | 26 |
 | rust | 16 |
@@ -450,36 +450,24 @@ No items in **Support**.
 
 <span id="col-review"></span>
 
-### Review (4)
+### Review (3)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
 | [#13278](https://github.com/KBVE/kbve/pull/13278) | Atomic: ue ramdisk spec | — | — | auto-pr, atomic |
 | [#13572](https://github.com/KBVE/kbve/pull/13572) | Atomic: bump mdx spec | — | — | auto-pr, atomic |
-| [#14767](https://github.com/KBVE/kbve/pull/14767) | Release: 1 feature, 1 fix, 1 doc → Main | — | — | auto-pr, dev→main |
-| [#14773](https://github.com/KBVE/kbve/pull/14773) | chore(content): daily journal scaffold | — | — | auto-pr |
+| [#14870](https://github.com/KBVE/kbve/pull/14870) | Release: 1 feature, 1 fix → Main | — | — | auto-pr, dev→main |
 
 <span id="col-done"></span>
 
-### Done (362)
+### Done (421)
 
 | # | Title | Priority | Assignees | Labels |
 |---|-------|----------|-----------|--------|
 | [#12495](https://github.com/KBVE/kbve/issues/12495) | [RN] [WEB] Reuse React Native components on web via react-native-web + Astro | — | — | enhancement |
 | [#13102](https://github.com/KBVE/kbve/issues/13102) | [MEDIUM] n8n PDB blocks node drains (minAvailable:1 on replicas:1) | — | — | bug |
 | [#13109](https://github.com/KBVE/kbve/issues/13109) | [MEDIUM] LB VIP 142.132.206.74 dropped from the pool | — | — | bug |
-| [#13275](https://github.com/KBVE/kbve/pull/13275) | Atomic: valkey harden | — | — | auto-pr, atomic |
 | [#13351](https://github.com/KBVE/kbve/issues/13351) | Upgrade astro-kbve to Astro 7 (build-speed: markdown/MDX-heavy static site) | — | — | enhancement |
-| [#14085](https://github.com/KBVE/kbve/pull/14085) | Release: 1 feature, 2 fixes, 1 refactor, 4 chores → Main | — | — | auto-pr, dev→main |
-| [#14086](https://github.com/KBVE/kbve/pull/14086) | chore(bevy_spells): update version.toml to 0.1.0 | — | — | auto-pr |
-| [#14087](https://github.com/KBVE/kbve/pull/14087) | Atomic: axum-kbve v1.0.232 post-publish sync | — | — | auto-pr, atomic |
-| [#14090](https://github.com/KBVE/kbve/pull/14090) | Release: 7 features, 1 fix, 3 chores → Main | — | — | auto-pr, dev→main |
-| [#14093](https://github.com/KBVE/kbve/pull/14093) | Atomic: herbmail-game v0.1.5 post-publish sync | — | — | auto-pr, atomic |
-| [#14094](https://github.com/KBVE/kbve/pull/14094) | Release: 4 features, 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
-| [#14097](https://github.com/KBVE/kbve/pull/14097) | Atomic: herbmail-game v0.1.6 post-publish sync | — | — | auto-pr, atomic |
-| [#14098](https://github.com/KBVE/kbve/pull/14098) | Release: 24 features, 14 fixes, 6 docs, 2 perfs, 5 chores → Main | — | — | auto-pr, dev→main |
-| [#14099](https://github.com/KBVE/kbve/pull/14099) | Atomic: axum-kbve v1.0.233 post-publish sync | — | — | auto-pr, atomic |
-| [#14104](https://github.com/KBVE/kbve/pull/14104) | chore(dashboard): daily sync — 2026-07-14 | — | — | auto-pr |
 | [#14114](https://github.com/KBVE/kbve/pull/14114) | Release: 2 features, 1 doc, 2 chores → Main | — | — | auto-pr, dev→main |
 | [#14115](https://github.com/KBVE/kbve/pull/14115) | Atomic: herbmail-game v0.1.7 post-publish sync | — | — | auto-pr, atomic |
 | [#14118](https://github.com/KBVE/kbve/pull/14118) | Atomic: axum-kbve v1.0.234 post-publish sync | — | — | auto-pr, atomic |
@@ -826,7 +814,77 @@ No items in **Support**.
 | [#14764](https://github.com/KBVE/kbve/pull/14764) | Atomic: reel v0.1.9 post-publish sync | — | — | auto-pr, atomic |
 | [#14765](https://github.com/KBVE/kbve/pull/14765) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
 | [#14766](https://github.com/KBVE/kbve/pull/14766) | Atomic: agones-palworld v0.0.22 post-publish sync | — | — | auto-pr, atomic |
+| [#14767](https://github.com/KBVE/kbve/pull/14767) | Release: 3 features, 1 fix, 1 doc, 11 chores → Main | — | — | auto-pr, dev→main |
 | [#14769](https://github.com/KBVE/kbve/pull/14769) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14773](https://github.com/KBVE/kbve/pull/14773) | chore(content): daily journal scaffold | — | — | auto-pr |
+| [#14774](https://github.com/KBVE/kbve/pull/14774) | chore(content): daily releases scaffold | — | — | auto-pr |
+| [#14775](https://github.com/KBVE/kbve/pull/14775) | chore(content): daily activity scaffold | — | — | auto-pr |
+| [#14776](https://github.com/KBVE/kbve/pull/14776) | chore(content): daily kanban scaffold | — | — | auto-pr |
+| [#14777](https://github.com/KBVE/kbve/pull/14777) | chore(content): daily ci-health scaffold | — | — | auto-pr |
+| [#14778](https://github.com/KBVE/kbve/pull/14778) | chore(content): daily proto scaffold | — | — | auto-pr |
+| [#14779](https://github.com/KBVE/kbve/pull/14779) | chore(content): daily graph scaffold | — | — | auto-pr |
+| [#14780](https://github.com/KBVE/kbve/pull/14780) | chore(content): daily report scaffold | — | — | auto-pr |
+| [#14781](https://github.com/KBVE/kbve/pull/14781) | chore(content): daily deps scaffold | — | — | auto-pr |
+| [#14782](https://github.com/KBVE/kbve/pull/14782) | chore(content): daily security scaffold | — | — | auto-pr |
+| [#14783](https://github.com/KBVE/kbve/pull/14783) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14784](https://github.com/KBVE/kbve/pull/14784) | Atomic: reel v0.1.10 post-publish sync | — | — | auto-pr, atomic |
+| [#14785](https://github.com/KBVE/kbve/pull/14785) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14786](https://github.com/KBVE/kbve/pull/14786) | Atomic: agones-palworld v0.0.23 post-publish sync | — | — | auto-pr, atomic |
+| [#14787](https://github.com/KBVE/kbve/pull/14787) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#14788](https://github.com/KBVE/kbve/pull/14788) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14789](https://github.com/KBVE/kbve/pull/14789) | Atomic: axum-kbve v1.0.254 post-publish sync | — | — | auto-pr, atomic |
+| [#14790](https://github.com/KBVE/kbve/pull/14790) | Release: 1 feature, 1 fix, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#14792](https://github.com/KBVE/kbve/pull/14792) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14794](https://github.com/KBVE/kbve/pull/14794) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14795](https://github.com/KBVE/kbve/pull/14795) | Atomic: agones-palworld v0.0.25 post-publish sync | — | — | auto-pr, atomic |
+| [#14796](https://github.com/KBVE/kbve/pull/14796) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14799](https://github.com/KBVE/kbve/pull/14799) | Release: 1 feature, 1 fix → Main | — | — | auto-pr, dev→main |
+| [#14800](https://github.com/KBVE/kbve/pull/14800) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14801](https://github.com/KBVE/kbve/pull/14801) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14802](https://github.com/KBVE/kbve/pull/14802) | Release: 1 doc, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14804](https://github.com/KBVE/kbve/pull/14804) | Release: 1 feature, 1 fix, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#14805](https://github.com/KBVE/kbve/pull/14805) | Atomic: reel v0.1.11 post-publish sync | — | — | auto-pr, atomic |
+| [#14806](https://github.com/KBVE/kbve/pull/14806) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14808](https://github.com/KBVE/kbve/pull/14808) | Atomic: agones-palworld v0.0.26 post-publish sync | — | — | auto-pr, atomic |
+| [#14810](https://github.com/KBVE/kbve/pull/14810) | Release: 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14811](https://github.com/KBVE/kbve/pull/14811) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14812](https://github.com/KBVE/kbve/pull/14812) | Atomic: reel v0.1.12 post-publish sync | — | — | auto-pr, atomic |
+| [#14814](https://github.com/KBVE/kbve/pull/14814) | Atomic: reel v0.1.13 post-publish sync | — | — | auto-pr, atomic |
+| [#14815](https://github.com/KBVE/kbve/pull/14815) | Release: 2 features, 1 fix, 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14817](https://github.com/KBVE/kbve/pull/14817) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14819](https://github.com/KBVE/kbve/pull/14819) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14820](https://github.com/KBVE/kbve/pull/14820) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14822](https://github.com/KBVE/kbve/pull/14822) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14824](https://github.com/KBVE/kbve/pull/14824) | Atomic: reel v0.1.16 post-publish sync | — | — | auto-pr, atomic |
+| [#14825](https://github.com/KBVE/kbve/pull/14825) | Release: 1 feature, 5 chores → Main | — | — | auto-pr, dev→main |
+| [#14827](https://github.com/KBVE/kbve/pull/14827) | Atomic: agones-palworld v0.0.27 post-publish sync | — | — | auto-pr, atomic |
+| [#14828](https://github.com/KBVE/kbve/pull/14828) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14829](https://github.com/KBVE/kbve/pull/14829) | Release: 1 fix, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#14830](https://github.com/KBVE/kbve/pull/14830) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14831](https://github.com/KBVE/kbve/pull/14831) | Atomic: agones-palworld v0.0.28 post-publish sync | — | — | auto-pr, atomic |
+| [#14835](https://github.com/KBVE/kbve/pull/14835) | Atomic: axum-kbve v1.0.255 post-publish sync | — | — | auto-pr, atomic |
+| [#14836](https://github.com/KBVE/kbve/pull/14836) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#14840](https://github.com/KBVE/kbve/pull/14840) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
+| [#14841](https://github.com/KBVE/kbve/pull/14841) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14844](https://github.com/KBVE/kbve/pull/14844) | Atomic: reel v0.1.17 post-publish sync | — | — | auto-pr, atomic |
+| [#14845](https://github.com/KBVE/kbve/pull/14845) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14848](https://github.com/KBVE/kbve/pull/14848) | Release: 1 feature, 1 fix → Main | — | — | auto-pr, dev→main |
+| [#14849](https://github.com/KBVE/kbve/pull/14849) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14850](https://github.com/KBVE/kbve/pull/14850) | Release: 1 feature, 1 fix, 1 chore → Main | — | — | auto-pr, dev→main |
+| [#14851](https://github.com/KBVE/kbve/pull/14851) | Atomic: agones-palworld v0.0.29 post-publish sync | — | — | auto-pr, atomic |
+| [#14854](https://github.com/KBVE/kbve/pull/14854) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14856](https://github.com/KBVE/kbve/pull/14856) | Atomic: reel v0.1.18 post-publish sync | — | — | auto-pr, atomic |
+| [#14857](https://github.com/KBVE/kbve/pull/14857) | Release: 2 chores → Main | — | — | auto-pr, dev→main |
+| [#14858](https://github.com/KBVE/kbve/pull/14858) | Release: 1 feature, 1 fix, 3 chores → Main | — | — | auto-pr, dev→main |
+| [#14859](https://github.com/KBVE/kbve/pull/14859) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14861](https://github.com/KBVE/kbve/pull/14861) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14862](https://github.com/KBVE/kbve/pull/14862) | chore(ci): sync ci-dispatch-manifest | — | — | auto-pr |
+| [#14863](https://github.com/KBVE/kbve/pull/14863) | Release: 4 chores → Main | — | — | auto-pr, dev→main |
+| [#14864](https://github.com/KBVE/kbve/pull/14864) | Atomic: reel v0.1.19 post-publish sync | — | — | auto-pr, atomic |
+| [#14865](https://github.com/KBVE/kbve/pull/14865) | Atomic: agones-palworld v0.0.30 post-publish sync | — | — | auto-pr, atomic |
+| [#14866](https://github.com/KBVE/kbve/pull/14866) | Atomic: axum-kbve v1.0.256 post-publish sync | — | — | auto-pr, atomic |
+| [#14867](https://github.com/KBVE/kbve/pull/14867) | Release: 1 chore → Main | — | — | auto-pr, dev→main |
+| [#14868](https://github.com/KBVE/kbve/pull/14868) | Release: 1 fix → Main | — | — | auto-pr, dev→main |
 
 </BentoProse>
 
