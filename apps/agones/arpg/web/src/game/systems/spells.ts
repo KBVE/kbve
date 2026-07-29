@@ -10,7 +10,6 @@ import {
 import type { EntityRefs } from '../entities/sprites';
 import {
 	worldToScreen,
-	worldToScreenFlat,
 	screenToWorldF,
 	type TileXY,
 } from '../iso';
@@ -178,10 +177,9 @@ function leadTarget(
 		Math.hypot(sprite.x - aPx.x, sprite.y - aPx.y) / BOLT_SPEED_PX_MS,
 	);
 	const vel = velTilesPerMs(interp);
-	// The FLAT projection is linear (no translation), so it maps the tile-space
-	// velocity straight to a screen-space velocity vector. The height-aware
-	// projection would sample terrain at (vx, vy) as if it were a position.
-	const sv = worldToScreenFlat(vel.vx, vel.vy);
+	// The projection is linear (no translation), so it maps the tile-space
+	// velocity straight to a screen-space velocity vector.
+	const sv = worldToScreen(vel.vx, vel.vy);
 	let leadX = sv.x * flightMs;
 	let leadY = sv.y * flightMs;
 	const leadMag = Math.hypot(leadX, leadY);
