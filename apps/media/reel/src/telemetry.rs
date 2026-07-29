@@ -19,6 +19,10 @@ pub fn reaped(id: &str, name: &str, size: u64) {
     tracing::info!(event = "reaped", id, name, size, "reaped");
 }
 
+pub fn swept(path: &str) {
+    tracing::info!(event = "swept", path, "orphan file removed by sweeper");
+}
+
 pub fn reconcile_failed(id: &str, name: &str) {
     tracing::warn!(
         event = "reconcile_failed",
