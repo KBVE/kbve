@@ -13,7 +13,7 @@ tags:
 key: reel
 pipeline: docker
 app_name: reel
-version: "0.1.19"
+version: "0.1.20"
 source_path: apps/media/reel
 version_toml: apps/media/reel/version.toml
 version_target: apps/media/reel/Cargo.toml
@@ -222,6 +222,17 @@ erroring. ffprobe also ignores **attached-picture** streams (embedded cover art,
 reported as an mjpeg/png "video") when detecting the codec, so an h264 file with a
 poster frame routes as h264 rather than being mistaken for an image and sent to a
 full re-encode.
+
+The cache is swept at two levels so nothing is left to sit on disk. The state-aware
+reaper removes tracked entries once they pass their idle TTL (deleting both the state
+record and the files). On top of that, a filesystem sweeper runs every reap cycle and
+deletes anything in the active or library directories that is **not** referenced by
+any state entry and is older than the TTL by modification time — orphans left behind
+by a failed delete, an interrupted move, or lost state. Actively tracked downloads
+(and the librqbit `.session` directory) are always skipped, so an in-progress or
+currently-streaming item is never swept mid-use. File deletions that fail are now
+logged rather than silently swallowed, so a leaked file is visible and gets cleaned
+on the next sweep instead of accumulating forever.
 
 </BentoProse>
 

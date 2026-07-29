@@ -1,75 +1,39 @@
-import { afterEach, describe, expect, it } from 'vitest';
-import {
-	worldToScreen,
-	worldToScreenFlat,
-	screenToWorldF,
-	setIsoHeightSeed,
-	setIsoHeightEnabled,
-	isoHeightActive,
-	terrainLiftPx,
-	HEIGHT_PX_PER_UU,
-} from './iso';
-import { heightAt, seedFromWorld, HEIGHT_AMPLITUDE } from '@kbve/laser';
+import { describe, expect, it } from 'vitest';
+import { worldToScreen, screenToWorld, screenToWorldF, tileDepth } from './iso';
 
-const SEED = 0xc1a55e5a;
+const SAMPLES: Array<[number, number]> = [
+	[0, 0],
+	[10.5, 3.25],
+	[-40, 87],
+	[123.75, -55.5],
+	[300, 300],
+];
 
-afterEach(() => {
-	setIsoHeightEnabled(false);
-});
-
-describe('iso height projection', () => {
-	it('is flat until a seed is installed and enabled', () => {
-		setIsoHeightEnabled(false);
-		const p = worldToScreen(12, 34);
-		expect(p).toEqual(worldToScreenFlat(12, 34));
-		expect(terrainLiftPx(12, 34)).toBe(0);
-	});
-
-	it('lifts by the shared heightfield when enabled', () => {
-		setIsoHeightSeed(SEED);
-		setIsoHeightEnabled(true);
-		expect(isoHeightActive()).toBe(true);
-		const tx = 64.25;
-		const ty = -18.5;
-		const expectedLift =
-			heightAt(seedFromWorld(SEED), tx, ty) * HEIGHT_PX_PER_UU;
-		const flat = worldToScreenFlat(tx, ty);
-		const lifted = worldToScreen(tx, ty);
-		expect(lifted.x).toBe(flat.x);
-		expect(flat.y - lifted.y).toBeCloseTo(expectedLift, 6);
-		expect(Math.abs(expectedLift)).toBeLessThanOrEqual(
-			HEIGHT_AMPLITUDE * HEIGHT_PX_PER_UU,
-		);
-	});
-
-	it('screenToWorldF inverts the displaced projection', () => {
-		setIsoHeightSeed(SEED);
-		setIsoHeightEnabled(true);
-		const samples: Array<[number, number]> = [
-			[0, 0],
-			[10.5, 3.25],
-			[-40, 87],
-			[123.75, -55.5],
-			[300, 300],
-		];
-		for (const [tx, ty] of samples) {
+describe('iso projection', () => {
+	it('round-trips screenToWorldF through worldToScreen', () => {
+		for (const [tx, ty] of SAMPLES) {
 			const p = worldToScreen(tx, ty);
 			const back = screenToWorldF(p.x, p.y);
-			// The raycast returns the VISIBLE surface under the pixel — when the
-			// input tile is occluded by nearer terrain that is a different (deeper)
-			// tile, so assert re-projection consistency, not tile identity.
-			const rp = worldToScreen(back.x, back.y);
-			expect(rp.x).toBeCloseTo(p.x, 1);
-			expect(rp.y).toBeCloseTo(p.y, 1);
-			expect(back.x + back.y).toBeGreaterThanOrEqual(tx + ty - 1e-3);
+			expect(back.x).toBeCloseTo(tx, 9);
+			expect(back.y).toBeCloseTo(ty, 9);
 		}
 	});
 
-	it('stays flat on dungeon floors even with a seed installed', () => {
-		setIsoHeightSeed(SEED);
-		setIsoHeightEnabled(false);
-		expect(isoHeightActive()).toBe(false);
-		const p = worldToScreen(64.25, -18.5);
-		expect(p).toEqual(worldToScreenFlat(64.25, -18.5));
+	it('screenToWorld rounds to the containing tile', () => {
+		const p = worldToScreen(12.4, 33.6);
+		expect(screenToWorld(p.x, p.y)).toEqual({ x: 12, y: 34 });
+	});
+
+	it('is linear — no translation term', () => {
+		const a = worldToScreen(7, -3);
+		const b = worldToScreen(14, -6);
+		expect(b.x).toBeCloseTo(a.x * 2, 9);
+		expect(b.y).toBeCloseTo(a.y * 2, 9);
+		expect(worldToScreen(0, 0)).toEqual({ x: 0, y: 0 });
+	});
+
+	it('depth follows tx + ty', () => {
+		expect(tileDepth(3, 4)).toBe(7);
+		expect(tileDepth(-2.5, 1.5)).toBe(-1);
 	});
 });

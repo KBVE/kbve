@@ -11,7 +11,6 @@ import {
 } from '../config';
 import {
 	worldToScreen,
-	worldToScreenFlat,
 	tileDepth,
 	type TileXY,
 } from '../iso';
@@ -235,7 +234,7 @@ function buildChunkGround(
 
 	const midX = cx * CHUNK_SIZE + CHUNK_SIZE / 2;
 	const midY = cy * CHUNK_SIZE + CHUNK_SIZE / 2;
-	const c = worldToScreenFlat(midX, midY);
+	const c = worldToScreen(midX, midY);
 
 	const ux = c.x;
 	const uy = c.y / 0.5;
