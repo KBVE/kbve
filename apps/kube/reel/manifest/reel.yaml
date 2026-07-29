@@ -39,6 +39,8 @@ spec:
             - { name: FIREWALL_INPUT_PORTS, value: "8080" }
             - { name: FIREWALL_OUTBOUND_SUBNETS, value: "10.244.0.0/16,10.96.0.0/12" }
             - { name: WIREGUARD_MTU, value: "1320" }
+            - { name: SERVER_COUNTRIES, value: "Germany" }
+            - { name: SERVER_CITIES, value: "Frankfurt" }
           volumeMounts:
             - { name: gluetun-run, mountPath: /tmp/gluetun }
         - name: reel
