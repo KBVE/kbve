@@ -8,8 +8,8 @@ import { defineConfig } from 'vitest/config';
 //
 // @kbve/laser resolves to a pure-leaf stub, not the runtime barrel: the barrel
 // value-exports Phaser-backed helpers that node-env vitest cannot load, while
-// the values these spec graphs execute live in pure leaves (heightfield,
-// game-auth). Type-only laser imports are erased before resolution.
+// the values these spec graphs execute live in pure leaves (game-auth).
+// Type-only laser imports are erased before resolution.
 export default defineConfig({
 	resolve: {
 		alias: [

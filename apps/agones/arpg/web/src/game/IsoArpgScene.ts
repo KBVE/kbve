@@ -45,14 +45,8 @@ import {
 	screenToWorld,
 	screenToWorldF,
 	tileDepth,
-	setIsoHeightSeed,
-	setIsoHeightEnabled,
 	type TileXY,
 } from './iso';
-import {
-	makeHeightTexture,
-	type HeightTextureHandle,
-} from './systems/heightTexture';
 import {
 	setupInput as setupInputV,
 	type SceneInputDeps,
@@ -293,7 +287,6 @@ export class IsoArpgScene extends Phaser.Scene {
 	};
 	private dungeonView!: DungeonView;
 	private ground?: GroundShaderHandle;
-	private heightTex?: HeightTextureHandle;
 	// Eased zoom: wheel/keys nudge zoomTarget, update() smooth-damps the camera
 	// toward it (critically-damped spring) so zoom accelerates then settles instead
 	// of snapping. SMOOTH_TIME ~ time to converge; MAX_SPEED caps the glide rate.
@@ -517,7 +510,6 @@ export class IsoArpgScene extends Phaser.Scene {
 		});
 		if (USE_GROUND_SHADER) {
 			this.ground = makeGroundShader(this);
-			this.heightTex = makeHeightTexture(this);
 			this.ground.update(this.cameras.main);
 			this.ground.shader.setVisible(this.isSurface());
 		}
@@ -1305,9 +1297,6 @@ export class IsoArpgScene extends Phaser.Scene {
 				/* private mode */
 			}
 			this.mySlot = w.your_slot;
-			setIsoHeightSeed(w.seed);
-			setIsoHeightEnabled(this.isSurface());
-			this.heightTex?.reset();
 			this.kindRegistry.clear();
 			for (const entry of w.registry ?? []) {
 				this.kindRegistry.set(entry.kind, entry);
@@ -1849,7 +1838,6 @@ export class IsoArpgScene extends Phaser.Scene {
 	 */
 	private onFloorChange(f: FloorChangeEvent) {
 		this.currentFloor = f.z;
-		setIsoHeightEnabled(this.isSurface());
 		this.ground?.shader.setVisible(this.isSurface());
 		if (!this.isSurface()) {
 			this.clearPredictedTrees();
@@ -2018,8 +2006,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		tickFacingV(this, this.store);
 		this.tickZoom(delta);
 		this.dustLayer?.update(this.cameras.main);
-		this.heightTex?.update(this.cameras.main);
-		this.ground?.update(this.cameras.main, this.heightTex);
+		this.ground?.update(this.cameras.main);
 		this.residency.tick((id) => {
 			if (!id.startsWith('creature:')) return;
 			for (const r of this.creaturePool.drain(id.slice(9)))
