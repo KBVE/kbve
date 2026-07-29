@@ -37,7 +37,8 @@ pub async fn reap_loop(
     let mut ticker = tokio::time::interval(std::time::Duration::from_secs(interval_secs));
     loop {
         ticker.tick().await;
-        match engine.reap_expired(ttl_secs, now_secs()).await {
+        let now = now_secs();
+        match engine.reap_expired(ttl_secs, now).await {
             Ok(reaped) => {
                 for id in reaped {
                     hls.abort(&id).await;
@@ -45,6 +46,10 @@ pub async fn reap_loop(
                 }
             }
             Err(e) => tracing::error!(error = %e, "reap cycle failed"),
+        }
+        let swept = engine.sweep_orphans(ttl_secs, now);
+        if swept > 0 {
+            tracing::info!(count = swept, "swept orphaned files not tracked in state");
         }
     }
 }

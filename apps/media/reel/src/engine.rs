@@ -668,6 +668,25 @@ impl Engine {
         }
         Ok(reaped)
     }
+
+    pub fn sweep_orphans(&self, ttl_secs: u64, now: u64) -> usize {
+        let mut known = std::collections::HashSet::new();
+        for m in self.store.list() {
+            known.insert(m.path.clone());
+            if let Some(p) = m.transcode_path {
+                known.insert(p);
+            }
+            if let Some(p) = m.hls_dir {
+                known.insert(p);
+            }
+        }
+        crate::sweeper::sweep_orphans(
+            &[self.library_dir.clone(), self.active_dir.clone()],
+            &known,
+            ttl_secs,
+            now,
+        )
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -1007,10 +1026,15 @@ pub async fn tracker_refresh_loop(
 pub fn remove_entry_files(path: &str, transcode_path: Option<&str>) {
     for p in std::iter::once(path).chain(transcode_path) {
         let pb = std::path::Path::new(p);
-        if pb.is_dir() {
-            let _ = std::fs::remove_dir_all(pb);
+        let res = if pb.is_dir() {
+            std::fs::remove_dir_all(pb)
         } else if pb.exists() {
-            let _ = std::fs::remove_file(pb);
+            std::fs::remove_file(pb)
+        } else {
+            Ok(())
+        };
+        if let Err(e) = res {
+            tracing::warn!(path = %p, error = %e, "failed to remove entry files; leaving orphan for sweeper");
         }
     }
 }
