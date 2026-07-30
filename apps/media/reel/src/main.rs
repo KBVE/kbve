@@ -34,8 +34,10 @@ async fn main() -> anyhow::Result<()> {
         store.clone(),
         cfg.encode_concurrency,
         cfg.ffmpeg_bin.clone(),
+        cfg.ffprobe_bin.clone(),
         cfg.hls_segment_secs as u32,
         cfg.hls_enabled,
+        cfg.live_hls_enabled,
         cfg.encode_threads,
     );
 

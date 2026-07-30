@@ -93,33 +93,56 @@ pub fn next_hls(current: &HlsStatus, state: &TorrentState, enabled: bool) -> Hls
     }
 }
 
+/// Live (popcorn) HLS runs while the torrent is still Leeching, transcoding
+/// from the in-flight download stream. Only one job per torrent — an existing
+/// Starting/Live/Ready job is left to run.
+pub fn next_hls_live(current: &HlsStatus, state: &TorrentState, live_enabled: bool) -> HlsDecision {
+    if !live_enabled {
+        return HlsDecision::Reject(StartOutcome::Disabled);
+    }
+    if *state != TorrentState::Leeching {
+        return HlsDecision::Reject(StartOutcome::NotCompleted);
+    }
+    match current {
+        HlsStatus::None | HlsStatus::Failed => HlsDecision::Start,
+        other => HlsDecision::Reject(StartOutcome::InProgress(other.clone())),
+    }
+}
+
 #[derive(Clone)]
 pub struct HlsManager {
     store: StateStore,
     encode_sem: Arc<Semaphore>,
     ffmpeg_bin: String,
+    ffprobe_bin: String,
     segment_secs: u32,
     enabled: bool,
+    live_enabled: bool,
     encode_threads: usize,
     children: Arc<Mutex<HashMap<String, Child>>>,
     delivery_cache: Arc<Mutex<HashMap<String, Delivery>>>,
 }
 
 impl HlsManager {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         store: StateStore,
         encode_conc: usize,
         ffmpeg_bin: String,
+        ffprobe_bin: String,
         segment_secs: u32,
         enabled: bool,
+        live_enabled: bool,
         encode_threads: usize,
     ) -> Self {
         let this = Self {
             store,
             encode_sem: Arc::new(Semaphore::new(encode_conc.max(1))),
             ffmpeg_bin,
+            ffprobe_bin,
             segment_secs,
             enabled,
+            live_enabled,
             encode_threads,
             children: Arc::new(Mutex::new(HashMap::new())),
             delivery_cache: Arc::new(Mutex::new(HashMap::new())),
@@ -148,6 +171,10 @@ impl HlsManager {
 
     pub fn enabled(&self) -> bool {
         self.enabled
+    }
+
+    pub fn live_enabled(&self) -> bool {
+        self.live_enabled
     }
 
     pub async fn request(&self, id: &str, delivery: Delivery) -> StartOutcome {
@@ -318,9 +345,23 @@ impl HlsManager {
             g.insert(id.to_string(), child);
         }
 
+        self.spawn_output_watch(id.to_string(), hls_dir.join("index.m3u8"), errbuf, permit);
+
+        Ok(())
+    }
+
+    /// Watch an already-spawned HLS ffmpeg child: flip the entry to Live once
+    /// the manifest appears, then to Ready or Failed when ffmpeg exits. Shared
+    /// by the completed-download path (`run_hls`) and the live path
+    /// (`run_live`).
+    fn spawn_output_watch(
+        &self,
+        id: String,
+        index_path: PathBuf,
+        errbuf: Arc<Mutex<String>>,
+        permit: Option<tokio::sync::OwnedSemaphorePermit>,
+    ) {
         let this = self.clone();
-        let id = id.to_string();
-        let index_path = hls_dir.join("index.m3u8");
         tokio::spawn(async move {
             let mut went_live = false;
             for _ in 0..100 {
@@ -388,8 +429,199 @@ impl HlsManager {
             }
             drop(permit);
         });
+    }
 
+    /// Start (or join) a live HLS job for a still-downloading torrent, reading
+    /// from its in-flight librqbit stream. Idempotent: a job already Starting,
+    /// Live or Ready is returned as-is and the passed reader is dropped.
+    pub async fn request_live(
+        &self,
+        id: &str,
+        reader: Box<dyn crate::engine::ReadSeek>,
+        out_dir: PathBuf,
+    ) -> StartOutcome {
+        let result = self
+            .store
+            .update(id, |m| match next_hls_live(&m.hls, &m.state, self.live_enabled) {
+                HlsDecision::Reject(StartOutcome::InProgress(HlsStatus::Ready)) => {
+                    let outcome = match &m.hls_dir {
+                        Some(dir) => StartOutcome::Ready(dir.clone()),
+                        None => StartOutcome::InProgress(HlsStatus::Ready),
+                    };
+                    (outcome, false)
+                }
+                HlsDecision::Reject(outcome) => (outcome, false),
+                HlsDecision::Start => {
+                    m.hls = HlsStatus::Starting;
+                    m.hls_error = None;
+                    (StartOutcome::Started, true)
+                }
+            });
+        match result {
+            Ok(Some(StartOutcome::Started)) => {
+                self.spawn_live_job(id.to_string(), reader, out_dir);
+                StartOutcome::Started
+            }
+            Ok(Some(outcome)) => outcome,
+            Ok(None) => StartOutcome::NotFound,
+            Err(_) => StartOutcome::NotFound,
+        }
+    }
+
+    fn spawn_live_job(&self, id: String, reader: Box<dyn crate::engine::ReadSeek>, out_dir: PathBuf) {
+        let this = self.clone();
+        tokio::spawn(async move {
+            if let Err(e) = this.run_live(&id, reader, out_dir).await {
+                crate::telemetry::hls_failed(&id, &e.to_string());
+                let _ = this.store.update(&id, |m| {
+                    m.hls = HlsStatus::Failed;
+                    m.hls_error = Some(e.to_string());
+                    ((), true)
+                });
+            }
+        });
+    }
+
+    async fn run_live(
+        &self,
+        id: &str,
+        mut reader: Box<dyn crate::engine::ReadSeek>,
+        out_dir: PathBuf,
+    ) -> anyhow::Result<()> {
+        use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
+        let hls_dir = out_dir.join("hls");
+        if hls_dir.exists() {
+            let _ = std::fs::remove_dir_all(&hls_dir);
+        }
+        std::fs::create_dir_all(&hls_dir)?;
+        let hls_dir_str = hls_dir.display().to_string();
+        let _ = self.store.update(id, |m| {
+            m.hls_dir = Some(hls_dir_str.clone());
+            ((), true)
+        });
+
+        // Read a prefix off the front of the download to detect the video
+        // codec, then replay it into ffmpeg so no bytes are lost.
+        const PREFIX_MAX: usize = 8 * 1024 * 1024;
+        let mut prefix = Vec::with_capacity(256 * 1024);
+        let mut buf = vec![0u8; 256 * 1024];
+        while prefix.len() < PREFIX_MAX {
+            let n = reader.read(&mut buf).await?;
+            if n == 0 {
+                break;
+            }
+            prefix.extend_from_slice(&buf[..n]);
+        }
+        let video_copy = self.probe_prefix_is_h264(&prefix).await;
+
+        // h264 is stream-copied (cheap, realtime); anything else is encoded and
+        // must hold an encode permit. Audio is always downmixed to stereo aac.
+        let permit = if video_copy {
+            None
+        } else {
+            Some(self.encode_sem.clone().acquire_owned().await?)
+        };
+
+        let mut args: Vec<String> = vec![
+            "-y".into(),
+            "-nostats".into(),
+            "-loglevel".into(),
+            "error".into(),
+            "-i".into(),
+            "pipe:0".into(),
+        ];
+        args.extend(
+            crate::transcode::MAP_VIDEO_AUDIO
+                .iter()
+                .map(|s| s.to_string()),
+        );
+        if video_copy {
+            args.push("-c:v".into());
+            args.push("copy".into());
+        } else {
+            args.push("-c:v".into());
+            args.push("libx264".into());
+            args.push("-preset".into());
+            args.push("veryfast".into());
+            if self.encode_threads > 0 {
+                args.push("-threads".into());
+                args.push(self.encode_threads.to_string());
+            }
+        }
+        args.push("-c:a".into());
+        args.push("aac".into());
+        args.push("-ac".into());
+        args.push("2".into());
+        args.push("-f".into());
+        args.push("hls".into());
+        args.push("-hls_time".into());
+        args.push(self.segment_secs.to_string());
+        args.push("-hls_playlist_type".into());
+        args.push("event".into());
+        args.push("-hls_flags".into());
+        args.push("append_list".into());
+        args.push("-hls_segment_filename".into());
+        args.push(hls_dir.join("seg%05d.ts").display().to_string());
+        args.push(hls_dir.join("index.m3u8").display().to_string());
+
+        let mut cmd = Command::new(&self.ffmpeg_bin);
+        cmd.args(&args)
+            .stdin(std::process::Stdio::piped())
+            .stderr(std::process::Stdio::piped());
+        let mut child = cmd.spawn()?;
+        let mut stdin = child
+            .stdin
+            .take()
+            .ok_or_else(|| anyhow::anyhow!("no ffmpeg stdin"))?;
+
+        // Feed the prefix, then pump the rest of the download into ffmpeg.
+        // When the download completes the reader hits EOF, stdin closes and
+        // ffmpeg finalizes the playlist; dropping the reader releases the
+        // leech guard so the completion watcher can move the files.
+        tokio::spawn(async move {
+            if stdin.write_all(&prefix).await.is_ok() {
+                let _ = tokio::io::copy(&mut reader, &mut stdin).await;
+            }
+            let _ = stdin.shutdown().await;
+        });
+
+        let errbuf = Arc::new(Mutex::new(String::new()));
+        if let Some(mut stderr) = child.stderr.take() {
+            let buf = errbuf.clone();
+            tokio::spawn(async move {
+                let mut s = String::new();
+                let _ = stderr.read_to_string(&mut s).await;
+                *buf.lock().unwrap() = s;
+            });
+        }
+
+        crate::telemetry::hls_started(id, if video_copy { "live_copy" } else { "live_transcode" });
+        {
+            let mut g = self.children.lock().unwrap();
+            g.insert(id.to_string(), child);
+        }
+
+        self.spawn_output_watch(id.to_string(), hls_dir.join("index.m3u8"), errbuf, permit);
         Ok(())
+    }
+
+    /// Best-effort: write the download prefix to a temp file and ask ffprobe
+    /// whether the video stream is h264. Any failure (partial header, unknown
+    /// codec) returns false, so the caller falls back to a safe re-encode.
+    async fn probe_prefix_is_h264(&self, prefix: &[u8]) -> bool {
+        if prefix.is_empty() {
+            return false;
+        }
+        static SEQ: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+        let n = SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        let tmp = std::env::temp_dir().join(format!("reel-live-probe-{}-{n}.bin", std::process::id()));
+        if tokio::fs::write(&tmp, prefix).await.is_err() {
+            return false;
+        }
+        let res = crate::transcode::probe(&self.ffprobe_bin, &tmp).await;
+        let _ = tokio::fs::remove_file(&tmp).await;
+        matches!(res, Ok(p) if p.video_codec.as_deref() == Some("h264"))
     }
 }
 
@@ -433,11 +665,43 @@ mod mgr_tests {
         );
     }
 
+    #[test]
+    fn live_starts_only_while_leeching() {
+        assert_eq!(
+            next_hls_live(&HlsStatus::None, &TorrentState::Leeching, true),
+            HlsDecision::Start
+        );
+        assert_eq!(
+            next_hls_live(&HlsStatus::Failed, &TorrentState::Leeching, true),
+            HlsDecision::Start
+        );
+        assert_eq!(
+            next_hls_live(&HlsStatus::None, &TorrentState::Seeding, true),
+            HlsDecision::Reject(StartOutcome::NotCompleted)
+        );
+    }
+
+    #[test]
+    fn live_disabled_and_in_progress_rejected() {
+        assert_eq!(
+            next_hls_live(&HlsStatus::None, &TorrentState::Leeching, false),
+            HlsDecision::Reject(StartOutcome::Disabled)
+        );
+        assert_eq!(
+            next_hls_live(&HlsStatus::Live, &TorrentState::Leeching, true),
+            HlsDecision::Reject(StartOutcome::InProgress(HlsStatus::Live))
+        );
+        assert_eq!(
+            next_hls_live(&HlsStatus::Starting, &TorrentState::Leeching, true),
+            HlsDecision::Reject(StartOutcome::InProgress(HlsStatus::Starting))
+        );
+    }
+
     #[tokio::test]
     async fn abort_unknown_is_noop() {
         let dir = std::env::temp_dir().join(format!("reel-hls-test-{}", std::process::id()));
         let store = StateStore::load(dir.join("state.json")).unwrap();
-        let mgr = HlsManager::new(store, 1, "ffmpeg".into(), 4, true, 1);
+        let mgr = HlsManager::new(store, 1, "ffmpeg".into(), "ffprobe".into(), 4, true, true, 1);
         mgr.abort("unknown-id").await;
         assert!(mgr.take_child("unknown-id").is_none());
     }
@@ -446,7 +710,7 @@ mod mgr_tests {
     fn cached_delivery_none_then_some() {
         let dir = std::env::temp_dir().join(format!("reel-hls-test-cache-{}", std::process::id()));
         let store = StateStore::load(dir.join("state.json")).unwrap();
-        let mgr = HlsManager::new(store, 1, "ffmpeg".into(), 4, true, 1);
+        let mgr = HlsManager::new(store, 1, "ffmpeg".into(), "ffprobe".into(), 4, true, true, 1);
         assert_eq!(mgr.cached_delivery("1"), None);
         mgr.cache_delivery("1", Delivery::RemuxHls);
         assert_eq!(mgr.cached_delivery("1"), Some(Delivery::RemuxHls));

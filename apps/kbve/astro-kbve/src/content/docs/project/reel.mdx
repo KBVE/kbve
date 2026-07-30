@@ -13,7 +13,7 @@ tags:
 key: reel
 pipeline: docker
 app_name: reel
-version: "0.1.24"
+version: "0.1.25"
 source_path: apps/media/reel
 version_toml: apps/media/reel/version.toml
 version_target: apps/media/reel/Cargo.toml
@@ -86,8 +86,21 @@ idle TTL, not a permanent library), and progressively delivers it to the browser
 
 - **Fetch** — librqbit leeches and seeds behind a Gluetun killswitch; a reaper deletes idle entries.
 - **Transcode** — ffprobe routes each file to remux (faststart MP4) or re-encode.
-- **Stream** — byte-range progressive MP4 while still downloading; HLS for containers/codecs the browser can't play raw.
+- **Stream** — live HLS while still downloading (popcorn); byte-range progressive MP4 for already-playable files; HLS for containers/codecs the browser can't play raw.
 - **Player** — an astro-kbve hls.js island at `/media/reel/`, proxied same-origin through axum-kbve at `/api/v1/reel`, staff-gated.
+
+### Live (popcorn) streaming
+
+Hitting **Play** on a still-downloading torrent no longer waits for the fetch to
+finish. `GET /manifest.m3u8` on a `Leeching` entry starts a **live HLS** job that
+reads directly from librqbit's sequential-priority stream and pipes it through
+ffmpeg (`pipe:0` → `-f hls`, event playlist), so the front of the file is
+watchable within seconds while the tail keeps downloading. h264 video is
+stream-copied (realtime); anything else is re-encoded `libx264 -preset veryfast`;
+audio is always downmixed to stereo aac so it plays with sound. The player
+already polls `202 → 200` and switches to hls.js unchanged. Gated by
+`REEL_LIVE_HLS` (default on); when off, leeching falls back to raw progressive.
+Playback quality tracks download rate — a starved swarm buffers.
 
 </BentoProse>
 
