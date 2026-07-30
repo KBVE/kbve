@@ -787,6 +787,14 @@ RETURNS TABLE (
     product_id     UUID,
     variant_id     UUID,
     qty            BIGINT,
+    -- Buy-time snapshots, not live catalog reads: an order is a receipt, so a
+    -- later rename / reprice / retire must not rewrite what the buyer sees.
+    product_slug   TEXT,
+    product_title  TEXT,
+    variant_sku    TEXT,
+    unit_price     BIGINT,
+    currency       TEXT,
+    fulfillment    TEXT,
     credits_amount BIGINT,
     status         store.order_status,
     tracking       JSONB,
@@ -803,7 +811,9 @@ BEGIN
             USING ERRCODE = '22023';
     END IF;
     RETURN QUERY
-    SELECT o.order_id, o.product_id, o.variant_id, o.qty, o.credits_amount,
+    SELECT o.order_id, o.product_id, o.variant_id, o.qty,
+           o.product_slug, o.product_title, o.variant_sku, o.unit_price,
+           o.currency::text, o.fulfillment, o.credits_amount,
            o.status, o.tracking, o.created_at, o.updated_at
       FROM store.order o
      WHERE o.account_id = v_account

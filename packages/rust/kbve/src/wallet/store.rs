@@ -111,6 +111,18 @@ struct OrderRowDb {
     variant_id: Option<Uuid>,
     #[diesel(sql_type = diesel::sql_types::BigInt)]
     qty: i64,
+    #[diesel(sql_type = Text)]
+    product_slug: String,
+    #[diesel(sql_type = Text)]
+    product_title: String,
+    #[diesel(sql_type = Text)]
+    variant_sku: String,
+    #[diesel(sql_type = diesel::sql_types::BigInt)]
+    unit_price: i64,
+    #[diesel(sql_type = Text)]
+    currency: String,
+    #[diesel(sql_type = Text)]
+    fulfillment: String,
     #[diesel(sql_type = diesel::sql_types::BigInt)]
     credits_amount: i64,
     #[diesel(sql_type = Text)]
@@ -149,18 +161,26 @@ struct OrderStaffRowDb {
     updated_at: DateTime<Utc>,
 }
 
-fn map_order(r: OrderRowDb) -> StoreOrderRow {
-    StoreOrderRow {
+fn map_order(r: OrderRowDb) -> Result<StoreOrderRow> {
+    let currency = CurrencyKind::from_pg(&r.currency)
+        .ok_or_else(|| WalletError::InvalidArgument(format!("unknown currency: {}", r.currency)))?;
+    Ok(StoreOrderRow {
         order_id: r.order_id,
         product_id: r.product_id,
         variant_id: r.variant_id,
         qty: r.qty,
+        product_slug: r.product_slug,
+        product_title: r.product_title,
+        variant_sku: r.variant_sku,
+        unit_price: r.unit_price,
+        currency,
+        fulfillment: r.fulfillment,
         credits_amount: r.credits_amount,
         status: r.status,
         tracking: r.tracking,
         created_at: r.created_at,
         updated_at: r.updated_at,
-    }
+    })
 }
 
 async fn my_orders_async(
@@ -170,8 +190,10 @@ async fn my_orders_async(
     before_id: Option<i64>,
 ) -> Result<Vec<StoreOrderRow>> {
     let rows: Vec<OrderRowDb> = sql_query(
-        "SELECT order_id, product_id, variant_id, qty, credits_amount, \
-                status::text AS status, tracking, created_at, updated_at \
+        "SELECT order_id, product_id, variant_id, qty, product_slug, \
+                product_title, variant_sku, unit_price, currency, fulfillment, \
+                credits_amount, status::text AS status, tracking, \
+                created_at, updated_at \
          FROM public.proxy_store_my_orders_readonly($1, $2, $3)",
     )
     .bind::<diesel::sql_types::Integer, _>(limit)
@@ -180,7 +202,7 @@ async fn my_orders_async(
     .get_results(conn)
     .await
     .map_err(WalletError::from_diesel)?;
-    Ok(rows.into_iter().map(map_order).collect())
+    rows.into_iter().map(map_order).collect()
 }
 
 #[derive(QueryableByName)]

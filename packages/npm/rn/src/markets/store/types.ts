@@ -53,6 +53,12 @@ export interface StoreOrder {
 	product_id: string;
 	variant_id: string | null;
 	qty: number;
+	product_slug: string;
+	product_title: string;
+	variant_sku: string;
+	unit_price: number;
+	currency: string;
+	fulfillment: 'physical' | 'both';
 	credits_amount: number;
 	status: OrderStatus;
 	tracking: Record<string, unknown>;

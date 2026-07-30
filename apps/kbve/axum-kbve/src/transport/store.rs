@@ -635,6 +635,16 @@ pub(crate) struct StoreOrderDto {
     pub product_id: Uuid,
     pub variant_id: Option<Uuid>,
     pub qty: i64,
+    /// Buy-time snapshots. An order is a receipt: these never follow later
+    /// catalog edits, so clients must render these instead of re-reading the
+    /// live product row.
+    pub product_slug: String,
+    pub product_title: String,
+    pub variant_sku: String,
+    pub unit_price: i64,
+    pub currency: String,
+    /// 'physical' | 'both' — 'both' also minted a digital twin item.
+    pub fulfillment: String,
     pub credits_amount: i64,
     pub status: String,
     pub tracking: serde_json::Value,
@@ -817,6 +827,12 @@ pub(crate) async fn my_orders(headers: HeaderMap, Query(q): Query<MyOrdersQuery>
                     product_id: r.product_id,
                     variant_id: r.variant_id,
                     qty: r.qty,
+                    product_slug: r.product_slug,
+                    product_title: r.product_title,
+                    variant_sku: r.variant_sku,
+                    unit_price: r.unit_price,
+                    currency: r.currency.as_pg().to_string(),
+                    fulfillment: r.fulfillment,
                     credits_amount: r.credits_amount,
                     status: r.status,
                     tracking: r.tracking,

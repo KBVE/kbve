@@ -65,19 +65,34 @@ function PurchaseRow({ row }: { row: StorePurchase }) {
 }
 
 function OrderRow({ row }: { row: StoreOrder }) {
+	const tracking =
+		typeof row.tracking?.carrier === 'string' ||
+		typeof row.tracking?.code === 'string'
+			? [row.tracking.carrier, row.tracking.code].filter(Boolean).join(' · ')
+			: null;
 	return (
 		<Surface>
 			<Stack gap="xs">
 				<Stack direction="row" justify="space-between" align="center">
-					<Text variant="subtitle">{`Order #${row.order_id}`}</Text>
+					<Text variant="subtitle">{row.product_title}</Text>
 					<Badge tone={ORDER_TONE[row.status] ?? 'neutral'} label={row.status} />
 				</Stack>
 				<Text variant="caption" tone="muted">
-					{`${row.qty}× · ${row.credits_amount.toLocaleString()} credits`}
+					{`${row.qty}× ${row.variant_sku} · ${row.credits_amount.toLocaleString()} ${row.currency}`}
 				</Text>
+				{row.fulfillment === 'both' ? (
+					<Text variant="caption" tone="muted">
+						Ships to you, and the digital copy is already in your inventory.
+					</Text>
+				) : null}
+				{tracking ? (
+					<Text variant="caption" tone="muted">
+						{`Tracking: ${tracking}`}
+					</Text>
+				) : null}
 				<Stack direction="row" justify="space-between" align="center">
 					<Text variant="caption" tone="faint">
-						{when(row.created_at)}
+						{`Order #${row.order_id} · ${when(row.created_at)}`}
 					</Text>
 					<Text variant="caption" tone="faint">
 						shipped goods
@@ -142,7 +157,11 @@ export function OrdersView({
 		return merged.sort((a, b) => b.at.localeCompare(a.at));
 	}, [purchases, orders]);
 
-	const spent = purchases.reduce((sum, p) => sum + p.price, 0);
+	const spent =
+		purchases.reduce((sum, p) => sum + p.price, 0) +
+		orders
+			.filter((o) => o.status !== 'refunded' && o.status !== 'cancelled')
+			.reduce((sum, o) => sum + o.credits_amount, 0);
 
 	if (!authenticated) {
 		return (
