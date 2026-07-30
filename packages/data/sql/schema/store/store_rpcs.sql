@@ -195,6 +195,7 @@ DECLARE
     v_item_id         UUID;
     v_charged         BIGINT := 0;
     v_result_kind     TEXT := 'minted';
+    v_inserted        INTEGER;
 BEGIN
     IF p_account IS NULL OR p_slug IS NULL OR p_idempotency_key IS NULL THEN
         RAISE EXCEPTION 'account, slug and idempotency_key are required'
@@ -322,6 +323,27 @@ BEGIN
         v_product.currency, v_ledger_id, v_result_kind, p_idempotency_key
     )
     ON CONFLICT (account_id, idempotency_key) DO NOTHING;
+
+    -- The key advisory lock plus the receipt lookup above mean a conflict here
+    -- should be unreachable from this function. If one happens anyway (a direct
+    -- write, or a caller that skipped the lock), do not swallow it silently:
+    -- confirm the existing receipt agrees with what this call just did, and
+    -- fail as a serialization error when it does not. A benign duplicate — same
+    -- product, same item — stays quiet, so the happy path is unchanged.
+    GET DIAGNOSTICS v_inserted = ROW_COUNT;
+    IF v_inserted = 0 THEN
+        SELECT product_id, item_id
+          INTO STRICT v_receipt_product, v_receipt_item
+          FROM store.purchase
+         WHERE account_id = p_account AND idempotency_key = p_idempotency_key;
+        IF v_receipt_product <> v_product.product_id
+           OR v_receipt_item <> v_item_id THEN
+            RAISE EXCEPTION
+                'purchase receipt conflict after serialized buy (recorded product %, item %; this call product %, item %)',
+                v_receipt_product, v_receipt_item, v_product.product_id, v_item_id
+                USING ERRCODE = '40001';
+        END IF;
+    END IF;
 
     RETURN v_item_id;
 END;
@@ -816,7 +838,7 @@ BEGIN
     RETURN QUERY
     SELECT o.order_id, o.product_id, o.variant_id, o.qty,
            o.product_slug, o.product_title, o.variant_sku, o.unit_price,
-           o.currency::text, o.fulfillment, o.credits_amount,
+           o.currency::text, o.fulfillment::text, o.credits_amount,
            o.status, o.tracking, o.created_at, o.updated_at
       FROM store.order o
      WHERE o.account_id = v_account
@@ -874,7 +896,7 @@ BEGIN
     END IF;
     RETURN QUERY
     SELECT pu.purchase_id, pu.product_id, pu.product_slug, pu.product_title,
-           pu.item_id, pu.price, pu.currency::text, pu.result_kind,
+           pu.item_id, pu.price, pu.currency::text, pu.result_kind::text,
            pu.ledger_id, pu.created_at
       FROM store.purchase pu
      WHERE pu.account_id = v_account

@@ -28,12 +28,58 @@ ALTER TABLE store.purchase
     ADD COLUMN IF NOT EXISTS product_slug  TEXT,
     ADD COLUMN IF NOT EXISTS product_title TEXT;
 
+-- IF NOT EXISTS matches on NAME only: a column left by a previous partial
+-- deployment could be the wrong type and would be silently accepted. Fail loud
+-- instead of building the snapshot contract on unknown state.
+DO $$
+DECLARE
+    v_bad TEXT;
+BEGIN
+    SELECT string_agg(column_name || ' is ' || data_type, ', ')
+      INTO v_bad
+      FROM information_schema.columns
+     WHERE table_schema = 'store' AND table_name = 'purchase'
+       AND column_name IN ('product_slug', 'product_title')
+       AND data_type <> 'text';
+    IF v_bad IS NOT NULL THEN
+        RAISE EXCEPTION 'purchase snapshot columns have unexpected types: %', v_bad
+            USING ERRCODE = '42804';
+    END IF;
+END;
+$$;
+
 UPDATE store.purchase pu
    SET product_slug  = COALESCE(pu.product_slug, pr.slug),
        product_title = COALESCE(pu.product_title, pr.title)
   FROM store.product pr
  WHERE pr.product_id = pu.product_id
    AND (pu.product_slug IS NULL OR pu.product_title IS NULL);
+
+-- Preflight the NOT NULL so a failure names the cause instead of surfacing a
+-- bare not-null violation. purchase.product_id is a NO ACTION FK and
+-- product.slug/title are NOT NULL, so this should be unreachable — which is
+-- exactly why an unreachable-but-tripped assertion is worth reading.
+DO $$
+DECLARE
+    v_unpopulated BIGINT;
+    v_orphans     BIGINT;
+BEGIN
+    SELECT count(*) INTO v_unpopulated
+      FROM store.purchase
+     WHERE product_slug IS NULL OR product_title IS NULL;
+
+    IF v_unpopulated > 0 THEN
+        SELECT count(*) INTO v_orphans
+          FROM store.purchase pu
+          LEFT JOIN store.product pr ON pr.product_id = pu.product_id
+         WHERE pr.product_id IS NULL;
+        RAISE EXCEPTION
+            'cannot enforce purchase receipt snapshots: % rows unpopulated (% of them orphaned from store.product)',
+            v_unpopulated, v_orphans
+            USING ERRCODE = '23502';
+    END IF;
+END;
+$$;
 
 ALTER TABLE store.purchase
     ALTER COLUMN product_slug  SET NOT NULL,
@@ -43,7 +89,15 @@ ALTER TABLE store.purchase
 -- cursor breaks created_at ties on purchase_id, and two receipts share a
 -- timestamp whenever one statement writes both. The old two-column index is a
 -- prefix of this one, so it is redundant once this exists.
-CREATE INDEX IF NOT EXISTS store_purchase_account_created_id_idx
+--
+-- Build the replacement BEFORE dropping the old one so pagination is never
+-- unindexed. No IF NOT EXISTS on the CREATE: that checks the name, not the
+-- column list, so a stale index squatting this temporary name would be renamed
+-- into place as though it were correct. Dropping the temporary name first is
+-- safe because the migration is transactional and the live two-column index
+-- stays until the new one is built.
+DROP INDEX IF EXISTS store.store_purchase_account_created_id_idx;
+CREATE INDEX store_purchase_account_created_id_idx
     ON store.purchase (account_id, created_at DESC, purchase_id DESC);
 DROP INDEX IF EXISTS store.store_purchase_account_created_idx;
 ALTER INDEX store.store_purchase_account_created_id_idx
@@ -69,6 +123,7 @@ DECLARE
     v_item_id         UUID;
     v_charged         BIGINT := 0;
     v_result_kind     TEXT := 'minted';
+    v_inserted        INTEGER;
 BEGIN
     IF p_account IS NULL OR p_slug IS NULL OR p_idempotency_key IS NULL THEN
         RAISE EXCEPTION 'account, slug and idempotency_key are required'
@@ -197,6 +252,27 @@ BEGIN
     )
     ON CONFLICT (account_id, idempotency_key) DO NOTHING;
 
+    -- The key advisory lock plus the receipt lookup above mean a conflict here
+    -- should be unreachable from this function. If one happens anyway (a direct
+    -- write, or a caller that skipped the lock), do not swallow it silently:
+    -- confirm the existing receipt agrees with what this call just did, and
+    -- fail as a serialization error when it does not. A benign duplicate — same
+    -- product, same item — stays quiet, so the happy path is unchanged.
+    GET DIAGNOSTICS v_inserted = ROW_COUNT;
+    IF v_inserted = 0 THEN
+        SELECT product_id, item_id
+          INTO STRICT v_receipt_product, v_receipt_item
+          FROM store.purchase
+         WHERE account_id = p_account AND idempotency_key = p_idempotency_key;
+        IF v_receipt_product <> v_product.product_id
+           OR v_receipt_item <> v_item_id THEN
+            RAISE EXCEPTION
+                'purchase receipt conflict after serialized buy (recorded product %, item %; this call product %, item %)',
+                v_receipt_product, v_receipt_item, v_product.product_id, v_item_id
+                USING ERRCODE = '40001';
+        END IF;
+    END IF;
+
     RETURN v_item_id;
 END;
 $$;
@@ -232,7 +308,7 @@ BEGIN
     END IF;
     RETURN QUERY
     SELECT pu.purchase_id, pu.product_id, pu.product_slug, pu.product_title,
-           pu.item_id, pu.price, pu.currency::text, pu.result_kind,
+           pu.item_id, pu.price, pu.currency::text, pu.result_kind::text,
            pu.ledger_id, pu.created_at
       FROM store.purchase pu
      WHERE pu.account_id = v_account
@@ -292,7 +368,7 @@ BEGIN
     RETURN QUERY
     SELECT o.order_id, o.product_id, o.variant_id, o.qty,
            o.product_slug, o.product_title, o.variant_sku, o.unit_price,
-           o.currency::text, o.fulfillment, o.credits_amount,
+           o.currency::text, o.fulfillment::text, o.credits_amount,
            o.status, o.tracking, o.created_at, o.updated_at
       FROM store.order o
      WHERE o.account_id = v_account

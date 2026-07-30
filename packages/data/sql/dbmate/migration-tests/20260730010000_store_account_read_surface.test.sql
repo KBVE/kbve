@@ -148,6 +148,57 @@ BEGIN
         'pg_proc') IS NULL THEN
         RAISE EXCEPTION 'fail: order proxy has no comment';
     END IF;
+
+    -- 8. Only ONE keyset index remains on store.purchase: the two-column one
+    --    is a prefix of the three-column one and must not survive alongside it.
+    IF (SELECT count(*) FROM pg_indexes
+         WHERE schemaname = 'store' AND tablename = 'purchase'
+           AND indexdef LIKE '%account_id, created_at DESC%') <> 1 THEN
+        RAISE EXCEPTION 'fail: redundant purchase keyset index left behind';
+    END IF;
+END;
+$$;
+
+-- A replay of the same (account, idempotency_key) must return the SAME item and
+-- must not write a second receipt or charge again — the path that now verifies
+-- the ON CONFLICT instead of ignoring it.
+DO $$
+DECLARE
+    v_account  UUID;
+    v_first    UUID;
+    v_second   UUID;
+    v_receipts INT;
+    v_credits  BIGINT;
+    v_after    BIGINT;
+BEGIN
+    SELECT id INTO v_account FROM wallet.account
+     WHERE kind = 'user' AND user_id = '00000000-0000-4000-8000-0000000ded01';
+
+    SELECT item_id INTO v_first FROM store.purchase
+     WHERE account_id = v_account
+       AND idempotency_key = '00000000-0000-4000-8000-0000000dec02'::uuid;
+
+    SELECT credits INTO v_credits FROM wallet.balance WHERE account_id = v_account;
+
+    v_second := store.service_buy(
+        v_account, 'snapshot-probe-digital',
+        '00000000-0000-4000-8000-0000000dec02'::uuid);
+
+    IF v_second IS DISTINCT FROM v_first THEN
+        RAISE EXCEPTION 'fail: replay returned a different item (% vs %)', v_second, v_first;
+    END IF;
+
+    SELECT count(*) INTO v_receipts FROM store.purchase
+     WHERE account_id = v_account
+       AND idempotency_key = '00000000-0000-4000-8000-0000000dec02'::uuid;
+    IF v_receipts <> 1 THEN
+        RAISE EXCEPTION 'fail: replay wrote % receipts for one key', v_receipts;
+    END IF;
+
+    SELECT credits INTO v_after FROM wallet.balance WHERE account_id = v_account;
+    IF v_after <> v_credits THEN
+        RAISE EXCEPTION 'fail: replay re-charged the account (% -> %)', v_credits, v_after;
+    END IF;
 END;
 $$;
 
