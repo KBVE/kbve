@@ -777,6 +777,29 @@ impl Engine {
         handle.stream(file_id)
     }
 
+    /// Open a sequential-priority stream over the largest media file of a
+    /// leeching torrent, for live playback while the download is still in
+    /// flight. The returned reader carries a leech guard, so the completion
+    /// watcher will not tear the torrent down until the reader is dropped.
+    pub fn primary_stream(&self, id: &str) -> LeechStream {
+        let files = match self.list_files(id) {
+            Ok(Some(f)) => f,
+            _ => return LeechStream::NotReady,
+        };
+        let idx = match primary_file_index(&files) {
+            Some(i) => i,
+            None => return LeechStream::NoMedia,
+        };
+        let (name, len) = match files.iter().find(|f| f.index == idx) {
+            Some(e) => (e.name.clone(), e.len),
+            None => return LeechStream::NoMedia,
+        };
+        match self.open(id, idx) {
+            Ok(reader) => LeechStream::Ready { reader, name, len },
+            Err(_) => LeechStream::NotReady,
+        }
+    }
+
     fn leech_enter(&self, id: &str) -> LeechGuard {
         *self
             .active_leech
@@ -860,6 +883,19 @@ async fn wait_leech_drained(
 
 pub trait ReadSeek: AsyncRead + AsyncSeek + Send + Unpin {}
 impl<T: AsyncRead + AsyncSeek + Send + Unpin> ReadSeek for T {}
+
+/// Result of opening a leeching torrent's primary media file for live playback.
+pub enum LeechStream {
+    /// Metadata not resolved yet, or the file handle is not available.
+    NotReady,
+    /// The torrent has no playable media file.
+    NoMedia,
+    Ready {
+        reader: Box<dyn ReadSeek>,
+        name: String,
+        len: u64,
+    },
+}
 
 pub trait MediaSource: Send + Sync {
     fn entries(&self, id: &str) -> anyhow::Result<Option<Vec<FileEntry>>>;

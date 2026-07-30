@@ -345,6 +345,7 @@ async fn manifest(
         query.as_deref(),
         &st.token,
         st.hls.enabled(),
+        st.hls.live_enabled(),
         &st.store,
         &id,
     )
@@ -352,6 +353,7 @@ async fn manifest(
     {
         ManifestStep::Done(resp) => return resp,
         ManifestStep::Proceed(m) => m,
+        ManifestStep::ProceedLive(m) => return live_manifest(&st, &id, m).await,
     };
 
     let delivery = match st.hls.cached_delivery(&id) {
@@ -407,33 +409,32 @@ async fn manifest(
             .into_response();
     }
 
-    match st.hls.request(&id, delivery).await {
-        hls::StartOutcome::Ready(dir) => serve_manifest_file(&dir).await,
-        hls::StartOutcome::InProgress(status) => {
-            if matches!(status, state::HlsStatus::Ready | state::HlsStatus::Live) {
-                if let Some(dir) = st.store.get(&id).and_then(|m| m.hls_dir) {
-                    return serve_manifest_file(&dir).await;
-                }
-            }
-            (
-                StatusCode::ACCEPTED,
-                Json(serde_json::json!({"status": format!("{status:?}")})),
-            )
-                .into_response()
-        }
-        hls::StartOutcome::Started => (
+    let outcome = st.hls.request(&id, delivery).await;
+    hls_outcome_response(&st.store, &id, outcome).await
+}
+
+/// Popcorn manifest: begin (or join) a live HLS job for a still-downloading
+/// torrent, transcoding from its in-flight librqbit stream.
+async fn live_manifest(
+    st: &AppState,
+    id: &str,
+    meta: state::Metadata,
+) -> axum::response::Response {
+    let out_dir = match meta.active_path {
+        Some(d) => std::path::PathBuf::from(d),
+        None => return StatusCode::TOO_EARLY.into_response(),
+    };
+    match st.engine.primary_stream(id) {
+        engine::LeechStream::NotReady => (
             StatusCode::ACCEPTED,
-            Json(serde_json::json!({"status": "started"})),
+            Json(serde_json::json!({"status": "resolving"})),
         )
             .into_response(),
-        hls::StartOutcome::NotFound => StatusCode::NOT_FOUND.into_response(),
-        hls::StartOutcome::NotCompleted => StatusCode::TOO_EARLY.into_response(),
-        hls::StartOutcome::RawProgressive => (
-            StatusCode::CONFLICT,
-            Json(serde_json::json!({"delivery": "raw_progressive"})),
-        )
-            .into_response(),
-        hls::StartOutcome::Disabled => StatusCode::SERVICE_UNAVAILABLE.into_response(),
+        engine::LeechStream::NoMedia => StatusCode::CONFLICT.into_response(),
+        engine::LeechStream::Ready { reader, .. } => {
+            let outcome = st.hls.request_live(id, reader, out_dir).await;
+            hls_outcome_response(&st.store, id, outcome).await
+        }
     }
 }
 
@@ -625,6 +626,7 @@ pub(crate) async fn stream_core<S: engine::MediaSource>(
 pub(crate) enum ManifestStep {
     Done(axum::response::Response),
     Proceed(state::Metadata),
+    ProceedLive(state::Metadata),
 }
 
 pub(crate) async fn manifest_status_core(
@@ -632,6 +634,7 @@ pub(crate) async fn manifest_status_core(
     query: Option<&str>,
     token: &Option<String>,
     hls_enabled: bool,
+    live_enabled: bool,
     store: &state::StateStore,
     id: &str,
 ) -> ManifestStep {
@@ -666,9 +669,12 @@ pub(crate) async fn manifest_status_core(
         state::HlsStatus::None | state::HlsStatus::Failed => {}
     }
 
-    if meta.state != state::TorrentState::Seeding {
-        let resp = match meta.state {
-            state::TorrentState::Failed => (
+    match meta.state {
+        state::TorrentState::Seeding => ManifestStep::Proceed(meta),
+        // Popcorn path: play while the download is still in flight.
+        state::TorrentState::Leeching if live_enabled => ManifestStep::ProceedLive(meta),
+        state::TorrentState::Failed => ManifestStep::Done(
+            (
                 StatusCode::CONFLICT,
                 Json(serde_json::json!({
                     "state": "failed",
@@ -676,11 +682,46 @@ pub(crate) async fn manifest_status_core(
                 })),
             )
                 .into_response(),
-            _ => StatusCode::TOO_EARLY.into_response(),
-        };
-        return ManifestStep::Done(resp);
+        ),
+        _ => ManifestStep::Done(StatusCode::TOO_EARLY.into_response()),
     }
-    ManifestStep::Proceed(meta)
+}
+
+/// Map an HLS start outcome to an HTTP response, serving the manifest when the
+/// job is already Ready/Live. Shared by the completed and live manifest paths.
+async fn hls_outcome_response(
+    store: &state::StateStore,
+    id: &str,
+    outcome: hls::StartOutcome,
+) -> axum::response::Response {
+    match outcome {
+        hls::StartOutcome::Ready(dir) => serve_manifest_file(&dir).await,
+        hls::StartOutcome::InProgress(status) => {
+            if matches!(status, state::HlsStatus::Ready | state::HlsStatus::Live) {
+                if let Some(dir) = store.get(id).and_then(|m| m.hls_dir) {
+                    return serve_manifest_file(&dir).await;
+                }
+            }
+            (
+                StatusCode::ACCEPTED,
+                Json(serde_json::json!({"status": format!("{status:?}")})),
+            )
+                .into_response()
+        }
+        hls::StartOutcome::Started => (
+            StatusCode::ACCEPTED,
+            Json(serde_json::json!({"status": "started"})),
+        )
+            .into_response(),
+        hls::StartOutcome::NotFound => StatusCode::NOT_FOUND.into_response(),
+        hls::StartOutcome::NotCompleted => StatusCode::TOO_EARLY.into_response(),
+        hls::StartOutcome::RawProgressive => (
+            StatusCode::CONFLICT,
+            Json(serde_json::json!({"delivery": "raw_progressive"})),
+        )
+            .into_response(),
+        hls::StartOutcome::Disabled => StatusCode::SERVICE_UNAVAILABLE.into_response(),
+    }
 }
 
 pub(crate) async fn hls_segment_core(
@@ -1212,13 +1253,14 @@ mod tests {
         match step {
             ManifestStep::Done(r) => r,
             ManifestStep::Proceed(_) => panic!("expected Done, got Proceed"),
+            ManifestStep::ProceedLive(_) => panic!("expected Done, got ProceedLive"),
         }
     }
 
     #[tokio::test]
     async fn manifest_missing_id_is_404() {
         let res = manifest_done(
-            manifest_status_core(&HeaderMap::new(), None, &None, true, &store_with_one(), "999").await,
+            manifest_status_core(&HeaderMap::new(), None, &None, true, false, &store_with_one(), "999").await,
         );
         assert_eq!(res.status(), StatusCode::NOT_FOUND);
     }
@@ -1226,7 +1268,7 @@ mod tests {
     #[tokio::test]
     async fn manifest_hls_disabled_is_503() {
         let res = manifest_done(
-            manifest_status_core(&HeaderMap::new(), None, &None, false, &store_with_one(), "1").await,
+            manifest_status_core(&HeaderMap::new(), None, &None, false, false, &store_with_one(), "1").await,
         );
         assert_eq!(res.status(), StatusCode::SERVICE_UNAVAILABLE);
     }
@@ -1235,7 +1277,7 @@ mod tests {
     async fn manifest_requires_auth_when_token_set() {
         let res = manifest_done(
             manifest_status_core(
-                &HeaderMap::new(), None, &Some("secret".into()), true, &store_with_one(), "1",
+                &HeaderMap::new(), None, &Some("secret".into()), true, false, &store_with_one(), "1",
             )
             .await,
         );
@@ -1244,7 +1286,7 @@ mod tests {
 
     #[tokio::test]
     async fn manifest_seeding_none_proceeds_to_delivery() {
-        let res = manifest_status_core(&HeaderMap::new(), None, &None, true, &store_with_one(), "1").await;
+        let res = manifest_status_core(&HeaderMap::new(), None, &None, true, false, &store_with_one(), "1").await;
         assert!(matches!(res, ManifestStep::Proceed(_)));
     }
 
@@ -1272,9 +1314,36 @@ mod tests {
         })
         .unwrap();
         let res = manifest_done(
-            manifest_status_core(&HeaderMap::new(), None, &None, true, &s, "1").await,
+            manifest_status_core(&HeaderMap::new(), None, &None, true, false, &s, "1").await,
         );
         assert_eq!(res.status(), StatusCode::TOO_EARLY);
+    }
+
+    #[tokio::test]
+    async fn manifest_leeching_with_live_proceeds_live() {
+        let dir = tempdir().unwrap();
+        let s = StateStore::load(dir.path().join("s.json")).unwrap();
+        std::mem::forget(dir);
+        s.upsert(Metadata {
+            id: "1".into(),
+            name: "movie".into(),
+            path: String::new(),
+            size: 0,
+            completed_at: None,
+            last_access: 10,
+            state: TorrentState::Leeching,
+            error: None,
+            active_path: Some("/data/active/1".into()),
+            transcode: TranscodeStatus::None,
+            transcode_path: None,
+            transcode_error: None,
+            hls: HlsStatus::None,
+            hls_dir: None,
+            hls_error: None,
+        })
+        .unwrap();
+        let step = manifest_status_core(&HeaderMap::new(), None, &None, true, true, &s, "1").await;
+        assert!(matches!(step, ManifestStep::ProceedLive(_)));
     }
 
     #[tokio::test]
@@ -1304,7 +1373,7 @@ mod tests {
         .unwrap();
         std::mem::forget(dir);
         let res = manifest_done(
-            manifest_status_core(&HeaderMap::new(), None, &None, true, &s, "1").await,
+            manifest_status_core(&HeaderMap::new(), None, &None, true, false, &s, "1").await,
         );
         assert_eq!(res.status(), StatusCode::OK);
         assert_eq!(
