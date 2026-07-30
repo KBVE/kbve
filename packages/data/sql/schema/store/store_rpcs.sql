@@ -38,6 +38,7 @@
 --   public.proxy_store_buy_physical            — authenticated|service_role
 --   public.proxy_store_my_entitlements_readonly — authenticated|service_role
 --   public.proxy_store_my_orders_readonly      — authenticated|service_role
+--   public.proxy_store_my_purchases_readonly   — authenticated|service_role
 -- ============================================================================
 
 -- ============================================================================
