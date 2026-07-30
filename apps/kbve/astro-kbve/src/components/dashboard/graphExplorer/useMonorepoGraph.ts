@@ -63,13 +63,13 @@ export interface DirChunk {
 
 /** Palette for edge relation buckets (index matches meta.relations order). */
 export const REL_COLORS: [number, number, number][] = [
-	[0.4, 0.8, 1.0], // imports    — cyan
-	[1.0, 0.72, 0.3], // calls     — amber
-	[0.62, 0.62, 0.72], // references — grey
-	[0.5, 0.85, 0.55], // contains  — green
-	[0.95, 0.5, 0.85], // extends   — magenta
-	[0.45, 0.5, 0.62], // other     — slate
-	[0.72, 0.4, 1.0], // depends   — violet (NX project deps)
+	[0.5, 0.9, 1.0], // imports    — bright cyan
+	[1.0, 0.8, 0.4], // calls     — bright amber
+	[0.75, 0.75, 0.85], // references — brighter grey
+	[0.6, 0.95, 0.65], // contains  — bright green
+	[1.0, 0.6, 0.95], // extends   — bright magenta
+	[0.65, 0.7, 0.8], // other     — lighter slate
+	[0.8, 0.5, 1.0], // depends   — bright violet (NX project deps)
 ];
 
 export const REL_LABELS = [
@@ -164,7 +164,7 @@ export function useMonorepoGraph(base = '/graphify') {
 /** Deterministic HSL→RGB color for a community id (stable across renders). */
 export function communityColor(id: number): [number, number, number] {
 	const hue = (id * 137.508) % 360;
-	return hslToRgb(hue / 360, 0.62, 0.6);
+	return hslToRgb(hue / 360, 0.75, 0.68);
 }
 
 /** Deterministic color for a directory index (evenly spaced hues). */
@@ -172,7 +172,7 @@ export function dirColor(
 	index: number,
 	total: number,
 ): [number, number, number] {
-	return hslToRgb((index / Math.max(total, 1)) % 1, 0.55, 0.62);
+	return hslToRgb((index / Math.max(total, 1)) % 1, 0.7, 0.7);
 }
 
 function hslToRgb(h: number, s: number, l: number): [number, number, number] {

@@ -45,6 +45,8 @@ interface Props {
 	colorMode: ColorMode;
 	labelHost: HTMLDivElement | null;
 	focusRequest: { id: string; seq: number } | null;
+	zoomTrigger: { delta: number; seq: number } | null;
+	resetTrigger: number;
 	onHover: (h: HoverInfo | null) => void;
 	onPickDir: (dir: DirNodeLike | null) => void;
 }
@@ -60,6 +62,8 @@ export default function TieredGraphScene({
 	colorMode,
 	labelHost,
 	focusRequest,
+	zoomTrigger,
+	resetTrigger,
 	onHover,
 	onPickDir,
 }: Props) {
@@ -154,6 +158,34 @@ export default function TieredGraphScene({
 		});
 		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [focusRequest]);
+
+	// Handle zoom button triggers
+	useEffect(() => {
+		if (!zoomTrigger || !controls.current) return;
+		const cam = camera as THREE.OrthographicCamera;
+		const newZoom = cam.zoom * zoomTrigger.delta;
+		const clampedZoom = Math.max(
+			fitZoom.current * 0.5,
+			Math.min(fitZoom.current * 60, newZoom),
+		);
+		cam.zoom = clampedZoom;
+		cam.updateProjectionMatrix();
+		controls.current.update();
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [zoomTrigger]);
+
+	// Handle reset view trigger
+	useEffect(() => {
+		if (resetTrigger === 0) return;
+		const xs = overview.dirs.map((d) => d.x);
+		const ys = overview.dirs.map((d) => d.y);
+		const cx = (Math.min(...xs) + Math.max(...xs)) / 2;
+		const cy = (Math.min(...ys) + Math.max(...ys)) / 2;
+		startFly(cx, cy, fitZoom.current);
+		setActiveSlug(null);
+		onPickDir(null);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [resetTrigger]);
 
 	// Directory outline instances (dark, slightly larger, behind).
 	useLayoutEffect(() => {
@@ -291,14 +323,14 @@ export default function TieredGraphScene({
 			/>
 
 			<lineSegments geometry={dirEdgeGeo}>
-				<lineBasicMaterial vertexColors transparent opacity={0.5} />
+				<lineBasicMaterial vertexColors transparent opacity={0.65} />
 			</lineSegments>
 			{dirHiEdgeGeo && (
 				<lineSegments geometry={dirHiEdgeGeo}>
 					<lineBasicMaterial
 						vertexColors
 						transparent
-						opacity={0.95}
+						opacity={1.0}
 					/>
 				</lineSegments>
 			)}
@@ -517,14 +549,14 @@ function DirDetail({
 		<>
 			<group ref={fileGroup}>
 				<lineSegments geometry={fileEdgeGeo}>
-					<lineBasicMaterial vertexColors transparent opacity={0.4} />
+					<lineBasicMaterial vertexColors transparent opacity={0.55} />
 				</lineSegments>
 				{fileHiEdgeGeo && (
 					<lineSegments geometry={fileHiEdgeGeo}>
 						<lineBasicMaterial
 							vertexColors
 							transparent
-							opacity={0.95}
+							opacity={1.0}
 						/>
 					</lineSegments>
 				)}
@@ -565,7 +597,7 @@ function DirDetail({
 
 			<group ref={symGroup}>
 				<lineSegments geometry={symEdgeGeo}>
-					<lineBasicMaterial vertexColors transparent opacity={0.3} />
+					<lineBasicMaterial vertexColors transparent opacity={0.45} />
 				</lineSegments>
 				<instancedMesh
 					ref={symMesh}
