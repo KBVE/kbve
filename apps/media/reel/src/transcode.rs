@@ -509,6 +509,20 @@ impl Transcoder {
         let src_dir = std::path::PathBuf::from(&meta.path);
         let primary = pick_primary_file(&src_dir)?;
         let probe = probe(&self.ffprobe_bin, &primary).await?;
+
+        // Already directly playable in the browser (h264 + aac + mp4): no
+        // transcode, no second copy — serve the original as-is.
+        if decide_delivery(&probe) == Delivery::RawProgressive {
+            let _ = self.store.update(id, |m| {
+                m.transcode = TranscodeStatus::Ready;
+                m.transcode_path = None;
+                m.transcode_error = None;
+                ((), true)
+            });
+            crate::telemetry::transcode_ready(id, &primary.display().to_string());
+            return Ok(());
+        }
+
         let route = decide_route(&probe);
         crate::telemetry::transcode_started(
             id,
@@ -580,7 +594,40 @@ impl Transcoder {
             ((), true)
         });
         crate::telemetry::transcode_ready(id, &dest.display().to_string());
+
+        // Single-file policy: the transcoded .reel.mp4 is now the playable
+        // copy, so drop the original source instead of storing both.
+        if primary != dest {
+            if let Err(e) = std::fs::remove_file(&primary) {
+                tracing::warn!(id = %id, path = %primary.display(), error = %e, "failed to remove source after transcode");
+            }
+        }
         Ok(())
+    }
+}
+
+/// A finished download that has not been made playable yet. Failed transcodes
+/// are left alone (no auto-retry loop); the user can retry manually.
+pub fn should_auto_transcode(m: &crate::state::Metadata) -> bool {
+    m.state == crate::state::TorrentState::Seeding && m.transcode == TranscodeStatus::None
+}
+
+/// Makes every completed download playable on its own — no manual transcode
+/// step. Wakes on completion (and once at startup for resumed items), then asks
+/// the transcoder to process anything Seeding-but-untranscoded. request() is
+/// idempotent, so re-scans never double-start a job.
+pub async fn auto_transcode_loop(
+    transcoder: Transcoder,
+    store: StateStore,
+    wake: std::sync::Arc<tokio::sync::Notify>,
+) {
+    loop {
+        for m in store.list() {
+            if should_auto_transcode(&m) {
+                let _ = transcoder.request(&m.id).await;
+            }
+        }
+        wake.notified().await;
     }
 }
 
@@ -778,6 +825,17 @@ mod transcoder_tests {
             hls_dir: None,
             hls_error: None,
         }
+    }
+
+    #[test]
+    fn auto_transcode_only_untranscoded_seeding() {
+        assert!(should_auto_transcode(&meta("a", TranscodeStatus::None)));
+        assert!(!should_auto_transcode(&meta("b", TranscodeStatus::Ready)));
+        assert!(!should_auto_transcode(&meta("c", TranscodeStatus::Pending)));
+        assert!(!should_auto_transcode(&meta("d", TranscodeStatus::Failed)));
+        let mut leech = meta("e", TranscodeStatus::None);
+        leech.state = TorrentState::Leeching;
+        assert!(!should_auto_transcode(&leech));
     }
 
     #[test]

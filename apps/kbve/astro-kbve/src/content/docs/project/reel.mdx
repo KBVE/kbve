@@ -13,7 +13,7 @@ tags:
 key: reel
 pipeline: docker
 app_name: reel
-version: "0.1.21"
+version: "0.1.22"
 source_path: apps/media/reel
 version_toml: apps/media/reel/version.toml
 version_target: apps/media/reel/Cargo.toml
@@ -245,6 +245,17 @@ download the first watcher was still driving. That presented as the swarm
 "resetting to zero" mid-download and as finished files disappearing. The dedupe
 check removes the duplicate watcher entirely; a genuinely failed torrent can still
 be re-added to retry.
+
+Playback is meant to be effortless: download a file and it becomes watchable on its
+own, with no manual transcode step and without keeping two copies. When a download
+finishes, an auto-transcode worker wakes and processes it. If the file is already
+directly playable in the browser — h264 video, aac audio, in an mp4 container — it is
+left untouched and served as-is. Otherwise it is transcoded once to a browser-ready
+mp4 and the original source is deleted, so a 4 GB MKV does not sit on disk next to a
+4 GB mp4. The manifest and the raw stream both resolve to the finished transcode when
+one is ready, so a completed item plays directly instead of being routed back through
+the original (which, for a container like MKV, the browser cannot decode). The result
+is a single playable file per download and a Play button that just works.
 
 </BentoProse>
 

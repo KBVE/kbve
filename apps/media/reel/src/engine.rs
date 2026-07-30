@@ -213,6 +213,7 @@ pub struct Engine {
     stall_check: Duration,
     trackers: Arc<Mutex<Arc<Vec<String>>>>,
     bt_port_file: Option<PathBuf>,
+    transcode_wake: Arc<Notify>,
 }
 
 const LEECH_DRAIN_CAP: Duration = Duration::from_secs(6 * 3600);
@@ -331,6 +332,7 @@ impl Engine {
                 &cfg.extra_trackers,
             )))),
             bt_port_file: cfg.bt_port_file.clone(),
+            transcode_wake: Arc::new(Notify::new()),
         };
         engine.resume_on_start();
         Ok(engine)
@@ -338,6 +340,13 @@ impl Engine {
 
     pub fn vpn_ok(&self) -> bool {
         self.vpn_ok.load(Ordering::Relaxed)
+    }
+
+    /// Notified whenever a torrent finishes and becomes Seeding, so an
+    /// auto-transcode worker can turn it into a playable file without the user
+    /// asking. Also fire once at startup to catch resumed Seeding items.
+    pub fn transcode_wake(&self) -> Arc<Notify> {
+        self.transcode_wake.clone()
     }
 
     fn all_handles(&self) -> Vec<Arc<ManagedTorrent>> {
@@ -498,6 +507,7 @@ impl Engine {
         let session = self.session.clone();
         let active_leech = self.active_leech.clone();
         let drain = self.drain.clone();
+        let transcode_wake = self.transcode_wake.clone();
         let metadata_timeout = self.metadata_timeout;
         let stall_timeout = self.stall_timeout;
         let stall_check = self.stall_check;
@@ -608,6 +618,7 @@ impl Engine {
                         hls_error: None,
                     });
                     crate::telemetry::torrent_completed(&id, moved.size);
+                    transcode_wake.notify_one();
                     wait_leech_drained(&active_leech, &drain, &id).await;
                     delete_from_session(&session, &id, false).await;
                 }
