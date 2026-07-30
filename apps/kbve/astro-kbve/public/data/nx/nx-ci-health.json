@@ -1,91 +1,91 @@
 {
-  "generated_at": "2026-07-29T04:11:33Z",
+  "generated_at": "2026-07-30T03:57:08Z",
   "window": {
     "days": 7,
-    "since": "2026-07-22"
+    "since": "2026-07-23"
   },
   "totals": {
     "runs": 1000,
-    "success": 977,
+    "success": 980,
     "failure": 6,
     "cancelled": 13,
     "skipped": 0,
-    "other": 4,
+    "other": 1,
     "flaky": 0,
     "success_rate": 99.4,
     "avg_duration_s": 238
   },
   "totals_24h": {
-    "runs": 467,
-    "success": 452,
-    "failure": 1,
-    "success_rate": 99.8
+    "runs": 135,
+    "success": 134,
+    "failure": 0,
+    "success_rate": 100.0
   },
   "workflows": [
     {
       "name": "CI - CodeQL",
-      "runs": 332,
-      "success": 324,
+      "runs": 336,
+      "success": 329,
       "failure": 0,
       "cancelled": 7,
       "skipped": 0,
-      "other": 1,
+      "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 210
+      "avg_duration_s": 211
     },
     {
       "name": "CI - Dev",
       "runs": 204,
-      "success": 199,
+      "success": 200,
       "failure": 0,
       "cancelled": 4,
       "skipped": 0,
-      "other": 1,
+      "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 308
-    },
-    {
-      "name": "CI - Manifest Guard",
-      "runs": 111,
-      "success": 109,
-      "failure": 0,
-      "cancelled": 1,
-      "skipped": 0,
-      "other": 1,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 130
+      "avg_duration_s": 295
     },
     {
       "name": "Auto-merge bot PRs",
-      "runs": 107,
-      "success": 105,
+      "runs": 106,
+      "success": 104,
       "failure": 2,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 98.1,
-      "avg_duration_s": 41
+      "avg_duration_s": 43
+    },
+    {
+      "name": "CI - Manifest Guard",
+      "runs": 101,
+      "success": 100,
+      "failure": 0,
+      "cancelled": 1,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 131
     },
     {
       "name": "CI - Manifest Sync",
-      "runs": 51,
-      "success": 51,
+      "runs": 48,
+      "success": 48,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 151
+      "avg_duration_s": 153
     },
     {
       "name": "CI - Bevy",
-      "runs": 43,
-      "success": 43,
+      "runs": 45,
+      "success": 45,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
@@ -96,54 +96,54 @@
     },
     {
       "name": "CI - Forgejo Mirror",
-      "runs": 42,
-      "success": 42,
+      "runs": 45,
+      "success": 45,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 77
+      "avg_duration_s": 76
     },
     {
       "name": "CI - Main",
-      "runs": 42,
-      "success": 41,
+      "runs": 45,
+      "success": 44,
       "failure": 1,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 97.6,
-      "avg_duration_s": 121
+      "success_rate": 97.8,
+      "avg_duration_s": 122
     },
     {
       "name": "CI - Docker / axum-kbve",
-      "runs": 24,
-      "success": 24,
+      "runs": 26,
+      "success": 26,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 1513
-    },
-    {
-      "name": "CI - Docker / agones-palworld",
-      "runs": 16,
-      "success": 16,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 786
+      "avg_duration_s": 1514
     },
     {
       "name": "CI - Docker / reel",
+      "runs": 15,
+      "success": 15,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 513
+    },
+    {
+      "name": "CI - Docker / agones-palworld",
       "runs": 14,
       "success": 14,
       "failure": 0,
@@ -152,7 +152,7 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 515
+      "avg_duration_s": 788
     },
     {
       "name": "Daily Content",
@@ -164,19 +164,31 @@
       "other": 1,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 496
+      "avg_duration_s": 487
     },
     {
       "name": "CI - Atomic Branches",
-      "runs": 2,
-      "success": 1,
+      "runs": 1,
+      "success": 0,
       "failure": 1,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 50.0,
-      "avg_duration_s": 538
+      "success_rate": 0.0,
+      "avg_duration_s": 514
+    },
+    {
+      "name": "CI - Docker / kbve-kubectl",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 536
     },
     {
       "name": "CI - E2E / main",
@@ -213,6 +225,18 @@
       "flaky": 0,
       "success_rate": 100.0,
       "avg_duration_s": 578
+    },
+    {
+      "name": "cargo in / for clap - Update #1492519053",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 148
     },
     {
       "name": "cargo in /. - Update #1485463828",
