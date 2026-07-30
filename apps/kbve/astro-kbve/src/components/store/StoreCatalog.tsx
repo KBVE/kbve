@@ -40,7 +40,7 @@ export function StoreCatalog() {
 						<span>
 							{p.price} {p.currency}
 						</span>
-						{p.fulfillment === 'digital' ? (
+						{p.fulfillment !== 'physical' && p.fulfillment !== 'both' ? (
 							<a
 								className="kbve-store-card__buy"
 								href={`/store/`}>

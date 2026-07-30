@@ -60,7 +60,12 @@ pub(crate) struct StoreProductDto {
     pub description: Option<String>,
     pub price: i64,
     pub currency: String,
+    /// 'digital' | 'physical' | 'both'. Clients route the buy path on this:
+    /// digital mints straight from credits, physical/both needs a variant +
+    /// shipping address. Omitting it made every product look physical.
+    pub fulfillment: String,
     pub asset_ref: serde_json::Value,
+    pub variant_count: i64,
     pub created_at: String,
 }
 
@@ -101,21 +106,7 @@ pub(crate) async fn list_products() -> Response {
         None => return service_unavailable(),
     };
     match client.store_catalog().await {
-        Ok(rows) => Json(
-            rows.into_iter()
-                .map(|r| StoreProductDto {
-                    product_id: r.product_id,
-                    slug: r.slug,
-                    title: r.title,
-                    description: r.description,
-                    price: r.price,
-                    currency: r.currency.as_pg().to_string(),
-                    asset_ref: r.asset_ref,
-                    created_at: r.created_at.to_rfc3339(),
-                })
-                .collect::<Vec<_>>(),
-        )
-        .into_response(),
+        Ok(rows) => Json(rows.into_iter().map(map_product_dto).collect::<Vec<_>>()).into_response(),
         Err(e) => wallet_error_response(e),
     }
 }
@@ -421,7 +412,9 @@ fn map_product_dto(p: kbve::wallet::StoreProductRow) -> StoreProductDto {
         description: p.description,
         price: p.price,
         currency: p.currency.as_pg().to_string(),
+        fulfillment: p.fulfillment,
         asset_ref: p.asset_ref,
+        variant_count: p.variant_count,
         created_at: p.created_at.to_rfc3339(),
     }
 }
