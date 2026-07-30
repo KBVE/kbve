@@ -38,6 +38,7 @@ async fn main() -> anyhow::Result<()> {
         cfg.hls_segment_secs as u32,
         cfg.hls_enabled,
         cfg.live_hls_enabled,
+        cfg.live_prebuffer_segments,
         cfg.encode_threads,
     );
 
