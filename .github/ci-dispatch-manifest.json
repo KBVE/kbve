@@ -393,7 +393,6 @@
 			"runner": "ubuntu-latest",
 			"image": "kbve/kbve-gate",
 			"deployment_yamls": [
-				"apps/kube/n8n/manifest/n8n-deployment.yaml",
 				"apps/kube/monitoring/manifests/grafana-gate-deployment.yaml",
 				"apps/kube/argocd/manifests/argocd-gate-deployment.yaml",
 				"apps/kube/storage/manifests/longhorn-gate-deployment.yaml",

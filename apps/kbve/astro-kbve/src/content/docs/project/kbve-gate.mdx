@@ -19,7 +19,6 @@ version_target: apps/kbve/kbve-gate/Cargo.toml
 runner: ubuntu-latest
 image: kbve/kbve-gate
 deployment_yamls:
-    - apps/kube/n8n/manifest/n8n-deployment.yaml
     - apps/kube/monitoring/manifests/grafana-gate-deployment.yaml
     - apps/kube/argocd/manifests/argocd-gate-deployment.yaml
     - apps/kube/storage/manifests/longhorn-gate-deployment.yaml
@@ -172,13 +171,25 @@ navigation carries no token. The gate completes auth with a bounce:
 The login page only honours `redirect_to` targets on `*.kbve.com` over https,
 so the token can never be handed to a foreign origin.
 
-`redirect_to` is normally derived from `Host` + `X-Forwarded-Proto`. A gate
+`redirect_to` carries the full path **and query**, so a deep link
+(`/project/default/sql?schema=public`) survives the round trip. Any
+`access_token` already in the query is dropped rather than echoed back.
+
+`redirect_to` is otherwise derived from `Host` + `X-Forwarded-Proto`. A gate
 behind a second reverse proxy can see neither: Supabase Studio sits behind Kong,
 which without `preserve_host` sends `Host: studio-gate:5678` and stamps
 `X-Forwarded-Proto: http` for its own plaintext listener. The gate then emits
 `http://studio-gate:5678/...`, the login page rejects it, and the user lands on
-the homepage instead of the gated host. Set `GATE_EXTERNAL_BASE` on any gate
-that is not directly addressed by its public hostname.
+the homepage instead of the gated host.
+
+`GATE_EXTERNAL_BASE` pins the public origin and bypasses both headers. It is set
+on studio, grafana, argo, longhorn, and windmill so no future proxy change can
+break the bounce. A bad value fails at boot rather than at login. **Forgejo
+deliberately leaves it unset** — it serves `forgejo.kbve.com`, `git.kbve.com`,
+and the DNS-only `direct.git.kbve.com` from one route, so pinning one origin
+would bounce every login away from the other two. When the value is unset and
+the derived target is not https on a public hostname, the gate logs a warning
+naming this env var.
 
 </BentoProse>
 

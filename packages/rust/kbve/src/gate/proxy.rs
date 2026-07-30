@@ -151,22 +151,66 @@ fn redirect(location: &str, set_cookie: Option<&str>) -> Response {
         .into_response()
 }
 
-/// Reconstruct the externally-visible URL (sans query) from proxy headers, used
-/// as the `redirect_to` target so the login page can return the browser here.
-/// `base` wins when set — see [`GateConfig::external_base`].
+/// Reconstruct the externally-visible URL from proxy headers, used as the
+/// `redirect_to` target so the login page can return the browser exactly here —
+/// query included, so a deep link (`/project/default/sql?schema=public`) survives
+/// the round trip. Any `access_token` is dropped: the login page appends its own,
+/// and a stale one must never be echoed back into a redirect.
+/// `base` wins over the headers when set — see [`GateConfig::external_base`].
 fn external_url(base: Option<&str>, headers: &HeaderMap, uri: &Uri) -> String {
-    if let Some(base) = base {
-        return format!("{}{}", base.trim_end_matches('/'), uri.path());
+    let mut out = match base {
+        Some(base) => format!("{}{}", base.trim_end_matches('/'), uri.path()),
+        None => {
+            let host = headers
+                .get(header::HOST)
+                .and_then(|v| v.to_str().ok())
+                .unwrap_or("");
+            let scheme = headers
+                .get("x-forwarded-proto")
+                .and_then(|v| v.to_str().ok())
+                .unwrap_or("https");
+            format!("{scheme}://{host}{}", uri.path())
+        }
+    };
+    if let Some(query) = uri.query() {
+        let cleaned = strip_access_token(query);
+        if !cleaned.is_empty() {
+            out.push('?');
+            out.push_str(&cleaned);
+        }
     }
-    let host = headers
-        .get(header::HOST)
-        .and_then(|v| v.to_str().ok())
-        .unwrap_or("");
-    let scheme = headers
-        .get("x-forwarded-proto")
-        .and_then(|v| v.to_str().ok())
-        .unwrap_or("https");
-    format!("{scheme}://{host}{}", uri.path())
+    out
+}
+
+/// True when the login page will accept this URL as a `redirect_to` target: https
+/// on a real hostname. A gate whose `Host` has been rewritten to an internal
+/// service name (`studio-gate:5678`) or whose scheme arrives as plain http fails
+/// here, and every login bounce silently strands the user on the login origin.
+fn is_bounceable(url: &str) -> bool {
+    match url::Url::parse(url) {
+        Ok(u) => {
+            u.scheme() == "https"
+                && u.host_str()
+                    .map(|h| h.contains('.') && !h.ends_with(".local"))
+                    .unwrap_or(false)
+        }
+        Err(_) => false,
+    }
+}
+
+/// One-shot loud warning for the misconfiguration above. Fires on the first
+/// unbounceable deny rather than at boot, because it needs a real request's
+/// headers to know what the fronting proxy actually sends.
+fn warn_unbounceable(ext_url: &str) {
+    static ONCE: std::sync::Once = std::sync::Once::new();
+    ONCE.call_once(|| {
+        warn!(
+            redirect_to = %ext_url,
+            "gate login bounce target is not https on a public hostname — the login page \
+             will reject it and strand the user. A fronting proxy is rewriting Host or \
+             dropping X-Forwarded-Proto; set GATE_EXTERNAL_BASE to this gate's public origin."
+        );
+    });
 }
 
 /// Drop the `access_token` pair from a query string, preserving the rest.
@@ -272,6 +316,9 @@ fn deny(
         }
         if let Some(target) = &state.cfg.login_redirect {
             if is_navigation(headers) {
+                if !is_bounceable(ext_url) {
+                    warn_unbounceable(ext_url);
+                }
                 let enc: String =
                     url::form_urlencoded::byte_serialize(ext_url.as_bytes()).collect();
                 let sep = if target.contains('?') { '&' } else { '?' };
@@ -882,5 +929,52 @@ mod tests {
             ),
             "https://supabase.kbve.com/"
         );
+    }
+
+    #[test]
+    fn external_url_preserves_query() {
+        let uri: Uri = "/project/default/sql?schema=public&tab=new"
+            .parse()
+            .unwrap();
+        assert_eq!(
+            external_url(Some("https://supabase.kbve.com"), &HeaderMap::new(), &uri),
+            "https://supabase.kbve.com/project/default/sql?schema=public&tab=new"
+        );
+        assert_eq!(
+            external_url(None, &headers("grafana.kbve.com", None), &uri),
+            "https://grafana.kbve.com/project/default/sql?schema=public&tab=new"
+        );
+    }
+
+    #[test]
+    fn external_url_drops_access_token_from_query() {
+        let uri: Uri = "/d/abc?from=now-6h&access_token=leaked&to=now"
+            .parse()
+            .unwrap();
+        assert_eq!(
+            external_url(None, &headers("grafana.kbve.com", None), &uri),
+            "https://grafana.kbve.com/d/abc?from=now-6h&to=now"
+        );
+    }
+
+    #[test]
+    fn external_url_omits_empty_query() {
+        let uri: Uri = "/d/abc?access_token=leaked".parse().unwrap();
+        assert_eq!(
+            external_url(None, &headers("grafana.kbve.com", None), &uri),
+            "https://grafana.kbve.com/d/abc"
+        );
+    }
+
+    #[test]
+    fn bounceable_only_for_https_public_hosts() {
+        assert!(is_bounceable("https://supabase.kbve.com/project/default"));
+        assert!(is_bounceable("https://grafana.kbve.com/?a=b"));
+        assert!(!is_bounceable("http://studio-gate:5678/project/default"));
+        assert!(!is_bounceable("https://studio-gate/project/default"));
+        assert!(!is_bounceable("https://studio-gate.svc.local/x"));
+        assert!(!is_bounceable("http://supabase.kbve.com/x"));
+        assert!(!is_bounceable("https:///x"));
+        assert!(!is_bounceable("not a url"));
     }
 }
