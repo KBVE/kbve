@@ -12,6 +12,8 @@ metadata:
         kbve.com/category: networking
         kbve.com/stack: core
         kbve.com/managed-by: argocd
+    annotations:
+        reloader.stakater.com/auto: 'true'
 spec:
     replicas: 2
     selector:
@@ -30,7 +32,7 @@ spec:
                 app.kubernetes.io/version: '3.9'
                 version: '3.9'
             annotations:
-                config-hash: abe86a1b6665e4b135829be4ef256287
+                config-hash: 8def9c20346cdd082231e084b3ee36c5
                 kuma.io/gateway: enabled
                 traffic.sidecar.istio.io/includeInboundPorts: ''
         spec:
