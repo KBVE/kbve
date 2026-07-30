@@ -49,7 +49,18 @@
 --   * skip partitions -- the parent governs;
 --   * per-table probe AFTER the flip: read the table as windmill_user
 --     and compare against the owner's count. Any regression aborts
---     (strict mode) or reverts just that table (cron mode).
+--     (strict mode) or reverts just that table (cron mode);
+--   * reconcile on every run: permissive policies are OR-ed, so if a
+--     Windmill upgrade ever ships a real windmill_user policy on a
+--     table we hold a compat policy on, ours is dropped rather than
+--     left to widen access past theirs.
+--
+-- Upstream context: backend/migrations/20260125000000_v2_finalize
+-- explicitly runs `ALTER TABLE v2_job_queue/v2_job_completed DISABLE
+-- ROW LEVEL SECURITY`. RLS-off on the satellites is deliberate, and
+-- the leftover admin_policy is what the linter trips over. Enabling
+-- RLS with a permissive compat policy keeps their access model and
+-- clears the finding without deleting anything Windmill created.
 --
 -- Windmill owns its table lifecycle, so nothing here names a table.
 -- ============================================================
@@ -179,6 +190,40 @@ BEGIN
         RAISE NOTICE 'windmill.enforce_policy_rls: windmill_user role absent; nothing to do';
         RETURN 0;
     END IF;
+
+    -- Reconcile first. Permissive policies are OR-ed, so if a Windmill upgrade
+    -- ever ships a real windmill_user policy on a table we hold a compat policy
+    -- on, ours would nullify theirs and widen access across workspaces. Theirs
+    -- wins: drop ours the moment one appears.
+    FOR target IN
+        SELECT c.oid::regclass::text AS relation
+        FROM pg_class c
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE n.nspname = 'windmill'
+          AND c.relkind IN ('r', 'p')
+          AND EXISTS (
+              SELECT 1 FROM pg_policy p
+              WHERE p.polrelid = c.oid AND p.polname = 'kbve_windmill_user_all'
+          )
+          AND EXISTS (
+              SELECT 1 FROM pg_policy p
+              WHERE p.polrelid = c.oid
+                AND p.polname <> 'kbve_windmill_user_all'
+                AND (
+                    0 = ANY (p.polroles)
+                    OR EXISTS (
+                        SELECT 1 FROM unnest(p.polroles) AS pr(roleoid)
+                        WHERE pg_has_role('windmill_user', pr.roleoid, 'MEMBER')
+                    )
+                )
+          )
+        ORDER BY 1
+    LOOP
+        EXECUTE format('DROP POLICY kbve_windmill_user_all ON %s', target.relation);
+        RAISE NOTICE
+            'windmill.enforce_policy_rls: dropped compat policy on % (Windmill now ships its own windmill_user policy)',
+            target.relation;
+    END LOOP;
 
     FOR target IN SELECT relation, auto_fixable FROM windmill.rls_drift() LOOP
         IF NOT target.auto_fixable THEN

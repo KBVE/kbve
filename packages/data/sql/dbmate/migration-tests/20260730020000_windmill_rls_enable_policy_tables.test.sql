@@ -139,7 +139,32 @@ BEGIN
     CREATE POLICY kbve_windmill_user_all ON windmill.rls_probe_admin_only
         FOR ALL TO windmill_user USING (true) WITH CHECK (true);
 
-    -- 6. helpers are locked down and owned by postgres
+    -- 6. reconciliation: once Windmill ships its own windmill_user policy, our
+    --    permissive compat policy must go, or it would OR-widen past theirs.
+    CREATE POLICY see_own_upstream ON windmill.rls_probe_admin_only
+        FOR ALL TO windmill_user USING (workspace_id = 'ws-a');
+    PERFORM windmill.enforce_policy_rls(true);
+    IF EXISTS (
+        SELECT 1 FROM pg_policy p
+        WHERE p.polrelid = 'windmill.rls_probe_admin_only'::regclass
+          AND p.polname = 'kbve_windmill_user_all'
+    ) THEN
+        RAISE EXCEPTION 'fail: compat policy survived alongside an upstream windmill_user policy';
+    END IF;
+
+    SET LOCAL ROLE windmill_user;
+    SELECT count(*) INTO visible FROM windmill.rls_probe_admin_only;
+    RESET ROLE;
+    IF visible <> 1 THEN
+        RAISE EXCEPTION 'fail: upstream policy not in force after reconcile (saw % rows, expected 1)', visible;
+    END IF;
+
+    -- restore the fixture for the down-assertions
+    DROP POLICY see_own_upstream ON windmill.rls_probe_admin_only;
+    CREATE POLICY kbve_windmill_user_all ON windmill.rls_probe_admin_only
+        FOR ALL TO windmill_user USING (true) WITH CHECK (true);
+
+    -- 7. helpers are locked down and owned by postgres
     IF has_function_privilege('anon', 'windmill.enforce_policy_rls(boolean)', 'EXECUTE')
        OR has_function_privilege('authenticated', 'windmill.rls_drift()', 'EXECUTE') THEN
         RAISE EXCEPTION 'fail: API roles can execute the windmill rls helpers';
