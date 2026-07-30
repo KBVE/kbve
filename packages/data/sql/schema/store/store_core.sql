@@ -9,6 +9,7 @@
 --   ../../dbmate/migrations/20260709165000_wallet_source_kind_topup.sql
 --   ../../dbmate/migrations/20260709170000_store_topup_pod.sql
 --   ../../dbmate/migrations/20260709180000_store_privilege_hardening.sql
+--   ../../dbmate/migrations/20260730010000_store_account_read_surface.sql
 -- Hand-authored review surface — do not run directly against the database;
 -- promote changes into a new dbmate migration when ready. Functions live in
 -- store_rpcs.sql (except the order_event mutation-block trigger, the product
@@ -154,6 +155,13 @@ CREATE TABLE store.purchase (
                     CHECK (result_kind IN ('minted', 'already_owned')),
     idempotency_key UUID NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    -- Presentation snapshots, same contract as store."order": a receipt shows
+    -- what was bought AT BUY TIME, so a later product title edit cannot rewrite
+    -- purchase history. (slug is already immutable by trigger; title is not.)
+    -- Listed last because 20260730010000 ADDs them, so this is their real
+    -- column order.
+    product_slug    TEXT NOT NULL,
+    product_title   TEXT NOT NULL,
     UNIQUE (account_id, idempotency_key),
     -- Enforce the accounting the comments describe: an already-owned lookup is
     -- always a zero-charge no-op (no ledger); a mint charges iff price > 0.
@@ -165,8 +173,44 @@ CREATE TABLE store.purchase (
             ))
     )
 );
+-- Keyset read path for proxy_store_my_purchases_readonly. purchase_id DESC is
+-- part of the index, not just the ORDER BY: the cursor breaks created_at ties
+-- on purchase_id, and two receipts share a timestamp whenever one statement
+-- writes both.
+-- Completes the receipt snapshots for any writer that omits them, so NOT NULL is
+-- enforceable without trusting every call site, and so a session still running an
+-- older service_buy body across the snapshot deploy cannot fail on 23502.
+-- Supplied values are never overwritten: the buy-time snapshot beats the catalog.
+-- SECURITY DEFINER so the fill never depends on the inserting role's own SELECT
+-- reach into store.product (or on surviving its RLS), which would silently leave
+-- the columns NULL and re-raise the 23502 this exists to prevent. That is a
+-- deliberate narrow capability: a writer holding INSERT without SELECT on
+-- store.product can resolve the referenced slug/title by inserting a receipt and
+-- reading it back, which is exactly what writing a valid receipt requires. It
+-- stays contained — one product by NEW.product_id, no dynamic SQL, result written
+-- only into the inserted row, pinned empty search_path.
+CREATE OR REPLACE FUNCTION store.purchase_fill_snapshot()
+RETURNS TRIGGER
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+BEGIN
+    IF NEW.product_slug IS NULL OR NEW.product_title IS NULL THEN
+        SELECT COALESCE(NEW.product_slug, pr.slug),
+               COALESCE(NEW.product_title, pr.title)
+          INTO NEW.product_slug, NEW.product_title
+          FROM store.product pr
+         WHERE pr.product_id = NEW.product_id;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+ALTER FUNCTION store.purchase_fill_snapshot() OWNER TO store_api_owner;
+
+CREATE TRIGGER store_purchase_fill_snapshot
+    BEFORE INSERT ON store.purchase
+    FOR EACH ROW EXECUTE FUNCTION store.purchase_fill_snapshot();
+
 CREATE INDEX store_purchase_account_created_idx
-    ON store.purchase (account_id, created_at DESC);
+    ON store.purchase (account_id, created_at DESC, purchase_id DESC);
 -- Each wallet ledger row backs exactly one purchase receipt.
 CREATE UNIQUE INDEX store_purchase_ledger_uq
     ON store.purchase (ledger_id) WHERE ledger_id IS NOT NULL;

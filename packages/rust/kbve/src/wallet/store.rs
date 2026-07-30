@@ -111,6 +111,18 @@ struct OrderRowDb {
     variant_id: Option<Uuid>,
     #[diesel(sql_type = diesel::sql_types::BigInt)]
     qty: i64,
+    #[diesel(sql_type = Text)]
+    product_slug: String,
+    #[diesel(sql_type = Text)]
+    product_title: String,
+    #[diesel(sql_type = Text)]
+    variant_sku: String,
+    #[diesel(sql_type = diesel::sql_types::BigInt)]
+    unit_price: i64,
+    #[diesel(sql_type = Text)]
+    currency: String,
+    #[diesel(sql_type = Text)]
+    fulfillment: String,
     #[diesel(sql_type = diesel::sql_types::BigInt)]
     credits_amount: i64,
     #[diesel(sql_type = Text)]
@@ -149,18 +161,26 @@ struct OrderStaffRowDb {
     updated_at: DateTime<Utc>,
 }
 
-fn map_order(r: OrderRowDb) -> StoreOrderRow {
-    StoreOrderRow {
+fn map_order(r: OrderRowDb) -> Result<StoreOrderRow> {
+    let currency = CurrencyKind::from_pg(&r.currency)
+        .ok_or_else(|| WalletError::InvalidArgument(format!("unknown currency: {}", r.currency)))?;
+    Ok(StoreOrderRow {
         order_id: r.order_id,
         product_id: r.product_id,
         variant_id: r.variant_id,
         qty: r.qty,
+        product_slug: r.product_slug,
+        product_title: r.product_title,
+        variant_sku: r.variant_sku,
+        unit_price: r.unit_price,
+        currency,
+        fulfillment: r.fulfillment,
         credits_amount: r.credits_amount,
         status: r.status,
         tracking: r.tracking,
         created_at: r.created_at,
         updated_at: r.updated_at,
-    }
+    })
 }
 
 async fn my_orders_async(
@@ -170,8 +190,10 @@ async fn my_orders_async(
     before_id: Option<i64>,
 ) -> Result<Vec<StoreOrderRow>> {
     let rows: Vec<OrderRowDb> = sql_query(
-        "SELECT order_id, product_id, variant_id, qty, credits_amount, \
-                status::text AS status, tracking, created_at, updated_at \
+        "SELECT order_id, product_id, variant_id, qty, product_slug, \
+                product_title, variant_sku, unit_price, currency, fulfillment, \
+                credits_amount, status::text AS status, tracking, \
+                created_at, updated_at \
          FROM public.proxy_store_my_orders_readonly($1, $2, $3)",
     )
     .bind::<diesel::sql_types::Integer, _>(limit)
@@ -180,7 +202,116 @@ async fn my_orders_async(
     .get_results(conn)
     .await
     .map_err(WalletError::from_diesel)?;
-    Ok(rows.into_iter().map(map_order).collect())
+    rows.into_iter().map(map_order).collect()
+}
+
+#[derive(QueryableByName)]
+struct PurchaseRowDb {
+    #[diesel(sql_type = diesel::sql_types::BigInt)]
+    purchase_id: i64,
+    #[diesel(sql_type = diesel::sql_types::Uuid)]
+    product_id: Uuid,
+    #[diesel(sql_type = Text)]
+    slug: String,
+    #[diesel(sql_type = Text)]
+    title: String,
+    #[diesel(sql_type = diesel::sql_types::Uuid)]
+    item_id: Uuid,
+    #[diesel(sql_type = diesel::sql_types::BigInt)]
+    price: i64,
+    #[diesel(sql_type = Text)]
+    currency: String,
+    #[diesel(sql_type = Text)]
+    result_kind: String,
+    #[diesel(sql_type = Nullable<diesel::sql_types::BigInt>)]
+    ledger_id: Option<i64>,
+    #[diesel(sql_type = Timestamptz)]
+    created_at: DateTime<Utc>,
+}
+
+fn map_purchase(r: PurchaseRowDb) -> Result<StorePurchaseRow> {
+    let currency = CurrencyKind::from_pg(&r.currency)
+        .ok_or_else(|| WalletError::InvalidArgument(format!("unknown currency: {}", r.currency)))?;
+    Ok(StorePurchaseRow {
+        purchase_id: r.purchase_id,
+        product_id: r.product_id,
+        slug: r.slug,
+        title: r.title,
+        item_id: r.item_id,
+        price: r.price,
+        currency,
+        result_kind: r.result_kind,
+        ledger_id: r.ledger_id,
+        created_at: r.created_at,
+    })
+}
+
+async fn my_purchases_async(
+    conn: &mut AsyncPgConnection,
+    limit: i32,
+    before_created_at: Option<DateTime<Utc>>,
+    before_id: Option<i64>,
+) -> Result<Vec<StorePurchaseRow>> {
+    let rows: Vec<PurchaseRowDb> = sql_query(
+        "SELECT purchase_id, product_id, slug, title, item_id, price, \
+                currency, result_kind, ledger_id, created_at \
+         FROM public.proxy_store_my_purchases_readonly($1, $2, $3)",
+    )
+    .bind::<diesel::sql_types::Integer, _>(limit)
+    .bind::<Nullable<Timestamptz>, _>(before_created_at)
+    .bind::<Nullable<diesel::sql_types::BigInt>, _>(before_id)
+    .get_results(conn)
+    .await
+    .map_err(WalletError::from_diesel)?;
+    rows.into_iter().map(map_purchase).collect()
+}
+
+#[derive(QueryableByName)]
+struct InventoryItemRowDb {
+    #[diesel(sql_type = diesel::sql_types::Uuid)]
+    item_id: Uuid,
+    #[diesel(sql_type = Text)]
+    kind: String,
+    #[diesel(sql_type = Text)]
+    item_ref: String,
+    #[diesel(sql_type = diesel::sql_types::BigInt)]
+    qty: i64,
+    #[diesel(sql_type = Jsonb)]
+    nbt: serde_json::Value,
+    #[diesel(sql_type = Text)]
+    state: String,
+    #[diesel(sql_type = Timestamptz)]
+    created_at: DateTime<Utc>,
+}
+
+async fn my_inventory_async(
+    conn: &mut AsyncPgConnection,
+    limit: i32,
+    before_created_at: Option<DateTime<Utc>>,
+    before_id: Option<Uuid>,
+) -> Result<Vec<InventoryItemRow>> {
+    let rows: Vec<InventoryItemRowDb> = sql_query(
+        "SELECT item_id, kind, ref AS item_ref, qty, nbt, state, created_at \
+         FROM public.proxy_inventory_list_held($1, $2, $3)",
+    )
+    .bind::<diesel::sql_types::Integer, _>(limit)
+    .bind::<Nullable<Timestamptz>, _>(before_created_at)
+    .bind::<Nullable<diesel::sql_types::Uuid>, _>(before_id)
+    .get_results(conn)
+    .await
+    .map_err(WalletError::from_diesel)?;
+    Ok(rows
+        .into_iter()
+        .map(|r| InventoryItemRow {
+            item_id: r.item_id,
+            kind: r.kind,
+            ref_: r.item_ref,
+            qty: r.qty,
+            nbt: r.nbt,
+            state: r.state,
+            created_at: r.created_at,
+        })
+        .collect())
 }
 
 fn map_product(r: ProductRowDb) -> Result<StoreProductRow> {
@@ -414,6 +545,114 @@ impl WalletClient {
             .transaction::<Vec<StoreOrderRow>, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;
                 my_orders_async(conn, limit, before_created_at, before_id).await
+            })
+            .await
+    }
+
+    pub async fn store_my_purchases(
+        &self,
+        user_id: Uuid,
+        limit: i32,
+        before_created_at: Option<DateTime<Utc>>,
+        before_id: Option<i64>,
+    ) -> Result<Vec<StorePurchaseRow>> {
+        match self
+            .read_my_purchases(user_id, limit, before_created_at, before_id)
+            .await
+        {
+            Ok(rows) => Ok(rows),
+            Err(WalletError::AccountMissing) => {
+                self.write_my_purchases(user_id, limit, before_created_at, before_id)
+                    .await
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    async fn read_my_purchases(
+        &self,
+        user_id: Uuid,
+        limit: i32,
+        before_created_at: Option<DateTime<Utc>>,
+        before_id: Option<i64>,
+    ) -> Result<Vec<StorePurchaseRow>> {
+        let mut conn = self.read().await?;
+        let inner: &mut AsyncPgConnection = &mut conn;
+        inner
+            .transaction::<Vec<StorePurchaseRow>, WalletError, _>(async |conn| {
+                set_user_claims(conn, user_id).await?;
+                my_purchases_async(conn, limit, before_created_at, before_id).await
+            })
+            .await
+    }
+
+    async fn write_my_purchases(
+        &self,
+        user_id: Uuid,
+        limit: i32,
+        before_created_at: Option<DateTime<Utc>>,
+        before_id: Option<i64>,
+    ) -> Result<Vec<StorePurchaseRow>> {
+        let mut conn = self.write().await?;
+        let inner: &mut AsyncPgConnection = &mut conn;
+        inner
+            .transaction::<Vec<StorePurchaseRow>, WalletError, _>(async |conn| {
+                set_user_claims(conn, user_id).await?;
+                my_purchases_async(conn, limit, before_created_at, before_id).await
+            })
+            .await
+    }
+
+    pub async fn inventory_my_items(
+        &self,
+        user_id: Uuid,
+        limit: i32,
+        before_created_at: Option<DateTime<Utc>>,
+        before_id: Option<Uuid>,
+    ) -> Result<Vec<InventoryItemRow>> {
+        match self
+            .read_my_inventory(user_id, limit, before_created_at, before_id)
+            .await
+        {
+            Ok(rows) => Ok(rows),
+            Err(WalletError::AccountMissing) => {
+                self.write_my_inventory(user_id, limit, before_created_at, before_id)
+                    .await
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    async fn read_my_inventory(
+        &self,
+        user_id: Uuid,
+        limit: i32,
+        before_created_at: Option<DateTime<Utc>>,
+        before_id: Option<Uuid>,
+    ) -> Result<Vec<InventoryItemRow>> {
+        let mut conn = self.read().await?;
+        let inner: &mut AsyncPgConnection = &mut conn;
+        inner
+            .transaction::<Vec<InventoryItemRow>, WalletError, _>(async |conn| {
+                set_user_claims(conn, user_id).await?;
+                my_inventory_async(conn, limit, before_created_at, before_id).await
+            })
+            .await
+    }
+
+    async fn write_my_inventory(
+        &self,
+        user_id: Uuid,
+        limit: i32,
+        before_created_at: Option<DateTime<Utc>>,
+        before_id: Option<Uuid>,
+    ) -> Result<Vec<InventoryItemRow>> {
+        let mut conn = self.write().await?;
+        let inner: &mut AsyncPgConnection = &mut conn;
+        inner
+            .transaction::<Vec<InventoryItemRow>, WalletError, _>(async |conn| {
+                set_user_claims(conn, user_id).await?;
+                my_inventory_async(conn, limit, before_created_at, before_id).await
             })
             .await
     }

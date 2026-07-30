@@ -13,6 +13,8 @@ export const dashboardNav: NavNode[] = [
 		items: [
 			{ label: 'Account', link: '/dashboard/account/' },
 			{ label: 'Marketplace', link: '/dashboard/market/' },
+			{ label: 'Orders', link: '/dashboard/orders/' },
+			{ label: 'Inventory', link: '/dashboard/inventory/' },
 		],
 	},
 	{

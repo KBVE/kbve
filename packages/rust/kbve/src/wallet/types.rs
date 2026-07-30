@@ -385,6 +385,12 @@ pub struct StoreOrderRow {
     pub product_id: Uuid,
     pub variant_id: Option<Uuid>,
     pub qty: i64,
+    pub product_slug: String,
+    pub product_title: String,
+    pub variant_sku: String,
+    pub unit_price: i64,
+    pub currency: CurrencyKind,
+    pub fulfillment: String,
     pub credits_amount: i64,
     pub status: String,
     pub tracking: serde_json::Value,
@@ -434,6 +440,33 @@ pub struct StoreEntitlementRow {
     pub product_id: Uuid,
     pub title: Option<String>,
     pub granted_at: DateTime<Utc>,
+}
+
+/// Caller-scoped digital receipt. Matches `proxy_store_my_purchases_readonly`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct StorePurchaseRow {
+    pub purchase_id: i64,
+    pub product_id: Uuid,
+    pub slug: String,
+    pub title: String,
+    pub item_id: Uuid,
+    pub price: i64,
+    pub currency: CurrencyKind,
+    pub result_kind: String,
+    pub ledger_id: Option<i64>,
+    pub created_at: DateTime<Utc>,
+}
+
+/// Caller-owned inventory row. Matches `public.proxy_inventory_list_held`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InventoryItemRow {
+    pub item_id: Uuid,
+    pub kind: String,
+    pub ref_: String,
+    pub qty: i64,
+    pub nbt: serde_json::Value,
+    pub state: String,
+    pub created_at: DateTime<Utc>,
 }
 
 /// Write-side payload for `public.proxy_store_buy`.

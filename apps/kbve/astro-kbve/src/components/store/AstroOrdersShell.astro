@@ -1,0 +1,62 @@
+---
+import BentoShell from '@/components/hero/BentoShell.astro';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
+import ReactOrdersRN from './ReactOrdersRN';
+
+const backdrop = 'https://images.unsplash.com/photo-1553413077-190dd305871c?q=80&w=2400&auto=format&fit=crop';
+---
+
+<div class="orders-hub" style={`--bento-hero-bg: url('${backdrop}')`}>
+	<section class="bento-hero bento-section not-content" aria-label="Your orders">
+		<div class="bento-hero__bg" aria-hidden="true"></div>
+		<div class="bento-hero__frame bento-frame">
+			<div class="bento-board bento-board--hero">
+				<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+					<span class="bento-badge bento-chip"><span>orders</span></span>
+					<h1 class="bento-title">Every purchase,
+						<span class="bento-title__accent">receipted.</span></h1>
+					<p class="bento-lede">
+						Digital unlocks and shipped goods in one timeline. Each row is a
+						receipt — what you paid, what it minted, and when.
+					</p>
+					<div class="bento-cta">
+						<a class="bento-btn bento-btn--primary" href="#orders">View orders
+							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+						</a>
+						<a class="bento-btn bento-btn--ghost" href="/dashboard/inventory/">Your inventory</a>
+					</div>
+				</div>
+				{[
+					{ v: 'Receipts', l: 'Digital unlocks, itemised' },
+					{ v: 'Shipping', l: 'Physical order status' },
+					{ v: 'Credits', l: 'What each buy cost you' },
+				].map((s) => (
+					<div class="bento-cell bento-stat bento-card bento-card--glass">
+						<span class="bento-stat__value">{s.v}</span>
+						<span class="bento-stat__label">{s.l}</span>
+					</div>
+				))}
+			</div>
+		</div>
+	</section>
+
+	<BentoShell id="orders" eyebrow="You" heading="Purchase history">
+		<div class="orders-island">
+			<ReactOrdersRN client:only="react">
+				<RnDashSkeleton slot="fallback" tiles={2} rows={4} />
+			</ReactOrdersRN>
+		</div>
+	</BentoShell>
+</div>
+
+<style>
+	.orders-island { min-height: 60vh; }
+</style>
+
+<style is:global>
+	.orders-hub {
+		--bento-accent: #fbbf24;
+		--bento-accent-2: #f59e0b;
+		--bento-btn-fg: #3a2a05;
+	}
+</style>
