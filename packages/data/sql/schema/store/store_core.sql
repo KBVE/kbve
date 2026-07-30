@@ -139,6 +139,11 @@ CREATE TABLE store.purchase (
     -- FK to the minted entitlement (RESTRICT: inventory items are state-machined,
     -- never hard-deleted) so a receipt can never point at a nonexistent item.
     item_id         UUID NOT NULL REFERENCES inventory.item(id),
+    -- Presentation snapshots, same contract as store."order": a receipt shows
+    -- what was bought AT BUY TIME, so a later product title edit cannot rewrite
+    -- purchase history. (slug is already immutable by trigger; title is not.)
+    product_slug    TEXT NOT NULL,
+    product_title   TEXT NOT NULL,
     -- price is the amount ACTUALLY charged (0 for a free product or an
     -- already-owned no-op), never the mutable catalog price; ledger_id IS NULL
     -- <=> price = 0.
@@ -165,8 +170,12 @@ CREATE TABLE store.purchase (
             ))
     )
 );
+-- Keyset read path for proxy_store_my_purchases_readonly. purchase_id DESC is
+-- part of the index, not just the ORDER BY: the cursor breaks created_at ties
+-- on purchase_id, and two receipts share a timestamp whenever one statement
+-- writes both.
 CREATE INDEX store_purchase_account_created_idx
-    ON store.purchase (account_id, created_at DESC);
+    ON store.purchase (account_id, created_at DESC, purchase_id DESC);
 -- Each wallet ledger row backs exactly one purchase receipt.
 CREATE UNIQUE INDEX store_purchase_ledger_uq
     ON store.purchase (ledger_id) WHERE ledger_id IS NOT NULL;

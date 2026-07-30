@@ -314,9 +314,11 @@ BEGIN
     -- already-owned paths), so a later replay returns this exact item. price is
     -- the amount actually charged, not the catalog price.
     INSERT INTO store.purchase (
-        account_id, product_id, item_id, price, currency, ledger_id, result_kind, idempotency_key
+        account_id, product_id, item_id, product_slug, product_title,
+        price, currency, ledger_id, result_kind, idempotency_key
     ) VALUES (
-        p_account, v_product.product_id, v_item_id, v_charged,
+        p_account, v_product.product_id, v_item_id,
+        v_product.slug, v_product.title, v_charged,
         v_product.currency, v_ledger_id, v_result_kind, p_idempotency_key
     )
     ON CONFLICT (account_id, idempotency_key) DO NOTHING;
@@ -829,6 +831,8 @@ ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGIN
 ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) ROWS 50;
 REVOKE ALL ON FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) TO authenticated, service_role;
+COMMENT ON FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) IS
+    'PUBLIC store proxy. Caller-scoped (auth.uid()) physical/both order history, newest first. product_slug / product_title / variant_sku / unit_price / currency / fulfillment are immutable buy-time snapshots, not live catalog reads.';
 
 -- ============================================================================
 -- public.proxy_store_my_purchases_readonly — caller's digital receipts.
@@ -836,6 +840,10 @@ GRANT EXECUTE ON FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTA
 --   account has an empty order history despite owning items. The receipts
 --   in store.purchase are the record of those buys; this is their read
 --   surface. Keyset-paginated to match store_purchase_account_created_idx.
+--
+--   slug/title come from the purchase row's own snapshot columns, NOT from a
+--   join on store.product: a receipt must not change when the catalog title
+--   is later edited. Same contract as the order proxy.
 -- ============================================================================
 
 CREATE OR REPLACE FUNCTION public.proxy_store_my_purchases_readonly(
@@ -865,11 +873,10 @@ BEGIN
             USING ERRCODE = '22023';
     END IF;
     RETURN QUERY
-    SELECT pu.purchase_id, pu.product_id, pr.slug, pr.title, pu.item_id,
-           pu.price, pu.currency::text, pu.result_kind, pu.ledger_id,
-           pu.created_at
+    SELECT pu.purchase_id, pu.product_id, pu.product_slug, pu.product_title,
+           pu.item_id, pu.price, pu.currency::text, pu.result_kind,
+           pu.ledger_id, pu.created_at
       FROM store.purchase pu
-      JOIN store.product pr ON pr.product_id = pu.product_id
      WHERE pu.account_id = v_account
        AND (p_before_created_at IS NULL
             OR pu.created_at < p_before_created_at
