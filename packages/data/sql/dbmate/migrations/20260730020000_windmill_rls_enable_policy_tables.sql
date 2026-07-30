@@ -10,86 +10,248 @@
 -- admin_policy on them but left ROW LEVEL SECURITY disabled, so
 -- the policies are inert.
 --
--- Naively flipping RLS on would BREAK Windmill. Verified against
--- the live cluster:
+-- Flipping RLS on naively BREAKS Windmill. Measured on the live
+-- cluster inside a rolled-back transaction:
 --
---   * each of the five carries exactly one policy, admin_policy,
---     FOR ALL TO windmill_admin USING (true) -- and windmill_admin
---     is BYPASSRLS, so that policy is a no-op either way;
---   * windmill_user holds full DML grants on all of them, is NOT
---     BYPASSRLS, and HAS NO POLICY of its own. pg_stat_statements
---     shows windmill_user actively selecting from v2_job_completed
---     and v2_job_queue (job lists / run detail).
+--                       windmill_user rows visible
+--   table               RLS off   naive RLS on   RLS on + compat
+--   v2_job_completed      257          0              257
+--   v2_job_queue            1          0                1
+--   v2_job_runtime          1          0                1
 --
--- So RLS-on with no windmill_user policy = deny-all for every
--- non-admin Windmill session. Workspace isolation for these
--- satellite tables is not their own job: Windmill's queries JOIN
--- v2_job, which already has RLS enabled plus the see_own /
--- see_member / see_folder_extra_perms_user policies.
+-- Why: each table carries exactly one policy, admin_policy FOR ALL
+-- TO windmill_admin USING (true), and windmill_admin is BYPASSRLS,
+-- so that policy is a no-op either way. windmill_user holds full
+-- DML grants, is NOT BYPASSRLS, and has no policy of its own --
+-- RLS-on therefore means deny-all for every non-admin session, and
+-- pg_stat_statements confirms windmill_user actively selects from
+-- v2_job_completed and v2_job_queue.
 --
--- Therefore, before enabling RLS on such a table, add a permissive
--- compat policy for windmill_user USING (true). That preserves the
--- CURRENT effective access exactly (RLS off == every granted role
--- sees every row) while making the existing policies live, so the
--- linter finding clears with no behaviour change.
+-- These satellite tables are not where isolation lives. Windmill's
+-- queries JOIN v2_job, which already has RLS on plus see_own /
+-- see_member / see_folder_extra_perms_user. The same dry run
+-- confirmed it: `v2_job JOIN v2_job_completed` as windmill_user
+-- with a bogus session identity returns 0 rows even with the
+-- compat policy in place.
 --
--- If a table has policies, RLS off, AND already has a windmill_user
--- policy, we do NOT touch it: enabling RLS there would newly filter
--- rows, which is a judgement call for a human, not this sweep.
+-- So: add a permissive compat policy for windmill_user USING (true)
+-- BEFORE enabling RLS. That preserves current effective access
+-- exactly (RLS off == every granted role sees every row) and clears
+-- the linter finding with no behaviour change.
+--
+-- Safety layers, in order of application:
+--   * lock_timeout, so a wedged ALTER TABLE can never block the
+--     live engine -- the migration fails fast instead;
+--   * preflight: bail out cleanly if the windmill roles are absent;
+--   * skip any table where a policy ALREADY applies to windmill_user
+--     (directly, via role membership, or via a PUBLIC-scoped policy),
+--     because enabling RLS there would newly filter rows;
+--   * skip partitions -- the parent governs;
+--   * per-table probe AFTER the flip: read the table as windmill_user
+--     and compare against the owner's count. Any regression aborts
+--     (strict mode) or reverts just that table (cron mode).
+--
 -- Windmill owns its table lifecycle, so nothing here names a table.
 -- ============================================================
 
-DO $$
+SET LOCAL lock_timeout = '2s';
+SET LOCAL statement_timeout = '60s';
+
+-- ===========================================
+-- AUDIT: which relations violate the invariant
+-- ===========================================
+
+CREATE OR REPLACE FUNCTION windmill.rls_drift()
+RETURNS TABLE (relation text, policy_count int, auto_fixable boolean)
+LANGUAGE sql
+STABLE
+SET search_path = pg_catalog
+AS $$
+    SELECT c.oid::regclass::text,
+           (SELECT count(*)::int FROM pg_policy p WHERE p.polrelid = c.oid),
+           -- Auto-fixable only when NO existing policy already applies to
+           -- windmill_user. polroles = {0} means PUBLIC, which covers every
+           -- role; membership matters too, since a policy granted to a role
+           -- windmill_user belongs to also applies to it.
+           NOT EXISTS (
+               SELECT 1
+               FROM pg_policy p
+               WHERE p.polrelid = c.oid
+                 AND (
+                     0 = ANY (p.polroles)
+                     OR EXISTS (
+                         SELECT 1 FROM unnest(p.polroles) AS pr(roleoid)
+                         WHERE pg_has_role('windmill_user', pr.roleoid, 'MEMBER')
+                     )
+                 )
+           )
+    FROM pg_class c
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+    WHERE n.nspname = 'windmill'
+      AND c.relkind IN ('r', 'p')
+      AND NOT c.relispartition
+      AND NOT c.relrowsecurity
+      AND EXISTS (SELECT 1 FROM pg_policy p WHERE p.polrelid = c.oid)
+    ORDER BY 1;
+$$;
+
+ALTER FUNCTION windmill.rls_drift() OWNER TO postgres;
+REVOKE ALL ON FUNCTION windmill.rls_drift() FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION windmill.rls_drift() TO postgres;
+
+COMMENT ON FUNCTION windmill.rls_drift() IS
+    'Lists windmill tables carrying policies while RLS is disabled (Supabase linter policy_exists_rls_disabled). auto_fixable=false means a policy already applies to windmill_user, so enabling RLS would newly filter rows -- review by hand. Empty result = healthy.';
+
+-- ===========================================
+-- PROBE: can windmill_user still read the table?
+--
+-- Bounded (LIMIT 1000) so it stays cheap on hot tables. Returns
+-- true when windmill_user sees what the owner sees. SET ROLE plus
+-- the session GUCs Windmill's own policies read, pre-set so that
+-- evaluating them cannot error on an unset parameter. Role is reset
+-- on every exit path.
+--
+-- Deliberately SECURITY INVOKER: postgres cannot SET/RESET ROLE
+-- inside a SECURITY DEFINER function, and every caller (dbmate,
+-- pg_cron) already connects as postgres. EXECUTE stays postgres-only.
+-- ===========================================
+
+CREATE OR REPLACE FUNCTION windmill.rls_user_can_read(p_relation regclass)
+RETURNS boolean
+LANGUAGE plpgsql
+SET search_path = pg_catalog
+SET lock_timeout = '2s'
+AS $$
+DECLARE
+    owner_rows int;
+    user_rows  int;
+BEGIN
+    EXECUTE format('SELECT count(*) FROM (SELECT 1 FROM %s LIMIT 1000) s', p_relation)
+       INTO owner_rows;
+
+    IF owner_rows = 0 THEN
+        RETURN true;
+    END IF;
+
+    BEGIN
+        SET LOCAL ROLE windmill_user;
+        PERFORM set_config('session.user', 'kbve_rls_probe', true);
+        PERFORM set_config('session.groups', '', true);
+        PERFORM set_config('session.folders_read', '', true);
+
+        EXECUTE format('SELECT count(*) FROM (SELECT 1 FROM %s LIMIT 1000) s', p_relation)
+           INTO user_rows;
+
+        RESET ROLE;
+    EXCEPTION WHEN OTHERS THEN
+        RESET ROLE;
+        RAISE NOTICE 'windmill.rls_user_can_read: probe of % errored (%), treating as unreadable',
+            p_relation, SQLERRM;
+        RETURN false;
+    END;
+
+    RETURN user_rows = owner_rows;
+END;
+$$;
+
+ALTER FUNCTION windmill.rls_user_can_read(regclass) OWNER TO postgres;
+REVOKE ALL ON FUNCTION windmill.rls_user_can_read(regclass) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION windmill.rls_user_can_read(regclass) TO postgres;
+
+COMMENT ON FUNCTION windmill.rls_user_can_read(regclass) IS
+    'True when windmill_user sees the same (bounded) row count as the table owner. Used to prove an RLS flip did not black out the engine. Vacuously true on empty tables.';
+
+-- ===========================================
+-- ENFORCE: compat policy, flip RLS, verify, revert on regression
+-- ===========================================
+
+CREATE OR REPLACE FUNCTION windmill.enforce_policy_rls(p_strict boolean DEFAULT false)
+RETURNS int
+LANGUAGE plpgsql
+SET search_path = pg_catalog
+SET lock_timeout = '2s'
+AS $$
 DECLARE
     target record;
-    enabled_count int := 0;
-    skipped text[] := '{}';
+    fixed int := 0;
 BEGIN
-    FOR target IN
-        SELECT c.oid AS reloid,
-               c.oid::regclass AS relident,
-               EXISTS (
-                   SELECT 1 FROM pg_policy p
-                   WHERE p.polrelid = c.oid
-                     AND 'windmill_user'::regrole = ANY (p.polroles)
-               ) AS has_user_policy
-        FROM pg_class c
-        JOIN pg_namespace n ON n.oid = c.relnamespace
-        WHERE n.nspname = 'windmill'
-          AND c.relkind IN ('r', 'p')
-          AND NOT c.relrowsecurity
-          AND EXISTS (SELECT 1 FROM pg_policy p WHERE p.polrelid = c.oid)
-        ORDER BY 1
-    LOOP
-        IF target.has_user_policy THEN
-            skipped := skipped || target.relident::text;
+    IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'windmill_user') THEN
+        RAISE NOTICE 'windmill.enforce_policy_rls: windmill_user role absent; nothing to do';
+        RETURN 0;
+    END IF;
+
+    FOR target IN SELECT relation, auto_fixable FROM windmill.rls_drift() LOOP
+        IF NOT target.auto_fixable THEN
             RAISE NOTICE
-                'windmill_rls_enable: skipping % (already has a windmill_user policy; enabling RLS would newly filter rows)',
-                target.relident;
+                'windmill.enforce_policy_rls: skipping % (a policy already applies to windmill_user; needs manual review)',
+                target.relation;
             CONTINUE;
         END IF;
 
-        IF NOT EXISTS (
-            SELECT 1 FROM pg_policy p
-            WHERE p.polrelid = target.reloid
-              AND p.polname = 'kbve_windmill_user_all'
-        ) THEN
-            EXECUTE format(
-                'CREATE POLICY kbve_windmill_user_all ON %s FOR ALL TO windmill_user USING (true) WITH CHECK (true)',
-                target.relident
-            );
-        END IF;
+        BEGIN
+            IF NOT EXISTS (
+                SELECT 1 FROM pg_policy
+                WHERE polrelid = target.relation::regclass
+                  AND polname = 'kbve_windmill_user_all'
+            ) THEN
+                EXECUTE format(
+                    'CREATE POLICY kbve_windmill_user_all ON %s FOR ALL TO windmill_user USING (true) WITH CHECK (true)',
+                    target.relation
+                );
+            END IF;
 
-        EXECUTE format('ALTER TABLE %s ENABLE ROW LEVEL SECURITY', target.relident);
-        enabled_count := enabled_count + 1;
-        RAISE NOTICE 'windmill_rls_enable: enabled RLS on % (compat policy in place)', target.relident;
+            EXECUTE format('ALTER TABLE %s ENABLE ROW LEVEL SECURITY', target.relation);
+
+            IF NOT windmill.rls_user_can_read(target.relation::regclass) THEN
+                RAISE EXCEPTION
+                    'enabling RLS on % hid rows from windmill_user; refusing to leave the engine blacked out',
+                    target.relation;
+            END IF;
+
+            fixed := fixed + 1;
+            RAISE NOTICE 'windmill.enforce_policy_rls: enabled RLS on % (compat policy in place, read verified)',
+                target.relation;
+        EXCEPTION WHEN OTHERS THEN
+            IF p_strict THEN
+                RAISE;
+            END IF;
+            RAISE WARNING 'windmill.enforce_policy_rls: left % untouched: %', target.relation, SQLERRM;
+        END;
     END LOOP;
 
-    RAISE NOTICE 'windmill_rls_enable: % relation(s) switched to RLS, % skipped.',
-        enabled_count, coalesce(array_length(skipped, 1), 0);
+    RETURN fixed;
+END;
+$$;
 
-    IF array_length(skipped, 1) > 0 THEN
-        RAISE NOTICE 'windmill_rls_enable: review manually: %', array_to_string(skipped, ', ');
+ALTER FUNCTION windmill.enforce_policy_rls(boolean) OWNER TO postgres;
+REVOKE ALL ON FUNCTION windmill.enforce_policy_rls(boolean) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION windmill.enforce_policy_rls(boolean) TO postgres;
+
+COMMENT ON FUNCTION windmill.enforce_policy_rls(boolean) IS
+    'Adds a permissive windmill_user compat policy, enables RLS, and probes the result on every windmill table that has policies, RLS off, and no policy already applying to windmill_user. Returns the number of relations changed. p_strict=true re-raises (migration apply); false reverts the offending table and continues (cron). Idempotent.';
+
+-- ===========================================
+-- ONE-SHOT: clear the current offenders
+-- ===========================================
+
+DO $$
+DECLARE
+    fixed int;
+    skipped text;
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'windmill') THEN
+        RAISE NOTICE 'windmill_rls_enable: windmill schema absent; nothing to do';
+        RETURN;
+    END IF;
+
+    SELECT windmill.enforce_policy_rls(true) INTO fixed;
+
+    SELECT string_agg(relation, ', ') INTO skipped
+    FROM windmill.rls_drift() WHERE NOT auto_fixable;
+
+    RAISE NOTICE 'windmill_rls_enable: % relation(s) switched to RLS.', fixed;
+    IF skipped IS NOT NULL THEN
+        RAISE NOTICE 'windmill_rls_enable: left for manual review: %', skipped;
     END IF;
 END;
 $$ LANGUAGE plpgsql;
@@ -102,56 +264,46 @@ DO $$
 DECLARE
     offenders text;
 BEGIN
-    SELECT string_agg(c.oid::regclass::text, ', ' ORDER BY c.oid::regclass::text)
-    INTO offenders
-    FROM pg_class c
-    JOIN pg_namespace n ON n.oid = c.relnamespace
-    WHERE n.nspname = 'windmill'
-      AND c.relkind IN ('r', 'p')
-      AND NOT c.relrowsecurity
-      AND EXISTS (SELECT 1 FROM pg_policy p WHERE p.polrelid = c.oid)
-      -- tables intentionally left alone by the sweep
-      AND NOT EXISTS (
-          SELECT 1 FROM pg_policy p
-          WHERE p.polrelid = c.oid
-            AND 'windmill_user'::regrole = ANY (p.polroles)
-      );
-
+    SELECT string_agg(relation, ', ') INTO offenders
+    FROM windmill.rls_drift() WHERE auto_fixable;
     IF offenders IS NOT NULL THEN
         RAISE EXCEPTION 'windmill relations still have policies with RLS disabled: %', offenders;
     END IF;
 
-    -- Every table we switched on must be reachable by windmill_user.
+    -- No RLS-enabled windmill table may be a black hole for windmill_user.
     SELECT string_agg(c.oid::regclass::text, ', ' ORDER BY c.oid::regclass::text)
     INTO offenders
     FROM pg_class c
     JOIN pg_namespace n ON n.oid = c.relnamespace
     WHERE n.nspname = 'windmill'
       AND c.relkind IN ('r', 'p')
+      AND NOT c.relispartition
       AND c.relrowsecurity
       AND has_table_privilege('windmill_user', c.oid, 'SELECT')
-      AND NOT EXISTS (
+      AND EXISTS (
           SELECT 1 FROM pg_policy p
-          WHERE p.polrelid = c.oid
-            AND 'windmill_user'::regrole = ANY (p.polroles)
-      );
+          WHERE p.polrelid = c.oid AND p.polname = 'kbve_windmill_user_all'
+      )
+      AND NOT windmill.rls_user_can_read(c.oid::regclass);
 
     IF offenders IS NOT NULL THEN
-        RAISE EXCEPTION 'windmill_user has grants but no policy on RLS-enabled relation(s): %', offenders;
+        RAISE EXCEPTION 'windmill_user cannot read RLS-enabled relation(s): %', offenders;
     END IF;
 
-    RAISE NOTICE 'windmill_rls_enable: no policy-without-RLS relations remain; windmill_user reachable everywhere.';
+    RAISE NOTICE 'windmill_rls_enable: no policy-without-RLS relations remain; windmill_user reads verified.';
 END;
 $$ LANGUAGE plpgsql;
 
 -- migrate:down
+
+SET LOCAL lock_timeout = '2s';
 
 DO $$
 DECLARE
     target record;
 BEGIN
     FOR target IN
-        SELECT c.oid AS reloid, c.oid::regclass AS relident
+        SELECT c.oid::regclass AS relident
         FROM pg_class c
         JOIN pg_namespace n ON n.oid = c.relnamespace
         WHERE n.nspname = 'windmill'
@@ -159,8 +311,7 @@ BEGIN
           AND c.relrowsecurity
           AND EXISTS (
               SELECT 1 FROM pg_policy p
-              WHERE p.polrelid = c.oid
-                AND p.polname = 'kbve_windmill_user_all'
+              WHERE p.polrelid = c.oid AND p.polname = 'kbve_windmill_user_all'
           )
         ORDER BY 1
     LOOP
@@ -169,3 +320,7 @@ BEGIN
     END LOOP;
 END;
 $$ LANGUAGE plpgsql;
+
+DROP FUNCTION IF EXISTS windmill.enforce_policy_rls(boolean);
+DROP FUNCTION IF EXISTS windmill.rls_user_can_read(regclass);
+DROP FUNCTION IF EXISTS windmill.rls_drift();
