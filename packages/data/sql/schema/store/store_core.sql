@@ -177,6 +177,30 @@ CREATE TABLE store.purchase (
 -- part of the index, not just the ORDER BY: the cursor breaks created_at ties
 -- on purchase_id, and two receipts share a timestamp whenever one statement
 -- writes both.
+-- Completes the receipt snapshots for any writer that omits them, so NOT NULL is
+-- enforceable without trusting every call site, and so a session still running an
+-- older service_buy body across the snapshot deploy cannot fail on 23502.
+-- Supplied values are never overwritten: the buy-time snapshot beats the catalog.
+CREATE OR REPLACE FUNCTION store.purchase_fill_snapshot()
+RETURNS TRIGGER
+LANGUAGE plpgsql SET search_path = '' AS $$
+BEGIN
+    IF NEW.product_slug IS NULL OR NEW.product_title IS NULL THEN
+        SELECT COALESCE(NEW.product_slug, pr.slug),
+               COALESCE(NEW.product_title, pr.title)
+          INTO NEW.product_slug, NEW.product_title
+          FROM store.product pr
+         WHERE pr.product_id = NEW.product_id;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+ALTER FUNCTION store.purchase_fill_snapshot() OWNER TO store_api_owner;
+
+CREATE TRIGGER store_purchase_fill_snapshot
+    BEFORE INSERT ON store.purchase
+    FOR EACH ROW EXECUTE FUNCTION store.purchase_fill_snapshot();
+
 CREATE INDEX store_purchase_account_created_idx
     ON store.purchase (account_id, created_at DESC, purchase_id DESC);
 -- Each wallet ledger row backs exactly one purchase receipt.

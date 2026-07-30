@@ -24,6 +24,13 @@
 -- catalog says AT THAT TIME, which silently rewrites receipt history. Roll back
 -- only if the read surface itself is the problem.
 
+-- ADD COLUMN / SET NOT NULL take ACCESS EXCLUSIVE on store.purchase for the
+-- whole transaction. Bound the wait so this migration fails fast rather than
+-- sitting in the lock queue behind a long-running transaction — a queued
+-- ACCESS EXCLUSIVE request blocks every reader and writer behind it.
+SET LOCAL lock_timeout = '5s';
+SET LOCAL statement_timeout = '60s';
+
 -- ---------------------------------------------------------------------------
 -- 1. Receipt snapshots on store.purchase. Added nullable, backfilled from the
 --    catalog (the best available source for rows written before this), then
@@ -85,6 +92,40 @@ BEGIN
     END IF;
 END;
 $$;
+
+
+-- A writer that omits the snapshots gets them filled rather than rejected.
+-- Two reasons this is not redundant with service_buy populating them inline:
+--   1. it closes the deploy window. ADD COLUMN + SET NOT NULL commit together
+--      with the new service_buy, but a session already executing the OLD
+--      function body resumes afterwards and inserts without the columns. Without
+--      this trigger that INSERT dies on 23502 and the buy fails (it rolls back
+--      cleanly, so no charge — but the user sees an error). With it, the receipt
+--      is completed from the catalog and the buy succeeds;
+--   2. it makes NOT NULL enforceable against direct inserts and any future
+--      writer, instead of trusting every call site to remember.
+-- Values already supplied are never overwritten, so the normal path is a no-op
+-- and the buy-time snapshot always wins over the catalog.
+CREATE OR REPLACE FUNCTION store.purchase_fill_snapshot()
+RETURNS TRIGGER
+LANGUAGE plpgsql SET search_path = '' AS $$
+BEGIN
+    IF NEW.product_slug IS NULL OR NEW.product_title IS NULL THEN
+        SELECT COALESCE(NEW.product_slug, pr.slug),
+               COALESCE(NEW.product_title, pr.title)
+          INTO NEW.product_slug, NEW.product_title
+          FROM store.product pr
+         WHERE pr.product_id = NEW.product_id;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+ALTER FUNCTION store.purchase_fill_snapshot() OWNER TO store_api_owner;
+
+DROP TRIGGER IF EXISTS store_purchase_fill_snapshot ON store.purchase;
+CREATE TRIGGER store_purchase_fill_snapshot
+    BEFORE INSERT ON store.purchase
+    FOR EACH ROW EXECUTE FUNCTION store.purchase_fill_snapshot();
 
 ALTER TABLE store.purchase
     ALTER COLUMN product_slug  SET NOT NULL,
@@ -410,6 +451,9 @@ COMMENT ON FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, 
 NOTIFY pgrst, 'reload schema';
 -- migrate:down
 
+SET LOCAL lock_timeout = '5s';
+SET LOCAL statement_timeout = '60s';
+
 DROP FUNCTION IF EXISTS public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT);
 
 -- store.service_buy is restored to the pre-snapshot INSERT further below; the
@@ -612,6 +656,10 @@ $$;
 DROP INDEX IF EXISTS store.store_purchase_account_created_idx;
 CREATE INDEX store_purchase_account_created_idx
     ON store.purchase (account_id, created_at DESC);
+
+-- The fill trigger goes before the columns it references.
+DROP TRIGGER IF EXISTS store_purchase_fill_snapshot ON store.purchase;
+DROP FUNCTION IF EXISTS store.purchase_fill_snapshot();
 
 -- Columns last: the restored service_buy above must no longer reference them.
 ALTER TABLE store.purchase

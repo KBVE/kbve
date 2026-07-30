@@ -78,23 +78,27 @@ BEGIN
         RAISE EXCEPTION 'fail: store.purchase snapshot columns missing or nullable (got %)', v_cols;
     END IF;
 
-    -- 2. Pre-existing receipts are BACKFILLED, not snapshotted: they were written
-    --    before the columns existed, so the only available source was the live
-    --    catalog — which the SEED renamed. Assert only that they are populated;
-    --    asserting the pre-rename title here would be asserting a lie.
+    -- 2. Every receipt is populated. Deliberately NOT an exact-title assertion:
+    --    this file runs under two different orderings. test-migration.sh runs
+    --    SEED before `dbmate up`, so the seeded receipt is BACKFILLED from the
+    --    (already renamed) catalog. ci-dbmate-validate runs SEED against a
+    --    fully-migrated database, so the same receipt is SNAPSHOTTED at buy time
+    --    and keeps the pre-rename title. Both are correct for their ordering;
+    --    the snapshot guarantee itself is proven below on a receipt this file
+    --    writes after up, which is order-independent.
     SELECT pu.product_title INTO v_title
       FROM store.purchase pu
      WHERE pu.product_slug = 'snapshot-probe-digital'
      ORDER BY pu.purchase_id DESC LIMIT 1;
     IF v_title IS NULL OR length(v_title) = 0 THEN
-        RAISE EXCEPTION 'fail: backfill left a receipt title empty';
+        RAISE EXCEPTION 'fail: receipt title empty after migration';
     END IF;
-    IF v_title <> 'Digital AFTER rename' THEN
-        RAISE EXCEPTION
-            'fail: backfill did not use the current catalog as documented (got %)', v_title;
+    IF v_title NOT IN ('Digital BEFORE rename', 'Digital AFTER rename') THEN
+        RAISE EXCEPTION 'fail: unexpected receipt title (got %)', v_title;
     END IF;
 
-    -- 3. The order path already snapshotted; confirm it still does.
+    -- 3. The order path always snapshotted (service_buy_physical writes the
+    --    columns inline), so this holds under either ordering.
     SELECT o.product_title INTO v_title
       FROM store.order o
      WHERE o.product_slug = 'snapshot-probe-physical'
@@ -241,6 +245,66 @@ BEGIN
 END;
 $$;
 
+-- The fill trigger: simulate a writer from BEFORE the deploy by inserting a
+-- receipt with the snapshot columns omitted. Without the trigger this is the
+-- 23502 that would fail an in-flight buy.
+DO $$
+DECLARE
+    v_account UUID;
+    v_product UUID;
+    v_item    UUID;
+    v_slug    TEXT;
+    v_title   TEXT;
+BEGIN
+    SELECT id INTO v_account FROM wallet.account
+     WHERE kind = 'user' AND user_id = '00000000-0000-4000-8000-0000000ded01';
+    SELECT product_id INTO v_product FROM store.product WHERE slug = 'snapshot-probe-digital';
+    SELECT item_id INTO v_item FROM store.purchase
+     WHERE account_id = v_account AND product_slug = 'snapshot-probe-digital' LIMIT 1;
+
+    -- price 0 + ledger_id NULL keeps store_purchase_accounting_ck satisfied.
+    INSERT INTO store.purchase (
+        account_id, product_id, item_id, price, currency, ledger_id,
+        result_kind, idempotency_key
+    ) VALUES (
+        v_account, v_product, v_item, 0, 'credits', NULL,
+        'minted', '00000000-0000-4000-8000-0000000dec07'::uuid
+    );
+
+    SELECT product_slug, product_title INTO v_slug, v_title
+      FROM store.purchase
+     WHERE account_id = v_account
+       AND idempotency_key = '00000000-0000-4000-8000-0000000dec07'::uuid;
+
+    IF v_slug IS NULL OR v_title IS NULL THEN
+        RAISE EXCEPTION 'fail: fill trigger left snapshots NULL (slug %, title %)', v_slug, v_title;
+    END IF;
+    IF v_slug <> 'snapshot-probe-digital' THEN
+        RAISE EXCEPTION 'fail: fill trigger wrote the wrong slug (%)', v_slug;
+    END IF;
+
+    -- And it must never overwrite a supplied snapshot.
+    INSERT INTO store.purchase (
+        account_id, product_id, item_id, product_slug, product_title,
+        price, currency, ledger_id, result_kind, idempotency_key
+    ) VALUES (
+        v_account, v_product, v_item, 'explicit-slug', 'Explicit Title',
+        0, 'credits', NULL, 'minted', '00000000-0000-4000-8000-0000000dec08'::uuid
+    );
+    SELECT product_title INTO v_title FROM store.purchase
+     WHERE account_id = v_account
+       AND idempotency_key = '00000000-0000-4000-8000-0000000dec08'::uuid;
+    IF v_title <> 'Explicit Title' THEN
+        RAISE EXCEPTION 'fail: fill trigger overwrote a supplied snapshot (%)', v_title;
+    END IF;
+
+    DELETE FROM store.purchase
+     WHERE account_id = v_account
+       AND idempotency_key IN ('00000000-0000-4000-8000-0000000dec07'::uuid,
+                               '00000000-0000-4000-8000-0000000dec08'::uuid);
+END;
+$$;
+
 -- Behaviour of the read proxies themselves, exercised as the caller would:
 -- auth.uid() resolves from request.jwt.claims, so set_config impersonates.
 DO $$
@@ -253,7 +317,8 @@ DECLARE
     v_page2     BIGINT[];
     v_cur_at    TIMESTAMPTZ;
     v_cur_id    BIGINT;
-    v_sqlstate  TEXT;
+    v_own_ids   BIGINT[];
+    v_own_count INT;
 BEGIN
     -- A second account with its own receipt, to prove caller scoping.
     INSERT INTO auth.users (id) VALUES (v_other) ON CONFLICT (id) DO NOTHING;
@@ -274,19 +339,38 @@ BEGIN
     PERFORM set_config('request.jwt.claims',
         json_build_object('sub', v_user::text)::text, true);
 
+    -- Everything that needs store-schema access happens BEFORE dropping role:
+    -- authenticated deliberately has no access to store.* (only EXECUTE on the
+    -- proxies), which is the boundary being tested. Force the created_at tie the
+    -- pagination check needs, and capture the caller's own receipt ids to compare
+    -- the proxy output against.
+    SELECT id INTO v_account FROM wallet.account WHERE kind='user' AND user_id=v_user;
+    UPDATE store.purchase SET created_at = '2026-07-30T00:00:00Z'
+     WHERE account_id = v_account;
+    SELECT array_agg(purchase_id), count(*) INTO v_own_ids, v_own_count
+      FROM store.purchase WHERE account_id = v_account;
+
+    -- Drop to the real caller role. RESET ROLE at the end; the DO block is one
+    -- transaction, so SET LOCAL ROLE is scoped to it either way.
+    SET LOCAL ROLE authenticated;
+
     -- 1. Caller sees ONLY its own receipts.
     SELECT count(*) INTO v_rows
       FROM public.proxy_store_my_purchases_readonly(100, NULL, NULL);
     IF v_rows = 0 THEN
         RAISE EXCEPTION 'fail: caller sees none of its own receipts';
     END IF;
-    SELECT id INTO v_account FROM wallet.account WHERE kind='user' AND user_id=v_user;
+    -- Compared against ids captured before the role switch: authenticated has no
+    -- access to store.* at all, which is itself the boundary under test.
     IF EXISTS (
         SELECT 1 FROM public.proxy_store_my_purchases_readonly(100, NULL, NULL) p
-         WHERE p.purchase_id NOT IN (
-            SELECT purchase_id FROM store.purchase WHERE account_id = v_account)
+         WHERE NOT (p.purchase_id = ANY (v_own_ids))
     ) THEN
         RAISE EXCEPTION 'fail: purchases proxy leaked another account''s receipts';
+    END IF;
+    IF v_rows <> v_own_count THEN
+        RAISE EXCEPTION 'fail: proxy returned % rows for an account with % receipts',
+            v_rows, v_own_count;
     END IF;
 
     -- 2. p_limit is clamped to 1..100, not trusted.
@@ -319,9 +403,6 @@ BEGIN
     --    buy above. (service_buy_physical writes store."order" only, never
     --    store.purchase, so the physical buy contributes nothing here.) Force
     --    them onto the same timestamp to exercise the tiebreak.
-    UPDATE store.purchase SET created_at = '2026-07-30T00:00:00Z'
-     WHERE account_id = v_account;
-
     SELECT array_agg(purchase_id ORDER BY purchase_id DESC) INTO v_page1
       FROM public.proxy_store_my_purchases_readonly(1, NULL, NULL);
     SELECT p.created_at, p.purchase_id INTO v_cur_at, v_cur_id
@@ -349,6 +430,8 @@ BEGIN
         RAISE EXCEPTION 'fail: unauthenticated call returned instead of raising';
     EXCEPTION WHEN SQLSTATE '28000' THEN NULL;
     END;
+
+    RESET ROLE;
 END;
 $$;
 
@@ -363,6 +446,16 @@ BEGIN
            AND column_name IN ('product_slug', 'product_title')
     ) THEN
         RAISE EXCEPTION 'fail: store.purchase snapshot columns survived rollback';
+    END IF;
+
+    -- The fill trigger and its function are gone.
+    IF EXISTS (SELECT 1 FROM pg_trigger
+                WHERE tgname = 'store_purchase_fill_snapshot' AND NOT tgisinternal) THEN
+        RAISE EXCEPTION 'fail: fill trigger survived rollback';
+    END IF;
+    IF EXISTS (SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
+                WHERE n.nspname = 'store' AND p.proname = 'purchase_fill_snapshot') THEN
+        RAISE EXCEPTION 'fail: fill trigger function survived rollback';
     END IF;
 
     -- The purchases proxy is gone.
