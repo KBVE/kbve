@@ -13,7 +13,7 @@ tags:
 key: reel
 pipeline: docker
 app_name: reel
-version: "0.1.26"
+version: "0.1.27"
 source_path: apps/media/reel
 version_toml: apps/media/reel/version.toml
 version_target: apps/media/reel/Cargo.toml
@@ -110,6 +110,14 @@ downloaded-ahead lead. Because the copy path muxes as fast as pieces arrive, the
 segment head stays ahead of the playhead whenever download rate beats the video
 bitrate — so after the initial prime, buffering only happens on a genuinely slow
 swarm.
+
+**Subtitles.** When the primary file carries a text subtitle track (SubRip/ASS/
+mov_text — image subs like PGS/VobSub are skipped), the live job emits a WebVTT
+subtitle rendition alongside the video: ffmpeg produces a master playlist with an
+`EXT-X-MEDIA` subtitle group (`-c:s webvtt`, `-var_stream_map`), the player marks
+it `DEFAULT=YES`, and hls.js auto-enables it. The manifest served at
+`…/manifest.m3u8` rewrites child-playlist and segment references under `hls/` so
+they resolve against the segment route, while the child playlists are served raw.
 
 </BentoProse>
 

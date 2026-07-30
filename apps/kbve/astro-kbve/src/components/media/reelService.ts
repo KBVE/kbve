@@ -493,6 +493,14 @@ export class ReelPlayer {
 		hls.on(Hls.Events.ERROR, (_evt, data) => {
 			if (data.fatal) this.fail(`HLS error: ${data.type}`);
 		});
+		// Auto-enable the first subtitle rendition (the live stream marks it
+		// DEFAULT=YES) so provided subs show without the viewer hunting for a menu.
+		hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, (_evt, data) => {
+			if (data.subtitleTracks.length > 0) {
+				hls.subtitleDisplay = true;
+				hls.subtitleTrack = 0;
+			}
+		});
 		hls.loadSource(mediaUrl(id, '/manifest.m3u8', null));
 		hls.attachMedia(video);
 		$reelState.set('hls');
