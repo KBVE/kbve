@@ -195,6 +195,18 @@ export function mediaUrl(id: string, suffix: string, token: string | null): stri
 	return `${base}${sep}access_token=${encodeURIComponent(token)}`;
 }
 
+// Native <video> HLS (iOS Safari) can't send an Authorization header, and the
+// relative child-playlist/segment URLs drop the query-string token — so scope
+// the media token into a cookie the browser sends with every media subrequest.
+function setMediaCookie(token: string): void {
+	if (typeof document === 'undefined') return;
+	const maxAge = mediaTokenCache
+		? Math.max(0, Math.floor((mediaTokenCache.expiresAtMs - Date.now()) / 1000))
+		: 300;
+	const secure = location.protocol === 'https:' ? '; Secure' : '';
+	document.cookie = `reel_media_token=${token}; Path=${MEDIA_BASE}; Max-Age=${maxAge}; SameSite=Lax${secure}`;
+}
+
 
 export async function listTorrents(): Promise<ReelTorrent[]> {
 	return authedApiFetch<ReelTorrent[]>(`${REEL_PATH}/torrents`);
@@ -500,9 +512,11 @@ export class ReelPlayer {
 			return;
 		}
 		if (video.canPlayType(MANIFEST_MIME)) {
-			// Last resort (iOS Safari, no MSE): native HLS with the token on the
-			// query string. Reliable for single-file HLS; multi-variant/live
-			// streams may fail here because relative child URLs lose the token.
+			// Last resort (iOS Safari, no MSE): native HLS. The element can't send
+			// headers and relative child/segment URLs drop the query token, so
+			// scope the token into a cookie the browser sends with every request;
+			// the query token on the master covers the very first request.
+			setMediaCookie(token);
 			this.attachVideoError(video, gen);
 			video.src = mediaUrl(id, '/manifest.m3u8', token);
 			$reelState.set('hls');
