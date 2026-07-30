@@ -5,6 +5,7 @@
 --   ../../dbmate/migrations/20260708120000_store_schema_init.sql
 --   ../../dbmate/migrations/20260709170000_store_topup_pod.sql
 --   ../../dbmate/migrations/20260709180000_store_privilege_hardening.sql
+--   ../../dbmate/migrations/20260730010000_store_account_read_surface.sql
 -- Hand-authored review surface — do not run directly against the database;
 -- promote changes into a new dbmate migration when ready. Depends on
 -- store_core (schema/tables/enum) and the wallet schema (service_debit /

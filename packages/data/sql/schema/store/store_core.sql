@@ -9,6 +9,7 @@
 --   ../../dbmate/migrations/20260709165000_wallet_source_kind_topup.sql
 --   ../../dbmate/migrations/20260709170000_store_topup_pod.sql
 --   ../../dbmate/migrations/20260709180000_store_privilege_hardening.sql
+--   ../../dbmate/migrations/20260730010000_store_account_read_surface.sql
 -- Hand-authored review surface — do not run directly against the database;
 -- promote changes into a new dbmate migration when ready. Functions live in
 -- store_rpcs.sql (except the order_event mutation-block trigger, the product
