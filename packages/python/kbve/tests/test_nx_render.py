@@ -131,7 +131,9 @@ def test_graph_mdx_render():
     mdx = render_graph_mdx(graph, TS)
     assert mdx.startswith("---\ntitle: NX Dependency Graph\n")
     assert "web" in mdx and "ui" in mdx
-    assert "```mermaid" in mdx
+    assert "```mermaid" not in mdx
+    assert '<svg class="kbve-dag"' in mdx
+    assert '<svg class="kbve-chart"' in mdx
 
 
 def _big_graph(n=60):
@@ -153,10 +155,11 @@ def test_graph_mdx_caps_large_diagram():
     mdx = render_graph_mdx(graph, TS)
     # capped note is present for oversized graphs
     assert "most-connected projects" in mdx
-    # the mermaid diagram renders at most _MAX_DIAGRAM_NODES distinct nodes
-    start = mdx.index("graph LR")
-    block = mdx[start:mdx.index("```", start)]
-    labels = set(re.findall(r'\["([^"]+)"\]', block))
+    # the diagram renders at most _MAX_DIAGRAM_NODES distinct nodes
+    start = mdx.index('<svg class="kbve-dag"')
+    block = mdx[start:mdx.index("</svg>", start)]
+    labels = set(re.findall(r"<title>([^<]+)</title>", block))
+    labels.discard("Nx project dependency graph")
     assert 0 < len(labels) <= _MAX_DIAGRAM_NODES
     # nothing hidden — every project still appears in the full index table
     assert "lib59" in mdx
@@ -181,7 +184,7 @@ def test_graph_mdx_bento_structure():
     assert "<Card " not in mdx
     assert 'id="diagram"' in mdx
     assert 'id="project-index"' in mdx
-    assert "graph LR" in mdx
+    assert 'class="kbve-figure kbve-figure--wide"' in mdx
     assert '<span class="bento-stat__label">Apps</span>' in mdx
 
 

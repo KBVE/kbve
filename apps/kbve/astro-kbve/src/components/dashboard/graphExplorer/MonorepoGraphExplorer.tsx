@@ -193,7 +193,7 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 					</div>
 
 					<div className="mgx__hints">
-						<strong>Navigation:</strong> Scroll/pinch to zoom · Drag to pan · Click nodes to explore<br/><span style="font-size: 0.7rem; opacity: 0.85;"><kbd>+</kbd>/<kbd>-</kbd> zoom · <kbd>R</kbd> reset</span>
+						<strong>Navigation:</strong> Scroll/pinch to zoom · Drag to pan · Click nodes to explore<br/><span style={{ fontSize: '0.7rem', opacity: 0.85 }}><kbd>+</kbd>/<kbd>-</kbd> zoom · <kbd>R</kbd> reset</span>
 					</div>
 
 					<div className="mgx__rels">
