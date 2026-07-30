@@ -613,6 +613,14 @@ fn router(state: AppState) -> Router {
         )
         .route("/api/v1/store/me/orders", get(super::store::my_orders))
         .route(
+            "/api/v1/store/me/purchases",
+            get(super::store::my_purchases),
+        )
+        .route(
+            "/api/v1/inventory/me/items",
+            get(super::store::my_inventory),
+        )
+        .route(
             "/api/v1/store/staff/orders",
             get(super::store::staff_list_orders),
         )

@@ -28,7 +28,8 @@ export const MARKET_NAV: DashboardNavEntry[] = [
 		icon: 'M21 12V7H5a2 2 0 0 1 0-4h14v4M3 5v14a2 2 0 0 0 2 2h16v-5M18 12a2 2 0 0 0 0 4h4v-4z',
 		items: [
 			{ label: 'Account & Credits', href: '/dashboard/account/', icon: 'M21 12V7H5a2 2 0 0 1 0-4h14v4M3 5v14a2 2 0 0 0 2 2h16v-5M18 12a2 2 0 0 0 0 4h4v-4z' },
-			{ label: 'Orders', href: '/store/#orders', icon: 'M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z' },
+			{ label: 'Orders', href: '/dashboard/orders/', icon: 'M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z', copy: 'Receipts and shipped orders.' },
+			{ label: 'Inventory', href: '/dashboard/inventory/', icon: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z', copy: 'Everything you own.' },
 		],
 	},
 	{

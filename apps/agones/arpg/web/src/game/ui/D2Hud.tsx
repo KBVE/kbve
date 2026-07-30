@@ -51,6 +51,8 @@ import {
 	onBattleExit,
 	onDuelPrompt,
 	emitDuelRespond,
+	onPetHubOpen,
+	emitPetHubOpen,
 	emitNotification,
 	type HudState,
 } from '../systems/hud';
@@ -66,6 +68,7 @@ import { Minimap } from './minimap/Minimap';
 import { Tooltip } from './Tooltip';
 import { InventoryPanel, useInventoryDnd } from './inventory/Inventory';
 import { LootPanel } from './loot/LootPanel';
+import { PetHubPanel } from './pets/PetHub';
 
 const MUTED = '#9fb3d8';
 const TEXT_SHADOW = '0 1px 2px rgba(0,0,0,0.9)';
@@ -105,6 +108,7 @@ function D2HudInner({ debug }: { debug: boolean }) {
 	const [inv, setInv] = useState<InventoryItem[]>([]);
 	const [spells, setSpells] = useState<SpellMeta[]>([]);
 	const [open, setOpen] = useState(false);
+	const [hubOpen, setHubOpen] = useState(false);
 	const meta = useItemMeta();
 	const dnd = useInventoryDnd(inv.length);
 
@@ -113,17 +117,20 @@ function D2HudInner({ debug }: { debug: boolean }) {
 		const offInv = onInventory(setInv);
 		const offSpells = onSpellLoadout(setSpells);
 		const offOpen = onInventoryOpen(setOpen);
+		const offHub = onPetHubOpen(setHubOpen);
 		const offClear = onHudClear(() => {
 			setHud(null);
 			setInv([]);
 			setSpells([]);
 			setOpen(false);
+			setHubOpen(false);
 		});
 		return () => {
 			off();
 			offInv();
 			offSpells();
 			offOpen();
+			offHub();
 			offClear();
 		};
 	}, []);
@@ -194,6 +201,7 @@ function D2HudInner({ debug }: { debug: boolean }) {
 					{debug && <DebugReadout fps={hud.fps} tile={hud.tile} />}
 				</>
 			)}
+			<PetHubPanel open={hubOpen} onClose={() => emitPetHubOpen(false)} />
 			<Tooltip />
 			<DeathScreen />
 			<DuelPromptOverlay />

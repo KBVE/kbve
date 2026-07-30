@@ -144,7 +144,7 @@ jobs:
               working-directory: packages/data/sql/dbmate
               run: |
                   set -euo pipefail
-                  for base in 20260708120000_store_schema_init 20260709170000_store_topup_pod; do
+                  for base in 20260708120000_store_schema_init 20260709170000_store_topup_pod 20260730010000_store_account_read_surface; do
                     echo "== store invariant test: ${base} =="
                     awk '
                       /^-- (SEED|ASSERT_AFTER_UP) *$/ { on=1; next }

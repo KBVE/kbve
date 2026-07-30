@@ -5,6 +5,7 @@
 --   ../../dbmate/migrations/20260708120000_store_schema_init.sql
 --   ../../dbmate/migrations/20260709170000_store_topup_pod.sql
 --   ../../dbmate/migrations/20260709180000_store_privilege_hardening.sql
+--   ../../dbmate/migrations/20260730010000_store_account_read_surface.sql
 -- Hand-authored review surface — do not run directly against the database;
 -- promote changes into a new dbmate migration when ready. Depends on
 -- store_core (schema/tables/enum) and the wallet schema (service_debit /
@@ -38,6 +39,7 @@
 --   public.proxy_store_buy_physical            — authenticated|service_role
 --   public.proxy_store_my_entitlements_readonly — authenticated|service_role
 --   public.proxy_store_my_orders_readonly      — authenticated|service_role
+--   public.proxy_store_my_purchases_readonly   — authenticated|service_role
 -- ============================================================================
 
 -- ============================================================================
@@ -194,6 +196,7 @@ DECLARE
     v_item_id         UUID;
     v_charged         BIGINT := 0;
     v_result_kind     TEXT := 'minted';
+    v_inserted        INTEGER;
 BEGIN
     IF p_account IS NULL OR p_slug IS NULL OR p_idempotency_key IS NULL THEN
         RAISE EXCEPTION 'account, slug and idempotency_key are required'
@@ -313,12 +316,41 @@ BEGIN
     -- already-owned paths), so a later replay returns this exact item. price is
     -- the amount actually charged, not the catalog price.
     INSERT INTO store.purchase (
-        account_id, product_id, item_id, price, currency, ledger_id, result_kind, idempotency_key
+        account_id, product_id, item_id, product_slug, product_title,
+        price, currency, ledger_id, result_kind, idempotency_key
     ) VALUES (
-        p_account, v_product.product_id, v_item_id, v_charged,
+        p_account, v_product.product_id, v_item_id,
+        v_product.slug, v_product.title, v_charged,
         v_product.currency, v_ledger_id, v_result_kind, p_idempotency_key
     )
     ON CONFLICT (account_id, idempotency_key) DO NOTHING;
+
+    -- The key advisory lock plus the receipt lookup above mean a conflict here
+    -- should be unreachable from this function. If one happens anyway (a direct
+    -- write, or a caller that skipped the lock), do not swallow it silently:
+    -- confirm the existing receipt agrees with what this call just did, and
+    -- fail as a serialization error when it does not. A benign duplicate — same
+    -- product, same item — stays quiet, so the happy path is unchanged.
+    GET DIAGNOSTICS v_inserted = ROW_COUNT;
+    IF v_inserted = 0 THEN
+        SELECT product_id, item_id
+          INTO v_receipt_product, v_receipt_item
+          FROM store.purchase
+         WHERE account_id = p_account AND idempotency_key = p_idempotency_key;
+        IF NOT FOUND THEN
+            RAISE EXCEPTION
+                'purchase receipt vanished between conflict and read (account %, key %)',
+                p_account, p_idempotency_key
+                USING ERRCODE = '40001';
+        END IF;
+        IF v_receipt_product IS DISTINCT FROM v_product.product_id
+           OR v_receipt_item IS DISTINCT FROM v_item_id THEN
+            RAISE EXCEPTION
+                'purchase receipt conflict after serialized buy (recorded product %, item %; this call product %, item %)',
+                v_receipt_product, v_receipt_item, v_product.product_id, v_item_id
+                USING ERRCODE = '40001';
+        END IF;
+    END IF;
 
     RETURN v_item_id;
 END;
@@ -787,6 +819,14 @@ RETURNS TABLE (
     product_id     UUID,
     variant_id     UUID,
     qty            BIGINT,
+    -- Buy-time snapshots, not live catalog reads: an order is a receipt, so a
+    -- later rename / reprice / retire must not rewrite what the buyer sees.
+    product_slug   TEXT,
+    product_title  TEXT,
+    variant_sku    TEXT,
+    unit_price     BIGINT,
+    currency       TEXT,
+    fulfillment    TEXT,
     credits_amount BIGINT,
     status         store.order_status,
     tracking       JSONB,
@@ -803,7 +843,9 @@ BEGIN
             USING ERRCODE = '22023';
     END IF;
     RETURN QUERY
-    SELECT o.order_id, o.product_id, o.variant_id, o.qty, o.credits_amount,
+    SELECT o.order_id, o.product_id, o.variant_id, o.qty,
+           o.product_slug::text, o.product_title::text, o.variant_sku::text, o.unit_price,
+           o.currency::text, o.fulfillment::text, o.credits_amount,
            o.status, o.tracking, o.created_at, o.updated_at
       FROM store.order o
      WHERE o.account_id = v_account
@@ -818,6 +860,70 @@ ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGIN
 ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) ROWS 50;
 REVOKE ALL ON FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) TO authenticated, service_role;
+COMMENT ON FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) IS
+    'PUBLIC store proxy. Caller-scoped (auth.uid()) physical/both order history, newest first. product_slug / product_title / variant_sku / unit_price / currency / fulfillment are immutable buy-time snapshots, not live catalog reads.';
+
+-- ============================================================================
+-- public.proxy_store_my_purchases_readonly — caller's digital receipts.
+--   store."order" only ever holds physical/both buys, so a digital-only
+--   account has an empty order history despite owning items. The receipts
+--   in store.purchase are the record of those buys; this is their read
+--   surface. Keyset-paginated to match store_purchase_account_created_idx.
+--
+--   slug/title come from the purchase row's own snapshot columns, NOT from a
+--   join on store.product: a receipt must not change when the catalog title
+--   is later edited. Same contract as the order proxy.
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION public.proxy_store_my_purchases_readonly(
+    p_limit             INTEGER     DEFAULT 50,
+    p_before_created_at TIMESTAMPTZ DEFAULT NULL,
+    p_before_id         BIGINT      DEFAULT NULL
+)
+RETURNS TABLE (
+    purchase_id BIGINT,
+    product_id  UUID,
+    slug        TEXT,
+    title       TEXT,
+    item_id     UUID,
+    price       BIGINT,
+    currency    TEXT,
+    result_kind TEXT,
+    ledger_id   BIGINT,
+    created_at  TIMESTAMPTZ
+)
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_account UUID := private.proxy_store_caller_account();
+    v_limit   INTEGER := LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100);
+BEGIN
+    IF (p_before_created_at IS NULL) <> (p_before_id IS NULL) THEN
+        RAISE EXCEPTION 'cursor requires both before_created_at and before_id'
+            USING ERRCODE = '22023';
+    END IF;
+    RETURN QUERY
+    SELECT pu.purchase_id, pu.product_id, pu.product_slug::text, pu.product_title::text,
+           pu.item_id, pu.price, pu.currency::text, pu.result_kind::text,
+           pu.ledger_id, pu.created_at
+      FROM store.purchase pu
+     WHERE pu.account_id = v_account
+       AND (p_before_created_at IS NULL
+            OR pu.created_at < p_before_created_at
+            OR (pu.created_at = p_before_created_at AND pu.purchase_id < p_before_id))
+     ORDER BY pu.created_at DESC, pu.purchase_id DESC
+     LIMIT v_limit;
+END;
+$$;
+-- store_api_owner, not service_role: this proxy is created AFTER the privilege
+-- hardening migration, so it never passes through that migration's reassignment
+-- list (which enumerates exact signatures). It must be created already-owned by
+-- the role that owns the store tables, or it fails 42501 and cannot bypass RLS.
+ALTER FUNCTION public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO store_api_owner;
+ALTER FUNCTION public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT) ROWS 50;
+REVOKE ALL ON FUNCTION public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT) TO authenticated, service_role;
+COMMENT ON FUNCTION public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT) IS
+    'PUBLIC store proxy. Caller-scoped (auth.uid()) digital purchase receipts, newest first. Complements proxy_store_my_orders_readonly, which only covers physical/both orders.';
 
 -- ============================================================================
 -- Fulfillment (service_role; transport gates staff).
@@ -1528,6 +1634,7 @@ ALTER FUNCTION public.proxy_store_catalog_readonly(INTEGER, TIMESTAMPTZ, UUID) S
 ALTER FUNCTION public.proxy_store_product_detail_readonly(TEXT) SET statement_timeout = '3s';
 ALTER FUNCTION public.proxy_store_my_entitlements_readonly() SET statement_timeout = '3s';
 ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) SET statement_timeout = '3s';
+ALTER FUNCTION public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT) SET statement_timeout = '3s';
 ALTER FUNCTION public.proxy_store_buy(TEXT, UUID) SET statement_timeout = '10s';
 ALTER FUNCTION public.proxy_store_buy(TEXT, UUID) SET lock_timeout = '3s';
 ALTER FUNCTION public.proxy_store_buy_physical(UUID, BIGINT, JSONB, UUID) SET statement_timeout = '10s';

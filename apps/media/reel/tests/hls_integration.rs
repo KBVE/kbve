@@ -56,6 +56,7 @@ async fn hls_transcode_integration() {
         4,
         true,
         true,
+        3,
         1,
     );
     let outcome = mgr

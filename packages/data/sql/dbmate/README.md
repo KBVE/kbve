@@ -223,10 +223,25 @@ Other granular nx targets if you only want one phase:
 | `nx run data-sql:migrate-status`                                   | Print applied / pending status.                                                                       |
 | `nx run data-sql:test-migration -- <basename>`                     | Per-migration smoke via companion `.test.sql` files (see [`test-migration.sh`](./test-migration.sh)). |
 
+`test-migration.sh` runs on the same kilobase stack (db `supabase`,
+user `supabase_admin`) that `smoke.sh` and CI use, and brings it up
+itself if nothing is listening on 54322. It targets any migration, not
+only the head: anything applied newer than the target is rolled back
+first, and dbmate is pointed at a temp dir holding only files up to the
+target so `rollback` reverts the target itself. The full chain is
+re-applied at the end, so the database is never left half-migrated.
+
+It reuses a running stack rather than nuking the volume, so a companion
+`.test.sql` whose SEED is not replay-safe (e.g.
+`store_topup_pod`, which trips `idempotency_key reused with different
+payload`) needs a `nx run data-sql:kilobase-reset` between runs.
+
 The `dev-up` / `dev-down` / `dev-reset` targets that drove the
 vanilla stack were dropped alongside the smoke retirement. The
 `dev-docker-compose.yml` file is kept for ad-hoc local experiments
-that genuinely don't need Supabase plumbing.
+that genuinely don't need Supabase plumbing — note its `./init` bind
+mount cannot boot the Supabase runtime stubs (`schema "auth" does not
+exist`), which is why no harness points at it anymore.
 
 ### n8n integration test (Postgres + n8n)
 
