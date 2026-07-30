@@ -1,0 +1,80 @@
+name: CI - Kong Config Guard
+
+# Kong is DB-less: the proxy renders KONG_DECLARATIVE_CONFIG from the kong-config
+# ConfigMap through an envsubst init container into an emptyDir, once, at pod
+# start. Editing the ConfigMap therefore changes nothing in the running proxy
+# until the pods roll — which is how `preserve_host: true` (#14465) sat correct
+# in git and absent from the live proxy for weeks.
+#
+# The pod template's `config-hash` annotation is what makes the restart fall out
+# of an ArgoCD sync. This guard fails any PR that edits the ConfigMap without
+# bumping it, so the config change and the restart it needs stay in one commit.
+
+on:
+    pull_request:
+        branches:
+            - main
+            - dev
+        paths:
+            - 'apps/kube/kong/manifests/kong-config.yaml'
+            - 'apps/kube/kong/manifests/kong-deployment.yaml'
+            - 'scripts/kong-config-hash.sh'
+            - '.github/workflows/ci-kong-config-guard.yml'
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+    verify:
+        name: Verify kong config-hash is up to date
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        steps:
+            - uses: actions/checkout@v7
+
+            - uses: actions/setup-python@v6
+              with:
+                  python-version: '3.13'
+
+            - run: pip install --disable-pip-version-check pyyaml
+
+            - name: config-hash matches kong-config.yaml
+              run: ./scripts/kong-config-hash.sh --check
+
+            # A config edit that never reaches the proxy is the failure mode this
+            # guard exists for; a config edit that cannot be parsed takes the whole
+            # supabase.kbve.com host down on sync. Check both.
+            - name: Inner kong.yml parses
+              run: |
+                  python3 - <<'PY'
+                  import sys, yaml
+
+                  with open('apps/kube/kong/manifests/kong-config.yaml') as fh:
+                      cm = next(
+                          d for d in yaml.safe_load_all(fh)
+                          if d and d.get('kind') == 'ConfigMap'
+                          and d['metadata']['name'] == 'kong-config'
+                      )
+
+                  raw = cm['data']['kong.yml']
+                  try:
+                      inner = yaml.safe_load(raw)
+                  except yaml.YAMLError as e:
+                      sys.exit(f'kong.yml is not parseable YAML — this would break the whole host:\n{e}')
+
+                  if not isinstance(inner, dict):
+                      sys.exit(f'kong.yml did not parse to a mapping, got {type(inner).__name__}')
+
+                  services = inner.get('services') or []
+                  routes = sum(len(s.get('routes') or []) for s in services)
+                  print(f'kong.yml OK — {len(services)} services, {routes} routes')
+
+                  missing = [s.get('name', '<unnamed>') for s in services if not s.get('url')]
+                  if missing:
+                      sys.exit(f'services with no upstream url: {missing}')
+                  PY

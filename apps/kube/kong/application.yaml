@@ -37,3 +37,17 @@ spec:
                 duration: 5s
                 factor: 2
                 maxDuration: 3m
+    # Reloader runs with reloadStrategy=env-vars, so restarting kong-kong means
+    # injecting a STAKATER_*_CONFIGMAP / _SECRET env var into the pod template.
+    # This app syncs with selfHeal + Replace + Force, which would revert that
+    # injection, and Reloader would re-apply it on the next ConfigMap change —
+    # a slow fight over the proxy that fronts the whole supabase.kbve.com host.
+    # Ignoring the injected vars lets Reloader own them and ArgoCD own the rest.
+    ignoreDifferences:
+        - group: apps
+          kind: Deployment
+          name: kong-kong
+          namespace: kilobase
+          jqPathExpressions:
+              - '.spec.template.spec.containers[]?.env[]? | select(.name | startswith("STAKATER_"))'
+              - '.spec.template.spec.initContainers[]?.env[]? | select(.name | startswith("STAKATER_"))'
