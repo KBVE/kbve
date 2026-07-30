@@ -440,15 +440,62 @@ async fn live_manifest(
 
 async fn serve_manifest_file(dir: &str) -> axum::response::Response {
     let path = std::path::Path::new(dir).join("index.m3u8");
-    let file = match tokio::fs::File::open(&path).await {
-        Ok(f) => f,
+    let body = match tokio::fs::read_to_string(&path).await {
+        Ok(s) => s,
         Err(_) => return StatusCode::NOT_FOUND.into_response(),
     };
-    let total = match file.metadata().await {
-        Ok(m) => m.len(),
-        Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
-    };
-    crate::stream::serve_range(file, total, None, "application/vnd.apple.mpegurl", false).await
+    (
+        [(
+            axum::http::header::CONTENT_TYPE,
+            "application/vnd.apple.mpegurl",
+        )],
+        rewrite_manifest_paths(&body),
+    )
+        .into_response()
+}
+
+/// ffmpeg writes segment / child-playlist references as bare basenames, but the
+/// top-level manifest is served from `…/torrents/{id}/manifest.m3u8` while the
+/// files live under `…/torrents/{id}/hls/`. Prefix every resource reference
+/// (segment lines, variant playlists, and `URI="…"` group attributes) with
+/// `hls/` so the player resolves them against the segment route. Child
+/// playlists are served raw — their basenames already resolve under `hls/`.
+fn rewrite_manifest_paths(body: &str) -> String {
+    fn needs_prefix(s: &str) -> bool {
+        !s.is_empty() && !s.starts_with("hls/") && !s.contains("://") && !s.starts_with('/')
+    }
+    let mut out = String::with_capacity(body.len() + 64);
+    for line in body.lines() {
+        let trimmed = line.trim_end();
+        if trimmed.is_empty() {
+            out.push('\n');
+            continue;
+        }
+        if let Some(rest) = trimmed.strip_prefix('#') {
+            // Rewrite a URI="…" attribute (subtitle/audio group refs) if present.
+            if let Some(start) = rest.find("URI=\"") {
+                let uri_start = "#".len() + start + "URI=\"".len();
+                if let Some(end_rel) = trimmed[uri_start..].find('"') {
+                    let uri = &trimmed[uri_start..uri_start + end_rel];
+                    if needs_prefix(uri) {
+                        out.push_str(&trimmed[..uri_start]);
+                        out.push_str("hls/");
+                        out.push_str(&trimmed[uri_start..]);
+                        out.push('\n');
+                        continue;
+                    }
+                }
+            }
+            out.push_str(trimmed);
+        } else if needs_prefix(trimmed) {
+            out.push_str("hls/");
+            out.push_str(trimmed);
+        } else {
+            out.push_str(trimmed);
+        }
+        out.push('\n');
+    }
+    out
 }
 
 async fn hls_segment(
@@ -755,6 +802,8 @@ pub(crate) async fn hls_segment_core(
     let range = headers.get("range").and_then(|h| h.to_str().ok());
     let ct = if segment.ends_with(".ts") {
         "video/mp2t"
+    } else if segment.ends_with(".vtt") {
+        "text/vtt"
     } else {
         "application/vnd.apple.mpegurl"
     };
@@ -876,6 +925,24 @@ mod tests {
             hls_dir: None,
             hls_error: None,
         }
+    }
+
+    #[test]
+    fn rewrite_manifest_prefixes_media_playlist_segments() {
+        let src = "#EXTM3U\n#EXT-X-VERSION:3\n#EXTINF:4.0,\nseg00001.ts\nhls/seg00002.ts\n";
+        let out = rewrite_manifest_paths(src);
+        assert!(out.contains("\nhls/seg00001.ts\n"), "bare segment prefixed");
+        assert!(!out.contains("hls/hls/"), "already-prefixed left alone");
+        assert!(out.contains("#EXTINF:4.0,"), "tags untouched");
+    }
+
+    #[test]
+    fn rewrite_manifest_prefixes_master_variants_and_subs() {
+        let src = "#EXTM3U\n#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID=\"subs\",NAME=\"s\",DEFAULT=YES,URI=\"stream_0_vtt.m3u8\"\n#EXT-X-STREAM-INF:BANDWIDTH=1,SUBTITLES=\"subs\"\nstream_0.m3u8\n";
+        let out = rewrite_manifest_paths(src);
+        assert!(out.contains("URI=\"hls/stream_0_vtt.m3u8\""), "sub URI prefixed");
+        assert!(out.contains("\nhls/stream_0.m3u8\n"), "variant playlist prefixed");
+        assert!(out.contains("GROUP-ID=\"subs\""), "other attrs preserved");
     }
 
     #[test]
@@ -1385,7 +1452,7 @@ mod tests {
     #[tokio::test]
     async fn hls_segment_rejects_bad_name_is_400() {
         let res = hls_segment_core(
-            &HeaderMap::new(), None, &None, &store_with_one(), "1", "seg.ts", &Method::GET,
+            &HeaderMap::new(), None, &None, &store_with_one(), "1", "seg-1.mp4", &Method::GET,
         )
         .await;
         assert_eq!(res.status(), StatusCode::BAD_REQUEST);
