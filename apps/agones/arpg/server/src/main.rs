@@ -5,6 +5,7 @@ mod db;
 mod duel;
 mod game;
 mod pilot;
+mod roster;
 mod ship_footprint_gen;
 
 use std::net::SocketAddr;
@@ -155,6 +156,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 duel::tick_duels,
                 duel::cleanup_stale_duels,
                 duel::expire_duel_challenges,
+                roster::apply_roster_ops,
             )
                 .chain()
                 .after(simgrid::SimSet::Input),

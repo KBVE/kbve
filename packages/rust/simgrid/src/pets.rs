@@ -107,6 +107,24 @@ pub fn clear_pending_pets(mut pending: ResMut<PendingPets>) {
     pending.0.clear();
 }
 
+/// Longest accepted pet nickname, in chars.
+pub const PET_NICKNAME_MAX: usize = 20;
+
+/// Trim a client-supplied nickname to printable single-line text, clamped to
+/// [`PET_NICKNAME_MAX`] chars. Control characters are dropped rather than replaced so a
+/// pasted newline can't smuggle a second line into the name.
+pub fn sanitize_nickname(name: &str) -> String {
+    name.chars()
+        .filter(|c| !c.is_control())
+        .collect::<String>()
+        .trim()
+        .chars()
+        .take(PET_NICKNAME_MAX)
+        .collect::<String>()
+        .trim_end()
+        .to_string()
+}
+
 /// Gentle level scaling for a base stat — `base` at level 1, growing ~1/8 of base per
 /// level. A prototype curve; tune when the battle math lands.
 fn level_scale(base: i32, level: u32) -> i32 {
@@ -169,6 +187,23 @@ pub fn mint_pet_from_species(species: &NpcDef, level: u32) -> Option<PetSnapshot
         vitals,
         moves,
     })
+}
+
+/// Push a roster snapshot to its owner as an `EPHEMERAL_PET_ROSTER` event. The single
+/// emit path — the join/rejoin restore and every roster mutation go through here, so the
+/// client's view of the roster can never diverge from the server's.
+pub fn send_roster_sync(
+    bcast: &crate::sim::Outbound,
+    slot: crate::proto::PlayerSlot,
+    snaps: &[PetSnapshot],
+    active: Option<usize>,
+) {
+    let payload = crate::proto::encode_inner(&to_roster_sync(snaps, active)).unwrap_or_default();
+    let _ = bcast.tx.send(crate::proto::ServerEvent::Ephemeral {
+        kind: crate::proto::EPHEMERAL_PET_ROSTER,
+        to: slot,
+        payload,
+    });
 }
 
 /// Reproject a roster's snapshots onto the wire roster-sync form.
@@ -317,6 +352,35 @@ impl PetBank<'_, '_> {
             to.active = Some(to.slots.len() - 1);
         }
         true
+    }
+
+    /// Make `idx` the battle lead. Returns whether the index was in range.
+    pub fn set_active(&mut self, roster: &mut PetRoster, idx: usize) -> bool {
+        if idx >= roster.slots.len() {
+            return false;
+        }
+        roster.active = Some(idx);
+        true
+    }
+
+    /// Rename the pet at `idx`. `name` is trimmed and clamped to [`PET_NICKNAME_MAX`]
+    /// chars; an empty result is rejected. Returns the applied name, or `None` if the op
+    /// was rejected.
+    ///
+    /// The `PetNickname` insert goes through `Commands`, so it is NOT visible to
+    /// [`Self::snapshot`] until the next sync point — callers that sync the roster in the
+    /// same frame must patch the returned name in themselves.
+    pub fn rename(&mut self, roster: &PetRoster, idx: usize, name: &str) -> Option<String> {
+        let &e = roster.slots.get(idx)?;
+        let clean = sanitize_nickname(name);
+        if clean.is_empty() {
+            return None;
+        }
+        self.commands.entity(e).insert(PetNickname(clean.clone()));
+        if let Some(snap) = self.pending.0.get_mut(&e) {
+            snap.nickname = clean.clone();
+        }
+        Some(clean)
     }
 
     /// The active pet's entity, if any.

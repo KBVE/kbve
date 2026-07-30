@@ -295,6 +295,22 @@ pub enum Input {
     DuelRespond {
         accept: bool,
     },
+    /// Make roster slot `idx` the battle lead. Appended last so serde variant indices
+    /// of the existing inputs are unchanged.
+    SetActivePet {
+        idx: u32,
+    },
+    /// Release roster slot `idx` back to the wild, despawning the pet entity.
+    /// Appended last so serde variant indices of the existing inputs are unchanged.
+    ReleasePet {
+        idx: u32,
+    },
+    /// Rename roster slot `idx`. The server clamps and sanitizes `name`. Appended last
+    /// so serde variant indices of the existing inputs are unchanged.
+    RenamePet {
+        idx: u32,
+        name: String,
+    },
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -597,7 +613,7 @@ pub struct SpellResult {
 }
 
 /// One known move on a pet, for the roster wire form. Mirrors TS `PetMoveView`.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PetMoveView {
     pub ability_id: String,
     pub pp: u16,
@@ -607,7 +623,7 @@ pub struct PetMoveView {
 /// One pet instance in the owner's roster, flattened for the wire. Mirrors TS
 /// `PetView`. Pets never appear in the spatial snapshot — they sync only through this
 /// roster event and the battle events.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PetView {
     pub id: String,
     pub species_ref: String,
@@ -626,7 +642,7 @@ pub struct PetView {
 
 /// Full pet-roster snapshot pushed to an owner after a catch/release/trade/level-up.
 /// `active` is the index of the lead pet. Mirrors TS `PetRosterSync`.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PetRosterSync {
     pub pets: Vec<PetView>,
     pub active: Option<u32>,
@@ -1141,6 +1157,43 @@ mod tests {
         assert!(matches!(decoded, Input::DuelRespond { accept: true }));
     }
 
+    /// Locks variants 36/37/38 for the roster mutations. The TS mirror in
+    /// `postcard-wire.spec.ts` asserts the same discriminants — appending a new `Input`
+    /// anywhere but the end would break both.
+    #[test]
+    fn roster_mutation_inputs_roundtrip() {
+        let set = Input::SetActivePet { idx: 2 };
+        let bytes = encode_inner(&set).expect("encode");
+        assert_eq!(bytes[0], 36);
+        assert!(matches!(
+            decode_inner(&bytes).expect("decode"),
+            Input::SetActivePet { idx: 2 }
+        ));
+
+        let release = Input::ReleasePet { idx: 1 };
+        let bytes = encode_inner(&release).expect("encode");
+        assert_eq!(bytes[0], 37);
+        assert!(matches!(
+            decode_inner(&bytes).expect("decode"),
+            Input::ReleasePet { idx: 1 }
+        ));
+
+        let rename = Input::RenamePet {
+            idx: 0,
+            name: "Rex".into(),
+        };
+        let bytes = encode_inner(&rename).expect("encode");
+        assert_eq!(bytes[0], 38);
+        let decoded: Input = decode_inner(&bytes).expect("decode");
+        match decoded {
+            Input::RenamePet { idx, name } => {
+                assert_eq!(idx, 0);
+                assert_eq!(name, "Rex");
+            }
+            other => panic!("expected RenamePet, got {other:?}"),
+        }
+    }
+
     #[test]
     fn duel_prompt_roundtrips() {
         let p = DuelPrompt {
@@ -1276,6 +1329,74 @@ mod tests {
     }
 
     const PET_STATE_HEX: &str = "01016d03526578053c5001016d03466f650550500000010005737061726b094c696768746e696e670150640f0f010101143c0003686974074f6e676f696e67010106416374697665a09c0103616e6e";
+
+    /// Locks the roster-sync wire shape the TS `decodePetRosterSync` mirror reads. Two
+    /// pets so the seq length is not confusable with the Option tag that follows, and a
+    /// `Some(1)` lead so the tag byte is exercised — `roster_sync_none_active_fixture`
+    /// covers the `None` side.
+    #[test]
+    fn roster_sync_fixture_is_stable() {
+        let sync = PetRosterSync {
+            pets: vec![
+                PetView {
+                    id: "01J".into(),
+                    species_ref: "mechamutt".into(),
+                    nickname: "Rex".into(),
+                    level: 5,
+                    xp: 120,
+                    hp: 30,
+                    max_hp: 40,
+                    attack: 12,
+                    defense: 10,
+                    sp_attack: 14,
+                    sp_defense: 11,
+                    speed: 13,
+                    moves: vec![PetMoveView {
+                        ability_id: "spark".into(),
+                        pp: 15,
+                        max_pp: 15,
+                    }],
+                },
+                PetView {
+                    id: "01K".into(),
+                    species_ref: "mechamutt".into(),
+                    nickname: "Bolt".into(),
+                    level: 7,
+                    xp: 0,
+                    hp: 44,
+                    max_hp: 44,
+                    attack: 15,
+                    defense: 12,
+                    sp_attack: 16,
+                    sp_defense: 13,
+                    speed: 17,
+                    moves: vec![],
+                },
+            ],
+            active: Some(1),
+        };
+        let bytes = encode_inner(&sync).expect("encode");
+        assert_eq!(hex(&bytes), ROSTER_SYNC_HEX);
+        let back: PetRosterSync = decode_inner(&bytes).expect("decode");
+        assert_eq!(back, sync);
+    }
+
+    /// An empty roster with no lead — the shortest legal payload, and the one that would
+    /// break a decoder that read the Option as a bare integer.
+    #[test]
+    fn roster_sync_none_active_fixture() {
+        let sync = PetRosterSync {
+            pets: vec![],
+            active: None,
+        };
+        let bytes = encode_inner(&sync).expect("encode");
+        assert_eq!(hex(&bytes), ROSTER_SYNC_EMPTY_HEX);
+        let back: PetRosterSync = decode_inner(&bytes).expect("decode");
+        assert_eq!(back, sync);
+    }
+
+    const ROSTER_SYNC_HEX: &str = "020330314a096d656368616d7574740352657805783c5018141c161a0105737061726b0f0f0330314b096d656368616d75747404426f6c74070058581e18201a22000101";
+    const ROSTER_SYNC_EMPTY_HEX: &str = "0000";
 
     #[test]
     fn combat_event_fixture_is_stable() {
