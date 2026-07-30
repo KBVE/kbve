@@ -13,7 +13,7 @@ tags:
 key: reel
 pipeline: docker
 app_name: reel
-version: "0.1.20"
+version: "0.1.21"
 source_path: apps/media/reel
 version_toml: apps/media/reel/version.toml
 version_target: apps/media/reel/Cargo.toml
@@ -233,6 +233,18 @@ by a failed delete, an interrupted move, or lost state. Actively tracked downloa
 currently-streaming item is never swept mid-use. File deletions that fail are now
 logged rather than silently swallowed, so a leaked file is visible and gets cleaned
 on the next sweep instead of accumulating forever.
+
+Adding a torrent is idempotent. A torrent is keyed by its info_hash, so submitting
+the same magnet or `.torrent` while it is already leeching or seeding returns the
+existing id instead of registering it again. Without this guard, a repeated submit
+(a double-click, or a client that retries) spawned a second completion watcher for
+the same info_hash; the duplicate watcher tracked an empty handle, reported zero
+progress and zero peers, and — once its stall timer elapsed — marked the torrent
+failed and deleted it from the session **with its files**, killing the healthy
+download the first watcher was still driving. That presented as the swarm
+"resetting to zero" mid-download and as finished files disappearing. The dedupe
+check removes the duplicate watcher entirely; a genuinely failed torrent can still
+be re-added to retry.
 
 </BentoProse>
 
