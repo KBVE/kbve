@@ -45,7 +45,7 @@ spec:
           volumeMounts:
             - { name: gluetun-run, mountPath: /tmp/gluetun }
         - name: reel
-          image: ghcr.io/kbve/reel:0.1.21
+          image: ghcr.io/kbve/reel:0.1.22
           env:
             - { name: REEL_API_ADDR, value: "0.0.0.0:8080" }
             - { name: REEL_ACTIVE_DIR, value: "/data/active" }
