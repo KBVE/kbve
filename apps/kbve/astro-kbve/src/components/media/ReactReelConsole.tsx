@@ -7,6 +7,8 @@ import {
 	$reelListLoading,
 	$reelLive,
 	$reelHealth,
+	$reelSelectedId,
+	selectReel,
 	addTorrent,
 	deleteTorrent,
 	startTranscode,
@@ -161,6 +163,7 @@ export default function ReactReelConsole() {
 	const loading = useStore($reelListLoading);
 	const live = useStore($reelLive);
 	const health = useStore($reelHealth);
+	const selectedId = useStore($reelSelectedId);
 	const isStaff = useStore(homeService.$isStaff);
 
 	const [source, setSource] = useState('');
@@ -356,16 +359,17 @@ export default function ReactReelConsole() {
 								)}
 							</div>
 							<div className="reel-console__actions">
-								<a
-									className="reel-console__btn"
-									aria-disabled={!playable}
-									href={
-										playable
-											? `?id=${encodeURIComponent(t.id)}`
-											: undefined
-									}>
-									Play
-								</a>
+								<button
+									type="button"
+									className={`reel-console__btn${
+										selectedId === t.id
+											? ' reel-console__btn--active'
+											: ''
+									}`}
+									disabled={!playable}
+									onClick={() => selectReel(t.id)}>
+									{selectedId === t.id ? 'Playing' : 'Play'}
+								</button>
 								<button
 									type="button"
 									className="reel-console__btn"

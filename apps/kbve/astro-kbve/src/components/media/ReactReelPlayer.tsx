@@ -5,6 +5,7 @@ import {
 	$reelError,
 	$reelName,
 	$reelNotice,
+	$reelSelectedId,
 	ReelPlayer,
 } from './reelService';
 
@@ -27,9 +28,16 @@ export default function ReactReelPlayer() {
 	const error = useStore($reelError);
 	const name = useStore($reelName);
 	const notice = useStore($reelNotice);
+	const selectedId = useStore($reelSelectedId);
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const [player] = useState(() => new ReelPlayer());
-	const [id] = useState(() => readId());
+
+	// Seed the selection from the URL so a shared /media/reel/?id=… link binds
+	// the player on first load (playback still needs a tap there — no gesture).
+	useEffect(() => {
+		const urlId = readId();
+		if (urlId) $reelSelectedId.set(urlId);
+	}, []);
 
 	useEffect(() => {
 		return () => {
@@ -37,9 +45,18 @@ export default function ReactReelPlayer() {
 		};
 	}, [player]);
 
+	// Autoplay whenever a reel is selected. In-page Play clicks carry the user
+	// gesture through, so playback starts immediately; a cold URL load may be
+	// blocked by the browser and falls back to the Play button below.
+	useEffect(() => {
+		if (!selectedId || !videoRef.current) return;
+		void player.start(videoRef.current, selectedId);
+		videoRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+	}, [selectedId, player]);
+
 	const play = () => {
-		if (videoRef.current && id) {
-			void player.start(videoRef.current, id);
+		if (videoRef.current && selectedId) {
+			void player.start(videoRef.current, selectedId);
 		}
 	};
 
@@ -62,29 +79,25 @@ export default function ReactReelPlayer() {
 						{state === 'error' && error && (
 							<p className="reel-player__error">{error}</p>
 						)}
-						{!id && (
-							<p className="reel-player__error">
-								No torrent selected — add ?id=&lt;id&gt; to the URL.
+						{!selectedId && (
+							<p className="reel-player__meta">
+								Pick a reel below to start watching.
 							</p>
 						)}
 					</div>
 				)}
 			</div>
 			{notice && <p className="reel-player__notice">{notice}</p>}
-			<div className="reel-player__controls">
-				{state === 'error' ? (
-					<button type="button" disabled={!id} onClick={play}>
-						Retry
-					</button>
-				) : (
+			{(state === 'error' || (selectedId && !playing && !busy)) && (
+				<div className="reel-player__controls">
 					<button
 						type="button"
-						disabled={busy || playing || !id}
+						disabled={!selectedId}
 						onClick={play}>
-						{busy ? 'Preparing…' : 'Play'}
+						{state === 'error' ? 'Retry' : 'Play'}
 					</button>
-				)}
-			</div>
+				</div>
+			)}
 		</div>
 	);
 }
