@@ -10,6 +10,7 @@ pub(crate) const MAP_VIDEO_AUDIO: &[&str] = &["-map", "0:V:0", "-map", "0:a:0?"]
 pub struct ProbeResult {
     pub video_codec: Option<String>,
     pub audio_codec: Option<String>,
+    pub audio_channels: Option<i64>,
     pub container: Option<String>,
     pub duration_secs: Option<f64>,
 }
@@ -74,6 +75,14 @@ pub fn decide_route(p: &ProbeResult) -> Route {
     } else {
         Route::Encode
     }
+}
+
+/// Audio can be stream-copied only when it is already aac with at most two
+/// channels. Multichannel aac decodes to silent video in most browsers, and
+/// unknown channel counts are treated as unsafe, so both are re-encoded to
+/// stereo aac instead.
+pub fn audio_can_copy(codec: Option<&str>, channels: Option<i64>) -> bool {
+    codec == Some("aac") && channels.is_some_and(|c| c <= 2)
 }
 
 pub fn decide_delivery(p: &ProbeResult) -> Delivery {
@@ -165,6 +174,7 @@ pub async fn probe(ffprobe_bin: &str, path: &Path) -> anyhow::Result<ProbeResult
 pub fn parse_probe_json(json: &serde_json::Value) -> ProbeResult {
     let mut video = None;
     let mut audio = None;
+    let mut audio_channels = None;
     if let Some(streams) = json.get("streams").and_then(|s| s.as_array()) {
         for s in streams {
             let kind = s.get("codec_type").and_then(|v| v.as_str());
@@ -180,7 +190,10 @@ pub fn parse_probe_json(json: &serde_json::Value) -> ProbeResult {
                 == 1;
             match kind {
                 Some("video") if video.is_none() && !is_cover => video = codec,
-                Some("audio") if audio.is_none() => audio = codec,
+                Some("audio") if audio.is_none() => {
+                    audio = codec;
+                    audio_channels = s.get("channels").and_then(|v| v.as_i64());
+                }
                 _ => {}
             }
         }
@@ -198,6 +211,7 @@ pub fn parse_probe_json(json: &serde_json::Value) -> ProbeResult {
     ProbeResult {
         video_codec: video,
         audio_codec: audio,
+        audio_channels,
         container,
         duration_secs,
     }
@@ -519,7 +533,6 @@ impl Transcoder {
                 m.transcode_error = None;
                 ((), true)
             });
-            isolate_dir(&src_dir, &primary);
             crate::telemetry::transcode_ready(id, &primary.display().to_string());
             return Ok(());
         }
@@ -559,13 +572,17 @@ impl Transcoder {
             match route {
                 Route::Remux => {
                     let _permit = self.remux_sem.acquire().await?;
-                    let audio_aac = probe.audio_codec.as_deref() == Some("aac");
+                    // Copy audio only when it is already browser-friendly stereo
+                    // aac. Multichannel (5.1) aac plays as silent video in most
+                    // browsers, so anything else is re-encoded to stereo aac.
+                    let audio_stereo_aac =
+                        audio_can_copy(probe.audio_codec.as_deref(), probe.audio_channels);
                     let mut args: Vec<&str> = MAP_VIDEO_AUDIO.to_vec();
                     args.extend_from_slice(&["-c:v", "copy"]);
-                    if audio_aac {
+                    if audio_stereo_aac {
                         args.extend_from_slice(&["-c:a", "copy"]);
                     } else {
-                        args.extend_from_slice(&["-c:a", "aac"]);
+                        args.extend_from_slice(&["-c:a", "aac", "-ac", "2"]);
                     }
                     args.extend_from_slice(&["-movflags", "+faststart"]);
                     self.run_tracked(id, &args, &primary, &dest, duration).await
@@ -579,7 +596,7 @@ impl Transcoder {
                         args.push("-threads");
                         args.push(&threads);
                     }
-                    args.extend_from_slice(&["-c:a", "aac", "-movflags", "+faststart"]);
+                    args.extend_from_slice(&["-c:a", "aac", "-ac", "2", "-movflags", "+faststart"]);
                     self.run_tracked(id, &args, &primary, &dest, duration).await
                 }
             }
@@ -596,34 +613,42 @@ impl Transcoder {
         });
         crate::telemetry::transcode_ready(id, &dest.display().to_string());
 
-        // Single-file policy: the transcoded .reel.mp4 is the only thing worth
-        // keeping, so strip the entry down to it — source, subtitles, artwork
-        // and any stray files or dirs all go.
-        isolate_dir(&src_dir, &dest);
+        // Preserve subtitles the source carried embedded (they are dropped from
+        // the .reel.mp4 by the stream mapping) by extracting them to sidecar
+        // .srt files, then drop only the redundant source video. Poster art and
+        // existing sidecars stay; deleting the whole entry later removes them.
+        extract_subtitles(&self.ffmpeg_bin, &primary, &src_dir, &stem).await;
+        if primary != dest {
+            if let Err(e) = std::fs::remove_file(&primary) {
+                tracing::warn!(id = %id, path = %primary.display(), error = %e, "failed to remove source after transcode");
+            }
+        }
         Ok(())
     }
 }
 
-/// Reduce an entry directory to a single kept file, deleting every other file
-/// or subdirectory beside it. Failures are logged, not fatal — the sweeper is
-/// the backstop. `keep` is expected to live directly inside `dir`.
-pub fn isolate_dir(dir: &std::path::Path, keep: &std::path::Path) {
-    let rd = match std::fs::read_dir(dir) {
-        Ok(rd) => rd,
-        Err(_) => return,
-    };
-    for entry in rd.flatten() {
-        let p = entry.path();
-        if p == keep {
-            continue;
-        }
-        let res = if p.is_dir() {
-            std::fs::remove_dir_all(&p)
-        } else {
-            std::fs::remove_file(&p)
-        };
-        if let Err(e) = res {
-            tracing::warn!(path = %p.display(), error = %e, "isolate: failed to remove leftover");
+/// Best-effort extraction of embedded text subtitle tracks to sidecar .srt
+/// files (`<stem>.sub<N>.srt`) so they survive deleting the source container.
+/// Image-based subs (pgs/vobsub) cannot convert to srt and are skipped; any
+/// failure just stops the loop — subtitles are a nice-to-have, never fatal.
+async fn extract_subtitles(ffmpeg_bin: &str, src: &std::path::Path, dir: &std::path::Path, stem: &str) {
+    for n in 0..8u32 {
+        let out = dir.join(format!("{stem}.sub{n}.srt"));
+        let map = format!("0:s:{n}");
+        let status = tokio::process::Command::new(ffmpeg_bin)
+            .args(["-v", "error", "-y", "-i"])
+            .arg(src)
+            .args(["-map", &map, "-c:s", "srt"])
+            .arg(&out)
+            .stdin(std::process::Stdio::null())
+            .status()
+            .await;
+        match status {
+            Ok(s) if s.success() => continue,
+            _ => {
+                let _ = std::fs::remove_file(&out);
+                break;
+            }
         }
     }
 }
@@ -660,6 +685,7 @@ mod tests {
         ProbeResult {
             video_codec: v.map(String::from),
             audio_codec: a.map(String::from),
+            audio_channels: None,
             container: c.map(String::from),
             duration_secs: None,
         }
@@ -850,26 +876,27 @@ mod transcoder_tests {
     }
 
     #[test]
-    fn isolate_dir_keeps_only_target() {
-        let dir = tempfile::tempdir().unwrap();
-        let d = dir.path();
-        let keep = d.join("movie.reel.mp4");
-        std::fs::write(&keep, b"keep").unwrap();
-        std::fs::write(d.join("movie.mkv"), b"src").unwrap();
-        std::fs::write(d.join("movie.srt"), b"subs").unwrap();
-        std::fs::write(d.join("poster.jpg"), b"art").unwrap();
-        std::fs::create_dir(d.join("hls")).unwrap();
-        std::fs::write(d.join("hls").join("0.ts"), b"seg").unwrap();
+    fn audio_copy_only_stereo_aac() {
+        assert!(audio_can_copy(Some("aac"), Some(2)));
+        assert!(audio_can_copy(Some("aac"), Some(1)));
+        assert!(!audio_can_copy(Some("aac"), Some(6)), "5.1 aac -> downmix");
+        assert!(!audio_can_copy(Some("aac"), None), "unknown channels -> unsafe");
+        assert!(!audio_can_copy(Some("eac3"), Some(2)), "non-aac -> transcode");
+        assert!(!audio_can_copy(None, Some(2)));
+    }
 
-        isolate_dir(d, &keep);
-
-        assert!(keep.exists(), "kept file survives");
-        assert!(!d.join("movie.mkv").exists());
-        assert!(!d.join("movie.srt").exists());
-        assert!(!d.join("poster.jpg").exists());
-        assert!(!d.join("hls").exists(), "stray dir removed");
-        let remaining = std::fs::read_dir(d).unwrap().flatten().count();
-        assert_eq!(remaining, 1, "only the kept file remains");
+    #[test]
+    fn parse_probe_reads_audio_channels() {
+        let json = serde_json::json!({
+            "streams": [
+                {"codec_type": "video", "codec_name": "h264"},
+                {"codec_type": "audio", "codec_name": "aac", "channels": 6}
+            ],
+            "format": {"format_name": "mov,mp4", "duration": "10.0"}
+        });
+        let p = parse_probe_json(&json);
+        assert_eq!(p.audio_codec.as_deref(), Some("aac"));
+        assert_eq!(p.audio_channels, Some(6));
     }
 
     #[test]
