@@ -7056,7 +7056,7 @@ dependencies = [
 
 [[package]]
 name = "embeddb-derive"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -9104,7 +9104,7 @@ dependencies = [
 
 [[package]]
 name = "holy"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -15398,7 +15398,7 @@ dependencies = [
 
 [[package]]
 name = "reel"
-version = "0.1.21"
+version = "0.1.22"
 dependencies = [
  "anyhow",
  "axum 0.8.9",
