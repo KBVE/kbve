@@ -106,9 +106,18 @@ $$;
 --      writer, instead of trusting every call site to remember.
 -- Values already supplied are never overwritten, so the normal path is a no-op
 -- and the buy-time snapshot always wins over the catalog.
+--
+-- SECURITY DEFINER, so the fill does not depend on the inserting role's own
+-- reach into store.product. Under SECURITY INVOKER a writer that lacks SELECT
+-- — or that holds SELECT but is filtered by store.product's RLS — gets a
+-- no-row SELECT INTO, leaves both columns NULL, and lands right back on the
+-- 23502 this trigger exists to prevent. Safe to make definer here: no dynamic
+-- SQL, every object schema-qualified under a pinned empty search_path, and the
+-- owner is the NOLOGIN role that already owns store.purchase, so the trigger
+-- grants no reach beyond what a writer of this table already has.
 CREATE OR REPLACE FUNCTION store.purchase_fill_snapshot()
 RETURNS TRIGGER
-LANGUAGE plpgsql SET search_path = '' AS $$
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 BEGIN
     IF NEW.product_slug IS NULL OR NEW.product_title IS NULL THEN
         SELECT COALESCE(NEW.product_slug, pr.slug),
@@ -316,8 +325,8 @@ BEGIN
                 p_account, p_idempotency_key
                 USING ERRCODE = '40001';
         END IF;
-        IF v_receipt_product <> v_product.product_id
-           OR v_receipt_item <> v_item_id THEN
+        IF v_receipt_product IS DISTINCT FROM v_product.product_id
+           OR v_receipt_item IS DISTINCT FROM v_item_id THEN
             RAISE EXCEPTION
                 'purchase receipt conflict after serialized buy (recorded product %, item %; this call product %, item %)',
                 v_receipt_product, v_receipt_item, v_product.product_id, v_item_id

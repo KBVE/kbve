@@ -67,6 +67,7 @@ DO $$
 DECLARE
     v_title TEXT;
     v_cols  INT;
+    v_name  TEXT;
 BEGIN
     -- 1. Snapshot columns exist and are NOT NULL.
     SELECT count(*) INTO v_cols
@@ -167,6 +168,34 @@ BEGIN
            AND indexdef LIKE '%account_id, created_at DESC%') <> 1 THEN
         RAISE EXCEPTION 'fail: redundant purchase keyset index left behind';
     END IF;
+
+    -- 9. Ownership. store.* objects belong to the store_api_owner NOLOGIN role
+    --    (20260709180000); service_role has no direct reach into store.purchase,
+    --    so a proxy recreated under service_role cannot read through and the
+    --    dashboard 500s — the PR #12033 shape. Asserted for the proxy this
+    --    migration ADDs and, critically, for the one it DROPs and recreates:
+    --    a wrong owner there is a regression of a function that already worked.
+    FOR v_name IN
+        SELECT unnest(ARRAY[
+            'public.proxy_store_my_purchases_readonly(integer,timestamptz,bigint)',
+            'public.proxy_store_my_orders_readonly(integer,timestamptz,bigint)',
+            'store.purchase_fill_snapshot()'
+        ])
+    LOOP
+        IF (SELECT pg_get_userbyid(proowner) FROM pg_proc
+             WHERE oid = v_name::regprocedure) <> 'store_api_owner' THEN
+            RAISE EXCEPTION 'fail: % is not owned by store_api_owner (owner %)',
+                v_name,
+                (SELECT pg_get_userbyid(proowner) FROM pg_proc WHERE oid = v_name::regprocedure);
+        END IF;
+    END LOOP;
+
+    -- 10. The fill trigger must be SECURITY DEFINER, or its resolution of
+    --     store.product rides on the inserting role's grants and RLS — a
+    --     no-row SELECT INTO leaves the snapshots NULL and re-raises 23502.
+    IF NOT (SELECT prosecdef FROM pg_proc WHERE oid = 'store.purchase_fill_snapshot()'::regprocedure) THEN
+        RAISE EXCEPTION 'fail: purchase_fill_snapshot is not SECURITY DEFINER';
+    END IF;
 END;
 $$;
 
@@ -183,6 +212,18 @@ BEGIN
     INSERT INTO store.product (slug, title, description, price, currency, asset_ref)
     VALUES ('snapshot-probe-postup', 'Post-up BEFORE rename', NULL, 5, 'credits', '{}'::jsonb)
     ON CONFLICT (slug) DO NOTHING;
+
+    -- This block ends by renaming the product, and ON CONFLICT DO NOTHING keeps
+    -- the renamed row, so without an explicit reset a second run against the
+    -- same database buys under 'Post-up AFTER rename' and the assertion below
+    -- fires on state a previous run left behind rather than on a real defect.
+    -- Dropping the receipt lets service_buy write a fresh one (via the
+    -- already-owned path, which snapshots identically).
+    UPDATE store.product SET title = 'Post-up BEFORE rename'
+     WHERE slug = 'snapshot-probe-postup';
+    DELETE FROM store.purchase
+     WHERE account_id = v_account
+       AND idempotency_key = '00000000-0000-4000-8000-0000000dec06'::uuid;
 
     PERFORM store.service_buy(
         v_account, 'snapshot-probe-postup',

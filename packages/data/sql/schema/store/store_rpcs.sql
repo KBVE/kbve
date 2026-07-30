@@ -343,8 +343,8 @@ BEGIN
                 p_account, p_idempotency_key
                 USING ERRCODE = '40001';
         END IF;
-        IF v_receipt_product <> v_product.product_id
-           OR v_receipt_item <> v_item_id THEN
+        IF v_receipt_product IS DISTINCT FROM v_product.product_id
+           OR v_receipt_item IS DISTINCT FROM v_item_id THEN
             RAISE EXCEPTION
                 'purchase receipt conflict after serialized buy (recorded product %, item %; this call product %, item %)',
                 v_receipt_product, v_receipt_item, v_product.product_id, v_item_id
