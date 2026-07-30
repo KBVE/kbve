@@ -1,184 +1,180 @@
 {
-  "generated_at": "2026-07-29T04:11:32Z",
+  "generated_at": "2026-07-30T03:57:08Z",
   "window": {
     "days": 7,
-    "since": "2026-07-22T04:11:32Z"
+    "since": "2026-07-23T03:57:08Z"
   },
   "commits": {
-    "total": 399,
-    "authors": 4,
+    "total": 366,
+    "authors": 3,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 205
+        "commits": 184
       },
       {
         "author": "github-actions[bot]",
-        "commits": 189
-      },
-      {
-        "author": "dependabot[bot]",
-        "commits": 3
+        "commits": 181
       },
       {
         "author": "Fudster",
-        "commits": 2
+        "commits": 1
       }
     ],
     "recent": [
       {
-        "sha": "f6e6744",
+        "sha": "dd215da",
         "author": "h0lybyte",
-        "message": "Merge pull request #14868 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/f6e6744fc6ee611a7df68f174c61350a7a9d3999",
-        "date": "2026-07-28T22:01:19Z"
+        "message": "Merge pull request #14902 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/dd215dac77d92b7973fc52b6c989bd2592ff4b69",
+        "date": "2026-07-30T02:32:34Z"
       },
       {
-        "sha": "f21e356",
+        "sha": "baabd8e",
         "author": "h0lybyte",
-        "message": "fix(palworld): updating egg timer to 1 hour max.",
-        "url": "https://github.com/KBVE/kbve/commit/f21e3566686e6b542d3815baea0f3c7ab960632f",
-        "date": "2026-07-28T21:56:50Z"
+        "message": "fix(reel): revert DNS override to gluetun default (heal crashloop) (#14900)",
+        "url": "https://github.com/KBVE/kbve/commit/baabd8eb0d8ea249c3a223199d8b31ce4f21fadc",
+        "date": "2026-07-30T02:32:25Z"
       },
       {
-        "sha": "3ed8de4",
-        "author": "h0lybyte",
-        "message": "Merge pull request #14867 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/3ed8de4f3126fbf2436c19aefe98ef6d1b9f2a36",
-        "date": "2026-07-28T21:08:00Z"
-      },
-      {
-        "sha": "7bd7cd5",
-        "author": "h0lybyte",
-        "message": "chore(kbve): updating the manifest to keep items on death.",
-        "url": "https://github.com/KBVE/kbve/commit/7bd7cd5918c921e163db7f9cdb7fb91286d1fe62",
-        "date": "2026-07-28T21:02:48Z"
-      },
-      {
-        "sha": "86cc9dd",
-        "author": "h0lybyte",
-        "message": "Merge pull request #14863 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/86cc9dd26d38a0912b5f51d0930eb4e6d5744289",
-        "date": "2026-07-28T17:52:09Z"
-      },
-      {
-        "sha": "d177516",
+        "sha": "268dd5f",
         "author": "github-actions[bot]",
-        "message": "chore(axum-kbve): post-publish sync to v1.0.256 (#14866)",
-        "url": "https://github.com/KBVE/kbve/commit/d17751640451803039ddc06c47f8f6bedd649af8",
-        "date": "2026-07-28T17:10:03Z"
+        "message": "chore(axum-kbve): post-publish sync to v1.0.257 (#14901)",
+        "url": "https://github.com/KBVE/kbve/commit/268dd5fa149eacf2e2b1a08c3e39fb5a94f7da1d",
+        "date": "2026-07-30T01:56:44Z"
       },
       {
-        "sha": "ccfe807",
-        "author": "github-actions[bot]",
-        "message": "chore(agones-palworld): post-publish sync to v0.0.30 (#14865)",
-        "url": "https://github.com/KBVE/kbve/commit/ccfe80778db4f0ee037187a0b09bb9ee5812ef35",
-        "date": "2026-07-28T16:56:32Z"
-      },
-      {
-        "sha": "b461d3d",
-        "author": "github-actions[bot]",
-        "message": "chore(reel): post-publish sync to v0.1.19 (#14864)",
-        "url": "https://github.com/KBVE/kbve/commit/b461d3d611b4b68b530407abf640f23b3a510ba5",
-        "date": "2026-07-28T16:51:19Z"
-      },
-      {
-        "sha": "d97c1db",
-        "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14862)",
-        "url": "https://github.com/KBVE/kbve/commit/d97c1dbea5b3ceaab48260a54f9e7988e8051820",
-        "date": "2026-07-28T16:42:30Z"
-      },
-      {
-        "sha": "12692d8",
+        "sha": "311413a",
         "author": "h0lybyte",
-        "message": "Merge pull request #14858 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/12692d8498fb5f57ac41b856d62a2a3019621794",
-        "date": "2026-07-28T16:41:11Z"
+        "message": "Merge pull request #14899 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/311413a66412f524dfa378989ae057c84570ddf5",
+        "date": "2026-07-30T01:27:58Z"
       },
       {
-        "sha": "02e9f69",
+        "sha": "aab2ce4",
         "author": "h0lybyte",
-        "message": "feat(palworld-shops): expand Village to 70 items (foods, cakes, arrows) (#14860)",
-        "url": "https://github.com/KBVE/kbve/commit/02e9f69531dee4bdb2e28764d77791fdbc073789",
-        "date": "2026-07-28T16:40:02Z"
+        "message": "fix(reel): correct gluetun plain-DNS env (DOT=off crashed the pod) (#14898)",
+        "url": "https://github.com/KBVE/kbve/commit/aab2ce4c09cc227f05b32bb1c8edef19cdc26b70",
+        "date": "2026-07-30T01:15:55Z"
       },
       {
-        "sha": "b059a10",
+        "sha": "347ffe5",
+        "author": "h0lybyte",
+        "message": "Merge pull request #14896 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/347ffe54a85da00a96c471e6a71f09ba69892416",
+        "date": "2026-07-30T00:53:26Z"
+      },
+      {
+        "sha": "b7ae46f",
         "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14861)",
-        "url": "https://github.com/KBVE/kbve/commit/b059a100c4b3d6da7b2dd44f52bef1c4dc05cbff",
-        "date": "2026-07-28T16:18:21Z"
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14897)",
+        "url": "https://github.com/KBVE/kbve/commit/b7ae46f17c6e354beb61f845d8d1d1b367c2a200",
+        "date": "2026-07-30T00:47:48Z"
+      },
+      {
+        "sha": "d489274",
+        "author": "h0lybyte",
+        "message": "chore(kbve): preparing the release of v1.0.257",
+        "url": "https://github.com/KBVE/kbve/commit/d4892743d9eb7b2e8889747e03a94b0ca250f9f3",
+        "date": "2026-07-30T00:45:11Z"
+      },
+      {
+        "sha": "8f3ce54",
+        "author": "h0lybyte",
+        "message": "fix(store): digital products no longer demand a shipping address (#14895)",
+        "url": "https://github.com/KBVE/kbve/commit/8f3ce546d726d858ab4b07000a5e23ace2070d02",
+        "date": "2026-07-30T00:43:06Z"
+      },
+      {
+        "sha": "afa5dc1",
+        "author": "h0lybyte",
+        "message": "Merge pull request #14893 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/afa5dc161a8d08e65f6756b7ce7ce1aa02513a1f",
+        "date": "2026-07-30T00:30:25Z"
+      },
+      {
+        "sha": "4caa7c3",
+        "author": "h0lybyte",
+        "message": "feat(graph): enhance UI/UX with navigation controls, brighter colors, and keyboard shortcuts (#14894)",
+        "url": "https://github.com/KBVE/kbve/commit/4caa7c3e3dab03253ed3d350d8e8e5e31c0ef55a",
+        "date": "2026-07-30T00:28:45Z"
+      },
+      {
+        "sha": "0f2a7bb",
+        "author": "h0lybyte",
+        "message": "fix(reel): disable gluetun DoT - DNS storm collapses the peer swarm (#14892)",
+        "url": "https://github.com/KBVE/kbve/commit/0f2a7bbb2f51cc6a71ef03172bc1f6c721ca1191",
+        "date": "2026-07-30T00:03:06Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 379,
+    "merged": 368,
     "recent": [
       {
-        "number": 14871,
-        "title": "fix(reel): disable VPN port forwarding to stop peer-wipe churn",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14871"
-      },
-      {
-        "number": 14869,
-        "title": "feat(kubectl): restart-gameserver for config-only GameServer restarts",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14869"
-      },
-      {
-        "number": 14868,
-        "title": "Release: 1 fix \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14868"
-      },
-      {
-        "number": 14867,
+        "number": 14902,
         "title": "Release: 1 chore \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14867"
+        "url": "https://github.com/KBVE/kbve/pull/14902"
       },
       {
-        "number": 14863,
-        "title": "Release: 4 chores \u2192 Main",
+        "number": 14900,
+        "title": "fix(reel): revert DNS override to gluetun default (heal crashloop)",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14900"
+      },
+      {
+        "number": 14901,
+        "title": "Atomic: axum-kbve v1.0.257 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14863"
+        "url": "https://github.com/KBVE/kbve/pull/14901"
       },
       {
-        "number": 14866,
-        "title": "Atomic: axum-kbve v1.0.256 post-publish sync",
+        "number": 14899,
+        "title": "Release: 1 fix \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14866"
+        "url": "https://github.com/KBVE/kbve/pull/14899"
       },
       {
-        "number": 14865,
-        "title": "Atomic: agones-palworld v0.0.30 post-publish sync",
+        "number": 14898,
+        "title": "fix(reel): correct gluetun plain-DNS env (DOT=off crashed the pod)",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14898"
+      },
+      {
+        "number": 14896,
+        "title": "Release: 1 fix, 1 chore \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14865"
+        "url": "https://github.com/KBVE/kbve/pull/14896"
       },
       {
-        "number": 14864,
-        "title": "Atomic: reel v0.1.19 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14864"
-      },
-      {
-        "number": 14862,
+        "number": 14897,
         "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14862"
+        "url": "https://github.com/KBVE/kbve/pull/14897"
       },
       {
-        "number": 14858,
-        "title": "Release: 1 feature, 1 fix, 3 chores \u2192 Main",
+        "number": 14895,
+        "title": "fix(store): digital products no longer demand a shipping address",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14895"
+      },
+      {
+        "number": 14893,
+        "title": "Release: 1 feature, 1 fix \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14858"
+        "url": "https://github.com/KBVE/kbve/pull/14893"
+      },
+      {
+        "number": 14894,
+        "title": "feat(graph): enhance UI/UX with navigation controls, brighter colors, and keyboard shortcuts",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14894"
       }
     ]
   },
   "issues": {
-    "opened": 386,
-    "closed": 384
+    "opened": 376,
+    "closed": 371
   }
 }
