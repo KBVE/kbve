@@ -59,6 +59,12 @@ async fn main() -> anyhow::Result<()> {
         ));
     }
 
+    tokio::spawn(reel::transcode::auto_transcode_loop(
+        transcoder.clone(),
+        store.clone(),
+        eng.transcode_wake(),
+    ));
+
     tokio::spawn(state::persist_loop(store.clone(), cfg.state_flush_ms));
 
     let restart = std::sync::Arc::new(tokio::sync::Notify::new());

@@ -14,16 +14,30 @@ export function readGateRedirect(
 		? window.location.search
 		: '',
 ): string | null {
+	const raw = new URLSearchParams(search).get(GATE_REDIRECT_PARAM);
+	if (!raw) return null;
 	try {
-		const raw = new URLSearchParams(search).get(GATE_REDIRECT_PARAM);
-		if (!raw) return null;
 		const url = new URL(raw);
-		if (url.protocol !== 'https:') return null;
-		if (!isTrustedGateHost(url.hostname)) return null;
+		if (url.protocol !== 'https:') return reject(raw, 'not https');
+		if (!isTrustedGateHost(url.hostname))
+			return reject(raw, 'host is not kbve.com or a subdomain');
 		return url.toString();
 	} catch {
-		return null;
+		return reject(raw, 'not a parseable absolute URL');
 	}
+}
+
+/**
+ * A rejected `redirect_to` silently drops the user on the login origin instead
+ * of the gated host they asked for, which reads as a broken login rather than a
+ * blocked redirect. Say so — the usual cause is a gate behind a second proxy
+ * emitting an internal `http://svc:port` target, fixed with GATE_EXTERNAL_BASE.
+ */
+function reject(raw: string, reason: string): null {
+	console.warn(
+		`Ignoring untrusted ${GATE_REDIRECT_PARAM} (${reason}): ${raw}`,
+	);
+	return null;
 }
 
 /**

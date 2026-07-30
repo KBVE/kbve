@@ -323,6 +323,17 @@ async fn stream_file(
     .await
 }
 
+/// The file delivery should probe/serve: the finished transcode when it is
+/// Ready, otherwise None (caller falls back to the largest source file). Keeps
+/// manifest routing consistent with what `/stream` actually serves.
+pub(crate) fn delivery_source(meta: &state::Metadata) -> Option<std::path::PathBuf> {
+    if meta.transcode == state::TranscodeStatus::Ready {
+        meta.transcode_path.clone().map(std::path::PathBuf::from)
+    } else {
+        None
+    }
+}
+
 async fn manifest(
     State(st): State<AppState>,
     headers: HeaderMap,
@@ -346,16 +357,19 @@ async fn manifest(
     let delivery = match st.hls.cached_delivery(&id) {
         Some(d) => d,
         None => {
-            let primary = match transcode::pick_primary_file_async(std::path::PathBuf::from(&meta.path)).await {
-                Ok(p) => p,
-                Err(e) => {
-                    tracing::warn!(id = %id, path = %meta.path, error = %e, "manifest: no primary media file");
-                    return (
-                        StatusCode::INTERNAL_SERVER_ERROR,
-                        Json(serde_json::json!({"error": e.to_string()})),
-                    )
-                        .into_response();
-                }
+            let primary = match delivery_source(&meta) {
+                Some(p) => p,
+                None => match transcode::pick_primary_file_async(std::path::PathBuf::from(&meta.path)).await {
+                    Ok(p) => p,
+                    Err(e) => {
+                        tracing::warn!(id = %id, path = %meta.path, error = %e, "manifest: no primary media file");
+                        return (
+                            StatusCode::INTERNAL_SERVER_ERROR,
+                            Json(serde_json::json!({"error": e.to_string()})),
+                        )
+                            .into_response();
+                    }
+                },
             };
             let probe = match transcode::probe(&st.ffprobe_bin, &primary).await {
                 Ok(p) => p,
@@ -821,6 +835,21 @@ mod tests {
             hls_dir: None,
             hls_error: None,
         }
+    }
+
+    #[test]
+    fn delivery_source_prefers_ready_transcode() {
+        let mut m = meta_for(TorrentState::Seeding);
+        assert_eq!(delivery_source(&m), None, "no transcode -> fall back to source");
+        m.transcode = TranscodeStatus::Ready;
+        m.transcode_path = Some("/lib/m/x.reel.mp4".into());
+        assert_eq!(
+            delivery_source(&m),
+            Some(std::path::PathBuf::from("/lib/m/x.reel.mp4"))
+        );
+        m.transcode = TranscodeStatus::Ready;
+        m.transcode_path = None;
+        assert_eq!(delivery_source(&m), None, "ready but no path -> fall back");
     }
 
     fn live_for(progress: u64, total: u64, finished: bool) -> crate::engine::TorrentLive {

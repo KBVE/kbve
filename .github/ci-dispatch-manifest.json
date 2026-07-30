@@ -385,7 +385,7 @@
 		{
 			"key": "kbve_gate",
 			"app_name": "kbve-gate",
-			"version": "0.1.8",
+			"version": "0.1.9",
 			"version_toml": "apps/kbve/kbve-gate/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kbve-gate.mdx",
 			"version_target": "apps/kbve/kbve-gate/Cargo.toml",
@@ -393,7 +393,6 @@
 			"runner": "ubuntu-latest",
 			"image": "kbve/kbve-gate",
 			"deployment_yamls": [
-				"apps/kube/n8n/manifest/n8n-deployment.yaml",
 				"apps/kube/monitoring/manifests/grafana-gate-deployment.yaml",
 				"apps/kube/argocd/manifests/argocd-gate-deployment.yaml",
 				"apps/kube/storage/manifests/longhorn-gate-deployment.yaml",
@@ -765,7 +764,7 @@
 		{
 			"key": "embeddb_derive_crate",
 			"package_name": "embeddb-derive",
-			"version": "0.1.0",
+			"version": "0.1.1",
 			"version_toml": "packages/rust/embeddb-derive/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/embeddb-derive-crate.mdx",
 			"version_target": "packages/rust/embeddb-derive/Cargo.toml"
@@ -781,7 +780,7 @@
 		{
 			"key": "holy_crate",
 			"package_name": "holy",
-			"version": "0.2.1",
+			"version": "0.2.2",
 			"version_toml": "packages/rust/holy/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/holy-crate.mdx",
 			"version_target": "packages/rust/holy/Cargo.toml"

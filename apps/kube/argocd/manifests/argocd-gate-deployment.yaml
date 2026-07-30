@@ -54,6 +54,8 @@ spec:
                         value: forum
                       - name: GATE_LOGIN_REDIRECT
                         value: https://kbve.com/login
+                      - name: GATE_EXTERNAL_BASE
+                        value: https://argo.kbve.com
                       - name: GATE_COOKIE_DOMAIN
                         value: .kbve.com
                       - name: SUPABASE_URL
