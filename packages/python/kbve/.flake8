@@ -16,5 +16,8 @@ per-file-ignores =
 	kbve/sprite/model_sprites.py: E231, E702
 	kbve/sprite/ship_footprint.py: E231
 	kbve/nx/routes/activity.py: E231
+	kbve/svg/chart.py: E231, E702
+	kbve/svg/dag.py: E231, E702
 	tests/test_nx_activity_route.py: E231
 	tests/test_nx_kanban_route.py: E231
+	tests/test_svg.py: E231

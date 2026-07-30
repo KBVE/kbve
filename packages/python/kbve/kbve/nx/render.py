@@ -18,12 +18,13 @@ import re
 from typing import TextIO
 
 from ..mdx.escape import escape_mdx
-from .graph import GraphData, mermaid_id, top_hubs
+from ..svg import DagEdge, DagNode, Slice, dag_svg, donut_svg
+from .graph import GraphData, top_hubs
 from .security import SEVERITY_ORDER
 
-# Mermaid/dagre client-side layout is ~quadratic; beyond ~40 nodes the
-# browser tab hangs or crashes. Cap the inline dependency diagram to the
-# most-connected projects — the full set stays in the table + JSON.
+# The diagram is prerendered to SVG here, so its cost to the browser is zero
+# and the cap is purely about readability — the full set stays in the Project
+# index table and the companion JSON.
 _MAX_DIAGRAM_NODES = 40
 
 SEVERITY_LABELS = {
@@ -575,30 +576,30 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
     out.write('<BentoProse id="diagram" heading="Dependency diagram">\n\n')
 
     out.write("### Project distribution\n\n")
-    out.write("```mermaid\n")
-    out.write("pie showData\n")
-    out.write("    title Projects by Type\n")
-    for ptype in sorted(by_type):
-        label = ptype.capitalize() + "s"
-        out.write(f'    "{label}" : {len(by_type[ptype])}\n')
-    out.write("```\n\n")
+    distribution = donut_svg(
+        "Projects by Type",
+        [
+            Slice(ptype.capitalize() + "s", len(by_type[ptype]))
+            for ptype in sorted(by_type)
+        ],
+    )
+    if distribution:
+        out.write(f'<div class="kbve-figure">{distribution}</div>\n\n')
 
     if top_depended and top_depended[0].dependent_count > 0:
         out.write("### Hub connectivity\n\n")
-        out.write("```mermaid\n")
-        out.write("pie showData\n")
-        out.write("    title Dependents per Hub\n")
-        for row in top_depended:
-            if row.dependent_count > 0:
-                out.write(f'    "{row.name}" : {row.dependent_count}\n')
-        out.write("```\n\n")
+        hubs = donut_svg(
+            "Dependents per Hub",
+            [
+                Slice(row.name, row.dependent_count)
+                for row in top_depended
+                if row.dependent_count > 0
+            ],
+        )
+        if hubs:
+            out.write(f'<div class="kbve-figure">{hubs}</div>\n\n')
 
     out.write("### Graph\n\n")
-    # Mermaid renders flowcharts client-side via dagre, which is roughly
-    # quadratic — a full monorepo graph (150+ nodes) hangs or crashes the
-    # browser tab. Cap the inline diagram to the most-connected projects (a
-    # readable hub view); the full set stays in the Project index table and
-    # the companion JSON, so nothing is hidden.
     if len(nodes) <= _MAX_DIAGRAM_NODES:
         diagram_nodes = set(nodes)
         capped = False
@@ -616,46 +617,41 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
         out.write(
             ":::note\n"
             f"Showing the <strong>{_MAX_DIAGRAM_NODES}</strong> most-connected"
-            f" projects of <strong>{len(nodes)}</strong> — the full graph is"
-            " too large to render inline. Every project is listed in the"
-            " [Project index](#project-index) below.\n"
+            f" projects of <strong>{len(nodes)}</strong> — the rest would not"
+            " stay readable inline. Every project is listed in the"
+            " [Project index](#project-index) below, and"
+            " [Graph Explorer](/dashboard/graph-explorer/) walks the whole"
+            " monorepo interactively.\n"
             ":::\n\n"
         )
 
-    mermaid_lines = ["graph LR"]
-    for ptype, (_, style) in TYPE_STYLES.items():
-        mermaid_lines.append(f"    classDef {ptype} {style}")
-    shown_edges = 0
-    for src, targets in sorted(edges_by_source.items()):
-        if src not in diagram_nodes:
-            continue
-        src_id = mermaid_id(src)
-        for tgt in sorted(targets):
-            if tgt not in diagram_nodes:
-                continue
-            tgt_id = mermaid_id(tgt)
-            mermaid_lines.append(
-                f'    {src_id}["{src}"]'
-                f' --> {tgt_id}["{tgt}"]'
-            )
-            shown_edges += 1
-    for ptype, node_names in by_type.items():
-        if ptype in TYPE_STYLES:
-            ids = ",".join(
-                mermaid_id(n) for n in node_names if n in diagram_nodes
-            )
-            if ids:
-                mermaid_lines.append("    class {} {}".format(ids, ptype))
+    diagram_edges = [
+        DagEdge(src, tgt)
+        for src, targets in sorted(edges_by_source.items())
+        if src in diagram_nodes
+        for tgt in sorted(targets)
+        if tgt in diagram_nodes
+    ]
+    diagram = dag_svg(
+        [
+            DagNode(name, nodes[name].get("type", "unknown"))
+            for name in sorted(diagram_nodes)
+        ],
+        diagram_edges,
+        title="Nx project dependency graph",
+    )
 
-    if shown_edges > 0:
-        out.write("```mermaid\n")
-        out.write("\n".join(mermaid_lines))
-        out.write("\n```\n\n")
+    if diagram:
+        out.write(
+            f'<div class="kbve-figure kbve-figure--wide">{diagram}</div>\n\n'
+        )
         out.write(
             ":::tip[Legend]\n"
             "**Blue** = Application &nbsp; "
             "**Green** = Library &nbsp; "
-            "**Amber** = E2E Test\n"
+            "**Amber** = E2E Test &nbsp; "
+            "Arrows point from a project to what it depends on; dashed arrows"
+            " close a dependency cycle.\n"
             ":::\n\n"
         )
     else:
@@ -715,7 +711,12 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
     out.write("</div>\n\n")
     out.write(
         "<style is:global>{`.graph-report{--bento-accent:#a78bfa;"
-        "--bento-accent-2:#38bdf8}`}</style>\n"
+        "--bento-accent-2:#38bdf8}"
+        ".graph-report .kbve-figure{margin:1.5rem 0;display:flex;"
+        "justify-content:center}"
+        ".graph-report .kbve-figure--wide{display:block;overflow-x:auto;"
+        "overscroll-behavior-x:contain}"
+        ".graph-report .kbve-figure--wide svg{min-width:640px}`}</style>\n"
     )
 
     return out.getvalue()

@@ -9,6 +9,21 @@ export const $reelError = atom<string | null>(null);
 export const $reelName = atom<string | null>(null);
 export const $reelNotice = atom<string | null>(null);
 
+// The reel the player is currently bound to. Clicking Play in the console sets
+// this; the player island reacts and starts playback in place — no navigation,
+// no second click.
+export const $reelSelectedId = atom<string | null>(null);
+
+export function selectReel(id: string): void {
+	$reelSelectedId.set(id);
+	if (typeof window !== 'undefined') {
+		const url = new URL(window.location.href);
+		url.searchParams.set('id', id);
+		// Keep the URL shareable/refresh-safe without reloading the page.
+		window.history.replaceState(null, '', url);
+	}
+}
+
 export interface ReelDetail {
 	id?: string;
 	name?: string;
