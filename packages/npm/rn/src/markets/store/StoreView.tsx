@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Stack } from '../../ui/primitives/Stack';
 import { Text } from '../../ui/primitives/Text';
+import { EmptyState } from '../../ui/feedback/EmptyState';
+import { Skeleton, SkeletonGroup } from '../../ui/feedback/Skeleton';
 import { tokens } from '../../ui/theme';
 import { createStoreApi } from './api';
 import { BuyCredits } from './BuyCredits';
@@ -40,6 +42,7 @@ export function StoreView({
 	const [entitlements, setEntitlements] = useState<StoreEntitlement[]>([]);
 	const [orders, setOrders] = useState<StoreOrder[]>([]);
 	const [error, setError] = useState<string | null>(null);
+	const [loaded, setLoaded] = useState(false);
 	const [busySlug, setBusySlug] = useState<string | null>(null);
 	const [checkoutSlug, setCheckoutSlug] = useState<string | null>(null);
 	const [progress, setProgress] = useState<{
@@ -55,6 +58,8 @@ export function StoreView({
 			setError(null);
 		} catch (e) {
 			setError(e instanceof Error ? e.message : 'load failed');
+		} finally {
+			setLoaded(true);
 		}
 		if (authenticated) {
 			const [ents, ords] = await Promise.all([
@@ -154,7 +159,23 @@ export function StoreView({
 					{progressFor(featured.slug)}
 				</Stack>
 			) : null}
-			<Text variant="subtitle">All products</Text>
+			{!loaded ? (
+				<Stack gap="sm">
+					<Skeleton height={22} width="40%" />
+					<SkeletonGroup rows={3} />
+				</Stack>
+			) : products.length === 0 ? (
+				<EmptyState
+					title="The shelves are empty"
+					message="No products are listed right now. Check back after the next drop."
+				/>
+			) : rest.length === 0 ? (
+				<Text variant="caption" tone="muted">
+					This is the only drop live right now — more are on the way.
+				</Text>
+			) : (
+				<Text variant="subtitle">All products</Text>
+			)}
 			<View style={styles.grid}>
 				{rest.map((p) => (
 					<View key={p.product_id} style={styles.cell}>
