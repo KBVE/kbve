@@ -13,7 +13,7 @@ tags:
 key: reel
 pipeline: docker
 app_name: reel
-version: "0.1.25"
+version: "0.1.26"
 source_path: apps/media/reel
 version_toml: apps/media/reel/version.toml
 version_target: apps/media/reel/Cargo.toml
@@ -101,6 +101,15 @@ audio is always downmixed to stereo aac so it plays with sound. The player
 already polls `202 → 200` and switches to hls.js unchanged. Gated by
 `REEL_LIVE_HLS` (default on); when off, leeching falls back to raw progressive.
 Playback quality tracks download rate — a starved swarm buffers.
+
+To keep playback smooth, the live job holds back **going Live** until
+`REEL_LIVE_PREBUFFER_SEGMENTS` (default 3, ≈12s at 4s segments) are ready, so a
+brief download dip right after Play doesn't immediately re-buffer, and the player
+(hls.js) is tuned to hold a large forward buffer (up to ~10 min) of the
+downloaded-ahead lead. Because the copy path muxes as fast as pieces arrive, the
+segment head stays ahead of the playhead whenever download rate beats the video
+bitrate — so after the initial prime, buffering only happens on a genuinely slow
+swarm.
 
 </BentoProse>
 

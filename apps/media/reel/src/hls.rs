@@ -41,6 +41,28 @@ mod tests {
             assert!(!valid_segment_name(n), "{n}");
         }
     }
+
+    #[test]
+    fn count_ts_segments_counts_only_ts() {
+        let dir = tempfile::tempdir().unwrap();
+        let d = dir.path();
+        assert_eq!(count_ts_segments(d), 0);
+        std::fs::write(d.join("seg00000.ts"), b"a").unwrap();
+        std::fs::write(d.join("seg00001.ts"), b"b").unwrap();
+        std::fs::write(d.join("index.m3u8"), b"m").unwrap();
+        assert_eq!(count_ts_segments(d), 2, "m3u8 not counted");
+        assert_eq!(count_ts_segments(&d.join("missing")), 0, "missing dir -> 0");
+    }
+}
+
+fn count_ts_segments(dir: &std::path::Path) -> usize {
+    std::fs::read_dir(dir)
+        .map(|rd| {
+            rd.flatten()
+                .filter(|e| e.file_name().to_string_lossy().ends_with(".ts"))
+                .count()
+        })
+        .unwrap_or(0)
 }
 
 fn delivery_label(d: Delivery) -> &'static str {
@@ -118,6 +140,7 @@ pub struct HlsManager {
     segment_secs: u32,
     enabled: bool,
     live_enabled: bool,
+    live_prebuffer_segments: usize,
     encode_threads: usize,
     children: Arc<Mutex<HashMap<String, Child>>>,
     delivery_cache: Arc<Mutex<HashMap<String, Delivery>>>,
@@ -133,6 +156,7 @@ impl HlsManager {
         segment_secs: u32,
         enabled: bool,
         live_enabled: bool,
+        live_prebuffer_segments: usize,
         encode_threads: usize,
     ) -> Self {
         let this = Self {
@@ -143,6 +167,7 @@ impl HlsManager {
             segment_secs,
             enabled,
             live_enabled,
+            live_prebuffer_segments: live_prebuffer_segments.max(1),
             encode_threads,
             children: Arc::new(Mutex::new(HashMap::new())),
             delivery_cache: Arc::new(Mutex::new(HashMap::new())),
@@ -345,7 +370,8 @@ impl HlsManager {
             g.insert(id.to_string(), child);
         }
 
-        self.spawn_output_watch(id.to_string(), hls_dir.join("index.m3u8"), errbuf, permit);
+        // Completed download: the file is whole, so one segment is enough.
+        self.spawn_output_watch(id.to_string(), hls_dir.join("index.m3u8"), 1, errbuf, permit);
 
         Ok(())
     }
@@ -358,29 +384,32 @@ impl HlsManager {
         &self,
         id: String,
         index_path: PathBuf,
+        min_segments: usize,
         errbuf: Arc<Mutex<String>>,
         permit: Option<tokio::sync::OwnedSemaphorePermit>,
     ) {
         let this = self.clone();
+        let hls_dir = index_path
+            .parent()
+            .map(|p| p.to_path_buf())
+            .unwrap_or_default();
         tokio::spawn(async move {
+            // Hold back going Live until enough segments exist to prime the
+            // player's buffer, so a brief download dip after start doesn't
+            // immediately re-buffer. Exit the loop as soon as ffmpeg dies.
             let mut went_live = false;
-            for _ in 0..100 {
-                if index_path.exists() {
+            let exit_result = loop {
+                if !went_live
+                    && index_path.exists()
+                    && count_ts_segments(&hls_dir) >= min_segments
+                {
                     let _ = this.store.update(&id, |m| {
                         m.hls = HlsStatus::Live;
                         ((), true)
                     });
-                    tracing::info!(id = %id, "hls manifest live");
+                    tracing::info!(id = %id, min_segments, "hls manifest live");
                     went_live = true;
-                    break;
                 }
-                tokio::time::sleep(std::time::Duration::from_millis(100)).await;
-            }
-            if !went_live {
-                tracing::warn!(id = %id, "hls manifest not produced within 10s; ffmpeg may still be starting");
-            }
-
-            let exit_result = loop {
                 match this.poll_child(&id) {
                     Some(Ok(Some(status))) => break Some(Ok(status)),
                     Some(Ok(None)) => {}
@@ -602,7 +631,14 @@ impl HlsManager {
             g.insert(id.to_string(), child);
         }
 
-        self.spawn_output_watch(id.to_string(), hls_dir.join("index.m3u8"), errbuf, permit);
+        // Live: prime a few segments of buffer before letting the player start.
+        self.spawn_output_watch(
+            id.to_string(),
+            hls_dir.join("index.m3u8"),
+            self.live_prebuffer_segments,
+            errbuf,
+            permit,
+        );
         Ok(())
     }
 
@@ -701,7 +737,7 @@ mod mgr_tests {
     async fn abort_unknown_is_noop() {
         let dir = std::env::temp_dir().join(format!("reel-hls-test-{}", std::process::id()));
         let store = StateStore::load(dir.join("state.json")).unwrap();
-        let mgr = HlsManager::new(store, 1, "ffmpeg".into(), "ffprobe".into(), 4, true, true, 1);
+        let mgr = HlsManager::new(store, 1, "ffmpeg".into(), "ffprobe".into(), 4, true, true, 3, 1);
         mgr.abort("unknown-id").await;
         assert!(mgr.take_child("unknown-id").is_none());
     }
@@ -710,7 +746,7 @@ mod mgr_tests {
     fn cached_delivery_none_then_some() {
         let dir = std::env::temp_dir().join(format!("reel-hls-test-cache-{}", std::process::id()));
         let store = StateStore::load(dir.join("state.json")).unwrap();
-        let mgr = HlsManager::new(store, 1, "ffmpeg".into(), "ffprobe".into(), 4, true, true, 1);
+        let mgr = HlsManager::new(store, 1, "ffmpeg".into(), "ffprobe".into(), 4, true, true, 3, 1);
         assert_eq!(mgr.cached_delivery("1"), None);
         mgr.cache_delivery("1", Delivery::RemuxHls);
         assert_eq!(mgr.cached_delivery("1"), Some(Delivery::RemuxHls));

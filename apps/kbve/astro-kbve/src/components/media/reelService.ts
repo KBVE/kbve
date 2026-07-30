@@ -475,7 +475,15 @@ export class ReelPlayer {
 		}
 		// hls.js drives its own XHRs, so the token rides in the Authorization
 		// header — never in the manifest/segment URLs (no Referer/log leak).
+		// Buffer generously: popcorn segments are produced ahead of the playhead
+		// as the download runs, so let the player hold minutes of that lead to
+		// ride out download dips instead of stalling at the live edge.
 		const hls = new Hls({
+			maxBufferLength: 120,
+			maxMaxBufferLength: 600,
+			backBufferLength: 90,
+			liveSyncDurationCount: 6,
+			lowLatencyMode: false,
 			xhrSetup: (xhr: XMLHttpRequest, url: string) => {
 				xhr.open('GET', url, true);
 				xhr.setRequestHeader('Authorization', `Bearer ${token}`);
