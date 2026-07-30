@@ -26,6 +26,9 @@ import type {
 	PetBattleState,
 	PetBattleWireEvent,
 	PetMoveOption,
+	PetMoveView,
+	PetRosterSync,
+	PetView,
 	PickupEvent,
 	PlayerView,
 	ProjectileEvent,
@@ -203,6 +206,16 @@ function writeInput(w: PostcardWriter, inp: Input): void {
 	} else if ('DuelRespond' in inp) {
 		w.variant(35);
 		w.bool(inp.DuelRespond.accept);
+	} else if ('SetActivePet' in inp) {
+		w.variant(36);
+		w.u32(inp.SetActivePet.idx);
+	} else if ('ReleasePet' in inp) {
+		w.variant(37);
+		w.u32(inp.ReleasePet.idx);
+	} else if ('RenamePet' in inp) {
+		w.variant(38);
+		w.u32(inp.RenamePet.idx);
+		w.string(inp.RenamePet.name);
 	}
 }
 
@@ -447,6 +460,52 @@ export function decodePetBattleState(payload: number[]): PetBattleState {
 		deadline_ms,
 		opponent,
 	};
+}
+
+function readPetMoveView(r: PostcardReader): PetMoveView {
+	return { ability_id: r.string(), pp: r.u16(), max_pp: r.u16() };
+}
+
+function readPetView(r: PostcardReader): PetView {
+	const id = r.string();
+	const species_ref = r.string();
+	const nickname = r.string();
+	const level = r.u32();
+	const xp = r.u32();
+	const hp = r.i32();
+	const max_hp = r.i32();
+	const attack = r.i32();
+	const defense = r.i32();
+	const sp_attack = r.i32();
+	const sp_defense = r.i32();
+	const speed = r.i32();
+	const moves: PetMoveView[] = [];
+	for (let n = r.seqLen(); n > 0; n--) moves.push(readPetMoveView(r));
+	return {
+		id,
+		species_ref,
+		nickname,
+		level,
+		xp,
+		hp,
+		max_hp,
+		attack,
+		defense,
+		sp_attack,
+		sp_defense,
+		speed,
+		moves,
+	};
+}
+
+/** Decode an EPHEMERAL_PET_ROSTER payload. Matches `proto::PetRosterSync`: a seq of
+ * `PetView`, then an Option<u32> lead index (tag byte 0 = None, 1 = Some). */
+export function decodePetRosterSync(payload: number[]): PetRosterSync {
+	const r = new PostcardReader(Uint8Array.from(payload));
+	const pets: PetView[] = [];
+	for (let n = r.seqLen(); n > 0; n--) pets.push(readPetView(r));
+	const active = r.option() ? r.u32() : null;
+	return { pets, active };
 }
 
 /** Decode an EPHEMERAL_DUEL_PROMPT payload. Matches `proto::DuelPrompt`. */

@@ -13,7 +13,12 @@ import type { EntityRefs } from '../entities/sprites';
 import type { InventoryState } from '../systems/inventory';
 import type { MovementState } from '../systems/movement';
 import { PLACE_RANGE } from '../systems/inventory';
-import { emitInventoryOpen, onInventoryOpen } from '../systems/hud';
+import {
+	emitInventoryOpen,
+	onInventoryOpen,
+	emitPetHubOpen,
+	onPetHubOpen,
+} from '../systems/hud';
 
 /**
  * Everything the scene's input bindings dispatch into. Input is the hub that
@@ -68,10 +73,14 @@ export function setupInput(
 	};
 	const fireKey = kb.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
+	// Mirrors the hub's open state for the P toggle; re-synced by `onPetHubOpen` below so
+	// closing from the panel itself doesn't desync the next keypress.
+	let petHubOpen = false;
+
 	// 1-9 cast the matching spell slot; Shift+1-9 use the matching inventory
 	// slot. Read ev.code (Digit1..Digit9), not ev.key: holding Shift rewrites
 	// ev.key to '!@#$%^&*(' on US layouts, but the code stays Digit-N.
-	// I toggles the full inventory panel; Escape closes it.
+	// I toggles the full inventory panel, P the pet hub; Escape closes them.
 	kb.on('keydown', (ev: KeyboardEvent) => {
 		// Chat (or any text field) owns the keyboard — don't fire hotbar/toggles.
 		if (isTextInputFocused()) return;
@@ -83,6 +92,9 @@ export function setupInput(
 		} else if (ev.key === 'i' || ev.key === 'I') {
 			deps.inv.open = !deps.inv.open;
 			emitInventoryOpen(deps.inv.open);
+		} else if (ev.key === 'p' || ev.key === 'P') {
+			petHubOpen = !petHubOpen;
+			emitPetHubOpen(petHubOpen);
 		} else if (ev.key === 'r' || ev.key === 'R') {
 			if (deps.inv.placingRef) {
 				ev.preventDefault();
@@ -96,6 +108,9 @@ export function setupInput(
 			} else if (deps.inv.open) {
 				deps.inv.open = false;
 				emitInventoryOpen(false);
+			} else if (petHubOpen) {
+				petHubOpen = false;
+				emitPetHubOpen(false);
 			}
 		} else if (ev.key === 'Tab') {
 			ev.preventDefault();
@@ -112,6 +127,12 @@ export function setupInput(
 	// (gothic ✕), so the next `I` press toggles from the real state.
 	onInventoryOpen((o) => {
 		deps.inv.open = o;
+	});
+
+	// The hub closes itself too (its X button, its own Escape handler) — mirror that back
+	// so the next P press opens instead of toggling a stale `true` to false.
+	onPetHubOpen((o) => {
+		petHubOpen = o;
 	});
 
 	scene.input.mouse?.disableContextMenu();

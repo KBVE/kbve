@@ -28,6 +28,7 @@ export const EPHEMERAL_PROJECTILE = 12;
 export const EPHEMERAL_FLOOR = 13;
 export const EPHEMERAL_ITEM_PLACED = 14;
 export const EPHEMERAL_CORPSE = 16;
+export const EPHEMERAL_PET_ROSTER = 17;
 export const EPHEMERAL_PET_BATTLE_LOG = 18;
 export const EPHEMERAL_PET_BATTLE_STATE = 19;
 export const EPHEMERAL_DUEL_PROMPT = 21;
@@ -141,6 +142,38 @@ export interface PetBattleState {
 	opponent: string;
 }
 
+/** One move slot on an owned pet, with its remaining PP. */
+export interface PetMoveView {
+	ability_id: string;
+	pp: number;
+	max_pp: number;
+}
+
+/** One owned pet in the roster. Pets never appear in the spatial snapshot — they sync
+ * only through the roster event and the battle events. */
+export interface PetView {
+	id: string;
+	species_ref: string;
+	nickname: string;
+	level: number;
+	xp: number;
+	hp: number;
+	max_hp: number;
+	attack: number;
+	defense: number;
+	sp_attack: number;
+	sp_defense: number;
+	speed: number;
+	moves: PetMoveView[];
+}
+
+/** Full roster snapshot pushed to the owner on join and after any roster mutation.
+ * `active` is the index of the lead pet, or null when the roster has no lead. */
+export interface PetRosterSync {
+	pets: PetView[];
+	active: number | null;
+}
+
 /** A duel challenge/response prompt shown to the challenged player. `status` is one
  * of the DUEL_PROMPT_* constants; `other_slot`/`other_name` identify the other side. */
 export interface DuelPrompt {
@@ -207,7 +240,10 @@ export type Input =
 	| { PetTurn: { action: number; arg: number } }
 	| { ChallengeNpc: { npc: number } }
 	| { DuelChallenge: { target: number } }
-	| { DuelRespond: { accept: boolean } };
+	| { DuelRespond: { accept: boolean } }
+	| { SetActivePet: { idx: number } }
+	| { ReleasePet: { idx: number } }
+	| { RenamePet: { idx: number; name: string } };
 
 export type BjActionKind = 'Hit' | 'Stand' | 'Double' | 'Split' | 'Surrender';
 
