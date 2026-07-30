@@ -41,6 +41,7 @@ export * from './feedback/EmptyState';
 export * from './feedback/LoadingState';
 export * from './feedback/ErrorState';
 export * from './feedback/Skeleton';
+export * from './feedback/ProgressBar';
 
 export * from './state/store';
 export * from './state/overlayStore';

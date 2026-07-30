@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, waitFor } from '@testing-library/react';
+import { render, waitFor, fireEvent } from '@testing-library/react';
 
 vi.mock('../IdiotCard', () => ({
 	IdiotCard: () => null,
@@ -65,5 +65,71 @@ describe('StoreView', () => {
 			/>,
 		);
 		expect(await findByText('Buy credits')).toBeTruthy();
+	});
+
+	it('hides the All products heading when the featured drop is the only listing', async () => {
+		global.fetch = vi.fn(async (url: string) => ({
+			ok: true,
+			status: 200,
+			text: async () =>
+				url.includes('/products')
+					? JSON.stringify([PRODUCTS[0]])
+					: JSON.stringify([]),
+		})) as any;
+		const { findByText, queryByText } = render(
+			<StoreView getToken={async () => 'tok'} baseUrl="" authenticated />,
+		);
+		await findByText('Idiot');
+		expect(queryByText('All products')).toBeNull();
+		expect(
+			await findByText(/only drop live right now/),
+		).toBeTruthy();
+	});
+
+	it('shows an empty state when the catalog has no products', async () => {
+		global.fetch = vi.fn(async () => ({
+			ok: true,
+			status: 200,
+			text: async () => JSON.stringify([]),
+		})) as any;
+		const { findByText, queryByText } = render(
+			<StoreView getToken={async () => 'tok'} baseUrl="" authenticated />,
+		);
+		expect(await findByText('The shelves are empty')).toBeTruthy();
+		expect(queryByText('All products')).toBeNull();
+	});
+
+	it('walks the digital purchase through its progress steps', async () => {
+		const { findByText, getByText } = render(
+			<StoreView getToken={async () => 'tok'} baseUrl="" authenticated />,
+		);
+		await findByText('Idiot');
+		fireEvent.click(getByText('Buy · 100 credits'));
+		expect(await findByText('Purchase complete')).toBeTruthy();
+		expect(getByText('Unlocked — it is yours')).toBeTruthy();
+	});
+
+	it('surfaces a failed purchase in the progress panel', async () => {
+		global.fetch = vi.fn(async (url: string, init?: RequestInit) => {
+			const buying = init?.method === 'POST';
+			return {
+				ok: !buying,
+				status: buying ? 402 : 200,
+				text: async () =>
+					buying
+						? JSON.stringify({ error: 'P1010', message: 'insufficient' })
+						: url.includes('/products')
+							? JSON.stringify(PRODUCTS)
+							: JSON.stringify([]),
+			};
+		}) as any;
+		const { findByText, getByText } = render(
+			<StoreView getToken={async () => 'tok'} baseUrl="" authenticated />,
+		);
+		await findByText('Idiot');
+		fireEvent.click(getByText('Buy · 100 credits'));
+		expect(
+			await findByText('Not enough credits. Top up above and try again.'),
+		).toBeTruthy();
 	});
 });

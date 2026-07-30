@@ -28,4 +28,32 @@ describe('ProductCard', () => {
 		fireEvent.click(getByText(/Buy/));
 		expect(onBuyDigital).toHaveBeenCalledWith('coin');
 	});
+
+	it('treats a missing fulfillment as digital, not physical', () => {
+		const onBuyDigital = vi.fn();
+		const onBuyPhysical = vi.fn();
+		const legacy = { ...digital } as StoreProduct;
+		delete (legacy as Partial<StoreProduct>).fulfillment;
+		const { getByText } = render(
+			<ProductCard product={legacy} owned={false} authenticated busy={false}
+				onBuyDigital={onBuyDigital} onBuyPhysical={onBuyPhysical} />,
+		);
+		fireEvent.click(getByText(/Buy/));
+		expect(onBuyPhysical).not.toHaveBeenCalled();
+		expect(onBuyDigital).toHaveBeenCalledWith('coin');
+	});
+
+	it('routes physical and both to the shipping checkout', () => {
+		for (const fulfillment of ['physical', 'both'] as const) {
+			const onBuyPhysical = vi.fn();
+			const { getByText, unmount } = render(
+				<ProductCard product={{ ...digital, fulfillment }} owned={false}
+					authenticated busy={false}
+					onBuyDigital={vi.fn()} onBuyPhysical={onBuyPhysical} />,
+			);
+			fireEvent.click(getByText(/Buy/));
+			expect(onBuyPhysical).toHaveBeenCalledWith('coin');
+			unmount();
+		}
+	});
 });

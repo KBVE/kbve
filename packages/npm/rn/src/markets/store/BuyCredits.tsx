@@ -5,6 +5,7 @@ import { Surface } from '../../ui/primitives/Surface';
 import { Text } from '../../ui/primitives/Text';
 import type { StoreApi } from './api';
 import { CREDIT_PACKS } from './types';
+import { ProgressBar } from '../../ui/feedback/ProgressBar';
 import { StoreApiError } from './errors';
 import { openCheckout } from './openCheckout';
 
@@ -44,6 +45,12 @@ export function BuyCredits({ api, authenticated }: BuyCreditsProps) {
 					<Text variant="caption" tone="danger">
 						{error}
 					</Text>
+				) : null}
+				{busy ? (
+					<ProgressBar
+						indeterminate
+						label="Opening the secure Stripe checkout…"
+					/>
 				) : null}
 				<Stack direction="row" gap="sm">
 					{CREDIT_PACKS.map((p) => (
