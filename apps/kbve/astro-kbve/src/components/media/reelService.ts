@@ -458,53 +458,58 @@ export class ReelPlayer {
 		gen: number,
 	): Promise<void> {
 		if (this.generation !== gen) return;
+		// Prefer hls.js wherever it's supported (desktop Safari included). Its
+		// XHRs carry the token in the Authorization header, so every request —
+		// master, child playlists, segments, subtitle VTTs — authenticates. The
+		// native <video> HLS path can't send headers, and relative child/segment
+		// URLs drop the query-string token, so it 401s on multi-variant streams;
+		// keep it only as a last resort for engines without MSE (iOS Safari).
+		const Hls = (await import('hls.js')).default;
+		if (this.generation !== gen) return;
+		if (Hls.isSupported()) {
+			// Buffer generously: popcorn segments are produced ahead of the
+			// playhead as the download runs, so let the player hold minutes of
+			// that lead to ride out download dips instead of stalling.
+			const hls = new Hls({
+				maxBufferLength: 120,
+				maxMaxBufferLength: 600,
+				backBufferLength: 90,
+				liveSyncDurationCount: 6,
+				lowLatencyMode: false,
+				xhrSetup: (xhr: XMLHttpRequest, url: string) => {
+					xhr.open('GET', url, true);
+					xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+				},
+			});
+			this.hls = hls;
+			hls.on(Hls.Events.ERROR, (_evt, data) => {
+				if (data.fatal) this.fail(`HLS error: ${data.type}`);
+			});
+			// Auto-enable the first subtitle rendition (the live stream marks it
+			// DEFAULT=YES) so provided subs show without hunting for a menu.
+			hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, (_evt, data) => {
+				if (data.subtitleTracks.length > 0) {
+					hls.subtitleDisplay = true;
+					hls.subtitleTrack = 0;
+				}
+			});
+			hls.loadSource(mediaUrl(id, '/manifest.m3u8', null));
+			hls.attachMedia(video);
+			$reelState.set('hls');
+			void video.play().catch(() => undefined);
+			return;
+		}
 		if (video.canPlayType(MANIFEST_MIME)) {
-			// A <video> element can't send headers, so the native-HLS path
-			// still carries the short-lived scoped token in the query string.
+			// Last resort (iOS Safari, no MSE): native HLS with the token on the
+			// query string. Reliable for single-file HLS; multi-variant/live
+			// streams may fail here because relative child URLs lose the token.
 			this.attachVideoError(video, gen);
 			video.src = mediaUrl(id, '/manifest.m3u8', token);
 			$reelState.set('hls');
 			void video.play().catch(() => undefined);
 			return;
 		}
-		const Hls = (await import('hls.js')).default;
-		if (this.generation !== gen) return;
-		if (!Hls.isSupported()) {
-			this.fail('HLS is not supported in this browser');
-			return;
-		}
-		// hls.js drives its own XHRs, so the token rides in the Authorization
-		// header — never in the manifest/segment URLs (no Referer/log leak).
-		// Buffer generously: popcorn segments are produced ahead of the playhead
-		// as the download runs, so let the player hold minutes of that lead to
-		// ride out download dips instead of stalling at the live edge.
-		const hls = new Hls({
-			maxBufferLength: 120,
-			maxMaxBufferLength: 600,
-			backBufferLength: 90,
-			liveSyncDurationCount: 6,
-			lowLatencyMode: false,
-			xhrSetup: (xhr: XMLHttpRequest, url: string) => {
-				xhr.open('GET', url, true);
-				xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-			},
-		});
-		this.hls = hls;
-		hls.on(Hls.Events.ERROR, (_evt, data) => {
-			if (data.fatal) this.fail(`HLS error: ${data.type}`);
-		});
-		// Auto-enable the first subtitle rendition (the live stream marks it
-		// DEFAULT=YES) so provided subs show without the viewer hunting for a menu.
-		hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, (_evt, data) => {
-			if (data.subtitleTracks.length > 0) {
-				hls.subtitleDisplay = true;
-				hls.subtitleTrack = 0;
-			}
-		});
-		hls.loadSource(mediaUrl(id, '/manifest.m3u8', null));
-		hls.attachMedia(video);
-		$reelState.set('hls');
-		void video.play().catch(() => undefined);
+		this.fail('HLS is not supported in this browser');
 	}
 
 	private teardown(): void {
