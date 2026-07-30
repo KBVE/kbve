@@ -18,6 +18,11 @@
 --
 -- Inventory needs nothing here: public.proxy_inventory_list_held already
 -- covers the caller's held + listing_escrow rows.
+--
+-- Rollback is lossy BY DESIGN: migrate:down drops the snapshot columns, so true
+-- buy-time titles are discarded. A later re-up rebackfills from whatever the
+-- catalog says AT THAT TIME, which silently rewrites receipt history. Roll back
+-- only if the read surface itself is the problem.
 
 -- ---------------------------------------------------------------------------
 -- 1. Receipt snapshots on store.purchase. Added nullable, backfilled from the
@@ -261,9 +266,15 @@ BEGIN
     GET DIAGNOSTICS v_inserted = ROW_COUNT;
     IF v_inserted = 0 THEN
         SELECT product_id, item_id
-          INTO STRICT v_receipt_product, v_receipt_item
+          INTO v_receipt_product, v_receipt_item
           FROM store.purchase
          WHERE account_id = p_account AND idempotency_key = p_idempotency_key;
+        IF NOT FOUND THEN
+            RAISE EXCEPTION
+                'purchase receipt vanished between conflict and read (account %, key %)',
+                p_account, p_idempotency_key
+                USING ERRCODE = '40001';
+        END IF;
         IF v_receipt_product <> v_product.product_id
            OR v_receipt_item <> v_item_id THEN
             RAISE EXCEPTION
@@ -307,7 +318,7 @@ BEGIN
             USING ERRCODE = '22023';
     END IF;
     RETURN QUERY
-    SELECT pu.purchase_id, pu.product_id, pu.product_slug, pu.product_title,
+    SELECT pu.purchase_id, pu.product_id, pu.product_slug::text, pu.product_title::text,
            pu.item_id, pu.price, pu.currency::text, pu.result_kind::text,
            pu.ledger_id, pu.created_at
       FROM store.purchase pu
@@ -319,7 +330,14 @@ BEGIN
      LIMIT v_limit;
 END;
 $$;
-ALTER FUNCTION public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO service_role;
+-- Owner is store_api_owner, NOT service_role: 20260709180000_store_privilege_hardening
+-- reassigned every store function and public/private proxy_store_* function to
+-- that NOLOGIN role, revoked service_role's table DML, and enabled RLS on the
+-- store tables. store_api_owner owns those tables, so a definer owned by it both
+-- has the grants and bypasses RLS (ENABLE, not FORCE). Owning these proxies as
+-- service_role would make them fail 42501 — and would silently DOWNGRADE the
+-- pre-existing orders proxy, which this migration recreates.
+ALTER FUNCTION public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO store_api_owner;
 ALTER FUNCTION public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT) ROWS 50;
 ALTER FUNCTION public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT) SET statement_timeout = '3s';
 REVOKE ALL ON FUNCTION public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT) FROM PUBLIC, anon;
@@ -367,7 +385,7 @@ BEGIN
     END IF;
     RETURN QUERY
     SELECT o.order_id, o.product_id, o.variant_id, o.qty,
-           o.product_slug, o.product_title, o.variant_sku, o.unit_price,
+           o.product_slug::text, o.product_title::text, o.variant_sku::text, o.unit_price,
            o.currency::text, o.fulfillment::text, o.credits_amount,
            o.status, o.tracking, o.created_at, o.updated_at
       FROM store.order o
@@ -379,7 +397,7 @@ BEGIN
      LIMIT v_limit;
 END;
 $$;
-ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO service_role;
+ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO store_api_owner;
 ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) ROWS 50;
 ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) SET statement_timeout = '3s';
 REVOKE ALL ON FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) FROM PUBLIC, anon;
@@ -387,7 +405,9 @@ GRANT EXECUTE ON FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTA
 COMMENT ON FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) IS
     'PUBLIC store proxy. Caller-scoped (auth.uid()) physical/both order history, newest first. product_slug / product_title / variant_sku / unit_price / currency / fulfillment are immutable buy-time snapshots, not live catalog reads.';
 
-
+-- Every other store migration ends here: PostgREST caches function signatures,
+-- and this adds one function and changes another's return shape.
+NOTIFY pgrst, 'reload schema';
 -- migrate:down
 
 DROP FUNCTION IF EXISTS public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT);
@@ -435,7 +455,7 @@ BEGIN
      LIMIT v_limit;
 END;
 $$;
-ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO service_role;
+ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO store_api_owner;
 ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) ROWS 50;
 ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) SET statement_timeout = '3s';
 REVOKE ALL ON FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) FROM PUBLIC, anon;
@@ -597,3 +617,5 @@ CREATE INDEX store_purchase_account_created_idx
 ALTER TABLE store.purchase
     DROP COLUMN IF EXISTS product_title,
     DROP COLUMN IF EXISTS product_slug;
+
+NOTIFY pgrst, 'reload schema';

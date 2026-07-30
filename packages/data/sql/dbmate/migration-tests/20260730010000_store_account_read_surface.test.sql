@@ -78,13 +78,20 @@ BEGIN
         RAISE EXCEPTION 'fail: store.purchase snapshot columns missing or nullable (got %)', v_cols;
     END IF;
 
-    -- 2. service_buy captured the pre-rename title on the receipt.
+    -- 2. Pre-existing receipts are BACKFILLED, not snapshotted: they were written
+    --    before the columns existed, so the only available source was the live
+    --    catalog — which the SEED renamed. Assert only that they are populated;
+    --    asserting the pre-rename title here would be asserting a lie.
     SELECT pu.product_title INTO v_title
       FROM store.purchase pu
      WHERE pu.product_slug = 'snapshot-probe-digital'
      ORDER BY pu.purchase_id DESC LIMIT 1;
-    IF v_title IS DISTINCT FROM 'Digital BEFORE rename' THEN
-        RAISE EXCEPTION 'fail: digital receipt followed the catalog rename (got %)', v_title;
+    IF v_title IS NULL OR length(v_title) = 0 THEN
+        RAISE EXCEPTION 'fail: backfill left a receipt title empty';
+    END IF;
+    IF v_title <> 'Digital AFTER rename' THEN
+        RAISE EXCEPTION
+            'fail: backfill did not use the current catalog as documented (got %)', v_title;
     END IF;
 
     -- 3. The order path already snapshotted; confirm it still does.
@@ -159,6 +166,38 @@ BEGIN
 END;
 $$;
 
+-- The actual snapshot guarantee, on a receipt written by the NEW service_buy:
+-- buy, then rename the product, and the receipt must not move.
+DO $$
+DECLARE
+    v_account UUID;
+    v_title   TEXT;
+BEGIN
+    SELECT id INTO v_account FROM wallet.account
+     WHERE kind = 'user' AND user_id = '00000000-0000-4000-8000-0000000ded01';
+
+    INSERT INTO store.product (slug, title, description, price, currency, asset_ref)
+    VALUES ('snapshot-probe-postup', 'Post-up BEFORE rename', NULL, 5, 'credits', '{}'::jsonb)
+    ON CONFLICT (slug) DO NOTHING;
+
+    PERFORM store.service_buy(
+        v_account, 'snapshot-probe-postup',
+        '00000000-0000-4000-8000-0000000dec06'::uuid);
+
+    UPDATE store.product SET title = 'Post-up AFTER rename'
+     WHERE slug = 'snapshot-probe-postup';
+
+    SELECT product_title INTO v_title
+      FROM store.purchase
+     WHERE account_id = v_account AND product_slug = 'snapshot-probe-postup';
+
+    IF v_title IS DISTINCT FROM 'Post-up BEFORE rename' THEN
+        RAISE EXCEPTION
+            'fail: receipt written by the new service_buy followed the rename (got %)', v_title;
+    END IF;
+END;
+$$;
+
 -- A replay of the same (account, idempotency_key) must return the SAME item and
 -- must not write a second receipt or charge again — the path that now verifies
 -- the ON CONFLICT instead of ignoring it.
@@ -199,6 +238,117 @@ BEGIN
     IF v_after <> v_credits THEN
         RAISE EXCEPTION 'fail: replay re-charged the account (% -> %)', v_credits, v_after;
     END IF;
+END;
+$$;
+
+-- Behaviour of the read proxies themselves, exercised as the caller would:
+-- auth.uid() resolves from request.jwt.claims, so set_config impersonates.
+DO $$
+DECLARE
+    v_user      UUID := '00000000-0000-4000-8000-0000000ded01';
+    v_other     UUID := '00000000-0000-4000-8000-0000000ded02';
+    v_account   UUID;
+    v_rows      INT;
+    v_page1     BIGINT[];
+    v_page2     BIGINT[];
+    v_cur_at    TIMESTAMPTZ;
+    v_cur_id    BIGINT;
+    v_sqlstate  TEXT;
+BEGIN
+    -- A second account with its own receipt, to prove caller scoping.
+    INSERT INTO auth.users (id) VALUES (v_other) ON CONFLICT (id) DO NOTHING;
+    PERFORM wallet.ensure_user_account(v_other);
+    PERFORM wallet.service_credit(
+        (SELECT id FROM wallet.account WHERE kind='user' AND user_id=v_other),
+        'credits', 500, 'admin', 'scoping probe', 'test', NULL,
+        '00000000-0000-4000-8000-0000000dec04'::uuid);
+    PERFORM store.service_buy(
+        (SELECT id FROM wallet.account WHERE kind='user' AND user_id=v_other),
+        'snapshot-probe-digital',
+        '00000000-0000-4000-8000-0000000dec05'::uuid);
+
+    -- auth.uid() coalesces request.jwt.claim.sub then request.jwt.claims->>'sub'.
+    -- Set BOTH, as store_schema_init.test.sql does: the local image's auth.uid()
+    -- is not guaranteed to read the JSON form.
+    PERFORM set_config('request.jwt.claim.sub', v_user::text, true);
+    PERFORM set_config('request.jwt.claims',
+        json_build_object('sub', v_user::text)::text, true);
+
+    -- 1. Caller sees ONLY its own receipts.
+    SELECT count(*) INTO v_rows
+      FROM public.proxy_store_my_purchases_readonly(100, NULL, NULL);
+    IF v_rows = 0 THEN
+        RAISE EXCEPTION 'fail: caller sees none of its own receipts';
+    END IF;
+    SELECT id INTO v_account FROM wallet.account WHERE kind='user' AND user_id=v_user;
+    IF EXISTS (
+        SELECT 1 FROM public.proxy_store_my_purchases_readonly(100, NULL, NULL) p
+         WHERE p.purchase_id NOT IN (
+            SELECT purchase_id FROM store.purchase WHERE account_id = v_account)
+    ) THEN
+        RAISE EXCEPTION 'fail: purchases proxy leaked another account''s receipts';
+    END IF;
+
+    -- 2. p_limit is clamped to 1..100, not trusted.
+    SELECT count(*) INTO v_rows
+      FROM public.proxy_store_my_purchases_readonly(0, NULL, NULL);
+    IF v_rows <> 1 THEN
+        RAISE EXCEPTION 'fail: p_limit 0 did not clamp to 1 (got % rows)', v_rows;
+    END IF;
+    SELECT count(*) INTO v_rows
+      FROM public.proxy_store_my_purchases_readonly(100000, NULL, NULL);
+    IF v_rows > 100 THEN
+        RAISE EXCEPTION 'fail: p_limit above 100 was not clamped (got % rows)', v_rows;
+    END IF;
+
+    -- 3. A half-specified cursor is rejected with 22023, not silently ignored.
+    BEGIN
+        PERFORM * FROM public.proxy_store_my_purchases_readonly(50, now(), NULL);
+        RAISE EXCEPTION 'fail: half cursor (id NULL) was accepted';
+    EXCEPTION WHEN SQLSTATE '22023' THEN NULL;
+    END;
+    BEGIN
+        PERFORM * FROM public.proxy_store_my_purchases_readonly(50, NULL, 1::bigint);
+        RAISE EXCEPTION 'fail: half cursor (created_at NULL) was accepted';
+    EXCEPTION WHEN SQLSTATE '22023' THEN NULL;
+    END;
+
+    -- 4. Keyset pagination over receipts that SHARE created_at loses nothing and
+    --    repeats nothing — the case the purchase_id tiebreak exists for.
+    --    This account has TWO receipts: the seeded digital buy and the post-up
+    --    buy above. (service_buy_physical writes store."order" only, never
+    --    store.purchase, so the physical buy contributes nothing here.) Force
+    --    them onto the same timestamp to exercise the tiebreak.
+    UPDATE store.purchase SET created_at = '2026-07-30T00:00:00Z'
+     WHERE account_id = v_account;
+
+    SELECT array_agg(purchase_id ORDER BY purchase_id DESC) INTO v_page1
+      FROM public.proxy_store_my_purchases_readonly(1, NULL, NULL);
+    SELECT p.created_at, p.purchase_id INTO v_cur_at, v_cur_id
+      FROM public.proxy_store_my_purchases_readonly(1, NULL, NULL) p;
+    SELECT array_agg(purchase_id ORDER BY purchase_id DESC) INTO v_page2
+      FROM public.proxy_store_my_purchases_readonly(1, v_cur_at, v_cur_id);
+
+    IF v_page1 IS NULL THEN
+        RAISE EXCEPTION 'fail: first page empty';
+    END IF;
+    IF v_page2 IS NULL THEN
+        RAISE EXCEPTION 'fail: second page empty despite more tied receipts';
+    END IF;
+    IF v_page1 && v_page2 THEN
+        RAISE EXCEPTION 'fail: pages overlap across equal created_at (% and %)',
+            v_page1, v_page2;
+    END IF;
+
+    PERFORM set_config('request.jwt.claim.sub', '', true);
+    PERFORM set_config('request.jwt.claims', '', true);
+
+    -- 5. With no claims at all the proxy refuses rather than returning rows.
+    BEGIN
+        PERFORM * FROM public.proxy_store_my_purchases_readonly(50, NULL, NULL);
+        RAISE EXCEPTION 'fail: unauthenticated call returned instead of raising';
+    EXCEPTION WHEN SQLSTATE '28000' THEN NULL;
+    END;
 END;
 $$;
 
