@@ -378,6 +378,10 @@ impl Engine {
         now_ok
     }
 
+    fn already_active(&self, id: &str) -> bool {
+        is_active_state(self.store.get(id).map(|m| m.state))
+    }
+
     pub async fn add(&self, source: &str) -> anyhow::Result<String> {
         if !self.vpn_ok() {
             anyhow::bail!("vpn egress unavailable; refusing to add torrent");
@@ -400,6 +404,10 @@ impl Engine {
             .and_then(|m| m.as_id20().map(|h| (h.as_string(), m.name.clone())))
         {
             let name = name.unwrap_or_else(|| id.clone());
+            if self.already_active(&id) {
+                tracing::info!(id = %id, "add ignored: torrent already active (idempotent)");
+                return Ok(id);
+            }
             self.store
                 .upsert(leeching_meta(&id, &name, &out_dir))?;
             crate::telemetry::torrent_added(&id, "magnet");
@@ -428,6 +436,11 @@ impl Engine {
             .into_handle()
             .ok_or_else(|| anyhow::anyhow!("torrent is list-only, no handle"))?;
         let id = handle.info_hash().as_string();
+        if self.already_active(&id) {
+            let _ = std::fs::remove_dir_all(&out_dir);
+            tracing::info!(id = %id, "add ignored: torrent already active (idempotent)");
+            return Ok(id);
+        }
         let name = handle.name().unwrap_or_else(|| id.clone());
         self.store.upsert(leeching_meta(&id, &name, &out_dir))?;
         crate::telemetry::torrent_added(&id, "url");
@@ -1023,6 +1036,13 @@ pub async fn tracker_refresh_loop(
     }
 }
 
+pub fn is_active_state(state: Option<state::TorrentState>) -> bool {
+    matches!(
+        state,
+        Some(state::TorrentState::Leeching | state::TorrentState::Seeding)
+    )
+}
+
 pub fn remove_entry_files(path: &str, transcode_path: Option<&str>) {
     for p in std::iter::once(path).chain(transcode_path) {
         let pb = std::path::Path::new(p);
@@ -1055,6 +1075,15 @@ mod tests {
         remove_entry_files(&src.display().to_string(), Some(&tc.display().to_string()));
         assert!(!src.exists());
         assert!(!tc.exists());
+    }
+
+    #[test]
+    fn is_active_state_matches_leeching_and_seeding_only() {
+        use state::TorrentState::*;
+        assert!(is_active_state(Some(Leeching)));
+        assert!(is_active_state(Some(Seeding)));
+        assert!(!is_active_state(Some(Failed)));
+        assert!(!is_active_state(None));
     }
 
     #[test]
