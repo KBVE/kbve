@@ -61,6 +61,8 @@ spec:
                         value: is_superadmin
                       - name: GATE_LOGIN_REDIRECT
                         value: https://kbve.com/login
+                      - name: GATE_EXTERNAL_BASE
+                        value: https://supabase.kbve.com
                       - name: GATE_COOKIE_DOMAIN
                         value: .kbve.com
                       - name: SUPABASE_URL

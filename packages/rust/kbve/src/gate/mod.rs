@@ -35,6 +35,9 @@ use std::net::SocketAddr;
 /// - `GATE_UPSTREAM_BASIC`  optional `Basic <b64>` injected upstream
 /// - `GATE_LOGIN_REDIRECT`  optional 302 target for unauthed navigations
 /// - `GATE_COOKIE_DOMAIN`   optional domain scope for the session cookie
+/// - `GATE_EXTERNAL_BASE`   public origin (`https://host`) for the
+///   `redirect_to` bounce target; set it when a fronting proxy rewrites `Host`
+///   or drops `X-Forwarded-Proto`
 /// - `GATE_STAFF_TTL_SECS`  is_staff cache TTL (default 30)
 /// - `GATE_STAFF_SCHEMA`    PostgREST schema for the RPC (default `forum`)
 /// - `GATE_STAFF_RPC`       PostgREST RPC name (default `is_staff`); e.g.
@@ -71,6 +74,10 @@ pub fn config_from_env() -> Result<GateConfig, String> {
         .filter(|s| !s.is_empty());
     let cookie_domain = std::env::var("GATE_COOKIE_DOMAIN")
         .ok()
+        .filter(|s| !s.is_empty());
+    let external_base = std::env::var("GATE_EXTERNAL_BASE")
+        .ok()
+        .map(|s| s.trim().trim_end_matches('/').to_string())
         .filter(|s| !s.is_empty());
     let upstream_ca_cert_path = std::env::var("GATE_UPSTREAM_CA_CERT_PATH")
         .ok()
@@ -151,6 +158,7 @@ pub fn config_from_env() -> Result<GateConfig, String> {
         upstream_basic,
         login_redirect,
         cookie_domain,
+        external_base,
         staff,
         upstream_ca_cert_path,
         upstream_bearer,

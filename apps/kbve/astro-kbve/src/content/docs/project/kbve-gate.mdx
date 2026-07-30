@@ -12,7 +12,7 @@ tags:
 key: kbve_gate
 pipeline: docker
 app_name: kbve-gate
-version: "0.1.8"
+version: "0.1.9"
 source_path: apps/kbve/kbve-gate
 version_toml: apps/kbve/kbve-gate/version.toml
 version_target: apps/kbve/kbve-gate/Cargo.toml
@@ -146,6 +146,7 @@ After the JWT validates it applies an authz policy:
 | `GATE_FORWARD_USER_HEADER` / `GATE_FORWARD_USER_VALUE` | — | trusted identity header injected downstream (Grafana auth-proxy) |
 | `GATE_LOGIN_REDIRECT` | — | 302 target for unauthed browser navigations |
 | `GATE_COOKIE_DOMAIN` | — | domain scope for the minted session cookie (e.g. `.kbve.com`) |
+| `GATE_EXTERNAL_BASE` | — | public origin for `redirect_to` (e.g. `https://supabase.kbve.com`); required behind a proxy that rewrites `Host` or drops `X-Forwarded-Proto` |
 | `SUPABASE_JWT_SECRET` | — | required |
 | `SUPABASE_URL` | — | required for `is_staff` (direct PostgREST) |
 
@@ -170,6 +171,14 @@ navigation carries no token. The gate completes auth with a bounce:
 
 The login page only honours `redirect_to` targets on `*.kbve.com` over https,
 so the token can never be handed to a foreign origin.
+
+`redirect_to` is normally derived from `Host` + `X-Forwarded-Proto`. A gate
+behind a second reverse proxy can see neither: Supabase Studio sits behind Kong,
+which without `preserve_host` sends `Host: studio-gate:5678` and stamps
+`X-Forwarded-Proto: http` for its own plaintext listener. The gate then emits
+`http://studio-gate:5678/...`, the login page rejects it, and the user lands on
+the homepage instead of the gated host. Set `GATE_EXTERNAL_BASE` on any gate
+that is not directly addressed by its public hostname.
 
 </BentoProse>
 
