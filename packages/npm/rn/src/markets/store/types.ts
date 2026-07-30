@@ -60,6 +60,33 @@ export interface StoreOrder {
 	updated_at: string;
 }
 
+export type PurchaseResultKind = 'minted' | 'already_owned';
+
+export interface StorePurchase {
+	purchase_id: number;
+	product_id: string;
+	slug: string;
+	title: string;
+	item_id: string;
+	price: number;
+	currency: string;
+	result_kind: PurchaseResultKind;
+	ledger_id: number | null;
+	created_at: string;
+}
+
+export type InventoryState = 'held' | 'listing_escrow';
+
+export interface InventoryItem {
+	item_id: string;
+	kind: string;
+	ref: string;
+	qty: number;
+	nbt: Record<string, unknown>;
+	state: InventoryState;
+	created_at: string;
+}
+
 export interface ShippingAddress {
 	name: string;
 	line1: string;

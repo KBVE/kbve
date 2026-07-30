@@ -11,6 +11,8 @@ import type {
 	StoreOrderStaff,
 	StoreProduct,
 	StoreProductDetail,
+	StorePurchase,
+	InventoryItem,
 } from './types';
 
 export interface StoreApiOptions {
@@ -23,6 +25,8 @@ export interface StoreApi {
 	productDetail(slug: string): Promise<StoreProductDetail>;
 	myEntitlements(): Promise<StoreEntitlement[]>;
 	myOrders(): Promise<StoreOrder[]>;
+	myPurchases(limit?: number): Promise<StorePurchase[]>;
+	myInventory(limit?: number): Promise<InventoryItem[]>;
 	buyProduct(slug: string): Promise<StoreItem>;
 	buyPhysical(
 		variantId: string,
@@ -97,6 +101,16 @@ export function createStoreApi(opts: StoreApiOptions): StoreApi {
 		myEntitlements: () =>
 			call<StoreEntitlement[]>({ path: '/api/v1/store/me/entitlements', auth: true }),
 		myOrders: () => call<StoreOrder[]>({ path: '/api/v1/store/me/orders', auth: true }),
+		myPurchases: (limit) =>
+			call<StorePurchase[]>({
+				path: `/api/v1/store/me/purchases${limit ? `?limit=${limit}` : ''}`,
+				auth: true,
+			}),
+		myInventory: (limit) =>
+			call<InventoryItem[]>({
+				path: `/api/v1/inventory/me/items${limit ? `?limit=${limit}` : ''}`,
+				auth: true,
+			}),
 		buyProduct: (slug) =>
 			call<StoreItem>({
 				path: `/api/v1/store/products/${encodeURIComponent(slug)}/buy`,

@@ -689,6 +689,42 @@ pub(crate) struct MyOrdersQuery {
     pub before_id: Option<i64>,
 }
 
+#[derive(Serialize, ToSchema)]
+pub(crate) struct StorePurchaseDto {
+    pub purchase_id: i64,
+    pub product_id: Uuid,
+    pub slug: String,
+    pub title: String,
+    /// The inventory.item this receipt minted (or resolved to on a re-buy).
+    pub item_id: Uuid,
+    /// Credits actually charged. 0 when the caller already owned the product.
+    pub price: i64,
+    pub currency: String,
+    /// 'minted' | 'already_owned'.
+    pub result_kind: String,
+    pub ledger_id: Option<i64>,
+    pub created_at: String,
+}
+
+#[derive(Serialize, ToSchema)]
+pub(crate) struct InventoryItemDto {
+    pub item_id: Uuid,
+    pub kind: String,
+    pub r#ref: String,
+    pub qty: i64,
+    pub nbt: serde_json::Value,
+    /// 'held' | 'listing_escrow'.
+    pub state: String,
+    pub created_at: String,
+}
+
+#[derive(Deserialize, ToSchema)]
+pub(crate) struct MyInventoryQuery {
+    pub limit: Option<i32>,
+    pub before_created_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub before_id: Option<Uuid>,
+}
+
 fn json_obj(v: serde_json::Value) -> serde_json::Value {
     if v.is_null() {
         serde_json::json!({})
@@ -786,6 +822,125 @@ pub(crate) async fn my_orders(headers: HeaderMap, Query(q): Query<MyOrdersQuery>
                     tracking: r.tracking,
                     created_at: r.created_at.to_rfc3339(),
                     updated_at: r.updated_at.to_rfc3339(),
+                })
+                .collect::<Vec<_>>(),
+        )
+        .into_response(),
+        Err(e) => wallet_error_response(e),
+    }
+}
+
+/// `GET /api/v1/store/me/purchases` — caller's digital receipts.
+///
+/// Distinct from `/me/orders`: orders exist only for physical/both variant
+/// buys, so a digital-only account has receipts here and nothing there.
+#[utoipa::path(
+    get,
+    path = "/api/v1/store/me/purchases",
+    tag = "store",
+    params(
+        ("limit" = Option<i32>, Query, description = "Page size (1-100, default 50)"),
+        ("before_created_at" = Option<String>, Query, description = "Keyset cursor: last created_at (RFC3339)"),
+        ("before_id" = Option<i64>, Query, description = "Keyset cursor: last purchase_id"),
+    ),
+    responses(
+        (status = 200, description = "Caller's purchase receipts", body = [StorePurchaseDto]),
+        (status = 401, description = "Missing / invalid bearer token"),
+        (status = 503, description = "Wallet service unavailable"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn my_purchases(headers: HeaderMap, Query(q): Query<MyOrdersQuery>) -> Response {
+    let user_id = match resolve_user(&headers).await {
+        Ok(id) => id,
+        Err(resp) => return resp,
+    };
+    let client = match get_wallet_client() {
+        Some(c) => c,
+        None => return service_unavailable(),
+    };
+    match client
+        .store_my_purchases(
+            user_id,
+            q.limit.unwrap_or(50).clamp(1, 100),
+            q.before_created_at,
+            q.before_id,
+        )
+        .await
+    {
+        Ok(rows) => Json(
+            rows.into_iter()
+                .map(|r| StorePurchaseDto {
+                    purchase_id: r.purchase_id,
+                    product_id: r.product_id,
+                    slug: r.slug,
+                    title: r.title,
+                    item_id: r.item_id,
+                    price: r.price,
+                    currency: r.currency.as_pg().to_string(),
+                    result_kind: r.result_kind,
+                    ledger_id: r.ledger_id,
+                    created_at: r.created_at.to_rfc3339(),
+                })
+                .collect::<Vec<_>>(),
+        )
+        .into_response(),
+        Err(e) => wallet_error_response(e),
+    }
+}
+
+/// `GET /api/v1/inventory/me/items` — caller's owned inventory.
+///
+/// Canonical ownership read (`inventory.item`), not the store-scoped
+/// entitlement projection: covers every kind, including non-store items,
+/// and reports listing_escrow alongside held.
+#[utoipa::path(
+    get,
+    path = "/api/v1/inventory/me/items",
+    tag = "inventory",
+    params(
+        ("limit" = Option<i32>, Query, description = "Page size (1-200, default 50)"),
+        ("before_created_at" = Option<String>, Query, description = "Keyset cursor: last created_at (RFC3339)"),
+        ("before_id" = Option<String>, Query, description = "Keyset cursor: last item_id"),
+    ),
+    responses(
+        (status = 200, description = "Caller's inventory items", body = [InventoryItemDto]),
+        (status = 401, description = "Missing / invalid bearer token"),
+        (status = 503, description = "Wallet service unavailable"),
+    ),
+    security(("bearerAuth" = [])),
+)]
+pub(crate) async fn my_inventory(
+    headers: HeaderMap,
+    Query(q): Query<MyInventoryQuery>,
+) -> Response {
+    let user_id = match resolve_user(&headers).await {
+        Ok(id) => id,
+        Err(resp) => return resp,
+    };
+    let client = match get_wallet_client() {
+        Some(c) => c,
+        None => return service_unavailable(),
+    };
+    match client
+        .inventory_my_items(
+            user_id,
+            q.limit.unwrap_or(50).clamp(1, 200),
+            q.before_created_at,
+            q.before_id,
+        )
+        .await
+    {
+        Ok(rows) => Json(
+            rows.into_iter()
+                .map(|r| InventoryItemDto {
+                    item_id: r.item_id,
+                    kind: r.kind,
+                    r#ref: r.ref_,
+                    qty: r.qty,
+                    nbt: r.nbt,
+                    state: r.state,
+                    created_at: r.created_at.to_rfc3339(),
                 })
                 .collect::<Vec<_>>(),
         )

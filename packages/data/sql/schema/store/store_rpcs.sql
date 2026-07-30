@@ -820,6 +820,61 @@ REVOKE ALL ON FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPT
 GRANT EXECUTE ON FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) TO authenticated, service_role;
 
 -- ============================================================================
+-- public.proxy_store_my_purchases_readonly — caller's digital receipts.
+--   store."order" only ever holds physical/both buys, so a digital-only
+--   account has an empty order history despite owning items. The receipts
+--   in store.purchase are the record of those buys; this is their read
+--   surface. Keyset-paginated to match store_purchase_account_created_idx.
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION public.proxy_store_my_purchases_readonly(
+    p_limit             INTEGER     DEFAULT 50,
+    p_before_created_at TIMESTAMPTZ DEFAULT NULL,
+    p_before_id         BIGINT      DEFAULT NULL
+)
+RETURNS TABLE (
+    purchase_id BIGINT,
+    product_id  UUID,
+    slug        TEXT,
+    title       TEXT,
+    item_id     UUID,
+    price       BIGINT,
+    currency    TEXT,
+    result_kind TEXT,
+    ledger_id   BIGINT,
+    created_at  TIMESTAMPTZ
+)
+LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+    v_account UUID := private.proxy_store_caller_account();
+    v_limit   INTEGER := LEAST(GREATEST(COALESCE(p_limit, 50), 1), 100);
+BEGIN
+    IF (p_before_created_at IS NULL) <> (p_before_id IS NULL) THEN
+        RAISE EXCEPTION 'cursor requires both before_created_at and before_id'
+            USING ERRCODE = '22023';
+    END IF;
+    RETURN QUERY
+    SELECT pu.purchase_id, pu.product_id, pr.slug, pr.title, pu.item_id,
+           pu.price, pu.currency::text, pu.result_kind, pu.ledger_id,
+           pu.created_at
+      FROM store.purchase pu
+      JOIN store.product pr ON pr.product_id = pu.product_id
+     WHERE pu.account_id = v_account
+       AND (p_before_created_at IS NULL
+            OR pu.created_at < p_before_created_at
+            OR (pu.created_at = p_before_created_at AND pu.purchase_id < p_before_id))
+     ORDER BY pu.created_at DESC, pu.purchase_id DESC
+     LIMIT v_limit;
+END;
+$$;
+ALTER FUNCTION public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT) OWNER TO service_role;
+ALTER FUNCTION public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT) ROWS 50;
+REVOKE ALL ON FUNCTION public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT) TO authenticated, service_role;
+COMMENT ON FUNCTION public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT) IS
+    'PUBLIC store proxy. Caller-scoped (auth.uid()) digital purchase receipts, newest first. Complements proxy_store_my_orders_readonly, which only covers physical/both orders.';
+
+-- ============================================================================
 -- Fulfillment (service_role; transport gates staff).
 --   advance_order moves FORWARD only. Cancellation = refund.
 -- ============================================================================
@@ -1528,6 +1583,7 @@ ALTER FUNCTION public.proxy_store_catalog_readonly(INTEGER, TIMESTAMPTZ, UUID) S
 ALTER FUNCTION public.proxy_store_product_detail_readonly(TEXT) SET statement_timeout = '3s';
 ALTER FUNCTION public.proxy_store_my_entitlements_readonly() SET statement_timeout = '3s';
 ALTER FUNCTION public.proxy_store_my_orders_readonly(INTEGER, TIMESTAMPTZ, BIGINT) SET statement_timeout = '3s';
+ALTER FUNCTION public.proxy_store_my_purchases_readonly(INTEGER, TIMESTAMPTZ, BIGINT) SET statement_timeout = '3s';
 ALTER FUNCTION public.proxy_store_buy(TEXT, UUID) SET statement_timeout = '10s';
 ALTER FUNCTION public.proxy_store_buy(TEXT, UUID) SET lock_timeout = '3s';
 ALTER FUNCTION public.proxy_store_buy_physical(UUID, BIGINT, JSONB, UUID) SET statement_timeout = '10s';
