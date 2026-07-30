@@ -183,7 +183,12 @@ CREATE TABLE store.purchase (
 -- Supplied values are never overwritten: the buy-time snapshot beats the catalog.
 -- SECURITY DEFINER so the fill never depends on the inserting role's own SELECT
 -- reach into store.product (or on surviving its RLS), which would silently leave
--- the columns NULL and re-raise the 23502 this exists to prevent.
+-- the columns NULL and re-raise the 23502 this exists to prevent. That is a
+-- deliberate narrow capability: a writer holding INSERT without SELECT on
+-- store.product can resolve the referenced slug/title by inserting a receipt and
+-- reading it back, which is exactly what writing a valid receipt requires. It
+-- stays contained — one product by NEW.product_id, no dynamic SQL, result written
+-- only into the inserted row, pinned empty search_path.
 CREATE OR REPLACE FUNCTION store.purchase_fill_snapshot()
 RETURNS TRIGGER
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$

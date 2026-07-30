@@ -111,10 +111,17 @@ $$;
 -- reach into store.product. Under SECURITY INVOKER a writer that lacks SELECT
 -- — or that holds SELECT but is filtered by store.product's RLS — gets a
 -- no-row SELECT INTO, leaves both columns NULL, and lands right back on the
--- 23502 this trigger exists to prevent. Safe to make definer here: no dynamic
--- SQL, every object schema-qualified under a pinned empty search_path, and the
--- owner is the NOLOGIN role that already owns store.purchase, so the trigger
--- grants no reach beyond what a writer of this table already has.
+-- 23502 this trigger exists to prevent.
+--
+-- The definer lookup is a deliberate, narrow capability: a role holding INSERT
+-- on store.purchase without SELECT on store.product can resolve the referenced
+-- product's slug and title by inserting a receipt and reading the result back.
+-- That is the point — anyone authorized to write receipts has to be able to
+-- produce valid receipt snapshots. It stays contained because the function takes
+-- no arbitrary relation and runs no dynamic SQL, reads exactly the one product
+-- named by NEW.product_id, writes only into the row being inserted, and is
+-- schema-qualified under a pinned empty search_path so the lookup cannot be
+-- hijacked. Owner is the NOLOGIN role that already owns store.purchase.
 CREATE OR REPLACE FUNCTION store.purchase_fill_snapshot()
 RETURNS TRIGGER
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
