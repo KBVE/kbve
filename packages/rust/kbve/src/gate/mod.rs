@@ -35,6 +35,9 @@ use std::net::SocketAddr;
 /// - `GATE_UPSTREAM_BASIC`  optional `Basic <b64>` injected upstream
 /// - `GATE_LOGIN_REDIRECT`  optional 302 target for unauthed navigations
 /// - `GATE_COOKIE_DOMAIN`   optional domain scope for the session cookie
+/// - `GATE_EXTERNAL_BASE`   public origin (`https://host`) for the
+///   `redirect_to` bounce target; set it when a fronting proxy rewrites `Host`
+///   or drops `X-Forwarded-Proto`
 /// - `GATE_STAFF_TTL_SECS`  is_staff cache TTL (default 30)
 /// - `GATE_STAFF_SCHEMA`    PostgREST schema for the RPC (default `forum`)
 /// - `GATE_STAFF_RPC`       PostgREST RPC name (default `is_staff`); e.g.
@@ -72,6 +75,13 @@ pub fn config_from_env() -> Result<GateConfig, String> {
     let cookie_domain = std::env::var("GATE_COOKIE_DOMAIN")
         .ok()
         .filter(|s| !s.is_empty());
+    let external_base = std::env::var("GATE_EXTERNAL_BASE")
+        .ok()
+        .map(|s| s.trim().trim_end_matches('/').to_string())
+        .filter(|s| !s.is_empty());
+    if let Some(base) = &external_base {
+        validate_external_base(base)?;
+    }
     let upstream_ca_cert_path = std::env::var("GATE_UPSTREAM_CA_CERT_PATH")
         .ok()
         .filter(|s| !s.is_empty());
@@ -151,6 +161,7 @@ pub fn config_from_env() -> Result<GateConfig, String> {
         upstream_basic,
         login_redirect,
         cookie_domain,
+        external_base,
         staff,
         upstream_ca_cert_path,
         upstream_bearer,
@@ -159,6 +170,34 @@ pub fn config_from_env() -> Result<GateConfig, String> {
         verifier,
         windmill,
     })
+}
+
+/// Reject a `GATE_EXTERNAL_BASE` that cannot produce a working bounce target, so
+/// a typo fails at boot instead of silently stranding every login. A path
+/// component is refused because the request path is appended verbatim and would
+/// be doubled up.
+#[cfg(feature = "gate")]
+fn validate_external_base(base: &str) -> Result<(), String> {
+    let url = url::Url::parse(base)
+        .map_err(|e| format!("GATE_EXTERNAL_BASE must be an absolute origin URL: {e}"))?;
+    let host = url
+        .host_str()
+        .ok_or_else(|| format!("GATE_EXTERNAL_BASE has no host: {base}"))?;
+    if !url.path().is_empty() && url.path() != "/" {
+        return Err(format!(
+            "GATE_EXTERNAL_BASE must be an origin without a path, got path '{}'",
+            url.path()
+        ));
+    }
+    let local = host == "localhost" || host == "127.0.0.1" || host == "::1";
+    if url.scheme() != "https" && !local {
+        tracing::warn!(
+            %base,
+            "GATE_EXTERNAL_BASE is not https — the login page only honours https targets, \
+             so every login bounce will be rejected"
+        );
+    }
+    Ok(())
 }
 
 /// Bind `GATE_LISTEN` (default `0.0.0.0:5678`) and serve the gate forever.
