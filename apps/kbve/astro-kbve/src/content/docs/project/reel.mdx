@@ -13,7 +13,7 @@ tags:
 key: reel
 pipeline: docker
 app_name: reel
-version: "0.1.27"
+version: "0.1.28"
 source_path: apps/media/reel
 version_toml: apps/media/reel/version.toml
 version_target: apps/media/reel/Cargo.toml
@@ -118,6 +118,13 @@ subtitle rendition alongside the video: ffmpeg produces a master playlist with a
 it `DEFAULT=YES`, and hls.js auto-enables it. The manifest served at
 `…/manifest.m3u8` rewrites child-playlist and segment references under `hls/` so
 they resolve against the segment route, while the child playlists are served raw.
+
+Once a download **completes**, its transcoded `.reel.mp4` no longer carries the
+subtitle streams, so the embedded text subs extracted to sidecar `.srt` files are
+served separately: `GET /torrents/{id}/subtitles` lists them and
+`GET /torrents/{id}/subtitles/{n}` returns each converted to WebVTT on the fly.
+The player attaches them as `<track>` elements (token on the query string, since
+`<track>` can't send headers), so finished reels play with selectable subtitles.
 
 </BentoProse>
 
