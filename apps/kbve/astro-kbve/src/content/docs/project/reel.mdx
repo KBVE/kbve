@@ -13,7 +13,7 @@ tags:
 key: reel
 pipeline: docker
 app_name: reel
-version: "0.1.22"
+version: "0.1.23"
 source_path: apps/media/reel
 version_toml: apps/media/reel/version.toml
 version_target: apps/media/reel/Cargo.toml
@@ -256,6 +256,13 @@ mp4 and the original source is deleted, so a 4 GB MKV does not sit on disk next 
 one is ready, so a completed item plays directly instead of being routed back through
 the original (which, for a container like MKV, the browser cannot decode). The result
 is a single playable file per download and a Play button that just works.
+
+Once a download is prepared, its entry is isolated down to exactly the one playable
+file — the original source, subtitle sidecars, artwork, and any stray files or
+directories beside it are removed. Nothing lingers: an already-playable file keeps
+only itself, and a transcoded file keeps only its `.reel.mp4`. The idle-TTL reaper and
+the filesystem sweeper still apply on top, but the per-entry directory never holds more
+than the single file needed to play.
 
 </BentoProse>
 

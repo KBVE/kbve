@@ -519,6 +519,7 @@ impl Transcoder {
                 m.transcode_error = None;
                 ((), true)
             });
+            isolate_dir(&src_dir, &primary);
             crate::telemetry::transcode_ready(id, &primary.display().to_string());
             return Ok(());
         }
@@ -595,14 +596,35 @@ impl Transcoder {
         });
         crate::telemetry::transcode_ready(id, &dest.display().to_string());
 
-        // Single-file policy: the transcoded .reel.mp4 is now the playable
-        // copy, so drop the original source instead of storing both.
-        if primary != dest {
-            if let Err(e) = std::fs::remove_file(&primary) {
-                tracing::warn!(id = %id, path = %primary.display(), error = %e, "failed to remove source after transcode");
-            }
-        }
+        // Single-file policy: the transcoded .reel.mp4 is the only thing worth
+        // keeping, so strip the entry down to it — source, subtitles, artwork
+        // and any stray files or dirs all go.
+        isolate_dir(&src_dir, &dest);
         Ok(())
+    }
+}
+
+/// Reduce an entry directory to a single kept file, deleting every other file
+/// or subdirectory beside it. Failures are logged, not fatal — the sweeper is
+/// the backstop. `keep` is expected to live directly inside `dir`.
+pub fn isolate_dir(dir: &std::path::Path, keep: &std::path::Path) {
+    let rd = match std::fs::read_dir(dir) {
+        Ok(rd) => rd,
+        Err(_) => return,
+    };
+    for entry in rd.flatten() {
+        let p = entry.path();
+        if p == keep {
+            continue;
+        }
+        let res = if p.is_dir() {
+            std::fs::remove_dir_all(&p)
+        } else {
+            std::fs::remove_file(&p)
+        };
+        if let Err(e) = res {
+            tracing::warn!(path = %p.display(), error = %e, "isolate: failed to remove leftover");
+        }
     }
 }
 
@@ -825,6 +847,29 @@ mod transcoder_tests {
             hls_dir: None,
             hls_error: None,
         }
+    }
+
+    #[test]
+    fn isolate_dir_keeps_only_target() {
+        let dir = tempfile::tempdir().unwrap();
+        let d = dir.path();
+        let keep = d.join("movie.reel.mp4");
+        std::fs::write(&keep, b"keep").unwrap();
+        std::fs::write(d.join("movie.mkv"), b"src").unwrap();
+        std::fs::write(d.join("movie.srt"), b"subs").unwrap();
+        std::fs::write(d.join("poster.jpg"), b"art").unwrap();
+        std::fs::create_dir(d.join("hls")).unwrap();
+        std::fs::write(d.join("hls").join("0.ts"), b"seg").unwrap();
+
+        isolate_dir(d, &keep);
+
+        assert!(keep.exists(), "kept file survives");
+        assert!(!d.join("movie.mkv").exists());
+        assert!(!d.join("movie.srt").exists());
+        assert!(!d.join("poster.jpg").exists());
+        assert!(!d.join("hls").exists(), "stray dir removed");
+        let remaining = std::fs::read_dir(d).unwrap().flatten().count();
+        assert_eq!(remaining, 1, "only the kept file remains");
     }
 
     #[test]
