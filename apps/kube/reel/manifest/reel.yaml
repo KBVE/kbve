@@ -42,7 +42,6 @@ spec:
             - { name: SERVER_COUNTRIES, value: "Germany" }
             - { name: SERVER_CITIES, value: "Frankfurt" }
             - { name: VPN_PORT_FORWARDING, value: "off" }
-            - { name: DNS_UPSTREAM_RESOLVER_TYPE, value: "plain" }
           volumeMounts:
             - { name: gluetun-run, mountPath: /tmp/gluetun }
         - name: reel
