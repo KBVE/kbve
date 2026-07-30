@@ -19,7 +19,6 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
-from pathlib import Path
 
 from ..builder import BuildContext, BuildResult, PlanResult, repo_root_for
 from ..router import route
