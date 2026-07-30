@@ -10,6 +10,8 @@ export { ProductCard } from './ProductCard';
 export { IdiotCard } from './IdiotCard';
 export type { IdiotCardProps } from './IdiotCard';
 export { CheckoutModal } from './CheckoutModal';
+export { PurchaseProgress } from './PurchaseProgress';
+export type { PurchaseProgressProps, PurchaseStatus } from './PurchaseProgress';
 export { OrderHistory } from './OrderHistory';
 export { StoreView } from './StoreView';
 export type { StoreViewProps } from './StoreView';

@@ -3,6 +3,7 @@ import { Button } from '../../ui/primitives/Button';
 import { Stack } from '../../ui/primitives/Stack';
 import { Surface } from '../../ui/primitives/Surface';
 import { Text } from '../../ui/primitives/Text';
+import { needsShipping } from './types';
 import type { StoreProduct } from './types';
 
 export interface ProductCardProps {
@@ -23,13 +24,13 @@ export function ProductCard({
 	onBuyPhysical,
 }: ProductCardProps) {
 	const price = `${product.price.toLocaleString()} ${product.currency}`;
-	const physical = product.fulfillment !== 'digital';
+	const physical = needsShipping(product.fulfillment);
 	return (
 		<Surface>
 			<Stack gap="xs">
 				<Stack direction="row" justify="space-between" align="center">
 					<Text variant="subtitle">{product.title}</Text>
-					<Badge tone="neutral" label={product.fulfillment} />
+					<Badge tone="neutral" label={product.fulfillment ?? 'digital'} />
 				</Stack>
 				<Text variant="caption" tone="muted">
 					{owned ? 'Unlocked. You own this.' : (product.description ?? '')}

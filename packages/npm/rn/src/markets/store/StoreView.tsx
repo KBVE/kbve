@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Stack } from '../../ui/primitives/Stack';
 import { Text } from '../../ui/primitives/Text';
+import { EmptyState } from '../../ui/feedback/EmptyState';
+import { Skeleton, SkeletonGroup } from '../../ui/feedback/Skeleton';
 import { tokens } from '../../ui/theme';
 import { createStoreApi } from './api';
 import { BuyCredits } from './BuyCredits';
@@ -9,10 +11,17 @@ import { ProductCard } from './ProductCard';
 import { IdiotCard } from './IdiotCard';
 import { CheckoutModal } from './CheckoutModal';
 import { OrderHistory } from './OrderHistory';
+import { PurchaseProgress, type PurchaseStatus } from './PurchaseProgress';
 import { StoreApiError } from './errors';
 import { notifyWalletRefresh } from './walletSync';
 import { FEATURED_SLUG } from './types';
 import type { StoreEntitlement, StoreOrder, StoreProduct } from './types';
+
+const DIGITAL_STEPS = [
+	'Charging credits and minting your item',
+	'Syncing wallet and inventory',
+	'Unlocked — it is yours',
+];
 
 export interface StoreViewProps {
 	getToken: () => Promise<string | null>;
@@ -33,8 +42,15 @@ export function StoreView({
 	const [entitlements, setEntitlements] = useState<StoreEntitlement[]>([]);
 	const [orders, setOrders] = useState<StoreOrder[]>([]);
 	const [error, setError] = useState<string | null>(null);
+	const [loaded, setLoaded] = useState(false);
 	const [busySlug, setBusySlug] = useState<string | null>(null);
 	const [checkoutSlug, setCheckoutSlug] = useState<string | null>(null);
+	const [progress, setProgress] = useState<{
+		slug: string;
+		activeIndex: number;
+		status: PurchaseStatus;
+		error?: string | null;
+	} | null>(null);
 
 	const load = useCallback(async () => {
 		try {
@@ -42,6 +58,8 @@ export function StoreView({
 			setError(null);
 		} catch (e) {
 			setError(e instanceof Error ? e.message : 'load failed');
+		} finally {
+			setLoaded(true);
 		}
 		if (authenticated) {
 			const [ents, ords] = await Promise.all([
@@ -68,21 +86,35 @@ export function StoreView({
 	const buyDigital = useCallback(
 		async (slug: string) => {
 			setBusySlug(slug);
-			try {
-				await api.buyProduct(slug);
+			setError(null);
+			setProgress({ slug, activeIndex: 0, status: 'running' });
+			const sync = async () => {
+				setProgress({ slug, activeIndex: 1, status: 'running' });
 				notifyWalletRefresh();
 				setEntitlements(
 					await api.myEntitlements().catch(() => entitlements),
 				);
+				setProgress({ slug, activeIndex: 2, status: 'done' });
+			};
+			try {
+				await api.buyProduct(slug);
+				await sync();
 			} catch (e) {
 				if (e instanceof StoreApiError && e.status === 409) {
-					notifyWalletRefresh();
-					setEntitlements(
-						await api.myEntitlements().catch(() => entitlements),
-					);
+					await sync();
 				} else {
-					setError(
-						e instanceof Error ? e.message : 'purchase failed',
+					const msg =
+						e instanceof StoreApiError && e.status === 402
+							? 'Not enough credits. Top up above and try again.'
+							: e instanceof StoreApiError && e.status === 401
+								? 'Sign in to buy.'
+								: e instanceof Error
+									? e.message
+									: 'purchase failed';
+					setProgress((p) =>
+						p && p.slug === slug
+							? { ...p, status: 'error', error: msg }
+							: p,
 					);
 				}
 			} finally {
@@ -94,6 +126,16 @@ export function StoreView({
 
 	const featured = products.find((p) => p.slug === FEATURED_SLUG);
 	const rest = products.filter((p) => p.slug !== FEATURED_SLUG);
+
+	const progressFor = (slug: string) =>
+		progress && progress.slug === slug ? (
+			<PurchaseProgress
+				steps={DIGITAL_STEPS}
+				activeIndex={progress.activeIndex}
+				status={progress.status}
+				error={progress.error}
+			/>
+		) : null;
 
 	return (
 		<Stack gap="lg">
@@ -114,20 +156,40 @@ export function StoreView({
 						onBuyDigital={(s) => void buyDigital(s)}
 						onBuyPhysical={setCheckoutSlug}
 					/>
+					{progressFor(featured.slug)}
 				</Stack>
 			) : null}
-			<Text variant="subtitle">All products</Text>
+			{!loaded ? (
+				<Stack gap="sm">
+					<Skeleton height={22} width="40%" />
+					<SkeletonGroup rows={3} />
+				</Stack>
+			) : products.length === 0 ? (
+				<EmptyState
+					title="The shelves are empty"
+					message="No products are listed right now. Check back after the next drop."
+				/>
+			) : rest.length === 0 ? (
+				<Text variant="caption" tone="muted">
+					This is the only drop live right now — more are on the way.
+				</Text>
+			) : (
+				<Text variant="subtitle">All products</Text>
+			)}
 			<View style={styles.grid}>
 				{rest.map((p) => (
 					<View key={p.product_id} style={styles.cell}>
-						<ProductCard
-							product={p}
-							owned={owns(p.slug)}
-							authenticated={authenticated}
-							busy={busySlug === p.slug}
-							onBuyDigital={(s) => void buyDigital(s)}
-							onBuyPhysical={setCheckoutSlug}
-						/>
+						<Stack gap="sm">
+							<ProductCard
+								product={p}
+								owned={owns(p.slug)}
+								authenticated={authenticated}
+								busy={busySlug === p.slug}
+								onBuyDigital={(s) => void buyDigital(s)}
+								onBuyPhysical={setCheckoutSlug}
+							/>
+							{progressFor(p.slug)}
+						</Stack>
 					</View>
 				))}
 			</View>

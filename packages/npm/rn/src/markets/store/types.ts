@@ -84,6 +84,10 @@ export const CREDIT_PACKS: CreditPack[] = [
 
 export const FEATURED_SLUG = 'i-am-an-idiot';
 
+export function needsShipping(fulfillment?: Fulfillment | string | null): boolean {
+	return fulfillment === 'physical' || fulfillment === 'both';
+}
+
 export interface StaffProductBody {
 	slug: string;
 	title: string;
