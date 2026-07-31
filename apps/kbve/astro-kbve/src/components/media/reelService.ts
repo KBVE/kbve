@@ -347,10 +347,13 @@ export function mediaErrorMessage(err: MediaError | null | undefined): string {
 }
 
 export class ReelPlayer {
-	private hls: { destroy: () => void } | null = null;
+	private hls: import('hls.js').default | null = null;
 	private generation = 0;
 	private pollTimer: ReturnType<typeof setTimeout> | null = null;
 	private video: HTMLVideoElement | null = null;
+	private stallTimer: ReturnType<typeof setInterval> | null = null;
+	private recover: (() => void) | null = null;
+	private lastPos = 0;
 
 	async start(video: HTMLVideoElement, id: string): Promise<void> {
 		const gen = ++this.generation;
@@ -470,7 +473,54 @@ export class ReelPlayer {
 			$reelNotice.set('still downloading — playing the available portion');
 		}
 		void this.addSubtitleTracks(video, id, token, gen);
+		this.recover = () => {
+			// Re-request the byte-range stream from the current position.
+			const at = video.currentTime;
+			video.src = mediaUrl(id, '/stream', token);
+			const resume = () => {
+				try {
+					if (at > 0) video.currentTime = at;
+				} catch {
+					void 0;
+				}
+				video.removeEventListener('loadedmetadata', resume);
+			};
+			video.addEventListener('loadedmetadata', resume);
+			void video.play().catch(() => undefined);
+		};
+		this.startWatchdog(video, gen);
 		void video.play().catch(() => undefined);
+	}
+
+	// A stall watchdog: if the playhead stops advancing while playback is
+	// intended and the buffer is starved (readyState below HAVE_FUTURE_DATA),
+	// kick the active recovery path. Runs until torn down, so a stream that
+	// hangs at the download edge resumes on its own without a manual refresh.
+	private startWatchdog(video: HTMLVideoElement, gen: number): void {
+		this.stopWatchdog();
+		this.lastPos = video.currentTime;
+		this.stallTimer = setInterval(() => {
+			if (this.generation !== gen) return;
+			const v = this.video;
+			if (!v || v.paused || v.ended || v.seeking) {
+				this.lastPos = v?.currentTime ?? 0;
+				return;
+			}
+			const advanced = v.currentTime - this.lastPos;
+			this.lastPos = v.currentTime;
+			// HAVE_FUTURE_DATA (3) or more means it can play on; below that while
+			// the clock isn't moving is a genuine stall.
+			if (advanced < 0.05 && v.readyState < 3) {
+				this.recover?.();
+			}
+		}, 5000);
+	}
+
+	private stopWatchdog(): void {
+		if (this.stallTimer) {
+			clearInterval(this.stallTimer);
+			this.stallTimer = null;
+		}
 	}
 
 	// Attach sidecar subtitles (kept beside a completed download) as WebVTT
@@ -541,14 +591,52 @@ export class ReelPlayer {
 				backBufferLength: 90,
 				liveSyncDurationCount: 6,
 				lowLatencyMode: false,
+				// Keep trying hard before giving up — a live popcorn stream at the
+				// download edge sees transient frag/playlist errors that resolve as
+				// more of the file arrives.
+				maxBufferHole: 0.5,
+				fragLoadingMaxRetry: 8,
+				levelLoadingMaxRetry: 8,
+				manifestLoadingMaxRetry: 8,
 				xhrSetup: (xhr: XMLHttpRequest, url: string) => {
 					xhr.open('GET', url, true);
 					xhr.setRequestHeader('Authorization', `Bearer ${token}`);
 				},
 			});
 			this.hls = hls;
+			// Recovery ladder: don't fail on the first fatal error. Resume loading
+			// on network errors, rebuild the buffer on media errors, and only give
+			// up once repeated recovery attempts stop working.
+			let netRetries = 0;
+			let mediaRetries = 0;
+			const MAX_RECOVER = 6;
+			hls.on(Hls.Events.FRAG_BUFFERED, () => {
+				netRetries = 0;
+				mediaRetries = 0;
+			});
 			hls.on(Hls.Events.ERROR, (_evt, data) => {
-				if (data.fatal) this.fail(`HLS error: ${data.type}`);
+				if (!data.fatal) return;
+				if (this.generation !== gen) return;
+				switch (data.type) {
+					case Hls.ErrorTypes.NETWORK_ERROR:
+						if (netRetries++ < MAX_RECOVER) {
+							setTimeout(() => {
+								if (this.generation === gen) hls.startLoad();
+							}, 1000);
+						} else {
+							this.fail(`network error: ${data.details}`);
+						}
+						break;
+					case Hls.ErrorTypes.MEDIA_ERROR:
+						if (mediaRetries++ < MAX_RECOVER) {
+							hls.recoverMediaError();
+						} else {
+							this.fail(`media error: ${data.details}`);
+						}
+						break;
+					default:
+						this.fail(`HLS error: ${data.type}`);
+				}
 			});
 			// Auto-enable the first subtitle rendition (the live stream marks it
 			// DEFAULT=YES) so provided subs show without hunting for a menu.
@@ -561,6 +649,11 @@ export class ReelPlayer {
 			hls.loadSource(mediaUrl(id, '/manifest.m3u8', null));
 			hls.attachMedia(video);
 			$reelState.set('hls');
+			this.recover = () => {
+				hls.startLoad();
+				void video.play().catch(() => undefined);
+			};
+			this.startWatchdog(video, gen);
 			void video.play().catch(() => undefined);
 			return;
 		}
@@ -573,6 +666,23 @@ export class ReelPlayer {
 			this.attachVideoError(video, gen);
 			video.src = mediaUrl(id, '/manifest.m3u8', token);
 			$reelState.set('hls');
+			this.recover = () => {
+				// Native HLS has no load API — reload the source at the same spot.
+				const at = video.currentTime;
+				setMediaCookie(token);
+				video.src = mediaUrl(id, '/manifest.m3u8', token);
+				const resume = () => {
+					try {
+						if (at > 0) video.currentTime = at;
+					} catch {
+						void 0;
+					}
+					video.removeEventListener('loadedmetadata', resume);
+				};
+				video.addEventListener('loadedmetadata', resume);
+				void video.play().catch(() => undefined);
+			};
+			this.startWatchdog(video, gen);
 			void video.play().catch(() => undefined);
 			return;
 		}
@@ -584,6 +694,8 @@ export class ReelPlayer {
 			clearTimeout(this.pollTimer);
 			this.pollTimer = null;
 		}
+		this.stopWatchdog();
+		this.recover = null;
 		if (this.video) {
 			this.video.onerror = null;
 			this.removeSubtitleTracks(this.video);
