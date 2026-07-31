@@ -1,180 +1,176 @@
 {
-  "generated_at": "2026-07-30T03:57:08Z",
+  "generated_at": "2026-07-31T04:22:02Z",
   "window": {
     "days": 7,
-    "since": "2026-07-23T03:57:08Z"
+    "since": "2026-07-24T04:22:02Z"
   },
   "commits": {
-    "total": 366,
-    "authors": 3,
+    "total": 376,
+    "authors": 2,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 184
+        "commits": 196
       },
       {
         "author": "github-actions[bot]",
-        "commits": 181
-      },
-      {
-        "author": "Fudster",
-        "commits": 1
+        "commits": 180
       }
     ],
     "recent": [
       {
-        "sha": "dd215da",
+        "sha": "cd93ff6",
         "author": "h0lybyte",
-        "message": "Merge pull request #14902 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/dd215dac77d92b7973fc52b6c989bd2592ff4b69",
-        "date": "2026-07-30T02:32:34Z"
+        "message": "Merge pull request #14966 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/cd93ff622d4bcb88135f0a697b77e9309f955a32",
+        "date": "2026-07-31T04:07:16Z"
       },
       {
-        "sha": "baabd8e",
+        "sha": "7e46b0f",
         "author": "h0lybyte",
-        "message": "fix(reel): revert DNS override to gluetun default (heal crashloop) (#14900)",
-        "url": "https://github.com/KBVE/kbve/commit/baabd8eb0d8ea249c3a223199d8b31ce4f21fadc",
-        "date": "2026-07-30T02:32:25Z"
+        "message": "perf(reel): veryfast x264 preset for VOD transcode (#14975)",
+        "url": "https://github.com/KBVE/kbve/commit/7e46b0f7d575bf4972c12ae5c80dd9c434628ddf",
+        "date": "2026-07-31T04:06:47Z"
       },
       {
-        "sha": "268dd5f",
+        "sha": "59b92be",
         "author": "github-actions[bot]",
-        "message": "chore(axum-kbve): post-publish sync to v1.0.257 (#14901)",
-        "url": "https://github.com/KBVE/kbve/commit/268dd5fa149eacf2e2b1a08c3e39fb5a94f7da1d",
-        "date": "2026-07-30T01:56:44Z"
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14977)",
+        "url": "https://github.com/KBVE/kbve/commit/59b92be8c9320ac0f4dd0c779fd104771fed4c2f",
+        "date": "2026-07-31T04:05:39Z"
       },
       {
-        "sha": "311413a",
+        "sha": "db33944",
         "author": "h0lybyte",
-        "message": "Merge pull request #14899 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/311413a66412f524dfa378989ae057c84570ddf5",
-        "date": "2026-07-30T01:27:58Z"
+        "message": "chore(reel): bump CPU + encode threads for faster transcoding (#14974)",
+        "url": "https://github.com/KBVE/kbve/commit/db3394439fa581c8194222f240e9cade3e2752bc",
+        "date": "2026-07-31T04:04:11Z"
       },
       {
-        "sha": "aab2ce4",
+        "sha": "8cc072f",
         "author": "h0lybyte",
-        "message": "fix(reel): correct gluetun plain-DNS env (DOT=off crashed the pod) (#14898)",
-        "url": "https://github.com/KBVE/kbve/commit/aab2ce4c09cc227f05b32bb1c8edef19cdc26b70",
-        "date": "2026-07-30T01:15:55Z"
+        "message": "perf(reel): reuse completed live HLS instead of re-encoding (#14976)",
+        "url": "https://github.com/KBVE/kbve/commit/8cc072f2d3a6c586ff3c4a2d8e899f31292992f8",
+        "date": "2026-07-31T04:03:21Z"
       },
       {
-        "sha": "347ffe5",
-        "author": "h0lybyte",
-        "message": "Merge pull request #14896 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/347ffe54a85da00a96c471e6a71f09ba69892416",
-        "date": "2026-07-30T00:53:26Z"
-      },
-      {
-        "sha": "b7ae46f",
+        "sha": "5581342",
         "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14897)",
-        "url": "https://github.com/KBVE/kbve/commit/b7ae46f17c6e354beb61f845d8d1d1b367c2a200",
-        "date": "2026-07-30T00:47:48Z"
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14973)",
+        "url": "https://github.com/KBVE/kbve/commit/5581342c7e9a7ddaee0d5b2f23840e3b90080b9c",
+        "date": "2026-07-31T03:14:31Z"
       },
       {
-        "sha": "d489274",
+        "sha": "e466593",
         "author": "h0lybyte",
-        "message": "chore(kbve): preparing the release of v1.0.257",
-        "url": "https://github.com/KBVE/kbve/commit/d4892743d9eb7b2e8889747e03a94b0ca250f9f3",
-        "date": "2026-07-30T00:45:11Z"
+        "message": "fix(desktop-kbve): resolve lint failures in onichan view (#14971)",
+        "url": "https://github.com/KBVE/kbve/commit/e4665934feff06ec4d406fa20b127371247265d6",
+        "date": "2026-07-31T03:12:20Z"
       },
       {
-        "sha": "8f3ce54",
+        "sha": "9e27557",
         "author": "h0lybyte",
-        "message": "fix(store): digital products no longer demand a shipping address (#14895)",
-        "url": "https://github.com/KBVE/kbve/commit/8f3ce546d726d858ab4b07000a5e23ace2070d02",
-        "date": "2026-07-30T00:43:06Z"
+        "message": "feat(reel): serve sidecar subtitles for completed reels (#14969)",
+        "url": "https://github.com/KBVE/kbve/commit/9e275571c2c28c41a154c1799dfd1a3fdfb6fadb",
+        "date": "2026-07-31T03:12:08Z"
       },
       {
-        "sha": "afa5dc1",
+        "sha": "3823652",
         "author": "h0lybyte",
-        "message": "Merge pull request #14893 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/afa5dc161a8d08e65f6756b7ce7ce1aa02513a1f",
-        "date": "2026-07-30T00:30:25Z"
+        "message": "feat(astro-kbve): palworld interactive map with alpha bosses (#14972)",
+        "url": "https://github.com/KBVE/kbve/commit/38236524e2280075a6ba6e60ebc35c81e277552e",
+        "date": "2026-07-31T03:09:40Z"
       },
       {
-        "sha": "4caa7c3",
+        "sha": "f926eed",
         "author": "h0lybyte",
-        "message": "feat(graph): enhance UI/UX with navigation controls, brighter colors, and keyboard shortcuts (#14894)",
-        "url": "https://github.com/KBVE/kbve/commit/4caa7c3e3dab03253ed3d350d8e8e5e31c0ef55a",
-        "date": "2026-07-30T00:28:45Z"
+        "message": "chore(deps): bump clap 4.6.4 and postcss-merge-rules 8.0.1 (#14964)",
+        "url": "https://github.com/KBVE/kbve/commit/f926eedebc3181e4f1ab4ecb8bb5bc7029c693fd",
+        "date": "2026-07-30T22:24:27Z"
       },
       {
-        "sha": "0f2a7bb",
+        "sha": "a572a9a",
+        "author": "github-actions[bot]",
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14968)",
+        "url": "https://github.com/KBVE/kbve/commit/a572a9a86cc143c6e53bb3ae9899f554a65fa574",
+        "date": "2026-07-30T21:29:30Z"
+      },
+      {
+        "sha": "0cae2f7",
         "author": "h0lybyte",
-        "message": "fix(reel): disable gluetun DoT - DNS storm collapses the peer swarm (#14892)",
-        "url": "https://github.com/KBVE/kbve/commit/0f2a7bbb2f51cc6a71ef03172bc1f6c721ca1191",
-        "date": "2026-07-30T00:03:06Z"
+        "message": "feat(reel): cookie auth so native HLS works on iOS Safari (#14967)",
+        "url": "https://github.com/KBVE/kbve/commit/0cae2f76ea5f76abc88e411aa55e4e1d70cc8811",
+        "date": "2026-07-30T21:27:18Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 368,
+    "merged": 373,
     "recent": [
       {
-        "number": 14902,
-        "title": "Release: 1 chore \u2192 Main",
+        "number": 14980,
+        "title": "Atomic: reel v0.1.31 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14902"
+        "url": "https://github.com/KBVE/kbve/pull/14980"
       },
       {
-        "number": 14900,
-        "title": "fix(reel): revert DNS override to gluetun default (heal crashloop)",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14900"
-      },
-      {
-        "number": 14901,
-        "title": "Atomic: axum-kbve v1.0.257 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14901"
-      },
-      {
-        "number": 14899,
-        "title": "Release: 1 fix \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14899"
-      },
-      {
-        "number": 14898,
-        "title": "fix(reel): correct gluetun plain-DNS env (DOT=off crashed the pod)",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14898"
-      },
-      {
-        "number": 14896,
-        "title": "Release: 1 fix, 1 chore \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14896"
-      },
-      {
-        "number": 14897,
+        "number": 14978,
         "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14897"
+        "url": "https://github.com/KBVE/kbve/pull/14978"
       },
       {
-        "number": 14895,
-        "title": "fix(store): digital products no longer demand a shipping address",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14895"
-      },
-      {
-        "number": 14893,
-        "title": "Release: 1 feature, 1 fix \u2192 Main",
+        "number": 14966,
+        "title": "Release: 3 features, 2 fixes, 2 perfs, 5 chores \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14893"
+        "url": "https://github.com/KBVE/kbve/pull/14966"
       },
       {
-        "number": 14894,
-        "title": "feat(graph): enhance UI/UX with navigation controls, brighter colors, and keyboard shortcuts",
+        "number": 14975,
+        "title": "perf(reel): veryfast x264 preset for VOD transcode (0.1.29)",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14894"
+        "url": "https://github.com/KBVE/kbve/pull/14975"
+      },
+      {
+        "number": 14977,
+        "title": "chore(ci): sync ci-dispatch-manifest",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/14977"
+      },
+      {
+        "number": 14974,
+        "title": "chore(reel): bump CPU + encode threads for faster transcoding",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14974"
+      },
+      {
+        "number": 14976,
+        "title": "perf(reel): reuse completed live HLS, skip re-encode (0.1.30)",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14976"
+      },
+      {
+        "number": 14973,
+        "title": "chore(ci): sync ci-dispatch-manifest",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/14973"
+      },
+      {
+        "number": 14971,
+        "title": "fix(desktop-kbve): resolve lint failures in onichan view",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14971"
+      },
+      {
+        "number": 14969,
+        "title": "feat(reel): sidecar subtitles for completed reels (0.1.28)",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/14969"
       }
     ]
   },
   "issues": {
-    "opened": 376,
-    "closed": 371
+    "opened": 383,
+    "closed": 377
   }
 }
