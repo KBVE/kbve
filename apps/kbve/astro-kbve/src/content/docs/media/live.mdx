@@ -1,0 +1,36 @@
+---
+title: Live Channel
+description: A continuous KBVE media channel — finished reels queue up and play back-to-back, no clicking between titles.
+template: splash
+tableOfContents: false
+graph:
+    visible: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
+sidebar:
+    label: Live
+    order: 8
+    attrs:
+        data-auth-visibility: staff
+tags:
+    - media
+    - reel
+    - streaming
+    - live
+    - staff
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - name: Home
+          path: /
+        - name: Media
+          path: /media/
+        - name: Live
+          path: /media/live/
+---
+
+import AstroReelLive from '@/components/media/AstroReelLive.astro';
+
+<AstroReelLive />

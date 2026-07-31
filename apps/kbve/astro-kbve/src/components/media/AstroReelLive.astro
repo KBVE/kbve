@@ -1,0 +1,265 @@
+---
+import BentoShell from '@/components/hero/BentoShell.astro';
+import ReactReelLive from '@/components/media/ReactReelLive';
+---
+
+<BentoShell id="reel-live" eyebrow="Media" heading="Live channel.">
+	<div class="reel-live-wrap not-content">
+		<ReactReelLive client:only="react" />
+	</div>
+</BentoShell>
+
+<style>
+	.reel-live-wrap {
+		padding: 1.5rem 1rem 3rem;
+	}
+
+	@media (min-width: 640px) {
+		.reel-live-wrap {
+			padding-inline: 1.5rem;
+		}
+	}
+
+	:global(.reel-live) {
+		display: grid;
+		gap: 1.25rem;
+		grid-template-columns: 1fr;
+	}
+
+	@media (min-width: 1024px) {
+		:global(.reel-live) {
+			grid-template-columns: minmax(0, 1fr) 22rem;
+			align-items: start;
+		}
+	}
+
+	:global(.reel-live__gate) {
+		border: 1px solid #27272a;
+		border-radius: 0.75rem;
+		padding: 2rem;
+		background: #0c0c0e;
+		color: #9ca3af;
+		text-align: center;
+	}
+
+	:global(.reel-player__stage) {
+		position: relative;
+		width: 100%;
+		aspect-ratio: 16 / 9;
+		background: #000;
+		border-radius: 0.75rem;
+		overflow: hidden;
+	}
+
+	:global(.reel-player__video) {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+	}
+
+	:global(.reel-player__overlay) {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		color: #e5e7eb;
+		text-align: center;
+		padding: 1rem;
+	}
+
+	:global(.reel-player__meta) {
+		color: #9ca3af;
+		font-size: 0.8125rem;
+	}
+
+	:global(.reel-player__error) {
+		color: #f87171;
+		font-size: 0.875rem;
+	}
+
+	:global(.reel-player__notice) {
+		color: #fbbf24;
+		font-size: 0.8125rem;
+		margin: 0.75rem 0 0;
+	}
+
+	:global(.reel-player__theater-toggle) {
+		position: absolute;
+		top: 0.6rem;
+		right: 0.6rem;
+		z-index: 2;
+		padding: 0.35rem 0.7rem;
+		border-radius: 0.4rem;
+		border: 1px solid rgba(255, 255, 255, 0.25);
+		background: rgba(0, 0, 0, 0.55);
+		color: #e5e7eb;
+		font-size: 0.75rem;
+		cursor: pointer;
+		opacity: 0.75;
+		transition: opacity 0.15s ease;
+	}
+
+	:global(.reel-player__theater-toggle:hover),
+	:global(.reel-player__theater-toggle:focus-visible) {
+		opacity: 1;
+	}
+
+	:global(.reel-live--theater) {
+		position: fixed;
+		inset: 0;
+		z-index: 9999;
+		background: #000;
+		display: block;
+	}
+
+	:global(.reel-live--theater .reel-live__stage-wrap) {
+		height: 100%;
+	}
+
+	:global(.reel-live--theater .reel-player__stage) {
+		width: 100%;
+		height: 100%;
+		aspect-ratio: auto;
+		border-radius: 0;
+	}
+
+	:global(.reel-live--theater .reel-live__rail) {
+		display: none;
+	}
+
+	:global(.reel-live__start) {
+		margin-top: 0.5rem;
+		padding: 0.55rem 1.4rem;
+		border-radius: 0.5rem;
+		border: 1px solid #3f3f46;
+		background: #18181b;
+		color: #e5e7eb;
+		cursor: pointer;
+		font-size: 0.875rem;
+	}
+
+	:global(.reel-live__start:disabled) {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	:global(.reel-live__rail) {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		min-width: 0;
+	}
+
+	:global(.reel-live__now),
+	:global(.reel-live__queue) {
+		border: 1px solid #27272a;
+		border-radius: 0.75rem;
+		padding: 1rem;
+		background: #0c0c0e;
+	}
+
+	:global(.reel-live__eyebrow) {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.4rem;
+		font-size: 0.7rem;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: #9ca3af;
+	}
+
+	:global(.reel-live__now-title) {
+		margin: 0.5rem 0 0.25rem;
+		font-size: 1rem;
+		font-weight: 600;
+		color: #e5e7eb;
+		overflow-wrap: anywhere;
+	}
+
+	:global(.reel-live__now-meta) {
+		margin: 0;
+		font-size: 0.8125rem;
+		color: #9ca3af;
+	}
+
+	:global(.reel-live__actions) {
+		display: flex;
+		gap: 0.5rem;
+		margin-top: 0.85rem;
+	}
+
+	:global(.reel-live__actions button),
+	:global(.reel-live__actions a) {
+		padding: 0.45rem 0.9rem;
+		border-radius: 0.5rem;
+		border: 1px solid #3f3f46;
+		background: #18181b;
+		color: #e5e7eb;
+		cursor: pointer;
+		font-size: 0.8125rem;
+		text-decoration: none;
+	}
+
+	:global(.reel-live__actions button:disabled) {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	:global(.reel-live__queue ul) {
+		list-style: none;
+		margin: 0.75rem 0 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+		max-height: 24rem;
+		overflow-y: auto;
+	}
+
+	:global(.reel-live__queue li button) {
+		width: 100%;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		padding: 0.5rem 0.65rem;
+		border-radius: 0.5rem;
+		border: 1px solid transparent;
+		background: #131316;
+		color: #e5e7eb;
+		cursor: pointer;
+		font-size: 0.8125rem;
+		text-align: left;
+	}
+
+	:global(.reel-live__queue li button:hover) {
+		border-color: #3f3f46;
+	}
+
+	:global(.reel-live__q-title) {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	:global(.reel-live__q-meta) {
+		flex-shrink: 0;
+		color: #9ca3af;
+		font-size: 0.75rem;
+	}
+
+	:global(.reel-live__empty),
+	:global(.reel-live__error) {
+		margin: 0.75rem 0 0;
+		font-size: 0.8125rem;
+		color: #9ca3af;
+	}
+
+	:global(.reel-live__error) {
+		color: #f87171;
+	}
+</style>
