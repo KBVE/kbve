@@ -61,13 +61,6 @@
       "sellPrice": 2,
       "emoji": "🟣",
       "weight": 0.1,
-      "skilling": {
-        "skill": "SKILLING_FORAGING",
-        "xpReward": 5,
-        "gatherTime": 0.5,
-        "respawnTime": 20,
-        "resourceNode": "flower-allium"
-      },
       "tags": [
         "isometric"
       ]
@@ -176,10 +169,6 @@
       "stackable": true,
       "maxStack": 50,
       "buyPrice": 1,
-      "compress": {
-        "targetRef": "quiver",
-        "ratio": 100
-      },
       "recipes": [
         {
           "skill": "SKILLING_FLETCHING",
@@ -422,13 +411,6 @@
       "sellPrice": 2,
       "emoji": "🔔",
       "weight": 0.1,
-      "skilling": {
-        "skill": "SKILLING_FORAGING",
-        "xpReward": 5,
-        "gatherTime": 0.5,
-        "respawnTime": 20,
-        "resourceNode": "flower-bell"
-      },
       "tags": [
         "isometric"
       ]
@@ -457,13 +439,6 @@
         "perishable": true,
         "shelfLifeSeconds": 259200,
         "spoilsIntoRef": "rotten-food"
-      },
-      "skilling": {
-        "skill": "SKILLING_FORAGING"
-      },
-      "compress": {
-        "targetRef": "meal",
-        "ratio": 100
       }
     },
     {
@@ -487,13 +462,6 @@
       "sellPrice": 3,
       "emoji": "🏵️",
       "weight": 0.1,
-      "skilling": {
-        "skill": "SKILLING_FORAGING",
-        "xpReward": 8,
-        "gatherTime": 0.5,
-        "respawnTime": 25,
-        "resourceNode": "flower-blue-orchid"
-      },
       "tags": [
         "isometric"
       ]
@@ -706,10 +674,7 @@
       "emoji": "🪵",
       "stackable": true,
       "maxStack": 30,
-      "buyPrice": 1,
-      "skilling": {
-        "skill": "SKILLING_WOODCUTTING"
-      }
+      "buyPrice": 1
     },
     {
       "template": "splash",
@@ -825,10 +790,7 @@
       "rarity": "ITEM_RARITY_COMMON",
       "stackable": true,
       "maxStack": 20,
-      "buyPrice": 3,
-      "skilling": {
-        "skill": "SKILLING_FORAGING"
-      }
+      "buyPrice": 3
     },
     {
       "template": "splash",
@@ -846,10 +808,7 @@
       "rarity": "ITEM_RARITY_COMMON",
       "stackable": true,
       "maxStack": 50,
-      "buyPrice": 4,
-      "skilling": {
-        "skill": "SKILLING_FORAGING"
-      }
+      "buyPrice": 4
     },
     {
       "template": "splash",
@@ -1042,10 +1001,6 @@
         "perishable": true,
         "shelfLifeSeconds": 1209600,
         "spoilsIntoRef": "rotten-food"
-      },
-      "compress": {
-        "targetRef": "meal",
-        "ratio": 100
       }
     },
     {
@@ -1117,13 +1072,6 @@
       "sellPrice": 5,
       "emoji": "🍄",
       "weight": 0.15,
-      "skilling": {
-        "skill": "SKILLING_FORAGING",
-        "xpReward": 10,
-        "gatherTime": 0.5,
-        "respawnTime": 25,
-        "resourceNode": "mushroom-chanterelle"
-      },
       "food": {
         "heals": 4,
         "doses": 1,
@@ -1201,10 +1149,6 @@
         "perishable": true,
         "shelfLifeSeconds": 1814400,
         "spoilsIntoRef": "rotten-food"
-      },
-      "compress": {
-        "targetRef": "meal",
-        "ratio": 100
       }
     },
     {
@@ -1282,10 +1226,6 @@
       "stackable": true,
       "maxStack": 50,
       "buyPrice": 1,
-      "compress": {
-        "targetRef": "gold-bar",
-        "ratio": 100
-      },
       "hasImg": true
     },
     {
@@ -1332,10 +1272,6 @@
         "perishable": true,
         "shelfLifeSeconds": 259200,
         "spoilsIntoRef": "rotten-meat"
-      },
-      "compress": {
-        "targetRef": "meal",
-        "ratio": 100
       }
     },
     {
@@ -1364,10 +1300,6 @@
         "perishable": true,
         "shelfLifeSeconds": 259200,
         "spoilsIntoRef": "rotten-meat"
-      },
-      "compress": {
-        "targetRef": "meal",
-        "ratio": 100
       }
     },
     {
@@ -1395,10 +1327,6 @@
         "perishable": true,
         "shelfLifeSeconds": 259200,
         "spoilsIntoRef": "rotten-meat"
-      },
-      "compress": {
-        "targetRef": "meal",
-        "ratio": 100
       }
     },
     {
@@ -1426,10 +1354,6 @@
         "perishable": true,
         "shelfLifeSeconds": 259200,
         "spoilsIntoRef": "rotten-meat"
-      },
-      "compress": {
-        "targetRef": "meal",
-        "ratio": 100
       }
     },
     {
@@ -1453,15 +1377,6 @@
       "sellPrice": 6,
       "emoji": "🟤",
       "weight": 4,
-      "skilling": {
-        "skill": "SKILLING_MINING",
-        "skillLevel": 1,
-        "xpReward": 18,
-        "gatherTime": 3,
-        "respawnTime": 40,
-        "resourceNode": "ore-copper",
-        "toolRequired": "pickaxe"
-      },
       "tags": [
         "isometric"
       ]
@@ -1487,13 +1402,6 @@
       "sellPrice": 2,
       "emoji": "🔵",
       "weight": 0.1,
-      "skilling": {
-        "skill": "SKILLING_FORAGING",
-        "xpReward": 5,
-        "gatherTime": 0.5,
-        "respawnTime": 20,
-        "resourceNode": "flower-cornflower"
-      },
       "tags": [
         "isometric"
       ]
@@ -1592,15 +1500,6 @@
       "sellPrice": 35,
       "emoji": "💎",
       "weight": 3.5,
-      "skilling": {
-        "skill": "SKILLING_MINING",
-        "skillLevel": 30,
-        "xpReward": 65,
-        "gatherTime": 5,
-        "respawnTime": 90,
-        "resourceNode": "ore-crystal",
-        "toolRequired": "pickaxe"
-      },
       "tags": [
         "isometric"
       ]
@@ -1626,13 +1525,6 @@
       "sellPrice": 2,
       "emoji": "🌼",
       "weight": 0.1,
-      "skilling": {
-        "skill": "SKILLING_FORAGING",
-        "xpReward": 5,
-        "gatherTime": 0.5,
-        "respawnTime": 20,
-        "resourceNode": "flower-daisy"
-      },
       "tags": [
         "isometric"
       ]
@@ -1731,13 +1623,6 @@
         "perishable": true,
         "shelfLifeSeconds": 345600,
         "spoilsIntoRef": "rotten-food"
-      },
-      "skilling": {
-        "skill": "SKILLING_FORAGING"
-      },
-      "compress": {
-        "targetRef": "meal",
-        "ratio": 100
       }
     },
     {
@@ -1843,10 +1728,6 @@
         "perishable": true,
         "shelfLifeSeconds": 1209600,
         "spoilsIntoRef": "rotten-meat"
-      },
-      "compress": {
-        "targetRef": "meal",
-        "ratio": 100
       }
     },
     {
@@ -2090,13 +1971,6 @@
       "sellPrice": 8,
       "emoji": "🍄",
       "weight": 0.2,
-      "skilling": {
-        "skill": "SKILLING_FORAGING",
-        "xpReward": 12,
-        "gatherTime": 0.5,
-        "respawnTime": 30,
-        "resourceNode": "mushroom-fly-agaric"
-      },
       "tags": [
         "isometric"
       ],
@@ -2150,10 +2024,6 @@
         "perishable": true,
         "shelfLifeSeconds": 172800,
         "spoilsIntoRef": "rotten-milk"
-      },
-      "compress": {
-        "targetRef": "meal",
-        "ratio": 100
       },
       "stacking": {
         "packMax": 50
@@ -2731,9 +2601,6 @@
       "stackable": true,
       "maxStack": 30,
       "buyPrice": 5,
-      "skilling": {
-        "skill": "SKILLING_FORAGING"
-      },
       "food": {
         "perishable": true,
         "shelfLifeSeconds": 604800,
@@ -3116,15 +2983,6 @@
       "sellPrice": 12,
       "emoji": "⛏️",
       "weight": 5,
-      "skilling": {
-        "skill": "SKILLING_MINING",
-        "skillLevel": 15,
-        "xpReward": 35,
-        "gatherTime": 4,
-        "respawnTime": 60,
-        "resourceNode": "ore-iron",
-        "toolRequired": "pickaxe"
-      },
       "tags": [
         "isometric"
       ]
@@ -3451,13 +3309,6 @@
       "sellPrice": 3,
       "emoji": "💜",
       "weight": 0.1,
-      "skilling": {
-        "skill": "SKILLING_FORAGING",
-        "xpReward": 7,
-        "gatherTime": 0.5,
-        "respawnTime": 20,
-        "resourceNode": "flower-lavender"
-      },
       "tags": [
         "isometric"
       ]
@@ -3544,10 +3395,7 @@
       "emoji": "🍃",
       "stackable": true,
       "maxStack": 20,
-      "buyPrice": 1,
-      "skilling": {
-        "skill": "SKILLING_WOODCUTTING"
-      }
+      "buyPrice": 1
     },
     {
       "template": "splash",
@@ -3677,20 +3525,9 @@
       "sellPrice": 2,
       "emoji": "🪵",
       "weight": 2.5,
-      "skilling": {
-        "skill": "SKILLING_WOODCUTTING",
-        "xpReward": 10,
-        "gatherTime": 2.5,
-        "respawnTime": 30,
-        "resourceNode": "tree"
-      },
       "tags": [
         "isometric"
       ],
-      "compress": {
-        "targetRef": "timber",
-        "ratio": 100
-      },
       "stacking": {
         "packMax": 12
       }
@@ -3989,13 +3826,6 @@
       "sellPrice": 4,
       "emoji": "🪨",
       "weight": 3,
-      "skilling": {
-        "skill": "SKILLING_MINING",
-        "xpReward": 15,
-        "gatherTime": 2.5,
-        "respawnTime": 35,
-        "resourceNode": "mossy-rock"
-      },
       "tags": [
         "isometric"
       ]
@@ -4024,13 +3854,6 @@
         "perishable": true,
         "shelfLifeSeconds": 259200,
         "spoilsIntoRef": "rotten-food"
-      },
-      "skilling": {
-        "skill": "SKILLING_FORAGING"
-      },
-      "compress": {
-        "targetRef": "meal",
-        "ratio": 100
       }
     },
     {
@@ -4344,6 +4167,31 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Pickaxe",
+        "hidden": true
+      },
+      "description": "A sturdy mining tool with a hardened steel head and a worn wooden haft, built for breaking rock and prying ore free from the seam.\n",
+      "lore": "Every miner's first and last purchase, passed hand to hand through shaft crews until the head is reforged more times than anyone can count. A good pickaxe outlasts the vein it was bought to work.\n",
+      "ref": "pickaxe",
+      "key": 634,
+      "id": "01KPICKAXE0000000000TOOLX1",
+      "name": "Pickaxe",
+      "typeFlags": 384,
+      "consumable": false,
+      "stackable": false,
+      "maxStack": 1,
+      "rarity": "ITEM_RARITY_COMMON",
+      "buyPrice": 50,
+      "sellPrice": 20,
+      "emoji": "⛏️",
+      "weight": 3,
+      "tags": [
+        "isometric"
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Pied Piper Jacket",
         "hidden": true
       },
@@ -4444,13 +4292,6 @@
       "sellPrice": 4,
       "emoji": "🍄",
       "weight": 0.2,
-      "skilling": {
-        "skill": "SKILLING_FORAGING",
-        "xpReward": 8,
-        "gatherTime": 0.5,
-        "respawnTime": 25,
-        "resourceNode": "mushroom-porcini"
-      },
       "food": {
         "heals": 3,
         "doses": 1,
@@ -4639,13 +4480,6 @@
         "perishable": true,
         "shelfLifeSeconds": 432000,
         "spoilsIntoRef": "rotten-food"
-      },
-      "skilling": {
-        "skill": "SKILLING_FORAGING"
-      },
-      "compress": {
-        "targetRef": "meal",
-        "ratio": 100
       }
     },
     {
@@ -5002,10 +4836,6 @@
         "perishable": true,
         "shelfLifeSeconds": 86400,
         "spoilsIntoRef": "rotten-meat"
-      },
-      "compress": {
-        "targetRef": "meal",
-        "ratio": 100
       }
     },
     {
@@ -5025,10 +4855,7 @@
       "emoji": "🌵",
       "stackable": true,
       "maxStack": 20,
-      "buyPrice": 2,
-      "skilling": {
-        "skill": "SKILLING_FORAGING"
-      }
+      "buyPrice": 2
     },
     {
       "template": "splash",
@@ -5053,10 +4880,6 @@
         "perishable": true,
         "shelfLifeSeconds": 86400,
         "spoilsIntoRef": "rotten-meat"
-      },
-      "compress": {
-        "targetRef": "meal",
-        "ratio": 100
       }
     },
     {
@@ -5100,10 +4923,6 @@
         "perishable": true,
         "shelfLifeSeconds": 172800,
         "spoilsIntoRef": "rotten-meat"
-      },
-      "compress": {
-        "targetRef": "meal",
-        "ratio": 100
       }
     },
     {
@@ -5206,13 +5025,6 @@
       "sellPrice": 3,
       "emoji": "🌹",
       "weight": 0.1,
-      "skilling": {
-        "skill": "SKILLING_FORAGING",
-        "xpReward": 6,
-        "gatherTime": 0.5,
-        "respawnTime": 20,
-        "resourceNode": "flower-rose"
-      },
       "tags": [
         "isometric"
       ]
@@ -5885,20 +5697,9 @@
       "sellPrice": 1,
       "emoji": "🪨",
       "weight": 3,
-      "skilling": {
-        "skill": "SKILLING_MINING",
-        "xpReward": 8,
-        "gatherTime": 2,
-        "respawnTime": 25,
-        "resourceNode": "boulder"
-      },
       "tags": [
         "isometric"
       ],
-      "compress": {
-        "targetRef": "stone-block",
-        "ratio": 100
-      },
       "stacking": {
         "packMax": 6
       }
@@ -5943,13 +5744,6 @@
       "sellPrice": 2,
       "emoji": "🌻",
       "weight": 0.15,
-      "skilling": {
-        "skill": "SKILLING_FORAGING",
-        "xpReward": 6,
-        "gatherTime": 0.5,
-        "respawnTime": 20,
-        "resourceNode": "flower-sunflower"
-      },
       "tags": [
         "isometric"
       ]
@@ -6348,13 +6142,6 @@
       "sellPrice": 2,
       "emoji": "🌷",
       "weight": 0.1,
-      "skilling": {
-        "skill": "SKILLING_FORAGING",
-        "xpReward": 5,
-        "gatherTime": 0.5,
-        "respawnTime": 20,
-        "resourceNode": "flower-tulip"
-      },
       "tags": [
         "isometric"
       ]
@@ -7415,13 +7202,6 @@
       "sellPrice": 1,
       "emoji": "🌸",
       "weight": 0.1,
-      "skilling": {
-        "skill": "SKILLING_FORAGING",
-        "xpReward": 4,
-        "gatherTime": 0.5,
-        "respawnTime": 20,
-        "resourceNode": "flower-wildflower"
-      },
       "tags": [
         "isometric"
       ]

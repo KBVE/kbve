@@ -226,6 +226,7 @@ namespace RareIcon
             { "hardcase-pouches", ItemId.HardcasePouches },
             { "hardpoint-shoulders", ItemId.HardpointShoulders },
             { "grinning-pumpkin-helm", ItemId.GrinningPumpkinHelm },
+            { "pickaxe", ItemId.Pickaxe },
         };
     }
 }
