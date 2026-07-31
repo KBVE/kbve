@@ -197,7 +197,8 @@ export default function ReactPalworldMap() {
 				const [ux, uy] = entPos(eid, now);
 				const sx = screenXY.x(ux);
 				const sy = screenXY.y(uy);
-				if (sx < -60 || sy < -60 || sx > w + 60 || sy > h + 60) continue;
+				if (sx < -60 || sy < -60 || sx > w + 60 || sy > h + 60)
+					continue;
 				drawList.push(eid);
 				drawPos.set(eid, [sx, sy]);
 				const size = meta.size;
@@ -268,7 +269,13 @@ export default function ReactPalworldMap() {
 						const tw = ctx.measureText(txt).width + 8;
 						ctx.fillStyle = 'rgba(8,14,24,0.85)';
 						ctx.beginPath();
-						ctx.roundRect(sx - tw / 2, sy + size / 2 + 2, tw, 14, 4);
+						ctx.roundRect(
+							sx - tw / 2,
+							sy + size / 2 + 2,
+							tw,
+							14,
+							4,
+						);
 						ctx.fill();
 						ctx.fillStyle = '#fbbf24';
 						ctx.fillText(txt, sx, sy + size / 2 + 12.5);

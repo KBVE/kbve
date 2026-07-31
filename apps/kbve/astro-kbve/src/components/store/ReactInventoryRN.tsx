@@ -22,6 +22,10 @@ export default function ReactInventoryRN() {
 	if (!ready) return null;
 
 	return (
-		<InventoryView getToken={token} baseUrl="" authenticated={authenticated} />
+		<InventoryView
+			getToken={token}
+			baseUrl=""
+			authenticated={authenticated}
+		/>
 	);
 }

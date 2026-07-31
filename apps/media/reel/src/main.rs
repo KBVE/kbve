@@ -51,7 +51,10 @@ async fn main() -> anyhow::Result<()> {
         cfg.reap_interval_secs,
     ));
 
-    tokio::spawn(engine::vpn_watchdog_loop(eng.clone(), cfg.vpn_watchdog_secs));
+    tokio::spawn(engine::vpn_watchdog_loop(
+        eng.clone(),
+        cfg.vpn_watchdog_secs,
+    ));
 
     if !cfg.trackers_urls.is_empty() {
         tokio::spawn(engine::tracker_refresh_loop(

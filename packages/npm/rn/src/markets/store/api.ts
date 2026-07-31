@@ -35,15 +35,24 @@ export interface StoreApi {
 	topupCheckout(packId: string): Promise<{ checkout_url: string }>;
 	staffUpsertProduct(body: StaffProductBody): Promise<{ id: string }>;
 	staffSetProductStatus(productId: string, status: string): Promise<void>;
-	staffUpsertVariant(productId: string, body: StaffVariantBody): Promise<{ id: string }>;
+	staffUpsertVariant(
+		productId: string,
+		body: StaffVariantBody,
+	): Promise<{ id: string }>;
 	staffSetVariantStatus(variantId: string, status: string): Promise<void>;
 	staffListOrders(status?: OrderStatus): Promise<StoreOrderStaff[]>;
 	staffAdvanceOrder(
 		orderId: number,
-		body: { to_status: OrderStatus; tracking?: Record<string, unknown>; note?: string },
+		body: {
+			to_status: OrderStatus;
+			tracking?: Record<string, unknown>;
+			note?: string;
+		},
 	): Promise<void>;
 	staffRefundOrder(orderId: number, reason?: string): Promise<void>;
-	staffSubmitPod(orderId: number): Promise<{ order_id: number; external_id: string }>;
+	staffSubmitPod(
+		orderId: number,
+	): Promise<{ order_id: number; external_id: string }>;
 }
 
 interface Req {
@@ -56,7 +65,12 @@ interface Req {
 export function createStoreApi(opts: StoreApiOptions): StoreApi {
 	const { getToken, baseUrl = '' } = opts;
 
-	async function call<T>({ path, method = 'GET', body, auth = false }: Req): Promise<T> {
+	async function call<T>({
+		path,
+		method = 'GET',
+		body,
+		auth = false,
+	}: Req): Promise<T> {
 		const headers: Record<string, string> = {};
 		if (body !== undefined) headers['Content-Type'] = 'application/json';
 		if (auth) {
@@ -72,7 +86,10 @@ export function createStoreApi(opts: StoreApiOptions): StoreApi {
 				body: body === undefined ? undefined : JSON.stringify(body),
 			});
 		} catch (e) {
-			throw new StoreApiError(e instanceof Error ? e.message : 'request failed', 0);
+			throw new StoreApiError(
+				e instanceof Error ? e.message : 'request failed',
+				0,
+			);
 		}
 		const text = await res.text();
 		let json: unknown;
@@ -82,9 +99,16 @@ export function createStoreApi(opts: StoreApiOptions): StoreApi {
 			json = undefined;
 		}
 		if (!res.ok) {
-			const j = (json ?? {}) as { error?: string; message?: string; detail?: string };
+			const j = (json ?? {}) as {
+				error?: string;
+				message?: string;
+				detail?: string;
+			};
 			throw new StoreApiError(
-				j.message ?? j.error ?? j.detail ?? (text || `HTTP ${res.status}`),
+				j.message ??
+					j.error ??
+					j.detail ??
+					(text || `HTTP ${res.status}`),
 				res.status,
 				j.error,
 			);
@@ -99,8 +123,12 @@ export function createStoreApi(opts: StoreApiOptions): StoreApi {
 				path: `/api/v1/store/products/${encodeURIComponent(slug)}`,
 			}),
 		myEntitlements: () =>
-			call<StoreEntitlement[]>({ path: '/api/v1/store/me/entitlements', auth: true }),
-		myOrders: () => call<StoreOrder[]>({ path: '/api/v1/store/me/orders', auth: true }),
+			call<StoreEntitlement[]>({
+				path: '/api/v1/store/me/entitlements',
+				auth: true,
+			}),
+		myOrders: () =>
+			call<StoreOrder[]>({ path: '/api/v1/store/me/orders', auth: true }),
 		myPurchases: (limit) =>
 			call<StorePurchase[]>({
 				path: `/api/v1/store/me/purchases${limit ? `?limit=${limit}` : ''}`,
@@ -133,7 +161,12 @@ export function createStoreApi(opts: StoreApiOptions): StoreApi {
 				auth: true,
 			}),
 		staffUpsertProduct: (body) =>
-			call<{ id: string }>({ path: '/api/v1/store/staff/products', method: 'POST', body, auth: true }),
+			call<{ id: string }>({
+				path: '/api/v1/store/staff/products',
+				method: 'POST',
+				body,
+				auth: true,
+			}),
 		staffSetProductStatus: (productId, status) =>
 			call<void>({
 				path: `/api/v1/store/staff/products/${encodeURIComponent(productId)}/status`,
@@ -161,7 +194,12 @@ export function createStoreApi(opts: StoreApiOptions): StoreApi {
 				auth: true,
 			}),
 		staffAdvanceOrder: (orderId, body) =>
-			call<void>({ path: `/api/v1/store/staff/orders/${orderId}/advance`, method: 'POST', body, auth: true }),
+			call<void>({
+				path: `/api/v1/store/staff/orders/${orderId}/advance`,
+				method: 'POST',
+				body,
+				auth: true,
+			}),
 		staffRefundOrder: (orderId, reason) =>
 			call<void>({
 				path: `/api/v1/store/staff/orders/${orderId}/refund`,

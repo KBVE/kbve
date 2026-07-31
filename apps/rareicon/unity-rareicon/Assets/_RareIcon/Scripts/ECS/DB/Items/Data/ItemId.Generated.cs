@@ -223,5 +223,6 @@ namespace RareIcon
         HardcasePouches = 631,  // hardcase-pouches
         HardpointShoulders = 632,  // hardpoint-shoulders
         GrinningPumpkinHelm = 633,  // grinning-pumpkin-helm
+        Pickaxe = 634,  // pickaxe
     }
 }

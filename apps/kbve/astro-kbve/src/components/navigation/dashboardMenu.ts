@@ -60,9 +60,7 @@ export const dashboardNav: NavNode[] = [
 		items: [
 			{
 				label: 'AWS',
-				items: [
-					{ label: 'S3', link: '/dashboard/cloud/aws/s3/' },
-				],
+				items: [{ label: 'S3', link: '/dashboard/cloud/aws/s3/' }],
 			},
 		],
 	},

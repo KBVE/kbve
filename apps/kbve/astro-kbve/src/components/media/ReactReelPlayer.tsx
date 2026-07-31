@@ -52,7 +52,10 @@ export default function ReactReelPlayer() {
 	useEffect(() => {
 		if (!selectedId || !videoRef.current) return;
 		void player.start(videoRef.current, selectedId);
-		videoRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+		videoRef.current.scrollIntoView({
+			behavior: 'smooth',
+			block: 'center',
+		});
 	}, [selectedId, player]);
 
 	// Theater mode blows the stage up to fill the window (not native fullscreen),
@@ -118,10 +121,7 @@ export default function ReactReelPlayer() {
 			{notice && <p className="reel-player__notice">{notice}</p>}
 			{(state === 'error' || (selectedId && !playing && !busy)) && (
 				<div className="reel-player__controls">
-					<button
-						type="button"
-						disabled={!selectedId}
-						onClick={play}>
+					<button type="button" disabled={!selectedId} onClick={play}>
 						{state === 'error' ? 'Retry' : 'Play'}
 					</button>
 				</div>

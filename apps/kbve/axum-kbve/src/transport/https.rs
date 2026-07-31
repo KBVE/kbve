@@ -579,10 +579,7 @@ fn router(state: AppState) -> Router {
             "/api/v1/store/me/entitlements",
             get(super::store::my_entitlements),
         )
-        .route(
-            "/api/v1/store/products/{slug}/buy",
-            post(super::store::buy),
-        )
+        .route("/api/v1/store/products/{slug}/buy", post(super::store::buy))
         .route(
             "/api/v1/store/service/buy-discord",
             post(super::store::service_buy_discord),
@@ -636,10 +633,7 @@ fn router(state: AppState) -> Router {
             "/api/v1/wallet/topup/checkout",
             post(super::topup::checkout),
         )
-        .route(
-            "/api/v1/wallet/topup/webhook",
-            post(super::topup::webhook),
-        )
+        .route("/api/v1/wallet/topup/webhook", post(super::topup::webhook))
         .route(
             "/api/v1/store/staff/orders/{order_id}/submit-pod",
             post(super::pod::submit_pod),

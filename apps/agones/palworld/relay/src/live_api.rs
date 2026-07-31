@@ -1,13 +1,7 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use axum::{
-    Json, Router,
-    extract::State,
-    http::header,
-    response::IntoResponse,
-    routing::get,
-};
+use axum::{Json, Router, extract::State, http::header, response::IntoResponse, routing::get};
 use serde::Serialize;
 use tokio::sync::RwLock;
 use tracing::info;

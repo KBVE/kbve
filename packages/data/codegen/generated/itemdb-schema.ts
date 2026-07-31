@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/itemdb.binpb
  * Config: ../itemdb-zod-config.json
- * Generated: 2026-07-20T00:37:21.605Z
+ * Generated: 2026-07-31T08:53:52.913Z
  */
 
 import { z } from 'zod';
@@ -224,8 +224,6 @@ export const FoodInfoSchema = z
 	.object({
 		heals: z.number().nullable().optional(),
 		doses: z.number().nullable().optional(),
-		cooking_level: z.number().nullable().optional(),
-		cooking_xp: z.number().nullable().optional(),
 		burn_level: z.number().nullable().optional(),
 		duration: z.number().nullable().optional(),
 		buff_effects: z.array(UseEffectSchema).nullable().optional(),
@@ -240,22 +238,6 @@ export const FoodInfoSchema = z
 	.passthrough();
 
 export type FoodInfo = z.infer<typeof FoodInfoSchema>;
-
-// SkillingInfo
-export const SkillingInfoSchema = z
-	.object({
-		skill: SkillingTypeSchema,
-		skill_level: z.number().nullable().optional(),
-		xp_reward: z.number().nullable().optional(),
-		tool_required: z.string().nullable().optional(),
-		gather_time: z.number().nullable().optional(),
-		respawn_time: z.number().nullable().optional(),
-		resource_node: z.string().nullable().optional(),
-		harvest_weight: z.number().nullable().optional(),
-	})
-	.passthrough();
-
-export type SkillingInfo = z.infer<typeof SkillingInfoSchema>;
 
 // CraftingIngredient
 export const CraftingIngredientSchema = z.object({
@@ -325,15 +307,6 @@ export const ItemSourceSchema = z.object({
 });
 
 export type ItemSource = z.infer<typeof ItemSourceSchema>;
-
-// CompressInfo
-export const CompressInfoSchema = z.object({
-	target_ref: z.string(),
-	ratio: z.number(),
-	facility: z.string().optional(),
-});
-
-export type CompressInfo = z.infer<typeof CompressInfoSchema>;
 
 // StackingInfo
 export const StackingInfoSchema = z.object({
@@ -561,7 +534,6 @@ export const ItemSchema = z.object({
 	use_effects: z.array(UseEffectSchema).optional(),
 	equipment: EquipmentInfoSchema.optional(),
 	food: FoodInfoSchema.optional(),
-	skilling: SkillingInfoSchema.optional(),
 	recipes: z.array(CraftingRecipeSchema).optional(),
 	deployable: DeployableInfoSchema.optional(),
 	resistances: z.array(ItemAffinitySchema).optional(),
@@ -572,7 +544,6 @@ export const ItemSchema = z.object({
 	set_ref: z.string().optional(),
 	durability: z.number().optional(),
 	max_durability: z.number().optional(),
-	compress: CompressInfoSchema.optional(),
 	stacking: StackingInfoSchema.optional(),
 	pool_group: z.string().optional(),
 	weapon: WeaponInfoSchema.optional(),
@@ -626,3 +597,28 @@ export const ItemRegistrySchema = z.object({
 });
 
 export type ItemRegistry = z.infer<typeof ItemRegistrySchema>;
+
+// CompressInfo
+export const CompressInfoSchema = z.object({
+	target_ref: z.string(),
+	ratio: z.number(),
+	facility: z.string().optional(),
+});
+
+export type CompressInfo = z.infer<typeof CompressInfoSchema>;
+
+// SkillingInfo
+export const SkillingInfoSchema = z
+	.object({
+		skill: SkillingTypeSchema,
+		skill_level: z.number().nullable().optional(),
+		xp_reward: z.number().nullable().optional(),
+		tool_required: z.string().nullable().optional(),
+		gather_time: z.number().nullable().optional(),
+		respawn_time: z.number().nullable().optional(),
+		resource_node: z.string().nullable().optional(),
+		harvest_weight: z.number().nullable().optional(),
+	})
+	.passthrough();
+
+export type SkillingInfo = z.infer<typeof SkillingInfoSchema>;

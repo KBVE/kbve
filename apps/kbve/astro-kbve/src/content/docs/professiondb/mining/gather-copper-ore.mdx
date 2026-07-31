@@ -2,17 +2,17 @@
 title: 'Mine Copper Ore'
 kind: 'action'
 profession: 'mining'
-ref: 'mine-copper-ore'
-key: 1
+ref: 'gather-copper-ore'
+key: 15
 name: 'Mine Copper Ore'
 required_level: 1
-xp_reward: 10
+xp_reward: 18
 duration_ms: 3000
+resource_node_ref: 'ore-copper'
+tool_refs: ['pickaxe']
 outputs:
     - item_ref: 'copper-ore'
       quantity: 1
-tool_refs:
-    - 'bronze-pickaxe'
 ---
 
-Chip copper ore from a surface vein.
+Mine copper ore from a copper vein.

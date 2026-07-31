@@ -25,10 +25,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/2252",
 				"assignees": [],
-				"labels": [
-					"1",
-					"enhancement"
-				],
+				"labels": ["1", "enhancement"],
 				"matrix": null,
 				"date": "2024-07-03",
 				"milestone": null
@@ -39,14 +36,8 @@
 				"title": "[Concept] : [Unity] : Transport System",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/4643",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"enhancement",
-					"unity"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["0", "enhancement", "unity"],
 				"matrix": null,
 				"date": "2025-05-12",
 				"milestone": null
@@ -57,14 +48,8 @@
 				"title": "[Concept] : Add Intel NUC worker nodes to existing Talos KBVE cluster",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/5624",
-				"assignees": [
-					"h0lybyte",
-					"Copilot"
-				],
-				"labels": [
-					"0",
-					"enhancement"
-				],
+				"assignees": ["h0lybyte", "Copilot"],
+				"labels": ["0", "enhancement"],
 				"matrix": null,
 				"date": "2025-08-03",
 				"milestone": null
@@ -75,14 +60,8 @@
 				"title": "[Concept] : [Unity] : Pathfinding ECS",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/6437",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"enhancement",
-					"unity"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["0", "enhancement", "unity"],
 				"matrix": null,
 				"date": "2025-09-28",
 				"milestone": null
@@ -93,14 +72,8 @@
 				"title": "[Concept] : [Unity] : ItemDB ECS Migration",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/6438",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"enhancement",
-					"unity"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["0", "enhancement", "unity"],
 				"matrix": null,
 				"date": "2025-09-28",
 				"milestone": null
@@ -111,14 +84,8 @@
 				"title": "[Concept] : [Unity] : Entity Blittable System",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/6576",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"enhancement",
-					"unity"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["0", "enhancement", "unity"],
 				"matrix": null,
 				"date": "2025-10-14",
 				"milestone": null
@@ -129,15 +96,8 @@
 				"title": "[DISCORDSH] Rust-First Vote Process — Rate-Limited Server Voting Pipeline",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/7730",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"1",
-					"enhancement",
-					"security",
-					"rust"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["1", "enhancement", "security", "rust"],
 				"matrix": null,
 				"date": "2026-03-17",
 				"milestone": null
@@ -148,14 +108,8 @@
 				"title": "[PG] Deploy CNPG Pooler (PgBouncer) and migrate services from direct -rw connections",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/7593",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"2",
-					"enhancement",
-					"dependencies"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["2", "enhancement", "dependencies"],
 				"matrix": null,
 				"date": "2026-03-17",
 				"milestone": null
@@ -166,13 +120,8 @@
 				"title": "[DISCORDSH] POC: Mockoon docker-compose for local E2E testing",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/8180",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"1",
-					"enhancement"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["1", "enhancement"],
 				"matrix": null,
 				"date": "2026-03-17",
 				"milestone": null
@@ -184,10 +133,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/8245",
 				"assignees": [],
-				"labels": [
-					"1",
-					"enhancement"
-				],
+				"labels": ["1", "enhancement"],
 				"matrix": null,
 				"date": "2026-04-09",
 				"milestone": null
@@ -199,11 +145,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/9789",
 				"assignees": [],
-				"labels": [
-					"3",
-					"enhancement",
-					"ci"
-				],
+				"labels": ["3", "enhancement", "ci"],
 				"matrix": null,
 				"date": "2026-04-08",
 				"milestone": null
@@ -214,13 +156,8 @@
 				"title": "[ISOMETRIC] [BEVY] Convert sprite atlases from PNG to KTX2 with basis universal compression",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/9724",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"1",
-					"enhancement"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["1", "enhancement"],
 				"matrix": null,
 				"date": "2026-04-08",
 				"milestone": null
@@ -231,13 +168,8 @@
 				"title": "[ISOMETRIC] Pixel Smoothing",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/9588",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"enhancement"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["0", "enhancement"],
 				"matrix": null,
 				"date": "2026-04-08",
 				"milestone": null
@@ -248,13 +180,8 @@
 				"title": "feat(mud): data population, IRC deployment, and isometric integration for MUD convergence",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/9850",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"2",
-					"enhancement"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["2", "enhancement"],
 				"matrix": null,
 				"date": "2026-04-09",
 				"milestone": null
@@ -265,13 +192,8 @@
 				"title": "feat(unreal): CI/CD pipeline for UEDevOps plugin (itch.io + Fab)",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/8254",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"2",
-					"enhancement"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["2", "enhancement"],
 				"matrix": null,
 				"date": "2026-04-09",
 				"milestone": null
@@ -283,9 +205,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/10194",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-04-18",
 				"milestone": null
@@ -297,9 +217,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/10979",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-05-15",
 				"milestone": null
@@ -311,9 +229,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/10980",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-05-15",
 				"milestone": null
@@ -325,9 +241,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/11244",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-05-21",
 				"milestone": null
@@ -339,9 +253,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/11246",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-05-21",
 				"milestone": null
@@ -353,9 +265,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/11247",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-05-21",
 				"milestone": null
@@ -367,9 +277,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/11262",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-05-21",
 				"milestone": null
@@ -381,9 +289,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/11294",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-05-23",
 				"milestone": null
@@ -395,9 +301,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/11362",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-05-25",
 				"milestone": null
@@ -409,9 +313,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/11579",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-01",
 				"milestone": null
@@ -423,9 +325,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/11580",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-01",
 				"milestone": null
@@ -437,9 +337,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/11582",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-01",
 				"milestone": null
@@ -451,10 +349,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/11605",
 				"assignees": [],
-				"labels": [
-					"2",
-					"enhancement"
-				],
+				"labels": ["2", "enhancement"],
 				"matrix": null,
 				"date": "2026-06-02",
 				"milestone": null
@@ -466,9 +361,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12315",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-13",
 				"milestone": null
@@ -480,9 +373,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12360",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-14",
 				"milestone": null
@@ -494,9 +385,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12362",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-14",
 				"milestone": null
@@ -508,9 +397,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12376",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-14",
 				"milestone": null
@@ -522,9 +409,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12422",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-14",
 				"milestone": null
@@ -536,9 +421,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12484",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-15",
 				"milestone": null
@@ -550,9 +433,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12519",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-15",
 				"milestone": null
@@ -564,9 +445,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12520",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-15",
 				"milestone": null
@@ -578,9 +457,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12522",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-15",
 				"milestone": null
@@ -592,9 +469,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12531",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-15",
 				"milestone": null
@@ -606,9 +481,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12533",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-15",
 				"milestone": null
@@ -620,9 +493,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12532",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-15",
 				"milestone": null
@@ -634,10 +505,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12692",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"security"
-				],
+				"labels": ["enhancement", "security"],
 				"matrix": null,
 				"date": "2026-06-18",
 				"milestone": null
@@ -649,10 +517,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12694",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"good first issue"
-				],
+				"labels": ["enhancement", "good first issue"],
 				"matrix": null,
 				"date": "2026-06-18",
 				"milestone": null
@@ -664,10 +529,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12693",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"good first issue"
-				],
+				"labels": ["enhancement", "good first issue"],
 				"matrix": null,
 				"date": "2026-06-18",
 				"milestone": null
@@ -679,10 +541,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12695",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"rust"
-				],
+				"labels": ["enhancement", "rust"],
 				"matrix": null,
 				"date": "2026-06-18",
 				"milestone": null
@@ -694,9 +553,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12703",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-18",
 				"milestone": null
@@ -708,9 +565,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12705",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-18",
 				"milestone": null
@@ -722,9 +577,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12735",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-18",
 				"milestone": null
@@ -736,11 +589,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12875",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"ios"
-				],
+				"labels": ["enhancement", "todo", "ios"],
 				"matrix": null,
 				"date": "2026-06-20",
 				"milestone": null
@@ -752,11 +601,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12879",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"android"
-				],
+				"labels": ["enhancement", "todo", "android"],
 				"matrix": null,
 				"date": "2026-06-20",
 				"milestone": null
@@ -768,11 +613,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12880",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"android"
-				],
+				"labels": ["enhancement", "todo", "android"],
 				"matrix": null,
 				"date": "2026-06-20",
 				"milestone": null
@@ -784,9 +625,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12915",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-21",
 				"milestone": null
@@ -798,9 +637,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12924",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-21",
 				"milestone": null
@@ -812,9 +649,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12925",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-21",
 				"milestone": null
@@ -826,9 +661,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12926",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-21",
 				"milestone": null
@@ -840,9 +673,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12927",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-21",
 				"milestone": null
@@ -854,9 +685,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12928",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-21",
 				"milestone": null
@@ -868,9 +697,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12929",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-21",
 				"milestone": null
@@ -882,9 +709,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12930",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-21",
 				"milestone": null
@@ -896,11 +721,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12938",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"npm"
-				],
+				"labels": ["enhancement", "todo", "npm"],
 				"matrix": null,
 				"date": "2026-06-21",
 				"milestone": null
@@ -912,11 +733,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12939",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"npm"
-				],
+				"labels": ["enhancement", "todo", "npm"],
 				"matrix": null,
 				"date": "2026-06-21",
 				"milestone": null
@@ -928,9 +745,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13179",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-23",
 				"milestone": null
@@ -942,9 +757,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13194",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-24",
 				"milestone": null
@@ -956,9 +769,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13350",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-25",
 				"milestone": null
@@ -970,9 +781,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13506",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-28",
 				"milestone": null
@@ -984,10 +793,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13555",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"backlog"
-				],
+				"labels": ["enhancement", "backlog"],
 				"matrix": null,
 				"date": "2026-06-29",
 				"milestone": null
@@ -999,9 +805,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13576",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-29",
 				"milestone": null
@@ -1013,9 +817,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13734",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-07-02",
 				"milestone": null
@@ -1027,11 +829,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13783",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"rust"
-				],
+				"labels": ["enhancement", "todo", "rust"],
 				"matrix": null,
 				"date": "2026-07-02",
 				"milestone": null
@@ -1043,11 +841,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13786",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"rust"
-				],
+				"labels": ["enhancement", "todo", "rust"],
 				"matrix": null,
 				"date": "2026-07-02",
 				"milestone": null
@@ -1059,9 +853,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13796",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-07-03",
 				"milestone": null
@@ -1073,9 +865,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/14132",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-07-15",
 				"milestone": null
@@ -1087,10 +877,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/14305",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"rust"
-				],
+				"labels": ["enhancement", "rust"],
 				"matrix": null,
 				"date": "2026-07-19",
 				"milestone": null
@@ -1102,11 +889,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/14460",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"rust",
-					"epic"
-				],
+				"labels": ["enhancement", "rust", "epic"],
 				"matrix": null,
 				"date": "2026-07-21",
 				"milestone": null
@@ -1118,9 +901,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/14524",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-07-23",
 				"milestone": null
@@ -1133,15 +914,8 @@
 				"title": "[Bug] : [Unity] : Character Orchestrator",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/4906",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"bug",
-					"unity",
-					"codex"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["0", "bug", "unity", "codex"],
 				"matrix": null,
 				"date": "2025-06-09",
 				"milestone": null
@@ -1154,14 +928,8 @@
 				"title": "[Update] : [Fudster] : User Billing & Auth",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/3572",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"1",
-					"security",
-					"update"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["1", "security", "update"],
 				"matrix": null,
 				"date": "2024-12-17",
 				"milestone": null
@@ -1172,14 +940,8 @@
 				"title": "[Update] : [Github] : Rotate Tokens + Refactor Permissions",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/4232",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"1",
-					"security",
-					"update"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["1", "security", "update"],
 				"matrix": null,
 				"date": "2025-03-15",
 				"milestone": null
@@ -1191,10 +953,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/6939",
 				"assignees": [],
-				"labels": [
-					"0",
-					"todo"
-				],
+				"labels": ["0", "todo"],
 				"matrix": null,
 				"date": "2026-03-01",
 				"milestone": null
@@ -1205,14 +964,8 @@
 				"title": "feat(proto): ClickHouse schema source of truth via protobuf → zod → vector pipeline",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/8134",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"4",
-					"documentation",
-					"todo"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["4", "documentation", "todo"],
 				"matrix": null,
 				"date": "2026-03-17",
 				"milestone": null
@@ -1223,15 +976,8 @@
 				"title": "[PSQL] Audit Discord Public Server Listing Functions",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/8148",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"3",
-					"security",
-					"todo",
-					"rust"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["3", "security", "todo", "rust"],
 				"matrix": null,
 				"date": "2026-03-31",
 				"milestone": null
@@ -1242,13 +988,8 @@
 				"title": "[E2E] kilobase needs pgrx/PostgreSQL build environment",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/8817",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"1",
-					"todo"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["1", "todo"],
 				"matrix": null,
 				"date": "2026-04-09",
 				"milestone": null
@@ -1260,10 +1001,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/11013",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"update"
-				],
+				"labels": ["enhancement", "update"],
 				"matrix": null,
 				"date": "2026-05-15",
 				"milestone": null
@@ -1275,11 +1013,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12931",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"rust"
-				],
+				"labels": ["enhancement", "todo", "rust"],
 				"matrix": null,
 				"date": "2026-06-21",
 				"milestone": null
@@ -1291,11 +1025,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12932",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"rust"
-				],
+				"labels": ["enhancement", "todo", "rust"],
 				"matrix": null,
 				"date": "2026-06-21",
 				"milestone": null
@@ -1307,11 +1037,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12933",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"rust"
-				],
+				"labels": ["enhancement", "todo", "rust"],
 				"matrix": null,
 				"date": "2026-06-21",
 				"milestone": null
@@ -1323,11 +1049,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12934",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"rust"
-				],
+				"labels": ["enhancement", "todo", "rust"],
 				"matrix": null,
 				"date": "2026-06-21",
 				"milestone": null
@@ -1339,11 +1061,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12935",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"npm"
-				],
+				"labels": ["enhancement", "todo", "npm"],
 				"matrix": null,
 				"date": "2026-06-21",
 				"milestone": null
@@ -1355,11 +1073,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12936",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"npm"
-				],
+				"labels": ["enhancement", "todo", "npm"],
 				"matrix": null,
 				"date": "2026-06-21",
 				"milestone": null
@@ -1371,11 +1085,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/12937",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"npm"
-				],
+				"labels": ["enhancement", "todo", "npm"],
 				"matrix": null,
 				"date": "2026-06-21",
 				"milestone": null
@@ -1387,9 +1097,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13121",
 				"assignees": [],
-				"labels": [
-					"update"
-				],
+				"labels": ["update"],
 				"matrix": null,
 				"date": "2026-06-22",
 				"milestone": null
@@ -1401,10 +1109,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13751",
 				"assignees": [],
-				"labels": [
-					"todo",
-					"ue"
-				],
+				"labels": ["todo", "ue"],
 				"matrix": null,
 				"date": "2026-07-02",
 				"milestone": null
@@ -1416,10 +1121,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13752",
 				"assignees": [],
-				"labels": [
-					"todo",
-					"ue"
-				],
+				"labels": ["todo", "ue"],
 				"matrix": null,
 				"date": "2026-07-02",
 				"milestone": null
@@ -1431,10 +1133,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13753",
 				"assignees": [],
-				"labels": [
-					"todo",
-					"ue"
-				],
+				"labels": ["todo", "ue"],
 				"matrix": null,
 				"date": "2026-07-02",
 				"milestone": null
@@ -1446,10 +1145,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13754",
 				"assignees": [],
-				"labels": [
-					"todo",
-					"ue"
-				],
+				"labels": ["todo", "ue"],
 				"matrix": null,
 				"date": "2026-07-02",
 				"milestone": null
@@ -1461,11 +1157,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13785",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"rust"
-				],
+				"labels": ["enhancement", "todo", "rust"],
 				"matrix": null,
 				"date": "2026-07-02",
 				"milestone": null
@@ -1477,11 +1169,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13787",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"rust"
-				],
+				"labels": ["enhancement", "todo", "rust"],
 				"matrix": null,
 				"date": "2026-07-02",
 				"milestone": null
@@ -1493,11 +1181,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13789",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"rust"
-				],
+				"labels": ["enhancement", "todo", "rust"],
 				"matrix": null,
 				"date": "2026-07-02",
 				"milestone": null
@@ -1509,12 +1193,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/14948",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"todo",
-					"rust",
-					"epic"
-				],
+				"labels": ["enhancement", "todo", "rust", "epic"],
 				"matrix": null,
 				"date": "2026-07-30",
 				"milestone": null
@@ -1528,10 +1207,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/75",
 				"assignees": [],
-				"labels": [
-					"1",
-					"backlog"
-				],
+				"labels": ["1", "backlog"],
 				"matrix": null,
 				"date": "2023-11-22",
 				"milestone": null
@@ -1542,13 +1218,8 @@
 				"title": "[Concept] : [Backend] : Charles.",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/96",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"backlog"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["0", "backlog"],
 				"matrix": null,
 				"date": "2023-12-14",
 				"milestone": null
@@ -1559,15 +1230,8 @@
 				"title": "[Concept] : [Unity] : Droid System - Hybrid NPC System.",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/4642",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"enhancement",
-					"backlog",
-					"unity"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["0", "enhancement", "backlog", "unity"],
 				"matrix": null,
 				"date": "2025-09-28",
 				"milestone": null
@@ -1578,13 +1242,8 @@
 				"title": "feat(memes): responsive bento grid feed + dedicated meme pages",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/7548",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"1",
-					"backlog"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["1", "backlog"],
 				"matrix": null,
 				"date": "2026-03-17",
 				"milestone": null
@@ -1596,10 +1255,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/11250",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"backlog"
-				],
+				"labels": ["enhancement", "backlog"],
 				"matrix": null,
 				"date": "2026-05-21",
 				"milestone": null
@@ -1611,10 +1267,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13556",
 				"assignees": [],
-				"labels": [
-					"security",
-					"backlog"
-				],
+				"labels": ["security", "backlog"],
 				"matrix": null,
 				"date": "2026-06-29",
 				"milestone": null
@@ -1627,13 +1280,8 @@
 				"title": "[Bug] LofiFocus is down - [PENDING] Ingress",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/2992",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"bug"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["0", "bug"],
 				"matrix": null,
 				"date": "2024-10-08",
 				"milestone": null
@@ -1644,13 +1292,8 @@
 				"title": "[Bug] : Update CONTRIBUE.MD",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/3536",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"bug"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["0", "bug"],
 				"matrix": null,
 				"date": "2024-12-12",
 				"milestone": null
@@ -1661,14 +1304,8 @@
 				"title": "[Bug] : [Unity] : Gameplay Mechanics - Farming & Crafting",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/3538",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"bug",
-					"unity"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["0", "bug", "unity"],
 				"matrix": null,
 				"date": "2024-12-13",
 				"milestone": null
@@ -1679,14 +1316,8 @@
 				"title": "[Bug] : [Unity] : Chip Character Sheet Off Center Sprites",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/6705",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"bug",
-					"unity"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["0", "bug", "unity"],
 				"matrix": null,
 				"date": "2025-11-23",
 				"milestone": null
@@ -1697,16 +1328,8 @@
 				"title": "[ROWS] Performance Audit — missing indexes, unbounded caches, query optimization",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/9182",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"6",
-					"bug",
-					"enhancement",
-					"rust",
-					"docker"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["6", "bug", "enhancement", "rust", "docker"],
 				"matrix": null,
 				"date": "2026-03-26",
 				"milestone": null
@@ -1717,13 +1340,8 @@
 				"title": "feat(rows): pass zone instance ID to allocated game servers + unify launcher architecture",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/9205",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"2",
-					"bug"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["2", "bug"],
 				"matrix": null,
 				"date": "2026-04-08",
 				"milestone": null
@@ -1734,14 +1352,8 @@
 				"title": "[E2E] bevy_* projects need Rust + wasm32 toolchain in CI",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/8815",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"bug",
-					"ci"
-				],
+				"assignees": ["h0lybyte"],
+				"labels": ["0", "bug", "ci"],
 				"matrix": null,
 				"date": "2026-04-09",
 				"milestone": null
@@ -1753,9 +1365,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13082",
 				"assignees": [],
-				"labels": [
-					"bug"
-				],
+				"labels": ["bug"],
 				"matrix": null,
 				"date": "2026-06-22",
 				"milestone": null
@@ -1767,9 +1377,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13085",
 				"assignees": [],
-				"labels": [
-					"bug"
-				],
+				"labels": ["bug"],
 				"matrix": null,
 				"date": "2026-06-22",
 				"milestone": null
@@ -1781,9 +1389,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13097",
 				"assignees": [],
-				"labels": [
-					"bug"
-				],
+				"labels": ["bug"],
 				"matrix": null,
 				"date": "2026-06-22",
 				"milestone": null
@@ -1795,9 +1401,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13099",
 				"assignees": [],
-				"labels": [
-					"bug"
-				],
+				"labels": ["bug"],
 				"matrix": null,
 				"date": "2026-06-22",
 				"milestone": null
@@ -1809,9 +1413,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13103",
 				"assignees": [],
-				"labels": [
-					"bug"
-				],
+				"labels": ["bug"],
 				"matrix": null,
 				"date": "2026-06-22",
 				"milestone": null
@@ -1823,9 +1425,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13096",
 				"assignees": [],
-				"labels": [
-					"bug"
-				],
+				"labels": ["bug"],
 				"matrix": null,
 				"date": "2026-06-22",
 				"milestone": null
@@ -1837,9 +1437,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13101",
 				"assignees": [],
-				"labels": [
-					"bug"
-				],
+				"labels": ["bug"],
 				"matrix": null,
 				"date": "2026-06-22",
 				"milestone": null
@@ -1851,9 +1449,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13098",
 				"assignees": [],
-				"labels": [
-					"bug"
-				],
+				"labels": ["bug"],
 				"matrix": null,
 				"date": "2026-06-22",
 				"milestone": null
@@ -1865,9 +1461,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13105",
 				"assignees": [],
-				"labels": [
-					"bug"
-				],
+				"labels": ["bug"],
 				"matrix": null,
 				"date": "2026-06-22",
 				"milestone": null
@@ -1879,9 +1473,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13112",
 				"assignees": [],
-				"labels": [
-					"bug"
-				],
+				"labels": ["bug"],
 				"matrix": null,
 				"date": "2026-06-22",
 				"milestone": null
@@ -1893,9 +1485,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13108",
 				"assignees": [],
-				"labels": [
-					"bug"
-				],
+				"labels": ["bug"],
 				"matrix": null,
 				"date": "2026-06-22",
 				"milestone": null
@@ -1907,9 +1497,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13104",
 				"assignees": [],
-				"labels": [
-					"bug"
-				],
+				"labels": ["bug"],
 				"matrix": null,
 				"date": "2026-06-22",
 				"milestone": null
@@ -1921,9 +1509,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13116",
 				"assignees": [],
-				"labels": [
-					"bug"
-				],
+				"labels": ["bug"],
 				"matrix": null,
 				"date": "2026-06-22",
 				"milestone": null
@@ -1935,9 +1521,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13113",
 				"assignees": [],
-				"labels": [
-					"bug"
-				],
+				"labels": ["bug"],
 				"matrix": null,
 				"date": "2026-06-22",
 				"milestone": null
@@ -1949,9 +1533,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/13119",
 				"assignees": [],
-				"labels": [
-					"bug"
-				],
+				"labels": ["bug"],
 				"matrix": null,
 				"date": "2026-06-22",
 				"milestone": null
@@ -1963,10 +1545,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/14008",
 				"assignees": [],
-				"labels": [
-					"bug",
-					"security"
-				],
+				"labels": ["bug", "security"],
 				"matrix": null,
 				"date": "2026-07-10",
 				"milestone": null
@@ -1980,13 +1559,8 @@
 				"title": "[Concept] Service Page Enchancemnts",
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/2208",
-				"assignees": [
-					"h0lybyte",
-					"dladeira"
-				],
-				"labels": [
-					"4"
-				],
+				"assignees": ["h0lybyte", "dladeira"],
+				"labels": ["4"],
 				"matrix": null,
 				"date": "2024-07-09",
 				"milestone": null
@@ -1998,9 +1572,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/issues/6943",
 				"assignees": [],
-				"labels": [
-					"todo"
-				],
+				"labels": ["todo"],
 				"matrix": null,
 				"date": "2026-01-15",
 				"milestone": null
@@ -2014,10 +1586,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/pull/13278",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2029,10 +1598,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/pull/13572",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2044,10 +1610,7 @@
 				"state": "OPEN",
 				"url": "https://github.com/KBVE/kbve/pull/14981",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2061,9 +1624,7 @@
 				"state": "CLOSED",
 				"url": "https://github.com/KBVE/kbve/issues/12495",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-15",
 				"milestone": null
@@ -2075,9 +1636,7 @@
 				"state": "CLOSED",
 				"url": "https://github.com/KBVE/kbve/issues/13351",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-06-25",
 				"milestone": null
@@ -2089,9 +1648,7 @@
 				"state": "CLOSED",
 				"url": "https://github.com/KBVE/kbve/issues/13801",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-07-03",
 				"milestone": null
@@ -2103,10 +1660,7 @@
 				"state": "CLOSED",
 				"url": "https://github.com/KBVE/kbve/issues/14126",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"security"
-				],
+				"labels": ["enhancement", "security"],
 				"matrix": null,
 				"date": "2026-07-15",
 				"milestone": null
@@ -2118,10 +1672,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14188",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2133,10 +1684,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14189",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2148,10 +1696,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14190",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2163,9 +1708,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14194",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2177,10 +1720,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14197",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2192,10 +1732,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14201",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2207,10 +1744,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14203",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2222,10 +1756,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14204",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2237,10 +1768,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14209",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2252,10 +1780,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14210",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2267,10 +1792,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14212",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2282,10 +1804,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14213",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2297,10 +1816,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14214",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2312,10 +1828,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14215",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2327,10 +1840,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14216",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2342,10 +1852,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14218",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2357,10 +1864,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14219",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2372,10 +1876,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14220",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2387,10 +1888,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14221",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2402,9 +1900,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14222",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2416,10 +1912,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14224",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2431,9 +1924,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14226",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2445,9 +1936,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14227",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2459,9 +1948,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14229",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2473,10 +1960,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14230",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2488,10 +1972,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14231",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2503,9 +1984,7 @@
 				"state": "CLOSED",
 				"url": "https://github.com/KBVE/kbve/issues/14234",
 				"assignees": [],
-				"labels": [
-					"bug"
-				],
+				"labels": ["bug"],
 				"matrix": null,
 				"date": "2026-07-18",
 				"milestone": null
@@ -2517,10 +1996,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14235",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2532,10 +2008,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14239",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2547,9 +2020,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14241",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2561,10 +2032,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14245",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2576,10 +2044,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14249",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2591,10 +2056,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14251",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2606,10 +2068,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14252",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2621,10 +2080,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14253",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2636,9 +2092,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14254",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2650,10 +2104,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14256",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2665,10 +2116,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14259",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2680,10 +2128,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14261",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2695,9 +2140,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14262",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2709,10 +2152,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14267",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2724,10 +2164,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14268",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2739,10 +2176,7 @@
 				"state": "CLOSED",
 				"url": "https://github.com/KBVE/kbve/issues/14269",
 				"assignees": [],
-				"labels": [
-					"enhancement",
-					"rust"
-				],
+				"labels": ["enhancement", "rust"],
 				"matrix": null,
 				"date": "2026-07-18",
 				"milestone": null
@@ -2754,9 +2188,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14271",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2768,10 +2200,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14272",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2783,10 +2212,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14273",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2798,10 +2224,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14275",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2813,10 +2236,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14280",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2828,9 +2248,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14283",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2842,10 +2260,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14284",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2857,10 +2272,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14286",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2872,9 +2284,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14290",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2886,9 +2296,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14291",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2900,10 +2308,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14293",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2915,10 +2320,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14294",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2930,10 +2332,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14295",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2945,10 +2344,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14296",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2960,9 +2356,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14298",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2974,9 +2368,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14300",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -2988,10 +2380,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14303",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3003,9 +2392,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14304",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3017,10 +2404,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14309",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3032,10 +2416,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14311",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3047,10 +2428,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14318",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3062,9 +2440,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14319",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3076,10 +2452,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14322",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3091,10 +2464,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14323",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3106,10 +2476,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14324",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3121,9 +2488,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14325",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3135,10 +2500,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14328",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3150,9 +2512,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14335",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3164,10 +2524,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14341",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3179,9 +2536,7 @@
 				"state": "CLOSED",
 				"url": "https://github.com/KBVE/kbve/issues/14342",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-07-19",
 				"milestone": null
@@ -3193,10 +2548,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14344",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3208,10 +2560,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14347",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3223,10 +2572,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14363",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3238,9 +2584,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14365",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3252,9 +2596,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14366",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3266,9 +2608,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14367",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3280,9 +2620,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14368",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3294,9 +2632,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14369",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3308,9 +2644,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14370",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3322,9 +2656,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14371",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3336,9 +2668,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14372",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3350,9 +2680,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14373",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3364,9 +2692,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14374",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3378,9 +2704,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14377",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3392,9 +2716,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14378",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3406,10 +2728,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14379",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3421,10 +2740,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14380",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3436,10 +2752,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14400",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3451,10 +2764,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14401",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3466,10 +2776,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14402",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3481,10 +2788,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14406",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3496,9 +2800,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14408",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3510,10 +2812,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14414",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3525,9 +2824,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14417",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3539,10 +2836,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14421",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3554,10 +2848,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14422",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3569,10 +2860,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14426",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3584,9 +2872,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14427",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3598,9 +2884,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14428",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3612,9 +2896,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14432",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3626,9 +2908,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14435",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3640,10 +2920,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14436",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3655,10 +2932,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14437",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3670,10 +2944,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14438",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3685,9 +2956,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14439",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3699,9 +2968,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14440",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3713,9 +2980,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14441",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3727,9 +2992,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14442",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3741,9 +3004,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14443",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3755,9 +3016,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14444",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3769,9 +3028,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14445",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3783,9 +3040,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14446",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3797,9 +3052,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14447",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3811,9 +3064,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14448",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3825,9 +3076,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14449",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3839,9 +3088,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14451",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3853,10 +3100,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14452",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3868,10 +3112,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14453",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3883,10 +3124,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14454",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3898,10 +3136,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14457",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3913,9 +3148,7 @@
 				"state": "CLOSED",
 				"url": "https://github.com/KBVE/kbve/issues/14459",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-07-21",
 				"milestone": null
@@ -3927,10 +3160,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14462",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3942,10 +3172,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14463",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3957,9 +3184,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14464",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3971,10 +3196,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14467",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -3986,10 +3208,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14468",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4001,10 +3220,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14469",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4016,9 +3232,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14470",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4030,9 +3244,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14471",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4044,9 +3256,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14472",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4058,9 +3268,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14473",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4072,9 +3280,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14474",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4086,9 +3292,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14475",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4100,9 +3304,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14476",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4114,9 +3316,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14477",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4128,9 +3328,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14478",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4142,9 +3340,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14479",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4156,9 +3352,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14483",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4170,9 +3364,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14485",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4184,10 +3376,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14487",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4199,10 +3388,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14488",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4214,10 +3400,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14490",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4229,10 +3412,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14494",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4244,9 +3424,7 @@
 				"state": "CLOSED",
 				"url": "https://github.com/KBVE/kbve/issues/14503",
 				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
+				"labels": ["enhancement"],
 				"matrix": null,
 				"date": "2026-07-22",
 				"milestone": null
@@ -4258,9 +3436,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14506",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4272,10 +3448,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14510",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4287,10 +3460,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14511",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4302,10 +3472,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14512",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4317,10 +3484,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14514",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4332,10 +3496,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14516",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4347,10 +3508,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14518",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4362,9 +3520,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14519",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4376,10 +3532,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14521",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4391,10 +3544,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14522",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4406,10 +3556,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14523",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4421,10 +3568,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14526",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4436,9 +3580,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14528",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4450,10 +3592,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14530",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4465,10 +3604,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14531",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4480,10 +3616,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14532",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4495,9 +3628,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14533",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4509,9 +3640,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14534",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4523,9 +3652,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14535",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4537,9 +3664,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14536",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4551,9 +3676,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14537",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4565,9 +3688,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14538",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4579,9 +3700,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14539",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4593,9 +3712,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14540",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4607,9 +3724,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14541",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4621,9 +3736,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14542",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4635,10 +3748,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14543",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4650,9 +3760,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14544",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4664,10 +3772,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14547",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4679,9 +3784,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14549",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4693,10 +3796,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14550",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4708,9 +3808,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14553",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4722,10 +3820,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14556",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4737,10 +3832,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14557",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4752,10 +3844,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14560",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4767,10 +3856,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14563",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4782,9 +3868,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14566",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4796,10 +3880,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14567",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4811,10 +3892,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14568",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4826,10 +3904,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14570",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4841,10 +3916,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14573",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4856,9 +3928,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14574",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4870,9 +3940,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14578",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4884,10 +3952,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14579",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4899,9 +3964,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14580",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4913,10 +3976,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14581",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4928,10 +3988,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14582",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4943,10 +4000,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14583",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4958,9 +4012,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14585",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4972,9 +4024,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14586",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -4986,9 +4036,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14587",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5000,9 +4048,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14588",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5014,9 +4060,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14589",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5028,9 +4072,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14590",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5042,9 +4084,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14591",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5056,9 +4096,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14592",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5070,9 +4108,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14593",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5084,9 +4120,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14594",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5098,9 +4132,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14596",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5112,10 +4144,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14597",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5127,10 +4156,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14598",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5142,9 +4168,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14600",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5156,10 +4180,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14601",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5171,10 +4192,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14602",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5186,9 +4204,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14604",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5200,10 +4216,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14605",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5215,10 +4228,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14606",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5230,9 +4240,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14611",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5244,10 +4252,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14617",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5259,10 +4264,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14619",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5274,9 +4276,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14620",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5288,10 +4288,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14621",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5303,10 +4300,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14622",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5318,10 +4312,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14623",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5333,9 +4324,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14625",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5347,10 +4336,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14626",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5362,10 +4348,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14627",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5377,10 +4360,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14629",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5392,9 +4372,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14630",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5406,9 +4384,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14631",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5420,9 +4396,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14632",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5434,9 +4408,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14633",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5448,9 +4420,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14634",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5462,9 +4432,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14635",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5476,9 +4444,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14636",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5490,9 +4456,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14637",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5504,9 +4468,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14638",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5518,9 +4480,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14639",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5532,9 +4492,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14645",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5546,10 +4504,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14646",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5561,10 +4516,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14647",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5576,10 +4528,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14649",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5591,9 +4540,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14650",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5605,9 +4552,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14652",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5619,10 +4564,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14653",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5634,10 +4576,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14654",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5649,10 +4588,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14655",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5664,10 +4600,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14657",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5679,9 +4612,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14658",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5693,10 +4624,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14659",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5708,10 +4636,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14660",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5723,10 +4648,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14663",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5738,9 +4660,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14664",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5752,10 +4672,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14666",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5767,9 +4684,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14667",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5781,9 +4696,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14668",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5795,9 +4708,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14669",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5809,9 +4720,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14670",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5823,9 +4732,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14671",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5837,9 +4744,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14672",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5851,9 +4756,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14673",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5865,9 +4768,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14674",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5879,9 +4780,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14675",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5893,9 +4792,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14676",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5907,9 +4804,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14677",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5921,10 +4816,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14679",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5936,10 +4828,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14680",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5951,10 +4840,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14681",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5966,10 +4852,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14685",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5981,9 +4864,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14686",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -5995,9 +4876,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14687",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6009,9 +4888,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14689",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6023,10 +4900,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14690",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6038,10 +4912,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14691",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6053,10 +4924,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14692",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6068,10 +4936,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14694",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6083,9 +4948,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14695",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6097,9 +4960,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14696",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6111,10 +4972,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14699",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6126,10 +4984,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14700",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6141,10 +4996,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14701",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6156,9 +5008,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14705",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6170,9 +5020,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14707",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6184,9 +5032,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14709",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6198,9 +5044,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14710",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6212,9 +5056,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14711",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6226,9 +5068,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14712",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6240,9 +5080,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14713",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6254,9 +5092,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14714",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6268,9 +5104,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14715",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6282,9 +5116,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14716",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6296,9 +5128,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14717",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6310,9 +5140,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14718",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6324,9 +5152,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14726",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6338,10 +5164,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14730",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6353,10 +5176,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14731",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6368,10 +5188,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14734",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6383,9 +5200,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14735",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6397,10 +5212,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14737",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6412,10 +5224,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14738",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6427,9 +5236,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14740",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6441,10 +5248,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14741",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6456,10 +5260,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14742",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6471,10 +5272,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14743",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6486,9 +5284,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14744",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6500,10 +5296,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14747",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6515,10 +5308,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14748",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6530,9 +5320,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14750",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6544,9 +5332,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14751",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6558,10 +5344,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14752",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6573,10 +5356,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14753",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6588,10 +5368,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14754",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6603,10 +5380,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14757",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6618,9 +5392,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14758",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6632,9 +5404,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14761",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6646,9 +5416,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14763",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6660,10 +5428,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14764",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6675,10 +5440,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14765",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6690,10 +5452,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14766",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6705,10 +5464,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14767",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6720,9 +5476,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14769",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6734,9 +5488,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14773",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6748,9 +5500,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14774",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6762,9 +5512,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14775",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6776,9 +5524,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14776",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6790,9 +5536,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14777",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6804,9 +5548,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14778",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6818,9 +5560,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14779",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6832,9 +5572,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14780",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6846,9 +5584,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14781",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6860,9 +5596,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14782",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6874,9 +5608,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14783",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6888,10 +5620,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14784",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6903,10 +5632,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14785",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6918,10 +5644,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14786",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6933,10 +5656,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14787",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6948,9 +5668,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14788",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6962,10 +5680,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14789",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6977,10 +5692,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14790",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -6992,9 +5704,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14792",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7006,9 +5716,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14794",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7020,10 +5728,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14795",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7035,10 +5740,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14796",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7050,10 +5752,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14799",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7065,9 +5764,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14800",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7079,9 +5776,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14801",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7093,10 +5788,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14802",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7108,10 +5800,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14804",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7123,10 +5812,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14805",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7138,9 +5824,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14806",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7152,10 +5836,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14808",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7167,10 +5848,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14810",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7182,9 +5860,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14811",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7196,10 +5872,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14812",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7211,10 +5884,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14814",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7226,10 +5896,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14815",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7241,9 +5908,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14817",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7255,9 +5920,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14819",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7269,9 +5932,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14820",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7283,9 +5944,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14822",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7297,10 +5956,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14824",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7312,10 +5968,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14825",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7327,10 +5980,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14827",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7342,9 +5992,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14828",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7356,10 +6004,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14829",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7371,9 +6016,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14830",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7385,10 +6028,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14831",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7400,10 +6040,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14835",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7415,10 +6052,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14836",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7430,10 +6064,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14840",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7445,9 +6076,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14841",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7459,10 +6088,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14844",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7474,10 +6100,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14845",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7489,10 +6112,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14848",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7504,9 +6124,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14849",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7518,10 +6136,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14850",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7533,10 +6148,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14851",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7548,9 +6160,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14854",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7562,10 +6172,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14856",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7577,10 +6184,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14857",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7592,10 +6196,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14858",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7607,9 +6208,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14859",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7621,9 +6220,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14861",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7635,9 +6232,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14862",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7649,10 +6244,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14863",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7664,10 +6256,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14864",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7679,10 +6268,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14865",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7694,10 +6280,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14866",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7709,10 +6292,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14867",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7724,10 +6304,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14868",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7739,10 +6316,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14870",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7754,9 +6328,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14873",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7768,9 +6340,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14874",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7782,9 +6352,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14875",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7796,9 +6364,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14876",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7810,9 +6376,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14877",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7824,9 +6388,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14878",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7838,9 +6400,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14879",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7852,9 +6412,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14880",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7866,9 +6424,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14881",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7880,9 +6436,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14882",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7894,10 +6448,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14884",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7909,10 +6460,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14885",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7924,10 +6472,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14887",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7939,9 +6484,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14889",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7953,10 +6496,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14890",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7968,10 +6508,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14891",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7983,10 +6520,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14893",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -7998,10 +6532,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14896",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8013,9 +6544,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14897",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8027,10 +6556,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14899",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8042,10 +6568,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14901",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8057,10 +6580,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14902",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8072,9 +6592,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14903",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8086,9 +6604,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14904",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8100,9 +6616,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14905",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8114,9 +6628,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14906",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8128,9 +6640,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14907",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8142,9 +6652,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14908",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8156,9 +6664,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14909",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8170,9 +6676,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14910",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8184,9 +6688,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14911",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8198,10 +6700,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14913",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8213,9 +6712,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14914",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8227,10 +6724,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14915",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8242,10 +6736,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14916",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8257,9 +6748,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14917",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8271,10 +6760,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14918",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8286,10 +6772,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14919",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8301,10 +6784,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14922",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8316,9 +6796,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14924",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8330,9 +6808,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14926",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8344,9 +6820,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14928",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8358,9 +6832,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14929",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8372,10 +6844,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14930",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8387,10 +6856,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14931",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8402,9 +6868,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14932",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8416,10 +6880,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14933",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8431,10 +6892,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14934",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8446,10 +6904,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14935",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8461,10 +6916,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14938",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8476,9 +6928,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14939",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8490,10 +6940,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14940",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8505,10 +6952,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14941",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8520,9 +6964,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14943",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8534,10 +6976,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14947",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8549,10 +6988,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14949",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8564,9 +7000,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14950",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8578,10 +7012,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14951",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8593,9 +7024,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14957",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8607,9 +7036,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14958",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8621,10 +7048,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14960",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8636,10 +7060,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14961",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8651,10 +7072,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14962",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8666,10 +7084,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14963",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8681,10 +7096,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14966",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
+				"labels": ["auto-pr", "dev→main"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8696,9 +7108,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14968",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8710,9 +7120,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14973",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8724,9 +7132,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14977",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8738,9 +7144,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14978",
 				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
+				"labels": ["auto-pr"],
 				"matrix": null,
 				"date": null,
 				"milestone": null
@@ -8752,10 +7156,7 @@
 				"state": "MERGED",
 				"url": "https://github.com/KBVE/kbve/pull/14980",
 				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
+				"labels": ["auto-pr", "atomic"],
 				"matrix": null,
 				"date": null,
 				"milestone": null

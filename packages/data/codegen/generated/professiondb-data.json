@@ -21,62 +21,6 @@
           "actionRef": "brew-health-potion",
           "description": "Health potions become brewable."
         }
-      ],
-      "actions": [
-        {
-          "ref": "brew-attack-potion",
-          "key": 13,
-          "name": "Brew Attack Potion",
-          "requiredLevel": 3,
-          "xpReward": 25,
-          "durationMs": 4000,
-          "inputs": [
-            {
-              "itemRef": "guam-leaf",
-              "quantity": 1
-            },
-            {
-              "itemRef": "eye-of-newt",
-              "quantity": 1
-            }
-          ],
-          "outputs": [
-            {
-              "itemRef": "attack-potion",
-              "quantity": 1
-            }
-          ],
-          "toolRefs": [
-            "vial"
-          ]
-        },
-        {
-          "ref": "brew-health-potion",
-          "key": 14,
-          "name": "Brew Health Potion",
-          "requiredLevel": 12,
-          "xpReward": 50,
-          "durationMs": 4500,
-          "inputs": [
-            {
-              "itemRef": "marrentill",
-              "quantity": 1
-            },
-            {
-              "itemRef": "red-spiders-egg",
-              "quantity": 1
-            }
-          ],
-          "outputs": [
-            {
-              "itemRef": "health-potion",
-              "quantity": 1
-            }
-          ],
-          "toolRefs": [
-            "vial"
-          ]
-        }
       ]
     },
     {
@@ -103,42 +47,286 @@
       ],
       "actions": [
         {
-          "ref": "cook-shrimp",
-          "key": 11,
-          "name": "Cook Shrimp",
-          "requiredLevel": 1,
-          "xpReward": 10,
-          "durationMs": 2500,
+          "ref": "compress-berry",
+          "key": 44,
+          "name": "Compress Berry",
+          "requiredLevel": 0,
+          "xpReward": 0,
           "inputs": [
             {
-              "itemRef": "raw-shrimp",
-              "quantity": 1
+              "itemRef": "berry",
+              "quantity": 100
             }
           ],
           "outputs": [
             {
-              "itemRef": "cooked-shrimp",
-              "quantity": 1,
-              "chance": 0.9
+              "itemRef": "meal",
+              "quantity": 1
             }
           ]
         },
         {
-          "ref": "bake-bread",
-          "key": 12,
-          "name": "Bake Bread",
-          "requiredLevel": 5,
-          "xpReward": 18,
-          "durationMs": 3000,
+          "ref": "compress-carrot",
+          "key": 45,
+          "name": "Compress Carrot",
+          "requiredLevel": 0,
+          "xpReward": 0,
           "inputs": [
             {
-              "itemRef": "wheat",
-              "quantity": 2
+              "itemRef": "carrot",
+              "quantity": 100
             }
           ],
           "outputs": [
             {
-              "itemRef": "bread",
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-cheese",
+          "key": 46,
+          "name": "Compress Cheese",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "cheese",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-cooked-beef",
+          "key": 47,
+          "name": "Compress Cooked Beef",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "cooked-beef",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-cooked-chicken",
+          "key": 48,
+          "name": "Compress Cooked Chicken",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "cooked-chicken",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-cooked-egg",
+          "key": 49,
+          "name": "Compress Cooked Egg",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "cooked-egg",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-cooked-mutton",
+          "key": 50,
+          "name": "Compress Cooked Mutton",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "cooked-mutton",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-dragonfruit",
+          "key": 51,
+          "name": "Compress Dragonfruit",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "dragonfruit",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-egg",
+          "key": 52,
+          "name": "Compress Egg",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "egg",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-fresh-milk",
+          "key": 53,
+          "name": "Compress Fresh Milk",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "fresh-milk",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-mushroom",
+          "key": 54,
+          "name": "Compress Mushroom",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "mushroom",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-prickly-pear",
+          "key": 55,
+          "name": "Compress Prickly Pear",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "prickly-pear",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-raw-beef",
+          "key": 56,
+          "name": "Compress Raw Beef",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "raw-beef",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-raw-chicken",
+          "key": 57,
+          "name": "Compress Raw Chicken",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "raw-chicken",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-raw-mutton",
+          "key": 58,
+          "name": "Compress Raw Mutton",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "raw-mutton",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
               "quantity": 1
             }
           ]
@@ -166,49 +354,6 @@
           "actionRef": "grow-herb",
           "description": "Herb patches unlock for alchemy supply."
         }
-      ],
-      "actions": [
-        {
-          "ref": "grow-wheat",
-          "key": 7,
-          "name": "Grow Wheat",
-          "requiredLevel": 1,
-          "xpReward": 20,
-          "durationMs": 8000,
-          "inputs": [
-            {
-              "itemRef": "wheat-seed",
-              "quantity": 1
-            }
-          ],
-          "outputs": [
-            {
-              "itemRef": "wheat",
-              "quantity": 3,
-              "chance": 1
-            }
-          ]
-        },
-        {
-          "ref": "grow-herb",
-          "key": 8,
-          "name": "Grow Herb",
-          "requiredLevel": 18,
-          "xpReward": 45,
-          "durationMs": 9000,
-          "inputs": [
-            {
-              "itemRef": "herb-seed",
-              "quantity": 1
-            }
-          ],
-          "outputs": [
-            {
-              "itemRef": "guam-leaf",
-              "quantity": 2
-            }
-          ]
-        }
       ]
     },
     {
@@ -232,40 +377,321 @@
           "actionRef": "catch-trout",
           "description": "Trout become catchable with a rod."
         }
-      ],
+      ]
+    },
+    {
+      "description": "Gather flowers, mushrooms, and wild plants from the world. A gathering\ndiscipline feeding alchemy and cooking.\n",
+      "ref": "foraging",
+      "key": 8,
+      "id": "01KPROFFORAGING0000000008",
+      "name": "Foraging",
+      "category": "PROFESSION_CATEGORY_GATHERING",
+      "emoji": "🌿",
+      "maxLevel": 99,
+      "experienceCurve": {
+        "kind": "CURVE_KIND_POLYNOMIAL",
+        "baseXp": 40,
+        "growthFactor": 1.5,
+        "maxLevel": 99
+      },
       "actions": [
         {
-          "ref": "catch-shrimp",
-          "key": 5,
-          "name": "Catch Shrimp",
-          "requiredLevel": 1,
-          "xpReward": 8,
-          "durationMs": 3000,
+          "ref": "gather-allium",
+          "key": 23,
+          "name": "Forage Allium",
+          "requiredLevel": 0,
+          "xpReward": 5,
+          "durationMs": 500,
+          "resourceNodeRef": "flower-allium",
           "outputs": [
             {
-              "itemRef": "raw-shrimp",
+              "itemRef": "allium",
               "quantity": 1
             }
-          ],
-          "toolRefs": [
-            "small-net"
           ]
         },
         {
-          "ref": "catch-trout",
-          "key": 6,
-          "name": "Catch Trout",
-          "requiredLevel": 20,
-          "xpReward": 30,
-          "durationMs": 3500,
+          "ref": "gather-bellflower",
+          "key": 24,
+          "name": "Forage Bellflower",
+          "requiredLevel": 0,
+          "xpReward": 5,
+          "durationMs": 500,
+          "resourceNodeRef": "flower-bell",
           "outputs": [
             {
-              "itemRef": "raw-trout",
+              "itemRef": "bellflower",
               "quantity": 1
             }
-          ],
-          "toolRefs": [
-            "fishing-rod"
+          ]
+        },
+        {
+          "ref": "gather-blue-orchid",
+          "key": 25,
+          "name": "Forage Blue Orchid",
+          "requiredLevel": 0,
+          "xpReward": 8,
+          "durationMs": 500,
+          "resourceNodeRef": "flower-blue-orchid",
+          "outputs": [
+            {
+              "itemRef": "blue-orchid",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-chanterelle",
+          "key": 26,
+          "name": "Forage Chanterelle",
+          "requiredLevel": 0,
+          "xpReward": 10,
+          "durationMs": 500,
+          "resourceNodeRef": "mushroom-chanterelle",
+          "outputs": [
+            {
+              "itemRef": "chanterelle",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-cornflower",
+          "key": 27,
+          "name": "Forage Cornflower",
+          "requiredLevel": 0,
+          "xpReward": 5,
+          "durationMs": 500,
+          "resourceNodeRef": "flower-cornflower",
+          "outputs": [
+            {
+              "itemRef": "cornflower",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-daisy",
+          "key": 28,
+          "name": "Forage Daisy",
+          "requiredLevel": 0,
+          "xpReward": 5,
+          "durationMs": 500,
+          "resourceNodeRef": "flower-daisy",
+          "outputs": [
+            {
+              "itemRef": "daisy",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-fly-agaric",
+          "key": 29,
+          "name": "Forage Fly Agaric",
+          "requiredLevel": 0,
+          "xpReward": 12,
+          "durationMs": 500,
+          "resourceNodeRef": "mushroom-fly-agaric",
+          "outputs": [
+            {
+              "itemRef": "fly-agaric",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-lavender",
+          "key": 30,
+          "name": "Forage Lavender",
+          "requiredLevel": 0,
+          "xpReward": 7,
+          "durationMs": 500,
+          "resourceNodeRef": "flower-lavender",
+          "outputs": [
+            {
+              "itemRef": "lavender",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-porcini",
+          "key": 31,
+          "name": "Forage Porcini",
+          "requiredLevel": 0,
+          "xpReward": 8,
+          "durationMs": 500,
+          "resourceNodeRef": "mushroom-porcini",
+          "outputs": [
+            {
+              "itemRef": "porcini",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-rose",
+          "key": 32,
+          "name": "Forage Rose",
+          "requiredLevel": 0,
+          "xpReward": 6,
+          "durationMs": 500,
+          "resourceNodeRef": "flower-rose",
+          "outputs": [
+            {
+              "itemRef": "rose",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-sunflower",
+          "key": 33,
+          "name": "Forage Sunflower",
+          "requiredLevel": 0,
+          "xpReward": 6,
+          "durationMs": 500,
+          "resourceNodeRef": "flower-sunflower",
+          "outputs": [
+            {
+              "itemRef": "sunflower",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-tulip",
+          "key": 34,
+          "name": "Forage Tulip",
+          "requiredLevel": 0,
+          "xpReward": 5,
+          "durationMs": 500,
+          "resourceNodeRef": "flower-tulip",
+          "outputs": [
+            {
+              "itemRef": "tulip",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-wildflower",
+          "key": 35,
+          "name": "Forage Wildflower",
+          "requiredLevel": 0,
+          "xpReward": 4,
+          "durationMs": 500,
+          "resourceNodeRef": "flower-wildflower",
+          "outputs": [
+            {
+              "itemRef": "wildflower",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-berry",
+          "key": 36,
+          "name": "Forage Berry",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "outputs": [
+            {
+              "itemRef": "berry",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-cacti-needle",
+          "key": 37,
+          "name": "Forage Cacti Needle",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "outputs": [
+            {
+              "itemRef": "cacti-needle",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-cacti-seeds",
+          "key": 38,
+          "name": "Forage Cacti Seeds",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "outputs": [
+            {
+              "itemRef": "cacti-seeds",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-dragonfruit",
+          "key": 39,
+          "name": "Forage Dragonfruit",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "outputs": [
+            {
+              "itemRef": "dragonfruit",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-herb",
+          "key": 40,
+          "name": "Forage Herb",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "outputs": [
+            {
+              "itemRef": "herb",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-mushroom",
+          "key": 41,
+          "name": "Forage Mushroom",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "outputs": [
+            {
+              "itemRef": "mushroom",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-prickly-pear",
+          "key": 42,
+          "name": "Forage Prickly Pear",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "outputs": [
+            {
+              "itemRef": "prickly-pear",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-raw-cacti",
+          "key": 43,
+          "name": "Forage Raw Cacti",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "outputs": [
+            {
+              "itemRef": "raw-cacti",
+              "quantity": 1
+            }
           ]
         }
       ]
@@ -285,46 +711,89 @@
         "growthFactor": 1.6,
         "maxLevel": 99
       },
-      "unlocks": [
-        {
-          "level": 15,
-          "actionRef": "mine-iron-ore",
-          "description": "Iron veins become workable."
-        }
-      ],
       "actions": [
         {
-          "ref": "mine-copper-ore",
-          "key": 1,
+          "ref": "gather-copper-ore",
+          "key": 15,
           "name": "Mine Copper Ore",
           "requiredLevel": 1,
-          "xpReward": 10,
+          "xpReward": 18,
           "durationMs": 3000,
+          "resourceNodeRef": "ore-copper",
+          "toolRefs": [
+            "pickaxe"
+          ],
           "outputs": [
             {
               "itemRef": "copper-ore",
               "quantity": 1
             }
-          ],
-          "toolRefs": [
-            "bronze-pickaxe"
           ]
         },
         {
-          "ref": "mine-iron-ore",
-          "key": 2,
+          "ref": "gather-iron-ore",
+          "key": 16,
           "name": "Mine Iron Ore",
           "requiredLevel": 15,
           "xpReward": 35,
           "durationMs": 4000,
+          "resourceNodeRef": "ore-iron",
+          "toolRefs": [
+            "pickaxe"
+          ],
           "outputs": [
             {
               "itemRef": "iron-ore",
               "quantity": 1
             }
-          ],
+          ]
+        },
+        {
+          "ref": "gather-crystal-ore",
+          "key": 17,
+          "name": "Mine Crystal Ore",
+          "requiredLevel": 30,
+          "xpReward": 65,
+          "durationMs": 5000,
+          "resourceNodeRef": "ore-crystal",
           "toolRefs": [
-            "steel-pickaxe"
+            "pickaxe"
+          ],
+          "outputs": [
+            {
+              "itemRef": "crystal-ore",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-mossy-stone",
+          "key": 18,
+          "name": "Mine Mossy Stone",
+          "requiredLevel": 0,
+          "xpReward": 15,
+          "durationMs": 2500,
+          "resourceNodeRef": "mossy-rock",
+          "outputs": [
+            {
+              "itemRef": "mossy-stone",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "gather-stone",
+          "key": 19,
+          "name": "Mine Stone",
+          "requiredLevel": 0,
+          "xpReward": 8,
+          "durationMs": 2000,
+          "resourceNodeRef": "boulder",
+          "outputs": [
+            {
+              "itemRef": "stone",
+              "quantity": 1
+            }
           ]
         }
       ]
@@ -353,50 +822,60 @@
       ],
       "actions": [
         {
-          "ref": "smelt-bronze-bar",
-          "key": 9,
-          "name": "Smelt Bronze Bar",
-          "requiredLevel": 1,
-          "xpReward": 15,
-          "durationMs": 4000,
+          "ref": "compress-stone",
+          "key": 60,
+          "name": "Compress Stone",
+          "requiredLevel": 0,
+          "xpReward": 0,
           "inputs": [
             {
-              "itemRef": "copper-ore",
-              "quantity": 1
-            },
-            {
-              "itemRef": "tin-ore",
-              "quantity": 1
+              "itemRef": "stone",
+              "quantity": 100
             }
           ],
           "outputs": [
             {
-              "itemRef": "bronze-bar",
+              "itemRef": "stone-block",
               "quantity": 1
             }
           ]
         },
         {
-          "ref": "forge-bronze-dagger",
-          "key": 10,
-          "name": "Forge Bronze Dagger",
-          "requiredLevel": 4,
-          "xpReward": 25,
-          "durationMs": 5000,
+          "ref": "compress-coin",
+          "key": 61,
+          "name": "Compress Coin",
+          "requiredLevel": 0,
+          "xpReward": 0,
           "inputs": [
             {
-              "itemRef": "bronze-bar",
-              "quantity": 1
+              "itemRef": "coin",
+              "quantity": 100
             }
           ],
           "outputs": [
             {
-              "itemRef": "bronze-dagger",
+              "itemRef": "gold-bar",
               "quantity": 1
             }
+          ]
+        },
+        {
+          "ref": "compress-arrow",
+          "key": 62,
+          "name": "Compress Arrow",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "arrow",
+              "quantity": 100
+            }
           ],
-          "toolRefs": [
-            "hammer"
+          "outputs": [
+            {
+              "itemRef": "quiver",
+              "quantity": 1
+            }
           ]
         }
       ]
@@ -416,46 +895,65 @@
         "growthFactor": 1.55,
         "maxLevel": 99
       },
-      "unlocks": [
-        {
-          "level": 20,
-          "actionRef": "chop-willow-log",
-          "description": "Willow trees become harvestable."
-        }
-      ],
       "actions": [
         {
-          "ref": "chop-oak-log",
-          "key": 3,
-          "name": "Chop Oak Log",
-          "requiredLevel": 1,
-          "xpReward": 12,
-          "durationMs": 3000,
+          "ref": "gather-log",
+          "key": 20,
+          "name": "Chop Log",
+          "requiredLevel": 0,
+          "xpReward": 10,
+          "durationMs": 2500,
+          "resourceNodeRef": "tree",
           "outputs": [
             {
-              "itemRef": "oak-log",
+              "itemRef": "log",
               "quantity": 1
             }
-          ],
-          "toolRefs": [
-            "bronze-axe"
           ]
         },
         {
-          "ref": "chop-willow-log",
-          "key": 4,
-          "name": "Chop Willow Log",
-          "requiredLevel": 20,
-          "xpReward": 40,
-          "durationMs": 3500,
+          "ref": "gather-branches",
+          "key": 21,
+          "name": "Chop Branches",
+          "requiredLevel": 0,
+          "xpReward": 0,
           "outputs": [
             {
-              "itemRef": "willow-log",
+              "itemRef": "branches",
               "quantity": 1
             }
+          ]
+        },
+        {
+          "ref": "gather-leaves",
+          "key": 22,
+          "name": "Chop Leaves",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "outputs": [
+            {
+              "itemRef": "leaves",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-log",
+          "key": 59,
+          "name": "Compress Log",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "log",
+              "quantity": 100
+            }
           ],
-          "toolRefs": [
-            "steel-axe"
+          "outputs": [
+            {
+              "itemRef": "timber",
+              "quantity": 1
+            }
           ]
         }
       ]

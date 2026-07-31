@@ -33,52 +33,77 @@ export type KindName = keyof typeof KIND;
 
 export const KIND_META: Record<
 	KindName,
-	{ label: string; plural: string; icon: string; size: number; minZoom: number }
+	{
+		label: string;
+		plural: string;
+		icon: string;
+		size: number;
+		minZoom: number;
+	}
 > = {
 	fastTravel: {
-		label: 'Fast Travel', plural: 'Fast Travel',
+		label: 'Fast Travel',
+		plural: 'Fast Travel',
 		icon: '/palworld/ui/T_icon_compass_FTtower.png',
 		size: 26,
 		minZoom: 2,
 	},
 	tower: {
-		label: 'Syndicate Tower', plural: 'Syndicate Towers',
+		label: 'Syndicate Tower',
+		plural: 'Syndicate Towers',
 		icon: '/palworld/ui/T_icon_compass_tower.png',
 		size: 30,
 		minZoom: 0,
 	},
 	dungeon: {
-		label: 'Dungeon', plural: 'Dungeons',
+		label: 'Dungeon',
+		plural: 'Dungeons',
 		icon: '/palworld/ui/T_icon_compass_dungeon.png',
 		size: 24,
 		minZoom: 3,
 	},
 	note: {
-		label: 'Journal Note', plural: 'Journal Notes',
+		label: 'Journal Note',
+		plural: 'Journal Notes',
 		icon: '/palworld/ui/note-loc.png',
 		size: 20,
 		minZoom: 4,
 	},
 	skillFruit: {
-		label: 'Skill Fruit Tree', plural: 'Skill Fruit Trees',
+		label: 'Skill Fruit Tree',
+		plural: 'Skill Fruit Trees',
 		icon: '/palworld/ui/fruit-loc.png',
 		size: 22,
 		minZoom: 4,
 	},
 	effigy: {
-		label: 'Lifmunk Effigy', plural: 'Lifmunk Effigies',
+		label: 'Lifmunk Effigy',
+		plural: 'Lifmunk Effigies',
 		icon: '/palworld/ui/lifmunk_effigy.png',
 		size: 16,
 		minZoom: 5,
 	},
 	egg: {
-		label: 'Egg', plural: 'Eggs',
+		label: 'Egg',
+		plural: 'Eggs',
 		icon: '/palworld/ui/egg-loc.png',
 		size: 22,
 		minZoom: 4,
 	},
-	boss: { label: 'Alpha Boss', plural: 'Alpha Bosses', icon: '', size: 34, minZoom: 2 },
-	player: { label: 'Player', plural: 'Players', icon: '', size: 14, minZoom: 0 },
+	boss: {
+		label: 'Alpha Boss',
+		plural: 'Alpha Bosses',
+		icon: '',
+		size: 34,
+		minZoom: 2,
+	},
+	player: {
+		label: 'Player',
+		plural: 'Players',
+		icon: '',
+		size: 14,
+		minZoom: 0,
+	},
 };
 
 export const RESPAWN_MINUTES: Partial<Record<KindName, number>> = {

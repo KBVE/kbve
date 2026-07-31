@@ -12,8 +12,8 @@ use serde_json::json;
 
 use super::core::*;
 use super::reel_token;
-use axum::http::HeaderMap;
 use axum::Json;
+use axum::http::HeaderMap;
 
 static REEL: OnceLock<ServiceProxy> = OnceLock::new();
 
@@ -87,7 +87,9 @@ pub async fn reel_media_token_handler(req: Request<Body>) -> Response {
         reel_token::DEFAULT_TTL_SECS,
         reel_token::now_unix(),
     ) {
-        Some(token) => Json(json!({"token": token, "exp": reel_token::DEFAULT_TTL_SECS})).into_response(),
+        Some(token) => {
+            Json(json!({"token": token, "exp": reel_token::DEFAULT_TTL_SECS})).into_response()
+        }
         None => (
             StatusCode::SERVICE_UNAVAILABLE,
             Json(json!({"error": "media token signing not configured"})),
@@ -140,7 +142,10 @@ mod tests {
 
     #[test]
     fn media_token_cookie_none_when_absent_or_empty() {
-        assert_eq!(media_token_cookie(&with_cookie("dashboard_session=x")), None);
+        assert_eq!(
+            media_token_cookie(&with_cookie("dashboard_session=x")),
+            None
+        );
         assert_eq!(media_token_cookie(&with_cookie("reel_media_token=")), None);
         assert_eq!(media_token_cookie(&HeaderMap::new()), None);
     }

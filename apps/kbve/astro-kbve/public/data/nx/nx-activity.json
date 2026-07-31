@@ -1,176 +1,176 @@
 {
-  "generated_at": "2026-07-31T04:22:02Z",
-  "window": {
-    "days": 7,
-    "since": "2026-07-24T04:22:02Z"
-  },
-  "commits": {
-    "total": 376,
-    "authors": 2,
-    "leaderboard": [
-      {
-        "author": "h0lybyte",
-        "commits": 196
-      },
-      {
-        "author": "github-actions[bot]",
-        "commits": 180
-      }
-    ],
-    "recent": [
-      {
-        "sha": "cd93ff6",
-        "author": "h0lybyte",
-        "message": "Merge pull request #14966 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/cd93ff622d4bcb88135f0a697b77e9309f955a32",
-        "date": "2026-07-31T04:07:16Z"
-      },
-      {
-        "sha": "7e46b0f",
-        "author": "h0lybyte",
-        "message": "perf(reel): veryfast x264 preset for VOD transcode (#14975)",
-        "url": "https://github.com/KBVE/kbve/commit/7e46b0f7d575bf4972c12ae5c80dd9c434628ddf",
-        "date": "2026-07-31T04:06:47Z"
-      },
-      {
-        "sha": "59b92be",
-        "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14977)",
-        "url": "https://github.com/KBVE/kbve/commit/59b92be8c9320ac0f4dd0c779fd104771fed4c2f",
-        "date": "2026-07-31T04:05:39Z"
-      },
-      {
-        "sha": "db33944",
-        "author": "h0lybyte",
-        "message": "chore(reel): bump CPU + encode threads for faster transcoding (#14974)",
-        "url": "https://github.com/KBVE/kbve/commit/db3394439fa581c8194222f240e9cade3e2752bc",
-        "date": "2026-07-31T04:04:11Z"
-      },
-      {
-        "sha": "8cc072f",
-        "author": "h0lybyte",
-        "message": "perf(reel): reuse completed live HLS instead of re-encoding (#14976)",
-        "url": "https://github.com/KBVE/kbve/commit/8cc072f2d3a6c586ff3c4a2d8e899f31292992f8",
-        "date": "2026-07-31T04:03:21Z"
-      },
-      {
-        "sha": "5581342",
-        "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14973)",
-        "url": "https://github.com/KBVE/kbve/commit/5581342c7e9a7ddaee0d5b2f23840e3b90080b9c",
-        "date": "2026-07-31T03:14:31Z"
-      },
-      {
-        "sha": "e466593",
-        "author": "h0lybyte",
-        "message": "fix(desktop-kbve): resolve lint failures in onichan view (#14971)",
-        "url": "https://github.com/KBVE/kbve/commit/e4665934feff06ec4d406fa20b127371247265d6",
-        "date": "2026-07-31T03:12:20Z"
-      },
-      {
-        "sha": "9e27557",
-        "author": "h0lybyte",
-        "message": "feat(reel): serve sidecar subtitles for completed reels (#14969)",
-        "url": "https://github.com/KBVE/kbve/commit/9e275571c2c28c41a154c1799dfd1a3fdfb6fadb",
-        "date": "2026-07-31T03:12:08Z"
-      },
-      {
-        "sha": "3823652",
-        "author": "h0lybyte",
-        "message": "feat(astro-kbve): palworld interactive map with alpha bosses (#14972)",
-        "url": "https://github.com/KBVE/kbve/commit/38236524e2280075a6ba6e60ebc35c81e277552e",
-        "date": "2026-07-31T03:09:40Z"
-      },
-      {
-        "sha": "f926eed",
-        "author": "h0lybyte",
-        "message": "chore(deps): bump clap 4.6.4 and postcss-merge-rules 8.0.1 (#14964)",
-        "url": "https://github.com/KBVE/kbve/commit/f926eedebc3181e4f1ab4ecb8bb5bc7029c693fd",
-        "date": "2026-07-30T22:24:27Z"
-      },
-      {
-        "sha": "a572a9a",
-        "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14968)",
-        "url": "https://github.com/KBVE/kbve/commit/a572a9a86cc143c6e53bb3ae9899f554a65fa574",
-        "date": "2026-07-30T21:29:30Z"
-      },
-      {
-        "sha": "0cae2f7",
-        "author": "h0lybyte",
-        "message": "feat(reel): cookie auth so native HLS works on iOS Safari (#14967)",
-        "url": "https://github.com/KBVE/kbve/commit/0cae2f76ea5f76abc88e411aa55e4e1d70cc8811",
-        "date": "2026-07-30T21:27:18Z"
-      }
-    ]
-  },
-  "pull_requests": {
-    "merged": 373,
-    "recent": [
-      {
-        "number": 14980,
-        "title": "Atomic: reel v0.1.31 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14980"
-      },
-      {
-        "number": 14978,
-        "title": "chore(ci): sync ci-dispatch-manifest",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14978"
-      },
-      {
-        "number": 14966,
-        "title": "Release: 3 features, 2 fixes, 2 perfs, 5 chores \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14966"
-      },
-      {
-        "number": 14975,
-        "title": "perf(reel): veryfast x264 preset for VOD transcode (0.1.29)",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14975"
-      },
-      {
-        "number": 14977,
-        "title": "chore(ci): sync ci-dispatch-manifest",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14977"
-      },
-      {
-        "number": 14974,
-        "title": "chore(reel): bump CPU + encode threads for faster transcoding",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14974"
-      },
-      {
-        "number": 14976,
-        "title": "perf(reel): reuse completed live HLS, skip re-encode (0.1.30)",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14976"
-      },
-      {
-        "number": 14973,
-        "title": "chore(ci): sync ci-dispatch-manifest",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/14973"
-      },
-      {
-        "number": 14971,
-        "title": "fix(desktop-kbve): resolve lint failures in onichan view",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14971"
-      },
-      {
-        "number": 14969,
-        "title": "feat(reel): sidecar subtitles for completed reels (0.1.28)",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/14969"
-      }
-    ]
-  },
-  "issues": {
-    "opened": 383,
-    "closed": 377
-  }
+	"generated_at": "2026-07-31T04:22:02Z",
+	"window": {
+		"days": 7,
+		"since": "2026-07-24T04:22:02Z"
+	},
+	"commits": {
+		"total": 376,
+		"authors": 2,
+		"leaderboard": [
+			{
+				"author": "h0lybyte",
+				"commits": 196
+			},
+			{
+				"author": "github-actions[bot]",
+				"commits": 180
+			}
+		],
+		"recent": [
+			{
+				"sha": "cd93ff6",
+				"author": "h0lybyte",
+				"message": "Merge pull request #14966 from KBVE/dev",
+				"url": "https://github.com/KBVE/kbve/commit/cd93ff622d4bcb88135f0a697b77e9309f955a32",
+				"date": "2026-07-31T04:07:16Z"
+			},
+			{
+				"sha": "7e46b0f",
+				"author": "h0lybyte",
+				"message": "perf(reel): veryfast x264 preset for VOD transcode (#14975)",
+				"url": "https://github.com/KBVE/kbve/commit/7e46b0f7d575bf4972c12ae5c80dd9c434628ddf",
+				"date": "2026-07-31T04:06:47Z"
+			},
+			{
+				"sha": "59b92be",
+				"author": "github-actions[bot]",
+				"message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14977)",
+				"url": "https://github.com/KBVE/kbve/commit/59b92be8c9320ac0f4dd0c779fd104771fed4c2f",
+				"date": "2026-07-31T04:05:39Z"
+			},
+			{
+				"sha": "db33944",
+				"author": "h0lybyte",
+				"message": "chore(reel): bump CPU + encode threads for faster transcoding (#14974)",
+				"url": "https://github.com/KBVE/kbve/commit/db3394439fa581c8194222f240e9cade3e2752bc",
+				"date": "2026-07-31T04:04:11Z"
+			},
+			{
+				"sha": "8cc072f",
+				"author": "h0lybyte",
+				"message": "perf(reel): reuse completed live HLS instead of re-encoding (#14976)",
+				"url": "https://github.com/KBVE/kbve/commit/8cc072f2d3a6c586ff3c4a2d8e899f31292992f8",
+				"date": "2026-07-31T04:03:21Z"
+			},
+			{
+				"sha": "5581342",
+				"author": "github-actions[bot]",
+				"message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14973)",
+				"url": "https://github.com/KBVE/kbve/commit/5581342c7e9a7ddaee0d5b2f23840e3b90080b9c",
+				"date": "2026-07-31T03:14:31Z"
+			},
+			{
+				"sha": "e466593",
+				"author": "h0lybyte",
+				"message": "fix(desktop-kbve): resolve lint failures in onichan view (#14971)",
+				"url": "https://github.com/KBVE/kbve/commit/e4665934feff06ec4d406fa20b127371247265d6",
+				"date": "2026-07-31T03:12:20Z"
+			},
+			{
+				"sha": "9e27557",
+				"author": "h0lybyte",
+				"message": "feat(reel): serve sidecar subtitles for completed reels (#14969)",
+				"url": "https://github.com/KBVE/kbve/commit/9e275571c2c28c41a154c1799dfd1a3fdfb6fadb",
+				"date": "2026-07-31T03:12:08Z"
+			},
+			{
+				"sha": "3823652",
+				"author": "h0lybyte",
+				"message": "feat(astro-kbve): palworld interactive map with alpha bosses (#14972)",
+				"url": "https://github.com/KBVE/kbve/commit/38236524e2280075a6ba6e60ebc35c81e277552e",
+				"date": "2026-07-31T03:09:40Z"
+			},
+			{
+				"sha": "f926eed",
+				"author": "h0lybyte",
+				"message": "chore(deps): bump clap 4.6.4 and postcss-merge-rules 8.0.1 (#14964)",
+				"url": "https://github.com/KBVE/kbve/commit/f926eedebc3181e4f1ab4ecb8bb5bc7029c693fd",
+				"date": "2026-07-30T22:24:27Z"
+			},
+			{
+				"sha": "a572a9a",
+				"author": "github-actions[bot]",
+				"message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14968)",
+				"url": "https://github.com/KBVE/kbve/commit/a572a9a86cc143c6e53bb3ae9899f554a65fa574",
+				"date": "2026-07-30T21:29:30Z"
+			},
+			{
+				"sha": "0cae2f7",
+				"author": "h0lybyte",
+				"message": "feat(reel): cookie auth so native HLS works on iOS Safari (#14967)",
+				"url": "https://github.com/KBVE/kbve/commit/0cae2f76ea5f76abc88e411aa55e4e1d70cc8811",
+				"date": "2026-07-30T21:27:18Z"
+			}
+		]
+	},
+	"pull_requests": {
+		"merged": 373,
+		"recent": [
+			{
+				"number": 14980,
+				"title": "Atomic: reel v0.1.31 post-publish sync",
+				"user": "github-actions[bot]",
+				"url": "https://github.com/KBVE/kbve/pull/14980"
+			},
+			{
+				"number": 14978,
+				"title": "chore(ci): sync ci-dispatch-manifest",
+				"user": "github-actions[bot]",
+				"url": "https://github.com/KBVE/kbve/pull/14978"
+			},
+			{
+				"number": 14966,
+				"title": "Release: 3 features, 2 fixes, 2 perfs, 5 chores \u2192 Main",
+				"user": "github-actions[bot]",
+				"url": "https://github.com/KBVE/kbve/pull/14966"
+			},
+			{
+				"number": 14975,
+				"title": "perf(reel): veryfast x264 preset for VOD transcode (0.1.29)",
+				"user": "h0lybyte",
+				"url": "https://github.com/KBVE/kbve/pull/14975"
+			},
+			{
+				"number": 14977,
+				"title": "chore(ci): sync ci-dispatch-manifest",
+				"user": "github-actions[bot]",
+				"url": "https://github.com/KBVE/kbve/pull/14977"
+			},
+			{
+				"number": 14974,
+				"title": "chore(reel): bump CPU + encode threads for faster transcoding",
+				"user": "h0lybyte",
+				"url": "https://github.com/KBVE/kbve/pull/14974"
+			},
+			{
+				"number": 14976,
+				"title": "perf(reel): reuse completed live HLS, skip re-encode (0.1.30)",
+				"user": "h0lybyte",
+				"url": "https://github.com/KBVE/kbve/pull/14976"
+			},
+			{
+				"number": 14973,
+				"title": "chore(ci): sync ci-dispatch-manifest",
+				"user": "github-actions[bot]",
+				"url": "https://github.com/KBVE/kbve/pull/14973"
+			},
+			{
+				"number": 14971,
+				"title": "fix(desktop-kbve): resolve lint failures in onichan view",
+				"user": "h0lybyte",
+				"url": "https://github.com/KBVE/kbve/pull/14971"
+			},
+			{
+				"number": 14969,
+				"title": "feat(reel): sidecar subtitles for completed reels (0.1.28)",
+				"user": "h0lybyte",
+				"url": "https://github.com/KBVE/kbve/pull/14969"
+			}
+		]
+	},
+	"issues": {
+		"opened": 383,
+		"closed": 377
+	}
 }

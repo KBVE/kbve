@@ -3,39 +3,68 @@ import BentoShell from '@/components/hero/BentoShell.astro';
 import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
 import ReactInventoryRN from './ReactInventoryRN';
 
-const backdrop = 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=2400&auto=format&fit=crop';
+const backdrop =
+	'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q=80&w=2400&auto=format&fit=crop';
 ---
 
 <div class="inventory-hub" style={`--bento-hero-bg: url('${backdrop}')`}>
-	<section class="bento-hero bento-section not-content" aria-label="Your inventory">
+	<section
+		class="bento-hero bento-section not-content"
+		aria-label="Your inventory">
 		<div class="bento-hero__bg" aria-hidden="true"></div>
 		<div class="bento-hero__frame bento-frame">
 			<div class="bento-board bento-board--hero">
-				<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
-					<span class="bento-badge bento-chip"><span>inventory</span></span>
-					<h1 class="bento-title">Everything
-						<span class="bento-title__accent">you own.</span></h1>
+				<div
+					class="bento-cell bento-hero-copy bento-card bento-card--glass">
+					<span class="bento-badge bento-chip">
+						<span>inventory</span>
+					</span>
+					<h1 class="bento-title">
+						Everything
+						<span class="bento-title__accent">you own.</span>
+					</h1>
 					<p class="bento-lede">
-						Store drops, market pickups, and grants — the canonical record of
-						what is yours, including anything currently escrowed in a listing.
+						Store drops, market pickups, and grants — the canonical
+						record of what is yours, including anything currently
+						escrowed in a listing.
 					</p>
 					<div class="bento-cta">
-						<a class="bento-btn bento-btn--primary" href="#inventory">Open inventory
-							<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+						<a
+							class="bento-btn bento-btn--primary"
+							href="#inventory">
+							Open inventory
+							<svg
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								aria-hidden="true">
+								<path
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									stroke-width="2"
+									d="M5 12h14M13 6l6 6-6 6">
+								</path>
+							</svg>
 						</a>
-						<a class="bento-btn bento-btn--ghost" href="/dashboard/orders/">Your orders</a>
+						<a
+							class="bento-btn bento-btn--ghost"
+							href="/dashboard/orders/">
+							Your orders
+						</a>
 					</div>
 				</div>
-				{[
-					{ v: 'Owned', l: 'Items held in your account' },
-					{ v: 'Listed', l: 'Escrowed in a live listing' },
-					{ v: 'Tradable', l: 'Sell it on the marketplace' },
-				].map((s) => (
-					<div class="bento-cell bento-stat bento-card bento-card--glass">
-						<span class="bento-stat__value">{s.v}</span>
-						<span class="bento-stat__label">{s.l}</span>
-					</div>
-				))}
+				{
+					[
+						{ v: 'Owned', l: 'Items held in your account' },
+						{ v: 'Listed', l: 'Escrowed in a live listing' },
+						{ v: 'Tradable', l: 'Sell it on the marketplace' },
+					].map((s) => (
+						<div class="bento-cell bento-stat bento-card bento-card--glass">
+							<span class="bento-stat__value">{s.v}</span>
+							<span class="bento-stat__label">{s.l}</span>
+						</div>
+					))
+				}
 			</div>
 		</div>
 	</section>
@@ -50,7 +79,9 @@ const backdrop = 'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?q
 </div>
 
 <style>
-	.inventory-island { min-height: 60vh; }
+	.inventory-island {
+		min-height: 60vh;
+	}
 </style>
 
 <style is:global>

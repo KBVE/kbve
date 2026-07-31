@@ -444,10 +444,7 @@ impl Transcoder {
         let mut child = cmd.spawn()?;
         let stdout = child.stdout.take();
         let mut stderr = child.stderr.take();
-        self.children
-            .lock()
-            .unwrap()
-            .insert(id.to_string(), child);
+        self.children.lock().unwrap().insert(id.to_string(), child);
 
         if let (Some(stdout), Some(dur)) = (stdout, duration_secs) {
             use tokio::io::AsyncBufReadExt;
@@ -662,7 +659,12 @@ impl Transcoder {
 /// files (`<stem>.sub<N>.srt`) so they survive deleting the source container.
 /// Image-based subs (pgs/vobsub) cannot convert to srt and are skipped; any
 /// failure just stops the loop — subtitles are a nice-to-have, never fatal.
-async fn extract_subtitles(ffmpeg_bin: &str, src: &std::path::Path, dir: &std::path::Path, stem: &str) {
+async fn extract_subtitles(
+    ffmpeg_bin: &str,
+    src: &std::path::Path,
+    dir: &std::path::Path,
+    stem: &str,
+) {
     for n in 0..8u32 {
         let out = dir.join(format!("{stem}.sub{n}.srt"));
         let map = format!("0:s:{n}");
@@ -760,8 +762,14 @@ mod tests {
 
     #[test]
     fn parse_progress_line_splits_key_value() {
-        assert_eq!(parse_progress_line("out_time_us=4560000"), Some(("out_time_us", "4560000")));
-        assert_eq!(parse_progress_line("progress=end"), Some(("progress", "end")));
+        assert_eq!(
+            parse_progress_line("out_time_us=4560000"),
+            Some(("out_time_us", "4560000"))
+        );
+        assert_eq!(
+            parse_progress_line("progress=end"),
+            Some(("progress", "end"))
+        );
         assert_eq!(parse_progress_line("garbage"), None);
     }
 
@@ -880,7 +888,11 @@ mod tests {
         let p = parse_probe_json(&json);
         assert_eq!(p.video_codec.as_deref(), Some("h264"));
         assert_eq!(p.audio_codec, None);
-        assert_eq!(decide_delivery(&p), Delivery::RemuxHls, "h264 no-audio remuxes");
+        assert_eq!(
+            decide_delivery(&p),
+            Delivery::RemuxHls,
+            "h264 no-audio remuxes"
+        );
     }
     #[test]
     fn map_selects_real_video_and_optional_audio() {
@@ -938,8 +950,14 @@ mod transcoder_tests {
         assert!(audio_can_copy(Some("aac"), Some(2)));
         assert!(audio_can_copy(Some("aac"), Some(1)));
         assert!(!audio_can_copy(Some("aac"), Some(6)), "5.1 aac -> downmix");
-        assert!(!audio_can_copy(Some("aac"), None), "unknown channels -> unsafe");
-        assert!(!audio_can_copy(Some("eac3"), Some(2)), "non-aac -> transcode");
+        assert!(
+            !audio_can_copy(Some("aac"), None),
+            "unknown channels -> unsafe"
+        );
+        assert!(
+            !audio_can_copy(Some("eac3"), Some(2)),
+            "non-aac -> transcode"
+        );
         assert!(!audio_can_copy(None, Some(2)));
     }
 
@@ -1024,8 +1042,16 @@ mod transcoder_tests {
         store.upsert(meta("ready", TranscodeStatus::Ready)).unwrap();
         store.upsert(meta("none", TranscodeStatus::None)).unwrap();
 
-        let _transcoder =
-            Transcoder::new(store.clone(), 1, 1, "ffmpeg".into(), "ffprobe".into(), true, 1, "veryfast".into());
+        let _transcoder = Transcoder::new(
+            store.clone(),
+            1,
+            1,
+            "ffmpeg".into(),
+            "ffprobe".into(),
+            true,
+            1,
+            "veryfast".into(),
+        );
 
         let pending = store.get("pending").unwrap();
         assert_eq!(pending.transcode, TranscodeStatus::Failed);

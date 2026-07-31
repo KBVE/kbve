@@ -57,13 +57,23 @@ pub async fn run(cfg: Config, tx: Sender<GameEvent>, live: SharedLive) -> Result
         let curr: HashSet<String> = players
             .players
             .iter()
-            .map(|p| if p.player_id.is_empty() { p.name.clone() } else { p.player_id.clone() })
+            .map(|p| {
+                if p.player_id.is_empty() {
+                    p.name.clone()
+                } else {
+                    p.player_id.clone()
+                }
+            })
             .collect();
         let name_by_id: HashMap<String, String> = players
             .players
             .iter()
             .map(|p| {
-                let id = if p.player_id.is_empty() { p.name.clone() } else { p.player_id.clone() };
+                let id = if p.player_id.is_empty() {
+                    p.name.clone()
+                } else {
+                    p.player_id.clone()
+                };
                 (id, p.name.clone())
             })
             .collect();
