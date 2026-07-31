@@ -125,6 +125,7 @@ namespace RareIcon
         Chanterelle = 116,  // chanterelle
         FlyAgaric = 117,  // fly-agaric
         PetElixir = 118,  // pet-elixir
+        PetBall = 119,  // pet-ball
         Berry = 500,  // berry
         Mushroom = 501,  // mushroom
         Herb = 502,  // herb

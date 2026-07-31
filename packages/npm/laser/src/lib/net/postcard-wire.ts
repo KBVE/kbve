@@ -453,6 +453,7 @@ export function decodePetBattleState(payload: number[]): PetBattleState {
 	const phase = r.string();
 	const deadline_ms = r.u32();
 	const opponent = r.string();
+	const can_catch = r.bool();
 	return {
 		player,
 		enemy,
@@ -466,6 +467,7 @@ export function decodePetBattleState(payload: number[]): PetBattleState {
 		phase,
 		deadline_ms,
 		opponent,
+		can_catch,
 	};
 }
 

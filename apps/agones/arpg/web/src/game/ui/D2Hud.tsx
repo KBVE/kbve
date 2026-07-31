@@ -19,6 +19,7 @@ import {
 	PB_USED_CATEGORY_MASK,
 	PET_ACT_MOVE,
 	PET_ACT_SWAP,
+	PET_ACT_CATCH,
 	PET_ACT_ITEM,
 	PET_ACT_RUN,
 	DUEL_PROMPT_OFFER,
@@ -358,6 +359,9 @@ function DuelPromptOverlay() {
 function PetBattleOverlay() {
 	const [state, setState] = useState<PetBattleState | null>(null);
 	const [entering, setEntering] = useState(false);
+	// Ball count comes off the inventory sync the client already receives — the battle state
+	// carries `can_catch` (is this duel wild?) but not what the player is carrying.
+	const [balls, setBalls] = useState(0);
 
 	useEffect(() => {
 		const offEnter = onBattleEnter(() => {
@@ -368,9 +372,17 @@ function PetBattleOverlay() {
 			setEntering(true);
 			setState(s);
 		});
+		const offInv = onInventory((items) =>
+			setBalls(
+				items
+					.filter((i) => i.ref === PET_BALL_REF)
+					.reduce((n, i) => n + i.count, 0),
+			),
+		);
 		return () => {
 			offEnter();
 			offState();
+			offInv();
 		};
 	}, []);
 
@@ -384,6 +396,7 @@ function PetBattleOverlay() {
 	return state ? (
 		<PetBattleScene
 			state={state}
+			balls={balls}
 			onAction={(action, arg) => emitPetBattleAction({ action, arg })}
 			onClose={close}
 		/>
@@ -646,14 +659,20 @@ function aliveCount(team: PetBattler[]): number {
  * menu (moves with PP cost, swap, potion, run). The player's pick is sent back as a
  * PetTurn; the next streamed state advances the fight.
  */
+/** The inventory ref of the catch ball — mirrors `capture::PET_BALL_REF`. */
+const PET_BALL_REF = 'pet-ball';
+
 export function PetBattleScene({
 	state,
 	onAction,
 	onClose,
+	balls = 0,
 }: {
 	state: PetBattleState;
 	onAction: (action: number, arg: number) => void;
 	onClose: () => void;
+	/** Pet balls the player is carrying, shown on the Catch button. */
+	balls?: number;
 }) {
 	const [view, setView] = useState<BattleView>(() => startView(state));
 	const [step, setStep] = useState(0);
@@ -987,6 +1006,14 @@ export function PetBattleScene({
 										label="🧪 Potion"
 										onClick={() => commit(PET_ACT_ITEM, 0)}
 									/>
+									{state.can_catch && (
+										<BattleButton
+											label={`⚪ Catch${balls > 0 ? ` (${balls})` : ''}`}
+											onClick={() =>
+												commit(PET_ACT_CATCH, 0)
+											}
+										/>
+									)}
 									{state.can_run && (
 										<BattleButton
 											label="🏃 Run"
