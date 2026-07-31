@@ -26,6 +26,8 @@ pub struct Config {
     pub poll_interval_secs: u64,
     pub chat_log_path: Option<String>,
     pub live_api_port: u16,
+    pub events_log_path: String,
+    pub boss_respawn_secs: u64,
 }
 
 impl Config {
@@ -60,6 +62,9 @@ impl Config {
             poll_interval_secs: parse_env_u64("PALWORLD_POLL_INTERVAL_SECS", 10)?,
             chat_log_path: std::env::var("CHAT_LOG_PATH").ok(),
             live_api_port: parse_env_u16("LIVE_API_PORT", 8300)?,
+            events_log_path: std::env::var("EVENTS_LOG_PATH")
+                .unwrap_or_else(|_| "/shared/chat/events.log".into()),
+            boss_respawn_secs: parse_env_u64("BOSS_RESPAWN_SECS", 3600)?,
         })
     }
 }
