@@ -56,7 +56,7 @@ spec:
             - { name: REEL_UPLOAD_LIMIT_BPS, value: "2097152" }
             - { name: RUST_LOG, value: "reel=debug,warn,librqbit::torrent_state::live=error" }
             - { name: REEL_LOG_JSON, value: "true" }
-            - { name: REEL_ENCODE_THREADS, value: "1" }
+            - { name: REEL_ENCODE_THREADS, value: "16" }
           envFrom:
             - secretRef: { name: reel-api }
           ports:
@@ -74,8 +74,8 @@ spec:
             timeoutSeconds: 5
             failureThreshold: 6
           resources:
-            requests: { cpu: 100m, memory: 128Mi }
-            limits: { cpu: "2", memory: 2Gi }
+            requests: { cpu: "4", memory: 1Gi }
+            limits: { cpu: "16", memory: 8Gi }
           volumeMounts:
             - { name: data, mountPath: /data }
             - { name: gluetun-run, mountPath: /tmp/gluetun, readOnly: true }
