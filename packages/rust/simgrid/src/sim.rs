@@ -1853,6 +1853,16 @@ fn sync_roster(
             .id();
         if let Some(f) = spawn_floor {
             commands.entity(entity).insert(Floor(f));
+            let event = proto::FloorChangeEvent {
+                z: f,
+                tile: spawn_tile,
+            };
+            let payload = proto::encode_inner(&event).unwrap_or_default();
+            let _ = bcast.tx.send(ServerEvent::Ephemeral {
+                kind: proto::EPHEMERAL_FLOOR,
+                to: *slot,
+                payload,
+            });
         }
         if was_in_space {
             commands.entity(entity).insert(ReturnedFromInstance);
