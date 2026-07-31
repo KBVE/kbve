@@ -34,20 +34,18 @@ gh api repos/Okaetsu/PalSchema/releases/latest \
 
 ## Guild chest (KBVEGuildChest)
 
-`mods/KBVEGuildChest/blueprints/guildchest_slots.json` overrides
-`BP_PalGameSetting_C.GuildChestSlotNum`. Structural reference: the "Guild Chest
-Slots" Nexus PalSchema mod (which ships 2466); KBVE runs 108. Server-side only —
-clients need no mod, but the value must match across a server restart or stored
-items beyond the new cap become unreachable.
+`mods/KBVEGuildChest/blueprints/guild_chest.json` overrides
+`BP_PalGameSetting_C.GuildChestSlotNum`; KBVE runs 108. Inspired by the "Guild
+Chest Slots" Nexus PalSchema mod (which ships 2466). Server-side only — clients
+need no mod, but lowering the value across a restart makes stored items past the
+new cap unreachable.
 
-## Vendored third-party mods
+## Shields (KBVEShields)
 
-`mods/ZZZ_MelwenMods_MulticlimateShields/` — Multiclimate Shields 2.1 by
-MelwenMods ([Nexus 2643](https://www.nexusmods.com/palworld/mods/2643)). Grants
-`TemperatureResist_Heat*Cold*` passives to `Shield_Ultra` / `Shield_SF` /
-`Shield_07`. Kept under its upstream `ZZZ_` prefix so it loads last and wins
-item overrides; spaces stripped from the folder name. Server-side only.
-Re-download from Nexus to update — do not hand-edit.
+`mods/KBVEShields/items/shields.json` grants `TemperatureResist_Heat*Cold*`
+passives to `Shield_Ultra` / `Shield_SF` / `Shield_07`. Inspired by Multiclimate
+Shields by MelwenMods ([Nexus 2643](https://www.nexusmods.com/palworld/mods/2643));
+values are KBVE-authored. Server-side only.
 
 ## Shops (KBVEShops)
 
