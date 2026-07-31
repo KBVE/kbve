@@ -1,0 +1,22 @@
+// ======================================================
+// MOD: Multiclimate Shields
+// VERSION: 2.1
+// AUTHOR: MelwenMods
+// REQUIREMENTS: PalSchema, UE4SS
+// DOWNLOAD: https://www.nexusmods.com/palworld/mods/2643
+// ======================================================
+
+{
+// Ultra Shield
+	"Shield_Ultra": {
+		"PassiveSkill": "TemperatureResist_Heat1Cold1"
+	},
+// Advanced Shield
+	"Shield_SF": {
+		"PassiveSkill": "TemperatureResist_Heat2Cold2"
+	},
+// Ancient Shield
+	"Shield_07": {
+		"PassiveSkill": "TemperatureResist_Heat3Cold3"
+	}
+}
