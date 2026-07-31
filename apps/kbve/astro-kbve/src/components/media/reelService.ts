@@ -208,6 +208,22 @@ function setMediaCookie(token: string): void {
 }
 
 
+export interface ReelSubtitle {
+	index: number;
+	label: string;
+	lang: string;
+}
+
+export async function fetchSubtitles(id: string): Promise<ReelSubtitle[]> {
+	try {
+		return await authedApiFetch<ReelSubtitle[]>(
+			`${REEL_PATH}/torrents/${encodeURIComponent(id)}/subtitles`,
+		);
+	} catch {
+		return [];
+	}
+}
+
 export async function listTorrents(): Promise<ReelTorrent[]> {
 	return authedApiFetch<ReelTorrent[]>(`${REEL_PATH}/torrents`);
 }
@@ -453,7 +469,41 @@ export class ReelPlayer {
 		if (leeching) {
 			$reelNotice.set('still downloading — playing the available portion');
 		}
+		void this.addSubtitleTracks(video, id, token, gen);
 		void video.play().catch(() => undefined);
+	}
+
+	// Attach sidecar subtitles (kept beside a completed download) as WebVTT
+	// <track>s. The <track> element can't send headers, so the token rides the
+	// query string. Live HLS carries its own subtitle rendition, so leeching
+	// entries simply return an empty list here.
+	private async addSubtitleTracks(
+		video: HTMLVideoElement,
+		id: string,
+		token: string,
+		gen: number,
+	): Promise<void> {
+		this.removeSubtitleTracks(video);
+		const subs = await fetchSubtitles(id);
+		if (this.generation !== gen || !subs.length) return;
+		subs.forEach((s, i) => {
+			const track = document.createElement('track');
+			track.kind = 'subtitles';
+			track.label = s.label;
+			track.srclang = s.lang || 'und';
+			track.src = mediaUrl(id, `/subtitles/${s.index}`, token);
+			if (i === 0) track.default = true;
+			video.appendChild(track);
+		});
+		// Show the first track once its cues load.
+		const first = video.textTracks[0];
+		if (first) first.mode = 'showing';
+	}
+
+	private removeSubtitleTracks(video: HTMLVideoElement): void {
+		video
+			.querySelectorAll('track')
+			.forEach((t) => t.parentNode?.removeChild(t));
 	}
 
 	private attachVideoError(video: HTMLVideoElement, gen: number): void {
@@ -470,6 +520,9 @@ export class ReelPlayer {
 		gen: number,
 	): Promise<void> {
 		if (this.generation !== gen) return;
+		// Sidecar subs for a completed entry; live HLS returns an empty list and
+		// shows its own in-stream subtitle rendition instead.
+		void this.addSubtitleTracks(video, id, token, gen);
 		// Prefer hls.js wherever it's supported (desktop Safari included). Its
 		// XHRs carry the token in the Authorization header, so every request —
 		// master, child playlists, segments, subtitle VTTs — authenticates. The
@@ -533,6 +586,7 @@ export class ReelPlayer {
 		}
 		if (this.video) {
 			this.video.onerror = null;
+			this.removeSubtitleTracks(this.video);
 		}
 		if (this.hls) {
 			try {

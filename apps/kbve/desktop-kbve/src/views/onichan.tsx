@@ -38,7 +38,9 @@ export function OnichanView() {
 	}, []);
 
 	useEffect(() => {
-		refresh();
+		void (async () => {
+			await refresh();
+		})();
 	}, [refresh]);
 
 	useEffect(() => {

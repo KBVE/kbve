@@ -189,6 +189,32 @@ pub fn mint_pet_from_species(species: &NpcDef, level: u32) -> Option<PetSnapshot
     })
 }
 
+/// Owners whose roster changed this frame and need a re-sync. A queue rather than a
+/// direct send because the systems that mutate pet components hold `&mut PetVitals` /
+/// `&mut PetMoves`, which conflicts with [`PetBank`]'s read-only view of the same
+/// components — they cannot both live in one system. Drained by [`flush_roster_syncs`].
+#[derive(Resource, Default)]
+pub struct PendingRosterSyncs(pub HashSet<crate::proto::PlayerSlot>);
+
+/// Send one roster sync per owner queued in [`PendingRosterSyncs`]. Runs after everything
+/// that can touch a roster, so a frame with several mutations still costs one event.
+pub fn flush_roster_syncs(
+    bcast: bevy::prelude::Res<crate::sim::Outbound>,
+    mut queued: ResMut<PendingRosterSyncs>,
+    bank: PetBank,
+    players: Query<(&crate::sim::PlayerSlotTag, &PetRoster)>,
+) {
+    if queued.0.is_empty() {
+        return;
+    }
+    for slot in std::mem::take(&mut queued.0) {
+        let Some((_, roster)) = players.iter().find(|(tag, _)| tag.0 == slot) else {
+            continue;
+        };
+        send_roster_sync(&bcast, slot, &bank.snapshot(roster), roster.active);
+    }
+}
+
 /// Push a roster snapshot to its owner as an `EPHEMERAL_PET_ROSTER` event. The single
 /// emit path — the join/rejoin restore and every roster mutation go through here, so the
 /// client's view of the roster can never diverge from the server's.
@@ -391,6 +417,18 @@ impl PetBank<'_, '_> {
     /// The detached snapshots of a roster, in slot order — for the wire + persistence.
     pub fn snapshot(&self, roster: &PetRoster) -> Vec<PetSnapshot> {
         roster.slots.iter().filter_map(|&e| self.read(e)).collect()
+    }
+
+    /// Like [`Self::snapshot`], but keeps each snapshot paired with the entity it came
+    /// from. Callers that have to write back to a pet (battle vitals commit-back) need the
+    /// handle, and pairing here keeps them from re-deriving it by index — `snapshot` drops
+    /// unreadable slots, so slot order and snapshot order are not interchangeable.
+    pub fn snapshot_with_entities(&self, roster: &PetRoster) -> Vec<(Entity, PetSnapshot)> {
+        roster
+            .slots
+            .iter()
+            .filter_map(|&e| self.read(e).map(|snap| (e, snap)))
+            .collect()
     }
 }
 
