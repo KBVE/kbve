@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-07-30T04:00:34Z",
+	"generated_at": "2026-07-31T04:26:09Z",
 	"node": {
 		"count": 127,
 		"major": 32,
@@ -416,7 +416,7 @@
 				"name": "@vitejs/plugin-react",
 				"current": "6.0.2",
 				"wanted": "6.0.2",
-				"latest": "6.0.4",
+				"latest": "6.0.5",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -472,7 +472,7 @@
 				"name": "astro-vtbot",
 				"current": "2.1.11",
 				"wanted": "2.1.11",
-				"latest": "3.0.0",
+				"latest": "3.0.1",
 				"type": "devDependencies",
 				"major": true
 			},
@@ -488,7 +488,7 @@
 				"name": "babel-preset-expo",
 				"current": "56.0.15",
 				"wanted": "56.0.15",
-				"latest": "57.0.4",
+				"latest": "57.0.5",
 				"type": "dependencies",
 				"major": true
 			},
@@ -560,7 +560,7 @@
 				"name": "expo",
 				"current": "56.0.11",
 				"wanted": "56.0.11",
-				"latest": "57.0.8",
+				"latest": "57.0.9",
 				"type": "dependencies",
 				"major": true
 			},
@@ -576,7 +576,7 @@
 				"name": "expo-build-properties",
 				"current": "56.0.19",
 				"wanted": "56.0.19",
-				"latest": "57.0.7",
+				"latest": "57.0.8",
 				"type": "dependencies",
 				"major": true
 			},
@@ -584,7 +584,7 @@
 				"name": "expo-dev-client",
 				"current": "56.0.20",
 				"wanted": "56.0.20",
-				"latest": "57.0.9",
+				"latest": "57.0.10",
 				"type": "dependencies",
 				"major": true
 			},
@@ -672,7 +672,7 @@
 				"name": "lucide",
 				"current": "0.575.0",
 				"wanted": "0.575.0",
-				"latest": "1.27.0",
+				"latest": "1.28.0",
 				"type": "dependencies",
 				"major": true
 			},
@@ -680,7 +680,7 @@
 				"name": "lucide-react",
 				"current": "0.575.0",
 				"wanted": "0.575.0",
-				"latest": "1.27.0",
+				"latest": "1.28.0",
 				"type": "dependencies",
 				"major": true
 			},
@@ -968,7 +968,7 @@
 				"name": "vite",
 				"current": "8.0.9",
 				"wanted": "8.0.9",
-				"latest": "8.1.5",
+				"latest": "8.2.0",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -1023,7 +1023,7 @@
 		]
 	},
 	"rust": {
-		"count": 85,
+		"count": 84,
 		"major": 0,
 		"items": [
 			{
@@ -1207,18 +1207,6 @@
 				"major": false
 			},
 			{
-				"name": "clap",
-				"current": "4.6.3",
-				"latest": "4.6.4",
-				"major": false
-			},
-			{
-				"name": "clap_derive",
-				"current": "4.6.3",
-				"latest": "4.6.4",
-				"major": false
-			},
-			{
 				"name": "coreaudio-rs",
 				"current": "0.13.0",
 				"latest": "0.14.2",
@@ -1282,6 +1270,12 @@
 				"name": "http",
 				"current": "1.4.2",
 				"latest": "1.5.0",
+				"major": false
+			},
+			{
+				"name": "hybrid-array",
+				"current": "0.4.13",
+				"latest": "0.4.14",
 				"major": false
 			},
 			{
@@ -1455,55 +1449,55 @@
 			{
 				"name": "turso",
 				"current": "0.7.0",
-				"latest": "0.7.1",
+				"latest": "0.7.2",
 				"major": false
 			},
 			{
 				"name": "turso_core",
 				"current": "0.7.0",
-				"latest": "0.7.1",
+				"latest": "0.7.2",
 				"major": false
 			},
 			{
 				"name": "turso_ext",
 				"current": "0.7.0",
-				"latest": "0.7.1",
+				"latest": "0.7.2",
 				"major": false
 			},
 			{
 				"name": "turso_macros",
 				"current": "0.7.0",
-				"latest": "0.7.1",
+				"latest": "0.7.2",
 				"major": false
 			},
 			{
 				"name": "turso_parser",
 				"current": "0.7.0",
-				"latest": "0.7.1",
+				"latest": "0.7.2",
 				"major": false
 			},
 			{
 				"name": "turso_sdk_kit",
 				"current": "0.7.0",
-				"latest": "0.7.1",
+				"latest": "0.7.2",
 				"major": false
 			},
 			{
 				"name": "turso_sdk_kit_macros",
 				"current": "0.7.0",
-				"latest": "0.7.1",
+				"latest": "0.7.2",
 				"major": false
 			},
 			{
 				"name": "turso_sync_engine",
 				"current": "0.7.0",
-				"latest": "0.7.1",
+				"latest": "0.7.2",
 				"major": false
 			},
 			{
 				"name": "turso_sync_sdk_kit",
 				"current": "0.7.0",
-				"latest": "0.7.1",
+				"latest": "0.7.2",
 				"major": false
 			},
 			{
@@ -1538,6 +1532,6 @@
 			}
 		]
 	},
-	"total": 212,
+	"total": 211,
 	"major_total": 32
 }
