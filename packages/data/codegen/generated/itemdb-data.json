@@ -4176,7 +4176,7 @@
       "key": 634,
       "id": "01KPICKAXE0000000000TOOLX1",
       "name": "Pickaxe",
-      "typeFlags": 384,
+      "typeFlags": 4,
       "consumable": false,
       "stackable": false,
       "maxStack": 1,
