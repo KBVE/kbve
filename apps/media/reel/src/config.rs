@@ -26,6 +26,7 @@ pub struct Config {
     pub remux_concurrency: usize,
     pub encode_concurrency: usize,
     pub encode_threads: usize,
+    pub encode_preset: String,
     pub ffmpeg_bin: String,
     pub ffprobe_bin: String,
     pub stream_enabled: bool,
@@ -187,6 +188,7 @@ pub fn load_from_env() -> anyhow::Result<Config> {
         remux_concurrency: env_u64("REEL_REMUX_CONCURRENCY", 3)? as usize,
         encode_concurrency: env_u64("REEL_ENCODE_CONCURRENCY", 1)? as usize,
         encode_threads: env_u64("REEL_ENCODE_THREADS", 1)? as usize,
+        encode_preset: env_or("REEL_ENCODE_PRESET", "veryfast"),
         ffmpeg_bin: env_or("REEL_FFMPEG_BIN", "ffmpeg"),
         ffprobe_bin: env_or("REEL_FFPROBE_BIN", "ffprobe"),
         stream_enabled: env_bool("REEL_STREAM_ENABLED", true),
@@ -373,6 +375,7 @@ mod tests {
         assert_eq!(c.remux_concurrency, 3);
         assert_eq!(c.encode_concurrency, 1);
         assert_eq!(c.encode_threads, 1);
+        assert_eq!(c.encode_preset, "veryfast");
         assert_eq!(c.ffmpeg_bin, "ffmpeg");
         std::env::set_var("REEL_TRANSCODE_ENABLED", "false");
         std::env::set_var("REEL_ENCODE_CONCURRENCY", "2");
