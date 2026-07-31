@@ -44,6 +44,293 @@
           "actionRef": "bake-bread",
           "description": "Baking unlocks with a mill and oven."
         }
+      ],
+      "actions": [
+        {
+          "ref": "compress-berry",
+          "key": 44,
+          "name": "Compress Berry",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "berry",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-carrot",
+          "key": 45,
+          "name": "Compress Carrot",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "carrot",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-cheese",
+          "key": 46,
+          "name": "Compress Cheese",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "cheese",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-cooked-beef",
+          "key": 47,
+          "name": "Compress Cooked Beef",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "cooked-beef",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-cooked-chicken",
+          "key": 48,
+          "name": "Compress Cooked Chicken",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "cooked-chicken",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-cooked-egg",
+          "key": 49,
+          "name": "Compress Cooked Egg",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "cooked-egg",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-cooked-mutton",
+          "key": 50,
+          "name": "Compress Cooked Mutton",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "cooked-mutton",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-dragonfruit",
+          "key": 51,
+          "name": "Compress Dragonfruit",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "dragonfruit",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-egg",
+          "key": 52,
+          "name": "Compress Egg",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "egg",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-fresh-milk",
+          "key": 53,
+          "name": "Compress Fresh Milk",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "fresh-milk",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-mushroom",
+          "key": 54,
+          "name": "Compress Mushroom",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "mushroom",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-prickly-pear",
+          "key": 55,
+          "name": "Compress Prickly Pear",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "prickly-pear",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-raw-beef",
+          "key": 56,
+          "name": "Compress Raw Beef",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "raw-beef",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-raw-chicken",
+          "key": 57,
+          "name": "Compress Raw Chicken",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "raw-chicken",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-raw-mutton",
+          "key": 58,
+          "name": "Compress Raw Mutton",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "raw-mutton",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "meal",
+              "quantity": 1
+            }
+          ]
+        }
       ]
     },
     {
@@ -532,6 +819,65 @@
           "actionRef": "forge-bronze-dagger",
           "description": "Bronze weaponry becomes forgeable."
         }
+      ],
+      "actions": [
+        {
+          "ref": "compress-stone",
+          "key": 60,
+          "name": "Compress Stone",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "stone",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "stone-block",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-coin",
+          "key": 61,
+          "name": "Compress Coin",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "coin",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "gold-bar",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-arrow",
+          "key": 62,
+          "name": "Compress Arrow",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "arrow",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "quiver",
+              "quantity": 1
+            }
+          ]
+        }
       ]
     },
     {
@@ -587,6 +933,25 @@
           "outputs": [
             {
               "itemRef": "leaves",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "ref": "compress-log",
+          "key": 59,
+          "name": "Compress Log",
+          "requiredLevel": 0,
+          "xpReward": 0,
+          "inputs": [
+            {
+              "itemRef": "log",
+              "quantity": 100
+            }
+          ],
+          "outputs": [
+            {
+              "itemRef": "timber",
               "quantity": 1
             }
           ]
