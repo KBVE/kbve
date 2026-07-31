@@ -5,8 +5,10 @@ mod db;
 mod duel;
 mod game;
 mod pilot;
+mod restore;
 mod roster;
 mod ship_footprint_gen;
+mod vitals;
 
 use std::net::SocketAddr;
 
@@ -148,15 +150,24 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         app.add_systems(
             bevy::prelude::Update,
             (
-                duel::apply_npc_challenges,
-                duel::apply_duel_challenges,
-                duel::apply_duel_responses,
-                game::apply_pet_battles,
-                game::apply_pet_turns,
-                duel::tick_duels,
-                duel::cleanup_stale_duels,
-                duel::expire_duel_challenges,
-                roster::apply_roster_ops,
+                (
+                    duel::apply_npc_challenges,
+                    duel::apply_duel_challenges,
+                    duel::apply_duel_responses,
+                    game::apply_pet_battles,
+                    game::apply_pet_turns,
+                    duel::tick_duels,
+                )
+                    .chain(),
+                (
+                    vitals::commit_duel_vitals,
+                    duel::cleanup_stale_duels,
+                    duel::expire_duel_challenges,
+                    roster::apply_roster_ops,
+                    restore::apply_pet_restores,
+                    simgrid::flush_roster_syncs,
+                )
+                    .chain(),
             )
                 .chain()
                 .after(simgrid::SimSet::Input),

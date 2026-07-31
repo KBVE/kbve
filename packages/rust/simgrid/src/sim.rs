@@ -208,6 +208,22 @@ pub enum RosterOp {
 #[derive(Resource, Default)]
 pub struct PendingRosterOps(pub Vec<(proto::PlayerSlot, RosterOp)>);
 
+/// One request to restore pet vitals. Separate from [`RosterOp`] because restores write
+/// `PetVitals`/`PetMoves` directly, which cannot coexist with `PetBank`'s read-only view of
+/// the same components in one system.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum PetRestore {
+    /// Spend one elixir from the owner's inventory on roster slot `idx`.
+    Elixir { idx: usize },
+    /// Free full-roster restore from a healer NPC, subject to a range check.
+    Healer { npc: proto::EntityId },
+}
+
+/// Pet restores queued this frame. Drained by the game server's restore system, which owns
+/// the item bank (to spend the elixir) and the pet component writes.
+#[derive(Resource, Default)]
+pub struct PendingPetRestores(pub Vec<(proto::PlayerSlot, PetRestore)>);
+
 /// Deploy/reclaim queues drained in `drain_inputs` — grouped into one
 /// `SystemParam` so the input system stays under Bevy's 16-param ceiling.
 #[derive(bevy::ecs::system::SystemParam)]
@@ -223,6 +239,7 @@ pub struct DeployQueues<'w> {
     npc_challenges: ResMut<'w, PendingNpcChallenges>,
     duel_ops: ResMut<'w, PendingDuelOps>,
     roster_ops: ResMut<'w, PendingRosterOps>,
+    pet_restores: ResMut<'w, PendingPetRestores>,
 }
 
 /// A durably-persisted player-placed env object. Behavior is re-derived from
@@ -1506,6 +1523,8 @@ pub fn build_app(
         .insert_resource(PendingNpcChallenges::default())
         .insert_resource(PendingDuelOps::default())
         .insert_resource(PendingRosterOps::default())
+        .insert_resource(crate::pets::PendingRosterSyncs::default())
+        .insert_resource(PendingPetRestores::default())
         .insert_resource(PendingDrops::default())
         .insert_resource(Deployables::default())
         .insert_resource(PendingPlacements::default())
@@ -2234,6 +2253,14 @@ fn drain_inputs(
                         name,
                     },
                 )),
+                Input::UsePetElixir { idx } => deploy
+                    .pet_restores
+                    .0
+                    .push((slot, PetRestore::Elixir { idx: idx as usize })),
+                Input::HealPets { npc } => deploy
+                    .pet_restores
+                    .0
+                    .push((slot, PetRestore::Healer { npc })),
                 other => pending.entry(slot.0).or_default().push(other),
             }
         }
@@ -2456,7 +2483,9 @@ fn drain_inputs(
                 | Input::DuelRespond { .. }
                 | Input::SetActivePet { .. }
                 | Input::ReleasePet { .. }
-                | Input::RenamePet { .. } => {}
+                | Input::RenamePet { .. }
+                | Input::UsePetElixir { .. }
+                | Input::HealPets { .. } => {}
             }
         }
     }
