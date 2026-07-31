@@ -146,6 +146,27 @@ import ReactReelLive from '@/components/media/ReactReelLive';
 		cursor: not-allowed;
 	}
 
+	:global(.reel-live__unmute) {
+		position: absolute;
+		left: 50%;
+		bottom: 4.5rem;
+		transform: translateX(-50%);
+		z-index: 3;
+		padding: 0.5rem 1.1rem;
+		border-radius: 999px;
+		border: 1px solid #3f3f46;
+		background: rgba(9, 9, 11, 0.82);
+		color: #e5e7eb;
+		cursor: pointer;
+		font-size: 0.8125rem;
+		backdrop-filter: blur(4px);
+	}
+
+	:global(.reel-live__unmute:hover),
+	:global(.reel-live__unmute:focus-visible) {
+		background: rgba(24, 24, 27, 0.95);
+	}
+
 	:global(.reel-live__rail) {
 		display: flex;
 		flex-direction: column;

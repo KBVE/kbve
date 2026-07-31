@@ -51,10 +51,12 @@ export default function ReactReelLive() {
 	const isStaff = useStore(homeService.$isStaff);
 
 	const videoRef = useRef<HTMLVideoElement>(null);
+	const stageRef = useRef<HTMLDivElement>(null);
 	const [player] = useState(() => new ReelPlayer());
 	const [started, setStarted] = useState(false);
 	const [nowId, setNowId] = useState<string | null>(null);
 	const [theater, setTheater] = useState(false);
+	const [muted, setMuted] = useState(true);
 
 	const queue = useMemo(() => buildQueue(list), [list]);
 	const nowIndex = queue.findIndex((t) => t.id === nowId);
@@ -82,9 +84,13 @@ export default function ReactReelLive() {
 	const tuneTo = useCallback(
 		(id: string) => {
 			setNowId(id);
-			if (videoRef.current) void player.start(videoRef.current, id);
+			const v = videoRef.current;
+			if (v) {
+				v.muted = muted;
+				void player.start(v, id);
+			}
 		},
-		[player],
+		[player, muted],
 	);
 
 	// Advance past the current reel. Wraps to the head so the channel never runs
@@ -100,8 +106,33 @@ export default function ReactReelLive() {
 		const first = queue[0];
 		if (!first) return;
 		setStarted(true);
+		setTheater(true);
 		tuneTo(first.id);
 	}, [queue, tuneTo]);
+
+	// Twitch-style: the moment content is airable the channel tunes itself in —
+	// no click. Autoplay only survives muted, so we start silent and let the
+	// viewer unmute (that gesture also lets us go fullscreen).
+	useEffect(() => {
+		if (!isStaff || started) return;
+		if (!queue.length) return;
+		start();
+	}, [isStaff, started, queue, start]);
+
+	// Unmuting is the first real user gesture, so ride it into fullscreen for a
+	// hands-off, lean-back stream.
+	const unmute = useCallback(() => {
+		setMuted(false);
+		const v = videoRef.current;
+		if (v) {
+			v.muted = false;
+			void v.play().catch(() => undefined);
+		}
+		const stage = stageRef.current;
+		if (stage && !document.fullscreenElement) {
+			void stage.requestFullscreen?.().catch(() => setTheater(true));
+		}
+	}, []);
 
 	// A reel that vanishes mid-run (reaped, deleted, failed) shouldn't strand the
 	// channel — roll on to whatever is still airable.
@@ -148,7 +179,7 @@ export default function ReactReelLive() {
 	return (
 		<div className={`reel-live${theater ? ' reel-live--theater' : ''}`}>
 			<div className="reel-live__stage-wrap">
-				<div className="reel-player__stage">
+				<div className="reel-player__stage" ref={stageRef}>
 					<video
 						ref={videoRef}
 						controls
@@ -156,6 +187,14 @@ export default function ReactReelLive() {
 						className="reel-player__video"
 						onEnded={advance}
 					/>
+					{playing && muted && (
+						<button
+							type="button"
+							className="reel-live__unmute"
+							onClick={unmute}>
+							🔊 Tap to unmute
+						</button>
+					)}
 					{started && (
 						<button
 							type="button"
@@ -175,16 +214,9 @@ export default function ReactReelLive() {
 									<p>KBVE Channel</p>
 									<p className="reel-player__meta">
 										{queue.length
-											? `${queue.length} reel${queue.length === 1 ? '' : 's'} queued`
-											: 'nothing ready to air yet'}
+											? 'Tuning in…'
+											: 'Standby — waiting for content. The channel starts on its own when a reel is ready.'}
 									</p>
-									<button
-										type="button"
-										className="reel-live__start"
-										disabled={!queue.length}
-										onClick={start}>
-										▶ Start channel
-									</button>
 								</>
 							) : (
 								<>
