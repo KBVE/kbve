@@ -44,7 +44,7 @@
 		{
 			"key": "agones_palworld",
 			"app_name": "agones-palworld",
-			"version": "0.0.30",
+			"version": "0.0.32",
 			"version_toml": "apps/agones/palworld/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-palworld.mdx",
 			"source_path": "apps/agones/palworld",
@@ -57,7 +57,7 @@
 		{
 			"key": "agones_palworld_relay",
 			"app_name": "agones-palworld-relay",
-			"version": "0.0.9",
+			"version": "0.0.11",
 			"version_toml": "apps/agones/palworld/relay/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-palworld-relay.mdx",
 			"source_path": "apps/agones/palworld/relay",
@@ -345,7 +345,7 @@
 		{
 			"key": "irc_gateway",
 			"app_name": "irc-gateway",
-			"version": "0.1.28",
+			"version": "0.1.29",
 			"version_toml": "apps/irc/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/irc-gateway.mdx",
 			"version_target": "apps/irc/irc-gateway/Cargo.toml",
@@ -493,7 +493,7 @@
 		{
 			"key": "memes",
 			"app_name": "memes",
-			"version": "0.1.8",
+			"version": "0.1.9",
 			"version_toml": "apps/memes/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/memes.mdx",
 			"version_target": "apps/memes/axum-memes/Cargo.toml",
