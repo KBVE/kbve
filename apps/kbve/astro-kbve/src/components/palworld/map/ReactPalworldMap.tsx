@@ -117,8 +117,8 @@ export default function ReactPalworldMap() {
 
 		const canvas = document.createElement('canvas');
 		canvas.style.cssText =
-			'position:absolute;inset:0;z-index:450;pointer-events:none';
-		el.appendChild(canvas);
+			'position:absolute;z-index:450;pointer-events:none';
+		map.getPane('overlayPane')!.appendChild(canvas);
 		const ctx = canvas.getContext('2d')!;
 
 		const tooltip = document.createElement('div');
@@ -184,6 +184,10 @@ export default function ReactPalworldMap() {
 				canvas.style.width = `${w}px`;
 				canvas.style.height = `${h}px`;
 			}
+			L.DomUtil.setPosition(
+				canvas,
+				map.containerPointToLayerPoint([0, 0]),
+			);
 			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 			ctx.clearRect(0, 0, w, h);
 			screenXY.refresh();
@@ -365,7 +369,10 @@ export default function ReactPalworldMap() {
 			tooltip.style.display = 'none';
 		});
 
-		map.on('move zoom zoomend viewreset resize', scheduleDraw);
+		map.on('moveend zoomend viewreset resize', scheduleDraw);
+		map.on('movestart zoomstart', () => {
+			tooltip.style.display = 'none';
+		});
 		scheduleDraw();
 
 		const timerTick = setInterval(() => {
