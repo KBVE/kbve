@@ -117,8 +117,8 @@ export default function ReactPalworldMap() {
 
 		const canvas = document.createElement('canvas');
 		canvas.style.cssText =
-			'position:absolute;inset:0;z-index:450;pointer-events:none';
-		el.appendChild(canvas);
+			'position:absolute;z-index:450;pointer-events:none';
+		map.getPane('overlayPane')!.appendChild(canvas);
 		const ctx = canvas.getContext('2d')!;
 
 		const tooltip = document.createElement('div');
@@ -184,6 +184,10 @@ export default function ReactPalworldMap() {
 				canvas.style.width = `${w}px`;
 				canvas.style.height = `${h}px`;
 			}
+			L.DomUtil.setPosition(
+				canvas,
+				map.containerPointToLayerPoint([0, 0]),
+			);
 			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 			ctx.clearRect(0, 0, w, h);
 			screenXY.refresh();
@@ -227,9 +231,21 @@ export default function ReactPalworldMap() {
 					}
 					continue;
 				}
+				const tk = timerKey(eid);
+				let deadline = serverTimers.get(eid) || timers[tk];
+				if (deadline && deadline <= wallNow) {
+					serverTimers.delete(eid);
+					if (timers[tk]) {
+						delete timers[tk];
+						saveTimers();
+					}
+					deadline = undefined as unknown as number;
+				}
+				const onCooldown = !!deadline;
 				const src = iconKeys[eid] || meta.icon;
 				const img = loadImage(src);
 				if (img.complete && img.naturalWidth) {
+					if (onCooldown) ctx.filter = 'grayscale(85%) brightness(0.75)';
 					if (kind === KIND.boss) {
 						ctx.save();
 						ctx.beginPath();
@@ -259,34 +275,33 @@ export default function ReactPalworldMap() {
 							size,
 						);
 					}
+					ctx.filter = 'none';
 				}
-				const tk = timerKey(eid);
-				const deadline = serverTimers.get(eid) || timers[tk];
 				if (deadline) {
-					if (deadline <= wallNow) {
-						serverTimers.delete(eid);
-						if (timers[tk]) {
-							delete timers[tk];
-							saveTimers();
-						}
-					} else {
-						const txt = fmtRemain(deadline - wallNow);
-						ctx.font = '600 10px system-ui, sans-serif';
-						ctx.textAlign = 'center';
-						const tw = ctx.measureText(txt).width + 8;
-						ctx.fillStyle = 'rgba(8,14,24,0.85)';
-						ctx.beginPath();
-						ctx.roundRect(
-							sx - tw / 2,
-							sy + size / 2 + 2,
-							tw,
-							14,
-							4,
-						);
-						ctx.fill();
-						ctx.fillStyle = '#fbbf24';
-						ctx.fillText(txt, sx, sy + size / 2 + 12.5);
-					}
+					const total =
+						(RESPAWN_MINUTES[KIND_NAMES[kind]] || 60) * 60_000;
+					const frac = Math.min(
+						1,
+						Math.max(0, (deadline - wallNow) / total),
+					);
+					const r = size / 2 + 3.5;
+					ctx.beginPath();
+					ctx.arc(sx, sy, r, 0, Math.PI * 2);
+					ctx.strokeStyle = 'rgba(8,14,24,0.7)';
+					ctx.lineWidth = 3;
+					ctx.stroke();
+					ctx.beginPath();
+					ctx.arc(
+						sx,
+						sy,
+						r,
+						-Math.PI / 2,
+						-Math.PI / 2 + Math.PI * 2 * frac,
+					);
+					ctx.strokeStyle = '#fbbf24';
+					ctx.lineWidth = 3;
+					ctx.lineCap = 'round';
+					ctx.stroke();
 				}
 			}
 			if (animating) scheduleDraw();
@@ -365,7 +380,10 @@ export default function ReactPalworldMap() {
 			tooltip.style.display = 'none';
 		});
 
-		map.on('move zoom zoomend viewreset resize', scheduleDraw);
+		map.on('moveend zoomend viewreset resize', scheduleDraw);
+		map.on('movestart zoomstart', () => {
+			tooltip.style.display = 'none';
+		});
 		scheduleDraw();
 
 		const timerTick = setInterval(() => {
