@@ -205,6 +205,8 @@ const groupHasActive = (items: { href: string }[]) =>
 
 	:global(html[data-auth-tone='staff'])
 		.facet-group[data-auth-visibility='staff'],
+	:global(html[data-auth-tone='staff'])
+		.facet-group[data-auth-visibility='auth'],
 	:global(html[data-auth-tone='auth'])
 		.facet-group[data-auth-visibility='auth'] {
 		display: block;
