@@ -4,6 +4,7 @@ mod chat_tail;
 mod config;
 mod event;
 mod irc_bridge;
+mod live_api;
 mod poller;
 mod rcon_client;
 mod rcon_pool;
@@ -47,11 +48,14 @@ async fn main() -> Result<()> {
         Duration::from_secs(5),
     )?);
 
-    let poller_handle = tokio::spawn(poller::run(cfg.clone(), game_tx.clone()));
+    let live = live_api::SharedLive::default();
+
+    let poller_handle = tokio::spawn(poller::run(cfg.clone(), game_tx.clone(), live.clone()));
     let chat_handle = tokio::spawn(chat_tail::run(cfg.clone(), game_tx.clone()));
     let irc_handle = tokio::spawn(irc_bridge::run(cfg.clone(), game_tx.subscribe(), rest.clone()));
     let ch_handle = tokio::spawn(ch_writer::run(cfg.clone(), game_tx.subscribe()));
     let agones_handle = tokio::spawn(agones_health::run(cfg.clone()));
+    let live_handle = tokio::spawn(live_api::run(cfg.clone(), live));
 
     drop(game_tx);
 
@@ -61,6 +65,7 @@ async fn main() -> Result<()> {
         r = irc_handle => r??,
         r = ch_handle => r??,
         r = agones_handle => r??,
+        r = live_handle => r??,
         _ = tokio::signal::ctrl_c() => { info!("ctrl_c received, shutting down"); }
     }
     Ok(())

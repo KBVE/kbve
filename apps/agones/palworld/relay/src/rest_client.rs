@@ -36,6 +36,10 @@ pub struct Player {
     pub ping: f64,
     #[serde(default)]
     pub level: i64,
+    #[serde(default)]
+    pub location_x: f64,
+    #[serde(default)]
+    pub location_y: f64,
 }
 
 #[derive(Debug, Clone, Deserialize)]
