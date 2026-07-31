@@ -405,13 +405,16 @@ async fn manifest(
             d
         }
     };
-    if delivery == transcode::Delivery::RawProgressive {
-        return (
-            StatusCode::CONFLICT,
-            Json(serde_json::json!({"delivery": "raw_progressive"})),
-        )
-            .into_response();
-    }
+    // A "raw progressive" source (h264 + aac + mp4) is already directly usable,
+    // so it skips background transcoding — but serving a multi-GB 4K file over
+    // progressive range requests drops the stream on every seek or network dip.
+    // Remux it into HLS on demand instead (`-c copy`, no re-encode, no quality
+    // loss): the player gets real segment buffering and the hls.js recovery path.
+    let delivery = if delivery == transcode::Delivery::RawProgressive {
+        transcode::Delivery::RemuxHls
+    } else {
+        delivery
+    };
 
     let outcome = st.hls.request(&id, delivery).await;
     hls_outcome_response(&st.store, &id, outcome).await
