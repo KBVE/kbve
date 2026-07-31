@@ -31,6 +31,21 @@ else
     echo "PalChatRelay : 1" >> "${MODS_TXT}"
 fi
 
+EVENT_SRC=/opt/palchatrelay/PalEventRelay
+if [[ -d "${EVENT_SRC}" ]]; then
+    echo "[palchatrelay-overlay] staging PalEventRelay into ${MODS_DIR}"
+    rm -rf "${MODS_DIR}/PalEventRelay"
+    cp -a "${EVENT_SRC}" "${MODS_DIR}/PalEventRelay"
+    if [[ -d "${MODS_DIR}/PalEventRelay/scripts" ]] && [[ ! -d "${MODS_DIR}/PalEventRelay/Scripts" ]]; then
+        mv "${MODS_DIR}/PalEventRelay/scripts" "${MODS_DIR}/PalEventRelay/Scripts"
+    fi
+    if grep -qiE '^[[:space:]]*PalEventRelay[[:space:]]*:' "${MODS_TXT}"; then
+        sed -i -E 's|^[[:space:]]*PalEventRelay[[:space:]]*:.*|PalEventRelay : 1|I' "${MODS_TXT}"
+    else
+        echo "PalEventRelay : 1" >> "${MODS_TXT}"
+    fi
+fi
+
 FORGE_SRC=/opt/palchatrelay/PalForge
 if [[ -d "${FORGE_SRC}" ]]; then
     echo "[palchatrelay-overlay] staging PalForge into ${MODS_DIR}"

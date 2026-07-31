@@ -95,6 +95,10 @@ export default function ReactPalworldMap() {
 		}).addTo(map);
 
 		const world = createMarkerWorld();
+		const bossEnts = markerEntities(world).filter(
+			(eid) => Kind.v[eid] === KIND.boss,
+		);
+		const serverTimers = new Map<number, number>();
 		const visible = new Set<number>(Object.values(KIND));
 		const timers = loadTimers();
 		const saveTimers = () =>
@@ -257,11 +261,14 @@ export default function ReactPalworldMap() {
 					}
 				}
 				const tk = timerKey(eid);
-				const deadline = timers[tk];
+				const deadline = serverTimers.get(eid) || timers[tk];
 				if (deadline) {
 					if (deadline <= wallNow) {
-						delete timers[tk];
-						saveTimers();
+						serverTimers.delete(eid);
+						if (timers[tk]) {
+							delete timers[tk];
+							saveTimers();
+						}
 					} else {
 						const txt = fmtRemain(deadline - wallNow);
 						ctx.font = '600 10px system-ui, sans-serif';
@@ -312,7 +319,8 @@ export default function ReactPalworldMap() {
 			if (best >= 0) {
 				const p = drawPos.get(best)!;
 				let text = labels[best];
-				const deadline = timers[timerKey(best)];
+				const deadline =
+					serverTimers.get(best) || timers[timerKey(best)];
 				if (deadline && deadline > Date.now())
 					text += ` — respawn ${fmtRemain(deadline - Date.now())}`;
 				else if (RESPAWN_MINUTES[KIND_NAMES[Kind.v[best]]])
@@ -407,9 +415,34 @@ export default function ReactPalworldMap() {
 			try {
 				const res = await fetch(liveUrl, { cache: 'no-store' });
 				if (!res.ok) throw new Error(String(res.status));
-				const data = (await res.json()) as { players?: LivePlayer[] };
+				const data = (await res.json()) as {
+					players?: LivePlayer[];
+					bosses?: {
+						id: string;
+						x: number;
+						y: number;
+						respawn_at: number;
+					}[];
+				};
 				if (stopped) return;
 				syncPlayers(world, data.players || [], performance.now());
+				serverTimers.clear();
+				for (const b of data.bosses || []) {
+					const [ux, uy] = gameToUnits(b.x, b.y);
+					let bestEid = -1;
+					let bestD = 9;
+					for (const eid of bossEnts) {
+						const dx = Pos.x[eid] - ux;
+						const dy = Pos.yd[eid] - uy;
+						const d = dx * dx + dy * dy;
+						if (d < bestD) {
+							bestD = d;
+							bestEid = eid;
+						}
+					}
+					if (bestEid >= 0)
+						serverTimers.set(bestEid, b.respawn_at);
+				}
 				const span = countSpans.get(KIND.player);
 				if (span)
 					span.textContent = `Players (${data.players?.length || 0})`;
