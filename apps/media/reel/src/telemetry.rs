@@ -52,6 +52,15 @@ pub fn transcode_ready(id: &str, path: &str) {
     tracing::info!(event = "transcode_ready", id, path, "transcode ready");
 }
 
+pub fn live_hls_adopted(id: &str, path: &str) {
+    tracing::info!(
+        event = "live_hls_adopted",
+        id,
+        path,
+        "reused completed live hls as deliverable; skipped re-encode"
+    );
+}
+
 pub fn transcode_failed(id: &str, reason: &str) {
     tracing::error!(event = "transcode_failed", id, reason, "transcode failed");
 }
