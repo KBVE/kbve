@@ -1,0 +1,19 @@
+// ======================================================
+// MOD: KBVEShields
+// BASED ON: Multiclimate Shields 2.1
+// ORIGINAL AUTHOR: MelwenMods
+// SOURCE: https://www.nexusmods.com/palworld/mods/2643
+// REQUIREMENTS: PalSchema, UE4SS
+// ======================================================
+
+{
+    "Shield_Ultra": {
+        "PassiveSkill": "TemperatureResist_Heat1Cold1"
+    },
+    "Shield_SF": {
+        "PassiveSkill": "TemperatureResist_Heat2Cold2"
+    },
+    "Shield_07": {
+        "PassiveSkill": "TemperatureResist_Heat3Cold3"
+    }
+}
