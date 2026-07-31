@@ -130,6 +130,17 @@ import ReactReelLive from '@/components/media/ReactReelLive';
 		display: none;
 	}
 
+	:global(body.reel-theater-active header.header) {
+		opacity: 0;
+		z-index: 10000;
+		transition: opacity 0.2s ease;
+	}
+
+	:global(body.reel-theater-active header.header:hover),
+	:global(body.reel-theater-active header.header:focus-within) {
+		opacity: 1;
+	}
+
 	:global(.reel-live__start) {
 		margin-top: 0.5rem;
 		padding: 0.55rem 1.4rem;

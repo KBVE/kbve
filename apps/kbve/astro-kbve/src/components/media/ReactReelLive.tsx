@@ -159,10 +159,12 @@ export default function ReactReelLive() {
 		};
 		const prevOverflow = document.body.style.overflow;
 		document.body.style.overflow = 'hidden';
+		document.body.classList.add('reel-theater-active');
 		window.addEventListener('keydown', onKey);
 		return () => {
 			window.removeEventListener('keydown', onKey);
 			document.body.style.overflow = prevOverflow;
+			document.body.classList.remove('reel-theater-active');
 		};
 	}, [theater]);
 
