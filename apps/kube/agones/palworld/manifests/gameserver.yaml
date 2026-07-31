@@ -161,8 +161,11 @@ spec:
                               command:
                                   - /usr/local/bin/agones-shim-prestop
                 - name: palworld-relay
-                  image: ghcr.io/kbve/agones-palworld-relay:0.0.7
+                  image: ghcr.io/kbve/agones-palworld-relay:0.0.8
                   imagePullPolicy: IfNotPresent
+                  ports:
+                      - containerPort: 8300
+                        protocol: TCP
                   env:
                       - name: PALWORLD_REST_ADDR
                         value: 'http://127.0.0.1:8212'
@@ -217,6 +220,8 @@ spec:
                         value: 'info,agones_palworld_relay=debug'
                       - name: CHAT_LOG_PATH
                         value: /shared/chat/chat.log
+                      - name: LIVE_API_PORT
+                        value: '8300'
                   volumeMounts:
                       - name: chat-relay
                         mountPath: /shared/chat

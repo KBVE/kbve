@@ -109,6 +109,23 @@ export const DASHBOARD_NAV: DashboardNavEntry[] = [
 		],
 	},
 	{
+		label: 'Store',
+		visibility: 'auth',
+		href: '/store/',
+		items: [
+			{
+				label: 'Orders',
+				href: '/dashboard/orders/',
+				icon: 'M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0',
+			},
+			{
+				label: 'Inventory',
+				href: '/dashboard/inventory/',
+				icon: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96 12 12.01l8.73-5.05M12 22.08V12',
+			},
+		],
+	},
+	{
 		label: 'Insights',
 		visibility: 'staff',
 		eyebrow: 'Daily',

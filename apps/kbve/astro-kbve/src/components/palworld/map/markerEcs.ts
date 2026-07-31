@@ -1,4 +1,10 @@
-import { createWorld, addEntity, addComponent, query } from 'bitecs';
+import {
+	createWorld,
+	addEntity,
+	removeEntity,
+	addComponent,
+	query,
+} from 'bitecs';
 import pois from './pois.json';
 
 const MAIN_X0 = -1099400;
@@ -20,6 +26,7 @@ export const KIND = {
 	effigy: 5,
 	egg: 6,
 	boss: 7,
+	player: 8,
 } as const;
 
 export type KindName = keyof typeof KIND;
@@ -71,6 +78,12 @@ export const KIND_META: Record<
 		minZoom: 4,
 	},
 	boss: { label: 'Alpha Boss', plural: 'Alpha Bosses', icon: '', size: 34, minZoom: 2 },
+	player: { label: 'Player', plural: 'Players', icon: '', size: 14, minZoom: 0 },
+};
+
+export const RESPAWN_MINUTES: Partial<Record<KindName, number>> = {
+	boss: 60,
+	dungeon: 60,
 };
 
 export const Pos = { x: [] as number[], yd: [] as number[] };
@@ -133,4 +146,53 @@ export type MarkerWorld = ReturnType<typeof createMarkerWorld>;
 
 export function markerEntities(world: MarkerWorld): readonly number[] {
 	return query(world, [Marker, Pos, Kind]);
+}
+
+export interface LivePlayer {
+	name: string;
+	level: number;
+	x: number;
+	y: number;
+}
+
+export const lerpFrom = { x: [] as number[], yd: [] as number[] };
+export const lerpStart: number[] = [];
+const playerEids = new Map<string, number>();
+
+export function syncPlayers(
+	world: MarkerWorld,
+	players: LivePlayer[],
+	now: number,
+): void {
+	const seen = new Set<string>();
+	for (const p of players) {
+		seen.add(p.name);
+		const [x, yd] = gameToUnits(p.x, p.y);
+		let eid = playerEids.get(p.name);
+		if (eid === undefined) {
+			eid = addEntity(world);
+			addComponent(world, eid, Marker);
+			addComponent(world, eid, Pos);
+			addComponent(world, eid, Kind);
+			Kind.v[eid] = KIND.player;
+			Pos.x[eid] = x;
+			Pos.yd[eid] = yd;
+			lerpFrom.x[eid] = x;
+			lerpFrom.yd[eid] = yd;
+			playerEids.set(p.name, eid);
+		} else {
+			lerpFrom.x[eid] = Pos.x[eid];
+			lerpFrom.yd[eid] = Pos.yd[eid];
+		}
+		Pos.x[eid] = x;
+		Pos.yd[eid] = yd;
+		lerpStart[eid] = now;
+		labels[eid] = `${p.name} · Lv ${p.level}`;
+	}
+	for (const [name, eid] of playerEids) {
+		if (!seen.has(name)) {
+			removeEntity(world, eid);
+			playerEids.delete(name);
+		}
+	}
 }
