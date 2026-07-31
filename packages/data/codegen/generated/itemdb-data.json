@@ -4314,6 +4314,30 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Pet Elixir",
+        "hidden": true
+      },
+      "description": "A wide-mouthed jar of pale green syrup, thick enough to hold the shape of a tilt for a second before it settles. The lid is a screw-down brass cap with a pressure ring, and the whole thing smells faintly of cut grass and hot metal.\n",
+      "lore": "Mixed for the beasts that fight alongside trainers rather than for the trainers themselves, on the reasoning that anything strong enough to close a mechamutt's wounds would be wasted on a person's. Handlers learned early to keep a jar on the outside of the pack: a pet that has spent its last charge and taken its last hit does not care to wait while you dig. Tastes, by every account from anyone who has tried it on a dare, exactly as bad as it looks.\n",
+      "ref": "pet-elixir",
+      "key": 118,
+      "id": "01KTVTRAB1PETELIXIR00000001",
+      "name": "Pet Elixir",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_COMMON",
+      "emoji": "🍯",
+      "stackable": true,
+      "maxStack": 8,
+      "buyPrice": 60,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Phoenix Feather",
         "hidden": true
       },

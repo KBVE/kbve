@@ -550,6 +550,7 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.offRosterOp = onPetRosterOp((op) => {
 			if (op.kind === 'setActive') this.client?.setActivePet(op.idx);
 			else if (op.kind === 'release') this.client?.releasePet(op.idx);
+			else if (op.kind === 'elixir') this.client?.usePetElixir(op.idx);
 			else this.client?.renamePet(op.idx, op.name);
 		});
 
@@ -1338,6 +1339,14 @@ export class IsoArpgScene extends Phaser.Scene {
 		client.on('petBattleState', (state) => emitPetBattleState(state));
 		// Owner's pet roster (join restore + after every mutation) -> the React hub.
 		client.on('petRoster', (sync) => emitPetRoster(sync));
+		// Pet action results (elixir refused, healer out of range, roster restored) -> toast.
+		client.on('petNotice', (n) =>
+			emitNotification({
+				title: n.ok ? 'Pets' : 'Pets — no effect',
+				message: n.text,
+				notificationType: n.ok ? 'success' : 'warning',
+			}),
+		);
 		// PvP duel challenge prompt -> the React overlay (offer/declined/expired/accepted).
 		client.on('duelPrompt', (prompt) => emitDuelPrompt(prompt));
 		// Placement rejected server-side (out of range, occupied): the item was

@@ -282,6 +282,7 @@ pub fn registry() -> KindRegistry {
     reg.register_item(GOBLIN_LOOT_REF);
     reg.register_item(STAIR_KEY_REF);
     reg.register_item(POTION_REF);
+    reg.register_item(crate::restore::PET_ELIXIR_REF);
     reg.register_item(CAMPFIRE_KIT_REF);
     reg.register_item(CANDELABRUM_KIT_REF);
     reg.register_item(STARSHIP_KIT_REF);
@@ -293,6 +294,7 @@ pub fn registry() -> KindRegistry {
     reg.register_env(simgrid::TREE_REF);
     reg.register_env(simgrid::BUSH_REF);
     reg.register_npc(crate::duel::TRAINER_REF);
+    reg.register_npc(crate::restore::HEALER_REF);
     reg
 }
 
@@ -893,10 +895,13 @@ pub fn apply_pet_battles(
             .map(|(_, roster)| crate::duel::roster_team(&bank, roster))
             .unwrap_or_default();
         if team.is_empty() {
-            team = mechamutt_team(species);
+            team = crate::duel::unowned_team(mechamutt_team(species));
         }
+        let (team, team_pets) = crate::duel::split_team(team);
         let root = simgrid::rng::mix32(&[0x5E7B_A77E, slot.0 as u32, clock.tick]);
-        let state = simgrid::BattleState::versus(root, team, mechamutt_team(species));
+        let enemy = mechamutt_team(species);
+        let enemy_pets = vec![None; enemy.len()];
+        let state = simgrid::BattleState::versus(root, team, enemy);
         let name = spawned
             .by_slot
             .get(&slot.0)
@@ -914,6 +919,7 @@ pub fn apply_pet_battles(
             ],
             committed: [None, None],
             deadline_tick: clock.tick.saturating_add(crate::duel::DUEL_TURN_TICKS),
+            pets: [team_pets, enemy_pets],
         };
         let opening = vec![info_event(
             "A trainer battle begins — choose your move!".into(),

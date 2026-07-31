@@ -10,6 +10,7 @@ import {
 	decodeItemUsed,
 	decodePetBattleReplay,
 	decodePetBattleState,
+	decodePetNotice,
 	decodePetRosterSync,
 	decodePickup,
 	decodeBlackjack,
@@ -97,6 +98,30 @@ describe('postcard ClientMessage encoder', () => {
 			// idx 0 puts a zero byte mid-frame, so COBS splits the run:
 			// 05 | 01 01 01 26 | 05 | 03 "Rex" | 00.
 		).toBe('0501010126050352657800');
+	});
+
+	// Variants 39/40, locked against `proto.rs pet_restore_inputs_roundtrip`.
+	it('encodes the pet restore inputs with their locked variants', () => {
+		expect(
+			hex(
+				encodeClientMessage({
+					Frame: {
+						client_tick: 1,
+						inputs: [{ UsePetElixir: { idx: 1 } }],
+					},
+				}),
+			),
+		).toBe('06010101270100');
+		expect(
+			hex(
+				encodeClientMessage({
+					Frame: {
+						client_tick: 1,
+						inputs: [{ HealPets: { npc: 12 } }],
+					},
+				}),
+			),
+		).toBe('06010101280c00');
 	});
 
 	it('encodes JoinMatch (interior zero byte exercises COBS restuffing)', () => {
@@ -332,6 +357,19 @@ describe('postcard Ephemeral payload decoder', () => {
 			pets: [],
 			active: null,
 		});
+	});
+
+	// proto.rs pet_notice_fixture_is_stable — ok flag then the message.
+	it('decodes the Rust PetNotice fixture', () => {
+		expect(
+			decodePetNotice(
+				Array.from(
+					fromHex(
+						'0017596f752068617665206e6f2070657420656c697869722e',
+					),
+				),
+			),
+		).toEqual({ ok: false, text: 'You have no pet elixir.' });
 	});
 
 	// DuelPrompt: status u8, other_slot u16(varint), other_name string, deadline_ms u32(varint)

@@ -12,6 +12,7 @@ import {
 	EPHEMERAL_ITEM_USED,
 	EPHEMERAL_PET_BATTLE_LOG,
 	EPHEMERAL_PET_BATTLE_STATE,
+	EPHEMERAL_PET_NOTICE,
 	EPHEMERAL_PET_ROSTER,
 	EPHEMERAL_PICKUP,
 	EPHEMERAL_PROJECTILE,
@@ -33,6 +34,7 @@ import {
 	type ItemUsedEvent,
 	type PetBattleReplay,
 	type PetBattleState,
+	type PetNotice,
 	type PetRosterSync,
 	type PickupEvent,
 	type ProjectileEvent,
@@ -57,6 +59,7 @@ import {
 	decodeItemUsed,
 	decodePetBattleReplay,
 	decodePetBattleState,
+	decodePetNotice,
 	decodePetRosterSync,
 	decodePickup,
 	decodeProjectile,
@@ -86,6 +89,7 @@ export type GameClientEventMap = {
 	petBattleReplay: PetBattleReplay;
 	petBattleState: PetBattleState;
 	petRoster: PetRosterSync;
+	petNotice: PetNotice;
 	duelPrompt: DuelPrompt;
 	reject: string;
 	state: ConnectionState;
@@ -226,6 +230,9 @@ export class GameClient {
 		} else if (evt.kind === EPHEMERAL_PET_ROSTER) {
 			const data = decodePetRosterSync(evt.payload);
 			if (data) this.bus.emit('petRoster', data);
+		} else if (evt.kind === EPHEMERAL_PET_NOTICE) {
+			const data = decodePetNotice(evt.payload);
+			if (data) this.bus.emit('petNotice', data);
 		} else if (evt.kind === EPHEMERAL_DUEL_PROMPT) {
 			const data = decodeDuelPrompt(evt.payload);
 			if (data) this.bus.emit('duelPrompt', data);
@@ -298,6 +305,17 @@ export class GameClient {
 	 * `petRoster` sync carries the name it actually applied. */
 	renamePet(idx: number, name: string): void {
 		this.sendInputs([{ RenamePet: { idx, name } }]);
+	}
+
+	/** Spend one pet elixir on roster slot `idx`. The server answers with a `petNotice`
+	 * either way, plus a `petRoster` sync when it actually restored something. */
+	usePetElixir(idx: number): void {
+		this.sendInputs([{ UsePetElixir: { idx } }]);
+	}
+
+	/** Ask healer NPC `npc` (its server eid) to restore the whole roster. */
+	healPets(npc: number): void {
+		this.sendInputs([{ HealPets: { npc } }]);
 	}
 
 	castSpell(spellRef: string, target: number | null): void {

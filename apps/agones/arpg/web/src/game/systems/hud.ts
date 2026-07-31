@@ -273,7 +273,8 @@ export const PET_ROSTER_OP_EVENT = 'arpg:petRoster:op';
 export type PetRosterOp =
 	| { kind: 'setActive'; idx: number }
 	| { kind: 'release'; idx: number }
-	| { kind: 'rename'; idx: number; name: string };
+	| { kind: 'rename'; idx: number; name: string }
+	| { kind: 'elixir'; idx: number };
 
 export function emitPetRoster(sync: PetRosterSync): void {
 	laserEvents.emit(PET_ROSTER_EVENT, sync);
