@@ -26,6 +26,11 @@ export const PALWORLD_NAV: DashboardNavGroup[] = [
 				href: '/palworld/',
 				copy: 'Palworld server hub.',
 			},
+			{
+				label: 'Map',
+				href: '/palworld/map/',
+				copy: 'Interactive Palpagos Islands map.',
+			},
 		],
 	},
 	{

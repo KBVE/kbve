@@ -832,6 +832,55 @@ pub(crate) async fn hls_segment_core(
     crate::stream::serve_range(file, total, range, ct, head_only).await
 }
 
+async fn subtitles_list(
+    State(st): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<String>,
+) -> impl IntoResponse {
+    if !check_auth(&headers, &st.token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let meta = match st.store.get(&id) {
+        Some(m) => m,
+        None => return StatusCode::NOT_FOUND.into_response(),
+    };
+    let dir = std::path::PathBuf::from(&meta.path);
+    Json(crate::subtitles::tracks_for(&dir)).into_response()
+}
+
+async fn subtitle_vtt(
+    State(st): State<AppState>,
+    headers: HeaderMap,
+    Path((id, idx)): Path<(String, usize)>,
+    axum::extract::RawQuery(query): axum::extract::RawQuery,
+) -> impl IntoResponse {
+    if !check_auth_q(&headers, query.as_deref(), &st.token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let meta = match st.store.get(&id) {
+        Some(m) => m,
+        None => return StatusCode::NOT_FOUND.into_response(),
+    };
+    let dir = std::path::PathBuf::from(&meta.path);
+    let path = match crate::subtitles::list_sidecars(&dir).into_iter().nth(idx) {
+        Some(p) => p,
+        None => return StatusCode::NOT_FOUND.into_response(),
+    };
+    let srt = match tokio::fs::read_to_string(&path).await {
+        Ok(s) => s,
+        Err(e) => {
+            tracing::warn!(id = %id, path = %path.display(), error = %e, "subtitle read failed");
+            return StatusCode::NOT_FOUND.into_response();
+        }
+    };
+    let _ = st.store.touch(&id, now_secs());
+    (
+        [(axum::http::header::CONTENT_TYPE, "text/vtt; charset=utf-8")],
+        crate::subtitles::srt_to_vtt(&srt),
+    )
+        .into_response()
+}
+
 fn store_scoped_router(state: AppStateStub) -> Router {
     Router::new()
         .route("/torrents", get(list))
@@ -855,6 +904,8 @@ pub fn router(state: AppState) -> Router {
             "/torrents/{id}/hls/{segment}",
             get(hls_segment).head(hls_segment),
         )
+        .route("/torrents/{id}/subtitles", get(subtitles_list))
+        .route("/torrents/{id}/subtitles/{idx}", get(subtitle_vtt))
         .with_state(state);
     Router::new()
         .route("/healthz", get(|| async { "ok" }))
@@ -1075,7 +1126,7 @@ mod tests {
     }
 
     fn transcoder_with(store: StateStore) -> transcode::Transcoder {
-        transcode::Transcoder::new(store, 1, 1, "ffmpeg".into(), "ffprobe".into(), true, 1)
+        transcode::Transcoder::new(store, 1, 1, "ffmpeg".into(), "ffprobe".into(), true, 1, "veryfast".into())
     }
 
     #[tokio::test]
