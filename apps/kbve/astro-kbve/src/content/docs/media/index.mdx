@@ -1,6 +1,6 @@
 ---
 title: Media
-description: KBVE media console — stream ephemeral legal torrents, manage transcodes, and monitor the reel pipeline.
+description: KBVE media console — stream ephemeral legal torrents, run a live channel, and cut clips in the studio.
 template: splash
 tableOfContents: false
 graph:
@@ -21,29 +21,159 @@ tags:
     - reel
     - streaming
     - staff
+ogTitle: KBVE Media — Reel Pipeline, Live Channel, Studio
+ogDescription: The KBVE media console — fetch and transcode ephemeral legal media behind a VPN fail-safe, run it as a continuous live channel, and cut watermarked clips in the studio.
+ogImage: https://images.unsplash.com/photo-1478720568477-152d9b164e26?fit=crop&w=1400&h=700&q=75
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - name: Home
+          path: /
+        - name: Media
+          path: /media/
 ---
 
-import { Card, CardGrid, LinkCard, Aside } from '@astrojs/starlight/components';
+import BentoShell from '@/components/hero/BentoShell.astro';
 
-<Aside type="caution" title="Staff only">
-	Media tools stream and transcode ephemeral legal torrents behind the VPN fail-safe. Access is limited to staff accounts.
-</Aside>
+export const backdrop = 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?q=80&w=2400&auto=format&fit=crop';
 
-The media console is the home for KBVE's streaming pipeline — fetch, transcode, and play ephemeral legal media on demand.
+export const stats = [
+	{ label: 'Fetch', value: 'librqbit', icon: 'M12 2v14M6 12l6 6 6-6M4 21h16' },
+	{ label: 'Egress', value: 'VPN fail-safe', icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
+	{ label: 'Delivery', value: 'MP4 · HLS', icon: 'M23 7l-7 5 7 5V7zM1 5h15v14H1z' },
+	{ label: 'Lifetime', value: 'Ephemeral', icon: 'M12 8v4M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20z' },
+];
 
-<CardGrid>
-	<LinkCard
-		title="Reel Player"
-		href="/media/reel/"
-		description="Stream a legal torrent as progressive MP4 or live HLS, straight in the browser."
-	/>
-	<Card title="Transcode Queue" icon="setting">
-		Remux and encode status for in-flight media. Coming soon.
-	</Card>
-	<Card title="Library" icon="open-book">
-		Browse completed media before it is reaped. Coming soon.
-	</Card>
-	<Card title="VPN Health" icon="shield">
-		Fail-safe egress checks that gate every fetch. Coming soon.
-	</Card>
-</CardGrid>
+export const features = [
+	{ n: '01', title: 'Fetch behind the fail-safe', desc: 'librqbit pulls legal torrents through a VPN-gated egress path. If the tunnel drops, the fetch dies with it — nothing leaks to the host network.', icon: 'M12 2v14M6 12l6 6 6-6M4 21h16' },
+	{ n: '02', title: 'Play while it downloads', desc: 'The player probes the manifest and picks its path — raw progressive MP4 for playable containers, HLS once a transcode is live. Partial files stream as they land.', icon: 'M23 7l-7 5 7 5V7zM1 5h15v14H1z' },
+	{ n: '03', title: 'Transcode on demand', desc: 'Remux first, encode only when the container needs it. Progress, speed, and ETA report back to the console in real time.', icon: 'M4 4v6h6M20 20v-6h-6M20 9A8 8 0 0 0 6 5.3M4 15a8 8 0 0 0 14 3.7' },
+	{ n: '04', title: 'Reaped, not archived', desc: 'Media is ephemeral. Idle reels are reaped and their cache purged — the pipeline is a stream, not a library.', icon: 'M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14' },
+];
+
+export const surfaces = [
+	{ href: '/media/reel/', title: 'Reel player', copy: 'Add a source, watch the fetch, and stream it in place as raw MP4 or HLS. The full operator console.', icon: 'M23 7l-7 5 7 5V7zM1 5h15v14H1z' },
+	{ href: '/media/live/', title: 'Live channel', copy: 'A continuous channel — every finished reel joins the queue and plays back-to-back, no clicking between titles.', icon: 'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z' },
+	{ title: 'Studio', copy: 'Crop and grab sections of a reel into short MP4 clips, watermarked kbve. Coming soon.', icon: 'M6 2v14a2 2 0 0 0 2 2h14M18 22V8a2 2 0 0 0-2-2H2' },
+];
+
+<div class="media-hub" style={`--bento-hero-bg: url('${backdrop}')`}>
+
+<section class="bento-hero bento-section not-content" aria-label="KBVE media console">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
+					<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M23 7l-7 5 7 5V7zM1 5h15v14H1z" /></svg>
+					<span>kbve media · staff console</span>
+				</span>
+				<h1 class="bento-title">
+					Fetch, transcode, and
+					<span class="bento-title__accent">stream it in the browser.</span>
+				</h1>
+				<p class="bento-lede">
+					The media console is the front end of KBVE's reel pipeline —
+					ephemeral legal media pulled behind a VPN fail-safe, played
+					as raw MP4 or live HLS, queued into a channel, and cut into
+					clips.
+				</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="/media/reel/">
+						Open the player
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="/media/live/">Live channel</a>
+					<a class="bento-btn bento-btn--ghost" href="#pipeline">How it works</a>
+				</div>
+			</div>
+
+			{stats.map((s) => (
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={s.icon} /></svg>
+					</span>
+					<span class="bento-stat__value">{s.value}</span>
+					<span class="bento-stat__label">{s.label}</span>
+				</div>
+			))}
+		</div>
+
+		<nav class="bento-jump" aria-label="On this page">
+			<a class="bento-chip" href="#surfaces">Surfaces</a>
+			<a class="bento-chip" href="#pipeline">Pipeline</a>
+			<a class="bento-chip" href="#access">Access</a>
+		</nav>
+	</div>
+</section>
+
+<BentoShell id="surfaces" eyebrow="Where to go" heading="Three surfaces, one pipeline">
+	<div class="bento-board bento-board--cols-3">
+		{surfaces.map((s) => {
+			const Tag = s.href ? 'a' : 'div';
+			return (
+				<Tag class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href={s.href}>
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={s.icon} /></svg>
+					</span>
+					<span class="bento-linkcard__title">{s.title}</span>
+					<span class="bento-linkcard__copy">{s.copy}</span>
+					{s.href && (
+						<span class="bento-linkcard__go" aria-hidden="true">
+							<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+						</span>
+					)}
+				</Tag>
+			);
+		})}
+	</div>
+</BentoShell>
+
+<BentoShell id="pipeline" eyebrow="Pipeline" heading="Fetch, play, transcode, reap">
+	<div class="bento-board bento-board--cols-2">
+		{features.map((f) => (
+			<div class="bento-cell bento-rulecard bento-card bento-card--glass bento-card--interactive">
+				<div class="bento-rulecard__top">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={f.icon} /></svg>
+					</span>
+					<span class="bento-rulecard__num">{f.n}</span>
+				</div>
+				<h3 class="bento-rulecard__title">{f.title}</h3>
+				<p class="bento-rulecard__desc">{f.desc}</p>
+			</div>
+		))}
+	</div>
+</BentoShell>
+
+<BentoShell id="access" eyebrow="Access" heading="Staff only">
+	<div class="bento-board bento-board--cols-2">
+		<div class="bento-cell bento-featurecard bento-card bento-card--glass">
+			<h3 class="bento-featurecard__title">Who can use it</h3>
+			<ul class="bento-list">
+				<li>Every media route is gated on a staff account.</li>
+				<li>Playback URLs carry a short-lived media token, minted per session.</li>
+				<li>A signed-out visitor sees the shell, never the stream.</li>
+			</ul>
+		</div>
+		<div class="bento-cell bento-featurecard bento-card bento-card--glass">
+			<h3 class="bento-featurecard__title">What it holds</h3>
+			<ul class="bento-list">
+				<li>Only legal, ephemeral media — nothing is archived.</li>
+				<li>Idle reels are reaped and their cache purged automatically.</li>
+				<li>Fetches die with the VPN tunnel, by design.</li>
+			</ul>
+		</div>
+	</div>
+</BentoShell>
+
+</div>
+
+<style>{`
+	.media-hub {
+		--bento-accent: #38bdf8;
+		--bento-accent-2: #a855f7;
+		--bento-btn-fg: #05121c;
+		--bento-live: #f43f5e;
+	}
+`}</style>

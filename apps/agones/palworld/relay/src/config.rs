@@ -25,6 +25,7 @@ pub struct Config {
     pub agones_initial_ready_delay_secs: u64,
     pub poll_interval_secs: u64,
     pub chat_log_path: Option<String>,
+    pub live_api_port: u16,
 }
 
 impl Config {
@@ -55,12 +56,10 @@ impl Config {
             agones_sdk_http: std::env::var("AGONES_SDK_HTTP").ok(),
             agones_health_interval_secs: parse_env_u64("AGONES_HEALTH_INTERVAL_SECS", 5)?,
             agones_rest_probe_timeout_secs: parse_env_u64("AGONES_REST_PROBE_TIMEOUT_SECS", 2)?,
-            agones_initial_ready_delay_secs: parse_env_u64(
-                "AGONES_INITIAL_READY_DELAY_SECS",
-                60,
-            )?,
+            agones_initial_ready_delay_secs: parse_env_u64("AGONES_INITIAL_READY_DELAY_SECS", 60)?,
             poll_interval_secs: parse_env_u64("PALWORLD_POLL_INTERVAL_SECS", 10)?,
             chat_log_path: std::env::var("CHAT_LOG_PATH").ok(),
+            live_api_port: parse_env_u16("LIVE_API_PORT", 8300)?,
         })
     }
 }

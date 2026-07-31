@@ -2,7 +2,13 @@ import { atom } from 'nanostores';
 import { authedApiFetch, ApiError } from '@/lib/apiFetch';
 import { DASH_PROXY_BASE } from '@/components/rnweb/dashProxyBase';
 
-export type ReelState = 'idle' | 'loading' | 'probing' | 'raw' | 'hls' | 'error';
+export type ReelState =
+	| 'idle'
+	| 'loading'
+	| 'probing'
+	| 'raw'
+	| 'hls'
+	| 'error';
 
 export const $reelState = atom<ReelState>('idle');
 export const $reelError = atom<string | null>(null);
@@ -188,13 +194,47 @@ export function downloadEtaSecs(
 	return remaining / bytesPerSec;
 }
 
-export function mediaUrl(id: string, suffix: string, token: string | null): string {
+export function mediaUrl(
+	id: string,
+	suffix: string,
+	token: string | null,
+): string {
 	const base = `${MEDIA_BASE}/torrents/${encodeURIComponent(id)}${suffix}`;
 	if (!token) return base;
 	const sep = suffix.includes('?') ? '&' : '?';
 	return `${base}${sep}access_token=${encodeURIComponent(token)}`;
 }
 
+// Native <video> HLS (iOS Safari) can't send an Authorization header, and the
+// relative child-playlist/segment URLs drop the query-string token — so scope
+// the media token into a cookie the browser sends with every media subrequest.
+function setMediaCookie(token: string): void {
+	if (typeof document === 'undefined') return;
+	const maxAge = mediaTokenCache
+		? Math.max(
+				0,
+				Math.floor((mediaTokenCache.expiresAtMs - Date.now()) / 1000),
+			)
+		: 300;
+	const secure = location.protocol === 'https:' ? '; Secure' : '';
+	document.cookie = `reel_media_token=${token}; Path=${MEDIA_BASE}; Max-Age=${maxAge}; SameSite=Lax${secure}`;
+}
+
+export interface ReelSubtitle {
+	index: number;
+	label: string;
+	lang: string;
+}
+
+export async function fetchSubtitles(id: string): Promise<ReelSubtitle[]> {
+	try {
+		return await authedApiFetch<ReelSubtitle[]>(
+			`${REEL_PATH}/torrents/${encodeURIComponent(id)}/subtitles`,
+		);
+	} catch {
+		return [];
+	}
+}
 
 export async function listTorrents(): Promise<ReelTorrent[]> {
 	return authedApiFetch<ReelTorrent[]>(`${REEL_PATH}/torrents`);
@@ -319,10 +359,13 @@ export function mediaErrorMessage(err: MediaError | null | undefined): string {
 }
 
 export class ReelPlayer {
-	private hls: { destroy: () => void } | null = null;
+	private hls: import('hls.js').default | null = null;
 	private generation = 0;
 	private pollTimer: ReturnType<typeof setTimeout> | null = null;
 	private video: HTMLVideoElement | null = null;
+	private stallTimer: ReturnType<typeof setInterval> | null = null;
+	private recover: (() => void) | null = null;
+	private lastPos = 0;
 
 	async start(video: HTMLVideoElement, id: string): Promise<void> {
 		const gen = ++this.generation;
@@ -355,7 +398,9 @@ export class ReelPlayer {
 				return;
 			}
 			if (detail?.state === 'Reaped') {
-				this.fail('this reel expired and was removed — re-add it to watch');
+				this.fail(
+					'this reel expired and was removed — re-add it to watch',
+				);
 				return;
 			}
 		} catch (e) {
@@ -439,9 +484,92 @@ export class ReelPlayer {
 		video.src = mediaUrl(id, '/stream', token);
 		$reelState.set('raw');
 		if (leeching) {
-			$reelNotice.set('still downloading — playing the available portion');
+			$reelNotice.set(
+				'still downloading — playing the available portion',
+			);
 		}
+		void this.addSubtitleTracks(video, id, token, gen);
+		this.recover = () => {
+			// Re-request the byte-range stream from the current position.
+			const at = video.currentTime;
+			video.src = mediaUrl(id, '/stream', token);
+			const resume = () => {
+				try {
+					if (at > 0) video.currentTime = at;
+				} catch {
+					void 0;
+				}
+				video.removeEventListener('loadedmetadata', resume);
+			};
+			video.addEventListener('loadedmetadata', resume);
+			void video.play().catch(() => undefined);
+		};
+		this.startWatchdog(video, gen);
 		void video.play().catch(() => undefined);
+	}
+
+	// A stall watchdog: if the playhead stops advancing while playback is
+	// intended and the buffer is starved (readyState below HAVE_FUTURE_DATA),
+	// kick the active recovery path. Runs until torn down, so a stream that
+	// hangs at the download edge resumes on its own without a manual refresh.
+	private startWatchdog(video: HTMLVideoElement, gen: number): void {
+		this.stopWatchdog();
+		this.lastPos = video.currentTime;
+		this.stallTimer = setInterval(() => {
+			if (this.generation !== gen) return;
+			const v = this.video;
+			if (!v || v.paused || v.ended || v.seeking) {
+				this.lastPos = v?.currentTime ?? 0;
+				return;
+			}
+			const advanced = v.currentTime - this.lastPos;
+			this.lastPos = v.currentTime;
+			// HAVE_FUTURE_DATA (3) or more means it can play on; below that while
+			// the clock isn't moving is a genuine stall.
+			if (advanced < 0.05 && v.readyState < 3) {
+				this.recover?.();
+			}
+		}, 5000);
+	}
+
+	private stopWatchdog(): void {
+		if (this.stallTimer) {
+			clearInterval(this.stallTimer);
+			this.stallTimer = null;
+		}
+	}
+
+	// Attach sidecar subtitles (kept beside a completed download) as WebVTT
+	// <track>s. The <track> element can't send headers, so the token rides the
+	// query string. Live HLS carries its own subtitle rendition, so leeching
+	// entries simply return an empty list here.
+	private async addSubtitleTracks(
+		video: HTMLVideoElement,
+		id: string,
+		token: string,
+		gen: number,
+	): Promise<void> {
+		this.removeSubtitleTracks(video);
+		const subs = await fetchSubtitles(id);
+		if (this.generation !== gen || !subs.length) return;
+		subs.forEach((s, i) => {
+			const track = document.createElement('track');
+			track.kind = 'subtitles';
+			track.label = s.label;
+			track.srclang = s.lang || 'und';
+			track.src = mediaUrl(id, `/subtitles/${s.index}`, token);
+			if (i === 0) track.default = true;
+			video.appendChild(track);
+		});
+		// Show the first track once its cues load.
+		const first = video.textTracks[0];
+		if (first) first.mode = 'showing';
+	}
+
+	private removeSubtitleTracks(video: HTMLVideoElement): void {
+		video
+			.querySelectorAll('track')
+			.forEach((t) => t.parentNode?.removeChild(t));
 	}
 
 	private attachVideoError(video: HTMLVideoElement, gen: number): void {
@@ -458,37 +586,123 @@ export class ReelPlayer {
 		gen: number,
 	): Promise<void> {
 		if (this.generation !== gen) return;
-		if (video.canPlayType(MANIFEST_MIME)) {
-			// A <video> element can't send headers, so the native-HLS path
-			// still carries the short-lived scoped token in the query string.
-			this.attachVideoError(video, gen);
-			video.src = mediaUrl(id, '/manifest.m3u8', token);
+		// Sidecar subs for a completed entry; live HLS returns an empty list and
+		// shows its own in-stream subtitle rendition instead.
+		void this.addSubtitleTracks(video, id, token, gen);
+		// Prefer hls.js wherever it's supported (desktop Safari included). Its
+		// XHRs carry the token in the Authorization header, so every request —
+		// master, child playlists, segments, subtitle VTTs — authenticates. The
+		// native <video> HLS path can't send headers, and relative child/segment
+		// URLs drop the query-string token, so it 401s on multi-variant streams;
+		// keep it only as a last resort for engines without MSE (iOS Safari).
+		const Hls = (await import('hls.js')).default;
+		if (this.generation !== gen) return;
+		if (Hls.isSupported()) {
+			// Buffer generously: popcorn segments are produced ahead of the
+			// playhead as the download runs, so let the player hold minutes of
+			// that lead to ride out download dips instead of stalling.
+			const hls = new Hls({
+				maxBufferLength: 120,
+				maxMaxBufferLength: 600,
+				backBufferLength: 90,
+				liveSyncDurationCount: 6,
+				lowLatencyMode: false,
+				// Keep trying hard before giving up — a live popcorn stream at the
+				// download edge sees transient frag/playlist errors that resolve as
+				// more of the file arrives.
+				maxBufferHole: 0.5,
+				fragLoadingMaxRetry: 8,
+				levelLoadingMaxRetry: 8,
+				manifestLoadingMaxRetry: 8,
+				xhrSetup: (xhr: XMLHttpRequest, url: string) => {
+					xhr.open('GET', url, true);
+					xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+				},
+			});
+			this.hls = hls;
+			// Recovery ladder: don't fail on the first fatal error. Resume loading
+			// on network errors, rebuild the buffer on media errors, and only give
+			// up once repeated recovery attempts stop working.
+			let netRetries = 0;
+			let mediaRetries = 0;
+			const MAX_RECOVER = 6;
+			hls.on(Hls.Events.FRAG_BUFFERED, () => {
+				netRetries = 0;
+				mediaRetries = 0;
+			});
+			hls.on(Hls.Events.ERROR, (_evt, data) => {
+				if (!data.fatal) return;
+				if (this.generation !== gen) return;
+				switch (data.type) {
+					case Hls.ErrorTypes.NETWORK_ERROR:
+						if (netRetries++ < MAX_RECOVER) {
+							setTimeout(() => {
+								if (this.generation === gen) hls.startLoad();
+							}, 1000);
+						} else {
+							this.fail(`network error: ${data.details}`);
+						}
+						break;
+					case Hls.ErrorTypes.MEDIA_ERROR:
+						if (mediaRetries++ < MAX_RECOVER) {
+							hls.recoverMediaError();
+						} else {
+							this.fail(`media error: ${data.details}`);
+						}
+						break;
+					default:
+						this.fail(`HLS error: ${data.type}`);
+				}
+			});
+			// Auto-enable the first subtitle rendition (the live stream marks it
+			// DEFAULT=YES) so provided subs show without hunting for a menu.
+			hls.on(Hls.Events.SUBTITLE_TRACKS_UPDATED, (_evt, data) => {
+				if (data.subtitleTracks.length > 0) {
+					hls.subtitleDisplay = true;
+					hls.subtitleTrack = 0;
+				}
+			});
+			hls.loadSource(mediaUrl(id, '/manifest.m3u8', null));
+			hls.attachMedia(video);
 			$reelState.set('hls');
+			this.recover = () => {
+				hls.startLoad();
+				void video.play().catch(() => undefined);
+			};
+			this.startWatchdog(video, gen);
 			void video.play().catch(() => undefined);
 			return;
 		}
-		const Hls = (await import('hls.js')).default;
-		if (this.generation !== gen) return;
-		if (!Hls.isSupported()) {
-			this.fail('HLS is not supported in this browser');
+		if (video.canPlayType(MANIFEST_MIME)) {
+			// Last resort (iOS Safari, no MSE): native HLS. The element can't send
+			// headers and relative child/segment URLs drop the query token, so
+			// scope the token into a cookie the browser sends with every request;
+			// the query token on the master covers the very first request.
+			setMediaCookie(token);
+			this.attachVideoError(video, gen);
+			video.src = mediaUrl(id, '/manifest.m3u8', token);
+			$reelState.set('hls');
+			this.recover = () => {
+				// Native HLS has no load API — reload the source at the same spot.
+				const at = video.currentTime;
+				setMediaCookie(token);
+				video.src = mediaUrl(id, '/manifest.m3u8', token);
+				const resume = () => {
+					try {
+						if (at > 0) video.currentTime = at;
+					} catch {
+						void 0;
+					}
+					video.removeEventListener('loadedmetadata', resume);
+				};
+				video.addEventListener('loadedmetadata', resume);
+				void video.play().catch(() => undefined);
+			};
+			this.startWatchdog(video, gen);
+			void video.play().catch(() => undefined);
 			return;
 		}
-		// hls.js drives its own XHRs, so the token rides in the Authorization
-		// header — never in the manifest/segment URLs (no Referer/log leak).
-		const hls = new Hls({
-			xhrSetup: (xhr: XMLHttpRequest, url: string) => {
-				xhr.open('GET', url, true);
-				xhr.setRequestHeader('Authorization', `Bearer ${token}`);
-			},
-		});
-		this.hls = hls;
-		hls.on(Hls.Events.ERROR, (_evt, data) => {
-			if (data.fatal) this.fail(`HLS error: ${data.type}`);
-		});
-		hls.loadSource(mediaUrl(id, '/manifest.m3u8', null));
-		hls.attachMedia(video);
-		$reelState.set('hls');
-		void video.play().catch(() => undefined);
+		this.fail('HLS is not supported in this browser');
 	}
 
 	private teardown(): void {
@@ -496,8 +710,11 @@ export class ReelPlayer {
 			clearTimeout(this.pollTimer);
 			this.pollTimer = null;
 		}
+		this.stopWatchdog();
+		this.recover = null;
 		if (this.video) {
 			this.video.onerror = null;
+			this.removeSubtitleTracks(this.video);
 		}
 		if (this.hls) {
 			try {

@@ -4,10 +4,7 @@ import ReactReelPlayer from '@/components/media/ReactReelPlayer';
 import ReactReelConsole from '@/components/media/ReactReelConsole';
 ---
 
-<BentoShell
-	id="reel-player-wrapper"
-	eyebrow="Media"
-	heading="Reel player.">
+<BentoShell id="reel-player-wrapper" eyebrow="Media" heading="Reel player.">
 	<div class="reel-dash not-content">
 		<div class="reel-dash__stream not-content">
 			<ReactReelPlayer client:only="react" />
@@ -46,6 +43,45 @@ import ReactReelConsole from '@/components/media/ReactReelConsole';
 		width: 100%;
 		height: 100%;
 		object-fit: contain;
+	}
+
+	:global(.reel-player__theater-toggle) {
+		position: absolute;
+		top: 0.6rem;
+		right: 0.6rem;
+		z-index: 2;
+		padding: 0.35rem 0.7rem;
+		border-radius: 0.4rem;
+		border: 1px solid rgba(255, 255, 255, 0.25);
+		background: rgba(0, 0, 0, 0.55);
+		color: #e5e7eb;
+		font-size: 0.75rem;
+		cursor: pointer;
+		opacity: 0.75;
+		transition: opacity 0.15s ease;
+	}
+
+	:global(.reel-player__theater-toggle:hover),
+	:global(.reel-player__theater-toggle:focus-visible) {
+		opacity: 1;
+	}
+
+	/* Theater mode: fill the window without going native fullscreen. */
+	:global(.reel-player--theater) {
+		position: fixed;
+		inset: 0;
+		z-index: 9999;
+		background: #000;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	:global(.reel-player--theater .reel-player__stage) {
+		width: 100%;
+		height: 100%;
+		aspect-ratio: auto;
+		border-radius: 0;
 	}
 
 	:global(.reel-player__overlay) {

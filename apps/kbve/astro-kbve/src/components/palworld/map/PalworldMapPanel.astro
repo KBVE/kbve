@@ -1,0 +1,20 @@
+---
+import ReactPalworldMap from './ReactPalworldMap';
+---
+
+<div class="not-content pal-map-panel">
+	<ReactPalworldMap client:only="react" />
+</div>
+
+<style>
+	.pal-map-panel {
+		width: 100%;
+		height: min(78vh, 56rem);
+		border-radius: 0.75rem;
+		overflow: hidden;
+		border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+	}
+	.pal-map-panel :global(> div) {
+		height: 100%;
+	}
+</style>

@@ -10,6 +10,8 @@ import {
 	decodeItemUsed,
 	decodePetBattleReplay,
 	decodePetBattleState,
+	decodePetNotice,
+	decodePetRosterSync,
 	decodePickup,
 	decodeBlackjack,
 	decodeProjectile,
@@ -67,6 +69,59 @@ describe('postcard ClientMessage encoder', () => {
 			},
 		};
 		expect(hex(encodeClientMessage(msg))).toBe('06010101230100');
+	});
+
+	// Variants 36/37/38, locked against `proto.rs roster_mutation_inputs_roundtrip`.
+	it('encodes the roster mutations with their locked variants', () => {
+		const frame = (inputs: ClientMessage) =>
+			hex(encodeClientMessage(inputs));
+		expect(
+			frame({
+				Frame: {
+					client_tick: 1,
+					inputs: [{ SetActivePet: { idx: 2 } }],
+				},
+			}),
+		).toBe('06010101240200');
+		expect(
+			frame({
+				Frame: { client_tick: 1, inputs: [{ ReleasePet: { idx: 1 } }] },
+			}),
+		).toBe('06010101250100');
+		expect(
+			frame({
+				Frame: {
+					client_tick: 1,
+					inputs: [{ RenamePet: { idx: 0, name: 'Rex' } }],
+				},
+			}),
+			// idx 0 puts a zero byte mid-frame, so COBS splits the run:
+			// 05 | 01 01 01 26 | 05 | 03 "Rex" | 00.
+		).toBe('0501010126050352657800');
+	});
+
+	// Variants 39/40, locked against `proto.rs pet_restore_inputs_roundtrip`.
+	it('encodes the pet restore inputs with their locked variants', () => {
+		expect(
+			hex(
+				encodeClientMessage({
+					Frame: {
+						client_tick: 1,
+						inputs: [{ UsePetElixir: { idx: 1 } }],
+					},
+				}),
+			),
+		).toBe('06010101270100');
+		expect(
+			hex(
+				encodeClientMessage({
+					Frame: {
+						client_tick: 1,
+						inputs: [{ HealPets: { npc: 12 } }],
+					},
+				}),
+			),
+		).toBe('06010101280c00');
 	});
 
 	it('encodes JoinMatch (interior zero byte exercises COBS restuffing)', () => {
@@ -248,6 +303,73 @@ describe('postcard Ephemeral payload decoder', () => {
 			deadline_ms: 20000,
 			opponent: 'ann',
 		});
+	});
+
+	// Same hex the Rust fixture (proto.rs roster_sync_fixture_is_stable) asserts — two
+	// owned pets so the seq length can't be confused with the trailing Option tag, one
+	// with a move and one without, and a Some(1) lead.
+	it('decodes the Rust PetRosterSync fixture', () => {
+		const payload =
+			'020330314a096d656368616d757474035265780578' +
+			'3c5018141c161a0105737061726b0f0f0330314b09' +
+			'6d656368616d75747404426f6c74070058581e18201a22000101';
+		expect(decodePetRosterSync(Array.from(fromHex(payload)))).toEqual({
+			pets: [
+				{
+					id: '01J',
+					species_ref: 'mechamutt',
+					nickname: 'Rex',
+					level: 5,
+					xp: 120,
+					hp: 30,
+					max_hp: 40,
+					attack: 12,
+					defense: 10,
+					sp_attack: 14,
+					sp_defense: 11,
+					speed: 13,
+					moves: [{ ability_id: 'spark', pp: 15, max_pp: 15 }],
+				},
+				{
+					id: '01K',
+					species_ref: 'mechamutt',
+					nickname: 'Bolt',
+					level: 7,
+					xp: 0,
+					hp: 44,
+					max_hp: 44,
+					attack: 15,
+					defense: 12,
+					sp_attack: 16,
+					sp_defense: 13,
+					speed: 17,
+					moves: [],
+				},
+			],
+			active: 1,
+		});
+	});
+
+	// proto.rs roster_sync_none_active_fixture — empty roster, no lead. The payload a
+	// decoder reading the Option as a bare integer would silently mis-parse.
+	it('decodes an empty PetRosterSync with no active lead', () => {
+		expect(decodePetRosterSync(Array.from(fromHex('0000')))).toEqual({
+			pets: [],
+			active: null,
+		});
+	});
+
+	// proto.rs pet_notice_fixture_is_stable — ok flag then the message.
+	it('decodes the Rust PetNotice fixture', () => {
+		expect(
+			decodePetNotice(
+				Array.from(
+					fromHex(
+						'0017596f752068617665206e6f2070657420656c697869722e',
+					),
+				),
+			),
+		).toEqual({ ok: false, text: 'You have no pet elixir.' });
 	});
 
 	// DuelPrompt: status u8, other_slot u16(varint), other_name string, deadline_ms u32(varint)

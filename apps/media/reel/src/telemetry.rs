@@ -8,11 +8,22 @@ pub fn torrent_added(id: &str, scheme: &str) {
 }
 
 pub fn torrent_completed(id: &str, size: u64) {
-    tracing::info!(event = "torrent_completed", id, size, "torrent moved to library");
+    tracing::info!(
+        event = "torrent_completed",
+        id,
+        size,
+        "torrent moved to library"
+    );
 }
 
 pub fn torrent_failed(id: &str, phase: &str, reason: &str) {
-    tracing::warn!(event = "torrent_failed", id, phase, reason, "torrent failed");
+    tracing::warn!(
+        event = "torrent_failed",
+        id,
+        phase,
+        reason,
+        "torrent failed"
+    );
 }
 
 pub fn reaped(id: &str, name: &str, size: u64) {
@@ -52,6 +63,15 @@ pub fn transcode_ready(id: &str, path: &str) {
     tracing::info!(event = "transcode_ready", id, path, "transcode ready");
 }
 
+pub fn live_hls_adopted(id: &str, path: &str) {
+    tracing::info!(
+        event = "live_hls_adopted",
+        id,
+        path,
+        "reused completed live hls as deliverable; skipped re-encode"
+    );
+}
+
 pub fn transcode_failed(id: &str, reason: &str) {
     tracing::error!(event = "transcode_failed", id, reason, "transcode failed");
 }
@@ -69,7 +89,14 @@ pub fn hls_failed(id: &str, reason: &str) {
 }
 
 pub fn stream_served(id: &str, bytes: u64, delivery: &str, partial: bool) {
-    tracing::info!(event = "stream_served", id, bytes, delivery, partial, "stream served");
+    tracing::info!(
+        event = "stream_served",
+        id,
+        bytes,
+        delivery,
+        partial,
+        "stream served"
+    );
 }
 
 pub fn vpn_leak() {
@@ -80,5 +107,8 @@ pub fn vpn_leak() {
 }
 
 pub fn vpn_restored() {
-    tracing::info!(event = "vpn_restored", "vpn egress restored; resuming torrents");
+    tracing::info!(
+        event = "vpn_restored",
+        "vpn egress restored; resuming torrents"
+    );
 }

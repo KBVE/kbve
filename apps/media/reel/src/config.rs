@@ -26,11 +26,13 @@ pub struct Config {
     pub remux_concurrency: usize,
     pub encode_concurrency: usize,
     pub encode_threads: usize,
+    pub encode_preset: String,
     pub ffmpeg_bin: String,
     pub ffprobe_bin: String,
     pub stream_enabled: bool,
     pub hls_enabled: bool,
     pub live_hls_enabled: bool,
+    pub live_prebuffer_segments: usize,
     pub hls_segment_secs: u64,
     pub bt_port_file: Option<PathBuf>,
     pub bt_port_wait_secs: u64,
@@ -172,7 +174,10 @@ pub fn load_from_env() -> anyhow::Result<Config> {
                 .filter(|s| s.starts_with("http"))
                 .map(str::to_string)
                 .collect(),
-            Err(_) => DEFAULT_TRACKERS_URLS.iter().map(|s| s.to_string()).collect(),
+            Err(_) => DEFAULT_TRACKERS_URLS
+                .iter()
+                .map(|s| s.to_string())
+                .collect(),
         },
         trackers_cache: PathBuf::from(env_or("REEL_TRACKERS_CACHE", "/data/reel-trackers.txt")),
         trackers_refresh_secs: env_u64("REEL_TRACKERS_REFRESH_SECS", 21600)?,
@@ -186,11 +191,13 @@ pub fn load_from_env() -> anyhow::Result<Config> {
         remux_concurrency: env_u64("REEL_REMUX_CONCURRENCY", 3)? as usize,
         encode_concurrency: env_u64("REEL_ENCODE_CONCURRENCY", 1)? as usize,
         encode_threads: env_u64("REEL_ENCODE_THREADS", 1)? as usize,
+        encode_preset: env_or("REEL_ENCODE_PRESET", "veryfast"),
         ffmpeg_bin: env_or("REEL_FFMPEG_BIN", "ffmpeg"),
         ffprobe_bin: env_or("REEL_FFPROBE_BIN", "ffprobe"),
         stream_enabled: env_bool("REEL_STREAM_ENABLED", true),
         hls_enabled: env_bool("REEL_HLS_ENABLED", true),
         live_hls_enabled: env_bool("REEL_LIVE_HLS", true),
+        live_prebuffer_segments: env_u64("REEL_LIVE_PREBUFFER_SEGMENTS", 3)?.max(1) as usize,
         hls_segment_secs: env_u64("REEL_HLS_SEGMENT_SECS", 4)?,
         bt_port_file: match std::env::var("REEL_BT_PORT_FILE") {
             Ok(v) if !v.trim().is_empty() => Some(PathBuf::from(v.trim())),
@@ -208,16 +215,42 @@ mod tests {
     use serial_test::serial;
 
     fn clear() {
-        for k in ["REEL_TTL_SECS","REEL_REAP_INTERVAL_SECS","REEL_ACTIVE_DIR",
-                  "REEL_LIBRARY_DIR","REEL_SESSION_DIR","REEL_STATE_FILE","REEL_API_ADDR",
-                  "REEL_VPN_CHECK_URL","REEL_VPN_CHECK_URLS","REEL_VPN_LEAK_THRESHOLD","REEL_VPN_WATCHDOG_SECS","REEL_METADATA_TIMEOUT_SECS",
-                  "REEL_STALL_TIMEOUT_SECS","REEL_STALL_CHECK_SECS",
-                  "REEL_TRACKERS","REEL_TRACKERS_URLS","REEL_TRACKERS_CACHE","REEL_TRACKERS_REFRESH_SECS",
-                  "REEL_STATE_FLUSH_MS","REEL_UPLOAD_LIMIT_BPS","REEL_API_TOKEN","REEL_TRANSCODE_ENABLED",
-                  "REEL_REMUX_CONCURRENCY","REEL_ENCODE_CONCURRENCY","REEL_ENCODE_THREADS",
-                  "REEL_FFMPEG_BIN","REEL_FFPROBE_BIN","REEL_STREAM_ENABLED",
-                  "REEL_HLS_ENABLED","REEL_LIVE_HLS","REEL_HLS_SEGMENT_SECS",
-                  "REEL_BT_PORT_FILE","REEL_BT_PORT_WAIT_SECS"] {
+        for k in [
+            "REEL_TTL_SECS",
+            "REEL_REAP_INTERVAL_SECS",
+            "REEL_ACTIVE_DIR",
+            "REEL_LIBRARY_DIR",
+            "REEL_SESSION_DIR",
+            "REEL_STATE_FILE",
+            "REEL_API_ADDR",
+            "REEL_VPN_CHECK_URL",
+            "REEL_VPN_CHECK_URLS",
+            "REEL_VPN_LEAK_THRESHOLD",
+            "REEL_VPN_WATCHDOG_SECS",
+            "REEL_METADATA_TIMEOUT_SECS",
+            "REEL_STALL_TIMEOUT_SECS",
+            "REEL_STALL_CHECK_SECS",
+            "REEL_TRACKERS",
+            "REEL_TRACKERS_URLS",
+            "REEL_TRACKERS_CACHE",
+            "REEL_TRACKERS_REFRESH_SECS",
+            "REEL_STATE_FLUSH_MS",
+            "REEL_UPLOAD_LIMIT_BPS",
+            "REEL_API_TOKEN",
+            "REEL_TRANSCODE_ENABLED",
+            "REEL_REMUX_CONCURRENCY",
+            "REEL_ENCODE_CONCURRENCY",
+            "REEL_ENCODE_THREADS",
+            "REEL_FFMPEG_BIN",
+            "REEL_FFPROBE_BIN",
+            "REEL_STREAM_ENABLED",
+            "REEL_HLS_ENABLED",
+            "REEL_LIVE_HLS",
+            "REEL_LIVE_PREBUFFER_SEGMENTS",
+            "REEL_HLS_SEGMENT_SECS",
+            "REEL_BT_PORT_FILE",
+            "REEL_BT_PORT_WAIT_SECS",
+        ] {
             std::env::remove_var(k);
         }
     }
@@ -236,16 +269,29 @@ mod tests {
         assert_eq!(c.metadata_timeout_secs, 120);
         assert_eq!(c.stall_timeout_secs, 300);
         assert_eq!(c.stall_check_secs, 15);
-        assert!(!c.extra_trackers.is_empty(), "embedded default trackers present");
-        assert!(c.extra_trackers.iter().all(|t| t.starts_with("udp://") || t.starts_with("http")));
+        assert!(
+            !c.extra_trackers.is_empty(),
+            "embedded default trackers present"
+        );
+        assert!(
+            c.extra_trackers
+                .iter()
+                .all(|t| t.starts_with("udp://") || t.starts_with("http"))
+        );
         assert_eq!(c.trackers_urls.len(), DEFAULT_TRACKERS_URLS.len());
         assert!(c.trackers_urls.iter().all(|u| u.starts_with("https://")));
-        assert_eq!(c.trackers_cache, std::path::PathBuf::from("/data/reel-trackers.txt"));
+        assert_eq!(
+            c.trackers_cache,
+            std::path::PathBuf::from("/data/reel-trackers.txt")
+        );
         assert_eq!(c.trackers_refresh_secs, 21600);
         assert_eq!(c.state_flush_ms, 1000);
         assert!(c.upload_limit_bps.is_none());
         assert_eq!(c.active_dir, std::path::PathBuf::from("/data/active"));
-        assert_eq!(c.session_dir, std::path::PathBuf::from("/data/active/.session"));
+        assert_eq!(
+            c.session_dir,
+            std::path::PathBuf::from("/data/active/.session")
+        );
         assert_eq!(c.api_addr, "0.0.0.0:8080");
         assert!(c.api_token.is_none());
         assert!(c.bt_port_file.is_none());
@@ -304,9 +350,15 @@ mod tests {
     #[serial]
     fn trackers_env_override_replaces_default() {
         clear();
-        std::env::set_var("REEL_TRACKERS", "udp://x:1/announce, wss://skip, https://y:2/announce");
+        std::env::set_var(
+            "REEL_TRACKERS",
+            "udp://x:1/announce, wss://skip, https://y:2/announce",
+        );
         let c = load_from_env().unwrap();
-        assert_eq!(c.extra_trackers, vec!["udp://x:1/announce", "https://y:2/announce"]);
+        assert_eq!(
+            c.extra_trackers,
+            vec!["udp://x:1/announce", "https://y:2/announce"]
+        );
         clear();
     }
 
@@ -344,9 +396,15 @@ mod tests {
     fn session_dir_defaults_under_active_and_overrides() {
         clear();
         std::env::set_var("REEL_ACTIVE_DIR", "/mnt/act");
-        assert_eq!(load_from_env().unwrap().session_dir, std::path::PathBuf::from("/mnt/act/.session"));
+        assert_eq!(
+            load_from_env().unwrap().session_dir,
+            std::path::PathBuf::from("/mnt/act/.session")
+        );
         std::env::set_var("REEL_SESSION_DIR", "/mnt/sess");
-        assert_eq!(load_from_env().unwrap().session_dir, std::path::PathBuf::from("/mnt/sess"));
+        assert_eq!(
+            load_from_env().unwrap().session_dir,
+            std::path::PathBuf::from("/mnt/sess")
+        );
         clear();
     }
 
@@ -371,6 +429,7 @@ mod tests {
         assert_eq!(c.remux_concurrency, 3);
         assert_eq!(c.encode_concurrency, 1);
         assert_eq!(c.encode_threads, 1);
+        assert_eq!(c.encode_preset, "veryfast");
         assert_eq!(c.ffmpeg_bin, "ffmpeg");
         std::env::set_var("REEL_TRANSCODE_ENABLED", "false");
         std::env::set_var("REEL_ENCODE_CONCURRENCY", "2");
@@ -385,9 +444,15 @@ mod tests {
     fn env_bool_empty_falls_back_to_default() {
         clear();
         std::env::set_var("REEL_TRANSCODE_ENABLED", "");
-        assert!(load_from_env().unwrap().transcode_enabled, "empty must not read as false");
+        assert!(
+            load_from_env().unwrap().transcode_enabled,
+            "empty must not read as false"
+        );
         std::env::set_var("REEL_STREAM_ENABLED", "   ");
-        assert!(load_from_env().unwrap().stream_enabled, "whitespace must not read as false");
+        assert!(
+            load_from_env().unwrap().stream_enabled,
+            "whitespace must not read as false"
+        );
         clear();
     }
 
@@ -410,6 +475,7 @@ mod tests {
         let c = load_from_env().unwrap();
         assert!(c.hls_enabled);
         assert!(c.live_hls_enabled);
+        assert_eq!(c.live_prebuffer_segments, 3);
         assert_eq!(c.hls_segment_secs, 4);
         std::env::set_var("REEL_HLS_ENABLED", "false");
         std::env::set_var("REEL_LIVE_HLS", "false");

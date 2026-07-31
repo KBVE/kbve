@@ -194,6 +194,36 @@ pub struct PendingDuelOps {
     pub responses: Vec<(proto::PlayerSlot, bool)>,
 }
 
+/// One owner-initiated roster mutation, queued from `Input::SetActivePet` /
+/// `ReleasePet` / `RenamePet`.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum RosterOp {
+    SetActive { idx: usize },
+    Release { idx: usize },
+    Rename { idx: usize, name: String },
+}
+
+/// Roster mutations queued this frame. Drained by [`apply_roster_ops`], which owns the
+/// `PetBank` and re-syncs the owner afterward.
+#[derive(Resource, Default)]
+pub struct PendingRosterOps(pub Vec<(proto::PlayerSlot, RosterOp)>);
+
+/// One request to restore pet vitals. Separate from [`RosterOp`] because restores write
+/// `PetVitals`/`PetMoves` directly, which cannot coexist with `PetBank`'s read-only view of
+/// the same components in one system.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum PetRestore {
+    /// Spend one elixir from the owner's inventory on roster slot `idx`.
+    Elixir { idx: usize },
+    /// Free full-roster restore from a healer NPC, subject to a range check.
+    Healer { npc: proto::EntityId },
+}
+
+/// Pet restores queued this frame. Drained by the game server's restore system, which owns
+/// the item bank (to spend the elixir) and the pet component writes.
+#[derive(Resource, Default)]
+pub struct PendingPetRestores(pub Vec<(proto::PlayerSlot, PetRestore)>);
+
 /// Deploy/reclaim queues drained in `drain_inputs` — grouped into one
 /// `SystemParam` so the input system stays under Bevy's 16-param ceiling.
 #[derive(bevy::ecs::system::SystemParam)]
@@ -208,6 +238,8 @@ pub struct DeployQueues<'w> {
     pet_turns: ResMut<'w, PendingPetTurns>,
     npc_challenges: ResMut<'w, PendingNpcChallenges>,
     duel_ops: ResMut<'w, PendingDuelOps>,
+    roster_ops: ResMut<'w, PendingRosterOps>,
+    pet_restores: ResMut<'w, PendingPetRestores>,
 }
 
 /// A durably-persisted player-placed env object. Behavior is re-derived from
@@ -1490,6 +1522,9 @@ pub fn build_app(
         .insert_resource(PendingPetTurns::default())
         .insert_resource(PendingNpcChallenges::default())
         .insert_resource(PendingDuelOps::default())
+        .insert_resource(PendingRosterOps::default())
+        .insert_resource(crate::pets::PendingRosterSyncs::default())
+        .insert_resource(PendingPetRestores::default())
         .insert_resource(PendingDrops::default())
         .insert_resource(Deployables::default())
         .insert_resource(PendingPlacements::default())
@@ -1766,14 +1801,12 @@ fn sync_roster(
             pet_roster.active = pet_active
                 .filter(|a| *a < pet_roster.slots.len())
                 .or(pet_roster.active);
-            let sync =
-                crate::pets::to_roster_sync(&pet_bank.snapshot(&pet_roster), pet_roster.active);
-            let payload = proto::encode_inner(&sync).unwrap_or_default();
-            let _ = bcast.tx.send(ServerEvent::Ephemeral {
-                kind: proto::EPHEMERAL_PET_ROSTER,
-                to: *slot,
-                payload,
-            });
+            crate::pets::send_roster_sync(
+                &bcast,
+                *slot,
+                &pet_bank.snapshot(&pet_roster),
+                pet_roster.active,
+            );
         }
         let entity = commands
             .spawn((
@@ -2205,6 +2238,29 @@ fn drain_inputs(
                 Input::ChallengeNpc { npc } => deploy.npc_challenges.0.push((slot, npc)),
                 Input::DuelChallenge { target } => deploy.duel_ops.challenges.push((slot, target)),
                 Input::DuelRespond { accept } => deploy.duel_ops.responses.push((slot, accept)),
+                Input::SetActivePet { idx } => deploy
+                    .roster_ops
+                    .0
+                    .push((slot, RosterOp::SetActive { idx: idx as usize })),
+                Input::ReleasePet { idx } => deploy
+                    .roster_ops
+                    .0
+                    .push((slot, RosterOp::Release { idx: idx as usize })),
+                Input::RenamePet { idx, name } => deploy.roster_ops.0.push((
+                    slot,
+                    RosterOp::Rename {
+                        idx: idx as usize,
+                        name,
+                    },
+                )),
+                Input::UsePetElixir { idx } => deploy
+                    .pet_restores
+                    .0
+                    .push((slot, PetRestore::Elixir { idx: idx as usize })),
+                Input::HealPets { npc } => deploy
+                    .pet_restores
+                    .0
+                    .push((slot, PetRestore::Healer { npc })),
                 other => pending.entry(slot.0).or_default().push(other),
             }
         }
@@ -2424,7 +2480,12 @@ fn drain_inputs(
                 | Input::PetTurn { .. }
                 | Input::ChallengeNpc { .. }
                 | Input::DuelChallenge { .. }
-                | Input::DuelRespond { .. } => {}
+                | Input::DuelRespond { .. }
+                | Input::SetActivePet { .. }
+                | Input::ReleasePet { .. }
+                | Input::RenamePet { .. }
+                | Input::UsePetElixir { .. }
+                | Input::HealPets { .. } => {}
             }
         }
     }

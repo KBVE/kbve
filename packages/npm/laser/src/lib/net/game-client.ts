@@ -12,6 +12,8 @@ import {
 	EPHEMERAL_ITEM_USED,
 	EPHEMERAL_PET_BATTLE_LOG,
 	EPHEMERAL_PET_BATTLE_STATE,
+	EPHEMERAL_PET_NOTICE,
+	EPHEMERAL_PET_ROSTER,
 	EPHEMERAL_PICKUP,
 	EPHEMERAL_PROJECTILE,
 	EPHEMERAL_SHOP,
@@ -32,6 +34,8 @@ import {
 	type ItemUsedEvent,
 	type PetBattleReplay,
 	type PetBattleState,
+	type PetNotice,
+	type PetRosterSync,
 	type PickupEvent,
 	type ProjectileEvent,
 	type ServerEvent,
@@ -55,6 +59,8 @@ import {
 	decodeItemUsed,
 	decodePetBattleReplay,
 	decodePetBattleState,
+	decodePetNotice,
+	decodePetRosterSync,
 	decodePickup,
 	decodeProjectile,
 	decodeServerEvent,
@@ -82,6 +88,8 @@ export type GameClientEventMap = {
 	blackjackState: BlackjackStateView;
 	petBattleReplay: PetBattleReplay;
 	petBattleState: PetBattleState;
+	petRoster: PetRosterSync;
+	petNotice: PetNotice;
 	duelPrompt: DuelPrompt;
 	reject: string;
 	state: ConnectionState;
@@ -219,6 +227,12 @@ export class GameClient {
 		} else if (evt.kind === EPHEMERAL_PET_BATTLE_STATE) {
 			const data = decodePetBattleState(evt.payload);
 			if (data) this.bus.emit('petBattleState', data);
+		} else if (evt.kind === EPHEMERAL_PET_ROSTER) {
+			const data = decodePetRosterSync(evt.payload);
+			if (data) this.bus.emit('petRoster', data);
+		} else if (evt.kind === EPHEMERAL_PET_NOTICE) {
+			const data = decodePetNotice(evt.payload);
+			if (data) this.bus.emit('petNotice', data);
 		} else if (evt.kind === EPHEMERAL_DUEL_PROMPT) {
 			const data = decodeDuelPrompt(evt.payload);
 			if (data) this.bus.emit('duelPrompt', data);
@@ -274,6 +288,34 @@ export class GameClient {
 	 * PET_ACT_* code, `arg` the move slot (MOVE) or reserve index (SWAP). */
 	petTurn(action: number, arg: number): void {
 		this.sendInputs([{ PetTurn: { action, arg } }]);
+	}
+
+	/** Make roster slot `idx` the battle lead. The server answers with a `petRoster`
+	 * sync whether it applied the change or rejected it (e.g. mid-duel). */
+	setActivePet(idx: number): void {
+		this.sendInputs([{ SetActivePet: { idx } }]);
+	}
+
+	/** Release roster slot `idx`. Irreversible — the pet entity is despawned. */
+	releasePet(idx: number): void {
+		this.sendInputs([{ ReleasePet: { idx } }]);
+	}
+
+	/** Rename roster slot `idx`. The server trims and clamps `name`, and the resulting
+	 * `petRoster` sync carries the name it actually applied. */
+	renamePet(idx: number, name: string): void {
+		this.sendInputs([{ RenamePet: { idx, name } }]);
+	}
+
+	/** Spend one pet elixir on roster slot `idx`. The server answers with a `petNotice`
+	 * either way, plus a `petRoster` sync when it actually restored something. */
+	usePetElixir(idx: number): void {
+		this.sendInputs([{ UsePetElixir: { idx } }]);
+	}
+
+	/** Ask healer NPC `npc` (its server eid) to restore the whole roster. */
+	healPets(npc: number): void {
+		this.sendInputs([{ HealPets: { npc } }]);
 	}
 
 	castSpell(spellRef: string, target: number | null): void {

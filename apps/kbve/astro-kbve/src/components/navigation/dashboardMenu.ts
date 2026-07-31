@@ -13,6 +13,8 @@ export const dashboardNav: NavNode[] = [
 		items: [
 			{ label: 'Account', link: '/dashboard/account/' },
 			{ label: 'Marketplace', link: '/dashboard/market/' },
+			{ label: 'Orders', link: '/dashboard/orders/' },
+			{ label: 'Inventory', link: '/dashboard/inventory/' },
 		],
 	},
 	{
@@ -58,9 +60,7 @@ export const dashboardNav: NavNode[] = [
 		items: [
 			{
 				label: 'AWS',
-				items: [
-					{ label: 'S3', link: '/dashboard/cloud/aws/s3/' },
-				],
+				items: [{ label: 'S3', link: '/dashboard/cloud/aws/s3/' }],
 			},
 		],
 	},

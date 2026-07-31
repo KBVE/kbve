@@ -13,7 +13,7 @@ tags:
 key: reel
 pipeline: docker
 app_name: reel
-version: "0.1.25"
+version: "0.1.31"
 source_path: apps/media/reel
 version_toml: apps/media/reel/version.toml
 version_target: apps/media/reel/Cargo.toml
@@ -101,6 +101,39 @@ audio is always downmixed to stereo aac so it plays with sound. The player
 already polls `202 → 200` and switches to hls.js unchanged. Gated by
 `REEL_LIVE_HLS` (default on); when off, leeching falls back to raw progressive.
 Playback quality tracks download rate — a starved swarm buffers.
+
+To keep playback smooth, the live job holds back **going Live** until
+`REEL_LIVE_PREBUFFER_SEGMENTS` (default 3, ≈12s at 4s segments) are ready, so a
+brief download dip right after Play doesn't immediately re-buffer, and the player
+(hls.js) is tuned to hold a large forward buffer (up to ~10 min) of the
+downloaded-ahead lead. Because the copy path muxes as fast as pieces arrive, the
+segment head stays ahead of the playhead whenever download rate beats the video
+bitrate — so after the initial prime, buffering only happens on a genuinely slow
+swarm.
+
+**Subtitles.** When the primary file carries a text subtitle track (SubRip/ASS/
+mov_text — image subs like PGS/VobSub are skipped), the live job emits a WebVTT
+subtitle rendition alongside the video: ffmpeg produces a master playlist with an
+`EXT-X-MEDIA` subtitle group (`-c:s webvtt`, `-var_stream_map`), the player marks
+it `DEFAULT=YES`, and hls.js auto-enables it. The manifest served at
+`…/manifest.m3u8` rewrites child-playlist and segment references under `hls/` so
+they resolve against the segment route, while the child playlists are served raw.
+
+**Reusing the live stream.** If a live (popcorn) HLS job was watched to
+completion during the download, ffmpeg has already produced a full, playable HLS
+of the whole file — so on completion reel **adopts that HLS as the deliverable
+and skips the VOD re-encode entirely** (a huge win for non-h264 sources that
+would otherwise take hours). The completion watcher waits for the live job to
+finalize (`#EXT-X-ENDLIST`), relocates the directory, marks the entry Ready with
+its HLS, and drops the source video (keeping subtitles/poster). If no live job
+ran, or it didn't finish cleanly, the normal transcode runs as before.
+
+Once a download **completes**, its transcoded `.reel.mp4` no longer carries the
+subtitle streams, so the embedded text subs extracted to sidecar `.srt` files are
+served separately: `GET /torrents/{id}/subtitles` lists them and
+`GET /torrents/{id}/subtitles/{n}` returns each converted to WebVTT on the fly.
+The player attaches them as `<track>` elements (token on the query string, since
+`<track>` can't send headers), so finished reels play with selectable subtitles.
 
 </BentoProse>
 

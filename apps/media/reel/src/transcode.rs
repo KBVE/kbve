@@ -11,8 +11,32 @@ pub struct ProbeResult {
     pub video_codec: Option<String>,
     pub audio_codec: Option<String>,
     pub audio_channels: Option<i64>,
+    pub subtitle_codec: Option<String>,
     pub container: Option<String>,
     pub duration_secs: Option<f64>,
+}
+
+/// Text-based subtitle codecs that ffmpeg can convert to WebVTT for HLS.
+/// Image subtitles (PGS/VobSub/DVB) cannot and are left out of the live stream.
+pub fn subtitle_is_text(codec: Option<&str>) -> bool {
+    matches!(
+        codec,
+        Some(
+            "subrip"
+                | "srt"
+                | "ass"
+                | "ssa"
+                | "mov_text"
+                | "webvtt"
+                | "text"
+                | "subviewer"
+                | "subviewer1"
+                | "microdvd"
+                | "mpl2"
+                | "vplayer"
+                | "pjs"
+        )
+    )
 }
 
 pub fn progress_pct(out_time_us: u64, duration_secs: f64) -> u8 {
@@ -175,6 +199,7 @@ pub fn parse_probe_json(json: &serde_json::Value) -> ProbeResult {
     let mut video = None;
     let mut audio = None;
     let mut audio_channels = None;
+    let mut subtitle = None;
     if let Some(streams) = json.get("streams").and_then(|s| s.as_array()) {
         for s in streams {
             let kind = s.get("codec_type").and_then(|v| v.as_str());
@@ -194,6 +219,7 @@ pub fn parse_probe_json(json: &serde_json::Value) -> ProbeResult {
                     audio = codec;
                     audio_channels = s.get("channels").and_then(|v| v.as_i64());
                 }
+                Some("subtitle") if subtitle.is_none() => subtitle = codec,
                 _ => {}
             }
         }
@@ -212,6 +238,7 @@ pub fn parse_probe_json(json: &serde_json::Value) -> ProbeResult {
         video_codec: video,
         audio_codec: audio,
         audio_channels,
+        subtitle_codec: subtitle,
         container,
         duration_secs,
     }
@@ -297,11 +324,13 @@ pub struct Transcoder {
     ffprobe_bin: String,
     enabled: bool,
     encode_threads: usize,
+    encode_preset: String,
     children: Arc<std::sync::Mutex<std::collections::HashMap<String, tokio::process::Child>>>,
     progress: Arc<std::sync::Mutex<std::collections::HashMap<String, TranscodeProgress>>>,
 }
 
 impl Transcoder {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         store: StateStore,
         remux_conc: usize,
@@ -310,6 +339,7 @@ impl Transcoder {
         ffprobe_bin: String,
         enabled: bool,
         encode_threads: usize,
+        encode_preset: String,
     ) -> Self {
         let this = Self {
             store,
@@ -319,6 +349,7 @@ impl Transcoder {
             ffprobe_bin,
             enabled,
             encode_threads,
+            encode_preset,
             children: Arc::new(std::sync::Mutex::new(std::collections::HashMap::new())),
             progress: Arc::new(std::sync::Mutex::new(std::collections::HashMap::new())),
         };
@@ -413,10 +444,7 @@ impl Transcoder {
         let mut child = cmd.spawn()?;
         let stdout = child.stdout.take();
         let mut stderr = child.stderr.take();
-        self.children
-            .lock()
-            .unwrap()
-            .insert(id.to_string(), child);
+        self.children.lock().unwrap().insert(id.to_string(), child);
 
         if let (Some(stdout), Some(dur)) = (stdout, duration_secs) {
             use tokio::io::AsyncBufReadExt;
@@ -591,7 +619,7 @@ impl Transcoder {
                     let _permit = self.encode_sem.acquire().await?;
                     let threads = self.encode_threads.to_string();
                     let mut args: Vec<&str> = MAP_VIDEO_AUDIO.to_vec();
-                    args.extend_from_slice(&["-c:v", "libx264"]);
+                    args.extend_from_slice(&["-c:v", "libx264", "-preset", &self.encode_preset]);
                     if self.encode_threads > 0 {
                         args.push("-threads");
                         args.push(&threads);
@@ -631,7 +659,12 @@ impl Transcoder {
 /// files (`<stem>.sub<N>.srt`) so they survive deleting the source container.
 /// Image-based subs (pgs/vobsub) cannot convert to srt and are skipped; any
 /// failure just stops the loop — subtitles are a nice-to-have, never fatal.
-async fn extract_subtitles(ffmpeg_bin: &str, src: &std::path::Path, dir: &std::path::Path, stem: &str) {
+async fn extract_subtitles(
+    ffmpeg_bin: &str,
+    src: &std::path::Path,
+    dir: &std::path::Path,
+    stem: &str,
+) {
     for n in 0..8u32 {
         let out = dir.join(format!("{stem}.sub{n}.srt"));
         let map = format!("0:s:{n}");
@@ -686,9 +719,36 @@ mod tests {
             video_codec: v.map(String::from),
             audio_codec: a.map(String::from),
             audio_channels: None,
+            subtitle_codec: None,
             container: c.map(String::from),
             duration_secs: None,
         }
+    }
+
+    #[test]
+    fn subtitle_is_text_allows_text_rejects_image() {
+        assert!(subtitle_is_text(Some("subrip")));
+        assert!(subtitle_is_text(Some("ass")));
+        assert!(subtitle_is_text(Some("mov_text")));
+        assert!(!subtitle_is_text(Some("hdmv_pgs_subtitle")));
+        assert!(!subtitle_is_text(Some("dvd_subtitle")));
+        assert!(!subtitle_is_text(None));
+    }
+
+    #[test]
+    fn parse_probe_reads_first_subtitle_codec() {
+        let json = serde_json::json!({
+            "streams": [
+                {"codec_type": "video", "codec_name": "h264"},
+                {"codec_type": "audio", "codec_name": "aac", "channels": 2},
+                {"codec_type": "subtitle", "codec_name": "subrip"},
+                {"codec_type": "subtitle", "codec_name": "hdmv_pgs_subtitle"}
+            ],
+            "format": {"format_name": "matroska,webm"}
+        });
+        let p = parse_probe_json(&json);
+        assert_eq!(p.subtitle_codec.as_deref(), Some("subrip"));
+        assert!(subtitle_is_text(p.subtitle_codec.as_deref()));
     }
 
     #[test]
@@ -702,8 +762,14 @@ mod tests {
 
     #[test]
     fn parse_progress_line_splits_key_value() {
-        assert_eq!(parse_progress_line("out_time_us=4560000"), Some(("out_time_us", "4560000")));
-        assert_eq!(parse_progress_line("progress=end"), Some(("progress", "end")));
+        assert_eq!(
+            parse_progress_line("out_time_us=4560000"),
+            Some(("out_time_us", "4560000"))
+        );
+        assert_eq!(
+            parse_progress_line("progress=end"),
+            Some(("progress", "end"))
+        );
         assert_eq!(parse_progress_line("garbage"), None);
     }
 
@@ -822,7 +888,11 @@ mod tests {
         let p = parse_probe_json(&json);
         assert_eq!(p.video_codec.as_deref(), Some("h264"));
         assert_eq!(p.audio_codec, None);
-        assert_eq!(decide_delivery(&p), Delivery::RemuxHls, "h264 no-audio remuxes");
+        assert_eq!(
+            decide_delivery(&p),
+            Delivery::RemuxHls,
+            "h264 no-audio remuxes"
+        );
     }
     #[test]
     fn map_selects_real_video_and_optional_audio() {
@@ -880,8 +950,14 @@ mod transcoder_tests {
         assert!(audio_can_copy(Some("aac"), Some(2)));
         assert!(audio_can_copy(Some("aac"), Some(1)));
         assert!(!audio_can_copy(Some("aac"), Some(6)), "5.1 aac -> downmix");
-        assert!(!audio_can_copy(Some("aac"), None), "unknown channels -> unsafe");
-        assert!(!audio_can_copy(Some("eac3"), Some(2)), "non-aac -> transcode");
+        assert!(
+            !audio_can_copy(Some("aac"), None),
+            "unknown channels -> unsafe"
+        );
+        assert!(
+            !audio_can_copy(Some("eac3"), Some(2)),
+            "non-aac -> transcode"
+        );
         assert!(!audio_can_copy(None, Some(2)));
     }
 
@@ -966,8 +1042,16 @@ mod transcoder_tests {
         store.upsert(meta("ready", TranscodeStatus::Ready)).unwrap();
         store.upsert(meta("none", TranscodeStatus::None)).unwrap();
 
-        let _transcoder =
-            Transcoder::new(store.clone(), 1, 1, "ffmpeg".into(), "ffprobe".into(), true, 1);
+        let _transcoder = Transcoder::new(
+            store.clone(),
+            1,
+            1,
+            "ffmpeg".into(),
+            "ffprobe".into(),
+            true,
+            1,
+            "veryfast".into(),
+        );
 
         let pending = store.get("pending").unwrap();
         assert_eq!(pending.transcode, TranscodeStatus::Failed);

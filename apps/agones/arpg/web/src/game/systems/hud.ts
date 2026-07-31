@@ -4,6 +4,7 @@ import {
 	type NotificationEventData,
 	type CorpseContents,
 	type PetBattleState,
+	type PetRosterSync,
 	type DuelPrompt,
 } from '@kbve/laser';
 import type { SpellMeta } from '../entities/spellMeta';
@@ -259,6 +260,48 @@ export function onDuelRespond(handler: (accept: boolean) => void): () => void {
 		DUEL_RESPOND_EVENT,
 		handler as (data: unknown) => void,
 	);
+}
+
+// Pet roster bridge. The server pushes the owner's full roster on join and after every
+// mutation; the scene forwards each sync here for the hub panel. Mutations go the other
+// way — the panel emits an op, the scene forwards it to the client, and the authoritative
+// sync that comes back is what the panel renders (no optimistic local edits).
+export const PET_ROSTER_EVENT = 'arpg:petRoster:sync';
+export const PET_ROSTER_OP_EVENT = 'arpg:petRoster:op';
+
+/** One roster mutation the player requested from the hub. */
+export type PetRosterOp =
+	| { kind: 'setActive'; idx: number }
+	| { kind: 'release'; idx: number }
+	| { kind: 'rename'; idx: number; name: string }
+	| { kind: 'elixir'; idx: number };
+
+export function emitPetRoster(sync: PetRosterSync): void {
+	laserEvents.emit(PET_ROSTER_EVENT, sync);
+}
+
+export function onPetRoster(
+	handler: (sync: PetRosterSync) => void,
+): () => void {
+	return laserEvents.on(PET_ROSTER_EVENT, handler as (d: unknown) => void);
+}
+
+export const PET_HUB_OPEN_EVENT = 'arpg:petHub:open';
+
+export function emitPetHubOpen(open: boolean): void {
+	laserEvents.emit(PET_HUB_OPEN_EVENT, open);
+}
+
+export function onPetHubOpen(handler: (open: boolean) => void): () => void {
+	return laserEvents.on(PET_HUB_OPEN_EVENT, handler as (d: unknown) => void);
+}
+
+export function emitPetRosterOp(op: PetRosterOp): void {
+	laserEvents.emit(PET_ROSTER_OP_EVENT, op);
+}
+
+export function onPetRosterOp(handler: (op: PetRosterOp) => void): () => void {
+	return laserEvents.on(PET_ROSTER_OP_EVENT, handler as (d: unknown) => void);
 }
 
 // Global battle-scene lifecycle. Fired the moment the player commits to a battle

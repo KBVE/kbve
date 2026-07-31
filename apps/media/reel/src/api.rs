@@ -361,17 +361,21 @@ async fn manifest(
         None => {
             let primary = match delivery_source(&meta) {
                 Some(p) => p,
-                None => match transcode::pick_primary_file_async(std::path::PathBuf::from(&meta.path)).await {
-                    Ok(p) => p,
-                    Err(e) => {
-                        tracing::warn!(id = %id, path = %meta.path, error = %e, "manifest: no primary media file");
-                        return (
-                            StatusCode::INTERNAL_SERVER_ERROR,
-                            Json(serde_json::json!({"error": e.to_string()})),
-                        )
-                            .into_response();
+                None => {
+                    match transcode::pick_primary_file_async(std::path::PathBuf::from(&meta.path))
+                        .await
+                    {
+                        Ok(p) => p,
+                        Err(e) => {
+                            tracing::warn!(id = %id, path = %meta.path, error = %e, "manifest: no primary media file");
+                            return (
+                                StatusCode::INTERNAL_SERVER_ERROR,
+                                Json(serde_json::json!({"error": e.to_string()})),
+                            )
+                                .into_response();
+                        }
                     }
-                },
+                }
             };
             let probe = match transcode::probe(&st.ffprobe_bin, &primary).await {
                 Ok(p) => p,
@@ -415,11 +419,7 @@ async fn manifest(
 
 /// Popcorn manifest: begin (or join) a live HLS job for a still-downloading
 /// torrent, transcoding from its in-flight librqbit stream.
-async fn live_manifest(
-    st: &AppState,
-    id: &str,
-    meta: state::Metadata,
-) -> axum::response::Response {
+async fn live_manifest(st: &AppState, id: &str, meta: state::Metadata) -> axum::response::Response {
     let out_dir = match meta.active_path {
         Some(d) => std::path::PathBuf::from(d),
         None => return StatusCode::TOO_EARLY.into_response(),
@@ -440,15 +440,62 @@ async fn live_manifest(
 
 async fn serve_manifest_file(dir: &str) -> axum::response::Response {
     let path = std::path::Path::new(dir).join("index.m3u8");
-    let file = match tokio::fs::File::open(&path).await {
-        Ok(f) => f,
+    let body = match tokio::fs::read_to_string(&path).await {
+        Ok(s) => s,
         Err(_) => return StatusCode::NOT_FOUND.into_response(),
     };
-    let total = match file.metadata().await {
-        Ok(m) => m.len(),
-        Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
-    };
-    crate::stream::serve_range(file, total, None, "application/vnd.apple.mpegurl", false).await
+    (
+        [(
+            axum::http::header::CONTENT_TYPE,
+            "application/vnd.apple.mpegurl",
+        )],
+        rewrite_manifest_paths(&body),
+    )
+        .into_response()
+}
+
+/// ffmpeg writes segment / child-playlist references as bare basenames, but the
+/// top-level manifest is served from `…/torrents/{id}/manifest.m3u8` while the
+/// files live under `…/torrents/{id}/hls/`. Prefix every resource reference
+/// (segment lines, variant playlists, and `URI="…"` group attributes) with
+/// `hls/` so the player resolves them against the segment route. Child
+/// playlists are served raw — their basenames already resolve under `hls/`.
+fn rewrite_manifest_paths(body: &str) -> String {
+    fn needs_prefix(s: &str) -> bool {
+        !s.is_empty() && !s.starts_with("hls/") && !s.contains("://") && !s.starts_with('/')
+    }
+    let mut out = String::with_capacity(body.len() + 64);
+    for line in body.lines() {
+        let trimmed = line.trim_end();
+        if trimmed.is_empty() {
+            out.push('\n');
+            continue;
+        }
+        if let Some(rest) = trimmed.strip_prefix('#') {
+            // Rewrite a URI="…" attribute (subtitle/audio group refs) if present.
+            if let Some(start) = rest.find("URI=\"") {
+                let uri_start = "#".len() + start + "URI=\"".len();
+                if let Some(end_rel) = trimmed[uri_start..].find('"') {
+                    let uri = &trimmed[uri_start..uri_start + end_rel];
+                    if needs_prefix(uri) {
+                        out.push_str(&trimmed[..uri_start]);
+                        out.push_str("hls/");
+                        out.push_str(&trimmed[uri_start..]);
+                        out.push('\n');
+                        continue;
+                    }
+                }
+            }
+            out.push_str(trimmed);
+        } else if needs_prefix(trimmed) {
+            out.push_str("hls/");
+            out.push_str(trimmed);
+        } else {
+            out.push_str(trimmed);
+        }
+        out.push('\n');
+    }
+    out
 }
 
 async fn hls_segment(
@@ -535,13 +582,17 @@ pub(crate) async fn stream_core<S: engine::MediaSource>(
             };
             let path = match path {
                 Some(p) => p,
-                None => match transcode::pick_primary_file_async(std::path::PathBuf::from(&meta.path)).await {
-                    Ok(p) => p,
-                    Err(e) => {
-                        tracing::warn!(id = %id, path = %meta.path, error = %e, "stream: no primary media file");
-                        return StatusCode::CONFLICT.into_response();
+                None => {
+                    match transcode::pick_primary_file_async(std::path::PathBuf::from(&meta.path))
+                        .await
+                    {
+                        Ok(p) => p,
+                        Err(e) => {
+                            tracing::warn!(id = %id, path = %meta.path, error = %e, "stream: no primary media file");
+                            return StatusCode::CONFLICT.into_response();
+                        }
                     }
-                },
+                }
             };
             let ct = crate::stream::content_type_for(&path.to_string_lossy());
             if head_only {
@@ -568,7 +619,12 @@ pub(crate) async fn stream_core<S: engine::MediaSource>(
                     return StatusCode::INTERNAL_SERVER_ERROR.into_response();
                 }
             };
-            crate::telemetry::stream_served(id, served_bytes(range, total), "progressive", range.is_some());
+            crate::telemetry::stream_served(
+                id,
+                served_bytes(range, total),
+                "progressive",
+                range.is_some(),
+            );
             crate::stream::serve_range(file, total, range, ct, head_only).await
         }
         state::TorrentState::Leeching => {
@@ -608,7 +664,12 @@ pub(crate) async fn stream_core<S: engine::MediaSource>(
                     return StatusCode::TOO_EARLY.into_response();
                 }
             };
-            crate::telemetry::stream_served(id, served_bytes(range, total), "leeching", range.is_some());
+            crate::telemetry::stream_served(
+                id,
+                served_bytes(range, total),
+                "leeching",
+                range.is_some(),
+            );
             crate::stream::serve_range(stream, total, range, ct, head_only).await
         }
         state::TorrentState::Failed => (
@@ -755,6 +816,8 @@ pub(crate) async fn hls_segment_core(
     let range = headers.get("range").and_then(|h| h.to_str().ok());
     let ct = if segment.ends_with(".ts") {
         "video/mp2t"
+    } else if segment.ends_with(".vtt") {
+        "text/vtt"
     } else {
         "application/vnd.apple.mpegurl"
     };
@@ -783,6 +846,55 @@ pub(crate) async fn hls_segment_core(
     crate::stream::serve_range(file, total, range, ct, head_only).await
 }
 
+async fn subtitles_list(
+    State(st): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<String>,
+) -> impl IntoResponse {
+    if !check_auth(&headers, &st.token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let meta = match st.store.get(&id) {
+        Some(m) => m,
+        None => return StatusCode::NOT_FOUND.into_response(),
+    };
+    let dir = std::path::PathBuf::from(&meta.path);
+    Json(crate::subtitles::tracks_for(&dir)).into_response()
+}
+
+async fn subtitle_vtt(
+    State(st): State<AppState>,
+    headers: HeaderMap,
+    Path((id, idx)): Path<(String, usize)>,
+    axum::extract::RawQuery(query): axum::extract::RawQuery,
+) -> impl IntoResponse {
+    if !check_auth_q(&headers, query.as_deref(), &st.token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let meta = match st.store.get(&id) {
+        Some(m) => m,
+        None => return StatusCode::NOT_FOUND.into_response(),
+    };
+    let dir = std::path::PathBuf::from(&meta.path);
+    let path = match crate::subtitles::list_sidecars(&dir).into_iter().nth(idx) {
+        Some(p) => p,
+        None => return StatusCode::NOT_FOUND.into_response(),
+    };
+    let srt = match tokio::fs::read_to_string(&path).await {
+        Ok(s) => s,
+        Err(e) => {
+            tracing::warn!(id = %id, path = %path.display(), error = %e, "subtitle read failed");
+            return StatusCode::NOT_FOUND.into_response();
+        }
+    };
+    let _ = st.store.touch(&id, now_secs());
+    (
+        [(axum::http::header::CONTENT_TYPE, "text/vtt; charset=utf-8")],
+        crate::subtitles::srt_to_vtt(&srt),
+    )
+        .into_response()
+}
+
 fn store_scoped_router(state: AppStateStub) -> Router {
     Router::new()
         .route("/torrents", get(list))
@@ -806,6 +918,8 @@ pub fn router(state: AppState) -> Router {
             "/torrents/{id}/hls/{segment}",
             get(hls_segment).head(hls_segment),
         )
+        .route("/torrents/{id}/subtitles", get(subtitles_list))
+        .route("/torrents/{id}/subtitles/{idx}", get(subtitle_vtt))
         .with_state(state);
     Router::new()
         .route("/healthz", get(|| async { "ok" }))
@@ -849,7 +963,10 @@ mod tests {
     }
 
     fn no_source() -> FakeSource {
-        FakeSource { entries: None, data: vec![] }
+        FakeSource {
+            entries: None,
+            data: vec![],
+        }
     }
 
     fn bearer(token: &str) -> HeaderMap {
@@ -879,9 +996,37 @@ mod tests {
     }
 
     #[test]
+    fn rewrite_manifest_prefixes_media_playlist_segments() {
+        let src = "#EXTM3U\n#EXT-X-VERSION:3\n#EXTINF:4.0,\nseg00001.ts\nhls/seg00002.ts\n";
+        let out = rewrite_manifest_paths(src);
+        assert!(out.contains("\nhls/seg00001.ts\n"), "bare segment prefixed");
+        assert!(!out.contains("hls/hls/"), "already-prefixed left alone");
+        assert!(out.contains("#EXTINF:4.0,"), "tags untouched");
+    }
+
+    #[test]
+    fn rewrite_manifest_prefixes_master_variants_and_subs() {
+        let src = "#EXTM3U\n#EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID=\"subs\",NAME=\"s\",DEFAULT=YES,URI=\"stream_0_vtt.m3u8\"\n#EXT-X-STREAM-INF:BANDWIDTH=1,SUBTITLES=\"subs\"\nstream_0.m3u8\n";
+        let out = rewrite_manifest_paths(src);
+        assert!(
+            out.contains("URI=\"hls/stream_0_vtt.m3u8\""),
+            "sub URI prefixed"
+        );
+        assert!(
+            out.contains("\nhls/stream_0.m3u8\n"),
+            "variant playlist prefixed"
+        );
+        assert!(out.contains("GROUP-ID=\"subs\""), "other attrs preserved");
+    }
+
+    #[test]
     fn delivery_source_prefers_ready_transcode() {
         let mut m = meta_for(TorrentState::Seeding);
-        assert_eq!(delivery_source(&m), None, "no transcode -> fall back to source");
+        assert_eq!(
+            delivery_source(&m),
+            None,
+            "no transcode -> fall back to source"
+        );
         m.transcode = TranscodeStatus::Ready;
         m.transcode_path = Some("/lib/m/x.reel.mp4".into());
         assert_eq!(
@@ -911,8 +1056,14 @@ mod tests {
     fn phase_leeching_reflects_live_progress() {
         let m = meta_for(TorrentState::Leeching);
         assert_eq!(derive_phase(&m, None), "resolving-metadata");
-        assert_eq!(derive_phase(&m, Some(&live_for(0, 100, false))), "connecting");
-        assert_eq!(derive_phase(&m, Some(&live_for(50, 100, false))), "downloading");
+        assert_eq!(
+            derive_phase(&m, Some(&live_for(0, 100, false))),
+            "connecting"
+        );
+        assert_eq!(
+            derive_phase(&m, Some(&live_for(50, 100, false))),
+            "downloading"
+        );
         assert_eq!(derive_phase(&m, Some(&live_for(100, 100, true))), "moving");
     }
 
@@ -938,8 +1089,14 @@ mod tests {
 
     #[test]
     fn phase_failed_and_reaped() {
-        assert_eq!(derive_phase(&meta_for(TorrentState::Failed), None), "failed");
-        assert_eq!(derive_phase(&meta_for(TorrentState::Reaped), None), "reaped");
+        assert_eq!(
+            derive_phase(&meta_for(TorrentState::Failed), None),
+            "failed"
+        );
+        assert_eq!(
+            derive_phase(&meta_for(TorrentState::Reaped), None),
+            "reaped"
+        );
     }
 
     #[test]
@@ -1008,7 +1165,16 @@ mod tests {
     }
 
     fn transcoder_with(store: StateStore) -> transcode::Transcoder {
-        transcode::Transcoder::new(store, 1, 1, "ffmpeg".into(), "ffprobe".into(), true, 1)
+        transcode::Transcoder::new(
+            store,
+            1,
+            1,
+            "ffmpeg".into(),
+            "ffprobe".into(),
+            true,
+            1,
+            "veryfast".into(),
+        )
     }
 
     #[tokio::test]
@@ -1040,9 +1206,13 @@ mod tests {
 
     #[tokio::test]
     async fn transcode_missing_id_is_404() {
-        let res =
-            transcode_core(&HeaderMap::new(), &None, &transcoder_with(store_with_one()), "999")
-                .await;
+        let res = transcode_core(
+            &HeaderMap::new(),
+            &None,
+            &transcoder_with(store_with_one()),
+            "999",
+        )
+        .await;
         assert_eq!(res.status(), StatusCode::NOT_FOUND);
     }
 
@@ -1104,7 +1274,11 @@ mod tests {
 
         assert!(check_auth_q(&hdr, None, &token));
         assert!(check_auth_q(&empty, Some("access_token=secret"), &token));
-        assert!(check_auth_q(&empty, Some("x=1&access_token=secret"), &token));
+        assert!(check_auth_q(
+            &empty,
+            Some("x=1&access_token=secret"),
+            &token
+        ));
         assert!(!check_auth_q(&empty, Some("access_token=wrong"), &token));
         assert!(!check_auth_q(&empty, None, &token));
         assert!(!check_auth_q(&empty, Some("nope=secret"), &token));
@@ -1114,8 +1288,14 @@ mod tests {
     #[tokio::test]
     async fn stream_disabled_is_503() {
         let res = stream_core(
-            &HeaderMap::new(), None, &None, false,
-            &store_with_one(), &no_source(), "1", &Method::GET,
+            &HeaderMap::new(),
+            None,
+            &None,
+            false,
+            &store_with_one(),
+            &no_source(),
+            "1",
+            &Method::GET,
         )
         .await;
         assert_eq!(res.status(), StatusCode::SERVICE_UNAVAILABLE);
@@ -1124,8 +1304,14 @@ mod tests {
     #[tokio::test]
     async fn stream_missing_id_is_404() {
         let res = stream_core(
-            &HeaderMap::new(), None, &None, true,
-            &store_with_one(), &no_source(), "999", &Method::GET,
+            &HeaderMap::new(),
+            None,
+            &None,
+            true,
+            &store_with_one(),
+            &no_source(),
+            "999",
+            &Method::GET,
         )
         .await;
         assert_eq!(res.status(), StatusCode::NOT_FOUND);
@@ -1134,8 +1320,14 @@ mod tests {
     #[tokio::test]
     async fn stream_requires_auth_when_token_set() {
         let res = stream_core(
-            &HeaderMap::new(), None, &Some("secret".into()), true,
-            &store_with_one(), &no_source(), "1", &Method::GET,
+            &HeaderMap::new(),
+            None,
+            &Some("secret".into()),
+            true,
+            &store_with_one(),
+            &no_source(),
+            "1",
+            &Method::GET,
         )
         .await;
         assert_eq!(res.status(), StatusCode::UNAUTHORIZED);
@@ -1168,8 +1360,14 @@ mod tests {
         .unwrap();
         std::mem::forget(dir);
         let res = stream_core(
-            &HeaderMap::new(), None, &None, true,
-            &s, &no_source(), "1", &Method::GET,
+            &HeaderMap::new(),
+            None,
+            &None,
+            true,
+            &s,
+            &no_source(),
+            "1",
+            &Method::GET,
         )
         .await;
         assert_eq!(res.status(), StatusCode::OK);
@@ -1209,8 +1407,14 @@ mod tests {
             data: b"12345".to_vec(),
         };
         let res = stream_core(
-            &HeaderMap::new(), None, &None, true,
-            &s, &source, "1", &Method::GET,
+            &HeaderMap::new(),
+            None,
+            &None,
+            true,
+            &s,
+            &source,
+            "1",
+            &Method::GET,
         )
         .await;
         assert_eq!(res.status(), StatusCode::OK);
@@ -1242,8 +1446,14 @@ mod tests {
         })
         .unwrap();
         let res = stream_core(
-            &HeaderMap::new(), None, &None, true,
-            &s, &no_source(), "1", &Method::GET,
+            &HeaderMap::new(),
+            None,
+            &None,
+            true,
+            &s,
+            &no_source(),
+            "1",
+            &Method::GET,
         )
         .await;
         assert_eq!(res.status(), StatusCode::CONFLICT);
@@ -1260,7 +1470,16 @@ mod tests {
     #[tokio::test]
     async fn manifest_missing_id_is_404() {
         let res = manifest_done(
-            manifest_status_core(&HeaderMap::new(), None, &None, true, false, &store_with_one(), "999").await,
+            manifest_status_core(
+                &HeaderMap::new(),
+                None,
+                &None,
+                true,
+                false,
+                &store_with_one(),
+                "999",
+            )
+            .await,
         );
         assert_eq!(res.status(), StatusCode::NOT_FOUND);
     }
@@ -1268,7 +1487,16 @@ mod tests {
     #[tokio::test]
     async fn manifest_hls_disabled_is_503() {
         let res = manifest_done(
-            manifest_status_core(&HeaderMap::new(), None, &None, false, false, &store_with_one(), "1").await,
+            manifest_status_core(
+                &HeaderMap::new(),
+                None,
+                &None,
+                false,
+                false,
+                &store_with_one(),
+                "1",
+            )
+            .await,
         );
         assert_eq!(res.status(), StatusCode::SERVICE_UNAVAILABLE);
     }
@@ -1277,7 +1505,13 @@ mod tests {
     async fn manifest_requires_auth_when_token_set() {
         let res = manifest_done(
             manifest_status_core(
-                &HeaderMap::new(), None, &Some("secret".into()), true, false, &store_with_one(), "1",
+                &HeaderMap::new(),
+                None,
+                &Some("secret".into()),
+                true,
+                false,
+                &store_with_one(),
+                "1",
             )
             .await,
         );
@@ -1286,7 +1520,16 @@ mod tests {
 
     #[tokio::test]
     async fn manifest_seeding_none_proceeds_to_delivery() {
-        let res = manifest_status_core(&HeaderMap::new(), None, &None, true, false, &store_with_one(), "1").await;
+        let res = manifest_status_core(
+            &HeaderMap::new(),
+            None,
+            &None,
+            true,
+            false,
+            &store_with_one(),
+            "1",
+        )
+        .await;
         assert!(matches!(res, ManifestStep::Proceed(_)));
     }
 
@@ -1385,7 +1628,13 @@ mod tests {
     #[tokio::test]
     async fn hls_segment_rejects_bad_name_is_400() {
         let res = hls_segment_core(
-            &HeaderMap::new(), None, &None, &store_with_one(), "1", "seg.ts", &Method::GET,
+            &HeaderMap::new(),
+            None,
+            &None,
+            &store_with_one(),
+            "1",
+            "seg-1.mp4",
+            &Method::GET,
         )
         .await;
         assert_eq!(res.status(), StatusCode::BAD_REQUEST);
@@ -1394,7 +1643,13 @@ mod tests {
     #[tokio::test]
     async fn hls_segment_missing_dir_is_404() {
         let res = hls_segment_core(
-            &HeaderMap::new(), None, &None, &store_with_one(), "1", "seg00001.ts", &Method::GET,
+            &HeaderMap::new(),
+            None,
+            &None,
+            &store_with_one(),
+            "1",
+            "seg00001.ts",
+            &Method::GET,
         )
         .await;
         assert_eq!(res.status(), StatusCode::NOT_FOUND);
@@ -1427,7 +1682,13 @@ mod tests {
         .unwrap();
         std::mem::forget(dir);
         let res = hls_segment_core(
-            &HeaderMap::new(), None, &None, &s, "1", "seg00001.ts", &Method::GET,
+            &HeaderMap::new(),
+            None,
+            &None,
+            &s,
+            "1",
+            "seg00001.ts",
+            &Method::GET,
         )
         .await;
         assert_eq!(res.status(), StatusCode::OK);

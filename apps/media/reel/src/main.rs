@@ -28,6 +28,7 @@ async fn main() -> anyhow::Result<()> {
         cfg.ffprobe_bin.clone(),
         cfg.transcode_enabled,
         cfg.encode_threads,
+        cfg.encode_preset.clone(),
     );
 
     let hls = reel::hls::HlsManager::new(
@@ -38,6 +39,7 @@ async fn main() -> anyhow::Result<()> {
         cfg.hls_segment_secs as u32,
         cfg.hls_enabled,
         cfg.live_hls_enabled,
+        cfg.live_prebuffer_segments,
         cfg.encode_threads,
     );
 
@@ -49,7 +51,10 @@ async fn main() -> anyhow::Result<()> {
         cfg.reap_interval_secs,
     ));
 
-    tokio::spawn(engine::vpn_watchdog_loop(eng.clone(), cfg.vpn_watchdog_secs));
+    tokio::spawn(engine::vpn_watchdog_loop(
+        eng.clone(),
+        cfg.vpn_watchdog_secs,
+    ));
 
     if !cfg.trackers_urls.is_empty() {
         tokio::spawn(engine::tracker_refresh_loop(

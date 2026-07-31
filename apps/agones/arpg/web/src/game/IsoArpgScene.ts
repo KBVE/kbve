@@ -171,6 +171,8 @@ import {
 	onPetBattleRequest,
 	onPetBattleAction,
 	emitPetBattleState,
+	emitPetRoster,
+	onPetRosterOp,
 	onDuelRespond,
 	emitDuelPrompt,
 	type InventoryIntent,
@@ -391,6 +393,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	private offIntent?: () => void;
 	private offPetBattle?: () => void;
 	private offDuelRespond?: () => void;
+	private offRosterOp?: () => void;
 	private offCorpseIntent?: () => void;
 	private offSpaceExit?: () => void;
 	// Reusable scratch array for snapshot z-filter (reduces GC churn).
@@ -541,6 +544,15 @@ export class IsoArpgScene extends Phaser.Scene {
 			offReq();
 			offAct();
 		};
+
+		// Pet hub: roster mutations -> the server, which answers with the authoritative
+		// roster sync (applied or rejected).
+		this.offRosterOp = onPetRosterOp((op) => {
+			if (op.kind === 'setActive') this.client?.setActivePet(op.idx);
+			else if (op.kind === 'release') this.client?.releasePet(op.idx);
+			else if (op.kind === 'elixir') this.client?.usePetElixir(op.idx);
+			else this.client?.renamePet(op.idx, op.name);
+		});
 
 		// Duel prompt overlay: the player's Accept/Decline choice -> DuelRespond.
 		this.offDuelRespond = onDuelRespond((accept) =>
@@ -1325,6 +1337,16 @@ export class IsoArpgScene extends Phaser.Scene {
 		client.on('corpse', (c: CorpseContents) => emitCorpseOpen(c));
 		// Interactive pet-battle: each turn's state -> the React battle scene.
 		client.on('petBattleState', (state) => emitPetBattleState(state));
+		// Owner's pet roster (join restore + after every mutation) -> the React hub.
+		client.on('petRoster', (sync) => emitPetRoster(sync));
+		// Pet action results (elixir refused, healer out of range, roster restored) -> toast.
+		client.on('petNotice', (n) =>
+			emitNotification({
+				title: n.ok ? 'Pets' : 'Pets — no effect',
+				message: n.text,
+				notificationType: n.ok ? 'success' : 'warning',
+			}),
+		);
 		// PvP duel challenge prompt -> the React overlay (offer/declined/expired/accepted).
 		client.on('duelPrompt', (prompt) => emitDuelPrompt(prompt));
 		// Placement rejected server-side (out of range, occupied): the item was
@@ -2637,6 +2659,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.offPetBattle = undefined;
 		this.offDuelRespond?.();
 		this.offDuelRespond = undefined;
+		this.offRosterOp?.();
+		this.offRosterOp = undefined;
 		this.offCorpseIntent?.();
 		this.offCorpseIntent = undefined;
 		this.offSpaceExit?.();

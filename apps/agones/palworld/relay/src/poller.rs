@@ -8,6 +8,7 @@ use tracing::{debug, warn};
 
 use crate::config::Config;
 use crate::event::{GameEvent, GameEventKind};
+use crate::live_api::{LivePlayer, LiveSnapshot, SharedLive};
 use crate::rest_client::RestClient;
 
 pub fn diff_players(prev: &HashSet<String>, curr: &HashSet<String>) -> (Vec<String>, Vec<String>) {
@@ -32,7 +33,7 @@ fn stats_event(kind: &str, fields: HashMap<String, String>) -> GameEvent {
     }
 }
 
-pub async fn run(cfg: Config, tx: Sender<GameEvent>) -> Result<()> {
+pub async fn run(cfg: Config, tx: Sender<GameEvent>, live: SharedLive) -> Result<()> {
     let client = RestClient::new(
         cfg.rest_addr.clone(),
         cfg.admin_password.clone(),
@@ -56,13 +57,23 @@ pub async fn run(cfg: Config, tx: Sender<GameEvent>) -> Result<()> {
         let curr: HashSet<String> = players
             .players
             .iter()
-            .map(|p| if p.player_id.is_empty() { p.name.clone() } else { p.player_id.clone() })
+            .map(|p| {
+                if p.player_id.is_empty() {
+                    p.name.clone()
+                } else {
+                    p.player_id.clone()
+                }
+            })
             .collect();
         let name_by_id: HashMap<String, String> = players
             .players
             .iter()
             .map(|p| {
-                let id = if p.player_id.is_empty() { p.name.clone() } else { p.player_id.clone() };
+                let id = if p.player_id.is_empty() {
+                    p.name.clone()
+                } else {
+                    p.player_id.clone()
+                };
                 (id, p.name.clone())
             })
             .collect();
@@ -89,7 +100,7 @@ pub async fn run(cfg: Config, tx: Sender<GameEvent>) -> Result<()> {
         }
         prev = curr;
 
-        match client.metrics().await {
+        let metrics = match client.metrics().await {
             Ok(m) => {
                 let mut f = HashMap::new();
                 f.insert("players".into(), m.currentplayernum.to_string());
@@ -97,9 +108,31 @@ pub async fn run(cfg: Config, tx: Sender<GameEvent>) -> Result<()> {
                 f.insert("uptime".into(), m.serveruptime.to_string());
                 f.insert("frametime".into(), format!("{:.3}", m.serverframetime));
                 let _ = tx.send(stats_event("snapshot", f));
+                Some(m)
             }
-            Err(e) => warn!(error = %e, "poller: metrics fetch failed"),
-        }
+            Err(e) => {
+                warn!(error = %e, "poller: metrics fetch failed");
+                None
+            }
+        };
+
+        let snap = LiveSnapshot {
+            ts: chrono::Utc::now().timestamp_millis(),
+            fps: metrics.as_ref().map(|m| m.serverfps).unwrap_or(0),
+            uptime_s: metrics.as_ref().map(|m| m.serveruptime).unwrap_or(0),
+            player_count: players.players.len() as i64,
+            players: players
+                .players
+                .iter()
+                .map(|p| LivePlayer {
+                    name: p.name.clone(),
+                    level: p.level,
+                    x: p.location_x,
+                    y: p.location_y,
+                })
+                .collect(),
+        };
+        *live.write().await = snap;
     }
 }
 

@@ -107,6 +107,24 @@ pub fn clear_pending_pets(mut pending: ResMut<PendingPets>) {
     pending.0.clear();
 }
 
+/// Longest accepted pet nickname, in chars.
+pub const PET_NICKNAME_MAX: usize = 20;
+
+/// Trim a client-supplied nickname to printable single-line text, clamped to
+/// [`PET_NICKNAME_MAX`] chars. Control characters are dropped rather than replaced so a
+/// pasted newline can't smuggle a second line into the name.
+pub fn sanitize_nickname(name: &str) -> String {
+    name.chars()
+        .filter(|c| !c.is_control())
+        .collect::<String>()
+        .trim()
+        .chars()
+        .take(PET_NICKNAME_MAX)
+        .collect::<String>()
+        .trim_end()
+        .to_string()
+}
+
 /// Gentle level scaling for a base stat — `base` at level 1, growing ~1/8 of base per
 /// level. A prototype curve; tune when the battle math lands.
 fn level_scale(base: i32, level: u32) -> i32 {
@@ -169,6 +187,49 @@ pub fn mint_pet_from_species(species: &NpcDef, level: u32) -> Option<PetSnapshot
         vitals,
         moves,
     })
+}
+
+/// Owners whose roster changed this frame and need a re-sync. A queue rather than a
+/// direct send because the systems that mutate pet components hold `&mut PetVitals` /
+/// `&mut PetMoves`, which conflicts with [`PetBank`]'s read-only view of the same
+/// components — they cannot both live in one system. Drained by [`flush_roster_syncs`].
+#[derive(Resource, Default)]
+pub struct PendingRosterSyncs(pub HashSet<crate::proto::PlayerSlot>);
+
+/// Send one roster sync per owner queued in [`PendingRosterSyncs`]. Runs after everything
+/// that can touch a roster, so a frame with several mutations still costs one event.
+pub fn flush_roster_syncs(
+    bcast: bevy::prelude::Res<crate::sim::Outbound>,
+    mut queued: ResMut<PendingRosterSyncs>,
+    bank: PetBank,
+    players: Query<(&crate::sim::PlayerSlotTag, &PetRoster)>,
+) {
+    if queued.0.is_empty() {
+        return;
+    }
+    for slot in std::mem::take(&mut queued.0) {
+        let Some((_, roster)) = players.iter().find(|(tag, _)| tag.0 == slot) else {
+            continue;
+        };
+        send_roster_sync(&bcast, slot, &bank.snapshot(roster), roster.active);
+    }
+}
+
+/// Push a roster snapshot to its owner as an `EPHEMERAL_PET_ROSTER` event. The single
+/// emit path — the join/rejoin restore and every roster mutation go through here, so the
+/// client's view of the roster can never diverge from the server's.
+pub fn send_roster_sync(
+    bcast: &crate::sim::Outbound,
+    slot: crate::proto::PlayerSlot,
+    snaps: &[PetSnapshot],
+    active: Option<usize>,
+) {
+    let payload = crate::proto::encode_inner(&to_roster_sync(snaps, active)).unwrap_or_default();
+    let _ = bcast.tx.send(crate::proto::ServerEvent::Ephemeral {
+        kind: crate::proto::EPHEMERAL_PET_ROSTER,
+        to: slot,
+        payload,
+    });
 }
 
 /// Reproject a roster's snapshots onto the wire roster-sync form.
@@ -319,6 +380,35 @@ impl PetBank<'_, '_> {
         true
     }
 
+    /// Make `idx` the battle lead. Returns whether the index was in range.
+    pub fn set_active(&mut self, roster: &mut PetRoster, idx: usize) -> bool {
+        if idx >= roster.slots.len() {
+            return false;
+        }
+        roster.active = Some(idx);
+        true
+    }
+
+    /// Rename the pet at `idx`. `name` is trimmed and clamped to [`PET_NICKNAME_MAX`]
+    /// chars; an empty result is rejected. Returns the applied name, or `None` if the op
+    /// was rejected.
+    ///
+    /// The `PetNickname` insert goes through `Commands`, so it is NOT visible to
+    /// [`Self::snapshot`] until the next sync point — callers that sync the roster in the
+    /// same frame must patch the returned name in themselves.
+    pub fn rename(&mut self, roster: &PetRoster, idx: usize, name: &str) -> Option<String> {
+        let &e = roster.slots.get(idx)?;
+        let clean = sanitize_nickname(name);
+        if clean.is_empty() {
+            return None;
+        }
+        self.commands.entity(e).insert(PetNickname(clean.clone()));
+        if let Some(snap) = self.pending.0.get_mut(&e) {
+            snap.nickname = clean.clone();
+        }
+        Some(clean)
+    }
+
     /// The active pet's entity, if any.
     pub fn active(&self, roster: &PetRoster) -> Option<Entity> {
         roster.active.and_then(|i| roster.slots.get(i).copied())
@@ -327,6 +417,18 @@ impl PetBank<'_, '_> {
     /// The detached snapshots of a roster, in slot order — for the wire + persistence.
     pub fn snapshot(&self, roster: &PetRoster) -> Vec<PetSnapshot> {
         roster.slots.iter().filter_map(|&e| self.read(e)).collect()
+    }
+
+    /// Like [`Self::snapshot`], but keeps each snapshot paired with the entity it came
+    /// from. Callers that have to write back to a pet (battle vitals commit-back) need the
+    /// handle, and pairing here keeps them from re-deriving it by index — `snapshot` drops
+    /// unreadable slots, so slot order and snapshot order are not interchangeable.
+    pub fn snapshot_with_entities(&self, roster: &PetRoster) -> Vec<(Entity, PetSnapshot)> {
+        roster
+            .slots
+            .iter()
+            .filter_map(|&e| self.read(e).map(|snap| (e, snap)))
+            .collect()
     }
 }
 

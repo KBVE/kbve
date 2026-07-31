@@ -53,11 +53,44 @@ export interface StoreOrder {
 	product_id: string;
 	variant_id: string | null;
 	qty: number;
+	product_slug: string;
+	product_title: string;
+	variant_sku: string;
+	unit_price: number;
+	currency: string;
+	fulfillment: 'physical' | 'both';
 	credits_amount: number;
 	status: OrderStatus;
 	tracking: Record<string, unknown>;
 	created_at: string;
 	updated_at: string;
+}
+
+export type PurchaseResultKind = 'minted' | 'already_owned';
+
+export interface StorePurchase {
+	purchase_id: number;
+	product_id: string;
+	slug: string;
+	title: string;
+	item_id: string;
+	price: number;
+	currency: string;
+	result_kind: PurchaseResultKind;
+	ledger_id: number | null;
+	created_at: string;
+}
+
+export type InventoryState = 'held' | 'listing_escrow';
+
+export interface InventoryItem {
+	item_id: string;
+	kind: string;
+	ref: string;
+	qty: number;
+	nbt: Record<string, unknown>;
+	state: InventoryState;
+	created_at: string;
 }
 
 export interface ShippingAddress {
@@ -84,7 +117,9 @@ export const CREDIT_PACKS: CreditPack[] = [
 
 export const FEATURED_SLUG = 'i-am-an-idiot';
 
-export function needsShipping(fulfillment?: Fulfillment | string | null): boolean {
+export function needsShipping(
+	fulfillment?: Fulfillment | string | null,
+): boolean {
 	return fulfillment === 'physical' || fulfillment === 'both';
 }
 

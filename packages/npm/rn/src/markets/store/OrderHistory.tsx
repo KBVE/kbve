@@ -14,9 +14,12 @@ export function OrderHistory({ orders }: OrderHistoryProps) {
 			<Stack gap="xs">
 				<Text variant="subtitle">Your orders</Text>
 				{orders.map((o) => (
-					<Stack key={o.order_id} direction="row" justify="space-between">
+					<Stack
+						key={o.order_id}
+						direction="row"
+						justify="space-between">
 						<Text variant="caption">
-							{`#${o.order_id} · ${o.qty}× · ${o.credits_amount} credits · ${o.status}`}
+							{`#${o.order_id} · ${o.product_title} · ${o.qty}× · ${o.credits_amount} ${o.currency} · ${o.status}`}
 						</Text>
 						<Text variant="caption" tone="muted">
 							{new Date(o.created_at).toLocaleDateString()}

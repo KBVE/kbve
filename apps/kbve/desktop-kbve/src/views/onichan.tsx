@@ -38,7 +38,9 @@ export function OnichanView() {
 	}, []);
 
 	useEffect(() => {
-		refresh();
+		void (async () => {
+			await refresh();
+		})();
 	}, [refresh]);
 
 	useEffect(() => {
@@ -128,7 +130,8 @@ export function OnichanView() {
 						checked={conversing}
 						onChange={async (v) => {
 							if (v) {
-								const r = await commands.onichanStartConversation();
+								const r =
+									await commands.onichanStartConversation();
 								if (r.status === 'error') {
 									setError(r.error);
 									return;
@@ -233,7 +236,9 @@ function ModelCard({
 									{m.size_mb} MB · {m.description}
 								</span>
 								{downloading && pct != null && (
-									<span className="text-caption" style={muted}>
+									<span
+										className="text-caption"
+										style={muted}>
 										Downloading… {pct.toFixed(0)}%
 									</span>
 								)}

@@ -31,6 +31,7 @@ export default function ReactReelPlayer() {
 	const selectedId = useStore($reelSelectedId);
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const [player] = useState(() => new ReelPlayer());
+	const [theater, setTheater] = useState(false);
 
 	// Seed the selection from the URL so a shared /media/reel/?id=… link binds
 	// the player on first load (playback still needs a tap there — no gesture).
@@ -51,8 +52,28 @@ export default function ReactReelPlayer() {
 	useEffect(() => {
 		if (!selectedId || !videoRef.current) return;
 		void player.start(videoRef.current, selectedId);
-		videoRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+		videoRef.current.scrollIntoView({
+			behavior: 'smooth',
+			block: 'center',
+		});
 	}, [selectedId, player]);
+
+	// Theater mode blows the stage up to fill the window (not native fullscreen),
+	// so it's easy to watch without leaving the page. Esc exits, and the page
+	// behind it is scroll-locked while active.
+	useEffect(() => {
+		if (!theater) return;
+		const onKey = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') setTheater(false);
+		};
+		const prevOverflow = document.body.style.overflow;
+		document.body.style.overflow = 'hidden';
+		window.addEventListener('keydown', onKey);
+		return () => {
+			window.removeEventListener('keydown', onKey);
+			document.body.style.overflow = prevOverflow;
+		};
+	}, [theater]);
 
 	const play = () => {
 		if (videoRef.current && selectedId) {
@@ -64,7 +85,7 @@ export default function ReactReelPlayer() {
 	const playing = state === 'raw' || state === 'hls';
 
 	return (
-		<div className="reel-player">
+		<div className={`reel-player${theater ? ' reel-player--theater' : ''}`}>
 			<div className="reel-player__stage">
 				<video
 					ref={videoRef}
@@ -72,6 +93,16 @@ export default function ReactReelPlayer() {
 					playsInline
 					className="reel-player__video"
 				/>
+				{selectedId && (
+					<button
+						type="button"
+						className="reel-player__theater-toggle"
+						aria-pressed={theater}
+						title={theater ? 'Exit theater (Esc)' : 'Theater mode'}
+						onClick={() => setTheater((v) => !v)}>
+						{theater ? '✕ Exit' : '⛶ Theater'}
+					</button>
+				)}
 				{!playing && (
 					<div className="reel-player__overlay">
 						<p>{STATE_LABEL[state] ?? state}</p>
@@ -90,10 +121,7 @@ export default function ReactReelPlayer() {
 			{notice && <p className="reel-player__notice">{notice}</p>}
 			{(state === 'error' || (selectedId && !playing && !busy)) && (
 				<div className="reel-player__controls">
-					<button
-						type="button"
-						disabled={!selectedId}
-						onClick={play}>
+					<button type="button" disabled={!selectedId} onClick={play}>
 						{state === 'error' ? 'Retry' : 'Play'}
 					</button>
 				</div>

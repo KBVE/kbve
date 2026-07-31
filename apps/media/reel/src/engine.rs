@@ -46,7 +46,14 @@ pub enum VpnStatus {
 }
 
 async fn probe_ip(url: &str) -> Option<IpAddr> {
-    let body = http_client().get(url).send().await.ok()?.text().await.ok()?;
+    let body = http_client()
+        .get(url)
+        .send()
+        .await
+        .ok()?
+        .text()
+        .await
+        .ok()?;
     body.trim().parse().ok()
 }
 
@@ -84,7 +91,11 @@ pub fn parse_forwarded_port(raw: &str) -> Option<u16> {
     }
 }
 
-async fn await_forwarded_port(path: &std::path::Path, wait_secs: u64, stable_secs: u64) -> Option<u16> {
+async fn await_forwarded_port(
+    path: &std::path::Path,
+    wait_secs: u64,
+    stable_secs: u64,
+) -> Option<u16> {
     let mut waited = 0u64;
     let mut current = loop {
         if let Ok(raw) = std::fs::read_to_string(path) {
@@ -110,7 +121,11 @@ async fn await_forwarded_port(path: &std::path::Path, wait_secs: u64, stable_sec
         {
             Some(p) if p == current => steady += 1,
             Some(p) => {
-                tracing::info!(from = current, to = p, "forwarded port changed during startup; re-stabilizing");
+                tracing::info!(
+                    from = current,
+                    to = p,
+                    "forwarded port changed during startup; re-stabilizing"
+                );
                 current = p;
                 steady = 0;
             }
@@ -160,7 +175,10 @@ pub async fn vpn_preflight(urls: &[String]) -> anyhow::Result<IpAddr> {
                 anyhow::bail!("egress ip {ip} is not a public/vpn address; refusing to start")
             }
             VpnStatus::Unverified => {
-                tracing::warn!(attempt, "vpn preflight: no check endpoint reachable; retrying");
+                tracing::warn!(
+                    attempt,
+                    "vpn preflight: no check endpoint reachable; retrying"
+                );
                 tokio::time::sleep(Duration::from_secs(3)).await;
             }
         }
@@ -218,7 +236,12 @@ pub struct Engine {
 
 const LEECH_DRAIN_CAP: Duration = Duration::from_secs(6 * 3600);
 
-pub fn is_stalled(prev_bytes: u64, cur_bytes: u64, idle_secs: u64, stall_timeout_secs: u64) -> bool {
+pub fn is_stalled(
+    prev_bytes: u64,
+    cur_bytes: u64,
+    idle_secs: u64,
+    stall_timeout_secs: u64,
+) -> bool {
     cur_bytes <= prev_bytes && idle_secs >= stall_timeout_secs
 }
 
@@ -281,19 +304,23 @@ impl Engine {
         std::fs::create_dir_all(&cfg.library_dir)?;
         std::fs::create_dir_all(&cfg.session_dir)?;
         let listen_port_range = match &cfg.bt_port_file {
-            Some(path) => match await_forwarded_port(path, cfg.bt_port_wait_secs, cfg.bt_port_stable_secs).await {
-                Some(port) => {
-                    tracing::info!(port, "using VPN forwarded port for BitTorrent listener");
-                    Some(port..port.saturating_add(1))
+            Some(path) => {
+                match await_forwarded_port(path, cfg.bt_port_wait_secs, cfg.bt_port_stable_secs)
+                    .await
+                {
+                    Some(port) => {
+                        tracing::info!(port, "using VPN forwarded port for BitTorrent listener");
+                        Some(port..port.saturating_add(1))
+                    }
+                    None => {
+                        tracing::warn!(
+                            path = %path.display(),
+                            "forwarded-port file not ready; BitTorrent listener uses a random port (no inbound peers)"
+                        );
+                        None
+                    }
                 }
-                None => {
-                    tracing::warn!(
-                        path = %path.display(),
-                        "forwarded-port file not ready; BitTorrent listener uses a random port (no inbound peers)"
-                    );
-                    None
-                }
-            },
+            }
             None => None,
         };
         let opts = librqbit::SessionOptions {
@@ -358,11 +385,13 @@ impl Engine {
         let status = vpn_status(&self.vpn_check_urls).await;
         let prev_ok = self.vpn_ok.load(Ordering::Relaxed);
         let streak = self.vpn_fail_streak.load(Ordering::Relaxed);
-        let (now_ok, new_streak) =
-            decide_vpn(status, prev_ok, streak, self.vpn_leak_threshold);
+        let (now_ok, new_streak) = decide_vpn(status, prev_ok, streak, self.vpn_leak_threshold);
         self.vpn_fail_streak.store(new_streak, Ordering::Relaxed);
         if matches!(status, VpnStatus::Unverified) && !now_ok && prev_ok {
-            tracing::warn!(streak = new_streak, "vpn check unverified past threshold; pausing");
+            tracing::warn!(
+                streak = new_streak,
+                "vpn check unverified past threshold; pausing"
+            );
         }
         match next_vpn_action(prev_ok, now_ok) {
             VpnAction::Pause => {
@@ -417,8 +446,7 @@ impl Engine {
                 tracing::info!(id = %id, "add ignored: torrent already active (idempotent)");
                 return Ok(id);
             }
-            self.store
-                .upsert(leeching_meta(&id, &name, &out_dir))?;
+            self.store.upsert(leeching_meta(&id, &name, &out_dir))?;
             crate::telemetry::torrent_added(&id, "magnet");
             let this = self.clone();
             let source = magnet_with_trackers(source, trackers.as_slice());
@@ -434,7 +462,8 @@ impl Engine {
         // bounded so the request can't hang forever.
         let resp = match tokio::time::timeout(
             self.metadata_timeout,
-            self.session.add_torrent(AddTorrent::from_url(source), Some(opts)),
+            self.session
+                .add_torrent(AddTorrent::from_url(source), Some(opts)),
         )
         .await
         {
@@ -597,28 +626,79 @@ impl Engine {
                 delete_from_session(&session, &id, true).await;
                 return;
             }
+            // Stop uploading the moment the download lands. The torrent is
+            // dropped from the session further down, but the HLS settle, the
+            // move, and the stream drain in between can take hours — we don't
+            // seed through them. Both the raw stream and the live HLS encoder
+            // read the file directly, so a paused torrent never interrupts
+            // either one.
+            if let Err(e) = session.pause(&handle).await {
+                tracing::debug!(id = %id, error = %e, "pause after completion failed");
+            }
+            // If a live (popcorn) HLS job was serving this download, let it
+            // finalize before we relocate the directory — a completed HLS can be
+            // reused as the deliverable instead of re-encoding the whole file.
+            let had_live = matches!(
+                store.get(&id).map(|m| m.hls),
+                Some(state::HlsStatus::Starting | state::HlsStatus::Live)
+            );
+            if had_live {
+                wait_hls_settle(&store, &id, LEECH_DRAIN_CAP).await;
+            }
             match mover::move_completed(&out_dir, &library_dir) {
                 Ok(moved) => {
                     let now = now_secs();
-                    let _ = store.upsert(state::Metadata {
-                        id: id.clone(),
-                        name,
-                        path: moved.dest.display().to_string(),
-                        size: moved.size,
-                        completed_at: Some(now),
-                        last_access: now,
-                        state: state::TorrentState::Seeding,
-                        error: None,
-                        active_path: None,
-                        transcode: state::TranscodeStatus::None,
-                        transcode_path: None,
-                        transcode_error: None,
-                        hls: state::HlsStatus::None,
-                        hls_dir: None,
-                        hls_error: None,
-                    });
                     crate::telemetry::torrent_completed(&id, moved.size);
-                    transcode_wake.notify_one();
+                    let hls_dir = moved.dest.join("hls");
+                    let adopt = had_live
+                        && matches!(store.get(&id).map(|m| m.hls), Some(state::HlsStatus::Ready))
+                        && live_hls_complete(&hls_dir);
+                    if adopt {
+                        // Reuse the HLS produced during download; drop the source
+                        // video (HLS is the deliverable) but keep subtitles/poster.
+                        if let Ok(src) = crate::transcode::pick_primary_file(&moved.dest) {
+                            if let Err(e) = std::fs::remove_file(&src) {
+                                tracing::warn!(id = %id, path = %src.display(), error = %e, "adopt: source remove failed");
+                            }
+                        }
+                        let _ = store.upsert(state::Metadata {
+                            id: id.clone(),
+                            name,
+                            path: moved.dest.display().to_string(),
+                            size: moved.size,
+                            completed_at: Some(now),
+                            last_access: now,
+                            state: state::TorrentState::Seeding,
+                            error: None,
+                            active_path: None,
+                            transcode: state::TranscodeStatus::Ready,
+                            transcode_path: None,
+                            transcode_error: None,
+                            hls: state::HlsStatus::Ready,
+                            hls_dir: Some(hls_dir.display().to_string()),
+                            hls_error: None,
+                        });
+                        crate::telemetry::live_hls_adopted(&id, &hls_dir.display().to_string());
+                    } else {
+                        let _ = store.upsert(state::Metadata {
+                            id: id.clone(),
+                            name,
+                            path: moved.dest.display().to_string(),
+                            size: moved.size,
+                            completed_at: Some(now),
+                            last_access: now,
+                            state: state::TorrentState::Seeding,
+                            error: None,
+                            active_path: None,
+                            transcode: state::TranscodeStatus::None,
+                            transcode_path: None,
+                            transcode_error: None,
+                            hls: state::HlsStatus::None,
+                            hls_dir: None,
+                            hls_error: None,
+                        });
+                        transcode_wake.notify_one();
+                    }
                     wait_leech_drained(&active_leech, &drain, &id).await;
                     delete_from_session(&session, &id, false).await;
                 }
@@ -858,6 +938,49 @@ impl<R: AsyncSeek + Unpin> AsyncSeek for GuardedReader<R> {
     fn poll_complete(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<std::io::Result<u64>> {
         Pin::new(&mut self.inner).poll_complete(cx)
     }
+}
+
+/// Wait until a live HLS job leaves a transient state (Starting/Live), i.e. the
+/// ffmpeg process has exited and its output is stable, so the directory can be
+/// safely relocated. Bounded by `cap`.
+async fn wait_hls_settle(store: &state::StateStore, id: &str, cap: Duration) {
+    let step = Duration::from_secs(1);
+    let mut waited = Duration::ZERO;
+    loop {
+        match store.get(id).map(|m| m.hls) {
+            Some(state::HlsStatus::Starting) | Some(state::HlsStatus::Live) => {}
+            _ => return,
+        }
+        if waited >= cap {
+            tracing::warn!(id = %id, "live hls did not finalize before timeout; proceeding");
+            return;
+        }
+        tokio::time::sleep(step).await;
+        waited = waited.saturating_add(step);
+    }
+}
+
+/// A live HLS directory is complete when its manifest exists and at least one
+/// playlist carries `#EXT-X-ENDLIST` (ffmpeg finished writing it end to end).
+pub fn live_hls_complete(hls_dir: &std::path::Path) -> bool {
+    if !hls_dir.join("index.m3u8").exists() {
+        return false;
+    }
+    let rd = match std::fs::read_dir(hls_dir) {
+        Ok(r) => r,
+        Err(_) => return false,
+    };
+    for entry in rd.flatten() {
+        let p = entry.path();
+        if p.extension().and_then(|x| x.to_str()) == Some("m3u8") {
+            if let Ok(s) = std::fs::read_to_string(&p) {
+                if s.contains("#EXT-X-ENDLIST") {
+                    return true;
+                }
+            }
+        }
+    }
+    false
 }
 
 async fn wait_leech_drained(
@@ -1125,6 +1248,26 @@ mod tests {
     }
 
     #[test]
+    fn live_hls_complete_requires_manifest_and_endlist() {
+        let dir = tempfile::tempdir().unwrap();
+        let h = dir.path();
+        assert!(!live_hls_complete(h), "no manifest");
+        std::fs::write(h.join("index.m3u8"), b"#EXTM3U\nstream_0.m3u8\n").unwrap();
+        std::fs::write(
+            h.join("stream_0.m3u8"),
+            b"#EXTM3U\n#EXTINF:4,\nseg_0_00000.ts\n",
+        )
+        .unwrap();
+        assert!(!live_hls_complete(h), "no ENDLIST yet (still live)");
+        std::fs::write(
+            h.join("stream_0.m3u8"),
+            b"#EXTM3U\n#EXTINF:4,\nseg_0_00000.ts\n#EXT-X-ENDLIST\n",
+        )
+        .unwrap();
+        assert!(live_hls_complete(h), "manifest + ENDLIST -> complete");
+    }
+
+    #[test]
     fn is_active_state_matches_leeching_and_seeding_only() {
         use state::TorrentState::*;
         assert!(is_active_state(Some(Leeching)));
@@ -1170,10 +1313,22 @@ mod tests {
     #[test]
     fn is_stalled_detects_no_progress_past_timeout() {
         assert!(!is_stalled(0, 0, 100, 300), "under timeout not stalled");
-        assert!(!is_stalled(100, 200, 300, 300), "progress resets — not stalled");
-        assert!(is_stalled(500, 500, 300, 300), "no progress at timeout is stalled");
-        assert!(is_stalled(500, 500, 315, 300), "no progress past timeout is stalled");
-        assert!(!is_stalled(0, 1, 999, 300), "any forward progress not stalled");
+        assert!(
+            !is_stalled(100, 200, 300, 300),
+            "progress resets — not stalled"
+        );
+        assert!(
+            is_stalled(500, 500, 300, 300),
+            "no progress at timeout is stalled"
+        );
+        assert!(
+            is_stalled(500, 500, 315, 300),
+            "no progress past timeout is stalled"
+        );
+        assert!(
+            !is_stalled(0, 1, 999, 300),
+            "any forward progress not stalled"
+        );
     }
 
     #[test]
@@ -1230,7 +1385,10 @@ mod tests {
             .await
             .expect("drain must complete after last guard drops")
             .unwrap();
-        assert!(active.lock().unwrap().get("x").is_none(), "entry cleaned up");
+        assert!(
+            active.lock().unwrap().get("x").is_none(),
+            "entry cleaned up"
+        );
     }
 
     #[test]
@@ -1253,7 +1411,12 @@ mod tests {
         );
         let parsed = librqbit::Magnet::parse(&out).unwrap();
         assert!(parsed.trackers.iter().any(|t| t.contains("opentrackr")));
-        assert!(parsed.trackers.iter().any(|t| t.contains("https://x/announce")));
+        assert!(
+            parsed
+                .trackers
+                .iter()
+                .any(|t| t.contains("https://x/announce"))
+        );
         assert_eq!(magnet_with_trackers(src, &[]), src, "empty list is a no-op");
     }
 
@@ -1268,7 +1431,11 @@ mod tests {
         let (ok2, s2) = decide_vpn(VpnStatus::Unverified, ok1, s1, 3);
         assert_eq!((ok2, s2), (true, 2), "2nd flake still holds");
         let (ok3, s3) = decide_vpn(VpnStatus::Unverified, ok2, s2, 3);
-        assert_eq!((ok3, s3), (true, 3), "unverified never pauses — killswitch is the barrier");
+        assert_eq!(
+            (ok3, s3),
+            (true, 3),
+            "unverified never pauses — killswitch is the barrier"
+        );
         let (ok4, s4) = decide_vpn(VpnStatus::Unverified, ok3, s3, 3);
         assert_eq!((ok4, s4), (true, 4), "still holds past threshold");
 
