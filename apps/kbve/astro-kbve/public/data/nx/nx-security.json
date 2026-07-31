@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-07-30T04:01:02Z",
+	"generated_at": "2026-07-31T04:25:51Z",
 	"summary": {
 		"critical": 4,
 		"high": 41,
@@ -684,7 +684,7 @@
 					"url": "https://github.com/advisories/GHSA-mh99-v99m-4gvg"
 				},
 				{
-					"id": "1130129",
+					"id": "1130178",
 					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
 					"severity": "high",
 					"package": "fast-uri",
