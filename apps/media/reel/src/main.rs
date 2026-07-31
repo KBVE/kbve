@@ -28,6 +28,7 @@ async fn main() -> anyhow::Result<()> {
         cfg.ffprobe_bin.clone(),
         cfg.transcode_enabled,
         cfg.encode_threads,
+        cfg.encode_preset.clone(),
     );
 
     let hls = reel::hls::HlsManager::new(

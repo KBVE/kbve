@@ -324,11 +324,13 @@ pub struct Transcoder {
     ffprobe_bin: String,
     enabled: bool,
     encode_threads: usize,
+    encode_preset: String,
     children: Arc<std::sync::Mutex<std::collections::HashMap<String, tokio::process::Child>>>,
     progress: Arc<std::sync::Mutex<std::collections::HashMap<String, TranscodeProgress>>>,
 }
 
 impl Transcoder {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         store: StateStore,
         remux_conc: usize,
@@ -337,6 +339,7 @@ impl Transcoder {
         ffprobe_bin: String,
         enabled: bool,
         encode_threads: usize,
+        encode_preset: String,
     ) -> Self {
         let this = Self {
             store,
@@ -346,6 +349,7 @@ impl Transcoder {
             ffprobe_bin,
             enabled,
             encode_threads,
+            encode_preset,
             children: Arc::new(std::sync::Mutex::new(std::collections::HashMap::new())),
             progress: Arc::new(std::sync::Mutex::new(std::collections::HashMap::new())),
         };
@@ -618,7 +622,7 @@ impl Transcoder {
                     let _permit = self.encode_sem.acquire().await?;
                     let threads = self.encode_threads.to_string();
                     let mut args: Vec<&str> = MAP_VIDEO_AUDIO.to_vec();
-                    args.extend_from_slice(&["-c:v", "libx264"]);
+                    args.extend_from_slice(&["-c:v", "libx264", "-preset", &self.encode_preset]);
                     if self.encode_threads > 0 {
                         args.push("-threads");
                         args.push(&threads);
@@ -1021,7 +1025,7 @@ mod transcoder_tests {
         store.upsert(meta("none", TranscodeStatus::None)).unwrap();
 
         let _transcoder =
-            Transcoder::new(store.clone(), 1, 1, "ffmpeg".into(), "ffprobe".into(), true, 1);
+            Transcoder::new(store.clone(), 1, 1, "ffmpeg".into(), "ffprobe".into(), true, 1, "veryfast".into());
 
         let pending = store.get("pending").unwrap();
         assert_eq!(pending.transcode, TranscodeStatus::Failed);
