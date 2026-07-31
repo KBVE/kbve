@@ -52,7 +52,11 @@ async fn main() -> Result<()> {
 
     let poller_handle = tokio::spawn(poller::run(cfg.clone(), game_tx.clone(), live.clone()));
     let chat_handle = tokio::spawn(chat_tail::run(cfg.clone(), game_tx.clone()));
-    let irc_handle = tokio::spawn(irc_bridge::run(cfg.clone(), game_tx.subscribe(), rest.clone()));
+    let irc_handle = tokio::spawn(irc_bridge::run(
+        cfg.clone(),
+        game_tx.subscribe(),
+        rest.clone(),
+    ));
     let ch_handle = tokio::spawn(ch_writer::run(cfg.clone(), game_tx.subscribe()));
     let agones_handle = tokio::spawn(agones_health::run(cfg.clone()));
     let live_handle = tokio::spawn(live_api::run(cfg.clone(), live));

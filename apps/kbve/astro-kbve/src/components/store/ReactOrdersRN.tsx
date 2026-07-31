@@ -21,5 +21,7 @@ export default function ReactOrdersRN() {
 
 	if (!ready) return null;
 
-	return <OrdersView getToken={token} baseUrl="" authenticated={authenticated} />;
+	return (
+		<OrdersView getToken={token} baseUrl="" authenticated={authenticated} />
+	);
 }

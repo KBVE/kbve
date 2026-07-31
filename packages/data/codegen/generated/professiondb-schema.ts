@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/professiondb.binpb
  * Config: ../professiondb-zod-config.json
- * Generated: 2026-07-28T12:15:56.414Z
+ * Generated: 2026-07-31T08:31:11.733Z
  */
 
 import { z } from 'zod';
@@ -67,6 +67,7 @@ export const ProfessionActionSchema = z.object({
 	icon: z.string().optional(),
 	key: z.number(),
 	facility_ref: z.string().optional(),
+	resource_node_ref: z.string().optional(),
 });
 
 export type ProfessionAction = z.infer<typeof ProfessionActionSchema>;

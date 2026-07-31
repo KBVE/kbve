@@ -379,7 +379,13 @@ impl HlsManager {
         }
 
         // Completed download: the file is whole, so one segment is enough.
-        self.spawn_output_watch(id.to_string(), hls_dir.join("index.m3u8"), 1, errbuf, permit);
+        self.spawn_output_watch(
+            id.to_string(),
+            hls_dir.join("index.m3u8"),
+            1,
+            errbuf,
+            permit,
+        );
 
         Ok(())
     }
@@ -407,9 +413,7 @@ impl HlsManager {
             // immediately re-buffer. Exit the loop as soon as ffmpeg dies.
             let mut went_live = false;
             let exit_result = loop {
-                if !went_live
-                    && index_path.exists()
-                    && count_ts_segments(&hls_dir) >= min_segments
+                if !went_live && index_path.exists() && count_ts_segments(&hls_dir) >= min_segments
                 {
                     let _ = this.store.update(&id, |m| {
                         m.hls = HlsStatus::Live;
@@ -477,9 +481,8 @@ impl HlsManager {
         reader: Box<dyn crate::engine::ReadSeek>,
         out_dir: PathBuf,
     ) -> StartOutcome {
-        let result = self
-            .store
-            .update(id, |m| match next_hls_live(&m.hls, &m.state, self.live_enabled) {
+        let result = self.store.update(id, |m| {
+            match next_hls_live(&m.hls, &m.state, self.live_enabled) {
                 HlsDecision::Reject(StartOutcome::InProgress(HlsStatus::Ready)) => {
                     let outcome = match &m.hls_dir {
                         Some(dir) => StartOutcome::Ready(dir.clone()),
@@ -493,7 +496,8 @@ impl HlsManager {
                     m.hls_error = None;
                     (StartOutcome::Started, true)
                 }
-            });
+            }
+        });
         match result {
             Ok(Some(StartOutcome::Started)) => {
                 self.spawn_live_job(id.to_string(), reader, out_dir);
@@ -505,7 +509,12 @@ impl HlsManager {
         }
     }
 
-    fn spawn_live_job(&self, id: String, reader: Box<dyn crate::engine::ReadSeek>, out_dir: PathBuf) {
+    fn spawn_live_job(
+        &self,
+        id: String,
+        reader: Box<dyn crate::engine::ReadSeek>,
+        out_dir: PathBuf,
+    ) {
         let this = self.clone();
         tokio::spawn(async move {
             if let Err(e) = this.run_live(&id, reader, out_dir).await {
@@ -697,7 +706,8 @@ impl HlsManager {
         }
         static SEQ: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
         let n = SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
-        let tmp = std::env::temp_dir().join(format!("reel-live-probe-{}-{n}.bin", std::process::id()));
+        let tmp =
+            std::env::temp_dir().join(format!("reel-live-probe-{}-{n}.bin", std::process::id()));
         if tokio::fs::write(&tmp, prefix).await.is_err() {
             return None;
         }
@@ -783,7 +793,17 @@ mod mgr_tests {
     async fn abort_unknown_is_noop() {
         let dir = std::env::temp_dir().join(format!("reel-hls-test-{}", std::process::id()));
         let store = StateStore::load(dir.join("state.json")).unwrap();
-        let mgr = HlsManager::new(store, 1, "ffmpeg".into(), "ffprobe".into(), 4, true, true, 3, 1);
+        let mgr = HlsManager::new(
+            store,
+            1,
+            "ffmpeg".into(),
+            "ffprobe".into(),
+            4,
+            true,
+            true,
+            3,
+            1,
+        );
         mgr.abort("unknown-id").await;
         assert!(mgr.take_child("unknown-id").is_none());
     }
@@ -792,7 +812,17 @@ mod mgr_tests {
     fn cached_delivery_none_then_some() {
         let dir = std::env::temp_dir().join(format!("reel-hls-test-cache-{}", std::process::id()));
         let store = StateStore::load(dir.join("state.json")).unwrap();
-        let mgr = HlsManager::new(store, 1, "ffmpeg".into(), "ffprobe".into(), 4, true, true, 3, 1);
+        let mgr = HlsManager::new(
+            store,
+            1,
+            "ffmpeg".into(),
+            "ffprobe".into(),
+            4,
+            true,
+            true,
+            3,
+            1,
+        );
         assert_eq!(mgr.cached_delivery("1"), None);
         mgr.cache_delivery("1", Delivery::RemuxHls);
         assert_eq!(mgr.cached_delivery("1"), Some(Delivery::RemuxHls));

@@ -63,7 +63,11 @@ describe('OrdersView', () => {
 
 	it('renders digital receipts when there are no physical orders', async () => {
 		const { findAllByText, getByText } = render(
-			<OrdersView getToken={async () => 'tok'} baseUrl="" authenticated />,
+			<OrdersView
+				getToken={async () => 'tok'}
+				baseUrl=""
+				authenticated
+			/>,
 		);
 		expect((await findAllByText('I am an idiot')).length).toBe(2);
 		expect(getByText('unlocked')).toBeTruthy();
@@ -72,7 +76,11 @@ describe('OrdersView', () => {
 
 	it('does not charge-count a re-buy in credits spent', async () => {
 		const { findByText } = render(
-			<OrdersView getToken={async () => 'tok'} baseUrl="" authenticated />,
+			<OrdersView
+				getToken={async () => 'tok'}
+				baseUrl=""
+				authenticated
+			/>,
 		);
 		expect(await findByText('10')).toBeTruthy();
 	});
@@ -92,7 +100,11 @@ describe('OrdersView', () => {
 	it('shows an empty state when nothing has been bought', async () => {
 		mockFetch([], []);
 		const { findByText } = render(
-			<OrdersView getToken={async () => 'tok'} baseUrl="" authenticated />,
+			<OrdersView
+				getToken={async () => 'tok'}
+				baseUrl=""
+				authenticated
+			/>,
 		);
 		expect(await findByText('No purchases yet')).toBeTruthy();
 	});
@@ -100,7 +112,11 @@ describe('OrdersView', () => {
 	it('renders physical orders from their buy-time snapshot, not ids', async () => {
 		mockFetch([], ORDERS);
 		const { findByText, getByText, queryByText } = render(
-			<OrdersView getToken={async () => 'tok'} baseUrl="" authenticated />,
+			<OrdersView
+				getToken={async () => 'tok'}
+				baseUrl=""
+				authenticated
+			/>,
 		);
 		expect(await findByText('KBVE Mug')).toBeTruthy();
 		expect(getByText('2× MUG-BLK · 500 credits')).toBeTruthy();
@@ -112,7 +128,11 @@ describe('OrdersView', () => {
 	it('notes the digital twin on a both-fulfillment order', async () => {
 		mockFetch([], [{ ...ORDERS[0], fulfillment: 'both' }]);
 		const { findByText } = render(
-			<OrdersView getToken={async () => 'tok'} baseUrl="" authenticated />,
+			<OrdersView
+				getToken={async () => 'tok'}
+				baseUrl=""
+				authenticated
+			/>,
 		);
 		expect(
 			await findByText(
@@ -124,7 +144,11 @@ describe('OrdersView', () => {
 	it('interleaves digital receipts with physical orders by time', async () => {
 		mockFetch(PURCHASES, ORDERS);
 		const { findAllByText, getByText } = render(
-			<OrdersView getToken={async () => 'tok'} baseUrl="" authenticated />,
+			<OrdersView
+				getToken={async () => 'tok'}
+				baseUrl=""
+				authenticated
+			/>,
 		);
 		expect((await findAllByText('I am an idiot')).length).toBe(2);
 		expect(getByText('KBVE Mug')).toBeTruthy();
@@ -135,7 +159,11 @@ describe('OrdersView', () => {
 	it('excludes refunded orders from credits spent', async () => {
 		mockFetch([], [{ ...ORDERS[0], status: 'refunded' }]);
 		const { findByText } = render(
-			<OrdersView getToken={async () => 'tok'} baseUrl="" authenticated />,
+			<OrdersView
+				getToken={async () => 'tok'}
+				baseUrl=""
+				authenticated
+			/>,
 		);
 		expect(await findByText('refunded')).toBeTruthy();
 		expect(await findByText('0')).toBeTruthy();

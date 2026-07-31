@@ -2,7 +2,13 @@ import { atom } from 'nanostores';
 import { authedApiFetch, ApiError } from '@/lib/apiFetch';
 import { DASH_PROXY_BASE } from '@/components/rnweb/dashProxyBase';
 
-export type ReelState = 'idle' | 'loading' | 'probing' | 'raw' | 'hls' | 'error';
+export type ReelState =
+	| 'idle'
+	| 'loading'
+	| 'probing'
+	| 'raw'
+	| 'hls'
+	| 'error';
 
 export const $reelState = atom<ReelState>('idle');
 export const $reelError = atom<string | null>(null);
@@ -188,7 +194,11 @@ export function downloadEtaSecs(
 	return remaining / bytesPerSec;
 }
 
-export function mediaUrl(id: string, suffix: string, token: string | null): string {
+export function mediaUrl(
+	id: string,
+	suffix: string,
+	token: string | null,
+): string {
 	const base = `${MEDIA_BASE}/torrents/${encodeURIComponent(id)}${suffix}`;
 	if (!token) return base;
 	const sep = suffix.includes('?') ? '&' : '?';
@@ -201,12 +211,14 @@ export function mediaUrl(id: string, suffix: string, token: string | null): stri
 function setMediaCookie(token: string): void {
 	if (typeof document === 'undefined') return;
 	const maxAge = mediaTokenCache
-		? Math.max(0, Math.floor((mediaTokenCache.expiresAtMs - Date.now()) / 1000))
+		? Math.max(
+				0,
+				Math.floor((mediaTokenCache.expiresAtMs - Date.now()) / 1000),
+			)
 		: 300;
 	const secure = location.protocol === 'https:' ? '; Secure' : '';
 	document.cookie = `reel_media_token=${token}; Path=${MEDIA_BASE}; Max-Age=${maxAge}; SameSite=Lax${secure}`;
 }
-
 
 export interface ReelSubtitle {
 	index: number;
@@ -386,7 +398,9 @@ export class ReelPlayer {
 				return;
 			}
 			if (detail?.state === 'Reaped') {
-				this.fail('this reel expired and was removed — re-add it to watch');
+				this.fail(
+					'this reel expired and was removed — re-add it to watch',
+				);
 				return;
 			}
 		} catch (e) {
@@ -470,7 +484,9 @@ export class ReelPlayer {
 		video.src = mediaUrl(id, '/stream', token);
 		$reelState.set('raw');
 		if (leeching) {
-			$reelNotice.set('still downloading — playing the available portion');
+			$reelNotice.set(
+				'still downloading — playing the available portion',
+			);
 		}
 		void this.addSubtitleTracks(video, id, token, gen);
 		this.recover = () => {

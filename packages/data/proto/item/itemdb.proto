@@ -272,10 +272,11 @@ message ItemSource {
 
 // Food / consumable properties
 message FoodInfo {
+  reserved 3, 4;
+  reserved "cooking_level", "cooking_xp";
+
   optional int32 heals = 1;             // HP restored on consumption
   optional int32 doses = 2;             // Number of doses (potions: 1-4)
-  optional int32 cooking_level = 3;     // Cooking level required to prepare
-  optional float cooking_xp = 4;        // XP awarded for cooking this item
   optional int32 burn_level = 5;        // Level at which burning stops
   optional int32 duration = 6;          // Buff duration in seconds/turns
   repeated UseEffect buff_effects = 7;  // Stat buffs granted on consumption
@@ -488,6 +489,9 @@ message ItemExtension {
 // =============================================================================
 
 message Item {
+  reserved 42, 48;
+  reserved "skilling", "compress";
+
   // Identity
   string id = 1;                        // ULID
   string ref = 2;                       // URL-safe identifier, e.g. "fire-flask"
@@ -539,9 +543,6 @@ message Item {
   // Food / consumable
   optional FoodInfo food = 41;
 
-  // Skilling / gathering
-  optional SkillingInfo skilling = 42;
-
   // Crafting
   repeated CraftingRecipe recipes = 33; // Ways to craft this item
 
@@ -565,9 +566,6 @@ message Item {
   // Durability (for non-equipment items like tools)
   optional int32 durability = 46;
   optional int32 max_durability = 47;
-
-  // Consolidation / compression — many → one
-  optional CompressInfo compress = 48;
 
   // Stacking & carry-capacity hints (beyond raw max_stack)
   optional StackingInfo stacking = 49;

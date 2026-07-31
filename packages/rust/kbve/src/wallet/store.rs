@@ -341,9 +341,7 @@ fn map_entitlement(r: EntitlementRowDb) -> StoreEntitlementRow {
     }
 }
 
-async fn my_entitlements_async(
-    conn: &mut AsyncPgConnection,
-) -> Result<Vec<StoreEntitlementRow>> {
+async fn my_entitlements_async(conn: &mut AsyncPgConnection) -> Result<Vec<StoreEntitlementRow>> {
     let rows: Vec<EntitlementRowDb> = sql_query(
         "SELECT item_id, slug, product_id, title, granted_at \
          FROM public.proxy_store_my_entitlements_readonly()",
@@ -415,19 +413,18 @@ impl WalletClient {
 
     pub async fn store_upsert_product(&self, req: StoreUpsertProduct) -> Result<Uuid> {
         let mut conn = self.write().await?;
-        let row: ScalarUuid = sql_query(
-            "SELECT store.service_upsert_product($1, $2, $3, $4, $5, $6, $7) AS value",
-        )
-        .bind::<Text, _>(req.slug)
-        .bind::<Text, _>(req.title)
-        .bind::<Nullable<Text>, _>(req.description)
-        .bind::<diesel::sql_types::BigInt, _>(req.price)
-        .bind::<Text, _>(req.fulfillment)
-        .bind::<Jsonb, _>(req.asset_ref)
-        .bind::<Text, _>(req.status)
-        .get_result(&mut *conn)
-        .await
-        .map_err(WalletError::from_diesel)?;
+        let row: ScalarUuid =
+            sql_query("SELECT store.service_upsert_product($1, $2, $3, $4, $5, $6, $7) AS value")
+                .bind::<Text, _>(req.slug)
+                .bind::<Text, _>(req.title)
+                .bind::<Nullable<Text>, _>(req.description)
+                .bind::<diesel::sql_types::BigInt, _>(req.price)
+                .bind::<Text, _>(req.fulfillment)
+                .bind::<Jsonb, _>(req.asset_ref)
+                .bind::<Text, _>(req.status)
+                .get_result(&mut *conn)
+                .await
+                .map_err(WalletError::from_diesel)?;
         Ok(row.value)
     }
 
@@ -444,18 +441,17 @@ impl WalletClient {
 
     pub async fn store_upsert_variant(&self, req: StoreUpsertVariant) -> Result<Uuid> {
         let mut conn = self.write().await?;
-        let row: ScalarUuid = sql_query(
-            "SELECT store.service_upsert_variant($1, $2, $3, $4, $5, $6) AS value",
-        )
-        .bind::<diesel::sql_types::Uuid, _>(req.product_id)
-        .bind::<Text, _>(req.sku)
-        .bind::<Jsonb, _>(req.attributes)
-        .bind::<diesel::sql_types::BigInt, _>(req.price)
-        .bind::<Nullable<diesel::sql_types::BigInt>, _>(req.stock)
-        .bind::<Text, _>(req.status)
-        .get_result(&mut *conn)
-        .await
-        .map_err(WalletError::from_diesel)?;
+        let row: ScalarUuid =
+            sql_query("SELECT store.service_upsert_variant($1, $2, $3, $4, $5, $6) AS value")
+                .bind::<diesel::sql_types::Uuid, _>(req.product_id)
+                .bind::<Text, _>(req.sku)
+                .bind::<Jsonb, _>(req.attributes)
+                .bind::<diesel::sql_types::BigInt, _>(req.price)
+                .bind::<Nullable<diesel::sql_types::BigInt>, _>(req.stock)
+                .bind::<Text, _>(req.status)
+                .get_result(&mut *conn)
+                .await
+                .map_err(WalletError::from_diesel)?;
         Ok(row.value)
     }
 
@@ -480,16 +476,15 @@ impl WalletClient {
         inner
             .transaction::<i64, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;
-                let row: ScalarBigInt = sql_query(
-                    "SELECT public.proxy_store_buy_physical($1, $2, $3, $4) AS value",
-                )
-                .bind::<diesel::sql_types::Uuid, _>(req.variant_id)
-                .bind::<diesel::sql_types::BigInt, _>(req.qty)
-                .bind::<Jsonb, _>(req.shipping_address)
-                .bind::<diesel::sql_types::Uuid, _>(req.idempotency_key)
-                .get_result(conn)
-                .await
-                .map_err(WalletError::from_diesel)?;
+                let row: ScalarBigInt =
+                    sql_query("SELECT public.proxy_store_buy_physical($1, $2, $3, $4) AS value")
+                        .bind::<diesel::sql_types::Uuid, _>(req.variant_id)
+                        .bind::<diesel::sql_types::BigInt, _>(req.qty)
+                        .bind::<Jsonb, _>(req.shipping_address)
+                        .bind::<diesel::sql_types::Uuid, _>(req.idempotency_key)
+                        .get_result(conn)
+                        .await
+                        .map_err(WalletError::from_diesel)?;
                 Ok(row.value)
             })
             .await
@@ -695,16 +690,14 @@ impl WalletClient {
 
     pub async fn store_advance_order(&self, req: StoreAdvanceOrder) -> Result<()> {
         let mut conn = self.write().await?;
-        sql_query(
-            "SELECT store.service_advance_order($1, $2::store.order_status, $3, $4)",
-        )
-        .bind::<diesel::sql_types::BigInt, _>(req.order_id)
-        .bind::<Text, _>(req.to_status)
-        .bind::<Jsonb, _>(req.tracking)
-        .bind::<Nullable<Text>, _>(req.note)
-        .execute(&mut *conn)
-        .await
-        .map_err(WalletError::from_diesel)?;
+        sql_query("SELECT store.service_advance_order($1, $2::store.order_status, $3, $4)")
+            .bind::<diesel::sql_types::BigInt, _>(req.order_id)
+            .bind::<Text, _>(req.to_status)
+            .bind::<Jsonb, _>(req.tracking)
+            .bind::<Nullable<Text>, _>(req.note)
+            .execute(&mut *conn)
+            .await
+            .map_err(WalletError::from_diesel)?;
         Ok(())
     }
 
@@ -735,18 +728,17 @@ impl WalletClient {
         currency_fiat: String,
     ) -> Result<i64> {
         let mut conn = self.write().await?;
-        let row: ScalarBigInt = sql_query(
-            "SELECT store.service_apply_topup($1, $2, $3, $4, $5, $6) AS value",
-        )
-        .bind::<diesel::sql_types::Uuid, _>(user_id)
-        .bind::<Text, _>(stripe_event_id)
-        .bind::<Nullable<Text>, _>(stripe_session_id)
-        .bind::<Text, _>(pack_id)
-        .bind::<diesel::sql_types::BigInt, _>(amount_cents)
-        .bind::<Text, _>(currency_fiat)
-        .get_result(&mut *conn)
-        .await
-        .map_err(WalletError::from_diesel)?;
+        let row: ScalarBigInt =
+            sql_query("SELECT store.service_apply_topup($1, $2, $3, $4, $5, $6) AS value")
+                .bind::<diesel::sql_types::Uuid, _>(user_id)
+                .bind::<Text, _>(stripe_event_id)
+                .bind::<Nullable<Text>, _>(stripe_session_id)
+                .bind::<Text, _>(pack_id)
+                .bind::<diesel::sql_types::BigInt, _>(amount_cents)
+                .bind::<Text, _>(currency_fiat)
+                .get_result(&mut *conn)
+                .await
+                .map_err(WalletError::from_diesel)?;
         Ok(row.value)
     }
 
@@ -769,17 +761,16 @@ impl WalletClient {
             value: bool,
         }
         let mut conn = self.write().await?;
-        let row: ScalarBool = sql_query(
-            "SELECT store.service_apply_pod_shipment($1, $2, $3, $4, $5) AS value",
-        )
-        .bind::<Text, _>(provider)
-        .bind::<Text, _>(provider_event_id)
-        .bind::<Text, _>(external_order_id)
-        .bind::<Jsonb, _>(tracking)
-        .bind::<Jsonb, _>(payload)
-        .get_result(&mut *conn)
-        .await
-        .map_err(WalletError::from_diesel)?;
+        let row: ScalarBool =
+            sql_query("SELECT store.service_apply_pod_shipment($1, $2, $3, $4, $5) AS value")
+                .bind::<Text, _>(provider)
+                .bind::<Text, _>(provider_event_id)
+                .bind::<Text, _>(external_order_id)
+                .bind::<Jsonb, _>(tracking)
+                .bind::<Jsonb, _>(payload)
+                .get_result(&mut *conn)
+                .await
+                .map_err(WalletError::from_diesel)?;
         Ok(row.value)
     }
 
@@ -845,10 +836,7 @@ impl WalletClient {
     // Authenticated read (rw on WLT01 fallback)
     // -------------------------------------------------------------------
 
-    pub async fn store_my_entitlements(
-        &self,
-        user_id: Uuid,
-    ) -> Result<Vec<StoreEntitlementRow>> {
+    pub async fn store_my_entitlements(&self, user_id: Uuid) -> Result<Vec<StoreEntitlementRow>> {
         match self.read_my_entitlements(user_id).await {
             Ok(rows) => Ok(rows),
             Err(WalletError::AccountMissing) => self.write_my_entitlements(user_id).await,
@@ -888,13 +876,12 @@ impl WalletClient {
         inner
             .transaction::<Uuid, WalletError, _>(async |conn| {
                 set_user_claims(conn, user_id).await?;
-                let row: ScalarUuid =
-                    sql_query("SELECT public.proxy_store_buy($1, $2) AS value")
-                        .bind::<Text, _>(req.slug)
-                        .bind::<diesel::sql_types::Uuid, _>(req.idempotency_key)
-                        .get_result(conn)
-                        .await
-                        .map_err(WalletError::from_diesel)?;
+                let row: ScalarUuid = sql_query("SELECT public.proxy_store_buy($1, $2) AS value")
+                    .bind::<Text, _>(req.slug)
+                    .bind::<diesel::sql_types::Uuid, _>(req.idempotency_key)
+                    .get_result(conn)
+                    .await
+                    .map_err(WalletError::from_diesel)?;
                 Ok(row.value)
             })
             .await

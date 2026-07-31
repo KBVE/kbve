@@ -86,6 +86,7 @@ message ProfessionAction {
 
   uint32 key = 12;
   optional string facility_ref = 13;
+  optional string resource_node_ref = 14;
 }
 
 // A milestone reached at a given profession level — reveals content or grants a

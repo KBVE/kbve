@@ -36,7 +36,11 @@ describe('InventoryView', () => {
 
 	it('titles store items from nbt and falls back to ref', async () => {
 		const { findByText } = render(
-			<InventoryView getToken={async () => 'tok'} baseUrl="" authenticated />,
+			<InventoryView
+				getToken={async () => 'tok'}
+				baseUrl=""
+				authenticated
+			/>,
 		);
 		expect(await findByText('I am an idiot')).toBeTruthy();
 		expect(await findByText('shiny-coin')).toBeTruthy();
@@ -44,7 +48,11 @@ describe('InventoryView', () => {
 
 	it('flags escrowed items as listed', async () => {
 		const { findByText } = render(
-			<InventoryView getToken={async () => 'tok'} baseUrl="" authenticated />,
+			<InventoryView
+				getToken={async () => 'tok'}
+				baseUrl=""
+				authenticated
+			/>,
 		);
 		expect(await findByText('listed')).toBeTruthy();
 		expect(await findByText('held')).toBeTruthy();
@@ -54,7 +62,11 @@ describe('InventoryView', () => {
 	it('shows an empty state when nothing is owned', async () => {
 		mockFetch([]);
 		const { findByText } = render(
-			<InventoryView getToken={async () => 'tok'} baseUrl="" authenticated />,
+			<InventoryView
+				getToken={async () => 'tok'}
+				baseUrl=""
+				authenticated
+			/>,
 		);
 		expect(await findByText('Nothing owned yet')).toBeTruthy();
 	});

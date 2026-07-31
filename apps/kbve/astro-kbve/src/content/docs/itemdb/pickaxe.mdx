@@ -1,0 +1,39 @@
+---
+title: 'Pickaxe'
+template: splash
+sidebar:
+    label: 'Pickaxe'
+    hidden: true
+description: |
+    A sturdy mining tool with a hardened steel head and a worn wooden haft, built for breaking rock and prying ore free from the seam.
+lore: |
+    Every miner's first and last purchase, passed hand to hand through shaft crews until the head is reforged more times than anyone can count. A good pickaxe outlasts the vein it was bought to work.
+ref: 'pickaxe'
+key: 634
+id: '01KPICKAXE0000000000TOOLX1'
+name: 'Pickaxe'
+type_flags: 4
+consumable: false
+stackable: false
+max_stack: 1
+rarity: 'common'
+buy_price: 50
+sell_price: 20
+emoji: '⛏️'
+weight: 3.0
+tags:
+  - isometric
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

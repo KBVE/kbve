@@ -20,14 +20,15 @@ type Entry =
 	| { kind: 'purchase'; at: string; row: StorePurchase }
 	| { kind: 'order'; at: string; row: StoreOrder };
 
-const ORDER_TONE: Record<string, 'neutral' | 'success' | 'warning' | 'danger'> = {
-	paid: 'neutral',
-	processing: 'warning',
-	shipped: 'warning',
-	delivered: 'success',
-	cancelled: 'danger',
-	refunded: 'danger',
-};
+const ORDER_TONE: Record<string, 'neutral' | 'success' | 'warning' | 'danger'> =
+	{
+		paid: 'neutral',
+		processing: 'warning',
+		shipped: 'warning',
+		delivered: 'success',
+		cancelled: 'danger',
+		refunded: 'danger',
+	};
 
 function when(iso: string): string {
 	const d = new Date(iso);
@@ -68,21 +69,27 @@ function OrderRow({ row }: { row: StoreOrder }) {
 	const tracking =
 		typeof row.tracking?.carrier === 'string' ||
 		typeof row.tracking?.code === 'string'
-			? [row.tracking.carrier, row.tracking.code].filter(Boolean).join(' · ')
+			? [row.tracking.carrier, row.tracking.code]
+					.filter(Boolean)
+					.join(' · ')
 			: null;
 	return (
 		<Surface>
 			<Stack gap="xs">
 				<Stack direction="row" justify="space-between" align="center">
 					<Text variant="subtitle">{row.product_title}</Text>
-					<Badge tone={ORDER_TONE[row.status] ?? 'neutral'} label={row.status} />
+					<Badge
+						tone={ORDER_TONE[row.status] ?? 'neutral'}
+						label={row.status}
+					/>
 				</Stack>
 				<Text variant="caption" tone="muted">
 					{`${row.qty}× ${row.variant_sku} · ${row.credits_amount.toLocaleString()} ${row.currency}`}
 				</Text>
 				{row.fulfillment === 'both' ? (
 					<Text variant="caption" tone="muted">
-						Ships to you, and the digital copy is already in your inventory.
+						Ships to you, and the digital copy is already in your
+						inventory.
 					</Text>
 				) : null}
 				{tracking ? (

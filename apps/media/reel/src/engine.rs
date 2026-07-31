@@ -651,10 +651,7 @@ impl Engine {
                     crate::telemetry::torrent_completed(&id, moved.size);
                     let hls_dir = moved.dest.join("hls");
                     let adopt = had_live
-                        && matches!(
-                            store.get(&id).map(|m| m.hls),
-                            Some(state::HlsStatus::Ready)
-                        )
+                        && matches!(store.get(&id).map(|m| m.hls), Some(state::HlsStatus::Ready))
                         && live_hls_complete(&hls_dir);
                     if adopt {
                         // Reuse the HLS produced during download; drop the source
@@ -1256,7 +1253,11 @@ mod tests {
         let h = dir.path();
         assert!(!live_hls_complete(h), "no manifest");
         std::fs::write(h.join("index.m3u8"), b"#EXTM3U\nstream_0.m3u8\n").unwrap();
-        std::fs::write(h.join("stream_0.m3u8"), b"#EXTM3U\n#EXTINF:4,\nseg_0_00000.ts\n").unwrap();
+        std::fs::write(
+            h.join("stream_0.m3u8"),
+            b"#EXTM3U\n#EXTINF:4,\nseg_0_00000.ts\n",
+        )
+        .unwrap();
         assert!(!live_hls_complete(h), "no ENDLIST yet (still live)");
         std::fs::write(
             h.join("stream_0.m3u8"),

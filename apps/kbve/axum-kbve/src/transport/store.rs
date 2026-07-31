@@ -21,7 +21,9 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 use super::https::auth_user_id;
-use super::wallet::{require_service_role, resolve_user, service_unavailable, wallet_error_response};
+use super::wallet::{
+    require_service_role, resolve_user, service_unavailable, wallet_error_response,
+};
 use crate::db::{get_forum_service, get_wallet_client};
 
 /// Gate a staff-only route. Mirrors transport/mc_lot.rs::require_staff.
@@ -529,7 +531,10 @@ pub(crate) async fn staff_set_product_status(
         Some(c) => c,
         None => return service_unavailable(),
     };
-    match client.store_set_product_status(product_id, body.status).await {
+    match client
+        .store_set_product_status(product_id, body.status)
+        .await
+    {
         Ok(()) => StatusCode::NO_CONTENT.into_response(),
         Err(e) => wallet_error_response(e),
     }
@@ -608,7 +613,10 @@ pub(crate) async fn staff_set_variant_status(
         Some(c) => c,
         None => return service_unavailable(),
     };
-    match client.store_set_variant_status(variant_id, body.status).await {
+    match client
+        .store_set_variant_status(variant_id, body.status)
+        .await
+    {
         Ok(()) => StatusCode::NO_CONTENT.into_response(),
         Err(e) => wallet_error_response(e),
     }
@@ -982,7 +990,10 @@ pub(crate) async fn my_inventory(
     ),
     security(("bearerAuth" = [])),
 )]
-pub(crate) async fn staff_list_orders(headers: HeaderMap, Query(q): Query<StaffOrdersQuery>) -> Response {
+pub(crate) async fn staff_list_orders(
+    headers: HeaderMap,
+    Query(q): Query<StaffOrdersQuery>,
+) -> Response {
     if let Err(resp) = require_staff(&headers).await {
         return resp;
     }

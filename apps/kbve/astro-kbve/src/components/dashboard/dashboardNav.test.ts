@@ -25,11 +25,9 @@ describe('dashboardNav', () => {
 	});
 
 	it('places the store pages under their own group', () => {
-		expect(buildBreadcrumb('/dashboard/orders/').map((c) => c.label)).toEqual([
-			'Dashboard',
-			'Store',
-			'Orders',
-		]);
+		expect(
+			buildBreadcrumb('/dashboard/orders/').map((c) => c.label),
+		).toEqual(['Dashboard', 'Store', 'Orders']);
 		expect(
 			buildBreadcrumb('/dashboard/inventory/').map((c) => c.label),
 		).toEqual(['Dashboard', 'Store', 'Inventory']);

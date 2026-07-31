@@ -1,96 +1,109 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: reel-data
-  namespace: reel
+    name: reel-data
+    namespace: reel
 spec:
-  accessModes: ["ReadWriteOnce"]
-  storageClassName: longhorn
-  resources:
-    requests:
-      storage: 50Gi
+    accessModes: ['ReadWriteOnce']
+    storageClassName: longhorn
+    resources:
+        requests:
+            storage: 50Gi
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: reel
-  namespace: reel
+    name: reel
+    namespace: reel
 spec:
-  replicas: 1
-  selector:
-    matchLabels: { app: reel }
-  template:
-    metadata:
-      labels: { app: reel }
-      annotations:
-        secret.reloader.stakater.com/reload: vpn-wireguard,reel-gluetun
-    spec:
-      containers:
-        - name: gluetun
-          image: qmcgaw/gluetun
-          securityContext:
-            capabilities:
-              add: ["NET_ADMIN"]
-          envFrom:
-            - secretRef: { name: vpn-wireguard }
-            - secretRef: { name: reel-gluetun, optional: true }
-          env:
-            - { name: FIREWALL, value: "on" }
-            - { name: FIREWALL_INPUT_PORTS, value: "8080" }
-            - { name: FIREWALL_OUTBOUND_SUBNETS, value: "10.244.0.0/16,10.96.0.0/12" }
-            - { name: WIREGUARD_MTU, value: "1320" }
-            - { name: SERVER_COUNTRIES, value: "Germany" }
-            - { name: SERVER_CITIES, value: "Frankfurt" }
-            - { name: VPN_PORT_FORWARDING, value: "off" }
-          volumeMounts:
-            - { name: gluetun-run, mountPath: /tmp/gluetun }
-        - name: reel
-          image: ghcr.io/kbve/reel:0.1.31
-          env:
-            - { name: REEL_API_ADDR, value: "0.0.0.0:8080" }
-            - { name: REEL_ACTIVE_DIR, value: "/data/active" }
-            - { name: REEL_LIBRARY_DIR, value: "/data/library" }
-            - { name: REEL_SESSION_DIR, value: "/data/session" }
-            - { name: REEL_STATE_FILE, value: "/data/reel-state.json" }
-            - { name: REEL_TTL_SECS, value: "21600" }
-            - { name: REEL_UPLOAD_LIMIT_BPS, value: "2097152" }
-            - { name: RUST_LOG, value: "reel=debug,warn,librqbit::torrent_state::live=error" }
-            - { name: REEL_LOG_JSON, value: "true" }
-            - { name: REEL_ENCODE_THREADS, value: "16" }
-          envFrom:
-            - secretRef: { name: reel-api }
-          ports:
-            - containerPort: 8080
-          readinessProbe:
-            httpGet: { path: /healthz, port: 8080 }
-            initialDelaySeconds: 15
-            periodSeconds: 10
-            timeoutSeconds: 5
-            failureThreshold: 6
-          livenessProbe:
-            httpGet: { path: /healthz, port: 8080 }
-            initialDelaySeconds: 90
-            periodSeconds: 20
-            timeoutSeconds: 5
-            failureThreshold: 6
-          resources:
-            requests: { cpu: "4", memory: 1Gi }
-            limits: { cpu: "16", memory: 8Gi }
-          volumeMounts:
-            - { name: data, mountPath: /data }
-            - { name: gluetun-run, mountPath: /tmp/gluetun, readOnly: true }
-      volumes:
-        - name: data
-          persistentVolumeClaim: { claimName: reel-data }
-        - name: gluetun-run
-          emptyDir: {}
+    replicas: 1
+    selector:
+        matchLabels: { app: reel }
+    template:
+        metadata:
+            labels: { app: reel }
+            annotations:
+                secret.reloader.stakater.com/reload: vpn-wireguard,reel-gluetun
+        spec:
+            containers:
+                - name: gluetun
+                  image: qmcgaw/gluetun
+                  securityContext:
+                      capabilities:
+                          add: ['NET_ADMIN']
+                  envFrom:
+                      - secretRef: { name: vpn-wireguard }
+                      - secretRef: { name: reel-gluetun, optional: true }
+                  env:
+                      - { name: FIREWALL, value: 'on' }
+                      - { name: FIREWALL_INPUT_PORTS, value: '8080' }
+                      - {
+                            name: FIREWALL_OUTBOUND_SUBNETS,
+                            value: '10.244.0.0/16,10.96.0.0/12',
+                        }
+                      - { name: WIREGUARD_MTU, value: '1320' }
+                      - { name: SERVER_COUNTRIES, value: 'Germany' }
+                      - { name: SERVER_CITIES, value: 'Frankfurt' }
+                      - { name: VPN_PORT_FORWARDING, value: 'off' }
+                  volumeMounts:
+                      - { name: gluetun-run, mountPath: /tmp/gluetun }
+                - name: reel
+                  image: ghcr.io/kbve/reel:0.1.31
+                  env:
+                      - { name: REEL_API_ADDR, value: '0.0.0.0:8080' }
+                      - { name: REEL_ACTIVE_DIR, value: '/data/active' }
+                      - { name: REEL_LIBRARY_DIR, value: '/data/library' }
+                      - { name: REEL_SESSION_DIR, value: '/data/session' }
+                      - {
+                            name: REEL_STATE_FILE,
+                            value: '/data/reel-state.json',
+                        }
+                      - { name: REEL_TTL_SECS, value: '21600' }
+                      - { name: REEL_UPLOAD_LIMIT_BPS, value: '2097152' }
+                      - {
+                            name: RUST_LOG,
+                            value: 'reel=debug,warn,librqbit::torrent_state::live=error',
+                        }
+                      - { name: REEL_LOG_JSON, value: 'true' }
+                      - { name: REEL_ENCODE_THREADS, value: '16' }
+                  envFrom:
+                      - secretRef: { name: reel-api }
+                  ports:
+                      - containerPort: 8080
+                  readinessProbe:
+                      httpGet: { path: /healthz, port: 8080 }
+                      initialDelaySeconds: 15
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 6
+                  livenessProbe:
+                      httpGet: { path: /healthz, port: 8080 }
+                      initialDelaySeconds: 90
+                      periodSeconds: 20
+                      timeoutSeconds: 5
+                      failureThreshold: 6
+                  resources:
+                      requests: { cpu: '4', memory: 1Gi }
+                      limits: { cpu: '16', memory: 8Gi }
+                  volumeMounts:
+                      - { name: data, mountPath: /data }
+                      - {
+                            name: gluetun-run,
+                            mountPath: /tmp/gluetun,
+                            readOnly: true,
+                        }
+            volumes:
+                - name: data
+                  persistentVolumeClaim: { claimName: reel-data }
+                - name: gluetun-run
+                  emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: reel
-  namespace: reel
+    name: reel
+    namespace: reel
 spec:
-  selector: { app: reel }
-  ports:
-    - { port: 8080, targetPort: 8080 }
+    selector: { app: reel }
+    ports:
+        - { port: 8080, targetPort: 8080 }
