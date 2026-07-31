@@ -273,6 +273,7 @@ export type {
 	PetMoveView,
 	PetView,
 	PetRosterSync,
+	PetNotice,
 	DuelPrompt,
 	ShopResult,
 	CombatEvent,

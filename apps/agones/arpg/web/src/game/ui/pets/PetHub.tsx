@@ -209,6 +209,9 @@ function PetDetail({
 	}, [pet.id, pet.nickname]);
 	const trimmed = draft.trim();
 	const canRename = trimmed.length > 0 && trimmed !== pet.nickname;
+	// Damage and PP spend persist between duels, so an elixir is only worth offering when
+	// there is something to restore. The server refuses a wasted one anyway.
+	const worn = pet.hp < pet.max_hp || pet.moves.some((m) => m.pp < m.max_pp);
 	const pct = (pet.hp / Math.max(1, pet.max_hp)) * 100;
 	return (
 		<div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -348,11 +351,16 @@ function PetDetail({
 				</HubButton>
 			</div>
 
-			<div style={{ display: 'flex', gap: 6 }}>
+			<div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
 				<HubButton
 					disabled={lead}
 					onClick={() => onOp({ kind: 'setActive', idx })}>
 					{lead ? 'Lead' : 'Make lead'}
+				</HubButton>
+				<HubButton
+					disabled={!worn}
+					onClick={() => onOp({ kind: 'elixir', idx })}>
+					Use elixir
 				</HubButton>
 				{confirmRelease ? (
 					<>

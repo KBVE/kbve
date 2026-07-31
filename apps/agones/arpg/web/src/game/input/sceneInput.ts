@@ -203,6 +203,23 @@ export function setupInput(
 			return;
 		}
 
+		// A pet healer: restore the roster from within range, else walk toward them.
+		// No sprite art exists yet and nothing spawns one, but the interaction is live so a
+		// healer placed by `spawn_healers` works the day the asset lands.
+		const healer = deps.store.at(tile.x, tile.y, deps.myEid());
+		if (
+			healer &&
+			deps.kinds.ref(deps.store.kind(healer.serverEid)) === 'pet-healer'
+		) {
+			const d = Math.max(
+				Math.abs(deps.move.predicted.x - tile.x),
+				Math.abs(deps.move.predicted.y - tile.y),
+			);
+			if (d <= 2) deps.client()?.healPets(healer.serverEid);
+			else deps.startMoveTo(tile);
+			return;
+		}
+
 		// Another player: challenge them to a pet duel from within range, else walk
 		// toward them so the next click lands in range.
 		const other = deps.store.at(tile.x, tile.y, deps.myEid());

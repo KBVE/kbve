@@ -32,6 +32,7 @@ export const EPHEMERAL_PET_ROSTER = 17;
 export const EPHEMERAL_PET_BATTLE_LOG = 18;
 export const EPHEMERAL_PET_BATTLE_STATE = 19;
 export const EPHEMERAL_DUEL_PROMPT = 21;
+export const EPHEMERAL_PET_NOTICE = 22;
 
 export const DUEL_PROMPT_OFFER = 0;
 export const DUEL_PROMPT_DECLINED = 1;
@@ -174,6 +175,14 @@ export interface PetRosterSync {
 	active: number | null;
 }
 
+/** A one-line result for a pet action with no state of its own — an elixir refused, a
+ * healer out of range, a roster restored. `ok` picks the toast styling; a successful
+ * restore also pushes a fresh roster sync carrying the new vitals. */
+export interface PetNotice {
+	ok: boolean;
+	text: string;
+}
+
 /** A duel challenge/response prompt shown to the challenged player. `status` is one
  * of the DUEL_PROMPT_* constants; `other_slot`/`other_name` identify the other side. */
 export interface DuelPrompt {
@@ -243,7 +252,9 @@ export type Input =
 	| { DuelRespond: { accept: boolean } }
 	| { SetActivePet: { idx: number } }
 	| { ReleasePet: { idx: number } }
-	| { RenamePet: { idx: number; name: string } };
+	| { RenamePet: { idx: number; name: string } }
+	| { UsePetElixir: { idx: number } }
+	| { HealPets: { npc: number } };
 
 export type BjActionKind = 'Hit' | 'Stand' | 'Double' | 'Split' | 'Surrender';
 

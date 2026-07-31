@@ -25,6 +25,14 @@ pub struct Duel {
     pub sides: [DuelSide; 2],
     pub committed: [Option<simgrid::BattleAction>; 2],
     pub deadline_tick: u32,
+    /// The pet entity backing each team slot, per side, index-aligned with
+    /// `state.player.team` / `state.enemy.team`. `None` for a minted or trainer team slot
+    /// that has no owner to write back to. [`crate::vitals::commit_duel_vitals`] follows
+    /// these to persist battle damage and PP spend.
+    ///
+    /// Entity handles stay valid for the life of the duel because `apply_roster_ops`
+    /// refuses to release a pet while its owner is dueling.
+    pub pets: [Vec<Option<Entity>>; 2],
 }
 
 #[derive(bevy::prelude::Resource, Default)]
@@ -64,21 +72,37 @@ impl ActiveDuels {
 
 fn combatant_from_snapshot(snap: &simgrid::PetSnapshot) -> Option<simgrid::Combatant> {
     let species = game::NPC_DB.get(&snap.species_ref)?;
-    let mut fresh = snap.clone();
-    fresh.vitals.hp = fresh.vitals.max_hp;
-    Some(simgrid::Combatant::from_pet(&fresh, species))
+    Some(simgrid::Combatant::from_pet(snap, species))
 }
 
-/// Fresh full-HP battle copies of the player's persisted roster; empty when the
-/// roster is empty (caller falls back to a minted team).
+/// Battle copies of the player's persisted roster, carrying their CURRENT hp and PP —
+/// damage and PP spend persist between battles (see `crate::vitals`), so a worn-down pet
+/// enters worn down and must be restored with a pet elixir or at a healer.
+///
+/// Returns each combatant paired with the pet entity it came from, so the duel can write
+/// vitals back. Empty when the roster is empty (caller falls back to a minted team). Pets
+/// at 0 hp are left in the team: the engine treats them as fainted reserves, and dropping
+/// them here would silently renumber the roster indices the client sees.
 pub fn roster_team(
     bank: &simgrid::PetBank,
     roster: &simgrid::PetRoster,
-) -> Vec<simgrid::Combatant> {
-    bank.snapshot(roster)
+) -> Vec<(simgrid::Combatant, Option<Entity>)> {
+    bank.snapshot_with_entities(roster)
         .iter()
-        .filter_map(combatant_from_snapshot)
+        .filter_map(|(e, snap)| combatant_from_snapshot(snap).map(|c| (c, Some(*e))))
         .collect()
+}
+
+/// Split a `(combatant, pet entity)` team into the two parallel vectors `Duel` holds.
+pub fn split_team(
+    team: Vec<(simgrid::Combatant, Option<Entity>)>,
+) -> (Vec<simgrid::Combatant>, Vec<Option<Entity>>) {
+    team.into_iter().unzip()
+}
+
+/// An owner-less team (minted fallback, trainer roster) in the paired shape.
+pub fn unowned_team(team: Vec<simgrid::Combatant>) -> Vec<(simgrid::Combatant, Option<Entity>)> {
+    team.into_iter().map(|c| (c, None)).collect()
 }
 
 pub fn stream_duel_views(
@@ -236,13 +260,15 @@ pub fn apply_npc_challenges(
         if enemy.is_empty() {
             continue;
         }
+        let enemy_len = enemy.len();
         let mut team = roster.map(|r| roster_team(&bank, r)).unwrap_or_default();
         if team.is_empty() {
             let Some(species) = game::NPC_DB.get(game::MECHAMUTT_REF) else {
                 continue;
             };
-            team = game::mechamutt_team(species);
+            team = unowned_team(game::mechamutt_team(species));
         }
+        let (team, team_pets) = split_team(team);
         let root = simgrid::rng::mix32(&[0xD0E1_5EED, slot.0 as u32, clock.tick]);
         let name = spawned
             .by_slot
@@ -261,6 +287,7 @@ pub fn apply_npc_challenges(
             ],
             committed: [None, None],
             deadline_tick: clock.tick.saturating_add(DUEL_TURN_TICKS),
+            pets: [team_pets, vec![None; enemy_len]],
         };
         claimed.insert(trainer_entity);
         commands.entity(trainer_entity).insert(TrainerBusy);
@@ -750,14 +777,16 @@ pub fn apply_duel_responses(
             .map(|r| roster_team(&bank, r))
             .unwrap_or_default();
         if challenger_team.is_empty() {
-            challenger_team = game::mechamutt_team(species);
+            challenger_team = unowned_team(game::mechamutt_team(species));
         }
         let mut target_team = target_roster
             .map(|r| roster_team(&bank, r))
             .unwrap_or_default();
         if target_team.is_empty() {
-            target_team = game::mechamutt_team(species);
+            target_team = unowned_team(game::mechamutt_team(species));
         }
+        let (challenger_team, challenger_pets) = split_team(challenger_team);
+        let (target_team, target_pets) = split_team(target_team);
         let challenger_name = spawned
             .by_slot
             .get(&challenger)
@@ -786,6 +815,7 @@ pub fn apply_duel_responses(
             ],
             committed: [None, None],
             deadline_tick: clock.tick.saturating_add(DUEL_TURN_TICKS),
+            pets: [challenger_pets, target_pets],
         };
         let opening = vec![game::info_event(format!(
             "{target_name} accepts — the duel begins!"
@@ -849,6 +879,12 @@ mod tests {
         crate::game::mechamutt_team(species)
     }
 
+    /// No pet entities behind either side — these fixtures exercise resolve/forfeit logic,
+    /// not the vitals commit-back (see `crate::vitals` for that).
+    fn unowned_pets() -> [Vec<Option<Entity>>; 2] {
+        [vec![None; team().len()], vec![None; team().len()]]
+    }
+
     fn pve_duel() -> Duel {
         Duel {
             state: simgrid::BattleState::versus(7, team(), team()),
@@ -865,6 +901,7 @@ mod tests {
             ],
             committed: [None, None],
             deadline_tick: DUEL_TURN_TICKS,
+            pets: unowned_pets(),
         }
     }
 
@@ -883,6 +920,7 @@ mod tests {
             ],
             committed: [None, None],
             deadline_tick: DUEL_TURN_TICKS,
+            pets: unowned_pets(),
         }
     }
 
@@ -976,17 +1014,23 @@ mod tests {
         );
     }
 
+    /// Battle copies now carry the pet's CURRENT hp and PP, not a full-HP reset. This
+    /// inverts the old `roster_team_copies_are_full_hp`: damage persists between duels, and
+    /// `crate::vitals` writes it back after every one. A worn pet must enter worn, or the
+    /// commit-back would be undone by the next battle start.
     #[test]
-    fn roster_team_copies_are_full_hp() {
+    fn roster_team_copies_carry_current_vitals() {
         let species = crate::game::NPC_DB
             .get(crate::game::MECHAMUTT_REF)
             .expect("mechamutt");
         let mut snap = simgrid::mint_pet_from_species(species, 50).expect("mint");
         let max_hp = snap.vitals.max_hp;
         snap.vitals.hp = 1;
+        snap.moves[0].pp = 0;
         let combatant = combatant_from_snapshot(&snap).expect("combatant");
-        assert_eq!(combatant.hp, max_hp);
-        assert!(combatant.max_hp > 1);
+        assert_eq!(combatant.hp, 1, "damage carried into the battle");
+        assert_eq!(combatant.max_hp, max_hp);
+        assert_eq!(combatant.moves[0].pp, 0, "spent PP carried into the battle");
     }
 
     #[test]

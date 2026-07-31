@@ -51,6 +51,7 @@ pub const EPHEMERAL_PET_BATTLE_LOG: u16 = 18;
 pub const EPHEMERAL_PET_BATTLE_STATE: u16 = 19;
 pub const EPHEMERAL_UDP_OFFER: u16 = 20;
 pub const EPHEMERAL_DUEL_PROMPT: u16 = 21;
+pub const EPHEMERAL_PET_NOTICE: u16 = 22;
 
 pub const UDP_MAX_DATAGRAM: usize = 1200;
 
@@ -310,6 +311,17 @@ pub enum Input {
     RenamePet {
         idx: u32,
         name: String,
+    },
+    /// Spend one pet elixir from the inventory to restore roster slot `idx` to full hp and
+    /// PP. Appended last so serde variant indices of the existing inputs are unchanged.
+    UsePetElixir {
+        idx: u32,
+    },
+    /// Ask a healer NPC to restore the whole roster. The server validates range and that
+    /// `npc` really is a healer. Appended last so serde variant indices of the existing
+    /// inputs are unchanged.
+    HealPets {
+        npc: EntityId,
     },
 }
 
@@ -739,6 +751,16 @@ pub const DUEL_PROMPT_DECLINED: u8 = 1;
 pub const DUEL_PROMPT_EXPIRED: u8 = 2;
 pub const DUEL_PROMPT_ACCEPTED: u8 = 3;
 pub const DUEL_PROMPT_SENT: u8 = 4;
+
+/// A one-line result for a pet action that has no state of its own to stream — an elixir
+/// refused, a healer out of range, a roster restored. `ok` picks the toast styling; the
+/// roster sync that accompanies a successful restore carries the actual new vitals. Mirrors
+/// TS `PetNotice`.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PetNotice {
+    pub ok: bool,
+    pub text: String,
+}
 
 /// A pet duel challenge notice: `status` is a `DUEL_PROMPT_*` constant. Sent to
 /// the target as the offer (with the challenger's name + time to respond) and
@@ -1193,6 +1215,41 @@ mod tests {
             other => panic!("expected RenamePet, got {other:?}"),
         }
     }
+
+    /// Locks variants 39/40 for the two restore paths, and the `PetNotice` payload the
+    /// client toasts. The TS mirror asserts the same discriminants.
+    #[test]
+    fn pet_restore_inputs_roundtrip() {
+        let elixir = Input::UsePetElixir { idx: 1 };
+        let bytes = encode_inner(&elixir).expect("encode");
+        assert_eq!(bytes[0], 39);
+        assert!(matches!(
+            decode_inner(&bytes).expect("decode"),
+            Input::UsePetElixir { idx: 1 }
+        ));
+
+        let heal = Input::HealPets { npc: EntityId(12) };
+        let bytes = encode_inner(&heal).expect("encode");
+        assert_eq!(bytes[0], 40);
+        assert!(matches!(
+            decode_inner(&bytes).expect("decode"),
+            Input::HealPets { npc: EntityId(12) }
+        ));
+    }
+
+    #[test]
+    fn pet_notice_fixture_is_stable() {
+        let notice = PetNotice {
+            ok: false,
+            text: "You have no pet elixir.".into(),
+        };
+        let bytes = encode_inner(&notice).expect("encode");
+        assert_eq!(hex(&bytes), PET_NOTICE_HEX);
+        let back: PetNotice = decode_inner(&bytes).expect("decode");
+        assert_eq!(back, notice);
+    }
+
+    const PET_NOTICE_HEX: &str = "0017596f752068617665206e6f2070657420656c697869722e";
 
     #[test]
     fn duel_prompt_roundtrips() {

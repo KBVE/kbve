@@ -27,6 +27,7 @@ import type {
 	PetBattleWireEvent,
 	PetMoveOption,
 	PetMoveView,
+	PetNotice,
 	PetRosterSync,
 	PetView,
 	PickupEvent,
@@ -216,6 +217,12 @@ function writeInput(w: PostcardWriter, inp: Input): void {
 		w.variant(38);
 		w.u32(inp.RenamePet.idx);
 		w.string(inp.RenamePet.name);
+	} else if ('UsePetElixir' in inp) {
+		w.variant(39);
+		w.u32(inp.UsePetElixir.idx);
+	} else if ('HealPets' in inp) {
+		w.variant(40);
+		w.u32(inp.HealPets.npc);
 	}
 }
 
@@ -506,6 +513,12 @@ export function decodePetRosterSync(payload: number[]): PetRosterSync {
 	for (let n = r.seqLen(); n > 0; n--) pets.push(readPetView(r));
 	const active = r.option() ? r.u32() : null;
 	return { pets, active };
+}
+
+/** Decode an EPHEMERAL_PET_NOTICE payload. Matches `proto::PetNotice`. */
+export function decodePetNotice(payload: number[]): PetNotice {
+	const r = new PostcardReader(Uint8Array.from(payload));
+	return { ok: r.bool(), text: r.string() };
 }
 
 /** Decode an EPHEMERAL_DUEL_PROMPT payload. Matches `proto::DuelPrompt`. */
