@@ -3,6 +3,7 @@ mod ch_writer;
 mod chat_tail;
 mod config;
 mod event;
+mod event_tail;
 mod irc_bridge;
 mod live_api;
 mod poller;
@@ -49,6 +50,11 @@ async fn main() -> Result<()> {
     )?);
 
     let live = live_api::SharedLive::default();
+    let bosses = event_tail::SharedBosses::default();
+    let live_state = live_api::LiveState {
+        snap: live.clone(),
+        bosses: bosses.clone(),
+    };
 
     let poller_handle = tokio::spawn(poller::run(cfg.clone(), game_tx.clone(), live.clone()));
     let chat_handle = tokio::spawn(chat_tail::run(cfg.clone(), game_tx.clone()));
@@ -59,7 +65,8 @@ async fn main() -> Result<()> {
     ));
     let ch_handle = tokio::spawn(ch_writer::run(cfg.clone(), game_tx.subscribe()));
     let agones_handle = tokio::spawn(agones_health::run(cfg.clone()));
-    let live_handle = tokio::spawn(live_api::run(cfg.clone(), live));
+    let live_handle = tokio::spawn(live_api::run(cfg.clone(), live_state));
+    let event_handle = tokio::spawn(event_tail::run(cfg.clone(), bosses));
 
     drop(game_tx);
 
@@ -70,6 +77,7 @@ async fn main() -> Result<()> {
         r = ch_handle => r??,
         r = agones_handle => r??,
         r = live_handle => r??,
+        r = event_handle => r??,
         _ = tokio::signal::ctrl_c() => { info!("ctrl_c received, shutting down"); }
     }
     Ok(())
