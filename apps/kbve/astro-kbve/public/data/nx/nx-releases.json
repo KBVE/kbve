@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-30T03:57:13Z",
+  "generated_at": "2026-07-31T04:22:09Z",
   "summary": {
     "pending": 3,
     "behind": 1,
@@ -158,8 +158,8 @@
     {
       "ecosystem": "crates",
       "name": "embeddb-derive",
-      "local": "0.1.0",
-      "published": "0.1.0",
+      "local": "0.1.1",
+      "published": "0.1.1",
       "status": "published"
     },
     {
@@ -172,8 +172,8 @@
     {
       "ecosystem": "crates",
       "name": "holy",
-      "local": "0.2.1",
-      "published": "0.2.1",
+      "local": "0.2.2",
+      "published": "0.2.2",
       "status": "published"
     },
     {
@@ -222,7 +222,7 @@
       "ecosystem": "npm",
       "name": "droid",
       "local": "0.1.1",
-      "published": "0.183.0",
+      "published": "0.185.0",
       "status": "behind"
     },
     {
