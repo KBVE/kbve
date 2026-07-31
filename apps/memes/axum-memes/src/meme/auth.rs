@@ -6,6 +6,7 @@ use axum::{
 };
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
+use std::sync::OnceLock;
 
 /// Supabase JWT claims — only the fields we need.
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -24,14 +25,50 @@ pub struct AuthUser {
     pub user_id: String,
 }
 
-/// Decode a Supabase JWT using the JWT secret.
-/// Returns the claims if valid, or an error string.
+/// Process-wide accept-both verifier (HS256 + ES256/JWKS); `None` when no JWKS URI is configured.
+fn shared_verifier() -> Option<&'static jedi::jwks::JwtVerifier> {
+    static VERIFIER: OnceLock<Option<jedi::jwks::JwtVerifier>> = OnceLock::new();
+    VERIFIER
+        .get_or_init(|| {
+            let jwks_uri = std::env::var("SUPABASE_JWKS_URI")
+                .ok()
+                .filter(|s| !s.trim().is_empty())
+                .or_else(|| {
+                    std::env::var("SUPABASE_URL").ok().and_then(|u| {
+                        let u = u.trim().trim_end_matches('/');
+                        (!u.is_empty()).then(|| format!("{u}/auth/v1/.well-known/jwks.json"))
+                    })
+                })?;
+            let secret = std::env::var("SUPABASE_JWT_SECRET")
+                .ok()
+                .filter(|s| !s.is_empty());
+            let issuer = std::env::var("SUPABASE_JWT_ISSUER")
+                .ok()
+                .filter(|s| !s.trim().is_empty());
+            let verifier = jedi::jwks::JwtVerifier::new(
+                jwks_uri,
+                secret.as_deref().map(str::as_bytes),
+                issuer,
+                Some("authenticated".to_string()),
+            );
+            let bg = verifier.clone();
+            tokio::spawn(async move {
+                bg.start(std::time::Duration::from_secs(300)).await;
+            });
+            Some(verifier)
+        })
+        .as_ref()
+}
+
+/// Decode a Supabase JWT (HS256 shared secret or ES256 via GoTrue JWKS).
 fn decode_supabase_jwt(token: &str, secret: &str) -> Result<Claims, String> {
+    if let Some(verifier) = shared_verifier() {
+        return verifier.verify::<Claims>(token).map_err(|e| e.to_string());
+    }
+
     let key = DecodingKey::from_secret(secret.as_bytes());
     let mut validation = Validation::new(Algorithm::HS256);
-    // Supabase JWTs use "authenticated" as the audience
     validation.set_audience(&["authenticated"]);
-    // Allow some clock skew
     validation.leeway = 30;
 
     let token_data = decode::<Claims>(token, &key, &validation)
@@ -44,10 +81,10 @@ fn decode_supabase_jwt(token: &str, secret: &str) -> Result<Claims, String> {
 /// If valid, inserts `AuthUser` as a request extension.
 /// If missing or invalid, the request proceeds without `AuthUser` (anonymous).
 pub async fn optional_auth(mut request: Request, next: Next) -> Response {
-    let secret = match std::env::var("SUPABASE_JWT_SECRET") {
-        Ok(s) => s,
-        Err(_) => return next.run(request).await,
-    };
+    let secret = std::env::var("SUPABASE_JWT_SECRET").unwrap_or_default();
+    if secret.is_empty() && shared_verifier().is_none() {
+        return next.run(request).await;
+    }
 
     if let Some(auth_header) = request.headers().get("authorization") {
         if let Ok(header_str) = auth_header.to_str() {
