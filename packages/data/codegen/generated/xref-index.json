@@ -125,6 +125,7 @@
     "padded-sleeves": 620,
     "paradox-sack-of-potatoes": 5,
     "phoenix-feather": 83,
+    "pickaxe": 634,
     "pied-piper-jacket": 22,
     "pocket-prophet-of-profit": 6,
     "porcini": 115,
@@ -394,5 +395,11 @@
       61
     ]
   },
-  "tool_for": {}
+  "tool_for": {
+    "634": [
+      15,
+      16,
+      17
+    ]
+  }
 }
