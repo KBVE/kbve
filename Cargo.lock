@@ -467,6 +467,7 @@ name = "agones-palworld-relay"
 version = "0.0.1"
 dependencies = [
  "anyhow",
+ "axum 0.8.9",
  "chrono",
  "futures",
  "jedi",
