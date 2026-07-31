@@ -597,28 +597,73 @@ impl Engine {
                 delete_from_session(&session, &id, true).await;
                 return;
             }
+            // If a live (popcorn) HLS job was serving this download, let it
+            // finalize before we relocate the directory — a completed HLS can be
+            // reused as the deliverable instead of re-encoding the whole file.
+            let had_live = matches!(
+                store.get(&id).map(|m| m.hls),
+                Some(state::HlsStatus::Starting | state::HlsStatus::Live)
+            );
+            if had_live {
+                wait_hls_settle(&store, &id, LEECH_DRAIN_CAP).await;
+            }
             match mover::move_completed(&out_dir, &library_dir) {
                 Ok(moved) => {
                     let now = now_secs();
-                    let _ = store.upsert(state::Metadata {
-                        id: id.clone(),
-                        name,
-                        path: moved.dest.display().to_string(),
-                        size: moved.size,
-                        completed_at: Some(now),
-                        last_access: now,
-                        state: state::TorrentState::Seeding,
-                        error: None,
-                        active_path: None,
-                        transcode: state::TranscodeStatus::None,
-                        transcode_path: None,
-                        transcode_error: None,
-                        hls: state::HlsStatus::None,
-                        hls_dir: None,
-                        hls_error: None,
-                    });
                     crate::telemetry::torrent_completed(&id, moved.size);
-                    transcode_wake.notify_one();
+                    let hls_dir = moved.dest.join("hls");
+                    let adopt = had_live
+                        && matches!(
+                            store.get(&id).map(|m| m.hls),
+                            Some(state::HlsStatus::Ready)
+                        )
+                        && live_hls_complete(&hls_dir);
+                    if adopt {
+                        // Reuse the HLS produced during download; drop the source
+                        // video (HLS is the deliverable) but keep subtitles/poster.
+                        if let Ok(src) = crate::transcode::pick_primary_file(&moved.dest) {
+                            if let Err(e) = std::fs::remove_file(&src) {
+                                tracing::warn!(id = %id, path = %src.display(), error = %e, "adopt: source remove failed");
+                            }
+                        }
+                        let _ = store.upsert(state::Metadata {
+                            id: id.clone(),
+                            name,
+                            path: moved.dest.display().to_string(),
+                            size: moved.size,
+                            completed_at: Some(now),
+                            last_access: now,
+                            state: state::TorrentState::Seeding,
+                            error: None,
+                            active_path: None,
+                            transcode: state::TranscodeStatus::Ready,
+                            transcode_path: None,
+                            transcode_error: None,
+                            hls: state::HlsStatus::Ready,
+                            hls_dir: Some(hls_dir.display().to_string()),
+                            hls_error: None,
+                        });
+                        crate::telemetry::live_hls_adopted(&id, &hls_dir.display().to_string());
+                    } else {
+                        let _ = store.upsert(state::Metadata {
+                            id: id.clone(),
+                            name,
+                            path: moved.dest.display().to_string(),
+                            size: moved.size,
+                            completed_at: Some(now),
+                            last_access: now,
+                            state: state::TorrentState::Seeding,
+                            error: None,
+                            active_path: None,
+                            transcode: state::TranscodeStatus::None,
+                            transcode_path: None,
+                            transcode_error: None,
+                            hls: state::HlsStatus::None,
+                            hls_dir: None,
+                            hls_error: None,
+                        });
+                        transcode_wake.notify_one();
+                    }
                     wait_leech_drained(&active_leech, &drain, &id).await;
                     delete_from_session(&session, &id, false).await;
                 }
@@ -858,6 +903,49 @@ impl<R: AsyncSeek + Unpin> AsyncSeek for GuardedReader<R> {
     fn poll_complete(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<std::io::Result<u64>> {
         Pin::new(&mut self.inner).poll_complete(cx)
     }
+}
+
+/// Wait until a live HLS job leaves a transient state (Starting/Live), i.e. the
+/// ffmpeg process has exited and its output is stable, so the directory can be
+/// safely relocated. Bounded by `cap`.
+async fn wait_hls_settle(store: &state::StateStore, id: &str, cap: Duration) {
+    let step = Duration::from_secs(1);
+    let mut waited = Duration::ZERO;
+    loop {
+        match store.get(id).map(|m| m.hls) {
+            Some(state::HlsStatus::Starting) | Some(state::HlsStatus::Live) => {}
+            _ => return,
+        }
+        if waited >= cap {
+            tracing::warn!(id = %id, "live hls did not finalize before timeout; proceeding");
+            return;
+        }
+        tokio::time::sleep(step).await;
+        waited = waited.saturating_add(step);
+    }
+}
+
+/// A live HLS directory is complete when its manifest exists and at least one
+/// playlist carries `#EXT-X-ENDLIST` (ffmpeg finished writing it end to end).
+pub fn live_hls_complete(hls_dir: &std::path::Path) -> bool {
+    if !hls_dir.join("index.m3u8").exists() {
+        return false;
+    }
+    let rd = match std::fs::read_dir(hls_dir) {
+        Ok(r) => r,
+        Err(_) => return false,
+    };
+    for entry in rd.flatten() {
+        let p = entry.path();
+        if p.extension().and_then(|x| x.to_str()) == Some("m3u8") {
+            if let Ok(s) = std::fs::read_to_string(&p) {
+                if s.contains("#EXT-X-ENDLIST") {
+                    return true;
+                }
+            }
+        }
+    }
+    false
 }
 
 async fn wait_leech_drained(
@@ -1122,6 +1210,22 @@ mod tests {
         remove_entry_files(&src.display().to_string(), Some(&tc.display().to_string()));
         assert!(!src.exists());
         assert!(!tc.exists());
+    }
+
+    #[test]
+    fn live_hls_complete_requires_manifest_and_endlist() {
+        let dir = tempfile::tempdir().unwrap();
+        let h = dir.path();
+        assert!(!live_hls_complete(h), "no manifest");
+        std::fs::write(h.join("index.m3u8"), b"#EXTM3U\nstream_0.m3u8\n").unwrap();
+        std::fs::write(h.join("stream_0.m3u8"), b"#EXTM3U\n#EXTINF:4,\nseg_0_00000.ts\n").unwrap();
+        assert!(!live_hls_complete(h), "no ENDLIST yet (still live)");
+        std::fs::write(
+            h.join("stream_0.m3u8"),
+            b"#EXTM3U\n#EXTINF:4,\nseg_0_00000.ts\n#EXT-X-ENDLIST\n",
+        )
+        .unwrap();
+        assert!(live_hls_complete(h), "manifest + ENDLIST -> complete");
     }
 
     #[test]
