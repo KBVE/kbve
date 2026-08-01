@@ -323,6 +323,18 @@ impl Engine {
             }
             None => None,
         };
+        // Inbound peers are unreachable behind the VPN (no port forwarding), so
+        // the swarm is outbound-only — tune peering to make the most of it: try
+        // more peers without hanging on dead ones, hold quiet-but-alive peers
+        // instead of dropping them, and send keepalives so we aren't dropped.
+        let peer_opts = Some(librqbit::PeerConnectionOptions {
+            connect_timeout: (cfg.peer_connect_timeout_secs > 0)
+                .then(|| Duration::from_secs(cfg.peer_connect_timeout_secs)),
+            read_write_timeout: (cfg.peer_read_write_timeout_secs > 0)
+                .then(|| Duration::from_secs(cfg.peer_read_write_timeout_secs)),
+            keep_alive_interval: (cfg.peer_keepalive_secs > 0)
+                .then(|| Duration::from_secs(cfg.peer_keepalive_secs)),
+        });
         let opts = librqbit::SessionOptions {
             fastresume: true,
             persistence: Some(SessionPersistenceConfig::Json {
@@ -332,6 +344,7 @@ impl Engine {
                 upload_bps: cfg.upload_limit_bps.and_then(std::num::NonZeroU32::new),
                 download_bps: None,
             },
+            peer_opts,
             listen_port_range,
             enable_upnp_port_forwarding: false,
             ..Default::default()
