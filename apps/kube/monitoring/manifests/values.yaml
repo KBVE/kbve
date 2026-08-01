@@ -31,12 +31,13 @@ grafana:
             providers:
                 - name: 'default'
                   orgId: 1
-                  folder: ''
+                  folder: 'KBVE'
                   type: file
                   disableDeletion: false
                   editable: true
                   options:
                       path: /var/lib/grafana/dashboards/default
+                      foldersFromFilesStructure: false
 
     dashboardsConfigMaps:
         default: 'grafana-dashboards'
