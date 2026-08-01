@@ -322,7 +322,7 @@ export async function refreshReelList(): Promise<void> {
 	}
 }
 
-export type ProbeAction = 'raw' | 'raw-leeching' | 'hls' | 'poll' | 'error';
+export type ProbeAction = 'raw' | 'hls' | 'poll' | 'error';
 
 export function nextFromManifestStatus(status: number): ProbeAction {
 	switch (status) {
@@ -332,8 +332,13 @@ export function nextFromManifestStatus(status: number): ProbeAction {
 			return 'poll';
 		case 409:
 			return 'raw';
+		// 425 Too Early: a still-downloading torrent whose live HLS job hasn't
+		// warmed up yet. Poll for it — never fall back to progressive playback of
+		// an in-flight file: that stream isn't seekable, so the first stall
+		// reloads it from the start and the video loops the opening seconds
+		// forever. Live HLS is the only correct path while leeching.
 		case 425:
-			return 'raw-leeching';
+			return 'poll';
 		default:
 			return 'error';
 	}
@@ -445,10 +450,7 @@ export class ReelPlayer {
 
 		switch (nextFromManifestStatus(status)) {
 			case 'raw':
-				this.playRaw(video, id, token, false, gen);
-				return;
-			case 'raw-leeching':
-				this.playRaw(video, id, token, true, gen);
+				this.playRaw(video, id, token, gen);
 				return;
 			case 'hls':
 				await this.playHls(video, id, token, gen);
@@ -476,18 +478,12 @@ export class ReelPlayer {
 		video: HTMLVideoElement,
 		id: string,
 		token: string,
-		leeching: boolean,
 		gen: number,
 	): void {
 		if (this.generation !== gen) return;
 		this.attachVideoError(video, gen);
 		video.src = mediaUrl(id, '/stream', token);
 		$reelState.set('raw');
-		if (leeching) {
-			$reelNotice.set(
-				'still downloading — playing the available portion',
-			);
-		}
 		void this.addSubtitleTracks(video, id, token, gen);
 		this.recover = () => {
 			// Re-request the byte-range stream from the current position.
