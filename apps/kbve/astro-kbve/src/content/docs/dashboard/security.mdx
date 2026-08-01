@@ -31,8 +31,8 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					Security posture
 					<span class="bento-title__accent">across every ecosystem.</span>
 				</h1>
-				<p class="bento-lede"><strong>45</strong> critical/high severity findings across the monorepo — triage before merge.</p>
-				<p class="bento-lede">Last generated <strong>2026-07-31T04:25:51Z</strong>.</p>
+				<p class="bento-lede"><strong>47</strong> critical/high severity findings across the monorepo — triage before merge.</p>
+				<p class="bento-lede">Last generated <strong>2026-08-01T04:24:44Z</strong>.</p>
 				<div class="bento-cta">
 					<a class="bento-btn bento-btn--primary" href="#findings">
 						View findings
@@ -54,7 +54,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 8v4M12 16h.01" /></svg>
 					</span>
-					<span class="bento-stat__value">41</span>
+					<span class="bento-stat__value">43</span>
 					<span class="bento-stat__label">High</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
@@ -75,7 +75,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7" /></svg>
 					</span>
-					<span class="bento-stat__value">30</span>
+					<span class="bento-stat__value">31</span>
 					<span class="bento-stat__label">Info</span>
 				</div>
 		</div>
@@ -93,7 +93,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96 12 12.01l8.73-5.05M12 22.08V12" /></svg>
 			</span>
 			<span class="bento-linkcard__title">npm</span>
-			<span class="bento-linkcard__copy">96 advisories</span>
+			<span class="bento-linkcard__copy">98 advisories</span>
 			<span class="bento-linkcard__go" aria-hidden="true">
 				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 			</span>
@@ -103,7 +103,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
 			</span>
 			<span class="bento-linkcard__title">Cargo</span>
-			<span class="bento-linkcard__copy">45 advisories</span>
+			<span class="bento-linkcard__copy">46 advisories</span>
 			<span class="bento-linkcard__go" aria-hidden="true">
 				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 			</span>
@@ -149,7 +149,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 pie showData
     title Findings by Severity
     "Critical" : 4
-    "High" : 41
+    "High" : 43
     "Medium" : 56
     "Low" : 10
 ```
@@ -159,20 +159,20 @@ pie showData
 ```mermaid
 pie showData
     title Findings by Ecosystem
-    "npm" : 96
-    "Cargo" : 45
+    "npm" : 98
+    "Cargo" : 46
 ```
 
 ### Summary
 
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
-| **npm** | 4 | 41 | 41 | 10 | 96 |
-| **Cargo** | 0 | 0 | 15 | 0 | 45 |
+| **npm** | 4 | 43 | 41 | 10 | 98 |
+| **Cargo** | 0 | 0 | 15 | 0 | 46 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 4 | 41 | 56 | 10 | 141 |
+| **Total** | 4 | 43 | 56 | 10 | 144 |
 
 <span id="eco-npm"></span>
 
@@ -223,8 +223,10 @@ pie showData
 | High | `sharp` | sharp inherited vulnerabilities in libvips: CVE-2026-3332... | [Details](https://github.com/advisories/GHSA-f88m-g3jw-g9cj) |
 | High | `fast-xml-parser` | fast-xml-parser: Repeated DOCTYPE declarations reset enti... | [Details](https://github.com/advisories/GHSA-8r6m-32jq-jx6q) |
 | High | `postcss` | PostCSS: Path Traversal in Previous Source Map Auto-Loadi... | [Details](https://github.com/advisories/GHSA-r28c-9q8g-f849) |
-| High | `brace-expansion` | brace-expansion: DoS via unbounded expansion length causi... | [Details](https://github.com/advisories/GHSA-mh99-v99m-4gvg) |
 | High | `fast-uri` | fast-uri vulnerable to host confusion via failed IDN cano... | [Details](https://github.com/advisories/GHSA-4c8g-83qw-93j6) |
+| High | `brace-expansion` | brace-expansion: DoS via unbounded expansion length causi... | [Details](https://github.com/advisories/GHSA-mh99-v99m-4gvg) |
+| High | `brace-expansion` | brace-expansion: DoS via unbounded expansion length causi... | [Details](https://github.com/advisories/GHSA-mh99-v99m-4gvg) |
+| High | `brace-expansion` | brace-expansion: DoS via unbounded expansion length causi... | [Details](https://github.com/advisories/GHSA-mh99-v99m-4gvg) |
 | Medium | `vue-template-compiler` | vue-template-compiler vulnerable to client-side Cross-Sit... | [Details](https://github.com/advisories/GHSA-g3ch-rx76-35fx) |
 | Medium | `mdast-util-to-hast` | mdast-util-to-hast has unsanitized class attribute | [Details](https://github.com/advisories/GHSA-4fh9-h7wg-q85m) |
 | Medium | `ajv` | ajv has ReDoS when using `$data` option | [Details](https://github.com/advisories/GHSA-2g4f-4pwh-qvx6) |
@@ -326,6 +328,7 @@ pie showData
 | Info | `unic-common` | `unic-common` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
 | Info | `unic-ucd-ident` | `unic-ucd-ident` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
 | Info | `unic-ucd-version` | `unic-ucd-version` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
+| Info | `event-listener` | `event-listener` allows `!Send` tags to cross thread boun... | [Details](https://github.com/smol-rs/event-listener/pull/163) |
 | Info | `glib` | Unsoundness in `Iterator` and `DoubleEndedIterator` impls... | [Details](https://github.com/gtk-rs/gtk-rs-core/pull/1343) |
 | Info | `lru` | `IterMut` violates Stacked Borrows by invalidating intern... | [Details](https://github.com/jeromefroe/lru-rs/pull/224) |
 

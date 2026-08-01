@@ -1,18 +1,18 @@
 {
-	"generated_at": "2026-07-31T04:25:51Z",
+	"generated_at": "2026-08-01T04:24:44Z",
 	"summary": {
 		"critical": 4,
-		"high": 41,
+		"high": 43,
 		"medium": 56,
 		"low": 10,
-		"info": 30
+		"info": 31
 	},
 	"ecosystems": {
 		"npm": {
-			"total": 96,
+			"total": 98,
 			"severities": {
 				"critical": 4,
-				"high": 41,
+				"high": 43,
 				"medium": 41,
 				"low": 10,
 				"info": 0
@@ -677,29 +677,43 @@
 					"url": "https://github.com/advisories/GHSA-r28c-9q8g-f849"
 				},
 				{
-					"id": "1124334",
+					"id": "1130178",
+					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
+					"severity": "high",
+					"package": "fast-uri",
+					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
+				},
+				{
+					"id": "1130588",
 					"title": "brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash",
 					"severity": "high",
 					"package": "brace-expansion",
 					"url": "https://github.com/advisories/GHSA-mh99-v99m-4gvg"
 				},
 				{
-					"id": "1130178",
-					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
+					"id": "1130589",
+					"title": "brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash",
 					"severity": "high",
-					"package": "fast-uri",
-					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
+					"package": "brace-expansion",
+					"url": "https://github.com/advisories/GHSA-mh99-v99m-4gvg"
+				},
+				{
+					"id": "1130591",
+					"title": "brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash",
+					"severity": "high",
+					"package": "brace-expansion",
+					"url": "https://github.com/advisories/GHSA-mh99-v99m-4gvg"
 				}
 			]
 		},
 		"cargo": {
-			"total": 45,
+			"total": 46,
 			"severities": {
 				"critical": 0,
 				"high": 0,
 				"medium": 15,
 				"low": 0,
-				"info": 30
+				"info": 31
 			},
 			"advisories": [
 				{
@@ -1002,6 +1016,13 @@
 					"severity": "info",
 					"package": "unic-ucd-version",
 					"url": "https://github.com/rustsec/advisory-db/issues/2414"
+				},
+				{
+					"id": "RUSTSEC-2026-0221",
+					"title": "`event-listener` allows `!Send` tags to cross thread boundaries via `StackSlot`",
+					"severity": "info",
+					"package": "event-listener",
+					"url": "https://github.com/smol-rs/event-listener/pull/163"
 				},
 				{
 					"id": "RUSTSEC-2024-0429",
