@@ -7,6 +7,12 @@
 // ======================================================
 
 {
+    "Shield_03": {
+        "PassiveSkill": "TemperatureResist_Heat1Cold1"
+    },
+    "Shield_04": {
+        "PassiveSkill": "TemperatureResist_Heat1Cold1"
+    },
     "Shield_Ultra": {
         "PassiveSkill": "TemperatureResist_Heat1Cold1"
     },
