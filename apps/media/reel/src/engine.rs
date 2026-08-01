@@ -135,26 +135,57 @@ async fn await_forwarded_port(
     Some(current)
 }
 
-pub async fn forwarded_port_watch_loop(engine: Engine, interval_secs: u64, restart: Arc<Notify>) {
+pub async fn forwarded_port_watch_loop(
+    engine: Engine,
+    interval_secs: u64,
+    restart: Arc<Notify>,
+    restart_on_change: bool,
+) {
     if engine.bt_port_file.is_none() {
         return;
     }
     let interval = Duration::from_secs(interval_secs.max(5));
+    let started = now_secs();
+    let mut last_forwarded: Option<u16> = engine.forwarded_port();
+    let mut rotations = 0u64;
     let mut mismatches = 0u32;
+    tracing::info!(
+        initial = ?last_forwarded,
+        restart_on_change,
+        "forwarded-port watcher started (observe mode: logs rotation rate without tearing down the session)"
+    );
     loop {
         tokio::time::sleep(interval).await;
-        match (engine.forwarded_port(), engine.bt_listen_port()) {
-            (Some(forwarded), Some(listen)) if forwarded != listen => {
+        let forwarded = engine.forwarded_port();
+        if forwarded != last_forwarded {
+            rotations += 1;
+            let elapsed = now_secs().saturating_sub(started).max(1);
+            let per_hour = (rotations as f64) * 3600.0 / (elapsed as f64);
+            tracing::warn!(
+                from = ?last_forwarded,
+                to = ?forwarded,
+                rotations,
+                elapsed_secs = elapsed,
+                rotations_per_hour = per_hour,
+                "vpn_forwarded_port_rotated: Proton changed the NAT-PMP forwarded port"
+            );
+            last_forwarded = forwarded;
+        }
+        if !restart_on_change {
+            continue;
+        }
+        match (forwarded, engine.bt_listen_port()) {
+            (Some(f), Some(listen)) if f != listen => {
                 mismatches += 1;
                 tracing::warn!(
-                    forwarded,
+                    forwarded = f,
                     listen,
                     mismatches,
                     "VPN forwarded port no longer matches BitTorrent listener"
                 );
                 if mismatches >= 2 {
                     tracing::warn!(
-                        forwarded,
+                        forwarded = f,
                         listen,
                         "vpn_forwarded_port_changed: restarting to rebind listener to the forwarded port"
                     );
