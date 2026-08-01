@@ -142,10 +142,10 @@ const BACKOFF_CAP_MS = 5000;
 
 let mediaTokenCache: { token: string; expiresAtMs: number } | null = null;
 
-async function mediaToken(): Promise<string | null> {
+async function mediaToken(force = false): Promise<string | null> {
 	const dev = import.meta.env.PUBLIC_REEL_TOKEN as string | undefined;
 	if (dev) return dev;
-	if (mediaTokenCache && mediaTokenCache.expiresAtMs > Date.now()) {
+	if (!force && mediaTokenCache && mediaTokenCache.expiresAtMs > Date.now()) {
 		return mediaTokenCache.token;
 	}
 	try {
@@ -369,6 +369,7 @@ export class ReelPlayer {
 	private pollTimer: ReturnType<typeof setTimeout> | null = null;
 	private video: HTMLVideoElement | null = null;
 	private stallTimer: ReturnType<typeof setInterval> | null = null;
+	private tokenTimer: ReturnType<typeof setInterval> | null = null;
 	private recover: (() => void) | null = null;
 	private lastPos = 0;
 
@@ -597,6 +598,7 @@ export class ReelPlayer {
 			// Buffer generously: popcorn segments are produced ahead of the
 			// playhead as the download runs, so let the player hold minutes of
 			// that lead to ride out download dips instead of stalling.
+			let liveToken = token;
 			const hls = new Hls({
 				maxBufferLength: 120,
 				maxMaxBufferLength: 600,
@@ -612,10 +614,17 @@ export class ReelPlayer {
 				manifestLoadingMaxRetry: 8,
 				xhrSetup: (xhr: XMLHttpRequest, url: string) => {
 					xhr.open('GET', url, true);
-					xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+					xhr.setRequestHeader('Authorization', `Bearer ${liveToken}`);
 				},
 			});
 			this.hls = hls;
+			if (this.tokenTimer) clearInterval(this.tokenTimer);
+			this.tokenTimer = setInterval(() => {
+				if (this.generation !== gen) return;
+				void mediaToken().then((t) => {
+					if (t && this.generation === gen) liveToken = t;
+				});
+			}, 60000);
 			// Recovery ladder: don't fail on the first fatal error. Resume loading
 			// on network errors, rebuild the buffer on media errors, and only give
 			// up once repeated recovery attempts stop working.
@@ -632,9 +641,13 @@ export class ReelPlayer {
 				switch (data.type) {
 					case Hls.ErrorTypes.NETWORK_ERROR:
 						if (netRetries++ < MAX_RECOVER) {
-							setTimeout(() => {
-								if (this.generation === gen) hls.startLoad();
-							}, 1000);
+							void mediaToken(true).then((t) => {
+								if (this.generation !== gen) return;
+								if (t) liveToken = t;
+								setTimeout(() => {
+									if (this.generation === gen) hls.startLoad();
+								}, 1000);
+							});
 						} else {
 							this.fail(`network error: ${data.details}`);
 						}
@@ -707,6 +720,10 @@ export class ReelPlayer {
 			this.pollTimer = null;
 		}
 		this.stopWatchdog();
+		if (this.tokenTimer) {
+			clearInterval(this.tokenTimer);
+			this.tokenTimer = null;
+		}
 		this.recover = null;
 		if (this.video) {
 			this.video.onerror = null;
