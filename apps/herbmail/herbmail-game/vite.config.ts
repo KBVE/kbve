@@ -183,6 +183,14 @@ export default defineConfig({
 				find: '@kbve/laser/ecs',
 				replacement: path.join(laserSrc, 'ecs.ts'),
 			},
+			{
+				find: '@kbve/laser/phaser',
+				replacement: path.join(laserSrc, 'phaser.ts'),
+			},
+			{
+				find: '@kbve/laser/r3f',
+				replacement: path.join(laserSrc, 'r3f.ts'),
+			},
 			itemdbDataAlias,
 			itemdbSchemaAlias,
 		],

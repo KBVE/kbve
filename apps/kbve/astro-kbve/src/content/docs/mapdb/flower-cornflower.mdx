@@ -1,0 +1,36 @@
+---
+id: "YTJHXQWVXXWYAMH2XBPMH1AMM1"
+ref: "flower-cornflower"
+drafted: false
+name: "Cornflower"
+title: "Cornflower"
+template: splash
+sidebar:
+    label: "Cornflower"
+    hidden: true
+description: "A wiry stalk crowned with vivid blue petals, common at the edges of tilled fields."
+type: "resource_node"
+sub_kind: "cornflower"
+interactable: true
+destructible: true
+harvest_yield: 1
+max_amount: 50
+initial_amount: 50
+harvest_time_ms: 500
+harvest_weight: 0
+spawn_weight: 0.3
+spawn_count: 20
+pixels_per_unit: 25
+pivot_x: 0.5
+pivot_y: 0.5
+sorting_layer: "Foreground"
+profession_action_ref: "gather-cornflower"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Cornflower
+
+Farmers once wove cornflower crowns for the harvest festival, a tradition that has mostly faded but the flowers still grow wild along the furrows.
+
+<MapDBPanel data={frontmatter} />

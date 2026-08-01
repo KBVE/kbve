@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/mapdb.binpb
  * Config: ../mapdb-zod-config.json
- * Generated: 2026-07-20T00:37:21.611Z
+ * Generated: 2026-08-01T11:46:51.166Z
  */
 
 import { z } from 'zod';
@@ -876,11 +876,7 @@ export const WorldObjectDefSchema = z.object({
 	img: z.string().optional(),
 	interactable: z.boolean().optional(),
 	destructible: z.boolean().optional(),
-	loot_item_ref: z.string().optional(),
 	harvest_time_ms: z.number().optional(),
-	tool_required: z.string().optional(),
-	skill_level: z.number().optional(),
-	skill_type: z.string().optional(),
 	harvest_yield: z.number().min(0).optional(),
 	max_amount: z.number().min(0).optional(),
 	initial_amount: z.number().min(0).optional(),
@@ -932,6 +928,8 @@ export const WorldObjectDefSchema = z.object({
 	dialogue_tree_ref: z.string().optional(),
 	interaction_cooldown_secs: z.number().optional(),
 	placed_effects: z.array(PlacedEffectSchema).optional(),
+	profession_action_ref: z.string().optional(),
+	harvest_weight: z.number().optional(),
 });
 
 export type WorldObjectDef = z.infer<typeof WorldObjectDefSchema>;

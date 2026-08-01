@@ -719,7 +719,7 @@
           "requiredLevel": 1,
           "xpReward": 18,
           "durationMs": 3000,
-          "resourceNodeRef": "ore-copper",
+          "resourceNodeRef": "copper-vein",
           "toolRefs": [
             "pickaxe"
           ],
@@ -737,7 +737,7 @@
           "requiredLevel": 15,
           "xpReward": 35,
           "durationMs": 4000,
-          "resourceNodeRef": "ore-iron",
+          "resourceNodeRef": "iron-vein",
           "toolRefs": [
             "pickaxe"
           ],
@@ -903,7 +903,7 @@
           "requiredLevel": 0,
           "xpReward": 10,
           "durationMs": 2500,
-          "resourceNodeRef": "tree",
+          "resourceNodeRef": "oak-tree",
           "outputs": [
             {
               "itemRef": "log",

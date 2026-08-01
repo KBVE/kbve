@@ -25,9 +25,17 @@ export default defineConfig({
 		outDir: '../../../dist/packages/npm/laser',
 		reportCompressedSize: true,
 		lib: {
-			entry: path.resolve(__dirname, 'src/index.ts'),
-			name: 'laser',
-			fileName: (format) => `laser.${format}.js`,
+			entry: {
+				index: path.resolve(__dirname, 'src/index.ts'),
+				ecs: path.resolve(__dirname, 'src/ecs.ts'),
+				mecs: path.resolve(__dirname, 'src/mecs.ts'),
+				phaser: path.resolve(__dirname, 'src/phaser.ts'),
+				r3f: path.resolve(__dirname, 'src/r3f.ts'),
+			},
+			fileName: (format, entryName) =>
+				entryName === 'index'
+					? `laser.${format}.js`
+					: `${entryName}.${format}.js`,
 			formats: ['es'],
 		},
 		rollupOptions: {

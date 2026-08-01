@@ -30,6 +30,14 @@ export default defineConfig({
 				find: '@kbve/laser/ecs',
 				replacement: pkg('npm/laser/src/ecs.ts'),
 			},
+			{
+				find: '@kbve/laser/phaser',
+				replacement: pkg('npm/laser/src/phaser.ts'),
+			},
+			{
+				find: '@kbve/laser/r3f',
+				replacement: pkg('npm/laser/src/r3f.ts'),
+			},
 			{ find: '@kbve/laser', replacement: pkg('npm/laser/src/index.ts') },
 			{
 				find: '@kbve/chat/gamechat',

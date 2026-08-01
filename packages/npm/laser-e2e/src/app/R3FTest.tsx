@@ -1,5 +1,5 @@
 import React from 'react';
-import { Stage } from '@kbve/laser';
+import { Stage } from '@kbve/laser/r3f';
 
 export const R3FTest: React.FC = () => {
 	return (

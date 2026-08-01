@@ -1,4 +1,4 @@
-import { memo, useMemo, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactElement } from 'react';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 import { Stack, Text, tokens } from './_ui';
@@ -196,11 +196,40 @@ function FilterChips({
 	);
 }
 
+const SEARCH_DEBOUNCE_MS = 200;
+const DEFAULT_MAX_LIST_HEIGHT = 640;
+
+function useDebouncedSearch(value: string, commit: (next: string) => void) {
+	const [draft, setDraft] = useState(value);
+	const commitRef = useRef(commit);
+	commitRef.current = commit;
+	const lastValueRef = useRef(value);
+
+	useEffect(() => {
+		if (value !== lastValueRef.current) {
+			lastValueRef.current = value;
+			setDraft(value);
+		}
+	}, [value]);
+
+	useEffect(() => {
+		if (draft === lastValueRef.current) return;
+		const t = setTimeout(() => {
+			lastValueRef.current = draft;
+			commitRef.current(draft);
+		}, SEARCH_DEBOUNCE_MS);
+		return () => clearTimeout(t);
+	}, [draft]);
+
+	return [draft, setDraft] as const;
+}
+
 export interface StreamViewProps<TItem> {
 	store: StreamStore<TItem>;
 	lens: StreamLens<TItem>;
 	layout?: 'rows' | 'cards';
 	searchPlaceholder?: string;
+	maxListHeight?: number;
 }
 
 export function StreamView<TItem>({
@@ -208,9 +237,14 @@ export function StreamView<TItem>({
 	lens,
 	layout = 'rows',
 	searchPlaceholder = 'Filter…',
+	maxListHeight = DEFAULT_MAX_LIST_HEIGHT,
 }: StreamViewProps<TItem>): ReactElement {
 	useStreamLifecycle(store);
 	const state = useStream(store);
+	const [searchDraft, setSearchDraft] = useDebouncedSearch(
+		state.search,
+		store.setSearch,
+	);
 
 	const pickFilter = (id: string | null) => {
 		const prev = lens.filters?.find((f) => f.id === state.filterId);
@@ -300,8 +334,8 @@ export function StreamView<TItem>({
 				) : null}
 				{lens.searchText ? (
 					<TextInput
-						value={state.search}
-						onChangeText={store.setSearch}
+						value={searchDraft}
+						onChangeText={setSearchDraft}
 						placeholder={searchPlaceholder}
 						placeholderTextColor={tokens.color.textFaint}
 						style={styles.search}
@@ -331,6 +365,12 @@ export function StreamView<TItem>({
 				)}
 				ItemSeparatorComponent={Separator}
 				ListEmptyComponent={EmptyRow}
+				style={{ maxHeight: maxListHeight }}
+				initialNumToRender={16}
+				maxToRenderPerBatch={16}
+				updateCellsBatchingPeriod={50}
+				windowSize={5}
+				removeClippedSubviews
 			/>
 		</Stack>
 	);
