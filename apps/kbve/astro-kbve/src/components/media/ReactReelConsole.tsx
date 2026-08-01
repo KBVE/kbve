@@ -165,6 +165,7 @@ export default function ReactReelConsole() {
 	const health = useStore($reelHealth);
 	const selectedId = useStore($reelSelectedId);
 	const isStaff = useStore(homeService.$isStaff);
+	const authState = useStore(homeService.$authState);
 
 	const [source, setSource] = useState('');
 	const [adding, setAdding] = useState(false);
@@ -243,8 +244,9 @@ export default function ReactReelConsole() {
 		return (
 			<div className="reel-console reel-console--gated">
 				<p className="reel-console__gate">
-					Reel management is restricted to KBVE staff. Sign in with a
-					staff account to add, transcode, or remove reels.
+					{authState === 'loading' || authState === 'authenticated'
+						? 'Checking access…'
+						: 'Reel management is restricted to KBVE staff. Sign in with a staff account to add, transcode, or remove reels.'}
 				</p>
 			</div>
 		);

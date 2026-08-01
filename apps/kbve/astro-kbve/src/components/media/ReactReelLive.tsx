@@ -49,6 +49,7 @@ export default function ReactReelLive() {
 	const error = useStore($reelError);
 	const notice = useStore($reelNotice);
 	const isStaff = useStore(homeService.$isStaff);
+	const authState = useStore(homeService.$authState);
 
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const [player] = useState(() => new ReelPlayer());
@@ -140,7 +141,11 @@ export default function ReactReelLive() {
 	if (!isStaff) {
 		return (
 			<div className="reel-live__gate">
-				<p>Sign in with a staff account to watch the channel.</p>
+				<p>
+					{authState === 'loading' || authState === 'authenticated'
+						? 'Checking access…'
+						: 'Sign in with a staff account to watch the channel.'}
+				</p>
 			</div>
 		);
 	}
