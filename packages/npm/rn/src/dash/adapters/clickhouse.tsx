@@ -16,6 +16,7 @@ export interface RawLogRow {
 	pod_namespace?: string;
 	service?: string;
 	container_name?: string;
+	metadata?: string;
 }
 
 export interface LogItem {
@@ -28,6 +29,7 @@ export interface LogItem {
 	service: string;
 	container: string;
 	relativeTime: string;
+	metadataRaw: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -58,7 +60,46 @@ export function normalize(raw: RawLogRow): LogItem {
 		service,
 		container,
 		relativeTime,
+		metadataRaw: raw.metadata ?? '',
 	};
+}
+
+const META_HIDDEN_KEYS = new Set([
+	'level',
+	'severity',
+	'msg',
+	'message',
+	'time',
+	'ts',
+	'timestamp',
+	'logger',
+	'logging_pod',
+]);
+
+export interface MetaFact {
+	key: string;
+	value: string;
+}
+
+export function parseMetadataFacts(rawMeta: string): MetaFact[] {
+	if (!rawMeta || rawMeta === '{}') return [];
+	let parsed: unknown;
+	try {
+		parsed = JSON.parse(rawMeta);
+	} catch {
+		return [{ key: 'metadata', value: rawMeta }];
+	}
+	if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return [];
+	const out: MetaFact[] = [];
+	for (const [key, value] of Object.entries(parsed as Record<string, unknown>)) {
+		if (META_HIDDEN_KEYS.has(key.toLowerCase())) continue;
+		if (value === null || value === undefined || value === '') continue;
+		const text =
+			typeof value === 'string' ? value : JSON.stringify(value) ?? '';
+		if (!text) continue;
+		out.push({ key, value: text });
+	}
+	return out.sort((a, b) => a.key.localeCompare(b.key));
 }
 
 function formatRelativeTime(ts: string): string {
@@ -222,14 +263,41 @@ export const clickhouseLens: StreamLens<LogItem> = {
 					<Text variant="caption" weight="medium" tone="muted">
 						Message:
 					</Text>
-					<Text variant="caption" tone="faint">
+					<Text variant="caption" tone="faint" selectable>
 						{it.message}
 					</Text>
 				</Stack>
 			)}
+			<MetadataFacts rawMeta={it.metadataRaw} />
 		</Stack>
 	),
 };
+
+function MetadataFacts({ rawMeta }: { rawMeta: string }) {
+	const facts = parseMetadataFacts(rawMeta);
+	if (!facts.length) return null;
+	return (
+		<Stack gap="xs">
+			<Text variant="caption" weight="medium" tone="muted">
+				Metadata:
+			</Text>
+			{facts.map((f) => (
+				<Stack key={f.key} direction="row" gap="sm" justify="space-between">
+					<Text variant="caption" tone="muted">
+						{f.key}
+					</Text>
+					<Text
+						variant="caption"
+						tone="faint"
+						selectable
+						style={styles.metaValue}>
+						{f.value}
+					</Text>
+				</Stack>
+			))}
+		</Stack>
+	);
+}
 
 function Fact({ label, value }: { label: string; value: string }) {
 	return (
@@ -266,6 +334,10 @@ const styles = StyleSheet.create({
 		flexShrink: 0,
 	},
 	factValue: {
+		flexShrink: 1,
+		textAlign: 'right',
+	},
+	metaValue: {
 		flexShrink: 1,
 		textAlign: 'right',
 	},
