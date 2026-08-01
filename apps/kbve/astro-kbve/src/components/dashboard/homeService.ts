@@ -102,7 +102,6 @@ export interface ForgejoSummary {
 // Constants
 // ---------------------------------------------------------------------------
 
-const SUPABASE_URL = 'https://supabase.kbve.com';
 const CACHE_TTL_MS = 2 * 60 * 1000;
 const PROXY_BASE = `${DASH_PROXY_BASE}/dashboard/grafana/proxy`;
 const DS_CACHE_KEY = 'cache:grafana:ds-id';

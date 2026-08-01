@@ -56,10 +56,10 @@ COPY apps/kbve/astro-kbve/ apps/kbve/astro-kbve/
 WORKDIR /app/apps/kbve/astro-kbve
 ARG ASTRO_CACHE_KEY=astro6
 RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-kbve-cache-${ASTRO_CACHE_KEY},sharing=locked \
-    cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
+    { cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true; } && \
     npx astro sync && \
     UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" npx astro build && \
-    cp -a .astro/. /tmp/astro-cache/ 2>/dev/null || true
+    { cp -a .astro/. /tmp/astro-cache/ 2>/dev/null || true; }
 
 # ============================================================================
 # [STAGE B] - Precompress Static Assets
