@@ -284,7 +284,10 @@ export function Character({
 	const scene = useMemo(() => {
 		const s = cloneSkinned(gltf.scene);
 		s.traverse((o) => {
-			if ((o as THREE.Mesh).isMesh) o.castShadow = true;
+			if ((o as THREE.Mesh).isMesh) {
+				o.castShadow = true;
+				o.frustumCulled = false;
+			}
 		});
 		return s;
 	}, [gltf]);
