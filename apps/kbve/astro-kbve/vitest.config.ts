@@ -34,6 +34,13 @@ export default defineConfig({
 				),
 			},
 			{
+				find: /^@kbve\/laser\/(ecs|mecs|phaser|r3f)$/,
+				replacement: path.resolve(
+					__dirname,
+					'../../../packages/npm/laser/src/$1.ts',
+				),
+			},
+			{
 				find: '@kbve/laser',
 				replacement: path.resolve(
 					__dirname,

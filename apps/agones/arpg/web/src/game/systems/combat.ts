@@ -3,10 +3,9 @@ import {
 	GameClient,
 	EntityStore,
 	ACTION_SHOOT,
-	flashEntity,
-	floatingText,
 	type CombatEvent,
 } from '@kbve/laser';
+import { flashEntity, floatingText } from '@kbve/laser/phaser';
 import { DEPTH_UI, ARROW_MAX_RANGE, ARROW_SPEED } from '../config';
 import {
 	fireBow,

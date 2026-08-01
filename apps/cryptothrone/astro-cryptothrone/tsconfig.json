@@ -17,6 +17,8 @@
 			"@kbve/laser": ["../../../packages/npm/laser/src/index.ts"],
 			"@kbve/observ": ["../../../packages/npm/observ/src/index.ts"],
 			"@kbve/laser/ecs": ["../../../packages/npm/laser/src/ecs.ts"],
+			"@kbve/laser/phaser": ["../../../packages/npm/laser/src/phaser.ts"],
+			"@kbve/laser/r3f": ["../../../packages/npm/laser/src/r3f.ts"],
 			"@kbve/chat/gamechat": [
 				"../../../packages/npm/chat/src/gamechat.ts"
 			],

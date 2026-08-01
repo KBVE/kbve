@@ -2,10 +2,6 @@ import Phaser from 'phaser';
 import {
 	GameClient,
 	PROTOCOL_VERSION,
-	createWorldDustLayer,
-	drawHealthBar,
-	drawHealthBarCached,
-	type WorldDustHandle,
 	type EntityDelta,
 	type KindEntry,
 	type Snapshot,
@@ -18,6 +14,12 @@ import {
 	type CorpseContents,
 	ACTION_LOOT,
 } from '@kbve/laser';
+import {
+	createWorldDustLayer,
+	drawHealthBar,
+	drawHealthBarCached,
+	type WorldDustHandle,
+} from '@kbve/laser/phaser';
 import {
 	COLORS,
 	TILE_W,

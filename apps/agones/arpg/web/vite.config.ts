@@ -96,25 +96,14 @@ function hashDiscordBundle(htmlTemplatePath: string) {
 
 const GAME_WS = process.env.PUBLIC_ARPG_GAME_WS || 'ws://localhost:7979/ws';
 
-function stubLaserR3F() {
-	const virtual = '\0arpg-laser-r3f-stub';
-	return {
-		name: 'stub-laser-r3f',
-		enforce: 'pre' as const,
-		resolveId(source: string) {
-			return /[\\/]lib[\\/]r3f[\\/]/.test(source) ? virtual : null;
-		},
-		load(id: string) {
-			return id === virtual
-				? 'export const Stage = () => null; export const useGameLoop = () => {};'
-				: null;
-		},
-	};
-}
-
 const laserAlias = {
 	find: /^@kbve\/laser$/,
 	replacement: path.join(repoRoot, 'packages/npm/laser/src/index.ts'),
+};
+
+const laserSubpathAlias = {
+	find: /^@kbve\/laser\/(ecs|mecs|phaser|r3f)$/,
+	replacement: path.join(repoRoot, 'packages/npm/laser/src/$1.ts'),
 };
 
 const observAlias = {
@@ -156,22 +145,17 @@ const itemdbSchemaAlias = {
 // arpg.kbve.com is the single source: app, embed bundle, and art all ship here.
 export default defineConfig(({ mode }) => {
 	const base = {
-		plugins: [stubLaserR3F(), react()],
+		plugins: [react()],
 		// Keep function/class names through esbuild minification so telemetry
 		// stack traces show real frames (not `t.a.b`) even without a source map.
 		esbuild: { keepNames: true },
 		resolve: {
-			// dedupe bitecs: laser declares it an optional peer, so aliasing
-			// @kbve/laser to source otherwise lets vite resolve laser's `bitecs`
-			// import to its optional-peer stub. That works at the repo root
-			// (hoisted node_modules) but breaks the container's isolated install
-			// ("query is not exported by __vite-optional-peer-dep:bitecs"). This
-			// app depends on bitecs directly, so pin everyone to that one copy.
-			// phaser + @phaserjs/rapier-connector are the same trap: laser source
-			// lives outside web/, so vite resolves its bare imports relative to
-			// packages/npm/laser, which has no node_modules in the container
-			// ("Could not resolve 'phaser' imported by @kbve/laser"). Pin them
-			// to this app's copy. Local builds mask it via root node_modules.
+			// laser is aliased to source, so its bare imports resolve relative to
+			// packages/npm/laser — which has no node_modules in the container. Each
+			// optional peer laser can reach from an entry point this app imports
+			// must be pinned to this app's copy, or vite substitutes an
+			// optional-peer stub that rollup then fails on. Local builds mask it
+			// via root node_modules, so a miss here only breaks the image build.
 			dedupe: [
 				'react',
 				'react-dom',
@@ -181,6 +165,7 @@ export default defineConfig(({ mode }) => {
 				'fastnoise-lite',
 			],
 			alias: [
+				laserSubpathAlias,
 				laserAlias,
 				observAlias,
 				itemdbDataAlias,

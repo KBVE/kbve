@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import Phaser from 'phaser';
-import { PhaserGame, type LaserGameConfig } from '@kbve/laser';
+import { type LaserGameConfig } from '@kbve/laser';
+import { PhaserGame } from '@kbve/laser/phaser';
 import { useStore } from '@nanostores/react';
 import { $auth, setAuth } from '@kbve/droid';
 import { getSupa, initSupa } from '@/lib/supa';

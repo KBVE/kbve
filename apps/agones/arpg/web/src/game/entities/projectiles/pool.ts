@@ -1,1 +1,1 @@
-export { GameObjectPool } from '@kbve/laser';
+export { GameObjectPool } from '@kbve/laser/phaser';

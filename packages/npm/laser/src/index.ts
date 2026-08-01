@@ -24,68 +24,9 @@ export type {
 // Spatial
 export { Quadtree } from './lib/spatial/quadtree';
 
-// Phaser
-export { PhaserGame } from './lib/phaser/PhaserGame';
-export type { PhaserGameProps, PhaserGameRef } from './lib/phaser/PhaserGame';
-export { PhaserContext, usePhaserGame } from './lib/phaser/use-phaser';
-export { usePhaserEvent } from './lib/phaser/use-phaser-event';
-export { PlayerController } from './lib/phaser/player-controller';
-export { VirtualJoystick } from './lib/phaser/virtual-joystick';
-export type { VirtualJoystickConfig } from './lib/phaser/virtual-joystick';
-export {
-	flashEntity,
-	floatingText,
-	drawHealthBar,
-	drawHealthBarCached,
-	attachCameraZoom,
-} from './lib/phaser/entity-fx';
-export type { CameraZoomOptions } from './lib/phaser/entity-fx';
-export {
-	createGpuSpriteLayer,
-	populateGpuSpriteLayer,
-} from './lib/phaser/gpu-sprite-layer';
-export type {
-	GpuSpriteLayerOptions,
-	GpuSpriteLayerHandle,
-} from './lib/phaser/gpu-sprite-layer';
-export {
-	createDustMoteLayer,
-	createWorldDustLayer,
-	dustMemberAt,
-} from './lib/phaser/ambient-dust';
-export type {
-	DustMoteOptions,
-	WorldDustHandle,
-	WorldDustOptions,
-} from './lib/phaser/ambient-dust';
-export { GameObjectPool } from './lib/phaser/object-pool';
-export { setupKeyboardMap } from './lib/phaser/keyboard-map';
-export type { KeyboardMap } from './lib/phaser/keyboard-map';
-export {
-	createArrowPool,
-	animateArrowProjectile,
-} from './lib/phaser/arrow-projectile';
-export type {
-	ArrowPool,
-	ArrowPoolOptions,
-	ArrowShot,
-} from './lib/phaser/arrow-projectile';
-
 // Tile prediction — BFS pathing that mirrors the server grid
 export { findTilePath } from './lib/tile/path';
 export type { TileXY } from './lib/tile/path';
-export {
-	getBirdNum,
-	isBird,
-	createBirdSprites,
-	createShadowSprites,
-	createBirdAnimation,
-} from './lib/phaser/monsters/bird';
-
-// R3F
-export { Stage } from './lib/r3f/components/Stage';
-export type { StageProps } from './lib/r3f/components/Stage';
-export { useGameLoop } from './lib/r3f/hooks/use-game-loop';
 
 // WebGL context-loss guard (framework-agnostic; shared across WebGL games)
 export {
@@ -97,29 +38,6 @@ export type {
 	WebGLEventKind,
 	ContextGuardHandlers,
 } from './lib/webgl/context-guard';
-
-// WebGL — Parallax / Silhouette Occlusion Mapping (POM / SPOM) primitives
-export {
-	createPomUniforms,
-	toThreeUniforms,
-	POM_DEFAULTS,
-	POM_MAX_STEPS,
-	POM_VARYINGS,
-	DERIVE_TANGENT,
-	POM_MARCH,
-	SPOM_SILHOUETTE,
-	POM_SELF_SHADOW,
-	HEIGHT_HELPERS,
-	POM_SOURCE_BRICK,
-	POM_SOURCE_LUMA,
-	POM_SOURCE_MAP,
-	POM_WGSL_STUB,
-} from './lib/webgl/pom';
-export type {
-	PomUniformValues,
-	PomConfig,
-	PomMaterialType,
-} from './lib/webgl/pom';
 
 // ECS (bitecs) — full re-export of bitecs core API
 export * from './lib/ecs/bitecs';
@@ -143,9 +61,6 @@ export {
 	type SpawnData,
 	type UpdateData,
 } from './lib/ecs/store';
-
-// Physics (Rapier)
-export { RAPIER, createRapierPhysics } from './lib/physics/rapier';
 
 // Determinism — RNG primitives mirrored byte-for-byte by simgrid rng.rs
 export { Domain, mix32, mulberry32, stream, rollPct } from './lib/determ';

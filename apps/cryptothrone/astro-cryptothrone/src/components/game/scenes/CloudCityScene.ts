@@ -2,15 +2,6 @@ import Phaser, { Scene } from 'phaser';
 import {
 	GameClient,
 	laserEvents,
-	createBirdAnimation,
-	createDustMoteLayer,
-	flashEntity,
-	floatingText,
-	drawHealthBarCached,
-	attachCameraZoom,
-	setupKeyboardMap,
-	createArrowPool,
-	animateArrowProjectile,
 	findTilePath,
 	lineCast,
 	BOW_RANGE,
@@ -21,6 +12,17 @@ import {
 	KIND_CAT_NPC,
 	KIND_CAT_PLAYER,
 } from '@kbve/laser';
+import {
+	createBirdAnimation,
+	createDustMoteLayer,
+	flashEntity,
+	floatingText,
+	drawHealthBarCached,
+	attachCameraZoom,
+	setupKeyboardMap,
+	createArrowPool,
+	animateArrowProjectile,
+} from '@kbve/laser/phaser';
 import type {
 	CharacterEventData,
 	Snapshot,
@@ -28,9 +30,8 @@ import type {
 	ConnectionState,
 	BjActionKind,
 	ProjectileEvent,
-	GpuSpriteLayerHandle,
-	ArrowPool,
 } from '@kbve/laser';
+import type { GpuSpriteLayerHandle, ArrowPool } from '@kbve/laser/phaser';
 import { getCtNetConfig } from '@/lib/net-config';
 import { getNPCByRef, npcIdForRef, isHostileRef } from '../data/npcs';
 import { resolveNpcSprite } from '../data/npcVisuals';
