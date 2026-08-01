@@ -5,6 +5,11 @@
       "ref": "adamantine-vein",
       "drafted": false,
       "name": "Adamantine Vein",
+      "template": "splash",
+      "sidebar": {
+        "label": "Adamantine Vein",
+        "hidden": true
+      },
       "description": "An impenetrable adamantine deposit with razor edged crystalline facets",
       "type": "WORLD_OBJECT_RESOURCE_NODE",
       "subKind": "adamantine_ore",
@@ -23,6 +28,11 @@
       "ref": "barracks",
       "drafted": false,
       "name": "Barracks",
+      "template": "splash",
+      "sidebar": {
+        "label": "Barracks",
+        "hidden": true
+      },
       "description": "A fortified hall with timber-framed upper story, tiled roof, and a heraldic insignia over the door. Recruits soldiers, crafts arrows, heals the wounded.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "barracks",
@@ -146,6 +156,11 @@
       "ref": "campfire",
       "drafted": false,
       "name": "Campfire",
+      "template": "splash",
+      "sidebar": {
+        "label": "Campfire",
+        "hidden": true
+      },
       "description": "A placed campfire — blocks its tile, warms the ring around it, and burns anything forced onto the embers.",
       "type": "WORLD_OBJECT_PROP",
       "subKind": "campfire",
@@ -174,6 +189,11 @@
       "ref": "candelabrum",
       "drafted": false,
       "name": "Candelabrum Stand",
+      "template": "splash",
+      "sidebar": {
+        "label": "Candelabrum Stand",
+        "hidden": true
+      },
       "description": "A placed floor candelabrum — blocks its tile and steadies the mana of anyone in its candlelight ring.",
       "type": "WORLD_OBJECT_PROP",
       "subKind": "candelabrum",
@@ -196,6 +216,11 @@
       "ref": "capital",
       "drafted": false,
       "name": "Capital",
+      "template": "splash",
+      "sidebar": {
+        "label": "Capital",
+        "hidden": true
+      },
       "description": "The seat of the empire — a 7-hex flower of walls, banners, and the king's hall. Bootstraps an entire civilization from a single scroll.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "capital",
@@ -284,6 +309,11 @@
       "ref": "castle",
       "drafted": false,
       "name": "Castle",
+      "template": "splash",
+      "sidebar": {
+        "label": "Castle",
+        "hidden": true
+      },
       "description": "Wide curtain wall, twin flanking towers, multi-tier central keep with watchtower, four torches, and a grand banner — Barracks tier 2, capital of war.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "castle",
@@ -364,6 +394,11 @@
       "ref": "coal-vein",
       "drafted": false,
       "name": "Coal Vein",
+      "template": "splash",
+      "sidebar": {
+        "label": "Coal Vein",
+        "hidden": true
+      },
       "description": "A compressed seam of coal embedded within stratified shale",
       "type": "WORLD_OBJECT_RESOURCE_NODE",
       "subKind": "coal",
@@ -382,6 +417,11 @@
       "ref": "cobalt-vein",
       "drafted": false,
       "name": "Cobalt Vein",
+      "template": "splash",
+      "sidebar": {
+        "label": "Cobalt Vein",
+        "hidden": true
+      },
       "description": "A rare cobalt ore vein threaded with luminescent blue crystals",
       "type": "WORLD_OBJECT_RESOURCE_NODE",
       "subKind": "cobalt_ore",
@@ -400,9 +440,15 @@
       "ref": "copper-vein",
       "drafted": false,
       "name": "Copper Vein",
+      "template": "splash",
+      "sidebar": {
+        "label": "Copper Vein",
+        "hidden": true
+      },
       "description": "A rich copper ore deposit embedded in rocky terrain",
       "type": "WORLD_OBJECT_RESOURCE_NODE",
       "subKind": "copper_ore",
+      "professionActionRef": "gather-copper-ore",
       "img": "/assets/mapdb/metal/copper/copper_vein.png",
       "interactable": true,
       "destructible": true,
@@ -418,6 +464,11 @@
       "ref": "dock",
       "drafted": false,
       "name": "Dock",
+      "template": "splash",
+      "sidebar": {
+        "label": "Dock",
+        "hidden": true
+      },
       "description": "Wooden pilings rising from the river, planked deck, fisherman's shack with a lantern. River-only — passive fishing plus boat construction when a Craftsman is on duty.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "dock",
@@ -475,6 +526,11 @@
       "ref": "dusty-bazaar",
       "drafted": false,
       "name": "Dusty Bazaar",
+      "template": "splash",
+      "sidebar": {
+        "label": "Dusty Bazaar",
+        "hidden": true
+      },
       "description": "Trinkets and vials line crooked shelves. A merchant eyes you expectantly from behind a counter made of stacked crates.",
       "type": "WORLD_OBJECT_NPC_MARKER",
       "subKind": "merchant",
@@ -492,6 +548,11 @@
       "ref": "dwarven-outpost",
       "drafted": false,
       "name": "Dwarven Outpost",
+      "template": "splash",
+      "sidebar": {
+        "label": "Dwarven Outpost",
+        "hidden": true
+      },
       "description": "Sturdy stone buildings cluster around a central well. The smell of cooking drifts from a tavern doorway and hammer strikes ring from a smithy.",
       "type": "WORLD_OBJECT_SETTLEMENT",
       "subKind": "city",
@@ -509,6 +570,11 @@
       "ref": "ember-hearth",
       "drafted": false,
       "name": "Ember Hearth",
+      "template": "splash",
+      "sidebar": {
+        "label": "Ember Hearth",
+        "hidden": true
+      },
       "description": "An ancient fireplace still burns with pale blue flame. No fuel feeds it, yet it has burned since before anyone can remember.",
       "type": "WORLD_OBJECT_PROP",
       "subKind": "shrine",
@@ -538,6 +604,11 @@
       "ref": "farm",
       "drafted": false,
       "name": "Farm",
+      "template": "splash",
+      "sidebar": {
+        "label": "Farm",
+        "hidden": true
+      },
       "description": "A tilled plot with a timber-framed barn — the empire's cornerstone for food. Requires a Farmer on the footprint to turn compost into carrots.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "farm",
@@ -634,6 +705,11 @@
       "ref": "furnace",
       "drafted": false,
       "name": "Furnace",
+      "template": "splash",
+      "sidebar": {
+        "label": "Furnace",
+        "hidden": true
+      },
       "description": "A kiln of stacked stone with a brick chimney belching heat. Smelts ore into ingots and stone into brick whenever it's fed fuel.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "furnace",
@@ -718,6 +794,11 @@
       "ref": "goblin-cave",
       "drafted": false,
       "name": "Goblin Cave",
+      "template": "splash",
+      "sidebar": {
+        "label": "Goblin Cave",
+        "hidden": true
+      },
       "description": "A mossy rock mound hiding a torch-lit archway. Feed it food and it spits out more goblins.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "goblin_cave",
@@ -758,6 +839,11 @@
       "ref": "gold-vein",
       "drafted": false,
       "name": "Gold Vein",
+      "template": "splash",
+      "sidebar": {
+        "label": "Gold Vein",
+        "hidden": true
+      },
       "description": "A gleaming gold vein encased in dense granite and pyrite inclusions",
       "type": "WORLD_OBJECT_RESOURCE_NODE",
       "subKind": "gold_ore",
@@ -776,6 +862,11 @@
       "ref": "inn",
       "drafted": false,
       "name": "Inn",
+      "template": "splash",
+      "sidebar": {
+        "label": "Inn",
+        "hidden": true
+      },
       "description": "A half-timbered tavern with warm-glow windows and a tiled roof. Feeds travellers, houses the weary, keeps the fire going no matter the hour.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "inn",
@@ -819,9 +910,15 @@
       "ref": "iron-vein",
       "drafted": false,
       "name": "Iron Vein",
+      "template": "splash",
+      "sidebar": {
+        "label": "Iron Vein",
+        "hidden": true
+      },
       "description": "A dense iron ore deposit with rich metallic veins running through granite",
       "type": "WORLD_OBJECT_RESOURCE_NODE",
       "subKind": "iron_ore",
+      "professionActionRef": "gather-iron-ore",
       "img": "/assets/mapdb/metal/iron/iron_vein.png",
       "interactable": true,
       "destructible": true,
@@ -837,6 +934,11 @@
       "ref": "jade-crystal",
       "drafted": false,
       "name": "Jade Crystal",
+      "template": "splash",
+      "sidebar": {
+        "label": "Jade Crystal",
+        "hidden": true
+      },
       "description": "A verdant jade crystal pillar infused with restorative earth energies",
       "type": "WORLD_OBJECT_RESOURCE_NODE",
       "subKind": "jade",
@@ -855,6 +957,11 @@
       "ref": "keep",
       "drafted": false,
       "name": "Keep",
+      "template": "splash",
+      "sidebar": {
+        "label": "Keep",
+        "hidden": true
+      },
       "description": "Curtain wall with crenellations, twin corner towers, and a central keep tower — Barracks tier 1. Garrison hub.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "keep",
@@ -956,6 +1063,11 @@
       "ref": "lumbercamp",
       "drafted": false,
       "name": "Lumbercamp",
+      "template": "splash",
+      "sidebar": {
+        "label": "Lumbercamp",
+        "hidden": true
+      },
       "description": "A log cabin with stacked firewood, a chopping stump, and a steel axe buried in the block. Forest-only building — converts Lumberjack labour into logs.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "lumbercamp",
@@ -1013,6 +1125,11 @@
       "ref": "luminous-alcove",
       "drafted": false,
       "name": "Luminous Alcove",
+      "template": "splash",
+      "sidebar": {
+        "label": "Luminous Alcove",
+        "hidden": true
+      },
       "description": "A warm glow emanates from a shrine embedded in the wall. The air feels lighter here, and wounds seem to close on their own.",
       "type": "WORLD_OBJECT_PROP",
       "subKind": "shrine",
@@ -1047,6 +1164,11 @@
       "ref": "market",
       "drafted": false,
       "name": "Market",
+      "template": "splash",
+      "sidebar": {
+        "label": "Market",
+        "hidden": true
+      },
       "description": "An open wooden stall with a striped canvas awning and a trestle table of goods. First rung of a three-tier commerce chain — Market → Trade House → Merchants Guild.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "market",
@@ -1107,6 +1229,11 @@
       "ref": "merchants-guild",
       "drafted": false,
       "name": "Merchants Guild",
+      "template": "splash",
+      "sidebar": {
+        "label": "Merchants Guild",
+        "hidden": true
+      },
       "description": "Three-story stone guildhall with columned mezzanine, tiled hip roof, and a purple banner. Market tier 2, the peak of the commerce chain.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "merchants_guild",
@@ -1136,6 +1263,11 @@
       "ref": "mining-pit",
       "drafted": false,
       "name": "Mining Pit",
+      "template": "splash",
+      "sidebar": {
+        "label": "Mining Pit",
+        "hidden": true
+      },
       "description": "A timber A-frame over a dark pit mouth with a rope-and-bucket rig hanging in the centre. Sand-biome only — converts Miner labour into stone.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "mining_pit",
@@ -1189,6 +1321,11 @@
       "ref": "mirror-chamber",
       "drafted": false,
       "name": "Mirror Chamber",
+      "template": "splash",
+      "sidebar": {
+        "label": "Mirror Chamber",
+        "hidden": true
+      },
       "description": "Your reflection moves on its own. It beckons you closer, mimicking actions you haven't taken yet.",
       "type": "WORLD_OBJECT_LANDMARK",
       "subKind": "landmark",
@@ -1213,6 +1350,11 @@
       "ref": "mithril-vein",
       "drafted": false,
       "name": "Mithril Vein",
+      "template": "splash",
+      "sidebar": {
+        "label": "Mithril Vein",
+        "hidden": true
+      },
       "description": "A shimmering mithril seam interwoven with ethereal silver-blue threads",
       "type": "WORLD_OBJECT_RESOURCE_NODE",
       "subKind": "mithril_ore",
@@ -1231,6 +1373,11 @@
       "ref": "mushroom-bazaar",
       "drafted": false,
       "name": "Mushroom Bazaar",
+      "template": "splash",
+      "sidebar": {
+        "label": "Mushroom Bazaar",
+        "hidden": true
+      },
       "description": "Giant luminescent fungi provide light while merchants sell goods from stalls carved into massive stalks. A cozy inn glows warmly in the largest mushroom cap.",
       "type": "WORLD_OBJECT_SETTLEMENT",
       "subKind": "city",
@@ -1248,6 +1395,11 @@
       "ref": "nd-tower-basic",
       "drafted": false,
       "name": "Nexus Defense — Basic Tower",
+      "template": "splash",
+      "sidebar": {
+        "label": "Nexus Defense — Basic Tower",
+        "hidden": true
+      },
       "description": "Starter defensive tower for Nexus Defense matches. Single-target arrow turret with modest range and damage; placed on the player's hex grid at match start.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "nd_tower_basic",
@@ -1287,9 +1439,15 @@
       "ref": "oak-tree",
       "drafted": false,
       "name": "Oak Tree",
+      "template": "splash",
+      "sidebar": {
+        "label": "Oak Tree",
+        "hidden": true
+      },
       "description": "A sturdy oak tree that provides wood when harvested",
       "type": "WORLD_OBJECT_RESOURCE_NODE",
       "subKind": "oak",
+      "professionActionRef": "gather-log",
       "img": "/assets/mapdb/tree/oak/oak_tree.png",
       "interactable": true,
       "destructible": true,
@@ -1305,6 +1463,11 @@
       "ref": "outpost",
       "drafted": false,
       "name": "Outpost",
+      "template": "splash",
+      "sidebar": {
+        "label": "Outpost",
+        "hidden": true
+      },
       "description": "A stone watchtower with a crenellated parapet, heraldic banner, and an arrow volley pool in the cellar. Anchors empire territory outside the Capital's radius.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "outpost",
@@ -1368,6 +1531,11 @@
       "ref": "prismatic-throne",
       "drafted": false,
       "name": "The Prismatic Throne",
+      "template": "splash",
+      "sidebar": {
+        "label": "The Prismatic Throne",
+        "hidden": true
+      },
       "description": "An enormous chamber. At its center, a throne of living glass pulses with prismatic light. Something ancient awakens as you enter.",
       "type": "WORLD_OBJECT_ARENA",
       "subKind": "boss_arena",
@@ -1385,6 +1553,11 @@
       "ref": "quiet-spring",
       "drafted": false,
       "name": "Quiet Spring",
+      "template": "splash",
+      "sidebar": {
+        "label": "Quiet Spring",
+        "hidden": true
+      },
       "description": "Clear water bubbles up from a crack in the stone. Its warmth is soothing and its touch heals wounds with unnatural speed.",
       "type": "WORLD_OBJECT_RESOURCE_NODE",
       "subKind": "water",
@@ -1399,6 +1572,11 @@
       "ref": "redwood-tree",
       "drafted": false,
       "name": "Redwood Tree",
+      "template": "splash",
+      "sidebar": {
+        "label": "Redwood Tree",
+        "hidden": true
+      },
       "description": "A massive ancient redwood tree that provides abundant wood",
       "type": "WORLD_OBJECT_RESOURCE_NODE",
       "subKind": "redwood",
@@ -1417,6 +1595,11 @@
       "ref": "ruby-crystal",
       "drafted": false,
       "name": "Ruby Crystal",
+      "template": "splash",
+      "sidebar": {
+        "label": "Ruby Crystal",
+        "hidden": true
+      },
       "description": "A luminous ruby crystal cluster radiating intense heat and magical energy",
       "type": "WORLD_OBJECT_RESOURCE_NODE",
       "subKind": "ruby",
@@ -1435,6 +1618,11 @@
       "ref": "salt-vein",
       "drafted": false,
       "name": "Salt Vein",
+      "template": "splash",
+      "sidebar": {
+        "label": "Salt Vein",
+        "hidden": true
+      },
       "description": "A crystalline salt vein crystallized within chalky limestone",
       "type": "WORLD_OBJECT_RESOURCE_NODE",
       "subKind": "salt",
@@ -1453,6 +1641,11 @@
       "ref": "sapphire-crystal",
       "drafted": false,
       "name": "Sapphire Crystal",
+      "template": "splash",
+      "sidebar": {
+        "label": "Sapphire Crystal",
+        "hidden": true
+      },
       "description": "A serene sapphire crystal cluster humming with focused elemental water energy",
       "type": "WORLD_OBJECT_RESOURCE_NODE",
       "subKind": "sapphire",
@@ -1471,6 +1664,11 @@
       "ref": "shattered-crown",
       "drafted": false,
       "name": "The Shattered Crown",
+      "template": "splash",
+      "sidebar": {
+        "label": "The Shattered Crown",
+        "hidden": true
+      },
       "description": "Fragments of a massive crystal orbit the room in slow arcs. Power radiates from within, ancient and terrible.",
       "type": "WORLD_OBJECT_ARENA",
       "subKind": "boss_arena",
@@ -1488,6 +1686,11 @@
       "ref": "silver-vein",
       "drafted": false,
       "name": "Silver Vein",
+      "template": "splash",
+      "sidebar": {
+        "label": "Silver Vein",
+        "hidden": true
+      },
       "description": "A shimmering silver ore vein threaded through quartz-laced rock",
       "type": "WORLD_OBJECT_RESOURCE_NODE",
       "subKind": "silver_ore",
@@ -1506,6 +1709,11 @@
       "ref": "sunken-market",
       "drafted": false,
       "name": "The Sunken Market",
+      "template": "splash",
+      "sidebar": {
+        "label": "The Sunken Market",
+        "hidden": true
+      },
       "description": "An underground market carved into ancient stone, lit by rows of flickering torches. Merchants hawk wares from hollowed alcoves while an inn sign creaks overhead.",
       "type": "WORLD_OBJECT_SETTLEMENT",
       "subKind": "city",
@@ -1523,6 +1731,11 @@
       "ref": "the-still-pool",
       "drafted": false,
       "name": "The Still Pool",
+      "template": "splash",
+      "sidebar": {
+        "label": "The Still Pool",
+        "hidden": true
+      },
       "description": "A dark pool of water fills the center of the room. Its surface is perfectly still. Shapes move beneath, watching.",
       "type": "WORLD_OBJECT_LANDMARK",
       "subKind": "landmark",
@@ -1552,6 +1765,11 @@
       "ref": "tower",
       "drafted": false,
       "name": "Tower",
+      "template": "splash",
+      "sidebar": {
+        "label": "Tower",
+        "hidden": true
+      },
       "description": "Standalone defensive spire with stone shaft, parapet, crenellations, and a lit torch crown — scout vision and ranged deterrent.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "tower",
@@ -1584,6 +1802,11 @@
       "ref": "trade-house",
       "drafted": false,
       "name": "Trade House",
+      "template": "splash",
+      "sidebar": {
+        "label": "Trade House",
+        "hidden": true
+      },
       "description": "Two-bay wooden hall with tiled roof and a counter of goods — Market tier 1. Upgrade from Market with 5 Gold Bars.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "trade_house",
@@ -1626,6 +1849,11 @@
       "ref": "uranium-vein",
       "drafted": false,
       "name": "Uranium Vein",
+      "template": "splash",
+      "sidebar": {
+        "label": "Uranium Vein",
+        "hidden": true
+      },
       "description": "A volatile uranium deposit pulsing with unstable green luminescence",
       "type": "WORLD_OBJECT_RESOURCE_NODE",
       "subKind": "uranium_ore",
@@ -1644,6 +1872,11 @@
       "ref": "village",
       "drafted": false,
       "name": "Village",
+      "template": "splash",
+      "sidebar": {
+        "label": "Village",
+        "hidden": true
+      },
       "description": "Farm plot flanked by two cottages and a central well — Farm tier 1. Expanded food production plus faint population presence.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "village",
@@ -1723,6 +1956,11 @@
       "ref": "wall",
       "drafted": false,
       "name": "Wall",
+      "template": "splash",
+      "sidebar": {
+        "label": "Wall",
+        "hidden": true
+      },
       "description": "Stone rampart with crenellated top, central gate arch, and arrow slits — standalone barrier segment linking Towers or flanking a Keep.",
       "type": "WORLD_OBJECT_BUILDING",
       "subKind": "wall",
@@ -1751,6 +1989,11 @@
       "ref": "wanderers-nook",
       "drafted": false,
       "name": "Wanderer's Nook",
+      "template": "splash",
+      "sidebar": {
+        "label": "Wanderer's Nook",
+        "hidden": true
+      },
       "description": "A cloaked figure beckons from behind a makeshift stall wedged into a dungeon alcove. The goods are questionable. The prices are worse.",
       "type": "WORLD_OBJECT_NPC_MARKER",
       "subKind": "merchant",
@@ -1768,6 +2011,11 @@
       "ref": "whispering-hall",
       "drafted": false,
       "name": "Whispering Hall",
+      "template": "splash",
+      "sidebar": {
+        "label": "Whispering Hall",
+        "hidden": true
+      },
       "description": "Voices echo from nowhere. The walls seem to breathe, whispering fragments of conversations from ages past.",
       "type": "WORLD_OBJECT_LANDMARK",
       "subKind": "landmark",
