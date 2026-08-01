@@ -90,6 +90,8 @@ local function on_death(self, ...)
     end
 end
 
+local registered = {}
+
 local function probe_classes()
     for _, c in ipairs(CLASS_PROBES) do
         local ok, obj = pcall(StaticFindObject, c)
@@ -98,7 +100,38 @@ local function probe_classes()
     end
 end
 
-local registered = {}
+local function harvest_hooks()
+    for _, c in ipairs(CLASS_PROBES) do
+        local ok, cls = pcall(StaticFindObject, c)
+        if ok and cls and cls:IsValid() then
+            pcall(function()
+                cls:ForEachFunction(function(fn)
+                    local ok2 = pcall(function()
+                        local name = fn:GetFName():ToString()
+                        if
+                            name:find("Dead")
+                            or name:find("Death")
+                            or name:find("Defeat")
+                        then
+                            local full = c .. ":" .. name
+                            log("candidate fn discovered: " .. full)
+                            if
+                                not registered[full]
+                                and pcall(RegisterHook, full, on_death)
+                            then
+                                registered[full] = true
+                                log("death hook registered on " .. full)
+                            end
+                        end
+                    end)
+                    if not ok2 and DEBUG_ALL then
+                        log("harvest iteration error on " .. c)
+                    end
+                end)
+            end)
+        end
+    end
+end
 
 local function try_register()
     local any = false
@@ -117,6 +150,7 @@ local function try_register()
 end
 
 local function schedule()
+    harvest_hooks()
     if try_register() then
         return
     end

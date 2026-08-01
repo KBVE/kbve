@@ -33,6 +33,7 @@ RUN set -eux \
 
 COPY apps/agones/palworld/mods/PalChatRelay /opt/palchatrelay/PalChatRelay
 COPY apps/agones/palworld/mods/PalEventRelay /opt/palchatrelay/PalEventRelay
+COPY apps/agones/palworld/mods/PalTweaks /opt/palchatrelay/PalTweaks
 COPY apps/agones/palworld/mods/PalForge /opt/palchatrelay/PalForge
 COPY apps/agones/palworld/mods/PalSchema /opt/palchatrelay/PalSchema-overlay
 COPY apps/agones/palworld/overlay.sh /opt/palchatrelay/overlay.sh
