@@ -2,22 +2,25 @@ import * as path from 'node:path';
 import { defineConfig } from 'vitest/config';
 
 // Unit tests for the game's pure logic (dungeon parity, etc). Kept separate from
-// the build config (vite.config.ts) — these specs need no DOM, no Phaser, and no
-// laser source alias; they exercise plain TS. The dungeon parity spec pins the
-// frozen FNV-1a fingerprint shared with simgrid's Rust arpg_dungeon.
-//
-// @kbve/laser resolves to a pure-leaf stub, not the runtime barrel: the barrel
-// value-exports Phaser-backed helpers that node-env vitest cannot load, while
-// the values these spec graphs execute live in pure leaves (game-auth).
-// Type-only laser imports are erased before resolution.
+// the build config (vite.config.ts) — these specs need no DOM and no Phaser.
+// laser is aliased to source; the root barrel is renderer-free (Phaser and
+// three live behind the /phaser and /r3f subpaths), so node-env vitest can load
+// it directly instead of the hand-written stub this used to need.
 export default defineConfig({
 	resolve: {
 		alias: [
 			{
+				find: /^@kbve\/laser\/(ecs|mecs|phaser|r3f)$/,
+				replacement: path.resolve(
+					__dirname,
+					'../../../../packages/npm/laser/src/$1.ts',
+				),
+			},
+			{
 				find: /^@kbve\/laser$/,
 				replacement: path.resolve(
 					__dirname,
-					'src/test/laser-vitest-stub.ts',
+					'../../../../packages/npm/laser/src/index.ts',
 				),
 			},
 		],

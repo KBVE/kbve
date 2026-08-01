@@ -5,7 +5,7 @@
 // Uses dynamic bodies with real gravity (matches official Phaser Rapier examples)
 // ============================================================================
 
-import { RAPIER, createRapierPhysics } from '@kbve/laser';
+import { RAPIER, createRapierPhysics } from '@kbve/laser/phaser';
 import { getComponents, getPlatforms, type GameWorld } from '../ecs';
 
 // ============================================================================

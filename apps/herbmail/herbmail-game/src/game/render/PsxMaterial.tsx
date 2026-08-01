@@ -6,7 +6,7 @@ import {
 	POM_MARCH,
 	POM_SELF_SHADOW,
 	SPOM_SILHOUETTE,
-} from '@kbve/laser';
+} from '@kbve/laser/r3f';
 import { TILE } from '../config';
 
 const blankTex = new THREE.DataTexture(

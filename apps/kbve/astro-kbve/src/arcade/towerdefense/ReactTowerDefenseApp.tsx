@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import Phaser from 'phaser';
-import { PhaserGame, type LaserGameConfig } from '@kbve/laser';
+import { type LaserGameConfig } from '@kbve/laser';
+import { PhaserGame } from '@kbve/laser/phaser';
 import { TowerDefenseScene } from './TowerDefenseScene';
 import { BASE_HEIGHT, BASE_WIDTH, COLORS } from './config';
 

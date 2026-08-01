@@ -11,6 +11,10 @@ export default defineConfig({
 	base: './',
 	resolve: {
 		alias: {
+			'@kbve/laser/phaser': path.resolve(
+				repoRoot,
+				'packages/npm/laser/src/phaser.ts',
+			),
 			'@kbve/laser': path.resolve(
 				repoRoot,
 				'packages/npm/laser/src/index.ts',

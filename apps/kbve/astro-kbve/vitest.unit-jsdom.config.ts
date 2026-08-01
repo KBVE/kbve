@@ -24,6 +24,14 @@ export default defineConfig({
 				__dirname,
 				'../../../packages/npm/droid/src/index.ts',
 			),
+			'@kbve/laser/phaser': path.resolve(
+				__dirname,
+				'../../../packages/npm/laser/src/phaser.ts',
+			),
+			'@kbve/laser/r3f': path.resolve(
+				__dirname,
+				'../../../packages/npm/laser/src/r3f.ts',
+			),
 			'@kbve/laser': path.resolve(
 				__dirname,
 				'../../../packages/npm/laser/src/index.ts',

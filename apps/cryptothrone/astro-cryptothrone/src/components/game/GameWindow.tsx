@@ -1,8 +1,9 @@
 import { useRef, useCallback, useMemo, memo, useEffect } from 'react';
 import Phaser from 'phaser';
 import GridEngine from 'grid-engine';
-import { PhaserGame, laserEvents } from '@kbve/laser';
-import type { PhaserGameRef } from '@kbve/laser';
+import { laserEvents } from '@kbve/laser';
+import { PhaserGame } from '@kbve/laser/phaser';
+import type { PhaserGameRef } from '@kbve/laser/phaser';
 import { NotContent } from '@kbve/astro/ui';
 import { PreloaderScene } from './scenes/PreloaderScene';
 import { CloudCityScene } from './scenes/CloudCityScene';
