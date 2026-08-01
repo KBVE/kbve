@@ -939,11 +939,9 @@ message WorldObjectDef {
   // Interaction
   optional bool interactable = 11;    // Can player click/interact
   optional bool destructible = 12;    // Can be destroyed / harvested
-  optional string loot_item_ref = 13; // Item dropped when harvested
   optional int32 harvest_time_ms = 14; // Time to harvest in milliseconds
-  optional string tool_required = 15; // Tool item ref needed
-  optional int32 skill_level = 16;    // Minimum skill level to interact
-  optional string skill_type = 17;    // Skill slug (e.g. "mining", "woodcutting")
+  reserved 13, 15, 16, 17;
+  reserved "loot_item_ref", "tool_required", "skill_level", "skill_type";
 
   // Resource properties (for harvestable objects)
   optional int32 harvest_yield = 26;   // Amount gathered per harvest action
@@ -1033,6 +1031,9 @@ message WorldObjectDef {
   // Ongoing periodic effects emitted by the placed object (campfire heal ring,
   // hazard burn, totem buff). Independent of interaction — active while alive.
   repeated PlacedEffect placed_effects = 73;
+
+  optional string profession_action_ref = 74;
+  optional int32 harvest_weight = 75;
 }
 
 // A periodic status effect emitted by a placed world object. `status` is a
