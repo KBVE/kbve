@@ -1,176 +1,176 @@
 {
-	"generated_at": "2026-07-31T04:22:02Z",
-	"window": {
-		"days": 7,
-		"since": "2026-07-24T04:22:02Z"
-	},
-	"commits": {
-		"total": 376,
-		"authors": 2,
-		"leaderboard": [
-			{
-				"author": "h0lybyte",
-				"commits": 196
-			},
-			{
-				"author": "github-actions[bot]",
-				"commits": 180
-			}
-		],
-		"recent": [
-			{
-				"sha": "cd93ff6",
-				"author": "h0lybyte",
-				"message": "Merge pull request #14966 from KBVE/dev",
-				"url": "https://github.com/KBVE/kbve/commit/cd93ff622d4bcb88135f0a697b77e9309f955a32",
-				"date": "2026-07-31T04:07:16Z"
-			},
-			{
-				"sha": "7e46b0f",
-				"author": "h0lybyte",
-				"message": "perf(reel): veryfast x264 preset for VOD transcode (#14975)",
-				"url": "https://github.com/KBVE/kbve/commit/7e46b0f7d575bf4972c12ae5c80dd9c434628ddf",
-				"date": "2026-07-31T04:06:47Z"
-			},
-			{
-				"sha": "59b92be",
-				"author": "github-actions[bot]",
-				"message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14977)",
-				"url": "https://github.com/KBVE/kbve/commit/59b92be8c9320ac0f4dd0c779fd104771fed4c2f",
-				"date": "2026-07-31T04:05:39Z"
-			},
-			{
-				"sha": "db33944",
-				"author": "h0lybyte",
-				"message": "chore(reel): bump CPU + encode threads for faster transcoding (#14974)",
-				"url": "https://github.com/KBVE/kbve/commit/db3394439fa581c8194222f240e9cade3e2752bc",
-				"date": "2026-07-31T04:04:11Z"
-			},
-			{
-				"sha": "8cc072f",
-				"author": "h0lybyte",
-				"message": "perf(reel): reuse completed live HLS instead of re-encoding (#14976)",
-				"url": "https://github.com/KBVE/kbve/commit/8cc072f2d3a6c586ff3c4a2d8e899f31292992f8",
-				"date": "2026-07-31T04:03:21Z"
-			},
-			{
-				"sha": "5581342",
-				"author": "github-actions[bot]",
-				"message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14973)",
-				"url": "https://github.com/KBVE/kbve/commit/5581342c7e9a7ddaee0d5b2f23840e3b90080b9c",
-				"date": "2026-07-31T03:14:31Z"
-			},
-			{
-				"sha": "e466593",
-				"author": "h0lybyte",
-				"message": "fix(desktop-kbve): resolve lint failures in onichan view (#14971)",
-				"url": "https://github.com/KBVE/kbve/commit/e4665934feff06ec4d406fa20b127371247265d6",
-				"date": "2026-07-31T03:12:20Z"
-			},
-			{
-				"sha": "9e27557",
-				"author": "h0lybyte",
-				"message": "feat(reel): serve sidecar subtitles for completed reels (#14969)",
-				"url": "https://github.com/KBVE/kbve/commit/9e275571c2c28c41a154c1799dfd1a3fdfb6fadb",
-				"date": "2026-07-31T03:12:08Z"
-			},
-			{
-				"sha": "3823652",
-				"author": "h0lybyte",
-				"message": "feat(astro-kbve): palworld interactive map with alpha bosses (#14972)",
-				"url": "https://github.com/KBVE/kbve/commit/38236524e2280075a6ba6e60ebc35c81e277552e",
-				"date": "2026-07-31T03:09:40Z"
-			},
-			{
-				"sha": "f926eed",
-				"author": "h0lybyte",
-				"message": "chore(deps): bump clap 4.6.4 and postcss-merge-rules 8.0.1 (#14964)",
-				"url": "https://github.com/KBVE/kbve/commit/f926eedebc3181e4f1ab4ecb8bb5bc7029c693fd",
-				"date": "2026-07-30T22:24:27Z"
-			},
-			{
-				"sha": "a572a9a",
-				"author": "github-actions[bot]",
-				"message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#14968)",
-				"url": "https://github.com/KBVE/kbve/commit/a572a9a86cc143c6e53bb3ae9899f554a65fa574",
-				"date": "2026-07-30T21:29:30Z"
-			},
-			{
-				"sha": "0cae2f7",
-				"author": "h0lybyte",
-				"message": "feat(reel): cookie auth so native HLS works on iOS Safari (#14967)",
-				"url": "https://github.com/KBVE/kbve/commit/0cae2f76ea5f76abc88e411aa55e4e1d70cc8811",
-				"date": "2026-07-30T21:27:18Z"
-			}
-		]
-	},
-	"pull_requests": {
-		"merged": 373,
-		"recent": [
-			{
-				"number": 14980,
-				"title": "Atomic: reel v0.1.31 post-publish sync",
-				"user": "github-actions[bot]",
-				"url": "https://github.com/KBVE/kbve/pull/14980"
-			},
-			{
-				"number": 14978,
-				"title": "chore(ci): sync ci-dispatch-manifest",
-				"user": "github-actions[bot]",
-				"url": "https://github.com/KBVE/kbve/pull/14978"
-			},
-			{
-				"number": 14966,
-				"title": "Release: 3 features, 2 fixes, 2 perfs, 5 chores \u2192 Main",
-				"user": "github-actions[bot]",
-				"url": "https://github.com/KBVE/kbve/pull/14966"
-			},
-			{
-				"number": 14975,
-				"title": "perf(reel): veryfast x264 preset for VOD transcode (0.1.29)",
-				"user": "h0lybyte",
-				"url": "https://github.com/KBVE/kbve/pull/14975"
-			},
-			{
-				"number": 14977,
-				"title": "chore(ci): sync ci-dispatch-manifest",
-				"user": "github-actions[bot]",
-				"url": "https://github.com/KBVE/kbve/pull/14977"
-			},
-			{
-				"number": 14974,
-				"title": "chore(reel): bump CPU + encode threads for faster transcoding",
-				"user": "h0lybyte",
-				"url": "https://github.com/KBVE/kbve/pull/14974"
-			},
-			{
-				"number": 14976,
-				"title": "perf(reel): reuse completed live HLS, skip re-encode (0.1.30)",
-				"user": "h0lybyte",
-				"url": "https://github.com/KBVE/kbve/pull/14976"
-			},
-			{
-				"number": 14973,
-				"title": "chore(ci): sync ci-dispatch-manifest",
-				"user": "github-actions[bot]",
-				"url": "https://github.com/KBVE/kbve/pull/14973"
-			},
-			{
-				"number": 14971,
-				"title": "fix(desktop-kbve): resolve lint failures in onichan view",
-				"user": "h0lybyte",
-				"url": "https://github.com/KBVE/kbve/pull/14971"
-			},
-			{
-				"number": 14969,
-				"title": "feat(reel): sidecar subtitles for completed reels (0.1.28)",
-				"user": "h0lybyte",
-				"url": "https://github.com/KBVE/kbve/pull/14969"
-			}
-		]
-	},
-	"issues": {
-		"opened": 383,
-		"closed": 377
-	}
+  "generated_at": "2026-08-01T04:20:53Z",
+  "window": {
+    "days": 7,
+    "since": "2026-07-25T04:20:53Z"
+  },
+  "commits": {
+    "total": 405,
+    "authors": 2,
+    "leaderboard": [
+      {
+        "author": "h0lybyte",
+        "commits": 217
+      },
+      {
+        "author": "github-actions[bot]",
+        "commits": 188
+      }
+    ],
+    "recent": [
+      {
+        "sha": "6cc196f",
+        "author": "h0lybyte",
+        "message": "Merge pull request #15048 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/6cc196fa3ea4d9cf7925a99c091658c49b49551d",
+        "date": "2026-08-01T04:10:46Z"
+      },
+      {
+        "sha": "c0bf849",
+        "author": "h0lybyte",
+        "message": "Merge pull request #15046 from KBVE/fix/astro-supabase-url-dup",
+        "url": "https://github.com/KBVE/kbve/commit/c0bf849639eab8535c0ec5704c61143e1f6e161a",
+        "date": "2026-08-01T04:08:39Z"
+      },
+      {
+        "sha": "355dd7d",
+        "author": "github-actions[bot]",
+        "message": "chore(agones-palworld): post-publish sync to v0.0.33 (#15049)",
+        "url": "https://github.com/KBVE/kbve/commit/355dd7d62a46ca5f215d051c2fcd86c696f49e71",
+        "date": "2026-08-01T04:02:42Z"
+      },
+      {
+        "sha": "ed8f347",
+        "author": "github-actions[bot]",
+        "message": "chore(arpg-web): post-publish sync to v0.1.28 (#15047)",
+        "url": "https://github.com/KBVE/kbve/commit/ed8f3478095506ec740c95511f9ca424889b42e3",
+        "date": "2026-08-01T04:01:42Z"
+      },
+      {
+        "sha": "db00e0e",
+        "author": "h0lybyte",
+        "message": "fix(astro-kbve): drop duplicate SUPABASE_URL breaking axum-kbve build",
+        "url": "https://github.com/KBVE/kbve/commit/db00e0ea5f48603b854083d1fd361178e44b8280",
+        "date": "2026-08-01T03:51:20Z"
+      },
+      {
+        "sha": "f0b2544",
+        "author": "h0lybyte",
+        "message": "Merge pull request #15037 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/f0b2544366d8e78f77e395b45fa245390467dbd5",
+        "date": "2026-08-01T03:48:22Z"
+      },
+      {
+        "sha": "531f24c",
+        "author": "h0lybyte",
+        "message": "fix(reel): stream downloading torrents via live HLS, not looping progressive (#15045)",
+        "url": "https://github.com/KBVE/kbve/commit/531f24cef009b0b92904ab886c046934ca35b17b",
+        "date": "2026-08-01T03:45:44Z"
+      },
+      {
+        "sha": "6d25f69",
+        "author": "github-actions[bot]",
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#15044)",
+        "url": "https://github.com/KBVE/kbve/commit/6d25f69bfe24dff8415d534b2113d20fbdc25952",
+        "date": "2026-08-01T02:59:09Z"
+      },
+      {
+        "sha": "8e738b9",
+        "author": "h0lybyte",
+        "message": "fix(arpg-web): install docker deps at /app so laser peers resolve (#15043)",
+        "url": "https://github.com/KBVE/kbve/commit/8e738b905d99fc11fac6e4fdfc68fb536fe7bd7e",
+        "date": "2026-08-01T02:56:50Z"
+      },
+      {
+        "sha": "3366917",
+        "author": "h0lybyte",
+        "message": "fix(palworld): shield passives via lua bypass + self-discovering boss hooks (#15042)",
+        "url": "https://github.com/KBVE/kbve/commit/3366917cad8dc633d79feb2018478476681f04cb",
+        "date": "2026-08-01T02:56:39Z"
+      },
+      {
+        "sha": "8b412ee",
+        "author": "github-actions[bot]",
+        "message": "chore(irc-gateway): post-publish sync to v0.1.29 (#15040)",
+        "url": "https://github.com/KBVE/kbve/commit/8b412ee3d177274e16bae03d1c32fa3764be0e6e",
+        "date": "2026-08-01T01:42:19Z"
+      },
+      {
+        "sha": "1573f7a",
+        "author": "github-actions[bot]",
+        "message": "chore(memes): post-publish sync to v0.1.9 (#15039)",
+        "url": "https://github.com/KBVE/kbve/commit/1573f7af0e31430947af0b1c85bf60c0770dcbd8",
+        "date": "2026-08-01T01:38:00Z"
+      }
+    ]
+  },
+  "pull_requests": {
+    "merged": 403,
+    "recent": [
+      {
+        "number": 15052,
+        "title": "chore(ci): sync ci-dispatch-manifest",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15052"
+      },
+      {
+        "number": 15050,
+        "title": "feat(palworld): block Pal Sphere capture of merchant NPCs",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/15050"
+      },
+      {
+        "number": 15048,
+        "title": "Release: 2 chores \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15048"
+      },
+      {
+        "number": 15046,
+        "title": "fix(astro-kbve): drop duplicate SUPABASE_URL breaking axum-kbve build",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/15046"
+      },
+      {
+        "number": 15049,
+        "title": "Atomic: agones-palworld v0.0.33 post-publish sync",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15049"
+      },
+      {
+        "number": 15047,
+        "title": "Atomic: arpg-web v0.1.28 post-publish sync",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15047"
+      },
+      {
+        "number": 15037,
+        "title": "Release: 3 fixes, 5 chores \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15037"
+      },
+      {
+        "number": 15045,
+        "title": "fix(reel): stream downloading torrents via live HLS, not looping progressive",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/15045"
+      },
+      {
+        "number": 15044,
+        "title": "chore(ci): sync ci-dispatch-manifest",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15044"
+      },
+      {
+        "number": 15043,
+        "title": "fix(arpg-web): install docker deps at /app so laser peers resolve",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/15043"
+      }
+    ]
+  },
+  "issues": {
+    "opened": 412,
+    "closed": 407
+  }
 }
