@@ -130,6 +130,17 @@ import ReactReelLive from '@/components/media/ReactReelLive';
 		display: none;
 	}
 
+	:global(body.reel-theater-active header.header) {
+		opacity: 0;
+		z-index: 10000;
+		transition: opacity 0.2s ease;
+	}
+
+	:global(body.reel-theater-active header.header:hover),
+	:global(body.reel-theater-active header.header:focus-within) {
+		opacity: 1;
+	}
+
 	:global(.reel-live__start) {
 		margin-top: 0.5rem;
 		padding: 0.55rem 1.4rem;
@@ -144,6 +155,27 @@ import ReactReelLive from '@/components/media/ReactReelLive';
 	:global(.reel-live__start:disabled) {
 		opacity: 0.5;
 		cursor: not-allowed;
+	}
+
+	:global(.reel-live__unmute) {
+		position: absolute;
+		left: 50%;
+		bottom: 4.5rem;
+		transform: translateX(-50%);
+		z-index: 3;
+		padding: 0.5rem 1.1rem;
+		border-radius: 999px;
+		border: 1px solid #3f3f46;
+		background: rgba(9, 9, 11, 0.82);
+		color: #e5e7eb;
+		cursor: pointer;
+		font-size: 0.8125rem;
+		backdrop-filter: blur(4px);
+	}
+
+	:global(.reel-live__unmute:hover),
+	:global(.reel-live__unmute:focus-visible) {
+		background: rgba(24, 24, 27, 0.95);
 	}
 
 	:global(.reel-live__rail) {
