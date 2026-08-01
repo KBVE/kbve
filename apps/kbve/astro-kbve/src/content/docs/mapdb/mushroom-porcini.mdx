@@ -1,0 +1,36 @@
+---
+id: "72XGBDWSHZNFVYH9X0K87CADZW"
+ref: "mushroom-porcini"
+drafted: false
+name: "Porcini Mushroom"
+title: "Porcini Mushroom"
+template: splash
+sidebar:
+    label: "Porcini Mushroom"
+    hidden: true
+description: "A dense, earthy mushroom with a thick stalk, sought after by alchemists and chefs."
+type: "resource_node"
+sub_kind: "porcini"
+interactable: true
+destructible: true
+harvest_yield: 1
+max_amount: 50
+initial_amount: 50
+harvest_time_ms: 500
+harvest_weight: 0
+spawn_weight: 0.3
+spawn_count: 20
+pixels_per_unit: 25
+pivot_x: 0.5
+pivot_y: 0.5
+sorting_layer: "Foreground"
+profession_action_ref: "gather-porcini"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Porcini Mushroom
+
+A single porcini can weigh down a forager's basket, and its dense flesh holds up well to drying and storage.
+
+<MapDBPanel data={frontmatter} />

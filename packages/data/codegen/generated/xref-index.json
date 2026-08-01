@@ -402,5 +402,47 @@
       16,
       17
     ]
+  },
+  "node_links": {
+    "15": "copper-vein",
+    "16": "iron-vein",
+    "17": "ore-crystal",
+    "18": "mossy-rock",
+    "19": "boulder",
+    "20": "oak-tree",
+    "23": "flower-allium",
+    "24": "flower-bell",
+    "25": "flower-blue-orchid",
+    "26": "mushroom-chanterelle",
+    "27": "flower-cornflower",
+    "28": "flower-daisy",
+    "29": "mushroom-fly-agaric",
+    "30": "flower-lavender",
+    "31": "mushroom-porcini",
+    "32": "flower-rose",
+    "33": "flower-sunflower",
+    "34": "flower-tulip",
+    "35": "flower-wildflower"
+  },
+  "node_by_ref": {
+    "flower-allium": 23,
+    "flower-bell": 24,
+    "flower-blue-orchid": 25,
+    "mushroom-chanterelle": 26,
+    "flower-cornflower": 27,
+    "flower-daisy": 28,
+    "mushroom-fly-agaric": 29,
+    "flower-lavender": 30,
+    "mushroom-porcini": 31,
+    "flower-rose": 32,
+    "flower-sunflower": 33,
+    "flower-tulip": 34,
+    "flower-wildflower": 35,
+    "copper-vein": 15,
+    "iron-vein": 16,
+    "ore-crystal": 17,
+    "mossy-rock": 18,
+    "boulder": 19,
+    "oak-tree": 20
   }
 }
