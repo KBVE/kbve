@@ -1,5 +1,6 @@
 import { atom, computed } from 'nanostores';
-import { initSupa, getSupa } from '@/lib/supa';
+import { initSupa, getSupa, SUPABASE_URL, SUPABASE_ANON_KEY } from '@/lib/supa';
+import { resolveStaffFlag } from '@kbve/astro';
 import { $auth, AuthFlags, hasAuthFlag, addToast } from '@kbve/droid';
 import { DASH_PROXY_BASE } from '@/components/rnweb/dashProxyBase';
 
@@ -791,34 +792,97 @@ class HomeService {
 	// multiplying staff-toast frequency over time).
 	private _authSub: (() => void) | null = null;
 
+	// One-shot guards for the reactive $auth subscription, reset on sign-out.
+	private _welcomedAuth = false;
+	private _notifiedAnon = false;
+	private _staffKickedForId: string | null = null;
+
 	public async initAuth(): Promise<void> {
 		try {
 			await initSupa();
-			const supa = getSupa();
-			const sessionResult = await supa.getSession().catch(() => null);
-			const session = sessionResult?.session ?? null;
+		} catch {
+			// initSupa auto-recovers a stale client; surface guest for now. The
+			// $auth store still self-heals if a session materializes afterward.
+			this.$authState.set('unauthenticated');
+			addToast({
+				id: 'home-auth-err',
+				message: 'Session expired — please sign in again.',
+				severity: 'warning',
+				duration: 5000,
+			});
+			return;
+		}
 
-			if (!session?.access_token) {
-				this.$authState.set('unauthenticated');
+		// Derive auth state from the authoritative $auth store instead of a
+		// one-shot getSession(): after an OAuth redirect or a cold SharedWorker
+		// spin-up the session can still be hydrating, and the old one-shot read
+		// latched "guest" with no recovery — so login intermittently looked like
+		// it failed. $auth already races the fast (IDB) and slow (worker) paths,
+		// listens for late sessions, and health-checks expiry; mirror it and
+		// stay subscribed so the gate self-corrects the moment the session lands.
+		this.applyAuthState();
+		if (!this._authSub) {
+			this._authSub = $auth.subscribe(() => this.applyAuthState());
+		}
+	}
+
+	private applyAuthState(): void {
+		const { tone, flags, id } = $auth.get();
+
+		// Still hydrating — don't paint the guest gate yet.
+		if (tone === 'loading') {
+			this.$authState.set('loading');
+			return;
+		}
+
+		const authed = tone === 'auth';
+		this.$authState.set(authed ? 'authenticated' : 'unauthenticated');
+
+		const isStaff = hasAuthFlag(flags, AuthFlags.STAFF);
+		if (isStaff !== this.$isStaff.get()) {
+			this.$isStaff.set(isStaff);
+			if (isStaff) {
+				addToast({
+					id: 'home-staff-ok',
+					message: 'Staff access enabled',
+					severity: 'info',
+					duration: 3000,
+				});
+			}
+		}
+
+		if (!authed) {
+			this.$accessToken.set(null);
+			this._welcomedAuth = false;
+			this._staffKickedForId = null;
+			if (!this._notifiedAnon) {
+				this._notifiedAnon = true;
 				addToast({
 					id: 'home-auth-anon',
 					message: 'Please sign in to access the dashboard.',
 					severity: 'info',
 					duration: 4000,
 				});
-				return;
 			}
+			return;
+		}
 
-			this.$accessToken.set(session.access_token as string);
+		this._notifiedAnon = false;
+		void this.syncAccessToken();
 
-			const { flags } = $auth.get();
-			const isStaff = hasAuthFlag(flags, AuthFlags.STAFF);
-			this.$isStaff.set(isStaff);
+		// resolveStaffFlag is fired-and-forget at boot and can give up before the
+		// worker session hydrates (its retry window is ~1.8s). If we end up
+		// authenticated but not yet flagged staff, kick it once more per user so
+		// a slow session doesn't strand a real staff member on the guest gate.
+		if (!isStaff && id && this._staffKickedForId !== id) {
+			this._staffKickedForId = id;
+			void resolveStaffFlag(getSupa(), SUPABASE_URL, SUPABASE_ANON_KEY);
+		}
 
-			this.$authState.set('authenticated');
-
-			// Welcome toast is gated per browser session so Starlight's
-			// client-side routing doesn't fire it on every navigation.
+		// Welcome toast is gated per browser session so Starlight's client-side
+		// routing doesn't fire it on every navigation.
+		if (!this._welcomedAuth) {
+			this._welcomedAuth = true;
 			if (
 				typeof sessionStorage !== 'undefined' &&
 				!sessionStorage.getItem('home-auth-welcomed')
@@ -836,36 +900,21 @@ class HomeService {
 					sessionStorage.setItem('home-auth-welcomed', '1');
 				} catch {
 					// sessionStorage may be unavailable (private mode, etc.) —
-					// failing to set means we re-show the toast once next nav,
-					// which is acceptable degradation.
+					// re-showing the toast once next nav is acceptable.
 				}
 			}
+		}
+	}
 
-			if (!this._authSub) {
-				const syncStaff = () => {
-					const { flags } = $auth.get();
-					if (hasAuthFlag(flags, AuthFlags.STAFF)) {
-						if (!this.$isStaff.get()) {
-							this.$isStaff.set(true);
-							addToast({
-								id: 'home-staff-ok',
-								message: 'Staff access enabled',
-								severity: 'info',
-								duration: 3000,
-							});
-						}
-					}
-				};
-				this._authSub = $auth.subscribe(syncStaff);
-			}
+	private async syncAccessToken(): Promise<void> {
+		try {
+			const res = await getSupa()
+				.getSession()
+				.catch(() => null);
+			const token = res?.session?.access_token ?? null;
+			if (token) this.$accessToken.set(token as string);
 		} catch {
-			this.$authState.set('unauthenticated');
-			addToast({
-				id: 'home-auth-err',
-				message: 'Session expired — please sign in again.',
-				severity: 'warning',
-				duration: 5000,
-			});
+			// non-fatal — authedApiFetch carries its own token path.
 		}
 	}
 
