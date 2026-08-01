@@ -283,6 +283,7 @@ pub fn registry() -> KindRegistry {
     reg.register_item(STAIR_KEY_REF);
     reg.register_item(POTION_REF);
     reg.register_item(crate::restore::PET_ELIXIR_REF);
+    reg.register_item(crate::capture::PET_BALL_REF);
     reg.register_item(CAMPFIRE_KIT_REF);
     reg.register_item(CANDELABRUM_KIT_REF);
     reg.register_item(STARSHIP_KIT_REF);
@@ -295,6 +296,7 @@ pub fn registry() -> KindRegistry {
     reg.register_env(simgrid::BUSH_REF);
     reg.register_npc(crate::duel::TRAINER_REF);
     reg.register_npc(crate::restore::HEALER_REF);
+    reg.register_npc(crate::wild::WILD_PET_REF);
     reg
 }
 
@@ -493,6 +495,8 @@ fn describe(ev: &simgrid::BattleEvent) -> Option<String> {
     use simgrid::BattleEvent as E;
     Some(match ev {
         E::Used { side, move_id, .. } => format!("{} uses {}.", who(*side), move_id),
+        E::Caught { nickname } => format!("Gotcha! {nickname} was caught!"),
+        E::CatchFailed { nickname } => format!("{nickname} broke free!"),
         E::Damage {
             side,
             dmg,
@@ -643,6 +647,8 @@ pub(crate) fn wire_event(ev: &simgrid::BattleEvent) -> simgrid::proto::PetBattle
             w.kind = p::PB_FAINT;
             w.side = side_byte(*side);
         }
+        E::Caught { .. } => w.kind = p::PB_CAUGHT,
+        E::CatchFailed { .. } => w.kind = p::PB_CATCH_FAILED,
         E::Outcome(_) => {}
     }
     w
@@ -670,6 +676,7 @@ fn simulate_battle(root: u32) -> simgrid::proto::PetBattleReplay {
         simgrid::BattleOutcome::PlayerWon => "PlayerWon",
         simgrid::BattleOutcome::PlayerLost => "PlayerLost",
         simgrid::BattleOutcome::Fled => "Fled",
+        simgrid::BattleOutcome::Caught => "Caught",
         simgrid::BattleOutcome::Ongoing => "Ongoing",
     };
     let Some(species) = NPC_DB.get(MECHAMUTT_REF) else {
@@ -770,6 +777,7 @@ pub(crate) fn outcome_name(o: simgrid::BattleOutcome) -> &'static str {
         simgrid::BattleOutcome::PlayerWon => "PlayerWon",
         simgrid::BattleOutcome::PlayerLost => "PlayerLost",
         simgrid::BattleOutcome::Fled => "Fled",
+        simgrid::BattleOutcome::Caught => "Caught",
         simgrid::BattleOutcome::Ongoing => "Ongoing",
     }
 }
@@ -839,6 +847,9 @@ pub(crate) fn battle_view(
         phase: phase.to_string(),
         deadline_ms,
         opponent: opponent.to_string(),
+        // Set by `duel::viewer_view`, which is the only place that knows whether the duel is
+        // wild and which side is looking.
+        can_catch: false,
     }
 }
 
@@ -920,6 +931,7 @@ pub fn apply_pet_battles(
             committed: [None, None],
             deadline_tick: clock.tick.saturating_add(crate::duel::DUEL_TURN_TICKS),
             pets: [team_pets, enemy_pets],
+            wild: None,
         };
         let opening = vec![info_event(
             "A trainer battle begins — choose your move!".into(),
@@ -932,11 +944,20 @@ pub fn apply_pet_battles(
 /// Advance each in-progress duel by the action its player committed: the player's chosen
 /// action resolves against the opposing side for one turn, then the new snapshot (with
 /// the turn's events to animate) streams back. The duel is dropped once it resolves.
+#[allow(clippy::too_many_arguments)]
 pub fn apply_pet_turns(
     bcast: Res<simgrid::Outbound>,
     clock: Res<simgrid::SimClock>,
     mut pending: ResMut<simgrid::PendingPetTurns>,
     mut duels: ResMut<crate::duel::ActiveDuels>,
+    mut queued: ResMut<simgrid::PendingRosterSyncs>,
+    mut items: simgrid::sim::ItemBank,
+    mut pet_bank: simgrid::PetBank,
+    mut owners: bevy::prelude::Query<(
+        &simgrid::PlayerSlotTag,
+        &mut simgrid::PetRoster,
+        &mut simgrid::Inventory,
+    )>,
     mut commands: bevy::prelude::Commands,
 ) {
     if pending.0.is_empty() {
@@ -952,7 +973,28 @@ pub fn apply_pet_turns(
         let Some(idx) = crate::duel::side_index_of_slot(duel, slot.0) else {
             continue;
         };
-        let Some(pa) = player_action(action, arg) else {
+        // A throw is validated before it becomes a turn: outside a wild duel there is nothing to
+        // catch, and a refused throw must not consume the turn or the ball.
+        if action == simgrid::proto::PET_ACT_CATCH {
+            let Some((_, roster, mut inventory)) =
+                owners.iter_mut().find(|(tag, _, _)| tag.0 == slot)
+            else {
+                continue;
+            };
+            if !crate::capture::authorize_throw(
+                &bcast,
+                slot,
+                duel,
+                &mut items,
+                &roster,
+                &mut inventory,
+            ) {
+                continue;
+            }
+        }
+        let Some(pa) = player_action(action, arg).or_else(|| {
+            crate::capture::catch_action(duel).filter(|_| action == simgrid::proto::PET_ACT_CATCH)
+        }) else {
             continue;
         };
         let side = crate::duel::engine_side(idx);
@@ -984,6 +1026,19 @@ pub fn apply_pet_turns(
             ));
         }
         let resolved = duel.state.outcome != simgrid::BattleOutcome::Ongoing;
+        if duel.state.outcome == simgrid::BattleOutcome::Caught
+            && let Some((_, mut roster, _)) = owners.iter_mut().find(|(tag, _, _)| tag.0 == slot)
+        {
+            crate::capture::settle_catch(
+                &bcast,
+                slot,
+                duel,
+                &mut pet_bank,
+                &mut roster,
+                &mut queued,
+                &mut commands,
+            );
+        }
         crate::duel::stream_duel_views(&bcast, duel, &events, clock.tick);
         if resolved {
             crate::duel::finish_duel(&mut duels, id, &mut commands);

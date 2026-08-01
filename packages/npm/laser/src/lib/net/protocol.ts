@@ -46,6 +46,8 @@ export const PET_ACT_MOVE = 0;
 export const PET_ACT_SWAP = 1;
 export const PET_ACT_ITEM = 2;
 export const PET_ACT_RUN = 3;
+/** Throw a ball at a wild pet. Refused outside a wild duel or without a ball. */
+export const PET_ACT_CATCH = 4;
 
 // Pet battle replay event kinds (the `kind` byte on PetBattleWireEvent). Must match
 // proto.rs PB_* constants.
@@ -62,6 +64,8 @@ export const PB_NOPP = 9;
 export const PB_PARALYZED = 10;
 export const PB_TURN = 11;
 export const PB_INFO = 12;
+export const PB_CAUGHT = 13;
+export const PB_CATCH_FAILED = 14;
 
 // On a PB_USED event the server packs the move's element index into `value` and the
 // move category into `flag` (bits 0-1: 0 physical/1 special/2 status) plus a ranged bit
@@ -141,6 +145,9 @@ export interface PetBattleState {
 	phase: string;
 	deadline_ms: number;
 	opponent: string;
+	/** Whether this viewer may throw a ball this turn — true only for the human side of a
+	 * wild duel, so trainer and PvP duels never offer Catch. */
+	can_catch: boolean;
 }
 
 /** One move slot on an owned pet, with its remaining PP. */

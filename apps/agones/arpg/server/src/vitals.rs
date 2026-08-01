@@ -142,6 +142,7 @@ mod tests {
             committed: [None, None],
             deadline_tick: 100,
             pets: [vec![Some(pet)], vec![None]],
+            wild: None,
         });
         app.insert_resource(duels);
         app.add_systems(Update, commit_duel_vitals);

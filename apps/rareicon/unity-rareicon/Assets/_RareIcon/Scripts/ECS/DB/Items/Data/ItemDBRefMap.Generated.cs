@@ -129,6 +129,7 @@ namespace RareIcon
             { "chanterelle", ItemId.Chanterelle },
             { "fly-agaric", ItemId.FlyAgaric },
             { "pet-elixir", ItemId.PetElixir },
+            { "pet-ball", ItemId.PetBall },
             { "berry", ItemId.Berry },
             { "mushroom", ItemId.Mushroom },
             { "herb", ItemId.Herb },

@@ -1,0 +1,132 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: palworld-gameserver-reaper
+    namespace: palworld
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: palworld-gameserver-reaper
+    namespace: palworld
+rules:
+    - apiGroups:
+          - agones.dev
+      resources:
+          - gameservers
+      verbs:
+          - get
+          - list
+          - delete
+    - apiGroups:
+          - ''
+      resources:
+          - pods
+      verbs:
+          - get
+          - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: palworld-gameserver-reaper
+    namespace: palworld
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: palworld-gameserver-reaper
+subjects:
+    - kind: ServiceAccount
+      name: palworld-gameserver-reaper
+      namespace: palworld
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: palworld-gameserver-reaper
+    namespace: palworld
+    labels:
+        app.kubernetes.io/name: palworld-gameserver-reaper
+        app.kubernetes.io/component: maintenance
+        app.kubernetes.io/part-of: palworld
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+        kbve.com/managed-by: argocd
+spec:
+    schedule: '*/10 * * * *'
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        spec:
+            backoffLimit: 2
+            ttlSecondsAfterFinished: 600
+            template:
+                spec:
+                    serviceAccountName: palworld-gameserver-reaper
+                    restartPolicy: OnFailure
+                    containers:
+                        - name: reaper
+                          image: ghcr.io/kbve/kubectl:0.1.9
+                          command:
+                              - /bin/sh
+                              - -c
+                          args:
+                              - |
+                                  set -eu
+                                  NS=palworld
+                                  GS=palworld
+                                  MIN_AGE=900
+
+                                  if ! kubectl get gameserver "$GS" -n "$NS" >/dev/null 2>&1; then
+                                    echo "GameServer $GS absent; Argo owns recreation. Nothing to do."
+                                    exit 0
+                                  fi
+                                  if ! kubectl get pod "$GS" -n "$NS" >/dev/null 2>&1; then
+                                    echo "Pod $GS absent; controller still scheduling. Nothing to do."
+                                    exit 0
+                                  fi
+
+                                  AGE=$(kubectl get pod "$GS" -n "$NS" -o json | jq -r '
+                                    now - (.metadata.creationTimestamp | fromdateiso8601) | floor')
+                                  if [ "$AGE" -lt "$MIN_AGE" ]; then
+                                    echo "Pod age ${AGE}s < ${MIN_AGE}s grace; nothing to do."
+                                    exit 0
+                                  fi
+
+                                  SPEC=$(kubectl get gameserver "$GS" -n "$NS" -o json \
+                                    | jq -r '[.spec.template.spec.containers[].image] | sort | join(",")')
+                                  LIVE=$(kubectl get pod "$GS" -n "$NS" -o json \
+                                    | jq -r '[.spec.containers[].image
+                                        | select(startswith("ghcr.io/kbve/"))] | sort | join(",")')
+                                  SPEC_KBVE=$(echo "$SPEC" | tr ',' '\n' \
+                                    | grep '^ghcr.io/kbve/' | sort | paste -sd, -)
+
+                                  if [ "$SPEC_KBVE" != "$LIVE" ]; then
+                                    echo "Ghost pod: pod images [$LIVE] != gameserver spec [$SPEC_KBVE]."
+                                    echo "Deleting GameServer $GS; ArgoCD selfHeal recreates it on the new spec."
+                                    kubectl delete gameserver "$GS" -n "$NS" --wait=false
+                                    exit 0
+                                  fi
+
+                                  PULLING=$(kubectl get pod "$GS" -n "$NS" -o json | jq -r '
+                                    [.status.containerStatuses[]?
+                                      | select(.ready == false)
+                                      | .state.waiting.reason // empty
+                                      | select(. == "ImagePullBackOff" or . == "ErrImagePull")]
+                                    | length')
+                                  if [ "$PULLING" -gt 0 ]; then
+                                    echo "Pod stuck pulling (${PULLING} container(s), age ${AGE}s)."
+                                    echo "Deleting GameServer $GS for a fresh scheduling attempt."
+                                    kubectl delete gameserver "$GS" -n "$NS" --wait=false
+                                    exit 0
+                                  fi
+
+                                  echo "Pod healthy and matches spec; nothing to reap."
+                          resources:
+                              requests:
+                                  cpu: 25m
+                                  memory: 64Mi
+                              limits:
+                                  cpu: 100m
+                                  memory: 128Mi

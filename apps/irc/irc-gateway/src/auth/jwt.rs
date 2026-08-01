@@ -6,6 +6,7 @@ use axum::{
 };
 use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
 use serde::{Deserialize, Serialize};
+use std::sync::OnceLock;
 
 pub const SUPABASE_AUDIENCE: &str = "authenticated";
 pub const MAX_NICK_LEN: usize = 16;
@@ -100,9 +101,56 @@ pub fn extract_token(req: &Request) -> Option<String> {
         })
 }
 
-/// Validate JWT and return claims
+/// Process-wide accept-both verifier (HS256 + ES256/JWKS); `None` when no JWKS URI is configured.
+fn shared_verifier() -> Option<&'static jedi::jwks::JwtVerifier> {
+    static VERIFIER: OnceLock<Option<jedi::jwks::JwtVerifier>> = OnceLock::new();
+    VERIFIER
+        .get_or_init(|| {
+            let jwks_uri = std::env::var("SUPABASE_JWKS_URI")
+                .ok()
+                .filter(|s| !s.trim().is_empty())
+                .or_else(|| {
+                    std::env::var("SUPABASE_URL").ok().and_then(|u| {
+                        let u = u.trim().trim_end_matches('/');
+                        (!u.is_empty()).then(|| format!("{u}/auth/v1/.well-known/jwks.json"))
+                    })
+                })?;
+            let secret = hs256_secret();
+            let issuer = std::env::var("SUPABASE_JWT_ISSUER")
+                .ok()
+                .filter(|s| !s.trim().is_empty());
+            let verifier = jedi::jwks::JwtVerifier::new(
+                jwks_uri,
+                secret.as_deref().map(str::as_bytes),
+                issuer,
+                Some(SUPABASE_AUDIENCE.to_string()),
+            );
+            let bg = verifier.clone();
+            tokio::spawn(async move {
+                bg.start(std::time::Duration::from_secs(300)).await;
+            });
+            Some(verifier)
+        })
+        .as_ref()
+}
+
+fn hs256_secret() -> Option<String> {
+    std::env::var("JWT_SECRET")
+        .ok()
+        .or_else(|| std::env::var("SUPABASE_JWT_SECRET").ok())
+        .filter(|s| !s.is_empty())
+}
+
+/// Validate a Supabase JWT (HS256 shared secret or ES256 via GoTrue JWKS) and return claims.
 pub fn validate_token(token: &str) -> Result<Claims, StatusCode> {
-    let secret = std::env::var("JWT_SECRET").map_err(|_| StatusCode::INTERNAL_SERVER_ERROR)?;
+    if let Some(verifier) = shared_verifier() {
+        return verifier.verify::<Claims>(token).map_err(|e| {
+            tracing::debug!(error = %e, "jwt rejected");
+            StatusCode::UNAUTHORIZED
+        });
+    }
+
+    let secret = hs256_secret().ok_or(StatusCode::INTERNAL_SERVER_ERROR)?;
 
     let mut validation = Validation::new(Algorithm::HS256);
     validation.set_required_spec_claims(&["sub", "exp", "iat", "aud"]);

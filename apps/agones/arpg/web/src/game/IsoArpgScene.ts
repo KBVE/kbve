@@ -1572,6 +1572,17 @@ export class IsoArpgScene extends Phaser.Scene {
 		// client renders its own floor and ignores the rest. Entities that left
 		// our floor fall out of the filtered set and despawn via applyEntitySync.
 		// Reuse scratch array to reduce GC churn (10-20 snapshots/sec).
+		if (this.myEid < 0) {
+			const mine = s.entities.find(
+				(e) =>
+					e.owner === this.mySlot &&
+					this.syncResolvers.cat(e.kind) === Cat.Player,
+			);
+			const mineZ = mine?.z ?? 0;
+			if (mine && mineZ !== this.currentFloor) {
+				this.onFloorChange({ z: mineZ, tile: mine.tile });
+			}
+		}
 		this.floorFilterScratch.length = 0;
 		for (const e of s.entities) {
 			if ((e.z ?? 0) === this.currentFloor) {
