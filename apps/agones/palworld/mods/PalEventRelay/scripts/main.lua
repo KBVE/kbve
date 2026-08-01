@@ -1,22 +1,14 @@
 local EVENTS_LOG = os.getenv("PALWORLD_EVENTS_LOG") or "/shared/chat/events.log"
 local DEBUG_ALL = os.getenv("PALWORLD_EVENT_DEBUG") == "1"
 local RETRY_MS = 15000
+local MAX_TRIES = 20
 local SCAN_MS = tonumber(os.getenv("PALWORLD_EVENT_SCAN_MS") or "") or 20000
 local DEATH_DEDUPE_S = 600
 
 local CANDIDATES = {
-    "/Script/Pal.PalCharacterParameterComponent:OnDeath",
-    "/Script/Pal.PalIndividualCharacterParameter:NotifyDead",
-    "/Script/Pal.PalCharacter:OnDeath",
-    "/Script/Pal.PalCharacterManager:NotifyDeadCharacter",
-    "/Script/Pal.PalDeadBodyManagerComponent:OnCreateDeadBody",
-    "/Script/Pal.PalBossBattleManager:OnBossDefeated",
-}
-
-local CLASS_PROBES = {
-    "/Script/Pal.PalCharacterManager",
-    "/Script/Pal.PalCharacterParameterComponent",
-    "/Script/Pal.PalBossBattleManager",
+    "/Script/Pal.PalCharacter:OnDeadCharacter",
+    "/Script/Pal.PalRaidBossComponent:OnDeadPal",
+    "/Script/Pal.PalBaseCampEnemyObserver:OnDeadEnemy",
 }
 
 local SCAN_KINDS = {
@@ -159,43 +151,7 @@ local function on_death(self, ...)
 end
 
 local registered = {}
-
-local function probe_classes()
-    for _, c in ipairs(CLASS_PROBES) do
-        local ok, obj = pcall(StaticFindObject, c)
-        local found = ok and obj and obj:IsValid()
-        log("probe " .. c .. " -> " .. (found and "FOUND" or "absent"))
-    end
-end
-
-local function harvest_hooks()
-    for _, c in ipairs(CLASS_PROBES) do
-        local ok, cls = pcall(StaticFindObject, c)
-        if ok and cls and cls:IsValid() then
-            pcall(function()
-                cls:ForEachFunction(function(fn)
-                    pcall(function()
-                        local name = fn:GetFName():ToString()
-                        if
-                            name:find("Dead")
-                            or name:find("Death")
-                            or name:find("Defeat")
-                        then
-                            local full = c .. ":" .. name
-                            if
-                                not registered[full]
-                                and pcall(RegisterHook, full, on_death)
-                            then
-                                registered[full] = true
-                                log("death hook registered on " .. full)
-                            end
-                        end
-                    end)
-                end)
-            end)
-        end
-    end
-end
+local tries = 0
 
 local function try_register()
     for _, fn in ipairs(CANDIDATES) do
@@ -210,12 +166,15 @@ local function try_register()
 end
 
 local function schedule()
-    harvest_hooks()
+    tries = tries + 1
     if try_register() then
-        log("death hooks active; harvest loop stopped")
+        log("death hooks active after " .. tries .. " attempt(s)")
         return
     end
-    probe_classes()
+    if tries >= MAX_TRIES then
+        log("giving up after " .. tries .. " attempts; no death hook registered")
+        return
+    end
     log("no death candidate resolved; retrying in " .. (RETRY_MS / 1000) .. "s")
     pcall(ExecuteWithDelay, RETRY_MS, schedule)
 end
@@ -257,6 +216,5 @@ local function sweep_events()
 end
 
 log("loaded; events log = " .. EVENTS_LOG .. "; debug=" .. tostring(DEBUG_ALL))
-probe_classes()
 schedule()
 pcall(ExecuteWithDelay, SCAN_MS, sweep_events)

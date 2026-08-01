@@ -1,5 +1,4 @@
 PalChatRelay : 1
 PalEventRelay : 1
-PalTweaks : 1
 PalForge : 1
 PalSchema : 1
