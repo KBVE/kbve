@@ -13,9 +13,11 @@
 FROM node:24-bookworm-slim AS web
 WORKDIR /app
 
-# App deps first (cache layer independent of source).
-COPY apps/agones/arpg/web/package.json apps/agones/arpg/web/
-RUN cd apps/agones/arpg/web && npm install --no-save
+# App deps first (cache layer independent of source). Installed at /app, NOT the
+# app dir — resolution from the bare-source packages/npm/laser walks up to
+# /app/node_modules, so laser's optional peers (drei/three/fiber) resolve.
+COPY apps/agones/arpg/web/package.json package.json
+RUN npm install --no-save
 
 # The game source + sprite art now live entirely under apps/agones/arpg/web.
 # @kbve/laser and @kbve/observ are the cross-repo deps the vite config aliases to source.
