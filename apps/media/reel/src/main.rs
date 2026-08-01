@@ -79,6 +79,7 @@ async fn main() -> anyhow::Result<()> {
         eng.clone(),
         cfg.bt_port_watch_secs,
         restart.clone(),
+        cfg.bt_port_watch_restart,
     ));
 
     let store_for_flush = store.clone();

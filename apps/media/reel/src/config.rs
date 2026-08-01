@@ -41,6 +41,7 @@ pub struct Config {
     pub bt_port_wait_secs: u64,
     pub bt_port_stable_secs: u64,
     pub bt_port_watch_secs: u64,
+    pub bt_port_watch_restart: bool,
 }
 
 pub const DEFAULT_TRACKERS_URLS: &[&str] = &[
@@ -212,6 +213,7 @@ pub fn load_from_env() -> anyhow::Result<Config> {
         bt_port_wait_secs: env_u64("REEL_BT_PORT_WAIT_SECS", 20)?,
         bt_port_stable_secs: env_u64("REEL_BT_PORT_STABLE_SECS", 45)?,
         bt_port_watch_secs: env_u64("REEL_BT_PORT_WATCH_SECS", 30)?,
+        bt_port_watch_restart: env_bool("REEL_BT_PORT_WATCH_RESTART", false),
     })
 }
 
@@ -259,6 +261,7 @@ mod tests {
             "REEL_HLS_SEGMENT_SECS",
             "REEL_BT_PORT_FILE",
             "REEL_BT_PORT_WAIT_SECS",
+            "REEL_BT_PORT_WATCH_RESTART",
         ] {
             std::env::remove_var(k);
         }
@@ -307,6 +310,7 @@ mod tests {
         assert_eq!(c.bt_port_wait_secs, 20);
         assert_eq!(c.bt_port_stable_secs, 45);
         assert_eq!(c.bt_port_watch_secs, 30);
+        assert!(!c.bt_port_watch_restart);
     }
 
     #[test]
