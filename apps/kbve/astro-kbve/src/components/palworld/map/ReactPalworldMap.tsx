@@ -12,9 +12,6 @@ import {
 	labels,
 	iconKeys,
 	gameToUnits,
-	syncPlayers,
-	lerpFrom,
-	lerpStart,
 	type KindName,
 	type LivePlayer,
 } from './markerEcs';
@@ -27,6 +24,7 @@ const LIVE_URL_DEFAULT = 'https://palworld.kbve.com/live/players';
 const LIVE_POLL_MS = 5000;
 const LERP_MS = 4000;
 const TIMERS_KEY = 'palworld-map-timers';
+const PAD = 0.5;
 
 const KIND_NAMES = Object.keys(KIND) as KindName[];
 
@@ -45,6 +43,24 @@ const loadTimers = (): Record<string, number> => {
 
 const timerKey = (eid: number): string =>
 	`${Kind.v[eid]}:${Pos.x[eid].toFixed(2)}:${Pos.yd[eid].toFixed(2)}`;
+
+const esc = (s: string) =>
+	s.replace(
+		/[&<>"']/g,
+		(c) =>
+			({
+				'&': '&amp;',
+				'<': '&lt;',
+				'>': '&gt;',
+				'"': '&quot;',
+				"'": '&#39;',
+			})[c]!,
+	);
+
+const fmtRemain = (ms: number): string => {
+	const s = Math.max(0, Math.ceil(ms / 1000));
+	return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+};
 
 export default function ReactPalworldMap() {
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -71,6 +87,11 @@ export default function ReactPalworldMap() {
 			maxBounds: worldBounds.pad(0.15),
 			maxBoundsViscosity: 0.75,
 			attributionControl: false,
+			zoomSnap: 0,
+			zoomDelta: 0.5,
+			scrollWheelZoom: false,
+			zoomAnimation: false,
+			markerZoomAnimation: false,
 		});
 		map.fitBounds(worldBounds);
 		L.tileLayer(`${PAL_TILE_BASE}/{z}/{x}/{y}.webp`, {
@@ -94,183 +115,136 @@ export default function ReactPalworldMap() {
 			updateWhenIdle: false,
 		}).addTo(map);
 
+		map.createPane('palpois');
+		const pane = map.getPane('palpois')!;
+		pane.style.zIndex = '450';
+		const canvas = document.createElement('canvas');
+		canvas.style.cssText =
+			'position:absolute;left:0;top:0;pointer-events:none;transform-origin:0 0';
+		pane.appendChild(canvas);
+		const ctx = canvas.getContext('2d')!;
+
 		const world = createMarkerWorld();
-		const bossEnts = markerEntities(world).filter(
-			(eid) => Kind.v[eid] === KIND.boss,
+		const poiEnts = markerEntities(world).filter(
+			(eid) => Kind.v[eid] !== KIND.player,
 		);
-		const serverTimers = new Map<number, number>();
-		const visible = new Set<number>(Object.values(KIND));
+		const bossEnts = poiEnts.filter((eid) => Kind.v[eid] === KIND.boss);
+		const latlngs = new Map<number, L.LatLng>();
+		for (const eid of poiEnts)
+			latlngs.set(eid, L.latLng(-Pos.yd[eid], Pos.x[eid]));
+
 		const timers = loadTimers();
 		const saveTimers = () =>
 			localStorage.setItem(TIMERS_KEY, JSON.stringify(timers));
+		const serverTimers = new Map<number, number>();
+
+		const cooldownOf = (eid: number): number | undefined => {
+			const now = Date.now();
+			const st = serverTimers.get(eid);
+			if (st && st > now) return st;
+			if (st) serverTimers.delete(eid);
+			const tk = timerKey(eid);
+			const lt = timers[tk];
+			if (lt && lt > now) return lt;
+			if (lt) {
+				delete timers[tk];
+				saveTimers();
+			}
+			return undefined;
+		};
+
 		const images = new Map<string, HTMLImageElement>();
 		const loadImage = (src: string) => {
 			if (images.has(src)) return images.get(src)!;
 			const img = new Image();
 			img.src = src;
-			img.onload = () => scheduleDraw();
+			img.onload = () => scheduleRedraw();
 			images.set(src, img);
 			return img;
 		};
 		for (const meta of Object.values(KIND_META))
 			if (meta.icon) loadImage(meta.icon);
 
-		const canvas = document.createElement('canvas');
-		canvas.style.cssText =
-			'position:absolute;z-index:450;pointer-events:none';
-		map.getPane('overlayPane')!.appendChild(canvas);
-		const ctx = canvas.getContext('2d')!;
+		const iconScale = (z: number): number =>
+			Math.min(1, Math.max(0.45, Math.pow(2, (z - 4) * 0.35)));
 
-		const tooltip = document.createElement('div');
-		tooltip.style.cssText =
-			'position:absolute;z-index:700;pointer-events:none;display:none;' +
-			'background:rgba(8,14,24,0.92);color:#e8f0fa;font:12px/1.4 system-ui,sans-serif;' +
-			'padding:4px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.18);' +
-			'white-space:nowrap;transform:translate(-50%,-130%)';
-		el.appendChild(tooltip);
-
-		let rafId = 0;
-		const scheduleDraw = () => {
-			if (rafId) return;
-			rafId = requestAnimationFrame(() => {
-				rafId = 0;
-				draw();
-			});
-		};
-
-		const screenXY = (() => {
-			let ax = 0,
-				bx = 0,
-				ay = 0,
-				by = 0;
-			const refresh = () => {
-				const p0 = map.latLngToContainerPoint([0, 0]);
-				const p1 = map.latLngToContainerPoint([-1, 1]);
-				bx = p0.x;
-				by = p0.y;
-				ax = p1.x - p0.x;
-				ay = p1.y - p0.y;
-			};
-			return {
-				refresh,
-				x: (u: number) => bx + u * ax,
-				y: (u: number) => by + u * ay,
-			};
-		})();
-
-		const fmtRemain = (ms: number): string => {
-			const s = Math.max(0, Math.ceil(ms / 1000));
-			return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-		};
-
-		const entPos = (eid: number, now: number): [number, number] => {
-			if (Kind.v[eid] !== KIND.player) return [Pos.x[eid], Pos.yd[eid]];
-			const t = Math.min(1, (now - (lerpStart[eid] || 0)) / LERP_MS);
-			return [
-				lerpFrom.x[eid] + (Pos.x[eid] - lerpFrom.x[eid]) * t,
-				lerpFrom.yd[eid] + (Pos.yd[eid] - lerpFrom.yd[eid]) * t,
-			];
-		};
-
+		const kindVisible = new Set<number>(Object.values(KIND));
 		const drawList: number[] = [];
 		const drawPos = new Map<number, [number, number]>();
-		const draw = () => {
+		let wheelActive = false;
+		let settleP0 = map.getPixelOrigin().clone();
+		let originX = 0;
+		let originY = 0;
+
+		const redraw = () => {
 			const dpr = window.devicePixelRatio || 1;
 			const w = el.clientWidth;
 			const h = el.clientHeight;
-			if (canvas.width !== w * dpr || canvas.height !== h * dpr) {
-				canvas.width = w * dpr;
-				canvas.height = h * dpr;
-				canvas.style.width = `${w}px`;
-				canvas.style.height = `${h}px`;
+			const cw = Math.ceil(w * (1 + 2 * PAD));
+			const ch = Math.ceil(h * (1 + 2 * PAD));
+			if (canvas.width !== cw * dpr || canvas.height !== ch * dpr) {
+				canvas.width = cw * dpr;
+				canvas.height = ch * dpr;
+				canvas.style.width = `${cw}px`;
+				canvas.style.height = `${ch}px`;
 			}
-			L.DomUtil.setPosition(
-				canvas,
-				map.containerPointToLayerPoint([0, 0]),
-			);
-			ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-			ctx.clearRect(0, 0, w, h);
-			screenXY.refresh();
-			const zoom = map.getZoom();
-			const now = performance.now();
+			ctx.setTransform(dpr, 0, 0, dpr, -originX * dpr, -originY * dpr);
+			ctx.clearRect(originX, originY, cw, ch);
+			const z = map.getZoom();
+			const P = map.getPixelOrigin();
+			const p0 = map.project(L.latLng(0, 0), z).subtract(P);
+			const p1 = map.project(L.latLng(-1, 1), z).subtract(P);
+			const ax = p1.x - p0.x;
+			const ay = p1.y - p0.y;
+			const sizeMult = iconScale(z);
 			const wallNow = Date.now();
-			let animating = false;
+			const minX = originX - 40;
+			const maxX = originX + cw + 40;
+			const minY = originY - 40;
+			const maxY = originY + ch + 40;
 			drawList.length = 0;
 			drawPos.clear();
-			for (const eid of markerEntities(world)) {
+			for (const eid of poiEnts) {
 				const kind = Kind.v[eid];
-				if (!visible.has(kind)) continue;
-				const meta = KIND_META[KIND_NAMES[kind]];
-				if (zoom < meta.minZoom) continue;
-				const [ux, uy] = entPos(eid, now);
-				const sx = screenXY.x(ux);
-				const sy = screenXY.y(uy);
-				if (sx < -60 || sy < -60 || sx > w + 60 || sy > h + 60)
-					continue;
+				if (!kindVisible.has(kind)) continue;
+				const lx = p0.x + Pos.x[eid] * ax;
+				const ly = p0.y + Pos.yd[eid] * ay;
+				if (lx < minX || lx > maxX || ly < minY || ly > maxY) continue;
 				drawList.push(eid);
-				drawPos.set(eid, [sx, sy]);
-				const size = meta.size;
-				if (kind === KIND.player) {
-					animating = true;
-					ctx.beginPath();
-					ctx.arc(sx, sy, size / 2, 0, Math.PI * 2);
-					ctx.fillStyle = '#4ade80';
-					ctx.fill();
-					ctx.strokeStyle = '#ffffff';
-					ctx.lineWidth = 2;
-					ctx.stroke();
-					if (zoom >= 3) {
-						ctx.font = '600 11px system-ui, sans-serif';
-						ctx.textAlign = 'center';
-						ctx.fillStyle = '#ffffff';
-						ctx.strokeStyle = 'rgba(0,0,0,0.75)';
-						ctx.lineWidth = 3;
-						const name = labels[eid].split(' · ')[0];
-						ctx.strokeText(name, sx, sy - size / 2 - 4);
-						ctx.fillText(name, sx, sy - size / 2 - 4);
-					}
-					continue;
-				}
-				const tk = timerKey(eid);
-				let deadline = serverTimers.get(eid) || timers[tk];
-				if (deadline && deadline <= wallNow) {
-					serverTimers.delete(eid);
-					if (timers[tk]) {
-						delete timers[tk];
-						saveTimers();
-					}
-					deadline = undefined as unknown as number;
-				}
-				const onCooldown = !!deadline;
+				drawPos.set(eid, [lx, ly]);
+				const meta = KIND_META[KIND_NAMES[kind]];
+				const size = meta.size * sizeMult;
+				const deadline = cooldownOf(eid);
 				const src = iconKeys[eid] || meta.icon;
 				const img = loadImage(src);
 				if (img.complete && img.naturalWidth) {
-					if (onCooldown) ctx.filter = 'grayscale(85%) brightness(0.75)';
+					if (deadline)
+						ctx.filter = 'grayscale(85%) brightness(0.75)';
 					if (kind === KIND.boss) {
 						ctx.save();
 						ctx.beginPath();
-						ctx.arc(sx, sy, size / 2, 0, Math.PI * 2);
+						ctx.arc(lx, ly, size / 2, 0, Math.PI * 2);
 						ctx.fillStyle = '#0b1420';
 						ctx.fill();
 						ctx.clip();
 						ctx.drawImage(
 							img,
-							sx - size / 2,
-							sy - size / 2,
+							lx - size / 2,
+							ly - size / 2,
 							size,
 							size,
 						);
 						ctx.restore();
 						ctx.beginPath();
-						ctx.arc(sx, sy, size / 2, 0, Math.PI * 2);
+						ctx.arc(lx, ly, size / 2, 0, Math.PI * 2);
 						ctx.strokeStyle = 'rgba(255,255,255,0.4)';
 						ctx.lineWidth = 1.5;
 						ctx.stroke();
 					} else {
 						ctx.drawImage(
 							img,
-							sx - size / 2,
-							sy - size / 2,
+							lx - size / 2,
+							ly - size / 2,
 							size,
 							size,
 						);
@@ -286,14 +260,14 @@ export default function ReactPalworldMap() {
 					);
 					const r = size / 2 + 3.5;
 					ctx.beginPath();
-					ctx.arc(sx, sy, r, 0, Math.PI * 2);
+					ctx.arc(lx, ly, r, 0, Math.PI * 2);
 					ctx.strokeStyle = 'rgba(8,14,24,0.7)';
 					ctx.lineWidth = 3;
 					ctx.stroke();
 					ctx.beginPath();
 					ctx.arc(
-						sx,
-						sy,
+						lx,
+						ly,
 						r,
 						-Math.PI / 2,
 						-Math.PI / 2 + Math.PI * 2 * frac,
@@ -304,17 +278,125 @@ export default function ReactPalworldMap() {
 					ctx.stroke();
 				}
 			}
-			if (animating) scheduleDraw();
 		};
 
-		const nearest = (mx: number, my: number, radius: number): number => {
+		let redrawRaf = 0;
+		const scheduleRedraw = () => {
+			if (redrawRaf || wheelActive) return;
+			redrawRaf = requestAnimationFrame(() => {
+				redrawRaf = 0;
+				redraw();
+			});
+		};
+
+		const settle = () => {
+			L.DomUtil.setTransform(pane, L.point(0, 0), 1);
+			settleP0 = map.getPixelOrigin().clone();
+			const w = el.clientWidth;
+			const h = el.clientHeight;
+			const o = map.containerPointToLayerPoint([
+				-w * PAD,
+				-h * PAD,
+			]);
+			originX = o.x;
+			originY = o.y;
+			L.DomUtil.setPosition(canvas, o);
+			redraw();
+		};
+		map.on('moveend zoomend viewreset resize', settle);
+		map.on('zoom', () => {
+			if (!wheelActive) settle();
+		});
+		settle();
+
+		const mapInternal = map as unknown as {
+			_moveStart(zoomChanged: boolean, noMoveStart: boolean): void;
+			_move(center: L.LatLng, zoom: number): void;
+			_moveEnd(zoomChanged: boolean): void;
+		};
+		let wheelGoal = 0;
+		let wheelRaf = 0;
+		let wheelEndTimer = 0;
+		let wheelAnchorPt: L.Point | null = null;
+		let wheelAnchorLL: L.LatLng | null = null;
+		let wheelStartZoom = 0;
+		const wheelFrame = () => {
+			wheelRaf = 0;
+			if (!wheelActive || !wheelAnchorPt || !wheelAnchorLL) return;
+			const cur = map.getZoom();
+			let z = cur + (wheelGoal - cur) * 0.3;
+			if (Math.abs(wheelGoal - z) < 0.005) z = wheelGoal;
+			const half = map.getSize().divideBy(2);
+			const center = map.unproject(
+				map.project(wheelAnchorLL, z).subtract(wheelAnchorPt).add(half),
+				z,
+			);
+			mapInternal._move(center, z);
+			const s = map.getZoomScale(z, wheelStartZoom);
+			const t = settleP0.multiplyBy(s).subtract(map.getPixelOrigin());
+			L.DomUtil.setTransform(pane, t, s);
+			if (z !== wheelGoal) wheelRaf = requestAnimationFrame(wheelFrame);
+		};
+		const endWheel = () => {
+			if (!wheelActive) return;
+			if (wheelRaf) {
+				wheelEndTimer = window.setTimeout(endWheel, 100);
+				return;
+			}
+			wheelActive = false;
+			mapInternal._moveEnd(true);
+		};
+		const onWheel = (ev: WheelEvent) => {
+			ev.preventDefault();
+			const rect = el.getBoundingClientRect();
+			wheelAnchorPt = L.point(
+				ev.clientX - rect.left,
+				ev.clientY - rect.top,
+			);
+			if (!wheelActive) {
+				wheelActive = true;
+				wheelGoal = map.getZoom();
+				wheelStartZoom = wheelGoal;
+				mapInternal._moveStart(true, false);
+			}
+			wheelAnchorLL = map.containerPointToLatLng(wheelAnchorPt);
+			const step = ev.deltaMode === 1 ? 0.05 : 0.0035;
+			wheelGoal = Math.min(
+				MAX_ZOOM,
+				Math.max(map.getMinZoom(), wheelGoal - ev.deltaY * step),
+			);
+			if (!wheelRaf) wheelRaf = requestAnimationFrame(wheelFrame);
+			window.clearTimeout(wheelEndTimer);
+			wheelEndTimer = window.setTimeout(endWheel, 180);
+		};
+		el.addEventListener('wheel', onWheel, { passive: false });
+
+		const tooltip = document.createElement('div');
+		tooltip.style.cssText =
+			'position:absolute;z-index:700;pointer-events:none;display:none;' +
+			'background:rgba(8,14,24,0.92);color:#e8f0fa;font:12px/1.4 system-ui,sans-serif;' +
+			'padding:4px 8px;border-radius:6px;border:1px solid rgba(255,255,255,0.18);' +
+			'white-space:nowrap;transform:translate(-50%,-130%)';
+		el.appendChild(tooltip);
+
+		const tooltipText = (eid: number): string => {
+			let text = labels[eid];
+			const deadline = cooldownOf(eid);
+			if (deadline)
+				text += ` — respawn ${fmtRemain(deadline - Date.now())}`;
+			else if (RESPAWN_MINUTES[KIND_NAMES[Kind.v[eid]]])
+				text += ' — click to start timer';
+			return text;
+		};
+
+		const nearest = (lx: number, ly: number, radius: number): number => {
 			let best = -1;
 			let bestD = radius * radius;
 			for (const eid of drawList) {
 				const p = drawPos.get(eid);
 				if (!p) continue;
-				const dx = p[0] - mx;
-				const dy = p[1] - my;
+				const dx = p[0] - lx;
+				const dy = p[1] - ly;
 				const d = dx * dx + dy * dy;
 				if (d < bestD) {
 					bestD = d;
@@ -325,24 +407,14 @@ export default function ReactPalworldMap() {
 		};
 
 		const onMouseMove = (ev: MouseEvent) => {
-			const rect = el.getBoundingClientRect();
-			const best = nearest(
-				ev.clientX - rect.left,
-				ev.clientY - rect.top,
-				18,
-			);
+			if (wheelActive) return;
+			const lp = map.mouseEventToLayerPoint(ev);
+			const best = nearest(lp.x, lp.y, 18);
 			if (best >= 0) {
-				const p = drawPos.get(best)!;
-				let text = labels[best];
-				const deadline =
-					serverTimers.get(best) || timers[timerKey(best)];
-				if (deadline && deadline > Date.now())
-					text += ` — respawn ${fmtRemain(deadline - Date.now())}`;
-				else if (RESPAWN_MINUTES[KIND_NAMES[Kind.v[best]]])
-					text += ' — click to start timer';
-				tooltip.textContent = text;
-				tooltip.style.left = `${p[0]}px`;
-				tooltip.style.top = `${p[1]}px`;
+				const cp = map.latLngToContainerPoint(latlngs.get(best)!);
+				tooltip.textContent = tooltipText(best);
+				tooltip.style.left = `${cp.x}px`;
+				tooltip.style.top = `${cp.y}px`;
 				tooltip.style.display = 'block';
 			} else {
 				tooltip.style.display = 'none';
@@ -358,12 +430,9 @@ export default function ReactPalworldMap() {
 				Math.hypot(ev.clientX - downAt[0], ev.clientY - downAt[1]) > 5
 			)
 				return;
-			const rect = el.getBoundingClientRect();
-			const best = nearest(
-				ev.clientX - rect.left,
-				ev.clientY - rect.top,
-				18,
-			);
+			if (wheelActive) return;
+			const lp = map.mouseEventToLayerPoint(ev);
+			const best = nearest(lp.x, lp.y, 18);
 			if (best < 0) return;
 			const mins = RESPAWN_MINUTES[KIND_NAMES[Kind.v[best]]];
 			if (!mins) return;
@@ -371,7 +440,7 @@ export default function ReactPalworldMap() {
 			if (timers[tk]) delete timers[tk];
 			else timers[tk] = Date.now() + mins * 60_000;
 			saveTimers();
-			scheduleDraw();
+			scheduleRedraw();
 		};
 		el.addEventListener('mousemove', onMouseMove);
 		el.addEventListener('mousedown', onMouseDown);
@@ -379,18 +448,57 @@ export default function ReactPalworldMap() {
 		el.addEventListener('mouseleave', () => {
 			tooltip.style.display = 'none';
 		});
-
-		map.on('moveend zoomend viewreset resize', scheduleDraw);
 		map.on('movestart zoomstart', () => {
 			tooltip.style.display = 'none';
 		});
-		scheduleDraw();
 
-		const timerTick = setInterval(() => {
-			if (Object.keys(timers).length) scheduleDraw();
+		const cooldownTick = setInterval(() => {
+			let any = false;
+			for (const eid of drawList) {
+				if (serverTimers.get(eid) || timers[timerKey(eid)]) {
+					any = true;
+					break;
+				}
+			}
+			if (any) scheduleRedraw();
 		}, 1000);
 
-		const countSpans = new Map<number, Text>();
+		const playerLayer = L.layerGroup().addTo(map);
+		const playerMarkers = new Map<
+			string,
+			{ m: L.Marker; from: L.LatLng; to: L.LatLng; t0: number }
+		>();
+		let playerRaf = 0;
+		const playerFrame = () => {
+			playerRaf = 0;
+			const now = performance.now();
+			let active = false;
+			for (const p of playerMarkers.values()) {
+				const t = Math.min(1, (now - p.t0) / LERP_MS);
+				if (t < 1) active = true;
+				p.m.setLatLng([
+					p.from.lat + (p.to.lat - p.from.lat) * t,
+					p.from.lng + (p.to.lng - p.from.lng) * t,
+				]);
+			}
+			if (active) playerRaf = requestAnimationFrame(playerFrame);
+		};
+		const playerIcon = (name: string) =>
+			L.divIcon({
+				className: 'pal-player',
+				iconSize: [14, 14],
+				iconAnchor: [7, 7],
+				html:
+					`<div style="position:relative">` +
+					`<span style="position:absolute;left:50%;bottom:16px;transform:translateX(-50%);` +
+					`font:600 11px system-ui,sans-serif;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,0.9);` +
+					`white-space:nowrap;pointer-events:none">${esc(name)}</span>` +
+					`<span style="display:block;width:14px;height:14px;border-radius:50%;` +
+					`background:#4ade80;border:2px solid #fff;box-sizing:border-box"></span>` +
+					`</div>`,
+			});
+
+		const countTexts = new Map<number, Text>();
 		const control = new L.Control({ position: 'topright' });
 		control.onAdd = () => {
 			const div = L.DomUtil.create('div', 'pal-map-filters');
@@ -399,7 +507,7 @@ export default function ReactPalworldMap() {
 				'border:1px solid rgba(255,255,255,0.15);font:12px/1.7 system-ui,sans-serif';
 			L.DomEvent.disableClickPropagation(div);
 			const counts = new Map<number, number>();
-			for (const eid of markerEntities(world))
+			for (const eid of poiEnts)
 				counts.set(Kind.v[eid], (counts.get(Kind.v[eid]) || 0) + 1);
 			for (const [name, kind] of Object.entries(KIND)) {
 				const meta = KIND_META[name as KindName];
@@ -410,20 +518,39 @@ export default function ReactPalworldMap() {
 				cb.type = 'checkbox';
 				cb.checked = true;
 				cb.onchange = () => {
-					cb.checked ? visible.add(kind) : visible.delete(kind);
-					scheduleDraw();
+					if (kind === KIND.player) {
+						cb.checked
+							? playerLayer.addTo(map)
+							: map.removeLayer(playerLayer);
+						return;
+					}
+					cb.checked
+						? kindVisible.add(kind)
+						: kindVisible.delete(kind);
+					scheduleRedraw();
 				};
 				row.appendChild(cb);
 				const txt = document.createTextNode(
 					`${meta.plural} (${counts.get(kind) || 0})`,
 				);
-				countSpans.set(kind, txt);
+				countTexts.set(kind, txt);
 				row.appendChild(txt);
 				div.appendChild(row);
 			}
 			return div;
 		};
 		control.addTo(map);
+
+		if (import.meta.env.DEV) {
+			(window as unknown as Record<string, unknown>).__palmap = {
+				map,
+				canvas,
+				pane,
+				drawPos,
+				latlngs,
+				getOrigin: () => [originX, originY],
+			};
+		}
 
 		const liveUrl =
 			new URLSearchParams(window.location.search).get('live') ||
@@ -443,7 +570,39 @@ export default function ReactPalworldMap() {
 					}[];
 				};
 				if (stopped) return;
-				syncPlayers(world, data.players || [], performance.now());
+				const seen = new Set<string>();
+				for (const p of data.players || []) {
+					seen.add(p.name);
+					const ll = L.latLng(gameToLatLng(p.x, p.y));
+					const existing = playerMarkers.get(p.name);
+					if (existing) {
+						existing.from = existing.m.getLatLng();
+						existing.to = ll;
+						existing.t0 = performance.now();
+					} else {
+						const m = L.marker(ll, {
+							icon: playerIcon(`${p.name} · Lv ${p.level}`),
+							keyboard: false,
+							interactive: false,
+							zIndexOffset: 500,
+						});
+						m.addTo(playerLayer);
+						playerMarkers.set(p.name, {
+							m,
+							from: ll,
+							to: ll,
+							t0: performance.now(),
+						});
+					}
+				}
+				for (const [name, p] of playerMarkers) {
+					if (!seen.has(name)) {
+						playerLayer.removeLayer(p.m);
+						playerMarkers.delete(name);
+					}
+				}
+				if (!playerRaf && playerMarkers.size)
+					playerRaf = requestAnimationFrame(playerFrame);
 				serverTimers.clear();
 				for (const b of data.bosses || []) {
 					const [ux, uy] = gameToUnits(b.x, b.y);
@@ -458,17 +617,19 @@ export default function ReactPalworldMap() {
 							bestEid = eid;
 						}
 					}
-					if (bestEid >= 0)
-						serverTimers.set(bestEid, b.respawn_at);
+					if (bestEid >= 0) serverTimers.set(bestEid, b.respawn_at);
 				}
-				const span = countSpans.get(KIND.player);
+				if (data.bosses?.length) scheduleRedraw();
+				const span = countTexts.get(KIND.player);
 				if (span)
 					span.textContent = `Players (${data.players?.length || 0})`;
-				scheduleDraw();
 			} catch {
 				if (stopped) return;
-				syncPlayers(world, [], performance.now());
-				const span = countSpans.get(KIND.player);
+				for (const [name, p] of playerMarkers) {
+					playerLayer.removeLayer(p.m);
+					playerMarkers.delete(name);
+				}
+				const span = countTexts.get(KIND.player);
 				if (span) span.textContent = 'Players (offline)';
 			}
 		};
@@ -478,12 +639,16 @@ export default function ReactPalworldMap() {
 		return () => {
 			stopped = true;
 			clearInterval(pollTimer);
-			clearInterval(timerTick);
+			clearInterval(cooldownTick);
+			if (wheelRaf) cancelAnimationFrame(wheelRaf);
+			if (playerRaf) cancelAnimationFrame(playerRaf);
+			if (redrawRaf) cancelAnimationFrame(redrawRaf);
+			window.clearTimeout(wheelEndTimer);
+			el.removeEventListener('wheel', onWheel);
 			el.removeEventListener('mousemove', onMouseMove);
 			el.removeEventListener('mousedown', onMouseDown);
 			el.removeEventListener('click', onClick);
 			map.remove();
-			canvas.remove();
 			tooltip.remove();
 		};
 	}, []);
