@@ -35,7 +35,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: memes
-                  image: ghcr.io/kbve/memes:0.1.8
+                  image: ghcr.io/kbve/memes:0.1.9
                   imagePullPolicy: Always
                   ports:
                       - containerPort: 4321
