@@ -1,0 +1,36 @@
+---
+id: "THP7EVB0C1HPJZCXWFXR7GTJJM"
+ref: "mushroom-fly-agaric"
+drafted: false
+name: "Fly Agaric Mushroom"
+title: "Fly Agaric Mushroom"
+template: splash
+sidebar:
+    label: "Fly Agaric Mushroom"
+    hidden: true
+description: "A striking red-capped mushroom flecked with white, as dangerous as it is distinctive."
+type: "resource_node"
+sub_kind: "fly_agaric"
+interactable: true
+destructible: true
+harvest_yield: 1
+max_amount: 50
+initial_amount: 50
+harvest_time_ms: 500
+harvest_weight: 0
+spawn_weight: 0.3
+spawn_count: 20
+pixels_per_unit: 25
+pivot_x: 0.5
+pivot_y: 0.5
+sorting_layer: "Foreground"
+profession_action_ref: "gather-fly-agaric"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Fly Agaric Mushroom
+
+Bright and unmistakable, fly agaric is picked more often for its uses in tincture than for the stew pot.
+
+<MapDBPanel data={frontmatter} />

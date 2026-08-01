@@ -1,0 +1,36 @@
+---
+id: "8XHEZJJRCCTH3GNEP31APKF39J"
+ref: "flower-lavender"
+drafted: false
+name: "Lavender"
+title: "Lavender"
+template: splash
+sidebar:
+    label: "Lavender"
+    hidden: true
+description: "A fragrant purple spike favored by herbalists for its calming oil."
+type: "resource_node"
+sub_kind: "lavender"
+interactable: true
+destructible: true
+harvest_yield: 1
+max_amount: 50
+initial_amount: 50
+harvest_time_ms: 500
+harvest_weight: 0
+spawn_weight: 0.3
+spawn_count: 20
+pixels_per_unit: 25
+pivot_x: 0.5
+pivot_y: 0.5
+sorting_layer: "Foreground"
+profession_action_ref: "gather-lavender"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Lavender
+
+Bundled and hung to dry, lavender keeps moths from linens and headaches from settling in for the night.
+
+<MapDBPanel data={frontmatter} />

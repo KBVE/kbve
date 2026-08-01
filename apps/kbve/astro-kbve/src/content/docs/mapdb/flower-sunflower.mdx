@@ -1,0 +1,36 @@
+---
+id: "D1A6W724RPF55HZN0RQ4GGMFFR"
+ref: "flower-sunflower"
+drafted: false
+name: "Sunflower"
+title: "Sunflower"
+template: splash
+sidebar:
+    label: "Sunflower"
+    hidden: true
+description: "A tall stalk crowned with a broad golden bloom that tracks the sun across the sky."
+type: "resource_node"
+sub_kind: "sunflower"
+interactable: true
+destructible: true
+harvest_yield: 1
+max_amount: 50
+initial_amount: 50
+harvest_time_ms: 500
+harvest_weight: 0
+spawn_weight: 0.3
+spawn_count: 20
+pixels_per_unit: 25
+pivot_x: 0.5
+pivot_y: 0.5
+sorting_layer: "Foreground"
+profession_action_ref: "gather-sunflower"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Sunflower
+
+A field of sunflowers turns as one throughout the day, following the sun in a slow, silent parade.
+
+<MapDBPanel data={frontmatter} />

@@ -1,0 +1,36 @@
+---
+id: "GPBTPZSPZ36QR5414BMPSRPZ2C"
+ref: "flower-tulip"
+drafted: false
+name: "Tulip"
+title: "Tulip"
+template: splash
+sidebar:
+    label: "Tulip"
+    hidden: true
+description: "A cupped, vividly colored bloom that pushes up early after the frost breaks."
+type: "resource_node"
+sub_kind: "tulip"
+interactable: true
+destructible: true
+harvest_yield: 1
+max_amount: 50
+initial_amount: 50
+harvest_time_ms: 500
+harvest_weight: 0
+spawn_weight: 0.3
+spawn_count: 20
+pixels_per_unit: 25
+pivot_x: 0.5
+pivot_y: 0.5
+sorting_layer: "Foreground"
+profession_action_ref: "gather-tulip"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Tulip
+
+Tulips push through late frost with stubborn resolve, one of the first colors to break the gray of a fading winter.
+
+<MapDBPanel data={frontmatter} />

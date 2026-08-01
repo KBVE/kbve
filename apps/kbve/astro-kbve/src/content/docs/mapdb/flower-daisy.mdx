@@ -1,0 +1,36 @@
+---
+id: "J849VFHQA9NATMKVY5S6FJFJVP"
+ref: "flower-daisy"
+drafted: false
+name: "Daisy"
+title: "Daisy"
+template: splash
+sidebar:
+    label: "Daisy"
+    hidden: true
+description: "A cheerful white-and-yellow bloom that grows wherever the sun reaches bare soil."
+type: "resource_node"
+sub_kind: "daisy"
+interactable: true
+destructible: true
+harvest_yield: 1
+max_amount: 50
+initial_amount: 50
+harvest_time_ms: 500
+harvest_weight: 0
+spawn_weight: 0.3
+spawn_count: 20
+pixels_per_unit: 25
+pivot_x: 0.5
+pivot_y: 0.5
+sorting_layer: "Foreground"
+profession_action_ref: "gather-daisy"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Daisy
+
+Simple and abundant, daisies are the first flower most children learn to pick without bruising the petals.
+
+<MapDBPanel data={frontmatter} />
