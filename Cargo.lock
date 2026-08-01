@@ -856,7 +856,7 @@ dependencies = [
 
 [[package]]
 name = "arpg-server"
-version = "0.1.27"
+version = "0.1.28"
 dependencies = [
  "agones",
  "async-trait",
@@ -2430,7 +2430,7 @@ dependencies = [
 
 [[package]]
 name = "axum-memes"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "anyhow",
  "askama 0.15.6",
@@ -9796,7 +9796,7 @@ dependencies = [
 
 [[package]]
 name = "irc-gateway"
-version = "0.1.28"
+version = "0.1.29"
 dependencies = [
  "anyhow",
  "axum 0.8.9",
@@ -15399,7 +15399,7 @@ dependencies = [
 
 [[package]]
 name = "reel"
-version = "0.1.31"
+version = "0.1.32"
 dependencies = [
  "anyhow",
  "axum 0.8.9",
