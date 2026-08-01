@@ -294,10 +294,7 @@ export default function ReactPalworldMap() {
 			settleP0 = map.getPixelOrigin().clone();
 			const w = el.clientWidth;
 			const h = el.clientHeight;
-			const o = map.containerPointToLayerPoint([
-				-w * PAD,
-				-h * PAD,
-			]);
+			const o = map.containerPointToLayerPoint([-w * PAD, -h * PAD]);
 			originX = o.x;
 			originY = o.y;
 			L.DomUtil.setPosition(canvas, o);
@@ -498,6 +495,88 @@ export default function ReactPalworldMap() {
 					`</div>`,
 			});
 
+		const EVENT_STYLE: Record<
+			string,
+			{ svg: string; ring: string; label: string }
+		> = {
+			supply: {
+				ring: '#fbbf24',
+				label: 'Supply drop',
+				svg:
+					`<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="#fbbf24" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">` +
+					`<path d="M2 5a6 4.5 0 0 1 12 0" fill="rgba(251,191,36,0.25)"/>` +
+					`<path d="M2 5l3.5 4M14 5l-3.5 4M8 5v4"/>` +
+					`<rect x="5.5" y="9" width="5" height="4.5" rx="0.5" fill="rgba(251,191,36,0.35)"/>` +
+					`</svg>`,
+			},
+			meteor: {
+				ring: '#f87171',
+				label: 'Meteorite',
+				svg:
+					`<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="#f87171" stroke-width="1.3" stroke-linecap="round">` +
+					`<path d="M14 2L7.5 8.5M13 6L9 10M10 3l-4 4"/>` +
+					`<circle cx="5.5" cy="10.5" r="3.2" fill="rgba(248,113,113,0.35)"/>` +
+					`</svg>`,
+			},
+			dungeon: {
+				ring: '#a78bfa',
+				label: 'Dungeon (open)',
+				svg:
+					`<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="#a78bfa" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">` +
+					`<path d="M3 14V7a5 5 0 0 1 10 0v7" fill="rgba(167,139,250,0.25)"/>` +
+					`<path d="M2 14h12"/>` +
+					`<path d="M6.5 14v-3.5a1.5 1.5 0 0 1 3 0V14" fill="rgba(167,139,250,0.5)"/>` +
+					`</svg>`,
+			},
+		};
+		const eventLayer = L.layerGroup().addTo(map);
+		const eventMarkers = new Map<string, L.Marker>();
+		const eventIcon = (style: { svg: string; ring: string }) =>
+			L.divIcon({
+				className: 'pal-event',
+				iconSize: [26, 26],
+				iconAnchor: [13, 13],
+				html:
+					`<div style="width:26px;height:26px;border-radius:50%;background:rgba(8,14,24,0.88);` +
+					`border:2px solid ${style.ring};display:flex;align-items:center;justify-content:center;` +
+					`box-shadow:0 0 10px ${style.ring}99">${style.svg}</div>`,
+			});
+		const syncEvents = (
+			list: { kind: string; x: number; y: number; first_seen: number }[],
+		) => {
+			const seen = new Set<string>();
+			for (const e of list) {
+				const style = EVENT_STYLE[e.kind];
+				if (!style) continue;
+				const key = `${e.kind}:${Math.round(e.x / 100)}:${Math.round(e.y / 100)}`;
+				seen.add(key);
+				if (eventMarkers.has(key)) continue;
+				const m = L.marker(gameToLatLng(e.x, e.y), {
+					icon: eventIcon(style),
+					keyboard: false,
+					zIndexOffset: 400,
+				});
+				m.bindTooltip(
+					() => {
+						const mins = Math.max(
+							0,
+							Math.round((Date.now() - e.first_seen) / 60_000),
+						);
+						return `${style.label} — spotted ${mins}m ago`;
+					},
+					{ direction: 'top', offset: [0, -14], opacity: 0.95 },
+				);
+				m.addTo(eventLayer);
+				eventMarkers.set(key, m);
+			}
+			for (const [key, m] of eventMarkers) {
+				if (!seen.has(key)) {
+					eventLayer.removeLayer(m);
+					eventMarkers.delete(key);
+				}
+			}
+		};
+
 		const countTexts = new Map<number, Text>();
 		const control = new L.Control({ position: 'topright' });
 		control.onAdd = () => {
@@ -568,8 +647,15 @@ export default function ReactPalworldMap() {
 						y: number;
 						respawn_at: number;
 					}[];
+					events?: {
+						kind: string;
+						x: number;
+						y: number;
+						first_seen: number;
+					}[];
 				};
 				if (stopped) return;
+				syncEvents(data.events || []);
 				const seen = new Set<string>();
 				for (const p of data.players || []) {
 					seen.add(p.name);
