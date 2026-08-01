@@ -43,7 +43,9 @@ new cap unreachable.
 ## Shields (KBVEShields)
 
 `mods/KBVEShields/items/shields.jsonc` grants `TemperatureResist_Heat*Cold*`
-passives to `Shield_Ultra` / `Shield_SF` / `Shield_07`. Inspired by Multiclimate
+passives to shields: `Shield_03` (Giga) and `Shield_04` (Tera) at tier 1,
+`Shield_Ultra` at tier 1, `Shield_SF` at tier 2, `Shield_07` at tier 3.
+Inspired by Multiclimate
 Shields by MelwenMods ([Nexus 2643](https://www.nexusmods.com/palworld/mods/2643));
 values are KBVE-authored. Server-side only.
 
