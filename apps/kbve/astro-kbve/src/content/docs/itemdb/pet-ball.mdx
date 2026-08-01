@@ -1,0 +1,47 @@
+---
+title: 'Pet Ball'
+template: splash
+sidebar:
+    label: 'Pet Ball'
+    hidden: true
+description: |
+    A hinged steel sphere the size of a fist, dull grey with a seam running its equator and a recessed catch on one side. Heavier than it looks, and it hums for a second or two after it closes.
+lore: |
+    Nobody agrees on where the first ones came from, only that the pattern was already old when the trainers' circuits formalised and that every attempt to improve on it has made a worse ball. The seam mechanism is unhelpfully described in the surviving diagrams as "the part that decides", which handlers have taken to mean that a healthy beast will simply refuse it. Sold in belts of five by anyone near a road, at a price that suggests the making is cheaper than the mystique.
+ref: 'pet-ball'
+key: 119
+id: '01KTVTRAB1PETBALL0000000001'
+name: 'Pet Ball'
+type_flags: 544
+rarity: 'common'
+emoji: '⚪'
+stackable: true
+max_stack: 10
+buy_price: 40
+consumable: true
+action: 'consume'
+tags:
+  - arpg
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />
+
+Thrown at a wild pet during a duel to try to catch it. The odds scale with how weakened the
+target is: a pet at full health is roughly three times harder to catch than one on its last
+legs, and a status effect roughly doubles the chance again.
+
+<Aside type="caution">
+	The ball is spent on the attempt, not on the result — a throw that breaks out is gone.
+	Weaken the target first.
+</Aside>

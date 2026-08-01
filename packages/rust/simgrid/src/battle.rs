@@ -329,6 +329,11 @@ pub enum BattleAction {
     UseItem { heal: i32 },
     /// Flee the battle (player only).
     Run,
+    /// Throw a ball at the foe's active pet (wild duels only, player only). `rate` is the
+    /// species `capture_rate` from npcdb; the odds scale with the target's remaining hp and
+    /// its status. The caller is responsible for having already spent the ball — the engine
+    /// only rolls, so a refused throw never reaches here.
+    Catch { rate: i32 },
 }
 
 /// Type-effectiveness bucket, for client messaging.
@@ -346,6 +351,9 @@ pub enum BattleOutcome {
     PlayerWon,
     PlayerLost,
     Fled,
+    /// The player caught the foe's active pet; the battle ends immediately. Only reachable
+    /// from [`BattleAction::Catch`], which the duel layer offers in wild duels only.
+    Caught,
 }
 
 /// What happened during a turn — the ordered log returned by [`BattleState::resolve_turn`].
@@ -368,6 +376,14 @@ pub enum BattleEvent {
     },
     Miss {
         side: Side,
+    },
+    /// The player's throw landed — `nickname` is the pet that was caught.
+    Caught {
+        nickname: String,
+    },
+    /// The throw broke out. The ball is already spent; the wild pet still gets its turn.
+    CatchFailed {
+        nickname: String,
     },
     NoPp {
         side: Side,
@@ -415,6 +431,24 @@ pub struct BattleState {
     pub turn: u32,
     pub root: u32,
     pub outcome: BattleOutcome,
+}
+
+/// Catch odds out of 256, Pokemon-shaped: a full-health target sits at a third of the
+/// species `capture_rate`, a nearly-dead one at the full rate, and a status multiplies on top.
+/// Clamped to 1..=255 so nothing is ever guaranteed or impossible.
+pub fn catch_odds(rate: i32, hp: i32, max_hp: i32, status: PetStatus) -> i32 {
+    let max_hp = max_hp.max(1);
+    let hp = hp.clamp(0, max_hp);
+    // 1.0 at 0 hp down to 1/3 at full hp.
+    let hp_factor = 1.0 - (2.0 / 3.0) * (hp as f32 / max_hp as f32);
+    let status_bonus = match status {
+        PetStatus::None => 1.0,
+        // Paralysis pins it down hardest; burn and poison are already ticking it down.
+        PetStatus::Paralyze => 2.0,
+        PetStatus::Burn | PetStatus::Poison => 1.5,
+    };
+    let odds = ((rate as f32) * hp_factor * status_bonus).round() as i32;
+    odds.clamp(1, 255)
 }
 
 /// Stat-stage multiplier for the main battle stats (atk/def/spa/spd/speed): `+n` gives
@@ -697,6 +731,35 @@ impl BattleState {
                 }
             }
             BattleAction::Move { slot } => self.apply_move(side, slot, rng, events),
+            BattleAction::Catch { rate } => self.apply_catch(side, rate, rng, events),
+        }
+    }
+
+    /// Roll a catch against the foe's active pet. Draws from the same turn stream as
+    /// everything else in the turn, so a replay of the same duel catches on the same turn.
+    fn apply_catch(
+        &mut self,
+        side: Side,
+        rate: i32,
+        rng: &mut Mulberry32,
+        events: &mut Vec<BattleEvent>,
+    ) {
+        if side != Side::Player {
+            return;
+        }
+        let target = self.enemy.active();
+        let effective = catch_odds(rate, target.hp, target.max_hp, target.status);
+        let roll = (rng.next_u32() % 256) as i32;
+        if roll < effective {
+            self.outcome = BattleOutcome::Caught;
+            events.push(BattleEvent::Caught {
+                nickname: target.nickname.clone(),
+            });
+            events.push(BattleEvent::Outcome(BattleOutcome::Caught));
+        } else {
+            events.push(BattleEvent::CatchFailed {
+                nickname: target.nickname.clone(),
+            });
         }
     }
 
@@ -959,6 +1022,77 @@ mod tests {
         assert!(
             ds > dt,
             "stab+special {ds} should exceed neutral physical {dt}"
+        );
+    }
+
+    #[test]
+    fn catch_odds_scale_with_hp_and_status() {
+        // A full-health target sits near a third of the species rate; a nearly-dead one at
+        // the full rate. Paralysis doubles.
+        assert_eq!(catch_odds(90, 100, 100, PetStatus::None), 30);
+        assert_eq!(catch_odds(90, 0, 100, PetStatus::None), 90);
+        assert_eq!(catch_odds(90, 0, 100, PetStatus::Paralyze), 180);
+        // Clamped: never impossible, never certain.
+        assert_eq!(catch_odds(0, 100, 100, PetStatus::None), 1);
+        assert_eq!(catch_odds(255, 0, 100, PetStatus::Paralyze), 255);
+    }
+
+    #[test]
+    fn a_catch_that_lands_ends_the_battle() {
+        let mut b = BattleState::versus(7, vec![combatant(5)], vec![combatant(5)]);
+        b.enemy.team[0].hp = 1;
+        // rate 255 on a 1-hp target is the top of the clamp, so the roll cannot miss.
+        let events = b.resolve_turn(BattleAction::Catch { rate: 255 }, BattleAction::Run);
+        assert_eq!(b.outcome, BattleOutcome::Caught);
+        assert!(
+            events
+                .iter()
+                .any(|e| matches!(e, BattleEvent::Caught { .. })),
+            "a Caught event is logged for the client to animate"
+        );
+    }
+
+    #[test]
+    fn a_catch_that_fails_leaves_the_battle_running() {
+        let mut b = BattleState::versus(7, vec![combatant(5)], vec![combatant(5)]);
+        // rate 1 at full health clamps to the floor, so the roll cannot land.
+        let events = b.resolve_turn(BattleAction::Catch { rate: 1 }, BattleAction::Run);
+        assert_ne!(b.outcome, BattleOutcome::Caught);
+        assert!(
+            events
+                .iter()
+                .any(|e| matches!(e, BattleEvent::CatchFailed { .. }))
+        );
+    }
+
+    #[test]
+    fn the_catch_roll_is_deterministic_per_root_and_turn() {
+        // Same root, same turn, same target state -> same result. This is what lets a duel be
+        // replayed (or mirrored to a second viewer) without diverging.
+        let run = || {
+            let mut b = BattleState::versus(99, vec![combatant(5)], vec![combatant(5)]);
+            b.enemy.team[0].hp = b.enemy.team[0].max_hp / 2;
+            b.resolve_turn(BattleAction::Catch { rate: 120 }, BattleAction::Run);
+            b.outcome
+        };
+        assert_eq!(run(), run());
+    }
+
+    #[test]
+    fn only_the_player_can_throw_a_ball() {
+        let mut b = BattleState::versus(7, vec![combatant(5)], vec![combatant(5)]);
+        b.player.team[0].hp = 1;
+        let events = b.resolve_turn(BattleAction::Run, BattleAction::Catch { rate: 255 });
+        assert_eq!(
+            b.outcome,
+            BattleOutcome::Fled,
+            "the player's Run still resolves"
+        );
+        assert!(
+            !events
+                .iter()
+                .any(|e| matches!(e, BattleEvent::Caught { .. })),
+            "an enemy Catch is a no-op"
         );
     }
 

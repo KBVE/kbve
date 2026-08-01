@@ -33,6 +33,17 @@ pub struct Duel {
     /// Entity handles stay valid for the life of the duel because `apply_roster_ops`
     /// refuses to release a pet while its owner is dueling.
     pub pets: [Vec<Option<Entity>>; 2],
+    /// Set only for a wild encounter. Carries what the Catch action needs: the world entity to
+    /// despawn once caught, and the species + level to mint the caught pet from. `None` for
+    /// trainer and PvP duels, which is exactly what makes them uncatchable.
+    pub wild: Option<WildTarget>,
+}
+
+/// The wild pet a duel is against.
+pub struct WildTarget {
+    pub entity: Entity,
+    pub species_ref: String,
+    pub level: u32,
 }
 
 #[derive(bevy::prelude::Resource, Default)]
@@ -221,6 +232,7 @@ pub fn apply_npc_challenges(
     spawned: bevy::prelude::Res<simgrid::SpawnedSlots>,
     bank: simgrid::PetBank,
     trainers: bevy::prelude::Query<(&Trainer, &simgrid::GridPos, Option<&TrainerBusy>)>,
+    wild_pets: bevy::prelude::Query<(&crate::wild::WildPet, &simgrid::GridPos)>,
     players: bevy::prelude::Query<(
         &simgrid::PlayerSlotTag,
         &simgrid::GridPos,
@@ -241,6 +253,64 @@ pub fn apply_npc_challenges(
             continue;
         };
         if claimed.contains(&trainer_entity) {
+            continue;
+        }
+        // The same walk-up input serves both targets: a trainer starts a full team duel, a wild
+        // pet starts a 1v1 that the Catch action can end. Wild pets need no busy marker — a duel
+        // already blocks the challenger, and the pet despawns if it is caught.
+        if let Ok((wild, wild_pos)) = wild_pets.get(trainer_entity) {
+            let Some((_, player_pos, roster)) = players.iter().find(|(tag, _, _)| tag.0 == slot)
+            else {
+                continue;
+            };
+            if !within_challenge_range(player_pos.tile, wild_pos.tile) {
+                continue;
+            }
+            let Some(species) = game::NPC_DB.get(&wild.species_ref) else {
+                continue;
+            };
+            let Some(snap) = simgrid::mint_pet_from_species(species, wild.level) else {
+                continue;
+            };
+            let enemy = vec![simgrid::Combatant::from_pet(&snap, species)];
+            let mut team = roster.map(|r| roster_team(&bank, r)).unwrap_or_default();
+            if team.is_empty() {
+                let Some(fallback) = game::NPC_DB.get(game::MECHAMUTT_REF) else {
+                    continue;
+                };
+                team = unowned_team(game::mechamutt_team(fallback));
+            }
+            let (team, team_pets) = split_team(team);
+            let root = simgrid::rng::mix32(&[0xD0E1_1D0E, slot.0 as u32, clock.tick]);
+            let name = spawned
+                .by_slot
+                .get(&slot.0)
+                .map(|(_, n)| n.clone())
+                .unwrap_or_default();
+            let label = format!("Wild {}", snap.nickname);
+            let duel = Duel {
+                state: simgrid::BattleState::versus(root, team, enemy),
+                sides: [
+                    DuelSide::Human { slot: slot.0, name },
+                    DuelSide::Npc {
+                        trainer: None,
+                        name: label.clone(),
+                        difficulty: simgrid::AiDifficulty::Greedy,
+                    },
+                ],
+                committed: [None, None],
+                deadline_tick: clock.tick.saturating_add(DUEL_TURN_TICKS),
+                pets: [team_pets, vec![None]],
+                wild: Some(WildTarget {
+                    entity: trainer_entity,
+                    species_ref: wild.species_ref.clone(),
+                    level: wild.level,
+                }),
+            };
+            claimed.insert(trainer_entity);
+            let opening = vec![game::info_event(format!("A {label} appears!"))];
+            let id = duels.create(duel);
+            stream_duel_views(&bcast, &duels.by_id[&id], &opening, clock.tick);
             continue;
         }
         let Ok((trainer, trainer_pos, busy)) = trainers.get(trainer_entity) else {
@@ -288,6 +358,7 @@ pub fn apply_npc_challenges(
             committed: [None, None],
             deadline_tick: clock.tick.saturating_add(DUEL_TURN_TICKS),
             pets: [team_pets, vec![None; enemy_len]],
+            wild: None,
         };
         claimed.insert(trainer_entity);
         commands.entity(trainer_entity).insert(TrainerBusy);
@@ -577,6 +648,9 @@ pub fn viewer_view(
         }
     };
     view.phase = phase.to_string();
+    // Only the human in a wild duel may throw, and only while it is still running. Viewer 1 is
+    // always another player (PvP), which is never catchable.
+    view.can_catch = ongoing && viewer_idx == 0 && duel.wild.is_some();
     view
 }
 
@@ -816,6 +890,7 @@ pub fn apply_duel_responses(
             committed: [None, None],
             deadline_tick: clock.tick.saturating_add(DUEL_TURN_TICKS),
             pets: [challenger_pets, target_pets],
+            wild: None,
         };
         let opening = vec![game::info_event(format!(
             "{target_name} accepts — the duel begins!"
@@ -902,6 +977,7 @@ mod tests {
             committed: [None, None],
             deadline_tick: DUEL_TURN_TICKS,
             pets: unowned_pets(),
+            wild: None,
         }
     }
 
@@ -921,6 +997,7 @@ mod tests {
             committed: [None, None],
             deadline_tick: DUEL_TURN_TICKS,
             pets: unowned_pets(),
+            wild: None,
         }
     }
 

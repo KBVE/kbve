@@ -33,7 +33,14 @@ const awaitingState: PetBattleState = {
 	outcome: 'Ongoing',
 	awaiting: true,
 	can_run: true,
+	phase: 'action',
+	deadline_ms: 20000,
+	opponent: 'Tamer Bryn',
+	can_catch: false,
 };
+
+// A wild encounter: same snapshot with the server's catch permission set.
+const wildState: PetBattleState = { ...awaitingState, can_catch: true };
 
 test('renders both battlers and the action menu', async ({ mount }) => {
 	const component = await mount(
@@ -48,6 +55,36 @@ test('renders both battlers and the action menu', async ({ mount }) => {
 	await expect(component.getByRole('button', { name: /Zap/ })).toBeVisible();
 	await expect(component.getByRole('button', { name: /Swap/ })).toBeVisible();
 	await expect(component.getByRole('button', { name: /Run/ })).toBeVisible();
+});
+
+test('a trainer duel offers no Catch', async ({ mount }) => {
+	const component = await mount(
+		<PetBattleScene
+			state={awaitingState}
+			onAction={() => {}}
+			onClose={() => {}}
+		/>,
+	);
+	await expect(component.getByRole('button', { name: /Catch/ })).toHaveCount(
+		0,
+	);
+});
+
+test('a wild duel offers Catch with the carried ball count', async ({
+	mount,
+}) => {
+	const component = await mount(
+		<PetBattleScene
+			state={wildState}
+			balls={3}
+			onAction={() => {}}
+			onClose={() => {}}
+		/>,
+	);
+	// `can_catch` comes from the server; the count comes off the inventory sync.
+	await expect(
+		component.getByRole('button', { name: /Catch \(3\)/ }),
+	).toBeVisible();
 });
 
 test('commits the chosen move via onAction', async ({ mount }) => {

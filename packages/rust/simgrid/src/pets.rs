@@ -110,6 +110,10 @@ pub fn clear_pending_pets(mut pending: ResMut<PendingPets>) {
 /// Longest accepted pet nickname, in chars.
 pub const PET_NICKNAME_MAX: usize = 20;
 
+/// Most pets an owner can carry. There is no box beyond this yet, so a capture attempt at the
+/// cap is refused outright rather than silently dropping the catch.
+pub const PET_ROSTER_MAX: usize = 6;
+
 /// Trim a client-supplied nickname to printable single-line text, clamped to
 /// [`PET_NICKNAME_MAX`] chars. Control characters are dropped rather than replaced so a
 /// pasted newline can't smuggle a second line into the name.
@@ -212,6 +216,39 @@ pub fn flush_roster_syncs(
             continue;
         };
         send_roster_sync(&bcast, slot, &bank.snapshot(roster), roster.active);
+    }
+}
+
+/// Detach a live battle combatant into a persistable pet instance — the capture path.
+///
+/// The caught pet keeps the level, hp and PP it had when the ball landed: phase D made battle
+/// vitals persist, so minting a fresh full-health copy here would quietly contradict that. A new
+/// instance id is minted because this is a new owned pet, not a move of an existing one.
+pub fn snapshot_from_combatant(c: &crate::battle::Combatant) -> PetSnapshot {
+    PetSnapshot {
+        id: mint_pet_id(),
+        species_ref: c.species_ref.clone(),
+        nickname: c.nickname.clone(),
+        level: c.level,
+        xp: 0,
+        vitals: PetVitals {
+            hp: c.hp.max(1),
+            max_hp: c.max_hp,
+            attack: c.attack,
+            defense: c.defense,
+            sp_attack: c.sp_attack,
+            sp_defense: c.sp_defense,
+            speed: c.speed,
+        },
+        moves: c
+            .moves
+            .iter()
+            .map(|m| PetMoveSlot {
+                ability_id: m.data.id.clone(),
+                pp: m.pp,
+                max_pp: m.max_pp,
+            })
+            .collect(),
     }
 }
 
@@ -341,8 +378,17 @@ impl PetBank<'_, '_> {
         self.pending.0.get(&e).cloned()
     }
 
+    /// Whether the roster has room for another pet.
+    pub fn has_room(roster: &PetRoster) -> bool {
+        roster.slots.len() < PET_ROSTER_MAX
+    }
+
     /// Mint a pet into a roster, appending it and making it active if the roster was
     /// empty. Returns the spawned entity.
+    ///
+    /// Does NOT enforce [`PET_ROSTER_MAX`] — the join restore has to be able to load a roster
+    /// saved before a cap change. Gameplay paths that grow a roster check [`Self::has_room`]
+    /// first so the player is told why, instead of losing the pet.
     pub fn add(&mut self, roster: &mut PetRoster, snap: PetSnapshot) -> Entity {
         let e = self.spawn_pet(snap);
         roster.slots.push(e);

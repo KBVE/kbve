@@ -168,7 +168,12 @@ pub fn apply_pet_restores(
 /// A one-line result for the player. Its own ephemeral kind rather than a battle event:
 /// `EPHEMERAL_PET_BATTLE_LOG` decodes as a whole replay on the client, so a bare event
 /// posted there would mis-parse.
-fn notify(bcast: &simgrid::Outbound, slot: simgrid::proto::PlayerSlot, ok: bool, text: &str) {
+pub(crate) fn notify(
+    bcast: &simgrid::Outbound,
+    slot: simgrid::proto::PlayerSlot,
+    ok: bool,
+    text: &str,
+) {
     let notice = simgrid::PetNotice {
         ok,
         text: text.to_string(),

@@ -1,5 +1,6 @@
 mod agones;
 mod auth;
+mod capture;
 mod creatures;
 mod db;
 mod duel;
@@ -9,6 +10,7 @@ mod restore;
 mod roster;
 mod ship_footprint_gen;
 mod vitals;
+mod wild;
 
 use std::net::SocketAddr;
 
@@ -137,6 +139,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 game::stream_predators,
                 game::stream_wyverns,
                 game::stream_trees,
+                wild::stream_wild_pets,
             )
                 .in_set(simgrid::SimSet::Spawn),
         );

@@ -259,7 +259,7 @@ describe('postcard Ephemeral payload decoder', () => {
 		const payload =
 			'01016d03526578053c5001016d03466f6505505000000100' +
 			'05737061726b094c696768746e696e670150640f0f0101' +
-			'01143c0003686974074f6e676f696e67010106416374697665a09c0103616e6e';
+			'01143c0003686974074f6e676f696e67010106416374697665a09c0103616e6e01';
 		expect(decodePetBattleState(Array.from(fromHex(payload)))).toEqual({
 			player: [
 				{
@@ -302,6 +302,7 @@ describe('postcard Ephemeral payload decoder', () => {
 			phase: 'Active',
 			deadline_ms: 20000,
 			opponent: 'ann',
+			can_catch: true,
 		});
 	});
 

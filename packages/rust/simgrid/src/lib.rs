@@ -35,10 +35,10 @@ pub use grid::{
 pub use net::{Roster, ServerState, SlotInput, router};
 pub use net_udp::UdpLane;
 pub use pets::{
-    PET_NICKNAME_MAX, PendingPets, PendingRosterSyncs, Pet, PetBank, PetId, PetMoveSlot, PetMoves,
-    PetNickname, PetProgress, PetRef, PetRoster, PetSnapshot, PetVitals, clear_pending_pets,
-    flush_roster_syncs, mint_pet_from_species, mint_pet_id, sanitize_nickname, send_roster_sync,
-    to_roster_sync,
+    PET_NICKNAME_MAX, PET_ROSTER_MAX, PendingPets, PendingRosterSyncs, Pet, PetBank, PetId,
+    PetMoveSlot, PetMoves, PetNickname, PetProgress, PetRef, PetRoster, PetSnapshot, PetVitals,
+    clear_pending_pets, flush_roster_syncs, mint_pet_from_species, mint_pet_id, sanitize_nickname,
+    send_roster_sync, snapshot_from_combatant, to_roster_sync,
 };
 pub use proto::{
     DUEL_PROMPT_ACCEPTED, DUEL_PROMPT_DECLINED, DUEL_PROMPT_EXPIRED, DUEL_PROMPT_OFFER,

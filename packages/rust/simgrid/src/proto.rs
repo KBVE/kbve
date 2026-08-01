@@ -61,6 +61,8 @@ pub const PET_ACT_MOVE: u8 = 0;
 pub const PET_ACT_SWAP: u8 = 1;
 pub const PET_ACT_ITEM: u8 = 2;
 pub const PET_ACT_RUN: u8 = 3;
+/// Throw a ball at a wild pet. Refused outside a wild duel or without a ball.
+pub const PET_ACT_CATCH: u8 = 4;
 
 pub const KIND_CAT_PLAYER: u8 = 0;
 pub const KIND_CAT_NPC: u8 = 1;
@@ -675,6 +677,8 @@ pub const PB_NOPP: u8 = 9;
 pub const PB_PARALYZED: u8 = 10;
 pub const PB_TURN: u8 = 11;
 pub const PB_INFO: u8 = 12;
+pub const PB_CAUGHT: u8 = 13;
+pub const PB_CATCH_FAILED: u8 = 14;
 
 /// One pet in a battle replay — the active battler and its reserves. Mirrors TS
 /// `PetBattler`.
@@ -744,6 +748,9 @@ pub struct PetBattleState {
     pub phase: String,
     pub deadline_ms: u32,
     pub opponent: String,
+    /// Whether this viewer may throw a ball this turn — true only for the human side of a wild
+    /// duel. Appended last so the existing field order is unchanged.
+    pub can_catch: bool,
 }
 
 pub const DUEL_PROMPT_OFFER: u8 = 0;
@@ -1378,6 +1385,7 @@ mod tests {
             phase: "Active".into(),
             deadline_ms: 20_000,
             opponent: "ann".into(),
+            can_catch: true,
         };
         let bytes = encode_inner(&state).expect("encode");
         assert_eq!(hex(&bytes), PET_STATE_HEX);
@@ -1385,7 +1393,7 @@ mod tests {
         assert_eq!(back, state);
     }
 
-    const PET_STATE_HEX: &str = "01016d03526578053c5001016d03466f650550500000010005737061726b094c696768746e696e670150640f0f010101143c0003686974074f6e676f696e67010106416374697665a09c0103616e6e";
+    const PET_STATE_HEX: &str = "01016d03526578053c5001016d03466f650550500000010005737061726b094c696768746e696e670150640f0f010101143c0003686974074f6e676f696e67010106416374697665a09c0103616e6e01";
 
     /// Locks the roster-sync wire shape the TS `decodePetRosterSync` mirror reads. Two
     /// pets so the seq length is not confusable with the Option tag that follows, and a
