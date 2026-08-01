@@ -1,0 +1,30 @@
+// ======================================================
+// MOD: KBVEMerchants
+// PURPOSE: Block Pal Sphere capture of merchant NPCs
+// TABLE: DT_PalHumanParameter
+// NOTE: Vanilla merchants ship CaptureRateCorrect 0.1;
+//       Male_Police_old is the vanilla 0.0 precedent.
+// ======================================================
+
+{
+    "SalesPerson": { "CaptureRateCorrect": 0.0 },
+    "SalesPerson_Desert": { "CaptureRateCorrect": 0.0 },
+    "SalesPerson_Desert2": { "CaptureRateCorrect": 0.0 },
+    "SalesPerson_Volcano": { "CaptureRateCorrect": 0.0 },
+    "SalesPerson_Volcano2": { "CaptureRateCorrect": 0.0 },
+    "SalesPerson_Wander": { "CaptureRateCorrect": 0.0 },
+
+    "PalDealer": { "CaptureRateCorrect": 0.0 },
+    "PalDealer_Desert": { "CaptureRateCorrect": 0.0 },
+    "PalDealer_Volcano": { "CaptureRateCorrect": 0.0 },
+    "PalTrader": { "CaptureRateCorrect": 0.0 },
+
+    "Male_DarkTrader01": { "CaptureRateCorrect": 0.0 },
+    "Male_Trader01": { "CaptureRateCorrect": 0.0 },
+    "Male_Trader02": { "CaptureRateCorrect": 0.0 },
+    "Male_Trader03": { "CaptureRateCorrect": 0.0 },
+
+    "VisitingMerchant": { "CaptureRateCorrect": 0.0 },
+    "WeaponsDealer": { "CaptureRateCorrect": 0.0 },
+    "RandomEventShop": { "CaptureRateCorrect": 0.0 }
+}
