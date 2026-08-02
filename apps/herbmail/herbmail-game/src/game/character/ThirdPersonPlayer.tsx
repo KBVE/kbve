@@ -463,6 +463,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 					(window as unknown as Record<string, unknown>).__coll = {
 						solid: solidAtWorld,
 						pos: h.motor.position,
+						meshes: h.meshes,
 					};
 				}}
 			/>

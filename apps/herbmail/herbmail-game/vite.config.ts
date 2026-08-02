@@ -7,6 +7,10 @@ import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import react from '@vitejs/plugin-react';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
+import {
+	meshNodeNamesInFile,
+	restoreMeshNamesInFile,
+} from './tools/glbNames';
 
 const laserSrc = path.resolve(__dirname, '../../../packages/npm/laser/src');
 const generated = path.resolve(
@@ -122,6 +126,12 @@ function modelHashes(): Plugin {
 	};
 }
 
+// gltfpack re-parents every skinned mesh onto a fresh unnamed child node and
+// leaves the slot name on the parent, so SkinnedMesh.name is '' in a packed
+// build while it is 'SKIN_TORS' in dev. Armor visibility, the SKIN_WRAP morph
+// and the part-set dedupe all key on that name, so a packed player spawned
+// wearing every mesh in the GLB. Push each name back down onto the node that
+// actually carries the mesh, restoring dev semantics.
 // Post-build gltfpack pass (meshopt EXT_meshopt_compression) over the copied
 // public/ models. Sources in public/models stay uncompressed LFS truth; only
 // dist output is packed. -kn keeps node/mesh names (armor slots + bone lookups
@@ -158,6 +168,7 @@ function gltfpackModels(): Plugin {
 					continue;
 				}
 				const before = fs.statSync(f).size;
+				const wanted = meshNodeNamesInFile(f);
 				const tmp = `${f}.pack.glb`;
 				const run = spawnSync(
 					process.execPath,
@@ -167,9 +178,16 @@ function gltfpackModels(): Plugin {
 				if (run.status !== 0 || !fs.existsSync(tmp))
 					throw new Error(`gltfpack failed on ${f}`);
 				fs.renameSync(tmp, f);
+				const moved = restoreMeshNamesInFile(f);
+				const got = meshNodeNamesInFile(f);
+				const missing = [...wanted].filter((n) => !got.has(n));
+				if (missing.length)
+					throw new Error(
+						`gltfpack dropped mesh names in ${path.relative(outDir, f)}: ${missing.join(', ')}`,
+					);
 				const after = fs.statSync(f).size;
 				console.log(
-					`gltfpack: ${path.relative(outDir, f)} ${(before / 1024).toFixed(0)}K -> ${(after / 1024).toFixed(0)}K`,
+					`gltfpack: ${path.relative(outDir, f)} ${(before / 1024).toFixed(0)}K -> ${(after / 1024).toFixed(0)}K (${moved} mesh names restored)`,
 				);
 			}
 		},
@@ -216,7 +234,10 @@ export default defineConfig({
 		globals: true,
 		watch: false,
 		environment: 'node',
-		include: ['src/**/*.{test,spec}.{ts,tsx}'],
+		include: [
+			'src/**/*.{test,spec}.{ts,tsx}',
+			'tools/**/*.{test,spec}.ts',
+		],
 		reporters: ['default'],
 		// vitest's node resolver doesn't pick up the @kbve/laser/* tsconfig-path
 		// aliases (nxViteTsPaths only wires them for build/dev), so map the subpaths to

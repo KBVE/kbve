@@ -3,3 +3,5 @@ _*.mjs
 
 # blender autosave backups
 *.blend1
+test-results/
+playwright-report/
