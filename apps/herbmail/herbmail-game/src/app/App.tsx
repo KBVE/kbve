@@ -23,6 +23,8 @@ import { DungeonSky } from '../game/render/DungeonSky';
 import { SunShaft } from '../game/render/SunShaft';
 import { HeldGripDebug } from '../game/character/HeldGripDebug';
 import { DebugStats, StatsProbe } from '../game/hud/DebugStats';
+import { ContextWatch, ContextLostToast } from '../game/hud/ContextWatch';
+import { AssetBoundary, AssetFailureToast } from './AssetBoundary';
 import { useEquippedId } from '../game/viewmodel/store';
 import { requestCast } from '../game/combat/castSystem';
 import { playerEid } from '../game/character/playerEntity';
@@ -99,6 +101,16 @@ export function App() {
 						(e) => e.preventDefault(),
 						false,
 					);
+					// Every HMR replacement of this module remounts the Canvas
+					// with a fresh WebGL context. Chrome caps live contexts and
+					// evicts the oldest, which can kill the live one — release
+					// ours explicitly instead of leaking it.
+					if (import.meta.hot) {
+						import.meta.hot.dispose(() => {
+							gl.dispose();
+							gl.forceContextLoss();
+						});
+					}
 				}}
 				style={{
 					imageRendering: psx.dpr < 1 ? 'pixelated' : 'auto',
@@ -106,29 +118,42 @@ export function App() {
 				<color attach="background" args={[BG_COLOR]} />
 				<DungeonSky />
 				<ambientLight intensity={0.12} />
-				<Suspense fallback={null}>
-					<Dungeon snap={psx.snap} affine={psx.affine} />
-				</Suspense>
-				<Suspense fallback={null}>
-					<Oases />
-				</Suspense>
+				<AssetBoundary label="dungeon">
+					<Suspense fallback={null}>
+						<Dungeon snap={psx.snap} affine={psx.affine} />
+					</Suspense>
+				</AssetBoundary>
+				<AssetBoundary label="oases">
+					<Suspense fallback={null}>
+						<Oases />
+					</Suspense>
+				</AssetBoundary>
 				<SunShaft />
-				<Suspense fallback={null}>
-					<ThirdPersonPlayer url={CHARACTER_URL} />
-				</Suspense>
-				<Suspense fallback={null}>
-					<Goblins />
-				</Suspense>
-				<Suspense fallback={null}>
-					<KurenaiNpc />
-				</Suspense>
+				<AssetBoundary label="player" urls={[CHARACTER_URL]}>
+					<Suspense fallback={null}>
+						<ThirdPersonPlayer url={CHARACTER_URL} />
+					</Suspense>
+				</AssetBoundary>
+				<AssetBoundary label="goblins">
+					<Suspense fallback={null}>
+						<Goblins />
+					</Suspense>
+				</AssetBoundary>
+				<AssetBoundary label="kurenai">
+					<Suspense fallback={null}>
+						<KurenaiNpc />
+					</Suspense>
+				</AssetBoundary>
 				<EnemyHealthBars />
-				<Suspense fallback={null}>
-					<PropRenderer ambient={0.04} />
-				</Suspense>
+				<AssetBoundary label="props">
+					<Suspense fallback={null}>
+						<PropRenderer ambient={0.04} />
+					</Suspense>
+				</AssetBoundary>
 				<PhysicsBodies />
 				<AOComposer />
 				<AdaptiveQuality />
+				<ContextWatch />
 				{debug && <StatsProbe />}
 				{debug && <OasisLevelsDebug />}
 				<TorchPlacer />
@@ -136,6 +161,8 @@ export function App() {
 				<AimReticle onAim={setAim} />
 			</Canvas>
 			<UnderwaterTint />
+			<ContextLostToast />
+			<AssetFailureToast />
 			{screen === 'playing' && (
 				<>
 					<Hud kind={aim} equippedId={equippedId} />
