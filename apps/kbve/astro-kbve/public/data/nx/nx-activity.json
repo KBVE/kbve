@@ -1,176 +1,176 @@
 {
-  "generated_at": "2026-08-01T04:20:53Z",
+  "generated_at": "2026-08-02T04:23:27Z",
   "window": {
     "days": 7,
-    "since": "2026-07-25T04:20:53Z"
+    "since": "2026-07-26T04:23:27Z"
   },
   "commits": {
-    "total": 405,
+    "total": 458,
     "authors": 2,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 217
+        "commits": 248
       },
       {
         "author": "github-actions[bot]",
-        "commits": 188
+        "commits": 210
       }
     ],
     "recent": [
       {
-        "sha": "6cc196f",
+        "sha": "477e623",
         "author": "h0lybyte",
-        "message": "Merge pull request #15048 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/6cc196fa3ea4d9cf7925a99c091658c49b49551d",
-        "date": "2026-08-01T04:10:46Z"
+        "message": "Merge pull request #15117 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/477e623bd6c0994d6faaacdd781c9e3a384887b1",
+        "date": "2026-08-02T04:06:10Z"
       },
       {
-        "sha": "c0bf849",
-        "author": "h0lybyte",
-        "message": "Merge pull request #15046 from KBVE/fix/astro-supabase-url-dup",
-        "url": "https://github.com/KBVE/kbve/commit/c0bf849639eab8535c0ec5704c61143e1f6e161a",
-        "date": "2026-08-01T04:08:39Z"
-      },
-      {
-        "sha": "355dd7d",
+        "sha": "6a64b23",
         "author": "github-actions[bot]",
-        "message": "chore(agones-palworld): post-publish sync to v0.0.33 (#15049)",
-        "url": "https://github.com/KBVE/kbve/commit/355dd7d62a46ca5f215d051c2fcd86c696f49e71",
-        "date": "2026-08-01T04:02:42Z"
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#15122)",
+        "url": "https://github.com/KBVE/kbve/commit/6a64b23453a1d1a599472c7a289d044a9edbbd32",
+        "date": "2026-08-02T04:04:44Z"
       },
       {
-        "sha": "ed8f347",
+        "sha": "2e478c9",
+        "author": "h0lybyte",
+        "message": "chore(kbve): preparing the release of the v1.0.265",
+        "url": "https://github.com/KBVE/kbve/commit/2e478c9e9f0c37be025e2e2e4d9053df8424b8ac",
+        "date": "2026-08-02T04:03:26Z"
+      },
+      {
+        "sha": "a5b19bf",
+        "author": "h0lybyte",
+        "message": "chore(herbmail): preparing the next release of the game.",
+        "url": "https://github.com/KBVE/kbve/commit/a5b19bf8332fcac8f338bd2435ec9198bb60316d",
+        "date": "2026-08-02T04:02:17Z"
+      },
+      {
+        "sha": "701cd7f",
         "author": "github-actions[bot]",
-        "message": "chore(arpg-web): post-publish sync to v0.1.28 (#15047)",
-        "url": "https://github.com/KBVE/kbve/commit/ed8f3478095506ec740c95511f9ca424889b42e3",
-        "date": "2026-08-01T04:01:42Z"
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#15121)",
+        "url": "https://github.com/KBVE/kbve/commit/701cd7fff338f581531170858e3941bfce6bfa18",
+        "date": "2026-08-02T03:49:18Z"
       },
       {
-        "sha": "db00e0e",
+        "sha": "3e5a610",
         "author": "h0lybyte",
-        "message": "fix(astro-kbve): drop duplicate SUPABASE_URL breaking axum-kbve build",
-        "url": "https://github.com/KBVE/kbve/commit/db00e0ea5f48603b854083d1fd361178e44b8280",
-        "date": "2026-08-01T03:51:20Z"
+        "message": "feat(reel): expose peer-drop diagnostics (port rotations, VPN fail streak) on /status (#15120)",
+        "url": "https://github.com/KBVE/kbve/commit/3e5a610c6dbc5d13f24d74359c70abd06a972430",
+        "date": "2026-08-02T03:47:08Z"
       },
       {
-        "sha": "f0b2544",
-        "author": "h0lybyte",
-        "message": "Merge pull request #15037 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/f0b2544366d8e78f77e395b45fa245390467dbd5",
-        "date": "2026-08-01T03:48:22Z"
-      },
-      {
-        "sha": "531f24c",
-        "author": "h0lybyte",
-        "message": "fix(reel): stream downloading torrents via live HLS, not looping progressive (#15045)",
-        "url": "https://github.com/KBVE/kbve/commit/531f24cef009b0b92904ab886c046934ca35b17b",
-        "date": "2026-08-01T03:45:44Z"
-      },
-      {
-        "sha": "6d25f69",
+        "sha": "71706fe",
         "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#15044)",
-        "url": "https://github.com/KBVE/kbve/commit/6d25f69bfe24dff8415d534b2113d20fbdc25952",
-        "date": "2026-08-01T02:59:09Z"
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#15119)",
+        "url": "https://github.com/KBVE/kbve/commit/71706fe24a4bbac37494b2f47e9423182b609a82",
+        "date": "2026-08-02T03:45:20Z"
       },
       {
-        "sha": "8e738b9",
+        "sha": "4e4e2f7",
         "author": "h0lybyte",
-        "message": "fix(arpg-web): install docker deps at /app so laser peers resolve (#15043)",
-        "url": "https://github.com/KBVE/kbve/commit/8e738b905d99fc11fac6e4fdfc68fb536fe7bd7e",
-        "date": "2026-08-01T02:56:50Z"
+        "message": "feat(palworld): shared live poller via @kbve/droid events, lazy map repaint (#15118)",
+        "url": "https://github.com/KBVE/kbve/commit/4e4e2f7ba7d12af74dd6ed9344772a70ed0d863a",
+        "date": "2026-08-02T03:43:13Z"
       },
       {
-        "sha": "3366917",
+        "sha": "603da88",
         "author": "h0lybyte",
-        "message": "fix(palworld): shield passives via lua bypass + self-discovering boss hooks (#15042)",
-        "url": "https://github.com/KBVE/kbve/commit/3366917cad8dc633d79feb2018478476681f04cb",
-        "date": "2026-08-01T02:56:39Z"
+        "message": "fix(arpg-web): build container from the root pnpm install (#15116)",
+        "url": "https://github.com/KBVE/kbve/commit/603da88b45f2a2642dd8beb9f368126a9ffe983f",
+        "date": "2026-08-02T02:50:28Z"
       },
       {
-        "sha": "8b412ee",
-        "author": "github-actions[bot]",
-        "message": "chore(irc-gateway): post-publish sync to v0.1.29 (#15040)",
-        "url": "https://github.com/KBVE/kbve/commit/8b412ee3d177274e16bae03d1c32fa3764be0e6e",
-        "date": "2026-08-01T01:42:19Z"
+        "sha": "be418c0",
+        "author": "h0lybyte",
+        "message": "perf(astro-kbve): sprite cache for palworld map redraw, in-game oil rig icon (#15115)",
+        "url": "https://github.com/KBVE/kbve/commit/be418c0cf502ec46d15bce6d7e7c4036aed78dc0",
+        "date": "2026-08-02T02:50:21Z"
       },
       {
-        "sha": "1573f7a",
+        "sha": "34289b9",
+        "author": "h0lybyte",
+        "message": "Merge pull request #15114 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/34289b9d47faef33f6efa2447d5314ef88975a97",
+        "date": "2026-08-02T02:27:26Z"
+      },
+      {
+        "sha": "178522e",
         "author": "github-actions[bot]",
-        "message": "chore(memes): post-publish sync to v0.1.9 (#15039)",
-        "url": "https://github.com/KBVE/kbve/commit/1573f7af0e31430947af0b1c85bf60c0770dcbd8",
-        "date": "2026-08-01T01:38:00Z"
+        "message": "chore(axum-kbve): post-publish sync to v1.0.264 (#15113)",
+        "url": "https://github.com/KBVE/kbve/commit/178522e7c38bd9b78e2c951133b7e06124e8eb8c",
+        "date": "2026-08-02T02:17:58Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 403,
+    "merged": 438,
     "recent": [
       {
-        "number": 15052,
+        "number": 15127,
+        "title": "chore(droid): update version.toml to 0.1.2",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15127"
+      },
+      {
+        "number": 15128,
+        "title": "Atomic: reel v0.1.35 post-publish sync",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15128"
+      },
+      {
+        "number": 15125,
+        "title": "Atomic: herbmail-game v0.1.13 post-publish sync",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15125"
+      },
+      {
+        "number": 15124,
+        "title": "feat(reel): live stream-activity diagnostics feed on the player page",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/15124"
+      },
+      {
+        "number": 15123,
         "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15052"
+        "url": "https://github.com/KBVE/kbve/pull/15123"
       },
       {
-        "number": 15050,
-        "title": "feat(palworld): block Pal Sphere capture of merchant NPCs",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15050"
-      },
-      {
-        "number": 15048,
-        "title": "Release: 2 chores \u2192 Main",
+        "number": 15117,
+        "title": "Release: 2 features, 1 fix, 1 perf, 4 chores \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15048"
+        "url": "https://github.com/KBVE/kbve/pull/15117"
       },
       {
-        "number": 15046,
-        "title": "fix(astro-kbve): drop duplicate SUPABASE_URL breaking axum-kbve build",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15046"
-      },
-      {
-        "number": 15049,
-        "title": "Atomic: agones-palworld v0.0.33 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15049"
-      },
-      {
-        "number": 15047,
-        "title": "Atomic: arpg-web v0.1.28 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15047"
-      },
-      {
-        "number": 15037,
-        "title": "Release: 3 fixes, 5 chores \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15037"
-      },
-      {
-        "number": 15045,
-        "title": "fix(reel): stream downloading torrents via live HLS, not looping progressive",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15045"
-      },
-      {
-        "number": 15044,
+        "number": 15122,
         "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15044"
+        "url": "https://github.com/KBVE/kbve/pull/15122"
       },
       {
-        "number": 15043,
-        "title": "fix(arpg-web): install docker deps at /app so laser peers resolve",
+        "number": 15121,
+        "title": "chore(ci): sync ci-dispatch-manifest",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15121"
+      },
+      {
+        "number": 15120,
+        "title": "feat(reel): surface peer-drop diagnostics to the user (port rotations, VPN streak)",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15043"
+        "url": "https://github.com/KBVE/kbve/pull/15120"
+      },
+      {
+        "number": 15119,
+        "title": "chore(ci): sync ci-dispatch-manifest",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15119"
       }
     ]
   },
   "issues": {
-    "opened": 412,
-    "closed": 407
+    "opened": 448,
+    "closed": 442
   }
 }

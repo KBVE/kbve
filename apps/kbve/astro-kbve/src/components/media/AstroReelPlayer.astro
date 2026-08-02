@@ -2,12 +2,14 @@
 import BentoShell from '@/components/hero/BentoShell.astro';
 import ReactReelPlayer from '@/components/media/ReactReelPlayer';
 import ReactReelConsole from '@/components/media/ReactReelConsole';
+import ReactReelDiagnostics from '@/components/media/ReactReelDiagnostics';
 ---
 
 <BentoShell id="reel-player-wrapper" eyebrow="Media" heading="Reel player.">
 	<div class="reel-dash not-content">
 		<div class="reel-dash__stream not-content">
 			<ReactReelPlayer client:only="react" />
+			<ReactReelDiagnostics client:only="react" />
 		</div>
 		<div class="reel-dash__console not-content">
 			<ReactReelConsole client:only="react" />
@@ -136,6 +138,93 @@ import ReactReelConsole from '@/components/media/ReactReelConsole';
 
 	.reel-dash__console {
 		margin-top: 2rem;
+	}
+
+	:global(.reel-diag) {
+		margin-top: 1rem;
+		border: 1px solid #27272a;
+		border-radius: 0.75rem;
+		background: #0c0c0e;
+		padding: 0.75rem 1rem;
+	}
+
+	:global(.reel-diag__head) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		margin-bottom: 0.5rem;
+	}
+
+	:global(.reel-diag__title) {
+		color: #a1a1aa;
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	:global(.reel-diag__live) {
+		color: #fcd34d;
+		font-size: 0.72rem;
+		font-weight: 600;
+	}
+
+	:global(.reel-diag__log) {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+		max-height: 11rem;
+		overflow-y: auto;
+	}
+
+	:global(.reel-diag__ev) {
+		display: grid;
+		grid-template-columns: auto auto 1fr;
+		gap: 0.5rem;
+		align-items: baseline;
+		font-size: 0.72rem;
+		line-height: 1.35;
+	}
+
+	:global(.reel-diag__time) {
+		color: #71717a;
+		font-variant-numeric: tabular-nums;
+		white-space: nowrap;
+	}
+
+	:global(.reel-diag__stage) {
+		color: #a1a1aa;
+		font-weight: 600;
+		text-transform: uppercase;
+		font-size: 0.62rem;
+		letter-spacing: 0.03em;
+		white-space: nowrap;
+	}
+
+	:global(.reel-diag__msg) {
+		color: #d4d4d8;
+		word-break: break-word;
+	}
+
+	:global(.reel-diag__ev--ok .reel-diag__stage) {
+		color: #6ee7b7;
+	}
+
+	:global(.reel-diag__ev--warn .reel-diag__stage) {
+		color: #fcd34d;
+	}
+
+	:global(.reel-diag__ev--err .reel-diag__stage),
+	:global(.reel-diag__ev--err .reel-diag__msg) {
+		color: #fca5a5;
+	}
+
+	:global(.reel-diag__ev--info .reel-diag__stage) {
+		color: #93c5fd;
 	}
 
 	:global(.reel-console) {
