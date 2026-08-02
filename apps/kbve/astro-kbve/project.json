@@ -392,9 +392,29 @@
 			},
 			"cache": true
 		},
+		"sync:professiondb-uecpp": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/codegen/gen-professiondb-uecpp.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/professiondb.binpb"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/unreal/KBVEProfessionDB/Source/KBVEProfessionDB/Public/Generated/KBVEProfessionDBProtoTypes.h",
+				"{workspaceRoot}/packages/unreal/KBVEProfessionDB/Source/KBVEProfessionDB/Public/Generated/KBVEProfessionDBProtoParse.h"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-professiondb-uecpp.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
 		"sync:professiondb": {
 			"executor": "nx:run-commands",
-			"dependsOn": ["sync:mapdb", "sync:itemdb"],
+			"dependsOn": [
+				"sync:mapdb",
+				"sync:itemdb",
+				"sync:professiondb-uecpp"
+			],
 			"inputs": [
 				"{projectRoot}/src/content/docs/professiondb/**/*.mdx",
 				"{workspaceRoot}/packages/data/codegen/gen-professiondb-data.mjs",

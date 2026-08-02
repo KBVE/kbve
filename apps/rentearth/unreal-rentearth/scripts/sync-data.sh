@@ -22,6 +22,7 @@ FILES=(
 	"mapdb-data.json"
 	"questdb-data.json"
 	"spelldb-data.json"
+	"professiondb-data.json"
 )
 
 # Atlas PNG lives next to the unity output (same codegen, different consumer).
