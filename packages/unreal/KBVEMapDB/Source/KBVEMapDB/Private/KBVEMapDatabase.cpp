@@ -92,6 +92,7 @@ bool UKBVEMapDatabase::LoadFromJson(const FString& JsonText)
 		Obj->TryGetNumberField(TEXT("maxAmount"), Def.MaxAmount);
 		Obj->TryGetNumberField(TEXT("initialAmount"), Def.InitialAmount);
 		Obj->TryGetNumberField(TEXT("harvestTimeMs"), Def.HarvestTimeMs);
+		if (Obj->TryGetStringField(TEXT("professionActionRef"), Str)) Def.ProfessionActionRef = FName(*Str);
 		GetFloat(Obj, TEXT("spawnWeight"), Def.SpawnWeight);
 		Obj->TryGetNumberField(TEXT("spawnCount"), Def.SpawnCount);
 
