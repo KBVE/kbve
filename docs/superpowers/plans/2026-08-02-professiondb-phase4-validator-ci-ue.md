@@ -1,34 +1,33 @@
-# professiondb Phase 4 (FINAL) — Validator Hard-Fail + CI Gate + UE Forward-Hook Implementation Plan
+# professiondb Phase 4 (FINAL) — Validator Hard-Fail + Weekly Router Audit + UE Forward-Hook Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Turn the professiondb cross-reference generator from an inert warn-only script into a real CI gate, and plant the Unreal forward-reference so UE can later consume professiondb — in ONE PR: (A1) content-derived `content_version`; (A2) single-source + graph-integrity checks; (A3) flip validator to hard-fail with exit propagation; (A4) wire `sync:professiondb` into CI (runs in ZERO workflows today); (B) add `ProfessionActionRef` to `FKBVEWorldObjectDef` + parse, KEEPING `HarvestTimeMs`.
+**Goal:** Make professiondb the enforced unified source of truth — in ONE PR: (A1) content-derived `content_version`; (A2) single-source + graph-integrity checks; (A3) flip the xref validator to hard-fail with exit propagation; (A4) register a `professiondb` route in the existing `kbve-nx-router` on **weekly** cadence so the scheduled daily-content builder is the drift/integrity audit (no new bespoke workflow); (B) add `ProfessionActionRef` to `FKBVEWorldObjectDef` + parse, KEEPING `HarvestTimeMs`.
 
-**Architecture:** MDX → `gen-professiondb-data.mjs` (emits `professiondb-data.json`/`.binpb`/`professiondb-runtime.json`) → calls `generateXref()` from `gen-professiondb-xref.mjs` (emits `xref-index.json` joining itemdb+professiondb+mapdb). The xref stage is the only place all three DBs are loaded together — making IT throw fails the whole `sync:professiondb` nx target. UE (`KBVEMapDB`) hand-parses `mapdb-data.json`; adding one struct field + one parse line is a non-destructive forward reference (no UE skill/loader system exists yet).
+**Architecture:** MDX → `gen-professiondb-data.mjs` (emits `professiondb-data.json`/`.binpb`/`professiondb-runtime.json`, syncs Unity StreamingAssets) → calls `generateXref()` from `gen-professiondb-xref.mjs` (emits `xref-index.json` joining itemdb+professiondb+mapdb). The xref stage is the only place all three DBs load together — making IT throw fails the whole `sync:professiondb` nx target. The gate runs wherever `sync:professiondb` runs; the scheduled home is a `kbve-nx-router` route (weekly cron `0 2 * * 1` in `ci-daily-content.yml`) whose `build()` runs `sync:professiondb` and lets the hard-fail PROPAGATE (fails the weekly job) — and whose regen drift is auto-PR'd like every other route. UE (`KBVEMapDB`) hand-parses `mapdb-data.json`; one struct field + one parse line is a non-destructive forward reference.
 
-**Tech Stack:** Node 24 ESM (`node:crypto` `createHash`), nx `run-commands`, GitHub Actions (pnpm 11.15.0), Unreal C++ (`USTRUCT`/`FName`/`FJsonObject`) — static verification only, no UE toolchain here.
+**Tech Stack:** Node 24 ESM (`node:crypto`), nx `run-commands`, Python `kbve-nx-router` (routes = `@route` dataclass registry + `plan`/`build`), pytest, Unreal C++ — static verification only, no UE toolchain here.
 
 ## Global Constraints
 
 - Work only in worktree `/Users/alappatel/Documents/GitHub/kbve-professiondb-phase4-validator`, branch `trunk/professiondb-phase4-validator-1785669552`. Never the main tree. Absolute paths.
-- DROP ALL code comments (JS + C++) in authored/edited code.
+- DROP ALL code comments in authored/edited **code** (JS + C++). Python: match the surrounding module style (existing routes carry docstrings/comments — mirror the neighbor, do not strip theirs, but add no gratuitous inline comments).
 - Commits: no `Co-Authored-By`, no "Generated with Claude".
-- Build/data only via nx + `gen-*.mjs`; MDX is source of truth; never hand-edit generated JSON (except the temporary, reverted fault-injection in Task 6b).
+- Build/data only via nx + `gen-*.mjs`; MDX is source of truth; never hand-edit generated JSON (except the temporary, reverted fault-injection in Task 6).
 - `content_version` MUST be a deterministic pure function of the DATA — no `Date.now()`/`new Date()`/`Math.random()`.
-- CI edits touch shared workflows: show exact yaml, confirm no unrelated job is broken/slowed, place the hard-fail where a professiondb data error correctly fails the build.
 
 ## Verified facts (VERIFIED read-only — re-confirm line numbers before editing)
 
 - `gen-professiondb-xref.mjs`: `CONTENT_VERSION='phase1'` ~L13; written as `content_version` ~L89; `writeFileSync(outPath, JSON.stringify(index,null,2))` ~L97; warn-only tail ~L102-106; standalone guard ~L109; `export function main()` ~L15. Validates 3 edge classes into `warnings[]`; NO process.exit/throw, NO graph-integrity, NO single-source-invariant.
 - `gen-professiondb-data.mjs`: `generateXref()` called ~L243 inside synchronous `main()`; bare `main();` ~L246.
-- `project.json` `sync:professiondb` ~L395-418, command `node packages/data/codegen/gen-professiondb-data.mjs`, outputs include `xref-index.json` + Unity `professiondb-runtime.json`; `descriptors/professiondb.binpb` already in inputs.
+- `project.json` `sync:professiondb` ~L395-418, command `node packages/data/codegen/gen-professiondb-data.mjs`, outputs include `xref-index.json` + Unity `professiondb-runtime.json`.
 - **Current data passes hard-fail (VERIFIED 0 ERRORS):** 8 professions, 48 actions (gather=29/compress=19), 19 bidirectionally-linked nodes; 0 dangling item/node/action refs, 0 back-ref mismatches, 0 itemdb ownership fields.
-- **False-positive trap (VERIFIED, CRITICAL):** itemdb has **24 recipes carrying `skill:"SKILLING_*"`** and **146 items carrying an `action` verb** (`consume`/`equip`/…) — all LEGIT crafting/use metadata. A naive `skilling`/`compress`/`action` substring or field check would flag ~170 items and break CI. The single-source invariant is scoped to a fixed list of STRUCTURAL OWNERSHIP FIELDS only (never `action`, never `recipes[].skill`).
-- **No unlock/prereq graph:** action fields are `ref,key,name,requiredLevel,xpReward,inputs,outputs,durationMs,resourceNodeRef,toolRefs`. No `unlocks`/`requires` edge → cycle detection is N/A (do not fabricate an edge).
-- **CI gap (VERIFIED):** grep `.github/workflows/*` for `sync:professiondb`/`gen-professiondb` → ZERO hits. Peer syncs run only in `ci-unity.yml` (workflow_dispatch-only, `if: contains(inputs.project_path,'rareicon')`) — cannot gate PRs. `ci-manifest-guard.yml` is the canonical PR-triggered guard pattern (pull_request + path filter → nx run → hard-fail; node 24, pnpm 11.15.0). `ci-unity.yml` regen step appears TWICE (L229-235 test job, L355-361 build job), each ending `sync:mapdb`.
-- `KBVEMapTypes.h`: `FKBVEWorldObjectDef` with `FName HarvestYield;` (~L39) and `int32 HarvestTimeMs = 0;` (~L48); string refs typed `FName`.
-- `KBVEMapDatabase.cpp`: `LoadFromJson` ~L42-104; `FString Str;` scratch ~L79; `if (Obj->TryGetStringField(TEXT("harvestYield"), Str)) Def.HarvestYield = FName(*Str);` ~L91; `Obj->TryGetNumberField(TEXT("harvestTimeMs"), Def.HarvestTimeMs);` ~L94.
-- `mapdb-data.json` emits `professionActionRef` on 19 nodes (VERIFIED present).
+- **False-positive trap (VERIFIED, CRITICAL):** itemdb has **24 recipes carrying `skill:"SKILLING_*"`** and **146 items carrying an `action` verb** — all LEGIT metadata. A naive `skilling`/`compress`/`action` substring/field check would flag ~170 items and break the gate. The single-source invariant is scoped to a fixed list of STRUCTURAL OWNERSHIP FIELDS only (never `action`, never `recipes[].skill`).
+- **No unlock/prereq graph:** action fields are `ref,key,name,requiredLevel,xpReward,inputs,outputs,durationMs,resourceNodeRef,toolRefs`. No `unlocks`/`requires` edge → cycle detection N/A (do not fabricate an edge).
+- **Router (VERIFIED):** `packages/python/kbve/kbve/nx/router.py` — `@dataclass Route{name,cadence,plan,build,needs}`, registered by the `@route(name, cadence, needs)` class decorator on a class with `plan(ctx)->PlanResult`/`build(ctx)->BuildResult`; `select(cadence)` filters. `builder.py`: `BuildContext{content_root,date,dry_run,inputs,public_dir,workdir,timestamp}`; `PlanResult(route,needs_work,reason,targets)`; `BuildResult(route,changed,skipped,note)`; `build_one(name)` returns `get(name).build(ctx)`; `repo_root_for(content_root)`. Route modules live in `packages/python/kbve/kbve/nx/routes/` and MUST be imported by `routes/__init__.py` so `@route` registers. Each route has a `tests/test_nx_<name>_route.py`.
+- **Closest analog = `routes/proto.py`:** `@route("proto","daily",needs=("node","protoc"))`, `_run(cmd,cwd)` raises `ProtoAcquireError` on non-zero exit, `_detect_drift(repo_root)` git-diffs `packages/data/codegen/generated`. **proto CATCHES failure → `BuildResult(...,skipped=True,...)` (soft warn).** professiondb must do the OPPOSITE for the validator failure: let it PROPAGATE so `build_main` exits non-zero and the weekly job fails.
+- **Scheduled workflow (VERIFIED):** `.github/workflows/ci-daily-content.yml` crons `0 1 * * *` (daily) + `0 2 * * 1` (weekly Mon); `router` job runs `uv run kbve-nx-router --cadence <daily|weekly> --json` → matrix `Build ${{ matrix.route }}` runs `kbve-nx-build <route>`; changed files are committed to a per-route branch + auto-PR'd (`[skip ci]`). NO workflow edit needed — a weekly route is picked up automatically.
+- `KBVEMapTypes.h`: `FKBVEWorldObjectDef` with `FName HarvestYield;` (~L39), `int32 HarvestTimeMs = 0;` (~L48). `KBVEMapDatabase.cpp`: `LoadFromJson` ~L42-104; `FString Str;` ~L79; `TryGetStringField(TEXT("harvestYield"), Str)` ~L91; `TryGetNumberField(TEXT("harvestTimeMs"), Def.HarvestTimeMs)` ~L94. `mapdb-data.json` emits `professionActionRef` on 19 nodes (VERIFIED).
 
 ---
 
@@ -36,10 +35,10 @@
 
 **Files:** Modify `packages/data/codegen/gen-professiondb-xref.mjs`.
 
-**Scheme:** `content_version = sha256-<first 16 hex of SHA-256 over a canonicalized copy of the index payload excluding content_version>`. Canonical = recursively sort object keys + sort arrays-of-scalars, so map/insertion order can't perturb the hash. Pure over the three input JSONs, reproducible.
+**Scheme:** `content_version = sha256-<first 16 hex of SHA-256 over a canonicalized copy of the index payload excluding content_version>`. Canonical = recursively sort object keys + sort arrays-of-scalars. Pure over the three input JSONs, reproducible.
 
-- [ ] **Step 1:** Re-read the script; confirm the import line, the `CONTENT_VERSION` literal, the `const index = {...}` block, and the `writeFileSync` line.
-- [ ] **Step 2:** Add `import { createHash } from 'node:crypto';` next to the existing `node:fs` import.
+- [ ] **Step 1:** Re-read the script; confirm the import line, the `CONTENT_VERSION` literal, the `const index = {...}` block, `writeFileSync`.
+- [ ] **Step 2:** Add `import { createHash } from 'node:crypto';` next to the `node:fs` import.
 - [ ] **Step 3:** Delete `const CONTENT_VERSION = 'phase1';`.
 - [ ] **Step 4:** Add the canonicalizer + hasher above `export function main()`:
 
@@ -72,22 +71,7 @@ function contentVersion(payload) {
 }
 ```
 
-- [ ] **Step 5:** Replace the `const index = {...}` block so the payload is built first and hashed, `content_version` stamped first (adapt the payload keys to the script's real variable names — `producedBy`/`inputTo`/`toolFor`/`nodeLinks`/`nodeByRef`/`itemKeyByRef`):
-
-```js
-const payload = {
-	slug_to_key: Object.fromEntries(itemKeyByRef),
-	produced_by: producedBy,
-	input_to: inputTo,
-	tool_for: toolFor,
-	node_links: nodeLinks,
-	node_by_ref: nodeByRef,
-};
-const index = { content_version: contentVersion(payload), ...payload };
-```
-
-Match the EXISTING payload keys/shape of the current `index` object — if the current file names a key differently (e.g. `slugToKey`), keep the current emitted key names so `xref-index.json`'s diff is limited to the version line.
-
+- [ ] **Step 5:** Replace the `const index = {...}` block: build `payload` from the EXISTING emitted keys (keep their current names/shape so the file diff is limited to the version line), then `const index = { content_version: contentVersion(payload), ...payload };`.
 - [ ] **Step 6:** Deterministic + change-sensitive test:
 
 ```bash
@@ -106,19 +90,11 @@ Expected: `stable: true` / `sensitive: true`.
 
 ## Task 2: single-source-invariant + graph-integrity checks (A2)
 
-**Files:** Modify `packages/data/codegen/gen-professiondb-xref.mjs`. Introduce `errors[]` alongside `warnings[]`; capture the FULL itemdb objects (script currently keeps only `ref→key`).
+**Files:** Modify `packages/data/codegen/gen-professiondb-xref.mjs`. Introduce `errors[]` alongside `warnings[]`; capture the FULL itemdb objects.
 
-- [ ] **Step 1:** Where itemdb is parsed, retain both the raw object and the item list:
-
-```js
-const itemsRaw = JSON.parse(readFileSync(itemdbPath, 'utf8'));
-const items = itemsRaw.items ?? [];
-```
-
-(Keep the existing `ref→key` map build; just also keep `itemsRaw`/`items`.)
-
+- [ ] **Step 1:** Where itemdb is parsed, keep both raw + list: `const itemsRaw = JSON.parse(readFileSync(itemdbPath,'utf8')); const items = itemsRaw.items ?? [];` (keep the existing `ref→key` map build).
 - [ ] **Step 2:** Add `const errors = [];` next to `const warnings = [];`.
-- [ ] **Step 3:** Single-source invariant — STRUCTURAL OWNERSHIP FIELDS ONLY (never `action`/`recipes[].skill`), after the item map is built:
+- [ ] **Step 3:** Single-source invariant — STRUCTURAL OWNERSHIP FIELDS ONLY (never `action`/`recipes[].skill`):
 
 ```js
 const OWNERSHIP_FIELDS = [
@@ -159,8 +135,8 @@ for (const it of items) {
 }
 ```
 
-- [ ] **Step 4:** Reclassify the existing three edge checks (unresolved item ref, missing `resourceNodeRef`, missing/mismatched `professionActionRef`) from `warnings.push` to `errors.push` — they describe broken references and are 0 today.
-- [ ] **Step 5:** Graph-integrity (back-ref consistency + orphan) after the objectDefs loop (adapt `objectDefByRef`/`professions` to real names):
+- [ ] **Step 4:** Reclassify the existing three edge checks (unresolved item ref, missing `resourceNodeRef`, missing/mismatched `professionActionRef`) from `warnings.push` to `errors.push`.
+- [ ] **Step 5:** Graph-integrity (back-ref consistency + orphan) after the objectDefs loop:
 
 ```js
 for (const prof of professions) {
@@ -187,19 +163,17 @@ for (const prof of professions) {
 }
 ```
 
-- [ ] **Step 6:** Prove 0 ERRORs on current data (VERIFIED clean; the standalone script mirrors the new logic):
+(Adapt `objectDefByRef`/`professions` to the real variable names.)
+
+- [ ] **Step 6:** Prove 0 ERRORs on current data (VERIFIED clean):
 
 ```bash
 node -e '
-const fs=require("fs");
-const B="packages/data/codegen/generated/";
-const itemsRaw=JSON.parse(fs.readFileSync(B+"itemdb-data.json","utf8"));
-const items=itemsRaw.items??[];
+const fs=require("fs");const B="packages/data/codegen/generated/";
+const itemsRaw=JSON.parse(fs.readFileSync(B+"itemdb-data.json","utf8"));const items=itemsRaw.items??[];
 const professions=JSON.parse(fs.readFileSync(B+"professiondb-data.json","utf8")).professions??[];
 const objectDefs=JSON.parse(fs.readFileSync(B+"mapdb-data.json","utf8")).objectDefs??[];
-const keyByRef=new Map(items.map(i=>[i.ref,i.key]));
-const actByRef=new Map(),objByRef=new Map(objectDefs.map(o=>[o.ref,o]));
-const errors=[];
+const keyByRef=new Map(items.map(i=>[i.ref,i.key]));const actByRef=new Map(),objByRef=new Map(objectDefs.map(o=>[o.ref,o]));const errors=[];
 const OWN=["harvestYield","harvestTimeMs","resourceNodeRef","professionActionRef","gatherAction","gatherActions","compressAction","compressActions","skillingAction","skillingActions","durationMs"];
 for(const k of ["professions","actions","gatherActions","compressActions","skillingActions"]) if(Object.prototype.hasOwnProperty.call(itemsRaw,k)) errors.push("top "+k);
 for(const it of items) for(const f of OWN) if(Object.prototype.hasOwnProperty.call(it,f)) errors.push("item "+it.ref+" "+f);
@@ -221,7 +195,7 @@ Expected: `ERRORS: 0`. If not 0, STOP and fix DATA via MDX+resync before flippin
 
 **Files:** Modify `packages/data/codegen/gen-professiondb-xref.mjs`. Do NOT touch `gen-professiondb-data.mjs`.
 
-- [ ] **Step 1:** Replace the warn-only tail so a broken graph never overwrites a good `xref-index.json`, then throws (propagates through the synchronous `generateXref()` call → non-zero exit → nx target fails). Adapt the summary counters to the real variable names:
+- [ ] **Step 1:** Replace the warn-only tail so a broken graph never overwrites a good `xref-index.json`, then throws (propagates through the synchronous `generateXref()` → non-zero exit → nx target fails):
 
 ```js
 if (warnings.length) {
@@ -239,7 +213,7 @@ writeFileSync(outPath, JSON.stringify(index, null, 2));
 console.log(`Wrote ${outPath}`);
 ```
 
-Use `throw` (not `process.exit`) — it propagates through `gen-professiondb-data.mjs`'s bare `main()` AND the standalone entrypoint. Do NOT add try/catch around `generateXref()` in `gen-professiondb-data.mjs` (would swallow the gate).
+Use `throw` (not `process.exit`). Do NOT add try/catch around `generateXref()` in `gen-professiondb-data.mjs`.
 
 - [ ] **Step 2:** Green-path run:
 
@@ -253,86 +227,165 @@ Expected: `Wrote .../xref-index.json`, `exit=0`.
 - [ ] **Step 3:** Confirm the only `xref-index.json` content diff is the `content_version` line:
 
 ```bash
-git diff -- packages/data/codegen/generated/xref-index.json | grep -E "^[+-]" | grep -v "^[+-][+-]" | head
+git diff -- packages/data/codegen/generated/xref-index.json | grep -E "^[+-]" | grep -v "^[+-][+-]"
 ```
 
 Expected: one `-"content_version": "phase1"` / one `+"content_version": "sha256-…"`.
 
 - [ ] **Step 4:** Commit: `git commit -am "professiondb: hard-fail xref validator on error-class violations"` (script + regenerated `xref-index.json`).
 
-## Task 4: wire `sync:professiondb` into CI (A4)
+## Task 4: register a weekly `professiondb` router route (A4)
 
-**Files:** Create `.github/workflows/ci-professiondb-guard.yml`; modify `.github/workflows/ci-unity.yml`.
+**Files:** Create `packages/python/kbve/kbve/nx/routes/professiondb.py`; modify `packages/python/kbve/kbve/nx/routes/__init__.py` (import the module so `@route` registers); create `packages/python/kbve/tests/test_nx_professiondb_route.py`. NO workflow file changes — `ci-daily-content.yml`'s weekly cron picks up weekly routes automatically.
 
-- [ ] **Step 1:** Create the PR gate `ci-professiondb-guard.yml` (modeled on `ci-manifest-guard.yml`; path-filtered to the sync inputs; own concurrency group; `contents: read`):
+**Design contract (CRITICAL):** unlike `routes/proto.py` (which CATCHES codegen failure → `skipped=True` soft warn), the professiondb route's `build()` MUST let a validator hard-fail PROPAGATE — the integrity gate has to FAIL the weekly job, not warn. So: run `sync:professiondb` via a helper that raises on non-zero exit, and do NOT catch that exception in `build()`. On success, detect drift on the generated dir + Unity StreamingAssets and return the changed files (auto-PR'd by the workflow).
 
-```yaml
-name: CI - ProfessionDB Guard
+- [ ] **Step 1:** Read `routes/proto.py` (mirror `_run`/`_detect_drift`/`repo_root_for`/`@route`) and `routes/__init__.py` (see how existing routes are imported/registered).
+- [ ] **Step 2:** Create `routes/professiondb.py`:
 
-on:
-    pull_request:
-        branches:
-            - main
-            - dev
-        paths:
-            - 'apps/kbve/astro-kbve/src/content/docs/professiondb/**'
-            - 'packages/data/codegen/gen-professiondb-data.mjs'
-            - 'packages/data/codegen/gen-professiondb-xref.mjs'
-            - 'packages/data/codegen/descriptors/professiondb.binpb'
-            - '.github/workflows/ci-professiondb-guard.yml'
-    workflow_dispatch:
+```python
+"""The ``professiondb`` route — weekly integrity audit for the unified DB.
 
-concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: false
+Runs ``nx run astro-kbve:sync:professiondb`` (which regenerates the professiondb
+data + runtime view and runs the hard-fail xref validator). A validator failure
+raises out of ``build`` so the weekly job fails; regen drift is reported as
+changed files and auto-PR'd like every other route.
+"""
 
-permissions:
-    contents: read
+from __future__ import annotations
 
-jobs:
-    verify:
-        name: Verify professiondb xref validator passes
-        runs-on: ubuntu-latest
-        timeout-minutes: 15
-        steps:
-            - uses: actions/checkout@v7
-            - uses: actions/setup-node@v7
-              with:
-                  node-version: 24
-            - uses: pnpm/action-setup@v5
-              with:
-                  version: 11.15.0
-                  run_install: false
-            - id: pnpm-store
-              run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
-            - uses: actions/cache@v6
-              with:
-                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
-                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
-                  restore-keys: |
-                      ${{ runner.os }}-pnpm-store-
-            - run: pnpm install --frozen-lockfile
-            - run: npx nx run astro-kbve:sync:professiondb --skip-nx-cache
+import subprocess
+import sys
+from pathlib import Path
+
+from ..builder import BuildContext, BuildResult, PlanResult, repo_root_for
+from ..router import route
+
+_GEN_TIMEOUT = 600
+_DRIFT_PATHS = (
+    "packages/data/codegen/generated/professiondb-data.json",
+    "packages/data/codegen/generated/professiondb-data.binpb",
+    "packages/data/codegen/generated/professiondb-runtime.json",
+    "packages/data/codegen/generated/xref-index.json",
+    "apps/rareicon/unity-rareicon/Assets/StreamingAssets/professiondb-runtime.json",
+)
+
+
+class ProfessiondbValidationError(Exception):
+    """Raised when the professiondb xref validator hard-fails."""
+
+
+def _run(cmd: list[str], cwd: Path, timeout: int = _GEN_TIMEOUT) -> str:
+    proc = subprocess.run(
+        cmd, cwd=str(cwd), capture_output=True, text=True, timeout=timeout
+    )
+    if proc.returncode != 0:
+        tail = (proc.stderr or proc.stdout).strip()[-600:]
+        raise ProfessiondbValidationError(
+            "%s failed (exit %d): %s" % (" ".join(cmd), proc.returncode, tail)
+        )
+    return proc.stdout
+
+
+def _changed(repo_root: Path) -> list[str]:
+    out = subprocess.run(
+        ["git", "diff", "--name-only", "--", *_DRIFT_PATHS],
+        cwd=str(repo_root),
+        capture_output=True,
+        text=True,
+    ).stdout
+    return [f for f in out.splitlines() if f]
+
+
+@route("professiondb", "weekly", needs=("node",))
+class ProfessiondbRoute:
+    def plan(self, ctx: BuildContext) -> PlanResult:
+        return PlanResult(
+            "professiondb",
+            True,
+            "revalidate professiondb + regen (git-diff guard drops no-ops)",
+            [],
+        )
+
+    def build(self, ctx: BuildContext) -> BuildResult:
+        repo_root = repo_root_for(ctx.content_root)
+        _run(
+            ["npx", "nx", "run", "astro-kbve:sync:professiondb", "--skip-nx-cache"],
+            repo_root,
+        )
+        return BuildResult("professiondb", _changed(repo_root), False, "validated")
 ```
 
-Re-read `ci-manifest-guard.yml` first and match its EXACT action versions (`checkout@`, `setup-node@`, `cache@`) — use whatever it uses, don't assume v7/v6.
+Note: `build()` deliberately does NOT wrap `_run` in try/except — a `ProfessiondbValidationError` propagates to `build_main`, exiting non-zero and failing the weekly job. `needs=("node",)`: nx + node only (the gen reads a prebuilt descriptor `.binpb`, no protoc). If the `sync:mapdb`/`sync:itemdb` dependency chain turns out to need protoc at build time, add `"protoc"` to `needs` and note it.
 
-- [ ] **Step 2:** Mirror into `ci-unity.yml` — add `npx nx run astro-kbve:sync:professiondb` after `sync:mapdb` in BOTH regen steps (~L235 and ~L361). Confirm both via `grep -n "sync:mapdb" .github/workflows/ci-unity.yml` (two hits); match indentation exactly.
-- [ ] **Step 3:** Validate yaml parses:
+- [ ] **Step 3:** In `routes/__init__.py`, add the import registering the route (match the existing import style, alphabetical if the file is ordered):
+
+```python
+from . import professiondb  # noqa: F401
+```
+
+(Use whatever import form the file already uses for `proto`/`graph`/etc.)
+
+- [ ] **Step 4:** Create `tests/test_nx_professiondb_route.py` mirroring `tests/test_nx_proto_route.py`. Cover: (a) the route is registered with cadence `weekly` and appears in `select("weekly")`; (b) `plan()` returns `needs_work=True`; (c) `build()` PROPAGATES on validator failure — monkeypatch the module `_run` to raise `ProfessiondbValidationError` and assert `build()` raises (NOT skipped=True); (d) `build()` on success returns a `BuildResult` with `skipped=False` and the changed-file list from a monkeypatched `_changed`. Example skeleton (adapt imports/fixtures to the real test module):
+
+```python
+import pytest
+from kbve.nx.router import get, select
+from kbve.nx.routes import professiondb as mod
+
+
+def test_registered_weekly():
+    assert any(r.name == "professiondb" for r in select("weekly"))
+    assert get("professiondb").cadence == "weekly"
+
+
+def test_plan_needs_work(tmp_path):
+    ctx = _ctx(tmp_path)
+    assert get("professiondb").plan(ctx).needs_work is True
+
+
+def test_build_propagates_validator_failure(monkeypatch, tmp_path):
+    def boom(cmd, cwd, timeout=mod._GEN_TIMEOUT):
+        raise mod.ProfessiondbValidationError("xref FAIL")
+    monkeypatch.setattr(mod, "_run", boom)
+    with pytest.raises(mod.ProfessiondbValidationError):
+        get("professiondb").build(_ctx(tmp_path))
+
+
+def test_build_success_reports_drift(monkeypatch, tmp_path):
+    monkeypatch.setattr(mod, "_run", lambda *a, **k: "ok")
+    monkeypatch.setattr(mod, "_changed", lambda root: ["x.json"])
+    res = get("professiondb").build(_ctx(tmp_path))
+    assert res.skipped is False and res.changed == ["x.json"]
+```
+
+Define `_ctx(tmp_path)` the way the sibling route tests build a `BuildContext` (copy their fixture/helper).
+
+- [ ] **Step 5:** Run the route tests + a registry smoke check:
 
 ```bash
-node -e 'const y=require("fs").readFileSync(".github/workflows/ci-professiondb-guard.yml","utf8"); console.log("guard bytes",y.length); require("fs").readFileSync(".github/workflows/ci-unity.yml","utf8")'
-git diff --stat -- .github/workflows/
+cd packages/python/kbve && uv run pytest tests/test_nx_professiondb_route.py -q 2>&1 | tail -15
+uv run python -c "from kbve.nx.routes import *; from kbve.nx.router import select; print('weekly routes:', [r.name for r in select('weekly')])"
 ```
 
-- [ ] **Step 4:** Commit: `git commit -am "ci: gate professiondb sync on PRs and unity builds"`.
+Expected: tests pass; `professiondb` appears in the weekly routes list.
+
+- [ ] **Step 6:** Confirm the route surfaces in the router matrix for the weekly cadence (the exact command the workflow runs):
+
+```bash
+cd packages/python/kbve && uv run kbve-nx-router --cadence weekly --json 2>/dev/null | python -c "import sys,json; d=json.load(sys.stdin); print('professiondb in matrix:', any(i.get('route')=='professiondb' for i in (d.get('include') or d)))"
+```
+
+Expected: `professiondb in matrix: True`.
+
+- [ ] **Step 7:** Commit: `git commit -am "nx-router: add weekly professiondb integrity-audit route"`.
 
 ## Task 5: UE forward-hook — add `ProfessionActionRef`, keep `HarvestTimeMs` (B)
 
 **Files:** Modify `packages/unreal/KBVEMapDB/Source/KBVEMapDB/Public/KBVEMapTypes.h` and `.../Private/KBVEMapDatabase.cpp`. Additive only.
 
-- [ ] **Step 1:** Re-read both files for current line numbers + the exact UPROPERTY macro style used on sibling fields.
-- [ ] **Step 2:** In `KBVEMapTypes.h`, after the `HarvestTimeMs` property, add (match the sibling UPROPERTY macro/category verbatim; type `FName` to match `HarvestYield`):
+- [ ] **Step 1:** Re-read both files for current line numbers + the exact UPROPERTY macro style on sibling fields.
+- [ ] **Step 2:** In `KBVEMapTypes.h`, after the `HarvestTimeMs` property, add (match the sibling UPROPERTY macro/category verbatim; `FName` to match `HarvestYield`):
 
 ```cpp
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Map")
@@ -341,7 +394,7 @@ git diff --stat -- .github/workflows/
 
 Do NOT modify `HarvestTimeMs`. Do NOT touch `FKBVEWorldObjectFragment`.
 
-- [ ] **Step 3:** In `KBVEMapDatabase.cpp`, immediately after the `harvestTimeMs` parse, add (reuses the existing `FString Str;` scratch, mirrors the `harvestYield` line):
+- [ ] **Step 3:** In `KBVEMapDatabase.cpp`, immediately after the `harvestTimeMs` parse, add (reuses the existing `FString Str;`, mirrors the `harvestYield` line):
 
 ```cpp
 		if (Obj->TryGetStringField(TEXT("professionActionRef"), Str)) Def.ProfessionActionRef = FName(*Str);
@@ -355,7 +408,7 @@ grep -n "HarvestTimeMs" packages/unreal/KBVEMapDB/Source/KBVEMapDB/Public/KBVEMa
 grep -c "professionActionRef" packages/data/codegen/generated/mapdb-data.json
 ```
 
-Expected: `ProfessionActionRef` once in header + once in cpp; `HarvestTimeMs` still in both; mapdb emits `professionActionRef` on 19 nodes. Assert manually: `FName` matches `HarvestYield`; parse mirrors `harvestYield` + reuses `Str`; JSON key casing `professionActionRef` matches. Real UE compile happens only in the Unreal pipeline, not here.
+Expected: `ProfessionActionRef` once in header + once in cpp; `HarvestTimeMs` still in both; mapdb emits `professionActionRef` on 19 nodes. Real UE compile happens only in the Unreal pipeline, not here.
 
 - [ ] **Step 5:** Commit: `git commit -am "KBVEMapDB: add ProfessionActionRef forward hook to world object def"`.
 
@@ -373,28 +426,30 @@ cp $SP/mapdb-data.backup.json packages/data/codegen/generated/mapdb-data.json
 git status --short
 ```
 
-Expected: middle run prints `[xref FAIL]` + `exit=1`; after restore `git status --short` is empty (mapdb restored byte-identical). If the tree isn't clean, re-run `sync:professiondb` to regenerate.
+Expected: middle run prints `[xref FAIL]` + non-zero `exit`; after restore `git status --short` is empty. If not clean, re-run `sync:professiondb` to regenerate.
 
-- [ ] **Step 3:** Push: `git push -u origin trunk/professiondb-phase4-validator-1785669552`. (Controller opens PR after final review.)
+- [ ] **Step 3:** Full route test + lint pass: `cd packages/python/kbve && uv run pytest tests/test_nx_professiondb_route.py -q 2>&1 | tail -5`.
+- [ ] **Step 4:** Push: `git push -u origin trunk/professiondb-phase4-validator-1785669552`. (Controller opens PR after final review.)
 
 ## Decisions (confirm at review)
 
-1. **content_version format** `sha256-<16 hex>` over the canonicalized payload (set-equality, not order). Confirm vs full 64-hex or a `phaseN.<hash>` composite keeping a human phase tag.
-2. **Primary gate = NEW `ci-professiondb-guard.yml`** (PR-triggered) since `ci-unity.yml` is dispatch-only + rareicon-scoped and can't gate professiondb-MDX PRs. Confirm the dedicated workflow (recommended).
-3. **Mirror line into `ci-unity.yml`** (both jobs) — fixes latent staleness where Unity builds ship a stale `professiondb-runtime.json`. Confirm vs single-file diff.
+1. **content_version format** `sha256-<16 hex>` over the canonicalized payload (set-equality, not order). Confirm vs full 64-hex or a `phaseN.<hash>` composite.
+2. **Gate home = weekly `kbve-nx-router` route**, NOT a per-PR workflow. The weekly `0 2 * * 1` cron regenerates + validates; a hard-fail fails the weekly job and drift auto-PRs. Confirm weekly cadence (vs daily, or both).
+3. **Validator failure PROPAGATES** out of the route `build()` (fails the job) — deliberately unlike proto's catch-and-skip. Confirm the integrity gate should hard-fail the weekly run.
 4. **`durationMs` in the ownership list** — professiondb-exclusive today (0 items carry it). Confirm no future itemdb use.
-5. **`orphan_action` = WARN** (10 gather actions legitimately have no `resourceNodeRef`); WARN fires only when an action has neither outputs nor a node. Confirm soft.
+5. **`orphan_action` = WARN**; fires only when an action has neither outputs nor a node. Confirm soft.
 
 ## RISKS
 
-- **content_version hashing:** deterministic (recursively key-sorted + scalar-array-sorted, excludes the version field). Set-reorder won't bump the version — intended. File array order left as-is to minimize diff churn.
-- **Current data passes hard-fail: VERIFIED 0 errors.** The trap: **24 `SKILLING_*` recipes + 146 `action`-verb items** are legit metadata — the invariant is scoped to structural ownership fields, NEVER a `skilling`/`compress`/`action` substring/field grep (which would break CI on ~170 items).
-- **Cycle detection N/A** — no unlock/prereq edge in the action schema; not fabricated.
-- **CI blast radius:** new guard = own concurrency group + `contents: read` + path filter → cannot affect other jobs; `ci-unity.yml` edits are inside `if: contains(inputs.project_path,'rareicon')` steps → only rareicon dispatches pay one extra nx target.
-- **UE compile gate:** NO UE toolchain here. Subsystem B is static-verified only (field declared once, parse added once, `HarvestTimeMs` preserved, `FName` matches `HarvestYield`, JSON key casing matches). Real compile is the Unreal pipeline, outside this change's verifiable surface.
+- **content_version hashing:** deterministic (recursively key-sorted + scalar-array-sorted, excludes the version field). Set-reorder won't bump the version — intended.
+- **Current data passes hard-fail: VERIFIED 0 errors.** The trap: **24 `SKILLING_*` recipes + 146 `action`-verb items** are legit metadata — the invariant is scoped to structural ownership fields, NEVER a substring/field grep (which would break the gate on ~170 items).
+- **Cycle detection N/A** — no unlock/prereq edge; not fabricated.
+- **Detection latency:** the gate is post-merge (weekly, or manual `kbve-nx-router --route professiondb` / local `sync:professiondb`), not merge-blocking. Acceptable because professiondb data is not runtime-critical (consumers read baked data; a broken xref is silently-wrong data, caught + auto-PR-corrected by the weekly audit). If merge-blocking is ever wanted, a thin `pull_request` guard can be added later reusing the same `sync:professiondb`.
+- **Route `needs`:** `("node",)` assumed sufficient (nx + prebuilt descriptor). If the `sync:mapdb`/`sync:itemdb` chain needs protoc at build time, add `"protoc"` — verify in Task 4 Step 6 (matrix `needs`).
+- **UE compile gate:** NO UE toolchain here. Subsystem B is static-verified only. Real compile is the Unreal pipeline, outside this change's verifiable surface.
 
 ## Self-Review
 
-- **Scope:** closes epic #14852 remainder — validator becomes a live CI gate + UE forward hook. Descoped (per user): xref-index.binpb, professiondb-uecpp codegen.
-- **Safety:** hard-fail proven to pass on current data (Task 2 Step 6) AND proven to trigger on a bad ref (Task 6 Step 2) before the branch is pushed.
-- **Atomicity:** validator only ever throws BEFORE `writeFileSync`, so a red graph never overwrites a good `xref-index.json`.
+- **Scope:** closes epic #14852 remainder — professiondb becomes the enforced unified source of truth via a weekly integrity audit riding the existing router, plus the UE forward hook. Descoped (per user): xref-index.binpb, professiondb-uecpp codegen, bespoke PR-guard workflow.
+- **Safety:** hard-fail proven to pass on current data (Task 2) AND proven to trigger on a bad ref (Task 6) before push; the route test asserts `build()` PROPAGATES (job-failing) rather than skips.
+- **Atomicity:** the validator only ever throws BEFORE `writeFileSync`, so a red graph never overwrites a good `xref-index.json`.
