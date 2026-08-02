@@ -23,6 +23,8 @@ interface Props {
 	rank3Label?: string;
 	// a11y text
 	newTabLabel?: string;
+	/** Render the built-in heading block; off when an outer shell supplies it. */
+	header?: boolean;
 }
 
 interface Contributor {
@@ -48,6 +50,7 @@ const {
 	rank2Label = '2nd Place',
 	rank3Label = '3rd Place',
 	newTabLabel = '(opens in new tab)',
+	header = true,
 } = Astro.props;
 
 // Hardcoded repo config
@@ -98,18 +101,24 @@ const getRankLabel = (index: number): string => {
 
 <section
 	class:list={['github-hero', className]}
-	aria-labelledby="github-hero-title">
+	aria-labelledby={header ? 'github-hero-title' : undefined}
+	aria-label={header ? undefined : title}>
 	<div class="github-hero-inner">
 		<div class="max-w-4xl mx-auto px-4">
-			<!-- Header -->
-			<div class="text-center mb-10">
-				<h2
-					id="github-hero-title"
-					class="text-3xl md:text-4xl font-bold text-[var(--sl-color-white)] mb-3">
-					{title}
-				</h2>
-				<p class="text-lg text-[var(--sl-color-gray-2)]">{subtitle}</p>
-			</div>
+			{
+				header && (
+					<div class="text-center mb-10">
+						<h2
+							id="github-hero-title"
+							class="text-3xl md:text-4xl font-bold text-[var(--sl-color-white)] mb-3">
+							{title}
+						</h2>
+						<p class="text-lg text-[var(--sl-color-gray-2)]">
+							{subtitle}
+						</p>
+					</div>
+				)
+			}
 
 			{
 				error ? (

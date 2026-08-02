@@ -25,12 +25,15 @@ interface Props {
 	title?: string;
 	subtitle?: string;
 	limit?: number;
+	/** Render the built-in heading block; off when an outer shell supplies it. */
+	header?: boolean;
 }
 
 const {
 	title = 'Recent Activity',
 	subtitle = 'Pull requests and releases across the org',
 	limit = 12,
+	header = true,
 } = Astro.props;
 
 const GITHUB_ORG = 'KBVE';
@@ -144,11 +147,18 @@ function ago(iso: string): string {
 }
 ---
 
-<section class="github-activity" aria-labelledby="github-activity-title">
-	<header class="github-activity__header">
-		<h2 id="github-activity-title">{title}</h2>
-		<p>{subtitle}</p>
-	</header>
+<section
+	class="github-activity"
+	aria-labelledby={header ? 'github-activity-title' : undefined}
+	aria-label={header ? undefined : title}>
+	{
+		header && (
+			<header class="github-activity__header">
+				<h2 id="github-activity-title">{title}</h2>
+				<p>{subtitle}</p>
+			</header>
+		)
+	}
 
 	{
 		error && (

@@ -35,6 +35,11 @@ import {
 } from '../itemdb/itemNav';
 import { MAP_ROOT, buildMapNav, buildMapBreadcrumb } from '../mapdb/mapNav';
 import {
+	COMMUNITY_NAV,
+	COMMUNITY_ROOT,
+	buildCommunityBreadcrumb,
+} from '../social/socialNav';
+import {
 	MARKET_NAV,
 	STORE_ROOT,
 	MARKET_ROOT,
@@ -76,6 +81,9 @@ const palShell = isPalworld
 const isNpcdb = pathname.startsWith('/npcdb/');
 const isItemdb = pathname.startsWith('/itemdb/');
 const isMapdb = pathname.startsWith('/mapdb/');
+// Community/social pages share one rail. Only /github/ opts in for now; add
+// other social slugs here as they get recut onto bento.
+const isCommunity = norm(pathname) === '/github/';
 const isStore = norm(pathname) === '/store/';
 const isMarket = norm(pathname) === '/market/';
 
@@ -83,7 +91,7 @@ const npcNav = isNpcdb ? buildNpcNav(await getCollection('npcdb')) : [];
 const itemNav = isItemdb ? buildItemNav(await getCollection('itemdb')) : [];
 const mapNav = isMapdb ? buildMapNav(await getCollection('mapdb')) : [];
 
-const shell = isDashboard
+const baseShell = isDashboard
 	? {
 			entries: DASHBOARD_NAV,
 			root: DASHBOARD_ROOT,
@@ -272,6 +280,18 @@ const shell = isDashboard
 																	withToc: false,
 																}
 															: undefined;
+
+const shell = isCommunity
+	? {
+			entries: COMMUNITY_NAV,
+			root: COMMUNITY_ROOT,
+			menuLabel: 'Community menu',
+			navLabel: 'Community',
+			crumbs: buildCommunityBreadcrumb(pathname),
+			collapsible: true,
+			withToc: true,
+		}
+	: baseShell;
 
 const crumbs = shell?.crumbs ?? [];
 ---
