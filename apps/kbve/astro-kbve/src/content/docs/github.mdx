@@ -3,49 +3,214 @@ title: GitHub Ecosystem
 description: KBVE open-source contributors, projects, and activity across our GitHub organization.
 ogTitle: "KBVE on GitHub — Open-Source Games + Cloud Infrastructure"
 ogDescription: "Browse contributors, repositories, and live activity across the KBVE org. PRs welcome."
+template: splash
 editUrl: false
 lastUpdated: false
+prev: false
 next: false
 sidebar:
     label: GitHub
     order: 5
+    hidden: true
 ---
 
+import BentoShell from '@/components/hero/BentoShell.astro';
 import DeferredAstroGithubHero from '@kbve/astro/components/social/github/GithubHero/DeferredAstroGithubHero.astro';
-import AstroGithubTabs from '@kbve/astro/components/social/github/Tabs/AstroGithubTabs.astro';
 import AstroGithubRepoCatalog from '@kbve/astro/components/social/github/RepoCatalog/AstroGithubRepoCatalog.astro';
 import AstroGithubActivity from '@kbve/astro/components/social/github/Activity/AstroGithubActivity.astro';
 import AstroGithubProjectBoard from '@kbve/astro/components/social/github/ProjectBoard/AstroGithubProjectBoard.astro';
 import AstroGithubContribute from '@kbve/astro/components/social/github/Contribute/AstroGithubContribute.astro';
+import Adsense from '@/components/astropad/adsense/Adsense.astro';
 
-<div class="ring-page kbve-dashboard-page relative min-h-screen w-full bg-transparent">
+export const backdrop = 'https://images.unsplash.com/photo-1618401471353-b98afee0b2eb?q=80&w=2400&auto=format&fit=crop';
 
-# GitHub
+export const stats = [
+	{ label: 'Monorepo', value: 'KBVE/kbve', icon: 'M3 7v10a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-6l-2-2H5a2 2 0 0 0-2 2z' },
+	{ label: 'PRs target', value: 'dev', icon: 'M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM15 6a9 9 0 0 1-9 9' },
+	{ label: 'License', value: 'OSS', icon: 'M16 18 22 12 16 6M8 6 2 12 8 18' },
+	{ label: 'CI', value: 'Nx + Actions', icon: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z' },
+];
 
-Open-source games, cloud infrastructure, and the contributors building them.
-PRs land against `dev`, ship through CI to `main`. Pick an issue, fork the
-repo, open a worktree — the walkthrough lives under the **Contribute** tab.
+export const quickLinks = [
+	{ href: 'https://github.com/kbve/kbve/issues', label: 'Open issues' },
+	{ href: 'https://github.com/orgs/KBVE/projects/5', label: 'Project board' },
+	{ href: 'https://github.com/kbve/kbve/pulls', label: 'Pull requests' },
+	{ href: 'https://github.com/kbve/kbve/releases', label: 'Releases' },
+	{ href: 'https://github.com/orgs/KBVE/repositories', label: 'All repositories' },
+];
 
-<DeferredAstroGithubHero
-    title="Top Contributors"
-    subtitle="Thanks to everyone helping build the platform!"
-    commitsLabel="commits"
-    viewAllLabel="View all contributors"
-    issuesLabel="Issues"
-    projectLabel="Project Board"
-    errorMessage="Unable to load contributors. Please try again later."
-    rank1Label="1st Place"
-    rank2Label="2nd Place"
-    rank3Label="3rd Place"
-    newTabLabel="(opens in new tab)"
-/>
+export const related = [
+	{
+		href: 'https://github.com/kbve/kbve',
+		title: 'KBVE/kbve',
+		copy: 'The monorepo behind every KBVE project — games, services, infra.',
+		icon: 'M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22',
+		external: true,
+	},
+	{
+		href: '/discord/',
+		title: 'Discord',
+		copy: 'Ask questions, pair on issues, and catch the Saturday dev stream.',
+		icon: 'M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z',
+	},
+	{
+		href: '/projects/',
+		title: 'Projects',
+		copy: 'Every shipped crate, game, plugin, and service with its own doc.',
+		icon: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
+	},
+];
 
-<AstroGithubTabs>
-    <AstroGithubActivity slot="activity" />
-    <AstroGithubProjectBoard slot="board" />
-    <AstroGithubRepoCatalog slot="repos" />
-    <AstroGithubContribute slot="contribute" />
-</AstroGithubTabs>
+<div class="gh" style={`--bento-hero-bg: url('${backdrop}')`} data-github-page>
+
+<section class="bento-hero bento-section not-content" aria-label="KBVE on GitHub">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
+					<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+						<path d="M12 .3a12 12 0 0 0-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1.1-.7.1-.7.1-.7 1.2.1 1.9 1.2 1.9 1.2 1.1 1.9 2.8 1.3 3.5 1 .1-.8.4-1.3.8-1.6-2.7-.3-5.5-1.3-5.5-5.9 0-1.3.5-2.4 1.2-3.2-.1-.3-.5-1.5.1-3.2 0 0 1-.3 3.3 1.2a11.5 11.5 0 0 1 6 0C17.3 4.7 18.3 5 18.3 5c.6 1.7.2 2.9.1 3.2.8.8 1.2 1.9 1.2 3.2 0 4.6-2.8 5.6-5.5 5.9.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6A12 12 0 0 0 12 .3z" />
+					</svg>
+					<span>KBVE org · open source</span>
+				</span>
+				<h1 class="bento-title">
+					Build with us on
+					<span class="bento-title__accent">GitHub</span>
+				</h1>
+				<p class="bento-lede">
+					Open-source games, cloud infrastructure, and the contributors
+					building them. PRs land against <code>dev</code> and ship through
+					CI to <code>main</code>. Pick an issue, fork the repo, open a
+					worktree — the walkthrough is under Contribute.
+				</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="https://github.com/kbve/kbve" target="_blank" rel="noopener noreferrer">
+						Open the monorepo
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" />
+						</svg>
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="#board">Good first issues</a>
+					<a class="bento-btn bento-btn--ghost" href="#contribute">How to contribute →</a>
+				</div>
+			</div>
+
+			<div class="bento-cell bento-hero-aside bento-card bento-card--glass">
+				<div class="bento-cell-eyebrow">
+					<span class="bento-live-dot" aria-hidden="true"></span>
+					Jump to GitHub
+				</div>
+				<ul class="bento-list gh-quick">
+					{quickLinks.map((l) => (
+						<li>
+							<a href={l.href} target="_blank" rel="noopener noreferrer">{l.label}</a>
+						</li>
+					))}
+				</ul>
+			</div>
+
+			{stats.map((s) => (
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={s.icon} /></svg>
+					</span>
+					<span class="bento-stat__value">{s.value}</span>
+					<span class="bento-stat__label">{s.label}</span>
+				</div>
+			))}
+		</div>
+
+		<nav class="bento-jump" aria-label="On this page">
+			<a class="bento-chip" href="#contributors">Contributors</a>
+			<a class="bento-chip" href="#activity">Activity</a>
+			<a class="bento-chip" href="#board">In Flight</a>
+			<a class="bento-chip" href="#repos">Repositories</a>
+			<a class="bento-chip" href="#contribute">Contribute</a>
+		</nav>
+	</div>
+</section>
+
+<BentoShell id="contributors" eyebrow="Thank you" heading="Top contributors">
+	<DeferredAstroGithubHero
+		header={false}
+		title="Top Contributors"
+		subtitle="Thanks to everyone helping build the platform!"
+		commitsLabel="commits"
+		viewAllLabel="View all contributors"
+		issuesLabel="Issues"
+		projectLabel="Project Board"
+		errorMessage="Unable to load contributors. Please try again later."
+		rank1Label="1st Place"
+		rank2Label="2nd Place"
+		rank3Label="3rd Place"
+		newTabLabel="(opens in new tab)"
+	/>
+</BentoShell>
+
+<BentoShell id="activity" eyebrow="Live from the org" heading="Recent activity">
+	<AstroGithubActivity header={false} />
+</BentoShell>
+
+<BentoShell id="board" eyebrow="Up for grabs" heading="In flight">
+	<AstroGithubProjectBoard header={false} />
+</BentoShell>
+
+<BentoShell id="repos" eyebrow="The catalog" heading="Repositories">
+	<AstroGithubRepoCatalog header={false} />
+</BentoShell>
+
+<BentoShell id="contribute" eyebrow="Your first PR" heading="How to contribute">
+	<AstroGithubContribute header={false} />
+</BentoShell>
+
+<BentoShell id="related" eyebrow="Elsewhere" heading="Keep going">
+	<div class="bento-board bento-board--cols-3">
+		{related.map((r) => (
+			<a
+				class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive"
+				href={r.href}
+				target={r.external ? '_blank' : undefined}
+				rel={r.external ? 'noopener noreferrer' : undefined}>
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+						<path d={r.icon} />
+					</svg>
+				</span>
+				<span class="bento-linkcard__title">{r.title}</span>
+				<span class="bento-linkcard__copy">{r.copy}</span>
+				<span class="bento-linkcard__go" aria-hidden="true">
+					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+						<path d="M5 12h14M13 6l6 6-6 6" />
+					</svg>
+				</span>
+			</a>
+		))}
+	</div>
+</BentoShell>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
 
 </div>
 
+<style is:global>{`
+	.gh {
+		--bento-accent: #7c8cf8;
+		--bento-accent-2: #c084fc;
+		--bento-btn-fg: #0b1220;
+		--bento-live: #22c55e;
+	}
+
+	.gh .gh-quick a {
+		color: var(--sl-color-gray-2);
+		text-decoration: none;
+	}
+
+	.gh .gh-quick a:hover {
+		color: var(--sl-color-white);
+	}
+`}</style>
