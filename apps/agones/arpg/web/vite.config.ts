@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
 const repoRoot = path.resolve(__dirname, '../../../..');
@@ -43,6 +42,10 @@ const BRAND_LOGO_NAME = 'rentearthlogo.webp';
 // `arpg.js` while another colo serves the fresh one. A content hash makes each
 // build a unique, immutable URL: index.html (never edge-cached) always points at
 // the newest hash, and no colo can pin an old bundle.
+//
+// The hash comes from `output.entryFileNames` (below), NOT from mutating the
+// bundle record: rolldown silently IGNORES writes to that object, which dropped
+// the chunk entirely and shipped an index.html pointing at a 404.
 function hashDiscordBundle(htmlTemplatePath: string) {
 	return {
 		name: 'hash-discord-bundle',
@@ -52,21 +55,12 @@ function hashDiscordBundle(htmlTemplatePath: string) {
 				(b) => b.type === 'chunk' && b.isEntry,
 			);
 			if (!chunk) return;
-			// Hash the FINAL (post-terser) code so the name tracks real content.
-			const hash = createHash('sha256')
-				.update(chunk.code)
-				.digest('hex')
-				.slice(0, 8);
-			const hashedName = `arpg.${hash}.js`;
-			delete bundle[chunk.fileName];
-			chunk.fileName = hashedName;
-			bundle[hashedName] = chunk;
 			// Regenerate index.html (the app build copied the template verbatim
 			// with `arpg.js`) so its <script> points at the hashed bundle.
 			const template = readFileSync(htmlTemplatePath, 'utf8');
 			const html = template.replace(
 				/<script\s+src="arpg\.js"([^>]*)><\/script>/,
-				`<script src="${hashedName}"$1></script>`,
+				`<script src="${chunk.fileName}"$1></script>`,
 			);
 			(this as any).emitFile({
 				type: 'asset',
@@ -228,7 +222,16 @@ export default defineConfig(({ mode }) => {
 					fileName: () => (discord ? 'arpg.js' : 'arpg-embed.js'),
 				},
 				rollupOptions: {
-					output: { inlineDynamicImports: true, exports: 'named' },
+					output: {
+						inlineDynamicImports: true,
+						exports: 'named' as const,
+						// Discord only: content-hashed, immutable URL per build
+						// (see hashDiscordBundle). The embed bundle keeps its
+						// stable name — kbve.com loads it by fixed URL.
+						...(discord
+							? { entryFileNames: 'arpg.[hash].js' }
+							: {}),
+					},
 				},
 			},
 		};
