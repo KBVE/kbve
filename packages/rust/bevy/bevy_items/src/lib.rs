@@ -30,6 +30,7 @@
 #[cfg(feature = "inventory")]
 pub mod inventory_adapter;
 pub mod json;
+pub mod profession;
 mod proto;
 mod registry;
 
