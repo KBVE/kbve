@@ -2,6 +2,7 @@ import {
 	$activeChannel,
 	$channels,
 	$connectionStatus,
+	$disconnect,
 	$error,
 	$nick,
 	handleIncoming,
@@ -32,6 +33,11 @@ const decoder = new TextDecoder();
 // ---------------------------------------------------------------------------
 let eventsChannel: BroadcastChannel | null = null;
 
+// Set while a user-initiated disconnect is in flight. The worker's close event
+// looks identical to a dropped socket, and we don't want the "connection lost"
+// banner for a disconnect the user asked for.
+let intentionalClose = false;
+
 function ensureEventsSubscription(): void {
 	if (eventsChannel) return;
 	if (typeof BroadcastChannel === 'undefined') {
@@ -56,7 +62,29 @@ function ensureEventsSubscription(): void {
 			if (status === 'connected') {
 				$connectionStatus.set('connected');
 				$error.set('');
+				$disconnect.set(null);
 				systemMessage($activeChannel.get(), 'Connected to IRC');
+			} else if (status === 'idle') {
+				// Gateway closed us out for inactivity. The worker does not
+				// auto-retry this one — the page decides when to come back.
+				$connectionStatus.set('idle');
+				$disconnect.set({
+					kind: 'idle',
+					code,
+					reason: reason || 'idle timeout',
+					at: Date.now(),
+				});
+				const message = 'Disconnected for inactivity';
+				$error.set(message);
+				systemMessage(
+					$activeChannel.get(),
+					`${message} — reconnect to rejoin the channel`,
+				);
+			} else if (status === 'disconnected' && intentionalClose) {
+				intentionalClose = false;
+				$connectionStatus.set('disconnected');
+				$disconnect.set(null);
+				$error.set('');
 			} else if (status === 'disconnected' || status === 'error') {
 				$connectionStatus.set(status as ConnectionStatus);
 				const detail =
@@ -68,6 +96,12 @@ function ensureEventsSubscription(): void {
 				const message = `${status === 'error' ? 'WS error' : 'Disconnected'}: ${detail}`;
 				console.warn('[chat]', message, evt);
 				$error.set(message);
+				$disconnect.set({
+					kind: 'network',
+					code,
+					reason,
+					at: Date.now(),
+				});
 				systemMessage($activeChannel.get(), message);
 			} else if (status === 'reconnecting') {
 				$connectionStatus.set('connecting');
@@ -75,6 +109,7 @@ function ensureEventsSubscription(): void {
 			} else if (status === 'failed') {
 				$connectionStatus.set('error');
 				$error.set('Reconnect failed — give up after retries');
+				$disconnect.set({ kind: 'failed', at: Date.now() });
 				systemMessage(
 					$activeChannel.get(),
 					'Reconnect failed — give up after retries',
@@ -112,6 +147,7 @@ export async function connect(wsUrl: string, token?: string): Promise<void> {
 
 	$connectionStatus.set('connecting');
 	$error.set('');
+	intentionalClose = false;
 
 	try {
 		const kbve = (window as any).kbve;
@@ -135,11 +171,13 @@ export async function connect(wsUrl: string, token?: string): Promise<void> {
 }
 
 export async function disconnect(): Promise<void> {
+	intentionalClose = true;
 	try {
 		const kbve = (window as any).kbve;
 		if (kbve?.ws) await kbve.ws.close();
 	} finally {
 		$connectionStatus.set('disconnected');
+		$disconnect.set(null);
 		systemMessage($activeChannel.get(), 'Disconnected from IRC');
 	}
 }
