@@ -182,16 +182,22 @@ export function main() {
 		node_by_ref: nodeByRef,
 	};
 	const index = { content_version: contentVersion(payload), ...payload };
-	writeFileSync(outPath, JSON.stringify(index, null, 2));
-	console.log(`Wrote ${outPath}`);
 	console.log(
 		`produced_by=${Object.keys(producedBy).length} input_to=${Object.keys(inputTo).length} tool_for=${Object.keys(toolFor).length} node_links=${Object.keys(nodeLinks).length}`,
 	);
 	if (warnings.length) {
-		console.warn(`\n[xref warn-only] ${warnings.length} unresolved refs:`);
+		console.warn(`\n[xref warn] ${warnings.length} soft issue(s):`);
 		for (const w of warnings) console.warn(`  ⚠ ${w}`);
 	}
-	console.log('\n[xref] warn-only mode — build not failed.');
+	if (errors.length) {
+		console.error(`\n[xref FAIL] ${errors.length} error-class violation(s):`);
+		for (const e of errors) console.error(`  ✗ ${e}`);
+		throw new Error(
+			`professiondb xref validation failed with ${errors.length} error(s)`,
+		);
+	}
+	writeFileSync(outPath, JSON.stringify(index, null, 2));
+	console.log(`Wrote ${outPath}`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) main();
