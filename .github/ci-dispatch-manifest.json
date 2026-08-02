@@ -69,7 +69,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.266",
+			"version": "1.0.267",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -1393,7 +1393,7 @@
 				]
 			},
 			"source_path": "apps/herbmail/herbmail-game",
-			"version": "0.1.15",
+			"version": "0.1.16",
 			"version_toml": "apps/herbmail/herbmail-game/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/herbmail-game.mdx",
 			"runner": "ubuntu-latest",
