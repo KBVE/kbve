@@ -3443,6 +3443,7 @@ dependencies = [
  "bevy_inventory",
  "prost 0.14.4",
  "prost-build 0.14.4",
+ "prost-types 0.14.4",
  "serde",
  "serde_json",
 ]

@@ -19,7 +19,7 @@ use lightyear::prelude::*;
 use bevy_inventory::Inventory;
 use bevy_items::ItemDb;
 use bevy_items::inventory_adapter::{ProtoItemKind, init_item_db};
-use bevy_items::skilling_type_to_skill_ref;
+use bevy_items::profession::{ProfessionDb, init_profession_db};
 use bevy_kbve_net::npcdb::{self, ProtoNpcId, creature::CapturedCreatures};
 use bevy_kbve_net::{
     AuthAck, AuthMessage, AuthResponse, CapturedCreatureEntry, CollectRequest, CraftFailureReason,
@@ -183,6 +183,26 @@ fn load_server_itemdb() {
         Err(e) => tracing::warn!(
             "[itemdb] server failed to parse baked itemdb.json: {e:?} — \
              ProtoItemKind::max_stack() will fall back to 1"
+        ),
+    }
+}
+
+const BAKED_PROFESSIONDB_JSON: &str = include_str!("../data/professiondb.json");
+
+fn load_server_professiondb() {
+    match ProfessionDb::from_json(BAKED_PROFESSIONDB_JSON) {
+        Ok(db) => {
+            let gather_count = db.gather_len();
+            let compress_count = db.compress_len();
+            let db_static: &'static ProfessionDb = Box::leak(Box::new(db));
+            init_profession_db(db_static);
+            tracing::info!(
+                "[professiondb] server loaded {gather_count} gather / {compress_count} compress entries from baked professiondb.json"
+            );
+        }
+        Err(e) => tracing::warn!(
+            "[professiondb] server failed to parse baked professiondb.json: {e:?} — \
+             skilling gating/XP disabled"
         ),
     }
 }
@@ -793,9 +813,11 @@ fn run_bevy_app(
     let mut app = App::new();
 
     // Minimal headless Bevy — no window, no renderer
-    app.add_plugins(MinimalPlugins.set(ScheduleRunnerPlugin::run_loop(
-        Duration::from_secs_f64(1.0 / 60.0),
-    )));
+    app.add_plugins(
+        MinimalPlugins.set(ScheduleRunnerPlugin::run_loop(Duration::from_secs_f64(
+            1.0 / 60.0,
+        ))),
+    );
     app.add_plugins(bevy::state::app::StatesPlugin);
     app.add_plugins(bevy::transform::TransformPlugin);
 
@@ -834,6 +856,7 @@ fn run_bevy_app(
     app.init_resource::<ConsumableCooldowns>();
     app.init_resource::<DeployedItems>();
     load_server_itemdb();
+    load_server_professiondb();
     app.add_plugins(BevySkillsPlugin);
     app.add_systems(Startup, register_server_skills);
     app.init_resource::<DayCycle>();
@@ -1905,38 +1928,28 @@ fn process_collect_requests(
                 }
             }
 
-            // Resolve the candidate item ref + skilling metadata up-front so we
-            // can gate the collect before marking the tile consumed.
             let candidate_item_ref = bevy_kbve_net::item_ref_at(tile.tx, tile.tz).unwrap_or("");
             let player_entity_opt = client_player_map.0.get(&client_entity).copied();
-            let skilling_meta = if candidate_item_ref.is_empty() {
+            let gather_meta = if candidate_item_ref.is_empty() {
                 None
             } else {
-                ProtoItemKind::from_ref(candidate_item_ref)
-                    .item()
-                    .and_then(|i| i.skilling.as_ref())
+                bevy_items::profession::get_profession_db()
+                    .and_then(|db| db.gather(candidate_item_ref))
             };
 
-            // Skill-level gating: reject the collect if the item declares a
-            // required skill level and the player hasn't reached it. Tile stays
-            // un-collected so the world object is still interactable.
-            if let (Some(player_entity), Some(skilling)) = (player_entity_opt, skilling_meta) {
-                if let Some(skill_ref) = skilling_type_to_skill_ref(
-                    bevy_items::SkillingType::try_from(skilling.skill)
-                        .unwrap_or(bevy_items::SkillingType::SkillingUnspecified),
-                ) {
-                    let required = skilling.skill_level.unwrap_or(0).max(0) as u32;
-                    if required > 0 {
-                        if let Ok(profile) = skill_profiles.get(player_entity) {
-                            let current = profile.level(SkillId::from_ref(skill_ref));
-                            if current < required {
-                                tracing::info!(
-                                    "[gameserver] collect rejected for player {player_entity:?}: \
-                                     {skill_ref} level {current} < required {required} \
-                                     (item={candidate_item_ref})"
-                                );
-                                continue;
-                            }
+            if let (Some(player_entity), Some(gather)) = (player_entity_opt, gather_meta) {
+                let required = gather.required_level;
+                if required > 0 {
+                    if let Ok(profile) = skill_profiles.get(player_entity) {
+                        let current = profile.level(SkillId::from_ref(&gather.skill_ref));
+                        if current < required {
+                            let skill_ref = &gather.skill_ref;
+                            tracing::info!(
+                                "[gameserver] collect rejected for player {player_entity:?}: \
+                                 {skill_ref} level {current} < required {required} \
+                                 (item={candidate_item_ref})"
+                            );
+                            continue;
                         }
                     }
                 }
@@ -2032,28 +2045,24 @@ fn process_collect_requests(
                         }
                     }
 
-                    // XP per-drop from the item's own skilling metadata.
-                    if let Some(skilling) = kind.item().and_then(|i| i.skilling.as_ref()) {
-                        if let Some(skill_ref) = skilling_type_to_skill_ref(
-                            bevy_items::SkillingType::try_from(skilling.skill)
-                                .unwrap_or(bevy_items::SkillingType::SkillingUnspecified),
-                        ) {
-                            let xp_per = skilling.xp_reward.unwrap_or(0.0).max(0.0);
-                            if xp_per > 0.0 {
-                                let amount = (xp_per * granted as f32).round() as u64;
-                                if amount > 0 {
-                                    xp_writer.write(GrantXpMsg {
-                                        entity: player_entity,
-                                        skill: SkillId::from_ref(skill_ref),
+                    if let Some(gather) = bevy_items::profession::get_profession_db()
+                        .and_then(|db| db.gather(drop_ref))
+                    {
+                        let xp_per = gather.xp_reward as f32;
+                        if xp_per > 0.0 {
+                            let amount = (xp_per * granted as f32).round() as u64;
+                            if amount > 0 {
+                                xp_writer.write(GrantXpMsg {
+                                    entity: player_entity,
+                                    skill: SkillId::from_ref(&gather.skill_ref),
+                                    amount,
+                                });
+                                if let Ok(mut sender) = xp_senders.get_mut(client_entity) {
+                                    sender.send::<bevy_kbve_net::GameChannel>(SkillXpGrant {
+                                        player_id: collector_id,
+                                        skill_ref: gather.skill_ref.clone(),
                                         amount,
                                     });
-                                    if let Ok(mut sender) = xp_senders.get_mut(client_entity) {
-                                        sender.send::<bevy_kbve_net::GameChannel>(SkillXpGrant {
-                                            player_id: collector_id,
-                                            skill_ref: skill_ref.to_string(),
-                                            amount,
-                                        });
-                                    }
                                 }
                             }
                         }
