@@ -39,7 +39,8 @@ function contentVersion(payload) {
 }
 
 export function main() {
-	const items = JSON.parse(readFileSync(itemdbPath, 'utf8')).items ?? [];
+	const itemsRaw = JSON.parse(readFileSync(itemdbPath, 'utf8'));
+	const items = itemsRaw.items ?? [];
 	const professions =
 		JSON.parse(readFileSync(professiondbPath, 'utf8')).professions ?? [];
 	const objectDefs =
@@ -52,11 +53,49 @@ export function main() {
 	const inputTo = {};
 	const toolFor = {};
 	const warnings = [];
+	const errors = [];
+
+	const OWNERSHIP_FIELDS = [
+		'harvestYield',
+		'harvestTimeMs',
+		'resourceNodeRef',
+		'professionActionRef',
+		'gatherAction',
+		'gatherActions',
+		'compressAction',
+		'compressActions',
+		'skillingAction',
+		'skillingActions',
+		'durationMs',
+	];
+	const OWNERSHIP_TOP_KEYS = [
+		'professions',
+		'actions',
+		'gatherActions',
+		'compressActions',
+		'skillingActions',
+	];
+	for (const k of OWNERSHIP_TOP_KEYS) {
+		if (Object.prototype.hasOwnProperty.call(itemsRaw, k)) {
+			errors.push(
+				`single_source: itemdb-data.json owns top-level '${k}' — must live in professiondb`,
+			);
+		}
+	}
+	for (const it of items) {
+		for (const f of OWNERSHIP_FIELDS) {
+			if (Object.prototype.hasOwnProperty.call(it, f)) {
+				errors.push(
+					`single_source: itemdb item '${it.ref}' carries profession field '${f}' — must live in professiondb`,
+				);
+			}
+		}
+	}
 
 	const add = (map, itemRef, actionKey, relation) => {
 		const itemKey = itemKeyByRef.get(itemRef);
 		if (itemKey === undefined) {
-			warnings.push(`${relation}: item '${itemRef}' not in itemdb`);
+			errors.push(`${relation}: item '${itemRef}' not in itemdb`);
 			return;
 		}
 		(map[itemKey] ??= []).push(actionKey);
@@ -84,7 +123,7 @@ export function main() {
 		for (const action of prof.actions ?? []) {
 			if (!action.resourceNodeRef) continue;
 			if (!objectDefByRef.has(action.resourceNodeRef)) {
-				warnings.push(
+				errors.push(
 					`node_links: action '${action.ref}' resourceNodeRef '${action.resourceNodeRef}' not in mapdb`,
 				);
 				continue;
@@ -97,7 +136,7 @@ export function main() {
 	for (const o of objectDefs) {
 		if (!o.professionActionRef) continue;
 		if (!actionByRef.has(o.professionActionRef)) {
-			warnings.push(
+			errors.push(
 				`node_links: objectDef '${o.ref}' professionActionRef '${o.professionActionRef}' not in professiondb`,
 			);
 			continue;
@@ -105,9 +144,32 @@ export function main() {
 		const actionKey = actionByRef.get(o.professionActionRef);
 		const linkedNodeRef = nodeLinks[actionKey];
 		if (linkedNodeRef !== undefined && linkedNodeRef !== o.ref) {
-			warnings.push(
+			errors.push(
 				`node_links: mismatched pair — action '${o.professionActionRef}' links node '${linkedNodeRef}' but node '${o.ref}' links action '${o.professionActionRef}'`,
 			);
+		}
+	}
+
+	for (const prof of professions) {
+		for (const action of prof.actions ?? []) {
+			if (!action.resourceNodeRef) continue;
+			const node = objectDefByRef.get(action.resourceNodeRef);
+			if (node && node.professionActionRef !== action.ref) {
+				errors.push(
+					`graph_integrity: action '${action.ref}' targets node '${action.resourceNodeRef}' but node back-refs '${node.professionActionRef ?? '(none)'}'`,
+				);
+			}
+		}
+	}
+	for (const prof of professions) {
+		for (const action of prof.actions ?? []) {
+			const hasOutput = (action.outputs ?? []).length > 0;
+			const hasNode = Boolean(action.resourceNodeRef);
+			if (!hasOutput && !hasNode) {
+				warnings.push(
+					`orphan_action: action '${action.ref}' has neither outputs nor a resource node`,
+				);
+			}
 		}
 	}
 
