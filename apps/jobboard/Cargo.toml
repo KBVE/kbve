@@ -14,8 +14,7 @@ axum = { version = "0.8.5", features = ["macros"] }
 
 tower = { workspace = true, features = ["util"] }
 tower-http = { workspace = true, features = ["compression-full", "limit", "trace", "cors", "timeout"] }
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "http2"] }
-
+reqwest = { workspace = true, features = ["rustls", "http2", "query"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 

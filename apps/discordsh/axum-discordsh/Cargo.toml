@@ -23,7 +23,7 @@ socket2 = { workspace = true }
 num_cpus = { workspace = true }
 dotenvy = { workspace = true }
 sysinfo = { workspace = true }
-reqwest = { version = "0.13.2", default-features = false, features = ["json", "rustls"] }
+reqwest = { workspace = true, features = ["json", "rustls"] }
 
 # Workspace path dependencies
 kbve = { path = "../../../packages/rust/kbve", features = ["supabase", "image-gen"] }

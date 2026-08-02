@@ -45,7 +45,7 @@ url = { workspace = true }
 http = { workspace = true }
 
 # DB + Auth (Phase 5)
-reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
+reqwest = { workspace = true, features = ["json", "rustls", "stream", "form", "query"] }
 jsonwebtoken = { version = "10", features = ["rust_crypto"] }
 dashmap = { workspace = true, features = ["rayon"] }
 rayon = "1.10"

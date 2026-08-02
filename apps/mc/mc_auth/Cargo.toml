@@ -48,11 +48,7 @@ bevy_supa = { path = "../../../packages/rust/bevy/bevy_supa", default-features =
 # reqwest is pulled in transitively via bevy_supa's `native` feature —
 # we re-use the same Response + HeaderMap types in supabase.rs for
 # convenience without declaring a second dependency edge here.
-reqwest = { version = "0.12", default-features = false, features = [
-    "json",
-    "rustls-tls",
-] }
-
+reqwest = { workspace = true, features = ["json", "rustls"] }
 # Agones SDK — sends Ready/Health pings to the sidecar so the gameserver
 # stays alive in the Agones Fleet. Without these pings the pod is recycled
 # every ~5 minutes by Agones' health controller.

@@ -23,7 +23,7 @@ dotenvy = { workspace = true }
 http = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 jsonwebtoken = { version = "9.3", default-features = false }
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
+reqwest = { workspace = true, features = ["rustls", "json", "form"] }
 kube = { workspace = true, features = ["client", "rustls-tls"] }
 k8s-openapi = { workspace = true, features = ["v1_32"] }
 rustls = { workspace = true, features = ["default", "ring"] }

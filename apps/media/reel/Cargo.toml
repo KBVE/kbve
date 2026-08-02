@@ -23,7 +23,7 @@ tokio = { workspace = true, features = ["default", "full", "rt-multi-thread"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["default", "env-filter", "json"] }
 axum = { version = "0.8.5", features = ["macros", "json"] }
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls"] }
+reqwest = { workspace = true, features = ["rustls"] }
 librqbit = "8"
 url = { workspace = true }
 tokio-util = { version = "0.7", features = ["io"] }

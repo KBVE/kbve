@@ -24,7 +24,7 @@ poise = "0.6.1"
 # tokio-tungstenite so the `Message` type unifies to one crate instance.
 tokio-tungstenite = { version = "0.21", default-features = false }
 sysinfo = { workspace = true }
-reqwest = { version = "0.13.2", default-features = false, features = ["json", "rustls"] }
+reqwest = { workspace = true, features = ["json", "rustls"] }
 dashmap = { workspace = true }
 lru = { workspace = true }
 uuid = { workspace = true, features = ["v4", "serde"] }
