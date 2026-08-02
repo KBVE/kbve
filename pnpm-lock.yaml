@@ -311,8 +311,8 @@ importers:
         specifier: ^0.21.2
         version: 0.21.2(encoding@0.1.13)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react-native-webgpu:
-        specifier: 0.5.15
-        version: 0.5.15(bae47d57ca7b4fc8952b873242683271)
+        specifier: 0.6.3
+        version: 0.6.3(bae47d57ca7b4fc8952b873242683271)
       react-native-webview:
         specifier: 13.16.1
         version: 13.16.1(react-native@0.85.3(@babel/core@7.26.10(supports-color@10.2.2))(@react-native-community/cli@15.1.3(supports-color@10.2.2)(typescript@6.0.3))(@react-native/metro-config@0.86.0(@babel/core@7.26.10(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.9)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3)
@@ -477,8 +477,8 @@ importers:
         specifier: 23.1.0
         version: 23.1.0(@swc-node/register@1.11.1(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(@swc/core@1.15.21(@swc/helpers@0.5.21))(@swc/types@0.1.25)(supports-color@10.2.2)(typescript@6.0.3))(@swc/core@1.15.21(@swc/helpers@0.5.21))
       '@nxlv/python':
-        specifier: 22.2.1
-        version: 22.2.1(@nx/devkit@23.1.0(nx@23.1.0(@swc-node/register@1.11.1(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(@swc/core@1.15.21(@swc/helpers@0.5.21))(@swc/types@0.1.25)(supports-color@10.2.2)(typescript@6.0.3))(@swc/core@1.15.21(@swc/helpers@0.5.21))))
+        specifier: 22.2.2
+        version: 22.2.2(@nx/devkit@23.1.0(nx@23.1.0(@swc-node/register@1.11.1(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(@swc/core@1.15.21(@swc/helpers@0.5.21))(@swc/types@0.1.25)(supports-color@10.2.2)(typescript@6.0.3))(@swc/core@1.15.21(@swc/helpers@0.5.21))))
       '@playform/compress':
         specifier: ^0.2.3
         version: 0.2.3(@astrojs/markdown-remark@7.2.1(supports-color@10.2.2))(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(@planetscale/database@1.19.0)(@types/node@18.19.17)(jiti@2.7.0)(less@4.1.3)(rollup@4.57.1)(sass-embedded@1.100.0)(sass@1.101.0)(stylus@0.64.0(supports-color@10.2.2))(yaml@2.9.0)
@@ -684,8 +684,8 @@ importers:
         specifier: '>=8.5.10'
         version: 8.5.14
       postcss-merge-rules:
-        specifier: ^7.0.8
-        version: 7.0.8(postcss@8.5.14)
+        specifier: ^8.0.1
+        version: 8.0.1(postcss@8.5.14)
       prettier:
         specifier: ^3.8.1
         version: 3.8.1
@@ -4387,8 +4387,8 @@ packages:
   '@nx/workspace@23.1.0':
     resolution: {integrity: sha512-cobC05wJX7c2bWJ6s3g0IOuu6YLCEPrmpkZdX4xPEtt3GX96BsDnBpqSaqdrKhmhaa16oIERisU3AozmxmV6DA==}
 
-  '@nxlv/python@22.2.1':
-    resolution: {integrity: sha512-m0NdG6IXF4yWXIR6jvtAI3oNMfFE6T4thmMAxC2SgBvqSWZPVV9spn8EAK8FWacxj4H+lGGr+2rc7BcvjMB9Fw==}
+  '@nxlv/python@22.2.2':
+    resolution: {integrity: sha512-QCFBXo6L14sNK73XBz1q58lqcIIurDe3OerHhtvSpzkeAUmJFjbPWhs6LEcvlxsdfa6CbkCCoH0UVRDjmWHSyQ==}
     peerDependencies:
       '@nx/devkit': '>=22.0.0'
 
@@ -8158,10 +8158,6 @@ packages:
     engines: {node: '>=6.0.0'}
     hasBin: true
 
-  baseline-browser-mapping@2.9.19:
-    resolution: {integrity: sha512-ipDqC8FrAl/76p2SSWKSI+H9tFwm7vYqXQrItCuiVPt26Km0jS+NzSsBWAaBusvSbQcfJG+JitdMm+wZAgTYqg==}
-    hasBin: true
-
   basic-auth@2.0.1:
     resolution: {integrity: sha512-NF+epuEdnUYVlGuhaxbbq+dvJttwLnGY+YixlXlME5KpQ5W3CnXA5cVTneY3SPbPDRkcjMbifrwmFYcClgOZeg==}
     engines: {node: '>= 0.8'}
@@ -8247,11 +8243,6 @@ packages:
 
   browserslist@4.24.4:
     resolution: {integrity: sha512-KDi1Ny1gSePi1vm0q4oxSF8b4DR44GF4BbmS2YdhPLOEqd8pDviZOGH/GsmRwoWJ2+5Lr085X7naowMwKHDG1A==}
-    engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
-    hasBin: true
-
-  browserslist@4.28.1:
-    resolution: {integrity: sha512-ZC5Bd0LgJXgwGqUknZY/vkUQ04r8NXnJZ3yYi4vDmSiZmC/pdSN0NbNRPxZpbtO4uAfDUAFffO8IZoM3Gj8IkA==}
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
 
@@ -8350,6 +8341,9 @@ packages:
 
   caniuse-api@3.0.0:
     resolution: {integrity: sha512-bsTwuIg/BZZK/vreVTYYbSWoe2F+71P7K5QGEX+pT250DZbfU1MQ5prOKpPR+LL6uWKK3KMwMCAS74QB3Um1uw==}
+
+  caniuse-api@4.0.0:
+    resolution: {integrity: sha512-B0hQ1OLyJuHTQSOWXvwibWqM6DCoqJdvBA6X1S/53bd4XU7LJ1yurIPlrsouol3mw1jh9pGI4ivubSpmJeIqCA==}
 
   caniuse-lite@1.0.30001787:
     resolution: {integrity: sha512-mNcrMN9KeI68u7muanUpEejSLghOKlVhRqS/Za2IeyGllJ9I9otGpR9g3nsw7n4W378TE/LyIteA0+/FOZm4Kg==}
@@ -8790,6 +8784,7 @@ packages:
   cron-parser@4.9.0:
     resolution: {integrity: sha512-p0SaNjrHOnQeR8/VnfGbmg9te2kfyYSQ7Sc/j/6DtPL3JQvKxmjO9TSjNFpujqV3vEYYBvNNvXSxzyksBWAx1Q==}
     engines: {node: '>=12.0.0'}
+    deprecated: v4 is no longer maintained, upgrade to v5
 
   cross-env@7.0.3:
     resolution: {integrity: sha512-+/HKd6EgcQCJGh2PSjZuUitQBQynKor4wrFbRg4DtAgS1aWO+gU52xpH7M9ScGgXSYmAVS9bIJ8EzuaGw0oNAw==}
@@ -8911,6 +8906,12 @@ packages:
     engines: {node: ^18.12.0 || ^20.9.0 || >=22.0}
     peerDependencies:
       postcss: '>=8.5.10'
+
+  cssnano-utils@6.0.1:
+    resolution: {integrity: sha512-zk65GIxA8tCjqVk7nTm1mE+ZKxtnxAvU5JSUaBLXbAr3ZF7IOvz3fbPOnEDvZKhnS7GOIitXTS5BgehLzNoc8Q==}
+    engines: {node: ^22.11.0 || ^24.11.0 || >=26.0}
+    peerDependencies:
+      postcss: ^8.5.15
 
   cssnano@7.1.4:
     resolution: {integrity: sha512-T9PNS7y+5Nc9Qmu9mRONqfxG1RVY7Vuvky0XN6MZ+9hqplesTEwnj9r0ROtVuSwUVfaDhVlavuzWIVLUgm4hkQ==}
@@ -9444,9 +9445,6 @@ packages:
 
   electron-to-chromium@1.5.135:
     resolution: {integrity: sha512-8gXUdEmvb+WCaYUhA0Svr08uSeRjM2w3x5uHOc1QbaEVzJXB8rgm5eptieXzyKoVEtinLvW6MtTcurA65PeS1Q==}
-
-  electron-to-chromium@1.5.286:
-    resolution: {integrity: sha512-9tfDXhJ4RKFNerfjdCcZfufu49vg620741MNs26a9+bhLThdB+plgMeou98CAaHu/WATj2iHOOHTp1hWtABj2A==}
 
   electron-to-chromium@1.5.334:
     resolution: {integrity: sha512-mgjZAz7Jyx1SRCwEpy9wefDS7GvNPazLthHg8eQMJ76wBdGQQDW33TCrUTvQ4wzpmOrv2zrFoD3oNufMdyMpog==}
@@ -10261,10 +10259,6 @@ packages:
   for-each@0.3.5:
     resolution: {integrity: sha512-dKx12eRCVIzqCxFGplyFKJMPvLEWgmNtUrpTiJIR5u97zEhRG8ySrtboPHZXx7daLxQVrl643cTzbab2tkQjxg==}
     engines: {node: '>= 0.4'}
-
-  foreground-child@3.3.0:
-    resolution: {integrity: sha512-Ld2g8rrAyMYFXBhEqMz8ZAHBi4J4uS1i/CxGMDnjyFWddMXLVcDp051DZfu+t7+ab7Wv6SMqpWmyFIj5UbfFvg==}
-    engines: {node: '>=14'}
 
   foreground-child@3.3.1:
     resolution: {integrity: sha512-gIXjKqtFuWEgzFRJA9WCQeSJLZDjgJUOMCMzxtvFq/37KojM1BFGufqsCy0r4qSQmYLsZYMeyRqzIWOMup03sw==}
@@ -12847,9 +12841,6 @@ packages:
   node-releases@2.0.19:
     resolution: {integrity: sha512-xxOWJsBKtzAq7DY0J+DTzuz58K8e7sJbdgwkbMWQe8UYB6ekmsQ45q0M/tJDsGaZmbC+l7n57UV8Hl5tHxO9uw==}
 
-  node-releases@2.0.27:
-    resolution: {integrity: sha512-nmh3lCkYZ3grZvqcCH+fjmQ7X+H0OeZgP40OierEaAptX4XofMh5kwNbWh7lBduUzCcV/8kZ+NDLCwm2iorIlA==}
-
   node-releases@2.0.37:
     resolution: {integrity: sha512-1h5gKZCF+pO/o3Iqt5Jp7wc9rH3eJJ0+nh/CIoiRwjRxde/hAHyLPXYN4V3CqKAbiZPSeJFSWHmJsbkicta0Eg==}
 
@@ -13434,6 +13425,12 @@ packages:
     peerDependencies:
       postcss: '>=8.5.10'
 
+  postcss-merge-rules@8.0.1:
+    resolution: {integrity: sha512-o3rk4UpnPNg469tklYwbR/NtvKc/f/wJiVDTnNQ/EFPw/LeiPOHUCvV1GIBQIZHGrBAYdPjToK6a+ojYprsrxQ==}
+    engines: {node: ^22.11.0 || ^24.11.0 || >=26.0}
+    peerDependencies:
+      postcss: ^8.5.15
+
   postcss-minify-font-values@7.0.1:
     resolution: {integrity: sha512-2m1uiuJeTplll+tq4ENOQSzB8LRnSUChBv7oSyFLsJRtUgAAJGP6LLz0/8lkinTgxrmJSPOEhgY1bMXOQ4ZXhQ==}
     engines: {node: ^18.12.0 || ^20.9.0 || >=22.0}
@@ -13575,6 +13572,10 @@ packages:
 
   postcss-selector-parser@7.1.1:
     resolution: {integrity: sha512-orRsuYpJVw8LdAwqqLykBj9ecS5/cRHlI5+nvTo8LcCKmzDmqVORXtOIYEEQuL9D4BxtA1lm5isAqzQZCoQ6Eg==}
+    engines: {node: '>=4'}
+
+  postcss-selector-parser@7.1.4:
+    resolution: {integrity: sha512-HeP7D2wyhkR+XaK6v4W8oRF62Dsz4flyuczALJp61GckGm42u1saSSJ/0auvcBqxs3jMRFEcPK34At/0JBKdOg==}
     engines: {node: '>=4'}
 
   postcss-svgo@7.1.1:
@@ -13906,8 +13907,8 @@ packages:
       react: 19.2.3
       react-dom: 19.2.3
 
-  react-native-webgpu@0.5.15:
-    resolution: {integrity: sha512-JT1gmzLhSRzBKVR71WRolji2k+blPk/89woKWEzlmfnbn1MPTX1TJcQ9YuytTsHfH66zDNOxGlL9dGMSfje5rg==}
+  react-native-webgpu@0.6.3:
+    resolution: {integrity: sha512-N8s8JK8e/5duqHp7pXFJL8YcbI/6OrFzqsko7cisAnCIyU1GXlCcgGz5RJlv22ShT4zm3z63svaP42SvWcPaeA==}
     peerDependencies:
       react: 19.2.3
       react-native: '>=0.81.0'
@@ -21896,7 +21897,7 @@ snapshots:
       - '@swc-node/register'
       - '@swc/core'
 
-  '@nxlv/python@22.2.1(@nx/devkit@23.1.0(nx@23.1.0(@swc-node/register@1.11.1(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(@swc/core@1.15.21(@swc/helpers@0.5.21))(@swc/types@0.1.25)(supports-color@10.2.2)(typescript@6.0.3))(@swc/core@1.15.21(@swc/helpers@0.5.21))))':
+  '@nxlv/python@22.2.2(@nx/devkit@23.1.0(nx@23.1.0(@swc-node/register@1.11.1(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(@swc/core@1.15.21(@swc/helpers@0.5.21))(@swc/types@0.1.25)(supports-color@10.2.2)(typescript@6.0.3))(@swc/core@1.15.21(@swc/helpers@0.5.21))))':
     dependencies:
       '@iarna/toml': 2.2.5
       '@nx/devkit': 23.1.0(nx@23.1.0(@swc-node/register@1.11.1(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(@swc/core@1.15.21(@swc/helpers@0.5.21))(@swc/types@0.1.25)(supports-color@10.2.2)(typescript@6.0.3))(@swc/core@1.15.21(@swc/helpers@0.5.21)))
@@ -26753,8 +26754,6 @@ snapshots:
 
   baseline-browser-mapping@2.10.16: {}
 
-  baseline-browser-mapping@2.9.19: {}
-
   basic-auth@2.0.1:
     dependencies:
       safe-buffer: 5.1.2
@@ -26861,14 +26860,6 @@ snapshots:
       node-releases: 2.0.19
       update-browserslist-db: 1.1.1(browserslist@4.24.4)
 
-  browserslist@4.28.1:
-    dependencies:
-      baseline-browser-mapping: 2.9.19
-      caniuse-lite: 1.0.30001787
-      electron-to-chromium: 1.5.286
-      node-releases: 2.0.27
-      update-browserslist-db: 1.2.3(browserslist@4.28.1)
-
   browserslist@4.28.2:
     dependencies:
       baseline-browser-mapping: 2.10.16
@@ -26973,6 +26964,11 @@ snapshots:
       caniuse-lite: 1.0.30001787
       lodash.memoize: 4.1.2
       lodash.uniq: 4.5.0
+
+  caniuse-api@4.0.0:
+    dependencies:
+      browserslist: 4.28.2
+      caniuse-lite: 1.0.30001787
 
   caniuse-lite@1.0.30001787: {}
 
@@ -27579,6 +27575,10 @@ snapshots:
     dependencies:
       postcss: 8.5.15
 
+  cssnano-utils@6.0.1(postcss@8.5.14):
+    dependencies:
+      postcss: 8.5.14
+
   cssnano@7.1.4(postcss@8.5.14):
     dependencies:
       cssnano-preset-default: 7.0.12(postcss@8.5.14)
@@ -28099,8 +28099,6 @@ snapshots:
   ejs@5.0.1: {}
 
   electron-to-chromium@1.5.135: {}
-
-  electron-to-chromium@1.5.286: {}
 
   electron-to-chromium@1.5.334: {}
 
@@ -29312,11 +29310,6 @@ snapshots:
     dependencies:
       is-callable: 1.2.7
 
-  foreground-child@3.3.0:
-    dependencies:
-      cross-spawn: 7.0.6
-      signal-exit: 4.1.0
-
   foreground-child@3.3.1:
     dependencies:
       cross-spawn: 7.0.6
@@ -29510,7 +29503,7 @@ snapshots:
 
   glob@10.5.0:
     dependencies:
-      foreground-child: 3.3.0
+      foreground-child: 3.3.1
       jackspeak: 3.4.3
       minimatch: 9.0.7
       minipass: 7.1.3
@@ -32637,8 +32630,6 @@ snapshots:
 
   node-releases@2.0.19: {}
 
-  node-releases@2.0.27: {}
-
   node-releases@2.0.37: {}
 
   node-schedule@2.1.1:
@@ -33432,7 +33423,7 @@ snapshots:
 
   postcss-merge-rules@7.0.8(postcss@8.5.14):
     dependencies:
-      browserslist: 4.28.1
+      browserslist: 4.28.2
       caniuse-api: 3.0.0
       cssnano-utils: 5.0.1(postcss@8.5.14)
       postcss: 8.5.14
@@ -33440,11 +33431,19 @@ snapshots:
 
   postcss-merge-rules@7.0.8(postcss@8.5.15):
     dependencies:
-      browserslist: 4.28.1
+      browserslist: 4.28.2
       caniuse-api: 3.0.0
       cssnano-utils: 5.0.1(postcss@8.5.15)
       postcss: 8.5.15
       postcss-selector-parser: 7.1.1
+
+  postcss-merge-rules@8.0.1(postcss@8.5.14):
+    dependencies:
+      browserslist: 4.28.2
+      caniuse-api: 4.0.0
+      cssnano-utils: 6.0.1(postcss@8.5.14)
+      postcss: 8.5.14
+      postcss-selector-parser: 7.1.4
 
   postcss-minify-font-values@7.0.1(postcss@8.5.14):
     dependencies:
@@ -33669,6 +33668,11 @@ snapshots:
       util-deprecate: 1.0.2
 
   postcss-selector-parser@7.1.1:
+    dependencies:
+      cssesc: 3.0.0
+      util-deprecate: 1.0.2
+
+  postcss-selector-parser@7.1.4:
     dependencies:
       cssesc: 3.0.0
       util-deprecate: 1.0.2
@@ -34041,7 +34045,7 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  react-native-webgpu@0.5.15(bae47d57ca7b4fc8952b873242683271):
+  react-native-webgpu@0.6.3(bae47d57ca7b4fc8952b873242683271):
     dependencies:
       react: 19.2.3
       react-native: 0.85.3(@babel/core@7.26.10(supports-color@10.2.2))(@react-native-community/cli@15.1.3(supports-color@10.2.2)(typescript@6.0.3))(@react-native/metro-config@0.86.0(@babel/core@7.26.10(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.9)(react@19.2.3)(supports-color@10.2.2)
@@ -36398,12 +36402,6 @@ snapshots:
   update-browserslist-db@1.1.1(browserslist@4.24.4):
     dependencies:
       browserslist: 4.24.4
-      escalade: 3.2.0
-      picocolors: 1.1.1
-
-  update-browserslist-db@1.2.3(browserslist@4.28.1):
-    dependencies:
-      browserslist: 4.28.1
       escalade: 3.2.0
       picocolors: 1.1.1
 
