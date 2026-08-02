@@ -2,6 +2,7 @@
 title: Terms of Service
 description: |
     The Official KBVE Disclaimer
+template: splash
 sidebar:
     label: Terms of Service
     order: 5
@@ -22,6 +23,14 @@ import {
 	TabItem,
 } from '@astrojs/starlight/components';
 
+import LegalLeaf from '@/components/legal/LegalLeaf.astro';
+
+<LegalLeaf
+	slug="tos"
+	title={frontmatter.title}
+	description={frontmatter.description}
+	heading="Terms of Service"
+	updated="2022-12-13">
 
 ## TOS
 
@@ -190,3 +199,5 @@ Contact Us
 If you have any questions about these Terms of Service, You can contact us:
 
 By visiting this page on our website, [Support at KBVE](https://kbve.com/support/)
+
+</LegalLeaf>

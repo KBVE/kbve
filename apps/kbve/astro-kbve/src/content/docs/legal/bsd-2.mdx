@@ -1,6 +1,7 @@
 ---
 title: BSD 2-Clause License
 description: The BSD 2-Clause "Simplified" License as referenced by dependencies within the KBVE monorepo.
+template: splash
 sidebar:
     label: BSD 2-Clause
     order: 13
@@ -12,6 +13,13 @@ tags:
 ---
 
 import { Aside } from '@astrojs/starlight/components';
+
+import LegalLeaf from '@/components/legal/LegalLeaf.astro';
+
+<LegalLeaf
+	slug="bsd-2"
+	title={frontmatter.title}
+	description={frontmatter.description}>
 
 ## BSD 2-Clause "Simplified" License
 
@@ -61,3 +69,5 @@ Common in C/C++ libraries, system-level dependencies, and cryptographic tooling
 (e.g., OpenSSL derivatives, libc wrappers). When the KBVE monorepo depends on a
 BSD-2-Clause library, the binary distribution includes the required copyright
 notice in its attribution.
+
+</LegalLeaf>
