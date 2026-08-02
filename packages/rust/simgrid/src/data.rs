@@ -5,7 +5,7 @@ use serde::Deserialize;
 
 use crate::proto::{KIND_CAT_ENV, KIND_CAT_ITEM, KIND_CAT_NPC, KIND_CAT_PLAYER, KindEntry};
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Resource)]
 pub struct NpcDb {
     #[serde(default)]
     pub npcs: Vec<NpcDef>,

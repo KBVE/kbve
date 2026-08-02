@@ -250,13 +250,26 @@ function PetDetail({
 							fontSize: 11,
 							textShadow: TEXT_SHADOW,
 						}}>
-						{pet.species_ref} &middot; Lv {pet.level} &middot;{' '}
-						{pet.xp} xp
+						{pet.species_ref} &middot; Lv {pet.level}
 					</div>
 					<div style={{ fontSize: 11, color: MUTED }}>
 						HP {pet.hp}/{pet.max_hp}
 					</div>
 					<Bar pct={pct} color={hpColor(pct)} />
+					<div
+						style={{ fontSize: 11, color: MUTED }}
+						data-testid="xp">
+						{pet.xp_to_next > 0
+							? `XP ${pet.xp}/${pet.xp_to_next}`
+							: `XP ${pet.xp} (max level)`}
+					</div>
+					{pet.xp_to_next > 0 && (
+						<Bar
+							pct={(pet.xp / pet.xp_to_next) * 100}
+							color={ACCENT}
+							height={5}
+						/>
+					)}
 				</div>
 			</div>
 

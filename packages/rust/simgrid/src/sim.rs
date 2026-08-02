@@ -224,6 +224,11 @@ pub enum PetRestore {
 #[derive(Resource, Default)]
 pub struct PendingPetRestores(pub Vec<(proto::PlayerSlot, PetRestore)>);
 
+/// Answers to outstanding pet move-learn offers, drained by the game server's learn system
+/// (which owns the offer registry and the `PetMoves` writes). `None` declines the offer.
+#[derive(Resource, Default)]
+pub struct PendingLearnResponses(pub Vec<(proto::PlayerSlot, String, Option<usize>)>);
+
 /// Deploy/reclaim queues drained in `drain_inputs` — grouped into one
 /// `SystemParam` so the input system stays under Bevy's 16-param ceiling.
 #[derive(bevy::ecs::system::SystemParam)]
@@ -240,6 +245,7 @@ pub struct DeployQueues<'w> {
     duel_ops: ResMut<'w, PendingDuelOps>,
     roster_ops: ResMut<'w, PendingRosterOps>,
     pet_restores: ResMut<'w, PendingPetRestores>,
+    learn_responses: ResMut<'w, PendingLearnResponses>,
 }
 
 /// A durably-persisted player-placed env object. Behavior is re-derived from
@@ -1526,6 +1532,7 @@ pub fn build_app(
         .insert_resource(crate::pets::PendingRosterSyncs::default())
         .insert_resource(crate::progress::PendingPetXp::default())
         .insert_resource(PendingPetRestores::default())
+        .insert_resource(PendingLearnResponses::default())
         .insert_resource(PendingDrops::default())
         .insert_resource(Deployables::default())
         .insert_resource(PendingPlacements::default())
@@ -1647,6 +1654,7 @@ fn sync_roster(
     registry: Res<KindRegistry>,
     map: Res<WalkableMap>,
     persist: Res<PlayerPersistSink>,
+    npc_db: Option<Res<crate::data::NpcDb>>,
     q_saved: Query<SavedQuery>,
     item_q: Query<(&ItemRef, &StackCount, &ItemId)>,
     mut pet_bank: PetBank,
@@ -1807,6 +1815,7 @@ fn sync_roster(
                 *slot,
                 &pet_bank.snapshot(&pet_roster),
                 pet_roster.active,
+                npc_db.as_deref(),
             );
         }
         let entity = commands
@@ -2272,6 +2281,12 @@ fn drain_inputs(
                     .pet_restores
                     .0
                     .push((slot, PetRestore::Healer { npc })),
+                Input::RespondLearnMove { pet_id, slot: at } => {
+                    deploy
+                        .learn_responses
+                        .0
+                        .push((slot, pet_id, at.map(|a| a as usize)))
+                }
                 other => pending.entry(slot.0).or_default().push(other),
             }
         }
@@ -2496,7 +2511,8 @@ fn drain_inputs(
                 | Input::ReleasePet { .. }
                 | Input::RenamePet { .. }
                 | Input::UsePetElixir { .. }
-                | Input::HealPets { .. } => {}
+                | Input::HealPets { .. }
+                | Input::RespondLearnMove { .. } => {}
             }
         }
     }
