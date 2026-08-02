@@ -1,6 +1,7 @@
 ---
 title: GNU Lesser General Public License v3.0
 description: The LGPL-3.0 License as referenced by dependencies within the KBVE monorepo.
+template: splash
 sidebar:
     label: LGPL-3.0
     order: 17
@@ -12,6 +13,13 @@ tags:
 ---
 
 import { Aside } from '@astrojs/starlight/components';
+
+import LegalLeaf from '@/components/legal/LegalLeaf.astro';
+
+<LegalLeaf
+	slug="lgpl-3"
+	title={frontmatter.title}
+	description={frontmatter.description}>
 
 ## GNU Lesser General Public License v3.0
 
@@ -45,3 +53,5 @@ codecs), GUI toolkits, and system libraries. When the KBVE monorepo links
 against an LGPL-3.0 library, the linking exception allows the surrounding
 proprietary application to remain under the [EULA](/legal/eula/), while the
 LGPL library itself retains its copyleft obligations.
+
+</LegalLeaf>

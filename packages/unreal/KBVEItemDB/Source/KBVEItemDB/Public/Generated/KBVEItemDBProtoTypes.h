@@ -315,12 +315,6 @@ struct KBVEITEMDB_API FKBVEGenFoodInfo
 	int32 Doses = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
-	int32 CookingLevel = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
-	float CookingXp = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
 	int32 BurnLevel = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
@@ -412,6 +406,22 @@ struct KBVEITEMDB_API FKBVEGenStackingInfo
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
 	FString PoolGroup;
+
+};
+
+USTRUCT(BlueprintType)
+struct KBVEITEMDB_API FKBVEGenGridFootprint
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
+	int32 Width = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
+	int32 Height = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
+	bool NoRotate = false;
 
 };
 
@@ -926,9 +936,6 @@ struct KBVEITEMDB_API FKBVEGenItem
 	FKBVEGenFoodInfo Food;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
-	FKBVEGenSkillingInfo Skilling;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
 	TArray<FKBVEGenCraftingRecipe> Recipes;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
@@ -957,9 +964,6 @@ struct KBVEITEMDB_API FKBVEGenItem
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
 	int32 MaxDurability = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
-	FKBVEGenCompressInfo Compress;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
 	FKBVEGenStackingInfo Stacking;
@@ -1026,6 +1030,9 @@ struct KBVEITEMDB_API FKBVEGenItem
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
 	FString Bonuses;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
+	FKBVEGenGridFootprint Grid;
 
 };
 

@@ -1,0 +1,105 @@
+---
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+import { LEGAL_META, legalKindLabel } from './legalMeta';
+import { LEGAL_NAV } from './legalNav';
+import { isGroup } from '../dashboard/dashboardNav';
+
+interface Props {
+	/** Slug under /legal/, e.g. "mit" or "privacy". */
+	slug: string;
+	/** Page title; pass `frontmatter.title`. */
+	title: string;
+	/** Hero lede; pass `frontmatter.description`. */
+	description?: string;
+	/** Heading over the document body. */
+	heading?: string;
+	/** Last review date, when the document tracks one. */
+	updated?: string;
+}
+
+const {
+	slug,
+	title,
+	description,
+	heading = 'Full text',
+	updated,
+} = Astro.props;
+
+const meta = LEGAL_META[slug];
+if (!meta) {
+	throw new Error(
+		`LegalLeaf: no LEGAL_META entry for "${slug}". Add it to legalMeta.ts.`,
+	);
+}
+
+const kindLabel = legalKindLabel(meta.kind);
+const isPolicy = meta.kind === 'policy';
+
+const lede = description
+	? String(description).trim().replace(/\s+/g, ' ')
+	: undefined;
+
+const stats = [
+	{ label: 'Identifier', value: meta.spdx, icon: 'license' },
+	{ label: 'Type', value: kindLabel, icon: isPolicy ? 'shield' : 'code' },
+	{ label: 'Requires', value: meta.obligation, icon: 'check' },
+];
+if (updated) {
+	stats.push({ label: 'Updated', value: updated, icon: 'clock' });
+}
+
+/** Sibling documents in the same rail group, minus this page. */
+const here = `/legal/${slug}/`;
+const group = LEGAL_NAV.filter(isGroup).find((g) =>
+	g.items.some((i) => i.href === here),
+);
+const siblings = (group?.items ?? [])
+	.filter((i) => i.href !== here)
+	.slice(0, 3)
+	.map((i) => ({
+		href: i.href,
+		title: i.label,
+		copy: `Also filed under ${group?.label.toLowerCase()}.`,
+		icon: isPolicy ? 'shield' : 'license',
+	}));
+
+/**
+ * BentoDoc renders `accent` as the tinted tail of the h1, not as a separate
+ * label, so split the title rather than passing the SPDX id twice.
+ * "MIT License" -> "MIT" + "License"; a one-word title is all accent.
+ */
+const cut = title.trim().lastIndexOf(' ');
+const titleLead = cut > 0 ? title.trim().slice(0, cut) : '';
+const titleAccent = cut > 0 ? title.trim().slice(cut + 1) : title.trim();
+
+const hero = {
+	badge: `${kindLabel} · ${meta.spdx}`,
+	title: titleLead ? `${titleLead} ` : '',
+	accent: titleAccent,
+	lede,
+	stats,
+	ctas: [
+		{ label: '← All legal documents', href: '/legal/' },
+		...(isPolicy
+			? []
+			: [{ label: 'Licenses index', href: '/legal/#licenses' }]),
+	],
+	related: [
+		...siblings,
+		{
+			href: '/legal/',
+			title: 'Legal index',
+			copy: 'Every policy and license that applies to KBVE software and assets.',
+			icon: 'book',
+		},
+	],
+	theme: { accent: meta.accent, accent2: meta.accent },
+};
+---
+
+<BentoDoc data={hero} class="legal-leaf">
+	<BentoProse id="document" eyebrow={kindLabel} heading={heading}>
+		<slot />
+	</BentoProse>
+</BentoDoc>

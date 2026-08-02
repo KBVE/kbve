@@ -1,4 +1,5 @@
-import { despawnWhere, Prop } from '../mecs/props';
+import { despawnWhere, LightEmitter, Prop } from '../mecs/props';
+import { staticEmitters } from './staticEmitters';
 import type { DungeonWorld } from '../dungeon/ecs';
 import { makeLocalGrid } from '../dungeon/generate';
 import { exposedFaces, isBay } from '../geometry/faces';
@@ -76,51 +77,30 @@ export function spawnRoomProps(dw: DungeonWorld, roomEid: number): void {
 	if (!desc) return;
 	const world = dw.world;
 
-	for (const s of desc.torches) {
-		const wc = desc.originCol + s.col;
-		const wr = desc.originRow + s.row;
-		const { pos, dir } = torchTransform(wc, wr, s.di);
-		if (isSuppressed(pos)) continue;
-		spawnTorch(world, roomEid, pos, dir, torchId(wc, wr, s.di));
-	}
-
-	for (const c of desc.columns) {
-		if (!c.torch) continue;
-		const wc = desc.originCol + c.col;
-		const wr = desc.originRow + c.row;
-		const di = Math.floor(hash01(wc, wr, 71) * 4) % 4;
-		const [nx, nz] = COL_TORCH_DIRS[di];
-		const r = columnShaftRadius(c.style) + 0.05;
+	// Same list the vertex bake integrates (staticEmitters), so a torch can
+	// never be lit one way and baked another.
+	const ox = desc.originCol * TILE;
+	const oz = desc.originRow * TILE;
+	for (const e of staticEmitters(desc)) {
 		const pos: [number, number, number] = [
-			(wc + 0.5) * TILE + nx * r,
-			COL_TORCH_H,
-			(wr + 0.5) * TILE + nz * r,
+			e.pos[0] + ox,
+			e.pos[1],
+			e.pos[2] + oz,
 		];
 		if (isSuppressed(pos)) continue;
-		spawnTorch(
-			world,
-			roomEid,
-			pos,
-			headDir(nx, nz),
-			torchId(wc, wr, di + 40),
-		);
-	}
-
-	const local = makeLocalGrid(desc);
-	for (const f of exposedFaces(local)) {
-		if (!isBay(local, f, desc.variant)) continue;
-		const wc = desc.originCol + f.col;
-		const wr = desc.originRow + f.row;
-		const { pos, dir } = nicheTransform(wc, wr, f.di, NICHE_Y);
-		spawnLight(
-			world,
-			roomEid,
-			PROP_CANDLE,
-			pos,
-			dir,
-			LIGHT_PRESETS.candle,
-			torchId(wc, wr, f.di),
-		);
+		const eid =
+			e.kind === 'torch'
+				? spawnTorch(world, roomEid, pos, e.dir, e.id)
+				: spawnLight(
+						world,
+						roomEid,
+						PROP_CANDLE,
+						pos,
+						e.dir,
+						e.preset,
+						e.id,
+					);
+		LightEmitter.baked[eid] = 1;
 	}
 
 	scatterFireflies(world, roomEid, desc);

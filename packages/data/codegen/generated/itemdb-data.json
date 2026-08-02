@@ -846,6 +846,10 @@
           }
         }
       },
+      "grid": {
+        "width": 2,
+        "height": 2
+      },
       "hasImg": true
     },
     {
@@ -974,6 +978,10 @@
             "weight": 1
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 2
       },
       "hasImg": true
     },
@@ -1187,6 +1195,10 @@
             "weight": 2
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 2
       },
       "hasImg": true
     },
@@ -1446,6 +1458,10 @@
             "weight": 2
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 2
       },
       "hasImg": true
     },
@@ -2457,6 +2473,10 @@
           }
         }
       },
+      "grid": {
+        "width": 2,
+        "height": 2
+      },
       "hasImg": true
     },
     {
@@ -2497,6 +2517,10 @@
             "weight": 1
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 1
       },
       "hasImg": true
     },
@@ -2540,6 +2564,10 @@
           }
         }
       },
+      "grid": {
+        "width": 2,
+        "height": 2
+      },
       "hasImg": true
     },
     {
@@ -2580,6 +2608,10 @@
             "weight": 3
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 1
       },
       "hasImg": true
     },
@@ -2823,6 +2855,10 @@
             "weight": 1
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 1
       },
       "hasImg": true
     },
@@ -3610,6 +3646,10 @@
           }
         }
       },
+      "grid": {
+        "width": 2,
+        "height": 1
+      },
       "hasImg": true
     },
     {
@@ -4030,6 +4070,10 @@
           }
         }
       },
+      "grid": {
+        "width": 2,
+        "height": 1
+      },
       "hasImg": true
     },
     {
@@ -4090,6 +4134,10 @@
             "weight": 1
           }
         }
+      },
+      "grid": {
+        "width": 1,
+        "height": 2
       },
       "hasImg": true
     },
@@ -4233,9 +4281,19 @@
       "sellPrice": 20,
       "emoji": "⛏️",
       "weight": 3,
+      "action": "equip",
+      "equipment": {
+        "slot": "EQUIP_SLOT_MAIN_HAND"
+      },
       "tags": [
-        "isometric"
-      ]
+        "isometric",
+        "herbmail"
+      ],
+      "grid": {
+        "width": 2,
+        "height": 3
+      },
+      "hasImg": true
     },
     {
       "template": "splash",
@@ -4480,6 +4538,10 @@
             "weight": 2
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 2
       },
       "hasImg": true
     },
@@ -5427,6 +5489,10 @@
           }
         }
       },
+      "grid": {
+        "width": 1,
+        "height": 2
+      },
       "hasImg": true
     },
     {
@@ -5948,6 +6014,10 @@
             "weight": 2
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 2
       },
       "hasImg": true
     },
@@ -6477,6 +6547,10 @@
           }
         }
       },
+      "grid": {
+        "width": 1,
+        "height": 2
+      },
       "hasImg": true
     },
     {
@@ -6518,6 +6592,10 @@
           }
         }
       },
+      "grid": {
+        "width": 1,
+        "height": 2
+      },
       "hasImg": true
     },
     {
@@ -6557,6 +6635,10 @@
           }
         },
         "movementPenalty": 1
+      },
+      "grid": {
+        "width": 2,
+        "height": 2
       },
       "hasImg": true
     },
@@ -6644,6 +6726,10 @@
           }
         }
       },
+      "grid": {
+        "width": 2,
+        "height": 2
+      },
       "hasImg": true
     },
     {
@@ -6685,6 +6771,10 @@
           }
         }
       },
+      "grid": {
+        "width": 2,
+        "height": 1
+      },
       "hasImg": true
     },
     {
@@ -6725,6 +6815,10 @@
             "weight": 4
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 2
       },
       "hasImg": true
     },
@@ -6768,6 +6862,10 @@
             "weight": 4
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 2
       },
       "hasImg": true
     },
@@ -6851,6 +6949,10 @@
           }
         }
       },
+      "grid": {
+        "width": 2,
+        "height": 1
+      },
       "hasImg": true
     },
     {
@@ -6892,6 +6994,10 @@
           }
         }
       },
+      "grid": {
+        "width": 2,
+        "height": 1
+      },
       "hasImg": true
     },
     {
@@ -6930,6 +7036,10 @@
             "weight": 3
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 1
       },
       "hasImg": true
     },

@@ -317,6 +317,15 @@ message StackingInfo {
   optional string pool_group = 3;       // Logical group (e.g. "food") — any item with the same pool_group substitutes
 }
 
+// Cells an item occupies in a spatial ("tetris") grid inventory, measured
+// upright before any rotation. Distinct from DeployableInfo.size, which is the
+// item's footprint once placed in the world. Absent = a single 1x1 cell.
+message GridFootprint {
+  optional int32 width = 1;             // Cells wide at rotation 0
+  optional int32 height = 2;            // Cells tall at rotation 0
+  optional bool no_rotate = 3;          // Cannot be turned 90° to find a fit
+}
+
 // Weapon properties — for items with ITEM_TYPE_WEAPON or ITEM_TYPE_COMBAT flag.
 // Covers both melee and ranged; 0 range = melee. Ammo linkage is bow→arrow
 // via ammo_ref (primary) and compatible_ammo (alternates).
@@ -632,6 +641,9 @@ message Item {
   // like cookingSpeed/fireResist plus boolean flags like quantumFlux), so it is
   // an arbitrary JSON object rather than the fixed-field ItemBonuses message.
   optional google.protobuf.Struct bonuses = 67;
+
+  // Spatial-inventory footprint for grid ("tetris") inventories
+  optional GridFootprint grid = 68;
 }
 
 // =============================================================================

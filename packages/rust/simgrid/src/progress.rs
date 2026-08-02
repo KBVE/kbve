@@ -122,12 +122,41 @@ pub struct GrowthResult {
     pub gained: u32,
     pub levels: u32,
     pub max_hp_gain: i32,
+    /// Level before the award. With `levels`, this bounds the half-open range
+    /// `(from_level, from_level + levels]` — the levels just crossed, which is what
+    /// [`moves_learned_between`] needs to find newly available moves.
+    pub from_level: u32,
 }
 
 impl GrowthResult {
     pub fn leveled(&self) -> bool {
         self.levels > 0
     }
+
+    /// The level reached.
+    pub fn to_level(&self) -> u32 {
+        self.from_level + self.levels
+    }
+}
+
+/// Movepool moves that become available by crossing from `from_level` up to `to_level`,
+/// in learn order, deduplicated.
+///
+/// The range is half-open on the low side: a pet already at level 8 has whatever level 8
+/// grants, so growing 8 → 12 offers only what 9..=12 adds. Duplicates are dropped because a
+/// species may list the same ability at several levels, and re-offering a move the pet is
+/// about to learn twice in one award would prompt twice for the same thing.
+pub fn moves_learned_between(pet: &NpcPet, from_level: u32, to_level: u32) -> Vec<&str> {
+    let mut out: Vec<&str> = Vec::new();
+    for entry in &pet.movepool {
+        if entry.ability_id.is_empty() || entry.level <= from_level || entry.level > to_level {
+            continue;
+        }
+        if !out.contains(&entry.ability_id.as_str()) {
+            out.push(entry.ability_id.as_str());
+        }
+    }
+    out
 }
 
 /// Add `gained` xp, rolling as many levels as it covers, and rescale the stats.
@@ -148,6 +177,7 @@ pub fn grow_pet(
     let rate = GrowthRate::from_proto(&pet.growth_rate);
     let mut result = GrowthResult {
         gained,
+        from_level: progress.level,
         ..Default::default()
     };
     if gained == 0 || progress.level >= PET_LEVEL_MAX {
@@ -260,6 +290,62 @@ mod tests {
         rescale(&mut v, &base(), level);
         v.hp = v.max_hp;
         v
+    }
+
+    fn movepool(entries: &[(u32, &str)]) -> NpcPet {
+        NpcPet {
+            movepool: entries
+                .iter()
+                .map(|(level, id)| crate::data::NpcMovepoolEntry {
+                    level: *level,
+                    ability_id: id.to_string(),
+                })
+                .collect(),
+            ..Default::default()
+        }
+    }
+
+    #[test]
+    fn learned_moves_exclude_the_level_already_held() {
+        // A pet at 8 already has whatever 8 grants; growing 8 → 12 must not re-offer it.
+        let pet = movepool(&[(1, "tackle"), (8, "bite"), (12, "plate")]);
+        assert_eq!(moves_learned_between(&pet, 8, 12), vec!["plate"]);
+    }
+
+    #[test]
+    fn learned_moves_include_every_level_crossed_in_order() {
+        let pet = movepool(&[(1, "tackle"), (8, "bite"), (12, "plate"), (16, "clock")]);
+        assert_eq!(
+            moves_learned_between(&pet, 5, 16),
+            vec!["bite", "plate", "clock"]
+        );
+    }
+
+    #[test]
+    fn a_move_listed_twice_is_offered_once() {
+        let pet = movepool(&[(9, "bite"), (11, "bite")]);
+        assert_eq!(moves_learned_between(&pet, 8, 12), vec!["bite"]);
+    }
+
+    #[test]
+    fn no_levels_crossed_learns_nothing() {
+        let pet = movepool(&[(8, "bite")]);
+        assert!(moves_learned_between(&pet, 8, 8).is_empty());
+    }
+
+    #[test]
+    fn growth_result_bounds_the_levels_it_crossed() {
+        let pet = NpcPet {
+            growth_rate: "GROWTH_RATE_MEDIUM_FAST".into(),
+            ..Default::default()
+        };
+        let mut progress = PetProgress { level: 5, xp: 0 };
+        let mut vitals = vitals_at(5);
+        let lump: u32 = (5..8).map(|l| GrowthRate::MediumFast.xp_to_next(l)).sum();
+        let result = grow_pet(&mut progress, &mut vitals, &pet, &base(), lump);
+        assert_eq!(result.from_level, 5);
+        assert_eq!(result.to_level(), 8);
+        assert_eq!(result.to_level(), progress.level);
     }
 
     #[test]

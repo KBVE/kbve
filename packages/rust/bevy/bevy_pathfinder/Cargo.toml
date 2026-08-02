@@ -29,9 +29,7 @@ bevy = ["dep:bevy"]
 tile-graph = []
 
 [dependencies]
-serde = { version = "1", features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }
 
 # Bevy — only pulled in under the `bevy` feature.
-bevy = { version = "0.19", default-features = false, features = [
-    "bevy_state",
-], optional = true }
+bevy = { workspace = true, optional = true, features = ["bevy_state"] }

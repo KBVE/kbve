@@ -1,0 +1,23 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "0.1.0",
+	"FriendlyName": "KBVE ProfessionDB",
+	"Description": "Game-agnostic profession database loader for KBVE games. Loads the shared professiondb artifact (Content/Data/professiondb-data.json) into runtime profession/action defs, flattened to an action-ref lookup. Synced from astro-kbve MDX (professiondb).",
+	"Category": "KBVE",
+	"CreatedBy": "KBVE",
+	"CreatedByURL": "https://kbve.com",
+	"SupportURL": "https://github.com/KBVE/kbve/issues",
+	"CanContainContent": false,
+	"IsBetaVersion": true,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"EnabledByDefault": false,
+	"Modules": [ { "Name": "KBVEProfessionDB", "Type": "Runtime", "LoadingPhase": "Default" } ],
+	"Plugins": [
+		{
+			"Name": "KBVEYYJson",
+			"Enabled": true
+		}
+	]
+}

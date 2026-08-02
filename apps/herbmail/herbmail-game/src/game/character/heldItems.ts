@@ -2,6 +2,7 @@ import { modelUrl } from './modelUrl';
 
 export const SWORD_URL = modelUrl('/models/sword.glb');
 export const TORCH_URL = modelUrl('/models/torch.glb');
+export const PICKAXE_URL = modelUrl('/models/pickaxe.glb');
 
 export const VERTICAL_GRIP = {
 	pos: [-0.06, 0, 0.02] as [number, number, number],
@@ -23,6 +24,9 @@ export interface HeldItem {
 	gripFrac: number;
 	scale: number;
 
+	// Replaces the hand's shared VERTICAL_GRIP rotation outright when set.
+	rot?: [number, number, number];
+
 	flame?: boolean;
 	light?: { intensity: number; color: [number, number, number] };
 }
@@ -34,6 +38,16 @@ export const HELD_ITEMS: Record<string, HeldItem> = {
 		axis: [0, -1, 0],
 		gripFrac: 0.12,
 		scale: 1,
+	},
+	// Authored head-up (head at the +Y end), the opposite of the sword — so it takes
+	// no flip, otherwise gripFrac measures up from the head and the hand grabs it.
+	pickaxe: {
+		modelUrl: PICKAXE_URL,
+		pivotName: 'weaponPivot',
+		axis: [0, 1, 0],
+		gripFrac: 0.12,
+		scale: 1,
+		rot: [-1.5, -1.6, 0.3],
 	},
 	torch: {
 		modelUrl: TORCH_URL,

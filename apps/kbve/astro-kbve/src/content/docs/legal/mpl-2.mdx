@@ -1,6 +1,7 @@
 ---
 title: Mozilla Public License 2.0
 description: The MPL-2.0 License as referenced by dependencies within the KBVE monorepo.
+template: splash
 sidebar:
     label: MPL-2.0
     order: 16
@@ -12,6 +13,13 @@ tags:
 ---
 
 import { Aside } from '@astrojs/starlight/components';
+
+import LegalLeaf from '@/components/legal/LegalLeaf.astro';
+
+<LegalLeaf
+	slug="mpl-2"
+	title={frontmatter.title}
+	description={frontmatter.description}>
 
 ## Mozilla Public License Version 2.0
 
@@ -43,3 +51,5 @@ configuration parsers). When the KBVE monorepo depends on an MPL-2.0 library,
 the source of any modified MPL-2.0 files is made available as required.
 Unmodified MPL-2.0 dependencies used as-is satisfy the license by pointing to
 the upstream source repository.
+
+</LegalLeaf>

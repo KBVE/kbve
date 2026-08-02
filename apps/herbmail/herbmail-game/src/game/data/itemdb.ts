@@ -51,6 +51,12 @@ export function itemLabel(ref: string): string {
 	return ITEMS_BY_REF.get(ref)?.name ?? ref;
 }
 
+/** Grid-inventory footprint in cells. Unset in itemdb means a single cell. */
+export function itemFootprint(ref: string): { w: number; h: number } {
+	const g = ITEMS_BY_REF.get(ref)?.grid;
+	return { w: g?.width ?? 1, h: g?.height ?? 1 };
+}
+
 /** Numeric stat off an item's equipment bonuses; `weight` lives in extra. */
 export function itemStat(ref: string, key: string): number {
 	const b = ITEMS_BY_REF.get(ref)?.equipment?.bonuses as

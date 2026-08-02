@@ -1,6 +1,7 @@
 ---
 title: Creative Commons Attribution 4.0
 description: The CC BY 4.0 License as referenced for assets and documentation within the KBVE monorepo.
+template: splash
 sidebar:
     label: CC BY 4.0
     order: 18
@@ -12,6 +13,13 @@ tags:
 ---
 
 import { Aside } from '@astrojs/starlight/components';
+
+import LegalLeaf from '@/components/legal/LegalLeaf.astro';
+
+<LegalLeaf
+	slug="cc-by-4"
+	title={frontmatter.title}
+	description={frontmatter.description}>
 
 ## Creative Commons Attribution 4.0 International (CC BY 4.0)
 
@@ -46,3 +54,5 @@ CC BY 4.0 is used for:
 Each asset specifies its license in an accompanying `LICENSE` file or in the
 asset's metadata. Assets without a specified license fall under the
 [EULA](/legal/eula/) by default.
+
+</LegalLeaf>

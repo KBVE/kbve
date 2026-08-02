@@ -64,7 +64,7 @@ fn join(user: &str) -> Message {
         jwt: String::new(),
         kbve_username: user.to_string(),
     });
-    Message::Binary(proto::encode(&jm).expect("encode join"))
+    Message::Binary(proto::encode(&jm).expect("encode join").into())
 }
 
 /// Next decoded ServerEvent within a timeout, or None.
@@ -76,7 +76,8 @@ async fn next_event(ws: &mut Ws) -> Option<ServerEvent> {
             .ok()??
             .ok()?;
         match msg {
-            Message::Binary(mut b) => {
+            Message::Binary(b) => {
+                let mut b = b.to_vec();
                 if let Ok(evt) = proto::decode::<ServerEvent>(&mut b) {
                     return Some(evt);
                 }
@@ -113,7 +114,7 @@ async fn send_frame(ws: &mut Ws, inputs: Vec<Input>) {
         client_tick: 1,
         inputs,
     });
-    ws.send(Message::Binary(proto::encode(&frame).unwrap()))
+    ws.send(Message::Binary(proto::encode(&frame).unwrap().into()))
         .await
         .unwrap();
 }
@@ -178,7 +179,7 @@ async fn move_input_moves_player() {
                 tick: i,
             }],
         });
-        ws.send(Message::Binary(proto::encode(&frame).unwrap()))
+        ws.send(Message::Binary(proto::encode(&frame).unwrap().into()))
             .await
             .unwrap();
         tokio::time::sleep(Duration::from_millis(120)).await;

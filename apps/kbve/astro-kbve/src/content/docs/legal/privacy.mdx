@@ -3,6 +3,7 @@ title: Privacy Policy
 description: |
     Explore the legal documentation for KBVE, including our Privacy Policy, Cookie Policy, End-User License Agreement (EULA), and Terms of Service.
     Ensure you understand your rights and responsibilities as a user of our website and applications
+template: splash
 sidebar:
     label: Privacy Policy
     order: 5
@@ -22,6 +23,15 @@ import {
 	Tabs,
 	TabItem,
 } from '@astrojs/starlight/components';
+
+import LegalLeaf from '@/components/legal/LegalLeaf.astro';
+
+<LegalLeaf
+	slug="privacy"
+	title={frontmatter.title}
+	description={frontmatter.description}
+	heading="Privacy notice"
+	updated="2022-12-14">
 
 ## PRIVACY NOTICE
 
@@ -426,3 +436,4 @@ If you have questions or comments about this notice, you may reach out to us via
 
 Based on the applicable laws of your country, you may have the right to request access to the personal information we collect from you, change that information, or delete it. To request to review, update, or delete your personal information, please visit: [KBVE Profile](https://kbve.com/profile) or contact [support](#contact)
 
+</LegalLeaf>

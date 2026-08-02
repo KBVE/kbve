@@ -1,5 +1,15 @@
 # Launcher Icons
 
+> **TODO — these are placeholders, not final art.**
+>
+> The icons currently committed here are a deliberately generic flat-slate
+> square with no logo, wordmark or game artwork. They exist only so
+> `tauri::generate_context!` resolves and the crate can be built and tested.
+>
+> **Replace them before any public or release build.** Once real source art
+> exists, regenerate the whole set with the Tauri CLI (see below) and delete
+> this notice.
+
 Place launcher icons in this directory:
 
 - `32x32.png` - 32x32 pixel icon

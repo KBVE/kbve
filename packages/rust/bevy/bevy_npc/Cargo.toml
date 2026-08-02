@@ -20,15 +20,13 @@ default = []
 creature = []
 
 [dependencies]
-bevy = { version = "0.19", default-features = false, features = [
-    "bevy_state",
-] }
-prost = { version = "0.14", features = ["derive"] }
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+bevy = { workspace = true, features = ["bevy_state"] }
+prost = { workspace = true, features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 
 [build-dependencies]
-prost-build = "0.14"
+prost-build = { workspace = true }
 
 [package.metadata.docs.rs]
 all-features = true

@@ -26,12 +26,15 @@ interface Props {
 	title?: string;
 	subtitle?: string;
 	limit?: number;
+	/** Render the built-in heading block; off when an outer shell supplies it. */
+	header?: boolean;
 }
 
 const {
 	title = 'Repositories',
 	subtitle = 'Active open-source projects across the KBVE org',
 	limit = 60,
+	header = true,
 } = Astro.props;
 
 const GITHUB_ORG = 'KBVE';
@@ -152,11 +155,16 @@ function shortDate(iso: string): string {
 
 <section
 	class="github-repo-catalog"
-	aria-labelledby="github-repo-catalog-title">
-	<header class="github-repo-catalog__header">
-		<h2 id="github-repo-catalog-title">{title}</h2>
-		<p>{subtitle}</p>
-	</header>
+	aria-labelledby={header ? 'github-repo-catalog-title' : undefined}
+	aria-label={header ? undefined : title}>
+	{
+		header && (
+			<header class="github-repo-catalog__header">
+				<h2 id="github-repo-catalog-title">{title}</h2>
+				<p>{subtitle}</p>
+			</header>
+		)
+	}
 
 	{
 		error && (

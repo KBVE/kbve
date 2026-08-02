@@ -133,7 +133,7 @@ jobs:
                   node-version: ${{ env.NODE_VERSION }}
 
             - name: Setup pnpm ${{ env.PNPM_VERSION }}
-              uses: pnpm/action-setup@v5
+              uses: pnpm/action-setup@v6
               with:
                   version: ${{ env.PNPM_VERSION }}
                   run_install: false

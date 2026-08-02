@@ -11,3 +11,4 @@ from . import deps  # noqa: F401
 from . import activity  # noqa: F401
 from . import releases  # noqa: F401
 from . import graphify  # noqa: F401
+from . import professiondb  # noqa: F401

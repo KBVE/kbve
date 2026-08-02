@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { ClientMessage } from './protocol';
+import { PET_LEARN_EXPIRED, PET_LEARN_OFFER } from './protocol';
 import {
 	decodeCombat,
 	decodeDuelPrompt,
@@ -11,6 +12,7 @@ import {
 	decodePetBattleReplay,
 	decodePetBattleState,
 	decodePetNotice,
+	decodePetLearnOffer,
 	decodePetRosterSync,
 	decodePickup,
 	decodeBlackjack,
@@ -311,9 +313,9 @@ describe('postcard Ephemeral payload decoder', () => {
 	// with a move and one without, and a Some(1) lead.
 	it('decodes the Rust PetRosterSync fixture', () => {
 		const payload =
-			'020330314a096d656368616d757474035265780578' +
+			'020330314a096d656368616d7574740352657805785b' +
 			'3c5018141c161a0105737061726b0f0f0330314b09' +
-			'6d656368616d75747404426f6c74070058581e18201a22000101';
+			'6d656368616d75747404426f6c740700a90158581e18201a22000101';
 		expect(decodePetRosterSync(Array.from(fromHex(payload)))).toEqual({
 			pets: [
 				{
@@ -322,6 +324,7 @@ describe('postcard Ephemeral payload decoder', () => {
 					nickname: 'Rex',
 					level: 5,
 					xp: 120,
+					xp_to_next: 91,
 					hp: 30,
 					max_hp: 40,
 					attack: 12,
@@ -337,6 +340,7 @@ describe('postcard Ephemeral payload decoder', () => {
 					nickname: 'Bolt',
 					level: 7,
 					xp: 0,
+					xp_to_next: 169,
 					hp: 44,
 					max_hp: 44,
 					attack: 15,
@@ -358,6 +362,55 @@ describe('postcard Ephemeral payload decoder', () => {
 			pets: [],
 			active: null,
 		});
+	});
+
+	// proto.rs pet_learn_offer_fixture_is_stable — a live offer, with two known moves so the
+	// string sequence is exercised (the part a hand-written decoder gets wrong).
+	it('decodes the Rust PetLearnOffer fixture', () => {
+		const payload =
+			'000330314a03526578096f766572636c6f636b094f7665' +
+			'72636c6f636b02067461636b6c650a737061726b2d6261726bb0ea01';
+		expect(decodePetLearnOffer(Array.from(fromHex(payload)))).toEqual({
+			status: PET_LEARN_OFFER,
+			pet_id: '01J',
+			nickname: 'Rex',
+			ability_id: 'overclock',
+			ability_name: 'Overclock',
+			known: ['tackle', 'spark-bark'],
+			deadline_ms: 30_000,
+		});
+	});
+
+	// proto.rs pet_learn_terminal_fixture_is_stable — the terminal form: empty `known`, no
+	// countdown. A client that treated this as a live offer would show an unanswerable prompt.
+	it('decodes a terminal PetLearnOffer with no known moves', () => {
+		const payload =
+			'030330314a03526578096f766572636c6f636b094f766572636c6f636b0000';
+		expect(decodePetLearnOffer(Array.from(fromHex(payload)))).toEqual({
+			status: PET_LEARN_EXPIRED,
+			pet_id: '01J',
+			nickname: 'Rex',
+			ability_id: 'overclock',
+			ability_name: 'Overclock',
+			known: [],
+			deadline_ms: 0,
+		});
+	});
+
+	// proto.rs respond_learn_move_roundtrips — variant 41, then the Option<u32> slot. The
+	// decline form omits the value entirely; encoding a 0 there would destroy move slot 0.
+	it('encodes RespondLearnMove for a replacement and a decline', () => {
+		const frame = (slot: number | null) =>
+			hex(
+				encodeClientMessage({
+					Frame: {
+						client_tick: 1,
+						inputs: [{ RespondLearnMove: { pet_id: '01J', slot } }],
+					},
+				}),
+			);
+		expect(frame(2)).toBe('0b010101290330314a010200');
+		expect(frame(null)).toBe('09010101290330314a0100');
 	});
 
 	// proto.rs pet_notice_fixture_is_stable — ok flag then the message.

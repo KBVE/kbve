@@ -135,6 +135,23 @@ pub(crate) fn level_scale(base: i32, level: u32) -> i32 {
     base + base * (level as i32 - 1) / 8
 }
 
+/// How many moves a pet can know at once. A pet at the cap must forget one to learn another.
+pub const PET_MOVE_SLOTS: usize = 4;
+
+/// Build a move slot for `ability_id` at full PP, reading `max_pp` off the species' ability
+/// list. Returns `None` when the species does not define that ability — a movepool entry can
+/// name an ability that was renamed or removed, and silently learning a 0-PP move would give
+/// the pet a slot it can never use.
+pub fn move_slot_from_species(species: &NpcDef, ability_id: &str) -> Option<PetMoveSlot> {
+    let ability = species.abilities.iter().find(|a| a.id == ability_id)?;
+    let max_pp = ability.max_pp.max(ability.pp).max(0) as u16;
+    Some(PetMoveSlot {
+        ability_id: ability_id.to_string(),
+        pp: max_pp,
+        max_pp,
+    })
+}
+
 /// Mint a fresh pet instance from a catchable species at `level`. Returns `None` when
 /// the species isn't a catchable pet. Vitals come from the base stats scaled by level;
 /// moves are the most-recent (up to four) moves learned at or below `level`, each at
@@ -165,21 +182,9 @@ pub fn mint_pet_from_species(species: &NpcDef, level: u32) -> Option<PetSnapshot
     let moves: Vec<PetMoveSlot> = learned
         .iter()
         .rev()
-        .take(4)
+        .take(PET_MOVE_SLOTS)
         .rev()
-        .map(|id| {
-            let max_pp = species
-                .abilities
-                .iter()
-                .find(|a| a.id == *id)
-                .map(|a| a.max_pp.max(a.pp).max(0) as u16)
-                .unwrap_or(0);
-            PetMoveSlot {
-                ability_id: (*id).to_string(),
-                pp: max_pp,
-                max_pp,
-            }
-        })
+        .filter_map(|id| move_slot_from_species(species, id))
         .collect();
 
     Some(PetSnapshot {
@@ -205,6 +210,7 @@ pub struct PendingRosterSyncs(pub HashSet<crate::proto::PlayerSlot>);
 pub fn flush_roster_syncs(
     bcast: bevy::prelude::Res<crate::sim::Outbound>,
     mut queued: ResMut<PendingRosterSyncs>,
+    db: Option<bevy::prelude::Res<crate::data::NpcDb>>,
     bank: PetBank,
     players: Query<(&crate::sim::PlayerSlotTag, &PetRoster)>,
 ) {
@@ -215,7 +221,13 @@ pub fn flush_roster_syncs(
         let Some((_, roster)) = players.iter().find(|(tag, _)| tag.0 == slot) else {
             continue;
         };
-        send_roster_sync(&bcast, slot, &bank.snapshot(roster), roster.active);
+        send_roster_sync(
+            &bcast,
+            slot,
+            &bank.snapshot(roster),
+            roster.active,
+            db.as_deref(),
+        );
     }
 }
 
@@ -260,8 +272,10 @@ pub fn send_roster_sync(
     slot: crate::proto::PlayerSlot,
     snaps: &[PetSnapshot],
     active: Option<usize>,
+    db: Option<&crate::data::NpcDb>,
 ) {
-    let payload = crate::proto::encode_inner(&to_roster_sync(snaps, active)).unwrap_or_default();
+    let payload =
+        crate::proto::encode_inner(&to_roster_sync(snaps, active, db)).unwrap_or_default();
     let _ = bcast.tx.send(crate::proto::ServerEvent::Ephemeral {
         kind: crate::proto::EPHEMERAL_PET_ROSTER,
         to: slot,
@@ -270,7 +284,15 @@ pub fn send_roster_sync(
 }
 
 /// Reproject a roster's snapshots onto the wire roster-sync form.
-pub fn to_roster_sync(snaps: &[PetSnapshot], active: Option<usize>) -> crate::proto::PetRosterSync {
+///
+/// `db` is only needed to fill `xp_to_next`, which depends on the species' growth curve.
+/// Passing `None` leaves it 0 — a caller with no npcdb to hand (a game that has no pets, a
+/// test) still produces a valid sync, the client just cannot draw a progress bar.
+pub fn to_roster_sync(
+    snaps: &[PetSnapshot],
+    active: Option<usize>,
+    db: Option<&crate::data::NpcDb>,
+) -> crate::proto::PetRosterSync {
     crate::proto::PetRosterSync {
         pets: snaps
             .iter()
@@ -280,6 +302,14 @@ pub fn to_roster_sync(snaps: &[PetSnapshot], active: Option<usize>) -> crate::pr
                 nickname: s.nickname.clone(),
                 level: s.level,
                 xp: s.xp,
+                xp_to_next: db
+                    .and_then(|db| db.get(&s.species_ref))
+                    .and_then(|species| species.pet.as_ref())
+                    .map(|pet| {
+                        crate::progress::GrowthRate::from_proto(&pet.growth_rate)
+                            .xp_to_next(s.level)
+                    })
+                    .unwrap_or(0),
                 hp: s.vitals.hp,
                 max_hp: s.vitals.max_hp,
                 attack: s.vitals.attack,

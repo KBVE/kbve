@@ -7,7 +7,9 @@ import {
 	POM_SELF_SHADOW,
 	SPOM_SILHOUETTE,
 } from '@kbve/laser/r3f';
-import { TILE } from '../config';
+import { LIGHT_RANGE, TILE } from '../config';
+import { NEAR_D0, NEAR_D1 } from './bake/bakeTypes';
+import { MAX_CAPS } from './charShadow';
 
 const blankTex = new THREE.DataTexture(
 	new Uint8Array(1),
@@ -18,16 +20,20 @@ const blankTex = new THREE.DataTexture(
 blankTex.needsUpdate = true;
 
 export const MAX_LIGHTS = 8;
-export const LIGHT_RANGE = 13.5;
+export { LIGHT_RANGE };
 // POM relief LOD band. Darkness comes from light attenuation, so relief detail
 // past the torch glow is invisible — full strength inside RELIEF_NEAR, faded
 // to flat by RELIEF_FAR (just past LIGHT_RANGE where surfaces read black).
-export const RELIEF_NEAR = 13;
-export const RELIEF_FAR = 18;
+export const RELIEF_NEAR = 16;
+export const RELIEF_FAR = 22;
 
 const vertex = /* glsl */ `
 	uniform float uSnap;
 	uniform vec2 uRes;
+	// Static torch light integrated per-vertex at sector build time. Absent on
+	// geometry that never bakes (doors, props), where WebGL supplies 0.
+	attribute vec3 aBake;
+	varying vec3 vBake;
 	varying vec2 vUvCorrect;
 	varying vec2 vUvAffine;
 	varying float vW;
@@ -38,6 +44,7 @@ const vertex = /* glsl */ `
 	varying vec3 vBitangent;
 
 	void main() {
+		vBake = aBake;
 		vec4 pos = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 
 		// PSX vertex snapping: aspect-correct grid, round for steadiness.
@@ -72,7 +79,13 @@ const vertex = /* glsl */ `
 const fragment = /* glsl */ `
 	#define MAX_LIGHTS ${MAX_LIGHTS}
 	#define LIGHT_RANGE ${LIGHT_RANGE.toFixed(1)}
+	#define NEAR_D0 ${NEAR_D0.toFixed(1)}
+	#define NEAR_D1 ${NEAR_D1.toFixed(1)}
 	#define OCC_STEPS 34
+	#define MAX_CAPS ${MAX_CAPS}
+	// Only the nearest lights throw character shadows. A third torch's copy of
+	// the same body reads as mush and costs another N capsule tests.
+	#define CAP_LIGHTS 2
 	#define GRID_TILE ${TILE.toFixed(1)}
 	uniform sampler2D uMap;
 	uniform sampler2D uNormalMap;
@@ -95,9 +108,25 @@ const fragment = /* glsl */ `
 	uniform int uLightCount;
 	uniform vec3 uLightPos[MAX_LIGHTS];
 	uniform vec3 uLightColor[MAX_LIGHTS];
+	// 1 = this emitter's far field is already baked into aBake, so the loop
+	// contributes only its near field. 0 = fully dynamic (held torch, props,
+	// fireflies, or a sector whose bake hasn't landed yet).
+	uniform float uLightNear[MAX_LIGHTS];
 	uniform vec3 uSunDir;
 	uniform vec3 uSunColor;
 	uniform vec3 uSkyAmbient;
+	uniform float uBakeFlicker;
+	uniform float uLightGain;
+	uniform float uBakeGain;
+	uniform vec4 uAtt;
+	// Character capsules: xyz + radius, with height in uCapH. Tested against the
+	// light ray for the nearest few lights only — cheap directional shadows with
+	// no shadow map. See charShadow.ts.
+	uniform int uCapCount;
+	uniform vec4 uCaps[MAX_CAPS];
+	uniform float uCapH[MAX_CAPS];
+	uniform float uCapStrength;
+	varying vec3 vBake;
 	varying vec2 vUvCorrect;
 	varying vec2 vUvAffine;
 	varying float vW;
@@ -143,6 +172,53 @@ const fragment = /* glsl */ `
 			}
 		}
 		return best;
+	}
+
+	// Shortest distance between the fragment->light segment and a character's
+	// vertical axis segment. Standard segment/segment closest-approach, with the
+	// capsule axis kept vertical so the setup collapses to a couple of dots.
+	float capsuleShade(vec3 frag, vec3 lightPos, vec4 cap, float h) {
+		vec3 d1 = lightPos - frag;
+		vec3 a = cap.xyz;
+		vec3 d2 = vec3(0.0, h, 0.0);
+		vec3 r = frag - a;
+
+		float A = dot(d1, d1);
+		float e = dot(d2, d2);
+		float f = dot(d2, r);
+		if (A < 1e-5 || e < 1e-5) return 1.0;
+		float b = dot(d1, d2);
+		float c = dot(d1, r);
+		float denom = A * e - b * b;
+
+		float s = denom > 1e-5 ? clamp((b * f - c * e) / denom, 0.0, 1.0) : 0.0;
+		float t = clamp((b * s + f) / e, 0.0, 1.0);
+		s = clamp((b * t - c) / A, 0.0, 1.0);
+
+		// Only occlude between the surface and the light, never behind either.
+		if (s <= 0.001 || s >= 0.999) return 1.0;
+
+		vec3 p1 = frag + d1 * s;
+		vec3 p2 = a + d2 * t;
+		float dist = length(p1 - p2);
+
+		// Soft edge, but tight: a wide penumbra on a vertical capsule wraps the
+		// shadow all the way around the feet instead of casting it away from
+		// the light, which reads as a curved smear rather than a body.
+		float soft = smoothstep(cap.w, cap.w * 1.3, dist);
+		// Fade with distance from the caster so a body far down a corridor stops
+		// painting a crisp shadow across the whole room.
+		float reach = 1.0 - smoothstep(6.0, 13.0, length(frag - a));
+		return mix(1.0, soft, uCapStrength * reach);
+	}
+
+	float charShadow(vec3 frag, vec3 lightPos) {
+		float v = 1.0;
+		for (int c = 0; c < MAX_CAPS; c++) {
+			if (c >= uCapCount) break;
+			v *= capsuleShade(frag, lightPos, uCaps[c], uCapH[c]);
+		}
+		return v;
 	}
 
 	float visibility(vec2 frag, vec2 lp) {
@@ -198,7 +274,13 @@ const fragment = /* glsl */ `
 			ao = har.g;
 			rough = har.b;
 		}
-		vec3 light = vec3(uAmbient * ao);
+		// Baked static torchlight (far field only — see NEAR_D0/NEAR_D1). Not
+		// multiplied by ao: the dynamic loop doesn't either, and doing so
+		// double-darkens every baked surface. Global flicker keeps baked pools
+		// breathing instead of reading as a painted-on lightmap.
+		vec3 light =
+			vec3(uAmbient * ao) +
+			vBake * uBakeFlicker * uBakeGain * uLightGain;
 		vec3 Veye = normalize(cameraPosition - vWorld);
 		// Firelight is diffuse: a soft broad lobe and weak gain, or torch light
 		// reads as a flashlight glare ring on the bricks.
@@ -216,17 +298,33 @@ const fragment = /* glsl */ `
 			lambert *= lambert;
 			// Cap the near-field so a light half a meter from a wall paints a
 			// warm pool instead of a blown-out hotspot (the flashlight look).
-			float att = min(1.0 / max(0.4 + 0.15 * d + 0.12 * d * d, 0.05), 1.1);
+			float att = min(
+				1.0 / max(uAtt.x + uAtt.y * d + uAtt.z * d * d, 0.05),
+				uAtt.w
+			);
 			float spec = 0.0;
 			if (specGain > 0.0 && ndl > 0.0) {
 				vec3 H = normalize(L + Veye);
 				spec = pow(max(dot(N, H), 0.0), shin) * specGain;
 			}
-			float base = att * win * win * (lambert + spec);
+			// Complement of the bake's farWeight: near 1 close in, 0 past
+			// NEAR_D1 where the baked far field has taken over.
+			float ft = clamp((d - NEAR_D0) / (NEAR_D1 - NEAR_D0), 0.0, 1.0);
+			float nearW = mix(1.0, 1.0 - ft * ft * (3.0 - 2.0 * ft), uLightNear[i]);
+			float base = att * win * win * (lambert + spec) * nearW;
 			// Occlusion march (up to 34 map taps) only pays off when the light
 			// still contributes visibly; sub-threshold lights skip it.
 			if (base < 0.004) continue;
 			float vis = uOcclude > 0.5 ? visibility(vWorld.xz, uLightPos[i].xz) : 1.0;
+			// Character shadows ride the same visibility term, so they respect
+			// the light's own falloff and cost nothing when the light is already
+			// occluded by geometry.
+			// Walls only. On the floor the capsule degenerates into a ring around
+			// the feet (every nearby fragment's light ray grazes the capsule
+			// base), so the ground shadow is left to the shaped blob, which
+			// actually carries a silhouette.
+			if (uCapCount > 0 && i < CAP_LIGHTS && vis > 0.0 && abs(N.y) < 0.5)
+				vis *= charShadow(vWorld, uLightPos[i]);
 			// Relief self-shadow from the nearest light only (lights arrive
 			// sorted by distance): bricks shade their own mortar.
 			if (i == 0 && uPom > 0.5 && uUseMaps > 0.5 && pomLod > 0.0) {
@@ -238,7 +336,7 @@ const fragment = /* glsl */ `
 				float selfSh = pomSelfShadow(uv, pomHit, lTS, uPomScale * pomLod, 8.0);
 				vis *= mix(1.0, selfSh, pomLod);
 			}
-			light += uLightColor[i] * base * vis;
+			light += uLightColor[i] * base * vis * uLightGain;
 		}
 
 		// Open-sky rooms (oasis) take a sky-ambient fill plus a directional sun/
@@ -278,7 +376,7 @@ const PsxMaterialBase = shaderMaterial(
 		uTint: new THREE.Color(1, 1, 1),
 		uReliefNear: RELIEF_NEAR,
 		uReliefFar: RELIEF_FAR,
-		uAmbient: 0.12,
+		uAmbient: 0.2,
 		uPom: 0,
 		uPomScale: 0.14,
 		uPomMin: 6,
@@ -297,9 +395,18 @@ const PsxMaterialBase = shaderMaterial(
 			{ length: MAX_LIGHTS },
 			() => new THREE.Vector3(),
 		),
+		uLightNear: Array.from({ length: MAX_LIGHTS }, () => 0),
 		uSunDir: new THREE.Vector3(0.35, 0.85, 0.4).normalize(),
 		uSunColor: new THREE.Vector3(0.85, 0.78, 0.6),
 		uSkyAmbient: new THREE.Vector3(0.6, 0.66, 0.8),
+		uBakeFlicker: 1,
+		uLightGain: 1,
+		uBakeGain: 1,
+		uAtt: new THREE.Vector4(0.35, 0.09, 0.02, 1.6),
+		uCapCount: 0,
+		uCaps: Array.from({ length: MAX_CAPS }, () => new THREE.Vector4()),
+		uCapH: Array.from({ length: MAX_CAPS }, () => 0),
+		uCapStrength: 0.75,
 	},
 	vertex,
 	fragment,

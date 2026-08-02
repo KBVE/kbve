@@ -62,23 +62,30 @@ pub fn queue_duel_xp(duel: &Duel, pending: &mut simgrid::PendingPetXp) {
     }
 }
 
-/// Apply queued XP, level up whatever crosses a threshold, and tell the owner.
+/// Apply queued XP, level up whatever crosses a threshold, learn whatever the new levels
+/// grant, and tell the owner.
 pub fn apply_pet_xp(
     bcast: Res<simgrid::Outbound>,
+    clock: Res<simgrid::SimClock>,
     mut pending: ResMut<simgrid::PendingPetXp>,
     mut queued: ResMut<simgrid::PendingRosterSyncs>,
+    mut offers: ResMut<crate::learn::PendingLearnOffers>,
     mut pets: Query<(
+        &simgrid::PetId,
         &simgrid::PetRef,
         &simgrid::PetNickname,
         &mut simgrid::PetProgress,
         &mut simgrid::PetVitals,
+        &mut simgrid::PetMoves,
     )>,
 ) {
     if pending.0.is_empty() {
         return;
     }
     for award in std::mem::take(&mut pending.0) {
-        let Ok((species_ref, nickname, mut progress, mut vitals)) = pets.get_mut(award.pet) else {
+        let Ok((pet_id, species_ref, nickname, mut progress, mut vitals, mut moves)) =
+            pets.get_mut(award.pet)
+        else {
             continue;
         };
         let Some(species) = game::NPC_DB.get(&species_ref.0) else {
@@ -104,7 +111,74 @@ pub fn apply_pet_xp(
             format!("{} gained {} XP.", nickname.0, result.gained)
         };
         crate::restore::notify(&bcast, award.slot, true, &text);
+        if !result.leveled() {
+            continue;
+        }
+
+        // Anything the crossed levels grant. Free slots fill silently; the rest queue up as
+        // offers, because forgetting a move is the owner's call.
+        let mut needs_choice: Vec<String> = Vec::new();
+        for ability_id in simgrid::moves_learned_between(pet, result.from_level, result.to_level())
+        {
+            if crate::learn::learn_if_room(&mut moves, species, ability_id) {
+                crate::restore::notify(
+                    &bcast,
+                    award.slot,
+                    true,
+                    &format!(
+                        "{} learned {}!",
+                        nickname.0,
+                        ability_name(species, ability_id)
+                    ),
+                );
+            } else {
+                needs_choice.push(ability_id.to_string());
+            }
+        }
+        if needs_choice.is_empty() {
+            continue;
+        }
+        // Merge into any offer this pet already has outstanding rather than replacing it —
+        // two awards in quick succession must not drop the first award's pending choice.
+        let entry = offers
+            .0
+            .entry(pet_id.0.clone())
+            .or_insert_with(|| crate::learn::LearnOffer {
+                slot: award.slot,
+                pet: award.pet,
+                queue: Default::default(),
+                deadline_tick: clock.tick.saturating_add(crate::learn::LEARN_OFFER_TICKS),
+            });
+        let fresh = entry.queue.is_empty();
+        for ability_id in needs_choice {
+            if !entry.queue.contains(&ability_id) {
+                entry.queue.push_back(ability_id);
+            }
+        }
+        if fresh {
+            entry.deadline_tick = clock.tick.saturating_add(crate::learn::LEARN_OFFER_TICKS);
+            crate::learn::offer_front(
+                &bcast,
+                entry,
+                &pet_id.0,
+                &nickname.0,
+                species,
+                &moves,
+                clock.tick,
+            );
+        }
     }
+}
+
+/// Display name for an ability, falling back to its id.
+fn ability_name(species: &simgrid::NpcDef, ability_id: &str) -> String {
+    species
+        .abilities
+        .iter()
+        .find(|a| a.id == ability_id)
+        .map(|a| a.name.clone())
+        .filter(|n| !n.is_empty())
+        .unwrap_or_else(|| ability_id.to_string())
 }
 
 #[cfg(test)]
@@ -280,19 +354,31 @@ mod tests {
         );
     }
 
-    /// A world holding one owned pet at `level`, with the award already queued.
-    fn apply_harness(level: u32, xp: u32) -> (App, Entity) {
+    /// A world holding one owned pet at `level`, with the award already queued. `known`
+    /// overrides the minted moveset so a test can put the pet at the slot cap.
+    fn apply_harness_with(level: u32, xp: u32, known: Option<&[&str]>) -> (App, Entity) {
         let species = mechamutt();
         let snap = simgrid::mint_pet_from_species(species, level).expect("mint");
         let mut app = App::new();
         app.insert_resource(simgrid::PendingRosterSyncs::default());
+        app.insert_resource(crate::learn::PendingLearnOffers::default());
+        app.insert_resource(simgrid::SimClock::default());
         // The receiver is dropped immediately; `notify` ignores send failures, so the
         // notices this system emits simply go nowhere in a test.
         let (tx, _rx) = tokio::sync::mpsc::unbounded_channel();
         app.insert_resource(simgrid::Outbound { tx });
+        let moves = match known {
+            Some(ids) => simgrid::PetMoves(
+                ids.iter()
+                    .filter_map(|id| simgrid::move_slot_from_species(species, id))
+                    .collect(),
+            ),
+            None => simgrid::PetMoves(snap.moves.clone()),
+        };
         let pet = app
             .world_mut()
             .spawn((
+                simgrid::PetId(snap.id.clone()),
                 simgrid::PetRef(snap.species_ref.clone()),
                 simgrid::PetNickname(snap.nickname.clone()),
                 simgrid::PetProgress {
@@ -300,6 +386,7 @@ mod tests {
                     xp: 0,
                 },
                 snap.vitals,
+                moves,
             ))
             .id();
         app.insert_resource(simgrid::PendingPetXp(vec![simgrid::PetXpAward {
@@ -309,6 +396,17 @@ mod tests {
         }]));
         app.add_systems(Update, apply_pet_xp);
         (app, pet)
+    }
+
+    fn apply_harness(level: u32, xp: u32) -> (App, Entity) {
+        apply_harness_with(level, xp, None)
+    }
+
+    /// XP enough to take a mechamutt from `from` to `to`.
+    fn lump(from: u32, to: u32) -> u32 {
+        (from..to)
+            .map(|l| simgrid::GrowthRate::MediumFast.xp_to_next(l))
+            .sum()
     }
 
     #[test]
@@ -358,5 +456,75 @@ mod tests {
         app.world_mut().entity_mut(pet).despawn();
         app.update();
         assert!(app.world().resource::<simgrid::PendingPetXp>().0.is_empty());
+    }
+
+    #[test]
+    fn levelling_past_a_movepool_entry_learns_it_into_a_free_slot() {
+        // A mechamutt minted at 5 knows tackle + spark-bark; static-bite comes at 8.
+        let (mut app, pet) = apply_harness(5, lump(5, 8));
+        app.update();
+        let moves = app.world().get::<simgrid::PetMoves>(pet).expect("moves");
+        assert!(
+            moves.0.iter().any(|m| m.ability_id == "static-bite"),
+            "learned outright with a slot free, got {:?}",
+            moves.0.iter().map(|m| &m.ability_id).collect::<Vec<_>>()
+        );
+        assert!(
+            app.world()
+                .resource::<crate::learn::PendingLearnOffers>()
+                .0
+                .is_empty(),
+            "a free slot needs no prompt"
+        );
+    }
+
+    #[test]
+    fn levelling_at_the_move_cap_queues_an_offer_instead() {
+        let (mut app, pet) = apply_harness_with(
+            5,
+            lump(5, 8),
+            Some(&["tackle", "spark-bark", "plate-up", "overclock"]),
+        );
+        app.update();
+        let moves = app.world().get::<simgrid::PetMoves>(pet).expect("moves");
+        assert_eq!(
+            moves.0.len(),
+            simgrid::PET_MOVE_SLOTS,
+            "nothing overwritten without consent"
+        );
+        assert!(!moves.0.iter().any(|m| m.ability_id == "static-bite"));
+        let offers = app.world().resource::<crate::learn::PendingLearnOffers>();
+        let offer = offers.0.values().next().expect("one offer");
+        assert_eq!(offer.pet, pet);
+        assert_eq!(offer.queue.front().map(String::as_str), Some("static-bite"));
+    }
+
+    #[test]
+    fn one_award_crossing_several_move_levels_queues_them_in_order() {
+        // 5 → 16 grants static-bite (8), plate-up (12) and overclock (16). Two land in the free
+        // slots; the last has nowhere to go and must wait for a decision.
+        let (mut app, pet) = apply_harness(5, lump(5, 16));
+        app.update();
+        let moves = app.world().get::<simgrid::PetMoves>(pet).expect("moves");
+        assert_eq!(moves.0.len(), simgrid::PET_MOVE_SLOTS);
+        let offers = app.world().resource::<crate::learn::PendingLearnOffers>();
+        let offer = offers.0.values().next().expect("one offer");
+        assert_eq!(
+            offer.queue.iter().map(String::as_str).collect::<Vec<_>>(),
+            vec!["overclock"],
+            "only the move that did not fit is offered"
+        );
+    }
+
+    #[test]
+    fn a_pet_that_learns_nothing_new_gets_no_offer() {
+        let (mut app, _) = apply_harness(5, lump(5, 7));
+        app.update();
+        assert!(
+            app.world()
+                .resource::<crate::learn::PendingLearnOffers>()
+                .0
+                .is_empty()
+        );
     }
 }

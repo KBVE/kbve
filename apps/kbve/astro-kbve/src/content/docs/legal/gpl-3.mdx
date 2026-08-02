@@ -1,6 +1,7 @@
 ---
 title: GNU General Public License v3.0
 description: The GPL-3.0 license as used by open-source components within the KBVE monorepo.
+template: splash
 sidebar:
     label: GPL-3.0
     order: 12
@@ -12,6 +13,13 @@ tags:
 ---
 
 import { Aside } from '@astrojs/starlight/components';
+
+import LegalLeaf from '@/components/legal/LegalLeaf.astro';
+
+<LegalLeaf
+	slug="gpl-3"
+	title={frontmatter.title}
+	description={frontmatter.description}>
 
 ## GNU General Public License v3.0
 
@@ -96,3 +104,5 @@ Proprietary KBVE applications covered by the [EULA](/legal/eula/) are distribute
 separately from GPL-3.0 components. Where a proprietary application incorporates
 a GPL-3.0 dependency, the relevant source code is made available as required by
 the license, and the EULA's scope explicitly excludes those GPL-licensed portions.
+
+</LegalLeaf>

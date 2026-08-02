@@ -48,6 +48,9 @@ struct FKBVEWorldObjectDef
 	int32 HarvestTimeMs = 0;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Map")
+	FName ProfessionActionRef;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Map")
 	float SpawnWeight = 0.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Map")

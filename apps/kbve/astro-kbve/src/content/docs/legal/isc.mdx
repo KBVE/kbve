@@ -1,6 +1,7 @@
 ---
 title: ISC License
 description: The ISC License as referenced by dependencies within the KBVE monorepo.
+template: splash
 sidebar:
     label: ISC
     order: 15
@@ -12,6 +13,13 @@ tags:
 ---
 
 import { Aside } from '@astrojs/starlight/components';
+
+import LegalLeaf from '@/components/legal/LegalLeaf.astro';
+
+<LegalLeaf
+	slug="isc"
+	title={frontmatter.title}
+	description={frontmatter.description}>
 
 ## ISC License
 
@@ -52,3 +60,5 @@ The ISC License is the default license for npm packages and is used extensively
 in the Node.js ecosystem. Many transitive npm dependencies in the KBVE monorepo
 carry this license (e.g., semver, glob, minimatch, and hundreds of small
 utility packages).
+
+</LegalLeaf>

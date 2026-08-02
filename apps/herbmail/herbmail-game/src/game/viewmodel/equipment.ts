@@ -132,6 +132,23 @@ export const LOADOUT: Equipment[] = [
 		},
 	},
 	{
+		id: 'pickaxe',
+		kind: 'tool',
+		label: 'pickaxe',
+		primary: 'mine',
+		secondary: 'grab',
+		reload: false,
+		primaryImpulse: FIRE,
+		secondaryImpulse: REACH,
+		buildItem: () => null,
+		modelUrl: modelUrl('/models/pickaxe.glb'),
+		grip: {
+			pos: [0, 0, 0],
+			rot: [0, 0, 0],
+			scale: 8,
+		},
+	},
+	{
 		id: 'torch',
 		kind: 'tool',
 		label: 'torch',

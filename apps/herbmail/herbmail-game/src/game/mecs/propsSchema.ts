@@ -23,6 +23,7 @@ export const PROPS_SCHEMA = {
 		range: 'f32',
 		flickerPhase: 'f32',
 		flickerAmp: 'f32',
+		baked: 'u8',
 	},
 	Health: { hp: 'f32', maxHp: 'f32', regen: 'f32' },
 	Mana: { value: 'f32', max: 'f32', regen: 'f32' },
