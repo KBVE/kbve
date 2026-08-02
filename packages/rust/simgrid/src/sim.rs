@@ -1524,6 +1524,7 @@ pub fn build_app(
         .insert_resource(PendingDuelOps::default())
         .insert_resource(PendingRosterOps::default())
         .insert_resource(crate::pets::PendingRosterSyncs::default())
+        .insert_resource(crate::progress::PendingPetXp::default())
         .insert_resource(PendingPetRestores::default())
         .insert_resource(PendingDrops::default())
         .insert_resource(Deployables::default())

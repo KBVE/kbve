@@ -109,7 +109,6 @@ fn json_value_to_item(v: &Value) -> Option<item::Item> {
         use_effects: parse_use_effects(v.get("use_effects")),
         equipment: parse_equipment(v.get("equipment")),
         food: parse_food(v.get("food")),
-        skilling: parse_skilling(v.get("skilling")),
         recipes: parse_recipes(v.get("recipes")),
         deployable: parse_deployable(v.get("deployable")),
         resistances: parse_affinities(v.get("resistances")),
@@ -123,6 +122,7 @@ fn json_value_to_item(v: &Value) -> Option<item::Item> {
         extensions: parse_extensions(v.get("extensions")),
         credits: str_opt(v, "credits"),
         drafted: bool_opt(v, "drafted"),
+        ..Default::default()
     })
 }
 
@@ -221,27 +221,6 @@ fn parse_status_effect(v: Option<&Value>) -> i32 {
     }
 }
 
-fn parse_skilling_type(v: Option<&Value>) -> i32 {
-    match v.and_then(|v| v.as_str()) {
-        Some("cooking") => item::SkillingType::SkillingCooking as i32,
-        Some("smithing") => item::SkillingType::SkillingSmithing as i32,
-        Some("crafting") => item::SkillingType::SkillingCrafting as i32,
-        Some("alchemy") => item::SkillingType::SkillingAlchemy as i32,
-        Some("woodcutting") => item::SkillingType::SkillingWoodcutting as i32,
-        Some("mining") => item::SkillingType::SkillingMining as i32,
-        Some("fishing") => item::SkillingType::SkillingFishing as i32,
-        Some("farming") => item::SkillingType::SkillingFarming as i32,
-        Some("herblore") => item::SkillingType::SkillingHerblore as i32,
-        Some("fletching") => item::SkillingType::SkillingFletching as i32,
-        Some("hunting") => item::SkillingType::SkillingHunting as i32,
-        Some("foraging") => item::SkillingType::SkillingForaging as i32,
-        Some("enchanting") => item::SkillingType::SkillingEnchanting as i32,
-        Some("tailoring") => item::SkillingType::SkillingTailoring as i32,
-        Some("construction") => item::SkillingType::SkillingConstruction as i32,
-        _ => v.and_then(|v| v.as_i64()).unwrap_or(0) as i32,
-    }
-}
-
 fn parse_bonuses(v: Option<&Value>) -> Option<item::ItemBonuses> {
     let v = v?.as_object()?;
     Some(item::ItemBonuses {
@@ -306,6 +285,7 @@ fn parse_equipment(v: Option<&Value>) -> Option<item::EquipmentInfo> {
             .get("max_durability")
             .and_then(|v| v.as_i64())
             .map(|n| n as i32),
+        ..Default::default()
     })
 }
 
@@ -346,51 +326,13 @@ fn parse_food(v: Option<&Value>) -> Option<item::FoodInfo> {
     Some(item::FoodInfo {
         heals: v.get("heals").and_then(|v| v.as_i64()).map(|n| n as i32),
         doses: v.get("doses").and_then(|v| v.as_i64()).map(|n| n as i32),
-        cooking_level: v
-            .get("cooking_level")
-            .and_then(|v| v.as_i64())
-            .map(|n| n as i32),
-        cooking_xp: v
-            .get("cooking_xp")
-            .and_then(|v| v.as_f64())
-            .map(|n| n as f32),
         burn_level: v
             .get("burn_level")
             .and_then(|v| v.as_i64())
             .map(|n| n as i32),
         duration: v.get("duration").and_then(|v| v.as_i64()).map(|n| n as i32),
         buff_effects: parse_use_effects(v.get("buff_effects")),
-    })
-}
-
-fn parse_skilling(v: Option<&Value>) -> Option<item::SkillingInfo> {
-    let v = v?.as_object()?;
-    Some(item::SkillingInfo {
-        skill: parse_skilling_type(v.get("skill")),
-        skill_level: v
-            .get("skill_level")
-            .and_then(|v| v.as_i64())
-            .map(|n| n as i32),
-        xp_reward: v
-            .get("xp_reward")
-            .and_then(|v| v.as_f64())
-            .map(|n| n as f32),
-        tool_required: v
-            .get("tool_required")
-            .and_then(|v| v.as_str())
-            .map(String::from),
-        gather_time: v
-            .get("gather_time")
-            .and_then(|v| v.as_f64())
-            .map(|n| n as f32),
-        respawn_time: v
-            .get("respawn_time")
-            .and_then(|v| v.as_i64())
-            .map(|n| n as i32),
-        resource_node: v
-            .get("resource_node")
-            .and_then(|v| v.as_str())
-            .map(String::from),
+        ..Default::default()
     })
 }
 

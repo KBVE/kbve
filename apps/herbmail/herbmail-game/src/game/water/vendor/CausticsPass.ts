@@ -47,6 +47,7 @@ export class CausticsPass {
 		private readonly state: WaterOpticsState,
 		private readonly objectShadowTexture: THREE.Texture,
 		size = 1024,
+		segments = 200,
 	) {
 		this.target = new THREE.WebGLRenderTarget(size, size, {
 			minFilter: THREE.LinearFilter,
@@ -71,7 +72,7 @@ export class CausticsPass {
 		});
 
 		this.mesh = new THREE.Mesh(
-			new THREE.PlaneGeometry(2, 2, 200, 200),
+			new THREE.PlaneGeometry(2, 2, segments, segments),
 			this.boxMaterial,
 		);
 		this.mesh.frustumCulled = false;

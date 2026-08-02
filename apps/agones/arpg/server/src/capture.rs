@@ -134,7 +134,6 @@ mod tests {
             wild: Some(crate::duel::WildTarget {
                 entity: wild_entity,
                 species_ref: crate::wild::WILD_SPECIES_REF.to_string(),
-                level: 5,
             }),
         }
     }

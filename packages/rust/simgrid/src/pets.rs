@@ -131,7 +131,7 @@ pub fn sanitize_nickname(name: &str) -> String {
 
 /// Gentle level scaling for a base stat — `base` at level 1, growing ~1/8 of base per
 /// level. A prototype curve; tune when the battle math lands.
-fn level_scale(base: i32, level: u32) -> i32 {
+pub(crate) fn level_scale(base: i32, level: u32) -> i32 {
     base + base * (level as i32 - 1) / 8
 }
 

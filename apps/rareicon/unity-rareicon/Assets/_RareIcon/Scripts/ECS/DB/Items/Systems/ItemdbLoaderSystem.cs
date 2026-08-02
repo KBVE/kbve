@@ -48,19 +48,18 @@ namespace RareIcon
                 return;
             }
 
+            ProfessiondbCache.EnsureLoaded();
             ItemDBCache.Load(bundle.Entries);
             int mapped = ItemDB.HydrateFromCache();
 
-            int edible = 0, harvestable = 0, compressible = 0;
+            int edible = 0;
             foreach (var def in bundle.Entries)
             {
                 if (def.Food != null && (def.Food.Heals.HasValue || def.Food.RestoreEnergy.HasValue || def.Food.RestoreMana.HasValue)) edible++;
-                if (def.Skilling != null && !string.IsNullOrEmpty(def.Skilling.Skill)) harvestable++;
-                if (def.Compress != null && !string.IsNullOrEmpty(def.Compress.TargetRef)) compressible++;
             }
 
             Debug.Log($"[ItemDBLoader] Loaded {bundle.Count} entries, mapped {mapped} to Unity ItemId: " +
-                      $"{edible} edible, {harvestable} harvestable, {compressible} compressible.");
+                      $"{edible} edible, {ProfessiondbCache.GatherCount} harvestable, {ProfessiondbCache.CompressCount} compressible.");
         }
     }
 }

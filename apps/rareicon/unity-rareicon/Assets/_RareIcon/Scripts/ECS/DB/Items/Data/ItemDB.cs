@@ -140,18 +140,19 @@ namespace RareIcon
 
             HarvestRole harvestRole = HarvestRole.None;
             byte harvestWeight = 100;
-            if (src.Skilling != null)
+            if (ProfessiondbCache.TryGetGather(src.Ref, out var gather))
             {
-                harvestRole = SkillToHarvestRole(src.Skilling.Skill);
-                if (src.Skilling.HarvestWeight.HasValue) harvestWeight = (byte)System.Math.Min(src.Skilling.HarvestWeight.Value, 255);
+                harvestRole = SkillToHarvestRole(gather.Skill);
+                harvestWeight = gather.HarvestWeight;
             }
 
             ushort compressesTo = 0, compressRatio = 0;
-            if (src.Compress != null && !string.IsNullOrEmpty(src.Compress.TargetRef) &&
-                ItemDBRefMap.RefToId.TryGetValue(src.Compress.TargetRef, out var ct))
+            if (ProfessiondbCache.TryGetCompress(src.Ref, out var compress) &&
+                !string.IsNullOrEmpty(compress.TargetRef) &&
+                ItemDBRefMap.RefToId.TryGetValue(compress.TargetRef, out var ct))
             {
                 compressesTo = (ushort)ct;
-                compressRatio = (ushort)System.Math.Min(src.Compress.Ratio, ushort.MaxValue);
+                compressRatio = (ushort)System.Math.Min(compress.Ratio, ushort.MaxValue);
             }
 
             ushort poolGroup = src.PoolGroup == "food" ? PoolGroup.Food : PoolGroup.None;
