@@ -6,8 +6,14 @@ export interface GltfNode {
 	children?: number[];
 }
 
+export interface GltfAnimation {
+	name?: string;
+	channels?: unknown[];
+}
+
 export interface GltfJson {
 	nodes?: GltfNode[];
+	animations?: GltfAnimation[];
 }
 
 const HEADER = 12;
@@ -75,4 +81,22 @@ export function restoreMeshNamesInFile(file: string): number {
 
 export function meshNodeNamesInFile(file: string): Set<string> {
 	return meshNodeNames(fs.readFileSync(file));
+}
+
+// Channels per clip. gltfpack drops animation tracks whose value never changes
+// unless -ac is passed, which silently breaks pose resets: a bone the outgoing
+// clip moved and the incoming clip only holds constant has nothing left to
+// drive it back, so it keeps the old pose and the stance snaps.
+export function animationChannelCounts(glb: Buffer): Map<string, number> {
+	const out = new Map<string, number>();
+	(readGltfJson(glb).animations ?? []).forEach((a, i) =>
+		out.set(a.name ?? `#${i}`, (a.channels ?? []).length),
+	);
+	return out;
+}
+
+export function animationChannelCountsInFile(
+	file: string,
+): Map<string, number> {
+	return animationChannelCounts(fs.readFileSync(file));
 }

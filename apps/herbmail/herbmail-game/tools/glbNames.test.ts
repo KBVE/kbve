@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
+	animationChannelCounts,
 	meshNodeNames,
 	readGltfJson,
 	restoreMeshNames,
@@ -113,10 +114,7 @@ describe('restoreMeshNames', () => {
 
 	it('leaves a wrapper alone when it carries a mesh of its own', () => {
 		const both: GltfJson = {
-			nodes: [
-				{ name: 'HOLDER', mesh: 0, children: [1] },
-				{ mesh: 1 },
-			],
+			nodes: [{ name: 'HOLDER', mesh: 0, children: [1] }, { mesh: 1 }],
 		};
 		const { moved } = restoreMeshNames(buildGlb(both));
 		expect(moved).toBe(0);
@@ -145,5 +143,46 @@ describe('meshNodeNames', () => {
 		const after = meshNodeNames(buildGlb(packed));
 		const missing = [...before].filter((n) => !after.has(n));
 		expect(missing).toEqual(['SKIN_TORS', 'TORS']);
+	});
+});
+
+describe('animationChannelCounts', () => {
+	const clips = (counts: number[]): GltfJson => ({
+		animations: counts.map((n, i) => ({
+			name: `Clip_${i}`,
+			channels: Array.from({ length: n }, () => ({})),
+		})),
+	});
+
+	it('counts channels per clip by name', () => {
+		expect(animationChannelCounts(buildGlb(clips([270, 54])))).toEqual(
+			new Map([
+				['Clip_0', 270],
+				['Clip_1', 54],
+			]),
+		);
+	});
+
+	it('falls back to an index for unnamed clips', () => {
+		const glb = buildGlb({ animations: [{ channels: [{}, {}] }] });
+		expect(animationChannelCounts(glb)).toEqual(new Map([['#0', 2]]));
+	});
+
+	it('is empty for a model with no animations', () => {
+		expect(animationChannelCounts(buildGlb({ nodes: [] }))).toEqual(
+			new Map(),
+		);
+	});
+
+	it('detects the constant-track thinning that snaps a packed stance', () => {
+		const before = animationChannelCounts(buildGlb(clips([270, 54])));
+		const after = animationChannelCounts(buildGlb(clips([54, 53])));
+		const thinned = [...before].filter(
+			([name, n]) => (after.get(name) ?? 0) < n,
+		);
+		expect(thinned).toEqual([
+			['Clip_0', 270],
+			['Clip_1', 54],
+		]);
 	});
 });
