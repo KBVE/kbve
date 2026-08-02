@@ -36,6 +36,7 @@ import {
 import { MAP_ROOT, buildMapNav, buildMapBreadcrumb } from '../mapdb/mapNav';
 import {
 	COMMUNITY_NAV,
+	COMMUNITY_RAIL_SLUGS,
 	COMMUNITY_ROOT,
 	buildCommunityBreadcrumb,
 } from '../social/socialNav';
@@ -81,9 +82,9 @@ const palShell = isPalworld
 const isNpcdb = pathname.startsWith('/npcdb/');
 const isItemdb = pathname.startsWith('/itemdb/');
 const isMapdb = pathname.startsWith('/mapdb/');
-// Community/social pages share one rail. Only /github/ opts in for now; add
-// other social slugs here as they get recut onto bento.
-const isCommunity = norm(pathname) === '/github/';
+// Community/social pages share one rail; the slug set is derived from the
+// nav itself, so adding a rail link adds its page unless it opts out there.
+const isCommunity = COMMUNITY_RAIL_SLUGS.has(norm(pathname));
 const isStore = norm(pathname) === '/store/';
 const isMarket = norm(pathname) === '/market/';
 
