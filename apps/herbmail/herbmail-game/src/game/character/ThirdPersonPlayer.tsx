@@ -20,7 +20,6 @@ import { useStoneMine } from './useStoneMine';
 import { PlayerStats, spend, tickPlayerStats } from './playerStats';
 import { isOpen as isInventoryOpen } from '../inventory/store';
 import { isPlaying } from '../menu/store';
-import { isEagle } from '../menu/eagleStore';
 import { MeleeSpark, TargetDummy } from './MeleeDebug';
 import { CharacterShadow } from './CharacterShadow';
 import {
@@ -258,7 +257,6 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 
 		const dom = gl.domElement;
 		const lock = () => {
-			if (isEagle()) return;
 			dom.requestPointerLock();
 		};
 		const move = (e: MouseEvent) => {
@@ -300,7 +298,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		tickPlayerStats(dt);
 		const h = handleRef.current;
 		if (!h) return;
-		if (!isPlaying() || isEagle()) {
+		if (!isPlaying()) {
 			h.motor.setDesiredVelocity(0, 0);
 			return;
 		}
