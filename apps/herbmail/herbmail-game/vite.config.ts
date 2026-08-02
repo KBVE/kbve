@@ -7,6 +7,10 @@ import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import react from '@vitejs/plugin-react';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
+import {
+	meshNodeNamesInFile,
+	restoreMeshNamesInFile,
+} from './tools/glbNames';
 
 const laserSrc = path.resolve(__dirname, '../../../packages/npm/laser/src');
 const generated = path.resolve(
@@ -128,61 +132,6 @@ function modelHashes(): Plugin {
 // and the part-set dedupe all key on that name, so a packed player spawned
 // wearing every mesh in the GLB. Push each name back down onto the node that
 // actually carries the mesh, restoring dev semantics.
-function readGltfJson(file: string): {
-	nodes?: { name?: string; mesh?: number; children?: number[] }[];
-} {
-	const buf = fs.readFileSync(file);
-	const jsonLen = buf.readUInt32LE(12);
-	return JSON.parse(buf.subarray(20, 20 + jsonLen).toString('utf8'));
-}
-
-function meshNodeNames(file: string): Set<string> {
-	const out = new Set<string>();
-	for (const n of readGltfJson(file).nodes ?? [])
-		if (n.mesh !== undefined && n.name) out.add(n.name);
-	return out;
-}
-
-function restoreMeshNames(file: string): number {
-	const buf = fs.readFileSync(file);
-	const jsonLen = buf.readUInt32LE(12);
-	const jsonStart = 20;
-	const jsonEnd = jsonStart + jsonLen;
-	const gltf = JSON.parse(buf.subarray(jsonStart, jsonEnd).toString('utf8'));
-	const nodes: { name?: string; mesh?: number; children?: number[] }[] =
-		gltf.nodes ?? [];
-	const parentOf = new Map<number, number>();
-	nodes.forEach((n, i) => {
-		for (const c of n.children ?? []) parentOf.set(c, i);
-	});
-
-	let moved = 0;
-	for (let i = 0; i < nodes.length; i++) {
-		const node = nodes[i];
-		if (node.mesh === undefined || node.name) continue;
-		const p = parentOf.get(i);
-		if (p === undefined) continue;
-		const parent = nodes[p];
-		if (!parent.name || parent.mesh !== undefined) continue;
-		if ((parent.children ?? []).length !== 1) continue;
-		node.name = parent.name;
-		delete parent.name;
-		moved++;
-	}
-	if (moved === 0) return 0;
-
-	let json = Buffer.from(JSON.stringify(gltf), 'utf8');
-	const pad = (4 - (json.length % 4)) % 4;
-	if (pad) json = Buffer.concat([json, Buffer.alloc(pad, 0x20)]);
-	const rest = buf.subarray(jsonEnd);
-	const header = Buffer.alloc(20);
-	buf.copy(header, 0, 0, 20);
-	header.writeUInt32LE(12 + 8 + json.length + rest.length, 8);
-	header.writeUInt32LE(json.length, 12);
-	fs.writeFileSync(file, Buffer.concat([header, json, rest]));
-	return moved;
-}
-
 // Post-build gltfpack pass (meshopt EXT_meshopt_compression) over the copied
 // public/ models. Sources in public/models stay uncompressed LFS truth; only
 // dist output is packed. -kn keeps node/mesh names (armor slots + bone lookups
@@ -219,7 +168,7 @@ function gltfpackModels(): Plugin {
 					continue;
 				}
 				const before = fs.statSync(f).size;
-				const wanted = meshNodeNames(f);
+				const wanted = meshNodeNamesInFile(f);
 				const tmp = `${f}.pack.glb`;
 				const run = spawnSync(
 					process.execPath,
@@ -229,10 +178,9 @@ function gltfpackModels(): Plugin {
 				if (run.status !== 0 || !fs.existsSync(tmp))
 					throw new Error(`gltfpack failed on ${f}`);
 				fs.renameSync(tmp, f);
-				const moved = restoreMeshNames(f);
-				const missing = [...wanted].filter(
-					(n) => !meshNodeNames(f).has(n),
-				);
+				const moved = restoreMeshNamesInFile(f);
+				const got = meshNodeNamesInFile(f);
+				const missing = [...wanted].filter((n) => !got.has(n));
 				if (missing.length)
 					throw new Error(
 						`gltfpack dropped mesh names in ${path.relative(outDir, f)}: ${missing.join(', ')}`,
@@ -286,7 +234,10 @@ export default defineConfig({
 		globals: true,
 		watch: false,
 		environment: 'node',
-		include: ['src/**/*.{test,spec}.{ts,tsx}'],
+		include: [
+			'src/**/*.{test,spec}.{ts,tsx}',
+			'tools/**/*.{test,spec}.ts',
+		],
 		reporters: ['default'],
 		// vitest's node resolver doesn't pick up the @kbve/laser/* tsconfig-path
 		// aliases (nxViteTsPaths only wires them for build/dev), so map the subpaths to

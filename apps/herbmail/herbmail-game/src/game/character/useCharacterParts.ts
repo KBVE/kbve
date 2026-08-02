@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import type { PartSet } from './armor';
-import { BODY_BASE, hiddenSlotsFor, setsFor, useEquippedArmor } from './armor';
+import { setsFor, useEquippedArmor } from './armor';
 import { attachPartSet } from './partsLoader';
+import { applyPartVisibility } from './partVisibility';
 
 export function useCharacterParts(
 	scene: THREE.Object3D,
@@ -26,12 +27,6 @@ export function useCharacterParts(
 		};
 	}, [scene, equipped, bodySet]);
 	useEffect(() => {
-		const hidden = hiddenSlotsFor(equipped);
-		if (bodySet) for (const n of BODY_BASE) hidden.add(n);
-		scene.traverse((o) => {
-			if (o.name === 'SKIN_WRAP' && !bodySet) return;
-			if ((o as THREE.Mesh).isMesh)
-				o.visible = !hidden.has(o.name) && !hide?.has(o.name);
-		});
+		applyPartVisibility(scene, equipped, hide, bodySet);
 	}, [scene, equipped, attached, hide, bodySet]);
 }
