@@ -139,6 +139,7 @@ const MANIFEST_MIME = 'application/vnd.apple.mpegurl';
 const MAX_POLLS = 25;
 const BACKOFF_BASE_MS = 1000;
 const BACKOFF_CAP_MS = 5000;
+const MAX_RESURRECTS = 30;
 
 let mediaTokenCache: { token: string; expiresAtMs: number } | null = null;
 
@@ -372,10 +373,12 @@ export class ReelPlayer {
 	private tokenTimer: ReturnType<typeof setInterval> | null = null;
 	private recover: (() => void) | null = null;
 	private lastPos = 0;
+	private resurrects = 0;
 
 	async start(video: HTMLVideoElement, id: string): Promise<void> {
 		const gen = ++this.generation;
 		this.teardown();
+		this.resurrects = 0;
 		this.video = video;
 		$reelError.set(null);
 		$reelNotice.set(null);
@@ -634,6 +637,7 @@ export class ReelPlayer {
 			hls.on(Hls.Events.FRAG_BUFFERED, () => {
 				netRetries = 0;
 				mediaRetries = 0;
+				this.resurrects = 0;
 			});
 			hls.on(Hls.Events.ERROR, (_evt, data) => {
 				if (!data.fatal) return;
@@ -649,18 +653,18 @@ export class ReelPlayer {
 								}, 1000);
 							});
 						} else {
-							this.fail(`network error: ${data.details}`);
+							void this.resurrect(video, id, gen);
 						}
 						break;
 					case Hls.ErrorTypes.MEDIA_ERROR:
 						if (mediaRetries++ < MAX_RECOVER) {
 							hls.recoverMediaError();
 						} else {
-							this.fail(`media error: ${data.details}`);
+							void this.resurrect(video, id, gen);
 						}
 						break;
 					default:
-						this.fail(`HLS error: ${data.type}`);
+						void this.resurrect(video, id, gen);
 				}
 			});
 			// Auto-enable the first subtitle rendition (the live stream marks it
@@ -743,6 +747,43 @@ export class ReelPlayer {
 		$reelError.set(message);
 		$reelState.set('error');
 		this.teardown();
+	}
+
+	private async resurrect(
+		video: HTMLVideoElement,
+		id: string,
+		gen: number,
+	): Promise<void> {
+		if (this.generation !== gen) return;
+		if (this.resurrects++ >= MAX_RESURRECTS) {
+			this.fail('stream ended');
+			return;
+		}
+		this.stopWatchdog();
+		if (this.tokenTimer) {
+			clearInterval(this.tokenTimer);
+			this.tokenTimer = null;
+		}
+		this.recover = null;
+		if (this.hls) {
+			try {
+				this.hls.destroy();
+			} catch {
+				void 0;
+			}
+			this.hls = null;
+		}
+		if (this.video) this.video.onerror = null;
+		const token = await mediaToken(true);
+		if (this.generation !== gen) return;
+		if (!token) {
+			this.fail('sign in to watch');
+			return;
+		}
+		$reelState.set('probing');
+		await new Promise((r) => setTimeout(r, 1500));
+		if (this.generation !== gen) return;
+		await this.probe(video, id, token, 0, gen);
 	}
 
 	stop(reset = true): void {
