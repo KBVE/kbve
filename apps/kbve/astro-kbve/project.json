@@ -399,6 +399,7 @@
 				"{projectRoot}/src/content/docs/professiondb/**/*.mdx",
 				"{workspaceRoot}/packages/data/codegen/gen-professiondb-data.mjs",
 				"{workspaceRoot}/packages/data/codegen/gen-professiondb-xref.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/professiondb.binpb",
 				"{workspaceRoot}/packages/data/codegen/generated/mapdb-data.json",
 				"{workspaceRoot}/packages/data/codegen/generated/itemdb-data.json"
 			],
