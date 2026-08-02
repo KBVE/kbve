@@ -108,7 +108,7 @@ jobs:
 
             - name: Setup pnpm v10
               if: contains(matrix.needs, 'node')
-              uses: pnpm/action-setup@v5
+              uses: pnpm/action-setup@v6
               with:
                   version: 11.15.0
                   run_install: false
