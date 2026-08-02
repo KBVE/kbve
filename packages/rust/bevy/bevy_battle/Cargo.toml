@@ -27,13 +27,11 @@ default = ["bevy"]
 bevy = ["dep:bevy", "dep:bevy_behavior"]
 
 [dependencies]
-serde = { version = "1", features = ["derive"] }
-rand = "0.10"
+serde = { workspace = true, features = ["derive"] }
+rand = { workspace = true }
 
 # Bevy — only pulled in under the `bevy` feature.
-bevy = { version = "0.19", default-features = false, features = [
-    "bevy_state",
-], optional = true }
+bevy = { workspace = true, optional = true, features = ["bevy_state"] }
 
 # Shared behavior tree engine — only used by the bevy-feature systems
 # (BehaviorPolicy enemy_turn override). Skipped without bevy.

@@ -16,11 +16,11 @@ readme = "README.md"
 async-task = { version = "4.7", default-features = false }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-js-sys = { version = "0.3", default-features = false }
-wasm-bindgen = { version = "0.2", default-features = false }
+js-sys = { workspace = true }
+wasm-bindgen = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-crossbeam-channel = "0.5"
+crossbeam-channel = { workspace = true }
 
 [package.metadata.docs.rs]
 all-features = true

@@ -19,34 +19,28 @@ client = ["lightyear/client", "lightyear/websocket", "lightyear/webtransport", "
 creatures = ["npcdb", "dep:bevy_tasker", "dep:crossbeam-channel", "dep:dashmap"]
 
 [dependencies]
-bevy = { version = "0.19", default-features = false, features = ["bevy_state", "bevy_render"] }
-lightyear = { version = "0.28", default-features = false, features = [
-    "replication",
-    "prediction",
-    "interpolation",
-    "input_native",
-    "netcode",
-] }
-avian3d = { version = "0.7", default-features = false, features = ["3d", "f32", "parry-f32", "serialize"] }
-serde = { version = "1", features = ["derive"] }
-base64 = "0.22"
-hex = "0.4"
+bevy = { workspace = true, features = ["bevy_state", "bevy_render"] }
+lightyear = { workspace = true, features = ["replication", "prediction", "interpolation", "input_native", "netcode"] }
+avian3d = { workspace = true, features = ["3d", "f32", "parry-f32", "serialize"] }
+serde = { workspace = true, features = ["derive"] }
+base64 = { workspace = true }
+hex = { workspace = true }
 bevy_npc = { version = "0.1", path = "../bevy_npc", optional = true }
 aeronet_webtransport = { version = "0.21", optional = true }
 lightyear_aeronet = { version = "0.28", optional = true }
 bevy_tasker = { version = "0.1", path = "../bevy_tasker", optional = true }
-crossbeam-channel = { version = "0.5", optional = true }
-dashmap = { version = "6", optional = true }
-ulid = { version = "1", features = ["serde"] }
-bytes = "1"
+crossbeam-channel = { workspace = true, optional = true }
+dashmap = { workspace = true, optional = true }
+ulid = { workspace = true, features = ["serde"] }
+bytes = { workspace = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom_02 = { package = "getrandom", version = "0.2", features = ["js"] }
 getrandom_03 = { package = "getrandom", version = "0.3", features = ["wasm_js"] }
 getrandom_04 = { package = "getrandom", version = "0.4", features = ["wasm_js"] }
-wasm-bindgen = "0.2"
-web-sys = { version = "0.3", features = ["WebSocket", "BinaryType", "MessageEvent", "CloseEvent", "Event"] }
-js-sys = "0.3"
+wasm-bindgen = { workspace = true, features = ["default"] }
+web-sys = { workspace = true, features = ["WebSocket", "BinaryType", "MessageEvent", "CloseEvent", "Event"] }
+js-sys = { workspace = true, features = ["default"] }
 
 # `client` pulls lightyear/udp which doesn't compile on wasm32. Use the
 # creatures feature set for cross-target docs; client docs ride along on

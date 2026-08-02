@@ -7,42 +7,35 @@ rust-version.workspace = true
 publish = false
 
 [dependencies]
-anyhow = "1.0"
+anyhow = { workspace = true }
 thiserror = "2"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-tower = { version = "0.5.3", features = ["util", "timeout", "load-shed", "limit"] }
-tower-http = { version = "0.7.0", features = [
-    "compression-full",
-    "limit",
-    "trace",
-    "fs",
-    "cors",
-    "set-header"
-] }
-tokio = { version = "1.0", features = ["full", "rt-multi-thread"] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tower = { workspace = true, features = ["util", "timeout", "load-shed", "limit"] }
+tower-http = { workspace = true, features = ["compression-full", "limit", "trace", "fs", "cors", "set-header"] }
+tokio = { workspace = true, features = ["default", "full", "rt-multi-thread"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
 axum = { version = "0.8.5", features = ["ws", "macros"] }
-axum-extra = { version = "0.12.1", features = ["cookie"] }
+axum-extra = { workspace = true, features = ["cookie"] }
 askama = "0.15.4"
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
-dashmap = "6.1"
+dashmap = { workspace = true }
 jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
-socket2 = "0.6.1"
-num_cpus = "1.17.0"
-dotenvy = "0.15"
+socket2 = { workspace = true }
+num_cpus = { workspace = true }
+dotenvy = { workspace = true }
 
 # Workspace path dependencies
 jedi = { path = "../../../packages/rust/jedi" }
 kbve = { path = "../../../packages/rust/kbve" }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
-tikv-jemallocator = { version = "0.7", optional = true }
+tikv-jemallocator = { workspace = true, optional = true }
 
 [dev-dependencies]
-serial_test = "3"
-http-body-util = "0.1"
+serial_test = { workspace = true }
+http-body-util = { workspace = true }
 
 [features]
 default = []

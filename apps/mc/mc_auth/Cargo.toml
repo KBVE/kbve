@@ -13,28 +13,28 @@ crate-type = ["cdylib"]
 
 [dependencies]
 # JNI bridge — Rust ↔ JVM interop
-jni = "0.21"
+jni = { workspace = true }
 
 # Async runtime — hosts the HTTP client + request pipeline
-tokio = { version = "1", features = ["rt-multi-thread", "sync", "time", "macros"] }
+tokio = { workspace = true, features = ["default", "rt-multi-thread", "sync", "time", "macros"] }
 
 # Bounded channels for message passing (JNI ↔ async worker)
-crossbeam-channel = "0.5"
+crossbeam-channel = { workspace = true }
 
 # Serialization for auth DTOs + event payloads
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 
 # Logging
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
 
 # Wallet integration — deterministic daily-credit idempotency keys are
 # UUIDv5(namespace, user_id || UTC date), so we need a UTC clock + a
 # UUID crate that can compute v5. thiserror is the error type for the
 # wallet HTTP shim.
-chrono = { version = "0.4", default-features = false, features = ["clock"] }
-uuid = { version = "1", features = ["v5"] }
+chrono = { workspace = true, features = ["clock"] }
+uuid = { workspace = true, features = ["v5"] }
 thiserror = "2"
 
 # Shared Supabase (PostgREST) client — lives in bevy_supa so future Bevy
@@ -56,7 +56,7 @@ reqwest = { version = "0.12", default-features = false, features = [
 # Agones SDK — sends Ready/Health pings to the sidecar so the gameserver
 # stays alive in the Agones Fleet. Without these pings the pod is recycled
 # every ~5 minutes by Agones' health controller.
-agones = "1.57"
+agones = { workspace = true }
 
 # HS256 JWT minter for short-lived player tokens against the irc-gateway
 # `/minechat` endpoint. Rustls / default-features kept off because mc_auth

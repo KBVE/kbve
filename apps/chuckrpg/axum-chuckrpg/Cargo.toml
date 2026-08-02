@@ -8,13 +8,13 @@ publish = false
 
 [dependencies]
 jedi = { path = "../../../packages/rust/jedi", features = ["itch"] }
-anyhow = "1.0"
+anyhow = { workspace = true }
 askama = "0.15.4"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-tower = { version = "0.5.3", features = ["util", "timeout"] }
-tower-http = { version = "0.7.0", features = ["compression-full", "cors", "trace", "fs", "set-header"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tower = { workspace = true, features = ["util", "timeout"] }
+tower-http = { workspace = true, features = ["compression-full", "cors", "trace", "fs", "set-header"] }
 axum = { version = "0.8.4", features = ["macros"] }
-tokio = { version = "1", features = ["full"] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tokio = { workspace = true, features = ["default", "full"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }

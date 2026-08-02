@@ -7,109 +7,86 @@ rust-version.workspace = true
 publish = false
 
 [dependencies]
-anyhow = "1.0"
+anyhow = { workspace = true }
 thiserror = "2"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 # RCON allowlist (packages/data/rcon/commands.yaml) baked via include_str! at compile time.
 serde_yaml = "0.9"
-tower = { version = "0.5.3", features = ["util", "timeout", "load-shed", "limit"] }
-tower-http = { version = "0.7.0", features = [
-    "compression-full",
-    "limit",
-    "trace",
-    "fs",
-    "cors",
-    "set-header"
-] }
-tokio = { version = "1.0", features = ["full", "rt-multi-thread"] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+tower = { workspace = true, features = ["util", "timeout", "load-shed", "limit"] }
+tower-http = { workspace = true, features = ["compression-full", "limit", "trace", "fs", "cors", "set-header"] }
+tokio = { workspace = true, features = ["default", "full", "rt-multi-thread"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
 axum = { version = "0.8.9", features = ["ws", "macros"] }
 axum-server = { version = "0.8", features = ["tls-rustls"] }
-rustls = { version = "0.23", default-features = false, features = ["ring"] }
-rustls-pemfile = "2"
-axum-extra = { version = "0.12.6", features = ["cookie"] }
+rustls = { workspace = true, features = ["ring"] }
+rustls-pemfile = { workspace = true }
+axum-extra = { workspace = true, features = ["cookie"] }
 askama = "0.16.0"
-socket2 = "0.6.1"
-num_cpus = "1.17.0"
-dotenvy = "0.15"
+socket2 = { workspace = true }
+num_cpus = { workspace = true }
+dotenvy = { workspace = true }
 
 # Proto + serialization
-prost = "0.14.1"
-chrono = { version = "0.4", features = ["serde"] }
+prost = { workspace = true }
+chrono = { workspace = true, features = ["default", "serde"] }
 
 # OpenAPI spec generation. Emits /api/openapi.json which the astro side
 # renders via Scalar at /dashboard/api and consumes for /llms.txt.
-utoipa = { version = "5", features = ["axum_extras", "chrono", "uuid"] }
+utoipa = { workspace = true, features = ["axum_extras", "chrono", "uuid"] }
 
 # MCP server. Re-uses the utoipa OpenAPI spec to expose every annotated
 # handler as an MCP tool at /api/mcp. Token passthrough lets clients BYO
 # bearer; the upstream call is dispatched against the local axum listener.
 rmcp = { version = "1.8.0", default-features = false, features = ["server", "transport-streamable-http-server", "tower", "macros"] }
 rmcp-openapi = { version = "0.31.3", features = ["authorization-token-passthrough"] }
-url = "2"
-http = "1"
+url = { workspace = true }
+http = { workspace = true }
 
 # DB + Auth (Phase 5)
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"] }
 jsonwebtoken = { version = "10", features = ["rust_crypto"] }
-dashmap = { version = "6.1", features = ["rayon"] }
+dashmap = { workspace = true, features = ["rayon"] }
 rayon = "1.10"
-regex = "1.11"
+regex = { workspace = true }
 lru = "0.18"
 
 # Game server (headless Bevy + avian3d + lightyear)
-bevy = { version = "0.19", default-features = false, features = [
-    "bevy_state",
-    "bevy_render",
-    "bevy_asset",
-] }
-avian3d = { version = "0.7", default-features = false, features = ["3d", "f32", "parry-f32", "serialize"] }
-lightyear = { version = "0.28", default-features = false, features = [
-    "server",
-    "replication",
-    "prediction",
-    "interpolation",
-    "input_native",
-    "websocket",
-    "websocket_self_signed",
-    "netcode",
-    "webtransport",
-    "webtransport_self_signed",
-    "avian3d",
-] }
-base64 = "0.22"
-rand = "0.10"
+bevy = { workspace = true, features = ["bevy_state", "bevy_render", "bevy_asset"] }
+avian3d = { workspace = true, features = ["3d", "f32", "parry-f32", "serialize"] }
+lightyear = { workspace = true, features = ["server", "replication", "prediction", "interpolation", "input_native", "websocket", "websocket_self_signed", "netcode", "webtransport", "webtransport_self_signed", "avian3d"] }
+base64 = { workspace = true }
+rand = { workspace = true }
 lightyear_avian3d = { version = "0.28", default-features = false, features = ["3d"] }
 lightyear_replication = { version = "0.28", default-features = false, features = ["server"] }
 bevy_kbve_net = { path = "../../../packages/rust/bevy/bevy_kbve_net", features = ["npcdb", "creatures"] }
 bevy_inventory = { path = "../../../packages/rust/bevy/bevy_inventory" }
 bevy_items = { path = "../../../packages/rust/bevy/bevy_items", features = ["inventory"] }
 bevy_skills = { path = "../../../packages/rust/bevy/bevy_skills" }
-futures-util = "0.3"
+futures-util = { workspace = true, features = ["default"] }
 tokio-tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }
-webpki-roots = "0.26"
+webpki-roots = { workspace = true }
 
 # Workspace path dependencies
 jedi = { path = "../../../packages/rust/jedi", features = ["aws", "clickhouse", "forgejo", "postgres", "valkey"] }
 kbve = { path = "../../../packages/rust/kbve", features = ["wallet"] }
-uuid = { version = "1", features = ["v4", "serde"] }
+uuid = { workspace = true, features = ["v4", "serde"] }
 
 # Referral handler hashes client IP + subnet before any DB write.
 hmac = "0.13"
 sha2 = "0.11"
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
-tikv-jemallocator = { version = "0.7", optional = true }
+tikv-jemallocator = { workspace = true, optional = true }
 
 [build-dependencies]
-prost-build = "0.14"
-serde_json = "1.0"
+prost-build = { workspace = true }
+serde_json = { workspace = true }
 
 [dev-dependencies]
-serial_test = "3"
-http-body-util = "0.1"
+serial_test = { workspace = true }
+http-body-util = { workspace = true }
 
 [features]
 default = []

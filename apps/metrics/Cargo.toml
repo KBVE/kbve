@@ -8,27 +8,27 @@ publish = false
 description = "Metrics — in-house client telemetry ingest (errors/perf/events) to ClickHouse"
 
 [dependencies]
-tokio = { version = "1.0", features = ["full", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["default", "full", "rt-multi-thread"] }
 axum = { version = "0.8.5", features = ["macros"] }
-tower = { version = "0.5.3", features = ["util"] }
-tower-http = { version = "0.7.0", features = ["compression-full", "limit", "trace", "cors", "timeout"] }
+tower = { workspace = true, features = ["util"] }
+tower-http = { workspace = true, features = ["compression-full", "limit", "trace", "cors", "timeout"] }
 
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 
-uuid = { version = "1", features = ["v4", "serde"] }
+uuid = { workspace = true, features = ["v4", "serde"] }
 sha2 = "0.10"
-hex = "0.4"
+hex = { workspace = true }
 ahash = "0.8"
 parking_lot = "0.12"
 
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["default", "env-filter", "json"] }
 
-anyhow = "1.0"
+anyhow = { workspace = true }
 thiserror = "2"
-dotenvy = "0.15"
+dotenvy = { workspace = true }
 
-metrics = "0.24"
+metrics = { workspace = true }
 jedi = { path = "../../packages/rust/jedi", features = ["clickhouse", "prometheus"] }
 kbve = { path = "../../packages/rust/kbve", default-features = false, features = ["gate-auth"] }
