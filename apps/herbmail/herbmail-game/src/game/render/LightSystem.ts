@@ -29,6 +29,13 @@ const POINT_SCALE = 3.0;
 const SWAP_RATIO = 0.55;
 const FADE_TIME = 0.18;
 const SHADOW_CASTERS = 2;
+// Wide enough that a torch beside the player still covers him and the wall he
+// is thrown against; the cone only bounds where shadows exist, never the light.
+const SHADOW_CONE = Math.PI * 0.42;
+const SHADOW_PENUMBRA = 0.8;
+// Re-aim only when the player has actually moved enough to matter, so a
+// standing player keeps reusing the shadow map already rendered.
+const SHADOW_AIM_EPS = 0.05;
 const SHADOW_MOVE_EPS = 0.02;
 // Static sky-light that fills an oasis room — the "sun pooling in" through the
 // oculus, fed through the same shader path as torches so it lights the walls.
@@ -55,7 +62,8 @@ interface Ranked {
 // POINT_LIGHTS real point lights (for standard-material meshes the shader misses).
 // Ported from the retired TorchLighting component.
 interface ShadowSlot {
-	light: THREE.PointLight;
+	light: THREE.SpotLight;
+	target: THREE.Object3D;
 	pos: THREE.Vector3 | null;
 	pending: THREE.Vector3;
 	hasPending: boolean;
@@ -114,7 +122,20 @@ export class LightSystem {
 			this.root.add(pl);
 		}
 		for (let i = 0; i < SHADOW_CASTERS; i++) {
-			const sl = new THREE.PointLight(0xffffff, 0, LIGHT_RANGE, 2);
+			// Spot rather than point: a point shadow redraws six cube faces per
+			// refresh, a spot redraws one. These casters run at intensity 0 —
+			// they emit nothing and exist only so nearby torches throw the
+			// player's shadow — so the cone costs no illumination, only the
+			// shadowed region, and the target tracks the player to keep that
+			// region over whatever actually needs a shadow.
+			const sl = new THREE.SpotLight(
+				0xffffff,
+				0,
+				LIGHT_RANGE,
+				SHADOW_CONE,
+				SHADOW_PENUMBRA,
+				2,
+			);
 			sl.castShadow = true;
 			sl.visible = true;
 			sl.shadow.intensity = 0;
@@ -124,14 +145,18 @@ export class LightSystem {
 			sl.shadow.camera.far = LIGHT_RANGE;
 			sl.shadow.bias = -0.005;
 			sl.shadow.radius = 4;
+			const target = new THREE.Object3D();
+			sl.target = target;
 			this.slots.push({
 				light: sl,
+				target,
 				pos: null,
 				pending: new THREE.Vector3(),
 				hasPending: false,
 				fade: 0,
 			});
 			this.root.add(sl);
+			this.root.add(target);
 		}
 	}
 
@@ -384,12 +409,25 @@ export class LightSystem {
 				sl.position.y !== slot.pos.y ||
 				sl.position.z !== slot.pos.z;
 			sl.position.copy(slot.pos);
+
+			// Point the cone down the torch-to-player line. The target lives in
+			// the same group as the light, so the shadow camera follows once its
+			// world matrix is current.
+			const t = slot.target.position;
+			const aimed =
+				Math.abs(t.x - playerAnchor.pos.x) > SHADOW_AIM_EPS ||
+				Math.abs(t.y - playerAnchor.pos.y) > SHADOW_AIM_EPS ||
+				Math.abs(t.z - playerAnchor.pos.z) > SHADOW_AIM_EPS;
+			if (aimed) {
+				t.copy(playerAnchor.pos);
+				slot.target.updateMatrixWorld();
+			}
 			const wasDark = sl.shadow.intensity === 0;
 			sl.shadow.intensity = slot.fade;
 			const show = slot.fade > 0;
 			const due = this.frame % period === slotIndex % period;
 			slotIndex++;
-			if (show && (wasDark || moved || due)) {
+			if (show && (wasDark || moved || aimed || due)) {
 				sl.shadow.needsUpdate = true;
 			}
 		}
