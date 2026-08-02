@@ -26,6 +26,17 @@ function stubLaserR3F() {
 
 const alias = [
 	{
+		// Mirrors the `@kbve/laser/wire` path mapping in tsconfig.json, which exists so spec
+		// files (evaluated in Node, where `@kbve/laser` does not resolve) can value-import
+		// wire constants. Aliased here too so a browser-side module importing the same
+		// specifier resolves to the same file rather than failing to bundle.
+		find: /^@kbve\/laser\/wire$/,
+		replacement: path.join(
+			repoRoot,
+			'packages/npm/laser/src/lib/net/protocol.ts',
+		),
+	},
+	{
 		find: /^@kbve\/laser$/,
 		replacement: path.join(repoRoot, 'packages/npm/laser/src/index.ts'),
 	},
