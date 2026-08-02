@@ -18,7 +18,7 @@ tower-http = { workspace = true, features = ["compression-full", "limit", "trace
 tokio = { workspace = true, features = ["default", "full", "rt-multi-thread"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
-axum = { version = "0.8.9", features = ["ws", "macros"] }
+axum = { workspace = true, features = ["default", "ws", "macros"] }
 axum-server = { version = "0.8", features = ["tls-rustls"] }
 rustls = { workspace = true, features = ["ring"] }
 rustls-pemfile = { workspace = true }
@@ -46,7 +46,7 @@ http = { workspace = true }
 
 # DB + Auth (Phase 5)
 reqwest = { workspace = true, features = ["json", "rustls", "stream", "form", "query"] }
-jsonwebtoken = { version = "10", features = ["rust_crypto"] }
+jsonwebtoken = { workspace = true, features = ["default", "rust_crypto"] }
 dashmap = { workspace = true, features = ["rayon"] }
 rayon = "1.10"
 regex = { workspace = true }

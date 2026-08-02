@@ -15,14 +15,14 @@ tower-http = { workspace = true, features = ["compression-full", "limit", "trace
 tokio = { workspace = true, features = ["default", "full", "rt-multi-thread"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
-axum = { version = "0.8.5", features = ["ws", "macros"] }
+axum = { workspace = true, features = ["default", "ws", "macros"] }
 axum-extra = { workspace = true, features = ["cookie"] }
 socket2 = { workspace = true }
 num_cpus = { workspace = true }
 dotenvy = { workspace = true }
 http = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
-jsonwebtoken = { version = "9.3", default-features = false }
+jsonwebtoken = { workspace = true }
 reqwest = { workspace = true, features = ["rustls", "json", "form"] }
 kube = { workspace = true, features = ["client", "rustls-tls"] }
 k8s-openapi = { workspace = true, features = ["v1_32"] }

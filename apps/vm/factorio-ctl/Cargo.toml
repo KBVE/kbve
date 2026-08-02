@@ -8,7 +8,7 @@ publish = false
 description = "REST API service for the Agones-managed Factorio server (status, saves, rotation)"
 
 [dependencies]
-axum = { version = "0.8.8", features = ["macros"] }
+axum = { workspace = true, features = ["default", "macros"] }
 tokio = { workspace = true, features = ["default", "full", "rt-multi-thread"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

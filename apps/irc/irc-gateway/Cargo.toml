@@ -16,13 +16,13 @@ tower-http = { workspace = true, features = ["compression-full", "limit", "trace
 tokio = { workspace = true, features = ["default", "full", "rt-multi-thread"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
-axum = { version = "0.8.5", features = ["ws", "macros", "json"] }
+axum = { workspace = true, features = ["default", "ws", "macros", "json"] }
 axum-extra = { workspace = true, features = ["cookie"] }
 socket2 = { workspace = true }
 num_cpus = { workspace = true }
 dotenvy = { workspace = true }
 tokio-tungstenite = "0.28"
-jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
+jsonwebtoken = { workspace = true, features = ["default", "rust_crypto"] }
 futures-util = { workspace = true, features = ["sink"] }
 
 # Workspace path dependencies

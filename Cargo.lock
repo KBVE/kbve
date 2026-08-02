@@ -2129,14 +2129,11 @@ checksum = "edca88bc138befd0323b20752846e6587272d3b03b0343c8ea28a6f819e6e71f"
 dependencies = [
  "async-trait",
  "axum-core 0.4.5",
- "base64 0.22.1",
  "bytes",
  "futures-util",
  "http 1.4.2",
  "http-body 1.1.0",
  "http-body-util",
- "hyper 1.11.0",
- "hyper-util",
  "itoa",
  "matchit 0.7.3",
  "memchr",
@@ -2145,12 +2142,7 @@ dependencies = [
  "pin-project-lite",
  "rustversion",
  "serde",
- "serde_json",
- "serde_path_to_error",
- "sha1 0.10.7",
  "sync_wrapper 1.0.2",
- "tokio",
- "tokio-tungstenite 0.24.0",
  "tower 0.5.3",
  "tower-layer",
  "tower-service",
@@ -2260,7 +2252,7 @@ dependencies = [
  "http 1.4.2",
  "http-body-util",
  "jedi",
- "jsonwebtoken 9.3.1",
+ "jsonwebtoken",
  "k8s-openapi",
  "kbve",
  "kube",
@@ -2380,7 +2372,7 @@ dependencies = [
  "http 1.4.2",
  "http-body-util",
  "jedi",
- "jsonwebtoken 10.4.0",
+ "jsonwebtoken",
  "kbve",
  "lightyear",
  "lightyear_avian3d",
@@ -2440,7 +2432,7 @@ dependencies = [
  "dotenvy",
  "http-body-util",
  "jedi",
- "jsonwebtoken 10.4.0",
+ "jsonwebtoken",
  "kbve",
  "num_cpus",
  "reqwest 0.13.4",
@@ -9805,7 +9797,7 @@ dependencies = [
  "futures-util",
  "http-body-util",
  "jedi",
- "jsonwebtoken 10.4.0",
+ "jsonwebtoken",
  "kbve",
  "num_cpus",
  "serde",
@@ -10013,7 +10005,7 @@ dependencies = [
  "flexbuffers",
  "fred",
  "futures-util",
- "jsonwebtoken 10.4.0",
+ "jsonwebtoken",
  "lru 0.18.1",
  "metrics",
  "papaya",
@@ -10164,7 +10156,7 @@ dependencies = [
  "axum 0.8.9",
  "dotenvy",
  "jedi",
- "jsonwebtoken 10.4.0",
+ "jsonwebtoken",
  "lru 0.18.1",
  "mime_guess",
  "prost 0.14.4",
@@ -10305,19 +10297,6 @@ dependencies = [
 
 [[package]]
 name = "jsonwebtoken"
-version = "9.3.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5a87cc7a48537badeae96744432de36f4be2b4a34a05a5ef32e9dd8a1c169dde"
-dependencies = [
- "base64 0.22.1",
- "js-sys",
- "ring",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "jsonwebtoken"
 version = "10.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "eba32bfb4ffdeaca3e34431072faf01745c9b26d25504aa7a6cf5684334fc4fc"
@@ -10372,7 +10351,7 @@ dependencies = [
  "futures-util",
  "holy",
  "jedi",
- "jsonwebtoken 10.4.0",
+ "jsonwebtoken",
  "lru 0.18.1",
  "metrics",
  "num-bigint",
@@ -11991,7 +11970,7 @@ dependencies = [
  "chrono",
  "crossbeam-channel",
  "jni 0.21.1",
- "jsonwebtoken 9.3.1",
+ "jsonwebtoken",
  "reqwest 0.13.4",
  "serde",
  "serde_json",
@@ -14843,7 +14822,7 @@ checksum = "d55d956fa96f5ec02be2e13af0e20391a5aa83d6a074e3ad368959d0fab299ea"
 name = "q"
 version = "0.1.1"
 dependencies = [
- "axum 0.7.9",
+ "axum 0.8.9",
  "bevy",
  "bevy_mapdb",
  "bevy_npc",
@@ -14855,7 +14834,7 @@ dependencies = [
  "godot",
  "http 1.4.2",
  "infer",
- "jsonwebtoken 9.3.1",
+ "jsonwebtoken",
  "objc2 0.6.4",
  "postcard",
  "rapier2d",
@@ -15893,7 +15872,7 @@ dependencies = [
  "hyper 1.11.0",
  "hyper-util",
  "jedi",
- "jsonwebtoken 10.4.0",
+ "jsonwebtoken",
  "k8s-openapi",
  "kbve",
  "kube",
@@ -17078,7 +17057,7 @@ dependencies = [
  "futures-util",
  "getrandom 0.2.17",
  "hex 0.4.3",
- "jsonwebtoken 9.3.1",
+ "jsonwebtoken",
  "postcard",
  "serde",
  "serde_json",

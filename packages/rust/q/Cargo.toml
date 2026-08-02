@@ -98,11 +98,11 @@ bevy_npc = { path = "../bevy/bevy_npc", optional = true }
 
 # Networking
 tokio-tungstenite = { version = "0.24", optional = true, default-features = false, features = ["rustls-tls-webpki-roots", "connect"] }
-axum = { version = "0.7", optional = true, default-features = false, features = ["ws", "json"] }
+axum = { workspace = true, optional = true, features = ["ws", "json"] }
 futures-util = { workspace = true, optional = true, features = ["sink", "std"] }
 
 # Supabase JWT verification (HS256 against SUPABASE_JWT_SECRET).
-jsonwebtoken = { version = "9.3", optional = true, default-features = false }
+jsonwebtoken = { workspace = true, optional = true }
 
 # -----------------------------------------------------------------------------
 # Desktop platform deps — link in unconditionally on those OSes (target-cfg gated).

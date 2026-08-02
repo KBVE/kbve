@@ -38,12 +38,12 @@ diesel-async = { version = "0.9", features = ["postgres", "bb8"] }
 bb8 = { workspace = true }
 futures-util = { workspace = true, features = ["default"] }
 dotenvy = { workspace = true }
-axum = { version = "0.8.9", features = ["macros"] }
+axum = { workspace = true, features = ["default", "macros"] }
 axum-extra = { workspace = true, features = ["cookie"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 dashmap = { workspace = true, features = ["serde"] }
-jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
+jsonwebtoken = { workspace = true, features = ["default", "rust_crypto"] }
 rand_core = { version = "0.6.4", features = ["std"] }
 tokio = { workspace = true, features = ["default", "full"] }
 thiserror = { workspace = true }

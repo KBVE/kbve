@@ -8,11 +8,7 @@ publish = false
 
 [dependencies]
 anyhow = { workspace = true }
-axum = { version = "0.8", default-features = false, features = [
-    "http1",
-    "json",
-    "tokio",
-] }
+axum = { workspace = true, features = ["http1", "json", "tokio"] }
 thiserror = { workspace = true }
 tokio = { workspace = true, features = ["default", "macros", "rt-multi-thread", "fs", "io-util", "sync", "time", "signal", "net"] }
 tracing = { workspace = true }

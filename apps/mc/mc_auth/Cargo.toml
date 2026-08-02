@@ -57,4 +57,4 @@ agones = { workspace = true }
 # HS256 JWT minter for short-lived player tokens against the irc-gateway
 # `/minechat` endpoint. Rustls / default-features kept off because mc_auth
 # already uses rustls-tls via reqwest; no need to pull ring in twice.
-jsonwebtoken = { version = "9", default-features = false }
+jsonwebtoken = { workspace = true }

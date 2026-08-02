@@ -16,7 +16,7 @@ tower-http = { workspace = true, features = ["compression-full", "limit", "trace
 tokio = { workspace = true, features = ["default", "full", "rt-multi-thread"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
-axum = { version = "0.8.5", features = ["ws", "macros"] }
+axum = { workspace = true, features = ["default", "ws", "macros"] }
 axum-extra = { workspace = true, features = ["cookie"] }
 askama = "0.15.4"
 socket2 = { workspace = true }

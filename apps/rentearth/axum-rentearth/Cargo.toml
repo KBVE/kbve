@@ -13,7 +13,7 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 tower = { workspace = true, features = ["util", "timeout"] }
 tower-http = { workspace = true, features = ["compression-full", "cors", "trace", "fs", "set-header"] }
-axum = { version = "0.8.4", features = ["macros"] }
+axum = { workspace = true, features = ["default", "macros"] }
 tokio = { workspace = true, features = ["default", "full"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }

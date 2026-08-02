@@ -9,7 +9,7 @@ description = "Metrics — in-house client telemetry ingest (errors/perf/events)
 
 [dependencies]
 tokio = { workspace = true, features = ["default", "full", "rt-multi-thread"] }
-axum = { version = "0.8.5", features = ["macros"] }
+axum = { workspace = true, features = ["default", "macros"] }
 tower = { workspace = true, features = ["util"] }
 tower-http = { workspace = true, features = ["compression-full", "limit", "trace", "cors", "timeout"] }
 
