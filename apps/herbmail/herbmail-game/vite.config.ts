@@ -11,6 +11,12 @@ import {
 	meshNodeNamesInFile,
 	restoreMeshNamesInFile,
 } from './tools/glbNames';
+import { plannedSize, preservesPowerOfTwo } from './tools/textureSize';
+
+// Dungeon art is authored at 512 and shipped at PSX scale. Sources in
+// public/textures stay full-res LFS truth exactly like the models; only the
+// dist copy is shrunk, so retargeting is one constant rather than a re-export.
+const MAX_TEXTURE_SIZE = 256;
 
 const laserSrc = path.resolve(__dirname, '../../../packages/npm/laser/src');
 const generated = path.resolve(
@@ -87,40 +93,48 @@ function iconStudioWriter(): Plugin {
 	};
 }
 
-const MODEL_HASHES_ID = 'virtual:model-hashes';
+const ASSET_HASHES_ID = 'virtual:asset-hashes';
 
-function modelHashes(): Plugin {
+// Textures are downscaled on the way into dist, so their shipped bytes change
+// without the source changing. Salting the texture hash with the target size
+// keeps a retarget from serving whatever the browser already cached.
+function assetHashes(): Plugin {
 	const publicDir = path.resolve(__dirname, 'public');
-	const modelsDir = path.join(publicDir, 'models');
 	const build = () => {
 		const out: Record<string, string> = {};
-		const walk = (dir: string) => {
+		const walk = (dir: string, match: RegExp, salt: string) => {
 			if (!fs.existsSync(dir)) return;
 			for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
 				const p = path.join(dir, e.name);
 				if (e.isDirectory()) {
-					walk(p);
+					walk(p, match, salt);
 					continue;
 				}
-				if (!e.name.endsWith('.glb')) continue;
+				if (!match.test(e.name)) continue;
 				const url = `/${path.relative(publicDir, p).split(path.sep).join('/')}`;
 				out[url] = crypto
 					.createHash('sha256')
 					.update(fs.readFileSync(p))
+					.update(salt)
 					.digest('hex')
 					.slice(0, 8);
 			}
 		};
-		walk(modelsDir);
+		walk(path.join(publicDir, 'models'), /\.glb$/i, '');
+		walk(
+			path.join(publicDir, 'textures'),
+			/\.(png|jpe?g)$/i,
+			`max=${MAX_TEXTURE_SIZE}`,
+		);
 		return out;
 	};
 	return {
-		name: 'model-hashes',
+		name: 'asset-hashes',
 		resolveId(id) {
-			return id === MODEL_HASHES_ID ? `\0${MODEL_HASHES_ID}` : null;
+			return id === ASSET_HASHES_ID ? `\0${ASSET_HASHES_ID}` : null;
 		},
 		load(id) {
-			if (id !== `\0${MODEL_HASHES_ID}`) return null;
+			if (id !== `\0${ASSET_HASHES_ID}`) return null;
 			return `export default ${JSON.stringify(build())};`;
 		},
 	};
@@ -194,6 +208,74 @@ function gltfpackModels(): Plugin {
 	};
 }
 
+function downscaleTextures(): Plugin {
+	let outDir = '';
+	return {
+		name: 'downscale-textures',
+		apply: 'build',
+		configResolved(config) {
+			outDir = path.resolve(config.root, config.build.outDir);
+		},
+		async closeBundle() {
+			const require = createRequire(import.meta.url);
+			let sharp: typeof import('sharp');
+			try {
+				sharp = require('sharp');
+			} catch {
+				throw new Error(
+					'downscale-textures: sharp is not installed; textures would ship at source resolution',
+				);
+			}
+
+			const files: string[] = [];
+			const walk = (dir: string) => {
+				if (!fs.existsSync(dir)) return;
+				for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+					const p = path.join(dir, e.name);
+					if (e.isDirectory()) walk(p);
+					else if (/\.(png|jpe?g)$/i.test(e.name)) files.push(p);
+				}
+			};
+			walk(path.join(outDir, 'textures'));
+
+			let shrunk = 0;
+			let before = 0;
+			let after = 0;
+			for (const f of files) {
+				const src = await sharp(f).metadata();
+				if (!src.width || !src.height) continue;
+				const out = plannedSize(
+					{ width: src.width, height: src.height },
+					MAX_TEXTURE_SIZE,
+				);
+				if (!out) continue;
+				if (
+					!preservesPowerOfTwo(
+						{ width: src.width, height: src.height },
+						out,
+					)
+				)
+					throw new Error(
+						`downscale-textures: ${path.relative(outDir, f)} ${src.width}x${src.height} -> ${out.width}x${out.height} breaks power-of-two tiling`,
+					);
+
+				const sizeBefore = fs.statSync(f).size;
+				const buf = await sharp(f)
+					.resize(out.width, out.height, { kernel: 'mitchell' })
+					.toBuffer();
+				fs.writeFileSync(f, buf);
+				before += sizeBefore;
+				after += buf.length;
+				shrunk++;
+			}
+			if (shrunk)
+				console.log(
+					`downscale-textures: ${shrunk}/${files.length} textures -> max ${MAX_TEXTURE_SIZE}px, ${(before / 1024).toFixed(0)}K -> ${(after / 1024).toFixed(0)}K`,
+				);
+		},
+	};
+}
+
 // Cross-origin isolation enables SharedArrayBuffer (worker/GPU shared memory).
 // Dev + preview set the headers directly; the built bundle relies on
 // coi-serviceworker.js (public/) so the itch upload is isolated on any static host.
@@ -209,8 +291,9 @@ export default defineConfig({
 		react(),
 		nxViteTsPaths(),
 		iconStudioWriter(),
-		modelHashes(),
+		assetHashes(),
 		gltfpackModels(),
+		downscaleTextures(),
 	],
 	resolve: {
 		alias: [itemdbDataAlias, itemdbSchemaAlias],
@@ -224,7 +307,7 @@ export default defineConfig({
 	},
 	worker: {
 		format: 'es',
-		plugins: () => [nxViteTsPaths(), modelHashes()],
+		plugins: () => [nxViteTsPaths(), assetHashes()],
 	},
 	build: {
 		outDir: '../../../dist/apps/herbmail/herbmail-game',

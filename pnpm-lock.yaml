@@ -701,6 +701,9 @@ importers:
       rehype-external-links:
         specifier: ^3.0.0
         version: 3.0.0
+      sharp:
+        specifier: ^0.34.5
+        version: 0.34.5
       starlight-site-graph:
         specifier: ^0.5.0
         version: 0.5.0(@astrojs/starlight@0.41.4(@astrojs/markdown-remark@7.2.1(supports-color@10.2.2))(astro@7.1.3(@astrojs/markdown-remark@7.2.1(supports-color@10.2.2))(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(@planetscale/database@1.19.0)(@types/node@18.19.17)(jiti@2.7.0)(less@4.1.3)(rollup@4.57.1)(sass-embedded@1.100.0)(sass@1.101.0)(stylus@0.64.0(supports-color@10.2.2))(terser@5.49.0)(yaml@2.9.0))(supports-color@10.2.2)(typescript@6.0.3))(astro@7.1.3(@astrojs/markdown-remark@7.2.1(supports-color@10.2.2))(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(@planetscale/database@1.19.0)(@types/node@18.19.17)(jiti@2.7.0)(less@4.1.3)(rollup@4.57.1)(sass-embedded@1.100.0)(sass@1.101.0)(stylus@0.64.0(supports-color@10.2.2))(terser@5.49.0)(yaml@2.9.0))
@@ -8790,6 +8793,7 @@ packages:
   cron-parser@4.9.0:
     resolution: {integrity: sha512-p0SaNjrHOnQeR8/VnfGbmg9te2kfyYSQ7Sc/j/6DtPL3JQvKxmjO9TSjNFpujqV3vEYYBvNNvXSxzyksBWAx1Q==}
     engines: {node: '>=12.0.0'}
+    deprecated: v4 is no longer maintained, upgrade to v5
 
   cross-env@7.0.3:
     resolution: {integrity: sha512-+/HKd6EgcQCJGh2PSjZuUitQBQynKor4wrFbRg4DtAgS1aWO+gU52xpH7M9ScGgXSYmAVS9bIJ8EzuaGw0oNAw==}
@@ -19987,7 +19991,7 @@ snapshots:
 
   '@img/sharp-wasm32@0.34.5':
     dependencies:
-      '@emnapi/runtime': 1.11.1
+      '@emnapi/runtime': 1.11.2
     optional: true
 
   '@img/sharp-win32-arm64@0.34.5':
