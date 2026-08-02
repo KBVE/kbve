@@ -9,6 +9,10 @@
 		"skipLibCheck": true,
 		"noUncheckedSideEffectImports": false,
 		"types": ["*"],
+		"baseUrl": "../../../..",
+		"paths": {
+			"@kbve/laser/wire": ["packages/npm/laser/src/lib/net/protocol.ts"]
+		},
 		"ignoreDeprecations": "6.0"
 	},
 	"include": [

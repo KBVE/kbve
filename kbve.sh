@@ -217,6 +217,7 @@ ENVEOF
     (cd "$worktree_dir" && pnpm install)
     echo "Resetting Nx cache in worktree..."
     (cd "$worktree_dir" && export NX_WORKSPACE_ROOT_PATH="$worktree_dir" && pnpm nx reset)
+    _link_worktree_nx_data "$worktree_dir" "$worktree_basename"
 
     echo ""
     echo "=== Atomic worktree ready ==="
@@ -224,9 +225,13 @@ ENVEOF
     echo "  Branch: $branch_name"
     echo ""
     echo "Run the following to enter the worktree:"
-    echo "  cd $worktree_dir && export NX_WORKSPACE_ROOT_PATH=\$PWD"
+    echo "  cd $worktree_dir"
     echo ""
-    echo "Or use ./kbve.sh -nx from within the worktree (auto-sources .env.local)."
+    echo "Then run Nx targets with (auto-sources .env.local):"
+    echo "  ./kbve.sh -nx <project>:<target>"
+    echo ""
+    echo "Bare 'npx nx' works too — .nx/workspace-data is symlinked at the per-worktree"
+    echo "data dir so the CLI and its forked executors agree on one graph cache."
     echo ""
     echo "When done, push and ci-atom.yml will auto-create a PR to dev:"
     echo "  git push -u origin $branch_name"
@@ -319,6 +324,7 @@ ENVEOF
     (cd "$worktree_dir" && pnpm install)
     echo "Resetting Nx cache in worktree..."
     (cd "$worktree_dir" && export NX_WORKSPACE_ROOT_PATH="$worktree_dir" && pnpm nx reset)
+    _link_worktree_nx_data "$worktree_dir" "$worktree_basename"
 
     echo ""
     echo "=== Worktree ready ==="
@@ -326,9 +332,37 @@ ENVEOF
     echo "  Branch: $branch_name"
     echo ""
     echo "Run the following to enter the worktree:"
-    echo "  cd $worktree_dir && export NX_WORKSPACE_ROOT_PATH=\$PWD"
+    echo "  cd $worktree_dir"
     echo ""
-    echo "Or use ./kbve.sh -nx from within the worktree (auto-sources .env.local)."
+    echo "Then run Nx targets with (auto-sources .env.local):"
+    echo "  ./kbve.sh -nx <project>:<target>"
+    echo ""
+    echo "Bare 'npx nx' works too — .nx/workspace-data is symlinked at the per-worktree"
+    echo "data dir so the CLI and its forked executors agree on one graph cache."
+}
+
+# Point the default Nx data directory at the per-worktree one.
+#
+# .env.local sets NX_WORKSPACE_DATA_DIRECTORY to a worktree-suffixed path so worktrees do
+# not share a daemon or graph cache. Nx only loads .env.local for *task* processes, though,
+# not for the CLI parent — so a bare `npx nx run <target>` computes the graph into the
+# default .nx/workspace-data and then forks an executor that reads the suffixed one, which
+# fails with the thoroughly unhelpful:
+#
+#   [readCachedProjectGraph] ERROR: No cached ProjectGraph is available.
+#
+# Symlinking the default name at the suffixed directory makes both spellings resolve to the
+# same store, so the bare invocation works too. `./kbve.sh -nx` was always fine.
+_link_worktree_nx_data() {
+    local worktree_dir="$1"
+    local worktree_basename="$2"
+    local suffixed="$worktree_dir/.nx/workspace-data-${worktree_basename}"
+    local default="$worktree_dir/.nx/workspace-data"
+
+    mkdir -p "$suffixed"
+    # `nx reset` may have left a real directory behind; it is disposable cache either way.
+    [ -e "$default" ] && [ ! -L "$default" ] && rm -rf "$default"
+    ln -sfn "$suffixed" "$default"
 }
 
 # Remove a git worktree by name
