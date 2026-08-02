@@ -7,7 +7,8 @@ import {
 	POM_SELF_SHADOW,
 	SPOM_SILHOUETTE,
 } from '@kbve/laser/r3f';
-import { TILE } from '../config';
+import { LIGHT_RANGE, TILE } from '../config';
+import { NEAR_D0, NEAR_D1 } from './bake/bakeTypes';
 
 const blankTex = new THREE.DataTexture(
 	new Uint8Array(1),
@@ -18,16 +19,20 @@ const blankTex = new THREE.DataTexture(
 blankTex.needsUpdate = true;
 
 export const MAX_LIGHTS = 8;
-export const LIGHT_RANGE = 13.5;
+export { LIGHT_RANGE };
 // POM relief LOD band. Darkness comes from light attenuation, so relief detail
 // past the torch glow is invisible — full strength inside RELIEF_NEAR, faded
 // to flat by RELIEF_FAR (just past LIGHT_RANGE where surfaces read black).
-export const RELIEF_NEAR = 13;
-export const RELIEF_FAR = 18;
+export const RELIEF_NEAR = 16;
+export const RELIEF_FAR = 22;
 
 const vertex = /* glsl */ `
 	uniform float uSnap;
 	uniform vec2 uRes;
+	// Static torch light integrated per-vertex at sector build time. Absent on
+	// geometry that never bakes (doors, props), where WebGL supplies 0.
+	attribute vec3 aBake;
+	varying vec3 vBake;
 	varying vec2 vUvCorrect;
 	varying vec2 vUvAffine;
 	varying float vW;
@@ -38,6 +43,7 @@ const vertex = /* glsl */ `
 	varying vec3 vBitangent;
 
 	void main() {
+		vBake = aBake;
 		vec4 pos = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
 
 		// PSX vertex snapping: aspect-correct grid, round for steadiness.
@@ -72,6 +78,8 @@ const vertex = /* glsl */ `
 const fragment = /* glsl */ `
 	#define MAX_LIGHTS ${MAX_LIGHTS}
 	#define LIGHT_RANGE ${LIGHT_RANGE.toFixed(1)}
+	#define NEAR_D0 ${NEAR_D0.toFixed(1)}
+	#define NEAR_D1 ${NEAR_D1.toFixed(1)}
 	#define OCC_STEPS 34
 	#define GRID_TILE ${TILE.toFixed(1)}
 	uniform sampler2D uMap;
@@ -95,9 +103,18 @@ const fragment = /* glsl */ `
 	uniform int uLightCount;
 	uniform vec3 uLightPos[MAX_LIGHTS];
 	uniform vec3 uLightColor[MAX_LIGHTS];
+	// 1 = this emitter's far field is already baked into aBake, so the loop
+	// contributes only its near field. 0 = fully dynamic (held torch, props,
+	// fireflies, or a sector whose bake hasn't landed yet).
+	uniform float uLightNear[MAX_LIGHTS];
 	uniform vec3 uSunDir;
 	uniform vec3 uSunColor;
 	uniform vec3 uSkyAmbient;
+	uniform float uBakeFlicker;
+	uniform float uLightGain;
+	uniform float uBakeGain;
+	uniform vec4 uAtt;
+	varying vec3 vBake;
 	varying vec2 vUvCorrect;
 	varying vec2 vUvAffine;
 	varying float vW;
@@ -198,7 +215,13 @@ const fragment = /* glsl */ `
 			ao = har.g;
 			rough = har.b;
 		}
-		vec3 light = vec3(uAmbient * ao);
+		// Baked static torchlight (far field only — see NEAR_D0/NEAR_D1). Not
+		// multiplied by ao: the dynamic loop doesn't either, and doing so
+		// double-darkens every baked surface. Global flicker keeps baked pools
+		// breathing instead of reading as a painted-on lightmap.
+		vec3 light =
+			vec3(uAmbient * ao) +
+			vBake * uBakeFlicker * uBakeGain * uLightGain;
 		vec3 Veye = normalize(cameraPosition - vWorld);
 		// Firelight is diffuse: a soft broad lobe and weak gain, or torch light
 		// reads as a flashlight glare ring on the bricks.
@@ -216,13 +239,20 @@ const fragment = /* glsl */ `
 			lambert *= lambert;
 			// Cap the near-field so a light half a meter from a wall paints a
 			// warm pool instead of a blown-out hotspot (the flashlight look).
-			float att = min(1.0 / max(0.4 + 0.15 * d + 0.12 * d * d, 0.05), 1.1);
+			float att = min(
+				1.0 / max(uAtt.x + uAtt.y * d + uAtt.z * d * d, 0.05),
+				uAtt.w
+			);
 			float spec = 0.0;
 			if (specGain > 0.0 && ndl > 0.0) {
 				vec3 H = normalize(L + Veye);
 				spec = pow(max(dot(N, H), 0.0), shin) * specGain;
 			}
-			float base = att * win * win * (lambert + spec);
+			// Complement of the bake's farWeight: near 1 close in, 0 past
+			// NEAR_D1 where the baked far field has taken over.
+			float ft = clamp((d - NEAR_D0) / (NEAR_D1 - NEAR_D0), 0.0, 1.0);
+			float nearW = mix(1.0, 1.0 - ft * ft * (3.0 - 2.0 * ft), uLightNear[i]);
+			float base = att * win * win * (lambert + spec) * nearW;
 			// Occlusion march (up to 34 map taps) only pays off when the light
 			// still contributes visibly; sub-threshold lights skip it.
 			if (base < 0.004) continue;
@@ -238,7 +268,7 @@ const fragment = /* glsl */ `
 				float selfSh = pomSelfShadow(uv, pomHit, lTS, uPomScale * pomLod, 8.0);
 				vis *= mix(1.0, selfSh, pomLod);
 			}
-			light += uLightColor[i] * base * vis;
+			light += uLightColor[i] * base * vis * uLightGain;
 		}
 
 		// Open-sky rooms (oasis) take a sky-ambient fill plus a directional sun/
@@ -278,7 +308,7 @@ const PsxMaterialBase = shaderMaterial(
 		uTint: new THREE.Color(1, 1, 1),
 		uReliefNear: RELIEF_NEAR,
 		uReliefFar: RELIEF_FAR,
-		uAmbient: 0.12,
+		uAmbient: 0.2,
 		uPom: 0,
 		uPomScale: 0.14,
 		uPomMin: 6,
@@ -297,9 +327,14 @@ const PsxMaterialBase = shaderMaterial(
 			{ length: MAX_LIGHTS },
 			() => new THREE.Vector3(),
 		),
+		uLightNear: Array.from({ length: MAX_LIGHTS }, () => 0),
 		uSunDir: new THREE.Vector3(0.35, 0.85, 0.4).normalize(),
 		uSunColor: new THREE.Vector3(0.85, 0.78, 0.6),
 		uSkyAmbient: new THREE.Vector3(0.6, 0.66, 0.8),
+		uBakeFlicker: 1,
+		uLightGain: 1,
+		uBakeGain: 1,
+		uAtt: new THREE.Vector4(0.35, 0.09, 0.02, 1.6),
 	},
 	vertex,
 	fragment,

@@ -147,7 +147,7 @@ export function App() {
 				<EnemyHealthBars />
 				<AssetBoundary label="props">
 					<Suspense fallback={null}>
-						<PropRenderer ambient={0.04} />
+						<PropRenderer ambient={0.12} />
 					</Suspense>
 				</AssetBoundary>
 				<PhysicsBodies />
