@@ -5,7 +5,13 @@ import { PoolPass } from './vendor/PoolPass';
 import { WaterSurfacePass } from './vendor/WaterSurfacePass';
 import { WaterOpticsState } from './vendor/WaterOpticsState';
 import { ObjectTexturePass } from './vendor/ObjectTexturePass';
-import { OASIS_CORNER_RADIUS, OASIS_DEPTH, SURFACE_DROP } from './constants';
+import {
+	CAUSTICS_SEGMENTS,
+	OASIS_CORNER_RADIUS,
+	OASIS_DEPTH,
+	SURFACE_DROP,
+	WATER_SURFACE_SEGMENTS,
+} from './constants';
 import { drainDisturbs, type OasisDef } from './oasis';
 
 const LIGHT_DIR = new THREE.Vector3(1.4, 2, -0.8).normalize();
@@ -47,6 +53,7 @@ export class OasisInstance {
 			this.optics,
 			this.otp.shadowTarget.texture,
 			CAUSTICS_SIZE,
+			CAUSTICS_SEGMENTS,
 		);
 		this.pool = new PoolPass(
 			tiles,
@@ -62,6 +69,7 @@ export class OasisInstance {
 			this.otp.clippedReflectionTarget.texture,
 			this.otp.refractionTarget.texture,
 			this.optics,
+			WATER_SURFACE_SEGMENTS,
 		);
 		const r = OASIS_CORNER_RADIUS;
 		this.pool.setPoolShape('Rounded', r, def.halfW, this.depth, def.halfL);
