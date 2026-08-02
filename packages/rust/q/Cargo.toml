@@ -97,7 +97,7 @@ bevy_mapdb = { path = "../bevy/bevy_mapdb", optional = true }
 bevy_npc = { path = "../bevy/bevy_npc", optional = true }
 
 # Networking
-tokio-tungstenite = { version = "0.24", optional = true, default-features = false, features = ["rustls-tls-webpki-roots", "connect"] }
+tokio-tungstenite = { workspace = true, optional = true, features = ["rustls-tls-webpki-roots", "connect"] }
 axum = { workspace = true, optional = true, features = ["ws", "json"] }
 futures-util = { workspace = true, optional = true, features = ["sink", "std"] }
 

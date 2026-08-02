@@ -65,7 +65,7 @@ bevy_inventory = { path = "../../../packages/rust/bevy/bevy_inventory" }
 bevy_items = { path = "../../../packages/rust/bevy/bevy_items", features = ["inventory"] }
 bevy_skills = { path = "../../../packages/rust/bevy/bevy_skills" }
 futures-util = { workspace = true, features = ["default"] }
-tokio-tungstenite = { version = "0.26", features = ["rustls-tls-webpki-roots"] }
+tokio-tungstenite = { workspace = true, features = ["default", "rustls-tls-webpki-roots"] }
 webpki-roots = { workspace = true }
 
 # Workspace path dependencies

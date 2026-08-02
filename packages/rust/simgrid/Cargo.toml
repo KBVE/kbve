@@ -41,6 +41,6 @@ getrandom = "0.2"
 # Integration tests spin the real axum WS router + sim loop and drive a client.
 tokio = { workspace = true, features = ["default", "rt-multi-thread", "macros", "time", "net"] }
 axum = { workspace = true, features = ["default", "ws", "tokio"] }
-tokio-tungstenite = "0.24"
+tokio-tungstenite = { workspace = true, features = ["default"] }
 futures-util = { workspace = true, features = ["default"] }
 serde_json = { workspace = true }

@@ -37,7 +37,7 @@ async fn udp_fast_lane_full_flow() {
         kbve_username: "tester".into(),
     }))
     .unwrap();
-    ws.send(Message::Binary(join)).await.unwrap();
+    ws.send(Message::Binary(join.into())).await.unwrap();
 
     let mut my_slot = None;
     let mut offer: Option<proto::UdpOffer> = None;
@@ -47,9 +47,10 @@ async fn udp_fast_lane_full_flow() {
             .expect("ws timeout")
             .unwrap()
             .unwrap();
-        let Message::Binary(mut bytes) = msg else {
+        let Message::Binary(bytes) = msg else {
             continue;
         };
+        let mut bytes = bytes.to_vec();
         match proto::decode::<proto::ServerEvent>(&mut bytes).unwrap() {
             proto::ServerEvent::Welcome { your_slot, .. } => my_slot = Some(your_slot),
             proto::ServerEvent::Ephemeral { kind, payload, .. }

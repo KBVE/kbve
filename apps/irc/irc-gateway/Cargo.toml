@@ -21,7 +21,7 @@ axum-extra = { workspace = true, features = ["cookie"] }
 socket2 = { workspace = true }
 num_cpus = { workspace = true }
 dotenvy = { workspace = true }
-tokio-tungstenite = "0.28"
+tokio-tungstenite = { workspace = true, features = ["default"] }
 jsonwebtoken = { workspace = true, features = ["default", "rust_crypto"] }
 futures-util = { workspace = true, features = ["sink"] }
 
