@@ -846,6 +846,10 @@
           }
         }
       },
+      "grid": {
+        "width": 2,
+        "height": 2
+      },
       "has_img": true
     },
     {
@@ -974,6 +978,10 @@
             "weight": 1
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 2
       },
       "has_img": true
     },
@@ -1187,6 +1195,10 @@
             "weight": 2
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 2
       },
       "has_img": true
     },
@@ -1446,6 +1458,10 @@
             "weight": 2
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 2
       },
       "has_img": true
     },
@@ -2457,6 +2473,10 @@
           }
         }
       },
+      "grid": {
+        "width": 2,
+        "height": 2
+      },
       "has_img": true
     },
     {
@@ -2497,6 +2517,10 @@
             "weight": 1
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 1
       },
       "has_img": true
     },
@@ -2540,6 +2564,10 @@
           }
         }
       },
+      "grid": {
+        "width": 2,
+        "height": 2
+      },
       "has_img": true
     },
     {
@@ -2580,6 +2608,10 @@
             "weight": 3
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 1
       },
       "has_img": true
     },
@@ -2823,6 +2855,10 @@
             "weight": 1
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 1
       },
       "has_img": true
     },
@@ -3610,6 +3646,10 @@
           }
         }
       },
+      "grid": {
+        "width": 2,
+        "height": 1
+      },
       "has_img": true
     },
     {
@@ -4030,6 +4070,10 @@
           }
         }
       },
+      "grid": {
+        "width": 2,
+        "height": 1
+      },
       "has_img": true
     },
     {
@@ -4090,6 +4134,10 @@
             "weight": 1
           }
         }
+      },
+      "grid": {
+        "width": 1,
+        "height": 2
       },
       "has_img": true
     },
@@ -4241,6 +4289,10 @@
         "isometric",
         "herbmail"
       ],
+      "grid": {
+        "width": 2,
+        "height": 3
+      },
       "has_img": true
     },
     {
@@ -4486,6 +4538,10 @@
             "weight": 2
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 2
       },
       "has_img": true
     },
@@ -5433,6 +5489,10 @@
           }
         }
       },
+      "grid": {
+        "width": 1,
+        "height": 2
+      },
       "has_img": true
     },
     {
@@ -5954,6 +6014,10 @@
             "weight": 2
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 2
       },
       "has_img": true
     },
@@ -6483,6 +6547,10 @@
           }
         }
       },
+      "grid": {
+        "width": 1,
+        "height": 2
+      },
       "has_img": true
     },
     {
@@ -6524,6 +6592,10 @@
           }
         }
       },
+      "grid": {
+        "width": 1,
+        "height": 2
+      },
       "has_img": true
     },
     {
@@ -6563,6 +6635,10 @@
           }
         },
         "movement_penalty": 1
+      },
+      "grid": {
+        "width": 2,
+        "height": 2
       },
       "has_img": true
     },
@@ -6650,6 +6726,10 @@
           }
         }
       },
+      "grid": {
+        "width": 2,
+        "height": 2
+      },
       "has_img": true
     },
     {
@@ -6691,6 +6771,10 @@
           }
         }
       },
+      "grid": {
+        "width": 2,
+        "height": 1
+      },
       "has_img": true
     },
     {
@@ -6731,6 +6815,10 @@
             "weight": 4
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 2
       },
       "has_img": true
     },
@@ -6774,6 +6862,10 @@
             "weight": 4
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 2
       },
       "has_img": true
     },
@@ -6857,6 +6949,10 @@
           }
         }
       },
+      "grid": {
+        "width": 2,
+        "height": 1
+      },
       "has_img": true
     },
     {
@@ -6898,6 +6994,10 @@
           }
         }
       },
+      "grid": {
+        "width": 2,
+        "height": 1
+      },
       "has_img": true
     },
     {
@@ -6936,6 +7036,10 @@
             "weight": 3
           }
         }
+      },
+      "grid": {
+        "width": 2,
+        "height": 1
       },
       "has_img": true
     },

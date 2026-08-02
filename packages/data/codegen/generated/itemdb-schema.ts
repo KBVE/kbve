@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/itemdb.binpb
  * Config: ../itemdb-zod-config.json
- * Generated: 2026-07-31T08:53:52.913Z
+ * Generated: 2026-08-02T15:32:44.782Z
  */
 
 import { z } from 'zod';
@@ -499,6 +499,15 @@ export const ItemExtensionSchema = z.object({
 
 export type ItemExtension = z.infer<typeof ItemExtensionSchema>;
 
+// GridFootprint
+export const GridFootprintSchema = z.object({
+	width: z.number().optional(),
+	height: z.number().optional(),
+	no_rotate: z.boolean().optional(),
+});
+
+export type GridFootprint = z.infer<typeof GridFootprintSchema>;
+
 // Item
 export const ItemSchema = z.object({
 	id: z.string(),
@@ -566,6 +575,7 @@ export const ItemSchema = z.object({
 	key: z.number(),
 	has_img: z.boolean().optional(),
 	bonuses: z.record(z.string(), z.unknown()).optional(),
+	grid: GridFootprintSchema.optional(),
 });
 
 export type Item = z.infer<typeof ItemSchema>;
