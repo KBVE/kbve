@@ -29,7 +29,7 @@ tokio = { version = "1", features = ["net", "io-util", "sync", "time", "rt", "rt
 # WebSocket transport — used by isometric desktop client to reach wss://chat.kbve.com
 # (mirrors the WASM browser client). default-features=false avoids pulling
 # native-tls/openssl-sys; webpki-roots ships the system trust anchors.
-tokio-tungstenite = { version = "0.24", default-features = false, features = ["connect", "rustls-tls-webpki-roots"] }
+tokio-tungstenite = { workspace = true, features = ["connect", "rustls-tls-webpki-roots"] }
 futures-util = { version = "0.3", default-features = false, features = ["sink", "std"] }
 
 # WASM (web_sys WebSocket) — used by isometric game in browser

@@ -17,7 +17,7 @@ egui = ["dep:egui", "dep:eframe", "dep:image"]
 tauri = []
 
 [dependencies]
-base64 = "0.22.1"
+base64 = { workspace = true }
 egui = { version = "0.34.1", optional = true }
 eframe = { version = "0.34.1", default-features = false, optional = true, features = [
     "accesskit",     # Make egui compatible with screen readers. NOTE: adds a lot of dependencies.
@@ -27,15 +27,15 @@ eframe = { version = "0.34.1", default-features = false, optional = true, featur
     "wayland",       # Wayland support on Linux.
     "x11",           # X11 support on Linux.
 ] }
-log = "0.4"
+log = { workspace = true }
 ehttp = "0.6.0"
 image = { version = "0.25.9", optional = true, default-features = false, features = ["png", "jpeg", "webp"] }
 holy = { path = "../holy" }
 
-chrono = { version = "0.4.43", features = ["serde"] }
+chrono = { workspace = true, features = ["default", "serde"] }
 
-serde = { version = "1", features = ["derive"] }
-serde_json = "1.0"
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen-futures = "0.4"
+wasm-bindgen-futures = { workspace = true }

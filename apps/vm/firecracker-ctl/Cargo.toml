@@ -8,29 +8,29 @@ publish = false
 description = "REST API service for managing Firecracker microVMs"
 
 [dependencies]
-axum = { version = "0.8.8", features = ["macros"] }
-tokio = { version = "1.0", features = ["full", "rt-multi-thread", "process"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-tower = { version = "0.5.3", features = ["util", "timeout"] }
-tower-http = { version = "0.7.0", features = ["trace", "cors"] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-uuid = { version = "1", features = ["v4", "v5"] }
+axum = { workspace = true, features = ["default", "macros"] }
+tokio = { workspace = true, features = ["default", "full", "rt-multi-thread", "process"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tower = { workspace = true, features = ["util", "timeout"] }
+tower-http = { workspace = true, features = ["trace", "cors"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
+uuid = { workspace = true, features = ["v4", "v5"] }
 kbve = { path = "../../../packages/rust/kbve", default-features = false, features = ["wallet"] }
-tokio-stream = "0.1"
-dashmap = "6"
+tokio-stream = { workspace = true }
+dashmap = { workspace = true }
 # Used by /fc/* persistent endpoint proxy (Phase 2d) to reverse-proxy
 # into the VM on its TAP IP. No TLS needed — connections are plaintext
 # over the internal /30 link inside the pod netns.
-reqwest = { version = "0.12", default-features = false, features = ["stream"] }
+reqwest = { workspace = true, features = ["stream", "rustls"] }
 # Used by fc_destroy to SIGTERM the VMM process via kill(2).
 libc = "0.2"
-utoipa = { version = "5", features = ["axum_extras"] }
+utoipa = { workspace = true, features = ["axum_extras"] }
 
 [dev-dependencies]
-tempfile = "3"
-http-body-util = "0.1"
+tempfile = { workspace = true }
+http-body-util = { workspace = true }
 
 [features]
 default = []

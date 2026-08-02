@@ -22,13 +22,11 @@ snapshot = ["dep:serde_json"]
 bevy = ["dep:bevy"]
 
 [dependencies]
-serde = { version = "1", features = ["derive"] }
-serde_json = { version = "1", optional = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true, optional = true }
 
 # Bevy — only pulled in under the `bevy` feature.
-bevy = { version = "0.19", default-features = false, features = [
-    "bevy_state",
-], optional = true }
+bevy = { workspace = true, optional = true, features = ["bevy_state"] }
 
 [package.metadata.docs.rs]
 all-features = true

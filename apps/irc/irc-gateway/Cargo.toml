@@ -7,23 +7,23 @@ rust-version.workspace = true
 publish = false
 
 [dependencies]
-anyhow = "1.0"
-thiserror = "2"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-tower = { version = "0.5.3", features = ["util", "timeout", "load-shed", "limit"] }
-tower-http = { version = "0.7.0", features = ["compression-full", "limit", "trace", "cors", "set-header", "fs"] }
-tokio = { version = "1.0", features = ["full", "rt-multi-thread"] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-axum = { version = "0.8.5", features = ["ws", "macros", "json"] }
-axum-extra = { version = "0.12.1", features = ["cookie"] }
-socket2 = "0.6.1"
-num_cpus = "1.17.0"
-dotenvy = "0.15"
-tokio-tungstenite = "0.28"
-jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
-futures-util = { version = "0.3", default-features = false, features = ["sink"] }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tower = { workspace = true, features = ["util", "timeout", "load-shed", "limit"] }
+tower-http = { workspace = true, features = ["compression-full", "limit", "trace", "cors", "set-header", "fs"] }
+tokio = { workspace = true, features = ["default", "full", "rt-multi-thread"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
+axum = { workspace = true, features = ["default", "ws", "macros", "json"] }
+axum-extra = { workspace = true, features = ["cookie"] }
+socket2 = { workspace = true }
+num_cpus = { workspace = true }
+dotenvy = { workspace = true }
+tokio-tungstenite = { workspace = true, features = ["default"] }
+jsonwebtoken = { workspace = true, features = ["default", "rust_crypto"] }
+futures-util = { workspace = true, features = ["sink"] }
 
 # Workspace path dependencies
 jedi = { path = "../../../packages/rust/jedi", features = ["valkey"] }
@@ -35,12 +35,12 @@ kbve = { path = "../../../packages/rust/kbve" }
 bevy_chat = { path = "../../../packages/rust/bevy/bevy_chat" }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
-tikv-jemallocator = { version = "0.7", optional = true }
+tikv-jemallocator = { workspace = true, optional = true }
 
 [dev-dependencies]
-serial_test = "3"
-http-body-util = "0.1"
-tempfile = "3"
+serial_test = { workspace = true }
+http-body-util = { workspace = true }
+tempfile = { workspace = true }
 
 [features]
 default = []

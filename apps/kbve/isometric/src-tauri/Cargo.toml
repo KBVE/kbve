@@ -50,31 +50,11 @@ tauri-build = { version = "2", features = [] }
 
 # --- Shared dependencies ---
 [dependencies]
-bevy = { version = "0.19", default-features = false, features = [
-    "bevy_asset",
-    "bevy_render",
-    "bevy_core_pipeline",
-    "bevy_sprite",
-    "bevy_pbr",
-    "bevy_text",
-    "bevy_ui",
-    "bevy_ui_render",
-    "bevy_state",
-    "bevy_color",
-    "bevy_winit",
-    "tonemapping_luts",
-    "png",
-    "zstd_rust",
-    "bevy_picking",
-    "mesh_picking",
-    "ui_picking",
-    "bevy_gizmos",
-    "default_font",
-] }
+bevy = { workspace = true, features = ["bevy_asset", "bevy_render", "bevy_core_pipeline", "bevy_sprite", "bevy_pbr", "bevy_text", "bevy_ui", "bevy_ui_render", "bevy_state", "bevy_color", "bevy_winit", "tonemapping_luts", "png", "zstd_rust", "bevy_picking", "mesh_picking", "ui_picking", "bevy_gizmos", "default_font"] }
 libm = "0.2"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-avian3d = { version = "0.7", default-features = false, features = ["3d", "f32", "parry-f32", "debug-plugin"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+avian3d = { workspace = true, features = ["3d", "f32", "parry-f32", "debug-plugin"] }
 bevy_inventory = { path = "../../../../packages/rust/bevy/bevy_inventory" }
 bevy_items = { path = "../../../../packages/rust/bevy/bevy_items", features = ["inventory"] }
 bevy_cam = { path = "../../../../packages/rust/bevy/bevy_cam" }
@@ -84,33 +64,23 @@ bevy_pathfinder = { path = "../../../../packages/rust/bevy/bevy_pathfinder" }
 bevy_skills = { path = "../../../../packages/rust/bevy/bevy_skills" }
 bevy_db = { path = "../../../../packages/rust/bevy/bevy_db" }
 bevy_chat = { path = "../../../../packages/rust/bevy/bevy_chat", features = ["plugin"] }
-lightyear = { version = "0.28", default-features = false, features = [
-    "client",
-    "replication",
-    "prediction",
-    "interpolation",
-    "input_native",
-    "websocket",
-    "websocket_self_signed",
-    "netcode",
-    "webtransport",
-] }
-base64 = "0.22"
-dirs = "6"
-rand = "0.10"
+lightyear = { workspace = true, features = ["client", "replication", "prediction", "interpolation", "input_native", "websocket", "websocket_self_signed", "netcode", "webtransport"] }
+base64 = { workspace = true }
+dirs = { workspace = true }
+rand = { workspace = true }
 bevy_tasker = { path = "../../../../packages/rust/bevy/bevy_tasker" }
-crossbeam-channel = "0.5"
-dashmap = "6"
-log = "0.4"
+crossbeam-channel = { workspace = true }
+dashmap = { workspace = true }
+log = { workspace = true }
 
 # --- Native (desktop + mobile) render deps ---
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-wgpu = "29"
-pollster = "0.4"
-raw-window-handle = "0.6"
+wgpu = { workspace = true }
+pollster = { workspace = true }
+raw-window-handle = { workspace = true }
 ureq = { version = "3", features = ["json"] }
 # Dedicated runtime that hosts the chat IRC-WS connection (all native targets).
-tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time"] }
+tokio = { workspace = true, features = ["default", "rt-multi-thread", "macros", "sync", "time"] }
 
 # Tauri desktop shell — gated by the `desktop` feature (on by default, off for
 # mobile builds via --no-default-features). Optional so mobile drops them.
@@ -121,7 +91,7 @@ tauri-plugin-window-state = { version = "2", optional = true }
 urlencoding = { version = "2", optional = true }
 
 [target.'cfg(target_os = "macos")'.dependencies]
-objc2 = "0.6"
+objc2 = { workspace = true }
 objc2-app-kit = { version = "0.3", features = ["NSView", "NSWindow"] }
 objc2-quartz-core = { version = "0.3", features = ["CALayer", "CAMetalLayer"] }
 objc2-foundation = { version = "0.3", features = ["NSGeometry"] }
@@ -145,13 +115,10 @@ features = ["webgpu"]
 # --- WASM-only dependencies ---
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.2", features = ["js"] }
-js-sys = "0.3"
-wasm-bindgen = "=0.2.114"
-wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = [
-    "Document", "Window", "Navigator", "Location", "Storage", "HtmlCanvasElement",
-    "Request", "RequestInit", "RequestMode", "Response", "Headers",
-] }
+js-sys = { workspace = true, features = ["default"] }
+wasm-bindgen = { workspace = true, features = ["default"] }
+wasm-bindgen-futures = { workspace = true }
+web-sys = { workspace = true, features = ["Document", "Window", "Navigator", "Location", "Storage", "HtmlCanvasElement", "Request", "RequestInit", "RequestMode", "Response", "Headers"] }
 serde-wasm-bindgen = "0.6"
 console_error_panic_hook = "0.1"
 console_log = { version = "1", features = ["color"] }

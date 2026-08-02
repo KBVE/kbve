@@ -7,30 +7,30 @@ rust-version.workspace = true
 publish = false
 
 [dependencies]
-anyhow = "1.0"
-thiserror = "2"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-tokio = { version = "1.0", features = ["full", "rt-multi-thread"] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-axum = { version = "0.8.8", default-features = false, features = ["json"] }
-askama = "0.15.4"
-dotenvy = "0.15"
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tokio = { workspace = true, features = ["default", "full", "rt-multi-thread"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
+axum = { workspace = true, features = ["json"] }
+askama = { workspace = true }
+dotenvy = { workspace = true }
 serenity = { version = "0.12.5", default-features = false, features = ["client", "gateway", "model", "rustls_backend", "cache"] }
 poise = "0.6.1"
 # Raw gateway frame type for sending a Voice State Update (op 4) via
 # ShardMessenger::websocket_message. Pinned to serenity's transitive
 # tokio-tungstenite so the `Message` type unifies to one crate instance.
 tokio-tungstenite = { version = "0.21", default-features = false }
-sysinfo = "0.38.2"
-reqwest = { version = "0.13.2", default-features = false, features = ["json", "rustls"] }
-dashmap = "6.1"
-lru = "0.16"
-uuid = { version = "1", features = ["v4", "serde"] }
-rand = "0.10"
+sysinfo = { workspace = true }
+reqwest = { workspace = true, features = ["json", "rustls"] }
+dashmap = { workspace = true }
+lru = { workspace = true }
+uuid = { workspace = true, features = ["v4", "serde"] }
+rand = { workspace = true }
 rand_chacha = "0.10"
-chrono = "0.4"
+chrono = { workspace = true, features = ["default"] }
 globset = "0.4.18"
 
 # Workspace path dependencies
@@ -51,10 +51,10 @@ bevy_pathfinder = { path = "../../../packages/rust/bevy/bevy_pathfinder", defaul
 bevy_db = { path = "../../../packages/rust/bevy/bevy_db", default-features = false }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
-tikv-jemallocator = { version = "0.7", optional = true }
+tikv-jemallocator = { workspace = true, optional = true }
 
 [dev-dependencies]
-serial_test = "3"
+serial_test = { workspace = true }
 wiremock = "0.6"
 
 [features]

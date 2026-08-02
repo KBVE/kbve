@@ -12,7 +12,7 @@ path = "src/main.rs"
 
 [dependencies]
 kbve = { path = "../../../packages/rust/kbve", features = ["gate"] }
-tokio = { version = "1.0", features = ["full"] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-dotenvy = "0.15"
+tokio = { workspace = true, features = ["default", "full"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
+dotenvy = { workspace = true }
