@@ -63,6 +63,20 @@ export const COMMUNITY_NAV: DashboardNavEntry[] = [
 	},
 ];
 
+/**
+ * Rail links that deliberately do NOT render the rail on their own page.
+ * /graph/ is a full-bleed interactive graph a 15rem gutter would squash;
+ * /register/ is an auth flow, not a browsable community page.
+ */
+const RAIL_EXCLUDED = new Set(['/graph/', '/register/']);
+
+/** Every community page that renders the rail, derived from the nav itself. */
+export const COMMUNITY_RAIL_SLUGS: ReadonlySet<string> = new Set(
+	COMMUNITY_NAV.flatMap((entry) =>
+		'items' in entry ? entry.items.map((i) => i.href) : [entry.href],
+	).filter((href) => !RAIL_EXCLUDED.has(href)),
+);
+
 export const isCommunityActive = (pathname: string, href: string): boolean =>
 	isActiveIn(COMMUNITY_ROOT.href, pathname, href);
 
