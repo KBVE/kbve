@@ -2,11 +2,12 @@ import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { MeshoptDecoder } from './meshopt';
 import type { PartSet } from './armor';
+import { modelUrl } from './modelUrl';
 
 const SET_URL: Record<Exclude<PartSet, 'KNGT'>, string> = {
-	SCFI09: '/models/parts/scifi-civ09.glb',
-	SCFI10: '/models/parts/scifi-civ10.glb',
-	HORR01: '/models/parts/horr-viln01.glb',
+	SCFI09: modelUrl('/models/parts/scifi-civ09.glb'),
+	SCFI10: modelUrl('/models/parts/scifi-civ10.glb'),
+	HORR01: modelUrl('/models/parts/horr-viln01.glb'),
 };
 
 const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);

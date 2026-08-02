@@ -1,5 +1,7 @@
-export const SWORD_URL = '/models/sword.glb';
-export const TORCH_URL = '/models/torch.glb';
+import { modelUrl } from './modelUrl';
+
+export const SWORD_URL = modelUrl('/models/sword.glb');
+export const TORCH_URL = modelUrl('/models/torch.glb');
 
 export const VERTICAL_GRIP = {
 	pos: [-0.06, 0, 0.02] as [number, number, number],
