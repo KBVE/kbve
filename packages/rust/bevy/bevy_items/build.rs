@@ -29,6 +29,7 @@ fn main() {
     prost_build::Config::new()
         .out_dir(&out_dir)
         .type_attribute(".item", "#[derive(serde::Serialize, serde::Deserialize)]")
+        .field_attribute(".item.Item.bonuses", "#[serde(skip)]")
         .compile_protos(
             &[item_proto.to_str().unwrap()],
             &[

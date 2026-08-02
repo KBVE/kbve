@@ -59,6 +59,50 @@ pub struct EquipmentInfo {
     pub durability: ::core::option::Option<i32>,
     #[prost(int32, optional, tag = "6")]
     pub max_durability: ::core::option::Option<i32>,
+    /// Number of enchantments that can be applied
+    #[prost(int32, optional, tag = "7")]
+    pub enchantment_slots: ::core::option::Option<i32>,
+    /// Accepted enchantment slugs (e.g. "gem", "rune", "sigil")
+    #[prost(string, repeated, tag = "8")]
+    pub enchantment_types: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// Cannot be unequipped without a remedy
+    #[prost(bool, optional, tag = "9")]
+    pub cursed: ::core::option::Option<bool>,
+    /// 0.0-1.0 speed reduction when worn (armor weight)
+    #[prost(float, optional, tag = "10")]
+    pub movement_penalty: ::core::option::Option<f32>,
+}
+/// Enchantment payload — describes what an enchantment grants when attached to
+/// a parent piece of equipment. Items carrying EnchantmentInfo (gems, runes,
+/// sigils, crafted enchantments) are eligible to occupy EquipmentInfo's slots.
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
+pub struct EnchantmentInfo {
+    /// Namespace matching EquipmentInfo.enchantment_types
+    #[prost(string, tag = "1")]
+    pub slug: ::prost::alloc::string::String,
+    /// Stat bonuses added to the parent while attached
+    #[prost(message, optional, tag = "2")]
+    pub bonuses: ::core::option::Option<ItemBonuses>,
+    /// Effects triggered when the parent item is used
+    #[prost(message, repeated, tag = "3")]
+    pub on_use: ::prost::alloc::vec::Vec<UseEffect>,
+    /// Continuous effects while the parent is equipped
+    #[prost(message, repeated, tag = "4")]
+    pub while_equipped: ::prost::alloc::vec::Vec<UseEffect>,
+    /// 1-N quality tier (matches rarity escalation)
+    #[prost(int32, optional, tag = "5")]
+    pub tier: ::core::option::Option<i32>,
+    /// Can be extracted intact (false = destroys on removal)
+    #[prost(bool, optional, tag = "6")]
+    pub removable: ::core::option::Option<bool>,
+    #[prost(int32, optional, tag = "7")]
+    pub level_requirement: ::core::option::Option<i32>,
+    /// Elemental boosts granted while attached
+    #[prost(message, repeated, tag = "8")]
+    pub affinities: ::prost::alloc::vec::Vec<ItemAffinity>,
+    /// Elemental resistances granted while attached
+    #[prost(message, repeated, tag = "9")]
+    pub resistances: ::prost::alloc::vec::Vec<ItemAffinity>,
 }
 /// A single use effect definition
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Hash, ::prost::Message)]
@@ -200,12 +244,6 @@ pub struct FoodInfo {
     /// Number of doses (potions: 1-4)
     #[prost(int32, optional, tag = "2")]
     pub doses: ::core::option::Option<i32>,
-    /// Cooking level required to prepare
-    #[prost(int32, optional, tag = "3")]
-    pub cooking_level: ::core::option::Option<i32>,
-    /// XP awarded for cooking this item
-    #[prost(float, optional, tag = "4")]
-    pub cooking_xp: ::core::option::Option<f32>,
     /// Level at which burning stops
     #[prost(int32, optional, tag = "5")]
     pub burn_level: ::core::option::Option<i32>,
@@ -215,6 +253,27 @@ pub struct FoodInfo {
     /// Stat buffs granted on consumption
     #[prost(message, repeated, tag = "7")]
     pub buff_effects: ::prost::alloc::vec::Vec<UseEffect>,
+    /// Energy / hunger satiation restored on consumption
+    #[prost(int32, optional, tag = "8")]
+    pub restore_energy: ::core::option::Option<i32>,
+    /// Mana restored on consumption
+    #[prost(int32, optional, tag = "9")]
+    pub restore_mana: ::core::option::Option<i32>,
+    /// Post-consumption over-time regen rate (HP/sec)
+    #[prost(float, optional, tag = "10")]
+    pub regen_per_second: ::core::option::Option<f32>,
+    /// Seconds the regen buff lasts after consumption
+    #[prost(float, optional, tag = "11")]
+    pub regen_duration: ::core::option::Option<f32>,
+    /// Item decays over time if true
+    #[prost(bool, optional, tag = "12")]
+    pub perishable: ::core::option::Option<bool>,
+    /// Time from creation/harvest until spoil
+    #[prost(int32, optional, tag = "13")]
+    pub shelf_life_seconds: ::core::option::Option<i32>,
+    /// Item produced on spoilage (e.g. "rotten-meat")
+    #[prost(string, optional, tag = "14")]
+    pub spoils_into_ref: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// Skilling properties — for items that interact with skill systems
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
@@ -240,6 +299,341 @@ pub struct SkillingInfo {
     /// World object ref (e.g. "oak_tree", "copper_vein")
     #[prost(string, optional, tag = "7")]
     pub resource_node: ::core::option::Option<::prost::alloc::string::String>,
+    /// 0-100 preference weight when the harvester has multiple eligible targets
+    #[prost(int32, optional, tag = "8")]
+    pub harvest_weight: ::core::option::Option<i32>,
+}
+/// Compression / consolidation — many small stacks fuse into one bulk item.
+/// Used by storage consolidators, granaries, smelters that batch raw stock into
+/// construction-grade output.
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct CompressInfo {
+    /// Output item ref (e.g. "timber" for wood-log compression)
+    #[prost(string, tag = "1")]
+    pub target_ref: ::prost::alloc::string::String,
+    /// Input units per single output unit
+    #[prost(int32, tag = "2")]
+    pub ratio: i32,
+    /// Required facility ref for the consolidation (optional)
+    #[prost(string, optional, tag = "3")]
+    pub facility: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Stack / inventory handling hints that go beyond raw max_stack.
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct StackingInfo {
+    /// Per-unit carried stack cap (distinct from storage max_stack)
+    #[prost(int32, optional, tag = "1")]
+    pub pack_max: ::core::option::Option<i32>,
+    /// Cannot be carried by a unit (storage-only, e.g. gold bars)
+    #[prost(bool, optional, tag = "2")]
+    pub no_pack: ::core::option::Option<bool>,
+    /// Logical group (e.g. "food") — any item with the same pool_group substitutes
+    #[prost(string, optional, tag = "3")]
+    pub pool_group: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Weapon properties — for items with ITEM_TYPE_WEAPON or ITEM_TYPE_COMBAT flag.
+/// Covers both melee and ranged; 0 range = melee. Ammo linkage is bow→arrow
+/// via ammo_ref (primary) and compatible_ammo (alternates).
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
+pub struct WeaponInfo {
+    /// Reach in tiles/meters (0 or 1 = melee)
+    #[prost(float, optional, tag = "1")]
+    pub range: ::core::option::Option<f32>,
+    /// Attacks per second; lower = slower
+    #[prost(float, optional, tag = "2")]
+    pub attack_speed: ::core::option::Option<f32>,
+    /// Visual/entity projectile ref for ranged
+    #[prost(string, optional, tag = "3")]
+    pub projectile_ref: ::core::option::Option<::prost::alloc::string::String>,
+    /// Primary consumed ammo item ref (e.g. "arrow")
+    #[prost(string, optional, tag = "4")]
+    pub ammo_ref: ::core::option::Option<::prost::alloc::string::String>,
+    /// Alternate ammo accepted
+    #[prost(string, repeated, tag = "5")]
+    pub compatible_ammo: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    #[prost(enumeration = "Element", optional, tag = "6")]
+    pub damage_element: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "7")]
+    pub min_damage: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "8")]
+    pub max_damage: ::core::option::Option<i32>,
+    #[prost(float, optional, tag = "9")]
+    pub crit_chance: ::core::option::Option<f32>,
+    #[prost(float, optional, tag = "10")]
+    pub crit_damage: ::core::option::Option<f32>,
+    /// Ticks before the swing lands
+    #[prost(int32, optional, tag = "11")]
+    pub windup_ticks: ::core::option::Option<i32>,
+    /// Post-swing lockout
+    #[prost(int32, optional, tag = "12")]
+    pub recovery_ticks: ::core::option::Option<i32>,
+    /// Area of effect radius in tiles (0 = single-target)
+    #[prost(int32, optional, tag = "13")]
+    pub aoe_radius: ::core::option::Option<i32>,
+    /// Occupies both hands even if slot = main_hand
+    #[prost(bool, optional, tag = "14")]
+    pub two_handed: ::core::option::Option<bool>,
+    /// Limited-use charges (wands, one-shots); 0 = unlimited
+    #[prost(int32, optional, tag = "15")]
+    pub charges: ::core::option::Option<i32>,
+}
+/// Fuel / combustible — for items that burn in furnaces, cookfires, campfires.
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
+pub struct FuelInfo {
+    /// Base burn duration per unit
+    #[prost(int32, tag = "1")]
+    pub burn_seconds: i32,
+    /// Relative heat rating (cookfire needs 1, smelter 3, etc.)
+    #[prost(int32, optional, tag = "2")]
+    pub heat_output: ::core::option::Option<i32>,
+    /// Item left over after burn (e.g. "ash")
+    #[prost(string, optional, tag = "3")]
+    pub residue_ref: ::core::option::Option<::prost::alloc::string::String>,
+    /// 0.0-1.0 probability of producing residue per unit
+    #[prost(float, optional, tag = "4")]
+    pub residue_chance: ::core::option::Option<f32>,
+    /// Regrows/crafts indefinitely (wood vs coal)
+    #[prost(bool, optional, tag = "5")]
+    pub renewable: ::core::option::Option<bool>,
+}
+/// Container capacity — for pouches, bags, quivers, and deployed chests.
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
+pub struct ContainerInfo {
+    /// Extra pack slots granted when equipped
+    #[prost(int32, optional, tag = "1")]
+    pub added_slots: ::core::option::Option<i32>,
+    /// Multiplier applied to base pack capacity (default 1.0)
+    #[prost(float, optional, tag = "2")]
+    pub volume_multiplier: ::core::option::Option<f32>,
+    /// 0.0-1.0 fraction by which contained items weigh less
+    #[prost(float, optional, tag = "3")]
+    pub weight_reduction: ::core::option::Option<f32>,
+    /// Tag filter — only matching items can be stored (empty = any)
+    #[prost(string, repeated, tag = "4")]
+    pub category_filter: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+    /// For deployed chests: standalone storage capacity
+    #[prost(int32, optional, tag = "5")]
+    pub storage_slots: ::core::option::Option<i32>,
+    /// Deployed chests: contents visible to all allied units
+    #[prost(bool, optional, tag = "6")]
+    pub shared_inventory: ::core::option::Option<bool>,
+    /// Requires key or owner to access
+    #[prost(bool, optional, tag = "7")]
+    pub locked_by_default: ::core::option::Option<bool>,
+}
+/// Planting / farming — for seeds or saplings.
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
+pub struct PlantingInfo {
+    /// Item produced when the plant matures
+    #[prost(string, tag = "1")]
+    pub grows_into_ref: ::prost::alloc::string::String,
+    /// Growth time in seconds
+    #[prost(int32, tag = "2")]
+    pub grow_seconds: i32,
+    /// Output quantity per mature plant (default 1)
+    #[prost(int32, optional, tag = "3")]
+    pub yield_amount: ::core::option::Option<i32>,
+    /// Tile type slug (e.g. "farmland", "desert-sand")
+    #[prost(string, optional, tag = "4")]
+    pub required_tile: ::core::option::Option<::prost::alloc::string::String>,
+    /// 0-255 light level minimum
+    #[prost(int32, optional, tag = "5")]
+    pub required_light: ::core::option::Option<i32>,
+    /// Water units consumed per hour (0 = rain-fed)
+    #[prost(float, optional, tag = "6")]
+    pub water_per_hour: ::core::option::Option<f32>,
+    /// If true, plant regrows rather than being destroyed
+    #[prost(bool, optional, tag = "7")]
+    pub multi_harvest: ::core::option::Option<bool>,
+    /// Regrowth interval for multi-harvest plants
+    #[prost(int32, optional, tag = "8")]
+    pub regrow_seconds: ::core::option::Option<i32>,
+    /// Allowed season slug (e.g. "spring", "year-round")
+    #[prost(string, optional, tag = "9")]
+    pub season: ::core::option::Option<::prost::alloc::string::String>,
+    /// 0.0-1.0 survival in cold
+    #[prost(float, optional, tag = "10")]
+    pub frost_tolerance: ::core::option::Option<f32>,
+}
+/// Projectile flight / impact — for arrows, bolts, thrown items, magic bolts.
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
+pub struct ProjectileInfo {
+    /// Travel speed in tiles/sec
+    #[prost(float, optional, tag = "1")]
+    pub speed: ::core::option::Option<f32>,
+    /// 0 = flat trajectory; higher = arcing
+    #[prost(float, optional, tag = "2")]
+    pub gravity: ::core::option::Option<f32>,
+    /// Targets pierced before the projectile dies
+    #[prost(int32, optional, tag = "3")]
+    pub pierce_count: ::core::option::Option<i32>,
+    /// VFX slug on hit
+    #[prost(string, optional, tag = "4")]
+    pub impact_effect_ref: ::core::option::Option<::prost::alloc::string::String>,
+    /// VFX slug during flight
+    #[prost(string, optional, tag = "5")]
+    pub trail_ref: ::core::option::Option<::prost::alloc::string::String>,
+    /// Tracks target in flight
+    #[prost(bool, optional, tag = "6")]
+    pub homing: ::core::option::Option<bool>,
+    /// AoE on impact (0 = single-target)
+    #[prost(int32, optional, tag = "7")]
+    pub splash_radius: ::core::option::Option<i32>,
+    /// 0.0-1.0 damage falloff at the edge
+    #[prost(float, optional, tag = "8")]
+    pub splash_falloff: ::core::option::Option<f32>,
+}
+/// Spell properties — for scrolls, tomes, wands, staves that cast or teach a spell.
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
+pub struct SpellInfo {
+    /// Spell slug (e.g. "fireball", "ice-shard")
+    #[prost(string, tag = "1")]
+    pub spell_ref: ::prost::alloc::string::String,
+    /// Mana consumed per cast
+    #[prost(int32, optional, tag = "2")]
+    pub mana_cost: ::core::option::Option<i32>,
+    /// Channel / cast time before the spell fires
+    #[prost(float, optional, tag = "3")]
+    pub cast_seconds: ::core::option::Option<f32>,
+    /// Post-cast lockout
+    #[prost(float, optional, tag = "4")]
+    pub cooldown_seconds: ::core::option::Option<f32>,
+    /// Stat that scales damage (e.g. "intelligence")
+    #[prost(string, optional, tag = "5")]
+    pub scaling_stat: ::core::option::Option<::prost::alloc::string::String>,
+    /// How much the stat contributes
+    #[prost(float, optional, tag = "6")]
+    pub scaling_multiplier: ::core::option::Option<f32>,
+    #[prost(int32, optional, tag = "7")]
+    pub base_damage: ::core::option::Option<i32>,
+    #[prost(enumeration = "Element", optional, tag = "8")]
+    pub element: ::core::option::Option<i32>,
+    /// Max casting distance
+    #[prost(float, optional, tag = "9")]
+    pub range: ::core::option::Option<f32>,
+    #[prost(int32, optional, tag = "10")]
+    pub aoe_radius: ::core::option::Option<i32>,
+    /// True for tomes that add the spell to the caster's book
+    #[prost(bool, optional, tag = "11")]
+    pub teaches_permanent: ::core::option::Option<bool>,
+    /// True for one-shot scrolls
+    #[prost(bool, optional, tag = "12")]
+    pub consumed_on_cast: ::core::option::Option<bool>,
+    /// Remaining casts (0 = unlimited)
+    #[prost(int32, optional, tag = "13")]
+    pub charges: ::core::option::Option<i32>,
+    /// Additional effects applied on cast
+    #[prost(message, repeated, tag = "14")]
+    pub side_effects: ::prost::alloc::vec::Vec<UseEffect>,
+}
+/// Book properties — for readable items (lore books, journals, recipe books).
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct BookInfo {
+    /// Full readable text
+    #[prost(string, optional, tag = "1")]
+    pub body_text: ::core::option::Option<::prost::alloc::string::String>,
+    /// Reference to external MDX / markdown asset
+    #[prost(string, optional, tag = "2")]
+    pub body_text_ref: ::core::option::Option<::prost::alloc::string::String>,
+    /// Approximate time to read through
+    #[prost(int32, optional, tag = "3")]
+    pub reading_seconds: ::core::option::Option<i32>,
+    /// Granted CraftingRecipe on first read
+    #[prost(string, optional, tag = "4")]
+    pub teaches_recipe_ref: ::core::option::Option<::prost::alloc::string::String>,
+    /// Granted SpellInfo on first read
+    #[prost(string, optional, tag = "5")]
+    pub teaches_spell_ref: ::core::option::Option<::prost::alloc::string::String>,
+    /// Codex entry slug to reveal
+    #[prost(string, optional, tag = "6")]
+    pub unlocks_lore_ref: ::core::option::Option<::prost::alloc::string::String>,
+    /// True when the book crumbles / is used up
+    #[prost(bool, optional, tag = "7")]
+    pub consumed_on_read: ::core::option::Option<bool>,
+    /// Language slug for locale gating
+    #[prost(string, optional, tag = "8")]
+    pub language: ::core::option::Option<::prost::alloc::string::String>,
+    /// Ordered chapter/page slugs for paginated reading
+    #[prost(string, repeated, tag = "9")]
+    pub chapters: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
+}
+/// Key properties — for items that unlock specific world entities.
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct KeyInfo {
+    /// World entity / structure slug this key opens
+    #[prost(string, tag = "1")]
+    pub unlocks_ref: ::prost::alloc::string::String,
+    /// "door", "chest", "gate", "cell"
+    #[prost(string, optional, tag = "2")]
+    pub unlock_category: ::core::option::Option<::prost::alloc::string::String>,
+    /// True if the key is destroyed on unlock
+    #[prost(bool, optional, tag = "3")]
+    pub consumed_on_use: ::core::option::Option<bool>,
+    /// Optional item granted when unlock succeeds
+    #[prost(string, optional, tag = "4")]
+    pub grant_item_ref: ::core::option::Option<::prost::alloc::string::String>,
+    /// Number of unlocks before the key breaks (0 = unlimited)
+    #[prost(int32, optional, tag = "5")]
+    pub uses: ::core::option::Option<i32>,
+    /// Faction slug required to use the key
+    #[prost(string, optional, tag = "6")]
+    pub faction_lock: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Vehicle / mount properties — for boats, carts, horses, mechanical conveyances.
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
+pub struct VehicleInfo {
+    /// Peak movement speed
+    #[prost(float, optional, tag = "1")]
+    pub max_speed: ::core::option::Option<f32>,
+    #[prost(float, optional, tag = "2")]
+    pub acceleration: ::core::option::Option<f32>,
+    #[prost(float, optional, tag = "3")]
+    pub turn_rate: ::core::option::Option<f32>,
+    /// How many units can ride (driver + passengers)
+    #[prost(int32, optional, tag = "4")]
+    pub passenger_capacity: ::core::option::Option<i32>,
+    /// Consumed fuel item ref (empty = self-propelled)
+    #[prost(string, optional, tag = "5")]
+    pub fuel_ref: ::core::option::Option<::prost::alloc::string::String>,
+    /// Fuel units per tile / meter
+    #[prost(float, optional, tag = "6")]
+    pub fuel_per_distance: ::core::option::Option<f32>,
+    /// "water", "land", "air", "amphibious"
+    #[prost(string, optional, tag = "7")]
+    pub terrain_type: ::core::option::Option<::prost::alloc::string::String>,
+    /// Independent cargo-hold slots
+    #[prost(int32, optional, tag = "8")]
+    pub cargo_slots: ::core::option::Option<i32>,
+    #[prost(float, optional, tag = "9")]
+    pub cargo_weight_capacity: ::core::option::Option<f32>,
+    /// 0.0-1.0 hit absorption for riders
+    #[prost(float, optional, tag = "10")]
+    pub damage_reduction: ::core::option::Option<f32>,
+    /// Mount must be tamed / leashed before use
+    #[prost(bool, optional, tag = "11")]
+    pub requires_leash: ::core::option::Option<bool>,
+}
+/// Trap / hazard — for placed items that trigger on contact.
+#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
+pub struct TrapInfo {
+    /// "step", "proximity", "timer"
+    #[prost(string, optional, tag = "1")]
+    pub trigger: ::core::option::Option<::prost::alloc::string::String>,
+    /// Time before the trap becomes active after placement
+    #[prost(int32, optional, tag = "2")]
+    pub arming_seconds: ::core::option::Option<i32>,
+    /// Activation radius for proximity traps
+    #[prost(int32, optional, tag = "3")]
+    pub proximity_radius: ::core::option::Option<i32>,
+    /// Uses before the trap is spent (0 = unlimited)
+    #[prost(int32, optional, tag = "4")]
+    pub max_triggers: ::core::option::Option<i32>,
+    /// Can be picked back up after triggering
+    #[prost(bool, optional, tag = "5")]
+    pub reusable: ::core::option::Option<bool>,
+    /// Effects applied to anything caught
+    #[prost(message, repeated, tag = "6")]
+    pub on_trigger: ::prost::alloc::vec::Vec<UseEffect>,
 }
 /// Item set definition — bonuses for wearing multiple pieces
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
@@ -412,9 +806,6 @@ pub struct Item {
     /// Food / consumable
     #[prost(message, optional, tag = "41")]
     pub food: ::core::option::Option<FoodInfo>,
-    /// Skilling / gathering
-    #[prost(message, optional, tag = "42")]
-    pub skilling: ::core::option::Option<SkillingInfo>,
     /// Crafting
     ///
     /// Ways to craft this item
@@ -448,6 +839,59 @@ pub struct Item {
     pub durability: ::core::option::Option<i32>,
     #[prost(int32, optional, tag = "47")]
     pub max_durability: ::core::option::Option<i32>,
+    /// Stacking & carry-capacity hints (beyond raw max_stack)
+    #[prost(message, optional, tag = "49")]
+    pub stacking: ::core::option::Option<StackingInfo>,
+    /// Logical pool this item belongs to (e.g. "food" — any member satisfies a
+    /// food-pool consumption). Shortcut for the common case where no other
+    /// StackingInfo fields are set.
+    #[prost(string, optional, tag = "50")]
+    pub pool_group: ::core::option::Option<::prost::alloc::string::String>,
+    /// Weapon specifics — range, projectile, ammo linkage
+    #[prost(message, optional, tag = "51")]
+    pub weapon: ::core::option::Option<WeaponInfo>,
+    /// Fuel / combustible behavior
+    #[prost(message, optional, tag = "52")]
+    pub fuel: ::core::option::Option<FuelInfo>,
+    /// Container / storage expansion when equipped or deployed
+    #[prost(message, optional, tag = "53")]
+    pub container: ::core::option::Option<ContainerInfo>,
+    /// Planting / farming data (seeds, saplings)
+    #[prost(message, optional, tag = "54")]
+    pub planting: ::core::option::Option<PlantingInfo>,
+    /// Projectile flight properties (arrows, bolts, thrown items)
+    #[prost(message, optional, tag = "55")]
+    pub projectile: ::core::option::Option<ProjectileInfo>,
+    /// Trap / hazard behavior
+    #[prost(message, optional, tag = "56")]
+    pub trap: ::core::option::Option<TrapInfo>,
+    /// Enchantment payload — present when the item itself is an enchantment
+    /// (gem, rune, sigil) that can be attached to an EquipmentInfo slot.
+    #[prost(message, optional, tag = "57")]
+    pub enchantment: ::core::option::Option<EnchantmentInfo>,
+    /// Physical volume (parallel to weight) for volume-aware containers
+    #[prost(float, optional, tag = "58")]
+    pub volume: ::core::option::Option<f32>,
+    /// Spell data — scrolls, tomes, wands, staves
+    #[prost(message, optional, tag = "59")]
+    pub spell: ::core::option::Option<SpellInfo>,
+    /// Book data — readable lore, journals, recipe books
+    #[prost(message, optional, tag = "60")]
+    pub book: ::core::option::Option<BookInfo>,
+    /// Key data — entity-unlocking items
+    #[prost(message, optional, tag = "61")]
+    pub unlock: ::core::option::Option<KeyInfo>,
+    /// Vehicle / mount data — boats, carts, horses, conveyances
+    #[prost(message, optional, tag = "62")]
+    pub vehicle: ::core::option::Option<VehicleInfo>,
+    /// Light emission — torches, lanterns, glowing items
+    ///
+    /// Tiles/meters of light cast (0 = no light)
+    #[prost(float, optional, tag = "63")]
+    pub light_radius: ::core::option::Option<f32>,
+    /// Hex color ("#ffcc88") or named slug ("warm", "cold")
+    #[prost(string, optional, tag = "64")]
+    pub light_color: ::core::option::Option<::prost::alloc::string::String>,
     /// Extensions — game-specific key-value pairs
     #[prost(message, repeated, tag = "38")]
     pub extensions: ::prost::alloc::vec::Vec<ItemExtension>,
@@ -457,6 +901,19 @@ pub struct Item {
     /// Hidden from production
     #[prost(bool, optional, tag = "40")]
     pub drafted: ::core::option::Option<bool>,
+    /// Numeric runtime identifier — authored per-item in MDX, stable across builds.
+    /// Primary lookup key for engines + the rareicon ItemId enum.
+    #[prost(int32, tag = "65")]
+    pub key: i32,
+    /// Sprite asset present (derived from `img`)
+    #[prost(bool, optional, tag = "66")]
+    pub has_img: ::core::option::Option<bool>,
+    /// Freeform stat bonuses authored flat in MDX. Heterogeneous by nature (numbers
+    /// like cookingSpeed/fireResist plus boolean flags like quantumFlux), so it is
+    /// an arbitrary JSON object rather than the fixed-field ItemBonuses message.
+    #[prost(message, optional, tag = "67")]
+    #[serde(skip)]
+    pub bonuses: ::core::option::Option<::prost_types::Struct>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
 pub struct ItemRegistry {
@@ -785,6 +1242,12 @@ pub enum UseEffectType {
     UseEffectBuffParty = 12,
     UseEffectSummon = 13,
     UseEffectTransform = 14,
+    /// Blueprints — teaches a CraftingRecipe
+    UseEffectLearnRecipe = 15,
+    /// Tomes — adds a spell to the spellbook
+    UseEffectLearnSpell = 16,
+    /// Lore pickups — reveals a codex entry
+    UseEffectUnlockLore = 17,
 }
 impl UseEffectType {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -808,6 +1271,9 @@ impl UseEffectType {
             Self::UseEffectBuffParty => "USE_EFFECT_BUFF_PARTY",
             Self::UseEffectSummon => "USE_EFFECT_SUMMON",
             Self::UseEffectTransform => "USE_EFFECT_TRANSFORM",
+            Self::UseEffectLearnRecipe => "USE_EFFECT_LEARN_RECIPE",
+            Self::UseEffectLearnSpell => "USE_EFFECT_LEARN_SPELL",
+            Self::UseEffectUnlockLore => "USE_EFFECT_UNLOCK_LORE",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -828,6 +1294,9 @@ impl UseEffectType {
             "USE_EFFECT_BUFF_PARTY" => Some(Self::UseEffectBuffParty),
             "USE_EFFECT_SUMMON" => Some(Self::UseEffectSummon),
             "USE_EFFECT_TRANSFORM" => Some(Self::UseEffectTransform),
+            "USE_EFFECT_LEARN_RECIPE" => Some(Self::UseEffectLearnRecipe),
+            "USE_EFFECT_LEARN_SPELL" => Some(Self::UseEffectLearnSpell),
+            "USE_EFFECT_UNLOCK_LORE" => Some(Self::UseEffectUnlockLore),
             _ => None,
         }
     }
