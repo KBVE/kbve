@@ -103,6 +103,7 @@ export default function ReactPalworldMap() {
 			bounds: palBounds,
 			keepBuffer: 4,
 			updateWhenIdle: false,
+			updateWhenZooming: false,
 		}).addTo(map);
 		L.tileLayer(`${WT_TILE_BASE}/{z}/{x}/{y}.webp`, {
 			tileSize: 256,
@@ -113,6 +114,7 @@ export default function ReactPalworldMap() {
 			bounds: wtBounds,
 			keepBuffer: 4,
 			updateWhenIdle: false,
+			updateWhenZooming: false,
 		}).addTo(map);
 
 		map.createPane('palpois');
@@ -168,6 +170,50 @@ export default function ReactPalworldMap() {
 		const iconScale = (z: number): number =>
 			Math.min(1, Math.max(0.45, Math.pow(2, (z - 4) * 0.35)));
 
+		const sprites = new Map<string, HTMLCanvasElement>();
+		const spriteFor = (
+			src: string,
+			sizePx: number,
+			boss: boolean,
+			cool: boolean,
+			dpr: number,
+		): HTMLCanvasElement | null => {
+			const s = Math.max(4, Math.round(sizePx));
+			const key = `${src}|${s}|${boss ? 1 : 0}|${cool ? 1 : 0}`;
+			const cached = sprites.get(key);
+			if (cached) return cached;
+			const img = loadImage(src);
+			if (!img.complete || !img.naturalWidth) return null;
+			if (sprites.size > 600) sprites.clear();
+			const c = document.createElement('canvas');
+			c.width = Math.ceil(s * dpr);
+			c.height = Math.ceil(s * dpr);
+			const g = c.getContext('2d')!;
+			g.scale(dpr, dpr);
+			g.imageSmoothingQuality = 'high';
+			if (cool) g.filter = 'grayscale(85%) brightness(0.75)';
+			if (boss) {
+				g.save();
+				g.beginPath();
+				g.arc(s / 2, s / 2, s / 2 - 0.75, 0, Math.PI * 2);
+				g.fillStyle = '#0b1420';
+				g.fill();
+				g.clip();
+				g.drawImage(img, 0, 0, s, s);
+				g.restore();
+				if (cool) g.filter = 'grayscale(85%) brightness(0.75)';
+				g.beginPath();
+				g.arc(s / 2, s / 2, s / 2 - 0.75, 0, Math.PI * 2);
+				g.strokeStyle = 'rgba(255,255,255,0.4)';
+				g.lineWidth = 1.5;
+				g.stroke();
+			} else {
+				g.drawImage(img, 0, 0, s, s);
+			}
+			sprites.set(key, c);
+			return c;
+		};
+
 		const kindVisible = new Set<number>(Object.values(KIND));
 		const drawList: number[] = [];
 		const drawPos = new Map<number, [number, number]>();
@@ -216,41 +262,21 @@ export default function ReactPalworldMap() {
 				const size = meta.size * sizeMult;
 				const deadline = cooldownOf(eid);
 				const src = iconKeys[eid] || meta.icon;
-				const img = loadImage(src);
-				if (img.complete && img.naturalWidth) {
-					if (deadline)
-						ctx.filter = 'grayscale(85%) brightness(0.75)';
-					if (kind === KIND.boss) {
-						ctx.save();
-						ctx.beginPath();
-						ctx.arc(lx, ly, size / 2, 0, Math.PI * 2);
-						ctx.fillStyle = '#0b1420';
-						ctx.fill();
-						ctx.clip();
-						ctx.drawImage(
-							img,
-							lx - size / 2,
-							ly - size / 2,
-							size,
-							size,
-						);
-						ctx.restore();
-						ctx.beginPath();
-						ctx.arc(lx, ly, size / 2, 0, Math.PI * 2);
-						ctx.strokeStyle = 'rgba(255,255,255,0.4)';
-						ctx.lineWidth = 1.5;
-						ctx.stroke();
-					} else {
-						ctx.drawImage(
-							img,
-							lx - size / 2,
-							ly - size / 2,
-							size,
-							size,
-						);
-					}
-					ctx.filter = 'none';
-				}
+				const sp = spriteFor(
+					src,
+					size,
+					kind === KIND.boss,
+					!!deadline,
+					dpr,
+				);
+				if (sp)
+					ctx.drawImage(
+						sp,
+						lx - size / 2,
+						ly - size / 2,
+						size,
+						size,
+					);
 				if (deadline) {
 					const total =
 						(RESPAWN_MINUTES[KIND_NAMES[kind]] || 60) * 60_000;
