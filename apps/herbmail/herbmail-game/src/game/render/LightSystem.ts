@@ -13,10 +13,13 @@ import { heldLight } from './heldLight';
 import { playerAnchor } from './playerAnchor';
 import { bodyMotionSig } from '../dungeon/collision';
 import { getOases } from '../water/oasis';
+import { getDungeon } from '../dungeon/store';
+import { isSectorBaked } from './bake/bakePool';
+import { ambientBoost, attParams, bakeGain, lightGain } from './lightGain';
 import { VIEW_RANGE, WALL_H } from '../config';
 
-const HEAD_REACH = 1.122;
-const HEAD_OFFSET = 0.28;
+export const HEAD_REACH = 1.122;
+export const HEAD_OFFSET = 0.28;
 // Consider any emitter within visible range: a torch you could see (out to the fog
 // wall, plus its own LIGHT_RANGE glow radius) must still be fed to the shader.
 const CULL_RADIUS = VIEW_RANGE + LIGHT_RANGE;
@@ -55,6 +58,7 @@ interface Ranked {
 	pdist: number;
 	intensity: number;
 	tier: number;
+	nearOnly: number;
 }
 
 // Reads all LightEmitter props each frame, ranks them by camera distance, and
@@ -85,6 +89,7 @@ export class LightSystem {
 		{ length: MAX_LIGHTS },
 		() => new THREE.Vector3(),
 	);
+	private readonly near = new Array<number>(MAX_LIGHTS).fill(0);
 	// Persistent Ranked pool reused across frames; `active` holds references to the
 	// filled entries this frame (no per-emitter object allocation). `casters` is a
 	// reused 2-slot buffer for the nearest-to-player shadow lights.
@@ -105,6 +110,7 @@ export class LightSystem {
 				pdist: 0,
 				intensity: 0,
 				tier: 0,
+				nearOnly: 0,
 			};
 			this.pool[this.active.length] = r;
 		}
@@ -169,6 +175,7 @@ export class LightSystem {
 		ambient: number,
 	): void {
 		this.active.length = 0;
+		let sectorBaked = false;
 		const gather = (eid: number) => {
 			const firefly = hasComponent(world, eid, FireflyFx);
 			const dx = Transform3.dx[eid];
@@ -209,9 +216,18 @@ export class LightSystem {
 			l.pdist = pd2;
 			l.intensity = LightEmitter.baseIntensity[eid] * f;
 			l.tier = firefly ? 1 : 0;
+			l.nearOnly = sectorBaked && LightEmitter.baked[eid] ? 1 : 0;
 			this.active.push(l);
 		};
-		for (const sector of mounted) eachOwned(sector, LIGHT_TERMS, gather);
+		// A sector's static emitters fall back to their near field only once its
+		// vertex bake has actually landed; until then they light fully, so a
+		// freshly streamed sector is never dark while the worker is busy.
+		for (const sector of mounted) {
+			const sig = getDungeon().desc(sector)?.signature;
+			sectorBaked = sig ? isSectorBaked(sig) : false;
+			eachOwned(sector, LIGHT_TERMS, gather);
+		}
+		sectorBaked = false;
 
 		// Torch held in hand: always the nearest source (lights walls + character).
 		if (heldLight.on) {
@@ -230,6 +246,7 @@ export class LightSystem {
 			l.pdist = 0;
 			l.intensity = heldLight.intensity * flick;
 			l.tier = 0;
+			l.nearOnly = 0;
 			this.active.push(l);
 		}
 
@@ -254,8 +271,14 @@ export class LightSystem {
 			l.pdist = pd2;
 			l.intensity = OASIS_LIGHT_INTENSITY;
 			l.tier = -1;
+			l.nearOnly = 0;
 			this.active.push(l);
 		}
+
+		// Baked light is a static sum, so it can't flicker per torch. A slow
+		// global breath keeps it from reading as a painted-on lightmap.
+		const bakeFlicker =
+			1 + 0.045 * Math.sin(time * 1.9) + 0.025 * Math.sin(time * 4.3);
 
 		this.active.sort((a, b) => a.tier - b.tier || a.dist - b.dist);
 		const count = Math.min(this.active.length, MAX_LIGHTS);
@@ -264,6 +287,7 @@ export class LightSystem {
 			const l = this.active[i];
 			this.pos[i].set(l.x, l.y, l.z);
 			this.col[i].set(l.r, l.g, l.b).multiplyScalar(l.intensity);
+			this.near[i] = l.nearOnly;
 		}
 
 		// Every PSX material shares LightSystem's own pos/col arrays by reference, so
@@ -278,13 +302,22 @@ export class LightSystem {
 			).uniforms;
 			if (!u.uLightPos) continue;
 			u.uLightCount.value = count;
-			u.uAmbient.value = ambient;
+			u.uAmbient.value = ambient + ambientBoost();
+			if (u.uAtt) {
+				const a = attParams();
+				(u.uAtt.value as THREE.Vector4).set(a.k0, a.k1, a.k2, a.cap);
+			}
+			if (u.uBakeFlicker) u.uBakeFlicker.value = bakeFlicker;
+			if (u.uLightGain) u.uLightGain.value = lightGain();
+			if (u.uBakeGain) u.uBakeGain.value = bakeGain();
 			u.uMapTex.value = occ.tex;
 			(u.uGridOrigin.value as THREE.Vector2).copy(occ.origin);
 			(u.uGridSize.value as THREE.Vector2).copy(occ.size);
 			if (u.uLightPos.value !== this.pos) u.uLightPos.value = this.pos;
 			if (u.uLightColor.value !== this.col)
 				u.uLightColor.value = this.col;
+			if (u.uLightNear && u.uLightNear.value !== this.near)
+				u.uLightNear.value = this.near;
 		}
 
 		for (let i = 0; i < POINT_LIGHTS; i++) {

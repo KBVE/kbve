@@ -14,6 +14,9 @@ export const BG_COLOR = '#000000';
 // this bounds how far sectors mount and which emitters feed the shader — not
 // a fog wall.
 export const VIEW_RANGE = 30;
+// Torch reach. Shared by the PSX shader, LightSystem and the bake worker — they
+// must agree or baked and dynamic light disagree at the falloff edge.
+export const LIGHT_RANGE = 18.0;
 
 export const TINT = {
 	wall: [1, 1, 1],
