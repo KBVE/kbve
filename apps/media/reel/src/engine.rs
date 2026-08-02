@@ -158,7 +158,7 @@ pub async fn forwarded_port_watch_loop(
         tokio::time::sleep(interval).await;
         let forwarded = engine.forwarded_port();
         if forwarded != last_forwarded {
-            rotations += 1;
+            rotations = engine.port_rotations.fetch_add(1, Ordering::Relaxed) + 1;
             let elapsed = now_secs().saturating_sub(started).max(1);
             let per_hour = (rotations as f64) * 3600.0 / (elapsed as f64);
             tracing::warn!(
@@ -263,6 +263,7 @@ pub struct Engine {
     trackers: Arc<Mutex<Arc<Vec<String>>>>,
     bt_port_file: Option<PathBuf>,
     transcode_wake: Arc<Notify>,
+    port_rotations: Arc<AtomicU64>,
 }
 
 const LEECH_DRAIN_CAP: Duration = Duration::from_secs(6 * 3600);
@@ -404,6 +405,7 @@ impl Engine {
             )))),
             bt_port_file: cfg.bt_port_file.clone(),
             transcode_wake: Arc::new(Notify::new()),
+            port_rotations: Arc::new(AtomicU64::new(0)),
         };
         engine.resume_on_start();
         Ok(engine)
@@ -1204,6 +1206,14 @@ impl Engine {
     pub fn forwarded_port(&self) -> Option<u16> {
         let path = self.bt_port_file.as_ref()?;
         parse_forwarded_port(&std::fs::read_to_string(path).ok()?)
+    }
+
+    pub fn port_rotations(&self) -> u64 {
+        self.port_rotations.load(Ordering::Relaxed)
+    }
+
+    pub fn vpn_fail_streak(&self) -> u32 {
+        self.vpn_fail_streak.load(Ordering::Relaxed)
     }
 }
 
