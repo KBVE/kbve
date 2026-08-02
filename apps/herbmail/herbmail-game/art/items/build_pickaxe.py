@@ -11,15 +11,19 @@ the downscaled texture into the GLB.
 Run:
     blender -b -P art/items/build_pickaxe.py
 """
+import math
 import sys
 from pathlib import Path
 
 import bpy
 from mathutils import Vector
 
+ROOT = Path(__file__).resolve().parents[2]
 SRC = Path.home() / "Downloads/pickaxe/scene.gltf"
-OUT = Path(__file__).resolve().parents[2] / "public/models/pickaxe.glb"
+OUT = ROOT / "public/models/pickaxe.glb"
+ICON = ROOT / "public/icons/items/pickaxe.png"
 TEX_SIZE = 256
+ICON_SIZE = 64
 LENGTH = 1.0
 UP = Vector((0.0, 0.0, 1.0))
 
@@ -156,6 +160,52 @@ def rebuild_material(obj: bpy.types.Object, img: bpy.types.Image) -> None:
     obj.data.materials.append(mat)
 
 
+def render_icon(obj: bpy.types.Object) -> None:
+    """Same 3/4 ortho framing the armor icons use (art/character/render_icons.py)."""
+    lo = Vector((1e9, 1e9, 1e9))
+    hi = Vector((-1e9, -1e9, -1e9))
+    for c in obj.bound_box:
+        w = obj.matrix_world @ Vector(c)
+        lo = Vector(map(min, lo, w))
+        hi = Vector(map(max, hi, w))
+    center = (lo + hi) / 2
+    extent = max(hi - lo)
+
+    cam_data = bpy.data.cameras.new("icon_cam")
+    cam_data.type = "ORTHO"
+    cam_data.ortho_scale = extent * 1.15
+    cam = bpy.data.objects.new("icon_cam", cam_data)
+    bpy.context.scene.collection.objects.link(cam)
+    direction = Vector((1.0, -1.2, 0.7)).normalized()
+    cam.location = center + direction * max(extent * 3, 1.0)
+    cam.rotation_mode = "QUATERNION"
+    cam.rotation_quaternion = direction.to_track_quat("Z", "Y")
+    bpy.context.scene.camera = cam
+
+    sun = bpy.data.objects.new(
+        "icon_sun", bpy.data.lights.new("icon_sun", "SUN"))
+    sun.data.energy = 3.0
+    sun.rotation_euler = (math.radians(50), math.radians(-20),
+                          math.radians(30))
+    bpy.context.scene.collection.objects.link(sun)
+    world = bpy.data.worlds.new("icon_world")
+    world.use_nodes = True
+    world.node_tree.nodes["Background"].inputs[1].default_value = 0.6
+    bpy.context.scene.world = world
+
+    scene = bpy.context.scene
+    engines = scene.render.bl_rna.properties["engine"].enum_items.keys()
+    scene.render.engine = next(e for e in engines if "EEVEE" in e)
+    scene.render.resolution_x = ICON_SIZE
+    scene.render.resolution_y = ICON_SIZE
+    scene.render.film_transparent = True
+    scene.render.image_settings.file_format = "PNG"
+    scene.render.image_settings.color_mode = "RGBA"
+    ICON.parent.mkdir(parents=True, exist_ok=True)
+    scene.render.filepath = str(ICON)
+    bpy.ops.render.render(write_still=True)
+
+
 def main() -> None:
     wipe()
     obj = import_source()
@@ -185,6 +235,8 @@ def main() -> None:
         f"wrote {OUT.name} {len(obj.data.vertices)}v {tris}t "
         f"{TEX_SIZE}px {OUT.stat().st_size // 1024}K"
     )
+    render_icon(obj)
+    print(f"wrote {ICON.name} {ICON_SIZE}px {ICON.stat().st_size // 1024}K")
 
 
 if __name__ == "__main__":
