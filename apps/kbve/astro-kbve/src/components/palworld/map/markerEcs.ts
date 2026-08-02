@@ -26,7 +26,9 @@ export const KIND = {
 	effigy: 5,
 	egg: 6,
 	boss: 7,
-	player: 8,
+	crudeOil: 8,
+	oilRig: 9,
+	player: 10,
 } as const;
 
 export type KindName = keyof typeof KIND;
@@ -97,6 +99,20 @@ export const KIND_META: Record<
 		size: 34,
 		minZoom: 2,
 	},
+	crudeOil: {
+		label: 'Crude Oil',
+		plural: 'Crude Oil',
+		icon: '/palworld/ui/oil-loc.webp',
+		size: 18,
+		minZoom: 4,
+	},
+	oilRig: {
+		label: 'Oil Rig',
+		plural: 'Oil Rigs',
+		icon: '/palworld/ui/oil-rig.webp',
+		size: 30,
+		minZoom: 0,
+	},
 	player: {
 		label: 'Player',
 		plural: 'Players',
@@ -156,6 +172,10 @@ export function createMarkerWorld() {
 		spawn(x, y, KIND.effigy, 'Lifmunk Effigy', '');
 	for (const [x, y, grade] of pois.egg as [number, number, string][])
 		spawn(x, y, KIND.egg, prettyGrade(grade), '');
+	for (const [x, y] of pois.crudeOil)
+		spawn(x, y, KIND.crudeOil, 'Crude Oil', '');
+	for (const [x, y, lv] of pois.oilRig)
+		spawn(x, y, KIND.oilRig, `Oil Rig · Lv ${lv}`, '');
 	for (const b of pois.boss)
 		spawn(
 			b.x,
