@@ -24,6 +24,15 @@ import { CastPhase, abilityById, castDuration } from '../combat/ability';
 import { EquipmentPhysics } from './equipmentPhysics';
 import { WEAPON_GRIP } from './weaponGrip';
 import { useCharacterParts } from './useCharacterParts';
+import { blobGeometry, makeBlobMaterial } from '../render/blobShadow';
+import {
+	blobsOn,
+	nearestLight,
+	projOn,
+	registerCharShadow,
+	type CharShadowHandle,
+} from '../render/charShadow';
+import { ShadowProjector } from '../render/shadowProjector';
 import { slotNameOf } from './partVisibility';
 import type { PartSet } from './armor';
 import { getEquipped, useEquippedArmor } from './armor';
@@ -39,6 +48,7 @@ import {
 	VERTICAL_GRIP_LEFT,
 	SWORD_URL,
 	TORCH_URL,
+	PICKAXE_URL,
 } from './heldItems';
 
 const UP = new THREE.Vector3(0, 1, 0);
@@ -47,6 +57,12 @@ const LAND_HOLD_FRAC = 0.3;
 
 const AIR_ANIM_DELAY = 0.65;
 const GROUND_Y = -0.037;
+// Contact blob and shadow capsule, in character-local units (the root group's
+// scale carries them to world size).
+const BLOB_R = 0.5;
+const CAP_R = 0.33;
+const CAP_H = 1.7;
+const NO_RAYCAST = () => undefined;
 
 const _flexAxis = new THREE.Vector3(1, 0, 0);
 const _hangAxis = new THREE.Vector3(0, 0, 1);
@@ -96,6 +112,7 @@ const TORCH_LIGHT_DECAY = 1.1;
 
 useGLTF.preload(SWORD_URL);
 useGLTF.preload(TORCH_URL);
+useGLTF.preload(PICKAXE_URL);
 
 const HELD_FLAME_SCALE = 0.24;
 
@@ -260,6 +277,7 @@ export function Character({
 	const gltf = useGLTF(url);
 	const sword = useGLTF(SWORD_URL);
 	const torch = useGLTF(TORCH_URL);
+	const pickaxe = useGLTF(PICKAXE_URL);
 	const heldAnchor = useRef<THREE.Object3D | null>(null);
 	const heldFlame = useRef<THREE.Object3D | null>(null);
 	const heldMats = useRef<THREE.ShaderMaterial[] | null>(null);
@@ -277,6 +295,10 @@ export function Character({
 		color: [number, number, number];
 	} | null>(null);
 	const groupRef = useRef<THREE.Group>(null);
+	const blobRef = useRef<THREE.Mesh>(null);
+	const blobMat = useMemo(() => makeBlobMaterial(), []);
+	const projector = useMemo(() => new ShadowProjector(), []);
+	const capRef = useRef<CharShadowHandle | null>(null);
 	const torchLight = useRef<THREE.PointLight>(null);
 
 	const flamePool = useRef<{
@@ -368,6 +390,7 @@ export function Character({
 		const srcByUrl: Record<string, THREE.Object3D> = {
 			[SWORD_URL]: sword.scene,
 			[TORCH_URL]: torch.scene,
+			[PICKAXE_URL]: pickaxe.scene,
 		};
 		const cleanups: Array<() => void> = [];
 
@@ -414,7 +437,8 @@ export function Character({
 			pivot.name = cfg.pivotName;
 			pivot.add(inner);
 			pivot.position.fromArray(grip.pos);
-			pivot.rotation.set(grip.rot[0], grip.rot[1], grip.rot[2]);
+			const rot = cfg.rot ?? grip.rot;
+			pivot.rotation.set(rot[0], rot[1], rot[2]);
 			pivot.scale.setScalar(cfg.scale);
 			pivot.userData.heldPivot = true;
 
@@ -460,7 +484,7 @@ export function Character({
 			leanRef.current.vx = leanRef.current.vz = 0;
 			clearHeldLight();
 		};
-	}, [scene, rightId, leftId, sword, torch]);
+	}, [scene, rightId, leftId, sword, torch, pickaxe]);
 
 	useEffect(
 		() => () => {
@@ -472,6 +496,16 @@ export function Character({
 		},
 		[],
 	);
+
+	// Registered here rather than in the rig memo: StrictMode replays the memo
+	// and would leak a second capsule that never releases.
+	useEffect(() => {
+		capRef.current = registerCharShadow(CAP_R * scale, CAP_H * scale);
+		return () => {
+			capRef.current?.release();
+			capRef.current = null;
+		};
+	}, [scale]);
 
 	const rig = useMemo(() => {
 		const pelvis = scene.getObjectByName('pelvis');
@@ -584,7 +618,10 @@ export function Character({
 			},
 		};
 		onReady?.(handle);
-		return () => animator.dispose();
+		return () => {
+			animator.dispose();
+			projector.dispose();
+		};
 	}, [rig]);
 
 	useFrame((_, dtRaw) => {
@@ -840,6 +877,41 @@ export function Character({
 		_bodyFwd.set(Math.sin(motor.yaw), 0, Math.cos(motor.yaw));
 		pose.update(dt, _bodyFwd);
 
+		// Capsule rides the body; blob only makes sense standing on something.
+		const grounded = motor.mode === 'ground';
+		capRef.current?.update(
+			motor.position.x,
+			motor.position.y,
+			motor.position.z,
+		);
+		const blob = blobRef.current;
+		if (blob) {
+			blob.visible = grounded && blobsOn() && nearestLight.on;
+			if (blob.visible) {
+				// Aim the figure away from the torch, in the character group's
+				// local frame (the group already carries motor yaw).
+				const dx = motor.position.x - nearestLight.x;
+				const dz = motor.position.z - nearestLight.z;
+				const flat = Math.hypot(dx, dz);
+				const away = Math.atan2(dx, dz) - motor.yaw;
+				blob.rotation.z = -away;
+
+				// Lower light and greater distance both lengthen the shadow;
+				// clamped so a torch at floor level doesn't smear it to infinity.
+				const rise = Math.max(nearestLight.y - motor.position.y, 0.4);
+				const stretch = THREE.MathUtils.clamp(
+					1 + flat / Math.max(rise, 0.6),
+					1,
+					3.4,
+				);
+				blob.scale.set(BLOB_R, BLOB_R * stretch, 1);
+
+				// Fade out as the torch gets far or weak — no light, no shadow.
+				const fall = 1 - THREE.MathUtils.clamp((flat - 4) / 9, 0, 1);
+				blobMat.opacity = 0.55 * fall;
+			}
+		}
+
 		const g = groupRef.current;
 		if (g) {
 			g.position.copy(motor.position);
@@ -849,6 +921,30 @@ export function Character({
 			// when rising; zero everywhere else.
 			g.rotation.x = motor.mode === 'swim' ? -motor.swimPitch : 0;
 			g.updateMatrixWorld(true);
+		}
+
+		// Must run AFTER the root matrix update above: the clones project from
+		// src.matrixWorld, and using last frame's value makes the shadow lag
+		// and swim behind the body.
+		// Projected mesh shadow: the real silhouette, flattened onto the floor
+		// along the rays from the nearest torch.
+		if (projOn() && nearestLight.on && grounded) {
+			const pdx = motor.position.x - nearestLight.x;
+			const pdz = motor.position.z - nearestLight.z;
+			const pflat = Math.hypot(pdx, pdz);
+			const fade = 1 - THREE.MathUtils.clamp((pflat - 5) / 9, 0, 1);
+			projector.update(
+				scene,
+				nearestLight.x,
+				nearestLight.y,
+				nearestLight.z,
+				motor.position.y,
+				fade > 0.01,
+				0.5 * fade,
+				CAP_H * scale,
+			);
+		} else {
+			projector.update(scene, 0, 1, 0, 0, false, 0);
 		}
 		equipment.update(dt);
 
@@ -950,7 +1046,18 @@ export function Character({
 		<>
 			<group ref={groupRef} name="characterRoot" scale={scale}>
 				<primitive object={scene} />
+				<mesh
+					ref={blobRef}
+					geometry={blobGeometry()}
+					material={blobMat}
+					rotation-x={-Math.PI / 2}
+					position-y={0.03}
+					scale={BLOB_R}
+					renderOrder={1}
+					raycast={NO_RAYCAST}
+				/>
 			</group>
+			<primitive object={projector.group} />
 			<pointLight
 				ref={torchLight}
 				visible={false}

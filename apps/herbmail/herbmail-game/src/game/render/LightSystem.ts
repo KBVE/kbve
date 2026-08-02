@@ -16,6 +16,14 @@ import { getOases } from '../water/oasis';
 import { getDungeon } from '../dungeon/store';
 import { isSectorBaked } from './bake/bakePool';
 import { ambientBoost, attParams, bakeGain, lightGain } from './lightGain';
+import {
+	CAP_STRIDE,
+	MAX_CAPS,
+	capsuleData,
+	packCapsules,
+	setNearestLight,
+	shadowStrength,
+} from './charShadow';
 import { VIEW_RANGE, WALL_H } from '../config';
 
 export const HEAD_REACH = 1.122;
@@ -32,6 +40,11 @@ const POINT_SCALE = 3.0;
 const SWAP_RATIO = 0.55;
 const FADE_TIME = 0.18;
 const SHADOW_CASTERS = 2;
+// Character ground shadow: a challenger torch must be this fraction of the
+// incumbent's squared distance to steal it, and the origin glides at this rate
+// so a swap sweeps rather than snaps.
+const SHADOW_SWAP = 0.5;
+const SHADOW_GLIDE = 6;
 // Wide enough that a torch beside the player still covers him and the wall he
 // is thrown against; the cone only bounds where shadows exist, never the light.
 const SHADOW_CONE = Math.PI * 0.42;
@@ -90,6 +103,24 @@ export class LightSystem {
 		() => new THREE.Vector3(),
 	);
 	private readonly near = new Array<number>(MAX_LIGHTS).fill(0);
+	private readonly caps = Array.from(
+		{ length: MAX_CAPS },
+		() => new THREE.Vector4(),
+	);
+	private readonly capH = new Array<number>(MAX_CAPS).fill(0);
+	// Smoothed origin for character ground shadows: t* is the target light, the
+	// unprefixed fields are the eased value actually published.
+	private readonly shadowLight = {
+		on: false,
+		settled: false,
+		x: 0,
+		y: 0,
+		z: 0,
+		tx: 0,
+		ty: 0,
+		tz: 0,
+		intensity: 0,
+	};
 	// Persistent Ranked pool reused across frames; `active` holds references to the
 	// filled entries this frame (no per-emitter object allocation). `casters` is a
 	// reused 2-slot buffer for the nearest-to-player shadow lights.
@@ -229,6 +260,11 @@ export class LightSystem {
 		}
 		sectorBaked = false;
 
+		// Everything gathered so far is a world-placed emitter; the held torch
+		// and oasis sky lights appended below are not eligible to cast a
+		// character's ground shadow.
+		const mountedLights = this.active.length;
+
 		// Torch held in hand: always the nearest source (lights walls + character).
 		if (heldLight.on) {
 			const flick =
@@ -275,6 +311,78 @@ export class LightSystem {
 			this.active.push(l);
 		}
 
+		// Publish the light nearest the player for character ground shadows.
+		// Only world-placed emitters qualify: the held torch sits at hand height
+		// with pdist 0, so it would always win and then project the body from
+		// inside itself — the shadow blows up through infinity.
+		let best: Ranked | null = null;
+		for (let i = 0; i < mountedLights; i++) {
+			const l = this.active[i];
+			if (l.tier === 0 && (!best || l.pdist < best.pdist)) best = l;
+		}
+
+		// Hysteresis, same reason the shadow casters have it: bays put a candle
+		// in nearly every alcove, so a raw nearest-wins test flips the winner as
+		// the player walks and the shadow teleports between origins each frame.
+		// Keep the incumbent until a challenger is clearly closer.
+		const cur = this.shadowLight;
+		if (best) {
+			let steal = !cur.on;
+			if (cur.on) {
+				const hx = cur.tx - playerAnchor.pos.x;
+				const hz = cur.tz - playerAnchor.pos.z;
+				steal = best.pdist < (hx * hx + hz * hz) * SHADOW_SWAP;
+			}
+			if (steal) {
+				cur.tx = best.x;
+				cur.ty = best.y;
+				cur.tz = best.z;
+				cur.on = true;
+			}
+			cur.intensity = best.intensity;
+		} else {
+			cur.on = false;
+		}
+
+		// Glide toward the chosen light so a swap sweeps the shadow across
+		// instead of snapping it. Same delta the caster fade uses below;
+		// this.lastTime is not advanced until after that, so both agree.
+		const dtNow = Math.min(Math.max(time - this.lastTime, 0), 0.1);
+		const sl = this.shadowLight;
+		if (sl.on) {
+			const k = 1 - Math.exp(-dtNow * SHADOW_GLIDE);
+			sl.x += (sl.tx - sl.x) * k;
+			sl.y += (sl.ty - sl.y) * k;
+			sl.z += (sl.tz - sl.z) * k;
+			if (!sl.settled) {
+				sl.x = sl.tx;
+				sl.y = sl.ty;
+				sl.z = sl.tz;
+				sl.settled = true;
+			}
+		} else {
+			sl.settled = false;
+		}
+		setNearestLight(sl.on, sl.x, sl.y, sl.z, sl.intensity);
+
+		// Nearest characters get the limited capsule slots; a shadow you can't
+		// see doesn't need one.
+		const capCount = packCapsules(
+			camera.position.x,
+			camera.position.y,
+			camera.position.z,
+		);
+		const capData = capsuleData();
+		for (let i = 0; i < capCount; i++) {
+			this.caps[i].set(
+				capData.packed[i * CAP_STRIDE],
+				capData.packed[i * CAP_STRIDE + 1],
+				capData.packed[i * CAP_STRIDE + 2],
+				capData.packed[i * CAP_STRIDE + 3],
+			);
+			this.capH[i] = capData.heights[i];
+		}
+
 		// Baked light is a static sum, so it can't flicker per torch. A slow
 		// global breath keeps it from reading as a painted-on lightmap.
 		const bakeFlicker =
@@ -310,6 +418,12 @@ export class LightSystem {
 			if (u.uBakeFlicker) u.uBakeFlicker.value = bakeFlicker;
 			if (u.uLightGain) u.uLightGain.value = lightGain();
 			if (u.uBakeGain) u.uBakeGain.value = bakeGain();
+			if (u.uCapCount) {
+				u.uCapCount.value = capCount;
+				u.uCapStrength.value = shadowStrength();
+				if (u.uCaps.value !== this.caps) u.uCaps.value = this.caps;
+				if (u.uCapH.value !== this.capH) u.uCapH.value = this.capH;
+			}
 			u.uMapTex.value = occ.tex;
 			(u.uGridOrigin.value as THREE.Vector2).copy(occ.origin);
 			(u.uGridSize.value as THREE.Vector2).copy(occ.size);

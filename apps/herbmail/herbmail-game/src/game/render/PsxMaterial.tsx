@@ -9,6 +9,7 @@ import {
 } from '@kbve/laser/r3f';
 import { LIGHT_RANGE, TILE } from '../config';
 import { NEAR_D0, NEAR_D1 } from './bake/bakeTypes';
+import { MAX_CAPS } from './charShadow';
 
 const blankTex = new THREE.DataTexture(
 	new Uint8Array(1),
@@ -81,6 +82,10 @@ const fragment = /* glsl */ `
 	#define NEAR_D0 ${NEAR_D0.toFixed(1)}
 	#define NEAR_D1 ${NEAR_D1.toFixed(1)}
 	#define OCC_STEPS 34
+	#define MAX_CAPS ${MAX_CAPS}
+	// Only the nearest lights throw character shadows. A third torch's copy of
+	// the same body reads as mush and costs another N capsule tests.
+	#define CAP_LIGHTS 2
 	#define GRID_TILE ${TILE.toFixed(1)}
 	uniform sampler2D uMap;
 	uniform sampler2D uNormalMap;
@@ -114,6 +119,13 @@ const fragment = /* glsl */ `
 	uniform float uLightGain;
 	uniform float uBakeGain;
 	uniform vec4 uAtt;
+	// Character capsules: xyz + radius, with height in uCapH. Tested against the
+	// light ray for the nearest few lights only — cheap directional shadows with
+	// no shadow map. See charShadow.ts.
+	uniform int uCapCount;
+	uniform vec4 uCaps[MAX_CAPS];
+	uniform float uCapH[MAX_CAPS];
+	uniform float uCapStrength;
 	varying vec3 vBake;
 	varying vec2 vUvCorrect;
 	varying vec2 vUvAffine;
@@ -160,6 +172,53 @@ const fragment = /* glsl */ `
 			}
 		}
 		return best;
+	}
+
+	// Shortest distance between the fragment->light segment and a character's
+	// vertical axis segment. Standard segment/segment closest-approach, with the
+	// capsule axis kept vertical so the setup collapses to a couple of dots.
+	float capsuleShade(vec3 frag, vec3 lightPos, vec4 cap, float h) {
+		vec3 d1 = lightPos - frag;
+		vec3 a = cap.xyz;
+		vec3 d2 = vec3(0.0, h, 0.0);
+		vec3 r = frag - a;
+
+		float A = dot(d1, d1);
+		float e = dot(d2, d2);
+		float f = dot(d2, r);
+		if (A < 1e-5 || e < 1e-5) return 1.0;
+		float b = dot(d1, d2);
+		float c = dot(d1, r);
+		float denom = A * e - b * b;
+
+		float s = denom > 1e-5 ? clamp((b * f - c * e) / denom, 0.0, 1.0) : 0.0;
+		float t = clamp((b * s + f) / e, 0.0, 1.0);
+		s = clamp((b * t - c) / A, 0.0, 1.0);
+
+		// Only occlude between the surface and the light, never behind either.
+		if (s <= 0.001 || s >= 0.999) return 1.0;
+
+		vec3 p1 = frag + d1 * s;
+		vec3 p2 = a + d2 * t;
+		float dist = length(p1 - p2);
+
+		// Soft edge, but tight: a wide penumbra on a vertical capsule wraps the
+		// shadow all the way around the feet instead of casting it away from
+		// the light, which reads as a curved smear rather than a body.
+		float soft = smoothstep(cap.w, cap.w * 1.3, dist);
+		// Fade with distance from the caster so a body far down a corridor stops
+		// painting a crisp shadow across the whole room.
+		float reach = 1.0 - smoothstep(6.0, 13.0, length(frag - a));
+		return mix(1.0, soft, uCapStrength * reach);
+	}
+
+	float charShadow(vec3 frag, vec3 lightPos) {
+		float v = 1.0;
+		for (int c = 0; c < MAX_CAPS; c++) {
+			if (c >= uCapCount) break;
+			v *= capsuleShade(frag, lightPos, uCaps[c], uCapH[c]);
+		}
+		return v;
 	}
 
 	float visibility(vec2 frag, vec2 lp) {
@@ -257,6 +316,15 @@ const fragment = /* glsl */ `
 			// still contributes visibly; sub-threshold lights skip it.
 			if (base < 0.004) continue;
 			float vis = uOcclude > 0.5 ? visibility(vWorld.xz, uLightPos[i].xz) : 1.0;
+			// Character shadows ride the same visibility term, so they respect
+			// the light's own falloff and cost nothing when the light is already
+			// occluded by geometry.
+			// Walls only. On the floor the capsule degenerates into a ring around
+			// the feet (every nearby fragment's light ray grazes the capsule
+			// base), so the ground shadow is left to the shaped blob, which
+			// actually carries a silhouette.
+			if (uCapCount > 0 && i < CAP_LIGHTS && vis > 0.0 && abs(N.y) < 0.5)
+				vis *= charShadow(vWorld, uLightPos[i]);
 			// Relief self-shadow from the nearest light only (lights arrive
 			// sorted by distance): bricks shade their own mortar.
 			if (i == 0 && uPom > 0.5 && uUseMaps > 0.5 && pomLod > 0.0) {
@@ -335,6 +403,10 @@ const PsxMaterialBase = shaderMaterial(
 		uLightGain: 1,
 		uBakeGain: 1,
 		uAtt: new THREE.Vector4(0.35, 0.09, 0.02, 1.6),
+		uCapCount: 0,
+		uCaps: Array.from({ length: MAX_CAPS }, () => new THREE.Vector4()),
+		uCapH: Array.from({ length: MAX_CAPS }, () => 0),
+		uCapStrength: 0.75,
 	},
 	vertex,
 	fragment,

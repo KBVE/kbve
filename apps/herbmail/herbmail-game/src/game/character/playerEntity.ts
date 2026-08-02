@@ -12,7 +12,7 @@ import { CS } from './charState';
 import { equipmentById } from '../viewmodel/equipment';
 import { getHands, subscribeHeld } from '../viewmodel/store';
 
-const HELD_CODES = ['', 'sword', 'torch', 'crate', 'flashlight'];
+const HELD_CODES = ['', 'sword', 'torch', 'crate', 'flashlight', 'pickaxe'];
 
 export function heldCode(id: string | null): number {
 	const i = id ? HELD_CODES.indexOf(id) : 0;
