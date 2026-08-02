@@ -13031,7 +13031,7 @@
 						"description": "A manager for web, shared and service workers, aimming to make it as modular and upgradable.",
 						"js": {
 							"packageName": "@kbve/droid",
-							"packageVersion": "0.1.1",
+							"packageVersion": "0.1.2",
 							"packageExports": {
 								".": {
 									"import": "./droid.mjs",
@@ -13983,11 +13983,27 @@
 						"description": "Phaser + React Three Fiber integration layer for React 19",
 						"js": {
 							"packageName": "@kbve/laser",
-							"packageVersion": "0.1.6",
+							"packageVersion": "0.2.0",
 							"packageExports": {
 								".": {
 									"import": "./laser.es.js",
 									"types": "./index.d.ts"
+								},
+								"./ecs": {
+									"import": "./ecs.es.js",
+									"types": "./ecs.d.ts"
+								},
+								"./mecs": {
+									"import": "./mecs.es.js",
+									"types": "./mecs.d.ts"
+								},
+								"./phaser": {
+									"import": "./phaser.es.js",
+									"types": "./phaser.d.ts"
+								},
+								"./r3f": {
+									"import": "./r3f.es.js",
+									"types": "./r3f.d.ts"
 								}
 							},
 							"packageMain": "./laser.es.js",
