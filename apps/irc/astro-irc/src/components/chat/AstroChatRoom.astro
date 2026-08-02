@@ -4,6 +4,7 @@ import { ConnectionPill } from './islands/ConnectionPill';
 import { MeAvatar } from './islands/MeAvatar';
 import { ChannelPill } from './islands/ChannelPill';
 import { ChannelRail } from './islands/ChannelRail';
+import { ConnectionBanner } from './islands/ConnectionBanner';
 import { MessageFeed } from './islands/MessageFeed';
 import { ChatInput } from './islands/ChatInput';
 import { UserList } from './islands/UserList';
@@ -50,6 +51,7 @@ const { wsUrl = 'wss://chat.kbve.com/ws' } = Astro.props;
 
 	<section class="kbve-chat__main">
 		<MessageFeed client:only="react" />
+		<ConnectionBanner client:only="react" wsUrl={wsUrl} />
 		<ChatInput client:only="react" />
 		<AuthOverlay client:only="react" />
 	</section>

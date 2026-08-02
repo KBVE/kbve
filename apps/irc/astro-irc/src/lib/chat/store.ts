@@ -24,7 +24,19 @@ export type ConnectionStatus =
 	| 'disconnected'
 	| 'connecting'
 	| 'connected'
+	| 'idle'
 	| 'error';
+
+export type DisconnectKind = 'idle' | 'network' | 'failed';
+
+export interface DisconnectInfo {
+	kind: DisconnectKind;
+	code?: number;
+	reason?: string;
+	at: number;
+}
+
+export const IDLE_CLOSE_CODE = 4001;
 
 export const DEFAULT_CHANNEL = '#general';
 export const MAX_MESSAGES_PER_CHANNEL = 500;
@@ -34,6 +46,7 @@ export const $activeChannel = atom<string>(DEFAULT_CHANNEL);
 export const $channels = atom<Map<string, ChannelState>>(new Map());
 export const $nick = atom<string>('');
 export const $error = atom<string>('');
+export const $disconnect = atom<DisconnectInfo | null>(null);
 
 const $messageStore = atom<Map<string, ChatMessage[]>>(new Map());
 
@@ -111,6 +124,7 @@ export function resetCore(): void {
 	$channels.set(new Map());
 	$nick.set('');
 	$error.set('');
+	$disconnect.set(null);
 	$messageStore.set(new Map());
 }
 

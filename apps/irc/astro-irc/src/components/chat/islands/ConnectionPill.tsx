@@ -14,6 +14,7 @@ const STATUS_LABEL: Record<ConnectionStatus, string> = {
 	connected: 'Online',
 	connecting: 'Connecting…',
 	disconnected: 'Offline',
+	idle: 'Idle',
 	error: 'Error',
 };
 
@@ -61,7 +62,11 @@ export const ConnectionPill: React.FC<ConnectionPillProps> = ({
 				onClick={handleToggle}
 				disabled={connectDisabled}
 				className={`kbve-chat__btn ${status === 'connected' ? 'kbve-chat__btn--danger' : ''}`}>
-				{status === 'connected' ? 'Disconnect' : 'Connect'}
+				{status === 'connected'
+					? 'Disconnect'
+					: status === 'idle' || status === 'error'
+						? 'Reconnect'
+						: 'Connect'}
 			</button>
 		</>
 	);

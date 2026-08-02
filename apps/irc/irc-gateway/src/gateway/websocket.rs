@@ -1,11 +1,11 @@
 use axum::{
     extract::Request,
-    extract::ws::{Message, WebSocket, WebSocketUpgrade},
+    extract::ws::{CloseFrame, Message, WebSocket, WebSocketUpgrade},
     http::StatusCode,
     response::IntoResponse,
 };
 use futures_util::{SinkExt, StreamExt};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use tokio::time::{interval, timeout};
 use tokio_tungstenite::connect_async;
 use tracing::{error, info, warn};
@@ -20,7 +20,23 @@ const NO_USERNAME_MSG: &str = "No provider username configured. Set a username o
 const WS_MAX_FRAME_BYTES: usize = 16 * 1024;
 const WS_MAX_MESSAGE_BYTES: usize = 64 * 1024;
 const WS_PING_INTERVAL: Duration = Duration::from_secs(30);
-const WS_READ_DEADLINE: Duration = Duration::from_secs(90);
+const WS_READ_DEADLINE: Duration = Duration::from_secs(240);
+/// No client frame (heartbeat, pong, or IRC line) for this long means the tab
+/// is gone or throttled to death. We close with a labelled frame instead of
+/// letting the socket rot into a 1006 so the UI can say *why*.
+const CLIENT_IDLE_LIMIT: Duration = Duration::from_secs(120);
+const IDLE_CLOSE_CODE: u16 = 4001;
+const IDLE_CLOSE_REASON: &str = "idle timeout";
+
+/// The droid ws-worker heartbeat. It is a client↔gateway keepalive, not IRC —
+/// answer it here and never forward it to Ergo, which would see it as junk.
+const HEARTBEAT_PING: &str = r#"{"type":"ping"}"#;
+const HEARTBEAT_PONG: &str = r#"{"type":"pong"}"#;
+
+fn is_heartbeat_ping(text: &str) -> bool {
+    let t = text.trim();
+    t == HEARTBEAT_PING || (t.starts_with('{') && t.contains("\"ping\""))
+}
 
 pub async fn ws_handler(ws: WebSocketUpgrade, req: Request) -> impl IntoResponse {
     let token = match jwt::extract_token(&req) {
@@ -89,9 +105,9 @@ async fn proxy_to_ergo(client_ws: WebSocket, username: String) {
     info!(user = %username, "Connected to Ergo");
 
     let (client_pulse_tx, mut client_pulse_rx) = tokio::sync::mpsc::unbounded_channel::<()>();
-    // Raw IRC NOTICE lines pushed back to the web client when a message is
-    // blocked. ergo_to_client owns the client sink, so c2e hands notices off
-    // through this channel.
+    // Frames pushed straight back to the web client without a round trip to
+    // Ergo — blocked-message notices and heartbeat pongs. ergo_to_client owns
+    // the client sink, so c2e hands them off through this channel.
     let (notice_tx, mut notice_rx) = tokio::sync::mpsc::unbounded_channel::<String>();
 
     let client_to_ergo = async {
@@ -108,6 +124,10 @@ async fn proxy_to_ergo(client_ws: WebSocket, username: String) {
             let ergo_msg = match msg {
                 Message::Text(t) => {
                     let text = t.to_string();
+                    if is_heartbeat_ping(&text) {
+                        let _ = notice_tx.send(HEARTBEAT_PONG.to_string());
+                        continue;
+                    }
                     // The web client speaks raw IRC. Gate every PRIVMSG line
                     // through the same anti-spam + content filter the game path
                     // uses, so a web client can't bypass it with a raw frame.
@@ -139,6 +159,7 @@ async fn proxy_to_ergo(client_ws: WebSocket, username: String) {
     let ergo_to_client = async {
         let mut ping_timer = interval(WS_PING_INTERVAL);
         ping_timer.tick().await;
+        let mut last_pulse = Instant::now();
         loop {
             tokio::select! {
                 msg = ergo_stream.next() => {
@@ -161,11 +182,22 @@ async fn proxy_to_ergo(client_ws: WebSocket, username: String) {
                     }
                 }
                 _ = ping_timer.tick() => {
+                    if last_pulse.elapsed() >= CLIENT_IDLE_LIMIT {
+                        warn!(user = %username, "client idle; closing with idle frame");
+                        let _ = client_sink
+                            .send(Message::Close(Some(CloseFrame {
+                                code: IDLE_CLOSE_CODE,
+                                reason: IDLE_CLOSE_REASON.into(),
+                            })))
+                            .await;
+                        break;
+                    }
                     if client_sink.send(Message::Ping(Default::default())).await.is_err() {
                         break;
                     }
                 }
                 _ = client_pulse_rx.recv() => {
+                    last_pulse = Instant::now();
                     ping_timer.reset();
                 }
                 notice = notice_rx.recv() => {

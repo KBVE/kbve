@@ -47,6 +47,13 @@ let lastPongTime = 0;
 const HEARTBEAT_INTERVAL_MS = 30000;
 const HEARTBEAT_TIMEOUT_MS = 60000;
 
+// Server-side idle close. The gateway closes with this code when it has seen
+// no frame from us for its idle window — a throttled background tab, a slept
+// machine, a dead network. Auto-reconnecting from a worker that can't see the
+// document would just burn retries while nobody is looking, so we surface it
+// as its own status and let the page reconnect when the user comes back.
+const IDLE_CLOSE_CODE = 4001;
+
 let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
 let reconnectAttempts = 0;
 let lastUrl: string | null = null;
@@ -229,13 +236,14 @@ const wsInstanceAPI = {
 			);
 			ws = null;
 			stopHeartbeat();
-			broadcastStatus('disconnected', {
+			const idle = event.code === IDLE_CLOSE_CODE;
+			broadcastStatus(idle ? 'idle' : 'disconnected', {
 				code: event.code,
 				reason: event.reason,
 				wasClean: event.wasClean,
 			});
 
-			if (event.code !== 1000) {
+			if (event.code !== 1000 && !idle) {
 				attemptReconnect();
 			}
 		};
