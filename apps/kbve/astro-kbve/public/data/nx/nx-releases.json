@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-01T04:20:55Z",
+  "generated_at": "2026-08-02T04:23:22Z",
   "summary": {
     "pending": 3,
     "behind": 1,
@@ -221,7 +221,7 @@
     {
       "ecosystem": "npm",
       "name": "droid",
-      "local": "0.1.1",
+      "local": "0.1.2",
       "published": "0.186.0",
       "status": "behind"
     },
@@ -235,7 +235,7 @@
     {
       "ecosystem": "npm",
       "name": "laser",
-      "local": "0.1.6",
+      "local": "0.2.0",
       "published": null,
       "status": "unpublished"
     },
