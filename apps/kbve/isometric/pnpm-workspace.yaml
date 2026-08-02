@@ -1,1 +1,3 @@
-onlyBuiltDependencies: esbuild
+allowBuilds:
+  '@swc/core': true
+  esbuild: true
