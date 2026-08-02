@@ -5,6 +5,7 @@ import { clickhouseLens } from '../adapters/clickhouse';
 import { createClickHouseStream } from './clickhouseStream';
 import { createErrorGroupsStream } from './errorGroupsStream';
 import { makeNamespaceGrid } from './NamespaceGrid';
+import { NamespaceFocus } from './NamespaceFocus';
 import { ErrorDigest } from './ErrorDigest';
 import { SectionDivider } from '../shared';
 
@@ -53,17 +54,29 @@ export function ClickHouseView({
 		return {
 			...clickhouseLens,
 			metaPanel: (meta: unknown) => {
-				const panel = grid(meta);
-				if (!panel) return null;
+				const selectedNs = primary.get().params['pod_namespace'];
+				const panel = grid(
+					meta,
+					typeof selectedNs === 'string' ? selectedNs : '',
+				);
 				return (
 					<Stack gap="xs">
-						<SectionDivider label="Namespaces" />
-						{panel}
+						<NamespaceFocus
+							store={primary}
+							errors={errors}
+							meta={meta}
+						/>
+						{panel ? (
+							<>
+								<SectionDivider label="Namespaces" />
+								{panel}
+							</>
+						) : null}
 					</Stack>
 				);
 			},
 		};
-	}, [primary]);
+	}, [primary, errors]);
 
 	return (
 		<Stack gap="md">
