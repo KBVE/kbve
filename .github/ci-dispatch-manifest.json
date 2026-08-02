@@ -536,7 +536,7 @@
 		{
 			"key": "reel",
 			"app_name": "reel",
-			"version": "0.1.34",
+			"version": "0.1.35",
 			"version_toml": "apps/media/reel/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/reel.mdx",
 			"version_target": "apps/media/reel/Cargo.toml",
@@ -586,7 +586,7 @@
 		{
 			"key": "droid",
 			"package_name": "droid",
-			"version": "0.1.1",
+			"version": "0.1.2",
 			"version_toml": "packages/npm/droid/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/droid.mdx",
 			"version_target": "packages/npm/droid/package.json"
@@ -1393,7 +1393,7 @@
 				]
 			},
 			"source_path": "apps/herbmail/herbmail-game",
-			"version": "0.1.12",
+			"version": "0.1.13",
 			"version_toml": "apps/herbmail/herbmail-game/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/herbmail-game.mdx",
 			"runner": "ubuntu-latest",

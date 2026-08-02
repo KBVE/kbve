@@ -103,6 +103,8 @@ struct StatusReport {
     #[serde(skip_serializing_if = "Option::is_none")]
     forwarded_port: Option<u16>,
     inbound_ready: bool,
+    port_rotations: u64,
+    vpn_fail_streak: u32,
     counts: Counts,
     torrents: Vec<TorrentView>,
 }
@@ -199,6 +201,8 @@ async fn status(State(st): State<AppState>, headers: HeaderMap) -> impl IntoResp
         bt_listen_port,
         forwarded_port,
         inbound_ready: inbound_ready(bt_listen_port, forwarded_port),
+        port_rotations: st.engine.port_rotations(),
+        vpn_fail_streak: st.engine.vpn_fail_streak(),
         counts,
         torrents,
     })
