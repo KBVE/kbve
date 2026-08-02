@@ -19,7 +19,7 @@ crate-type = ["cdylib", "staticlib", "rlib"]
 
 [build-dependencies]
 csbindgen = "1.9"
-prost-build = "0.13"
+prost-build = "0.14"
 # Vendored protoc so cross-compile environments (cross, ndk, xwin) don't
 # need a system-installed protobuf-compiler.
 protoc-bin-vendored = "3"
@@ -40,7 +40,7 @@ bevy_inventory = { version = "0.1", path = "../bevy_inventory", default-features
 bevy_battle = { version = "0.1", path = "../bevy_battle", default-features = false }
 bevy_skills = { version = "0.1", path = "../bevy_skills", default-features = false }
 # Empire snapshot proto codec.
-prost = "0.13"
+prost = "0.14"
 # Async runtime for the empire strategic ticker + future MP transports.
 # Feature-set is intentionally minimal: rt + time only, no multi-thread
 # scheduler, no macros, no IO. Excluded from wasm32 in lib code via cfg

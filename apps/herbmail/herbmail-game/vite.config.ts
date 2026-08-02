@@ -7,10 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import react from '@vitejs/plugin-react';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
-import {
-	meshNodeNamesInFile,
-	restoreMeshNamesInFile,
-} from './tools/glbNames';
+import { meshNodeNamesInFile, restoreMeshNamesInFile } from './tools/glbNames';
 
 const laserSrc = path.resolve(__dirname, '../../../packages/npm/laser/src');
 const generated = path.resolve(
@@ -87,40 +84,43 @@ function iconStudioWriter(): Plugin {
 	};
 }
 
-const MODEL_HASHES_ID = 'virtual:model-hashes';
+const ASSET_HASHES_ID = 'virtual:asset-hashes';
 
-function modelHashes(): Plugin {
+// public/textures is a bake output committed at its final resolution, so a
+// retarget changes the file itself and the content hash moves with it.
+function assetHashes(): Plugin {
 	const publicDir = path.resolve(__dirname, 'public');
-	const modelsDir = path.join(publicDir, 'models');
 	const build = () => {
 		const out: Record<string, string> = {};
-		const walk = (dir: string) => {
+		const walk = (dir: string, match: RegExp, salt: string) => {
 			if (!fs.existsSync(dir)) return;
 			for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
 				const p = path.join(dir, e.name);
 				if (e.isDirectory()) {
-					walk(p);
+					walk(p, match, salt);
 					continue;
 				}
-				if (!e.name.endsWith('.glb')) continue;
+				if (!match.test(e.name)) continue;
 				const url = `/${path.relative(publicDir, p).split(path.sep).join('/')}`;
 				out[url] = crypto
 					.createHash('sha256')
 					.update(fs.readFileSync(p))
+					.update(salt)
 					.digest('hex')
 					.slice(0, 8);
 			}
 		};
-		walk(modelsDir);
+		walk(path.join(publicDir, 'models'), /\.glb$/i, '');
+		walk(path.join(publicDir, 'textures'), /\.(png|jpe?g)$/i, '');
 		return out;
 	};
 	return {
-		name: 'model-hashes',
+		name: 'asset-hashes',
 		resolveId(id) {
-			return id === MODEL_HASHES_ID ? `\0${MODEL_HASHES_ID}` : null;
+			return id === ASSET_HASHES_ID ? `\0${ASSET_HASHES_ID}` : null;
 		},
 		load(id) {
-			if (id !== `\0${MODEL_HASHES_ID}`) return null;
+			if (id !== `\0${ASSET_HASHES_ID}`) return null;
 			return `export default ${JSON.stringify(build())};`;
 		},
 	};
@@ -209,7 +209,7 @@ export default defineConfig({
 		react(),
 		nxViteTsPaths(),
 		iconStudioWriter(),
-		modelHashes(),
+		assetHashes(),
 		gltfpackModels(),
 	],
 	resolve: {
@@ -224,7 +224,7 @@ export default defineConfig({
 	},
 	worker: {
 		format: 'es',
-		plugins: () => [nxViteTsPaths(), modelHashes()],
+		plugins: () => [nxViteTsPaths(), assetHashes()],
 	},
 	build: {
 		outDir: '../../../dist/apps/herbmail/herbmail-game',
@@ -234,10 +234,7 @@ export default defineConfig({
 		globals: true,
 		watch: false,
 		environment: 'node',
-		include: [
-			'src/**/*.{test,spec}.{ts,tsx}',
-			'tools/**/*.{test,spec}.ts',
-		],
+		include: ['src/**/*.{test,spec}.{ts,tsx}', 'tools/**/*.{test,spec}.ts'],
 		reporters: ['default'],
 		// vitest's node resolver doesn't pick up the @kbve/laser/* tsconfig-path
 		// aliases (nxViteTsPaths only wires them for build/dev), so map the subpaths to
