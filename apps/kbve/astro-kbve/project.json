@@ -392,6 +392,29 @@
 			},
 			"cache": true
 		},
+		"sync:professiondb": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["sync:mapdb", "sync:itemdb"],
+			"inputs": [
+				"{projectRoot}/src/content/docs/professiondb/**/*.mdx",
+				"{workspaceRoot}/packages/data/codegen/gen-professiondb-data.mjs",
+				"{workspaceRoot}/packages/data/codegen/gen-professiondb-xref.mjs",
+				"{workspaceRoot}/packages/data/codegen/generated/mapdb-data.json",
+				"{workspaceRoot}/packages/data/codegen/generated/itemdb-data.json"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/data/codegen/generated/professiondb-data.json",
+				"{workspaceRoot}/packages/data/codegen/generated/professiondb-data.binpb",
+				"{workspaceRoot}/packages/data/codegen/generated/professiondb-runtime.json",
+				"{workspaceRoot}/packages/data/codegen/generated/xref-index.json",
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/professiondb-runtime.json"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-professiondb-data.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
 		"sync:npcdb-uecpp": {
 			"executor": "nx:run-commands",
 			"inputs": [
