@@ -7,7 +7,11 @@ import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import react from '@vitejs/plugin-react';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
-import { meshNodeNamesInFile, restoreMeshNamesInFile } from './tools/glbNames';
+import {
+	animationChannelCountsInFile,
+	meshNodeNamesInFile,
+	restoreMeshNamesInFile,
+} from './tools/glbNames';
 
 const laserSrc = path.resolve(__dirname, '../../../packages/npm/laser/src');
 const generated = path.resolve(
@@ -136,6 +140,13 @@ function assetHashes(): Plugin {
 // public/ models. Sources in public/models stay uncompressed LFS truth; only
 // dist output is packed. -kn keeps node/mesh names (armor slots + bone lookups
 // key on them), -ke keeps extras. LFS pointer stubs (offline build) are skipped.
+//
+// -ac and -af 0 are load-bearing, not size knobs. Without -ac gltfpack drops
+// every animation track that holds a constant value, which took the 15 rig
+// clips from 270 channels down to 54: a bone the previous clip moved then has
+// nothing driving it back, so the mixer leaves it where it was and the stance
+// snaps — prod only, since dev serves the unpacked GLB. -af 0 turns off the
+// 30Hz resample that was lengthening 33 clips by up to a frame.
 function gltfpackModels(): Plugin {
 	let outDir = '';
 	return {
@@ -169,10 +180,23 @@ function gltfpackModels(): Plugin {
 				}
 				const before = fs.statSync(f).size;
 				const wanted = meshNodeNamesInFile(f);
+				const wantedClips = animationChannelCountsInFile(f);
 				const tmp = `${f}.pack.glb`;
 				const run = spawnSync(
 					process.execPath,
-					[cli, '-i', f, '-o', tmp, '-cc', '-kn', '-ke'],
+					[
+						cli,
+						'-i',
+						f,
+						'-o',
+						tmp,
+						'-cc',
+						'-kn',
+						'-ke',
+						'-ac',
+						'-af',
+						'0',
+					],
 					{ stdio: 'inherit' },
 				);
 				if (run.status !== 0 || !fs.existsSync(tmp))
@@ -184,6 +208,17 @@ function gltfpackModels(): Plugin {
 				if (missing.length)
 					throw new Error(
 						`gltfpack dropped mesh names in ${path.relative(outDir, f)}: ${missing.join(', ')}`,
+					);
+				const gotClips = animationChannelCountsInFile(f);
+				const thinned = [...wantedClips]
+					.filter(([name, n]) => (gotClips.get(name) ?? 0) < n)
+					.map(
+						([name, n]) =>
+							`${name} ${n}->${gotClips.get(name) ?? 0}`,
+					);
+				if (thinned.length)
+					throw new Error(
+						`gltfpack dropped animation channels in ${path.relative(outDir, f)}: ${thinned.slice(0, 5).join(', ')}${thinned.length > 5 ? ` (+${thinned.length - 5} more)` : ''}`,
 					);
 				const after = fs.statSync(f).size;
 				console.log(
