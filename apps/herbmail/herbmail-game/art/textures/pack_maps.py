@@ -8,7 +8,7 @@ normal G channel for DirectX-style sources.
 from pathlib import Path
 from PIL import Image, ImageOps
 
-SIZE = 1024
+SIZE = 256
 HOME = Path.home()
 TILES = HOME / "Downloads/Free Tiled Surface Textures"
 OUT = Path(__file__).resolve().parents[2] / "public/textures/door"
