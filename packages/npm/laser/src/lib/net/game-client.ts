@@ -12,6 +12,7 @@ import {
 	EPHEMERAL_ITEM_USED,
 	EPHEMERAL_PET_BATTLE_LOG,
 	EPHEMERAL_PET_BATTLE_STATE,
+	EPHEMERAL_PET_LEARN,
 	EPHEMERAL_PET_NOTICE,
 	EPHEMERAL_PET_ROSTER,
 	EPHEMERAL_PICKUP,
@@ -34,6 +35,7 @@ import {
 	type ItemUsedEvent,
 	type PetBattleReplay,
 	type PetBattleState,
+	type PetLearnOffer,
 	type PetNotice,
 	type PetRosterSync,
 	type PickupEvent,
@@ -59,6 +61,7 @@ import {
 	decodeItemUsed,
 	decodePetBattleReplay,
 	decodePetBattleState,
+	decodePetLearnOffer,
 	decodePetNotice,
 	decodePetRosterSync,
 	decodePickup,
@@ -90,6 +93,7 @@ export type GameClientEventMap = {
 	petBattleState: PetBattleState;
 	petRoster: PetRosterSync;
 	petNotice: PetNotice;
+	petLearnOffer: PetLearnOffer;
 	duelPrompt: DuelPrompt;
 	reject: string;
 	state: ConnectionState;
@@ -233,6 +237,9 @@ export class GameClient {
 		} else if (evt.kind === EPHEMERAL_PET_NOTICE) {
 			const data = decodePetNotice(evt.payload);
 			if (data) this.bus.emit('petNotice', data);
+		} else if (evt.kind === EPHEMERAL_PET_LEARN) {
+			const data = decodePetLearnOffer(evt.payload);
+			if (data) this.bus.emit('petLearnOffer', data);
 		} else if (evt.kind === EPHEMERAL_DUEL_PROMPT) {
 			const data = decodeDuelPrompt(evt.payload);
 			if (data) this.bus.emit('duelPrompt', data);
@@ -316,6 +323,13 @@ export class GameClient {
 	/** Ask healer NPC `npc` (its server eid) to restore the whole roster. */
 	healPets(npc: number): void {
 		this.sendInputs([{ HealPets: { npc } }]);
+	}
+
+	/** Answer an outstanding `petLearnOffer` for pet instance `petId`. `slot` is the index
+	 * into the pet's known moves to overwrite; `null` declines and keeps the current four.
+	 * The server replies with a terminal `petLearnOffer` status either way. */
+	respondLearnMove(petId: string, slot: number | null): void {
+		this.sendInputs([{ RespondLearnMove: { pet_id: petId, slot } }]);
 	}
 
 	castSpell(spellRef: string, target: number | null): void {

@@ -175,6 +175,8 @@ import {
 	emitPetBattleState,
 	emitPetRoster,
 	onPetRosterOp,
+	onPetLearnReply,
+	emitPetLearnOffer,
 	onDuelRespond,
 	emitDuelPrompt,
 	type InventoryIntent,
@@ -396,6 +398,7 @@ export class IsoArpgScene extends Phaser.Scene {
 	private offPetBattle?: () => void;
 	private offDuelRespond?: () => void;
 	private offRosterOp?: () => void;
+	private offLearnReply?: () => void;
 	private offCorpseIntent?: () => void;
 	private offSpaceExit?: () => void;
 	// Reusable scratch array for snapshot z-filter (reduces GC churn).
@@ -555,6 +558,11 @@ export class IsoArpgScene extends Phaser.Scene {
 			else if (op.kind === 'elixir') this.client?.usePetElixir(op.idx);
 			else this.client?.renamePet(op.idx, op.name);
 		});
+
+		// Pet move-learn: which move to forget (or a decline) -> RespondLearnMove.
+		this.offLearnReply = onPetLearnReply((reply) =>
+			this.client?.respondLearnMove(reply.petId, reply.slot),
+		);
 
 		// Duel prompt overlay: the player's Accept/Decline choice -> DuelRespond.
 		this.offDuelRespond = onDuelRespond((accept) =>
@@ -1349,6 +1357,8 @@ export class IsoArpgScene extends Phaser.Scene {
 				notificationType: n.ok ? 'success' : 'warning',
 			}),
 		);
+		// A pet levelled into a move it cannot fit -> the React prompt.
+		client.on('petLearnOffer', (offer) => emitPetLearnOffer(offer));
 		// PvP duel challenge prompt -> the React overlay (offer/declined/expired/accepted).
 		client.on('duelPrompt', (prompt) => emitDuelPrompt(prompt));
 		// Placement rejected server-side (out of range, occupied): the item was
@@ -2674,6 +2684,8 @@ export class IsoArpgScene extends Phaser.Scene {
 		this.offDuelRespond = undefined;
 		this.offRosterOp?.();
 		this.offRosterOp = undefined;
+		this.offLearnReply?.();
+		this.offLearnReply = undefined;
 		this.offCorpseIntent?.();
 		this.offCorpseIntent = undefined;
 		this.offSpaceExit?.();

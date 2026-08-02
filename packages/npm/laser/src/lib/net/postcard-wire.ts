@@ -27,6 +27,7 @@ import type {
 	PetBattleWireEvent,
 	PetMoveOption,
 	PetMoveView,
+	PetLearnOffer,
 	PetNotice,
 	PetRosterSync,
 	PetView,
@@ -223,6 +224,17 @@ function writeInput(w: PostcardWriter, inp: Input): void {
 	} else if ('HealPets' in inp) {
 		w.variant(40);
 		w.u32(inp.HealPets.npc);
+	} else if ('RespondLearnMove' in inp) {
+		w.variant(41);
+		w.string(inp.RespondLearnMove.pet_id);
+		// Option<u32>: a tag byte, then the value only when present. `null` declines.
+		const slot = inp.RespondLearnMove.slot;
+		if (slot === null) {
+			w.option(false);
+		} else {
+			w.option(true);
+			w.u32(slot);
+		}
 	}
 }
 
@@ -481,6 +493,7 @@ function readPetView(r: PostcardReader): PetView {
 	const nickname = r.string();
 	const level = r.u32();
 	const xp = r.u32();
+	const xp_to_next = r.u32();
 	const hp = r.i32();
 	const max_hp = r.i32();
 	const attack = r.i32();
@@ -496,6 +509,7 @@ function readPetView(r: PostcardReader): PetView {
 		nickname,
 		level,
 		xp,
+		xp_to_next,
 		hp,
 		max_hp,
 		attack,
@@ -521,6 +535,29 @@ export function decodePetRosterSync(payload: number[]): PetRosterSync {
 export function decodePetNotice(payload: number[]): PetNotice {
 	const r = new PostcardReader(Uint8Array.from(payload));
 	return { ok: r.bool(), text: r.string() };
+}
+
+/** Decode an EPHEMERAL_PET_LEARN payload. Matches `proto::PetLearnOffer`: status u8, three
+ * strings, a seq of known ability ids, then the countdown. */
+export function decodePetLearnOffer(payload: number[]): PetLearnOffer {
+	const r = new PostcardReader(Uint8Array.from(payload));
+	const status = r.u8();
+	const pet_id = r.string();
+	const nickname = r.string();
+	const ability_id = r.string();
+	const ability_name = r.string();
+	const known: string[] = [];
+	for (let n = r.seqLen(); n > 0; n--) known.push(r.string());
+	const deadline_ms = r.u32();
+	return {
+		status,
+		pet_id,
+		nickname,
+		ability_id,
+		ability_name,
+		known,
+		deadline_ms,
+	};
 }
 
 /** Decode an EPHEMERAL_DUEL_PROMPT payload. Matches `proto::DuelPrompt`. */

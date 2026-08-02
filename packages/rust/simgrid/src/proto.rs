@@ -52,6 +52,7 @@ pub const EPHEMERAL_PET_BATTLE_STATE: u16 = 19;
 pub const EPHEMERAL_UDP_OFFER: u16 = 20;
 pub const EPHEMERAL_DUEL_PROMPT: u16 = 21;
 pub const EPHEMERAL_PET_NOTICE: u16 = 22;
+pub const EPHEMERAL_PET_LEARN: u16 = 23;
 
 pub const UDP_MAX_DATAGRAM: usize = 1200;
 
@@ -324,6 +325,14 @@ pub enum Input {
     /// inputs are unchanged.
     HealPets {
         npc: EntityId,
+    },
+    /// Answer an outstanding `PetLearnOffer`. `slot` is the index into the pet's known moves
+    /// to overwrite; `None` declines and keeps the current four. Keyed by `pet_id` rather than
+    /// a roster index because a roster can be reordered between the offer and the answer.
+    /// Appended last so serde variant indices of the existing inputs are unchanged.
+    RespondLearnMove {
+        pet_id: String,
+        slot: Option<u32>,
     },
 }
 
@@ -644,6 +653,10 @@ pub struct PetView {
     pub nickname: String,
     pub level: u32,
     pub xp: u32,
+    /// XP still needed for the next level, so the hub can draw a bar without mirroring the
+    /// growth curves client-side. 0 at the level ceiling, or when the species is unknown to
+    /// whoever built this view.
+    pub xp_to_next: u32,
     pub hp: i32,
     pub max_hp: i32,
     pub attack: i32,
@@ -768,6 +781,30 @@ pub struct PetNotice {
     pub ok: bool,
     pub text: String,
 }
+
+/// A pet is offered a new move but already knows the maximum. `status` is a `PET_LEARN_*`
+/// constant: the server sends `OFFER` with the choice, then exactly one terminal status so the
+/// client never has to guess whether a prompt is still live.
+///
+/// Carries `known` rather than making the client join against the roster: an offer and a roster
+/// sync can arrive in either order, and a prompt listing the wrong moves to forget is worse than
+/// a few duplicated strings.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PetLearnOffer {
+    pub status: u8,
+    pub pet_id: String,
+    pub nickname: String,
+    pub ability_id: String,
+    pub ability_name: String,
+    pub known: Vec<String>,
+    /// Milliseconds left to answer. 0 on the terminal statuses.
+    pub deadline_ms: u32,
+}
+
+pub const PET_LEARN_OFFER: u8 = 0;
+pub const PET_LEARN_LEARNED: u8 = 1;
+pub const PET_LEARN_DECLINED: u8 = 2;
+pub const PET_LEARN_EXPIRED: u8 = 3;
 
 /// A pet duel challenge notice: `status` is a `DUEL_PROMPT_*` constant. Sent to
 /// the target as the offer (with the challenger's name + time to respond) and
@@ -1409,6 +1446,7 @@ mod tests {
                     nickname: "Rex".into(),
                     level: 5,
                     xp: 120,
+                    xp_to_next: 91,
                     hp: 30,
                     max_hp: 40,
                     attack: 12,
@@ -1428,6 +1466,7 @@ mod tests {
                     nickname: "Bolt".into(),
                     level: 7,
                     xp: 0,
+                    xp_to_next: 169,
                     hp: 44,
                     max_hp: 44,
                     attack: 15,
@@ -1460,8 +1499,81 @@ mod tests {
         assert_eq!(back, sync);
     }
 
-    const ROSTER_SYNC_HEX: &str = "020330314a096d656368616d7574740352657805783c5018141c161a0105737061726b0f0f0330314b096d656368616d75747404426f6c74070058581e18201a22000101";
+    const ROSTER_SYNC_HEX: &str = "020330314a096d656368616d7574740352657805785b3c5018141c161a0105737061726b0f0f0330314b096d656368616d75747404426f6c740700a90158581e18201a22000101";
     const ROSTER_SYNC_EMPTY_HEX: &str = "0000";
+
+    /// Locks the move-learn offer the TS `decodePetLearnOffer` mirror reads. `known` is a
+    /// string sequence, which is the part a hand-written decoder is most likely to get wrong.
+    #[test]
+    fn pet_learn_offer_fixture_is_stable() {
+        let offer = PetLearnOffer {
+            status: PET_LEARN_OFFER,
+            pet_id: "01J".into(),
+            nickname: "Rex".into(),
+            ability_id: "overclock".into(),
+            ability_name: "Overclock".into(),
+            known: vec!["tackle".into(), "spark-bark".into()],
+            deadline_ms: 30_000,
+        };
+        let bytes = encode_inner(&offer).expect("encode");
+        assert_eq!(hex(&bytes), PET_LEARN_OFFER_HEX);
+        let back: PetLearnOffer = decode_inner(&bytes).expect("decode");
+        assert_eq!(back, offer);
+    }
+
+    /// A terminal status carries no countdown and, on a decline, an empty `known` — the
+    /// shortest form the client has to handle without mistaking it for a live offer.
+    #[test]
+    fn pet_learn_terminal_fixture_is_stable() {
+        let offer = PetLearnOffer {
+            status: PET_LEARN_EXPIRED,
+            pet_id: "01J".into(),
+            nickname: "Rex".into(),
+            ability_id: "overclock".into(),
+            ability_name: "Overclock".into(),
+            known: vec![],
+            deadline_ms: 0,
+        };
+        let bytes = encode_inner(&offer).expect("encode");
+        assert_eq!(hex(&bytes), PET_LEARN_EXPIRED_HEX);
+        let back: PetLearnOffer = decode_inner(&bytes).expect("decode");
+        assert_eq!(back, offer);
+    }
+
+    const PET_LEARN_OFFER_HEX: &str = "000330314a03526578096f766572636c6f636b094f766572636c6f636b020674\
+61636b6c650a737061726b2d6261726bb0ea01";
+    const PET_LEARN_EXPIRED_HEX: &str =
+        "030330314a03526578096f766572636c6f636b094f766572636c6f636b0000";
+
+    /// Locks variant 41 and the `Option<u32>` slot, whose presence byte is the one thing a TS
+    /// encoder mirroring this is likely to drop.
+    #[test]
+    fn respond_learn_move_roundtrips() {
+        let replace = Input::RespondLearnMove {
+            pet_id: "01J".into(),
+            slot: Some(2),
+        };
+        let bytes = encode_inner(&replace).expect("encode");
+        assert_eq!(bytes[0], 41);
+        assert!(matches!(
+            decode_inner(&bytes).expect("decode"),
+            Input::RespondLearnMove { slot: Some(2), .. }
+        ));
+
+        let decline = Input::RespondLearnMove {
+            pet_id: "01J".into(),
+            slot: None,
+        };
+        let bytes = encode_inner(&decline).expect("encode");
+        assert_eq!(bytes[0], 41);
+        assert_eq!(hex(&bytes), RESPOND_LEARN_DECLINE_HEX);
+        assert!(matches!(
+            decode_inner(&bytes).expect("decode"),
+            Input::RespondLearnMove { slot: None, .. }
+        ));
+    }
+
+    const RESPOND_LEARN_DECLINE_HEX: &str = "290330314a00";
 
     #[test]
     fn combat_event_fixture_is_stable() {

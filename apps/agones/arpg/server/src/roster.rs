@@ -26,7 +26,13 @@ pub fn apply_roster_ops(
             continue;
         };
         if duels.by_slot.contains_key(&slot.0) {
-            simgrid::send_roster_sync(&bcast, slot, &bank.snapshot(&roster), roster.active);
+            simgrid::send_roster_sync(
+                &bcast,
+                slot,
+                &bank.snapshot(&roster),
+                roster.active,
+                Some(&crate::game::NPC_DB),
+            );
             continue;
         }
         let mut renamed: Option<(usize, String)> = None;
@@ -51,7 +57,13 @@ pub fn apply_roster_ops(
         {
             snap.nickname = applied;
         }
-        simgrid::send_roster_sync(&bcast, slot, &snaps, roster.active);
+        simgrid::send_roster_sync(
+            &bcast,
+            slot,
+            &snaps,
+            roster.active,
+            Some(&crate::game::NPC_DB),
+        );
     }
 }
 

@@ -33,6 +33,7 @@ export const EPHEMERAL_PET_BATTLE_LOG = 18;
 export const EPHEMERAL_PET_BATTLE_STATE = 19;
 export const EPHEMERAL_DUEL_PROMPT = 21;
 export const EPHEMERAL_PET_NOTICE = 22;
+export const EPHEMERAL_PET_LEARN = 23;
 
 export const DUEL_PROMPT_OFFER = 0;
 export const DUEL_PROMPT_DECLINED = 1;
@@ -165,6 +166,9 @@ export interface PetView {
 	nickname: string;
 	level: number;
 	xp: number;
+	/** XP still needed for the next level, so a progress bar needs no client-side copy of
+	 * the growth curves. 0 at the level ceiling. */
+	xp_to_next: number;
 	hp: number;
 	max_hp: number;
 	attack: number;
@@ -188,6 +192,28 @@ export interface PetRosterSync {
 export interface PetNotice {
 	ok: boolean;
 	text: string;
+}
+
+export const PET_LEARN_OFFER = 0;
+export const PET_LEARN_LEARNED = 1;
+export const PET_LEARN_DECLINED = 2;
+export const PET_LEARN_EXPIRED = 3;
+
+/** A pet levelled into a new move but already knows the maximum, so the owner has to pick
+ * one to forget. `status` is one of the PET_LEARN_* constants: exactly one terminal status
+ * follows every OFFER, so a prompt never has to be guessed stale.
+ *
+ * `known` is the pet's current moves at offer time — carried here rather than joined
+ * against the roster, since an offer and a roster sync can arrive in either order. */
+export interface PetLearnOffer {
+	status: number;
+	pet_id: string;
+	nickname: string;
+	ability_id: string;
+	ability_name: string;
+	known: string[];
+	/** Milliseconds left to answer; 0 on the terminal statuses. */
+	deadline_ms: number;
 }
 
 /** A duel challenge/response prompt shown to the challenged player. `status` is one
@@ -261,7 +287,8 @@ export type Input =
 	| { ReleasePet: { idx: number } }
 	| { RenamePet: { idx: number; name: string } }
 	| { UsePetElixir: { idx: number } }
-	| { HealPets: { npc: number } };
+	| { HealPets: { npc: number } }
+	| { RespondLearnMove: { pet_id: string; slot: number | null } };
 
 export type BjActionKind = 'Hit' | 'Stand' | 'Double' | 'Split' | 'Surrender';
 
