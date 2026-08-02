@@ -34,16 +34,16 @@ pub struct Duel {
     /// refuses to release a pet while its owner is dueling.
     pub pets: [Vec<Option<Entity>>; 2],
     /// Set only for a wild encounter. Carries what the Catch action needs: the world entity to
-    /// despawn once caught, and the species + level to mint the caught pet from. `None` for
-    /// trainer and PvP duels, which is exactly what makes them uncatchable.
+    /// despawn once caught, and the species to read `capture_rate` from. `None` for trainer and
+    /// PvP duels, which is exactly what makes them uncatchable.
     pub wild: Option<WildTarget>,
 }
 
-/// The wild pet a duel is against.
+/// The wild pet a duel is against. The caught pet is minted from the live combatant, not from
+/// here, so this carries no level.
 pub struct WildTarget {
     pub entity: Entity,
     pub species_ref: String,
-    pub level: u32,
 }
 
 #[derive(bevy::prelude::Resource, Default)]
@@ -304,7 +304,6 @@ pub fn apply_npc_challenges(
                 wild: Some(WildTarget {
                     entity: trainer_entity,
                     species_ref: wild.species_ref.clone(),
-                    level: wild.level,
                 }),
             };
             claimed.insert(trainer_entity);
