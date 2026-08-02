@@ -64,6 +64,7 @@ export class WaterSurfacePass {
 		private readonly objectClippedReflectionTexture: THREE.Texture,
 		private readonly objectRefractionTexture: THREE.Texture,
 		private readonly state: WaterOpticsState,
+		segments = 200,
 	) {
 		this.aboveMaterial = this.createMaterial(
 			waterAboveVert,
@@ -93,7 +94,7 @@ export class WaterSurfacePass {
 		this.belowMaterial.transparent = true;
 		this.belowMaterial.depthWrite = false;
 
-		const geometry = new THREE.PlaneGeometry(2, 2, 200, 200);
+		const geometry = new THREE.PlaneGeometry(2, 2, segments, segments);
 		this.aboveMesh = new THREE.Mesh(geometry, this.aboveMaterial);
 		this.belowMesh = new THREE.Mesh(geometry.clone(), this.belowMaterial);
 		this.aboveMesh.frustumCulled = false;
