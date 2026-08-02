@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { DroidEvents } from '@kbve/droid';
+import { startLivePoller, type LiveSnapshot } from './livePoller';
 import {
 	KIND,
 	KIND_META,
@@ -13,7 +15,6 @@ import {
 	iconKeys,
 	gameToUnits,
 	type KindName,
-	type LivePlayer,
 } from './markerEcs';
 
 const MAX_ZOOM = 8;
@@ -21,7 +22,6 @@ const PAL_TILE_BASE = '/palworld/tiles';
 const PAL_MAX_NATIVE_ZOOM = 6;
 const WT_TILE_BASE = '/palworld/wt-overlay';
 const LIVE_URL_DEFAULT = 'https://palworld.kbve.com/live/players';
-const LIVE_POLL_MS = 5000;
 const LERP_MS = 4000;
 const TIMERS_KEY = 'palworld-map-timers';
 const PAD = 0.5;
@@ -222,7 +222,9 @@ export default function ReactPalworldMap() {
 		let originX = 0;
 		let originY = 0;
 
+		let redrawCount = 0;
 		const redraw = () => {
+			redrawCount++;
 			const dpr = window.devicePixelRatio || 1;
 			const w = el.clientWidth;
 			const h = el.clientHeight;
@@ -270,13 +272,7 @@ export default function ReactPalworldMap() {
 					dpr,
 				);
 				if (sp)
-					ctx.drawImage(
-						sp,
-						lx - size / 2,
-						ly - size / 2,
-						size,
-						size,
-					);
+					ctx.drawImage(sp, lx - size / 2, ly - size / 2, size, size);
 				if (deadline) {
 					const total =
 						(RESPAWN_MINUTES[KIND_NAMES[kind]] || 60) * 60_000;
@@ -315,20 +311,34 @@ export default function ReactPalworldMap() {
 			});
 		};
 
-		const settle = () => {
-			L.DomUtil.setTransform(pane, L.point(0, 0), 1);
-			settleP0 = map.getPixelOrigin().clone();
+		let settledZoom = NaN;
+		const settle = (force = true) => {
 			const w = el.clientWidth;
 			const h = el.clientHeight;
+			if (!force && map.getZoom() === settledZoom) {
+				const tl = map.containerPointToLayerPoint([0, 0]);
+				const slackX = w * (PAD - 0.15);
+				const slackY = h * (PAD - 0.15);
+				if (
+					Math.abs(tl.x - originX - w * PAD) <= slackX &&
+					Math.abs(tl.y - originY - h * PAD) <= slackY
+				) {
+					return;
+				}
+			}
+			L.DomUtil.setTransform(pane, L.point(0, 0), 1);
+			settleP0 = map.getPixelOrigin().clone();
+			settledZoom = map.getZoom();
 			const o = map.containerPointToLayerPoint([-w * PAD, -h * PAD]);
 			originX = o.x;
 			originY = o.y;
 			L.DomUtil.setPosition(canvas, o);
 			redraw();
 		};
-		map.on('moveend zoomend viewreset resize', settle);
+		map.on('moveend', () => settle(false));
+		map.on('zoomend viewreset resize', () => settle(true));
 		map.on('zoom', () => {
-			if (!wheelActive) settle();
+			if (!wheelActive) settle(true);
 		});
 		settle();
 
@@ -654,6 +664,7 @@ export default function ReactPalworldMap() {
 				drawPos,
 				latlngs,
 				getOrigin: () => [originX, originY],
+				getRedraws: () => redrawCount,
 			};
 		}
 
@@ -661,96 +672,77 @@ export default function ReactPalworldMap() {
 			new URLSearchParams(window.location.search).get('live') ||
 			LIVE_URL_DEFAULT;
 		let stopped = false;
-		const poll = async () => {
-			try {
-				const res = await fetch(liveUrl, { cache: 'no-store' });
-				if (!res.ok) throw new Error(String(res.status));
-				const data = (await res.json()) as {
-					players?: LivePlayer[];
-					bosses?: {
-						id: string;
-						x: number;
-						y: number;
-						respawn_at: number;
-					}[];
-					events?: {
-						kind: string;
-						x: number;
-						y: number;
-						first_seen: number;
-					}[];
-				};
-				if (stopped) return;
-				syncEvents(data.events || []);
-				const seen = new Set<string>();
-				for (const p of data.players || []) {
-					seen.add(p.name);
-					const ll = L.latLng(gameToLatLng(p.x, p.y));
-					const existing = playerMarkers.get(p.name);
-					if (existing) {
-						existing.from = existing.m.getLatLng();
-						existing.to = ll;
-						existing.t0 = performance.now();
-					} else {
-						const m = L.marker(ll, {
-							icon: playerIcon(`${p.name} · Lv ${p.level}`),
-							keyboard: false,
-							interactive: false,
-							zIndexOffset: 500,
-						});
-						m.addTo(playerLayer);
-						playerMarkers.set(p.name, {
-							m,
-							from: ll,
-							to: ll,
-							t0: performance.now(),
-						});
-					}
-				}
-				for (const [name, p] of playerMarkers) {
-					if (!seen.has(name)) {
-						playerLayer.removeLayer(p.m);
-						playerMarkers.delete(name);
-					}
-				}
-				if (!playerRaf && playerMarkers.size)
-					playerRaf = requestAnimationFrame(playerFrame);
-				serverTimers.clear();
-				for (const b of data.bosses || []) {
-					const [ux, uy] = gameToUnits(b.x, b.y);
-					let bestEid = -1;
-					let bestD = 9;
-					for (const eid of bossEnts) {
-						const dx = Pos.x[eid] - ux;
-						const dy = Pos.yd[eid] - uy;
-						const d = dx * dx + dy * dy;
-						if (d < bestD) {
-							bestD = d;
-							bestEid = eid;
-						}
-					}
-					if (bestEid >= 0) serverTimers.set(bestEid, b.respawn_at);
-				}
-				if (data.bosses?.length) scheduleRedraw();
-				const span = countTexts.get(KIND.player);
-				if (span)
-					span.textContent = `Players (${data.players?.length || 0})`;
-			} catch {
-				if (stopped) return;
+		const onSnapshot = (snap: LiveSnapshot) => {
+			if (stopped) return;
+			if (snap.offline) {
 				for (const [name, p] of playerMarkers) {
 					playerLayer.removeLayer(p.m);
 					playerMarkers.delete(name);
 				}
 				const span = countTexts.get(KIND.player);
 				if (span) span.textContent = 'Players (offline)';
+				return;
 			}
+			syncEvents(snap.events);
+			const seen = new Set<string>();
+			for (const p of snap.players) {
+				seen.add(p.name);
+				const ll = L.latLng(gameToLatLng(p.x, p.y));
+				const existing = playerMarkers.get(p.name);
+				if (existing) {
+					existing.from = existing.m.getLatLng();
+					existing.to = ll;
+					existing.t0 = performance.now();
+				} else {
+					const m = L.marker(ll, {
+						icon: playerIcon(`${p.name} · Lv ${p.level}`),
+						keyboard: false,
+						interactive: false,
+						zIndexOffset: 500,
+					});
+					m.addTo(playerLayer);
+					playerMarkers.set(p.name, {
+						m,
+						from: ll,
+						to: ll,
+						t0: performance.now(),
+					});
+				}
+			}
+			for (const [name, p] of playerMarkers) {
+				if (!seen.has(name)) {
+					playerLayer.removeLayer(p.m);
+					playerMarkers.delete(name);
+				}
+			}
+			if (!playerRaf && playerMarkers.size)
+				playerRaf = requestAnimationFrame(playerFrame);
+			serverTimers.clear();
+			for (const b of snap.bosses) {
+				const [ux, uy] = gameToUnits(b.x, b.y);
+				let bestEid = -1;
+				let bestD = 9;
+				for (const eid of bossEnts) {
+					const dx = Pos.x[eid] - ux;
+					const dy = Pos.yd[eid] - uy;
+					const d = dx * dx + dy * dy;
+					if (d < bestD) {
+						bestD = d;
+						bestEid = eid;
+					}
+				}
+				if (bestEid >= 0) serverTimers.set(bestEid, b.respawn_at);
+			}
+			if (snap.bosses.length) scheduleRedraw();
+			const span = countTexts.get(KIND.player);
+			if (span) span.textContent = `Players (${snap.players.length})`;
 		};
-		poll();
-		const pollTimer = setInterval(poll, LIVE_POLL_MS);
+		DroidEvents.on('palworld-live-snapshot', onSnapshot);
+		startLivePoller(liveUrl);
 
 		return () => {
 			stopped = true;
-			clearInterval(pollTimer);
+			DroidEvents.off('palworld-live-snapshot', onSnapshot);
 			clearInterval(cooldownTick);
 			if (wheelRaf) cancelAnimationFrame(wheelRaf);
 			if (playerRaf) cancelAnimationFrame(playerRaf);

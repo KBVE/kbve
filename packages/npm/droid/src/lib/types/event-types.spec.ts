@@ -25,10 +25,11 @@ describe('DroidEventSchemas', () => {
 		expect(keys).toContain('modal-closed');
 		expect(keys).toContain('auth-ready');
 		expect(keys).toContain('auth-error');
+		expect(keys).toContain('palworld-live-snapshot');
 	});
 
-	it('has exactly 20 event types', () => {
-		expect(Object.keys(DroidEventSchemas)).toHaveLength(20);
+	it('has exactly 21 event types', () => {
+		expect(Object.keys(DroidEventSchemas)).toHaveLength(21);
 	});
 });
 
