@@ -1455,6 +1455,204 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Cyber Hound",
+        "hidden": true
+      },
+      "description": "What a Mechamutt becomes once its salvage frame finishes rebuilding itself — leaner, quieter, and no longer wagging.\n",
+      "ref": "cyber-hound",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N02",
+      "name": "Cyber Hound",
+      "img": "/assets/npc/cyber-hound.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_RARE",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_ELITE",
+      "family": "mechanical",
+      "element": "ELEMENT_LIGHTNING",
+      "level": 18,
+      "stats": {
+        "hp": 78,
+        "maxHp": 78,
+        "attack": 17,
+        "defense": 14,
+        "speed": 21,
+        "mp": 40,
+        "maxMp": 40,
+        "specialAttack": 23,
+        "specialDefense": 15,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 7,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "static-bite",
+          "name": "Static Bite",
+          "description": "Chomps down with electrified jaws; may paralyze.",
+          "element": "ELEMENT_LIGHTNING",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 15,
+          "damage": 15,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true,
+          "statusEffect": "paralyze",
+          "statusChance": 0.2
+        },
+        {
+          "id": "spark-bark",
+          "name": "Spark Bark",
+          "description": "A cone of crackling sound and sparks.",
+          "element": "ELEMENT_LIGHTNING",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 18,
+          "pp": 20,
+          "maxPp": 20,
+          "mpCost": 5,
+          "hitChance": 1,
+          "statusEffect": "paralyze",
+          "statusChance": 0.3
+        },
+        {
+          "id": "plate-up",
+          "name": "Plate Up",
+          "description": "Clamps scavenged plating over vital servos.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 15,
+          "maxPp": 15,
+          "healAmount": 8,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_DEFENSE",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_DEFENSE",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "overclock",
+          "name": "Overclock",
+          "description": "Floods the servos with current, spiking speed.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 10,
+          "maxPp": 10,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_SPEED",
+              "stages": 2,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "arc-lance",
+          "name": "Arc Lance",
+          "description": "Vents its whole charge down a single lance of lightning.",
+          "element": "ELEMENT_LIGHTNING",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 42,
+          "pp": 10,
+          "maxPp": 10,
+          "mpCost": 12,
+          "hitChance": 0.9,
+          "highCrit": true
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 45,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 154,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "baseStatTotal": 168,
+        "eggGroups": [
+          "mineral",
+          "field"
+        ],
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "spark-bark"
+          },
+          {
+            "level": 8,
+            "abilityId": "static-bite"
+          },
+          {
+            "level": 12,
+            "abilityId": "plate-up"
+          },
+          {
+            "level": 16,
+            "abilityId": "overclock"
+          },
+          {
+            "level": 24,
+            "abilityId": "arc-lance"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Cyber Hound closes the gap without a sound — {target} takes {dmg} damage!",
+            "A lance of current arcs off Cyber Hound's spine into {target} for {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Cyber Hound powers down its optics and is simply gone."
+          ]
+        }
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Dust Mite",
         "hidden": true
       },

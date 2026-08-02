@@ -131,8 +131,14 @@ pub fn stream_duel_views(
 }
 
 /// Remove a finished duel and free its trainer for the next challenger.
-pub fn finish_duel(duels: &mut ActiveDuels, id: u32, commands: &mut bevy::prelude::Commands) {
+pub fn finish_duel(
+    duels: &mut ActiveDuels,
+    id: u32,
+    commands: &mut bevy::prelude::Commands,
+    xp: &mut simgrid::PendingPetXp,
+) {
     if let Some(duel) = duels.remove(id) {
+        crate::growth::queue_duel_xp(&duel, xp);
         for side in &duel.sides {
             if let DuelSide::Npc {
                 trainer: Some(e), ..
@@ -489,6 +495,7 @@ pub fn tick_duels(
     bcast: bevy::prelude::Res<simgrid::Outbound>,
     clock: bevy::prelude::Res<simgrid::SimClock>,
     mut duels: bevy::prelude::ResMut<ActiveDuels>,
+    mut xp: bevy::prelude::ResMut<simgrid::PendingPetXp>,
     mut commands: bevy::prelude::Commands,
 ) {
     let ids: Vec<u32> = duels.by_id.keys().copied().collect();
@@ -513,7 +520,7 @@ pub fn tick_duels(
         let resolved = duel.state.outcome != simgrid::BattleOutcome::Ongoing;
         stream_duel_views(&bcast, duel, &events, clock.tick);
         if resolved {
-            finish_duel(&mut duels, id, &mut commands);
+            finish_duel(&mut duels, id, &mut commands, &mut xp);
         }
     }
 }
@@ -537,6 +544,7 @@ pub fn cleanup_stale_duels(
     spawned: bevy::prelude::Res<simgrid::SpawnedSlots>,
     clock: bevy::prelude::Res<simgrid::SimClock>,
     mut duels: bevy::prelude::ResMut<ActiveDuels>,
+    mut xp: bevy::prelude::ResMut<simgrid::PendingPetXp>,
     mut commands: bevy::prelude::Commands,
 ) {
     let ids: Vec<u32> = duels.by_id.keys().copied().collect();
@@ -565,7 +573,7 @@ pub fn cleanup_stale_duels(
                 game::send_battle_view(&bcast, simgrid::proto::PlayerSlot(slot), &view);
             }
         }
-        finish_duel(&mut duels, id, &mut commands);
+        finish_duel(&mut duels, id, &mut commands, &mut xp);
     }
 }
 

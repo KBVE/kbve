@@ -7,10 +7,7 @@ import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import react from '@vitejs/plugin-react';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
-import {
-	meshNodeNamesInFile,
-	restoreMeshNamesInFile,
-} from './tools/glbNames';
+import { meshNodeNamesInFile, restoreMeshNamesInFile } from './tools/glbNames';
 
 const laserSrc = path.resolve(__dirname, '../../../packages/npm/laser/src');
 const generated = path.resolve(
@@ -237,10 +234,7 @@ export default defineConfig({
 		globals: true,
 		watch: false,
 		environment: 'node',
-		include: [
-			'src/**/*.{test,spec}.{ts,tsx}',
-			'tools/**/*.{test,spec}.ts',
-		],
+		include: ['src/**/*.{test,spec}.{ts,tsx}', 'tools/**/*.{test,spec}.ts'],
 		reporters: ['default'],
 		// vitest's node resolver doesn't pick up the @kbve/laser/* tsconfig-path
 		// aliases (nxViteTsPaths only wires them for build/dev), so map the subpaths to

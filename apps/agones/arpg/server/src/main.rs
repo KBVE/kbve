@@ -5,6 +5,7 @@ mod creatures;
 mod db;
 mod duel;
 mod game;
+mod growth;
 mod pilot;
 mod restore;
 mod roster;
@@ -168,6 +169,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     duel::expire_duel_challenges,
                     roster::apply_roster_ops,
                     restore::apply_pet_restores,
+                    growth::apply_pet_xp,
                     simgrid::flush_roster_syncs,
                 )
                     .chain(),

@@ -12,6 +12,7 @@ pub mod heightfield;
 pub mod net;
 pub mod net_udp;
 pub mod pets;
+pub mod progress;
 pub mod proto;
 pub mod rng;
 pub mod shop;
@@ -39,6 +40,10 @@ pub use pets::{
     PetMoveSlot, PetMoves, PetNickname, PetProgress, PetRef, PetRoster, PetSnapshot, PetVitals,
     clear_pending_pets, flush_roster_syncs, mint_pet_from_species, mint_pet_id, sanitize_nickname,
     send_roster_sync, snapshot_from_combatant, to_roster_sync,
+};
+pub use progress::{
+    BaseStats, GrowthRate, GrowthResult, PET_LEVEL_MAX, PendingPetXp, PetXpAward, grow_pet,
+    xp_yield,
 };
 pub use proto::{
     DUEL_PROMPT_ACCEPTED, DUEL_PROMPT_DECLINED, DUEL_PROMPT_EXPIRED, DUEL_PROMPT_OFFER,

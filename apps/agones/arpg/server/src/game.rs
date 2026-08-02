@@ -951,6 +951,7 @@ pub fn apply_pet_turns(
     mut pending: ResMut<simgrid::PendingPetTurns>,
     mut duels: ResMut<crate::duel::ActiveDuels>,
     mut queued: ResMut<simgrid::PendingRosterSyncs>,
+    mut xp: ResMut<simgrid::PendingPetXp>,
     mut items: simgrid::sim::ItemBank,
     mut pet_bank: simgrid::PetBank,
     mut owners: bevy::prelude::Query<(
@@ -1041,7 +1042,7 @@ pub fn apply_pet_turns(
         }
         crate::duel::stream_duel_views(&bcast, duel, &events, clock.tick);
         if resolved {
-            crate::duel::finish_duel(&mut duels, id, &mut commands);
+            crate::duel::finish_duel(&mut duels, id, &mut commands, &mut xp);
         }
     }
 }

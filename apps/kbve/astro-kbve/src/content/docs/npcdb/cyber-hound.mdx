@@ -1,0 +1,165 @@
+---
+title: 'Cyber Hound'
+template: splash
+sidebar:
+    label: 'Cyber Hound'
+    hidden: true
+description: |
+    What a Mechamutt becomes once its salvage frame finishes rebuilding itself — leaner, quieter, and no longer wagging.
+ref: 'cyber-hound'
+id: '01KME8R5PG7Z9QB3T6VX2H4N02'
+name: 'Cyber Hound'
+img: '/assets/npc/cyber-hound.png'
+type_flags: 16
+rarity: 'rare'
+personality: 'stoic'
+rank: 'elite'
+family: 'mechanical'
+element: 'lightning'
+level: 18
+stats:
+    hp: 78
+    max_hp: 78
+    attack: 17
+    defense: 14
+    speed: 21
+    mp: 40
+    max_mp: 40
+    special_attack: 23
+    special_defense: 15
+    accuracy: 100
+    evasion: 100
+    crit_rate: 7
+    crit_damage: 1.5
+abilities:
+    - id: 'tackle'
+      name: 'Tackle'
+      description: 'A reckless full-body charge.'
+      category: 'physical'
+      target: 'enemy'
+      power: 12
+      damage: 12
+      pp: 35
+      max_pp: 35
+      hit_chance: 1.0
+      priority: 0
+    - id: 'static-bite'
+      name: 'Static Bite'
+      description: 'Chomps down with electrified jaws; may paralyze.'
+      element: 'lightning'
+      category: 'physical'
+      target: 'enemy'
+      power: 15
+      damage: 15
+      pp: 25
+      max_pp: 25
+      hit_chance: 0.95
+      high_crit: true
+      status_effect: 'paralyze'
+      status_chance: 0.2
+    - id: 'spark-bark'
+      name: 'Spark Bark'
+      description: 'A cone of crackling sound and sparks.'
+      element: 'lightning'
+      category: 'special'
+      target: 'enemy'
+      power: 18
+      pp: 20
+      max_pp: 20
+      mp_cost: 5
+      hit_chance: 1.0
+      status_effect: 'paralyze'
+      status_chance: 0.3
+    - id: 'plate-up'
+      name: 'Plate Up'
+      description: 'Clamps scavenged plating over vital servos.'
+      category: 'status'
+      target: 'self'
+      pp: 15
+      max_pp: 15
+      heal_amount: 8
+      stat_changes:
+        - stat: 'defense'
+          stages: 1
+          target: 'self'
+        - stat: 'special_defense'
+          stages: 1
+          target: 'self'
+    - id: 'overclock'
+      name: 'Overclock'
+      description: 'Floods the servos with current, spiking speed.'
+      category: 'status'
+      target: 'self'
+      pp: 10
+      max_pp: 10
+      stat_changes:
+        - stat: 'speed'
+          stages: 2
+          target: 'self'
+        - stat: 'attack'
+          stages: 1
+          target: 'self'
+    - id: 'arc-lance'
+      name: 'Arc Lance'
+      description: 'Vents its whole charge down a single lance of lightning.'
+      element: 'lightning'
+      category: 'special'
+      target: 'enemy'
+      power: 42
+      pp: 10
+      max_pp: 10
+      mp_cost: 12
+      hit_chance: 0.9
+      high_crit: true
+pet:
+    catchable: true
+    capture_rate: 45
+    growth_rate: 'medium_fast'
+    base_xp_yield: 154
+    base_friendship: 70
+    gender_ratio: 0.5
+    base_stat_total: 168
+    egg_groups:
+        - 'mineral'
+        - 'field'
+    movepool:
+        - level: 1
+          ability_id: 'tackle'
+        - level: 1
+          ability_id: 'spark-bark'
+        - level: 8
+          ability_id: 'static-bite'
+        - level: 12
+          ability_id: 'plate-up'
+        - level: 16
+          ability_id: 'overclock'
+        - level: 24
+          ability_id: 'arc-lance'
+behavior:
+    movement_type: 'random_wander'
+    first_strike: false
+    wander_radius: 6.0
+    aggro_range: 0.0
+    can_flee: true
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "Cyber Hound closes the gap without a sound — {target} takes {dmg} damage!"
+        - "A lance of current arcs off Cyber Hound's spine into {target} for {dmg} damage!"
+    - action: 'flee'
+      messages:
+        - "Cyber Hound powers down its optics and is simply gone."
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+The end of the Mechamutt line. Somewhere around its eighteenth rebuild the scavenged
+plating stops being patchwork and starts being a design — the antenna tail retracts, the
+bark drops out of audible range, and the thing that used to trip over its own paws starts
+arriving before you hear it.
+
+<Aside type="caution" title="Sprite pending">
+	The world sprite for this species has not been drawn yet. Nothing spawns a Cyber Hound
+	today — wild encounters roll Mechamutt only, and evolution is not yet implemented — so
+	the missing art is unreachable rather than broken.
+</Aside>
