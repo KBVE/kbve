@@ -5,23 +5,24 @@
 # Build context = repo root. The game source + LFS-tracked sprite art live under
 # apps/agones/arpg/web; the cross-repo deps are @kbve/laser and @kbve/observ
 # (aliased to source in web/vite.config.ts). So this build mirrors those subtrees
-# under /app and installs only the app's own (npm, non-workspace) deps.
+# under /app.
 # NOTE: the LFS art must be smudged (real PNGs, not pointer stubs) in the build
 # context — CI runs `./kbve.sh -lfs arpg pull` before the docker build.
 # ============================================================================
 
 FROM node:24-bookworm-slim AS web
 WORKDIR /app
+RUN corepack enable
 
-# App deps first (cache layer independent of source). Installed at /app, NOT the
-# app dir — resolution from the bare-source packages/npm/laser walks up to
-# /app/node_modules, so laser's optional peers (drei/three/fiber) resolve.
-COPY apps/agones/arpg/web/package.json apps/agones/arpg/web/package-lock.json ./
-RUN npm ci
+# Root install, same as the axum-* images. pnpm-workspace.yaml declares no
+# `packages:`, so the one root node_modules IS the whole tree — this reproduces
+# the exact resolution `nx build arpg-web` uses locally, instead of a separate
+# app lockfile that silently drifts from it.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc tsconfig.base.json ./
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store/v3,id=pnpm-store \
+    pnpm install --frozen-lockfile
 
-# The game source + sprite art now live entirely under apps/agones/arpg/web.
-# @kbve/laser and @kbve/observ are the cross-repo deps the vite config aliases to source.
-COPY tsconfig.base.json tsconfig.base.json
+# @kbve/laser and @kbve/observ are aliased to source by web/vite.config.ts.
 COPY packages/npm/laser packages/npm/laser
 COPY packages/npm/observ packages/npm/observ
 COPY packages/data/codegen/generated packages/data/codegen/generated
@@ -45,7 +46,7 @@ ENV PUBLIC_DISCORD_CLIENT_ID=$PUBLIC_DISCORD_CLIENT_ID
 ENV PUBLIC_ARPG_VERSION=$PUBLIC_ARPG_VERSION
 ENV PUBLIC_ARPG_LOCAL=false
 
-RUN cd apps/agones/arpg/web && npm run build
+RUN cd apps/agones/arpg/web && pnpm run build
 
 # ============================================================================
 FROM nginx:1.27-alpine AS runtime
