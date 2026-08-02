@@ -1,6 +1,13 @@
 import { atom } from 'nanostores';
 import { authedApiFetch, ApiError } from '@/lib/apiFetch';
 import { DASH_PROXY_BASE } from '@/components/rnweb/dashProxyBase';
+import {
+	DroidEvents,
+	addToast,
+	type ReelStreamStage,
+	type ReelStreamErrorCode,
+	type ReelStreamPayload,
+} from '@kbve/droid';
 
 export type ReelState =
 	| 'idle'
@@ -8,12 +15,14 @@ export type ReelState =
 	| 'probing'
 	| 'raw'
 	| 'hls'
+	| 'reconnecting'
 	| 'error';
 
 export const $reelState = atom<ReelState>('idle');
 export const $reelError = atom<string | null>(null);
 export const $reelName = atom<string | null>(null);
 export const $reelNotice = atom<string | null>(null);
+export const $reelStatus = atom<ReelStreamPayload | null>(null);
 
 // The reel the player is currently bound to. Clicking Play in the console sets
 // this; the player island reacts and starts playback in place — no navigation,
@@ -374,21 +383,49 @@ export class ReelPlayer {
 	private recover: (() => void) | null = null;
 	private lastPos = 0;
 	private resurrects = 0;
+	private currentId: string | null = null;
+
+	private emit(
+		stage: ReelStreamStage,
+		message: string,
+		extra?: {
+			code?: ReelStreamErrorCode;
+			attempt?: number;
+			max?: number;
+			fatal?: boolean;
+		},
+	): void {
+		const payload: ReelStreamPayload = {
+			timestamp: Date.now(),
+			id: this.currentId ?? '',
+			stage,
+			message,
+			...extra,
+		};
+		$reelStatus.set(payload);
+		try {
+			DroidEvents.emit('reel-stream', payload);
+		} catch {
+			void 0;
+		}
+	}
 
 	async start(video: HTMLVideoElement, id: string): Promise<void> {
 		const gen = ++this.generation;
 		this.teardown();
 		this.resurrects = 0;
+		this.currentId = id;
 		this.video = video;
 		$reelError.set(null);
 		$reelNotice.set(null);
 		$reelName.set(null);
 		$reelState.set('loading');
+		this.emit('loading', 'Loading…');
 
 		const token = await mediaToken();
 		if (this.generation !== gen) return;
 		if (!token) {
-			this.fail('sign in to watch');
+			this.fail('sign in to watch', 'sign-in');
 			return;
 		}
 
@@ -403,30 +440,33 @@ export class ReelPlayer {
 					typeof detail.error === 'string' && detail.error
 						? detail.error
 						: 'this reel failed to download',
+					'download-failed',
 				);
 				return;
 			}
 			if (detail?.state === 'Reaped') {
 				this.fail(
 					'this reel expired and was removed — re-add it to watch',
+					'reaped',
 				);
 				return;
 			}
 		} catch (e) {
 			if (this.generation !== gen) return;
 			if (e instanceof ApiError && e.status === 404) {
-				this.fail('torrent not found');
+				this.fail('torrent not found', 'not-found');
 				return;
 			}
 			if (e instanceof ApiError && e.status === 401) {
-				this.fail('sign in to watch');
+				this.fail('sign in to watch', 'sign-in');
 				return;
 			}
-			this.fail(e instanceof Error ? e.message : String(e));
+			this.fail(e instanceof Error ? e.message : String(e), 'network');
 			return;
 		}
 
 		$reelState.set('probing');
+		this.emit('probing', 'Preparing stream…');
 		await this.probe(video, id, token, 0, gen);
 	}
 
@@ -447,7 +487,7 @@ export class ReelPlayer {
 			status = resp.status;
 		} catch {
 			if (this.generation !== gen) return;
-			this.fail('network error reaching reel');
+			this.fail('network error reaching reel', 'network');
 			return;
 		}
 		if (this.generation !== gen) return;
@@ -461,9 +501,16 @@ export class ReelPlayer {
 				return;
 			case 'poll':
 				if (attempt >= MAX_POLLS) {
-					this.fail('still preparing — retry in a moment');
+					this.fail(
+						'still preparing — retry in a moment',
+						'transcode-timeout',
+					);
 					return;
 				}
+				this.emit('probing', 'Preparing stream…', {
+					attempt: attempt + 1,
+					max: MAX_POLLS,
+				});
 				this.pollTimer = setTimeout(() => {
 					void this.probe(video, id, token, attempt + 1, gen);
 				}, backoffMs(attempt));
@@ -473,6 +520,7 @@ export class ReelPlayer {
 					status === 503
 						? 'HLS delivery disabled'
 						: `unexpected status ${status}`,
+					status === 503 ? 'unsupported' : 'unknown',
 				);
 				return;
 		}
@@ -488,6 +536,7 @@ export class ReelPlayer {
 		this.attachVideoError(video, gen);
 		video.src = mediaUrl(id, '/stream', token);
 		$reelState.set('raw');
+		this.emit('playing', 'Streaming');
 		void this.addSubtitleTracks(video, id, token, gen);
 		this.recover = () => {
 			// Re-request the byte-range stream from the current position.
@@ -643,7 +692,11 @@ export class ReelPlayer {
 				if (!data.fatal) return;
 				if (this.generation !== gen) return;
 				switch (data.type) {
-					case Hls.ErrorTypes.NETWORK_ERROR:
+					case Hls.ErrorTypes.NETWORK_ERROR: {
+						const expired = data.response?.code === 401;
+						const code: ReelStreamErrorCode = expired
+							? 'token-expired'
+							: 'network';
 						if (netRetries++ < MAX_RECOVER) {
 							void mediaToken(true).then((t) => {
 								if (this.generation !== gen) return;
@@ -653,18 +706,37 @@ export class ReelPlayer {
 								}, 1000);
 							});
 						} else {
-							void this.resurrect(video, id, gen);
+							void this.resurrect(
+								video,
+								id,
+								gen,
+								code,
+								`network error: ${data.details}`,
+							);
 						}
 						break;
+					}
 					case Hls.ErrorTypes.MEDIA_ERROR:
 						if (mediaRetries++ < MAX_RECOVER) {
 							hls.recoverMediaError();
 						} else {
-							void this.resurrect(video, id, gen);
+							void this.resurrect(
+								video,
+								id,
+								gen,
+								'media',
+								`media error: ${data.details}`,
+							);
 						}
 						break;
 					default:
-						void this.resurrect(video, id, gen);
+						void this.resurrect(
+							video,
+							id,
+							gen,
+							'manifest-flip',
+							`stream changed: ${data.details}`,
+						);
 				}
 			});
 			// Auto-enable the first subtitle rendition (the live stream marks it
@@ -678,6 +750,7 @@ export class ReelPlayer {
 			hls.loadSource(mediaUrl(id, '/manifest.m3u8', null));
 			hls.attachMedia(video);
 			$reelState.set('hls');
+			this.emit('playing', 'Streaming');
 			this.recover = () => {
 				hls.startLoad();
 				void video.play().catch(() => undefined);
@@ -695,6 +768,7 @@ export class ReelPlayer {
 			this.attachVideoError(video, gen);
 			video.src = mediaUrl(id, '/manifest.m3u8', token);
 			$reelState.set('hls');
+			this.emit('playing', 'Streaming');
 			this.recover = () => {
 				// Native HLS has no load API — reload the source at the same spot.
 				const at = video.currentTime;
@@ -715,7 +789,7 @@ export class ReelPlayer {
 			void video.play().catch(() => undefined);
 			return;
 		}
-		this.fail('HLS is not supported in this browser');
+		this.fail('HLS is not supported in this browser', 'unsupported');
 	}
 
 	private teardown(): void {
@@ -743,9 +817,20 @@ export class ReelPlayer {
 		}
 	}
 
-	private fail(message: string): void {
+	private fail(message: string, code: ReelStreamErrorCode = 'unknown'): void {
 		$reelError.set(message);
 		$reelState.set('error');
+		this.emit('error', message, { code, fatal: true });
+		try {
+			addToast({
+				id: `reel-${this.currentId ?? 'stream'}-${code}`,
+				message,
+				severity: 'error',
+				duration: 6000,
+			});
+		} catch {
+			void 0;
+		}
 		this.teardown();
 	}
 
@@ -753,12 +838,17 @@ export class ReelPlayer {
 		video: HTMLVideoElement,
 		id: string,
 		gen: number,
+		code: ReelStreamErrorCode,
+		reason: string,
 	): Promise<void> {
 		if (this.generation !== gen) return;
 		if (this.resurrects++ >= MAX_RESURRECTS) {
-			this.fail('stream ended');
+			this.fail('stream ended — could not recover', code);
 			return;
 		}
+		const attempt = this.resurrects;
+		$reelState.set('reconnecting');
+		this.emit('reconnecting', reason, { code, attempt, max: MAX_RESURRECTS });
 		this.stopWatchdog();
 		if (this.tokenTimer) {
 			clearInterval(this.tokenTimer);
@@ -777,10 +867,9 @@ export class ReelPlayer {
 		const token = await mediaToken(true);
 		if (this.generation !== gen) return;
 		if (!token) {
-			this.fail('sign in to watch');
+			this.fail('sign in to watch', 'sign-in');
 			return;
 		}
-		$reelState.set('probing');
 		await new Promise((r) => setTimeout(r, 1500));
 		if (this.generation !== gen) return;
 		await this.probe(video, id, token, 0, gen);
@@ -800,9 +889,11 @@ export class ReelPlayer {
 		}
 		if (reset) {
 			this.video = null;
+			this.currentId = null;
 			$reelState.set('idle');
 			$reelError.set(null);
 			$reelNotice.set(null);
+			$reelStatus.set(null);
 		}
 	}
 }

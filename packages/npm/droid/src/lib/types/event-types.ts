@@ -78,6 +78,42 @@ export const PageLifecycleSchema = z.object({
 	source: z.enum(['initial', 'astro-swap', 'page-reveal', 'bfcache']),
 });
 
+export const ReelStreamStageSchema = z.enum([
+	'loading',
+	'probing',
+	'playing',
+	'reconnecting',
+	'error',
+]);
+export type ReelStreamStage = z.infer<typeof ReelStreamStageSchema>;
+
+export const ReelStreamErrorCodeSchema = z.enum([
+	'sign-in',
+	'not-found',
+	'reaped',
+	'download-failed',
+	'token-expired',
+	'network',
+	'media',
+	'manifest-flip',
+	'transcode-timeout',
+	'unsupported',
+	'unknown',
+]);
+export type ReelStreamErrorCode = z.infer<typeof ReelStreamErrorCodeSchema>;
+
+export const ReelStreamSchema = z.object({
+	timestamp: z.number(),
+	id: z.string(),
+	stage: ReelStreamStageSchema,
+	message: z.string(),
+	code: ReelStreamErrorCodeSchema.optional(),
+	attempt: z.number().optional(),
+	max: z.number().optional(),
+	fatal: z.boolean().optional(),
+});
+export type ReelStreamPayload = z.infer<typeof ReelStreamSchema>;
+
 export const DroidEventSchemas = {
 	'droid-first-connect': DroidFirstConnectSchema,
 	'droid-ready': DroidReadySchema,
@@ -95,6 +131,7 @@ export const DroidEventSchemas = {
 	'auth-ready': AuthReadySchema,
 	'auth-error': AuthErrorSchema,
 	'worker-error': WorkerErrorSchema,
+	'reel-stream': ReelStreamSchema,
 	'gateway-strategy-fallback': GatewayStrategyFallbackSchema,
 	'page-mount': PageLifecycleSchema,
 	'page-swap': PageLifecycleSchema,

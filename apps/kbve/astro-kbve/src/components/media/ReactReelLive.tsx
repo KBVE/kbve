@@ -7,6 +7,7 @@ import {
 	$reelState,
 	$reelError,
 	$reelNotice,
+	$reelStatus,
 	refreshReelList,
 	ReelPlayer,
 	type ReelTorrent,
@@ -48,6 +49,7 @@ export default function ReactReelLive() {
 	const state = useStore($reelState);
 	const error = useStore($reelError);
 	const notice = useStore($reelNotice);
+	const status = useStore($reelStatus);
 	const isStaff = useStore(homeService.$isStaff);
 	const authState = useStore(homeService.$authState);
 
@@ -230,11 +232,22 @@ export default function ReactReelLive() {
 									<p>
 										{state === 'error'
 											? 'Off air'
-											: 'Tuning in…'}
+											: state === 'reconnecting'
+												? 'Reconnecting…'
+												: 'Tuning in…'}
 									</p>
 									{now && (
 										<p className="reel-player__meta">
 											{now.name}
+										</p>
+									)}
+									{state === 'reconnecting' && (
+										<p className="reel-player__meta">
+											{status?.message ??
+												'Stream interrupted'}
+											{status?.attempt && status?.max
+												? ` · attempt ${status.attempt}/${status.max}`
+												: ''}
 										</p>
 									)}
 									{state === 'error' && error && (
