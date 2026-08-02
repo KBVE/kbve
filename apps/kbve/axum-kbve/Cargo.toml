@@ -23,7 +23,7 @@ axum-server = { version = "0.8", features = ["tls-rustls"] }
 rustls = { workspace = true, features = ["ring"] }
 rustls-pemfile = { workspace = true }
 axum-extra = { workspace = true, features = ["cookie"] }
-askama = "0.16.0"
+askama = { workspace = true }
 socket2 = { workspace = true }
 num_cpus = { workspace = true }
 dotenvy = { workspace = true }

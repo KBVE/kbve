@@ -26,7 +26,7 @@ ammonia = { workspace = true }
 argon2 = { workspace = true }
 pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
 url = { workspace = true }
-askama = "0.15.6"
+askama = { workspace = true }
 async-trait = { workspace = true }
 chrono = { workspace = true, features = ["default", "serde"] }
 diesel = { version = "2.3.7", default-features = false, features = [

@@ -15,7 +15,7 @@ tokio = { workspace = true, features = ["default", "full", "rt-multi-thread"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
 axum = { workspace = true, features = ["json"] }
-askama = "0.15.4"
+askama = { workspace = true }
 dotenvy = { workspace = true }
 serenity = { version = "0.12.5", default-features = false, features = ["client", "gateway", "model", "rustls_backend", "cache"] }
 poise = "0.6.1"
