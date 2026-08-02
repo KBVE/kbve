@@ -286,6 +286,20 @@ export default function ReactReelConsole() {
 							? `● inbound :${health.forwarded_port}`
 							: '○ outbound-only'}
 					</span>
+					{health.port_rotations > 0 && (
+						<span
+							className="reel-console__health-bad"
+							title="Each VPN port rotation wipes the peer swarm — a likely cause of peers dropping.">
+							⟳ {health.port_rotations} port rotations
+						</span>
+					)}
+					{health.vpn_fail_streak > 0 && (
+						<span
+							className="reel-console__health-bad"
+							title="Consecutive failed VPN checks — the swarm pauses while the VPN is unverified.">
+							⚠ VPN checks failing ×{health.vpn_fail_streak}
+						</span>
+					)}
 					<span>
 						{health.counts.seeding} seeding · {health.counts.leeching}{' '}
 						leeching · {health.counts.failed} failed
