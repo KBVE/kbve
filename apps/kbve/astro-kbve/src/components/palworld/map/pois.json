@@ -1931,270 +1931,206 @@
 		[621755.7, -752851.3, "worldtree_grade_01"],
 		[623120.5, -749179.7, "worldtree_grade_01"]
 	],
+	"crudeOil": [
+		[-937754.8, -441482.8],
+		[-888747.4, -505104.2],
+		[-853402.8, -573443.6],
+		[-906761.5, -385976],
+		[-838957.6, -568755.7],
+		[-863427.7, -453358.3],
+		[-866366.8, -420399.9],
+		[-850547.2, -405622.3],
+		[-856862.6, -365592.8],
+		[-819075.6, -422310.6],
+		[-837239.8, -389066.9],
+		[-799025.6, -449328.3],
+		[-810813.9, -377895.5],
+		[-790190.4, -379216.5],
+		[-775120.6, -397629.6],
+		[-808313.2, -294780.6],
+		[-781462.9, -333493.2],
+		[-798948, -277504.5],
+		[-700439.5, -560466.1],
+		[-741640.9, -411108.8],
+		[-767046, -330005.4],
+		[-686467.9, -556475.7],
+		[-714905.5, -449761.7],
+		[-709061.2, -422687.9],
+		[-721467.7, -378813.8],
+		[-686628.7, -447531.1],
+		[-705282.1, -377673.1],
+		[-715523, -328546.6],
+		[-744121.2, -245158.6],
+		[-668158.3, -457463.4],
+		[-688449.7, -385509.2],
+		[-645499, -452325.2],
+		[-663709.9, -405509.3],
+		[-685996.8, -365064],
+		[-693176.1, -311288.7],
+		[-643539, -434601],
+		[-649093.3, -409176.9],
+		[-696181.5, -277779.9],
+		[-701250, -232460.1],
+		[-624862.5, -445600.2],
+		[-674224.7, -265901.6],
+		[-639087.6, -341524.7],
+		[-657922.9, -249101.8],
+		[-683885.9, -180061.7],
+		[-587709.1, -470304.5],
+		[-611685.9, -365037.3],
+		[-631967.5, -303857.3],
+		[-662409.5, -206642.3],
+		[-610351.5, -331590.1],
+		[-626829.6, -273978.5],
+		[-572080.2, -394095.6],
+		[-596146.9, -328096.5],
+		[-585702.2, -328266.6],
+		[-548076.8, -405541.3],
+		[-566970.9, -309782.6],
+		[-579597.7, -263872.6],
+		[-536072.5, -372595.7],
+		[-535605.6, -348048],
+		[-589896.6, -185058.7],
+		[-550657.4, -268150],
+		[-579947.2, -166424.2],
+		[-497846.1, -398691.8],
+		[-516036.8, -335525.5],
+		[-555603.7, -170320.6],
+		[-548984.4, -205482.8],
+		[-338080.3, 342041.5],
+		[-337854.9, 338781.3],
+		[-336631.9, 341098.9],
+		[-35526.5, 571092.2],
+		[-34183.9, 572351.9],
+		[-33612.3, 570168.2],
+		[-37520.8, 579163.4],
+		[-35567, 581349.1],
+		[-33406, 579617.6],
+		[-347579.3, 341695.5],
+		[-347267.2, 344711.7],
+		[-344854.2, 345439.6],
+		[-10620, 241100],
+		[-15550, 255400],
+		[12800, 234030],
+		[33358.7, 266505],
+		[27480, 264220],
+		[7180, 273500],
+		[-12640, 292650],
+		[-14660, 292530],
+		[7620, 297100],
+		[65110, 285860],
+		[66540, 287170],
+		[93510, 305350],
+		[99710, 303040],
+		[100220, 315700],
+		[105890, 350520],
+		[113810, 346930],
+		[114090, 337950],
+		[103240, 337180],
+		[160720, 290250],
+		[155130, 290260],
+		[165080, 286990],
+		[158080, 310220],
+		[142910, 308810],
+		[194050, 331970],
+		[194540, 345890],
+		[174593.2, 358701],
+		[138180, 401750],
+		[125710, 381770],
+		[95770, 383830],
+		[67030, 393890],
+		[-9552.7, 405497.9],
+		[-22490, 428390],
+		[-65803.7, 390177.3],
+		[-52564.3, 428096.8],
+		[-51550, 450700],
+		[-54370, 451160],
+		[-38949.2, 500422.8],
+		[-39260, 473610],
+		[-35120, 319060],
+		[69744.9, 201822.2],
+		[66600, 223840],
+		[4010, 3590],
+		[27910, -11680],
+		[37780, -21340],
+		[42560, -28490],
+		[57620, -32020],
+		[83150, -4090],
+		[132830, 47520],
+		[164790, 59940],
+		[7890, 128050],
+		[37690, 192380],
+		[19230, 178890],
+		[-424630, -68290],
+		[-307940, -58660],
+		[-314020, -56310],
+		[-298670, -67500],
+		[-329440, -81270],
+		[-226000, -71220],
+		[-219100, -120580],
+		[-215520, -100090],
+		[-252492.5, -125035.2],
+		[-234160, -141340],
+		[-221130, -156840],
+		[-304040, -220360],
+		[-310050, -218750],
+		[-311010, -225100],
+		[-302220, -229190],
+		[-304470, -227600],
+		[-330120, -235030],
+		[-332190, -235860],
+		[-334890, -234810],
+		[-415830, -195770],
+		[-427320, -192530],
+		[-434600, -184500],
+		[-425730, -204700],
+		[-414960, -206660],
+		[-445080, -171570],
+		[-460070, -168250],
+		[-469870, -145490],
+		[-458810, -144170],
+		[-469690, -128930],
+		[-455270, -119210],
+		[-430240, -161950],
+		[-432110, -14340],
+		[-431350, -12320],
+		[-369150, 10250],
+		[-52040, -185670],
+		[-87170, -150590],
+		[-45620, -77050],
+		[-46140, -42950],
+		[-49870, -39710],
+		[11190, -81440],
+		[24920, -142580],
+		[540, -138170],
+		[-10430, -109800],
+		[-74560, -69020],
+		[-74560, -68430],
+		[-11530, -111340],
+		[20, -137500],
+		[23920, -143410],
+		[13200, -81440],
+		[-41910, -77050],
+		[-12160, -91310],
+		[-11810, -90680],
+		[-38190, -97270],
+		[-34580, -97870],
+		[-66690, -13340],
+		[-66010, -14660]
+	],
+	"oilRig": [
+		[-250672.6, 232290.1, 30],
+		[-321274.9, 424944.1, 55],
+		[-789847.9, -636231, 60]
+	],
 	"boss": [
 		{
-			"x": 173548.3,
-			"y": 474295.4,
-			"pal": "icehorse_dark",
-			"name": "Frostallion Noct",
-			"icon": "T_IceHorse_Dark_icon_normal",
-			"lv": 65
-		},
-		{
-			"x": -544943.3,
-			"y": -264111.9,
-			"pal": "badcatgirl",
-			"name": "Nyafia",
-			"icon": "T_BadCatgirl_icon_normal",
-			"lv": 60
-		},
-		{
-			"x": -1033347.9,
-			"y": -358750.8,
-			"pal": "volcanodragon",
-			"name": "Moldron",
-			"icon": "T_VolcanoDragon_icon_normal",
-			"lv": 70
-		},
-		{
-			"x": -821552.1,
-			"y": 46132.1,
-			"pal": "foxexorcist",
-			"name": "Flaracle",
-			"icon": "T_FoxExorcist_icon_normal",
-			"lv": 68
-		},
-		{
-			"x": 97716.3,
-			"y": 307499.7,
-			"pal": "suzaku",
-			"name": "Suzaku",
-			"icon": "T_Suzaku_icon_normal",
-			"lv": 45
-		},
-		{
-			"x": -206970,
-			"y": 363810,
-			"pal": "grasspanda_electric",
-			"name": "Mossanda Lux",
-			"icon": "T_GrassPanda_Electric_icon_normal",
-			"lv": 31
-		},
-		{
-			"x": -162910,
-			"y": 318720,
-			"pal": "umihebi",
-			"name": "Jormuntide",
-			"icon": "T_Umihebi_icon_normal",
-			"lv": 55
-		},
-		{
-			"x": -661871.9,
-			"y": -284991.8,
-			"pal": "whitedeer",
-			"name": "Celesdir",
-			"icon": "T_WhiteDeer_icon_normal",
-			"lv": 65
-		},
-		{
-			"x": -867560.9,
-			"y": -441338.2,
-			"pal": "horus_water",
-			"name": "Faleris Aqua",
-			"icon": "T_Horus_Water_icon_normal",
-			"lv": 66
-		},
-		{
-			"x": 14681.1,
-			"y": -132067.6,
-			"pal": "lilyqueen",
-			"name": "Lyleen",
-			"icon": "T_LilyQueen_icon_normal",
-			"lv": 58
-		},
-		{
-			"x": 262730,
-			"y": 75740,
-			"pal": "icenarwhal",
-			"name": "Whalaska",
-			"icon": "T_IceNarwhal_icon_normal",
-			"lv": 55
-		},
-		{
-			"x": -343155,
-			"y": 244585,
-			"pal": "grassmammoth",
-			"name": "Mammorest",
-			"icon": "T_GrassMammoth_icon_normal",
-			"lv": 38
-		},
-		{
-			"x": -791868.2,
-			"y": -337175.9,
-			"pal": "grimgirl",
-			"name": "Splatterina",
-			"icon": "T_GrimGirl_icon_normal",
-			"lv": 65
-		},
-		{
-			"x": -691248.6,
-			"y": -309680.3,
-			"pal": "herculesbeetle_ground",
-			"name": "Warsect Terra",
-			"icon": "T_HerculesBeetle_Ground_icon_normal",
-			"lv": 64
-		},
-		{
-			"x": -122060,
-			"y": 15810,
-			"pal": "lazycatfish",
-			"name": "Dumud",
-			"icon": "T_LazyCatfish_icon_normal",
-			"lv": 14
-		},
-		{
-			"x": -822007,
-			"y": -66402,
-			"pal": "ghostdragon",
-			"name": "Eidrolon",
-			"icon": "T_GhostDragon_icon_normal",
-			"lv": 69
-		},
-		{
-			"x": -649837.1,
-			"y": -235616.7,
-			"pal": "fengyundeeper_electric",
-			"name": "Fenglope Lux",
-			"icon": "T_FengyunDeeper_Electric_icon_normal",
-			"lv": 60
-		},
-		{
-			"x": -169138.2,
-			"y": 575683.1,
-			"pal": "grassgolem",
-			"name": "Dualith",
-			"icon": "T_GrassGolem_icon_normal",
-			"lv": 55
-		},
-		{
-			"x": -735438.4,
-			"y": -95932.9,
-			"pal": "jetdragon",
-			"name": "Jetragon",
-			"icon": "T_JetDragon_icon_normal",
-			"lv": 70
-		},
-		{
-			"x": 122760,
-			"y": 318710,
-			"pal": "darkscorpion",
-			"name": "Menasting",
-			"icon": "T_DarkScorpion_icon_normal",
-			"lv": 44
-		},
-		{
-			"x": -246100,
-			"y": 77200,
-			"pal": "bluedragon",
-			"name": "Azurobe",
-			"icon": "T_BlueDragon_icon_normal",
-			"lv": 40
-		},
-		{
-			"x": 21745.5,
-			"y": -109001.6,
-			"pal": "darkscorpion_ground",
-			"name": "Menasting Terra",
-			"icon": "T_DarkScorpion_Ground_icon_normal",
-			"lv": 55
-		},
-		{
-			"x": -147370,
-			"y": 364010,
-			"pal": "yeti_grass",
-			"name": "Wumpo Botan",
-			"icon": "T_Yeti_Grass_icon_normal",
-			"lv": 38
-		},
-		{
-			"x": -558869.9,
-			"y": -619480.8,
-			"pal": "grassgolem_dark",
-			"name": "Dualith Noct",
-			"icon": "T_GrassGolem_Dark_icon_normal",
-			"lv": 70
-		},
-		{
-			"x": -372950,
-			"y": 104400,
-			"pal": "kirin",
-			"name": "Univolt",
-			"icon": "T_Kirin_icon_normal",
-			"lv": 31
-		},
-		{
-			"x": -322820,
-			"y": -93429.8,
-			"pal": "volcanicmonster",
-			"name": "Reptyro",
-			"icon": "T_VolcanicMonster_icon_normal",
-			"lv": 50
-		},
-		{
-			"x": -822824,
-			"y": 16747,
-			"pal": "thunderfluffybird",
-			"name": "Dynamoff",
-			"icon": "T_ThunderFluffyBird_icon_normal",
-			"lv": 67
-		},
-		{
-			"x": -404768.2,
-			"y": -444910.8,
-			"pal": "scorpionman_electric",
-			"name": "Prixter Lux",
-			"icon": "T_ScorpionMan_Electric_icon_normal",
-			"lv": 70
-		},
-		{
-			"x": -162481.3,
-			"y": 233115.2,
-			"pal": "queenbee",
-			"name": "Elizabee",
-			"icon": "T_QueenBee_icon_normal",
-			"lv": 39
-		},
-		{
-			"x": -431050.4,
-			"y": 56140.6,
-			"pal": "sakurasaurus",
-			"name": "Broncherry",
-			"icon": "T_SakuraSaurus_icon_normal",
-			"lv": 23
-		},
-		{
-			"x": -254060,
-			"y": 178050,
-			"pal": "fairydragon",
-			"name": "Elphidran",
-			"icon": "T_FairyDragon_icon_normal",
-			"lv": 30
-		},
-		{
-			"x": -772213.2,
-			"y": -273563.5,
-			"pal": "goldenhorse",
-			"name": "Gildane",
-			"icon": "T_GoldenHorse_icon_normal",
-			"lv": 63
-		},
-		{
-			"x": -167230,
-			"y": 96430,
-			"pal": "anubis",
-			"name": "Anubis",
-			"icon": "T_Anubis_icon_normal",
-			"lv": 55
+			"x": -315583.5,
+			"y": 237117,
+			"pal": "weaseldragon",
+			"name": "Chillet",
+			"icon": "T_WeaselDragon_icon_normal",
+			"lv": 11
 		},
 		{
 			"x": -412259.3,
@@ -2202,230 +2138,6 @@
 			"pal": "plantslime",
 			"name": "Gumoss",
 			"icon": "T_PlantSlime_icon_normal",
-			"lv": 11
-		},
-		{
-			"x": -550552.1,
-			"y": -166886.3,
-			"pal": "mysterymask",
-			"name": "Omascul",
-			"icon": "T_MysteryMask_icon_normal",
-			"lv": 60
-		},
-		{
-			"x": -746847.1,
-			"y": -10678,
-			"pal": "eleclizard",
-			"name": "Slowatt",
-			"icon": "T_ElecLizard_icon_normal",
-			"lv": 66
-		},
-		{
-			"x": -593253.1,
-			"y": -294034.6,
-			"pal": "whiteshielddragon",
-			"name": "Silvegis",
-			"icon": "T_WhiteShieldDragon_icon_normal",
-			"lv": 62
-		},
-		{
-			"x": -236727.1,
-			"y": 321310.1,
-			"pal": "naughtycat",
-			"name": "Grintale",
-			"icon": "T_NaughtyCat_icon_normal",
-			"lv": 17
-		},
-		{
-			"x": -443860.8,
-			"y": 183689.4,
-			"pal": "elecpanda",
-			"name": "Grizzbolt",
-			"icon": "T_ElecPanda_icon_normal",
-			"lv": 30
-		},
-		{
-			"x": -721639,
-			"y": -432015,
-			"pal": "whitetiger_ground",
-			"name": "Cryolinx Terra",
-			"icon": "T_WhiteTiger_Ground_icon_normal",
-			"lv": 62
-		},
-		{
-			"x": -773027.4,
-			"y": -368265.9,
-			"pal": "werewolf_ice",
-			"name": "Loupmoon Cryst",
-			"icon": "T_Werewolf_Ice_icon_normal",
-			"lv": 66
-		},
-		{
-			"x": -450359.5,
-			"y": 356886.2,
-			"pal": "cactusdoll",
-			"name": "Needoll",
-			"icon": "T_CactusDoll_icon_normal",
-			"lv": 40
-		},
-		{
-			"x": 15843.5,
-			"y": -130382.9,
-			"pal": "lilyqueen_dark",
-			"name": "Lyleen Noct",
-			"icon": "T_LilyQueen_Dark_icon_normal",
-			"lv": 58
-		},
-		{
-			"x": -717565.9,
-			"y": -251787.3,
-			"pal": "nightbluehorse",
-			"name": "Starryon",
-			"icon": "T_NightBlueHorse_icon_normal",
-			"lv": 63
-		},
-		{
-			"x": -174579,
-			"y": -158213.8,
-			"pal": "blackmetaldragon",
-			"name": "Astegon",
-			"icon": "T_BlackMetalDragon_icon_normal",
-			"lv": 55
-		},
-		{
-			"x": -516157,
-			"y": -393151.1,
-			"pal": "raijindaughter_water",
-			"name": "Dazzi Noct",
-			"icon": "T_RaijinDaughter_Water_icon_normal",
-			"lv": 60
-		},
-		{
-			"x": -276069.5,
-			"y": -180093,
-			"pal": "kingbahamut",
-			"name": "Blazamut",
-			"icon": "T_KingBahamut_icon_normal",
-			"lv": 52
-		},
-		{
-			"x": -239436.6,
-			"y": 345.7,
-			"pal": "purplespider",
-			"name": "Tarantriss",
-			"icon": "T_PurpleSpider_icon_normal",
-			"lv": 35
-		},
-		{
-			"x": -802420,
-			"y": -112610,
-			"pal": "lotusdragon",
-			"name": "Ophydia",
-			"icon": "T_LotusDragon_icon_normal",
-			"lv": 69
-		},
-		{
-			"x": -335225,
-			"y": 180735,
-			"pal": "kingalpaca",
-			"name": "Kingpaca",
-			"icon": "T_KingAlpaca_icon_normal",
-			"lv": 23
-		},
-		{
-			"x": 39324.9,
-			"y": -18772.7,
-			"pal": "kingalpaca_ice",
-			"name": "Kingpaca Cryst",
-			"icon": "T_KingAlpaca_Ice_icon_normal",
-			"lv": 46
-		},
-		{
-			"x": 50564.8,
-			"y": 357757.5,
-			"pal": "cubeturtle",
-			"name": "Tetroise ",
-			"icon": "T_CubeTurtle_icon_normal",
-			"lv": 55
-		},
-		{
-			"x": 187731.2,
-			"y": 359897.2,
-			"pal": "saintcentaur",
-			"name": "Paladius",
-			"icon": "T_SaintCentaur_icon_normal",
-			"lv": 60
-		},
-		{
-			"x": 90345.4,
-			"y": 534007.8,
-			"pal": "rockbeast",
-			"name": "Pierdon",
-			"icon": "T_RockBeast_icon_normal",
-			"lv": 50
-		},
-		{
-			"x": -333940,
-			"y": 39610,
-			"pal": "fengyundeeper",
-			"name": "Fenglope",
-			"icon": "T_FengyunDeeper_icon_normal",
-			"lv": 25
-		},
-		{
-			"x": -155950,
-			"y": 31260,
-			"pal": "hawkbird",
-			"name": "Nitewing",
-			"icon": "T_HawkBird_icon_normal",
-			"lv": 18
-		},
-		{
-			"x": 109790,
-			"y": -5880,
-			"pal": "icehorse",
-			"name": "Frostallion",
-			"icon": "T_IceHorse_icon_normal",
-			"lv": 60
-		},
-		{
-			"x": -723782.7,
-			"y": -230996.7,
-			"pal": "amaterasuwolf_dark",
-			"name": "Kitsun Noct",
-			"icon": "T_AmaterasuWolf_Dark_icon_normal",
-			"lv": 65
-		},
-		{
-			"x": -238811,
-			"y": -110487.6,
-			"pal": "winggolem",
-			"name": "Knocklem",
-			"icon": "T_WingGolem_icon_normal",
-			"lv": 55
-		},
-		{
-			"x": -889441.3,
-			"y": -361294.3,
-			"pal": "bluethunderhorse",
-			"name": "Azurmane",
-			"icon": "T_BlueThunderHorse_icon_normal",
-			"lv": 66
-		},
-		{
-			"x": -772844,
-			"y": -11173,
-			"pal": "elecsnail",
-			"name": "Snock",
-			"icon": "T_ElecSnail_icon_normal",
-			"lv": 65
-		},
-		{
-			"x": -315583.5,
-			"y": 237117,
-			"pal": "weaseldragon",
-			"name": "Chillet",
-			"icon": "T_WeaselDragon_icon_normal",
 			"lv": 11
 		},
 		{
@@ -2437,12 +2149,260 @@
 			"lv": 11
 		},
 		{
+			"x": -122060,
+			"y": 15810,
+			"pal": "lazycatfish",
+			"name": "Dumud",
+			"icon": "T_LazyCatfish_icon_normal",
+			"lv": 14
+		},
+		{
+			"x": -349072.9,
+			"y": 104535,
+			"pal": "flamebuffalo",
+			"name": "Arsox",
+			"icon": "T_FlameBuffalo_icon_normal",
+			"lv": 15
+		},
+		{
+			"x": -276240,
+			"y": 268990,
+			"pal": "icefox",
+			"name": "Foxcicle",
+			"icon": "T_IceFox_icon_normal",
+			"lv": 15
+		},
+		{
+			"x": -149050,
+			"y": -30550,
+			"pal": "kitsunebi_ice",
+			"name": "Foxparks Cryst",
+			"icon": "T_Kitsunebi_Ice_icon_normal",
+			"lv": 15
+		},
+		{
+			"x": -285331.3,
+			"y": 210162.7,
+			"pal": "captainpenguin",
+			"name": "Penking",
+			"icon": "T_CaptainPenguin_icon_normal",
+			"lv": 15
+		},
+		{
+			"x": -236727.1,
+			"y": 321310.1,
+			"pal": "naughtycat",
+			"name": "Grintale",
+			"icon": "T_NaughtyCat_icon_normal",
+			"lv": 17
+		},
+		{
+			"x": -155950,
+			"y": 31260,
+			"pal": "hawkbird",
+			"name": "Nitewing",
+			"icon": "T_HawkBird_icon_normal",
+			"lv": 18
+		},
+		{
+			"x": -431050.4,
+			"y": 56140.6,
+			"pal": "sakurasaurus",
+			"name": "Broncherry",
+			"icon": "T_SakuraSaurus_icon_normal",
+			"lv": 23
+		},
+		{
+			"x": -426590,
+			"y": 90670,
+			"pal": "berrygoat_dark",
+			"name": "Caprity Noct",
+			"icon": "T_BerryGoat_Dark_icon_normal",
+			"lv": 23
+		},
+		{
+			"x": -335225,
+			"y": 180735,
+			"pal": "kingalpaca",
+			"name": "Kingpaca",
+			"icon": "T_KingAlpaca_icon_normal",
+			"lv": 23
+		},
+		{
+			"x": -282853.7,
+			"y": 64952.2,
+			"pal": "ronin",
+			"name": "Bushi",
+			"icon": "T_Ronin_icon_normal",
+			"lv": 25
+		},
+		{
+			"x": -333940,
+			"y": 39610,
+			"pal": "fengyundeeper",
+			"name": "Fenglope",
+			"icon": "T_FengyunDeeper_icon_normal",
+			"lv": 25
+		},
+		{
+			"x": -245458.9,
+			"y": 149122,
+			"pal": "violetfairy",
+			"name": "Vaelet",
+			"icon": "T_VioletFairy_icon_normal",
+			"lv": 27
+		},
+		{
+			"x": -226362.2,
+			"y": 231993.3,
+			"pal": "foxmage",
+			"name": "Wixen",
+			"icon": "T_FoxMage_icon_normal",
+			"lv": 28
+		},
+		{
+			"x": -183818.9,
+			"y": 40647.8,
+			"pal": "manticore",
+			"name": "Blazehowl",
+			"icon": "T_Manticore_icon_normal",
+			"lv": 30
+		},
+		{
+			"x": -254060,
+			"y": 178050,
+			"pal": "fairydragon",
+			"name": "Elphidran",
+			"icon": "T_FairyDragon_icon_normal",
+			"lv": 30
+		},
+		{
+			"x": -443860.8,
+			"y": 183689.4,
+			"pal": "elecpanda",
+			"name": "Grizzbolt",
+			"icon": "T_ElecPanda_icon_normal",
+			"lv": 30
+		},
+		{
+			"x": -206970,
+			"y": 363810,
+			"pal": "grasspanda_electric",
+			"name": "Mossanda Lux",
+			"icon": "T_GrassPanda_Electric_icon_normal",
+			"lv": 31
+		},
+		{
+			"x": -372950,
+			"y": 104400,
+			"pal": "kirin",
+			"name": "Univolt",
+			"icon": "T_Kirin_icon_normal",
+			"lv": 31
+		},
+		{
+			"x": -147025.5,
+			"y": 217379.2,
+			"pal": "mutant",
+			"name": "Lunaris",
+			"icon": "T_Mutant_icon_normal",
+			"lv": 35
+		},
+		{
+			"x": -239436.6,
+			"y": 345.7,
+			"pal": "purplespider",
+			"name": "Tarantriss",
+			"icon": "T_PurpleSpider_icon_normal",
+			"lv": 35
+		},
+		{
+			"x": -119314.5,
+			"y": 288958.4,
+			"pal": "grassrabbitman",
+			"name": "Verdash",
+			"icon": "T_GrassRabbitMan_icon_normal",
+			"lv": 35
+		},
+		{
 			"x": -113197.7,
 			"y": 201490.5,
 			"pal": "thunderbird",
 			"name": "Beakon",
 			"icon": "T_ThunderBird_icon_normal",
 			"lv": 37
+		},
+		{
+			"x": -343155,
+			"y": 244585,
+			"pal": "grassmammoth",
+			"name": "Mammorest",
+			"icon": "T_GrassMammoth_icon_normal",
+			"lv": 38
+		},
+		{
+			"x": -147370,
+			"y": 364010,
+			"pal": "yeti_grass",
+			"name": "Wumpo Botan",
+			"icon": "T_Yeti_Grass_icon_normal",
+			"lv": 38
+		},
+		{
+			"x": -162481.3,
+			"y": 233115.2,
+			"pal": "queenbee",
+			"name": "Elizabee",
+			"icon": "T_QueenBee_icon_normal",
+			"lv": 39
+		},
+		{
+			"x": -246100,
+			"y": 77200,
+			"pal": "bluedragon",
+			"name": "Azurobe",
+			"icon": "T_BlueDragon_icon_normal",
+			"lv": 40
+		},
+		{
+			"x": -450359.5,
+			"y": 356886.2,
+			"pal": "cactusdoll",
+			"name": "Needoll",
+			"icon": "T_CactusDoll_icon_normal",
+			"lv": 40
+		},
+		{
+			"x": -92059.8,
+			"y": 273741.9,
+			"pal": "whitemoth",
+			"name": "Sibelyx",
+			"icon": "T_WhiteMoth_icon_normal",
+			"lv": 40
+		},
+		{
+			"x": 122760,
+			"y": 318710,
+			"pal": "darkscorpion",
+			"name": "Menasting",
+			"icon": "T_DarkScorpion_icon_normal",
+			"lv": 44
+		},
+		{
+			"x": 97716.3,
+			"y": 307499.7,
+			"pal": "suzaku",
+			"name": "Suzaku",
+			"icon": "T_Suzaku_icon_normal",
+			"lv": 45
+		},
+		{
+			"x": 39324.9,
+			"y": -18772.7,
+			"pal": "kingalpaca_ice",
+			"name": "Kingpaca Cryst",
+			"icon": "T_KingAlpaca_Ice_icon_normal",
+			"lv": 46
 		},
 		{
 			"x": -46108.4,
@@ -2453,6 +2413,54 @@
 			"lv": 47
 		},
 		{
+			"x": 90345.4,
+			"y": 534007.8,
+			"pal": "rockbeast",
+			"name": "Pierdon",
+			"icon": "T_RockBeast_icon_normal",
+			"lv": 50
+		},
+		{
+			"x": -322820,
+			"y": -93429.8,
+			"pal": "volcanicmonster",
+			"name": "Reptyro",
+			"icon": "T_VolcanicMonster_icon_normal",
+			"lv": 50
+		},
+		{
+			"x": -276069.5,
+			"y": -180093,
+			"pal": "kingbahamut",
+			"name": "Blazamut",
+			"icon": "T_KingBahamut_icon_normal",
+			"lv": 52
+		},
+		{
+			"x": -167230,
+			"y": 96430,
+			"pal": "anubis",
+			"name": "Anubis",
+			"icon": "T_Anubis_icon_normal",
+			"lv": 55
+		},
+		{
+			"x": -174579,
+			"y": -158213.8,
+			"pal": "blackmetaldragon",
+			"name": "Astegon",
+			"icon": "T_BlackMetalDragon_icon_normal",
+			"lv": 55
+		},
+		{
+			"x": -169138.2,
+			"y": 575683.1,
+			"pal": "grassgolem",
+			"name": "Dualith",
+			"icon": "T_GrassGolem_icon_normal",
+			"lv": 55
+		},
+		{
 			"x": 517450,
 			"y": -626940,
 			"pal": "grassgolem",
@@ -2461,12 +2469,332 @@
 			"lv": 55
 		},
 		{
-			"x": 520440,
-			"y": -727175,
-			"pal": "whitedeer_dark",
-			"name": "Celesdir Noct",
-			"icon": "T_WhiteDeer_Dark_icon_normal",
-			"lv": 79
+			"x": -162910,
+			"y": 318720,
+			"pal": "umihebi",
+			"name": "Jormuntide",
+			"icon": "T_Umihebi_icon_normal",
+			"lv": 55
+		},
+		{
+			"x": -238811,
+			"y": -110487.6,
+			"pal": "winggolem",
+			"name": "Knocklem",
+			"icon": "T_WingGolem_icon_normal",
+			"lv": 55
+		},
+		{
+			"x": 21745.5,
+			"y": -109001.6,
+			"pal": "darkscorpion_ground",
+			"name": "Menasting Terra",
+			"icon": "T_DarkScorpion_Ground_icon_normal",
+			"lv": 55
+		},
+		{
+			"x": 50564.8,
+			"y": 357757.5,
+			"pal": "cubeturtle",
+			"name": "Tetroise ",
+			"icon": "T_CubeTurtle_icon_normal",
+			"lv": 55
+		},
+		{
+			"x": 262730,
+			"y": 75740,
+			"pal": "icenarwhal",
+			"name": "Whalaska",
+			"icon": "T_IceNarwhal_icon_normal",
+			"lv": 55
+		},
+		{
+			"x": 14681.1,
+			"y": -132067.6,
+			"pal": "lilyqueen",
+			"name": "Lyleen",
+			"icon": "T_LilyQueen_icon_normal",
+			"lv": 58
+		},
+		{
+			"x": 15843.5,
+			"y": -130382.9,
+			"pal": "lilyqueen_dark",
+			"name": "Lyleen Noct",
+			"icon": "T_LilyQueen_Dark_icon_normal",
+			"lv": 58
+		},
+		{
+			"x": -516157,
+			"y": -393151.1,
+			"pal": "raijindaughter_water",
+			"name": "Dazzi Noct",
+			"icon": "T_RaijinDaughter_Water_icon_normal",
+			"lv": 60
+		},
+		{
+			"x": -649837.1,
+			"y": -235616.7,
+			"pal": "fengyundeeper_electric",
+			"name": "Fenglope Lux",
+			"icon": "T_FengyunDeeper_Electric_icon_normal",
+			"lv": 60
+		},
+		{
+			"x": 109790,
+			"y": -5880,
+			"pal": "icehorse",
+			"name": "Frostallion",
+			"icon": "T_IceHorse_icon_normal",
+			"lv": 60
+		},
+		{
+			"x": 175142.8,
+			"y": 221586.5,
+			"pal": "poseidonorca",
+			"name": "Neptilius",
+			"icon": "T_PoseidonOrca_icon_normal",
+			"lv": 60
+		},
+		{
+			"x": -589257.2,
+			"y": -265874.4,
+			"pal": "ghostrabbit",
+			"name": "Nitemary",
+			"icon": "T_GhostRabbit_icon_normal",
+			"lv": 60
+		},
+		{
+			"x": -544943.3,
+			"y": -264111.9,
+			"pal": "badcatgirl",
+			"name": "Nyafia",
+			"icon": "T_BadCatgirl_icon_normal",
+			"lv": 60
+		},
+		{
+			"x": -550552.1,
+			"y": -166886.3,
+			"pal": "mysterymask",
+			"name": "Omascul",
+			"icon": "T_MysteryMask_icon_normal",
+			"lv": 60
+		},
+		{
+			"x": 187731.2,
+			"y": 359897.2,
+			"pal": "saintcentaur",
+			"name": "Paladius",
+			"icon": "T_SaintCentaur_icon_normal",
+			"lv": 60
+		},
+		{
+			"x": -797364.2,
+			"y": -245386.9,
+			"pal": "blackpuppy",
+			"name": "Smokie",
+			"icon": "T_BlackPuppy_icon_normal",
+			"lv": 60
+		},
+		{
+			"x": -729794.1,
+			"y": -338535.5,
+			"pal": "cubeturtle_neutral",
+			"name": "Tetroise Primo",
+			"icon": "T_CubeTurtle_Neutral_icon_normal",
+			"lv": 60
+		},
+		{
+			"x": -721639,
+			"y": -432015,
+			"pal": "whitetiger_ground",
+			"name": "Cryolinx Terra",
+			"icon": "T_WhiteTiger_Ground_icon_normal",
+			"lv": 62
+		},
+		{
+			"x": -593253.1,
+			"y": -294034.6,
+			"pal": "whiteshielddragon",
+			"name": "Silvegis",
+			"icon": "T_WhiteShieldDragon_icon_normal",
+			"lv": 62
+		},
+		{
+			"x": -772213.2,
+			"y": -273563.5,
+			"pal": "goldenhorse",
+			"name": "Gildane",
+			"icon": "T_GoldenHorse_icon_normal",
+			"lv": 63
+		},
+		{
+			"x": -568029.2,
+			"y": -464143.1,
+			"pal": "blueberryfairy",
+			"name": "Prunelia",
+			"icon": "T_BlueberryFairy_icon_normal",
+			"lv": 63
+		},
+		{
+			"x": -717565.9,
+			"y": -251787.3,
+			"pal": "nightbluehorse",
+			"name": "Starryon",
+			"icon": "T_NightBlueHorse_icon_normal",
+			"lv": 63
+		},
+		{
+			"x": -691248.6,
+			"y": -309680.3,
+			"pal": "herculesbeetle_ground",
+			"name": "Warsect Terra",
+			"icon": "T_HerculesBeetle_Ground_icon_normal",
+			"lv": 64
+		},
+		{
+			"x": -661871.9,
+			"y": -284991.8,
+			"pal": "whitedeer",
+			"name": "Celesdir",
+			"icon": "T_WhiteDeer_icon_normal",
+			"lv": 65
+		},
+		{
+			"x": 173548.3,
+			"y": 474295.4,
+			"pal": "icehorse_dark",
+			"name": "Frostallion Noct",
+			"icon": "T_IceHorse_Dark_icon_normal",
+			"lv": 65
+		},
+		{
+			"x": -723782.7,
+			"y": -230996.7,
+			"pal": "amaterasuwolf_dark",
+			"name": "Kitsun Noct",
+			"icon": "T_AmaterasuWolf_Dark_icon_normal",
+			"lv": 65
+		},
+		{
+			"x": -772844,
+			"y": -11173,
+			"pal": "elecsnail",
+			"name": "Snock",
+			"icon": "T_ElecSnail_icon_normal",
+			"lv": 65
+		},
+		{
+			"x": -791868.2,
+			"y": -337175.9,
+			"pal": "grimgirl",
+			"name": "Splatterina",
+			"icon": "T_GrimGirl_icon_normal",
+			"lv": 65
+		},
+		{
+			"x": -889441.3,
+			"y": -361294.3,
+			"pal": "bluethunderhorse",
+			"name": "Azurmane",
+			"icon": "T_BlueThunderHorse_icon_normal",
+			"lv": 66
+		},
+		{
+			"x": -867560.9,
+			"y": -441338.2,
+			"pal": "horus_water",
+			"name": "Faleris Aqua",
+			"icon": "T_Horus_Water_icon_normal",
+			"lv": 66
+		},
+		{
+			"x": -773027.4,
+			"y": -368265.9,
+			"pal": "werewolf_ice",
+			"name": "Loupmoon Cryst",
+			"icon": "T_Werewolf_Ice_icon_normal",
+			"lv": 66
+		},
+		{
+			"x": -746847.1,
+			"y": -10678,
+			"pal": "eleclizard",
+			"name": "Slowatt",
+			"icon": "T_ElecLizard_icon_normal",
+			"lv": 66
+		},
+		{
+			"x": -773523.9,
+			"y": 51495.9,
+			"pal": "moonchild",
+			"name": "Wistella",
+			"icon": "T_MoonChild_icon_normal",
+			"lv": 66
+		},
+		{
+			"x": -822824,
+			"y": 16747,
+			"pal": "thunderfluffybird",
+			"name": "Dynamoff",
+			"icon": "T_ThunderFluffyBird_icon_normal",
+			"lv": 67
+		},
+		{
+			"x": -821552.1,
+			"y": 46132.1,
+			"pal": "foxexorcist",
+			"name": "Flaracle",
+			"icon": "T_FoxExorcist_icon_normal",
+			"lv": 68
+		},
+		{
+			"x": -822007,
+			"y": -66402,
+			"pal": "ghostdragon",
+			"name": "Eidrolon",
+			"icon": "T_GhostDragon_icon_normal",
+			"lv": 69
+		},
+		{
+			"x": -802420,
+			"y": -112610,
+			"pal": "lotusdragon",
+			"name": "Ophydia",
+			"icon": "T_LotusDragon_icon_normal",
+			"lv": 69
+		},
+		{
+			"x": -558869.9,
+			"y": -619480.8,
+			"pal": "grassgolem_dark",
+			"name": "Dualith Noct",
+			"icon": "T_GrassGolem_Dark_icon_normal",
+			"lv": 70
+		},
+		{
+			"x": -735438.4,
+			"y": -95932.9,
+			"pal": "jetdragon",
+			"name": "Jetragon",
+			"icon": "T_JetDragon_icon_normal",
+			"lv": 70
+		},
+		{
+			"x": -1033347.9,
+			"y": -358750.8,
+			"pal": "volcanodragon",
+			"name": "Moldron",
+			"icon": "T_VolcanoDragon_icon_normal",
+			"lv": 70
+		},
+		{
+			"x": -404768.2,
+			"y": -444910.8,
+			"pal": "scorpionman_electric",
+			"name": "Prixter Lux",
+			"icon": "T_ScorpionMan_Electric_icon_normal",
+			"lv": 70
 		},
 		{
 			"x": 526910.2,
@@ -2477,19 +2805,19 @@
 			"lv": 74
 		},
 		{
-			"x": 458095,
-			"y": -694560,
-			"pal": "mushroomlady",
-			"name": "Mycora",
-			"icon": "T_MushroomLady_icon_normal",
-			"lv": 78
-		},
-		{
 			"x": 571870,
 			"y": -733420,
 			"pal": "volcanodragon_ice",
 			"name": "Moldron Cryst",
 			"icon": "T_VolcanoDragon_Ice_icon_normal",
+			"lv": 78
+		},
+		{
+			"x": 458095,
+			"y": -694560,
+			"pal": "mushroomlady",
+			"name": "Mycora",
+			"icon": "T_MushroomLady_icon_normal",
 			"lv": 78
 		},
 		{
@@ -2506,6 +2834,14 @@
 			"pal": "domearmordragon",
 			"name": "Aegidron",
 			"icon": "T_DomeArmorDragon_icon_normal",
+			"lv": 79
+		},
+		{
+			"x": 520440,
+			"y": -727175,
+			"pal": "whitedeer_dark",
+			"name": "Celesdir Noct",
+			"icon": "T_WhiteDeer_Dark_icon_normal",
 			"lv": 79
 		}
 	]

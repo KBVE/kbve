@@ -2,6 +2,7 @@
 import { defineConfig, type Plugin } from 'vite';
 import path from 'node:path';
 import fs from 'node:fs';
+import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import react from '@vitejs/plugin-react';
@@ -82,6 +83,45 @@ function iconStudioWriter(): Plugin {
 	};
 }
 
+const MODEL_HASHES_ID = 'virtual:model-hashes';
+
+function modelHashes(): Plugin {
+	const publicDir = path.resolve(__dirname, 'public');
+	const modelsDir = path.join(publicDir, 'models');
+	const build = () => {
+		const out: Record<string, string> = {};
+		const walk = (dir: string) => {
+			if (!fs.existsSync(dir)) return;
+			for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+				const p = path.join(dir, e.name);
+				if (e.isDirectory()) {
+					walk(p);
+					continue;
+				}
+				if (!e.name.endsWith('.glb')) continue;
+				const url = `/${path.relative(publicDir, p).split(path.sep).join('/')}`;
+				out[url] = crypto
+					.createHash('sha256')
+					.update(fs.readFileSync(p))
+					.digest('hex')
+					.slice(0, 8);
+			}
+		};
+		walk(modelsDir);
+		return out;
+	};
+	return {
+		name: 'model-hashes',
+		resolveId(id) {
+			return id === MODEL_HASHES_ID ? `\0${MODEL_HASHES_ID}` : null;
+		},
+		load(id) {
+			if (id !== `\0${MODEL_HASHES_ID}`) return null;
+			return `export default ${JSON.stringify(build())};`;
+		},
+	};
+}
+
 // Post-build gltfpack pass (meshopt EXT_meshopt_compression) over the copied
 // public/ models. Sources in public/models stay uncompressed LFS truth; only
 // dist output is packed. -kn keeps node/mesh names (armor slots + bone lookups
@@ -147,7 +187,13 @@ const coiHeaders = {
 export default defineConfig({
 	root: __dirname,
 	base: './',
-	plugins: [react(), nxViteTsPaths(), iconStudioWriter(), gltfpackModels()],
+	plugins: [
+		react(),
+		nxViteTsPaths(),
+		iconStudioWriter(),
+		modelHashes(),
+		gltfpackModels(),
+	],
 	resolve: {
 		alias: [itemdbDataAlias, itemdbSchemaAlias],
 	},
@@ -160,6 +206,7 @@ export default defineConfig({
 	},
 	worker: {
 		format: 'es',
+		plugins: () => [nxViteTsPaths(), modelHashes()],
 	},
 	build: {
 		outDir: '../../../dist/apps/herbmail/herbmail-game',

@@ -8,8 +8,9 @@ import { getDungeon } from '../dungeon/store';
 import { CharState, Transform3, Wander, isAlive } from '../mecs/props';
 import { CS } from '../character/charState';
 import { NPC_KURENAI, despawnGoblin, spawnGoblin } from './goblinSim';
+import { modelUrl } from '../character/modelUrl';
 
-const KURENAI_URL = '/models/parts/kurenai.glb';
+const KURENAI_URL = modelUrl('/models/parts/kurenai.glb');
 useGLTF.preload(KURENAI_URL);
 
 // spring-bone secondary motion for the cosmetic cloth chains that the baked
