@@ -4233,9 +4233,15 @@
       "sell_price": 20,
       "emoji": "⛏️",
       "weight": 3,
+      "action": "equip",
+      "equipment": {
+        "slot": "main_hand"
+      },
       "tags": [
-        "isometric"
-      ]
+        "isometric",
+        "herbmail"
+      ],
+      "has_img": true
     },
     {
       "template": "splash",

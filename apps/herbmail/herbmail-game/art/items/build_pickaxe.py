@@ -1,6 +1,11 @@
 #!/usr/bin/env python3
 """Bake the Sketchfab pickaxe download into the game's held-item GLB convention.
 
+Source: "Pickaxe" by TediumInteractive, CC-BY-4.0. Attribution is required and
+lives with the item itself, in the itemdb `credits` field on
+apps/kbve/astro-kbve/src/content/docs/itemdb/pickaxe.mdx.
+https://sketchfab.com/3d-models/pickaxe-726bd1041790439cba610fd8be337a42
+
 The source ships a 2K PBR set (baseColor + metallicRoughness + normal) and a
 Sketchfab rig of lamp/camera empties at 100x scale. Held items in this game are
 one mesh, one material, one 256px baseColor map -- everything else is dead weight
@@ -19,9 +24,16 @@ import bpy
 from mathutils import Vector
 
 ROOT = Path(__file__).resolve().parents[2]
+REPO = ROOT.parents[2]
 SRC = Path.home() / "Downloads/pickaxe/scene.gltf"
 OUT = ROOT / "public/models/pickaxe.glb"
-ICON = ROOT / "public/icons/items/pickaxe.png"
+# Both icon sinks the dev Icon Studio writes to: the game's grid art and the
+# astro site's itemdb art, which is also what gen-itemdb-atlas packs.
+ICONS = [
+    ROOT / "public/icons/items/pickaxe.png",
+    REPO / "apps/kbve/astro-kbve/public/assets/items/equipment/pickaxe.png",
+]
+ICON = ICONS[0]
 TEX_SIZE = 256
 ICON_SIZE = 64
 LENGTH = 1.0
@@ -204,6 +216,9 @@ def render_icon(obj: bpy.types.Object) -> None:
     ICON.parent.mkdir(parents=True, exist_ok=True)
     scene.render.filepath = str(ICON)
     bpy.ops.render.render(write_still=True)
+    for extra in ICONS[1:]:
+        extra.parent.mkdir(parents=True, exist_ok=True)
+        extra.write_bytes(ICON.read_bytes())
 
 
 def main() -> None:
@@ -236,7 +251,8 @@ def main() -> None:
         f"{TEX_SIZE}px {OUT.stat().st_size // 1024}K"
     )
     render_icon(obj)
-    print(f"wrote {ICON.name} {ICON_SIZE}px {ICON.stat().st_size // 1024}K")
+    for icon in ICONS:
+        print(f"wrote {icon.relative_to(REPO)} {ICON_SIZE}px")
 
 
 if __name__ == "__main__":
