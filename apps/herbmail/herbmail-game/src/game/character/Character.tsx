@@ -128,6 +128,22 @@ function buildFlame(gripScale: number): {
 	return { flame, mats };
 }
 
+// Every caster is redrawn once per shadow-cube face, so a rig's 23 meshes cost
+// 23 x 6 draws per shadow light. Facial detail cannot resolve on a 256px cube
+// map — dropping it keeps the silhouette (body, head, hair, hands, feet) and
+// removes nine meshes per rig from every shadow refresh.
+const NO_SHADOW_SLOTS = new Set([
+	'EYEL',
+	'EYER',
+	'EBRL',
+	'EBRR',
+	'EARL',
+	'EARR',
+	'NOSE',
+	'TETH',
+	'TONG',
+]);
+
 const UPPER_BONE =
 	/spine|neck|head|clavicle|upperarm|lowerarm|hand|thumb|index|middle|ring|pinky|prop/i;
 
@@ -287,7 +303,7 @@ export function Character({
 		const s = cloneSkinned(gltf.scene);
 		s.traverse((o) => {
 			if ((o as THREE.Mesh).isMesh) {
-				o.castShadow = true;
+				o.castShadow = !NO_SHADOW_SLOTS.has(slotNameOf(o));
 				o.frustumCulled = false;
 			}
 		});

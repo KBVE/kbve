@@ -321,7 +321,14 @@ export class LightSystem {
 		const occluderMoved =
 			Math.abs(sig - this.lastShadowSig) > SHADOW_MOVE_EPS;
 		if (occluderMoved) this.lastShadowSig = sig;
-		const refresh = occluderMoved || this.frame % 90 === 0;
+		// A point-light shadow redraws all six cube faces at once, so refreshing
+		// every caster light on the same frame stacks the whole cost into one
+		// spike — and while anything is moving that spike lands every frame.
+		// Phase the slots instead: one light per frame, so a moving scene costs
+		// a single cube refresh per frame and each light still updates every
+		// slots.length frames. Static scenes keep the rare safety tick.
+		const period = occluderMoved ? Math.max(1, this.slots.length) : 90;
+		let slotIndex = 0;
 
 		for (const slot of this.slots) {
 			const cur = slot.pos;
@@ -380,7 +387,9 @@ export class LightSystem {
 			const wasDark = sl.shadow.intensity === 0;
 			sl.shadow.intensity = slot.fade;
 			const show = slot.fade > 0;
-			if (show && (wasDark || moved || refresh)) {
+			const due = this.frame % period === slotIndex % period;
+			slotIndex++;
+			if (show && (wasDark || moved || due)) {
 				sl.shadow.needsUpdate = true;
 			}
 		}
