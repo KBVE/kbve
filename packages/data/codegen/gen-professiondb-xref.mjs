@@ -2,6 +2,7 @@
 import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const generatedDir = resolve(__dirname, 'generated');
@@ -10,7 +11,32 @@ const professiondbPath = resolve(generatedDir, 'professiondb-data.json');
 const mapdbPath = resolve(generatedDir, 'mapdb-data.json');
 const outPath = resolve(generatedDir, 'xref-index.json');
 
-const CONTENT_VERSION = 'phase1';
+function canonicalize(value) {
+	if (Array.isArray(value)) {
+		const mapped = value.map(canonicalize);
+		if (
+			mapped.every((v) => typeof v === 'string' || typeof v === 'number')
+		) {
+			return [...mapped].sort((a, b) =>
+				String(a).localeCompare(String(b)),
+			);
+		}
+		return mapped;
+	}
+	if (value && typeof value === 'object') {
+		const out = {};
+		for (const k of Object.keys(value).sort())
+			out[k] = canonicalize(value[k]);
+		return out;
+	}
+	return value;
+}
+
+function contentVersion(payload) {
+	const canonical = JSON.stringify(canonicalize(payload));
+	const digest = createHash('sha256').update(canonical).digest('hex');
+	return `sha256-${digest.slice(0, 16)}`;
+}
 
 export function main() {
 	const items = JSON.parse(readFileSync(itemdbPath, 'utf8')).items ?? [];
@@ -85,8 +111,7 @@ export function main() {
 		}
 	}
 
-	const index = {
-		content_version: CONTENT_VERSION,
+	const payload = {
 		slug_to_key: Object.fromEntries(itemKeyByRef),
 		produced_by: producedBy,
 		input_to: inputTo,
@@ -94,6 +119,7 @@ export function main() {
 		node_links: nodeLinks,
 		node_by_ref: nodeByRef,
 	};
+	const index = { content_version: contentVersion(payload), ...payload };
 	writeFileSync(outPath, JSON.stringify(index, null, 2));
 	console.log(`Wrote ${outPath}`);
 	console.log(
