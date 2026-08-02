@@ -2008,10 +2008,6 @@ fn process_collect_requests(
                 }
             }
 
-            // Server-authoritative inventory: grant every rolled drop into the
-            // collecting player's inventory and push one InventoryUpdate per
-            // mutated slot. XP is granted per-drop based on each item's own
-            // SkillingInfo (a bonus "branches" drop also awards woodcutting XP).
             if let Some(&player_entity) = client_player_map.0.get(&client_entity) {
                 for (drop_ref, drop_qty) in &drops {
                     if drop_ref.is_empty() || *drop_qty == 0 {
