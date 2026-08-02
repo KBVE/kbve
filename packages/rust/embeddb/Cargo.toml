@@ -11,7 +11,7 @@ repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/embeddb"
 turso = "0.7"
 duckdb = { version = "1", features = ["bundled"] }
 tokio = { workspace = true, features = ["default", "rt", "rt-multi-thread", "macros"] }
-thiserror = "1"
+thiserror = { workspace = true }
 embeddb-derive = { version = "0.1.0", path = "../embeddb-derive", optional = true }
 
 [features]

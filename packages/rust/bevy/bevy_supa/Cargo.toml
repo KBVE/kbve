@@ -36,7 +36,7 @@ wasm = []
 [dependencies]
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-thiserror = "2"
+thiserror = { workspace = true }
 tracing = { workspace = true }
 
 # Native HTTP stack — only pulled in under the `native` feature.

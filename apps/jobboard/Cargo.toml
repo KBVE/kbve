@@ -23,7 +23,7 @@ tokio-postgres = { workspace = true, features = ["with-uuid-1", "with-chrono-0_4
 
 uuid = { workspace = true, features = ["v4", "serde"] }
 jsonwebtoken = { version = "10.3", default-features = false, features = ["rust_crypto"] }
-lru = "0.12"
+lru = { workspace = true }
 
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["default", "env-filter", "json"] }
@@ -34,7 +34,7 @@ tonic = { workspace = true }
 tonic-prost = { workspace = true }
 
 anyhow = { workspace = true }
-thiserror = "2"
+thiserror = { workspace = true }
 dotenvy = { workspace = true }
 rustls = { workspace = true, features = ["default", "ring"] }
 rust-embed = "8"

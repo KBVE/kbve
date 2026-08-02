@@ -18,7 +18,7 @@ pg18 = ["pgrx/pg18", "pgrx-tests/pg18" ]
 pg_test = []
 
 [dependencies]
-thiserror = "2.0.12"
+thiserror = { workspace = true }
 pgrx = { version = "=0.16.1", default-features = false }
 serde = { workspace = true }
 

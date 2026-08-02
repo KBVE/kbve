@@ -61,7 +61,7 @@ utoipa-swagger-ui = { version = "9", features = ["axum"] }
 
 # Utilities
 anyhow = { workspace = true }
-thiserror = "2"
+thiserror = { workspace = true }
 dotenvy = { workspace = true }
 chrono = { workspace = true, features = ["default", "serde"] }
 async-trait = { workspace = true }

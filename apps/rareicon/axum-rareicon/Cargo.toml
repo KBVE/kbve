@@ -9,7 +9,7 @@ publish = false
 [dependencies]
 anyhow = { workspace = true }
 kbve = { path = "../../../packages/rust/kbve" }
-thiserror = "2"
+thiserror = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 tower = { workspace = true, features = ["util", "timeout", "load-shed", "limit"] }

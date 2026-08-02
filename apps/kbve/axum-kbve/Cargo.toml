@@ -8,7 +8,7 @@ publish = false
 
 [dependencies]
 anyhow = { workspace = true }
-thiserror = "2"
+thiserror = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 # RCON allowlist (packages/data/rcon/commands.yaml) baked via include_str! at compile time.
@@ -50,7 +50,7 @@ jsonwebtoken = { version = "10", features = ["rust_crypto"] }
 dashmap = { workspace = true, features = ["rayon"] }
 rayon = "1.10"
 regex = { workspace = true }
-lru = "0.18"
+lru = { workspace = true }
 
 # Game server (headless Bevy + avian3d + lightyear)
 bevy = { workspace = true, features = ["bevy_state", "bevy_render", "bevy_asset"] }
@@ -75,7 +75,7 @@ uuid = { workspace = true, features = ["v4", "serde"] }
 
 # Referral handler hashes client IP + subnet before any DB write.
 hmac = "0.13"
-sha2 = "0.11"
+sha2 = { workspace = true }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { workspace = true, optional = true }

@@ -35,7 +35,7 @@ tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
 # wallet HTTP shim.
 chrono = { workspace = true, features = ["clock"] }
 uuid = { workspace = true, features = ["v5"] }
-thiserror = "2"
+thiserror = { workspace = true }
 
 # Shared Supabase (PostgREST) client — lives in bevy_supa so future Bevy
 # games (isometric, etc.) can import the same plugin + SupaClient shape

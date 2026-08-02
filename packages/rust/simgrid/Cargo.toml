@@ -32,7 +32,7 @@ ulid = { workspace = true }
 async-trait = { workspace = true }
 jsonwebtoken = { version = "9.3", default-features = false, optional = true }
 tracing = { workspace = true }
-sha2 = "0.10"
+sha2 = { workspace = true }
 hex = { workspace = true }
 fastnoise-lite = "=1.1.1"
 getrandom = "0.2"

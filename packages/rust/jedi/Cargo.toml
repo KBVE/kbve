@@ -24,7 +24,7 @@ serde_json = { workspace = true }
 bytes = { workspace = true, features = ["serde"] }
 ammonia = { workspace = true }
 bitflags = { workspace = true, features = ["serde"] }
-thiserror = "2"
+thiserror = { workspace = true }
 reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
 tower = { workspace = true, features = ["util", "timeout", "load-shed", "limit"] }
 tokio = { workspace = true, features = ["default", "rt-multi-thread", "macros", "sync", "time", "net", "fs", "io-util"] }
@@ -67,7 +67,7 @@ clickhouse = { version = "0.14", optional = true }
 # Prometheus metrics (optional)
 axum-prometheus = { version = "0.10", optional = true }
 metrics = { workspace = true, optional = true }
-lru = { version = "0.18", optional = true }
+lru = { workspace = true, optional = true }
 # AWS / cloud object storage (optional)
 aws-config = { version = "1", optional = true, features = ["behavior-version-latest"] }
 aws-sdk-s3 = { version = "1", optional = true }
