@@ -2,6 +2,7 @@
 title: EULA
 description: |
     The KBVE EULA
+template: splash
 sidebar:
     label: EULA
     order: 4
@@ -22,6 +23,14 @@ import {
 	TabItem,
 } from '@astrojs/starlight/components';
 
+import LegalLeaf from '@/components/legal/LegalLeaf.astro';
+
+<LegalLeaf
+	slug="eula"
+	title={frontmatter.title}
+	description={frontmatter.description}
+	heading="End-User License Agreement"
+	updated="2022-12-13">
 
 ## EULA
 
@@ -237,3 +246,5 @@ By visiting this page on our website: [Support & Contact Us](https://kbve.com/su
 
 
 ---
+
+</LegalLeaf>

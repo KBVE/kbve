@@ -40,6 +40,7 @@ import {
 	COMMUNITY_ROOT,
 	buildCommunityBreadcrumb,
 } from '../social/socialNav';
+import { LEGAL_NAV, LEGAL_ROOT, buildLegalBreadcrumb } from '../legal/legalNav';
 import {
 	MARKET_NAV,
 	STORE_ROOT,
@@ -85,6 +86,7 @@ const isMapdb = pathname.startsWith('/mapdb/');
 // Community/social pages share one rail; the slug set is derived from the
 // nav itself, so adding a rail link adds its page unless it opts out there.
 const isCommunity = COMMUNITY_RAIL_SLUGS.has(norm(pathname));
+const isLegal = pathname.startsWith('/legal/');
 const isStore = norm(pathname) === '/store/';
 const isMarket = norm(pathname) === '/market/';
 
@@ -282,17 +284,27 @@ const baseShell = isDashboard
 																}
 															: undefined;
 
-const shell = isCommunity
+const shell = isLegal
 	? {
-			entries: COMMUNITY_NAV,
-			root: COMMUNITY_ROOT,
-			menuLabel: 'Community menu',
-			navLabel: 'Community',
-			crumbs: buildCommunityBreadcrumb(pathname),
+			entries: LEGAL_NAV,
+			root: LEGAL_ROOT,
+			menuLabel: 'Legal menu',
+			navLabel: 'Legal',
+			crumbs: buildLegalBreadcrumb(pathname),
 			collapsible: true,
 			withToc: true,
 		}
-	: baseShell;
+	: isCommunity
+		? {
+				entries: COMMUNITY_NAV,
+				root: COMMUNITY_ROOT,
+				menuLabel: 'Community menu',
+				navLabel: 'Community',
+				crumbs: buildCommunityBreadcrumb(pathname),
+				collapsible: true,
+				withToc: true,
+			}
+		: baseShell;
 
 const crumbs = shell?.crumbs ?? [];
 ---

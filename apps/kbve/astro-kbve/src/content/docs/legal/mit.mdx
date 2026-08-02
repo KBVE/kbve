@@ -1,6 +1,7 @@
 ---
 title: MIT License
 description: The MIT License as used by open-source components within the KBVE monorepo.
+template: splash
 sidebar:
     label: MIT License
     order: 10
@@ -12,6 +13,13 @@ tags:
 ---
 
 import { Aside } from '@astrojs/starlight/components';
+
+import LegalLeaf from '@/components/legal/LegalLeaf.astro';
+
+<LegalLeaf
+	slug="mit"
+	title={frontmatter.title}
+	description={frontmatter.description}>
 
 ## MIT License
 
@@ -59,3 +67,5 @@ Components in the KBVE monorepo that are released under the MIT License include
 select Bevy packages, shared utility crates, and npm packages. Each component's
 `Cargo.toml` or `package.json` specifies its license field. When a component
 does not specify a license, it falls under the [EULA](/legal/eula/) by default.
+
+</LegalLeaf>
