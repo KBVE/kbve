@@ -15,6 +15,9 @@ export function ErrorDigest({
 }) {
 	useStreamLifecycle(store);
 	const state = useStream(store);
+	const primaryState = useStream(primary);
+	const focusedNs = primaryState.params['pod_namespace'];
+	if (typeof focusedNs === 'string' && focusedNs !== '') return null;
 	if (!state.items.length) return null;
 	return (
 		<Stack gap="xs">

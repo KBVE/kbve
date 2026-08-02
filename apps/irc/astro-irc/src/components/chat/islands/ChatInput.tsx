@@ -80,7 +80,13 @@ export const ChatInput: React.FC = () => {
 					type="text"
 					value={value}
 					onChange={(e) => setValue(e.target.value)}
-					placeholder={disabled ? 'Not connected' : 'Send a message…'}
+					placeholder={
+						status === 'idle'
+							? 'Disconnected for inactivity'
+							: disabled
+								? 'Not connected'
+								: 'Send a message…'
+					}
 					disabled={disabled}
 					className="kbve-chat__composer-input"
 				/>

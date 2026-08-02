@@ -24,6 +24,7 @@ import { CastPhase, abilityById, castDuration } from '../combat/ability';
 import { EquipmentPhysics } from './equipmentPhysics';
 import { WEAPON_GRIP } from './weaponGrip';
 import { useCharacterParts } from './useCharacterParts';
+import { slotNameOf } from './partVisibility';
 import type { PartSet } from './armor';
 import { getEquipped, useEquippedArmor } from './armor';
 import { useBodySkinMorph } from './body';
@@ -165,6 +166,7 @@ export interface CharacterHandle {
 	setBlocking: (b: boolean, pose?: BlockPose) => void;
 	isBlocking: () => boolean;
 	bone: (name: string) => THREE.Object3D | null;
+	meshes: () => { slot: string; named: boolean; visible: boolean }[];
 }
 
 interface Props {
@@ -548,6 +550,22 @@ export function Character({
 			},
 			isBlocking: () => blockRef.current.on,
 			bone: (name: string) => scene.getObjectByName(name) ?? null,
+			meshes: () => {
+				const out: {
+					slot: string;
+					named: boolean;
+					visible: boolean;
+				}[] = [];
+				scene.traverse((o) => {
+					if (!(o as THREE.Mesh).isMesh) return;
+					out.push({
+						slot: slotNameOf(o),
+						named: !!o.name,
+						visible: o.visible,
+					});
+				});
+				return out;
+			},
 		};
 		onReady?.(handle);
 		return () => animator.dispose();
