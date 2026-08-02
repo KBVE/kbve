@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """Bake the Sketchfab pickaxe download into the game's held-item GLB convention.
 
-Source: "Pickaxe" by TediumInteractive, CC-BY-4.0. Attribution is required and
-lives with the item itself, in the itemdb `credits` field on
+Source: "Pickaxe" by TediumInteractive, CC-BY-4.0
+(https://kbve.com/legal/cc-by-4/). Attribution is required and lives with the
+item itself, in the itemdb `credits` field on
 apps/kbve/astro-kbve/src/content/docs/itemdb/pickaxe.mdx.
 https://sketchfab.com/3d-models/pickaxe-726bd1041790439cba610fd8be337a42
 
