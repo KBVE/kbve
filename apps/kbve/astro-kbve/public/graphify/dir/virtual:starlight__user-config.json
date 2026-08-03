@@ -1,14 +1,14 @@
 {
 	"dir": "virtual:starlight/user-config",
-	"center": [-107.1, -837.95],
+	"center": [-1112.31, 323.11],
 	"r": 74.28,
 	"files": [
 		{
 			"i": 0,
 			"label": "user-config",
 			"path": "virtual:starlight/user-config",
-			"x": -107.1,
-			"y": -837.95,
+			"x": -1112.31,
+			"y": 323.11,
 			"n": 1
 		}
 	],
@@ -17,9 +17,9 @@
 			"i": 0,
 			"f": 0,
 			"label": "virtual:starlight/user-config",
-			"x": -107.1,
-			"y": -837.95,
-			"c": 547,
+			"x": -1112.31,
+			"y": 323.11,
+			"c": 548,
 			"loc": ""
 		}
 	],

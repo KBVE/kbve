@@ -1,14 +1,14 @@
 {
 	"dir": "astro:components",
-	"center": [-175.92, 539.64],
+	"center": [-656.0, 60.55],
 	"r": 74.28,
 	"files": [
 		{
 			"i": 0,
 			"label": "astro:components",
 			"path": "astro:components",
-			"x": -175.92,
-			"y": 539.64,
+			"x": -656.0,
+			"y": 60.55,
 			"n": 1
 		}
 	],
@@ -17,9 +17,9 @@
 			"i": 0,
 			"f": 0,
 			"label": "astro:components",
-			"x": -175.92,
-			"y": 539.64,
-			"c": 170,
+			"x": -656.0,
+			"y": 60.55,
+			"c": 232,
 			"loc": ""
 		}
 	],

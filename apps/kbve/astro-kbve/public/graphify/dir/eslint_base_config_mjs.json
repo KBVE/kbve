@@ -1,14 +1,14 @@
 {
 	"dir": "eslint.base.config.mjs",
-	"center": [778.48, -286.03],
+	"center": [-384.45, 157.64],
 	"r": 74.28,
 	"files": [
 		{
 			"i": 0,
 			"label": "eslint.base.config.mjs",
 			"path": "eslint.base.config.mjs",
-			"x": 778.48,
-			"y": -286.03,
+			"x": -384.45,
+			"y": 157.64,
 			"n": 1
 		}
 	],
@@ -17,9 +17,9 @@
 			"i": 0,
 			"f": 0,
 			"label": "eslint.base.config.mjs",
-			"x": 778.48,
-			"y": -286.03,
-			"c": 1425,
+			"x": -384.45,
+			"y": 157.64,
+			"c": 1416,
 			"loc": "L1"
 		}
 	],
