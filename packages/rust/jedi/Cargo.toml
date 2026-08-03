@@ -56,7 +56,7 @@ futures-util = { workspace = true, features = ["default"] }
 rustc-hash = "2.1.1"
 flexbuffers = "25.2.10"
 # Twitch
-twitch-irc = { version = "5.0.1", optional = true, default-features = false, features = ["with-serde", "refreshing-token-rustls-webpki-roots", "transport-tcp", "transport-tcp-rustls-webpki-roots", "transport-ws", "transport-ws-rustls-webpki-roots"] }
+twitch-irc = { version = "6.1.1", optional = true, default-features = false, features = ["with-serde", "refreshing-token-rustls-webpki-roots", "transport-tcp", "transport-tcp-rustls-webpki-roots", "transport-ws", "transport-ws-rustls-webpki-roots"] }
 # Replaceable
 crossbeam = "0.8.4"
 regex = { workspace = true }
