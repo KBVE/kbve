@@ -62,6 +62,11 @@ const titleCase = (value: string): string =>
 	value.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
 export const buildArcadeBreadcrumb = (pathname: string): BreadcrumbCrumb[] => {
+	const path0 = normalize(pathname);
+	// The root is its own crumb; group hrefs are in-page anchors on it, so
+	// matching them here would render "Arcade > Play now" on the hub.
+	if (path0 === ARCADE_ROOT.href) return [{ ...ARCADE_ROOT }];
+
 	const crumbs = buildBreadcrumbIn(ARCADE_NAV, ARCADE_ROOT, pathname);
 	const match = findActiveIn(ARCADE_NAV, ARCADE_ROOT.href, pathname);
 	const path = normalize(pathname);
