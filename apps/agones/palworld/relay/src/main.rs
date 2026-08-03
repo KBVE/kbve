@@ -56,6 +56,7 @@ async fn main() -> Result<()> {
         snap: live.clone(),
         bosses: bosses.clone(),
         events: events.clone(),
+        intel_path: Arc::from(cfg.save_intel_path.as_str()),
     };
 
     let poller_handle = tokio::spawn(poller::run(cfg.clone(), game_tx.clone(), live.clone()));

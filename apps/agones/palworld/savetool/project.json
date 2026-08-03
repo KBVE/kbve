@@ -1,0 +1,71 @@
+{
+	"name": "agones-palworld-savetool",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/agones/palworld/savetool",
+	"targets": {
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/agones/palworld/savetool",
+				"command": "python3 -m unittest discover ."
+			}
+		},
+		"container": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx agones-palworld-savetool:containerx",
+						"VERSION=$(sed -n 's/^version *= *\"\\(.*\\)\"/\\1/p' apps/agones/palworld/savetool/version.toml | head -1) && docker tag kbve/agones-palworld-savetool:latest kbve/agones-palworld-savetool:$VERSION && echo \"Tagged kbve/agones-palworld-savetool:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx agones-palworld-savetool:containerx --configuration=production",
+						"VERSION=$(sed -n 's/^version *= *\"\\(.*\\)\"/\\1/p' apps/agones/palworld/savetool/version.toml | head -1) && docker tag kbve/agones-palworld-savetool:latest kbve/agones-palworld-savetool:$VERSION && docker tag kbve/agones-palworld-savetool:latest ghcr.io/kbve/agones-palworld-savetool:latest && docker tag kbve/agones-palworld-savetool:latest ghcr.io/kbve/agones-palworld-savetool:$VERSION && echo \"Tagged ghcr.io/kbve/agones-palworld-savetool:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/agones/palworld/savetool/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/agones-palworld-savetool:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": [
+							"ghcr.io/kbve/agones-palworld-savetool",
+							"kbve/agones-palworld-savetool"
+						],
+						"tags": ["latest"]
+					},
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/agones-palworld-savetool:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/agones-palworld-savetool:buildcache,mode=max"
+					]
+				}
+			}
+		}
+	},
+	"tags": ["scope:agones"]
+}
