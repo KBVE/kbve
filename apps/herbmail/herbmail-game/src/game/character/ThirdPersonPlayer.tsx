@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
+import { getSimBridge } from '../sab/simBridge';
+import { writeIntent, PC_FLAG } from '../sab/playerChannel';
 import {
 	solidAtWorld,
 	floorYAtWorld,
@@ -174,6 +176,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 	const desired = useRef(new THREE.Vector3());
 	const shoulder = useRef(1);
 	const exhausted = useRef(false);
+	const intentSeq = useRef(0);
 	const targetYaw = useRef(0);
 	const targetPitch = useRef(0);
 	const curYaw = useRef(0);
@@ -449,6 +452,21 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		} else if (bodyMover.current && h.motor.mover !== bodyMover.current) {
 			h.motor.mover = bodyMover.current;
 		}
+		// Published after every setDesiredVelocity for this frame, including the
+		// cast lunge override above — intent has to be what the motor will
+		// actually act on, not an earlier draft of it.
+		const d = h.motor.desiredVelocity;
+		writeIntent(getSimBridge().player, {
+			vx: d.x,
+			vy: d.y,
+			vz: d.z,
+			yaw: h.motor.yaw,
+			seq: ++intentSeq.current,
+			flags:
+				(h.motor.grounded ? PC_FLAG.GROUNDED : 0) |
+				(swimming ? PC_FLAG.SWIMMING : 0) |
+				(running ? PC_FLAG.RUNNING : 0),
+		});
 		refreshPrompt(h.motor.position.x, h.motor.position.z);
 
 		pivot.current.copy(h.motor.position);

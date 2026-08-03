@@ -6,6 +6,14 @@
 // instance buffer the renderer uploads zero-copy. Rapier WASM is inlined by
 // rapier3d-compat (in-worker, no fetch).
 import RAPIER from '@dimforge/rapier3d-compat';
+import {
+	approach,
+	DEFAULT_MOTOR,
+	FixedStep,
+	MOTOR_DT,
+	MOTOR_MAX_STEPS,
+} from '../character/CharacterMotor';
+import { PC, PC_FLAG, readIntent, writeAuthorityPose } from './playerChannel';
 import { createSabWorld, type SabWorld } from '@kbve/laser/mecs';
 import { TILE, WALL_H } from '../config';
 import { SOLID } from '../geometry/grid';
@@ -27,6 +35,10 @@ import { PROP_CRATE } from '../prop/kinds';
 const FIXED_DT = 1 / 60;
 const PLAYER_HALF = 0.6;
 const PLAYER_RADIUS = 0.35;
+const MOTOR_ACCEL = DEFAULT_MOTOR.accel;
+const GRAVITY_STEP = DEFAULT_MOTOR.gravity;
+// Membership 0x0002, collides with everything except the proxy's group.
+const AUTH_GROUP = 0x00020001;
 const CRATE_HALF = 0.6;
 const PANEL_THIN = 0.02;
 const EXPLODE = 2.6;
@@ -325,15 +337,89 @@ function syncAndPack(): void {
 	instance.header[INST_COUNT] = count;
 }
 
+// Authoritative player simulation: intent in, rapier character controller
+// resolves it against the same colliders the proxy collides with, pose out.
+// This runs ALONGSIDE the main thread's own movement rather than replacing it,
+// so the two can be compared under real play before authority is handed over —
+// swapping first and discovering the disagreement afterwards would mean
+// debugging feel and correctness at the same time.
+let authBody: RAPIER.RigidBody | null = null;
+let authCollider: RAPIER.Collider | null = null;
+let authCtrl: RAPIER.KinematicCharacterController | null = null;
+const authVel = { x: 0, y: 0, z: 0 };
+const authStep = new FixedStep(MOTOR_DT, MOTOR_MAX_STEPS);
+
+function stepAuthority(): void {
+	if (!phys || !authBody || !authCollider || !authCtrl || !playerPose) return;
+	// The capsule is created at the sim origin, but the player spawns wherever
+	// the dungeon put them. Start from the main thread's pose the first time it
+	// reports one, or the comparison measures that offset forever.
+	if (
+		!authSeeded &&
+		(playerPose[PC.LOCAL_X] !== 0 || playerPose[PC.LOCAL_Z] !== 0)
+	) {
+		authSeeded = true;
+		authBody.setTranslation(
+			{
+				x: playerPose[PC.LOCAL_X],
+				y: playerPose[PC.LOCAL_Y] + PLAYER_HALF + PLAYER_RADIUS,
+				z: playerPose[PC.LOCAL_Z],
+			},
+			true,
+		);
+		authLast = performance.now();
+		return;
+	}
+	if (!authSeeded) return;
+	const intent = readIntent(playerPose);
+	authStep.run(Math.min(0.1, (performance.now() - authLast) / 1000), (dt) => {
+		authVel.x = approach(authVel.x, intent.vx, MOTOR_ACCEL, dt);
+		authVel.z = approach(authVel.z, intent.vz, MOTOR_ACCEL, dt);
+		const t = authBody!.translation();
+		// Excluding kinematic bodies keeps the authority capsule from colliding
+		// with the proxy capsule, which tracks the player and would otherwise
+		// shove the authority away a little every step. Walls, props and debris
+		// are fixed or dynamic, so they still block.
+		authCtrl!.computeColliderMovement(
+			authCollider!,
+			{
+				x: authVel.x * dt,
+				y: -GRAVITY_STEP * dt,
+				z: authVel.z * dt,
+			},
+			RAPIER.QueryFilterFlags.EXCLUDE_KINEMATIC,
+		);
+		const m = authCtrl!.computedMovement();
+		authBody!.setNextKinematicTranslation({
+			x: t.x + m.x,
+			y: t.y + m.y,
+			z: t.z + m.z,
+		});
+	});
+	authLast = performance.now();
+	const t = authBody.translation();
+	writeAuthorityPose(
+		playerPose,
+		t.x,
+		t.y - PLAYER_HALF - PLAYER_RADIUS,
+		t.z,
+		intent.seq,
+		authCtrl.computedGrounded() ? PC_FLAG.GROUNDED : 0,
+	);
+}
+
+let authLast = 0;
+let authSeeded = false;
+
 function loop(now: number): void {
 	if (!phys || !ecs || !running) return;
 	acc += Math.min(0.1, (now - last) / 1000);
 	last = now;
 	if (playerBody && playerPose) {
 		playerBody.setNextKinematicTranslation({
-			x: playerPose[0],
-			y: playerPose[1] + PLAYER_HALF + PLAYER_RADIUS,
-			z: playerPose[2],
+			x: playerPose[PC.LOCAL_X],
+			y: playerPose[PC.LOCAL_Y] + PLAYER_HALF + PLAYER_RADIUS,
+			z: playerPose[PC.LOCAL_Z],
 		});
 	}
 	syncPropColliders();
@@ -342,6 +428,7 @@ function loop(now: number): void {
 		sysLifetime(FIXED_DT);
 		acc -= FIXED_DT;
 	}
+	stepAuthority();
 	ecs.beginWrite();
 	syncAndPack();
 	ecs.step();
@@ -378,6 +465,25 @@ async function init(d: InitData): Promise<void> {
 		RAPIER.ColliderDesc.capsule(PLAYER_HALF, PLAYER_RADIUS),
 		playerBody,
 	);
+
+	authBody = phys.createRigidBody(
+		RAPIER.RigidBodyDesc.kinematicPositionBased().setTranslation(
+			d.ox,
+			PLAYER_HALF + PLAYER_RADIUS,
+			d.oz,
+		),
+	);
+	authCollider = phys.createCollider(
+		RAPIER.ColliderDesc.capsule(PLAYER_HALF, PLAYER_RADIUS),
+		authBody,
+	);
+	// The proxy and the authority capsule must not shove each other.
+	authCollider.setCollisionGroups(AUTH_GROUP);
+	authCtrl = phys.createCharacterController(0.02);
+	authCtrl.enableAutostep(0.5, 0.2, true);
+	authCtrl.enableSnapToGround(0.5);
+	authCtrl.setApplyImpulsesToDynamicBodies(false);
+	authLast = performance.now();
 
 	for (const s of pending) addSector(s);
 	pending.length = 0;
