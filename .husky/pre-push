@@ -1,9 +1,51 @@
 #!/usr/bin/env sh
-# Git LFS upload — uploads any LFS-tracked blobs (currently the Unity
-# native plugins under apps/rareicon/unity-rareicon/Assets/Plugins/**)
-# to the configured endpoint at .lfsconfig (Forgejo KBVE/rareicon).
+# Git LFS upload — uploads any LFS-tracked blobs to the endpoint configured in
+# the repo-root .lfsconfig (Forgejo KBVE/rareicon).
 #
 # No-op for repos / refs that don't have any LFS-tracked content,
 # so contributors who only touch non-Unity code see zero overhead.
 command -v git-lfs >/dev/null 2>&1 || { echo >&2 "\nThis repository is configured for Git LFS but 'git-lfs' was not found on your path. If you no longer wish to use Git LFS, remove this hook by deleting the 'pre-push' file in the hooks directory (set by 'core.hookspath'; usually '.git/hooks').\n"; exit 2; }
-git lfs pre-push "$@"
+
+# git lfs pre-push consumes stdin, but that ref list is also what tells us which
+# game a push touches, so buffer it and feed both.
+refs=$(cat)
+printf '%s\n' "$refs" | git lfs pre-push "$@" || exit $?
+
+# Every game's bytes land in the root .lfsconfig endpoint above, and Forgejo
+# dedups content across the org — so a blob physically exists but is not
+# associated with the game's own repo. Per-game CI pulls with that game's URL
+# and 404s on anything never registered (issue #15225: four gem icons broke the
+# herbmail vite-game build). Claim the new pointers here, scoped to the pushed
+# range so the cost tracks the change rather than the size of the repo.
+root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
+[ -x "$root/kbve.sh" ] || exit 0
+zero=0000000000000000000000000000000000000000
+
+for game in chuck rareicon rentearth arpg cryptothrone cleanroom herbmail; do
+    prefix=$("$root/kbve.sh" -lfs "$game" path 2>/dev/null) || continue
+    [ -n "$prefix" ] || continue
+
+    printf '%s\n' "$refs" | while read -r _local_ref local_sha _remote_ref remote_sha; do
+        [ -n "$local_sha" ] || continue
+        # Branch deletion: nothing to register.
+        [ "$local_sha" = "$zero" ] && continue
+        if [ "$remote_sha" = "$zero" ]; then
+            # New branch on the remote: diff against the closest upstream we
+            # have, so a first push registers only its own additions.
+            base=$(git merge-base "$local_sha" origin/dev 2>/dev/null ||
+                git merge-base "$local_sha" origin/main 2>/dev/null) || continue
+        else
+            base="$remote_sha"
+        fi
+        # Touching a game's tree is not the same as adding pointers to it — a
+        # codegen sync writes into apps/rareicon on plenty of unrelated commits
+        # — so let register decide and stay quiet when there is nothing to do.
+        git diff --quiet "$base" "$local_sha" -- "$prefix" 2>/dev/null && continue
+        # Best effort: a Forgejo hiccup must not block the push. A genuine miss
+        # still surfaces in CI, which is where it surfaced before.
+        "$root/kbve.sh" -lfs "$game" register origin "$base..$local_sha" ||
+            echo >&2 "warning: could not register $game LFS objects; run './kbve.sh -lfs $game register origin' before CI runs"
+    done
+done
+
+exit 0

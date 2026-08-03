@@ -364,35 +364,35 @@
                     {
                         "StaticItemId": "Cake",
                         "ProductType": "EPalItemShopProductType::Normal",
-                        "OverridePrice": 1500,
+                        "OverridePrice": 3000,
                         "ProductNum": 1,
                         "Stock": 0
                     },
                     {
                         "StaticItemId": "Cake02",
                         "ProductType": "EPalItemShopProductType::Normal",
-                        "OverridePrice": 2500,
+                        "OverridePrice": 5000,
                         "ProductNum": 1,
                         "Stock": 0
                     },
                     {
                         "StaticItemId": "Cake03",
                         "ProductType": "EPalItemShopProductType::Normal",
-                        "OverridePrice": 3000,
+                        "OverridePrice": 6000,
                         "ProductNum": 1,
                         "Stock": 0
                     },
                     {
                         "StaticItemId": "Cake04",
                         "ProductType": "EPalItemShopProductType::Normal",
-                        "OverridePrice": 5000,
+                        "OverridePrice": 10000,
                         "ProductNum": 1,
                         "Stock": 0
                     },
                     {
                         "StaticItemId": "Cake05",
                         "ProductType": "EPalItemShopProductType::Normal",
-                        "OverridePrice": 50000,
+                        "OverridePrice": 100000,
                         "ProductNum": 1,
                         "Stock": 0
                     },
