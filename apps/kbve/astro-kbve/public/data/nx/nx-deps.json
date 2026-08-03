@@ -1,8 +1,8 @@
 {
-	"generated_at": "2026-08-02T04:26:58Z",
+	"generated_at": "2026-08-03T04:33:32Z",
 	"node": {
-		"count": 144,
-		"major": 32,
+		"count": 143,
+		"major": 31,
 		"items": [
 			{
 				"name": "@astrojs/check",
@@ -128,7 +128,7 @@
 				"name": "@hookform/resolvers",
 				"current": "5.2.2",
 				"wanted": "5.2.2",
-				"latest": "5.6.0",
+				"latest": "5.7.1",
 				"type": "dependencies",
 				"major": false
 			},
@@ -270,8 +270,8 @@
 			},
 			{
 				"name": "@nxlv/python",
-				"current": "22.2.1",
-				"wanted": "22.2.1",
+				"current": "22.2.2",
+				"wanted": "22.2.2",
 				"latest": "23.0.0",
 				"type": "devDependencies",
 				"major": true
@@ -877,14 +877,6 @@
 				"major": false
 			},
 			{
-				"name": "postcss-merge-rules",
-				"current": "7.0.8",
-				"wanted": "7.0.8",
-				"latest": "8.0.1",
-				"type": "devDependencies",
-				"major": true
-			},
-			{
 				"name": "postprocessing",
 				"current": "6.39.2",
 				"wanted": "6.39.2",
@@ -982,8 +974,8 @@
 			},
 			{
 				"name": "react-native-webgpu",
-				"current": "0.5.15",
-				"wanted": "0.5.15",
+				"current": "0.6.3",
+				"wanted": "0.6.3",
 				"latest": "0.8.1",
 				"type": "dependencies",
 				"major": false
@@ -1096,7 +1088,7 @@
 				"name": "verdaccio",
 				"current": "6.5.1",
 				"wanted": "6.5.1",
-				"latest": "6.9.0",
+				"latest": "6.9.1",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -1159,7 +1151,7 @@
 		]
 	},
 	"rust": {
-		"count": 91,
+		"count": 93,
 		"major": 0,
 		"items": [
 			{
@@ -1481,6 +1473,12 @@
 				"major": false
 			},
 			{
+				"name": "libredox",
+				"current": "0.1.18",
+				"latest": "0.1.19",
+				"major": false
+			},
+			{
 				"name": "macro_rules_attribute",
 				"current": "0.2.2",
 				"latest": "0.2.3",
@@ -1559,15 +1557,15 @@
 				"major": false
 			},
 			{
-				"name": "sse-stream",
-				"current": "0.2.4",
-				"latest": "0.2.5",
+				"name": "sketches-ddsketch",
+				"current": "0.4.0",
+				"latest": "0.4.1",
 				"major": false
 			},
 			{
-				"name": "syn",
-				"current": "3.0.2",
-				"latest": "3.0.3",
+				"name": "sse-stream",
+				"current": "0.2.4",
+				"latest": "0.2.5",
 				"major": false
 			},
 			{
@@ -1616,6 +1614,12 @@
 				"name": "tray-icon",
 				"current": "0.24.1",
 				"latest": "0.24.2",
+				"major": false
+			},
+			{
+				"name": "trybuild",
+				"current": "1.0.118",
+				"latest": "1.0.120",
 				"major": false
 			},
 			{
@@ -1710,6 +1714,6 @@
 			}
 		]
 	},
-	"total": 235,
-	"major_total": 32
+	"total": 236,
+	"major_total": 31
 }
