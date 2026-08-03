@@ -114,6 +114,46 @@ export function FrameProbe() {
 	return null;
 }
 
+function pct(sorted: number[], p: number): number {
+	if (!sorted.length) return 0;
+	const i = Math.min(
+		sorted.length - 1,
+		Math.floor((p / 100) * sorted.length),
+	);
+	return +sorted[i].toFixed(2);
+}
+
+function dist(values: number[]): {
+	p50: number;
+	p95: number;
+	p99: number;
+	max: number;
+} {
+	const s = [...values].sort((a, b) => a - b);
+	return {
+		p50: pct(s, 50),
+		p95: pct(s, 95),
+		p99: pct(s, 99),
+		max: +Math.max(0, ...s).toFixed(2),
+	};
+}
+
+// Frame total is hostage to vsync: a backgrounded or power-throttled window
+// locks to 30Hz and every other frame carries a ~29ms gap that has nothing to
+// do with this app. sim and render measure work we actually issue, so they stay
+// comparable across machine states — this is the metric to track, not hot-frame
+// counts.
+function work(): unknown {
+	const cpu = recs.map((r) => r.sim + r.render);
+	return {
+		frames: recs.length,
+		sim: dist(recs.map((r) => r.sim)),
+		render: dist(recs.map((r) => r.render)),
+		cpu: dist(cpu),
+		over16: cpu.filter((v) => v > 16.7).length,
+	};
+}
+
 function spikes(thresholdMs: number): unknown[] {
 	const out: unknown[] = [];
 	for (let i = 0; i < recs.length; i++) {
@@ -127,6 +167,7 @@ if (import.meta.env?.DEV) {
 	(window as unknown as Record<string, unknown>).__frames = {
 		all: () => recs.slice(),
 		spikes: (ms = 33) => spikes(ms),
+		work: () => work(),
 		reset: () => {
 			recs.length = 0;
 		},
