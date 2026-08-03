@@ -1,10 +1,12 @@
 ---
 title: AutoZone Inc. AZO
+template: splash
 description: |
     AutoZone is the leading retailer and distributor of automotive replacement parts and accessories in the Americas, serving DIY customers and professional service providers.
 sidebar:
     label: AutoZone AZO
     order: 468
+    hidden: true
 unsplash: 1461344552813-5985830be0a3
 img: https://images.unsplash.com/photo-1461344552813-5985830be0a3?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - automotive
   - azo
   - parts
+stock:
+  ticker: AZO
+  exchange: NYSE
+  symbol: nyse:azo
+  name: "AutoZone Inc."
+  sector: Consumer Discretionary
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:azo`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -260,3 +269,5 @@ AZO offers exposure to essential automotive aftermarket services with defensive 
 - **Capital Returns**: Share repurchases and dividend policy
 
 <Giscus />
+
+</StockLeaf>

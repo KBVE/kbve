@@ -1,5 +1,6 @@
 ---
 title: Stock Analysis
+template: splash
 description: |
     Stock analysis and financial data compilation for reference purposes.
 sidebar:
@@ -13,27 +14,44 @@ tags:
   - investing
 ---
 
-import {
-  Aside,
-  Steps,
-  Card,
-  CardGrid,
-  Code,
-  FileTree,
-} from '@astrojs/starlight/components';
+import BentoShell from '@/components/hero/BentoShell.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+import StockSectorDirectory from '@/components/stock/StockSectorDirectory.astro';
+
+import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
 
 import { Giscus, Adsense } from '@/components/astropad';
+
+<section class="bento-hero bento-section not-content" style="--bento-accent:#22c55e; --bento-accent-2:#4ade80; --bento-btn-fg:#04140a">
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell">
+				<span class="bento-badge bento-chip">Reference only</span>
+				<h1 class="bento-title">
+					Stock <span class="bento-title__accent">Analysis</span>
+				</h1>
+				<p class="bento-lede">
+					Compiled reference pages for publicly traded companies and funds,
+					grouped by sector with a live chart on every ticker.
+				</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="#sectors">Browse sectors</a>
+					<a class="bento-btn bento-btn--ghost" href="/stock/spy/">Start with SPY</a>
+				</div>
+			</div>
+		</div>
+	</div>
+</section>
+
+<BentoShell id="sectors" eyebrow="Directory" heading="Coverage by sector">
+	<StockSectorDirectory />
+</BentoShell>
+
+<BentoProse id="basics" eyebrow="Primer" heading="Investment and account types">
 
 <Aside title="Not Financial Advice" type="danger">
 This is not financial advice. The data compiled here is for easier referencing purposes only and may not be accurate. Always consult with a qualified financial advisor before making any investment decisions.
 </Aside>
-
-<Adsense />
-
-## Stock Analysis
-
-Welcome to our stock analysis section.
-This area contains compiled data and information about various publicly traded companies for reference purposes only.
 
 ### Investment Types
 
@@ -51,8 +69,6 @@ This area contains compiled data and information about various publicly traded c
     Real Estate Investment Trusts
   </Card>
 </CardGrid>
-
-
 
 ### Account Types
 
@@ -113,3 +129,10 @@ This area contains compiled data and information about various publicly traded c
 All information provided in this section is for educational and reference purposes only.
 Stock prices, financial data, and market analysis are subject to change and may not reflect current market conditions.
 Always conduct your own research and consult with qualified financial professionals before making investment decisions.
+
+</BentoProse>
+
+<BentoShell>
+	<Adsense />
+	<Giscus />
+</BentoShell>

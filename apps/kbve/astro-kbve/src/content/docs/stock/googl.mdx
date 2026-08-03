@@ -1,10 +1,12 @@
 ---
 title: Alphabet Inc. Class A GOOGL
+template: splash
 description: |
     Alphabet is the parent company of Google, providing search, advertising, cloud computing, AI, and technology solutions that organize the world's information.
 sidebar:
     label: Alphabet GOOGL
     order: 445
+    hidden: true
 unsplash: 1573804633-4ac980af8b31
 img: https://images.unsplash.com/photo-1573804633-4ac980af8b31?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - internet
   - googl
   - search-engine
+stock:
+  ticker: GOOGL
+  exchange: NASDAQ
+  symbol: nasdaq:googl
+  name: "Alphabet Inc. Class A"
+  sector: Communication Services
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nasdaq:googl`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -243,3 +252,5 @@ Alphabet offers investors exposure to transformative technology trends:
 - **Regulatory Developments**: Antitrust and privacy regulation impacts
 
 <Giscus />
+
+</StockLeaf>

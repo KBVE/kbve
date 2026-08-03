@@ -1,10 +1,12 @@
 ---
 title: Axon Enterprise Inc. AXON
+template: splash
 description: |
     Axon Enterprise is a leading provider of public safety technology solutions including TASER devices, body-worn cameras, digital evidence management, and cloud-based software for law enforcement and security.
 sidebar:
     label: Axon Enterprise AXON
     order: 476
+    hidden: true
 unsplash: 1571019613454-1cb2f99b0951
 img: https://images.unsplash.com/photo-1571019613454-1cb2f99b0951?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - public-safety
   - axon
   - law-enforcement
+stock:
+  ticker: AXON
+  exchange: NASDAQ
+  symbol: nasdaq:axon
+  name: "Axon Enterprise Inc."
+  sector: Industrials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nasdaq:axon`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -285,3 +294,5 @@ AXON offers exposure to public safety technology transformation with recurring r
 - **Profitability**: Gross margins and operating leverage in software business
 
 <Giscus />
+
+</StockLeaf>

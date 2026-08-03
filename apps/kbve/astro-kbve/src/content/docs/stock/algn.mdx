@@ -1,10 +1,12 @@
 ---
 title: Align Technology ALGN
+template: splash
 description: |
     Align Technology is a global medical device company revolutionizing orthodontic treatment through Invisalign clear aligners and iTero digital scanning technology.
 sidebar:
     label: Align Technology
     order: 441
+    hidden: true
 unsplash: 1606811841689-f26e7e635df3
 img: https://images.unsplash.com/photo-1606811841689-f26e7e635df3?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - medical-devices
   - algn
   - orthodontics
+stock:
+  ticker: ALGN
+  exchange: NASDAQ
+  symbol: nasdaq:algn
+  name: "Align Technology"
+  sector: Health Care
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nasdaq:algn`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -235,3 +244,5 @@ Align Technology offers investors exposure to transformative healthcare technolo
 - **Doctor Engagement**: Training programs and practice utilization rates
 
 <Giscus />
+
+</StockLeaf>

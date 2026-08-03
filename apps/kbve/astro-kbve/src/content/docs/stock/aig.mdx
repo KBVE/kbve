@@ -1,10 +1,12 @@
 ---
 title: American International Group Inc. AIG
+template: splash
 description: |
     American International Group is a leading global insurance organization providing property casualty insurance and other financial services to businesses and individuals in more than 200 countries.
 sidebar:
     label: AIG
     order: 454
+    hidden: true
 unsplash: 1450101499237-f1b8b1c65593
 img: https://images.unsplash.com/photo-1450101499237-f1b8b1c65593?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - financial-services
   - aig
   - property-casualty
+stock:
+  ticker: AIG
+  exchange: NYSE
+  symbol: nyse:aig
+  name: "American International Group Inc."
+  sector: Financials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:aig`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -258,3 +267,5 @@ AIG offers exposure to global insurance markets with transformation upside:
 - **Book Value**: Tangible book value per share growth
 
 <Giscus />
+
+</StockLeaf>

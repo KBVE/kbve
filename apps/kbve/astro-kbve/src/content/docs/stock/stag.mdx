@@ -1,10 +1,12 @@
 ---
 title: STAG Industrial Inc. STAG
+template: splash
 description: |
     STAG Industrial is a focused industrial REIT specializing in single-tenant warehouse and distribution facilities across the United States.
 sidebar:
     label: STAG Industrial
     order: 426
+    hidden: true
 unsplash: 1586953208448-23231824b4ab
 img: https://images.unsplash.com/photo-1586953208448-23231824b4ab?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - industrial
   - logistics
   - stag
+stock:
+  ticker: STAG
+  exchange: NYSE
+  symbol: nyse:stag
+  name: "STAG Industrial Inc."
+  sector: Real Estate
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:stag`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -203,3 +212,5 @@ Recent analyst sentiment shows positive outlook:
 - **Growth Potential**: High growth subrating based on market opportunities
 
 <Giscus />
+
+</StockLeaf>

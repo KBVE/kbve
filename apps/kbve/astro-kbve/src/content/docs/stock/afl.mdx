@@ -1,10 +1,12 @@
 ---
 title: Aflac Incorporated AFL
+template: splash
 description: |
     Aflac is a leading supplemental insurance company providing health and life insurance products primarily in the United States and Japan.
 sidebar:
     label: Aflac AFL
     order: 434
+    hidden: true
 unsplash: 1454165804606-c3d57bc86b40
 img: https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - insurance
   - afl
   - supplemental-insurance
+stock:
+  ticker: AFL
+  exchange: NYSE
+  symbol: nyse:afl
+  name: "Aflac Incorporated"
+  sector: Financials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:afl`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -252,3 +261,5 @@ Aflac offers investors a unique combination of characteristics:
 - **Operating Expenses**: Cost management and operational efficiency improvements
 
 <Giscus />
+
+</StockLeaf>

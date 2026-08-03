@@ -1,10 +1,12 @@
 ---
 title: Agilent Technologies A
+template: splash
 description: |
     Agilent Technologies is a leading life sciences, diagnostic, and applied chemical measurement technologies company serving laboratories worldwide.
 sidebar:
     label: Agilent Technologies
     order: 435
+    hidden: true
 unsplash: 1576091160399-928745027040
 img: https://images.unsplash.com/photo-1576091160399-928745027040?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - life-sciences
   - agilent
   - analytical-instruments
+stock:
+  ticker: A
+  exchange: NYSE
+  symbol: nyse:a
+  name: "Agilent Technologies"
+  sector: Health Care
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:a`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -259,3 +268,5 @@ Agilent has established a strong position in the analytical instrumentation mark
 - **End Market Dynamics**: Performance across key application areas
 
 <Giscus />
+
+</StockLeaf>

@@ -1,10 +1,12 @@
 ---
 title: Advanced Micro Devices AMD
+template: splash
 description: |
     Advanced Micro Devices is a leading semiconductor company specializing in high-performance computing and graphics solutions for data centers, gaming, and AI applications.
 sidebar:
     label: AMD
     order: 432
+    hidden: true
 unsplash: 1555617981-467c30017578
 img: https://images.unsplash.com/photo-1555617981-467c30017578?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - semiconductors
   - amd
   - artificial-intelligence
+stock:
+  ticker: AMD
+  exchange: NASDAQ
+  symbol: nasdaq:amd
+  name: "Advanced Micro Devices"
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nasdaq:amd`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -275,3 +284,5 @@ AMD has successfully transformed from a primarily CPU company to a diversified s
 - **R&D Efficiency**: Innovation output relative to development investment
 
 <Giscus />
+
+</StockLeaf>

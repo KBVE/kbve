@@ -1,10 +1,12 @@
 ---
 title: AMETEK Inc. AME
+template: splash
 description: |
     AMETEK is a leading global provider of electronic instruments and electromechanical devices, serving aerospace, defense, process, medical, and industrial markets with differentiated technology solutions.
 sidebar:
     label: AMETEK AME
     order: 467
+    hidden: true
 unsplash: 1581092659329-a4e282bc100b
 img: https://images.unsplash.com/photo-1581092659329-a4e282bc100b?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - instruments
   - ame
   - precision
+stock:
+  ticker: AME
+  exchange: NYSE
+  symbol: nyse:ame
+  name: "AMETEK Inc."
+  sector: Industrials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:ame`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -294,3 +303,5 @@ AME offers exposure to specialized industrial technology with secular growth dri
 - **Cash Flow Generation**: Free cash flow conversion and capital allocation discipline
 
 <Giscus />
+
+</StockLeaf>

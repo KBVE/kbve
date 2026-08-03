@@ -1,10 +1,12 @@
 ---
 title: Albemarle Corporation ALB
+template: splash
 description: |
     Albemarle Corporation is a leading global specialty chemicals company providing essential materials for lithium batteries, energy storage, and advanced manufacturing.
 sidebar:
     label: Albemarle ALB
     order: 439
+    hidden: true
 unsplash: 1580477667891-d0a45ed1dc3c
 img: https://images.unsplash.com/photo-1580477667891-d0a45ed1dc3c?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - specialty-chemicals
   - alb
   - lithium
+stock:
+  ticker: ALB
+  exchange: NYSE
+  symbol: nyse:alb
+  name: "Albemarle Corporation"
+  sector: Materials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:alb`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -258,3 +267,5 @@ Albemarle offers investors exposure to critical materials for the energy transit
 - **Market Share**: Competitive position in key end markets
 
 <Giscus />
+
+</StockLeaf>

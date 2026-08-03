@@ -1,10 +1,12 @@
 ---
 title: Arista Networks Inc. ANET
+template: splash
 description: |
     Arista Networks is a leading provider of cloud networking solutions for data centers, campuses, and routing, delivering software-driven network solutions for large data center, campus, and routing environments.
 sidebar:
     label: Arista Networks ANET
     order: 474
+    hidden: true
 unsplash: 1558494949-ef1c8c05c4e5
 img: https://images.unsplash.com/photo-1558494949-ef1c8c05c4e5?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - networking
   - anet
   - cloud
+stock:
+  ticker: ANET
+  exchange: NYSE
+  symbol: nyse:anet
+  name: "Arista Networks Inc."
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:anet`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -297,3 +306,5 @@ ANET offers exposure to cloud networking infrastructure with technology leadersh
 - **Technology Adoption**: Adoption of software platforms and subscription services
 
 <Giscus />
+
+</StockLeaf>

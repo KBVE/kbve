@@ -1,10 +1,12 @@
 ---
 title: Archer Daniels Midland Company ADM
+template: splash
 description: |
     Archer Daniels Midland is a leading global food processing and commodities trading corporation, transforming crops into products for food, animal feed, industrial, and energy uses worldwide.
 sidebar:
     label: Archer Daniels Midland ADM
     order: 479
+    hidden: true
 unsplash: 1574323597517-7c0cfea4ef39
 img: https://images.unsplash.com/photo-1574323597517-7c0cfea4ef39?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - food-processing
   - adm
   - commodities
+stock:
+  ticker: ADM
+  exchange: NYSE
+  symbol: nyse:adm
+  name: "Archer Daniels Midland Company"
+  sector: Consumer Staples
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:adm`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -284,3 +293,5 @@ ADM offers exposure to essential agricultural infrastructure with global diversi
 - **Innovation Pipeline**: New product development and technology advancement
 
 <Giscus />
+
+</StockLeaf>

@@ -1,10 +1,12 @@
 ---
 title: Visa Inc. V
+template: splash
 description: |
     Visa is the world's leading digital payments technology company connecting consumers, businesses, banks, and governments in more than 200 countries and territories, facilitating secure and reliable electronic payments worldwide.
 sidebar:
     label: Visa V
     order: 510
+    hidden: true
 unsplash: 1556742502-ec7f9ad8f8eb
 img: https://images.unsplash.com/photo-1556742502-ec7f9ad8f8eb?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - payments
   - v
   - fintech
+stock:
+  ticker: V
+  exchange: NYSE
+  symbol: nyse:v
+  name: "Visa Inc."
+  sector: Financials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:v`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -334,3 +343,5 @@ V offers exposure to global digital payments growth with network advantages:
 - **Emerging Market Performance**: Growth in emerging market penetration and volume
 
 <Giscus />
+
+</StockLeaf>

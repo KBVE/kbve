@@ -1,10 +1,12 @@
 ---
 title: Allegion plc ALLE
+template: splash
 description: |
     Allegion is a global security products company providing door hardware, electronic access control, and integrated security solutions for commercial and residential markets.
 sidebar:
     label: Allegion ALLE
     order: 442
+    hidden: true
 unsplash: 1560472354-b33ff0c44a5a
 img: https://images.unsplash.com/photo-1560472354-b33ff0c44a5a?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - security
   - alle
   - access-control
+stock:
+  ticker: ALLE
+  exchange: NYSE
+  symbol: nyse:alle
+  name: "Allegion plc"
+  sector: Industrials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:alle`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -245,3 +254,5 @@ Allegion offers investors exposure to the evolving security industry:
 - **Innovation Pipeline**: New product development and technology advancement
 
 <Giscus />
+
+</StockLeaf>

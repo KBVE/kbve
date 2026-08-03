@@ -1,10 +1,12 @@
 ---
 title: The Home Depot Inc. HD
+template: splash
 description: |
     The Home Depot is the world's largest home improvement retailer providing tools, construction products, appliances, and services to do-it-yourself customers, professional contractors, and installation service providers through extensive retail stores and digital platforms.
 sidebar:
     label: Home Depot HD
     order: 518
+    hidden: true
 unsplash: 1558618047-3bf6c6d8d0e6
 img: https://images.unsplash.com/photo-1558618047-3bf6c6d8d0e6?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - home-improvement
   - hd
   - construction
+stock:
+  ticker: HD
+  exchange: NYSE
+  symbol: nyse:hd
+  name: "The Home Depot Inc."
+  sector: Consumer Discretionary
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:hd`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -355,3 +364,5 @@ HD offers exposure to home improvement market leadership with professional focus
 - **New Store Performance**: New store productivity and market expansion success
 
 <Giscus />
+
+</StockLeaf>

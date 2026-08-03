@@ -1,10 +1,12 @@
 ---
 title: Costco Wholesale Corporation COST
+template: splash
 description: |
     Costco is a leading membership-only warehouse club providing a wide selection of merchandise and services at competitive prices to businesses and individuals through a global network of warehouse locations.
 sidebar:
     label: Costco COST
     order: 515
+    hidden: true
 unsplash: 1556742049-0ca8c6c56de4
 img: https://images.unsplash.com/photo-1556742049-0ca8c6c56de4?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - consumer-staples
   - cost
   - warehouse-club
+stock:
+  ticker: COST
+  exchange: NASDAQ
+  symbol: nasdaq:cost
+  name: "Costco Wholesale Corporation"
+  sector: Consumer Staples
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nasdaq:cost`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -335,3 +344,5 @@ COST offers exposure to defensive retail with membership-driven loyalty:
 - **Inventory Turnover**: Inventory management efficiency and working capital
 
 <Giscus />
+
+</StockLeaf>
