@@ -118,12 +118,25 @@ export default function ArcadeTooltipController() {
 					: rect.top - 12 + window.scrollY;
 			setPos({ top, left, placement });
 		};
+		// Scroll fires far faster than the compositor can present, and each
+		// call reads layout then sets state. Coalesce to one measurement per
+		// frame so a fast scroll cannot queue a reflow per event.
+		let frame = 0;
+		const schedule = () => {
+			if (frame) return;
+			frame = requestAnimationFrame(() => {
+				frame = 0;
+				compute();
+			});
+		};
+
 		compute();
-		window.addEventListener('scroll', compute, { passive: true });
-		window.addEventListener('resize', compute);
+		window.addEventListener('scroll', schedule, { passive: true });
+		window.addEventListener('resize', schedule);
 		return () => {
-			window.removeEventListener('scroll', compute);
-			window.removeEventListener('resize', compute);
+			if (frame) cancelAnimationFrame(frame);
+			window.removeEventListener('scroll', schedule);
+			window.removeEventListener('resize', schedule);
 		};
 	}, [open, tip]);
 

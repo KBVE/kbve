@@ -15,10 +15,16 @@ const {
 <section
 	aria-labelledby="arcade-hero-title"
 	class="not-content relative isolate mb-10 overflow-hidden rounded-2xl border border-purple-500/35 px-5 py-12 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(0,0,0,0.35)] sm:px-14">
-	<!-- Layered animated gradient background -->
+	<!-- Layered gradient background: a static base plus a warmer copy that
+	     cross-fades over it, so the pulse is a compositor-only opacity
+	     animation instead of an every-frame filter repaint. -->
 	<div
 		aria-hidden="true"
-		class="arcade-hero-pulse absolute inset-0 -z-30 bg-[radial-gradient(circle_at_12%_10%,rgba(236,72,153,0.55)_0%,transparent_45%),radial-gradient(circle_at_88%_80%,rgba(56,189,248,0.45)_0%,transparent_50%),linear-gradient(135deg,#0b0a18_0%,#1c1438_50%,#1f0c2e_100%)]">
+		class="absolute inset-0 -z-30 bg-[radial-gradient(circle_at_12%_10%,rgba(236,72,153,0.55)_0%,transparent_45%),radial-gradient(circle_at_88%_80%,rgba(56,189,248,0.45)_0%,transparent_50%),linear-gradient(135deg,#0b0a18_0%,#1c1438_50%,#1f0c2e_100%)]">
+	</div>
+	<div
+		aria-hidden="true"
+		class="arcade-hero-pulse absolute inset-0 -z-30 bg-[radial-gradient(circle_at_12%_10%,rgba(249,115,22,0.55)_0%,transparent_45%),radial-gradient(circle_at_88%_80%,rgba(129,140,248,0.45)_0%,transparent_50%),linear-gradient(135deg,#120a18_0%,#241542_50%,#2a0e33_100%)]">
 	</div>
 	<!-- Faded grid behind content -->
 	<div
@@ -73,17 +79,19 @@ const {
 </section>
 
 <style>
-	@keyframes arcade-hero-hue {
+	@keyframes arcade-hero-pulse {
 		0%,
 		100% {
-			filter: hue-rotate(0deg) brightness(1);
+			opacity: 0;
 		}
 		50% {
-			filter: hue-rotate(20deg) brightness(1.08);
+			opacity: 0.55;
 		}
 	}
 	.arcade-hero-pulse {
-		animation: arcade-hero-hue 14s ease-in-out infinite;
+		opacity: 0;
+		will-change: opacity;
+		animation: arcade-hero-pulse 14s ease-in-out infinite;
 	}
 	@media (prefers-reduced-motion: reduce) {
 		.arcade-hero-pulse {
