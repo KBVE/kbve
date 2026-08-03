@@ -41,8 +41,8 @@ http-body-util = "0.1"
 jni = "0.21"
 js-sys = { version = "0.3", default-features = false }
 jsonwebtoken = { version = "10.3.0", default-features = false }
-k8s-openapi = "0.27"
-kube = { version = "3", default-features = false }
+k8s-openapi = "0.28"
+kube = { version = "4", default-features = false }
 lightyear = { version = "0.28", default-features = false }
 log = "0.4"
 lru = "0.18"
