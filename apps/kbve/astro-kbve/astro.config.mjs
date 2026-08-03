@@ -182,7 +182,28 @@ export default defineConfig({
 					tag: 'meta',
 					attrs: {
 						property: 'og:image',
-						content: 'https://kbve.com/assets/images/brand/letter_logo.png',
+						content: 'https://kbve.com/assets/images/brand/og-card.png',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:image:type',
+						content: 'image/png',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:image:width',
+						content: '1200',
+					},
+				},
+				{
+					tag: 'meta',
+					attrs: {
+						property: 'og:image:height',
+						content: '630',
 					},
 				},
 				{
@@ -196,7 +217,7 @@ export default defineConfig({
 					tag: 'meta',
 					attrs: {
 						name: 'twitter:image',
-						content: 'https://kbve.com/assets/images/brand/letter_logo.png',
+						content: 'https://kbve.com/assets/images/brand/og-card.png',
 					},
 				},
 				{

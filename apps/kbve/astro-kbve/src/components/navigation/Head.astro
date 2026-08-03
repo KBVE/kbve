@@ -75,9 +75,19 @@ function tagKey(t: HeadTag): string | undefined {
 	return undefined;
 }
 
+// The site-wide og:image ships declared dimensions; a page-level ogImage
+// override would otherwise inherit them and advertise the wrong size.
+const IMAGE_DIMENSION_TAGS = [
+	'og:image:type',
+	'og:image:width',
+	'og:image:height',
+];
+
 const filteredHeadBase = head.filter((t) => {
 	const key = tagKey(t);
-	return !key || (!(key in owned) && key !== 'robots');
+	if (!key) return true;
+	if (ogImage && IMAGE_DIMENSION_TAGS.includes(key)) return false;
+	return !(key in owned) && key !== 'robots';
 });
 
 // Override the self-referencing canonical with an explicit target when set
@@ -177,8 +187,6 @@ const jsonLdPayload = jsonLdGraph
 		: { '@context': 'https://schema.org', '@graph': jsonLdGraph }
 	: null;
 
-const hasSiteName = filteredHead.some((t) => tagKey(t) === 'og:site_name');
-
 const noindex = data.noindex === true;
 const robotsContent = noindex
 	? 'noindex, nofollow'
@@ -211,8 +219,6 @@ if (isArticle) {
 	))
 }
 {overrideTags.map(({ tag: Tag, attrs }) => <Tag {...attrs} />)}
-
-{!hasSiteName && <meta property="og:site_name" content="KBVE" />}
 
 <meta name="robots" content={robotsContent} />
 {articleTags.map((t) => <meta property={t.property} content={t.content} />)}
