@@ -6227,6 +6227,17 @@
 							"configurations": {},
 							"parallelism": true
 						},
+						"e2e": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"dependsOn": ["build"],
+							"options": {
+								"command": "pnpm exec playwright test -c apps/herbmail/herbmail-game/playwright.config.ts"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
 						"rebake": {
 							"executor": "nx:run-commands",
 							"options": {
@@ -10502,6 +10513,54 @@
 							"cache": true,
 							"options": {
 								"command": "node packages/data/codegen/gen-itemdb-uecpp.mjs",
+								"cwd": ""
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"sync:professiondb-uecpp": {
+							"executor": "nx:run-commands",
+							"inputs": [
+								"{workspaceRoot}/packages/data/codegen/gen-professiondb-uecpp.mjs",
+								"{workspaceRoot}/packages/data/codegen/descriptors/professiondb.binpb"
+							],
+							"outputs": [
+								"{workspaceRoot}/packages/unreal/KBVEProfessionDB/Source/KBVEProfessionDB/Public/Generated/KBVEProfessionDBProtoTypes.h",
+								"{workspaceRoot}/packages/unreal/KBVEProfessionDB/Source/KBVEProfessionDB/Public/Generated/KBVEProfessionDBProtoParse.h"
+							],
+							"cache": true,
+							"options": {
+								"command": "node packages/data/codegen/gen-professiondb-uecpp.mjs",
+								"cwd": ""
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"sync:professiondb": {
+							"executor": "nx:run-commands",
+							"dependsOn": [
+								"sync:mapdb",
+								"sync:itemdb",
+								"sync:professiondb-uecpp"
+							],
+							"inputs": [
+								"{projectRoot}/src/content/docs/professiondb/**/*.mdx",
+								"{workspaceRoot}/packages/data/codegen/gen-professiondb-data.mjs",
+								"{workspaceRoot}/packages/data/codegen/gen-professiondb-xref.mjs",
+								"{workspaceRoot}/packages/data/codegen/descriptors/professiondb.binpb",
+								"{workspaceRoot}/packages/data/codegen/generated/mapdb-data.json",
+								"{workspaceRoot}/packages/data/codegen/generated/itemdb-data.json"
+							],
+							"outputs": [
+								"{workspaceRoot}/packages/data/codegen/generated/professiondb-data.json",
+								"{workspaceRoot}/packages/data/codegen/generated/professiondb-data.binpb",
+								"{workspaceRoot}/packages/data/codegen/generated/professiondb-runtime.json",
+								"{workspaceRoot}/packages/data/codegen/generated/xref-index.json",
+								"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/professiondb-runtime.json"
+							],
+							"cache": true,
+							"options": {
+								"command": "node packages/data/codegen/gen-professiondb-data.mjs",
 								"cwd": ""
 							},
 							"configurations": {},
