@@ -157,21 +157,18 @@ const fragment = /* glsl */ `
 	}
 
 	// Open-sky exposure (G channel of the tile grid): 1 inside an oasis room, 0
-	// under a closed ceiling. Samples the 3x3 neighbourhood so oasis walls (which
-	// sit on the boundary tile) still catch the sky instead of going dark.
+	// under a closed ceiling. The 3x3 neighbourhood max that keeps oasis walls
+	// (which sit on the boundary tile) from going dark is baked into the channel
+	// when the grid is built — see dilateSky in dungeon/occlusion.ts. It only
+	// changes when the active room set does, and cost 9 texture fetches here on
+	// every lit fragment of every wall, floor and ceiling.
 	float skyAtWorld(vec2 p) {
 		vec2 local = (p - uGridOrigin) / GRID_TILE;
-		float best = 0.0;
-		for (int dy = -1; dy <= 1; dy++) {
-			for (int dx = -1; dx <= 1; dx++) {
-				float col = floor(local.x) + float(dx);
-				float row = floor(local.y) + float(dy);
-				if (col < 0.0 || row < 0.0 || col >= uGridSize.x || row >= uGridSize.y) continue;
-				vec2 uvp = (vec2(col, row) + 0.5) / uGridSize;
-				best = max(best, texture2D(uMapTex, uvp).g);
-			}
-		}
-		return best;
+		float col = floor(local.x);
+		float row = floor(local.y);
+		if (col < 0.0 || row < 0.0 || col >= uGridSize.x || row >= uGridSize.y) return 0.0;
+		vec2 uvp = (vec2(col, row) + 0.5) / uGridSize;
+		return texture2D(uMapTex, uvp).g;
 	}
 
 	// Shortest distance between the fragment->light segment and a character's
