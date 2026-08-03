@@ -59,9 +59,7 @@ const tooltipCta = isLink ? 'Click to play' : 'On the roadmap';
 		aria-hidden="true"
 		class="arcade-card-art relative flex aspect-[16/9] items-center justify-center overflow-hidden"
 		style={`background: ${gradient};`}>
-		<div class="arcade-card-art__grid pointer-events-none absolute inset-0">
-		</div>
-		<div class="arcade-card-art__scan pointer-events-none absolute inset-0">
+		<div class="arcade-card-art__fx pointer-events-none absolute inset-0">
 		</div>
 		<div
 			class="arcade-card-art__shine pointer-events-none absolute inset-0">
@@ -120,38 +118,33 @@ const tooltipCta = isLink ? 'Click to play' : 'On the roadmap';
 </Tag>
 
 <style>
-	.arcade-card-art__scan {
-		background: repeating-linear-gradient(
-			to bottom,
-			rgba(0, 0, 0, 0.32) 0,
-			rgba(0, 0, 0, 0.32) 1px,
-			transparent 1px,
-			transparent 4px
-		);
-		mix-blend-mode: overlay;
-		opacity: 0.85;
-	}
-	.arcade-card-art__grid {
+	/* Scanlines and grid share one blended layer — every `mix-blend-mode`
+	   element forces its own compositing group, and the hub stacks these
+	   across every card in the catalog. */
+	.arcade-card-art__fx {
 		background-image:
+			repeating-linear-gradient(
+				to bottom,
+				rgba(0, 0, 0, 0.32) 0,
+				rgba(0, 0, 0, 0.32) 1px,
+				transparent 1px,
+				transparent 4px
+			),
 			linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
 			linear-gradient(
 				90deg,
 				rgba(255, 255, 255, 0.07) 1px,
 				transparent 1px
 			);
-		background-size: 22px 22px;
+		background-size:
+			auto,
+			22px 22px,
+			22px 22px;
 		mix-blend-mode: overlay;
-		mask-image: radial-gradient(
-			ellipse at 50% 50%,
-			rgba(0, 0, 0, 0.95) 0%,
-			transparent 75%
-		);
-		-webkit-mask-image: radial-gradient(
-			ellipse at 50% 50%,
-			rgba(0, 0, 0, 0.95) 0%,
-			transparent 75%
-		);
+		opacity: 0.85;
 	}
+	/* Screen-blending white over the art is equivalent to painting the same
+	   white at the same alpha, so this layer needs no blend mode at all. */
 	.arcade-card-art__shine {
 		background: radial-gradient(
 			circle at 28% 18%,
@@ -159,6 +152,5 @@ const tooltipCta = isLink ? 'Click to play' : 'On the roadmap';
 			rgba(255, 255, 255, 0.08) 24%,
 			transparent 55%
 		);
-		mix-blend-mode: screen;
 	}
 </style>

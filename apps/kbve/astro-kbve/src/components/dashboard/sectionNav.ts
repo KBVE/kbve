@@ -58,6 +58,11 @@ import {
 	buildStockNav,
 	buildStockBreadcrumb,
 } from '../stock/stockNav';
+import {
+	ARCADE_NAV,
+	ARCADE_ROOT,
+	buildArcadeBreadcrumb,
+} from '../arcade/arcadeNav';
 import { adaptStarlightSidebar } from './starlightNav';
 import type { StarlightEntry } from './starlightNav';
 
@@ -221,11 +226,20 @@ export async function resolveSection(
 		};
 	}
 
-	if (
-		path.startsWith('/gaming/') ||
-		path === '/osrs/' ||
-		path === '/arcade/'
-	) {
+	if (path.startsWith('/arcade/')) {
+		return {
+			id: 'arcade',
+			entries: ARCADE_NAV,
+			root: ARCADE_ROOT,
+			menuLabel: 'Arcade games',
+			navLabel: 'Arcade',
+			crumbs: buildArcadeBreadcrumb(path),
+			collapsible: false,
+			withToc: false,
+		};
+	}
+
+	if (path.startsWith('/gaming/') || path === '/osrs/') {
 		return {
 			id: 'gaming',
 			entries: GAMING_NAV,

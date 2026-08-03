@@ -54,10 +54,16 @@ export const onRequest = defineRouteMiddleware(async (context) => {
 	) as typeof route.sidebar;
 	route.pagination = { prev: undefined, next: undefined };
 
-	if (section.withToc && !route.toc) {
+	// `tableOfContents: false` is an explicit per-page opt-out. Restoring a ToC
+	// over it also restores the whole right sidebar, which mounts the site
+	// graph and the bento dock — real main-thread cost on pages that asked for
+	// neither.
+	const tocOptOut = route.entry?.data?.tableOfContents === false;
+
+	if (section.withToc && !route.toc && !tocOptOut) {
 		route.toc = buildToc(route.headings ?? []);
 	}
-	if (!section.withToc) {
+	if (!section.withToc || tocOptOut) {
 		route.toc = undefined;
 	}
 });

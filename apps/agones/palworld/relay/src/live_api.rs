@@ -33,6 +33,7 @@ pub struct LiveState {
     pub snap: SharedLive,
     pub bosses: SharedBosses,
     pub events: SharedEvents,
+    pub intel_path: Arc<str>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -88,14 +89,55 @@ async fn events(State(state): State<LiveState>) -> impl IntoResponse {
     )
 }
 
+pub fn parse_intel(raw: &str) -> Option<serde_json::Value> {
+    match serde_json::from_str::<serde_json::Value>(raw) {
+        Ok(v) if v.is_object() => Some(v),
+        _ => None,
+    }
+}
+
+async fn bases(State(state): State<LiveState>) -> impl IntoResponse {
+    let intel = tokio::fs::read_to_string(state.intel_path.as_ref())
+        .await
+        .ok()
+        .and_then(|raw| parse_intel(&raw));
+    let body = intel.unwrap_or_else(|| {
+        serde_json::json!({
+            "ts": chrono::Utc::now().timestamp_millis(),
+            "available": false,
+            "guilds": [],
+        })
+    });
+    (LIVE_HEADERS, Json(body))
+}
+
 async fn healthz() -> &'static str {
     "ok"
+}
+
+#[cfg(test)]
+mod tests {
+    use super::parse_intel;
+
+    #[test]
+    fn parse_intel_accepts_snapshot_object() {
+        let v = parse_intel(r#"{"ts":1,"guild_count":1,"guilds":[{"name":"KBVE"}]}"#).unwrap();
+        assert_eq!(v["guilds"][0]["name"], "KBVE");
+    }
+
+    #[test]
+    fn parse_intel_rejects_partial_or_non_object() {
+        assert!(parse_intel("{\"ts\":1,").is_none());
+        assert!(parse_intel("[]").is_none());
+        assert!(parse_intel("").is_none());
+    }
 }
 
 pub async fn run(cfg: Config, state: LiveState) -> Result<()> {
     let app = Router::new()
         .route("/live/players", get(players))
         .route("/live/events", get(events))
+        .route("/live/bases", get(bases))
         .route("/live/healthz", get(healthz))
         .with_state(state);
     let listener = tokio::net::TcpListener::bind(("0.0.0.0", cfg.live_api_port)).await?;

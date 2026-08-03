@@ -1,12 +1,14 @@
 import { bakeChunk } from './bakeLight';
-import { hashJob } from './bakeHash';
 import type { BakeJob, BakeResult } from './bakeTypes';
 
 const ctx = globalThis as unknown as Worker;
 
 // Tile grids are per sector, not per chunk. Caching them here lets the main
 // thread send each sector's grid once instead of copying it for every chunk.
-const tileCache = new Map<string, { tiles: Uint8Array; cols: number; rows: number }>();
+const tileCache = new Map<
+	string,
+	{ tiles: Uint8Array; cols: number; rows: number }
+>();
 
 ctx.onmessage = (e: MessageEvent<BakeJob[]>) => {
 	const results: BakeResult[] = [];
@@ -29,10 +31,8 @@ ctx.onmessage = (e: MessageEvent<BakeJob[]>) => {
 			cols: grid.cols,
 			rows: grid.rows,
 		};
-		// Hashing here keeps an O(vertices) pass off the sector-build frame.
-		const key = hashJob(full);
 		const bake = bakeChunk(full);
-		results.push({ id: job.id, key, bake });
+		results.push({ id: job.id, bake });
 		transfer.push(bake.buffer as ArrayBuffer);
 	}
 	ctx.postMessage(results, transfer);

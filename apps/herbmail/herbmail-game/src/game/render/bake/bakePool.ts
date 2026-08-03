@@ -10,13 +10,17 @@ import { attParams } from '../lightGain';
 
 export const BAKE_ATTR = 'aBake';
 
-const POOL_CAP = 512;
 const WORKERS = 2;
 
-// Content-addressed: the key is a hash of everything the bake reads, expressed
-// in chunk-local space, so an identical wall run anywhere in the dungeon — or in
-// a future WFC tiling — resolves to the same buffer with an O(1) lookup.
-const pool = new Map<string, THREE.BufferAttribute>();
+// There is deliberately no second-level cache of finished bakes here. It was
+// content-addressed once, on the theory that an identical wall run anywhere in
+// the dungeon resolves to one buffer. Measured over 2428 bakes: chunk geometry
+// does repeat (1145 duplicates), but folding in the culled torch set drops that
+// to 6 and the occlusion tile window to 0 — the bake is a function of the
+// lighting environment, which is unique per chunk. The hash cost 19% of worker
+// bake time for a 0% hit rate. Nor could a sector-keyed cache work: a revisit
+// only re-bakes once the 96-sector geometry cache has evicted the sector, which
+// implies 96 intervening sector builds. That cache is the one that matters.
 const inFlight = new Map<number, THREE.BufferGeometry>();
 const sectorsSent = new Set<string>();
 const sectorWorker = new Map<string, number>();
@@ -47,33 +51,12 @@ function ensureWorkers(): Worker[] {
 	return workers;
 }
 
-function touch(key: string, attr: THREE.BufferAttribute): void {
-	pool.delete(key);
-	pool.set(key, attr);
-	if (pool.size > POOL_CAP) {
-		const oldest = pool.keys().next().value as string;
-		pool.delete(oldest);
-	}
-}
-
 function apply(r: BakeResult): void {
-	// The worker addresses by content, so an identical chunk baked elsewhere
-	// resolves to the buffer already on the GPU and this one is dropped.
-	const pooled = pool.get(r.key);
-	let attr: THREE.BufferAttribute;
-	if (pooled) {
-		hits++;
-		attr = pooled;
-		touch(r.key, pooled);
-	} else {
-		misses++;
-		attr = new THREE.BufferAttribute(r.bake, 3);
-		touch(r.key, attr);
-	}
 	const geo = inFlight.get(r.id);
 	inFlight.delete(r.id);
 	if (!geo) return;
-	if (live.has(geo)) geo.setAttribute(BAKE_ATTR, attr);
+	if (live.has(geo))
+		geo.setAttribute(BAKE_ATTR, new THREE.BufferAttribute(r.bake, 3));
 	const sector = geo.userData.bakeSector as string | undefined;
 	if (sector) decSector(sector);
 }
@@ -123,6 +106,12 @@ export function requestChunkBake(
 	live.add(geo);
 	geo.userData.bakeSector = ctx.signature;
 
+	sectorPending.set(
+		ctx.signature,
+		(sectorPending.get(ctx.signature) ?? 0) + 1,
+	);
+	bakes++;
+
 	const pos = posAttr.array as Float32Array;
 	const norAttr = geo.getAttribute('normal') as
 		| THREE.BufferAttribute
@@ -130,7 +119,7 @@ export function requestChunkBake(
 	const nor = norAttr ? (norAttr.array as Float32Array) : null;
 
 	// Only torches whose glow can reach this chunk matter; culling here is what
-	// keeps the bake near-linear and makes keys collide usefully across sectors.
+	// keeps the bake near-linear.
 	geo.computeBoundingSphere();
 	const bs = geo.boundingSphere;
 	const reach = LIGHT_RANGE + (bs ? bs.radius : 0);
@@ -156,18 +145,11 @@ export function requestChunkBake(
 		);
 	}
 
-	sectorPending.set(
-		ctx.signature,
-		(sectorPending.get(ctx.signature) ?? 0) + 1,
-	);
 	geo.setAttribute(
 		BAKE_ATTR,
 		new THREE.BufferAttribute(new Float32Array(pos.length), 3),
 	);
 
-	// No hashing here on purpose: an O(vertices) pass on the sector-build frame
-	// doubled build time. The worker hashes instead and the pool dedupes on the
-	// key it returns.
 	const a = attParams();
 	const id = nextJobId++;
 	inFlight.set(id, geo);
@@ -224,10 +206,7 @@ export function bakeApplyStats(): {
 	};
 }
 
-let hashMs = 0;
-let hits = 0;
-let misses = 0;
-let coalesced = 0;
+let bakes = 0;
 let enabled = true;
 
 export function setBakeEnabled(v: boolean): void {
@@ -238,30 +217,12 @@ export function bakeEnabled(): boolean {
 	return enabled;
 }
 
-export function bakePoolStats(): {
-	pooled: number;
-	pending: number;
-	hits: number;
-	misses: number;
-	coalesced: number;
-	hitRate: number;
-} {
-	const total = hits + misses + coalesced;
-	return {
-		pooled: pool.size,
-		pending: inFlight.size,
-		hits,
-		misses,
-		coalesced,
-		hitRate: total ? +((100 * (hits + coalesced)) / total).toFixed(1) : 0,
-	};
+export function bakePoolStats(): { bakes: number; pending: number } {
+	return { bakes, pending: inFlight.size };
 }
 
 export function resetBakeStats(): void {
-	hits = 0;
-	misses = 0;
-	coalesced = 0;
-	hashMs = 0;
+	bakes = 0;
 }
 
 // Exposed on the app's own module instance: a console `import()` of this file
@@ -272,6 +233,5 @@ if (import.meta.env?.DEV) {
 		off: () => setBakeEnabled(false),
 		stats: () => bakePoolStats(),
 		reset: () => resetBakeStats(),
-		hashMs: () => +hashMs.toFixed(1),
 	};
 }

@@ -275,34 +275,6 @@ pub struct FoodInfo {
     #[prost(string, optional, tag = "14")]
     pub spoils_into_ref: ::core::option::Option<::prost::alloc::string::String>,
 }
-/// Skilling properties — for items that interact with skill systems
-#[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
-pub struct SkillingInfo {
-    /// Primary skill this item relates to
-    #[prost(enumeration = "SkillingType", tag = "1")]
-    pub skill: i32,
-    /// Level required to gather/use/process
-    #[prost(int32, optional, tag = "2")]
-    pub skill_level: ::core::option::Option<i32>,
-    /// XP granted per gather/action
-    #[prost(float, optional, tag = "3")]
-    pub xp_reward: ::core::option::Option<f32>,
-    /// Tool item ref needed (e.g. "pickaxe" for ores)
-    #[prost(string, optional, tag = "4")]
-    pub tool_required: ::core::option::Option<::prost::alloc::string::String>,
-    /// Base time to gather/harvest in seconds
-    #[prost(float, optional, tag = "5")]
-    pub gather_time: ::core::option::Option<f32>,
-    /// Seconds before resource node respawns
-    #[prost(int32, optional, tag = "6")]
-    pub respawn_time: ::core::option::Option<i32>,
-    /// World object ref (e.g. "oak_tree", "copper_vein")
-    #[prost(string, optional, tag = "7")]
-    pub resource_node: ::core::option::Option<::prost::alloc::string::String>,
-    /// 0-100 preference weight when the harvester has multiple eligible targets
-    #[prost(int32, optional, tag = "8")]
-    pub harvest_weight: ::core::option::Option<i32>,
-}
 /// Compression / consolidation — many small stacks fuse into one bulk item.
 /// Used by storage consolidators, granaries, smelters that batch raw stock into
 /// construction-grade output.
@@ -330,6 +302,23 @@ pub struct StackingInfo {
     /// Logical group (e.g. "food") — any item with the same pool_group substitutes
     #[prost(string, optional, tag = "3")]
     pub pool_group: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Cells an item occupies in a spatial ("tetris") grid inventory, measured
+/// upright before any rotation. Distinct from DeployableInfo.size, which is the
+/// item's footprint once placed in the world. Absent = a single 1x1 cell.
+#[derive(
+    serde::Serialize, serde::Deserialize, Clone, Copy, PartialEq, Eq, Hash, ::prost::Message,
+)]
+pub struct GridFootprint {
+    /// Cells wide at rotation 0
+    #[prost(int32, optional, tag = "1")]
+    pub width: ::core::option::Option<i32>,
+    /// Cells tall at rotation 0
+    #[prost(int32, optional, tag = "2")]
+    pub height: ::core::option::Option<i32>,
+    /// Cannot be turned 90° to find a fit
+    #[prost(bool, optional, tag = "3")]
+    pub no_rotate: ::core::option::Option<bool>,
 }
 /// Weapon properties — for items with ITEM_TYPE_WEAPON or ITEM_TYPE_COMBAT flag.
 /// Covers both melee and ranged; 0 range = melee. Ammo linkage is bow→arrow
@@ -914,6 +903,9 @@ pub struct Item {
     #[prost(message, optional, tag = "67")]
     #[serde(skip)]
     pub bonuses: ::core::option::Option<::prost_types::Struct>,
+    /// Spatial-inventory footprint for grid ("tetris") inventories
+    #[prost(message, optional, tag = "68")]
+    pub grid: ::core::option::Option<GridFootprint>,
 }
 #[derive(serde::Serialize, serde::Deserialize, Clone, PartialEq, ::prost::Message)]
 pub struct ItemRegistry {
@@ -1423,87 +1415,6 @@ impl StatusEffectKind {
             "STATUS_EFFECT_FROZEN" => Some(Self::StatusEffectFrozen),
             "STATUS_EFFECT_CURSED" => Some(Self::StatusEffectCursed),
             "STATUS_EFFECT_BLESSED" => Some(Self::StatusEffectBlessed),
-            _ => None,
-        }
-    }
-}
-/// Skilling discipline
-#[derive(
-    serde::Serialize,
-    serde::Deserialize,
-    Clone,
-    Copy,
-    Debug,
-    PartialEq,
-    Eq,
-    Hash,
-    PartialOrd,
-    Ord,
-    ::prost::Enumeration,
-)]
-#[repr(i32)]
-pub enum SkillingType {
-    SkillingUnspecified = 0,
-    SkillingCooking = 1,
-    SkillingSmithing = 2,
-    SkillingCrafting = 3,
-    SkillingAlchemy = 4,
-    SkillingWoodcutting = 5,
-    SkillingMining = 6,
-    SkillingFishing = 7,
-    SkillingFarming = 8,
-    SkillingHerblore = 9,
-    SkillingFletching = 10,
-    SkillingHunting = 11,
-    SkillingForaging = 12,
-    SkillingEnchanting = 13,
-    SkillingTailoring = 14,
-    SkillingConstruction = 15,
-}
-impl SkillingType {
-    /// String value of the enum field names used in the ProtoBuf definition.
-    ///
-    /// The values are not transformed in any way and thus are considered stable
-    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
-    pub fn as_str_name(&self) -> &'static str {
-        match self {
-            Self::SkillingUnspecified => "SKILLING_UNSPECIFIED",
-            Self::SkillingCooking => "SKILLING_COOKING",
-            Self::SkillingSmithing => "SKILLING_SMITHING",
-            Self::SkillingCrafting => "SKILLING_CRAFTING",
-            Self::SkillingAlchemy => "SKILLING_ALCHEMY",
-            Self::SkillingWoodcutting => "SKILLING_WOODCUTTING",
-            Self::SkillingMining => "SKILLING_MINING",
-            Self::SkillingFishing => "SKILLING_FISHING",
-            Self::SkillingFarming => "SKILLING_FARMING",
-            Self::SkillingHerblore => "SKILLING_HERBLORE",
-            Self::SkillingFletching => "SKILLING_FLETCHING",
-            Self::SkillingHunting => "SKILLING_HUNTING",
-            Self::SkillingForaging => "SKILLING_FORAGING",
-            Self::SkillingEnchanting => "SKILLING_ENCHANTING",
-            Self::SkillingTailoring => "SKILLING_TAILORING",
-            Self::SkillingConstruction => "SKILLING_CONSTRUCTION",
-        }
-    }
-    /// Creates an enum from field names used in the ProtoBuf definition.
-    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
-        match value {
-            "SKILLING_UNSPECIFIED" => Some(Self::SkillingUnspecified),
-            "SKILLING_COOKING" => Some(Self::SkillingCooking),
-            "SKILLING_SMITHING" => Some(Self::SkillingSmithing),
-            "SKILLING_CRAFTING" => Some(Self::SkillingCrafting),
-            "SKILLING_ALCHEMY" => Some(Self::SkillingAlchemy),
-            "SKILLING_WOODCUTTING" => Some(Self::SkillingWoodcutting),
-            "SKILLING_MINING" => Some(Self::SkillingMining),
-            "SKILLING_FISHING" => Some(Self::SkillingFishing),
-            "SKILLING_FARMING" => Some(Self::SkillingFarming),
-            "SKILLING_HERBLORE" => Some(Self::SkillingHerblore),
-            "SKILLING_FLETCHING" => Some(Self::SkillingFletching),
-            "SKILLING_HUNTING" => Some(Self::SkillingHunting),
-            "SKILLING_FORAGING" => Some(Self::SkillingForaging),
-            "SKILLING_ENCHANTING" => Some(Self::SkillingEnchanting),
-            "SKILLING_TAILORING" => Some(Self::SkillingTailoring),
-            "SKILLING_CONSTRUCTION" => Some(Self::SkillingConstruction),
             _ => None,
         }
     }

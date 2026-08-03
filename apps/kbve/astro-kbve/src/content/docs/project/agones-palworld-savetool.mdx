@@ -1,0 +1,70 @@
+---
+title: Agones Palworld Savetool
+description: Python sidecar for the Agones-managed Palworld server — parses the world's Level.sav (GVAS) on an interval, extracts guilds, members, and base camp positions, and publishes a compact intel JSON the relay serves at /live/bases.
+sem: 1
+sidebar:
+    label: Agones Palworld Savetool
+    order: 464
+tags:
+    - agones
+    - palworld
+    - savetool
+    - python
+    - gvas
+key: agones_palworld_savetool
+pipeline: docker
+app_name: agones-palworld-savetool
+version: "0.0.2"
+source_path: apps/agones/palworld/savetool
+version_toml: apps/agones/palworld/savetool/version.toml
+runner: ubuntu-latest
+image: kbve/agones-palworld-savetool
+deployment_yaml: apps/kube/agones/palworld/manifests/gameserver.yaml
+has_test: true
+author: h0lybyte
+---
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Overview
+
+The savetool is a small Python sidecar that runs inside the Palworld game server pod. Every interval (default 300s) it copies the newest `Level.sav` from the saves volume, decompresses the Palworld GVAS container, and selectively decodes only `GroupSaveDataMap` and `BaseCampSaveData.Value.RawData` — skipping the heavy `CharacterSaveParameterMap` so the parse stays fast and memory-bounded.
+
+The extracted snapshot is written atomically to a shared `emptyDir` volume as `bases.json`, where the relay picks it up and serves it at `https://palworld.kbve.com/live/bases`.
+
+## Snapshot shape
+
+```json
+{
+	"ts": 1785650000000,
+	"save_mtime": 1785649970000,
+	"guild_count": 1,
+	"base_count": 2,
+	"guilds": [
+		{
+			"id": "…",
+			"name": "KBVE",
+			"admin_uid": "…",
+			"base_camp_level": 12,
+			"players": [{ "uid": "…", "name": "h0lybyte", "last_online": 638 }],
+			"bases": [{ "id": "…", "group_id": "…", "x": -92930.7, "y": 17885.2, "z": 5000.0 }],
+			"pal_handles": 34
+		}
+	]
+}
+```
+
+Base coordinates are raw UE world units — the map frontend reuses its existing `gameToLatLng` transform to place base markers.
+
+## Local usage
+
+```bash
+pip install palworld-save-tools==0.24.0
+python apps/agones/palworld/savetool/save_intel.py --sav /path/to/Level.sav --out -
+```
+
+`--save-dir` scans a directory tree for the newest `Level.sav` (used in-cluster against the saves PVC); `--loop` re-parses on `SAVE_INTEL_INTERVAL_S`.
+
+<Aside type="note">
+The parser only reads. It never writes back into the save, and it copies the `.sav` to a temp file before parsing to avoid torn reads during autosave.
+</Aside>

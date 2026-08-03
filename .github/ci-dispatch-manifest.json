@@ -57,7 +57,7 @@
 		{
 			"key": "agones_palworld_relay",
 			"app_name": "agones-palworld-relay",
-			"version": "0.0.12",
+			"version": "0.0.13",
 			"version_toml": "apps/agones/palworld/relay/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-palworld-relay.mdx",
 			"source_path": "apps/agones/palworld/relay",
@@ -67,9 +67,21 @@
 			"has_test": false
 		},
 		{
+			"key": "agones_palworld_savetool",
+			"app_name": "agones-palworld-savetool",
+			"version": "0.0.2",
+			"version_toml": "apps/agones/palworld/savetool/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-palworld-savetool.mdx",
+			"source_path": "apps/agones/palworld/savetool",
+			"runner": "ubuntu-latest",
+			"image": "kbve/agones-palworld-savetool",
+			"deployment_yaml": "apps/kube/agones/palworld/manifests/gameserver.yaml",
+			"has_test": true
+		},
+		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.268",
+			"version": "1.0.269",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -1405,7 +1417,7 @@
 		}
 	],
 	"summary": {
-		"docker": 39,
+		"docker": 40,
 		"npm": 4,
 		"crates": 27,
 		"python": 2,
@@ -1416,6 +1428,6 @@
 		"unreal_game": 4,
 		"bevy_game": 0,
 		"vite_game": 1,
-		"total": 106
+		"total": 107
 	}
 }
