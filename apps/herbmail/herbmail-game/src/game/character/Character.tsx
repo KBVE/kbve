@@ -357,6 +357,26 @@ export function Character({
 		[scene],
 	);
 	const legTwistCur = useRef(0);
+	// Bones the post-mixer passes below premultiply onto, plus the last value
+	// the mixer left there and the last value we left there. See the restore
+	// loop in useFrame for why both are needed.
+	const proceduralBones = useMemo(() => {
+		const out = spineBones
+			.map((s) => s.bone as THREE.Object3D | null)
+			.concat([
+				strafeBones.pelvis,
+				strafeBones.spine,
+				upperArms.r,
+				upperArms.l,
+			]);
+		return [...new Set(out.filter(Boolean) as THREE.Object3D[])];
+	}, [spineBones, strafeBones, upperArms]);
+	const poseBase = useRef(
+		new Map<
+			THREE.Object3D,
+			{ mixer: THREE.Quaternion; ours: THREE.Quaternion }
+		>(),
+	);
 	const fingerBones = useMemo(() => {
 		const grip: Record<string, THREE.Quaternion> = {};
 		const idle = gltf.animations.find((a) => a.name === 'Idle_Loop');
@@ -795,6 +815,27 @@ export function Character({
 			);
 
 		animator.update(dt);
+		// three's PropertyMixer only calls setValue() when a track's accumulated
+		// value differs from the one it applied last frame, so a genuinely
+		// constant track stops writing its bone at all. The passes below
+		// premultiply onto whatever the bone holds, which then compounds every
+		// frame instead of riding on top of the clip pose. Authored clips hide
+		// this because their "constant" tracks still jitter a hair, but gltfpack
+		// folds those to a single keyframe and the drift shows up in packed
+		// builds only. Put the mixer's own value back before re-applying.
+		for (const bone of proceduralBones) {
+			let e = poseBase.current.get(bone);
+			if (!e) {
+				e = {
+					mixer: new THREE.Quaternion(),
+					ours: new THREE.Quaternion(),
+				};
+				poseBase.current.set(bone, e);
+			} else if (bone.quaternion.equals(e.ours)) {
+				bone.quaternion.copy(e.mixer);
+			}
+			e.mixer.copy(bone.quaternion);
+		}
 		// Ease the leg cheat and apply post-mixer: pelvis yaws toward travel,
 		// spine_01 counter-yaws so the chest stays squared on the target.
 		legTwistCur.current = THREE.MathUtils.damp(
@@ -852,6 +893,10 @@ export function Character({
 			};
 			if (!rightId) hang(upperArms.r, -1);
 			if (!leftId) hang(upperArms.l, 1);
+		}
+		for (const bone of proceduralBones) {
+			const e = poseBase.current.get(bone);
+			if (e) e.ours.copy(bone.quaternion);
 		}
 		for (const f of fingerBones) {
 			const holds = f.side === 'r' ? !!rightId : !!leftId;
