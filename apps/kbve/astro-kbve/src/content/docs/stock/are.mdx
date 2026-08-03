@@ -1,10 +1,12 @@
 ---
 title: Alexandria Real Estate Equities ARE
+template: splash
 description: |
     Alexandria Real Estate Equities is a leading life science REIT owning and developing collaborative megacampus ecosystems in premier innovation clusters.
 sidebar:
     label: Alexandria Real Estate
     order: 440
+    hidden: true
 unsplash: 1560448204-bb440551-f3e6-4e8b-a9bb-9a98de8da09
 img: https://images.unsplash.com/photo-1560448204-bb440551-f3e6-4e8b-a9bb-9a98de8da09?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - reit
   - are
   - life-sciences
+stock:
+  ticker: ARE
+  exchange: NYSE
+  symbol: nyse:are
+  name: "Alexandria Real Estate Equities"
+  sector: Real Estate
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:are`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -249,3 +258,5 @@ Alexandria offers investors unique exposure to life science real estate:
 - **Life Science Funding**: Venture capital and IPO activity affecting demand
 
 <Giscus />
+
+</StockLeaf>

@@ -1,10 +1,12 @@
 ---
 title: UnitedHealth Group Incorporated UNH
+template: splash
 description: |
     UnitedHealth Group is a leading healthcare company providing health insurance coverage and healthcare services through its diversified portfolio of businesses serving consumers, employers, health care providers, and government programs.
 sidebar:
     label: UnitedHealth Group UNH
     order: 524
+    hidden: true
 unsplash: 1576091160399-112ba8d25d1f
 img: https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - insurance
   - unh
   - managed-care
+stock:
+  ticker: UNH
+  exchange: NYSE
+  symbol: nyse:unh
+  name: "UnitedHealth Group Incorporated"
+  sector: Health Care
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:unh`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -323,3 +332,5 @@ UNH offers exposure to comprehensive healthcare services with integration advant
 - **Quality Metrics**: Clinical quality outcomes and member satisfaction scores
 
 <Giscus />
+
+</StockLeaf>

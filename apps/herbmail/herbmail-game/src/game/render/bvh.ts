@@ -75,11 +75,25 @@ export function cancelBVH(geometry: THREE.BufferGeometry): void {
 	geometry.userData.bvhPending = false;
 }
 
+let builtCount = 0;
+let builtMs = 0;
+
+export function bvhStats(): { depth: number; built: number; ms: number } {
+	return {
+		depth: bvhQueue.length,
+		built: builtCount,
+		ms: +builtMs.toFixed(1),
+	};
+}
+
 async function drainBVH(deadline?: IdleDeadlineLike): Promise<void> {
 	while (bvhQueue.length) {
 		const geo = bvhQueue.shift()!;
 		if (!geo.userData.bvhPending || !geo.attributes.position) continue;
+		const t0 = performance.now();
 		await buildBVH(geo);
+		builtMs += performance.now() - t0;
+		builtCount++;
 		geo.userData.bvhPending = false;
 		if (deadline && deadline.timeRemaining() <= 1) break;
 	}

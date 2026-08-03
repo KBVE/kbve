@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import * as THREE from 'three';
 import { useThree } from '@react-three/fiber';
+import { useViewportSize } from '../render/useViewportSize';
 import '../render/PsxMaterial';
 import {
 	buildArches,
@@ -23,7 +24,7 @@ interface Props {
 }
 
 export function DungeonScene({ snap, affine, grid = levelGrid }: Props) {
-	const size = useThree((s) => s.size);
+	const size = useViewportSize();
 	const res = useMemo(
 		() => new THREE.Vector2(size.width, size.height),
 		[size],

@@ -1,10 +1,12 @@
 ---
 title: Alliant Energy Corporation LNT
+template: splash
 description: |
     Alliant Energy is a regulated utility company providing electric and natural gas services in Wisconsin and Iowa with a focus on clean energy transition.
 sidebar:
     label: Alliant Energy
     order: 444
+    hidden: true
 unsplash: 1473341304770-240fb2b83f33
 img: https://images.unsplash.com/photo-1473341304770-240fb2b83f33?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - electric
   - lnt
   - renewable-energy
+stock:
+  ticker: LNT
+  exchange: NASDAQ
+  symbol: nasdaq:lnt
+  name: "Alliant Energy Corporation"
+  sector: Utilities
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nasdaq:lnt`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -239,3 +248,5 @@ Alliant Energy offers investors exposure to the regulated utility sector with cl
 - **Regulatory Outcomes**: Rate case decisions and regulatory support for investments
 
 <Giscus />
+
+</StockLeaf>

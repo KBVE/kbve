@@ -1,10 +1,12 @@
 ---
 title: Amazon.com Inc. AMZN
+template: splash
 description: |
     Amazon is the world's largest e-commerce and cloud computing company, revolutionizing retail, logistics, and enterprise technology through comprehensive digital platforms.
 sidebar:
     label: Amazon AMZN
     order: 448
+    hidden: true
 unsplash: 1586864387967-d04b7b4e7e87
 img: https://images.unsplash.com/photo-1586864387967-d04b7b4e7e87?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - ecommerce
   - amzn
   - cloud-computing
+stock:
+  ticker: AMZN
+  exchange: NASDAQ
+  symbol: nasdaq:amzn
+  name: "Amazon.com Inc."
+  sector: Consumer Discretionary
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nasdaq:amzn`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -255,3 +264,5 @@ Amazon offers exposure to multiple high-growth technology trends:
 - **Innovation Pipeline**: New product development and technology advancement
 
 <Giscus />
+
+</StockLeaf>

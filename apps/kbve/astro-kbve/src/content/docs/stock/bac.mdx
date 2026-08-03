@@ -1,10 +1,12 @@
 ---
 title: Bank of America Corporation BAC
+template: splash
 description: |
     Bank of America is one of the world's leading financial institutions serving individual consumers, small and middle-market businesses, and large corporations with a full range of banking, investing, asset management, and financial services globally.
 sidebar:
     label: Bank of America BAC
     order: 519
+    hidden: true
 unsplash: 1541354329998-f4d9a9f4157b
 img: https://images.unsplash.com/photo-1541354329998-f4d9a9f4157b?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - banking
   - bac
   - investment-banking
+stock:
+  ticker: BAC
+  exchange: NYSE
+  symbol: nyse:bac
+  name: "Bank of America Corporation"
+  sector: Financials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:bac`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -353,3 +362,5 @@ BAC offers exposure to comprehensive financial services with technology leadersh
 - **Market Share**: Market share in key business segments and geographic markets
 
 <Giscus />
+
+</StockLeaf>

@@ -1,10 +1,12 @@
 ---
 title: Meta Platforms Inc. META
+template: splash
 description: |
     Meta Platforms is a leading technology company building the next evolution of social technology and the metaverse, operating popular social media platforms including Facebook, Instagram, WhatsApp, and Messenger while developing virtual and augmented reality technologies.
 sidebar:
     label: Meta Platforms META
     order: 503
+    hidden: true
 unsplash: 1611162617263-4c4724f6ca1a
 img: https://images.unsplash.com/photo-1611162617263-4c4724f6ca1a?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - social-media
   - meta
   - metaverse
+stock:
+  ticker: META
+  exchange: NASDAQ
+  symbol: nasdaq:meta
+  name: "Meta Platforms Inc."
+  sector: Communication Services
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nasdaq:meta`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -298,3 +307,5 @@ META offers exposure to social media dominance with metaverse upside potential:
 - **Competition Response**: Competitive position versus TikTok and other platforms
 
 <Giscus />
+
+</StockLeaf>

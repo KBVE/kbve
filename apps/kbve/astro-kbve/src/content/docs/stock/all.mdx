@@ -1,10 +1,12 @@
 ---
 title: The Allstate Corporation ALL
+template: splash
 description: |
     Allstate is a leading property and casualty insurance company providing auto, home, and other insurance products with innovative protection solutions.
 sidebar:
     label: Allstate ALL
     order: 443
+    hidden: true
 unsplash: 1449824913935-8b5db0b83e47
 img: https://images.unsplash.com/photo-1449824913935-8b5db0b83e47?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - insurance
   - all
   - property-casualty
+stock:
+  ticker: ALL
+  exchange: NYSE
+  symbol: nyse:all
+  name: "The Allstate Corporation"
+  sector: Financials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:all`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -241,3 +250,5 @@ Allstate offers investors exposure to the stable insurance industry:
 - **Market Share**: Competitive position in key markets
 
 <Giscus />
+
+</StockLeaf>

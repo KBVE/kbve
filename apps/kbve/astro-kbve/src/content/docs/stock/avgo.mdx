@@ -1,10 +1,12 @@
 ---
 title: Broadcom Inc. AVGO
+template: splash
 description: |
     Broadcom is a leading global technology company providing semiconductor and infrastructure software solutions for data center, networking, software, broadband, wireless, storage, and industrial markets worldwide.
 sidebar:
     label: Broadcom AVGO
     order: 504
+    hidden: true
 unsplash: 1518709268165-83c6b6536dd8
 img: https://images.unsplash.com/photo-1518709268165-83c6b6536dd8?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - semiconductors
   - avgo
   - enterprise-software
+stock:
+  ticker: AVGO
+  exchange: NASDAQ
+  symbol: nasdaq:avgo
+  name: "Broadcom Inc."
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nasdaq:avgo`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -304,3 +313,5 @@ AVGO offers exposure to essential technology infrastructure with software divers
 - **Free Cash Flow**: Cash generation supporting dividends and capital allocation
 
 <Giscus />
+
+</StockLeaf>

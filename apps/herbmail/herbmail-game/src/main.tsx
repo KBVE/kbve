@@ -6,8 +6,10 @@ import { App } from './app/App';
 import { RootBoundary } from './app/AssetBoundary';
 import { verifySab } from './game/sab/verify';
 import { preloadPartSets } from './game/character/partsLoader';
+import { installProfiler } from './profiler';
 
 verifySab();
+installProfiler();
 
 const idle: (cb: () => void) => void =
 	typeof requestIdleCallback === 'function'

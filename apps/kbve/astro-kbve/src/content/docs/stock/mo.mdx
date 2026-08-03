@@ -1,10 +1,12 @@
 ---
 title: Altria Group Inc. MO
+template: splash
 description: |
     Altria Group is a leading tobacco and nicotine company transforming its business through innovative smoke-free products and reduced-risk alternatives.
 sidebar:
     label: Altria Group
     order: 446
+    hidden: true
 unsplash: 1474112113431-c484be3d4580
 img: https://images.unsplash.com/photo-1474112113431-c484be3d4580?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - tobacco
   - mo
   - nicotine-products
+stock:
+  ticker: MO
+  exchange: NYSE
+  symbol: nyse:mo
+  name: "Altria Group Inc."
+  sector: Consumer Staples
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:mo`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -238,3 +247,5 @@ Altria offers investors exposure to a transforming tobacco industry:
 - **Volume Performance**: Unit sales trends across product categories
 
 <Giscus />
+
+</StockLeaf>

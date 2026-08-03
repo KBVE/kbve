@@ -1,10 +1,12 @@
 ---
 title: American Water Works Company Inc. AWK
+template: splash
 description: |
     American Water Works is the largest publicly traded water and wastewater utility company in the United States, providing essential water services to approximately 3.5 million customers across 14 states.
 sidebar:
     label: American Water AWK
     order: 456
+    hidden: true
 unsplash: 1544966503-7ad5ac882d5d
 img: https://images.unsplash.com/photo-1544966503-7ad5ac882d5d?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - water
   - awk
   - infrastructure
+stock:
+  ticker: AWK
+  exchange: NYSE
+  symbol: nyse:awk
+  name: "American Water Works Company Inc."
+  sector: Utilities
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:awk`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -275,3 +284,5 @@ AWK offers exposure to essential water infrastructure with stable growth:
 - **Acquisition Activity**: Strategic acquisitions expanding service territories and customer base
 
 <Giscus />
+
+</StockLeaf>

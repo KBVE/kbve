@@ -1,10 +1,12 @@
 ---
 title: American Electric Power Company Inc. AEP
+template: splash
 description: |
     American Electric Power is one of the largest electric utilities in the United States, serving 5.6 million customers across 11 states with a focus on grid modernization and renewable energy.
 sidebar:
     label: American Electric Power AEP
     order: 453
+    hidden: true
 unsplash: 1473341304170-971dccb5ac1e
 img: https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - electric-power
   - aep
   - transmission
+stock:
+  ticker: AEP
+  exchange: NASDAQ
+  symbol: nasdaq:aep
+  name: "American Electric Power Company Inc."
+  sector: Utilities
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nasdaq:aep`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -278,3 +287,5 @@ AEP offers exposure to essential electric utility services with infrastructure g
 - **Operational Performance**: Safety, reliability, and customer satisfaction metrics
 
 <Giscus />
+
+</StockLeaf>

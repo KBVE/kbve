@@ -1,10 +1,12 @@
 ---
 title: JPMorgan Chase & Co. JPM
+template: splash
 description: |
     JPMorgan Chase is the largest bank in the United States and a leading global financial services firm providing investment banking, commercial banking, financial transaction processing, and asset management services to millions of consumers, small businesses, and institutional clients worldwide.
 sidebar:
     label: JPMorgan Chase JPM
     order: 507
+    hidden: true
 unsplash: 1541354329998-f4d9a9f4157b
 img: https://images.unsplash.com/photo-1541354329998-f4d9a9f4157b?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - banking
   - jpm
   - investment-banking
+stock:
+  ticker: JPM
+  exchange: NYSE
+  symbol: nyse:jpm
+  name: "JPMorgan Chase & Co."
+  sector: Financials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:jpm`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -336,3 +345,5 @@ JPM offers exposure to comprehensive financial services with market leadership:
 - **Book Value**: Tangible book value per share growth and valuation metrics
 
 <Giscus />
+
+</StockLeaf>

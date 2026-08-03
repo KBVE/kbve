@@ -1,10 +1,12 @@
 ---
 title: Mastercard Incorporated MA
+template: splash
 description: |
     Mastercard is a leading global payments technology company connecting consumers, financial institutions, merchants, governments, and businesses worldwide through innovative payment solutions and financial services.
 sidebar:
     label: Mastercard MA
     order: 513
+    hidden: true
 unsplash: 1556742049-0ca8c6c56de4
 img: https://images.unsplash.com/photo-1556742049-0ca8c6c56de4?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - payments
   - ma
   - fintech
+stock:
+  ticker: MA
+  exchange: NYSE
+  symbol: nyse:ma
+  name: "Mastercard Incorporated"
+  sector: Financials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:ma`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -335,3 +344,5 @@ MA offers exposure to global digital payments growth with technology leadership:
 - **Market Share**: Payment network market share in key regions and segments
 
 <Giscus />
+
+</StockLeaf>
