@@ -65,14 +65,18 @@ pub const ITEM_FLY_AGARIC: &str = "fly-agaric";
 
 // Map game-world object types to their proto item ref.
 
-pub fn item_from_rock_kind(kind: &RockKind) -> ItemKind {
-    ItemKind::from_ref(match kind {
+pub fn item_ref_from_rock_kind(kind: &RockKind) -> &'static str {
+    match kind {
         RockKind::Boulder => ITEM_STONE,
         RockKind::MossyRock => ITEM_MOSSY_STONE,
         RockKind::OreCopper => ITEM_COPPER_ORE,
         RockKind::OreIron => ITEM_IRON_ORE,
         RockKind::OreCrystal => ITEM_CRYSTAL_ORE,
-    })
+    }
+}
+
+pub fn item_from_rock_kind(kind: &RockKind) -> ItemKind {
+    ItemKind::from_ref(item_ref_from_rock_kind(kind))
 }
 
 pub fn item_from_flower_archetype(arch: &FlowerArchetype) -> ItemKind {

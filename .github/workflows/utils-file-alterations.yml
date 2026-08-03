@@ -334,6 +334,10 @@ jobs:
                           - 'apps/kbve/isometric/src-tauri/tauri.conf.json'
                           - 'apps/kbve/isometric/package.json'
                           - 'apps/kbve/isometric/vite.config.ts'
+                          # pnpm install runs implicitly on `pnpm build`, so install
+                          # config breaks the WASM build the same way source does.
+                          - 'apps/kbve/isometric/pnpm-workspace.yaml'
+                          - 'apps/kbve/isometric/pnpm-lock.yaml'
                           # Shared Rust crates (path = ... in src-tauri/Cargo.toml).
                           # Any change here MUST rebuild the WASM client otherwise
                           # the lightyear ProtocolPlugin registry hashes drift

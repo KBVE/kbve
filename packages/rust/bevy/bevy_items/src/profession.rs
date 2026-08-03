@@ -14,7 +14,22 @@ struct RawProfession {
     #[serde(rename = "ref")]
     ref_: String,
     #[serde(default)]
+    name: String,
+    #[serde(default)]
+    category: String,
+    #[serde(default)]
+    emoji: Option<String>,
+    #[serde(default)]
+    experience_curve: Option<RawExperienceCurve>,
+    #[serde(default)]
     actions: Vec<RawAction>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct RawExperienceCurve {
+    #[serde(default)]
+    max_level: u32,
 }
 
 #[derive(Debug, Deserialize)]
@@ -64,6 +79,17 @@ pub struct GatherInfo {
     pub resource_node_ref: String,
 }
 
+/// Profession metadata — the skill definition side of professiondb, used by
+/// engines to build their skill registry from data instead of hardcoding it.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ProfessionInfo {
+    pub r#ref: String,
+    pub name: String,
+    pub category: String,
+    pub emoji: Option<String>,
+    pub max_level: u32,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CompressInfo {
     pub target_ref: String,
@@ -72,6 +98,7 @@ pub struct CompressInfo {
 
 #[derive(Debug, Default)]
 pub struct ProfessionDb {
+    professions: Vec<ProfessionInfo>,
     gather: HashMap<String, GatherInfo>,
     compress: HashMap<String, CompressInfo>,
 }
@@ -80,10 +107,28 @@ impl ProfessionDb {
     pub fn from_json(json_str: &str) -> Result<Self, ProfessionLoadError> {
         let root: RawRoot = serde_json::from_str(json_str).map_err(ProfessionLoadError::Parse)?;
 
+        let mut professions = Vec::with_capacity(root.professions.len());
         let mut gather = HashMap::new();
         let mut compress = HashMap::new();
 
         for profession in &root.professions {
+            professions.push(ProfessionInfo {
+                r#ref: profession.ref_.clone(),
+                name: if profession.name.is_empty() {
+                    profession.ref_.clone()
+                } else {
+                    profession.name.clone()
+                },
+                category: normalize_category(&profession.category),
+                emoji: profession.emoji.clone(),
+                max_level: profession
+                    .experience_curve
+                    .as_ref()
+                    .map(|c| c.max_level)
+                    .filter(|l| *l > 0)
+                    .unwrap_or(99),
+            });
+
             for action in &profession.actions {
                 if action.ref_.starts_with("gather-") {
                     let resource_node_ref = action.resource_node_ref.clone().unwrap_or_default();
@@ -111,7 +156,19 @@ impl ProfessionDb {
             }
         }
 
-        Ok(Self { gather, compress })
+        Ok(Self {
+            professions,
+            gather,
+            compress,
+        })
+    }
+
+    pub fn professions(&self) -> &[ProfessionInfo] {
+        &self.professions
+    }
+
+    pub fn profession(&self, profession_ref: &str) -> Option<&ProfessionInfo> {
+        self.professions.iter().find(|p| p.r#ref == profession_ref)
     }
 
     pub fn gather(&self, item_ref: &str) -> Option<&GatherInfo> {
@@ -131,8 +188,15 @@ impl ProfessionDb {
     }
 
     pub fn is_empty(&self) -> bool {
-        self.gather.is_empty() && self.compress.is_empty()
+        self.professions.is_empty() && self.gather.is_empty() && self.compress.is_empty()
     }
+}
+
+/// `PROFESSION_CATEGORY_GATHERING` -> `gathering`.
+fn normalize_category(raw: &str) -> String {
+    raw.strip_prefix("PROFESSION_CATEGORY_")
+        .unwrap_or(raw)
+        .to_ascii_lowercase()
 }
 
 static PROFESSION_DB_REF: OnceLock<&'static ProfessionDb> = OnceLock::new();
@@ -156,6 +220,9 @@ mod tests {
                 "ref": "mining",
                 "key": 1,
                 "name": "Mining",
+                "category": "PROFESSION_CATEGORY_GATHERING",
+                "emoji": "⛏️",
+                "experienceCurve": {"kind": "CURVE_KIND_POLYNOMIAL", "baseXp": 50, "growthFactor": 1.6, "maxLevel": 99},
                 "actions": [
                     {
                         "ref": "gather-copper-ore",
@@ -210,6 +277,26 @@ mod tests {
 
         assert!(db.gather("nonexistent").is_none());
         assert!(db.compress("nonexistent").is_none());
+    }
+
+    #[test]
+    fn exposes_profession_metadata() {
+        let db = ProfessionDb::from_json(FIXTURE).unwrap();
+
+        assert_eq!(db.professions().len(), 2);
+
+        let mining = db.profession("mining").unwrap();
+        assert_eq!(mining.name, "Mining");
+        assert_eq!(mining.category, "gathering");
+        assert_eq!(mining.emoji.as_deref(), Some("⛏️"));
+        assert_eq!(mining.max_level, 99);
+
+        // Missing category/curve fall back instead of failing the parse.
+        let cooking = db.profession("cooking").unwrap();
+        assert_eq!(cooking.category, "");
+        assert_eq!(cooking.max_level, 99);
+
+        assert!(db.profession("nonexistent").is_none());
     }
 
     #[test]
