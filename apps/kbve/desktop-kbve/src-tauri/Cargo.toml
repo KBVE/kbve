@@ -96,7 +96,7 @@ enigo = "0.6.1"
 rdev = { git = "https://github.com/rustdesk-org/rdev" }
 
 # Model download + extraction + assorted helpers.
-reqwest = { version = "0.12", features = ["json", "stream", "blocking"] }
+reqwest = { version = "0.13", features = ["json", "stream", "blocking"] }
 futures-util = "0.3"
 tar = "0.4.44"
 flate2 = "1.0"
