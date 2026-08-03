@@ -1,10 +1,12 @@
 ---
 title: Cisco Systems Inc. CSCO
+template: splash
 description: |
     Cisco is a leading global technology company providing networking hardware, software, and services that enable connectivity, security, and automation across the internet and digital infrastructure worldwide.
 sidebar:
     label: Cisco CSCO
     order: 526
+    hidden: true
 unsplash: 1558618047-3bf6c6d8d0e6
 img: https://images.unsplash.com/photo-1558618047-3bf6c6d8d0e6?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - networking
   - csco
   - cybersecurity
+stock:
+  ticker: CSCO
+  exchange: NASDAQ
+  symbol: nasdaq:csco
+  name: "Cisco Systems Inc."
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nasdaq:csco`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -353,3 +362,5 @@ CSCO offers exposure to networking infrastructure leadership with security and c
 - **Innovation Pipeline**: Research and development productivity and new product launches
 
 <Giscus />
+
+</StockLeaf>

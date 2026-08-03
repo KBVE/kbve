@@ -1,10 +1,12 @@
 ---
 title: Morgan Stanley MS
+template: splash
 description: |
     Morgan Stanley is a leading global financial services firm providing investment banking, securities, wealth management, and investment management services to corporations, governments, institutions, and individuals worldwide.
 sidebar:
     label: Morgan Stanley MS
     order: 534
+    hidden: true
 unsplash: 1611974789855-9c2a0a7236a3
 img: https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - investment-banking
   - ms
   - wealth-management
+stock:
+  ticker: MS
+  exchange: NYSE
+  symbol: nyse:ms
+  name: "Morgan Stanley"
+  sector: Financials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:ms`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -383,3 +392,5 @@ MS offers exposure to leading investment banking and wealth management with tech
 - **Digital Adoption**: Technology investment results and digital client engagement
 
 <Giscus />
+
+</StockLeaf>

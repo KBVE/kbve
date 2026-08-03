@@ -1,10 +1,12 @@
 ---
 title: ANSYS Inc. ANSS
+template: splash
 description: |
     ANSYS is a leading global engineering simulation software company enabling engineers, designers, and researchers to predict how their products will work in real-world environments.
 sidebar:
     label: ANSYS ANSS
     order: 460
+    hidden: true
 unsplash: 1581092795442-61b5e3bb1ad3
 img: https://images.unsplash.com/photo-1581092795442-61b5e3bb1ad3?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - engineering
   - anss
   - simulation
+stock:
+  ticker: ANSS
+  exchange: NASDAQ
+  symbol: nasdaq:anss
+  name: "ANSYS Inc."
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nasdaq:anss`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -269,3 +278,5 @@ ANSS offers exposure to essential engineering software with secular growth drive
 - **Acquisition Integration**: Successful integration of acquired technologies and capabilities
 
 <Giscus />
+
+</StockLeaf>

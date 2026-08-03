@@ -1,10 +1,12 @@
 ---
 title: Oracle Corporation ORCL
+template: splash
 description: |
     Oracle is a leading global technology company providing database software, cloud computing services, and enterprise software applications that enable organizations to manage, analyze, and leverage their data for business success.
 sidebar:
     label: Oracle ORCL
     order: 511
+    hidden: true
 unsplash: 1551882450-bcee36ead61b
 img: https://images.unsplash.com/photo-1551882450-bcee36ead61b?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - database
   - orcl
   - cloud-computing
+stock:
+  ticker: ORCL
+  exchange: NASDAQ
+  symbol: nasdaq:orcl
+  name: "Oracle Corporation"
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nasdaq:orcl`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -327,3 +336,5 @@ ORCL offers exposure to enterprise technology transformation with database leade
 - **International Performance**: Global expansion and international market penetration
 
 <Giscus />
+
+</StockLeaf>

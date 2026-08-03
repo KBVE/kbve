@@ -1,10 +1,12 @@
 ---
 title: Philip Morris International Inc. PM
+template: splash
 description: |
     Philip Morris International is a leading international tobacco company developing, manufacturing, and selling cigarettes and smoke-free products worldwide, with a focus on transitioning to reduced-risk products and smoke-free alternatives.
 sidebar:
     label: Philip Morris International PM
     order: 523
+    hidden: true
 unsplash: 1518611012118-696072aa579a
 img: https://images.unsplash.com/photo-1518611012118-696072aa579a?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - tobacco
   - pm
   - smoke-free
+stock:
+  ticker: PM
+  exchange: NYSE
+  symbol: nyse:pm
+  name: "Philip Morris International Inc."
+  sector: Consumer Staples
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:pm`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -355,3 +364,5 @@ PM offers exposure to tobacco industry transformation with smoke-free leadership
 - **Profitability**: Operating margin trends and smoke-free product profitability
 
 <Giscus />
+
+</StockLeaf>

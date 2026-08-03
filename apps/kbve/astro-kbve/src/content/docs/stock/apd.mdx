@@ -1,10 +1,12 @@
 ---
 title: Air Products and Chemicals APD
+template: splash
 description: |
     Air Products is a leading global industrial gases company providing essential industrial gases, related equipment, and applications expertise to manufacturing markets.
 sidebar:
     label: Air Products APD
     order: 436
+    hidden: true
 unsplash: 1581833971804-8c58e3fcce40
 img: https://images.unsplash.com/photo-1581833971804-8c58e3fcce40?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - industrial-gases
   - apd
   - hydrogen
+stock:
+  ticker: APD
+  exchange: NYSE
+  symbol: nyse:apd
+  name: "Air Products and Chemicals"
+  sector: Materials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:apd`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -255,3 +264,5 @@ Air Products offers investors exposure to both traditional industrial gas market
 - **Geographic Performance**: Growth trends across major regional markets
 
 <Giscus />
+
+</StockLeaf>

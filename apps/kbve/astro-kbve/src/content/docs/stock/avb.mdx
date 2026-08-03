@@ -1,10 +1,12 @@
 ---
 title: AvalonBay Communities Inc. AVB
+template: splash
 description: |
     AvalonBay Communities is a leading real estate investment trust focused on developing, acquiring, owning, and operating luxury apartment communities in high-barrier-to-entry markets across the United States.
 sidebar:
     label: AvalonBay Communities AVB
     order: 481
+    hidden: true
 unsplash: 1545324418-cc1a4d9f1d15
 img: https://images.unsplash.com/photo-1545324418-cc1a4d9f1d15?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - real-estate
   - avb
   - apartments
+stock:
+  ticker: AVB
+  exchange: NYSE
+  symbol: nyse:avb
+  name: "AvalonBay Communities Inc."
+  sector: Real Estate
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:avb`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -265,3 +274,5 @@ AVB offers exposure to premier apartment markets with development upside:
 - **Balance Sheet Metrics**: Leverage ratios and credit profile management
 
 <Giscus />
+
+</StockLeaf>

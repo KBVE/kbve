@@ -1,10 +1,12 @@
 ---
 title: NVIDIA Corporation NVDA
+template: splash
 description: |
     NVIDIA is a leading technology company specializing in graphics processing units (GPUs), artificial intelligence computing, and accelerated computing platforms that power everything from gaming to data centers and autonomous vehicles.
 sidebar:
     label: NVIDIA NVDA
     order: 501
+    hidden: true
 unsplash: 1518709268165-83c6b6536dd8
 img: https://images.unsplash.com/photo-1518709268165-83c6b6536dd8?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - semiconductors
   - nvda
   - artificial-intelligence
+stock:
+  ticker: NVDA
+  exchange: NASDAQ
+  symbol: nasdaq:nvda
+  name: "NVIDIA Corporation"
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nasdaq:nvda`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -313,3 +322,5 @@ NVDA offers exposure to the AI revolution with technology leadership:
 - **Competitive Position**: Market share and technology leadership maintenance
 
 <Giscus />
+
+</StockLeaf>

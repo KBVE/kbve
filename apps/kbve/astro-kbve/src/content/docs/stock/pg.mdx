@@ -1,10 +1,12 @@
 ---
 title: The Procter & Gamble Company PG
+template: splash
 description: |
     Procter & Gamble is a leading consumer goods company providing branded products and services to consumers in approximately 180 countries worldwide, with a portfolio of trusted household names across personal care, health care, fabric care, and home care categories.
 sidebar:
     label: Procter & Gamble PG
     order: 516
+    hidden: true
 unsplash: 1556742048-f6f84b636bd6
 img: https://images.unsplash.com/photo-1556742048-f6f84b636bd6?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - household-products
   - pg
   - personal-care
+stock:
+  ticker: PG
+  exchange: NYSE
+  symbol: nyse:pg
+  name: "The Procter & Gamble Company"
+  sector: Consumer Staples
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:pg`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -360,3 +369,5 @@ PG offers exposure to defensive consumer staples with brand leadership:
 - **Brand Health**: Brand equity and consumer loyalty metrics
 
 <Giscus />
+
+</StockLeaf>

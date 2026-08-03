@@ -1,10 +1,12 @@
 ---
 title: Amphenol Corporation APH
+template: splash
 description: |
     Amphenol is one of the world's largest designers, manufacturers, and marketers of connectors, interconnect systems, antennas, and sensors enabling the electronics revolution across diverse industries.
 sidebar:
     label: Amphenol APH
     order: 463
+    hidden: true
 unsplash: 1581092580970-4e7de18fc21c
 img: https://images.unsplash.com/photo-1581092580970-4e7de18fc21c?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - components
   - aph
   - connectors
+stock:
+  ticker: APH
+  exchange: NYSE
+  symbol: nyse:aph
+  name: "Amphenol Corporation"
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:aph`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -316,3 +325,5 @@ APH offers exposure to essential electronic infrastructure with secular growth d
 - **Operating Leverage**: Manufacturing efficiency and margin expansion
 
 <Giscus />
+
+</StockLeaf>

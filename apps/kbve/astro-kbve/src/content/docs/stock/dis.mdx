@@ -1,10 +1,12 @@
 ---
 title: The Walt Disney Company DIS
+template: splash
 description: |
     Disney is a global entertainment and media conglomerate operating theme parks, film studios, television networks, streaming services, and consumer products, bringing magical experiences and storytelling to audiences worldwide.
 sidebar:
     label: Walt Disney DIS
     order: 535
+    hidden: true
 unsplash: 1512552288312-1324e97a2c5e
 img: https://images.unsplash.com/photo-1512552288312-1324e97a2c5e?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - media
   - dis
   - streaming
+stock:
+  ticker: DIS
+  exchange: NYSE
+  symbol: nyse:dis
+  name: "The Walt Disney Company"
+  sector: Communication Services
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:dis`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -373,3 +382,5 @@ DIS offers exposure to entertainment leadership with streaming transformation:
 - **Franchise Performance**: Performance of key franchises across all business segments
 
 <Giscus />
+
+</StockLeaf>

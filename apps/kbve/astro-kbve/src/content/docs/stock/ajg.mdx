@@ -1,10 +1,12 @@
 ---
 title: Arthur J. Gallagher & Co. AJG
+template: splash
 description: |
     Arthur J. Gallagher & Co. is a leading global insurance brokerage, risk management, and consulting company serving clients worldwide with comprehensive insurance and risk solutions.
 sidebar:
     label: Arthur J. Gallagher AJG
     order: 465
+    hidden: true
 unsplash: 1450101499237-f1b8b1c65593
 img: https://images.unsplash.com/photo-1450101499237-f1b8b1c65593?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - brokerage
   - ajg
   - risk-management
+stock:
+  ticker: AJG
+  exchange: NYSE
+  symbol: nyse:ajg
+  name: "Arthur J. Gallagher & Co."
+  sector: Financials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:ajg`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -244,3 +253,5 @@ AJG offers exposure to essential insurance services with secular growth drivers:
 - **Market Share**: Position in competitive insurance brokerage landscape
 
 <Giscus />
+
+</StockLeaf>

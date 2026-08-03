@@ -1,10 +1,12 @@
 ---
 title: The Coca-Cola Company KO
+template: splash
 description: |
     The Coca-Cola Company is the world's leading beverage company offering over 500 brands to people in more than 200 countries, with a portfolio spanning sparkling soft drinks, water, enhanced water, juice, dairy, plant-based beverages, tea, and coffee.
 sidebar:
     label: Coca-Cola KO
     order: 522
+    hidden: true
 unsplash: 1554979062-7ebdecf0bbf5
 img: https://images.unsplash.com/photo-1554979062-7ebdecf0bbf5?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - beverages
   - ko
   - coca-cola
+stock:
+  ticker: KO
+  exchange: NYSE
+  symbol: nyse:ko
+  name: "The Coca-Cola Company"
+  sector: Consumer Staples
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:ko`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -333,3 +342,5 @@ KO offers exposure to global beverage leadership with brand excellence:
 - **Operating Leverage**: Margin expansion and operational efficiency improvements
 
 <Giscus />
+
+</StockLeaf>

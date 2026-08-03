@@ -1,10 +1,12 @@
 ---
 title: Linde plc LIN
+template: splash
 description: |
     Linde is the world's largest industrial gas and engineering company, providing atmospheric gases, process gases, specialty gases, and engineering services to customers across healthcare, manufacturing, energy, and other industries globally.
 sidebar:
     label: Linde plc LIN
     order: 533
+    hidden: true
 unsplash: 1581094794329-c8112a89af12
 img: https://images.unsplash.com/photo-1581094794329-c8112a89af12?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - chemicals
   - lin
   - engineering
+stock:
+  ticker: LIN
+  exchange: NYSE
+  symbol: nyse:lin
+  name: "Linde plc"
+  sector: Materials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -28,7 +37,7 @@ import {
 
 import { Giscus, Adsense } from '@/components/astropad';
 
-<TradingView data={`nyse:lin`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -355,3 +364,5 @@ LIN offers exposure to essential industrial infrastructure with clean energy ups
 - **Clean Technology**: Progress in carbon capture, hydrogen, and clean energy technologies
 
 <Giscus />
+
+</StockLeaf>
