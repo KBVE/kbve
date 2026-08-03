@@ -524,9 +524,6 @@ importers:
       '@types/d3-geo':
         specifier: ^3.1.0
         version: 3.1.0
-      '@types/dompurify':
-        specifier: ^3.0.5
-        version: 3.2.0
       '@types/jsdom':
         specifier: ^28.0.3
         version: 28.0.3
@@ -6611,10 +6608,6 @@ packages:
 
   '@types/deep-eql@4.0.2':
     resolution: {integrity: sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==}
-
-  '@types/dompurify@3.2.0':
-    resolution: {integrity: sha512-Fgg31wv9QbLDA0SpTOXO3MaxySc4DKGLi8sna4/Utjo4r3ZRPdCt4UQee8BWr+Q5z21yifghREPJGYaEOEIACg==}
-    deprecated: This is a stub types definition. dompurify provides its own type definitions, so you do not need this installed.
 
   '@types/draco3d@1.4.10':
     resolution: {integrity: sha512-AX22jp8Y7wwaBgAixaSvkoG4M/+PlAcm3Qs4OW8yT9DM4xUpWKeFhLueTAyZF39pviAdcDdeJoACapiAceqNcw==}
@@ -24570,10 +24563,6 @@ snapshots:
       '@types/ms': 0.7.34
 
   '@types/deep-eql@4.0.2': {}
-
-  '@types/dompurify@3.2.0':
-    dependencies:
-      dompurify: 3.4.11
 
   '@types/draco3d@1.4.10': {}
 

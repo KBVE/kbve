@@ -84,6 +84,49 @@ export function solidAtWorld(x: number, z: number): boolean {
 	return false;
 }
 
+export interface DoorwayInfo {
+	// true when the opening is bounded north/south, so the passable axis is z
+	ns: boolean;
+	cx: number;
+	cz: number;
+	openHW: number;
+}
+
+const doorwayOut: DoorwayInfo = { ns: false, cx: 0, cz: 0, openHW: 0 };
+
+// Geometry of the doorway covering (x,z), or null. A doorway tile is TILE wide
+// but only passable within openHW of its centre line, so anything crossing one
+// has to aim at the gap rather than at the tile — see steerThroughDoorway.
+export function doorwayAt(x: number, z: number): DoorwayInfo | null {
+	const wc = Math.floor(x / TILE);
+	const wr = Math.floor(z / TILE);
+	const dw = getDungeon();
+	const { cx, cy } = cellAtWorld(x, z, TILE);
+	const desc = dw.desc(dw.ensureSectorAtCell(cx, cy)) ?? null;
+	if (!desc) return null;
+	const lc = wc - desc.originCol;
+	const lr = wr - desc.originRow;
+	if (lc < 0 || lc >= desc.cols || lr < 0 || lr >= desc.rows) return null;
+	if (!(desc.tiles[lr * desc.cols + lc] & DOORWAY)) return null;
+
+	const wallish = (c: number, r: number): boolean => {
+		if (c < 0 || c >= desc.cols || r < 0 || r >= desc.rows) return true;
+		const n = desc.tiles[r * desc.cols + c];
+		return (n & (OCCLUDES | DOORWAY)) !== 0;
+	};
+	doorwayOut.ns = wallish(lc, lr - 1) && wallish(lc, lr + 1);
+	doorwayOut.cx = (wc + 0.5) * TILE;
+	doorwayOut.cz = (wr + 0.5) * TILE;
+	doorwayOut.openHW = jitter(
+		lc,
+		lr,
+		1 + desc.variant * ARCH_SALT,
+		TILE * 0.28,
+		TILE * 0.38,
+	);
+	return doorwayOut;
+}
+
 export function floorYAtWorld(x: number, z: number): number {
 	const wc = Math.floor(x / TILE);
 	const wr = Math.floor(z / TILE);

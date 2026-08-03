@@ -112,24 +112,35 @@ const dock = [
 					<div class="bento-hero__headline">
 						<h1 class="bento-hero__title">
 							{
-								titleLines.map((line) => (
-									<span class="bento-hero__title-line">
-										{line.includes(rotatingWord) ? (
-											<>
-												{line.split(rotatingWord)[0]}
-												<span
-													class="bento-hero__slot"
-													data-rotate={JSON.stringify(
-														rotatingWords,
-													)}>
-													{rotatingWord}
-												</span>
-												{line.split(rotatingWord)[1]}
-											</>
-										) : (
-											line
-										)}
-									</span>
+								titleLines.map((line, idx) => (
+									<>
+										<span class="bento-hero__title-line">
+											{line.includes(rotatingWord) ? (
+												<>
+													{
+														line.split(
+															rotatingWord,
+														)[0]
+													}
+													<span
+														class="bento-hero__slot"
+														data-rotate={JSON.stringify(
+															rotatingWords,
+														)}>
+														{rotatingWord}
+													</span>
+													{
+														line.split(
+															rotatingWord,
+														)[1]
+													}
+												</>
+											) : (
+												line
+											)}
+										</span>
+										{idx < titleLines.length - 1 && ' '}
+									</>
 								))
 							}
 						</h1>
