@@ -177,6 +177,8 @@ const jsonLdPayload = jsonLdGraph
 		: { '@context': 'https://schema.org', '@graph': jsonLdGraph }
 	: null;
 
+const hasSiteName = filteredHead.some((t) => tagKey(t) === 'og:site_name');
+
 const noindex = data.noindex === true;
 const robotsContent = noindex
 	? 'noindex, nofollow'
@@ -209,6 +211,8 @@ if (isArticle) {
 	))
 }
 {overrideTags.map(({ tag: Tag, attrs }) => <Tag {...attrs} />)}
+
+{!hasSiteName && <meta property="og:site_name" content="KBVE" />}
 
 <meta name="robots" content={robotsContent} />
 {articleTags.map((t) => <meta property={t.property} content={t.content} />)}

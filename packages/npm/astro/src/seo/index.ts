@@ -24,7 +24,10 @@ export interface SeoSiteConfig {
 	logoWidth?: number;
 	logoHeight?: number;
 	description?: string;
-	alternateName?: string;
+	alternateName?: string | string[];
+	legalName?: string;
+	/** WebSite-level alternate names — the strongest Google site-name signal. */
+	siteAlternateName?: string | string[];
 	foundingDate?: string;
 	email?: string;
 	contactType?: string;
@@ -97,6 +100,7 @@ export const createSeo = (config: SeoSiteConfig): Seo => {
 		logoHeight: config.logoHeight,
 		description: config.description,
 		alternateName: config.alternateName,
+		legalName: config.legalName,
 		foundingDate: config.foundingDate,
 		email: config.email,
 		contactType: config.contactType,
@@ -106,6 +110,7 @@ export const createSeo = (config: SeoSiteConfig): Seo => {
 	const siteNode = website({
 		url: config.siteUrl,
 		name: config.name,
+		alternateName: config.siteAlternateName,
 		description: config.description,
 		inLanguage: config.inLanguage,
 		publisher: orgNode,
@@ -159,9 +164,7 @@ export const createSeo = (config: SeoSiteConfig): Seo => {
 			const nodes: SchemaNode[] = [orgNode, siteNode, primary, crumb];
 			if (i.faq?.length) nodes.push(faqPage(i.faq, `${pageUrl}#faq`));
 			if (i.software) {
-				nodes.push(
-					softwareSourceCode({ url: pageUrl, ...i.software }),
-				);
+				nodes.push(softwareSourceCode({ url: pageUrl, ...i.software }));
 			}
 			if (i.extra?.length) nodes.push(...i.extra);
 			return nodes;
