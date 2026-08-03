@@ -4,8 +4,8 @@ const doorwayAt = vi.fn();
 
 vi.mock('../dungeon/collision', () => ({
 	doorwayAt: (x: number, z: number) => doorwayAt(x, z),
-	makeMover: () => () => {},
-	registerBody: () => () => {},
+	makeMover: () => vi.fn(),
+	registerBody: () => vi.fn(),
 }));
 
 const { steerThroughDoorway } = await import('./goblinSim');
