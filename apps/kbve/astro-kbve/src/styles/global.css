@@ -1033,23 +1033,34 @@ body:has([data-kbve-section])
 		--kbve-sidebar-width: var(--sl-sidebar-width, 18rem);
 	}
 
+	/* The rail sits on the same surface as the bento bands it runs beside,
+	   divided by a hairline rather than Starlight's sidebar tint. */
+	:where(body:has([data-kbve-section])) .sidebar-pane {
+		background-color: var(--sl-color-black);
+		border-inline-end: 1px solid var(--bento-hairline);
+	}
+
+	/* Section header reads as a bento eyebrow, not a Starlight page title —
+	   the body font here is serif, which is why it looked pasted on. */
 	[data-kbve-section-root] {
 		box-sizing: border-box;
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-		padding: 0.65rem 0.75rem;
-		border-bottom: 1px solid
-			var(--sl-color-hairline, var(--color-gold-dark));
-		color: var(--sl-color-white);
-		font-size: 0.75rem;
+		padding: 0.7rem 0.85rem;
+		border-bottom: 1px solid var(--bento-hairline);
+		font-family: var(--__sl-font-mono, ui-monospace, monospace);
+		font-size: 0.6875rem;
 		font-weight: 600;
-		letter-spacing: 0.08em;
+		letter-spacing: 0.1em;
 		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
 		text-decoration: none;
+		transition: color 160ms ease;
 	}
 
 	[data-kbve-section-root]:hover {
+		color: var(--sl-color-white);
 		background-color: color-mix(
 			in srgb,
 			var(--sl-color-white) 4%,
@@ -1072,9 +1083,8 @@ body:has([data-kbve-section])
 		align-items: center;
 		gap: 0.5rem;
 		height: 3rem;
-		padding: 0.5rem 0.75rem;
-		border-bottom: 1px solid
-			var(--sl-color-hairline, var(--color-gold-dark));
+		padding: 0.5rem 0.85rem;
+		border-bottom: 1px solid var(--bento-hairline);
 	}
 
 	[data-kbve-rail-toggle] {
@@ -1109,20 +1119,28 @@ body:has([data-kbve-section])
 		flex: 1 1 auto;
 		min-width: 0;
 	}
+	/* Matches .facet-search__input — the gutter's search field. */
 	[data-kbve-filter] {
 		box-sizing: border-box;
 		width: 100%;
 		height: 2rem;
-		padding: 0.35rem 0.6rem;
-		font-size: 0.85rem;
-		color: var(--sl-color-white, var(--color-parchment));
-		background: var(--sl-color-bg, var(--color-bg-sunken));
-		border: 1px solid var(--sl-color-gray-5, var(--color-gold-dark));
-		border-radius: 0.4rem;
+		padding: 0.5rem 0.75rem;
+		font-size: 0.8125rem;
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
+		border: 1px solid var(--bento-hairline-strong);
+		border-radius: 8px;
 		outline: none;
 	}
+	[data-kbve-filter]::placeholder {
+		color: var(--sl-color-gray-4);
+	}
 	[data-kbve-filter]:focus {
-		border-color: var(--sl-color-accent, var(--color-gold));
+		border-color: var(--sl-color-accent);
 	}
 
 	[data-kbve-sidebar-scroll] {
@@ -1138,36 +1156,48 @@ body:has([data-kbve-section])
 		padding: 0;
 	}
 	[data-kbve-sublist] [data-kbve-sublist] {
-		margin-inline-start: 0.6rem;
-		padding-inline-start: 0.4rem;
-		border-inline-start: 1px solid
-			var(--sl-color-hairline, var(--color-gold-dark));
+		margin-inline-start: 0.85rem;
+		padding-inline-start: 0.6rem;
+		border-inline-start: 1px solid var(--bento-hairline-strong);
 	}
 	[data-kbve-item] {
-		margin: 0.2rem 0;
+		margin: 0.125rem 0;
 	}
 
+	/* Rows carry .facet-row metrics so the rail reads the same as the
+	   faceted browsers elsewhere in the bento system. */
 	[data-kbve-link],
 	[data-kbve-summary] {
 		display: flex;
 		align-items: center;
-		gap: 0.4rem;
-		padding: 0.3rem 0.5rem;
-		border-radius: 0.4rem;
-		font-size: 0.9rem;
+		gap: 0.5rem;
+		padding: 0.5rem;
+		border-radius: 6px;
+		font-size: 0.875rem;
 		line-height: 1.3;
-		color: var(--sl-color-gray-2, var(--color-parchment));
+		color: var(--sl-color-gray-2);
 		text-decoration: none;
 		cursor: pointer;
+		transition:
+			color 160ms ease,
+			background-color 160ms ease;
 	}
 	[data-kbve-link]:hover,
 	[data-kbve-summary]:hover {
-		background: var(--sl-color-gray-6, var(--color-bg-raised));
-		color: var(--sl-color-white, var(--color-parchment));
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
 	}
 	[data-kbve-link][aria-current='page'] {
-		color: var(--sl-color-text-accent, var(--color-gold));
-		background: var(--sl-color-accent-low, rgba(166, 125, 67, 0.18));
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-accent-high) 18%,
+			transparent
+		);
 		font-weight: 600;
 	}
 	[data-kbve-label] {
@@ -1178,9 +1208,19 @@ body:has([data-kbve-section])
 		white-space: nowrap;
 	}
 
+	/* Group headers use the .facet-group__label eyebrow treatment rather
+	   than looking like slightly-bolder links. */
 	[data-kbve-summary] {
 		list-style: none;
+		font-family: var(--__sl-font-mono, ui-monospace, monospace);
+		font-size: 0.6875rem;
 		font-weight: 600;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-4);
+	}
+	[data-kbve-summary]:hover {
+		color: var(--sl-color-gray-2);
 	}
 	[data-kbve-summary]::-webkit-details-marker {
 		display: none;
@@ -1205,14 +1245,31 @@ body:has([data-kbve-section])
 		background: var(--sl-color-accent, var(--color-gold-dark));
 	}
 
+	/* Rounded icon well, matching .bento-icon-tile. */
 	[data-kbve-group-icon] {
 		flex: none;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: 1.125rem;
-		height: 1.125rem;
-		color: var(--sl-color-gray-3, var(--color-gold));
+		width: 1.5rem;
+		height: 1.5rem;
+		border-radius: 0.45rem;
+		color: var(--sl-color-gray-3);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
+		border: 1px solid var(--bento-hairline);
+		transition:
+			color 160ms ease,
+			border-color 160ms ease;
+	}
+
+	[data-kbve-group][open] > [data-kbve-summary] [data-kbve-group-icon],
+	[data-kbve-summary]:hover [data-kbve-group-icon] {
+		color: var(--sl-color-accent-high);
+		border-color: var(--bento-hairline-strong);
 	}
 	a[data-kbve-group-icon] {
 		cursor: pointer;
@@ -1232,8 +1289,10 @@ body:has([data-kbve-section])
 	[data-kbve-rail='collapsed'] [data-kbve-filter-field] {
 		display: none;
 	}
-	[data-kbve-rail='collapsed'] [data-kbve-sidebar-chrome] {
-		padding-inline-end: 0;
+	[data-kbve-rail='collapsed'] [data-kbve-sidebar-chrome],
+	[data-kbve-rail='collapsed'] [data-kbve-section-root] {
+		justify-content: center;
+		padding-inline: 0;
 	}
 
 	[data-kbve-rail='collapsed'] [data-kbve-label],
@@ -1243,6 +1302,29 @@ body:has([data-kbve-section])
 	}
 	[data-kbve-rail='collapsed'] [data-kbve-group] > [data-kbve-sublist] {
 		display: none;
+	}
+
+	/* Collapsed the rail is 4rem wide, and the expanded inline padding
+	   (sidebar-content + scroll + row) sums to 2rem — enough to shove the
+	   icon tile against the right edge and read as clipped. Zero it out and
+	   centre the rows instead. */
+	[data-kbve-rail='collapsed'] [data-kbve-sidebar-scroll] {
+		padding-inline: 0;
+		scrollbar-width: none;
+	}
+	[data-kbve-rail='collapsed'] [data-kbve-sidebar-scroll]::-webkit-scrollbar {
+		display: none;
+	}
+	[data-kbve-rail='collapsed'] [data-kbve-summary],
+	[data-kbve-rail='collapsed'] [data-kbve-link] {
+		justify-content: center;
+		gap: 0;
+		padding-inline: 0;
+	}
+	[data-kbve-rail='collapsed'] [data-kbve-sublist] [data-kbve-sublist] {
+		margin-inline-start: 0;
+		padding-inline-start: 0;
+		border-inline-start: 0;
 	}
 	[data-kbve-rail='collapsed']
 		[data-kbve-sidebar-scroll]
@@ -1263,7 +1345,13 @@ body:has([data-kbve-section])
 			--sl-sidebar-width: 4rem;
 		}
 		:root[data-kbve-rail='collapsed'] .sidebar-content {
-			padding-inline-end: 0;
+			padding-inline: 0;
+		}
+		/* Starlight reserves a stable scrollbar gutter on the pane, which
+		   offsets the centred icons by half its width once the rail is only
+		   4rem wide. */
+		:root[data-kbve-rail='collapsed'] .sidebar-pane {
+			scrollbar-gutter: auto;
 		}
 	}
 
