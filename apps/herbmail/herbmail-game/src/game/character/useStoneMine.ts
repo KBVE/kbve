@@ -4,7 +4,7 @@ import { getDungeon } from '../dungeon/store';
 import { PROP_STONE } from '../prop/kinds';
 import { registerInteract } from '../interact/registry';
 import { onPropContact } from './melee';
-import { mineHit } from './mine';
+import { actionForStone, mineHit, mineRefusal } from './mine';
 
 const MELEE_REACH = 1.2;
 
@@ -30,10 +30,18 @@ export function useStoneMine(): void {
 			}
 			if (best < 0) return null;
 			const eid = best;
+			const action = actionForStone(eid);
+			const refusal = mineRefusal(eid);
+			const verb =
+				refusal === 'tool'
+					? 'need a pickaxe'
+					: refusal === 'level'
+						? `need mining ${action?.requiredLevel}`
+						: (action?.name.toLowerCase() ?? 'mine the rock');
 			return {
 				target: {
 					id: `stone:${eid}`,
-					verb: 'mine the rock',
+					verb,
 					interact: () => mineHit(eid),
 				},
 				dist2: bestD,

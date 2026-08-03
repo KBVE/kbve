@@ -1,0 +1,43 @@
+---
+title: 'Diamond'
+template: splash
+sidebar:
+    label: 'Diamond'
+    hidden: true
+description: |
+    Colourless to the point of looking like nothing at all until the light hits an edge and throws it back in pieces. Scratches every other stone in the pouch and takes nothing back from any of them.
+lore: |
+    Found so rarely in the crystal beds that most miners work a full career on hearsay alone, and the ones who do find a diamond generally stop mining shortly afterward. The cutters' guild keeps a ledger of every stone above a certain weight, less out of ceremony than because a diamond that changes hands quietly has usually changed hands wrongly.
+ref: 'diamond'
+key: 120
+id: '01KZ2YBFJ1PYJP26M3GWW65V3T'
+name: 'Diamond'
+type_flags: 384
+consumable: false
+stackable: true
+max_stack: 8
+rarity: 'legendary'
+buy_price: 520
+sell_price: 240
+emoji: '💎'
+weight: 1.5
+tags:
+  - isometric
+  - gem
+credits: 'Gem model by Ponam (sketchfab.com/poonyamano), CC-BY-4.0 — recoloured per gem'
+stacking:
+  pack_max: 4
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

@@ -19,6 +19,12 @@
 			],
 			"@kbve/itemdb-schema": [
 				"../../../packages/data/codegen/generated/itemdb-schema.ts"
+			],
+			"@kbve/professiondb-data": [
+				"../../../packages/data/codegen/generated/professiondb-runtime.json"
+			],
+			"@kbve/mapdb-data": [
+				"../../../packages/data/codegen/generated/mapdb-data.json"
 			]
 		},
 		"strict": true,

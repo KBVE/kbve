@@ -1,5 +1,5 @@
 {
-  "content_version": "sha256-945dc1083931bcf3",
+  "content_version": "sha256-438e8d1ce3dcfadc",
   "slug_to_key": {
     "alchemist-stardust": 9,
     "allium": 113,
@@ -50,12 +50,14 @@
     "crystal-ore": 104,
     "daisy": 106,
     "data-cd": 27,
+    "diamond": 120,
     "dragon-scale": 98,
     "dragonfruit": 506,
     "ecto-cooler-drank-type-95": 3,
     "eds-jelly-jam": 41,
     "egg": 527,
     "elixir": 73,
+    "emerald": 121,
     "excalibur": 90,
     "feather": 519,
     "filter-mask": 617,
@@ -157,9 +159,11 @@
     "rotten-meat": 545,
     "rotten-milk": 544,
     "rubber-tire": 24,
+    "ruby": 123,
     "runeguard-plate": 97,
     "rusty-sword": 84,
     "salmon": 1,
+    "sapphire": 122,
     "shadow-cloak": 96,
     "shadow-dagger": 85,
     "shin-wraps": 624,
@@ -277,6 +281,20 @@
     ],
     "117": [
       29
+    ],
+    "120": [
+      17
+    ],
+    "121": [
+      15,
+      16
+    ],
+    "122": [
+      16,
+      17
+    ],
+    "123": [
+      17
     ],
     "500": [
       36

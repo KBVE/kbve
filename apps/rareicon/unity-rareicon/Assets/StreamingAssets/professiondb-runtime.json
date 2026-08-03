@@ -753,6 +753,11 @@
             {
               "itemRef": "copper-ore",
               "quantity": 1
+            },
+            {
+              "itemRef": "emerald",
+              "quantity": 1,
+              "chance": 0.04
             }
           ],
           "harvestWeight": 100
@@ -772,6 +777,16 @@
             {
               "itemRef": "iron-ore",
               "quantity": 1
+            },
+            {
+              "itemRef": "emerald",
+              "quantity": 1,
+              "chance": 0.03
+            },
+            {
+              "itemRef": "sapphire",
+              "quantity": 1,
+              "chance": 0.02
             }
           ],
           "harvestWeight": 100
@@ -791,6 +806,21 @@
             {
               "itemRef": "crystal-ore",
               "quantity": 1
+            },
+            {
+              "itemRef": "sapphire",
+              "quantity": 1,
+              "chance": 0.04
+            },
+            {
+              "itemRef": "ruby",
+              "quantity": 1,
+              "chance": 0.02
+            },
+            {
+              "itemRef": "diamond",
+              "quantity": 1,
+              "chance": 0.005
             }
           ],
           "harvestWeight": 100

@@ -1,0 +1,43 @@
+---
+title: 'Emerald'
+template: splash
+sidebar:
+    label: 'Emerald'
+    hidden: true
+description: |
+    A green so deep it reads black at the edges until the light finds the right angle, threaded with the fine internal fractures every emerald carries and no cutter can remove. Lighter in the hand than it looks.
+lore: |
+    Emeralds come out of the deep copper seams rather than the crystal beds, which is why miners who find one are usually looking for something else entirely. The flaws inside are considered proof of origin rather than defect, and a stone too clean to have any is watched closely by anyone who has been cheated before.
+ref: 'emerald'
+key: 121
+id: '01KZ2RKKY9PJVG7DEJ0T55Y5J0'
+name: 'Emerald'
+type_flags: 384
+consumable: false
+stackable: true
+max_stack: 16
+rarity: 'rare'
+buy_price: 110
+sell_price: 50
+emoji: '💚'
+weight: 1.5
+tags:
+  - isometric
+  - gem
+credits: 'Gem model by Ponam (sketchfab.com/poonyamano), CC-BY-4.0 — recoloured per gem'
+stacking:
+  pack_max: 4
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />
