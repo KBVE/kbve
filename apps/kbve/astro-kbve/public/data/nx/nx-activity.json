@@ -1,176 +1,176 @@
 {
-  "generated_at": "2026-08-02T04:23:27Z",
+  "generated_at": "2026-08-03T04:29:46Z",
   "window": {
     "days": 7,
-    "since": "2026-07-26T04:23:27Z"
+    "since": "2026-07-27T04:29:46Z"
   },
   "commits": {
-    "total": 458,
+    "total": 500,
     "authors": 2,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 248
+        "commits": 286
       },
       {
         "author": "github-actions[bot]",
-        "commits": 210
+        "commits": 214
       }
     ],
     "recent": [
       {
-        "sha": "477e623",
+        "sha": "b3031ad",
         "author": "h0lybyte",
-        "message": "Merge pull request #15117 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/477e623bd6c0994d6faaacdd781c9e3a384887b1",
-        "date": "2026-08-02T04:06:10Z"
+        "message": "Merge pull request #15200 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/b3031ad7ce5e84a23364c388328fdc94a9b7daba",
+        "date": "2026-08-02T17:46:55Z"
       },
       {
-        "sha": "6a64b23",
+        "sha": "472b8c4",
         "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#15122)",
-        "url": "https://github.com/KBVE/kbve/commit/6a64b23453a1d1a599472c7a289d044a9edbbd32",
-        "date": "2026-08-02T04:04:44Z"
+        "message": "chore(herbmail-game): post-publish sync to v0.1.17 (#15199)",
+        "url": "https://github.com/KBVE/kbve/commit/472b8c48c5ad0b81730eea83c204c404fc02fb45",
+        "date": "2026-08-02T17:41:03Z"
       },
       {
-        "sha": "2e478c9",
-        "author": "h0lybyte",
-        "message": "chore(kbve): preparing the release of the v1.0.265",
-        "url": "https://github.com/KBVE/kbve/commit/2e478c9e9f0c37be025e2e2e4d9053df8424b8ac",
-        "date": "2026-08-02T04:03:26Z"
-      },
-      {
-        "sha": "a5b19bf",
-        "author": "h0lybyte",
-        "message": "chore(herbmail): preparing the next release of the game.",
-        "url": "https://github.com/KBVE/kbve/commit/a5b19bf8332fcac8f338bd2435ec9198bb60316d",
-        "date": "2026-08-02T04:02:17Z"
-      },
-      {
-        "sha": "701cd7f",
+        "sha": "50ce658",
         "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#15121)",
-        "url": "https://github.com/KBVE/kbve/commit/701cd7fff338f581531170858e3941bfce6bfa18",
-        "date": "2026-08-02T03:49:18Z"
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#15198)",
+        "url": "https://github.com/KBVE/kbve/commit/50ce658f473b1a402ad07c384c5a455c94a00567",
+        "date": "2026-08-02T17:36:40Z"
       },
       {
-        "sha": "3e5a610",
+        "sha": "5d602a3",
         "author": "h0lybyte",
-        "message": "feat(reel): expose peer-drop diagnostics (port rotations, VPN fail streak) on /status (#15120)",
-        "url": "https://github.com/KBVE/kbve/commit/3e5a610c6dbc5d13f24d74359c70abd06a972430",
-        "date": "2026-08-02T03:47:08Z"
+        "message": "Merge pull request #15196 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/5d602a35c152dc93cfd3ba2d60e93bd5bdd1044a",
+        "date": "2026-08-02T17:35:45Z"
       },
       {
-        "sha": "71706fe",
+        "sha": "d9e5188",
+        "author": "h0lybyte",
+        "message": "chore(herbmail): preparing the release of v0.1.17",
+        "url": "https://github.com/KBVE/kbve/commit/d9e5188d3965c01bb066638ecf39e17fcac0f3c4",
+        "date": "2026-08-02T17:34:22Z"
+      },
+      {
+        "sha": "bc82a45",
+        "author": "h0lybyte",
+        "message": "fix(herbmail-game): stop gltfpack thinning animation tracks in prod builds",
+        "url": "https://github.com/KBVE/kbve/commit/bc82a455c385a1fa3ba0051eefa7e1ff9ad2bab7",
+        "date": "2026-08-02T17:33:44Z"
+      },
+      {
+        "sha": "99e7ca3",
         "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#15119)",
-        "url": "https://github.com/KBVE/kbve/commit/71706fe24a4bbac37494b2f47e9423182b609a82",
-        "date": "2026-08-02T03:45:20Z"
+        "message": "chore(axum-kbve): post-publish sync to v1.0.267 (#15197)",
+        "url": "https://github.com/KBVE/kbve/commit/99e7ca3a0fa180e022c77b12331b8a89a01231eb",
+        "date": "2026-08-02T17:23:01Z"
       },
       {
-        "sha": "4e4e2f7",
-        "author": "h0lybyte",
-        "message": "feat(palworld): shared live poller via @kbve/droid events, lazy map repaint (#15118)",
-        "url": "https://github.com/KBVE/kbve/commit/4e4e2f7ba7d12af74dd6ed9344772a70ed0d863a",
-        "date": "2026-08-02T03:43:13Z"
-      },
-      {
-        "sha": "603da88",
-        "author": "h0lybyte",
-        "message": "fix(arpg-web): build container from the root pnpm install (#15116)",
-        "url": "https://github.com/KBVE/kbve/commit/603da88b45f2a2642dd8beb9f368126a9ffe983f",
-        "date": "2026-08-02T02:50:28Z"
-      },
-      {
-        "sha": "be418c0",
-        "author": "h0lybyte",
-        "message": "perf(astro-kbve): sprite cache for palworld map redraw, in-game oil rig icon (#15115)",
-        "url": "https://github.com/KBVE/kbve/commit/be418c0cf502ec46d15bce6d7e7c4036aed78dc0",
-        "date": "2026-08-02T02:50:21Z"
-      },
-      {
-        "sha": "34289b9",
-        "author": "h0lybyte",
-        "message": "Merge pull request #15114 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/34289b9d47faef33f6efa2447d5314ef88975a97",
-        "date": "2026-08-02T02:27:26Z"
-      },
-      {
-        "sha": "178522e",
+        "sha": "5eb3ea5",
         "author": "github-actions[bot]",
-        "message": "chore(axum-kbve): post-publish sync to v1.0.264 (#15113)",
-        "url": "https://github.com/KBVE/kbve/commit/178522e7c38bd9b78e2c951133b7e06124e8eb8c",
-        "date": "2026-08-02T02:17:58Z"
+        "message": "chore(herbmail-game): post-publish sync to v0.1.16 (#15195)",
+        "url": "https://github.com/KBVE/kbve/commit/5eb3ea55078bef4732b167c387d4eb13930c0ea6",
+        "date": "2026-08-02T16:55:50Z"
+      },
+      {
+        "sha": "d633440",
+        "author": "h0lybyte",
+        "message": "Merge pull request #15193 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/d633440ebaea89c901ff09fc5e238ac73ee702d3",
+        "date": "2026-08-02T16:50:30Z"
+      },
+      {
+        "sha": "4a744ee",
+        "author": "h0lybyte",
+        "message": "fix(isometric): allow swc/esbuild builds so pnpm install passes (#15194)",
+        "url": "https://github.com/KBVE/kbve/commit/4a744eea015cd205a96deb54134675d2b08ecac3",
+        "date": "2026-08-02T16:50:08Z"
+      },
+      {
+        "sha": "b008284",
+        "author": "h0lybyte",
+        "message": "fix(docker): mirror workspace.dependencies into Cargo stub manifests (#15192)",
+        "url": "https://github.com/KBVE/kbve/commit/b008284367af424b166ba9ff40310763c3a58251",
+        "date": "2026-08-02T16:26:29Z"
+      },
+      {
+        "sha": "5727ba5",
+        "author": "github-actions[bot]",
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#15183)",
+        "url": "https://github.com/KBVE/kbve/commit/5727ba53d7a11d52836a98ce70af0823756eb391",
+        "date": "2026-08-02T16:00:22Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 438,
+    "merged": 462,
     "recent": [
       {
-        "number": 15127,
-        "title": "chore(droid): update version.toml to 0.1.2",
+        "number": 15200,
+        "title": "Release: 2 chores \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15127"
+        "url": "https://github.com/KBVE/kbve/pull/15200"
       },
       {
-        "number": 15128,
-        "title": "Atomic: reel v0.1.35 post-publish sync",
+        "number": 15199,
+        "title": "Atomic: herbmail-game v0.1.17 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15128"
+        "url": "https://github.com/KBVE/kbve/pull/15199"
       },
       {
-        "number": 15125,
-        "title": "Atomic: herbmail-game v0.1.13 post-publish sync",
+        "number": 15198,
+        "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15125"
+        "url": "https://github.com/KBVE/kbve/pull/15198"
       },
       {
-        "number": 15124,
-        "title": "feat(reel): live stream-activity diagnostics feed on the player page",
+        "number": 15196,
+        "title": "Release: 1 fix, 3 chores \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15196"
+      },
+      {
+        "number": 15197,
+        "title": "Atomic: axum-kbve v1.0.267 post-publish sync",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15197"
+      },
+      {
+        "number": 15195,
+        "title": "Atomic: herbmail-game v0.1.16 post-publish sync",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15195"
+      },
+      {
+        "number": 15193,
+        "title": "Release: 2 fixes, 1 chore \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15193"
+      },
+      {
+        "number": 15194,
+        "title": "fix(isometric): allow swc/esbuild builds so pnpm install passes",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15124"
+        "url": "https://github.com/KBVE/kbve/pull/15194"
       },
       {
-        "number": 15123,
-        "title": "chore(ci): sync ci-dispatch-manifest",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15123"
-      },
-      {
-        "number": 15117,
-        "title": "Release: 2 features, 1 fix, 1 perf, 4 chores \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15117"
-      },
-      {
-        "number": 15122,
-        "title": "chore(ci): sync ci-dispatch-manifest",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15122"
-      },
-      {
-        "number": 15121,
-        "title": "chore(ci): sync ci-dispatch-manifest",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15121"
-      },
-      {
-        "number": 15120,
-        "title": "feat(reel): surface peer-drop diagnostics to the user (port rotations, VPN streak)",
+        "number": 15192,
+        "title": "fix(docker): mirror workspace.dependencies into Cargo stub manifests",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15120"
+        "url": "https://github.com/KBVE/kbve/pull/15192"
       },
       {
-        "number": 15119,
+        "number": 15183,
         "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15119"
+        "url": "https://github.com/KBVE/kbve/pull/15183"
       }
     ]
   },
   "issues": {
-    "opened": 448,
-    "closed": 442
+    "opened": 470,
+    "closed": 469
   }
 }
