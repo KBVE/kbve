@@ -613,6 +613,70 @@ export default function ReactPalworldMap() {
 			}
 		};
 
+		const baseLayer = L.layerGroup().addTo(map);
+		const baseMarkers = new Map<string, L.Marker>();
+		let baseCountText: Text | null = null;
+		const baseIcon = () =>
+			L.divIcon({
+				className: 'pal-base',
+				iconSize: [26, 26],
+				iconAnchor: [13, 13],
+				html:
+					`<div style="width:26px;height:26px;border-radius:50%;background:rgba(8,14,24,0.88);` +
+					`border:2px solid #34d399;display:flex;align-items:center;justify-content:center;` +
+					`box-shadow:0 0 10px #34d39999">` +
+					`<svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="#34d399" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">` +
+					`<path d="M2 8 8 2l6 6" />` +
+					`<path d="M4 7v7h8V7" fill="rgba(52,211,153,0.25)"/>` +
+					`<path d="M6.5 14v-4h3v4" fill="rgba(52,211,153,0.5)"/>` +
+					`</svg></div>`,
+			});
+		type GuildIntel = {
+			id: string;
+			name: string;
+			base_camp_level?: number;
+			players?: { name: string }[];
+			pal_handles?: number;
+			bases?: { id: string; x: number; y: number }[];
+		};
+		const syncBases = (guilds: GuildIntel[]) => {
+			const seen = new Set<string>();
+			let total = 0;
+			for (const g of guilds) {
+				for (const b of g.bases ?? []) {
+					total += 1;
+					seen.add(b.id);
+					if (baseMarkers.has(b.id)) continue;
+					const m = L.marker(gameToLatLng(b.x, b.y), {
+						icon: baseIcon(),
+						keyboard: false,
+						zIndexOffset: 300,
+					});
+					const roster = (g.players ?? [])
+						.map((p) => p.name)
+						.join(', ');
+					m.bindTooltip(
+						`<strong>${g.name || 'Guild'}</strong>` +
+							(g.base_camp_level
+								? ` — Camp Lv ${g.base_camp_level}`
+								: '') +
+							(roster ? `<br/>${roster}` : '') +
+							(g.pal_handles ? `<br/>${g.pal_handles} pals` : ''),
+						{ direction: 'top', offset: [0, -14], opacity: 0.95 },
+					);
+					m.addTo(baseLayer);
+					baseMarkers.set(b.id, m);
+				}
+			}
+			for (const [id, m] of baseMarkers) {
+				if (!seen.has(id)) {
+					baseLayer.removeLayer(m);
+					baseMarkers.delete(id);
+				}
+			}
+			if (baseCountText) baseCountText.textContent = `Bases (${total})`;
+		};
+
 		const countTexts = new Map<number, Text>();
 		const control = new L.Control({ position: 'topright' });
 		control.onAdd = () => {
@@ -652,6 +716,21 @@ export default function ReactPalworldMap() {
 				row.appendChild(txt);
 				div.appendChild(row);
 			}
+			const baseRow = document.createElement('label');
+			baseRow.style.cssText =
+				'display:flex;gap:6px;align-items:center;cursor:pointer';
+			const baseCb = document.createElement('input');
+			baseCb.type = 'checkbox';
+			baseCb.checked = true;
+			baseCb.onchange = () => {
+				baseCb.checked
+					? baseLayer.addTo(map)
+					: map.removeLayer(baseLayer);
+			};
+			baseRow.appendChild(baseCb);
+			baseCountText = document.createTextNode('Bases (0)');
+			baseRow.appendChild(baseCountText);
+			div.appendChild(baseRow);
 			return div;
 		};
 		control.addTo(map);
@@ -740,10 +819,25 @@ export default function ReactPalworldMap() {
 		DroidEvents.on('palworld-live-snapshot', onSnapshot);
 		startLivePoller(liveUrl);
 
+		const basesUrl = liveUrl.replace(/\/live\/players.*/, '/live/bases');
+		const pollBases = async () => {
+			try {
+				const res = await fetch(basesUrl, { cache: 'no-store' });
+				if (!res.ok) return;
+				const d = (await res.json()) as { guilds?: GuildIntel[] };
+				if (Array.isArray(d.guilds)) syncBases(d.guilds);
+			} catch {
+				return;
+			}
+		};
+		pollBases();
+		const basesTick = setInterval(pollBases, 120_000);
+
 		return () => {
 			stopped = true;
 			DroidEvents.off('palworld-live-snapshot', onSnapshot);
 			clearInterval(cooldownTick);
+			clearInterval(basesTick);
 			if (wheelRaf) cancelAnimationFrame(wheelRaf);
 			if (playerRaf) cancelAnimationFrame(playerRaf);
 			if (redrawRaf) cancelAnimationFrame(redrawRaf);
