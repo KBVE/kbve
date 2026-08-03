@@ -261,20 +261,6 @@ namespace KBVEItemDBProto
 		if ((V = yyjson_obj_get(Obj, "spoilsIntoRef"))) Out.SpoilsIntoRef = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
 	}
 
-	inline void Populate(FKBVEGenSkillingInfo& Out, yyjson_val* Obj)
-	{
-		if (!Obj || !yyjson_is_obj(Obj)) return;
-		yyjson_val* V = nullptr; (void)V;
-		if ((V = yyjson_obj_get(Obj, "skill")) && yyjson_is_str(V)) Out.Skill = FString(UTF8_TO_TCHAR(yyjson_get_str(V)));
-		if ((V = yyjson_obj_get(Obj, "skillLevel"))) Out.SkillLevel = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
-		if ((V = yyjson_obj_get(Obj, "xpReward"))) Out.XpReward = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
-		if ((V = yyjson_obj_get(Obj, "toolRequired"))) Out.ToolRequired = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
-		if ((V = yyjson_obj_get(Obj, "gatherTime"))) Out.GatherTime = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
-		if ((V = yyjson_obj_get(Obj, "respawnTime"))) Out.RespawnTime = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
-		if ((V = yyjson_obj_get(Obj, "resourceNode"))) Out.ResourceNode = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
-		if ((V = yyjson_obj_get(Obj, "harvestWeight"))) Out.HarvestWeight = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
-	}
-
 	inline void Populate(FKBVEGenCompressInfo& Out, yyjson_val* Obj)
 	{
 		if (!Obj || !yyjson_is_obj(Obj)) return;

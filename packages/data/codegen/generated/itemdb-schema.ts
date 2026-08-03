@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/itemdb.binpb
  * Config: ../itemdb-zod-config.json
- * Generated: 2026-08-02T15:32:44.782Z
+ * Generated: 2026-08-03T09:33:02.102Z
  */
 
 import { z } from 'zod';
@@ -140,28 +140,6 @@ export const StatusEffectKinds = [
 export type StatusEffectKindValue = (typeof StatusEffectKinds)[number];
 
 export const StatusEffectKindSchema = z.enum(StatusEffectKinds);
-
-export const SkillingTypes = [
-	'cooking',
-	'smithing',
-	'crafting',
-	'alchemy',
-	'woodcutting',
-	'mining',
-	'fishing',
-	'farming',
-	'herblore',
-	'fletching',
-	'hunting',
-	'foraging',
-	'enchanting',
-	'tailoring',
-	'construction',
-] as const;
-
-export type SkillingTypeValue = (typeof SkillingTypes)[number];
-
-export const SkillingTypeSchema = z.enum(SkillingTypes);
 
 // UseEffect
 export const UseEffectSchema = z.object({
@@ -616,19 +594,3 @@ export const CompressInfoSchema = z.object({
 });
 
 export type CompressInfo = z.infer<typeof CompressInfoSchema>;
-
-// SkillingInfo
-export const SkillingInfoSchema = z
-	.object({
-		skill: SkillingTypeSchema,
-		skill_level: z.number().nullable().optional(),
-		xp_reward: z.number().nullable().optional(),
-		tool_required: z.string().nullable().optional(),
-		gather_time: z.number().nullable().optional(),
-		respawn_time: z.number().nullable().optional(),
-		resource_node: z.string().nullable().optional(),
-		harvest_weight: z.number().nullable().optional(),
-	})
-	.passthrough();
-
-export type SkillingInfo = z.infer<typeof SkillingInfoSchema>;

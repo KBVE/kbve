@@ -109,6 +109,6 @@ The map proto covers six layers:
 ## Related
 
 - NPC proto: [`../npc/`](../npc/) (`SpawnRule.zone`, spawn points reference zones)
-- Item proto: [`../item/`](../item/) (`SkillingInfo.resource_node` references world objects)
+- Profession proto: [`../profession/`](../profession/) (`ProfessionAction.resource_node_ref` references world objects; nodes back-ref via `professionActionRef`)
 - Quest proto: [`../quest/`](../quest/) (`zone_refs` reference zones)
 - Common types: [`../kbve/common.proto`](../kbve/common.proto)
