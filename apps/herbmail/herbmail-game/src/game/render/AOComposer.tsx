@@ -5,12 +5,13 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { N8AOPass } from 'n8ao';
 import { aoEnabled } from './qualityStore';
+import { useViewportSize } from './useViewportSize';
 
 export function AOComposer() {
 	const gl = useThree((s) => s.gl);
 	const scene = useThree((s) => s.scene);
 	const camera = useThree((s) => s.camera);
-	const size = useThree((s) => s.size);
+	const size = useViewportSize();
 	const lastPr = useRef(0);
 
 	const { composer, ao, plain } = useMemo(() => {

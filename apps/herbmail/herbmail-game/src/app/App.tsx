@@ -23,6 +23,7 @@ import { DungeonSky } from '../game/render/DungeonSky';
 import { SunShaft } from '../game/render/SunShaft';
 import { HeldGripDebug } from '../game/character/HeldGripDebug';
 import { DebugStats, StatsProbe } from '../game/hud/DebugStats';
+import { FrameProbe } from '../game/hud/FrameProbe';
 import { ContextWatch, ContextLostToast } from '../game/hud/ContextWatch';
 import { AssetBoundary, AssetFailureToast } from './AssetBoundary';
 import { useEquippedId } from '../game/viewmodel/store';
@@ -155,6 +156,7 @@ export function App() {
 				<AdaptiveQuality />
 				<ContextWatch />
 				{debug && <StatsProbe />}
+				{debug && <FrameProbe />}
 				{debug && <OasisLevelsDebug />}
 				<TorchPlacer />
 				<CratePlacer />

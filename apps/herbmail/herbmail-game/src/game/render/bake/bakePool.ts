@@ -1,5 +1,10 @@
 import * as THREE from 'three';
-import { LIGHT_RANGE, TORCH_STRIDE, type BakeJob, type BakeResult } from './bakeTypes';
+import {
+	LIGHT_RANGE,
+	TORCH_STRIDE,
+	type BakeJob,
+	type BakeResult,
+} from './bakeTypes';
 
 import { attParams } from '../lightGain';
 
@@ -31,7 +36,11 @@ function ensureWorkers(): Worker[] {
 			type: 'module',
 		});
 		w.onmessage = (e: MessageEvent<BakeResult[]>) => {
+			const t0 = performance.now();
 			for (const r of e.data) apply(r);
+			applyMs += performance.now() - t0;
+			applied += e.data.length;
+			batches++;
 		};
 		workers.push(w);
 	}
@@ -147,7 +156,10 @@ export function requestChunkBake(
 		);
 	}
 
-	sectorPending.set(ctx.signature, (sectorPending.get(ctx.signature) ?? 0) + 1);
+	sectorPending.set(
+		ctx.signature,
+		(sectorPending.get(ctx.signature) ?? 0) + 1,
+	);
 	geo.setAttribute(
 		BAKE_ATTR,
 		new THREE.BufferAttribute(new Float32Array(pos.length), 3),
@@ -192,6 +204,24 @@ export function requestChunkBake(
 			...(job.normal ? [job.normal.buffer] : []),
 		],
 	);
+}
+
+let applyMs = 0;
+let applied = 0;
+let batches = 0;
+
+export function bakeApplyStats(): {
+	applied: number;
+	batches: number;
+	ms: number;
+	pending: number;
+} {
+	return {
+		applied,
+		batches,
+		ms: +applyMs.toFixed(1),
+		pending: inFlight.size,
+	};
 }
 
 let hashMs = 0;

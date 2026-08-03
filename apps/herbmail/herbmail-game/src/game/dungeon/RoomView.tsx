@@ -1,6 +1,5 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import * as THREE from 'three';
-import { useThree } from '@react-three/fiber';
 import '../render/PsxMaterial';
 import { TILE } from '../config';
 import { getRoomGeoSet } from './roomGeometry';
@@ -8,6 +7,7 @@ import { roomDoors } from '../door/doors';
 import { DoorLeaf } from '../door/DoorLeaf';
 import type { RoomDesc } from './generate';
 import type { DungeonMaterials } from './dungeonMaterials';
+import { useViewportSize } from '../render/useViewportSize';
 
 interface Props {
 	desc: RoomDesc;
@@ -39,8 +39,8 @@ function ChunkGroup({
 	);
 }
 
-export function RoomView({ desc, snap, affine, mats }: Props) {
-	const size = useThree((s) => s.size);
+function RoomViewImpl({ desc, snap, affine, mats }: Props) {
+	const size = useViewportSize();
 	const res = useMemo(
 		() => new THREE.Vector2(size.width, size.height),
 		[size],
@@ -104,3 +104,10 @@ export function RoomView({ desc, snap, affine, mats }: Props) {
 		</group>
 	);
 }
+
+// The mount set changes on every margin crossing, not just sector crossings, and
+// each change re-rendered all 8-9 resident rooms — ~1600 chunk meshes reconciled
+// for a set that usually gained one room. Every prop here is a stable reference
+// across a rebuild (desc objects are owned by the dungeon world, mats is memoed),
+// so identity comparison is enough to leave untouched rooms alone.
+export const RoomView = memo(RoomViewImpl);
