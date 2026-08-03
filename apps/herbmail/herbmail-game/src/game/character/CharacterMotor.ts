@@ -24,6 +24,20 @@ export const MOTOR_DT = 1 / 120;
 // Ceiling on catch-up work in one frame; beyond this the backlog is dropped.
 export const MOTOR_MAX_STEPS = 8;
 
+// Exponential approach toward a target, framed so it is identical wherever it
+// runs. The worker (and later the server) integrate intent with this same
+// function rather than reimplementing the curve — two copies of a formula this
+// small is exactly how authoritative and predicted motion quietly diverge.
+// Three-free on purpose: the simulating host should not have to pull in three.
+export function approach(
+	current: number,
+	target: number,
+	accel: number,
+	dt: number,
+): number {
+	return current + (target - current) * (1 - Math.exp(-accel * dt));
+}
+
 export type Gait = 'idle' | 'walk' | 'run';
 
 // Turns a variable frame delta into whole simulation steps. Extracted from the
@@ -96,6 +110,15 @@ export class CharacterMotor {
 		this.desired.set(x, y, z);
 	}
 
+	/** Intent, for hosts that simulate this motor from outside. */
+	get desiredVelocity(): THREE.Vector3 {
+		return this.desired;
+	}
+
+	get accel(): number {
+		return this.cfg.accel;
+	}
+
 	get speed(): number {
 		return this.velocity.length();
 	}
@@ -119,8 +142,11 @@ export class CharacterMotor {
 
 	update(dt: number): void {
 		if (this.mode === 'climb') return;
-		const k = 1 - Math.exp(-this.cfg.accel * dt);
-		this.velocity.lerp(this.desired, k);
+		this.velocity.set(
+			approach(this.velocity.x, this.desired.x, this.cfg.accel, dt),
+			approach(this.velocity.y, this.desired.y, this.cfg.accel, dt),
+			approach(this.velocity.z, this.desired.z, this.cfg.accel, dt),
+		);
 		const dx = this.velocity.x * dt;
 		const dz = this.velocity.z * dt;
 		if (this.mover) this.mover(this.position, dx, dz);
