@@ -17,17 +17,19 @@
 /* Dark (default) */
 :root,
 [data-theme='dark'] {
-	--color-bg: #2a2f38;
-	--color-surface: #323842;
-	--color-surface-hover: #3a414c;
+	--color-bg: #1b1f26;
+	--color-chrome: #22262e;
+	--color-surface: #2c313b;
+	--color-surface-hover: #343a45;
 	--color-active: #3a414c;
-	--color-border: #3e4550;
+	--color-border: #3a414d;
+	--color-border-subtle: #313742;
 	--color-text: #f6f7f8;
-	--color-text-muted: #b4bbc5;
-	--color-accent: #6a7484;
-	--color-accent-hover: #b4bbc5;
-	--color-toggle-on: #e1e4e8;
-	--color-toggle-dot: #2a2f38;
+	--color-text-muted: #98a1af;
+	--color-accent: #7c9cf5;
+	--color-accent-hover: #93aef7;
+	--color-toggle-on: #7c9cf5;
+	--color-toggle-dot: #ffffff;
 	--color-shadow: rgba(0, 0, 0, 0.3);
 	--color-shadow-light: rgba(0, 0, 0, 0.1);
 	--color-backdrop: rgba(0, 0, 0, 0.4);
@@ -35,21 +37,24 @@
 	--color-status-running: #6bcb77;
 	--color-status-paused: #ffd93d;
 	--color-status-stopped: #ff6b6b;
+	--color-danger: #ff6b6b;
 }
 
 /* Light */
 [data-theme='light'] {
-	--color-bg: #f6f7f8;
+	--color-bg: #f1f3f5;
+	--color-chrome: #ffffff;
 	--color-surface: #ffffff;
-	--color-surface-hover: #e1e4e8;
-	--color-active: #e1e4e8;
-	--color-border: #d1d5db;
-	--color-text: #2a2f38;
-	--color-text-muted: #6a7484;
-	--color-accent: #b4bbc5;
-	--color-accent-hover: #6a7484;
-	--color-toggle-on: #2a2f38;
-	--color-toggle-dot: #f6f7f8;
+	--color-surface-hover: #f6f7f8;
+	--color-active: #e7ebf2;
+	--color-border: #dfe3e8;
+	--color-border-subtle: #edeff2;
+	--color-text: #1b1f26;
+	--color-text-muted: #667085;
+	--color-accent: #3b6fe0;
+	--color-accent-hover: #2f5cc4;
+	--color-toggle-on: #3b6fe0;
+	--color-toggle-dot: #ffffff;
 	--color-shadow: rgba(0, 0, 0, 0.08);
 	--color-shadow-light: rgba(0, 0, 0, 0.04);
 	--color-backdrop: rgba(0, 0, 0, 0.2);
@@ -57,6 +62,7 @@
 	--color-status-running: #16a34a;
 	--color-status-paused: #d97706;
 	--color-status-stopped: #dc2626;
+	--color-danger: #dc2626;
 }
 
 /* ─── Typography Scale (3 sizes only) ─────────────────────────────────────── */
@@ -70,10 +76,12 @@
 
 /* ─── Reset ───────────────────────────────────────────────────────────────── */
 
-* {
-	margin: 0;
-	padding: 0;
-	box-sizing: border-box;
+@layer base {
+	* {
+		margin: 0;
+		padding: 0;
+		box-sizing: border-box;
+	}
 }
 
 html,
@@ -113,6 +121,136 @@ body,
 .text-heading {
 	font-size: 15px;
 	line-height: 1.4;
+}
+
+.text-title {
+	font-size: 22px;
+	line-height: 1.25;
+	letter-spacing: -0.01em;
+}
+
+/* ─── Content Column ──────────────────────────────────────────────────────── */
+/*  Replaces per-view max-w-2xl: fills the window up to a readable ceiling. */
+
+.view-column {
+	display: flex;
+	flex-direction: column;
+	gap: 1.5rem;
+	width: 100%;
+	max-width: 60rem;
+}
+
+/* ─── Settings Card / Row ─────────────────────────────────────────────────── */
+
+.settings-card {
+	box-shadow: 0 1px 2px var(--color-shadow-light);
+}
+
+.settings-row + .settings-row {
+	border-top: 1px solid var(--color-border-subtle);
+}
+
+/* ─── Form Controls ───────────────────────────────────────────────────────── */
+
+.control {
+	appearance: none;
+	background-color: var(--color-bg);
+	border: 1px solid var(--color-border);
+	border-radius: 0.5rem;
+	color: var(--color-text);
+	font-size: 13px;
+	line-height: 1.5;
+	padding: 0.4rem 0.75rem;
+	transition:
+		border-color 150ms ease,
+		box-shadow 150ms ease;
+}
+
+.control:hover {
+	border-color: var(--color-accent);
+}
+
+.control:focus-visible {
+	outline: none;
+	border-color: var(--color-accent);
+	box-shadow: 0 0 0 3px
+		color-mix(in srgb, var(--color-accent) 25%, transparent);
+}
+
+.alert-danger {
+	border: 1px solid color-mix(in srgb, var(--color-danger) 45%, transparent);
+	background-color: color-mix(in srgb, var(--color-danger) 12%, transparent);
+	border-radius: 0.5rem;
+	color: var(--color-danger);
+	padding: 0.6rem 0.9rem;
+}
+
+.btn {
+	background-color: var(--color-bg);
+	border: 1px solid var(--color-border);
+	border-radius: 0.5rem;
+	color: var(--color-text);
+	font-size: 11px;
+	line-height: 1.45;
+	padding: 0.45rem 0.85rem;
+	cursor: pointer;
+	white-space: nowrap;
+	transition:
+		background-color 150ms ease,
+		border-color 150ms ease,
+		opacity 150ms ease;
+}
+
+.btn:hover:not(:disabled) {
+	background-color: var(--color-surface-hover);
+	border-color: var(--color-accent);
+}
+
+.btn:focus-visible {
+	outline: none;
+	border-color: var(--color-accent);
+	box-shadow: 0 0 0 3px
+		color-mix(in srgb, var(--color-accent) 25%, transparent);
+}
+
+.btn:disabled {
+	opacity: 0.45;
+	cursor: not-allowed;
+}
+
+.btn-primary {
+	background-color: var(--color-accent);
+	border-color: var(--color-accent);
+	color: #ffffff;
+}
+
+.btn-danger {
+	color: var(--color-danger);
+	border-color: color-mix(in srgb, var(--color-danger) 40%, transparent);
+}
+
+.btn-danger:hover:not(:disabled) {
+	background-color: color-mix(in srgb, var(--color-danger) 12%, transparent);
+	border-color: var(--color-danger);
+}
+
+.btn-primary:hover:not(:disabled) {
+	background-color: var(--color-accent-hover);
+	border-color: var(--color-accent-hover);
+}
+
+select.control {
+	padding-right: 2rem;
+	background-image:
+		linear-gradient(45deg, transparent 50%, var(--color-text-muted) 50%),
+		linear-gradient(135deg, var(--color-text-muted) 50%, transparent 50%);
+	background-position:
+		calc(100% - 15px) calc(50% + 1px),
+		calc(100% - 10px) calc(50% + 1px);
+	background-size:
+		5px 5px,
+		5px 5px;
+	background-repeat: no-repeat;
 }
 
 .font-display {

@@ -46,7 +46,7 @@ export function AudioView() {
 	}, []);
 
 	return (
-		<div className="flex max-w-2xl flex-col gap-6">
+		<div className="view-column">
 			<SettingsCard title="Audio Devices">
 				<SettingsRow
 					label="Microphone"
@@ -107,12 +107,7 @@ export function AudioView() {
 					description="Play the recording start/stop feedback sound">
 					<button
 						onClick={() => commands.playTestSound('start')}
-						className="rounded-md border px-3 py-1.5 text-caption"
-						style={{
-							backgroundColor: 'var(--color-bg)',
-							borderColor: 'var(--color-border)',
-							color: 'var(--color-text)',
-						}}>
+						className="btn">
 						Play
 					</button>
 				</SettingsRow>
@@ -132,12 +127,7 @@ function DeviceSelect({
 }) {
 	return (
 		<select
-			className="max-w-xs rounded-md border px-3 py-1.5 text-body"
-			style={{
-				backgroundColor: 'var(--color-bg)',
-				borderColor: 'var(--color-border)',
-				color: 'var(--color-text)',
-			}}
+			className="control max-w-xs"
 			value={value || DEFAULT}
 			onChange={(e) =>
 				onChange(e.target.value === DEFAULT ? '' : e.target.value)
