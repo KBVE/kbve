@@ -347,37 +347,6 @@ struct KBVEITEMDB_API FKBVEGenFoodInfo
 };
 
 USTRUCT(BlueprintType)
-struct KBVEITEMDB_API FKBVEGenSkillingInfo
-{
-	GENERATED_BODY()
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
-	FString Skill;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
-	int32 SkillLevel = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
-	float XpReward = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
-	FString ToolRequired;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
-	float GatherTime = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
-	int32 RespawnTime = 0;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
-	FString ResourceNode;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|ItemDB")
-	int32 HarvestWeight = 0;
-
-};
-
-USTRUCT(BlueprintType)
 struct KBVEITEMDB_API FKBVEGenCompressInfo
 {
 	GENERATED_BODY()

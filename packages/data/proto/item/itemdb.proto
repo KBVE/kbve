@@ -129,26 +129,6 @@ enum StatusEffectKind {
   STATUS_EFFECT_BLESSED    = 14;
 }
 
-// Skilling discipline
-enum SkillingType {
-  SKILLING_UNSPECIFIED  = 0;
-  SKILLING_COOKING      = 1;
-  SKILLING_SMITHING     = 2;
-  SKILLING_CRAFTING     = 3;
-  SKILLING_ALCHEMY      = 4;
-  SKILLING_WOODCUTTING  = 5;
-  SKILLING_MINING       = 6;
-  SKILLING_FISHING      = 7;
-  SKILLING_FARMING      = 8;
-  SKILLING_HERBLORE     = 9;
-  SKILLING_FLETCHING    = 10;
-  SKILLING_HUNTING      = 11;
-  SKILLING_FORAGING     = 12;
-  SKILLING_ENCHANTING   = 13;
-  SKILLING_TAILORING    = 14;
-  SKILLING_CONSTRUCTION = 15;
-}
-
 // =============================================================================
 // Sub-messages
 // =============================================================================
@@ -287,18 +267,6 @@ message FoodInfo {
   optional bool perishable = 12;        // Item decays over time if true
   optional int32 shelf_life_seconds = 13; // Time from creation/harvest until spoil
   optional string spoils_into_ref = 14; // Item produced on spoilage (e.g. "rotten-meat")
-}
-
-// Skilling properties — for items that interact with skill systems
-message SkillingInfo {
-  SkillingType skill = 1;               // Primary skill this item relates to
-  optional int32 skill_level = 2;       // Level required to gather/use/process
-  optional float xp_reward = 3;         // XP granted per gather/action
-  optional string tool_required = 4;    // Tool item ref needed (e.g. "pickaxe" for ores)
-  optional float gather_time = 5;       // Base time to gather/harvest in seconds
-  optional int32 respawn_time = 6;      // Seconds before resource node respawns
-  optional string resource_node = 7;    // World object ref (e.g. "oak_tree", "copper_vein")
-  optional int32 harvest_weight = 8;    // 0-100 preference weight when the harvester has multiple eligible targets
 }
 
 // Compression / consolidation — many small stacks fuse into one bulk item.
