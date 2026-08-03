@@ -62,26 +62,46 @@ jobs:
                   RUN_ID: ${{ inputs.run_id }}
               run: |
                   set -euo pipefail
-                  # Find the job ID by name
-                  JOB_ID=$(gh api "repos/${{ github.repository }}/actions/runs/${RUN_ID}/jobs" \
-                    --jq ".jobs[] | select(.name | contains(\"${JOB_NAME}\")) | .id" \
-                    2>/dev/null | head -1 || echo "")
+                  # Snapshot the run's jobs once. Tracker jobs ("Track <job>") match the
+                  # job_name input too, so they are excluded — otherwise the tracker reads
+                  # its own still-running log blob and stores an Azure BlobNotFound XML body
+                  # as the failure summary (#15168).
+                  gh api "repos/${{ github.repository }}/actions/runs/${RUN_ID}/jobs?per_page=100" \
+                    --paginate --jq '.jobs[] | {id, name, conclusion, steps}' \
+                    > /tmp/run_jobs.json 2>/dev/null || echo "" > /tmp/run_jobs.json
+
+                  # Prefer the failed job; fall back to a name match on the job_name input.
+                  JOB_ID=$(jq -rs --arg n "$JOB_NAME" \
+                    '[.[] | select((.name | startswith("Track ")) | not)]
+                     | (map(select(.conclusion == "failure")) + map(select(.name | contains($n))))
+                     | .[0].id // empty' /tmp/run_jobs.json 2>/dev/null || echo "")
 
                   FAILED_STEP=""
                   if [ -n "$JOB_ID" ]; then
-                    FAILED_STEP=$(gh api "repos/${{ github.repository }}/actions/runs/${RUN_ID}/jobs" \
-                      --jq ".jobs[] | select(.id == ${JOB_ID}) | .steps[] | select(.conclusion == \"failure\") | .name" \
-                      2>/dev/null | head -1 || echo "")
+                    FAILED_STEP=$(jq -rs --argjson id "$JOB_ID" \
+                      '[.[] | select(.id == $id) | .steps[]? | select(.conclusion == "failure") | .name][0] // empty' \
+                      /tmp/run_jobs.json 2>/dev/null || echo "")
                   fi
 
-                  # Try to get log snippet — logs may not be available yet
+                  # Try to get log snippet — the log blob lands asynchronously, so a fetch
+                  # right after the job ends can return an Azure error document instead.
                   RAW_LOG=""
                   LOG_SNIPPET="See [run logs](${{ inputs.run_url }}) for details."
                   if [ -n "$JOB_ID" ]; then
-                    RAW_LOG=$(gh api "repos/${{ github.repository }}/actions/jobs/${JOB_ID}/logs" \
-                      2>/dev/null || echo "")
+                    for attempt in 1 2 3; do
+                      CANDIDATE=$(gh api "repos/${{ github.repository }}/actions/jobs/${JOB_ID}/logs" \
+                        2>/dev/null || echo "")
+                      if [ -n "$CANDIDATE" ] && ! printf '%s' "$CANDIDATE" | head -c 512 | grep -qiE '<\?xml|<Error>|<Code>(BlobNotFound|AuthenticationFailed|ResourceNotFound)'; then
+                        RAW_LOG="$CANDIDATE"
+                        break
+                      fi
+                      echo "Log blob not ready (attempt ${attempt}/3), retrying..."
+                      sleep 10
+                    done
                     if [ -n "$RAW_LOG" ]; then
                       LOG_SNIPPET=$(echo "$RAW_LOG" | tail -50 | head -50)
+                    else
+                      LOG_SNIPPET="Log blob unavailable when this issue was written. See [run logs](${{ inputs.run_url }})."
                     fi
                   fi
 
