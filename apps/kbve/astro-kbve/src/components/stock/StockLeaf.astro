@@ -1,0 +1,102 @@
+---
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+import BentoShell from '@/components/hero/BentoShell.astro';
+import TradingView from '@/components/charts/TradingView.astro';
+import { SECTOR_META } from './stockNav';
+
+export interface Props {
+	data: {
+		ticker: string;
+		exchange?: string;
+		symbol?: string;
+		name?: string;
+		sector?: string;
+		industry?: string;
+		kind?: 'etf' | 'equity';
+		expense_ratio?: number;
+		dividend_yield?: number;
+		inception?: string;
+		issuer?: string;
+	};
+	lede?: string;
+}
+
+const { data, lede } = Astro.props;
+
+const sectorKey = data.sector
+	? data.sector.trim().toLowerCase().replace(/&/g, '').replace(/\s+/g, '-')
+	: 'unclassified';
+const sectorLabel =
+	SECTOR_META.find((meta) => meta.key === sectorKey)?.label ??
+	data.sector ??
+	'Unclassified';
+
+const symbol =
+	data.symbol ??
+	`${(data.exchange ?? 'nasdaq').toLowerCase()}:${data.ticker.toLowerCase()}`;
+
+const pct = (value: number) =>
+	`${value
+		.toFixed(value < 0.1 ? 4 : 2)
+		.replace(/0+$/, '')
+		.replace(/\.$/, '')}%`;
+
+const stats: { label: string; value: string; icon: string }[] = [
+	{ label: 'Ticker', value: data.ticker, icon: 'zap' },
+];
+if (data.exchange) {
+	stats.push({ label: 'Exchange', value: data.exchange, icon: 'network' });
+}
+stats.push({ label: 'Sector', value: sectorLabel, icon: 'database' });
+if (typeof data.expense_ratio === 'number') {
+	stats.push({
+		label: 'Expense ratio',
+		value: pct(data.expense_ratio),
+		icon: 'chart',
+	});
+}
+if (typeof data.dividend_yield === 'number') {
+	stats.push({
+		label: 'Dividend yield',
+		value: pct(data.dividend_yield),
+		icon: 'chart',
+	});
+}
+
+const hero = {
+	badge: `${data.exchange ?? 'Market'} · ${data.kind === 'etf' ? 'ETF' : 'Equity'}`,
+	title: data.name ?? data.ticker,
+	accent: data.ticker,
+	lede,
+	stats,
+	ctas: [
+		{ label: '← All tickers', href: '/stock/' },
+		{ label: `${sectorLabel} sector`, href: `/stock/#${sectorKey}` },
+	],
+	related: [
+		{
+			href: `/stock/#${sectorKey}`,
+			title: `More ${sectorLabel}`,
+			copy: `Browse the rest of the ${sectorLabel.toLowerCase()} coverage.`,
+			icon: 'network',
+		},
+		{
+			href: '/stock/',
+			title: 'Stock Analysis',
+			copy: 'Back to the full ticker index, grouped by sector.',
+			icon: 'database',
+		},
+	],
+	theme: { accent: '#22c55e', accent2: '#4ade80' },
+};
+---
+
+<BentoDoc data={hero} class="stock-leaf">
+	<BentoShell id="chart" eyebrow="Price" heading={`${data.ticker} chart`}>
+		<TradingView data={symbol} />
+	</BentoShell>
+	<BentoProse id="profile" eyebrow="Profile" heading="Overview">
+		<slot />
+	</BentoProse>
+</BentoDoc>
