@@ -16,7 +16,7 @@ import {
 import { PC, PC_FLAG, readIntent, writeAuthorityPose } from './playerChannel';
 import { createSabWorld, type SabWorld } from '@kbve/laser/mecs';
 import { TILE, WALL_H } from '../config';
-import { SOLID } from '../geometry/grid';
+import { PIT, SOLID } from '../geometry/grid';
 import {
 	createGameWorld,
 	createInstanceView,
@@ -284,7 +284,50 @@ function addSector(d: SectorData): void {
 			);
 		}
 	}
+	addSectorFloor(d, body);
 	sectorBodies.set(d.key, body);
+}
+
+// Half-thickness of the floor slab; the top face sits exactly at y=0, matching
+// floorYAtWorld's ground plane.
+const FLOOR_HALF = 0.5;
+
+// Without a floor the character controller applies gravity into empty space,
+// which is undefined territory for snapToGround/autostep and silently ate most
+// of the authority capsule's horizontal movement. PIT tiles are deliberately
+// skipped — the dungeon omits their floor slab too, so you fall in.
+//
+// A collider per open tile would be ~2000 per sector (48x48) and ~18k across the
+// resident set, so each row is merged into runs first. Rooms are rectangular, so
+// this collapses to a handful of boxes per row.
+function addSectorFloor(d: SectorData, body: RAPIER.RigidBody): void {
+	if (!phys) return;
+	const open = (i: number): boolean => !(d.tiles[i] & (SOLID | PIT));
+	for (let r = 0; r < d.rows; r++) {
+		let c = 0;
+		while (c < d.cols) {
+			if (!open(r * d.cols + c)) {
+				c++;
+				continue;
+			}
+			let end = c;
+			while (end + 1 < d.cols && open(r * d.cols + end + 1)) end++;
+			const len = end - c + 1;
+			phys.createCollider(
+				RAPIER.ColliderDesc.cuboid(
+					(len * TILE) / 2,
+					FLOOR_HALF,
+					TILE / 2,
+				).setTranslation(
+					(d.originCol + c + len / 2) * TILE,
+					-FLOOR_HALF,
+					(d.originRow + r + 0.5) * TILE,
+				),
+				body,
+			);
+			c = end + 1;
+		}
+	}
 }
 
 function removeSector(key: string): void {
@@ -372,7 +415,14 @@ function stepAuthority(): void {
 	}
 	if (!authSeeded) return;
 	const intent = readIntent(playerPose);
-	authStep.run(Math.min(0.1, (performance.now() - authLast) / 1000), (dt) => {
+	// Stamp the clock BEFORE stepping. Setting it afterwards discards however
+	// long the step itself took, and rapier's collider sweeps are expensive
+	// enough that the loss was most of the period — the authority ran at 43% of
+	// real speed purely from this.
+	const now = performance.now();
+	const elapsed = Math.min(0.1, (now - authLast) / 1000);
+	authLast = now;
+	authStep.run(elapsed, (dt) => {
 		authVel.x = approach(authVel.x, intent.vx, MOTOR_ACCEL, dt);
 		authVel.z = approach(authVel.z, intent.vz, MOTOR_ACCEL, dt);
 		const t = authBody!.translation();
@@ -390,13 +440,17 @@ function stepAuthority(): void {
 			RAPIER.QueryFilterFlags.EXCLUDE_KINEMATIC,
 		);
 		const m = authCtrl!.computedMovement();
-		authBody!.setNextKinematicTranslation({
-			x: t.x + m.x,
-			y: t.y + m.y,
-			z: t.z + m.z,
-		});
+		// setNextKinematicTranslation only lands on the next phys.step(), which
+		// runs at 60Hz while the motor substeps at 120 — the second substep would
+		// read the same stale translation() and overwrite the first's target
+		// instead of accumulating it, silently halving the speed. Teleporting
+		// moves the collider now, so the next substep sweeps from where this one
+		// actually ended. Safe here: the authority never pushes dynamic bodies.
+		authBody!.setTranslation(
+			{ x: t.x + m.x, y: t.y + m.y, z: t.z + m.z },
+			true,
+		);
 	});
-	authLast = performance.now();
 	const t = authBody.translation();
 	writeAuthorityPose(
 		playerPose,
