@@ -46,6 +46,10 @@ impl EmbedDb {
         &self.path
     }
 
+    pub(crate) fn conn(&self) -> &turso::Connection {
+        &self.conn
+    }
+
     pub async fn execute(&self, sql: &str, params: impl turso::IntoParams) -> Result<u64> {
         let affected = self.conn.execute(sql, params).await?;
         Ok(affected)

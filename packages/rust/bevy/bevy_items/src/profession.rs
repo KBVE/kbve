@@ -190,6 +190,22 @@ impl ProfessionDb {
     pub fn is_empty(&self) -> bool {
         self.professions.is_empty() && self.gather.is_empty() && self.compress.is_empty()
     }
+
+    pub fn validate_skill_refs<F: Fn(&str) -> bool>(&self, is_known: F) -> Result<(), Vec<String>> {
+        let mut missing: Vec<String> = self
+            .gather
+            .values()
+            .map(|g| g.skill_ref.clone())
+            .filter(|r| !is_known(r))
+            .collect();
+        missing.sort();
+        missing.dedup();
+        if missing.is_empty() {
+            Ok(())
+        } else {
+            Err(missing)
+        }
+    }
 }
 
 /// `PROFESSION_CATEGORY_GATHERING` -> `gathering`.
@@ -303,5 +319,22 @@ mod tests {
     fn empty_db_is_empty() {
         let db = ProfessionDb::from_json(r#"{"professions": []}"#).unwrap();
         assert!(db.is_empty());
+    }
+
+    #[test]
+    fn validate_skill_refs_ok_when_all_known() {
+        let db = ProfessionDb::from_json(FIXTURE).unwrap();
+        assert!(db.gather_len() >= 1);
+        assert_eq!(db.validate_skill_refs(|r| r == "mining"), Ok(()));
+    }
+
+    #[test]
+    fn validate_skill_refs_reports_missing() {
+        let db = ProfessionDb::from_json(FIXTURE).unwrap();
+        assert!(db.gather_len() >= 1);
+        assert_eq!(
+            db.validate_skill_refs(|_| false),
+            Err(vec!["mining".to_string()])
+        );
     }
 }
