@@ -17,7 +17,8 @@ export interface OrgInput {
 	logoWidth?: number;
 	logoHeight?: number;
 	description?: string;
-	alternateName?: string;
+	alternateName?: string | string[];
+	legalName?: string;
 	foundingDate?: string;
 	email?: string;
 	contactType?: string;
@@ -42,7 +43,8 @@ export const org = (i: OrgInput): SchemaNode => {
 		'@type': 'Organization',
 		'@id': `${base}/#organization`,
 		name: i.name,
-		url: base,
+		url: `${base}/`,
+		...(i.legalName ? { legalName: i.legalName } : {}),
 		...(i.alternateName ? { alternateName: i.alternateName } : {}),
 		...(logo
 			? {
@@ -69,6 +71,7 @@ export const org = (i: OrgInput): SchemaNode => {
 export interface WebSiteInput {
 	url: string;
 	name: string;
+	alternateName?: string | string[];
 	description?: string;
 	publisher?: SchemaNode | string;
 	inLanguage?: string;
@@ -77,8 +80,9 @@ export interface WebSiteInput {
 export const website = (i: WebSiteInput): SchemaNode => ({
 	'@type': 'WebSite',
 	'@id': `${trim(i.url)}/#website`,
-	url: trim(i.url),
+	url: `${trim(i.url)}/`,
 	name: i.name,
+	...(i.alternateName?.length ? { alternateName: i.alternateName } : {}),
 	...(i.description ? { description: i.description } : {}),
 	...(i.inLanguage ? { inLanguage: i.inLanguage } : {}),
 	...(i.publisher ? { publisher: ref(i.publisher) } : {}),
