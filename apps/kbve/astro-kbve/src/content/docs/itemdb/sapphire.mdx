@@ -1,0 +1,43 @@
+---
+title: 'Sapphire'
+template: splash
+sidebar:
+    label: 'Sapphire'
+    hidden: true
+description: |
+    Hard, cold, and a blue that goes darker the longer you look at it, the cut faces holding their edges sharp enough to score glass. Rings faintly if you tap it against steel.
+lore: |
+    Second only to ruby in the cutters' ranking and first in the masons', because a sapphire will grind anything softer than itself and there is very little softer than itself. Half of every stone pulled from the iron seams ends up not in a ring but glued to the working edge of a saw.
+ref: 'sapphire'
+key: 122
+id: '01KZ2RKKY93TWGMMR6GDHZZ92H'
+name: 'Sapphire'
+type_flags: 384
+consumable: false
+stackable: true
+max_stack: 16
+rarity: 'rare'
+buy_price: 130
+sell_price: 60
+emoji: '🔵'
+weight: 1.5
+tags:
+  - isometric
+  - gem
+credits: 'Gem model by Ponam (sketchfab.com/poonyamano), CC-BY-4.0 — recoloured per gem'
+stacking:
+  pack_max: 4
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

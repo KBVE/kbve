@@ -106,6 +106,9 @@ const PUNCH_CHAIN = [
 const PUNCH_WINDOW = 0.35;
 const PUNCH_REACH = 0.45;
 
+// Mining swing, looped for the duration of a channel (see mineChannel.ts).
+const MINE_CLIP = 'Mining_Loop';
+
 const TORCH_LIGHT_GAIN = 1.0;
 const TORCH_LIGHT_REACH = 13;
 const TORCH_LIGHT_DECAY = 1.1;
@@ -198,6 +201,7 @@ export interface CharacterHandle {
 	punch: () => void;
 	setBlocking: (b: boolean, pose?: BlockPose) => void;
 	isBlocking: () => boolean;
+	mineLoop: (on: boolean) => void;
 	bone: (name: string) => THREE.Object3D | null;
 	meshes: () => { slot: string; named: boolean; visible: boolean }[];
 }
@@ -357,6 +361,26 @@ export function Character({
 		[scene],
 	);
 	const legTwistCur = useRef(0);
+	// Bones the post-mixer passes below premultiply onto, plus the last value
+	// the mixer left there and the last value we left there. See the restore
+	// loop in useFrame for why both are needed.
+	const proceduralBones = useMemo(() => {
+		const out = spineBones
+			.map((s) => s.bone as THREE.Object3D | null)
+			.concat([
+				strafeBones.pelvis,
+				strafeBones.spine,
+				upperArms.r,
+				upperArms.l,
+			]);
+		return [...new Set(out.filter(Boolean) as THREE.Object3D[])];
+	}, [spineBones, strafeBones, upperArms]);
+	const poseBase = useRef(
+		new Map<
+			THREE.Object3D,
+			{ mixer: THREE.Quaternion; ours: THREE.Quaternion }
+		>(),
+	);
 	const fingerBones = useMemo(() => {
 		const grip: Record<string, THREE.Quaternion> = {};
 		const idle = gltf.animations.find((a) => a.name === 'Idle_Loop');
@@ -385,6 +409,15 @@ export function Character({
 		});
 		return out;
 	}, [scene, gltf]);
+
+	// Grip yaw eased between its resting angle and the swing angle while a mining
+	// channel runs, so the head lands on the rock instead of swinging past it.
+	const swingGrip = useRef<{
+		pivot: THREE.Object3D;
+		rest: number;
+		swing: number;
+	} | null>(null);
+	const swingOn = useRef(false);
 
 	useEffect(() => {
 		const srcByUrl: Record<string, THREE.Object3D> = {
@@ -439,6 +472,13 @@ export function Character({
 			pivot.position.fromArray(grip.pos);
 			const rot = cfg.rot ?? grip.rot;
 			pivot.rotation.set(rot[0], rot[1], rot[2]);
+			if (cfg.swingRotY !== undefined) {
+				swingGrip.current = {
+					pivot,
+					rest: rot[1],
+					swing: cfg.swingRotY,
+				};
+			}
 			pivot.scale.setScalar(cfg.scale);
 			pivot.userData.heldPivot = true;
 
@@ -466,7 +506,11 @@ export function Character({
 				heldLightCfg.current = cfg.light ?? null;
 			}
 
-			cleanups.push(() => hand.remove(pivot));
+			cleanups.push(() => {
+				hand.remove(pivot);
+				if (swingGrip.current?.pivot === pivot)
+					swingGrip.current = null;
+			});
 		};
 
 		if (rightId) attachOne(WEAPON_GRIP.handBone, VERTICAL_GRIP, rightId);
@@ -547,6 +591,9 @@ export function Character({
 		for (const clip of BLOCK_CLIPS)
 			if (animator.has(clip))
 				animator.registerMasked(`${clip}_B`, clip, isUpperBone);
+		const mineMasked =
+			animator.has(MINE_CLIP) &&
+			animator.registerMasked(`${MINE_CLIP}_U`, MINE_CLIP, isUpperBone);
 		if (locomotion.idleOverlay && animator.has(locomotion.idleOverlay))
 			animator.registerMasked(
 				'Idle_Overlay',
@@ -563,6 +610,13 @@ export function Character({
 				hasUpper && (motor.gait !== 'idle' || motor.airborne)
 					? animator.playMaskedOnce('Attack_Upper')
 					: animator.playOnce(attackClip),
+			// Held for the duration of a mining channel: the swing loops on the
+			// upper body so the legs keep whatever the locomotion layer is doing.
+			mineLoop: (on: boolean) => {
+				swingOn.current = on;
+				if (!mineMasked) return;
+				animator.holdMasked(`${MINE_CLIP}_U`, on, true);
+			},
 			punch: () => {
 				if (blockRef.current.on) return;
 				const c = comboRef.current;
@@ -779,6 +833,17 @@ export function Character({
 				animator.setBaseTimeScale(decision.timeScale);
 		}
 
+		const sg = swingGrip.current;
+		if (sg) {
+			const goal = swingOn.current ? sg.swing : sg.rest;
+			sg.pivot.rotation.y = THREE.MathUtils.damp(
+				sg.pivot.rotation.y,
+				goal,
+				12,
+				dt,
+			);
+		}
+
 		const legTwistGoal = strafe?.legTwist ?? 0;
 		animator.setLocomotionReverse(strafe?.reverse ?? false);
 
@@ -795,6 +860,27 @@ export function Character({
 			);
 
 		animator.update(dt);
+		// three's PropertyMixer only calls setValue() when a track's accumulated
+		// value differs from the one it applied last frame, so a genuinely
+		// constant track stops writing its bone at all. The passes below
+		// premultiply onto whatever the bone holds, which then compounds every
+		// frame instead of riding on top of the clip pose. Authored clips hide
+		// this because their "constant" tracks still jitter a hair, but gltfpack
+		// folds those to a single keyframe and the drift shows up in packed
+		// builds only. Put the mixer's own value back before re-applying.
+		for (const bone of proceduralBones) {
+			let e = poseBase.current.get(bone);
+			if (!e) {
+				e = {
+					mixer: new THREE.Quaternion(),
+					ours: new THREE.Quaternion(),
+				};
+				poseBase.current.set(bone, e);
+			} else if (bone.quaternion.equals(e.ours)) {
+				bone.quaternion.copy(e.mixer);
+			}
+			e.mixer.copy(bone.quaternion);
+		}
 		// Ease the leg cheat and apply post-mixer: pelvis yaws toward travel,
 		// spine_01 counter-yaws so the chest stays squared on the target.
 		legTwistCur.current = THREE.MathUtils.damp(
@@ -852,6 +938,10 @@ export function Character({
 			};
 			if (!rightId) hang(upperArms.r, -1);
 			if (!leftId) hang(upperArms.l, 1);
+		}
+		for (const bone of proceduralBones) {
+			const e = poseBase.current.get(bone);
+			if (e) e.ours.copy(bone.quaternion);
 		}
 		for (const f of fingerBones) {
 			const holds = f.side === 'r' ? !!rightId : !!leftId;

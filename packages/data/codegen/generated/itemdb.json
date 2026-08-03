@@ -1587,6 +1587,35 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Diamond",
+        "hidden": true
+      },
+      "description": "Colourless to the point of looking like nothing at all until the light hits an edge and throws it back in pieces. Scratches every other stone in the pouch and takes nothing back from any of them.\n",
+      "lore": "Found so rarely in the crystal beds that most miners work a full career on hearsay alone, and the ones who do find a diamond generally stop mining shortly afterward. The cutters' guild keeps a ledger of every stone above a certain weight, less out of ceremony than because a diamond that changes hands quietly has usually changed hands wrongly.\n",
+      "ref": "diamond",
+      "key": 120,
+      "id": "01KZ2YBFJ1PYJP26M3GWW65V3T",
+      "name": "Diamond",
+      "type_flags": 384,
+      "consumable": false,
+      "stackable": true,
+      "max_stack": 8,
+      "rarity": "legendary",
+      "buy_price": 520,
+      "sell_price": 240,
+      "emoji": "💎",
+      "weight": 1.5,
+      "tags": [
+        "isometric",
+        "gem"
+      ],
+      "stacking": {
+        "pack_max": 4
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Dragon Scale",
         "hidden": true
       },
@@ -1796,6 +1825,35 @@
           ]
         }
       ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Emerald",
+        "hidden": true
+      },
+      "description": "A green so deep it reads black at the edges until the light finds the right angle, threaded with the fine internal fractures every emerald carries and no cutter can remove. Lighter in the hand than it looks.\n",
+      "lore": "Emeralds come out of the deep copper seams rather than the crystal beds, which is why miners who find one are usually looking for something else entirely. The flaws inside are considered proof of origin rather than defect, and a stone too clean to have any is watched closely by anyone who has been cheated before.\n",
+      "ref": "emerald",
+      "key": 121,
+      "id": "01KZ2RKKY9PJVG7DEJ0T55Y5J0",
+      "name": "Emerald",
+      "type_flags": 384,
+      "consumable": false,
+      "stackable": true,
+      "max_stack": 16,
+      "rarity": "rare",
+      "buy_price": 110,
+      "sell_price": 50,
+      "emoji": "💚",
+      "weight": 1.5,
+      "tags": [
+        "isometric",
+        "gem"
+      ],
+      "stacking": {
+        "pack_max": 4
+      }
     },
     {
       "template": "splash",
@@ -5271,6 +5329,35 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Ruby",
+        "hidden": true
+      },
+      "description": "A red that holds its colour in torchlight instead of washing out to orange like the cheap stones do, with a single bright line running the length of the cut face wherever the light strikes true.\n",
+      "lore": "The stone every deep shaft is nominally dug for and almost none of them find. Crews working the crystal beds go whole seasons without one, then pull two in a week from the same pocket, which is the sort of arithmetic that keeps men underground long past the point where the wage alone would.\n",
+      "ref": "ruby",
+      "key": 123,
+      "id": "01KZ2RKKY9APHXVJWY8BNY63FG",
+      "name": "Ruby",
+      "type_flags": 384,
+      "consumable": false,
+      "stackable": true,
+      "max_stack": 8,
+      "rarity": "epic",
+      "buy_price": 240,
+      "sell_price": 110,
+      "emoji": "❤️",
+      "weight": 1.5,
+      "tags": [
+        "isometric",
+        "gem"
+      ],
+      "stacking": {
+        "pack_max": 4
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Runeguard Plate",
         "hidden": true
       },
@@ -5388,6 +5475,35 @@
         "spoils_into_ref": "rotten-meat"
       },
       "has_img": true
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Sapphire",
+        "hidden": true
+      },
+      "description": "Hard, cold, and a blue that goes darker the longer you look at it, the cut faces holding their edges sharp enough to score glass. Rings faintly if you tap it against steel.\n",
+      "lore": "Second only to ruby in the cutters' ranking and first in the masons', because a sapphire will grind anything softer than itself and there is very little softer than itself. Half of every stone pulled from the iron seams ends up not in a ring but glued to the working edge of a saw.\n",
+      "ref": "sapphire",
+      "key": 122,
+      "id": "01KZ2RKKY93TWGMMR6GDHZZ92H",
+      "name": "Sapphire",
+      "type_flags": 384,
+      "consumable": false,
+      "stackable": true,
+      "max_stack": 16,
+      "rarity": "rare",
+      "buy_price": 130,
+      "sell_price": 60,
+      "emoji": "🔵",
+      "weight": 1.5,
+      "tags": [
+        "isometric",
+        "gem"
+      ],
+      "stacking": {
+        "pack_max": 4
+      }
     },
     {
       "template": "splash",

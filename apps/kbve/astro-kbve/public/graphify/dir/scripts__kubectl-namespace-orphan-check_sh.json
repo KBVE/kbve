@@ -1,14 +1,14 @@
 {
 	"dir": "scripts/kubectl-namespace-orphan-check.sh",
-	"center": [-2689.54, 1307.67],
+	"center": [-67.26, 3000.0],
 	"r": 75.22,
 	"files": [
 		{
 			"i": 0,
 			"label": "kubectl-namespace-orphan-check.sh",
 			"path": "scripts/kubectl-namespace-orphan-check.sh",
-			"x": -2689.54,
-			"y": 1307.67,
+			"x": -67.26,
+			"y": 3000.0,
 			"n": 2
 		}
 	],
@@ -17,18 +17,18 @@
 			"i": 0,
 			"f": 0,
 			"label": "kubectl-namespace-orphan-check.sh",
-			"x": -2682.72,
-			"y": 1307.67,
-			"c": 4386,
+			"x": -60.43,
+			"y": 3000.0,
+			"c": 4426,
 			"loc": "L1"
 		},
 		{
 			"i": 1,
 			"f": 0,
 			"label": "kubectl-namespace-orphan-check.sh script",
-			"x": -2698.26,
-			"y": 1315.66,
-			"c": 4386,
+			"x": -75.98,
+			"y": 3007.99,
+			"c": 4426,
 			"loc": "L1"
 		}
 	],

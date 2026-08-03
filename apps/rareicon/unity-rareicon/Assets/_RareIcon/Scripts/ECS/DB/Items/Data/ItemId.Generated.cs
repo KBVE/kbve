@@ -126,6 +126,10 @@ namespace RareIcon
         FlyAgaric = 117,  // fly-agaric
         PetElixir = 118,  // pet-elixir
         PetBall = 119,  // pet-ball
+        Diamond = 120,  // diamond
+        Emerald = 121,  // emerald
+        Sapphire = 122,  // sapphire
+        Ruby = 123,  // ruby
         Berry = 500,  // berry
         Mushroom = 501,  // mushroom
         Herb = 502,  // herb

@@ -14,7 +14,9 @@ pub struct Config {
     pub vpn_watchdog_secs: u64,
     pub metadata_timeout_secs: u64,
     pub stall_timeout_secs: u64,
+    pub stall_connected_timeout_secs: u64,
     pub stall_check_secs: u64,
+    pub stall_recovery_attempts: u32,
     pub extra_trackers: Vec<String>,
     pub trackers_urls: Vec<String>,
     pub trackers_cache: PathBuf,
@@ -159,7 +161,9 @@ pub fn load_from_env() -> anyhow::Result<Config> {
         vpn_watchdog_secs: env_u64("REEL_VPN_WATCHDOG_SECS", 60)?,
         metadata_timeout_secs: env_u64("REEL_METADATA_TIMEOUT_SECS", 120)?,
         stall_timeout_secs: env_u64("REEL_STALL_TIMEOUT_SECS", 300)?,
+        stall_connected_timeout_secs: env_u64("REEL_STALL_CONNECTED_TIMEOUT_SECS", 900)?,
         stall_check_secs: env_u64("REEL_STALL_CHECK_SECS", 15)?,
+        stall_recovery_attempts: env_u64("REEL_STALL_RECOVERY_ATTEMPTS", 3)? as u32,
         extra_trackers: match std::env::var("REEL_TRACKERS") {
             Ok(v) if !v.trim().is_empty() => parse_trackers(&v.replace(',', "\n")),
             _ => DEFAULT_TRACKERS.iter().map(|s| s.to_string()).collect(),
@@ -280,7 +284,9 @@ mod tests {
         assert!(c.vpn_check_urls.iter().all(|u| u.starts_with("https://")));
         assert_eq!(c.metadata_timeout_secs, 120);
         assert_eq!(c.stall_timeout_secs, 300);
+        assert_eq!(c.stall_connected_timeout_secs, 900);
         assert_eq!(c.stall_check_secs, 15);
+        assert_eq!(c.stall_recovery_attempts, 3);
         assert!(
             !c.extra_trackers.is_empty(),
             "embedded default trackers present"

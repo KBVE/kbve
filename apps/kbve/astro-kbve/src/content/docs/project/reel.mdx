@@ -13,7 +13,7 @@ tags:
 key: reel
 pipeline: docker
 app_name: reel
-version: "0.1.35"
+version: "0.1.36"
 source_path: apps/media/reel
 version_toml: apps/media/reel/version.toml
 version_target: apps/media/reel/Cargo.toml
@@ -291,6 +291,24 @@ download the first watcher was still driving. That presented as the swarm
 "resetting to zero" mid-download and as finished files disappearing. The dedupe
 check removes the duplicate watcher entirely; a genuinely failed torrent can still
 be re-added to retry.
+
+A download that goes quiet is treated as a connection problem before it is treated
+as a missing file. Because there is no forwarded port behind the VPN, the swarm is
+outbound-only: nothing ever dials in, so once the peers Reel dialed out to go silent
+— a stale NAT mapping, a choke, a tunnel blip — nothing replaces them until the
+tracker is announced again, which can be half an hour away. The old watcher only
+looked at whether the byte count moved, waited five minutes, then declared that no
+seeders had the content and deleted the partial download. That verdict was wrong
+whenever the tracker showed a healthy seed count: the content was there, the
+connections were not. Reel now reads the peer counts it was already collecting. With
+peers still connected the stall budget stretches to fifteen minutes, since a
+connected-but-silent peer is choked rather than gone. When the budget does elapse,
+Reel pauses and unpauses the torrent — tearing down every stale socket and forcing a
+fresh announce — and retries that re-dial three times before giving up. A download
+that does finally fail keeps its partial data and reports what it actually saw (live,
+seen, and connecting peer counts) instead of a guess, so re-adding the magnet resumes
+where it stopped rather than starting over. The idle-TTL reaper still clears the
+leftovers.
 
 Playback is meant to be effortless: download a file and it becomes watchable on its
 own, with no manual transcode step and without keeping two copies. When a download

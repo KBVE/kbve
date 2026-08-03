@@ -1,6 +1,8 @@
 import type { Footprint } from './grid';
 import { ARMOR_PIECES, pieceLabel } from '../character/armor';
-import { itemFootprint } from '../data/itemdb';
+import { itemFootprint, itemLabel } from '../data/itemdb';
+import { actionsOf } from '../data/professiondb';
+import { MINING } from '../prop/stoneNode';
 import { asset } from '../assetBase';
 
 // One inventory item kind. Footprint is the upright (rot=0) WxH in grid cells.
@@ -24,7 +26,6 @@ export const ITEMS: Record<string, ItemDef> = {
 		color: '#8a8a92',
 	},
 	wood: { id: 'wood', label: 'wood', fp: { w: 1, h: 2 }, color: '#7a5230' },
-	gem: { id: 'gem', label: 'gem', fp: { w: 1, h: 1 }, color: '#41b6c4' },
 	sword: {
 		id: 'sword',
 		label: 'sword',
@@ -55,6 +56,40 @@ export const ITEMS: Record<string, ItemDef> = {
 		equipId: 'crate',
 	},
 };
+
+// Every item a mining action can yield, registered straight off professiondb so
+// adding an output in the MDX makes it lootable here without a second edit.
+// `stone` is already declared above; the loop leaves existing entries alone.
+const MINING_COLOR: Record<string, string> = {
+	'mossy-stone': '#6f7d5a',
+	'copper-ore': '#b06a3a',
+	'iron-ore': '#8a8f98',
+	'crystal-ore': '#41b6c4',
+	emerald: '#3aa86a',
+	sapphire: '#3a6ac4',
+	ruby: '#c43a4a',
+	diamond: '#e8f4fa',
+};
+
+// One shared gem mesh recoloured per stone (art/items/render_gems.py), so these
+// are the only mining outputs with a rendered icon; the ores fall back to a
+// flat grid tile.
+const GEM_ICONS = new Set(['emerald', 'sapphire', 'ruby', 'diamond']);
+
+for (const action of actionsOf(MINING)) {
+	for (const out of action.outputs) {
+		if (ITEMS[out.itemRef]) continue;
+		ITEMS[out.itemRef] = {
+			id: out.itemRef,
+			label: itemLabel(out.itemRef),
+			fp: itemFootprint(out.itemRef),
+			color: MINING_COLOR[out.itemRef] ?? '#8a8a92',
+			icon: GEM_ICONS.has(out.itemRef)
+				? asset(`/icons/items/${out.itemRef}.png`)
+				: undefined,
+		};
+	}
+}
 
 // Grid tile color for each armor set item, keyed by itemdb ref. The grid item
 // and the paperdoll slot share this look; `icon` is the Blender-rendered

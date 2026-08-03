@@ -536,7 +536,7 @@
 		{
 			"key": "reel",
 			"app_name": "reel",
-			"version": "0.1.35",
+			"version": "0.1.36",
 			"version_toml": "apps/media/reel/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/reel.mdx",
 			"version_target": "apps/media/reel/Cargo.toml",
@@ -1393,7 +1393,7 @@
 				]
 			},
 			"source_path": "apps/herbmail/herbmail-game",
-			"version": "0.1.17",
+			"version": "0.1.18",
 			"version_toml": "apps/herbmail/herbmail-game/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/herbmail-game.mdx",
 			"runner": "ubuntu-latest",

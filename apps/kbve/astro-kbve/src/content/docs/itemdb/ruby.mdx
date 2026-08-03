@@ -1,0 +1,43 @@
+---
+title: 'Ruby'
+template: splash
+sidebar:
+    label: 'Ruby'
+    hidden: true
+description: |
+    A red that holds its colour in torchlight instead of washing out to orange like the cheap stones do, with a single bright line running the length of the cut face wherever the light strikes true.
+lore: |
+    The stone every deep shaft is nominally dug for and almost none of them find. Crews working the crystal beds go whole seasons without one, then pull two in a week from the same pocket, which is the sort of arithmetic that keeps men underground long past the point where the wage alone would.
+ref: 'ruby'
+key: 123
+id: '01KZ2RKKY9APHXVJWY8BNY63FG'
+name: 'Ruby'
+type_flags: 384
+consumable: false
+stackable: true
+max_stack: 8
+rarity: 'epic'
+buy_price: 240
+sell_price: 110
+emoji: '❤️'
+weight: 1.5
+tags:
+  - isometric
+  - gem
+credits: 'Gem model by Ponam (sketchfab.com/poonyamano), CC-BY-4.0 — recoloured per gem'
+stacking:
+  pack_max: 4
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+} from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />

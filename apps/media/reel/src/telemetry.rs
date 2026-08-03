@@ -26,6 +26,15 @@ pub fn torrent_failed(id: &str, phase: &str, reason: &str) {
     );
 }
 
+pub fn torrent_stall_recovery(id: &str, attempt: u32) {
+    tracing::warn!(
+        event = "torrent_stall_recovery",
+        id,
+        attempt,
+        "leech stalled; redialing swarm"
+    );
+}
+
 pub fn reaped(id: &str, name: &str, size: u64) {
     tracing::info!(event = "reaped", id, name, size, "reaped");
 }

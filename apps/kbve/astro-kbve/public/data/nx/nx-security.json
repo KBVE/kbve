@@ -1,11 +1,11 @@
 {
-	"generated_at": "2026-08-02T04:27:10Z",
+	"generated_at": "2026-08-03T04:33:21Z",
 	"summary": {
 		"critical": 4,
 		"high": 43,
 		"medium": 56,
 		"low": 10,
-		"info": 31
+		"info": 30
 	},
 	"ecosystems": {
 		"npm": {
@@ -707,13 +707,13 @@
 			]
 		},
 		"cargo": {
-			"total": 46,
+			"total": 45,
 			"severities": {
 				"critical": 0,
 				"high": 0,
 				"medium": 15,
 				"low": 0,
-				"info": 31
+				"info": 30
 			},
 			"advisories": [
 				{
@@ -1030,13 +1030,6 @@
 					"severity": "info",
 					"package": "glib",
 					"url": "https://github.com/gtk-rs/gtk-rs-core/pull/1343"
-				},
-				{
-					"id": "RUSTSEC-2026-0002",
-					"title": "`IterMut` violates Stacked Borrows by invalidating internal pointer",
-					"severity": "info",
-					"package": "lru",
-					"url": "https://github.com/jeromefroe/lru-rs/pull/224"
 				}
 			]
 		},

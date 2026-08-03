@@ -1,11 +1,11 @@
 {
-	"generated_at": "2026-08-02T04:24:29.639Z",
+	"generated_at": "2026-08-03T04:31:17.723Z",
 	"summary": {
 		"total_protos": 47,
 		"registered": 38,
 		"orphaned": 8,
 		"utility_only": 1,
-		"total_messages": 829,
+		"total_messages": 830,
 		"total_enums": 172
 	},
 	"protos": [
@@ -172,6 +172,7 @@
 				"SkillingInfo",
 				"CompressInfo",
 				"StackingInfo",
+				"GridFootprint",
 				"WeaponInfo",
 				"FuelInfo",
 				"ContainerInfo",
@@ -199,7 +200,7 @@
 				"StatusEffectKind",
 				"SkillingType"
 			],
-			"message_count": 29,
+			"message_count": 30,
 			"enum_count": 8,
 			"codegen": {
 				"registered": true,
@@ -1719,7 +1720,7 @@
 		"packages/data/proto/referral/referral.proto",
 		"packages/data/proto/wallet/wallet.proto"
 	],
-	"checked_at": "2026-08-02T04:23:59Z",
+	"checked_at": "2026-08-03T04:30:36Z",
 	"drift_detected": false,
 	"drift_files": []
 }
