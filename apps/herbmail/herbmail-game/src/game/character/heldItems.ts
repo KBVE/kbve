@@ -27,6 +27,10 @@ export interface HeldItem {
 	// Replaces the hand's shared VERTICAL_GRIP rotation outright when set.
 	rot?: [number, number, number];
 
+	// Yaw the grip eases to while a channel's swing loops, so the head swings
+	// into the rock instead of past it. Reverts to `rot` when the swing stops.
+	swingRotY?: number;
+
 	flame?: boolean;
 	light?: { intensity: number; color: [number, number, number] };
 }
@@ -48,6 +52,7 @@ export const HELD_ITEMS: Record<string, HeldItem> = {
 		gripFrac: 0.12,
 		scale: 1,
 		rot: [-1.5, -1.6, 0.3],
+		swingRotY: -1.10159265358979,
 	},
 	torch: {
 		modelUrl: TORCH_URL,

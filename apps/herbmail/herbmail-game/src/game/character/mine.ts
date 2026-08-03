@@ -1,5 +1,13 @@
-import { Health, Stone, Transform3 } from '../mecs/props';
-import { breakCrate } from '../dungeon/store';
+import {
+	Collider,
+	Health,
+	Prop,
+	Stone,
+	Transform3,
+	query,
+} from '../mecs/props';
+import { PROP_STONE } from '../prop/kinds';
+import { breakCrate, getDungeon } from '../dungeon/store';
 import { dungeonSpawn } from '../dungeon/collision';
 import { getSimBridge } from '../sab/simBridge';
 import { addLoot } from '../inventory/store';
@@ -10,6 +18,34 @@ import { MINING, nodeForStone } from '../prop/stoneNode';
 import { grantXp, levelOf } from '../profession/store';
 
 export type MineRefusal = 'tool' | 'level' | null;
+
+const MELEE_REACH = 1.2;
+
+/** Nearest live rock in swing range, or -1. Shared by the [F] prompt provider
+ * and the click path so both channel the same target. */
+export function nearestStone(px: number, pz: number): number {
+	const world = getDungeon().world;
+	let best = -1;
+	let bestD = Infinity;
+	for (const eid of query(world, [Prop, Transform3, Health])) {
+		if (Prop.kind[eid] !== PROP_STONE || Health.hp[eid] <= 0) continue;
+		const dx = Transform3.px[eid] - px;
+		const dz = Transform3.pz[eid] - pz;
+		const dd = dx * dx + dz * dz;
+		const reach = MELEE_REACH + Collider.hx[eid];
+		if (dd <= reach * reach && dd < bestD) {
+			bestD = dd;
+			best = eid;
+		}
+	}
+	return best;
+}
+
+export function stoneDist2(eid: number, px: number, pz: number): number {
+	const dx = Transform3.px[eid] - px;
+	const dz = Transform3.pz[eid] - pz;
+	return dx * dx + dz * dz;
+}
 
 /** Depth is the rock's own distance from the entrance, not the player's, so a
  * given rock always resolves to the same node however you approached it. */

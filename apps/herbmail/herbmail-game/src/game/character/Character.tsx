@@ -106,6 +106,9 @@ const PUNCH_CHAIN = [
 const PUNCH_WINDOW = 0.35;
 const PUNCH_REACH = 0.45;
 
+// Mining swing, looped for the duration of a channel (see mineChannel.ts).
+const MINE_CLIP = 'Mining_Loop';
+
 const TORCH_LIGHT_GAIN = 1.0;
 const TORCH_LIGHT_REACH = 13;
 const TORCH_LIGHT_DECAY = 1.1;
@@ -198,6 +201,7 @@ export interface CharacterHandle {
 	punch: () => void;
 	setBlocking: (b: boolean, pose?: BlockPose) => void;
 	isBlocking: () => boolean;
+	mineLoop: (on: boolean) => void;
 	bone: (name: string) => THREE.Object3D | null;
 	meshes: () => { slot: string; named: boolean; visible: boolean }[];
 }
@@ -406,6 +410,15 @@ export function Character({
 		return out;
 	}, [scene, gltf]);
 
+	// Grip yaw eased between its resting angle and the swing angle while a mining
+	// channel runs, so the head lands on the rock instead of swinging past it.
+	const swingGrip = useRef<{
+		pivot: THREE.Object3D;
+		rest: number;
+		swing: number;
+	} | null>(null);
+	const swingOn = useRef(false);
+
 	useEffect(() => {
 		const srcByUrl: Record<string, THREE.Object3D> = {
 			[SWORD_URL]: sword.scene,
@@ -459,6 +472,13 @@ export function Character({
 			pivot.position.fromArray(grip.pos);
 			const rot = cfg.rot ?? grip.rot;
 			pivot.rotation.set(rot[0], rot[1], rot[2]);
+			if (cfg.swingRotY !== undefined) {
+				swingGrip.current = {
+					pivot,
+					rest: rot[1],
+					swing: cfg.swingRotY,
+				};
+			}
 			pivot.scale.setScalar(cfg.scale);
 			pivot.userData.heldPivot = true;
 
@@ -486,7 +506,11 @@ export function Character({
 				heldLightCfg.current = cfg.light ?? null;
 			}
 
-			cleanups.push(() => hand.remove(pivot));
+			cleanups.push(() => {
+				hand.remove(pivot);
+				if (swingGrip.current?.pivot === pivot)
+					swingGrip.current = null;
+			});
 		};
 
 		if (rightId) attachOne(WEAPON_GRIP.handBone, VERTICAL_GRIP, rightId);
@@ -567,6 +591,9 @@ export function Character({
 		for (const clip of BLOCK_CLIPS)
 			if (animator.has(clip))
 				animator.registerMasked(`${clip}_B`, clip, isUpperBone);
+		const mineMasked =
+			animator.has(MINE_CLIP) &&
+			animator.registerMasked(`${MINE_CLIP}_U`, MINE_CLIP, isUpperBone);
 		if (locomotion.idleOverlay && animator.has(locomotion.idleOverlay))
 			animator.registerMasked(
 				'Idle_Overlay',
@@ -583,6 +610,13 @@ export function Character({
 				hasUpper && (motor.gait !== 'idle' || motor.airborne)
 					? animator.playMaskedOnce('Attack_Upper')
 					: animator.playOnce(attackClip),
+			// Held for the duration of a mining channel: the swing loops on the
+			// upper body so the legs keep whatever the locomotion layer is doing.
+			mineLoop: (on: boolean) => {
+				swingOn.current = on;
+				if (!mineMasked) return;
+				animator.holdMasked(`${MINE_CLIP}_U`, on, true);
+			},
 			punch: () => {
 				if (blockRef.current.on) return;
 				const c = comboRef.current;
@@ -797,6 +831,17 @@ export function Character({
 			// its rate — re-assert per frame so speed tracking stays live.
 			if (decision.timeScale !== undefined)
 				animator.setBaseTimeScale(decision.timeScale);
+		}
+
+		const sg = swingGrip.current;
+		if (sg) {
+			const goal = swingOn.current ? sg.swing : sg.rest;
+			sg.pivot.rotation.y = THREE.MathUtils.damp(
+				sg.pivot.rotation.y,
+				goal,
+				12,
+				dt,
+			);
 		}
 
 		const legTwistGoal = strafe?.legTwist ?? 0;

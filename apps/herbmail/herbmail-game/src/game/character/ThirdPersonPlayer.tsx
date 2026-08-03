@@ -14,6 +14,8 @@ import { Character, type CharacterHandle, type BlockPose } from './Character';
 import { useHands } from '../viewmodel/store';
 import { equipmentById } from '../viewmodel/equipment';
 import { triggerSwing } from './melee';
+import { nearestStone } from './mine';
+import { cancelMine, isMining, startMine, tickMine } from './mineChannel';
 import { useMelee } from './useMelee';
 import { useCrateBreak } from './useCrateBreak';
 import { useStoneMine } from './useStoneMine';
@@ -128,6 +130,17 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 	useEffect(() => {
 		armedRef.current = armed;
 	}, [armed]);
+	// A tool whose primary verb is 'mine' swings the pickaxe animation rather
+	// than throwing a punch — it is not a weapon, so `armed` stays false.
+	const mining =
+		!!hands.right && equipmentById(hands.right).primary === 'mine';
+	const miningRef = useRef(mining);
+	useEffect(() => {
+		miningRef.current = mining;
+	}, [mining]);
+	// Mirrors the mining channel onto the rig: the swing loops for as long as the
+	// channel runs. Driven from the frame loop so a cancel lands the same frame.
+	const mineAnimOn = useRef(false);
 	const blockPoseRef = useRef<BlockPose>({
 		clip: 'Sword_Block',
 		loop: false,
@@ -176,9 +189,13 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 			keys.current[e.code] = true;
 			if (e.code === 'Space') {
 				e.preventDefault();
+				cancelMine();
 				handleRef.current?.motor.jump();
 			}
-			if (e.code === 'KeyF') triggerActive();
+			// Key-repeat would re-fire the interact ~30x/s while held, restarting
+			// the swing clip every frame so it never plays out (and landing that
+			// many mine hits). One trigger per physical press.
+			if (e.code === 'KeyF' && !e.repeat) triggerActive();
 			if (e.code === 'Tab') {
 				e.preventDefault();
 				if (!e.repeat) {
@@ -235,6 +252,22 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 				// crates/stones (props carry Health but no Targetable).
 				requestCast(playerEid(), BASIC_ID);
 				triggerSwing();
+			} else if (miningRef.current) {
+				// Same channel as [F] — a click is a request to mine, not an
+				// instant hit, so both routes obey the action's durationMs.
+				if (!isMining()) {
+					const rock = nearestStone(
+						h.motor.position.x,
+						h.motor.position.z,
+					);
+					if (rock >= 0)
+						startMine(
+							rock,
+							performance.now(),
+							h.motor.position.x,
+							h.motor.position.z,
+						);
+				}
 			} else {
 				if (PlayerStats.ep.value[PlayerStats.eid] < ATTACK_EP_PUNCH)
 					return;
@@ -327,6 +360,13 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		Transform3.dz[pe] = Math.cos(h.motor.yaw);
 
 		tickTargeting(h.motor.position.x, h.motor.position.z);
+
+		tickMine(performance.now(), h.motor.position.x, h.motor.position.z);
+		const mining = isMining();
+		if (mining !== mineAnimOn.current) {
+			mineAnimOn.current = mining;
+			h.mineLoop(mining);
+		}
 
 		if (
 			k['Tab'] &&
