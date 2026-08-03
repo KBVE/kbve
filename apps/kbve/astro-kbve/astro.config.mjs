@@ -139,6 +139,7 @@ export default defineConfig({
 					href: 'https://kbve.com/discord/',
 				},
 			],
+			routeMiddleware: './src/starlightRouteData.ts',
 			components: {
 				SiteTitle: './src/components/navigation/SiteTitle.astro',
 				PageTitle: './src/components/navigation/PageTitle.astro',

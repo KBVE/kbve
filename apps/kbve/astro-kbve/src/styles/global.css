@@ -707,6 +707,19 @@ body:has(.kbve-dashboard-page) {
 	--sl-content-width: 100%;
 }
 
+/* ── Section pages: bento bands span the column beside the sidebar ──
+   The route middleware hands `template: splash` section pages a real
+   Starlight sidebar, which re-caps the content column at the default
+   --sl-content-width. Bento bands are full-bleed by design, so widen the
+   column back out whenever the sidebar is rendering a section rail. */
+body:has([data-kbve-section]) {
+	--sl-content-width: 100%;
+}
+body:has([data-kbve-section])
+	:is(.sl-markdown-content, main.main-pane, .content-panel article.content) {
+	max-width: 100% !important;
+}
+
 .mcdb-browse__shell {
 	--mcdb-accent: var(--sl-color-accent, #8b5cf6);
 	--mcdb-bg: var(--sl-color-bg, #0a0a0f);
@@ -1018,6 +1031,39 @@ body:has(.kbve-dashboard-page) {
 		height: 100%;
 		min-height: 0;
 		--kbve-sidebar-width: var(--sl-sidebar-width, 18rem);
+	}
+
+	[data-kbve-section-root] {
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.65rem 0.75rem;
+		border-bottom: 1px solid
+			var(--sl-color-hairline, var(--color-gold-dark));
+		color: var(--sl-color-white);
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		text-decoration: none;
+	}
+
+	[data-kbve-section-root]:hover {
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
+	}
+
+	[data-kbve-rail='collapsed'] [data-kbve-section-root] {
+		justify-content: center;
+		overflow: hidden;
+	}
+
+	[data-kbve-rail='collapsed'] [data-kbve-section-label] {
+		display: none;
 	}
 
 	[data-kbve-sidebar-chrome] {

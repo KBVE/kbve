@@ -78,29 +78,94 @@ function ceilingGeo(
 	return sharedCeiling;
 }
 
-function buildSet(desc: RoomDesc): RoomGeoSet {
+// Building a whole sector at once costs 35-64ms, which lands as a visible stall
+// the frame a new sector mounts. The work splits cleanly along part boundaries
+// (bays alone are ~40% of it), so a build is expressed as an ordered step list
+// that can be run all at once or a few steps per frame ahead of the player.
+type BuildJob = {
+	desc: RoomDesc;
+	steps: Array<() => void>;
+	step: number;
+	set: RoomGeoSet;
+	ms: number;
+};
+
+function emptySet(signature: string): RoomGeoSet {
+	return {
+		signature,
+		walls: [],
+		columns: [],
+		floor: [],
+		ceiling: [],
+		arch: [],
+		trim: [],
+		cove: [],
+		corner: [],
+		domes: [],
+		bays: { frames: [], backs: [] },
+	};
+}
+
+function makeJob(desc: RoomDesc): BuildJob {
 	const g = makeLocalGrid(desc);
 	const v = desc.variant;
-	const bays = buildBays(g, v);
 	const ctx = sectorBakeCtx(desc);
-	return {
-		signature: desc.signature,
-		walls: buildWalls(g, v).map((m) => dice(m, ctx)),
-		columns: buildColumns(desc.columns).map((m) => dice(m, ctx)),
-		floor: floorGeo(desc, ctx),
-		ceiling: ceilingGeo(desc, ctx),
-		arch: dice(buildArches(g, v), ctx),
-		trim: dice(buildTrims(g, v), ctx),
-		cove: dice(buildCoves(g), ctx),
-		corner: dice(buildCornerCoves(g, v), ctx),
-		domes: desc.oases.length
-			? dice(buildOasisDomes(g, desc.oases), ctx)
-			: [],
-		bays: {
-			frames: dice(bays.frames, ctx),
-			backs: dice(bays.backs, ctx),
+	const set = emptySet(desc.signature);
+	let bays: { frames: THREE.BufferGeometry; backs: THREE.BufferGeometry };
+	const steps: Array<() => void> = [
+		() => {
+			set.walls = buildWalls(g, v).map((m) => dice(m, ctx));
 		},
-	};
+		() => {
+			set.columns = buildColumns(desc.columns).map((m) => dice(m, ctx));
+		},
+		() => {
+			set.floor = floorGeo(desc, ctx);
+		},
+		() => {
+			set.ceiling = ceilingGeo(desc, ctx);
+		},
+		() => {
+			set.arch = dice(buildArches(g, v), ctx);
+		},
+		() => {
+			set.trim = dice(buildTrims(g, v), ctx);
+		},
+		() => {
+			set.cove = dice(buildCoves(g), ctx);
+		},
+		() => {
+			set.corner = dice(buildCornerCoves(g, v), ctx);
+		},
+		() => {
+			set.domes = desc.oases.length
+				? dice(buildOasisDomes(g, desc.oases), ctx)
+				: [];
+		},
+		// The single most expensive step, kept on its own so it never shares a
+		// frame with another part.
+		() => {
+			bays = buildBays(g, v);
+		},
+		() => {
+			set.bays.frames = dice(bays.frames, ctx);
+		},
+		() => {
+			set.bays.backs = dice(bays.backs, ctx);
+		},
+	];
+	return { desc, steps, step: 0, set, ms: 0 };
+}
+
+function runJob(job: BuildJob, budgetMs: number): boolean {
+	const t0 = performance.now();
+	while (job.step < job.steps.length) {
+		const s0 = performance.now();
+		job.steps[job.step++]();
+		job.ms += performance.now() - s0;
+		if (budgetMs > 0 && performance.now() - t0 >= budgetMs) break;
+	}
+	return job.step >= job.steps.length;
 }
 
 function drop(c: THREE.BufferGeometry): void {
@@ -154,8 +219,77 @@ export function resetGeoBuildStats(): void {
 if (import.meta.env?.DEV) {
 	(window as unknown as Record<string, unknown>).__geo = {
 		stats: () => geoBuildStats(),
+		ticks: () => geoTickStats(),
+		depth: () => geoPrefetchDepth(),
 		reset: () => resetGeoBuildStats(),
 	};
+}
+
+// Jobs the prefetcher is part-way through, keyed like the cache. A job here is
+// not renderable yet — getRoomGeoSet finishes it synchronously if the player
+// arrives before the background pass got there.
+const pending = new Map<string, BuildJob>();
+const queue: string[] = [];
+
+function commit(job: BuildJob): RoomGeoSet {
+	pending.delete(job.desc.signature);
+	buildMs.push(job.ms);
+	cache.set(job.desc.signature, job.set);
+	if (cache.size > CACHE_CAP) {
+		const oldest = cache.keys().next().value as string;
+		const evicted = cache.get(oldest);
+		cache.delete(oldest);
+		if (evicted) disposeSet(evicted);
+	}
+	return job.set;
+}
+
+/** Queue a sector to be built in the background. No-op if it is already built
+ * or queued. Safe to call every time the mount set changes. */
+export function prefetchRoomGeoSet(desc: RoomDesc): void {
+	const key = desc.signature;
+	if (cache.has(key) || pending.has(key)) return;
+	pending.set(key, makeJob(desc));
+	queue.push(key);
+}
+
+const tickMs: number[] = [];
+
+/** Advance background sector builds within a per-frame budget. */
+export function tickGeoPrefetch(budgetMs = 4): void {
+	while (queue.length) {
+		const key = queue[0];
+		const job = pending.get(key);
+		if (!job) {
+			queue.shift();
+			continue;
+		}
+		const t0 = performance.now();
+		const done = runJob(job, budgetMs);
+		tickMs.push(performance.now() - t0);
+		if (done) {
+			queue.shift();
+			commit(job);
+		}
+		return;
+	}
+}
+
+export function geoTickStats(): {
+	ticks: number;
+	worstMs: number;
+	avgMs: number;
+} {
+	const total = tickMs.reduce((a, b) => a + b, 0);
+	return {
+		ticks: tickMs.length,
+		worstMs: +Math.max(0, ...tickMs).toFixed(1),
+		avgMs: tickMs.length ? +(total / tickMs.length).toFixed(2) : 0,
+	};
+}
+
+export function geoPrefetchDepth(): number {
+	return queue.length;
 }
 
 export function getRoomGeoSet(desc: RoomDesc): RoomGeoSet {
@@ -166,17 +300,13 @@ export function getRoomGeoSet(desc: RoomDesc): RoomGeoSet {
 		cache.set(key, hit);
 		return hit;
 	}
-	const t0 = performance.now();
-	const set = buildSet(desc);
-	buildMs.push(performance.now() - t0);
-	cache.set(key, set);
-	if (cache.size > CACHE_CAP) {
-		const oldest = cache.keys().next().value as string;
-		const evicted = cache.get(oldest);
-		cache.delete(oldest);
-		if (evicted) disposeSet(evicted);
-	}
-	return set;
+	// Arrived before the prefetcher finished (or never prefetched at all) —
+	// drain the remaining steps now so a mount is never handed a partial set.
+	const job = pending.get(key) ?? makeJob(desc);
+	const i = queue.indexOf(key);
+	if (i >= 0) queue.splice(i, 1);
+	runJob(job, 0);
+	return commit(job);
 }
 
 export function roomCacheStats(): { size: number; keys: string[] } {

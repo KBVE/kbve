@@ -53,6 +53,17 @@ function emit(): void {
 	for (const l of listeners) l();
 }
 
+// Sector descriptors near the player whose geometry is worth building ahead of
+// the mount that will need it. Drained by the renderer; empty between rebuilds.
+let warmDescs: RoomDesc[] = [];
+
+export function takeWarmDescs(): RoomDesc[] {
+	if (!warmDescs.length) return warmDescs;
+	const out = warmDescs;
+	warmDescs = [];
+	return out;
+}
+
 function bumpProps(): void {
 	rebuildCrateGrid(dw.world);
 	propGen++;
@@ -146,6 +157,17 @@ function rebuild(x: number, z: number, sx: number, sy: number): void {
 		const desc = dw.desc(eid) as RoomDesc;
 		return { eid, key: `${desc.cx}|${desc.cy}`, desc };
 	});
+
+	// Offer the ring the player has not reached yet for background geometry
+	// building. Handed out rather than built here so the mount layer keeps no
+	// dependency on the render layer — the renderer drains this each frame.
+	warmDescs = [];
+	for (let dy = -1; dy <= 1; dy++) {
+		for (let dx = -1; dx <= 1; dx++) {
+			const desc = dw.desc(dw.ensureSector(sx + dx, sy + dy));
+			if (desc) warmDescs.push(desc);
+		}
+	}
 	emit();
 	bumpProps();
 }

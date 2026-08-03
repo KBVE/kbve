@@ -7,13 +7,18 @@ use std::f32::consts::PI;
 use super::inventory::{
     ITEM_LOG, ITEM_PORCINI, ITEM_STONE, ITEM_WILDFLOWER, ItemKind, LootEvent,
     item_from_flower_archetype, item_from_mushroom_kind, item_from_rock_kind,
+    item_ref_from_rock_kind,
 };
 use super::phase::GamePhase;
+use super::player::Player;
 use super::scene_objects::{
     CollectEvent, FlowerArchetype, HoverOutline, Interactable, InteractableKind, MushroomKind,
     RockKind,
 };
+use super::skills::gather_info;
 use super::tilemap::TileCoord;
+use super::toast::Toast;
+use bevy_skills::{SkillId, SkillProfile};
 
 #[derive(Clone, Debug)]
 pub struct ActionRequest {
@@ -160,12 +165,41 @@ impl Plugin for ActionsPlugin {
     }
 }
 
+/// Primary professiondb output item for a gather action, used to resolve its
+/// level requirement. Flowers and mushrooms have no level gate, so they map to
+/// `None` rather than paying for a per-archetype lookup.
+fn gather_item_ref<'a>(
+    action: &str,
+    entity: Entity,
+    rock_query: &'a Query<&RockKind>,
+) -> Option<&'a str> {
+    match action {
+        "chop_tree" => Some(ITEM_LOG),
+        "mine_rock" => Some(
+            rock_query
+                .get(entity)
+                .map(item_ref_from_rock_kind)
+                .unwrap_or(ITEM_STONE),
+        ),
+        _ => None,
+    }
+}
+
+fn capitalize(s: &str) -> String {
+    let mut chars = s.chars();
+    match chars.next() {
+        Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+        None => String::new(),
+    }
+}
+
 fn process_action_buffer(
     mut commands: Commands,
     rock_query: Query<&RockKind>,
     flower_query: Query<&FlowerArchetype>,
     mushroom_query: Query<&MushroomKind>,
     tile_query: Query<&TileCoord>,
+    player_skills: Query<&SkillProfile, With<Player>>,
 ) {
     let actions = drain_actions();
     for req in actions {
@@ -178,6 +212,28 @@ fn process_action_buffer(
             "collect_mushroom" => Some(InteractableKind::Mushroom),
             _ => None,
         };
+
+        // The server rejects gathers below the professiondb required level and
+        // sends nothing back, so mirror the check here — otherwise the client
+        // plays the full chop/mine animation for an action that never lands.
+        let requirement = gather_item_ref(&req.action, entity, &rock_query)
+            .and_then(gather_info)
+            .filter(|gather| gather.required_level > 0);
+        if let Some(gather) = requirement {
+            let level = player_skills
+                .single()
+                .map(|profile| profile.level(SkillId::from_ref(&gather.skill_ref)))
+                .unwrap_or(0);
+            if level < gather.required_level {
+                commands.trigger(Toast::warn(format!(
+                    "Requires {} level {}",
+                    capitalize(&gather.skill_ref),
+                    gather.required_level
+                )));
+                continue;
+            }
+        }
+
         if let Some(kind) = collect_kind {
             if let Ok(coord) = tile_query.get(entity) {
                 commands.trigger(CollectEvent {
