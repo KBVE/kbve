@@ -17,6 +17,7 @@ embeddb-derive = { version = "0.1.0", path = "../embeddb-derive", optional = tru
 [features]
 default = ["derive"]
 derive = ["dep:embeddb-derive"]
+vector = []
 
 [dev-dependencies]
 tempfile = { workspace = true }
