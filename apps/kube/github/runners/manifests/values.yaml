@@ -20,8 +20,11 @@ controllerServiceAccount:
     namespace: arc-systems
 
 # Scaling configuration
+# Capped at 1: two concurrent DinD runners wrote ~171 MB/s into the
+# emptyDir on sda, driving the queue depth to 52 and stalling etcd's
+# fsyncs until every leader-electing controller lost its lease.
 minRunners: 0
-maxRunners: 2
+maxRunners: 1
 
 # Runner group (optional - for enterprise/org runners)
 # runnerGroup: "default"
