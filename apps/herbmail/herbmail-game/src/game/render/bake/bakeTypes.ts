@@ -29,7 +29,6 @@ export type ResolvedBakeJob = Omit<BakeJob, 'tiles'> & { tiles: Uint8Array };
 
 export interface BakeResult {
 	id: number;
-	key: string;
 	bake: Float32Array;
 }
 
