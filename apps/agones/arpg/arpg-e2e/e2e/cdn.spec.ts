@@ -50,7 +50,10 @@ test.describe('arpg-web CDN (nginx container)', () => {
 		const page = await request.get(`${baseURL}/discord/arpg/`);
 		expect(page.ok(), 'discord/arpg/index.html must exist').toBeTruthy();
 		const html = await page.text();
-		const m = html.match(/<script\s+src="(arpg\.[a-f0-9]+\.js)"/i);
+		// Rollup's hash alphabet is base64url, not hex — `arpg.C4mTEDpu.js` is a
+		// valid emitted name, so matching [a-f0-9] misses every build whose hash
+		// happens to contain a letter past f.
+		const m = html.match(/<script\s+src="(arpg\.[A-Za-z0-9_-]+\.js)"/i);
 		expect(
 			m,
 			'index.html must reference a hashed arpg.<hash>.js bundle',
