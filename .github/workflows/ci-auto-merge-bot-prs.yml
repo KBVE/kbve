@@ -299,8 +299,9 @@ jobs:
                       } else {
                         // --- Path D: daily content routes (path-prefix-validated) ---
                         // kbve.nx router→builder (ci-daily-content.yml) generates docs
-                        // MDX + companion JSON. All changed files must live under the
-                        // content docs tree or the public nx-data dir — nothing else.
+                        // MDX + companion JSON. Prefixes must stay in sync with the
+                        // `git add` paths in ci-daily-content.yml — anything the
+                        // builder stages but this list omits blocks auto-merge.
                         const route = contentMatch[1];
                         appName = `content:${route}`;
                         core.info(`[content] Extracted route: '${route}'`);
@@ -308,7 +309,10 @@ jobs:
                         const allowedPrefixes = [
                           'apps/kbve/astro-kbve/src/content/docs/',
                           'apps/kbve/astro-kbve/public/data/nx/',
+                          'apps/kbve/astro-kbve/public/graphify/',
                           'apps/kbve/astro-kbve/src/data/',
+                          'packages/data/codegen/generated/',
+                          'apps/rareicon/unity-rareicon/Assets/StreamingAssets/',
                         ];
                         core.info(`[content] Allowed prefixes: ${allowedPrefixes.join(', ')}`);
 
