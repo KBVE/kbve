@@ -32,7 +32,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-title__accent">across every ecosystem.</span>
 				</h1>
 				<p class="bento-lede"><strong>47</strong> critical/high severity findings across the monorepo — triage before merge.</p>
-				<p class="bento-lede">Last generated <strong>2026-08-02T04:27:10Z</strong>.</p>
+				<p class="bento-lede">Last generated <strong>2026-08-03T04:33:21Z</strong>.</p>
 				<div class="bento-cta">
 					<a class="bento-btn bento-btn--primary" href="#findings">
 						View findings
@@ -75,7 +75,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7" /></svg>
 					</span>
-					<span class="bento-stat__value">31</span>
+					<span class="bento-stat__value">30</span>
 					<span class="bento-stat__label">Info</span>
 				</div>
 		</div>
@@ -103,7 +103,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
 			</span>
 			<span class="bento-linkcard__title">Cargo</span>
-			<span class="bento-linkcard__copy">46 advisories</span>
+			<span class="bento-linkcard__copy">45 advisories</span>
 			<span class="bento-linkcard__go" aria-hidden="true">
 				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 			</span>
@@ -160,7 +160,7 @@ pie showData
 pie showData
     title Findings by Ecosystem
     "npm" : 98
-    "Cargo" : 46
+    "Cargo" : 45
 ```
 
 ### Summary
@@ -168,11 +168,11 @@ pie showData
 | Ecosystem | Critical | High | Medium | Low | Total |
 |-----------|:--------:|:----:|:------:|:---:|:-----:|
 | **npm** | 4 | 43 | 41 | 10 | 98 |
-| **Cargo** | 0 | 0 | 15 | 0 | 46 |
+| **Cargo** | 0 | 0 | 15 | 0 | 45 |
 | **Python** | 0 | 0 | 0 | 0 | 0 |
 | **CodeQL** | 0 | 0 | 0 | 0 | 0 |
 | **Dependabot** | 0 | 0 | 0 | 0 | 0 |
-| **Total** | 4 | 43 | 56 | 10 | 144 |
+| **Total** | 4 | 43 | 56 | 10 | 143 |
 
 <span id="eco-npm"></span>
 
@@ -330,7 +330,6 @@ pie showData
 | Info | `unic-ucd-version` | `unic-ucd-version` is unmaintained | [Details](https://github.com/rustsec/advisory-db/issues/2414) |
 | Info | `event-listener` | `event-listener` allows `!Send` tags to cross thread boun... | [Details](https://github.com/smol-rs/event-listener/pull/163) |
 | Info | `glib` | Unsoundness in `Iterator` and `DoubleEndedIterator` impls... | [Details](https://github.com/gtk-rs/gtk-rs-core/pull/1343) |
-| Info | `lru` | `IterMut` violates Stacked Borrows by invalidating intern... | [Details](https://github.com/jeromefroe/lru-rs/pull/224) |
 
 <span id="eco-python"></span>
 
