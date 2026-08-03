@@ -29,3 +29,10 @@ function subscribe(cb: () => void): () => void {
 export function usePsx(): Psx {
 	return useSyncExternalStore(subscribe, getPsx, getPsx);
 }
+
+if (import.meta.env?.DEV) {
+	(window as unknown as Record<string, unknown>).__psx = {
+		set: <K extends keyof Psx>(k: K, v: Psx[K]) => setPsx(k, v),
+		get: () => getPsx(),
+	};
+}

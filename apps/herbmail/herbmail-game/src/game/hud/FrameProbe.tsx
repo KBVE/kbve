@@ -1,8 +1,17 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import { bvhStats } from '../render/bvh';
 import { bakeApplyStats } from '../render/bake/bakePool';
 import { geoBuildStats, geoTickStats } from '../dungeon/roomGeometry';
+import {
+	beginGpuFrame,
+	endGpuFrame,
+	gpuDisjoints,
+	gpuSamples,
+	gpuTimerAvailable,
+	initGpuTimer,
+	resetGpuSamples,
+} from '../render/gpuTimer';
 
 // Frame callbacks run in ascending priority: sim systems at 0, AOComposer at 1,
 // StatsProbe at 2. Bracketing that at -1 and 3 splits a frame into the three
@@ -60,11 +69,18 @@ export function FrameProbe() {
 		t0.current = performance.now();
 	}, -1);
 
+	useEffect(() => {
+		const ctx = gl.getContext();
+		if (ctx instanceof WebGL2RenderingContext) initGpuTimer(ctx);
+	}, [gl]);
+
 	useFrame(() => {
 		tPre.current = performance.now();
+		beginGpuFrame();
 	}, 0.5);
 
 	useFrame(() => {
+		endGpuFrame();
 		const end = performance.now();
 		const start = t0.current;
 		const bake = bakeApplyStats();
@@ -151,6 +167,13 @@ function work(): unknown {
 		render: dist(recs.map((r) => r.render)),
 		cpu: dist(cpu),
 		over16: cpu.filter((v) => v > 16.7).length,
+		gpu: gpuTimerAvailable()
+			? {
+					samples: gpuSamples().length,
+					disjoints: gpuDisjoints(),
+					...dist(gpuSamples()),
+				}
+			: 'unavailable',
 	};
 }
 
@@ -170,6 +193,7 @@ if (import.meta.env?.DEV) {
 		work: () => work(),
 		reset: () => {
 			recs.length = 0;
+			resetGpuSamples();
 		},
 		summary: (ms = 33) => {
 			const hot = recs.filter((r) => r.total >= ms);
