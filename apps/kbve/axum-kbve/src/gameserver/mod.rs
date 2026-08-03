@@ -19,7 +19,7 @@ use lightyear::prelude::*;
 use bevy_inventory::Inventory;
 use bevy_items::ItemDb;
 use bevy_items::inventory_adapter::{ProtoItemKind, init_item_db};
-use bevy_items::profession::{ProfessionDb, init_profession_db};
+use bevy_items::profession::{ProfessionDb, get_profession_db, init_profession_db};
 use bevy_kbve_net::npcdb::{self, ProtoNpcId, creature::CapturedCreatures};
 use bevy_kbve_net::{
     AuthAck, AuthMessage, AuthResponse, CapturedCreatureEntry, CollectRequest, CraftFailureReason,
@@ -250,6 +250,22 @@ fn register_server_skills(mut registry: ResMut<SkillRegistry>) {
         xp_curve: None,
     });
     tracing::info!("[skills] server registered {} skills", registry.len());
+}
+
+fn validate_professiondb_skills(registry: Res<SkillRegistry>) {
+    let Some(db) = get_profession_db() else {
+        return;
+    };
+    match db.validate_skill_refs(|r| registry.id_for_ref(r).is_some()) {
+        Ok(()) => {
+            tracing::info!("[professiondb] all gather skill_refs resolve in SkillRegistry");
+        }
+        Err(missing) => {
+            panic!(
+                "[professiondb] gather skill_refs missing from SkillRegistry: {missing:?} — register these skills or correct professiondb"
+            );
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -859,6 +875,10 @@ fn run_bevy_app(
     load_server_professiondb();
     app.add_plugins(BevySkillsPlugin);
     app.add_systems(Startup, register_server_skills);
+    app.add_systems(
+        Startup,
+        validate_professiondb_skills.after(register_server_skills),
+    );
     app.init_resource::<DayCycle>();
     app.init_resource::<CreatureSeed>();
     app.init_resource::<WindState>();
