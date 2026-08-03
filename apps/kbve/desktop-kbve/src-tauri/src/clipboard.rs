@@ -2,7 +2,7 @@
 use crate::input::{self, EnigoState};
 #[cfg(not(feature = "appstore"))]
 use crate::settings::ClipboardHandling;
-use crate::settings::{get_settings, PasteMethod};
+use crate::settings::{PasteMethod, get_settings};
 #[cfg(not(feature = "appstore"))]
 use enigo::Enigo;
 use log::info;
