@@ -147,6 +147,13 @@ function assetHashes(): Plugin {
 // nothing driving it back, so the mixer leaves it where it was and the stance
 // snaps — prod only, since dev serves the unpacked GLB. -af 0 turns off the
 // 30Hz resample that was lengthening 33 clips by up to a frame.
+//
+// Compression is -c, NOT -cc. Under -cc the packed rig decodes wrong at
+// runtime: measured per-frame world movement of hand_r/hand_l/head roughly
+// doubles against the unpacked build while pelvis and spine match exactly, so
+// the arms and head jitter. -c measures identical to unpacked and only costs
+// ~0.5MB on character-anim.glb. Quantization is not involved — -cc reproduces
+// it with -noq, and -c is clean with quantization on.
 function gltfpackModels(): Plugin {
 	let outDir = '';
 	return {
@@ -190,7 +197,7 @@ function gltfpackModels(): Plugin {
 						f,
 						'-o',
 						tmp,
-						'-cc',
+						'-c',
 						'-kn',
 						'-ke',
 						'-ac',
