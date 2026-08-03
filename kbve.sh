@@ -1070,12 +1070,18 @@ Standard subcommands forwarded to `git lfs`:
   push|pull|fetch|ls-files|env|...
 
 Custom subcommands:
-  register      Register every LFS OID under the game's path prefix with the
+  register [remote] [range]
+                Register every LFS OID under the game's path prefix with the
                 game's Forgejo repo. No bytes are uploaded if the blob already
                 lives in the shared content-addressed storage (Forgejo dedups
                 across the KBVE org), so this is the cheap way to claim
                 ownership for pointers whose blobs were pushed via the root
                 .lfsconfig endpoint (e.g. by the husky pre-push hook).
+
+                Without a range this walks every pointer in the game (thousands
+                for chuck). Pass a commit range — "$base..$head" — to register
+                only the pointers that range adds or changes; that is the form
+                the pre-push hook uses so the cost tracks the change.
 
   ssh-push [remote] [branch]
                 Push large LFS files via SSH NodePort, bypassing HTTP upload
@@ -1151,9 +1157,31 @@ EOF
     if [ "$1" = "register" ]; then
         shift
         local remote="${1:-origin}"
-        echo "→ scanning local LFS pointers under $path_prefix/"
+        local range="$2"
         local oids
-        oids=$(git lfs ls-files --long | awk -v prefix="$path_prefix/" '$0 ~ prefix {print $1}')
+        if [ -n "$range" ]; then
+            # Range form: only the pointers this push actually adds or changes.
+            # Whole-prefix registration re-offers every blob in the game (97 for
+            # herbmail, thousands for chuck), which is far too slow to sit in a
+            # push hook. Read the OID straight out of each pointer blob at the
+            # pushed commit rather than the worktree, so it is correct even when
+            # the files were never smudged (GIT_LFS_SKIP_SMUDGE worktrees).
+            local head="${range##*..}"
+            [ -n "$head" ] || head=HEAD
+            echo "→ scanning LFS pointers changed in $range under $path_prefix/"
+            # head -c/LC_ALL=C keep awk off binary payloads: a changed path in
+            # the range may be a plain file rather than a pointer, and a raw
+            # blob otherwise trips "multibyte conversion failure". Pointers are
+            # ~130 bytes, so the first 200 always cover the oid line.
+            oids=$(git diff --name-only --diff-filter=ACMR "$range" -- "$path_prefix" |
+                while IFS= read -r p; do
+                    git cat-file -p "$head:$p" 2>/dev/null | head -c 200 |
+                        LC_ALL=C awk '/^oid sha256:/ { print substr($2, 8) }'
+                done)
+        else
+            echo "→ scanning local LFS pointers under $path_prefix/"
+            oids=$(git lfs ls-files --long | awk -v prefix="$path_prefix/" '$0 ~ prefix {print $1}')
+        fi
         if [ -z "$oids" ]; then
             echo "No LFS pointers found under $path_prefix/. Nothing to register."
             return 0
