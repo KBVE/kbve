@@ -20,12 +20,14 @@ interface Cell {
 interface Props {
 	eyebrow?: string;
 	heading?: string;
+	sub?: string;
 	cells?: Cell[];
 }
 
 const {
-	eyebrow = 'The KBVE stack',
-	heading = 'Everything the studio runs on, in one place.',
+	eyebrow = 'Infrastructure',
+	heading = 'The KBVE stack',
+	sub = 'Everything the studio runs on, in one place — the monorepo, the game servers, and the pipelines behind them.',
 	cells = [
 		{
 			title: 'Community',
@@ -82,7 +84,7 @@ const fillLg = (3 - (unitsLg % 3)) % 3;
 const fillMd = (2 - (cells.length % 2)) % 2;
 ---
 
-<BentoShell {eyebrow} {heading}>
+<BentoShell {eyebrow} {heading} {sub}>
 	<div class="bento-board__grid">
 		{
 			cells.map((cell) => {
