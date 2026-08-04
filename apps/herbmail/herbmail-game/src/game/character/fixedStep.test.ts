@@ -19,6 +19,9 @@ function travel(frameDts: number[]): number {
 	return motor.position.z;
 }
 
+/** Step callback for cases that assert the step count, not what a step does. */
+const noop = (_dt: number): void => undefined;
+
 /** `count` frames of `dt`, i.e. exactly count*dt seconds of wall time. */
 function steady(count: number, dt: number): number[] {
 	return Array.from({ length: count }, () => dt);
@@ -32,20 +35,20 @@ describe('FixedStep', () => {
 		expect(seen).toEqual([0.1, 0.1]);
 		expect(s.pending).toBeCloseTo(0.05, 10);
 		// The carried 0.05 plus 0.06 is one more whole step, not zero.
-		expect(s.run(0.06, () => {})).toBe(1);
+		expect(s.run(0.06, noop)).toBe(1);
 	});
 
 	it('drops the backlog instead of repaying a long stall at once', () => {
 		const s = new FixedStep(0.1, 3);
-		expect(s.run(10, () => {})).toBe(3);
+		expect(s.run(10, noop)).toBe(3);
 		expect(s.pending).toBe(0);
 	});
 
 	it('never advances on a frame shorter than one step', () => {
 		const s = new FixedStep(0.1, 8);
-		expect(s.run(0.04, () => {})).toBe(0);
-		expect(s.run(0.04, () => {})).toBe(0);
-		expect(s.run(0.04, () => {})).toBe(1);
+		expect(s.run(0.04, noop)).toBe(0);
+		expect(s.run(0.04, noop)).toBe(0);
+		expect(s.run(0.04, noop)).toBe(1);
 	});
 
 	// The reason this exists: the same input held for the same wall time has to
