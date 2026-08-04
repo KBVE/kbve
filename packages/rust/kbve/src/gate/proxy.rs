@@ -415,7 +415,10 @@ async fn authorize(
     };
 
     let claims = match state.cfg.verifier.as_ref() {
-        Some(v) => v.verify::<Claims>(&token).map_err(|e| e.to_string()),
+        Some(v) => v
+            .verify_refreshed::<Claims>(&token)
+            .await
+            .map_err(|e| e.to_string()),
         None => validate_token(&token, &state.cfg.jwt_secret)
             .map(|d| d.claims)
             .map_err(|e| e.to_string()),
