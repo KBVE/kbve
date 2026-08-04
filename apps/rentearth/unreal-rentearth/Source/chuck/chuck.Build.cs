@@ -43,6 +43,8 @@ public class chuck : ModuleRules
 			"KBVEUIChat",
 			"KBVEGameplay",
 			"KBVEItemDB",
+			"KBVEMapDB",
+			"KBVEProfessionDB",
 			"KBVEEvents",
 			"KBVESQLite",
 			"KBVESupabase",
