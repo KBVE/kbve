@@ -22,6 +22,10 @@ spec:
         network:
             permitBridgeInterfaceOnPodNetwork: true
     imagePullPolicy: IfNotPresent
+    # Must stay an explicit empty object. Omitting the key makes Argo's
+    # server-side apply send null to clear the field, and the CRD schema
+    # rejects null: "spec.customizeComponents in body must be of type object".
+    customizeComponents: {}
     workloadUpdateStrategy:
         workloadUpdateMethods:
             - LiveMigrate
