@@ -4,6 +4,7 @@ mod capture;
 mod creatures;
 mod db;
 mod duel;
+mod evolve;
 mod game;
 mod growth;
 mod learn;
@@ -177,6 +178,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     restore::apply_pet_restores,
                     growth::apply_pet_xp,
                     learn::apply_learn_responses,
+                    evolve::apply_evolutions,
                     learn::expire_learn_offers,
                     simgrid::flush_roster_syncs,
                 )

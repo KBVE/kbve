@@ -224,6 +224,11 @@ pub enum PetRestore {
 #[derive(Resource, Default)]
 pub struct PendingPetRestores(pub Vec<(proto::PlayerSlot, PetRestore)>);
 
+/// Evolution attempts queued this frame: the roster slot and the item to spend. Drained by the
+/// game server's evolve system, which owns the item bank and the pet component writes.
+#[derive(Resource, Default)]
+pub struct PendingEvolutions(pub Vec<(proto::PlayerSlot, usize, String)>);
+
 /// Answers to outstanding pet move-learn offers, drained by the game server's learn system
 /// (which owns the offer registry and the `PetMoves` writes). `None` declines the offer.
 #[derive(Resource, Default)]
@@ -246,6 +251,7 @@ pub struct DeployQueues<'w> {
     roster_ops: ResMut<'w, PendingRosterOps>,
     pet_restores: ResMut<'w, PendingPetRestores>,
     learn_responses: ResMut<'w, PendingLearnResponses>,
+    evolutions: ResMut<'w, PendingEvolutions>,
 }
 
 /// A durably-persisted player-placed env object. Behavior is re-derived from
@@ -1533,6 +1539,7 @@ pub fn build_app(
         .insert_resource(crate::progress::PendingPetXp::default())
         .insert_resource(PendingPetRestores::default())
         .insert_resource(PendingLearnResponses::default())
+        .insert_resource(PendingEvolutions::default())
         .insert_resource(PendingDrops::default())
         .insert_resource(Deployables::default())
         .insert_resource(PendingPlacements::default())
@@ -2287,6 +2294,9 @@ fn drain_inputs(
                         .0
                         .push((slot, pet_id, at.map(|a| a as usize)))
                 }
+                Input::EvolvePet { idx, item_ref } => {
+                    deploy.evolutions.0.push((slot, idx as usize, item_ref))
+                }
                 other => pending.entry(slot.0).or_default().push(other),
             }
         }
@@ -2512,7 +2522,10 @@ fn drain_inputs(
                 | Input::RenamePet { .. }
                 | Input::UsePetElixir { .. }
                 | Input::HealPets { .. }
-                | Input::RespondLearnMove { .. } => {}
+                | Input::RespondLearnMove { .. }
+                // Routed in `drain_inputs` and never reaches here, but the match must still
+                // be exhaustive.
+                | Input::EvolvePet { .. } => {}
             }
         }
     }

@@ -1,0 +1,153 @@
+---
+title: 'Shibe'
+template: splash
+sidebar:
+    label: 'Shibe'
+    hidden: true
+description: |
+    A small tan-and-cream dog with a curled tail and an expression of total, unearned confidence. Common on every road and in most doorways.
+lore: |
+    The most-caught pet in the world and the least predictable one to raise. A shibe is a shibe until the day it is given a shard, a core, a plume or a cap — and then it is one of eighteen things, permanently, with no way back and no second choice. Handlers argue endlessly about which form is best and quietly agree that the argument is the appeal. Nobody has managed to make one evolve twice.
+ref: 'shibe'
+id: '01KME8R5PG7Z9QB3T6VX2H4N03'
+name: 'Shibe'
+img: '/assets/npc/shibe.png'
+type_flags: 16
+rarity: 'common'
+personality: 'cheerful'
+rank: 'normal'
+family: 'beast'
+element: 'none'
+level: 5
+stats:
+    hp: 42
+    max_hp: 42
+    attack: 12
+    defense: 10
+    speed: 14
+    mp: 20
+    max_mp: 20
+    special_attack: 11
+    special_defense: 10
+    accuracy: 100
+    evasion: 100
+    crit_rate: 5
+    crit_damage: 1.5
+abilities:
+    - id: 'tackle'
+      name: 'Tackle'
+      description: 'A reckless full-body charge.'
+      category: 'physical'
+      target: 'enemy'
+      power: 12
+      damage: 12
+      pp: 35
+      max_pp: 35
+      hit_chance: 1.0
+      priority: 0
+    - id: 'bite'
+      name: 'Bite'
+      description: 'A short, hard bite with the whole jaw behind it.'
+      category: 'physical'
+      target: 'enemy'
+      power: 16
+      damage: 16
+      pp: 25
+      max_pp: 25
+      hit_chance: 0.95
+      high_crit: true
+    - id: 'howl'
+      name: 'Howl'
+      description: 'A rising howl that steadies its own nerve.'
+      category: 'status'
+      target: 'self'
+      pp: 20
+      max_pp: 20
+      stat_changes:
+        - stat: 'attack'
+          stages: 1
+          target: 'self'
+        - stat: 'special_attack'
+          stages: 1
+          target: 'self'
+pet:
+    catchable: true
+    capture_rate: 190
+    growth_rate: 'medium_fast'
+    base_xp_yield: 62
+    base_friendship: 80
+    gender_ratio: 0.5
+    base_stat_total: 99
+    egg_groups:
+        - 'field'
+    movepool:
+        - level: 1
+          ability_id: 'tackle'
+        - level: 1
+          ability_id: 'bite'
+        - level: 8
+          ability_id: 'howl'
+    evolutions:
+        - evolves_to_ref: 'voidmaw'
+          item_ref: 'umbral-shard'
+        - evolves_to_ref: 'verdanwing'
+          item_ref: 'verdant-plume'
+        - evolves_to_ref: 'lumipaw'
+          item_ref: 'dawn-prism'
+        - evolves_to_ref: 'glacierfang'
+          item_ref: 'glacial-core'
+        - evolves_to_ref: 'blazeruff'
+          item_ref: 'ember-shard'
+        - evolves_to_ref: 'stormcoat'
+          item_ref: 'storm-cell'
+        - evolves_to_ref: 'mossantler'
+          item_ref: 'mossy-antler'
+        - evolves_to_ref: 'direhowl'
+          item_ref: 'dire-fang'
+        - evolves_to_ref: 'duskwing'
+          item_ref: 'dusk-feather'
+        - evolves_to_ref: 'emberstripe'
+          item_ref: 'cinder-brand'
+        - evolves_to_ref: 'mechamutt'
+          item_ref: 'cyber-core'
+        - evolves_to_ref: 'aurelight'
+          item_ref: 'seraph-bell'
+        - evolves_to_ref: 'aetherfang'
+          item_ref: 'aether-shard'
+        - evolves_to_ref: 'grimclaw'
+          item_ref: 'grim-sigil'
+        - evolves_to_ref: 'sporecap'
+          item_ref: 'spore-cap'
+        - evolves_to_ref: 'prismawing'
+          item_ref: 'prism-wing'
+        - evolves_to_ref: 'solmane'
+          item_ref: 'sun-mane'
+        - evolves_to_ref: 'frostfang'
+          item_ref: 'frost-fang'
+behavior:
+    movement_type: 'random_wander'
+    first_strike: false
+    wander_radius: 6.0
+    aggro_range: 0.0
+    can_flee: true
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "Shibe throws itself at {target} for {dmg} damage!"
+        - "Shibe nips {target} for {dmg} damage and looks pleased about it!"
+    - action: 'flee'
+      messages:
+        - "Shibe decides this was never its problem and trots off."
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import { Aside } from '@astrojs/starlight/components';
+
+The base of the line and the only pet that spawns in the wild. Every owned pet starts here.
+
+<Aside type="caution" title="One evolution, eighteen outcomes">
+	Using an evolution item on a Shibe is **permanent and unrepeatable**. There are eighteen
+	forms and each Shibe gets exactly one of them — to get a different form, raise another
+	Shibe.
+</Aside>
