@@ -21,7 +21,9 @@
 			"executor": "@monodon/rust:test",
 			"outputs": ["{options.target-dir}"],
 			"options": {
-				"target-dir": "dist/target/embeddb"
+				"target-dir": "dist/target/embeddb",
+				"all-features": true,
+				"lib": true
 			},
 			"configurations": {
 				"production": {
@@ -30,10 +32,17 @@
 			}
 		},
 		"e2e": {
-			"executor": "nx:run-commands",
+			"executor": "@monodon/rust:test",
+			"outputs": ["{options.target-dir}"],
 			"options": {
-				"commands": ["nx test embeddb"],
-				"parallel": false
+				"target-dir": "dist/target/embeddb",
+				"all-features": true,
+				"tests": true
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
 			}
 		},
 		"lint": {
