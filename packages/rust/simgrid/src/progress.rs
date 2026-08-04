@@ -10,6 +10,7 @@
 use bevy::prelude::{Entity, Resource};
 
 use crate::data::NpcPet;
+use crate::genes::PetGenes;
 use crate::pets::{PetProgress, PetVitals, level_scale};
 use crate::proto::PlayerSlot;
 
@@ -172,6 +173,7 @@ pub fn grow_pet(
     vitals: &mut PetVitals,
     pet: &NpcPet,
     base_stats: &BaseStats,
+    genes: &PetGenes,
     gained: u32,
 ) -> GrowthResult {
     let rate = GrowthRate::from_proto(&pet.growth_rate);
@@ -204,7 +206,7 @@ pub fn grow_pet(
         progress.xp = 0;
     }
 
-    rescale_for(vitals, base_stats, progress.level);
+    rescale_for(vitals, base_stats, progress.level, genes);
     result.max_hp_gain = vitals.max_hp - max_before;
     vitals.hp = carry_hp(hp_before, max_before, vitals.max_hp);
     result
@@ -251,21 +253,28 @@ impl BaseStats {
     }
 }
 
-/// Recompute every level-driven stat. Shares `level_scale` with `mint_pet_from_species`, so a
-/// pet grown to level N and a pet minted at level N have identical stats — otherwise a caught
-/// pet and a bred one would diverge.
-pub(crate) fn rescale_for(vitals: &mut PetVitals, base: &BaseStats, level: u32) {
-    vitals.max_hp = level_scale(base.hp, level);
-    vitals.attack = level_scale(base.attack, level);
-    vitals.defense = level_scale(base.defense, level);
-    vitals.sp_attack = level_scale(base.sp_attack, level);
-    vitals.sp_defense = level_scale(base.sp_defense, level);
-    vitals.speed = level_scale(base.speed, level);
+/// Recompute every level-driven stat from the species base, the level, and the pet's own
+/// genetics.
+///
+/// The single choke point for pet stats — `mint_pet_from_species`, [`grow_pet`] and
+/// [`crate::evolve::evolve_pet`] all come through here. They used to each apply
+/// `level_scale` themselves, which was harmless while stats were a pure function of species
+/// and level; with per-instance genetics in play, a site that forgot to apply them would
+/// make a pet's stats depend on whether it was caught, grown or evolved into that level.
+pub(crate) fn rescale_for(vitals: &mut PetVitals, base: &BaseStats, level: u32, genes: &PetGenes) {
+    use crate::genes::GeneStat;
+    vitals.max_hp = genes.apply(GeneStat::Hp, level_scale(base.hp, level));
+    vitals.attack = genes.apply(GeneStat::Attack, level_scale(base.attack, level));
+    vitals.defense = genes.apply(GeneStat::Defense, level_scale(base.defense, level));
+    vitals.sp_attack = genes.apply(GeneStat::SpAttack, level_scale(base.sp_attack, level));
+    vitals.sp_defense = genes.apply(GeneStat::SpDefense, level_scale(base.sp_defense, level));
+    vitals.speed = genes.apply(GeneStat::Speed, level_scale(base.speed, level));
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::genes::PetGenes;
 
     fn base() -> BaseStats {
         BaseStats {
@@ -295,7 +304,7 @@ mod tests {
             sp_defense: 0,
             speed: 0,
         };
-        rescale_for(&mut v, &base(), level);
+        rescale_for(&mut v, &base(), level, &PetGenes::default());
         v.hp = v.max_hp;
         v
     }
@@ -350,7 +359,14 @@ mod tests {
         let mut progress = PetProgress { level: 5, xp: 0 };
         let mut vitals = vitals_at(5);
         let lump: u32 = (5..8).map(|l| GrowthRate::MediumFast.xp_to_next(l)).sum();
-        let result = grow_pet(&mut progress, &mut vitals, &pet, &base(), lump);
+        let result = grow_pet(
+            &mut progress,
+            &mut vitals,
+            &pet,
+            &base(),
+            &PetGenes::default(),
+            lump,
+        );
         assert_eq!(result.from_level, 5);
         assert_eq!(result.to_level(), 8);
         assert_eq!(result.to_level(), progress.level);
@@ -421,7 +437,14 @@ mod tests {
         let mut vitals = vitals_at(5);
         let before = vitals.attack;
         let need = GrowthRate::MediumFast.xp_to_next(5);
-        let result = grow_pet(&mut progress, &mut vitals, &pet, &base(), need);
+        let result = grow_pet(
+            &mut progress,
+            &mut vitals,
+            &pet,
+            &base(),
+            &PetGenes::default(),
+            need,
+        );
         assert_eq!(progress.level, 6);
         assert_eq!(result.levels, 1);
         assert!(result.max_hp_gain > 0);
@@ -434,7 +457,14 @@ mod tests {
         let mut progress = PetProgress { level: 2, xp: 0 };
         let mut vitals = vitals_at(2);
         let lump: u32 = (2..6).map(|l| GrowthRate::MediumFast.xp_to_next(l)).sum();
-        let result = grow_pet(&mut progress, &mut vitals, &pet, &base(), lump);
+        let result = grow_pet(
+            &mut progress,
+            &mut vitals,
+            &pet,
+            &base(),
+            &PetGenes::default(),
+            lump,
+        );
         assert_eq!(progress.level, 6);
         assert_eq!(result.levels, 4);
         assert_eq!(progress.xp, 0, "an exact lump leaves nothing over");
@@ -446,7 +476,14 @@ mod tests {
         let mut progress = PetProgress { level: 3, xp: 0 };
         let mut vitals = vitals_at(3);
         let need = GrowthRate::MediumFast.xp_to_next(3);
-        grow_pet(&mut progress, &mut vitals, &pet, &base(), need + 7);
+        grow_pet(
+            &mut progress,
+            &mut vitals,
+            &pet,
+            &base(),
+            &PetGenes::default(),
+            need + 7,
+        );
         assert_eq!(progress.level, 4);
         assert_eq!(progress.xp, 7);
     }
@@ -459,7 +496,14 @@ mod tests {
         let mut vitals = vitals_at(5);
         vitals.hp = 1;
         let need = GrowthRate::MediumFast.xp_to_next(5);
-        grow_pet(&mut progress, &mut vitals, &pet, &base(), need);
+        grow_pet(
+            &mut progress,
+            &mut vitals,
+            &pet,
+            &base(),
+            &PetGenes::default(),
+            need,
+        );
         assert!(
             vitals.hp < vitals.max_hp,
             "hp {} of {} — levelling healed the pet",
@@ -481,6 +525,7 @@ mod tests {
             &mut vitals,
             &pet,
             &base(),
+            &PetGenes::default(),
             GrowthRate::MediumFast.xp_to_next(9),
         );
         let ratio_after = vitals.hp as f32 / vitals.max_hp as f32;
@@ -498,6 +543,7 @@ mod tests {
             &mut vitals,
             &pet,
             &base(),
+            &PetGenes::default(),
             GrowthRate::MediumFast.xp_to_next(5),
         );
         assert_eq!(progress.level, 6, "it still earns the level");
@@ -512,7 +558,14 @@ mod tests {
         let mut progress = PetProgress { level: 5, xp: 0 };
         let mut vitals = vitals_at(5);
         let lump: u32 = (5..12).map(|l| GrowthRate::MediumFast.xp_to_next(l)).sum();
-        grow_pet(&mut progress, &mut vitals, &pet, &base(), lump);
+        grow_pet(
+            &mut progress,
+            &mut vitals,
+            &pet,
+            &base(),
+            &PetGenes::default(),
+            lump,
+        );
         assert_eq!(progress.level, 12);
         let minted = vitals_at(12);
         assert_eq!(vitals.max_hp, minted.max_hp);
@@ -528,7 +581,14 @@ mod tests {
             xp: 0,
         };
         let mut vitals = vitals_at(PET_LEVEL_MAX);
-        let result = grow_pet(&mut progress, &mut vitals, &pet, &base(), 1_000_000);
+        let result = grow_pet(
+            &mut progress,
+            &mut vitals,
+            &pet,
+            &base(),
+            &PetGenes::default(),
+            1_000_000,
+        );
         assert_eq!(progress.level, PET_LEVEL_MAX);
         assert_eq!(result.levels, 0);
         assert_eq!(progress.xp, 0, "xp does not pile up past the ceiling");

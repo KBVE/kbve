@@ -136,9 +136,11 @@ pub fn finish_duel(
     id: u32,
     commands: &mut bevy::prelude::Commands,
     xp: &mut simgrid::PendingPetXp,
+    friendship: &mut crate::friendship::PendingFriendship,
 ) {
     if let Some(duel) = duels.remove(id) {
         crate::growth::queue_duel_xp(&duel, xp);
+        crate::friendship::queue_duel_friendship(&duel, friendship);
         for side in &duel.sides {
             if let DuelSide::Npc {
                 trainer: Some(e), ..
@@ -496,6 +498,7 @@ pub fn tick_duels(
     clock: bevy::prelude::Res<simgrid::SimClock>,
     mut duels: bevy::prelude::ResMut<ActiveDuels>,
     mut xp: bevy::prelude::ResMut<simgrid::PendingPetXp>,
+    mut friendship: bevy::prelude::ResMut<crate::friendship::PendingFriendship>,
     mut commands: bevy::prelude::Commands,
 ) {
     let ids: Vec<u32> = duels.by_id.keys().copied().collect();
@@ -520,7 +523,7 @@ pub fn tick_duels(
         let resolved = duel.state.outcome != simgrid::BattleOutcome::Ongoing;
         stream_duel_views(&bcast, duel, &events, clock.tick);
         if resolved {
-            finish_duel(&mut duels, id, &mut commands, &mut xp);
+            finish_duel(&mut duels, id, &mut commands, &mut xp, &mut friendship);
         }
     }
 }
@@ -545,6 +548,7 @@ pub fn cleanup_stale_duels(
     clock: bevy::prelude::Res<simgrid::SimClock>,
     mut duels: bevy::prelude::ResMut<ActiveDuels>,
     mut xp: bevy::prelude::ResMut<simgrid::PendingPetXp>,
+    mut friendship: bevy::prelude::ResMut<crate::friendship::PendingFriendship>,
     mut commands: bevy::prelude::Commands,
 ) {
     let ids: Vec<u32> = duels.by_id.keys().copied().collect();
@@ -573,7 +577,7 @@ pub fn cleanup_stale_duels(
                 game::send_battle_view(&bcast, simgrid::proto::PlayerSlot(slot), &view);
             }
         }
-        finish_duel(&mut duels, id, &mut commands, &mut xp);
+        finish_duel(&mut duels, id, &mut commands, &mut xp, &mut friendship);
     }
 }
 

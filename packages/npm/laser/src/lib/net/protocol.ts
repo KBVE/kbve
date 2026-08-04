@@ -160,6 +160,48 @@ export interface PetMoveView {
 
 /** One owned pet in the roster. Pets never appear in the spatial snapshot — they sync
  * only through the roster event and the battle events. */
+/** The six stats an individual pet varies in, in the order `PetView.ivs` arrives.
+ * Mirrors Rust `simgrid::genes::GeneStat`. */
+export const GENE_STATS = ['HP', 'Atk', 'Def', 'SpA', 'SpD', 'Spe'] as const;
+
+/** Highest individual value a roll can produce. */
+export const IV_MAX = 31;
+
+/** Total of a perfect six-stat roll — the denominator for an "IV %" readout. */
+export const IV_TOTAL_MAX = IV_MAX * GENE_STATS.length;
+
+/** The five stats a nature can shift, in nature-index order. HP is absent: no nature moves it.
+ * Mirrors Rust `simgrid::genes::NATURE_STATS`. */
+export const NATURE_STATS = ['Atk', 'Def', 'SpA', 'SpD', 'Spe'] as const;
+
+/** How many distinct natures exist — 5 boosted x 5 lowered, of which 5 are neutral. */
+export const NATURE_COUNT = 25;
+
+/** Friendship at or above which a pet deals 10% more damage. Mirrors Rust
+ * `simgrid::pets::FRIENDSHIP_DEVOTED`. */
+export const FRIENDSHIP_DEVOTED = 200;
+
+/** Which stat a nature raises and which it lowers, or `null` on both for a neutral nature.
+ *
+ * The `boosted * 5 + lowered` encoding is a wire detail, not game math — the server sends the
+ * byte and this decodes it, which is why the roster payload does not carry two more fields.
+ * The five diagonal values raise and lower the same stat and so cancel. */
+export function natureEffect(nature: number): {
+	up: (typeof NATURE_STATS)[number] | null;
+	down: (typeof NATURE_STATS)[number] | null;
+} {
+	const n = ((nature % NATURE_COUNT) + NATURE_COUNT) % NATURE_COUNT;
+	const up = Math.floor(n / 5);
+	const down = n % 5;
+	if (up === down) return { up: null, down: null };
+	return { up: NATURE_STATS[up], down: NATURE_STATS[down] };
+}
+
+/** Display glyph for a `PetView.gender` byte. Empty for genderless. */
+export function genderGlyph(gender: number): string {
+	return gender === 1 ? '\u2642' : gender === 2 ? '\u2640' : '';
+}
+
 export interface PetView {
 	id: string;
 	species_ref: string;
@@ -172,6 +214,15 @@ export interface PetView {
 	/** Item refs that would evolve this pet, so the hub can offer them without a client-side
 	 * copy of npcdb. Empty once the pet has evolved — evolution is one-way and one-time. */
 	evolve_items: string[];
+	/** Nature byte, 0..24. Decode with {@link natureEffect} rather than reimplementing the
+	 * `boosted * 5 + lowered` arithmetic. */
+	nature: number;
+	/** The six individual values, 0..31, in {@link GENE_STATS} order. */
+	ivs: number[];
+	/** 0 genderless, 1 male, 2 female. */
+	gender: number;
+	/** Owner attachment 0..255. At or above {@link FRIENDSHIP_DEVOTED} the pet hits 10% harder. */
+	friendship: number;
 	hp: number;
 	max_hp: number;
 	attack: number;

@@ -8,6 +8,7 @@ pub mod data;
 pub mod dungeon;
 pub mod evolve;
 pub mod float_move;
+pub mod genes;
 pub mod grid;
 pub mod heightfield;
 pub mod net;
@@ -26,23 +27,26 @@ pub mod auth;
 
 pub use battle::{
     BattleAction, BattleEvent, BattleOutcome, BattleSide, BattleState, Combatant, Effectiveness,
-    Element, MoveCategory, MoveData, PetStatus, Side, StatId, expected_damage, type_multiplier,
+    Element, MoveCategory, MoveData, PetStatus, Side, StatId, defense_multiplier, expected_damage,
+    friendship_multiplier, type_multiplier,
 };
 pub use battle_ai::{AiDifficulty, choose_action, choose_replacement};
 pub use blackjack::{TableDef, Tables};
 pub use data::{ItemDb, ItemDef, KindRegistry, NpcDb, NpcDef};
 pub use evolve::{EvolutionResult, evolution_for, evolution_items, evolve_pet};
+pub use genes::{GeneStat, IV_MAX, Nature, PetGender, PetGenes};
 pub use grid::{
     FloatMove, Floor, GridPos, MoveSpeed, MoveTarget, StairGrace, StairLink, Stairs, WalkableMap,
 };
 pub use net::{Roster, ServerState, SlotInput, router};
 pub use net_udp::UdpLane;
 pub use pets::{
+    FRIENDSHIP_DEVOTED, FRIENDSHIP_ON_FAINT, FRIENDSHIP_PER_LEVEL, FRIENDSHIP_PER_WIN,
     PET_MOVE_SLOTS, PET_NICKNAME_MAX, PET_ROSTER_MAX, PendingPets, PendingRosterSyncs, Pet,
-    PetBank, PetId, PetMoveSlot, PetMoves, PetNickname, PetProgress, PetRef, PetRoster,
-    PetSnapshot, PetVitals, clear_pending_pets, flush_roster_syncs, mint_pet_from_species,
-    mint_pet_id, move_slot_from_species, sanitize_nickname, send_roster_sync,
-    snapshot_from_combatant, to_roster_sync,
+    PetBank, PetFriendship, PetId, PetMoveSlot, PetMoves, PetNickname, PetProgress, PetRef,
+    PetRoster, PetSnapshot, PetVitals, clear_pending_pets, flush_roster_syncs,
+    mint_pet_from_species, mint_pet_id, mint_pet_with_genes, move_slot_from_species,
+    sanitize_nickname, send_roster_sync, snapshot_from_combatant, to_roster_sync,
 };
 pub use progress::{
     BaseStats, GrowthRate, GrowthResult, PET_LEVEL_MAX, PendingPetXp, PetXpAward, grow_pet,

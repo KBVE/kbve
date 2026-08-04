@@ -42,6 +42,12 @@ namespace KBVENPCDBProto
 		if ((V = yyjson_obj_get(Obj, "evasion"))) Out.Evasion = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
 		if ((V = yyjson_obj_get(Obj, "critRate"))) Out.CritRate = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
 		if ((V = yyjson_obj_get(Obj, "critDamage"))) Out.CritDamage = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
+		if ((V = yyjson_obj_get(Obj, "moveSpeed"))) Out.MoveSpeed = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
+		if ((V = yyjson_obj_get(Obj, "maxHunger"))) Out.MaxHunger = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "maxFatigue"))) Out.MaxFatigue = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "will"))) Out.Will = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "hungerPerSec"))) Out.HungerPerSec = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
+		if ((V = yyjson_obj_get(Obj, "fatiguePerSec"))) Out.FatiguePerSec = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
 	}
 
 	inline void Populate(FKBVEGenElementalAffinity& Out, yyjson_val* Obj)
@@ -462,14 +468,6 @@ namespace KBVENPCDBProto
 				FKBVEGenPetMovepoolEntry ElemOut; Populate(ElemOut, Elem); Out.Movepool.Add(MoveTemp(ElemOut));
 			}
 		}
-		if ((V = yyjson_obj_get(Obj, "eggGroups")) && yyjson_is_arr(V))
-		{
-			size_t Idx, Max; yyjson_val* Elem;
-			yyjson_arr_foreach(V, Idx, Max, Elem)
-			{
-				Out.EggGroups.Add((yyjson_is_str(Elem) ? FString(UTF8_TO_TCHAR(yyjson_get_str(Elem))) : FString()));
-			}
-		}
 		if ((V = yyjson_obj_get(Obj, "evolutions")) && yyjson_is_arr(V))
 		{
 			size_t Idx, Max; yyjson_val* Elem;
@@ -479,7 +477,6 @@ namespace KBVENPCDBProto
 			}
 		}
 		if ((V = yyjson_obj_get(Obj, "secondaryElement")) && yyjson_is_str(V)) Out.SecondaryElement = FString(UTF8_TO_TCHAR(yyjson_get_str(V)));
-		if ((V = yyjson_obj_get(Obj, "baseStatTotal"))) Out.BaseStatTotal = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
 	}
 
 	inline void Populate(FKBVEGenNpcExtension& Out, yyjson_val* Obj)
@@ -530,6 +527,10 @@ namespace KBVENPCDBProto
 		if ((V = yyjson_obj_get(Obj, "levelMin"))) Out.LevelMin = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
 		if ((V = yyjson_obj_get(Obj, "levelMax"))) Out.LevelMax = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
 		if ((V = yyjson_obj_get(Obj, "stats"))) Populate(Out.Stats, V);
+		if ((V = yyjson_obj_get(Obj, "unitType"))) Out.UnitType = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "defaultWeapon"))) Out.DefaultWeapon = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "dialogueTreeId"))) Out.DialogueTreeId = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "nameKey"))) Out.NameKey = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
 		if ((V = yyjson_obj_get(Obj, "abilities")) && yyjson_is_arr(V))
 		{
 			size_t Idx, Max; yyjson_val* Elem;
@@ -661,6 +662,7 @@ namespace KBVENPCDBProto
 				FKBVEGenNpc ElemOut; Populate(ElemOut, Elem); Out.Npcs.Add(MoveTemp(ElemOut));
 			}
 		}
+		if ((V = yyjson_obj_get(Obj, "contentVersion"))) Out.ContentVersion = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
 	}
 
 }

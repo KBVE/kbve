@@ -500,6 +500,11 @@ function readPetView(r: PostcardReader): PetView {
 	const xp_to_next = r.u32();
 	const evolve_items: string[] = [];
 	for (let n = r.seqLen(); n > 0; n--) evolve_items.push(r.string());
+	const nature = r.u32();
+	const ivs: number[] = [];
+	for (let n = r.seqLen(); n > 0; n--) ivs.push(r.u32());
+	const gender = r.u32();
+	const friendship = r.u32();
 	const hp = r.i32();
 	const max_hp = r.i32();
 	const attack = r.i32();
@@ -517,6 +522,10 @@ function readPetView(r: PostcardReader): PetView {
 		xp,
 		xp_to_next,
 		evolve_items,
+		nature,
+		ivs,
+		gender,
+		friendship,
 		hp,
 		max_hp,
 		attack,

@@ -31,6 +31,7 @@ pub fn apply_evolutions(
         &mut simgrid::PetRef,
         &mut simgrid::PetNickname,
         &simgrid::PetProgress,
+        &simgrid::PetGenes,
         &mut simgrid::PetVitals,
         &mut simgrid::PetMoves,
     )>,
@@ -59,7 +60,7 @@ pub fn apply_evolutions(
             crate::restore::notify(&bcast, slot, false, "No pet in that slot.");
             continue;
         };
-        let Ok((mut species_ref, mut nickname, progress, mut vitals, mut moves)) =
+        let Ok((mut species_ref, mut nickname, progress, genes, mut vitals, mut moves)) =
             pets.get_mut(entity)
         else {
             continue;
@@ -100,7 +101,7 @@ pub fn apply_evolutions(
         items.remove(&mut inventory, &item_ref, 1);
         // A nickname the owner never touched tracks the species; a custom one is theirs to keep.
         let renamed = nickname.0 == from.name;
-        let result = simgrid::evolve_pet(to, progress, &mut vitals, &mut moves);
+        let result = simgrid::evolve_pet(to, progress, genes, &mut vitals, &mut moves);
         species_ref.0 = result.to_ref.clone();
         if renamed {
             nickname.0 = result.to_name.clone();
@@ -206,6 +207,9 @@ mod tests {
                     level: snap.level,
                     xp: 0,
                 },
+                snap.genes,
+                snap.gender,
+                simgrid::PetFriendship(snap.friendship),
                 snap.vitals,
                 simgrid::PetMoves(snap.moves.clone()),
             ))

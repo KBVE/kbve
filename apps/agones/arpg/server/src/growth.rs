@@ -62,6 +62,19 @@ pub fn queue_duel_xp(duel: &Duel, pending: &mut simgrid::PendingPetXp) {
     }
 }
 
+/// What [`apply_pet_xp`] touches on a growing pet. Named because the inline tuple crossed
+/// clippy's complexity threshold once genetics and friendship joined it.
+type GrowQuery = (
+    &'static simgrid::PetId,
+    &'static simgrid::PetRef,
+    &'static simgrid::PetNickname,
+    &'static mut simgrid::PetProgress,
+    &'static simgrid::PetGenes,
+    &'static mut simgrid::PetFriendship,
+    &'static mut simgrid::PetVitals,
+    &'static mut simgrid::PetMoves,
+);
+
 /// Apply queued XP, level up whatever crosses a threshold, learn whatever the new levels
 /// grant, and tell the owner.
 pub fn apply_pet_xp(
@@ -70,21 +83,22 @@ pub fn apply_pet_xp(
     mut pending: ResMut<simgrid::PendingPetXp>,
     mut queued: ResMut<simgrid::PendingRosterSyncs>,
     mut offers: ResMut<crate::learn::PendingLearnOffers>,
-    mut pets: Query<(
-        &simgrid::PetId,
-        &simgrid::PetRef,
-        &simgrid::PetNickname,
-        &mut simgrid::PetProgress,
-        &mut simgrid::PetVitals,
-        &mut simgrid::PetMoves,
-    )>,
+    mut pets: Query<GrowQuery>,
 ) {
     if pending.0.is_empty() {
         return;
     }
     for award in std::mem::take(&mut pending.0) {
-        let Ok((pet_id, species_ref, nickname, mut progress, mut vitals, mut moves)) =
-            pets.get_mut(award.pet)
+        let Ok((
+            pet_id,
+            species_ref,
+            nickname,
+            mut progress,
+            genes,
+            mut friendship,
+            mut vitals,
+            mut moves,
+        )) = pets.get_mut(award.pet)
         else {
             continue;
         };
@@ -95,7 +109,7 @@ pub fn apply_pet_xp(
             continue;
         };
         let base = simgrid::BaseStats::of(species);
-        let result = simgrid::grow_pet(&mut progress, &mut vitals, pet, &base, award.xp);
+        let result = simgrid::grow_pet(&mut progress, &mut vitals, pet, &base, genes, award.xp);
         if result.gained == 0 {
             continue;
         }
@@ -114,6 +128,12 @@ pub fn apply_pet_xp(
         if !result.leveled() {
             continue;
         }
+        // Levelling is the fast lane to FRIENDSHIP_DEVOTED. Applied here rather than queued
+        // through `PendingFriendship` because this system already holds the component, and the
+        // roster resync it would need is queued above.
+        friendship.0 = friendship.0.saturating_add(
+            simgrid::FRIENDSHIP_PER_LEVEL.saturating_mul(result.levels.min(255) as u8),
+        );
 
         // Anything the crossed levels grant. Free slots fill silently; the rest queue up as
         // offers, because forgetting a move is the owner's call.
@@ -385,6 +405,9 @@ mod tests {
                     level: snap.level,
                     xp: 0,
                 },
+                snap.genes,
+                snap.gender,
+                simgrid::PetFriendship(snap.friendship),
                 snap.vitals,
                 moves,
             ))

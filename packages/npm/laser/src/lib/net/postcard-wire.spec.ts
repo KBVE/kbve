@@ -314,8 +314,8 @@ describe('postcard Ephemeral payload decoder', () => {
 	it('decodes the Rust PetRosterSync fixture', () => {
 		const payload =
 			'020330314a096d656368616d7574740352657805785b' +
-			'010a63796265722d636f72653c5018141c161a0105737061726b0f0f' +
-			'0330314b096d656368616d75747404426f6c740700a9010058581e18201a22000101';
+			'010a63796265722d636f726504061f001108180301c8013c5018141c161a0105737061726b0f0f' +
+			'0330314b096d656368616d75747404426f6c740700a901000006000000000000024658581e18201a22000101';
 		expect(decodePetRosterSync(Array.from(fromHex(payload)))).toEqual({
 			pets: [
 				{
@@ -326,6 +326,10 @@ describe('postcard Ephemeral payload decoder', () => {
 					xp: 120,
 					xp_to_next: 91,
 					evolve_items: ['cyber-core'],
+					nature: 4,
+					ivs: [31, 0, 17, 8, 24, 3],
+					gender: 1,
+					friendship: 200,
 					hp: 30,
 					max_hp: 40,
 					attack: 12,
@@ -343,6 +347,10 @@ describe('postcard Ephemeral payload decoder', () => {
 					xp: 0,
 					xp_to_next: 169,
 					evolve_items: [],
+					nature: 0,
+					ivs: [0, 0, 0, 0, 0, 0],
+					gender: 2,
+					friendship: 70,
 					hp: 44,
 					max_hp: 44,
 					attack: 15,
