@@ -28,6 +28,21 @@ export { LIGHT_RANGE };
 export const RELIEF_NEAR = 16;
 export const RELIEF_FAR = 22;
 
+// POM silhouette clipping, compiled in or out rather than switched by uniform.
+//
+// A `discard` anywhere in a fragment shader disables early depth rejection on
+// most GPUs: the hardware cannot know whether the fragment writes depth until
+// the shader has run, so it runs it for every fragment including ones a nearer
+// surface will cover. The clip was already inert — uSilhouette is built as 0
+// and nothing in the game ever writes it — but a uniform branch does not help,
+// because the cost is the statement being present in the compiled program, not
+// the branch being taken. Gating it here keeps the shipped shader free of it
+// while leaving the feature one flag away.
+//
+// Worth measuring on real hardware before assuming a win: this makes early-Z
+// possible, it does not by itself prove the dungeon had overdraw to reject.
+const SILHOUETTE_CLIP = false;
+
 const vertex = /* glsl */ `
 	uniform float uSnap;
 	uniform vec2 uRes;
@@ -301,7 +316,7 @@ const fragment = /* glsl */ `
 				hitDepth
 			);
 			pomHit = hitDepth;
-			if (uSilhouette > 0.5 && pomSilhouetteClip(uv, vec4(0.0, 0.0, 1.0, 1.0))) discard;
+			${SILHOUETTE_CLIP ? 'if (uSilhouette > 0.5 && pomSilhouetteClip(uv, vec4(0.0, 0.0, 1.0, 1.0))) discard;' : ''}
 			}
 		} else {
 			uv = mix(vUvCorrect, vUvAffine / vW, uAffine);
@@ -409,6 +424,10 @@ const fragment = /* glsl */ `
 		gl_FragColor = vec4(pow(rgb, vec3(2.2)), tex.a);
 	}
 `;
+
+// Exposed so the shipped program can be asserted on directly. Whether early-Z
+// survives is a property of the source text, not of any uniform value.
+export const PSX_FRAGMENT_SHADER = fragment;
 
 const PsxMaterialBase = shaderMaterial(
 	{
