@@ -1,164 +1,633 @@
 ---
 import { IObjectSchema } from '@/data/schema';
 import { getCategoryNames } from '@/data/types/ItemCategoryTypes';
+import { RARITY_META } from './itemNav';
 
 const { data } = Astro.props;
 
 const item = IObjectSchema.parse(data);
 const categoryNames = item.type_flags ? getCategoryNames(item.type_flags) : [];
+const rarityMeta = RARITY_META.find((m) => m.key === item.rarity);
 
-function formatKey(key: string): string {
-	return key
-		.replace(/_/g, ' ')
+const titleCase = (value: string): string =>
+	value
+		.replace(/[_-]/g, ' ')
 		.replace(/([a-z])([A-Z])/g, '$1 $2')
-		.replace(/\b\w/g, (char) => char.toUpperCase());
+		.replace(/\b\w/g, (c) => c.toUpperCase());
+
+const numeric = (value: number): string =>
+	Number.isInteger(value) ? value.toLocaleString() : String(value);
+
+interface Stat {
+	label: string;
+	value: string;
+	icon: string;
 }
+
+const ICONS = {
+	rarity: 'M12 2 15 8l7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1 3-6z',
+	weight: 'M12 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM6 9h12l2 12H4z',
+	stack: 'M12 3 2 8l10 5 10-5-10-5zM2 16l10 5 10-5M2 12l10 5 10-5',
+	level: 'M6 20h12M6 20l-2-9 5 3 3-7 3 7 5-3-2 9',
+	price: 'M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6',
+	cooldown: 'M12 7v5l3 2M21 12a9 9 0 1 1-9-9',
+	durability: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z',
+	slot: 'M4 7h16v13H4zM9 7V4h6v3',
+	grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+	tag: 'M20 12 12 20l-8-8V4h8zM7.5 7.5h.01',
+	bonus: 'M13 2 3 14h9l-1 8 10-12h-9l1-8z',
+	link: 'M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1',
+};
+
+const stats: Stat[] = [];
+
+if (item.rarity)
+	stats.push({
+		label: 'Rarity',
+		value: titleCase(item.rarity),
+		icon: rarityMeta?.icon ?? ICONS.rarity,
+	});
+
+if (item.weight !== undefined)
+	stats.push({
+		label: 'Weight',
+		value: `${numeric(item.weight)} kg`,
+		icon: ICONS.weight,
+	});
+
+if (item.buy_price !== undefined)
+	stats.push({
+		label: 'Buy',
+		value: numeric(item.buy_price),
+		icon: ICONS.price,
+	});
+
+if (item.sell_price !== undefined)
+	stats.push({
+		label: 'Sell',
+		value: numeric(item.sell_price),
+		icon: ICONS.price,
+	});
+
+if (item.level_requirement)
+	stats.push({
+		label: 'Level req.',
+		value: numeric(item.level_requirement),
+		icon: ICONS.level,
+	});
+
+if (item.max_stack !== undefined)
+	stats.push({
+		label: 'Max stack',
+		value: numeric(item.max_stack),
+		icon: ICONS.stack,
+	});
+
+if (item.cooldown)
+	stats.push({
+		label: 'Cooldown',
+		value: `${numeric(item.cooldown)}s`,
+		icon: ICONS.cooldown,
+	});
+
+if (item.durability !== undefined)
+	stats.push({
+		label: 'Durability',
+		value: item.max_durability
+			? `${numeric(item.durability)} / ${numeric(item.max_durability)}`
+			: numeric(item.durability),
+		icon: ICONS.durability,
+	});
+
+const slot = item.equipment?.slot;
+if (slot)
+	stats.push({ label: 'Slot', value: titleCase(slot), icon: ICONS.slot });
+
+const grid = item.grid as { width?: number; height?: number } | undefined;
+const gridW = grid?.width ?? 1;
+const gridH = grid?.height ?? 1;
+const gridCells = Array.from({ length: gridW * gridH });
+
+interface Flag {
+	label: string;
+	on: boolean;
+}
+
+const flags: Flag[] = [];
+if (item.stackable !== undefined)
+	flags.push({ label: 'Stackable', on: item.stackable });
+if (item.consumable !== undefined)
+	flags.push({ label: 'Consumable', on: item.consumable });
+if (item.tradeable !== undefined)
+	flags.push({ label: 'Tradeable', on: item.tradeable });
+if (item.equipped !== undefined)
+	flags.push({ label: 'Equipped', on: item.equipped });
+
+const bonusEntries = Object.entries({
+	...(item.bonuses ?? {}),
+	...(item.equipment?.bonuses ?? {}),
+}).filter(([, value]) => value !== null && value !== undefined);
+
+const formatBonus = (value: unknown): string => {
+	if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+	if (typeof value === 'number') return numeric(value);
+	return String(value);
+};
+
+const pixelated =
+	(item.pixel_density ?? 0) > 0 && (item.pixel_density ?? 0) <= 128;
+const marketLinks = [
+	item.steam_market_url
+		? { label: 'Steam Market', href: item.steam_market_url }
+		: null,
+	item.exchange_url ? { label: 'Exchange', href: item.exchange_url } : null,
+].filter(Boolean) as { label: string; href: string }[];
 ---
 
-<section class="px-6 py-6 sm:px-8 lg:px-12">
-	<div class="max-w-3xl mx-auto">
-		<div
-			class="rounded-2xl p-6 border transition duration-300 space-y-3
-			backdrop-blur-md bg-white/5 dark:bg-white/10
-			border-white/10 dark:border-white/10
-			shadow-[inset_0_0_0.5px_rgba(255,255,255,0.1)]
-			hover:shadow-cyan-400/30 dark:hover:shadow-cyan-300/30">
-			<div class="flex items-center gap-3">
-				{
-					item.img && (
-						<img
-							src={item.img}
-							alt={item.name}
-							class="w-12 h-12 rounded-lg object-contain"
-						/>
-					)
-				}
-				<h3 class="text-lg font-semibold">{item.name}</h3>
-			</div>
-
-			<p class="text-sm text-zinc-300">{item.description}</p>
-
-			<ul class="text-sm text-zinc-400 space-y-1">
-				{
-					categoryNames.length > 0 && (
-						<li>
-							<strong>Type:</strong>
-							<span class="capitalize">
-								{categoryNames.join(', ')}
-							</span>
-						</li>
-					)
-				}
-				{
-					item.effects && (
-						<li>
-							<strong>Effects:</strong> {item.effects}
-						</li>
-					)
-				}
-				{
-					item.cooldown && (
-						<li>
-							<strong>Cooldown:</strong> {item.cooldown} seconds.
-						</li>
-					)
-				}
-				{
-					item.rarity && (
-						<li>
-							<strong>Rarity:</strong>
-							<span class="capitalize">{item.rarity}</span>
-						</li>
-					)
-				}
-				{
-					item.weight !== undefined && (
-						<li>
-							<strong>Weight:</strong> {item.weight}
-						</li>
-					)
-				}
-				{
-					item.stackable !== undefined && (
-						<li>
-							<strong>Stackable:</strong>{' '}
-							{item.stackable ? 'Yes' : 'No'}
-						</li>
-					)
-				}
-			</ul>
-
+<article class={`itempanel itempanel--${item.rarity ?? 'common'}`}>
+	<header class="itempanel__hero bento-card bento-card--glass">
+		<div class="itempanel__art" data-pixelated={pixelated ? '' : undefined}>
 			{
-				item.bonuses && (
-					<>
-						<hr class="my-4 border-white/10" />
-						<div class="text-sm text-cyan-300 mt-3">
-							<strong>Bonuses:</strong>
-							<ul class="list-disc list-inside ml-3">
-								{Object.entries(item.bonuses).map(
-									([key, value]) => (
-										<li>
-											<strong>{formatKey(key)}</strong>:{' '}
-											{value}
-										</li>
-									),
-								)}
-							</ul>
-						</div>
-					</>
-				)
-			}
-
-			{
-				item.buy_price !== undefined && (
-					<div class="mt-6 pt-4 border-t border-white/10">
-						<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-white">
-							<div class="flex items-center gap-2 text-base font-medium">
-								<span class="text-cyan-400">{'\u{1F4B0}'}</span>
-								<span class="text-cyan-600 dark:text-cyan-400">
-									Price:
-								</span>
-								<span class="text-cyan-600 dark:text-cyan-200 font-semibold">
-									{item.buy_price}{' '}
-									<span class="text-xs text-zinc-400">
-										$KHash
-									</span>
-								</span>
-							</div>
-
-							<div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 text-sm">
-								{item.steam_market_url ? (
-									<a
-										href={item.steam_market_url}
-										target="_blank"
-										rel="noopener noreferrer"
-										class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg font-medium bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/20 transition">
-										{'\u{1F6D2}'} Steam Market
-									</a>
-								) : (
-									<span class="text-zinc-500 italic">
-										Not on Steam Market
-									</span>
-								)}
-
-								{item.exchange_url ? (
-									<a
-										href={item.exchange_url}
-										target="_blank"
-										rel="noopener noreferrer"
-										class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg font-medium bg-green-500/10 text-green-300 hover:bg-green-500/20 transition">
-										{'\u{1F501}'} Buy on Exchange
-									</a>
-								) : (
-									<span class="text-zinc-500 light:text-zinc-700 italic">
-										Not on Exchange
-									</span>
-								)}
-							</div>
-						</div>
-					</div>
+				item.img ? (
+					<img src={item.img} alt={item.name} loading="lazy" />
+				) : (
+					<span class="itempanel__art-fallback">
+						{item.emoji ?? '\u{1F4E6}'}
+					</span>
 				)
 			}
 		</div>
-	</div>
-</section>
+
+		<div class="itempanel__intro">
+			<p class="bento-eyebrow">
+				{rarityMeta?.eyebrow ?? 'Item'} · {titleCase(item.rarity ?? '')}
+			</p>
+			<h3 class="itempanel__name">
+				{
+					item.emoji && (
+						<span class="itempanel__emoji">{item.emoji}</span>
+					)
+				}
+				{item.name}
+			</h3>
+
+			{
+				categoryNames.length > 0 && (
+					<div class="itempanel__chips">
+						{categoryNames.map((c) => (
+							<span class="bento-chip">{c}</span>
+						))}
+						{item.element && (
+							<span class="bento-chip">
+								{titleCase(item.element)}
+							</span>
+						)}
+						{item.action && (
+							<span class="bento-chip">
+								{titleCase(item.action)}
+							</span>
+						)}
+					</div>
+				)
+			}
+
+			{
+				item.description && (
+					<p class="itempanel__desc">{item.description}</p>
+				)
+			}
+		</div>
+
+		{
+			grid && (
+				<div
+					class="itempanel__grid"
+					aria-label={`Occupies ${gridW} by ${gridH} inventory cells`}>
+					<div
+						class="itempanel__grid-cells"
+						style={`--cols:${gridW}`}>
+						{gridCells.map(() => (
+							<span />
+						))}
+					</div>
+					<span class="itempanel__grid-label">
+						{gridW}×{gridH}
+					</span>
+				</div>
+			)
+		}
+	</header>
+
+	{
+		stats.length > 0 && (
+			<div class="itempanel__stats">
+				{stats.map((s) => (
+					<div class="bento-cell bento-stat bento-card bento-card--glass">
+						<span class="bento-icon-tile">
+							<svg
+								viewBox="0 0 24 24"
+								width="15"
+								height="15"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="1.75"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								aria-hidden="true">
+								<path d={s.icon} />
+							</svg>
+						</span>
+						<span class="bento-stat__value">{s.value}</span>
+						<span class="bento-stat__label">{s.label}</span>
+					</div>
+				))}
+			</div>
+		)
+	}
+
+	{
+		flags.length > 0 && (
+			<div class="itempanel__flags">
+				{flags.map((f) => (
+					<span
+						class="itempanel__flag"
+						data-on={f.on ? '' : undefined}>
+						<svg
+							viewBox="0 0 24 24"
+							width="13"
+							height="13"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2.5"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true">
+							<path
+								d={
+									f.on
+										? 'M20 6 9 17l-5-5'
+										: 'M18 6 6 18M6 6l12 12'
+								}
+							/>
+						</svg>
+						{f.label}
+					</span>
+				))}
+			</div>
+		)
+	}
+
+	{
+		item.effects && (
+			<p class="itempanel__effects">
+				<strong>Effects</strong>
+				{item.effects}
+			</p>
+		)
+	}
+
+	{
+		bonusEntries.length > 0 && (
+			<section class="itempanel__block bento-card bento-card--glass">
+				<h4 class="itempanel__block-title">
+					<svg
+						viewBox="0 0 24 24"
+						width="15"
+						height="15"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="1.75"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						aria-hidden="true">
+						<path d={ICONS.bonus} />
+					</svg>
+					Bonuses
+				</h4>
+				<dl class="itempanel__bonuses">
+					{bonusEntries.map(([label, value]) => (
+						<div>
+							<dt>{titleCase(label)}</dt>
+							<dd>{formatBonus(value)}</dd>
+						</div>
+					))}
+				</dl>
+			</section>
+		)
+	}
+
+	{item.lore && <blockquote class="itempanel__lore">{item.lore}</blockquote>}
+
+	{
+		(item.tags?.length || marketLinks.length > 0) && (
+			<footer class="itempanel__footer">
+				{item.tags?.length ? (
+					<div class="itempanel__chips">
+						{item.tags.map((t) => (
+							<span class="bento-chip">#{t}</span>
+						))}
+					</div>
+				) : null}
+
+				{marketLinks.length > 0 && (
+					<div class="itempanel__links">
+						{marketLinks.map((l) => (
+							<a
+								class="bento-btn bento-btn--ghost"
+								href={l.href}
+								target="_blank"
+								rel="noopener noreferrer">
+								<svg
+									viewBox="0 0 24 24"
+									width="15"
+									height="15"
+									fill="none"
+									stroke="currentColor"
+									stroke-width="1.75"
+									stroke-linecap="round"
+									stroke-linejoin="round"
+									aria-hidden="true">
+									<path d={ICONS.link} />
+								</svg>
+								{l.label}
+							</a>
+						))}
+					</div>
+				)}
+			</footer>
+		)
+	}
+</article>
+
+<style>
+	.itempanel {
+		--itempanel-accent: var(--sl-color-gray-3);
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		margin: 1.5rem 0;
+	}
+
+	.itempanel--uncommon {
+		--itempanel-accent: #4ade80;
+	}
+	.itempanel--rare {
+		--itempanel-accent: #60a5fa;
+	}
+	.itempanel--epic {
+		--itempanel-accent: #c084fc;
+	}
+	.itempanel--legendary {
+		--itempanel-accent: #fbbf24;
+	}
+	.itempanel--mythic {
+		--itempanel-accent: #fb7185;
+	}
+
+	.itempanel__hero {
+		display: grid;
+		grid-template-columns: auto minmax(0, 1fr) auto;
+		align-items: start;
+		gap: 1.15rem;
+		padding: 1.25rem;
+		border-inline-start: 3px solid var(--itempanel-accent);
+	}
+
+	.itempanel__art {
+		width: 5.5rem;
+		height: 5.5rem;
+		display: grid;
+		place-items: center;
+		border-radius: var(--bento-radius);
+		border: 1px solid var(--bento-hairline-strong);
+		background: radial-gradient(
+			circle at 50% 35%,
+			color-mix(in srgb, var(--itempanel-accent) 22%, transparent),
+			transparent 70%
+		);
+	}
+
+	.itempanel__art img {
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		padding: 0.5rem;
+	}
+
+	.itempanel__art[data-pixelated] img {
+		image-rendering: pixelated;
+	}
+
+	.itempanel__art-fallback {
+		font-size: 2rem;
+	}
+
+	.itempanel__intro {
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.itempanel__intro .bento-eyebrow {
+		margin: 0;
+		color: var(--itempanel-accent);
+	}
+
+	.itempanel__name {
+		margin: 0;
+		font-size: 1.4rem;
+		font-weight: 700;
+		letter-spacing: -0.02em;
+		line-height: 1.2;
+		color: var(--sl-color-white);
+	}
+
+	.itempanel__emoji {
+		margin-inline-end: 0.35rem;
+	}
+
+	.itempanel__chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+	}
+
+	.itempanel__desc {
+		margin: 0;
+		font-size: 0.9rem;
+		line-height: 1.55;
+		color: var(--sl-color-gray-2);
+	}
+
+	.itempanel__grid {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.4rem;
+	}
+
+	.itempanel__grid-cells {
+		display: grid;
+		grid-template-columns: repeat(var(--cols), 0.85rem);
+		gap: 2px;
+	}
+
+	.itempanel__grid-cells span {
+		width: 0.85rem;
+		height: 0.85rem;
+		border-radius: 2px;
+		border: 1px solid var(--bento-hairline-strong);
+		background-color: color-mix(
+			in srgb,
+			var(--itempanel-accent) 30%,
+			transparent
+		);
+	}
+
+	.itempanel__grid-label {
+		font-size: 0.7rem;
+		font-variant-numeric: tabular-nums;
+		color: var(--sl-color-gray-3);
+	}
+
+	.itempanel__stats {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+		gap: 1px;
+		background-color: var(--bento-hairline);
+	}
+
+	.itempanel__flags {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+
+	.itempanel__flag {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.35rem;
+		padding: 0.25rem 0.6rem;
+		border-radius: 999px;
+		font-size: 0.75rem;
+		font-weight: 600;
+		border: 1px solid var(--bento-hairline-strong);
+		color: var(--sl-color-gray-3);
+	}
+
+	.itempanel__flag[data-on] {
+		color: var(--itempanel-accent);
+		border-color: color-mix(
+			in srgb,
+			var(--itempanel-accent) 40%,
+			transparent
+		);
+		background-color: color-mix(
+			in srgb,
+			var(--itempanel-accent) 10%,
+			transparent
+		);
+	}
+
+	.itempanel__effects {
+		margin: 0;
+		font-size: 0.875rem;
+		line-height: 1.55;
+		color: var(--sl-color-gray-2);
+	}
+
+	.itempanel__effects strong {
+		display: block;
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--sl-color-gray-3);
+		margin-bottom: 0.2rem;
+	}
+
+	.itempanel__block {
+		padding: 1rem 1.15rem;
+	}
+
+	.itempanel__block-title {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
+		margin: 0 0 0.75rem;
+		font-size: 0.78rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--itempanel-accent);
+	}
+
+	.itempanel__bonuses {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+		gap: 0.5rem 1rem;
+		margin: 0;
+	}
+
+	.itempanel__bonuses div {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 0.5rem;
+		border-bottom: 1px solid var(--bento-hairline);
+		padding-bottom: 0.3rem;
+	}
+
+	.itempanel__bonuses dt {
+		font-size: 0.8rem;
+		color: var(--sl-color-gray-2);
+	}
+
+	.itempanel__bonuses dd {
+		margin: 0;
+		font-size: 0.85rem;
+		font-weight: 600;
+		font-variant-numeric: tabular-nums;
+		color: var(--sl-color-white);
+	}
+
+	.itempanel__lore {
+		margin: 0;
+		padding: 0.15rem 0 0.15rem 1rem;
+		border-inline-start: 2px solid
+			color-mix(in srgb, var(--itempanel-accent) 45%, transparent);
+		font-size: 0.875rem;
+		font-style: italic;
+		line-height: 1.6;
+		color: var(--sl-color-gray-2);
+	}
+
+	.itempanel__footer {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 0.75rem;
+		padding-top: 0.75rem;
+		border-top: 1px solid var(--bento-hairline);
+	}
+
+	.itempanel__links {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	@media (max-width: 640px) {
+		.itempanel__hero {
+			grid-template-columns: auto minmax(0, 1fr);
+		}
+
+		.itempanel__grid {
+			grid-column: 1 / -1;
+			flex-direction: row;
+			align-items: center;
+			gap: 0.6rem;
+		}
+	}
+</style>
