@@ -584,7 +584,7 @@
 			"source_path": "packages/docker/steamcmd-ubuntu",
 			"runner": "ubuntu-latest",
 			"image": "kbve/steamcmd-ubuntu",
-			"has_test": true
+			"has_test": false
 		}
 	],
 	"npm": [

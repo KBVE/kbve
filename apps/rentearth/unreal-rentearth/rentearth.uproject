@@ -121,6 +121,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "KBVEProfessionDB",
+			"Enabled": true
+		},
+		{
 			"Name": "KBVETinyBVH",
 			"Enabled": true
 		},

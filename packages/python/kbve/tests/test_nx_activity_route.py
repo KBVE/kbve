@@ -80,4 +80,5 @@ def test_activity_build_writes(tmp_path):
     mdx = (ctx.content_root / "dashboard" / "activity.mdx").read_text()
     assert "template: splash" in mdx and "CardGrid" not in mdx
     assert mdx.count("<BentoProse") == mdx.count("</BentoProse>")
-    assert "```mermaid" in mdx
+    assert "```mermaid" not in mdx
+    assert 'class="kbve-figure"' in mdx

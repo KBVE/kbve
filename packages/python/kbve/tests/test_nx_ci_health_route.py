@@ -100,7 +100,8 @@ def test_ci_health_build_writes_json_and_mdx(tmp_path):
     assert "import BentoShell" in body
     assert "CardGrid" not in body
     assert body.count("<BentoProse") == body.count("</BentoProse>")
-    assert "```mermaid" in body
+    assert "```mermaid" not in body
+    assert 'class="kbve-figure"' in body
 
 
 def test_aggregate_empty():
