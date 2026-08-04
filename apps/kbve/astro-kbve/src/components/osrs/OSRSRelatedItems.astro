@@ -6,12 +6,15 @@
  * Uses slug field for proper internal linking
  */
 import type { OSRSRelatedItem } from '@/data/schema';
+import { getLinkTargets, resolveItemSlug } from '@/data/osrs/link-targets';
 
 interface Props {
 	relatedItems: OSRSRelatedItem[];
 }
 
 const { relatedItems } = Astro.props;
+
+const targets = await getLinkTargets();
 
 // Get relationship color and label
 function getRelationshipStyle(relationship: string): {
@@ -38,17 +41,11 @@ function getRelationshipStyle(relationship: string): {
 	}
 }
 
-// Generate URL from slug
-function getItemUrl(item: OSRSRelatedItem): string {
-	if (item.slug) {
-		return `/osrs/${item.slug}/`;
-	}
-	// Fallback: generate slug from name
-	const slug = (item.item_name ?? '')
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, '-')
-		.replace(/^-|-$/g, '');
-	return `/osrs/${slug}/`;
+// Resolves against the corpus rather than trusting the authored slug, and
+// yields null when nothing matches so the entry renders as text, not a 404.
+function getItemUrl(item: OSRSRelatedItem): string | null {
+	const slug = resolveItemSlug(targets, item.slug, item.item_name);
+	return slug ? `/osrs/${slug}/` : null;
 }
 ---
 
@@ -70,10 +67,15 @@ function getItemUrl(item: OSRSRelatedItem): string {
 				const style = getRelationshipStyle(
 					item.relationship ?? 'alternative',
 				);
+				const href = getItemUrl(item);
+				const Tag = href ? 'a' : 'div';
 				return (
-					<a
-						href={getItemUrl(item)}
-						class="osrs-related__item"
+					<Tag
+						href={href ?? undefined}
+						class:list={[
+							'osrs-related__item',
+							!href && 'osrs-related__item--static',
+						]}
 						data-osrs-tooltip
 						data-osrs-name={item.item_name}
 						data-osrs-slug={item.slug}
@@ -96,7 +98,7 @@ function getItemUrl(item: OSRSRelatedItem): string {
 								{item.description}
 							</span>
 						)}
-					</a>
+					</Tag>
 				);
 			})
 		}
@@ -153,6 +155,14 @@ function getItemUrl(item: OSRSRelatedItem): string {
 
 	.osrs-related__item:hover {
 		background: var(--sl-color-gray-6);
+	}
+
+	.osrs-related__item--static {
+		cursor: default;
+	}
+
+	.osrs-related__item--static .osrs-related__item-name {
+		color: var(--sl-color-gray-2);
 	}
 
 	.osrs-related__item-main {
