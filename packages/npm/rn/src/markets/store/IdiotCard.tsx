@@ -47,7 +47,11 @@ const styles = StyleSheet.create({
 	big: { color: '#fef3c7', fontSize: 44, fontWeight: '800' },
 	foot: { color: '#e9d5ff' },
 	lock: {
-		...StyleSheet.absoluteFillObject,
+		position: 'absolute',
+		top: 0,
+		left: 0,
+		right: 0,
+		bottom: 0,
 		alignItems: 'center',
 		justifyContent: 'center',
 		backgroundColor: 'rgba(10,6,20,0.55)',

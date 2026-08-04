@@ -6,7 +6,6 @@
 		"version": "0.0.1",
 		"orientation": "portrait",
 		"userInterfaceStyle": "automatic",
-		"newArchEnabled": true,
 		"plugins": [
 			"expo-web-browser",
 			[
@@ -23,8 +22,7 @@
 			"bundleIdentifier": "com.kbve.app"
 		},
 		"android": {
-			"package": "com.kbve.app",
-			"edgeToEdgeEnabled": true
+			"package": "com.kbve.app"
 		},
 		"web": {
 			"bundler": "metro"
