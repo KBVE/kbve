@@ -5,26 +5,24 @@ interface SettingsCardProps {
 
 export function SettingsCard({ title, children }: SettingsCardProps) {
 	return (
-		<div
-			className="overflow-hidden rounded-xl border"
-			style={{
-				backgroundColor: 'var(--color-surface)',
-				borderColor: 'var(--color-border)',
-			}}>
+		<section className="flex flex-col gap-3">
+			<h2
+				className="text-caption px-1 font-semibold"
+				style={{
+					color: 'var(--color-text-muted)',
+					textTransform: 'uppercase',
+					letterSpacing: '0.06em',
+				}}>
+				{title}
+			</h2>
 			<div
-				className="border-b px-6 py-4"
-				style={{ borderColor: 'var(--color-border)' }}>
-				<h2
-					className="text-caption font-semibold tracking-wide"
-					style={{
-						color: 'var(--color-text-muted)',
-						textTransform: 'uppercase',
-						letterSpacing: '0.05em',
-					}}>
-					{title}
-				</h2>
+				className="settings-card overflow-hidden rounded-xl border"
+				style={{
+					backgroundColor: 'var(--color-surface)',
+					borderColor: 'var(--color-border)',
+				}}>
+				{children}
 			</div>
-			<div className="flex flex-col">{children}</div>
-		</div>
+		</section>
 	);
 }

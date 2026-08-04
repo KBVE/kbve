@@ -11,7 +11,7 @@
 	},
 	"dependencies": {
 		"@kbve/tauri": "workspace:*",
-		"@tauri-apps/api": "^2.0.0",
+		"@tauri-apps/api": "^2.11.1",
 		"@tauri-apps/plugin-deep-link": "^2.0.0",
 		"@tauri-apps/plugin-opener": "^2.0.0",
 		"@tauri-apps/plugin-store": "^2.0.0",

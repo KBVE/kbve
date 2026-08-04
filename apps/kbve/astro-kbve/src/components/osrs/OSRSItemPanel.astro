@@ -25,6 +25,7 @@ import OSRSItemJsonLd from './OSRSItemJsonLd.astro';
 import OSRSDisclaimer from './OSRSDisclaimer.astro';
 import OSRSAdsenseSlot from './OSRSAdsenseSlot.astro';
 import { getUsedInIndex } from '@/data/osrs-used-in-index';
+import { averageOf, getPrice } from '@/data/osrs/prices';
 import type {
 	OSRSExtended,
 	OSRSUsedIn as OSRSUsedInEntry,
@@ -90,6 +91,19 @@ const gatheringData = showGathering ? getGathering(item) : undefined;
 const showMarketStrategy = hasMarketStrategy(item);
 const showTradingTips = hasTradingTips(item);
 const showShops = hasShopSources(item);
+const bakedPrice = await getPrice(item.id);
+const seedPrice = bakedPrice
+	? {
+			id: item.id,
+			name: item.name,
+			high: bakedPrice.high,
+			low: bakedPrice.low,
+			avg: averageOf(bakedPrice),
+			high_time: bakedPrice.highTime,
+			low_time: bakedPrice.lowTime,
+		}
+	: null;
+
 const showHistory = hasHistory(item);
 const showTrivia = hasItemTrivia(item);
 const showFaq = hasFaq(item);
@@ -253,7 +267,11 @@ const accentHigh = accent.replace(/(\d+)%\)?$/, '') + '72%';
 				<span class="osrs-section__dot"></span>
 				<h4 class="osrs-section__title">Live GE Prices</h4>
 			</div>
-			<OSRSPriceWidget itemId={item.id} client:visible />
+			<OSRSPriceWidget
+				itemId={item.id}
+				initialPrice={seedPrice}
+				client:load
+			/>
 		</div>
 
 		<!-- Price History Chart — full width -->

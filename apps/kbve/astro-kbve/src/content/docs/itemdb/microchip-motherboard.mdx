@@ -42,9 +42,11 @@ scripts:
             overheatRisk: 0.2
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from "@/components/astropad";
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -58,11 +60,6 @@ Its traces glow faintly when near electromagnetic fields... or strong memories.
 
 Psychotic once said, we chasing the rush of trying to decipher the code a decade later.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -72,8 +69,6 @@ Psychotic once said, we chasing the rush of trying to decipher the code a decade
 - Has minor **heat sensitivity**, avoid unstable power sources
 - Stackable in **drone fabrication**, **robot brain slots**, and **terminal sockets**
 
----
-
 ## Crafting Integration
 
 Used in advanced blueprints for:
@@ -82,15 +77,11 @@ Used in advanced blueprints for:
 - **Sensor modules**
 - **Autonomous harvest drones**
 
----
-
 ## Lore
 
 > “They say the first one was grown, not soldered. Every board since is a poor imitation of the original dream.”
 
 Some engineers believe if you align five boards under a blood moon, they boot into something... conscious.
-
----
 
 ## Credit
 
@@ -129,8 +120,8 @@ Some engineers believe if you align five boards under a blood moon, they boot in
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/27/2025 - Microchip Motherboard added as core tech upgrade and crafting component
+
+</ItemLeaf>

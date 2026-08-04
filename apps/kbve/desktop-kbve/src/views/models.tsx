@@ -78,21 +78,12 @@ export function ModelsView() {
 	};
 
 	return (
-		<div className="flex max-w-2xl flex-col gap-6">
-			{error && (
-				<div
-					className="rounded-md border px-4 py-2 text-caption"
-					style={{
-						borderColor: 'var(--color-border)',
-						color: 'var(--color-danger, #e5484d)',
-					}}>
-					{error}
-				</div>
-			)}
+		<div className="view-column">
+			{error && <div className="alert-danger text-caption">{error}</div>}
 			<SettingsCard title="Speech-to-Text Models">
 				<div className="flex flex-col">
 					{models.length === 0 && (
-						<p className="px-6 py-5 text-sm" style={muted}>
+						<p className="px-5 py-4 text-caption" style={muted}>
 							Loading models…
 						</p>
 					)}
@@ -103,8 +94,7 @@ export function ModelsView() {
 						return (
 							<div
 								key={m.id}
-								className="flex items-center justify-between border-b px-6 py-5"
-								style={{ borderColor: 'var(--color-border)' }}>
+								className="settings-row flex items-center justify-between gap-6 px-5 py-4">
 								<div className="flex flex-col gap-1.5">
 									<span className="text-body">
 										{m.name}
@@ -194,17 +184,7 @@ function Btn({
 		<button
 			onClick={onClick}
 			disabled={disabled}
-			className="rounded-md border px-3 py-1.5 text-caption transition-colors"
-			style={{
-				backgroundColor: 'var(--color-bg)',
-				borderColor: 'var(--color-border)',
-				color:
-					variant === 'danger'
-						? 'var(--color-danger, #e5484d)'
-						: 'var(--color-text)',
-				opacity: disabled ? 0.5 : 1,
-				cursor: disabled ? 'not-allowed' : 'pointer',
-			}}>
+			className={variant === 'danger' ? 'btn btn-danger' : 'btn'}>
 			{label}
 		</button>
 	);

@@ -24,8 +24,7 @@ tags:
   - arpg
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
-
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import {
 	Aside,
 	Steps,
@@ -33,9 +32,9 @@ import {
 	CardGrid,
 } from '@astrojs/starlight/components';
 
-## Overview
+<ItemLeaf data={frontmatter}>
 
-<ItemDBPanel data={frontmatter} />
+## Overview
 
 Thrown at a wild pet during a duel to try to catch it. The odds scale with how weakened the
 target is: a pet at full health is roughly three times harder to catch than one on its last
@@ -45,3 +44,5 @@ legs, and a status effect roughly doubles the chance again.
 	The ball is spent on the attempt, not on the result — a throw that breaks out is gone.
 	Weaken the target first.
 </Aside>
+
+</ItemLeaf>

@@ -14,13 +14,14 @@ tags:
 key: agones_palworld_savetool
 pipeline: docker
 app_name: agones-palworld-savetool
-version: "0.0.2"
+version: "0.0.3"
 source_path: apps/agones/palworld/savetool
 version_toml: apps/agones/palworld/savetool/version.toml
 runner: ubuntu-latest
 image: kbve/agones-palworld-savetool
 deployment_yaml: apps/kube/agones/palworld/manifests/gameserver.yaml
-has_test: false
+has_test: true
+e2e_name: agones-palworld-savetool
 author: h0lybyte
 ---
 

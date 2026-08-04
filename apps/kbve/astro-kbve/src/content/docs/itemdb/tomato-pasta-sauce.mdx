@@ -41,9 +41,11 @@ scripts:
             warmthBoost: 1
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -53,11 +55,6 @@ Slow-cooked in scavenged pots or grown from hydroponic tomatoes, this sauce prov
 Passed down through countless apocalypse kitchens and robot chefs. 
 Loved by rebels and wanderers alike. 
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -66,15 +63,11 @@ Loved by rebels and wanderers alike.
 - Grants **warmth buff** and access to **advanced recipes**  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Can be consumed directly or combined with carbs and protein for meal crafting  
 - Compatible with recipes like: *Meatball Matrix, Pasta of Regret, Cheesy Victory Lasagna*  
 - May trigger nostalgic dialogue with culinary NPCs
-
----
 
 ## Lore
 
@@ -83,8 +76,6 @@ Loved by rebels and wanderers alike.
 
 Red as the soil before the Dust Age. 
 It smells like things used to be.
-
----
 
 ## Credit
 
@@ -124,8 +115,8 @@ It smells like things used to be.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Tomato Pasta Sauce added as consumable food and crafting base item
+
+</ItemLeaf>

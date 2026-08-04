@@ -12,6 +12,7 @@
  * Mirrors the rareicon Head override (apps/rareicon/astro-rareicon/...).
  */
 import { seo } from '@/lib/seo';
+import { isNoindexPath } from '@/lib/noindex-routes.mjs';
 import { dedupeGraph } from '@kbve/astro/seo';
 
 const route = Astro.locals.starlightRoute;
@@ -187,7 +188,7 @@ const jsonLdPayload = jsonLdGraph
 		: { '@context': 'https://schema.org', '@graph': jsonLdGraph }
 	: null;
 
-const noindex = data.noindex === true;
+const noindex = data.noindex === true || isNoindexPath(Astro.url.pathname);
 const robotsContent = noindex
 	? 'noindex, nofollow'
 	: 'index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1';

@@ -1,6 +1,6 @@
 use crate::audio_toolkit::apply_custom_words;
 use crate::managers::model::{EngineType, ModelManager};
-use crate::settings::{get_settings, ModelUnloadTimeout};
+use crate::settings::{ModelUnloadTimeout, get_settings};
 use anyhow::Result;
 use log::{debug, error, info, warn};
 use serde::Serialize;
@@ -10,6 +10,7 @@ use std::thread;
 use std::time::{Duration, SystemTime};
 use tauri::{AppHandle, Emitter};
 use transcribe_rs::{
+    TranscriptionEngine,
     engines::{
         moonshine::{ModelVariant, MoonshineEngine, MoonshineModelParams},
         parakeet::{
@@ -17,7 +18,6 @@ use transcribe_rs::{
         },
         whisper::{WhisperEngine, WhisperInferenceParams},
     },
-    TranscriptionEngine,
 };
 
 #[derive(Clone, Debug, Serialize)]

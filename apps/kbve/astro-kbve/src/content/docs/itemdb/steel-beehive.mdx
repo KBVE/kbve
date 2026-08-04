@@ -45,9 +45,11 @@ scripts:
             tag: 'harvestable'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -56,11 +58,6 @@ Once deployed, it attracts a micro-colony of hyper-adapted bees that generate **
 
 Its humming sound is strangely therapeutic, though the manual warns against sleeping beside it.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -72,14 +69,10 @@ Its humming sound is strangely therapeutic, though the manual warns against slee
   - **Medicine** (both)
 - Durable and **reusable** in most biomes
 
----
-
 ## Placement Notes
 
 Place near wildflowers or crops for boosted output.
 Do not place in snow unless bees are rated for cryo-environments (sold separately).
-
----
 
 ## Lore
 
@@ -87,8 +80,6 @@ Do not place in snow unless bees are rated for cryo-environments (sold separatel
 > - Agronomancer Teth, Treaty of Nectar Fields
 
 Legends speak of a beehive made of pure silver - but steel is safer, and doesn't melt during solar flares or by jet fuel.
-
----
 
 ## Credit
 
@@ -127,9 +118,9 @@ Legends speak of a beehive made of pure silver - but steel is safer, and doesn't
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/27/2025 - Steel Beehive deployed with wax/honey production and crafting integrations
 - TODO: Active Deployment
+
+</ItemLeaf>

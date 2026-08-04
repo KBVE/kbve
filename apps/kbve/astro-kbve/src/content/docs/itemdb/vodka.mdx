@@ -41,9 +41,11 @@ scripts:
             buffDuration: 120
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -55,11 +57,6 @@ Drinking it boosts strength and makes you ignore pain, but at the cost of coordi
 Distilled in both frozen wastelands and corporate bunkers.
 Used in rituals, bartering, and firebombs. 
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -69,15 +66,11 @@ Used in rituals, bartering, and firebombs.
 - Lowers **focus by {frontmatter.bonuses.focus}** for **{frontmatter.scripts[0].vars.buffDuration} seconds**  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Can be used in crafting *Molotov Cocktails*, *Sterilized Kits*, and *Sauce Variants*  
 - Has hidden affinity with slavic or hardened NPCs  
 - Dangerous to stack with other alcoholic consumables
-
----
 
 ## Lore
 
@@ -87,8 +80,6 @@ Used in rituals, bartering, and firebombs.
 Ancient and modern.
 Crude and pure. 
 Vodka exists in every timeline that dared to ferment.
-
----
 
 ## Credit
 
@@ -127,8 +118,8 @@ Vodka exists in every timeline that dared to ferment.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Vodka added as combat-boosting drink with utility in crafting, resistance, and alcohol system
+
+</ItemLeaf>

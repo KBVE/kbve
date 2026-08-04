@@ -44,12 +44,9 @@ food:
   spoils_into_ref: 'rotten-meat'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
-
-import { Adsense } from '@/components/astropad';
-
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
+import Adsense from '@/components/ads/Adsense.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-
 import {
 	Aside,
 	Steps,
@@ -59,14 +56,11 @@ import {
 	FileTree,
 } from '@astrojs/starlight/components';
 
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
 Salmon is a basic food item. It’s commonly caught in rivers and lakes. While not the most potent food, it is widely available.
-
----
-
-<ItemDBPanel data={frontmatter} />
 
 <Adsense />
 
@@ -76,19 +70,13 @@ Salmon is a basic food item. It’s commonly caught in rivers and lakes. While n
 - Can be stacked in your inventory
 - Useful in early survival situations
 
----
-
 ## Crafting / Cooking
 
 You can cook raw salmon using a **campfire** or **cooking station** to increase its healing potential.
 
----
-
 ## Lore
 
 > "A staple for weary travelers, salmon is both humble and hearty."
-
----
 
 <VisualNovelPanel
   sideImage="/assets/images/brand/rareicon/burn_the_servers.webp"
@@ -136,3 +124,5 @@ You can cook raw salmon using a **campfire** or **cooking station** to increase 
 ## Spoilage
 
 Left too long, it spoils into [Rotten Meat](/itemdb/rotten-meat/).
+
+</ItemLeaf>

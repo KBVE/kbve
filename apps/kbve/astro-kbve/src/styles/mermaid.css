@@ -1,0 +1,40 @@
+/* ── Baked mermaid diagrams ──
+   `scripts/gen-mermaid.mjs` renders each diagram once per Starlight theme and
+   `remark-mermaid-baked` inlines both variants. Only the variant matching the
+   active theme is shown, so switching themes costs a style recalc instead of a
+   full mermaid re-render. */
+
+.mermaid-diagram {
+	margin: 1.5rem 0;
+	overflow-x: auto;
+}
+
+.mermaid-diagram svg {
+	display: block;
+	max-width: 100%;
+	height: auto;
+	margin-inline: auto;
+}
+
+.mermaid-diagram__svg--dark {
+	display: none;
+}
+
+:root[data-theme='dark'] .mermaid-diagram__svg--light {
+	display: none;
+}
+
+:root[data-theme='dark'] .mermaid-diagram__svg--dark {
+	display: block;
+}
+
+/* Starlight stamps data-theme before paint; this only covers the window
+   before that script runs, or a document that never gets the attribute. */
+@media (prefers-color-scheme: dark) {
+	:root:not([data-theme]) .mermaid-diagram__svg--light {
+		display: none;
+	}
+	:root:not([data-theme]) .mermaid-diagram__svg--dark {
+		display: block;
+	}
+}

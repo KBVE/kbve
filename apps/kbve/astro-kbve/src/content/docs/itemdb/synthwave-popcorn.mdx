@@ -41,20 +41,17 @@ scripts:
             duration: 60
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
 A favorite snack in the neon-lit districts, **Synthwave Popcorn** pops to the rhythm of retro beats.
 Each kernel is infused with shimmering butter that sparks tiny light trails as you munch.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -63,13 +60,9 @@ Each kernel is infused with shimmering butter that sparks tiny light trails as y
 - Increases **morale by {frontmatter.bonuses.morale}** for **{frontmatter.scripts[0].vars.duration} seconds**
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Lore
 
 > "Taste the beat, feel the light." – common slogan at synthwave arcades
-
----
 
 ## Credit
 
@@ -106,8 +99,8 @@ Each kernel is infused with shimmering butter that sparks tiny light trails as y
   }]}
 />
 
----
-
 ## DevLog
 
 - 06/25/2025 – Added Synthwave Popcorn as morale-boosting snack
+
+</ItemLeaf>

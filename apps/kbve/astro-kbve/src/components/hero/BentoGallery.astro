@@ -13,12 +13,14 @@ interface GalleryItem {
 interface Props {
 	eyebrow?: string;
 	heading?: string;
+	sub?: string;
 	items?: GalleryItem[];
 }
 
 const {
 	eyebrow = 'From the studio',
-	heading = 'Worlds, tools, and experiments we ship.',
+	heading = 'Games and tools KBVE builds',
+	sub = 'Worlds, tools, and experiments we ship — each one open source, each one playable.',
 	items = [
 		{
 			title: 'Rent Earth',
@@ -52,7 +54,7 @@ const fillLg = (3 - (unitsLg % 3)) % 3;
 const fillMd = (2 - (items.length % 2)) % 2;
 ---
 
-<BentoShell {eyebrow} {heading}>
+<BentoShell {eyebrow} {heading} {sub}>
 	<div class="bento-gallery">
 		{
 			items.map((item) => {

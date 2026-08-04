@@ -1,6 +1,6 @@
 use crate::local_llm::LocalLlmManager;
 use crate::local_tts::LocalTtsManager;
-use crate::memory::{format_memory_context, is_content_worth_storing, MemoryManager};
+use crate::memory::{MemoryManager, format_memory_context, is_content_worth_storing};
 use crate::settings::get_settings;
 use log::{debug, error, info};
 use serde::{Deserialize, Serialize};

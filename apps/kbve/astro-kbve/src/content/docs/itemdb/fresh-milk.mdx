@@ -51,9 +51,11 @@ stacking:
   pack_max: 50
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -66,11 +68,6 @@ Can be extracted from clean livestock or synthesized via nano-dairy replicators.
 
 Standard milk has to be approved by KBVE Culinary Standards Division.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -80,15 +77,11 @@ Standard milk has to be approved by KBVE Culinary Standards Division.
 - Triggers a **calm effect**, reducing fear and mental fatigue  
 - Duration: **{frontmatter.scripts[0].vars.duration} seconds**
 
----
-
 ## Notes
 
 - Refrigeration not strictly required, but strongly advised  
 - Can neutralize mild poisons or spice overload  
 - Required for several crafting recipes including *Skull Milk*, *Undead Bone Brew*, and *Calcium Overdrive Potion*
-
----
 
 ## Lore
 
@@ -97,8 +90,6 @@ Standard milk has to be approved by KBVE Culinary Standards Division.
 
 Ancient farmers believed milk was the last gift of peace before chaos returned.
 That belief stuck. Somehow, it still works.
-
----
 
 ## Credit
 
@@ -137,13 +128,12 @@ That belief stuck. Somehow, it still works.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Fresh Milk added as comfort drink with health, calm, and bone-related utility boosts
 
-
 ## Spoilage
 
 Left too long, it spoils into [Rotten Milk](/itemdb/rotten-milk/).
+
+</ItemLeaf>

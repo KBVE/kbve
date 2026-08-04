@@ -10,6 +10,7 @@ import {
 import { LIGHT_RANGE, TILE } from '../config';
 import { NEAR_D0, NEAR_D1 } from './bake/bakeTypes';
 import { MAX_CAPS } from './charShadow';
+import { OCC_CELLS, OCC_NEAR, OCC_REACH } from './occMarch';
 
 const blankTex = new THREE.DataTexture(
 	new Uint8Array(1),
@@ -81,7 +82,17 @@ const fragment = /* glsl */ `
 	#define LIGHT_RANGE ${LIGHT_RANGE.toFixed(1)}
 	#define NEAR_D0 ${NEAR_D0.toFixed(1)}
 	#define NEAR_D1 ${NEAR_D1.toFixed(1)}
-	#define OCC_STEPS 34
+	// Where the occluder march starts and stops, in world units. These are the
+	// bounds of the fixed 0.32-step loop the cell walk replaced (its first and
+	// last sample, 0.5 and 0.5 + 33*0.32) and are kept verbatim so lighting reach
+	// is unchanged — LIGHT_RANGE is 18, so the far third of a distant light's ray
+	// was never tested for occluders and still is not.
+	#define OCC_NEAR ${OCC_NEAR.toFixed(2)}
+	#define OCC_REACH ${OCC_REACH.toFixed(2)}
+	// Cells a ray can enter over OCC_REACH: at most ceil(span/GRID_TILE) on each
+	// axis plus one, with headroom for the diagonal case.
+	#define OCC_CELLS ${OCC_CELLS}
+	#define OCC_FAR 1e9
 	#define MAX_CAPS ${MAX_CAPS}
 	// Only the nearest lights throw character shadows. A third torch's copy of
 	// the same body reads as mush and costs another N capsule tests.
@@ -147,31 +158,27 @@ const fragment = /* glsl */ `
 	${SPOM_SILHOUETTE}
 	${POM_SELF_SHADOW}
 
-	float tileAtWorld(vec2 p) {
+	// Occluder lookup by grid cell rather than by world point: the march below
+	// walks cells directly, so it already knows which one it is in and has no
+	// reason to re-derive it from a position.
+	float tileAtCell(vec2 c) {
+		if (c.x < 0.0 || c.y < 0.0 || c.x >= uGridSize.x || c.y >= uGridSize.y) return 0.0;
+		return texture2D(uMapTex, (c + 0.5) / uGridSize).r;
+	}
+
+	// Open-sky exposure (G channel of the tile grid): 1 inside an oasis room, 0
+	// under a closed ceiling. The 3x3 neighbourhood max that keeps oasis walls
+	// (which sit on the boundary tile) from going dark is baked into the channel
+	// when the grid is built — see dilateSky in dungeon/occlusion.ts. It only
+	// changes when the active room set does, and cost 9 texture fetches here on
+	// every lit fragment of every wall, floor and ceiling.
+	float skyAtWorld(vec2 p) {
 		vec2 local = (p - uGridOrigin) / GRID_TILE;
 		float col = floor(local.x);
 		float row = floor(local.y);
 		if (col < 0.0 || row < 0.0 || col >= uGridSize.x || row >= uGridSize.y) return 0.0;
 		vec2 uvp = (vec2(col, row) + 0.5) / uGridSize;
-		return texture2D(uMapTex, uvp).r;
-	}
-
-	// Open-sky exposure (G channel of the tile grid): 1 inside an oasis room, 0
-	// under a closed ceiling. Samples the 3x3 neighbourhood so oasis walls (which
-	// sit on the boundary tile) still catch the sky instead of going dark.
-	float skyAtWorld(vec2 p) {
-		vec2 local = (p - uGridOrigin) / GRID_TILE;
-		float best = 0.0;
-		for (int dy = -1; dy <= 1; dy++) {
-			for (int dx = -1; dx <= 1; dx++) {
-				float col = floor(local.x) + float(dx);
-				float row = floor(local.y) + float(dy);
-				if (col < 0.0 || row < 0.0 || col >= uGridSize.x || row >= uGridSize.y) continue;
-				vec2 uvp = (vec2(col, row) + 0.5) / uGridSize;
-				best = max(best, texture2D(uMapTex, uvp).g);
-			}
-		}
-		return best;
+		return texture2D(uMapTex, uvp).g;
 	}
 
 	// Shortest distance between the fragment->light segment and a character's
@@ -221,16 +228,55 @@ const fragment = /* glsl */ `
 		return v;
 	}
 
+	// The tile grid is piecewise constant over GRID_TILE-sized cells, so the old
+	// fixed 0.32-unit march resampled the same cell about nine times before
+	// crossing into the next: up to 34 texture fetches per light per fragment to
+	// read at most four distinct cells. This walks cell boundaries instead
+	// (Amanatides-Woo), touching each cell the ray actually enters exactly once.
+	//
+	// Reach stays capped at what the fixed march covered — OCC_REACH, its last
+	// sample — so lights further away keep their unshadowed far field rather
+	// than suddenly picking up walls the old loop never reached.
+	//
+	// Not a pure speedup: a fixed step could stride over a cell the ray only
+	// clips, and this cannot, so corners that used to leak light now occlude.
+	// The set of cells tested is a superset of the old one, never a subset, so
+	// the change only ever adds shadow.
 	float visibility(vec2 frag, vec2 lp) {
 		vec2 d = lp - frag;
 		float len = length(d);
 		if (len < 0.6) return 1.0;
 		vec2 dir = d / len;
-		float end = len - 0.45;
-		for (int k = 0; k < OCC_STEPS; k++) {
-			float s = 0.5 + float(k) * 0.32;
-			if (s >= end) break;
-			if (tileAtWorld(frag + dir * s) > 0.75) return 0.0;
+		float travel = min(len - 0.45, OCC_REACH) - OCC_NEAR;
+		if (travel <= 0.0) return 1.0;
+
+		vec2 g = (frag + dir * OCC_NEAR - uGridOrigin) / GRID_TILE;
+		vec2 gd = dir / GRID_TILE;
+		vec2 cell = floor(g);
+		vec2 stp = sign(gd);
+		// An axis the ray does not move along never crosses a boundary; a huge
+		// tDelta keeps it from ever winning the min() below.
+		vec2 tDelta = vec2(
+			gd.x != 0.0 ? abs(1.0 / gd.x) : OCC_FAR,
+			gd.y != 0.0 ? abs(1.0 / gd.y) : OCC_FAR
+		);
+		vec2 tMax = vec2(
+			gd.x > 0.0 ? (cell.x + 1.0 - g.x) / gd.x
+				: (gd.x < 0.0 ? (cell.x - g.x) / gd.x : OCC_FAR),
+			gd.y > 0.0 ? (cell.y + 1.0 - g.y) / gd.y
+				: (gd.y < 0.0 ? (cell.y - g.y) / gd.y : OCC_FAR)
+		);
+
+		for (int k = 0; k < OCC_CELLS; k++) {
+			if (tileAtCell(cell) > 0.75) return 0.0;
+			if (min(tMax.x, tMax.y) >= travel) break;
+			if (tMax.x < tMax.y) {
+				cell.x += stp.x;
+				tMax.x += tDelta.x;
+			} else {
+				cell.y += stp.y;
+				tMax.y += tDelta.y;
+			}
 		}
 		return 1.0;
 	}

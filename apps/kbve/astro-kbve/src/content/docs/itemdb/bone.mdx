@@ -44,9 +44,11 @@ stacking:
   pack_max: 30
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -58,11 +60,6 @@ It's clean. Mostly.
 
 Just be very careful with bones around them damn neighborhood hell hounds doe and always remember, if the bone don't fit, you must acquit.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -72,8 +69,6 @@ Just be very careful with bones around them damn neighborhood hell hounds doe an
 - Small chance of **spiritual echo** (5%) when handled during rituals or full moons.
 - Cooldown: None - always throwable.
 
----
-
 ## Sources
 
 Most commonly found in:
@@ -81,15 +76,11 @@ Most commonly found in:
 - Ruins and crypts
 - Under your dogs favorite bush
 
----
-
 ## Lore
 
 > “Give a man a bone, and he’ll ask where it came from.  
 > Give a dog a bone, and you’re best friends for life.  
 > Just don’t listen too hard. Some bones talk back.”
-
----
 
 ## Credit
 
@@ -128,8 +119,8 @@ Most commonly found in:
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/27/2025 - Bone item implemented as dual-purpose companion and crafting component
+
+</ItemLeaf>

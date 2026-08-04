@@ -14,6 +14,7 @@
 #include "chuckEventPayloads.h"
 #include "chuckUIEvents.h"
 #include "Props/chuckArcadeCabinet.h"
+#include "Props/chuckResourceNode.h"
 #include "NPC/chuckSpriteNPC.h"
 #include "NPC/chuckNpcSpawner.h"
 #include "Mass/chuckSlimeSubsystem.h"
@@ -886,6 +887,15 @@ void AchuckCorePlayerController::OnFocusChatPressed(const FInputActionValue& /*V
 
 void AchuckCorePlayerController::OnInteractPressed(const FInputActionValue& /*Value*/)
 {
+	if (AchuckResourceNode::GetNearby())
+	{
+		AchuckCoreCharacter* Char = Cast<AchuckCoreCharacter>(GetPawn());
+		if (Char && AchuckResourceNode::GatherNearby(Char))
+		{
+			return;
+		}
+	}
+
 	if (!AchuckArcadeCabinet::ActivateNearby())
 	{
 		UE_LOG(LogTemp, Verbose, TEXT("[chuck] Interact pressed — no nearby interactable"));

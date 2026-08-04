@@ -43,9 +43,11 @@ scripts:
             maxConnections: 2
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -57,20 +59,12 @@ It hums like it remembers what electricity used to feel like.
 Designed by ReCharge Industries before grid failure protocols.
 Used by explorers, field medics, and rogue AI cultists. 
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
-
 ## Usage
 
 - Restores **{frontmatter.bonuses.energyRestore} energy** per charge  
 - Connects to up to **{frontmatter.bonuses.chargeSlots} devices**  
 - 5% chance to **overheat**, causing minor burn or tool misfire  
 - Cooldown: **{frontmatter.cooldown} seconds**
-
----
 
 ## Compatible Targets
 
@@ -79,8 +73,6 @@ Used by explorers, field medics, and rogue AI cultists.
 - Emergency terminals  
 - Synthwave cassette players (untested)
 
----
-
 ## Lore
 
 > “Battery's full. You're not. Rest later.”  
@@ -88,8 +80,6 @@ Used by explorers, field medics, and rogue AI cultists.
 
 Some say if you hold it long enough, it pulses in rhythm with your heart.
 Others say that's the capacitor failing.
-
----
 
 ## Credit
 
@@ -129,8 +119,8 @@ Others say that's the capacitor failing.
 />
 <Adsense />
 
----
-
 ## DevLog
 
 - 05/28/2025 - Portable Powerbank added with multi-device charging logic and risk of overheat
+
+</ItemLeaf>

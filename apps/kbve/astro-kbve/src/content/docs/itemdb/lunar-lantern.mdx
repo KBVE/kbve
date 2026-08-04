@@ -43,19 +43,15 @@ scripts:
             cooldown: 30
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
 The **Lunar Lantern** gleams with a pale glow even during the day. When the moon rises, its power peaks, casting silver beams that unveil hidden runes and shadowy passages.
-
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 
 ## Usage
 
@@ -64,19 +60,13 @@ The **Lunar Lantern** gleams with a pale glow even during the day. When the moon
 - Grants **+{frontmatter.bonuses.nightVision} night vision** while equipped
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Crafting
 
 Combine purified moonstone with enchanted glass and alchemical oils at a tier-two crafting station.
 
----
-
 ## Lore
 
 > "Where moonlight fails, the Lunar Lantern guides." - inscription on an ancient temple wall
-
----
 
 ## Credit
 
@@ -117,9 +107,8 @@ Combine purified moonstone with enchanted glass and alchemical oils at a tier-tw
 
 <Adsense />
 
----
-
 ## DevLog
 
 - 06/08/2025 - Lunar Lantern item added with moonlight-based abilities
 
+</ItemLeaf>

@@ -41,9 +41,11 @@ scripts:
             duration: 150
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -52,11 +54,6 @@ The **Tex-Mex Pizza** is a food anomaly as a culinary riot of salsa, cheese, cru
 Perfect for rebels with no time for cutlery and a death wish for spice.
 Originally a midnight dare during a kitchen blackout. Now a comfort meal in every rebel camp. 
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -65,15 +62,11 @@ Originally a midnight dare during a kitchen blackout. Now a comfort meal in ever
 - Grants **+{frontmatter.bonuses.speed} speed** for **{frontmatter.scripts[0].vars.duration} seconds**  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - May ignite temporary confidence  
 - Can be used as a distraction item (enemies either flee or fight for it)  
 - Attracts critters, rebels, and very brave dogs
-
----
 
 ## Lore
 
@@ -83,8 +76,6 @@ Originally a midnight dare during a kitchen blackout. Now a comfort meal in ever
 Every rebel group has their version.
 All of them swear theirs is the worst.
 And that is why it is the best.
-
----
 
 ## Credit
 
@@ -123,8 +114,8 @@ And that is why it is the best.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Tex-Mex Pizza added as spicy consumable with health restore and speed boost
+
+</ItemLeaf>

@@ -43,9 +43,11 @@ scripts:
             necroTrigger: true
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -55,11 +57,6 @@ Necromancers use it as a sympathetic focus to channel spirits long severed from 
 
 Some whisper that in the right soil, with the right words, it grows more skulls.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -69,14 +66,10 @@ Some whisper that in the right soil, with the right words, it grows more skulls.
 - Compatible with **necromantic catalysts** and **fungal soil treatments**
 - Cooldown: None - passive material
 
----
-
 ## Harvesting
 
 Usually obtained from **undead humanoids**, such as cursed villagers, revenants, or failed experiments. 
 Must be collected before the corpse dissolves into ash.
-
----
 
 ## Lore
 
@@ -86,8 +79,6 @@ Must be collected before the corpse dissolves into ash.
 
 Some say the skulls hum in unison beneath certain ruins. 
 Scholars call it subsonic resonance; cultists call it the `Choir of the Bone`.
-
----
 
 ## Credit
 
@@ -126,8 +117,8 @@ Scholars call it subsonic resonance; cultists call it the `Choir of the Bone`.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/27/2025 – Ritual and agricultural properties documented for Undead Humanoid Skull
+
+</ItemLeaf>

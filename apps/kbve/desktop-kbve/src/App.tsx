@@ -14,7 +14,9 @@ export default function App() {
 	return (
 		<div className="flex h-screen w-screen">
 			<Sidebar />
-			<main className="flex flex-1 flex-col overflow-hidden">
+			<main
+				className="flex min-w-0 flex-1 flex-col overflow-hidden"
+				style={{ backgroundColor: 'var(--color-bg)' }}>
 				<Header />
 				<ViewHost />
 			</main>
@@ -25,17 +27,14 @@ export default function App() {
 function Header() {
 	return (
 		<header
-			className="flex items-center border-b px-10 py-6"
-			style={{
-				backgroundColor: 'var(--color-surface)',
-				borderColor: 'var(--color-border)',
-			}}>
+			className="flex flex-shrink-0 items-center px-10 pt-8 pb-2"
+			style={{ backgroundColor: 'var(--color-bg)' }}>
 			<Slot
 				store={useAppStore}
 				select={(s) => s.activeView}
 				render={(id) => getView(id)?.label ?? id}
 				tag="h1"
-				className="font-display text-heading font-semibold"
+				className="font-display text-title font-semibold"
 			/>
 		</header>
 	);

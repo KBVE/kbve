@@ -1,6 +1,6 @@
-use crate::audio_toolkit::{list_input_devices, vad::SmoothedVad, AudioRecorder, SileroVad};
+use crate::audio_toolkit::{AudioRecorder, SileroVad, list_input_devices, vad::SmoothedVad};
 use crate::helpers::clamshell;
-use crate::settings::{get_settings, AppSettings};
+use crate::settings::{AppSettings, get_settings};
 use crate::utils;
 use crate::vad_model;
 use log::{debug, error, info};
@@ -20,10 +20,10 @@ fn set_mute(mute: bool) {
         unsafe {
             use windows::Win32::{
                 Media::Audio::{
-                    eMultimedia, eRender, Endpoints::IAudioEndpointVolume, IMMDeviceEnumerator,
-                    MMDeviceEnumerator,
+                    Endpoints::IAudioEndpointVolume, IMMDeviceEnumerator, MMDeviceEnumerator,
+                    eMultimedia, eRender,
                 },
-                System::Com::{CoCreateInstance, CoInitializeEx, CLSCTX_ALL, COINIT_MULTITHREADED},
+                System::Com::{CLSCTX_ALL, COINIT_MULTITHREADED, CoCreateInstance, CoInitializeEx},
             };
 
             macro_rules! unwrap_or_return {

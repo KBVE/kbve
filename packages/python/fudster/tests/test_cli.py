@@ -114,7 +114,9 @@ def test_graph_to_mdx_diagram_included(tmp_path):
         str(graph_file), str(output_file), "ts",
     ])
     content = output_file.read_text()
-    assert "graph LR" in content
+    assert "```mermaid" not in content
+    assert "<svg" in content
+    assert 'class="kbve-figure"' in content
     assert "Legend" in content
 
 

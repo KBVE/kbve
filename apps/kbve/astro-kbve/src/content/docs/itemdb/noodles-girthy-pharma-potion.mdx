@@ -46,10 +46,9 @@ scripts:
             tickRate: 3
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
-
+import Adsense from '@/components/ads/Adsense.astro';
 import {
     Aside,
     Steps,
@@ -59,16 +58,12 @@ import {
     FileTree,
 } from '@astrojs/starlight/components';
 
+<ItemLeaf data={frontmatter}>
+
 ## Item
 
 The **Noodles Girthy Pharma Potion** is a syrupy mixture brewed for dubious enhancement. 
 While its texture may be questionable, its effects are immediate healing wounds and amplifying strength in critical moments.
-
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 
 ## Usage
 
@@ -76,13 +71,9 @@ While its texture may be questionable, its effects are immediate healing wounds 
 - Has a cooldown of **{frontmatter.cooldown} seconds**
 - Ideal for melee combatants needing a quick boost
 
----
-
 ## Crafting / Brewing
 
 This potion cannot be brewed by ordinary means. It requires restricted pharma-grade reagents that are banned in most guilds.
-
----
 
 ## Lore
 
@@ -165,8 +156,8 @@ This potion cannot be brewed by ordinary means. It requires restricted pharma-gr
 />
 <Adsense />
 
----
-
 ## DevLog
 
 - 05/26/2025 – Initial implementation of Noodles Girthy Pharma Potion
+
+</ItemLeaf>

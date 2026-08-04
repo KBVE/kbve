@@ -20,8 +20,10 @@ buy_price: 55
 equipped: true
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Overview
 
-<ItemDBPanel data={frontmatter} />
+</ItemLeaf>

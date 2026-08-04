@@ -428,6 +428,21 @@ jobs:
                   echo "::warning::install-deps exhausted; trying install --with-deps"
                   pnpm exec playwright install --with-deps ${BROWSERS}
 
+            # Rust-backed e2e projects boot their server via `cargo run` as a
+            # playwright webServer. The agones crate's build script shells out to
+            # protoc, which no runner image ships — arpg-e2e died here on every
+            # weekly run since it was added. Non-Rust projects just skip it.
+            - name: Install protoc
+              run: |
+                  if command -v protoc >/dev/null 2>&1; then
+                    echo "protoc already present: $(protoc --version)"
+                    exit 0
+                  fi
+                  sudo apt-get update -qq \
+                    && sudo apt-get install -y --no-install-recommends protobuf-compiler \
+                    && protoc --version \
+                    || echo "::warning::protoc install failed; Rust e2e projects that need it will fail with a clear prost-build error"
+
             - name: Nx e2e ${{ inputs.project }}
               env:
                   BUILDKIT_PROGRESS: plain
@@ -447,11 +462,20 @@ jobs:
                   path: /tmp/test-result.txt
                   retention-days: 1
 
+            # The e2e target is expected to build and `load` the image (see the
+            # `container` dependsOn in each project.json). If it did not, the
+            # tag below would fail with an opaque "No such image" and mask an
+            # otherwise green test run — so check first and hand publish the
+            # rebuild instead, which it already knows how to do.
             - name: Push CI image to GHCR
               if: success() && inputs.image != ''
               run: |
                   SHORT_SHA="${GITHUB_SHA::8}"
                   CI_TAG="ci-${SHORT_SHA}"
+                  if ! docker image inspect "${{ inputs.image }}:latest" >/dev/null 2>&1; then
+                    echo "::warning::${{ inputs.image }}:latest is not in the Docker daemon — the e2e target for '${{ inputs.project }}' never built it. Skipping the ci-${SHORT_SHA} promotion tag; publish will do a full rebuild. Add a dependsOn 'container' to that project's e2e target to restore fast promotion."
+                    exit 0
+                  fi
                   docker tag "${{ inputs.image }}:latest" "ghcr.io/${{ inputs.image }}:${CI_TAG}"
                   docker push "ghcr.io/${{ inputs.image }}:${CI_TAG}"
                   echo "Pushed ghcr.io/${{ inputs.image }}:${CI_TAG}"

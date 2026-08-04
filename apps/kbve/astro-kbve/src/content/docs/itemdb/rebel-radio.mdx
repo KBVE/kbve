@@ -43,9 +43,11 @@ scripts:
             cooldownSeconds: 180
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -57,12 +59,6 @@ Its antenna hums when the regime gets close.
 Soldered together from salvaged warband comms, banned ham rigs, and a hope-fueled battery.
 Broadcast range limited by orbital interference. 
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
-
 <Adsense />
 
 ## Usage
@@ -71,8 +67,6 @@ Broadcast range limited by orbital interference.
 - **20% chance** to call in **rebel support** (supply drop, distraction, intel ping)  
 - Generates a **local jamming field**, disrupting enemy sensors and drones  
 - Cooldown: **{frontmatter.cooldown} seconds**
-
----
 
 ## Strategic Use
 
@@ -83,8 +77,6 @@ Use during:
 
 Works best when elevated or near power amplifiers.
 
----
-
 ## Lore
 
 > “The revolution won't be televised. But it will be broadcast, encoded, and bounced off an abandoned satellite on Channel 42069.”  
@@ -93,8 +85,6 @@ Works best when elevated or near power amplifiers.
 Some say the radio responds even when it's off.
 Others say that's just paranoia. 
 But it does blink... sometimes.
-
----
 
 ## Credit
 
@@ -133,8 +123,8 @@ But it does blink... sometimes.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/28/2025 - Rebel Radio added with encrypted communication hooks, jamming field, and random support call-ins
+
+</ItemLeaf>

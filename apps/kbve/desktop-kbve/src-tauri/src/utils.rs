@@ -1,7 +1,7 @@
+use crate::ManagedToggleState;
 use crate::managers::audio::AudioRecordingManager;
 use crate::managers::transcription::TranscriptionManager;
 use crate::shortcut;
-use crate::ManagedToggleState;
 use log::{info, warn};
 use std::sync::Arc;
 use tauri::{AppHandle, Manager};

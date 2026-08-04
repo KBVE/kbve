@@ -742,7 +742,7 @@ wheels = [
 
 [[package]]
 name = "kbve"
-version = "1.0.13"
+version = "1.0.14"
 source = { editable = "../kbve" }
 dependencies = [
     { name = "aiohttp" },

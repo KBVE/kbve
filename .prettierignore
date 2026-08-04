@@ -24,3 +24,7 @@ apps/rareicon/unity-rareicon/Assets/StreamingAssets/*.json
 apps/discordsh/discordsh-bot/data/mapdb.json
 # Generated CI dispatch manifest (raw nx sync output; prettier must not reflow it)
 .github/ci-dispatch-manifest.json
+
+# Vendored upstream KubeVirt release manifest — kept byte-identical to the
+# GitHub release asset so version bumps stay a clean file swap
+apps/kube/kubevirt/manifests/kubevirt-operator.yaml

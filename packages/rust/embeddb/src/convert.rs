@@ -47,6 +47,8 @@ impl FromEmbedValue for bool {
     fn from_embed_value(v: Option<&EmbedValue>) -> Result<Self> {
         match v {
             Some(EmbedValue::Bool(b)) => Ok(*b),
+            Some(EmbedValue::Int(0)) => Ok(false),
+            Some(EmbedValue::Int(1)) => Ok(true),
             Some(other) => Err(mismatch("bool", other)),
             None => Err(absent("bool")),
         }
@@ -91,7 +93,7 @@ mod tests {
     fn scalar_conversions() {
         assert_eq!(i64::from_embed_value(Some(&EmbedValue::Int(5))).unwrap(), 5);
         assert_eq!(String::from_embed_value(Some(&EmbedValue::Text("x".into()))).unwrap(), "x");
-        assert!(bool::from_embed_value(Some(&EmbedValue::Int(1))).is_err());
+        assert!(bool::from_embed_value(Some(&EmbedValue::Text("true".into()))).is_err());
     }
 
     #[test]
@@ -110,5 +112,67 @@ mod tests {
     fn f64_accepts_int_and_float() {
         assert_eq!(f64::from_embed_value(Some(&EmbedValue::Int(4))).unwrap(), 4.0);
         assert_eq!(f64::from_embed_value(Some(&EmbedValue::Float(2.5))).unwrap(), 2.5);
+    }
+
+    #[test]
+    fn bool_accepts_sqlite_integer_encoding() {
+        assert!(bool::from_embed_value(Some(&EmbedValue::Bool(true))).unwrap());
+        assert!(!bool::from_embed_value(Some(&EmbedValue::Bool(false))).unwrap());
+        assert!(bool::from_embed_value(Some(&EmbedValue::Int(1))).unwrap());
+        assert!(!bool::from_embed_value(Some(&EmbedValue::Int(0))).unwrap());
+        assert!(bool::from_embed_value(Some(&EmbedValue::Int(2))).is_err());
+        assert!(bool::from_embed_value(None).is_err());
+    }
+
+    #[test]
+    fn i128_accepts_hugeint_and_int() {
+        assert_eq!(i128::from_embed_value(Some(&EmbedValue::HugeInt(9))).unwrap(), 9);
+        assert_eq!(i128::from_embed_value(Some(&EmbedValue::Int(9))).unwrap(), 9);
+        assert!(i128::from_embed_value(Some(&EmbedValue::Text("9".into()))).is_err());
+        assert!(i128::from_embed_value(None).is_err());
+    }
+
+    #[test]
+    fn blob_converts_and_rejects_other_types() {
+        let bytes = vec![1_u8, 2, 3];
+        assert_eq!(
+            Vec::<u8>::from_embed_value(Some(&EmbedValue::Blob(bytes.clone()))).unwrap(),
+            bytes
+        );
+        assert!(Vec::<u8>::from_embed_value(Some(&EmbedValue::Int(1))).is_err());
+        assert!(Vec::<u8>::from_embed_value(None).is_err());
+    }
+
+    #[test]
+    fn string_rejects_other_types_and_absent() {
+        assert!(String::from_embed_value(Some(&EmbedValue::Int(1))).is_err());
+        assert!(String::from_embed_value(None).is_err());
+    }
+
+    #[test]
+    fn i64_and_f64_reject_wrong_types() {
+        assert!(i64::from_embed_value(Some(&EmbedValue::Text("x".into()))).is_err());
+        assert!(f64::from_embed_value(Some(&EmbedValue::Text("x".into()))).is_err());
+        assert!(f64::from_embed_value(None).is_err());
+    }
+
+    #[test]
+    fn option_propagates_inner_conversion_error() {
+        assert!(Option::<i64>::from_embed_value(Some(&EmbedValue::Text("x".into()))).is_err());
+        assert_eq!(
+            Option::<String>::from_embed_value(Some(&EmbedValue::Text("x".into()))).unwrap(),
+            Some("x".to_string())
+        );
+    }
+
+    #[test]
+    fn error_messages_name_the_expected_type() {
+        let err = i64::from_embed_value(Some(&EmbedValue::Text("x".into()))).unwrap_err();
+        let msg = err.to_string();
+        assert!(msg.contains("i64"));
+        assert!(msg.contains("Text"));
+        let absent = String::from_embed_value(None).unwrap_err().to_string();
+        assert!(absent.contains("String"));
+        assert!(absent.contains("absent"));
     }
 }

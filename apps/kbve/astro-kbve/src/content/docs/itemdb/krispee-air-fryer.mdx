@@ -44,9 +44,11 @@ scripts:
             usableTags: 'cooking'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -55,11 +57,6 @@ Capable of perfectly crisping anything from mystery meat to neutron noodles, it 
 
 It’s rumored that food cooked within retains a trace of soul… and crunch.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -69,15 +66,11 @@ It’s rumored that food cooked within retains a trace of soul… and crunch.
 - Taste Score: **{frontmatter.bonuses.tasteScore}/10**
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Function
 
 Use in kitchens, campsites, mess halls, or right next to open cosmic rifts.
 Functions best with tagged ingredients.
 May overload on ultra-processed materials.
-
----
 
 ## Lore
 
@@ -87,8 +80,6 @@ May overload on ultra-processed materials.
 It’s said that every Krispee Air Fryer carries the burnt-in scent of its first meal.
 Some have tried to erase it.
 None have succeeded.
-
----
 
 ## Credit
 
@@ -127,8 +118,8 @@ None have succeeded.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/27/2025 - Krispee Air Fryer integrated as culinary utility with food buff interaction system
+
+</ItemLeaf>

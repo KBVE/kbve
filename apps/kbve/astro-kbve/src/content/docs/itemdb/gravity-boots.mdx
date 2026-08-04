@@ -42,9 +42,11 @@ scripts:
             zeroGControl: true
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -52,12 +54,6 @@ import { Adsense } from '@/components/astropad';
 Originally designed for station repairs, they found their way into daring expeditions and flashy heists.
 
 Their thrusters hum softly, adjusting magnetic grip as you step.
-
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 
 <Adsense />
 
@@ -68,14 +64,10 @@ Their thrusters hum softly, adjusting magnetic grip as you step.
 - Activates **zero-G control** for {frontmatter.scripts[0].vars.duration} seconds per use
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Requires periodic recharging with standard power cells
 - Overuse may trigger security scanners in restricted zones
-
----
 
 ## Lore
 
@@ -83,8 +75,6 @@ Their thrusters hum softly, adjusting magnetic grip as you step.
 > - Graffiti near the old orbital docks
 
 Once reserved for elite zero-gravity units, surplus pairs now circulate among smugglers and explorers.
-
----
 
 ## Credit
 
@@ -123,9 +113,8 @@ Once reserved for elite zero-gravity units, surplus pairs now circulate among sm
   ]}
 />
 
----
-
 ## DevLog
 
 - 06/15/2025 - Gravity Boots introduced as mobility-focused apparel with zero-G capabilities
 
+</ItemLeaf>
