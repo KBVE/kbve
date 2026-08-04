@@ -44,3 +44,31 @@ describe('multiplayer auth plumbing', () => {
 		expect(mod.netConfig.get()).toBeNull();
 	});
 });
+
+describe('guest players', () => {
+	it('prefixes guest names so they cannot read as an account name', async () => {
+		const { guestUsername, GUEST_PREFIX } = await import('./auth');
+		expect(guestUsername().startsWith(GUEST_PREFIX)).toBe(true);
+	});
+
+	it('keeps the same guest name across calls within a session', async () => {
+		const { guestUsername } = await import('./auth');
+		expect(guestUsername()).toBe(guestUsername());
+	});
+
+	it('connects a signed-out player as a guest when guests are allowed', async () => {
+		const { resolveNetConfig, GUEST_PREFIX } = await import('./auth');
+		const { config, gate } = await resolveNetConfig(true);
+		expect(gate).toBeNull();
+		expect(config?.jwt).toBe('');
+		expect(config?.username.startsWith(GUEST_PREFIX)).toBe(true);
+		expect(config?.wsUrl).toBeTruthy();
+	});
+
+	it('still reports signed-out when guests are not allowed', async () => {
+		const { resolveNetConfig } = await import('./auth');
+		const { config, gate } = await resolveNetConfig(false);
+		expect(config).toBeNull();
+		expect(gate).toBe('signed-out');
+	});
+});
