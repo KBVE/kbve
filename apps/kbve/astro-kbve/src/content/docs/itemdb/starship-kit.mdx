@@ -28,8 +28,7 @@ credits: |
     Starship model "fighter1" by Psionic (3D Game Resources), freeware. Iso sprite baking & ARPG integration by retrovandal.
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
-
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import {
 	Aside,
 	Steps,
@@ -37,9 +36,9 @@ import {
 	CardGrid,
 } from '@astrojs/starlight/components';
 
-## Overview
+<ItemLeaf data={frontmatter}>
 
-<ItemDBPanel data={frontmatter} />
+## Overview
 
 A deployable starship beacon. Plant it down and the ship descends from orbit and
 lands on the marked tile — press **R** while placing to set its heading. Recall it
@@ -191,3 +190,5 @@ Cinematic tuning knobs (defaults shown — bump for more drama):
 
 After baking, copy `<out>/sheet.png` → the asset dir as `<sheet>.png`, keep `ship.ts`
 `SHIP_SHEETS` frame sizes at **512**, then `./kbve.sh -lfs arpg register origin`.
+
+</ItemLeaf>

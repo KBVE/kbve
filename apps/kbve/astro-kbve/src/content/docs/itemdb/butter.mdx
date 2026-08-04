@@ -45,9 +45,11 @@ food:
   spoils_into_ref: 'rotten-food'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -59,11 +61,6 @@ It's also been used to escape handcuffs. Just saying.
 [Fresh milk](/itemdb/fresh-milk/) churned in ancient barrels or synthetically replicated via protein printers.
 A base component in countless dishes, like [Lobster Soup](/itemdb/lobster-soup/).
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -72,15 +69,11 @@ A base component in countless dishes, like [Lobster Soup](/itemdb/lobster-soup/)
 - Grants **+{frontmatter.bonuses.speed} speed** when used unconventionally  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Essential in crafting *Lobster Meals*, *Fried Potatoes*, *Grilled Bread*  
 - Can be melted and infused with herbs or mana  
 - If left in inventory too long, may attract *Grease Elementals*
-
----
 
 ## Lore
 
@@ -88,8 +81,6 @@ A base component in countless dishes, like [Lobster Soup](/itemdb/lobster-soup/)
 > - Chef Arvala, Battle-Baker of Embercrest
 
 Butter is love, leverage and surprisingly flammable.
-
----
 
 ## Credit
 
@@ -128,13 +119,12 @@ Butter is love, leverage and surprisingly flammable.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/31/2025 - Butter added as foundational food item with culinary and sneaky utility
 
-
 ## Spoilage
 
 Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).
+
+</ItemLeaf>

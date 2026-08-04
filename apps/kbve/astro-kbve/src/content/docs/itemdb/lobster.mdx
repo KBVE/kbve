@@ -44,9 +44,11 @@ food:
   spoils_into_ref: 'rotten-meat'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -59,11 +61,6 @@ Handle it with care. It might still be watching.
 Caught by deep-sea trappers and stealth fishers. 
 Its exoskeleton can also be repurposed in crafting. 
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -72,15 +69,11 @@ Its exoskeleton can also be repurposed in crafting.
 - Affinity with sea-based environments and water-based recipes  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Can be cooked into *Luxury Lobster Rolls*, *Boiled Titan Stew*, or *Sea King's Platter*  
 - Lobster shells are useful in crafting *Shell Armor Plates* or *Abyssal Filters*  
 - Emits low-frequency clicks when left uneaten
-
----
 
 ## Lore
 
@@ -88,8 +81,6 @@ Its exoskeleton can also be repurposed in crafting.
 > - Dockside Rumors, Volume 4
 
 Lobsters are ancient. Older than myths. They remember things we forgot to fear.
-
----
 
 ## Credit
 
@@ -128,13 +119,12 @@ Lobsters are ancient. Older than myths. They remember things we forgot to fear.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Lobster added as rare fish item with health and armor buffs, lore-based seafood crafting, and shell reuse potential
 
-
 ## Spoilage
 
 Left too long, it spoils into [Rotten Meat](/itemdb/rotten-meat/).
+
+</ItemLeaf>

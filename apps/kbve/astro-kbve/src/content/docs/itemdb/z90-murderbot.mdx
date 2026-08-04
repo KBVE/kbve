@@ -46,9 +46,11 @@ scripts:
             duration: 45
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -58,11 +60,6 @@ Holding it feels like playing a game whose cartridge was cursed by an emotionall
 
 No deployment is the same, thus expect chaos, confusion, and maybe salvation.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -72,20 +69,14 @@ No deployment is the same, thus expect chaos, confusion, and maybe salvation.
 - High **{Math.floor(frontmatter.bonuses.glitchFactor * 100)}% glitch factor** introduces unexpected behavior
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Discovery
 
 Usually found embedded in the walls of old simulation domes, or clutched by smiling skeletons. 
 Some say it plays music before chaos.
 
----
-
 ## Lore
 
 > “I pressed 'A'. Now my base has four new pets and one crater.”
-
----
 
 ## Credit
 
@@ -142,9 +133,9 @@ Some say it plays music before chaos.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/27/2025 – Deployed Z90 MurderBot into item schema and behavioral systems
 - TODO: Have the console yell at the robots, "go left! go right! go forward! go back!"
+
+</ItemLeaf>

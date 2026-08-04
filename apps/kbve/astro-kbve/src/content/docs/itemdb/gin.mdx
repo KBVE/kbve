@@ -41,9 +41,11 @@ scripts:
             effectRisk: 'hallucination'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -54,27 +56,17 @@ A staple of dystopian salons and rebel diplomats.
 
 Best sipped when plotting, deceiving, or seducing intel.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
-
 ## Usage
 
 - Grants **+{frontmatter.bonuses.charm} charm** and **+{frontmatter.bonuses.perception} perception**  
 - Has a **chance to trigger hallucinations or leaks of hidden truths**  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Preferred drink of elite smugglers and network infiltrators  
 - Can be mixed into *Truth Serum Tonic*, *Martini Protocols*, or *Floral Explosives*  
 - Best used in low-noise environments due to speech slurring or spontaneous riddles
-
----
 
 ## Lore
 
@@ -83,8 +75,6 @@ Best sipped when plotting, deceiving, or seducing intel.
 
 Gin's origins are tangled with witchcraft, alchemy, and espionage.
 It's banned in three cities and worshipped in two.
-
----
 
 ## Credit
 
@@ -125,8 +115,8 @@ It's banned in three cities and worshipped in two.
 
 <Adsense />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Gin added as charm/perception drink with botanical flavor, hallucination risk, and crafting potential
+
+</ItemLeaf>

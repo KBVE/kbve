@@ -42,9 +42,7 @@ scripts:
           tickRate: 5
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
-
-
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import {
         Aside,
         Steps,
@@ -53,19 +51,13 @@ import {
         Code,
         FileTree,
 } from '@astrojs/starlight/components';
-
 import Adsense from '@/components/ads/Adsense.astro';
 
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
 The **Ecto Cooler Drank Type 95** is a rare magical concoction known for its rejuvenating effects. While small in size, its potency lies in its dual-action healing and energy restoration, making it a tactical choice for adventurers.
-
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 
 <Adsense />
 
@@ -75,13 +67,9 @@ The **Ecto Cooler Drank Type 95** is a rare magical concoction known for its rej
 - Has a cooldown of **{frontmatter.cooldown} seconds**
 - Best used before high-energy battles or during quick skirmishes
 
----
-
 ## Crafting / Brewing
 
 Currently uncraftable, but alchemists across the realms are studying its unique formula to replicate it in potion labs.
-
----
 
 ## Lore
 
@@ -91,8 +79,8 @@ Currently uncraftable, but alchemists across the realms are studying its unique 
 
 {frontmatter.credits}
 
----
-
 ## DevLog
 
 - 05/25/2025 – Initial implementation of Ecto Cooler Drank Type 95
+
+</ItemLeaf>

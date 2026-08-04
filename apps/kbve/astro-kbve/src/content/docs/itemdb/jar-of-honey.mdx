@@ -43,9 +43,11 @@ scripts:
             alchemyBase: true
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -54,16 +56,10 @@ Revered by alchemists and wanderers alike, it restores health and stamina while 
 
 Rumors say a drop of this golden nectar forces even the most cunning liar to pause... and taste their words.
 
-
 Harvested from [beehives](/itemdb/steel-beehive/) and wild hives.
 
 Processed by apiarists and monks of the Golden Bloom Order.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -72,8 +68,6 @@ Processed by apiarists and monks of the Golden Bloom Order.
 - Can be used in **mead**, **medicine**, or **ritual mixtures**
 - Sweetness Rating: **{frontmatter.bonuses.sweetnessRating}/100**
 - Cooldown: **{frontmatter.cooldown} seconds**
-
----
 
 ## Crafting
 
@@ -87,16 +81,12 @@ Combine with herbs or wax to create:
 - **Energy tonics**
 - **Blessed mead**
 
----
-
 ## Lore
 
 > “When words fail, offer honey.  
 > If they still lie, feed them the wax.”
 
 Scribes once used honey to write spells on dry leaves, only the truth would dissolve the glyphs properly.
-
----
 
 ## Credit
 
@@ -135,8 +125,8 @@ Scribes once used honey to write spells on dry leaves, only the truth would diss
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/27/2025 - Jar of Honey implemented for food, healing, and alchemical utility
+
+</ItemLeaf>

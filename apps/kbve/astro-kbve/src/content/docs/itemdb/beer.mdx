@@ -41,9 +41,11 @@ scripts:
             traits: 'buzzed'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -52,12 +54,6 @@ Brewed with care and consumed with questionable judgment, it adds strength, redu
 
 Also brewed everywhere from back-alley barrels to floating breweries in the cloud districts. 
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
-
 ## Usage
 
 - **+{frontmatter.bonuses.strength} strength**  
@@ -65,16 +61,12 @@ Also brewed everywhere from back-alley barrels to floating breweries in the clou
 - Applies **Buzzed** and **Courage** effects  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Best used in taverns, rebel encampments, or mech mechanic rituals  
 - Can be crafted into **Ale-Braised Stew**, **Explosive Barley Bombs**, or **Liquid Bravery Tonic**
 - May cause **truth exposure** during dialogue encounters
 - Drinking multiple pints quickly may trigger a blurred HUD and bolder conversation choices
-
----
 
 ## Lore
 
@@ -85,8 +77,6 @@ Beer is more than a drink. It's a truth serum in a cozy disguise.
 During the Lunar Harvest Festival, master brewers challenge one another to craft
 "starlight ale" that glows faintly under the night sky, guiding travelers back
 to the tavern.
-
----
 
 ## Credit
 
@@ -127,8 +117,8 @@ to the tavern.
 
 <Adsense />
 
----
-
 ## DevLog
 
 - 05/31/2025 - Beer added as morale-boosting drink with strength bonus and charisma penalty mechanics
+
+</ItemLeaf>

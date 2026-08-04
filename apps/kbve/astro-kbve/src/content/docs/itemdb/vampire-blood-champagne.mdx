@@ -41,9 +41,11 @@ scripts:
             traits: blood-euphoric'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -56,11 +58,6 @@ Said to contain the blood of a noble vampire line.
 
 Just do not ask the vampires to bring you any humans from their kitchen.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -71,15 +68,11 @@ Just do not ask the vampires to bring you any humans from their kitchen.
 - Effect duration: **{frontmatter.scripts[0].vars.buffDuration} seconds**  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Can be mixed into *Blood Velvet Cocktails*, *Champagne Sorcery Glazes*, or *Crimson Communion Wine*  
 - Buffs stack well with charm-based abilities or dark-themed apparel  
 - May attract vampire factions or inquisitors if consumed publicly
-
----
 
 ## Lore
 
@@ -87,8 +80,6 @@ Just do not ask the vampires to bring you any humans from their kitchen.
 > - Countess Belvane, on her 300th birthday
 
 It sings in your veins and sometimes, it bites back.
-
----
 
 ## Credit
 
@@ -127,8 +118,8 @@ It sings in your veins and sometimes, it bites back.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Vampirie Blood Champagne added as charisma-enhancing, vitality-restoring, and aging-pausing rare drink
+
+</ItemLeaf>

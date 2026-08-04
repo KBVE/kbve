@@ -42,9 +42,11 @@ scripts:
             bouncePhysics: 0.2
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -55,12 +57,6 @@ It creaks when rolled. Thuds when thrown. Smells faintly like apocalypse mixed w
 
 Recovered from junkyards, burnt-out cars, and forgotten racing arenas. 
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
-
 <Adsense />
 
 ## Usage
@@ -70,16 +66,12 @@ Recovered from junkyards, burnt-out cars, and forgotten racing arenas.
 - Has **bounce factor** useful in physics interactions or trap designs  
 - Stackable, durable, and easy to roll in all meanings
 
----
-
 ## Salvage Yields
 
 When broken down:
 - **Rubber scraps**
 - **Steel cords**
 - Possible **char residue**
-
----
 
 ## Lore
 
@@ -88,8 +80,6 @@ When broken down:
 
 In some wastelands, they worship tires.
 In others, they use them to fuel the fire that burns those cultists out.
-
----
 
 ## Credit
 
@@ -128,8 +118,8 @@ In others, they use them to fuel the fire that burns those cultists out.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/28/2025 - Rubber Tire added as base material with salvage and bounce physics support
+
+</ItemLeaf>

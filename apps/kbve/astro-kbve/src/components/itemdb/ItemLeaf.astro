@@ -1,0 +1,102 @@
+---
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+import ItemDBPanel from './ItemDBPanel.astro';
+import { IObjectSchema } from '@/data/schema';
+import { getCategoryNames } from '@/data/types/ItemCategoryTypes';
+import { RARITY_META } from './itemNav';
+
+const { data } = Astro.props;
+const item = IObjectSchema.parse(data);
+
+const titleCase = (v: string): string =>
+	String(v ?? '')
+		.replace(/[-_]/g, ' ')
+		.replace(/\b\w/g, (c) => c.toUpperCase());
+
+const RARITY_THEME: Record<string, { accent: string; accent2: string }> = {
+	common: { accent: '#94a3b8', accent2: '#cbd5e1' },
+	uncommon: { accent: '#22c55e', accent2: '#4ade80' },
+	rare: { accent: '#3b82f6', accent2: '#60a5fa' },
+	epic: { accent: '#a855f7', accent2: '#c084fc' },
+	legendary: { accent: '#f59e0b', accent2: '#fbbf24' },
+	mythic: { accent: '#f43f5e', accent2: '#fb7185' },
+};
+
+const rarityKey = item.rarity ?? 'common';
+const rarity = titleCase(rarityKey);
+const rarityMeta = RARITY_META.find((m) => m.key === rarityKey);
+const categoryNames = item.type_flags ? getCategoryNames(item.type_flags) : [];
+const primaryType = categoryNames[0] ?? 'Item';
+
+const lede =
+	typeof item.description === 'string'
+		? item.description.trim().split('\n\n')[0].replace(/\n/g, ' ')
+		: undefined;
+
+const stats: { label: string; value: string; icon: string }[] = [
+	{ label: 'Rarity', value: rarity, icon: 'crown' },
+	{ label: 'Type', value: primaryType, icon: 'database' },
+];
+
+if (item.weight !== undefined)
+	stats.push({
+		label: 'Weight',
+		value: `${item.weight} kg`,
+		icon: 'activity',
+	});
+
+if (item.buy_price !== undefined)
+	stats.push({
+		label: 'Value',
+		value: item.buy_price.toLocaleString(),
+		icon: 'chart',
+	});
+
+if (item.level_requirement)
+	stats.push({
+		label: 'Level req.',
+		value: String(item.level_requirement),
+		icon: 'shield',
+	});
+
+const hero = {
+	badge: `${rarityMeta?.eyebrow ?? 'Item'} · ${rarity}`,
+	title: item.emoji ? `${item.emoji} ${item.name}` : item.name,
+	accent: primaryType,
+	lede,
+	stats,
+	ctas: [
+		{ label: '← All items', href: '/itemdb/' },
+		{ label: `${rarity} tier`, href: `/itemdb/#${rarityKey}` },
+	],
+	related: [
+		{
+			href: `/itemdb/#${rarityKey}`,
+			title: `More ${rarity}`,
+			copy: `Browse the rest of the ${rarity.toLowerCase()} tier in the catalog.`,
+			icon: 'network',
+		},
+		{
+			href: '/itemdb/',
+			title: 'Item Database',
+			copy: 'Back to the full catalog, grouped by rarity tier.',
+			icon: 'database',
+		},
+		{
+			href: '/api/itemdb.json',
+			title: 'JSON API',
+			copy: 'This catalog as machine-readable JSON, keyed by id, ref, and name.',
+			icon: 'code',
+		},
+	],
+	theme: RARITY_THEME[rarityKey] ?? RARITY_THEME.common,
+};
+---
+
+<BentoDoc data={hero} class="item-leaf">
+	<BentoProse eyebrow="Entry" heading="Item">
+		<ItemDBPanel data={data} />
+		<slot />
+	</BentoProse>
+</BentoDoc>

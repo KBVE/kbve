@@ -42,9 +42,11 @@ scripts:
             dreamFlag: 'anime'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -57,11 +59,6 @@ Handle with emotional gloves.
 Mass-produced before the Fall, personalized post-Fandom Collapse.
 Fabric recovered from Expo Ruins. 
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -71,15 +68,11 @@ Fabric recovered from Expo Ruins.
 - May influence dreams with **"anime-tagged memory states"**  
 - Emits a soft aura of **synthetic warmth** and dried tears
 
----
-
 ## Notes
 
 - Not suitable for combat. Probably.  
 - Reactions vary from NPCs - admiration, mockery, envy, confusion.  
 - Wash carefully. Some characters resist detergent.
-
----
 
 ## Lore
 
@@ -89,8 +82,6 @@ Fabric recovered from Expo Ruins.
 Some say hugging the pillow too long syncs your heart rate with hers.
 Some say it starts talking back.
 Either way, you sleep better.
-
----
 
 ## Credit
 
@@ -129,8 +120,8 @@ Either way, you sleep better.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/28/2025 - Anime Body Pillow added as emotional support curio with morale, sleep, and dream influence.
+
+</ItemLeaf>

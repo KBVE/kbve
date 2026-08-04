@@ -41,9 +41,11 @@ scripts:
             traits: 'blood-infused'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -53,11 +55,6 @@ The ice cream base is sweetened with nightfruit and coagulated vampiric essence,
 A rare delicacy served during crimson eclipses in vampire enclaves.
 The heart garnish pulses faintly if held too long.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -67,15 +64,11 @@ The heart garnish pulses faintly if held too long.
 - Grants **+{frontmatter.bonuses.darkResist}% dark resistance**  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Stronger effects when consumed at night or under full moonlight  
 - The heart topping may be removed for ritual purposes  
 - Best paired with **Vampirie Blood Champagne** for the “Crimson Feast” synergy
-
----
 
 ## Lore
 
@@ -83,8 +76,6 @@ The heart garnish pulses faintly if held too long.
 > - Anonymous guest at the Eclipse Banquet
 
 Cold enough to chill a soul, sweet enough to fool one.
-
----
 
 ## Credit
 
@@ -123,8 +114,8 @@ Cold enough to chill a soul, sweet enough to fool one.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Vampire Blood Gelato added with health, mana, and dark resistance buffs; features lore-linked synergy and a consumable heart topping
+
+</ItemLeaf>

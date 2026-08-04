@@ -43,9 +43,11 @@ scripts:
             cooldown: 90
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -56,21 +58,12 @@ Some wearers report being followed by rodents. Others? By admirers.
 
 Rumor has it that nucleus will alter the in-game memory if the player has a [ziplock bag](/itemdb/jareds-teddy-bear) and automatically win the game.
 
-
----
-
-<ItemDBPanel data={frontmatter} />
-
----
-
 ## Usage
 
 - Grants **+{frontmatter.bonuses.charm} charm**  
 - Has a **{Math.floor(frontmatter.bonuses.creatureInfluence * 100)}% chance** to **tame or confuse** lesser creatures temporarily  
 - Emits **ambient whistle tones** when equipped  
 - Cooldown: **{frontmatter.cooldown} seconds**
-
----
 
 ## Application
 
@@ -81,8 +74,6 @@ Effective in:
 
 Can be enhanced further with **instrument relics** or **sound-based accessories**.
 
----
-
 ## Lore
 
 > “He walked through the plague city. The rats walked behind him in a line.”  
@@ -92,8 +83,6 @@ Some say if you wear it long enough, you start to hear your own theme music.
 Others say that's when it's too late to take it off.
 
 [Scene from Silicon Valley](https://www.youtube.com/watch?v=upNBYuNh71A)
-
----
 
 ## Credit
 
@@ -133,8 +122,8 @@ Others say that's when it's too late to take it off.
 />
 <Adsense />
 
----
-
 ## DevLog
 
 - 05/28/2025 - Pied Piper Jacket added with charm mechanics and passive creature following system
+
+</ItemLeaf>

@@ -45,9 +45,11 @@ scripts:
             tickRate: 12
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -55,31 +57,19 @@ The **Pocket Prophet of Profit** is a tarnished golden idol small enough to fit 
 Legends claim it was smuggled out during the final minutes of an infamous financial collapse, clutching secrets that could predict futures… or end them.
 Rumor has it that it was once owned by a Darth Dick, vice president from an imperial empire located in a far far far away galaxy.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
-
 ## Usage
 
 - Grants **{frontmatter.bonuses.profitBoost} profit boost** during active trades
 - May induce **{frontmatter.bonuses.dreadAura ? 'ambient existential dread' : 'mild stress'}**
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Acquisition
 
 This item cannot be bought. It finds you, usually after strange dreams involving quarterly reports and a subway station with no exits.
 
----
-
 ## Lore
 
 > “I asked it what to invest in. It laughed. Three weeks later, my hedge fund turned into a literal hedge.”
-
----
 
 ## Credit
 
@@ -137,8 +127,8 @@ This item cannot be bought. It finds you, usually after strange dreams involving
 />
 <Adsense />
 
----
-
 ## DevLog
 
 - 05/27/2025 – Deployed initial version of the Pocket Prophet of Profit
+
+</ItemLeaf>

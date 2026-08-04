@@ -42,9 +42,11 @@ scripts:
             traits: 'grind-ready'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -55,12 +57,6 @@ When equipped, it gives you a burst of rebellious speed and unpredictability, pe
 Popularized in the Undercity Riot Races. 
 Wheels salvaged from a drone courier. 
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
-
 <Adsense />
 
 ## Usage
@@ -70,15 +66,11 @@ Wheels salvaged from a drone courier.
 - Enables flashy **combat tricks** and loud **mobility maneuvers**  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Can be equipped during city traversal or underground missions  
 - Bonuses are doubled in punk-aligned or urban environments  
 - Occasionally leaves behind spark trails and rebellious slogans
-
----
 
 ## Lore
 
@@ -86,8 +78,6 @@ Wheels salvaged from a drone courier.
 > - Graffiti found on the side of an abandoned metro station
 
 The board doesn't just ride, it roars.
-
----
 
 ## Credit
 
@@ -126,8 +116,8 @@ The board doesn't just ride, it roars.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Punk Skateboard added as fast utility gear with urban traversal boosts, riot references, and evasion mechanics
+
+</ItemLeaf>

@@ -43,9 +43,11 @@ scripts:
             cooldown: 15
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -53,12 +55,6 @@ The **Quick Toolbelt** is a no-frills, all-function utility rig.
 Worn by veteran engineers, AI tuners, and shipboard mechanics, it contains calibrated torque drivers, micro-welders, and an adaptive nano wrench.
 
 It may not look like much, but seconds saved are systems saved.
-
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 
 <Adsense />
 
@@ -69,8 +65,6 @@ It may not look like much, but seconds saved are systems saved.
 - Tool Grade: **{frontmatter.bonuses.toolGrade}**
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Application
 
 Can be used mid-combat or during system failures. Especially useful in:
@@ -78,15 +72,11 @@ Can be used mid-combat or during system failures. Especially useful in:
 - **Robot Wards**
 - **Field operations in breached hull zones**
 
----
-
 ## Lore
 
 > “I once saw a guy patch an entire propulsion system mid-reentry with this and a can of sprayfoam. Didn’t *survive*, but the ship did.”
 
 Some belts come with engraved names from past owners, most scratched off, some still glowing faintly with heat.
-
----
 
 ## Credit
 
@@ -125,8 +115,8 @@ Some belts come with engraved names from past owners, most scratched off, some s
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/27/2025 - Quick Toolbelt implemented for engineering and maintenance roles.
+
+</ItemLeaf>

@@ -42,9 +42,11 @@ scripts:
             emotionalLeakChance: 0.1
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -54,11 +56,6 @@ With its multi-dimensional encoding, this CD holds simulations, archives, full p
 
 No one's ever seen it full. Some say it reflects your thoughts. Others say it writes them down.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -68,16 +65,12 @@ No one's ever seen it full. Some say it reflects your thoughts. Others say it wr
 - 10% chance to **trigger an emotional memory leak** during playback  
 - Stackable, but each disc is uniquely etched, no duplicates
 
----
-
 ## Known Contents (when scanned)
 
 - *Backup of a failed AI uprising*  
 - *Map of a city that does not exist anymore*  
 - *Complete philosophical works of 90,000 authors, including yourself*  
 - *Encrypted. Unreadable. Still warm.*
-
----
 
 ## Lore
 
@@ -86,8 +79,6 @@ No one's ever seen it full. Some say it reflects your thoughts. Others say it wr
 
 Some say you don't find the data and that it finds you. 
 Especially if you stare at the disc too long.
-
----
 
 ## Credit
 
@@ -126,8 +117,8 @@ Especially if you stare at the disc too long.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/28/2025 - Data CD added as infinite-storage curio with emotional memory and quantum-read triggers
+
+</ItemLeaf>

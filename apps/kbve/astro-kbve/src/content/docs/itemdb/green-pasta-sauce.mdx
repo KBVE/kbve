@@ -41,9 +41,11 @@ scripts:
             traits: 'photosynthetic-resonance'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -53,11 +55,6 @@ The sauce is rich blend of herbs, oils, and engineered chlorophyll aids recovery
 Originally developed in overgrown ruins by biobotanists attempting to create solar-powered cuisine.
 Great with noodles, better in sunlight.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -66,15 +63,11 @@ Great with noodles, better in sunlight.
 - Grants **affinity with nature** and **light-based perks**  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Can be used in cooking advanced dishes like *Forest Fettuccine*, *Chlorophyll Stew*, or *Solar-Powered Lasagna*  
 - Increases effectiveness near plant-based items or environments with bright lighting  
 - Mildly addictive in dry biomes
-
----
 
 ## Lore
 
@@ -83,8 +76,6 @@ Great with noodles, better in sunlight.
 
 Green sauce is not just food, it's communion.
 The flavor whispers of meadows, memory, and quiet violence.
-
----
 
 ## Credit
 
@@ -123,8 +114,8 @@ The flavor whispers of meadows, memory, and quiet violence.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Green Pasta Sauce added as stamina and regen-enhancing sauce with plant affinity mechanics
+
+</ItemLeaf>

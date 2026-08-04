@@ -43,9 +43,11 @@ scripts:
             cookable: true
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -57,11 +59,6 @@ Eat them frozen in desperation, or cook them for better buffs and a lower chance
 They are a culinary relic from the late Plastonomy Age. 
 Found in frozen bunkers, old vending rigs, or deep freezer caches.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -71,15 +68,11 @@ Found in frozen bunkers, old vending rigs, or deep freezer caches.
 - Can be enhanced by cooking (use with **[Krispee Air Fryer](/itemdb/krispee-air-fryer/)** or similar)
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Crafting
 
 Can be:
 - **Cooked** for +25% effect boost
 - **Combined** with spices or sauces for gourmet variations (e.g., Basil Byte, Volcanic Marinara)
-
----
 
 ## Lore
 
@@ -87,8 +80,6 @@ Can be:
 
 Once a mass-market snack, now a ration-treat of nostalgic power. 
 Some claim eating one helps recall your childhood... or last week's regrets.
-
----
 
 ## Credit
 
@@ -127,8 +118,8 @@ Some claim eating one helps recall your childhood... or last week's regrets.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/27/2025 - Frozen Pizza Rolls added with edible risk-reward logic and cooking bonus system
+
+</ItemLeaf>

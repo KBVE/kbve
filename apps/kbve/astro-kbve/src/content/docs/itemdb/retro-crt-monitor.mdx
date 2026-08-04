@@ -42,9 +42,11 @@ scripts:
             resolution: '320x240'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -60,12 +62,6 @@ Yeah we are a multi-git, monorepo with additional monorepos.
 
 Do not worry if it breaks, it can be recycled for other parts, like [Microchip motherboards](/itemdb/microchip-motherboard/).
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
-
 <Adsense />
 
 ## Usage
@@ -75,15 +71,11 @@ Do not worry if it breaks, it can be recycled for other parts, like [Microchip m
 - Slight **glitch resistance** when connected to unstable networks  
 - May unlock **hidden retro OS overlays** or AI logs
 
----
-
 ## Notes
 
 - Emits low-level magnetic field but keep this away from synthetic pets  
 - Compatible with: `datapad-modem`, `shell-core`, and `relic floppy drives`  
 - Makes a satisfying *"thunk"* when turned on
-
----
 
 ## Lore
 
@@ -92,8 +84,6 @@ Do not worry if it breaks, it can be recycled for other parts, like [Microchip m
 
 Many believe these monitors never truly shut off.
 That the last message always waits to be read in 8-bit purgatory.
-
----
 
 ## Credit
 
@@ -132,8 +122,8 @@ That the last message always waits to be read in 8-bit purgatory.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Retro CRT Monitor added as tech tool with terminal access and 8-bit data rendering support
+
+</ItemLeaf>

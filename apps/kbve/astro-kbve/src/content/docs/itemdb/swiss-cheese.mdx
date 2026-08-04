@@ -43,9 +43,11 @@ scripts:
             duration: 120
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -57,11 +59,6 @@ KBVE Culinary Division classifies it as "edible and stable."
 
 Made from [fresh milk](/itemdb/fresh-milk/) or using modified milk.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -71,14 +68,10 @@ Made from [fresh milk](/itemdb/fresh-milk/) or using modified milk.
 - Attracts **rodent-affiliated NPCs** or hidden sewer allies  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Can be offered to ratfolk traders for discounts  
 - Will spoil if exposed to direct gamma radiation
-
----
 
 ## Lore
 
@@ -86,8 +79,6 @@ Made from [fresh milk](/itemdb/fresh-milk/) or using modified milk.
 > - The Cheeselord, Issue 3
 
 Some say the holes align when placed under moonlight. Others say that's nonsense. No one agrees. Everyone eats.
-
----
 
 ## Credit
 
@@ -126,8 +117,8 @@ Some say the holes align when placed under moonlight. Others say that's nonsense
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Swiss Cheese added as restorative food with focus bonus and rodent interactions
+
+</ItemLeaf>

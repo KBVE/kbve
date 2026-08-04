@@ -41,9 +41,11 @@ scripts:
             traits: dark-vision'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -52,11 +54,6 @@ Created from deep-sea creatures and darker culinary secrets, this sauce enhances
 First crafted in submarine kitchens, then smuggled into surface cuisine. 
 The sauce whispers back if eaten in silence. 
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -66,15 +63,11 @@ The sauce whispers back if eaten in silence.
 - Effect duration: **{frontmatter.scripts[0].vars.buffDuration} seconds**  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Can be used in *Stealth Lasagna*, *Blackout Risotto*, or *Void Tempura Rolls*  
 - Consuming this sauce near deep water or sonar nodes may trigger passive entity events  
 - Slightly salty. Not vegetarian.
-
----
 
 ## Lore
 
@@ -82,8 +75,6 @@ The sauce whispers back if eaten in silence.
 > - Last review by Chef Marko before his reassignment
 
 The sauce knows what darkness tastes like, and invites you to join it.
-
----
 
 ## Credit
 
@@ -122,8 +113,8 @@ The sauce knows what darkness tastes like, and invites you to join it.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Ink Pasta Sauce added as stealth-based food with dark vision effect and deep-sea attraction mechanic
+
+</ItemLeaf>
