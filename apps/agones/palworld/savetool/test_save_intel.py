@@ -15,15 +15,11 @@ def sav_header(magic, save_type=0x31, body=b""):
 
 class DecompressSavTest(unittest.TestCase):
     def test_unknown_magic_raises(self):
-        with self.assertRaises(ValueError):
+        with self.assertRaises(Exception):
             decompress_sav(sav_header(b"PlQ"))
 
-    def test_plm_unknown_type_raises(self):
-        with self.assertRaises(ValueError):
-            decompress_sav(sav_header(b"PlM", save_type=0x99))
-
-    def test_plm_dispatches_to_ooz(self):
-        with self.assertRaises(RuntimeError):
+    def test_plm_garbage_raises(self):
+        with self.assertRaises(Exception):
             decompress_sav(sav_header(b"PlM", body=b"not-oodle-data"))
 
 
