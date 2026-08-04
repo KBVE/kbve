@@ -8,6 +8,7 @@ import {
 	CharacterMotor,
 	DEFAULT_MOTOR,
 	type MotorConfig,
+	FixedStep,
 } from './CharacterMotor';
 import { ProceduralPose } from './ProceduralPose';
 import {
@@ -310,6 +311,7 @@ export function Character({
 		mats: THREE.ShaderMaterial[];
 	} | null>(null);
 	const tRef = useRef(0);
+	const motorStep = useRef(new FixedStep());
 	const jumpRef = useRef({
 		wasGrounded: true,
 		landUntil: 0,
@@ -681,9 +683,20 @@ export function Character({
 	useFrame((_, dtRaw) => {
 		const dt = Math.min(dtRaw, 0.05);
 		const { animator, motor, pose, equipment } = rig;
-		tRef.current += dt;
-		drive?.(motor, tRef.current);
-		motor.update(dt);
+		// The motor runs on a fixed step so travel is frame-rate independent and
+		// reproducible — a variable dt makes the same input yield different
+		// positions at 30 and 60Hz, which no prediction or server reconciliation
+		// can be built on. The step is deliberately shorter than a display frame:
+		// at 1/60 a 60Hz frame lands either side of the boundary and takes 0 or 2
+		// steps, which reads as judder unless the rendered pose is interpolated
+		// separately from the simulated one. Halving it keeps the residual under
+		// half a substep (~4cm at run speed) and leaves every existing reader of
+		// motor.position untouched.
+		motorStep.current.run(dt, (sdt) => {
+			tRef.current += sdt;
+			drive?.(motor, tRef.current);
+			motor.update(sdt);
+		});
 
 		const gait = motor.gait;
 		const j = jumpRef.current;

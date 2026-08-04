@@ -77,7 +77,7 @@ export function Sidebar() {
 	return (
 		<aside
 			ref={asideRef}
-			className="flex flex-col border-r transition-all duration-200"
+			className="flex flex-shrink-0 flex-col border-r transition-all duration-200"
 			style={{
 				width: '15rem',
 				backgroundColor: 'var(--color-surface)',

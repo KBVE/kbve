@@ -7,6 +7,7 @@ import { MAX_INSTANCES, INST_COUNT } from '../mecs/schema';
 import { dungeonSpawn } from '../dungeon/collision';
 import { useActiveRooms } from '../dungeon/store';
 import { playerAnchor } from '../render/playerAnchor';
+import { writeLocalPose } from './playerChannel';
 import { MODEL_URLS, MODEL_CRATE } from '../prop/kinds';
 
 const CRATE_URL = MODEL_URLS[MODEL_CRATE];
@@ -76,9 +77,14 @@ export function PhysicsBodies() {
 	}, [bridge, rooms]);
 
 	useFrame(() => {
-		bridge.player[0] = playerAnchor.pos.x;
-		bridge.player[1] = playerAnchor.pos.y;
-		bridge.player[2] = playerAnchor.pos.z;
+		// The pose the main thread arrived at on its own. The worker follows this
+		// for its kinematic proxy, and compares its own result against it.
+		writeLocalPose(
+			bridge.player,
+			playerAnchor.pos.x,
+			playerAnchor.pos.y,
+			playerAnchor.pos.z,
+		);
 
 		const mesh = meshRef.current;
 		if (!mesh) return;

@@ -19,6 +19,12 @@ interface OSRSPriceWidgetProps {
 	itemId: number;
 	apiBaseUrl?: string;
 	refreshInterval?: number; // in milliseconds, 0 to disable
+	/**
+	 * Build-time price seed. Present so the rendered HTML carries real numbers
+	 * instead of a loading state for crawlers and no-JS visitors; the effect
+	 * below still refreshes to live data once hydrated.
+	 */
+	initialPrice?: PriceData | null;
 }
 
 /**
@@ -226,10 +232,11 @@ export default function OSRSPriceWidget({
 	itemId,
 	apiBaseUrl = '',
 	refreshInterval = 60000, // Default: refresh every 60 seconds
+	initialPrice = null,
 }: OSRSPriceWidgetProps) {
-	const [priceData, setPriceData] = useState<PriceData | null>(null);
+	const [priceData, setPriceData] = useState<PriceData | null>(initialPrice);
 	const [volumeData, setVolumeData] = useState<VolumeData | null>(null);
-	const [loading, setLoading] = useState(true);
+	const [loading, setLoading] = useState(initialPrice === null);
 	const [error, setError] = useState<string | null>(null);
 	const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
@@ -371,7 +378,7 @@ export default function OSRSPriceWidget({
 						{formatGP(priceData.high)}
 						<span style={styles.cardGp}>gp</span>
 					</div>
-					<div style={styles.cardTime}>
+					<div style={styles.cardTime} suppressHydrationWarning>
 						{formatRelativeTime(priceData.high_time)}
 					</div>
 				</div>
@@ -383,7 +390,7 @@ export default function OSRSPriceWidget({
 						{formatGP(priceData.low)}
 						<span style={styles.cardGp}>gp</span>
 					</div>
-					<div style={styles.cardTime}>
+					<div style={styles.cardTime} suppressHydrationWarning>
 						{formatRelativeTime(priceData.low_time)}
 					</div>
 				</div>

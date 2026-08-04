@@ -1,19 +1,19 @@
 use std::{
     io::Error,
-    sync::{mpsc, Arc, Mutex},
+    sync::{Arc, Mutex, mpsc},
     time::Duration,
 };
 
 use cpal::{
-    traits::{DeviceTrait, HostTrait, StreamTrait},
     Device, Sample, SizedSample,
+    traits::{DeviceTrait, HostTrait, StreamTrait},
 };
 
 use crate::audio_toolkit::{
+    VoiceActivityDetector,
     audio::{AudioVisualiser, FrameResampler},
     constants,
     vad::{self, VadFrame},
-    VoiceActivityDetector,
 };
 
 enum Cmd {

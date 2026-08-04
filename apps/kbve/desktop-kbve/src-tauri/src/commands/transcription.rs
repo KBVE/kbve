@@ -1,5 +1,5 @@
 use crate::managers::transcription::TranscriptionManager;
-use crate::settings::{get_settings, write_settings, ModelUnloadTimeout};
+use crate::settings::{ModelUnloadTimeout, get_settings, write_settings};
 use serde::Serialize;
 use specta::Type;
 use tauri::{AppHandle, State};

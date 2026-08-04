@@ -48,21 +48,12 @@ export function ShortcutsView() {
 	};
 
 	return (
-		<div className="flex max-w-2xl flex-col gap-6">
-			{error && (
-				<div
-					className="rounded-md border px-4 py-2 text-caption"
-					style={{
-						borderColor: 'var(--color-border)',
-						color: 'var(--color-danger, #e5484d)',
-					}}>
-					{error}
-				</div>
-			)}
+		<div className="view-column">
+			{error && <div className="alert-danger text-caption">{error}</div>}
 			<SettingsCard title="Global Shortcuts">
 				{bindings.length === 0 && (
 					<p
-						className="px-6 py-5 text-sm"
+						className="px-5 py-4 text-caption"
 						style={{ color: 'var(--color-text-muted)' }}>
 						Loading shortcuts…
 					</p>
@@ -98,12 +89,7 @@ export function ShortcutsView() {
 					label="Paste method"
 					description="How transcribed text is inserted into the focused app">
 					<select
-						className="rounded-md border px-3 py-1.5 text-body"
-						style={{
-							backgroundColor: 'var(--color-bg)',
-							borderColor: 'var(--color-border)',
-							color: 'var(--color-text)',
-						}}
+						className="control"
 						value={pasteMethod}
 						onChange={(e) => {
 							const v = e.target.value as PasteMethod;
@@ -140,25 +126,13 @@ function BindingEditor({
 				value={value}
 				onChange={(e) => setValue(e.target.value)}
 				spellCheck={false}
-				className="w-40 rounded-md border px-3 py-1.5 text-body font-mono"
-				style={{
-					backgroundColor: 'var(--color-bg)',
-					borderColor: 'var(--color-border)',
-					color: 'var(--color-text)',
-				}}
+				className="control w-40 font-mono"
 				placeholder="e.g. ctrl+space"
 			/>
 			<button
 				onClick={() => onSave(value)}
 				disabled={!dirty}
-				className="rounded-md border px-3 py-1.5 text-caption"
-				style={{
-					backgroundColor: 'var(--color-bg)',
-					borderColor: 'var(--color-border)',
-					color: 'var(--color-text)',
-					opacity: dirty ? 1 : 0.5,
-					cursor: dirty ? 'pointer' : 'not-allowed',
-				}}>
+				className="btn btn-primary">
 				Save
 			</button>
 			<button

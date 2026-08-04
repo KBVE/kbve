@@ -1,27 +1,11 @@
 import { SettingsCard } from '../components/SettingsCard';
 import { SettingsRow } from '../components/SettingsRow';
 import { ToggleSwitch } from '../components/ToggleSwitch';
-import { ViewStatusBadge } from '../components/ViewStatus';
-import { Slot } from '../engine';
-import { useViewBridge } from '../engine/use-view-bridge';
 import { useSettingsStore } from '../stores/settings';
 
 export function GeneralView() {
-	const bridge = useViewBridge('general');
-
 	return (
-		<div className="flex max-w-2xl flex-col gap-8">
-			<div className="flex items-center justify-between">
-				<ViewStatusBadge status={bridge.status} />
-				{bridge.loading && (
-					<span
-						className="text-caption"
-						style={{ color: 'var(--color-text-muted)' }}>
-						Connecting...
-					</span>
-				)}
-			</div>
-
+		<div className="view-column">
 			<SettingsCard title="Appearance">
 				<SettingsRow
 					label="Theme"
@@ -47,18 +31,7 @@ export function GeneralView() {
 				<SettingsRow
 					label="Interface language"
 					description="Choose the display language">
-					<Slot
-						store={useSettingsStore}
-						select={(s) => s.language}
-						render={(lang) => (lang === 'en' ? 'English' : lang)}
-						tag="span"
-						className="rounded-md border px-3 py-1.5 text-body"
-						style={{
-							backgroundColor: 'var(--color-bg)',
-							borderColor: 'var(--color-border)',
-							color: 'var(--color-text)',
-						}}
-					/>
+					<LanguageSelect />
 				</SettingsRow>
 			</SettingsCard>
 		</div>
@@ -69,12 +42,7 @@ function ThemeSelect() {
 	const setTheme = useSettingsStore((s) => s.setTheme);
 	return (
 		<select
-			className="rounded-md border px-3 py-1.5 text-body"
-			style={{
-				backgroundColor: 'var(--color-bg)',
-				borderColor: 'var(--color-border)',
-				color: 'var(--color-text)',
-			}}
+			className="control"
 			defaultValue={useSettingsStore.getState().theme}
 			onChange={(e) =>
 				setTheme(e.target.value as 'dark' | 'light' | 'system')
@@ -82,6 +50,18 @@ function ThemeSelect() {
 			<option value="dark">Dark</option>
 			<option value="light">Light</option>
 			<option value="system">System</option>
+		</select>
+	);
+}
+
+function LanguageSelect() {
+	const setLanguage = useSettingsStore((s) => s.setLanguage);
+	return (
+		<select
+			className="control"
+			defaultValue={useSettingsStore.getState().language}
+			onChange={(e) => setLanguage(e.target.value)}>
+			<option value="en">English</option>
 		</select>
 	);
 }

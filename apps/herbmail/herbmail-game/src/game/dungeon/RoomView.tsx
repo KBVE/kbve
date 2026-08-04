@@ -1,4 +1,4 @@
-import { memo, useMemo } from 'react';
+import { memo, useLayoutEffect, useMemo, useRef } from 'react';
 import * as THREE from 'three';
 import '../render/PsxMaterial';
 import { TILE } from '../config';
@@ -16,6 +16,13 @@ interface Props {
 	mats: DungeonMaterials;
 }
 
+// A frozen mesh never dirties itself, so without this its matrixWorld would stay
+// identity and it would draw at the world origin. One flag on mount is enough:
+// the next updateMatrixWorld multiplies it through the parent and clears it.
+function markWorld(m: THREE.Object3D | null): void {
+	if (m) m.matrixWorldNeedsUpdate = true;
+}
+
 function ChunkGroup({
 	geos,
 	kind,
@@ -30,9 +37,11 @@ function ChunkGroup({
 			{geos.map((g, i) => (
 				<mesh
 					key={i}
+					ref={markWorld}
 					geometry={g}
 					material={material}
 					userData={{ kind }}
+					matrixAutoUpdate={false}
 				/>
 			))}
 		</>
@@ -47,9 +56,27 @@ function RoomViewImpl({ desc, snap, affine, mats }: Props) {
 	);
 	const set = useMemo(() => getRoomGeoSet(desc), [desc.signature]);
 	const doors = useMemo(() => roomDoors(desc), [desc]);
+	const root = useRef<THREE.Group>(null);
+
+	// A room never moves once placed, and neither do its chunk meshes, which sit
+	// at identity under this group. Left on auto, three recomposes a matrix and
+	// multiplies by the parent for every one of them every frame — measured at
+	// 0.37ms across ~4800 objects, all of it recomputing constants. Freezing the
+	// meshes alone would do nothing: updateMatrixWorld cascades force=true to
+	// every child of a dirty parent, so this group has to be frozen too, which
+	// means composing its matrix by hand once per placement.
+	useLayoutEffect(() => {
+		const g = root.current;
+		if (!g) return;
+		g.matrixAutoUpdate = false;
+		g.updateMatrix();
+		g.matrixWorldNeedsUpdate = true;
+	}, [desc.originCol, desc.originRow]);
 
 	return (
-		<group position={[desc.originCol * TILE, 0, desc.originRow * TILE]}>
+		<group
+			ref={root}
+			position={[desc.originCol * TILE, 0, desc.originRow * TILE]}>
 			{set.walls.map((chunks, i) => (
 				<ChunkGroup
 					key={i}

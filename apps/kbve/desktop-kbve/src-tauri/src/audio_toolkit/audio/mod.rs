@@ -5,7 +5,7 @@ mod resampler;
 mod utils;
 mod visualizer;
 
-pub use device::{list_input_devices, list_output_devices, CpalDeviceInfo};
+pub use device::{CpalDeviceInfo, list_input_devices, list_output_devices};
 pub use recorder::AudioRecorder;
 pub use resampler::FrameResampler;
 pub use utils::save_wav_file;

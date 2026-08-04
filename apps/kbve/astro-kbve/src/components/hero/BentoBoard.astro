@@ -15,21 +15,24 @@ interface Cell {
 	badgeAlt?: string;
 	pattern?: string;
 	dock?: string;
+	tags?: string[];
 }
 
 interface Props {
 	eyebrow?: string;
 	heading?: string;
+	sub?: string;
 	cells?: Cell[];
 }
 
 const {
-	eyebrow = 'The KBVE stack',
-	heading = 'Everything the studio runs on, in one place.',
+	eyebrow = 'Infrastructure',
+	heading = 'The KBVE stack',
+	sub = 'Everything the studio runs on, in one place — the monorepo, the game servers, and the pipelines behind them.',
 	cells = [
 		{
 			title: 'Community',
-			body: 'Developers, gamers, and creators across Discord, Twitch, and GitHub.',
+			body: 'Developers, artists, and gamers building in the open — dev streams on Twitch, design and support in Discord, and every commit public on GitHub.',
 			stat: '500+',
 			statLabel: 'members',
 			href: '/discord/',
@@ -38,41 +41,68 @@ const {
 			showcase: 'community',
 			showcaseLabel: 'Members',
 			dock: 'globe',
+			tags: ['Discord', 'Twitch', 'GitHub', 'Open dev logs'],
 			badgeSrc:
 				'https://img.shields.io/discord/342732838598082562?logo=discord&style=flat-square&label=discord',
 			badgeAlt: 'Discord members online',
 		},
 		{
-			title: 'Open Source',
-			body: 'Monorepo with apps, packages, and game servers.',
-			stat: '100+',
-			statLabel: 'repos',
+			title: 'Monorepo',
+			body: 'One Nx graph over 23 apps and every package we ship — TypeScript, Rust, Python, C#, and C++ built and released side by side.',
+			stat: '150+',
+			statLabel: 'projects',
 			href: '/projects/',
 			icon: 'M16 18 22 12 16 6M8 6 2 12 8 18',
 			showcase: 'opensource',
 			showcaseLabel: 'Monorepo',
+			tags: ['Nx', 'pnpm', 'Astro', 'GitHub Actions'],
+		},
+		{
+			title: 'Rust Crates',
+			body: 'Shared crates behind the services and games — jedi for cloud and devops, holy and q for data, embeddb for embeddings, simgrid for multiplayer sim.',
+			stat: '10',
+			statLabel: 'crates',
+			href: '/project/jedi-crate/',
+			span: 'wide',
+			icon: 'M21 16V8l-9-5-9 5v8l9 5 9-5zM3.3 7.3 12 12l8.7-4.7M12 22V12',
+			showcase: 'opensource',
+			showcaseLabel: 'Monorepo',
+			tags: ['axum', 'tokio', 'Bevy', 'crates.io'],
+		},
+		{
+			title: 'Engine Plugins',
+			body: 'Unreal and Unity plugins for items, spells, quests, professions, networking, and UI — the same databases power every title.',
+			stat: '29',
+			statLabel: 'plugins',
+			href: '/project/unreal-rentearth/',
+			icon: 'M14 7h7v7M10 17H3v-7M21 7 3 17',
+			showcase: 'opensource',
+			showcaseLabel: 'Monorepo',
+			tags: ['Unreal 5', 'Unity DOTS', 'Bevy', 'Phaser'],
 		},
 		{
 			title: 'Game Servers',
-			body: 'Live multiplayer worlds on Agones + Kubernetes.',
+			body: 'Rent Earth, CryptoThrone, and Chuck run as Agones fleets on a Talos Kubernetes cluster, reconciled by ArgoCD and scaled on demand.',
 			stat: '3',
 			statLabel: 'live',
 			href: '/arcade/',
+			span: 'wide',
 			icon: 'M6 12h4m-2-2v4m7-3h.01M18 10h.01M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258-.007-.05-.011-.1-.017-.151A4 4 0 0 0 17.32 5z',
 			showcase: 'servers',
 			showcaseLabel: 'Servers',
+			pattern: '/patterns/rack-servers.svg',
+			tags: ['Agones', 'Kubernetes', 'Talos', 'ArgoCD'],
 		},
 		{
-			title: 'Always On',
-			body: 'Dev streams, CI pipelines, and cluster telemetry around the clock.',
+			title: 'Data & Auth',
+			body: 'Kilobase runs Postgres on CNPG with Supabase auth, ClickHouse telemetry, and nightly backups — one identity across web, desktop, and games.',
 			stat: '24/7',
 			statLabel: 'uptime',
-			href: '/service/',
-			span: 'wide',
+			href: '/project/kilobase/',
 			icon: 'M22 12h-4l-3 9L9 3l-3 9H2',
 			showcase: 'uptime',
 			showcaseLabel: 'Status',
-			pattern: '/patterns/rack-servers.svg',
+			tags: ['Postgres', 'Supabase', 'ClickHouse', 'Valkey'],
 		},
 	],
 } = Astro.props;
@@ -82,7 +112,7 @@ const fillLg = (3 - (unitsLg % 3)) % 3;
 const fillMd = (2 - (cells.length % 2)) % 2;
 ---
 
-<BentoShell {eyebrow} {heading}>
+<BentoShell {eyebrow} {heading} {sub}>
 	<div class="bento-board__grid">
 		{
 			cells.map((cell) => {
@@ -144,6 +174,13 @@ const fillMd = (2 - (cells.length % 2)) % 2;
 						<h3 class="bento-board__cell-title">{cell.title}</h3>
 						{cell.body && (
 							<p class="bento-board__cell-body">{cell.body}</p>
+						)}
+						{cell.tags && cell.tags.length > 0 && (
+							<ul class="bento-board__tags">
+								{cell.tags.map((tag) => (
+									<li class="bento-board__tag">{tag}</li>
+								))}
+							</ul>
 						)}
 						{cell.badgeSrc && (
 							<img
@@ -410,6 +447,35 @@ const fillMd = (2 - (cells.length % 2)) % 2;
 		line-height: 1.5;
 		color: var(--sl-color-gray-3);
 		max-width: 28rem;
+	}
+
+	.bento-board__tags {
+		position: relative;
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.3125rem;
+		margin: 0;
+		margin-top: 0.625rem;
+		padding: 0;
+		list-style: none;
+	}
+
+	.bento-board__tag {
+		padding: 0.125rem 0.5rem;
+		border: 1px solid var(--bento-hairline);
+		font-size: 0.6875rem;
+		letter-spacing: 0.02em;
+		line-height: 1.6;
+		color: var(--sl-color-gray-3);
+		transition:
+			border-color 220ms ease,
+			color 220ms ease;
+	}
+
+	.bento-board__cell:hover .bento-board__tag,
+	.bento-board__cell:focus-visible .bento-board__tag {
+		border-color: var(--sl-color-accent-low);
+		color: var(--sl-color-gray-2);
 	}
 
 	.bento-board__cell-badge {

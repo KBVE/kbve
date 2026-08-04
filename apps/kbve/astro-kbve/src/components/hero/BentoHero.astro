@@ -3,6 +3,7 @@ import StackLogos from './StackLogos.astro';
 
 interface Props {
 	titleLines?: string[];
+	tagline?: string;
 	rotatingWord?: string;
 	rotatingWords?: string[];
 	description?: string;
@@ -19,7 +20,8 @@ interface Props {
 }
 
 const {
-	titleLines = ['KBVE is the best', 'way to build', 'games.'],
+	titleLines = ['KBVE —', 'Kilobyte Virtual', 'Enterprise'],
+	tagline = 'An open-source studio building games, tools, and worlds in public.',
 	rotatingWord = 'games',
 	rotatingWords = [
 		'games',
@@ -115,35 +117,33 @@ const dock = [
 								titleLines.map((line, idx) => (
 									<>
 										<span class="bento-hero__title-line">
-											{line.includes(rotatingWord) ? (
-												<>
-													{
-														line.split(
-															rotatingWord,
-														)[0]
-													}
-													<span
-														class="bento-hero__slot"
-														data-rotate={JSON.stringify(
-															rotatingWords,
-														)}>
-														{rotatingWord}
-													</span>
-													{
-														line.split(
-															rotatingWord,
-														)[1]
-													}
-												</>
-											) : (
-												line
-											)}
+											{line}
 										</span>
 										{idx < titleLines.length - 1 && ' '}
 									</>
 								))
 							}
 						</h1>
+
+						<p class="bento-hero__tagline">
+							{
+								tagline.includes(rotatingWord) ? (
+									<>
+										{tagline.split(rotatingWord)[0]}
+										<span
+											class="bento-hero__slot"
+											data-rotate={JSON.stringify(
+												rotatingWords,
+											)}>
+											{rotatingWord}
+										</span>
+										{tagline.split(rotatingWord)[1]}
+									</>
+								) : (
+									tagline
+								)
+							}
+						</p>
 
 						<div class="bento-hero__stack">
 							<p class="bento-hero__stack-label">
@@ -643,6 +643,16 @@ const dock = [
 	.bento-hero__title-line {
 		display: block;
 		white-space: nowrap;
+	}
+
+	.bento-hero__tagline {
+		margin-top: 1rem;
+		max-width: 40rem;
+		font-size: clamp(1.125rem, 2.2vw, 1.5rem);
+		font-weight: 500;
+		line-height: 1.35;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-gray-1);
 	}
 
 	.bento-hero__slot {

@@ -49,7 +49,7 @@ use auth::{
 };
 use std::sync::Arc;
 use tauri::{Manager, State};
-use tauri_specta::{collect_commands, Builder};
+use tauri_specta::{Builder, collect_commands};
 use terminal::{terminal_close, terminal_open, terminal_resize, terminal_write};
 use tokio::sync::mpsc;
 use views::{ViewCommand, ViewError, ViewManager, ViewSnapshot, ViewStatus};
@@ -229,7 +229,8 @@ mod bindings_export {
     fn export_bindings() {
         super::specta_builder()
             .export(
-                specta_typescript::Typescript::default().bigint(specta_typescript::BigIntExportBehavior::Number),
+                specta_typescript::Typescript::default()
+                    .bigint(specta_typescript::BigIntExportBehavior::Number),
                 "../src/bindings.ts",
             )
             .expect("failed to export typescript bindings");
@@ -243,7 +244,8 @@ pub fn run() {
     #[cfg(debug_assertions)]
     builder
         .export(
-            specta_typescript::Typescript::default().bigint(specta_typescript::BigIntExportBehavior::Number),
+            specta_typescript::Typescript::default()
+                .bigint(specta_typescript::BigIntExportBehavior::Number),
             "../src/bindings.ts",
         )
         .expect("failed to export typescript bindings");
@@ -265,6 +267,11 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_macos_permissions::init());
+
+    #[cfg(target_os = "macos")]
+    {
+        app = app.plugin(tauri_nspanel::init());
+    }
 
     #[cfg(desktop)]
     {
@@ -295,9 +302,7 @@ pub fn run() {
             // Dictation engine: keyboard-sim state + the three managers.
             // Order matters: TranscriptionManager depends on ModelManager.
             let dict_handle = app.handle().clone();
-            app.manage(
-                input::EnigoState::new().expect("Failed to initialize input state (Enigo)"),
-            );
+            app.manage(input::EnigoState::new().expect("Failed to initialize input state (Enigo)"));
             let recording_manager = Arc::new(
                 managers::audio::AudioRecordingManager::new(&dict_handle)
                     .expect("Failed to initialize recording manager"),

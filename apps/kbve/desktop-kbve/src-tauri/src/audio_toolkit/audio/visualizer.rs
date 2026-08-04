@@ -1,4 +1,4 @@
-use rustfft::{num_complex::Complex32, Fft, FftPlanner};
+use rustfft::{Fft, FftPlanner, num_complex::Complex32};
 use std::sync::Arc;
 
 const DB_MIN: f32 = -55.0;

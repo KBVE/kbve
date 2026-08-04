@@ -22,6 +22,21 @@ spec:
         network:
             permitBridgeInterfaceOnPodNetwork: true
     imagePullPolicy: IfNotPresent
+    # virt-operator renders four cert mounts for virt-handler
+    # (components/daemonsets.go:283-286) but the live DaemonSet is missing
+    # the clientcertificates one, so virt-handler's cert manager fails to
+    # open it once a minute. Nothing strips it — customizeComponents was
+    # empty and there are no Kyverno mutations — the operator simply never
+    # re-rendered and reports the stale spec as in sync. Upstream
+    # kubevirt/kubevirt#16255 and #16264 are open with no maintainer reply.
+    # Re-adding it here also bumps the customizer identifier, which forces
+    # the re-render.
+    customizeComponents:
+        patches:
+            - resourceType: DaemonSet
+              resourceName: virt-handler
+              type: strategic
+              patch: '{"spec":{"template":{"spec":{"volumes":[{"name":"kubevirt-virt-handler-certs","secret":{"secretName":"kubevirt-virt-handler-certs","defaultMode":420,"optional":true}}],"containers":[{"name":"virt-handler","volumeMounts":[{"name":"kubevirt-virt-handler-certs","mountPath":"/etc/virt-handler/clientcertificates","readOnly":true}]}]}}}}'
     workloadUpdateStrategy:
         workloadUpdateMethods:
             - LiveMigrate

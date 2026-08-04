@@ -1,19 +1,19 @@
 {
-	"generated_at": "2026-08-03T04:33:21Z",
+	"generated_at": "2026-08-04T04:17:49Z",
 	"summary": {
 		"critical": 4,
-		"high": 43,
-		"medium": 56,
+		"high": 47,
+		"medium": 54,
 		"low": 10,
 		"info": 30
 	},
 	"ecosystems": {
 		"npm": {
-			"total": 98,
+			"total": 100,
 			"severities": {
 				"critical": 4,
-				"high": 43,
-				"medium": 41,
+				"high": 47,
+				"medium": 39,
 				"low": 10,
 				"info": 0
 			},
@@ -59,13 +59,6 @@
 					"severity": "high",
 					"package": "koa",
 					"url": "https://github.com/advisories/GHSA-7gcc-r8m5-44qm"
-				},
-				{
-					"id": "1113714",
-					"title": "ajv has ReDoS when using `$data` option",
-					"severity": "medium",
-					"package": "ajv",
-					"url": "https://github.com/advisories/GHSA-2g4f-4pwh-qvx6"
 				},
 				{
 					"id": "1113715",
@@ -446,27 +439,6 @@
 					"url": "https://github.com/advisories/GHSA-xcpc-8h2w-3j85"
 				},
 				{
-					"id": "1123882",
-					"title": "Axios: Excessive recursion in formDataToJSON can cause denial of service",
-					"severity": "medium",
-					"package": "axios",
-					"url": "https://github.com/advisories/GHSA-42h9-826w-cgv3"
-				},
-				{
-					"id": "1123884",
-					"title": "Axios: Prototype pollution auth subfields can inject Basic auth",
-					"severity": "medium",
-					"package": "axios",
-					"url": "https://github.com/advisories/GHSA-xj6q-8x83-jv6g"
-				},
-				{
-					"id": "1123885",
-					"title": "Axios: Deep formToJSON Key Recursion Can Cause Denial of Service",
-					"severity": "medium",
-					"package": "axios",
-					"url": "https://github.com/advisories/GHSA-pmv8-rq9r-6j72"
-				},
-				{
 					"id": "1123896",
 					"title": "brace-expansion: DoS via exponential-time expansion of consecutive non-expanding {} groups",
 					"severity": "high",
@@ -537,27 +509,6 @@
 					"url": "https://github.com/advisories/GHSA-395f-4hp3-45gv"
 				},
 				{
-					"id": "1123957",
-					"title": "Axios: Fetch adapter `ReadableStream` uploads bypass `maxBodyLength`",
-					"severity": "medium",
-					"package": "axios",
-					"url": "https://github.com/advisories/GHSA-jqh4-m9w3-8hp9"
-				},
-				{
-					"id": "1123959",
-					"title": "Axios: Prototype pollution gadgets can alter axios request construction",
-					"severity": "medium",
-					"package": "axios",
-					"url": "https://github.com/advisories/GHSA-mmx7-hfxf-jppx"
-				},
-				{
-					"id": "1123961",
-					"title": "Axios: NO_PROXY bypass for 0.0.0.0 local addresses in axios",
-					"severity": "medium",
-					"package": "axios",
-					"url": "https://github.com/advisories/GHSA-f4gw-2p7v-4548"
-				},
-				{
 					"id": "1123965",
 					"title": "webpack-dev-server vulnerable to cross-site request forgery via internal developer endpoints",
 					"severity": "medium",
@@ -570,34 +521,6 @@
 					"severity": "medium",
 					"package": "webpack-dev-server",
 					"url": "https://github.com/advisories/GHSA-m28w-2pqf-7qgj"
-				},
-				{
-					"id": "1123967",
-					"title": "Axios Node HTTP adapter can use an inherited proxy after interceptor config cloning",
-					"severity": "high",
-					"package": "axios",
-					"url": "https://github.com/advisories/GHSA-gcfj-64vw-6mp9"
-				},
-				{
-					"id": "1123969",
-					"title": "Axios form serializer maxDepth bypass via {} metatoken",
-					"severity": "medium",
-					"package": "axios",
-					"url": "https://github.com/advisories/GHSA-hcpx-6fm6-wx23"
-				},
-				{
-					"id": "1123971",
-					"title": "Axios: Nested axios option objects can consume polluted prototype values",
-					"severity": "medium",
-					"package": "axios",
-					"url": "https://github.com/advisories/GHSA-7q8q-rj6j-mhjq"
-				},
-				{
-					"id": "1123973",
-					"title": "Axios: HTTP/2 streamed uploads bypass `maxBodyLength`",
-					"severity": "medium",
-					"package": "axios",
-					"url": "https://github.com/advisories/GHSA-mwf2-3pr3-8698"
 				},
 				{
 					"id": "1123977",
@@ -703,6 +626,97 @@
 					"severity": "high",
 					"package": "brace-expansion",
 					"url": "https://github.com/advisories/GHSA-mh99-v99m-4gvg"
+				},
+				{
+					"id": "1130709",
+					"title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q \u2014 attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
+					"severity": "medium",
+					"package": "postcss",
+					"url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp"
+				},
+				{
+					"id": "1130715",
+					"title": "undici vulnerable to downstream response desynchronization via retry interceptor",
+					"severity": "medium",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-8xcm-r25x-g524"
+				},
+				{
+					"id": "1130716",
+					"title": "undici vulnerable to downstream response desynchronization via retry interceptor",
+					"severity": "medium",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-8xcm-r25x-g524"
+				},
+				{
+					"id": "1130718",
+					"title": "undici vulnerable to cross-user information disclosure and parse-time crash via degenerate private cache directives",
+					"severity": "high",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-4cwx-7wf7-3272"
+				},
+				{
+					"id": "1130720",
+					"title": "fast-uri vulnerable to host confusion via backslash authority introducer",
+					"severity": "high",
+					"package": "fast-uri",
+					"url": "https://github.com/advisories/GHSA-7p8r-x3mc-p8w7"
+				},
+				{
+					"id": "1130726",
+					"title": "undici vulnerable to CRLF Injection via blob-like body 'type' property",
+					"severity": "medium",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-m8rv-5g2x-5cg5"
+				},
+				{
+					"id": "1130727",
+					"title": "undici vulnerable to CRLF Injection via blob-like body 'type' property",
+					"severity": "medium",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-m8rv-5g2x-5cg5"
+				},
+				{
+					"id": "1130729",
+					"title": "undici vulnerable to cross-user information disclosure via whitespace around equals in Cache-Control directives",
+					"severity": "medium",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-jr45-8vmc-qm54"
+				},
+				{
+					"id": "1130731",
+					"title": "undici vulnerable to cookie attribute injection via unsanitized domain and unparsed setCookie fields",
+					"severity": "medium",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-v3r7-h72x-cjcm"
+				},
+				{
+					"id": "1130732",
+					"title": "undici vulnerable to cookie attribute injection via unsanitized domain and unparsed setCookie fields",
+					"severity": "medium",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-v3r7-h72x-cjcm"
+				},
+				{
+					"id": "1130734",
+					"title": "brace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation",
+					"severity": "high",
+					"package": "brace-expansion",
+					"url": "https://github.com/advisories/GHSA-rgw5-rvv9-x895"
+				},
+				{
+					"id": "1130736",
+					"title": "brace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation",
+					"severity": "high",
+					"package": "brace-expansion",
+					"url": "https://github.com/advisories/GHSA-rgw5-rvv9-x895"
+				},
+				{
+					"id": "1130737",
+					"title": "brace-expansion: DoS via unbounded intermediate arrays, bypassing the CVE-2026-14257 mitigation",
+					"severity": "high",
+					"package": "brace-expansion",
+					"url": "https://github.com/advisories/GHSA-rgw5-rvv9-x895"
 				}
 			]
 		},

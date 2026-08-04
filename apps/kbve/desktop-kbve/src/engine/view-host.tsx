@@ -39,7 +39,7 @@ export function ViewHost() {
 			{/* Base view layer */}
 			<div
 				ref={baseRef}
-				className="view-base h-full overflow-y-auto px-10 py-8">
+				className="view-base h-full overflow-y-auto px-10 pt-4 pb-10">
 				{views.map((view) => (
 					<div
 						key={view.id}
