@@ -302,7 +302,11 @@ export class RunnerScene extends Phaser.Scene {
 		this.playerKnight.sprite.on(
 			'animationcomplete',
 			(anim: Phaser.Animations.Animation) => {
-				if (anim.key === KNIGHT_ANIMATIONS.attack1.key) {
+				if (
+					anim.key === KNIGHT_ANIMATIONS.attack1.key ||
+					anim.key === KNIGHT_ANIMATIONS.attack2.key ||
+					anim.key === KNIGHT_ANIMATIONS.attackCombo.key
+				) {
 					this.playerKnight.onAttackComplete();
 				} else if (anim.key === KNIGHT_ANIMATIONS.roll.key) {
 					this.playerKnight.onRollComplete();
@@ -494,7 +498,11 @@ export class RunnerScene extends Phaser.Scene {
 		ally.sprite.on(
 			'animationcomplete',
 			(anim: Phaser.Animations.Animation) => {
-				if (anim.key === KNIGHT_ANIMATIONS.attack1.key) {
+				if (
+					anim.key === KNIGHT_ANIMATIONS.attack1.key ||
+					anim.key === KNIGHT_ANIMATIONS.attack2.key ||
+					anim.key === KNIGHT_ANIMATIONS.attackCombo.key
+				) {
 					ally.onAttackComplete();
 				} else if (anim.key === KNIGHT_ANIMATIONS.roll.key) {
 					ally.onRollComplete();

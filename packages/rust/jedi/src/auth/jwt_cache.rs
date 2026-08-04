@@ -16,25 +16,27 @@ use tracing::{debug, info, warn};
 
 const MAX_CACHE_SIZE: usize = 10_000;
 const CLEANUP_INTERVAL: Duration = Duration::from_secs(60);
-const TOKEN_GRACE_PERIOD: i64 = 300;
 
-/// Staff permission bitflags — mirrors kbve.staff.StaffPermission proto enum.
+/// Staff permission bitflags, sourced from the compiled `kbve.staff` proto so
+/// the values can never drift from `kbve.staff.StaffPermission`.
 #[allow(dead_code)]
 pub mod staff_perm {
-    pub const STAFF: i32 = 0x0000_0001;
-    pub const MODERATOR: i32 = 0x0000_0002;
-    pub const ADMIN: i32 = 0x0000_0004;
-    pub const DASHBOARD_VIEW: i32 = 0x0000_0100;
-    pub const DASHBOARD_MANAGE: i32 = 0x0000_0200;
-    pub const USER_VIEW: i32 = 0x0000_0400;
-    pub const USER_MANAGE: i32 = 0x0000_0800;
-    pub const CONTENT_MODERATE: i32 = 0x0000_1000;
-    pub const CONTENT_DELETE: i32 = 0x0000_2000;
-    pub const STAFF_GRANT: i32 = 0x0001_0000;
-    pub const STAFF_REVOKE: i32 = 0x0002_0000;
-    pub const SYSTEM_CONFIG: i32 = 0x0004_0000;
-    pub const AUDIT_VIEW: i32 = 0x0008_0000;
-    pub const SUPERADMIN: i32 = 0x4000_0000;
+    use crate::proto::staff::StaffPermission as P;
+
+    pub const STAFF: i32 = P::StaffPermStaff as i32;
+    pub const MODERATOR: i32 = P::StaffPermModerator as i32;
+    pub const ADMIN: i32 = P::StaffPermAdmin as i32;
+    pub const DASHBOARD_VIEW: i32 = P::StaffPermDashboardView as i32;
+    pub const DASHBOARD_MANAGE: i32 = P::StaffPermDashboardManage as i32;
+    pub const USER_VIEW: i32 = P::StaffPermUserView as i32;
+    pub const USER_MANAGE: i32 = P::StaffPermUserManage as i32;
+    pub const CONTENT_MODERATE: i32 = P::StaffPermContentModerate as i32;
+    pub const CONTENT_DELETE: i32 = P::StaffPermContentDelete as i32;
+    pub const STAFF_GRANT: i32 = P::StaffPermStaffGrant as i32;
+    pub const STAFF_REVOKE: i32 = P::StaffPermStaffRevoke as i32;
+    pub const SYSTEM_CONFIG: i32 = P::StaffPermSystemConfig as i32;
+    pub const AUDIT_VIEW: i32 = P::StaffPermAuditView as i32;
+    pub const SUPERADMIN: i32 = P::StaffPermSuperadmin as i32;
 }
 
 /// Cached, verified token claims.
@@ -52,10 +54,6 @@ pub struct TokenInfo {
 impl TokenInfo {
     pub fn is_expired(&self) -> bool {
         chrono::Utc::now().timestamp() >= self.expires_at
-    }
-
-    pub fn is_near_expiry(&self) -> bool {
-        (self.expires_at - chrono::Utc::now().timestamp()) <= TOKEN_GRACE_PERIOD
     }
 
     /// Any staff permission set.
@@ -271,19 +269,31 @@ impl JwtCache {
 
     fn insert(&self, token: String, info: Arc<TokenInfo>) {
         if self.tokens.len() >= MAX_CACHE_SIZE {
-            self.evict_oldest(MAX_CACHE_SIZE / 10);
+            // Entries self-expire, so reaping them usually frees enough room
+            // without evicting anything still live.
+            self.cleanup_expired();
+            if self.tokens.len() >= MAX_CACHE_SIZE {
+                self.evict_oldest(MAX_CACHE_SIZE / 10);
+            }
         }
         self.tokens.insert(token, info);
     }
 
-    /// Evict the oldest N entries (LRU by verification time).
+    /// Evict the oldest N entries (by verification time). Partitions with
+    /// `select_nth_unstable` — O(n) instead of sorting the whole map — since
+    /// this only runs on the rare insert that hits the hard cap (entries
+    /// normally expire via `exp` and the cleanup task first).
     fn evict_oldest(&self, count: usize) {
         let mut entries: Vec<_> = self
             .tokens
             .iter()
             .map(|e| (e.key().clone(), e.value().verified_at))
             .collect();
-        entries.sort_by_key(|(_, verified_at)| *verified_at);
+        if count == 0 || entries.is_empty() {
+            return;
+        }
+        let pivot = count.min(entries.len()) - 1;
+        entries.select_nth_unstable_by_key(pivot, |(_, verified_at)| *verified_at);
         let mut removed = 0;
         for (token, _) in entries.into_iter().take(count) {
             if self.tokens.remove(&token).is_some() {
@@ -406,6 +416,14 @@ mod tests {
             expires_at: chrono::Utc::now().timestamp() + 3600,
             verified_at: Instant::now(),
         }
+    }
+
+    #[test]
+    fn staff_perm_matches_proto_layout() {
+        assert_eq!(staff_perm::STAFF, 0x0000_0001);
+        assert_eq!(staff_perm::DASHBOARD_VIEW, 0x0000_0100);
+        assert_eq!(staff_perm::STAFF_GRANT, 0x0001_0000);
+        assert_eq!(staff_perm::SUPERADMIN, 0x4000_0000);
     }
 
     #[test]

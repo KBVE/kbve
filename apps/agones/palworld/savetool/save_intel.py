@@ -23,28 +23,15 @@ def pv(node, *keys):
 
 
 def decompress_sav(data):
-    from palworld_save_tools.palsav import decompress_sav_to_gvas
+    from palsav.core import decompress_sav_to_gvas
 
-    magic = data[8:11]
-    if magic == b"PlZ":
-        raw, _ = decompress_sav_to_gvas(data)
-        return raw
-    if magic == b"PlM":
-        import ooz
-
-        uncompressed_len = int.from_bytes(data[0:4], "little")
-        compressed_len = int.from_bytes(data[4:8], "little")
-        save_type = data[11]
-        if save_type not in (0x31, 0x32):
-            raise ValueError(f"unknown PlM save type {save_type:#x}")
-        body = data[12 : 12 + compressed_len]
-        return bytes(ooz.decompress(body, uncompressed_len))
-    raise ValueError(f"unknown save magic {magic!r}")
+    raw, _ = decompress_sav_to_gvas(data)
+    return raw
 
 
 def parse_sav(path):
-    from palworld_save_tools.gvas import GvasFile
-    from palworld_save_tools.paltypes import (
+    from palsav.gvas import GvasFile
+    from palsav.paltypes import (
         PALWORLD_CUSTOM_PROPERTIES,
         PALWORLD_TYPE_HINTS,
     )

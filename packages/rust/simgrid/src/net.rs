@@ -358,7 +358,9 @@ fn decode_client(msg: &Message) -> Option<ClientMessage> {
 }
 
 fn encode_event(evt: &ServerEvent) -> Option<Message> {
-    proto::encode(evt).ok().map(|buf| Message::Binary(buf.into()))
+    proto::encode(evt)
+        .ok()
+        .map(|buf| Message::Binary(buf.into()))
 }
 
 pub fn router(state: ServerState) -> Router {

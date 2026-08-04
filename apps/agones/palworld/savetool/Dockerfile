@@ -1,8 +1,10 @@
-FROM --platform=linux/amd64 python:3.12-slim-bookworm
-
+FROM --platform=linux/amd64 python:3.12-slim-bookworm AS builder
+RUN apt-get update && apt-get install -y --no-install-recommends git build-essential && rm -rf /var/lib/apt/lists/*
 COPY apps/agones/palworld/savetool/requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt
+RUN pip install --no-cache-dir --prefix=/install -r /app/requirements.txt
 
+FROM --platform=linux/amd64 python:3.12-slim-bookworm
+COPY --from=builder /install /usr/local
 COPY apps/agones/palworld/savetool/save_intel.py /app/save_intel.py
 
 ENV SAVE_INTEL_SAVE_DIR=/palworld/Pal/Saved/SaveGames \

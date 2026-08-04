@@ -74,15 +74,61 @@ const source: SessionSource = {
 	},
 };
 
-export const netConfig = createNetConfig({
-	source,
-	resolveWsUrl: makeWsResolver(
-		import.meta.env?.PUBLIC_HERBMAIL_WS_URL,
-		DEFAULT_WS_URL,
-	),
-});
+const resolveWs = makeWsResolver(
+	import.meta.env?.PUBLIC_HERBMAIL_WS_URL,
+	DEFAULT_WS_URL,
+);
+
+export const netConfig = createNetConfig({ source, resolveWsUrl: resolveWs });
 
 export type { GameNetConfig };
+
+// Guests. The server admits an empty JWT and mints an identity for it, so a
+// player can join without an account while the game is still being built.
+//
+// The `guest-` prefix is not decoration: it is the only thing separating a
+// throwaway identity from a real account name in a nameplate, and a guest must
+// never be able to present themselves as a signed-in player. The client picking
+// its own name is a convenience, NOT a security boundary — the server has to
+// re-derive the prefix for any empty-token connection and reject a claimed name
+// that does not carry it, or impersonation is trivial. Nothing here can enforce
+// that.
+export const GUEST_PREFIX = 'guest-';
+const GUEST_KEY = 'herbmail.guestName';
+
+function randomSuffix(): string {
+	const b = new Uint8Array(3);
+	if (typeof crypto !== 'undefined' && crypto.getRandomValues)
+		crypto.getRandomValues(b);
+	else
+		for (let i = 0; i < b.length; i++)
+			b[i] = Math.floor(Math.random() * 256);
+	return Array.from(b, (v) => v.toString(16).padStart(2, '0')).join('');
+}
+
+let guestName: string | null = null;
+
+/** A stable guest name. Memoised for this page load, and persisted so a
+ * returning guest keeps their nameplate rather than becoming a new stranger.
+ * The memo is what guarantees stability: without it, blocked storage (private
+ * mode, or a node context) would mint a new name on every call and a guest's
+ * nameplate could change mid-session. */
+export function guestUsername(): string {
+	if (guestName) return guestName;
+	guestName = `${GUEST_PREFIX}${randomSuffix()}`;
+	if (typeof localStorage === 'undefined') return guestName;
+	try {
+		const saved = localStorage.getItem(GUEST_KEY);
+		if (saved && saved.startsWith(GUEST_PREFIX)) {
+			guestName = saved;
+			return guestName;
+		}
+		localStorage.setItem(GUEST_KEY, guestName);
+	} catch {
+		// Private mode or blocked storage: the memo still holds it for this load.
+	}
+	return guestName;
+}
 
 /** Why multiplayer cannot be entered yet, or null when it can. */
 export type AuthGate = 'signed-out' | 'no-username' | null;
@@ -98,6 +144,31 @@ export async function multiplayerGate(): Promise<AuthGate> {
 	if (!cfg) return 'signed-out';
 	if (!cfg.username) return 'no-username';
 	return null;
+}
+
+/**
+ * Resolves what to connect with, falling back to a guest identity when allowed.
+ *
+ * A signed-in player is always preferred, but a session missing the
+ * kbve_username claim is deliberately NOT promoted to guest silently — that
+ * player has an account and should be sent to username setup, or they would
+ * quietly lose their identity every time they play. Guest is for people who
+ * never signed in.
+ */
+export async function resolveNetConfig(
+	allowGuest = true,
+): Promise<{ config: GameNetConfig | null; gate: AuthGate }> {
+	const cfg = await netConfig.build().catch(() => null);
+	if (cfg?.username) return { config: cfg, gate: null };
+	if (cfg && !cfg.username) return { config: null, gate: 'no-username' };
+	if (!allowGuest) return { config: null, gate: 'signed-out' };
+	const guest: GameNetConfig = {
+		wsUrl: netConfig.get()?.wsUrl ?? resolveWs(),
+		jwt: '',
+		username: guestUsername(),
+	};
+	netConfig.set(guest);
+	return { config: guest, gate: null };
 }
 
 /**

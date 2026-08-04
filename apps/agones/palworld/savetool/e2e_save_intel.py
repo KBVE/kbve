@@ -34,10 +34,10 @@ def transform(x, y, z):
     }
 
 
-def build_fixture_sav(path):
-    from palworld_save_tools.gvas import GvasFile
-    from palworld_save_tools.palsav import compress_gvas_to_sav
-    from palworld_save_tools.paltypes import PALWORLD_CUSTOM_PROPERTIES
+def build_fixture_sav(path, save_type=0x32):
+    from palsav.core import compress_gvas_to_sav
+    from palsav.gvas import GvasFile
+    from palsav.paltypes import PALWORLD_CUSTOM_PROPERTIES
 
     properties = {
         "worldSaveData": {
@@ -81,10 +81,14 @@ def build_fixture_sav(path):
                                             }
                                         ],
                                         "org_type": 0,
+                                        "leading_bytes": [0, 0, 0, 0],
                                         "base_ids": [BASE_ID],
+                                        "unknown_1": 0,
                                         "base_camp_level": 7,
                                         "map_object_instance_ids_base_camp_points": [],
                                         "guild_name": "KBVE-E2E",
+                                        "last_guild_name_modifier_player_uid": PLAYER_UID,
+                                        "guild_markers": [],
                                         "admin_player_uid": PLAYER_UID,
                                         "players": [
                                             {
@@ -95,6 +99,7 @@ def build_fixture_sav(path):
                                                 },
                                             }
                                         ],
+                                        "trailing_bytes": [0, 0, 0, 0],
                                     },
                                 },
                             },
@@ -130,6 +135,7 @@ def build_fixture_sav(path):
                                             0.0, 0.0, 0.0
                                         ),
                                         "owner_map_object_instance_id": BASE_ID,
+                                        "trailing_bytes": [0, 0, 0, 0],
                                     },
                                 }
                             },
@@ -142,7 +148,7 @@ def build_fixture_sav(path):
     gvas = GvasFile.load(
         {"header": HEADER, "properties": properties, "trailer": "AAAAAA=="}
     )
-    sav = compress_gvas_to_sav(gvas.write(PALWORLD_CUSTOM_PROPERTIES), 0x32)
+    sav = compress_gvas_to_sav(gvas.write(PALWORLD_CUSTOM_PROPERTIES), save_type)
     with open(path, "wb") as f:
         f.write(sav)
     return sav
@@ -197,17 +203,41 @@ def main():
         "CLI stdout JSON",
     )
 
-    plm = (
-        (100).to_bytes(4, "little")
-        + (14).to_bytes(4, "little")
-        + b"PlM\x31"
-        + b"not-oodle-data"
+    plm_path = os.path.join(nested, "LevelPlM.sav")
+    plm_bytes = build_fixture_sav(plm_path, save_type=0x31)
+    expect(plm_bytes[8:11] == b"PlM", "PlM fixture uses oodle container")
+    plm_snap = snapshot_once(plm_path, os.path.join(workdir, "plm.json"))
+    expect(
+        plm_snap["guilds"][0]["name"] == "KBVE-E2E",
+        "PlM oodle round-trip extracts guild",
     )
+    expect(
+        abs(plm_snap["guilds"][0]["bases"][0]["x"] - -92930.7) < 0.01,
+        "PlM base coordinates",
+    )
+
     try:
-        decompress_sav(plm)
-        expect(False, "PlM garbage rejected")
-    except RuntimeError:
-        expect(True, "PlM path reaches oodle decoder")
+        decompress_sav(b"\x00" * 8 + b"PlQ\x31rest")
+        expect(False, "unknown magic rejected")
+    except Exception:
+        expect(True, "unknown magic rejected")
+
+    import save_intel
+
+    dir_out = os.path.join(workdir, "dir-mode.json")
+    sys.argv = [
+        "save_intel.py",
+        "--save-dir",
+        os.path.join(workdir, "SaveGames"),
+        "--out",
+        dir_out,
+    ]
+    save_intel.main()
+    with open(dir_out) as f:
+        expect(
+            json.load(f)["guilds"][0]["name"] == "KBVE-E2E",
+            "--save-dir CLI mode resolves newest sav",
+        )
 
     print("e2e: all checks passed")
 

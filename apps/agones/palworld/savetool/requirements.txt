@@ -1,2 +1,2 @@
-palworld-save-tools==0.24.0
-pyooz==0.0.8
+palooz @ git+https://github.com/deafdudecomputers/PalworldSaveTools@3d88752eb263b47bc0eaa88d77df644bbf347682#subdirectory=src/palsav/palooz
+palsav-flex @ git+https://github.com/deafdudecomputers/PalworldSaveTools@3d88752eb263b47bc0eaa88d77df644bbf347682#subdirectory=src/palsav

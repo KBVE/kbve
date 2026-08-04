@@ -173,6 +173,11 @@ const ARROW = 'M5 12h14M13 6l6 6-6 6';
 							</span>
 							<span class="bento-stat__value">{s.value}</span>
 							<span class="bento-stat__label">{s.label}</span>
+							{s.detail && (
+								<span class="bento-stat__detail">
+									{s.detail}
+								</span>
+							)}
 						</div>
 					))
 				}

@@ -5,5 +5,7 @@ pub mod github;
 pub mod groq;
 pub mod jedi;
 pub mod redis;
+#[path = "kbve.staff.rs"]
+pub mod staff;
 #[cfg(feature = "twitch")]
 pub mod twitch;

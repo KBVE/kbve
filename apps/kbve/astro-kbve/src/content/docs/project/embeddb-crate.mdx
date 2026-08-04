@@ -11,7 +11,7 @@ tags:
 key: embeddb_crate
 pipeline: crates
 package_name: embeddb
-version: "0.1.0"
+version: "0.2.0"
 source_path: packages/rust/embeddb
 version_toml: packages/rust/embeddb/version.toml
 author: h0lybyte
@@ -29,6 +29,8 @@ jsonld:
           answer: embeddb is a foundational Rust library providing a single-file embedded database. It pairs Turso (a pure-Rust async SQLite rewrite) as the write path with DuckDB as the analytics read path over one SQLite-format file, so a single file gives both transactional writes and columnar analytics.
         - question: What does embeddb provide?
           answer: Parameterized writes and transactions via Turso, a DuckDB reader pool for parallel analytics, streaming row callbacks, batched writes, migrations and config, a rich EmbedValue type set, QueryResult with column names, and a FromEmbedRow derive for mapping rows into structs.
+        - question: Can embeddb store and search embeddings?
+          answer: Yes, via the optional vector feature. Embeddings are stored as packed f32 blobs in the same single file, normalized on write so similarity search reduces to a dot product, and ranked by brute-force cosine similarity. The feature adds no dependencies and reads through Turso rather than DuckDB, so it works in distroless and egress-restricted images. Embedding model identity is part of each row, and every search filters on it, because vectors from different models do not share a comparable space.
         - question: How does concurrency and freshness work?
           answer: Turso owns all writes; DuckDB attaches the same file read-only for analytics. DuckDB replays uncheckpointed WAL frames, so analytics reflect committed writes even before a checkpoint, and concurrent reads stay consistent. The reader pool builds lazily on the first analytics call, so write-only use never loads the analytics engine.
 bento:
@@ -59,7 +61,7 @@ bento:
     stats:
         - { label: Package, value: embeddb, icon: package }
         - { label: Edition, value: "2021", icon: rust }
-        - { label: Version, value: "0.1.0", icon: branch }
+        - { label: Version, value: "0.2.0", icon: branch }
         - { label: License, value: MIT, icon: license }
     features:
         - title: Turso write path
@@ -77,6 +79,9 @@ bento:
         - title: Live-read freshness
           icon: shield
           body: DuckDB replays uncheckpointed WAL, so analytics reflect committed writes without a forced checkpoint.
+        - title: Vector search
+          icon: network
+          body: Optional vector feature stores embeddings as packed f32 blobs and ranks them by cosine similarity, adding no dependencies.
     related:
         - title: EmbedDB Derive
           href: /project/embeddb-derive-crate/
