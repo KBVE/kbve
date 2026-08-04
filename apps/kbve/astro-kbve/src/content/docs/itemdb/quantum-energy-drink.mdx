@@ -41,9 +41,11 @@ scripts:
             duration: 45
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import Adsense from '@/components/ads/Adsense.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -52,12 +54,6 @@ Brewed from entangled molecules, it floods your system with a burst of stamina a
 
 Favored by smugglers on long hauls, the drink is rumored to sync momentarily with neural implants, giving a glimpse of the next few seconds.
 Some racers swear it lets them anticipate turns before they happen, though authorities ban its use in official leagues.
-
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 
 <Adsense />
 
@@ -73,13 +69,9 @@ Some racers swear it lets them anticipate turns before they happen, though autho
 - Excessive use may cause temporary shifts in perception of time.
 - Empty cans are prized collectibles among station dwellers.
 
----
-
 ## Lore
 
 > "Drink the future, outrun the present."
-
----
 
 ## Credit
 
@@ -118,8 +110,8 @@ Some racers swear it lets them anticipate turns before they happen, though autho
   ]}
 />
 
----
-
 ## DevLog
 
 - 06/15/2025 - Quantum Energy Drink introduced with speed boost and stamina regen
+
+</ItemLeaf>

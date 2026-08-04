@@ -48,9 +48,11 @@ scripts:
             dimensionalEnergy: '5D'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -62,11 +64,6 @@ Some armchair scientists claim the dust emerges through wormholes lined with gam
 
 Either way, its properties are stable in 5D.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -76,14 +73,10 @@ Either way, its properties are stable in 5D.
 -   Resonates with **time harmonics** and energy constants
 -   Cooldown: N/A - passive reactive material
 
----
-
 ## Harvesting
 
 Only gatherable via gravitic siphons near wormhole throats or with neutron netting during white hole surges. 
 Impossible to synthesize fully, only isolate.
-
----
 
 ## Lore
 
@@ -91,8 +84,6 @@ Impossible to synthesize fully, only isolate.
 > The solution wasn’t a number. It was music.”
 
 > "Untouchable strings from a spacetime orchestra."
-
----
 
 ## Credit
 
@@ -131,8 +122,8 @@ Impossible to synthesize fully, only isolate.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/27/2025 – Stardust schema finalized; lore entangled with 5D integral equations
+
+</ItemLeaf>

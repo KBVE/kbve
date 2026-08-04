@@ -42,9 +42,11 @@ scripts:
             playbackTriggers: "signal"
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -55,11 +57,6 @@ A final message from the past?
 
 You won't know until you press play.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -69,8 +66,6 @@ You won't know until you press play.
 - Has a **20% chance** to produce **signal distortion or audio bleed**  
 - Stackable and archivable in data vaults
 
----
-
 ## Known Contents (sample rolls)
 
 - 🔹 *Home Video - Birthday 89* (cuts to static mid-cake)  
@@ -78,16 +73,12 @@ You won't know until you press play.
 - 🔹 *Local Channel News - May 12, 1991* (looped emergency broadcast)  
 - 🔹 *???* (tape magnetized, but still warm)
 
----
-
 ## Lore
 
 > "It played. But the shadows didn't match the people on screen."
 > - Note taped to the back of a working player, left on pause
 
 Collectors say the static carries emotion. Archivists say don't play the ones that rewind themselves.
-
----
 
 ## Credit
 
@@ -126,8 +117,8 @@ Collectors say the static carries emotion. Archivists say don't play the ones th
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/27/2025 - VHS Tape added as analog curio with memory/lore triggers and signal interference
+
+</ItemLeaf>

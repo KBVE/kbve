@@ -37,8 +37,7 @@ recipes:
             amount: 2
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
-
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import {
 	Aside,
 	Steps,
@@ -46,6 +45,8 @@ import {
 	CardGrid,
 } from '@astrojs/starlight/components';
 
+<ItemLeaf data={frontmatter}>
+
 ## Overview
 
-<ItemDBPanel data={frontmatter} />
+</ItemLeaf>

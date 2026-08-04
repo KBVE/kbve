@@ -53,19 +53,15 @@ recipes:
             amount: 1
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
 **Spicy Ramen** warms the soul and sears the taste buds. Boiled in a broth enriched with space chili, it fuels daring adventurers for the toughest battles.
-
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 
 <Adsense />
 
@@ -76,20 +72,14 @@ import Adsense from '@/components/ads/Adsense.astro';
 - Increases **bravery by {frontmatter.bonuses.bravery}** temporarily
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Mix with **[Vodka Sauce](/itemdb/vodka-sauce/)** for an explosive meal
 - Favored by veteran explorers venturing into volcanic zones
 
----
-
 ## Lore
 
 > "A single sip turns doubt into determination."
-
----
 
 ## Credit
 
@@ -128,8 +118,8 @@ import Adsense from '@/components/ads/Adsense.astro';
   ]}
 />
 
----
-
 ## DevLog
 
 - 06/30/2025 - Added Spicy Ramen to menu as a rare meal granting fire resistance and bravery boost
+
+</ItemLeaf>

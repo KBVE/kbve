@@ -24,8 +24,7 @@ tags:
   - arpg
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
-
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import {
 	Aside,
 	Steps,
@@ -33,9 +32,9 @@ import {
 	CardGrid,
 } from '@astrojs/starlight/components';
 
-## Overview
+<ItemLeaf data={frontmatter}>
 
-<ItemDBPanel data={frontmatter} />
+## Overview
 
 Restores one pet's HP and move PP to full. Pets carry their battle damage and spent PP
 between duels, so an elixir (or a visit to a healer) is how a worn-down roster gets back
@@ -45,3 +44,5 @@ into fighting shape.
 	The elixir is spent from the pet hub, not the hotbar — it targets a roster slot
 	rather than the player.
 </Aside>
+
+</ItemLeaf>

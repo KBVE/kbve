@@ -43,9 +43,11 @@ scripts:
             duration: 150
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -59,11 +61,6 @@ Labeled as “Spaghetti but Dangerous.”
 
 Made with mixing both [tomato pasta sauce](/itemdb/tomato-pasta-sauce/) and [vodka](/itemdb/vodka/).
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -73,15 +70,11 @@ Made with mixing both [tomato pasta sauce](/itemdb/tomato-pasta-sauce/) and [vod
 - Unlocks fiery pasta and volatile food recipes  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Highly flammable, do not store near heat sources  
 - May be used to upgrade spicy food into *Inferno Cuisine Tier I*  
 - Compatible with *spaghetti*, *grilled meat*, and *survival vodka*
-
----
 
 ## Lore
 
@@ -89,8 +82,6 @@ Made with mixing both [tomato pasta sauce](/itemdb/tomato-pasta-sauce/) and [vod
 > – The Nomad Gourmet
 
 Some believe this sauce originated from bunker-chefs who mistook vodka for water. Others believe it was on purpose.
-
----
 
 ## Credit
 
@@ -129,8 +120,8 @@ Some believe this sauce originated from bunker-chefs who mistook vodka for water
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Vodka Sauce added as fiery food enhancer with cooking boost and fire-based crafting access
+
+</ItemLeaf>

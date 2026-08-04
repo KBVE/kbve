@@ -144,7 +144,7 @@ const marketLinks = [
 ].filter(Boolean) as { label: string; href: string }[];
 ---
 
-<article class={`itempanel itempanel--${item.rarity ?? 'common'}`}>
+<article class={`itempanel not-content itempanel--${item.rarity ?? 'common'}`}>
 	<header class="itempanel__hero bento-card bento-card--glass">
 		<div class="itempanel__art" data-pixelated={pixelated ? '' : undefined}>
 			{
@@ -159,18 +159,6 @@ const marketLinks = [
 		</div>
 
 		<div class="itempanel__intro">
-			<p class="bento-eyebrow">
-				{rarityMeta?.eyebrow ?? 'Item'} · {titleCase(item.rarity ?? '')}
-			</p>
-			<h3 class="itempanel__name">
-				{
-					item.emoji && (
-						<span class="itempanel__emoji">{item.emoji}</span>
-					)
-				}
-				{item.name}
-			</h3>
-
 			{
 				categoryNames.length > 0 && (
 					<div class="itempanel__chips">
@@ -191,11 +179,7 @@ const marketLinks = [
 				)
 			}
 
-			{
-				item.description && (
-					<p class="itempanel__desc">{item.description}</p>
-				)
-			}
+			{item.effects && <p class="itempanel__desc">{item.effects}</p>}
 		</div>
 
 		{
@@ -274,15 +258,6 @@ const marketLinks = [
 					</span>
 				))}
 			</div>
-		)
-	}
-
-	{
-		item.effects && (
-			<p class="itempanel__effects">
-				<strong>Effects</strong>
-				{item.effects}
-			</p>
 		)
 	}
 
@@ -429,24 +404,6 @@ const marketLinks = [
 		gap: 0.5rem;
 	}
 
-	.itempanel__intro .bento-eyebrow {
-		margin: 0;
-		color: var(--itempanel-accent);
-	}
-
-	.itempanel__name {
-		margin: 0;
-		font-size: 1.4rem;
-		font-weight: 700;
-		letter-spacing: -0.02em;
-		line-height: 1.2;
-		color: var(--sl-color-white);
-	}
-
-	.itempanel__emoji {
-		margin-inline-end: 0.35rem;
-	}
-
 	.itempanel__chips {
 		display: flex;
 		flex-wrap: wrap;
@@ -528,22 +485,6 @@ const marketLinks = [
 			var(--itempanel-accent) 10%,
 			transparent
 		);
-	}
-
-	.itempanel__effects {
-		margin: 0;
-		font-size: 0.875rem;
-		line-height: 1.55;
-		color: var(--sl-color-gray-2);
-	}
-
-	.itempanel__effects strong {
-		display: block;
-		font-size: 0.7rem;
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		color: var(--sl-color-gray-3);
-		margin-bottom: 0.2rem;
 	}
 
 	.itempanel__block {

@@ -42,9 +42,11 @@ scripts:
             contentRating: 'unstable'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -58,12 +60,6 @@ Found sealed beneath a collapsed cathedral vault.
 Digitally preserved and redacted by KBVE Occult Archives.
 Not recognized by any official doctrine or heroic registry.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
-
 <Adsense />
 
 ## Usage
@@ -73,8 +69,6 @@ Not recognized by any official doctrine or heroic registry.
 - Reading triggers **mythic resistance**, increasing mental resilience vs awe-based fear effects  
 - Cannot be copied. May **trigger hallucinations** when read aloud
 
----
-
 ## Notable Chapters
 
 - *Light Against Light: Why the Sun Isn’t Neutral*  
@@ -83,16 +77,12 @@ Not recognized by any official doctrine or heroic registry.
 - *Tyranny of the Savior Complex*  
 - *The Fifth Harmonic: Words That Wound the Invulnerable*
 
----
-
 ## Lore
 
 > “He could walk through steel, lift mountains, bend time, but not handle one whispered truth.”  
 > - Page 91, margin annotation in unknown handwriting
 
 Some believe the book was written by one of them. Others believe it was dictated by something they feared.
-
----
 
 ## Credit
 
@@ -131,8 +121,8 @@ Some believe the book was written by one of them. Others believe it was dictated
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/28/2025 - Kryptonite Book added as mythic curio on superhuman deconstruction, theological-tech crossover theory
+
+</ItemLeaf>

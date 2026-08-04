@@ -57,9 +57,11 @@ food:
   spoils_into_ref: 'rotten-food'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -68,11 +70,6 @@ Cooked low and long, this dish not only restores major health, but also boosts r
 
 Best enjoyed in silence or after battle, be sure to catch more [lobsters](/itemdb/lobster/)
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -82,15 +79,11 @@ Best enjoyed in silence or after battle, be sure to catch more [lobsters](/itemd
 - Grants temporary **sea affinity**  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Created using *Lobster*, *Sea Broth Concentrate*, and *Spirit Root*  
 - Eating this near water increases buff duration by 20%  
 - Often used to calm trauma after sea-related events
-
----
 
 ## Lore
 
@@ -98,8 +91,6 @@ Best enjoyed in silence or after battle, be sure to catch more [lobsters](/itemd
 > - Journal scrap, post-shipwreck survivor
 
 It's said the soul of the lobster remains in the broth and it remembers.
-
----
 
 ## Credit
 
@@ -138,13 +129,12 @@ It's said the soul of the lobster remains in the broth and it remembers.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Lobster Soup added as premium healing food with regeneration, sea traits, and lore-driven effects
 
-
 ## Spoilage
 
 Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).
+
+</ItemLeaf>

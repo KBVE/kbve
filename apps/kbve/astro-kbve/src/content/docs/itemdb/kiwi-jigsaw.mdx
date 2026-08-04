@@ -42,9 +42,11 @@ scripts:
             curseChance: 0.3
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -59,12 +61,6 @@ I say it gives you a reason to uninstall the game because you are a wimp.
 You know what, try running a bunch of unsafe [rust](/application/rust/) ffi code inside unsafe [unity](/application/unity/).
 Just kidding, you will lose the game, life, even the universe will be gone.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
-
 <Adsense />
 
 ## Usage
@@ -74,8 +70,6 @@ Just kidding, you will lose the game, life, even the universe will be gone.
 - 30% chance to emit a **cursed presence**, affecting luck or mood  
 - Cannot be destroyed. Cannot be duplicated. **Do not feed it.**
 
----
-
 ## Found In
 
 Reported to appear:
@@ -83,16 +77,12 @@ Reported to appear:
 - Abandoned roadside gift shops.
 - Once, on top of a therapist's desk... mid-session.
 
----
-
 ## Lore
 
 > “You ever stare at something so stupid it became brilliant? Yeah. That. But also cursed.”  
 > - Cpt. Git, last known owner of the Kiwi Jigsaw
 
 No one's been able to remove the kiwi without breaking something important. Some theorize it's part of a larger... puzzle.
-
----
 
 ## Credit
 
@@ -131,8 +121,8 @@ No one's been able to remove the kiwi without breaking something important. Some
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/28/2025 - Kiwi Jigsaw added as unique curio item with aura-based reactions and cursed affinity
+
+</ItemLeaf>

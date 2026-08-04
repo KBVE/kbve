@@ -44,10 +44,9 @@ scripts:
             tickRate: 6
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
-
 import {
     Aside,
     Steps,
@@ -57,6 +56,8 @@ import {
     FileTree,
 } from '@astrojs/starlight/components';
 
+<ItemLeaf data={frontmatter}>
+
 ## Item
 
 The **Paradox Sack of Potatoes** seems like an ordinary bundle of earthy nourishment, yet holding it feels… off. 
@@ -65,31 +66,19 @@ Consuming it restores vitality and something stranger.
 Would make for an interesting and perplexing ingredient for a cozy meal, maybe fish n chips.
 Wait did that fish just talk?!
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
-
 ## Usage
 
 - Restores **{frontmatter.bonuses.health} health** and **{frontmatter.bonuses.mana} mana**
 - May cause minor time displacement effects
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Harvesting
 
 These potatoes cannot be farmed through normal means. They sprout in unstable zones, like where time loops or entropy falters.
 
----
-
 ## Lore
 
 > “I peeled one once. Saw my birth and death in the same skin.”
-
----
 
 ## Credit
 
@@ -165,8 +154,8 @@ These potatoes cannot be farmed through normal means. They sprout in unstable zo
 />
 <Adsense />
 
----
-
 ## DevLog
 
 - 05/27/2025 – Initial implementation of Paradox Sack of Potatoes
+
+</ItemLeaf>

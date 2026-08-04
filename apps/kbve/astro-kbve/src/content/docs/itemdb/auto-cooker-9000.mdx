@@ -43,9 +43,11 @@ scripts:
             traits: cooker
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -57,11 +59,6 @@ Feeding the auto cooker 9000 [VHS Tapes](/itemdb/vhs-tape/), [Data CDs](/itemdb/
 Developed by ByteKitchen Systems.
 Reverse-engineered from a crashed alien food drone and reprogrammed with culinary AI. 
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -72,15 +69,11 @@ Reverse-engineered from a crashed alien food drone and reprogrammed with culinar
 - Cooldown: **{frontmatter.cooldown} seconds**  
 - Deploys a permanent cooking unit until recalled or destroyed
 
----
-
 ## Notes
 
 - Compatible with **Fish**, **Sauces**, **Spices**, and **Void-Safe Ingredients**  
 - Comes with built-in **holographic display**, **flavor probe**, and **safety override (optional)**  
 - Some advanced meals may require external power or soul heat
-
----
 
 ## Lore
 
@@ -88,8 +81,6 @@ Reverse-engineered from a crashed alien food drone and reprogrammed with culinar
 > - Test log from Sector Gamma Mess Hall
 
 They say it once cooked a five course meal using only steam, quantum noise, and expired space milk.
-
----
 
 ## Credit
 
@@ -128,8 +119,8 @@ They say it once cooked a five course meal using only steam, quantum noise, and 
   ]}
 />
 
----
-
 ## DevLog
 
 - 06/01/2025 - Auto Cooker 9000 added as deployable utility with cooking speed, recipe discovery, and food enhancement traits
+
+</ItemLeaf>

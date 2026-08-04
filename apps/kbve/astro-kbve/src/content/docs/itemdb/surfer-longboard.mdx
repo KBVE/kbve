@@ -42,9 +42,11 @@ scripts:
             traits: 'tidal-grace'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -52,12 +54,6 @@ The **Surfer Longboard** is your laid-back companion in a fast-moving world.
 Whether weaving through coral dunes or gliding across space station promenades, this board speaks of calm waves, sunburnt rebellion, and the path of least resistance.
 
 Once belonged to a pacifist war courier who surfed through post-flood ruins. 
-
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 
 <Adsense />
 
@@ -68,15 +64,11 @@ Once belonged to a pacifist war courier who surfed through post-flood ruins.
 - Cooldown: **{frontmatter.cooldown} seconds**  
 - Buff lasts **{frontmatter.scripts[0].vars.buffDuration} seconds**
 
----
-
 ## Notes
 
 - Doubles movement bonuses near water or in flooded zones  
 - Slightly improves morale when equipped in sunny areas  
 - Functions as both transport and a vibe amplifier
-
----
 
 ## Lore
 
@@ -84,8 +76,6 @@ Once belonged to a pacifist war courier who surfed through post-flood ruins.
 > - Surfer Sage of Solwave Beach
 
 It's more than a ride, it's a rhythm.
-
----
 
 ## Credit
 
@@ -124,8 +114,8 @@ It's more than a ride, it's a rhythm.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/31/2025 - Surfer Longboard added with water-based mobility boosts, stylish utility traits, and spiritual flavor
+
+</ItemLeaf>
