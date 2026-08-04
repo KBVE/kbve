@@ -5,12 +5,16 @@ import type {
 	OSRSRecipe,
 	OSRSUsedIn,
 } from '@/data/schema';
+import { getPriceSnapshot } from '@/data/osrs/prices';
 
 interface Props {
 	data: OSRSExtended;
 }
 
 const { data: item } = Astro.props;
+
+const { prices, fetchedAt: priceFetchedAt } = await getPriceSnapshot();
+const gePrice = prices.get(item.id) ?? null;
 
 const SITE = 'https://kbve.com';
 const ITEM_URL = `${SITE}/osrs/${item.slug}/`;
@@ -134,7 +138,28 @@ const product = {
 					},
 				]
 			: []),
+		...(gePrice?.high !== null && gePrice?.high !== undefined
+			? [
+					{
+						'@type': 'PropertyValue',
+						name: 'Grand Exchange buy price (gp)',
+						value: gePrice.high,
+						unitText: 'gp',
+					},
+				]
+			: []),
+		...(gePrice?.low !== null && gePrice?.low !== undefined
+			? [
+					{
+						'@type': 'PropertyValue',
+						name: 'Grand Exchange sell price (gp)',
+						value: gePrice.low,
+						unitText: 'gp',
+					},
+				]
+			: []),
 	],
+	...(priceFetchedAt ? { dateModified: priceFetchedAt.toISOString() } : {}),
 	sameAs: [WIKI_URL, GE_URL],
 };
 
