@@ -37,30 +37,93 @@ const lede =
 		? item.description.trim().split('\n\n')[0].replace(/\n/g, ' ')
 		: undefined;
 
-const stats: { label: string; value: string; icon: string }[] = [
-	{ label: 'Rarity', value: rarity, icon: 'crown' },
-	{ label: 'Type', value: primaryType, icon: 'database' },
-];
+const grid = item.grid as { width?: number; height?: number } | undefined;
+const gridW = grid?.width ?? 1;
+const gridH = grid?.height ?? 1;
+const cells = gridW * gridH;
 
-if (item.weight !== undefined)
-	stats.push({
-		label: 'Weight',
-		value: `${item.weight} kg`,
-		icon: 'activity',
-	});
+const stats: {
+	label: string;
+	value: string;
+	icon: string;
+	detail?: string;
+}[] = [];
+
+stats.push({
+	label: 'Type',
+	value: primaryType,
+	icon: 'database',
+	detail: [
+		categoryNames.length > 1
+			? `Also ${categoryNames.slice(1).join(', ').toLowerCase()}`
+			: null,
+		item.equipment?.slot
+			? `${titleCase(item.equipment.slot)} slot`
+			: item.action
+				? `${titleCase(item.action)} action`
+				: null,
+	]
+		.filter(Boolean)
+		.join(' · '),
+});
+
+stats.push({
+	label: 'Rarity',
+	value: rarity,
+	icon: 'crown',
+	detail: `${rarityMeta?.eyebrow ?? 'Tier'}${
+		item.set_ref ? ` · ${titleCase(item.set_ref)} set` : ''
+	}`,
+});
 
 if (item.buy_price !== undefined)
 	stats.push({
 		label: 'Value',
-		value: item.buy_price.toLocaleString(),
+		value: `${item.buy_price.toLocaleString()} $KHash`,
 		icon: 'chart',
+		detail:
+			item.sell_price !== undefined
+				? `Sells back for ${item.sell_price.toLocaleString()} (${Math.round(
+						(item.sell_price / (item.buy_price || 1)) * 100,
+					)}%)`
+				: item.tradeable === false
+					? 'Not tradeable'
+					: undefined,
 	});
 
-if (item.level_requirement)
+if (item.weight !== undefined)
 	stats.push({
-		label: 'Level req.',
-		value: String(item.level_requirement),
+		label: 'Carry',
+		value: `${item.weight} kg`,
+		icon: 'activity',
+		detail: [
+			`${gridW}×${gridH} — ${cells} cell${cells === 1 ? '' : 's'}`,
+			item.stackable
+				? `stacks to ${item.max_stack ?? '∞'}`
+				: 'does not stack',
+		].join(' · '),
+	});
+
+if (item.level_requirement || item.equipment?.max_durability || item.cooldown)
+	stats.push({
+		label: item.level_requirement ? 'Level req.' : 'Wear',
+		value: item.level_requirement
+			? String(item.level_requirement)
+			: item.equipment?.max_durability
+				? String(item.equipment.max_durability)
+				: `${item.cooldown}s`,
 		icon: 'shield',
+		detail: [
+			item.equipment?.max_durability
+				? `${item.equipment.max_durability} durability`
+				: null,
+			item.cooldown ? `${item.cooldown}s cooldown` : null,
+			item.quest_requirement
+				? `Requires ${titleCase(item.quest_requirement)}`
+				: null,
+		]
+			.filter(Boolean)
+			.join(' · '),
 	});
 
 const hero = {
