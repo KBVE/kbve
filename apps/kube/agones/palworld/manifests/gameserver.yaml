@@ -46,7 +46,7 @@ spec:
                   emptyDir: {}
             containers:
                 - name: palworld
-                  image: ghcr.io/kbve/agones-palworld:0.0.36
+                  image: ghcr.io/kbve/agones-palworld:0.0.37
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PUID
@@ -251,7 +251,7 @@ spec:
                           drop:
                               - ALL
                 - name: palworld-savetool
-                  image: ghcr.io/kbve/agones-palworld-savetool:0.0.3
+                  image: ghcr.io/kbve/agones-palworld-savetool:0.0.4
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: SAVE_INTEL_SAVE_DIR
