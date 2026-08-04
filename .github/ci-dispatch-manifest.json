@@ -75,8 +75,9 @@
 			"source_path": "apps/agones/palworld/savetool",
 			"runner": "ubuntu-latest",
 			"image": "kbve/agones-palworld-savetool",
+			"e2e_name": "agones-palworld-savetool",
 			"deployment_yaml": "apps/kube/agones/palworld/manifests/gameserver.yaml",
-			"has_test": false
+			"has_test": true
 		},
 		{
 			"key": "astro_kbve",
