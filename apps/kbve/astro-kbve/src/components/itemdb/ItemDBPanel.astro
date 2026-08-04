@@ -291,8 +291,6 @@ const marketLinks = [
 		)
 	}
 
-	{item.lore && <blockquote class="itempanel__lore">{item.lore}</blockquote>}
-
 	{
 		(item.tags?.length || marketLinks.length > 0) && (
 			<footer class="itempanel__footer">
@@ -530,17 +528,6 @@ const marketLinks = [
 		font-weight: 600;
 		font-variant-numeric: tabular-nums;
 		color: var(--sl-color-white);
-	}
-
-	.itempanel__lore {
-		margin: 0;
-		padding: 0.15rem 0 0.15rem 1rem;
-		border-inline-start: 2px solid
-			color-mix(in srgb, var(--itempanel-accent) 45%, transparent);
-		font-size: 0.875rem;
-		font-style: italic;
-		line-height: 1.6;
-		color: var(--sl-color-gray-2);
 	}
 
 	.itempanel__footer {
