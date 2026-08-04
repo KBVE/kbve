@@ -2,19 +2,21 @@
 interface Props {
 	eyebrow?: string;
 	heading?: string;
+	sub?: string;
 	id?: string;
 }
 
-const { eyebrow, heading, id } = Astro.props;
+const { eyebrow, heading, sub, id } = Astro.props;
 ---
 
 <section {id} class="bento-shell bento-section not-content">
 	<div class="bento-shell__inner bento-frame">
 		{
-			(eyebrow || heading) && (
+			(eyebrow || heading || sub) && (
 				<header class="bento-shell__header">
 					{eyebrow && <p class="bento-eyebrow">{eyebrow}</p>}
 					{heading && <h2 class="bento-heading">{heading}</h2>}
+					{sub && <p class="bento-shell__sub">{sub}</p>}
 				</header>
 			)
 		}
@@ -25,6 +27,14 @@ const { eyebrow, heading, id } = Astro.props;
 <style>
 	.bento-shell__header {
 		padding: 3rem 1rem 2rem;
+	}
+
+	.bento-shell__sub {
+		margin-top: 0.75rem;
+		max-width: 44rem;
+		font-size: 1rem;
+		line-height: 1.55;
+		color: var(--sl-color-gray-2);
 	}
 
 	@media (min-width: 640px) {
