@@ -1,0 +1,160 @@
+---
+title: 'Emberstripe'
+template: splash
+sidebar:
+    label: 'Emberstripe'
+    hidden: true
+description: |
+    Red and banded with a crest that stands when it is interested in you, which is rarely good news.
+lore: |
+    Runs hot enough that rain steams off it. Kept as a hearth animal in some valleys, on the strict understanding that it chooses the hearth.
+ref: 'emberstripe'
+id: '01KME8R5PG7Z9QB3T6VX2H4N13'
+name: 'Emberstripe'
+img: '/assets/npc/emberstripe.png'
+type_flags: 16
+rarity: 'rare'
+personality: 'stoic'
+rank: 'elite'
+family: 'beast'
+element: 'fire'
+level: 16
+stats:
+    hp: 72
+    max_hp: 72
+    attack: 24
+    defense: 16
+    speed: 20
+    mp: 40
+    max_mp: 40
+    special_attack: 12
+    special_defense: 14
+    accuracy: 100
+    evasion: 100
+    crit_rate: 6
+    crit_damage: 1.5
+abilities:
+    - id: 'tackle'
+      name: 'Tackle'
+      description: 'A reckless full-body charge.'
+      category: 'physical'
+      target: 'enemy'
+      power: 12
+      damage: 12
+      pp: 35
+      max_pp: 35
+      hit_chance: 1.0
+      priority: 0
+    - id: 'bite'
+      name: 'Bite'
+      description: 'A short, hard bite with the whole jaw behind it.'
+      category: 'physical'
+      target: 'enemy'
+      power: 16
+      damage: 16
+      pp: 25
+      max_pp: 25
+      hit_chance: 0.95
+      high_crit: true
+    - id: 'howl'
+      name: 'Howl'
+      description: 'A rising howl that steadies its own nerve.'
+      category: 'status'
+      target: 'self'
+      pp: 20
+      max_pp: 20
+      stat_changes:
+        - stat: 'attack'
+          stages: 1
+          target: 'self'
+        - stat: 'special_attack'
+          stages: 1
+          target: 'self'
+    - id: 'searing-bite'
+      name: 'Searing Bite'
+      description: 'A close-quarters strike carrying its element.'
+      element: 'fire'
+      category: 'physical'
+      target: 'enemy'
+      power: 22
+      damage: 22
+      pp: 20
+      max_pp: 20
+      hit_chance: 0.95
+      high_crit: true
+    - id: 'flame-gout'
+      name: 'Flame Gout'
+      description: 'A ranged burst that covers the ground in front of it.'
+      element: 'fire'
+      category: 'special'
+      target: 'enemy'
+      power: 34
+      pp: 15
+      max_pp: 15
+      mp_cost: 8
+      hit_chance: 1.0
+      status_effect: 'burn'
+      status_chance: 0.25
+    - id: 'solar-flare'
+      name: 'Solar Flare'
+      description: 'Everything it has, released at once.'
+      element: 'fire'
+      category: 'special'
+      target: 'enemy'
+      power: 48
+      pp: 8
+      max_pp: 8
+      mp_cost: 14
+      hit_chance: 0.9
+      high_crit: true
+pet:
+    catchable: true
+    capture_rate: 45
+    growth_rate: 'medium_fast'
+    base_xp_yield: 154
+    base_friendship: 70
+    gender_ratio: 0.5
+    base_stat_total: 158
+    egg_groups:
+        - 'field'
+    movepool:
+        - level: 1
+          ability_id: 'tackle'
+        - level: 1
+          ability_id: 'bite'
+        - level: 8
+          ability_id: 'howl'
+        - level: 12
+          ability_id: 'searing-bite'
+        - level: 18
+          ability_id: 'flame-gout'
+        - level: 26
+          ability_id: 'solar-flare'
+behavior:
+    movement_type: 'random_wander'
+    first_strike: false
+    wander_radius: 6.0
+    aggro_range: 0.0
+    can_flee: true
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "Emberstripe lunges at {target} for {dmg} damage!"
+        - "Emberstripe presses the attack — {target} takes {dmg} damage!"
+    - action: 'flee'
+      messages:
+        - "Emberstripe breaks off and is gone into the treeline."
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import { Aside } from '@astrojs/starlight/components';
+
+One of the eighteen forms a [Shibe](/docs/npcdb/shibe/) can take. Evolution is a
+one-way, one-time change, triggered by using a **Cinder Brand**
+on the pet — a Shibe that becomes this is never anything else.
+
+<Aside type="note" title="Terminal form">
+	This species does not evolve further. Its stat line, movepool and element are what the
+	Shibe permanently committed to.
+</Aside>

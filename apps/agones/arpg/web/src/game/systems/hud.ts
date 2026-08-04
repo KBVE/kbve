@@ -275,7 +275,8 @@ export type PetRosterOp =
 	| { kind: 'setActive'; idx: number }
 	| { kind: 'release'; idx: number }
 	| { kind: 'rename'; idx: number; name: string }
-	| { kind: 'elixir'; idx: number };
+	| { kind: 'elixir'; idx: number }
+	| { kind: 'evolve'; idx: number; itemRef: string };
 
 export function emitPetRoster(sync: PetRosterSync): void {
 	laserEvents.emit(PET_ROSTER_EVENT, sync);

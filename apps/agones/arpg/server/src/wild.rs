@@ -25,9 +25,10 @@ use crate::game::{SPAWN_FLOOR, floor_near_z};
 /// world object rather than as a hostile creature.
 pub const WILD_PET_REF: &str = "wild-pet";
 
-/// The species a wild pet is an instance of. Only one catchable species exists today; when there
-/// are more, this becomes a weighted table per biome.
-pub const WILD_SPECIES_REF: &str = "mechamutt";
+/// The species a wild pet is an instance of. The base of the shibe line: every owned pet starts
+/// as a shibe and becomes one of eighteen forms by evolution, so the evolved forms deliberately
+/// never spawn. When there are other lines, this becomes a weighted table per biome.
+pub const WILD_SPECIES_REF: &str = "shibe";
 
 pub const WILD_LEVEL_MIN: u32 = 3;
 pub const WILD_LEVEL_MAX: u32 = 8;

@@ -3,6 +3,30 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Aether Shard",
+        "hidden": true
+      },
+      "description": "The evolution trigger for Aetherfang. Inert in the hand, and warm the moment a Shibe is near one.\n",
+      "lore": "One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.\n",
+      "ref": "aether-shard",
+      "key": 136,
+      "id": "01KTVTRAB1AETHERSHARD00000",
+      "name": "Aether Shard",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_RARE",
+      "emoji": "💠",
+      "stackable": true,
+      "maxStack": 5,
+      "buyPrice": 1200,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Alchemist Stardust",
         "hidden": true
       },
@@ -12,16 +36,23 @@
       "key": 9,
       "id": "01J2GHZQ9CXY89NB7NS5Q2DRSD",
       "name": "Alchemist Stardust",
-      "typeFlags": 397,
+      "typeFlags": 2112,
       "consumable": false,
       "stackable": true,
+      "maxStack": 100,
+      "tradeable": true,
       "rarity": "ITEM_RARITY_MYTHIC",
       "weight": 0.1,
+      "emoji": "✨",
       "buyPrice": 10000,
-      "durability": 999,
+      "sellPrice": 4000,
       "levelRequirement": 10,
-      "cooldown": 0,
       "action": "transmute",
+      "tags": [
+        "material",
+        "alchemy",
+        "rareicon"
+      ],
       "bonuses": {
         "quantumFlux": true,
         "elementAffinity": 1,
@@ -1162,6 +1193,30 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Cinder Brand",
+        "hidden": true
+      },
+      "description": "The evolution trigger for Emberstripe. Inert in the hand, and warm the moment a Shibe is near one.\n",
+      "lore": "One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.\n",
+      "ref": "cinder-brand",
+      "key": 133,
+      "id": "01KTVTRAB1CINDERBRAND00000",
+      "name": "Cinder Brand",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_RARE",
+      "emoji": "🕯️",
+      "stackable": true,
+      "maxStack": 5,
+      "buyPrice": 1200,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Circuit Jacket",
         "hidden": true
       },
@@ -1523,6 +1578,30 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Cyber Core",
+        "hidden": true
+      },
+      "description": "The evolution trigger for Mechamutt. Inert in the hand, and warm the moment a Shibe is near one.\n",
+      "lore": "One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.\n",
+      "ref": "cyber-core",
+      "key": 134,
+      "id": "01KTVTRAB1CYBERCORE0000000",
+      "name": "Cyber Core",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_RARE",
+      "emoji": "⚙️",
+      "stackable": true,
+      "maxStack": 5,
+      "buyPrice": 1200,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Daisy",
         "hidden": true
       },
@@ -1587,6 +1666,30 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Dawn Prism",
+        "hidden": true
+      },
+      "description": "The evolution trigger for Lumipaw. Inert in the hand, and warm the moment a Shibe is near one.\n",
+      "lore": "One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.\n",
+      "ref": "dawn-prism",
+      "key": 126,
+      "id": "01KTVTRAB1DAWNPRISM0000000",
+      "name": "Dawn Prism",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_RARE",
+      "emoji": "🔆",
+      "stackable": true,
+      "maxStack": 5,
+      "buyPrice": 1200,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Diamond",
         "hidden": true
       },
@@ -1612,6 +1715,30 @@
       "stacking": {
         "packMax": 4
       }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Dire Fang",
+        "hidden": true
+      },
+      "description": "The evolution trigger for Direhowl. Inert in the hand, and warm the moment a Shibe is near one.\n",
+      "lore": "One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.\n",
+      "ref": "dire-fang",
+      "key": 131,
+      "id": "01KTVTRAB1DIREFANG00000000",
+      "name": "Dire Fang",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_RARE",
+      "emoji": "🦴",
+      "stackable": true,
+      "maxStack": 5,
+      "buyPrice": 1200,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
+      ]
     },
     {
       "template": "splash",
@@ -1669,6 +1796,30 @@
         "shelfLifeSeconds": 345600,
         "spoilsIntoRef": "rotten-food"
       }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Dusk Feather",
+        "hidden": true
+      },
+      "description": "The evolution trigger for Duskwing. Inert in the hand, and warm the moment a Shibe is near one.\n",
+      "lore": "One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.\n",
+      "ref": "dusk-feather",
+      "key": 132,
+      "id": "01KTVTRAB1DUSKFEATHER00000",
+      "name": "Dusk Feather",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_RARE",
+      "emoji": "🌌",
+      "stackable": true,
+      "maxStack": 5,
+      "buyPrice": 1200,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
+      ]
     },
     {
       "template": "splash",
@@ -1824,6 +1975,30 @@
             }
           ]
         }
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Ember Shard",
+        "hidden": true
+      },
+      "description": "The evolution trigger for Blazeruff. Inert in the hand, and warm the moment a Shibe is near one.\n",
+      "lore": "One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.\n",
+      "ref": "ember-shard",
+      "key": 128,
+      "id": "01KTVTRAB1EMBERSHARD000000",
+      "name": "Ember Shard",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_RARE",
+      "emoji": "🔥",
+      "stackable": true,
+      "maxStack": 5,
+      "buyPrice": 1200,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
       ]
     },
     {
@@ -2169,6 +2344,30 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Frost Fang",
+        "hidden": true
+      },
+      "description": "The evolution trigger for Frostfang. Inert in the hand, and warm the moment a Shibe is near one.\n",
+      "lore": "One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.\n",
+      "ref": "frost-fang",
+      "key": 141,
+      "id": "01KTVTRAB1FROSTFANG0000000",
+      "name": "Frost Fang",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_RARE",
+      "emoji": "❄️",
+      "stackable": true,
+      "maxStack": 5,
+      "buyPrice": 1200,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Frozen Pizza Rolls",
         "hidden": true
       },
@@ -2299,6 +2498,30 @@
         }
       ],
       "hasImg": true
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Glacial Core",
+        "hidden": true
+      },
+      "description": "The evolution trigger for Glacierfang. Inert in the hand, and warm the moment a Shibe is near one.\n",
+      "lore": "One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.\n",
+      "ref": "glacial-core",
+      "key": 127,
+      "id": "01KTVTRAB1GLACIALCORE00000",
+      "name": "Glacial Core",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_RARE",
+      "emoji": "🧊",
+      "stackable": true,
+      "maxStack": 5,
+      "buyPrice": 1200,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
+      ]
     },
     {
       "template": "splash",
@@ -2489,6 +2712,30 @@
         "spoilsIntoRef": "rotten-food"
       },
       "hasImg": true
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Grim Sigil",
+        "hidden": true
+      },
+      "description": "The evolution trigger for Grimclaw. Inert in the hand, and warm the moment a Shibe is near one.\n",
+      "lore": "One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.\n",
+      "ref": "grim-sigil",
+      "key": 137,
+      "id": "01KTVTRAB1GRIMSIGIL0000000",
+      "name": "Grim Sigil",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_RARE",
+      "emoji": "🩸",
+      "stackable": true,
+      "maxStack": 5,
+      "buyPrice": 1200,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
+      ]
     },
     {
       "template": "splash",
@@ -3906,6 +4153,30 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Mossy Antler",
+        "hidden": true
+      },
+      "description": "The evolution trigger for Mossantler. Inert in the hand, and warm the moment a Shibe is near one.\n",
+      "lore": "One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.\n",
+      "ref": "mossy-antler",
+      "key": 130,
+      "id": "01KTVTRAB1MOSSYANTLER00000",
+      "name": "Mossy Antler",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_RARE",
+      "emoji": "🌿",
+      "stackable": true,
+      "maxStack": 5,
+      "buyPrice": 1200,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Mossy Stone",
         "hidden": true
       },
@@ -4649,6 +4920,30 @@
         "shelfLifeSeconds": 432000,
         "spoilsIntoRef": "rotten-food"
       }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Prism Wing",
+        "hidden": true
+      },
+      "description": "The evolution trigger for Prismawing. Inert in the hand, and warm the moment a Shibe is near one.\n",
+      "lore": "One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.\n",
+      "ref": "prism-wing",
+      "key": 139,
+      "id": "01KTVTRAB1PRISMWING0000000",
+      "name": "Prism Wing",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_RARE",
+      "emoji": "🦋",
+      "stackable": true,
+      "maxStack": 5,
+      "buyPrice": 1200,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
+      ]
     },
     {
       "template": "splash",
@@ -5508,6 +5803,30 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Seraph Bell",
+        "hidden": true
+      },
+      "description": "The evolution trigger for Aurelight. Inert in the hand, and warm the moment a Shibe is near one.\n",
+      "lore": "One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.\n",
+      "ref": "seraph-bell",
+      "key": 135,
+      "id": "01KTVTRAB1SERAPHBELL000000",
+      "name": "Seraph Bell",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_RARE",
+      "emoji": "🔔",
+      "stackable": true,
+      "maxStack": 5,
+      "buyPrice": 1200,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Shadow Cloak",
         "hidden": true
       },
@@ -5829,6 +6148,30 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Spore Cap",
+        "hidden": true
+      },
+      "description": "The evolution trigger for Sporecap. Inert in the hand, and warm the moment a Shibe is near one.\n",
+      "lore": "One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.\n",
+      "ref": "spore-cap",
+      "key": 138,
+      "id": "01KTVTRAB1SPORECAP00000000",
+      "name": "Spore Cap",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_RARE",
+      "emoji": "🍄",
+      "stackable": true,
+      "maxStack": 5,
+      "buyPrice": 1200,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Starship",
         "hidden": true
       },
@@ -5952,6 +6295,54 @@
       "stackable": true,
       "maxStack": 50,
       "buyPrice": 2
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Storm Cell",
+        "hidden": true
+      },
+      "description": "The evolution trigger for Stormcoat. Inert in the hand, and warm the moment a Shibe is near one.\n",
+      "lore": "One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.\n",
+      "ref": "storm-cell",
+      "key": 129,
+      "id": "01KTVTRAB1STORMCELL0000000",
+      "name": "Storm Cell",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_RARE",
+      "emoji": "⚡",
+      "stackable": true,
+      "maxStack": 5,
+      "buyPrice": 1200,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Sun Mane",
+        "hidden": true
+      },
+      "description": "The evolution trigger for Solmane. Inert in the hand, and warm the moment a Shibe is near one.\n",
+      "lore": "One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.\n",
+      "ref": "sun-mane",
+      "key": 140,
+      "id": "01KTVTRAB1SUNMANE000000000",
+      "name": "Sun Mane",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_RARE",
+      "emoji": "☀️",
+      "stackable": true,
+      "maxStack": 5,
+      "buyPrice": 1200,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
+      ]
     },
     {
       "template": "splash",
@@ -6378,6 +6769,30 @@
       "weight": 0.1,
       "tags": [
         "isometric"
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Umbral Shard",
+        "hidden": true
+      },
+      "description": "The evolution trigger for Voidmaw. Inert in the hand, and warm the moment a Shibe is near one.\n",
+      "lore": "One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.\n",
+      "ref": "umbral-shard",
+      "key": 124,
+      "id": "01KTVTRAB1UMBRALSHARD00000",
+      "name": "Umbral Shard",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_RARE",
+      "emoji": "🌑",
+      "stackable": true,
+      "maxStack": 5,
+      "buyPrice": 1200,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
       ]
     },
     {
@@ -7158,6 +7573,30 @@
         "height": 1
       },
       "hasImg": true
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Verdant Plume",
+        "hidden": true
+      },
+      "description": "The evolution trigger for Verdanwing. Inert in the hand, and warm the moment a Shibe is near one.\n",
+      "lore": "One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.\n",
+      "ref": "verdant-plume",
+      "key": 125,
+      "id": "01KTVTRAB1VERDANTPLUME0000",
+      "name": "Verdant Plume",
+      "typeFlags": 544,
+      "rarity": "ITEM_RARITY_RARE",
+      "emoji": "🍃",
+      "stackable": true,
+      "maxStack": 5,
+      "buyPrice": 1200,
+      "consumable": true,
+      "action": "consume",
+      "tags": [
+        "arpg"
+      ]
     },
     {
       "template": "splash",

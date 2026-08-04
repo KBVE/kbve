@@ -310,6 +310,11 @@ pub fn to_roster_sync(
                             .xp_to_next(s.level)
                     })
                     .unwrap_or(0),
+                evolve_items: db
+                    .and_then(|db| db.get(&s.species_ref))
+                    .and_then(|species| species.pet.as_ref())
+                    .map(|pet| crate::evolve::evolution_items(pet, s.level))
+                    .unwrap_or_default(),
                 hp: s.vitals.hp,
                 max_hp: s.vitals.max_hp,
                 attack: s.vitals.attack,

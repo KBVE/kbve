@@ -19,6 +19,14 @@ const MUTED = '#9fb3d8';
 const TEXT_SHADOW = '0 1px 2px rgba(0,0,0,0.9)';
 const SPRITE_OF = (ref: string) => arpgAsset(`/assets/npc/${ref}.png`);
 
+/** Turn a kebab-case ref into a readable label — the server sends item refs, not names. */
+function prettyRef(ref: string): string {
+	return ref
+		.split('-')
+		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+		.join(' ');
+}
+
 /** Longest nickname the server will accept — mirrors `simgrid::PET_NICKNAME_MAX`. */
 export const NICKNAME_MAX = 20;
 
@@ -363,6 +371,48 @@ function PetDetail({
 					Rename
 				</HubButton>
 			</div>
+
+			{pet.evolve_items.length > 0 && (
+				<>
+					<GothicDivider />
+					<div
+						style={{
+							display: 'flex',
+							flexDirection: 'column',
+							gap: 4,
+						}}>
+						<div
+							style={{
+								color: MUTED,
+								fontSize: 11,
+								textShadow: TEXT_SHADOW,
+							}}>
+							Evolution — permanent, and only once
+						</div>
+						<div
+							style={{
+								display: 'flex',
+								gap: 6,
+								flexWrap: 'wrap',
+							}}
+							data-testid="evolve-options">
+							{pet.evolve_items.map((itemRef) => (
+								<HubButton
+									key={itemRef}
+									onClick={() =>
+										onOp({
+											kind: 'evolve',
+											idx,
+											itemRef,
+										})
+									}>
+									{prettyRef(itemRef)}
+								</HubButton>
+							))}
+						</div>
+					</div>
+				</>
+			)}
 
 			<div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
 				<HubButton

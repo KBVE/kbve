@@ -224,6 +224,10 @@ function writeInput(w: PostcardWriter, inp: Input): void {
 	} else if ('HealPets' in inp) {
 		w.variant(40);
 		w.u32(inp.HealPets.npc);
+	} else if ('EvolvePet' in inp) {
+		w.variant(42);
+		w.u32(inp.EvolvePet.idx);
+		w.string(inp.EvolvePet.item_ref);
 	} else if ('RespondLearnMove' in inp) {
 		w.variant(41);
 		w.string(inp.RespondLearnMove.pet_id);
@@ -494,6 +498,8 @@ function readPetView(r: PostcardReader): PetView {
 	const level = r.u32();
 	const xp = r.u32();
 	const xp_to_next = r.u32();
+	const evolve_items: string[] = [];
+	for (let n = r.seqLen(); n > 0; n--) evolve_items.push(r.string());
 	const hp = r.i32();
 	const max_hp = r.i32();
 	const attack = r.i32();
@@ -510,6 +516,7 @@ function readPetView(r: PostcardReader): PetView {
 		level,
 		xp,
 		xp_to_next,
+		evolve_items,
 		hp,
 		max_hp,
 		attack,

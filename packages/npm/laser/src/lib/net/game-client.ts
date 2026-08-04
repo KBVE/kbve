@@ -325,6 +325,13 @@ export class GameClient {
 		this.sendInputs([{ HealPets: { npc } }]);
 	}
 
+	/** Spend evolution item `itemRef` on roster slot `idx`. The server refuses (with a
+	 * `petNotice`) unless the item is held and the pet's species lists it as a trigger; on
+	 * success the `petRoster` sync carries the new species, stats and moves. */
+	evolvePet(idx: number, itemRef: string): void {
+		this.sendInputs([{ EvolvePet: { idx, item_ref: itemRef } }]);
+	}
+
 	/** Answer an outstanding `petLearnOffer` for pet instance `petId`. `slot` is the index
 	 * into the pet's known moves to overwrite; `null` declines and keeps the current four.
 	 * The server replies with a terminal `petLearnOffer` status either way. */
