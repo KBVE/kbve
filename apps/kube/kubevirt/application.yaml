@@ -12,6 +12,8 @@ metadata:
         kbve.com/schema-version: v1
         kbve.com/category: virtualization
         kbve.com/stack: core
+        kbve.com/upstream-manifest: https://github.com/kubevirt/kubevirt/releases/download/v1.7.2/kubevirt-operator.yaml
+        kbve.com/upstream-version: v1.7.2
     finalizers:
         - resources-finalizer.argocd.argoproj.io
 spec:
