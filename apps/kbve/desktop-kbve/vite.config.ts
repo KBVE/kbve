@@ -10,6 +10,23 @@ const root = fileURLToPath(new URL('.', import.meta.url));
 export default defineConfig({
 	plugins: [react(), tailwindcss()],
 	clearScreen: false,
+	resolve: {
+		alias: { 'react-native': 'react-native-web' },
+		// @kbve/rn ships .web.tsx variants for browser-safe implementations;
+		// they must win over the native file of the same name.
+		extensions: [
+			'.web.tsx',
+			'.web.ts',
+			'.web.jsx',
+			'.web.js',
+			'.tsx',
+			'.ts',
+			'.jsx',
+			'.js',
+			'.json',
+		],
+	},
+	define: { global: 'globalThis', __DEV__: JSON.stringify(!isProd) },
 	server: {
 		port: 1421,
 		strictPort: true,

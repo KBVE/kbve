@@ -257,6 +257,41 @@ select.control {
 	font-family: var(--font-display);
 }
 
+/* ─── Sign In ─────────────────────────────────────────────────────────────── */
+
+.signin-btn {
+	background-color: var(--color-surface);
+	border: 1px solid var(--color-border);
+	border-radius: 0.625rem;
+	color: var(--color-text);
+	font-size: 13px;
+	line-height: 1.5;
+	padding: 0.7rem 1rem;
+	cursor: pointer;
+	width: 100%;
+	transition:
+		background-color 150ms ease,
+		border-color 150ms ease,
+		opacity 150ms ease;
+}
+
+.signin-btn:hover:not(:disabled) {
+	background-color: var(--color-surface-hover);
+	border-color: var(--color-accent);
+}
+
+.signin-btn:focus-visible {
+	outline: none;
+	border-color: var(--color-accent);
+	box-shadow: 0 0 0 3px
+		color-mix(in srgb, var(--color-accent) 25%, transparent);
+}
+
+.signin-btn:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
 /* ─── Sidebar ─────────────────────────────────────────────────────────────── */
 
 /* Margin-based inset for all sidebar sections (brand, footer) */
