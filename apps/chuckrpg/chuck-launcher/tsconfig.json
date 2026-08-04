@@ -17,11 +17,7 @@
 		"noFallthroughCasesInSwitch": true,
 		"paths": {
 			"@/*": ["./src/*"]
-		},
-		"noUncheckedSideEffectImports": false,
-		"types": ["*"],
-		"esModuleInterop": false,
-		"ignoreDeprecations": "6.0"
+		}
 	},
 	"include": ["src"]
 }
