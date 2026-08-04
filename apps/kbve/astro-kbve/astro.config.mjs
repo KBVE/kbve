@@ -9,6 +9,7 @@ import worker from '@astropub/worker';
 import mermaid from 'astro-mermaid';
 import { unified } from '@astrojs/markdown-remark';
 import rehypeLinkAttrs from './src/lib/rehype-link-attrs.mjs';
+import { isIndexableUrl } from './src/lib/noindex-routes.mjs';
 import { readFileSync } from 'node:fs';
 import https from 'node:https';
 import { fileURLToPath } from 'node:url';
@@ -461,6 +462,7 @@ export default defineConfig({
 		}),
 		react(),
 		sitemap({
+			filter: isIndexableUrl,
 			i18n: {
 				defaultLocale: 'en',
 				locales: {
