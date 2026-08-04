@@ -478,6 +478,14 @@ textarea:focus-visible {
 			position: relative;
 		}
 
+		/* Starlight sizes .main-pane as `100% - var(--sl-sidebar-width)` to
+		   reserve room for the right sidebar. That container is zero-width
+		   above, and the var doubles as the LEFT rail width — so the reserve
+		   made the content resize every time the rail toggled. */
+		[data-has-sidebar][data-has-toc] .main-pane {
+			width: 100% !important;
+		}
+
 		/* Default state = COLLAPSED (peek strip).
 		   This is intentional so cross-doc view-transitions that capture
 		   a snapshot before the inline `data-right-sidebar-collapsed`
@@ -1342,6 +1350,15 @@ body:has([data-kbve-section])
 				width 0.2s ease,
 				padding-inline-start 0.2s ease;
 		}
+
+		:root[data-kbve-rail='expanded']:has(body [data-kbve-section])
+			.sidebar-pane {
+			box-shadow: 8px 0 24px rgb(0 0 0 / 0.18);
+			transition:
+				width 0.2s ease,
+				box-shadow 0.2s ease;
+		}
+
 		:root[data-kbve-rail='collapsed'] {
 			--sl-sidebar-width: 4rem;
 		}
@@ -1366,5 +1383,16 @@ body:has([data-kbve-section])
 		clip: rect(0, 0, 0, 0);
 		white-space: nowrap;
 		border: 0;
+	}
+}
+
+/* Off-canvas rail, mirroring the right sidebar: the content column is pinned
+   to the 4rem icon strip in both states and the expanded pane overlays it, so
+   toggling the rail never re-columns a bento band. Starlight ties
+   --sl-content-inline-start to --sl-sidebar-width from an unlayered <style> in
+   Page.astro, so this override has to stay unlayered to win. */
+@media (min-width: 50rem) {
+	:root:has(body [data-kbve-section]) {
+		--sl-content-inline-start: 4rem;
 	}
 }

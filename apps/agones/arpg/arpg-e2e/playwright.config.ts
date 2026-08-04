@@ -6,6 +6,10 @@ const workspaceRoot = resolve(__dirname, '../../../..');
 
 export default defineConfig({
 	testDir: './e2e',
+	// cdn.spec.ts asserts nginx container behavior (CORS, immutable cache headers,
+	// the hashed Discord bundle). This config serves the app from vite dev, where
+	// none of that exists — it belongs to playwright.cdn.config.ts alone.
+	testIgnore: 'cdn.spec.ts',
 	fullyParallel: true,
 	forbidOnly: !!process.env['CI'],
 	retries: process.env['CI'] ? 2 : 0,

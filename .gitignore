@@ -193,3 +193,4 @@ apps/**/unreal-*/Config/Local*.ini
 .husky/_/pre-push
 .husky/_/pre-commit
 .husky/_/pre-rebase
+.e2e-venv/
