@@ -348,4 +348,57 @@ yyfz2pDnPyf9CnGecKIzKxs/kG+/eRJw5squYKKhDR+TX5jIMpMfiiVf
         let got: TestClaims = v.verify_refreshed(&token).await.unwrap();
         assert_eq!(got.sub, "ok");
     }
+
+    /// Serve `ES256_JWKS` on an ephemeral port, counting requests.
+    async fn jwks_server() -> (String, Arc<std::sync::atomic::AtomicUsize>) {
+        use axum::{Router, routing::get};
+        use std::sync::atomic::AtomicUsize;
+        let hits = Arc::new(AtomicUsize::new(0));
+        let h = hits.clone();
+        let app = Router::new().route(
+            "/jwks",
+            get(move || {
+                h.fetch_add(1, Ordering::SeqCst);
+                async { ES256_JWKS }
+            }),
+        );
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        (format!("http://{addr}/jwks"), hits)
+    }
+
+    // Rotation path against a live endpoint: the verifier starts with no keys,
+    // so plain verify fails, but verify_refreshed fetches the JWKS on the kid
+    // miss (exactly once) and the token then verifies.
+    #[tokio::test]
+    async fn verify_refreshed_fetches_rotated_key() {
+        let (uri, hits) = jwks_server().await;
+        let v = JwtVerifier::new(uri, None, None, None);
+        let key = EncodingKey::from_ec_pem(ES256_PEM.as_bytes()).unwrap();
+        let token = sign(Algorithm::ES256, Some("test-es256"), &key, "rotated");
+        assert!(v.verify::<TestClaims>(&token).is_err());
+        let got: TestClaims = v.verify_refreshed(&token).await.unwrap();
+        assert_eq!(got.sub, "rotated");
+        assert_eq!(hits.load(Ordering::SeqCst), 1);
+    }
+
+    // A kid the upstream does not serve must not refetch more than once per
+    // rate-limit window, no matter how many tokens carry it.
+    #[tokio::test]
+    async fn verify_refreshed_missing_kid_is_rate_limited() {
+        let (uri, hits) = jwks_server().await;
+        let v = JwtVerifier::new(uri, None, None, None);
+        let key = EncodingKey::from_ec_pem(ES256_PEM.as_bytes()).unwrap();
+        let token = sign(Algorithm::ES256, Some("never-published"), &key, "x");
+        for _ in 0..3 {
+            assert!(matches!(
+                v.verify_refreshed::<TestClaims>(&token).await,
+                Err(VerifyError::NoKey(Algorithm::ES256, _))
+            ));
+        }
+        assert_eq!(hits.load(Ordering::SeqCst), 1);
+    }
 }

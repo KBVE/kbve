@@ -269,7 +269,12 @@ impl JwtCache {
 
     fn insert(&self, token: String, info: Arc<TokenInfo>) {
         if self.tokens.len() >= MAX_CACHE_SIZE {
-            self.evict_oldest(MAX_CACHE_SIZE / 10);
+            // Entries self-expire, so reaping them usually frees enough room
+            // without evicting anything still live.
+            self.cleanup_expired();
+            if self.tokens.len() >= MAX_CACHE_SIZE {
+                self.evict_oldest(MAX_CACHE_SIZE / 10);
+            }
         }
         self.tokens.insert(token, info);
     }
