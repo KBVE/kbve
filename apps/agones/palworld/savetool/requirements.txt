@@ -1,1 +1,2 @@
 palworld-save-tools==0.24.0
+pyooz==0.0.8

@@ -69,7 +69,7 @@
 		{
 			"key": "agones_palworld_savetool",
 			"app_name": "agones-palworld-savetool",
-			"version": "0.0.2",
+			"version": "0.0.3",
 			"version_toml": "apps/agones/palworld/savetool/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-palworld-savetool.mdx",
 			"source_path": "apps/agones/palworld/savetool",
