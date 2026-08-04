@@ -500,10 +500,15 @@ message PetInfo {
   optional int32 base_friendship = 5;    // Starting friendship/loyalty
   optional float gender_ratio = 6;       // Male fraction 0.0–1.0; <0 = genderless
   repeated PetMovepoolEntry movepool = 7;
-  repeated string egg_groups = 8;        // Breeding compatibility groups
   repeated PetEvolution evolutions = 9;
   optional Element secondary_element = 10; // Dual-typing for matchups
-  optional int32 base_stat_total = 11;   // Sum of base stats (tiering aid)
+
+  // 8 was egg_groups — breeding is out of scope, and egg groups mean nothing without it.
+  // Cheap to restore if that changes: species data, so no per-pet column.
+  // 11 was base_stat_total — the sum of the six base stats, so it could only ever drift
+  // from the numbers it summed. Compute it where a tiering view needs it.
+  reserved 8, 11;
+  reserved "egg_groups", "base_stat_total";
 }
 
 // Generic extension slot — arbitrary key-value pairs for game-specific data

@@ -74,6 +74,26 @@ pub struct PetMoveSlot {
 #[derive(Component, Clone, Default)]
 pub struct PetMoves(pub Vec<PetMoveSlot>);
 
+/// How attached the pet is to its owner, `0..=255`, seeded from the species'
+/// `base_friendship`. Read by [`crate::battle::Combatant`] — a pet at or above
+/// [`FRIENDSHIP_DEVOTED`] hits harder.
+#[derive(Component, Clone, Copy, Debug, PartialEq, Eq, Default, Serialize, Deserialize)]
+pub struct PetFriendship(pub u8);
+
+/// Friendship at which a pet starts fighting harder for its owner.
+pub const FRIENDSHIP_DEVOTED: u8 = 200;
+
+/// Friendship gained per duel won by a participating pet.
+pub const FRIENDSHIP_PER_WIN: u8 = 2;
+
+/// Friendship gained per level, so a pet that is actually being raised closes the gap to
+/// [`FRIENDSHIP_DEVOTED`] rather than needing hundreds of duels.
+pub const FRIENDSHIP_PER_LEVEL: u8 = 4;
+
+/// Friendship lost when the pet faints. Larger than a win is worth, so carelessly throwing
+/// a pet into battles it loses walks the number backwards.
+pub const FRIENDSHIP_ON_FAINT: u8 = 5;
+
 /// An owner's ordered pet roster — handles to pet entities, plus the active index
 /// (the pet sent out first in battle). Mutate via [`PetBank`].
 #[derive(Component, Clone, Default)]
@@ -83,6 +103,9 @@ pub struct PetRoster {
 }
 
 /// Detached DTO form of a pet instance — for read-back, the wire, and persistence.
+///
+/// This is the shape `pet_instances` in #13789 mirrors, so every field here is a column
+/// and every field absent here is one the schema does not need.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct PetSnapshot {
     pub id: String,
@@ -90,6 +113,10 @@ pub struct PetSnapshot {
     pub nickname: String,
     pub level: u32,
     pub xp: u32,
+    /// Rolled once at mint and immutable thereafter — not by levelling, not by evolution.
+    pub genes: crate::genes::PetGenes,
+    pub gender: crate::genes::PetGender,
+    pub friendship: u8,
     pub vitals: PetVitals,
     pub moves: Vec<PetMoveSlot>,
 }
@@ -153,23 +180,47 @@ pub fn move_slot_from_species(species: &NpcDef, ability_id: &str) -> Option<PetM
 }
 
 /// Mint a fresh pet instance from a catchable species at `level`. Returns `None` when
-/// the species isn't a catchable pet. Vitals come from the base stats scaled by level;
-/// moves are the most-recent (up to four) moves learned at or below `level`, each at
-/// full PP.
+/// the species isn't a catchable pet. Vitals come from the base stats scaled by level and
+/// then by the pet's own genetics; moves are the most-recent (up to four) moves learned at
+/// or below `level`, each at full PP.
 pub fn mint_pet_from_species(species: &NpcDef, level: u32) -> Option<PetSnapshot> {
+    mint_pet_inner(species, level, None)
+}
+
+/// Mint with genetics supplied rather than rolled.
+///
+/// Two uses: a pet handed out with fixed stats, and any test that needs two pets of one species
+/// to be comparable — since genetics are rolled from a fresh ULID, two calls to
+/// [`mint_pet_from_species`] are deliberately no longer identical.
+pub fn mint_pet_with_genes(
+    species: &NpcDef,
+    level: u32,
+    genes: crate::genes::PetGenes,
+) -> Option<PetSnapshot> {
+    mint_pet_inner(species, level, Some(genes))
+}
+
+fn mint_pet_inner(
+    species: &NpcDef,
+    level: u32,
+    fixed: Option<crate::genes::PetGenes>,
+) -> Option<PetSnapshot> {
     let pet = species.pet.as_ref().filter(|p| p.catchable)?;
     let lvl = level.max(1);
-    let s = &species.stats;
-    let base_hp = s.max_hp.max(s.hp);
-    let vitals = PetVitals {
-        hp: level_scale(base_hp, lvl),
-        max_hp: level_scale(base_hp, lvl),
-        attack: level_scale(s.attack, lvl),
-        defense: level_scale(s.defense, lvl),
-        sp_attack: level_scale(s.special_attack, lvl),
-        sp_defense: level_scale(s.special_defense, lvl),
-        speed: level_scale(s.speed, lvl),
-    };
+    let id = mint_pet_id();
+    let genes = fixed.unwrap_or_else(|| crate::genes::PetGenes::roll(&id));
+
+    // Deliberately the same call `grow_pet` and `evolve_pet` make rather than an inlined
+    // copy of the curve: a pet minted at level N must have identical stats to one grown or
+    // evolved into level N, or where a pet came from would be visible in its stat line.
+    let mut vitals = PetVitals::default();
+    crate::progress::rescale_for(
+        &mut vitals,
+        &crate::progress::BaseStats::of(species),
+        lvl,
+        &genes,
+    );
+    vitals.hp = vitals.max_hp;
 
     let mut learned: Vec<&str> = pet
         .movepool
@@ -188,11 +239,14 @@ pub fn mint_pet_from_species(species: &NpcDef, level: u32) -> Option<PetSnapshot
         .collect();
 
     Some(PetSnapshot {
-        id: mint_pet_id(),
+        gender: crate::genes::PetGender::roll(pet.gender_ratio, &id),
+        friendship: pet.base_friendship.clamp(0, u8::MAX as i32) as u8,
+        id,
         species_ref: species.ref_id.clone(),
         nickname: species.name.clone(),
         level: lvl,
         xp: 0,
+        genes,
         vitals,
         moves,
     })
@@ -243,6 +297,12 @@ pub fn snapshot_from_combatant(c: &crate::battle::Combatant) -> PetSnapshot {
         nickname: c.nickname.clone(),
         level: c.level,
         xp: 0,
+        // The individual is what was caught. Rolling fresh genetics here would leave the
+        // stored vitals — the wild pet's, computed from ITS rolls — disagreeing with the pet's
+        // own genes, and the disagreement would only surface as a stat jump at its next level.
+        genes: c.genes,
+        gender: c.gender,
+        friendship: c.friendship,
         vitals: PetVitals {
             hp: c.hp.max(1),
             max_hp: c.max_hp,
@@ -315,6 +375,10 @@ pub fn to_roster_sync(
                     .and_then(|species| species.pet.as_ref())
                     .map(|pet| crate::evolve::evolution_items(pet, s.level))
                     .unwrap_or_default(),
+                nature: s.genes.nature.index() as u32,
+                ivs: s.genes.ivs.iter().map(|iv| *iv as u32).collect(),
+                gender: s.gender.as_wire() as u32,
+                friendship: s.friendship as u32,
                 hp: s.vitals.hp,
                 max_hp: s.vitals.max_hp,
                 attack: s.vitals.attack,
@@ -353,24 +417,27 @@ fn fix_active(roster: &mut PetRoster, removed: usize) {
     }
 }
 
+/// Everything [`PetBank`] reads off a pet entity to rebuild a [`PetSnapshot`]. Named because
+/// the inline tuple crossed clippy's complexity threshold once genetics joined it.
+type PetReadQuery = (
+    &'static PetId,
+    &'static PetRef,
+    &'static PetNickname,
+    &'static PetProgress,
+    &'static crate::genes::PetGenes,
+    &'static crate::genes::PetGender,
+    &'static PetFriendship,
+    &'static PetVitals,
+    &'static PetMoves,
+);
+
 /// The one chokepoint for pet-instance mutation: bundles `Commands` + the pet-entity
 /// query + the per-frame overlay so roster ops can mint, release, and trade the backing
 /// entities and read them back the same frame. Mirrors [`crate::sim::ItemBank`].
 #[derive(SystemParam)]
 pub struct PetBank<'w, 's> {
     pub commands: Commands<'w, 's>,
-    pets: Query<
-        'w,
-        's,
-        (
-            &'static PetId,
-            &'static PetRef,
-            &'static PetNickname,
-            &'static PetProgress,
-            &'static PetVitals,
-            &'static PetMoves,
-        ),
-    >,
+    pets: Query<'w, 's, PetReadQuery>,
     pending: ResMut<'w, PendingPets>,
 }
 
@@ -389,6 +456,9 @@ impl PetBank<'_, '_> {
                     level: snap.level,
                     xp: snap.xp,
                 },
+                snap.genes,
+                snap.gender,
+                PetFriendship(snap.friendship),
                 snap.vitals,
                 PetMoves(snap.moves.clone()),
             ))
@@ -399,13 +469,16 @@ impl PetBank<'_, '_> {
 
     /// Full snapshot for a pet entity — real components if queryable, else the overlay.
     fn read(&self, e: Entity) -> Option<PetSnapshot> {
-        if let Ok((id, r, nick, prog, vit, mv)) = self.pets.get(e) {
+        if let Ok((id, r, nick, prog, genes, gender, friendship, vit, mv)) = self.pets.get(e) {
             return Some(PetSnapshot {
                 id: id.0.clone(),
                 species_ref: r.0.clone(),
                 nickname: nick.0.clone(),
                 level: prog.level,
                 xp: prog.xp,
+                genes: *genes,
+                gender: *gender,
+                friendship: friendship.0,
                 vitals: *vit,
                 moves: mv.0.clone(),
             });
@@ -519,6 +592,103 @@ mod tests {
     use crate::data::{NpcAbility, NpcMovepoolEntry, NpcPet, NpcStats};
     use bevy::prelude::*;
 
+    /// The guarantee that made `rescale_for` the single stat choke point: three different code
+    /// paths reach level N, and a pet must not be able to tell which one it took.
+    ///
+    /// Before per-instance genetics this held for free, because `mint_pet_from_species` inlined
+    /// the same pure `level_scale` the other two used. It does not hold for free any more.
+    #[test]
+    fn minted_grown_and_evolved_pets_agree_at_the_same_level() {
+        let def = mechamutt();
+        let pet = def.pet.as_ref().expect("pet");
+        let base = crate::progress::BaseStats::of(&def);
+        let genes = crate::genes::PetGenes {
+            ivs: [31, 4, 19, 0, 27, 11],
+            nature: crate::genes::Nature::from_index(9),
+        };
+
+        let mut minted = PetVitals::default();
+        crate::progress::rescale_for(&mut minted, &base, 12, &genes);
+
+        let mut grown = PetVitals::default();
+        crate::progress::rescale_for(&mut grown, &base, 1, &genes);
+        grown.hp = grown.max_hp;
+        let mut progress = PetProgress { level: 1, xp: 0 };
+        // Enough xp to cover eleven levels of MediumFast in one award.
+        while progress.level < 12 {
+            let need = crate::progress::GrowthRate::from_proto(&pet.growth_rate)
+                .xp_to_next(progress.level);
+            crate::progress::grow_pet(&mut progress, &mut grown, pet, &base, &genes, need);
+        }
+        assert_eq!(progress.level, 12);
+
+        let mut evolved = PetVitals::default();
+        crate::progress::rescale_for(&mut evolved, &base, 12, &genes);
+        let mut moves = PetMoves(vec![]);
+        crate::evolve::evolve_pet(
+            &def,
+            &PetProgress { level: 12, xp: 0 },
+            &genes,
+            &mut evolved,
+            &mut moves,
+        );
+
+        assert_eq!(minted.max_hp, grown.max_hp, "mint vs grow: max_hp");
+        assert_eq!(minted.attack, grown.attack, "mint vs grow: attack");
+        assert_eq!(minted.speed, grown.speed, "mint vs grow: speed");
+        assert_eq!(minted.max_hp, evolved.max_hp, "mint vs evolve: max_hp");
+        assert_eq!(minted.attack, evolved.attack, "mint vs evolve: attack");
+        assert_eq!(minted.speed, evolved.speed, "mint vs evolve: speed");
+    }
+
+    #[test]
+    fn two_pets_of_one_species_and_level_now_differ() {
+        // The whole point of the module. Before genetics these were byte-identical, which made
+        // catching a second of anything pointless.
+        let def = mechamutt();
+        let a = mint_pet_from_species(&def, 30).expect("mint");
+        let b = mint_pet_from_species(&def, 30).expect("mint");
+        assert_ne!(a.genes, b.genes, "distinct ids must roll distinct genes");
+    }
+
+    #[test]
+    fn a_minted_pets_stats_match_its_own_genes() {
+        let def = mechamutt();
+        let snap = mint_pet_from_species(&def, 25).expect("mint");
+        let mut expected = PetVitals::default();
+        crate::progress::rescale_for(
+            &mut expected,
+            &crate::progress::BaseStats::of(&def),
+            25,
+            &snap.genes,
+        );
+        assert_eq!(snap.vitals.max_hp, expected.max_hp);
+        assert_eq!(snap.vitals.attack, expected.attack);
+        assert_eq!(
+            snap.vitals.hp, snap.vitals.max_hp,
+            "a freshly minted pet starts full"
+        );
+    }
+
+    #[test]
+    fn a_minted_pet_carries_the_species_base_friendship() {
+        let mut def = mechamutt();
+        def.pet.as_mut().expect("pet").base_friendship = 90;
+        assert_eq!(mint_pet_from_species(&def, 5).expect("mint").friendship, 90);
+    }
+
+    #[test]
+    fn an_out_of_range_base_friendship_clamps_instead_of_wrapping() {
+        let mut def = mechamutt();
+        def.pet.as_mut().expect("pet").base_friendship = 4000;
+        assert_eq!(
+            mint_pet_from_species(&def, 5).expect("mint").friendship,
+            u8::MAX
+        );
+        def.pet.as_mut().expect("pet").base_friendship = -20;
+        assert_eq!(mint_pet_from_species(&def, 5).expect("mint").friendship, 0);
+    }
+
     fn mechamutt() -> NpcDef {
         NpcDef {
             ref_id: "mechamutt".into(),
@@ -587,7 +757,10 @@ mod tests {
 
     #[test]
     fn mint_scales_and_learns_levelled_moves() {
-        let snap = mint_pet_from_species(&mechamutt(), 5).expect("catchable");
+        // Genetics pinned so the stat assertion is about the level curve. The identity default
+        // is also what this pet would have had before per-instance variance existed.
+        let snap = mint_pet_with_genes(&mechamutt(), 5, crate::genes::PetGenes::default())
+            .expect("catchable");
         assert_eq!(snap.species_ref, "mechamutt");
         assert_eq!(snap.nickname, "Mechamutt");
         assert_eq!(snap.level, 5);

@@ -709,6 +709,19 @@
 		color: var(--sl-color-gray-3);
 	}
 
+	/* Optional third line: qualifies the value where the label alone
+	   leaves the cell mostly empty (slot, footprint, sell-back, …) */
+	.bento-stat__detail {
+		grid-column: 1 / -1;
+		grid-row: 3;
+		margin-top: 0.35rem;
+		padding-top: 0.5rem;
+		border-top: 1px solid var(--bento-hairline);
+		font-size: 0.75rem;
+		line-height: 1.45;
+		color: var(--sl-color-gray-2);
+	}
+
 	/* Link card: icon, title, blurb, arrow that slides on hover */
 	.bento-linkcard {
 		display: grid;

@@ -127,7 +127,12 @@ export class Knight {
 
 	// Attack timeout (safety fallback if animation callback doesn't fire)
 	private attackStartTime: number = 0;
-	private static readonly ATTACK_DURATION = 400; // ms
+	// Per-combo-stage durations: attack1 (4f@12), attack2 (6f@12), combo (10f@14)
+	private static readonly ATTACK_DURATIONS = [400, 580, 800]; // ms
+	// Pressing attack again within this window after an attack ends chains the combo
+	private static readonly COMBO_WINDOW = 350; // ms
+	private comboStage: number = 0;
+	private lastAttackEndTime: number = 0;
 
 	// Roll timing
 	private rollStartTime: number = 0;
@@ -561,9 +566,20 @@ export class Knight {
 	}
 
 	private attack(): void {
+		const now = Date.now();
+		// Chain combo if attacking again shortly after the last attack ended
+		if (now - this.lastAttackEndTime < Knight.COMBO_WINDOW) {
+			this.comboStage = (this.comboStage + 1) % 3;
+		} else {
+			this.comboStage = 0;
+		}
 		this.setState(KnightState.ATTACKING);
-		this.attackStartTime = Date.now();
-		this.playAnim(KnightAnim.ATTACK);
+		this.attackStartTime = now;
+		this.playAnim(KnightAnim.ATTACK, true);
+	}
+
+	get attackComboStage(): number {
+		return this.comboStage;
 	}
 
 	private roll(): void {
@@ -588,6 +604,7 @@ export class Knight {
 
 	// Called when attack animation completes
 	onAttackComplete(): void {
+		this.lastAttackEndTime = Date.now();
 		this.clearState(KnightState.ATTACKING);
 		// Force immediate transition to idle - updateAnimation will pick the right one next frame
 		this.playAnim(KnightAnim.IDLE, true);
@@ -787,7 +804,12 @@ export class Knight {
 				animKey = KNIGHT_ANIMATIONS.crouchWalk.key;
 				break;
 			case KnightAnim.ATTACK:
-				animKey = KNIGHT_ANIMATIONS.attack1.key;
+				animKey =
+					this.comboStage === 2
+						? KNIGHT_ANIMATIONS.attackCombo.key
+						: this.comboStage === 1
+							? KNIGHT_ANIMATIONS.attack2.key
+							: KNIGHT_ANIMATIONS.attack1.key;
 				break;
 			case KnightAnim.TURN:
 				animKey = KNIGHT_ANIMATIONS.turnAround.key;
@@ -837,7 +859,8 @@ export class Knight {
 
 		// Safety timeout for attack animation
 		if (this.isAttacking) {
-			if (Date.now() - this.attackStartTime > Knight.ATTACK_DURATION) {
+			const duration = Knight.ATTACK_DURATIONS[this.comboStage] ?? 400;
+			if (Date.now() - this.attackStartTime > duration) {
 				// Use the same handler as animation complete
 				this.onAttackComplete();
 				// Fall through to pick the right animation below

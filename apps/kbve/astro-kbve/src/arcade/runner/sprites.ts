@@ -105,6 +105,13 @@ export const KNIGHT_ANIMATIONS = {
 		frameRate: 12,
 		repeat: 0,
 	},
+	attackCombo: {
+		key: 'knight-attack-combo',
+		path: `${KNIGHT_PATH}/_AttackCombo2hit.png`,
+		frames: 10,
+		frameRate: 14,
+		repeat: 0,
+	},
 	hit: {
 		key: 'knight-hit',
 		path: `${KNIGHT_PATH}/_Hit.png`,
@@ -114,7 +121,7 @@ export const KNIGHT_ANIMATIONS = {
 	},
 	death: {
 		key: 'knight-death',
-		path: `${KNIGHT_PATH}/_Death.png`,
+		path: `${KNIGHT_PATH}/_DeathNoMovement.png`,
 		frames: 10,
 		frameRate: 10,
 		repeat: 0,
@@ -163,10 +170,10 @@ export const KNIGHT_ANIMATIONS = {
 	},
 	crouch: {
 		key: 'knight-crouch',
-		path: `${KNIGHT_PATH}/_Crouch.png`,
-		frames: 1,
-		frameRate: 10,
-		repeat: -1,
+		path: `${KNIGHT_PATH}/_CrouchFull.png`,
+		frames: 3,
+		frameRate: 12,
+		repeat: 0,
 	},
 	crouchWalk: {
 		key: 'knight-crouch-walk',

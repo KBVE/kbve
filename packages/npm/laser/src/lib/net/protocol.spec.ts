@@ -6,6 +6,13 @@ import {
 	bjShoeOrder,
 	verifyBlackjackCommitment,
 	PROTOCOL_VERSION,
+	GENE_STATS,
+	IV_MAX,
+	IV_TOTAL_MAX,
+	NATURE_COUNT,
+	NATURE_STATS,
+	natureEffect,
+	genderGlyph,
 } from './protocol';
 
 describe('simgrid JSON wire (serde externally-tagged)', () => {
@@ -94,5 +101,53 @@ describe('provable fairness (parity with simgrid blackjack.rs)', () => {
 				'4f319987a786107dc63b2b70115b3734cb9880b099b70c463c5e1b05521ab764',
 			),
 		).resolves.toBe(false);
+	});
+});
+
+// Mirrors `simgrid::genes` — the nature byte is an encoding, so the client decodes it rather
+// than the server sending the two stat names. These assertions are what keep that honest.
+describe('pet genetics (parity with simgrid genes.rs)', () => {
+	it('decodes the boosted and lowered stat from a nature byte', () => {
+		// boosted = Atk (0), lowered = Spe (4) -> 0 * 5 + 4
+		expect(natureEffect(4)).toEqual({ up: 'Atk', down: 'Spe' });
+		// boosted = SpA (2), lowered = Def (1) -> 2 * 5 + 1
+		expect(natureEffect(11)).toEqual({ up: 'SpA', down: 'Def' });
+	});
+
+	it('reads the five diagonal natures as neutral', () => {
+		for (const n of [0, 6, 12, 18, 24]) {
+			expect(natureEffect(n)).toEqual({ up: null, down: null });
+		}
+		const neutral = Array.from({ length: NATURE_COUNT }, (_, n) =>
+			natureEffect(n),
+		).filter((e) => e.up === null).length;
+		expect(neutral).toBe(NATURE_STATS.length);
+	});
+
+	it('never returns a nature that raises and lowers the same stat', () => {
+		for (let n = 0; n < NATURE_COUNT; n++) {
+			const { up, down } = natureEffect(n);
+			if (up !== null) expect(up).not.toBe(down);
+		}
+	});
+
+	it('wraps an out-of-range nature byte instead of reading undefined', () => {
+		// Rust `Nature::from_index` takes the same modulo, so a corrupt byte degrades to a real
+		// nature on both sides rather than rendering "undefined" in the hub.
+		expect(natureEffect(NATURE_COUNT)).toEqual(natureEffect(0));
+		expect(natureEffect(255)).toEqual(natureEffect(255 % NATURE_COUNT));
+		expect(natureEffect(-1)).toEqual(natureEffect(NATURE_COUNT - 1));
+	});
+
+	it('pins the gene stat order the ivs array arrives in', () => {
+		expect(GENE_STATS).toEqual(['HP', 'Atk', 'Def', 'SpA', 'SpD', 'Spe']);
+		expect(IV_TOTAL_MAX).toBe(IV_MAX * 6);
+	});
+
+	it('renders a gender glyph for each wire byte', () => {
+		expect(genderGlyph(0)).toBe('');
+		expect(genderGlyph(1)).toBe('\u2642');
+		expect(genderGlyph(2)).toBe('\u2640');
+		expect(genderGlyph(9)).toBe('');
 	});
 });

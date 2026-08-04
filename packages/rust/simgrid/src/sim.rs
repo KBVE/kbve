@@ -6081,6 +6081,9 @@ mod tests {
             nickname: "Bolt".into(),
             level: 4,
             xp: 12,
+            genes: crate::genes::PetGenes::default(),
+            gender: crate::genes::PetGender::Male,
+            friendship: 70,
             vitals: crate::pets::PetVitals {
                 hp: 30,
                 max_hp: 40,

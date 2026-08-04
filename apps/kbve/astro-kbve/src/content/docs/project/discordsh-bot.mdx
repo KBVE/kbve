@@ -1,6 +1,6 @@
 ---
 title: DiscordSH Bot — Standalone Discord Gateway Bot
-description: DiscordSH Bot is a standalone poise/serenity Discord gateway bot with slash commands, an embed dungeon game, GitHub integration, and an n8n forwarder.
+description: DiscordSH Bot is a standalone poise/serenity Discord gateway bot with slash commands, an embed dungeon game, GitHub integration, and a Windmill job runner.
 sem: 1
 sidebar:
     label: DiscordSH Bot
@@ -37,9 +37,9 @@ jsonld:
         - question: What is the DiscordSH Bot?
           answer: discordsh-bot is the standalone Discord gateway bot extracted from the axum-discordsh monolith. It handles all Discord interactions independently of the HTTP server, built on the poise/serenity gateway with shard support.
         - question: What can the DiscordSH Bot do?
-          answer: It serves slash commands (/github, /gh, /dungeon, /ping, /status, /health, /admin, /skills, /n8n), runs an embed dungeon game with bevy_battle combat and bevy_inventory items, manages GitHub issues and PRs with SVG card rendering, persists players via Supabase, and forwards HMAC-signed requests into in-cluster n8n.
-        - question: How does the /n8n command stay secure?
-          answer: Every /n8n payload is signed with X-KBVE-Signature sha256 HMAC over the timestamp and body so n8n workflows verify origin and reject replays. Requests are also filtered by a globset allowlist, and all three required env vars must be present or the command unregisters itself.
+          answer: It serves slash commands (/github, /gh, /dungeon, /ping, /status, /health, /restart, /cleanup, /skills, /wm), runs an embed dungeon game with bevy_battle combat and bevy_inventory items, manages GitHub issues and PRs with SVG card rendering, persists players via Supabase, and runs allowlisted Windmill scripts in-cluster.
+        - question: How does the /wm command stay secure?
+          answer: Paths are pinned to the f/discordsh/ namespace and matched against a globset allowlist before any call is made, with per-user rate limiting and strict validation that rejects path traversal. The allowlist is mandatory — if WINDMILL_ALLOWED_PATHS is empty or absent the command disables itself.
 bento:
     badge: discord · bot
     title: Standalone gateway bot
@@ -48,8 +48,8 @@ bento:
         The standalone Discord gateway bot extracted from the axum-discordsh
         monolith. Built on the poise/serenity gateway with shard support, it
         handles every Discord interaction independently of the HTTP server —
-        slash commands, an embed dungeon game, GitHub management, and an
-        HMAC-signed n8n forwarder.
+        slash commands, an embed dungeon game, GitHub management, and a
+        namespace-pinned Windmill job runner.
     ctas:
         - label: View source
           href: https://github.com/KBVE/kbve/tree/main/apps/discordsh/discordsh-bot
@@ -61,13 +61,13 @@ bento:
           href: "#env"
     aside:
         icon: lock
-        title: Signed n8n forwarding
+        title: Allowlisted Windmill runs
         body: >-
-            Every <code>/n8n</code> payload is signed
-            <code>X-KBVE-Signature: sha256=HMAC</code> over the timestamp and
-            body so workflows verify origin and reject replays, filtered by a
-            globset allowlist. All three required env vars must be present or the
-            command unregisters itself.
+            Every <code>/wm</code> path is pinned to the
+            <code>f/discordsh/</code> namespace and matched against a globset
+            allowlist before any call is made, with per-user rate limiting and
+            strict validation that rejects traversal. The allowlist is mandatory —
+            empty or absent disables the command.
         points:
             - <strong>Gateway</strong> — poise/serenity with shard support.
             - <strong>Health</strong> — minimal HTTP server for k8s probes.
@@ -79,16 +79,16 @@ bento:
     features:
         - title: Slash commands
           icon: message
-          body: Serves /github, /gh, /dungeon, /ping, /status, /health, /admin, /skills, and /n8n over the poise/serenity gateway.
+          body: Serves /github, /gh, /dungeon, /ping, /status, /health, /restart, /cleanup, /skills, and /wm over the poise/serenity gateway.
         - title: Embed dungeon game
           icon: sword
           body: Runs an embed dungeon game with bevy_battle combat and bevy_inventory item management, persisting players via Supabase.
         - title: GitHub management
           icon: github
           body: Manages GitHub issues and PRs with SVG card rendering from within Discord.
-        - title: n8n forwarder
+        - title: Windmill runner
           icon: gears
-          body: Forwards HMAC-signed requests into in-cluster n8n, verified against a globset allowlist with per-user rate limiting.
+          body: Runs allowlisted Windmill scripts in-cluster, pinned to the f/discordsh/ namespace with per-user rate limiting.
     related:
         - title: DiscordSH
           href: /project/discordsh/
@@ -113,18 +113,18 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 ### Features
 
 - Poise/serenity Discord gateway with shard support
-- Slash commands: `/github`, `/gh`, `/dungeon`, `/ping`, `/status`, `/health`, `/admin`, `/skills`, `/n8n`
+- Slash commands: `/github`, `/gh`, `/dungeon`, `/ping`, `/status`, `/health`, `/restart`, `/cleanup`, `/skills`, `/wm`
 - Embed Dungeon game with bevy_battle combat, bevy_inventory item management
 - GitHub issue/PR management with SVG card rendering
 - Player persistence via Supabase
-- HMAC-signed forwarder into in-cluster n8n (`/n8n`)
+- Allowlisted Windmill job runner (`/wm`)
 - Minimal health HTTP server for k8s probes
 
 </BentoProse>
 
 <BentoProse id="env" eyebrow="Configuration" heading="Environment variables">
 
-Required at runtime. In production the values come from `discordsh-config` (ConfigMap) and the `discordsh-redis-secret` / `discordsh-supabase-shared` / `discordsh-n8n-hmac` Secrets. For the dev container, drop them into `apps/discordsh/discordsh-bot/.env` (loaded via `dotenvy` at startup) — anything missing simply disables the related feature instead of failing the boot.
+Required at runtime. In production the values come from `discordsh-config` (ConfigMap) and the `discordsh-redis-secret` / `discordsh-supabase-shared` / `discordsh-windmill-token` Secrets. For the dev container, drop them into `apps/discordsh/discordsh-bot/.env` (loaded via `dotenvy` at startup) — anything missing simply disables the related feature instead of failing the boot.
 
 ### Core
 
@@ -148,29 +148,34 @@ Required at runtime. In production the values come from `discordsh-config` (Conf
 | `GITHUB_DEFAULT_REPO`       | No       | Default `owner/name` (default `KBVE/kbve`)         |
 | `GITHUB_ALLOWED_REPOS`      | No       | Comma-separated repo allowlist                     |
 
-### n8n forwarder (`/n8n`)
+### Windmill runner (`/wm`)
 
-`/n8n <webhook_path> [args]` forwards Discord input to the in-cluster n8n webhook receiver. Every payload is signed `X-KBVE-Signature: sha256=HMAC(secret, "{ts}.{body}")` so n8n workflows verify origin + reject replays in a Function node. All three required vars must be present or the command unregisters itself.
+`/wm <command> [args]` runs an allowlisted Windmill script and returns its result inline. A blank invocation lists every available command. Scripts live under `apps/windmill/f/discordsh/` and opt in by declaring `args` (array) plus an optional `discord` param; the bot POSTs `{args, discord}` to Windmill's `run_wait_result` endpoint.
 
-| Variable             | Required | Default | Notes                                                                 |
-| -------------------- | -------- | ------- | --------------------------------------------------------------------- |
-| `N8N_BASE_URL`       | Yes      | —       | `http://n8n.n8n.svc.cluster.local:5678/webhook/` in cluster; `https://n8n.kbve.com/webhook/` for dev against public n8n |
-| `N8N_HMAC_SECRET`    | Yes      | —       | Shared secret with the n8n workflow (`$env.N8N_HMAC_SECRET`)          |
-| `N8N_ALLOWED_PATHS`  | Yes      | —       | Globset allowlist, comma-separated (e.g. `kbve/*,deploy-*`)           |
-| `N8N_RATE_LIMIT`     | No       | `1`     | Max calls per user per window                                         |
-| `N8N_RATE_WINDOW`    | No       | `5`     | Sliding window length in seconds                                      |
+Bare paths collapse into the `f/discordsh/` namespace, so `/wm poem` resolves to `f/discordsh/poem`. That namespace is a hard pin, not just a default — an explicit path outside it is rejected even if the allowlist would otherwise match, which also blocks prefix confusion like `f/discordshEVIL/...`. Paths are validated against traversal (`..`) and request injection before they reach the URL, and args are capped at 16 per call, 512 chars each.
+
+| Variable                 | Required | Default | Notes                                                                 |
+| ------------------------ | -------- | ------- | --------------------------------------------------------------------- |
+| `WINDMILL_BASE_URL`      | Yes      | —       | `http://windmill-app.windmill.svc.cluster.local:8000` in cluster      |
+| `WINDMILL_TOKEN`         | Yes      | —       | Bearer token; from the `discordsh-windmill-token` Secret              |
+| `WINDMILL_ALLOWED_PATHS` | Yes      | —       | Globset allowlist, comma-separated. Globs carry the `f/` prefix (e.g. `f/discordsh/*`) |
+| `WINDMILL_WORKSPACE`     | No       | `kbve`  | Windmill workspace                                                    |
+| `WM_RATE_LIMIT`          | No       | `1`     | Max calls per user per window                                         |
+| `WM_RATE_WINDOW`         | No       | `5`     | Sliding window length in seconds                                      |
+
+The allowlist is the security boundary — it is mandatory with no wildcard default. If `WINDMILL_ALLOWED_PATHS` is empty or absent (or any of the three required vars is missing), `from_env` returns `None` and `/wm` disables itself rather than falling open.
 
 Dev-container `.env` example:
 
 ```ini
-N8N_BASE_URL=https://n8n.kbve.com/webhook/
-N8N_HMAC_SECRET=<shared>
-N8N_ALLOWED_PATHS=kbve/*,deploy-*
-N8N_RATE_LIMIT=1
-N8N_RATE_WINDOW=5
+WINDMILL_BASE_URL=https://windmill.kbve.com
+WINDMILL_TOKEN=<token>
+WINDMILL_ALLOWED_PATHS=f/discordsh/*
+WM_RATE_LIMIT=1
+WM_RATE_WINDOW=5
 ```
 
-In production the same secret lives once as a SealedSecret in the `n8n` namespace and is mirrored into `discordsh` via ExternalSecret — see `apps/kube/discordsh/seal-n8n-hmac.sh`.
+In production the token is the `windmill-superadmin-token` SealedSecret in the `windmill` namespace, mirrored into `discordsh` via ExternalSecret — see `apps/kube/discordsh/manifest/discordsh-externalsecret.yaml` and the cross-namespace RBAC grant in `apps/kube/windmill/manifest/discordsh-windmill-token-rbac.yaml`. It is a superadmin token, so the allowlist and namespace pin — not token scope — are what bound the blast radius.
 
 </BentoProse>
 

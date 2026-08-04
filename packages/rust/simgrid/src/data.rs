@@ -135,15 +135,13 @@ pub struct NpcPet {
     /// Male fraction 0.0–1.0. Negative means genderless; absent means unauthored.
     #[serde(default)]
     pub gender_ratio: Option<f32>,
-    #[serde(default)]
-    pub base_stat_total: i32,
-    /// Dual-typing for matchups, proto-string form like [`NpcDef::element`].
+    /// Dual-typing for matchups, proto-string form like [`NpcDef::element`]. Empty for a
+    /// single-type species, which is a real advantage rather than an omission — one type is
+    /// one set of weaknesses.
     #[serde(default)]
     pub secondary_element: String,
     #[serde(default)]
     pub movepool: Vec<NpcMovepoolEntry>,
-    #[serde(default)]
-    pub egg_groups: Vec<String>,
     #[serde(default)]
     pub evolutions: Vec<NpcEvolution>,
 }

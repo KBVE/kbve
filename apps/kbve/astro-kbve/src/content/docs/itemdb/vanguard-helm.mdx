@@ -6,6 +6,8 @@ sidebar:
     hidden: true
 description: |
     A visored steel helm with a padded liner that smells faintly of every soldier who wore it before you. The slit narrows the world to what matters.
+lore: |
+    Vanguard plate was never issued to heroes. It was issued in bulk, to the rank that walks in first and is counted afterward, and the helm is the piece that shows it — every surviving example carries a dent nobody bothered to hammer out, because a dent that has already happened is a dent that will not happen again. Quartermasters date a helm by its liner rather than its steel. The steel outlasts three wars; the liner outlasts one owner.
 ref: 'vanguard-helm'
 key: 601
 id: '01KXFBEGKZTW4YXHPW58XM7ZSH'
@@ -34,6 +36,24 @@ equipment:
     armor: 3
     extra:
       weight: 4
+set_ref: 'vanguard'
+tags:
+  - armor
+  - vanguard
+  - herbmail
+related_item_refs:
+  - 'vanguard-breastplate'
+  - 'vanguard-pauldrons'
+  - 'vanguard-gauntlets'
+sources:
+  - source_type: 'vendor'
+    source_name: 'Garrison quartermaster'
+    level_requirement: 1
+  - source_type: 'drop'
+    source_name: 'Patrol wreckage'
+    drop_rate: 0.12
+    min_quantity: 1
+    max_quantity: 1
 grid:
   width: 2
   height: 2
@@ -44,5 +64,20 @@ import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 <ItemLeaf data={frontmatter}>
 
 ## Overview
+
+The Vanguard Helm is the anchor piece of the Vanguard set; three points of armor for four points of weight, which is a trade most people make once and then stop thinking about. 
+It occupies a 2×2 block in the pack, so it travels worn far more often than it travels carried.
+
+The visor is the whole design argument. Closed, it costs peripheral vision and rewards you for looking directly at the thing trying to kill you. Open, it is a steel hat.
+
+## In the field
+
+- Pairs with the [Vanguard Breastplate](/itemdb/vanguard-breastplate/) and [Pauldrons](/itemdb/vanguard-pauldrons/) before the lighter pieces; head and chest cover the hits you do not see coming
+- The liner absorbs water and stays heavy for a day — dry it upright, not on its crown
+- Covers hair and most headgear-slot cosmetics while worn
+
+## Acquisition
+
+Garrison quartermasters stock it at standing rate, no rank required. It also turns up in patrol wreckage often enough that most squads own one nobody paid for.
 
 </ItemLeaf>

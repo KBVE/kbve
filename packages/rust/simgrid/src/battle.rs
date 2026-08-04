@@ -230,6 +230,14 @@ pub struct Combatant {
     pub species_ref: String,
     pub nickname: String,
     pub element: Element,
+    /// Second type, or [`Element::None`] for a single-typed species.
+    pub element2: Element,
+    /// Owner attachment, `0..=255`. Only read through [`friendship_multiplier`].
+    pub friendship: u8,
+    /// Carried through the battle unread. A wild pet's genetics are what a capture keeps,
+    /// and `snapshot_from_combatant` is the only path a caught pet takes out of here.
+    pub genes: crate::genes::PetGenes,
+    pub gender: crate::genes::PetGender,
     pub level: u32,
     pub hp: i32,
     pub max_hp: i32,
@@ -266,6 +274,14 @@ impl Combatant {
             species_ref: snap.species_ref.clone(),
             nickname: snap.nickname.clone(),
             element: Element::from_proto(&species.element),
+            element2: species
+                .pet
+                .as_ref()
+                .map(|p| Element::from_proto(&p.secondary_element))
+                .unwrap_or(Element::None),
+            friendship: snap.friendship,
+            genes: snap.genes,
+            gender: snap.gender,
             level: snap.level,
             hp: snap.vitals.hp,
             max_hp: snap.vitals.max_hp,
@@ -511,6 +527,20 @@ pub fn type_multiplier(atk: Element, def: Element) -> f32 {
     }
 }
 
+/// Type-effectiveness of `atk` against a possibly dual-typed defender — the product of both
+/// matchups.
+///
+/// [`Element::None`] on the second slot is neutral, so a single-typed species reduces to
+/// exactly [`type_multiplier`] and needs no special case. Dual typing therefore cuts both
+/// ways: it opens 4× weaknesses as readily as 0.25× resistances, which is what makes a
+/// single type a real choice rather than a missing field.
+pub fn defense_multiplier(atk: Element, def: Element, def2: Element) -> f32 {
+    if def2 == def {
+        return type_multiplier(atk, def);
+    }
+    type_multiplier(atk, def) * type_multiplier(atk, def2)
+}
+
 fn effectiveness_bucket(m: f32) -> Effectiveness {
     if m <= 0.0 {
         Effectiveness::Immune
@@ -520,6 +550,19 @@ fn effectiveness_bucket(m: f32) -> Effectiveness {
         Effectiveness::Super
     } else {
         Effectiveness::Normal
+    }
+}
+
+/// Damage multiplier from the attacker's attachment to its owner: +10% once friendship
+/// reaches [`crate::pets::FRIENDSHIP_DEVOTED`].
+///
+/// This is the reader that earns `base_friendship` its column. A counter nothing consults is
+/// the same dead field in a new place, and a wild pet — friendship 0 by mint — never gets it.
+pub fn friendship_multiplier(friendship: u8) -> f32 {
+    if friendship >= crate::pets::FRIENDSHIP_DEVOTED {
+        1.1
+    } else {
+        1.0
     }
 }
 
@@ -550,14 +593,19 @@ fn damage(
         a = (a / 2).max(1);
     }
     let base = (2 * att.level as i32 / 5 + 2) * mv.power * a / d.max(1) / 50 + 2;
-    let stab = if mv.element == att.element && mv.element != Element::None {
+    // STAB fires on either of the attacker's types, but only once — a dual-typed pet using a
+    // move matching both is not hitting from two directions.
+    let stab = if mv.element != Element::None
+        && (mv.element == att.element || mv.element == att.element2)
+    {
         1.5
     } else {
         1.0
     };
-    let typ = type_multiplier(mv.element, def.element);
+    let typ = defense_multiplier(mv.element, def.element, def.element2);
     let critm = if crit { 1.5 } else { 1.0 };
-    let modifier = stab * typ * critm * (variance as f32 / 100.0);
+    let modifier =
+        stab * typ * critm * friendship_multiplier(att.friendship) * (variance as f32 / 100.0);
     let dmg = (base as f32 * modifier) as i32;
     // A connecting, non-immune hit always does at least 1.
     let dmg = if typ > 0.0 { dmg.max(1) } else { 0 };
@@ -996,9 +1044,13 @@ mod tests {
         }
     }
 
+    /// Genetics pinned to the default (which is the identity, so these are the pre-genetics
+    /// numbers) — engine tests are about the engine, and a fresh roll per mint would make every
+    /// damage assertion here non-reproducible.
     fn combatant(level: u32) -> Combatant {
         let def = mechamutt();
-        let snap = mint_pet_from_species(&def, level).unwrap();
+        let snap = crate::pets::mint_pet_with_genes(&def, level, crate::genes::PetGenes::default())
+            .unwrap();
         Combatant::from_pet(&snap, &def)
     }
 
@@ -1008,6 +1060,136 @@ mod tests {
         assert_eq!(type_multiplier(Element::Lightning, Element::Earth), 0.5);
         assert_eq!(type_multiplier(Element::Lightning, Element::Wind), 2.0);
         assert_eq!(type_multiplier(Element::Arcane, Element::Fire), 1.0);
+    }
+
+    #[test]
+    fn a_single_type_defender_is_unaffected_by_the_second_slot() {
+        // The reason dual typing needed no special-casing: Element::None on the second slot is
+        // neutral, so every pre-existing single-typed matchup reduces to type_multiplier.
+        for atk in [Element::Fire, Element::Lightning, Element::Shadow] {
+            for def in [
+                Element::Nature,
+                Element::Earth,
+                Element::Holy,
+                Element::None,
+            ] {
+                assert_eq!(
+                    defense_multiplier(atk, def, Element::None),
+                    type_multiplier(atk, def),
+                    "{atk:?} into {def:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn dual_typing_multiplies_both_matchups() {
+        // Fire is 2× on Nature and 2× on Ice — a Nature/Ice defender eats 4×.
+        assert_eq!(
+            defense_multiplier(Element::Fire, Element::Nature, Element::Ice),
+            4.0
+        );
+        // Nature resists Fire (0.5×) while Ice takes it (2×) — they cancel.
+        assert_eq!(
+            defense_multiplier(Element::Fire, Element::Fire, Element::Ice),
+            1.0
+        );
+        // Both halves resisting compounds the other way.
+        assert_eq!(
+            defense_multiplier(Element::Nature, Element::Fire, Element::Nature),
+            0.25
+        );
+    }
+
+    #[test]
+    fn a_repeated_type_is_not_counted_twice() {
+        // Authoring secondary_element equal to the primary must not double the matchup —
+        // that would make a data slip a silent 4× weakness.
+        assert_eq!(
+            defense_multiplier(Element::Fire, Element::Nature, Element::Nature),
+            2.0
+        );
+    }
+
+    #[test]
+    fn stab_fires_on_either_type_but_only_once() {
+        let mut att = combatant(20);
+        let def = combatant(20);
+        let spark = MoveData::from_ability(&mechamutt().abilities[1]); // lightning
+
+        // Lightning primary: STAB, as before.
+        let (primary, _) = damage(&att, &def, &spark, false, 100);
+
+        // Lightning demoted to the second slot: still STAB.
+        att.element = Element::Fire;
+        att.element2 = Element::Lightning;
+        let (secondary, _) = damage(&att, &def, &spark, false, 100);
+        assert_eq!(primary, secondary, "STAB must not care which slot matched");
+
+        // Matching BOTH slots is still one STAB, not two.
+        att.element = Element::Lightning;
+        att.element2 = Element::Lightning;
+        let (both, _) = damage(&att, &def, &spark, false, 100);
+        assert_eq!(both, primary);
+
+        // Matching neither drops it.
+        att.element = Element::Fire;
+        att.element2 = Element::Earth;
+        let (neither, _) = damage(&att, &def, &spark, false, 100);
+        assert!(neither < primary, "{neither} should be under {primary}");
+    }
+
+    #[test]
+    fn an_elementless_move_never_gets_stab_from_an_elementless_pet() {
+        // Element::None on both sides must not read as a match — every typeless pet using a
+        // typeless move would otherwise get a permanent 1.5×.
+        let mut att = combatant(20);
+        att.element = Element::None;
+        att.element2 = Element::None;
+        let def = combatant(20);
+        let tackle = MoveData::from_ability(&mechamutt().abilities[0]);
+        let (plain, _) = damage(&att, &def, &tackle, false, 100);
+
+        let mut typed = att.clone();
+        typed.element = Element::Fire;
+        let (still_plain, _) = damage(&typed, &def, &tackle, false, 100);
+        assert_eq!(plain, still_plain);
+    }
+
+    #[test]
+    fn a_devoted_pet_hits_harder() {
+        assert_eq!(friendship_multiplier(0), 1.0);
+        assert_eq!(
+            friendship_multiplier(crate::pets::FRIENDSHIP_DEVOTED - 1),
+            1.0
+        );
+        assert_eq!(friendship_multiplier(crate::pets::FRIENDSHIP_DEVOTED), 1.1);
+        assert_eq!(friendship_multiplier(u8::MAX), 1.1);
+
+        let mut att = combatant(20);
+        let def = combatant(20);
+        let spark = MoveData::from_ability(&mechamutt().abilities[1]);
+        att.friendship = 0;
+        let (cold, _) = damage(&att, &def, &spark, false, 100);
+        att.friendship = crate::pets::FRIENDSHIP_DEVOTED;
+        let (devoted, _) = damage(&att, &def, &spark, false, 100);
+        assert!(devoted > cold, "{devoted} should beat {cold}");
+    }
+
+    #[test]
+    fn a_second_type_reaches_a_combatant_from_species_data() {
+        let mut def = mechamutt();
+        def.pet.as_mut().expect("pet").secondary_element = "ELEMENT_EARTH".into();
+        let snap = mint_pet_from_species(&def, 10).expect("mint");
+        let c = Combatant::from_pet(&snap, &def);
+        assert_eq!(c.element, Element::Lightning);
+        assert_eq!(c.element2, Element::Earth);
+    }
+
+    #[test]
+    fn an_unauthored_second_type_is_none() {
+        let c = combatant(10);
+        assert_eq!(c.element2, Element::None);
     }
 
     #[test]

@@ -17,9 +17,9 @@ use tracing::{debug, info, warn};
 const MAX_CACHE_SIZE: usize = 10_000;
 const CLEANUP_INTERVAL: Duration = Duration::from_secs(60);
 
-/// Staff permission bitflags, sourced from the compiled
-/// `kbve.staff.StaffPermission` proto enum so the values cannot drift from
-/// the schema in `packages/data/proto/kbve/staff.proto`.
+/// Staff permission bitflags, sourced from the compiled `kbve.staff` proto so
+/// the values can never drift from `kbve.staff.StaffPermission`.
+#[allow(dead_code)]
 pub mod staff_perm {
     use crate::proto::staff::StaffPermission as P;
 
@@ -270,7 +270,7 @@ impl JwtCache {
     fn insert(&self, token: String, info: Arc<TokenInfo>) {
         if self.tokens.len() >= MAX_CACHE_SIZE {
             // Entries self-expire, so reaping them usually frees enough room
-            // without touching anything still live.
+            // without evicting anything still live.
             self.cleanup_expired();
             if self.tokens.len() >= MAX_CACHE_SIZE {
                 self.evict_oldest(MAX_CACHE_SIZE / 10);
@@ -279,24 +279,23 @@ impl JwtCache {
         self.tokens.insert(token, info);
     }
 
-    /// Evict the N oldest entries by verification time. Uses an O(n) selection
-    /// instead of sorting the whole map — this only runs when the hard cap is
-    /// hit on the insert path, and must not stall that request.
+    /// Evict the oldest N entries (by verification time). Partitions with
+    /// `select_nth_unstable` — O(n) instead of sorting the whole map — since
+    /// this only runs on the rare insert that hits the hard cap (entries
+    /// normally expire via `exp` and the cleanup task first).
     fn evict_oldest(&self, count: usize) {
         let mut entries: Vec<_> = self
             .tokens
             .iter()
-            .map(|e| (e.value().verified_at, e.key().clone()))
+            .map(|e| (e.key().clone(), e.value().verified_at))
             .collect();
         if count == 0 || entries.is_empty() {
             return;
         }
-        let n = count.min(entries.len());
-        if n < entries.len() {
-            entries.select_nth_unstable_by_key(n - 1, |(verified_at, _)| *verified_at);
-        }
+        let pivot = count.min(entries.len()) - 1;
+        entries.select_nth_unstable_by_key(pivot, |(_, verified_at)| *verified_at);
         let mut removed = 0;
-        for (_, token) in entries.into_iter().take(n) {
+        for (token, _) in entries.into_iter().take(count) {
             if self.tokens.remove(&token).is_some() {
                 removed += 1;
             }
@@ -417,6 +416,14 @@ mod tests {
             expires_at: chrono::Utc::now().timestamp() + 3600,
             verified_at: Instant::now(),
         }
+    }
+
+    #[test]
+    fn staff_perm_matches_proto_layout() {
+        assert_eq!(staff_perm::STAFF, 0x0000_0001);
+        assert_eq!(staff_perm::DASHBOARD_VIEW, 0x0000_0100);
+        assert_eq!(staff_perm::STAFF_GRANT, 0x0001_0000);
+        assert_eq!(staff_perm::SUPERADMIN, 0x4000_0000);
     }
 
     #[test]

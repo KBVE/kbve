@@ -10,16 +10,17 @@
 //! not have to share a `jsonwebtoken` version.
 
 use std::collections::HashMap;
+use std::sync::atomic::{AtomicI64, Ordering};
 use std::sync::{Arc, RwLock};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use jsonwebtoken::jwk::JwkSet;
 use jsonwebtoken::{Algorithm, DecodingKey, Header, Validation, decode, decode_header};
 use serde::de::DeserializeOwned;
 
-/// Floor between JWKS refetches triggered by an unknown `kid`, so a flood of
-/// bad tokens cannot turn the verifier into a GoTrue load generator.
-const MISS_REFRESH_INTERVAL: Duration = Duration::from_secs(30);
+/// Minimum spacing between unknown-`kid` refresh attempts, so a flood of bogus
+/// kids cannot hammer the JWKS endpoint.
+const MISS_REFRESH_MIN_SECS: i64 = 30;
 
 #[derive(Debug, thiserror::Error)]
 pub enum VerifyError {
@@ -45,11 +46,12 @@ struct Inner {
     issuer: Option<String>,
     audience: Option<String>,
     http: reqwest::Client,
-    /// ES256 keys pre-parsed at refresh time so the hot path is a map lookup,
-    /// not a JWK -> DecodingKey rebuild per verification.
+    /// ES256 keys pre-parsed at refresh time so the per-request path is a map
+    /// lookup, not a `DecodingKey::from_jwk` rebuild.
     es256: RwLock<Arc<HashMap<String, DecodingKey>>>,
-    /// Single-flight gate + rate-limit stamp for refresh-on-unknown-kid.
-    miss_refresh: tokio::sync::Mutex<Option<Instant>>,
+    /// Single-flight gate + rate limit for refresh-on-unknown-kid.
+    miss_refresh: tokio::sync::Mutex<()>,
+    last_miss_refresh: AtomicI64,
 }
 
 impl JwtVerifier {
@@ -76,12 +78,13 @@ impl JwtVerifier {
                 audience: audience.filter(|s| !s.trim().is_empty()),
                 http,
                 es256: RwLock::new(Arc::new(HashMap::new())),
-                miss_refresh: tokio::sync::Mutex::new(None),
+                miss_refresh: tokio::sync::Mutex::new(()),
+                last_miss_refresh: AtomicI64::new(0),
             }),
         }
     }
 
-    /// Fetch the JWKS from GoTrue, pre-parse every key, and swap the key map.
+    /// Fetch the JWKS from GoTrue and swap the pre-parsed keys into the cache.
     pub async fn refresh(&self) -> Result<(), VerifyError> {
         let set: JwkSet = self
             .inner
@@ -95,8 +98,28 @@ impl JwtVerifier {
             .json()
             .await
             .map_err(|e| VerifyError::Fetch(e.to_string()))?;
-        *self.inner.es256.write().unwrap() = Arc::new(build_key_map(&set));
+        self.install(&set);
         Ok(())
+    }
+
+    /// Parse a JWKS into per-kid `DecodingKey`s and swap them in. Keys that fail
+    /// to parse are skipped (logged) rather than poisoning the whole set.
+    fn install(&self, set: &JwkSet) {
+        let mut keys = HashMap::with_capacity(set.keys.len());
+        for jwk in &set.keys {
+            let Some(kid) = jwk.common.key_id.clone() else {
+                continue;
+            };
+            match DecodingKey::from_jwk(jwk) {
+                Ok(key) => {
+                    keys.insert(kid, key);
+                }
+                Err(e) => {
+                    tracing::warn!(kid = %kid, error = %e, "skipping unparseable jwk");
+                }
+            }
+        }
+        *self.inner.es256.write().unwrap() = Arc::new(keys);
     }
 
     /// Fetch once, then refresh every `interval` in the background. Non-fatal:
@@ -119,7 +142,8 @@ impl JwtVerifier {
     }
 
     /// Verify and deserialize claims. HS256 uses the shared secret; ES256 selects
-    /// the JWKS key by `kid`. Validates exp (+ issuer/audience when configured).
+    /// the pre-parsed JWKS key by `kid`. Validates exp (+ issuer/audience when
+    /// configured).
     pub fn verify<T: DeserializeOwned>(&self, token: &str) -> Result<T, VerifyError> {
         let header = decode_header(token).map_err(|e| VerifyError::Invalid(e.to_string()))?;
         let key = self.key_for(&header)?;
@@ -140,35 +164,30 @@ impl JwtVerifier {
             })
     }
 
-    /// `verify`, plus seamless key rotation: an unknown ES256 `kid` triggers one
-    /// rate-limited, single-flight JWKS refetch and a retry, so a token signed
-    /// by a freshly rotated key does not fail until the next timer tick.
-    pub async fn verify_or_refresh<T: DeserializeOwned>(
+    /// `verify`, plus a rate-limited single-flight JWKS refresh when an ES256
+    /// token carries an unknown `kid` — so a freshly rotated signing key
+    /// verifies immediately instead of failing until the next timer tick.
+    pub async fn verify_refreshed<T: DeserializeOwned>(
         &self,
         token: &str,
     ) -> Result<T, VerifyError> {
-        let kid = match self.verify(token) {
-            Err(VerifyError::NoKey(Algorithm::ES256, Some(kid))) => kid,
+        match self.verify(token) {
+            Err(VerifyError::NoKey(Algorithm::ES256, _)) => {}
             other => return other,
-        };
-        let mut last = self.inner.miss_refresh.lock().await;
-        // A concurrent leader may have already fetched the rotated key while
-        // this caller waited on the gate.
-        if self.inner.es256.read().unwrap().contains_key(&kid) {
-            drop(last);
-            return self.verify(token);
         }
-        if let Some(t) = *last
-            && t.elapsed() < MISS_REFRESH_INTERVAL
-        {
-            return Err(VerifyError::NoKey(Algorithm::ES256, Some(kid)));
+        let _flight = self.inner.miss_refresh.lock().await;
+        match self.verify(token) {
+            Err(VerifyError::NoKey(Algorithm::ES256, _)) => {}
+            other => return other,
         }
-        // Stamp before fetching so a failing upstream is also rate-limited.
-        *last = Some(Instant::now());
-        if let Err(e) = self.refresh().await {
-            tracing::warn!(error = %e, kid, "jwks refresh-on-miss failed");
+        let now = chrono::Utc::now().timestamp();
+        let last = self.inner.last_miss_refresh.load(Ordering::Acquire);
+        if now - last >= MISS_REFRESH_MIN_SECS {
+            self.inner.last_miss_refresh.store(now, Ordering::Release);
+            if let Err(e) = self.refresh().await {
+                tracing::warn!(error = %e, "jwks refresh-on-miss failed; serving cached keys");
+            }
         }
-        drop(last);
         self.verify(token)
     }
 
@@ -182,38 +201,16 @@ impl JwtVerifier {
             Algorithm::ES256 => {
                 let kid = header
                     .kid
-                    .clone()
+                    .as_deref()
                     .ok_or(VerifyError::NoKey(Algorithm::ES256, None))?;
                 let keys = self.inner.es256.read().unwrap().clone();
-                keys.get(&kid)
+                keys.get(kid)
                     .cloned()
-                    .ok_or(VerifyError::NoKey(Algorithm::ES256, Some(kid)))
+                    .ok_or_else(|| VerifyError::NoKey(Algorithm::ES256, Some(kid.to_string())))
             }
             other => Err(VerifyError::NoKey(other, header.kid.clone())),
         }
     }
-}
-
-/// Pre-parse a JWKS into per-`kid` decoding keys. Unusable keys (no `kid`, or
-/// an algorithm `jsonwebtoken` cannot build) are skipped with a warning rather
-/// than poisoning the whole set.
-fn build_key_map(set: &JwkSet) -> HashMap<String, DecodingKey> {
-    let mut keys = HashMap::with_capacity(set.keys.len());
-    for jwk in &set.keys {
-        let Some(kid) = jwk.common.key_id.clone() else {
-            tracing::warn!("jwks key without kid skipped");
-            continue;
-        };
-        match DecodingKey::from_jwk(jwk) {
-            Ok(key) => {
-                keys.insert(kid, key);
-            }
-            Err(e) => {
-                tracing::warn!(error = %e, kid, "unparseable jwks key skipped");
-            }
-        }
-    }
-    keys
 }
 
 #[cfg(test)]
@@ -221,7 +218,6 @@ mod tests {
     use super::*;
     use jsonwebtoken::{EncodingKey, Header, encode};
     use serde::{Deserialize, Serialize};
-    use std::sync::atomic::{AtomicUsize, Ordering};
 
     #[derive(Serialize, Deserialize, PartialEq, Debug)]
     struct TestClaims {
@@ -253,27 +249,7 @@ yyfz2pDnPyf9CnGecKIzKxs/kG+/eRJw5squYKKhDR+TX5jIMpMfiiVf
 
     fn with_jwks(v: &JwtVerifier) {
         let set: JwkSet = serde_json::from_str(ES256_JWKS).unwrap();
-        *v.inner.es256.write().unwrap() = Arc::new(build_key_map(&set));
-    }
-
-    /// Serve `ES256_JWKS` on an ephemeral port, counting requests.
-    async fn jwks_server() -> (String, Arc<AtomicUsize>) {
-        use axum::{Router, routing::get};
-        let hits = Arc::new(AtomicUsize::new(0));
-        let h = hits.clone();
-        let app = Router::new().route(
-            "/jwks",
-            get(move || {
-                h.fetch_add(1, Ordering::SeqCst);
-                async { ES256_JWKS }
-            }),
-        );
-        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
-        let addr = listener.local_addr().unwrap();
-        tokio::spawn(async move {
-            axum::serve(listener, app).await.unwrap();
-        });
-        (format!("http://{addr}/jwks"), hits)
+        v.install(&set);
     }
 
     #[test]
@@ -342,16 +318,69 @@ yyfz2pDnPyf9CnGecKIzKxs/kG+/eRJw5squYKKhDR+TX5jIMpMfiiVf
         ));
     }
 
-    // Rotation path: the verifier starts with no keys, so a plain verify fails,
-    // but verify_or_refresh fetches the JWKS on the kid miss and succeeds.
+    // Unknown kid + unreachable JWKS endpoint: verify_refreshed attempts one
+    // refresh (which fails fast) and still surfaces NoKey instead of hanging.
+    // The second call lands inside the rate-limit window, so it must skip the
+    // fetch and resolve immediately.
     #[tokio::test]
-    async fn unknown_kid_triggers_refresh_and_verifies() {
+    async fn verify_refreshed_unknown_kid_survives_fetch_failure() {
+        let v = JwtVerifier::new("http://127.0.0.1:9/unused", None, None, None);
+        with_jwks(&v);
+        let key = EncodingKey::from_ec_pem(ES256_PEM.as_bytes()).unwrap();
+        let token = sign(Algorithm::ES256, Some("rotated"), &key, "x");
+        assert!(matches!(
+            v.verify_refreshed::<TestClaims>(&token).await,
+            Err(VerifyError::NoKey(Algorithm::ES256, _))
+        ));
+        assert!(matches!(
+            v.verify_refreshed::<TestClaims>(&token).await,
+            Err(VerifyError::NoKey(Algorithm::ES256, _))
+        ));
+    }
+
+    // A known key must never trigger the refresh path.
+    #[tokio::test]
+    async fn verify_refreshed_hits_cached_key() {
+        let v = JwtVerifier::new("http://127.0.0.1:9/unused", None, None, None);
+        with_jwks(&v);
+        let key = EncodingKey::from_ec_pem(ES256_PEM.as_bytes()).unwrap();
+        let token = sign(Algorithm::ES256, Some("test-es256"), &key, "ok");
+        let got: TestClaims = v.verify_refreshed(&token).await.unwrap();
+        assert_eq!(got.sub, "ok");
+    }
+
+    /// Serve `ES256_JWKS` on an ephemeral port, counting requests.
+    async fn jwks_server() -> (String, Arc<std::sync::atomic::AtomicUsize>) {
+        use axum::{Router, routing::get};
+        use std::sync::atomic::AtomicUsize;
+        let hits = Arc::new(AtomicUsize::new(0));
+        let h = hits.clone();
+        let app = Router::new().route(
+            "/jwks",
+            get(move || {
+                h.fetch_add(1, Ordering::SeqCst);
+                async { ES256_JWKS }
+            }),
+        );
+        let listener = tokio::net::TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let addr = listener.local_addr().unwrap();
+        tokio::spawn(async move {
+            axum::serve(listener, app).await.unwrap();
+        });
+        (format!("http://{addr}/jwks"), hits)
+    }
+
+    // Rotation path against a live endpoint: the verifier starts with no keys,
+    // so plain verify fails, but verify_refreshed fetches the JWKS on the kid
+    // miss (exactly once) and the token then verifies.
+    #[tokio::test]
+    async fn verify_refreshed_fetches_rotated_key() {
         let (uri, hits) = jwks_server().await;
         let v = JwtVerifier::new(uri, None, None, None);
         let key = EncodingKey::from_ec_pem(ES256_PEM.as_bytes()).unwrap();
         let token = sign(Algorithm::ES256, Some("test-es256"), &key, "rotated");
         assert!(v.verify::<TestClaims>(&token).is_err());
-        let got: TestClaims = v.verify_or_refresh(&token).await.unwrap();
+        let got: TestClaims = v.verify_refreshed(&token).await.unwrap();
         assert_eq!(got.sub, "rotated");
         assert_eq!(hits.load(Ordering::SeqCst), 1);
     }
@@ -359,14 +388,14 @@ yyfz2pDnPyf9CnGecKIzKxs/kG+/eRJw5squYKKhDR+TX5jIMpMfiiVf
     // A kid the upstream does not serve must not refetch more than once per
     // rate-limit window, no matter how many tokens carry it.
     #[tokio::test]
-    async fn missing_kid_refetch_is_rate_limited() {
+    async fn verify_refreshed_missing_kid_is_rate_limited() {
         let (uri, hits) = jwks_server().await;
         let v = JwtVerifier::new(uri, None, None, None);
         let key = EncodingKey::from_ec_pem(ES256_PEM.as_bytes()).unwrap();
         let token = sign(Algorithm::ES256, Some("never-published"), &key, "x");
         for _ in 0..3 {
             assert!(matches!(
-                v.verify_or_refresh::<TestClaims>(&token).await,
+                v.verify_refreshed::<TestClaims>(&token).await,
                 Err(VerifyError::NoKey(Algorithm::ES256, _))
             ));
         }

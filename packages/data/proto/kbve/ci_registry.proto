@@ -261,6 +261,7 @@ message BentoStat {
   string label = 1;
   string value = 2;
   string icon = 3;
+  optional string detail = 4;
 }
 
 message BentoFeature {

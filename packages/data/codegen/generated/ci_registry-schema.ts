@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/ci_registry.binpb
  * Config: ../ci_registry-zod-config.json
- * Generated: 2026-07-20T00:37:21.621Z
+ * Generated: 2026-08-04T10:56:38.709Z
  */
 
 import { z } from 'zod';
@@ -169,6 +169,7 @@ export const BentoStatSchema = z.object({
 	label: z.string(),
 	value: z.string(),
 	icon: z.string(),
+	detail: z.string().optional(),
 });
 
 export type BentoStat = z.infer<typeof BentoStatSchema>;

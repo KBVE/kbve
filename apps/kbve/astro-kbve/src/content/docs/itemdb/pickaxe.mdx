@@ -33,6 +33,15 @@ tags:
 grid:
   width: 2
   height: 3
+related_item_refs:
+  - 'ore'
+  - 'stone'
+sources:
+  - source_type: 'vendor'
+    source_name: 'Mining outfitter'
+  - source_type: 'craft'
+    source_name: 'Forge'
+    min_quantity: 1
 ---
 
 import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
@@ -46,5 +55,19 @@ import {
 <ItemLeaf data={frontmatter}>
 
 ## Overview
+
+The Pickaxe is the baseline mining tool — main hand, two by three cells, three kilos of head and haft. It does not scale, it does not enchant, and it will still be in the pack long after better things have broken.
+
+Weight is the real cost. Three kilos is most of a light load's margin, which is why miners carry one pickaxe and never a spare.
+
+## In the field
+
+- Equip to the main hand; two-handed swings, so nothing rides the off hand while mining
+- The head reforges more cheaply than the haft replaces — inspect the wood, not the steel
+- Sells back at forty percent, so buying local beats hauling one across a map
+
+## Acquisition
+
+Stocked by every mining outfitter at fifty. Forge-craftable for anyone with the skill and a reason to prove it.
 
 </ItemLeaf>
