@@ -3,7 +3,7 @@
  *
  * Source: ../descriptors/npcdb.binpb
  * Config: ../npcdb-zod-config.json
- * Generated: 2026-07-20T00:37:21.602Z
+ * Generated: 2026-08-04T10:43:35.595Z
  */
 
 import { z } from 'zod';
@@ -560,10 +560,8 @@ export const PetInfoSchema = z.object({
 	base_friendship: z.number().optional(),
 	gender_ratio: z.number().optional(),
 	movepool: z.array(PetMovepoolEntrySchema).optional(),
-	egg_groups: z.array(z.string()).optional(),
 	evolutions: z.array(PetEvolutionSchema).optional(),
 	secondary_element: ElementSchema.optional(),
-	base_stat_total: z.number().optional(),
 });
 
 export type PetInfo = z.infer<typeof PetInfoSchema>;

@@ -131,10 +131,7 @@
         "baseXpYield": 154,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 158,
-        "eggGroups": [
-          "field"
-        ],
+        "secondaryElement": "ELEMENT_LIGHTNING",
         "movepool": [
           {
             "level": 1,
@@ -385,10 +382,7 @@
         "baseXpYield": 154,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 158,
-        "eggGroups": [
-          "field"
-        ],
+        "secondaryElement": "ELEMENT_LIGHT",
         "movepool": [
           {
             "level": 1,
@@ -797,10 +791,6 @@
         "baseXpYield": 154,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 158,
-        "eggGroups": [
-          "field"
-        ],
         "movepool": [
           {
             "level": 1,
@@ -2140,10 +2130,6 @@
         "baseXpYield": 154,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 158,
-        "eggGroups": [
-          "field"
-        ],
         "movepool": [
           {
             "level": 1,
@@ -2325,10 +2311,7 @@
         "baseXpYield": 154,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 158,
-        "eggGroups": [
-          "field"
-        ],
+        "secondaryElement": "ELEMENT_WIND",
         "movepool": [
           {
             "level": 1,
@@ -2745,10 +2728,6 @@
         "baseXpYield": 154,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 158,
-        "eggGroups": [
-          "field"
-        ],
         "movepool": [
           {
             "level": 1,
@@ -3119,10 +3098,6 @@
         "baseXpYield": 154,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 158,
-        "eggGroups": [
-          "field"
-        ],
         "movepool": [
           {
             "level": 1,
@@ -3492,10 +3467,7 @@
         "baseXpYield": 154,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 182,
-        "eggGroups": [
-          "field"
-        ],
+        "secondaryElement": "ELEMENT_EARTH",
         "movepool": [
           {
             "level": 1,
@@ -4295,10 +4267,6 @@
         "baseXpYield": 154,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 158,
-        "eggGroups": [
-          "field"
-        ],
         "movepool": [
           {
             "level": 1,
@@ -4735,10 +4703,7 @@
         "baseXpYield": 154,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 158,
-        "eggGroups": [
-          "field"
-        ],
+        "secondaryElement": "ELEMENT_HOLY",
         "movepool": [
           {
             "level": 1,
@@ -5045,11 +5010,7 @@
         "baseXpYield": 64,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 92,
-        "eggGroups": [
-          "mineral",
-          "field"
-        ],
+        "secondaryElement": "ELEMENT_EARTH",
         "movepool": [
           {
             "level": 1,
@@ -5478,10 +5439,7 @@
         "baseXpYield": 154,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 182,
-        "eggGroups": [
-          "field"
-        ],
+        "secondaryElement": "ELEMENT_EARTH",
         "movepool": [
           {
             "level": 1,
@@ -6000,10 +5958,7 @@
         "baseXpYield": 154,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 158,
-        "eggGroups": [
-          "field"
-        ],
+        "secondaryElement": "ELEMENT_LIGHT",
         "movepool": [
           {
             "level": 1,
@@ -6662,10 +6617,6 @@
         "baseXpYield": 62,
         "baseFriendship": 80,
         "genderRatio": 0.5,
-        "baseStatTotal": 99,
-        "eggGroups": [
-          "field"
-        ],
         "movepool": [
           {
             "level": 1,
@@ -7265,10 +7216,7 @@
         "baseXpYield": 154,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 172,
-        "eggGroups": [
-          "field"
-        ],
+        "secondaryElement": "ELEMENT_HOLY",
         "movepool": [
           {
             "level": 1,
@@ -7452,10 +7400,7 @@
         "baseXpYield": 154,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 182,
-        "eggGroups": [
-          "field"
-        ],
+        "secondaryElement": "ELEMENT_NATURE",
         "movepool": [
           {
             "level": 1,
@@ -7773,10 +7718,7 @@
         "baseXpYield": 154,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 158,
-        "eggGroups": [
-          "field"
-        ],
+        "secondaryElement": "ELEMENT_WIND",
         "movepool": [
           {
             "level": 1,
@@ -8319,10 +8261,7 @@
         "baseXpYield": 154,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 158,
-        "eggGroups": [
-          "field"
-        ],
+        "secondaryElement": "ELEMENT_WIND",
         "movepool": [
           {
             "level": 1,
@@ -8702,10 +8641,7 @@
         "baseXpYield": 154,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 182,
-        "eggGroups": [
-          "field"
-        ],
+        "secondaryElement": "ELEMENT_ARCANE",
         "movepool": [
           {
             "level": 1,

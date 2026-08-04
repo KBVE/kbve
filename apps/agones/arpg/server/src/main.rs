@@ -5,6 +5,7 @@ mod creatures;
 mod db;
 mod duel;
 mod evolve;
+mod friendship;
 mod game;
 mod growth;
 mod learn;
@@ -156,6 +157,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // deadline; `cleanup_stale_duels` forfeits any duel whose human side disconnected;
         // chained so a start + first turn + timeout + disconnect land in frame order.
         app.insert_resource(learn::PendingLearnOffers::default());
+        app.insert_resource(friendship::PendingFriendship::default());
         app.insert_resource(duel::ActiveDuels::default());
         app.insert_resource(duel::PendingDuels::default());
         app.add_systems(
@@ -179,6 +181,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     growth::apply_pet_xp,
                     learn::apply_learn_responses,
                     evolve::apply_evolutions,
+                    friendship::apply_friendship,
                     learn::expire_learn_offers,
                     simgrid::flush_roster_syncs,
                 )

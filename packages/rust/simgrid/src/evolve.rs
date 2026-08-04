@@ -63,9 +63,12 @@ pub struct EvolutionResult {
 /// dropped and reported, and freed slots are backfilled from the new species' movepool at or
 /// below the pet's level. A pet can never come out of this with an empty moveset while its new
 /// species has anything to teach it.
+/// `genes` are read, never written: a pet's IVs and nature are the individual, and the
+/// individual survives the species change. Stats move because the base moved.
 pub fn evolve_pet(
     to: &NpcDef,
     progress: &PetProgress,
+    genes: &crate::genes::PetGenes,
     vitals: &mut PetVitals,
     moves: &mut PetMoves,
 ) -> EvolutionResult {
@@ -78,7 +81,7 @@ pub fn evolve_pet(
     let hp_before = vitals.hp;
     let max_before = vitals.max_hp.max(1);
     let base = BaseStats::of(to);
-    crate::progress::rescale_for(vitals, &base, progress.level);
+    crate::progress::rescale_for(vitals, &base, progress.level, genes);
     result.max_hp_gain = vitals.max_hp - max_before;
     vitals.hp = carry_hp(hp_before, max_before, vitals.max_hp);
 
@@ -123,6 +126,7 @@ pub fn evolve_pet(
 mod tests {
     use super::*;
     use crate::data::{NpcAbility, NpcEvolution, NpcMovepoolEntry, NpcStats};
+    use crate::genes::PetGenes;
     use crate::pets::PetMoveSlot;
 
     fn ability(id: &str) -> NpcAbility {
@@ -249,7 +253,7 @@ mod tests {
         let progress = PetProgress { level: 9, xp: 40 };
         let mut v = vitals();
         let mut m = moves_of(&["tackle"]);
-        let result = evolve_pet(&to, &progress, &mut v, &mut m);
+        let result = evolve_pet(&to, &progress, &PetGenes::default(), &mut v, &mut m);
         assert_eq!(result.to_ref, "strong");
         assert!(v.max_hp > 40, "the new base is bigger");
         assert_eq!(result.max_hp_gain, v.max_hp - 40);
@@ -263,7 +267,13 @@ mod tests {
         v.hp = 20;
         v.max_hp = 40;
         let mut m = moves_of(&["tackle"]);
-        evolve_pet(&to, &PetProgress { level: 9, xp: 0 }, &mut v, &mut m);
+        evolve_pet(
+            &to,
+            &PetProgress { level: 9, xp: 0 },
+            &PetGenes::default(),
+            &mut v,
+            &mut m,
+        );
         let ratio = v.hp as f32 / v.max_hp as f32;
         assert!(
             (ratio - 0.5).abs() < 0.05,
@@ -279,7 +289,13 @@ mod tests {
         let mut v = vitals();
         v.hp = 0;
         let mut m = moves_of(&["tackle"]);
-        evolve_pet(&to, &PetProgress { level: 9, xp: 0 }, &mut v, &mut m);
+        evolve_pet(
+            &to,
+            &PetProgress { level: 9, xp: 0 },
+            &PetGenes::default(),
+            &mut v,
+            &mut m,
+        );
         assert_eq!(v.hp, 0);
     }
 
@@ -287,7 +303,13 @@ mod tests {
     fn moves_the_new_species_still_defines_are_kept_at_their_pp() {
         let to = species("strong", &["tackle", "bite"], &[(1, "tackle"), (1, "bite")]);
         let mut m = moves_of(&["tackle", "bite"]);
-        let result = evolve_pet(&to, &PetProgress { level: 9, xp: 0 }, &mut vitals(), &mut m);
+        let result = evolve_pet(
+            &to,
+            &PetProgress { level: 9, xp: 0 },
+            &PetGenes::default(),
+            &mut vitals(),
+            &mut m,
+        );
         assert!(result.forgotten.is_empty());
         assert_eq!(m.0.len(), 2);
         assert_eq!(m.0[0].pp, 7, "spent PP is not refilled");
@@ -299,7 +321,13 @@ mod tests {
         // because `Combatant::from_pet` drops abilities the species does not define.
         let to = species("strong", &["tackle"], &[(1, "tackle")]);
         let mut m = moves_of(&["tackle", "howl"]);
-        let result = evolve_pet(&to, &PetProgress { level: 9, xp: 0 }, &mut vitals(), &mut m);
+        let result = evolve_pet(
+            &to,
+            &PetProgress { level: 9, xp: 0 },
+            &PetGenes::default(),
+            &mut vitals(),
+            &mut m,
+        );
         assert_eq!(result.forgotten, vec!["howl"]);
         assert!(!m.0.iter().any(|s| s.ability_id == "howl"));
     }
@@ -312,7 +340,13 @@ mod tests {
             &[(1, "tackle"), (8, "burst"), (26, "sig")],
         );
         let mut m = moves_of(&["howl"]); // nothing survives
-        let result = evolve_pet(&to, &PetProgress { level: 9, xp: 0 }, &mut vitals(), &mut m);
+        let result = evolve_pet(
+            &to,
+            &PetProgress { level: 9, xp: 0 },
+            &PetGenes::default(),
+            &mut vitals(),
+            &mut m,
+        );
         assert_eq!(result.forgotten, vec!["howl"]);
         // `sig` is level 26 and out of reach at 9; the rest backfill.
         assert_eq!(result.learned, vec!["burst", "tackle"]);
@@ -327,7 +361,13 @@ mod tests {
             &[(1, "a"), (1, "b"), (1, "c"), (1, "d"), (1, "e")],
         );
         let mut m = moves_of(&["gone"]);
-        evolve_pet(&to, &PetProgress { level: 9, xp: 0 }, &mut vitals(), &mut m);
+        evolve_pet(
+            &to,
+            &PetProgress { level: 9, xp: 0 },
+            &PetGenes::default(),
+            &mut vitals(),
+            &mut m,
+        );
         assert_eq!(m.0.len(), PET_MOVE_SLOTS);
     }
 
@@ -339,7 +379,13 @@ mod tests {
             &[(1, "a"), (1, "b"), (1, "c"), (1, "d"), (1, "e")],
         );
         let mut m = moves_of(&["a", "b", "c", "d"]);
-        let result = evolve_pet(&to, &PetProgress { level: 9, xp: 0 }, &mut vitals(), &mut m);
+        let result = evolve_pet(
+            &to,
+            &PetProgress { level: 9, xp: 0 },
+            &PetGenes::default(),
+            &mut vitals(),
+            &mut m,
+        );
         assert!(result.learned.is_empty());
         assert_eq!(m.0.len(), PET_MOVE_SLOTS);
     }

@@ -82,6 +82,9 @@ mod tests {
             nickname: nickname.into(),
             level: 5,
             xp: 0,
+            genes: simgrid::PetGenes::roll(id),
+            gender: simgrid::PetGender::roll(Some(0.5), id),
+            friendship: 70,
             vitals: simgrid::PetVitals {
                 hp: 30,
                 max_hp: 30,

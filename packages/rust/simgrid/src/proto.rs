@@ -669,6 +669,15 @@ pub struct PetView {
     /// copy of npcdb. Empty for a species with no evolutions left — which, since evolution is
     /// one-way and one-time, is every pet that has already evolved.
     pub evolve_items: Vec<String>,
+    /// Nature byte, `0..25`. The client decodes which stat it raises and lowers with the same
+    /// `boosted * 5 + lowered` arithmetic — an encoding detail, not game math, so mirroring it
+    /// costs nothing and saves sending two more fields.
+    pub nature: u32,
+    /// The six individual values in [`crate::genes::GeneStat`] order, each `0..=31`.
+    pub ivs: Vec<u32>,
+    /// 0 genderless, 1 male, 2 female.
+    pub gender: u32,
+    pub friendship: u32,
     pub hp: i32,
     pub max_hp: i32,
     pub attack: i32,
@@ -1460,6 +1469,10 @@ mod tests {
                     xp: 120,
                     xp_to_next: 91,
                     evolve_items: vec!["cyber-core".into()],
+                    nature: 4,
+                    ivs: vec![31, 0, 17, 8, 24, 3],
+                    gender: 1,
+                    friendship: 200,
                     hp: 30,
                     max_hp: 40,
                     attack: 12,
@@ -1481,6 +1494,10 @@ mod tests {
                     xp: 0,
                     xp_to_next: 169,
                     evolve_items: vec![],
+                    nature: 0,
+                    ivs: vec![0, 0, 0, 0, 0, 0],
+                    gender: 2,
+                    friendship: 70,
                     hp: 44,
                     max_hp: 44,
                     attack: 15,
@@ -1513,7 +1530,7 @@ mod tests {
         assert_eq!(back, sync);
     }
 
-    const ROSTER_SYNC_HEX: &str = "020330314a096d656368616d7574740352657805785b010a63796265722d636f72653c5018141c161a0105737061726b0f0f0330314b096d656368616d75747404426f6c740700a9010058581e18201a22000101";
+    const ROSTER_SYNC_HEX: &str = "020330314a096d656368616d7574740352657805785b010a63796265722d636f726504061f001108180301c8013c5018141c161a0105737061726b0f0f0330314b096d656368616d75747404426f6c740700a901000006000000000000024658581e18201a22000101";
     const ROSTER_SYNC_EMPTY_HEX: &str = "0000";
 
     /// Locks the move-learn offer the TS `decodePetLearnOffer` mirror reads. `known` is a

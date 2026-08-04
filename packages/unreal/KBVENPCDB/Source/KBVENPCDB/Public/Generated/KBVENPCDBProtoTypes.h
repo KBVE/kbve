@@ -76,6 +76,24 @@ struct KBVENPCDB_API FKBVEGenNpcStats
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
 	float CritDamage = 0;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	float MoveSpeed = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 MaxHunger = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 MaxFatigue = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 Will = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	float HungerPerSec = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	float FatiguePerSec = 0;
+
 };
 
 USTRUCT(BlueprintType)
@@ -757,16 +775,10 @@ struct KBVENPCDB_API FKBVEGenPetInfo
 	TArray<FKBVEGenPetMovepoolEntry> Movepool;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
-	TArray<FString> EggGroups;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
 	TArray<FKBVEGenPetEvolution> Evolutions;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
 	FString SecondaryElement;
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
-	int32 BaseStatTotal = 0;
 
 };
 
@@ -876,6 +888,18 @@ struct KBVENPCDB_API FKBVEGenNpc
 	FKBVEGenNpcStats Stats;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 UnitType = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 DefaultWeapon = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 DialogueTreeId = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	FString NameKey;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
 	TArray<FKBVEGenNpcAbility> Abilities;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
@@ -962,6 +986,9 @@ struct KBVENPCDB_API FKBVEGenNpcRegistry
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
 	TArray<FKBVEGenNpc> Npcs;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	FString ContentVersion;
 
 };
 
