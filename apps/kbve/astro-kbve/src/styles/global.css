@@ -4,6 +4,7 @@
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
 @import './bento.css';
+@import './chart.css';
 @import './mermaid.css';
 @import './mcdb.css';
 @import './os.css';
@@ -1164,10 +1165,17 @@ body:has([data-kbve-section])
 		margin: 0;
 		padding: 0;
 	}
+	/* The guide runs through the centre of the group's icon tile (row pad
+	   0.5rem + half of a 1.5rem tile), and the indent lands child labels on
+	   the same x as the group label above them (1.25 + 0.75 + 0.5 = 2.5rem,
+	   matching icon + gap + row pad). */
 	[data-kbve-sublist] [data-kbve-sublist] {
-		margin-inline-start: 0.85rem;
-		padding-inline-start: 0.6rem;
-		border-inline-start: 1px solid var(--bento-hairline-strong);
+		margin-inline-start: 1.25rem;
+		padding-inline-start: calc(0.75rem - 1px);
+		border-inline-start: 1px solid var(--bento-hairline);
+	}
+	[data-kbve-group][open] > [data-kbve-sublist] {
+		border-inline-start-color: var(--bento-hairline-strong);
 	}
 	[data-kbve-item] {
 		margin: 0.125rem 0;
@@ -1180,7 +1188,7 @@ body:has([data-kbve-section])
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
-		padding: 0.5rem;
+		padding: 0.375rem 0.5rem;
 		border-radius: 6px;
 		font-size: 0.875rem;
 		line-height: 1.3;

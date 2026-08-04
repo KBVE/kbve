@@ -278,30 +278,26 @@ def render_security_mdx(data: dict, timestamp: str) -> str:
 
     out.write('<BentoProse id="findings" heading="Advisories">\n\n')
 
-    has_findings = any(summary[s] > 0 for s in SEVERITY_ORDER[:4])
-    if has_findings:
+    severity = donut_svg(
+        "Findings by Severity",
+        [Slice(SEVERITY_LABELS[sev], summary[sev])
+         for sev in SEVERITY_ORDER[:4]],
+    )
+    if severity:
         out.write("### Severity distribution\n\n")
-        out.write("```mermaid\n")
-        out.write("pie showData\n")
-        out.write("    title Findings by Severity\n")
-        for sev in SEVERITY_ORDER[:4]:
-            if summary[sev] > 0:
-                out.write(f'    "{SEVERITY_LABELS[sev]}" : {summary[sev]}\n')
-        out.write("```\n\n")
+        out.write(f'<div class="kbve-figure">{severity}</div>\n\n')
 
     eco_totals = {
         ECOSYSTEM_LABELS[e]: ecosystems.get(e, {}).get("total", 0)
         for e in ECOSYSTEM_ORDER
     }
-    if any(v > 0 for v in eco_totals.values()):
+    by_eco = donut_svg(
+        "Findings by Ecosystem",
+        [Slice(label, count) for label, count in eco_totals.items()],
+    )
+    if by_eco:
         out.write("### Findings by ecosystem\n\n")
-        out.write("```mermaid\n")
-        out.write("pie showData\n")
-        out.write("    title Findings by Ecosystem\n")
-        for label, count in eco_totals.items():
-            if count > 0:
-                out.write(f'    "{label}" : {count}\n')
-        out.write("```\n\n")
+        out.write(f'<div class="kbve-figure">{by_eco}</div>\n\n')
 
     out.write("### Summary\n\n")
     out.write(
@@ -911,6 +907,15 @@ KANBAN_COLUMNS = [
     "Support", "Staging", "Review", "Done",
 ]
 
+# Pipeline node tones. `dag_svg` colours by node type, so the board's four
+# work states reuse the Nx project-type slots rather than inventing a palette.
+_KANBAN_TONE = {
+    "Theory": "lib", "AI": "lib", "Backlog": "lib",
+    "Todo": "app", "Staging": "app", "Review": "app",
+    "Error": "e2e", "Support": "e2e",
+    "Done": "lib",
+}
+
 _PLANNING_COLS = ("Theory", "AI", "Backlog")
 _ACTIVE_COLS = ("Todo", "Staging", "Review")
 _BLOCKED_COLS = ("Error", "Support")
@@ -983,7 +988,8 @@ def render_kanban_mdx(payload: dict, timestamp: str) -> str:
     blocked = sum(summary.get(c, 0) for c in _BLOCKED_COLS)
     planning = sum(summary.get(c, 0) for c in _PLANNING_COLS)
     done = summary.get("Done", 0)
-    project_url = project.get("url", "") or "https://github.com/orgs/KBVE/projects/5"
+    project_url = project.get(
+        "url", "") or "https://github.com/orgs/KBVE/projects/5"
     out = StringIO()
 
     out.write(
@@ -1095,7 +1101,8 @@ def render_kanban_mdx(payload: dict, timestamp: str) -> str:
     out.write("\t</div>\n</BentoShell>\n\n")
 
     out.write('<BentoProse id="flow" heading="Pipeline flow">\n\n')
-    _write_kanban_charts(out, summary, columns, active, blocked, done, planning)
+    _write_kanban_charts(out, summary, columns, active,
+                         blocked, done, planning)
     out.write("</BentoProse>\n\n")
 
     out.write('<BentoProse id="board" heading="Board detail">\n\n')
@@ -1128,57 +1135,64 @@ def render_kanban_mdx(payload: dict, timestamp: str) -> str:
 def _write_kanban_charts(out: TextIO, summary: dict, columns: dict,
                          active: int, blocked: int, done: int,
                          planning: int) -> None:
-    active_cols = [c for c in KANBAN_COLUMNS if summary.get(c, 0) > 0]
-    if active_cols:
+    by_status = donut_svg(
+        "Items by Status",
+        _folded_slices([(c, summary.get(c, 0)) for c in KANBAN_COLUMNS]),
+    )
+    if by_status:
         out.write("### Items by status\n\n")
-        out.write("```mermaid\npie showData\n    title Items by Status\n")
-        for col in active_cols:
-            out.write(f'    "{col}" : {summary[col]}\n')
-        out.write("```\n\n")
+        out.write(f'<div class="kbve-figure">{by_status}</div>\n\n')
 
-    out.write("### Work state\n\n")
-    out.write("```mermaid\npie showData\n    title Work State\n")
-    if active > 0:
-        out.write(f'    "Active (Todo+Staging+Review)" : {active}\n')
-    if blocked > 0:
-        out.write(f'    "Blocked (Error+Support)" : {blocked}\n')
-    if done > 0:
-        out.write(f'    "Done" : {done}\n')
-    if planning > 0:
-        out.write(f'    "Planning (Theory+AI+Backlog)" : {planning}\n')
-    out.write("```\n\n")
+    work_state = donut_svg(
+        "Work State",
+        [
+            Slice("Active", active),
+            Slice("Blocked", blocked),
+            Slice("Done", done),
+            Slice("Planning", planning),
+        ],
+    )
+    if work_state:
+        out.write("### Work state\n\n")
+        out.write(f'<div class="kbve-figure">{work_state}</div>\n\n')
 
-    out.write("### Pipeline\n\n")
-    out.write("```mermaid\nflowchart LR\n")
-    out.write("    classDef planning fill:#8b5cf6,stroke:#6d28d9,color:#fff\n")
-    out.write("    classDef active fill:#3b82f6,stroke:#1d4ed8,color:#fff\n")
-    out.write("    classDef blocked fill:#ef4444,stroke:#b91c1c,color:#fff\n")
-    out.write("    classDef done fill:#10b981,stroke:#059669,color:#fff\n")
-    for i, col in enumerate(KANBAN_COLUMNS):
-        count = summary.get(col, 0)
-        cid = col.replace(" ", "_")
-        out.write(f'    {cid}["{col}<br/><strong>{count}</strong>"]\n')
-        if i < len(KANBAN_COLUMNS) - 1:
-            nxt = KANBAN_COLUMNS[i + 1].replace(" ", "_")
-            out.write(f"    {cid} --> {nxt}\n")
-    out.write("    class Theory,AI,Backlog planning\n")
-    out.write("    class Todo,Staging,Review active\n")
-    out.write("    class Error,Support blocked\n")
-    out.write("    class Done done\n")
-    out.write("```\n\n")
+    pipeline = dag_svg(
+        [
+            DagNode(
+                col,
+                _KANBAN_TONE.get(col, ""),
+                label=col + " (" + str(summary.get(col, 0)) + ")",
+            )
+            for col in KANBAN_COLUMNS
+        ],
+        [
+            DagEdge(a, b)
+            for a, b in zip(KANBAN_COLUMNS, KANBAN_COLUMNS[1:])
+        ],
+        title="Pipeline",
+    )
+    if pipeline:
+        out.write("### Pipeline\n\n")
+        out.write(
+            f'<div class="kbve-figure kbve-figure--wide">{pipeline}</div>\n\n'
+        )
 
     type_counts: dict[str, int] = {}
     for col in KANBAN_COLUMNS:
         for item in columns.get(col, []):
             t = item.get("type") or "DRAFT_ISSUE"
             type_counts[t] = type_counts.get(t, 0) + 1
-    if type_counts:
+    by_type = donut_svg(
+        "Items by Type",
+        _folded_slices([
+            (_titlecase_type(t), c)
+            for t, c in sorted(type_counts.items(), key=lambda kv: kv[1],
+                               reverse=True)
+        ]),
+    )
+    if by_type:
         out.write("### Items by type\n\n")
-        out.write("```mermaid\npie showData\n    title Items by Type\n")
-        for t, c in sorted(type_counts.items(), key=lambda kv: kv[1],
-                           reverse=True):
-            out.write(f'    "{_titlecase_type(t)}" : {c}\n')
-        out.write("```\n\n")
+        out.write(f'<div class="kbve-figure">{by_type}</div>\n\n')
 
 
 def _write_kanban_labels(out: TextIO, columns: dict) -> None:
@@ -1394,22 +1408,21 @@ def render_ci_health_mdx(payload: dict, timestamp: str) -> str:
         "Cancelled": totals["cancelled"], "Skipped": totals["skipped"],
         "Other": totals["other"],
     }
-    if any(v > 0 for v in concl.values()):
+    outcomes = donut_svg(
+        "Runs by Outcome",
+        [Slice(label, val) for label, val in concl.items()],
+    )
+    if outcomes:
         out.write("### Outcome distribution\n\n")
-        out.write("```mermaid\npie showData\n    title Runs by Outcome\n")
-        for label, val in concl.items():
-            if val > 0:
-                out.write(f'    "{label}" : {val}\n')
-        out.write("```\n\n")
+        out.write(f'<div class="kbve-figure">{outcomes}</div>\n\n')
 
-    top = [w for w in workflows[:8] if w["runs"] > 0]
-    if top:
+    by_workflow = donut_svg(
+        "Runs by Workflow",
+        _folded_slices([(w["name"], w["runs"]) for w in workflows]),
+    )
+    if by_workflow:
         out.write("### Volume by workflow\n\n")
-        out.write("```mermaid\npie showData\n    title Runs by Workflow"
-                  " (top 8)\n")
-        for wf in top:
-            out.write(f'    "{_mermaid_label(wf["name"])}" : {wf["runs"]}\n')
-        out.write("```\n\n")
+        out.write(f'<div class="kbve-figure">{by_workflow}</div>\n\n')
 
     out.write("### Last 24 hours\n\n")
     out.write(
@@ -1479,8 +1492,32 @@ def render_ci_health_mdx(payload: dict, timestamp: str) -> str:
     return out.getvalue()
 
 
-def _mermaid_label(name: str) -> str:
+def _slice_label(name: str) -> str:
     return name.replace('"', "'").replace("\n", " ")[:40]
+
+
+# Past roughly six segments adjacent wedges blur together and the legend stops
+# being scannable, so the tail folds into a single "Other" slice. The full
+# breakdown always remains in the table alongside each chart.
+_MAX_SLICES = 6
+
+
+def _folded_slices(
+    pairs: list[tuple[str, float]], limit: int = _MAX_SLICES,
+) -> list[Slice]:
+    """Drop empty entries and fold everything past *limit* into "Other"."""
+    kept = [(label, value) for label, value in pairs if value > 0]
+    if len(kept) <= limit:
+        return [Slice(_slice_label(label), value) for label, value in kept]
+
+    ranked = sorted(kept, key=lambda kv: kv[1], reverse=True)
+    head = {label for label, _ in ranked[:limit - 1]}
+    tail = sum(value for label, value in kept if label not in head)
+    return [
+        Slice(_slice_label(label), value)
+        for label, value in kept
+        if label in head
+    ] + [Slice("Other", tail)]
 
 
 # ── Shared Bento hero ────────────────────────────────────────────────
@@ -1634,13 +1671,12 @@ def render_deps_mdx(payload: dict, timestamp: str) -> str:
     out.write("\t</div>\n</BentoShell>\n\n")
 
     out.write('<BentoProse id="trends" heading="Drift detail">\n\n')
-    if total > 0:
-        out.write("```mermaid\npie showData\n    title Outdated by Ecosystem\n")
-        if node["count"]:
-            out.write(f'    "npm" : {node["count"]}\n')
-        if rust["count"]:
-            out.write(f'    "cargo" : {rust["count"]}\n')
-        out.write("```\n\n")
+    outdated = donut_svg(
+        "Outdated by Ecosystem",
+        [Slice("npm", node["count"]), Slice("cargo", rust["count"])],
+    )
+    if outdated:
+        out.write(f'<div class="kbve-figure">{outdated}</div>\n\n')
 
     out.write('<span id="npm"></span>\n\n### npm\n\n')
     if node["items"]:
@@ -1773,11 +1809,14 @@ def render_activity_mdx(payload: dict, timestamp: str) -> str:
     out.write("\t</div>\n</BentoShell>\n\n")
 
     out.write('<BentoProse id="commits" heading="Activity detail">\n\n')
-    if commits["leaderboard"]:
-        out.write("```mermaid\npie showData\n    title Commits by Author\n")
-        for c in commits["leaderboard"]:
-            out.write(f'    "{_mermaid_label(c["author"])}" : {c["commits"]}\n')
-        out.write("```\n\n")
+    by_author = donut_svg(
+        "Commits by Author",
+        _folded_slices([
+            (c["author"], c["commits"]) for c in commits["leaderboard"]
+        ]),
+    )
+    if by_author:
+        out.write(f'<div class="kbve-figure">{by_author}</div>\n\n')
 
     out.write("### Recent commits\n\n")
     if commits["recent"]:
@@ -1915,12 +1954,12 @@ def render_release_mdx(payload: dict, timestamp: str) -> str:
     out.write('<BentoProse id="packages" heading="Package status">\n\n')
     dist = {_RELEASE_STATUS_LABEL[s]: summary.get(s, 0)
             for s in ("pending", "behind", "unpublished", "published")}
-    if any(v > 0 for v in dist.values()):
-        out.write("```mermaid\npie showData\n    title Packages by Status\n")
-        for label, val in dist.items():
-            if val > 0:
-                out.write(f'    "{label}" : {val}\n')
-        out.write("```\n\n")
+    by_pkg_status = donut_svg(
+        "Packages by Status",
+        [Slice(label, val) for label, val in dist.items()],
+    )
+    if by_pkg_status:
+        out.write(f'<div class="kbve-figure">{by_pkg_status}</div>\n\n')
 
     if rows:
         out.write(
