@@ -1,14 +1,15 @@
 """Starlight MDX rendering primitives.
 
 Provides ``MdxWriter``, a composable builder for generating Astro Starlight
-MDX pages with frontmatter, cards, tabs, mermaid diagrams, tables, and
-admonitions.
+MDX pages with frontmatter, cards, tabs, charts, tables, and admonitions.
 """
 
 from __future__ import annotations
 
 import io
 from typing import Any
+
+from ..svg import DagEdge, DagNode, Slice, dag_svg, donut_svg
 
 
 class MdxWriter:
@@ -24,7 +25,7 @@ class MdxWriter:
         w.card_grid_start()
         w.card("3 Apps", icon="rocket", body="app1, app2, app3")
         w.card_grid_end()
-        w.mermaid_pie("Title", {"Apps": 3, "Libs": 5})
+        w.donut("Title", {"Apps": 3, "Libs": 5})
         w.table(["Col A", "Col B"], [["a", "b"]])
         content = w.render()
     """
@@ -142,27 +143,32 @@ class MdxWriter:
         self._buf.write("  </TabItem>\n")
         return self
 
-    # ── Mermaid ──────────────────────────────────────────────────
+    # ── Charts ───────────────────────────────────────────────────
+    # Rendered to finished SVG here rather than emitted as ```mermaid
+    # fences: the site ships no mermaid runtime, so an unrendered fence
+    # would reach the reader as raw diagram source.
 
-    def mermaid_pie(
+    def donut(
         self, title: str, data: dict[str, int | float],
     ) -> "MdxWriter":
-        """Write a Mermaid pie chart."""
-        self._buf.write("```mermaid\npie showData\n")
-        self._buf.write(f"    title {title}\n")
-        for label, value in data.items():
-            if value > 0:
-                self._buf.write(
-                    '    "' + label + '" : ' + str(value) + '\n'
-                )
-        self._buf.write("```\n\n")
+        """Write a donut chart as inline SVG. Zero-valued entries drop out."""
+        svg = donut_svg(
+            title, [Slice(label, value) for label, value in data.items()],
+        )
+        if svg:
+            self._buf.write(f'<div class="kbve-figure">{svg}</div>\n\n')
         return self
 
-    def mermaid_graph(self, lines: list[str]) -> "MdxWriter":
-        """Write a raw Mermaid graph block."""
-        self._buf.write("```mermaid\n")
-        self._buf.write("\n".join(lines))
-        self._buf.write("\n```\n\n")
+    def dag(
+        self,
+        nodes: list[DagNode],
+        edges: list[DagEdge],
+        title: str = "Dependency graph",
+    ) -> "MdxWriter":
+        """Write a left-to-right dependency diagram as inline SVG."""
+        svg = dag_svg(nodes, edges, title=title)
+        if svg:
+            self._buf.write(f'<div class="kbve-figure">{svg}</div>\n\n')
         return self
 
     # ── Tables ───────────────────────────────────────────────────

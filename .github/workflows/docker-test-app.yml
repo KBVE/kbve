@@ -428,6 +428,21 @@ jobs:
                   echo "::warning::install-deps exhausted; trying install --with-deps"
                   pnpm exec playwright install --with-deps ${BROWSERS}
 
+            # Rust-backed e2e projects boot their server via `cargo run` as a
+            # playwright webServer. The agones crate's build script shells out to
+            # protoc, which no runner image ships — arpg-e2e died here on every
+            # weekly run since it was added. Non-Rust projects just skip it.
+            - name: Install protoc
+              run: |
+                  if command -v protoc >/dev/null 2>&1; then
+                    echo "protoc already present: $(protoc --version)"
+                    exit 0
+                  fi
+                  sudo apt-get update -qq \
+                    && sudo apt-get install -y --no-install-recommends protobuf-compiler \
+                    && protoc --version \
+                    || echo "::warning::protoc install failed; Rust e2e projects that need it will fail with a clear prost-build error"
+
             - name: Nx e2e ${{ inputs.project }}
               env:
                   BUILDKIT_PROGRESS: plain

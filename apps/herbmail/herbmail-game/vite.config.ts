@@ -298,6 +298,12 @@ export default defineConfig({
 				find: '@kbve/laser/r3f',
 				replacement: path.join(laserSrc, 'r3f.ts'),
 			},
+			// Must stay last: `find` is a prefix match and first match wins, so
+			// the root barrel placed above would swallow the subpaths.
+			{
+				find: '@kbve/laser',
+				replacement: path.join(laserSrc, 'index.ts'),
+			},
 			itemdbDataAlias,
 			itemdbSchemaAlias,
 		],

@@ -2,6 +2,7 @@
 
 from kbve.mdx.escape import escape_mdx
 from kbve.mdx.renderer import MdxWriter
+from kbve.svg import DagEdge, DagNode
 
 
 # ── escape_mdx ───────────────────────────────────────────────────────
@@ -232,56 +233,60 @@ def test_tabs_multiple():
     assert '<TabItem label="B">' in out
 
 
-# ── mermaid ──────────────────────────────────────────────────────────
+# ── charts ──────────────────────────────────────────────────────────
 
-def test_mermaid_pie():
+def test_donut():
     w = MdxWriter()
-    w.mermaid_pie("By Type", {"Apps": 3, "Libs": 5, "Empty": 0})
+    w.donut("By Type", {"Apps": 3, "Libs": 5, "Empty": 0})
     out = w.render()
-    assert "```mermaid" in out
-    assert "pie showData" in out
-    assert '"Apps" : 3' in out
-    assert '"Libs" : 5' in out
+    assert "```mermaid" not in out
+    assert "<svg" in out
+    assert 'class="kbve-figure"' in out
+    assert "Apps" in out
+    assert "Libs" in out
     assert "Empty" not in out
 
 
-def test_mermaid_pie_all_zero():
+def test_donut_all_zero_writes_nothing():
     w = MdxWriter()
-    w.mermaid_pie("Empty", {"A": 0, "B": 0})
-    out = w.render()
-    assert "pie showData" in out
-    assert '"A"' not in out
+    w.donut("Empty", {"A": 0, "B": 0})
+    assert w.render() == ""
 
 
-def test_mermaid_pie_empty_data():
+def test_donut_empty_data_writes_nothing():
     w = MdxWriter()
-    w.mermaid_pie("Nothing", {})
-    out = w.render()
-    assert "pie showData" in out
-    assert "title Nothing" in out
+    w.donut("Nothing", {})
+    assert w.render() == ""
 
 
-def test_mermaid_pie_float_values():
+def test_donut_float_values():
     w = MdxWriter()
-    w.mermaid_pie("Floats", {"X": 1.5, "Y": 2.7})
+    w.donut("Floats", {"X": 1.5, "Y": 2.7})
     out = w.render()
-    assert '"X" : 1.5' in out
-    assert '"Y" : 2.7' in out
+    assert "1.5" in out
+    assert "2.7" in out
 
 
-def test_mermaid_graph():
+def test_donut_escapes_labels():
     w = MdxWriter()
-    w.mermaid_graph(["graph LR", "    A --> B"])
+    w.donut("Titles", {"A & <B>": 2})
     out = w.render()
-    assert "graph LR" in out
-    assert "A --> B" in out
+    assert "&amp;" in out
+    assert "<B>" not in out
 
 
-def test_mermaid_graph_empty():
+def test_dag():
     w = MdxWriter()
-    w.mermaid_graph([])
+    w.dag([DagNode("a", "app"), DagNode("b", "lib")], [DagEdge("a", "b")])
     out = w.render()
-    assert "```mermaid\n\n```" in out
+    assert "<svg" in out
+    assert 'class="kbve-figure"' in out
+
+
+def test_dag_empty_writes_nothing():
+    w = MdxWriter()
+    w.dag([], [])
+    assert w.render() == ""
 
 
 # ── table ────────────────────────────────────────────────────────────
@@ -396,7 +401,7 @@ def test_full_document(tmp_path):
     w.card_grid_start()
     w.card("5 Apps", "rocket", "app list here")
     w.card_grid_end()
-    w.mermaid_pie("Distribution", {"Apps": 5, "Libs": 10})
+    w.donut("Distribution", {"Apps": 5, "Libs": 10})
     w.tabs_start()
     w.tab_start("Table")
     w.table(["Name", "Type"], [["web", "app"]])
@@ -416,7 +421,7 @@ def test_full_document(tmp_path):
     assert "## Overview" in content
     assert ":::note[Auto]" in content
     assert "<CardGrid>" in content
-    assert "pie showData" in content
+    assert 'class="kbve-figure"' in content
     assert "<Tabs>" in content
     assert "| Name | Type |" in content
     assert "<details>" in content
