@@ -27,7 +27,7 @@ export function ShortcutsView() {
 				),
 			);
 			setPushToTalk(s.data.push_to_talk);
-			setPasteMethod(s.data.paste_method);
+			setPasteMethod(s.data.paste_method ?? 'ctrl_v');
 		} else setError(s.error);
 	};
 

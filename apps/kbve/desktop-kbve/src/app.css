@@ -270,32 +270,84 @@ select.control {
 	margin: 0 1rem;
 }
 
-/* Labels fade + collapse when sidebar closes */
+/* Collapsed: the wide side margins leave too little room, so sections shed
+   them and center their contents as a single column. */
+.sidebar-collapsed .sidebar-section {
+	margin: 0 0.5rem;
+	padding: 1.25rem 0;
+	justify-content: center;
+}
+
+.sidebar-collapsed .sidebar-nav {
+	margin: 0 0.5rem;
+}
+
+/* Icons keep a fixed-size box in both states so their centers never move —
+   only the label beside them collapses. */
+.sidebar-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.5rem;
+	height: 1.5rem;
+	flex-shrink: 0;
+}
+
+.sidebar-collapsed .sidebar-item,
+.sidebar-collapsed .sidebar-row {
+	justify-content: center;
+	padding-left: 0;
+	padding-right: 0;
+	gap: 0;
+}
+
+/* Labels fade + collapse when sidebar closes. Width/opacity come from the
+   component; this only owns the clipping and the transition. */
 .sidebar-label {
+	display: block;
 	overflow: hidden;
 	white-space: nowrap;
-	opacity: 1;
-	max-width: 10rem;
 	transition:
 		opacity 180ms ease-out,
-		max-width 200ms ease-out,
-		margin-left 200ms ease-out;
+		max-width 200ms ease-out;
+}
+
+.sidebar-item {
+	background-color: transparent;
+	color: var(--color-text-muted);
+	border: 0;
+	cursor: pointer;
+	text-align: left;
+}
+
+.sidebar-item:hover {
+	background-color: var(--color-surface-hover);
+	color: var(--color-text);
+}
+
+.sidebar-item.is-active {
+	background-color: var(--color-active);
+	color: var(--color-text);
+}
+
+.sidebar-item:focus-visible {
+	outline: none;
+	box-shadow: 0 0 0 2px
+		color-mix(in srgb, var(--color-accent) 50%, transparent);
 }
 
 /* ─── Burger Toggle ───────────────────────────────────────────────────────── */
 
 .burger {
 	position: relative;
-	width: 24px;
-	height: 18px;
+	width: 20px;
+	height: 15px;
 	background: transparent;
+	border: 0;
+	padding: 0;
 	cursor: pointer;
 	display: block;
 	flex-shrink: 0;
-}
-
-.burger input {
-	display: none;
 }
 
 .burger span {
@@ -328,20 +380,20 @@ select.control {
 	transform: translateY(-100%);
 }
 
-.burger input:checked ~ span:nth-of-type(1) {
+.burger[aria-expanded='true'] span:nth-of-type(1) {
 	transform: rotate(45deg);
 	top: -1px;
 	left: 3px;
 }
 
-.burger input:checked ~ span:nth-of-type(2) {
+.burger[aria-expanded='true'] span:nth-of-type(2) {
 	width: 0%;
 	opacity: 0;
 }
 
-.burger input:checked ~ span:nth-of-type(3) {
+.burger[aria-expanded='true'] span:nth-of-type(3) {
 	transform: rotate(-45deg);
-	top: 17px;
+	top: 14px;
 	left: 3px;
 }
 

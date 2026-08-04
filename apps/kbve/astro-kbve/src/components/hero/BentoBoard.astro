@@ -186,6 +186,8 @@ const fillMd = (2 - (cells.length % 2)) % 2;
 							<img
 								class="bento-board__cell-badge"
 								src={cell.badgeSrc}
+								width="110"
+								height="20"
 								alt={cell.badgeAlt ?? ''}
 								loading="lazy"
 								decoding="async"
@@ -484,6 +486,7 @@ const fillMd = (2 - (cells.length % 2)) % 2;
 		align-self: flex-start;
 		margin-top: 0.625rem;
 		height: 20px;
+		width: auto;
 		filter: grayscale(0.85) brightness(0.75);
 		opacity: 0.7;
 		transition:

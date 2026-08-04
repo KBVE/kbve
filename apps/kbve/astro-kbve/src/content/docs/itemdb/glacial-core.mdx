@@ -1,0 +1,41 @@
+---
+title: 'Glacial Core'
+template: splash
+sidebar:
+    label: 'Glacial Core'
+    hidden: true
+description: |
+    The evolution trigger for Glacierfang. Inert in the hand, and warm the moment a Shibe is near one.
+lore: |
+    One of eighteen keys to the same lock. Which form a Shibe takes is decided entirely by which of these it is given, and the decision cannot be revisited — handlers who can afford to hold several report that choosing is worse than not having the option.
+ref: 'glacial-core'
+key: 127
+id: '01KTVTRAB1GLACIALCORE00000'
+name: 'Glacial Core'
+type_flags: 544
+rarity: 'rare'
+emoji: '🧊'
+stackable: true
+max_stack: 5
+buy_price: 1200
+consumable: true
+action: 'consume'
+tags:
+  - arpg
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import { Aside } from '@astrojs/starlight/components';
+
+## Overview
+
+<ItemDBPanel data={frontmatter} />
+
+Used on a [Shibe](/docs/npcdb/shibe/) from the pet hub to evolve it into
+[Glacierfang](/docs/npcdb/glacierfang/), a ice form. The item is consumed only if the
+evolution actually happens.
+
+<Aside type="caution">
+	Evolution is permanent and a Shibe can only do it once. This item chooses the form.
+</Aside>

@@ -169,6 +169,9 @@ export interface PetView {
 	/** XP still needed for the next level, so a progress bar needs no client-side copy of
 	 * the growth curves. 0 at the level ceiling. */
 	xp_to_next: number;
+	/** Item refs that would evolve this pet, so the hub can offer them without a client-side
+	 * copy of npcdb. Empty once the pet has evolved — evolution is one-way and one-time. */
+	evolve_items: string[];
 	hp: number;
 	max_hp: number;
 	attack: number;
@@ -288,7 +291,8 @@ export type Input =
 	| { RenamePet: { idx: number; name: string } }
 	| { UsePetElixir: { idx: number } }
 	| { HealPets: { npc: number } }
-	| { RespondLearnMove: { pet_id: string; slot: number | null } };
+	| { RespondLearnMove: { pet_id: string; slot: number | null } }
+	| { EvolvePet: { idx: number; item_ref: string } };
 
 export type BjActionKind = 'Hit' | 'Stand' | 'Double' | 'Split' | 'Surrender';
 

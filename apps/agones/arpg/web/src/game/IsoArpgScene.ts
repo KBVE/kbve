@@ -556,6 +556,8 @@ export class IsoArpgScene extends Phaser.Scene {
 			if (op.kind === 'setActive') this.client?.setActivePet(op.idx);
 			else if (op.kind === 'release') this.client?.releasePet(op.idx);
 			else if (op.kind === 'elixir') this.client?.usePetElixir(op.idx);
+			else if (op.kind === 'evolve')
+				this.client?.evolvePet(op.idx, op.itemRef);
 			else this.client?.renamePet(op.idx, op.name);
 		});
 

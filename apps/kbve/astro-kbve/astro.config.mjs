@@ -102,6 +102,7 @@ export default defineConfig({
 		worker(),
 		starlight({
 			title: 'KBVE',
+			favicon: '/favicon.ico',
 			defaultLocale: 'root',
 			locales: {
 				root: { label: 'English', lang: 'en' },

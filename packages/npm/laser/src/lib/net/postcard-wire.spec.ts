@@ -314,8 +314,8 @@ describe('postcard Ephemeral payload decoder', () => {
 	it('decodes the Rust PetRosterSync fixture', () => {
 		const payload =
 			'020330314a096d656368616d7574740352657805785b' +
-			'3c5018141c161a0105737061726b0f0f0330314b09' +
-			'6d656368616d75747404426f6c740700a90158581e18201a22000101';
+			'010a63796265722d636f72653c5018141c161a0105737061726b0f0f' +
+			'0330314b096d656368616d75747404426f6c740700a9010058581e18201a22000101';
 		expect(decodePetRosterSync(Array.from(fromHex(payload)))).toEqual({
 			pets: [
 				{
@@ -325,6 +325,7 @@ describe('postcard Ephemeral payload decoder', () => {
 					level: 5,
 					xp: 120,
 					xp_to_next: 91,
+					evolve_items: ['cyber-core'],
 					hp: 30,
 					max_hp: 40,
 					attack: 12,
@@ -341,6 +342,7 @@ describe('postcard Ephemeral payload decoder', () => {
 					level: 7,
 					xp: 0,
 					xp_to_next: 169,
+					evolve_items: [],
 					hp: 44,
 					max_hp: 44,
 					attack: 15,
@@ -362,6 +364,23 @@ describe('postcard Ephemeral payload decoder', () => {
 			pets: [],
 			active: null,
 		});
+	});
+
+	// proto.rs evolve_pet_input_roundtrips — variant 42, the roster slot, then the item ref that
+	// picks which of the eighteen shibe forms the pet becomes.
+	it('encodes EvolvePet with the locked variant 42', () => {
+		expect(
+			hex(
+				encodeClientMessage({
+					Frame: {
+						client_tick: 1,
+						inputs: [
+							{ EvolvePet: { idx: 1, item_ref: 'cyber-core' } },
+						],
+					},
+				}),
+			),
+		).toBe('110101012a010a63796265722d636f726500');
 	});
 
 	// proto.rs pet_learn_offer_fixture_is_stable — a live offer, with two known moves so the

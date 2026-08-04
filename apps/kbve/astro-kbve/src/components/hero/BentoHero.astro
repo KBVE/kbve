@@ -64,7 +64,6 @@ const {
 			href: '/arcade/',
 		},
 	],
-	wallpaper = '1781099270897-ca214439f99e',
 	wallpaperCredit = {
 		title: 'Under the Wave off Kanagawa — The Great Wave',
 		artist: 'Katsushika Hokusai (1760–1849)',
@@ -73,7 +72,10 @@ const {
 	},
 } = Astro.props;
 
-const wallpaperUrl = `https://images.unsplash.com/photo-${wallpaper}?q=80&w=1600&auto=format&fit=crop`;
+const wallpaperUrl = '/assets/images/bento/hero-wave-800.avif';
+const wallpaperSrcset = [480, 800, 1200]
+	.map((w) => `/assets/images/bento/hero-wave-${w}.avif ${w}w`)
+	.join(', ');
 
 const dock = [
 	{
@@ -413,6 +415,10 @@ const dock = [
 						<img
 							class="bento-hero__wallpaper"
 							src={wallpaperUrl}
+							srcset={wallpaperSrcset}
+							sizes="(max-width: 768px) 100vw, 800px"
+							width="800"
+							height="547"
 							alt=""
 							loading="lazy"
 							decoding="async"
@@ -1047,6 +1053,8 @@ const dock = [
 	}
 
 	.bento-hero__news-title {
+		display: inline-block;
+		padding-block: 0.25rem;
 		color: var(--sl-color-gray-2);
 		text-decoration: none;
 	}

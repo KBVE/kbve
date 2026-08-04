@@ -6,6 +6,7 @@ pub mod blackjack;
 pub mod combat;
 pub mod data;
 pub mod dungeon;
+pub mod evolve;
 pub mod float_move;
 pub mod grid;
 pub mod heightfield;
@@ -30,6 +31,7 @@ pub use battle::{
 pub use battle_ai::{AiDifficulty, choose_action, choose_replacement};
 pub use blackjack::{TableDef, Tables};
 pub use data::{ItemDb, ItemDef, KindRegistry, NpcDb, NpcDef};
+pub use evolve::{EvolutionResult, evolution_for, evolution_items, evolve_pet};
 pub use grid::{
     FloatMove, Floor, GridPos, MoveSpeed, MoveTarget, StairGrace, StairLink, Stairs, WalkableMap,
 };

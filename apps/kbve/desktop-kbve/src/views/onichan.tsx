@@ -28,10 +28,8 @@ export function OnichanView() {
 	const refresh = useCallback(async () => {
 		const a = await commands.onichanIsActive();
 		setActive(a);
-		const l = await commands.getOnichanLlmModels();
-		if (l.status === 'ok') setLlm(l.data);
-		const t = await commands.getOnichanTtsModels();
-		if (t.status === 'ok') setTts(t.data);
+		setLlm(await commands.getOnichanLlmModels());
+		setTts(await commands.getOnichanTtsModels());
 		setLlmLoaded(await commands.isLocalLlmLoaded());
 		setTtsLoaded(await commands.isLocalTtsLoaded());
 		setConversing(await commands.onichanIsConversationRunning());

@@ -334,6 +334,14 @@ pub enum Input {
         pet_id: String,
         slot: Option<u32>,
     },
+    /// Spend an evolution item on roster slot `idx`. The server checks the item is held and that
+    /// the pet's species actually lists it as a trigger; the item is consumed only if the
+    /// evolution happens. Appended last so serde variant indices of the existing inputs are
+    /// unchanged.
+    EvolvePet {
+        idx: u32,
+        item_ref: String,
+    },
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -657,6 +665,10 @@ pub struct PetView {
     /// growth curves client-side. 0 at the level ceiling, or when the species is unknown to
     /// whoever built this view.
     pub xp_to_next: u32,
+    /// Item refs that would evolve this pet, so the hub can offer them without a client-side
+    /// copy of npcdb. Empty for a species with no evolutions left — which, since evolution is
+    /// one-way and one-time, is every pet that has already evolved.
+    pub evolve_items: Vec<String>,
     pub hp: i32,
     pub max_hp: i32,
     pub attack: i32,
@@ -1447,6 +1459,7 @@ mod tests {
                     level: 5,
                     xp: 120,
                     xp_to_next: 91,
+                    evolve_items: vec!["cyber-core".into()],
                     hp: 30,
                     max_hp: 40,
                     attack: 12,
@@ -1467,6 +1480,7 @@ mod tests {
                     level: 7,
                     xp: 0,
                     xp_to_next: 169,
+                    evolve_items: vec![],
                     hp: 44,
                     max_hp: 44,
                     attack: 15,
@@ -1499,7 +1513,7 @@ mod tests {
         assert_eq!(back, sync);
     }
 
-    const ROSTER_SYNC_HEX: &str = "020330314a096d656368616d7574740352657805785b3c5018141c161a0105737061726b0f0f0330314b096d656368616d75747404426f6c740700a90158581e18201a22000101";
+    const ROSTER_SYNC_HEX: &str = "020330314a096d656368616d7574740352657805785b010a63796265722d636f72653c5018141c161a0105737061726b0f0f0330314b096d656368616d75747404426f6c740700a9010058581e18201a22000101";
     const ROSTER_SYNC_EMPTY_HEX: &str = "0000";
 
     /// Locks the move-learn offer the TS `decodePetLearnOffer` mirror reads. `known` is a
@@ -1574,6 +1588,28 @@ mod tests {
     }
 
     const RESPOND_LEARN_DECLINE_HEX: &str = "290330314a00";
+
+    /// Locks variant 42 and the item ref that picks which of the eighteen shibe forms the pet
+    /// becomes. The TS mirror asserts the same bytes.
+    #[test]
+    fn evolve_pet_input_roundtrips() {
+        let input = Input::EvolvePet {
+            idx: 1,
+            item_ref: "cyber-core".into(),
+        };
+        let bytes = encode_inner(&input).expect("encode");
+        assert_eq!(bytes[0], 42);
+        assert_eq!(hex(&bytes), EVOLVE_PET_HEX);
+        match decode_inner(&bytes).expect("decode") {
+            Input::EvolvePet { idx, item_ref } => {
+                assert_eq!(idx, 1);
+                assert_eq!(item_ref, "cyber-core");
+            }
+            other => panic!("expected EvolvePet, got {other:?}"),
+        }
+    }
+
+    const EVOLVE_PET_HEX: &str = "2a010a63796265722d636f7265";
 
     #[test]
     fn combat_event_fixture_is_stable() {

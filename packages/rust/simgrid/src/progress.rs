@@ -204,17 +204,25 @@ pub fn grow_pet(
         progress.xp = 0;
     }
 
-    rescale(vitals, base_stats, progress.level);
+    rescale_for(vitals, base_stats, progress.level);
     result.max_hp_gain = vitals.max_hp - max_before;
-    vitals.hp = if hp_before <= 0 {
-        0
-    } else {
-        // Round up so a sliver of hp can never round away into a faint.
-        let numerator = hp_before as i64 * vitals.max_hp as i64;
-        let scaled = (numerator + max_before as i64 - 1) / max_before as i64;
-        (scaled as i32).clamp(1, vitals.max_hp)
-    };
+    vitals.hp = carry_hp(hp_before, max_before, vitals.max_hp);
     result
+}
+
+/// Carry current hp across a change of maximum, keeping the same fraction.
+///
+/// Shared by levelling and evolution so both behave identically: a hurt pet stays hurt. Rounds
+/// **up** so a sliver of hp can never round away into a faint, and a fainted pet (0 hp) stays
+/// fainted rather than being revived by a stat change.
+pub(crate) fn carry_hp(hp_before: i32, max_before: i32, max_after: i32) -> i32 {
+    if hp_before <= 0 {
+        return 0;
+    }
+    let max_before = max_before.max(1);
+    let numerator = hp_before as i64 * max_after as i64;
+    let scaled = (numerator + max_before as i64 - 1) / max_before as i64;
+    (scaled as i32).clamp(1, max_after.max(1))
 }
 
 /// The species' unscaled stat line, pulled out of `NpcDef.stats` so this module does not
@@ -246,7 +254,7 @@ impl BaseStats {
 /// Recompute every level-driven stat. Shares `level_scale` with `mint_pet_from_species`, so a
 /// pet grown to level N and a pet minted at level N have identical stats — otherwise a caught
 /// pet and a bred one would diverge.
-fn rescale(vitals: &mut PetVitals, base: &BaseStats, level: u32) {
+pub(crate) fn rescale_for(vitals: &mut PetVitals, base: &BaseStats, level: u32) {
     vitals.max_hp = level_scale(base.hp, level);
     vitals.attack = level_scale(base.attack, level);
     vitals.defense = level_scale(base.defense, level);
@@ -287,7 +295,7 @@ mod tests {
             sp_defense: 0,
             speed: 0,
         };
-        rescale(&mut v, &base(), level);
+        rescale_for(&mut v, &base(), level);
         v.hp = v.max_hp;
         v
     }

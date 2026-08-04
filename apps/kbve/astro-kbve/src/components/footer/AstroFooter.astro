@@ -57,9 +57,15 @@ const currentYear = new Date().getFullYear();
 ---
 
 <footer id="kbve-footer" class="kf-footer not-content">
-	<div class="kf-rn-navbar" aria-label="react-native-web nav (test strip)">
+	<div
+		class="kf-rn-navbar"
+		role="navigation"
+		aria-label="react-native-web nav (test strip)">
 		<ReactNavBarStrip client:only="react">
-			<div slot="fallback" class="kf-rn-navbar__skeleton" aria-hidden="true">
+			<div
+				slot="fallback"
+				class="kf-rn-navbar__skeleton"
+				aria-hidden="true">
 				<span class="kf-rn-navbar__brand"></span>
 				<span class="kf-rn-navbar__links">
 					<span class="kf-rn-navbar__chip"></span>
@@ -93,9 +99,9 @@ const currentYear = new Date().getFullYear();
 			</div>
 
 			<nav class="kf-nav" aria-labelledby="kf-quicklinks-heading">
-				<h6 id="kf-quicklinks-heading" class="kf-nav-title">
+				<h2 id="kf-quicklinks-heading" class="kf-nav-title">
 					Quick Links
-				</h6>
+				</h2>
 				{
 					quickLinks.map((link) => (
 						<a
@@ -109,9 +115,9 @@ const currentYear = new Date().getFullYear();
 			</nav>
 
 			<nav class="kf-nav" aria-labelledby="kf-resources-heading">
-				<h6 id="kf-resources-heading" class="kf-nav-title">
+				<h2 id="kf-resources-heading" class="kf-nav-title">
 					Resources
-				</h6>
+				</h2>
 				{
 					resourceLinks.map((link) => (
 						<a
@@ -125,7 +131,7 @@ const currentYear = new Date().getFullYear();
 			</nav>
 
 			<nav class="kf-nav" aria-labelledby="kf-legal-heading">
-				<h6 id="kf-legal-heading" class="kf-nav-title">Legal</h6>
+				<h2 id="kf-legal-heading" class="kf-nav-title">Legal</h2>
 				{
 					legalLinks.map((link) => (
 						<a
@@ -139,7 +145,7 @@ const currentYear = new Date().getFullYear();
 			</nav>
 
 			<nav class="kf-nav" aria-labelledby="kf-arcade-heading">
-				<h6 id="kf-arcade-heading" class="kf-nav-title">Arcade</h6>
+				<h2 id="kf-arcade-heading" class="kf-nav-title">Arcade</h2>
 				{
 					arcadeLinks.map((link) => (
 						<a
@@ -153,7 +159,7 @@ const currentYear = new Date().getFullYear();
 			</nav>
 
 			<nav class="kf-nav" aria-labelledby="kf-data-heading">
-				<h6 id="kf-data-heading" class="kf-nav-title">Databases</h6>
+				<h2 id="kf-data-heading" class="kf-nav-title">Databases</h2>
 				{
 					dataLinks.map((link) => (
 						<a
@@ -169,9 +175,9 @@ const currentYear = new Date().getFullYear();
 			<nav
 				class="kf-nav kf-nav--wide"
 				aria-labelledby="kf-community-heading">
-				<h6 id="kf-community-heading" class="kf-nav-title">
+				<h2 id="kf-community-heading" class="kf-nav-title">
 					Community
-				</h6>
+				</h2>
 				<div class="kf-nav-columns">
 					{
 						communityLinks.map((link) => (
