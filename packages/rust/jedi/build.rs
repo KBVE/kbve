@@ -429,6 +429,7 @@ fn main() {
                 "../../data/proto/git/github.proto",
                 "../../data/proto/git/git_common.proto",
                 "../../data/proto/git/forgejo.proto",
+                "../../data/proto/kbve/staff.proto",
             ],
             &["../../data/proto/jedi", "../../data/proto"],
         )
