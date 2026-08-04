@@ -14,6 +14,14 @@
 		"e2e": {
 			"executor": "nx:run-commands",
 			"defaultConfiguration": "local",
+			"dependsOn": [
+				{
+					"target": "container",
+					"projects": ["agones-palworld-savetool"],
+					"params": "ignore"
+				}
+			],
+			"cache": false,
 			"options": {
 				"cwd": "apps/agones/palworld/savetool",
 				"parallel": false,

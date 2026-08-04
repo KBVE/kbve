@@ -201,10 +201,14 @@ jobs:
     test:
         name: Test Docker
         needs: [config]
+        # has_test defaults to true when the manifest omits it, so an app that
+        # declares no e2e_name would otherwise dispatch `nx e2e ""` and die with
+        # "Cannot find configuration for task @kbve/source:e2e".
         if: |
             always() &&
             needs.config.result == 'success' &&
             needs.config.outputs.has_test == 'true' &&
+            needs.config.outputs.e2e_name != '' &&
             !cancelled()
         permissions:
             contents: read
