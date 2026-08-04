@@ -145,9 +145,6 @@ importers:
       '@xyflow/react':
         specifier: ^12.11.1
         version: 12.11.1(@types/react-dom@19.1.5(@types/react@19.2.9))(@types/react@19.2.9)(immer@11.1.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
-      astro-mermaid:
-        specifier: ^2.1.0
-        version: 2.1.0(astro@7.1.6(@astrojs/markdown-remark@7.2.2(supports-color@10.2.2))(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(@planetscale/database@1.19.0)(@types/node@18.19.17)(jiti@2.7.0)(less@4.1.3)(rollup@4.57.1)(sass-embedded@1.100.0)(sass@1.101.0)(stylus@0.64.0(supports-color@10.2.2))(terser@5.49.0)(yaml@2.9.0))(mermaid@11.15.0(supports-color@10.2.2))
       babel-preset-expo:
         specifier: ~56.0.15
         version: 56.0.15(@babel/core@7.26.10(supports-color@10.2.2))(@babel/runtime@7.27.6)(expo@56.0.11)(react-refresh@0.18.0)(supports-color@10.2.2)
@@ -698,6 +695,9 @@ importers:
       rehype-external-links:
         specifier: ^3.0.0
         version: 3.0.0
+      remark-parse:
+        specifier: ^11.0.0
+        version: 11.0.0(supports-color@10.2.2)
       starlight-site-graph:
         specifier: ^0.5.0
         version: 0.5.0(@astrojs/starlight@0.41.6(@astrojs/markdown-remark@7.2.2(supports-color@10.2.2))(astro@7.1.6(@astrojs/markdown-remark@7.2.2(supports-color@10.2.2))(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(@planetscale/database@1.19.0)(@types/node@18.19.17)(jiti@2.7.0)(less@4.1.3)(rollup@4.57.1)(sass-embedded@1.100.0)(sass@1.101.0)(stylus@0.64.0(supports-color@10.2.2))(terser@5.49.0)(yaml@2.9.0))(supports-color@10.2.2)(typescript@6.0.3))(astro@7.1.6(@astrojs/markdown-remark@7.2.2(supports-color@10.2.2))(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(@planetscale/database@1.19.0)(@types/node@18.19.17)(jiti@2.7.0)(less@4.1.3)(rollup@4.57.1)(sass-embedded@1.100.0)(sass@1.101.0)(stylus@0.64.0(supports-color@10.2.2))(terser@5.49.0)(yaml@2.9.0))
@@ -7913,16 +7913,6 @@ packages:
     peerDependencies:
       astro: ^4.12.0 || ^5.0.0
 
-  astro-mermaid@2.1.0:
-    resolution: {integrity: sha512-fFRUN0BTZh+DZhDiLyblXoO26XqJ1Rr+qK3JGgSu7OBspKHDm59jkztg/aHsrdo1vO/tIq/+xhP/vgT8Mp92XA==}
-    peerDependencies:
-      '@mermaid-js/layout-elk': ^0.2.0
-      astro: '>=4'
-      mermaid: ^10.0.0 || ^11.0.0
-    peerDependenciesMeta:
-      '@mermaid-js/layout-elk':
-        optional: true
-
   astro-vtbot@2.1.11:
     resolution: {integrity: sha512-M0b2y2Kh4BcHryfY2dP+xrZOH2zYHEYM+x+1NFvCoK+g8iGRE/va6DxPN/zJ07IwWYjGl9PizLA0ZLJJl0a2sg==}
 
@@ -10933,9 +10923,6 @@ packages:
     resolution: {integrity: sha512-2SPlun1JUPWoM6t3F0dw0FkCF/jWY8kttcY4f599GLTSjh2OCuuhdTkJQsEcZzBqbXZGKMK2OqW1oZsjtf/gQA==}
     engines: {node: '>=8'}
     hasBin: true
-
-  import-meta-resolve@4.2.0:
-    resolution: {integrity: sha512-Iqv2fzaTQN28s/FwZAoFq0ZSs/7hMAHJVX+w8PZl3cY19Pxk6jFFalxQoIfW2826i/fDLXv8IiEZRIT0lDuWcg==}
 
   imurmurhash@0.1.4:
     resolution: {integrity: sha512-JmXMZ6wuvDmLiHEml9ykzqO6lwFbof0GG4IkcGaENdCRDDmMVnny7s5HsIgHCbaq0w2MyPhDqkhTUgS2LU2PHA==}
@@ -26155,14 +26142,6 @@ snapshots:
       pathe: 1.1.2
       recast: 0.23.9
 
-  astro-mermaid@2.1.0(astro@7.1.6(@astrojs/markdown-remark@7.2.2(supports-color@10.2.2))(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(@planetscale/database@1.19.0)(@types/node@18.19.17)(jiti@2.7.0)(less@4.1.3)(rollup@4.57.1)(sass-embedded@1.100.0)(sass@1.101.0)(stylus@0.64.0(supports-color@10.2.2))(terser@5.49.0)(yaml@2.9.0))(mermaid@11.15.0(supports-color@10.2.2)):
-    dependencies:
-      astro: 7.1.6(@astrojs/markdown-remark@7.2.2(supports-color@10.2.2))(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(@planetscale/database@1.19.0)(@types/node@18.19.17)(jiti@2.7.0)(less@4.1.3)(rollup@4.57.1)(sass-embedded@1.100.0)(sass@1.101.0)(stylus@0.64.0(supports-color@10.2.2))(terser@5.49.0)(yaml@2.9.0)
-      import-meta-resolve: 4.2.0
-      mdast-util-to-string: 4.0.0
-      mermaid: 11.15.0(supports-color@10.2.2)
-      unist-util-visit: 5.1.0
-
   astro-vtbot@2.1.11:
     dependencies:
       '@vtbag/cam-shaft': 1.0.6
@@ -30216,8 +30195,6 @@ snapshots:
     dependencies:
       pkg-dir: 4.2.0
       resolve-cwd: 3.0.0
-
-  import-meta-resolve@4.2.0: {}
 
   imurmurhash@0.1.4: {}
 

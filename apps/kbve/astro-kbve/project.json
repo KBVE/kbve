@@ -164,6 +164,34 @@
 				"command": "npx tsx scripts/gen-ci-manifest.mts --check"
 			}
 		},
+		"gen:mermaid": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{projectRoot}/src/content/**/*.mdx",
+				"{projectRoot}/src/content/**/*.md",
+				"{projectRoot}/scripts/gen-mermaid.mjs"
+			],
+			"outputs": ["{projectRoot}/src/generated/mermaid"],
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"command": "node scripts/gen-mermaid.mjs"
+			},
+			"cache": true
+		},
+		"gen:mermaid:check": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{projectRoot}/src/content/**/*.mdx",
+				"{projectRoot}/src/content/**/*.md",
+				"{projectRoot}/scripts/gen-mermaid.mjs",
+				"{projectRoot}/src/generated/mermaid"
+			],
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"command": "node scripts/gen-mermaid.mjs --check"
+			},
+			"cache": true
+		},
 		"gen:palworld-shops": {
 			"executor": "nx:run-commands",
 			"inputs": [

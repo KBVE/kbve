@@ -1,0 +1,55 @@
+---
+const AD_CLIENT = 'ca-pub-3698214103602019';
+
+const AD_UNITS = {
+	default: {
+		slot: '5247878238',
+		style: 'display:block',
+		format: 'auto',
+		layout: undefined,
+		fullWidthResponsive: true,
+	},
+	article: {
+		slot: '3879928077',
+		style: 'display:block; text-align:center;',
+		format: 'fluid',
+		layout: 'in-article',
+		fullWidthResponsive: false,
+	},
+} satisfies Record<
+	string,
+	{
+		slot: string;
+		style: string;
+		format: string;
+		layout?: string;
+		fullWidthResponsive: boolean;
+	}
+>;
+
+interface Props {
+	type?: keyof typeof AD_UNITS;
+}
+
+const { type = 'default' } = Astro.props;
+const unit = AD_UNITS[type];
+---
+
+<script
+	is:inline
+	async
+	src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${AD_CLIENT}`}
+	crossorigin="anonymous">
+</script>
+<ins
+	class="adsbygoogle"
+	style={unit.style}
+	data-ad-client={AD_CLIENT}
+	data-ad-slot={unit.slot}
+	data-ad-format={unit.format}
+	data-ad-layout={unit.layout}
+	data-full-width-responsive={unit.fullWidthResponsive ? 'true' : undefined}>
+</ins>
+<script is:inline>
+	(adsbygoogle = window.adsbygoogle || []).push({});
+</script>

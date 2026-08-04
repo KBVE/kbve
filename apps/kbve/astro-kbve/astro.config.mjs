@@ -6,9 +6,9 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import worker from '@astropub/worker';
-import mermaid from 'astro-mermaid';
 import { unified } from '@astrojs/markdown-remark';
 import rehypeLinkAttrs from './src/lib/rehype-link-attrs.mjs';
+import remarkMermaidBaked from './src/lib/remark-mermaid-baked.mjs';
 import { isIndexableUrl } from './src/lib/noindex-routes.mjs';
 import { readFileSync } from 'node:fs';
 import https from 'node:https';
@@ -92,30 +92,14 @@ export default defineConfig({
 		defaultStrategy: 'hover',
 	},
 	markdown: {
-		processor: unified({ rehypePlugins: [rehypeLinkAttrs] }),
+		processor: unified({
+			remarkPlugins: [remarkMermaidBaked],
+			rehypePlugins: [rehypeLinkAttrs],
+		}),
 	},
 	integrations: [
 		dashProxyDevIntegration(),
 		worker(),
-		mermaid({
-			theme: 'forest',
-			autoTheme: true,
-			mermaidConfig: {
-				flowchart: {
-					curve: 'basis',
-				},
-			},
-			iconPacks: [
-				{
-					name: 'logos',
-					url: 'https://unpkg.com/@iconify-json/logos@1/icons.json',
-				},
-				{
-					name: 'iconoir',
-					url: 'https://unpkg.com/@iconify-json/iconoir@1/icons.json',
-				},
-			],
-		}),
 		starlight({
 			title: 'KBVE',
 			defaultLocale: 'root',

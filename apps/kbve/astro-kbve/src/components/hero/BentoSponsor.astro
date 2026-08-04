@@ -1,6 +1,6 @@
 ---
 import BentoShell from './BentoShell.astro';
-import DeferredAdsense from '@/components/kbve/DeferredAdsense.astro';
+import Adsense from '@/components/ads/Adsense.astro';
 
 interface Props {
 	label?: string;
@@ -64,7 +64,7 @@ const actions = [
 					}
 				</nav>
 			</div>
-			<DeferredAdsense {label} />
+			<Adsense />
 		</div>
 		<a class="bento-sponsor__cell bento-sponsor__cell--cta" href="/donate/">
 			<div class="bento-sponsor__glow" aria-hidden="true"></div>
