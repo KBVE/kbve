@@ -27,3 +27,11 @@ criterion = { workspace = true, features = ["default"] }
 [[bench]]
 name = "embeddb_bench"
 harness = false
+
+[[test]]
+name = "e2e_core"
+required-features = ["derive"]
+
+[[test]]
+name = "e2e_vector"
+required-features = ["vector"]

@@ -98,4 +98,77 @@ mod tests {
         }
         let _g2 = pool.checkout();
     }
+
+    #[test]
+    fn checkout_blocks_until_a_connection_is_returned() {
+        let pool = std::sync::Arc::new(ReaderPool::build(1, None).unwrap());
+        let guard = pool.checkout();
+
+        let waiter = {
+            let pool = pool.clone();
+            std::thread::spawn(move || {
+                let _g = pool.checkout();
+                true
+            })
+        };
+
+        std::thread::sleep(std::time::Duration::from_millis(50));
+        assert!(!waiter.is_finished(), "checkout should block while the pool is empty");
+        drop(guard);
+        assert!(waiter.join().unwrap());
+    }
+
+    #[test]
+    fn guard_derefs_to_a_usable_connection() {
+        let pool = ReaderPool::build(1, None).unwrap();
+        let guard = pool.checkout();
+        let n: i64 = guard.query_row("SELECT 41 + 1", [], |r| r.get(0)).unwrap();
+        assert_eq!(n, 42);
+    }
+
+    #[test]
+    fn guard_returns_connection_even_when_the_holder_panics() {
+        let pool = std::sync::Arc::new(ReaderPool::build(1, None).unwrap());
+        let inner = pool.clone();
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(move || {
+            let _g = inner.checkout();
+            panic!("holder blew up");
+        }));
+        assert!(result.is_err());
+        let _g = pool.checkout();
+    }
+
+    #[test]
+    fn pool_debug_is_available() {
+        let pool = ReaderPool::build(1, None).unwrap();
+        assert!(format!("{pool:?}").contains("ReaderPool"));
+    }
+
+    #[test]
+    fn lazy_pool_defers_construction_and_caches_it() {
+        let lazy = LazyReaderPool::new(1, None);
+        let first = lazy.get().unwrap();
+        let second = lazy.get().unwrap();
+        assert!(std::sync::Arc::ptr_eq(&first, &second));
+    }
+
+    #[test]
+    fn lazy_pool_does_not_cache_failures() {
+        let dir = tempfile::tempdir().unwrap();
+        let not_a_dir = dir.path().join("extension_dir_is_a_file");
+        std::fs::write(&not_a_dir, b"x").unwrap();
+
+        let lazy = LazyReaderPool::new(1, Some(not_a_dir));
+        assert!(lazy.get().is_err());
+        assert!(lazy.get().is_err());
+
+        let ok = LazyReaderPool::new(1, None);
+        assert!(ok.get().is_ok());
+    }
+
+    #[test]
+    fn lazy_pool_rejects_zero_size_on_first_use() {
+        let lazy = LazyReaderPool::new(0, None);
+        assert!(matches!(lazy.get().unwrap_err(), crate::EmbedError::Other(_)));
+    }
 }
