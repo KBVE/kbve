@@ -3980,10 +3980,39 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"command": "python3 -m unittest discover .",
+								"command": "uv run --with-requirements requirements.txt --python 3.12 python -m unittest discover .",
 								"cwd": "apps/agones/palworld/savetool"
 							},
 							"configurations": {},
+							"parallelism": true
+						},
+						"e2e": {
+							"inputs": ["default", "^production"],
+							"cache": false,
+							"executor": "nx:run-commands",
+							"defaultConfiguration": "local",
+							"dependsOn": [
+								{
+									"target": "container",
+									"projects": ["agones-palworld-savetool"],
+									"params": "ignore"
+								}
+							],
+							"options": {
+								"commands": [
+									"rm -rf .e2e-venv && python3 -m venv .e2e-venv",
+									".e2e-venv/bin/pip install --quiet -r requirements.txt coverage",
+									".e2e-venv/bin/python -m coverage run --source=save_intel -m unittest discover .",
+									".e2e-venv/bin/python -m coverage run --append --source=save_intel e2e_save_intel.py",
+									".e2e-venv/bin/python -m coverage report --show-missing --fail-under=70"
+								],
+								"cwd": "apps/agones/palworld/savetool",
+								"parallel": false
+							},
+							"configurations": {
+								"local": {},
+								"ci": {}
+							},
 							"parallelism": true
 						},
 						"container": {
@@ -6382,6 +6411,30 @@
 					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"sourceRoot": "apps/herbmail/herbmail-game/src",
 					"implicitDependencies": []
+				}
+			},
+			"herbmail-server": {
+				"name": "herbmail-server",
+				"type": "lib",
+				"data": {
+					"root": "apps/agones/herbmail/server",
+					"name": "herbmail-server",
+					"release": {
+						"version": {
+							"versionActions": "@monodon/rust/src/release/version-actions"
+						}
+					},
+					"targets": {
+						"nx-release-publish": {
+							"dependsOn": ["^nx-release-publish"],
+							"executor": "@monodon/rust:release-publish",
+							"options": {},
+							"configurations": {},
+							"parallelism": true
+						}
+					},
+					"implicitDependencies": [],
+					"tags": []
 				}
 			},
 			"kbve-react-native": {
@@ -9582,7 +9635,9 @@
 							"executor": "@monodon/rust:test",
 							"outputs": ["{options.target-dir}"],
 							"options": {
-								"target-dir": "dist/target/embeddb"
+								"target-dir": "dist/target/embeddb",
+								"all-features": true,
+								"lib": true
 							},
 							"configurations": {
 								"production": {
@@ -9609,12 +9664,18 @@
 						"e2e": {
 							"inputs": ["default", "^production"],
 							"cache": true,
-							"executor": "nx:run-commands",
+							"executor": "@monodon/rust:test",
+							"outputs": ["{options.target-dir}"],
 							"options": {
-								"commands": ["nx test embeddb"],
-								"parallel": false
+								"target-dir": "dist/target/embeddb",
+								"all-features": true,
+								"tests": true
 							},
-							"configurations": {},
+							"configurations": {
+								"production": {
+									"release": true
+								}
+							},
 							"parallelism": true
 						}
 					},
@@ -10341,6 +10402,38 @@
 							"options": {
 								"cwd": "apps/kbve/astro-kbve",
 								"command": "npx tsx scripts/gen-ci-manifest.mts --check"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"gen:mermaid": {
+							"executor": "nx:run-commands",
+							"inputs": [
+								"{projectRoot}/src/content/**/*.mdx",
+								"{projectRoot}/src/content/**/*.md",
+								"{projectRoot}/scripts/gen-mermaid.mjs"
+							],
+							"outputs": ["{projectRoot}/src/generated/mermaid"],
+							"cache": true,
+							"options": {
+								"cwd": "apps/kbve/astro-kbve",
+								"command": "node scripts/gen-mermaid.mjs"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"gen:mermaid:check": {
+							"executor": "nx:run-commands",
+							"inputs": [
+								"{projectRoot}/src/content/**/*.mdx",
+								"{projectRoot}/src/content/**/*.md",
+								"{projectRoot}/scripts/gen-mermaid.mjs",
+								"{projectRoot}/src/generated/mermaid"
+							],
+							"cache": true,
+							"options": {
+								"cwd": "apps/kbve/astro-kbve",
+								"command": "node scripts/gen-mermaid.mjs --check"
 							},
 							"configurations": {},
 							"parallelism": true
@@ -17184,6 +17277,7 @@
 					"type": "static"
 				}
 			],
+			"herbmail-server": [],
 			"kbve-react-native": [
 				{
 					"source": "kbve-react-native",
@@ -17437,6 +17531,16 @@
 				}
 			],
 			"desktop-kbve": [
+				{
+					"source": "desktop-kbve",
+					"target": "core",
+					"type": "static"
+				},
+				{
+					"source": "desktop-kbve",
+					"target": "rn",
+					"type": "static"
+				},
 				{
 					"source": "desktop-kbve",
 					"target": "kbve-tauri",
