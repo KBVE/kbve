@@ -3,6 +3,7 @@ mod dungeon;
 pub(crate) mod gh;
 pub(crate) mod github_board;
 mod health;
+pub(crate) mod palworld;
 mod ping;
 mod skills;
 mod status;
@@ -19,6 +20,7 @@ pub fn all() -> Vec<poise::Command<Data, Error>> {
         admin::restart(),
         admin::cleanup(),
         dungeon::dungeon(),
+        palworld::palworld_online(),
         github_board::github(),
         gh::gh(),
         skills::skills(),
