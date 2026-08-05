@@ -9,7 +9,11 @@ import time
 WANTED_PROPERTIES = (
     ".worldSaveData.GroupSaveDataMap",
     ".worldSaveData.BaseCampSaveData.Value.RawData",
+    ".worldSaveData.BaseCampSaveData.Value.WorkerDirector.RawData",
+    ".worldSaveData.CharacterContainerSaveData.Value.Slots.Slots.RawData",
 )
+
+MAX_BASE_PALS = 60
 
 
 def pv(node, *keys):
@@ -46,10 +50,84 @@ def parse_sav(path):
     return gvas.properties
 
 
+def decode_character(raw_bytes):
+    from palsav.archive import FArchiveReader
+    from palsav.paltypes import PALWORLD_TYPE_HINTS
+    from palsav.rawdata import character
+
+    parent = FArchiveReader(b"", PALWORLD_TYPE_HINTS, {})
+    data = character.decode_bytes(parent, raw_bytes) or {}
+    sp = pv(data.get("object") or {}, "SaveParameter") or {}
+    if pv(sp, "IsPlayer"):
+        return None
+    char_id = pv(sp, "CharacterID") or ""
+    if not char_id:
+        return None
+    return {
+        "id": str(char_id),
+        "name": pv(sp, "NickName") or "",
+        "level": pv(sp, "Level") or 1,
+    }
+
+
+def container_slot_instances(world):
+    containers = pv(world, "CharacterContainerSaveData") or []
+    by_container = {}
+    for entry in containers:
+        key_id = pv(entry.get("key"), "ID")
+        if not key_id:
+            continue
+        slots_prop = pv(entry.get("value"), "Slots")
+        slots = (
+            slots_prop.get("values")
+            if isinstance(slots_prop, dict)
+            else slots_prop
+        ) or []
+        instances = []
+        for slot in slots:
+            raw = pv(slot, "RawData")
+            inst = raw.get("instance_id") if isinstance(raw, dict) else None
+            if inst:
+                instances.append(str(inst))
+        by_container[str(key_id)] = instances
+    return by_container
+
+
+def character_bytes_by_instance(world):
+    chars = pv(world, "CharacterSaveParameterMap") or []
+    by_instance = {}
+    for entry in chars:
+        inst = pv(entry.get("key"), "InstanceId")
+        raw = pv(entry.get("value"), "RawData")
+        values = raw.get("values") if isinstance(raw, dict) else None
+        if inst and values:
+            by_instance[str(inst)] = values
+    return by_instance
+
+
+def resolve_base_pals(camp_value, containers, char_bytes):
+    director = pv(camp_value, "WorkerDirector", "RawData") or {}
+    container_id = str(director.get("container_id") or "")
+    pals = []
+    for inst in containers.get(container_id, [])[:MAX_BASE_PALS]:
+        raw = char_bytes.get(inst)
+        if not raw:
+            continue
+        try:
+            pal = decode_character(raw)
+        except Exception:
+            continue
+        if pal:
+            pals.append(pal)
+    return pals
+
+
 def extract_guilds(properties):
     world = pv(properties, "worldSaveData") or {}
     groups = pv(world, "GroupSaveDataMap") or []
     camps = pv(world, "BaseCampSaveData") or []
+    containers = container_slot_instances(world)
+    char_bytes = character_bytes_by_instance(world)
 
     camp_by_id = {}
     for entry in camps:
@@ -65,6 +143,9 @@ def extract_guilds(properties):
             "x": translation.get("x", 0.0),
             "y": translation.get("y", 0.0),
             "z": translation.get("z", 0.0),
+            "pals": resolve_base_pals(
+                entry.get("value") or {}, containers, char_bytes
+            ),
         }
 
     guilds = []

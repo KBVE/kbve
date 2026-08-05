@@ -115,6 +115,13 @@ async fn healthz() -> &'static str {
     "ok"
 }
 
+async fn landing() -> impl IntoResponse {
+    (
+        [(header::CONTENT_TYPE, "text/html; charset=utf-8")],
+        crate::landing::LANDING_HTML,
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::parse_intel;
@@ -135,6 +142,7 @@ mod tests {
 
 pub async fn run(cfg: Config, state: LiveState) -> Result<()> {
     let app = Router::new()
+        .route("/", get(landing))
         .route("/live/players", get(players))
         .route("/live/events", get(events))
         .route("/live/bases", get(bases))

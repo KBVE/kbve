@@ -5,6 +5,7 @@ mod config;
 mod event;
 mod event_tail;
 mod irc_bridge;
+mod landing;
 mod live_api;
 mod poller;
 mod rcon_client;

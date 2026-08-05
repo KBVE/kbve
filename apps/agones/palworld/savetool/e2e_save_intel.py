@@ -9,6 +9,8 @@ from save_intel import decompress_sav, find_level_sav, snapshot_once
 GUILD_ID = "11111111-2222-3333-4444-555555555555"
 BASE_ID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
 PLAYER_UID = "99999999-8888-7777-6666-555555555555"
+CONTAINER_ID = "cccccccc-1111-2222-3333-444444444444"
+PAL_INSTANCE_ID = "dddddddd-5555-6666-7777-888888888888"
 
 HEADER = {
     "magic": 0x53415647,
@@ -137,6 +139,145 @@ def build_fixture_sav(path, save_type=0x32):
                                         "owner_map_object_instance_id": BASE_ID,
                                         "trailing_bytes": [0, 0, 0, 0],
                                     },
+                                },
+                                "WorkerDirector": {
+                                    "type": "StructProperty",
+                                    "struct_type": "PalBaseCampWorkerDirectorSaveData",
+                                    "struct_id": "00000000-0000-0000-0000-000000000000",
+                                    "id": None,
+                                    "value": {
+                                        "RawData": {
+                                            "type": "ArrayProperty",
+                                            "array_type": "ByteProperty",
+                                            "custom_type": ".worldSaveData.BaseCampSaveData.Value.WorkerDirector.RawData",
+                                            "id": None,
+                                            "value": {
+                                                "id": BASE_ID,
+                                                "spawn_transform": transform(
+                                                    0.0, 0.0, 0.0
+                                                ),
+                                                "current_order_type": 0,
+                                                "current_battle_type": 0,
+                                                "container_id": CONTAINER_ID,
+                                                "trailing_bytes": [0, 0, 0, 0],
+                                            },
+                                        }
+                                    },
+                                },
+                            },
+                        }
+                    ],
+                },
+                "CharacterContainerSaveData": {
+                    "type": "MapProperty",
+                    "key_type": "StructProperty",
+                    "value_type": "StructProperty",
+                    "key_struct_type": "StructProperty",
+                    "value_struct_type": "StructProperty",
+                    "id": None,
+                    "value": [
+                        {
+                            "key": {
+                                "ID": {
+                                    "type": "StructProperty",
+                                    "struct_type": "Guid",
+                                    "struct_id": "00000000-0000-0000-0000-000000000000",
+                                    "id": None,
+                                    "value": CONTAINER_ID,
+                                }
+                            },
+                            "value": {
+                                "Slots": {
+                                    "type": "ArrayProperty",
+                                    "array_type": "StructProperty",
+                                    "id": None,
+                                    "value": {
+                                        "prop_name": "Slots",
+                                        "prop_type": "StructProperty",
+                                        "type_name": "PalCharacterSlotSaveData",
+                                        "id": "00000000-0000-0000-0000-000000000000",
+                                        "values": [
+                                            {
+                                                "RawData": {
+                                                    "type": "ArrayProperty",
+                                                    "array_type": "ByteProperty",
+                                                    "custom_type": ".worldSaveData.CharacterContainerSaveData.Value.Slots.Slots.RawData",
+                                                    "id": None,
+                                                    "value": {
+                                                        "player_uid": "00000000-0000-0000-0000-000000000000",
+                                                        "instance_id": PAL_INSTANCE_ID,
+                                                        "permission_tribe_id": 0,
+                                                    },
+                                                }
+                                            }
+                                        ],
+                                    },
+                                }
+                            },
+                        }
+                    ],
+                },
+                "CharacterSaveParameterMap": {
+                    "type": "MapProperty",
+                    "key_type": "StructProperty",
+                    "value_type": "StructProperty",
+                    "key_struct_type": "StructProperty",
+                    "value_struct_type": "StructProperty",
+                    "id": None,
+                    "value": [
+                        {
+                            "key": {
+                                "PlayerUId": {
+                                    "type": "StructProperty",
+                                    "struct_type": "Guid",
+                                    "struct_id": "00000000-0000-0000-0000-000000000000",
+                                    "id": None,
+                                    "value": "00000000-0000-0000-0000-000000000000",
+                                },
+                                "InstanceId": {
+                                    "type": "StructProperty",
+                                    "struct_type": "Guid",
+                                    "struct_id": "00000000-0000-0000-0000-000000000000",
+                                    "id": None,
+                                    "value": PAL_INSTANCE_ID,
+                                },
+                            },
+                            "value": {
+                                "RawData": {
+                                    "type": "ArrayProperty",
+                                    "array_type": "ByteProperty",
+                                    "custom_type": ".worldSaveData.CharacterSaveParameterMap.Value.RawData",
+                                    "id": None,
+                                    "value": {
+                                        "object": {
+                                            "SaveParameter": {
+                                                "type": "StructProperty",
+                                                "struct_type": "PalIndividualCharacterSaveParameter",
+                                                "struct_id": "00000000-0000-0000-0000-000000000000",
+                                                "id": None,
+                                                "value": {
+                                                    "CharacterID": {
+                                                        "type": "NameProperty",
+                                                        "id": None,
+                                                        "value": "SheepBall",
+                                                    },
+                                                    "NickName": {
+                                                        "type": "StrProperty",
+                                                        "id": None,
+                                                        "value": "Wooly",
+                                                    },
+                                                    "Level": {
+                                                        "type": "IntProperty",
+                                                        "id": None,
+                                                        "value": 12,
+                                                    },
+                                                },
+                                            }
+                                        },
+                                        "unknown_bytes": [0, 0, 0, 0],
+                                        "group_id": GUILD_ID,
+                                        "trailing_bytes": [0, 0, 0, 0],
+                                    },
                                 }
                             },
                         }
@@ -186,6 +327,11 @@ def main():
     expect(
         roster == [{"uid": PLAYER_UID, "name": "h0lybyte", "last_online": 638}],
         "player roster",
+    )
+    pals = base["pals"]
+    expect(
+        pals == [{"id": "SheepBall", "name": "Wooly", "level": 12}],
+        "base pal roster resolved via worker director container",
     )
     with open(out_path) as f:
         disk = json.load(f)
