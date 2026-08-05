@@ -22,7 +22,10 @@ export const seo = createSeo({
 	sameAs: [
 		'https://github.com/kbve',
 		'https://discord.gg/kbve',
-		'https://kbve.com/discord/',
+		'https://www.youtube.com/@kbve',
+		'https://twitch.tv/kbve',
+		'https://x.com/kbve',
+		'https://bsky.app/profile/kbve.com',
 	],
 });
 
