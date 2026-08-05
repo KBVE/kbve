@@ -19,6 +19,7 @@ export * from './adapters/rows';
 export * from './adapters/factorio';
 export * from './adapters/minecraft';
 export * from './adapters/kilobaseBackup';
+export * from './adapters/longhorn';
 export * from './clickhouse';
 export * from './adapters/cube';
 export * from './cube';

@@ -42,6 +42,7 @@ export const dashboardNav: NavNode[] = [
 	{ label: 'Cube', link: '/dashboard/cube/', staff: true },
 	{ label: 'Forgejo', link: '/dashboard/forgejo/', staff: true },
 	{ label: 'Grafana', link: '/dashboard/grafana/', staff: true },
+	{ label: 'Storage', link: '/dashboard/storage/', staff: true },
 	{ label: 'Virtual Machines', link: '/dashboard/vm/', staff: true },
 	{ label: 'IDE', link: '/dashboard/ide/', staff: true },
 	{

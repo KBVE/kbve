@@ -98,6 +98,7 @@ export const DASHBOARD_ROUTES: readonly DashboardRoute[] = [
 		label: 'Forgejo',
 		title: 'Forgejo Dashboard',
 	},
+	{ path: '/dashboard/storage/', label: 'Storage', title: 'Storage' },
 	{
 		path: '/dashboard/grafana/',
 		label: 'Grafana',
