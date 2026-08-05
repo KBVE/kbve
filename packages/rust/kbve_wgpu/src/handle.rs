@@ -53,7 +53,7 @@ impl SurfaceSource {
 
         let view = NonNull::new(self.raw).expect("null UIView");
         wgpu::SurfaceTargetUnsafe::RawHandle {
-            raw_display_handle: RawDisplayHandle::UiKit(UiKitDisplayHandle::new()),
+            raw_display_handle: Some(RawDisplayHandle::UiKit(UiKitDisplayHandle::new())),
             raw_window_handle: RawWindowHandle::UiKit(UiKitWindowHandle::new(view)),
         }
     }
@@ -84,7 +84,7 @@ impl SurfaceSource {
         let raw_window_handle = RawWindowHandle::AndroidNdk(AndroidNdkWindowHandle::new(window));
         let raw_display_handle = RawDisplayHandle::Android(AndroidDisplayHandle::new());
         wgpu::SurfaceTargetUnsafe::RawHandle {
-            raw_display_handle,
+            raw_display_handle: Some(raw_display_handle),
             raw_window_handle,
         }
     }
