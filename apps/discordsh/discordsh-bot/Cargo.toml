@@ -34,7 +34,7 @@ chrono = { workspace = true, features = ["default"] }
 globset = "0.4.18"
 
 # Workspace path dependencies
-jedi = { path = "../../../packages/rust/jedi", features = ["valkey"] }
+jedi = { path = "../../../packages/rust/jedi", features = ["valkey", "clickhouse"] }
 kbve = { path = "../../../packages/rust/kbve", features = ["supabase", "image-gen", "kv"] }
 bevy_items = { path = "../../../packages/rust/bevy/bevy_items", features = ["inventory"] }
 bevy_inventory = { path = "../../../packages/rust/bevy/bevy_inventory", default-features = false }
