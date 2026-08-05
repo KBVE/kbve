@@ -1,0 +1,169 @@
+# ══════════════════════════════════════════════════════════════════════════
+# Idle reaper for the UE shared-dind cache.
+#
+# STATUS: INERT. NOT listed in kustomization.yaml; add it at cutover (it is
+# useless until ue-shared-dind exists).
+#
+# WHY: the shared tmpfs holds ~52 GB (engine ~45 + mirror ~7) for fast reuse
+# across builds. We do NOT want to hold that in RAM during long idle periods.
+# This CronJob frees it after IDLE_TTL_SECONDS of no UE builds, so the next
+# build cold-starts (re-pull + re-extract via `prepare`) and steady-state
+# bursts still reuse a hot cache.
+#
+# HOW: it does NOT delete the DaemonSet pod — the tmpfs is mounted in the host
+# mount namespace (via the dind init's nsenter) and survives pod deletion, so
+# deleting the pod would not return the RAM. Instead it frees the bytes
+# in-daemon: `docker image prune -a -f` (the daemon GCs its own store, no
+# unmount, no race) + `rm -rf` the mirror/scratch. The tmpfs stays mounted but
+# empty (an empty tmpfs costs ~0 RAM).
+#
+# SAFETY: two guards make it impossible to reap mid-build —
+#   (1) skip if any arc-runner-ue runner pod is Running;
+#   (2) skip if the shared daemon has any running container.
+# Only then, and only if the last build started > TTL ago, does it free.
+# ══════════════════════════════════════════════════════════════════════════
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: ue-shared-dind-idle-reaper
+    namespace: arc-runners
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: ue-shared-dind-idle-reaper
+    namespace: arc-runners
+rules:
+    - apiGroups:
+          - ''
+      resources:
+          - pods
+      verbs:
+          - get
+          - list
+    - apiGroups:
+          - ''
+      resources:
+          - pods/exec
+      verbs:
+          - create
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: ue-shared-dind-idle-reaper
+    namespace: arc-runners
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: ue-shared-dind-idle-reaper
+subjects:
+    - kind: ServiceAccount
+      name: ue-shared-dind-idle-reaper
+      namespace: arc-runners
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: ue-shared-dind-idle-reaper
+    namespace: arc-runners
+    labels:
+        app.kubernetes.io/name: ue-shared-dind-idle-reaper
+        app.kubernetes.io/component: maintenance
+        kbve.com/category: ci-cd
+        kbve.com/stack: github-actions
+    annotations:
+        kbve.com/status: inert-pending-cutover
+spec:
+    # Check every 30 min. Reap granularity is this interval, not exact.
+    schedule: '*/30 * * * *'
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        spec:
+            backoffLimit: 1
+            ttlSecondsAfterFinished: 600
+            template:
+                spec:
+                    serviceAccountName: ue-shared-dind-idle-reaper
+                    restartPolicy: Never
+                    containers:
+                        - name: reaper
+                          image: ghcr.io/kbve/kubectl:0.1.4
+                          env:
+                              # CONFIGURABLE: idle window before the cache is
+                              # freed. Default 4h. Lower = RAM back sooner, more
+                              # cold starts; higher = fewer cold starts, RAM held
+                              # longer. Edit this one value to retune.
+                              - name: IDLE_TTL_SECONDS
+                                value: '14400'
+                              - name: NS
+                                value: arc-runners
+                              - name: SOCK
+                                value: unix:///var/mnt/ramdisk/docker.sock
+                              - name: MARKER
+                                value: /var/mnt/ramdisk/.last-build
+                          command:
+                              - /bin/sh
+                              - -c
+                          args:
+                              - |
+                                  set -eu
+
+                                  POD=$(kubectl get pod -n "$NS" -l app=ue-shared-dind \
+                                        --field-selector=status.phase=Running \
+                                        -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+                                  if [ -z "$POD" ]; then
+                                    echo "no running ue-shared-dind pod; nothing to reap"
+                                    exit 0
+                                  fi
+
+                                  # Guard 1: any arc-runner-ue job pod running ⇒ a build is in flight.
+                                  BUSY=$(kubectl get pods -n "$NS" \
+                                          -l actions.github.com/scale-set-name=arc-runner-ue \
+                                          --field-selector=status.phase=Running \
+                                          -o name 2>/dev/null | grep -c . || true)
+                                  if [ "${BUSY:-0}" != "0" ]; then
+                                    echo "arc-runner-ue jobs running ($BUSY); skip"
+                                    exit 0
+                                  fi
+
+                                  # Guard 2: any container on the shared daemon ⇒ a cook is running.
+                                  RUNNING=$(kubectl exec -n "$NS" "$POD" -c dind -- \
+                                              docker -H "$SOCK" ps -q 2>/dev/null | grep -c . || true)
+                                  if [ "${RUNNING:-0}" != "0" ]; then
+                                    echo "shared daemon has $RUNNING running container(s); skip"
+                                    exit 0
+                                  fi
+
+                                  # Idle = seconds since the last build started (prepare touches MARKER).
+                                  MT=$(kubectl exec -n "$NS" "$POD" -c dind -- \
+                                        sh -c "stat -c %Y $MARKER 2>/dev/null || true")
+                                  if [ -z "$MT" ]; then
+                                    echo "no $MARKER yet; seeding it and skipping this cycle"
+                                    kubectl exec -n "$NS" "$POD" -c dind -- sh -c "touch $MARKER" || true
+                                    exit 0
+                                  fi
+                                  NOW=$(date +%s)
+                                  IDLE=$(( NOW - MT ))
+                                  if [ "$IDLE" -lt "$IDLE_TTL_SECONDS" ]; then
+                                    echo "last build ${IDLE}s ago (< ${IDLE_TTL_SECONDS}s TTL); keep cache hot"
+                                    exit 0
+                                  fi
+
+                                  echo "idle ${IDLE}s >= ${IDLE_TTL_SECONDS}s TTL, no builds running -> freeing shared cache RAM"
+                                  kubectl exec -n "$NS" "$POD" -c dind -- sh -c '
+                                    docker -H '"$SOCK"' image prune -a -f
+                                    rm -rf /var/mnt/ramdisk/repo.git /var/mnt/ramdisk/repo.img /var/mnt/ramdisk/*-scratch
+                                    rm -f '"$MARKER"'
+                                    sync
+                                  '
+                                  echo "freed; next build cold-starts via prepare"
+                          resources:
+                              requests:
+                                  cpu: 25m
+                                  memory: 64Mi
+                              limits:
+                                  cpu: 100m
+                                  memory: 128Mi
