@@ -1,0 +1,39 @@
+# Alerts for the CNPG operator's own reconcile loop.
+#
+# cnpg-cert-expiry-alert only measures time-to-expiry, so it stays quiet when a
+# certificate is valid but unverifiable. That is exactly what happened on
+# 2026-07-27: internal-ca was rotated, supabase-server-tls kept its Jun 27
+# signature from the previous CA key, cert-manager reported Ready=True with a
+# renewal date of Aug 26, and the cluster sat at Ready=False for nine days with
+# nothing firing. The operator was failing every reconcile the whole time.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+    name: cnpg-operator-reconcile-alert
+    namespace: kilobase
+    labels:
+        prometheus: kube-prometheus
+        role: alert-rules
+spec:
+    groups:
+        - name: cnpg-operator
+          rules:
+              - alert: CNPGReconcileErrors
+                annotations:
+                    description: 'CNPG operator controller {{ $labels.controller }} has been failing reconciles for 30m. Check `kubectl get cluster -n kilobase -o jsonpath={.status.phaseReason}` — a cluster stuck in a non-Ready phase cannot regenerate certificates or complete a failover, even while Postgres keeps serving.'
+                    summary: 'CNPG operator reconcile errors'
+                expr: |
+                    increase(controller_runtime_reconcile_errors_total{namespace="cnpg-system"}[15m]) > 0
+                for: 30m
+                labels:
+                    severity: warning
+
+              - alert: CNPGMetricsMissing
+                annotations:
+                    description: 'No cnpg_collector_up series for the kilobase cluster. CNPG metrics stopped being scraped, which silently disables every kilobase alert built on cnpg_* — cert expiry and pooler health included. Check that the PodMonitors still carry release=monitoring.'
+                    summary: 'CNPG metrics not being scraped'
+                expr: |
+                    absent(cnpg_collector_up{namespace="kilobase"})
+                for: 15m
+                labels:
+                    severity: warning

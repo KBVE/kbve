@@ -7,6 +7,7 @@ resources:
     - cluster-issuer.yaml
     - letsencrypt-dns-issuer.yaml
     - kbve-cloudflare-rbac.yaml
+    - servicemonitor.yaml
 
 patches:
     - target:
