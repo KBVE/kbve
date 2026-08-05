@@ -257,8 +257,7 @@ fn process_action_buffer(
                 let angle = (req.entity_id as f32 * 1.618) % (2.0 * PI);
                 let fall_axis = Vec3::new(angle.cos(), 0.0, angle.sin()).normalize();
 
-                ec.remove::<RigidBody>();
-                ec.remove::<Collider>();
+                ec.insert((RigidBodyDisabled, ColliderDisabled));
                 ec.remove::<Interactable>();
                 ec.remove::<HoverOutline>();
                 ec.remove::<super::trees::TreeWindSway>();
@@ -277,8 +276,7 @@ fn process_action_buffer(
                     .map(item_from_rock_kind)
                     .unwrap_or(ItemKind::from_ref(ITEM_STONE));
 
-                ec.remove::<RigidBody>();
-                ec.remove::<Collider>();
+                ec.insert((RigidBodyDisabled, ColliderDisabled));
                 ec.remove::<Interactable>();
                 ec.remove::<HoverOutline>();
                 ec.remove::<RockKind>();
@@ -298,8 +296,7 @@ fn process_action_buffer(
                     .map(item_from_flower_archetype)
                     .unwrap_or(ItemKind::from_ref(ITEM_WILDFLOWER));
 
-                ec.remove::<RigidBody>();
-                ec.remove::<Collider>();
+                ec.insert((RigidBodyDisabled, ColliderDisabled));
                 ec.remove::<Sensor>();
                 ec.remove::<Interactable>();
                 ec.remove::<HoverOutline>();
@@ -318,8 +315,7 @@ fn process_action_buffer(
                     .map(item_from_mushroom_kind)
                     .unwrap_or(ItemKind::from_ref(ITEM_PORCINI));
 
-                ec.remove::<RigidBody>();
-                ec.remove::<Collider>();
+                ec.insert((RigidBodyDisabled, ColliderDisabled));
                 ec.remove::<Sensor>();
                 ec.remove::<Interactable>();
                 ec.remove::<HoverOutline>();

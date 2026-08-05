@@ -30,7 +30,8 @@
 				"allow-identifier",
 				"allow-bundle-type",
 				"allow-register-listener",
-				"allow-remove-listener"
+				"allow-remove-listener",
+				"allow-supports-multiple-windows"
 			]
 		},
 		"permissions": {
@@ -96,6 +97,14 @@
 				"identifier": "allow-set-dock-visibility",
 				"description": "Enables the set_dock_visibility command without any pre-configured scope.",
 				"commands": { "allow": ["set_dock_visibility"], "deny": [] }
+			},
+			"allow-supports-multiple-windows": {
+				"identifier": "allow-supports-multiple-windows",
+				"description": "Enables the supports_multiple_windows command without any pre-configured scope.",
+				"commands": {
+					"allow": ["supports_multiple_windows"],
+					"deny": []
+				}
 			},
 			"allow-tauri-version": {
 				"identifier": "allow-tauri-version",
@@ -169,6 +178,14 @@
 				"identifier": "deny-set-dock-visibility",
 				"description": "Denies the set_dock_visibility command without any pre-configured scope.",
 				"commands": { "allow": [], "deny": ["set_dock_visibility"] }
+			},
+			"deny-supports-multiple-windows": {
+				"identifier": "deny-supports-multiple-windows",
+				"description": "Denies the supports_multiple_windows command without any pre-configured scope.",
+				"commands": {
+					"allow": [],
+					"deny": ["supports_multiple_windows"]
+				}
 			},
 			"deny-tauri-version": {
 				"identifier": "deny-tauri-version",
@@ -709,6 +726,7 @@
 				"allow-set-visible",
 				"allow-set-temp-dir-path",
 				"allow-set-icon-as-template",
+				"allow-set-icon-with-as-template",
 				"allow-set-show-menu-on-left-click"
 			]
 		},
@@ -737,6 +755,14 @@
 				"identifier": "allow-set-icon-as-template",
 				"description": "Enables the set_icon_as_template command without any pre-configured scope.",
 				"commands": { "allow": ["set_icon_as_template"], "deny": [] }
+			},
+			"allow-set-icon-with-as-template": {
+				"identifier": "allow-set-icon-with-as-template",
+				"description": "Enables the set_icon_with_as_template command without any pre-configured scope.",
+				"commands": {
+					"allow": ["set_icon_with_as_template"],
+					"deny": []
+				}
 			},
 			"allow-set-menu": {
 				"identifier": "allow-set-menu",
@@ -795,6 +821,14 @@
 				"identifier": "deny-set-icon-as-template",
 				"description": "Denies the set_icon_as_template command without any pre-configured scope.",
 				"commands": { "allow": [], "deny": ["set_icon_as_template"] }
+			},
+			"deny-set-icon-with-as-template": {
+				"identifier": "deny-set-icon-with-as-template",
+				"description": "Denies the set_icon_with_as_template command without any pre-configured scope.",
+				"commands": {
+					"allow": [],
+					"deny": ["set_icon_with_as_template"]
+				}
 			},
 			"deny-set-menu": {
 				"identifier": "deny-set-menu",
@@ -1071,10 +1105,17 @@
 				"allow-cursor-position",
 				"allow-theme",
 				"allow-is-always-on-top",
+				"allow-activity-name",
+				"allow-scene-identifier",
 				"allow-internal-toggle-maximize"
 			]
 		},
 		"permissions": {
+			"allow-activity-name": {
+				"identifier": "allow-activity-name",
+				"description": "Enables the activity_name command without any pre-configured scope.",
+				"commands": { "allow": ["activity_name"], "deny": [] }
+			},
 			"allow-available-monitors": {
 				"identifier": "allow-available-monitors",
 				"description": "Enables the available_monitors command without any pre-configured scope.",
@@ -1237,6 +1278,11 @@
 				"identifier": "allow-scale-factor",
 				"description": "Enables the scale_factor command without any pre-configured scope.",
 				"commands": { "allow": ["scale_factor"], "deny": [] }
+			},
+			"allow-scene-identifier": {
+				"identifier": "allow-scene-identifier",
+				"description": "Enables the scene_identifier command without any pre-configured scope.",
+				"commands": { "allow": ["scene_identifier"], "deny": [] }
 			},
 			"allow-set-always-on-bottom": {
 				"identifier": "allow-set-always-on-bottom",
@@ -1464,6 +1510,11 @@
 				"description": "Enables the unminimize command without any pre-configured scope.",
 				"commands": { "allow": ["unminimize"], "deny": [] }
 			},
+			"deny-activity-name": {
+				"identifier": "deny-activity-name",
+				"description": "Denies the activity_name command without any pre-configured scope.",
+				"commands": { "allow": [], "deny": ["activity_name"] }
+			},
 			"deny-available-monitors": {
 				"identifier": "deny-available-monitors",
 				"description": "Denies the available_monitors command without any pre-configured scope.",
@@ -1626,6 +1677,11 @@
 				"identifier": "deny-scale-factor",
 				"description": "Denies the scale_factor command without any pre-configured scope.",
 				"commands": { "allow": [], "deny": ["scale_factor"] }
+			},
+			"deny-scene-identifier": {
+				"identifier": "deny-scene-identifier",
+				"description": "Denies the scene_identifier command without any pre-configured scope.",
+				"commands": { "allow": [], "deny": ["scene_identifier"] }
 			},
 			"deny-set-always-on-bottom": {
 				"identifier": "deny-set-always-on-bottom",
