@@ -1,6 +1,7 @@
+import { ThemeProvider, themeFromCssVars } from '../lib/rn-theme';
+import { Surface, Stack, Text, Badge } from '@kbve/rn/ui';
 import { SettingsCard } from '../components/SettingsCard';
 import { SettingsRow } from '../components/SettingsRow';
-import { IconUser } from '../components/Icons';
 import { useAuthStore } from '../stores/auth';
 
 const muted = { color: 'var(--color-text-muted)' } as const;
@@ -20,8 +21,7 @@ function formatDate(iso: string | null | undefined): string {
 function providerOf(appMetadata: unknown): string | null {
 	if (!appMetadata || typeof appMetadata !== 'object') return null;
 	const m = appMetadata as Record<string, unknown>;
-	if (typeof m.provider === 'string') return m.provider;
-	return null;
+	return typeof m.provider === 'string' ? m.provider : null;
 }
 
 export function ProfileView() {
@@ -45,38 +45,37 @@ export function ProfileView() {
 
 	return (
 		<div className="view-column">
-			<div className="profile-hero flex items-center gap-4 rounded-xl border px-5 py-5">
-				{user.avatar_url ? (
-					<img
-						src={user.avatar_url}
-						alt=""
-						className="profile-avatar rounded-full"
-					/>
-				) : (
-					<span className="profile-avatar flex items-center justify-center rounded-full">
-						<IconUser size={28} />
-					</span>
-				)}
-				<div className="flex min-w-0 flex-col gap-1">
-					<span className="text-heading font-semibold">
-						{user.name ?? 'Account'}
-					</span>
-					{user.email && (
-						<span className="text-caption" style={muted}>
-							{user.email}
-						</span>
-					)}
-				</div>
-			</div>
+			{/* Shared @kbve/rn primitives, retinted to the desktop palette. */}
+			<ThemeProvider theme={themeFromCssVars()}>
+				<Surface>
+					<Stack direction="row" gap="md" align="center">
+						{user.avatar_url && (
+							<img
+								src={user.avatar_url}
+								alt=""
+								className="profile-avatar rounded-full"
+							/>
+						)}
+						<Stack gap="xs">
+							<Stack direction="row" gap="sm" align="center" wrap>
+								<Text variant="subtitle">
+									{user.name ?? 'Account'}
+								</Text>
+								{provider && (
+									<Badge tone="info" label={provider} />
+								)}
+							</Stack>
+							{user.email && (
+								<Text variant="caption" tone="muted">
+									{user.email}
+								</Text>
+							)}
+						</Stack>
+					</Stack>
+				</Surface>
+			</ThemeProvider>
 
 			<SettingsCard title="Account">
-				{provider && (
-					<SettingsRow
-						label="Signed in with"
-						description="The identity provider used for this session">
-						<span className="text-body capitalize">{provider}</span>
-					</SettingsRow>
-				)}
 				<SettingsRow
 					label="Member since"
 					description="When this account was created">

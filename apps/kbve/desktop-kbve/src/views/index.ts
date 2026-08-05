@@ -15,6 +15,7 @@ import { ModelsView } from './models';
 import { ShortcutsView } from './shortcuts';
 import { OnichanView } from './onichan';
 import { AboutView } from './about';
+import { ProfileView } from './profile';
 import { TerminalView } from './terminal';
 
 // Register all views at import time.
@@ -55,6 +56,12 @@ export function initViews() {
 		label: 'Onichan',
 		icon: createElement(IconUser),
 		component: OnichanView,
+	});
+	registerView({
+		id: 'profile',
+		label: 'Profile',
+		icon: createElement(IconUser),
+		component: ProfileView,
 	});
 	registerView({
 		id: 'about',

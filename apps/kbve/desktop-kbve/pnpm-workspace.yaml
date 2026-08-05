@@ -1,8 +1,6 @@
 packages:
     - '.'
     - '../../../packages/npm/tauri'
-    - '../../../packages/npm/rn'
-    - '../../../packages/npm/core'
 
 onlyBuiltDependencies:
     - esbuild
