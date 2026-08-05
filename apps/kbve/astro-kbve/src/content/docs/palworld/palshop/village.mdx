@@ -84,10 +84,17 @@ palshop:
         - { id: PotatoSeeds, type: Normal, price: 40, num: 1, stock: 0 }
 ---
 
+import BentoShell from '@/components/hero/BentoShell.astro';
 import PalShopTable from '@/components/palworld/PalShopTable.astro';
 
-The **Village Shop** is the main general store — capture spheres, climate
-armor, healing supplies, food and cooked meals, farm goods and seeds, Pal
-materials, and cosmetics, all at fixed prices.
-
-<PalShopTable shop={frontmatter.palshop} />
+<BentoShell
+	id="village-shop"
+	eyebrow="Palshop"
+	heading="Village Shop"
+	sub="The main general store — capture spheres, climate armor, healing supplies, food and cooked meals, farm goods and seeds, Pal materials, and cosmetics, all at fixed prices.">
+	<div class="bento-band">
+		<div class="bento-card bento-cell">
+			<PalShopTable shop={frontmatter.palshop} />
+		</div>
+	</div>
+</BentoShell>
