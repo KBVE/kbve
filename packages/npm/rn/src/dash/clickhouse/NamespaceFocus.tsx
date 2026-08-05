@@ -2,7 +2,7 @@ import { Pressable, StyleSheet } from 'react-native';
 import { Surface, Stack, Text, Badge, tokens } from '../_ui';
 import { useStream } from '../useStream';
 import type { StreamStore } from '../types';
-import type { LogItem } from '../adapters/clickhouse';
+import type { LogItem } from './logItem';
 import { buildNamespaceRollup } from './chRollup';
 import { errorGroupsLens, type ErrorGroupItem } from './errorGroupsStream';
 import { SectionDivider } from '../shared';
@@ -99,7 +99,10 @@ export function NamespaceFocus({
 
 					{groups.length ? (
 						<Stack gap="xs">
-							<Text variant="caption" weight="medium" tone="muted">
+							<Text
+								variant="caption"
+								weight="medium"
+								tone="muted">
 								Top errors in {ns}
 							</Text>
 							{groups.slice(0, 5).map((g) => (
