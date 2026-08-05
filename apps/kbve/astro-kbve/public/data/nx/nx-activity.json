@@ -1,180 +1,184 @@
 {
-  "generated_at": "2026-08-04T04:13:50Z",
+  "generated_at": "2026-08-05T04:09:00Z",
   "window": {
     "days": 7,
-    "since": "2026-07-28T04:13:50Z"
+    "since": "2026-07-29T04:09:00Z"
   },
   "commits": {
-    "total": 518,
-    "authors": 3,
+    "total": 530,
+    "authors": 4,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 312
+        "commits": 335
       },
       {
         "author": "github-actions[bot]",
-        "commits": 202
+        "commits": 189
       },
       {
         "author": "dependabot[bot]",
         "commits": 4
+      },
+      {
+        "author": "Fudster",
+        "commits": 2
       }
     ],
     "recent": [
       {
-        "sha": "14f271d",
-        "author": "h0lybyte",
-        "message": "Merge pull request #15265 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/14f271d1fe5d27ce033dc3d49e94a0250a576094",
-        "date": "2026-08-03T17:25:56Z"
+        "sha": "86b099a",
+        "author": "Fudster",
+        "message": "Merge pull request #15361 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/86b099a75984d778bb917c2791a4398f468f9167",
+        "date": "2026-08-05T02:32:14Z"
       },
       {
-        "sha": "8c5e466",
-        "author": "h0lybyte",
-        "message": "fix(astro-kbve): restyle the section rail onto bento and rebuild the arcade (#15274)",
-        "url": "https://github.com/KBVE/kbve/commit/8c5e466c3aaea56cf9a93687e031495752342eeb",
-        "date": "2026-08-03T17:11:13Z"
-      },
-      {
-        "sha": "41c9c8a",
-        "author": "h0lybyte",
-        "message": "perf(herbmail-game): measure GPU frame time, and record what it rules out",
-        "url": "https://github.com/KBVE/kbve/commit/41c9c8aa4096696e54d0738649e62671ce181c2c",
-        "date": "2026-08-03T17:09:33Z"
-      },
-      {
-        "sha": "217516c",
+        "sha": "8c040c3",
         "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#15273)",
-        "url": "https://github.com/KBVE/kbve/commit/217516c26e94be775967ac88d1bd34c3d8ace6da",
-        "date": "2026-08-03T16:57:32Z"
+        "message": "chore(discordsh-bot): post-publish sync to v0.1.30 (#15360)",
+        "url": "https://github.com/KBVE/kbve/commit/8c040c39f2cb37c0e53c48ced26c262de5c791ca",
+        "date": "2026-08-05T02:15:48Z"
       },
       {
-        "sha": "e2278bb",
-        "author": "h0lybyte",
-        "message": "chore(kbve): preparing the release of v1.0.270",
-        "url": "https://github.com/KBVE/kbve/commit/e2278bb53641591fc70c7e893ab3f5ca9f510f9e",
-        "date": "2026-08-03T16:54:35Z"
+        "sha": "ea6ec5a",
+        "author": "Fudster",
+        "message": "Merge pull request #15356 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/ea6ec5a1c67a11ac74360fa3f46aa73c07d7ba21",
+        "date": "2026-08-05T01:56:10Z"
       },
       {
-        "sha": "cbea2fc",
-        "author": "h0lybyte",
-        "message": "docs(journal): updaitng the daily entry.",
-        "url": "https://github.com/KBVE/kbve/commit/cbea2fc95c345413207ee59e9232417415a40eea",
-        "date": "2026-08-03T16:22:22Z"
+        "sha": "8d5b07a",
+        "author": "github-actions[bot]",
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#15359)",
+        "url": "https://github.com/KBVE/kbve/commit/8d5b07a09533c25d9868e4546820e66b6bca57d8",
+        "date": "2026-08-05T01:52:22Z"
       },
       {
-        "sha": "75af632",
-        "author": "h0lybyte",
-        "message": "chore(rust): finish reqwest 0.13 migration (#14066) (#15269)",
-        "url": "https://github.com/KBVE/kbve/commit/75af632cd3cff2b09654134664c4de41436a9509",
-        "date": "2026-08-03T16:19:07Z"
+        "sha": "ff527a1",
+        "author": "github-actions[bot]",
+        "message": "feat(discordsh-bot): add /palworld-online roster command (#15358)",
+        "url": "https://github.com/KBVE/kbve/commit/ff527a12a634d59e8fe1785a3cf42823dc3d78a3",
+        "date": "2026-08-05T01:49:40Z"
       },
       {
-        "sha": "0c32c73",
+        "sha": "d49fbaa",
         "author": "h0lybyte",
-        "message": "feat(axum): assert professiondb gather skill_refs resolve in SkillRegistry (#15268)",
-        "url": "https://github.com/KBVE/kbve/commit/0c32c73535770ed05fdb3db75dd7a54f162d201c",
-        "date": "2026-08-03T16:18:52Z"
+        "message": "fix(kubevirt): set customizeComponents to an empty patches list (#15355)",
+        "url": "https://github.com/KBVE/kbve/commit/d49fbaa189d45305d1c4d54295db927e80db8025",
+        "date": "2026-08-04T17:22:30Z"
       },
       {
-        "sha": "85df198",
+        "sha": "bf3e02c",
         "author": "h0lybyte",
-        "message": "release(arpg): cut 0.1.29 for web and server (#15267)",
-        "url": "https://github.com/KBVE/kbve/commit/85df198eee35f10aa7dc63c39a645f571fbb417d",
-        "date": "2026-08-03T16:18:41Z"
+        "message": "Merge pull request #15350 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/bf3e02cc3dc63d76aab483c364a0d02cb780f324",
+        "date": "2026-08-04T15:22:04Z"
       },
       {
-        "sha": "c3d42bc",
-        "author": "h0lybyte",
-        "message": "feat(astro-kbve): palworld map guild base markers from /live/bases (#15266)",
-        "url": "https://github.com/KBVE/kbve/commit/c3d42bcc4de2abf3fc89398172858039b3cbae30",
-        "date": "2026-08-03T16:18:30Z"
+        "sha": "f268b6f",
+        "author": "github-actions[bot]",
+        "message": "chore(embeddb): update version.toml to 0.2.0 [skip ci] (#15353)",
+        "url": "https://github.com/KBVE/kbve/commit/f268b6fd635c98bef7878ecd7945f08da29529a0",
+        "date": "2026-08-04T15:16:41Z"
       },
       {
-        "sha": "d9ec5be",
-        "author": "h0lybyte",
-        "message": "feat(embeddb): add dependency-free vector storage and cosine search tier (#15264)",
-        "url": "https://github.com/KBVE/kbve/commit/d9ec5befc7619a75251bfdffa2b106315a2fed9e",
-        "date": "2026-08-03T14:00:16Z"
+        "sha": "a3ee99f",
+        "author": "github-actions[bot]",
+        "message": "chore(axum-kbve): post-publish sync to v1.0.272 (#15352)",
+        "url": "https://github.com/KBVE/kbve/commit/a3ee99fbd92b0663a84526cb90374815551cc905",
+        "date": "2026-08-04T15:09:49Z"
       },
       {
-        "sha": "afc95a8",
+        "sha": "24dd24d",
+        "author": "github-actions[bot]",
+        "message": "chore(agones-palworld): post-publish sync to v0.0.37 (#15351)",
+        "url": "https://github.com/KBVE/kbve/commit/24dd24d620b009f15a2b881c4376069114c29b05",
+        "date": "2026-08-04T14:53:04Z"
+      },
+      {
+        "sha": "bfd6c24",
+        "author": "github-actions[bot]",
+        "message": "chore(agones-palworld-savetool): post-publish sync to v0.0.4 (#15349)",
+        "url": "https://github.com/KBVE/kbve/commit/bfd6c249cb1f16ff7bdfedeffce5f1f6ae1dab28",
+        "date": "2026-08-04T14:49:08Z"
+      },
+      {
+        "sha": "7ad1b5f",
         "author": "h0lybyte",
-        "message": "Merge pull request #15262 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/afc95a8cca9a9bcc9062fbb574c181d8d38d7f0f",
-        "date": "2026-08-03T13:57:44Z"
+        "message": "Merge pull request #15348 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/7ad1b5f39dcab0e84de8b00220509a59c056ec15",
+        "date": "2026-08-04T14:44:57Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 472,
+    "merged": 440,
     "recent": [
       {
-        "number": 15283,
-        "title": "perf(herbmail-game): bake the open-sky 3x3 max into the tile grid",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15283"
-      },
-      {
-        "number": 15280,
-        "title": "perf(herbmail-game): walk the scene graph once per frame, not once per pass",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15280"
-      },
-      {
-        "number": 15279,
-        "title": "Atomic: axum-kbve v1.0.270 post-publish sync",
+        "number": 15361,
+        "title": "Release: 1 chore \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15279"
+        "url": "https://github.com/KBVE/kbve/pull/15361"
       },
       {
-        "number": 15277,
-        "title": "Atomic: arpg-server v0.1.29 post-publish sync",
+        "number": 15360,
+        "title": "Atomic: discordsh-bot v0.1.30 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15277"
+        "url": "https://github.com/KBVE/kbve/pull/15360"
       },
       {
-        "number": 15265,
-        "title": "Release: 3 features, 1 fix, 1 doc, 1 perf, 3 chores \u2192 Main",
+        "number": 15356,
+        "title": "Release: 1 feature, 1 fix \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15265"
+        "url": "https://github.com/KBVE/kbve/pull/15356"
       },
       {
-        "number": 15274,
-        "title": "fix(astro-kbve): restyle the section rail onto bento and rebuild the arcade",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15274"
-      },
-      {
-        "number": 15273,
+        "number": 15359,
         "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15273"
+        "url": "https://github.com/KBVE/kbve/pull/15359"
       },
       {
-        "number": 15269,
-        "title": "chore(rust): finish reqwest 0.13 migration (#14066)",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15269"
+        "number": 15358,
+        "title": "Atomic: palworld online",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15358"
       },
       {
-        "number": 15268,
-        "title": "feat(axum): assert professiondb gather skill_refs resolve in SkillRegistry",
+        "number": 15355,
+        "title": "fix(kubevirt): set customizeComponents to an empty patches list",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15268"
+        "url": "https://github.com/KBVE/kbve/pull/15355"
       },
       {
-        "number": 15267,
-        "title": "release(arpg): cut 0.1.29 for web and server",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15267"
+        "number": 15350,
+        "title": "Release: 3 chores \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15350"
+      },
+      {
+        "number": 15353,
+        "title": "chore(embeddb): update version.toml to 0.2.0",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15353"
+      },
+      {
+        "number": 15352,
+        "title": "Atomic: axum-kbve v1.0.272 post-publish sync",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15352"
+      },
+      {
+        "number": 15351,
+        "title": "Atomic: agones-palworld v0.0.37 post-publish sync",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15351"
       }
     ]
   },
   "issues": {
-    "opened": 475,
-    "closed": 480
+    "opened": 443,
+    "closed": 449
   }
 }
