@@ -271,6 +271,45 @@ def build_fixture_sav(path, save_type=0x32):
                                                         "id": None,
                                                         "value": 12,
                                                     },
+                                                    "Gender": {
+                                                        "type": "EnumProperty",
+                                                        "id": None,
+                                                        "value": {
+                                                            "type": "EPalGenderType",
+                                                            "value": "EPalGenderType::Female",
+                                                        },
+                                                    },
+                                                    "Rank": {
+                                                        "type": "IntProperty",
+                                                        "id": None,
+                                                        "value": 2,
+                                                    },
+                                                    "Talent_HP": {
+                                                        "type": "IntProperty",
+                                                        "id": None,
+                                                        "value": 85,
+                                                    },
+                                                    "Talent_Shot": {
+                                                        "type": "IntProperty",
+                                                        "id": None,
+                                                        "value": 90,
+                                                    },
+                                                    "Talent_Defense": {
+                                                        "type": "IntProperty",
+                                                        "id": None,
+                                                        "value": 100,
+                                                    },
+                                                    "PassiveSkillList": {
+                                                        "type": "ArrayProperty",
+                                                        "array_type": "NameProperty",
+                                                        "id": None,
+                                                        "value": {
+                                                            "values": [
+                                                                "CraftSpeed_up1",
+                                                                "PAL_Sanity_Down_1",
+                                                            ]
+                                                        },
+                                                    },
                                                 },
                                             }
                                         },
@@ -330,8 +369,19 @@ def main():
     )
     pals = base["pals"]
     expect(
-        pals == [{"id": "SheepBall", "name": "Wooly", "level": 12}],
-        "base pal roster resolved via worker director container",
+        pals
+        == [
+            {
+                "id": "SheepBall",
+                "name": "Wooly",
+                "level": 12,
+                "gender": "F",
+                "rank": 2,
+                "talents": {"hp": 85, "attack": 90, "defense": 100},
+                "passives": ["CraftSpeed_up1", "PAL_Sanity_Down_1"],
+            }
+        ],
+        "base pal roster with breeding stats",
     )
     with open(out_path) as f:
         disk = json.load(f)
