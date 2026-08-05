@@ -92,6 +92,27 @@ pub unsafe extern "C" fn kbve_wgpu_create_game(
     }
 }
 
+/// Stub used when the `bevy` feature is off. The Swift and Kotlin views call
+/// this symbol unconditionally, so it has to exist in every build or the host
+/// app fails to link. Returns null, which the callers already treat as
+/// "surface unavailable".
+///
+/// # Safety
+/// Same pointer contract as [`kbve_wgpu_create`].
+#[cfg(not(feature = "bevy"))]
+#[no_mangle]
+pub unsafe extern "C" fn kbve_wgpu_create_game(
+    _raw: *mut c_void,
+    _kind: u32,
+    _width: u32,
+    _height: u32,
+    _asset_root: *const u8,
+    _asset_root_len: usize,
+) -> *mut WgpuSurface {
+    log::error!("kbve_wgpu_create_game unavailable: built without the `bevy` feature");
+    ptr::null_mut()
+}
+
 /// # Safety
 /// `surface` must be a live pointer from `kbve_wgpu_create`.
 #[no_mangle]
