@@ -63,10 +63,25 @@ def decode_character(raw_bytes):
     char_id = pv(sp, "CharacterID") or ""
     if not char_id:
         return None
+    gender = str(pv(sp, "Gender") or "")
+    passives_prop = pv(sp, "PassiveSkillList")
+    passives = (
+        passives_prop.get("values")
+        if isinstance(passives_prop, dict)
+        else passives_prop
+    ) or []
     return {
         "id": str(char_id),
         "name": pv(sp, "NickName") or "",
         "level": pv(sp, "Level") or 1,
+        "gender": "F" if "Female" in gender else "M" if "Male" in gender else "",
+        "rank": pv(sp, "Rank") or 1,
+        "talents": {
+            "hp": pv(sp, "Talent_HP") or 0,
+            "attack": pv(sp, "Talent_Shot") or 0,
+            "defense": pv(sp, "Talent_Defense") or 0,
+        },
+        "passives": [str(p) for p in passives],
     }
 
 

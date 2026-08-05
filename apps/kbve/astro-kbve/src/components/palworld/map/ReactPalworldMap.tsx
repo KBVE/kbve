@@ -631,7 +631,15 @@ export default function ReactPalworldMap() {
 					`<path d="M6.5 14v-4h3v4" fill="rgba(52,211,153,0.5)"/>` +
 					`</svg></div>`,
 			});
-		type BasePal = { id: string; name: string; level: number };
+		type BasePal = {
+			id: string;
+			name: string;
+			level: number;
+			gender?: string;
+			rank?: number;
+			talents?: { hp: number; attack: number; defense: number };
+			passives?: string[];
+		};
 		type BaseIntel = {
 			id: string;
 			name?: string;
@@ -681,10 +689,30 @@ export default function ReactPalworldMap() {
 				`onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>` +
 				`<span style="display:none;width:34px;height:34px;border-radius:50%;background:#173042;color:#7dd3fc;` +
 				`align-items:center;justify-content:center;font-weight:600">${initial}</span>` +
-				`<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">` +
+				`<div style="flex:1;min-width:0">` +
+				`<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">` +
 				`${esc(p.name || clean)}` +
 				(p.name ? `<span style="color:#8b9bb0"> · ${clean}</span>` : '') +
-				`</span>` +
+				(p.gender === 'F'
+					? `<span style="color:#f0abfc"> ♀</span>`
+					: p.gender === 'M'
+						? `<span style="color:#7dd3fc"> ♂</span>`
+						: '') +
+				(p.rank && p.rank > 1
+					? `<span style="color:#fbbf24"> ${'★'.repeat(Math.min(4, p.rank - 1))}</span>`
+					: '') +
+				`</div>` +
+				(p.talents
+					? `<div style="color:#8b9bb0;font-size:11px">IV ` +
+						`<span style="color:#a7f3d0">${p.talents.hp}</span>/` +
+						`<span style="color:#fca5a5">${p.talents.attack}</span>/` +
+						`<span style="color:#93c5fd">${p.talents.defense}</span>` +
+						(p.passives?.length
+							? ` · ${p.passives.map((s) => esc(s.replace(/_/g, ' '))).join(', ')}`
+							: '') +
+						`</div>`
+					: '') +
+				`</div>` +
 				`<span style="color:#34d399;font-variant-numeric:tabular-nums">Lv ${p.level}</span></div>`
 			);
 		};
