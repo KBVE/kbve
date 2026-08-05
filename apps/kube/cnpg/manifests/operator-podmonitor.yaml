@@ -1,0 +1,22 @@
+# Scrape the CNPG operator itself.
+#
+# The chart ships a PodMonitor (cnpg-operator-cloudnative-pg) labelled only
+# with app.kubernetes.io/* + helm.sh/chart, which this Prometheus does not
+# select — so controller-runtime reconcile metrics were never collected. That
+# is the signal that would have caught kilobase sitting at Ready=False for
+# nine days while its server cert stayed signed by a rotated-out CA.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+    name: cnpg-operator-scrape
+    namespace: cnpg-system
+    labels:
+        release: monitoring
+        kbve.com/category: observability
+        kbve.com/stack: core
+spec:
+    selector:
+        matchLabels:
+            app.kubernetes.io/name: cloudnative-pg
+    podMetricsEndpoints:
+        - port: metrics
