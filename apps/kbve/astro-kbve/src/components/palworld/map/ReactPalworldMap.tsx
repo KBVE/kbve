@@ -631,13 +631,87 @@ export default function ReactPalworldMap() {
 					`<path d="M6.5 14v-4h3v4" fill="rgba(52,211,153,0.5)"/>` +
 					`</svg></div>`,
 			});
+		type BasePal = { id: string; name: string; level: number };
+		type BaseIntel = {
+			id: string;
+			name?: string;
+			x: number;
+			y: number;
+			pals?: BasePal[];
+		};
 		type GuildIntel = {
 			id: string;
 			name: string;
 			base_camp_level?: number;
 			players?: { name: string }[];
 			pal_handles?: number;
-			bases?: { id: string; x: number; y: number }[];
+			bases?: BaseIntel[];
+		};
+		const esc = (s: string) =>
+			s.replace(
+				/[&<>"']/g,
+				(c) =>
+					({
+						'&': '&amp;',
+						'<': '&lt;',
+						'>': '&gt;',
+						'"': '&quot;',
+						"'": '&#39;',
+					})[c] as string,
+			);
+		const baseData = new Map<string, { g: GuildIntel; b: BaseIntel }>();
+		const modal = document.createElement('div');
+		modal.className = 'pal-base-modal';
+		modal.style.cssText =
+			'display:none;position:absolute;inset:0;z-index:1200;background:rgba(4,8,14,0.55);' +
+			'backdrop-filter:blur(2px);align-items:center;justify-content:center;padding:1rem';
+		modal.addEventListener('click', (ev) => {
+			if (ev.target === modal) modal.style.display = 'none';
+		});
+		L.DomEvent.disableClickPropagation(modal);
+		L.DomEvent.disableScrollPropagation(modal);
+		el.appendChild(modal);
+		const palRow = (p: BasePal) => {
+			const clean = esc(p.id.replace(/^BOSS_/i, ''));
+			const initial = esc((p.name || p.id).charAt(0).toUpperCase());
+			return (
+				`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid rgba(255,255,255,0.07)">` +
+				`<img src="/palworld/palicons/T_${clean}_icon_normal.webp" width="34" height="34" loading="lazy" ` +
+				`style="border-radius:50%;background:#0d1524" ` +
+				`onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>` +
+				`<span style="display:none;width:34px;height:34px;border-radius:50%;background:#173042;color:#7dd3fc;` +
+				`align-items:center;justify-content:center;font-weight:600">${initial}</span>` +
+				`<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">` +
+				`${esc(p.name || clean)}` +
+				(p.name ? `<span style="color:#8b9bb0"> · ${clean}</span>` : '') +
+				`</span>` +
+				`<span style="color:#34d399;font-variant-numeric:tabular-nums">Lv ${p.level}</span></div>`
+			);
+		};
+		const showBaseModal = (g: GuildIntel, b: BaseIntel) => {
+			const roster = (g.players ?? []).map((p) => esc(p.name)).join(', ');
+			const pals = b.pals ?? [];
+			modal.innerHTML =
+				`<div style="width:min(26rem,100%);max-height:100%;overflow:auto;background:rgba(10,16,28,0.97);` +
+				`border:1px solid rgba(255,255,255,0.12);border-radius:14px;padding:16px 18px;color:#e8f0fa;` +
+				`font:13px/1.6 system-ui,sans-serif;box-shadow:0 18px 50px rgba(0,0,0,0.5)">` +
+				`<div style="display:flex;align-items:center;gap:8px">` +
+				`<strong style="font-size:15px;flex:1">${esc(g.name || 'Guild')}</strong>` +
+				(g.base_camp_level
+					? `<span style="color:#34d399">Camp Lv ${g.base_camp_level}</span>`
+					: '') +
+				`<button style="background:none;border:0;color:#8b9bb0;font-size:18px;cursor:pointer;line-height:1" ` +
+				`onclick="this.closest('.pal-base-modal').style.display='none'">×</button></div>` +
+				(roster
+					? `<div style="color:#8b9bb0;margin-top:2px">${roster}</div>`
+					: '') +
+				`<div style="margin-top:10px;display:flex;justify-content:space-between;color:#8b9bb0">` +
+				`<span>Working pals</span><span>${pals.length}</span></div>` +
+				(pals.length
+					? pals.map(palRow).join('')
+					: `<div style="color:#8b9bb0;padding:8px 0">No pals assigned — or the save intel is still warming up.</div>`) +
+				`</div>`;
+			modal.style.display = 'flex';
 		};
 		const syncBases = (guilds: GuildIntel[]) => {
 			const seen = new Set<string>();
@@ -646,24 +720,35 @@ export default function ReactPalworldMap() {
 				for (const b of g.bases ?? []) {
 					total += 1;
 					seen.add(b.id);
+					baseData.set(b.id, { g, b });
 					if (baseMarkers.has(b.id)) continue;
 					const m = L.marker(gameToLatLng(b.x, b.y), {
 						icon: baseIcon(),
 						keyboard: false,
 						zIndexOffset: 300,
 					});
-					const roster = (g.players ?? [])
-						.map((p) => p.name)
-						.join(', ');
 					m.bindTooltip(
-						`<strong>${g.name || 'Guild'}</strong>` +
-							(g.base_camp_level
-								? ` — Camp Lv ${g.base_camp_level}`
-								: '') +
-							(roster ? `<br/>${roster}` : '') +
-							(g.pal_handles ? `<br/>${g.pal_handles} pals` : ''),
+						() => {
+							const d = baseData.get(b.id);
+							if (!d) return '';
+							const names = (d.g.players ?? [])
+								.map((p) => esc(p.name))
+								.join(', ');
+							return (
+								`<strong>${esc(d.g.name || 'Guild')}</strong>` +
+								(d.g.base_camp_level
+									? ` — Camp Lv ${d.g.base_camp_level}`
+									: '') +
+								(names ? `<br/>${names}` : '') +
+								`<br/>${(d.b.pals ?? []).length} working pals · click for details`
+							);
+						},
 						{ direction: 'top', offset: [0, -14], opacity: 0.95 },
 					);
+					m.on('click', () => {
+						const d = baseData.get(b.id);
+						if (d) showBaseModal(d.g, d.b);
+					});
 					m.addTo(baseLayer);
 					baseMarkers.set(b.id, m);
 				}
@@ -672,6 +757,7 @@ export default function ReactPalworldMap() {
 				if (!seen.has(id)) {
 					baseLayer.removeLayer(m);
 					baseMarkers.delete(id);
+					baseData.delete(id);
 				}
 			}
 			if (baseCountText) baseCountText.textContent = `Bases (${total})`;
