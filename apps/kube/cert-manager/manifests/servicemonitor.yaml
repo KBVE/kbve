@@ -1,0 +1,28 @@
+# Scrape cert-manager.
+#
+# Nothing scraped cert-manager at all — no ServiceMonitor existed in the
+# namespace, so certmanager_* was absent cluster-wide. That matters here
+# because CNPG does NOT export any certificate-expiry metric (the name
+# cnpg_cluster_cert_expires_in_seconds used by the old alert appears nowhere
+# in cloudnative-pg), so cert-manager is the only real source of expiry data
+# for the kilobase certificates.
+#
+# The chart's own service already exposes the controller's 9402 endpoint under
+# the port name tcp-prometheus-servicemonitor.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+    name: cert-manager-scrape
+    namespace: cert-manager
+    labels:
+        release: monitoring
+        kbve.com/category: observability
+        kbve.com/stack: core
+spec:
+    selector:
+        matchLabels:
+            app.kubernetes.io/name: cert-manager
+            app.kubernetes.io/component: controller
+    endpoints:
+        - port: tcp-prometheus-servicemonitor
+          interval: 60s

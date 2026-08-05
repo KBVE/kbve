@@ -1,30 +1,51 @@
+# Certificate alerts for kilobase.
+#
+# These previously ran on cnpg_cluster_cert_expires_in_seconds. That metric
+# does not exist — the string appears nowhere in cloudnative-pg, and CNPG
+# exports no certificate-expiry metric at all. The rules could never fire, on
+# top of cnpg_* not being scraped in the first place (see cnpg-podmonitor.yaml).
+#
+# cert-manager is the real source: it owns supabase-server-tls and
+# supabase-replication-tls via internal-ca-issuer, and exports both expiry and
+# readiness per Certificate.
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
-  name: cnpg-cert-expiry-alert
-  namespace: kilobase
-  labels:
-    prometheus: kube-prometheus
-    role: alert-rules
+    name: cnpg-cert-expiry-alert
+    namespace: kilobase
+    labels:
+        prometheus: kube-prometheus
+        role: alert-rules
 spec:
-  groups:
-    - name: cnpg-certificates
-      rules:
-        - alert: CNPGCertificateExpiringSoon
-          annotations:
-            description: "CloudNativePG certificate {{ $labels.secret_name }} in cluster {{ $labels.cluster }} expires in less than 14 days"
-            summary: "CNPG certificate expiring soon"
-          expr: |
-            cnpg_cluster_cert_expires_in_seconds < 1209600
-          for: 1h
-          labels:
-            severity: warning
-        - alert: CNPGCertificateExpiryCritical
-          annotations:
-            description: "CloudNativePG certificate {{ $labels.secret_name }} in cluster {{ $labels.cluster }} expires in less than 3 days!"
-            summary: "CNPG certificate expiry CRITICAL"
-          expr: |
-            cnpg_cluster_cert_expires_in_seconds < 259200
-          for: 5m
-          labels:
-            severity: critical
+    groups:
+        - name: cnpg-certificates
+          rules:
+              - alert: KilobaseCertificateExpiringSoon
+                annotations:
+                    description: 'Certificate {{ $labels.name }} in {{ $labels.namespace }} expires in less than 14 days.'
+                    summary: 'kilobase certificate expiring soon'
+                expr: |
+                    (certmanager_certificate_expiration_timestamp_seconds{namespace="kilobase"} - time()) < 1209600
+                for: 1h
+                labels:
+                    severity: warning
+
+              - alert: KilobaseCertificateExpiryCritical
+                annotations:
+                    description: 'Certificate {{ $labels.name }} in {{ $labels.namespace }} expires in less than 3 days!'
+                    summary: 'kilobase certificate expiry CRITICAL'
+                expr: |
+                    (certmanager_certificate_expiration_timestamp_seconds{namespace="kilobase"} - time()) < 259200
+                for: 5m
+                labels:
+                    severity: critical
+
+              - alert: KilobaseCertificateNotReady
+                annotations:
+                    description: 'Certificate {{ $labels.name }} in {{ $labels.namespace }} is not Ready. Note this does NOT catch a certificate signed by a rotated-out CA — cert-manager keeps reporting Ready=True in that case. CNPGReconcileErrors is the rule that covers that.'
+                    summary: 'kilobase certificate not ready'
+                expr: |
+                    certmanager_certificate_ready_status{namespace="kilobase",condition="True"} == 0
+                for: 30m
+                labels:
+                    severity: warning
