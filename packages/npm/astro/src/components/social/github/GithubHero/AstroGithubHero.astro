@@ -740,11 +740,16 @@ const getRankLabel = (index: number): string => {
 	}
 
 	/* Outer glow effect */
+	/* Sits flush with the hero box rather than bleeding -4px: the negative
+	   inset added 4px of scrollable overflow to every ancestor, which showed
+	   up as a horizontal scrollbar once the viewport ran out of slack. The
+	   20px blur already spreads the glow past the edge, and painted overflow
+	   creates no scroll. */
 	.github-hero::after {
 		content: '';
 		position: absolute;
-		inset: -4px;
-		border-radius: 1.75rem;
+		inset: 0;
+		border-radius: 1.5rem;
 		background: linear-gradient(
 			135deg,
 			var(--glow-color-1),

@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-08-04T04:17:49Z",
+	"generated_at": "2026-08-05T04:12:32Z",
 	"summary": {
 		"critical": 4,
 		"high": 47,
@@ -600,13 +600,6 @@
 					"url": "https://github.com/advisories/GHSA-r28c-9q8g-f849"
 				},
 				{
-					"id": "1130178",
-					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
-					"severity": "high",
-					"package": "fast-uri",
-					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
-				},
-				{
 					"id": "1130588",
 					"title": "brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash",
 					"severity": "high",
@@ -717,6 +710,13 @@
 					"severity": "high",
 					"package": "brace-expansion",
 					"url": "https://github.com/advisories/GHSA-rgw5-rvv9-x895"
+				},
+				{
+					"id": "1132817",
+					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
+					"severity": "high",
+					"package": "fast-uri",
+					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
 				}
 			]
 		},

@@ -6,6 +6,8 @@ sidebar:
     hidden: true
 description: |
     A hard-shell backpack humming with a power cell of undocumented provenance. Warm against the spine on cold nights.
+lore: |
+    A rigid-frame pack with power routing built into the spine, meant to carry a working kit rather than supplies. The frame is the expensive part. Crews strip failed packs for the frame and rebuild the fabric around it twice before admitting the pack is dead.
 ref: 'tech-pack'
 key: 618
 id: '01KXFBEGM2284DFA2YCTMCHWWW'
@@ -33,6 +35,17 @@ equipment:
 grid:
   width: 2
   height: 2
+set_ref: 'fieldkit'
+tags:
+  - armor
+  - fieldkit
+  - herbmail
+sources:
+  - source_type: 'vendor'
+    source_name: 'Surplus stall'
+  - source_type: 'drop'
+    source_name: 'Depot cache'
+    drop_rate: 0.05
 ---
 
 import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';

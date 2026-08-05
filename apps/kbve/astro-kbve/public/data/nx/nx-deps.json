@@ -1,8 +1,8 @@
 {
-	"generated_at": "2026-08-04T04:17:38Z",
+	"generated_at": "2026-08-05T04:12:28Z",
 	"node": {
-		"count": 120,
-		"major": 30,
+		"count": 111,
+		"major": 21,
 		"items": [
 			{
 				"name": "@axe-core/playwright",
@@ -74,14 +74,6 @@
 				"wanted": "4.4.1",
 				"latest": "4.4.2",
 				"type": "devDependencies",
-				"major": false
-			},
-			{
-				"name": "@hcaptcha/react-native-hcaptcha",
-				"current": "4.0.0",
-				"wanted": "4.0.0",
-				"latest": "4.1.0",
-				"type": "dependencies",
 				"major": false
 			},
 			{
@@ -169,14 +161,6 @@
 				"current": "10.0.3",
 				"wanted": "10.0.3",
 				"latest": "10.1.2",
-				"type": "dependencies",
-				"major": false
-			},
-			{
-				"name": "@react-three/fiber",
-				"current": "9.6.1",
-				"wanted": "9.6.1",
-				"latest": "9.7.0",
 				"type": "dependencies",
 				"major": false
 			},
@@ -309,6 +293,14 @@
 				"major": true
 			},
 			{
+				"name": "@testing-library/user-event",
+				"current": "14.6.1",
+				"wanted": "14.6.1",
+				"latest": "14.6.3",
+				"type": "devDependencies",
+				"major": false
+			},
+			{
 				"name": "@types/d3-geo",
 				"current": "3.1.0",
 				"wanted": "3.1.0",
@@ -357,18 +349,10 @@
 				"major": false
 			},
 			{
-				"name": "@types/three",
-				"current": "0.176.0",
-				"wanted": "0.176.0",
-				"latest": "0.185.3",
-				"type": "devDependencies",
-				"major": false
-			},
-			{
 				"name": "@typescript-eslint/eslint-plugin",
 				"current": "8.64.0",
 				"wanted": "8.64.0",
-				"latest": "8.65.0",
+				"latest": "8.66.0",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -376,7 +360,7 @@
 				"name": "@typescript-eslint/parser",
 				"current": "8.64.0",
 				"wanted": "8.64.0",
-				"latest": "8.65.0",
+				"latest": "8.66.0",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -413,6 +397,14 @@
 				"major": false
 			},
 			{
+				"name": "@webgpu/types",
+				"current": "0.1.60",
+				"wanted": "0.1.60",
+				"latest": "0.1.71",
+				"type": "devDependencies",
+				"major": false
+			},
+			{
 				"name": "@xyflow/react",
 				"current": "12.11.1",
 				"wanted": "12.11.1",
@@ -443,14 +435,6 @@
 				"latest": "10.5.4",
 				"type": "devDependencies",
 				"major": false
-			},
-			{
-				"name": "babel-preset-expo",
-				"current": "56.0.15",
-				"wanted": "56.0.15",
-				"latest": "57.0.5",
-				"type": "dependencies",
-				"major": true
 			},
 			{
 				"name": "canvaskit-wasm",
@@ -518,59 +502,35 @@
 			},
 			{
 				"name": "expo",
-				"current": "56.0.11",
-				"wanted": "56.0.11",
-				"latest": "57.0.9",
+				"current": "57.0.9",
+				"wanted": "57.0.9",
+				"latest": "57.0.10",
 				"type": "dependencies",
-				"major": true
+				"major": false
 			},
 			{
 				"name": "expo-auth-session",
-				"current": "56.0.14",
-				"wanted": "56.0.14",
-				"latest": "57.0.5",
+				"current": "57.0.5",
+				"wanted": "57.0.5",
+				"latest": "57.0.6",
 				"type": "dependencies",
-				"major": true
-			},
-			{
-				"name": "expo-build-properties",
-				"current": "56.0.19",
-				"wanted": "56.0.19",
-				"latest": "57.0.8",
-				"type": "dependencies",
-				"major": true
-			},
-			{
-				"name": "expo-dev-client",
-				"current": "56.0.20",
-				"wanted": "56.0.20",
-				"latest": "57.0.10",
-				"type": "dependencies",
-				"major": true
+				"major": false
 			},
 			{
 				"name": "expo-linking",
-				"current": "56.0.14",
-				"wanted": "56.0.14",
-				"latest": "57.0.4",
+				"current": "57.0.4",
+				"wanted": "57.0.4",
+				"latest": "57.0.5",
 				"type": "dependencies",
-				"major": true
+				"major": false
 			},
 			{
-				"name": "expo-status-bar",
-				"current": "56.0.4",
-				"wanted": "56.0.4",
-				"latest": "57.0.1",
+				"name": "expo-modules-core",
+				"current": "57.0.8",
+				"wanted": "57.0.8",
+				"latest": "57.0.9",
 				"type": "dependencies",
-				"major": true
-			},
-			{
-				"name": "expo-web-browser",
-				"current": "56.0.5",
-				"wanted": "56.0.5",
-				"latest": "57.0.2",
-				"type": "dependencies",
-				"major": true
+				"major": false
 			},
 			{
 				"name": "flatbuffers",
@@ -648,7 +608,7 @@
 				"name": "marked",
 				"current": "18.0.2",
 				"wanted": "18.0.2",
-				"latest": "18.0.7",
+				"latest": "18.0.9",
 				"type": "dependencies",
 				"major": false
 			},
@@ -656,7 +616,7 @@
 				"name": "mdream",
 				"current": "1.4.1",
 				"wanted": "1.4.1",
-				"latest": "1.5.11",
+				"latest": "1.5.12",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -664,8 +624,8 @@
 				"name": "mermaid",
 				"current": "11.15.0",
 				"wanted": "11.15.0",
-				"latest": "11.16.0",
-				"type": "dependencies",
+				"latest": "11.16.1",
+				"type": "devDependencies",
 				"major": false
 			},
 			{
@@ -698,14 +658,6 @@
 				"wanted": "8.5.14",
 				"latest": "8.5.25",
 				"type": "devDependencies",
-				"major": false
-			},
-			{
-				"name": "postprocessing",
-				"current": "6.39.2",
-				"wanted": "6.39.2",
-				"latest": "6.39.4",
-				"type": "dependencies",
 				"major": false
 			},
 			{
@@ -749,25 +701,17 @@
 				"major": false
 			},
 			{
-				"name": "react-native",
-				"current": "0.85.3",
-				"wanted": "0.85.3",
-				"latest": "0.86.2",
-				"type": "dependencies",
-				"major": false
-			},
-			{
 				"name": "react-native-gesture-handler",
-				"current": "2.31.2",
-				"wanted": "2.31.2",
+				"current": "2.32.0",
+				"wanted": "2.32.0",
 				"latest": "3.1.0",
 				"type": "dependencies",
 				"major": true
 			},
 			{
 				"name": "react-native-reanimated",
-				"current": "4.3.1",
-				"wanted": "4.3.1",
+				"current": "4.5.1",
+				"wanted": "4.5.1",
 				"latest": "4.5.3",
 				"type": "dependencies",
 				"major": false
@@ -776,7 +720,7 @@
 				"name": "react-native-safe-area-context",
 				"current": "5.7.0",
 				"wanted": "5.7.0",
-				"latest": "5.8.0",
+				"latest": "5.8.1",
 				"type": "dependencies",
 				"major": false
 			},
@@ -789,28 +733,20 @@
 				"major": false
 			},
 			{
-				"name": "react-native-url-polyfill",
-				"current": "3.0.0",
-				"wanted": "3.0.0",
-				"latest": "4.0.0",
-				"type": "dependencies",
-				"major": true
-			},
-			{
-				"name": "react-native-webgpu",
-				"current": "0.6.3",
-				"wanted": "0.6.3",
-				"latest": "0.8.1",
-				"type": "dependencies",
-				"major": false
-			},
-			{
 				"name": "react-native-webview",
 				"current": "13.16.1",
 				"wanted": "13.16.1",
 				"latest": "14.0.1",
 				"type": "dependencies",
 				"major": true
+			},
+			{
+				"name": "react-native-worklets",
+				"current": "0.10.3",
+				"wanted": "0.10.3",
+				"latest": "0.11.3",
+				"type": "dependencies",
+				"major": false
 			},
 			{
 				"name": "react-spring",
@@ -848,7 +784,7 @@
 				"name": "styled-components",
 				"current": "6.4.2",
 				"wanted": "6.4.2",
-				"latest": "6.4.4",
+				"latest": "6.5.0",
 				"type": "dependencies",
 				"major": false
 			},
@@ -857,14 +793,6 @@
 				"current": "3.5.0",
 				"wanted": "3.5.0",
 				"latest": "3.6.0",
-				"type": "dependencies",
-				"major": false
-			},
-			{
-				"name": "three",
-				"current": "0.184.0",
-				"wanted": "0.184.0",
-				"latest": "0.185.1",
 				"type": "dependencies",
 				"major": false
 			},
@@ -885,20 +813,20 @@
 				"major": false
 			},
 			{
-				"name": "typegpu",
-				"current": "0.11.8",
-				"wanted": "0.11.8",
-				"latest": "0.11.9",
-				"type": "dependencies",
-				"major": false
-			},
-			{
 				"name": "typescript",
 				"current": "6.0.3",
 				"wanted": "6.0.3",
 				"latest": "7.0.2",
 				"type": "devDependencies",
 				"major": true
+			},
+			{
+				"name": "typescript-eslint",
+				"current": "8.65.0",
+				"wanted": "8.65.0",
+				"latest": "8.66.0",
+				"type": "devDependencies",
+				"major": false
 			},
 			{
 				"name": "verdaccio",
@@ -967,9 +895,15 @@
 		]
 	},
 	"rust": {
-		"count": 101,
+		"count": 105,
 		"major": 0,
 		"items": [
+			{
+				"name": "actix-server",
+				"current": "2.6.0",
+				"latest": "2.7.0",
+				"major": false
+			},
 			{
 				"name": "aho-corasick",
 				"current": "1.1.4",
@@ -1229,6 +1163,12 @@
 				"major": false
 			},
 			{
+				"name": "encoding_rs_io",
+				"current": "0.1.7",
+				"latest": "0.1.8",
+				"major": false
+			},
+			{
 				"name": "enum-ordinalize",
 				"current": "4.4.1",
 				"latest": "4.4.2",
@@ -1268,6 +1208,12 @@
 				"name": "glob",
 				"current": "0.3.3",
 				"latest": "0.3.4",
+				"major": false
+			},
+			{
+				"name": "globset",
+				"current": "0.4.19",
+				"latest": "0.4.20",
 				"major": false
 			},
 			{
@@ -1382,6 +1328,12 @@
 				"name": "redox_syscall",
 				"current": "0.9.0",
 				"latest": "0.9.1",
+				"major": false
+			},
+			{
+				"name": "regex-automata",
+				"current": "0.4.16",
+				"latest": "0.4.18",
 				"major": false
 			},
 			{
@@ -1555,7 +1507,7 @@
 			{
 				"name": "webbrowser",
 				"current": "1.2.1",
-				"latest": "1.2.3",
+				"latest": "1.2.4",
 				"major": false
 			},
 			{
@@ -1578,6 +1530,6 @@
 			}
 		]
 	},
-	"total": 221,
-	"major_total": 30
+	"total": 216,
+	"major_total": 21
 }
