@@ -139,8 +139,30 @@ BEGIN
     CREATE POLICY kbve_windmill_user_all ON windmill.rls_probe_admin_only
         FOR ALL TO windmill_user USING (true) WITH CHECK (true);
 
-    -- 6. reconciliation: once Windmill ships its own windmill_user policy, our
-    --    permissive compat policy must go, or it would OR-widen past theirs.
+    -- 6a. reconciliation, partial coverage: an upstream SELECT-only policy
+    --     must NOT evict the FOR ALL compat policy -- policies apply per
+    --     command, and dropping ours would deny-all every write. Writes must
+    --     keep working and the compat policy must survive.
+    CREATE POLICY see_own_select_upstream ON windmill.rls_probe_admin_only
+        FOR SELECT TO windmill_user USING (workspace_id = 'ws-a');
+    PERFORM windmill.enforce_policy_rls(true);
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policy p
+        WHERE p.polrelid = 'windmill.rls_probe_admin_only'::regclass
+          AND p.polname = 'kbve_windmill_user_all'
+    ) THEN
+        RAISE EXCEPTION 'fail: SELECT-only upstream policy evicted the FOR ALL compat policy (write paths now deny-all)';
+    END IF;
+
+    SET LOCAL ROLE windmill_user;
+    INSERT INTO windmill.rls_probe_admin_only (workspace_id) VALUES ('ws-write-probe');
+    DELETE FROM windmill.rls_probe_admin_only WHERE workspace_id = 'ws-write-probe';
+    RESET ROLE;
+    DROP POLICY see_own_select_upstream ON windmill.rls_probe_admin_only;
+
+    -- 6b. reconciliation, full coverage: once Windmill covers every command
+    --     for windmill_user, our permissive compat policy must go, or it
+    --     would OR-widen past theirs.
     CREATE POLICY see_own_upstream ON windmill.rls_probe_admin_only
         FOR ALL TO windmill_user USING (workspace_id = 'ws-a');
     PERFORM windmill.enforce_policy_rls(true);

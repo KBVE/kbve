@@ -51,9 +51,14 @@
 --     and compare against the owner's count. Any regression aborts
 --     (strict mode) or reverts just that table (cron mode);
 --   * reconcile on every run: permissive policies are OR-ed, so if a
---     Windmill upgrade ever ships a real windmill_user policy on a
+--     Windmill upgrade ever ships real windmill_user policies on a
 --     table we hold a compat policy on, ours is dropped rather than
---     left to widen access past theirs.
+--     left to widen access past theirs -- but only once upstream
+--     covers ALL of SELECT/INSERT/UPDATE/DELETE. Policies apply per
+--     command and an uncovered command is deny-all, so dropping the
+--     FOR ALL compat policy against a partial (e.g. SELECT-only)
+--     upstream policy would silently break the engine's writes.
+--     Partial coverage keeps the compat policy and raises a WARNING.
 --
 -- Upstream context: backend/migrations/20260125000000_v2_finalize
 -- explicitly runs `ALTER TABLE v2_job_queue/v2_job_completed DISABLE
@@ -192,9 +197,54 @@ BEGIN
     END IF;
 
     -- Reconcile first. Permissive policies are OR-ed, so if a Windmill upgrade
-    -- ever ships a real windmill_user policy on a table we hold a compat policy
-    -- on, ours would nullify theirs and widen access across workspaces. Theirs
-    -- wins: drop ours the moment one appears.
+    -- ever ships its own windmill_user policies on a table we hold a compat
+    -- policy on, ours would nullify theirs and widen access across workspaces.
+    -- Theirs wins -- but ONLY once they cover every command. Policies apply
+    -- per command (SELECT/INSERT/UPDATE/DELETE), and a command with no
+    -- applicable policy is deny-all: dropping our FOR ALL compat policy while
+    -- upstream ships only e.g. FOR SELECT would silently kill the engine's
+    -- writes. So require, for each of r/a/w/d, a non-compat PERMISSIVE policy
+    -- applying to windmill_user before dropping ours; partial coverage keeps
+    -- the compat policy and is reported for manual review.
+    FOR target IN
+        SELECT c.oid::regclass::text AS relation
+        FROM pg_class c
+        JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE n.nspname = 'windmill'
+          AND c.relkind IN ('r', 'p')
+          AND EXISTS (
+              SELECT 1 FROM pg_policy p
+              WHERE p.polrelid = c.oid AND p.polname = 'kbve_windmill_user_all'
+          )
+          AND NOT EXISTS (
+              SELECT 1
+              FROM unnest(ARRAY['r', 'a', 'w', 'd']) AS cmd(cmd)
+              WHERE NOT EXISTS (
+                  SELECT 1 FROM pg_policy p
+                  WHERE p.polrelid = c.oid
+                    AND p.polname <> 'kbve_windmill_user_all'
+                    AND p.polpermissive
+                    AND p.polcmd::text IN ('*', cmd.cmd)
+                    AND (
+                        0 = ANY (p.polroles)
+                        OR EXISTS (
+                            SELECT 1 FROM unnest(p.polroles) AS pr(roleoid)
+                            WHERE pg_has_role('windmill_user', pr.roleoid, 'MEMBER')
+                        )
+                    )
+              )
+          )
+        ORDER BY 1
+    LOOP
+        EXECUTE format('DROP POLICY kbve_windmill_user_all ON %s', target.relation);
+        RAISE NOTICE
+            'windmill.enforce_policy_rls: dropped compat policy on % (Windmill now ships full-command windmill_user coverage)',
+            target.relation;
+    END LOOP;
+
+    -- Partial upstream coverage: our permissive compat policy still OR-widens
+    -- the commands upstream DOES cover, but dropping it would deny the rest.
+    -- Availability wins; surface the overlap for manual review.
     FOR target IN
         SELECT c.oid::regclass::text AS relation
         FROM pg_class c
@@ -219,9 +269,8 @@ BEGIN
           )
         ORDER BY 1
     LOOP
-        EXECUTE format('DROP POLICY kbve_windmill_user_all ON %s', target.relation);
-        RAISE NOTICE
-            'windmill.enforce_policy_rls: dropped compat policy on % (Windmill now ships its own windmill_user policy)',
+        RAISE WARNING
+            'windmill.enforce_policy_rls: % has upstream windmill_user policies covering only some commands; compat policy kept to protect the rest -- review by hand',
             target.relation;
     END LOOP;
 
