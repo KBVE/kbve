@@ -76,7 +76,7 @@ spec:
                     restartPolicy: OnFailure
                     containers:
                         - name: reaper
-                          image: ghcr.io/kbve/kubectl:0.1.9
+                          image: ghcr.io/kbve/kubectl:0.1.10
                           command:
                               - /bin/sh
                               - -c
