@@ -45,7 +45,8 @@ public final class KbveWgpuView: ExpoView {
         let bundle = Bundle(for: KbveWgpuView.self)
         if let url = bundle.url(forResource: "KbveWgpuAssets", withExtension: "bundle"),
             let assets = Bundle(url: url) {
-            return assets.resourcePath ?? assets.bundlePath
+            let root = assets.resourcePath ?? assets.bundlePath
+            return (root as NSString).appendingPathComponent("assets")
         }
         return bundle.resourcePath ?? "assets"
     }
