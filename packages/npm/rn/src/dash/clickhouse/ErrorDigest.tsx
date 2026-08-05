@@ -2,7 +2,7 @@ import { Pressable } from 'react-native';
 import { Stack } from '../_ui';
 import { useStream, useStreamLifecycle } from '../useStream';
 import type { StreamStore } from '../types';
-import type { LogItem } from '../adapters/clickhouse';
+import type { LogItem } from './logItem';
 import { errorGroupsLens, type ErrorGroupItem } from './errorGroupsStream';
 import { SectionDivider } from '../shared';
 
