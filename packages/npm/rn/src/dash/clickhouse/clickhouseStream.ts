@@ -5,8 +5,8 @@ import type {
 	StreamParams,
 	StreamStore,
 } from '../types';
-import { normalize } from '../adapters/clickhouse';
-import type { LogItem, RawLogRow } from '../adapters/clickhouse';
+import { normalize } from './logItem';
+import type { LogItem, RawLogRow } from './logItem';
 
 export interface ClickHouseStreamOptions {
 	getToken: () => Promise<string | null>;

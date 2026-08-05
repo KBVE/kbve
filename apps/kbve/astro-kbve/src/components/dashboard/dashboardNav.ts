@@ -77,6 +77,11 @@ export const DASHBOARD_NAV: DashboardNavEntry[] = [
 				icon: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z',
 			},
 			{
+				label: 'Storage',
+				href: '/dashboard/storage/',
+				icon: 'M12 2C7 2 3 3.34 3 5v4c0 1.66 4 3 9 3s9-1.34 9-3V5c0-1.66-4-3-9-3zM3 9v6c0 1.66 4 3 9 3s9-1.34 9-3V9M3 15v4c0 1.66 4 3 9 3s9-1.34 9-3v-4',
+			},
+			{
 				label: 'Virtual Machines',
 				href: '/dashboard/vm/',
 				icon: 'M2 2h20v8H2zM2 14h20v8H2zM6 6h.01M6 18h.01',

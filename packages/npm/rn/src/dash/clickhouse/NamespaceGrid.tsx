@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet } from 'react-native';
 import { Surface, Stack, Text, Badge, tokens } from '../_ui';
 import type { StreamStore } from '../types';
-import type { LogItem } from '../adapters/clickhouse';
+import type { LogItem } from './logItem';
 import { buildNamespaceRollup, CLUSTER_NS_LABEL } from './chRollup';
 
 export function makeNamespaceGrid(store: StreamStore<LogItem>) {
@@ -27,7 +27,10 @@ export function makeNamespaceGrid(store: StreamStore<LogItem>) {
 								{r.namespace}
 							</Text>
 							{r.errors ? (
-								<Badge label={`${r.errors} err`} tone="danger" />
+								<Badge
+									label={`${r.errors} err`}
+									tone="danger"
+								/>
 							) : null}
 							{r.warns ? (
 								<Badge
@@ -40,7 +43,8 @@ export function makeNamespaceGrid(store: StreamStore<LogItem>) {
 							</Text>
 						</Surface>
 					);
-					if (!selectable) return <Stack key={r.namespace}>{body}</Stack>;
+					if (!selectable)
+						return <Stack key={r.namespace}>{body}</Stack>;
 					return (
 						<Pressable
 							key={r.namespace}

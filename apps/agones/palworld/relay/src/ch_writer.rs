@@ -5,7 +5,7 @@ use jedi::state::sidecar::ClickHouseConfig;
 use serde_json::json;
 use tokio::sync::broadcast::Receiver;
 use tokio::sync::broadcast::error::RecvError;
-use tracing::{debug, info, warn};
+use tracing::{debug, error, info, warn};
 use uuid::Uuid;
 
 use crate::config::Config;
@@ -14,11 +14,14 @@ use crate::event::{GameEvent, GameEventKind};
 const SNAPSHOTS_TABLE: &str = "gameops.palworld_snapshots_raw";
 const PLAYER_EVENTS_TABLE: &str = "gameops.palworld_player_events_raw";
 
+const LOUD_FAILURE_THRESHOLD: u32 = 3;
+
 struct Producer {
     ch: ClickHouseConfig,
     cfg: Config,
     rotation_id: String,
     started: Instant,
+    consecutive_failures: u32,
 }
 
 impl Producer {
@@ -28,7 +31,7 @@ impl Producer {
             .to_string()
     }
 
-    async fn snapshot(&self, ev: &GameEvent) {
+    async fn snapshot(&mut self, ev: &GameEvent) {
         let row = json!({
             "ts": Self::now_ts(),
             "server_id": self.cfg.server_id,
@@ -42,7 +45,7 @@ impl Producer {
         self.insert(SNAPSHOTS_TABLE, row).await;
     }
 
-    async fn player_event(&self, ev: &GameEvent, event: &str) {
+    async fn player_event(&mut self, ev: &GameEvent, event: &str) {
         let row = json!({
             "ts": Self::now_ts(),
             "server_id": self.cfg.server_id,
@@ -53,14 +56,32 @@ impl Producer {
         self.insert(PLAYER_EVENTS_TABLE, row).await;
     }
 
-    async fn insert(&self, table: &str, row: serde_json::Value) {
+    async fn insert(&mut self, table: &str, row: serde_json::Value) {
         match self
             .ch
             .execute_insert(table, std::slice::from_ref(&row))
             .await
         {
-            Ok(()) => debug!(table, "inserted row"),
-            Err(e) => warn!(table, error = %e, "clickhouse insert failed"),
+            Ok(()) => {
+                if self.consecutive_failures >= LOUD_FAILURE_THRESHOLD {
+                    info!(table, "clickhouse inserts recovered");
+                }
+                self.consecutive_failures = 0;
+                debug!(table, "inserted row");
+            }
+            Err(e) => {
+                self.consecutive_failures = self.consecutive_failures.saturating_add(1);
+                if self.consecutive_failures >= LOUD_FAILURE_THRESHOLD {
+                    error!(
+                        table,
+                        error = %e,
+                        consecutive = self.consecutive_failures,
+                        "clickhouse inserts failing — telemetry is being dropped (missing table?)"
+                    );
+                } else {
+                    warn!(table, error = %e, "clickhouse insert failed");
+                }
+            }
         }
     }
 
@@ -102,6 +123,7 @@ pub async fn run(cfg: Config, mut rx: Receiver<GameEvent>) -> Result<()> {
         ch,
         rotation_id: Uuid::new_v4().to_string(),
         started: Instant::now(),
+        consecutive_failures: 0,
         cfg,
     };
 
