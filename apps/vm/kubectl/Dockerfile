@@ -5,7 +5,7 @@
 #   [A] cargo-chef planner (rust:alpine)
 #   [B] cargo-chef cook (cache musl deps)
 #   [C] Build kbve-kubectl static musl binary
-#   [D] Download kubectl static binary
+#   [D] Download kubectl + cmctl static binaries
 #   [Z] Alpine runtime with shell, curl, jq, bash, coreutils, openssl, kubectl, kbve-kubectl
 #
 # Features:
@@ -13,6 +13,7 @@
 #   - bash, GNU coreutils (date -d), openssl for Job scripts
 #   - curl, jq via apk
 #   - kubectl static binary
+#   - cmctl static binary (cert-manager CLI; forced Certificate renewal)
 #   - kbve-kubectl: musl-static, no glibc dependency
 #   - Non-root user (uid 10001 / appuser)
 #
@@ -83,10 +84,21 @@ FROM --platform=linux/amd64 alpine:3.21 AS tools-dl
 RUN apk add --no-cache curl ca-certificates
 
 ARG KUBECTL_VERSION=1.33.2
+ARG CMCTL_VERSION=2.5.0
 
 RUN curl -fSL "https://dl.k8s.io/release/v${KUBECTL_VERSION}/bin/linux/amd64/kubectl" \
         -o /usr/local/bin/kubectl && \
     chmod +x /usr/local/bin/kubectl
+
+# cmctl — cert-manager CLI. Static Go binary, so it runs on musl unmodified.
+# Needed for `cmctl renew`, which is the only supported way to force a
+# Certificate re-issue: cert-manager renews on a timer and does not notice
+# when its issuing CA is rotated underneath it, so a cert signed by the old
+# CA key stays Ready until its scheduled renewal.
+RUN curl -fSL "https://github.com/cert-manager/cmctl/releases/download/v${CMCTL_VERSION}/cmctl_linux_amd64" \
+        -o /usr/local/bin/cmctl && \
+    chmod +x /usr/local/bin/cmctl && \
+    cmctl --help >/dev/null
 
 # ============================================================================
 # [STAGE Z] - Alpine runtime
@@ -100,6 +112,7 @@ RUN apk add --no-cache ca-certificates curl jq bash coreutils openssl && \
     chown appuser:appgroup /app /scripts
 
 COPY --from=tools-dl /usr/local/bin/kubectl /usr/local/bin/kubectl
+COPY --from=tools-dl /usr/local/bin/cmctl /usr/local/bin/cmctl
 COPY --from=builder /app/target/release/kbve-kubectl /usr/local/bin/kbve-kubectl
 
 WORKDIR /app
