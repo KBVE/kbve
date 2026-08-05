@@ -241,6 +241,24 @@ simple_proxy!(
     }
 );
 
+simple_proxy!(
+    LONGHORN,
+    LONGHORN_SPEC,
+    init_longhorn_proxy,
+    longhorn_proxy_handler,
+    ProxySpec {
+        name: "Longhorn",
+        upstream_env: "LONGHORN_UPSTREAM_URL",
+        upstream_default: Some("http://longhorn-frontend.longhorn-system.svc.cluster.local:80"),
+        upstream_suffix: Some("/v1"),
+        token_env: None,
+        ca_cert_env: None,
+        connect_timeout: Duration::from_secs(5),
+        timeout: Duration::from_secs(15),
+        gate: GateMode::View,
+    }
+);
+
 static FACTORIO: OnceLock<ServiceProxy> = OnceLock::new();
 
 pub fn init_factorio_proxy() -> bool {

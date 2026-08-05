@@ -20,6 +20,7 @@ const DASHBOARD_PROXIES = [
 	{ path: '/dashboard/chuckrpg/proxy/', label: 'ChuckRPG' },
 	{ path: '/dashboard/clickhouse/proxy/', label: 'ClickHouse' },
 	{ path: '/dashboard/forgejo/proxy/', label: 'Forgejo' },
+	{ path: '/dashboard/storage/proxy/', label: 'Longhorn' },
 ] as const;
 
 describe('Dashboard proxy auth gate', () => {
