@@ -165,7 +165,7 @@ spec:
                               command:
                                   - /usr/local/bin/agones-shim-prestop
                 - name: palworld-relay
-                  image: ghcr.io/kbve/agones-palworld-relay:0.0.13
+                  image: ghcr.io/kbve/agones-palworld-relay:0.0.14
                   imagePullPolicy: IfNotPresent
                   ports:
                       - containerPort: 8300
