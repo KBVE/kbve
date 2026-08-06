@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: herbmail-game
+    labels:
+        app.kubernetes.io/part-of: herbmail
+        kbve.com/stack: agones

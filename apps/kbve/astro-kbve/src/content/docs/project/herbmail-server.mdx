@@ -1,0 +1,136 @@
+---
+title: Herbmail Server — Authoritative Axum + Bevy Dungeon Host
+description: Herbmail authoritative game server pairs an axum WebSocket router with the simgrid headless Bevy sim on tokio, on a chiseled Ubuntu Agones runtime.
+sem: 1
+sidebar:
+    label: Herbmail Server
+    order: 59
+tags:
+    - docker
+    - rust
+    - game-server
+    - herbmail
+key: herbmail_server
+pipeline: docker
+app_name: herbmail-server
+version: "0.0.1"
+source_path: apps/agones/herbmail/server
+version_toml: apps/agones/herbmail/server/version.toml
+version_target: apps/agones/herbmail/server/Cargo.toml
+runner: arc-runner-set
+image: kbve/herbmail-server
+deployment_yaml: apps/kube/agones/herbmail/manifests/fleet.yaml
+has_test: false
+author: h0lybyte
+license: MIT
+status: alpha
+kube:
+    stack: agones
+    environment: alpha
+    tier: server
+    owner: h0lybyte
+    criticality: low
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the Herbmail server?
+          answer: herbmail-server is the authoritative shared-world host for the Herbmail dungeon crawler. It pairs an axum WebSocket router with the simgrid headless Bevy simulation on a tokio multi-thread runtime, keeping movement validation and snapshot framing server-owned.
+        - question: Can players join without an account?
+          answer: Yes. When guests are enabled the server mints its own guest identity for a connection that presents no token, so the client can never choose its own guest name. Signed-in players are verified against Supabase via the jedi JWKS verifier, which accepts both HS256 and ES256.
+        - question: Is the server authoritative over collision yet?
+          answer: Not yet. The dungeon is a pure function of a seed and is never transmitted, so the server must derive byte-identical geometry before it can arbitrate walls. Until that port lands the server logs authoritative_collision=false and runs an open map.
+bento:
+    badge: game-server · rust · herbmail
+    title: Authoritative dungeon host
+    accent: Herbmail Server
+    lede: >-
+        The authoritative shared-world host for Herbmail — an axum WebSocket
+        router paired with the simgrid headless Bevy simulation on tokio, with
+        guest and Supabase-account admission.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/agones/herbmail/server
+          primary: true
+          external: true
+        - label: Deployment
+          href: "#internals"
+    aside:
+        icon: server
+        title: Seed-derived world
+        body: >-
+            The dungeon is a pure function of <strong>DUNGEON_SEED</strong> and
+            is never transmitted. Server and client each derive it, pinned
+            against shared parity vectors.
+        points:
+            - <strong>Auth</strong> — Supabase JWKS (HS256 + ES256) or server-minted guests.
+            - <strong>Lifecycle</strong> — Agones Ready / Health / Shutdown.
+    stats:
+        - { label: App, value: herbmail-server, icon: server }
+        - { label: Stack, value: axum + Bevy, icon: rust }
+        - { label: Protocol, value: postcard over WS, icon: network }
+        - { label: Listen, value: "0.0.0.0:7979", icon: activity }
+    features:
+        - title: Terminate /ws + admit
+          icon: key
+          body: Terminates the WebSocket upgrade and admits either a Supabase-verified account or a server-minted guest identity.
+        - title: Drive the sim tick
+          icon: activity
+          body: Runs the simgrid sim tick at 20 Hz on a tokio multi-thread runtime, fanning out authoritative 10 Hz snapshots.
+        - title: Derive, never transmit
+          icon: map
+          body: The dungeon is generated from a seed on both sides and pinned by parity vectors, so no geometry crosses the wire.
+        - title: Agones lifecycle
+          icon: server
+          body: Runs the Agones SDK lifecycle (Ready / Health / Shutdown); degrades gracefully outside Agones for local dev.
+    related:
+        - title: Herbmail
+          href: /project/herbmail/
+          copy: The Herbmail site and mail stack this game lives under.
+          icon: mail
+        - title: CryptoThrone Server
+          href: /project/cryptothrone-server/
+          copy: Sibling simgrid host, grid-authoritative rather than continuous.
+          icon: server
+    related_heading: Related
+---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="Responsibilities" heading="Overview & layout">
+
+`herbmail-server` is the authoritative shared-world host for the **Herbmail** dungeon crawler. It pairs an `axum` WebSocket router with the `simgrid` headless bevy simulation, so movement validation and snapshot framing stay server-owned.
+
+### Responsibilities
+
+- Terminate the `/ws` WebSocket upgrade and admit either a Supabase-verified account or a server-minted guest.
+- Drive the `simgrid` sim tick (20 Hz) on a tokio multi-thread runtime, fanning out 10 Hz snapshots.
+- Derive the dungeon from `DUNGEON_SEED` rather than transmitting it, byte-identically with the client.
+- Run the Agones SDK lifecycle (`Ready` / `Health` / `Shutdown`); degrades gracefully outside Agones for local dev.
+
+</BentoProse>
+
+<BentoProse id="internals" eyebrow="Deployment" heading="Fleet & routing">
+
+An Agones `Fleet` in the `herbmail-game` namespace runs the GameServer pods behind a ClusterIP `Service` with `sessionAffinity: ClientIP`, reached through the Cilium gateway on `game.herbmail.com`. The autoscaler is pinned to a single replica: a Service round-robins, and multiple Ready pods would split players across separate worlds.
+
+There is no UDP lane. The Herbmail client is browser-only and cannot open a raw UDP socket, so only the TCP WebSocket port is exposed.
+
+### Guest identities
+
+A connection presenting an empty token is admitted as `guest-NNNN`, minted by the server. The client cannot choose its own guest name — the name a player sees comes back in `Snapshot.players`, keyed by the slot in `Welcome`. Account names carrying the `guest-` prefix are rejected outright, so a guest can never present as a signed-in player.
+
+### Not yet authoritative
+
+The server does not yet reproduce the client's seed-derived walls; it runs an open map and logs `authoritative_collision=false`. Collision arbitration waits on the geometry port and its parity harness.
+
+</BentoProse>
+
+</BentoDoc>

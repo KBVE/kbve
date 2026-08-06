@@ -73,6 +73,7 @@ resources:
     - agones/mc/application.yaml
     - agones/cryptothrone/application.yaml
     - agones/arpg/application.yaml
+    # - agones/herbmail/application.yaml  # DISABLED: enable once ghcr.io/kbve/herbmail-server:<version> is published and game.herbmail.com resolves
     - agones/factorio/application.yaml
     - agones/palworld/application.yaml
     - chuckrpg/application.yaml

@@ -1,0 +1,94 @@
+{
+	"name": "herbmail-server",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/agones/herbmail/server/src",
+	"tags": ["rust", "game-server", "agones", "herbmail"],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo build -p herbmail-server"
+			},
+			"outputs": ["{workspaceRoot}/dist/target/debug/herbmail-server"]
+		},
+		"build-release": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo build --release -p herbmail-server"
+			},
+			"outputs": ["{workspaceRoot}/dist/target/release/herbmail-server"]
+		},
+		"run": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo run -p herbmail-server"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo test -p herbmail-server"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo clippy -p herbmail-server --all-targets -- -D warnings"
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"dependsOn": [
+				{
+					"target": "container",
+					"projects": ["herbmail-server"],
+					"params": "forward"
+				}
+			],
+			"cache": false,
+			"options": {
+				"commands": [
+					"docker rm -f herbmail-server-e2e 2>/dev/null || true",
+					"docker run -d --name herbmail-server-e2e -p 7979:7979 -e HM_SERVER_ADDR=0.0.0.0:7979 kbve/herbmail-server:latest",
+					"echo 'Waiting for herbmail-server...' && for i in $(seq 1 60); do if curl -fsS http://127.0.0.1:7979/healthz >/dev/null 2>&1; then echo 'ready after '\"$i\"'s'; break; fi; if [ $i -eq 60 ]; then echo 'did not start in 60s'; docker logs herbmail-server-e2e 2>&1 | tail -80; docker rm -f herbmail-server-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+					"HM_HOST=127.0.0.1 HM_PORT=7979 npx vitest run; EC=$?; echo '--- container logs ---'; docker logs herbmail-server-e2e 2>&1 | tail -80; docker rm -f herbmail-server-e2e 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false,
+				"cwd": "apps/agones/herbmail/server"
+			},
+			"configurations": {
+				"ci": {}
+			}
+		},
+		"container": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/agones/herbmail/server/Dockerfile",
+				"load": true,
+				"tags": ["kbve/herbmail-server:latest"]
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/herbmail-server:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/herbmail-server:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/herbmail-server:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/herbmail-server:buildcache,mode=max"
+					]
+				}
+			}
+		}
+	}
+}
