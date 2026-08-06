@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-08-05T04:12:32Z",
+	"generated_at": "2026-08-06T04:15:40Z",
 	"summary": {
 		"critical": 4,
 		"high": 47,
@@ -325,20 +325,6 @@
 					"severity": "high",
 					"package": "undici",
 					"url": "https://github.com/advisories/GHSA-hm92-r4w5-c3mj"
-				},
-				{
-					"id": "1121249",
-					"title": "undici vulnerable to HTTP response queue poisoning via keep-alive socket reuse",
-					"severity": "low",
-					"package": "undici",
-					"url": "https://github.com/advisories/GHSA-35p6-xmwp-9g52"
-				},
-				{
-					"id": "1121250",
-					"title": "undici vulnerable to HTTP response queue poisoning via keep-alive socket reuse",
-					"severity": "low",
-					"package": "undici",
-					"url": "https://github.com/advisories/GHSA-35p6-xmwp-9g52"
 				},
 				{
 					"id": "1121254",
@@ -712,11 +698,25 @@
 					"url": "https://github.com/advisories/GHSA-rgw5-rvv9-x895"
 				},
 				{
-					"id": "1132817",
+					"id": "1136581",
 					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
 					"severity": "high",
 					"package": "fast-uri",
 					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
+				},
+				{
+					"id": "1137242",
+					"title": "undici vulnerable to HTTP response queue poisoning via keep-alive socket reuse",
+					"severity": "low",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-35p6-xmwp-9g52"
+				},
+				{
+					"id": "1137243",
+					"title": "undici vulnerable to HTTP response queue poisoning via keep-alive socket reuse",
+					"severity": "low",
+					"package": "undici",
+					"url": "https://github.com/advisories/GHSA-35p6-xmwp-9g52"
 				}
 			]
 		},
