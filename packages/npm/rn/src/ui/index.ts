@@ -20,10 +20,12 @@ export * from './primitives/FormField';
 export * from './primitives/Avatar';
 export * from './primitives/PeekMascot';
 export * from './primitives/BrandIcons';
+export * from './primitives/Icon';
 export * from './primitives/Stars';
 export * from './primitives/Chip';
 
 export * from './cards/AppCard';
+export * from './cards/TileCard';
 export * from './cards/CardList';
 
 export * from './menus/MenuItem';

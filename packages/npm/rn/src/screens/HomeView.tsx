@@ -5,8 +5,11 @@ import { Gradient } from '../ui/primitives/Gradient';
 import { Text } from '../ui/primitives/Text';
 import { Badge } from '../ui/primitives/Badge';
 import { Button } from '../ui/primitives/Button';
+import { Icon } from '../ui/primitives/Icon';
 import { PressableSurface } from '../ui/primitives/PressableSurface';
+import { TileCard } from '../ui/cards/TileCard';
 import { tokens } from '../ui/theme';
+import type { IconName } from '../icons';
 import { useAuth } from '../auth/useAuth';
 import { useStaff } from '../auth/useStaff';
 import { createPluginRegistry } from '../plugin/registry';
@@ -22,47 +25,116 @@ import { MarketsScreen } from './MarketsScreen';
 
 const open = (url: string) => openExternal(url);
 
-const ACTIONS = [
+type PanelId = 'clickhouse' | 'mc' | 's3' | 'markets';
+
+interface Panel {
+	id: PanelId;
+	icon: IconName;
+	title: string;
+	blurb: string;
+	accent: string;
+	heading: string;
+	staff?: boolean;
+	Screen: () => React.JSX.Element;
+}
+
+const PANELS: Panel[] = [
+	{
+		id: 'clickhouse',
+		icon: 'database',
+		title: 'Logs',
+		blurb: 'ClickHouse cluster analytics',
+		accent: '#f59e0b',
+		heading: 'ClickHouse · Logs',
+		staff: true,
+		Screen: ClickHouseScreen,
+	},
+	{
+		id: 'mc',
+		icon: 'pickaxe',
+		title: 'Minecraft',
+		blurb: 'Server GameOps controls',
+		accent: '#22c55e',
+		heading: 'Minecraft · GameOps',
+		staff: true,
+		Screen: McScreen,
+	},
+	{
+		id: 's3',
+		icon: 'archive',
+		title: 'Backups',
+		blurb: 'Kilobase S3 snapshots',
+		accent: '#6366f1',
+		heading: 'Kilobase · S3 Backups',
+		staff: true,
+		Screen: S3BackupScreen,
+	},
+	{
+		id: 'markets',
+		icon: 'cart',
+		title: 'Store',
+		blurb: 'Credits and marketplace',
+		accent: '#a855f7',
+		heading: 'Store · Marketplace',
+		Screen: MarketsScreen,
+	},
+];
+
+const ACTIONS: { id: string; icon: IconName; label: string; url: string }[] = [
 	{
 		id: 'dashboard',
+		icon: 'dashboard',
 		label: 'Dashboard',
-		hint: 'Your services',
 		url: 'https://kbve.com/dashboard/',
 	},
 	{
 		id: 'profile',
+		icon: 'user',
 		label: 'Profile',
-		hint: 'Public handle',
 		url: 'https://kbve.com/profile',
 	},
 	{
 		id: 'discord',
+		icon: 'users',
 		label: 'Community',
-		hint: 'Discord',
 		url: 'https://kbve.com/discord/',
 	},
 ];
 
-const FEATURED = [
+const FEATURED: {
+	id: string;
+	icon: IconName;
+	title: string;
+	tag: string;
+	desc: string;
+	accent: string;
+	url: string;
+}[] = [
 	{
 		id: 'cryptothrone',
+		icon: 'compass',
 		title: 'Cryptothrone',
 		tag: 'LIVE',
 		desc: '2D MMO sandbox realm.',
+		accent: '#14b8a6',
 		url: 'https://kbve.com/cryptothrone/',
 	},
 	{
 		id: 'rareicon',
+		icon: 'sparkles',
 		title: 'Rareicon',
 		tag: 'BETA',
 		desc: 'Sci-fi action-RPG bullet-hell roguelite.',
+		accent: '#8b5cf6',
 		url: 'https://kbve.com/rareicon/',
 	},
 	{
 		id: 'chuck',
+		icon: 'gamepad',
 		title: 'Chuck',
 		tag: 'UE5',
 		desc: 'Unreal Engine client.',
+		accent: '#f97316',
 		url: 'https://kbve.com/',
 	},
 ];
@@ -78,10 +150,7 @@ export function HomeView() {
 	const registry = useMemo(() => createPluginRegistry(), []);
 	const api = useMemo(() => defaultHostApi(), []);
 	const [launched, setLaunched] = useState(false);
-	const [showClickHouse, setShowClickHouse] = useState(false);
-	const [showMc, setShowMc] = useState(false);
-	const [showS3Backup, setShowS3Backup] = useState(false);
-	const [showMarkets, setShowMarkets] = useState(false);
+	const [panelId, setPanelId] = useState<PanelId | null>(null);
 
 	useEffect(() => {
 		const manifest = native ? createWgpuPlugin() : createIsometricPlugin();
@@ -96,118 +165,36 @@ export function HomeView() {
 	if (launched) {
 		return (
 			<View style={styles.root}>
-				<View
-					style={[
-						styles.canvasBar,
-						{ paddingTop: insets.top + tokens.space.sm },
-					]}>
-					<Text variant="label">Isometric · Native GPU</Text>
-					<Button
-						title="Close"
-						variant="ghost"
-						onPress={() => setLaunched(false)}
-					/>
-				</View>
+				<CanvasBar
+					title="Isometric · Native GPU"
+					top={insets.top}
+					onClose={() => setLaunched(false)}
+				/>
 				<PluginHost registry={registry} slot="canvas" api={api} />
 			</View>
 		);
 	}
 
-	if (showClickHouse) {
+	const panel = panelId ? PANELS.find((p) => p.id === panelId) : undefined;
+	if (panel) {
+		const { Screen } = panel;
 		return (
 			<View style={styles.root}>
-				<View
-					style={[
-						styles.canvasBar,
-						{ paddingTop: insets.top + tokens.space.sm },
-					]}>
-					<Text variant="label">ClickHouse · Dashboard</Text>
-					<Button
-						title="Close"
-						variant="ghost"
-						onPress={() => setShowClickHouse(false)}
-					/>
-				</View>
+				<CanvasBar
+					title={panel.heading}
+					top={insets.top}
+					onClose={() => setPanelId(null)}
+				/>
 				<ScrollView
 					showsVerticalScrollIndicator={false}
 					contentContainerStyle={styles.body}>
-					<ClickHouseScreen />
+					<Screen />
 				</ScrollView>
 			</View>
 		);
 	}
 
-	if (showMc) {
-		return (
-			<View style={styles.root}>
-				<View
-					style={[
-						styles.canvasBar,
-						{ paddingTop: insets.top + tokens.space.sm },
-					]}>
-					<Text variant="label">Minecraft · GameOps</Text>
-					<Button
-						title="Close"
-						variant="ghost"
-						onPress={() => setShowMc(false)}
-					/>
-				</View>
-				<ScrollView
-					showsVerticalScrollIndicator={false}
-					contentContainerStyle={styles.body}>
-					<McScreen />
-				</ScrollView>
-			</View>
-		);
-	}
-
-	if (showMarkets) {
-		return (
-			<View style={styles.root}>
-				<View
-					style={[
-						styles.canvasBar,
-						{ paddingTop: insets.top + tokens.space.sm },
-					]}>
-					<Text variant="label">Store · Marketplace</Text>
-					<Button
-						title="Close"
-						variant="ghost"
-						onPress={() => setShowMarkets(false)}
-					/>
-				</View>
-				<ScrollView
-					showsVerticalScrollIndicator={false}
-					contentContainerStyle={styles.body}>
-					<MarketsScreen />
-				</ScrollView>
-			</View>
-		);
-	}
-
-	if (showS3Backup) {
-		return (
-			<View style={styles.root}>
-				<View
-					style={[
-						styles.canvasBar,
-						{ paddingTop: insets.top + tokens.space.sm },
-					]}>
-					<Text variant="label">Kilobase · S3 Backups</Text>
-					<Button
-						title="Close"
-						variant="ghost"
-						onPress={() => setShowS3Backup(false)}
-					/>
-				</View>
-				<ScrollView
-					showsVerticalScrollIndicator={false}
-					contentContainerStyle={styles.body}>
-					<S3BackupScreen />
-				</ScrollView>
-			</View>
-		);
-	}
+	const panels = PANELS.filter((p) => !p.staff || staff.isStaff);
 
 	return (
 		<View style={styles.root}>
@@ -242,56 +229,46 @@ export function HomeView() {
 
 				<View style={styles.body}>
 					<Button
-						title="▶  Launch Isometric (Native GPU)"
+						title="Launch Isometric"
+						icon="play"
 						variant="primary"
 						onPress={() => setLaunched(true)}
 					/>
 
-					{staff.isStaff ? (
-						<Button
-							title="📊  ClickHouse Dashboard"
-							variant="secondary"
-							onPress={() => setShowClickHouse(true)}
-						/>
-					) : null}
+					<Text variant="subtitle">Panels</Text>
+					<View style={styles.grid}>
+						{panels.map((p) => (
+							<TileCard
+								key={p.id}
+								icon={p.icon}
+								title={p.title}
+								blurb={p.blurb}
+								accent={p.accent}
+								style={styles.gridItem}
+								onPress={() => setPanelId(p.id)}
+							/>
+						))}
+					</View>
 
-					{staff.isStaff ? (
-						<Button
-							title="⛏  Minecraft Dashboard"
-							variant="secondary"
-							onPress={() => setShowMc(true)}
-						/>
-					) : null}
-
-					{staff.isStaff ? (
-						<Button
-							title="🗄  S3 Backups"
-							variant="secondary"
-							onPress={() => setShowS3Backup(true)}
-						/>
-					) : null}
-
-					<Button
-						title="🛒  Store & Marketplace"
-						variant="secondary"
-						onPress={() => setShowMarkets(true)}
-					/>
-
-					<Text variant="subtitle">Quick actions</Text>
+					<Text variant="subtitle" style={styles.sectionTitle}>
+						Quick actions
+					</Text>
 					<View style={styles.actions}>
 						{ACTIONS.map((action) => (
 							<PressableSurface
 								key={action.id}
 								style={styles.action}
-								padded={false}
-								onPress={() => open(action.url)}>
-								<View style={styles.actionAccent} />
-								<View style={styles.actionBody}>
-									<Text variant="label">{action.label}</Text>
-									<Text variant="caption" tone="muted">
-										{action.hint}
-									</Text>
-								</View>
+								onPress={() => open(action.url)}
+								accessibilityRole="link"
+								accessibilityLabel={action.label}>
+								<Icon
+									name={action.icon}
+									size={22}
+									color={tokens.color.primary}
+								/>
+								<Text variant="caption" numberOfLines={1}>
+									{action.label}
+								</Text>
 							</PressableSurface>
 						))}
 					</View>
@@ -301,22 +278,42 @@ export function HomeView() {
 					</Text>
 					<View style={styles.featured}>
 						{FEATURED.map((item) => (
-							<PressableSurface
+							<TileCard
 								key={item.id}
+								wide
+								icon={item.icon}
+								title={item.title}
+								blurb={item.desc}
+								accent={item.accent}
+								badge={item.tag}
 								onPress={() => open(item.url)}
-								style={styles.card}>
-								<View style={styles.cardHeader}>
-									<Text variant="subtitle">{item.title}</Text>
-									<Badge label={item.tag} tone="primary" />
-								</View>
-								<Text variant="body" tone="muted">
-									{item.desc}
-								</Text>
-							</PressableSurface>
+							/>
 						))}
 					</View>
 				</View>
 			</ScrollView>
+		</View>
+	);
+}
+
+function CanvasBar({
+	title,
+	top,
+	onClose,
+}: {
+	title: string;
+	top: number;
+	onClose: () => void;
+}) {
+	return (
+		<View style={[styles.canvasBar, { paddingTop: top + tokens.space.sm }]}>
+			<Text variant="label">{title}</Text>
+			<Button
+				title="Close"
+				icon="close"
+				variant="ghost"
+				onPress={onClose}
+			/>
 		</View>
 	);
 }
@@ -378,19 +375,19 @@ const styles = StyleSheet.create({
 	userMeta: { gap: 4 },
 	userName: { color: '#1b1814', fontWeight: '700' },
 	body: { padding: tokens.space.xl, gap: tokens.space.md },
+	grid: {
+		flexDirection: 'row',
+		flexWrap: 'wrap',
+		gap: tokens.space.sm,
+	},
+	gridItem: { flexGrow: 1, flexBasis: '47%' },
 	actions: { flexDirection: 'row', gap: tokens.space.sm },
 	action: {
 		flex: 1,
-		overflow: 'hidden',
-	},
-	actionAccent: { height: 3, backgroundColor: tokens.color.primary },
-	actionBody: { padding: tokens.space.md, gap: 2 },
-	sectionTitle: { marginTop: tokens.space.lg },
-	featured: { gap: tokens.space.md },
-	card: { gap: tokens.space.sm },
-	cardHeader: {
-		flexDirection: 'row',
 		alignItems: 'center',
-		justifyContent: 'space-between',
+		gap: tokens.space.xs,
+		paddingVertical: tokens.space.md,
 	},
+	sectionTitle: { marginTop: tokens.space.lg },
+	featured: { gap: tokens.space.sm },
 });
