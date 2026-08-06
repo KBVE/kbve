@@ -12,10 +12,28 @@ const packagesDir = resolve(root, '../../../packages/npm');
 export default defineConfig({
 	plugins: [react(), tailwindcss(), kbveRnTauri({ packagesDir })],
 	resolve: {
-		alias: {
-			'@': resolve(root, 'src'),
-			'react-i18next': resolve(root, 'src/i18n/react-i18next.ts'),
-		},
+		alias: [
+			{ find: /^react-native$/, replacement: 'react-native-web' },
+			// Dep-scan safety net: react-native internals are Flow-typed .js
+			// esbuild cannot parse; collapse any subpath onto react-native-web.
+			{ find: /^react-native\/.*/, replacement: 'react-native-web' },
+			{ find: '@', replacement: resolve(root, 'src') },
+			{
+				find: 'react-i18next',
+				replacement: resolve(root, 'src/i18n/react-i18next.ts'),
+			},
+		],
+	},
+	// Native RN libs resolve fine through the full rollup pipeline (prod build
+	// proves it) but esbuild's dep pre-bundler chokes on their Fabric/codegen
+	// internals — keep them out of optimizeDeps.
+	optimizeDeps: {
+		exclude: [
+			'react-native-svg',
+			'react-native-reanimated',
+			'react-native-safe-area-context',
+			'react-native-worklets',
+		],
 	},
 	clearScreen: false,
 	server: {
