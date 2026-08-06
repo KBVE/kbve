@@ -129,6 +129,11 @@ export const IssueQueue: React.FC<IssueQueueProps> = ({
 				['agent-working'], // Add working label
 				false, // No sandbox
 			);
+			void commands
+				.agentVoiceAnnounce(
+					`Claude agent spawned on issue ${issue.number}`,
+				)
+				.catch(() => {});
 			onAgentSpawned?.();
 			await loadIssues(); // Refresh to show updated labels
 		} catch (err) {

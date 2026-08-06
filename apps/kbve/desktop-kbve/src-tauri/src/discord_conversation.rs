@@ -567,13 +567,16 @@ async fn process_transcription_result(
         return Ok(());
     }
 
-    // Process with LLM
     let _ = app_handle.emit("discord-conversation-state", "thinking");
 
-    // Set the current user for memory association
-    onichan_manager.set_current_user(Some(user_id.to_string()));
-
-    let response = onichan_manager.process_input(text.to_string()).await?;
+    // Spoken DevOps queries short-circuit the LLM; everything else goes to Onichan
+    let response = if let Some(command) = crate::voice_commands::parse(&text) {
+        crate::voice_commands::execute(command)
+    } else {
+        // Set the current user for memory association
+        onichan_manager.set_current_user(Some(user_id.to_string()));
+        onichan_manager.process_input(text.to_string()).await?
+    };
 
     info!("LLM response for {}: {}", user_id, response);
 
