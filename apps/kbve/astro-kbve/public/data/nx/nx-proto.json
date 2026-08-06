@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-08-05T04:09:59.367Z",
+	"generated_at": "2026-08-06T04:13:32.295Z",
 	"summary": {
 		"total_protos": 47,
 		"registered": 38,
@@ -1718,7 +1718,7 @@
 		"packages/data/proto/referral/referral.proto",
 		"packages/data/proto/wallet/wallet.proto"
 	],
-	"checked_at": "2026-08-05T04:09:30Z",
+	"checked_at": "2026-08-06T04:13:00Z",
 	"drift_detected": false,
 	"drift_files": []
 }
