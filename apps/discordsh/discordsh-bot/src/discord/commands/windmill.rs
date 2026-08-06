@@ -12,6 +12,10 @@ use crate::discord::windmill_embed;
 /// self-listing command menu (`f/discordsh/help`).
 const WM_INDEX_PATH: &str = "help";
 
+/// Command leaves whose replies carry invoker-private data (wallet balances),
+/// so the interaction must be deferred ephemerally before the script runs.
+const EPHEMERAL_COMMANDS: &[&str] = &["profile"];
+
 #[poise::command(slash_command, rename = "wm")]
 pub async fn wm(
     ctx: Context<'_>,
@@ -43,7 +47,16 @@ pub async fn wm(
         channel_id: ctx.channel_id().get().to_string(),
     };
 
-    ctx.defer().await?;
+    // Discord locks a response's visibility at defer time — an ephemeral flag
+    // on the later edit is ignored. Commands known to return private data must
+    // defer ephemerally up front; the script's own `ephemeral: true` still
+    // drops the public reroll button below.
+    let ephemeral_expected = EPHEMERAL_COMMANDS.contains(&command_leaf(&wm_path).as_str());
+    if ephemeral_expected {
+        ctx.defer_ephemeral().await?;
+    } else {
+        ctx.defer().await?;
+    }
 
     match cfg.run(&wm_path, &args, &discord).await {
         Ok(value) => {
@@ -53,14 +66,11 @@ pub async fn wm(
                 args = arg_count,
                 "windmill run ok"
             );
-            // A script may return a top-level `ephemeral: true` (e.g. profile,
-            // which shows a private wallet balance) → keep it invoker-only and
-            // drop the public reroll button. Everything else stays public with
-            // a reroll so anyone in the channel can re-run.
-            let ephemeral = value
-                .get("ephemeral")
-                .and_then(Value::as_bool)
-                .unwrap_or(false);
+            let ephemeral = ephemeral_expected
+                || value
+                    .get("ephemeral")
+                    .and_then(Value::as_bool)
+                    .unwrap_or(false);
             let row = if ephemeral {
                 None
             } else {

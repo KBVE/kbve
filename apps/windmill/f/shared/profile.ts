@@ -100,7 +100,7 @@ export async function fetchProfile(
   return profile;
 }
 
-/// Credits are USD-pegged: $1 = 100,000 credits. Render as a dollar string.
+/// Credits are USD-pegged: $1 = 1,000,000 credits. Render as a dollar string.
 export function creditsToUsd(credits: number): string {
-  return `$${(credits / 100_000).toFixed(2)}`;
+  return `$${(credits / 1_000_000).toFixed(2)}`;
 }
