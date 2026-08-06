@@ -15,6 +15,8 @@ import Animated, {
 import { tokens } from '../theme';
 import { useTheme } from '../ThemeProvider';
 import { Text } from './Text';
+import { Icon } from './Icon';
+import type { IconName } from '../../icons';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -39,6 +41,8 @@ export interface ButtonProps {
 	accessibilityHint?: string;
 	/** Native hover tooltip. Web / Tauri only (sets DOM title); no-op on native. */
 	tooltip?: string;
+	/** Leading glyph from the shared registry, tinted to match the label. */
+	icon?: IconName;
 }
 
 export const Button = memo(function Button({
@@ -52,6 +56,7 @@ export const Button = memo(function Button({
 	accessibilityLabel,
 	accessibilityHint,
 	tooltip,
+	icon,
 }: ButtonProps) {
 	const t = useTheme();
 	const inactive = disabled || loading;
@@ -158,11 +163,16 @@ export const Button = memo(function Button({
 			{loading ? (
 				<ActivityIndicator color={labelColor} />
 			) : (
-				<Text
-					variant="label"
-					style={[styles.label, { color: labelColor }]}>
-					{children ?? title}
-				</Text>
+				<>
+					{icon ? (
+						<Icon name={icon} size={18} color={labelColor} />
+					) : null}
+					<Text
+						variant="label"
+						style={[styles.label, { color: labelColor }]}>
+						{children ?? title}
+					</Text>
+				</>
 			)}
 		</AnimatedPressable>
 	);
@@ -170,6 +180,8 @@ export const Button = memo(function Button({
 
 const styles = StyleSheet.create({
 	base: {
+		flexDirection: 'row',
+		gap: tokens.space.sm,
 		paddingVertical: tokens.space.md,
 		paddingHorizontal: tokens.space.lg,
 		borderRadius: tokens.radius.md,

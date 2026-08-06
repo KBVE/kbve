@@ -20,12 +20,14 @@ public:
 
 	bool IsDepleted() const { return RemainingAmount <= 0; }
 
+	bool IsWithinRange(const AActor* Actor) const;
+
 	static AchuckResourceNode* GetNearby();
-	static bool GatherNearby(AchuckCoreCharacter* Gatherer);
 
 protected:
 	virtual void BeginPlay() override;
 	virtual void EndPlay(const EEndPlayReason::Type Reason) override;
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UFUNCTION()
 	void HandleBeginOverlap(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
@@ -47,5 +49,6 @@ protected:
 
 	FName ProfessionActionRef;
 
+	UPROPERTY(Replicated)
 	int32 RemainingAmount = 0;
 };

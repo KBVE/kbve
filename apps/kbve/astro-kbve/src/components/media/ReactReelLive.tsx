@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { DroidEvents, type ReelStreamPayload } from '@kbve/droid';
-import { homeService } from '@/components/dashboard/homeService';
+import { $auth, $isStaff, DroidEvents, type ReelStreamPayload } from '@kbve/droid';
+import { initSupa } from '@/lib/supa';
 import ReactReelDiagnostics from './ReactReelDiagnostics';
 import {
 	$reelList,
@@ -58,8 +58,8 @@ export default function ReactReelLive() {
 	const error = useStore($reelError);
 	const notice = useStore($reelNotice);
 	const status = useStore($reelStatus);
-	const isStaff = useStore(homeService.$isStaff);
-	const authState = useStore(homeService.$authState);
+	const isStaff = useStore($isStaff);
+	const tone = useStore($auth).tone;
 
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const stageRef = useRef<HTMLDivElement>(null);
@@ -75,7 +75,7 @@ export default function ReactReelLive() {
 	const upNext = nowIndex >= 0 ? queue.slice(nowIndex + 1) : queue;
 
 	useEffect(() => {
-		void homeService.initAuth();
+		void initSupa().catch(() => {});
 	}, []);
 
 	useEffect(() => {
@@ -234,7 +234,7 @@ export default function ReactReelLive() {
 		return (
 			<div className="reel-live__gate">
 				<p>
-					{authState === 'loading' || authState === 'authenticated'
+					{tone === 'loading' || tone === 'auth'
 						? 'Checking access…'
 						: 'Sign in with a staff account to watch the channel.'}
 				</p>

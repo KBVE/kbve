@@ -35,6 +35,7 @@
 			"@kbve/rn": ["../../../packages/npm/rn/src/index.web.ts"],
 			"@kbve/rn/ui": ["../../../packages/npm/rn/src/ui/index.web.ts"],
 			"@kbve/rn/ui/*": ["../../../packages/npm/rn/src/ui/*"],
+			"@kbve/rn/icons": ["../../../packages/npm/rn/src/icons/index.ts"],
 			"@kbve/rn/dash": ["../../../packages/npm/rn/src/dash/index.ts"],
 			"@kbve/rn/markets": [
 				"../../../packages/npm/rn/src/markets/index.ts"

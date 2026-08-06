@@ -46,6 +46,9 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 	const [labelHost, setLabelHost] = useState<HTMLDivElement | null>(null);
 	const [zoomTrigger, setZoomTrigger] = useState<{ delta: number; seq: number } | null>(null);
 	const [resetTrigger, setResetTrigger] = useState(0);
+	const [currentZoom, setCurrentZoom] = useState(1);
+	const [showStats, setShowStats] = useState(false);
+	const [isFullscreen, setIsFullscreen] = useState(false);
 
 	const matches = useMemo(() => {
 		if (!overview || query.trim().length < 2) return [];
@@ -77,6 +80,21 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 		setPicked(null);
 	};
 
+	const toggleFullscreen = () => {
+		const elem = document.querySelector('[data-monorepo-graph]');
+		if (!elem) return;
+
+		if (!document.fullscreenElement) {
+			elem.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
+		} else {
+			document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
+		}
+	};
+
+	const toggleStats = () => {
+		setShowStats(!showStats);
+	};
+
 	// Keyboard shortcuts for navigation
 	useEffect(() => {
 		const handleKeyboard = (e: KeyboardEvent) => {
@@ -100,6 +118,16 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 				case 'R':
 					e.preventDefault();
 					handleResetView();
+					break;
+				case 'f':
+				case 'F':
+					e.preventDefault();
+					toggleFullscreen();
+					break;
+				case 's':
+				case 'S':
+					e.preventDefault();
+					toggleStats();
 					break;
 			}
 		};
@@ -139,6 +167,7 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 							resetTrigger={resetTrigger}
 							onHover={setHover}
 							onPickDir={setPicked}
+							onZoomChange={setCurrentZoom}
 						/>
 					</Canvas>
 
@@ -193,7 +222,10 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 					</div>
 
 					<div className="mgx__hints">
-						<strong>Navigation:</strong> Scroll/pinch to zoom · Drag to pan · Click nodes to explore<br/><span style={{ fontSize: '0.7rem', opacity: 0.85 }}><kbd>+</kbd>/<kbd>-</kbd> zoom · <kbd>R</kbd> reset</span>
+						<strong>Navigation:</strong> Scroll/pinch to zoom · Drag to pan · Click nodes to explore
+						<div style={{ fontSize: '0.7rem', opacity: 0.85, marginTop: '4px' }}>
+							<kbd>+</kbd>/<kbd>-</kbd> zoom · <kbd>R</kbd> reset · <kbd>F</kbd> fullscreen · <kbd>S</kbd> stats
+						</div>
 					</div>
 
 					<div className="mgx__rels">
@@ -242,7 +274,52 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 							onClick={() => setColorMode('community')}>
 							Color: community
 						</button>
+						<button
+							type="button"
+							className={showStats ? 'is-active' : ''}
+							onClick={toggleStats}
+							title="Toggle statistics (S)">
+							📊 Stats
+						</button>
+						<button
+							type="button"
+							onClick={toggleFullscreen}
+							title="Fullscreen (F)">
+							{isFullscreen ? '⛶ Exit' : '⛶ Fullscreen'}
+						</button>
 					</div>
+
+					{showStats && (
+						<div className="mgx__stats">
+							<div className="mgx__stats-title">Graph Statistics</div>
+							<div className="mgx__stats-grid">
+								<div className="mgx__stat">
+									<span className="mgx__stat-label">Directories</span>
+									<span className="mgx__stat-value">{overview.meta.dirs}</span>
+								</div>
+								<div className="mgx__stat">
+									<span className="mgx__stat-label">Files</span>
+									<span className="mgx__stat-value">{overview.meta.files.toLocaleString()}</span>
+								</div>
+								<div className="mgx__stat">
+									<span className="mgx__stat-label">Symbols</span>
+									<span className="mgx__stat-value">{overview.meta.symbols.toLocaleString()}</span>
+								</div>
+								<div className="mgx__stat">
+									<span className="mgx__stat-label">Edges</span>
+									<span className="mgx__stat-value">{overview.meta.dirEdges.toLocaleString()}</span>
+								</div>
+								<div className="mgx__stat">
+									<span className="mgx__stat-label">Built</span>
+									<span className="mgx__stat-value">{overview.meta.built_at_commit.slice(0, 7)}</span>
+								</div>
+								<div className="mgx__stat">
+									<span className="mgx__stat-label">Zoom</span>
+									<span className="mgx__stat-value">{currentZoom.toFixed(1)}x</span>
+								</div>
+							</div>
+						</div>
+					)}
 
 					{picked && (
 						<div className="mgx__panel">
@@ -536,6 +613,48 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 				.mgx__search li button span {
 					color: #64748b;
 					font-size: 0.7rem;
+				}
+				.mgx__stats {
+					position: absolute;
+					right: 12px;
+					top: 56px;
+					padding: 12px;
+					border-radius: 10px;
+					background: rgba(12, 18, 30, 0.92);
+					border: 1px solid rgba(148, 163, 184, 0.3);
+					color: #e2e8f0;
+					font-size: 0.78rem;
+					backdrop-filter: blur(8px);
+					min-width: 180px;
+					z-index: 10;
+				}
+				.mgx__stats-title {
+					font-weight: 600;
+					font-size: 0.85rem;
+					margin-bottom: 8px;
+					color: #e2e8f0;
+				}
+				.mgx__stats-grid {
+					display: grid;
+					grid-template-columns: 1fr 1fr;
+					gap: 8px;
+				}
+				.mgx__stat {
+					display: flex;
+					flex-direction: column;
+					gap: 2px;
+				}
+				.mgx__stat-label {
+					font-size: 0.68rem;
+					color: #94a3b8;
+					text-transform: uppercase;
+					letter-spacing: 0.05em;
+				}
+				.mgx__stat-value {
+					font-size: 0.95rem;
+					font-weight: 600;
+					color: #38bdf8;
+					font-family: ui-monospace, monospace;
 				}
 				.mgx__panel {
 					position: absolute;

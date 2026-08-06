@@ -3,7 +3,6 @@
  *
  * Source: ../descriptors/github.binpb
  * Config: ../github-zod-config.json
- * Generated: 2026-07-20T00:37:21.633Z
  */
 
 import { z } from 'zod';

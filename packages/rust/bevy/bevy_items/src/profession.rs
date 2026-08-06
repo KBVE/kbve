@@ -29,6 +29,12 @@ struct RawProfession {
 #[serde(rename_all = "camelCase")]
 struct RawExperienceCurve {
     #[serde(default)]
+    kind: String,
+    #[serde(default)]
+    base_xp: u64,
+    #[serde(default)]
+    growth_factor: f64,
+    #[serde(default)]
     max_level: u32,
 }
 
@@ -81,12 +87,21 @@ pub struct GatherInfo {
 
 /// Profession metadata — the skill definition side of professiondb, used by
 /// engines to build their skill registry from data instead of hardcoding it.
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ProfessionInfo {
     pub r#ref: String,
     pub name: String,
     pub category: String,
     pub emoji: Option<String>,
+    pub max_level: u32,
+    pub curve: Option<ProfessionCurve>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct ProfessionCurve {
+    pub kind: String,
+    pub base_xp: u64,
+    pub growth_factor: f64,
     pub max_level: u32,
 }
 
@@ -127,6 +142,19 @@ impl ProfessionDb {
                     .map(|c| c.max_level)
                     .filter(|l| *l > 0)
                     .unwrap_or(99),
+                curve: profession.experience_curve.as_ref().and_then(|c| {
+                    let kind = normalize_curve_kind(&c.kind);
+                    if kind.is_empty() {
+                        None
+                    } else {
+                        Some(ProfessionCurve {
+                            kind,
+                            base_xp: c.base_xp,
+                            growth_factor: c.growth_factor,
+                            max_level: if c.max_level > 0 { c.max_level } else { 99 },
+                        })
+                    }
+                }),
             });
 
             for action in &profession.actions {
@@ -213,6 +241,18 @@ fn normalize_category(raw: &str) -> String {
     raw.strip_prefix("PROFESSION_CATEGORY_")
         .unwrap_or(raw)
         .to_ascii_lowercase()
+}
+
+fn normalize_curve_kind(raw: &str) -> String {
+    let normalized = raw
+        .strip_prefix("CURVE_KIND_")
+        .unwrap_or(raw)
+        .to_ascii_lowercase();
+    if normalized == "unspecified" {
+        String::new()
+    } else {
+        normalized
+    }
 }
 
 static PROFESSION_DB_REF: OnceLock<&'static ProfessionDb> = OnceLock::new();
@@ -313,6 +353,21 @@ mod tests {
         assert_eq!(cooking.max_level, 99);
 
         assert!(db.profession("nonexistent").is_none());
+    }
+
+    #[test]
+    fn parses_experience_curve() {
+        let db = ProfessionDb::from_json(FIXTURE).unwrap();
+
+        let mining = db.profession("mining").unwrap();
+        let curve = mining.curve.as_ref().unwrap();
+        assert_eq!(curve.kind, "polynomial");
+        assert_eq!(curve.base_xp, 50);
+        assert!((curve.growth_factor - 1.6).abs() < 1e-9);
+        assert_eq!(curve.max_level, 99);
+
+        let cooking = db.profession("cooking").unwrap();
+        assert!(cooking.curve.is_none());
     }
 
     #[test]

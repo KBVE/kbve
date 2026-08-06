@@ -3,7 +3,6 @@
  *
  * Source: ../descriptors/professiondb.binpb
  * Config: ../professiondb-zod-config.json
- * Generated: 2026-07-31T08:31:11.733Z
  */
 
 import { z } from 'zod';

@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react';
 import { useStore } from '@nanostores/react';
 import { ShieldOff } from 'lucide-react';
 import { StreamView, createLonghornStream, longhornLens } from '@kbve/rn/dash';
-import { homeService } from '@/components/dashboard/homeService';
+import { $auth, $isStaff } from '@kbve/droid';
 import { initSupa, getSupa } from '@/lib/supa';
 import { DASH_PROXY_BASE } from './dashProxyBase';
 
@@ -41,20 +41,19 @@ const styles = {
 };
 
 export default function ReactStorageDashRN() {
-	const isStaff = useStore(homeService.$isStaff);
-	const authState = useStore(homeService.$authState);
+	const isStaff = useStore($isStaff);
+	const tone = useStore($auth).tone;
 	const store = useMemo(
 		() => createLonghornStream({ getToken, baseUrl: DASH_PROXY_BASE }),
 		[],
 	);
 
 	useEffect(() => {
-		void homeService.initAuth();
+		void initSupa().catch(() => {});
 	}, []);
 
 	if (!isStaff) {
-		const pending =
-			authState === 'loading' || authState === 'authenticated';
+		const pending = tone === 'loading' || tone === 'auth';
 		return (
 			<div style={styles.centered}>
 				<ShieldOff size={48} color="var(--sl-color-gray-3)" />

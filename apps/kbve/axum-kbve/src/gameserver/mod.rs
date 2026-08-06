@@ -30,7 +30,7 @@ use bevy_kbve_net::{
     PositionUpdate, ProtocolPlugin, SetUsernameRequest, SetUsernameResponse, SkillXpGrant, TileKey,
     TimeChannel, TimeSyncMessage, UnequipRequest, UseItemRequest,
 };
-use bevy_skills::{BevySkillsPlugin, GrantXpMsg, SkillDef, SkillId, SkillProfile, SkillRegistry};
+use bevy_skills::{BevySkillsPlugin, GrantXpMsg, SkillId, SkillProfile, SkillRegistry};
 
 /// Server tick rate: 20 Hz (matching client).
 const TICK_DURATION: Duration = Duration::from_millis(50);
@@ -223,32 +223,12 @@ fn slot_to_state(
     }
 }
 
-/// Register the same gathering skills the client knows about so the server
-/// can grant XP and gate access by level. Keep the slugs aligned with
-/// `apps/kbve/isometric/.../skills.rs::register_skills` — drift will desync
-/// the XP curves between server and client.
 fn register_server_skills(mut registry: ResMut<SkillRegistry>) {
-    registry.register(SkillDef {
-        r#ref: "woodcutting".into(),
-        name: "Woodcutting".into(),
-        category: "gathering".into(),
-        icon: None,
-        xp_curve: None,
-    });
-    registry.register(SkillDef {
-        r#ref: "mining".into(),
-        name: "Mining".into(),
-        category: "gathering".into(),
-        icon: None,
-        xp_curve: None,
-    });
-    registry.register(SkillDef {
-        r#ref: "foraging".into(),
-        name: "Foraging".into(),
-        category: "gathering".into(),
-        icon: None,
-        xp_curve: None,
-    });
+    if let Some(db) = get_profession_db() {
+        registry.register_professions(db);
+    } else {
+        registry.register_gathering_fallback();
+    }
     tracing::info!("[skills] server registered {} skills", registry.len());
 }
 

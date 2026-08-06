@@ -31,7 +31,7 @@ export const JOURNAL_NAV: DashboardNavGroup[] = MONTHS.map((month, i) => ({
 	label: month.name,
 	eyebrow: 'Daily logs',
 	href: `/journal/#${month.name.toLowerCase()}`,
-	icon: 'M8 2v4M16 2v4M3 10h18M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z',
+	icon: 'calendar',
 	items: Array.from({ length: month.days }, (_, d) => ({
 		label: `${month.short} ${d + 1}`,
 		href: `/journal/${pad(i + 1)}-${pad(d + 1)}/`,

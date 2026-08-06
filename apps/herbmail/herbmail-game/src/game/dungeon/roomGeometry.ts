@@ -16,6 +16,15 @@ import {
 import { makeLocalGrid, type RoomDesc } from './generate';
 import { chunkGeometry } from './chunkGeometry';
 import { queueBVH, cancelBVH } from '../render/bvh';
+import { fromPayload, type GeoPayload } from './geoTransfer';
+import type { GeoResult } from './geoWorker';
+import {
+	forgetGeoRequest,
+	isGeoInFlight,
+	requestRoom,
+	setGeoReadyHandler,
+	geoBridgeStats,
+} from './geoBridge';
 import {
 	forgetSector,
 	releaseBaked,
@@ -221,6 +230,7 @@ if (import.meta.env?.DEV) {
 		stats: () => geoBuildStats(),
 		ticks: () => geoTickStats(),
 		depth: () => geoPrefetchDepth(),
+		worker: () => geoBridgeStats(),
 		reset: () => resetGeoBuildStats(),
 	};
 }
@@ -231,26 +241,95 @@ if (import.meta.env?.DEV) {
 const pending = new Map<string, BuildJob>();
 const queue: string[] = [];
 
-function commit(job: BuildJob): RoomGeoSet {
-	pending.delete(job.desc.signature);
-	buildMs.push(job.ms);
-	cache.set(job.desc.signature, job.set);
+// The worker is handed a desc and answers with a signature, so the desc has to
+// be held until the payloads come back to rebuild against.
+const descBySignature = new Map<string, RoomDesc>();
+
+setGeoReadyHandler((res) => adoptResult(res));
+
+function store(key: string, set: RoomGeoSet): RoomGeoSet {
+	cache.set(key, set);
 	if (cache.size > CACHE_CAP) {
 		const oldest = cache.keys().next().value as string;
 		const evicted = cache.get(oldest);
 		cache.delete(oldest);
 		if (evicted) disposeSet(evicted);
 	}
-	return job.set;
+	return set;
+}
+
+function commit(job: BuildJob): RoomGeoSet {
+	pending.delete(job.desc.signature);
+	buildMs.push(job.ms);
+	return store(job.desc.signature, job.set);
 }
 
 /** Queue a sector to be built in the background. No-op if it is already built
  * or queued. Safe to call every time the mount set changes. */
 export function prefetchRoomGeoSet(desc: RoomDesc): void {
 	const key = desc.signature;
-	if (cache.has(key) || pending.has(key)) return;
+	if (cache.has(key) || pending.has(key) || isGeoInFlight(key)) return;
+	// Off-thread when the worker is alive. The builders are the expensive part
+	// and they are pure maths, so they run there and come back as typed arrays;
+	// only dicing, baking and BVH queueing stay here. Main-thread slicing is
+	// kept as the fallback for a worker that never started or died.
+	const ctx = sectorBakeCtx(desc);
+	if (
+		requestRoom(desc, needsOwnFloor(desc, ctx), needsOwnCeiling(desc, ctx))
+	) {
+		descBySignature.set(key, desc);
+		return;
+	}
 	pending.set(key, makeJob(desc));
 	queue.push(key);
+}
+
+// A baked sector needs its own slab; the rest share a singleton this thread
+// already holds, so there is no point building or transferring one.
+function needsOwnFloor(desc: RoomDesc, ctx: SectorBakeCtx | null): boolean {
+	return desc.oases.length > 0 || ctx !== null || sharedFloor === null;
+}
+function needsOwnCeiling(desc: RoomDesc, ctx: SectorBakeCtx | null): boolean {
+	return desc.oases.length > 0 || ctx !== null || sharedCeiling === null;
+}
+
+// Rebuild the worker's payloads into the set the scene mounts. This is the work
+// that genuinely has to be here: dicing produces the chunks the culler and the
+// BVH operate on, and both the bake pool and the BVH queue are main-thread.
+function adoptResult(res: GeoResult): void {
+	const key = res.signature;
+	if (cache.has(key)) return;
+	const desc = descBySignature.get(key);
+	if (!desc) return;
+	descBySignature.delete(key);
+	const ctx = sectorBakeCtx(desc);
+	const set = emptySet(key);
+	const cut = (p: GeoPayload) => dice(fromPayload(p), ctx);
+
+	set.walls = res.walls.map(cut);
+	set.columns = res.columns.map(cut);
+	set.arch = cut(res.arch);
+	set.trim = cut(res.trim);
+	set.cove = cut(res.cove);
+	set.corner = cut(res.corner);
+	set.domes = res.domes ? cut(res.domes) : [];
+	set.bays.frames = cut(res.bayFrames);
+	set.bays.backs = cut(res.bayBacks);
+
+	if (res.floor) set.floor = cut(res.floor);
+	else {
+		if (!sharedFloor)
+			sharedFloor = dice(buildFloor(makeLocalGrid(desc)), null);
+		set.floor = sharedFloor;
+	}
+	if (res.ceiling) set.ceiling = cut(res.ceiling);
+	else {
+		if (!sharedCeiling)
+			sharedCeiling = dice(buildCeiling(makeLocalGrid(desc)), null);
+		set.ceiling = sharedCeiling;
+	}
+
+	store(key, set);
 }
 
 const tickMs: number[] = [];
@@ -302,6 +381,10 @@ export function getRoomGeoSet(desc: RoomDesc): RoomGeoSet {
 	}
 	// Arrived before the prefetcher finished (or never prefetched at all) —
 	// drain the remaining steps now so a mount is never handed a partial set.
+	// Any worker request for this room is abandoned first: its payloads would
+	// otherwise land later and replace a set the scene is already showing.
+	forgetGeoRequest(key);
+	descBySignature.delete(key);
 	const job = pending.get(key) ?? makeJob(desc);
 	const i = queue.indexOf(key);
 	if (i >= 0) queue.splice(i, 1);

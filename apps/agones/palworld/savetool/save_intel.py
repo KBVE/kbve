@@ -70,7 +70,7 @@ def decode_character(raw_bytes):
         if isinstance(passives_prop, dict)
         else passives_prop
     ) or []
-    return {
+    pal = {
         "id": str(char_id),
         "name": pv(sp, "NickName") or "",
         "level": pv(sp, "Level") or 1,
@@ -83,6 +83,36 @@ def decode_character(raw_bytes):
         },
         "passives": [str(p) for p in passives],
     }
+    hp = pv(sp, "Hp", "Value")
+    if hp is not None:
+        pal["hp"] = int(hp) // 1000
+    max_hp = pv(sp, "MaxHP", "Value")
+    if max_hp is not None:
+        pal["max_hp"] = int(max_hp) // 1000
+    sanity = pv(sp, "SanityValue")
+    if sanity is not None:
+        pal["sanity"] = round(float(sanity))
+    stomach = pv(sp, "FullStomach")
+    max_stomach = pv(sp, "MaxFullStomach")
+    if stomach is not None and max_stomach:
+        pal["hunger"] = round(100 * float(stomach) / float(max_stomach))
+    if pv(sp, "IsRarePal"):
+        pal["lucky"] = True
+    sick = str(pv(sp, "WorkerSick") or "")
+    if sick and not sick.endswith("::None"):
+        pal["sick"] = sick.rsplit("::", 1)[-1]
+    friendship = pv(sp, "FriendshipPoint")
+    if friendship:
+        pal["friendship"] = friendship
+    souls = {
+        "hp": pv(sp, "Rank_HP") or 0,
+        "attack": pv(sp, "Rank_Attack") or 0,
+        "defense": pv(sp, "Rank_Defence") or 0,
+        "craft": pv(sp, "Rank_CraftSpeed") or 0,
+    }
+    if any(souls.values()):
+        pal["souls"] = souls
+    return pal
 
 
 def container_slot_instances(world):

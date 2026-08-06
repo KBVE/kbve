@@ -3,7 +3,6 @@
  *
  * Source: ../descriptors/jobboard.binpb
  * Config: ../jobboard-zod-config.json
- * Generated: 2026-07-20T00:37:21.640Z
  */
 
 import { z } from 'zod';

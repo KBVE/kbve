@@ -41,7 +41,7 @@ export const OSRS_NAV: DashboardNavGroup[] = [
 		label: 'Database',
 		eyebrow: 'Reference',
 		href: '/osrs/',
-		icon: 'M6 3h12l4 6-10 13L2 9zM11 3 8 9l4 13 4-13-3-6M2 9h20',
+		icon: 'gem',
 		items: [
 			{
 				label: 'All Items',

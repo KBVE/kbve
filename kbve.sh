@@ -365,6 +365,27 @@ _link_worktree_nx_data() {
     ln -sfn "$suffixed" "$default"
 }
 
+# Print the MAIN repo root, correctly even when called from inside a worktree.
+#
+# `git rev-parse --show-toplevel` returns whichever tree you are standing in, and in a worktree
+# `<tree>/.git` is a gitFILE pointing at the main repo's .git/worktrees/<name> — not a directory.
+# So the usual `[ -d "$root/.git" ]` guard fails there, which is why -worktree-rm used to abort
+# with "Could not resolve git repository root" unless you happened to run it from the main repo.
+#
+# `--git-common-dir` is shared by every worktree and always names the main repo's .git, so its
+# parent is the main repo root from anywhere.
+_main_repo_root() {
+    local common
+    common=$(git rev-parse --git-common-dir 2>/dev/null) || return 1
+    [ -n "$common" ] || return 1
+    # Relative for the main repo (a bare ".git"), absolute from a worktree.
+    case "$common" in
+        /*) ;;
+        *) common="$(pwd -P)/$common" ;;
+    esac
+    (cd "$common/.." 2>/dev/null && pwd -P)
+}
+
 # Remove a git worktree by name
 remove_worktree() {
     local description="$1"
@@ -378,10 +399,12 @@ remove_worktree() {
     fi
 
     local main_repo
-    main_repo=$(git rev-parse --show-toplevel)
+    # Resolved via --git-common-dir so this works from inside a worktree too, which is where you
+    # usually are when you finish with one.
+    main_repo=$(_main_repo_root)
 
     # Guard: abort if we cannot resolve the repo root.
-    if [ -z "$main_repo" ] || [ ! -d "$main_repo/.git" ]; then
+    if [ -z "$main_repo" ] || [ ! -d "$main_repo" ]; then
         echo "ERROR: Could not resolve git repository root."
         return 1
     fi
@@ -664,7 +687,7 @@ audit_worktree_stale() {
 # Flags: --merged  restrict to branches merged into origin/dev or origin/main
 #        --dry-run preview only
 audit_worktree_prune() {
-    local main_repo; main_repo=$(git rev-parse --show-toplevel)
+    local main_repo; main_repo=$(_main_repo_root)
     local cpus; cpus=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 8)
     local jobs="${WT_PRUNE_JOBS:-$cpus}"
     local dry=0 merged_only=0 batch_size="$jobs" arg prev=""
@@ -742,8 +765,8 @@ audit_worktree_prune() {
 # stale .git/worktrees metadata, then prune detached branch refs.
 # Flags: --yes / -y  skip the confirmation prompt
 nuke_worktrees() {
-    local main_repo; main_repo=$(git rev-parse --show-toplevel 2>/dev/null)
-    if [ -z "$main_repo" ] || [ ! -d "$main_repo/.git" ]; then
+    local main_repo; main_repo=$(_main_repo_root)
+    if [ -z "$main_repo" ] || [ ! -d "$main_repo" ]; then
         echo "ERROR: Could not resolve git repository root."; return 1
     fi
 
