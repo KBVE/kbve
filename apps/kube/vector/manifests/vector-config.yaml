@@ -5,14 +5,15 @@ metadata:
     namespace: vector
     annotations:
         kbve.sh/last-updated: '2026-08-06T00:00:00Z'
-        kbve.sh/config-version: v11-sink-e2e-acks
+        kbve.sh/config-version: v12-alerts-disk-buffer
     labels:
         kbve.com/category: observability
         kbve.com/stack: core
         kbve.com/managed-by: argocd
 data:
     vector.yml:
-        "api:\n  enabled: true\n  address: 0.0.0.0:9001\n\nsources:\n  kubernetes_logs:\n\
+        "api:\n  enabled: true\n  address: 0.0.0.0:9001\n\ndata_dir: \"/vector-data-dir\"\n\n\
+        sources:\n  kubernetes_logs:\n\
         \    type: kubernetes_logs\n    self_node_name: \"${VECTOR_SELF_NODE_NAME}\"\n\
         \    exclude_paths_glob_patterns:\n      - \"**/vector_*/**\"\n      - \"**/kube-system_*/**\"\
         \n    auto_partial_merge: true\n    data_dir: \"/vector-data-dir\"\n  alertmanager_webhook:\n\
@@ -196,5 +197,5 @@ data:
         \ \"${CLICKHOUSE_PASSWORD}\"\n    skip_unknown_fields: true\n    date_time_best_effort:\
         \ true\n    acknowledgements:\n      enabled: true\n    batch:\n      max_bytes:\
         \ 1048576\n      timeout_secs: 2\n    buffer:\n\
-        \      type: memory\n      max_events: 2000\n    encoding:\n      timestamp_format:\
+        \      type: disk\n      max_size: 268435488\n    encoding:\n      timestamp_format:\
         \ rfc3339\n"
