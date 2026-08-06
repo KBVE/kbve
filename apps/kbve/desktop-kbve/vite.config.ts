@@ -11,6 +11,12 @@ const packagesDir = resolve(root, '../../../packages/npm');
 
 export default defineConfig({
 	plugins: [react(), tailwindcss(), kbveRnTauri({ packagesDir })],
+	resolve: {
+		alias: {
+			'@': resolve(root, 'src'),
+			'react-i18next': resolve(root, 'src/i18n/react-i18next.ts'),
+		},
+	},
 	clearScreen: false,
 	server: {
 		port: 1421,

@@ -6,6 +6,7 @@ import { useAppStore } from './stores/app';
 import { getView } from './engine';
 import { useAuthStore } from './stores/auth';
 import { SignIn } from './components/SignIn';
+import { ToastContainer } from './components/common/ToastContainer';
 
 export default function App() {
 	const phase = useAuthStore((s) => s.phase);
@@ -29,6 +30,7 @@ export default function App() {
 				<Header />
 				<ViewHost />
 			</main>
+			<ToastContainer />
 		</div>
 	);
 }

@@ -104,6 +104,8 @@ anyhow = "1.0"
 log = "0.4"
 once_cell = "1"
 chrono = "0.4"
+gray_matter = "0.3"
+hostname = "0.4"
 regex = "1"
 tempfile = "3.8"
 

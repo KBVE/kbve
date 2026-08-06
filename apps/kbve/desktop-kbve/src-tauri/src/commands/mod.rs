@@ -1,4 +1,5 @@
 pub mod audio;
+pub mod devops;
 pub mod memory;
 pub mod models;
 pub mod onichan;
