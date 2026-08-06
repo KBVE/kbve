@@ -50,6 +50,7 @@ interface Props {
 	resetTrigger: number;
 	onHover: (h: HoverInfo | null) => void;
 	onPickDir: (dir: DirNodeLike | null) => void;
+	onZoomChange?: (zoom: number) => void;
 }
 
 function easeOutCubic(t: number): number {
@@ -67,6 +68,7 @@ export default function TieredGraphScene({
 	resetTrigger,
 	onHover,
 	onPickDir,
+	onZoomChange,
 }: Props) {
 	const { camera, size } = useThree();
 	const controls = useRef<MapControlsImpl>(null);
@@ -303,6 +305,11 @@ export default function TieredGraphScene({
 		);
 		if (dirMat.current) dirMat.current.opacity = dop;
 		dirLabelOp.current = dop;
+
+		// Report zoom level to parent
+		if (onZoomChange) {
+			onZoomChange(rel);
+		}
 
 		if (rel >= FILE_IN) {
 			const tx = controls.current?.target.x ?? cam.position.x;
