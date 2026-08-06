@@ -3367,6 +3367,7 @@ export type AppSettings = {
 	onichan_silence_threshold?: number;
 	enabled_agents?: string[];
 	sandbox_enabled?: boolean;
+	agent_voice_enabled?: boolean;
 };
 /**
  * Configuration for assigning an issue to an agent.

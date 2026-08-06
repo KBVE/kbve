@@ -39,10 +39,10 @@ export const useToastStore = create<ToastStore>((set) => ({
 			toast.duration ?? DURATION_BY_TYPE[toast.type] ?? DEFAULT_DURATION;
 
 		const newToast: Toast = {
+			...toast,
 			id,
 			createdAt: Date.now(),
 			duration,
-			...toast,
 		};
 
 		set((state) => {

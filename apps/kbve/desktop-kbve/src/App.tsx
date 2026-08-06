@@ -7,6 +7,8 @@ import { getView } from './engine';
 import { useAuthStore } from './stores/auth';
 import { SignIn } from './components/SignIn';
 import { ToastContainer } from './components/common/ToastContainer';
+import { listen } from '@tauri-apps/api/event';
+import { toast } from './stores/toastStore';
 
 export default function App() {
 	const phase = useAuthStore((s) => s.phase);
@@ -14,6 +16,16 @@ export default function App() {
 
 	useEffect(() => {
 		void useAuthStore.getState().init();
+	}, []);
+
+	// Surface spoken agent announcements as toasts too.
+	useEffect(() => {
+		const unlisten = listen<string>('agent-voice-announcement', (event) => {
+			toast.info('Agent voice', event.payload);
+		});
+		return () => {
+			void unlisten.then((fn) => fn());
+		};
 	}, []);
 
 	// Hold the shell back until a stored session has had its chance to restore,
