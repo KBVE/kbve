@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useStore } from '@nanostores/react';
 import { ShieldOff } from 'lucide-react';
 import { StreamView, createLonghornStream, longhornLens } from '@kbve/rn/dash';
@@ -42,18 +42,29 @@ const styles = {
 
 export default function ReactStorageDashRN() {
 	const isStaff = useStore(homeService.$isStaff);
+	const authState = useStore(homeService.$authState);
 	const store = useMemo(
 		() => createLonghornStream({ getToken, baseUrl: DASH_PROXY_BASE }),
 		[],
 	);
 
+	useEffect(() => {
+		void homeService.initAuth();
+	}, []);
+
 	if (!isStaff) {
+		const pending =
+			authState === 'loading' || authState === 'authenticated';
 		return (
 			<div style={styles.centered}>
 				<ShieldOff size={48} color="var(--sl-color-gray-3)" />
-				<h2 style={styles.heading}>Staff Access Required</h2>
+				<h2 style={styles.heading}>
+					{pending ? 'Checking access…' : 'Staff Access Required'}
+				</h2>
 				<p style={styles.sub}>
-					The Longhorn storage dashboard is restricted to KBVE staff.
+					{pending
+						? 'Verifying your staff permissions.'
+						: 'The Longhorn storage dashboard is restricted to KBVE staff.'}
 				</p>
 			</div>
 		);
