@@ -1,0 +1,30 @@
+[package]
+name = "simbody3d"
+authors = ["kbve", "h0lybyte"]
+version = "0.0.1"
+edition = "2024"
+rust-version.workspace = true
+license = "MIT"
+description = "Tile-derived 3D collision and kinematic character movement on rapier3d — the physics complement to simgrid, built to compile natively and to wasm from one source."
+homepage = "https://kbve.com/"
+repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/simbody3d"
+keywords = ["rapier", "physics", "multiplayer", "gamedev", "character-controller"]
+categories = ["game-development", "simulation"]
+
+[lib]
+name = "simbody3d"
+path = "src/lib.rs"
+
+[dependencies]
+rapier3d = "0.30.1"
+
+[features]
+default = ["presets"]
+# Shipped world/character configurations. Kept in this crate rather than in a
+# consumer so a native server and a wasm client build read the same numbers
+# instead of each declaring their own.
+presets = []
+# Cross-platform determinism at the cost of SIMD. Only meaningful once every
+# consumer builds from this crate — enabling it on one side while the other
+# runs a differently-configured rapier would make the two diverge, not agree.
+enhanced-determinism = ["rapier3d/enhanced-determinism"]

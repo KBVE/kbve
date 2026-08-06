@@ -1,15 +1,17 @@
-use crate::constants::{MOTOR_DT, MOTOR_MAX_STEPS};
+use crate::config::StepConfig;
 
-/// Exponential approach toward a target. Mirrors `approach` in
-/// `character/CharacterMotor.ts` — two copies of a curve this small is exactly
-/// how authoritative and predicted motion quietly diverge.
+/// Exponential approach toward a target.
+///
+/// Consumers that also predict this motion client-side must use this exact
+/// curve — two copies of a formula this small is how authoritative and
+/// predicted motion quietly diverge.
 #[inline]
 pub fn approach(current: f32, target: f32, accel: f32, dt: f32) -> f32 {
     current + (target - current) * (1.0 - (-accel * dt).exp())
 }
 
-/// Turns a variable frame delta into whole simulation steps. Mirrors
-/// `FixedStep` in `character/CharacterMotor.ts`.
+/// Turns a variable frame delta into whole simulation steps, so travel is a
+/// function of elapsed time rather than of how often the caller ticks.
 pub struct FixedStep {
     acc: f32,
     pub dt: f32,
@@ -18,7 +20,7 @@ pub struct FixedStep {
 
 impl Default for FixedStep {
     fn default() -> Self {
-        Self::new(MOTOR_DT, MOTOR_MAX_STEPS)
+        Self::from_config(StepConfig::default())
     }
 }
 
@@ -31,6 +33,12 @@ impl FixedStep {
         }
     }
 
+    pub fn from_config(cfg: StepConfig) -> Self {
+        Self::new(cfg.dt, cfg.max_steps)
+    }
+
+    /// Runs whole steps for the elapsed time; returns how many ran. Past
+    /// `max_steps` the backlog is dropped rather than repaid in one burst.
     pub fn run(&mut self, frame_dt: f32, mut step: impl FnMut(f32)) -> u32 {
         self.acc += frame_dt;
         let mut n = 0;

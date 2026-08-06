@@ -9039,19 +9039,12 @@ dependencies = [
  "async-trait",
  "axum 0.8.9",
  "bevy",
- "herbmail-sim",
  "jedi",
+ "simbody3d",
  "simgrid",
  "tokio",
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "herbmail-sim"
-version = "0.0.1"
-dependencies = [
- "rapier3d",
 ]
 
 [[package]]
@@ -17139,6 +17132,13 @@ dependencies = [
  "num-traits",
  "paste",
  "wide",
+]
+
+[[package]]
+name = "simbody3d"
+version = "0.0.1"
+dependencies = [
+ "rapier3d",
 ]
 
 [[package]]

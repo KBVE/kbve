@@ -3,7 +3,7 @@ resolver = "2"
 members = [
     "apps/agones/herbmail/server",
     "packages/rust/simgrid",
-    "packages/rust/herbmail-sim",
+    "packages/rust/simbody3d",
 ]
 
 [workspace.package]

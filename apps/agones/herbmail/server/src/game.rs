@@ -1,4 +1,4 @@
-use herbmail_sim::PhysicsWorld;
+use simbody3d::{PhysicsWorld, SimbodyConfig, presets};
 use simgrid::proto::Tile;
 use simgrid::{KindRegistry, SimConfig, WalkableMap};
 
@@ -49,11 +49,17 @@ pub fn collision_is_authoritative() -> bool {
     false
 }
 
+/// Herbmail's world scale, capsule and tile-bit mapping, declared once in
+/// simbody3d so a future wasm client build reads the same numbers.
+pub fn simbody_config() -> SimbodyConfig {
+    presets::herbmail()
+}
+
 /// The rapier world the server resolves movement against.
 ///
 /// Returned empty: `SectorTiles` has to come from the ported tile-grid
 /// generator, and mounting anything else would put the server in a different
 /// dungeon than the client.
 pub fn physics_world() -> PhysicsWorld {
-    PhysicsWorld::new()
+    PhysicsWorld::new(simbody_config())
 }
