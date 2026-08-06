@@ -101,6 +101,8 @@ const PERMANENT_REDIRECTS: &[(&str, &str)] = &[
     ("/profile/market/", "/dashboard/market/"),
     ("/dashboard/rows", "/dashboard/gameops/rows/"),
     ("/dashboard/rows/", "/dashboard/gameops/rows/"),
+    ("/services", "/service/"),
+    ("/services/", "/service/"),
 ];
 
 async fn lang_strip_root() -> Redirect {
