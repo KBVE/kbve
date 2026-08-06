@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: herbmail-game
+    namespace: herbmail-game
+    labels:
+        app: herbmail-server
+        app.kubernetes.io/part-of: herbmail
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+        kbve.com/managed-by: argocd
+spec:
+    type: ClusterIP
+    selector:
+        app: herbmail-server
+    sessionAffinity: ClientIP
+    ports:
+        - name: ws
+          port: 7979
+          targetPort: 7979
+          protocol: TCP

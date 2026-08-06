@@ -1,67 +1,9 @@
-
 [workspace]
-resolver = '2'
+resolver = "2"
 members = [
-	'packages/rust/embeddb',
-	'packages/rust/embeddb-derive',
-	'packages/rust/kbve',
-	'packages/rust/erust',
-	'packages/rust/holy',
-	'packages/rust/jedi',
-	'apps/kbve/kilobase',
-	'packages/rust/q',
-'apps/herbmail/axum-herbmail',
-	'apps/memes/axum-memes',
-	'apps/irc/irc-gateway',
-	'apps/discordsh/axum-discordsh',
-	'apps/discordsh/discordsh-bot',
-	'apps/kbve/axum-kbve',
-	'apps/kbve/kbve-gate',
-	'apps/chuckrpg/axum-chuckrpg',
-	'apps/rentearth/axum-rentearth',
-	'apps/rareicon/axum-rareicon',
-	'apps/cryptothrone/axum-cryptothrone',
-	'apps/rows',
-	'apps/jobboard',
-	'apps/metrics',
-	'apps/kbve/isometric/src-tauri',
-	'packages/rust/bevy/bevy_inventory',
-	'packages/rust/bevy/bevy_statemachine',
-	'packages/rust/bevy/bevy_player',
-	'packages/rust/bevy/bevy_cam',
-	'packages/rust/bevy/bevy_kbve_net',
-	'packages/rust/bevy/bevy_items',
-	'packages/rust/bevy/bevy_spells',
-	'packages/rust/bevy/bevy_npc',
-	'packages/rust/bevy/bevy_mapdb',
-	'packages/rust/bevy/bevy_quests',
-	'packages/rust/bevy/bevy_battle',
-	'packages/rust/bevy/bevy_skills',
-	'packages/rust/bevy/bevy_tasker',
-	'packages/rust/bevy/bevy_db',
-	'packages/rust/bevy/bevy_supa',
-	'packages/rust/bevy/bevy_pathfinder',
-	'packages/rust/bevy/bevy_behavior',
-	'apps/vm/firecracker-ctl',
-	'apps/vm/factorio-ctl',
-	'apps/vm/kubectl',
-	'apps/mc/behavior_statetree',
-	'apps/mc/mc_auth',
-	'packages/rust/bevy/uniti',
-	'apps/agones/factorio/relay',
-	'apps/agones/palworld/relay',
-	'packages/rust/simgrid',
-	'packages/rust/simbody3d',
-	'apps/agones/cryptothrone/server',
-	'apps/agones/arpg/server',
-	'apps/agones/herbmail/server',
-	'packages/rust/kbve_wgpu',
-	'apps/media/reel',
-]
-
-exclude = [
-	'packages/rust/bevy/uniti/fuzz',
-	'apps/kbve/desktop-kbve/src-tauri',
+    "apps/agones/herbmail/server",
+    "packages/rust/simgrid",
+    "packages/rust/simbody3d",
 ]
 
 [workspace.package]
@@ -150,12 +92,9 @@ web-sys = "0.3"
 webpki-roots = "0.26"
 wgpu = "29"
 
-[profile.dev]
-opt-level = 1
-
 [profile.release]
 opt-level = 3
 lto = true
 strip = true
 codegen-units = 1
-panic = 'abort'
+panic = "abort"

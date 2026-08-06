@@ -1,0 +1,111 @@
+apiVersion: agones.dev/v1
+kind: Fleet
+metadata:
+    name: herbmail-server
+    namespace: herbmail-game
+    labels:
+        app: herbmail-server
+        app.kubernetes.io/part-of: herbmail
+spec:
+    replicas: 0
+    scheduling: Packed
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 25%
+            maxUnavailable: 25%
+    template:
+        metadata:
+            labels:
+                app: herbmail-server
+                app.kubernetes.io/part-of: herbmail
+        spec:
+            ports:
+                # No hostPort — clients reach the server through the Cilium
+                # gateway (HTTPRoute -> herbmail-game Service), so the pod
+                # stays compatible with baseline PodSecurity. No UDP lane: the
+                # herbmail client is browser-only.
+                - name: ws
+                  portPolicy: None
+                  containerPort: 7979
+                  protocol: TCP
+            health:
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                failureThreshold: 5
+            sdkServer:
+                logLevel: Info
+            template:
+                metadata:
+                    labels:
+                        app: herbmail-server
+                        app.kubernetes.io/part-of: herbmail
+                spec:
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 10001
+                        runAsGroup: 10001
+                        fsGroup: 10001
+                        seccompProfile:
+                            type: RuntimeDefault
+                    containers:
+                        - name: herbmail-server
+                          image: ghcr.io/kbve/herbmail-server:0.0.1
+                          imagePullPolicy: IfNotPresent
+                          env:
+                              - name: HM_SERVER_ADDR
+                                value: '0.0.0.0:7979'
+                              - name: HM_SERVER_SEED
+                                value: '1337'
+                              - name: HM_ALLOW_GUESTS
+                                value: 'true'
+                              - name: RUST_LOG
+                                value: 'info,herbmail_server=debug,simgrid=info'
+                              # Both optional: until the ExternalSecret renders,
+                              # the server boots guests-only instead of wedging
+                              # in CreateContainerConfigError. SUPABASE_URL is
+                              # what enables the jedi JWKS verifier (accept-both
+                              # HS256 + ES256) and therefore account logins.
+                              - name: SUPABASE_JWT_SECRET
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: supabase-shared
+                                        key: SUPABASE_JWT_SECRET
+                                        optional: true
+                              - name: SUPABASE_URL
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: supabase-shared
+                                        key: SUPABASE_URL
+                                        optional: true
+                          ports:
+                              - name: ws
+                                containerPort: 7979
+                                protocol: TCP
+                          readinessProbe:
+                              httpGet:
+                                  path: /healthz
+                                  port: 7979
+                              initialDelaySeconds: 3
+                              periodSeconds: 5
+                              failureThreshold: 3
+                          livenessProbe:
+                              httpGet:
+                                  path: /healthz
+                                  port: 7979
+                              initialDelaySeconds: 10
+                              periodSeconds: 15
+                              failureThreshold: 5
+                          resources:
+                              requests:
+                                  cpu: '250m'
+                                  memory: '128Mi'
+                              limits:
+                                  cpu: '1500m'
+                                  memory: '512Mi'
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL
