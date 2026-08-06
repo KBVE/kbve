@@ -41,6 +41,7 @@ async fn main() -> anyhow::Result<()> {
         cfg.live_hls_enabled,
         cfg.live_prebuffer_segments,
         cfg.encode_threads,
+        cfg.hls_max_height,
     );
 
     tokio::spawn(reaper::reap_loop(
@@ -93,6 +94,7 @@ async fn main() -> anyhow::Result<()> {
         stream_enabled: cfg.stream_enabled,
         hls,
         ffprobe_bin: cfg.ffprobe_bin.clone(),
+        hls_segment_wait_ms: cfg.hls_segment_wait_ms,
     });
     let listener = tokio::net::TcpListener::bind(&cfg.api_addr).await?;
     tracing::info!(addr = %cfg.api_addr, "reel listening");

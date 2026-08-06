@@ -58,6 +58,7 @@ async fn hls_transcode_integration() {
         true,
         3,
         1,
+        1080,
     );
     let outcome = mgr
         .request("test-hls", reel::transcode::Delivery::TranscodeHls)

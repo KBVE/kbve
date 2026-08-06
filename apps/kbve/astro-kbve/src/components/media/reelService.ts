@@ -688,10 +688,23 @@ export class ReelPlayer {
 			// up once repeated recovery attempts stop working.
 			let netRetries = 0;
 			let mediaRetries = 0;
+			let starveRetries = 0;
 			const MAX_RECOVER = 6;
+			// Live-edge starvation: the encoder simply hasn't produced the next
+			// segment yet, so frag/playlist loads fail while nothing is actually
+			// broken. That's buffering, not an error — wait and reload with a far
+			// larger budget than the real-error ladder.
+			const MAX_STARVE = 40;
+			const STARVATION_DETAILS = new Set<string>([
+				Hls.ErrorDetails.FRAG_LOAD_ERROR,
+				Hls.ErrorDetails.FRAG_LOAD_TIMEOUT,
+				Hls.ErrorDetails.LEVEL_LOAD_ERROR,
+				Hls.ErrorDetails.LEVEL_LOAD_TIMEOUT,
+			]);
 			hls.on(Hls.Events.FRAG_BUFFERED, () => {
 				netRetries = 0;
 				mediaRetries = 0;
+				starveRetries = 0;
 				this.resurrects = 0;
 			});
 			hls.on(Hls.Events.ERROR, (_evt, data) => {
@@ -700,6 +713,20 @@ export class ReelPlayer {
 				switch (data.type) {
 					case Hls.ErrorTypes.NETWORK_ERROR: {
 						const expired = data.response?.code === 401;
+						if (
+							!expired &&
+							STARVATION_DETAILS.has(data.details) &&
+							starveRetries++ < MAX_STARVE
+						) {
+							this.emit(
+								'playing',
+								'Buffering — waiting for stream data',
+							);
+							setTimeout(() => {
+								if (this.generation === gen) hls.startLoad();
+							}, 3000);
+							break;
+						}
 						const code: ReelStreamErrorCode = expired
 							? 'token-expired'
 							: 'network';
