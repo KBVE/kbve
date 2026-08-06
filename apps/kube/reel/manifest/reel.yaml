@@ -92,7 +92,7 @@ spec:
                       timeoutSeconds: 5
                       failureThreshold: 6
                   resources:
-                      requests: { cpu: '4', memory: 1Gi }
+                      requests: { cpu: '8', memory: 8Gi }
                       limits: { cpu: '16', memory: 8Gi }
                   volumeMounts:
                       - { name: data, mountPath: /data }

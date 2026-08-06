@@ -687,9 +687,16 @@ async fn extract_subtitles(
 }
 
 /// A finished download that has not been made playable yet. Failed transcodes
-/// are left alone (no auto-retry loop); the user can retry manually.
+/// are left alone (no auto-retry loop); the user can retry manually. An entry
+/// with an active HLS job is skipped — a background encode racing the viewer's
+/// HLS encode for the same cores starves the live stream.
 pub fn should_auto_transcode(m: &crate::state::Metadata) -> bool {
-    m.state == crate::state::TorrentState::Seeding && m.transcode == TranscodeStatus::None
+    m.state == crate::state::TorrentState::Seeding
+        && m.transcode == TranscodeStatus::None
+        && !matches!(
+            m.hls,
+            crate::state::HlsStatus::Starting | crate::state::HlsStatus::Live
+        )
 }
 
 /// Makes every completed download playable on its own — no manual transcode
@@ -984,6 +991,15 @@ mod transcoder_tests {
         let mut leech = meta("e", TranscodeStatus::None);
         leech.state = TorrentState::Leeching;
         assert!(!should_auto_transcode(&leech));
+        let mut watching = meta("f", TranscodeStatus::None);
+        watching.hls = crate::state::HlsStatus::Live;
+        assert!(!should_auto_transcode(&watching));
+        let mut starting = meta("g", TranscodeStatus::None);
+        starting.hls = crate::state::HlsStatus::Starting;
+        assert!(!should_auto_transcode(&starting));
+        let mut done = meta("h", TranscodeStatus::None);
+        done.hls = crate::state::HlsStatus::Ready;
+        assert!(should_auto_transcode(&done), "finished HLS does not block");
     }
 
     #[test]

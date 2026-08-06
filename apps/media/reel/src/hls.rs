@@ -35,6 +35,15 @@ mod tests {
         assert!(valid_segment_name("stream_00.vtt"));
     }
     #[test]
+    fn scale_filter_caps_and_disables() {
+        assert_eq!(
+            scale_filter(1080).as_deref(),
+            Some("scale=-2:min(1080\\,ih)")
+        );
+        assert_eq!(scale_filter(0), None);
+    }
+
+    #[test]
     fn rejects_traversal() {
         for n in [
             "../x",
@@ -71,6 +80,13 @@ fn count_ts_segments(dir: &std::path::Path) -> usize {
                 .count()
         })
         .unwrap_or(0)
+}
+
+/// Scale filter capping output height so a 4K source encodes at a rate the
+/// player can keep up with. `min(h, ih)` never upscales; `-2` keeps the width
+/// even. 0 disables the cap.
+pub fn scale_filter(max_height: u32) -> Option<String> {
+    (max_height > 0).then(|| format!("scale=-2:min({max_height}\\,ih)"))
 }
 
 fn delivery_label(d: Delivery) -> &'static str {
@@ -150,6 +166,7 @@ pub struct HlsManager {
     live_enabled: bool,
     live_prebuffer_segments: usize,
     encode_threads: usize,
+    max_height: u32,
     children: Arc<Mutex<HashMap<String, Child>>>,
     delivery_cache: Arc<Mutex<HashMap<String, Delivery>>>,
 }
@@ -166,6 +183,7 @@ impl HlsManager {
         live_enabled: bool,
         live_prebuffer_segments: usize,
         encode_threads: usize,
+        max_height: u32,
     ) -> Self {
         let this = Self {
             store,
@@ -177,6 +195,7 @@ impl HlsManager {
             live_enabled,
             live_prebuffer_segments: live_prebuffer_segments.max(1),
             encode_threads,
+            max_height,
             children: Arc::new(Mutex::new(HashMap::new())),
             delivery_cache: Arc::new(Mutex::new(HashMap::new())),
         };
@@ -329,6 +348,10 @@ impl HlsManager {
                 args.push("libx264".into());
                 args.push("-preset".into());
                 args.push("veryfast".into());
+                if let Some(vf) = scale_filter(self.max_height) {
+                    args.push("-vf".into());
+                    args.push(vf);
+                }
                 if self.encode_threads > 0 {
                     args.push("-threads".into());
                     args.push(self.encode_threads.to_string());
@@ -604,6 +627,10 @@ impl HlsManager {
             args.push("libx264".into());
             args.push("-preset".into());
             args.push("veryfast".into());
+            if let Some(vf) = scale_filter(self.max_height) {
+                args.push("-vf".into());
+                args.push(vf);
+            }
             if self.encode_threads > 0 {
                 args.push("-threads".into());
                 args.push(self.encode_threads.to_string());
@@ -803,6 +830,7 @@ mod mgr_tests {
             true,
             3,
             1,
+            1080,
         );
         mgr.abort("unknown-id").await;
         assert!(mgr.take_child("unknown-id").is_none());
@@ -822,6 +850,7 @@ mod mgr_tests {
             true,
             3,
             1,
+            1080,
         );
         assert_eq!(mgr.cached_delivery("1"), None);
         mgr.cache_delivery("1", Delivery::RemuxHls);
