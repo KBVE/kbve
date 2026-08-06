@@ -72,3 +72,43 @@ pub fn execute(command: VoiceCommand) -> String {
         },
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn kind(text: &str) -> Option<&'static str> {
+        parse(text).map(|c| match c {
+            VoiceCommand::AgentStatus => "agents",
+            VoiceCommand::SessionStatus => "sessions",
+        })
+    }
+
+    #[test]
+    fn parses_agent_status_phrases() {
+        assert_eq!(kind("agent status please"), Some("agents"));
+        assert_eq!(kind("Onichan, what's the AGENT REPORT?"), Some("agents"));
+        assert_eq!(kind("hey chan, list agents"), Some("agents"));
+        assert_eq!(kind("could you list the agents"), Some("agents"));
+    }
+
+    #[test]
+    fn parses_session_status_phrases() {
+        assert_eq!(kind("session status"), Some("sessions"));
+        assert_eq!(kind("List Sessions now"), Some("sessions"));
+        assert_eq!(kind("list the sessions for me"), Some("sessions"));
+    }
+
+    #[test]
+    fn ignores_normal_conversation() {
+        assert_eq!(kind("hey onichan how are you today"), None);
+        assert_eq!(kind("tell me about rust lifetimes"), None);
+        assert_eq!(kind("what's on the agenda"), None);
+        assert_eq!(kind(""), None);
+    }
+
+    #[test]
+    fn agent_status_wins_over_session_words() {
+        assert_eq!(kind("agent status and session things"), Some("agents"));
+    }
+}

@@ -305,10 +305,14 @@ fn extract_phases(markdown: &str) -> Result<Vec<PhaseConfig>, String> {
             in_tasks = false;
             in_files = false;
             in_deps = true;
-            // Check for inline "None"
+            // Inline value: "None" clears, anything else is a single dependency;
+            // no inline value means a list follows.
             let dep_value = trimmed.trim_start_matches("**Dependencies**:").trim();
             if dep_value.eq_ignore_ascii_case("none") {
                 current_deps.clear();
+                in_deps = false;
+            } else if !dep_value.is_empty() {
+                current_deps.push(dep_value.to_string());
                 in_deps = false;
             }
             continue;
