@@ -20,7 +20,7 @@
       "maxAmount": 150,
       "initialAmount": 150,
       "harvestTimeMs": 8500,
-      "harvestWeight": 100,
+      "harvestWeight": 25,
       "spawnWeight": 0.05,
       "spawnCount": 4
     },
@@ -171,7 +171,7 @@
       "maxAmount": 50,
       "initialAmount": 50,
       "harvestTimeMs": 2000,
-      "harvestWeight": 100,
+      "harvestWeight": 75,
       "spawnWeight": 0.3,
       "spawnCount": 20,
       "professionActionRef": "gather-stone"
@@ -434,7 +434,7 @@
       "maxAmount": 160,
       "initialAmount": 160,
       "harvestTimeMs": 3500,
-      "harvestWeight": 100,
+      "harvestWeight": 75,
       "spawnWeight": 0.35,
       "spawnCount": 18
     },
@@ -458,7 +458,7 @@
       "maxAmount": 90,
       "initialAmount": 90,
       "harvestTimeMs": 5500,
-      "harvestWeight": 100,
+      "harvestWeight": 50,
       "spawnWeight": 0.12,
       "spawnCount": 6
     },
@@ -483,7 +483,7 @@
       "maxAmount": 75,
       "initialAmount": 75,
       "harvestTimeMs": 4000,
-      "harvestWeight": 100,
+      "harvestWeight": 50,
       "spawnWeight": 0.25,
       "spawnCount": 15
     },
@@ -1122,7 +1122,7 @@
       "maxAmount": 80,
       "initialAmount": 80,
       "harvestTimeMs": 7000,
-      "harvestWeight": 100,
+      "harvestWeight": 25,
       "spawnWeight": 0.08,
       "spawnCount": 4
     },
@@ -1195,7 +1195,7 @@
       "maxAmount": 125,
       "initialAmount": 125,
       "harvestTimeMs": 6000,
-      "harvestWeight": 100,
+      "harvestWeight": 50,
       "spawnWeight": 0.15,
       "spawnCount": 8
     },
@@ -1219,7 +1219,7 @@
       "maxAmount": 65,
       "initialAmount": 65,
       "harvestTimeMs": 4000,
-      "harvestWeight": 100,
+      "harvestWeight": 50,
       "spawnWeight": 0.18,
       "spawnCount": 14
     },
@@ -1636,7 +1636,7 @@
       "maxAmount": 90,
       "initialAmount": 90,
       "harvestTimeMs": 6000,
-      "harvestWeight": 100,
+      "harvestWeight": 50,
       "spawnWeight": 0.1,
       "spawnCount": 7
     },
@@ -1659,7 +1659,7 @@
       "maxAmount": 50,
       "initialAmount": 50,
       "harvestTimeMs": 2500,
-      "harvestWeight": 100,
+      "harvestWeight": 75,
       "spawnWeight": 0.3,
       "spawnCount": 20,
       "professionActionRef": "gather-mossy-stone"
@@ -1823,7 +1823,7 @@
       "maxAmount": 100,
       "initialAmount": 100,
       "harvestTimeMs": 2500,
-      "harvestWeight": 100,
+      "harvestWeight": 75,
       "spawnWeight": 0.4,
       "spawnCount": 50
     },
@@ -1846,7 +1846,7 @@
       "maxAmount": 50,
       "initialAmount": 50,
       "harvestTimeMs": 5000,
-      "harvestWeight": 100,
+      "harvestWeight": 50,
       "spawnWeight": 0.3,
       "spawnCount": 20,
       "professionActionRef": "gather-crystal-ore"
@@ -1956,7 +1956,7 @@
       "subKind": "water",
       "interactable": true,
       "destructible": false,
-      "harvestWeight": 100,
+      "harvestWeight": 50,
       "spawnWeight": 0.15,
       "spawnCount": 1,
       "blocksMovement": true
@@ -1981,7 +1981,7 @@
       "maxAmount": 200,
       "initialAmount": 200,
       "harvestTimeMs": 4000,
-      "harvestWeight": 100,
+      "harvestWeight": 50,
       "spawnWeight": 0.2,
       "spawnCount": 25
     },
@@ -2005,7 +2005,7 @@
       "maxAmount": 60,
       "initialAmount": 60,
       "harvestTimeMs": 5000,
-      "harvestWeight": 100,
+      "harvestWeight": 50,
       "spawnWeight": 0.12,
       "spawnCount": 10
     },
@@ -2029,7 +2029,7 @@
       "maxAmount": 140,
       "initialAmount": 140,
       "harvestTimeMs": 3000,
-      "harvestWeight": 100,
+      "harvestWeight": 75,
       "spawnWeight": 0.28,
       "spawnCount": 14
     },
@@ -2053,7 +2053,7 @@
       "maxAmount": 55,
       "initialAmount": 55,
       "harvestTimeMs": 4500,
-      "harvestWeight": 100,
+      "harvestWeight": 50,
       "spawnWeight": 0.14,
       "spawnCount": 12
     },
@@ -2099,7 +2099,7 @@
       "maxAmount": 110,
       "initialAmount": 110,
       "harvestTimeMs": 5000,
-      "harvestWeight": 100,
+      "harvestWeight": 50,
       "spawnWeight": 0.18,
       "spawnCount": 10
     },
@@ -2263,7 +2263,7 @@
       "maxAmount": 120,
       "initialAmount": 120,
       "harvestTimeMs": 7500,
-      "harvestWeight": 100,
+      "harvestWeight": 25,
       "spawnWeight": 0.08,
       "spawnCount": 6
     },
