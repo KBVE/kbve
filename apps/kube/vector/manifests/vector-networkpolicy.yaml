@@ -23,3 +23,10 @@ spec:
           ports:
               - port: 9002
                 protocol: TCP
+        - from:
+              - namespaceSelector: {}
+          ports:
+              - port: 4317
+                protocol: TCP
+              - port: 4318
+                protocol: TCP
