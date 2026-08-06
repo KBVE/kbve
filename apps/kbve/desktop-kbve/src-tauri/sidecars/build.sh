@@ -24,7 +24,8 @@ esac
 build_one() {
   local name="$1"; shift
   echo "==> building $name $*"
-  cargo build --release --manifest-path "$name/Cargo.toml" "$@"
+  CARGO_TARGET_DIR="$SCRIPT_DIR/$name/target" \
+    cargo build --release --manifest-path "$name/Cargo.toml" "$@"
   cp "$name/target/release/$name" "./$name-$TRIPLE"
   echo "    staged ./$name-$TRIPLE"
 }
@@ -32,5 +33,6 @@ build_one() {
 build_one llm-sidecar $LLM_FEATURES
 build_one tts-sidecar
 build_one memory-sidecar
+build_one discord-sidecar
 
 echo "sidecars ready."

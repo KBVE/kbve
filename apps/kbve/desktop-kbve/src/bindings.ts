@@ -976,6 +976,171 @@ export const commands = {
 		}
 	},
 	/**
+	 * Check if a Discord bot token is configured (without returning the actual token)
+	 */
+	async discordHasToken(): Promise<boolean> {
+		return await TAURI_INVOKE('discord_has_token');
+	},
+	/**
+	 * Get a masked version of the Discord bot token for display purposes only
+	 * Returns None if no token is set, or a masked string like "********...abcd"
+	 */
+	async discordGetToken(): Promise<string | null> {
+		return await TAURI_INVOKE('discord_get_token');
+	},
+	/**
+	 * Set the Discord bot token (stores securely, never echoed back in full)
+	 */
+	async discordSetToken(token: string): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('discord_set_token', { token }),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	/**
+	 * Clear the stored Discord bot token
+	 */
+	async discordClearToken(): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('discord_clear_token'),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	/**
+	 * Connect to Discord using the stored token
+	 */
+	async discordConnectWithStoredToken(): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('discord_connect_with_stored_token'),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	/**
+	 * Get Discord connection status
+	 */
+	async discordGetStatus(): Promise<DiscordState> {
+		return await TAURI_INVOKE('discord_get_status');
+	},
+	/**
+	 * Get list of guilds the bot is in
+	 */
+	async discordGetGuilds(): Promise<Result<GuildInfo[], string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('discord_get_guilds'),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	/**
+	 * Get voice channels for a guild
+	 */
+	async discordGetChannels(
+		guildId: string,
+	): Promise<Result<ChannelInfo[], string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('discord_get_channels', { guildId }),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	/**
+	 * Connect to a Discord voice channel
+	 */
+	async discordConnect(
+		guildId: string,
+		channelId: string,
+	): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('discord_connect', {
+					guildId,
+					channelId,
+				}),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	/**
+	 * Disconnect from Discord voice
+	 */
+	async discordDisconnect(): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('discord_disconnect'),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	/**
+	 * Speak text in the voice channel
+	 */
+	async discordSpeak(text: string): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('discord_speak', { text }),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	/**
+	 * Start Discord conversation mode (listen and respond to voice in Discord)
+	 */
+	async discordStartConversation(): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('discord_start_conversation'),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	/**
+	 * Stop Discord conversation mode
+	 */
+	async discordStopConversation(): Promise<void> {
+		await TAURI_INVOKE('discord_stop_conversation');
+	},
+	/**
+	 * Check if Discord conversation mode is running
+	 */
+	async discordIsConversationRunning(): Promise<boolean> {
+		return await TAURI_INVOKE('discord_is_conversation_running');
+	},
+	/**
 	 * Check if required DevOps dependencies (gh, tmux) are installed.
 	 * Runs in a blocking task to avoid freezing the UI.
 	 */
@@ -3226,6 +3391,7 @@ export type BindingResponse = {
 	binding: ShortcutBinding | null;
 	error: string | null;
 };
+export type ChannelInfo = { id: string; name: string; kind: string };
 /**
  * Status of the Claude Code authentication volume
  */
@@ -3393,6 +3559,17 @@ export type DevOpsDependencies = {
 	 * Whether sandboxed (Docker) agents are available
 	 */
 	sandbox_available: boolean;
+};
+/**
+ * Discord state for frontend
+ */
+export type DiscordState = {
+	connected: boolean;
+	in_voice: boolean;
+	listening: boolean;
+	guild_name: string | null;
+	channel_name: string | null;
+	error: string | null;
 };
 /**
  * Embedding model info returned from sidecar
@@ -3737,6 +3914,7 @@ export type GitHubPullRequest = {
 	 */
 	repo: string;
 };
+export type GuildInfo = { id: string; name: string };
 /**
  * Agent metadata stored in issue comments.
  */

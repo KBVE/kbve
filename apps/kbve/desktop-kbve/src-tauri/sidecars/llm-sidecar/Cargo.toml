@@ -29,3 +29,5 @@ vulkan = ["llama-cpp-2/vulkan"]
 lto = true
 codegen-units = 1
 strip = true
+
+[workspace]
