@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { logError, logWarn } from "../_shared/logging.ts";
 import {
   enforceBodySizeLimit,
   requireJsonContentType,
@@ -88,7 +89,7 @@ serve(async (req) => {
     }
     userId = claims.sub;
   } catch (e) {
-    console.error("discord-bootstrap: auth failed:", e);
+    logError("discord-bootstrap.auth", e);
     return jsonResponse({ error: "Authentication failed" }, 401);
   }
 
@@ -124,7 +125,9 @@ serve(async (req) => {
       );
     }
     if (!meRes.ok) {
-      console.error("discord-bootstrap: /users/@me failed:", meRes.status);
+      logError("discord-bootstrap.users_me", "/users/@me failed", {
+        status: meRes.status,
+      });
       return jsonResponse(
         { error: "Failed to verify Discord identity" },
         502,
@@ -139,7 +142,7 @@ serve(async (req) => {
     }
     discordUserId = me.id;
   } catch (e) {
-    console.error("discord-bootstrap: /users/@me threw:", e);
+    logError("discord-bootstrap.users_me", e);
     return jsonResponse({ error: "Failed to call Discord" }, 502);
   }
 
@@ -153,13 +156,11 @@ serve(async (req) => {
       { p_user_id: userId },
     );
     if (error) {
-      console.error(
-        "discord-bootstrap: proxy_service_get_discord_provider_id failed:",
-        error.message,
-        error.code,
-        error.details,
-        error.hint,
-      );
+      logError("discord-bootstrap.get_discord_provider_id", error.message, {
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+      });
       return jsonResponse(
         {
           error: "Failed to verify linked Discord identity",
@@ -177,10 +178,11 @@ serve(async (req) => {
       );
     }
     if (linkedProviderId !== discordUserId) {
-      console.warn(
-        "discord-bootstrap: provider_id mismatch",
-        { expected: linkedProviderId, got: discordUserId, userId },
-      );
+      logWarn("discord-bootstrap.provider_id_mismatch", {
+        expected: linkedProviderId,
+        got: discordUserId,
+        userId,
+      });
       return jsonResponse(
         {
           error:
@@ -210,10 +212,9 @@ serve(async (req) => {
       );
     }
     if (!gRes.ok) {
-      console.error(
-        "discord-bootstrap: /users/@me/guilds failed:",
-        gRes.status,
-      );
+      logError("discord-bootstrap.users_me_guilds", "/users/@me/guilds failed", {
+        status: gRes.status,
+      });
       return jsonResponse(
         { error: "Failed to fetch Discord guilds" },
         502,
@@ -234,7 +235,7 @@ serve(async (req) => {
       )
       .map((g) => g.id);
   } catch (e) {
-    console.error("discord-bootstrap: /users/@me/guilds threw:", e);
+    logError("discord-bootstrap.users_me_guilds", e);
     return jsonResponse({ error: "Failed to call Discord" }, 502);
   }
 
@@ -250,10 +251,7 @@ serve(async (req) => {
     },
   );
   if (rpcError) {
-    console.error(
-      "discord-bootstrap: service_upsert RPC failed:",
-      rpcError.message,
-    );
+    logError("discord-bootstrap.service_upsert", rpcError.message);
     // SQLSTATE 22023 = validation failure from the RPC; map to 400.
     const status = rpcError.code === "22023" ? 400 : 500;
     return jsonResponse(

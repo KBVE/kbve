@@ -1,0 +1,1094 @@
+{
+	"auth": {
+		"signIn": {
+			"title": "Welcome to Handy",
+			"description": "Sign in to sync your settings and access cloud features",
+			"github": "Sign in with GitHub",
+			"discord": "Sign in with Discord",
+			"twitch": "Sign in with Twitch",
+			"hint": "Your data is stored securely and never shared",
+			"cancel": "Cancel sign in"
+		},
+		"signOut": "Sign Out",
+		"ghost": {
+			"title": "Ghost Mode",
+			"subtitle": "Completely Offline",
+			"description": "Run entirely offline with no network connections. Perfect for privacy-focused users or air-gapped systems.",
+			"badge": {
+				"private": "100% Private",
+				"offline": "No Internet"
+			}
+		},
+		"guest": {
+			"title": "Guest Mode",
+			"subtitle": "Anonymous Access",
+			"description": "Use cloud features anonymously without creating an account. Some features may be limited.",
+			"badge": {
+				"anonymous": "Anonymous",
+				"cloud": "Cloud Enabled"
+			}
+		},
+		"or": "or",
+		"profile": {
+			"title": "Your Profile",
+			"avatar": "Profile picture",
+			"anonymous": "Anonymous User",
+			"via": "via",
+			"viewProfile": "View Profile",
+			"email": "Email",
+			"userId": "User ID",
+			"provider": "Sign-in Provider",
+			"unknown": "Unknown",
+			"syncInfo": "Your settings and preferences will sync across devices when you sign in on other computers."
+		}
+	},
+	"tray": {
+		"settings": "Settings...",
+		"checkUpdates": "Check for Updates...",
+		"quit": "Quit",
+		"cancel": "Cancel"
+	},
+	"sidebar": {
+		"general": "General",
+		"coach": "Coach",
+		"coaching": "Coaching",
+		"live": "Live",
+		"onichan": "Onichan",
+		"discord": "Discord",
+		"memory": "Memory",
+		"credentials": "Credentials",
+		"devops": "DevOps",
+		"advanced": "Advanced",
+		"postProcessing": "Post Process",
+		"history": "History",
+		"debug": "Debug",
+		"about": "About"
+	},
+	"onboarding": {
+		"subtitle": "To get started, choose a transcription model",
+		"vadSubtitle": "First, let's set up voice detection",
+		"vad": {
+			"title": "Voice Activity Detection",
+			"description": "This small model detects when you're speaking and helps improve transcription accuracy.",
+			"download": "Download Voice Detection Model",
+			"downloading": "Downloading... {{progress}}%",
+			"ready": "Voice detection is ready!",
+			"continue": "Continue",
+			"size": "~1.8 MB download"
+		},
+		"recommended": "Recommended",
+		"download": "Download",
+		"downloading": "Downloading...",
+		"modelCard": {
+			"accuracy": "accuracy",
+			"speed": "speed"
+		},
+		"models": {
+			"small": {
+				"name": "Whisper Small",
+				"description": "Fast and fairly accurate."
+			},
+			"medium": {
+				"name": "Whisper Medium",
+				"description": "Good accuracy, medium speed"
+			},
+			"turbo": {
+				"name": "Whisper Turbo",
+				"description": "Balanced accuracy and speed."
+			},
+			"large": {
+				"name": "Whisper Large",
+				"description": "Good accuracy, but slow."
+			},
+			"parakeet-tdt-0.6b-v2": {
+				"name": "Parakeet V2",
+				"description": "English only. The best model for English speakers."
+			},
+			"parakeet-tdt-0.6b-v3": {
+				"name": "Parakeet V3",
+				"description": "Fast and accurate"
+			},
+			"moonshine-base": {
+				"name": "Moonshine Base",
+				"description": "Very fast, English only. Handles accents well."
+			}
+		},
+		"errors": {
+			"loadModels": "Failed to load available models",
+			"downloadModel": "Failed to download model: {{error}}",
+			"vadDownload": "Failed to download voice detection model: {{error}}"
+		}
+	},
+	"modelSelector": {
+		"welcome": "Welcome to Handy!",
+		"downloadPrompt": "Download a model below to get started with transcription.",
+		"availableModels": "Available Models",
+		"downloadModels": "Download Models",
+		"chooseModel": "Choose a Model",
+		"active": "Active",
+		"download": "Download",
+		"downloadSize": "Download size",
+		"noModelsAvailable": "No models available",
+		"extracting": "Extracting {{modelName}}...",
+		"extractingMultiple": "Extracting {{count}} models...",
+		"extractingGeneric": "Extracting...",
+		"downloading": "Downloading {{percentage}}%",
+		"downloadingMultiple": "Downloading {{count}} models...",
+		"modelReady": "Model Ready",
+		"loading": "Loading {{modelName}}...",
+		"loadingGeneric": "Loading...",
+		"modelError": "Model Error",
+		"modelUnloaded": "Model Unloaded",
+		"noModelDownloadRequired": "No Model - Download Required",
+		"deleteModel": "Delete {{modelName}}"
+	},
+	"settings": {
+		"general": {
+			"title": "General",
+			"shortcut": {
+				"title": "Handy Shortcuts",
+				"description": "Configure keyboard shortcuts to trigger speech-to-text recording",
+				"loading": "Loading shortcuts...",
+				"none": "No shortcuts configured",
+				"notFound": "Shortcut not found",
+				"pressKeys": "Press keys...",
+				"bindings": {
+					"transcribe": {
+						"name": "Transcribe",
+						"description": "Converts your speech into text."
+					},
+					"cancel": {
+						"name": "Cancel",
+						"description": "Cancels the current recording."
+					}
+				},
+				"errors": {
+					"restore": "Failed to restore original shortcut",
+					"set": "Failed to set shortcut: {{error}}",
+					"reset": "Failed to reset shortcut to original value"
+				}
+			},
+			"language": {
+				"title": "Language",
+				"description": "Select the language for speech recognition. Auto will automatically determine the language, while selecting a specific language can improve accuracy for that language.",
+				"descriptionUnsupported": "Parakeet model automatically detects the language. No manual selection is needed.",
+				"searchPlaceholder": "Search languages...",
+				"noResults": "No languages found",
+				"auto": "Auto"
+			},
+			"pushToTalk": {
+				"label": "Push To Talk",
+				"description": "Hold to record, release to stop"
+			}
+		},
+		"sound": {
+			"title": "Sound",
+			"microphone": {
+				"title": "Microphone",
+				"description": "Select your preferred microphone device",
+				"placeholder": "Select microphone...",
+				"loading": "Loading..."
+			},
+			"audioFeedback": {
+				"label": "Audio Feedback",
+				"description": "Play sound when recording starts and stops"
+			},
+			"outputDevice": {
+				"title": "Output Device",
+				"description": "Select your preferred audio output device for feedback sounds",
+				"placeholder": "Select output device...",
+				"loading": "Loading..."
+			},
+			"volume": {
+				"title": "Volume",
+				"description": "Adjust the volume of audio feedback sounds"
+			}
+		},
+		"advanced": {
+			"title": "Advanced",
+			"startHidden": {
+				"label": "Start Hidden",
+				"description": "Launch to system tray without opening the window."
+			},
+			"autostart": {
+				"label": "Launch on Startup",
+				"description": "Automatically start Handy when you log in to your computer."
+			},
+			"overlay": {
+				"title": "Overlay Position",
+				"description": "Display visual feedback overlay during recording and transcription. On Linux 'None' is recommended.",
+				"options": {
+					"none": "None",
+					"bottom": "Bottom",
+					"top": "Top"
+				}
+			},
+			"pasteMethod": {
+				"title": "Paste Method",
+				"description": "Choose how text is inserted. Direct: simulates typing via system input. None: skips paste, only updates history/clipboard.",
+				"options": {
+					"clipboard": "Clipboard ({{modifier}}+V)",
+					"clipboardCtrlShiftV": "Clipboard (Ctrl+Shift+V)",
+					"clipboardShiftInsert": "Clipboard (Shift+Insert)",
+					"direct": "Direct",
+					"none": "None"
+				}
+			},
+			"clipboardHandling": {
+				"title": "Clipboard Handling",
+				"description": "Don't Modify Clipboard preserves your current clipboard contents after transcription. Copy to Clipboard leaves the transcription result in your clipboard after pasting.",
+				"options": {
+					"dontModify": "Don't Modify Clipboard",
+					"copyToClipboard": "Copy to Clipboard"
+				}
+			},
+			"translateToEnglish": {
+				"label": "Translate to English",
+				"description": "Automatically translate speech from other languages to English during transcription.",
+				"descriptionUnsupported": "Translation is not supported by the {{model}} model."
+			},
+			"modelUnload": {
+				"title": "Unload Model",
+				"description": "Automatically free GPU/CPU memory when the model hasn't been used for the specified time",
+				"options": {
+					"never": "Never",
+					"immediately": "Immediately",
+					"min2": "After 2 minutes",
+					"min5": "After 5 minutes",
+					"min10": "After 10 minutes",
+					"min15": "After 15 minutes",
+					"hour1": "After 1 hour",
+					"sec5": "After 5 seconds (Debug)"
+				}
+			},
+			"customWords": {
+				"title": "Custom Words",
+				"description": "Add words that are often misheard or misspelled during transcription. The system will automatically correct similar-sounding words to match your list.",
+				"placeholder": "Add a word",
+				"add": "Add",
+				"remove": "Remove {{word}}"
+			},
+			"privacy": {
+				"title": "Privacy"
+			},
+			"resetApp": {
+				"title": "Reset App",
+				"description": "Delete all data including models, recordings, history, and settings. The app will restart fresh with onboarding.",
+				"button": "Reset All Data",
+				"confirmTitle": "Are you sure?",
+				"confirmDescription": "This will permanently delete all your data including downloaded models, recordings, transcription history, and settings. This action cannot be undone. The app will restart after reset.",
+				"confirmButton": "Yes, Reset Everything",
+				"resetting": "Resetting..."
+			}
+		},
+		"postProcessing": {
+			"title": "Post Process",
+			"disabledNotice": "Post processing is currently disabled. Enable it in Debug settings to configure.",
+			"api": {
+				"title": "API (OpenAI Compatible)",
+				"provider": {
+					"title": "Provider",
+					"description": "Select an OpenAI-compatible provider."
+				},
+				"appleIntelligence": {
+					"title": "Apple Intelligence",
+					"description": "Runs fully on-device. No API key or network access is required.",
+					"requirements": "Requires an Apple Silicon Mac running macOS Tahoe (26.0) or later. Apple Intelligence must be enabled in System Settings.",
+					"unavailable": "Apple Intelligence is not available on this device. Requires an Apple Silicon Mac running macOS Tahoe (26.0) or later with Apple Intelligence enabled in System Settings."
+				},
+				"baseUrl": {
+					"title": "Base URL",
+					"description": "API base URL for the selected provider. Only the custom provider can be edited.",
+					"placeholder": "https://api.openai.com/v1"
+				},
+				"apiKey": {
+					"title": "API Key",
+					"description": "API key for the selected provider.",
+					"placeholder": "sk-..."
+				},
+				"model": {
+					"title": "Model",
+					"descriptionApple": "Provide an optional numeric token limit or keep the default on-device preset.",
+					"descriptionCustom": "Provide the model identifier expected by your custom endpoint.",
+					"descriptionDefault": "Choose a model exposed by the selected provider.",
+					"placeholderApple": "Apple Intelligence",
+					"placeholderWithOptions": "Search or select a model",
+					"placeholderNoOptions": "Type a model name",
+					"refreshModels": "Refresh models"
+				}
+			},
+			"prompts": {
+				"title": "Prompt",
+				"selectedPrompt": {
+					"title": "Selected Prompt",
+					"description": "Select a template for refining transcriptions or create a new one. Use ${output} inside the prompt text to reference the captured transcript."
+				},
+				"noPrompts": "No prompts available",
+				"selectPrompt": "Select a prompt",
+				"createNew": "Create New Prompt",
+				"promptLabel": "Prompt Label",
+				"promptLabelPlaceholder": "Enter prompt name",
+				"promptInstructions": "Prompt Instructions",
+				"promptInstructionsPlaceholder": "Write the instructions to run after transcription. Example: Improve grammar and clarity for the following text: ${output}",
+				"promptTip": "Tip: Use <code>${output}</code> to insert the transcribed text in your prompt.",
+				"updatePrompt": "Update Prompt",
+				"deletePrompt": "Delete Prompt",
+				"createPrompt": "Create Prompt",
+				"cancel": "Cancel",
+				"selectToEdit": "Select a prompt above to view and edit its details.",
+				"createFirst": "Click 'Create New Prompt' above to create your first post-processing prompt."
+			}
+		},
+		"history": {
+			"title": "History",
+			"openFolder": "Open Recordings Folder",
+			"loading": "Loading history...",
+			"empty": "No transcriptions yet. Start recording to build your history!",
+			"copyToClipboard": "Copy transcription to clipboard",
+			"save": "Save transcription",
+			"unsave": "Remove from saved",
+			"delete": "Delete entry",
+			"deleteError": "Failed to delete entry. Please try again."
+		},
+		"debug": {
+			"title": "Debug",
+			"logDirectory": {
+				"title": "Log Directory",
+				"description": "Location where log files are stored"
+			},
+			"logLevel": {
+				"title": "Log Level",
+				"description": "Set the verbosity of logging"
+			},
+			"updateChecks": {
+				"label": "Check for Updates",
+				"description": "Automatically check for new versions of Handy"
+			},
+			"soundTheme": {
+				"label": "Sound Theme",
+				"description": "Choose a sound theme for recording start and stop feedback"
+			},
+			"wordCorrectionThreshold": {
+				"title": "Word Correction Threshold",
+				"description": "Sensitivity for custom word corrections"
+			},
+			"historyLimit": {
+				"title": "History Limit",
+				"description": "Maximum number of history entries to keep",
+				"entries": "entries"
+			},
+			"recordingRetention": {
+				"title": "Auto-Delete Recordings",
+				"description": "Automatically delete old recordings to save space",
+				"never": "Never",
+				"preserveLimit": "Keep latest {{count}}",
+				"days3": "After 3 days",
+				"weeks2": "After 2 weeks",
+				"months3": "After 3 months",
+				"placeholder": "Select retention period..."
+			},
+			"alwaysOnMicrophone": {
+				"label": "Always-On Microphone",
+				"description": "Keep microphone active for faster response"
+			},
+			"clamshellMicrophone": {
+				"title": "Clamshell Microphone",
+				"description": "Microphone to use when laptop lid is closed"
+			},
+			"postProcessingToggle": {
+				"label": "Post Processing",
+				"description": "Enable AI-powered text refinement after transcription"
+			},
+			"muteWhileRecording": {
+				"label": "Mute While Recording",
+				"description": "Mute system audio during recording"
+			},
+			"appendTrailingSpace": {
+				"label": "Append Trailing Space",
+				"description": "Add a space after pasted transcription"
+			},
+			"paths": {
+				"appData": "App Data:",
+				"models": "Models:",
+				"settings": "Settings:"
+			}
+		},
+		"about": {
+			"title": "About",
+			"version": {
+				"title": "Version",
+				"description": "Current version of Handy"
+			},
+			"appDataDirectory": {
+				"title": "App Data Directory",
+				"description": "Location where Handy stores its data"
+			},
+			"sourceCode": {
+				"title": "Source Code",
+				"description": "View source code and contribute",
+				"button": "View on GitHub"
+			},
+			"supportDevelopment": {
+				"title": "Support Development",
+				"description": "Help us continue building Handy",
+				"button": "Donate"
+			},
+			"acknowledgments": {
+				"title": "Acknowledgments",
+				"whisper": {
+					"title": "Whisper.cpp",
+					"description": "High-performance inference of OpenAI's Whisper automatic speech recognition model",
+					"details": "Handy uses Whisper.cpp for fast, local speech-to-text processing. Thanks to the amazing work by Georgi Gerganov and contributors."
+				}
+			}
+		}
+	},
+	"footer": {
+		"signIn": "Sign In",
+		"downloadingModel": "Downloading {{model}}...",
+		"checkingUpdates": "Checking for updates...",
+		"updateAvailable": "Update available: {{version}}",
+		"updateAvailableShort": "Update available",
+		"upToDate": "Up to date",
+		"downloadUpdate": "Download Update",
+		"restart": "Restart",
+		"updateCheckingDisabled": "Update Checking Disabled",
+		"downloading": "Downloading... {{progress}}%",
+		"installing": "Installing...",
+		"preparing": "Preparing...",
+		"checkForUpdates": "Check for updates",
+		"sidecar": {
+			"llm": "LLM",
+			"tts": "TTS",
+			"discord": "Discord",
+			"memory": "Memory",
+			"online": "{{name}}: Online",
+			"offline": "{{name}}: Offline",
+			"loading": "{{name}}: Loading..."
+		},
+		"popover": {
+			"status": "Status",
+			"model": "Model",
+			"loaded": "Loaded",
+			"notLoaded": "Not Loaded",
+			"running": "Running",
+			"stopped": "Stopped",
+			"yes": "Yes",
+			"no": "No",
+			"connected": "Connected",
+			"inVoice": "In Voice",
+			"server": "Server",
+			"channel": "Channel",
+			"sidecar": "Sidecar",
+			"embeddingModel": "Embedding Model",
+			"memories": "Memories",
+			"llmDescription": "Local language model for AI responses in Onichan mode.",
+			"ttsDescription": "Text-to-speech engine for voice responses.",
+			"discordDescription": "Discord bot for voice channel integration.",
+			"memoryDescription": "Long-term memory storage for conversation context.",
+			"start": "Start",
+			"stop": "Stop",
+			"starting": "Starting...",
+			"stopping": "Stopping...",
+			"notConfigured": "Not configured"
+		},
+		"devops": {
+			"title": "DevOps",
+			"tmuxServer": "tmux Server",
+			"running": "Running",
+			"stopped": "Stopped",
+			"totalAgents": "Total Agents",
+			"localAgents": "Local",
+			"remoteAgents": "Remote",
+			"machineId": "Machine ID",
+			"description": "Multi-agent orchestration system for automated code development."
+		}
+	},
+	"common": {
+		"loading": "Loading...",
+		"save": "Save",
+		"cancel": "Cancel",
+		"reset": "Reset",
+		"add": "Add",
+		"remove": "Remove",
+		"delete": "Delete",
+		"edit": "Edit",
+		"create": "Create",
+		"update": "Update",
+		"close": "Close",
+		"open": "Open",
+		"default": "Default",
+		"enabled": "Enabled",
+		"disabled": "Disabled",
+		"on": "On",
+		"off": "Off",
+		"yes": "Yes",
+		"no": "No",
+		"noOptionsFound": "No options found"
+	},
+	"accessibility": {
+		"permissionsRequired": "Accessibility Permissions Required",
+		"permissionsDescription": "Handy needs accessibility permissions to type transcribed text.",
+		"openSettings": "Open System Settings",
+		"dismiss": "Dismiss"
+	},
+	"errors": {
+		"loadDirectory": "Error loading directory: {{error}}"
+	},
+	"appLanguage": {
+		"title": "Application Language",
+		"description": "Change the language of the Handy interface"
+	},
+	"overlay": {
+		"transcribing": "Transcribing..."
+	},
+	"coaching": {
+		"title": "Settings",
+		"settingsToggle": "Show coaching settings",
+		"fillerDetection": {
+			"label": "Filler Word Detection",
+			"description": "Detect and analyze filler words like 'um', 'uh', 'like' in your speech"
+		},
+		"outputMode": {
+			"label": "Output Mode",
+			"description": "Choose what happens after filler words are detected",
+			"coachingOnly": "Coaching Only (don't paste)",
+			"pasteCleaned": "Paste Cleaned Text",
+			"pasteOriginal": "Paste Original + Show Feedback",
+			"both": "Paste Cleaned + Show Feedback"
+		},
+		"showOverlay": {
+			"label": "Show Filler Stats",
+			"description": "Display filler word statistics after each transcription"
+		},
+		"customWords": {
+			"title": "Custom Filler Words",
+			"description": "Add your own filler words or phrases to detect in addition to the defaults",
+			"placeholder": "Add a filler word",
+			"add": "Add",
+			"remove": "Remove {{word}}"
+		},
+		"stats": {
+			"fillerCount": "Filler Words",
+			"percentage": "of speech",
+			"topFillers": "Most Used",
+			"improvement": "Improvement"
+		},
+		"tips": {
+			"title": "Tips to Reduce Filler Words",
+			"pause": "Pause instead of filling silence",
+			"slow": "Slow down your speaking pace",
+			"practice": "Practice with shorter recordings"
+		}
+	},
+	"live": {
+		"title": "Live Coaching",
+		"status": {
+			"idle": "Ready",
+			"recording": "Recording",
+			"transcribing": "Transcribing...",
+			"complete": "Complete"
+		},
+		"trafficLight": {
+			"idle": "Press your shortcut to start",
+			"green": "Great flow!",
+			"yellow": "Some filler words detected",
+			"red": "Too many filler words"
+		},
+		"stats": {
+			"fillerWords": "Filler Words",
+			"totalWords": "Total Words",
+			"fillerPercentage": "Filler %"
+		},
+		"transcription": {
+			"title": "Transcription"
+		},
+		"breakdown": {
+			"title": "Filler Word Breakdown"
+		},
+		"fillerWord": "Filler word",
+		"instructions": {
+			"title": "Ready for Live Coaching",
+			"description": "Use your recording shortcut to start. Your speech will be analyzed in real-time for filler words."
+		}
+	},
+	"onichan": {
+		"tabs": {
+			"core": "Core",
+			"chat": "Chat",
+			"discord": "Discord",
+			"models": "Models"
+		},
+		"core": {
+			"description": "Quick-start all services with one click",
+			"startAll": "Start All",
+			"stopAll": "Stop All",
+			"start": "Start",
+			"stop": "Stop",
+			"starting": "Starting...",
+			"running": "Running",
+			"ready": "Ready to start",
+			"notConfigured": "Not configured",
+			"noConfig": "No services configured yet",
+			"noConfigHint": "Use the Models and Discord tabs to set up services first",
+			"llm": "Language Model",
+			"tts": "Text-to-Speech",
+			"discord": "Discord Voice",
+			"memory": "Memory"
+		},
+		"title": "Onichan Voice Assistant",
+		"enable": "Enable",
+		"disable": "Disable",
+		"status": {
+			"idle": "Ready to listen",
+			"listening": "Listening...",
+			"thinking": "Thinking...",
+			"speaking": "Speaking..."
+		},
+		"instructions": "Use your recording shortcut to speak. Onichan will respond when you stop.",
+		"instructionsContinuous": "Just start speaking. Onichan is listening and will respond when you pause.",
+		"continuousListening": "Continuous listening active - just start talking",
+		"silenceThreshold": {
+			"label": "Pause Duration",
+			"description": "Time to wait before responding",
+			"min": "0.5s",
+			"max": "5s",
+			"value": "{{value}}s"
+		},
+		"volume": {
+			"label": "TTS Volume",
+			"description": "Speech output volume",
+			"min": "0%",
+			"max": "100%"
+		},
+		"liveTranscription": "You said",
+		"listeningPlaceholder": "Listening...",
+		"processingPlaceholder": "Processing...",
+		"conversation": "Conversation",
+		"clearHistory": "Clear conversation",
+		"setupTitle": "Voice Assistant",
+		"setupDescription": "Enable Onichan to have voice conversations. Download and load a local LLM model below, or configure a cloud provider in Post Process settings.",
+		"mode": {
+			"label": "Processing Mode",
+			"local": "Local",
+			"cloud": "Cloud",
+			"localWarning": "Load a Language Model below to enable Local mode. TTS uses your system voices automatically.",
+			"cloudInfo": "Uses your configured Post Process API provider. Make sure you have an API key set in Post Process settings."
+		},
+		"models": {
+			"llmTitle": "Language Model (LLM)",
+			"llmDescription": "Download and load a local language model for AI responses.",
+			"ttsTitle": "Text-to-Speech (TTS)",
+			"ttsDescription": "Select a voice for spoken responses. In Local mode, uses your system's built-in voices.",
+			"ttsNote": "In Local mode, voices are mapped to system TTS (macOS say, Windows SAPI). In Cloud mode, uses OpenAI TTS.",
+			"active": "Active",
+			"available": "Available",
+			"notDownloaded": "Download",
+			"load": "Load model",
+			"unload": "Unload model",
+			"unloadButton": "Unload",
+			"download": "Download model",
+			"downloadButton": "Download",
+			"delete": "Delete model",
+			"clickToLoad": "Click to load",
+			"loading": "Loading...",
+			"loadingTooltip": "Loading model into memory, this may take a moment",
+			"downloading": "Downloading..."
+		},
+		"tooltips": {
+			"enableDisabled": "Load a Language Model below before enabling Local mode",
+			"enableReady": "Click to enable voice assistant",
+			"disableActive": "Click to disable voice assistant",
+			"modeLocal": "Process locally using downloaded models. No internet required.",
+			"modeCloud": "Process using cloud API. Requires API key in Post Process settings."
+		}
+	},
+	"discord": {
+		"title": "Discord Bot",
+		"botConfiguration": "Bot Configuration",
+		"description": "Connect KBVE to your Discord server to use voice coaching in voice channels.",
+		"botToken": {
+			"label": "Bot Token",
+			"placeholder": "Enter your Discord bot token",
+			"save": "Save",
+			"clear": "Clear",
+			"saved": "Token saved securely",
+			"hint": "Get your bot token from the Discord Developer Portal",
+			"securityNote": "Your token is stored securely and never displayed in full"
+		},
+		"status": {
+			"connected": "Connected to voice channel",
+			"disconnected": "Not connected",
+			"connecting": "Connecting to Discord...",
+			"fetchingServers": "Fetching servers...",
+			"waitingForServers": "Waiting for server list (attempt {{attempt}}/{{max}})...",
+			"noServersFound": "No servers found. Make sure the bot is in at least one server.",
+			"botOnline": "Bot is online",
+			"botOffline": "Bot is offline - click refresh or reconnect"
+		},
+		"connection": {
+			"title": "Voice Channel"
+		},
+		"guild": {
+			"label": "Server",
+			"placeholder": "Select a server...",
+			"loading": "Loading servers...",
+			"refresh": "Refresh server list",
+			"noServersHint": "No servers found. Click refresh or make sure the bot has been invited to your server."
+		},
+		"channel": {
+			"label": "Voice Channel",
+			"placeholder": "Select a voice channel..."
+		},
+		"connect": "Connect to Voice",
+		"connecting": "Connecting...",
+		"reconnect": "Reconnect",
+		"disconnect": "Disconnect",
+		"controls": {
+			"title": "Voice Controls",
+			"description": "You're connected to Discord voice. KBVE will listen and provide coaching feedback."
+		},
+		"setup": {
+			"title": "Discord Integration",
+			"description": "Set up a Discord bot to use voice coaching in voice channels.",
+			"step1": "Go to Discord Developer Portal and create a new application",
+			"step2": "Create a bot and copy the bot token",
+			"step3": "Invite the bot to your server with Voice permissions",
+			"step4": "Paste the bot token above to get started"
+		},
+		"errors": {
+			"tokenRequired": "Bot token is required",
+			"selectChannel": "Please select a server and voice channel"
+		},
+		"models": {
+			"llmTitle": "Language Model (LLM)",
+			"llmDescription": "Select a language model for generating responses in Discord voice chat.",
+			"llmRequired": "Load a language model to enable AI responses in voice chat.",
+			"ttsTitle": "Text-to-Speech (TTS)",
+			"ttsDescription": "Select a TTS model for speaking responses in Discord voice chat.",
+			"ttsRequired": "Load a TTS model to enable voice responses."
+		},
+		"conversation": {
+			"title": "Voice Assistant",
+			"label": "Discord Conversation Mode",
+			"description": "Enable continuous listening in Discord voice. The bot will transcribe what users say, generate AI responses, and speak back to the channel.",
+			"start": "Start Listening",
+			"stop": "Stop Listening",
+			"hint": "Make sure you have a transcription model and TTS loaded. The bot will respond to anyone speaking in the voice channel.",
+			"status": {
+				"active": "Listening for voice...",
+				"listening": "Listening for speech...",
+				"transcribing": "Transcribing...",
+				"thinking": "Generating response...",
+				"speaking": "Speaking response..."
+			}
+		}
+	},
+	"memory": {
+		"title": "Long-Term Memory",
+		"status": {
+			"title": "Status",
+			"refresh": "Refresh status",
+			"sidecarRunning": "Memory sidecar is running",
+			"sidecarStopped": "Memory sidecar is not running",
+			"modelLoaded": "Embedding model loaded",
+			"modelNotLoaded": "Embedding model not loaded",
+			"memoryCount": "{{count}} memories stored",
+			"info": "Memories are stored when you use Onichan or Discord voice chat. The embedding model downloads automatically on first use.",
+			"startButton": "Start Memory Service",
+			"starting": "Starting...",
+			"stopButton": "Stop Memory Service",
+			"stopping": "Stopping..."
+		},
+		"model": {
+			"title": "Embedding Model",
+			"description": "Select an embedding model for semantic memory search. Larger models are more accurate but use more resources.",
+			"active": "Active",
+			"available": "Available",
+			"notDownloaded": "Download",
+			"loading": "Loading...",
+			"clickToLoad": "Click to load this model",
+			"downloadAndLoad": "Download and load this model",
+			"downloadButton": "Download",
+			"loadFirst": "Start the memory sidecar to see available models",
+			"note": "Models are downloaded from HuggingFace on first use. Changing models doesn't affect stored memories.",
+			"sizeAndDim": "{{size}} MB • {{dim}} dim"
+		},
+		"browser": {
+			"title": "Memory Browser",
+			"search": "Search memories semantically...",
+			"searchButton": "Search",
+			"searchHint": "Enter a search query to find relevant memories",
+			"noResults": "No memories found matching your query",
+			"clearAll": "Clear All Memories",
+			"userId": "User: {{id}}...",
+			"similarity": "{{percent}}% match",
+			"browseRecent": "Browse Recent",
+			"browseRecentHint": "Browse recent memories without search",
+			"filters": "Filters",
+			"filterByUser": "Filter by User",
+			"filterByType": "Filter by Type",
+			"allUsers": "All Users",
+			"allTypes": "All Types",
+			"userMessages": "User Messages",
+			"botResponses": "Bot Responses",
+			"recentFirst": "Recent First",
+			"relevanceFirst": "Relevance First",
+			"sortBy": "Sort",
+			"userCount": "{{count}} memories",
+			"userOption": "{{id}}... ({{count}} memories)",
+			"loadMore": "Load More",
+			"showingCount": "Showing {{count}} of {{total}} memories",
+			"recencyBadge": "Recent",
+			"semanticSearch": "Semantic Search",
+			"chronological": "Chronological",
+			"viewMode": "View"
+		},
+		"dangerZone": {
+			"title": "Danger Zone",
+			"clearDescription": "Permanently delete all stored memories. This cannot be undone.",
+			"cancel": "Cancel",
+			"confirm": "Yes, Delete All"
+		},
+		"empty": {
+			"title": "No Memories Yet",
+			"description": "Memories will be stored automatically when you use Onichan or Discord voice chat."
+		}
+	},
+	"devops": {
+		"title": "DevOps",
+		"description": "Manage coding agents and multi-repo workflows. Requires debug mode enabled.",
+		"refresh": "Refresh",
+		"tabs": {
+			"settings": "Settings",
+			"sessions": "Sessions"
+		},
+		"dependencies": {
+			"title": "Dependencies",
+			"description": "Required CLI tools for DevOps features",
+			"allSatisfied": "All dependencies installed",
+			"missing": "Some dependencies missing",
+			"version": "Version",
+			"path": "Path",
+			"unknown": "unknown",
+			"notInstalled": "Not installed. Run the command below to install:",
+			"copyCommand": "Copy install command",
+			"required": "Required",
+			"agents": "AI Coding Agents (at least one required)",
+			"localLlm": "Local LLM Servers (optional)",
+			"availableAgents": "Available agents",
+			"enabledAgents": "Enabled agents",
+			"installFirst": "Install this tool first to enable it",
+			"authenticatedAs": "Authenticated as",
+			"notAuthenticated": "Not authenticated",
+			"verifyInstance": "You need to verify your instance before using this tool.",
+			"launchAuth": "Launch Authentication",
+			"followGuide": "Follow the authentication guide",
+			"optional": "Optional (enables sandboxed agents)",
+			"sandboxAvailable": "✓ Docker daemon running - sandboxed agents available",
+			"copied": "Copied!",
+			"copiedInstallHint": "Install command copied to clipboard",
+			"copiedPath": "Path copied to clipboard",
+			"copyFailed": "Copy Failed",
+			"copyFailedMessage": "Could not copy to clipboard",
+			"clickToCopy": "Click to copy",
+			"daemonNotRunning": "Docker installed but daemon not running",
+			"daemonNotRunningHint": "Start Docker Desktop to enable sandboxed agents"
+		},
+		"supportWorker": {
+			"sectionTitle": "Support Worker",
+			"sectionDescription": "A general-purpose helper agent for quick tasks and testing",
+			"title": "Support Worker",
+			"running": "Agent is running",
+			"stopped": "Agent is stopped",
+			"start": "Start Support Worker",
+			"stop": "Stop",
+			"attach": "Attach",
+			"description": "Start a general-purpose Claude agent for support tasks, quick questions, or testing. This worker runs in a tmux session and can be used for any ad-hoc assistance.",
+			"inputPlaceholder": "Send a message to the support worker..."
+		},
+		"sessions": {
+			"title": "Agent Sessions",
+			"description": "Manage tmux sessions running coding agents",
+			"comingSoon": "Agent session management coming soon. This will allow you to spawn and monitor multiple coding agents working in parallel.",
+			"tmuxNotRunning": "tmux is not currently running",
+			"tmuxNotRunningHint": "Start a tmux session to manage coding agents",
+			"noSessions": "No active sessions",
+			"noSessionsHint": "Sessions will appear here when you start coding agents",
+			"activeCount": "{{count}} active session(s)",
+			"attached": "Attached",
+			"kill": "Kill",
+			"openTerminal": "Open in Terminal",
+			"noOutput": "No output yet...",
+			"expand": "Expand session",
+			"collapse": "Collapse",
+			"send": "Send message",
+			"sendPlaceholder": "Type a message to send to the agent...",
+			"quickKeys": "Quick keys:",
+			"startedAt": "Started at",
+			"updating": "updating...",
+			"justNow": "just now",
+			"secondsAgo": "{{count}}s ago",
+			"minutesAgo": "{{count}}m ago",
+			"recoveryTitle": "Recovery Suggestions",
+			"action": {
+				"resume": "Session can be resumed",
+				"cleanup": "Session needs cleanup",
+				"recreate": "Session should be recreated"
+			}
+		},
+		"epicMonitor": {
+			"title": "Epic Monitor",
+			"linkHint": "Link an Epic to enable monitoring",
+			"watching": "Watching for completions...",
+			"description": "Supervisor for Epic sub-agents",
+			"startMonitoring": "Start Monitoring",
+			"stop": "Stop",
+			"check": "Check",
+			"checkNow": "Check now",
+			"started": "Epic Monitor Started",
+			"startedMessage": "Checking every 30s",
+			"stopped": "Epic Monitor Stopped",
+			"inProgress": "In Progress",
+			"ready": "Ready (PR)",
+			"completed": "Completed",
+			"queued": "Queued",
+			"autoUpdateGithub": "Auto-update Epic issue on GitHub when sub-issues complete",
+			"autoStartNextPhase": "Auto-merge ready PRs and start next phase",
+			"lastCheck": "Last check: {{time}}",
+			"activeAgents": "Active Agents",
+			"phases": "Phases",
+			"phaseNumber": "Phase {{number}}",
+			"markComplete": "Mark Complete",
+			"phaseUpdated": "Phase Updated",
+			"phaseUpdatedMessage": "Phase {{phase}} marked as {{status}}",
+			"phaseUpdateFailed": "Failed to update phase status",
+			"readyPRs": "Ready PRs",
+			"mergeAll": "Merge All",
+			"merge": "Merge",
+			"mergePR": "Merge this PR",
+			"viewPR": "View PR on GitHub",
+			"mergePRSuccess": "PR Merged Successfully",
+			"mergePRFailed": "Failed to merge PR",
+			"phaseCompleteMessage": "Phase complete! Next phase: {{nextPhase}}",
+			"mergeAllSuccess": "Merged {{count}} PR(s)",
+			"mergeAllPartialFail": "{{count}} PR(s) failed to merge",
+			"mergeAllFailed": "Failed to process PRs",
+			"phasesCompleted": "Completed phases: {{phases}}"
+		},
+		"worktrees": {
+			"title": "Git Worktrees",
+			"description": "Isolated development environments for parallel agent work",
+			"count": "{{count}} worktree(s)",
+			"create": "New",
+			"createTitle": "Create Worktree",
+			"createButton": "Create Worktree",
+			"namePlaceholder": "Enter worktree name (e.g., fix-bug-123)",
+			"remove": "Remove worktree",
+			"main": "Main",
+			"locked": "Locked",
+			"prunable": "Prunable",
+			"notInRepo": "Not in a git repository",
+			"notInRepoHint": "Open a git repository to manage worktrees",
+			"noWorktrees": "No worktrees",
+			"noWorktreesHint": "Create a worktree to start parallel development"
+		},
+		"issues": {
+			"title": "GitHub Issues",
+			"description": "Task queue from GitHub issues for agent assignment",
+			"count": "{{count}} issue(s)",
+			"configureRepo": "Configure a repository to load issues from",
+			"repoPlaceholder": "owner/repo (e.g., KBVE/kbve)",
+			"setRepo": "Set",
+			"notAuthenticated": "GitHub CLI not authenticated",
+			"notAuthenticatedHint": "Run the following command to authenticate:",
+			"authCommand": "gh auth login",
+			"authenticatedAs": "Authenticated as {{user}}",
+			"noIssues": "No open issues",
+			"noIssuesHint": "Create issues in the repository to see them here",
+			"openInGitHub": "Open in GitHub"
+		},
+		"prs": {
+			"title": "Pull Requests",
+			"description": "Monitor and manage pull requests created by agents",
+			"count": "{{count}} PR(s)",
+			"configureRepo": "Configure a repository to load pull requests from",
+			"repoPlaceholder": "owner/repo (e.g., KBVE/kbve)",
+			"setRepo": "Set",
+			"notAuthenticated": "GitHub CLI not authenticated",
+			"notAuthenticatedHint": "Run the following command to authenticate:",
+			"authCommand": "gh auth login",
+			"authenticatedAs": "Authenticated as {{user}}",
+			"noPrs": "No open pull requests",
+			"noPrsHint": "PRs created by agents will appear here",
+			"openInGitHub": "Open in GitHub",
+			"showStatus": "Show status",
+			"draft": "Draft",
+			"checks": "Checks",
+			"reviews": "Reviews",
+			"passing": "passing",
+			"failing": "failing",
+			"pending": "pending",
+			"approved": "approved",
+			"changesRequested": "changes requested",
+			"mergeable": "Ready to merge",
+			"notMergeable": "Not mergeable"
+		},
+		"orchestrator": {
+			"title": "Active Agents",
+			"description": "Dashboard showing all running coding agents and their status",
+			"agentCount": "{{count}} active agent(s)",
+			"noAgents": "No active agents",
+			"noLocalAgents": "No local agents",
+			"noRemoteAgents": "No remote agents",
+			"noAgentsHint": "Spawn an agent from an issue to see it here",
+			"spawnAgent": "Spawn agent on this issue",
+			"attached": "Attached",
+			"local": "Local",
+			"remote": "Remote",
+			"all": "All",
+			"filterAll": "Show all agents",
+			"filterLocal": "Show only local agents",
+			"filterRemote": "Show only remote agents",
+			"cleanup": "Stop agent and cleanup resources",
+			"remoteCannotCleanup": "Cannot cleanup remote agent from this machine",
+			"completeWork": "Create PR and complete agent work",
+			"noIssueRef": "Agent has no associated issue",
+			"noRepoPath": "No repository path configured. Open a git repository first."
+		}
+	},
+	"credentials": {
+		"discord": {
+			"title": "Discord Bot Token",
+			"heading": "Discord Integration",
+			"description": "Your Discord bot token is stored securely. Configure or update it in the Discord settings tab.",
+			"configured": "Discord bot token is configured",
+			"notConfigured": "Discord bot token not configured",
+			"manageHint": "Go to the Discord tab to update or clear your token.",
+			"setupHint": "Go to the Discord tab to set up your bot token."
+		},
+		"supabase": {
+			"title": "Supabase Configuration",
+			"heading": "Supabase Backend",
+			"description": "Configure your Supabase project for user authentication and cloud sync features.",
+			"urlLabel": "Supabase URL",
+			"urlPlaceholder": "https://your-project.supabase.co",
+			"urlHint": "Find this in your Supabase project settings under API",
+			"keyLabel": "Supabase Anon Key",
+			"keyPlaceholder": "Enter your Supabase anon/public key",
+			"keyHint": "The public anonymous key from your Supabase project settings",
+			"save": "Save",
+			"clear": "Clear",
+			"keySaved": "Anon key saved securely",
+			"configured": "Supabase is configured",
+			"readyHint": "Your Supabase credentials are ready for authentication."
+		},
+		"errors": {
+			"keyRequired": "Anon key is required"
+		},
+		"info": {
+			"title": "Secure Credential Storage",
+			"description": "All credentials are stored securely on your device. API keys are never displayed in full after being saved."
+		}
+	}
+}

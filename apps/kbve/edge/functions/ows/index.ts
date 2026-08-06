@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { requireJsonContentType, enforceBodySizeLimit } from "../_shared/validators.ts";
+import { logError } from "../_shared/logging.ts";
 import { extractToken, jsonResponse, parseJwt } from "./_shared.ts";
 import { CHARACTER_ACTIONS, handleCharacter } from "./character.ts";
 import { FIRECRACKER_ACTIONS, handleFirecracker } from "./firecracker.ts";
@@ -94,7 +95,7 @@ serve(async (req) => {
 
     return mod.handler({ token, claims, body, action });
   } catch (err) {
-    console.error("ows error:", err);
+    logError("ows.unhandled", err);
     const rawMessage = err instanceof Error
       ? err.message
       : "Internal server error";

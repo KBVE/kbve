@@ -7,6 +7,8 @@ export * from './types';
 export * from './createStreamSource';
 export * from './useStream';
 export * from './StreamView';
+export * from './DashErrorBoundary';
+export * from './dashFetch';
 export * from './StatGrid';
 export * from './adapters/argo';
 export * from './adapters/grafana';

@@ -1,5 +1,5 @@
 /// <reference path="../types.d.ts" />
-import { serve } from "https://deno.land/std@0.131.0/http/server.ts";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import * as jose from "https://deno.land/x/jose@v4.14.4/index.ts";
 import { validateJwtSecret } from "../_shared/env.ts";
 import { logError, logInfo } from "../_shared/logging.ts";
@@ -182,8 +182,18 @@ serve(async (req: Request) => {
     argo: ["ARGOCD_UPSTREAM_URL", "ARGOCD_AUTH_TOKEN"],
     "discord-bootstrap": [],
     "discord-bot": ["DISCORD_BOT_CLIENT_ID"],
-    "gh-admin": [],
+    "gh-admin": ["WEBHOOK_PUBLIC_BASE"],
+    "gh-backfill": ["GH_BACKFILL_DEFAULT_GUILD_ID"],
+    "gh-webhook": ["GH_WEBHOOK_ALLOWED_REPOS"],
     "guild-vault": [],
+    mc: [
+      "MC_RCON_LOBBY_HOST",
+      "MC_RCON_LOBBY_PORT",
+      "MC_RCON_LOBBY_PASSWORD",
+      "MC_RCON_SURVIVAL_HOST",
+      "MC_RCON_SURVIVAL_PORT",
+      "MC_RCON_SURVIVAL_PASSWORD",
+    ],
     "user-vault": [],
     "vault-reader": [],
     meme: [],

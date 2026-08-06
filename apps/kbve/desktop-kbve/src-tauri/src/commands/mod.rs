@@ -1,4 +1,7 @@
+pub mod agent_voice;
 pub mod audio;
+pub mod devops;
+pub mod discord;
 pub mod memory;
 pub mod models;
 pub mod onichan;

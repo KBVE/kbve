@@ -114,6 +114,13 @@
 				"parallel": false
 			}
 		},
+		"check": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["bash apps/kbve/edge/scripts/check.sh"],
+				"parallel": false
+			}
+		},
 		"e2e": {
 			"executor": "nx:run-commands",
 			"cache": false,

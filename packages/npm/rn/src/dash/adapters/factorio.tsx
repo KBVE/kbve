@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
 import { createStreamSource } from '../createStreamSource';
+import { dashFetch, dashJson, dashHttpError } from '../dashFetch';
 import type { StreamLens, StreamStore } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -133,7 +134,7 @@ export function createFactorioStream(
 				minutes,
 			};
 
-			const res = await fetch(`${baseUrl}/dashboard/clickhouse/proxy`, {
+			const res = await dashFetch(`${baseUrl}/dashboard/clickhouse/proxy`, {
 				method: 'POST',
 				headers: {
 					...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -141,13 +142,21 @@ export function createFactorioStream(
 				},
 				body: JSON.stringify(body),
 				signal,
+				label: 'factorio:telemetry',
 			});
 
-			if (res.status === 403) throw new Error('Access restricted');
-			if (!res.ok)
-				throw new Error(`Factorio telemetry API error: ${res.status}`);
+			if (res.status === 403)
+				throw dashHttpError(
+					res,
+					'factorio:telemetry',
+					'Access restricted',
+				);
+			if (!res.ok) throw dashHttpError(res, 'factorio:telemetry');
 
-			const json = (await res.json()) as { rows?: RawCurrent[] };
+			const json = await dashJson<{ rows?: RawCurrent[] }>(
+				res,
+				'factorio:telemetry',
+			);
 			const raw = json?.rows ?? [];
 
 			// Sort by players descending (most active first)

@@ -6,6 +6,7 @@ import { ErrorState } from '../ui/feedback/ErrorState';
 import { LoadingState } from '../ui/feedback/LoadingState';
 import { VirtualList } from '../ui/lists/VirtualList';
 import { StatGrid } from './StatGrid';
+import { DashErrorBoundary } from './DashErrorBoundary';
 import { SectionDivider } from './shared';
 import { ControlBar } from './controls/ControlBar';
 import { SavedViewTabs } from './controls/SavedViewTabs';
@@ -232,7 +233,15 @@ export interface StreamViewProps<TItem> {
 	maxListHeight?: number;
 }
 
-export function StreamView<TItem>({
+export function StreamView<TItem>(props: StreamViewProps<TItem>): ReactElement {
+	return (
+		<DashErrorBoundary label={props.store.key}>
+			<StreamViewInner {...props} />
+		</DashErrorBoundary>
+	);
+}
+
+function StreamViewInner<TItem>({
 	store,
 	lens,
 	layout = 'rows',

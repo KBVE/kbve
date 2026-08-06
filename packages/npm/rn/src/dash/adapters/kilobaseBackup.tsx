@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
 import { createStreamSource } from '../createStreamSource';
+import { dashFetch, dashJson, dashHttpError } from '../dashFetch';
 import type { StatModel, StreamLens, StreamStore } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -141,36 +142,53 @@ export function createKilobaseBackupStream(
 			if (params['token']) qs.set('token', String(params['token']));
 			qs.set('limit', String(params['limit'] ?? limit));
 
-			const res = await fetch(
+			const res = await dashFetch(
 				`${baseUrl}/dashboard/kilobase/s3/objects?${qs.toString()}`,
 				{
 					headers: token
 						? { Authorization: `Bearer ${token}` }
 						: undefined,
 					signal,
+					label: 'kilobase:s3-objects',
 				},
 			);
 
-			if (res.status === 403) throw new Error('Access restricted');
+			if (res.status === 403)
+				throw dashHttpError(
+					res,
+					'kilobase:s3-objects',
+					'Access restricted',
+				);
 			if (res.status === 502)
-				throw new Error('Kilobase S3 upstream unreachable');
-			if (!res.ok)
-				throw new Error(`Kilobase S3 objects error: ${res.status}`);
+				throw dashHttpError(
+					res,
+					'kilobase:s3-objects',
+					'Kilobase S3 upstream unreachable',
+				);
+			if (!res.ok) throw dashHttpError(res, 'kilobase:s3-objects');
 
-			const json = (await res.json()) as RawObjectsResponse;
+			const json = await dashJson<RawObjectsResponse>(
+				res,
+				'kilobase:s3-objects',
+			);
 			return mapObjectsResponse(json).objects;
 		},
 		fetchMeta: async ({ signal }) => {
 			const token = await getToken();
-			const res = await fetch(`${baseUrl}/dashboard/kilobase/s3/summary`, {
-				headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-				signal,
-			});
+			const res = await dashFetch(
+				`${baseUrl}/dashboard/kilobase/s3/summary`,
+				{
+					headers: token
+						? { Authorization: `Bearer ${token}` }
+						: undefined,
+					signal,
+					label: 'kilobase:s3-summary',
+				},
+			);
 
-			if (!res.ok)
-				throw new Error(`Kilobase S3 summary error: ${res.status}`);
+			if (!res.ok) throw dashHttpError(res, 'kilobase:s3-summary');
 
-			return (await res.json()) as BackupSummary;
+			return dashJson<BackupSummary>(res, 'kilobase:s3-summary');
 		},
 	});
 }

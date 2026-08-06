@@ -1,6 +1,7 @@
 import { jsonResponse } from "../_shared/supabase.ts";
 import { requireServiceRole } from "../_shared/supabase.ts";
 import type { OwsRequest } from "./_shared.ts";
+import { logError } from "../_shared/logging.ts";
 
 // ---------------------------------------------------------------------------
 // Firecracker MicroVM — OWS Admin Submodule
@@ -50,7 +51,7 @@ export async function handleFirecracker(
       try {
         return await fcFetch("/health");
       } catch (err) {
-        console.error("firecracker status error:", err);
+        logError("ows.firecracker.status", err);
         return jsonResponse(
           {
             status: "unreachable",
@@ -87,7 +88,7 @@ export async function handleFirecracker(
           }),
         });
       } catch (err) {
-        console.error("firecracker create error:", err);
+        logError("ows.firecracker.create", err);
         return jsonResponse(
           { error: "Failed to create VM — firecracker-ctl unreachable" },
           503,
@@ -99,7 +100,7 @@ export async function handleFirecracker(
       try {
         return await fcFetch("/vm");
       } catch (err) {
-        console.error("firecracker list error:", err);
+        logError("ows.firecracker.list", err);
         return jsonResponse(
           { error: "Failed to list VMs — firecracker-ctl unreachable" },
           503,
@@ -116,7 +117,7 @@ export async function handleFirecracker(
       try {
         return await fcFetch(`/vm/${vm_id}`, { method: "DELETE" });
       } catch (err) {
-        console.error("firecracker destroy error:", err);
+        logError("ows.firecracker.destroy", err);
         return jsonResponse(
           { error: "Failed to destroy VM — firecracker-ctl unreachable" },
           503,

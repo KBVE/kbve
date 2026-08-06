@@ -6,6 +6,7 @@ import {
   validateUuid,
   type OwsRequest,
 } from "./_shared.ts";
+import { logError } from "../_shared/logging.ts";
 
 export const CHARACTER_ACTIONS = [
   "unstuck",
@@ -115,7 +116,7 @@ async function unstuck(req: OwsRequest): Promise<Response> {
     .eq("characterid", character.characterid);
 
   if (updateErr) {
-    console.error("unstuck update error:", updateErr.message);
+    logError("ows.character.unstuck_update", updateErr.message);
     return jsonResponse({ error: "Failed to update character position" }, 500);
   }
 
@@ -128,7 +129,7 @@ async function unstuck(req: OwsRequest): Promise<Response> {
     .eq("characterid", character.characterid);
 
   if (clearErr) {
-    console.error("unstuck clear map instance error:", clearErr.message);
+    logError("ows.character.unstuck_clear_map_instance", clearErr.message);
   }
 
   return jsonResponse({
@@ -213,7 +214,7 @@ async function resetStats(req: OwsRequest): Promise<Response> {
     .eq("characterid", character.characterid);
 
   if (updateErr) {
-    console.error("reset_stats error:", updateErr.message);
+    logError("ows.character.reset_stats", updateErr.message);
     return jsonResponse({ error: "Failed to reset character stats" }, 500);
   }
 
@@ -335,7 +336,7 @@ async function list(req: OwsRequest): Promise<Response> {
   );
 
   if (charErr) {
-    console.error("list error:", charErr.message);
+    logError("ows.character.list", charErr.message);
     return jsonResponse({ error: "Failed to list characters" }, 500);
   }
 
@@ -442,7 +443,7 @@ async function create(req: OwsRequest): Promise<Response> {
     .single();
 
   if (insertErr || !newChar) {
-    console.error("create character error:", insertErr?.message);
+    logError("ows.character.create", insertErr?.message);
     return jsonResponse({ error: "Failed to create character" }, 500);
   }
 
@@ -468,7 +469,7 @@ async function create(req: OwsRequest): Promise<Response> {
       .insert(customRows);
 
     if (customErr) {
-      console.error("create custom data error:", customErr.message);
+      logError("ows.character.create_custom_data", customErr.message);
       // Non-fatal — character exists, custom data can be added later
     }
   }
@@ -545,7 +546,7 @@ async function remove(req: OwsRequest): Promise<Response> {
     }
     const { count, error } = await query;
     if (error) {
-      console.error(`delete ${table} error:`, error.message);
+      logError("ows.character.delete", error.message, { table });
     }
     deleted[table] = count ?? 0;
   }
@@ -569,7 +570,9 @@ async function remove(req: OwsRequest): Promise<Response> {
       .in("charabilitybarid", barIds);
 
     if (barAbilErr) {
-      console.error("delete charabilitybarabilities error:", barAbilErr.message);
+      logError("ows.character.delete", barAbilErr.message, {
+        table: "charabilitybarabilities",
+      });
     }
     deleted["charabilitybarabilities"] = barAbilCount ?? 0;
   }
@@ -592,7 +595,9 @@ async function remove(req: OwsRequest): Promise<Response> {
       .in("charinventoryid", invIds);
 
     if (invItemErr) {
-      console.error("delete charinventoryitems error:", invItemErr.message);
+      logError("ows.character.delete", invItemErr.message, {
+        table: "charinventoryitems",
+      });
     }
     deleted["charinventoryitems"] = invItemCount ?? 0;
   }
@@ -673,7 +678,7 @@ async function setAdmin(req: OwsRequest): Promise<Response> {
     .eq("characterid", character.characterid);
 
   if (updateErr) {
-    console.error("set_admin error:", updateErr.message);
+    logError("ows.character.set_admin", updateErr.message);
     return jsonResponse({ error: "Failed to update admin flags" }, 500);
   }
 

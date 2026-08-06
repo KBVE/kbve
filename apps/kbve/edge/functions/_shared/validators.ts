@@ -5,6 +5,7 @@
 // ---------------------------------------------------------------------------
 
 import { jsonResponse } from "./supabase.ts";
+import { logError } from "./logging.ts";
 import {
   ILLEGAL_CHARS_RE,
   MAX_URL_LENGTH,
@@ -149,7 +150,10 @@ export function safeRpcError(
   context: string,
   status = 400,
 ): Response {
-  console.error(`${context}:`, error.message, error.code ?? "", error.hint ?? "");
+  logError(context, error.message, {
+    code: error.code,
+    hint: error.hint,
+  });
   return jsonResponse(
     {
       error: "Operation failed. Please try again or contact support.",

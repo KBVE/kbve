@@ -1,3 +1,5 @@
+import { dashFetch } from '../dashFetch';
+
 export interface RconExecRequest {
 	command: string;
 	args?: string[];
@@ -31,7 +33,7 @@ export function createRconExec(opts: {
 		const token = await getToken().catch(() => null);
 		if (!token) return FAIL('Not signed in');
 		try {
-			const res = await fetch(
+			const res = await dashFetch(
 				`${baseUrl}/api/v1/rcon/mc/${encodeURIComponent(server)}/exec`,
 				{
 					method: 'POST',
@@ -40,6 +42,7 @@ export function createRconExec(opts: {
 						Authorization: `Bearer ${token}`,
 					},
 					body: JSON.stringify(body),
+					label: 'mc:rcon',
 				},
 			);
 			const text = await res.text();

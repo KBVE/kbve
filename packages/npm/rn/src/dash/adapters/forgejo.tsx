@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
 import { createStreamSource } from '../createStreamSource';
+import { dashFetch, dashJson, dashHttpError } from '../dashFetch';
 import type { StreamLens, StreamStore } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -124,22 +125,31 @@ export function createForgejoStream(
 		normalize,
 		fetch: async ({ signal }) => {
 			const token = await getToken();
-			const res = await fetch(
+			const res = await dashFetch(
 				`${baseUrl}/dashboard/forgejo/api/repos/search?limit=${limit}&sort=updated`,
 				{
 					headers: token
 						? { Authorization: `Bearer ${token}` }
 						: undefined,
 					signal,
+					label: 'forgejo:repos',
 				},
 			);
 
-			if (res.status === 403) throw new Error('Access restricted');
+			if (res.status === 403)
+				throw dashHttpError(res, 'forgejo:repos', 'Access restricted');
 			if (res.status === 502)
-				throw new Error('Forgejo upstream unreachable');
-			if (!res.ok) throw new Error(`Forgejo API error: ${res.status}`);
+				throw dashHttpError(
+					res,
+					'forgejo:repos',
+					'Forgejo upstream unreachable',
+				);
+			if (!res.ok) throw dashHttpError(res, 'forgejo:repos');
 
-			const json = (await res.json()) as { data?: RawRepo[] };
+			const json = await dashJson<{ data?: RawRepo[] }>(
+				res,
+				'forgejo:repos',
+			);
 			const raw = json?.data ?? [];
 
 			// Sort by updated_at descending (most recent first)
