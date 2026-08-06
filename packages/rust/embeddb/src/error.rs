@@ -19,6 +19,9 @@ pub enum EmbedError {
     #[cfg(feature = "vector")]
     #[error("vector blob error: {0}")]
     VectorBlob(String),
+    #[cfg(feature = "vector")]
+    #[error("embedder error: {0}")]
+    Embedder(String),
     #[error("{0}")]
     Other(String),
 }

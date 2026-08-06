@@ -3,7 +3,6 @@
  *
  * Source: ../descriptors/agents.binpb
  * Config: ../agents-zod-config.json
- * Generated: 2026-07-20T00:37:21.617Z
  */
 
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";

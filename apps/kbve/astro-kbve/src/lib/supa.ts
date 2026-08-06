@@ -1,6 +1,6 @@
 // src/lib/supa.ts
 // Unified Supabase gateway — powered by @kbve/droid
-import { SupabaseGateway } from '@kbve/droid';
+import { $auth, SupabaseGateway } from '@kbve/droid';
 import { bootAuth, resolveStaffFlag } from '@kbve/astro';
 import { migrateAuthStorage } from './storage-migration';
 
@@ -70,6 +70,24 @@ async function autoRecoverStaleClient(): Promise<void> {
 	window.location.reload();
 }
 
+// resolveStaffFlag early-returns unless $auth.tone === 'auth', and on a cold
+// load the worker session often hydrates after bootAuth resolves — a single
+// fire-and-forget call at boot silently never resolves staff. Subscribe and
+// re-kick once per authenticated user id instead.
+let _staffResolvedForId: string | null = null;
+
+function watchStaffFlag(gateway: SupabaseGateway): void {
+	const kick = () => {
+		const { tone, id } = $auth.get();
+		if (tone !== 'auth' || !id) return;
+		if (_staffResolvedForId === id) return;
+		_staffResolvedForId = id;
+		void resolveStaffFlag(gateway, SUPABASE_URL, SUPABASE_ANON_KEY);
+	};
+	kick();
+	$auth.subscribe(kick);
+}
+
 /** Call once early (e.g. in a provider) or on-demand anywhere */
 export function initSupa(options?: Record<string, unknown>): Promise<void> {
 	if (_initPromise) return _initPromise;
@@ -92,7 +110,7 @@ export function initSupa(options?: Record<string, unknown>): Promise<void> {
 
 		await bootAuth(gateway);
 
-		void resolveStaffFlag(gateway, SUPABASE_URL, SUPABASE_ANON_KEY);
+		watchStaffFlag(gateway);
 	})()
 		.then(() => {})
 		.catch((e) => {

@@ -167,7 +167,10 @@ export function emit(options: EmitOptions): string {
 	if (options.configSource) {
 		lines.push(` * Config: ${options.configSource}`);
 	}
-	lines.push(` * Generated: ${new Date().toISOString()}`);
+	// Deliberately no generation timestamp. It made every regeneration a diff on every file
+	// whether or not anything changed, so `gen-all` cost a 40-file review to run and its output
+	// said nothing — which is how a stale descriptor survived on `dev` unnoticed (#15342).
+	// Without it, regenerating when nothing changed is a no-op, so the diff means something.
 	lines.push(' */');
 	lines.push('');
 
