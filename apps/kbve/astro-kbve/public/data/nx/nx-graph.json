@@ -9758,6 +9758,78 @@
 					"implicitDependencies": []
 				}
 			},
+			"rn-tauri": {
+				"name": "rn-tauri",
+				"type": "lib",
+				"data": {
+					"root": "packages/npm/rn-tauri",
+					"targets": {
+						"lint": {
+							"inputs": [
+								"default",
+								"^default",
+								"{workspaceRoot}/eslint.config.mjs",
+								"{workspaceRoot}/eslint.config.js",
+								"{workspaceRoot}/tools/eslint-rules/**/*"
+							],
+							"cache": true,
+							"executor": "@nx/eslint:lint",
+							"options": {},
+							"configurations": {},
+							"parallelism": true
+						},
+						"nx-release-publish": {
+							"executor": "@nx/js:release-publish",
+							"dependsOn": ["^nx-release-publish"],
+							"options": {},
+							"configurations": {},
+							"parallelism": true
+						},
+						"typecheck": {
+							"executor": "nx:run-commands",
+							"options": {
+								"command": "tsc --noEmit -p packages/npm/rn-tauri/tsconfig.lib.json"
+							},
+							"configurations": {},
+							"parallelism": true
+						}
+					},
+					"name": "rn-tauri",
+					"projectType": "library",
+					"tags": [
+						"npm:public",
+						"npm:kbve",
+						"npm:tauri",
+						"npm:react-native-web",
+						"npm:bridge",
+						"scope:web",
+						"type:lib"
+					],
+					"metadata": {
+						"targetGroups": {},
+						"description": "Bridge that runs @kbve/rn (React Native) components inside a Tauri webview via react-native-web, with an auth adapter for the Rust-backed Supabase session.",
+						"js": {
+							"packageName": "@kbve/rn-tauri",
+							"packageVersion": "0.0.1",
+							"packageExports": {
+								".": {
+									"types": "./src/index.ts",
+									"import": "./src/index.ts"
+								},
+								"./vite": {
+									"types": "./src/vite.ts",
+									"import": "./src/vite.ts"
+								}
+							},
+							"packageMain": "./src/index.ts",
+							"isInPackageManagerWorkspaces": false
+						}
+					},
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "packages/npm/rn-tauri/src",
+					"implicitDependencies": []
+				}
+			},
 			"simgrid": {
 				"name": "simgrid",
 				"type": "lib",
@@ -17533,17 +17605,17 @@
 			"desktop-kbve": [
 				{
 					"source": "desktop-kbve",
-					"target": "core",
+					"target": "kbve-tauri",
+					"type": "static"
+				},
+				{
+					"source": "desktop-kbve",
+					"target": "rn-tauri",
 					"type": "static"
 				},
 				{
 					"source": "desktop-kbve",
 					"target": "rn",
-					"type": "static"
-				},
-				{
-					"source": "desktop-kbve",
-					"target": "kbve-tauri",
 					"type": "static"
 				}
 			],
@@ -17593,6 +17665,13 @@
 			"rn-astro": [
 				{
 					"source": "rn-astro",
+					"target": "rn",
+					"type": "static"
+				}
+			],
+			"rn-tauri": [
+				{
+					"source": "rn-tauri",
 					"target": "rn",
 					"type": "static"
 				}
