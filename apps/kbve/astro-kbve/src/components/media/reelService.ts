@@ -565,11 +565,14 @@ export class ReelPlayer {
 
 	// A stall watchdog: if the playhead stops advancing while playback is
 	// intended and the buffer is starved (readyState below HAVE_FUTURE_DATA),
-	// kick the active recovery path. Runs until torn down, so a stream that
-	// hangs at the download edge resumes on its own without a manual refresh.
+	// kick the active recovery path. A frozen EVENT playlist (dead encoder)
+	// never errors — playlist reloads keep returning 200 — so repeated
+	// no-progress kicks escalate to a full resurrect instead of kicking forever.
 	private startWatchdog(video: HTMLVideoElement, gen: number): void {
 		this.stopWatchdog();
 		this.lastPos = video.currentTime;
+		let stalledKicks = 0;
+		const MAX_STALL_KICKS = 6;
 		this.stallTimer = setInterval(() => {
 			if (this.generation !== gen) return;
 			const v = this.video;
@@ -582,9 +585,54 @@ export class ReelPlayer {
 			// HAVE_FUTURE_DATA (3) or more means it can play on; below that while
 			// the clock isn't moving is a genuine stall.
 			if (advanced < 0.05 && v.readyState < 3) {
+				if (++stalledKicks >= MAX_STALL_KICKS && this.currentId) {
+					void this.resurrect(
+						v,
+						this.currentId,
+						gen,
+						'network',
+						'no playback progress — restarting stream',
+					);
+					return;
+				}
 				this.recover?.();
+			} else {
+				stalledKicks = 0;
 			}
 		}, 5000);
+	}
+
+	// A failed encoder now finalizes its playlist with EXT-X-ENDLIST, so the
+	// player "ends" mid-movie instead of hanging. Tell a real end apart from a
+	// dead encoder by asking the server: HLS Failed means restart the stream.
+	private watchEndedEarly(
+		video: HTMLVideoElement,
+		id: string,
+		gen: number,
+	): void {
+		video.addEventListener(
+			'ended',
+			() => {
+				if (this.generation !== gen) return;
+				void authedApiFetch<ReelDetail>(
+					`${REEL_PATH}/torrents/${encodeURIComponent(id)}`,
+				)
+					.then((detail) => {
+						if (this.generation !== gen) return;
+						if (detail?.hls === 'Failed') {
+							void this.resurrect(
+								video,
+								id,
+								gen,
+								'network',
+								'encoder failed mid-stream — restarting',
+							);
+						}
+					})
+					.catch(() => undefined);
+			},
+			{ once: true },
+		);
 	}
 
 	private stopWatchdog(): void {
@@ -789,6 +837,7 @@ export class ReelPlayer {
 				void video.play().catch(() => undefined);
 			};
 			this.startWatchdog(video, gen);
+			this.watchEndedEarly(video, id, gen);
 			void video.play().catch(() => undefined);
 			return;
 		}
@@ -819,6 +868,7 @@ export class ReelPlayer {
 				void video.play().catch(() => undefined);
 			};
 			this.startWatchdog(video, gen);
+			this.watchEndedEarly(video, id, gen);
 			void video.play().catch(() => undefined);
 			return;
 		}

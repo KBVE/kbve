@@ -35,6 +35,31 @@ mod tests {
         assert!(valid_segment_name("stream_00.vtt"));
     }
     #[test]
+    fn finalize_appends_endlist_only_to_media_playlists() {
+        let dir = tempfile::tempdir().unwrap();
+        let d = dir.path();
+        std::fs::write(
+            d.join("index.m3u8"),
+            "#EXTM3U\n#EXTINF:4.0,\nseg00000.ts\n",
+        )
+        .unwrap();
+        std::fs::write(
+            d.join("master.m3u8"),
+            "#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1\nstream_0.m3u8\n",
+        )
+        .unwrap();
+        std::fs::write(d.join("seg00000.ts"), b"x").unwrap();
+        finalize_event_playlists(d);
+        let media = std::fs::read_to_string(d.join("index.m3u8")).unwrap();
+        assert!(media.ends_with("#EXT-X-ENDLIST\n"));
+        let master = std::fs::read_to_string(d.join("master.m3u8")).unwrap();
+        assert!(!master.contains("ENDLIST"), "master playlist untouched");
+        finalize_event_playlists(d);
+        let again = std::fs::read_to_string(d.join("index.m3u8")).unwrap();
+        assert_eq!(again.matches("ENDLIST").count(), 1, "idempotent");
+    }
+
+    #[test]
     fn scale_filter_caps_and_disables() {
         assert_eq!(
             scale_filter(1080).as_deref(),
@@ -69,6 +94,34 @@ mod tests {
         std::fs::write(d.join("index.m3u8"), b"m").unwrap();
         assert_eq!(count_ts_segments(d), 2, "m3u8 not counted");
         assert_eq!(count_ts_segments(&d.join("missing")), 0, "missing dir -> 0");
+    }
+}
+
+/// A dead or killed encoder leaves EVENT playlists without `#EXT-X-ENDLIST`;
+/// players then poll the frozen playlist forever instead of ending. Append the
+/// tag to every media playlist (the ones carrying `#EXTINF`) so the stream
+/// terminates deterministically and the client can re-probe.
+pub(crate) fn finalize_event_playlists(dir: &std::path::Path) {
+    let Ok(rd) = std::fs::read_dir(dir) else {
+        return;
+    };
+    for e in rd.flatten() {
+        let p = e.path();
+        if p.extension().and_then(|s| s.to_str()) != Some("m3u8") {
+            continue;
+        }
+        let Ok(body) = std::fs::read_to_string(&p) else {
+            continue;
+        };
+        if !body.contains("#EXTINF") || body.contains("#EXT-X-ENDLIST") {
+            continue;
+        }
+        let mut out = body;
+        if !out.ends_with('\n') {
+            out.push('\n');
+        }
+        out.push_str("#EXT-X-ENDLIST\n");
+        let _ = std::fs::write(&p, out);
     }
 }
 
@@ -201,6 +254,9 @@ impl HlsManager {
         };
         for m in this.store.list() {
             if matches!(m.hls, HlsStatus::Starting | HlsStatus::Live) {
+                if let Some(dir) = &m.hls_dir {
+                    finalize_event_playlists(std::path::Path::new(dir));
+                }
                 let _ = this.store.update(&m.id, |m| {
                     m.hls = HlsStatus::Failed;
                     m.hls_error = Some("interrupted by restart".into());
@@ -468,6 +524,7 @@ impl HlsManager {
                 Some(Ok(status)) => {
                     let reason = format!("ffmpeg exited: {status}: {}", ffmpeg_tail(&errbuf));
                     crate::telemetry::hls_failed(&id, &reason);
+                    finalize_event_playlists(&hls_dir);
                     let _ = this.store.update(&id, |m| {
                         m.hls = HlsStatus::Failed;
                         m.hls_error = Some(reason.clone());
@@ -477,6 +534,7 @@ impl HlsManager {
                 Some(Err(e)) => {
                     let reason = e.to_string();
                     crate::telemetry::hls_failed(&id, &reason);
+                    finalize_event_playlists(&hls_dir);
                     let _ = this.store.update(&id, |m| {
                         m.hls = HlsStatus::Failed;
                         m.hls_error = Some(reason.clone());
@@ -484,6 +542,7 @@ impl HlsManager {
                     });
                 }
                 None => {
+                    finalize_event_playlists(&hls_dir);
                     let _ = this.store.update(&id, |m| {
                         m.hls = HlsStatus::Failed;
                         m.hls_error = Some("aborted".into());
