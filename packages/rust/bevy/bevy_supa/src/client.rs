@@ -32,6 +32,7 @@ pub struct SupaClient {
     api_key: String,
     jwt: Option<String>,
     http: Client,
+    timeout: Duration,
 }
 
 impl SupaClient {
@@ -62,13 +63,14 @@ impl SupaClient {
         api_key: impl Into<String>,
         timeout: Duration,
     ) -> Self {
+        // Client-level timeout only exists on the native builder; wasm gets
+        // the same bound per-request in `post_json` via AbortController.
+        #[allow(unused_mut)]
         let mut builder = Client::builder();
         #[cfg(not(target_arch = "wasm32"))]
         {
             builder = builder.timeout(timeout);
         }
-        #[cfg(target_arch = "wasm32")]
-        let _ = timeout;
         let http = builder.build().unwrap_or_else(|_| Client::new());
 
         Self {
@@ -76,6 +78,7 @@ impl SupaClient {
             api_key: api_key.into(),
             jwt: None,
             http,
+            timeout,
         }
     }
 
@@ -119,6 +122,27 @@ impl SupaClient {
         headers
     }
 
+    /// Single funnel for every outgoing request so the timeout cannot be
+    /// forgotten on a new endpoint. The request-level timeout is what
+    /// bounds wasm fetches (AbortController); on native it matches the
+    /// client-level value, so it is a no-op there.
+    async fn post_json(
+        &self,
+        url: &str,
+        headers: HeaderMap,
+        params: &serde_json::Value,
+    ) -> Result<reqwest::Response, SupaError> {
+        let resp = self
+            .http
+            .post(url)
+            .headers(headers)
+            .json(params)
+            .timeout(self.timeout)
+            .send()
+            .await?;
+        Ok(resp)
+    }
+
     /// Call a Supabase RPC (database function) in the default schema.
     ///
     /// # Arguments
@@ -139,14 +163,7 @@ impl SupaClient {
         params: serde_json::Value,
     ) -> Result<reqwest::Response, SupaError> {
         let url = format!("{}/rest/v1/rpc/{}", self.base_url, function);
-        let resp = self
-            .http
-            .post(&url)
-            .headers(self.default_headers())
-            .json(&params)
-            .send()
-            .await?;
-        Ok(resp)
+        self.post_json(&url, self.default_headers(), &params).await
     }
 
     /// Call a Supabase RPC in a specific PostgreSQL schema.
@@ -178,14 +195,7 @@ impl SupaClient {
             headers.insert("Content-Profile", v.clone());
             headers.insert("Accept-Profile", v);
         }
-        let resp = self
-            .http
-            .post(&url)
-            .headers(headers)
-            .json(&params)
-            .send()
-            .await?;
-        Ok(resp)
+        self.post_json(&url, headers, &params).await
     }
 }
 
@@ -215,6 +225,18 @@ mod tests {
         assert_eq!(h.get("apikey").unwrap(), "service-role");
         // Authorization swapped to the user JWT
         assert_eq!(h.get(AUTHORIZATION).unwrap(), "Bearer user-jwt");
+    }
+
+    #[test]
+    fn with_timeout_stores_duration_for_per_request_use() {
+        let c = SupaClient::with_timeout(
+            "https://example.supabase.co",
+            "key",
+            Duration::from_secs(5),
+        );
+        assert_eq!(c.timeout, Duration::from_secs(5));
+        let d = SupaClient::new("https://example.supabase.co", "key");
+        assert_eq!(d.timeout, DEFAULT_TIMEOUT);
     }
 
     #[test]
