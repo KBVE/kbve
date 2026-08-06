@@ -3,6 +3,188 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Aetherfang",
+        "hidden": true
+      },
+      "description": "Teal over black, edged in a glow that brightens when it is about to do something, which is the only warning you get.\n",
+      "lore": "The glow is measurable and follows no law anyone has written down. Two of them in a room will synchronise within the hour.\n",
+      "ref": "aetherfang",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N16",
+      "name": "Aetherfang",
+      "img": "/assets/npc/aetherfang.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_RARE",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_ELITE",
+      "family": "beast",
+      "element": "ELEMENT_ARCANE",
+      "level": 16,
+      "stats": {
+        "hp": 66,
+        "maxHp": 66,
+        "attack": 12,
+        "defense": 14,
+        "speed": 22,
+        "mp": 40,
+        "maxMp": 40,
+        "specialAttack": 26,
+        "specialDefense": 18,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 6,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "bite",
+          "name": "Bite",
+          "description": "A short, hard bite with the whole jaw behind it.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 16,
+          "damage": 16,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "description": "A rising howl that steadies its own nerve.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 20,
+          "maxPp": 20,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "warp-claw",
+          "name": "Warp Claw",
+          "description": "A close-quarters strike carrying its element.",
+          "element": "ELEMENT_ARCANE",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 22,
+          "damage": 22,
+          "pp": 20,
+          "maxPp": 20,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "mana-burst",
+          "name": "Mana Burst",
+          "description": "A ranged burst that covers the ground in front of it.",
+          "element": "ELEMENT_ARCANE",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 34,
+          "pp": 15,
+          "maxPp": 15,
+          "mpCost": 8,
+          "hitChance": 1
+        },
+        {
+          "id": "unmaking",
+          "name": "Unmaking",
+          "description": "Everything it has, released at once.",
+          "element": "ELEMENT_ARCANE",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 48,
+          "pp": 8,
+          "maxPp": 8,
+          "mpCost": 14,
+          "hitChance": 0.9,
+          "highCrit": true
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 45,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 154,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "secondaryElement": "ELEMENT_LIGHTNING",
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "bite"
+          },
+          {
+            "level": 8,
+            "abilityId": "howl"
+          },
+          {
+            "level": 12,
+            "abilityId": "warp-claw"
+          },
+          {
+            "level": 18,
+            "abilityId": "mana-burst"
+          },
+          {
+            "level": 26,
+            "abilityId": "unmaking"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Aetherfang lunges at {target} for {dmg} damage!",
+            "Aetherfang presses the attack — {target} takes {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Aetherfang breaks off and is gone into the treeline."
+          ]
+        }
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Archer",
         "hidden": true
       },
@@ -68,6 +250,188 @@
       "unitType": 6,
       "defaultWeapon": 0,
       "dialogueTreeId": 0
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Aurelight",
+        "hidden": true
+      },
+      "description": "White and gold, haloed in soft light, with wings that hold still in wind.\n",
+      "lore": "Rings faintly when it moves, from no source anyone has located. Temples that keep one insist it is not a miracle and are not believed.\n",
+      "ref": "aurelight",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N15",
+      "name": "Aurelight",
+      "img": "/assets/npc/aurelight.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_RARE",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_ELITE",
+      "family": "beast",
+      "element": "ELEMENT_HOLY",
+      "level": 16,
+      "stats": {
+        "hp": 66,
+        "maxHp": 66,
+        "attack": 12,
+        "defense": 14,
+        "speed": 22,
+        "mp": 40,
+        "maxMp": 40,
+        "specialAttack": 26,
+        "specialDefense": 18,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 6,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "bite",
+          "name": "Bite",
+          "description": "A short, hard bite with the whole jaw behind it.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 16,
+          "damage": 16,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "description": "A rising howl that steadies its own nerve.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 20,
+          "maxPp": 20,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "radiant-fang",
+          "name": "Radiant Fang",
+          "description": "A close-quarters strike carrying its element.",
+          "element": "ELEMENT_HOLY",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 22,
+          "damage": 22,
+          "pp": 20,
+          "maxPp": 20,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "consecrate",
+          "name": "Consecrate",
+          "description": "A ranged burst that covers the ground in front of it.",
+          "element": "ELEMENT_HOLY",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 34,
+          "pp": 15,
+          "maxPp": 15,
+          "mpCost": 8,
+          "hitChance": 1
+        },
+        {
+          "id": "judgement-bell",
+          "name": "Judgement Bell",
+          "description": "Everything it has, released at once.",
+          "element": "ELEMENT_HOLY",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 48,
+          "pp": 8,
+          "maxPp": 8,
+          "mpCost": 14,
+          "hitChance": 0.9,
+          "highCrit": true
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 45,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 154,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "secondaryElement": "ELEMENT_LIGHT",
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "bite"
+          },
+          {
+            "level": 8,
+            "abilityId": "howl"
+          },
+          {
+            "level": 12,
+            "abilityId": "radiant-fang"
+          },
+          {
+            "level": 18,
+            "abilityId": "consecrate"
+          },
+          {
+            "level": 26,
+            "abilityId": "judgement-bell"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Aurelight lunges at {target} for {dmg} damage!",
+            "Aurelight presses the attack — {target} takes {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Aurelight breaks off and is gone into the treeline."
+          ]
+        }
+      ]
     },
     {
       "template": "splash",
@@ -293,6 +657,189 @@
       "faction": {
         "factionId": "player"
       }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Blazeruff",
+        "hidden": true
+      },
+      "description": "Stands upright more often than not, with a white ruff and forelimbs wrapped in banded heat.\n",
+      "lore": "The posture is the tell — it fights standing, which no other form does, and it is the only one that has ever been taught to hold a weapon.\n",
+      "ref": "blazeruff",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N08",
+      "name": "Blazeruff",
+      "img": "/assets/npc/blazeruff.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_RARE",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_ELITE",
+      "family": "beast",
+      "element": "ELEMENT_FIRE",
+      "level": 16,
+      "stats": {
+        "hp": 72,
+        "maxHp": 72,
+        "attack": 24,
+        "defense": 16,
+        "speed": 20,
+        "mp": 40,
+        "maxMp": 40,
+        "specialAttack": 12,
+        "specialDefense": 14,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 6,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "bite",
+          "name": "Bite",
+          "description": "A short, hard bite with the whole jaw behind it.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 16,
+          "damage": 16,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "description": "A rising howl that steadies its own nerve.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 20,
+          "maxPp": 20,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "searing-bite",
+          "name": "Searing Bite",
+          "description": "A close-quarters strike carrying its element.",
+          "element": "ELEMENT_FIRE",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 22,
+          "damage": 22,
+          "pp": 20,
+          "maxPp": 20,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "flame-gout",
+          "name": "Flame Gout",
+          "description": "A ranged burst that covers the ground in front of it.",
+          "element": "ELEMENT_FIRE",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 34,
+          "pp": 15,
+          "maxPp": 15,
+          "mpCost": 8,
+          "hitChance": 1,
+          "statusEffect": "burn",
+          "statusChance": 0.25
+        },
+        {
+          "id": "solar-flare",
+          "name": "Solar Flare",
+          "description": "Everything it has, released at once.",
+          "element": "ELEMENT_FIRE",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 48,
+          "pp": 8,
+          "maxPp": 8,
+          "mpCost": 14,
+          "hitChance": 0.9,
+          "highCrit": true
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 45,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 154,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "bite"
+          },
+          {
+            "level": 8,
+            "abilityId": "howl"
+          },
+          {
+            "level": 12,
+            "abilityId": "searing-bite"
+          },
+          {
+            "level": 18,
+            "abilityId": "flame-gout"
+          },
+          {
+            "level": 26,
+            "abilityId": "solar-flare"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Blazeruff lunges at {target} for {dmg} damage!",
+            "Blazeruff presses the attack — {target} takes {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Blazeruff breaks off and is gone into the treeline."
+          ]
+        }
+      ]
     },
     {
       "template": "splash",
@@ -1455,6 +2002,369 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Direhowl",
+        "hidden": true
+      },
+      "description": "Dark and rangy under a grey mane, scarred about the muzzle, with red at the joints.\n",
+      "lore": "Hunts in the pattern of a pack while alone, which is unsettling to watch and effective enough that nobody argues with the results.\n",
+      "ref": "direhowl",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N11",
+      "name": "Direhowl",
+      "img": "/assets/npc/direhowl.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_RARE",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_ELITE",
+      "family": "beast",
+      "element": "ELEMENT_SHADOW",
+      "level": 16,
+      "stats": {
+        "hp": 72,
+        "maxHp": 72,
+        "attack": 24,
+        "defense": 16,
+        "speed": 20,
+        "mp": 40,
+        "maxMp": 40,
+        "specialAttack": 12,
+        "specialDefense": 14,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 6,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "bite",
+          "name": "Bite",
+          "description": "A short, hard bite with the whole jaw behind it.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 16,
+          "damage": 16,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "description": "A rising howl that steadies its own nerve.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 20,
+          "maxPp": 20,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "umbral-claw",
+          "name": "Umbral Claw",
+          "description": "A close-quarters strike carrying its element.",
+          "element": "ELEMENT_SHADOW",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 22,
+          "damage": 22,
+          "pp": 20,
+          "maxPp": 20,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "nightfall",
+          "name": "Nightfall",
+          "description": "A ranged burst that covers the ground in front of it.",
+          "element": "ELEMENT_SHADOW",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 34,
+          "pp": 15,
+          "maxPp": 15,
+          "mpCost": 8,
+          "hitChance": 1
+        },
+        {
+          "id": "devouring-dark",
+          "name": "Devouring Dark",
+          "description": "Everything it has, released at once.",
+          "element": "ELEMENT_SHADOW",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 48,
+          "pp": 8,
+          "maxPp": 8,
+          "mpCost": 14,
+          "hitChance": 0.9,
+          "highCrit": true
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 45,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 154,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "bite"
+          },
+          {
+            "level": 8,
+            "abilityId": "howl"
+          },
+          {
+            "level": 12,
+            "abilityId": "umbral-claw"
+          },
+          {
+            "level": 18,
+            "abilityId": "nightfall"
+          },
+          {
+            "level": 26,
+            "abilityId": "devouring-dark"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Direhowl lunges at {target} for {dmg} damage!",
+            "Direhowl presses the attack — {target} takes {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Direhowl breaks off and is gone into the treeline."
+          ]
+        }
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Duskwing",
+        "hidden": true
+      },
+      "description": "Violet and black with a wingspan out of proportion to its body, and a habit of being slightly further away than expected.\n",
+      "lore": "Active at the edges of the day only. The wings are functional but it prefers not to use them where it can be seen doing so.\n",
+      "ref": "duskwing",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N12",
+      "name": "Duskwing",
+      "img": "/assets/npc/duskwing.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_RARE",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_ELITE",
+      "family": "beast",
+      "element": "ELEMENT_SHADOW",
+      "level": 16,
+      "stats": {
+        "hp": 66,
+        "maxHp": 66,
+        "attack": 12,
+        "defense": 14,
+        "speed": 22,
+        "mp": 40,
+        "maxMp": 40,
+        "specialAttack": 26,
+        "specialDefense": 18,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 6,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "bite",
+          "name": "Bite",
+          "description": "A short, hard bite with the whole jaw behind it.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 16,
+          "damage": 16,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "description": "A rising howl that steadies its own nerve.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 20,
+          "maxPp": 20,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "umbral-claw",
+          "name": "Umbral Claw",
+          "description": "A close-quarters strike carrying its element.",
+          "element": "ELEMENT_SHADOW",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 22,
+          "damage": 22,
+          "pp": 20,
+          "maxPp": 20,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "nightfall",
+          "name": "Nightfall",
+          "description": "A ranged burst that covers the ground in front of it.",
+          "element": "ELEMENT_SHADOW",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 34,
+          "pp": 15,
+          "maxPp": 15,
+          "mpCost": 8,
+          "hitChance": 1
+        },
+        {
+          "id": "devouring-dark",
+          "name": "Devouring Dark",
+          "description": "Everything it has, released at once.",
+          "element": "ELEMENT_SHADOW",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 48,
+          "pp": 8,
+          "maxPp": 8,
+          "mpCost": 14,
+          "hitChance": 0.9,
+          "highCrit": true
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 45,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 154,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "secondaryElement": "ELEMENT_WIND",
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "bite"
+          },
+          {
+            "level": 8,
+            "abilityId": "howl"
+          },
+          {
+            "level": 12,
+            "abilityId": "umbral-claw"
+          },
+          {
+            "level": 18,
+            "abilityId": "nightfall"
+          },
+          {
+            "level": 26,
+            "abilityId": "devouring-dark"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Duskwing lunges at {target} for {dmg} damage!",
+            "Duskwing presses the attack — {target} takes {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Duskwing breaks off and is gone into the treeline."
+          ]
+        }
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Dust Mite",
         "hidden": true
       },
@@ -1688,6 +2598,189 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Emberstripe",
+        "hidden": true
+      },
+      "description": "Red and banded with a crest that stands when it is interested in you, which is rarely good news.\n",
+      "lore": "Runs hot enough that rain steams off it. Kept as a hearth animal in some valleys, on the strict understanding that it chooses the hearth.\n",
+      "ref": "emberstripe",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N13",
+      "name": "Emberstripe",
+      "img": "/assets/npc/emberstripe.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_RARE",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_ELITE",
+      "family": "beast",
+      "element": "ELEMENT_FIRE",
+      "level": 16,
+      "stats": {
+        "hp": 72,
+        "maxHp": 72,
+        "attack": 24,
+        "defense": 16,
+        "speed": 20,
+        "mp": 40,
+        "maxMp": 40,
+        "specialAttack": 12,
+        "specialDefense": 14,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 6,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "bite",
+          "name": "Bite",
+          "description": "A short, hard bite with the whole jaw behind it.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 16,
+          "damage": 16,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "description": "A rising howl that steadies its own nerve.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 20,
+          "maxPp": 20,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "searing-bite",
+          "name": "Searing Bite",
+          "description": "A close-quarters strike carrying its element.",
+          "element": "ELEMENT_FIRE",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 22,
+          "damage": 22,
+          "pp": 20,
+          "maxPp": 20,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "flame-gout",
+          "name": "Flame Gout",
+          "description": "A ranged burst that covers the ground in front of it.",
+          "element": "ELEMENT_FIRE",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 34,
+          "pp": 15,
+          "maxPp": 15,
+          "mpCost": 8,
+          "hitChance": 1,
+          "statusEffect": "burn",
+          "statusChance": 0.25
+        },
+        {
+          "id": "solar-flare",
+          "name": "Solar Flare",
+          "description": "Everything it has, released at once.",
+          "element": "ELEMENT_FIRE",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 48,
+          "pp": 8,
+          "maxPp": 8,
+          "mpCost": 14,
+          "hitChance": 0.9,
+          "highCrit": true
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 45,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 154,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "bite"
+          },
+          {
+            "level": 8,
+            "abilityId": "howl"
+          },
+          {
+            "level": 12,
+            "abilityId": "searing-bite"
+          },
+          {
+            "level": 18,
+            "abilityId": "flame-gout"
+          },
+          {
+            "level": 26,
+            "abilityId": "solar-flare"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Emberstripe lunges at {target} for {dmg} damage!",
+            "Emberstripe presses the attack — {target} takes {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Emberstripe breaks off and is gone into the treeline."
+          ]
+        }
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Fire Imp",
         "hidden": true
       },
@@ -1877,6 +2970,187 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Frostfang",
+        "hidden": true
+      },
+      "description": "Dark blue over black, low to the ground, moving with the deliberateness of something that has never had to hurry.\n",
+      "lore": "Silent on snow. Trackers say the first sign of one is that the other animals have already left.\n",
+      "ref": "frostfang",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N21",
+      "name": "Frostfang",
+      "img": "/assets/npc/frostfang.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_RARE",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_ELITE",
+      "family": "beast",
+      "element": "ELEMENT_ICE",
+      "level": 16,
+      "stats": {
+        "hp": 72,
+        "maxHp": 72,
+        "attack": 24,
+        "defense": 16,
+        "speed": 20,
+        "mp": 40,
+        "maxMp": 40,
+        "specialAttack": 12,
+        "specialDefense": 14,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 6,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "bite",
+          "name": "Bite",
+          "description": "A short, hard bite with the whole jaw behind it.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 16,
+          "damage": 16,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "description": "A rising howl that steadies its own nerve.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 20,
+          "maxPp": 20,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "rime-fang",
+          "name": "Rime Fang",
+          "description": "A close-quarters strike carrying its element.",
+          "element": "ELEMENT_ICE",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 22,
+          "damage": 22,
+          "pp": 20,
+          "maxPp": 20,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "frost-breath",
+          "name": "Frost Breath",
+          "description": "A ranged burst that covers the ground in front of it.",
+          "element": "ELEMENT_ICE",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 34,
+          "pp": 15,
+          "maxPp": 15,
+          "mpCost": 8,
+          "hitChance": 1
+        },
+        {
+          "id": "absolute-winter",
+          "name": "Absolute Winter",
+          "description": "Everything it has, released at once.",
+          "element": "ELEMENT_ICE",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 48,
+          "pp": 8,
+          "maxPp": 8,
+          "mpCost": 14,
+          "hitChance": 0.9,
+          "highCrit": true
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 45,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 154,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "bite"
+          },
+          {
+            "level": 8,
+            "abilityId": "howl"
+          },
+          {
+            "level": 12,
+            "abilityId": "rime-fang"
+          },
+          {
+            "level": 18,
+            "abilityId": "frost-breath"
+          },
+          {
+            "level": 26,
+            "abilityId": "absolute-winter"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Frostfang lunges at {target} for {dmg} damage!",
+            "Frostfang presses the attack — {target} takes {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Frostfang breaks off and is gone into the treeline."
+          ]
+        }
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Fungal Brute",
         "hidden": true
       },
@@ -2061,6 +3335,188 @@
       "unitType": 19,
       "defaultWeapon": 0,
       "dialogueTreeId": 0
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Glacierfang",
+        "hidden": true
+      },
+      "description": "Broad and slab-sided in blue and red, built like something that expects to be hit and has opinions about it.\n",
+      "lore": "Sheds a rime of frost as it walks that persists for hours. Northern caravans pay well for one purely because the water barrels stop going bad.\n",
+      "ref": "glacierfang",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N07",
+      "name": "Glacierfang",
+      "img": "/assets/npc/glacierfang.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_RARE",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_ELITE",
+      "family": "beast",
+      "element": "ELEMENT_ICE",
+      "level": 16,
+      "stats": {
+        "hp": 88,
+        "maxHp": 88,
+        "attack": 18,
+        "defense": 26,
+        "speed": 12,
+        "mp": 40,
+        "maxMp": 40,
+        "specialAttack": 14,
+        "specialDefense": 24,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 6,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "bite",
+          "name": "Bite",
+          "description": "A short, hard bite with the whole jaw behind it.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 16,
+          "damage": 16,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "description": "A rising howl that steadies its own nerve.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 20,
+          "maxPp": 20,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "rime-fang",
+          "name": "Rime Fang",
+          "description": "A close-quarters strike carrying its element.",
+          "element": "ELEMENT_ICE",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 22,
+          "damage": 22,
+          "pp": 20,
+          "maxPp": 20,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "frost-breath",
+          "name": "Frost Breath",
+          "description": "A ranged burst that covers the ground in front of it.",
+          "element": "ELEMENT_ICE",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 34,
+          "pp": 15,
+          "maxPp": 15,
+          "mpCost": 8,
+          "hitChance": 1
+        },
+        {
+          "id": "absolute-winter",
+          "name": "Absolute Winter",
+          "description": "Everything it has, released at once.",
+          "element": "ELEMENT_ICE",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 48,
+          "pp": 8,
+          "maxPp": 8,
+          "mpCost": 14,
+          "hitChance": 0.9,
+          "highCrit": true
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 45,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 154,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "secondaryElement": "ELEMENT_EARTH",
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "bite"
+          },
+          {
+            "level": 8,
+            "abilityId": "howl"
+          },
+          {
+            "level": 12,
+            "abilityId": "rime-fang"
+          },
+          {
+            "level": 18,
+            "abilityId": "frost-breath"
+          },
+          {
+            "level": 26,
+            "abilityId": "absolute-winter"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Glacierfang lunges at {target} for {dmg} damage!",
+            "Glacierfang presses the attack — {target} takes {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Glacierfang breaks off and is gone into the treeline."
+          ]
+        }
+      ]
     },
     {
       "template": "splash",
@@ -2683,6 +4139,187 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Grimclaw",
+        "hidden": true
+      },
+      "description": "Black with red claws and a red mark across the chest that does not scar over.\n",
+      "lore": "The mark appears during the change and is identical on every recorded specimen, which is the single most-studied and least-explained fact about the line.\n",
+      "ref": "grimclaw",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N17",
+      "name": "Grimclaw",
+      "img": "/assets/npc/grimclaw.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_RARE",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_ELITE",
+      "family": "beast",
+      "element": "ELEMENT_SHADOW",
+      "level": 16,
+      "stats": {
+        "hp": 72,
+        "maxHp": 72,
+        "attack": 24,
+        "defense": 16,
+        "speed": 20,
+        "mp": 40,
+        "maxMp": 40,
+        "specialAttack": 12,
+        "specialDefense": 14,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 6,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "bite",
+          "name": "Bite",
+          "description": "A short, hard bite with the whole jaw behind it.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 16,
+          "damage": 16,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "description": "A rising howl that steadies its own nerve.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 20,
+          "maxPp": 20,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "umbral-claw",
+          "name": "Umbral Claw",
+          "description": "A close-quarters strike carrying its element.",
+          "element": "ELEMENT_SHADOW",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 22,
+          "damage": 22,
+          "pp": 20,
+          "maxPp": 20,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "nightfall",
+          "name": "Nightfall",
+          "description": "A ranged burst that covers the ground in front of it.",
+          "element": "ELEMENT_SHADOW",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 34,
+          "pp": 15,
+          "maxPp": 15,
+          "mpCost": 8,
+          "hitChance": 1
+        },
+        {
+          "id": "devouring-dark",
+          "name": "Devouring Dark",
+          "description": "Everything it has, released at once.",
+          "element": "ELEMENT_SHADOW",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 48,
+          "pp": 8,
+          "maxPp": 8,
+          "mpCost": 14,
+          "hitChance": 0.9,
+          "highCrit": true
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 45,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 154,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "bite"
+          },
+          {
+            "level": 8,
+            "abilityId": "howl"
+          },
+          {
+            "level": 12,
+            "abilityId": "umbral-claw"
+          },
+          {
+            "level": 18,
+            "abilityId": "nightfall"
+          },
+          {
+            "level": 26,
+            "abilityId": "devouring-dark"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Grimclaw lunges at {target} for {dmg} damage!",
+            "Grimclaw presses the attack — {target} takes {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Grimclaw breaks off and is gone into the treeline."
+          ]
+        }
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "King",
         "hidden": true
       },
@@ -2934,6 +4571,188 @@
       "faction": {
         "factionId": "player"
       }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Lumipaw",
+        "hidden": true
+      },
+      "description": "Pale lilac and gold, small for an evolved form, and faintly warm to the touch even in cold weather.\n",
+      "lore": "The gentlest of the line by a wide margin. It is also the only one recorded as refusing to fight outright, which trainers discover at the worst possible moment.\n",
+      "ref": "lumipaw",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N06",
+      "name": "Lumipaw",
+      "img": "/assets/npc/lumipaw.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_RARE",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_ELITE",
+      "family": "beast",
+      "element": "ELEMENT_LIGHT",
+      "level": 16,
+      "stats": {
+        "hp": 66,
+        "maxHp": 66,
+        "attack": 12,
+        "defense": 14,
+        "speed": 22,
+        "mp": 40,
+        "maxMp": 40,
+        "specialAttack": 26,
+        "specialDefense": 18,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 6,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "bite",
+          "name": "Bite",
+          "description": "A short, hard bite with the whole jaw behind it.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 16,
+          "damage": 16,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "description": "A rising howl that steadies its own nerve.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 20,
+          "maxPp": 20,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "glint-fang",
+          "name": "Glint Fang",
+          "description": "A close-quarters strike carrying its element.",
+          "element": "ELEMENT_LIGHT",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 22,
+          "damage": 22,
+          "pp": 20,
+          "maxPp": 20,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "sunbeam",
+          "name": "Sunbeam",
+          "description": "A ranged burst that covers the ground in front of it.",
+          "element": "ELEMENT_LIGHT",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 34,
+          "pp": 15,
+          "maxPp": 15,
+          "mpCost": 8,
+          "hitChance": 1
+        },
+        {
+          "id": "prism-lance",
+          "name": "Prism Lance",
+          "description": "Everything it has, released at once.",
+          "element": "ELEMENT_LIGHT",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 48,
+          "pp": 8,
+          "maxPp": 8,
+          "mpCost": 14,
+          "hitChance": 0.9,
+          "highCrit": true
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 45,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 154,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "secondaryElement": "ELEMENT_HOLY",
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "bite"
+          },
+          {
+            "level": 8,
+            "abilityId": "howl"
+          },
+          {
+            "level": 12,
+            "abilityId": "glint-fang"
+          },
+          {
+            "level": 18,
+            "abilityId": "sunbeam"
+          },
+          {
+            "level": 26,
+            "abilityId": "prism-lance"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Lumipaw lunges at {target} for {dmg} damage!",
+            "Lumipaw presses the attack — {target} takes {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Lumipaw breaks off and is gone into the treeline."
+          ]
+        }
+      ]
     },
     {
       "template": "splash",
@@ -3191,11 +5010,7 @@
         "baseXpYield": 64,
         "baseFriendship": 70,
         "genderRatio": 0.5,
-        "baseStatTotal": 92,
-        "eggGroups": [
-          "mineral",
-          "field"
-        ],
+        "secondaryElement": "ELEMENT_EARTH",
         "movepool": [
           {
             "level": 1,
@@ -3216,12 +5031,6 @@
           {
             "level": 16,
             "abilityId": "overclock"
-          }
-        ],
-        "evolutions": [
-          {
-            "evolvesToRef": "cyber-hound",
-            "level": 18
           }
         ]
       },
@@ -3496,6 +5305,190 @@
       "faction": {
         "factionId": "player"
       }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Mossantler",
+        "hidden": true
+      },
+      "description": "Green and heavily overgrown, with a rack of living foliage that flowers in season.\n",
+      "lore": "Old ones become difficult to distinguish from the thicket they are standing in, which is thought to be the point. Deeply territorial about ground it has personally grown.\n",
+      "ref": "mossantler",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N10",
+      "name": "Mossantler",
+      "img": "/assets/npc/mossantler.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_RARE",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_ELITE",
+      "family": "beast",
+      "element": "ELEMENT_NATURE",
+      "level": 16,
+      "stats": {
+        "hp": 88,
+        "maxHp": 88,
+        "attack": 18,
+        "defense": 26,
+        "speed": 12,
+        "mp": 40,
+        "maxMp": 40,
+        "specialAttack": 14,
+        "specialDefense": 24,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 6,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "bite",
+          "name": "Bite",
+          "description": "A short, hard bite with the whole jaw behind it.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 16,
+          "damage": 16,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "description": "A rising howl that steadies its own nerve.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 20,
+          "maxPp": 20,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "thorn-lash",
+          "name": "Thorn Lash",
+          "description": "A close-quarters strike carrying its element.",
+          "element": "ELEMENT_NATURE",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 22,
+          "damage": 22,
+          "pp": 20,
+          "maxPp": 20,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "pollen-storm",
+          "name": "Pollen Storm",
+          "description": "A ranged burst that covers the ground in front of it.",
+          "element": "ELEMENT_NATURE",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 34,
+          "pp": 15,
+          "maxPp": 15,
+          "mpCost": 8,
+          "hitChance": 1,
+          "statusEffect": "poison",
+          "statusChance": 0.25
+        },
+        {
+          "id": "overgrowth",
+          "name": "Overgrowth",
+          "description": "Everything it has, released at once.",
+          "element": "ELEMENT_NATURE",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 48,
+          "pp": 8,
+          "maxPp": 8,
+          "mpCost": 14,
+          "hitChance": 0.9,
+          "highCrit": true
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 45,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 154,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "secondaryElement": "ELEMENT_EARTH",
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "bite"
+          },
+          {
+            "level": 8,
+            "abilityId": "howl"
+          },
+          {
+            "level": 12,
+            "abilityId": "thorn-lash"
+          },
+          {
+            "level": 18,
+            "abilityId": "pollen-storm"
+          },
+          {
+            "level": 26,
+            "abilityId": "overgrowth"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Mossantler lunges at {target} for {dmg} damage!",
+            "Mossantler presses the attack — {target} takes {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Mossantler breaks off and is gone into the treeline."
+          ]
+        }
+      ]
     },
     {
       "template": "splash",
@@ -3833,6 +5826,188 @@
       "unitType": 20,
       "defaultWeapon": 0,
       "dialogueTreeId": 0
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Prismawing",
+        "hidden": true
+      },
+      "description": "Magenta and crystalline, with broad scaled wings that throw coloured light across the ground.\n",
+      "lore": "The most fragile form and the most valuable, for reasons that have more to do with collectors than with combat.\n",
+      "ref": "prismawing",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N19",
+      "name": "Prismawing",
+      "img": "/assets/npc/prismawing.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_RARE",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_ELITE",
+      "family": "beast",
+      "element": "ELEMENT_ARCANE",
+      "level": 16,
+      "stats": {
+        "hp": 66,
+        "maxHp": 66,
+        "attack": 12,
+        "defense": 14,
+        "speed": 22,
+        "mp": 40,
+        "maxMp": 40,
+        "specialAttack": 26,
+        "specialDefense": 18,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 6,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "bite",
+          "name": "Bite",
+          "description": "A short, hard bite with the whole jaw behind it.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 16,
+          "damage": 16,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "description": "A rising howl that steadies its own nerve.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 20,
+          "maxPp": 20,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "warp-claw",
+          "name": "Warp Claw",
+          "description": "A close-quarters strike carrying its element.",
+          "element": "ELEMENT_ARCANE",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 22,
+          "damage": 22,
+          "pp": 20,
+          "maxPp": 20,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "mana-burst",
+          "name": "Mana Burst",
+          "description": "A ranged burst that covers the ground in front of it.",
+          "element": "ELEMENT_ARCANE",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 34,
+          "pp": 15,
+          "maxPp": 15,
+          "mpCost": 8,
+          "hitChance": 1
+        },
+        {
+          "id": "unmaking",
+          "name": "Unmaking",
+          "description": "Everything it has, released at once.",
+          "element": "ELEMENT_ARCANE",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 48,
+          "pp": 8,
+          "maxPp": 8,
+          "mpCost": 14,
+          "hitChance": 0.9,
+          "highCrit": true
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 45,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 154,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "secondaryElement": "ELEMENT_LIGHT",
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "bite"
+          },
+          {
+            "level": 8,
+            "abilityId": "howl"
+          },
+          {
+            "level": 12,
+            "abilityId": "warp-claw"
+          },
+          {
+            "level": 18,
+            "abilityId": "mana-burst"
+          },
+          {
+            "level": 26,
+            "abilityId": "unmaking"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Prismawing lunges at {target} for {dmg} damage!",
+            "Prismawing presses the attack — {target} takes {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Prismawing breaks off and is gone into the treeline."
+          ]
+        }
+      ]
     },
     {
       "template": "splash",
@@ -4355,6 +6530,208 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Shibe",
+        "hidden": true
+      },
+      "description": "A small tan-and-cream dog with a curled tail and an expression of total, unearned confidence. Common on every road and in most doorways.\n",
+      "lore": "The most-caught pet in the world and the least predictable one to raise. A shibe is a shibe until the day it is given a shard, a core, a plume or a cap — and then it is one of eighteen things, permanently, with no way back and no second choice. Handlers argue endlessly about which form is best and quietly agree that the argument is the appeal. Nobody has managed to make one evolve twice.\n",
+      "ref": "shibe",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N03",
+      "name": "Shibe",
+      "img": "/assets/npc/shibe.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_COMMON",
+      "personality": "PERSONALITY_CHEERFUL",
+      "rank": "NPC_RANK_NORMAL",
+      "family": "beast",
+      "element": "ELEMENT_NONE",
+      "level": 5,
+      "stats": {
+        "hp": 42,
+        "maxHp": 42,
+        "attack": 12,
+        "defense": 10,
+        "speed": 14,
+        "mp": 20,
+        "maxMp": 20,
+        "specialAttack": 11,
+        "specialDefense": 10,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 5,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "bite",
+          "name": "Bite",
+          "description": "A short, hard bite with the whole jaw behind it.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 16,
+          "damage": 16,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "description": "A rising howl that steadies its own nerve.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 20,
+          "maxPp": 20,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 190,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 62,
+        "baseFriendship": 80,
+        "genderRatio": 0.5,
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "bite"
+          },
+          {
+            "level": 8,
+            "abilityId": "howl"
+          }
+        ],
+        "evolutions": [
+          {
+            "evolvesToRef": "voidmaw",
+            "itemRef": "umbral-shard"
+          },
+          {
+            "evolvesToRef": "verdanwing",
+            "itemRef": "verdant-plume"
+          },
+          {
+            "evolvesToRef": "lumipaw",
+            "itemRef": "dawn-prism"
+          },
+          {
+            "evolvesToRef": "glacierfang",
+            "itemRef": "glacial-core"
+          },
+          {
+            "evolvesToRef": "blazeruff",
+            "itemRef": "ember-shard"
+          },
+          {
+            "evolvesToRef": "stormcoat",
+            "itemRef": "storm-cell"
+          },
+          {
+            "evolvesToRef": "mossantler",
+            "itemRef": "mossy-antler"
+          },
+          {
+            "evolvesToRef": "direhowl",
+            "itemRef": "dire-fang"
+          },
+          {
+            "evolvesToRef": "duskwing",
+            "itemRef": "dusk-feather"
+          },
+          {
+            "evolvesToRef": "emberstripe",
+            "itemRef": "cinder-brand"
+          },
+          {
+            "evolvesToRef": "mechamutt",
+            "itemRef": "cyber-core"
+          },
+          {
+            "evolvesToRef": "aurelight",
+            "itemRef": "seraph-bell"
+          },
+          {
+            "evolvesToRef": "aetherfang",
+            "itemRef": "aether-shard"
+          },
+          {
+            "evolvesToRef": "grimclaw",
+            "itemRef": "grim-sigil"
+          },
+          {
+            "evolvesToRef": "sporecap",
+            "itemRef": "spore-cap"
+          },
+          {
+            "evolvesToRef": "prismawing",
+            "itemRef": "prism-wing"
+          },
+          {
+            "evolvesToRef": "solmane",
+            "itemRef": "sun-mane"
+          },
+          {
+            "evolvesToRef": "frostfang",
+            "itemRef": "frost-fang"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Shibe throws itself at {target} for {dmg} damage!",
+            "Shibe nips {target} for {dmg} damage and looks pleased about it!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Shibe decides this was never its problem and trots off."
+          ]
+        }
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Sidekick",
         "hidden": true
       },
@@ -4709,6 +7086,374 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Solmane",
+        "hidden": true
+      },
+      "description": "Orange and cream, thickly maned, the largest of the line by mass and untroubled by it.\n",
+      "lore": "Sleeps in full sun for most of the day and covers ground at a frightening pace when it decides to. Regarded as the noble form, mostly by people who have not fed one.\n",
+      "ref": "solmane",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N20",
+      "name": "Solmane",
+      "img": "/assets/npc/solmane.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_RARE",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_ELITE",
+      "family": "beast",
+      "element": "ELEMENT_FIRE",
+      "level": 16,
+      "stats": {
+        "hp": 76,
+        "maxHp": 76,
+        "attack": 20,
+        "defense": 18,
+        "speed": 20,
+        "mp": 40,
+        "maxMp": 40,
+        "specialAttack": 20,
+        "specialDefense": 18,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 6,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "bite",
+          "name": "Bite",
+          "description": "A short, hard bite with the whole jaw behind it.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 16,
+          "damage": 16,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "description": "A rising howl that steadies its own nerve.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 20,
+          "maxPp": 20,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "searing-bite",
+          "name": "Searing Bite",
+          "description": "A close-quarters strike carrying its element.",
+          "element": "ELEMENT_FIRE",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 22,
+          "damage": 22,
+          "pp": 20,
+          "maxPp": 20,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "flame-gout",
+          "name": "Flame Gout",
+          "description": "A ranged burst that covers the ground in front of it.",
+          "element": "ELEMENT_FIRE",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 34,
+          "pp": 15,
+          "maxPp": 15,
+          "mpCost": 8,
+          "hitChance": 1,
+          "statusEffect": "burn",
+          "statusChance": 0.25
+        },
+        {
+          "id": "solar-flare",
+          "name": "Solar Flare",
+          "description": "Everything it has, released at once.",
+          "element": "ELEMENT_FIRE",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 48,
+          "pp": 8,
+          "maxPp": 8,
+          "mpCost": 14,
+          "hitChance": 0.9,
+          "highCrit": true
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 45,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 154,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "secondaryElement": "ELEMENT_HOLY",
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "bite"
+          },
+          {
+            "level": 8,
+            "abilityId": "howl"
+          },
+          {
+            "level": 12,
+            "abilityId": "searing-bite"
+          },
+          {
+            "level": 18,
+            "abilityId": "flame-gout"
+          },
+          {
+            "level": 26,
+            "abilityId": "solar-flare"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Solmane lunges at {target} for {dmg} damage!",
+            "Solmane presses the attack — {target} takes {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Solmane breaks off and is gone into the treeline."
+          ]
+        }
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Sporecap",
+        "hidden": true
+      },
+      "description": "Pale grey under a broad red-and-white cap that is continuous with its skull.\n",
+      "lore": "The cap is load-bearing and the animal is unbothered by this. Releases spores when alarmed, which is why handlers work upwind of one on principle.\n",
+      "ref": "sporecap",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N18",
+      "name": "Sporecap",
+      "img": "/assets/npc/sporecap.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_RARE",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_ELITE",
+      "family": "beast",
+      "element": "ELEMENT_POISON",
+      "level": 16,
+      "stats": {
+        "hp": 88,
+        "maxHp": 88,
+        "attack": 18,
+        "defense": 26,
+        "speed": 12,
+        "mp": 40,
+        "maxMp": 40,
+        "specialAttack": 14,
+        "specialDefense": 24,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 6,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "bite",
+          "name": "Bite",
+          "description": "A short, hard bite with the whole jaw behind it.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 16,
+          "damage": 16,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "description": "A rising howl that steadies its own nerve.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 20,
+          "maxPp": 20,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "toxic-nip",
+          "name": "Toxic Nip",
+          "description": "A close-quarters strike carrying its element.",
+          "element": "ELEMENT_POISON",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 22,
+          "damage": 22,
+          "pp": 20,
+          "maxPp": 20,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "spore-cloud",
+          "name": "Spore Cloud",
+          "description": "A ranged burst that covers the ground in front of it.",
+          "element": "ELEMENT_POISON",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 34,
+          "pp": 15,
+          "maxPp": 15,
+          "mpCost": 8,
+          "hitChance": 1,
+          "statusEffect": "poison",
+          "statusChance": 0.25
+        },
+        {
+          "id": "blight-bloom",
+          "name": "Blight Bloom",
+          "description": "Everything it has, released at once.",
+          "element": "ELEMENT_POISON",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 48,
+          "pp": 8,
+          "maxPp": 8,
+          "mpCost": 14,
+          "hitChance": 0.9,
+          "highCrit": true
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 45,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 154,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "secondaryElement": "ELEMENT_NATURE",
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "bite"
+          },
+          {
+            "level": 8,
+            "abilityId": "howl"
+          },
+          {
+            "level": 12,
+            "abilityId": "toxic-nip"
+          },
+          {
+            "level": 18,
+            "abilityId": "spore-cloud"
+          },
+          {
+            "level": 26,
+            "abilityId": "blight-bloom"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Sporecap lunges at {target} for {dmg} damage!",
+            "Sporecap presses the attack — {target} takes {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Sporecap breaks off and is gone into the treeline."
+          ]
+        }
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Stone Sentinel",
         "hidden": true
       },
@@ -4839,6 +7584,190 @@
       "faction": {
         "factionId": "deep-wardens"
       }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Stormcoat",
+        "hidden": true
+      },
+      "description": "Blue and gold with translucent cyan wings that buzz rather than beat, and a permanent smell of scorched air.\n",
+      "lore": "Nests on high ground during dry storms for reasons nobody has established. The wings are too small to fly on and it uses them anyway.\n",
+      "ref": "stormcoat",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N09",
+      "name": "Stormcoat",
+      "img": "/assets/npc/stormcoat.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_RARE",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_ELITE",
+      "family": "beast",
+      "element": "ELEMENT_LIGHTNING",
+      "level": 16,
+      "stats": {
+        "hp": 64,
+        "maxHp": 64,
+        "attack": 20,
+        "defense": 13,
+        "speed": 30,
+        "mp": 40,
+        "maxMp": 40,
+        "specialAttack": 18,
+        "specialDefense": 13,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 6,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "bite",
+          "name": "Bite",
+          "description": "A short, hard bite with the whole jaw behind it.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 16,
+          "damage": 16,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "description": "A rising howl that steadies its own nerve.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 20,
+          "maxPp": 20,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "static-bite",
+          "name": "Static Bite",
+          "description": "A close-quarters strike carrying its element.",
+          "element": "ELEMENT_LIGHTNING",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 22,
+          "damage": 22,
+          "pp": 20,
+          "maxPp": 20,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "arc-bark",
+          "name": "Arc Bark",
+          "description": "A ranged burst that covers the ground in front of it.",
+          "element": "ELEMENT_LIGHTNING",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 34,
+          "pp": 15,
+          "maxPp": 15,
+          "mpCost": 8,
+          "hitChance": 1,
+          "statusEffect": "paralyze",
+          "statusChance": 0.25
+        },
+        {
+          "id": "overload",
+          "name": "Overload",
+          "description": "Everything it has, released at once.",
+          "element": "ELEMENT_LIGHTNING",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 48,
+          "pp": 8,
+          "maxPp": 8,
+          "mpCost": 14,
+          "hitChance": 0.9,
+          "highCrit": true
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 45,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 154,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "secondaryElement": "ELEMENT_WIND",
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "bite"
+          },
+          {
+            "level": 8,
+            "abilityId": "howl"
+          },
+          {
+            "level": 12,
+            "abilityId": "static-bite"
+          },
+          {
+            "level": 18,
+            "abilityId": "arc-bark"
+          },
+          {
+            "level": 26,
+            "abilityId": "overload"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Stormcoat lunges at {target} for {dmg} damage!",
+            "Stormcoat presses the attack — {target} takes {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Stormcoat breaks off and is gone into the treeline."
+          ]
+        }
+      ]
     },
     {
       "template": "splash",
@@ -5202,6 +8131,190 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Verdanwing",
+        "hidden": true
+      },
+      "description": "Lean and lime-bright, with black flight feathers it keeps folded until it needs to be somewhere else immediately.\n",
+      "lore": "Feeds on nothing anyone can identify and outruns horses over short distances. Farmers consider one in a hedgerow a good omen and one in a granary a catastrophe.\n",
+      "ref": "verdanwing",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N05",
+      "name": "Verdanwing",
+      "img": "/assets/npc/verdanwing.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_RARE",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_ELITE",
+      "family": "beast",
+      "element": "ELEMENT_NATURE",
+      "level": 16,
+      "stats": {
+        "hp": 64,
+        "maxHp": 64,
+        "attack": 20,
+        "defense": 13,
+        "speed": 30,
+        "mp": 40,
+        "maxMp": 40,
+        "specialAttack": 18,
+        "specialDefense": 13,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 6,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "bite",
+          "name": "Bite",
+          "description": "A short, hard bite with the whole jaw behind it.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 16,
+          "damage": 16,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "description": "A rising howl that steadies its own nerve.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 20,
+          "maxPp": 20,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "thorn-lash",
+          "name": "Thorn Lash",
+          "description": "A close-quarters strike carrying its element.",
+          "element": "ELEMENT_NATURE",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 22,
+          "damage": 22,
+          "pp": 20,
+          "maxPp": 20,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "pollen-storm",
+          "name": "Pollen Storm",
+          "description": "A ranged burst that covers the ground in front of it.",
+          "element": "ELEMENT_NATURE",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 34,
+          "pp": 15,
+          "maxPp": 15,
+          "mpCost": 8,
+          "hitChance": 1,
+          "statusEffect": "poison",
+          "statusChance": 0.25
+        },
+        {
+          "id": "overgrowth",
+          "name": "Overgrowth",
+          "description": "Everything it has, released at once.",
+          "element": "ELEMENT_NATURE",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 48,
+          "pp": 8,
+          "maxPp": 8,
+          "mpCost": 14,
+          "hitChance": 0.9,
+          "highCrit": true
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 45,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 154,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "secondaryElement": "ELEMENT_WIND",
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "bite"
+          },
+          {
+            "level": 8,
+            "abilityId": "howl"
+          },
+          {
+            "level": 12,
+            "abilityId": "thorn-lash"
+          },
+          {
+            "level": 18,
+            "abilityId": "pollen-storm"
+          },
+          {
+            "level": 26,
+            "abilityId": "overgrowth"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Verdanwing lunges at {target} for {dmg} damage!",
+            "Verdanwing presses the attack — {target} takes {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Verdanwing breaks off and is gone into the treeline."
+          ]
+        }
+      ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Vex",
         "hidden": true
       },
@@ -5396,6 +8509,188 @@
       "faction": {
         "factionId": "shadow-court"
       }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Voidmaw",
+        "hidden": true
+      },
+      "description": "A low, heavy-shouldered hound with a violet crystal grown through its spine and eyes that do not reflect torchlight.\n",
+      "lore": "The crystal is not an implant. Handlers who have watched the change describe it as the shibe's own bone deciding to keep growing after the rest of it stopped.\n",
+      "ref": "voidmaw",
+      "id": "01KME8R5PG7Z9QB3T6VX2H4N04",
+      "name": "Voidmaw",
+      "img": "/assets/npc/voidmaw.png",
+      "typeFlags": 16,
+      "rarity": "NPC_RARITY_RARE",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_ELITE",
+      "family": "beast",
+      "element": "ELEMENT_SHADOW",
+      "level": 16,
+      "stats": {
+        "hp": 88,
+        "maxHp": 88,
+        "attack": 18,
+        "defense": 26,
+        "speed": 12,
+        "mp": 40,
+        "maxMp": 40,
+        "specialAttack": 14,
+        "specialDefense": 24,
+        "accuracy": 100,
+        "evasion": 100,
+        "critRate": 6,
+        "critDamage": 1.5
+      },
+      "abilities": [
+        {
+          "id": "tackle",
+          "name": "Tackle",
+          "description": "A reckless full-body charge.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 12,
+          "damage": 12,
+          "pp": 35,
+          "maxPp": 35,
+          "hitChance": 1,
+          "priority": 0
+        },
+        {
+          "id": "bite",
+          "name": "Bite",
+          "description": "A short, hard bite with the whole jaw behind it.",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 16,
+          "damage": 16,
+          "pp": 25,
+          "maxPp": 25,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "howl",
+          "name": "Howl",
+          "description": "A rising howl that steadies its own nerve.",
+          "category": "MOVE_CATEGORY_STATUS",
+          "target": "MOVE_TARGET_SELF",
+          "pp": 20,
+          "maxPp": 20,
+          "statChanges": [
+            {
+              "stat": "STAT_KIND_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            },
+            {
+              "stat": "STAT_KIND_SPECIAL_ATTACK",
+              "stages": 1,
+              "target": "MOVE_TARGET_SELF"
+            }
+          ]
+        },
+        {
+          "id": "umbral-claw",
+          "name": "Umbral Claw",
+          "description": "A close-quarters strike carrying its element.",
+          "element": "ELEMENT_SHADOW",
+          "category": "MOVE_CATEGORY_PHYSICAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 22,
+          "damage": 22,
+          "pp": 20,
+          "maxPp": 20,
+          "hitChance": 0.95,
+          "highCrit": true
+        },
+        {
+          "id": "nightfall",
+          "name": "Nightfall",
+          "description": "A ranged burst that covers the ground in front of it.",
+          "element": "ELEMENT_SHADOW",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 34,
+          "pp": 15,
+          "maxPp": 15,
+          "mpCost": 8,
+          "hitChance": 1
+        },
+        {
+          "id": "devouring-dark",
+          "name": "Devouring Dark",
+          "description": "Everything it has, released at once.",
+          "element": "ELEMENT_SHADOW",
+          "category": "MOVE_CATEGORY_SPECIAL",
+          "target": "MOVE_TARGET_ENEMY",
+          "power": 48,
+          "pp": 8,
+          "maxPp": 8,
+          "mpCost": 14,
+          "hitChance": 0.9,
+          "highCrit": true
+        }
+      ],
+      "pet": {
+        "catchable": true,
+        "captureRate": 45,
+        "growthRate": "GROWTH_RATE_MEDIUM_FAST",
+        "baseXpYield": 154,
+        "baseFriendship": 70,
+        "genderRatio": 0.5,
+        "secondaryElement": "ELEMENT_ARCANE",
+        "movepool": [
+          {
+            "level": 1,
+            "abilityId": "tackle"
+          },
+          {
+            "level": 1,
+            "abilityId": "bite"
+          },
+          {
+            "level": 8,
+            "abilityId": "howl"
+          },
+          {
+            "level": 12,
+            "abilityId": "umbral-claw"
+          },
+          {
+            "level": 18,
+            "abilityId": "nightfall"
+          },
+          {
+            "level": 26,
+            "abilityId": "devouring-dark"
+          }
+        ]
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false,
+        "wanderRadius": 6,
+        "aggroRange": 0,
+        "canFlee": true
+      },
+      "flavorText": [
+        {
+          "action": "attack",
+          "messages": [
+            "Voidmaw lunges at {target} for {dmg} damage!",
+            "Voidmaw presses the attack — {target} takes {dmg} damage!"
+          ]
+        },
+        {
+          "action": "flee",
+          "messages": [
+            "Voidmaw breaks off and is gone into the treeline."
+          ]
+        }
+      ]
     },
     {
       "template": "splash",

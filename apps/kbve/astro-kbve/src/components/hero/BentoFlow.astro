@@ -5,15 +5,17 @@ import BentoFlowIsland from './flow/BentoFlowIsland';
 interface Props {
 	eyebrow?: string;
 	heading?: string;
+	sub?: string;
 }
 
 const {
-	eyebrow = 'How it ships',
-	heading = 'From commit to production, automatically.',
+	eyebrow = 'Pipeline',
+	heading = 'How KBVE ships software',
+	sub = 'From commit to production, automatically — every change flows through the same public pipeline.',
 } = Astro.props;
 ---
 
-<BentoShell {eyebrow} {heading} id="how-it-works">
+<BentoShell {eyebrow} {heading} {sub} id="how-it-works">
 	<div class="bento-flow">
 		<BentoFlowIsland client:idle />
 	</div>

@@ -1,0 +1,45 @@
+# CNPG metric scrape wiring.
+#
+# The operator generates its own PodMonitors (spec.monitoring.enablePodMonitor
+# on the Cluster, plus one per Pooler), but labels them only with cnpg.io/*.
+# This Prometheus selects on podMonitorSelector.matchLabels.release=monitoring,
+# so none of them were ever picked up: 0 active targets, 0 cnpg_* series, and
+# every alert built on those metrics silently vacuous — including
+# cnpg-cert-expiry-alert and supabase-pooler-health.
+#
+# These mirror the operator's selectors with the release label added. Ports are
+# the operator's own names: 9187 (instance) and 9127 (pooler), both "metrics".
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+    name: supabase-cluster-scrape
+    namespace: kilobase
+    labels:
+        release: monitoring
+        kbve.com/category: observability
+        kbve.com/stack: core
+spec:
+    selector:
+        matchLabels:
+            cnpg.io/cluster: supabase-cluster
+            cnpg.io/podRole: instance
+    podMetricsEndpoints:
+        - port: metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+    name: supabase-cluster-pooler-scrape
+    namespace: kilobase
+    labels:
+        release: monitoring
+        kbve.com/category: observability
+        kbve.com/stack: core
+spec:
+    selector:
+        matchLabels:
+            cnpg.io/cluster: supabase-cluster
+            cnpg.io/podRole: pooler
+    podMetricsEndpoints:
+        - port: metrics

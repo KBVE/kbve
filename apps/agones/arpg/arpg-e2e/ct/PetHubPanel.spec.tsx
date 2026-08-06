@@ -11,6 +11,13 @@ const roster: PetRosterSync = {
 			nickname: 'Rex',
 			level: 5,
 			xp: 120,
+			xp_to_next: 200,
+			evolve_items: ['cyber-core', 'frost-fang'],
+			// boosted = SpA (2), lowered = Def (1) -> 2 * 5 + 1
+			nature: 11,
+			ivs: [31, 0, 17, 8, 24, 3],
+			gender: 1,
+			friendship: 200,
 			hp: 30,
 			max_hp: 40,
 			attack: 12,
@@ -26,6 +33,13 @@ const roster: PetRosterSync = {
 			nickname: 'Bolt',
 			level: 7,
 			xp: 0,
+			xp_to_next: 0,
+			evolve_items: [],
+			// A diagonal index — one of the five neutral natures.
+			nature: 12,
+			ivs: [4, 4, 4, 4, 4, 4],
+			gender: 0,
+			friendship: 70,
 			hp: 44,
 			max_hp: 44,
 			attack: 15,
@@ -105,5 +119,68 @@ test('rename is only offered once the draft differs from the server name', async
 	await rename.click();
 	await expect(component.getByTestId('ops')).toHaveText(
 		JSON.stringify([{ kind: 'rename', idx: 0, name: 'Sparky' }]),
+	);
+});
+
+test('offers an evolution button per available trigger item', async ({
+	mount,
+}) => {
+	const component = await mount(<PetHubProbe roster={roster} />);
+	// Refs arrive kebab-case from the server; the hub is what makes them readable.
+	await component.getByRole('button', { name: 'Cyber Core' }).click();
+	await expect(component.getByTestId('ops')).toHaveText(
+		JSON.stringify([{ kind: 'evolve', idx: 0, itemRef: 'cyber-core' }]),
+	);
+});
+
+test('a pet with no evolutions left shows no evolution section', async ({
+	mount,
+}) => {
+	// Bolt has evolve_items: [] — evolution is one-way and one-time, so an evolved pet must
+	// not be offered a second change.
+	const evolved = { ...roster, active: 1 };
+	const component = await mount(<PetHubProbe roster={evolved} />);
+	await component.getByText('Bolt').click();
+	await expect(component.getByTestId('evolve-options')).toHaveCount(0);
+});
+
+test("shows the pet's fixed genetics, nature and devotion", async ({
+	mount,
+}) => {
+	const component = await mount(
+		<PetHubView roster={roster} onOp={() => {}} onClose={() => {}} />,
+	);
+	const genetics = component.getByTestId('pet-genetics');
+	await expect(genetics).toBeVisible();
+	// Nature 11 raises SpA and lowers Def — decoded client-side from the one byte the
+	// server sends, so this also guards the shared natureEffect mirror.
+	await expect(component.getByTestId('pet-nature')).toHaveText(
+		'+SpA / \u2212Def',
+	);
+	await expect(component.getByTestId('pet-gender')).toHaveText('\u2642');
+	// 31 + 0 + 17 + 8 + 24 + 3 = 83 out of a perfect 186.
+	await expect(genetics).toContainText('83/186');
+	await expect(component.getByTestId('pet-friendship')).toContainText(
+		'Devoted',
+	);
+});
+
+test('a neutral nature reads as neutral rather than blank', async ({
+	mount,
+}) => {
+	// Bolt's nature 12 raises and lowers the same stat, so it cancels. An em dash says
+	// "no modifier" where an empty cell would read as a rendering bug.
+	const component = await mount(
+		<PetHubView
+			roster={{ ...roster, active: 1 }}
+			onOp={() => {}}
+			onClose={() => {}}
+		/>,
+	);
+	await component.getByText('Bolt').click();
+	await expect(component.getByTestId('pet-nature')).toHaveText('\u2014');
+	await expect(component.getByTestId('pet-gender')).toHaveCount(0);
+	await expect(component.getByTestId('pet-friendship')).toHaveText(
+		'Friendship 70/200',
 	);
 });

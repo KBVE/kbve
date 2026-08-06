@@ -8,12 +8,9 @@ import {
 	castStormVfx,
 } from '../entities/projectiles/spells/spellVfx';
 import type { EntityRefs } from '../entities/sprites';
-import {
-	worldToScreen,
-	screenToWorldF,
-	type TileXY,
-} from '../iso';
+import { worldToScreen, screenToWorldF, type TileXY } from '../iso';
 import type { InterpBuffer } from './interp';
+import { coneTarget, rayTarget, type AimCandidate } from './aim';
 
 /**
  * Spell loadout + casting. Loadout is the first 9 spells from spelldb (keys 1-9,
@@ -209,42 +206,33 @@ export function acquireSpellTarget(
 	aim: TileXY,
 	range: number,
 ): number | null {
-	const a = worldToScreen(from.x, from.y);
-	const b = worldToScreen(aim.x, aim.y);
-	const dx = b.x - a.x;
-	const dy = b.y - a.y;
-	const len = Math.hypot(dx, dy);
-	if (len < 1e-3) return aimHostile(deps, from, aim, range);
-	const nx = dx / len;
-	const ny = dy / len;
-	const cap = range > 0 ? range : Infinity;
-	let best: number | null = null;
-	let bestPerp = SPELL_AIM_HALF_PX;
+	const candidates = [...spellCandidates(deps)];
+	return (
+		coneTarget(candidates, from, aim, {
+			halfPx: SPELL_AIM_HALF_PX,
+			range,
+		}) ?? rayTarget(candidates, from, aim, { perp: AIM_PERP, range })
+	);
+}
+
+/** Hostile NPCs as aim candidates; `screen` is absent until a sprite exists. */
+function* spellCandidates(deps: SpellDeps): Generator<AimCandidate> {
 	for (const sid of deps.store.serverIdsWith(Cat.Npc)) {
 		if (!deps.isHostile(sid)) continue;
-		const t = deps.store.tile(sid);
-		if (!t) continue;
-		if (Math.hypot(t.x - from.x, t.y - from.y) > cap) continue;
+		const tile = deps.store.tile(sid);
+		if (!tile) continue;
 		const sprite = deps.store.refs(sid)?.sprite;
-		if (!sprite) continue;
-		const rx = sprite.x - a.x;
-		const ry = sprite.y - a.y;
-		if (rx * nx + ry * ny <= 0) continue; // behind the caster
-		const perp = Math.abs(rx * ny - ry * nx);
-		if (perp < bestPerp) {
-			bestPerp = perp;
-			best = sid;
-		}
+		yield {
+			id: sid,
+			tile,
+			screen: sprite ? { x: sprite.x, y: sprite.y } : undefined,
+		};
 	}
-	return best ?? aimHostile(deps, from, aim, range);
 }
 
 /**
- * First hostile NPC along the aim ray from `from` toward `aim`, within `range`
- * tiles (0 = unbounded). Marches the direction and returns the nearest hostile
- * whose center sits within AIM_PERP of the centerline — the projectile model
- * shared with the bow: the spell flies where aimed and hits the first thing in
- * its path, or null (clean miss). The server is authoritative on the landing.
+ * First hostile NPC along the aim ray — the plain projectile model, kept as the
+ * fallback when nothing is inside the aim-assist cone.
  */
 export function aimHostile(
 	deps: SpellDeps,
@@ -252,28 +240,8 @@ export function aimHostile(
 	aim: TileXY,
 	range: number,
 ): number | null {
-	const adx = aim.x - from.x;
-	const ady = aim.y - from.y;
-	const amag = Math.hypot(adx, ady);
-	if (amag < 1e-3) return null;
-	const nx = adx / amag;
-	const ny = ady / amag;
-	const cap = range > 0 ? range : Infinity;
-	let best: number | null = null;
-	let bestAlong = Infinity;
-	for (const sid of deps.store.serverIdsWith(Cat.Npc)) {
-		if (!deps.isHostile(sid)) continue;
-		const t = deps.store.tile(sid);
-		if (!t) continue;
-		const dx = t.x - from.x;
-		const dy = t.y - from.y;
-		const along = dx * nx + dy * ny;
-		if (along <= 0 || along > cap) continue;
-		if (Math.abs(dx * ny - dy * nx) > AIM_PERP) continue;
-		if (along < bestAlong) {
-			bestAlong = along;
-			best = sid;
-		}
-	}
-	return best;
+	return rayTarget(spellCandidates(deps), from, aim, {
+		perp: AIM_PERP,
+		range,
+	});
 }

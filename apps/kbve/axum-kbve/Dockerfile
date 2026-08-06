@@ -56,10 +56,10 @@ COPY apps/kbve/astro-kbve/ apps/kbve/astro-kbve/
 WORKDIR /app/apps/kbve/astro-kbve
 ARG ASTRO_CACHE_KEY=astro6
 RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-kbve-cache-${ASTRO_CACHE_KEY},sharing=locked \
-    cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
+    { cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true; } && \
     npx astro sync && \
     UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" npx astro build && \
-    cp -a .astro/. /tmp/astro-cache/ 2>/dev/null || true
+    { cp -a .astro/. /tmp/astro-cache/ 2>/dev/null || true; }
 
 # ============================================================================
 # [STAGE B] - Precompress Static Assets
@@ -140,6 +140,8 @@ COPY --from=planner /app/Cargo.toml /app/Cargo.lock ./
 COPY --from=planner /app/apps apps
 COPY --from=planner /app/packages packages
 
+COPY apps/kbve/axum-kbve/docker/cargo-retry.sh /usr/local/bin/cargo-retry
+
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
@@ -152,7 +154,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     else \
         echo "sccache: Redis password not provided, falling back to local disk cache"; \
     fi && \
-    cargo chef cook --release --recipe-path recipe.json -p axum-kbve && \
+    cargo-retry cargo chef cook --release --recipe-path recipe.json -p axum-kbve && \
     (sccache --show-stats || true)
 
 # [STAGE E] - Foundation Layer (Compile kbve + jedi from real source)
@@ -162,6 +164,7 @@ ENV RUSTFLAGS="-C link-arg=-fuse-ld=mold"
 
 COPY --from=builder-deps /app/target target
 COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
+COPY --from=builder-deps /usr/local/bin/cargo-retry /usr/local/bin/cargo-retry
 
 COPY --from=planner /app/Cargo.toml ./
 COPY Cargo.lock ./
@@ -191,7 +194,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
             SCCACHE_REDIS_USERNAME=default \
             SCCACHE_REDIS_KEY_PREFIX=axum-kbve; \
     fi && \
-    cargo build --release -p kbve -p jedi -p holy -p bevy_kbve_net -p bevy_npc -p bevy_tasker \
+    cargo-retry cargo build --release -p kbve -p jedi -p holy -p bevy_kbve_net -p bevy_npc -p bevy_tasker \
         -p bevy_inventory -p bevy_items -p bevy_skills && \
     (sccache --show-stats || true)
 
@@ -236,7 +239,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
             SCCACHE_REDIS_USERNAME=default \
             SCCACHE_REDIS_KEY_PREFIX=axum-kbve; \
     fi && \
-    cargo build --release -p axum-kbve --features jemalloc && \
+    cargo-retry cargo build --release -p axum-kbve --features jemalloc && \
     (sccache --show-stats || true) && \
     strip target/release/axum-kbve
 

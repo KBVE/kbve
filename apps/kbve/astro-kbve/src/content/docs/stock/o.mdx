@@ -1,10 +1,12 @@
 ---
 title: Realty Income Corporation O
+template: splash
 description: |
     Realty Income Corporation is "The Monthly Dividend Company" - a premier net lease REIT with over 15,600 properties worldwide.
 sidebar:
     label: Realty Income O
     order: 425
+    hidden: true
 unsplash: 1560518897-e9c08dc3aaec
 img: https://images.unsplash.com/photo-1560518897-e9c08dc3aaec?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - realty
   - dividend
   - o
+stock:
+  ticker: O
+  exchange: NYSE
+  symbol: nyse:o
+  name: "Realty Income Corporation"
+  sector: Real Estate
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:o`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -213,3 +223,5 @@ For current and accurate dividend yield information:
 - **Tax Considerations**: Consult tax professionals regarding REIT dividend taxation
 
 <Giscus />
+
+</StockLeaf>

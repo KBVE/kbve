@@ -203,6 +203,12 @@ async fn main() -> anyhow::Result<()> {
         warn!("Edge proxy not configured (SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not set)");
     }
 
+    if transport::proxy::init_longhorn_proxy() {
+        info!("Longhorn proxy initialized - /dashboard/storage/proxy enabled");
+    } else {
+        warn!("Longhorn proxy not configured");
+    }
+
     if transport::proxy::init_kubevirt_proxy() {
         info!("KubeVirt proxy initialized - /dashboard/vm/proxy enabled");
     } else {

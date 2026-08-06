@@ -3,13 +3,24 @@ import MobileMenuFooter from 'virtual:starlight/components/MobileMenuFooter';
 import KbveSidebarSublist from './KbveSidebarSublist.astro';
 
 const { sidebar } = Astro.locals.starlightRoute;
+const section = Astro.locals.kbveSection;
 ---
 
 <nav
-	aria-label="Main"
+	aria-label={section?.menuLabel ?? 'Main'}
 	data-kbve-sidebar-root
+	data-kbve-section={section?.id}
 	data-kbve-rail="expanded"
-	transition:persist="kbve-sidebar">
+	transition:persist={section
+		? `kbve-sidebar-${section.id}`
+		: 'kbve-sidebar'}>
+	{
+		section && (
+			<a data-kbve-section-root href={section.root.href}>
+				<span data-kbve-section-label>{section.navLabel}</span>
+			</a>
+		)
+	}
 	<div data-kbve-sidebar-chrome>
 		<button
 			type="button"

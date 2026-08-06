@@ -1,10 +1,12 @@
 ---
 title: Automatic Data Processing Inc. ADP
+template: splash
 description: |
     ADP is a leading global provider of cloud-based human capital management solutions, serving over 1.1 million clients worldwide with payroll, HR, and workforce management technology.
 sidebar:
     label: ADP 
     order: 462
+    hidden: true
 unsplash: 1507003211169-0a1dd7d0e536
 img: https://images.unsplash.com/photo-1507003211169-0a1dd7d0e536?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - human-resources
   - adp
   - payroll
+stock:
+  ticker: ADP
+  exchange: NASDAQ
+  symbol: nasdaq:adp
+  name: "Automatic Data Processing Inc."
+  sector: Industrials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nasdaq:adp`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -268,3 +278,5 @@ ADP offers exposure to essential HR technology with secular growth drivers:
 - **Market Share**: Position in competitive HCM technology landscape
 
 <Giscus />
+
+</StockLeaf>

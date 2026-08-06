@@ -1,10 +1,12 @@
 ---
 title: Microsoft Corporation MSFT
+template: splash
 description: |
     Microsoft is a leading global technology company providing cloud computing, productivity software, artificial intelligence, gaming, and enterprise solutions that empower organizations and individuals to achieve more.
 sidebar:
     label: Microsoft MSFT
     order: 500
+    hidden: true
 unsplash: 1633419461186-7d40cd325d41
 img: https://images.unsplash.com/photo-1633419461186-7d40cd325d41?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - software
   - msft
   - cloud-computing
+stock:
+  ticker: MSFT
+  exchange: NASDAQ
+  symbol: nasdaq:msft
+  name: "Microsoft Corporation"
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nasdaq:msft`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -307,3 +317,5 @@ MSFT offers exposure to cloud computing leadership with AI innovation:
 - **Innovation Pipeline**: R&D investment and new product development
 
 <Giscus />
+
+</StockLeaf>

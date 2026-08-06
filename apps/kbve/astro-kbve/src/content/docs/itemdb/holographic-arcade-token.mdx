@@ -40,19 +40,16 @@ scripts:
             scoreMultiplier: 1.05
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
 The **Holographic Arcade Token** pulses with retro energy. Drop it into a functioning cabinet and watch as hidden menus and bonus stages flicker to life. Some swear it whispers cheat codes when held close to the screen.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -61,13 +58,9 @@ The **Holographic Arcade Token** pulses with retro energy. Drop it into a functi
 - Grants **{frontmatter.bonuses.highScoreBoost}% score boost** for that session
 - Durable and reusable across multiple machines
 
----
-
 ## Lore
 
 > "The token glowed, the screen glitched, and suddenly I was fighting the final boss on level one." – Anonymous arcade junkie
-
----
 
 ## Credit
 
@@ -106,9 +99,8 @@ The **Holographic Arcade Token** pulses with retro energy. Drop it into a functi
   ]}
 />
 
----
-
 ## DevLog
 
 - 07/02/2025 - Added Holographic Arcade Token with secret stage mechanic and score boost
 
+</ItemLeaf>

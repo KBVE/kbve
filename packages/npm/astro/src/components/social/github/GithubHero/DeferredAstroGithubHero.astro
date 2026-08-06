@@ -19,6 +19,8 @@ interface Props {
 	rank2Label?: string;
 	rank3Label?: string;
 	newTabLabel?: string;
+	/** Render the built-in heading block; off when an outer shell supplies it. */
+	header?: boolean;
 }
 
 const props = Astro.props;

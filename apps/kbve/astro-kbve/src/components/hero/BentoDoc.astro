@@ -1,7 +1,7 @@
 ---
 import { Code } from 'astro:components';
 import BentoShell from './BentoShell.astro';
-import Adsense from '@/components/astropad/adsense/Adsense.astro';
+import Adsense from '@/components/ads/Adsense.astro';
 import { bentoIcon } from '@/data/bento-icons';
 import type { BentoDoc, BentoFaq } from '@/data/schema';
 
@@ -173,6 +173,11 @@ const ARROW = 'M5 12h14M13 6l6 6-6 6';
 							</span>
 							<span class="bento-stat__value">{s.value}</span>
 							<span class="bento-stat__label">{s.label}</span>
+							{s.detail && (
+								<span class="bento-stat__detail">
+									{s.detail}
+								</span>
+							)}
 						</div>
 					))
 				}

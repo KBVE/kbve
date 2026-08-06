@@ -129,26 +129,6 @@ enum StatusEffectKind {
   STATUS_EFFECT_BLESSED    = 14;
 }
 
-// Skilling discipline
-enum SkillingType {
-  SKILLING_UNSPECIFIED  = 0;
-  SKILLING_COOKING      = 1;
-  SKILLING_SMITHING     = 2;
-  SKILLING_CRAFTING     = 3;
-  SKILLING_ALCHEMY      = 4;
-  SKILLING_WOODCUTTING  = 5;
-  SKILLING_MINING       = 6;
-  SKILLING_FISHING      = 7;
-  SKILLING_FARMING      = 8;
-  SKILLING_HERBLORE     = 9;
-  SKILLING_FLETCHING    = 10;
-  SKILLING_HUNTING      = 11;
-  SKILLING_FORAGING     = 12;
-  SKILLING_ENCHANTING   = 13;
-  SKILLING_TAILORING    = 14;
-  SKILLING_CONSTRUCTION = 15;
-}
-
 // =============================================================================
 // Sub-messages
 // =============================================================================
@@ -289,18 +269,6 @@ message FoodInfo {
   optional string spoils_into_ref = 14; // Item produced on spoilage (e.g. "rotten-meat")
 }
 
-// Skilling properties — for items that interact with skill systems
-message SkillingInfo {
-  SkillingType skill = 1;               // Primary skill this item relates to
-  optional int32 skill_level = 2;       // Level required to gather/use/process
-  optional float xp_reward = 3;         // XP granted per gather/action
-  optional string tool_required = 4;    // Tool item ref needed (e.g. "pickaxe" for ores)
-  optional float gather_time = 5;       // Base time to gather/harvest in seconds
-  optional int32 respawn_time = 6;      // Seconds before resource node respawns
-  optional string resource_node = 7;    // World object ref (e.g. "oak_tree", "copper_vein")
-  optional int32 harvest_weight = 8;    // 0-100 preference weight when the harvester has multiple eligible targets
-}
-
 // Compression / consolidation — many small stacks fuse into one bulk item.
 // Used by storage consolidators, granaries, smelters that batch raw stock into
 // construction-grade output.
@@ -315,6 +283,15 @@ message StackingInfo {
   optional int32 pack_max = 1;          // Per-unit carried stack cap (distinct from storage max_stack)
   optional bool no_pack = 2;            // Cannot be carried by a unit (storage-only, e.g. gold bars)
   optional string pool_group = 3;       // Logical group (e.g. "food") — any item with the same pool_group substitutes
+}
+
+// Cells an item occupies in a spatial ("tetris") grid inventory, measured
+// upright before any rotation. Distinct from DeployableInfo.size, which is the
+// item's footprint once placed in the world. Absent = a single 1x1 cell.
+message GridFootprint {
+  optional int32 width = 1;             // Cells wide at rotation 0
+  optional int32 height = 2;            // Cells tall at rotation 0
+  optional bool no_rotate = 3;          // Cannot be turned 90° to find a fit
 }
 
 // Weapon properties — for items with ITEM_TYPE_WEAPON or ITEM_TYPE_COMBAT flag.
@@ -632,6 +609,9 @@ message Item {
   // like cookingSpeed/fireResist plus boolean flags like quantumFlux), so it is
   // an arbitrary JSON object rather than the fixed-field ItemBonuses message.
   optional google.protobuf.Struct bonuses = 67;
+
+  // Spatial-inventory footprint for grid ("tetris") inventories
+  optional GridFootprint grid = 68;
 }
 
 // =============================================================================

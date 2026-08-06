@@ -1,10 +1,12 @@
 ---
 title: AES Corporation AES
+template: splash
 description: |
     AES Corporation is a leading global energy company specializing in renewable power generation, energy storage, and utility operations across multiple continents.
 sidebar:
     label: AES Corporation
     order: 433
+    hidden: true
 unsplash: 1473341304170-7ddf126bb2df
 img: https://images.unsplash.com/photo-1473341304170-7ddf126bb2df?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - renewable-energy
   - aes
   - power-generation
+stock:
+  ticker: AES
+  exchange: NYSE
+  symbol: nyse:aes
+  name: "AES Corporation"
+  sector: Utilities
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:aes`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -261,3 +271,5 @@ AES offers investors exposure to the global energy transition:
 - **Utility Rate Cases**: Regulatory proceedings and investment recovery
 
 <Giscus />
+
+</StockLeaf>

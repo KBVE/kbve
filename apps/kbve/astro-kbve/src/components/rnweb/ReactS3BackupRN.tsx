@@ -1,8 +1,8 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useStore } from '@nanostores/react';
 import { ShieldOff } from 'lucide-react';
 import { S3BackupPanel } from '@kbve/rn/dash';
-import { homeService } from '@/components/dashboard/homeService';
+import { $auth, $isStaff } from '@kbve/droid';
 import { initSupa, getSupa } from '@/lib/supa';
 import { DASH_PROXY_BASE } from './dashProxyBase';
 
@@ -41,16 +41,26 @@ const styles = {
 };
 
 export default function ReactS3BackupRN() {
-	const isStaff = useStore(homeService.$isStaff);
+	const isStaff = useStore($isStaff);
+	const tone = useStore($auth).tone;
 	const token = useMemo(() => getToken, []);
 
+	useEffect(() => {
+		void initSupa().catch(() => {});
+	}, []);
+
 	if (!isStaff) {
+		const pending = tone === 'loading' || tone === 'auth';
 		return (
 			<div style={styles.centered}>
 				<ShieldOff size={48} color="var(--sl-color-gray-3)" />
-				<h2 style={styles.heading}>Staff Access Required</h2>
+				<h2 style={styles.heading}>
+					{pending ? 'Checking access…' : 'Staff Access Required'}
+				</h2>
 				<p style={styles.sub}>
-					The AWS S3 backup panel is restricted to KBVE staff.
+					{pending
+						? 'Verifying your staff permissions.'
+						: 'The AWS S3 backup panel is restricted to KBVE staff.'}
 				</p>
 			</div>
 		);

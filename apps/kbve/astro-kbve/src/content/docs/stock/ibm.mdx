@@ -1,10 +1,12 @@
 ---
 title: International Business Machines Corporation IBM
+template: splash
 description: |
     IBM is a leading global technology and consulting company providing hybrid cloud and AI solutions, helping businesses transform through technology innovation across industries and geographies worldwide.
 sidebar:
     label: IBM
     order: 525
+    hidden: true
 unsplash: 1518709268372-d0531928ca8c
 img: https://images.unsplash.com/photo-1518709268372-d0531928ca8c?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - cloud-computing
   - ibm
   - artificial-intelligence
+stock:
+  ticker: IBM
+  exchange: NYSE
+  symbol: nyse:ibm
+  name: "International Business Machines Corporation"
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:ibm`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -364,3 +374,5 @@ IBM offers exposure to enterprise technology transformation with hybrid cloud le
 - **Client Satisfaction**: Client satisfaction and retention metrics
 
 <Giscus />
+
+</StockLeaf>

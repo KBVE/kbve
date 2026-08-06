@@ -1,12 +1,13 @@
 import { createStreamSource } from '../createStreamSource';
+import { dashFetch, dashJson, dashHttpError } from '../dashFetch';
 import type {
 	StreamControl,
 	SavedView,
 	StreamParams,
 	StreamStore,
 } from '../types';
-import { normalize } from '../adapters/clickhouse';
-import type { LogItem, RawLogRow } from '../adapters/clickhouse';
+import { normalize } from './logItem';
+import type { LogItem, RawLogRow } from './logItem';
 
 export interface ClickHouseStreamOptions {
 	getToken: () => Promise<string | null>;
@@ -40,7 +41,7 @@ async function post(
 	body: unknown,
 	signal: AbortSignal,
 ) {
-	const res = await fetch(`${baseUrl}${PROXY}`, {
+	const res = await dashFetch(`${baseUrl}${PROXY}`, {
 		method: 'POST',
 		headers: {
 			...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -48,10 +49,12 @@ async function post(
 		},
 		body: JSON.stringify(body),
 		signal,
+		label: 'clickhouse:proxy',
 	});
-	if (res.status === 403) throw new Error('Access restricted');
-	if (!res.ok) throw new Error(`ClickHouse API error: ${res.status}`);
-	return res.json();
+	if (res.status === 403)
+		throw dashHttpError(res, 'clickhouse:proxy', 'Access restricted');
+	if (!res.ok) throw dashHttpError(res, 'clickhouse:proxy');
+	return dashJson(res, 'clickhouse:proxy');
 }
 
 export interface StatsTotals {

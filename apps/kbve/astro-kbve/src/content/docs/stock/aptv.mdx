@@ -1,10 +1,12 @@
 ---
 title: Aptiv PLC APTV
+template: splash
 description: |
     Aptiv is a leading global technology company that develops advanced mobility solutions, including electrical/electronic architectures, autonomous driving platforms, and connected services for the automotive industry.
 sidebar:
     label: Aptiv APTV
     order: 478
+    hidden: true
 unsplash: 1449824913935-adfddc22eab5
 img: https://images.unsplash.com/photo-1449824913935-adfddc22eab5?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - technology
   - aptv
   - autonomous-driving
+stock:
+  ticker: APTV
+  exchange: NYSE
+  symbol: nyse:aptv
+  name: "Aptiv PLC"
+  sector: Consumer Discretionary
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:aptv`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -295,3 +305,5 @@ APTV offers exposure to automotive technology transformation with growth potenti
 - **Margin Expansion**: Operating leverage and efficiency improvements
 
 <Giscus />
+
+</StockLeaf>

@@ -1,10 +1,12 @@
 ---
 title: Atmos Energy Corporation ATO
+template: splash
 description: |
     Atmos Energy is one of the largest natural gas distribution companies in the United States, safely delivering reliable, affordable, efficient, and abundant natural gas to residential, commercial, and industrial customers.
 sidebar:
     label: Atmos Energy ATO
     order: 483
+    hidden: true
 unsplash: 1581094794329-c8112a89af12
 img: https://images.unsplash.com/photo-1581094794329-c8112a89af12?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - natural-gas
   - ato
   - energy
+stock:
+  ticker: ATO
+  exchange: NYSE
+  symbol: nyse:ato
+  name: "Atmos Energy Corporation"
+  sector: Utilities
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:ato`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -281,3 +291,5 @@ ATO offers stable utility income with infrastructure investment growth:
 - **Capital Efficiency**: Return on invested capital and operational efficiency metrics
 
 <Giscus />
+
+</StockLeaf>

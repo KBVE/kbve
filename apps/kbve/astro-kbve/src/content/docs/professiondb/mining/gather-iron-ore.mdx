@@ -8,11 +8,17 @@ name: 'Mine Iron Ore'
 required_level: 15
 xp_reward: 35
 duration_ms: 4000
-resource_node_ref: 'ore-iron'
+resource_node_ref: 'iron-vein'
 tool_refs: ['pickaxe']
 outputs:
     - item_ref: 'iron-ore'
       quantity: 1
+    - item_ref: 'emerald'
+      quantity: 1
+      chance: 0.03
+    - item_ref: 'sapphire'
+      quantity: 1
+      chance: 0.02
 ---
 
 Mine iron ore from an iron vein.

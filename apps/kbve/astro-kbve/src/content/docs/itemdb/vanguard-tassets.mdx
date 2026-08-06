@@ -6,6 +6,8 @@ sidebar:
     hidden: true
 description: |
     A skirted hip harness that guards the belt line, where mail ends and regret begins.
+lore: |
+    The plates that hang where the faulds end, guarding the gap a seated rider opens and a walking soldier forgets about. Two points of armor and one point of constant minor annoyance, which is the standing trade for anything that protects the hip.
 ref: 'vanguard-tassets'
 key: 610
 id: '01KXFBEGM12NRWN6TT8FBSMSP9'
@@ -31,10 +33,23 @@ equipment:
     armor: 2
     extra:
       weight: 3
+grid:
+  width: 2
+  height: 1
+set_ref: 'vanguard'
+tags:
+  - armor
+  - vanguard
+  - herbmail
+sources:
+  - source_type: 'vendor'
+    source_name: 'Garrison quartermaster'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Overview
 
-<ItemDBPanel data={frontmatter} />
+</ItemLeaf>

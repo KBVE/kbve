@@ -1,10 +1,12 @@
 ---
 title: Walmart Inc. WMT
+template: splash
 description: |
     Walmart is the world's largest retailer operating a global network of discount stores, supercenters, and e-commerce platforms, serving millions of customers worldwide with everyday low prices and comprehensive retail solutions.
 sidebar:
     label: Walmart WMT
     order: 508
+    hidden: true
 unsplash: 1556742049-0ca8c6c56de4
 img: https://images.unsplash.com/photo-1556742049-0ca8c6c56de4?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - consumer-staples
   - wmt
   - e-commerce
+stock:
+  ticker: WMT
+  exchange: NYSE
+  symbol: nyse:wmt
+  name: "Walmart Inc."
+  sector: Consumer Staples
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:wmt`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -335,3 +345,5 @@ WMT offers exposure to global retail leadership with technology transformation:
 - **Customer Metrics**: Customer satisfaction, loyalty, and engagement metrics
 
 <Giscus />
+
+</StockLeaf>

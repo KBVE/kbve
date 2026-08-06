@@ -4,6 +4,7 @@ import {
 	type NotificationEventData,
 	type CorpseContents,
 	type PetBattleState,
+	type PetLearnOffer,
 	type PetRosterSync,
 	type DuelPrompt,
 } from '@kbve/laser';
@@ -274,7 +275,8 @@ export type PetRosterOp =
 	| { kind: 'setActive'; idx: number }
 	| { kind: 'release'; idx: number }
 	| { kind: 'rename'; idx: number; name: string }
-	| { kind: 'elixir'; idx: number };
+	| { kind: 'elixir'; idx: number }
+	| { kind: 'evolve'; idx: number; itemRef: string };
 
 export function emitPetRoster(sync: PetRosterSync): void {
 	laserEvents.emit(PET_ROSTER_EVENT, sync);
@@ -284,6 +286,38 @@ export function onPetRoster(
 	handler: (sync: PetRosterSync) => void,
 ): () => void {
 	return laserEvents.on(PET_ROSTER_EVENT, handler as (d: unknown) => void);
+}
+
+// Pet move-learn bridge. The server offers a move a pet cannot fit, the overlay asks the
+// player which of the four to forget, and the answer goes back the same way roster ops do —
+// no optimistic edit, the terminal status and the roster sync are what the UI renders.
+export const PET_LEARN_EVENT = 'arpg:petLearn:offer';
+export const PET_LEARN_REPLY_EVENT = 'arpg:petLearn:reply';
+
+/** The player's answer: `slot` is the move index to overwrite, `null` declines. */
+export type PetLearnReply = { petId: string; slot: number | null };
+
+export function emitPetLearnOffer(offer: PetLearnOffer): void {
+	laserEvents.emit(PET_LEARN_EVENT, offer);
+}
+
+export function onPetLearnOffer(
+	handler: (offer: PetLearnOffer) => void,
+): () => void {
+	return laserEvents.on(PET_LEARN_EVENT, handler as (d: unknown) => void);
+}
+
+export function emitPetLearnReply(reply: PetLearnReply): void {
+	laserEvents.emit(PET_LEARN_REPLY_EVENT, reply);
+}
+
+export function onPetLearnReply(
+	handler: (reply: PetLearnReply) => void,
+): () => void {
+	return laserEvents.on(
+		PET_LEARN_REPLY_EVENT,
+		handler as (d: unknown) => void,
+	);
 }
 
 export const PET_HUB_OPEN_EVENT = 'arpg:petHub:open';

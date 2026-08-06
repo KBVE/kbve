@@ -6,15 +6,15 @@ use tauri::{AppHandle, Emitter, Manager};
 use tauri_plugin_autostart::ManagerExt;
 use tauri_plugin_global_shortcut::{GlobalShortcutExt, Shortcut, ShortcutState};
 
+use crate::ManagedToggleState;
 use crate::actions::ACTION_MAP;
 use crate::managers::audio::AudioRecordingManager;
 use crate::settings::ShortcutBinding;
 use crate::settings::{
-    self, get_settings, ClipboardHandling, FillerOutputMode, LLMPrompt, OverlayPosition,
-    PasteMethod, SoundTheme, APPLE_INTELLIGENCE_DEFAULT_MODEL_ID, APPLE_INTELLIGENCE_PROVIDER_ID,
+    self, APPLE_INTELLIGENCE_DEFAULT_MODEL_ID, APPLE_INTELLIGENCE_PROVIDER_ID, ClipboardHandling,
+    FillerOutputMode, LLMPrompt, OverlayPosition, PasteMethod, SoundTheme, get_settings,
 };
 use crate::tray;
-use crate::ManagedToggleState;
 
 pub fn init_shortcuts(app: &AppHandle) {
     let default_bindings = settings::get_default_settings().bindings;

@@ -1,10 +1,12 @@
 ---
 title: Johnson & Johnson JNJ
+template: splash
 description: |
     Johnson & Johnson is a leading multinational healthcare corporation providing pharmaceuticals, medical devices, and consumer products worldwide, with a diversified portfolio spanning innovative medicines, surgical technologies, and trusted consumer brands.
 sidebar:
     label: Johnson & Johnson JNJ
     order: 517
+    hidden: true
 unsplash: 1559757148-5c9baccacc8f
 img: https://images.unsplash.com/photo-1559757148-5c9baccacc8f?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - pharmaceuticals
   - jnj
   - medical-devices
+stock:
+  ticker: JNJ
+  exchange: NYSE
+  symbol: nyse:jnj
+  name: "Johnson & Johnson"
+  sector: Health Care
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:jnj`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -364,3 +374,5 @@ JNJ offers exposure to diversified healthcare with innovation leadership:
 - **Margin Expansion**: Operating leverage and margin improvement trends
 
 <Giscus />
+
+</StockLeaf>

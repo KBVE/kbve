@@ -1,12 +1,12 @@
 {
-	"generated_at": "2026-07-31T04:23:14.258Z",
+	"generated_at": "2026-08-06T04:13:32.295Z",
 	"summary": {
 		"total_protos": 47,
 		"registered": 38,
 		"orphaned": 8,
 		"utility_only": 1,
 		"total_messages": 829,
-		"total_enums": 172
+		"total_enums": 171
 	},
 	"protos": [
 		{
@@ -169,9 +169,9 @@
 				"ScriptBinding",
 				"ItemSource",
 				"FoodInfo",
-				"SkillingInfo",
 				"CompressInfo",
 				"StackingInfo",
+				"GridFootprint",
 				"WeaponInfo",
 				"FuelInfo",
 				"ContainerInfo",
@@ -196,11 +196,10 @@
 				"Element",
 				"UseEffectType",
 				"GearSpecialType",
-				"StatusEffectKind",
-				"SkillingType"
+				"StatusEffectKind"
 			],
 			"message_count": 29,
-			"enum_count": 8,
+			"enum_count": 7,
 			"codegen": {
 				"registered": true,
 				"name": "itemdb",
@@ -1719,7 +1718,7 @@
 		"packages/data/proto/referral/referral.proto",
 		"packages/data/proto/wallet/wallet.proto"
 	],
-	"checked_at": "2026-07-31T04:22:44Z",
+	"checked_at": "2026-08-06T04:13:00Z",
 	"drift_detected": false,
 	"drift_files": []
 }

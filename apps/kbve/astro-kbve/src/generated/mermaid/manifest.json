@@ -1,0 +1,126 @@
+{
+	"mermaidVersion": "11.15.0",
+	"config": {
+		"startOnLoad": false,
+		"flowchart": {
+			"curve": "basis"
+		},
+		"gitGraph": {
+			"mainBranchName": "main",
+			"showCommitLabel": true,
+			"showBranches": true,
+			"rotateCommitLabel": true
+		}
+	},
+	"themes": ["light", "dark"],
+	"diagrams": {
+		"0be103c165f40707": {
+			"usedIn": ["src/content/docs/application/kubernetes.mdx"],
+			"source": "flowchart LR\n    subgraph \"Detected\"\n        Pods\n        Deployments\n        StatefulSets\n        Jobs\n    end\n    subgraph \"Not Detected\"\n        CronJobs\n        DaemonSets\n        CustomResources[\"Custom CRDs\"]\n    end\n    subgraph \"Reported as Lingering\"\n        Services\n        Secrets\n        Ingresses\n        ExternalSecrets\n        SecretStores\n    end"
+		},
+		"1381046f97bb5e91": {
+			"usedIn": ["src/content/docs/journal/05-10.mdx"],
+			"source": "\nflowchart TB\n    CH[\"ClickHouse<br/>analytics/events<br/>rankings/reports\"]\n    PG[\"Postgres<br/>truth/RLS\"]\n    RW[\"Rust worker<br/>materializer\"]\n    AX[\"Axum<br/>Askama SSR\"]\n    VK[\"Valkey<br/>SSR cache\"]\n\n    PG -- jobs --> RW\n    RW -- batched events --> CH\n    RW -- writes hot payloads --> VK\n    AX -- read first --> VK\n    AX -- fallback --> PG\n"
+		},
+		"15b8aafecfc1aa8b": {
+			"usedIn": ["src/content/docs/application/rust.mdx"],
+			"source": "graph LR\n    subgraph \"Per-Frame Mesh Uploads (Worst Case)\"\n        F[Frogs x8] -->|8 UV uploads| GPU\n        W[Wraiths x6] -->|6 UV uploads| GPU\n    end\n    subgraph \"Zero Per-Frame Uploads\"\n        FF[Fireflies x80] -.->|transform only| GPU\n        BF[Butterflies x14] -.->|transform only| GPU\n        TM[Tilemap chunks] -.->|built once| GPU\n    end"
+		},
+		"1780eaef97a72588": {
+			"usedIn": ["src/content/docs/dashboard/releases.mdx"],
+			"source": "pie showData\n    title Packages by Status\n    \"Pending\" : 3\n    \"Behind\" : 1\n    \"Unpublished\" : 3\n    \"Published\" : 26"
+		},
+		"240a464bb8d83778": {
+			"usedIn": ["src/content/docs/dashboard/kanban-data.mdx"],
+			"source": "pie showData\n    title Items by Type\n    \"Pull Request\" : 516\n    \"Issue\" : 135"
+		},
+		"252b594c67310e5c": {
+			"usedIn": ["src/content/docs/dashboard/kanban-data.mdx"],
+			"source": "pie showData\n    title Items by Status\n    \"Theory\" : 75\n    \"AI\" : 1\n    \"Todo\" : 24\n    \"Backlog\" : 6\n    \"Error\" : 23\n    \"Staging\" : 2\n    \"Review\" : 4\n    \"Done\" : 516"
+		},
+		"3a3fc68106cc8c92": {
+			"usedIn": ["src/content/docs/application/kubernetes.mdx"],
+			"source": "flowchart LR\n    A[\"App Decommissioned\"] --> B[\"Namespace Left Behind\"]\n    B --> C[\"Stale SecretStores\"]\n    B --> D[\"Stale Ingresses\"]\n    B --> E[\"Stale Secrets\"]\n    C --> F[\"external-secrets\\nreconciler errors\"]\n    D --> G[\"ingress-nginx\\nsync churn\"]\n    E --> H[\"Unrotated credentials\\nin cluster\"]\n    F --> I[\"Log noise masks\\nreal incidents\"]\n    G --> I\n    H --> J[\"Security risk\"]"
+		},
+		"41c0f044689db058": {
+			"usedIn": ["src/content/docs/application/rust.mdx"],
+			"source": "graph LR\n    subgraph \"Current: CPU UV Rewrite\"\n        CPU1[Compute UVs] --> BUF1[Write to mesh buffer] --> UP1[GPU upload]\n    end\n    subgraph \"Proposed: Uniform UV Offset\"\n        CPU2[Set frame_col uniform] --> UNI[Uniform buffer update]\n    end\n    style UP1 fill:#f66,stroke:#333\n    style UNI fill:#6f6,stroke:#333"
+		},
+		"4fbdd0b32435f896": {
+			"usedIn": ["src/content/docs/application/cubejs.mdx"],
+			"source": "graph LR\n    CubeAPI[Cube API] -->|Read/Write| Router[Cube Store Router]\n    Router -->|Distribute| W1[Worker 1]\n    Router -->|Distribute| W2[Worker 2]\n    W1 --> PVC1[(PVC Storage)]\n    W2 --> PVC2[(PVC Storage)]"
+		},
+		"567acbe9a39b320d": {
+			"usedIn": ["src/content/docs/dashboard/security.mdx"],
+			"source": "pie showData\n    title Findings by Severity\n    \"Critical\" : 4\n    \"High\" : 47\n    \"Medium\" : 54\n    \"Low\" : 10"
+		},
+		"581ba13f3365d8b4": {
+			"usedIn": ["src/content/docs/application/git.mdx"],
+			"source": "flowchart TD\n    main[\"CI - Main<br/>dispatch_publish\"] -->|\"npm/droid\"| n1[\"ci-publish.yml<br/>npm → droid\"]\n    main -->|\"npm/laser\"| n2[\"ci-publish.yml<br/>npm → laser\"]\n    main -->|\"crates/kbve\"| c1[\"ci-publish.yml<br/>crates → kbve\"]\n    main -->|\"crates/jedi\"| c2[\"ci-publish.yml<br/>crates → jedi\"]\n    main -->|\"python/fudster\"| p1[\"ci-publish.yml<br/>python → fudster\"]\n    main -->|\"...\"| pn[\"...\"]\n\n    n1 --> t1[\"queue_guard → test → publish\"]\n    c1 --> t2[\"queue_guard → test → publish\"]\n    p1 --> t3[\"queue_guard → test → publish\"]"
+		},
+		"5af085bd9349125e": {
+			"usedIn": ["src/content/docs/application/kubernetes.mdx"],
+			"source": "flowchart TD\n    Start[\"kubectl get ns\"] --> Loop[\"For each namespace\"]\n    Loop --> Protected{\"System\\nnamespace?\"}\n    Protected -->|\"Yes (kube-system, default, ...)\"| Skip[\"Skip\"]\n    Protected -->|No| Count[\"Count workload resources\"]\n    Count --> Check{\"pods + deploys +\\nsts + jobs > 0?\"}\n    Check -->|Yes| Active[\"ACTIVE\"]\n    Check -->|No| Empty[\"EMPTY\"]\n    Empty --> Linger[\"Report lingering resources:\\nsvcs, secrets, ingress,\\nextSecrets, secretStores\"]\n    Active --> Report[\"Report workload counts\"]\n    Linger --> Next[\"Next namespace\"]\n    Report --> Next\n    Skip --> Next\n    Next --> Loop"
+		},
+		"6145ad2ac8e43cf1": {
+			"usedIn": ["src/content/docs/dashboard/kanban-data.mdx"],
+			"source": "pie showData\n    title Work State\n    \"Active (Todo+Staging+Review)\" : 30\n    \"Blocked (Error+Support)\" : 23\n    \"Done\" : 516\n    \"Planning (Theory+AI+Backlog)\" : 82"
+		},
+		"65ac4310ca16eff1": {
+			"usedIn": ["src/content/docs/dashboard/deps.mdx"],
+			"source": "pie showData\n    title Outdated by Ecosystem\n    \"npm\" : 120\n    \"cargo\" : 101"
+		},
+		"6e86334f84392198": {
+			"usedIn": ["src/content/docs/project/brackeys.mdx"],
+			"source": "\nclassDiagram\n    direction LR\n\n    class GameManager {\n        - UserDataCache user_data_cache\n        - Gd<CacheManager> cache_manager\n        - Gd<ClockMaster> clock_master\n        - Gd<MusicManager> music_manager\n        - Gd<Maiky> ui_manager\n        + init() GameManager\n    }\n\n    \n    namespace UserDataManagement {\n        class UserDataCache {\n            - HashMap<String, Variant> map\n        }\n\n        class UserData {\n            + String username\n            + String email\n            + f32 opacity\n            + bool fullscreen\n            + Option<String> theme\n            + new() UserData\n        }\n    }\n\n    namespace Caching {\n        class CacheManager {\n            - ResourceCache<Texture2D> texture_cache\n            - ResourceCache<CanvasLayer> canvas_layer_cache\n            - ResourceCache<Control> ui_cache\n            - ResourceCache<AudioStream> audio_cache\n            - Gd<ShaderCache> shader_cache\n            + init() CacheManager\n        }\n\n        class ResourceCache~T~ {\n            - HashMap<String, Gd<T>> map\n        }\n\n        class ShaderCache\n    }\n\n    class ClockMaster\n    class MusicManager\n    class Maiky\n\n    GameManager --> UserDataCache\n    GameManager --> CacheManager\n    GameManager --> ClockMaster\n    GameManager --> MusicManager\n    GameManager --> Maiky\n\n    UserDataCache --> UserData : manages\n    CacheManager --> ResourceCache : manages\n    CacheManager --> ShaderCache : contains\n\n    Spacer --|> GameManager : separates\n\n"
+		},
+		"7bc959e866afb1a8": {
+			"usedIn": ["src/content/docs/dashboard/ci-health.mdx"],
+			"source": "pie showData\n    title Runs by Workflow (top 8)\n    \"CI - CodeQL\" : 308\n    \"CI - Dev\" : 226\n    \"CI - Manifest Guard\" : 91\n    \"Auto-merge bot PRs\" : 36\n    \"CI - Manifest Sync\" : 35\n    \"CI - Actionlint\" : 30\n    \"CI - Uniti\" : 29\n    \"CI - Unreal Plugins (verify)\" : 26"
+		},
+		"80d88a2b6334c9d1": {
+			"usedIn": ["src/content/docs/dashboard/activity.mdx"],
+			"source": "pie showData\n    title Commits by Author\n    \"h0lybyte\" : 312\n    \"github-actions[bot]\" : 202\n    \"dependabot[bot]\" : 4"
+		},
+		"8a6b9c633cf7cfec": {
+			"usedIn": ["src/content/docs/application/git.mdx"],
+			"source": "flowchart TD\n    push[\"push to main\"] --> main[\"CI - Main<br/>globals → alter → dispatch\"]\n\n    main -->|\"app=axum-kbve\"| d1[\"CI - Docker<br/>axum-kbve\"]\n    main -->|\"app=discordsh\"| d2[\"CI - Docker<br/>discordsh\"]\n    main -->|\"app=mc\"| d3[\"CI - Docker<br/>mc\"]\n    main -->|\"app=edge\"| d4[\"CI - Docker<br/>edge\"]\n    main -->|\"app=...\"| dn[\"CI - Docker<br/>...\"]\n\n    d1 --> p1[\"queue_guard → config → test → publish → kube\"]\n    d2 --> p2[\"queue_guard → config → test → publish → kube\"]\n    d3 --> p3[\"queue_guard → config → test → publish → kube\"]\n    d4 --> p4[\"queue_guard → config → test → publish → kube\"]"
+		},
+		"8ef825472c90cc37": {
+			"usedIn": ["src/content/docs/application/rust.mdx"],
+			"source": "graph TD\n    A[Tauri WebviewWindow] -->|raw_window_handle| B[wgpu::Surface]\n    B --> C[wgpu::Adapter]\n    C --> D[wgpu::Device + Queue]\n    D -->|RenderCreation::Manual| E[Bevy RenderPlugin]\n    E --> F[Forward Renderer]\n    F --> G[PBR Pipeline]\n    F --> H[Sprite Pipeline]\n    F --> I[Custom Materials]\n    I --> I1[WaterMaterial]\n    I --> I2[PixelateMaterial]\n    I --> I3[OrbMaterial]\n    I --> I4[SmokeMaterial]"
+		},
+		"9d5a8385864aca17": {
+			"usedIn": ["src/content/docs/dashboard/kanban-data.mdx"],
+			"source": "flowchart LR\n    classDef planning fill:#8b5cf6,stroke:#6d28d9,color:#fff\n    classDef active fill:#3b82f6,stroke:#1d4ed8,color:#fff\n    classDef blocked fill:#ef4444,stroke:#b91c1c,color:#fff\n    classDef done fill:#10b981,stroke:#059669,color:#fff\n    Theory[\"Theory<br/><strong>75</strong>\"]\n    Theory --> AI\n    AI[\"AI<br/><strong>1</strong>\"]\n    AI --> Todo\n    Todo[\"Todo<br/><strong>24</strong>\"]\n    Todo --> Backlog\n    Backlog[\"Backlog<br/><strong>6</strong>\"]\n    Backlog --> Error\n    Error[\"Error<br/><strong>23</strong>\"]\n    Error --> Support\n    Support[\"Support<br/><strong>0</strong>\"]\n    Support --> Staging\n    Staging[\"Staging<br/><strong>2</strong>\"]\n    Staging --> Review\n    Review[\"Review<br/><strong>4</strong>\"]\n    Review --> Done\n    Done[\"Done<br/><strong>516</strong>\"]\n    class Theory,AI,Backlog planning\n    class Todo,Staging,Review active\n    class Error,Support blocked\n    class Done done"
+		},
+		"ae6c8fb6f5fd96ff": {
+			"usedIn": ["src/content/docs/dashboard/security.mdx"],
+			"source": "pie showData\n    title Findings by Ecosystem\n    \"npm\" : 100\n    \"Cargo\" : 45"
+		},
+		"bc3ad163fd0c9709": {
+			"usedIn": ["src/content/docs/rareicon/index.mdx"],
+			"source": "\ngraph TD\n    VContainer[\"VContainer\"]\n    SteamworksService[\"SteamworksService (IAsyncStartable)\"]\n    SteamWorker[\"SteamWorker (Coordinates subsystems)\"]\n    Achievements[\"Achievements\"]\n    Friends[\"Friends\"]\n    CommunityHub[\"CommunityHub\"]\n\n    VContainer --> SteamworksService\n    SteamworksService --> SteamWorker\n    SteamWorker --> Achievements\n    SteamWorker --> Friends\n    SteamWorker --> CommunityHub\n"
+		},
+		"c44ae956999ea8d0": {
+			"usedIn": ["src/content/docs/journal/05-26.mdx"],
+			"source": "\ngraph TD\n  A[Prefab Spawned via VContainer] --> B[CharacterHealthExtended]\n  B --> C[Injected with TickSystem]\n  C --> D[Registers ITickable with TickSystem]\n  E[TickSystem as Singleton] --> F[Runs Tick Loop Every Frame]\n  F --> G[Calls ITickable.Tick with deltaTime]\n  G --> H[CharacterHealthExtended.Tick]\n  H --> I[Regenerates Stats with mana, stamina, energy]\n"
+		},
+		"ca5362e19fc718d1": {
+			"usedIn": ["src/content/docs/application/git.mdx"],
+			"source": "sequenceDiagram\n    participant M as ci-main\n    participant Q as ci-docker queue (axum-kbve)\n    participant R as Runner\n\n    M->>Q: dispatch v5.0.10 (Run A)\n    R->>Q: Run A starts — RUNNING\n    M->>Q: dispatch v5.0.11 (Run B)\n    Q-->>R: Run B → PENDING (waits for A)\n    M->>Q: dispatch v5.0.11+hotfix (Run C)\n    Q-->>R: Run C replaces B as PENDING (B cancelled)\n    R->>Q: Run A completes\n    R->>Q: Run C starts — RUNNING"
+		},
+		"deb12fd8421b89dc": {
+			"usedIn": ["src/content/docs/application/git.mdx"],
+			"source": "flowchart LR\n    fail[\"Job fails\"] --> search[\"Search for open issue<br/>[CI] workflow / app — Failed\"]\n    search -->|\"Not found\"| create[\"Create issue<br/>with logs + run link\"]\n    search -->|\"Found\"| comment[\"Comment on issue<br/>increment failure count\"]\n\n    success[\"Job succeeds\"] --> search2[\"Search for open issue\"]\n    search2 -->|\"Found\"| close[\"Comment 'Resolved'<br/>close issue\"]\n    search2 -->|\"Not found\"| noop[\"No action\"]"
+		},
+		"f8525254f040fe56": {
+			"usedIn": ["src/content/docs/dashboard/ci-health.mdx"],
+			"source": "pie showData\n    title Runs by Outcome\n    \"Success\" : 787\n    \"Failure\" : 45\n    \"Cancelled\" : 162\n    \"Other\" : 6"
+		},
+		"ffe2536e385002c7": {
+			"usedIn": ["src/content/docs/application/cubejs.mdx"],
+			"source": "graph TB\n    Dashboard[Dashboard<br/>React/Astro]\n    Cube[Cube.js API<br/>Port 4000]\n    CubeStore[(Cube Store<br/>Pre-aggs Cache)]\n    ClickHouse[(ClickHouse<br/>:8123<br/>Analytics)]\n    Postgres[(Postgres<br/>:5432<br/>OLTP)]\n\n    Dashboard -->|REST/GraphQL| Cube\n    Cube --> CubeStore\n    Cube --> ClickHouse\n    Cube --> Postgres"
+		}
+	}
+}

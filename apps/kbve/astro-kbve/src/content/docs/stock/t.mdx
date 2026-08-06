@@ -1,10 +1,12 @@
 ---
 title: AT&T Inc. T
+template: splash
 description: |
     AT&T is a leading global telecommunications company providing wireless, broadband, video, and voice services to consumers, businesses, and government customers across the United States and internationally.
 sidebar:
     label: AT&T T
     order: 491
+    hidden: true
 unsplash: 1556075798-3cb3acd7f3ff
 img: https://images.unsplash.com/photo-1556075798-3cb3acd7f3ff?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - wireless
   - t
   - broadband
+stock:
+  ticker: T
+  exchange: NYSE
+  symbol: nyse:t
+  name: "AT&T Inc."
+  sector: Communication Services
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:t`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -305,3 +315,5 @@ T offers exposure to essential telecommunications infrastructure with dividend i
 - **Debt Reduction**: Progress on debt reduction and credit metrics improvement
 
 <Giscus />
+
+</StockLeaf>

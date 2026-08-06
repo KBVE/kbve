@@ -448,10 +448,15 @@ const BATTLE_TURN_CAP: u32 = 300;
 pub(crate) const AI_STREAM: u32 = 0xA1;
 
 /// Build a team of `PET_TEAM_SIZE` mechamutt battlers at `PET_TEAM_LEVEL`.
+///
+/// Genetics are pinned to the default rather than rolled. These are stand-in opponents — the
+/// `/petsim` replay and the fallback team for a player with no roster — never owned pets, and a
+/// seeded replay has to be a function of its seed alone. Rolling per-instance variance here would
+/// make the same seed produce a different battle every call.
 pub(crate) fn mechamutt_team(species: &simgrid::NpcDef) -> Vec<simgrid::Combatant> {
     (0..PET_TEAM_SIZE)
         .filter_map(|_| {
-            simgrid::mint_pet_from_species(species, PET_TEAM_LEVEL)
+            simgrid::mint_pet_with_genes(species, PET_TEAM_LEVEL, simgrid::PetGenes::default())
                 .map(|snap| simgrid::Combatant::from_pet(&snap, species))
         })
         .collect()
@@ -951,6 +956,8 @@ pub fn apply_pet_turns(
     mut pending: ResMut<simgrid::PendingPetTurns>,
     mut duels: ResMut<crate::duel::ActiveDuels>,
     mut queued: ResMut<simgrid::PendingRosterSyncs>,
+    mut xp: ResMut<simgrid::PendingPetXp>,
+    mut friendship: ResMut<crate::friendship::PendingFriendship>,
     mut items: simgrid::sim::ItemBank,
     mut pet_bank: simgrid::PetBank,
     mut owners: bevy::prelude::Query<(
@@ -1041,7 +1048,7 @@ pub fn apply_pet_turns(
         }
         crate::duel::stream_duel_views(&bcast, duel, &events, clock.tick);
         if resolved {
-            crate::duel::finish_duel(&mut duels, id, &mut commands);
+            crate::duel::finish_duel(&mut duels, id, &mut commands, &mut xp, &mut friendship);
         }
     }
 }
@@ -1347,6 +1354,65 @@ mod tests {
         let snap = simgrid::mint_pet_from_species(species, 5).expect("mints a pet");
         assert_eq!(snap.species_ref, "mechamutt");
         assert!(snap.vitals.max_hp > 0 && !snap.moves.is_empty());
+    }
+
+    /// Every authored `secondary_element` has to parse, because `Element::from_proto` falls back
+    /// to `Element::None` on anything it does not recognise. A typo would therefore not fail —
+    /// it would silently drop the pet's second type and only show up as a matchup that felt off.
+    #[test]
+    fn every_authored_secondary_element_parses() {
+        let db = super::npc_db();
+        let mut dual = 0;
+        for def in &db.npcs {
+            let Some(pet) = def.pet.as_ref() else {
+                continue;
+            };
+            if pet.secondary_element.is_empty() {
+                continue;
+            }
+            assert_ne!(
+                simgrid::Element::from_proto(&pet.secondary_element),
+                simgrid::Element::None,
+                "{}: secondary_element {:?} did not parse",
+                def.ref_id,
+                pet.secondary_element
+            );
+            assert_ne!(
+                simgrid::Element::from_proto(&pet.secondary_element),
+                simgrid::Element::from_proto(&def.element),
+                "{}: secondary_element repeats the primary, which buys nothing",
+                def.ref_id
+            );
+            dual += 1;
+        }
+        assert!(
+            dual > 0,
+            "no species is dual-typed — the field is dead again"
+        );
+    }
+
+    /// `base_friendship` seeds a `u8` counter. A species authoring a value outside that range
+    /// clamps rather than wrapping, but a value nobody intended is still a data bug worth naming.
+    #[test]
+    fn every_catchable_species_authors_a_sane_base_friendship() {
+        let db = super::npc_db();
+        for def in &db.npcs {
+            let Some(pet) = def.pet.as_ref().filter(|p| p.catchable) else {
+                continue;
+            };
+            assert!(
+                (0..=u8::MAX as i32).contains(&pet.base_friendship),
+                "{}: base_friendship {} is outside 0..=255",
+                def.ref_id,
+                pet.base_friendship
+            );
+            assert!(
+                pet.base_friendship < simgrid::FRIENDSHIP_DEVOTED as i32,
+                "{}: base_friendship {} starts at or past devotion, so the bonus is free",
+                def.ref_id,
+                pet.base_friendship
+            );
+        }
     }
 
     #[test]

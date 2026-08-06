@@ -21,55 +21,52 @@ gate-auth = ["dep:lru"]
 gate = ["gate-auth", "axum/ws", "reqwest/stream", "dep:tokio-tungstenite", "dep:metrics", "jedi/prometheus"]
 
 [dependencies]
-anyhow = "1.0"
-ammonia = "4.1.2"
-argon2 = "0.5.0"
+anyhow = { workspace = true }
+ammonia = { workspace = true }
+argon2 = { workspace = true }
 pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
-url = "2.5"
-askama = "0.15.6"
-async-trait = "0.1.74"
-chrono = { version = "0.4.44", features = ["serde"] }
+url = { workspace = true }
+askama = { workspace = true }
+async-trait = { workspace = true }
+chrono = { workspace = true, features = ["default", "serde"] }
 diesel = { version = "2.3.7", default-features = false, features = [
     "chrono",
     "serde_json",
     "uuid",
 ] }
 diesel-async = { version = "0.9", features = ["postgres", "bb8"] }
-bb8 = "0.9"
-futures-util = "0.3"
-dotenvy = "0.15"
-axum = { version = "0.8.9", features = ["macros"] }
-axum-extra = { version = "0.12.6", features = ["cookie"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-dashmap = { version = "6.1.0", features = ["serde"] }
-jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
+bb8 = { workspace = true }
+futures-util = { workspace = true, features = ["default"] }
+dotenvy = { workspace = true }
+axum = { workspace = true, features = ["default", "macros"] }
+axum-extra = { workspace = true, features = ["cookie"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+dashmap = { workspace = true, features = ["serde"] }
+jsonwebtoken = { workspace = true, features = ["default", "rust_crypto"] }
 rand_core = { version = "0.6.4", features = ["std"] }
-tokio = { version = "1.0", features = ["full"] }
-thiserror = "2"
+tokio = { workspace = true, features = ["default", "full"] }
+thiserror = { workspace = true }
 time = "0.3.47"
-reqwest = { version = "0.12", default-features = false, features = [
-    "json",
-    "rustls-tls",
-] }
-tower = { version = "0.5.3", features = ["timeout", "util"] }
-tower-http = { version = "0.7.0", features = ["cors", "fs"] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+reqwest = { workspace = true, features = ["json", "rustls", "form"] }
+tower = { workspace = true, features = ["timeout", "util"] }
+tower-http = { workspace = true, features = ["cors", "fs"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
 r2d2 = { version = "0.8.9", optional = true }
-regex = "1.10.2"
-ulid = "1.2.1"
+regex = { workspace = true }
+ulid = { workspace = true }
 num-bigint = "0.4"
-lru = { version = "0.16", optional = true }
+lru = { workspace = true, optional = true }
 resvg = { version = "0.47.0", optional = true }
-uuid = { version = "1", features = ["v4", "serde"], optional = true }
-tokio-tungstenite = { version = "0.24", features = ["rustls-tls-webpki-roots"], optional = true }
-metrics = { version = "0.24", optional = true }
+uuid = { workspace = true, optional = true, features = ["v4", "serde"] }
+tokio-tungstenite = { workspace = true, features = ["default", "rustls-tls-webpki-roots"], optional = true }
+metrics = { workspace = true, optional = true }
 jedi = { path = "../jedi" }
 holy = { version = "0.2.1", path = "../holy" }
 
 [dev-dependencies]
-serial_test = "3"
+serial_test = { workspace = true }
 
 [package.metadata.askama]
 dirs = ["templates"]

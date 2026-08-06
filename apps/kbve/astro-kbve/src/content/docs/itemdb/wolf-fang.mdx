@@ -19,8 +19,10 @@ max_stack: 30
 buy_price: 3
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Overview
 
-<ItemDBPanel data={frontmatter} />
+</ItemLeaf>

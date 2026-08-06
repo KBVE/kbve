@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { modelUrl } from '../character/modelUrl';
 
 export type HeldKind = 'empty' | 'tool' | 'weapon' | 'shield';
 
@@ -88,7 +89,7 @@ export const LOADOUT: Equipment[] = [
 		primaryImpulse: USE,
 		secondaryImpulse: REACH,
 		buildItem: () => null,
-		modelUrl: '/models/torch.glb',
+		modelUrl: modelUrl('/models/torch.glb'),
 		slot: 'light',
 		grip: {
 			pos: [0.02, -0.05, 0.06],
@@ -106,7 +107,7 @@ export const LOADOUT: Equipment[] = [
 		primaryImpulse: USE,
 		secondaryImpulse: REACH,
 		buildItem: () => null,
-		modelUrl: '/models/crate.glb',
+		modelUrl: modelUrl('/models/crate.glb'),
 		grip: {
 			pos: [0.1, -0.12, 0.15],
 			rot: [0.2, 0.4, 0],
@@ -123,7 +124,24 @@ export const LOADOUT: Equipment[] = [
 		primaryImpulse: FIRE,
 		secondaryImpulse: NONE,
 		buildItem: () => null,
-		modelUrl: '/models/sword.glb',
+		modelUrl: modelUrl('/models/sword.glb'),
+		grip: {
+			pos: [0, 0, 0],
+			rot: [0, 0, 0],
+			scale: 8,
+		},
+	},
+	{
+		id: 'pickaxe',
+		kind: 'tool',
+		label: 'pickaxe',
+		primary: 'mine',
+		secondary: 'grab',
+		reload: false,
+		primaryImpulse: FIRE,
+		secondaryImpulse: REACH,
+		buildItem: () => null,
+		modelUrl: modelUrl('/models/pickaxe.glb'),
 		grip: {
 			pos: [0, 0, 0],
 			rot: [0, 0, 0],
@@ -140,7 +158,7 @@ export const LOADOUT: Equipment[] = [
 		primaryImpulse: USE,
 		secondaryImpulse: REACH,
 		buildItem: () => null,
-		modelUrl: '/models/torch.glb',
+		modelUrl: modelUrl('/models/torch.glb'),
 		slot: 'light',
 		grip: {
 			pos: [0.02, -0.05, 0.06],

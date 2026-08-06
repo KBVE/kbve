@@ -1,6 +1,6 @@
+use erust::SupabaseClient;
 use erust::supabase::{Session, SupabaseUser};
 use erust::tauri as ebridge;
-use erust::SupabaseClient;
 use serde::{Deserialize, Serialize};
 use tauri::State;
 
@@ -100,11 +100,7 @@ pub fn init() -> Auth {
 
 #[tauri::command]
 #[specta::specta]
-pub fn auth_authorize_url(
-    provider: String,
-    redirect_to: String,
-    auth: State<'_, Auth>,
-) -> String {
+pub fn auth_authorize_url(provider: String, redirect_to: String, auth: State<'_, Auth>) -> String {
     auth.0.authorize_url(&provider, &redirect_to)
 }
 

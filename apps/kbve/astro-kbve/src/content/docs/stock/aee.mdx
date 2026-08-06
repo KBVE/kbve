@@ -1,10 +1,12 @@
 ---
 title: Ameren Corporation AEE
+template: splash
 description: |
     Ameren Corporation is a regulated utility holding company providing electric and natural gas services in Missouri and Illinois with a focus on clean energy transition and grid modernization.
 sidebar:
     label: Ameren AEE
     order: 452
+    hidden: true
 unsplash: 1473341304170-971dccb5ac1e
 img: https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - electric
   - aee
   - renewable-energy
+stock:
+  ticker: AEE
+  exchange: NYSE
+  symbol: nyse:aee
+  name: "Ameren Corporation"
+  sector: Utilities
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:aee`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -261,3 +271,5 @@ AEE offers exposure to essential utility services with clean energy growth:
 - **Operational Performance**: Safety, reliability, and customer satisfaction metrics
 
 <Giscus />
+
+</StockLeaf>

@@ -5,6 +5,7 @@ mod config;
 mod event;
 mod event_tail;
 mod irc_bridge;
+mod landing;
 mod live_api;
 mod poller;
 mod rcon_client;
@@ -51,9 +52,12 @@ async fn main() -> Result<()> {
 
     let live = live_api::SharedLive::default();
     let bosses = event_tail::SharedBosses::default();
+    let events = event_tail::SharedEvents::default();
     let live_state = live_api::LiveState {
         snap: live.clone(),
         bosses: bosses.clone(),
+        events: events.clone(),
+        intel_path: Arc::from(cfg.save_intel_path.as_str()),
     };
 
     let poller_handle = tokio::spawn(poller::run(cfg.clone(), game_tx.clone(), live.clone()));
@@ -66,7 +70,7 @@ async fn main() -> Result<()> {
     let ch_handle = tokio::spawn(ch_writer::run(cfg.clone(), game_tx.subscribe()));
     let agones_handle = tokio::spawn(agones_health::run(cfg.clone()));
     let live_handle = tokio::spawn(live_api::run(cfg.clone(), live_state));
-    let event_handle = tokio::spawn(event_tail::run(cfg.clone(), bosses));
+    let event_handle = tokio::spawn(event_tail::run(cfg.clone(), bosses, events));
 
     drop(game_tx);
 

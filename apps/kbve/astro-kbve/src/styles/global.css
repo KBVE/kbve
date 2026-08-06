@@ -4,6 +4,8 @@
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
 @import './bento.css';
+@import './chart.css';
+@import './mermaid.css';
 @import './mcdb.css';
 @import './os.css';
 
@@ -477,6 +479,14 @@ textarea:focus-visible {
 			position: relative;
 		}
 
+		/* Starlight sizes .main-pane as `100% - var(--sl-sidebar-width)` to
+		   reserve room for the right sidebar. That container is zero-width
+		   above, and the var doubles as the LEFT rail width — so the reserve
+		   made the content resize every time the rail toggled. */
+		[data-has-sidebar][data-has-toc] .main-pane {
+			width: 100% !important;
+		}
+
 		/* Default state = COLLAPSED (peek strip).
 		   This is intentional so cross-doc view-transitions that capture
 		   a snapshot before the inline `data-right-sidebar-collapsed`
@@ -705,6 +715,19 @@ body:has(.kbve-dashboard-page)
 }
 body:has(.kbve-dashboard-page) {
 	--sl-content-width: 100%;
+}
+
+/* ── Section pages: bento bands span the column beside the sidebar ──
+   The route middleware hands `template: splash` section pages a real
+   Starlight sidebar, which re-caps the content column at the default
+   --sl-content-width. Bento bands are full-bleed by design, so widen the
+   column back out whenever the sidebar is rendering a section rail. */
+body:has([data-kbve-section]) {
+	--sl-content-width: 100%;
+}
+body:has([data-kbve-section])
+	:is(.sl-markdown-content, main.main-pane, .content-panel article.content) {
+	max-width: 100% !important;
 }
 
 .mcdb-browse__shell {
@@ -1020,15 +1043,57 @@ body:has(.kbve-dashboard-page) {
 		--kbve-sidebar-width: var(--sl-sidebar-width, 18rem);
 	}
 
+	/* The rail sits on the same surface as the bento bands it runs beside,
+	   divided by a hairline rather than Starlight's sidebar tint. */
+	:where(body:has([data-kbve-section])) .sidebar-pane {
+		background-color: var(--sl-color-black);
+		border-inline-end: 1px solid var(--bento-hairline);
+	}
+
+	/* Section header reads as a bento eyebrow, not a Starlight page title —
+	   the body font here is serif, which is why it looked pasted on. */
+	[data-kbve-section-root] {
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.7rem 0.85rem;
+		border-bottom: 1px solid var(--bento-hairline);
+		font-size: 0.75rem;
+		font-weight: 600;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+		text-decoration: none;
+		transition: color 160ms ease;
+	}
+
+	[data-kbve-section-root]:hover {
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
+	}
+
+	[data-kbve-rail='collapsed'] [data-kbve-section-root] {
+		justify-content: center;
+		overflow: hidden;
+	}
+
+	[data-kbve-rail='collapsed'] [data-kbve-section-label] {
+		display: none;
+	}
+
 	[data-kbve-sidebar-chrome] {
 		box-sizing: border-box;
 		display: flex;
 		align-items: center;
 		gap: 0.5rem;
 		height: 3rem;
-		padding: 0.5rem 0.75rem;
-		border-bottom: 1px solid
-			var(--sl-color-hairline, var(--color-gold-dark));
+		padding: 0.5rem 0.85rem;
+		border-bottom: 1px solid var(--bento-hairline);
 	}
 
 	[data-kbve-rail-toggle] {
@@ -1063,27 +1128,52 @@ body:has(.kbve-dashboard-page) {
 		flex: 1 1 auto;
 		min-width: 0;
 	}
+	/* Matches .facet-search__input — the gutter's search field. */
 	[data-kbve-filter] {
 		box-sizing: border-box;
 		width: 100%;
 		height: 2rem;
-		padding: 0.35rem 0.6rem;
-		font-size: 0.85rem;
-		color: var(--sl-color-white, var(--color-parchment));
-		background: var(--sl-color-bg, var(--color-bg-sunken));
-		border: 1px solid var(--sl-color-gray-5, var(--color-gold-dark));
-		border-radius: 0.4rem;
+		padding: 0.5rem 0.75rem;
+		font-size: 0.8125rem;
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
+		border: 1px solid var(--bento-hairline-strong);
+		border-radius: var(--bento-radius);
 		outline: none;
 	}
+	[data-kbve-filter]::placeholder {
+		color: var(--sl-color-gray-4);
+	}
 	[data-kbve-filter]:focus {
-		border-color: var(--sl-color-accent, var(--color-gold));
+		border-color: var(--sl-color-accent);
 	}
 
 	[data-kbve-sidebar-scroll] {
 		flex: 1 1 auto;
 		min-height: 0;
 		overflow-y: auto;
-		padding: 0.5rem 0.5rem 2rem;
+		padding: 0 0 2rem;
+		--kbve-rail-pad: 0.85rem;
+	}
+
+	/* Top-level groups read as stacked bento bands: hairline seams running
+	   the full width of the rail, same as the seams between board cells. */
+	[data-kbve-sidebar-scroll]
+		> [data-kbve-sublist]
+		> [data-kbve-item]
+		+ [data-kbve-item] {
+		border-top: 1px solid var(--bento-hairline);
+	}
+	[data-kbve-sidebar-scroll] > [data-kbve-sublist] > [data-kbve-item] {
+		margin: 0;
+		padding-block: 0.375rem;
+	}
+	[data-kbve-sidebar-scroll] > [data-kbve-sublist] > [data-kbve-item] > * {
+		margin-inline: var(--kbve-rail-pad);
 	}
 
 	[data-kbve-sublist] {
@@ -1091,38 +1181,64 @@ body:has(.kbve-dashboard-page) {
 		margin: 0;
 		padding: 0;
 	}
+	/* The guide runs through the centre of the group's icon tile (row pad
+	   0.5rem + half of a 1.5rem tile), and the indent lands child labels on
+	   the same x as the group label above them (1.25 + 0.75 + 0.5 = 2.5rem,
+	   matching icon + gap + row pad). */
 	[data-kbve-sublist] [data-kbve-sublist] {
-		margin-inline-start: 0.6rem;
-		padding-inline-start: 0.4rem;
-		border-inline-start: 1px solid
-			var(--sl-color-hairline, var(--color-gold-dark));
+		margin-inline-start: 1.375rem;
+		padding-inline-start: calc(0.875rem - 1px);
+		border-inline-start: 1px solid var(--bento-hairline);
+	}
+	[data-kbve-group][open] > [data-kbve-sublist] {
+		border-inline-start-color: var(--bento-hairline-strong);
 	}
 	[data-kbve-item] {
-		margin: 0.2rem 0;
+		margin: 0.125rem 0;
 	}
 
+	/* Rows carry .facet-row metrics so the rail reads the same as the
+	   faceted browsers elsewhere in the bento system. */
 	[data-kbve-link],
 	[data-kbve-summary] {
 		display: flex;
 		align-items: center;
-		gap: 0.4rem;
-		padding: 0.3rem 0.5rem;
-		border-radius: 0.4rem;
-		font-size: 0.9rem;
+		gap: 0.5rem;
+		padding: 0.375rem 0.5rem;
+		border: 1px solid transparent;
+		border-radius: var(--bento-radius);
+		font-size: 0.875rem;
 		line-height: 1.3;
-		color: var(--sl-color-gray-2, var(--color-parchment));
+		color: var(--sl-color-gray-2);
 		text-decoration: none;
 		cursor: pointer;
+		transition:
+			color 220ms ease,
+			background-color 220ms ease,
+			border-color 220ms ease,
+			box-shadow 220ms ease;
 	}
 	[data-kbve-link]:hover,
 	[data-kbve-summary]:hover {
-		background: var(--sl-color-gray-6, var(--color-bg-raised));
-		color: var(--sl-color-white, var(--color-parchment));
+		color: var(--sl-color-white);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 4%,
+			transparent
+		);
+		border-color: var(--bento-hairline);
 	}
+	/* Active row uses the .bento-card[data-active] treatment — hairline box
+	   plus accent glyph — instead of a heavy accent-tinted fill. */
 	[data-kbve-link][aria-current='page'] {
-		color: var(--sl-color-text-accent, var(--color-gold));
-		background: var(--sl-color-accent-low, rgba(166, 125, 67, 0.18));
+		color: var(--sl-color-white);
+		background-color: var(--bento-cell-bg);
+		border-color: var(--sl-color-accent-high);
+		box-shadow: var(--bento-glow);
 		font-weight: 600;
+	}
+	[data-kbve-link][aria-current='page'] [data-kbve-label] {
+		color: var(--sl-color-accent-high);
 	}
 	[data-kbve-label] {
 		flex: 1 1 auto;
@@ -1132,9 +1248,27 @@ body:has(.kbve-dashboard-page) {
 		white-space: nowrap;
 	}
 
+	/* Group headers use the .facet-group__label eyebrow treatment rather
+	   than looking like slightly-bolder links. */
 	[data-kbve-summary] {
 		list-style: none;
+		font-size: 0.6875rem;
 		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+	}
+	[data-kbve-summary]:hover {
+		color: var(--sl-color-gray-2);
+	}
+	/* Band headers wrap rather than ellipsize — uppercase tracking makes
+	   long section names wider than the rail, and a clipped header reads as
+	   a bug next to the bento bands. */
+	[data-kbve-summary] [data-kbve-label] {
+		white-space: normal;
+		overflow: visible;
+		text-overflow: clip;
+		line-height: 1.3;
 	}
 	[data-kbve-summary]::-webkit-details-marker {
 		display: none;
@@ -1159,14 +1293,31 @@ body:has(.kbve-dashboard-page) {
 		background: var(--sl-color-accent, var(--color-gold-dark));
 	}
 
+	/* Rounded icon well, matching .bento-icon-tile. */
 	[data-kbve-group-icon] {
 		flex: none;
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		width: 1.125rem;
-		height: 1.125rem;
-		color: var(--sl-color-gray-3, var(--color-gold));
+		width: 1.75rem;
+		height: 1.75rem;
+		border-radius: 0.5rem;
+		color: var(--sl-color-gray-3);
+		background-color: color-mix(
+			in srgb,
+			var(--sl-color-white) 6%,
+			transparent
+		);
+		border: 1px solid var(--bento-hairline);
+		transition:
+			color 160ms ease,
+			border-color 160ms ease;
+	}
+
+	[data-kbve-group][open] > [data-kbve-summary] [data-kbve-group-icon],
+	[data-kbve-summary]:hover [data-kbve-group-icon] {
+		color: var(--sl-color-accent-high);
+		border-color: var(--bento-hairline-strong);
 	}
 	a[data-kbve-group-icon] {
 		cursor: pointer;
@@ -1186,8 +1337,10 @@ body:has(.kbve-dashboard-page) {
 	[data-kbve-rail='collapsed'] [data-kbve-filter-field] {
 		display: none;
 	}
-	[data-kbve-rail='collapsed'] [data-kbve-sidebar-chrome] {
-		padding-inline-end: 0;
+	[data-kbve-rail='collapsed'] [data-kbve-sidebar-chrome],
+	[data-kbve-rail='collapsed'] [data-kbve-section-root] {
+		justify-content: center;
+		padding-inline: 0;
 	}
 
 	[data-kbve-rail='collapsed'] [data-kbve-label],
@@ -1197,6 +1350,30 @@ body:has(.kbve-dashboard-page) {
 	}
 	[data-kbve-rail='collapsed'] [data-kbve-group] > [data-kbve-sublist] {
 		display: none;
+	}
+
+	/* Collapsed the rail is 4rem wide, and the expanded inline padding
+	   (sidebar-content + scroll + row) sums to 2rem — enough to shove the
+	   icon tile against the right edge and read as clipped. Zero it out and
+	   centre the rows instead. */
+	[data-kbve-rail='collapsed'] [data-kbve-sidebar-scroll] {
+		padding-inline: 0;
+		scrollbar-width: none;
+		--kbve-rail-pad: 0.25rem;
+	}
+	[data-kbve-rail='collapsed'] [data-kbve-sidebar-scroll]::-webkit-scrollbar {
+		display: none;
+	}
+	[data-kbve-rail='collapsed'] [data-kbve-summary],
+	[data-kbve-rail='collapsed'] [data-kbve-link] {
+		justify-content: center;
+		gap: 0;
+		padding-inline: 0;
+	}
+	[data-kbve-rail='collapsed'] [data-kbve-sublist] [data-kbve-sublist] {
+		margin-inline-start: 0;
+		padding-inline-start: 0;
+		border-inline-start: 0;
 	}
 	[data-kbve-rail='collapsed']
 		[data-kbve-sidebar-scroll]
@@ -1213,11 +1390,26 @@ body:has(.kbve-dashboard-page) {
 				width 0.2s ease,
 				padding-inline-start 0.2s ease;
 		}
+
+		:root[data-kbve-rail='expanded']:has(body [data-kbve-section])
+			.sidebar-pane {
+			box-shadow: 8px 0 24px rgb(0 0 0 / 0.18);
+			transition:
+				width 0.2s ease,
+				box-shadow 0.2s ease;
+		}
+
 		:root[data-kbve-rail='collapsed'] {
 			--sl-sidebar-width: 4rem;
 		}
 		:root[data-kbve-rail='collapsed'] .sidebar-content {
-			padding-inline-end: 0;
+			padding-inline: 0;
+		}
+		/* Starlight reserves a stable scrollbar gutter on the pane, which
+		   offsets the centred icons by half its width once the rail is only
+		   4rem wide. */
+		:root[data-kbve-rail='collapsed'] .sidebar-pane {
+			scrollbar-gutter: auto;
 		}
 	}
 
@@ -1231,5 +1423,16 @@ body:has(.kbve-dashboard-page) {
 		clip: rect(0, 0, 0, 0);
 		white-space: nowrap;
 		border: 0;
+	}
+}
+
+/* Off-canvas rail, mirroring the right sidebar: the content column is pinned
+   to the 4rem icon strip in both states and the expanded pane overlays it, so
+   toggling the rail never re-columns a bento band. Starlight ties
+   --sl-content-inline-start to --sl-sidebar-width from an unlayered <style> in
+   Page.astro, so this override has to stay unlayered to win. */
+@media (min-width: 50rem) {
+	:root:has(body [data-kbve-section]) {
+		--sl-content-inline-start: 4rem;
 	}
 }

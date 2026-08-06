@@ -78,6 +78,73 @@ export const PageLifecycleSchema = z.object({
 	source: z.enum(['initial', 'astro-swap', 'page-reveal', 'bfcache']),
 });
 
+export const PalworldLiveSnapshotSchema = z.object({
+	ts: z.number(),
+	offline: z.boolean(),
+	players: z.array(
+		z.object({
+			name: z.string(),
+			level: z.number(),
+			x: z.number(),
+			y: z.number(),
+		}),
+	),
+	bosses: z.array(
+		z.object({
+			id: z.string(),
+			x: z.number(),
+			y: z.number(),
+			defeated_at: z.number(),
+			respawn_at: z.number(),
+		}),
+	),
+	events: z.array(
+		z.object({
+			kind: z.string(),
+			class: z.string(),
+			x: z.number(),
+			y: z.number(),
+			first_seen: z.number(),
+		}),
+	),
+});
+
+export const ReelStreamStageSchema = z.enum([
+	'loading',
+	'probing',
+	'playing',
+	'reconnecting',
+	'error',
+]);
+export type ReelStreamStage = z.infer<typeof ReelStreamStageSchema>;
+
+export const ReelStreamErrorCodeSchema = z.enum([
+	'sign-in',
+	'not-found',
+	'reaped',
+	'download-failed',
+	'token-expired',
+	'network',
+	'media',
+	'manifest-flip',
+	'transcode-timeout',
+	'unsupported',
+	'unknown',
+]);
+export type ReelStreamErrorCode = z.infer<typeof ReelStreamErrorCodeSchema>;
+
+export const ReelStreamSchema = z.object({
+	timestamp: z.number(),
+	id: z.string(),
+	stage: ReelStreamStageSchema,
+	message: z.string(),
+	code: ReelStreamErrorCodeSchema.optional(),
+	attempt: z.number().optional(),
+	max: z.number().optional(),
+	fatal: z.boolean().optional(),
+});
+export type ReelStreamPayload = z.infer<typeof ReelStreamSchema>;
+
 export const DroidEventSchemas = {
 	'droid-first-connect': DroidFirstConnectSchema,
 	'droid-ready': DroidReadySchema,
@@ -95,10 +162,12 @@ export const DroidEventSchemas = {
 	'auth-ready': AuthReadySchema,
 	'auth-error': AuthErrorSchema,
 	'worker-error': WorkerErrorSchema,
+	'reel-stream': ReelStreamSchema,
 	'gateway-strategy-fallback': GatewayStrategyFallbackSchema,
 	'page-mount': PageLifecycleSchema,
 	'page-swap': PageLifecycleSchema,
 	'page-hide': PageLifecycleSchema,
+	'palworld-live-snapshot': PalworldLiveSnapshotSchema,
 };
 
 export type DroidEventMap = {

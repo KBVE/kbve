@@ -47,9 +47,11 @@ food:
   spoils_into_ref: 'rotten-food'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -62,11 +64,6 @@ Favored by warlords, engineers, and wandering preachers alike.
 Smoked for 18 hours in the wreckage of Fort Codeburn.
 Sauce recipe protected by ex-marines and one pitmaster AI.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -75,15 +72,11 @@ Sauce recipe protected by ex-marines and one pitmaster AI.
 - Grants **+{frontmatter.bonuses.strength} strength** and **+{frontmatter.bonuses.morale} morale** for **{frontmatter.scripts[0].vars.duration} seconds**  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Can be shared for a **morale bonus party effect**  
 - Meat is slightly radioactive in some zones, may be used in rituals  
 - Storage required: **airtight** or **refrigerated crate**
-
----
 
 ## Lore
 
@@ -92,8 +85,6 @@ Sauce recipe protected by ex-marines and one pitmaster AI.
 
 Legends say a whole battalion surrendered just to get one more bite. 
 Smoke rings tell the truth.
-
----
 
 ## Credit
 
@@ -132,13 +123,12 @@ Smoke rings tell the truth.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Texas BBQ Brisket added as rare food item with health, strength, and morale bonuses
 
-
 ## Spoilage
 
 Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).
+
+</ItemLeaf>

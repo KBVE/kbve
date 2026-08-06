@@ -42,9 +42,11 @@ scripts:
             soundEffect: 'crinkle'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -56,11 +58,6 @@ Still, it worked for Jared.
 And maybe it'll work for you.
 Wait... was it Jareds or Donalds teddy bear.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -70,14 +67,10 @@ Wait... was it Jareds or Donalds teddy bear.
 - Emits a soft **crinkle sound** when interacted with  
 - Cannot be crafted or replaced
 
----
-
 ## Found In
 
 Recovered from the **Silent Winter refugee bunkers**, specifically under a vent in **Pod 3B**. 
 Jared never let it go until he fell asleep for the last time.
-
----
 
 ## Lore
 
@@ -88,8 +81,6 @@ Jared never let it go until he fell asleep for the last time.
 > Audio log, Bunker 3B caretaker
 
 Some say the bear listens. Others say it remembers. Either way, no one ever throws it away.
-
----
 
 ## Credit
 
@@ -128,8 +119,8 @@ Some say the bear listens. Others say it remembers. Either way, no one ever thro
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/27/2025 - Jared's Teddy Bear added as unique curio with emotional impact and ambient lore
+
+</ItemLeaf>

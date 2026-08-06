@@ -108,6 +108,50 @@ const normalize = (path: string): string => {
 	return trimmed.endsWith('/') ? trimmed : `${trimmed}/`;
 };
 
+const isNavGroup = (entry: DashboardNavEntry): entry is DashboardNavGroup =>
+	Array.isArray((entry as DashboardNavGroup).items);
+
+const toStarlightLink = (
+	item: DashboardNavItem,
+	pathname: string,
+): StarlightLink => ({
+	type: 'link',
+	label: item.label,
+	href: item.href,
+	isCurrent: normalize(item.href) === normalize(pathname),
+});
+
+/**
+ * Map a hand-authored nav module onto Starlight's sidebar shape so the route
+ * middleware can hand it back to the real sidebar slot. Inverse of
+ * `adaptStarlightSidebar`; visibility/icon metadata is carried separately by
+ * the section shell, which the sidebar component reads from locals.
+ */
+export const toStarlightEntries = (
+	entries: DashboardNavEntry[],
+	pathname: string,
+	collapsible = true,
+): StarlightEntry[] =>
+	entries.map((entry) =>
+		isNavGroup(entry)
+			? ({
+					type: 'group',
+					label: entry.label,
+					collapsed:
+						collapsible &&
+						!entry.items.some(
+							(item) =>
+								normalize(item.href) === normalize(pathname),
+						),
+					icon: entry.icon,
+					href: entry.href,
+					entries: entry.items.map((item) =>
+						toStarlightLink(item, pathname),
+					),
+				} as StarlightGroup)
+			: toStarlightLink(entry, pathname),
+	);
+
 /**
  * Map a Starlight route sidebar (`Astro.locals.starlightRoute.sidebar`) onto the
  * bento gutter's nav shape. Reads only Starlight's plain data — no Starlight

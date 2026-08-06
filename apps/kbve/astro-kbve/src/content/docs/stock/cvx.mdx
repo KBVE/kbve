@@ -1,10 +1,12 @@
 ---
 title: Chevron Corporation CVX
+template: splash
 description: |
     Chevron is one of the world's largest integrated energy companies engaged in oil and gas exploration, production, refining, marketing, and chemicals across the entire energy value chain globally.
 sidebar:
     label: Chevron CVX
     order: 527
+    hidden: true
 unsplash: 1497435334941-8c899ee9e8e9
 img: https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - oil-gas
   - cvx
   - integrated-oil
+stock:
+  ticker: CVX
+  exchange: NYSE
+  symbol: nyse:cvx
+  name: "Chevron Corporation"
+  sector: Energy
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:cvx`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -354,3 +364,5 @@ CVX offers exposure to integrated energy operations with technology leadership:
 - **Environmental Performance**: Progress on emissions reduction and climate goals
 
 <Giscus />
+
+</StockLeaf>

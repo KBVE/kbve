@@ -164,6 +164,34 @@
 				"command": "npx tsx scripts/gen-ci-manifest.mts --check"
 			}
 		},
+		"gen:mermaid": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{projectRoot}/src/content/**/*.mdx",
+				"{projectRoot}/src/content/**/*.md",
+				"{projectRoot}/scripts/gen-mermaid.mjs"
+			],
+			"outputs": ["{projectRoot}/src/generated/mermaid"],
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"command": "node scripts/gen-mermaid.mjs"
+			},
+			"cache": true
+		},
+		"gen:mermaid:check": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{projectRoot}/src/content/**/*.mdx",
+				"{projectRoot}/src/content/**/*.md",
+				"{projectRoot}/scripts/gen-mermaid.mjs",
+				"{projectRoot}/src/generated/mermaid"
+			],
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"command": "node scripts/gen-mermaid.mjs --check"
+			},
+			"cache": true
+		},
 		"gen:palworld-shops": {
 			"executor": "nx:run-commands",
 			"inputs": [
@@ -388,6 +416,50 @@
 			],
 			"options": {
 				"command": "node packages/data/codegen/gen-itemdb-uecpp.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:professiondb-uecpp": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/codegen/gen-professiondb-uecpp.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/professiondb.binpb"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/unreal/KBVEProfessionDB/Source/KBVEProfessionDB/Public/Generated/KBVEProfessionDBProtoTypes.h",
+				"{workspaceRoot}/packages/unreal/KBVEProfessionDB/Source/KBVEProfessionDB/Public/Generated/KBVEProfessionDBProtoParse.h"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-professiondb-uecpp.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:professiondb": {
+			"executor": "nx:run-commands",
+			"dependsOn": [
+				"sync:mapdb",
+				"sync:itemdb",
+				"sync:professiondb-uecpp"
+			],
+			"inputs": [
+				"{projectRoot}/src/content/docs/professiondb/**/*.mdx",
+				"{workspaceRoot}/packages/data/codegen/gen-professiondb-data.mjs",
+				"{workspaceRoot}/packages/data/codegen/gen-professiondb-xref.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/professiondb.binpb",
+				"{workspaceRoot}/packages/data/codegen/generated/mapdb-data.json",
+				"{workspaceRoot}/packages/data/codegen/generated/itemdb-data.json"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/data/codegen/generated/professiondb-data.json",
+				"{workspaceRoot}/packages/data/codegen/generated/professiondb-data.binpb",
+				"{workspaceRoot}/packages/data/codegen/generated/professiondb-runtime.json",
+				"{workspaceRoot}/packages/data/codegen/generated/xref-index.json",
+				"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/professiondb-runtime.json"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-professiondb-data.mjs",
 				"cwd": "{workspaceRoot}"
 			},
 			"cache": true

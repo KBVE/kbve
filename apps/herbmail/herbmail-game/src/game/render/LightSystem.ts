@@ -13,10 +13,21 @@ import { heldLight } from './heldLight';
 import { playerAnchor } from './playerAnchor';
 import { bodyMotionSig } from '../dungeon/collision';
 import { getOases } from '../water/oasis';
+import { getDungeon } from '../dungeon/store';
+import { isSectorBaked } from './bake/bakePool';
+import { ambientBoost, attParams, bakeGain, lightGain } from './lightGain';
+import {
+	CAP_STRIDE,
+	MAX_CAPS,
+	capsuleData,
+	packCapsules,
+	setNearestLight,
+	shadowStrength,
+} from './charShadow';
 import { VIEW_RANGE, WALL_H } from '../config';
 
-const HEAD_REACH = 1.122;
-const HEAD_OFFSET = 0.28;
+export const HEAD_REACH = 1.122;
+export const HEAD_OFFSET = 0.28;
 // Consider any emitter within visible range: a torch you could see (out to the fog
 // wall, plus its own LIGHT_RANGE glow radius) must still be fed to the shader.
 const CULL_RADIUS = VIEW_RANGE + LIGHT_RANGE;
@@ -29,6 +40,18 @@ const POINT_SCALE = 3.0;
 const SWAP_RATIO = 0.55;
 const FADE_TIME = 0.18;
 const SHADOW_CASTERS = 2;
+// Character ground shadow: a challenger torch must be this fraction of the
+// incumbent's squared distance to steal it, and the origin glides at this rate
+// so a swap sweeps rather than snaps.
+const SHADOW_SWAP = 0.5;
+const SHADOW_GLIDE = 6;
+// Wide enough that a torch beside the player still covers him and the wall he
+// is thrown against; the cone only bounds where shadows exist, never the light.
+const SHADOW_CONE = Math.PI * 0.42;
+const SHADOW_PENUMBRA = 0.8;
+// Re-aim only when the player has actually moved enough to matter, so a
+// standing player keeps reusing the shadow map already rendered.
+const SHADOW_AIM_EPS = 0.05;
 const SHADOW_MOVE_EPS = 0.02;
 // Static sky-light that fills an oasis room — the "sun pooling in" through the
 // oculus, fed through the same shader path as torches so it lights the walls.
@@ -48,6 +71,7 @@ interface Ranked {
 	pdist: number;
 	intensity: number;
 	tier: number;
+	nearOnly: number;
 }
 
 // Reads all LightEmitter props each frame, ranks them by camera distance, and
@@ -55,7 +79,8 @@ interface Ranked {
 // POINT_LIGHTS real point lights (for standard-material meshes the shader misses).
 // Ported from the retired TorchLighting component.
 interface ShadowSlot {
-	light: THREE.PointLight;
+	light: THREE.SpotLight;
+	target: THREE.Object3D;
 	pos: THREE.Vector3 | null;
 	pending: THREE.Vector3;
 	hasPending: boolean;
@@ -77,6 +102,25 @@ export class LightSystem {
 		{ length: MAX_LIGHTS },
 		() => new THREE.Vector3(),
 	);
+	private readonly near = new Array<number>(MAX_LIGHTS).fill(0);
+	private readonly caps = Array.from(
+		{ length: MAX_CAPS },
+		() => new THREE.Vector4(),
+	);
+	private readonly capH = new Array<number>(MAX_CAPS).fill(0);
+	// Smoothed origin for character ground shadows: t* is the target light, the
+	// unprefixed fields are the eased value actually published.
+	private readonly shadowLight = {
+		on: false,
+		settled: false,
+		x: 0,
+		y: 0,
+		z: 0,
+		tx: 0,
+		ty: 0,
+		tz: 0,
+		intensity: 0,
+	};
 	// Persistent Ranked pool reused across frames; `active` holds references to the
 	// filled entries this frame (no per-emitter object allocation). `casters` is a
 	// reused 2-slot buffer for the nearest-to-player shadow lights.
@@ -97,6 +141,7 @@ export class LightSystem {
 				pdist: 0,
 				intensity: 0,
 				tier: 0,
+				nearOnly: 0,
 			};
 			this.pool[this.active.length] = r;
 		}
@@ -114,7 +159,20 @@ export class LightSystem {
 			this.root.add(pl);
 		}
 		for (let i = 0; i < SHADOW_CASTERS; i++) {
-			const sl = new THREE.PointLight(0xffffff, 0, LIGHT_RANGE, 2);
+			// Spot rather than point: a point shadow redraws six cube faces per
+			// refresh, a spot redraws one. These casters run at intensity 0 —
+			// they emit nothing and exist only so nearby torches throw the
+			// player's shadow — so the cone costs no illumination, only the
+			// shadowed region, and the target tracks the player to keep that
+			// region over whatever actually needs a shadow.
+			const sl = new THREE.SpotLight(
+				0xffffff,
+				0,
+				LIGHT_RANGE,
+				SHADOW_CONE,
+				SHADOW_PENUMBRA,
+				2,
+			);
 			sl.castShadow = true;
 			sl.visible = true;
 			sl.shadow.intensity = 0;
@@ -124,14 +182,18 @@ export class LightSystem {
 			sl.shadow.camera.far = LIGHT_RANGE;
 			sl.shadow.bias = -0.005;
 			sl.shadow.radius = 4;
+			const target = new THREE.Object3D();
+			sl.target = target;
 			this.slots.push({
 				light: sl,
+				target,
 				pos: null,
 				pending: new THREE.Vector3(),
 				hasPending: false,
 				fade: 0,
 			});
 			this.root.add(sl);
+			this.root.add(target);
 		}
 	}
 
@@ -144,6 +206,7 @@ export class LightSystem {
 		ambient: number,
 	): void {
 		this.active.length = 0;
+		let sectorBaked = false;
 		const gather = (eid: number) => {
 			const firefly = hasComponent(world, eid, FireflyFx);
 			const dx = Transform3.dx[eid];
@@ -184,9 +247,23 @@ export class LightSystem {
 			l.pdist = pd2;
 			l.intensity = LightEmitter.baseIntensity[eid] * f;
 			l.tier = firefly ? 1 : 0;
+			l.nearOnly = sectorBaked && LightEmitter.baked[eid] ? 1 : 0;
 			this.active.push(l);
 		};
-		for (const sector of mounted) eachOwned(sector, LIGHT_TERMS, gather);
+		// A sector's static emitters fall back to their near field only once its
+		// vertex bake has actually landed; until then they light fully, so a
+		// freshly streamed sector is never dark while the worker is busy.
+		for (const sector of mounted) {
+			const sig = getDungeon().desc(sector)?.signature;
+			sectorBaked = sig ? isSectorBaked(sig) : false;
+			eachOwned(sector, LIGHT_TERMS, gather);
+		}
+		sectorBaked = false;
+
+		// Everything gathered so far is a world-placed emitter; the held torch
+		// and oasis sky lights appended below are not eligible to cast a
+		// character's ground shadow.
+		const mountedLights = this.active.length;
 
 		// Torch held in hand: always the nearest source (lights walls + character).
 		if (heldLight.on) {
@@ -205,6 +282,7 @@ export class LightSystem {
 			l.pdist = 0;
 			l.intensity = heldLight.intensity * flick;
 			l.tier = 0;
+			l.nearOnly = 0;
 			this.active.push(l);
 		}
 
@@ -229,8 +307,86 @@ export class LightSystem {
 			l.pdist = pd2;
 			l.intensity = OASIS_LIGHT_INTENSITY;
 			l.tier = -1;
+			l.nearOnly = 0;
 			this.active.push(l);
 		}
+
+		// Publish the light nearest the player for character ground shadows.
+		// Only world-placed emitters qualify: the held torch sits at hand height
+		// with pdist 0, so it would always win and then project the body from
+		// inside itself — the shadow blows up through infinity.
+		let best: Ranked | null = null;
+		for (let i = 0; i < mountedLights; i++) {
+			const l = this.active[i];
+			if (l.tier === 0 && (!best || l.pdist < best.pdist)) best = l;
+		}
+
+		// Hysteresis, same reason the shadow casters have it: bays put a candle
+		// in nearly every alcove, so a raw nearest-wins test flips the winner as
+		// the player walks and the shadow teleports between origins each frame.
+		// Keep the incumbent until a challenger is clearly closer.
+		const cur = this.shadowLight;
+		if (best) {
+			let steal = !cur.on;
+			if (cur.on) {
+				const hx = cur.tx - playerAnchor.pos.x;
+				const hz = cur.tz - playerAnchor.pos.z;
+				steal = best.pdist < (hx * hx + hz * hz) * SHADOW_SWAP;
+			}
+			if (steal) {
+				cur.tx = best.x;
+				cur.ty = best.y;
+				cur.tz = best.z;
+				cur.on = true;
+			}
+			cur.intensity = best.intensity;
+		} else {
+			cur.on = false;
+		}
+
+		// Glide toward the chosen light so a swap sweeps the shadow across
+		// instead of snapping it. Same delta the caster fade uses below;
+		// this.lastTime is not advanced until after that, so both agree.
+		const dtNow = Math.min(Math.max(time - this.lastTime, 0), 0.1);
+		const sl = this.shadowLight;
+		if (sl.on) {
+			const k = 1 - Math.exp(-dtNow * SHADOW_GLIDE);
+			sl.x += (sl.tx - sl.x) * k;
+			sl.y += (sl.ty - sl.y) * k;
+			sl.z += (sl.tz - sl.z) * k;
+			if (!sl.settled) {
+				sl.x = sl.tx;
+				sl.y = sl.ty;
+				sl.z = sl.tz;
+				sl.settled = true;
+			}
+		} else {
+			sl.settled = false;
+		}
+		setNearestLight(sl.on, sl.x, sl.y, sl.z, sl.intensity);
+
+		// Nearest characters get the limited capsule slots; a shadow you can't
+		// see doesn't need one.
+		const capCount = packCapsules(
+			camera.position.x,
+			camera.position.y,
+			camera.position.z,
+		);
+		const capData = capsuleData();
+		for (let i = 0; i < capCount; i++) {
+			this.caps[i].set(
+				capData.packed[i * CAP_STRIDE],
+				capData.packed[i * CAP_STRIDE + 1],
+				capData.packed[i * CAP_STRIDE + 2],
+				capData.packed[i * CAP_STRIDE + 3],
+			);
+			this.capH[i] = capData.heights[i];
+		}
+
+		// Baked light is a static sum, so it can't flicker per torch. A slow
+		// global breath keeps it from reading as a painted-on lightmap.
+		const bakeFlicker =
+			1 + 0.045 * Math.sin(time * 1.9) + 0.025 * Math.sin(time * 4.3);
 
 		this.active.sort((a, b) => a.tier - b.tier || a.dist - b.dist);
 		const count = Math.min(this.active.length, MAX_LIGHTS);
@@ -239,6 +395,7 @@ export class LightSystem {
 			const l = this.active[i];
 			this.pos[i].set(l.x, l.y, l.z);
 			this.col[i].set(l.r, l.g, l.b).multiplyScalar(l.intensity);
+			this.near[i] = l.nearOnly;
 		}
 
 		// Every PSX material shares LightSystem's own pos/col arrays by reference, so
@@ -253,13 +410,28 @@ export class LightSystem {
 			).uniforms;
 			if (!u.uLightPos) continue;
 			u.uLightCount.value = count;
-			u.uAmbient.value = ambient;
+			u.uAmbient.value = ambient + ambientBoost();
+			if (u.uAtt) {
+				const a = attParams();
+				(u.uAtt.value as THREE.Vector4).set(a.k0, a.k1, a.k2, a.cap);
+			}
+			if (u.uBakeFlicker) u.uBakeFlicker.value = bakeFlicker;
+			if (u.uLightGain) u.uLightGain.value = lightGain();
+			if (u.uBakeGain) u.uBakeGain.value = bakeGain();
+			if (u.uCapCount) {
+				u.uCapCount.value = capCount;
+				u.uCapStrength.value = shadowStrength();
+				if (u.uCaps.value !== this.caps) u.uCaps.value = this.caps;
+				if (u.uCapH.value !== this.capH) u.uCapH.value = this.capH;
+			}
 			u.uMapTex.value = occ.tex;
 			(u.uGridOrigin.value as THREE.Vector2).copy(occ.origin);
 			(u.uGridSize.value as THREE.Vector2).copy(occ.size);
 			if (u.uLightPos.value !== this.pos) u.uLightPos.value = this.pos;
 			if (u.uLightColor.value !== this.col)
 				u.uLightColor.value = this.col;
+			if (u.uLightNear && u.uLightNear.value !== this.near)
+				u.uLightNear.value = this.near;
 		}
 
 		for (let i = 0; i < POINT_LIGHTS; i++) {
@@ -321,7 +493,14 @@ export class LightSystem {
 		const occluderMoved =
 			Math.abs(sig - this.lastShadowSig) > SHADOW_MOVE_EPS;
 		if (occluderMoved) this.lastShadowSig = sig;
-		const refresh = occluderMoved || this.frame % 90 === 0;
+		// A point-light shadow redraws all six cube faces at once, so refreshing
+		// every caster light on the same frame stacks the whole cost into one
+		// spike — and while anything is moving that spike lands every frame.
+		// Phase the slots instead: one light per frame, so a moving scene costs
+		// a single cube refresh per frame and each light still updates every
+		// slots.length frames. Static scenes keep the rare safety tick.
+		const period = occluderMoved ? Math.max(1, this.slots.length) : 90;
+		let slotIndex = 0;
 
 		for (const slot of this.slots) {
 			const cur = slot.pos;
@@ -377,10 +556,25 @@ export class LightSystem {
 				sl.position.y !== slot.pos.y ||
 				sl.position.z !== slot.pos.z;
 			sl.position.copy(slot.pos);
+
+			// Point the cone down the torch-to-player line. The target lives in
+			// the same group as the light, so the shadow camera follows once its
+			// world matrix is current.
+			const t = slot.target.position;
+			const aimed =
+				Math.abs(t.x - playerAnchor.pos.x) > SHADOW_AIM_EPS ||
+				Math.abs(t.y - playerAnchor.pos.y) > SHADOW_AIM_EPS ||
+				Math.abs(t.z - playerAnchor.pos.z) > SHADOW_AIM_EPS;
+			if (aimed) {
+				t.copy(playerAnchor.pos);
+				slot.target.updateMatrixWorld();
+			}
 			const wasDark = sl.shadow.intensity === 0;
 			sl.shadow.intensity = slot.fade;
 			const show = slot.fade > 0;
-			if (show && (wasDark || moved || refresh)) {
+			const due = this.frame % period === slotIndex % period;
+			slotIndex++;
+			if (show && (wasDark || moved || aimed || due)) {
 				sl.shadow.needsUpdate = true;
 			}
 		}

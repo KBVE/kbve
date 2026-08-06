@@ -46,8 +46,7 @@ food:
   spoils_into_ref: 'rotten-meat'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
-
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import {
         Aside,
         Steps,
@@ -56,18 +55,13 @@ import {
 	Code,
         FileTree,
 } from '@astrojs/starlight/components';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
 
+<ItemLeaf data={frontmatter}>
 
 ## Overview
 
 The **Blue Shark** is a powerful consumable fish, known for both its restorative health and its mana-boosting properties. While heavy and non-stackable, it offers significant mid-tier utility in combat or exploration.
-
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 
 <Adsense />
 
@@ -77,19 +71,13 @@ The **Blue Shark** is a powerful consumable fish, known for both its restorative
 - Cannot be stacked
 - Useful in mana-intensive encounters or boss fights
 
----
-
 ## Crafting / Cooking
 
 Though edible as-is, the Blue Shark might be processed into advanced dishes at higher-tier cooking stations for enhanced effects.
 
----
-
 ## Lore
 
 > "Fierce in the ocean, yet calming in the stomach, the Blue Shark brings both strength and serenity."
-
----
 
 ## DevLog
 
@@ -98,3 +86,5 @@ Though edible as-is, the Blue Shark might be processed into advanced dishes at h
 ## Spoilage
 
 Left too long, it spoils into [Rotten Meat](/itemdb/rotten-meat/).
+
+</ItemLeaf>

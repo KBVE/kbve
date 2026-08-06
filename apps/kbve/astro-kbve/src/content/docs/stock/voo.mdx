@@ -1,10 +1,12 @@
 ---
 title: Vanguard S&P 500 ETF VOO
+template: splash
 description: |
     VOO is a low-cost ETF that tracks the S&P 500 index, offering broad market exposure with minimal fees.
 sidebar:
     label: VOO ETF
     order: 423
+    hidden: true
 unsplash: 1563013544-71e8d4c2650e
 img: https://images.unsplash.com/photo-1563013544-71e8d4c2650e?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - voo
   - sp500
   - vanguard
+stock:
+  ticker: VOO
+  exchange: AMEX
+  symbol: amex:voo
+  name: "Vanguard S&P 500 ETF"
+  sector: ETF
+  kind: etf
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`amex:voo`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -157,3 +167,5 @@ For the most accurate and up-to-date yield data:
 - **Distribution History**: Available on Vanguard's website for historical dividend payments
 
 <Giscus />
+
+</StockLeaf>

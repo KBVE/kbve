@@ -56,9 +56,11 @@ food:
   spoils_into_ref: 'rotten-food'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -68,15 +70,8 @@ It is simple, satisfying, and somehow makes your fingers move faster.
 
 Perfect for adventurers who need both nutrition and a slight edge in battle but not stealth.
 
-
 A legendary taco, `Fish Taco Ultra`, which is fried fish, veggies and folded by the legendary food vendor Raul “Two-Hand” Velez.
 Crafted during the Crossbay Riots but the recipe was lost to time, thus the **Fish Taco** is a humble homage to that legendary dish.
-
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 
 <Adsense />
 
@@ -87,15 +82,11 @@ Crafted during the Crossbay Riots but the recipe was lost to time, thus the **Fi
 - Buff duration: **{frontmatter.scripts[0].vars.duration} seconds**  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Best consumed hot.  
 - May attract NPCs with enhanced smell traits.  
 - Leaves behind a wrapper that smells like home.
-
----
 
 ## Lore
 
@@ -103,8 +94,6 @@ Crafted during the Crossbay Riots but the recipe was lost to time, thus the **Fi
 > - Street Survivor's Memoirs, Vol. 3
 
 Some say the original recipe was taught by a seafaring AI chef who only spoke in spice levels.
-
----
 
 ## Credit
 
@@ -143,13 +132,12 @@ Some say the original recipe was taught by a seafaring AI chef who only spoke in
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Fish Taco added as consumable food with agility and reflex buff
 
-
 ## Spoilage
 
 Left too long, it spoils into [Rotten Food](/itemdb/rotten-food/).
+
+</ItemLeaf>

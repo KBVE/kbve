@@ -1,10 +1,12 @@
 ---
 title: Abbott Laboratories ABT
+template: splash
 description: |
     Abbott Laboratories is a diversified global healthcare company that develops, manufactures, and markets medical devices, diagnostics, nutritional products, and pharmaceuticals.
 sidebar:
     label: Abbott ABT
     order: 428
+    hidden: true
 unsplash: 1559757148-97a5e8b32ba5
 img: https://images.unsplash.com/photo-1559757148-97a5e8b32ba5?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - medical-devices
   - abt
   - pharmaceuticals
+stock:
+  ticker: ABT
+  exchange: NYSE
+  symbol: nyse:abt
+  name: "Abbott Laboratories"
+  sector: Health Care
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:abt`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -247,3 +257,5 @@ Recent analyst sentiment reflects positive long-term prospects:
 - **Innovation Recognition**: Positive reception of new product launches and pipeline
 
 <Giscus />
+
+</StockLeaf>

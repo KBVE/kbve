@@ -1,19 +1,28 @@
 ---
 title: Tesla TSLA
+template: splash
 description: |
     Tesla is a multinational automotive / technology company.
 sidebar:
     label: Tesla TSLA
     order: 420
+    hidden: true
 unsplash: 1601158935942-52255782d322
 img: https://images.unsplash.com/photo-1601158935942-52255782d322?fit=crop&w=1400&h=700&q=75
 tags:
   - stock
   - automotive
   - technology
+stock:
+  ticker: TSLA
+  exchange: NASDAQ
+  symbol: nasdaq:tsla
+  name: "Tesla"
+  sector: Consumer Discretionary
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -24,9 +33,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nasdaq:tsla`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -109,3 +119,5 @@ As a pioneer in electric vehicles and autonomous driving technology, Tesla holds
 - **Energy Trading** opportunities through virtual power plants
 
 <Giscus />
+
+</StockLeaf>

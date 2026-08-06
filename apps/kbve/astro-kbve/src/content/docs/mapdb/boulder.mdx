@@ -1,0 +1,36 @@
+---
+id: "1TWVPQXK15NSFHFCE0VR1EGFGQ"
+ref: "boulder"
+drafted: false
+name: "Boulder"
+title: "Boulder"
+template: splash
+sidebar:
+    label: "Boulder"
+    hidden: true
+description: "A hefty chunk of quarried stone, the backbone of any mason's stockpile."
+type: "resource_node"
+sub_kind: "stone"
+interactable: true
+destructible: true
+harvest_yield: 1
+max_amount: 50
+initial_amount: 50
+harvest_time_ms: 2000
+harvest_weight: 75
+spawn_weight: 0.3
+spawn_count: 20
+pixels_per_unit: 25
+pivot_x: 0.5
+pivot_y: 0.5
+sorting_layer: "Foreground"
+profession_action_ref: "gather-stone"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Boulder
+
+Quarrymen prize boulders like this for their even grain, easy to split into blocks without wasting half the stone to rubble.
+
+<MapDBPanel data={frontmatter} />

@@ -6,6 +6,8 @@ sidebar:
     hidden: true
 description: |
     An armored helmet with a bristling sensor crest that reads as plumage at parade distance. Full head coverage, minor ego coverage.
+lore: |
+    Command-pattern helm from the Hardpoint line, crest and all. The crest is not decoration in any sense the wearer would appreciate: it makes the head findable in a crowd, which is useful to the people following and useful in a different way to everyone else.
 ref: 'crest-helmet'
 key: 630
 id: '01KXFBEGM3DAR9YZKRTK0N9G56'
@@ -34,10 +36,26 @@ equipment:
     armor: 2
     extra:
       weight: 2
+grid:
+  width: 2
+  height: 2
+set_ref: 'hardpoint'
+tags:
+  - armor
+  - hardpoint
+  - herbmail
+sources:
+  - source_type: 'vendor'
+    source_name: 'Hardpoint outfitter'
+  - source_type: 'drop'
+    source_name: 'Depot cache'
+    drop_rate: 0.04
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Overview
 
-<ItemDBPanel data={frontmatter} />
+</ItemLeaf>

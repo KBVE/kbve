@@ -1,10 +1,12 @@
 ---
 title: 3M Company MMM
+template: splash
 description: |
     3M Company is a diversified industrial conglomerate providing technology services across safety, transportation, and consumer segments.
 sidebar:
     label: 3M MMM
     order: 424
+    hidden: true
 unsplash: 1504681994895-a96019046b8b
 img: https://images.unsplash.com/photo-1504681994895-a96019046b8b?fit=crop&w=1400&h=700&q=75
 tags:
@@ -12,9 +14,16 @@ tags:
   - industrials
   - mmm
   - conglomerate
+stock:
+  ticker: MMM
+  exchange: NYSE
+  symbol: nyse:mmm
+  name: "3M Company"
+  sector: Industrials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -25,9 +34,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:mmm`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -138,3 +148,5 @@ Key areas for potential expansion include:
 - **Emerging Markets**: Continued expansion in developing economies
 
 <Giscus />
+
+</StockLeaf>

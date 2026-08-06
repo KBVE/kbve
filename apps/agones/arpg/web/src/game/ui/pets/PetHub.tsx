@@ -1,6 +1,14 @@
 import { useEffect, useState } from 'react';
 import type { PetRosterSync, PetView } from '@kbve/laser';
 import {
+	FRIENDSHIP_DEVOTED,
+	GENE_STATS,
+	IV_MAX,
+	IV_TOTAL_MAX,
+	genderGlyph,
+	natureEffect,
+} from '@kbve/laser';
+import {
 	emitPetRosterOp,
 	onPetRoster,
 	type PetRosterOp,
@@ -18,6 +26,21 @@ const ACCENT = '#fcd34d';
 const MUTED = '#9fb3d8';
 const TEXT_SHADOW = '0 1px 2px rgba(0,0,0,0.9)';
 const SPRITE_OF = (ref: string) => arpgAsset(`/assets/npc/${ref}.png`);
+
+/** Turn a kebab-case ref into a readable label — the server sends item refs, not names. */
+function prettyRef(ref: string): string {
+	return ref
+		.split('-')
+		.map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+		.join(' ');
+}
+
+/** Read a nature byte as `+Atk / -Spe`, or an em dash when it is one of the five neutrals.
+ * The stat names come from the shared laser decode so the client never invents its own table. */
+function natureLabel(nature: number): string {
+	const { up, down } = natureEffect(nature);
+	return up === null || down === null ? '\u2014' : `+${up} / \u2212${down}`;
+}
 
 /** Longest nickname the server will accept — mirrors `simgrid::PET_NICKNAME_MAX`. */
 export const NICKNAME_MAX = 20;
@@ -78,6 +101,51 @@ function Stat({ label, value }: { label: string; value: number }) {
 			</span>
 			<span style={{ color: '#e8eefc', textShadow: TEXT_SHADOW }}>
 				{value}
+			</span>
+		</div>
+	);
+}
+
+/** One stat's individual value as a bar. Six of these read faster than six numbers, and the
+ * roll is fixed for the pet's life, so it wants to look like an attribute rather than a stat. */
+function IvBar({ label, iv }: { label: string; iv: number }) {
+	const pct = (Math.min(iv, IV_MAX) / IV_MAX) * 100;
+	return (
+		<div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+			<span
+				style={{
+					color: MUTED,
+					fontSize: 10,
+					width: 24,
+					textShadow: TEXT_SHADOW,
+				}}>
+				{label}
+			</span>
+			<div
+				style={{
+					flex: 1,
+					height: 4,
+					background: 'rgba(255,255,255,0.10)',
+					borderRadius: 2,
+					overflow: 'hidden',
+				}}>
+				<div
+					style={{
+						width: `${pct}%`,
+						height: '100%',
+						background: iv === IV_MAX ? ACCENT : '#60a5fa',
+					}}
+				/>
+			</div>
+			<span
+				style={{
+					color: iv === IV_MAX ? ACCENT : MUTED,
+					fontSize: 10,
+					width: 16,
+					textAlign: 'right',
+					textShadow: TEXT_SHADOW,
+				}}>
+				{iv}
 			</span>
 		</div>
 	);
@@ -250,13 +318,26 @@ function PetDetail({
 							fontSize: 11,
 							textShadow: TEXT_SHADOW,
 						}}>
-						{pet.species_ref} &middot; Lv {pet.level} &middot;{' '}
-						{pet.xp} xp
+						{pet.species_ref} &middot; Lv {pet.level}
 					</div>
 					<div style={{ fontSize: 11, color: MUTED }}>
 						HP {pet.hp}/{pet.max_hp}
 					</div>
 					<Bar pct={pct} color={hpColor(pct)} />
+					<div
+						style={{ fontSize: 11, color: MUTED }}
+						data-testid="xp">
+						{pet.xp_to_next > 0
+							? `XP ${pet.xp}/${pet.xp_to_next}`
+							: `XP ${pet.xp} (max level)`}
+					</div>
+					{pet.xp_to_next > 0 && (
+						<Bar
+							pct={(pet.xp / pet.xp_to_next) * 100}
+							color={ACCENT}
+							height={5}
+						/>
+					)}
 				</div>
 			</div>
 
@@ -274,6 +355,53 @@ function PetDetail({
 				<Stat label="Sp. Atk" value={pet.sp_attack} />
 				<Stat label="Sp. Def" value={pet.sp_defense} />
 				<Stat label="Speed" value={pet.speed} />
+			</div>
+
+			<GothicDivider />
+
+			<div
+				style={{ display: 'flex', flexDirection: 'column', gap: 4 }}
+				data-testid="pet-genetics">
+				<div
+					style={{
+						display: 'flex',
+						justifyContent: 'space-between',
+						color: MUTED,
+						fontSize: 11,
+						textShadow: TEXT_SHADOW,
+					}}>
+					<span>
+						Individual{' '}
+						{pet.gender !== 0 && (
+							<span data-testid="pet-gender">
+								{genderGlyph(pet.gender)}
+							</span>
+						)}
+					</span>
+					<span data-testid="pet-nature">
+						{natureLabel(pet.nature)}
+					</span>
+				</div>
+				{pet.ivs.map((iv, i) => (
+					<IvBar key={GENE_STATS[i]} label={GENE_STATS[i]} iv={iv} />
+				))}
+				<div
+					style={{
+						display: 'flex',
+						justifyContent: 'space-between',
+						fontSize: 11,
+						color: MUTED,
+						textShadow: TEXT_SHADOW,
+					}}>
+					<span data-testid="pet-friendship">
+						{pet.friendship >= FRIENDSHIP_DEVOTED
+							? `Devoted (${pet.friendship}) \u2014 +10% damage`
+							: `Friendship ${pet.friendship}/${FRIENDSHIP_DEVOTED}`}
+					</span>
+					<span>
+						{pet.ivs.reduce((a, b) => a + b, 0)}/{IV_TOTAL_MAX}
+					</span>
+				</div>
 			</div>
 
 			<GothicDivider />
@@ -350,6 +478,48 @@ function PetDetail({
 					Rename
 				</HubButton>
 			</div>
+
+			{pet.evolve_items.length > 0 && (
+				<>
+					<GothicDivider />
+					<div
+						style={{
+							display: 'flex',
+							flexDirection: 'column',
+							gap: 4,
+						}}>
+						<div
+							style={{
+								color: MUTED,
+								fontSize: 11,
+								textShadow: TEXT_SHADOW,
+							}}>
+							Evolution — permanent, and only once
+						</div>
+						<div
+							style={{
+								display: 'flex',
+								gap: 6,
+								flexWrap: 'wrap',
+							}}
+							data-testid="evolve-options">
+							{pet.evolve_items.map((itemRef) => (
+								<HubButton
+									key={itemRef}
+									onClick={() =>
+										onOp({
+											kind: 'evolve',
+											idx,
+											itemRef,
+										})
+									}>
+									{prettyRef(itemRef)}
+								</HubButton>
+							))}
+						</div>
+					</div>
+				</>
+			)}
 
 			<div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
 				<HubButton

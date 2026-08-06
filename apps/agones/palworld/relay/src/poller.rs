@@ -41,6 +41,7 @@ pub async fn run(cfg: Config, tx: Sender<GameEvent>, live: SharedLive) -> Result
     )?;
 
     let mut prev: HashSet<String> = HashSet::new();
+    let mut known_names: HashMap<String, String> = HashMap::new();
     let mut ticker = time::interval(Duration::from_secs(cfg.poll_interval_secs));
     ticker.set_missed_tick_behavior(time::MissedTickBehavior::Delay);
 
@@ -65,22 +66,18 @@ pub async fn run(cfg: Config, tx: Sender<GameEvent>, live: SharedLive) -> Result
                 }
             })
             .collect();
-        let name_by_id: HashMap<String, String> = players
-            .players
-            .iter()
-            .map(|p| {
-                let id = if p.player_id.is_empty() {
-                    p.name.clone()
-                } else {
-                    p.player_id.clone()
-                };
-                (id, p.name.clone())
-            })
-            .collect();
+        for p in &players.players {
+            let id = if p.player_id.is_empty() {
+                p.name.clone()
+            } else {
+                p.player_id.clone()
+            };
+            known_names.insert(id, p.name.clone());
+        }
 
         let (joined, left) = diff_players(&prev, &curr);
         for id in joined {
-            let name = name_by_id.get(&id).cloned().unwrap_or_else(|| id.clone());
+            let name = known_names.get(&id).cloned().unwrap_or_else(|| id.clone());
             let _ = tx.send(GameEvent {
                 kind: GameEventKind::Join,
                 player: Some(name),
@@ -90,9 +87,10 @@ pub async fn run(cfg: Config, tx: Sender<GameEvent>, live: SharedLive) -> Result
             });
         }
         for id in left {
+            let name = known_names.remove(&id).unwrap_or(id);
             let _ = tx.send(GameEvent {
                 kind: GameEventKind::Leave,
-                player: Some(id),
+                player: Some(name),
                 text: String::new(),
                 raw: String::new(),
                 fields: HashMap::new(),

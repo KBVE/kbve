@@ -130,7 +130,7 @@ export function useInventoryOpen(): boolean {
 
 // Equippables the player owns. The grid always holds each of these EXCEPT the ones
 // currently in-hand: equipping pulls an item out, taking it off puts it back.
-const OWNED_EQUIP = ['sword', 'torch', 'crate'];
+const OWNED_EQUIP = ['sword', 'torch', 'crate', 'pickaxe'];
 
 // Reconcile grid contents against the current hands: remove owned equippables that
 // are now held, re-add ones that are no longer held (at the first free fit).

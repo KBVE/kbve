@@ -1,10 +1,12 @@
 ---
 title: Salesforce Inc. CRM
+template: splash
 description: |
     Salesforce is the global leader in customer relationship management (CRM) software, providing cloud-based solutions for sales, marketing, service, commerce, and analytics that help companies connect with customers and grow their businesses.
 sidebar:
     label: Salesforce CRM
     order: 530
+    hidden: true
 unsplash: 1460925895917-afdab827c52f
 img: https://images.unsplash.com/photo-1460925895917-afdab827c52f?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - cloud-software
   - crm
   - salesforce
+stock:
+  ticker: CRM
+  exchange: NYSE
+  symbol: nyse:crm
+  name: "Salesforce Inc."
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:crm`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -385,3 +395,5 @@ CRM offers exposure to digital transformation leadership with platform advantage
 - **Profitability**: Operating margin expansion and cash flow generation
 
 <Giscus />
+
+</StockLeaf>

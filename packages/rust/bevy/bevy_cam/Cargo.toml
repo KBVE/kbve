@@ -20,15 +20,10 @@ default = []
 zoom = []
 
 [dependencies]
-bevy = { version = "0.19", default-features = false, features = [
-    "bevy_asset",
-    "bevy_render",
-    "bevy_core_pipeline",
-    "bevy_pbr",
-] }
+bevy = { workspace = true, features = ["bevy_asset", "bevy_render", "bevy_core_pipeline", "bevy_pbr"] }
 
 [dev-dependencies]
-criterion = { version = "0.5", default-features = false, features = ["plotters", "cargo_bench_support"] }
+criterion = { workspace = true, features = ["plotters", "cargo_bench_support"] }
 
 [[bench]]
 name = "pixel_snap"

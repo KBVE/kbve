@@ -1,14 +1,22 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
+import { kbveRnTauri } from '../../../packages/npm/rn-tauri/src/vite';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const host = process.env.TAURI_DEV_HOST;
 const root = fileURLToPath(new URL('.', import.meta.url));
+const packagesDir = resolve(root, '../../../packages/npm');
 
 export default defineConfig({
-	plugins: [react(), tailwindcss()],
+	plugins: [react(), tailwindcss(), kbveRnTauri({ packagesDir })],
+	resolve: {
+		alias: {
+			'@': resolve(root, 'src'),
+			'react-i18next': resolve(root, 'src/i18n/react-i18next.ts'),
+		},
+	},
 	clearScreen: false,
 	server: {
 		port: 1421,

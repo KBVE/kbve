@@ -1,10 +1,12 @@
 ---
 title: Intuit Inc. INTU
+template: splash
 description: |
     Intuit is a leading financial software company providing business and personal finance management solutions through TurboTax, QuickBooks, Mint, and Credit Karma platforms, empowering prosperity for consumers and small businesses.
 sidebar:
     label: Intuit INTU
     order: 536
+    hidden: true
 unsplash: 1554224155-6726a640de24
 img: https://images.unsplash.com/photo-1554224155-6726a640de24?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - fintech
   - intu
   - tax-software
+stock:
+  ticker: INTU
+  exchange: NASDAQ
+  symbol: nasdaq:intu
+  name: "Intuit Inc."
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nasdaq:intu`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -385,3 +395,5 @@ INTU offers exposure to financial technology leadership with recurring revenue g
 - **Innovation Pipeline**: New product development and AI capability advancement
 
 <Giscus />
+
+</StockLeaf>

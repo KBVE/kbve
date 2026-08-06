@@ -22,14 +22,15 @@ default = ["bevy"]
 # and the BevySkillsPlugin. Without this feature the crate is plain
 # Rust with zero Bevy dependency, suitable for FFI cdylibs (uniti) and
 # headless consumers (Discord bot sessions).
-bevy = ["dep:bevy"]
+bevy = ["dep:bevy", "dep:bevy_items"]
 
 [dependencies]
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 
 # Bevy — only pulled in under the `bevy` feature.
-bevy = { version = "0.19", default-features = false, features = [
-    "bevy_state",
-    "bevy_log",
-], optional = true }
+bevy = { workspace = true, optional = true, features = ["bevy_state", "bevy_log"] }
+
+# professiondb source for register_professions — only pulled in under the
+# `bevy` feature since bevy_items itself has a hard (non-optional) bevy dep.
+bevy_items = { version = "0.1", path = "../bevy_items", optional = true, default-features = false }

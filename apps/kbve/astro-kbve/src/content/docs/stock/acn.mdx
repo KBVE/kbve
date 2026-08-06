@@ -1,10 +1,12 @@
 ---
 title: Accenture plc ACN
+template: splash
 description: |
     Accenture is a global professional services company providing strategy, consulting, digital, technology, and operations services across all industries.
 sidebar:
     label: Accenture ACN
     order: 430
+    hidden: true
 unsplash: 1551434678-e076c4d5ba66
 img: https://images.unsplash.com/photo-1551434678-e076c4d5ba66?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - consulting
   - acn
   - digital-transformation
+stock:
+  ticker: ACN
+  exchange: NYSE
+  symbol: nyse:acn
+  name: "Accenture plc"
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:acn`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -290,3 +300,5 @@ For current and accurate dividend information:
 - **SEC Filings**: Current financial information available through SEC filings
 
 <Giscus />
+
+</StockLeaf>

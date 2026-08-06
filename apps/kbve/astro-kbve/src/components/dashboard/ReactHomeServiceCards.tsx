@@ -1,298 +1,13 @@
-import React, { useState } from 'react';
 import { useStore } from '@nanostores/react';
+import type { CSSProperties } from 'react';
+import { homeService, getThresholdColor } from './homeService';
 import {
-	homeService,
-	statusColor,
-	statusLabel,
-	getThresholdColor,
-	type ServiceStatus,
-} from './homeService';
-import {
-	BarChart3,
-	GitBranch,
-	Zap,
-	Database,
-	Loader2,
-	ArrowRight,
-	CheckCircle2,
-	XCircle,
-	AlertCircle,
-	ShieldAlert,
-	Kanban,
-	FileText,
-	Network,
-	Gamepad2,
-	Server,
-	GitFork,
-} from 'lucide-react';
-
-// ---------------------------------------------------------------------------
-// Sub-components
-// ---------------------------------------------------------------------------
-
-function StatusDot({ status }: { status: ServiceStatus }) {
-	const color = statusColor(status);
-	return (
-		<span
-			style={{
-				display: 'inline-block',
-				width: 8,
-				height: 8,
-				borderRadius: '50%',
-				background: color,
-				boxShadow: status === 'ok' ? `0 0 6px ${color}` : 'none',
-				flexShrink: 0,
-			}}
-		/>
-	);
-}
-
-function MetricValue({
-	label,
-	value,
-	unit,
-	color,
-}: {
-	label: string;
-	value: string | number;
-	unit?: string;
-	color?: string;
-}) {
-	return (
-		<div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-			<div
-				style={{
-					fontSize: '1.5rem',
-					fontWeight: 700,
-					fontVariantNumeric: 'tabular-nums',
-					color: color ?? 'var(--sl-color-text, #e6edf3)',
-					lineHeight: 1.2,
-				}}>
-				{value}
-				{unit && (
-					<span
-						style={{
-							fontSize: '0.75rem',
-							fontWeight: 500,
-							color: 'var(--sl-color-gray-3, #8b949e)',
-							marginLeft: 2,
-						}}>
-						{unit}
-					</span>
-				)}
-			</div>
-			<div
-				style={{
-					fontSize: '0.7rem',
-					textTransform: 'uppercase' as const,
-					letterSpacing: '0.05em',
-					fontWeight: 500,
-					color: 'var(--sl-color-gray-3, #8b949e)',
-				}}>
-				{label}
-			</div>
-		</div>
-	);
-}
-
-function LoadingPlaceholder() {
-	return (
-		<div
-			style={{
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'center',
-				width: '100%',
-				color: 'var(--sl-color-gray-3, #8b949e)',
-			}}>
-			<Loader2
-				size={16}
-				style={{ animation: 'spin 1s linear infinite' }}
-			/>
-		</div>
-	);
-}
-
-function UnavailableMessage() {
-	return (
-		<div
-			style={{
-				display: 'flex',
-				alignItems: 'center',
-				gap: 6,
-				color: 'var(--sl-color-gray-4, #6b7280)',
-				fontSize: '0.8rem',
-			}}>
-			<AlertCircle size={14} />
-			Service unreachable
-		</div>
-	);
-}
-
-function ServiceCard({
-	title,
-	description,
-	href,
-	icon,
-	accentColor,
-	status,
-	children,
-	span,
-}: {
-	title: string;
-	description: string;
-	href: string;
-	icon: React.ReactNode;
-	accentColor: string;
-	status: ServiceStatus;
-	children: React.ReactNode;
-	span?: number;
-}) {
-	const [hovered, setHovered] = useState(false);
-
-	return (
-		<div
-			onMouseEnter={() => setHovered(true)}
-			onMouseLeave={() => setHovered(false)}
-			style={{
-				display: 'flex',
-				flexDirection: 'column',
-				gridColumn: span ? `span ${span}` : undefined,
-				borderRadius: 'var(--bento-radius, 0.625rem)',
-				border: `1px solid ${hovered ? 'var(--sl-color-accent-high)' : 'var(--bento-hairline-strong)'}`,
-				background: 'var(--bento-cell-bg, var(--sl-color-black))',
-				overflow: 'hidden',
-				transition: 'border-color 0.22s ease, box-shadow 0.22s ease',
-				boxShadow: hovered
-					? 'var(--bento-shadow), var(--bento-glow)'
-					: 'var(--bento-shadow)',
-			}}>
-			{/* Accent strip */}
-			<div
-				style={{
-					height: 3,
-					background: accentColor,
-					opacity: status === 'ok' ? 1 : 0.4,
-				}}
-			/>
-
-			{/* Header */}
-			<div
-				style={{
-					padding: '1.25rem 1.25rem 0',
-					display: 'flex',
-					alignItems: 'flex-start',
-					gap: '0.75rem',
-				}}>
-				<div
-					style={{
-						width: 36,
-						height: 36,
-						borderRadius: 8,
-						background: `${accentColor}18`,
-						display: 'flex',
-						alignItems: 'center',
-						justifyContent: 'center',
-						flexShrink: 0,
-						color: accentColor,
-					}}>
-					{icon}
-				</div>
-				<div style={{ flex: 1, minWidth: 0 }}>
-					<div
-						style={{
-							display: 'flex',
-							alignItems: 'center',
-							gap: 8,
-							marginBottom: 2,
-						}}>
-						<span
-							style={{
-								fontWeight: 600,
-								fontSize: '1rem',
-								color: 'var(--sl-color-text, #e6edf3)',
-							}}>
-							{title}
-						</span>
-						<StatusDot status={status} />
-					</div>
-					<div
-						style={{
-							fontSize: '0.8rem',
-							color: 'var(--sl-color-gray-3, #8b949e)',
-						}}>
-						{description}
-					</div>
-				</div>
-			</div>
-
-			{/* Metrics */}
-			<div
-				style={{
-					padding: '1rem 1.25rem',
-					display: 'flex',
-					gap: '1.25rem',
-					flexWrap: 'wrap',
-					minHeight: 64,
-					alignItems: 'flex-end',
-				}}>
-				{children}
-			</div>
-
-			{/* Footer */}
-			<div
-				style={{
-					padding: '0.75rem 1.25rem',
-					borderTop: '1px solid var(--bento-hairline)',
-					display: 'flex',
-					justifyContent: 'space-between',
-					alignItems: 'center',
-				}}>
-				<span
-					style={{
-						fontSize: '0.7rem',
-						fontWeight: 500,
-						color: statusColor(status),
-						textTransform: 'uppercase' as const,
-						letterSpacing: '0.05em',
-						display: 'flex',
-						alignItems: 'center',
-						gap: 4,
-					}}>
-					{status === 'loading' ? (
-						<Loader2
-							size={10}
-							style={{
-								animation: 'spin 1s linear infinite',
-							}}
-						/>
-					) : status === 'ok' ? (
-						<CheckCircle2 size={10} />
-					) : status === 'error' ? (
-						<XCircle size={10} />
-					) : (
-						<AlertCircle size={10} />
-					)}
-					{statusLabel(status)}
-				</span>
-				<a
-					href={href}
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: 4,
-						color: 'var(--sl-color-accent-high, #06b6d4)',
-						fontSize: '0.8rem',
-						fontWeight: 600,
-						textDecoration: 'none',
-					}}>
-					Details
-					<ArrowRight size={12} />
-				</a>
-			</div>
-		</div>
-	);
-}
+	LoadingPlaceholder,
+	MetricValue,
+	ServiceCard,
+	UnavailableMessage,
+} from './homeServiceCard';
+import './homeServiceCards.css';
 
 // ---------------------------------------------------------------------------
 // Main
@@ -316,55 +31,37 @@ function KanbanColumnBar({ columns }: { columns: Record<string, number> }) {
 	};
 
 	return (
-		<div style={{ width: '100%' }}>
-			<div
-				style={{
-					display: 'flex',
-					height: 6,
-					borderRadius: 3,
-					overflow: 'hidden',
-					background: 'var(--sl-color-gray-5, #30363d)',
-					marginBottom: 6,
-				}}>
-				{entries.map(([col, count]) => (
-					<div
-						key={col}
-						title={`${col}: ${count}`}
-						style={{
-							width: `${(count / total) * 100}%`,
-							background: colColors[col] ?? '#6b7280',
-							minWidth: count > 0 ? 2 : 0,
-						}}
-					/>
-				))}
-			</div>
-			<div
-				style={{
-					display: 'flex',
-					flexWrap: 'wrap',
-					gap: '0.3rem 0.6rem',
-				}}>
-				{entries.map(([col, count]) => (
-					<span
-						key={col}
-						style={{
-							display: 'inline-flex',
-							alignItems: 'center',
-							gap: 3,
-							fontSize: '0.65rem',
-							color: 'var(--sl-color-gray-3, #8b949e)',
-						}}>
-						<span
+		<div className="svc-stack">
+			<div>
+				<div className="svc-bar">
+					{entries.map(([col, count]) => (
+						<div
+							key={col}
+							title={`${col}: ${count}`}
 							style={{
-								width: 6,
-								height: 6,
-								borderRadius: '50%',
+								width: `${(count / total) * 100}%`,
 								background: colColors[col] ?? '#6b7280',
+								minWidth: 2,
 							}}
 						/>
-						{col} {count}
-					</span>
-				))}
+					))}
+				</div>
+				<div className="svc-legend">
+					{entries.map(([col, count]) => (
+						<span key={col} className="svc-legend__item">
+							<span
+								className="svc-legend__swatch"
+								style={
+									{
+										'--svc-swatch':
+											colColors[col] ?? '#6b7280',
+									} as CSSProperties
+								}
+							/>
+							{col} {count}
+						</span>
+					))}
+				</div>
 			</div>
 		</div>
 	);
@@ -397,19 +94,14 @@ export default function ReactHomeServiceCards() {
 	const forgejoStatus = useStore(homeService.$forgejoStatus);
 
 	return (
-		<div
-			style={{
-				display: 'grid',
-				gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-				gap: '1rem',
-			}}>
+		<div className="svc-grid">
 			{/* Grafana - Cluster Monitoring (staff only) */}
 			{isStaff && (
 				<ServiceCard
 					title="Cluster Monitoring"
 					description="Prometheus metrics & node health"
 					href="/dashboard/grafana/"
-					icon={<BarChart3 size={18} />}
+					icon="chart"
 					accentColor="#06b6d4"
 					status={grafanaStatus}>
 					{grafanaStatus === 'loading' ? (
@@ -460,7 +152,7 @@ export default function ReactHomeServiceCards() {
 					title="Deployments"
 					description="ArgoCD application sync & health"
 					href="/dashboard/argo/"
-					icon={<GitBranch size={18} />}
+					icon="gitBranch"
 					accentColor="#8b5cf6"
 					status={argoStatus}>
 					{argoStatus === 'loading' ? (
@@ -502,7 +194,7 @@ export default function ReactHomeServiceCards() {
 					title="GameOps"
 					description="ROWS, Factorio, and MC control panels"
 					href="/dashboard/gameops/"
-					icon={<Gamepad2 size={18} />}
+					icon="gamepad"
 					accentColor="#f97316"
 					status={rowsStatus}>
 					{rowsStatus === 'loading' ? (
@@ -537,7 +229,7 @@ export default function ReactHomeServiceCards() {
 					title="Virtual Machines"
 					description="KubeVirt build & dev VMs"
 					href="/dashboard/vm/"
-					icon={<Server size={18} />}
+					icon="server"
 					accentColor="#6366f1"
 					status={vmStatus}>
 					{vmStatus === 'loading' ? (
@@ -572,7 +264,7 @@ export default function ReactHomeServiceCards() {
 					title="Forgejo"
 					description="Self-hosted Git repositories"
 					href="/dashboard/forgejo/"
-					icon={<GitFork size={18} />}
+					icon="gitFork"
 					accentColor="#e85d04"
 					status={forgejoStatus}>
 					{forgejoStatus === 'loading' ? (
@@ -622,7 +314,7 @@ export default function ReactHomeServiceCards() {
 				title="Edge Functions"
 				description="Supabase serverless health"
 				href="/dashboard/edge/"
-				icon={<Zap size={18} />}
+				icon="zap"
 				accentColor="#22c55e"
 				status={edgeStatus}>
 				{edgeStatus === 'loading' ? (
@@ -655,7 +347,7 @@ export default function ReactHomeServiceCards() {
 					title="Log Aggregation"
 					description="ClickHouse cluster log analytics"
 					href="/dashboard/clickhouse/"
-					icon={<Database size={18} />}
+					icon="database"
 					accentColor="#f59e0b"
 					status={clickhouseStatus}>
 					{clickhouseStatus === 'loading' ? (
@@ -699,7 +391,7 @@ export default function ReactHomeServiceCards() {
 				title="Security Audit"
 				description="Daily vulnerability scan across all ecosystems"
 				href="/dashboard/security/"
-				icon={<ShieldAlert size={18} />}
+				icon="shield"
 				accentColor="#ef4444"
 				status={securityStatus}>
 				{securityStatus === 'loading' ? (
@@ -743,26 +435,15 @@ export default function ReactHomeServiceCards() {
 				title="Project Board"
 				description="GitHub Projects kanban pipeline"
 				href="/dashboard/kanban/"
-				icon={<Kanban size={18} />}
+				icon="kanban"
 				accentColor="#3b82f6"
 				status={kanbanStatus}
 				span={3}>
 				{kanbanStatus === 'loading' ? (
 					<LoadingPlaceholder />
 				) : kanban ? (
-					<div
-						style={{
-							display: 'flex',
-							flexDirection: 'column',
-							gap: 10,
-							width: '100%',
-						}}>
-						<div
-							style={{
-								display: 'flex',
-								gap: '1.25rem',
-								flexWrap: 'wrap',
-							}}>
+					<div className="svc-stack">
+						<div className="svc-stack__row">
 							<MetricValue
 								label="Total Items"
 								value={kanban.total_items}
@@ -798,26 +479,15 @@ export default function ReactHomeServiceCards() {
 				title="Workspace Report"
 				description="NX monorepo environment & LOC stats"
 				href="/dashboard/report/"
-				icon={<FileText size={18} />}
+				icon="report"
 				accentColor="#a855f7"
 				status={reportStatus}
 				span={2}>
 				{reportStatus === 'loading' ? (
 					<LoadingPlaceholder />
 				) : report ? (
-					<div
-						style={{
-							display: 'flex',
-							flexDirection: 'column',
-							gap: 8,
-							width: '100%',
-						}}>
-						<div
-							style={{
-								display: 'flex',
-								gap: '1.25rem',
-								flexWrap: 'wrap',
-							}}>
+					<div className="svc-stack">
+						<div className="svc-stack__row">
 							<MetricValue
 								label="Files"
 								value={report.totalFiles.toLocaleString()}
@@ -833,25 +503,11 @@ export default function ReactHomeServiceCards() {
 							<MetricValue label="pnpm" value={report.pnpm} />
 						</div>
 						{report.topLanguages.length > 0 && (
-							<div
-								style={{
-									display: 'flex',
-									flexWrap: 'wrap',
-									gap: '0.4rem 0.8rem',
-								}}>
+							<div className="svc-langs">
 								{report.topLanguages.map((l) => (
-									<span
-										key={l.name}
-										style={{
-											fontSize: '0.65rem',
-											color: 'var(--sl-color-gray-3, #8b949e)',
-										}}>
+									<span key={l.name} className="svc-lang">
 										{l.name}{' '}
-										<span
-											style={{
-												color: '#a855f7',
-												fontWeight: 600,
-											}}>
+										<span className="svc-lang__count">
 											{l.lines.toLocaleString()}
 										</span>
 									</span>
@@ -869,7 +525,7 @@ export default function ReactHomeServiceCards() {
 				title="Dependency Graph"
 				description="NX project dependency map"
 				href="/dashboard/graph/"
-				icon={<Network size={18} />}
+				icon="graph"
 				accentColor="#14b8a6"
 				status={graphStatus}>
 				{graphStatus === 'loading' ? (

@@ -3,10 +3,13 @@ import './game/render/bvh';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './app/App';
+import { RootBoundary } from './app/AssetBoundary';
 import { verifySab } from './game/sab/verify';
 import { preloadPartSets } from './game/character/partsLoader';
+import { installProfiler } from './profiler';
 
 verifySab();
+installProfiler();
 
 const idle: (cb: () => void) => void =
 	typeof requestIdleCallback === 'function'
@@ -17,6 +20,8 @@ idle(preloadPartSets);
 const root = createRoot(document.getElementById('root') as HTMLElement);
 root.render(
 	<React.StrictMode>
-		<App />
+		<RootBoundary>
+			<App />
+		</RootBoundary>
 	</React.StrictMode>,
 );

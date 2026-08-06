@@ -21,10 +21,10 @@ bento:
     title: 'Run every console,'
     accent: emulated.
     lede: >-
-        A reference for the emulation landscape — Nintendo Switch emulation
-        with Ryubing and the wider Ryujinx family tree, the emulators worth
-        knowing on every other platform, performance tuning, and a neutral
-        timeline of the legal events that shaped the scene.
+        Notes on where console emulation stands: Switch emulation after
+        Ryujinx, the forks that replaced it, what runs well on every other
+        platform, the settings that matter, and the court cases and takedowns
+        behind all of it.
     ctas:
         - label: Ryubing guide
           href: '#ryubing'
@@ -37,10 +37,10 @@ bento:
         icon: box
         title: Emulate anywhere
         body: >-
-            Emulators recreate the hardware of one platform on another, letting
-            you run console software on a desktop. This guide collects install
-            paths, release channels, tuning notes, and the documented history
-            of the projects involved.
+            An emulator rebuilds one machine's hardware in software so another
+            machine can run its programs. What follows is install paths,
+            release channels, tuning notes, and enough history to explain why
+            half these projects moved off GitHub.
         points:
             - <strong>Ryubing</strong> — maintained continuation of Ryujinx.
             - <strong>Roster</strong> — Eden, Dolphin, RetroArch, PCSX2, Azahar, shadPS4.
@@ -121,7 +121,7 @@ jsonld:
           answer: No. The Switch 2, launched in June 2025, uses substantially hardened security, and emulation researchers have estimated meaningful Switch 2 emulation could take many years. Current projects, including Ryubing, target the original Switch only.
 ---
 
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
 import BentoDoc from '@/components/hero/BentoDoc.astro';
 import BentoProse from '@/components/hero/BentoProse.astro';
 
@@ -129,10 +129,11 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 
 <BentoProse id="information" eyebrow="Start here" heading="Information">
 
-An emulator recreates one platform's hardware in software so another platform can run its programs — a Switch's ARM CPU and GPU re-expressed as translation layers on a desktop PC.
-This page is a data-point reference for that landscape as of 2026: the state of Nintendo Switch emulation after Ryujinx's shutdown and Ryubing's continuation, the notable projects on every other console, the settings that actually affect performance, and a sourced timeline of the legal events that keep reshaping the scene.
+An emulator rebuilds one machine's hardware in software so another machine can run its programs. On a desktop, a Switch's ARM CPU and its GPU end up as translation layers, and how well those layers are written decides whether a game runs at all.
 
-Everything here assumes you dump games, firmware, and keys from hardware you own; none of the projects covered distribute those, and neither do we.
+These are our working notes on that, current to 2026. Switch emulation gets the most space because it changed the most: Ryujinx shut down, forks took over, and Nintendo has spent two years sending takedowns. The rest covers the other consoles, the handful of settings that move framerate, and a timeline of the legal decisions everyone keeps citing at each other.
+
+All of it assumes you dump your own games, firmware, and keys. None of the projects below hand those out, and neither do we.
 
 </BentoProse>
 
@@ -150,23 +151,17 @@ The Docker section would be located [here](/application/docker/)
 
 <BentoProse id="ryujinx" eyebrow="Switch emulation" heading="Ryujinx">
 
-Ryujinx was an open-source Nintendo Switch emulator written in C# on .NET, started in 2017 by the Brazilian developer gdkchan.
-It was the first Switch emulator to boot commercial games in 2018 and grew into one of the most accurate emulators for the platform, with roughly 3,550 of about 4,300 tested titles rated playable by mid-2024.
-Along the way it picked up a Vulkan graphics backend, a native macOS port for Apple Silicon (using the hypervisor for near-native ARMv8 execution), and a modern Avalonia-based interface.
+Ryujinx was an open-source Switch emulator written in C# on .NET, started in 2017 by the Brazilian developer gdkchan. It booted commercial games first, in 2018, and by mid-2024 it had roughly 3,550 of about 4,300 tested titles rated playable, which made it the accuracy benchmark for the platform. Later years added a Vulkan backend, an Avalonia interface, and a native macOS port that used Apple's hypervisor to run ARMv8 code with barely any translation cost.
 
-On October 1, 2024, development ended abruptly.
-Nintendo contacted gdkchan and offered an agreement to stop working on the project, and the GitHub organization, downloads, and Patreon were removed.
-Unlike the Yuzu case earlier that year, there was no lawsuit or public settlement — the project simply went dark, with 1.1.1403 as the final official release.
+It ended on October 1, 2024, with no warning. Nintendo approached gdkchan and offered an agreement to stop working on the project; the GitHub organization, the downloads, and the Patreon all came down. There was no lawsuit and no public settlement, unlike the Yuzu case eight months earlier. The project went quiet and 1.1.1403 stands as the last official release.
 
-The instructions that used to live on this page — the `choco install ryujinx` package, the official website downloads, and the RyuSAK setup companion — all target the discontinued original and are no longer maintained.
-The community picked up the torch instead, and the most complete continuation is Ryubing, covered below.
+Whatever instructions used to live on this page are dead now. The `choco install ryujinx` package, the website downloads, the RyuSAK companion — all of it points at the discontinued original. The continuations are where the work happens, and Ryubing is the most complete of them.
 
 </BentoProse>
 
 <BentoProse id="ryubing" eyebrow="The continuation" heading="Ryubing">
 
-[Ryubing](https://github.com/Ryubing) is the community fork that carries Ryujinx forward, described plainly on its GitHub organization as "a fork of the discontinued Switch emulator, Ryujinx."
-It was started right after the October 2024 shutdown by GreemDev, a member of the original Ryujinx team, initially as a quality-of-life fork before being rebranded to Ryubing around the start of 2025.
+[Ryubing](https://github.com/Ryubing) is the fork that carries Ryujinx forward. Its GitHub org describes it without ceremony: "a fork of the discontinued Switch emulator, Ryujinx." GreemDev, who had worked on the original, started it within days of the October 2024 shutdown as a quality-of-life fork, then rebranded it to Ryubing around the start of 2025.
 
 Compared to where the original left off, Ryubing added:
 
@@ -175,16 +170,13 @@ Compared to where the original left off, Ryubing added:
 - **Broader platform coverage** — Windows x64 and ARM64, Linux x64 and ARM64, and a universal macOS build, with a community-maintained Metal backend for Apple Silicon alongside the Vulkan and OpenGL ones.
 - **Quality-of-life tooling** — an XCI trimmer, mod and cheat management inherited from Ryujinx, and ongoing performance and compatibility work (including partial SDK20 support so newer game updates like Tears of the Kingdom 1.4.x boot).
 
-The project has had a bumpy legal ride.
-In March 2025, Nintendo issued DMCA takedowns against Ryujinx forks on GitHub — the March 6 notice alone covered 575 repositories — which knocked Ryubing's main code repository offline; the source moved to a self-hosted Git at [git.ryujinx.app](https://git.ryujinx.app), while the issue tracker, compatibility list, and support repos stayed on GitHub.
-After the February 12, 2026 DMCA wave, GreemDev stepped away and the project shifted into maintenance mode under contributor LotP and the remaining team — infrastructure, compatibility tracking, and bugfix releases continue, but major feature development has slowed.
+Legally it has been a rough two years. Nintendo issued DMCA takedowns against Ryujinx forks in March 2025, and the March 6 notice alone covered 575 repositories, which took Ryubing's code repository offline. The source moved to a self-hosted Git at [git.ryujinx.app](https://git.ryujinx.app); the issue tracker, compatibility list, and support repos stayed on GitHub. GreemDev stepped away after the February 12, 2026 wave, leaving contributor LotP and the rest of the team running it in maintenance mode. Infrastructure, compatibility tracking, and bugfix releases still ship. Big features mostly don't.
 
 </BentoProse>
 
 <BentoProse id="forks" eyebrow="Family tree" heading="The Ryujinx forks, compared">
 
-The Ryujinx lineage split into several continuations after October 2024.
-Status as of mid-2026:
+October 2024 split the Ryujinx lineage into several continuations. Where they stand in mid-2026:
 
 | Project | Focus | Platforms | Channels | Status |
 | --- | --- | --- | --- | --- |
@@ -192,175 +184,154 @@ Status as of mid-2026:
 | **Kenji-NX** | Shares most Ryubing changes, keeps the original Ryujinx interface philosophy | Desktop + **Android** builds | Rolling releases | Active; GitHub repos named in the Feb 2026 DMCA |
 | **ryujinx-mirror** | Preservation-only hard fork, minor fixes | Windows, Linux, macOS | Nightly | Archived June 6, 2025 — no longer maintained |
 
-Ryubing and Kenji-NX cooperate closely and share most code; the practical split is desktop-first (Ryubing) versus Android availability and classic UI (Kenji-NX).
-Note that Eden and Citron are *yuzu*-lineage projects, not Ryujinx forks — they are covered in the [emulator roster](#emulators) below.
+Ryubing and Kenji-NX cooperate closely and share most of their code. In practice you pick between desktop-first (Ryubing) and Android plus the classic UI (Kenji-NX). Eden and Citron get confused for Ryujinx forks constantly; they aren't. Both come from the *yuzu* lineage and appear in the [emulator roster](#emulators) below.
 
 </BentoProse>
 
 <BentoProse id="install" eyebrow="Get started" heading="Install">
 
-Ryubing's downloads and documentation live at [ryujinx.app](https://ryujinx.app), with the setup guide at [docs.ryujinx.app](https://docs.ryujinx.app/guides/setup-guide/).
-Pick a channel when you download:
+Downloads and documentation live at [ryujinx.app](https://ryujinx.app), and the setup guide is at [docs.ryujinx.app](https://docs.ryujinx.app/guides/setup-guide/). You pick a channel when you download:
 
-- **Stable** — tested releases, the right default for most players.
-- **Canary** — bleeding-edge builds generated from every commit; more fixes and features, more churn.
+- **Stable** — tested releases. Take this one unless you have a reason not to.
+- **Canary** — a build per commit. More fixes and features, and more churn to go with them.
 
-The general flow is the same on every platform:
+The flow is the same on every platform:
 
 1.  Download the build for your OS and architecture from the Ryubing website.
 2.  Extract the archive to a location of your choice.
 3.  Launch the emulator and install your dumped Switch firmware, then point it at your `prod.keys`.
 4.  Add your game directory through the settings, select a title, and play.
 
-The emulator does not ship firmware or keys — you dump both from your own hackable Switch using tools like Atmosphère and Lockpick_RCM, per the official setup guide.
-Treat any third-party site bundling "Ryujinx keys" or firmware as unofficial and unsafe.
+Nothing in that archive is firmware or keys. You dump both yourself, off a hackable Switch, with Atmosphère and Lockpick_RCM as the setup guide describes. Any third-party site offering bundled "Ryujinx keys" is unofficial, and usually worse than that.
 
 ### Windows
 
-Windows x64 and ARM64 builds are provided.
-The old Chocolatey `ryujinx` package tracked the discontinued original and is stale, so grab the archive from the Ryubing site directly and keep it current through the built-in updater.
-Keep your GPU drivers updated — Vulkan is the preferred backend.
+x64 and ARM64 builds are both provided. The old Chocolatey `ryujinx` package still tracks the discontinued original, so ignore it, take the archive from the Ryubing site, and let the built-in updater keep it current. Stay on current GPU drivers, since Vulkan is the backend you want.
 
 ### Linux
 
-x64 and ARM64 archives are available, and community packaging exists (for example the AUR on Arch).
-The same firmware and key steps apply.
+x64 and ARM64 archives, plus community packaging like the AUR on Arch. Firmware and keys work the same way.
 
 ### Mac
 
-The macOS build is a universal binary and runs well on Apple Silicon, where the hypervisor executes ARMv8 code near-natively and a Metal backend is available.
-This is a far better story than the original Ryujinx-era Mac experience previously noted on this page.
+The macOS build is a universal binary. On Apple Silicon it runs genuinely well — the hypervisor executes ARMv8 code near-natively, and there's a Metal backend. Anyone who tried Mac emulation in the original Ryujinx era should try again.
 
 </BentoProse>
 
 <BentoProse id="tuning" eyebrow="Performance" heading="Tuning">
 
-Switch emulation is CPU-bound first: high single-core performance matters more than core count, and the official minimum is 8 GiB of RAM with an OpenGL 4.6-capable GPU.
-A comfortable target is 16 GB of RAM, a recent mid-range CPU, and any Vulkan-capable discrete GPU.
+Switch emulation is CPU-bound before anything else, and single-core speed matters far more than core count. Official minimums are 8 GiB of RAM and an OpenGL 4.6-capable GPU. Aim instead for 16 GB, a recent mid-range CPU, and any discrete GPU that speaks Vulkan.
 
 ### Graphics backend
 
-- **Vulkan** is the default recommendation, and effectively mandatory on AMD and Intel GPUs, whose OpenGL drivers underperform on Windows. It compiles shaders faster and carries lower CPU overhead.
-- **OpenGL** remains a fallback for NVIDIA users when a specific title misbehaves under Vulkan.
-- **macOS** should stay on **Auto**, which picks Vulkan via MoltenVK for most titles and the native Metal backend where it is known to run better.
-- GPUs with less than 4 GB of VRAM benefit from enabling **texture recompression**, since Vulkan is hungrier for video memory.
+- **Vulkan** is the recommendation, and close to mandatory on AMD and Intel, whose Windows OpenGL drivers are slow. It compiles shaders faster and costs less CPU time.
+- **OpenGL** is worth keeping around as an NVIDIA fallback when one specific title misbehaves under Vulkan.
+- **macOS** should stay on **Auto**. It picks Vulkan through MoltenVK for most titles and the native Metal backend where Metal is known to be better.
+- Under 4 GB of VRAM, turn on **texture recompression**. Vulkan wants more video memory than OpenGL did.
 
 ### Caches
 
-Two caches remove most of the stutter over time:
+Two caches take care of most stutter, given a little time:
 
-- **Disk shader cache** stores compiled shaders, so first encounters stutter and repeat visits do not. Leave it enabled; if a game starts crashing during shader load, purge the cache from the game list's right-click *Cache Management* menu.
-- **PPTC** (profiled persistent translation cache) stores JIT-translated CPU code to cut boot and load times — its profile builds over the first few launches.
+- **Disk shader cache** keeps compiled shaders on disk. The first trip through an area stutters; every trip after doesn't. Leave it on. If a game starts crashing while loading shaders, purge it from *Cache Management* in the game list's right-click menu.
+- **PPTC**, the profiled persistent translation cache, saves JIT-translated CPU code and cuts boot and load times. Its profile fills in over the first few launches, so give it a couple of runs before judging.
 
 ### System options
 
-- **Memory manager**: *Host unchecked* is the default and fastest mode; drop to *Host* or *Software* only when diagnosing instability.
-- **Hypervisor** (Apple Silicon only): executes the game's ARMv8 code natively instead of translating it, removing most CPU-emulation overhead. Some mods only launch with specific hypervisor and memory-mode combinations.
-- **Anisotropic filtering** at 16x costs effectively nothing; resolution scaling above 2x is where GPU cost climbs, especially under Vulkan.
+- **Memory manager**: *Host unchecked* is the default and the fastest. Step down to *Host* or *Software* only when chasing instability.
+- **Hypervisor**, Apple Silicon only: runs the game's ARMv8 code natively instead of translating it, which removes most of the CPU-emulation cost. A few mods are picky and only launch under particular hypervisor and memory-mode combinations.
+- **Anisotropic filtering** at 16x is basically free. Resolution scaling is not — past 2x the GPU cost climbs quickly, Vulkan especially.
 
 </BentoProse>
 
 <BentoProse id="steam-deck" eyebrow="Handhelds" heading="Steam Deck">
 
-Ryubing runs on the Steam Deck, and [EmuDeck](https://www.emudeck.com/) lists it among the Switch emulators it can install and configure on SteamOS.
-A community-maintained Flatpak also exists on [Flathub](https://flathub.org/en/apps/io.github.ryubing.Ryujinx), though the Ryubing team notes it is not officially supported.
-EmuDeck itself stays healthy as a general emulation installer — it configures emulators, the ES-DE frontend, and Steam integration, and it downloads each emulator from its upstream project rather than bundling binaries.
-The competing RetroDECK project removed all Switch emulation in February 2026, citing takedown risk, so EmuDeck is currently the simpler path on the Deck.
+Ryubing runs on the Steam Deck, and [EmuDeck](https://www.emudeck.com/) will install and configure it for you on SteamOS. There's also a community Flatpak on [Flathub](https://flathub.org/en/apps/io.github.ryubing.Ryujinx), which the Ryubing team is careful to say they don't officially support.
+
+EmuDeck is in good shape generally. It sets up emulators, the ES-DE frontend, and Steam integration, and it pulls each emulator from its upstream project instead of shipping its own binaries. RetroDECK, the other option, dropped Switch emulation entirely in February 2026 over takedown risk, which leaves EmuDeck as the easier route on the Deck right now.
 
 </BentoProse>
 
 <BentoProse id="setup" eyebrow="Configure" heading="Setup">
 
-RyuSAK, the setup companion we used to recommend here, targeted the original Ryujinx and is no longer maintained.
-For a current install, the [official Ryubing setup guide](https://docs.ryujinx.app/guides/setup-guide/) covers everything post-install: firmware installation from an XCI or ZIP, key placement, and per-game configuration.
-For compatibility questions, the project maintains a public [compatibility tracker](https://github.com/Ryubing) on GitHub and a Discord bot that answers lookups directly.
+We used to point people at RyuSAK here. It targeted the original Ryujinx and nobody maintains it anymore. The [official Ryubing setup guide](https://docs.ryujinx.app/guides/setup-guide/) covers the same ground for a current install: firmware from an XCI or ZIP, where keys go, and per-game configuration.
+
+When a game misbehaves, check the project's public [compatibility tracker](https://github.com/Ryubing) on GitHub. Their Discord bot answers the same lookups if you'd rather ask in chat.
 
 </BentoProse>
 
 <BentoProse id="emulators" eyebrow="Beyond the Switch" heading="Emulator roster">
 
-The wider emulation landscape, project by project.
-Status as of mid-2026.
+The rest of the landscape, project by project, as of mid-2026.
 
 ### Eden — Nintendo Switch
 
-[Eden](https://eden-emu.dev/) is currently the most actively developed Switch emulator.
-It descends from the yuzu lineage: Nintendo's February 2024 lawsuit ended yuzu, the Suyu fork ceased development in February 2025 after takedown pressure, and the Citron fork splintered — its team launched Eden in May 2025.
-Eden ships Windows, Linux, Android, and macOS builds, reached v0.2.1 in June 2026, and was the one project to file DMCA counter-notices after the February 2026 takedown wave, publishing its next release days later from self-hosted infrastructure.
-Beware of lookalike sites and inflated "3.0" APKs — official versioning is still 0.x, and releases come from eden-emu.dev.
+[Eden](https://eden-emu.dev/) sees the most development activity of any Switch emulator right now. Its family tree runs through yuzu: Nintendo's February 2024 lawsuit killed yuzu, the Suyu fork gave up in February 2025 under takedown pressure, and Citron splintered, with part of its team launching Eden in May 2025. Builds cover Windows, Linux, Android, and macOS, and v0.2.1 landed in June 2026.
+
+Eden was also the only project to file DMCA counter-notices after the February 2026 wave, and it shipped its next release days later off self-hosted infrastructure. Watch out for lookalike sites and APKs claiming to be "3.0" — official versioning is still 0.x and releases come from eden-emu.dev.
 
 ### Dolphin — GameCube & Wii
 
-[Dolphin](https://dolphin-emu.org/) is the reference emulator for GameCube and Wii, and one of the healthiest projects in the scene.
-It moved to date-based rolling releases in July 2024 (2407 was the first), shipping a dated stable build roughly quarterly — 2606, from June 2026, added expanded Triforce arcade support and GameCube Game Boy Player emulation.
-Windows, macOS, Linux, and Android are all supported; the planned Steam release was cancelled in 2023 after Nintendo contacted Valve.
+[Dolphin](https://dolphin-emu.org/) is the reference emulator for GameCube and Wii and one of the better-run projects anywhere in emulation. It switched to date-based rolling releases in July 2024, starting with 2407, and cuts a dated stable roughly quarterly; 2606 in June 2026 expanded Triforce arcade support and added GameCube Game Boy Player emulation. Windows, macOS, Linux, and Android are all covered. The Steam release was cancelled in 2023 after Nintendo contacted Valve.
 
 ### RetroArch — everything else
 
-[RetroArch](https://www.retroarch.com/) is the frontend for the libretro ecosystem: 200+ emulator cores spanning the Atari 2600 through the PS2, behind one interface with shared shaders, netplay, and save states.
-It runs on essentially everything — Windows, macOS, Linux, Android, iOS, consoles, and the browser — and has been on Steam since 2021 with cores as free DLC.
-Latest stable is 1.22.2 (November 2025), with continuous nightlies between releases.
+[RetroArch](https://www.retroarch.com/) is the frontend for the libretro ecosystem: 200-odd emulator cores from the Atari 2600 up through the PS2, all behind one interface, sharing shaders, netplay, and save states. It runs on Windows, macOS, Linux, Android, iOS, consoles, and the browser, and it has been on Steam since 2021 with cores distributed as free DLC. Latest stable is 1.22.2 from November 2025, with nightlies filling the gaps.
 
 ### PCSX2 — PlayStation 2
 
-[PCSX2](https://pcsx2.net/) entered its 2.x era in July 2024 with the Qt interface and has moved quickly since; 2.6.0 (January 2026) brought a faster Vulkan path and compatibility gains, with nightlies shipping near-daily.
-Windows, Linux, and macOS are supported.
+[PCSX2](https://pcsx2.net/) started its 2.x era in July 2024 with the Qt interface and has moved fast since. 2.6.0 in January 2026 brought a quicker Vulkan path and a pile of compatibility fixes, and nightlies land close to daily. Windows, Linux, and macOS.
 
 ### Azahar — Nintendo 3DS
 
-[Azahar](https://azahar-emu.org) is the Citra successor, formed by merging the PabloMK7 Citra fork with Lime3DS after Citra was shut down in the March 2024 yuzu settlement.
-It is actively updated on Windows, Linux, macOS, and Android (including Google Play), added online multiplayer and Amiibo support, and deliberately hardened its legal posture — it requires legitimately dumped keys and dropped encryption-related code.
-As with Eden, unofficial clone sites exist; the project lives at azahar-emu.org.
+[Azahar](https://azahar-emu.org) is what came after Citra, built by merging the PabloMK7 Citra fork with Lime3DS once the March 2024 yuzu settlement shut Citra down. It updates regularly across Windows, Linux, macOS, and Android, Google Play included, and has picked up online multiplayer and Amiibo support along the way. The project also took its legal posture seriously: it requires legitimately dumped keys and dropped the encryption-related code outright. Clone sites exist here too — the real one is azahar-emu.org.
 
 ### shadPS4 — PlayStation 4
 
-[shadPS4](https://github.com/shadps4-emu/shadPS4) is the leading PS4 emulator, releasing roughly every six to eight weeks (v0.16.0, June 2026).
-Bloodborne is its flagship title — fully playable, benchmarked at 4K60 on high-end hardware, and running on the Steam Deck — with hundreds of other titles rated playable or in-game on its compatibility list.
+[shadPS4](https://github.com/shadps4-emu/shadPS4) leads PS4 emulation, with releases every six to eight weeks or so (v0.16.0, June 2026). Bloodborne is the showcase: fully playable, benchmarked at 4K60 on high-end hardware, and running on the Steam Deck. Hundreds of other titles sit at playable or in-game on the compatibility list.
 
 ### EmuDeck — the installer
 
-[EmuDeck](https://www.emudeck.com/) is not an emulator but an installer and configurator for SteamOS, Windows, Linux, and (since March 2026) Android.
-It fetches emulators from their upstream projects, wires them into the ES-DE frontend and Steam, and handles per-device performance defaults — covered in the [Steam Deck](#steam-deck) section above.
+[EmuDeck](https://www.emudeck.com/) isn't an emulator. It installs and configures them on SteamOS, Windows, Linux, and, since March 2026, Android — fetching each one from its upstream project, wiring it into ES-DE and Steam, and applying sane per-device defaults. See the [Steam Deck](#steam-deck) section above.
 
 </BentoProse>
 
 <BentoProse id="legal" eyebrow="The record" heading="Legal timeline">
 
-A neutral record of the events that shaped console emulation's legal landscape.
-Emulator software itself has never been held illegal by a US court; the modern disputes center on cryptographic keys, firmware, and ROM distribution rather than the emulators' own code.
+No US court has ever held emulator software itself illegal. The fights that matter now are about cryptographic keys, firmware, and ROM distribution, not about the emulator code. The events below are the ones people cite; we've tried to record them without taking a side.
 
-- **2000 — Sony v. Connectix.** The Ninth Circuit ruled that reverse-engineering the PlayStation BIOS to build the Virtual Game Station emulator was fair use, since no Sony code shipped in the final product. The foundational precedent that a cleanly reverse-engineered emulator is lawful.
-- **2000 — Sony v. Bleem.** Bleem won on the law — using PlayStation screenshots in comparative advertising was fair use — but the litigation costs bankrupted the two-person company by late 2001. The standard cautionary pairing: legal victory, commercial death.
-- **February 26 – March 4, 2024 — Nintendo v. Tropic Haze (yuzu).** Nintendo sued yuzu's developer, alleging DMCA anti-circumvention violations and citing pre-release Tears of the Kingdom piracy. The case settled in one week: $2.4 million, a permanent injunction, and the end of both yuzu and Citra the same day.
-- **October 1, 2024 — Ryujinx shuts down.** No lawsuit was filed; Nintendo contacted creator gdkchan and offered an agreement to stop the project, and the GitHub organization was removed. The agreement's terms were never made public.
-- **March 6, 2025 — DMCA against Ryujinx forks.** Nintendo's notice covered 575 repositories in the ryujinx-mirror fork network, arguing the emulator's use of `prod.keys` constitutes circumvention under 17 U.S.C. §1201 and citing the Tropic Haze judgment. Ryubing's source moved to self-hosted infrastructure.
-- **May 2025 — Nintendo's EULA update.** Ahead of the Switch 2 launch, new account-agreement language asserted the right to render devices "permanently unusable" for violations and explicitly prohibited bypassing or decrypting console protections.
-- **June 2025 — Switch 2 launches.** Substantially hardened security; emulation researchers estimated meaningful Switch 2 emulation could take many years.
-- **September – October 2025 — individual enforcement.** Consent judgment against Modded Hardware ($2 million, flashcarts and pre-modded consoles); default judgment against streamer "EveryGameGuru" ($17,500); suit filed against a former r/SwitchPirates moderator seeking $4.5 million.
-- **February 12, 2026 — the mass DMCA wave.** One notice covered 345 repositories across 13 named Switch emulator projects, including Ryubing, Eden, Citron, Kenji-NX, and MeloNX, on the same §1201 keys theory. Aftermath within the week: Ryubing entered maintenance mode, Citron discontinued (sources split on whether Nintendo pressure or internal team conflict was the primary cause), and Eden filed counter-notices and kept releasing.
+- **2000 — Sony v. Connectix.** The Ninth Circuit held that reverse-engineering the PlayStation BIOS to build the Virtual Game Station emulator was fair use, because no Sony code shipped in the final product. This is the precedent everything else rests on.
+- **2000 — Sony v. Bleem.** Bleem won the legal argument, since using PlayStation screenshots in comparative advertising was fair use, and still went under by late 2001 because the litigation costs bankrupted a two-person company.
+- **February 26 – March 4, 2024 — Nintendo v. Tropic Haze (yuzu).** Nintendo sued yuzu's developer over DMCA anti-circumvention, citing pre-release Tears of the Kingdom piracy. It settled in a week for $2.4 million and a permanent injunction, and yuzu and Citra both ended the same day.
+- **October 1, 2024 — Ryujinx shuts down.** No lawsuit. Nintendo contacted gdkchan, offered an agreement to stop, and the GitHub organization came down. The terms have never been made public.
+- **March 6, 2025 — DMCA against Ryujinx forks.** A single notice covering 575 repositories in the ryujinx-mirror network. The argument: using `prod.keys` is circumvention under 17 U.S.C. §1201, citing the Tropic Haze judgment. Ryubing's source moved to self-hosted infrastructure.
+- **May 2025 — Nintendo's EULA update.** Ahead of the Switch 2, the account agreement gained language asserting a right to render devices "permanently unusable" for violations, plus an explicit ban on bypassing or decrypting console protections.
+- **June 2025 — Switch 2 launches.** Security is substantially harder this time, and emulation researchers put meaningful Switch 2 emulation many years out.
+- **September – October 2025 — individual enforcement.** A $2 million consent judgment against Modded Hardware over flashcarts and pre-modded consoles, a $17,500 default judgment against streamer "EveryGameGuru", and a $4.5 million suit filed against a former r/SwitchPirates moderator.
+- **February 12, 2026 — the mass DMCA wave.** One notice, 345 repositories, 13 named Switch emulator projects, including Ryubing, Eden, Citron, Kenji-NX, and MeloNX, all on the same §1201 keys theory. Within the week Ryubing went into maintenance mode, Citron was discontinued (accounts differ on whether Nintendo pressure or internal conflict was the main cause), and Eden filed counter-notices and kept shipping.
 
-The through-line: since 2024, Nintendo's preferred instrument is the DMCA §1201 anti-circumvention claim aimed at `prod.keys`, which sidesteps arguing about the emulator code itself — the part that Connectix protects.
+The pattern since 2024 is consistent. Nintendo reaches for a §1201 anti-circumvention claim aimed at `prod.keys`, which avoids ever arguing about the emulator code — the part Connectix protects.
 
 </BentoProse>
 
 <BentoProse id="glossary" eyebrow="Terminology" heading="Glossary">
 
-- **JIT (just-in-time translation)** — recompiling the console's ARM CPU instructions into native host instructions at runtime; the core technique behind Switch emulator performance.
-- **PPTC** — profiled persistent translation cache; saves JIT output to disk so later launches skip retranslation.
-- **Shader cache** — compiled GPU shaders stored on disk; eliminates repeat-visit stutter after the first encounter.
-- **LDN** — the Switch's local wireless networking; Ryubing emulates it over the internet for local-multiplayer titles.
-- **XCI** — a raw dump of a Switch game cartridge; **NSP** is the eShop package equivalent.
-- **`prod.keys`** — the console's cryptographic keys, required to decrypt games; dumped from the user's own hardware and central to the post-2024 legal disputes.
-- **Firmware** — the Switch's operating system files, installed into the emulator; also dumped from the user's own console.
-- **NAND** — the console's internal storage, holding saves, profiles, and installed data; emulators recreate it as a folder on the host.
-- **Backend** — the graphics API an emulator translates the console's GPU commands into: Vulkan, OpenGL, or Metal.
-- **Core** — in RetroArch terms, a single emulator module loaded by the libretro frontend.
+- **JIT (just-in-time translation)** — recompiling the console's ARM CPU instructions into native host instructions while the game runs. This is what makes Switch emulation fast enough to be worth doing.
+- **PPTC** — profiled persistent translation cache. Saves JIT output to disk so later launches skip the retranslation.
+- **Shader cache** — compiled GPU shaders on disk. Kills repeat-visit stutter after the first pass through an area.
+- **LDN** — the Switch's local wireless networking. Ryubing carries it over the internet so local-multiplayer titles work between distant players.
+- **XCI** — a raw dump of a game cartridge. **NSP** is the eShop package equivalent.
+- **`prod.keys`** — the console's cryptographic keys, needed to decrypt games, dumped from your own hardware, and the center of every legal fight since 2024.
+- **Firmware** — the Switch's OS files, installed into the emulator, also dumped from your own console.
+- **NAND** — the console's internal storage: saves, profiles, installed data. Emulators recreate it as a folder on the host.
+- **Backend** — the graphics API the emulator translates console GPU commands into. Vulkan, OpenGL, or Metal.
+- **Core** — RetroArch's term for a single emulator module loaded by the libretro frontend.
 
 </BentoProse>
 
 <BentoProse id="sources" eyebrow="Citations" heading="Sources">
 
-The history and status claims on this page draw from the following sources:
+Where the history and status claims came from:
 
 ### Ryujinx & Ryubing
 

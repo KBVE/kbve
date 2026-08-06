@@ -43,9 +43,28 @@ new cap unreachable.
 ## Shields (KBVEShields)
 
 `mods/KBVEShields/items/shields.jsonc` grants `TemperatureResist_Heat*Cold*`
-passives to `Shield_Ultra` / `Shield_SF` / `Shield_07`. Inspired by Multiclimate
+passives to shields: `Shield_03` (Giga) and `Shield_04` (Tera) at tier 1,
+`Shield_Ultra` at tier 1, `Shield_SF` at tier 2, `Shield_07` at tier 3.
+Inspired by Multiclimate
 Shields by MelwenMods ([Nexus 2643](https://www.nexusmods.com/palworld/mods/2643));
 values are KBVE-authored. Server-side only.
+
+## Merchants (KBVEMerchants)
+
+`mods/KBVEMerchants/npcs/no_capture.jsonc` sets `CaptureRateCorrect` to `0.0` on
+every merchant row in `DT_PalHumanParameter`. Fixes merchants being caught with a
+Pal Sphere and never respawning — the NPC spawner does not re-fire for a captured
+merchant, so the vendor is gone until the world reloads.
+
+The `npcs` folder name is required: PalSchema's human loader registers itself as
+`PalModLoaderBase("npcs")`. There is no `IsUncapturable` field on the
+`PalCharacterParameterDatabaseRow` struct, so `CaptureRateCorrect` is the only
+lever; vanilla ships every merchant at `0.1` and `Male_Police_old` at `0.0`.
+
+Only row ids verified against a real `DT_PalHumanParameter` dump are listed.
+This matters: the loader **adds a new NPC row** when an id is not found
+(`FindRowUnchecked` → `Add`), so a typo silently creates junk data rather than
+erroring. Confirm additions against a dump before extending the list.
 
 ## Shops (KBVEShops)
 

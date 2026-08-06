@@ -6,6 +6,8 @@ sidebar:
     hidden: true
 description: |
     Boiled leather on a waxed cord. Proof that something happened, and that you are still here to not talk about it.
+lore: |
+    Standard-issue for an injury that stopped being standard-issue several centuries ago, which has not slowed production. Most wearers no longer need one. They keep it because a patch reads, at fifty paces, as a completed story about a person who won, and that saves a great deal of talking.
 ref: 'worn-eye-patch'
 key: 602
 id: '01KXFBEGM016HQ7DD3KG84JWB5'
@@ -30,10 +32,21 @@ equipment:
   bonuses:
     extra:
       weight: 1
+set_ref: 'vanguard'
+tags:
+  - armor
+  - vanguard
+  - herbmail
+sources:
+  - source_type: 'drop'
+    source_name: 'Field salvage'
+    drop_rate: 0.2
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Overview
 
-<ItemDBPanel data={frontmatter} />
+</ItemLeaf>

@@ -41,7 +41,7 @@ scripts:
             runtime: 300
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
 import {
     Aside,
@@ -51,7 +51,9 @@ import {
     LinkCard,
     Code,
 } from '@astrojs/starlight/components';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -59,8 +61,6 @@ The **Brainrot Laptop** wheezes to life with a chorus of dying fans and glitchy 
 When connected, it bombards you with 2000-era pop-ups and suspicious toolbars.
 
 <Aside type="caution">Use at your own risk, its malware is practically vintage.</Aside>
-
-<ItemDBPanel data={frontmatter} />
 
 <Aside>
 This relic is best handled with thick gloves and a disposable network.
@@ -84,7 +84,6 @@ This relic is best handled with thick gloves and a disposable network.
 </CardGrid>
 
 ## Quick Cleanup Command
-
 
 ```bash
 
@@ -127,8 +126,8 @@ sudo brainrot --purge-cache
 
 <Adsense />
 
----
-
 ## DevLog
 
 - 06/01/2025 - Brainrot Laptop added to the item database with full Starlight integration
+
+</ItemLeaf>

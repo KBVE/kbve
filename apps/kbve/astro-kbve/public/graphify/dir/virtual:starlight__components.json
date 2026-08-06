@@ -1,54 +1,54 @@
 {
 	"dir": "virtual:starlight/components",
-	"center": [-398.9, 695.16],
-	"r": 77.58,
+	"center": [-826.45, -151.22],
+	"r": 77.57,
 	"files": [
 		{
 			"i": 0,
 			"label": "LanguageSelect",
 			"path": "virtual:starlight/components/LanguageSelect",
-			"x": -217.36,
-			"y": 695.16,
+			"x": -644.93,
+			"y": -151.22,
 			"n": 1
 		},
 		{
 			"i": 1,
 			"label": "MobileMenuFooter",
 			"path": "virtual:starlight/components/MobileMenuFooter",
-			"x": -308.13,
-			"y": 852.38,
+			"x": -735.69,
+			"y": 5.98,
 			"n": 1
 		},
 		{
 			"i": 2,
 			"label": "Search",
 			"path": "virtual:starlight/components/Search",
-			"x": -489.68,
-			"y": 852.38,
+			"x": -917.21,
+			"y": 5.98,
 			"n": 1
 		},
 		{
 			"i": 3,
 			"label": "SiteTitle",
 			"path": "virtual:starlight/components/SiteTitle",
-			"x": -580.45,
-			"y": 695.16,
+			"x": -1007.98,
+			"y": -151.22,
 			"n": 1
 		},
 		{
 			"i": 4,
 			"label": "SocialIcons",
 			"path": "virtual:starlight/components/SocialIcons",
-			"x": -489.68,
-			"y": 537.94,
+			"x": -917.21,
+			"y": -308.43,
 			"n": 1
 		},
 		{
 			"i": 5,
 			"label": "ThemeSelect",
 			"path": "virtual:starlight/components/ThemeSelect",
-			"x": -308.13,
-			"y": 537.94,
+			"x": -735.69,
+			"y": -308.43,
 			"n": 1
 		}
 	],
@@ -57,54 +57,54 @@
 			"i": 0,
 			"f": 0,
 			"label": "virtual:starlight/components/LanguageSelect",
-			"x": -217.36,
-			"y": 695.16,
-			"c": 547,
+			"x": -644.93,
+			"y": -151.22,
+			"c": 548,
 			"loc": ""
 		},
 		{
 			"i": 1,
 			"f": 1,
 			"label": "virtual:starlight/components/MobileMenuFooter",
-			"x": -308.13,
-			"y": 852.38,
-			"c": 1987,
+			"x": -735.69,
+			"y": 5.98,
+			"c": 1978,
 			"loc": ""
 		},
 		{
 			"i": 2,
 			"f": 2,
 			"label": "virtual:starlight/components/Search",
-			"x": -489.68,
-			"y": 852.38,
-			"c": 547,
+			"x": -917.21,
+			"y": 5.98,
+			"c": 548,
 			"loc": ""
 		},
 		{
 			"i": 3,
 			"f": 3,
 			"label": "virtual:starlight/components/SiteTitle",
-			"x": -580.45,
-			"y": 695.16,
-			"c": 547,
+			"x": -1007.98,
+			"y": -151.22,
+			"c": 548,
 			"loc": ""
 		},
 		{
 			"i": 4,
 			"f": 4,
 			"label": "virtual:starlight/components/SocialIcons",
-			"x": -489.68,
-			"y": 537.94,
-			"c": 547,
+			"x": -917.21,
+			"y": -308.43,
+			"c": 548,
 			"loc": ""
 		},
 		{
 			"i": 5,
 			"f": 5,
 			"label": "virtual:starlight/components/ThemeSelect",
-			"x": -308.13,
-			"y": 537.94,
-			"c": 547,
+			"x": -735.69,
+			"y": -308.43,
+			"c": 548,
 			"loc": ""
 		}
 	],

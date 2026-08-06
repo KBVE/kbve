@@ -6,6 +6,8 @@ sidebar:
     hidden: true
 description: |
     Molded polymer shoulder pair that turns a doorframe collision into a sound effect.
+lore: |
+    Riot-surplus polymer, originally molded for crowd lines and later sold by the crate to anyone who moves fast through narrow places. The pads do not stop weapons and were never asked to. They stop architecture — doorframes, scaffold poles, the corner of a shelf you were sure you had cleared — and they turn each of those into a noise instead of a bruise.
 ref: 'impact-shoulder-pads'
 key: 627
 id: '01KXFBEGM2EGGJYW693H99X0NW'
@@ -33,10 +35,44 @@ equipment:
     armor: 1
     extra:
       weight: 1
+grid:
+  width: 2
+  height: 1
+set_ref: 'impact'
+tags:
+  - armor
+  - impact
+  - herbmail
+related_item_refs:
+  - 'impact-elbow-pads'
+  - 'impact-knee-pads'
+  - 'hardpoint-shoulders'
+sources:
+  - source_type: 'vendor'
+    source_name: 'Surplus stall'
+  - source_type: 'craft'
+    source_name: 'Salvaged polymer'
+    min_quantity: 1
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Overview
 
-<ItemDBPanel data={frontmatter} />
+One point of armor for one point of weight, in a 2×1 footprint that fits the awkward gap most packs have left over. The Impact set is the cheap floor of protection: nothing here saves you from a real hit, but the whole kit costs less than one Vanguard piece and never slows you down.
+
+Shoulder pads sit in the chest slot, which surprises people. They stack with nothing else on the torso.
+
+## In the field
+
+- Best on runners and gatherers — the profile stays low and the weight stays honest
+- Common starter pairing: [Impact Elbow Pads](/itemdb/impact-elbow-pads/) and [Impact Knee Pads](/itemdb/impact-knee-pads/), upgrading the chest first
+- Polymer cracks in the cold instead of bending; check the seams after a winter run
+
+## Acquisition
+
+Every surplus stall in the district has a crate of them. Craftable from salvaged polymer for anyone unwilling to pay forty.
+
+</ItemLeaf>

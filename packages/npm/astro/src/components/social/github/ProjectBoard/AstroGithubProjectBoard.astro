@@ -27,6 +27,8 @@ interface Props {
 	subtitle?: string;
 	limit?: number;
 	label?: string;
+	/** Render the built-in heading block; off when an outer shell supplies it. */
+	header?: boolean;
 }
 
 const {
@@ -34,6 +36,7 @@ const {
 	subtitle = 'Open issues labelled priority:medium — solid first-PR candidates.',
 	limit = 9,
 	label = 'priority:medium',
+	header = true,
 } = Astro.props;
 
 const GITHUB_OWNER = 'KBVE';
@@ -67,11 +70,18 @@ function ago(iso: string): string {
 }
 ---
 
-<section class="github-board" aria-labelledby="github-board-title">
-	<header class="github-board__header">
-		<h2 id="github-board-title">{title}</h2>
-		<p>{subtitle}</p>
-	</header>
+<section
+	class="github-board"
+	aria-labelledby={header ? 'github-board-title' : undefined}
+	aria-label={header ? undefined : title}>
+	{
+		header && (
+			<header class="github-board__header">
+				<h2 id="github-board-title">{title}</h2>
+				<p>{subtitle}</p>
+			</header>
+		)
+	}
 
 	{
 		error && (

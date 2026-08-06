@@ -1,10 +1,12 @@
 ---
 title: GE Aerospace GE
+template: splash
 description: |
     GE Aerospace is a leading aerospace company providing jet engines, components, and services for commercial and military aircraft worldwide, with a focus on innovation, efficiency, and sustainability in aviation technology.
 sidebar:
     label: GE Aerospace GE
     order: 528
+    hidden: true
 unsplash: 1540979388789-6cee28a1cdc9
 img: https://images.unsplash.com/photo-1540979388789-6cee28a1cdc9?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - aviation
   - ge
   - jet-engines
+stock:
+  ticker: GE
+  exchange: NYSE
+  symbol: nyse:ge
+  name: "GE Aerospace"
+  sector: Industrials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:ge`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -345,3 +355,5 @@ GE offers exposure to aerospace recovery with technology leadership:
 - **Innovation Pipeline**: Progress on next-generation engine and technology development
 
 <Giscus />
+
+</StockLeaf>

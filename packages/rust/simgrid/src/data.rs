@@ -5,7 +5,7 @@ use serde::Deserialize;
 
 use crate::proto::{KIND_CAT_ENV, KIND_CAT_ITEM, KIND_CAT_NPC, KIND_CAT_PLAYER, KindEntry};
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, Resource)]
 pub struct NpcDb {
     #[serde(default)]
     pub npcs: Vec<NpcDef>,
@@ -99,6 +99,22 @@ pub struct NpcMovepoolEntry {
     pub ability_id: String,
 }
 
+/// One evolution branch on a species. Mirrors the proto `PetEvolution`: at most one
+/// trigger fires today (`level`), but the item and condition gates are carried so the
+/// data can be authored ahead of the systems that read them.
+#[derive(Debug, Clone, Default, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NpcEvolution {
+    #[serde(default)]
+    pub evolves_to_ref: String,
+    #[serde(default)]
+    pub level: Option<u32>,
+    #[serde(default)]
+    pub item_ref: Option<String>,
+    #[serde(default)]
+    pub condition: Option<String>,
+}
+
 /// Catchable-pet metadata on a species — present only on pets. Drives capture and the
 /// mint of a pet instance from this template.
 #[derive(Debug, Clone, Default, Deserialize)]
@@ -108,18 +124,26 @@ pub struct NpcPet {
     pub catchable: bool,
     #[serde(default)]
     pub capture_rate: i32,
+    /// Proto-string form (`"GROWTH_RATE_MEDIUM_FAST"`). Parse with
+    /// [`GrowthRate::from_proto`] rather than matching the string.
     #[serde(default)]
     pub growth_rate: String,
     #[serde(default)]
     pub base_xp_yield: i32,
     #[serde(default)]
     pub base_friendship: i32,
+    /// Male fraction 0.0–1.0. Negative means genderless; absent means unauthored.
     #[serde(default)]
-    pub base_stat_total: i32,
+    pub gender_ratio: Option<f32>,
+    /// Dual-typing for matchups, proto-string form like [`NpcDef::element`]. Empty for a
+    /// single-type species, which is a real advantage rather than an omission — one type is
+    /// one set of weaknesses.
+    #[serde(default)]
+    pub secondary_element: String,
     #[serde(default)]
     pub movepool: Vec<NpcMovepoolEntry>,
     #[serde(default)]
-    pub egg_groups: Vec<String>,
+    pub evolutions: Vec<NpcEvolution>,
 }
 
 #[derive(Debug, Clone, Default, Deserialize)]

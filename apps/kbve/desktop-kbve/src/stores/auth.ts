@@ -31,6 +31,8 @@ interface AuthState {
 	phase: AuthPhase;
 	error: string | null;
 	initialized: boolean;
+	/** init() has finished; a stored session (if any) has been restored. */
+	ready: boolean;
 	init: () => Promise<void>;
 	signInWith: (provider: Provider) => Promise<void>;
 	signOut: () => Promise<void>;
@@ -42,6 +44,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 	phase: 'anon',
 	error: null,
 	initialized: false,
+	ready: false,
 
 	init: async () => {
 		if (get().initialized) return;
@@ -64,7 +67,10 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 		});
 
 		const stored = await loadSession();
-		if (!stored) return;
+		if (!stored) {
+			set({ ready: true });
+			return;
+		}
 		try {
 			await authApi.restore(stored);
 			const fresh = await freshSession(stored);
@@ -76,6 +82,8 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 			});
 		} catch {
 			await saveSession(null);
+		} finally {
+			set({ ready: true });
 		}
 	},
 

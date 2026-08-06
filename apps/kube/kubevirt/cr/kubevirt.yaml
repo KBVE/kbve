@@ -22,6 +22,37 @@ spec:
         network:
             permitBridgeInterfaceOnPodNetwork: true
     imagePullPolicy: IfNotPresent
+    # Needs at least one field actually set. Both an omitted key and a bare
+    # {} serialize to null through server-side apply, and the CRD schema
+    # rejects null: "spec.customizeComponents in body must be of type
+    # object". An empty patches list means the same thing and validates.
+    #
+    # Do NOT patch the virt-handler clientcertificates VOLUME back in, and
+    # do not re-add a seeding Job. virt-operator's processCanaryUpgrade
+    # unattaches that volume whenever its cached DaemonSet lacks it, and
+    # generateDaemonSet strips it on create — identical code in v1.7.2 and
+    # v1.9.0. Absence is a deliberate one-way migration marker, not drift.
+    # Proven 2026-08-05: ControllerRevision 5 carried the volume at
+    # 02:00:12, the pod that replaced it at 02:00:42 did not.
+    #
+    # Fix the consumer instead. virt-handler unconditionally starts a
+    # FileCertificateManager on --client-cert-file / --client-key-file
+    # (v1.9.0:194 + :510), which default to the path the operator
+    # guarantees is absent — that poll loop is what logs once a minute.
+    # Point those flags at the vsock client cert, which IS mounted and is
+    # the same shape (a virt-handler client cert off kubevirt-ca). The
+    # manager loads a real cert, the error stops at its source, and no
+    # volume is added for the operator to strip.
+    #
+    # json (not strategic) so the ops append to args rather than replacing
+    # the whole list, which would pin operator-managed flags to this file.
+    customizeComponents:
+        patches:
+            - resourceType: DaemonSet
+              resourceName: virt-handler
+              type: json
+              patch: >-
+                  [{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--client-cert-file=/etc/virt-handler/vsockclientcertificates/tls.crt"},{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--client-key-file=/etc/virt-handler/vsockclientcertificates/tls.key"}]
     workloadUpdateStrategy:
         workloadUpdateMethods:
             - LiveMigrate

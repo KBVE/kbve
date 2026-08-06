@@ -40,7 +40,7 @@ class Routes:
 
     def render(self, path: str, template_name: str):
         async def wrapper(request: Request):
-            return self.templates.TemplateResponse(template_name, {"request": request})
+            return self.templates.TemplateResponse(request, template_name)
 
         self.app.add_api_route(path, wrapper, methods=["GET"])
 

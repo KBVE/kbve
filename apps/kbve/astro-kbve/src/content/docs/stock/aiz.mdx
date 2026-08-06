@@ -1,10 +1,12 @@
 ---
 title: Assurant Inc. AIZ
+template: splash
 description: |
     Assurant is a leading global provider of lifestyle and housing solutions that support, protect, and connect major consumer purchases, providing comprehensive risk management and customer service solutions.
 sidebar:
     label: Assurant AIZ
     order: 484
+    hidden: true
 unsplash: 1560472354-d18c6be8a10a
 img: https://images.unsplash.com/photo-1560472354-d18c6be8a10a?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - financial-services
   - aiz
   - protection
+stock:
+  ticker: AIZ
+  exchange: NYSE
+  symbol: nyse:aiz
+  name: "Assurant Inc."
+  sector: Financials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:aiz`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -285,3 +295,5 @@ AIZ offers exposure to growing consumer protection markets with technology advan
 - **Return on Equity**: Profitability and returns to shareholders
 
 <Giscus />
+
+</StockLeaf>

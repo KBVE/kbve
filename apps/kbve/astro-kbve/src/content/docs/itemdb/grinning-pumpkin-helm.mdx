@@ -6,6 +6,8 @@ sidebar:
     hidden: true
 description: |
     A carved pumpkin helm with a grin that does not move and eyes that seem to. Smells of candle smoke that nobody lit.
+lore: |
+    Carved fresh every season by somebody who has clearly done it before and enjoys it more than is comfortable. Two points of armor, structurally speaking, from a vegetable — the enchantment doing the work is not documented, and the smiths who have looked into it have stopped looking into it.
 ref: 'grinning-pumpkin-helm'
 key: 633
 id: '01KXFBEGM39HQA0JPZMWDT98YN'
@@ -34,10 +36,22 @@ equipment:
     armor: 2
     extra:
       weight: 3
+grid:
+  width: 2
+  height: 2
+tags:
+  - armor
+  - herbmail
+sources:
+  - source_type: 'drop'
+    source_name: 'Seasonal event'
+    drop_rate: 0.03
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Overview
 
-<ItemDBPanel data={frontmatter} />
+</ItemLeaf>

@@ -1,7 +1,6 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'node:path';
-import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
 const repoRoot = path.resolve(__dirname, '../../../..');
@@ -43,6 +42,10 @@ const BRAND_LOGO_NAME = 'rentearthlogo.webp';
 // `arpg.js` while another colo serves the fresh one. A content hash makes each
 // build a unique, immutable URL: index.html (never edge-cached) always points at
 // the newest hash, and no colo can pin an old bundle.
+//
+// The hash comes from `output.entryFileNames` (below), NOT from mutating the
+// bundle record: rolldown silently IGNORES writes to that object, which dropped
+// the chunk entirely and shipped an index.html pointing at a 404.
 function hashDiscordBundle(htmlTemplatePath: string) {
 	return {
 		name: 'hash-discord-bundle',
@@ -52,21 +55,12 @@ function hashDiscordBundle(htmlTemplatePath: string) {
 				(b) => b.type === 'chunk' && b.isEntry,
 			);
 			if (!chunk) return;
-			// Hash the FINAL (post-terser) code so the name tracks real content.
-			const hash = createHash('sha256')
-				.update(chunk.code)
-				.digest('hex')
-				.slice(0, 8);
-			const hashedName = `arpg.${hash}.js`;
-			delete bundle[chunk.fileName];
-			chunk.fileName = hashedName;
-			bundle[hashedName] = chunk;
 			// Regenerate index.html (the app build copied the template verbatim
 			// with `arpg.js`) so its <script> points at the hashed bundle.
 			const template = readFileSync(htmlTemplatePath, 'utf8');
 			const html = template.replace(
 				/<script\s+src="arpg\.js"([^>]*)><\/script>/,
-				`<script src="${hashedName}"$1></script>`,
+				`<script src="${chunk.fileName}"$1></script>`,
 			);
 			(this as any).emitFile({
 				type: 'asset',
@@ -96,25 +90,14 @@ function hashDiscordBundle(htmlTemplatePath: string) {
 
 const GAME_WS = process.env.PUBLIC_ARPG_GAME_WS || 'ws://localhost:7979/ws';
 
-function stubLaserR3F() {
-	const virtual = '\0arpg-laser-r3f-stub';
-	return {
-		name: 'stub-laser-r3f',
-		enforce: 'pre' as const,
-		resolveId(source: string) {
-			return /[\\/]lib[\\/]r3f[\\/]/.test(source) ? virtual : null;
-		},
-		load(id: string) {
-			return id === virtual
-				? 'export const Stage = () => null; export const useGameLoop = () => {};'
-				: null;
-		},
-	};
-}
-
 const laserAlias = {
 	find: /^@kbve\/laser$/,
 	replacement: path.join(repoRoot, 'packages/npm/laser/src/index.ts'),
+};
+
+const laserSubpathAlias = {
+	find: /^@kbve\/laser\/(ecs|mecs|phaser|r3f)$/,
+	replacement: path.join(repoRoot, 'packages/npm/laser/src/$1.ts'),
 };
 
 const observAlias = {
@@ -156,22 +139,17 @@ const itemdbSchemaAlias = {
 // arpg.kbve.com is the single source: app, embed bundle, and art all ship here.
 export default defineConfig(({ mode }) => {
 	const base = {
-		plugins: [stubLaserR3F(), react()],
+		plugins: [react()],
 		// Keep function/class names through esbuild minification so telemetry
 		// stack traces show real frames (not `t.a.b`) even without a source map.
 		esbuild: { keepNames: true },
 		resolve: {
-			// dedupe bitecs: laser declares it an optional peer, so aliasing
-			// @kbve/laser to source otherwise lets vite resolve laser's `bitecs`
-			// import to its optional-peer stub. That works at the repo root
-			// (hoisted node_modules) but breaks the container's isolated install
-			// ("query is not exported by __vite-optional-peer-dep:bitecs"). This
-			// app depends on bitecs directly, so pin everyone to that one copy.
-			// phaser + @phaserjs/rapier-connector are the same trap: laser source
-			// lives outside web/, so vite resolves its bare imports relative to
-			// packages/npm/laser, which has no node_modules in the container
-			// ("Could not resolve 'phaser' imported by @kbve/laser"). Pin them
-			// to this app's copy. Local builds mask it via root node_modules.
+			// laser is aliased to source, so its bare imports resolve relative to
+			// packages/npm/laser — which has no node_modules in the container. Each
+			// optional peer laser can reach from an entry point this app imports
+			// must be pinned to this app's copy, or vite substitutes an
+			// optional-peer stub that rollup then fails on. Local builds mask it
+			// via root node_modules, so a miss here only breaks the image build.
 			dedupe: [
 				'react',
 				'react-dom',
@@ -181,6 +159,7 @@ export default defineConfig(({ mode }) => {
 				'fastnoise-lite',
 			],
 			alias: [
+				laserSubpathAlias,
 				laserAlias,
 				observAlias,
 				itemdbDataAlias,
@@ -243,7 +222,16 @@ export default defineConfig(({ mode }) => {
 					fileName: () => (discord ? 'arpg.js' : 'arpg-embed.js'),
 				},
 				rollupOptions: {
-					output: { inlineDynamicImports: true, exports: 'named' },
+					output: {
+						inlineDynamicImports: true,
+						exports: 'named' as const,
+						// Discord only: content-hashed, immutable URL per build
+						// (see hashDiscordBundle). The embed bundle keeps its
+						// stable name — kbve.com loads it by fixed URL.
+						...(discord
+							? { entryFileNames: 'arpg.[hash].js' }
+							: {}),
+					},
 				},
 			},
 		};

@@ -242,8 +242,6 @@ namespace KBVEItemDBProto
 		yyjson_val* V = nullptr; (void)V;
 		if ((V = yyjson_obj_get(Obj, "heals"))) Out.Heals = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
 		if ((V = yyjson_obj_get(Obj, "doses"))) Out.Doses = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
-		if ((V = yyjson_obj_get(Obj, "cookingLevel"))) Out.CookingLevel = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
-		if ((V = yyjson_obj_get(Obj, "cookingXp"))) Out.CookingXp = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
 		if ((V = yyjson_obj_get(Obj, "burnLevel"))) Out.BurnLevel = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
 		if ((V = yyjson_obj_get(Obj, "duration"))) Out.Duration = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
 		if ((V = yyjson_obj_get(Obj, "buffEffects")) && yyjson_is_arr(V))
@@ -263,20 +261,6 @@ namespace KBVEItemDBProto
 		if ((V = yyjson_obj_get(Obj, "spoilsIntoRef"))) Out.SpoilsIntoRef = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
 	}
 
-	inline void Populate(FKBVEGenSkillingInfo& Out, yyjson_val* Obj)
-	{
-		if (!Obj || !yyjson_is_obj(Obj)) return;
-		yyjson_val* V = nullptr; (void)V;
-		if ((V = yyjson_obj_get(Obj, "skill")) && yyjson_is_str(V)) Out.Skill = FString(UTF8_TO_TCHAR(yyjson_get_str(V)));
-		if ((V = yyjson_obj_get(Obj, "skillLevel"))) Out.SkillLevel = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
-		if ((V = yyjson_obj_get(Obj, "xpReward"))) Out.XpReward = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
-		if ((V = yyjson_obj_get(Obj, "toolRequired"))) Out.ToolRequired = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
-		if ((V = yyjson_obj_get(Obj, "gatherTime"))) Out.GatherTime = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
-		if ((V = yyjson_obj_get(Obj, "respawnTime"))) Out.RespawnTime = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
-		if ((V = yyjson_obj_get(Obj, "resourceNode"))) Out.ResourceNode = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
-		if ((V = yyjson_obj_get(Obj, "harvestWeight"))) Out.HarvestWeight = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
-	}
-
 	inline void Populate(FKBVEGenCompressInfo& Out, yyjson_val* Obj)
 	{
 		if (!Obj || !yyjson_is_obj(Obj)) return;
@@ -293,6 +277,15 @@ namespace KBVEItemDBProto
 		if ((V = yyjson_obj_get(Obj, "packMax"))) Out.PackMax = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
 		if ((V = yyjson_obj_get(Obj, "noPack"))) Out.NoPack = (yyjson_is_bool(V) ? yyjson_get_bool(V) : false);
 		if ((V = yyjson_obj_get(Obj, "poolGroup"))) Out.PoolGroup = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
+	}
+
+	inline void Populate(FKBVEGenGridFootprint& Out, yyjson_val* Obj)
+	{
+		if (!Obj || !yyjson_is_obj(Obj)) return;
+		yyjson_val* V = nullptr; (void)V;
+		if ((V = yyjson_obj_get(Obj, "width"))) Out.Width = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "height"))) Out.Height = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "noRotate"))) Out.NoRotate = (yyjson_is_bool(V) ? yyjson_get_bool(V) : false);
 	}
 
 	inline void Populate(FKBVEGenWeaponInfo& Out, yyjson_val* Obj)
@@ -585,7 +578,6 @@ namespace KBVEItemDBProto
 		}
 		if ((V = yyjson_obj_get(Obj, "equipment"))) Populate(Out.Equipment, V);
 		if ((V = yyjson_obj_get(Obj, "food"))) Populate(Out.Food, V);
-		if ((V = yyjson_obj_get(Obj, "skilling"))) Populate(Out.Skilling, V);
 		if ((V = yyjson_obj_get(Obj, "recipes")) && yyjson_is_arr(V))
 		{
 			size_t Idx, Max; yyjson_val* Elem;
@@ -638,7 +630,6 @@ namespace KBVEItemDBProto
 		if ((V = yyjson_obj_get(Obj, "setRef"))) Out.SetRef = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
 		if ((V = yyjson_obj_get(Obj, "durability"))) Out.Durability = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
 		if ((V = yyjson_obj_get(Obj, "maxDurability"))) Out.MaxDurability = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
-		if ((V = yyjson_obj_get(Obj, "compress"))) Populate(Out.Compress, V);
 		if ((V = yyjson_obj_get(Obj, "stacking"))) Populate(Out.Stacking, V);
 		if ((V = yyjson_obj_get(Obj, "poolGroup"))) Out.PoolGroup = (yyjson_is_str(V) ? FString(UTF8_TO_TCHAR(yyjson_get_str(V))) : FString());
 		if ((V = yyjson_obj_get(Obj, "weapon"))) Populate(Out.Weapon, V);
@@ -667,6 +658,7 @@ namespace KBVEItemDBProto
 		if ((V = yyjson_obj_get(Obj, "drafted"))) Out.Drafted = (yyjson_is_bool(V) ? yyjson_get_bool(V) : false);
 		if ((V = yyjson_obj_get(Obj, "key"))) Out.Key = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
 		if ((V = yyjson_obj_get(Obj, "hasImg"))) Out.HasImg = (yyjson_is_bool(V) ? yyjson_get_bool(V) : false);
+		if ((V = yyjson_obj_get(Obj, "grid"))) Populate(Out.Grid, V);
 	}
 
 	inline void Populate(FKBVEGenItemRegistry& Out, yyjson_val* Obj)

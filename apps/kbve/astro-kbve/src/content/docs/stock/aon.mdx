@@ -1,10 +1,12 @@
 ---
 title: Aon plc AON
+template: splash
 description: |
     Aon is a leading global professional services firm providing a broad range of risk, retirement, and health solutions with over 60,000 colleagues in more than 120 countries.
 sidebar:
     label: Aon AON
     order: 461
+    hidden: true
 unsplash: 1450101499237-f1b8b1c65593
 img: https://images.unsplash.com/photo-1450101499237-f1b8b1c65593?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - professional-services
   - aon
   - risk-management
+stock:
+  ticker: AON
+  exchange: NYSE
+  symbol: nyse:aon
+  name: "Aon plc"
+  sector: Financials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:aon`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -286,3 +296,5 @@ AON offers exposure to essential professional services with global growth driver
 - **Acquisition Integration**: Success in integrating acquired businesses and capabilities
 
 <Giscus />
+
+</StockLeaf>

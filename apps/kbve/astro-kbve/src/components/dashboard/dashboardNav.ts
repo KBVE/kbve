@@ -1,12 +1,21 @@
+import type { IconName } from '@kbve/rn/icons';
+
 export type NavVisibility = 'auth' | 'staff';
+
+/**
+ * Preferred form is a key from the registry shared with the native app
+ * (`@kbve/rn/icons`). A raw 24×24 SVG path `d` is still accepted for the
+ * section navs that have not been migrated yet; the rail renders either.
+ */
+export type NavIcon = IconName | (string & {});
 
 export interface DashboardNavItem {
 	label: string;
 	href: string;
 	/** Gates the link via `data-auth-visibility`; omit = always visible. */
 	visibility?: NavVisibility;
-	/** SVG path `d` for a 24×24 stroke icon. */
-	icon?: string;
+	/** See [[NavIcon]]. */
+	icon?: NavIcon;
 	/** One-line blurb for card renderings (unused by the rail). */
 	copy?: string;
 }
@@ -17,8 +26,8 @@ export interface DashboardNavGroup {
 	visibility?: NavVisibility;
 	/** Group landing page; breadcrumb links the group crumb here when set. */
 	href?: string;
-	/** SVG path `d` shared by the group's cards (unused by the rail). */
-	icon?: string;
+	/** See [[NavIcon]]. Shared by the group's cards (unused by the rail). */
+	icon?: NavIcon;
 	/** Section eyebrow for card renderings (unused by the rail). */
 	eyebrow?: string;
 }
@@ -42,22 +51,22 @@ export const DASHBOARD_NAV: DashboardNavEntry[] = [
 			{
 				label: 'Overview',
 				href: '/dashboard/',
-				icon: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
+				icon: 'dashboard',
 			},
 			{
 				label: 'Account',
 				href: '/dashboard/account/',
-				icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 7a4 4 0 1 0 0 8 4 4 0 0 0 0-8z',
+				icon: 'user',
 			},
 			{
 				label: 'Agents',
 				href: '/dashboard/agents/',
-				icon: 'M12 8V4H8M4 8h16v12H4zM2 14h2M20 14h2M15 13v2M9 13v2',
+				icon: 'bot',
 			},
 			{
 				label: 'API',
 				href: '/dashboard/api/',
-				icon: 'M16 18l6-6-6-6M8 6l-6 6 6 6',
+				icon: 'code',
 			},
 		],
 	},
@@ -69,42 +78,47 @@ export const DASHBOARD_NAV: DashboardNavEntry[] = [
 			{
 				label: 'Argo',
 				href: '/dashboard/argo/',
-				icon: 'M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM15 6a9 9 0 0 1-9 9',
+				icon: 'gitBranch',
 			},
 			{
 				label: 'Edge',
 				href: '/dashboard/edge/',
-				icon: 'M13 2L3 14h9l-1 8 10-12h-9l1-8z',
+				icon: 'zap',
+			},
+			{
+				label: 'Storage',
+				href: '/dashboard/storage/',
+				icon: 'hardDrive',
 			},
 			{
 				label: 'Virtual Machines',
 				href: '/dashboard/vm/',
-				icon: 'M2 2h20v8H2zM2 14h20v8H2zM6 6h.01M6 18h.01',
+				icon: 'server',
 			},
 			{
 				label: 'ClickHouse',
 				href: '/dashboard/clickhouse/',
-				icon: 'M12 2C7 2 3 3.34 3 5s4 3 9 3 9-1.34 9-3-4-3-9-3zM3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5M3 12c0 1.66 4 3 9 3s9-1.34 9-3',
+				icon: 'database',
 			},
 			{
 				label: 'Cube',
 				href: '/dashboard/cube/',
-				icon: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96 12 12.01l8.73-5.05M12 22.08V12',
+				icon: 'cube',
 			},
 			{
 				label: 'Grafana',
 				href: '/dashboard/grafana/',
-				icon: 'M12 20V10M18 20V4M6 20v-4',
+				icon: 'chart',
 			},
 			{
 				label: 'Forgejo',
 				href: '/dashboard/forgejo/',
-				icon: 'M6 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM18 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM12 15a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM6 9v1a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2V9M12 12v3',
+				icon: 'gitFork',
 			},
 			{
 				label: 'Workflows',
 				href: '/dashboard/workflows/',
-				icon: 'M3 3h6v6H3zM15 15h6v6h-6zM6 9v6a2 2 0 0 0 2 2h4M15 6h3a2 2 0 0 1 2 2v3',
+				icon: 'workflow',
 			},
 		],
 	},
@@ -116,12 +130,12 @@ export const DASHBOARD_NAV: DashboardNavEntry[] = [
 			{
 				label: 'Orders',
 				href: '/dashboard/orders/',
-				icon: 'M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4zM3 6h18M16 10a4 4 0 0 1-8 0',
+				icon: 'bag',
 			},
 			{
 				label: 'Inventory',
 				href: '/dashboard/inventory/',
-				icon: 'M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16zM3.27 6.96 12 12.01l8.73-5.05M12 22.08V12',
+				icon: 'cube',
 			},
 		],
 	},
@@ -133,42 +147,42 @@ export const DASHBOARD_NAV: DashboardNavEntry[] = [
 			{
 				label: 'Kanban',
 				href: '/dashboard/kanban/',
-				icon: 'M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z',
+				icon: 'kanban',
 			},
 			{
 				label: 'Dependency Graph',
 				href: '/dashboard/graph/',
-				icon: 'M5 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM19 17a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM19 3a2 2 0 1 0 0 4 2 2 0 0 0 0-4zM7 5h10M7 5a7 7 0 0 0 7 7M17 5a7 7 0 0 0-7 7v5',
+				icon: 'graph',
 			},
 			{
 				label: 'Workspace Report',
 				href: '/dashboard/report/',
-				icon: 'M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8zM14 2v6h6M16 13H8M16 17H8M10 9H8',
+				icon: 'report',
 			},
 			{
 				label: 'Security',
 				href: '/dashboard/security/',
-				icon: 'M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z',
+				icon: 'shield',
 			},
 			{
 				label: 'CI Health',
 				href: '/dashboard/ci-health/',
-				icon: 'M22 12h-4l-3 9L9 3l-3 9H2',
+				icon: 'activity',
 			},
 			{
 				label: 'Dependencies',
 				href: '/dashboard/deps/',
-				icon: 'M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
+				icon: 'layers',
 			},
 			{
 				label: 'Activity',
 				href: '/dashboard/activity/',
-				icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9',
+				icon: 'users',
 			},
 			{
 				label: 'Releases',
 				href: '/dashboard/releases/',
-				icon: 'M20.59 13.41 13.42 20.58a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82zM7 7h.01',
+				icon: 'tag',
 			},
 		],
 	},
@@ -180,22 +194,22 @@ export const DASHBOARD_NAV: DashboardNavEntry[] = [
 			{
 				label: 'ROWS',
 				href: '/dashboard/gameops/rows/',
-				icon: 'M6 12h4m-2-2v4M15 11h.01M18 13h.01M17.32 5H6.68a4 4 0 0 0-3.978 3.59c-.006.052-.01.101-.017.152C2.604 9.416 2 14.456 2 16a3 3 0 0 0 3 3c1 0 1.5-.5 2-1l1.414-1.414A2 2 0 0 1 9.828 16h4.344a2 2 0 0 1 1.414.586L17 18c.5.5 1 1 2 1a3 3 0 0 0 3-3c0-1.545-.604-6.584-.685-7.258A4 4 0 0 0 17.32 5z',
+				icon: 'gamepad',
 			},
 			{
 				label: 'Factorio',
 				href: '/dashboard/gameops/factorio/',
-				icon: 'M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2zM17 18h1M12 18h1M7 18h1',
+				icon: 'factory',
 			},
 			{
 				label: 'Minecraft',
 				href: '/dashboard/gameops/mc/',
-				icon: 'M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5M21 8v8l-9 5M12 13v9',
+				icon: 'pickaxe',
 			},
 			{
 				label: 'Vibeshine',
 				href: '/dashboard/gameops/vibeshine/',
-				icon: 'M2 8V6a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-6M2 16.1A5 5 0 0 1 5.9 20M2 12.05A9 9 0 0 1 9.95 20M2 20h.01',
+				icon: 'cast',
 			},
 		],
 	},

@@ -6,17 +6,31 @@
  * files are the single source of truth and are NEVER overwritten.
  * Slugs in existing files are preserved to protect SEO.
  *
+ * "New" also excludes items collapsed onto a family base page. Those had their
+ * MDX pruned on purpose and their URLs 301 at the axum layer, so they appear
+ * nowhere as a top-level osrs.id — indexing only top-level ids made all 461 of
+ * them look brand new and a run would have recreated every page the family
+ * collapse deleted. Exclusion reads family rosters in frontmatter plus the
+ * committed redirect table.
+ *
  * Run: node scripts/generate-osrs-items.mjs [--audit]
  *   --audit: report which existing items have stale data vs Wiki API (no writes)
  */
 
 import { writeFile, mkdir, readdir, readFile } from 'fs/promises';
 import { join } from 'path';
+import { fileURLToPath } from 'url';
 import { parse as parseYaml, stringify as stringifyYaml } from 'yaml';
 
 const OSRS_MAPPING_URL = 'https://prices.runescape.wiki/api/v1/osrs/mapping';
 const USER_AGENT = 'KBVE item_tracker - @h0lybyte on Discord';
 const OUTPUT_DIR = './src/content/docs/osrs';
+const REDIRECTS_PATH = fileURLToPath(
+	new URL(
+		'../../axum-kbve/src/transport/osrs_family_redirects.json',
+		import.meta.url,
+	),
+);
 
 const args = process.argv.slice(2);
 const auditMode = args.includes('--audit');
@@ -34,12 +48,46 @@ function nameToSlug(name) {
 }
 
 /**
- * Build an index of existing item IDs from MDX frontmatter.
- * Returns a Set of numeric IDs that already have MDX files.
- * This is the authoritative check — slug/filename doesn't matter.
+ * Load the slugs that already 301/308 to a family base page.
+ *
+ * Collapsed variants (poison tiers, potion doses, Barrows degrade levels) have
+ * their MDX deleted from disk and their URLs redirected at the axum layer. The
+ * redirect table is the durable record of that collapse — families.json cannot
+ * be, because it is regenerated from disk and pruning is one-way, so pruned
+ * members vanish from it while their redirects live on.
+ */
+async function loadRedirectedSlugs() {
+	try {
+		const raw = await readFile(REDIRECTS_PATH, 'utf-8');
+		const routes = JSON.parse(raw)?.routes ?? [];
+		const slugs = new Set();
+		for (const [source] of routes) {
+			const slug = String(source).replace(/\/+$/, '').split('/').pop();
+			if (slug) slugs.add(slug);
+		}
+		return slugs;
+	} catch (err) {
+		throw new Error(
+			`Failed to read the family redirect table at ${REDIRECTS_PATH}. ` +
+				'Refusing to generate: without it, every collapsed variant looks ' +
+				`like a new item and would be resurrected. (${err.message})`,
+		);
+	}
+}
+
+/**
+ * Build an index of item IDs that must never be regenerated.
+ *
+ * Two distinct sources, and both are required:
+ *   1. Top-level `osrs.id` — items with their own MDX page.
+ *   2. `osrs.family.members[].id` — variants collapsed onto a base page. Their
+ *      own MDX was pruned, so they appear nowhere as a top-level id. Indexing
+ *      only (1) makes all 461 of them look new, and a run would recreate every
+ *      page the family collapse deliberately deleted.
  */
 async function buildExistingIdIndex() {
 	const ids = new Set();
+	const collapsedIds = new Set();
 	const slugsById = new Map();
 
 	const files = await readdir(OUTPUT_DIR);
@@ -61,6 +109,11 @@ async function buildExistingIdIndex() {
 				slugsById.set(Number(id), fm.osrs.slug || file.replace('.mdx', ''));
 				indexed++;
 			}
+
+			for (const member of fm?.osrs?.family?.members ?? []) {
+				if (member?.id === undefined || member?.id === null) continue;
+				collapsedIds.add(Number(member.id));
+			}
 		} catch {
 			// Skip files that can't be parsed
 		}
@@ -71,7 +124,8 @@ async function buildExistingIdIndex() {
 	}
 
 	console.log(`  📋 Indexed ${ids.size} unique item IDs`);
-	return { ids, slugsById };
+	console.log(`  🔗 Indexed ${collapsedIds.size} collapsed family member IDs`);
+	return { ids, collapsedIds, slugsById };
 }
 
 /**
@@ -171,8 +225,14 @@ async function main() {
 	await mkdir(OUTPUT_DIR, { recursive: true });
 
 	// Build ID index from existing MDX files
-	const { ids: existingIds, slugsById: existingSlugs } =
-		await buildExistingIdIndex();
+	const {
+		ids: existingIds,
+		collapsedIds,
+		slugsById: existingSlugs,
+	} = await buildExistingIdIndex();
+
+	const redirectedSlugs = await loadRedirectedSlugs();
+	console.log(`  ↪️  Loaded ${redirectedSlugs.size} redirected slugs`);
 
 	// Track slugs to handle duplicates within this run
 	const usedSlugs = new Set();
@@ -183,6 +243,7 @@ async function main() {
 	let created = 0;
 	let skippedNoName = 0;
 	let skippedExisting = 0;
+	let skippedCollapsed = 0;
 	const staleItems = [];
 
 	for (const item of items) {
@@ -211,9 +272,23 @@ async function main() {
 			continue;
 		}
 
+		// Collapsed onto a family base page — its MDX was pruned on purpose and
+		// its URL already redirects. Regenerating would undo the collapse and
+		// shadow a live 301.
+		if (collapsedIds.has(item.id)) {
+			skippedCollapsed++;
+			continue;
+		}
+
 		// New item — generate slug, avoid collisions
 		let slug = nameToSlug(item.name);
 		if (usedSlugs.has(slug)) slug = `${slug}-${item.id}`;
+
+		if (redirectedSlugs.has(slug)) {
+			skippedCollapsed++;
+			continue;
+		}
+
 		usedSlugs.add(slug);
 
 		const filename = `${slug}.mdx`;
@@ -238,6 +313,7 @@ async function main() {
 	console.log(`\n✨ Done!`);
 	console.log(`  ${auditMode ? 'Would create' : 'Created'}: ${created} new items`);
 	console.log(`  Skipped (existing ID): ${skippedExisting}`);
+	console.log(`  Skipped (collapsed into a family): ${skippedCollapsed}`);
 	console.log(`  Skipped (no name): ${skippedNoName}`);
 
 	if (auditMode && staleItems.length > 0) {

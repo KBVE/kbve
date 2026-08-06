@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import {
 	ShieldOff,
@@ -6,7 +7,8 @@ import {
 	Pickaxe,
 	ArrowRight,
 } from 'lucide-react';
-import { homeService } from './homeService';
+import { $auth, $isStaff } from '@kbve/droid';
+import { initSupa } from '@/lib/supa';
 
 type TileStatus = 'live' | 'phase-0' | 'planned';
 
@@ -142,17 +144,25 @@ const styles = {
 };
 
 export default function ReactGameOpsPanel() {
-	const isStaff = useStore(homeService.$isStaff);
+	const isStaff = useStore($isStaff);
+	const tone = useStore($auth).tone;
+
+	useEffect(() => {
+		void initSupa().catch(() => {});
+	}, []);
 
 	if (!isStaff) {
+		const pending = tone === 'loading' || tone === 'auth';
 		return (
 			<div style={styles.centered}>
 				<ShieldOff size={48} color="var(--sl-color-gray-3)" />
-				<h2 style={styles.heading}>Staff Access Required</h2>
+				<h2 style={styles.heading}>
+					{pending ? 'Checking access…' : 'Staff Access Required'}
+				</h2>
 				<p style={styles.sub}>
-					GameOps is restricted to KBVE staff. Sign in with a staff
-					account, or contact an administrator if you believe this is
-					an error.
+					{pending
+						? 'Verifying your staff permissions.'
+						: 'GameOps is restricted to KBVE staff. Sign in with a staff account, or contact an administrator if you believe this is an error.'}
 				</p>
 			</div>
 		);

@@ -65,6 +65,13 @@
 		"lint": {
 			"executor": "@nx/eslint:lint"
 		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["build"],
+			"options": {
+				"command": "pnpm exec playwright test -c apps/herbmail/herbmail-game/playwright.config.ts"
+			}
+		},
 		"test": {
 			"executor": "nx:run-commands",
 			"options": {

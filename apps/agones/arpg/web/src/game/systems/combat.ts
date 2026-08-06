@@ -3,10 +3,9 @@ import {
 	GameClient,
 	EntityStore,
 	ACTION_SHOOT,
-	flashEntity,
-	floatingText,
 	type CombatEvent,
 } from '@kbve/laser';
+import { flashEntity, floatingText } from '@kbve/laser/phaser';
 import { DEPTH_UI, ARROW_MAX_RANGE, ARROW_SPEED } from '../config';
 import {
 	fireBow,
@@ -14,7 +13,8 @@ import {
 	type BowShot,
 } from '../entities/projectiles/arrows/bow';
 import { setCreaturePose, type EntityRefs } from '../entities/sprites';
-import { worldToScreen, type TileXY } from '../iso';
+import type { TileXY } from '../iso';
+import { coneTarget, type AimCandidate } from './aim';
 
 // Aim-assist cone half-width (screen px) for bow targeting: a hostile whose
 // on-screen SPRITE sits within this of the player→aim screen line is a hit.
@@ -194,46 +194,31 @@ export function fireBowAt(
 	);
 }
 
+/** Hostiles with a drawn sprite, as aim candidates. */
+function* bowCandidates(deps: CombatDeps): Generator<AimCandidate> {
+	for (const [serverEid, , refs] of deps.store.entries()) {
+		if (!deps.isHostile(serverEid)) continue;
+		const tile = deps.store.tile(serverEid);
+		if (!tile) continue;
+		const sprite = refs.sprite;
+		if (!sprite) continue;
+		yield { id: serverEid, tile, screen: { x: sprite.x, y: sprite.y } };
+	}
+}
+
 /**
- * Acquire the hostile the arrow will hit with sprite-space aim-assist: among
- * hostiles in FRONT of the shot (along the player→aim SCREEN line), in range,
- * and within BOW_AIM_HALF_PX of that line, pick the one CLOSEST to the line.
- * Matches the on-screen sprite to the on-screen aim line, so a shot aimed at a
- * hovering flyer (drawn above its ground tile) connects — a tile-space ray
- * misses it. Mirrors acquireSpellTarget; falls back to null (clean miss).
+ * Acquire the hostile the arrow will hit. Screen-space cone (see aim.ts) so a
+ * shot aimed at a hovering flyer connects; null is a clean miss.
  */
 export function acquireBowTarget(
 	deps: CombatDeps,
 	from: TileXY,
 	aim: TileXY,
-): number | undefined {
-	const a = worldToScreen(from.x, from.y);
-	const b = worldToScreen(aim.x, aim.y);
-	const dx = b.x - a.x;
-	const dy = b.y - a.y;
-	const len = Math.hypot(dx, dy);
-	if (len < 1e-3) return undefined;
-	const nx = dx / len;
-	const ny = dy / len;
-	let best: number | undefined;
-	let bestPerp = BOW_AIM_HALF_PX;
-	for (const [serverEid, , refs] of deps.store.entries()) {
-		if (!deps.isHostile(serverEid)) continue;
-		const t = deps.store.tile(serverEid);
-		if (!t) continue;
-		if (Math.hypot(t.x - from.x, t.y - from.y) > ARROW_MAX_RANGE) continue;
-		const sprite = refs.sprite;
-		if (!sprite) continue;
-		const rx = sprite.x - a.x;
-		const ry = sprite.y - a.y;
-		if (rx * nx + ry * ny <= 0) continue; // behind the shooter
-		const perp = Math.abs(rx * ny - ry * nx);
-		if (perp < bestPerp) {
-			bestPerp = perp;
-			best = serverEid;
-		}
-	}
-	return best;
+): number | null {
+	return coneTarget(bowCandidates(deps), from, aim, {
+		halfPx: BOW_AIM_HALF_PX,
+		range: ARROW_MAX_RANGE,
+	});
 }
 
 /**

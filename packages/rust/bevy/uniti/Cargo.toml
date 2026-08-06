@@ -19,13 +19,13 @@ crate-type = ["cdylib", "staticlib", "rlib"]
 
 [build-dependencies]
 csbindgen = "1.9"
-prost-build = "0.13"
+prost-build = { workspace = true }
 # Vendored protoc so cross-compile environments (cross, ndk, xwin) don't
 # need a system-installed protobuf-compiler.
 protoc-bin-vendored = "3"
 
 [dependencies]
-serde = { version = "1", features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }
 # bundled = compile SQLite C source in — zero system-lib deps at runtime,
 # works cross-platform inside the Unity cdylib without needing the host to
 # ship libsqlite3.
@@ -40,17 +40,17 @@ bevy_inventory = { version = "0.1", path = "../bevy_inventory", default-features
 bevy_battle = { version = "0.1", path = "../bevy_battle", default-features = false }
 bevy_skills = { version = "0.1", path = "../bevy_skills", default-features = false }
 # Empire snapshot proto codec.
-prost = "0.13"
+prost = { workspace = true }
 # Async runtime for the empire strategic ticker + future MP transports.
 # Feature-set is intentionally minimal: rt + time only, no multi-thread
 # scheduler, no macros, no IO. Excluded from wasm32 in lib code via cfg
 # so WebGL builds skip the runtime entirely while the sync FFI surface
 # (publish/take/tick) keeps working.
-tokio = { version = "1", default-features = false, features = ["rt", "rt-multi-thread", "time", "sync"] }
+tokio = { workspace = true, features = ["rt", "rt-multi-thread", "time", "sync"] }
 
 [dev-dependencies]
-tempfile = "3"
-criterion = { version = "0.5", default-features = false, features = ["plotters", "cargo_bench_support"] }
+tempfile = { workspace = true }
+criterion = { workspace = true, features = ["plotters", "cargo_bench_support"] }
 proptest = "1"
 
 [[bench]]

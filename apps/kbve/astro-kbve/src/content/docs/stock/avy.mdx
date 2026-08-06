@@ -1,10 +1,12 @@
 ---
 title: Avery Dennison Corporation AVY
+template: splash
 description: |
     Avery Dennison is a leading global materials science and digital identification solutions company, providing labeling and functional materials, radio frequency identification (RFID), and software solutions.
 sidebar:
     label: Avery Dennison AVY
     order: 480
+    hidden: true
 unsplash: 1586953208448-b95a79798f07
 img: https://images.unsplash.com/photo-1586953208448-b95a79798f07?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - labeling
   - avy
   - rfid
+stock:
+  ticker: AVY
+  exchange: NYSE
+  symbol: nyse:avy
+  name: "Avery Dennison Corporation"
+  sector: Materials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:avy`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -284,3 +294,5 @@ AVY offers exposure to essential materials and identification solutions with tec
 - **International Growth**: Performance in emerging and international markets
 
 <Giscus />
+
+</StockLeaf>

@@ -1,0 +1,52 @@
+{
+	"name": "@kbve/rn-tauri",
+	"version": "0.0.1",
+	"description": "Bridge that runs @kbve/rn (React Native) components inside a Tauri webview via react-native-web, with an auth adapter for the Rust-backed Supabase session.",
+	"keywords": [
+		"kbve",
+		"tauri",
+		"react-native-web",
+		"bridge"
+	],
+	"homepage": "https://kbve.com/application/javascript/",
+	"bugs": {
+		"url": "https://github.com/KBVE/kbve/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/KBVE/kbve.git"
+	},
+	"author": "KBVE <hello@kbve.com>",
+	"license": "MIT",
+	"type": "module",
+	"main": "./src/index.ts",
+	"module": "./src/index.ts",
+	"types": "./src/index.ts",
+	"exports": {
+		".": {
+			"types": "./src/index.ts",
+			"import": "./src/index.ts"
+		},
+		"./vite": {
+			"types": "./src/vite.ts",
+			"import": "./src/vite.ts"
+		}
+	},
+	"files": [
+		"src/",
+		"*.md",
+		"LICENSE"
+	],
+	"dependencies": {
+		"@kbve/rn": "workspace:*"
+	},
+	"peerDependencies": {
+		"react": ">=18",
+		"react-dom": ">=18",
+		"react-native-web": ">=0.21",
+		"vite": ">=6"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
+}

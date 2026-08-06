@@ -1,7 +1,7 @@
 ---
 title: "August: 4th"
 category: Daily
-date: 2025-08-04 12:00:00
+date: 2026-08-04 12:00:00
 client: Self
 unsplash: 1675351085230-ab39b2289ff4
 img: https://images.unsplash.com/photo-1675351085230-ab39b2289ff4?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -21,7 +21,7 @@ bento:
     lede: 'The August 4th daily log — notes, tasks, and quotes collected across every year of the KBVE journal.'
     ctas:
         - label: Read the log
-          href: '#2025'
+          href: '#2026'
           primary: true
         - label: '← Aug 3'
           href: /journal/08-03/
@@ -47,11 +47,42 @@ bento:
         btn_fg: '#1e1035'
 ---
 
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
 import BentoDoc from '@/components/hero/BentoDoc.astro';
 import BentoProse from '@/components/hero/BentoProse.astro';
 
 <BentoDoc data={frontmatter.bento}>
+
+<BentoProse id="2026" heading="2026">
+
+### Expo 57
+
+-   03:19AM
+
+    It might be time to prepare the expo upgrade and then look to push KBVE iOS application soon.
+    We been waiting too long for the expo 57 release, we can definitely make some improvements around that and aim for a better release.
+
+### KubeVirt v1.9
+
+-   04:14AM
+
+    Our current goal will be to slowly get our kubevirt to the latest release before we have to do a talos update.
+    Afterwards we also need to migrate some of the arc runners over to smaller x86 machine, that is something that we been holding off for too long.
+    The step will be around first making sure that the vm page can still deploy the windows server and also stop it when it needs updates.
+
+### Herbmail Server
+
+-   04:17AM
+
+    The next logical stage for the herbmail game will be to prepare a general game server.
+    Part of me wanted to keep this a single player game, another part of me wants to implement some multi player into the mixture.
+    The biggest downside is that this might cause issues in the future, but we shall see.
+
+
+
+- [ ]
+
+</BentoProse>
 
 <BentoProse id="2025" heading="2025">
 

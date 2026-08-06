@@ -12,11 +12,19 @@
 			"@kbve/laser": ["../../../packages/npm/laser/src/index.ts"],
 			"@kbve/laser/ecs": ["../../../packages/npm/laser/src/ecs.ts"],
 			"@kbve/laser/mecs": ["../../../packages/npm/laser/src/mecs.ts"],
+			"@kbve/laser/phaser": ["../../../packages/npm/laser/src/phaser.ts"],
+			"@kbve/laser/r3f": ["../../../packages/npm/laser/src/r3f.ts"],
 			"@kbve/itemdb-data": [
 				"../../../packages/data/codegen/generated/itemdb.json"
 			],
 			"@kbve/itemdb-schema": [
 				"../../../packages/data/codegen/generated/itemdb-schema.ts"
+			],
+			"@kbve/professiondb-data": [
+				"../../../packages/data/codegen/generated/professiondb-runtime.json"
+			],
+			"@kbve/mapdb-data": [
+				"../../../packages/data/codegen/generated/mapdb-data.json"
 			]
 		},
 		"strict": true,

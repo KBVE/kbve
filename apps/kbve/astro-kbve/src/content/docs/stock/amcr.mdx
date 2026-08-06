@@ -1,10 +1,12 @@
 ---
 title: Amcor plc AMCR
+template: splash
 description: |
     Amcor is a global leader in developing, producing, and selling packaging products for food, beverages, pharmaceuticals, and consumer goods with a focus on sustainability and innovation.
 sidebar:
     label: Amcor AMCR
     order: 450
+    hidden: true
 unsplash: 1586864387967-d04b7b4e7e87
 img: https://images.unsplash.com/photo-1586864387967-d04b7b4e7e87?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - consumer-cyclical
   - amcr
   - sustainability
+stock:
+  ticker: AMCR
+  exchange: NYSE
+  symbol: nyse:amcr
+  name: "Amcor plc"
+  sector: Materials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:amcr`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -272,3 +282,5 @@ AMCR offers exposure to essential packaging markets with defensive characteristi
 - **Innovation Pipeline**: New product development and technology advancement
 
 <Giscus />
+
+</StockLeaf>

@@ -51,9 +51,11 @@ recipes:
             amount: 1
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -61,11 +63,6 @@ import { Adsense } from '@/components/astropad';
 Crisp edges with a soft center, soaked in butter and speckled with garlic.
 Common fare among wanderers craving comfort between battles.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 <Adsense />
 
 ## Usage
@@ -74,8 +71,8 @@ Common fare among wanderers craving comfort between battles.
 - Best enjoyed fresh
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Credit
 
 {frontmatter.credits}
+
+</ItemLeaf>

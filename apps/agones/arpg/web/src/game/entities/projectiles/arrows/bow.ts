@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { floatingText } from '@kbve/laser';
+import { floatingText } from '@kbve/laser/phaser';
 import {
 	ARROW_SPEED,
 	ARROW_MAX_RANGE,

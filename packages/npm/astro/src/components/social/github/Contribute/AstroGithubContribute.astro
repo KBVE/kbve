@@ -7,11 +7,14 @@
 interface Props {
 	title?: string;
 	subtitle?: string;
+	/** Render the built-in heading block; off when an outer shell supplies it. */
+	header?: boolean;
 }
 
 const {
 	title = 'Contribute',
 	subtitle = 'Fork → branch → PR. Worktrees make rebases painless.',
+	header = true,
 } = Astro.props;
 
 const STEPS = [
@@ -82,11 +85,18 @@ const LINKS = [
 ];
 ---
 
-<section class="github-contribute" aria-labelledby="github-contribute-title">
-	<header class="github-contribute__header">
-		<h2 id="github-contribute-title">{title}</h2>
-		<p>{subtitle}</p>
-	</header>
+<section
+	class="github-contribute"
+	aria-labelledby={header ? 'github-contribute-title' : undefined}
+	aria-label={header ? undefined : title}>
+	{
+		header && (
+			<header class="github-contribute__header">
+				<h2 id="github-contribute-title">{title}</h2>
+				<p>{subtitle}</p>
+			</header>
+		)
+	}
 
 	<ol class="github-contribute__steps" role="list">
 		{

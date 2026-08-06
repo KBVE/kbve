@@ -52,6 +52,7 @@ pub const EPHEMERAL_PET_BATTLE_STATE: u16 = 19;
 pub const EPHEMERAL_UDP_OFFER: u16 = 20;
 pub const EPHEMERAL_DUEL_PROMPT: u16 = 21;
 pub const EPHEMERAL_PET_NOTICE: u16 = 22;
+pub const EPHEMERAL_PET_LEARN: u16 = 23;
 
 pub const UDP_MAX_DATAGRAM: usize = 1200;
 
@@ -149,8 +150,34 @@ pub enum ClientMessage {
     Frame(ClientFrame),
 }
 
+/// One client intent for a tick.
+///
+/// # Declaration order is the wire format
+///
+/// postcard encodes an enum as its **declaration index** as a varint, so a variant's position
+/// in this list *is* its wire tag — `EvolvePet` is tag 42 because it is declared 43rd. That has
+/// two consequences that are easy to get wrong:
+///
+/// - **Append only.** Inserting or reordering a variant renumbers every variant after it, so an
+///   unchanged client starts sending what the server reads as a different input entirely.
+/// - **Never delete.** A dead variant has to stay as a placeholder for the same reason. `Step`
+///   (tag 0) and `MoveTo` (tag 2) are both dead — superseded by the `Move` float-movement intent
+///   and handled nowhere in the workspace — and both stay exactly where they are.
+///
+/// # Every variant needs a home in `drain_inputs`
+///
+/// [`crate::sim::drain_inputs`] matches this enum exhaustively with **no catch-all**, and so does
+/// the deferred per-player pass that follows it. Adding a variant is therefore a compile error in
+/// both places until it is routed to a queue, deferred, or explicitly declared inert.
+///
+/// That is deliberate. The catch-all it replaced is how #15330 shipped an `EvolvePet` variant with
+/// no routing arm: the input landed in the deferred buffer, hit an ignore arm, and did nothing on
+/// a real server — while every test passed, because the tests push onto the queues directly.
+/// Nothing covers the path from wire byte to queue, so the type system covers it instead.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Input {
+    /// DEAD — superseded by [`Input::Move`]. Handled nowhere; retained because this is wire tag 0
+    /// and deleting it renumbers everything below. Do not reuse for something else.
     Step {
         dir: Dir,
     },
@@ -164,6 +191,8 @@ pub enum Input {
         /// release stops exactly when the client did — no held-intent over-travel.
         tick: u32,
     },
+    /// DEAD — superseded by [`Input::Move`]. Handled nowhere; retained because this is wire tag 2
+    /// and deleting it renumbers everything below. Do not reuse for something else.
     MoveTo {
         tile: Tile,
     },
@@ -202,6 +231,8 @@ pub enum Input {
     PickupObject {
         tile: Tile,
     },
+    /// Keepalive. Deliberately inert in the sim: `net_udp` stamps `last_seen` on any datagram, so
+    /// arriving is the whole job and `client_tick` is not read server-side.
     Heartbeat {
         client_tick: u32,
     },
@@ -324,6 +355,22 @@ pub enum Input {
     /// inputs are unchanged.
     HealPets {
         npc: EntityId,
+    },
+    /// Answer an outstanding `PetLearnOffer`. `slot` is the index into the pet's known moves
+    /// to overwrite; `None` declines and keeps the current four. Keyed by `pet_id` rather than
+    /// a roster index because a roster can be reordered between the offer and the answer.
+    /// Appended last so serde variant indices of the existing inputs are unchanged.
+    RespondLearnMove {
+        pet_id: String,
+        slot: Option<u32>,
+    },
+    /// Spend an evolution item on roster slot `idx`. The server checks the item is held and that
+    /// the pet's species actually lists it as a trigger; the item is consumed only if the
+    /// evolution happens. Appended last so serde variant indices of the existing inputs are
+    /// unchanged.
+    EvolvePet {
+        idx: u32,
+        item_ref: String,
     },
 }
 
@@ -644,6 +691,23 @@ pub struct PetView {
     pub nickname: String,
     pub level: u32,
     pub xp: u32,
+    /// XP still needed for the next level, so the hub can draw a bar without mirroring the
+    /// growth curves client-side. 0 at the level ceiling, or when the species is unknown to
+    /// whoever built this view.
+    pub xp_to_next: u32,
+    /// Item refs that would evolve this pet, so the hub can offer them without a client-side
+    /// copy of npcdb. Empty for a species with no evolutions left — which, since evolution is
+    /// one-way and one-time, is every pet that has already evolved.
+    pub evolve_items: Vec<String>,
+    /// Nature byte, `0..25`. The client decodes which stat it raises and lowers with the same
+    /// `boosted * 5 + lowered` arithmetic — an encoding detail, not game math, so mirroring it
+    /// costs nothing and saves sending two more fields.
+    pub nature: u32,
+    /// The six individual values in [`crate::genes::GeneStat`] order, each `0..=31`.
+    pub ivs: Vec<u32>,
+    /// 0 genderless, 1 male, 2 female.
+    pub gender: u32,
+    pub friendship: u32,
     pub hp: i32,
     pub max_hp: i32,
     pub attack: i32,
@@ -768,6 +832,30 @@ pub struct PetNotice {
     pub ok: bool,
     pub text: String,
 }
+
+/// A pet is offered a new move but already knows the maximum. `status` is a `PET_LEARN_*`
+/// constant: the server sends `OFFER` with the choice, then exactly one terminal status so the
+/// client never has to guess whether a prompt is still live.
+///
+/// Carries `known` rather than making the client join against the roster: an offer and a roster
+/// sync can arrive in either order, and a prompt listing the wrong moves to forget is worse than
+/// a few duplicated strings.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PetLearnOffer {
+    pub status: u8,
+    pub pet_id: String,
+    pub nickname: String,
+    pub ability_id: String,
+    pub ability_name: String,
+    pub known: Vec<String>,
+    /// Milliseconds left to answer. 0 on the terminal statuses.
+    pub deadline_ms: u32,
+}
+
+pub const PET_LEARN_OFFER: u8 = 0;
+pub const PET_LEARN_LEARNED: u8 = 1;
+pub const PET_LEARN_DECLINED: u8 = 2;
+pub const PET_LEARN_EXPIRED: u8 = 3;
 
 /// A pet duel challenge notice: `status` is a `DUEL_PROMPT_*` constant. Sent to
 /// the target as the offer (with the challenger's name + time to respond) and
@@ -1409,6 +1497,12 @@ mod tests {
                     nickname: "Rex".into(),
                     level: 5,
                     xp: 120,
+                    xp_to_next: 91,
+                    evolve_items: vec!["cyber-core".into()],
+                    nature: 4,
+                    ivs: vec![31, 0, 17, 8, 24, 3],
+                    gender: 1,
+                    friendship: 200,
                     hp: 30,
                     max_hp: 40,
                     attack: 12,
@@ -1428,6 +1522,12 @@ mod tests {
                     nickname: "Bolt".into(),
                     level: 7,
                     xp: 0,
+                    xp_to_next: 169,
+                    evolve_items: vec![],
+                    nature: 0,
+                    ivs: vec![0, 0, 0, 0, 0, 0],
+                    gender: 2,
+                    friendship: 70,
                     hp: 44,
                     max_hp: 44,
                     attack: 15,
@@ -1460,8 +1560,103 @@ mod tests {
         assert_eq!(back, sync);
     }
 
-    const ROSTER_SYNC_HEX: &str = "020330314a096d656368616d7574740352657805783c5018141c161a0105737061726b0f0f0330314b096d656368616d75747404426f6c74070058581e18201a22000101";
+    const ROSTER_SYNC_HEX: &str = "020330314a096d656368616d7574740352657805785b010a63796265722d636f726504061f001108180301c8013c5018141c161a0105737061726b0f0f0330314b096d656368616d75747404426f6c740700a901000006000000000000024658581e18201a22000101";
     const ROSTER_SYNC_EMPTY_HEX: &str = "0000";
+
+    /// Locks the move-learn offer the TS `decodePetLearnOffer` mirror reads. `known` is a
+    /// string sequence, which is the part a hand-written decoder is most likely to get wrong.
+    #[test]
+    fn pet_learn_offer_fixture_is_stable() {
+        let offer = PetLearnOffer {
+            status: PET_LEARN_OFFER,
+            pet_id: "01J".into(),
+            nickname: "Rex".into(),
+            ability_id: "overclock".into(),
+            ability_name: "Overclock".into(),
+            known: vec!["tackle".into(), "spark-bark".into()],
+            deadline_ms: 30_000,
+        };
+        let bytes = encode_inner(&offer).expect("encode");
+        assert_eq!(hex(&bytes), PET_LEARN_OFFER_HEX);
+        let back: PetLearnOffer = decode_inner(&bytes).expect("decode");
+        assert_eq!(back, offer);
+    }
+
+    /// A terminal status carries no countdown and, on a decline, an empty `known` — the
+    /// shortest form the client has to handle without mistaking it for a live offer.
+    #[test]
+    fn pet_learn_terminal_fixture_is_stable() {
+        let offer = PetLearnOffer {
+            status: PET_LEARN_EXPIRED,
+            pet_id: "01J".into(),
+            nickname: "Rex".into(),
+            ability_id: "overclock".into(),
+            ability_name: "Overclock".into(),
+            known: vec![],
+            deadline_ms: 0,
+        };
+        let bytes = encode_inner(&offer).expect("encode");
+        assert_eq!(hex(&bytes), PET_LEARN_EXPIRED_HEX);
+        let back: PetLearnOffer = decode_inner(&bytes).expect("decode");
+        assert_eq!(back, offer);
+    }
+
+    const PET_LEARN_OFFER_HEX: &str = "000330314a03526578096f766572636c6f636b094f766572636c6f636b020674\
+61636b6c650a737061726b2d6261726bb0ea01";
+    const PET_LEARN_EXPIRED_HEX: &str =
+        "030330314a03526578096f766572636c6f636b094f766572636c6f636b0000";
+
+    /// Locks variant 41 and the `Option<u32>` slot, whose presence byte is the one thing a TS
+    /// encoder mirroring this is likely to drop.
+    #[test]
+    fn respond_learn_move_roundtrips() {
+        let replace = Input::RespondLearnMove {
+            pet_id: "01J".into(),
+            slot: Some(2),
+        };
+        let bytes = encode_inner(&replace).expect("encode");
+        assert_eq!(bytes[0], 41);
+        assert!(matches!(
+            decode_inner(&bytes).expect("decode"),
+            Input::RespondLearnMove { slot: Some(2), .. }
+        ));
+
+        let decline = Input::RespondLearnMove {
+            pet_id: "01J".into(),
+            slot: None,
+        };
+        let bytes = encode_inner(&decline).expect("encode");
+        assert_eq!(bytes[0], 41);
+        assert_eq!(hex(&bytes), RESPOND_LEARN_DECLINE_HEX);
+        assert!(matches!(
+            decode_inner(&bytes).expect("decode"),
+            Input::RespondLearnMove { slot: None, .. }
+        ));
+    }
+
+    const RESPOND_LEARN_DECLINE_HEX: &str = "290330314a00";
+
+    /// Locks variant 42 and the item ref that picks which of the eighteen shibe forms the pet
+    /// becomes. The TS mirror asserts the same bytes.
+    #[test]
+    fn evolve_pet_input_roundtrips() {
+        let input = Input::EvolvePet {
+            idx: 1,
+            item_ref: "cyber-core".into(),
+        };
+        let bytes = encode_inner(&input).expect("encode");
+        assert_eq!(bytes[0], 42);
+        assert_eq!(hex(&bytes), EVOLVE_PET_HEX);
+        match decode_inner(&bytes).expect("decode") {
+            Input::EvolvePet { idx, item_ref } => {
+                assert_eq!(idx, 1);
+                assert_eq!(item_ref, "cyber-core");
+            }
+            other => panic!("expected EvolvePet, got {other:?}"),
+        }
+    }
+
+    const EVOLVE_PET_HEX: &str = "2a010a63796265722d636f7265";
 
     #[test]
     fn combat_event_fixture_is_stable() {

@@ -1,10 +1,12 @@
 ---
 title: Airbnb Inc ABNB
+template: splash
 description: |
     Airbnb is the world's largest online marketplace for home sharing, connecting millions of hosts and guests for unique travel and accommodation experiences.
 sidebar:
     label: Airbnb ABNB
     order: 437
+    hidden: true
 unsplash: 1523217582924-d68aef1e6bcf
 img: https://images.unsplash.com/photo-1523217582924-d68aef1e6bcf?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - travel
   - abnb
   - home-sharing
+stock:
+  ticker: ABNB
+  exchange: NASDAQ
+  symbol: nasdaq:abnb
+  name: "Airbnb Inc"
+  sector: Consumer Discretionary
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nasdaq:abnb`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -256,3 +266,5 @@ Airbnb offers investors exposure to the evolving travel industry:
 - **Geographic Performance**: Growth trends across major regions
 
 <Giscus />
+
+</StockLeaf>

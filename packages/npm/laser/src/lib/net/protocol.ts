@@ -33,6 +33,7 @@ export const EPHEMERAL_PET_BATTLE_LOG = 18;
 export const EPHEMERAL_PET_BATTLE_STATE = 19;
 export const EPHEMERAL_DUEL_PROMPT = 21;
 export const EPHEMERAL_PET_NOTICE = 22;
+export const EPHEMERAL_PET_LEARN = 23;
 
 export const DUEL_PROMPT_OFFER = 0;
 export const DUEL_PROMPT_DECLINED = 1;
@@ -159,12 +160,69 @@ export interface PetMoveView {
 
 /** One owned pet in the roster. Pets never appear in the spatial snapshot — they sync
  * only through the roster event and the battle events. */
+/** The six stats an individual pet varies in, in the order `PetView.ivs` arrives.
+ * Mirrors Rust `simgrid::genes::GeneStat`. */
+export const GENE_STATS = ['HP', 'Atk', 'Def', 'SpA', 'SpD', 'Spe'] as const;
+
+/** Highest individual value a roll can produce. */
+export const IV_MAX = 31;
+
+/** Total of a perfect six-stat roll — the denominator for an "IV %" readout. */
+export const IV_TOTAL_MAX = IV_MAX * GENE_STATS.length;
+
+/** The five stats a nature can shift, in nature-index order. HP is absent: no nature moves it.
+ * Mirrors Rust `simgrid::genes::NATURE_STATS`. */
+export const NATURE_STATS = ['Atk', 'Def', 'SpA', 'SpD', 'Spe'] as const;
+
+/** How many distinct natures exist — 5 boosted x 5 lowered, of which 5 are neutral. */
+export const NATURE_COUNT = 25;
+
+/** Friendship at or above which a pet deals 10% more damage. Mirrors Rust
+ * `simgrid::pets::FRIENDSHIP_DEVOTED`. */
+export const FRIENDSHIP_DEVOTED = 200;
+
+/** Which stat a nature raises and which it lowers, or `null` on both for a neutral nature.
+ *
+ * The `boosted * 5 + lowered` encoding is a wire detail, not game math — the server sends the
+ * byte and this decodes it, which is why the roster payload does not carry two more fields.
+ * The five diagonal values raise and lower the same stat and so cancel. */
+export function natureEffect(nature: number): {
+	up: (typeof NATURE_STATS)[number] | null;
+	down: (typeof NATURE_STATS)[number] | null;
+} {
+	const n = ((nature % NATURE_COUNT) + NATURE_COUNT) % NATURE_COUNT;
+	const up = Math.floor(n / 5);
+	const down = n % 5;
+	if (up === down) return { up: null, down: null };
+	return { up: NATURE_STATS[up], down: NATURE_STATS[down] };
+}
+
+/** Display glyph for a `PetView.gender` byte. Empty for genderless. */
+export function genderGlyph(gender: number): string {
+	return gender === 1 ? '\u2642' : gender === 2 ? '\u2640' : '';
+}
+
 export interface PetView {
 	id: string;
 	species_ref: string;
 	nickname: string;
 	level: number;
 	xp: number;
+	/** XP still needed for the next level, so a progress bar needs no client-side copy of
+	 * the growth curves. 0 at the level ceiling. */
+	xp_to_next: number;
+	/** Item refs that would evolve this pet, so the hub can offer them without a client-side
+	 * copy of npcdb. Empty once the pet has evolved — evolution is one-way and one-time. */
+	evolve_items: string[];
+	/** Nature byte, 0..24. Decode with {@link natureEffect} rather than reimplementing the
+	 * `boosted * 5 + lowered` arithmetic. */
+	nature: number;
+	/** The six individual values, 0..31, in {@link GENE_STATS} order. */
+	ivs: number[];
+	/** 0 genderless, 1 male, 2 female. */
+	gender: number;
+	/** Owner attachment 0..255. At or above {@link FRIENDSHIP_DEVOTED} the pet hits 10% harder. */
+	friendship: number;
 	hp: number;
 	max_hp: number;
 	attack: number;
@@ -188,6 +246,28 @@ export interface PetRosterSync {
 export interface PetNotice {
 	ok: boolean;
 	text: string;
+}
+
+export const PET_LEARN_OFFER = 0;
+export const PET_LEARN_LEARNED = 1;
+export const PET_LEARN_DECLINED = 2;
+export const PET_LEARN_EXPIRED = 3;
+
+/** A pet levelled into a new move but already knows the maximum, so the owner has to pick
+ * one to forget. `status` is one of the PET_LEARN_* constants: exactly one terminal status
+ * follows every OFFER, so a prompt never has to be guessed stale.
+ *
+ * `known` is the pet's current moves at offer time — carried here rather than joined
+ * against the roster, since an offer and a roster sync can arrive in either order. */
+export interface PetLearnOffer {
+	status: number;
+	pet_id: string;
+	nickname: string;
+	ability_id: string;
+	ability_name: string;
+	known: string[];
+	/** Milliseconds left to answer; 0 on the terminal statuses. */
+	deadline_ms: number;
 }
 
 /** A duel challenge/response prompt shown to the challenged player. `status` is one
@@ -261,7 +341,9 @@ export type Input =
 	| { ReleasePet: { idx: number } }
 	| { RenamePet: { idx: number; name: string } }
 	| { UsePetElixir: { idx: number } }
-	| { HealPets: { npc: number } };
+	| { HealPets: { npc: number } }
+	| { RespondLearnMove: { pet_id: string; slot: number | null } }
+	| { EvolvePet: { idx: number; item_ref: string } };
 
 export type BjActionKind = 'Hit' | 'Stand' | 'Double' | 'Split' | 'Surrender';
 

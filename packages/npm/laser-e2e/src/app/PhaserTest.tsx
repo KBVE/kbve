@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import Phaser from 'phaser';
-import { PhaserGame } from '@kbve/laser';
+import { PhaserGame } from '@kbve/laser/phaser';
 
 class BootScene extends Phaser.Scene {
 	constructor() {

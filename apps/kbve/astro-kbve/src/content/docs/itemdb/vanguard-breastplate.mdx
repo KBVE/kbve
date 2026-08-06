@@ -6,6 +6,8 @@ sidebar:
     hidden: true
 description: |
     A fitted breastplate that turns a spear thrust into a bad bruise. Cold in the morning, an oven by noon, worth it at all hours.
+lore: |
+    Four points of plate over the parts that do not grow back. Smiths hammer the Vanguard breastplate from a single sheet where they can afford to and from three where they cannot, and every soldier learns to read the seam lines of their own chest the way a sailor reads weather. A one-piece front is a good year. Three pieces means the war was going badly when it was made.
 ref: 'vanguard-breastplate'
 key: 604
 id: '01KXFBEGM0XYT1VDYGSBAC7W70'
@@ -32,10 +34,26 @@ equipment:
     extra:
       weight: 6
   movement_penalty: 1
+grid:
+  width: 2
+  height: 2
+set_ref: 'vanguard'
+tags:
+  - armor
+  - vanguard
+  - herbmail
+sources:
+  - source_type: 'vendor'
+    source_name: 'Garrison quartermaster'
+  - source_type: 'drop'
+    source_name: 'Patrol wreckage'
+    drop_rate: 0.08
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Overview
 
-<ItemDBPanel data={frontmatter} />
+</ItemLeaf>

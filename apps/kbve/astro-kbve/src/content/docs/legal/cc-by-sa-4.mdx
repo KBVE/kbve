@@ -1,6 +1,7 @@
 ---
 title: Creative Commons Attribution-ShareAlike 4.0
 description: The CC BY-SA 4.0 License as referenced for assets and community content within the KBVE monorepo.
+template: splash
 sidebar:
     label: CC BY-SA 4.0
     order: 19
@@ -12,6 +13,13 @@ tags:
 ---
 
 import { Aside } from '@astrojs/starlight/components';
+
+import LegalLeaf from '@/components/legal/LegalLeaf.astro';
+
+<LegalLeaf
+	slug="cc-by-sa-4"
+	title={frontmatter.title}
+	description={frontmatter.description}>
 
 ## Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0)
 
@@ -46,3 +54,5 @@ should stay open:
 
 The ShareAlike clause ensures that improvements and derivatives remain freely
 available to the community under the same terms.
+
+</LegalLeaf>

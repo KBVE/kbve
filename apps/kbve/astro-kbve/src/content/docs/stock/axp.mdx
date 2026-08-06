@@ -1,10 +1,12 @@
 ---
 title: American Express Company AXP
+template: splash
 description: |
     American Express is a globally integrated payments company offering premium credit cards, charge cards, and financial services with a focus on affluent customers and travel benefits.
 sidebar:
     label: American Express AXP
     order: 451
+    hidden: true
 unsplash: 1556742049-0996f16c75e9
 img: https://images.unsplash.com/photo-1556742049-0996f16c75e9?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - credit-cards
   - axp
   - payments
+stock:
+  ticker: AXP
+  exchange: NYSE
+  symbol: nyse:axp
+  name: "American Express Company"
+  sector: Financials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:axp`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -264,3 +274,5 @@ AXP offers exposure to premium financial services with strong defensive characte
 - **International Expansion**: Growth in international markets and partnerships
 
 <Giscus />
+
+</StockLeaf>

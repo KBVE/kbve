@@ -4,6 +4,7 @@ import { useThree } from '@react-three/fiber';
 import { PsxMaterialImpl } from '../render/PsxMaterial';
 import { TINT } from '../config';
 import { useDungeonTextures, type WallMaps } from '../textures';
+import { useViewportSize } from '../render/useViewportSize';
 
 export interface DungeonMaterials {
 	walls: PsxMaterialImpl[];
@@ -61,7 +62,7 @@ export function useDungeonMaterials(
 	affine: number,
 ): DungeonMaterials {
 	const tex = useDungeonTextures();
-	const size = useThree((s) => s.size);
+	const size = useViewportSize();
 
 	const mats = useMemo(() => {
 		const tint = (t: readonly number[]) => new THREE.Color(...t);

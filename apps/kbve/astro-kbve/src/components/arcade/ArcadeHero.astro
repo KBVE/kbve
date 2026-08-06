@@ -10,85 +10,135 @@ const {
 	tagline = 'Browser games we built ourselves — plus a few classics on the way.',
 	stats = [],
 } = Astro.props;
+
+const [head, ...tail] = title.split(' ');
 ---
 
 <section
-	aria-labelledby="arcade-hero-title"
-	class="not-content relative isolate mb-10 overflow-hidden rounded-2xl border border-purple-500/35 px-5 py-12 shadow-[0_24px_60px_-20px_rgba(0,0,0,0.55),inset_0_0_0_1px_rgba(0,0,0,0.35)] sm:px-14">
-	<!-- Layered animated gradient background -->
-	<div
-		aria-hidden="true"
-		class="arcade-hero-pulse absolute inset-0 -z-30 bg-[radial-gradient(circle_at_12%_10%,rgba(236,72,153,0.55)_0%,transparent_45%),radial-gradient(circle_at_88%_80%,rgba(56,189,248,0.45)_0%,transparent_50%),linear-gradient(135deg,#0b0a18_0%,#1c1438_50%,#1f0c2e_100%)]">
-	</div>
-	<!-- Faded grid behind content -->
-	<div
-		aria-hidden="true"
-		class="pointer-events-none absolute inset-0 -z-20 bg-[linear-gradient(rgba(168,85,247,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(168,85,247,0.08)_1px,transparent_1px)] [background-size:36px_36px] [mask-image:linear-gradient(to_bottom,transparent,black_30%,black_70%,transparent)] [-webkit-mask-image:linear-gradient(to_bottom,transparent,black_30%,black_70%,transparent)]">
-	</div>
-	<!-- CRT scanlines -->
-	<div
-		aria-hidden="true"
-		class="pointer-events-none absolute inset-0 -z-10 opacity-65 mix-blend-overlay bg-[repeating-linear-gradient(to_bottom,rgba(0,0,0,0.16)_0px,rgba(0,0,0,0.16)_1px,transparent_1px,transparent_4px)]">
-	</div>
-
-	<div class="relative z-10 max-w-[56ch]">
-		<p
-			class="mb-3 font-mono text-[11px] uppercase tracking-[0.18em] text-fuchsia-300 [text-shadow:0_0_10px_rgba(240,171,252,0.45)]">
-			▸ NOW PLAYING
-		</p>
-		<h1
-			id="arcade-hero-title"
-			class="mb-3 text-[clamp(34px,6vw,56px)] font-extrabold leading-[1.05] -tracking-[0.01em] text-white [text-shadow:0_0_18px_rgba(236,72,153,0.55),0_0_38px_rgba(56,189,248,0.35)]">
-			{title}
-		</h1>
-		<p
-			class="mb-5 max-w-[60ch] text-[clamp(15px,1.4vw,17px)] leading-relaxed text-purple-200">
-			{tagline}
-		</p>
-		{
-			stats.length > 0 && (
-				<ul class="m-0 flex list-none flex-wrap gap-6 p-0">
-					{stats.map((s, i) => (
-						<li
-							class:list={[
-								'flex flex-col gap-1 border-purple-500/30 pr-6',
-								i < stats.length - 1 && 'border-r',
-							]}>
+	class="bento-hero bento-section not-content arcade-hero"
+	aria-labelledby="arcade-hero-title">
+	<div class="arcade-hero__bg" aria-hidden="true"></div>
+	<div class="arcade-hero__scan" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy">
+				<span class="bento-badge bento-chip">
+					<span class="bento-live-dot"></span>
+					Now playing
+				</span>
+				<h1 id="arcade-hero-title" class="bento-title">
+					{head}{' '}
+					<span class="bento-title__accent">{tail.join(' ')}</span>
+				</h1>
+				<p class="bento-lede">{tagline}</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="#available">
+						Browse games
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="#soon">
+						What's coming
+					</a>
+				</div>
+			</div>
+			<div class="bento-cell bento-hero-aside arcade-hero__stats">
+				{
+					stats.map((s, i) => (
+						<div class="arcade-hero__stat">
 							<span
-								class="block h-[22px] font-serif text-[22px] font-bold leading-none text-amber-200"
+								class="arcade-hero__stat-value"
 								data-arcade-stat
 								data-arcade-stat-value={s.value}
 								data-arcade-stat-delay={i * 140}>
 								{s.value}
 							</span>
-							<span class="font-mono text-[11px] uppercase tracking-[0.12em] text-purple-300">
+							<span class="arcade-hero__stat-label">
 								{s.label}
 							</span>
-						</li>
-					))}
-				</ul>
-			)
-		}
+						</div>
+					))
+				}
+			</div>
+		</div>
 	</div>
 </section>
 
 <style>
-	@keyframes arcade-hero-hue {
-		0%,
-		100% {
-			filter: hue-rotate(0deg) brightness(1);
-		}
-		50% {
-			filter: hue-rotate(20deg) brightness(1.08);
-		}
+	/* Arcade retint of the shared hero: only the backdrop and the accent
+	   vars are page-specific, the layout comes from the bento primitives. */
+	.arcade-hero {
+		position: relative;
+		isolation: isolate;
+		--bento-accent: #e879f9;
+		--bento-accent-2: #38bdf8;
+		--bento-btn-fg: #16021c;
+		--bento-live: #f0abfc;
+		/* .bento-btn--primary keys off the Starlight accent, not the bento
+		   one, so a retint has to set both. */
+		--sl-color-accent: #c026d3;
+		--sl-color-accent-high: #f0abfc;
 	}
-	.arcade-hero-pulse {
-		animation: arcade-hero-hue 14s ease-in-out infinite;
+
+	.arcade-hero__stats {
+		justify-content: center;
+		gap: 1.25rem;
 	}
-	@media (prefers-reduced-motion: reduce) {
-		.arcade-hero-pulse {
-			animation: none;
-		}
+
+	/* Deliberately not .bento-stat__value/__label — those are grid-placed
+	   and only behave inside a .bento-stat parent. */
+	.arcade-hero__stat {
+		display: flex;
+		flex-direction: column;
+		gap: 0.2rem;
+		padding-inline-start: 0.9rem;
+		border-inline-start: 2px solid
+			color-mix(in srgb, var(--bento-accent) 55%, transparent);
+	}
+
+	.arcade-hero__stat-value {
+		font-size: 1.4rem;
+		font-weight: 700;
+		line-height: 1.1;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-white);
+	}
+
+	.arcade-hero__stat-label {
+		font-family: var(--__sl-font-mono, ui-monospace, monospace);
+		font-size: 0.6875rem;
+		letter-spacing: 0.1em;
+		text-transform: uppercase;
+		color: var(--sl-color-gray-3);
+	}
+
+	.arcade-hero__bg {
+		position: absolute;
+		inset: 0;
+		z-index: -2;
+		background:
+			radial-gradient(
+				circle at 12% 10%,
+				rgba(236, 72, 153, 0.35) 0%,
+				transparent 45%
+			),
+			radial-gradient(
+				circle at 88% 80%,
+				rgba(56, 189, 248, 0.28) 0%,
+				transparent 50%
+			);
+	}
+
+	.arcade-hero__scan {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		opacity: 0.45;
+		background: repeating-linear-gradient(
+			to bottom,
+			rgba(0, 0, 0, 0.16) 0px,
+			rgba(0, 0, 0, 0.16) 1px,
+			transparent 1px,
+			transparent 4px
+		);
 	}
 </style>
 

@@ -14,13 +14,18 @@ pub struct Config {
     pub vpn_watchdog_secs: u64,
     pub metadata_timeout_secs: u64,
     pub stall_timeout_secs: u64,
+    pub stall_connected_timeout_secs: u64,
     pub stall_check_secs: u64,
+    pub stall_recovery_attempts: u32,
     pub extra_trackers: Vec<String>,
     pub trackers_urls: Vec<String>,
     pub trackers_cache: PathBuf,
     pub trackers_refresh_secs: u64,
     pub state_flush_ms: u64,
     pub upload_limit_bps: Option<u32>,
+    pub peer_connect_timeout_secs: u64,
+    pub peer_read_write_timeout_secs: u64,
+    pub peer_keepalive_secs: u64,
     pub api_token: Option<String>,
     pub transcode_enabled: bool,
     pub remux_concurrency: usize,
@@ -34,10 +39,13 @@ pub struct Config {
     pub live_hls_enabled: bool,
     pub live_prebuffer_segments: usize,
     pub hls_segment_secs: u64,
+    pub hls_max_height: u32,
+    pub hls_segment_wait_ms: u64,
     pub bt_port_file: Option<PathBuf>,
     pub bt_port_wait_secs: u64,
     pub bt_port_stable_secs: u64,
     pub bt_port_watch_secs: u64,
+    pub bt_port_watch_restart: bool,
 }
 
 pub const DEFAULT_TRACKERS_URLS: &[&str] = &[
@@ -155,7 +163,9 @@ pub fn load_from_env() -> anyhow::Result<Config> {
         vpn_watchdog_secs: env_u64("REEL_VPN_WATCHDOG_SECS", 60)?,
         metadata_timeout_secs: env_u64("REEL_METADATA_TIMEOUT_SECS", 120)?,
         stall_timeout_secs: env_u64("REEL_STALL_TIMEOUT_SECS", 300)?,
+        stall_connected_timeout_secs: env_u64("REEL_STALL_CONNECTED_TIMEOUT_SECS", 900)?,
         stall_check_secs: env_u64("REEL_STALL_CHECK_SECS", 15)?,
+        stall_recovery_attempts: env_u64("REEL_STALL_RECOVERY_ATTEMPTS", 3)? as u32,
         extra_trackers: match std::env::var("REEL_TRACKERS") {
             Ok(v) if !v.trim().is_empty() => parse_trackers(&v.replace(',', "\n")),
             _ => DEFAULT_TRACKERS.iter().map(|s| s.to_string()).collect(),
@@ -186,6 +196,9 @@ pub fn load_from_env() -> anyhow::Result<Config> {
             0 => None,
             n => Some(n.min(u32::MAX as u64) as u32),
         },
+        peer_connect_timeout_secs: env_u64("REEL_PEER_CONNECT_TIMEOUT_SECS", 10)?,
+        peer_read_write_timeout_secs: env_u64("REEL_PEER_READ_WRITE_TIMEOUT_SECS", 120)?,
+        peer_keepalive_secs: env_u64("REEL_PEER_KEEPALIVE_SECS", 30)?,
         api_token: std::env::var("REEL_API_TOKEN").ok(),
         transcode_enabled: env_bool("REEL_TRANSCODE_ENABLED", true),
         remux_concurrency: env_u64("REEL_REMUX_CONCURRENCY", 3)? as usize,
@@ -199,6 +212,8 @@ pub fn load_from_env() -> anyhow::Result<Config> {
         live_hls_enabled: env_bool("REEL_LIVE_HLS", true),
         live_prebuffer_segments: env_u64("REEL_LIVE_PREBUFFER_SEGMENTS", 3)?.max(1) as usize,
         hls_segment_secs: env_u64("REEL_HLS_SEGMENT_SECS", 4)?,
+        hls_max_height: env_u64("REEL_HLS_MAX_HEIGHT", 1080)?.min(u32::MAX as u64) as u32,
+        hls_segment_wait_ms: env_u64("REEL_HLS_SEGMENT_WAIT_MS", 5000)?,
         bt_port_file: match std::env::var("REEL_BT_PORT_FILE") {
             Ok(v) if !v.trim().is_empty() => Some(PathBuf::from(v.trim())),
             _ => None,
@@ -206,6 +221,7 @@ pub fn load_from_env() -> anyhow::Result<Config> {
         bt_port_wait_secs: env_u64("REEL_BT_PORT_WAIT_SECS", 20)?,
         bt_port_stable_secs: env_u64("REEL_BT_PORT_STABLE_SECS", 45)?,
         bt_port_watch_secs: env_u64("REEL_BT_PORT_WATCH_SECS", 30)?,
+        bt_port_watch_restart: env_bool("REEL_BT_PORT_WATCH_RESTART", false),
     })
 }
 
@@ -236,6 +252,9 @@ mod tests {
             "REEL_TRACKERS_REFRESH_SECS",
             "REEL_STATE_FLUSH_MS",
             "REEL_UPLOAD_LIMIT_BPS",
+            "REEL_PEER_CONNECT_TIMEOUT_SECS",
+            "REEL_PEER_READ_WRITE_TIMEOUT_SECS",
+            "REEL_PEER_KEEPALIVE_SECS",
             "REEL_API_TOKEN",
             "REEL_TRANSCODE_ENABLED",
             "REEL_REMUX_CONCURRENCY",
@@ -248,8 +267,11 @@ mod tests {
             "REEL_LIVE_HLS",
             "REEL_LIVE_PREBUFFER_SEGMENTS",
             "REEL_HLS_SEGMENT_SECS",
+            "REEL_HLS_MAX_HEIGHT",
+            "REEL_HLS_SEGMENT_WAIT_MS",
             "REEL_BT_PORT_FILE",
             "REEL_BT_PORT_WAIT_SECS",
+            "REEL_BT_PORT_WATCH_RESTART",
         ] {
             std::env::remove_var(k);
         }
@@ -268,7 +290,9 @@ mod tests {
         assert!(c.vpn_check_urls.iter().all(|u| u.starts_with("https://")));
         assert_eq!(c.metadata_timeout_secs, 120);
         assert_eq!(c.stall_timeout_secs, 300);
+        assert_eq!(c.stall_connected_timeout_secs, 900);
         assert_eq!(c.stall_check_secs, 15);
+        assert_eq!(c.stall_recovery_attempts, 3);
         assert!(
             !c.extra_trackers.is_empty(),
             "embedded default trackers present"
@@ -298,6 +322,7 @@ mod tests {
         assert_eq!(c.bt_port_wait_secs, 20);
         assert_eq!(c.bt_port_stable_secs, 45);
         assert_eq!(c.bt_port_watch_secs, 30);
+        assert!(!c.bt_port_watch_restart);
     }
 
     #[test]
@@ -477,13 +502,19 @@ mod tests {
         assert!(c.live_hls_enabled);
         assert_eq!(c.live_prebuffer_segments, 3);
         assert_eq!(c.hls_segment_secs, 4);
+        assert_eq!(c.hls_max_height, 1080);
+        assert_eq!(c.hls_segment_wait_ms, 5000);
         std::env::set_var("REEL_HLS_ENABLED", "false");
         std::env::set_var("REEL_LIVE_HLS", "false");
         std::env::set_var("REEL_HLS_SEGMENT_SECS", "8");
+        std::env::set_var("REEL_HLS_MAX_HEIGHT", "0");
+        std::env::set_var("REEL_HLS_SEGMENT_WAIT_MS", "0");
         let c2 = load_from_env().unwrap();
         assert!(!c2.hls_enabled);
         assert!(!c2.live_hls_enabled);
         assert_eq!(c2.hls_segment_secs, 8);
+        assert_eq!(c2.hls_max_height, 0);
+        assert_eq!(c2.hls_segment_wait_ms, 0);
         clear();
     }
 }

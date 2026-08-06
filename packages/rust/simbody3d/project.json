@@ -1,0 +1,33 @@
+{
+	"name": "simbody3d",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/rust/simbody3d/src",
+	"tags": ["rust", "physics", "rapier"],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo build -p simbody3d"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo test -p simbody3d"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo clippy -p simbody3d --all-targets --all-features -- -D warnings"
+			}
+		},
+		"check-wasm": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo check -p simbody3d --target wasm32-unknown-unknown"
+			}
+		}
+	}
+}

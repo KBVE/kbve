@@ -1,10 +1,12 @@
 ---
 title: AbbVie Inc. ABBV
+template: splash
 description: |
     AbbVie is a research-based biopharmaceutical company focused on developing innovative therapies in immunology, oncology, neuroscience, and eye care.
 sidebar:
     label: AbbVie ABBV
     order: 429
+    hidden: true
 unsplash: 1559757175-a5077471b5d4
 img: https://images.unsplash.com/photo-1559757175-a5077471b5d4?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - pharmaceuticals
   - abbv
   - biopharmaceutical
+stock:
+  ticker: ABBV
+  exchange: NYSE
+  symbol: nyse:abbv
+  name: "AbbVie Inc."
+  sector: Health Care
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:abbv`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -260,3 +270,5 @@ Recent analyst sentiment reflects confidence in AbbVie's post-Humira strategy:
 - **Dividend Sustainability**: Confidence in continued dividend growth
 
 <Giscus />
+
+</StockLeaf>

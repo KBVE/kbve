@@ -1,10 +1,12 @@
 ---
 title: Alphabet Inc. Class C GOOG
+template: splash
 description: |
     Alphabet Class C shares provide exposure to Google's technology ecosystem including search, advertising, cloud computing, and AI innovation without voting rights.
 sidebar:
     label: Alphabet GOOG
     order: 447
+    hidden: true
 unsplash: 1573804633-4ac980af8b31
 img: https://images.unsplash.com/photo-1573804633-4ac980af8b31?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - internet
   - goog
   - search-engine
+stock:
+  ticker: GOOG
+  exchange: NASDAQ
+  symbol: nasdaq:goog
+  name: "Alphabet Inc. Class C"
+  sector: Communication Services
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nasdaq:goog`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -238,3 +248,5 @@ GOOG offers identical technology exposure to GOOGL with potential cost advantage
 - **Innovation Pipeline**: New product development and technology breakthroughs
 
 <Giscus />
+
+</StockLeaf>

@@ -1,10 +1,12 @@
 ---
 title: Akamai Technologies AKAM
+template: splash
 description: |
     Akamai Technologies is a leading content delivery network and cybersecurity company providing cloud computing, security, and content delivery solutions globally.
 sidebar:
     label: Akamai Technologies
     order: 438
+    hidden: true
 unsplash: 1558494949-ef946d3dc4c1
 img: https://images.unsplash.com/photo-1558494949-ef946d3dc4c1?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - cybersecurity
   - akam
   - content-delivery
+stock:
+  ticker: AKAM
+  exchange: NASDAQ
+  symbol: nasdaq:akam
+  name: "Akamai Technologies"
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nasdaq:akam`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -244,3 +254,5 @@ Akamai offers investors exposure to critical internet infrastructure trends:
 - **Technology Innovation**: Development of new capabilities and solutions
 
 <Giscus />
+
+</StockLeaf>

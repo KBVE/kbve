@@ -1,10 +1,12 @@
 ---
 title: ACI Worldwide Inc. ACIW
+template: splash
 description: |
     ACI Worldwide is a leading global provider of real-time electronic payment software and solutions, enabling electronic payments for financial institutions, retailers, and processors around the world.
 sidebar:
     label: ACI Worldwide ACIW
     order: 488
+    hidden: true
 unsplash: 1556740758-8c1f6c6e4e4c
 img: https://images.unsplash.com/photo-1556740758-8c1f6c6e4e4c?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - fintech
   - aciw
   - payments
+stock:
+  ticker: ACIW
+  exchange: NASDAQ
+  symbol: nasdaq:aciw
+  name: "ACI Worldwide Inc."
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nasdaq:aciw`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -291,3 +301,5 @@ ACIW offers exposure to global payment processing with real-time technology lead
 - **Operating Leverage**: Margin expansion and operational efficiency improvements
 
 <Giscus />
+
+</StockLeaf>

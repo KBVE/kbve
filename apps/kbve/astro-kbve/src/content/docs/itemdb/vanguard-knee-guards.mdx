@@ -6,6 +6,8 @@ sidebar:
     hidden: true
 description: |
     Poleyn pair for the knees, the joint every low blow is aimed at and every stair regrets.
+lore: |
+    Cheap, dented, and disproportionately responsible for people walking home. A knee does not need to be destroyed to end a campaign — it only needs to be convinced, once, that it should not bear weight.
 ref: 'vanguard-knee-guards'
 key: 613
 id: '01KXFBEGM1AKYE9SSRKNW2XR4X'
@@ -33,10 +35,22 @@ equipment:
     armor: 2
     extra:
       weight: 2
+set_ref: 'vanguard'
+tags:
+  - armor
+  - vanguard
+  - herbmail
+sources:
+  - source_type: 'vendor'
+    source_name: 'Garrison quartermaster'
+  - source_type: 'craft'
+    source_name: 'Forge'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Overview
 
-<ItemDBPanel data={frontmatter} />
+</ItemLeaf>

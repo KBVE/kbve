@@ -1,10 +1,12 @@
 ---
 title: Applied Materials Inc. AMAT
+template: splash
 description: |
     Applied Materials is the global leader in semiconductor equipment, providing manufacturing technology solutions for the semiconductor, display, and related industries that enable the world's most advanced chips.
 sidebar:
     label: Applied Materials AMAT
     order: 475
+    hidden: true
 unsplash: 1518600506278-4e5046204d8d
 img: https://images.unsplash.com/photo-1518600506278-4e5046204d8d?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - semiconductors
   - amat
   - equipment
+stock:
+  ticker: AMAT
+  exchange: NASDAQ
+  symbol: nasdaq:amat
+  name: "Applied Materials Inc."
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nasdaq:amat`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -278,3 +288,5 @@ AMAT offers exposure to semiconductor technology advancement with cyclical chara
 - **Market Share**: Position in key semiconductor equipment categories
 
 <Giscus />
+
+</StockLeaf>

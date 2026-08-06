@@ -14,6 +14,7 @@ class UKBVEAbilityComponent;
 class UchuckCharacterMovementComponent;
 class UKBVEEffectComponent;
 class UAnimMontage;
+class AchuckResourceNode;
 struct FInputActionValue;
 
 UCLASS()
@@ -49,6 +50,9 @@ public:
 
 	void SwapBagSlots(int32 IndexA, int32 IndexB, bool bHotbar);
 	void SwapAcrossContainers(int32 BagIndex, int32 HotbarIndex);
+
+	UFUNCTION(Server, Reliable)
+	void ServerGatherNode(AchuckResourceNode* Node);
 
 protected:
 	virtual void PostInitializeComponents() override;

@@ -6,6 +6,8 @@ sidebar:
     hidden: true
 description: |
     A padded utility jacket threaded with dead circuitry that still glows when it rains. Warm, tough, and louder in color than in fact.
+lore: |
+    A technician's jacket with conductive thread run through the lining, originally so a wearer could ground themselves against a live panel and later because it looked like someone who could. The genuine article has scorch marks at the cuffs. The imitations have them printed on.
 ref: 'circuit-jacket'
 key: 619
 id: '01KXFBEGM2N7Q99WN237XBRPC1'
@@ -31,10 +33,26 @@ equipment:
     armor: 1
     extra:
       weight: 2
+grid:
+  width: 2
+  height: 2
+set_ref: 'fieldkit'
+tags:
+  - armor
+  - fieldkit
+  - herbmail
+sources:
+  - source_type: 'vendor'
+    source_name: 'Surplus stall'
+  - source_type: 'drop'
+    source_name: 'Depot cache'
+    drop_rate: 0.1
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Overview
 
-<ItemDBPanel data={frontmatter} />
+</ItemLeaf>

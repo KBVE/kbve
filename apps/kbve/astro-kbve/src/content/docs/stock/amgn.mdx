@@ -1,10 +1,12 @@
 ---
 title: Amgen Inc. AMGN
+template: splash
 description: |
     Amgen is a leading biotechnology company that discovers, develops, manufactures, and delivers innovative human therapeutics worldwide, focusing on serious illnesses with significant unmet medical needs.
 sidebar:
     label: Amgen AMGN
     order: 457
+    hidden: true
 unsplash: 1559757148-7d4e0223ce8c
 img: https://images.unsplash.com/photo-1559757148-7d4e0223ce8c?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - pharmaceuticals
   - amgn
   - healthcare
+stock:
+  ticker: AMGN
+  exchange: NASDAQ
+  symbol: nasdaq:amgn
+  name: "Amgen Inc."
+  sector: Health Care
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nasdaq:amgn`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -276,3 +286,5 @@ AMGN offers exposure to biotechnology innovation with established commercial suc
 - **International Expansion**: Growth in international markets and emerging economies
 
 <Giscus />
+
+</StockLeaf>

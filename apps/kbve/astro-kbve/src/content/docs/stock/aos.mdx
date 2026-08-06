@@ -1,10 +1,12 @@
 ---
 title: A.O. Smith Corporation AOS
+template: splash
 description: |
     A.O. Smith Corporation is a leading manufacturer of water heating equipment and water treatment products with operations across North America, China, Europe, and India.
 sidebar:
     label: A.O. Smith AOS
     order: 427
+    hidden: true
 unsplash: 1558618666-fbd82c67e6cd
 img: https://images.unsplash.com/photo-1558618666-fbd82c67e6cd?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - manufacturing
   - aos
   - water-heating
+stock:
+  ticker: AOS
+  exchange: NYSE
+  symbol: nyse:aos
+  name: "A.O. Smith Corporation"
+  sector: Industrials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:aos`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -219,3 +229,5 @@ For current and accurate dividend information:
 - **SEC Filings**: Current financial information available through SEC filings
 
 <Giscus />
+
+</StockLeaf>

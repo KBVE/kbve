@@ -70,6 +70,7 @@ import { Tooltip } from './Tooltip';
 import { InventoryPanel, useInventoryDnd } from './inventory/Inventory';
 import { LootPanel } from './loot/LootPanel';
 import { PetHubPanel } from './pets/PetHub';
+import { PetLearnPrompt } from './pets/PetLearnPrompt';
 
 const MUTED = '#9fb3d8';
 const TEXT_SHADOW = '0 1px 2px rgba(0,0,0,0.9)';
@@ -205,6 +206,7 @@ function D2HudInner({ debug }: { debug: boolean }) {
 			<PetHubPanel open={hubOpen} onClose={() => emitPetHubOpen(false)} />
 			<Tooltip />
 			<DeathScreen />
+			<PetLearnPrompt />
 			<DuelPromptOverlay />
 			<PetBattleOverlay />
 			{debug && <PetBattleDebug />}

@@ -21,7 +21,7 @@ jsonld:
           answer: The image tag is pinned across every manifest listed in the deployment_yamls frontmatter field, and all of them auto-bump on each publish via the post-publish version sync.
 pipeline: docker
 app_name: kbve-kubectl
-version: "0.1.9"
+version: "0.1.10"
 source_path: apps/vm/kubectl
 version_toml: apps/vm/kubectl/version.toml
 version_target: apps/vm/kubectl/Cargo.toml
@@ -144,6 +144,7 @@ Alpine-based kubectl image with a static musl Rust CLI wrapper for KubeVirt VM m
 | Tool | Purpose |
 |------|---------|
 | `kubectl` | Kubernetes API access (static binary) |
+| `cmctl` | cert-manager CLI (static binary) — `cmctl renew` to force a Certificate re-issue |
 | `curl` | HTTP requests |
 | `jq` | JSON processing |
 | `/bin/sh` | Shell script execution (Alpine ash) |

@@ -1,10 +1,12 @@
 ---
 title: Eli Lilly and Company LLY
+template: splash
 description: |
     Eli Lilly is a leading global pharmaceutical company developing, manufacturing, and marketing innovative medicines for serious medical conditions including diabetes, cancer, immunology, neuroscience, and obesity, with a strong pipeline of breakthrough therapies.
 sidebar:
     label: Eli Lilly LLY
     order: 509
+    hidden: true
 unsplash: 1559757148-5c9baccacc8f
 img: https://images.unsplash.com/photo-1559757148-5c9baccacc8f?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - healthcare
   - lly
   - biotechnology
+stock:
+  ticker: LLY
+  exchange: NYSE
+  symbol: nyse:lly
+  name: "Eli Lilly and Company"
+  sector: Health Care
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:lly`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -311,3 +321,5 @@ LLY offers exposure to pharmaceutical innovation with multiple growth drivers:
 - **Patent Protection**: Intellectual property portfolio and exclusivity maintenance
 
 <Giscus />
+
+</StockLeaf>

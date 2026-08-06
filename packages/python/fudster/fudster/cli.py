@@ -18,23 +18,17 @@ import click
 from kbve.mdx import MdxWriter
 from kbve.nx.graph import (
     GraphData,
-    mermaid_id,
     parse_graph,
     top_hubs,
 )
+from kbve.svg import DagEdge, DagNode
 from kbve.nx.security import (
     SEVERITY_ORDER,
     parse_all_ecosystems,
 )
 
 
-# ── Mermaid / MDX style constants ────────────────────────────────────
-
-TYPE_STYLES = {
-    "app": (":::app", "fill:#3b82f6,stroke:#1d4ed8,color:#fff"),
-    "lib": (":::lib", "fill:#10b981,stroke:#059669,color:#fff"),
-    "e2e": (":::e2e", "fill:#f59e0b,stroke:#d97706,color:#fff"),
-}
+# ── MDX style constants ──────────────────────────────────────────────
 
 TYPE_ICONS = {
     "app": "rocket",
@@ -526,18 +520,18 @@ def graph_to_mdx(
         )
     w.card_grid_end()
 
-    # Distribution pie
+    # Distribution donut
     w.heading("Project Distribution", level=3)
-    w.mermaid_pie(
+    w.donut(
         "Projects by Type",
         {ptype.capitalize() + "s": len(gd.by_type[ptype])
          for ptype in sorted(gd.by_type)},
     )
 
-    # Hub connectivity pie
+    # Hub connectivity donut
     if hubs and hubs[0].dependent_count > 0:
         w.heading("Hub Connectivity", level=3)
-        w.mermaid_pie(
+        w.donut(
             "Dependents per Hub",
             {r.name: r.dependent_count
              for r in hubs if r.dependent_count > 0},
@@ -547,24 +541,23 @@ def graph_to_mdx(
     w.tabs_start()
     w.tab_start("Diagram")
     if len(gd.edges) <= 200:
-        mermaid_lines = ["graph LR"]
-        for ptype, (_, style) in TYPE_STYLES.items():
-            mermaid_lines.append(f"    classDef {ptype} {style}")
-        for src, targets in sorted(gd.edges_by_source.items()):
-            src_id = mermaid_id(src)
-            for tgt in sorted(targets):
-                tgt_id = mermaid_id(tgt)
-                mermaid_lines.append(
-                    f'    {src_id}["{src}"] --> {tgt_id}["{tgt}"]'
-                )
-        for ptype, node_names in gd.by_type.items():
-            if ptype in TYPE_STYLES:
-                ids = ",".join(mermaid_id(n) for n in node_names)
-                cls_kw = "class"
-                mermaid_lines.append(
-                    f"    {cls_kw} {ids} {ptype}"
-                )
-        w.mermaid_graph(mermaid_lines)
+        node_type = {
+            name: ptype
+            for ptype, names in gd.by_type.items()
+            for name in names
+        }
+        w.dag(
+            [
+                DagNode(r.name, node_type.get(r.name, ""))
+                for r in gd.rows
+            ],
+            [
+                DagEdge(src, tgt)
+                for src, targets in sorted(gd.edges_by_source.items())
+                for tgt in sorted(targets)
+            ],
+            title="Dependency graph",
+        )
         w.admonition(
             "tip", "Legend",
             "**Blue** = Application &nbsp; "
@@ -751,7 +744,7 @@ def _write_security_mdx(
     has_findings = any(summary[s] > 0 for s in SEVERITY_ORDER[:4])
     if has_findings:
         w.heading("Severity Distribution", level=3)
-        w.mermaid_pie(
+        w.donut(
             "Findings by Severity",
             {s.capitalize(): summary[s] for s in SEVERITY_ORDER[:4]},
         )
@@ -763,7 +756,7 @@ def _write_security_mdx(
     }
     if any(v > 0 for v in eco_totals.values()):
         w.heading("Findings by Ecosystem", level=3)
-        w.mermaid_pie("Findings by Ecosystem", eco_totals)
+        w.donut("Findings by Ecosystem", eco_totals)
 
     # Summary + per-ecosystem tabs
     w.tabs_start()

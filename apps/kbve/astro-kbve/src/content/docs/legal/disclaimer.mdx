@@ -2,6 +2,7 @@
 title: Disclaimer
 description: |
     The Official KBVE Disclaimer
+template: splash
 sidebar:
     label: Disclaimer
     order: 2
@@ -21,6 +22,14 @@ import {
 	Tabs,
 	TabItem,
 } from '@astrojs/starlight/components';
+
+import LegalLeaf from '@/components/legal/LegalLeaf.astro';
+
+<LegalLeaf
+	slug="disclaimer"
+	title={frontmatter.title}
+	description={frontmatter.description}
+	heading="Disclaimer">
 
 ## Disclaimer
 
@@ -54,3 +63,5 @@ the availability of, or the content located on or through it.
 Plus, any
 losses or damages occurred from using these contents or the internet
 generally.
+
+</LegalLeaf>

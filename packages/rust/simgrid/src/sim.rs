@@ -224,6 +224,16 @@ pub enum PetRestore {
 #[derive(Resource, Default)]
 pub struct PendingPetRestores(pub Vec<(proto::PlayerSlot, PetRestore)>);
 
+/// Evolution attempts queued this frame: the roster slot and the item to spend. Drained by the
+/// game server's evolve system, which owns the item bank and the pet component writes.
+#[derive(Resource, Default)]
+pub struct PendingEvolutions(pub Vec<(proto::PlayerSlot, usize, String)>);
+
+/// Answers to outstanding pet move-learn offers, drained by the game server's learn system
+/// (which owns the offer registry and the `PetMoves` writes). `None` declines the offer.
+#[derive(Resource, Default)]
+pub struct PendingLearnResponses(pub Vec<(proto::PlayerSlot, String, Option<usize>)>);
+
 /// Deploy/reclaim queues drained in `drain_inputs` — grouped into one
 /// `SystemParam` so the input system stays under Bevy's 16-param ceiling.
 #[derive(bevy::ecs::system::SystemParam)]
@@ -240,6 +250,8 @@ pub struct DeployQueues<'w> {
     duel_ops: ResMut<'w, PendingDuelOps>,
     roster_ops: ResMut<'w, PendingRosterOps>,
     pet_restores: ResMut<'w, PendingPetRestores>,
+    learn_responses: ResMut<'w, PendingLearnResponses>,
+    evolutions: ResMut<'w, PendingEvolutions>,
 }
 
 /// A durably-persisted player-placed env object. Behavior is re-derived from
@@ -1524,7 +1536,10 @@ pub fn build_app(
         .insert_resource(PendingDuelOps::default())
         .insert_resource(PendingRosterOps::default())
         .insert_resource(crate::pets::PendingRosterSyncs::default())
+        .insert_resource(crate::progress::PendingPetXp::default())
         .insert_resource(PendingPetRestores::default())
+        .insert_resource(PendingLearnResponses::default())
+        .insert_resource(PendingEvolutions::default())
         .insert_resource(PendingDrops::default())
         .insert_resource(Deployables::default())
         .insert_resource(PendingPlacements::default())
@@ -1646,6 +1661,7 @@ fn sync_roster(
     registry: Res<KindRegistry>,
     map: Res<WalkableMap>,
     persist: Res<PlayerPersistSink>,
+    npc_db: Option<Res<crate::data::NpcDb>>,
     q_saved: Query<SavedQuery>,
     item_q: Query<(&ItemRef, &StackCount, &ItemId)>,
     mut pet_bank: PetBank,
@@ -1806,6 +1822,7 @@ fn sync_roster(
                 *slot,
                 &pet_bank.snapshot(&pet_roster),
                 pet_roster.active,
+                npc_db.as_deref(),
             );
         }
         let entity = commands
@@ -2271,7 +2288,57 @@ fn drain_inputs(
                     .pet_restores
                     .0
                     .push((slot, PetRestore::Healer { npc })),
-                other => pending.entry(slot.0).or_default().push(other),
+                Input::RespondLearnMove { pet_id, slot: at } => {
+                    deploy
+                        .learn_responses
+                        .0
+                        .push((slot, pet_id, at.map(|a| a as usize)))
+                }
+                Input::EvolvePet { idx, item_ref } => {
+                    deploy.evolutions.0.push((slot, idx as usize, item_ref))
+                }
+
+                // Deferred to the per-player pass below, which needs the mutable player query
+                // this loop cannot hold.
+                //
+                // Listed explicitly rather than caught by `other =>`. The catch-all is what let
+                // #15330 ship an `EvolvePet` arm that was never written: the input fell through
+                // to here, reached the ignore arm in the deferred pass, and did nothing on a
+                // real server while every test passed — the tests push onto the queues directly.
+                // Enumerating the deferred set makes a new variant a compile error here instead.
+                other @ (Input::Move { .. }
+                | Input::Face { .. }
+                | Input::UseItem { .. }
+                | Input::DropItem { .. }
+                | Input::MoveItem { .. }
+                | Input::EquipItem { .. }
+                | Input::PlaceItem { .. }
+                | Input::PickupObject { .. }
+                | Input::Fell { .. }
+                | Input::EnterShip { .. }
+                | Input::ExitShip
+                | Input::LaunchSpace
+                | Input::ReturnSpace
+                | Input::OpenCorpse { .. }
+                | Input::TakeFromCorpse { .. }) => pending.entry(slot.0).or_default().push(other),
+
+                // No sim-side effect, on purpose.
+                //
+                // `Heartbeat` does its work by arriving at all — `net_udp` stamps `last_seen` on
+                // any datagram, so liveness is a transport concern and the sim has nothing to do
+                // with the tick it carries.
+                //
+                // `Step` and `MoveTo` are dead: superseded by the `Move` float-movement intent,
+                // and handled nowhere in the workspace. They stay because a variant's declaration
+                // index IS its postcard wire tag — deleting `Step` (tag 0) or `MoveTo` (tag 2)
+                // renumbers every later variant and silently breaks every client. See the note on
+                // [`crate::proto::Input`].
+                //
+                // `Leave` is acted on by the transport when the socket closes, not from the queue.
+                Input::Step { .. }
+                | Input::MoveTo { .. }
+                | Input::Heartbeat { .. }
+                | Input::Leave => {}
             }
         }
     }
@@ -2495,7 +2562,11 @@ fn drain_inputs(
                 | Input::ReleasePet { .. }
                 | Input::RenamePet { .. }
                 | Input::UsePetElixir { .. }
-                | Input::HealPets { .. } => {}
+                | Input::HealPets { .. }
+                | Input::RespondLearnMove { .. }
+                // Routed in `drain_inputs` and never reaches here, but the match must still
+                // be exhaustive.
+                | Input::EvolvePet { .. } => {}
             }
         }
     }
@@ -6051,6 +6122,9 @@ mod tests {
             nickname: "Bolt".into(),
             level: 4,
             xp: 12,
+            genes: crate::genes::PetGenes::default(),
+            gender: crate::genes::PetGender::Male,
+            friendship: 70,
             vitals: crate::pets::PetVitals {
                 hp: 30,
                 max_hp: 40,

@@ -1,6 +1,6 @@
 {
 	"name": "@kbve/laser",
-	"version": "0.1.6",
+	"version": "0.2.0",
 	"description": "Phaser + React Three Fiber integration layer for React 19",
 	"keywords": [
 		"phaser",
@@ -28,9 +28,26 @@
 		".": {
 			"import": "./laser.es.js",
 			"types": "./index.d.ts"
+		},
+		"./ecs": {
+			"import": "./ecs.es.js",
+			"types": "./ecs.d.ts"
+		},
+		"./mecs": {
+			"import": "./mecs.es.js",
+			"types": "./mecs.d.ts"
+		},
+		"./phaser": {
+			"import": "./phaser.es.js",
+			"types": "./phaser.d.ts"
+		},
+		"./r3f": {
+			"import": "./r3f.es.js",
+			"types": "./r3f.d.ts"
 		}
 	},
 	"files": [
+		"*.es.js",
 		"laser.es.js",
 		"index.d.ts",
 		"**/*.d.ts",

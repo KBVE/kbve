@@ -1,10 +1,12 @@
 ---
 title: Exxon Mobil Corporation XOM
+template: splash
 description: |
     ExxonMobil is one of the world's largest publicly traded energy companies, engaged in exploring, producing, transporting, and selling crude oil and natural gas, as well as manufacturing and marketing petroleum products and chemicals.
 sidebar:
     label: ExxonMobil XOM
     order: 514
+    hidden: true
 unsplash: 1497435334941-8c899ee9e8e9
 img: https://images.unsplash.com/photo-1497435334941-8c899ee9e8e9?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - oil-gas
   - xom
   - chemicals
+stock:
+  ticker: XOM
+  exchange: NYSE
+  symbol: nyse:xom
+  name: "Exxon Mobil Corporation"
+  sector: Energy
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:xom`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -345,3 +355,5 @@ XOM offers exposure to integrated energy operations with technology leadership:
 - **Free Cash Flow**: Free cash flow generation and capital return to shareholders
 
 <Giscus />
+
+</StockLeaf>

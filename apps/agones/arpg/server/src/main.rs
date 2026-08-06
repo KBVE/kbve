@@ -4,7 +4,11 @@ mod capture;
 mod creatures;
 mod db;
 mod duel;
+mod evolve;
+mod friendship;
 mod game;
+mod growth;
+mod learn;
 mod pilot;
 mod restore;
 mod roster;
@@ -127,6 +131,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         app.insert_resource(consumables);
         app.insert_resource(buffs);
         app.insert_resource(item_db);
+        // A second parse of the embedded npcdb JSON, ~60KB at startup. The app-wide source
+        // stays the `NPC_DB` static, but simgrid systems (roster sync's `xp_to_next`) need it as
+        // a resource, and a resource cannot borrow from a LazyLock.
+        app.insert_resource(game::npc_db());
         app.insert_resource(game::spell_db());
         app.insert_resource(game::stairs());
         app.insert_resource(game::deployables());
@@ -148,6 +156,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // after inputs are routed; `tick_duels` force-resolves any duel past its turn
         // deadline; `cleanup_stale_duels` forfeits any duel whose human side disconnected;
         // chained so a start + first turn + timeout + disconnect land in frame order.
+        app.insert_resource(learn::PendingLearnOffers::default());
+        app.insert_resource(friendship::PendingFriendship::default());
         app.insert_resource(duel::ActiveDuels::default());
         app.insert_resource(duel::PendingDuels::default());
         app.add_systems(
@@ -168,6 +178,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     duel::expire_duel_challenges,
                     roster::apply_roster_ops,
                     restore::apply_pet_restores,
+                    growth::apply_pet_xp,
+                    learn::apply_learn_responses,
+                    evolve::apply_evolutions,
+                    friendship::apply_friendship,
+                    learn::expire_learn_offers,
                     simgrid::flush_roster_syncs,
                 )
                     .chain(),

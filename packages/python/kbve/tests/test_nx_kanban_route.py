@@ -105,7 +105,8 @@ def test_kanban_mdx_is_bento(tmp_path):
     assert "import BentoShell" in mdx
     assert "CardGrid" not in mdx
     assert mdx.count("<BentoProse") == mdx.count("</BentoProse>")
-    assert "```mermaid" in mdx
+    assert "```mermaid" not in mdx
+    assert 'class="kbve-figure"' in mdx
 
 
 def test_kanban_json_key_order(tmp_path):

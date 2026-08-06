@@ -1,10 +1,12 @@
 ---
 title: American Tower Corporation AMT
+template: splash
 description: |
     American Tower is one of the largest global REITs and a leading independent owner, operator, and developer of multitenant communications real estate with over 149,000 communications sites worldwide.
 sidebar:
     label: American Tower AMT
     order: 455
+    hidden: true
 unsplash: 1556075798-3cb3acd7f3ff
 img: https://images.unsplash.com/photo-1556075798-3cb3acd7f3ff?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - telecommunications
   - amt
   - infrastructure
+stock:
+  ticker: AMT
+  exchange: NYSE
+  symbol: nyse:amt
+  name: "American Tower Corporation"
+  sector: Real Estate
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:amt`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -269,3 +279,5 @@ AMT offers exposure to essential communications infrastructure with global growt
 - **Free Cash Flow**: Cash flow generation supporting dividends and growth investments
 
 <Giscus />
+
+</StockLeaf>

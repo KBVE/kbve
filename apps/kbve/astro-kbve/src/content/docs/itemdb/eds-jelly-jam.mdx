@@ -43,9 +43,11 @@ scripts:
             duration: 90
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -56,12 +58,6 @@ It's sticky and energetic, hint of flora and hibiscus, then you know it's Eddies
 
 Made in a solar-powered food truck from synthetic grapes or whatever was growing near the anomaly field.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
-
 <Adsense />
 
 ## Usage
@@ -71,15 +67,11 @@ Made in a solar-powered food truck from synthetic grapes or whatever was growing
 - Grants temporary **sugar synchronization** with glitchy devices  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - May attract *jammites* if consumed near tech  
 - Can be used in snack-crafting (e.g. *PB&J Quantum Bars*)  
 - Overconsumption may lead to wild bouncing
-
----
 
 ## Lore
 
@@ -88,8 +80,6 @@ Made in a solar-powered food truck from synthetic grapes or whatever was growing
 
 Legends say Ed once powered a motorbike with this jam.
 No one has disproven it.
-
----
 
 ## Credit
 
@@ -128,8 +118,8 @@ No one has disproven it.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Ed's Jelly Jam added as energy-boosting food with speed buff and sugar-related scripting interaction
+
+</ItemLeaf>

@@ -460,6 +460,10 @@ jobs:
 
                         console.log(`PR #${prNumber} approved`);
                       } catch (error) {
+                        if (/own pull request/i.test(error.message)) {
+                          console.log(`Skipping approval: PR #${prNumber} was authored by the PAT owner, so it cannot self-approve. Auto-merge does not require this review.`);
+                          return;
+                        }
                         console.error(`Failed to approve PR: ${error.message}`);
                         core.setFailed(`Failed to approve PR: ${error.message}`);
                       }

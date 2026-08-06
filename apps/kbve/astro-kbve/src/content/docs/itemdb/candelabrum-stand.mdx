@@ -28,8 +28,7 @@ credits: |
     Candelabrum Stand artwork by Infernus PVGames
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
-
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import {
 	Aside,
 	Steps,
@@ -37,8 +36,10 @@ import {
 	CardGrid,
 } from '@astrojs/starlight/components';
 
+<ItemLeaf data={frontmatter}>
+
 ## Overview
 
-<ItemDBPanel data={frontmatter} />
-
 A deployable floor candelabrum. Plant it down and the ring of candlelight steadies the mind — anyone standing near it regenerates mana over time. Press **R** while placing to rotate the stand. Pick it back up to fold it into the pack again.
+
+</ItemLeaf>

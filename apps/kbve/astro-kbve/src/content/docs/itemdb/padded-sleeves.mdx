@@ -6,6 +6,8 @@ sidebar:
     hidden: true
 description: |
     Quilted sleeve pair that clips to any jacket, rated for road rash and low-grade plasma splash.
+lore: |
+    Quilted arm covers that add no armor rating and are worn by nearly everyone anyway, because the rating does not measure friction burn, hot pipework, or the temperature of a depot in winter.
 ref: 'padded-sleeves'
 key: 620
 id: '01KXFBEGM26JBWDBNDS4Q24226'
@@ -32,10 +34,25 @@ equipment:
   bonuses:
     extra:
       weight: 1
+grid:
+  width: 1
+  height: 2
+set_ref: 'fieldkit'
+tags:
+  - armor
+  - fieldkit
+  - herbmail
+sources:
+  - source_type: 'vendor'
+    source_name: 'Surplus stall'
+  - source_type: 'craft'
+    source_name: 'Workbench'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Overview
 
-<ItemDBPanel data={frontmatter} />
+</ItemLeaf>

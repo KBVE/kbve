@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { homeService } from '@/components/dashboard/homeService';
+import { $auth, $isStaff } from '@kbve/droid';
+import { initSupa } from '@/lib/supa';
 import {
 	$reelList,
 	$reelListError,
@@ -164,8 +165,8 @@ export default function ReactReelConsole() {
 	const live = useStore($reelLive);
 	const health = useStore($reelHealth);
 	const selectedId = useStore($reelSelectedId);
-	const isStaff = useStore(homeService.$isStaff);
-	const authState = useStore(homeService.$authState);
+	const isStaff = useStore($isStaff);
+	const tone = useStore($auth).tone;
 
 	const [source, setSource] = useState('');
 	const [adding, setAdding] = useState(false);
@@ -173,7 +174,7 @@ export default function ReactReelConsole() {
 	const [actionError, setActionError] = useState<string | null>(null);
 
 	useEffect(() => {
-		void homeService.initAuth();
+		void initSupa().catch(() => {});
 	}, []);
 
 	useEffect(() => {
@@ -244,7 +245,7 @@ export default function ReactReelConsole() {
 		return (
 			<div className="reel-console reel-console--gated">
 				<p className="reel-console__gate">
-					{authState === 'loading' || authState === 'authenticated'
+					{tone === 'loading' || tone === 'auth'
 						? 'Checking access…'
 						: 'Reel management is restricted to KBVE staff. Sign in with a staff account to add, transcode, or remove reels.'}
 				</p>
@@ -286,6 +287,20 @@ export default function ReactReelConsole() {
 							? `● inbound :${health.forwarded_port}`
 							: '○ outbound-only'}
 					</span>
+					{health.port_rotations > 0 && (
+						<span
+							className="reel-console__health-bad"
+							title="Each VPN port rotation wipes the peer swarm — a likely cause of peers dropping.">
+							⟳ {health.port_rotations} port rotations
+						</span>
+					)}
+					{health.vpn_fail_streak > 0 && (
+						<span
+							className="reel-console__health-bad"
+							title="Consecutive failed VPN checks — the swarm pauses while the VPN is unverified.">
+							⚠ VPN checks failing ×{health.vpn_fail_streak}
+						</span>
+					)}
 					<span>
 						{health.counts.seeding} seeding · {health.counts.leeching}{' '}
 						leeching · {health.counts.failed} failed

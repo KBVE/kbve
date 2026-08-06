@@ -65,13 +65,11 @@ const statusLabel: Record<MilestoneStatus, string> = {
 	<div class="bento-roadmap__frame bento-frame">
 		<header class="bento-roadmap__intro">
 			<p class="bento-eyebrow">Roadmap</p>
-			<h2 class="bento-roadmap__heading">
-				Built in the open,<br />shipped in the open.
-			</h2>
+			<h2 class="bento-roadmap__heading">The KBVE roadmap</h2>
 			<p class="bento-roadmap__sub">
-				Every milestone below maps to real issues, pull requests, and
-				deployments in the KBVE monorepo. No private backlog — the plan
-				is the repo.
+				Built in the open, shipped in the open. Every milestone below
+				maps to real issues, pull requests, and deployments in the KBVE
+				monorepo. No private backlog — the plan is the repo.
 			</p>
 			<div class="bento-roadmap__ctas">
 				<a
@@ -212,7 +210,10 @@ const statusLabel: Record<MilestoneStatus, string> = {
 	.bento-roadmap__bg {
 		position: absolute;
 		inset: 0;
-		background-image: url('https://images.unsplash.com/photo-1714333679834-e57141e6945c?q=80&w=1981&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+		background-image: image-set(
+			url('/assets/images/bento/roadmap-bg-800.avif') 1x,
+			url('/assets/images/bento/roadmap-bg-1200.avif') 2x
+		);
 		background-size: cover;
 		background-position: center;
 		opacity: 0.35;

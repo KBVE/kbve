@@ -10,7 +10,9 @@
 			"@/*": ["src/*"],
 			"@kbve/astro": ["../../../packages/npm/astro/src/index.ts"],
 			"@kbve/droid": ["../../../packages/npm/droid/src/index.ts"],
-			"@kbve/laser": ["../../../packages/npm/laser/src/index.ts"]
+			"@kbve/laser": ["../../../packages/npm/laser/src/index.ts"],
+			"@kbve/laser/phaser": ["../../../packages/npm/laser/src/phaser.ts"],
+			"@kbve/laser/r3f": ["../../../packages/npm/laser/src/r3f.ts"]
 		},
 		"ignoreDeprecations": "6.0"
 	}

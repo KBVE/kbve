@@ -33,7 +33,7 @@ pub fn foraging_id() -> SkillId {
 /// Level 1 = 75 XP, quadratic scaling:
 ///   `xp_for_level(n) = 50*n + 25*n*n`
 pub fn dungeon_xp_curve() -> XpCurve {
-    XpCurve {
+    XpCurve::Quadratic {
         base: 50,
         scaling: 25,
         max_level: 99,

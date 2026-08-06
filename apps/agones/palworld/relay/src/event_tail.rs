@@ -12,6 +12,10 @@ use tracing::{info, warn};
 
 use crate::config::Config;
 
+const BOSS_DEDUPE_DIST: f64 = 2000.0;
+const BOSS_DEDUPE_MS: i64 = 180_000;
+const EVENT_MATCH_DIST: f64 = 1000.0;
+
 #[derive(Debug, Clone, Serialize)]
 pub struct BossDefeat {
     pub id: String,
@@ -21,7 +25,17 @@ pub struct BossDefeat {
     pub respawn_at: i64,
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct WorldEvent {
+    pub kind: String,
+    pub class: String,
+    pub x: f64,
+    pub y: f64,
+    pub first_seen: i64,
+}
+
 pub type SharedBosses = Arc<RwLock<HashMap<String, BossDefeat>>>;
+pub type SharedEvents = Arc<RwLock<Vec<WorldEvent>>>;
 
 pub fn normalize_id(raw: &str) -> String {
     let name = raw
@@ -67,7 +81,62 @@ pub fn parse_line(line: &str, respawn_secs: i64) -> Option<BossDefeat> {
     })
 }
 
-pub async fn run(cfg: Config, bosses: SharedBosses) -> Result<()> {
+pub fn parse_events_line(line: &str) -> Option<(i64, Vec<WorldEvent>)> {
+    let mut parts = line.trim().split('\t');
+    let ts: i64 = parts.next()?.parse().ok()?;
+    if parts.next()? != "EVENTS" {
+        return None;
+    }
+    let payload = parts.next()?;
+    if payload == "-" {
+        return Some((ts, Vec::new()));
+    }
+    let mut items = Vec::new();
+    for item in payload.split(';') {
+        let mut f = item.split(':');
+        let (Some(kind), Some(class), Some(xs), Some(ys)) =
+            (f.next(), f.next(), f.next(), f.next())
+        else {
+            continue;
+        };
+        let (Ok(x), Ok(y)) = (xs.parse::<f64>(), ys.parse::<f64>()) else {
+            continue;
+        };
+        items.push(WorldEvent {
+            kind: kind.to_string(),
+            class: class.to_string(),
+            x,
+            y,
+            first_seen: ts,
+        });
+    }
+    Some((ts, items))
+}
+
+pub fn is_duplicate_defeat(existing: &HashMap<String, BossDefeat>, d: &BossDefeat) -> bool {
+    existing.values().any(|b| {
+        b.id == d.id
+            && (d.defeated_at - b.defeated_at).abs() < BOSS_DEDUPE_MS
+            && ((b.x - d.x).powi(2) + (b.y - d.y).powi(2)).sqrt() < BOSS_DEDUPE_DIST
+    })
+}
+
+pub fn merge_events(current: &[WorldEvent], incoming: Vec<WorldEvent>) -> Vec<WorldEvent> {
+    incoming
+        .into_iter()
+        .map(|mut e| {
+            if let Some(prev) = current.iter().find(|p| {
+                p.kind == e.kind
+                    && ((p.x - e.x).powi(2) + (p.y - e.y).powi(2)).sqrt() < EVENT_MATCH_DIST
+            }) {
+                e.first_seen = prev.first_seen;
+            }
+            e
+        })
+        .collect()
+}
+
+pub async fn run(cfg: Config, bosses: SharedBosses, events: SharedEvents) -> Result<()> {
     let path = cfg.events_log_path.clone();
     let respawn_secs = cfg.boss_respawn_secs as i64;
     info!(path = %path, respawn_secs, "event_tail starting");
@@ -116,14 +185,20 @@ pub async fn run(cfg: Config, bosses: SharedBosses) -> Result<()> {
             let line = carry[..nl].to_string();
             carry.drain(..=nl);
             if let Some(defeat) = parse_line(&line, respawn_secs) {
+                let mut guard = bosses.write().await;
+                if is_duplicate_defeat(&guard, &defeat) {
+                    continue;
+                }
                 info!(id = %defeat.id, x = defeat.x, y = defeat.y, "boss defeat");
-                let key = format!(
-                    "{}:{}:{}",
-                    defeat.id,
-                    defeat.x.round(),
-                    defeat.y.round()
-                );
-                bosses.write().await.insert(key, defeat);
+                let key = format!("{}:{}:{}", defeat.id, defeat.x.round(), defeat.y.round());
+                guard.insert(key, defeat);
+            } else if let Some((_, incoming)) = parse_events_line(&line) {
+                let mut guard = events.write().await;
+                let merged = merge_events(&guard, incoming);
+                if merged.len() != guard.len() {
+                    info!(count = merged.len(), "world events snapshot");
+                }
+                *guard = merged;
             }
         }
         prune(&bosses).await;
@@ -167,5 +242,77 @@ mod tests {
     fn rejects_non_defeat_lines() {
         assert!(parse_line("123\tCHAT\thello\t0\t0", 3600).is_none());
         assert!(parse_line("garbage", 3600).is_none());
+    }
+
+    #[test]
+    fn parses_events_snapshot() {
+        let (ts, items) = parse_events_line(
+            "1785580000000\tEVENTS\tsupply:PalSupplyDrop:-1000.5:2000.0;meteor:BP_Meteor_C:3.0:4.0",
+        )
+        .unwrap();
+        assert_eq!(ts, 1785580000000);
+        assert_eq!(items.len(), 2);
+        assert_eq!(items[0].kind, "supply");
+        assert_eq!(items[0].x, -1000.5);
+        assert_eq!(items[1].kind, "meteor");
+    }
+
+    #[test]
+    fn parses_empty_events_snapshot() {
+        let (_, items) = parse_events_line("1785580000000\tEVENTS\t-").unwrap();
+        assert!(items.is_empty());
+    }
+
+    #[test]
+    fn dedupes_repeated_defeats() {
+        let mut map = HashMap::new();
+        let a = parse_line(
+            "1785579935000\tBOSS_DEFEAT\tBP_Boss_Eagle_C_1\t-226993.8\t191072.5",
+            3600,
+        )
+        .unwrap();
+        map.insert("k".to_string(), a);
+        let b = parse_line(
+            "1785579937000\tBOSS_DEFEAT\tBP_Boss_Eagle_C_2\t-227373.7\t190387.1",
+            3600,
+        )
+        .unwrap();
+        assert!(is_duplicate_defeat(&map, &b));
+        let far = parse_line(
+            "1785579937000\tBOSS_DEFEAT\tBP_Boss_Eagle_C_3\t-100000.0\t50000.0",
+            3600,
+        )
+        .unwrap();
+        assert!(!is_duplicate_defeat(&map, &far));
+    }
+
+    #[test]
+    fn merge_preserves_first_seen() {
+        let current = vec![WorldEvent {
+            kind: "supply".into(),
+            class: "PalSupplyDrop".into(),
+            x: 100.0,
+            y: 200.0,
+            first_seen: 111,
+        }];
+        let incoming = vec![
+            WorldEvent {
+                kind: "supply".into(),
+                class: "PalSupplyDrop".into(),
+                x: 150.0,
+                y: 220.0,
+                first_seen: 999,
+            },
+            WorldEvent {
+                kind: "meteor".into(),
+                class: "BP_Meteor_C".into(),
+                x: 9999.0,
+                y: 9999.0,
+                first_seen: 999,
+            },
+        ];
+        let merged = merge_events(&current, incoming);
+        assert_eq!(merged[0].first_seen, 111);
+        assert_eq!(merged[1].first_seen, 999);
     }
 }

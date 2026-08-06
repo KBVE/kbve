@@ -23,6 +23,8 @@ import {
 	writeFileSync,
 	readdirSync,
 	statSync,
+	mkdirSync,
+	existsSync,
 } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -46,6 +48,13 @@ const descriptorPath = resolve(__dirname, 'descriptors/professiondb.binpb');
 const generatedDir = resolve(__dirname, 'generated');
 const outputJsonPath = resolve(generatedDir, 'professiondb-data.json');
 const outputBinPath = resolve(generatedDir, 'professiondb-data.binpb');
+const mapdbDataPath = resolve(generatedDir, 'mapdb-data.json');
+const runtimeFileName = 'professiondb-runtime.json';
+const runtimeOutputPath = resolve(generatedDir, runtimeFileName);
+const DEFAULT_HARVEST_WEIGHT = 100;
+const RUNTIME_SYNC_TARGETS = [
+	resolve(repoRoot, 'apps/rareicon/unity-rareicon/Assets/StreamingAssets'),
+];
 
 const ENUM_PREFIX = {
 	category: 'PROFESSION_CATEGORY_',
@@ -149,6 +158,50 @@ function loadProfessionsFromMdx() {
 	return [...professions.values()];
 }
 
+function ensureDir(path) {
+	if (!existsSync(path)) mkdirSync(path, { recursive: true });
+}
+
+function loadNodeHarvestWeights() {
+	if (!existsSync(mapdbDataPath)) {
+		throw new Error(
+			`professiondb: ${mapdbDataPath} missing — run astro-kbve:sync:mapdb before sync:professiondb`,
+		);
+	}
+	const raw = JSON.parse(readFileSync(mapdbDataPath, 'utf8'));
+	const defs = raw.objectDefs ?? [];
+	const weights = new Map();
+	for (const def of defs) {
+		if (typeof def.ref !== 'string') continue;
+		const w = def.harvestWeight;
+		if (typeof w === 'number' && w > 0)
+			weights.set(def.ref, Math.min(w, 255));
+	}
+	return weights;
+}
+
+function buildRuntimeView(professions, nodeWeights) {
+	const runtimeProfessions = professions.map((prof) => {
+		const actions = (prof.actions ?? []).map((action) => {
+			const hasInputs =
+				Array.isArray(action.inputs) && action.inputs.length > 0;
+			if (hasInputs) return action;
+			const nodeRef = action.resourceNodeRef;
+			const harvestWeight =
+				nodeRef && nodeWeights.has(nodeRef)
+					? nodeWeights.get(nodeRef)
+					: DEFAULT_HARVEST_WEIGHT;
+			return { ...action, harvestWeight };
+		});
+		return { ...prof, actions };
+	});
+	return {
+		schema: 'professiondb-runtime',
+		version: 1,
+		professions: runtimeProfessions,
+	};
+}
+
 function main() {
 	const professions = loadProfessionsFromMdx();
 	console.log(`Loaded ${professions.length} profession defs from MDX`);
@@ -174,6 +227,18 @@ function main() {
 	const wire = toBinary(registryDesc, msg);
 	writeFileSync(outputBinPath, wire);
 	console.log(`Wrote ${outputBinPath} (${wire.length} bytes)`);
+
+	const nodeWeights = loadNodeHarvestWeights();
+	const runtimeView = buildRuntimeView(professions, nodeWeights);
+	const runtimeJson = JSON.stringify(runtimeView, null, 2) + '\n';
+	writeFileSync(runtimeOutputPath, runtimeJson);
+	console.log(`Wrote ${runtimeOutputPath}`);
+	for (const dir of RUNTIME_SYNC_TARGETS) {
+		ensureDir(dir);
+		const dest = resolve(dir, runtimeFileName);
+		writeFileSync(dest, runtimeJson);
+		console.log(`Synced ${dest}`);
+	}
 
 	generateXref();
 }

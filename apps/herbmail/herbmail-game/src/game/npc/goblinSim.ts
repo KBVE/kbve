@@ -14,7 +14,13 @@ import {
 	type World,
 } from '../mecs/props';
 import { CS } from '../character/charState';
-import { makeMover, registerBody, type Body } from '../dungeon/collision';
+import {
+	doorwayAt,
+	makeMover,
+	registerBody,
+	type Body,
+} from '../dungeon/collision';
+import { TILE } from '../config';
 import { playerAnchor } from '../render/playerAnchor';
 import { sampleFlow, updateFlowField } from './flowField';
 
@@ -64,7 +70,17 @@ interface NpcRuntime {
 	orbitDir: number;
 	orbitUntil: number;
 	dyingRemaining: number;
+	stuckFor: number;
+	lastX: number;
+	lastZ: number;
 }
+
+// Wanting to move but barely moving means we are pressed into geometry. Aggro
+// never re-rolls a direction on its own, so without this an NPC that wedges
+// stays wedged for the rest of its life.
+const STUCK_SPEED_FRAC = 0.25;
+const STUCK_TIME = 0.6;
+const UNSTICK_TIME = 0.9;
 const runtime = new Map<number, NpcRuntime>();
 
 const NPC_TERMS = [Npc, Wander, Transform3];
@@ -111,6 +127,9 @@ export function spawnGoblin(
 		orbitDir: Math.random() < 0.5 ? 1 : -1,
 		orbitUntil: 0,
 		dyingRemaining: 0,
+		stuckFor: 0,
+		lastX: x,
+		lastZ: z,
 	});
 	return eid;
 }
@@ -170,6 +189,48 @@ function accumSep(
 }
 
 const sep = { x: 0, z: 0 };
+
+// How far ahead to look for a doorway, and how hard to pull onto its centre line.
+const DOOR_LOOKAHEAD = TILE * 0.7;
+const DOOR_CENTER_GAIN = 3.2;
+// Inside the gap, stop steering once this close to centre so the pull does not
+// fight the forward drive.
+const DOOR_DEADZONE = 0.15;
+
+// The flow field is strictly axis-aligned, so an NPC offset laterally within its
+// tile walks into the door frame with no second velocity component to slide on.
+// Bias toward the opening whenever one is under or just ahead of us.
+export function steerThroughDoorway(
+	x: number,
+	z: number,
+	v: { x: number; z: number },
+	speed: number,
+): void {
+	const len = Math.hypot(v.x, v.z);
+	if (len < 1e-4) return;
+	const door =
+		doorwayAt(x, z) ??
+		doorwayAt(
+			x + (v.x / len) * DOOR_LOOKAHEAD,
+			z + (v.z / len) * DOOR_LOOKAHEAD,
+		);
+	if (!door) return;
+
+	// Keep clear of the jamb: aim for the middle, not the very edge of the gap.
+	const err = door.ns ? door.cz - z : door.cx - x;
+	if (Math.abs(err) < DOOR_DEADZONE) return;
+	const pull = Math.max(-speed, Math.min(speed, err * DOOR_CENTER_GAIN));
+	if (door.ns) v.z += pull;
+	else v.x += pull;
+
+	const out = Math.hypot(v.x, v.z);
+	if (out > speed) {
+		v.x = (v.x / out) * speed;
+		v.z = (v.z / out) * speed;
+	}
+}
+
+const steer = { x: 0, z: 0 };
 
 const deadDrain: number[] = [];
 
@@ -257,6 +318,17 @@ export function npcSystem(world: World, t: number, dt: number): void {
 			}
 		}
 
+		steer.x = vx;
+		steer.z = vz;
+		steerThroughDoorway(
+			p.x,
+			p.z,
+			steer,
+			rt.aggro ? rt.chaseSpeed : rt.walkSpeed,
+		);
+		vx = steer.x;
+		vz = steer.z;
+
 		const k = 1 - Math.exp(-VEL_SMOOTH * dt);
 		vx = Wander.vx[eid] + (vx - Wander.vx[eid]) * k;
 		vz = Wander.vz[eid] + (vz - Wander.vz[eid]) * k;
@@ -264,6 +336,35 @@ export function npcSystem(world: World, t: number, dt: number): void {
 		Wander.vz[eid] = vz;
 
 		rt.mover(p, vx * dt, vz * dt);
+
+		// Compare distance actually covered against what was asked for. While
+		// wedged, push along the wall instead of into it: the perpendicular of
+		// the desired heading, signed toward whichever side is open.
+		const want = Math.hypot(vx, vz) * dt;
+		const got = Math.hypot(p.x - rt.lastX, p.z - rt.lastZ);
+		rt.lastX = p.x;
+		rt.lastZ = p.z;
+		if (want > 1e-4 && got < want * STUCK_SPEED_FRAC) rt.stuckFor += dt;
+		else if (rt.stuckFor > 0)
+			rt.stuckFor = Math.max(0, rt.stuckFor - dt * 2);
+
+		if (rt.stuckFor > STUCK_TIME) {
+			const len = Math.hypot(vx, vz) || 1;
+			const side = rt.orbitDir;
+			const nx = (-vz / len) * side;
+			const nz = (vx / len) * side;
+			const speed = rt.aggro ? rt.chaseSpeed : rt.walkSpeed;
+			rt.mover(p, nx * speed * dt, nz * speed * dt);
+			if (rt.stuckFor > UNSTICK_TIME) {
+				// Still pinned after sliding one way — flip the side we try and
+				// drop aggro so the wander path can pick a fresh heading.
+				rt.orbitDir = -rt.orbitDir;
+				rt.aggro = false;
+				Wander.until[eid] = 0;
+				rt.stuckFor = 0;
+			}
+		}
+
 		Transform3.px[eid] = p.x;
 		Transform3.pz[eid] = p.z;
 		if (vx !== 0 || vz !== 0) {

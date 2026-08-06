@@ -1,11 +1,11 @@
-use crate::audio_toolkit::{list_input_devices, vad::SmoothedVad, AudioRecorder, SileroVad};
+use crate::audio_toolkit::{AudioRecorder, SileroVad, list_input_devices, vad::SmoothedVad};
 use crate::managers::transcription::TranscriptionManager;
 use crate::onichan::OnichanManager;
 use crate::settings::get_settings;
 use crate::vad_model;
 use log::{debug, error, info, warn};
-use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread;
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter};

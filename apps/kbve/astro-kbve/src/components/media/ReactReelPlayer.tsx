@@ -5,6 +5,7 @@ import {
 	$reelError,
 	$reelName,
 	$reelNotice,
+	$reelStatus,
 	$reelSelectedId,
 	ReelPlayer,
 } from './reelService';
@@ -15,6 +16,7 @@ const STATE_LABEL: Record<string, string> = {
 	probing: 'Preparing stream…',
 	raw: 'Playing',
 	hls: 'Playing (HLS)',
+	reconnecting: 'Reconnecting…',
 	error: 'Error',
 };
 
@@ -28,6 +30,7 @@ export default function ReactReelPlayer() {
 	const error = useStore($reelError);
 	const name = useStore($reelName);
 	const notice = useStore($reelNotice);
+	const status = useStore($reelStatus);
 	const selectedId = useStore($reelSelectedId);
 	const videoRef = useRef<HTMLVideoElement>(null);
 	const [player] = useState(() => new ReelPlayer());
@@ -81,8 +84,12 @@ export default function ReactReelPlayer() {
 		}
 	};
 
-	const busy = state === 'loading' || state === 'probing';
+	const busy =
+		state === 'loading' ||
+		state === 'probing' ||
+		state === 'reconnecting';
 	const playing = state === 'raw' || state === 'hls';
+	const reconnecting = state === 'reconnecting';
 
 	return (
 		<div className={`reel-player${theater ? ' reel-player--theater' : ''}`}>
@@ -107,6 +114,14 @@ export default function ReactReelPlayer() {
 					<div className="reel-player__overlay">
 						<p>{STATE_LABEL[state] ?? state}</p>
 						{name && <p className="reel-player__meta">{name}</p>}
+						{reconnecting && (
+							<p className="reel-player__meta">
+								{status?.message ?? 'Stream interrupted'}
+								{status?.attempt && status?.max
+									? ` · attempt ${status.attempt}/${status.max}`
+									: ''}
+							</p>
+						)}
 						{state === 'error' && error && (
 							<p className="reel-player__error">{error}</p>
 						)}

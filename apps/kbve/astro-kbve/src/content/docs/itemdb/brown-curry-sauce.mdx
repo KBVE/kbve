@@ -40,21 +40,17 @@ scripts:
         buffDuration: 120
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
 **Brown Curry Sauce** is a thick and comforting blend used in both field meals and cultural preservation rituals.
 Stirred slowly until it becomes one with memory, its spice ignites stamina and sharpens the mind, sometimes too much.
 Based on a culinary formula passed down through generations of mech-cooks and memory archivists. 
-
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 
 <Adsense />
 
@@ -65,15 +61,11 @@ Based on a culinary formula passed down through generations of mech-cooks and me
 - May trigger **nostalgic effects** or mild hallucinations related to home or family  
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Notes
 
 - Often used in crafting meals like *Curry Rice Bento*, *Spice Ration Omelets*, or *Combat Comfort Packs*  
 - Compatible with rice, bread, noodles, or synthetic meat  
 - Best consumed warm and alone to avoid emotional vulnerability
-
----
 
 ## Lore
 
@@ -83,8 +75,6 @@ Based on a culinary formula passed down through generations of mech-cooks and me
 The sauce speaks to something older than flavor.
 Each spice may be a sigil.
 Each bite, a glimpse of someone else's life.
-
----
 
 ## Credit
 
@@ -123,8 +113,8 @@ Each bite, a glimpse of someone else's life.
   ]}
 />
 
----
-
 ## DevLog
 
 - 05/30/2025 - Brown Curry Sauce added as stamina/focus food with warmth and nostalgic flavor tagging
+
+</ItemLeaf>

@@ -47,8 +47,6 @@ namespace RareIcon
         [JsonProperty("pool_group")]        public string PoolGroup;
 
         [JsonProperty("food")]              public FoodInfoDef Food;
-        [JsonProperty("skilling")]          public SkillingInfoDef Skilling;
-        [JsonProperty("compress")]          public CompressInfoDef Compress;
         [JsonProperty("stacking")]          public StackingInfoDef Stacking;
         [JsonProperty("container")]         public ContainerInfoDef Container;
         [JsonProperty("weapon")]            public WeaponInfoDef Weapon;
@@ -78,25 +76,6 @@ namespace RareIcon
         [JsonProperty("perishable")]        public bool? Perishable;
         [JsonProperty("shelf_life_seconds")] public int? ShelfLifeSeconds;
         [JsonProperty("spoils_into_ref")]   public string SpoilsIntoRef;
-    }
-
-    public sealed class SkillingInfoDef
-    {
-        [JsonProperty("skill")]          public string Skill;
-        [JsonProperty("skill_level")]    public int? SkillLevel;
-        [JsonProperty("xp_reward")]      public float? XpReward;
-        [JsonProperty("tool_required")]  public string ToolRequired;
-        [JsonProperty("gather_time")]    public float? GatherTime;
-        [JsonProperty("respawn_time")]   public int? RespawnTime;
-        [JsonProperty("resource_node")]  public string ResourceNode;
-        [JsonProperty("harvest_weight")] public int? HarvestWeight;
-    }
-
-    public sealed class CompressInfoDef
-    {
-        [JsonProperty("target_ref")] public string TargetRef;
-        [JsonProperty("ratio")]      public int Ratio;
-        [JsonProperty("facility")]   public string Facility;
     }
 
     public sealed class StackingInfoDef

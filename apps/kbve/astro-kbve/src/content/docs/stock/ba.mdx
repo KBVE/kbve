@@ -1,10 +1,12 @@
 ---
 title: The Boeing Company BA
+template: splash
 description: |
     Boeing is a leading global aerospace company and the world's largest manufacturer of commercial airplanes, providing commercial and military aircraft, satellites, missiles, and advanced technology systems worldwide.
 sidebar:
     label: Boeing BA
     order: 495
+    hidden: true
 unsplash: 1540979388789-6cee28a1cdc9
 img: https://images.unsplash.com/photo-1540979388789-6cee28a1cdc9?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - defense
   - ba
   - aviation
+stock:
+  ticker: BA
+  exchange: NYSE
+  symbol: nyse:ba
+  name: "The Boeing Company"
+  sector: Industrials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:ba`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -287,3 +297,5 @@ BA offers exposure to aerospace recovery with long-term aviation growth potentia
 - **Market Share**: Competitive position versus Airbus and other competitors
 
 <Giscus />
+
+</StockLeaf>

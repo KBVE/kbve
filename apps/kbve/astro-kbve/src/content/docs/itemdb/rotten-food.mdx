@@ -30,12 +30,14 @@ food:
   perishable: false
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Overview
-
-<ItemDBPanel data={frontmatter} />
 
 ## Sources
 
 Generic fallback for any perishable whose specific rotten variant is missing. Common sources include [berry](/itemdb/berry/), [mushroom](/itemdb/mushroom/), [carrot](/itemdb/carrot/), [cheese](/itemdb/cheese/), [butter](/itemdb/butter/), and most prepared meals that were not eaten in time.
+
+</ItemLeaf>

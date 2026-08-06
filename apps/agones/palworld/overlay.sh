@@ -46,19 +46,12 @@ if [[ -d "${EVENT_SRC}" ]]; then
     fi
 fi
 
-TWEAKS_SRC=/opt/palchatrelay/PalTweaks
-if [[ -d "${TWEAKS_SRC}" ]]; then
-    echo "[palchatrelay-overlay] staging PalTweaks into ${MODS_DIR}"
+# PalTweaks is retired: PalSchema's items loader owns shield passives now.
+# MODS_DIR lives on the PVC, so a stale copy would keep loading forever.
+if [[ -d "${MODS_DIR}/PalTweaks" ]] || grep -qiE '^[[:space:]]*PalTweaks[[:space:]]*:' "${MODS_TXT}"; then
+    echo "[palchatrelay-overlay] purging retired PalTweaks from ${MODS_DIR}"
     rm -rf "${MODS_DIR}/PalTweaks"
-    cp -a "${TWEAKS_SRC}" "${MODS_DIR}/PalTweaks"
-    if [[ -d "${MODS_DIR}/PalTweaks/scripts" ]] && [[ ! -d "${MODS_DIR}/PalTweaks/Scripts" ]]; then
-        mv "${MODS_DIR}/PalTweaks/scripts" "${MODS_DIR}/PalTweaks/Scripts"
-    fi
-    if grep -qiE '^[[:space:]]*PalTweaks[[:space:]]*:' "${MODS_TXT}"; then
-        sed -i -E 's|^[[:space:]]*PalTweaks[[:space:]]*:.*|PalTweaks : 1|I' "${MODS_TXT}"
-    else
-        echo "PalTweaks : 1" >> "${MODS_TXT}"
-    fi
+    sed -i -E '/^[[:space:]]*PalTweaks[[:space:]]*:/Id' "${MODS_TXT}"
 fi
 
 FORGE_SRC=/opt/palchatrelay/PalForge

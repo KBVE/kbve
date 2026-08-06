@@ -45,9 +45,11 @@ scripts:
             tickRate: 15
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
 import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
-import { Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
@@ -57,31 +59,19 @@ Whether it's election meddling or uncovering state secrets, this machine was bui
 
 Its terminal runs deep into the darknet, the archive, and the firewalls of weast korea.
 
----
-
-<ItemDBPanel data={frontmatter} />
-
----
-
 ## Usage
 
 - Boosts **influence** and **hack power** by {frontmatter.bonuses.influence} and {frontmatter.bonuses.hackPower} respectively
 - Activates **{frontmatter.bonuses.stealthScripts ? 'stealth scripts' : 'basic logging only'}** for covert ops
 - Cooldown: **{frontmatter.cooldown} seconds**
 
----
-
 ## Recovery
 
 It is often recovered in abandoned war rooms, fake news bunkers, or sealed diplomatic pouches. No two contain the same data, each has a history.
 
----
-
 ## Lore
 
 > “I opened a ZIP file labeled ‘truth.exe’. Two regimes collapsed and my cat won a local election.”
-
----
 
 ## Credit
 
@@ -139,8 +129,8 @@ It is often recovered in abandoned war rooms, fake news bunkers, or sealed diplo
 />
 <Adsense />
 
----
-
 ## DevLog
 
 - 05/27/2025 – Initial commit of the Propagandist Laptop data node
+
+</ItemLeaf>

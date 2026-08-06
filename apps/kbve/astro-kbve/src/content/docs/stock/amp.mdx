@@ -1,10 +1,12 @@
 ---
 title: Ameriprise Financial Inc. AMP
+template: splash
 description: |
     Ameriprise Financial is a leading diversified financial services company providing financial planning, investment advice, and asset management services to individual and institutional clients worldwide.
 sidebar:
     label: Ameriprise Financial AMP
     order: 459
+    hidden: true
 unsplash: 1460925895917-afdab827c52f
 img: https://images.unsplash.com/photo-1460925895917-afdab827c52f?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - wealth-management
   - amp
   - ameriprise
+stock:
+  ticker: AMP
+  exchange: NYSE
+  symbol: nyse:amp
+  name: "Ameriprise Financial Inc."
+  sector: Financials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:amp`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -278,3 +288,5 @@ AMP offers exposure to diversified financial services with secular growth driver
 - **Regulatory Developments**: Impact of regulatory changes on business operations and costs
 
 <Giscus />
+
+</StockLeaf>

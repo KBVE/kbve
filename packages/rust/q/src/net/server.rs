@@ -162,7 +162,7 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
         seed: state.seed,
     };
     if let Ok(buf) = proto::encode(&welcome)
-        && socket.send(Message::Binary(buf)).await.is_err()
+        && socket.send(Message::Binary(buf.into())).await.is_err()
     {
         release_slot(&roster_handle, slot);
         return;
@@ -182,7 +182,7 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
                 let Some(evt) = evt else { break };
                 let evt = inject_roster(evt, &state.roster);
                 let Ok(buf) = proto::encode(&evt) else { continue };
-                if socket.send(Message::Binary(buf)).await.is_err() {
+                if socket.send(Message::Binary(buf.into())).await.is_err() {
                     break;
                 }
             }
@@ -190,7 +190,7 @@ async fn handle_socket(mut socket: WebSocket, state: Arc<ServerState>) {
                 let Some(Ok(msg)) = incoming else { break };
                 match msg {
                     Message::Binary(bytes) => {
-                        let mut buf = bytes;
+                        let mut buf = bytes.to_vec();
                         if let Ok(ClientMessage::Frame(frame)) =
                             proto::decode::<ClientMessage>(&mut buf)
                             && let Some(tx) = state.input_tx.as_ref()
@@ -225,7 +225,7 @@ async fn await_join_match(
         let Message::Binary(bytes) = msg else {
             continue;
         };
-        let mut buf = bytes;
+        let mut buf = bytes.to_vec();
         let Ok(ClientMessage::JoinMatch(jm)) = proto::decode::<ClientMessage>(&mut buf) else {
             send_reject(socket, "expected JoinMatch as first frame").await;
             return None;
@@ -310,7 +310,7 @@ async fn send_reject(socket: &mut WebSocket, reason: &str) {
         reason: reason.to_string(),
     };
     if let Ok(buf) = proto::encode(&evt) {
-        let _ = socket.send(Message::Binary(buf)).await;
+        let _ = socket.send(Message::Binary(buf.into())).await;
     }
     // Issue a clean WS Close so the client tears down without surfacing a
     // protocol-error disconnect on top of the Reject payload.

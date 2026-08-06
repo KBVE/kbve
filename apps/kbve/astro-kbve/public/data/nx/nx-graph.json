@@ -749,9 +749,9 @@
 						}
 					},
 					"name": "deathslayer-launcher",
+					"tags": ["npm:private"],
 					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"sourceRoot": "apps/deathslayer/deathslayer-launcher",
-					"tags": ["npm:private"],
 					"implicitDependencies": []
 				}
 			},
@@ -1966,9 +1966,9 @@
 						}
 					},
 					"name": "rentearth-web",
+					"tags": ["npm:private", "vite", "react", "rentearth"],
 					"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
 					"sourceRoot": "apps/rentearth/axum-rentearth/web/src",
-					"tags": ["npm:private", "vite", "react", "rentearth"],
 					"implicitDependencies": []
 				}
 			},
@@ -2010,10 +2010,7 @@
 					},
 					"name": "astro-rareicon-e2e",
 					"projectType": "application",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "apps/rareicon/astro-rareicon-e2e/e2e",
 					"tags": ["npm:private"],
-					"implicitDependencies": ["astro-rareicon"],
 					"metadata": {
 						"targetGroups": {},
 						"js": {
@@ -2021,7 +2018,10 @@
 							"packageVersion": "0.0.0",
 							"isInPackageManagerWorkspaces": false
 						}
-					}
+					},
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "apps/rareicon/astro-rareicon-e2e/e2e",
+					"implicitDependencies": ["astro-rareicon"]
 				}
 			},
 			"bevy_behavior": {
@@ -2503,8 +2503,8 @@
 						}
 					},
 					"name": "axum-chuckrpg-e2e",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"tags": ["npm:private"],
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"implicitDependencies": ["axum-chuckrpg"]
 				}
 			},
@@ -2558,8 +2558,8 @@
 						}
 					},
 					"name": "axum-rareicon-e2e",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"tags": ["npm:private"],
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"implicitDependencies": ["axum-rareicon"]
 				}
 			},
@@ -3143,14 +3143,14 @@
 						}
 					},
 					"name": "arc-runner-e2e",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "packages/docker/arc-runner-e2e/e2e",
 					"tags": [
 						"npm:private",
 						"scope:docker",
 						"arc-runner",
 						"e2e"
 					],
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "packages/docker/arc-runner-e2e/e2e",
 					"implicitDependencies": ["arc-runner"]
 				}
 			},
@@ -3966,6 +3966,120 @@
 							"parallelism": true
 						}
 					},
+					"implicitDependencies": []
+				}
+			},
+			"agones-palworld-savetool": {
+				"name": "agones-palworld-savetool",
+				"type": "app",
+				"data": {
+					"root": "apps/agones/palworld/savetool",
+					"targets": {
+						"test": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"options": {
+								"command": "uv run --with-requirements requirements.txt --python 3.12 python -m unittest discover .",
+								"cwd": "apps/agones/palworld/savetool"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"e2e": {
+							"inputs": ["default", "^production"],
+							"cache": false,
+							"executor": "nx:run-commands",
+							"defaultConfiguration": "local",
+							"dependsOn": [
+								{
+									"target": "container",
+									"projects": ["agones-palworld-savetool"],
+									"params": "ignore"
+								}
+							],
+							"options": {
+								"commands": [
+									"rm -rf .e2e-venv && python3 -m venv .e2e-venv",
+									".e2e-venv/bin/pip install --quiet -r requirements.txt coverage",
+									".e2e-venv/bin/python -m coverage run --source=save_intel -m unittest discover .",
+									".e2e-venv/bin/python -m coverage run --append --source=save_intel e2e_save_intel.py",
+									".e2e-venv/bin/python -m coverage report --show-missing --fail-under=70"
+								],
+								"cwd": "apps/agones/palworld/savetool",
+								"parallel": false
+							},
+							"configurations": {
+								"local": {},
+								"ci": {}
+							},
+							"parallelism": true
+						},
+						"container": {
+							"executor": "nx:run-commands",
+							"defaultConfiguration": "local",
+							"options": {
+								"parallel": false
+							},
+							"configurations": {
+								"local": {
+									"commands": [
+										"./kbve.sh -nx agones-palworld-savetool:containerx",
+										"VERSION=$(sed -n 's/^version *= *\"\\(.*\\)\"/\\1/p' apps/agones/palworld/savetool/version.toml | head -1) && docker tag kbve/agones-palworld-savetool:latest kbve/agones-palworld-savetool:$VERSION && echo \"Tagged kbve/agones-palworld-savetool:$VERSION\""
+									]
+								},
+								"production": {
+									"commands": [
+										"./kbve.sh -nx agones-palworld-savetool:containerx --configuration=production",
+										"VERSION=$(sed -n 's/^version *= *\"\\(.*\\)\"/\\1/p' apps/agones/palworld/savetool/version.toml | head -1) && docker tag kbve/agones-palworld-savetool:latest kbve/agones-palworld-savetool:$VERSION && docker tag kbve/agones-palworld-savetool:latest ghcr.io/kbve/agones-palworld-savetool:latest && docker tag kbve/agones-palworld-savetool:latest ghcr.io/kbve/agones-palworld-savetool:$VERSION && echo \"Tagged ghcr.io/kbve/agones-palworld-savetool:$VERSION\""
+									]
+								}
+							},
+							"parallelism": true
+						},
+						"containerx": {
+							"executor": "@nx-tools/nx-container:build",
+							"defaultConfiguration": "local",
+							"options": {
+								"engine": "docker",
+								"context": ".",
+								"file": "apps/agones/palworld/savetool/Dockerfile",
+								"load": true
+							},
+							"configurations": {
+								"local": {
+									"load": true,
+									"push": false,
+									"tags": [
+										"kbve/agones-palworld-savetool:latest"
+									]
+								},
+								"production": {
+									"load": true,
+									"push": false,
+									"metadata": {
+										"images": [
+											"ghcr.io/kbve/agones-palworld-savetool",
+											"kbve/agones-palworld-savetool"
+										],
+										"tags": ["latest"]
+									},
+									"cache-from": [
+										"type=registry,ref=ghcr.io/kbve/agones-palworld-savetool:buildcache"
+									],
+									"cache-to": [
+										"type=registry,ref=ghcr.io/kbve/agones-palworld-savetool:buildcache,mode=max"
+									]
+								}
+							},
+							"parallelism": true
+						}
+					},
+					"name": "agones-palworld-savetool",
+					"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+					"projectType": "application",
+					"sourceRoot": "apps/agones/palworld/savetool",
+					"tags": ["scope:agones"],
 					"implicitDependencies": []
 				}
 			},
@@ -5293,9 +5407,9 @@
 						}
 					},
 					"name": "chuck-launcher",
+					"tags": ["npm:private"],
 					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"sourceRoot": "apps/chuckrpg/chuck-launcher",
-					"tags": ["npm:private"],
 					"implicitDependencies": []
 				}
 			},
@@ -5408,13 +5522,7 @@
 					},
 					"name": "discordsh-e2e",
 					"projectType": "application",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "apps/discordsh/discordsh-e2e/e2e",
 					"tags": ["npm:private"],
-					"implicitDependencies": [
-						"axum-discordsh",
-						"astro-discordsh"
-					],
 					"metadata": {
 						"targetGroups": {},
 						"js": {
@@ -5422,7 +5530,13 @@
 							"packageVersion": "0.0.0",
 							"isInPackageManagerWorkspaces": false
 						}
-					}
+					},
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "apps/discordsh/discordsh-e2e/e2e",
+					"implicitDependencies": [
+						"axum-discordsh",
+						"astro-discordsh"
+					]
 				}
 			},
 			"embeddb-derive": {
@@ -6096,9 +6210,9 @@
 						}
 					},
 					"name": "firecracker-ctl-e2e",
+					"tags": ["npm:private", "scope:vm", "firecracker", "e2e"],
 					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"sourceRoot": "apps/vm/firecracker-ctl-e2e/e2e",
-					"tags": ["npm:private", "scope:vm", "firecracker", "e2e"],
 					"implicitDependencies": ["firecracker-ctl"]
 				}
 			},
@@ -6227,6 +6341,17 @@
 							"configurations": {},
 							"parallelism": true
 						},
+						"e2e": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"dependsOn": ["build"],
+							"options": {
+								"command": "pnpm exec playwright test -c apps/herbmail/herbmail-game/playwright.config.ts"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
 						"rebake": {
 							"executor": "nx:run-commands",
 							"options": {
@@ -6277,15 +6402,39 @@
 						}
 					},
 					"name": "herbmail-game",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "apps/herbmail/herbmail-game/src",
 					"tags": [
 						"npm:private",
 						"scope:herbmail",
 						"type:app",
 						"game"
 					],
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "apps/herbmail/herbmail-game/src",
 					"implicitDependencies": []
+				}
+			},
+			"herbmail-server": {
+				"name": "herbmail-server",
+				"type": "lib",
+				"data": {
+					"root": "apps/agones/herbmail/server",
+					"name": "herbmail-server",
+					"release": {
+						"version": {
+							"versionActions": "@monodon/rust/src/release/version-actions"
+						}
+					},
+					"targets": {
+						"nx-release-publish": {
+							"dependsOn": ["^nx-release-publish"],
+							"executor": "@monodon/rust:release-publish",
+							"options": {},
+							"configurations": {},
+							"parallelism": true
+						}
+					},
+					"implicitDependencies": [],
+					"tags": []
 				}
 			},
 			"kbve-react-native": {
@@ -6295,10 +6444,7 @@
 					"root": "apps/kbve/kbve-react-native",
 					"name": "kbve-react-native",
 					"projectType": "application",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "apps/kbve/kbve-react-native",
 					"tags": ["npm:private", "scope:mobile", "type:app"],
-					"implicitDependencies": ["rn"],
 					"metadata": {
 						"targetGroups": {},
 						"js": {
@@ -6418,7 +6564,10 @@
 							"configurations": {},
 							"parallelism": true
 						}
-					}
+					},
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "apps/kbve/kbve-react-native",
+					"implicitDependencies": ["rn"]
 				}
 			},
 			"khashvault-e2e": {
@@ -6573,9 +6722,9 @@
 						}
 					},
 					"name": "khashvault-e2e",
+					"tags": ["npm:private"],
 					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"sourceRoot": "packages/npm/khashvault-e2e/src",
-					"tags": ["npm:private"],
 					"implicitDependencies": ["khashvault"]
 				}
 			},
@@ -7051,10 +7200,7 @@
 					},
 					"name": "herbmail-e2e",
 					"projectType": "application",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "apps/herbmail/herbmail-e2e/e2e",
 					"tags": ["npm:private"],
-					"implicitDependencies": ["axum-herbmail", "astro-herbmail"],
 					"metadata": {
 						"targetGroups": {},
 						"js": {
@@ -7062,7 +7208,10 @@
 							"packageVersion": "0.0.0",
 							"isInPackageManagerWorkspaces": false
 						}
-					}
+					},
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "apps/herbmail/herbmail-e2e/e2e",
+					"implicitDependencies": ["axum-herbmail", "astro-herbmail"]
 				}
 			},
 			"arpg-e2e": {
@@ -7120,10 +7269,7 @@
 					},
 					"name": "arpg-e2e",
 					"projectType": "application",
-					"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "apps/agones/arpg/arpg-e2e/e2e",
 					"tags": ["npm:private", "agones", "arpg", "e2e"],
-					"implicitDependencies": ["arpg-server", "arpg"],
 					"metadata": {
 						"targetGroups": {},
 						"js": {
@@ -7131,7 +7277,10 @@
 							"packageVersion": "0.0.0",
 							"isInPackageManagerWorkspaces": false
 						}
-					}
+					},
+					"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "apps/agones/arpg/arpg-e2e/e2e",
+					"implicitDependencies": ["arpg-server", "arpg"]
 				}
 			},
 			"kasm-void": {
@@ -7312,9 +7461,9 @@
 						}
 					},
 					"name": "astro-kbve-e2e",
+					"tags": ["npm:private"],
 					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"sourceRoot": "apps/kbve/astro-kbve-e2e/e2e",
-					"tags": ["npm:private"],
 					"implicitDependencies": ["axum-kbve"]
 				}
 			},
@@ -7582,9 +7731,9 @@
 						}
 					},
 					"name": "aria2-proxy-e2e",
+					"tags": ["npm:private", "scope:vm", "aria2-proxy", "e2e"],
 					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"sourceRoot": "apps/vm/aria2-proxy-e2e/e2e",
-					"tags": ["npm:private", "scope:vm", "aria2-proxy", "e2e"],
 					"implicitDependencies": ["aria2-proxy"]
 				}
 			},
@@ -7753,8 +7902,8 @@
 						}
 					},
 					"name": "axum-kbve-e2e",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"tags": ["npm:private"],
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"implicitDependencies": ["axum-kbve"]
 				}
 			},
@@ -7862,9 +8011,9 @@
 					},
 					"projectType": "application",
 					"name": "devops-e2e",
+					"tags": ["npm:private"],
 					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"sourceRoot": "packages/npm/devops-e2e/src",
-					"tags": ["npm:private"],
 					"implicitDependencies": ["devops"]
 				}
 			},
@@ -8434,15 +8583,6 @@
 						}
 					},
 					"name": "khashvault",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "packages/npm/khashvault/src",
-					"release": {
-						"version": {
-							"currentVersionResolver": "disk",
-							"preserveLocalDependencyProtocols": false,
-							"manifestRootsToUpdate": ["packages/npm/khashvault"]
-						}
-					},
 					"tags": [
 						"npm:public",
 						"npm:crypto",
@@ -8453,6 +8593,15 @@
 						"npm:indexeddb",
 						"npm:secure-storage"
 					],
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "packages/npm/khashvault/src",
+					"release": {
+						"version": {
+							"currentVersionResolver": "disk",
+							"preserveLocalDependencyProtocols": false,
+							"manifestRootsToUpdate": ["packages/npm/khashvault"]
+						}
+					},
 					"implicitDependencies": []
 				}
 			},
@@ -8673,10 +8822,7 @@
 					},
 					"name": "astro-e2e",
 					"projectType": "application",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "packages/npm/astro-e2e/src",
 					"tags": ["npm:private"],
-					"implicitDependencies": ["astro"],
 					"metadata": {
 						"targetGroups": {},
 						"js": {
@@ -8684,7 +8830,10 @@
 							"packageVersion": "0.0.0",
 							"isInPackageManagerWorkspaces": false
 						}
-					}
+					},
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "packages/npm/astro-e2e/src",
+					"implicitDependencies": ["astro"]
 				}
 			},
 			"astro-memes": {
@@ -8936,8 +9085,6 @@
 					},
 					"name": "desktop-kbve",
 					"projectType": "application",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "apps/kbve/desktop-kbve",
 					"tags": ["npm:private"],
 					"metadata": {
 						"targetGroups": {
@@ -8949,6 +9096,8 @@
 							"isInPackageManagerWorkspaces": false
 						}
 					},
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "apps/kbve/desktop-kbve",
 					"implicitDependencies": []
 				}
 			},
@@ -9104,9 +9253,9 @@
 						}
 					},
 					"name": "droid-e2e",
+					"tags": ["npm:private"],
 					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"sourceRoot": "packages/npm/droid-e2e/src",
-					"tags": ["npm:private"],
 					"implicitDependencies": ["droid"]
 				}
 			},
@@ -9262,9 +9411,9 @@
 						}
 					},
 					"name": "laser-e2e",
+					"tags": ["npm:private"],
 					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"sourceRoot": "packages/npm/laser-e2e/src",
-					"tags": ["npm:private"],
 					"implicitDependencies": ["laser"]
 				}
 			},
@@ -9486,7 +9635,9 @@
 							"executor": "@monodon/rust:test",
 							"outputs": ["{options.target-dir}"],
 							"options": {
-								"target-dir": "dist/target/embeddb"
+								"target-dir": "dist/target/embeddb",
+								"all-features": true,
+								"lib": true
 							},
 							"configurations": {
 								"production": {
@@ -9513,12 +9664,18 @@
 						"e2e": {
 							"inputs": ["default", "^production"],
 							"cache": true,
-							"executor": "nx:run-commands",
+							"executor": "@monodon/rust:test",
+							"outputs": ["{options.target-dir}"],
 							"options": {
-								"commands": ["nx test embeddb"],
-								"parallel": false
+								"target-dir": "dist/target/embeddb",
+								"all-features": true,
+								"tests": true
 							},
-							"configurations": {},
+							"configurations": {
+								"production": {
+									"release": true
+								}
+							},
 							"parallelism": true
 						}
 					},
@@ -9567,8 +9724,6 @@
 					},
 					"name": "rn-astro",
 					"projectType": "library",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "packages/npm/rn-astro/src",
 					"tags": [
 						"npm:public",
 						"npm:kbve",
@@ -9598,6 +9753,80 @@
 							"isInPackageManagerWorkspaces": false
 						}
 					},
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "packages/npm/rn-astro/src",
+					"implicitDependencies": []
+				}
+			},
+			"rn-tauri": {
+				"name": "rn-tauri",
+				"type": "lib",
+				"data": {
+					"root": "packages/npm/rn-tauri",
+					"targets": {
+						"lint": {
+							"inputs": [
+								"default",
+								"^default",
+								"{workspaceRoot}/eslint.config.mjs",
+								"{workspaceRoot}/eslint.config.js",
+								"{workspaceRoot}/tools/eslint-rules/**/*"
+							],
+							"cache": true,
+							"executor": "@nx/eslint:lint",
+							"options": {},
+							"configurations": {},
+							"parallelism": true
+						},
+						"nx-release-publish": {
+							"executor": "@nx/js:release-publish",
+							"dependsOn": ["^nx-release-publish"],
+							"options": {},
+							"configurations": {},
+							"parallelism": true
+						},
+						"typecheck": {
+							"executor": "nx:run-commands",
+							"options": {
+								"command": "tsc --noEmit -p packages/npm/rn-tauri/tsconfig.lib.json"
+							},
+							"configurations": {},
+							"parallelism": true
+						}
+					},
+					"name": "rn-tauri",
+					"projectType": "library",
+					"tags": [
+						"npm:public",
+						"npm:kbve",
+						"npm:tauri",
+						"npm:react-native-web",
+						"npm:bridge",
+						"scope:web",
+						"type:lib"
+					],
+					"metadata": {
+						"targetGroups": {},
+						"description": "Bridge that runs @kbve/rn (React Native) components inside a Tauri webview via react-native-web, with an auth adapter for the Rust-backed Supabase session.",
+						"js": {
+							"packageName": "@kbve/rn-tauri",
+							"packageVersion": "0.0.1",
+							"packageExports": {
+								".": {
+									"types": "./src/index.ts",
+									"import": "./src/index.ts"
+								},
+								"./vite": {
+									"types": "./src/vite.ts",
+									"import": "./src/vite.ts"
+								}
+							},
+							"packageMain": "./src/index.ts",
+							"isInPackageManagerWorkspaces": false
+						}
+					},
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "packages/npm/rn-tauri/src",
 					"implicitDependencies": []
 				}
 			},
@@ -10033,8 +10262,6 @@
 					},
 					"name": "arpg-web",
 					"includedScripts": [],
-					"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "apps/agones/arpg/web/src",
 					"tags": [
 						"npm:private",
 						"vite",
@@ -10042,6 +10269,8 @@
 						"game-client",
 						"arpg"
 					],
+					"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "apps/agones/arpg/web/src",
 					"implicitDependencies": []
 				}
 			},
@@ -10245,6 +10474,38 @@
 							"options": {
 								"cwd": "apps/kbve/astro-kbve",
 								"command": "npx tsx scripts/gen-ci-manifest.mts --check"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"gen:mermaid": {
+							"executor": "nx:run-commands",
+							"inputs": [
+								"{projectRoot}/src/content/**/*.mdx",
+								"{projectRoot}/src/content/**/*.md",
+								"{projectRoot}/scripts/gen-mermaid.mjs"
+							],
+							"outputs": ["{projectRoot}/src/generated/mermaid"],
+							"cache": true,
+							"options": {
+								"cwd": "apps/kbve/astro-kbve",
+								"command": "node scripts/gen-mermaid.mjs"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"gen:mermaid:check": {
+							"executor": "nx:run-commands",
+							"inputs": [
+								"{projectRoot}/src/content/**/*.mdx",
+								"{projectRoot}/src/content/**/*.md",
+								"{projectRoot}/scripts/gen-mermaid.mjs",
+								"{projectRoot}/src/generated/mermaid"
+							],
+							"cache": true,
+							"options": {
+								"cwd": "apps/kbve/astro-kbve",
+								"command": "node scripts/gen-mermaid.mjs --check"
 							},
 							"configurations": {},
 							"parallelism": true
@@ -10502,6 +10763,54 @@
 							"cache": true,
 							"options": {
 								"command": "node packages/data/codegen/gen-itemdb-uecpp.mjs",
+								"cwd": ""
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"sync:professiondb-uecpp": {
+							"executor": "nx:run-commands",
+							"inputs": [
+								"{workspaceRoot}/packages/data/codegen/gen-professiondb-uecpp.mjs",
+								"{workspaceRoot}/packages/data/codegen/descriptors/professiondb.binpb"
+							],
+							"outputs": [
+								"{workspaceRoot}/packages/unreal/KBVEProfessionDB/Source/KBVEProfessionDB/Public/Generated/KBVEProfessionDBProtoTypes.h",
+								"{workspaceRoot}/packages/unreal/KBVEProfessionDB/Source/KBVEProfessionDB/Public/Generated/KBVEProfessionDBProtoParse.h"
+							],
+							"cache": true,
+							"options": {
+								"command": "node packages/data/codegen/gen-professiondb-uecpp.mjs",
+								"cwd": ""
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"sync:professiondb": {
+							"executor": "nx:run-commands",
+							"dependsOn": [
+								"sync:mapdb",
+								"sync:itemdb",
+								"sync:professiondb-uecpp"
+							],
+							"inputs": [
+								"{projectRoot}/src/content/docs/professiondb/**/*.mdx",
+								"{workspaceRoot}/packages/data/codegen/gen-professiondb-data.mjs",
+								"{workspaceRoot}/packages/data/codegen/gen-professiondb-xref.mjs",
+								"{workspaceRoot}/packages/data/codegen/descriptors/professiondb.binpb",
+								"{workspaceRoot}/packages/data/codegen/generated/mapdb-data.json",
+								"{workspaceRoot}/packages/data/codegen/generated/itemdb-data.json"
+							],
+							"outputs": [
+								"{workspaceRoot}/packages/data/codegen/generated/professiondb-data.json",
+								"{workspaceRoot}/packages/data/codegen/generated/professiondb-data.binpb",
+								"{workspaceRoot}/packages/data/codegen/generated/professiondb-runtime.json",
+								"{workspaceRoot}/packages/data/codegen/generated/xref-index.json",
+								"{workspaceRoot}/apps/rareicon/unity-rareicon/Assets/StreamingAssets/professiondb-runtime.json"
+							],
+							"cache": true,
+							"options": {
+								"command": "node packages/data/codegen/gen-professiondb-data.mjs",
 								"cwd": ""
 							},
 							"configurations": {},
@@ -11050,10 +11359,7 @@
 					},
 					"name": "memes-e2e",
 					"projectType": "application",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "apps/memes/memes-e2e/e2e",
 					"tags": ["npm:private"],
-					"implicitDependencies": ["axum-memes", "astro-memes"],
 					"metadata": {
 						"targetGroups": {},
 						"js": {
@@ -11061,7 +11367,10 @@
 							"packageVersion": "0.0.0",
 							"isInPackageManagerWorkspaces": false
 						}
-					}
+					},
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "apps/memes/memes-e2e/e2e",
+					"implicitDependencies": ["axum-memes", "astro-memes"]
 				}
 			},
 			"python-kbve": {
@@ -11806,6 +12115,13 @@
 						}
 					},
 					"name": "devops",
+					"tags": [
+						"npm:public",
+						"npm:github",
+						"npm:actions",
+						"npm:helper",
+						"npm:devops"
+					],
 					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"sourceRoot": "packages/npm/devops/src",
 					"release": {
@@ -11815,13 +12131,6 @@
 							"manifestRootsToUpdate": ["packages/npm/devops"]
 						}
 					},
-					"tags": [
-						"npm:public",
-						"npm:github",
-						"npm:actions",
-						"npm:helper",
-						"npm:devops"
-					],
 					"implicitDependencies": []
 				}
 			},
@@ -12068,8 +12377,6 @@
 					},
 					"name": "isometric",
 					"projectType": "application",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "apps/kbve/isometric",
 					"tags": ["npm:private"],
 					"metadata": {
 						"targetGroups": {
@@ -12081,6 +12388,8 @@
 							"isInPackageManagerWorkspaces": false
 						}
 					},
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "apps/kbve/isometric",
 					"implicitDependencies": []
 				}
 			},
@@ -12256,9 +12565,9 @@
 						}
 					},
 					"name": "kubectl-e2e",
+					"tags": ["npm:private", "scope:vm", "kubectl", "e2e"],
 					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"sourceRoot": "apps/vm/kubectl-e2e/e2e",
-					"tags": ["npm:private", "scope:vm", "kubectl", "e2e"],
 					"implicitDependencies": ["kbve-kubectl"]
 				}
 			},
@@ -12300,8 +12609,6 @@
 					},
 					"name": "observ",
 					"projectType": "library",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "packages/npm/observ/src",
 					"tags": [
 						"npm:public",
 						"npm:kbve",
@@ -12328,6 +12635,8 @@
 							"isInPackageManagerWorkspaces": false
 						}
 					},
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "packages/npm/observ/src",
 					"implicitDependencies": []
 				}
 			},
@@ -12664,6 +12973,14 @@
 						}
 					},
 					"name": "astro",
+					"tags": [
+						"npm:public",
+						"npm:astro",
+						"npm:react",
+						"npm:droid",
+						"npm:workers",
+						"npm:components"
+					],
 					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"sourceRoot": "packages/npm/astro/src",
 					"release": {
@@ -12673,14 +12990,6 @@
 							"manifestRootsToUpdate": ["packages/npm/astro"]
 						}
 					},
-					"tags": [
-						"npm:public",
-						"npm:astro",
-						"npm:react",
-						"npm:droid",
-						"npm:workers",
-						"npm:components"
-					],
 					"implicitDependencies": []
 				}
 			},
@@ -13031,7 +13340,7 @@
 						"description": "A manager for web, shared and service workers, aimming to make it as modular and upgradable.",
 						"js": {
 							"packageName": "@kbve/droid",
-							"packageVersion": "0.1.1",
+							"packageVersion": "0.1.2",
 							"packageExports": {
 								".": {
 									"import": "./droid.mjs",
@@ -13048,6 +13357,7 @@
 						}
 					},
 					"name": "droid",
+					"tags": ["npm:public", "npm:workers", "npm:management"],
 					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"sourceRoot": "packages/npm/droid/src",
 					"release": {
@@ -13057,7 +13367,6 @@
 							"manifestRootsToUpdate": ["packages/npm/droid"]
 						}
 					},
-					"tags": ["npm:public", "npm:workers", "npm:management"],
 					"implicitDependencies": []
 				}
 			},
@@ -13102,9 +13411,9 @@
 						}
 					},
 					"name": "edge-e2e",
+					"tags": ["npm:private", "scope:kbve"],
 					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 					"sourceRoot": "apps/kbve/edge-e2e/e2e",
-					"tags": ["npm:private", "scope:kbve"],
 					"implicitDependencies": ["edge"]
 				}
 			},
@@ -13444,8 +13753,6 @@
 					},
 					"name": "kbve-tauri",
 					"projectType": "library",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "packages/npm/tauri/src",
 					"tags": [
 						"npm:public",
 						"npm:kbve",
@@ -13472,6 +13779,8 @@
 							"isInPackageManagerWorkspaces": false
 						}
 					},
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "packages/npm/tauri/src",
 					"implicitDependencies": []
 				}
 			},
@@ -13983,11 +14292,27 @@
 						"description": "Phaser + React Three Fiber integration layer for React 19",
 						"js": {
 							"packageName": "@kbve/laser",
-							"packageVersion": "0.1.6",
+							"packageVersion": "0.2.0",
 							"packageExports": {
 								".": {
 									"import": "./laser.es.js",
 									"types": "./index.d.ts"
+								},
+								"./ecs": {
+									"import": "./ecs.es.js",
+									"types": "./ecs.d.ts"
+								},
+								"./mecs": {
+									"import": "./mecs.es.js",
+									"types": "./mecs.d.ts"
+								},
+								"./phaser": {
+									"import": "./phaser.es.js",
+									"types": "./phaser.d.ts"
+								},
+								"./r3f": {
+									"import": "./r3f.es.js",
+									"types": "./r3f.d.ts"
 								}
 							},
 							"packageMain": "./laser.es.js",
@@ -13995,15 +14320,6 @@
 						}
 					},
 					"name": "laser",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "packages/npm/laser/src",
-					"release": {
-						"version": {
-							"currentVersionResolver": "disk",
-							"preserveLocalDependencyProtocols": false,
-							"manifestRootsToUpdate": ["packages/npm/laser"]
-						}
-					},
 					"tags": [
 						"npm:public",
 						"npm:phaser",
@@ -14013,6 +14329,15 @@
 						"npm:gamedev",
 						"npm:three.js"
 					],
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "packages/npm/laser/src",
+					"release": {
+						"version": {
+							"currentVersionResolver": "disk",
+							"preserveLocalDependencyProtocols": false,
+							"manifestRootsToUpdate": ["packages/npm/laser"]
+						}
+					},
 					"implicitDependencies": []
 				}
 			},
@@ -14085,8 +14410,6 @@
 						}
 					},
 					"name": "chat",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "packages/npm/chat/src",
 					"tags": [
 						"npm:public",
 						"npm:kbve",
@@ -14097,6 +14420,8 @@
 						"scope:shared",
 						"type:lib"
 					],
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "packages/npm/chat/src",
 					"implicitDependencies": []
 				}
 			},
@@ -14150,8 +14475,6 @@
 					},
 					"name": "core",
 					"projectType": "library",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "packages/npm/core/src",
 					"tags": [
 						"npm:public",
 						"npm:kbve",
@@ -14178,6 +14501,8 @@
 							"isInPackageManagerWorkspaces": false
 						}
 					},
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "packages/npm/core/src",
 					"implicitDependencies": []
 				}
 			},
@@ -14607,10 +14932,7 @@
 					},
 					"name": "irc-e2e",
 					"projectType": "application",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "apps/irc/irc-e2e/e2e",
 					"tags": ["npm:private"],
-					"implicitDependencies": ["irc-gateway", "astro-irc"],
 					"metadata": {
 						"targetGroups": {},
 						"js": {
@@ -14618,7 +14940,10 @@
 							"packageVersion": "0.0.0",
 							"isInPackageManagerWorkspaces": false
 						}
-					}
+					},
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "apps/irc/irc-e2e/e2e",
+					"implicitDependencies": ["irc-gateway", "astro-irc"]
 				}
 			},
 			"mc-velocity": {
@@ -14801,8 +15126,6 @@
 						}
 					},
 					"name": "fx",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "packages/npm/fx/src",
 					"tags": [
 						"npm:public",
 						"npm:kbve",
@@ -14813,6 +15136,8 @@
 						"scope:shared",
 						"type:lib"
 					],
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "packages/npm/fx/src",
 					"implicitDependencies": []
 				}
 			},
@@ -15295,8 +15620,6 @@
 						}
 					},
 					"name": "rn",
-					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
-					"sourceRoot": "packages/npm/rn/src",
 					"tags": [
 						"npm:public",
 						"npm:react-native",
@@ -15306,6 +15629,8 @@
 						"scope:mobile",
 						"type:lib"
 					],
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "packages/npm/rn/src",
 					"implicitDependencies": []
 				}
 			},
@@ -16600,7 +16925,6 @@
 					},
 					"name": "@kbve/source",
 					"includedScripts": [],
-					"$schema": "node_modules/nx/schemas/project-schema.json",
 					"tags": ["npm:private"],
 					"metadata": {
 						"targetGroups": {},
@@ -16610,6 +16934,7 @@
 							"isInPackageManagerWorkspaces": true
 						}
 					},
+					"$schema": "node_modules/nx/schemas/project-schema.json",
 					"implicitDependencies": []
 				}
 			}
@@ -16771,6 +17096,7 @@
 			"bevy_spells": [],
 			"bevy_tasker": [],
 			"unreal-cleanroom": [],
+			"agones-palworld-savetool": [],
 			"axum-discordsh": [
 				{
 					"source": "axum-discordsh",
@@ -17023,6 +17349,7 @@
 					"type": "static"
 				}
 			],
+			"herbmail-server": [],
 			"kbve-react-native": [
 				{
 					"source": "kbve-react-native",
@@ -17280,6 +17607,16 @@
 					"source": "desktop-kbve",
 					"target": "kbve-tauri",
 					"type": "static"
+				},
+				{
+					"source": "desktop-kbve",
+					"target": "rn-tauri",
+					"type": "static"
+				},
+				{
+					"source": "desktop-kbve",
+					"target": "rn",
+					"type": "static"
 				}
 			],
 			"droid-e2e": [
@@ -17328,6 +17665,13 @@
 			"rn-astro": [
 				{
 					"source": "rn-astro",
+					"target": "rn",
+					"type": "static"
+				}
+			],
+			"rn-tauri": [
+				{
+					"source": "rn-tauri",
 					"target": "rn",
 					"type": "static"
 				}

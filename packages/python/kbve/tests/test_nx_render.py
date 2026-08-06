@@ -95,7 +95,8 @@ def test_security_mdx_renders_counts_and_ecosystems():
     assert 'id="eco-npm"' in mdx
     assert "Cargo" in mdx and "Python" in mdx
     assert "CodeQL" in mdx and "Dependabot" in mdx
-    assert '"Critical" : 2' in mdx
+    assert "```mermaid" not in mdx
+    assert 'class="kbve-figure"' in mdx
     assert "leftpad" in mdx
     assert '<span class="bento-stat__value">2</span>' in mdx
 

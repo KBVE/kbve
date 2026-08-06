@@ -26,9 +26,15 @@ jsonld:
           path: /palworld/map/
 ---
 
+import BentoShell from '@/components/hero/BentoShell.astro';
 import PalworldMapPanel from '@/components/palworld/map/PalworldMapPanel.astro';
 
-The **Palpagos Islands** — pan and zoom the full Palworld overworld. Points of
-interest and live player positions are on the way.
-
-<PalworldMapPanel />
+<BentoShell
+	id="map"
+	eyebrow="Palworld"
+	heading="Palpagos Islands"
+	sub="Pan and zoom the full Palworld overworld — live players, alpha boss timers, world events, and guild bases straight from the server.">
+	<div class="bento-band">
+		<PalworldMapPanel />
+	</div>
+</BentoShell>

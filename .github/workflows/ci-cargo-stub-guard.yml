@@ -1,0 +1,44 @@
+name: CI - Cargo Workspace Stub Guard
+
+# Docker builds never see the root Cargo.toml — each Rust app copies its own
+# apps/**/Cargo.workspace.toml in as /app/Cargo.toml. Once #15165 moved crate
+# versions into the root [workspace.dependencies] table, every member manifest
+# using `dep.workspace = true` failed inside the image with
+# "`workspace.dependencies` was not defined", taking out all 18 Rust images at
+# once while `cargo build` on the host stayed green.
+#
+# This guard fails any PR where the stubs drift from the root table.
+
+on:
+    pull_request:
+        branches:
+            - main
+            - dev
+        paths:
+            - 'Cargo.toml'
+            - 'apps/**/Cargo.workspace.toml'
+            - 'scripts/sync-cargo-workspace-stubs.py'
+            - '.github/workflows/ci-cargo-stub-guard.yml'
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+    verify:
+        name: Verify Cargo.workspace.toml stubs match root
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        steps:
+            - uses: actions/checkout@v7
+
+            - uses: actions/setup-python@v7
+              with:
+                  python-version: '3.13'
+
+            - name: Stubs carry the root [workspace.dependencies]
+              run: python3 scripts/sync-cargo-workspace-stubs.py --check

@@ -1,10 +1,12 @@
 ---
 title: Autodesk Inc. ADSK
+template: splash
 description: |
     Autodesk is a leading global provider of 3D design, engineering, and entertainment technology solutions, enabling customers to design and make anything across architecture, manufacturing, and media industries.
 sidebar:
     label: Autodesk ADSK
     order: 466
+    hidden: true
 unsplash: 1581090464532-4c7e1b2a3a2d
 img: https://images.unsplash.com/photo-1581090464532-4c7e1b2a3a2d?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - design
   - adsk
   - cad
+stock:
+  ticker: ADSK
+  exchange: NASDAQ
+  symbol: nasdaq:adsk
+  name: "Autodesk Inc."
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nasdaq:adsk`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -290,3 +300,5 @@ ADSK offers exposure to essential design software with secular growth drivers:
 - **Market Position**: Competitive position in key design software categories
 
 <Giscus />
+
+</StockLeaf>

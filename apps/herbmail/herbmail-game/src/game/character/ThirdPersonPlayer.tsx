@@ -1,6 +1,8 @@
 import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { useFrame, useThree } from '@react-three/fiber';
+import { getSimBridge } from '../sab/simBridge';
+import { writeIntent, PC_FLAG } from '../sab/playerChannel';
 import {
 	solidAtWorld,
 	floorYAtWorld,
@@ -14,13 +16,14 @@ import { Character, type CharacterHandle, type BlockPose } from './Character';
 import { useHands } from '../viewmodel/store';
 import { equipmentById } from '../viewmodel/equipment';
 import { triggerSwing } from './melee';
+import { nearestStone } from './mine';
+import { cancelMine, isMining, startMine, tickMine } from './mineChannel';
 import { useMelee } from './useMelee';
 import { useCrateBreak } from './useCrateBreak';
 import { useStoneMine } from './useStoneMine';
 import { PlayerStats, spend, tickPlayerStats } from './playerStats';
 import { isOpen as isInventoryOpen } from '../inventory/store';
 import { isPlaying } from '../menu/store';
-import { isEagle } from '../menu/eagleStore';
 import { MeleeSpark, TargetDummy } from './MeleeDebug';
 import { CharacterShadow } from './CharacterShadow';
 import {
@@ -129,6 +132,17 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 	useEffect(() => {
 		armedRef.current = armed;
 	}, [armed]);
+	// A tool whose primary verb is 'mine' swings the pickaxe animation rather
+	// than throwing a punch — it is not a weapon, so `armed` stays false.
+	const mining =
+		!!hands.right && equipmentById(hands.right).primary === 'mine';
+	const miningRef = useRef(mining);
+	useEffect(() => {
+		miningRef.current = mining;
+	}, [mining]);
+	// Mirrors the mining channel onto the rig: the swing loops for as long as the
+	// channel runs. Driven from the frame loop so a cancel lands the same frame.
+	const mineAnimOn = useRef(false);
 	const blockPoseRef = useRef<BlockPose>({
 		clip: 'Sword_Block',
 		loop: false,
@@ -162,6 +176,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 	const desired = useRef(new THREE.Vector3());
 	const shoulder = useRef(1);
 	const exhausted = useRef(false);
+	const intentSeq = useRef(0);
 	const targetYaw = useRef(0);
 	const targetPitch = useRef(0);
 	const curYaw = useRef(0);
@@ -177,9 +192,13 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 			keys.current[e.code] = true;
 			if (e.code === 'Space') {
 				e.preventDefault();
+				cancelMine();
 				handleRef.current?.motor.jump();
 			}
-			if (e.code === 'KeyF') triggerActive();
+			// Key-repeat would re-fire the interact ~30x/s while held, restarting
+			// the swing clip every frame so it never plays out (and landing that
+			// many mine hits). One trigger per physical press.
+			if (e.code === 'KeyF' && !e.repeat) triggerActive();
 			if (e.code === 'Tab') {
 				e.preventDefault();
 				if (!e.repeat) {
@@ -236,6 +255,22 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 				// crates/stones (props carry Health but no Targetable).
 				requestCast(playerEid(), BASIC_ID);
 				triggerSwing();
+			} else if (miningRef.current) {
+				// Same channel as [F] — a click is a request to mine, not an
+				// instant hit, so both routes obey the action's durationMs.
+				if (!isMining()) {
+					const rock = nearestStone(
+						h.motor.position.x,
+						h.motor.position.z,
+					);
+					if (rock >= 0)
+						startMine(
+							rock,
+							performance.now(),
+							h.motor.position.x,
+							h.motor.position.z,
+						);
+				}
 			} else {
 				if (PlayerStats.ep.value[PlayerStats.eid] < ATTACK_EP_PUNCH)
 					return;
@@ -258,7 +293,6 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 
 		const dom = gl.domElement;
 		const lock = () => {
-			if (isEagle()) return;
 			dom.requestPointerLock();
 		};
 		const move = (e: MouseEvent) => {
@@ -300,7 +334,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		tickPlayerStats(dt);
 		const h = handleRef.current;
 		if (!h) return;
-		if (!isPlaying() || isEagle()) {
+		if (!isPlaying()) {
 			h.motor.setDesiredVelocity(0, 0);
 			return;
 		}
@@ -329,6 +363,13 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		Transform3.dz[pe] = Math.cos(h.motor.yaw);
 
 		tickTargeting(h.motor.position.x, h.motor.position.z);
+
+		tickMine(performance.now(), h.motor.position.x, h.motor.position.z);
+		const mining = isMining();
+		if (mining !== mineAnimOn.current) {
+			mineAnimOn.current = mining;
+			h.mineLoop(mining);
+		}
 
 		if (
 			k['Tab'] &&
@@ -411,6 +452,21 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 		} else if (bodyMover.current && h.motor.mover !== bodyMover.current) {
 			h.motor.mover = bodyMover.current;
 		}
+		// Published after every setDesiredVelocity for this frame, including the
+		// cast lunge override above — intent has to be what the motor will
+		// actually act on, not an earlier draft of it.
+		const d = h.motor.desiredVelocity;
+		writeIntent(getSimBridge().player, {
+			vx: d.x,
+			vy: d.y,
+			vz: d.z,
+			yaw: h.motor.yaw,
+			seq: ++intentSeq.current,
+			flags:
+				(h.motor.grounded ? PC_FLAG.GROUNDED : 0) |
+				(swimming ? PC_FLAG.SWIMMING : 0) |
+				(running ? PC_FLAG.RUNNING : 0),
+		});
 		refreshPrompt(h.motor.position.x, h.motor.position.z);
 
 		pivot.current.copy(h.motor.position);
@@ -463,6 +519,7 @@ export function ThirdPersonPlayer({ url, scale = 1 }: Props) {
 					(window as unknown as Record<string, unknown>).__coll = {
 						solid: solidAtWorld,
 						pos: h.motor.position,
+						meshes: h.meshes,
 					};
 				}}
 			/>

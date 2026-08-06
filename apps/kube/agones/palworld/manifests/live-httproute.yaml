@@ -28,3 +28,13 @@ spec:
                 name: palworld-relay-live
                 port: 8300
                 weight: 1
+        - matches:
+              - path:
+                    type: Exact
+                    value: /
+          backendRefs:
+              - group: ''
+                kind: Service
+                name: palworld-relay-live
+                port: 8300
+                weight: 1

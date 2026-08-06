@@ -10,6 +10,18 @@ pub enum EmbedError {
     NonUtf8Path(std::path::PathBuf),
     #[error("checkpoint busy after retries")]
     CheckpointBusy,
+    #[cfg(feature = "vector")]
+    #[error("vector dimension mismatch: expected {expected}, got {actual}")]
+    VectorDim { expected: usize, actual: usize },
+    #[cfg(feature = "vector")]
+    #[error("vector has zero or non-finite magnitude and cannot be normalized")]
+    VectorZeroNorm,
+    #[cfg(feature = "vector")]
+    #[error("vector blob error: {0}")]
+    VectorBlob(String),
+    #[cfg(feature = "vector")]
+    #[error("embedder error: {0}")]
+    Embedder(String),
     #[error("{0}")]
     Other(String),
 }

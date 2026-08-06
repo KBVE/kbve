@@ -217,6 +217,7 @@ ENVEOF
     (cd "$worktree_dir" && pnpm install)
     echo "Resetting Nx cache in worktree..."
     (cd "$worktree_dir" && export NX_WORKSPACE_ROOT_PATH="$worktree_dir" && pnpm nx reset)
+    _link_worktree_nx_data "$worktree_dir" "$worktree_basename"
 
     echo ""
     echo "=== Atomic worktree ready ==="
@@ -224,9 +225,13 @@ ENVEOF
     echo "  Branch: $branch_name"
     echo ""
     echo "Run the following to enter the worktree:"
-    echo "  cd $worktree_dir && export NX_WORKSPACE_ROOT_PATH=\$PWD"
+    echo "  cd $worktree_dir"
     echo ""
-    echo "Or use ./kbve.sh -nx from within the worktree (auto-sources .env.local)."
+    echo "Then run Nx targets with (auto-sources .env.local):"
+    echo "  ./kbve.sh -nx <project>:<target>"
+    echo ""
+    echo "Bare 'npx nx' works too — .nx/workspace-data is symlinked at the per-worktree"
+    echo "data dir so the CLI and its forked executors agree on one graph cache."
     echo ""
     echo "When done, push and ci-atom.yml will auto-create a PR to dev:"
     echo "  git push -u origin $branch_name"
@@ -319,6 +324,7 @@ ENVEOF
     (cd "$worktree_dir" && pnpm install)
     echo "Resetting Nx cache in worktree..."
     (cd "$worktree_dir" && export NX_WORKSPACE_ROOT_PATH="$worktree_dir" && pnpm nx reset)
+    _link_worktree_nx_data "$worktree_dir" "$worktree_basename"
 
     echo ""
     echo "=== Worktree ready ==="
@@ -326,9 +332,58 @@ ENVEOF
     echo "  Branch: $branch_name"
     echo ""
     echo "Run the following to enter the worktree:"
-    echo "  cd $worktree_dir && export NX_WORKSPACE_ROOT_PATH=\$PWD"
+    echo "  cd $worktree_dir"
     echo ""
-    echo "Or use ./kbve.sh -nx from within the worktree (auto-sources .env.local)."
+    echo "Then run Nx targets with (auto-sources .env.local):"
+    echo "  ./kbve.sh -nx <project>:<target>"
+    echo ""
+    echo "Bare 'npx nx' works too — .nx/workspace-data is symlinked at the per-worktree"
+    echo "data dir so the CLI and its forked executors agree on one graph cache."
+}
+
+# Point the default Nx data directory at the per-worktree one.
+#
+# .env.local sets NX_WORKSPACE_DATA_DIRECTORY to a worktree-suffixed path so worktrees do
+# not share a daemon or graph cache. Nx only loads .env.local for *task* processes, though,
+# not for the CLI parent — so a bare `npx nx run <target>` computes the graph into the
+# default .nx/workspace-data and then forks an executor that reads the suffixed one, which
+# fails with the thoroughly unhelpful:
+#
+#   [readCachedProjectGraph] ERROR: No cached ProjectGraph is available.
+#
+# Symlinking the default name at the suffixed directory makes both spellings resolve to the
+# same store, so the bare invocation works too. `./kbve.sh -nx` was always fine.
+_link_worktree_nx_data() {
+    local worktree_dir="$1"
+    local worktree_basename="$2"
+    local suffixed="$worktree_dir/.nx/workspace-data-${worktree_basename}"
+    local default="$worktree_dir/.nx/workspace-data"
+
+    mkdir -p "$suffixed"
+    # `nx reset` may have left a real directory behind; it is disposable cache either way.
+    [ -e "$default" ] && [ ! -L "$default" ] && rm -rf "$default"
+    ln -sfn "$suffixed" "$default"
+}
+
+# Print the MAIN repo root, correctly even when called from inside a worktree.
+#
+# `git rev-parse --show-toplevel` returns whichever tree you are standing in, and in a worktree
+# `<tree>/.git` is a gitFILE pointing at the main repo's .git/worktrees/<name> — not a directory.
+# So the usual `[ -d "$root/.git" ]` guard fails there, which is why -worktree-rm used to abort
+# with "Could not resolve git repository root" unless you happened to run it from the main repo.
+#
+# `--git-common-dir` is shared by every worktree and always names the main repo's .git, so its
+# parent is the main repo root from anywhere.
+_main_repo_root() {
+    local common
+    common=$(git rev-parse --git-common-dir 2>/dev/null) || return 1
+    [ -n "$common" ] || return 1
+    # Relative for the main repo (a bare ".git"), absolute from a worktree.
+    case "$common" in
+        /*) ;;
+        *) common="$(pwd -P)/$common" ;;
+    esac
+    (cd "$common/.." 2>/dev/null && pwd -P)
 }
 
 # Remove a git worktree by name
@@ -344,10 +399,12 @@ remove_worktree() {
     fi
 
     local main_repo
-    main_repo=$(git rev-parse --show-toplevel)
+    # Resolved via --git-common-dir so this works from inside a worktree too, which is where you
+    # usually are when you finish with one.
+    main_repo=$(_main_repo_root)
 
     # Guard: abort if we cannot resolve the repo root.
-    if [ -z "$main_repo" ] || [ ! -d "$main_repo/.git" ]; then
+    if [ -z "$main_repo" ] || [ ! -d "$main_repo" ]; then
         echo "ERROR: Could not resolve git repository root."
         return 1
     fi
@@ -630,7 +687,7 @@ audit_worktree_stale() {
 # Flags: --merged  restrict to branches merged into origin/dev or origin/main
 #        --dry-run preview only
 audit_worktree_prune() {
-    local main_repo; main_repo=$(git rev-parse --show-toplevel)
+    local main_repo; main_repo=$(_main_repo_root)
     local cpus; cpus=$(sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo 8)
     local jobs="${WT_PRUNE_JOBS:-$cpus}"
     local dry=0 merged_only=0 batch_size="$jobs" arg prev=""
@@ -708,8 +765,8 @@ audit_worktree_prune() {
 # stale .git/worktrees metadata, then prune detached branch refs.
 # Flags: --yes / -y  skip the confirmation prompt
 nuke_worktrees() {
-    local main_repo; main_repo=$(git rev-parse --show-toplevel 2>/dev/null)
-    if [ -z "$main_repo" ] || [ ! -d "$main_repo/.git" ]; then
+    local main_repo; main_repo=$(_main_repo_root)
+    if [ -z "$main_repo" ] || [ ! -d "$main_repo" ]; then
         echo "ERROR: Could not resolve git repository root."; return 1
     fi
 
@@ -1036,12 +1093,18 @@ Standard subcommands forwarded to `git lfs`:
   push|pull|fetch|ls-files|env|...
 
 Custom subcommands:
-  register      Register every LFS OID under the game's path prefix with the
+  register [remote] [range]
+                Register every LFS OID under the game's path prefix with the
                 game's Forgejo repo. No bytes are uploaded if the blob already
                 lives in the shared content-addressed storage (Forgejo dedups
                 across the KBVE org), so this is the cheap way to claim
                 ownership for pointers whose blobs were pushed via the root
                 .lfsconfig endpoint (e.g. by the husky pre-push hook).
+
+                Without a range this walks every pointer in the game (thousands
+                for chuck). Pass a commit range — "$base..$head" — to register
+                only the pointers that range adds or changes; that is the form
+                the pre-push hook uses so the cost tracks the change.
 
   ssh-push [remote] [branch]
                 Push large LFS files via SSH NodePort, bypassing HTTP upload
@@ -1117,9 +1180,31 @@ EOF
     if [ "$1" = "register" ]; then
         shift
         local remote="${1:-origin}"
-        echo "→ scanning local LFS pointers under $path_prefix/"
+        local range="$2"
         local oids
-        oids=$(git lfs ls-files --long | awk -v prefix="$path_prefix/" '$0 ~ prefix {print $1}')
+        if [ -n "$range" ]; then
+            # Range form: only the pointers this push actually adds or changes.
+            # Whole-prefix registration re-offers every blob in the game (97 for
+            # herbmail, thousands for chuck), which is far too slow to sit in a
+            # push hook. Read the OID straight out of each pointer blob at the
+            # pushed commit rather than the worktree, so it is correct even when
+            # the files were never smudged (GIT_LFS_SKIP_SMUDGE worktrees).
+            local head="${range##*..}"
+            [ -n "$head" ] || head=HEAD
+            echo "→ scanning LFS pointers changed in $range under $path_prefix/"
+            # head -c/LC_ALL=C keep awk off binary payloads: a changed path in
+            # the range may be a plain file rather than a pointer, and a raw
+            # blob otherwise trips "multibyte conversion failure". Pointers are
+            # ~130 bytes, so the first 200 always cover the oid line.
+            oids=$(git diff --name-only --diff-filter=ACMR "$range" -- "$path_prefix" |
+                while IFS= read -r p; do
+                    git cat-file -p "$head:$p" 2>/dev/null | head -c 200 |
+                        LC_ALL=C awk '/^oid sha256:/ { print substr($2, 8) }'
+                done)
+        else
+            echo "→ scanning local LFS pointers under $path_prefix/"
+            oids=$(git lfs ls-files --long | awk -v prefix="$path_prefix/" '$0 ~ prefix {print $1}')
+        fi
         if [ -z "$oids" ]; then
             echo "No LFS pointers found under $path_prefix/. Nothing to register."
             return 0

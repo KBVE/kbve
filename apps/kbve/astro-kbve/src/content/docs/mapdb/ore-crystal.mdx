@@ -1,0 +1,36 @@
+---
+id: "4FP69PDH7VQ8192HN24NC44KQZ"
+ref: "ore-crystal"
+drafted: false
+name: "Crystal Ore"
+title: "Crystal Ore"
+template: splash
+sidebar:
+    label: "Crystal Ore"
+    hidden: true
+description: "A vein of crystal-flecked ore that glitters faintly when struck, prized by enchanters and smiths alike."
+type: "resource_node"
+sub_kind: "crystal_ore"
+interactable: true
+destructible: true
+harvest_yield: 1
+max_amount: 50
+initial_amount: 50
+harvest_time_ms: 5000
+harvest_weight: 50
+spawn_weight: 0.3
+spawn_count: 20
+pixels_per_unit: 25
+pivot_x: 0.5
+pivot_y: 0.5
+sorting_layer: "Foreground"
+profession_action_ref: "gather-crystal-ore"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Crystal Ore
+
+Miners say the crystal seams hum if you hold your ear close enough, though most agree that's just wishful thinking after a long shift underground.
+
+<MapDBPanel data={frontmatter} />

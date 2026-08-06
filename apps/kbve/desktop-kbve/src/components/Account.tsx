@@ -2,7 +2,7 @@ import { useAuthStore } from '../stores/auth';
 import { IconDiscord, IconGitHub, IconLogOut, IconUser } from './Icons';
 import type { Provider } from '@kbve/tauri';
 
-export function Account() {
+export function Account({ collapsed = false }: { collapsed?: boolean }) {
 	const phase = useAuthStore((s) => s.phase);
 	const user = useAuthStore((s) => s.user);
 
@@ -14,6 +14,7 @@ export function Account() {
 				<SignedIn
 					name={user.name ?? user.email ?? 'Account'}
 					avatarUrl={user.avatar_url}
+					collapsed={collapsed}
 				/>
 			) : phase === 'authing' ? (
 				<p
@@ -22,7 +23,7 @@ export function Account() {
 					Signing in…
 				</p>
 			) : (
-				<SignInButtons />
+				<SignInButtons collapsed={collapsed} />
 			)}
 		</div>
 	);
@@ -31,37 +32,37 @@ export function Account() {
 function SignedIn({
 	name,
 	avatarUrl,
+	collapsed,
 }: {
 	name: string;
 	avatarUrl?: string;
+	collapsed: boolean;
 }) {
 	const signOut = useAuthStore((s) => s.signOut);
 	return (
-		<div className="flex items-center gap-3">
+		<div className="sidebar-row flex items-center gap-3">
 			{avatarUrl ? (
 				<img
 					src={avatarUrl}
 					alt=""
-					className="h-6 w-6 flex-shrink-0 rounded-full"
+					className="sidebar-icon rounded-full"
 				/>
 			) : (
 				<span
-					className="flex-shrink-0"
+					className="sidebar-icon"
 					style={{ color: 'var(--color-text-muted)' }}>
 					<IconUser />
 				</span>
 			)}
 			<span
-				data-sidebar-label
-				className="sidebar-label text-caption flex-1 truncate"
+				className={`sidebar-label text-caption flex-1 truncate ${collapsed ? 'pointer-events-none max-w-0 opacity-0' : 'max-w-40 opacity-100'}`}
 				style={{ color: 'var(--color-text)' }}
 				title={name}>
 				{name}
 			</span>
 			<button
-				data-sidebar-label
 				onClick={() => void signOut()}
-				className="sidebar-label flex-shrink-0 rounded-md p-1 transition-colors"
+				className={`sidebar-label flex-shrink-0 rounded-md p-1 transition-colors ${collapsed ? 'pointer-events-none max-w-0 opacity-0' : 'max-w-12 opacity-100'}`}
 				style={{ color: 'var(--color-text-muted)' }}
 				title="Sign out">
 				<IconLogOut size={14} />
@@ -70,12 +71,12 @@ function SignedIn({
 	);
 }
 
-function SignInButtons() {
+function SignInButtons({ collapsed }: { collapsed: boolean }) {
 	const signInWith = useAuthStore((s) => s.signInWith);
 	const btn = (provider: Provider, icon: React.ReactNode, label: string) => (
 		<button
 			onClick={() => void signInWith(provider)}
-			className="flex items-center gap-3 rounded-lg px-2 py-1.5 text-caption transition-colors"
+			className="sidebar-row flex items-center gap-3 rounded-lg px-2 py-1.5 text-caption transition-colors"
 			style={{ color: 'var(--color-text-muted)' }}
 			onMouseEnter={(e) => {
 				e.currentTarget.style.backgroundColor =
@@ -87,16 +88,17 @@ function SignInButtons() {
 				e.currentTarget.style.color = 'var(--color-text-muted)';
 			}}
 			title={`Sign in with ${label}`}>
-			<span className="flex-shrink-0">{icon}</span>
-			<span data-sidebar-label className="sidebar-label">
+			<span className="sidebar-icon">{icon}</span>
+			<span
+				className={`sidebar-label ${collapsed ? 'pointer-events-none max-w-0 opacity-0' : 'max-w-40 opacity-100'}`}>
 				{label}
 			</span>
 		</button>
 	);
 	return (
 		<div className="flex flex-col gap-1">
-			{btn('github', <IconGitHub size={16} />, 'GitHub')}
-			{btn('discord', <IconDiscord size={16} />, 'Discord')}
+			{btn('github', <IconGitHub />, 'GitHub')}
+			{btn('discord', <IconDiscord />, 'Discord')}
 		</div>
 	);
 }

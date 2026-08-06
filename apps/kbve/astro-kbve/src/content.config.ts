@@ -144,6 +144,25 @@ export const collections = {
 				mc_lot: MCLotFrontmatterSchema.optional(),
 				mc_poi: MCPoiFrontmatterSchema.optional(),
 				palshop: PalShopSchema.optional(),
+				// Stock/ETF reference metadata. Drives the /stock/ sector rail,
+				// the leaf hero stats and the chart symbol. Defined inline for
+				// the same zod-boundary reason as the social overlay below.
+				stock: z
+					.object({
+						ticker: z.string(),
+						exchange: z.string().optional(),
+						symbol: z.string().optional(),
+						name: z.string().optional(),
+						sector: z.string().optional(),
+						industry: z.string().optional(),
+						kind: z.enum(['etf', 'equity']).optional(),
+						expense_ratio: z.number().optional(),
+						dividend_yield: z.number().optional(),
+						inception: z.string().optional(),
+						issuer: z.string().optional(),
+						website: z.string().optional(),
+					})
+					.optional(),
 				'yt-tracks': z.array(z.string()).optional(),
 				'yt-sets': z.array(z.string()).optional(),
 				// Journal post metadata consumed by the RSS feed

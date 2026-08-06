@@ -28,6 +28,7 @@ pub struct Config {
     pub live_api_port: u16,
     pub events_log_path: String,
     pub boss_respawn_secs: u64,
+    pub save_intel_path: String,
 }
 
 impl Config {
@@ -65,6 +66,8 @@ impl Config {
             events_log_path: std::env::var("EVENTS_LOG_PATH")
                 .unwrap_or_else(|_| "/shared/chat/events.log".into()),
             boss_respawn_secs: parse_env_u64("BOSS_RESPAWN_SECS", 3600)?,
+            save_intel_path: std::env::var("SAVE_INTEL_PATH")
+                .unwrap_or_else(|_| "/intel/bases.json".into()),
         })
     }
 }

@@ -30,12 +30,14 @@ food:
   perishable: false
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Overview
-
-<ItemDBPanel data={frontmatter} />
 
 ## Sources
 
 Comes from meat left too long, including [raw beef](/itemdb/raw-beef/), [raw chicken](/itemdb/raw-chicken/), [raw mutton](/itemdb/raw-mutton/), [salmon](/itemdb/salmon/), [blue shark](/itemdb/blue-shark/), [lobster](/itemdb/lobster/), [egg](/itemdb/egg/), and the cooked variants of each.
+
+</ItemLeaf>

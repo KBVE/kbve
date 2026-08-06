@@ -44,7 +44,7 @@
 		{
 			"key": "agones_palworld",
 			"app_name": "agones-palworld",
-			"version": "0.0.33",
+			"version": "0.0.37",
 			"version_toml": "apps/agones/palworld/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-palworld.mdx",
 			"source_path": "apps/agones/palworld",
@@ -57,7 +57,7 @@
 		{
 			"key": "agones_palworld_relay",
 			"app_name": "agones-palworld-relay",
-			"version": "0.0.11",
+			"version": "0.0.15",
 			"version_toml": "apps/agones/palworld/relay/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-palworld-relay.mdx",
 			"source_path": "apps/agones/palworld/relay",
@@ -67,9 +67,22 @@
 			"has_test": false
 		},
 		{
+			"key": "agones_palworld_savetool",
+			"app_name": "agones-palworld-savetool",
+			"version": "0.0.7",
+			"version_toml": "apps/agones/palworld/savetool/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-palworld-savetool.mdx",
+			"source_path": "apps/agones/palworld/savetool",
+			"runner": "ubuntu-latest",
+			"image": "kbve/agones-palworld-savetool",
+			"e2e_name": "agones-palworld-savetool",
+			"deployment_yaml": "apps/kube/agones/palworld/manifests/gameserver.yaml",
+			"has_test": true
+		},
+		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.261",
+			"version": "1.0.276",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -112,7 +125,7 @@
 		{
 			"key": "arpg_server",
 			"app_name": "arpg-server",
-			"version": "0.1.28",
+			"version": "0.1.29",
 			"version_toml": "apps/agones/arpg/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-server.mdx",
 			"version_target": "apps/agones/arpg/server/Cargo.toml",
@@ -125,7 +138,7 @@
 		{
 			"key": "arpg_web",
 			"app_name": "arpg-web",
-			"version": "0.1.28",
+			"version": "0.1.29",
 			"version_toml": "apps/agones/arpg/web/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-web.mdx",
 			"version_target": "apps/agones/arpg/web/version.toml",
@@ -220,7 +233,7 @@
 		{
 			"key": "discordsh_bot",
 			"app_name": "discordsh-bot",
-			"version": "0.1.29",
+			"version": "0.1.30",
 			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
 			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
@@ -234,7 +247,7 @@
 		{
 			"key": "edge",
 			"app_name": "edge",
-			"version": "0.1.47",
+			"version": "0.1.48",
 			"version_toml": "apps/kbve/edge/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/edge.mdx",
 			"version_target": "apps/kbve/edge/deno.json",
@@ -331,6 +344,19 @@
 			"has_test": true
 		},
 		{
+			"key": "herbmail_server",
+			"app_name": "herbmail-server",
+			"version": "0.0.1",
+			"version_toml": "apps/agones/herbmail/server/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/herbmail-server.mdx",
+			"version_target": "apps/agones/herbmail/server/Cargo.toml",
+			"source_path": "apps/agones/herbmail/server",
+			"runner": "arc-runner-set",
+			"image": "kbve/herbmail-server",
+			"deployment_yaml": "apps/kube/agones/herbmail/manifests/fleet.yaml",
+			"has_test": false
+		},
+		{
 			"key": "iot_edge_worker",
 			"app_name": "iot-edge-worker",
 			"version": "0.0.1",
@@ -416,7 +442,7 @@
 		{
 			"key": "kubectl",
 			"app_name": "kbve-kubectl",
-			"version": "0.1.9",
+			"version": "0.1.10",
 			"version_toml": "apps/vm/kubectl/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/kubectl.mdx",
 			"version_target": "apps/vm/kubectl/Cargo.toml",
@@ -536,7 +562,7 @@
 		{
 			"key": "reel",
 			"app_name": "reel",
-			"version": "0.1.32",
+			"version": "0.1.37",
 			"version_toml": "apps/media/reel/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/reel.mdx",
 			"version_target": "apps/media/reel/Cargo.toml",
@@ -571,7 +597,7 @@
 			"source_path": "packages/docker/steamcmd-ubuntu",
 			"runner": "ubuntu-latest",
 			"image": "kbve/steamcmd-ubuntu",
-			"has_test": true
+			"has_test": false
 		}
 	],
 	"npm": [
@@ -586,7 +612,7 @@
 		{
 			"key": "droid",
 			"package_name": "droid",
-			"version": "0.1.1",
+			"version": "0.1.2",
 			"version_toml": "packages/npm/droid/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/droid.mdx",
 			"version_target": "packages/npm/droid/package.json"
@@ -602,7 +628,7 @@
 		{
 			"key": "laser",
 			"package_name": "laser",
-			"version": "0.1.6",
+			"version": "0.2.0",
 			"version_toml": "packages/npm/laser/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/laser.mdx",
 			"version_target": "packages/npm/laser/package.json"
@@ -756,7 +782,7 @@
 		{
 			"key": "embeddb_crate",
 			"package_name": "embeddb",
-			"version": "0.1.0",
+			"version": "0.2.0",
 			"version_toml": "packages/rust/embeddb/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/embeddb-crate.mdx",
 			"version_target": "packages/rust/embeddb/Cargo.toml"
@@ -1393,7 +1419,7 @@
 				]
 			},
 			"source_path": "apps/herbmail/herbmail-game",
-			"version": "0.1.11",
+			"version": "0.1.20",
 			"version_toml": "apps/herbmail/herbmail-game/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/herbmail-game.mdx",
 			"runner": "ubuntu-latest",
@@ -1405,7 +1431,7 @@
 		}
 	],
 	"summary": {
-		"docker": 39,
+		"docker": 41,
 		"npm": 4,
 		"crates": 27,
 		"python": 2,
@@ -1416,6 +1442,6 @@
 		"unreal_game": 4,
 		"bevy_game": 0,
 		"vite_game": 1,
-		"total": 106
+		"total": 108
 	}
 }

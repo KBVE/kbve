@@ -135,26 +135,57 @@ async fn await_forwarded_port(
     Some(current)
 }
 
-pub async fn forwarded_port_watch_loop(engine: Engine, interval_secs: u64, restart: Arc<Notify>) {
+pub async fn forwarded_port_watch_loop(
+    engine: Engine,
+    interval_secs: u64,
+    restart: Arc<Notify>,
+    restart_on_change: bool,
+) {
     if engine.bt_port_file.is_none() {
         return;
     }
     let interval = Duration::from_secs(interval_secs.max(5));
+    let started = now_secs();
+    let mut last_forwarded: Option<u16> = engine.forwarded_port();
+    let mut rotations = 0u64;
     let mut mismatches = 0u32;
+    tracing::info!(
+        initial = ?last_forwarded,
+        restart_on_change,
+        "forwarded-port watcher started (observe mode: logs rotation rate without tearing down the session)"
+    );
     loop {
         tokio::time::sleep(interval).await;
-        match (engine.forwarded_port(), engine.bt_listen_port()) {
-            (Some(forwarded), Some(listen)) if forwarded != listen => {
+        let forwarded = engine.forwarded_port();
+        if forwarded != last_forwarded {
+            rotations = engine.port_rotations.fetch_add(1, Ordering::Relaxed) + 1;
+            let elapsed = now_secs().saturating_sub(started).max(1);
+            let per_hour = (rotations as f64) * 3600.0 / (elapsed as f64);
+            tracing::warn!(
+                from = ?last_forwarded,
+                to = ?forwarded,
+                rotations,
+                elapsed_secs = elapsed,
+                rotations_per_hour = per_hour,
+                "vpn_forwarded_port_rotated: Proton changed the NAT-PMP forwarded port"
+            );
+            last_forwarded = forwarded;
+        }
+        if !restart_on_change {
+            continue;
+        }
+        match (forwarded, engine.bt_listen_port()) {
+            (Some(f), Some(listen)) if f != listen => {
                 mismatches += 1;
                 tracing::warn!(
-                    forwarded,
+                    forwarded = f,
                     listen,
                     mismatches,
                     "VPN forwarded port no longer matches BitTorrent listener"
                 );
                 if mismatches >= 2 {
                     tracing::warn!(
-                        forwarded,
+                        forwarded = f,
                         listen,
                         "vpn_forwarded_port_changed: restarting to rebind listener to the forwarded port"
                     );
@@ -228,10 +259,13 @@ pub struct Engine {
     drain: Arc<Notify>,
     metadata_timeout: Duration,
     stall_timeout: Duration,
+    stall_connected_timeout: Duration,
     stall_check: Duration,
+    stall_recovery_attempts: u32,
     trackers: Arc<Mutex<Arc<Vec<String>>>>,
     bt_port_file: Option<PathBuf>,
     transcode_wake: Arc<Notify>,
+    port_rotations: Arc<AtomicU64>,
 }
 
 const LEECH_DRAIN_CAP: Duration = Duration::from_secs(6 * 3600);
@@ -243,6 +277,17 @@ pub fn is_stalled(
     stall_timeout_secs: u64,
 ) -> bool {
     cur_bytes <= prev_bytes && idle_secs >= stall_timeout_secs
+}
+
+/// Peers connected but sending nothing is a choke or a dead-but-not-yet-timed-out
+/// socket, not an empty swarm — give those the longer budget so a re-dial has a
+/// chance before we call the download lost.
+pub fn stall_budget_secs(peers_live: usize, dry_secs: u64, connected_secs: u64) -> u64 {
+    if peers_live > 0 {
+        connected_secs.max(dry_secs)
+    } else {
+        dry_secs
+    }
 }
 
 #[derive(serde::Serialize)]
@@ -323,6 +368,18 @@ impl Engine {
             }
             None => None,
         };
+        // Inbound peers are unreachable behind the VPN (no port forwarding), so
+        // the swarm is outbound-only — tune peering to make the most of it: try
+        // more peers without hanging on dead ones, hold quiet-but-alive peers
+        // instead of dropping them, and send keepalives so we aren't dropped.
+        let peer_opts = Some(librqbit::PeerConnectionOptions {
+            connect_timeout: (cfg.peer_connect_timeout_secs > 0)
+                .then(|| Duration::from_secs(cfg.peer_connect_timeout_secs)),
+            read_write_timeout: (cfg.peer_read_write_timeout_secs > 0)
+                .then(|| Duration::from_secs(cfg.peer_read_write_timeout_secs)),
+            keep_alive_interval: (cfg.peer_keepalive_secs > 0)
+                .then(|| Duration::from_secs(cfg.peer_keepalive_secs)),
+        });
         let opts = librqbit::SessionOptions {
             fastresume: true,
             persistence: Some(SessionPersistenceConfig::Json {
@@ -332,6 +389,7 @@ impl Engine {
                 upload_bps: cfg.upload_limit_bps.and_then(std::num::NonZeroU32::new),
                 download_bps: None,
             },
+            peer_opts,
             listen_port_range,
             enable_upnp_port_forwarding: false,
             ..Default::default()
@@ -353,13 +411,16 @@ impl Engine {
             drain: Arc::new(Notify::new()),
             metadata_timeout: Duration::from_secs(cfg.metadata_timeout_secs),
             stall_timeout: Duration::from_secs(cfg.stall_timeout_secs),
+            stall_connected_timeout: Duration::from_secs(cfg.stall_connected_timeout_secs),
             stall_check: Duration::from_secs(cfg.stall_check_secs.max(1)),
+            stall_recovery_attempts: cfg.stall_recovery_attempts,
             trackers: Arc::new(Mutex::new(Arc::new(seed_trackers(
                 &cfg.trackers_cache,
                 &cfg.extra_trackers,
             )))),
             bt_port_file: cfg.bt_port_file.clone(),
             transcode_wake: Arc::new(Notify::new()),
+            port_rotations: Arc::new(AtomicU64::new(0)),
         };
         engine.resume_on_start();
         Ok(engine)
@@ -539,7 +600,9 @@ impl Engine {
         let transcode_wake = self.transcode_wake.clone();
         let metadata_timeout = self.metadata_timeout;
         let stall_timeout = self.stall_timeout;
+        let stall_connected_timeout = self.stall_connected_timeout;
         let stall_check = self.stall_check;
+        let stall_recovery_attempts = self.stall_recovery_attempts;
         let vpn_ok = self.vpn_ok.clone();
         tokio::spawn(async move {
             match tokio::time::timeout(metadata_timeout, handle.wait_until_initialized()).await {
@@ -575,23 +638,34 @@ impl Engine {
             tokio::pin!(completed);
             let mut last_bytes = 0u64;
             let mut idle_secs = 0u64;
+            let mut recoveries = 0u32;
             let outcome: anyhow::Result<()> = loop {
                 tokio::select! {
                     r = &mut completed => break r,
                     _ = tokio::time::sleep(stall_check) => {
                         let s = handle.stats();
-                        let (dl_mbps, peers_live) = s
+                        let (dl_mbps, peers_live, peers_seen, peers_connecting) = s
                             .live
                             .as_ref()
-                            .map(|l| (l.download_speed.mbps, l.snapshot.peer_stats.live))
-                            .unwrap_or((0.0, 0));
+                            .map(|l| {
+                                (
+                                    l.download_speed.mbps,
+                                    l.snapshot.peer_stats.live,
+                                    l.snapshot.peer_stats.seen,
+                                    l.snapshot.peer_stats.connecting,
+                                )
+                            })
+                            .unwrap_or((0.0, 0, 0, 0));
                         tracing::debug!(
                             id = %id,
                             progress_bytes = s.progress_bytes,
                             total_bytes = s.total_bytes,
                             peers_live,
+                            peers_seen,
+                            peers_connecting,
                             dl_mbps,
                             idle_secs,
+                            recoveries,
                             "leech heartbeat"
                         );
                         if s.finished {
@@ -607,10 +681,32 @@ impl Engine {
                         } else {
                             idle_secs = idle_secs.saturating_add(stall_check.as_secs());
                         }
-                        if is_stalled(last_bytes, s.progress_bytes, idle_secs, stall_timeout.as_secs()) {
+                        let budget = stall_budget_secs(
+                            peers_live,
+                            stall_timeout.as_secs(),
+                            stall_connected_timeout.as_secs(),
+                        );
+                        if is_stalled(last_bytes, s.progress_bytes, idle_secs, budget) {
+                            if recoveries < stall_recovery_attempts {
+                                recoveries += 1;
+                                tracing::warn!(
+                                    id = %id,
+                                    attempt = recoveries,
+                                    of = stall_recovery_attempts,
+                                    idle_secs,
+                                    peers_live,
+                                    peers_seen,
+                                    "leech stalled; re-dialing swarm"
+                                );
+                                crate::telemetry::torrent_stall_recovery(&id, recoveries);
+                                redial_swarm(&session, &handle, &id).await;
+                                idle_secs = 0;
+                                continue;
+                            }
                             break Err(anyhow::anyhow!(
-                                "no data received for {}s — no seeders have the content",
-                                stall_timeout.as_secs()
+                                "no data received for {budget}s after {recoveries} re-dial attempts \
+                                 (peers live={peers_live} seen={peers_seen} connecting={peers_connecting}) \
+                                 — swarm unreachable, partial data kept for retry"
                             ));
                         }
                     }
@@ -623,7 +719,10 @@ impl Engine {
                     m.error = Some(format!("download failed: {e}"));
                     ((), true)
                 });
-                delete_from_session(&session, &id, true).await;
+                // Keep the partial payload: re-adding the same magnet resumes
+                // from it instead of re-fetching everything. The reaper still
+                // clears it once the TTL expires.
+                delete_from_session(&session, &id, false).await;
                 return;
             }
             // Stop uploading the moment the download lands. The torrent is
@@ -1043,6 +1142,19 @@ pub fn needs_resume_watch(state: &state::TorrentState) -> bool {
     matches!(state, state::TorrentState::Leeching)
 }
 
+/// Drop every peer connection and re-announce. Sockets behind the VPN go quiet
+/// without closing, and with no inbound port nothing replaces them — a pause
+/// tears them down and the unpause redials the swarm from a fresh announce.
+async fn redial_swarm(session: &Arc<Session>, handle: &Arc<ManagedTorrent>, id: &str) {
+    if let Err(e) = session.pause(handle).await {
+        tracing::warn!(id = %id, error = %e, "stall recovery: pause failed");
+        return;
+    }
+    if let Err(e) = session.unpause(handle).await {
+        tracing::warn!(id = %id, error = %e, "stall recovery: unpause failed");
+    }
+}
+
 async fn delete_from_session(session: &Session, id: &str, delete_files: bool) {
     if let Ok(tid) = TorrentIdOrHash::parse(id) {
         if let Err(e) = session.delete(tid, delete_files).await {
@@ -1160,6 +1272,14 @@ impl Engine {
     pub fn forwarded_port(&self) -> Option<u16> {
         let path = self.bt_port_file.as_ref()?;
         parse_forwarded_port(&std::fs::read_to_string(path).ok()?)
+    }
+
+    pub fn port_rotations(&self) -> u64 {
+        self.port_rotations.load(Ordering::Relaxed)
+    }
+
+    pub fn vpn_fail_streak(&self) -> u32 {
+        self.vpn_fail_streak.load(Ordering::Relaxed)
     }
 }
 
@@ -1308,6 +1428,29 @@ mod tests {
             std::fs::write(&p2, b"43287").unwrap();
         });
         assert_eq!(await_forwarded_port(&path, 2, 2).await, Some(43287));
+    }
+
+    #[test]
+    fn stall_budget_extends_while_peers_connected() {
+        assert_eq!(stall_budget_secs(0, 300, 900), 300);
+        assert_eq!(stall_budget_secs(1, 300, 900), 900);
+        assert_eq!(
+            stall_budget_secs(4, 900, 300),
+            900,
+            "connected budget never shortens the dry budget"
+        );
+    }
+
+    #[test]
+    fn connected_peers_delay_stall_trip() {
+        let dry = stall_budget_secs(0, 300, 900);
+        let connected = stall_budget_secs(3, 300, 900);
+        assert!(is_stalled(500, 500, 300, dry));
+        assert!(
+            !is_stalled(500, 500, 300, connected),
+            "peers alive at 300s idle are choked, not gone"
+        );
+        assert!(is_stalled(500, 500, 900, connected));
     }
 
     #[test]

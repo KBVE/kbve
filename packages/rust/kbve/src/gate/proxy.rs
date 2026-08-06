@@ -415,7 +415,10 @@ async fn authorize(
     };
 
     let claims = match state.cfg.verifier.as_ref() {
-        Some(v) => v.verify::<Claims>(&token).map_err(|e| e.to_string()),
+        Some(v) => v
+            .verify_refreshed::<Claims>(&token)
+            .await
+            .map_err(|e| e.to_string()),
         None => validate_token(&token, &state.cfg.jwt_secret)
             .map(|d| d.claims)
             .map_err(|e| e.to_string()),
@@ -841,9 +844,9 @@ async fn pump_ws(
             use axum::extract::ws::Message as AMsg;
             let out = match msg {
                 AMsg::Text(t) => TMsg::Text(t.as_str().into()),
-                AMsg::Binary(b) => TMsg::Binary(b.to_vec()),
-                AMsg::Ping(b) => TMsg::Ping(b.to_vec()),
-                AMsg::Pong(b) => TMsg::Pong(b.to_vec()),
+                AMsg::Binary(b) => TMsg::Binary(b),
+                AMsg::Ping(b) => TMsg::Ping(b),
+                AMsg::Pong(b) => TMsg::Pong(b),
                 AMsg::Close(_) => {
                     let _ = up_tx.send(TMsg::Close(None)).await;
                     break;
@@ -860,9 +863,9 @@ async fn pump_ws(
             use axum::extract::ws::Message as AMsg;
             let out = match msg {
                 TMsg::Text(t) => AMsg::Text(t.as_str().into()),
-                TMsg::Binary(b) => AMsg::Binary(b.to_vec().into()),
-                TMsg::Ping(b) => AMsg::Ping(b.to_vec().into()),
-                TMsg::Pong(b) => AMsg::Pong(b.to_vec().into()),
+                TMsg::Binary(b) => AMsg::Binary(b),
+                TMsg::Ping(b) => AMsg::Ping(b),
+                TMsg::Pong(b) => AMsg::Pong(b),
                 TMsg::Close(_) => {
                     let _ = br_tx.send(AMsg::Close(None)).await;
                     break;

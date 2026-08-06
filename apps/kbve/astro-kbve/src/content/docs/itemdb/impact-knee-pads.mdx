@@ -6,6 +6,8 @@ sidebar:
     hidden: true
 description: |
     Ratchet-strap knee pair, the uniform of everyone who works low and gets up slow.
+lore: |
+    The piece that turns a controlled drop into a manoeuvre instead of an injury. Gatherers wear them through three seasons and replace the straps twice; the shells outlive the people's interest in the job.
 ref: 'impact-knee-pads'
 key: 629
 id: '01KXFBEGM35YXPYHJSGR3CDAJ6'
@@ -33,10 +35,22 @@ equipment:
     armor: 1
     extra:
       weight: 1
+set_ref: 'impact'
+tags:
+  - armor
+  - impact
+  - herbmail
+sources:
+  - source_type: 'vendor'
+    source_name: 'Surplus stall'
+  - source_type: 'craft'
+    source_name: 'Salvaged polymer'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Overview
 
-<ItemDBPanel data={frontmatter} />
+</ItemLeaf>

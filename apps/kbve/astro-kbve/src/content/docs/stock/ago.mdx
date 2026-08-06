@@ -1,10 +1,12 @@
 ---
 title: Assured Guaranty Ltd. AGO
+template: splash
 description: |
     Assured Guaranty is a leading provider of credit protection products and services, offering financial guarantee insurance for municipal bonds, infrastructure finance, and structured finance transactions globally.
 sidebar:
     label: Assured Guaranty AGO
     order: 490
+    hidden: true
 unsplash: 1454165804606-c3d57bc86b40
 img: https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - financial-services
   - ago
   - municipal-bonds
+stock:
+  ticker: AGO
+  exchange: NYSE
+  symbol: nyse:ago
+  name: "Assured Guaranty Ltd."
+  sector: Financials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:ago`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -278,3 +288,5 @@ AGO offers exposure to infrastructure finance with strong capital returns and di
 - **Book Value Growth**: Adjusted book value per share growth
 
 <Giscus />
+
+</StockLeaf>

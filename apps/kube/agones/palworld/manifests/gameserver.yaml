@@ -40,9 +40,13 @@ spec:
                       claimName: palworld-backups
                 - name: chat-relay
                   emptyDir: {}
+                - name: save-intel
+                  emptyDir: {}
+                - name: savetool-tmp
+                  emptyDir: {}
             containers:
                 - name: palworld
-                  image: ghcr.io/kbve/agones-palworld:0.0.32
+                  image: ghcr.io/kbve/agones-palworld:0.0.37
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PUID
@@ -161,7 +165,7 @@ spec:
                               command:
                                   - /usr/local/bin/agones-shim-prestop
                 - name: palworld-relay
-                  image: ghcr.io/kbve/agones-palworld-relay:0.0.11
+                  image: ghcr.io/kbve/agones-palworld-relay:0.0.15
                   imagePullPolicy: IfNotPresent
                   ports:
                       - containerPort: 8300
@@ -222,9 +226,14 @@ spec:
                         value: /shared/chat/chat.log
                       - name: LIVE_API_PORT
                         value: '8300'
+                      - name: SAVE_INTEL_PATH
+                        value: /intel/bases.json
                   volumeMounts:
                       - name: chat-relay
                         mountPath: /shared/chat
+                        readOnly: true
+                      - name: save-intel
+                        mountPath: /intel
                         readOnly: true
                   resources:
                       requests:
@@ -233,6 +242,39 @@ spec:
                       limits:
                           cpu: '500m'
                           memory: '256Mi'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      runAsNonRoot: true
+                      runAsUser: 1000
+                      capabilities:
+                          drop:
+                              - ALL
+                - name: palworld-savetool
+                  image: ghcr.io/kbve/agones-palworld-savetool:0.0.7
+                  imagePullPolicy: IfNotPresent
+                  env:
+                      - name: SAVE_INTEL_SAVE_DIR
+                        value: /palworld/Pal/Saved/SaveGames
+                      - name: SAVE_INTEL_OUT
+                        value: /intel/bases.json
+                      - name: SAVE_INTEL_INTERVAL_S
+                        value: '300'
+                  volumeMounts:
+                      - name: palworld-saves
+                        mountPath: /palworld/Pal/Saved
+                        readOnly: true
+                      - name: save-intel
+                        mountPath: /intel
+                      - name: savetool-tmp
+                        mountPath: /tmp
+                  resources:
+                      requests:
+                          cpu: '50m'
+                          memory: '128Mi'
+                      limits:
+                          cpu: '1'
+                          memory: '2Gi'
                   securityContext:
                       allowPrivilegeEscalation: false
                       readOnlyRootFilesystem: true

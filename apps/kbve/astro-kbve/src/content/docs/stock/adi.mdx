@@ -1,10 +1,12 @@
 ---
 title: Analog Devices Inc. ADI
+template: splash
 description: |
     Analog Devices is a leading semiconductor company specializing in data conversion, signal processing, and power management technology across industrial, automotive, communications, and consumer markets.
 sidebar:
     label: Analog Devices ADI
     order: 458
+    hidden: true
 unsplash: 1518709268-98bad7b5feca
 img: https://images.unsplash.com/photo-1518709268-98bad7b5feca?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - technology
   - adi
   - analog-devices
+stock:
+  ticker: ADI
+  exchange: NASDAQ
+  symbol: nasdaq:adi
+  name: "Analog Devices Inc."
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nasdaq:adi`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -294,3 +304,5 @@ ADI offers exposure to essential analog and mixed-signal technology with secular
 - **Technology Milestones**: New product introductions and technology breakthroughs
 
 <Giscus />
+
+</StockLeaf>

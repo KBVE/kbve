@@ -8,6 +8,7 @@ import {
 	type InstanceView,
 } from '../mecs/schema';
 import { getPropsBuffer } from '../mecs/props';
+import { inputLag, PC, PLAYER_SLOTS, poseDrift } from './playerChannel';
 
 export interface SimStartOpts {
 	ox?: number;
@@ -22,8 +23,6 @@ export interface SectorColliders {
 	originCol: number;
 	originRow: number;
 }
-
-const PLAYER_F32_LEN = 4;
 
 // Owns the shared mecs world + instance + player buffers and the sim worker. The
 // worker is the authoritative structural writer; the main thread attaches a reader
@@ -42,7 +41,7 @@ export class SimBridge {
 	constructor() {
 		this.ecsBuf = makeBuffer(gameWorldBytes());
 		this.instBuf = makeBuffer(instanceBytes());
-		this.player = new Float32Array(makeBuffer(PLAYER_F32_LEN * 4));
+		this.player = new Float32Array(makeBuffer(PLAYER_SLOTS * 4));
 		this.world = createGameWorld(this.ecsBuf);
 		this.instance = createInstanceView(this.instBuf);
 		this.offThread = hasSharedMemory;
@@ -86,6 +85,12 @@ export class SimBridge {
 		return this.world.tick();
 	}
 
+	/** How far the authoritative simulation has drifted from the main thread's
+	 * own result, and how many inputs behind it is. */
+	get drift(): { meters: number; lag: number } {
+		return { meters: poseDrift(this.player), lag: inputLag(this.player) };
+	}
+
 	stop(): void {
 		if (this.worker) {
 			this.worker.postMessage({ type: 'stop' });
@@ -93,6 +98,19 @@ export class SimBridge {
 			this.worker = null;
 		}
 	}
+}
+
+if (import.meta.env?.DEV && typeof window !== 'undefined') {
+	(window as unknown as Record<string, unknown>).__drift = () => {
+		const c = getSimBridge().player;
+		const r = (n: number) => +n.toFixed(2);
+		return {
+			...getSimBridge().drift,
+			auth: [r(c[PC.POSE_X]), r(c[PC.POSE_Y]), r(c[PC.POSE_Z])],
+			local: [r(c[PC.LOCAL_X]), r(c[PC.LOCAL_Y]), r(c[PC.LOCAL_Z])],
+			intent: [r(c[PC.INTENT_X]), r(c[PC.INTENT_Z])],
+		};
+	};
 }
 
 let singleton: SimBridge | null = null;

@@ -7,28 +7,43 @@ import {
 	DroidUpscaleSchema,
 } from './event-types';
 
+const EXPECTED_EVENT_KEYS = [
+	'auth-error',
+	'auth-ready',
+	'droid-downscale',
+	'droid-first-connect',
+	'droid-mod-ready',
+	'droid-ready',
+	'droid-upscale',
+	'gateway-strategy-fallback',
+	'modal-closed',
+	'modal-opened',
+	'page-hide',
+	'page-mount',
+	'page-swap',
+	'palworld-live-snapshot',
+	'panel-close',
+	'panel-open',
+	'reel-stream',
+	'toast-added',
+	'toast-removed',
+	'tooltip-closed',
+	'tooltip-opened',
+	'worker-error',
+];
+
 describe('DroidEventSchemas', () => {
-	it('has all expected event keys', () => {
-		const keys = Object.keys(DroidEventSchemas);
-		expect(keys).toContain('droid-first-connect');
-		expect(keys).toContain('droid-ready');
-		expect(keys).toContain('droid-mod-ready');
-		expect(keys).toContain('droid-downscale');
-		expect(keys).toContain('droid-upscale');
-		expect(keys).toContain('panel-open');
-		expect(keys).toContain('panel-close');
-		expect(keys).toContain('toast-added');
-		expect(keys).toContain('toast-removed');
-		expect(keys).toContain('tooltip-opened');
-		expect(keys).toContain('tooltip-closed');
-		expect(keys).toContain('modal-opened');
-		expect(keys).toContain('modal-closed');
-		expect(keys).toContain('auth-ready');
-		expect(keys).toContain('auth-error');
+	it('registers exactly the expected event keys', () => {
+		expect(Object.keys(DroidEventSchemas).sort()).toEqual(
+			EXPECTED_EVENT_KEYS,
+		);
 	});
 
-	it('has exactly 20 event types', () => {
-		expect(Object.keys(DroidEventSchemas)).toHaveLength(20);
+	it('maps every key to a parseable schema', () => {
+		for (const [key, schema] of Object.entries(DroidEventSchemas)) {
+			expect(schema, key).toBeDefined();
+			expect(typeof schema.safeParse, key).toBe('function');
+		}
 	});
 });
 

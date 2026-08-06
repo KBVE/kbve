@@ -37,6 +37,7 @@ impl RelayConfig {
     }
 }
 
+use crate::discord::commands::palworld::PalworldStats;
 use crate::discord::game::{ProfileStore, SessionStore};
 use crate::discord::github_cache::GitHubCache;
 use crate::discord::github_permissions::GitHubCommandGuard;
@@ -124,6 +125,11 @@ pub struct AppState {
     /// `WINDMILL_TOKEN`, or `WINDMILL_ALLOWED_PATHS` are missing — in which
     /// case `/wm` is not registered as a usable command.
     pub windmill: Option<Arc<WindmillConfig>>,
+
+    /// Optional ClickHouse reader for Palworld telemetry written by the
+    /// in-pod relay sidecar. `None` when `CLICKHOUSE_URL` is missing — in
+    /// which case `/palworld-online` replies that it is not configured.
+    pub palworld: Option<Arc<PalworldStats>>,
 
     /// Optional persistent KV store (redb). Opened from `DB_PATH` env var
     /// at startup. `None` when the variable is unset or the file fails to
@@ -231,6 +237,13 @@ impl AppState {
             );
         }
 
+        let palworld = crate::discord::commands::palworld::stats_from_env();
+        if palworld.is_none() {
+            tracing::info!(
+                "Palworld stats disabled (set CLICKHOUSE_URL to enable /palworld-online)"
+            );
+        }
+
         let relay = RelayConfig::from_env();
         if let Some(ref r) = relay {
             tracing::info!(
@@ -279,6 +292,7 @@ impl AppState {
             github_board_scheduler_started: AtomicBool::new(false),
             gh_sync_worker_started: AtomicBool::new(false),
             windmill,
+            palworld,
             local_db,
         }
     }

@@ -16,12 +16,9 @@
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true,
 		"paths": {
-			"@/*": ["./src/*"]
-		},
-		"noUncheckedSideEffectImports": false,
-		"types": ["*"],
-		"esModuleInterop": false,
-		"ignoreDeprecations": "6.0"
+			"@/*": ["./src/*"],
+			"react-i18next": ["./src/i18n/react-i18next.ts"]
+		}
 	},
 	"include": ["src"]
 }

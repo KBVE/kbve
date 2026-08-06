@@ -1,11 +1,13 @@
 pub mod audio;
+pub mod devops;
+pub mod discord;
 pub mod memory;
 pub mod models;
 pub mod onichan;
 pub mod sidecar_config;
 pub mod transcription;
 
-use crate::settings::{get_settings, AppSettings, SETTINGS_STORE_PATH};
+use crate::settings::{AppSettings, SETTINGS_STORE_PATH, get_settings};
 use crate::utils::cancel_current_operation;
 use log::info;
 use std::fs;

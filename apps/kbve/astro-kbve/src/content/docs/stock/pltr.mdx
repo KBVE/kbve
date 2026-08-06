@@ -1,10 +1,12 @@
 ---
 title: Palantir Technologies Inc. PLTR
+template: splash
 description: |
     Palantir Technologies is a leading software company specializing in big data analytics platforms that help organizations integrate, analyze, and act on large-scale data to solve complex problems in government, commercial, and healthcare sectors.
 sidebar:
     label: Palantir PLTR
     order: 520
+    hidden: true
 unsplash: 1551882450-bcee36ead61b
 img: https://images.unsplash.com/photo-1551882450-bcee36ead61b?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - data-analytics
   - pltr
   - artificial-intelligence
+stock:
+  ticker: PLTR
+  exchange: NYSE
+  symbol: nyse:pltr
+  name: "Palantir Technologies Inc."
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:pltr`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -353,3 +363,5 @@ PLTR offers exposure to AI and data analytics leadership with unique technology:
 - **Path to Profitability**: Progress toward consistent profitability and positive cash flow
 
 <Giscus />
+
+</StockLeaf>

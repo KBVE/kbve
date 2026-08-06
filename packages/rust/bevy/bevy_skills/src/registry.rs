@@ -149,4 +149,115 @@ impl SkillRegistry {
             .map(|(&id, def)| (id, def))
             .collect()
     }
+
+    #[cfg(feature = "bevy")]
+    pub fn register_professions(&mut self, db: &bevy_items::profession::ProfessionDb) {
+        for profession in db.professions() {
+            let xp_curve = profession.curve.as_ref().and_then(|c| match c.kind.as_str() {
+                "polynomial" => Some(XpCurve::Polynomial {
+                    base_xp: c.base_xp,
+                    growth_factor: c.growth_factor,
+                    max_level: c.max_level,
+                }),
+                _ => None,
+            });
+            self.register(SkillDef {
+                r#ref: profession.r#ref.clone(),
+                name: profession.name.clone(),
+                category: profession.category.clone(),
+                icon: profession.emoji.clone(),
+                xp_curve,
+            });
+        }
+    }
+
+    #[cfg(feature = "bevy")]
+    pub fn register_gathering_fallback(&mut self) {
+        for (r#ref, name) in [
+            ("woodcutting", "Woodcutting"),
+            ("mining", "Mining"),
+            ("foraging", "Foraging"),
+        ] {
+            self.register(SkillDef {
+                r#ref: r#ref.into(),
+                name: name.into(),
+                category: "gathering".into(),
+                icon: None,
+                xp_curve: None,
+            });
+        }
+    }
+}
+
+#[cfg(all(test, feature = "bevy"))]
+mod professiondb_tests {
+    use super::*;
+
+    const FIXTURE: &str = r#"
+    {
+        "professions": [
+            {
+                "ref": "mining",
+                "name": "Mining",
+                "category": "PROFESSION_CATEGORY_GATHERING",
+                "emoji": "⛏️",
+                "actions": [],
+                "experienceCurve": {"kind": "CURVE_KIND_POLYNOMIAL", "baseXp": 50, "growthFactor": 1.6, "maxLevel": 99}
+            },
+            {
+                "ref": "cooking",
+                "name": "Cooking",
+                "category": "PROFESSION_CATEGORY_PRODUCTION",
+                "emoji": "🍳",
+                "actions": []
+            }
+        ]
+    }
+    "#;
+
+    #[test]
+    fn register_professions_builds_one_skill_per_profession() {
+        let db = bevy_items::profession::ProfessionDb::from_json(FIXTURE).unwrap();
+        assert_eq!(db.professions().len(), 2);
+
+        let mut r = SkillRegistry::default();
+        r.register_professions(&db);
+
+        assert_eq!(r.len(), 2);
+        assert!(r.id_for_ref("mining").is_some());
+        assert!(r.id_for_ref("cooking").is_some());
+
+        let mining = r.get_by_ref("mining").unwrap();
+        assert_eq!(mining.name, "Mining");
+        assert_eq!(mining.category, "gathering");
+        assert_eq!(mining.icon.as_deref(), Some("⛏️"));
+    }
+
+    #[test]
+    fn register_professions_sources_polynomial_curve() {
+        let db = bevy_items::profession::ProfessionDb::from_json(FIXTURE).unwrap();
+
+        let mut r = SkillRegistry::default();
+        r.register_professions(&db);
+
+        let mining_curve = r.xp_curve(r.id_for_ref("mining").unwrap());
+        assert!(matches!(
+            mining_curve,
+            XpCurve::Polynomial { base_xp: 50, .. }
+        ));
+
+        let cooking_curve = r.xp_curve(r.id_for_ref("cooking").unwrap());
+        assert!(matches!(cooking_curve, XpCurve::Quadratic { .. }));
+    }
+
+    #[test]
+    fn register_gathering_fallback_builds_three() {
+        let mut r = SkillRegistry::default();
+        r.register_gathering_fallback();
+
+        assert_eq!(r.len(), 3);
+        for s in ["woodcutting", "mining", "foraging"] {
+            assert!(r.id_for_ref(s).is_some());
+        }
+    }
 }

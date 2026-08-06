@@ -6,6 +6,8 @@ sidebar:
     hidden: true
 description: |
     Three rigid lockable cases riding the back and both hips. What they hold survives; whether you do is separate.
+lore: |
+    Rigid-shell leg pouches, watertight, crushproof, and heavy enough that nobody buys them for convenience. They are bought for the one thing in the kit that must survive whatever happens to its owner.
 ref: 'hardcase-pouches'
 key: 631
 id: '01KXFBEGM3DN76CBB0TYC2F52G'
@@ -34,10 +36,23 @@ equipment:
   bonuses:
     extra:
       weight: 2
+grid:
+  width: 2
+  height: 2
+set_ref: 'hardpoint'
+tags:
+  - armor
+  - hardpoint
+  - herbmail
+sources:
+  - source_type: 'vendor'
+    source_name: 'Hardpoint outfitter'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Overview
 
-<ItemDBPanel data={frontmatter} />
+</ItemLeaf>

@@ -13,7 +13,7 @@ use tauri::WebviewWindowBuilder;
 use tauri::WebviewUrl;
 
 #[cfg(target_os = "macos")]
-use tauri_nspanel::{tauri_panel, CollectionBehavior, PanelBuilder, PanelLevel};
+use tauri_nspanel::{CollectionBehavior, PanelBuilder, PanelLevel, tauri_panel};
 
 #[cfg(target_os = "macos")]
 tauri_panel! {
@@ -44,7 +44,7 @@ const OVERLAY_BOTTOM_OFFSET: f64 = 40.0;
 #[cfg(target_os = "windows")]
 fn force_overlay_topmost(overlay_window: &tauri::webview::WebviewWindow) {
     use windows::Win32::UI::WindowsAndMessaging::{
-        SetWindowPos, HWND_TOPMOST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW,
+        HWND_TOPMOST, SWP_NOACTIVATE, SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW, SetWindowPos,
     };
 
     // Clone because run_on_main_thread takes 'static

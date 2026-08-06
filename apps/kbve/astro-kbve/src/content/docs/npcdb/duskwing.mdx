@@ -1,0 +1,156 @@
+---
+title: 'Duskwing'
+template: splash
+sidebar:
+    label: 'Duskwing'
+    hidden: true
+description: |
+    Violet and black with a wingspan out of proportion to its body, and a habit of being slightly further away than expected.
+lore: |
+    Active at the edges of the day only. The wings are functional but it prefers not to use them where it can be seen doing so.
+ref: 'duskwing'
+id: '01KME8R5PG7Z9QB3T6VX2H4N12'
+name: 'Duskwing'
+img: '/assets/npc/duskwing.png'
+type_flags: 16
+rarity: 'rare'
+personality: 'stoic'
+rank: 'elite'
+family: 'beast'
+element: 'shadow'
+level: 16
+stats:
+    hp: 66
+    max_hp: 66
+    attack: 12
+    defense: 14
+    speed: 22
+    mp: 40
+    max_mp: 40
+    special_attack: 26
+    special_defense: 18
+    accuracy: 100
+    evasion: 100
+    crit_rate: 6
+    crit_damage: 1.5
+abilities:
+    - id: 'tackle'
+      name: 'Tackle'
+      description: 'A reckless full-body charge.'
+      category: 'physical'
+      target: 'enemy'
+      power: 12
+      damage: 12
+      pp: 35
+      max_pp: 35
+      hit_chance: 1.0
+      priority: 0
+    - id: 'bite'
+      name: 'Bite'
+      description: 'A short, hard bite with the whole jaw behind it.'
+      category: 'physical'
+      target: 'enemy'
+      power: 16
+      damage: 16
+      pp: 25
+      max_pp: 25
+      hit_chance: 0.95
+      high_crit: true
+    - id: 'howl'
+      name: 'Howl'
+      description: 'A rising howl that steadies its own nerve.'
+      category: 'status'
+      target: 'self'
+      pp: 20
+      max_pp: 20
+      stat_changes:
+        - stat: 'attack'
+          stages: 1
+          target: 'self'
+        - stat: 'special_attack'
+          stages: 1
+          target: 'self'
+    - id: 'umbral-claw'
+      name: 'Umbral Claw'
+      description: 'A close-quarters strike carrying its element.'
+      element: 'shadow'
+      category: 'physical'
+      target: 'enemy'
+      power: 22
+      damage: 22
+      pp: 20
+      max_pp: 20
+      hit_chance: 0.95
+      high_crit: true
+    - id: 'nightfall'
+      name: 'Nightfall'
+      description: 'A ranged burst that covers the ground in front of it.'
+      element: 'shadow'
+      category: 'special'
+      target: 'enemy'
+      power: 34
+      pp: 15
+      max_pp: 15
+      mp_cost: 8
+      hit_chance: 1.0
+    - id: 'devouring-dark'
+      name: 'Devouring Dark'
+      description: 'Everything it has, released at once.'
+      element: 'shadow'
+      category: 'special'
+      target: 'enemy'
+      power: 48
+      pp: 8
+      max_pp: 8
+      mp_cost: 14
+      hit_chance: 0.9
+      high_crit: true
+pet:
+    catchable: true
+    capture_rate: 45
+    growth_rate: 'medium_fast'
+    base_xp_yield: 154
+    base_friendship: 70
+    gender_ratio: 0.5
+    secondary_element: 'wind'
+    movepool:
+        - level: 1
+          ability_id: 'tackle'
+        - level: 1
+          ability_id: 'bite'
+        - level: 8
+          ability_id: 'howl'
+        - level: 12
+          ability_id: 'umbral-claw'
+        - level: 18
+          ability_id: 'nightfall'
+        - level: 26
+          ability_id: 'devouring-dark'
+behavior:
+    movement_type: 'random_wander'
+    first_strike: false
+    wander_radius: 6.0
+    aggro_range: 0.0
+    can_flee: true
+flavor_text:
+    - action: 'attack'
+      messages:
+        - "Duskwing lunges at {target} for {dmg} damage!"
+        - "Duskwing presses the attack — {target} takes {dmg} damage!"
+    - action: 'flee'
+      messages:
+        - "Duskwing breaks off and is gone into the treeline."
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import { Aside } from '@astrojs/starlight/components';
+
+One of the eighteen forms a [Shibe](/docs/npcdb/shibe/) can take. Evolution is a
+one-way, one-time change, triggered by using a **Dusk Feather**
+on the pet — a Shibe that becomes this is never anything else.
+
+<Aside type="note" title="Terminal form">
+	This species does not evolve further. Its stat line, movepool and element are what the
+	Shibe permanently committed to.
+</Aside>

@@ -1,0 +1,24 @@
+/* ── Generated chart figures ──
+   Wrapper for the inline SVG that `kbve.svg` prerenders into dashboard MDX
+   (donuts, dependency diagrams). The SVG carries its own intrinsic size and
+   `width: 100%`, so all this layer does is place it and decide what happens
+   when it is wider than the prose column. */
+
+.kbve-figure {
+	margin: 1.5rem 0;
+	overflow-x: auto;
+}
+
+.kbve-figure svg {
+	display: block;
+	margin-inline: auto;
+}
+
+/* Wide diagrams — a nine-stage pipeline is ~1600px at its natural size.
+   Scaling that into an 800px column shrinks the node labels past legibility,
+   so let it keep full size and scroll instead. The generator writes
+   `width: 100%` inline, which only an !important can override. */
+.kbve-figure--wide svg {
+	width: auto !important;
+	max-width: none !important;
+}

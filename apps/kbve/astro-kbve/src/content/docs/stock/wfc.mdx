@@ -1,10 +1,12 @@
 ---
 title: Wells Fargo & Company WFC
+template: splash
 description: |
     Wells Fargo is a leading financial services company providing banking, investment, mortgage, and consumer finance services through extensive branch networks and digital platforms serving consumers, businesses, and institutions.
 sidebar:
     label: Wells Fargo WFC
     order: 531
+    hidden: true
 unsplash: 1541354329998-f4d9a9f4157b
 img: https://images.unsplash.com/photo-1541354329998-f4d9a9f4157b?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - banking
   - wfc
   - consumer-banking
+stock:
+  ticker: WFC
+  exchange: NYSE
+  symbol: nyse:wfc
+  name: "Wells Fargo & Company"
+  sector: Financials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:wfc`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -375,3 +385,5 @@ WFC offers exposure to comprehensive banking services with operational improveme
 - **Digital Adoption**: Digital banking adoption and customer engagement metrics
 
 <Giscus />
+
+</StockLeaf>

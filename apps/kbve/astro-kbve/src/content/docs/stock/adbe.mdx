@@ -1,10 +1,12 @@
 ---
 title: Adobe Inc. ADBE
+template: splash
 description: |
     Adobe Inc. is a global leader in digital media and marketing software, providing creative tools, document services, and digital experience solutions worldwide.
 sidebar:
     label: Adobe ADBE
     order: 431
+    hidden: true
 unsplash: 1561070791-266dc8ce5c0b
 img: https://images.unsplash.com/photo-1561070791-266dc8ce5c0b?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - software
   - adbe
   - creative-software
+stock:
+  ticker: ADBE
+  exchange: NASDAQ
+  symbol: nasdaq:adbe
+  name: "Adobe Inc."
+  sector: Technology
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nasdaq:adbe`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -265,3 +275,5 @@ Recent market performance and analyst views:
 - **AI Integration Success**: Adoption and impact of generative AI features
 
 <Giscus />
+
+</StockLeaf>

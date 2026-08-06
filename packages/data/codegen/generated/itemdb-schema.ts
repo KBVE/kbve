@@ -3,7 +3,6 @@
  *
  * Source: ../descriptors/itemdb.binpb
  * Config: ../itemdb-zod-config.json
- * Generated: 2026-07-31T08:53:52.913Z
  */
 
 import { z } from 'zod';
@@ -140,28 +139,6 @@ export const StatusEffectKinds = [
 export type StatusEffectKindValue = (typeof StatusEffectKinds)[number];
 
 export const StatusEffectKindSchema = z.enum(StatusEffectKinds);
-
-export const SkillingTypes = [
-	'cooking',
-	'smithing',
-	'crafting',
-	'alchemy',
-	'woodcutting',
-	'mining',
-	'fishing',
-	'farming',
-	'herblore',
-	'fletching',
-	'hunting',
-	'foraging',
-	'enchanting',
-	'tailoring',
-	'construction',
-] as const;
-
-export type SkillingTypeValue = (typeof SkillingTypes)[number];
-
-export const SkillingTypeSchema = z.enum(SkillingTypes);
 
 // UseEffect
 export const UseEffectSchema = z.object({
@@ -499,6 +476,15 @@ export const ItemExtensionSchema = z.object({
 
 export type ItemExtension = z.infer<typeof ItemExtensionSchema>;
 
+// GridFootprint
+export const GridFootprintSchema = z.object({
+	width: z.number().optional(),
+	height: z.number().optional(),
+	no_rotate: z.boolean().optional(),
+});
+
+export type GridFootprint = z.infer<typeof GridFootprintSchema>;
+
 // Item
 export const ItemSchema = z.object({
 	id: z.string(),
@@ -566,6 +552,7 @@ export const ItemSchema = z.object({
 	key: z.number(),
 	has_img: z.boolean().optional(),
 	bonuses: z.record(z.string(), z.unknown()).optional(),
+	grid: GridFootprintSchema.optional(),
 });
 
 export type Item = z.infer<typeof ItemSchema>;
@@ -606,19 +593,3 @@ export const CompressInfoSchema = z.object({
 });
 
 export type CompressInfo = z.infer<typeof CompressInfoSchema>;
-
-// SkillingInfo
-export const SkillingInfoSchema = z
-	.object({
-		skill: SkillingTypeSchema,
-		skill_level: z.number().nullable().optional(),
-		xp_reward: z.number().nullable().optional(),
-		tool_required: z.string().nullable().optional(),
-		gather_time: z.number().nullable().optional(),
-		respawn_time: z.number().nullable().optional(),
-		resource_node: z.string().nullable().optional(),
-		harvest_weight: z.number().nullable().optional(),
-	})
-	.passthrough();
-
-export type SkillingInfo = z.infer<typeof SkillingInfoSchema>;

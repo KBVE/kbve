@@ -1,6 +1,7 @@
 ---
 title: Apache License 2.0
 description: The Apache License 2.0 as used by open-source components within the KBVE monorepo.
+template: splash
 sidebar:
     label: Apache 2.0
     order: 11
@@ -12,6 +13,13 @@ tags:
 ---
 
 import { Aside } from '@astrojs/starlight/components';
+
+import LegalLeaf from '@/components/legal/LegalLeaf.astro';
+
+<LegalLeaf
+	slug="apache-2"
+	title={frontmatter.title}
+	description={frontmatter.description}>
 
 ## Apache License, Version 2.0
 
@@ -229,3 +237,5 @@ and trademark use restrictions.
 Many Rust crates in this monorepo are dual-licensed under `MIT OR Apache-2.0`,
 following the convention established by the Rust standard library and most of
 the Rust ecosystem. Users may choose either license at their discretion.
+
+</LegalLeaf>

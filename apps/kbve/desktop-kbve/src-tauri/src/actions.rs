@@ -1,12 +1,12 @@
-use crate::audio_feedback::{play_feedback_sound, play_feedback_sound_blocking, SoundType};
+use crate::ManagedToggleState;
+use crate::audio_feedback::{SoundType, play_feedback_sound, play_feedback_sound_blocking};
 use crate::managers::audio::AudioRecordingManager;
 use crate::managers::transcription::TranscriptionManager;
-use crate::settings::{get_settings, AppSettings};
+use crate::settings::{AppSettings, get_settings};
 use crate::shortcut;
-use crate::tray::{change_tray_icon, TrayIconState};
+use crate::tray::{TrayIconState, change_tray_icon};
 use crate::utils::{self, show_recording_overlay, show_transcribing_overlay};
-use crate::ManagedToggleState;
-use ferrous_opencc::{config::BuiltinConfig, OpenCC};
+use ferrous_opencc::{OpenCC, config::BuiltinConfig};
 use log::{debug, error};
 use once_cell::sync::Lazy;
 use std::collections::HashMap;
@@ -151,7 +151,10 @@ impl ShortcutAction for TranscribeAction {
                             ah.run_on_main_thread(move || {
                                 match utils::paste(final_text, ah_clone.clone()) {
                                     Ok(()) => {
-                                        debug!("Text pasted successfully in {:?}", paste_time.elapsed())
+                                        debug!(
+                                            "Text pasted successfully in {:?}",
+                                            paste_time.elapsed()
+                                        )
                                     }
                                     Err(e) => error!("Failed to paste transcription: {}", e),
                                 }

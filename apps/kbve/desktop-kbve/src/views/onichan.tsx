@@ -28,10 +28,8 @@ export function OnichanView() {
 	const refresh = useCallback(async () => {
 		const a = await commands.onichanIsActive();
 		setActive(a);
-		const l = await commands.getOnichanLlmModels();
-		if (l.status === 'ok') setLlm(l.data);
-		const t = await commands.getOnichanTtsModels();
-		if (t.status === 'ok') setTts(t.data);
+		setLlm(await commands.getOnichanLlmModels());
+		setTts(await commands.getOnichanTtsModels());
 		setLlmLoaded(await commands.isLocalLlmLoaded());
 		setTtsLoaded(await commands.isLocalTtsLoaded());
 		setConversing(await commands.onichanIsConversationRunning());
@@ -98,17 +96,8 @@ export function OnichanView() {
 	};
 
 	return (
-		<div className="flex max-w-2xl flex-col gap-6">
-			{error && (
-				<div
-					className="rounded-md border px-4 py-2 text-caption"
-					style={{
-						borderColor: 'var(--color-border)',
-						color: 'var(--color-danger, #e5484d)',
-					}}>
-					{error}
-				</div>
-			)}
+		<div className="view-column">
+			{error && <div className="alert-danger text-caption">{error}</div>}
 
 			<SettingsCard title="Onichan Assistant">
 				<SettingsRow
@@ -159,7 +148,7 @@ export function OnichanView() {
 			/>
 
 			<SettingsCard title="Chat">
-				<div className="flex flex-col gap-3 px-6 py-5">
+				<div className="flex flex-col gap-3 px-5 py-4">
 					<div className="flex gap-2">
 						<input
 							value={chat}
@@ -171,22 +160,12 @@ export function OnichanView() {
 									: 'Load a language model first'
 							}
 							disabled={!llmLoaded || !active}
-							className="flex-1 rounded-md border px-3 py-1.5 text-body"
-							style={{
-								backgroundColor: 'var(--color-bg)',
-								borderColor: 'var(--color-border)',
-								color: 'var(--color-text)',
-							}}
+							className="control flex-1"
 						/>
 						<button
 							onClick={send}
 							disabled={!llmLoaded || !active}
-							className="rounded-md border px-3 py-1.5 text-caption"
-							style={{
-								backgroundColor: 'var(--color-bg)',
-								borderColor: 'var(--color-border)',
-								color: 'var(--color-text)',
-							}}>
+							className="btn">
 							Send
 						</button>
 					</div>
@@ -218,7 +197,7 @@ function ModelCard({
 		<SettingsCard title={title}>
 			<div className="flex flex-col">
 				{models.length === 0 && (
-					<p className="px-6 py-5 text-sm" style={muted}>
+					<p className="px-5 py-4 text-caption" style={muted}>
 						Loading…
 					</p>
 				)}
@@ -228,8 +207,7 @@ function ModelCard({
 					return (
 						<div
 							key={m.id}
-							className="flex items-center justify-between border-b px-6 py-5"
-							style={{ borderColor: 'var(--color-border)' }}>
+							className="settings-row flex items-center justify-between gap-6 px-5 py-4">
 							<div className="flex flex-col gap-1.5">
 								<span className="text-body">{m.name}</span>
 								<span className="text-caption" style={muted}>
@@ -247,25 +225,14 @@ function ModelCard({
 								{m.is_downloaded ? (
 									<button
 										onClick={() => onLoad(m.id)}
-										className="rounded-md border px-3 py-1.5 text-caption"
-										style={{
-											backgroundColor: 'var(--color-bg)',
-											borderColor: 'var(--color-border)',
-											color: 'var(--color-text)',
-										}}>
+										className="btn">
 										Load
 									</button>
 								) : (
 									<button
 										onClick={() => onDownload(m.id)}
 										disabled={downloading}
-										className="rounded-md border px-3 py-1.5 text-caption"
-										style={{
-											backgroundColor: 'var(--color-bg)',
-											borderColor: 'var(--color-border)',
-											color: 'var(--color-text)',
-											opacity: downloading ? 0.5 : 1,
-										}}>
+										className="btn">
 										Download
 									</button>
 								)}

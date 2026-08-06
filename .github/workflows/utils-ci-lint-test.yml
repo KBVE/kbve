@@ -68,7 +68,7 @@ jobs:
                   token: ${{ github.token }}
 
             - name: Setup pnpm v10
-              uses: pnpm/action-setup@v5
+              uses: pnpm/action-setup@v6
               with:
                   version: 11.15.0
                   run_install: false
@@ -138,6 +138,12 @@ jobs:
             # so CI never hits the "Failed to process project graph" daemon flake.
             - name: Reset nx graph
               run: pnpm nx reset
+
+            # Everything downstream of a .proto reads the committed .binpb descriptor, not the
+            # .proto — so an edit with no regeneration is silently inert and nothing else in CI
+            # notices. Hash-based, so this needs no protoc and cannot flake on a protoc version.
+            - name: Check proto descriptors are not stale
+              run: node packages/data/codegen/check-descriptors.mjs
 
             - name: Lint affected projects
               run: pnpm nx affected --target=lint --base=${{ inputs.base-ref }} --head=${{ inputs.head-ref }} --no-cloud

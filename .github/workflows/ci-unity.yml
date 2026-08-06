@@ -208,7 +208,7 @@ jobs:
 
             - name: Setup pnpm
               if: ${{ contains(inputs.project_path, 'rareicon') }}
-              uses: pnpm/action-setup@v4
+              uses: pnpm/action-setup@v6
               with:
                   version: 11.15.0
 
@@ -334,7 +334,7 @@ jobs:
 
             - name: Setup pnpm
               if: ${{ contains(inputs.project_path, 'rareicon') }}
-              uses: pnpm/action-setup@v4
+              uses: pnpm/action-setup@v6
               with:
                   version: 11.15.0
 

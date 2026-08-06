@@ -1,10 +1,12 @@
 ---
 title: APA Corporation APA
+template: splash
 description: |
     APA Corporation is an independent energy company that explores for, develops, and produces oil, natural gas, and natural gas liquids with operations primarily in the United States.
 sidebar:
     label: APA Corporation
     order: 464
+    hidden: true
 unsplash: 1461344552813-5985830be0a3
 img: https://images.unsplash.com/photo-1461344552813-5985830be0a3?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - oil-gas
   - apa
   - exploration
+stock:
+  ticker: APA
+  exchange: NASDAQ
+  symbol: nasdaq:apa
+  name: "APA Corporation"
+  sector: Energy
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nasdaq:apa`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -199,3 +209,5 @@ APA offers exposure to North American unconventional oil and gas development:
 - **Balance Sheet**: Debt levels, liquidity, and credit profile maintenance
 
 <Giscus />
+
+</StockLeaf>

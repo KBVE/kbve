@@ -851,6 +851,14 @@ fn router(state: AppState) -> Router {
             any(super::proxy::edge_proxy_handler),
         )
         .route(
+            "/dashboard/storage/proxy/{*path}",
+            any(super::proxy::longhorn_proxy_handler),
+        )
+        .route(
+            "/dashboard/storage/proxy",
+            any(super::proxy::longhorn_proxy_handler),
+        )
+        .route(
             "/dashboard/chuckrpg/tenants",
             axum::routing::get(super::proxy::chuckrpg_tenants_handler),
         )

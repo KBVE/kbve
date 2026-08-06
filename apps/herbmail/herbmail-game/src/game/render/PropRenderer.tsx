@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import { useGLTF } from '@react-three/drei';
-import { getDungeon, getMountedEids, usePropGen } from '../dungeon/store';
+import {
+	getDungeon,
+	getMountedEids,
+	takeWarmDescs,
+	usePropGen,
+} from '../dungeon/store';
+import { prefetchRoomGeoSet, tickGeoPrefetch } from '../dungeon/roomGeometry';
 import { useOcclusionField } from '../dungeon/occlusion';
 import {
 	MODEL_URLS,
@@ -22,7 +28,10 @@ import { applyStoneMine } from './stoneMine';
 import { burnTick } from '../prop/burn';
 import { npcSystem } from '../npc/goblinSim';
 import { castSystem } from '../combat/castSystem';
-import { isEagle } from '../menu/eagleStore';
+
+// Slice of a frame handed to background sector geometry. Skipped entirely on a
+// frame that already ran long, so prefetch never compounds a hitch.
+const GEO_BUDGET_MS = 3;
 
 const TORCH_URL = MODEL_URLS[MODEL_TORCH];
 const CRATE_URL = MODEL_URLS[MODEL_CRATE];
@@ -70,9 +79,12 @@ export function PropRenderer({ ambient = 0.16 }: { ambient?: number }) {
 	useEffect(() => () => lightSystem.dispose(), [lightSystem]);
 
 	useFrame((state, delta) => {
-		// Eagle snapshot freezes the whole sim (flames, goblins, lights, pools)
-		// so the captured draw set stays static while the inspection camera flies.
-		if (isEagle()) return;
+		// Background sector geometry, capped per frame. Runs before the systems
+		// so a long frame here shows up in this frame's budget, not the next.
+		// Budget 0 means "no limit" to the builder, so a slow frame has to skip
+		// the call outright rather than pass 0 through.
+		for (const d of takeWarmDescs()) prefetchRoomGeoSet(d);
+		if (delta <= 0.02) tickGeoPrefetch(GEO_BUDGET_MS);
 		const world = getDungeon().world;
 		const cdt = Math.min(delta, 0.05);
 		npcSystem(world, state.clock.elapsedTime, cdt);

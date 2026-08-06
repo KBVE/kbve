@@ -1,0 +1,36 @@
+---
+id: "XE131D1Y492BGGDPGX3VBVMBKV"
+ref: "mossy-rock"
+drafted: false
+name: "Mossy Rock"
+title: "Mossy Rock"
+template: splash
+sidebar:
+    label: "Mossy Rock"
+    hidden: true
+description: "A weathered rock cloaked in thick moss, slow to yield but steady in supply."
+type: "resource_node"
+sub_kind: "mossy_stone"
+interactable: true
+destructible: true
+harvest_yield: 1
+max_amount: 50
+initial_amount: 50
+harvest_time_ms: 2500
+harvest_weight: 75
+spawn_weight: 0.3
+spawn_count: 20
+pixels_per_unit: 25
+pivot_x: 0.5
+pivot_y: 0.5
+sorting_layer: "Foreground"
+profession_action_ref: "gather-mossy-stone"
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+
+# Mossy Rock
+
+Left undisturbed for a season, these boulders grow a coat of moss thick enough to sleep on, and the stone beneath stays surprisingly dry.
+
+<MapDBPanel data={frontmatter} />

@@ -1,54 +1,54 @@
 {
 	"dir": "@astrojs/starlight",
-	"center": [163.36, 626.46],
-	"r": 77.58,
+	"center": [-324.39, -1071.55],
+	"r": 77.57,
 	"files": [
 		{
 			"i": 0,
 			"label": "Footer.astro",
 			"path": "@astrojs/starlight/components/Footer.astro",
-			"x": 344.9,
-			"y": 626.46,
+			"x": -142.87,
+			"y": -1071.55,
 			"n": 1
 		},
 		{
 			"i": 1,
 			"label": "MarkdownContent.astro",
 			"path": "@astrojs/starlight/components/MarkdownContent.astro",
-			"x": 254.13,
-			"y": 783.68,
+			"x": -233.63,
+			"y": -914.35,
 			"n": 1
 		},
 		{
 			"i": 2,
 			"label": "PageSidebar.astro",
 			"path": "@astrojs/starlight/components/PageSidebar.astro",
-			"x": 72.59,
-			"y": 783.68,
+			"x": -415.15,
+			"y": -914.35,
 			"n": 1
 		},
 		{
 			"i": 3,
 			"label": "Sidebar.astro",
 			"path": "@astrojs/starlight/components/Sidebar.astro",
-			"x": -18.18,
-			"y": 626.46,
+			"x": -505.91,
+			"y": -1071.55,
 			"n": 1
 		},
 		{
 			"i": 4,
 			"label": "ThemeProvider.astro",
 			"path": "@astrojs/starlight/components/ThemeProvider.astro",
-			"x": 72.59,
-			"y": 469.24,
+			"x": -415.15,
+			"y": -1228.75,
 			"n": 1
 		},
 		{
 			"i": 5,
 			"label": "props",
 			"path": "@astrojs/starlight/props",
-			"x": 254.13,
-			"y": 469.24,
+			"x": -233.63,
+			"y": -1228.75,
 			"n": 1
 		}
 	],
@@ -57,54 +57,54 @@
 			"i": 0,
 			"f": 0,
 			"label": "components/Footer.astro",
-			"x": 344.9,
-			"y": 626.46,
-			"c": 273,
+			"x": -142.87,
+			"y": -1071.55,
+			"c": 58,
 			"loc": ""
 		},
 		{
 			"i": 1,
 			"f": 1,
 			"label": "components/MarkdownContent.astro",
-			"x": 254.13,
-			"y": 783.68,
-			"c": 212,
+			"x": -233.63,
+			"y": -914.35,
+			"c": 67,
 			"loc": ""
 		},
 		{
 			"i": 2,
 			"f": 2,
 			"label": "components/PageSidebar.astro",
-			"x": 72.59,
-			"y": 783.68,
-			"c": 530,
+			"x": -415.15,
+			"y": -914.35,
+			"c": 549,
 			"loc": ""
 		},
 		{
 			"i": 3,
 			"f": 3,
 			"label": "components/Sidebar.astro",
-			"x": -18.18,
-			"y": 626.46,
-			"c": 36,
+			"x": -505.91,
+			"y": -1071.55,
+			"c": 51,
 			"loc": ""
 		},
 		{
 			"i": 4,
 			"f": 4,
 			"label": "components/ThemeProvider.astro",
-			"x": 72.59,
-			"y": 469.24,
-			"c": 3696,
+			"x": -415.15,
+			"y": -1228.75,
+			"c": 3709,
 			"loc": ""
 		},
 		{
 			"i": 5,
 			"f": 5,
 			"label": "@astrojs/starlight/props",
-			"x": 254.13,
-			"y": 469.24,
-			"c": 273,
+			"x": -233.63,
+			"y": -1228.75,
+			"c": 58,
 			"loc": ""
 		}
 	],

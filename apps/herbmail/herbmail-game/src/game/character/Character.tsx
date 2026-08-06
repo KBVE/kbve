@@ -8,6 +8,7 @@ import {
 	CharacterMotor,
 	DEFAULT_MOTOR,
 	type MotorConfig,
+	FixedStep,
 } from './CharacterMotor';
 import { ProceduralPose } from './ProceduralPose';
 import {
@@ -24,6 +25,16 @@ import { CastPhase, abilityById, castDuration } from '../combat/ability';
 import { EquipmentPhysics } from './equipmentPhysics';
 import { WEAPON_GRIP } from './weaponGrip';
 import { useCharacterParts } from './useCharacterParts';
+import { blobGeometry, makeBlobMaterial } from '../render/blobShadow';
+import {
+	blobsOn,
+	nearestLight,
+	projOn,
+	registerCharShadow,
+	type CharShadowHandle,
+} from '../render/charShadow';
+import { ShadowProjector } from '../render/shadowProjector';
+import { slotNameOf } from './partVisibility';
 import type { PartSet } from './armor';
 import { getEquipped, useEquippedArmor } from './armor';
 import { useBodySkinMorph } from './body';
@@ -38,6 +49,7 @@ import {
 	VERTICAL_GRIP_LEFT,
 	SWORD_URL,
 	TORCH_URL,
+	PICKAXE_URL,
 } from './heldItems';
 
 const UP = new THREE.Vector3(0, 1, 0);
@@ -46,6 +58,12 @@ const LAND_HOLD_FRAC = 0.3;
 
 const AIR_ANIM_DELAY = 0.65;
 const GROUND_Y = -0.037;
+// Contact blob and shadow capsule, in character-local units (the root group's
+// scale carries them to world size).
+const BLOB_R = 0.5;
+const CAP_R = 0.33;
+const CAP_H = 1.7;
+const NO_RAYCAST = () => undefined;
 
 const _flexAxis = new THREE.Vector3(1, 0, 0);
 const _hangAxis = new THREE.Vector3(0, 0, 1);
@@ -89,12 +107,16 @@ const PUNCH_CHAIN = [
 const PUNCH_WINDOW = 0.35;
 const PUNCH_REACH = 0.45;
 
+// Mining swing, looped for the duration of a channel (see mineChannel.ts).
+const MINE_CLIP = 'Mining_Loop';
+
 const TORCH_LIGHT_GAIN = 1.0;
 const TORCH_LIGHT_REACH = 13;
 const TORCH_LIGHT_DECAY = 1.1;
 
 useGLTF.preload(SWORD_URL);
 useGLTF.preload(TORCH_URL);
+useGLTF.preload(PICKAXE_URL);
 
 const HELD_FLAME_SCALE = 0.24;
 
@@ -126,6 +148,22 @@ function buildFlame(gripScale: number): {
 	mats.push(embers.mat);
 	return { flame, mats };
 }
+
+// Every caster is redrawn once per shadow-cube face, so a rig's 23 meshes cost
+// 23 x 6 draws per shadow light. Facial detail cannot resolve on a 256px cube
+// map — dropping it keeps the silhouette (body, head, hair, hands, feet) and
+// removes nine meshes per rig from every shadow refresh.
+const NO_SHADOW_SLOTS = new Set([
+	'EYEL',
+	'EYER',
+	'EBRL',
+	'EBRR',
+	'EARL',
+	'EARR',
+	'NOSE',
+	'TETH',
+	'TONG',
+]);
 
 const UPPER_BONE =
 	/spine|neck|head|clavicle|upperarm|lowerarm|hand|thumb|index|middle|ring|pinky|prop/i;
@@ -164,7 +202,9 @@ export interface CharacterHandle {
 	punch: () => void;
 	setBlocking: (b: boolean, pose?: BlockPose) => void;
 	isBlocking: () => boolean;
+	mineLoop: (on: boolean) => void;
 	bone: (name: string) => THREE.Object3D | null;
+	meshes: () => { slot: string; named: boolean; visible: boolean }[];
 }
 
 interface Props {
@@ -242,6 +282,7 @@ export function Character({
 	const gltf = useGLTF(url);
 	const sword = useGLTF(SWORD_URL);
 	const torch = useGLTF(TORCH_URL);
+	const pickaxe = useGLTF(PICKAXE_URL);
 	const heldAnchor = useRef<THREE.Object3D | null>(null);
 	const heldFlame = useRef<THREE.Object3D | null>(null);
 	const heldMats = useRef<THREE.ShaderMaterial[] | null>(null);
@@ -259,6 +300,10 @@ export function Character({
 		color: [number, number, number];
 	} | null>(null);
 	const groupRef = useRef<THREE.Group>(null);
+	const blobRef = useRef<THREE.Mesh>(null);
+	const blobMat = useMemo(() => makeBlobMaterial(), []);
+	const projector = useMemo(() => new ShadowProjector(), []);
+	const capRef = useRef<CharShadowHandle | null>(null);
 	const torchLight = useRef<THREE.PointLight>(null);
 
 	const flamePool = useRef<{
@@ -266,6 +311,7 @@ export function Character({
 		mats: THREE.ShaderMaterial[];
 	} | null>(null);
 	const tRef = useRef(0);
+	const motorStep = useRef(new FixedStep());
 	const jumpRef = useRef({
 		wasGrounded: true,
 		landUntil: 0,
@@ -284,7 +330,10 @@ export function Character({
 	const scene = useMemo(() => {
 		const s = cloneSkinned(gltf.scene);
 		s.traverse((o) => {
-			if ((o as THREE.Mesh).isMesh) o.castShadow = true;
+			if ((o as THREE.Mesh).isMesh) {
+				o.castShadow = !NO_SHADOW_SLOTS.has(slotNameOf(o));
+				o.frustumCulled = false;
+			}
 		});
 		return s;
 	}, [gltf]);
@@ -314,6 +363,26 @@ export function Character({
 		[scene],
 	);
 	const legTwistCur = useRef(0);
+	// Bones the post-mixer passes below premultiply onto, plus the last value
+	// the mixer left there and the last value we left there. See the restore
+	// loop in useFrame for why both are needed.
+	const proceduralBones = useMemo(() => {
+		const out = spineBones
+			.map((s) => s.bone as THREE.Object3D | null)
+			.concat([
+				strafeBones.pelvis,
+				strafeBones.spine,
+				upperArms.r,
+				upperArms.l,
+			]);
+		return [...new Set(out.filter(Boolean) as THREE.Object3D[])];
+	}, [spineBones, strafeBones, upperArms]);
+	const poseBase = useRef(
+		new Map<
+			THREE.Object3D,
+			{ mixer: THREE.Quaternion; ours: THREE.Quaternion }
+		>(),
+	);
 	const fingerBones = useMemo(() => {
 		const grip: Record<string, THREE.Quaternion> = {};
 		const idle = gltf.animations.find((a) => a.name === 'Idle_Loop');
@@ -343,10 +412,20 @@ export function Character({
 		return out;
 	}, [scene, gltf]);
 
+	// Grip yaw eased between its resting angle and the swing angle while a mining
+	// channel runs, so the head lands on the rock instead of swinging past it.
+	const swingGrip = useRef<{
+		pivot: THREE.Object3D;
+		rest: number;
+		swing: number;
+	} | null>(null);
+	const swingOn = useRef(false);
+
 	useEffect(() => {
 		const srcByUrl: Record<string, THREE.Object3D> = {
 			[SWORD_URL]: sword.scene,
 			[TORCH_URL]: torch.scene,
+			[PICKAXE_URL]: pickaxe.scene,
 		};
 		const cleanups: Array<() => void> = [];
 
@@ -393,7 +472,15 @@ export function Character({
 			pivot.name = cfg.pivotName;
 			pivot.add(inner);
 			pivot.position.fromArray(grip.pos);
-			pivot.rotation.set(grip.rot[0], grip.rot[1], grip.rot[2]);
+			const rot = cfg.rot ?? grip.rot;
+			pivot.rotation.set(rot[0], rot[1], rot[2]);
+			if (cfg.swingRotY !== undefined) {
+				swingGrip.current = {
+					pivot,
+					rest: rot[1],
+					swing: cfg.swingRotY,
+				};
+			}
 			pivot.scale.setScalar(cfg.scale);
 			pivot.userData.heldPivot = true;
 
@@ -421,7 +508,11 @@ export function Character({
 				heldLightCfg.current = cfg.light ?? null;
 			}
 
-			cleanups.push(() => hand.remove(pivot));
+			cleanups.push(() => {
+				hand.remove(pivot);
+				if (swingGrip.current?.pivot === pivot)
+					swingGrip.current = null;
+			});
 		};
 
 		if (rightId) attachOne(WEAPON_GRIP.handBone, VERTICAL_GRIP, rightId);
@@ -439,7 +530,7 @@ export function Character({
 			leanRef.current.vx = leanRef.current.vz = 0;
 			clearHeldLight();
 		};
-	}, [scene, rightId, leftId, sword, torch]);
+	}, [scene, rightId, leftId, sword, torch, pickaxe]);
 
 	useEffect(
 		() => () => {
@@ -451,6 +542,16 @@ export function Character({
 		},
 		[],
 	);
+
+	// Registered here rather than in the rig memo: StrictMode replays the memo
+	// and would leak a second capsule that never releases.
+	useEffect(() => {
+		capRef.current = registerCharShadow(CAP_R * scale, CAP_H * scale);
+		return () => {
+			capRef.current?.release();
+			capRef.current = null;
+		};
+	}, [scale]);
 
 	const rig = useMemo(() => {
 		const pelvis = scene.getObjectByName('pelvis');
@@ -492,6 +593,9 @@ export function Character({
 		for (const clip of BLOCK_CLIPS)
 			if (animator.has(clip))
 				animator.registerMasked(`${clip}_B`, clip, isUpperBone);
+		const mineMasked =
+			animator.has(MINE_CLIP) &&
+			animator.registerMasked(`${MINE_CLIP}_U`, MINE_CLIP, isUpperBone);
 		if (locomotion.idleOverlay && animator.has(locomotion.idleOverlay))
 			animator.registerMasked(
 				'Idle_Overlay',
@@ -508,6 +612,13 @@ export function Character({
 				hasUpper && (motor.gait !== 'idle' || motor.airborne)
 					? animator.playMaskedOnce('Attack_Upper')
 					: animator.playOnce(attackClip),
+			// Held for the duration of a mining channel: the swing loops on the
+			// upper body so the legs keep whatever the locomotion layer is doing.
+			mineLoop: (on: boolean) => {
+				swingOn.current = on;
+				if (!mineMasked) return;
+				animator.holdMasked(`${MINE_CLIP}_U`, on, true);
+			},
 			punch: () => {
 				if (blockRef.current.on) return;
 				const c = comboRef.current;
@@ -545,17 +656,47 @@ export function Character({
 			},
 			isBlocking: () => blockRef.current.on,
 			bone: (name: string) => scene.getObjectByName(name) ?? null,
+			meshes: () => {
+				const out: {
+					slot: string;
+					named: boolean;
+					visible: boolean;
+				}[] = [];
+				scene.traverse((o) => {
+					if (!(o as THREE.Mesh).isMesh) return;
+					out.push({
+						slot: slotNameOf(o),
+						named: !!o.name,
+						visible: o.visible,
+					});
+				});
+				return out;
+			},
 		};
 		onReady?.(handle);
-		return () => animator.dispose();
+		return () => {
+			animator.dispose();
+			projector.dispose();
+		};
 	}, [rig]);
 
 	useFrame((_, dtRaw) => {
 		const dt = Math.min(dtRaw, 0.05);
 		const { animator, motor, pose, equipment } = rig;
-		tRef.current += dt;
-		drive?.(motor, tRef.current);
-		motor.update(dt);
+		// The motor runs on a fixed step so travel is frame-rate independent and
+		// reproducible — a variable dt makes the same input yield different
+		// positions at 30 and 60Hz, which no prediction or server reconciliation
+		// can be built on. The step is deliberately shorter than a display frame:
+		// at 1/60 a 60Hz frame lands either side of the boundary and takes 0 or 2
+		// steps, which reads as judder unless the rendered pose is interpolated
+		// separately from the simulated one. Halving it keeps the residual under
+		// half a substep (~4cm at run speed) and leaves every existing reader of
+		// motor.position untouched.
+		motorStep.current.run(dt, (sdt) => {
+			tRef.current += sdt;
+			drive?.(motor, tRef.current);
+			motor.update(sdt);
+		});
 
 		const gait = motor.gait;
 		const j = jumpRef.current;
@@ -705,6 +846,17 @@ export function Character({
 				animator.setBaseTimeScale(decision.timeScale);
 		}
 
+		const sg = swingGrip.current;
+		if (sg) {
+			const goal = swingOn.current ? sg.swing : sg.rest;
+			sg.pivot.rotation.y = THREE.MathUtils.damp(
+				sg.pivot.rotation.y,
+				goal,
+				12,
+				dt,
+			);
+		}
+
 		const legTwistGoal = strafe?.legTwist ?? 0;
 		animator.setLocomotionReverse(strafe?.reverse ?? false);
 
@@ -721,6 +873,27 @@ export function Character({
 			);
 
 		animator.update(dt);
+		// three's PropertyMixer only calls setValue() when a track's accumulated
+		// value differs from the one it applied last frame, so a genuinely
+		// constant track stops writing its bone at all. The passes below
+		// premultiply onto whatever the bone holds, which then compounds every
+		// frame instead of riding on top of the clip pose. Authored clips hide
+		// this because their "constant" tracks still jitter a hair, but gltfpack
+		// folds those to a single keyframe and the drift shows up in packed
+		// builds only. Put the mixer's own value back before re-applying.
+		for (const bone of proceduralBones) {
+			let e = poseBase.current.get(bone);
+			if (!e) {
+				e = {
+					mixer: new THREE.Quaternion(),
+					ours: new THREE.Quaternion(),
+				};
+				poseBase.current.set(bone, e);
+			} else if (bone.quaternion.equals(e.ours)) {
+				bone.quaternion.copy(e.mixer);
+			}
+			e.mixer.copy(bone.quaternion);
+		}
 		// Ease the leg cheat and apply post-mixer: pelvis yaws toward travel,
 		// spine_01 counter-yaws so the chest stays squared on the target.
 		legTwistCur.current = THREE.MathUtils.damp(
@@ -779,6 +952,10 @@ export function Character({
 			if (!rightId) hang(upperArms.r, -1);
 			if (!leftId) hang(upperArms.l, 1);
 		}
+		for (const bone of proceduralBones) {
+			const e = poseBase.current.get(bone);
+			if (e) e.ours.copy(bone.quaternion);
+		}
 		for (const f of fingerBones) {
 			const holds = f.side === 'r' ? !!rightId : !!leftId;
 			if (holds) f.bone.quaternion.slerp(f.grip, HAND_GRIP);
@@ -803,6 +980,41 @@ export function Character({
 		_bodyFwd.set(Math.sin(motor.yaw), 0, Math.cos(motor.yaw));
 		pose.update(dt, _bodyFwd);
 
+		// Capsule rides the body; blob only makes sense standing on something.
+		const grounded = motor.mode === 'ground';
+		capRef.current?.update(
+			motor.position.x,
+			motor.position.y,
+			motor.position.z,
+		);
+		const blob = blobRef.current;
+		if (blob) {
+			blob.visible = grounded && blobsOn() && nearestLight.on;
+			if (blob.visible) {
+				// Aim the figure away from the torch, in the character group's
+				// local frame (the group already carries motor yaw).
+				const dx = motor.position.x - nearestLight.x;
+				const dz = motor.position.z - nearestLight.z;
+				const flat = Math.hypot(dx, dz);
+				const away = Math.atan2(dx, dz) - motor.yaw;
+				blob.rotation.z = -away;
+
+				// Lower light and greater distance both lengthen the shadow;
+				// clamped so a torch at floor level doesn't smear it to infinity.
+				const rise = Math.max(nearestLight.y - motor.position.y, 0.4);
+				const stretch = THREE.MathUtils.clamp(
+					1 + flat / Math.max(rise, 0.6),
+					1,
+					3.4,
+				);
+				blob.scale.set(BLOB_R, BLOB_R * stretch, 1);
+
+				// Fade out as the torch gets far or weak — no light, no shadow.
+				const fall = 1 - THREE.MathUtils.clamp((flat - 4) / 9, 0, 1);
+				blobMat.opacity = 0.55 * fall;
+			}
+		}
+
 		const g = groupRef.current;
 		if (g) {
 			g.position.copy(motor.position);
@@ -812,6 +1024,30 @@ export function Character({
 			// when rising; zero everywhere else.
 			g.rotation.x = motor.mode === 'swim' ? -motor.swimPitch : 0;
 			g.updateMatrixWorld(true);
+		}
+
+		// Must run AFTER the root matrix update above: the clones project from
+		// src.matrixWorld, and using last frame's value makes the shadow lag
+		// and swim behind the body.
+		// Projected mesh shadow: the real silhouette, flattened onto the floor
+		// along the rays from the nearest torch.
+		if (projOn() && nearestLight.on && grounded) {
+			const pdx = motor.position.x - nearestLight.x;
+			const pdz = motor.position.z - nearestLight.z;
+			const pflat = Math.hypot(pdx, pdz);
+			const fade = 1 - THREE.MathUtils.clamp((pflat - 5) / 9, 0, 1);
+			projector.update(
+				scene,
+				nearestLight.x,
+				nearestLight.y,
+				nearestLight.z,
+				motor.position.y,
+				fade > 0.01,
+				0.5 * fade,
+				CAP_H * scale,
+			);
+		} else {
+			projector.update(scene, 0, 1, 0, 0, false, 0);
 		}
 		equipment.update(dt);
 
@@ -913,7 +1149,18 @@ export function Character({
 		<>
 			<group ref={groupRef} name="characterRoot" scale={scale}>
 				<primitive object={scene} />
+				<mesh
+					ref={blobRef}
+					geometry={blobGeometry()}
+					material={blobMat}
+					rotation-x={-Math.PI / 2}
+					position-y={0.03}
+					scale={BLOB_R}
+					renderOrder={1}
+					raycast={NO_RAYCAST}
+				/>
 			</group>
+			<primitive object={projector.group} />
 			<pointLight
 				ref={torchLight}
 				visible={false}

@@ -41,19 +41,15 @@ scripts:
             slowChance: 0.1
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
-import { Adsense } from '@/components/astropad';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
+import Adsense from '@/components/ads/Adsense.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Item
 
 **Quantum Coffee** is crafted from beans grown in uncertain timelines.
 Its aroma sharpens the mind while briefly distorting the flow of time around you.
-
----
-
-<ItemDBPanel data={frontmatter} />
-
----
 
 <Adsense />
 
@@ -63,8 +59,8 @@ Its aroma sharpens the mind while briefly distorting the flow of time around you
 - Raises **intelligence by {frontmatter.bonuses.intelligence}**
 - Has a **{frontmatter.scripts[0].vars.slowChance * 100}% chance** to slow nearby foes
 
----
-
 ## DevLog
 
 - 06/12/2025 - Quantum Coffee introduced as time-bending beverage
+
+</ItemLeaf>

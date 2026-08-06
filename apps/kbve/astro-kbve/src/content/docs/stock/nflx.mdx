@@ -1,10 +1,12 @@
 ---
 title: Netflix Inc. NFLX
+template: splash
 description: |
     Netflix is the world's leading streaming entertainment service serving over 270 million paid memberships across 190+ countries, offering TV series, documentaries, and feature films across a wide variety of genres and languages.
 sidebar:
     label: Netflix NFLX
     order: 512
+    hidden: true
 unsplash: 1611162616475-46b635cb6868
 img: https://images.unsplash.com/photo-1611162616475-46b635cb6868?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - streaming
   - nflx
   - media
+stock:
+  ticker: NFLX
+  exchange: NASDAQ
+  symbol: nasdaq:nflx
+  name: "Netflix Inc."
+  sector: Communication Services
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nasdaq:nflx`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -344,3 +354,5 @@ NFLX offers exposure to global streaming entertainment leadership with content d
 - **International Performance**: Performance and profitability in international markets
 
 <Giscus />
+
+</StockLeaf>

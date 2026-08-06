@@ -2,79 +2,12 @@ import { StyleSheet, View } from 'react-native';
 import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
 import type { StreamLens } from '../types';
+import type { LogItem } from '../clickhouse/logItem';
+import { parseMetadataFacts } from '../clickhouse/logItem';
 import { buildStatsTotals, CH_CONTROLS } from '../clickhouse/clickhouseStream';
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
-export interface RawLogRow {
-	timestamp: string;
-	level?: string;
-	message?: string;
-	pod_name?: string;
-	pod_namespace?: string;
-	service?: string;
-	container_name?: string;
-}
-
-export interface LogItem {
-	id: string;
-	timestamp: string;
-	level: string;
-	message: string;
-	podName: string;
-	namespace: string;
-	service: string;
-	container: string;
-	relativeTime: string;
-}
-
-// ---------------------------------------------------------------------------
-// Normalization
-// ---------------------------------------------------------------------------
-
-export function normalize(raw: RawLogRow): LogItem {
-	const level = (raw.level ?? 'info').toLowerCase();
-	const namespace = raw.pod_namespace ?? '';
-	const podName = raw.pod_name ?? '';
-	const service = raw.service ?? '';
-	const container = raw.container_name ?? '';
-	const message = raw.message ?? '';
-
-	// Create unique ID from timestamp + namespace + podName
-	const id = `${raw.timestamp}:${namespace}:${podName}`;
-
-	// Calculate relative time
-	const relativeTime = formatRelativeTime(raw.timestamp);
-
-	return {
-		id,
-		timestamp: raw.timestamp,
-		level,
-		message,
-		podName,
-		namespace,
-		service,
-		container,
-		relativeTime,
-	};
-}
-
-function formatRelativeTime(ts: string): string {
-	try {
-		const then = new Date(ts.replace(' ', 'T') + 'Z').getTime();
-		const diffSec = Math.max(0, Math.round((Date.now() - then) / 1000));
-		if (diffSec < 60) return `${diffSec}s ago`;
-		const diffMin = Math.round(diffSec / 60);
-		if (diffMin < 60) return `${diffMin}m ago`;
-		const diffHr = Math.round(diffMin / 60);
-		if (diffHr < 24) return `${diffHr}h ago`;
-		return `${Math.round(diffHr / 24)}d ago`;
-	} catch {
-		return ts;
-	}
-}
+export type { RawLogRow, LogItem, MetaFact } from '../clickhouse/logItem';
+export { normalize, parseMetadataFacts } from '../clickhouse/logItem';
 
 // ---------------------------------------------------------------------------
 // Lens
@@ -222,14 +155,45 @@ export const clickhouseLens: StreamLens<LogItem> = {
 					<Text variant="caption" weight="medium" tone="muted">
 						Message:
 					</Text>
-					<Text variant="caption" tone="faint">
+					<Text variant="caption" tone="faint" selectable>
 						{it.message}
 					</Text>
 				</Stack>
 			)}
+			<MetadataFacts rawMeta={it.metadataRaw} />
 		</Stack>
 	),
 };
+
+function MetadataFacts({ rawMeta }: { rawMeta: string }) {
+	const facts = parseMetadataFacts(rawMeta);
+	if (!facts.length) return null;
+	return (
+		<Stack gap="xs">
+			<Text variant="caption" weight="medium" tone="muted">
+				Metadata:
+			</Text>
+			{facts.map((f) => (
+				<Stack
+					key={f.key}
+					direction="row"
+					gap="sm"
+					justify="space-between">
+					<Text variant="caption" tone="muted">
+						{f.key}
+					</Text>
+					<Text
+						variant="caption"
+						tone="faint"
+						selectable
+						style={styles.metaValue}>
+						{f.value}
+					</Text>
+				</Stack>
+			))}
+		</Stack>
+	);
+}
 
 function Fact({ label, value }: { label: string; value: string }) {
 	return (
@@ -266,6 +230,10 @@ const styles = StyleSheet.create({
 		flexShrink: 0,
 	},
 	factValue: {
+		flexShrink: 1,
+		textAlign: 'right',
+	},
+	metaValue: {
 		flexShrink: 1,
 		textAlign: 'right',
 	},

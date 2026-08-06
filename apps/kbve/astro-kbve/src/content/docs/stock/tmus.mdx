@@ -1,10 +1,12 @@
 ---
 title: T-Mobile US Inc. TMUS
+template: splash
 description: |
     T-Mobile is a leading wireless telecommunications company providing mobile communications services and solutions across the United States, known for innovation, customer service excellence, and network leadership through 5G technology deployment.
 sidebar:
     label: T-Mobile US TMUS
     order: 529
+    hidden: true
 unsplash: 1556742502-ec7c0cd0b1e7
 img: https://images.unsplash.com/photo-1556742502-ec7c0cd0b1e7?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - wireless
   - tmus
   - 5g
+stock:
+  ticker: TMUS
+  exchange: NASDAQ
+  symbol: nasdaq:tmus
+  name: "T-Mobile US Inc."
+  sector: Communication Services
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nasdaq:tmus`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -355,3 +365,5 @@ TMUS offers exposure to wireless industry leadership with 5G innovation:
 - **5G Monetization**: Revenue opportunities from 5G services and applications
 
 <Giscus />
+
+</StockLeaf>

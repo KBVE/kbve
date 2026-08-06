@@ -1,10 +1,12 @@
 ---
 title: Berkshire Hathaway Inc. Class B BRK.B
+template: splash
 description: |
     Berkshire Hathaway is a multinational conglomerate holding company led by Warren Buffett, owning subsidiaries engaged in insurance, energy, manufacturing, retail, and providing a diversified investment portfolio of public company holdings.
 sidebar:
     label: Berkshire Hathaway BRK.B
     order: 505
+    hidden: true
 unsplash: 1559526324-4b87b5e36e44
 img: https://images.unsplash.com/photo-1559526324-4b87b5e36e44?fit=crop&w=1400&h=700&q=75
 tags:
@@ -13,9 +15,16 @@ tags:
   - insurance
   - brkb
   - value-investing
+stock:
+  ticker: BRK.B
+  exchange: NYSE
+  symbol: nyse:brk.b
+  name: "Berkshire Hathaway Inc. Class B"
+  sector: Financials
+  kind: equity
 ---
 
-import TradingView from '@/components/charts/TradingView.astro';
+import StockLeaf from '@/components/stock/StockLeaf.astro';
 
 import {
   Aside,
@@ -26,9 +35,10 @@ import {
   FileTree,
 } from '@astrojs/starlight/components';
 
-import { Giscus, Adsense } from '@/components/astropad';
+import Adsense from '@/components/ads/Adsense.astro';
+import { Giscus } from '@/components/astropad';
 
-<TradingView data={`nyse:brk.b`} />
+<StockLeaf data={frontmatter.stock} lede={frontmatter.description?.trim()}>
 
 <Adsense />
 
@@ -302,3 +312,5 @@ BRK.B offers exposure to diversified business operations with legendary investme
 - **Succession Progress**: Leadership development and succession planning progress
 
 <Giscus />
+
+</StockLeaf>

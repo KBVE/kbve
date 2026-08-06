@@ -7,45 +7,37 @@ rust-version.workspace = true
 publish = false
 
 [dependencies]
-anyhow = "1.0"
-thiserror = "2"
-serde_json = "1.0"
-tower = { version = "0.5.3", features = ["util", "timeout", "load-shed", "limit"] }
-tower-http = { version = "0.7.0", features = [
-    "compression-full",
-    "limit",
-    "trace",
-    "fs",
-    "cors",
-    "set-header",
-    "normalize-path"
-] }
-tokio = { version = "1.0", features = ["full", "rt-multi-thread"] }
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-axum = { version = "0.8.5", features = ["ws", "macros"] }
-axum-extra = { version = "0.12.1", features = ["cookie"] }
-socket2 = "0.6.1"
-num_cpus = "1.17.0"
-dotenvy = "0.15"
-http = "1"
-serde = { version = "1.0", features = ["derive"] }
-jsonwebtoken = { version = "9.3", default-features = false }
-reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "json"] }
-kube = { version = "3", default-features = false, features = ["client", "rustls-tls"] }
-k8s-openapi = { version = "0.27", features = ["v1_32"] }
-rustls = { version = "0.23", features = ["ring"] }
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+serde_json = { workspace = true }
+tower = { workspace = true, features = ["util", "timeout", "load-shed", "limit"] }
+tower-http = { workspace = true, features = ["compression-full", "limit", "trace", "fs", "cors", "set-header", "normalize-path"] }
+tokio = { workspace = true, features = ["default", "full", "rt-multi-thread"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
+axum = { workspace = true, features = ["default", "ws", "macros"] }
+axum-extra = { workspace = true, features = ["cookie"] }
+socket2 = { workspace = true }
+num_cpus = { workspace = true }
+dotenvy = { workspace = true }
+http = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+jsonwebtoken = { workspace = true }
+reqwest = { workspace = true, features = ["rustls", "json", "form"] }
+kube = { workspace = true, features = ["client", "rustls-tls"] }
+k8s-openapi = { workspace = true, features = ["v1_32"] }
+rustls = { workspace = true, features = ["default", "ring"] }
 
 # Workspace path dependencies
 jedi = { path = "../../../packages/rust/jedi", features = ["postgres", "valkey"] }
 kbve = { path = "../../../packages/rust/kbve" }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
-tikv-jemallocator = { version = "0.7", optional = true }
+tikv-jemallocator = { workspace = true, optional = true }
 
 [dev-dependencies]
-serial_test = "3"
-http-body-util = "0.1"
+serial_test = { workspace = true }
+http-body-util = { workspace = true }
 
 [features]
 default = []

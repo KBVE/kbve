@@ -6,6 +6,8 @@ sidebar:
     hidden: true
 description: |
     A four-pouch belt rig — front, back, both hips — for everything a jumpsuit forgot. Contents shift; the rig never does.
+lore: |
+    A belt harness with modular pouches, sold empty and never seen that way again. The rig's whole argument is that a thing you can reach is worth more than a thing you own, which is why gatherers pay forty for a belt and argue about the loadout for years.
 ref: 'pouch-rig'
 key: 626
 id: '01KXFBEGM2KZ4CXZKFM2TYEA29'
@@ -36,10 +38,23 @@ equipment:
   bonuses:
     extra:
       weight: 2
+grid:
+  width: 2
+  height: 2
+set_ref: 'fieldkit'
+tags:
+  - armor
+  - fieldkit
+  - herbmail
+sources:
+  - source_type: 'vendor'
+    source_name: 'Surplus stall'
 ---
 
-import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import ItemLeaf from '@/components/itemdb/ItemLeaf.astro';
+
+<ItemLeaf data={frontmatter}>
 
 ## Overview
 
-<ItemDBPanel data={frontmatter} />
+</ItemLeaf>

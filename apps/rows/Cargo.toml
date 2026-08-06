@@ -9,75 +9,75 @@ description = "Rust OWS — single-binary game backend (REST + gRPC)"
 
 [dependencies]
 # Async runtime
-tokio = { version = "1.0", features = ["full", "rt-multi-thread"] }
+tokio = { workspace = true, features = ["default", "full", "rt-multi-thread"] }
 
 # REST (axum)
-axum = { version = "0.8.5", features = ["macros"] }
-axum-extra = { version = "0.12.1", features = ["cookie"] }
+axum = { workspace = true, features = ["default", "macros"] }
+axum-extra = { workspace = true, features = ["cookie"] }
 
 # gRPC (tonic)
-tonic = "0.14.5"
-tonic-prost = "0.14.5"
-prost = "0.14"
-prost-types = "0.14"
+tonic = { workspace = true }
+tonic-prost = { workspace = true }
+prost = { workspace = true }
+prost-types = { workspace = true }
 
 # Tower (shared middleware layer for axum + tonic multiplexing)
-tower = { version = "0.5.3", features = ["util", "timeout", "load-shed", "limit", "steer"] }
-tower-http = { version = "0.7.0", features = ["compression-full", "limit", "trace", "cors", "set-header", "timeout"] }
+tower = { workspace = true, features = ["util", "timeout", "load-shed", "limit", "steer"] }
+tower-http = { workspace = true, features = ["compression-full", "limit", "trace", "cors", "set-header", "timeout"] }
 hyper = { version = "1", features = ["full"] }
 hyper-util = { version = "0.1", features = ["tokio", "server-auto", "http1", "http2"] }
-http = "1"
+http = { workspace = true }
 http-body = "1"
 
 # Serialization
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 
 # Database
 sqlx = { version = "0.8", features = ["runtime-tokio", "tls-rustls", "postgres", "uuid", "chrono", "json"] }
 
 # Auth / crypto
-uuid = { version = "1", features = ["v4", "serde"] }
-jsonwebtoken = { version = "10.3.0", features = ["rust_crypto"] }
-argon2 = { version = "0.5", features = ["password-hash"] }
+uuid = { workspace = true, features = ["v4", "serde"] }
+jsonwebtoken = { workspace = true, features = ["default", "rust_crypto"] }
+argon2 = { workspace = true, features = ["password-hash"] }
 
 # Observability
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["default", "env-filter", "json"] }
 
 # Messaging (RabbitMQ)
 lapin = "4.4.0"
 
 # K8s / Agones
-kube = { version = "3", features = ["runtime", "derive", "client"] }
-k8s-openapi = { version = "0.27", features = ["v1_32"] }
+kube = { workspace = true, features = ["default", "runtime", "derive", "client"] }
+k8s-openapi = { workspace = true, features = ["v1_32"] }
 
 # Concurrent collections
-dashmap = "6.1"
+dashmap = { workspace = true }
 
 # OpenAPI documentation
-utoipa = { version = "5", features = ["axum_extras", "uuid", "chrono"] }
+utoipa = { workspace = true, features = ["axum_extras", "uuid", "chrono"] }
 utoipa-swagger-ui = { version = "9", features = ["axum"] }
 
 # Utilities
-anyhow = "1.0"
-thiserror = "2"
-dotenvy = "0.15"
-chrono = { version = "0.4", features = ["serde"] }
-async-trait = "0.1"
+anyhow = { workspace = true }
+thiserror = { workspace = true }
+dotenvy = { workspace = true }
+chrono = { workspace = true, features = ["default", "serde"] }
+async-trait = { workspace = true }
 futures-lite = "2"
-tokio-stream = "0.1"
-rustls = { version = "0.23", features = ["ring"] }
+tokio-stream = { workspace = true }
+rustls = { workspace = true, features = ["default", "ring"] }
 
 # Workspace path dependencies
 jedi = { path = "../../packages/rust/jedi", features = ["prometheus"] }
 kbve = { path = "../../packages/rust/kbve" }
 
 [build-dependencies]
-tonic-prost-build = "0.14.5"
+tonic-prost-build = { workspace = true }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
-tikv-jemallocator = { version = "0.7", optional = true }
+tikv-jemallocator = { workspace = true, optional = true }
 
 [features]
 default = []
