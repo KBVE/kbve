@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { homeService } from '@/components/dashboard/homeService';
+import { $auth, $isStaff } from '@kbve/droid';
+import { initSupa } from '@/lib/supa';
 import {
 	$reelList,
 	$reelListError,
@@ -164,8 +165,8 @@ export default function ReactReelConsole() {
 	const live = useStore($reelLive);
 	const health = useStore($reelHealth);
 	const selectedId = useStore($reelSelectedId);
-	const isStaff = useStore(homeService.$isStaff);
-	const authState = useStore(homeService.$authState);
+	const isStaff = useStore($isStaff);
+	const tone = useStore($auth).tone;
 
 	const [source, setSource] = useState('');
 	const [adding, setAdding] = useState(false);
@@ -173,7 +174,7 @@ export default function ReactReelConsole() {
 	const [actionError, setActionError] = useState<string | null>(null);
 
 	useEffect(() => {
-		void homeService.initAuth();
+		void initSupa().catch(() => {});
 	}, []);
 
 	useEffect(() => {
@@ -244,7 +245,7 @@ export default function ReactReelConsole() {
 		return (
 			<div className="reel-console reel-console--gated">
 				<p className="reel-console__gate">
-					{authState === 'loading' || authState === 'authenticated'
+					{tone === 'loading' || tone === 'auth'
 						? 'Checking access…'
 						: 'Reel management is restricted to KBVE staff. Sign in with a staff account to add, transcode, or remove reels.'}
 				</p>
