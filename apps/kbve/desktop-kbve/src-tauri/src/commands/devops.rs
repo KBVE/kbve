@@ -870,9 +870,15 @@ pub async fn update_epic_progress(
 #[tauri::command]
 #[specta::specta]
 pub async fn spawn_agent_from_issue(
+    app: AppHandle,
     config: crate::devops::operations::SpawnAgentConfig,
 ) -> Result<crate::devops::operations::AgentSpawnResult, String> {
-    crate::devops::operations::spawn_agent_from_issue(config).await
+    let issue_ref = config.issue_ref.clone();
+    let result = crate::devops::operations::spawn_agent_from_issue(config).await;
+    if result.is_ok() {
+        crate::agent_voice::announce_from_app(&app, &format!("Agent spawned on {}", issue_ref));
+    }
+    result
 }
 
 /// Complete agent work by creating a PR
@@ -1103,7 +1109,16 @@ pub async fn on_pipeline_item_complete(
     issue_number: u32,
     update_github: bool,
 ) -> Result<(), String> {
-    crate::devops::orchestration::on_pipeline_item_complete(&app, issue_number, update_github).await
+    let result =
+        crate::devops::orchestration::on_pipeline_item_complete(&app, issue_number, update_github)
+            .await;
+    if result.is_ok() {
+        crate::agent_voice::announce_from_app(
+            &app,
+            &format!("Issue {} completed its pipeline", issue_number),
+        );
+    }
+    result
 }
 
 /// Merge a PR for a sub-issue that's in "Ready" state
@@ -1121,13 +1136,20 @@ pub async fn merge_ready_pr(
     merge_method: Option<String>,
     delete_branch: bool,
 ) -> Result<crate::devops::orchestration::MergeResult, String> {
-    crate::devops::orchestration::merge_ready_pr(
+    let result = crate::devops::orchestration::merge_ready_pr(
         &app,
         issue_number,
         merge_method.as_deref(),
         delete_branch,
     )
-    .await
+    .await;
+    if result.is_ok() {
+        crate::agent_voice::announce_from_app(
+            &app,
+            &format!("Pull request for issue {} merged", issue_number),
+        );
+    }
+    result
 }
 
 /// Process all "Ready" sub-issues for the active Epic

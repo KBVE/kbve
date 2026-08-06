@@ -20,6 +20,11 @@ export default defineConfig({
 				__dirname,
 				'src/__mocks__/tauri-api-event.ts',
 			),
+			'react-i18next': path.resolve(
+				__dirname,
+				'src/i18n/react-i18next.ts',
+			),
+			'@': path.resolve(__dirname, 'src'),
 		},
 	},
 });

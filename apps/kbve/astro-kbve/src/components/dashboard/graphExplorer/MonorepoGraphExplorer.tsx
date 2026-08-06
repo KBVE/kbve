@@ -49,6 +49,7 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 	const [currentZoom, setCurrentZoom] = useState(1);
 	const [showStats, setShowStats] = useState(false);
 	const [isFullscreen, setIsFullscreen] = useState(false);
+	const [controlsExpanded, setControlsExpanded] = useState(false);
 
 	const matches = useMemo(() => {
 		if (!overview || query.trim().length < 2) return [];
@@ -94,6 +95,7 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 	const toggleStats = () => {
 		setShowStats(!showStats);
 	};
+
 
 	// Keyboard shortcuts for navigation
 	useEffect(() => {
@@ -222,8 +224,8 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 					</div>
 
 					<div className="mgx__hints">
-						<strong>Navigation:</strong> Scroll/pinch to zoom · Drag to pan · Click nodes to explore
-						<div style={{ fontSize: '0.7rem', opacity: 0.85, marginTop: '4px' }}>
+						<strong>Navigation:</strong> <span className="mgx__hints-desktop">Scroll/pinch to zoom · Drag to pan · Click nodes to explore</span><span className="mgx__hints-mobile">Pinch to zoom · Drag to pan · Tap nodes</span>
+						<div className="mgx__hints-desktop" style={{ fontSize: '0.7rem', opacity: 0.85, marginTop: '4px' }}>
 							<kbd>+</kbd>/<kbd>-</kbd> zoom · <kbd>R</kbd> reset · <kbd>F</kbd> fullscreen · <kbd>S</kbd> stats
 						</div>
 					</div>
@@ -237,56 +239,69 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 						))}
 					</div>
 
-					<div className="mgx__controls">
-						<div className="mgx__search">
-							<input
-								type="text"
-								placeholder="Search directory…"
-								value={query}
-								onChange={(e) => setQuery(e.target.value)}
-							/>
-							{matches.length > 0 && (
-								<ul>
-									{matches.map((d) => (
-										<li key={d.id}>
-											<button
-												type="button"
-												onClick={() => focus(d)}>
-												{d.label}
-												<span>{d.n}</span>
-											</button>
-										</li>
-									))}
-								</ul>
-							)}
+					<div className={`mgx__controls ${controlsExpanded ? 'is-expanded' : ''}`} data-controls>
+						<button
+							type="button"
+							className="mgx__controls-toggle"
+							onClick={() => setControlsExpanded(!controlsExpanded)}
+							aria-label={controlsExpanded ? 'Collapse controls' : 'Expand controls'}>
+							{controlsExpanded ? '✕' : '☰'}
+						</button>
+						<div className="mgx__controls-content">
+							<div className="mgx__search">
+								<input
+									type="text"
+									placeholder="Search directory…"
+									value={query}
+									onChange={(e) => setQuery(e.target.value)}
+								/>
+								{matches.length > 0 && (
+									<ul>
+										{matches.map((d) => (
+											<li key={d.id}>
+												<button
+													type="button"
+													onClick={() => focus(d)}>
+													{d.label}
+													<span>{d.n}</span>
+												</button>
+											</li>
+										))}
+									</ul>
+								)}
+							</div>
+							<button
+								type="button"
+								className={colorMode === 'dir' ? 'is-active' : ''}
+								onClick={() => setColorMode('dir')}>
+								<span className="mgx__btn-label">Color: directory</span>
+								<span className="mgx__btn-label-short">Dir</span>
+							</button>
+							<button
+								type="button"
+								className={
+									colorMode === 'community' ? 'is-active' : ''
+								}
+								onClick={() => setColorMode('community')}>
+								<span className="mgx__btn-label">Color: community</span>
+								<span className="mgx__btn-label-short">Comm</span>
+							</button>
+							<button
+								type="button"
+								className={showStats ? 'is-active' : ''}
+								onClick={toggleStats}
+								title="Toggle statistics (S)">
+								<span className="mgx__btn-label">📊 Stats</span>
+								<span className="mgx__btn-label-short">📊</span>
+							</button>
+							<button
+								type="button"
+								onClick={toggleFullscreen}
+								title="Fullscreen (F)">
+								<span className="mgx__btn-label">{isFullscreen ? '⛶ Exit' : '⛶ Fullscreen'}</span>
+								<span className="mgx__btn-label-short">⛶</span>
+							</button>
 						</div>
-						<button
-							type="button"
-							className={colorMode === 'dir' ? 'is-active' : ''}
-							onClick={() => setColorMode('dir')}>
-							Color: directory
-						</button>
-						<button
-							type="button"
-							className={
-								colorMode === 'community' ? 'is-active' : ''
-							}
-							onClick={() => setColorMode('community')}>
-							Color: community
-						</button>
-						<button
-							type="button"
-							className={showStats ? 'is-active' : ''}
-							onClick={toggleStats}
-							title="Toggle statistics (S)">
-							📊 Stats
-						</button>
-						<button
-							type="button"
-							onClick={toggleFullscreen}
-							title="Fullscreen (F)">
-							{isFullscreen ? '⛶ Exit' : '⛶ Fullscreen'}
-						</button>
 					</div>
 
 					{showStats && (
@@ -323,6 +338,13 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 
 					{picked && (
 						<div className="mgx__panel">
+							<button
+								type="button"
+								className="mgx__panel-close"
+								onClick={() => setPicked(null)}
+								aria-label="Close panel">
+								✕
+							</button>
 							<div className="mgx__panel-title">
 								{picked.label}
 							</div>
@@ -352,11 +374,6 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 									Read the docs →
 								</a>
 							)}
-							<button
-								type="button"
-								onClick={() => setPicked(null)}>
-								dismiss
-							</button>
 						</div>
 					)}
 
@@ -420,6 +437,16 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 					text-shadow: 0 1px 3px rgba(2, 6, 14, 0.95),
 						0 0 6px rgba(2, 6, 14, 0.8);
 					will-change: transform;
+					pointer-events: none;
+					user-select: none;
+				}
+				@media (max-width: 768px) {
+					.mgx__label {
+						font-size: 0.75rem;
+						font-weight: 600;
+						text-shadow: 0 1px 4px rgba(2, 6, 14, 0.98),
+							0 0 8px rgba(2, 6, 14, 0.9);
+					}
 				}
 				.mgx__legend {
 					position: absolute;
@@ -450,6 +477,8 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 					max-width: 420px;
 				}
 				.mgx__hints strong { color: #e2e8f0; }
+				.mgx__hints-mobile { display: none; }
+				.mgx__hints-desktop { display: inline; }
 				.mgx__hints kbd {
 					display: inline-block;
 					padding: 2px 6px;
@@ -494,14 +523,152 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 					width: 20px;
 					height: 20px;
 				}
-				@media (pointer: coarse) {
+				/* Mobile-first responsive design */
+				@media (max-width: 768px) {
+					.mgx {
+						min-height: 100vh;
+						border-radius: 0;
+					}
+
+					/* Hide desktop hints, show mobile hints */
+					.mgx__hints-desktop {
+						display: none;
+					}
+					.mgx__hints-mobile {
+						display: inline;
+					}
+					.mgx__hints {
+						font-size: 0.7rem;
+						padding: 6px 10px;
+						max-width: 280px;
+					}
+
+					/* Collapsible controls for mobile */
+					.mgx__controls {
+						flex-direction: column;
+						gap: 0;
+					}
+					.mgx__controls-toggle {
+						display: flex;
+						width: 44px;
+						height: 44px;
+						padding: 10px;
+						border-radius: 8px;
+						border: 1px solid rgba(148, 163, 184, 0.3);
+						background: rgba(12, 18, 30, 0.82);
+						color: #cbd5e1;
+						font-size: 1.2rem;
+						cursor: pointer;
+						backdrop-filter: blur(8px);
+						align-items: center;
+						justify-content: center;
+					}
+					.mgx__controls-content {
+						display: none;
+						flex-direction: column;
+						background: rgba(12, 18, 30, 0.95);
+						border-radius: 10px;
+						padding: 8px;
+						border: 1px solid rgba(148, 163, 184, 0.3);
+						margin-top: 6px;
+						max-width: 200px;
+					}
+					.mgx__controls.is-expanded .mgx__controls-content {
+						display: flex;
+					}
+					.mgx__controls-content > button {
+						padding: 10px 14px;
+						min-height: 44px;
+						width: 100%;
+						justify-content: center;
+					}
+
+					/* Show short button labels on mobile */
+					.mgx__btn-label {
+						display: none;
+					}
+					.mgx__btn-label-short {
+						display: inline;
+					}
+
+					/* Mobile search */
+					.mgx__search {
+						width: 100%;
+					}
+					.mgx__search input {
+						min-height: 44px;
+						width: 100%;
+					}
+
+					/* Hide relationship legend on mobile to save space */
+					.mgx__rels {
+						display: none;
+					}
+
+					/* Bottom-sheet style panel on mobile */
+					.mgx__panel {
+						left: 0;
+						right: 0;
+						top: auto;
+						bottom: 0;
+						max-width: none;
+						border-radius: 16px 16px 0 0;
+						padding: 16px;
+						padding-right: 48px;
+						box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.4);
+						border-bottom: none;
+					}
+					.mgx__panel-close {
+						top: 12px;
+						right: 12px;
+						font-size: 1.4rem;
+						padding: 6px 8px;
+					}
+
+					/* Center stats panel on mobile */
+					.mgx__stats {
+						left: 50%;
+						transform: translateX(-50%);
+						right: auto;
+						top: 60px;
+						min-width: min(320px, calc(100vw - 24px));
+						max-width: calc(100vw - 24px);
+					}
+
+					/* Better tooltip positioning on mobile */
+					.mgx__tooltip {
+						max-width: calc(100vw - 32px);
+						font-size: 0.75rem;
+					}
+
+					/* Adjust navigation controls spacing */
+					.mgx__nav-controls {
+						left: 8px;
+						bottom: 8px;
+						gap: 8px;
+					}
 					.mgx__nav-controls button {
 						width: 48px;
 						height: 48px;
 					}
-					.mgx__controls > button {
-						padding: 8px 14px;
+
+					/* Adjust legend */
+					.mgx__legend {
+						left: 8px;
+						bottom: 8px;
+						font-size: 0.7rem;
+						padding: 6px 10px;
+					}
+				}
+
+				/* Touch-optimized interactions */
+				@media (pointer: coarse) {
+					.mgx__nav-controls button,
+					.mgx__controls-toggle,
+					.mgx__controls-content > button,
+					.mgx__panel-close {
 						min-height: 44px;
+						min-width: 44px;
 					}
 					.mgx__search input {
 						min-height: 44px;
@@ -542,7 +709,15 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 					gap: 6px;
 					align-items: flex-start;
 				}
-				.mgx__controls > button {
+				.mgx__controls-toggle {
+					display: none;
+				}
+				.mgx__controls-content {
+					display: flex;
+					gap: 6px;
+					align-items: flex-start;
+				}
+				.mgx__controls-content > button {
 					padding: 6px 12px;
 					border-radius: 8px;
 					border: 1px solid rgba(148, 163, 184, 0.3);
@@ -553,14 +728,17 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 					backdrop-filter: blur(8px);
 					transition: all 0.2s ease;
 				}
-				.mgx__controls > button:hover {
+				.mgx__controls-content > button:hover {
 					background: rgba(56, 189, 248, 0.15);
 					border-color: rgba(56, 189, 248, 0.5);
 				}
-				.mgx__controls > button.is-active {
+				.mgx__controls-content > button.is-active {
 					border-color: #38bdf8;
 					color: #e0f2fe;
 					background: rgba(56, 189, 248, 0.2);
+				}
+				.mgx__btn-label-short {
+					display: none;
 				}
 				.mgx__search { position: relative; }
 				.mgx__search input {
@@ -660,7 +838,8 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 					position: absolute;
 					left: 12px;
 					top: 12px;
-					padding: 10px 12px;
+					padding: 10px 12px 10px 12px;
+					padding-right: 40px;
 					border-radius: 10px;
 					background: rgba(12, 18, 30, 0.82);
 					border: 1px solid rgba(148, 163, 184, 0.25);
@@ -670,40 +849,48 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 					max-width: 260px;
 				}
 				.mgx__panel-title { font-weight: 600; }
-					.mgx__panel-nx { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 6px; }
-					.mgx__nx-chip {
-						font-size: 0.64rem;
-						padding: 1px 6px;
-						border-radius: 5px;
-						background: rgba(184, 148, 255, 0.16);
-						color: #d8c7ff;
-						border: 1px solid rgba(184, 148, 255, 0.3);
-					}
-					.mgx__nx-chip[data-type='app'] {
-						background: rgba(56, 189, 248, 0.16);
-						color: #bae6fd;
-						border-color: rgba(56, 189, 248, 0.3);
-					}
-					.mgx__panel-ref {
-						display: inline-block;
-						margin-bottom: 8px;
-						color: #38bdf8;
-						font-size: 0.72rem;
-						text-decoration: none;
-					}
-					.mgx__panel-ref:hover { text-decoration: underline; }
+				.mgx__panel-close {
+					position: absolute;
+					top: 8px;
+					right: 8px;
+					background: none;
+					border: none;
+					color: #94a3b8;
+					font-size: 1rem;
+					cursor: pointer;
+					padding: 4px 6px;
+					line-height: 1;
+					transition: color 0.2s ease;
+				}
+				.mgx__panel-close:hover {
+					color: #e2e8f0;
+				}
+				.mgx__panel-nx { display: flex; flex-wrap: wrap; gap: 4px; margin: 0 0 6px; }
+				.mgx__nx-chip {
+					font-size: 0.64rem;
+					padding: 1px 6px;
+					border-radius: 5px;
+					background: rgba(184, 148, 255, 0.16);
+					color: #d8c7ff;
+					border: 1px solid rgba(184, 148, 255, 0.3);
+				}
+				.mgx__nx-chip[data-type='app'] {
+					background: rgba(56, 189, 248, 0.16);
+					color: #bae6fd;
+					border-color: rgba(56, 189, 248, 0.3);
+				}
+				.mgx__panel-ref {
+					display: inline-block;
+					margin-bottom: 4px;
+					color: #38bdf8;
+					font-size: 0.72rem;
+					text-decoration: none;
+				}
+				.mgx__panel-ref:hover { text-decoration: underline; }
 				.mgx__panel-sub {
 					color: #94a3b8;
 					font-size: 0.7rem;
 					margin: 2px 0 6px;
-				}
-				.mgx__panel button {
-					background: none;
-					border: none;
-					color: #38bdf8;
-					font-size: 0.7rem;
-					cursor: pointer;
-					padding: 0;
 				}
 				.mgx__tooltip {
 					position: fixed;
@@ -726,12 +913,29 @@ export default function MonorepoGraphExplorer({ base }: Props) {
 					font-weight: 600;
 					color: #0a0e16;
 					background: #38bdf8;
-					padding: 2px 6px;
-					border-radius: 4px;
+					padding: 3px 8px;
+					border-radius: 5px;
 					align-self: flex-start;
+					box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 				}
-				.mgx__kind--file { background: #a3e635; }
-				.mgx__kind--symbol { background: #f0abfc; }
+				.mgx__kind::before {
+					content: '';
+					display: inline-block;
+					width: 6px;
+					height: 6px;
+					border-radius: 50%;
+					background: currentColor;
+					margin-right: 4px;
+					opacity: 0.8;
+				}
+				.mgx__kind--file {
+					background: #a3e635;
+					color: #1a2e05;
+				}
+				.mgx__kind--symbol {
+					background: #f0abfc;
+					color: #3b0764;
+				}
 				.mgx__tip-label {
 					color: #e2e8f0;
 					font-size: 0.85rem;

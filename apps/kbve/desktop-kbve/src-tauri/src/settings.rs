@@ -329,6 +329,9 @@ pub struct AppSettings {
     // DevOps sandbox mode - run agents in Docker containers
     #[serde(default = "default_sandbox_enabled")]
     pub sandbox_enabled: bool,
+    // Spoken agent feedback (Discord voice or local playback)
+    #[serde(default)]
+    pub agent_voice_enabled: bool,
 }
 
 fn default_model() -> String {
@@ -656,6 +659,7 @@ pub fn get_default_settings() -> AppSettings {
         onichan_silence_threshold: default_onichan_silence_threshold(),
         enabled_agents: default_enabled_agents(),
         sandbox_enabled: default_sandbox_enabled(),
+        agent_voice_enabled: false,
     }
 }
 
