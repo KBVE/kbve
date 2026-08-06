@@ -70,6 +70,38 @@ pub fn spawn_event_pump(app: AppHandle, mut rx: mpsc::Receiver<PtyEvent>) {
     });
 }
 
+/// Environment for embedded terminal panes. Overrides the shell prompt to a
+/// path-only one so the username/hostname never render inside the app
+/// (screen shares, recordings). User rc files still load first.
+fn terminal_env() -> Vec<(String, String)> {
+    let mut env = vec![("TERM".to_string(), "xterm-256color".to_string())];
+    let shell = std::env::var("SHELL").unwrap_or_default();
+    if shell.ends_with("zsh") {
+        let shim = std::env::temp_dir().join("kbve-terminal-zdotdir");
+        let user_zdotdir = std::env::var("ZDOTDIR")
+            .or_else(|_| std::env::var("HOME"))
+            .unwrap_or_default();
+        if std::fs::create_dir_all(&shim).is_ok() {
+            let zshenv = "[[ -f \"$KBVE_USER_ZDOTDIR/.zshenv\" ]] && source \"$KBVE_USER_ZDOTDIR/.zshenv\"\n";
+            let zshrc = concat!(
+                "[[ -f \"$KBVE_USER_ZDOTDIR/.zshrc\" ]] && source \"$KBVE_USER_ZDOTDIR/.zshrc\"\n",
+                "unset KBVE_USER_ZDOTDIR\n",
+                "PROMPT='%1~ %# '\n",
+                "RPROMPT=''\n",
+            );
+            if std::fs::write(shim.join(".zshenv"), zshenv).is_ok()
+                && std::fs::write(shim.join(".zshrc"), zshrc).is_ok()
+            {
+                env.push(("ZDOTDIR".to_string(), shim.to_string_lossy().into_owned()));
+                env.push(("KBVE_USER_ZDOTDIR".to_string(), user_zdotdir));
+            }
+        }
+    } else {
+        env.push(("PS1".to_string(), "\\W \\$ ".to_string()));
+    }
+    env
+}
+
 #[tauri::command]
 #[specta::specta]
 pub async fn terminal_open(
@@ -85,7 +117,7 @@ pub async fn terminal_open(
         cwd,
         rows,
         cols,
-        env: vec![("TERM".into(), "xterm-256color".into())],
+        env: terminal_env(),
     };
     state.spawn(pane_id, cfg)
 }
