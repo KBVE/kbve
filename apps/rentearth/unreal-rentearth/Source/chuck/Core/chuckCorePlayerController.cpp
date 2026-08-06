@@ -887,11 +887,11 @@ void AchuckCorePlayerController::OnFocusChatPressed(const FInputActionValue& /*V
 
 void AchuckCorePlayerController::OnInteractPressed(const FInputActionValue& /*Value*/)
 {
-	if (AchuckResourceNode::GetNearby())
+	if (AchuckResourceNode* Node = AchuckResourceNode::GetNearby())
 	{
-		AchuckCoreCharacter* Char = Cast<AchuckCoreCharacter>(GetPawn());
-		if (Char && AchuckResourceNode::GatherNearby(Char))
+		if (AchuckCoreCharacter* Char = Cast<AchuckCoreCharacter>(GetPawn()))
 		{
+			Char->ServerGatherNode(Node);
 			return;
 		}
 	}
