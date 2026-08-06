@@ -14,6 +14,7 @@ pub struct AppState {
     pub stream_enabled: bool,
     pub hls: hls::HlsManager,
     pub ffprobe_bin: String,
+    pub hls_segment_wait_ms: u64,
 }
 
 #[derive(Clone)]
@@ -420,6 +421,19 @@ async fn manifest(
         delivery
     };
 
+    // The viewer's HLS encode and the background library transcode would split
+    // the same cores; at 2 CPUs that halves an already sub-realtime encode and
+    // starves the live edge. The viewer wins — kill the background job.
+    if delivery == transcode::Delivery::TranscodeHls
+        && matches!(
+            meta.transcode,
+            state::TranscodeStatus::Remuxing | state::TranscodeStatus::Encoding
+        )
+    {
+        tracing::info!(id = %id, "aborting background transcode; viewer HLS encode takes priority");
+        st.transcoder.abort(&id).await;
+    }
+
     let outcome = st.hls.request(&id, delivery).await;
     hls_outcome_response(&st.store, &id, outcome).await
 }
@@ -520,6 +534,7 @@ async fn hls_segment(
         &id,
         &segment,
         &method,
+        st.hls_segment_wait_ms,
     )
     .await
 }
@@ -792,6 +807,36 @@ async fn hls_outcome_response(
     }
 }
 
+/// While the HLS job is Live the encoder may simply not have written the
+/// requested segment yet — a slow encode or leech at the live edge. Waiting a
+/// few beats instead of an instant 404 turns edge starvation into a delayed
+/// response the player treats as buffering, not an error strike.
+async fn open_segment_waiting(
+    store: &state::StateStore,
+    id: &str,
+    path: &std::path::Path,
+    wait_ms: u64,
+) -> std::io::Result<tokio::fs::File> {
+    let deadline = tokio::time::Instant::now() + std::time::Duration::from_millis(wait_ms);
+    loop {
+        match tokio::fs::File::open(path).await {
+            Ok(f) => return Ok(f),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                let live = store
+                    .get(id)
+                    .map(|m| m.hls == state::HlsStatus::Live)
+                    .unwrap_or(false);
+                if !live || tokio::time::Instant::now() >= deadline {
+                    return Err(e);
+                }
+                tokio::time::sleep(std::time::Duration::from_millis(250)).await;
+            }
+            Err(e) => return Err(e),
+        }
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
 pub(crate) async fn hls_segment_core(
     headers: &HeaderMap,
     query: Option<&str>,
@@ -800,6 +845,7 @@ pub(crate) async fn hls_segment_core(
     id: &str,
     segment: &str,
     method: &axum::http::Method,
+    segment_wait_ms: u64,
 ) -> axum::response::Response {
     if !check_auth_q(headers, query, token) {
         return StatusCode::UNAUTHORIZED.into_response();
@@ -835,7 +881,7 @@ pub(crate) async fn hls_segment_core(
         };
         return crate::stream::head_response(total, range, ct);
     }
-    let file = match tokio::fs::File::open(&path).await {
+    let file = match open_segment_waiting(store, id, &path, segment_wait_ms).await {
         Ok(f) => f,
         Err(e) => {
             tracing::warn!(id = %id, segment, path = %path.display(), error = %e, "hls segment open failed");
@@ -1642,6 +1688,7 @@ mod tests {
             "1",
             "seg-1.mp4",
             &Method::GET,
+            0,
         )
         .await;
         assert_eq!(res.status(), StatusCode::BAD_REQUEST);
@@ -1657,6 +1704,7 @@ mod tests {
             "1",
             "seg00001.ts",
             &Method::GET,
+            0,
         )
         .await;
         assert_eq!(res.status(), StatusCode::NOT_FOUND);
@@ -1696,12 +1744,70 @@ mod tests {
             "1",
             "seg00001.ts",
             &Method::GET,
+            0,
         )
         .await;
         assert_eq!(res.status(), StatusCode::OK);
         assert_eq!(res.headers().get("content-type").unwrap(), "video/mp2t");
         let body = res.into_body().collect().await.unwrap().to_bytes();
         assert_eq!(&body[..], b"tsdata");
+    }
+
+    #[tokio::test]
+    async fn hls_segment_waits_for_live_encoder() {
+        let dir = tempdir().unwrap();
+        let hls_dir = dir.path().join("hls");
+        std::fs::create_dir_all(&hls_dir).unwrap();
+        let s = StateStore::load(dir.path().join("s.json")).unwrap();
+        s.upsert(Metadata {
+            id: "1".into(),
+            name: "movie".into(),
+            path: "/lib/movie.mp4".into(),
+            size: 5,
+            completed_at: Some(10),
+            last_access: 10,
+            state: TorrentState::Seeding,
+            error: None,
+            active_path: None,
+            transcode: TranscodeStatus::None,
+            transcode_path: None,
+            transcode_error: None,
+            hls: HlsStatus::Live,
+            hls_dir: Some(hls_dir.display().to_string()),
+            hls_error: None,
+        })
+        .unwrap();
+        let seg = hls_dir.join("seg00007.ts");
+        tokio::spawn(async move {
+            tokio::time::sleep(std::time::Duration::from_millis(400)).await;
+            std::fs::write(seg, b"late").unwrap();
+        });
+        let res = hls_segment_core(
+            &HeaderMap::new(),
+            None,
+            &None,
+            &s,
+            "1",
+            "seg00007.ts",
+            &Method::GET,
+            3000,
+        )
+        .await;
+        assert_eq!(res.status(), StatusCode::OK, "waited for the encoder");
+        std::mem::forget(dir);
+
+        let res = hls_segment_core(
+            &HeaderMap::new(),
+            None,
+            &None,
+            &s,
+            "1",
+            "seg99999.ts",
+            &Method::GET,
+            300,
+        )
+        .await;
+        assert_eq!(res.status(), StatusCode::NOT_FOUND, "deadline still 404s");
     }
 
     #[tokio::test]

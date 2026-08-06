@@ -39,6 +39,8 @@ pub struct Config {
     pub live_hls_enabled: bool,
     pub live_prebuffer_segments: usize,
     pub hls_segment_secs: u64,
+    pub hls_max_height: u32,
+    pub hls_segment_wait_ms: u64,
     pub bt_port_file: Option<PathBuf>,
     pub bt_port_wait_secs: u64,
     pub bt_port_stable_secs: u64,
@@ -210,6 +212,8 @@ pub fn load_from_env() -> anyhow::Result<Config> {
         live_hls_enabled: env_bool("REEL_LIVE_HLS", true),
         live_prebuffer_segments: env_u64("REEL_LIVE_PREBUFFER_SEGMENTS", 3)?.max(1) as usize,
         hls_segment_secs: env_u64("REEL_HLS_SEGMENT_SECS", 4)?,
+        hls_max_height: env_u64("REEL_HLS_MAX_HEIGHT", 1080)?.min(u32::MAX as u64) as u32,
+        hls_segment_wait_ms: env_u64("REEL_HLS_SEGMENT_WAIT_MS", 5000)?,
         bt_port_file: match std::env::var("REEL_BT_PORT_FILE") {
             Ok(v) if !v.trim().is_empty() => Some(PathBuf::from(v.trim())),
             _ => None,
@@ -263,6 +267,8 @@ mod tests {
             "REEL_LIVE_HLS",
             "REEL_LIVE_PREBUFFER_SEGMENTS",
             "REEL_HLS_SEGMENT_SECS",
+            "REEL_HLS_MAX_HEIGHT",
+            "REEL_HLS_SEGMENT_WAIT_MS",
             "REEL_BT_PORT_FILE",
             "REEL_BT_PORT_WAIT_SECS",
             "REEL_BT_PORT_WATCH_RESTART",
@@ -496,13 +502,19 @@ mod tests {
         assert!(c.live_hls_enabled);
         assert_eq!(c.live_prebuffer_segments, 3);
         assert_eq!(c.hls_segment_secs, 4);
+        assert_eq!(c.hls_max_height, 1080);
+        assert_eq!(c.hls_segment_wait_ms, 5000);
         std::env::set_var("REEL_HLS_ENABLED", "false");
         std::env::set_var("REEL_LIVE_HLS", "false");
         std::env::set_var("REEL_HLS_SEGMENT_SECS", "8");
+        std::env::set_var("REEL_HLS_MAX_HEIGHT", "0");
+        std::env::set_var("REEL_HLS_SEGMENT_WAIT_MS", "0");
         let c2 = load_from_env().unwrap();
         assert!(!c2.hls_enabled);
         assert!(!c2.live_hls_enabled);
         assert_eq!(c2.hls_segment_secs, 8);
+        assert_eq!(c2.hls_max_height, 0);
+        assert_eq!(c2.hls_segment_wait_ms, 0);
         clear();
     }
 }

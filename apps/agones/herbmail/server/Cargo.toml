@@ -11,4 +11,18 @@ description = "Herbmail game server — authoritative sim for the herbmail dunge
 name = "herbmail_server"
 path = "src/lib.rs"
 
+[[bin]]
+name = "herbmail-server"
+path = "src/main.rs"
+
 [dependencies]
+simgrid = { path = "../../../../packages/rust/simgrid" }
+simbody3d = { path = "../../../../packages/rust/simbody3d" }
+jedi = { path = "../../../../packages/rust/jedi" }
+async-trait = { workspace = true }
+bevy = { workspace = true, features = ["bevy_state"] }
+axum = { workspace = true, features = ["ws", "json", "http1", "tokio"] }
+tokio = { workspace = true, features = ["default", "rt-multi-thread", "macros", "signal", "sync", "time", "net"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["default", "env-filter", "fmt"] }
+agones = { workspace = true }

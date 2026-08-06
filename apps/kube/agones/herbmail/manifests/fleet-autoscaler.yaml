@@ -1,0 +1,20 @@
+apiVersion: autoscaling.agones.dev/v1
+kind: FleetAutoscaler
+metadata:
+    name: herbmail-server-autoscaler
+    namespace: herbmail-game
+    labels:
+        app: herbmail-server
+        app.kubernetes.io/part-of: herbmail
+spec:
+    fleetName: herbmail-server
+    policy:
+        type: Buffer
+        buffer:
+            bufferSize: 1
+            minReplicas: 1
+            maxReplicas: 1
+    sync:
+        type: FixedInterval
+        fixedInterval:
+            seconds: 30
