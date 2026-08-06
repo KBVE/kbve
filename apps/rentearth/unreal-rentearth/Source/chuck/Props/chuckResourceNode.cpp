@@ -4,6 +4,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/GameInstance.h"
 #include "GameFramework/Pawn.h"
+#include "Net/UnrealNetwork.h"
 
 #include "Core/chuckCoreCharacter.h"
 #include "KBVEMapDatabase.h"
@@ -19,7 +20,7 @@ namespace
 AchuckResourceNode::AchuckResourceNode()
 {
 	PrimaryActorTick.bCanEverTick = false;
-	SetReplicates(false);
+	bReplicates = true;
 
 	Mesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("Mesh"));
 	RootComponent = Mesh;
@@ -127,13 +128,17 @@ AchuckResourceNode* AchuckResourceNode::GetNearby()
 	return GCurrentNearbyResourceNode.Get();
 }
 
-bool AchuckResourceNode::GatherNearby(AchuckCoreCharacter* Gatherer)
+void AchuckResourceNode::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
 {
-	AchuckResourceNode* Near = GCurrentNearbyResourceNode.Get();
-	if (!Near || Near->IsDepleted())
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+	DOREPLIFETIME(AchuckResourceNode, RemainingAmount);
+}
+
+bool AchuckResourceNode::IsWithinRange(const AActor* Actor) const
+{
+	if (!Actor)
 	{
 		return false;
 	}
-	Near->Gather(Gatherer);
-	return true;
+	return FVector::DistSquared(GetActorLocation(), Actor->GetActorLocation()) <= FMath::Square(InteractionRadiusCm);
 }

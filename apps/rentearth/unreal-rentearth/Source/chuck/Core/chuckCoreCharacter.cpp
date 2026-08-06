@@ -36,6 +36,7 @@
 #include "KBVEGameplayTypes.h"
 #include "chuckUIEvents.h"
 #include "Engine/GameInstance.h"
+#include "Props/chuckResourceNode.h"
 
 AchuckCoreCharacter::AchuckCoreCharacter(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer.SetDefaultSubobjectClass<UchuckCharacterMovementComponent>(ACharacter::CharacterMovementComponentName))
@@ -656,6 +657,19 @@ void AchuckCoreCharacter::SwapAcrossContainers(int32 BagIndex, int32 HotbarIndex
 	BagB.Slots[HotbarIndex] = Tmp;
 	BagA.MarkItemDirty(BagA.Slots[BagIndex]);
 	BagB.MarkItemDirty(BagB.Slots[HotbarIndex]);
+}
+
+void AchuckCoreCharacter::ServerGatherNode_Implementation(AchuckResourceNode* Node)
+{
+	if (!Node || Node->IsDepleted())
+	{
+		return;
+	}
+	if (!Node->IsWithinRange(this))
+	{
+		return;
+	}
+	Node->Gather(this);
 }
 
 bool AchuckCoreCharacter::ServerDropSlot(int32 SlotIndex, bool bHotbar, int32 DropCount)
