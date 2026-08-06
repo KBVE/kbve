@@ -5,6 +5,8 @@ pub mod auth;
 pub mod clipboard;
 pub mod commands;
 pub mod devops;
+pub mod discord;
+pub mod discord_conversation;
 pub mod helpers;
 pub mod input;
 pub mod local_llm;
@@ -219,6 +221,21 @@ fn specta_builder() -> Builder<tauri::Wry> {
         // onichan: sidecar quick-config
         commands::sidecar_config::get_sidecar_quick_config,
         commands::sidecar_config::set_sidecar_quick_config_field,
+        // discord: voice bot + conversation
+        commands::discord::discord_has_token,
+        commands::discord::discord_get_token,
+        commands::discord::discord_set_token,
+        commands::discord::discord_clear_token,
+        commands::discord::discord_connect_with_stored_token,
+        commands::discord::discord_get_status,
+        commands::discord::discord_get_guilds,
+        commands::discord::discord_get_channels,
+        commands::discord::discord_connect,
+        commands::discord::discord_disconnect,
+        commands::discord::discord_speak,
+        commands::discord::discord_start_conversation,
+        commands::discord::discord_stop_conversation,
+        commands::discord::discord_is_conversation_running,
         // devops: dependencies + auth
         commands::devops::check_devops_dependencies,
         commands::devops::launch_cli_auth,
@@ -500,9 +517,24 @@ pub fn run() {
             let onichan_conversation_manager =
                 Arc::new(onichan_conversation::OnichanConversationManager::new(
                     &dict_handle,
-                    transcription_manager,
+                    transcription_manager.clone(),
                     onichan_manager.clone(),
                 ));
+
+            // Discord pillar: serenity/songbird voice bot sidecar + the
+            // voice-channel conversation loop (Discord audio -> STT ->
+            // Onichan -> TTS -> Discord voice).
+            let discord_manager = Arc::new(discord::DiscordManager::new(sidecar_path(
+                "discord-sidecar",
+            )));
+            let discord_conversation_manager =
+                Arc::new(discord_conversation::DiscordConversationManager::new(
+                    &dict_handle,
+                    transcription_manager.clone(),
+                    onichan_manager.clone(),
+                    discord_manager.clone(),
+                ));
+            discord_conversation_manager.set_memory_manager(memory_manager.clone());
 
             app.manage(onichan_manager);
             app.manage(onichan_model_manager);
@@ -510,6 +542,8 @@ pub fn run() {
             app.manage(local_tts_manager);
             app.manage(memory_manager);
             app.manage(onichan_conversation_manager);
+            app.manage(discord_manager);
+            app.manage(discord_conversation_manager);
 
             // System tray reflecting recording state (idle/recording/transcribing).
             let initial_theme = tray::get_current_theme(&dict_handle);
