@@ -299,6 +299,62 @@ def build_fixture_sav(path, save_type=0x32):
                                                         "id": None,
                                                         "value": 100,
                                                     },
+                                                    "Hp": {
+                                                        "type": "StructProperty",
+                                                        "struct_type": "FixedPoint64",
+                                                        "struct_id": "00000000-0000-0000-0000-000000000000",
+                                                        "id": None,
+                                                        "value": {
+                                                            "Value": {
+                                                                "type": "Int64Property",
+                                                                "id": None,
+                                                                "value": 183000,
+                                                            }
+                                                        },
+                                                    },
+                                                    "SanityValue": {
+                                                        "type": "FloatProperty",
+                                                        "id": None,
+                                                        "value": 62.4,
+                                                    },
+                                                    "FullStomach": {
+                                                        "type": "FloatProperty",
+                                                        "id": None,
+                                                        "value": 105.0,
+                                                    },
+                                                    "MaxFullStomach": {
+                                                        "type": "FloatProperty",
+                                                        "id": None,
+                                                        "value": 350.0,
+                                                    },
+                                                    "IsRarePal": {
+                                                        "type": "BoolProperty",
+                                                        "id": None,
+                                                        "value": True,
+                                                    },
+                                                    "WorkerSick": {
+                                                        "type": "EnumProperty",
+                                                        "id": None,
+                                                        "value": {
+                                                            "type": "EPalBaseCampWorkerSickType",
+                                                            "value": "EPalBaseCampWorkerSickType::DepressionSprain",
+                                                        },
+                                                    },
+                                                    "FriendshipPoint": {
+                                                        "type": "IntProperty",
+                                                        "id": None,
+                                                        "value": 1250,
+                                                    },
+                                                    "Rank_HP": {
+                                                        "type": "IntProperty",
+                                                        "id": None,
+                                                        "value": 3,
+                                                    },
+                                                    "Rank_Attack": {
+                                                        "type": "IntProperty",
+                                                        "id": None,
+                                                        "value": 0,
+                                                    },
                                                     "PassiveSkillList": {
                                                         "type": "ArrayProperty",
                                                         "array_type": "NameProperty",
@@ -379,9 +435,16 @@ def main():
                 "rank": 2,
                 "talents": {"hp": 85, "attack": 90, "defense": 100},
                 "passives": ["CraftSpeed_up1", "PAL_Sanity_Down_1"],
+                "hp": 183,
+                "sanity": 62,
+                "hunger": 30,
+                "lucky": True,
+                "sick": "DepressionSprain",
+                "friendship": 1250,
+                "souls": {"hp": 3, "attack": 0, "defense": 0, "craft": 0},
             }
         ],
-        "base pal roster with breeding stats",
+        "base pal roster with condition + breeding stats",
     )
     with open(out_path) as f:
         disk = json.load(f)
