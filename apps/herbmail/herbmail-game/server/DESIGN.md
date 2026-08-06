@@ -15,7 +15,7 @@ The recommended architecture is a new binary crate, `herbmail-server`, that:
 
 - takes `simgrid` as a path dependency and hosts it exactly like `arpg-server` does (`build_app` + `run_sim_loop` on a blocking thread, `simgrid::router(state)` on axum, Agones health loop alongside);
 - supplies a herbmail-specific adapter module: `KindRegistry`, `SimConfig`, and a `WalkableMap` whose collision is a **Rust port of `dungeon/generate.ts` + `dungeon/sector.ts` + `dungeon/collision.ts`**, so only the seed crosses the wire;
-- ships its own ~200-line `motor.rs` (a 1:1 port of `character/CharacterMotor.ts` + `collision.ts::makeMover`) instead of reusing `simgrid::float_move`, because herbmail's collision has sub-tile geometry that `float_move`'s `Fn(i32,i32) -> bool` predicate cannot express;
+- ~~ships its own ~200-line `motor.rs` (a 1:1 port of `character/CharacterMotor.ts` + `collision.ts::makeMover`)~~ **superseded — see §5:** links `packages/rust/simbody3d`, which runs rapier3d's character controller against colliders built from the tile grid. `simgrid::float_move` is still not reused, for the reasons in §5, but nothing is transliterated either;
 - consumes the same `packages/data/codegen/generated/*-data.json` the client consumes, via `include_bytes!`, exactly as `cryptothrone-server` already does.
 
 On the browser side the client work is largely **already available**: `@kbve/laser` exports `GameClient`, `ReconnectingSocket`, the full postcard wire codec, the protocol types, and `mulberry32`/`mix32`/`rollPct` determinism mirrors — and `herbmail-game` already depends on `@kbve/laser`.
@@ -343,7 +343,25 @@ Root `Cargo.toml` `[workspace] members` is an **explicit list, not a glob**, so 
 
 ---
 
-## 5. Rapier's role: none, server-side
+## 5. Rapier's role — REVERSED, 2026-08-06
+
+> **This section's original conclusion ("no rapier server-side") was overturned and the code now does the opposite.** It is kept below with the reasoning that failed, because two of the four arguments were factually wrong at the time of writing and the other two were weaker than they read. Implemented in `packages/rust/simbody3d`.
+>
+> **Argument 2 was simply false.** `sim.worker.ts` imports `@dimforge/rapier3d-compat` and runs a `KinematicCharacterController` for the authority capsule. The client *is* running rapier for movement.
+>
+> **The measured 24cm authority drift is the argument against the original plan, not for it.** That gap is rapier disagreeing with the tile motor over wall slides and body pushout. Server rapier + client tile motor makes it permanent and puts it inside the reconciliation loop. Both sides must run the same solver.
+>
+> **The argument this section missed:** one solver compiled twice beats two transliterations pinned by parity vectors. `@dimforge/rapier3d-compat` 0.19.3 is built from `rapier3d` 0.30.1 (read out of the shipped wasm), so pinning that crate makes both sides the same code — no draw-order fragility, no `Math.imul` vs `wrapping_mul`, no ulp chasing in `jitter`.
+>
+> **Argument 4 was wrong-shaped.** It assumed per-player geometry. The world is static and seed-derived, so colliders build per *sector* and are shared across all players; 32 kinematic capsules in one rapier world is negligible.
+>
+> **Argument 1 still stands and is why simgrid remains the right netcode host** — gameplay is XZ, Y is cosmetic. It is not a reason to avoid rapier, only a reason not to put Y on the wire.
+>
+> **Argument 3 still stands and is now the open cost.** The doorway rule is hash-derived and must become geometry. `addSectorFloor` emits floors and walls only; `openHW` is still unimplemented on both sides of the port.
+>
+> **What did not change:** M1 is still required. The server must build the same colliders, so the tile-grid generator still has to be ported to Rust. Rapier changes what consumes that output — colliders instead of a predicate — not whether the port is needed.
+
+### Original reasoning (superseded)
 
 The brief proposes "physics via rapier". The evidence says don't.
 
@@ -356,6 +374,8 @@ The brief proposes "physics via rapier". The evidence says don't.
 **Argument 4 — cost.** rapier3d + a broadphase over streamed sector geometry for N players is materially more CPU and memory per shard than evaluating a coordinate hash on demand. `arpg-server` holds an unbounded world at zero geometry memory precisely because collision is a pure function.
 
 ### So does herbmail reuse `simgrid::float_move`?
+
+> **Superseded.** The answer is still "no", but not for these reasons and not via a transliterated `motor.rs` — `simbody3d` replaces it with rapier's own character controller. The incompatibilities below remain accurate descriptions of why `float_move` does not fit.
 
 **No — port it into `herbmail-server/src/motor.rs` instead.** Three concrete incompatibilities:
 
@@ -483,6 +503,10 @@ The static client already has a home: `astro-herbmail` / `axum-herbmail` serve t
 
 ## 9. Migration path
 
+> **Amended 2026-08-06 for the rapier reversal in §5.** Wherever a milestone says "port `motor.rs`" or "`motor.rs`'s TS twin", read `simbody3d` instead: `packages/rust/simbody3d` already provides the collider builder and rapier character controller, generic over `SimbodyConfig`/`TileMask`, compiling both natively and to wasm. M1 is unchanged and still gates everything — the port now feeds *colliders* rather than a `solidAtWorld` predicate. M3's "`Blocked` trait generalisation upstream into `float_move`" is dropped: nothing transliterates `float_move` any more.
+>
+> Status: M0 done (fixed-step motor). M1 partially done — `rng.rs` hash layer ported and pinned on both sides; `sectorSeed` and the tile-grid generator are not. Server scaffolding, auth and deployment manifests exist ahead of M2, with collision explicitly non-authoritative until M1 completes.
+
 The rule for every milestone: **the single-player game keeps working**. Gate the whole thing behind a `?mp=1` / env flag so the offline path is untouched until the last step.
 
 **M0 — Fixed-step the client motor.** No server involved. Move `CharacterMotor.update` behind a 20 Hz accumulator with render interpolation; keep `goblinSim` and `castSystem` on the same clock. This is the only prerequisite refactor and it improves the single-player game on its own (currently a stalled tab silently loses sim time via the 50 ms clamp).
@@ -518,7 +542,7 @@ Separated deliberately from the recommendations above.
 - **Float parity in doorway widths.** `jitter()` divides by `4294967295` and multiplies by `TILE * 0.28 .. 0.38`. JS uses f64; Rust must too (`f64`, not `f32`) or arch half-widths will differ by ulps and a player could be blocked on one side and not the other. Use `f64` throughout the collision port and compare with a tolerance in tests, not bit-exactly.
 - **Two clocks in the client.** `Character.tsx` and `ThirdPersonPlayer.tsx` each run their own `useFrame` with independent 50 ms clamps, and `PropRenderer.tsx` runs `npcSystem` + `castSystem` on a third. M0 has to unify these or prediction will jitter.
 - **SAB seqlock has no reader retry.** `packages/npm/laser/src/lib/mecs/sab.ts` exposes `gen()` but no consumer retries on a torn read, and structural ops are non-atomic bit writes. Safe today because each world has exactly one structural writer. If networking introduces a second writer to the props world, this becomes a real bug.
-- **Body radius mismatch.** Client radius `0.35` world units = `0.117` tiles; simgrid's `BODY_RADIUS` is `0.34` tiles. Whichever is chosen must be identical on both sides or players will clip differently through the `TILE * 0.28` doorway gaps — the tightest geometry in the game.
+- ~~**Body radius mismatch.**~~ **Resolved by §5.** simgrid's `BODY_RADIUS` is irrelevant now that `float_move` is not in the path. The radius is declared once, in `simbody3d`'s `CharacterConfig` (`presets::herbmail()`), and both the server and a wasm client build read it from there — there is no second value to keep in sync. The underlying concern was correct: differing radii would clip differently through the `TILE * 0.28` doorway gaps, the tightest geometry in the game.
 - **`herbmail-game` has no auth at all.** Supabase exists at the site level (`astro-herbmail/src/lib/supa.ts`) but the game bundle has zero hooks into it. Getting a JWT into `GameClient` requires plumbing that does not exist yet and is not in any milestone above.
 - **No persistence model exists to migrate.** `prop/placed.ts` caps at 24 records; `unlocked` caps at 2048. A server introduces persistent world state for the first time, which means schema design, migration, and a `dbmate` story that this document does not cover.
 - **`combat/los.ts` and `flowField.ts` both sample `solidAtWorld` heavily.** Server-side BFS flow fields over a *computed* collision function are more expensive than over a bitset. `WalkableMap::arpg_dungeon` already accepts a `path_window` to bound BFS for this reason (`MAX_PATH_LEN = 64`); herbmail will need the same cap and should measure it.
@@ -533,7 +557,7 @@ Separated deliberately from the recommendations above.
 - **Does herbmail need floors?** simgrid has `Floor`, `Stairs`, `StairLink`, `StairGrace`, and `EntityDelta.z`; arpg uses them. herbmail is currently single-level with pits. If vertical levels are ever wanted, adopting `Floor` from M2 is nearly free; retrofitting it later is not.
 - **Player-vs-player.** Is herbmail PvE-only? §6 assumes so. If PvP is wanted, simgrid's `PosHistory` / `LAG_COMP_TICKS = 5` rewind already exists and should be adopted rather than reinvented — but herbmail's hit shapes are cones, not projectiles, so the rewind integration is not a copy-paste.
 - **`AOI_RADIUS` as a constant.** Should it be promoted to a `SimConfig` field upstream, or should herbmail just raise the constant and accept the effect on arpg/cryptothrone? Recommend a `SimConfig` field.
-- **Where does the `Blocked` trait generalisation land?** Local `motor.rs` forever, or upstreamed into `float_move` at M3? Deferring is cheap; the cost is a permanent second copy of an algorithm simgrid already has.
+- ~~**Where does the `Blocked` trait generalisation land?**~~ **Moot.** There is no second copy of `float_move` to reconcile — `simbody3d` uses rapier's own controller. The generalisation that did land is `TileMask`, which lets any consumer map its own tile bitfield onto "blocks movement" / "no floor slab".
 - **`professiondb` in Rust — this one is confirmed net-new work.** There are Rust consumers of itemdb, mapdb, spelldb and npcdb (`bevy_mapdb::MapDb::from_bytes`, `bevy_items::ItemDb::from_bytes`, `simgrid::NpcDb::from_json`, all via `include_bytes!`), but **no Rust consumer of professiondb exists anywhere in the repo.** `professiondb-data.binpb` (proto wire, `profession.ProfessionRegistry`) is generated and is the cleanest target — a `bevy_professiondb` crate with a `prost`/`prost-build` `build.rs`, mirroring `bevy_mapdb`. Open question: does it live in `simgrid::data`, in a new `bevy_professiondb`, or local to `herbmail-server`?
 
   **Watch the two views.** `gen-professiondb-data.mjs` emits both `professiondb-data.json` (canonical) and `professiondb-runtime.json` (slimmed, camelCase, Astro-only fields like `title` stripped, enum strings prefixed e.g. `PROFESSION_CATEGORY_`). The herbmail client reads the **runtime** view — `src/game/data/professiondb.ts` imports `@kbve/professiondb-data`, aliased in `tsconfig.json` to `professiondb-runtime.json`. A Rust proto decode of the `.binpb` yields the **canonical** view. Field-name and enum-representation parity must be checked before either side is trusted. Also note `RUNTIME_SYNC_TARGETS` in that generator currently lists only the Unity StreamingAssets dir; herbmail is not in it.
