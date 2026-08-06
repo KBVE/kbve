@@ -51,6 +51,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     let config = game::config();
     let map = game::walkable_map();
+    let physics = game::physics_world();
 
     let sim_handle = tokio::task::spawn_blocking(move || {
         let rt = tokio::runtime::Builder::new_current_thread()
@@ -69,6 +70,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         auth = %auth_mode,
         max_players = game::MAX_PLAYERS,
         authoritative_collision = game::collision_is_authoritative(),
+        physics_colliders = physics.collider_count(),
         "herbmail-server listening"
     );
 

@@ -1,3 +1,4 @@
+use herbmail_sim::PhysicsWorld;
 use simgrid::proto::Tile;
 use simgrid::{KindRegistry, SimConfig, WalkableMap};
 
@@ -37,12 +38,22 @@ pub fn config() -> SimConfig {
     }
 }
 
-/// Fully open until the M1 geometry port lands — the server does not yet
-/// reproduce the client's seed-derived walls, so it must not claim to.
+/// Fully open until the seed-derived tile grid is ported — the server cannot
+/// reproduce the client's walls yet, so it must not claim to. simgrid's own
+/// grid map stays open; rapier is what will actually arbitrate movement.
 pub fn walkable_map() -> WalkableMap {
     WalkableMap::open(MAP_SPAN_TILES, MAP_SPAN_TILES)
 }
 
 pub fn collision_is_authoritative() -> bool {
     false
+}
+
+/// The rapier world the server resolves movement against.
+///
+/// Returned empty: `SectorTiles` has to come from the ported tile-grid
+/// generator, and mounting anything else would put the server in a different
+/// dungeon than the client.
+pub fn physics_world() -> PhysicsWorld {
+    PhysicsWorld::new()
 }

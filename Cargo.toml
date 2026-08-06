@@ -51,6 +51,7 @@ members = [
 	'apps/agones/factorio/relay',
 	'apps/agones/palworld/relay',
 	'packages/rust/simgrid',
+	'packages/rust/herbmail-sim',
 	'apps/agones/cryptothrone/server',
 	'apps/agones/arpg/server',
 	'apps/agones/herbmail/server',

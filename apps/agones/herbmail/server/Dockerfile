@@ -11,6 +11,7 @@ COPY Cargo.lock ./
 COPY apps/agones/herbmail/server/Cargo.toml apps/agones/herbmail/server/Cargo.toml
 COPY packages/rust/simgrid/Cargo.toml packages/rust/simgrid/Cargo.toml
 COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
+COPY packages/rust/herbmail-sim/Cargo.toml packages/rust/herbmail-sim/Cargo.toml
 
 RUN mkdir -p apps/agones/herbmail/server/src && \
     echo "fn main() {}" > apps/agones/herbmail/server/src/main.rs && \
@@ -18,7 +19,9 @@ RUN mkdir -p apps/agones/herbmail/server/src && \
     mkdir -p packages/rust/simgrid/src && \
     echo "" > packages/rust/simgrid/src/lib.rs && \
     mkdir -p packages/rust/jedi/src && \
-    echo "" > packages/rust/jedi/src/lib.rs
+    echo "" > packages/rust/jedi/src/lib.rs && \
+    mkdir -p packages/rust/herbmail-sim/src && \
+    echo "" > packages/rust/herbmail-sim/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json --bin herbmail-server
 
@@ -60,6 +63,7 @@ COPY Cargo.lock ./
 
 COPY packages/rust/simgrid packages/rust/simgrid
 COPY packages/rust/jedi packages/rust/jedi
+COPY packages/rust/herbmail-sim packages/rust/herbmail-sim
 COPY apps/agones/herbmail/server apps/agones/herbmail/server
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \

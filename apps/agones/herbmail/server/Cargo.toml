@@ -17,6 +17,7 @@ path = "src/main.rs"
 
 [dependencies]
 simgrid = { path = "../../../../packages/rust/simgrid" }
+herbmail-sim = { path = "../../../../packages/rust/herbmail-sim" }
 jedi = { path = "../../../../packages/rust/jedi" }
 async-trait = { workspace = true }
 bevy = { workspace = true, features = ["bevy_state"] }
