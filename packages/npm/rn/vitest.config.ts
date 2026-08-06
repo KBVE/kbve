@@ -19,6 +19,9 @@ export default defineConfig({
 			'react-native-reanimated': fileURLToPath(
 				new URL('./vitest/reanimated-stub.ts', import.meta.url),
 			),
+			'react-native-svg': fileURLToPath(
+				new URL('./vitest/svg-stub.tsx', import.meta.url),
+			),
 			'@kbve/core': fileURLToPath(
 				new URL('../core/src/index.ts', import.meta.url),
 			),

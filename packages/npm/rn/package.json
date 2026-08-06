@@ -44,6 +44,10 @@
 			"types": "./src/ui/theme.ts",
 			"import": "./src/ui/theme.ts"
 		},
+		"./icons": {
+			"types": "./src/icons/index.ts",
+			"import": "./src/icons/index.ts"
+		},
 		"./store": {
 			"types": "./src/store/index.ts",
 			"import": "./src/store/index.ts"

@@ -17,15 +17,15 @@ const STATUS_ORDER: ArcadeStatus[] = ['live', 'beta', 'soon'];
 const STATUS_META: Record<ArcadeStatus, { eyebrow: string; icon: string }> = {
 	live: {
 		eyebrow: 'Playable',
-		icon: 'M8 5v14l11-7z',
+		icon: 'play',
 	},
 	beta: {
 		eyebrow: 'Prototype',
-		icon: 'M12 2 15 8l7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1 3-6z',
+		icon: 'star',
 	},
 	soon: {
 		eyebrow: 'Roadmap',
-		icon: 'M12 6v6l4 2M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z',
+		icon: 'clock',
 	},
 };
 
