@@ -34,6 +34,8 @@ export default function GraphLabels({
 	const { camera, size } = useThree();
 	const spans = useRef<HTMLSpanElement[]>([]);
 	const v = useRef(new THREE.Vector3());
+	const frameCount = useRef(0);
+	const cachedCandidates = useRef<{ px: number; py: number; text: string; pr: number }[]>([]);
 
 	// Pool spans to the number we may show at once.
 	useEffect(() => {
@@ -60,19 +62,41 @@ export default function GraphLabels({
 			for (const el of pool) el.style.display = 'none';
 			return;
 		}
+
+		frameCount.current++;
+		// Only re-sort every 3 frames to reduce CPU load
+		const shouldSort = frameCount.current % 3 === 0;
+
 		const cx = size.width / 2;
 		const cy = size.height / 2;
-		const cand: { px: number; py: number; text: string; pr: number }[] = [];
-		for (const it of items) {
-			v.current.set(it.x, it.y, 0).project(camera);
-			if (Math.abs(v.current.x) > 1 || Math.abs(v.current.y) > 1) continue;
-			const px = (v.current.x * 0.5 + 0.5) * size.width;
-			const py = (-v.current.y * 0.5 + 0.5) * size.height;
-			// Prefer higher tier priority, then proximity to viewport centre.
-			const dist = Math.hypot(px - cx, py - cy);
-			cand.push({ px, py, text: it.text, pr: it.priority * 1e6 - dist });
+
+		if (shouldSort) {
+			const cand: { px: number; py: number; text: string; pr: number }[] = [];
+			for (const it of items) {
+				v.current.set(it.x, it.y, 0).project(camera);
+				if (Math.abs(v.current.x) > 1 || Math.abs(v.current.y) > 1) continue;
+				const px = (v.current.x * 0.5 + 0.5) * size.width;
+				const py = (-v.current.y * 0.5 + 0.5) * size.height;
+				// Prefer higher tier priority, then proximity to viewport centre.
+				const dist = Math.hypot(px - cx, py - cy);
+				cand.push({ px, py, text: it.text, pr: it.priority * 1e6 - dist });
+			}
+			cand.sort((a, b) => b.pr - a.pr);
+			cachedCandidates.current = cand;
+		} else {
+			// Just update positions for existing candidates
+			for (const c of cachedCandidates.current) {
+				// Find the item by text for position update
+				const it = items.find(i => i.text === c.text);
+				if (it) {
+					v.current.set(it.x, it.y, 0).project(camera);
+					c.px = (v.current.x * 0.5 + 0.5) * size.width;
+					c.py = (-v.current.y * 0.5 + 0.5) * size.height;
+				}
+			}
 		}
-		cand.sort((a, b) => b.pr - a.pr);
+
+		const cand = cachedCandidates.current;
 		const n = Math.min(cand.length, pool.length);
 		for (let i = 0; i < n; i++) {
 			const el = pool[i];

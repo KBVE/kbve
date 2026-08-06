@@ -12,8 +12,9 @@ import {
 import { buildEdgeGeo, buildAdjacency, githubUrl } from './graphGeo';
 import GraphLabels, { type LabelItem } from './GraphLabels';
 
-const CIRCLE = new THREE.CircleGeometry(1, 24);
-const DOT = new THREE.CircleGeometry(1, 8);
+// Reduced segments for better performance - visually indistinguishable
+const CIRCLE = new THREE.CircleGeometry(1, 16);
+const DOT = new THREE.CircleGeometry(1, 6);
 
 const FILE_IN = 3.5;
 const SYMBOL_IN = 14;
@@ -238,10 +239,17 @@ export default function TieredGraphScene({
 	}, [overview, colorMode, hoverDir, adjacency]);
 
 	const dirNodes = overview.dirs;
-	const dirEdgeGeo = useMemo(
-		() => buildEdgeGeo(dirNodes, overview.dirEdges, -2, { minBright: 0.3 }),
-		[overview, dirNodes],
-	);
+	const dirEdgeGeo = useMemo(() => {
+		const geo = buildEdgeGeo(dirNodes, overview.dirEdges, -2, { minBright: 0.3 });
+		return geo;
+	}, [overview, dirNodes]);
+
+	// Dispose edge geometries on cleanup
+	useEffect(() => {
+		return () => {
+			dirEdgeGeo.dispose();
+		};
+	}, [dirEdgeGeo]);
 	const dirHiEdgeGeo = useMemo(() => {
 		if (hoverDir == null) return null;
 		return buildEdgeGeo(dirNodes, overview.dirEdges, -1.5, {
@@ -249,6 +257,13 @@ export default function TieredGraphScene({
 			minBright: 0.7,
 		});
 	}, [overview, dirNodes, hoverDir]);
+
+	// Dispose highlight edge geometry when it changes
+	useEffect(() => {
+		return () => {
+			dirHiEdgeGeo?.dispose();
+		};
+	}, [dirHiEdgeGeo]);
 
 	const dirLabels = useMemo<LabelItem[]>(
 		() =>

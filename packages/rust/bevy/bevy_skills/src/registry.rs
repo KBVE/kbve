@@ -153,12 +153,20 @@ impl SkillRegistry {
     #[cfg(feature = "bevy")]
     pub fn register_professions(&mut self, db: &bevy_items::profession::ProfessionDb) {
         for profession in db.professions() {
+            let xp_curve = profession.curve.as_ref().and_then(|c| match c.kind.as_str() {
+                "polynomial" => Some(XpCurve::Polynomial {
+                    base_xp: c.base_xp,
+                    growth_factor: c.growth_factor,
+                    max_level: c.max_level,
+                }),
+                _ => None,
+            });
             self.register(SkillDef {
                 r#ref: profession.r#ref.clone(),
                 name: profession.name.clone(),
                 category: profession.category.clone(),
                 icon: profession.emoji.clone(),
-                xp_curve: None,
+                xp_curve,
             });
         }
     }
@@ -193,7 +201,8 @@ mod professiondb_tests {
                 "name": "Mining",
                 "category": "PROFESSION_CATEGORY_GATHERING",
                 "emoji": "⛏️",
-                "actions": []
+                "actions": [],
+                "experienceCurve": {"kind": "CURVE_KIND_POLYNOMIAL", "baseXp": 50, "growthFactor": 1.6, "maxLevel": 99}
             },
             {
                 "ref": "cooking",
@@ -222,6 +231,23 @@ mod professiondb_tests {
         assert_eq!(mining.name, "Mining");
         assert_eq!(mining.category, "gathering");
         assert_eq!(mining.icon.as_deref(), Some("⛏️"));
+    }
+
+    #[test]
+    fn register_professions_sources_polynomial_curve() {
+        let db = bevy_items::profession::ProfessionDb::from_json(FIXTURE).unwrap();
+
+        let mut r = SkillRegistry::default();
+        r.register_professions(&db);
+
+        let mining_curve = r.xp_curve(r.id_for_ref("mining").unwrap());
+        assert!(matches!(
+            mining_curve,
+            XpCurve::Polynomial { base_xp: 50, .. }
+        ));
+
+        let cooking_curve = r.xp_curve(r.id_for_ref("cooking").unwrap());
+        assert!(matches!(cooking_curve, XpCurve::Quadratic { .. }));
     }
 
     #[test]

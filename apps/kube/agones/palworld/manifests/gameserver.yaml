@@ -251,7 +251,7 @@ spec:
                           drop:
                               - ALL
                 - name: palworld-savetool
-                  image: ghcr.io/kbve/agones-palworld-savetool:0.0.6
+                  image: ghcr.io/kbve/agones-palworld-savetool:0.0.7
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: SAVE_INTEL_SAVE_DIR
