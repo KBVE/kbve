@@ -760,7 +760,7 @@
               "chance": 0.04
             }
           ],
-          "harvestWeight": 100
+          "harvestWeight": 50
         },
         {
           "ref": "gather-iron-ore",
@@ -789,7 +789,7 @@
               "chance": 0.02
             }
           ],
-          "harvestWeight": 100
+          "harvestWeight": 50
         },
         {
           "ref": "gather-crystal-ore",
@@ -823,7 +823,7 @@
               "chance": 0.005
             }
           ],
-          "harvestWeight": 100
+          "harvestWeight": 50
         },
         {
           "ref": "gather-mossy-stone",
@@ -839,7 +839,7 @@
               "quantity": 1
             }
           ],
-          "harvestWeight": 100
+          "harvestWeight": 75
         },
         {
           "ref": "gather-stone",
@@ -855,7 +855,7 @@
               "quantity": 1
             }
           ],
-          "harvestWeight": 100
+          "harvestWeight": 75
         }
       ]
     },
@@ -971,7 +971,7 @@
               "quantity": 1
             }
           ],
-          "harvestWeight": 100
+          "harvestWeight": 75
         },
         {
           "ref": "gather-branches",
