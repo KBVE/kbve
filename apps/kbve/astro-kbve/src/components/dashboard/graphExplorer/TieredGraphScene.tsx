@@ -49,6 +49,7 @@ interface Props {
 	resetTrigger: number;
 	onHover: (h: HoverInfo | null) => void;
 	onPickDir: (dir: DirNodeLike | null) => void;
+	onZoomChange?: (zoom: number) => void;
 }
 
 function easeOutCubic(t: number): number {
@@ -66,6 +67,7 @@ export default function TieredGraphScene({
 	resetTrigger,
 	onHover,
 	onPickDir,
+	onZoomChange,
 }: Props) {
 	const { camera, size } = useThree();
 	const controls = useRef<MapControlsImpl>(null);
@@ -128,15 +130,26 @@ export default function TieredGraphScene({
 		}
 	}, [overview, camera, size.width, size.height]);
 
+	// Track user interaction state to prevent automatic behaviors during manual pan/zoom
+	const isUserInteracting = useRef(false);
+
 	// Cancel an in-flight fly when the user grabs the controls.
 	useEffect(() => {
 		const c = controls.current;
 		if (!c) return;
-		const cancel = () => {
+		const onStart = () => {
 			fly.current = null;
+			isUserInteracting.current = true;
 		};
-		c.addEventListener('start', cancel);
-		return () => c.removeEventListener('start', cancel);
+		const onEnd = () => {
+			isUserInteracting.current = false;
+		};
+		c.addEventListener('start', onStart);
+		c.addEventListener('end', onEnd);
+		return () => {
+			c.removeEventListener('start', onStart);
+			c.removeEventListener('end', onEnd);
+		};
 	}, []);
 
 	// External focus request (search box): fly to the directory + activate it.
@@ -289,24 +302,32 @@ export default function TieredGraphScene({
 		if (dirMat.current) dirMat.current.opacity = dop;
 		dirLabelOp.current = dop;
 
-		if (rel >= FILE_IN) {
-			const tx = controls.current?.target.x ?? cam.position.x;
-			const ty = controls.current?.target.y ?? cam.position.y;
-			let best: string | null = null;
-			let bestD = Infinity;
-			for (const d of overview.dirs) {
-				const dd = (d.x - tx) ** 2 + (d.y - ty) ** 2;
-				if (dd < bestD) {
-					bestD = dd;
-					best = d.id;
+		// Report zoom level to parent
+		if (onZoomChange) {
+			onZoomChange(rel);
+		}
+
+		// Only auto-load directories when user is NOT actively panning/zooming
+		if (!isUserInteracting.current) {
+			if (rel >= FILE_IN) {
+				const tx = controls.current?.target.x ?? cam.position.x;
+				const ty = controls.current?.target.y ?? cam.position.y;
+				let best: string | null = null;
+				let bestD = Infinity;
+				for (const d of overview.dirs) {
+					const dd = (d.x - tx) ** 2 + (d.y - ty) ** 2;
+					if (dd < bestD) {
+						bestD = dd;
+						best = d.id;
+					}
 				}
+				if (best && best !== activeSlug) {
+					setActiveSlug(best);
+					loadDir(best).then((c) => c && setChunkVersion((v) => v + 1));
+				}
+			} else if (activeSlug !== null) {
+				setActiveSlug(null);
 			}
-			if (best && best !== activeSlug) {
-				setActiveSlug(best);
-				loadDir(best).then((c) => c && setChunkVersion((v) => v + 1));
-			}
-		} else if (activeSlug !== null) {
-			setActiveSlug(null);
 		}
 	});
 

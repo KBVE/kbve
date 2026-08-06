@@ -20,4 +20,18 @@
 - DON'T USE for: basic generator syntax (`nx g @nx/react:app`), standard commands, things you already know
 - The `nx-generate` skill handles generator discovery internally - don't call nx_docs just to look up generator syntax
 
+## Common Pitfalls
+
+- **Cache issues**: If builds behave unexpectedly, try `pnpm nx reset` to clear cache
+- **Affected commands**: Remember `--base` and `--head` for comparing against specific commits (default: `main`)
+- **Task dependencies**: Check `nx.json` and `project.json` for implicit dependencies that affect task execution order
+- **Monorepo navigation**: Use project tags and Nx graph for large codebases - don't rely on directory structure alone
+
+## Workspace-Specific Patterns
+
+- This is a large monorepo with multiple apps and libraries
+- Graph performance optimizations are actively being worked on (feature branch)
+- Prefer using Nx's dependency graph (`nx graph`) over manual exploration for understanding project relationships
+- When making changes that affect multiple projects, use `nx affected` to validate impact
+
 <!-- nx configuration end-->
