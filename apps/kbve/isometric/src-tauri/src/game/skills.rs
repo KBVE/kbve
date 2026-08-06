@@ -6,7 +6,7 @@
 
 use bevy::prelude::*;
 use bevy_items::profession::{GatherInfo, ProfessionDb, get_profession_db, init_profession_db};
-use bevy_skills::{BevySkillsPlugin, GrantXpMsg, LevelUpMsg, SkillDef, SkillId, SkillRegistry};
+use bevy_skills::{BevySkillsPlugin, GrantXpMsg, LevelUpMsg, SkillId, SkillRegistry};
 
 use super::player::Player;
 use super::toast::Toast;
@@ -51,40 +51,18 @@ fn load_baked_professiondb() {
 
 fn register_skills(mut registry: ResMut<SkillRegistry>) {
     if let Some(db) = get_profession_db() {
-        for profession in db.professions() {
-            registry.register(SkillDef {
-                r#ref: profession.r#ref.clone(),
-                name: profession.name.clone(),
-                category: profession.category.clone(),
-                icon: profession.emoji.clone(),
-                xp_curve: None, // uses registry default (base=50, scaling=25, max=99)
-            });
-        }
+        registry.register_professions(db);
         info!(
             "[skills] registered {} skills from professiondb",
             registry.len()
         );
-        return;
+    } else {
+        registry.register_gathering_fallback();
+        warn!(
+            "[skills] professiondb unavailable — registered {} fallback skills",
+            registry.len()
+        );
     }
-
-    for (r#ref, name) in [
-        ("woodcutting", "Woodcutting"),
-        ("mining", "Mining"),
-        ("foraging", "Foraging"),
-    ] {
-        registry.register(SkillDef {
-            r#ref: r#ref.into(),
-            name: name.into(),
-            category: "gathering".into(),
-            icon: None,
-            xp_curve: None,
-        });
-    }
-
-    warn!(
-        "[skills] professiondb unavailable — registered {} fallback skills",
-        registry.len()
-    );
 }
 
 /// Gather metadata (skill, required level, XP) for an item ref, straight from
