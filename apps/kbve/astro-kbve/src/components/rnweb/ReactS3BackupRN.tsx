@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useStore } from '@nanostores/react';
 import { ShieldOff } from 'lucide-react';
 import { S3BackupPanel } from '@kbve/rn/dash';
@@ -42,15 +42,26 @@ const styles = {
 
 export default function ReactS3BackupRN() {
 	const isStaff = useStore(homeService.$isStaff);
+	const authState = useStore(homeService.$authState);
 	const token = useMemo(() => getToken, []);
 
+	useEffect(() => {
+		void homeService.initAuth();
+	}, []);
+
 	if (!isStaff) {
+		const pending =
+			authState === 'loading' || authState === 'authenticated';
 		return (
 			<div style={styles.centered}>
 				<ShieldOff size={48} color="var(--sl-color-gray-3)" />
-				<h2 style={styles.heading}>Staff Access Required</h2>
+				<h2 style={styles.heading}>
+					{pending ? 'Checking access…' : 'Staff Access Required'}
+				</h2>
 				<p style={styles.sub}>
-					The AWS S3 backup panel is restricted to KBVE staff.
+					{pending
+						? 'Verifying your staff permissions.'
+						: 'The AWS S3 backup panel is restricted to KBVE staff.'}
 				</p>
 			</div>
 		);

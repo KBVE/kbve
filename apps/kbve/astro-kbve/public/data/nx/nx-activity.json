@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-08-05T04:09:00Z",
+  "generated_at": "2026-08-06T04:12:16Z",
   "window": {
     "days": 7,
-    "since": "2026-07-29T04:09:00Z"
+    "since": "2026-07-30T04:12:16Z"
   },
   "commits": {
-    "total": 530,
+    "total": 536,
     "authors": 4,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 335
+        "commits": 345
       },
       {
         "author": "github-actions[bot]",
-        "commits": 189
+        "commits": 185
       },
       {
         "author": "dependabot[bot]",
@@ -27,158 +27,158 @@
     ],
     "recent": [
       {
-        "sha": "86b099a",
-        "author": "Fudster",
-        "message": "Merge pull request #15361 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/86b099a75984d778bb917c2791a4398f468f9167",
-        "date": "2026-08-05T02:32:14Z"
-      },
-      {
-        "sha": "8c040c3",
-        "author": "github-actions[bot]",
-        "message": "chore(discordsh-bot): post-publish sync to v0.1.30 (#15360)",
-        "url": "https://github.com/KBVE/kbve/commit/8c040c39f2cb37c0e53c48ced26c262de5c791ca",
-        "date": "2026-08-05T02:15:48Z"
-      },
-      {
-        "sha": "ea6ec5a",
-        "author": "Fudster",
-        "message": "Merge pull request #15356 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/ea6ec5a1c67a11ac74360fa3f46aa73c07d7ba21",
-        "date": "2026-08-05T01:56:10Z"
-      },
-      {
-        "sha": "8d5b07a",
-        "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#15359)",
-        "url": "https://github.com/KBVE/kbve/commit/8d5b07a09533c25d9868e4546820e66b6bca57d8",
-        "date": "2026-08-05T01:52:22Z"
-      },
-      {
-        "sha": "ff527a1",
-        "author": "github-actions[bot]",
-        "message": "feat(discordsh-bot): add /palworld-online roster command (#15358)",
-        "url": "https://github.com/KBVE/kbve/commit/ff527a12a634d59e8fe1785a3cf42823dc3d78a3",
-        "date": "2026-08-05T01:49:40Z"
-      },
-      {
-        "sha": "d49fbaa",
+        "sha": "4f50ffd",
         "author": "h0lybyte",
-        "message": "fix(kubevirt): set customizeComponents to an empty patches list (#15355)",
-        "url": "https://github.com/KBVE/kbve/commit/d49fbaa189d45305d1c4d54295db927e80db8025",
-        "date": "2026-08-04T17:22:30Z"
+        "message": "Merge pull request #15406 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/4f50ffd0ddf6d9b2a2617c0325fe6577921bd2fb",
+        "date": "2026-08-05T21:57:25Z"
       },
       {
-        "sha": "bf3e02c",
+        "sha": "880d003",
         "author": "h0lybyte",
-        "message": "Merge pull request #15350 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/bf3e02cc3dc63d76aab483c364a0d02cb780f324",
-        "date": "2026-08-04T15:22:04Z"
+        "message": "fix(isometric): disable physics on harvest instead of removing components (#15407)",
+        "url": "https://github.com/KBVE/kbve/commit/880d0032595b544f74bfc2c2689bf97ec21e41e1",
+        "date": "2026-08-05T21:57:10Z"
       },
       {
-        "sha": "f268b6f",
+        "sha": "7edc14d",
         "author": "github-actions[bot]",
-        "message": "chore(embeddb): update version.toml to 0.2.0 [skip ci] (#15353)",
-        "url": "https://github.com/KBVE/kbve/commit/f268b6fd635c98bef7878ecd7945f08da29529a0",
-        "date": "2026-08-04T15:16:41Z"
+        "message": "chore(axum-kbve): post-publish sync to v1.0.274 (#15405)",
+        "url": "https://github.com/KBVE/kbve/commit/7edc14d367de21471d46bd187f7108e4c6186b20",
+        "date": "2026-08-05T21:25:11Z"
       },
       {
-        "sha": "a3ee99f",
-        "author": "github-actions[bot]",
-        "message": "chore(axum-kbve): post-publish sync to v1.0.272 (#15352)",
-        "url": "https://github.com/KBVE/kbve/commit/a3ee99fbd92b0663a84526cb90374815551cc905",
-        "date": "2026-08-04T15:09:49Z"
-      },
-      {
-        "sha": "24dd24d",
-        "author": "github-actions[bot]",
-        "message": "chore(agones-palworld): post-publish sync to v0.0.37 (#15351)",
-        "url": "https://github.com/KBVE/kbve/commit/24dd24d620b009f15a2b881c4376069114c29b05",
-        "date": "2026-08-04T14:53:04Z"
-      },
-      {
-        "sha": "bfd6c24",
-        "author": "github-actions[bot]",
-        "message": "chore(agones-palworld-savetool): post-publish sync to v0.0.4 (#15349)",
-        "url": "https://github.com/KBVE/kbve/commit/bfd6c249cb1f16ff7bdfedeffce5f1f6ae1dab28",
-        "date": "2026-08-04T14:49:08Z"
-      },
-      {
-        "sha": "7ad1b5f",
+        "sha": "d8405e2",
         "author": "h0lybyte",
-        "message": "Merge pull request #15348 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/7ad1b5f39dcab0e84de8b00220509a59c056ec15",
-        "date": "2026-08-04T14:44:57Z"
+        "message": "Merge pull request #15404 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/d8405e2dd15c279e180a85e56967bb5e18f1b99e",
+        "date": "2026-08-05T20:48:49Z"
+      },
+      {
+        "sha": "2bc5e1d",
+        "author": "h0lybyte",
+        "message": "fix(kbve-wgpu): ship the iOS asset bundle so Bevy can load shaders (#15403)",
+        "url": "https://github.com/KBVE/kbve/commit/2bc5e1d79c25f6f8598bd21d644e1e8b0b9d840e",
+        "date": "2026-08-05T20:25:43Z"
+      },
+      {
+        "sha": "f316a9c",
+        "author": "h0lybyte",
+        "message": "Merge pull request #15401 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/f316a9c4b1843095ac0bf468777e3ba8cf300743",
+        "date": "2026-08-05T16:04:54Z"
+      },
+      {
+        "sha": "6a89641",
+        "author": "github-actions[bot]",
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#15402)",
+        "url": "https://github.com/KBVE/kbve/commit/6a8964130380cea948174bcca13233b90ae55e25",
+        "date": "2026-08-05T16:01:49Z"
+      },
+      {
+        "sha": "a898d11",
+        "author": "h0lybyte",
+        "message": "chore(kbve): preparing the release of v1.0.274",
+        "url": "https://github.com/KBVE/kbve/commit/a898d11928d676192b455ab1c8da5eaa36fec112",
+        "date": "2026-08-05T15:59:16Z"
+      },
+      {
+        "sha": "3fa095a",
+        "author": "github-actions[bot]",
+        "message": "chore(agones-palworld-relay): post-publish sync to v0.0.15 (#15400)",
+        "url": "https://github.com/KBVE/kbve/commit/3fa095a0d911d0a1b3c06f309d0090d976b9eec9",
+        "date": "2026-08-05T15:58:36Z"
+      },
+      {
+        "sha": "5946b57",
+        "author": "h0lybyte",
+        "message": "Merge pull request #15395 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/5946b57d9ea5a58e26f0809266ff82f01f430654",
+        "date": "2026-08-05T15:48:54Z"
+      },
+      {
+        "sha": "8f01bad",
+        "author": "h0lybyte",
+        "message": "refactor(rn): break the ClickHouse dash require cycle (#15398)",
+        "url": "https://github.com/KBVE/kbve/commit/8f01bad0ab134135c2fdadf443aef6dbd757b9b1",
+        "date": "2026-08-05T15:23:11Z"
+      },
+      {
+        "sha": "01106df",
+        "author": "h0lybyte",
+        "message": "fix(palworld): gameops CH schema + join/leave identity + loud insert failures (#15397)",
+        "url": "https://github.com/KBVE/kbve/commit/01106dfb41fbd0f1b5672cff0a79658bf4d509f8",
+        "date": "2026-08-05T15:23:03Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 440,
+    "merged": 462,
     "recent": [
       {
-        "number": 15361,
+        "number": 15406,
         "title": "Release: 1 chore \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15361"
+        "url": "https://github.com/KBVE/kbve/pull/15406"
       },
       {
-        "number": 15360,
-        "title": "Atomic: discordsh-bot v0.1.30 post-publish sync",
+        "number": 15407,
+        "title": "fix(isometric): disable physics on harvest instead of removing components",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/15407"
+      },
+      {
+        "number": 15405,
+        "title": "Atomic: axum-kbve v1.0.274 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15360"
+        "url": "https://github.com/KBVE/kbve/pull/15405"
       },
       {
-        "number": 15356,
-        "title": "Release: 1 feature, 1 fix \u2192 Main",
+        "number": 15404,
+        "title": "Release: 1 fix \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15356"
+        "url": "https://github.com/KBVE/kbve/pull/15404"
       },
       {
-        "number": 15359,
+        "number": 15403,
+        "title": "fix(kbve-wgpu): ship the iOS asset bundle so Bevy can load shaders",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/15403"
+      },
+      {
+        "number": 15401,
+        "title": "Release: 2 chores \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15401"
+      },
+      {
+        "number": 15402,
         "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15359"
+        "url": "https://github.com/KBVE/kbve/pull/15402"
       },
       {
-        "number": 15358,
-        "title": "Atomic: palworld online",
+        "number": 15400,
+        "title": "Atomic: agones-palworld-relay v0.0.15 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15358"
+        "url": "https://github.com/KBVE/kbve/pull/15400"
       },
       {
-        "number": 15355,
-        "title": "fix(kubevirt): set customizeComponents to an empty patches list",
+        "number": 15395,
+        "title": "Release: 1 feature, 2 fixes, 1 refactor \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15395"
+      },
+      {
+        "number": 15398,
+        "title": "refactor(rn): break the ClickHouse dash require cycle",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15355"
-      },
-      {
-        "number": 15350,
-        "title": "Release: 3 chores \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15350"
-      },
-      {
-        "number": 15353,
-        "title": "chore(embeddb): update version.toml to 0.2.0",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15353"
-      },
-      {
-        "number": 15352,
-        "title": "Atomic: axum-kbve v1.0.272 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15352"
-      },
-      {
-        "number": 15351,
-        "title": "Atomic: agones-palworld v0.0.37 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15351"
+        "url": "https://github.com/KBVE/kbve/pull/15398"
       }
     ]
   },
   "issues": {
-    "opened": 443,
-    "closed": 449
+    "opened": 465,
+    "closed": 471
   }
 }
