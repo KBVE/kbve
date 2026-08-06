@@ -13,11 +13,15 @@ duckdb = { version = "1", features = ["bundled"] }
 tokio = { workspace = true, features = ["default", "rt", "rt-multi-thread", "macros"] }
 thiserror = { workspace = true }
 embeddb-derive = { version = "0.1.0", path = "../embeddb-derive", optional = true }
+reqwest = { workspace = true, features = ["json", "rustls"], optional = true }
+serde = { workspace = true, features = ["derive"], optional = true }
+serde_json = { workspace = true, optional = true }
 
 [features]
 default = ["derive"]
 derive = ["dep:embeddb-derive"]
 vector = []
+embed-api = ["vector", "dep:reqwest", "dep:serde", "dep:serde_json"]
 
 [dev-dependencies]
 tempfile = { workspace = true }
@@ -34,4 +38,8 @@ required-features = ["derive"]
 
 [[test]]
 name = "e2e_vector"
+required-features = ["vector"]
+
+[[test]]
+name = "e2e_offline"
 required-features = ["vector"]
