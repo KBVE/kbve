@@ -639,6 +639,51 @@ export default function ReactPalworldMap() {
 			rank?: number;
 			talents?: { hp: number; attack: number; defense: number };
 			passives?: string[];
+			hp?: number;
+			max_hp?: number;
+			sanity?: number;
+			hunger?: number;
+			lucky?: boolean;
+			sick?: string;
+			friendship?: number;
+			souls?: {
+				hp: number;
+				attack: number;
+				defense: number;
+				craft: number;
+			};
+		};
+		const palChip = (label: string, color: string) =>
+			`<span style="display:inline-block;padding:0 6px;margin-right:4px;border-radius:8px;` +
+			`border:1px solid ${color}55;color:${color};font-size:10px;line-height:1.6">${label}</span>`;
+		const palCondition = (p: BasePal) => {
+			const chips: string[] = [];
+			if (p.lucky) chips.push(palChip('Lucky', '#fbbf24'));
+			if (p.hp === 0) chips.push(palChip('Down', '#f87171'));
+			if (p.sick)
+				chips.push(
+					palChip(
+						esc(p.sick.replace(/([a-z])([A-Z])/g, '$1 $2')),
+						'#f87171',
+					),
+				);
+			if (p.hunger !== undefined && p.hunger <= 30)
+				chips.push(palChip(`Hungry ${p.hunger}%`, '#fb923c'));
+			if (p.sanity !== undefined && p.sanity < 70)
+				chips.push(palChip(`Sanity ${p.sanity}`, '#c084fc'));
+			if (p.souls) {
+				const s = p.souls;
+				const parts = [
+					s.hp ? `HP+${s.hp}` : '',
+					s.attack ? `ATK+${s.attack}` : '',
+					s.defense ? `DEF+${s.defense}` : '',
+					s.craft ? `WRK+${s.craft}` : '',
+				]
+					.filter(Boolean)
+					.join(' ');
+				if (parts) chips.push(palChip(parts, '#38bdf8'));
+			}
+			return chips.join('');
 		};
 		type BaseIntel = {
 			id: string;
@@ -711,6 +756,9 @@ export default function ReactPalworldMap() {
 							? ` · ${p.passives.map((s) => esc(s.replace(/_/g, ' '))).join(', ')}`
 							: '') +
 						`</div>`
+					: '') +
+				(palCondition(p)
+					? `<div style="margin-top:2px">${palCondition(p)}</div>`
 					: '') +
 				`</div>` +
 				`<span style="color:#34d399;font-variant-numeric:tabular-nums">Lv ${p.level}</span></div>`
