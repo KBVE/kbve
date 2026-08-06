@@ -1,10 +1,11 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.112.1";
 import {
   createRemoteJWKSet,
   decodeProtectedHeader,
   jwtVerify,
 } from "https://deno.land/x/jose@v4.14.4/index.ts";
 import { corsHeaders } from "./cors.ts";
+import { logError } from "./logging.ts";
 
 // ---------------------------------------------------------------------------
 // Shared Supabase utilities for all edge function modules
@@ -171,7 +172,7 @@ export async function checkStaffPermissions(
   const client = createUserClient(token);
   const { data, error } = await client.rpc("staff_permissions");
   if (error) {
-    console.error("staff_permissions RPC error:", error.message);
+    logError("supabase.staff_permissions", error.message);
     return 0;
   }
   return typeof data === "number" ? data : 0;

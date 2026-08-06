@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { logError } from "../_shared/logging.ts";
 import {
   enforceBodySizeLimit,
   requireJsonContentType,
@@ -32,7 +33,7 @@ async function getBotToken(): Promise<string | null> {
     secret_id: BOT_TOKEN_VAULT_ID,
   });
   if (error) {
-    console.error("discord-bot: vault lookup failed:", error.message);
+    logError("discord-bot.vault_lookup", error.message);
     return null;
   }
   const row = Array.isArray(data) ? data[0] : data;
@@ -133,10 +134,10 @@ async function handleIsMember(serverId: string): Promise<Response> {
       joined_at: (body as { joined_at?: string } | null)?.joined_at ?? null,
     });
   }
-  console.error(
-    "discord-bot: unexpected /members status",
-    { status, body },
-  );
+  logError("discord-bot.members_status", "unexpected /members status", {
+    status,
+    body,
+  });
   return jsonResponse({ error: "Discord API error", status }, 502);
 }
 
@@ -205,10 +206,10 @@ async function handleListForumChannels(serverId: string): Promise<Response> {
     return jsonResponse({ error: "Discord rate limited" }, 429);
   }
   if (status < 200 || status >= 300 || !Array.isArray(body)) {
-    console.error(
-      "discord-bot: unexpected /channels status",
-      { status, body },
-    );
+    logError("discord-bot.channels_status", "unexpected /channels status", {
+      status,
+      body,
+    });
     return jsonResponse({ error: "Discord API error", status }, 502);
   }
   const channels = (body as Array<{
@@ -259,7 +260,7 @@ serve(async (req) => {
     const denied = requireUserToken(claims);
     if (denied) return denied;
   } catch (e) {
-    console.error("discord-bot: auth failed:", e);
+    logError("discord-bot.auth", e);
     return jsonResponse({ error: "Authentication failed" }, 401);
   }
 
@@ -306,7 +307,7 @@ serve(async (req) => {
       );
   }
   } catch (e) {
-    console.error("discord-bot: unhandled error:", e);
+    logError("discord-bot.unhandled", e);
     return jsonResponse({ error: "Internal error" }, 500);
   }
 });

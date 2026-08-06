@@ -59,7 +59,7 @@ async function readRconPacket(
   // Read until we have at least 4 bytes for the length prefix
   let buffer = new Uint8Array(0);
 
-  function concat(a: Uint8Array, b: Uint8Array): Uint8Array {
+  function concat(a: Uint8Array, b: Uint8Array): Uint8Array<ArrayBuffer> {
     const result = new Uint8Array(a.length + b.length);
     result.set(a);
     result.set(b, a.length);

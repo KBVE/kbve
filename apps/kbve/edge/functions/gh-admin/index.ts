@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { logError } from "../_shared/logging.ts";
 import {
   enforceBodySizeLimit,
   requireJsonContentType,
@@ -70,10 +71,7 @@ async function fetchGuildSecret(
     p_service: service,
   });
   if (error) {
-    console.error(
-      `gh-admin: vault lookup failed for ${service}:`,
-      error.message,
-    );
+    logError("gh-admin.vault_lookup", error.message, { service });
     return null;
   }
   if (!data || typeof data !== "string") return null;
@@ -104,7 +102,7 @@ function isRepoAllowed(allowlist: string[], owner: string, repo: string) {
 }
 
 async function githubCallback(
-  method: "GET" | "POST" | "DELETE",
+  method: "GET" | "POST" | "PATCH" | "DELETE",
   path: string,
   pat: string,
   body?: unknown,
@@ -257,7 +255,7 @@ async function upsertGuildSecret(
     },
   );
   if (error) {
-    console.error("gh-admin: service_set_guild_token failed", error.message);
+    logError("gh-admin.set_guild_token", error.message);
     return { ok: false, error: error.message };
   }
   const row = (Array.isArray(data) ? data[0] : data) as
@@ -756,10 +754,7 @@ async function handleEventStats(serverId: string): Promise<Response> {
     if (errCode === "GH006") {
       return jsonResponse({ error: error.message }, 413);
     }
-    console.error(
-      "gh-admin: service_get_guild_event_stats failed",
-      error.message,
-    );
+    logError("gh-admin.event_stats", error.message);
     return jsonResponse({ error: "stats lookup failed" }, 500);
   }
   const row = (Array.isArray(data) ? data[0] : data) ?? {};
@@ -794,10 +789,7 @@ async function handleEventFailed(
     if (errCode === "GH006") {
       return jsonResponse({ error: error.message }, 413);
     }
-    console.error(
-      "gh-admin: service_get_recent_failed_events failed",
-      error.message,
-    );
+    logError("gh-admin.event_failed", error.message);
     return jsonResponse({ error: "failed-events lookup failed" }, 500);
   }
   return jsonResponse({ events: Array.isArray(data) ? data : [] });
@@ -831,10 +823,7 @@ async function handleEventPending(
     if (errCode === "GH006") {
       return jsonResponse({ error: error.message }, 413);
     }
-    console.error(
-      "gh-admin: service_get_recent_pending_events failed",
-      error.message,
-    );
+    logError("gh-admin.event_pending", error.message);
     return jsonResponse({ error: "pending-events lookup failed" }, 500);
   }
   return jsonResponse({ events: Array.isArray(data) ? data : [] });
@@ -876,7 +865,7 @@ async function handleEventRequeue(
     if (errCode === "GH006") {
       return jsonResponse({ error: message }, 413);
     }
-    console.error("gh-admin: service_requeue_event failed", message);
+    logError("gh-admin.event_requeue", message);
     return jsonResponse({ error: "requeue failed" }, 500);
   }
   const row = (Array.isArray(data) ? data[0] : data) as
@@ -907,7 +896,7 @@ serve(async (req) => {
     const denied = requireUserToken(claims);
     if (denied) return denied;
   } catch (e) {
-    console.error("gh-admin: auth failed:", e);
+    logError("gh-admin.auth", e);
     return jsonResponse({ error: "Authentication failed" }, 401);
   }
 
@@ -1063,7 +1052,7 @@ serve(async (req) => {
       );
   }
   } catch (e) {
-    console.error("gh-admin: unhandled error:", e);
+    logError("gh-admin.unhandled", e);
     return jsonResponse({ error: "Internal error" }, 500);
   }
 });

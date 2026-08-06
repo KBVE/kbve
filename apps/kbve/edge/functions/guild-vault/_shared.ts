@@ -9,6 +9,7 @@ export {
 } from "../_shared/supabase.ts";
 
 import { jsonResponse } from "../_shared/supabase.ts";
+import { logError, logWarn } from "../_shared/logging.ts";
 import {
   SERVICE_RE,
   SNOWFLAKE_RE,
@@ -264,10 +265,9 @@ export async function verifyGuildOwnership(
     }
 
     if (res.status === 429) {
-      console.warn(
-        "Discord API rate limited. Retry after:",
-        res.headers.get("retry-after"),
-      );
+      logWarn("guild-vault.discord_rate_limited", {
+        retry_after: res.headers.get("retry-after"),
+      });
       return jsonResponse(
         { error: "Discord API rate limited. Please try again later." },
         429,
@@ -275,7 +275,10 @@ export async function verifyGuildOwnership(
     }
 
     if (!res.ok) {
-      console.error(`Discord API error: ${res.status} ${res.statusText}`);
+      logError("guild-vault.discord_api", "Discord API error", {
+        status: res.status,
+        status_text: res.statusText,
+      });
       return jsonResponse(
         { error: "Failed to verify Discord guild ownership" },
         502,
@@ -298,7 +301,7 @@ export async function verifyGuildOwnership(
 
     return null;
   } catch (err) {
-    console.error("Discord guild ownership verification error:", err);
+    logError("guild-vault.ownership_verification", err);
     return jsonResponse(
       { error: "Failed to verify Discord guild ownership" },
       502,

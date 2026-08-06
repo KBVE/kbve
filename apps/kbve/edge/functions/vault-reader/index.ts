@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2.112.1";
 import { jwtVerify } from "https://deno.land/x/jose@v4.14.4/index.ts";
 import { corsHeaders, preflight, withCors } from "../_shared/cors.ts";
 import { logError } from "../_shared/logging.ts";

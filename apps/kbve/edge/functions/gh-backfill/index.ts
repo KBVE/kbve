@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
+import { logError } from "../_shared/logging.ts";
 import {
   createServiceClient,
   extractToken,
@@ -257,7 +258,7 @@ serve(async (req) => {
     { p_server_id: guildId, p_service: VAULT_GITHUB_SERVICE },
   );
   if (tokenErr) {
-    console.error("gh-backfill: vault lookup failed:", tokenErr.message);
+    logError("gh-backfill.vault_lookup", tokenErr.message);
     return jsonResponse({ error: "Failed to resolve GitHub token from vault" }, 500);
   }
   if (!githubToken || typeof githubToken !== "string") {
@@ -295,7 +296,7 @@ serve(async (req) => {
       result = await fetchPage(githubToken, body.owner, body.repo, state, perPage, page);
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error("gh-backfill fetch error:", msg);
+      logError("gh-backfill.fetch", msg);
       return jsonResponse({ error: "GitHub fetch failed" }, 502);
     }
 
@@ -326,9 +327,11 @@ serve(async (req) => {
         p_closed_at: issue.closed_at ?? null,
       });
       if (error) {
-        console.error(
-          `gh.upsert_issue failed for ${body.owner}/${body.repo}#${issue.number}: ${error.message}`,
-        );
+        logError("gh-backfill.upsert_issue", error.message, {
+          owner: body.owner,
+          repo: body.repo,
+          number: issue.number,
+        });
         continue;
       }
       upserted++;
@@ -352,7 +355,7 @@ serve(async (req) => {
     200,
   );
   } catch (e) {
-    console.error("gh-backfill: unhandled error:", e);
+    logError("gh-backfill.unhandled", e);
     return jsonResponse({ error: "Internal error" }, 500);
   }
 });

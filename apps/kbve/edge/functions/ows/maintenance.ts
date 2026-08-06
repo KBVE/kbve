@@ -5,6 +5,7 @@ import {
   validateUuid,
   type OwsRequest,
 } from "./_shared.ts";
+import { logError } from "../_shared/logging.ts";
 
 export const MAINTENANCE_ACTIONS = [
   "cleanup_worldservers",
@@ -58,7 +59,7 @@ async function cleanupWorldServers(req: OwsRequest): Promise<Response> {
     .order("worldserverid", { ascending: true });
 
   if (fetchErr) {
-    console.error("cleanup_worldservers fetch error:", fetchErr.message);
+    logError("ows.maintenance.cleanup_worldservers_fetch", fetchErr.message);
     return jsonResponse({ error: "Failed to fetch world servers" }, 500);
   }
 
@@ -82,7 +83,7 @@ async function cleanupWorldServers(req: OwsRequest): Promise<Response> {
       .in("worldserverid", duplicateIds);
 
     if (delErr) {
-      console.error("cleanup_worldservers delete error:", delErr.message);
+      logError("ows.maintenance.cleanup_worldservers_delete", delErr.message);
       return jsonResponse({ error: "Failed to delete duplicate servers" }, 500);
     }
     deleted = count ?? duplicateIds.length;
@@ -100,7 +101,10 @@ async function cleanupWorldServers(req: OwsRequest): Promise<Response> {
     .eq("worldserverid", keepId);
 
   if (activateErr) {
-    console.error("cleanup_worldservers activate error:", activateErr.message);
+    logError(
+      "ows.maintenance.cleanup_worldservers_activate",
+      activateErr.message,
+    );
   }
 
   return jsonResponse({
@@ -136,7 +140,7 @@ async function cleanupMapInstances(req: OwsRequest): Promise<Response> {
     .lt("lastupdatefromserver", oneHourAgo);
 
   if (delErr) {
-    console.error("cleanup_map_instances error:", delErr.message);
+    logError("ows.maintenance.cleanup_map_instances", delErr.message);
     return jsonResponse({ error: "Failed to clean map instances" }, 500);
   }
 
