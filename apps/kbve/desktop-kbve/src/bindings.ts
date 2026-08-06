@@ -975,6 +975,35 @@ export const commands = {
 			else return { status: 'error', error: e as any };
 		}
 	},
+	async agentVoiceSetEnabled(
+		enabled: boolean,
+	): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('agent_voice_set_enabled', {
+					enabled,
+				}),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	async agentVoiceIsEnabled(): Promise<boolean> {
+		return await TAURI_INVOKE('agent_voice_is_enabled');
+	},
+	async agentVoiceAnnounce(text: string): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('agent_voice_announce', { text }),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
 	/**
 	 * Check if a Discord bot token is configured (without returning the actual token)
 	 */

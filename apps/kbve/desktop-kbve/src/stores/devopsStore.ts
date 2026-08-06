@@ -388,6 +388,11 @@ export const useDevOpsStore = create<DevOpsStore>()(
 					['needs-review'],
 					false,
 				);
+				void commands
+					.agentVoiceAnnounce(
+						`Pull request created for ${agent.issue_ref}`,
+					)
+					.catch(() => {});
 				await get().refreshAgents(false);
 			} catch (err) {
 				set({

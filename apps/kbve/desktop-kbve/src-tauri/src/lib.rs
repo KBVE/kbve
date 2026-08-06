@@ -1,4 +1,5 @@
 pub mod actions;
+pub mod agent_voice;
 pub mod audio_feedback;
 pub mod audio_toolkit;
 pub mod auth;
@@ -26,6 +27,8 @@ pub mod tray_i18n;
 pub mod utils;
 pub mod vad_model;
 mod views;
+pub mod voice;
+pub mod voice_commands;
 
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -221,6 +224,10 @@ fn specta_builder() -> Builder<tauri::Wry> {
         // onichan: sidecar quick-config
         commands::sidecar_config::get_sidecar_quick_config,
         commands::sidecar_config::set_sidecar_quick_config_field,
+        // agent voice: spoken devops feedback
+        commands::agent_voice::agent_voice_set_enabled,
+        commands::agent_voice::agent_voice_is_enabled,
+        commands::agent_voice::agent_voice_announce,
         // discord: voice bot + conversation
         commands::discord::discord_has_token,
         commands::discord::discord_get_token,
@@ -536,6 +543,18 @@ pub fn run() {
                 ));
             discord_conversation_manager.set_memory_manager(memory_manager.clone());
 
+            // Unified voice engine + spoken agent feedback.
+            let voice_engine: Arc<dyn voice::VoiceEngine> =
+                Arc::new(voice::PairedVoiceEngine::new(
+                    transcription_manager.clone(),
+                    local_tts_manager.clone(),
+                ));
+            let agent_voice_manager = Arc::new(agent_voice::AgentVoiceManager::new(
+                &dict_handle,
+                voice_engine.clone(),
+                discord_manager.clone(),
+            ));
+
             app.manage(onichan_manager);
             app.manage(onichan_model_manager);
             app.manage(local_llm_manager);
@@ -544,6 +563,8 @@ pub fn run() {
             app.manage(onichan_conversation_manager);
             app.manage(discord_manager);
             app.manage(discord_conversation_manager);
+            app.manage(voice_engine);
+            app.manage(agent_voice_manager);
 
             // System tray reflecting recording state (idle/recording/transcribing).
             let initial_theme = tray::get_current_theme(&dict_handle);
