@@ -4,8 +4,8 @@ metadata:
     name: vector-config
     namespace: vector
     annotations:
-        kbve.sh/last-updated: '2026-07-27T00:00:00Z'
-        kbve.sh/config-version: v10-tracing-level-fix
+        kbve.sh/last-updated: '2026-08-06T00:00:00Z'
+        kbve.sh/config-version: v11-sink-e2e-acks
     labels:
         kbve.com/category: observability
         kbve.com/stack: core
@@ -186,13 +186,15 @@ data:
         \    inputs:\n      - ch_normalize\n    endpoint: \"${CLICKHOUSE_ENDPOINT}\"\n\
         \    database: observability\n    table: logs_distributed\n    auth:\n      strategy:\
         \ basic\n      user: \"${CLICKHOUSE_USER}\"\n      password: \"${CLICKHOUSE_PASSWORD}\"\
-        \n    skip_unknown_fields: true\n    date_time_best_effort: true\n    batch:\n\
+        \n    skip_unknown_fields: true\n    date_time_best_effort: true\n    acknowledgements:\n\
+        \      enabled: true\n    batch:\n\
         \      max_bytes: 10485760\n      timeout_secs: 5\n    buffer:\n      type: memory\n\
         \      max_events: 10000\n    encoding:\n      timestamp_format: rfc3339\n  clickhouse_alerts:\n\
         \    type: clickhouse\n    inputs:\n      - alertmanager_flatten\n    endpoint:\
         \ \"${CLICKHOUSE_ENDPOINT}\"\n    database: observability\n    table: alerts_distributed\n\
         \    auth:\n      strategy: basic\n      user: \"${CLICKHOUSE_USER}\"\n      password:\
         \ \"${CLICKHOUSE_PASSWORD}\"\n    skip_unknown_fields: true\n    date_time_best_effort:\
-        \ true\n    batch:\n      max_bytes: 1048576\n      timeout_secs: 2\n    buffer:\n\
+        \ true\n    acknowledgements:\n      enabled: true\n    batch:\n      max_bytes:\
+        \ 1048576\n      timeout_secs: 2\n    buffer:\n\
         \      type: memory\n      max_events: 2000\n    encoding:\n      timestamp_format:\
         \ rfc3339\n"
