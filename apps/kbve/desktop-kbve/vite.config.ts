@@ -36,6 +36,11 @@ export default defineConfig({
 	// internals — keep them out of optimizeDeps.
 	optimizeDeps: {
 		exclude: [
+			// Never prebundle the RN cluster: the prebundled ESM drops default
+			// exports the shims re-export, and the optimizer/runtime resolve
+			// aliases differently — mismatched graphs break boot in WebKit.
+			'react-native',
+			'react-native-web',
 			'react-native-svg',
 			'react-native-reanimated',
 			'react-native-safe-area-context',
