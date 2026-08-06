@@ -49,39 +49,10 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 	init: async () => {
 		if (get().initialized) return;
 		set({ initialized: true });
-
-		await onAuthCallback(async (url) => {
-			set({ phase: 'authing' });
-			try {
-				const session = await authApi.complete(url);
-				await saveSession(session);
-				set({
-					session,
-					user: toAuthUser(session),
-					phase: 'authed',
-					error: null,
-				});
-			} catch (e) {
-				set({ phase: 'anon', error: String(e) });
-			}
-		});
-
-		const stored = await loadSession();
-		if (!stored) {
-			set({ ready: true });
-			return;
-		}
 		try {
-			await authApi.restore(stored);
-			const fresh = await freshSession(stored);
-			if (fresh !== stored) await saveSession(fresh);
-			set({
-				session: fresh,
-				user: toAuthUser(fresh),
-				phase: 'authed',
-			});
-		} catch {
-			await saveSession(null);
+			await initInner(set, get);
+		} catch (e) {
+			set({ error: String(e) });
 		} finally {
 			set({ ready: true });
 		}
@@ -103,3 +74,40 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 		set({ session: null, user: null, phase: 'anon', error: null });
 	},
 }));
+
+type SetAuth = (partial: Partial<AuthState>) => void;
+
+async function initInner(set: SetAuth, _get: () => AuthState): Promise<void> {
+	{
+		await onAuthCallback(async (url) => {
+			set({ phase: 'authing' });
+			try {
+				const session = await authApi.complete(url);
+				await saveSession(session);
+				set({
+					session,
+					user: toAuthUser(session),
+					phase: 'authed',
+					error: null,
+				});
+			} catch (e) {
+				set({ phase: 'anon', error: String(e) });
+			}
+		});
+
+		const stored = await loadSession();
+		if (!stored) return;
+		try {
+			await authApi.restore(stored);
+			const fresh = await freshSession(stored);
+			if (fresh !== stored) await saveSession(fresh);
+			set({
+				session: fresh,
+				user: toAuthUser(fresh),
+				phase: 'authed',
+			});
+		} catch {
+			await saveSession(null);
+		}
+	}
+}

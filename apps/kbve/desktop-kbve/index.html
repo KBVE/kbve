@@ -7,6 +7,31 @@
 	</head>
 	<body>
 		<div id="root"></div>
+		<script>
+			// White-screen guard: surface boot errors that kill the module
+			// graph before React can render anything.
+			(function () {
+				function show(msg) {
+					var root = document.getElementById('root');
+					if (!root || root.childElementCount > 0) return;
+					var pre = document.createElement('pre');
+					pre.style.cssText =
+						'margin:2rem;padding:1rem;white-space:pre-wrap;font:12px monospace;' +
+						'color:#ff6b6b;background:#1b1f26;border-radius:8px;';
+					pre.textContent = 'Boot error:\n' + msg;
+					root.appendChild(pre);
+				}
+				window.addEventListener('error', function (e) {
+					show(
+						(e.message || String(e.error)) +
+							(e.filename ? '\n' + e.filename + ':' + e.lineno : ''),
+					);
+				});
+				window.addEventListener('unhandledrejection', function (e) {
+					show(String((e.reason && e.reason.stack) || e.reason));
+				});
+			})();
+		</script>
 		<script type="module" src="/src/main.tsx"></script>
 	</body>
 </html>

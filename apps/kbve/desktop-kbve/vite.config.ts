@@ -13,10 +13,17 @@ export default defineConfig({
 	plugins: [react(), tailwindcss(), kbveRnTauri({ packagesDir })],
 	resolve: {
 		alias: [
-			{ find: /^react-native$/, replacement: 'react-native-web' },
-			// Dep-scan safety net: react-native internals are Flow-typed .js
-			// esbuild cannot parse; collapse any subpath onto react-native-web.
-			{ find: /^react-native\/.*/, replacement: 'react-native-web' },
+			// RN libraries import native-runtime pieces (TurboModuleRegistry,
+			// Fabric codegen helpers) that react-native-web does not export;
+			// shims cover them so the module graph loads in the webview.
+			{
+				find: /^react-native$/,
+				replacement: resolve(root, 'src/lib/rn-web-shim.ts'),
+			},
+			{
+				find: /^react-native\/.*/,
+				replacement: resolve(root, 'src/lib/rn-internals-shim.ts'),
+			},
 			{ find: '@', replacement: resolve(root, 'src') },
 			{
 				find: 'react-i18next',

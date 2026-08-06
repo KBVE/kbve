@@ -1,4 +1,4 @@
-import { createElement } from 'react';
+import { Suspense, createElement, lazy } from 'react';
 import { registerView } from '../engine';
 import {
 	IconSettings,
@@ -17,8 +17,21 @@ import { OnichanView } from './onichan';
 import { DevOpsView } from './devops';
 import { DiscordView } from './discord';
 import { AboutView } from './about';
-import { ProfileView } from './profile';
 import { TerminalView } from './terminal';
+
+// Loaded on demand: pulls the whole @kbve/rn (react-native-web) stack, which
+// should never gate app boot.
+const ProfileLazy = lazy(() =>
+	import('./profile').then((m) => ({ default: m.ProfileView })),
+);
+
+function ProfileView() {
+	return createElement(
+		Suspense,
+		{ fallback: null },
+		createElement(ProfileLazy),
+	);
+}
 
 // Register all views at import time.
 // Order here determines sidebar order.
