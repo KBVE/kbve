@@ -197,20 +197,29 @@ jobs:
             - name: Brotli-compress static assets
               run: |
                   DEPLOY_DIR="apps/kbve/astro-kbve/public/isometric"
-                  apt-get update -qq && apt-get install -y -qq brotli > /dev/null 2>&1 || true
+                  command -v brotli > /dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq brotli > /dev/null; }
 
                   # Compress static assets that Vite's compression plugin doesn't handle:
                   # shaders (.wgsl), textures (.png), standalone JS shims, and WASM binaries.
+                  # The build may already ship .br/.gz siblings; skip those to stay idempotent.
                   find "$DEPLOY_DIR" -type f \( \
                     -name "*.wgsl" -o -name "*.png" -o -name "*.wasm" \
                     -o -name "*.js" -o -name "*.css" \
                   \) ! -name "*.br" ! -name "*.gz" | while read -r file; do
+                    if [ -f "${file}.br" ]; then
+                      echo "  skipped (exists): ${file}.br"
+                      continue
+                    fi
                     brotli --best --keep "$file"
                     echo "  compressed: ${file}.br ($(stat -c%s "${file}.br" 2>/dev/null || stat -f%z "${file}.br") bytes)"
                   done
 
                   # Also generate gzip for WASM (tower-http serves .wasm.gz as fallback)
                   find "$DEPLOY_DIR" -type f -name "*.wasm" ! -name "*.gz" | while read -r file; do
+                    if [ -f "${file}.gz" ]; then
+                      echo "  skipped (exists): ${file}.gz"
+                      continue
+                    fi
                     gzip -9 --keep "$file"
                     echo "  gzipped: ${file}.gz"
                   done
