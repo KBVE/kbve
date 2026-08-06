@@ -2297,7 +2297,48 @@ fn drain_inputs(
                 Input::EvolvePet { idx, item_ref } => {
                     deploy.evolutions.0.push((slot, idx as usize, item_ref))
                 }
-                other => pending.entry(slot.0).or_default().push(other),
+
+                // Deferred to the per-player pass below, which needs the mutable player query
+                // this loop cannot hold.
+                //
+                // Listed explicitly rather than caught by `other =>`. The catch-all is what let
+                // #15330 ship an `EvolvePet` arm that was never written: the input fell through
+                // to here, reached the ignore arm in the deferred pass, and did nothing on a
+                // real server while every test passed — the tests push onto the queues directly.
+                // Enumerating the deferred set makes a new variant a compile error here instead.
+                other @ (Input::Move { .. }
+                | Input::Face { .. }
+                | Input::UseItem { .. }
+                | Input::DropItem { .. }
+                | Input::MoveItem { .. }
+                | Input::EquipItem { .. }
+                | Input::PlaceItem { .. }
+                | Input::PickupObject { .. }
+                | Input::Fell { .. }
+                | Input::EnterShip { .. }
+                | Input::ExitShip
+                | Input::LaunchSpace
+                | Input::ReturnSpace
+                | Input::OpenCorpse { .. }
+                | Input::TakeFromCorpse { .. }) => pending.entry(slot.0).or_default().push(other),
+
+                // No sim-side effect, on purpose.
+                //
+                // `Heartbeat` does its work by arriving at all — `net_udp` stamps `last_seen` on
+                // any datagram, so liveness is a transport concern and the sim has nothing to do
+                // with the tick it carries.
+                //
+                // `Step` and `MoveTo` are dead: superseded by the `Move` float-movement intent,
+                // and handled nowhere in the workspace. They stay because a variant's declaration
+                // index IS its postcard wire tag — deleting `Step` (tag 0) or `MoveTo` (tag 2)
+                // renumbers every later variant and silently breaks every client. See the note on
+                // [`crate::proto::Input`].
+                //
+                // `Leave` is acted on by the transport when the socket closes, not from the queue.
+                Input::Step { .. }
+                | Input::MoveTo { .. }
+                | Input::Heartbeat { .. }
+                | Input::Leave => {}
             }
         }
     }

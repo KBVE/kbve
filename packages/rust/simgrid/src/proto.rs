@@ -150,8 +150,34 @@ pub enum ClientMessage {
     Frame(ClientFrame),
 }
 
+/// One client intent for a tick.
+///
+/// # Declaration order is the wire format
+///
+/// postcard encodes an enum as its **declaration index** as a varint, so a variant's position
+/// in this list *is* its wire tag — `EvolvePet` is tag 42 because it is declared 43rd. That has
+/// two consequences that are easy to get wrong:
+///
+/// - **Append only.** Inserting or reordering a variant renumbers every variant after it, so an
+///   unchanged client starts sending what the server reads as a different input entirely.
+/// - **Never delete.** A dead variant has to stay as a placeholder for the same reason. `Step`
+///   (tag 0) and `MoveTo` (tag 2) are both dead — superseded by the `Move` float-movement intent
+///   and handled nowhere in the workspace — and both stay exactly where they are.
+///
+/// # Every variant needs a home in `drain_inputs`
+///
+/// [`crate::sim::drain_inputs`] matches this enum exhaustively with **no catch-all**, and so does
+/// the deferred per-player pass that follows it. Adding a variant is therefore a compile error in
+/// both places until it is routed to a queue, deferred, or explicitly declared inert.
+///
+/// That is deliberate. The catch-all it replaced is how #15330 shipped an `EvolvePet` variant with
+/// no routing arm: the input landed in the deferred buffer, hit an ignore arm, and did nothing on
+/// a real server — while every test passed, because the tests push onto the queues directly.
+/// Nothing covers the path from wire byte to queue, so the type system covers it instead.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Input {
+    /// DEAD — superseded by [`Input::Move`]. Handled nowhere; retained because this is wire tag 0
+    /// and deleting it renumbers everything below. Do not reuse for something else.
     Step {
         dir: Dir,
     },
@@ -165,6 +191,8 @@ pub enum Input {
         /// release stops exactly when the client did — no held-intent over-travel.
         tick: u32,
     },
+    /// DEAD — superseded by [`Input::Move`]. Handled nowhere; retained because this is wire tag 2
+    /// and deleting it renumbers everything below. Do not reuse for something else.
     MoveTo {
         tile: Tile,
     },
@@ -203,6 +231,8 @@ pub enum Input {
     PickupObject {
         tile: Tile,
     },
+    /// Keepalive. Deliberately inert in the sim: `net_udp` stamps `last_seen` on any datagram, so
+    /// arriving is the whole job and `client_tick` is not read server-side.
     Heartbeat {
         client_tick: u32,
     },

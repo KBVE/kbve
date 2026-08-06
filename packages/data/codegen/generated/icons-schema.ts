@@ -3,7 +3,6 @@
  *
  * Source: ../descriptors/icons.binpb
  * Config: ../icons-zod-config.json
- * Generated: 2026-07-20T00:37:21.639Z
  */
 
 import { z } from 'zod';
