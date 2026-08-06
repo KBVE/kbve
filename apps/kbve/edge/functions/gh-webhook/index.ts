@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { corsHeaders } from "../_shared/cors.ts";
 import { createServiceClient, jsonResponse } from "../_shared/supabase.ts";
 import { enforceBodySizeLimit } from "../_shared/validators.ts";
+import { logError, logWarn } from "../_shared/logging.ts";
 
 const ALLOWED_EVENTS = new Set([
   "issues",
@@ -81,10 +82,10 @@ async function resolveAllowlist(
       p_service: "github_repos",
     });
     if (error) {
-      console.warn(
-        "gh-webhook: github_repos lookup failed; falling back to env",
-        error.message,
-      );
+      logWarn("gh-webhook.github_repos_lookup", {
+        fallback: "env",
+        error: error.message,
+      });
       return ALLOWED_REPOS;
     }
     if (typeof data !== "string") return ALLOWED_REPOS;
@@ -95,7 +96,10 @@ async function resolveAllowlist(
     if (list.length === 0) return ALLOWED_REPOS;
     return new Set(list.map((r) => r.trim().toLowerCase()));
   } catch (e) {
-    console.warn("gh-webhook: parse error on github_repos; env fallback", e);
+    logWarn("gh-webhook.github_repos_parse", {
+      fallback: "env",
+      error: e instanceof Error ? e.message : String(e),
+    });
     return ALLOWED_REPOS;
   }
 }
@@ -205,24 +209,18 @@ serve(async (req) => {
     { p_server_id: guildId, p_service: VAULT_WEBHOOK_SERVICE },
   );
   if (secretErr) {
-    console.error(
-      "gh-webhook: vault lookup failed",
-      { guild: guildId, error: secretErr.message },
-    );
+    logError("gh-webhook.vault_lookup", secretErr.message, { guild: guildId });
     return jsonResponse({ error: "Failed to resolve webhook secret" }, 500);
   }
   if (!secret || typeof secret !== "string") {
-    console.warn(
-      "gh-webhook: no webhook secret registered for guild",
-      { guild: guildId },
-    );
+    logWarn("gh-webhook.no_webhook_secret", { guild: guildId });
     return jsonResponse({ error: "webhook not configured for guild" }, 404);
   }
 
   const rawBody = await req.text();
 
   if (!(await verifySignature(secret, signature, rawBody))) {
-    console.warn("gh-webhook: signature verification failed", {
+    logWarn("gh-webhook.signature_verification", {
       delivery: deliveryId,
       event: githubEvent,
       guild: guildId,
@@ -288,7 +286,7 @@ serve(async (req) => {
     .schema("gh")
     .rpc("upsert_issue", upsertParams);
   if (upsertErr) {
-    console.error("gh.upsert_issue failed:", upsertErr.message);
+    logError("gh-webhook.upsert_issue", upsertErr.message);
     return jsonResponse({ error: "upsert failed" }, 500);
   }
 
@@ -303,7 +301,7 @@ serve(async (req) => {
     p_github_delivery_id: deliveryId,
   });
   if (eventErr) {
-    console.error("gh.record_event failed:", eventErr.message);
+    logError("gh-webhook.record_event", eventErr.message);
   }
 
   return jsonResponse(

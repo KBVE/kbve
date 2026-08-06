@@ -88,8 +88,6 @@ export async function withIrcConnection<T>(
     async read(timeoutMs = IRC_TIMEOUT_MS): Promise<string[]> {
       const deadline = Date.now() + timeoutMs;
       while (Date.now() < deadline) {
-        // Use Deno.conn with a short read timeout
-        conn.setReadDeadline?.(new Date(Math.min(Date.now() + 500, deadline)));
         try {
           const n = await conn.read(buf);
           if (n === null) break;
@@ -113,7 +111,6 @@ export async function withIrcConnection<T>(
       const deadline = Date.now() + timeoutMs;
       const collected: string[] = [];
       while (Date.now() < deadline) {
-        conn.setReadDeadline?.(new Date(Math.min(Date.now() + 500, deadline)));
         try {
           const n = await conn.read(buf);
           if (n === null) break;

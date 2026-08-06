@@ -30,27 +30,8 @@ declare namespace EdgeRuntime {
 }
 
 // Module declarations for Deno imports
-declare module "https://deno.land/std@0.131.0/http/server.ts" {
-  export function serve(
-    handler: (request: Request) => Response | Promise<Response>,
-  ): void;
-}
-
 declare module "https://deno.land/std@0.168.0/http/server.ts" {
   export function serve(
     handler: (request: Request) => Response | Promise<Response>,
   ): void;
-}
-
-declare module "https://deno.land/x/jose@v4.14.4/index.ts" {
-  import type { JWTPayload } from "jose";
-  export function jwtVerify(
-    jwt: string,
-    key: Uint8Array,
-    options?: { algorithms?: string[] },
-  ): Promise<{ payload: JWTPayload & Record<string, unknown> }>;
-}
-
-declare module "https://esm.sh/@supabase/supabase-js@2" {
-  export { createClient } from "@supabase/supabase-js";
 }
