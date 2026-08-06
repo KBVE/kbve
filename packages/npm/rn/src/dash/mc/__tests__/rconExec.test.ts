@@ -65,6 +65,11 @@ describe('createRconExec', () => {
 		(global.fetch as any).mockRejectedValue(new Error('offline'));
 		const exec = createRconExec({ getToken: token });
 		const res = await exec('lobby', { command: 'list' });
-		expect(res).toEqual({ ok: false, output: '', latency_ms: 0, error: 'offline' });
+		expect(res).toEqual({
+			ok: false,
+			output: '',
+			latency_ms: 0,
+			error: 'mc:rcon (POST /api/v1/rcon/mc/lobby/exec) failed: offline',
+		});
 	});
 });

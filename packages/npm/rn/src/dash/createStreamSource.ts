@@ -29,6 +29,15 @@ const EMPTY = <TItem>(initialParams: StreamParams): StreamState<TItem> => ({
 	activeViewId: null,
 });
 
+function describeStreamError(e: unknown): string {
+	if (e instanceof Error) {
+		return e.name && e.name !== 'Error'
+			? `${e.name}: ${e.message}`
+			: e.message;
+	}
+	return `Request failed: ${String(e)}`;
+}
+
 function serializeParams(params: StreamParams): string {
 	const keys = Object.keys(params)
 		.filter((k) => params[k] !== undefined)
@@ -113,7 +122,15 @@ export function createStreamSource<TRaw, TItem>(
 				fetch({ signal: ctrl.signal }, params),
 				fetchMeta
 					? fetchMeta({ signal: ctrl.signal }, params).catch(
-							() => undefined,
+							(e: unknown) => {
+								if (!ctrl.signal.aborted) {
+									console.warn(
+										`[dash:${key}] meta fetch failed`,
+										e,
+									);
+								}
+								return undefined;
+							},
 						)
 					: Promise.resolve(undefined),
 			]);
@@ -141,9 +158,10 @@ export function createStreamSource<TRaw, TItem>(
 			}
 		} catch (e: unknown) {
 			if (ctrl.signal.aborted) return;
+			console.error(`[dash:${key}] fetch failed`, e);
 			patch({
 				loading: false,
-				error: e instanceof Error ? e.message : 'Request failed',
+				error: describeStreamError(e),
 			});
 		}
 	};
@@ -223,9 +241,12 @@ export function createStreamSource<TRaw, TItem>(
 				patch({ actionMsg: opts?.successMsg ?? 'Done' });
 				if (opts?.refresh !== false) await runFetch();
 			} catch (e: unknown) {
+				console.error(`[dash:${config.key}] action ${key} failed`, e);
 				patch({
 					actionError:
-						e instanceof Error ? e.message : 'Action failed',
+						e instanceof Error
+							? describeStreamError(e)
+							: 'Action failed',
 				});
 			} finally {
 				patch({ actionBusy: null });

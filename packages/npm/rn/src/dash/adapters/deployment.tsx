@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
 import { createStreamSource } from '../createStreamSource';
+import { dashFetch, dashJson, dashHttpError } from '../dashFetch';
 import type { StreamLens, StreamStore } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -134,22 +135,24 @@ export function createDeploymentStream(
 				live_only: liveOnly ? 'true' : 'false',
 			});
 
-			const res = await fetch(
+			const res = await dashFetch(
 				`${baseUrl}/dashboard/firecracker/deployments?${params.toString()}`,
 				{
 					headers: token
 						? { Authorization: `Bearer ${token}` }
 						: undefined,
 					signal,
+					label: 'deployment:list',
 				},
 			);
 
-			if (res.status === 403) throw new Error('Access restricted');
-			if (!res.ok) throw new Error(`Deployment API error: ${res.status}`);
+			if (res.status === 403)
+				throw dashHttpError(res, 'deployment:list', 'Access restricted');
+			if (!res.ok) throw dashHttpError(res, 'deployment:list');
 
-			const json = (await res.json()) as {
+			const json = await dashJson<{
 				deployments?: RawDeployment[];
-			};
+			}>(res, 'deployment:list');
 			const raw = json?.deployments ?? [];
 
 			// Sort by created_at descending (newest first)

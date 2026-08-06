@@ -1,4 +1,5 @@
 import { createStreamSource } from '../createStreamSource';
+import { dashFetch, dashJson, dashHttpError } from '../dashFetch';
 import type { StreamParams, StreamStore, StreamLens } from '../types';
 import { Surface, Stack, Text, Badge, tokens } from '../_ui';
 
@@ -35,14 +36,15 @@ export function createErrorGroupsStream(opts: ErrorGroupsStreamOptions): StreamS
 			const token = await getToken();
 			const body: Record<string, unknown> = { command: 'error_groups' };
 			for (const k of ['minutes', 'limit', 'pod_namespace']) if (params[k] !== undefined && params[k] !== '') body[k] = params[k];
-			const res = await fetch(`${baseUrl}${PROXY}`, {
+			const res = await dashFetch(`${baseUrl}${PROXY}`, {
 				method: 'POST',
 				headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}), 'Content-Type': 'application/json' },
 				body: JSON.stringify(body), signal,
+				label: 'clickhouse:error-groups',
 			});
-			if (res.status === 403) throw new Error('Access restricted');
-			if (!res.ok) throw new Error(`ClickHouse API error: ${res.status}`);
-			const json = (await res.json()) as { rows?: RawErrorGroup[] };
+			if (res.status === 403) throw dashHttpError(res, 'clickhouse:error-groups', 'Access restricted');
+			if (!res.ok) throw dashHttpError(res, 'clickhouse:error-groups');
+			const json = await dashJson<{ rows?: RawErrorGroup[] }>(res, 'clickhouse:error-groups');
 			return json?.rows ?? [];
 		},
 	});

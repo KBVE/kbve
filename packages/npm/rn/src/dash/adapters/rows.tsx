@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
 import { createStreamSource } from '../createStreamSource';
+import { dashFetch, dashJson, dashHttpError } from '../dashFetch';
 import type { StreamLens, StreamStore } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -92,22 +93,33 @@ export function createRowsStream(
 		normalize,
 		fetch: async ({ signal }) => {
 			const token = await getToken();
-			const res = await fetch(`${proxyBase}/api/System/FleetStatus`, {
+			const res = await dashFetch(`${proxyBase}/api/System/FleetStatus`, {
 				headers: token
 					? { Authorization: `Bearer ${token}` }
 					: undefined,
 				signal,
+				label: 'rows:fleet',
 			});
 
-			if (res.status === 403) throw new Error('Access restricted');
-			if (res.status === 502) throw new Error('ROWS backend unreachable');
+			if (res.status === 403)
+				throw dashHttpError(res, 'rows:fleet', 'Access restricted');
+			if (res.status === 502)
+				throw dashHttpError(
+					res,
+					'rows:fleet',
+					'ROWS backend unreachable',
+				);
 			if (res.status === 503)
-				throw new Error('ROWS proxy not configured');
-			if (!res.ok) throw new Error(`ROWS API error: ${res.status}`);
+				throw dashHttpError(
+					res,
+					'rows:fleet',
+					'ROWS proxy not configured',
+				);
+			if (!res.ok) throw dashHttpError(res, 'rows:fleet');
 
-			const json = (await res.json()) as {
+			const json = await dashJson<{
 				game_servers?: RawGameServer[];
-			};
+			}>(res, 'rows:fleet');
 			const raw = json?.game_servers ?? [];
 
 			// Sort by state (Allocated > Ready > Shutdown) then by age

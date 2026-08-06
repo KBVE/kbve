@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
 import { createStreamSource } from '../createStreamSource';
+import { dashFetch, dashJson, dashHttpError } from '../dashFetch';
 import type { StreamLens, StreamStore } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -192,32 +193,48 @@ export function createVMStream(opts: VMStreamOptions): StreamStore<VMItem> {
 		fetch: async ({ signal }) => {
 			const token = await getToken();
 			const [vmsRes, vmisRes] = await Promise.all([
-				fetch(
+				dashFetch(
 					`${baseUrl}/dashboard/vm/proxy/apis/kubevirt.io/v1/namespaces/${namespace}/virtualmachines`,
 					{
 						headers: token
 							? { Authorization: `Bearer ${token}` }
 							: undefined,
 						signal,
+						label: 'vm:list',
 					},
 				),
-				fetch(
+				dashFetch(
 					`${baseUrl}/dashboard/vm/proxy/apis/kubevirt.io/v1/namespaces/${namespace}/virtualmachineinstances`,
 					{
 						headers: token
 							? { Authorization: `Bearer ${token}` }
 							: undefined,
 						signal,
+						label: 'vm:instances',
 					},
 				),
 			]);
 
 			if (vmsRes.status === 403 || vmisRes.status === 403)
-				throw new Error('Access restricted');
-			if (!vmsRes.ok || !vmisRes.ok) throw new Error('VM API error');
+				throw dashHttpError(
+					vmsRes.status === 403 ? vmsRes : vmisRes,
+					vmsRes.status === 403 ? 'vm:list' : 'vm:instances',
+					'Access restricted',
+				);
+			if (!vmsRes.ok || !vmisRes.ok)
+				throw dashHttpError(
+					!vmsRes.ok ? vmsRes : vmisRes,
+					!vmsRes.ok ? 'vm:list' : 'vm:instances',
+				);
 
-			const vmsJson = (await vmsRes.json()) as { items: RawVM[] };
-			const vmisJson = (await vmisRes.json()) as { items: RawVMI[] };
+			const vmsJson = await dashJson<{ items: RawVM[] }>(
+				vmsRes,
+				'vm:list',
+			);
+			const vmisJson = await dashJson<{ items: RawVMI[] }>(
+				vmisRes,
+				'vm:instances',
+			);
 
 			const vms = vmsJson.items ?? [];
 			const vmis = vmisJson.items ?? [];

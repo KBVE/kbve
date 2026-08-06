@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
 import { createStreamSource } from '../createStreamSource';
+import { dashFetch, dashJson, dashHttpError } from '../dashFetch';
 import type { StatModel, StreamLens, StreamStore } from '../types';
 
 export interface RawLonghornReplica {
@@ -159,16 +160,20 @@ export function summarizeDisks(nodes: RawLonghornNode[]): DiskSummary[] {
 async function fetchCollection<T>(
 	url: string,
 	token: string | null,
-	signal?: AbortSignal,
+	signal: AbortSignal | undefined,
+	label: string,
 ): Promise<T[]> {
-	const res = await fetch(url, {
+	const res = await dashFetch(url, {
 		headers: token ? { Authorization: `Bearer ${token}` } : undefined,
 		signal,
+		label,
 	});
-	if (res.status === 403) throw new Error('Access restricted');
-	if (res.status === 503) throw new Error('Longhorn proxy not configured');
-	if (!res.ok) throw new Error(`Longhorn error: ${res.status}`);
-	const json = (await res.json()) as { data?: T[] };
+	if (res.status === 403)
+		throw dashHttpError(res, label, 'Access restricted');
+	if (res.status === 503)
+		throw dashHttpError(res, label, 'Longhorn proxy not configured');
+	if (!res.ok) throw dashHttpError(res, label);
+	const json = await dashJson<{ data?: T[] }>(res, label);
 	return Array.isArray(json?.data) ? json.data : [];
 }
 
@@ -191,6 +196,7 @@ export function createLonghornStream(
 				`${baseUrl}/dashboard/storage/proxy/volumes`,
 				token,
 				signal,
+				'longhorn:volumes',
 			);
 			return volumes.sort((a, b) => a.name.localeCompare(b.name));
 		},
@@ -201,6 +207,7 @@ export function createLonghornStream(
 					`${baseUrl}/dashboard/storage/proxy/nodes`,
 					token,
 					signal,
+					'longhorn:nodes',
 				);
 				return summarizeDisks(nodes);
 			} catch {
