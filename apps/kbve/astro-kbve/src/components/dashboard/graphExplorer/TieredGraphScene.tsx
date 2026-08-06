@@ -16,6 +16,10 @@ import GraphLabels, { type LabelItem } from './GraphLabels';
 const CIRCLE = new THREE.CircleGeometry(1, 16);
 const DOT = new THREE.CircleGeometry(1, 6);
 
+// Enhanced node sizing for better mobile visibility
+const MIN_DIR_RADIUS = 8;  // Minimum directory node size
+const MIN_FILE_RADIUS = 10; // Minimum file node size (slightly larger for touch targets)
+
 const FILE_IN = 3.5;
 const SYMBOL_IN = 14;
 const FLY_SECONDS = 0.6;
@@ -80,6 +84,7 @@ export default function TieredGraphScene({
 	const [, setChunkVersion] = useState(0);
 	const [hoverDir, setHoverDir] = useState<number | null>(null);
 	const dirLabelOp = useRef(0.9);
+	const lastTap = useRef<{ time: number; x: number; y: number } | null>(null);
 
 	const adjacency = useMemo(
 		() => buildAdjacency(overview.dirEdges),
@@ -228,10 +233,12 @@ export default function TieredGraphScene({
 		const col = new THREE.Color();
 		const neigh = hoverDir != null ? adjacency.get(hoverDir) : null;
 		overview.dirs.forEach((d, i) => {
+			// Ensure minimum node size for better mobile touch targets
+			const nodeRadius = Math.max(d.r, MIN_DIR_RADIUS);
 			m.compose(
 				new THREE.Vector3(d.x, d.y, 0),
 				new THREE.Quaternion(),
-				new THREE.Vector3(d.r, d.r, 1),
+				new THREE.Vector3(nodeRadius, nodeRadius, 1),
 			);
 			mesh.setMatrixAt(i, m);
 			let [r, g, b] =
@@ -240,7 +247,8 @@ export default function TieredGraphScene({
 					: dirColor(i, overview.dirs.length);
 			if (hoverDir != null) {
 				const lit = i === hoverDir || neigh?.has(i);
-				const f = lit ? 1.15 : 0.22;
+				// Enhanced contrast for focus mode - more dramatic difference
+				const f = lit ? 1.25 : 0.18;
 				r *= f;
 				g *= f;
 				b *= f;
@@ -386,13 +394,17 @@ export default function TieredGraphScene({
 					e.stopPropagation();
 					if (i !== hoverDir) setHoverDir(i);
 					const d = overview.dirs[i];
-					onHover({
-						kind: 'dir',
-						label: d.label,
-						sub: `${d.n.toLocaleString()} symbols · ${d.files} files`,
-						x: e.nativeEvent.clientX,
-						y: e.nativeEvent.clientY,
-					});
+
+					// Only show tooltip on non-touch devices
+					if (e.pointerType !== 'touch') {
+						onHover({
+							kind: 'dir',
+							label: d.label,
+							sub: `${d.n.toLocaleString()} symbols · ${d.files} files`,
+							x: e.nativeEvent.clientX,
+							y: e.nativeEvent.clientY,
+						});
+					}
 				}}
 				onPointerOut={() => {
 					setHoverDir(null);
@@ -403,16 +415,30 @@ export default function TieredGraphScene({
 					if (i == null) return;
 					e.stopPropagation();
 					const d = overview.dirs[i];
-					onPickDir({
-						id: d.id,
-						label: d.label,
-						n: d.n,
-						files: d.files,
-						ref: d.ref,
-						nx: d.nx,
-					});
-					loadDir(d.id);
-					startFly(d.x, d.y, fitZoom.current * 6);
+
+					// Handle double-tap to zoom on mobile
+					const now = Date.now();
+					const tap = lastTap.current;
+					if (tap && now - tap.time < 300 &&
+						Math.abs(e.nativeEvent.clientX - tap.x) < 30 &&
+						Math.abs(e.nativeEvent.clientY - tap.y) < 30) {
+						// Double tap - zoom in more aggressively
+						startFly(d.x, d.y, fitZoom.current * 12);
+						lastTap.current = null;
+					} else {
+						// Single tap - pick and focus
+						onPickDir({
+							id: d.id,
+							label: d.label,
+							n: d.n,
+							files: d.files,
+							ref: d.ref,
+							nx: d.nx,
+						});
+						loadDir(d.id);
+						startFly(d.x, d.y, fitZoom.current * 6);
+						lastTap.current = { time: now, x: e.nativeEvent.clientX, y: e.nativeEvent.clientY };
+					}
 				}}>
 				<meshBasicMaterial ref={dirMat} transparent opacity={0.9} />
 			</instancedMesh>
@@ -470,6 +496,7 @@ function DirDetail({
 	const symMat = useRef<THREE.MeshBasicMaterial>(null);
 	const fileLabelOp = useRef(0);
 	const [hoverFile, setHoverFile] = useState<number | null>(null);
+	const lastFileTap = useRef<{ time: number; index: number } | null>(null);
 
 	const fileAdj = useMemo(() => buildAdjacency(chunk.fileEdges), [chunk]);
 
@@ -481,7 +508,8 @@ function DirDetail({
 		const [br, bg, bb] = dirColor(dirIndex, dirTotal);
 		const neigh = hoverFile != null ? fileAdj.get(hoverFile) : null;
 		chunk.files.forEach((f, i) => {
-			const rad = 7 + Math.sqrt(f.n) * 2.6;
+			// Improved file node sizing with better minimum for mobile
+			const rad = Math.max(MIN_FILE_RADIUS, 7 + Math.sqrt(f.n) * 2.6);
 			m.compose(
 				new THREE.Vector3(f.x, f.y, 1),
 				new THREE.Quaternion(),
@@ -493,7 +521,8 @@ function DirDetail({
 				b = bb;
 			if (hoverFile != null) {
 				const lit = i === hoverFile || neigh?.has(i);
-				const fac = lit ? 1.2 : 0.25;
+				// Enhanced contrast for better visibility
+				const fac = lit ? 1.35 : 0.2;
 				r *= fac;
 				g *= fac;
 				b *= fac;
@@ -510,17 +539,20 @@ function DirDetail({
 		const m = new THREE.Matrix4();
 		const col = new THREE.Color();
 		chunk.symbols.forEach((s, i) => {
+			// Slightly larger symbols for better mobile visibility
+			const symbolSize = 5;
 			m.compose(
 				new THREE.Vector3(s.x, s.y, 2),
 				new THREE.Quaternion(),
-				new THREE.Vector3(4, 4, 1),
+				new THREE.Vector3(symbolSize, symbolSize, 1),
 			);
 			mesh.setMatrixAt(i, m);
 			const [r, g, b] =
 				colorMode === 'community'
 					? communityColor(s.c)
 					: dirColor(dirIndex, dirTotal);
-			mesh.setColorAt(i, col.setRGB(r, g, b));
+			// Slightly brighter symbols for better distinction
+			mesh.setColorAt(i, col.setRGB(r * 1.1, g * 1.1, b * 1.1));
 		});
 		mesh.instanceMatrix.needsUpdate = true;
 		if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
@@ -605,13 +637,17 @@ function DirDetail({
 						e.stopPropagation();
 						if (i !== hoverFile) setHoverFile(i);
 						const f = chunk.files[i];
-						onHover({
-							kind: 'file',
-							label: f.label,
-							sub: `${f.path} · ${f.n} symbols`,
-							x: e.nativeEvent.clientX,
-							y: e.nativeEvent.clientY,
-						});
+
+						// Only show tooltip on non-touch devices
+						if (e.pointerType !== 'touch') {
+							onHover({
+								kind: 'file',
+								label: f.label,
+								sub: `${f.path} · ${f.n} symbols`,
+								x: e.nativeEvent.clientX,
+								y: e.nativeEvent.clientY,
+							});
+						}
 					}}
 					onPointerOut={() => {
 						setHoverFile(null);
@@ -621,11 +657,34 @@ function DirDetail({
 						const i = e.instanceId;
 						if (i == null) return;
 						e.stopPropagation();
-						window.open(
-							githubUrl(chunk.files[i].path),
-							'_blank',
-							'noopener',
-						);
+
+						// Handle double-tap for better mobile UX
+						const now = Date.now();
+						const lastTap = lastFileTap.current;
+						if (lastTap && now - lastTap.time < 300 && lastTap.index === i) {
+							// Double tap - open file
+							window.open(
+								githubUrl(chunk.files[i].path),
+								'_blank',
+								'noopener',
+							);
+							lastFileTap.current = null;
+						} else {
+							// Single tap - show preview tooltip on mobile
+							const f = chunk.files[i];
+							onHover({
+								kind: 'file',
+								label: f.label,
+								sub: `${f.path} · ${f.n} symbols · Double-tap to open`,
+								x: e.nativeEvent.clientX,
+								y: e.nativeEvent.clientY,
+							});
+							lastFileTap.current = { time: now, index: i };
+							// Auto-hide tooltip after 2 seconds
+							setTimeout(() => {
+								onHover(null);
+							}, 2000);
+						}
 					}}>
 					<meshBasicMaterial ref={fileMat} transparent opacity={0} />
 				</instancedMesh>
