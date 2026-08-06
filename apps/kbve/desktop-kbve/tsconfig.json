@@ -16,7 +16,8 @@
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true,
 		"paths": {
-			"@/*": ["./src/*"]
+			"@/*": ["./src/*"],
+			"react-i18next": ["./src/i18n/react-i18next.ts"]
 		}
 	},
 	"include": ["src"]

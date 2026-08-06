@@ -14,6 +14,7 @@ import { AudioView } from './audio';
 import { ModelsView } from './models';
 import { ShortcutsView } from './shortcuts';
 import { OnichanView } from './onichan';
+import { DevOpsView } from './devops';
 import { AboutView } from './about';
 import { ProfileView } from './profile';
 import { TerminalView } from './terminal';
@@ -56,6 +57,12 @@ export function initViews() {
 		label: 'Onichan',
 		icon: createElement(IconUser),
 		component: OnichanView,
+	});
+	registerView({
+		id: 'devops',
+		label: 'DevOps',
+		icon: createElement(IconTerminal),
+		component: DevOpsView,
 	});
 	registerView({
 		id: 'profile',

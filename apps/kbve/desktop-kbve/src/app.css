@@ -1,6 +1,39 @@
 @import 'tailwindcss';
 @source "./**/*.{ts,tsx}";
 
+/* Handy-compat tokens: upstream devops components use these class names. */
+@theme inline {
+	--color-mid-gray: var(--color-text-muted);
+	--color-logo-primary: var(--color-accent);
+	--color-logo-secondary: var(--color-accent-hover);
+	--color-logo-stroke: var(--color-border);
+	--color-text-stroke: var(--color-border);
+	--color-accent-cyan: #22d3ee;
+	--color-accent-purple: #a78bfa;
+	--animate-slide-in-right: slideInRight 0.3s ease-out;
+	--animate-fade-out: fadeOut 0.2s ease-out;
+}
+
+@keyframes slideInRight {
+	0% {
+		transform: translateX(100%);
+		opacity: 0;
+	}
+	100% {
+		transform: translateX(0);
+		opacity: 1;
+	}
+}
+
+@keyframes fadeOut {
+	0% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+	}
+}
+
 /* ─── Font ────────────────────────────────────────────────────────────────── */
 
 @font-face {

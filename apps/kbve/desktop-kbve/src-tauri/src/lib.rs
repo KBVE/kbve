@@ -4,6 +4,7 @@ pub mod audio_toolkit;
 pub mod auth;
 pub mod clipboard;
 pub mod commands;
+pub mod devops;
 pub mod helpers;
 pub mod input;
 pub mod local_llm;
@@ -218,6 +219,128 @@ fn specta_builder() -> Builder<tauri::Wry> {
         // onichan: sidecar quick-config
         commands::sidecar_config::get_sidecar_quick_config,
         commands::sidecar_config::set_sidecar_quick_config_field,
+        // devops: dependencies + auth
+        commands::devops::check_devops_dependencies,
+        commands::devops::launch_cli_auth,
+        // devops: tmux
+        commands::devops::attach_tmux_session,
+        commands::devops::list_tmux_sessions,
+        commands::devops::get_tmux_session_metadata,
+        commands::devops::create_tmux_session,
+        commands::devops::kill_tmux_session,
+        commands::devops::get_tmux_session_output,
+        commands::devops::send_tmux_command,
+        commands::devops::send_tmux_keys,
+        commands::devops::recover_tmux_sessions,
+        commands::devops::restart_agent_in_session,
+        commands::devops::recover_all_agent_sessions,
+        commands::devops::is_tmux_running,
+        commands::devops::ensure_master_tmux_session,
+        // devops: git worktrees
+        commands::devops::list_git_worktrees,
+        commands::devops::get_git_worktree_info,
+        commands::devops::check_worktree_collision,
+        commands::devops::create_git_worktree,
+        commands::devops::create_git_worktree_existing_branch,
+        commands::devops::remove_git_worktree,
+        commands::devops::prune_git_worktrees,
+        commands::devops::get_git_repo_root,
+        commands::devops::get_git_default_branch,
+        commands::devops::suggest_local_repo_path,
+        // devops: github
+        commands::devops::check_gh_auth,
+        commands::devops::list_github_issues,
+        commands::devops::get_github_issue,
+        commands::devops::get_github_issue_with_agent,
+        commands::devops::create_github_issue,
+        commands::devops::comment_on_github_issue,
+        commands::devops::assign_agent_to_issue,
+        commands::devops::list_github_issue_comments,
+        commands::devops::update_github_issue_labels,
+        commands::devops::close_github_issue,
+        commands::devops::reopen_github_issue,
+        commands::devops::list_github_prs,
+        commands::devops::get_github_pr,
+        commands::devops::get_github_pr_status,
+        commands::devops::create_github_pr,
+        commands::devops::merge_github_pr,
+        commands::devops::close_github_pr,
+        // devops: agent orchestration
+        commands::devops::spawn_agent,
+        commands::devops::list_agent_statuses,
+        commands::devops::cleanup_agent,
+        commands::devops::create_pr_from_agent,
+        commands::devops::complete_agent_work,
+        commands::devops::check_and_cleanup_merged_pr,
+        commands::devops::get_current_machine_id,
+        commands::devops::list_local_agent_statuses,
+        commands::devops::list_remote_agent_statuses,
+        commands::devops::toggle_agent_enabled,
+        commands::devops::get_enabled_agents,
+        commands::devops::set_enabled_agents,
+        commands::devops::get_sandbox_enabled,
+        commands::devops::set_sandbox_enabled,
+        // devops: epics
+        commands::devops::create_epic,
+        commands::devops::create_sub_issues,
+        commands::devops::update_epic_progress,
+        commands::devops::spawn_agent_from_issue,
+        commands::devops::complete_agent_work_with_pr,
+        commands::devops::plan_epic_from_markdown,
+        commands::devops::list_epic_plan_templates,
+        commands::devops::start_epic_orchestration,
+        commands::devops::get_epic_phase_status,
+        commands::devops::load_epic,
+        commands::devops::load_epic_for_recovery,
+        commands::devops::update_epic_phase_status_on_github,
+        commands::devops::mark_epic_phase_status,
+        // devops: epic state persistence
+        commands::devops::get_active_epic_state,
+        commands::devops::set_active_epic_state,
+        commands::devops::set_active_epic_from_recovery,
+        commands::devops::clear_active_epic_state,
+        commands::devops::sync_active_epic_state,
+        commands::devops::update_epic_sub_issue_agent,
+        commands::devops::set_epic_local_repo_path,
+        commands::devops::on_pipeline_item_complete,
+        commands::devops::merge_ready_pr,
+        commands::devops::process_ready_prs,
+        // devops: docker sandbox
+        commands::devops::is_docker_available,
+        commands::devops::spawn_sandbox,
+        commands::devops::get_sandbox_status,
+        commands::devops::get_sandbox_logs,
+        commands::devops::stop_sandbox,
+        commands::devops::remove_sandbox,
+        commands::devops::list_sandboxes,
+        // devops: devcontainer
+        commands::devops::is_devcontainer_cli_available,
+        commands::devops::setup_devcontainer,
+        commands::devops::start_devcontainer,
+        commands::devops::exec_in_devcontainer,
+        // devops: agent network
+        commands::devops::ensure_agent_network,
+        commands::devops::get_agent_network_info,
+        commands::devops::list_network_containers,
+        // devops: pipeline
+        commands::devops::assign_issue_to_agent_pipeline,
+        commands::devops::skip_issue,
+        commands::devops::list_pipeline_items,
+        commands::devops::get_pipeline_history,
+        commands::devops::get_pipeline_summary,
+        commands::devops::detect_and_link_prs,
+        commands::devops::sync_all_pr_statuses,
+        commands::devops::update_pipeline_item_pr_status,
+        commands::devops::get_pipeline_item,
+        commands::devops::find_pipeline_item_by_issue,
+        commands::devops::find_pipeline_item_by_session,
+        commands::devops::link_pr_to_pipeline_item,
+        commands::devops::archive_pipeline_item,
+        commands::devops::remove_pipeline_item,
+        commands::devops::check_sessions_for_prs,
+        commands::devops::cleanup_orphaned_containers,
+        commands::devops::check_claude_auth_volume,
+        commands::devops::launch_claude_auth_setup,
     ])
 }
 
@@ -423,6 +546,11 @@ pub fn run() {
 
             // Hidden recording overlay window (shown during record/transcribe).
             utils::create_recording_overlay(&dict_handle);
+
+            // Master tmux session for DevOps agent orchestration (optional).
+            if let Err(e) = devops::tmux::ensure_master_session() {
+                log::warn!("Failed to create master tmux session: {}", e);
+            }
 
             Ok(())
         })
