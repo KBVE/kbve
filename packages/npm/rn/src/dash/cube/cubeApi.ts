@@ -2,6 +2,8 @@
 // axum-kbve proxy at `/dashboard/cube/proxy`. The proxy injects the upstream
 // Cube JWT server-side; the browser only carries its supabase session token.
 
+import { dashFetch, dashJson, dashHttpError } from '../dashFetch';
+
 const PROXY = '/dashboard/cube/proxy/load';
 
 export interface CubeTimeDimension {
@@ -26,7 +28,7 @@ export async function cubeLoad(
 	query: CubeQuery,
 	signal?: AbortSignal,
 ): Promise<CubeRow[]> {
-	const res = await fetch(`${baseUrl}${PROXY}`, {
+	const res = await dashFetch(`${baseUrl}${PROXY}`, {
 		method: 'POST',
 		headers: {
 			...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -34,10 +36,12 @@ export async function cubeLoad(
 		},
 		body: JSON.stringify({ query }),
 		signal,
+		label: 'cube:load',
 	});
-	if (res.status === 403) throw new Error('Access restricted');
-	if (!res.ok) throw new Error(`Cube API error: ${res.status}`);
-	const json = (await res.json()) as { data?: CubeRow[] };
+	if (res.status === 403)
+		throw dashHttpError(res, 'cube:load', 'Access restricted');
+	if (!res.ok) throw dashHttpError(res, 'cube:load');
+	const json = await dashJson<{ data?: CubeRow[] }>(res, 'cube:load');
 	return json?.data ?? [];
 }
 

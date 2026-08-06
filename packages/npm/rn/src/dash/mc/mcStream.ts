@@ -1,4 +1,5 @@
 import { createStreamSource } from '../createStreamSource';
+import { dashFetch, dashJson, dashHttpError } from '../dashFetch';
 import type { StreamStore } from '../types';
 import { MC_SERVER_ORDER } from './labels';
 
@@ -82,9 +83,12 @@ export function createMcStream(
 				.join(',')}`,
 		normalize: (x) => x,
 		fetch: async ({ signal }) => {
-			const res = await fetch(`${baseUrl}/api/v1/mc/players`, { signal });
-			if (!res.ok) throw new Error(`MC status error: ${res.status}`);
-			const json = (await res.json()) as RawMcPlayerList;
+			const res = await dashFetch(`${baseUrl}/api/v1/mc/players`, {
+				signal,
+				label: 'mc:players',
+			});
+			if (!res.ok) throw dashHttpError(res, 'mc:players');
+			const json = await dashJson<RawMcPlayerList>(res, 'mc:players');
 			return mapPlayerList(json);
 		},
 	});

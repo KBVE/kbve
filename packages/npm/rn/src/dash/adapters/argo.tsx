@@ -3,6 +3,7 @@ import { StyleSheet, View, Pressable, ActivityIndicator } from 'react-native';
 import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
 import { createStreamSource } from '../createStreamSource';
+import { dashFetch, dashJson, dashHttpError } from '../dashFetch';
 import { clusterHealthStats, fetchClusterHealth } from '../clusterHealth';
 import type { ClusterHealth } from '../clusterHealth';
 import { NamespacePanel } from '../NamespacePanel';
@@ -173,18 +174,23 @@ export function createArgoStream(
 			),
 		fetch: async ({ signal }) => {
 			const token = await getToken();
-			const res = await fetch(
+			const res = await dashFetch(
 				`${baseUrl}/dashboard/argo/proxy/api/v1/applications`,
 				{
 					headers: token
 						? { Authorization: `Bearer ${token}` }
 						: undefined,
 					signal,
+					label: 'argo:apps',
 				},
 			);
-			if (res.status === 403) throw new Error('Access restricted');
-			if (!res.ok) throw new Error(`ArgoCD upstream ${res.status}`);
-			const json = (await res.json()) as { items?: RawArgoApp[] };
+			if (res.status === 403)
+				throw dashHttpError(res, 'argo:apps', 'Access restricted');
+			if (!res.ok) throw dashHttpError(res, 'argo:apps');
+			const json = await dashJson<{ items?: RawArgoApp[] }>(
+				res,
+				'argo:apps',
+			);
 			return json.items ?? [];
 		},
 	});
@@ -199,16 +205,18 @@ async function argoMutate(
 	const headers: Record<string, string> = {};
 	if (token) headers['Authorization'] = `Bearer ${token}`;
 	if (method === 'POST') headers['Content-Type'] = 'application/json';
-	const res = await fetch(
+	const res = await dashFetch(
 		`${opts.baseUrl ?? ''}/dashboard/argo/proxy${path}`,
 		{
 			method,
 			headers,
 			body: method === 'POST' ? '{}' : undefined,
+			label: 'argo:mutate',
 		},
 	);
-	if (res.status === 403) throw new Error('Manage permission required');
-	if (!res.ok) throw new Error(`ArgoCD ${method} ${res.status}`);
+	if (res.status === 403)
+		throw dashHttpError(res, 'argo:mutate', 'Manage permission required');
+	if (!res.ok) throw dashHttpError(res, 'argo:mutate');
 }
 
 /** Argo mutations bound to a token/baseUrl. Require DASHBOARD_MANAGE. */
@@ -245,7 +253,7 @@ export async function rollbackApplication(
 	id: number,
 ): Promise<void> {
 	const token = await opts.getToken();
-	const res = await fetch(
+	const res = await dashFetch(
 		`${opts.baseUrl ?? ''}/dashboard/argo/proxy/api/v1/applications/${encodeURIComponent(appName)}/rollback`,
 		{
 			method: 'POST',
@@ -254,10 +262,12 @@ export async function rollbackApplication(
 				'Content-Type': 'application/json',
 			},
 			body: JSON.stringify({ id, prune: false, dryRun: false }),
+			label: 'argo:rollback',
 		},
 	);
-	if (res.status === 403) throw new Error('Manage permission required');
-	if (!res.ok) throw new Error(`Rollback failed: ${res.status}`);
+	if (res.status === 403)
+		throw dashHttpError(res, 'argo:rollback', 'Manage permission required');
+	if (!res.ok) throw dashHttpError(res, 'argo:rollback');
 }
 
 // ---------------------------------------------------------------------------
@@ -345,13 +355,15 @@ export async function fetchResourceTree(
 	appName: string,
 ): Promise<ResourceTree> {
 	const token = await opts.getToken();
-	const res = await fetch(
+	const res = await dashFetch(
 		`${opts.baseUrl ?? ''}/dashboard/argo/proxy/api/v1/applications/${encodeURIComponent(appName)}/resource-tree`,
-		{ headers: token ? { Authorization: `Bearer ${token}` } : undefined },
+		{
+			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+			label: 'argo:resource-tree',
+		},
 	);
-	if (!res.ok)
-		throw new Error(`Failed to fetch resource tree: ${res.status}`);
-	return res.json();
+	if (!res.ok) throw dashHttpError(res, 'argo:resource-tree');
+	return dashJson<ResourceTree>(res, 'argo:resource-tree');
 }
 
 /** Fetch events for an application or specific resource. */
@@ -360,12 +372,15 @@ export async function fetchAppEvents(
 	appName: string,
 ): Promise<AppEvent[]> {
 	const token = await opts.getToken();
-	const res = await fetch(
+	const res = await dashFetch(
 		`${opts.baseUrl ?? ''}/dashboard/argo/proxy/api/v1/applications/${encodeURIComponent(appName)}/events`,
-		{ headers: token ? { Authorization: `Bearer ${token}` } : undefined },
+		{
+			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+			label: 'argo:events',
+		},
 	);
-	if (!res.ok) throw new Error(`Failed to fetch events: ${res.status}`);
-	const json = (await res.json()) as { items?: AppEvent[] };
+	if (!res.ok) throw dashHttpError(res, 'argo:events');
+	const json = await dashJson<{ items?: AppEvent[] }>(res, 'argo:events');
 	return json.items ?? [];
 }
 
@@ -375,13 +390,18 @@ export async function fetchManagedResources(
 	appName: string,
 ): Promise<ManagedResource[]> {
 	const token = await opts.getToken();
-	const res = await fetch(
+	const res = await dashFetch(
 		`${opts.baseUrl ?? ''}/dashboard/argo/proxy/api/v1/applications/${encodeURIComponent(appName)}/managed-resources`,
-		{ headers: token ? { Authorization: `Bearer ${token}` } : undefined },
+		{
+			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+			label: 'argo:managed-resources',
+		},
 	);
-	if (!res.ok)
-		throw new Error(`Failed to fetch managed resources: ${res.status}`);
-	const json = (await res.json()) as { items?: ManagedResource[] };
+	if (!res.ok) throw dashHttpError(res, 'argo:managed-resources');
+	const json = await dashJson<{ items?: ManagedResource[] }>(
+		res,
+		'argo:managed-resources',
+	);
 	return json.items ?? [];
 }
 
@@ -403,12 +423,16 @@ export async function fetchPodLogs(
 		params.set('sinceSeconds', String(logOpts.sinceSeconds));
 	}
 
-	const res = await fetch(
+	const res = await dashFetch(
 		`${opts.baseUrl ?? ''}/dashboard/argo/proxy/api/v1/applications/${encodeURIComponent(appName)}/pods/${encodeURIComponent(logOpts.podName)}/logs?${params}`,
-		{ headers: token ? { Authorization: `Bearer ${token}` } : undefined },
+		{
+			headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+			label: 'argo:pod-logs',
+		},
 	);
-	if (res.status === 404) throw new Error('Pod not found');
-	if (!res.ok) throw new Error(`Failed to fetch pod logs: ${res.status}`);
+	if (res.status === 404)
+		throw dashHttpError(res, 'argo:pod-logs', 'Pod not found');
+	if (!res.ok) throw dashHttpError(res, 'argo:pod-logs');
 
 	const text = await res.text();
 	const lines: LogLine[] = [];
@@ -441,7 +465,7 @@ export async function fetchIndexedLogs(
 	if (query.level) body['level'] = query.level;
 	if (query.search) body['search'] = query.search;
 
-	const res = await fetch(
+	const res = await dashFetch(
 		`${opts.baseUrl ?? ''}/dashboard/clickhouse/proxy`,
 		{
 			method: 'POST',
@@ -450,14 +474,22 @@ export async function fetchIndexedLogs(
 				'Content-Type': 'application/json',
 			},
 			body: JSON.stringify(body),
+			label: 'argo:indexed-logs',
 		},
 	);
 
 	if (res.status === 403)
-		throw new Error('Access restricted to indexed logs');
-	if (!res.ok) throw new Error(`ClickHouse logs error: ${res.status}`);
+		throw dashHttpError(
+			res,
+			'argo:indexed-logs',
+			'Access restricted to indexed logs',
+		);
+	if (!res.ok) throw dashHttpError(res, 'argo:indexed-logs');
 
-	const data = (await res.json()) as { rows?: IndexedLogRow[] };
+	const data = await dashJson<{ rows?: IndexedLogRow[] }>(
+		res,
+		'argo:indexed-logs',
+	);
 	return Array.isArray(data?.rows) ? data.rows : [];
 }
 

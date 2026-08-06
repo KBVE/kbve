@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
 import { createStreamSource } from '../createStreamSource';
+import { dashFetch, dashJson } from '../dashFetch';
 import type { StreamLens, StreamStore } from '../types';
 
 // ---------------------------------------------------------------------------
@@ -52,6 +53,7 @@ const RETRY_DELAY_MS = 2000;
 async function fetchWithRetry(
 	url: string,
 	opts: RequestInit,
+	label: string,
 	retries = 1,
 ): Promise<Response> {
 	for (let i = 0; i <= retries; i++) {
@@ -61,9 +63,10 @@ async function fetchWithRetry(
 				() => controller.abort(),
 				FETCH_TIMEOUT_MS,
 			);
-			const resp = await fetch(url, {
+			const resp = await dashFetch(url, {
 				...opts,
 				signal: controller.signal,
+				label,
 			});
 			clearTimeout(timeout);
 			return resp;
@@ -101,14 +104,21 @@ async function checkViaProxy(
 
 	try {
 		const method = fn.name === 'health' ? 'GET' : 'OPTIONS';
-		const resp = await fetchWithRetry(url, {
-			method,
-			headers: { Authorization: `Bearer ${token}` },
-		});
+		const resp = await fetchWithRetry(
+			url,
+			{
+				method,
+				headers: { Authorization: `Bearer ${token}` },
+			},
+			`edge:proxy:${fn.name}`,
+		);
 		const latencyMs = Math.round(performance.now() - start);
 
 		if (fn.name === 'health' && resp.ok) {
-			const data = await resp.json();
+			const data = await dashJson<{
+				version?: string;
+				timestamp?: string;
+			}>(resp, `edge:proxy:${fn.name}`);
 			return {
 				proxyStatus: 'ok',
 				proxyLatencyMs: latencyMs,
@@ -151,7 +161,11 @@ async function checkViaDirect(
 
 	try {
 		const method = fn.name === 'health' ? 'GET' : 'OPTIONS';
-		const resp = await fetchWithRetry(url, { method });
+		const resp = await fetchWithRetry(
+			url,
+			{ method },
+			`edge:direct:${fn.name}`,
+		);
 		const latencyMs = Math.round(performance.now() - start);
 
 		if (resp.ok) {
@@ -198,9 +212,12 @@ async function fetchAndNormalize(
 					method: 'GET',
 					headers: { Authorization: `Bearer ${token}` },
 				},
+				'edge:manifest',
 			);
 			if (resp.ok) {
-				const data = await resp.json();
+				const data = await dashJson<{
+					functions?: RawEdgeFunction[];
+				}>(resp, 'edge:manifest');
 				if (
 					Array.isArray(data.functions) &&
 					data.functions.length > 0
@@ -219,9 +236,12 @@ async function fetchAndNormalize(
 			const resp = await fetchWithRetry(
 				`${supabaseUrl}/functions/v1/health`,
 				{ method: 'GET' },
+				'edge:manifest:direct',
 			);
 			if (resp.ok) {
-				const data = await resp.json();
+				const data = await dashJson<{
+					functions?: RawEdgeFunction[];
+				}>(resp, 'edge:manifest:direct');
 				if (
 					Array.isArray(data.functions) &&
 					data.functions.length > 0

@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
 import { createStreamSource } from '../createStreamSource';
+import { dashFetch, dashJson, dashHttpError } from '../dashFetch';
 import { clusterHealthStats, fetchClusterHealth } from '../clusterHealth';
 import type { ClusterHealth } from '../clusterHealth';
 import { ClusterChartsPanel } from '../ClusterChartsPanel';
@@ -123,21 +124,23 @@ export function createGrafanaStream(
 			),
 		fetch: async ({ signal }) => {
 			const token = await getToken();
-			const res = await fetch(
+			const res = await dashFetch(
 				`${baseUrl}/dashboard/grafana/proxy/api/prometheus/grafana/api/v1/alerts`,
 				{
 					headers: token
 						? { Authorization: `Bearer ${token}` }
 						: undefined,
 					signal,
+					label: 'grafana:alerts',
 				},
 			);
-			if (res.status === 403) throw new Error('Access restricted');
-			if (!res.ok) throw new Error(`Grafana alerts API ${res.status}`);
+			if (res.status === 403)
+				throw dashHttpError(res, 'grafana:alerts', 'Access restricted');
+			if (!res.ok) throw dashHttpError(res, 'grafana:alerts');
 
-			const json = (await res.json()) as {
+			const json = await dashJson<{
 				data?: { alerts?: RawAlert[] };
-			};
+			}>(res, 'grafana:alerts');
 			const raw = json?.data?.alerts ?? [];
 
 			// Sort by severity first, then by alertname

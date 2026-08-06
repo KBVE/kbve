@@ -1,4 +1,5 @@
 import type { BadgeTone } from './_ui';
+import { dashFetch, dashJson } from './dashFetch';
 import type { StatModel } from './types';
 
 // ---------------------------------------------------------------------------
@@ -60,16 +61,22 @@ async function findDatasourceId(
 ): Promise<number | null> {
 	if (cachedDatasourceId != null) return cachedDatasourceId;
 	try {
-		const res = await fetch(
+		const res = await dashFetch(
 			`${base}/dashboard/grafana/proxy/api/datasources`,
-			{ headers: { Authorization: `Bearer ${token}` }, signal },
+			{
+				headers: { Authorization: `Bearer ${token}` },
+				signal,
+				label: 'grafana:datasources',
+			},
 		);
 		if (!res.ok) return null;
-		const sources = (await res.json()) as Array<{
-			id: number;
-			type: string;
-			name: string;
-		}>;
+		const sources = await dashJson<
+			Array<{
+				id: number;
+				type: string;
+				name: string;
+			}>
+		>(res, 'grafana:datasources');
 		const prom = sources.find(
 			(s) => s.type === 'prometheus' || s.name === 'Prometheus',
 		);
@@ -88,7 +95,7 @@ async function promQuery(
 	signal: AbortSignal,
 ): Promise<Array<{ metric: Record<string, string>; value: number }>> {
 	try {
-		const res = await fetch(
+		const res = await dashFetch(
 			`${base}/dashboard/grafana/proxy/api/datasources/proxy/${dsId}/api/v1/query`,
 			{
 				method: 'POST',
@@ -98,17 +105,18 @@ async function promQuery(
 				},
 				body: `query=${encodeURIComponent(expr)}`,
 				signal,
+				label: 'grafana:prom-query',
 			},
 		);
 		if (!res.ok) return [];
-		const data = (await res.json()) as {
+		const data = await dashJson<{
 			data?: {
 				result?: Array<{
 					metric?: Record<string, string>;
 					value?: [number, string];
 				}>;
 			};
-		};
+		}>(res, 'grafana:prom-query');
 		const rows = data?.data?.result ?? [];
 		return rows.map((r) => ({
 			metric: r.metric ?? {},
@@ -130,7 +138,7 @@ async function promRange(
 	signal: AbortSignal,
 ): Promise<SeriesPoint[]> {
 	try {
-		const res = await fetch(
+		const res = await dashFetch(
 			`${base}/dashboard/grafana/proxy/api/datasources/proxy/${dsId}/api/v1/query_range`,
 			{
 				method: 'POST',
@@ -140,14 +148,15 @@ async function promRange(
 				},
 				body: `query=${encodeURIComponent(expr)}&start=${start}&end=${end}&step=${step}`,
 				signal,
+				label: 'grafana:prom-range',
 			},
 		);
 		if (!res.ok) return [];
-		const data = (await res.json()) as {
+		const data = await dashJson<{
 			data?: {
 				result?: Array<{ values?: Array<[number, string]> }>;
 			};
-		};
+		}>(res, 'grafana:prom-range');
 		const values = data?.data?.result?.[0]?.values ?? [];
 		return values
 			.map(([t, v]) => ({ t, v: parseFloat(v) }))
