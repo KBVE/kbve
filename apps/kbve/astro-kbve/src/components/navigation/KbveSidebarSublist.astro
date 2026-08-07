@@ -2,6 +2,7 @@
 import KbveSidebarSublist from './KbveSidebarSublist.astro';
 import { sidebarIconForLabel } from './sidebarIcons';
 import { iconMarkup } from '../icons/Icon';
+import type { IconName } from '../icons/Icon';
 import { ICONS } from '@kbve/rn/icons';
 
 interface Props {
@@ -17,6 +18,21 @@ const slugify = (label: string) =>
 		.toLowerCase()
 		.replace(/[^a-z0-9]+/g, '-')
 		.replace(/^-+|-+$/g, '');
+
+/**
+ * Nav modules predate the shared icon registry, so `icon` is either a registry
+ * name or a raw SVG path `d` (DASHBOARD_NAV and friends still use paths).
+ * Feeding a path to `iconMarkup` throws, so resolve the form first.
+ */
+const iconFor = (icon: string | undefined): string | null => {
+	if (!icon) return null;
+	if (icon in ICONS)
+		return iconMarkup(icon as IconName, { strokeWidth: 1.6 });
+	if (/^[Mm][\s\d.,-]/.test(icon)) {
+		return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${icon}" /></svg>`;
+	}
+	return null;
+};
 
 const firstHref = (entry: any): string | null => {
 	if (entry?.type === 'link') return entry.href ?? null;
@@ -39,6 +55,12 @@ const firstHref = (entry: any): string | null => {
 							data-kbve-link
 							aria-current={entry.isCurrent ? 'page' : undefined}
 							{...entry.attrs}>
+							{iconFor(entry.icon) && (
+								<span
+									data-kbve-item-icon
+									set:html={iconFor(entry.icon)}
+								/>
+							)}
 							<span data-kbve-label>{entry.label}</span>
 							{entry.badge && (
 								<span
@@ -61,7 +83,7 @@ const firstHref = (entry: any): string | null => {
 			const glyph = !entry.icon
 				? sidebarIconForLabel(entry.label)
 				: entry.icon in ICONS
-					? iconMarkup(entry.icon, { strokeWidth: 1.6 })
+					? iconFor(entry.icon)
 					: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="${entry.icon}" /></svg>`;
 			return (
 				<li data-kbve-item>
