@@ -6415,7 +6415,7 @@
 			},
 			"herbmail-server": {
 				"name": "herbmail-server",
-				"type": "lib",
+				"type": "app",
 				"data": {
 					"root": "apps/agones/herbmail/server",
 					"name": "herbmail-server",
@@ -6431,10 +6431,127 @@
 							"options": {},
 							"configurations": {},
 							"parallelism": true
+						},
+						"test": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"options": {
+								"command": "cargo test -p herbmail-server"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"build": {
+							"dependsOn": ["^build"],
+							"inputs": ["production", "^production"],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"outputs": [
+								"{workspaceRoot}/dist/target/debug/herbmail-server"
+							],
+							"options": {
+								"command": "cargo build -p herbmail-server"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"lint": {
+							"inputs": [
+								"default",
+								"{workspaceRoot}/eslint.config.mjs",
+								"{workspaceRoot}/eslint.config.js"
+							],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"options": {
+								"command": "cargo clippy -p herbmail-server --all-targets -- -D warnings"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"e2e": {
+							"inputs": ["default", "^production"],
+							"cache": false,
+							"executor": "nx:run-commands",
+							"dependsOn": [
+								{
+									"target": "container",
+									"projects": ["herbmail-server"],
+									"params": "forward"
+								}
+							],
+							"options": {
+								"commands": [
+									"docker rm -f herbmail-server-e2e 2>/dev/null || true",
+									"docker run -d --name herbmail-server-e2e -p 7979:7979 -e HM_SERVER_ADDR=0.0.0.0:7979 kbve/herbmail-server:latest",
+									"echo 'Waiting for herbmail-server...' && for i in $(seq 1 60); do if curl -fsS http://127.0.0.1:7979/healthz >/dev/null 2>&1; then echo 'ready after '\"$i\"'s'; break; fi; if [ $i -eq 60 ]; then echo 'did not start in 60s'; docker logs herbmail-server-e2e 2>&1 | tail -80; docker rm -f herbmail-server-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+									"HM_HOST=127.0.0.1 HM_PORT=7979 npx vitest run; EC=$?; echo '--- container logs ---'; docker logs herbmail-server-e2e 2>&1 | tail -80; docker rm -f herbmail-server-e2e 2>/dev/null || true; exit $EC"
+								],
+								"parallel": false,
+								"cwd": "apps/agones/herbmail/server"
+							},
+							"configurations": {
+								"ci": {}
+							},
+							"parallelism": true
+						},
+						"build-release": {
+							"executor": "nx:run-commands",
+							"outputs": [
+								"{workspaceRoot}/dist/target/release/herbmail-server"
+							],
+							"options": {
+								"command": "cargo build --release -p herbmail-server"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"run": {
+							"executor": "nx:run-commands",
+							"options": {
+								"command": "cargo run -p herbmail-server"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"container": {
+							"executor": "@nx-tools/nx-container:build",
+							"defaultConfiguration": "local",
+							"options": {
+								"engine": "docker",
+								"context": ".",
+								"file": "apps/agones/herbmail/server/Dockerfile",
+								"load": true,
+								"tags": ["kbve/herbmail-server:latest"]
+							},
+							"configurations": {
+								"local": {
+									"load": true,
+									"push": false,
+									"tags": ["kbve/herbmail-server:latest"]
+								},
+								"production": {
+									"load": true,
+									"push": false,
+									"tags": ["kbve/herbmail-server:latest"],
+									"cache-from": [
+										"type=registry,ref=ghcr.io/kbve/herbmail-server:buildcache"
+									],
+									"cache-to": [
+										"type=registry,ref=ghcr.io/kbve/herbmail-server:buildcache,mode=max"
+									]
+								}
+							},
+							"parallelism": true
 						}
 					},
-					"implicitDependencies": [],
-					"tags": []
+					"projectType": "application",
+					"metadata": {},
+					"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "apps/agones/herbmail/server/src",
+					"tags": ["rust", "game-server", "agones", "herbmail"],
+					"implicitDependencies": []
 				}
 			},
 			"kbve-react-native": {
@@ -8740,6 +8857,76 @@
 					"projectType": "library",
 					"sourceRoot": "packages/python/fudster/fudster",
 					"tags": ["python", "library"],
+					"implicitDependencies": []
+				}
+			},
+			"simbody3d": {
+				"name": "simbody3d",
+				"type": "lib",
+				"data": {
+					"root": "packages/rust/simbody3d",
+					"name": "simbody3d",
+					"release": {
+						"version": {
+							"versionActions": "@monodon/rust/src/release/version-actions"
+						}
+					},
+					"targets": {
+						"nx-release-publish": {
+							"dependsOn": ["^nx-release-publish"],
+							"executor": "@monodon/rust:release-publish",
+							"options": {},
+							"configurations": {},
+							"parallelism": true
+						},
+						"build": {
+							"dependsOn": ["^build"],
+							"inputs": ["production", "^production"],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"options": {
+								"command": "cargo build -p simbody3d"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"test": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"options": {
+								"command": "cargo test -p simbody3d"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"lint": {
+							"inputs": [
+								"default",
+								"{workspaceRoot}/eslint.config.mjs",
+								"{workspaceRoot}/eslint.config.js"
+							],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"options": {
+								"command": "cargo clippy -p simbody3d --all-targets --all-features -- -D warnings"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"check-wasm": {
+							"executor": "nx:run-commands",
+							"options": {
+								"command": "cargo check -p simbody3d --target wasm32-unknown-unknown"
+							},
+							"configurations": {},
+							"parallelism": true
+						}
+					},
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"projectType": "library",
+					"sourceRoot": "packages/rust/simbody3d/src",
+					"tags": ["rust", "physics", "rapier"],
 					"implicitDependencies": []
 				}
 			},
@@ -15594,6 +15781,10 @@
 									"types": "./src/ui/theme.ts",
 									"import": "./src/ui/theme.ts"
 								},
+								"./icons": {
+									"types": "./src/icons/index.ts",
+									"import": "./src/icons/index.ts"
+								},
 								"./store": {
 									"types": "./src/store/index.ts",
 									"import": "./src/store/index.ts"
@@ -15831,6 +16022,17 @@
 							"options": {
 								"commands": [
 									"docker run --rm -p 9000:9000 -v $PWD/apps/kbve/edge/functions:/home/deno/functions kbve/edge:dev start --main-service /home/deno/functions/main -p 9000"
+								],
+								"parallel": false
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"check": {
+							"executor": "nx:run-commands",
+							"options": {
+								"commands": [
+									"bash apps/kbve/edge/scripts/check.sh"
 								],
 								"parallel": false
 							},
@@ -17092,7 +17294,13 @@
 			],
 			"bevy_player": [],
 			"bevy_quests": [],
-			"bevy_skills": [],
+			"bevy_skills": [
+				{
+					"source": "bevy_skills",
+					"target": "bevy_items",
+					"type": "static"
+				}
+			],
 			"bevy_spells": [],
 			"bevy_tasker": [],
 			"unreal-cleanroom": [],
@@ -17349,7 +17557,23 @@
 					"type": "static"
 				}
 			],
-			"herbmail-server": [],
+			"herbmail-server": [
+				{
+					"source": "herbmail-server",
+					"target": "jedi",
+					"type": "static"
+				},
+				{
+					"source": "herbmail-server",
+					"target": "simbody3d",
+					"type": "static"
+				},
+				{
+					"source": "herbmail-server",
+					"target": "simgrid",
+					"type": "static"
+				}
+			],
 			"kbve-react-native": [
 				{
 					"source": "kbve-react-native",
@@ -17573,6 +17797,7 @@
 				}
 			],
 			"python-fudster": [],
+			"simbody3d": [],
 			"astro-e2e": [
 				{
 					"source": "astro-e2e",
@@ -17610,12 +17835,12 @@
 				},
 				{
 					"source": "desktop-kbve",
-					"target": "rn-tauri",
+					"target": "rn",
 					"type": "static"
 				},
 				{
 					"source": "desktop-kbve",
-					"target": "rn",
+					"target": "rn-tauri",
 					"type": "static"
 				}
 			],
