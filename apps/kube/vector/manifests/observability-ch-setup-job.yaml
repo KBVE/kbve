@@ -12,28 +12,48 @@ data:
         #!/bin/sh
         set -eu
 
+        ch() {
+          curl -sf --max-time "$1" "${CLICKHOUSE_ENDPOINT}/" \
+            -H "X-ClickHouse-User: ${CLICKHOUSE_USER}" \
+            -H "X-ClickHouse-Key: ${CLICKHOUSE_PASSWORD}" \
+            --data-binary "$2"
+        }
+
+        ensure_ttl() {
+          TABLE="$1"
+          DAYS="$2"
+          MATCH=$(ch 10 "SELECT count() FROM system.tables WHERE database = 'observability' AND name = '${TABLE}' AND (create_table_query LIKE '%toIntervalDay(${DAYS})%' OR create_table_query LIKE '%INTERVAL ${DAYS} DAY%')") || {
+            echo "ERROR: Failed to read TTL state for ${TABLE}"
+            exit 1
+          }
+          if [ "${MATCH}" = "1" ]; then
+            echo "TTL on 'observability.${TABLE}' already ${DAYS} days, skipping ALTER."
+            return 0
+          fi
+          echo "Applying ${DAYS}-day TTL to observability.${TABLE}..."
+          ch 30 "ALTER TABLE observability.${TABLE} ON CLUSTER 'cluster' MODIFY TTL toDateTime(timestamp) + INTERVAL ${DAYS} DAY" || {
+            echo "ERROR: Failed to apply TTL to ${TABLE}"
+            exit 1
+          }
+          echo "TTL on 'observability.${TABLE}' enforced at ${DAYS} days."
+        }
+
         echo "Verifying ClickHouse connectivity..."
-        CH_TEST=$(curl -sf --max-time 10 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "SELECT 1" 2>&1) || {
+        ch 10 "SELECT 1" > /dev/null || {
           echo "ERROR: Cannot connect to ClickHouse at ${CLICKHOUSE_ENDPOINT}"
           exit 1
         }
         echo "ClickHouse connection OK."
 
         echo "Creating observability database..."
-        curl -sf --max-time 10 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "CREATE DATABASE IF NOT EXISTS observability ON CLUSTER 'cluster'" || {
+        ch 10 "CREATE DATABASE IF NOT EXISTS observability ON CLUSTER 'cluster'" || {
           echo "ERROR: Failed to create observability database"
           exit 1
         }
         echo "Database 'observability' ready."
 
         echo "Creating logs_raw table (ReplicatedMergeTree)..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "
+        ch 30 "
         CREATE TABLE IF NOT EXISTS observability.logs_raw ON CLUSTER 'cluster'
         (
             timestamp       DateTime64(3, 'UTC'),
@@ -55,19 +75,10 @@ data:
         }
         echo "Table 'observability.logs_raw' ready."
 
-        echo "Enforcing 8-day TTL on existing logs_raw (no-op on fresh table)..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "ALTER TABLE observability.logs_raw ON CLUSTER 'cluster' MODIFY TTL toDateTime(timestamp) + INTERVAL 8 DAY" || {
-          echo "ERROR: Failed to apply TTL to logs_raw"
-          exit 1
-        }
-        echo "TTL on 'observability.logs_raw' enforced at 8 days."
+        ensure_ttl logs_raw 8
 
         echo "Creating logs_distributed table (Distributed)..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "
+        ch 30 "
         CREATE TABLE IF NOT EXISTS observability.logs_distributed ON CLUSTER 'cluster'
         AS observability.logs_raw
         ENGINE = Distributed('cluster', 'observability', 'logs_raw', rand())
@@ -78,9 +89,7 @@ data:
         echo "Table 'observability.logs_distributed' ready."
 
         echo "Creating alerts_raw table (ReplicatedMergeTree, 30d TTL)..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "
+        ch 30 "
         CREATE TABLE IF NOT EXISTS observability.alerts_raw ON CLUSTER 'cluster'
         (
             timestamp       DateTime64(3, 'UTC'),
@@ -111,19 +120,10 @@ data:
         }
         echo "Table 'observability.alerts_raw' ready."
 
-        echo "Enforcing 30-day TTL on alerts_raw..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "ALTER TABLE observability.alerts_raw ON CLUSTER 'cluster' MODIFY TTL toDateTime(timestamp) + INTERVAL 30 DAY" || {
-          echo "ERROR: Failed to apply TTL to alerts_raw"
-          exit 1
-        }
-        echo "TTL on 'observability.alerts_raw' enforced at 30 days."
+        ensure_ttl alerts_raw 30
 
         echo "Creating alerts_distributed table (Distributed)..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "
+        ch 30 "
         CREATE TABLE IF NOT EXISTS observability.alerts_distributed ON CLUSTER 'cluster'
         AS observability.alerts_raw
         ENGINE = Distributed('cluster', 'observability', 'alerts_raw', cityHash64(fingerprint))
@@ -134,9 +134,7 @@ data:
         echo "Table 'observability.alerts_distributed' ready."
 
         echo "Creating traces_raw table (ReplicatedMergeTree, 8d TTL)..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "
+        ch 30 "
         CREATE TABLE IF NOT EXISTS observability.traces_raw ON CLUSTER 'cluster'
         (
             timestamp       DateTime64(9, 'UTC'),
@@ -164,19 +162,10 @@ data:
         }
         echo "Table 'observability.traces_raw' ready."
 
-        echo "Enforcing 8-day TTL on traces_raw..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "ALTER TABLE observability.traces_raw ON CLUSTER 'cluster' MODIFY TTL toDateTime(timestamp) + INTERVAL 8 DAY" || {
-          echo "ERROR: Failed to apply TTL to traces_raw"
-          exit 1
-        }
-        echo "TTL on 'observability.traces_raw' enforced at 8 days."
+        ensure_ttl traces_raw 8
 
         echo "Creating traces_distributed table (Distributed)..."
-        curl -sf --max-time 30 \
-          "${CLICKHOUSE_ENDPOINT}/?user=${CLICKHOUSE_USER}&password=${CLICKHOUSE_PASSWORD}" \
-          -d "
+        ch 30 "
         CREATE TABLE IF NOT EXISTS observability.traces_distributed ON CLUSTER 'cluster'
         AS observability.traces_raw
         ENGINE = Distributed('cluster', 'observability', 'traces_raw', cityHash64(trace_id))
@@ -201,7 +190,7 @@ metadata:
         kbve.com/stack: core
         kbve.com/managed-by: argocd
     annotations:
-        kbve.sh/last-updated: '2026-08-06'
+        kbve.sh/last-updated: '2026-08-07'
         argocd.argoproj.io/hook: PostSync
         argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
