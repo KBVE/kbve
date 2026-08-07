@@ -96,6 +96,11 @@ export const DASHBOARD_NAV: DashboardNavEntry[] = [
 				icon: 'server',
 			},
 			{
+				label: 'IDE',
+				href: '/dashboard/ide/',
+				icon: 'terminal',
+			},
+			{
 				label: 'ClickHouse',
 				href: '/dashboard/clickhouse/',
 				icon: 'database',

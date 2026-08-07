@@ -48,19 +48,22 @@ const StreamRow = memo(
 			);
 		}
 		const render = layout === 'cards' && lens.card ? lens.card : lens.row;
+		const actions = lens.actions?.filter(
+			(a) => !a.enabled || a.enabled(row.item),
+		);
 		return (
 			<View>
 				<Pressable onPress={() => onToggle(row.key)}>
 					{render(row.item, row.expanded)}
 				</Pressable>
-				{row.expanded && (lens.detail || lens.actions?.length) ? (
+				{row.expanded && (lens.detail || actions?.length) ? (
 					<View style={styles.detail}>
 						{lens.detail ? lens.detail(row.item) : null}
-						{lens.actions?.length ? (
+						{actions?.length ? (
 							<ActionBar
 								store={store}
 								item={row.item}
-								actions={lens.actions}
+								actions={actions}
 							/>
 						) : null}
 					</View>

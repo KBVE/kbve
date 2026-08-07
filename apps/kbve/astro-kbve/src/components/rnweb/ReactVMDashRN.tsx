@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { StreamView, createVMStream, vmLens } from '@kbve/rn/dash';
+import { StreamView, createVMStream, createVMLens } from '@kbve/rn/dash';
 import { initSupa, getSupa } from '@/lib/supa';
 import { DASH_PROXY_BASE } from './dashProxyBase';
 
@@ -16,14 +16,13 @@ async function getToken(): Promise<string | null> {
 }
 
 export default function ReactVMDashRN() {
-	const store = useMemo(
-		() => createVMStream({ getToken, baseUrl: DASH_PROXY_BASE }),
-		[],
-	);
+	const opts = useMemo(() => ({ getToken, baseUrl: DASH_PROXY_BASE }), []);
+	const store = useMemo(() => createVMStream(opts), [opts]);
+	const lens = useMemo(() => createVMLens(opts), [opts]);
 	return (
 		<StreamView
 			store={store}
-			lens={vmLens}
+			lens={lens}
 			layout="rows"
 			searchPlaceholder="filter by VM name / namespace / status"
 		/>
