@@ -44,11 +44,7 @@ spec:
                       - { name: WIREGUARD_MTU, value: '1320' }
                       - { name: SERVER_COUNTRIES, value: 'Germany' }
                       - { name: SERVER_CITIES, value: 'Frankfurt' }
-                      - { name: VPN_PORT_FORWARDING, value: 'on' }
-                      - {
-                            name: VPN_PORT_FORWARDING_STATUS_FILE,
-                            value: '/tmp/gluetun/forwarded_port',
-                        }
+                      - { name: VPN_PORT_FORWARDING, value: 'off' }
                   volumeMounts:
                       - { name: gluetun-run, mountPath: /tmp/gluetun }
                 - name: reel
@@ -70,11 +66,6 @@ spec:
                         }
                       - { name: REEL_LOG_JSON, value: 'true' }
                       - { name: REEL_ENCODE_THREADS, value: '16' }
-                      - {
-                            name: REEL_BT_PORT_FILE,
-                            value: '/tmp/gluetun/forwarded_port',
-                        }
-                      - { name: REEL_BT_PORT_WATCH_RESTART, value: 'false' }
                   envFrom:
                       - secretRef: { name: reel-api }
                   ports:
