@@ -16,6 +16,16 @@ interface OSRSChartsProps {
 type TimeRangeOption = '6h' | '24h' | '7d' | '30d';
 type ChartType = 'line' | 'candlestick';
 
+/**
+ * Raw timeseries keyed on `${itemId}:${timestep}`.
+ *
+ * The upstream response is the same for every range sharing a timestep, and
+ * the window is applied client-side, so this is keyed on what actually varies
+ * the request rather than on the range label. Module scope so it survives
+ * remounts as the reader scrolls the chart in and out of view.
+ */
+const seriesCache = new Map<string, TimeSeriesPoint[]>();
+
 const TIME_RANGE_CONFIG: Record<
 	TimeRangeOption,
 	{ label: string; timestep: string }
@@ -442,9 +452,59 @@ function LineChart({
 	}, [minTime, maxTime]);
 
 	// Handle mouse interactions
-	const handleMouseMove = useCallback(
-		(e: React.MouseEvent<SVGSVGElement>) => {
+	// Shared by pointer scrubbing and keyboard stepping so both routes produce
+	// an identical tooltip anchored to the same point.
+	const emitIndex = useCallback(
+		(index: number, svg: SVGSVGElement | null) => {
+			if (!onHover || !svg || data.length === 0) return;
+			const closest = data[index];
+			if (!closest) return;
+
+			const rect = svg.getBoundingClientRect();
+			const ctm = svg.getScreenCTM();
+
+			const pointX = xScale(closest.timestamp);
+			const pointY =
+				closest.avgHighPrice !== null
+					? yScale(closest.avgHighPrice)
+					: closest.avgLowPrice !== null
+						? yScale(closest.avgLowPrice)
+						: height / 2;
+
+			// Project the anchor back into CSS pixels so the tooltip, which is
+			// a sibling DOM node rather than an SVG child, lands on the point
+			// it describes instead of at raw viewBox coordinates.
+			let clientX = (pointX / width) * rect.width;
+			let clientY = (pointY / height) * rect.height;
+			if (ctm) {
+				const screenPt = new DOMPoint(pointX, pointY).matrixTransform(
+					ctm,
+				);
+				clientX = screenPt.x - rect.left;
+				clientY = screenPt.y - rect.top;
+			}
+
+			onHover({
+				x: pointX,
+				y: pointY,
+				clientX,
+				clientY,
+				boxWidth: rect.width,
+				point: closest,
+				index,
+			});
+		},
+		[onHover, data, xScale, yScale, width, height],
+	);
+
+	const handlePointerMove = useCallback(
+		(e: React.PointerEvent<SVGSVGElement>) => {
 			if (!onHover || data.length === 0) return;
+
+			// Touch and pen only report a position while in contact, so a
+			// hover-style read is meaningless for them; scrubbing requires a
+			// press. Mouse keeps its hover behaviour.
+			if (e.pointerType !== 'mouse' && e.buttons === 0) return;
 
 			const svg = e.currentTarget;
 			const rect = svg.getBoundingClientRect();
@@ -484,61 +544,95 @@ function LineChart({
 				}
 			}
 
-			const pointX = xScale(closest.timestamp);
-			const pointY =
-				closest.avgHighPrice !== null
-					? yScale(closest.avgHighPrice)
-					: closest.avgLowPrice !== null
-						? yScale(closest.avgLowPrice)
-						: height / 2;
-
-			// Project the anchor back into CSS pixels so the tooltip, which is
-			// a sibling DOM node rather than an SVG child, lands on the point
-			// it describes instead of at raw viewBox coordinates.
-			let clientX = (pointX / width) * rect.width;
-			let clientY = (pointY / height) * rect.height;
-			if (ctm) {
-				const screenPt = new DOMPoint(pointX, pointY).matrixTransform(
-					ctm,
-				);
-				clientX = screenPt.x - rect.left;
-				clientY = screenPt.y - rect.top;
-			}
-
-			onHover({
-				x: pointX,
-				y: pointY,
-				clientX,
-				clientY,
-				boxWidth: rect.width,
-				point: closest,
-				index: closestIndex,
-			});
+			emitIndex(closestIndex, svg);
 		},
-		[
-			onHover,
-			data,
-			minTime,
-			maxTime,
-			chartWidth,
-			padding.left,
-			width,
-			xScale,
-			yScale,
-			height,
-		],
+		[onHover, data, minTime, maxTime, chartWidth, padding.left, width, emitIndex],
 	);
 
-	const handleMouseLeave = useCallback(() => {
+	const handlePointerLeave = useCallback(() => {
 		if (onHover) onHover(null);
 	}, [onHover]);
+
+	// A touch scrub is a drag, and without capture the first movement outside
+	// the element ends the gesture.
+	const handlePointerDown = useCallback(
+		(e: React.PointerEvent<SVGSVGElement>) => {
+			if (e.pointerType === 'mouse') return;
+			e.currentTarget.setPointerCapture(e.pointerId);
+			handlePointerMove(e);
+		},
+		[handlePointerMove],
+	);
+
+	const handlePointerUp = useCallback(
+		(e: React.PointerEvent<SVGSVGElement>) => {
+			if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+				e.currentTarget.releasePointerCapture(e.pointerId);
+			}
+			if (e.pointerType !== 'mouse' && onHover) onHover(null);
+		},
+		[onHover],
+	);
+
+	const handleKeyDown = useCallback(
+		(e: React.KeyboardEvent<SVGSVGElement>) => {
+			if (data.length === 0) return;
+			const current = hoveredIndex >= 0 ? hoveredIndex : 0;
+			let next: number | null = null;
+
+			if (e.key === 'ArrowRight') next = Math.min(current + 1, data.length - 1);
+			else if (e.key === 'ArrowLeft') next = Math.max(current - 1, 0);
+			else if (e.key === 'Home') next = 0;
+			else if (e.key === 'End') next = data.length - 1;
+			else if (e.key === 'Escape') {
+				if (onHover) onHover(null);
+				return;
+			} else return;
+
+			e.preventDefault();
+			emitIndex(next, e.currentTarget);
+		},
+		[data.length, hoveredIndex, emitIndex, onHover],
+	);
+
+	// Screen readers get an empty box from a bare <svg>; this describes the
+	// series so the data is reachable without reading pixels.
+	const summary = useMemo(() => {
+		if (data.length === 0) return 'Price history chart, no data available.';
+		const prices = data
+			.flatMap((p) => [p.avgHighPrice, p.avgLowPrice])
+			.filter((v): v is number => v !== null && v !== undefined);
+		if (prices.length === 0) {
+			return `Price history chart, ${data.length} intervals, no trades recorded.`;
+		}
+		const lo = Math.min(...prices).toLocaleString();
+		const hi = Math.max(...prices).toLocaleString();
+		return `Price history chart over ${timeRange}, ${data.length} intervals, ranging ${lo} to ${hi} gp. Use arrow keys to step through data points.`;
+	}, [data, timeRange]);
 
 	return (
 		<svg
 			viewBox={`0 0 ${width} ${height}`}
-			style={{ width: '100%', height: '100%', cursor: 'crosshair' }}
-			onMouseMove={handleMouseMove}
-			onMouseLeave={handleMouseLeave}>
+			style={{
+				width: '100%',
+				height: '100%',
+				cursor: 'crosshair',
+				// Horizontal drags scrub the series; vertical drags must still
+				// scroll the page, or the chart becomes a scroll trap on a
+				// phone.
+				touchAction: 'pan-y',
+			}}
+			onPointerMove={handlePointerMove}
+			onPointerLeave={handlePointerLeave}
+			onPointerDown={handlePointerDown}
+			onPointerUp={handlePointerUp}
+			onPointerCancel={handlePointerUp}
+			onKeyDown={handleKeyDown}
+			onBlur={handlePointerLeave}
+			tabIndex={0}
+			role="img"
+			aria-label={summary}>
+			<title>{summary}</title>
 			{/* Grid lines - horizontal */}
 			{yTicks.map((tick, i) => (
 				<line
@@ -989,58 +1083,85 @@ export default function OSRSCharts({
 	const [error, setError] = useState<string | null>(null);
 	const [tooltip, setTooltip] = useState<TooltipData | null>(null);
 
-	const fetchData = useCallback(async () => {
-		setLoading(true);
-		setError(null);
-
-		try {
+	const fetchData = useCallback(
+		async (signal: AbortSignal) => {
 			const config = TIME_RANGE_CONFIG[timeRange];
-			// Using OSRS Wiki Prices API for time series data
-			const response = await fetch(
-				`https://prices.runescape.wiki/api/v1/osrs/timeseries?timestep=${config.timestep}&id=${itemId}`,
-				{
-					headers: {
-						'User-Agent':
-							'KBVE item_tracker - @h0lybyte on Discord',
-					},
-				},
-			);
+			const cacheKey = `${itemId}:${config.timestep}`;
 
-			if (!response.ok) {
-				throw new Error(
-					`Failed to fetch price history: ${response.status}`,
-				);
+			const applyWindow = (timeseries: TimeSeriesPoint[]) => {
+				const now = Math.floor(Date.now() / 1000);
+				const cutoff = {
+					'6h': now - 6 * 60 * 60,
+					'24h': now - 24 * 60 * 60,
+					'7d': now - 7 * 24 * 60 * 60,
+					'30d': now - 30 * 24 * 60 * 60,
+				}[timeRange];
+				setData(timeseries.filter((point) => point.timestamp >= cutoff));
+			};
+
+			// 6H and 24H both request timestep=5m, so they are the same
+			// upstream call; caching on (item, timestep) also makes returning
+			// to an already-viewed range instant instead of a refetch.
+			const cached = seriesCache.get(cacheKey);
+			if (cached) {
+				setError(null);
+				setLoading(false);
+				applyWindow(cached);
+				return;
 			}
 
-			const json = await response.json();
-			const timeseries: TimeSeriesPoint[] = json.data || [];
+			setLoading(true);
+			setError(null);
 
-			// Filter based on time range
-			const now = Math.floor(Date.now() / 1000);
-			const cutoff = {
-				'6h': now - 6 * 60 * 60,
-				'24h': now - 24 * 60 * 60,
-				'7d': now - 7 * 24 * 60 * 60,
-				'30d': now - 30 * 24 * 60 * 60,
-			}[timeRange];
+			try {
+				// Using OSRS Wiki Prices API for time series data
+				const response = await fetch(
+					`https://prices.runescape.wiki/api/v1/osrs/timeseries?timestep=${config.timestep}&id=${itemId}`,
+					{
+						headers: {
+							'User-Agent':
+								'KBVE item_tracker - @h0lybyte on Discord',
+						},
+						signal,
+					},
+				);
 
-			const filtered = timeseries.filter(
-				(point) => point.timestamp >= cutoff,
-			);
-			setData(filtered);
-		} catch (err) {
-			setError(
-				err instanceof Error
-					? err.message
-					: 'Failed to fetch price history',
-			);
-		} finally {
-			setLoading(false);
-		}
-	}, [itemId, timeRange]);
+				if (!response.ok) {
+					throw new Error(
+						`Failed to fetch price history: ${response.status}`,
+					);
+				}
 
+				const json = await response.json();
+				const timeseries: TimeSeriesPoint[] = json.data || [];
+				seriesCache.set(cacheKey, timeseries);
+
+				if (signal.aborted) return;
+				applyWindow(timeseries);
+			} catch (err) {
+				// A superseded range switch is not an error worth showing.
+				if (signal.aborted || (err as Error)?.name === 'AbortError') {
+					return;
+				}
+				setError(
+					err instanceof Error
+						? err.message
+						: 'Failed to fetch price history',
+				);
+			} finally {
+				if (!signal.aborted) setLoading(false);
+			}
+		},
+		[itemId, timeRange],
+	);
+
+	// Without aborting, rapid range switches leave several requests in flight
+	// and the last to resolve wins — a slow 6H response could land after 7D
+	// and render under the wrong label.
 	useEffect(() => {
-		fetchData();
+		const controller = new AbortController();
+		fetchData(controller.signal);
+		return () => controller.abort();
 	}, [fetchData]);
 
 	// Calculate tooltip position (keep it inside bounds).
