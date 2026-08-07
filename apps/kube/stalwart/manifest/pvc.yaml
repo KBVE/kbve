@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: stalwart-data
+    namespace: stalwart
+    labels:
+        app: stalwart
+        kbve.com/category: application
+        kbve.com/stack: mail
+        kbve.com/managed-by: argocd
+spec:
+    accessModes:
+        - ReadWriteOnce
+    storageClassName: longhorn
+    resources:
+        requests:
+            storage: 2Gi

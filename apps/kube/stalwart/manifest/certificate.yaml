@@ -1,0 +1,18 @@
+# cert-manager Certificate for the Stalwart SMTP/submission listeners.
+# Requires DNS: mail.herbmail.com A -> 142.132.206.71 (the shared public
+# LB IP) before the HTTP-01 challenge can complete. The resulting
+# stalwart-tls Secret is mounted read-only at /opt/stalwart-tls and the
+# cert/key paths are wired up in the Stalwart admin UI.
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+    name: stalwart-tls
+    namespace: stalwart
+spec:
+    secretName: stalwart-tls
+    dnsNames:
+        - mail.herbmail.com
+    issuerRef:
+        name: letsencrypt-http
+        kind: ClusterIssuer
+        group: cert-manager.io

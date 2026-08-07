@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: stalwart-config
+    namespace: stalwart
+    labels:
+        app: stalwart
+        kbve.com/category: application
+        kbve.com/stack: mail
+        kbve.com/managed-by: argocd
+data:
+    config.json: |
+        {
+            "@type": "PostgreSql",
+            "host": "kilobase-rw.kilobase.svc.cluster.local",
+            "port": 5432,
+            "database": "supabase",
+            "authUsername": "stalwart",
+            "authSecret": { "@type": "EnvironmentVariable", "variableName": "STALWART_DB_PASSWORD" },
+            "useTls": false
+        }

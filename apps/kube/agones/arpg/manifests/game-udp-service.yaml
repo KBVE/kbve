@@ -6,7 +6,7 @@ metadata:
     annotations:
         lbipam.cilium.io/ips: '142.132.206.71'
         lbipam.cilium.io/sharing-key: public-71
-        lbipam.cilium.io/sharing-cross-namespace: kbve
+        lbipam.cilium.io/sharing-cross-namespace: kbve,stalwart
     labels:
         app: arpg-server
         kbve.com/lb-pool: public
