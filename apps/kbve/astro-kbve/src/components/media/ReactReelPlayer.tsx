@@ -90,6 +90,11 @@ export default function ReactReelPlayer() {
 		state === 'reconnecting';
 	const playing = state === 'raw' || state === 'hls';
 	const reconnecting = state === 'reconnecting';
+	// Reconnects keep the video on screen: swapping in a full-stage overlay for
+	// every retry is what made a flapping stream flicker. The badge reports what
+	// is happening without tearing the picture down.
+	const overlay = !playing && !reconnecting;
+	const badge = playing || reconnecting ? status?.message : null;
 
 	return (
 		<div className={`reel-player${theater ? ' reel-player--theater' : ''}`}>
@@ -110,20 +115,24 @@ export default function ReactReelPlayer() {
 						{theater ? '✕ Exit' : '⛶ Theater'}
 					</button>
 				)}
-				{!playing && (
+				{badge && (
+					<div
+						className={`reel-player__badge${reconnecting ? ' reel-player__badge--warn' : ''}`}>
+						<span>{badge}</span>
+						{reconnecting && status?.attempt && status?.max ? (
+							<span>{`· ${status.attempt}/${status.max}`}</span>
+						) : null}
+					</div>
+				)}
+				{overlay && (
 					<div className="reel-player__overlay">
 						<p>{STATE_LABEL[state] ?? state}</p>
 						{name && <p className="reel-player__meta">{name}</p>}
-						{reconnecting && (
-							<p className="reel-player__meta">
-								{status?.message ?? 'Stream interrupted'}
-								{status?.attempt && status?.max
-									? ` · attempt ${status.attempt}/${status.max}`
-									: ''}
-							</p>
-						)}
 						{state === 'error' && error && (
 							<p className="reel-player__error">{error}</p>
+						)}
+						{state !== 'error' && status?.message && (
+							<p className="reel-player__meta">{status.message}</p>
 						)}
 						{!selectedId && (
 							<p className="reel-player__meta">
