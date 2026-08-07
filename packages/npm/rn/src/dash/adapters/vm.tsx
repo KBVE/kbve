@@ -3,7 +3,7 @@ import { Badge, Stack, Surface, Text, tokens } from '../_ui';
 import type { BadgeTone } from '../_ui';
 import { createStreamSource } from '../createStreamSource';
 import { dashFetch, dashJson, dashHttpError } from '../dashFetch';
-import type { StreamLens, StreamStore } from '../types';
+import type { StreamAction, StreamLens, StreamStore } from '../types';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -410,6 +410,92 @@ export const vmLens: StreamLens<VMItem> = {
 		</Stack>
 	),
 };
+
+// ---------------------------------------------------------------------------
+// Actions
+// ---------------------------------------------------------------------------
+
+export type VMAction = 'start' | 'stop' | 'restart';
+
+/** VM is mid-transition — no action should be offered. */
+function isTransitioning(phase: VMPhase): boolean {
+	return (
+		phase === 'Starting' || phase === 'Stopping' || phase === 'Migrating'
+	);
+}
+
+export function canStart(it: VMItem): boolean {
+	return !isTransitioning(it.phase) && it.phase !== 'Running';
+}
+
+export function canStop(it: VMItem): boolean {
+	return !isTransitioning(it.phase) && it.phase === 'Running';
+}
+
+export function canRestart(it: VMItem): boolean {
+	return !isTransitioning(it.phase) && it.phase === 'Running';
+}
+
+async function vmMutate(
+	opts: VMStreamOptions,
+	item: VMItem,
+	action: VMAction,
+): Promise<void> {
+	const { getToken, baseUrl = '', namespace = 'angelscript' } = opts;
+	const token = await getToken();
+	const headers: Record<string, string> = {
+		'Content-Type': 'application/json',
+	};
+	if (token) headers['Authorization'] = `Bearer ${token}`;
+
+	const res = await dashFetch(
+		`${baseUrl}/dashboard/vm/proxy/apis/subresources.kubevirt.io/v1/namespaces/${namespace}/virtualmachines/${encodeURIComponent(item.name)}/${action}`,
+		{
+			method: 'PUT',
+			headers,
+			body:
+				action === 'start' ? '{}' : JSON.stringify({ gracePeriod: 30 }),
+			label: `vm:${action}`,
+		},
+	);
+
+	if (res.status === 403)
+		throw dashHttpError(res, `vm:${action}`, 'Manage permission required');
+	if (!res.ok) throw dashHttpError(res, `vm:${action}`);
+}
+
+export function vmActions(opts: VMStreamOptions): StreamAction<VMItem>[] {
+	return [
+		{
+			id: 'start',
+			label: 'Start',
+			enabled: canStart,
+			run: (it) => vmMutate(opts, it, 'start'),
+		},
+		{
+			id: 'stop',
+			label: 'Stop',
+			destructive: true,
+			enabled: canStop,
+			run: (it) => vmMutate(opts, it, 'stop'),
+		},
+		{
+			id: 'restart',
+			label: 'Restart',
+			destructive: true,
+			enabled: canRestart,
+			run: (it) => vmMutate(opts, it, 'restart'),
+		},
+	];
+}
+
+/** Full VM lens with token-bound actions (preferred over the view-only `vmLens`). */
+export function createVMLens(opts: VMStreamOptions): StreamLens<VMItem> {
+	return {
+		...vmLens,
+		actions: vmActions(opts),
+	};
+}
 
 function Fact({ label, value }: { label: string; value: string }) {
 	return (

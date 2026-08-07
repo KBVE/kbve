@@ -157,6 +157,8 @@ export interface StreamAction<TItem> {
 	label: string;
 	/** Requires a two-tap inline confirm before running. */
 	destructive?: boolean;
+	/** Hides the action for items it cannot apply to. Shown when omitted. */
+	enabled?: (item: TItem) => boolean;
 	/** The raw mutation; the store wraps it with busy/error/refresh handling. */
 	run: (item: TItem) => Promise<void>;
 }
