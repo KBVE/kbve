@@ -34,6 +34,14 @@ spec:
                 - name: stalwart
                   image: docker.io/stalwartlabs/stalwart:v0.16.16
                   imagePullPolicy: IfNotPresent
+                  env:
+                      - name: STALWART_HOSTNAME
+                        value: mail.herbmail.com
+                      - name: STALWART_DB_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: stalwart-db-credentials
+                                key: password
                   ports:
                       - name: smtp
                         containerPort: 25
@@ -72,9 +80,10 @@ spec:
                       initialDelaySeconds: 15
                       periodSeconds: 30
                   volumeMounts:
-                      - name: data
-                        mountPath: /etc/stalwart
-                        subPath: etc
+                      - name: config
+                        mountPath: /etc/stalwart/config.json
+                        subPath: config.json
+                        readOnly: true
                       - name: data
                         mountPath: /var/lib/stalwart
                         subPath: lib
@@ -82,6 +91,9 @@ spec:
                         mountPath: /opt/stalwart-tls
                         readOnly: true
             volumes:
+                - name: config
+                  configMap:
+                      name: stalwart-config
                 - name: data
                   persistentVolumeClaim:
                       claimName: stalwart-data

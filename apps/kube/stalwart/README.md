@@ -23,6 +23,23 @@ Stalwart (ns stalwart, MTA-only, config + registry in kilobase stalwart schema)
 axum-herbmail (ns herbmail) ── rpc stalwart_ingest ──▶ mail.messages (supabase)
 ```
 
+## Declarative bootstrap (no storage wizard)
+
+v0.16 keeps almost all configuration in the **registry inside the data
+store**; the only local file is `/etc/stalwart/config.json`, a single
+serialized `DataStore` object. We mount it from the `stalwart-config`
+ConfigMap with the password indirected through
+`{"@type": "EnvironmentVariable", "variableName": "STALWART_DB_PASSWORD"}`
+(fed by the `stalwart-db-credentials` sealed secret). On first boot Stalwart
+connects to kilobase, creates its key-value tables inside the `stalwart`
+schema (role `search_path` pins them there — verified locally), and starts
+default listeners: **25, 443, 465, 993, 995, 4190, 8080 — note: no 587 by
+default**; add a submission listener in admin if needed.
+
+`STALWART_HOSTNAME=mail.herbmail.com` is set via env. Registry-level objects
+(domain, MTA hook, TLS, extra listeners) are configured once via web-admin —
+they persist in postgres, not on the PVC.
+
 ## One-time setup
 
 1. **Migrations** — `ci-dbmate-deploy` applies:
@@ -30,22 +47,46 @@ axum-herbmail (ns herbmail) ── rpc stalwart_ingest ──▶ mail.messages (
      `search_path` pinned so Stalwart's tables land in its own schema.
    - `20260807121000_mail_schema_init.sql` — `mail.messages`, RLS,
      `public.stalwart_ingest` RPC, pg_cron purge (90d).
-2. **Role password** (prod):
-   `ALTER ROLE stalwart WITH PASSWORD '<password>';`
-3. **Bootstrap admin** — first boot prints temporary admin credentials:
-   `kubectl logs -n stalwart deploy/stalwart | grep -A8 'bootstrap mode'`
+2. **Role password** — `./seal-stalwart-db-credentials.sh`, add the sealed
+   yaml to the kustomization, then
+   `ALTER ROLE stalwart WITH PASSWORD '<same-password>';`
+3. **Admin login** — `STALWART_RECOVERY_ADMIN` is not set, so use the
+   bootstrap credentials printed on first boot:
+   `kubectl logs -n stalwart deploy/stalwart | grep -A8 'bootstrap'`
    Admin UI via `kubectl port-forward -n stalwart svc/stalwart 8080:8080`.
-4. **Setup wizard** — storage backend **PostgreSQL**:
-   host `kilobase-rw.kilobase.svc.cluster.local`, db `supabase`,
-   user `stalwart` (tables land in the `stalwart` schema via search_path).
-   Hostname `mail.herbmail.com`, local domain `herbmail.com`.
-5. **MTA hook** — in admin, add hook:
+4. **Registry config** (web-admin): local domain `herbmail.com`; MTA hook
    url `http://herbmail-service.herbmail.svc.cluster.local:4321/hooks/stalwart`,
    stages `data`, auth Bearer = value from
    `apps/kube/herbmail/seal-stalwart-hook-secret.sh` (same sealed secret feeds
-   `STALWART_HOOK_SECRET` in the herbmail deployment).
-6. **TLS** — `stalwart-tls` Certificate (mail.herbmail.com) is mounted at
+   `STALWART_HOOK_SECRET` in the herbmail deployment); submission listener on
+   587 if wanted.
+5. **TLS** — `stalwart-tls` Certificate (mail.herbmail.com) is mounted at
    `/opt/stalwart-tls`; point the TLS cert/key paths there in admin.
+
+## Local lab (dry-run the whole thing)
+
+```sh
+docker network create stalwart-lab
+docker run -d --rm --name lab-pg --network stalwart-lab \
+  -e POSTGRES_PASSWORD=pgpass -e POSTGRES_DB=supabase postgres:17-alpine
+docker exec lab-pg psql -U postgres -d supabase -c \
+  "CREATE ROLE stalwart LOGIN PASSWORD 'stalwart-local-dev';
+   CREATE SCHEMA stalwart AUTHORIZATION stalwart;
+   ALTER ROLE stalwart SET search_path TO stalwart;"
+# config.json as in the ConfigMap, host=lab-pg
+docker run -d --rm --name lab-stalwart --network stalwart-lab -p 58080:8080 \
+  -e STALWART_RECOVERY_ADMIN=admin:labpass \
+  -e STALWART_HOSTNAME=mail.herbmail.com \
+  -e STALWART_DB_PASSWORD=stalwart-local-dev \
+  -v $PWD/lab-etc:/etc/stalwart stalwartlabs/stalwart:v0.16.16
+```
+
+Admin at http://localhost:58080 (admin/labpass). Because ALL registry config
+lands in postgres, a fully configured local instance can be exported and
+seeded into prod before first boot:
+`pg_dump -U postgres -d supabase --schema=stalwart --data-only` from the lab
+DB, restore into kilobase (only do this before the prod pod ever starts).
+Inspect what Stalwart writes with `\dt stalwart.*`.
 
 ## DNS (registrar side)
 

@@ -4,6 +4,7 @@ namespace: stalwart
 
 resources:
     - pvc.yaml
+    - configmap.yaml
     - deployment.yaml
     - service.yaml
     - service-lb.yaml
