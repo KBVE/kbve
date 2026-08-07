@@ -153,14 +153,33 @@ const MAX_POLLS = 25;
 const BACKOFF_BASE_MS = 1000;
 const BACKOFF_CAP_MS = 5000;
 const MAX_RESURRECTS = 30;
+// Reconnects that never reach playback, counted inside one window: a stream
+// that flaps this fast is broken at the source, not recovering.
+const MAX_THRASH = 4;
+const RESURRECT_WINDOW_MS = 60000;
 
 let mediaTokenCache: { token: string; expiresAtMs: number } | null = null;
 
-async function mediaToken(force = false): Promise<string | null> {
+// Why a token could not be minted. Only a real 401/403 means the viewer isn't
+// signed in — every other failure (proxy 502, reel restart, offline) used to be
+// reported as "sign in to watch", which sent signed-in users chasing an auth
+// problem that didn't exist.
+export interface MediaTokenResult {
+	token: string | null;
+	code: ReelStreamErrorCode;
+	message: string;
+}
+
+async function mediaToken(force = false): Promise<MediaTokenResult> {
+	const ok = (token: string): MediaTokenResult => ({
+		token,
+		code: 'unknown',
+		message: '',
+	});
 	const dev = import.meta.env.PUBLIC_REEL_TOKEN as string | undefined;
-	if (dev) return dev;
+	if (dev) return ok(dev);
 	if (!force && mediaTokenCache && mediaTokenCache.expiresAtMs > Date.now()) {
-		return mediaTokenCache.token;
+		return ok(mediaTokenCache.token);
 	}
 	try {
 		const res = await authedApiFetch<{ token: string; exp: number }>(
@@ -170,10 +189,30 @@ async function mediaToken(force = false): Promise<string | null> {
 			token: res.token,
 			expiresAtMs: Date.now() + Math.max(0, res.exp - 30) * 1000,
 		};
-		return res.token;
-	} catch {
+		return ok(res.token);
+	} catch (e) {
+		const status = e instanceof ApiError ? e.status : 0;
+		if (status === 401 || status === 403) {
+			mediaTokenCache = null;
+			return {
+				token: null,
+				code: 'sign-in',
+				message: 'sign in to watch',
+			};
+		}
+		// Transient: keep a still-valid cached token so playback survives a
+		// blip instead of tearing down over a failed refresh.
+		if (mediaTokenCache && mediaTokenCache.expiresAtMs > Date.now()) {
+			return ok(mediaTokenCache.token);
+		}
 		mediaTokenCache = null;
-		return null;
+		return {
+			token: null,
+			code: 'network',
+			message: status
+				? `reel access service returned ${status} — retrying`
+				: 'cannot reach the reel access service — retrying',
+		};
 	}
 }
 
@@ -389,6 +428,8 @@ export class ReelPlayer {
 	private recover: (() => void) | null = null;
 	private lastPos = 0;
 	private resurrects = 0;
+	private thrash = 0;
+	private lastResurrectAt = 0;
 	private currentId: string | null = null;
 
 	private emit(
@@ -420,6 +461,8 @@ export class ReelPlayer {
 		const gen = ++this.generation;
 		this.teardown();
 		this.resurrects = 0;
+		this.thrash = 0;
+		this.lastResurrectAt = 0;
 		this.currentId = id;
 		this.video = video;
 		$reelError.set(null);
@@ -428,12 +471,13 @@ export class ReelPlayer {
 		$reelState.set('loading');
 		this.emit('loading', 'Loading…');
 
-		const token = await mediaToken();
+		const minted = await mediaToken();
 		if (this.generation !== gen) return;
-		if (!token) {
-			this.fail('sign in to watch', 'sign-in');
+		if (!minted.token) {
+			this.fail(minted.message, minted.code);
 			return;
 		}
+		const token = minted.token;
 
 		try {
 			const detail = await authedApiFetch<ReelDetail>(
@@ -727,8 +771,8 @@ export class ReelPlayer {
 			if (this.tokenTimer) clearInterval(this.tokenTimer);
 			this.tokenTimer = setInterval(() => {
 				if (this.generation !== gen) return;
-				void mediaToken().then((t) => {
-					if (t && this.generation === gen) liveToken = t;
+				void mediaToken().then((r) => {
+					if (r.token && this.generation === gen) liveToken = r.token;
 				});
 			}, 60000);
 			// Recovery ladder: don't fail on the first fatal error. Resume loading
@@ -754,6 +798,7 @@ export class ReelPlayer {
 				mediaRetries = 0;
 				starveRetries = 0;
 				this.resurrects = 0;
+				this.thrash = 0;
 			});
 			hls.on(Hls.Events.ERROR, (_evt, data) => {
 				if (!data.fatal) return;
@@ -779,9 +824,9 @@ export class ReelPlayer {
 							? 'token-expired'
 							: 'network';
 						if (netRetries++ < MAX_RECOVER) {
-							void mediaToken(true).then((t) => {
+							void mediaToken(true).then((r) => {
 								if (this.generation !== gen) return;
-								if (t) liveToken = t;
+								if (r.token) liveToken = r.token;
 								setTimeout(() => {
 									if (this.generation === gen) hls.startLoad();
 								}, 1000);
@@ -917,6 +962,11 @@ export class ReelPlayer {
 		this.teardown();
 	}
 
+	// A reconnect that never buffers a fragment is a loop, not a recovery: each
+	// cycle tears the media element down and rebuilds it, which the viewer sees
+	// as flicker. Reconnect attempts that produce no playback back off, and a
+	// burst of them inside one short window stops with the server's own reason
+	// rather than flapping until the attempt budget runs out.
 	private async resurrect(
 		video: HTMLVideoElement,
 		id: string,
@@ -925,8 +975,20 @@ export class ReelPlayer {
 		reason: string,
 	): Promise<void> {
 		if (this.generation !== gen) return;
+		const now = Date.now();
+		if (now - this.lastResurrectAt > RESURRECT_WINDOW_MS) this.thrash = 0;
+		this.lastResurrectAt = now;
+		if (++this.thrash > MAX_THRASH) {
+			const why = await this.streamFailureReason(id);
+			this.fail(
+				why ?? 'stream keeps dropping — the source may be unplayable',
+				code,
+			);
+			return;
+		}
 		if (this.resurrects++ >= MAX_RESURRECTS) {
-			this.fail('stream ended — could not recover', code);
+			const why = await this.streamFailureReason(id);
+			this.fail(why ?? 'stream ended — could not recover', code);
 			return;
 		}
 		const attempt = this.resurrects;
@@ -947,15 +1009,47 @@ export class ReelPlayer {
 			this.hls = null;
 		}
 		if (this.video) this.video.onerror = null;
-		const token = await mediaToken(true);
+		const minted = await mediaToken(true);
 		if (this.generation !== gen) return;
-		if (!token) {
-			this.fail('sign in to watch', 'sign-in');
+		if (!minted.token) {
+			this.fail(minted.message, minted.code);
 			return;
 		}
-		await new Promise((r) => setTimeout(r, 1500));
+		// Back off with each consecutive attempt that hasn't reached playback.
+		await new Promise((r) =>
+			setTimeout(r, backoffMs(Math.min(this.thrash, 4) - 1)),
+		);
 		if (this.generation !== gen) return;
-		await this.probe(video, id, token, 0, gen);
+		await this.probe(video, id, minted.token, 0, gen);
+	}
+
+	// Ask the server why playback keeps failing so the viewer sees the actual
+	// cause (encoder died, torrent failed, entry reaped) instead of a generic
+	// "could not recover".
+	private async streamFailureReason(id: string): Promise<string | null> {
+		try {
+			const d = await authedApiFetch<ReelDetail>(
+				`${REEL_PATH}/torrents/${encodeURIComponent(id)}`,
+			);
+			if (!d) return null;
+			if (d.state === 'Failed') {
+				return typeof d.error === 'string' && d.error
+					? `download failed: ${d.error}`
+					: 'this reel failed to download';
+			}
+			if (d.state === 'Reaped') {
+				return 'this reel expired and was removed — re-add it to watch';
+			}
+			if (d.hls === 'Failed') {
+				const why = d.hls_error;
+				return typeof why === 'string' && why
+					? `the stream encoder failed: ${why}`
+					: 'the stream encoder failed — try Transcode from the console';
+			}
+			return null;
+		} catch {
+			return null;
+		}
 	}
 
 	stop(reset = true): void {

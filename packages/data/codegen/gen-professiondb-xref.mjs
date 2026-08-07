@@ -3,13 +3,22 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
+import {
+	fromJson,
+	toBinary,
+	fromBinary,
+	createFileRegistry,
+} from '@bufbuild/protobuf';
+import { FileDescriptorSetSchema } from '@bufbuild/protobuf/wkt';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const generatedDir = resolve(__dirname, 'generated');
+const descriptorPath = resolve(__dirname, 'descriptors/professiondb.binpb');
 const itemdbPath = resolve(generatedDir, 'itemdb-data.json');
 const professiondbPath = resolve(generatedDir, 'professiondb-data.json');
 const mapdbPath = resolve(generatedDir, 'mapdb-data.json');
 const outPath = resolve(generatedDir, 'xref-index.json');
+const outBinPath = resolve(generatedDir, 'xref-index.binpb');
 
 function canonicalize(value) {
 	if (Array.isArray(value)) {
@@ -102,6 +111,7 @@ export function main() {
 	};
 
 	const actionByRef = new Map();
+	const allActions = [];
 	for (const prof of professions) {
 		for (const action of prof.actions ?? []) {
 			for (const o of action.outputs ?? [])
@@ -111,6 +121,7 @@ export function main() {
 			for (const t of action.toolRefs ?? [])
 				add(toolFor, t, action.key, 'tool_for');
 			actionByRef.set(action.ref, action.key);
+			allActions.push(action);
 		}
 	}
 
@@ -173,6 +184,87 @@ export function main() {
 		}
 	}
 
+	const producersOf = new Map();
+	for (const action of allActions) {
+		for (const o of action.outputs ?? []) {
+			if (!producersOf.has(o.itemRef)) producersOf.set(o.itemRef, []);
+			producersOf.get(o.itemRef).push(action.ref);
+		}
+	}
+	const gatherOutputs = new Set();
+	for (const action of allActions) {
+		if (!action.resourceNodeRef) continue;
+		for (const o of action.outputs ?? []) gatherOutputs.add(o.itemRef);
+	}
+	const reachableItems = new Set(gatherOutputs);
+	for (const ref of itemKeyByRef.keys()) {
+		if (!producersOf.has(ref)) reachableItems.add(ref);
+	}
+	let grew = true;
+	while (grew) {
+		grew = false;
+		for (const action of allActions) {
+			const inputs = (action.inputs ?? []).map((i) => i.itemRef);
+			if (inputs.every((x) => reachableItems.has(x))) {
+				for (const o of action.outputs ?? []) {
+					if (!reachableItems.has(o.itemRef)) {
+						reachableItems.add(o.itemRef);
+						grew = true;
+					}
+				}
+			}
+		}
+	}
+	for (const action of allActions) {
+		const blocked = (action.inputs ?? [])
+			.map((i) => i.itemRef)
+			.filter((x) => !reachableItems.has(x));
+		if (blocked.length) {
+			errors.push(
+				`graph_integrity: action '${action.ref}' is unreachable — input(s) [${blocked.join(', ')}] are produced by no gatherable or reachable action`,
+			);
+		}
+	}
+
+	const actionDeps = new Map();
+	for (const action of allActions) {
+		const deps = new Set();
+		for (const i of action.inputs ?? []) {
+			for (const pr of producersOf.get(i.itemRef) ?? []) {
+				if (pr !== action.ref) deps.add(pr);
+			}
+		}
+		actionDeps.set(action.ref, deps);
+	}
+	const WHITE = 0;
+	const GRAY = 1;
+	const BLACK = 2;
+	const color = new Map();
+	const seenCycles = new Set();
+	const visit = (ref, stack) => {
+		color.set(ref, GRAY);
+		for (const dep of actionDeps.get(ref) ?? []) {
+			const state = color.get(dep) ?? WHITE;
+			if (state === GRAY) {
+				const at = stack.indexOf(dep);
+				const loop = [...stack.slice(at >= 0 ? at : 0), ref, dep];
+				const canonical = [...loop].sort().join('|');
+				if (!seenCycles.has(canonical)) {
+					seenCycles.add(canonical);
+					errors.push(
+						`graph_integrity: recipe cycle detected — ${loop.join(' -> ')}`,
+					);
+				}
+			} else if (state === WHITE) {
+				visit(dep, [...stack, ref]);
+			}
+		}
+		color.set(ref, BLACK);
+	};
+	for (const action of allActions) {
+		if ((color.get(action.ref) ?? WHITE) === WHITE) visit(action.ref, []);
+	}
+
 	const payload = {
 		slug_to_key: Object.fromEntries(itemKeyByRef),
 		produced_by: producedBy,
@@ -198,6 +290,36 @@ export function main() {
 	}
 	writeFileSync(outPath, JSON.stringify(index, null, 2));
 	console.log(`Wrote ${outPath}`);
+
+	const descBytes = readFileSync(descriptorPath);
+	const registry = createFileRegistry(
+		fromBinary(FileDescriptorSetSchema, descBytes),
+	);
+	const xrefDesc = registry.getMessage('profession.XrefIndex');
+	if (!xrefDesc) {
+		throw new Error(
+			'FATAL: profession.XrefIndex message descriptor not found in professiondb.binpb',
+		);
+	}
+	const wrapKeyLists = (map) =>
+		Object.fromEntries(
+			Object.entries(map).map(([k, v]) => [k, { keys: v }]),
+		);
+	const protoJson = {
+		content_version: index.content_version,
+		slug_to_key: index.slug_to_key,
+		produced_by: wrapKeyLists(index.produced_by),
+		input_to: wrapKeyLists(index.input_to),
+		tool_for: wrapKeyLists(index.tool_for),
+		node_links: index.node_links,
+		node_by_ref: index.node_by_ref,
+	};
+	const wire = toBinary(
+		xrefDesc,
+		fromJson(xrefDesc, protoJson, { ignoreUnknownFields: false }),
+	);
+	writeFileSync(outBinPath, wire);
+	console.log(`Wrote ${outBinPath} (${wire.length} bytes)`);
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) main();

@@ -171,8 +171,11 @@ export function GenericEpicCreator() {
 
 	// Sync local repo path when activeEpic changes (e.g., after loading)
 	useEffect(() => {
-		if (activeEpic?.local_repo_path && !localRepoPath) {
-			setLocalRepoPath(activeEpic.local_repo_path);
+		const path = activeEpic?.local_repo_path;
+		if (path) {
+			void Promise.resolve().then(() =>
+				setLocalRepoPath((prev) => prev || path),
+			);
 		}
 	}, [activeEpic?.local_repo_path]);
 
@@ -242,7 +245,8 @@ export function GenericEpicCreator() {
 
 	// Restore Epic state from persisted store on mount
 	useEffect(() => {
-		if (activeEpic && !result) {
+		if (!(activeEpic && !result)) return;
+		void Promise.resolve().then(() => {
 			// We have a persisted Epic but no local result yet - restore state
 			// Convert ActiveEpicState back to EpicInfo for the UI
 			const restoredEpic: EpicInfo = {
@@ -325,7 +329,7 @@ export function GenericEpicCreator() {
 				`Restored active Epic #${activeEpic.epic_number}: ${activeEpic.title}`,
 				5000,
 			);
-		}
+		});
 	}, [activeEpic, result]);
 
 	const loadTemplate = (templateId: string) => {

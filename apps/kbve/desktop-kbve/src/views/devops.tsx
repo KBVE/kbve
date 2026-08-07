@@ -12,12 +12,12 @@ export function DevOpsView() {
 		void commands
 			.agentVoiceIsEnabled()
 			.then(setVoiceEnabled)
-			.catch(() => {});
+			.catch(() => undefined);
 	}, []);
 
 	const toggleVoice = (checked: boolean) => {
 		setVoiceEnabled(checked);
-		void commands.agentVoiceSetEnabled(checked).catch(() => {});
+		void commands.agentVoiceSetEnabled(checked).catch(() => undefined);
 	};
 
 	return (

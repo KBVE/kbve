@@ -1,8 +1,9 @@
 ---
 title: Arcade
 description: |
-    KBVE Arcade — the home for our in-browser games. Card games, action
-    RPGs, endless runners, and (soon) classic Flash titles via Ruffle.
+    Play free browser games from KBVE — blackjack, roguelite Klondike
+    solitaire, turn-based tactics, tower defense, a WebGL action RPG and an
+    endless runner. No install, no account, no paywall.
 template: splash
 tableOfContents: false
 unsplash: 1688413399498-e35ed74b554f
@@ -16,13 +17,56 @@ tags:
     - browser-games
     - flash
     - ruffle
+    - free-games
+    - html5-games
+    - webgl
+ogTitle: 'KBVE Arcade — free browser games, no install'
+ogDescription: |
+    Eight browser games built in-house: blackjack, roguelite Klondike, turn-based
+    tactics, tower defense, a WebGL action RPG, a WebGPU isometric prototype and
+    an endless runner. Free, no account required.
+twitterTitle: 'KBVE Arcade — free browser games, no install'
+twitterDescription: |
+    Eight browser games built in-house. Free, no account, playable on desktop
+    and touch.
+jsonld:
+    breadcrumb:
+        - name: Home
+          path: /
+        - name: Gaming
+          path: /gaming/
+        - name: Arcade
+          path: /arcade/
+    faq:
+        - question: Are the KBVE Arcade games free?
+          answer: |
+              Yes. Every game is free to play with no account and no install.
+              Ads support the site; nothing is paywalled.
+        - question: Do the games work on mobile?
+          answer: |
+              Yes. Drag, tap and gesture support are first-class, and the canvas
+              scales to the screen. Landscape gives the same view as desktop.
+        - question: What do I need to install to play?
+          answer: |
+              Nothing. Every title runs in the browser via WebAssembly, WebGL or
+              WebGPU — no plugin, no download, no Adobe runtime.
+        - question: Which games are available right now?
+          answer: |
+              Frontline Grid, Blackjack, Solitaire, Tower Defense and Endless
+              Runner are live. ARPG, RareIcon and the isometric prototype are in
+              beta, and a Ruffle-based Flash player is in progress.
+        - question: Is the arcade open source?
+          answer: |
+              Most of it, yes. The games live in the public KBVE monorepo at
+              github.com/KBVE/kbve, and issues or pull requests are welcome.
 editUrl: false
 lastUpdated: false
 prev: false
 next: false
 ---
 
-import { Aside, Card, CardGrid } from '@astrojs/starlight/components';
+import ArcadeFeatureBoard from '@/components/arcade/ArcadeFeatureBoard.astro';
+import ArcadeJsonLd from '@/components/arcade/ArcadeJsonLd.astro';
 import BentoShell from '@/components/hero/BentoShell.astro';
 import {
 	ArcadeHero,
@@ -36,6 +80,8 @@ import {
 } from '@/components/arcade/arcadeGames';
 
 import Adsense from '@/components/ads/Adsense.astro';
+
+<ArcadeJsonLd />
 
 <ArcadeTooltipController client:only="react" />
 
@@ -80,51 +126,67 @@ fan-favorite classics and grow from there.
 	{ARCADE_UPCOMING.map((game) => <ArcadeGameCard {...game} />)}
 </ArcadeGameGrid>
 
-<CardGrid>
-	<Card title="Mobile-friendly" icon="seti:lock">
-		Every game we ship plays on touch — drag, tap, and gesture support are
-		first-class. Rotate your phone to landscape and the same canvas you play
-		on desktop fits the screen.
-	</Card>
-	<Card title="Open source" icon="github">
-		Most of the arcade lives in the public KBVE monorepo. PRs and bug
-		reports welcome — see
-		[github.com/KBVE/kbve](https://github.com/KBVE/kbve).
-	</Card>
-</CardGrid>
+<ArcadeFeatureBoard
+	items={[
+		{
+			title: 'Mobile-friendly',
+			icon: 'gamepad',
+			body: 'Every game we ship plays on touch — drag, tap, and gesture support are first-class. Rotate your phone to landscape and the same canvas you play on desktop fits the screen.',
+		},
+		{
+			title: 'Open source',
+			icon: 'gitFork',
+			body: 'Most of the arcade lives in the public KBVE monorepo. PRs and bug reports welcome — see <a href="https://github.com/KBVE/kbve">github.com/KBVE/kbve</a>.',
+		},
+	]}
+/>
 
 </BentoShell>
 
 <BentoShell id="built" eyebrow="Under the hood" heading="How it's built">
 
-The arcade is part of [kbve.com](https://kbve.com), a static Astro
-Starlight site. Each game embeds via a `client:only` React island so
-the heavy runtime (Phaser, Bevy/WASM, R3F) is only fetched when you
-actually open the game's page — the rest of the site stays light.
+<ArcadeFeatureBoard
+	columns={3}
+	items={[
+		{
+			title: 'Static Astro site',
+			icon: 'zap',
+			body: 'The arcade is part of <a href="https://kbve.com">kbve.com</a>, a static Astro Starlight site. Every page ships prerendered HTML.',
+		},
+		{
+			title: 'Islands per game',
+			icon: 'layers',
+			body: 'Each game embeds via a <code>client:only</code> island, so the heavy runtime — Phaser, Bevy/WASM, R3F — is only fetched when you open that game. First load pulls the bundle once; later visits reuse it.',
+		},
+		{
+			title: 'Controls cheatsheet',
+			icon: 'terminal',
+			body: 'Patterns shared across the arcade:',
+			list: [
+				'<strong>Drag</strong> with mouse or finger to move cards and units.',
+				'<strong>Tap / double-click</strong> a card to send it home.',
+				'<strong>Click stock / deck</strong> to draw.',
+				'<strong>Theater</strong> and <strong>Fullscreen</strong> buttons sit up top.',
+				'Shortcuts where applicable: <code>N</code> new game, <code>Z</code> undo.',
+			],
+		},
+	]}
+/>
 
-<Aside type="tip" title="Performance">
-	First-load on a brand-new game page kicks off a one-time bundle download.
-	Subsequent navigations inside the arcade share cached assets and feel
-	near-instant.
-</Aside>
-
-### Controls cheatsheet
-
-A few common patterns across the arcade:
-
-- **Drag** with the mouse or finger to move cards / units.
-- **Tap / double-click** a card to send it home (e.g. solitaire
-  foundation).
-- **Click stock / deck** to draw.
-- Most pages support a **Theater** button (focus mode) and a
-  **Fullscreen** button up top.
-- Keyboard shortcuts where applicable: `N` = new game, `Z` = undo.
-
-<Aside type="note" title="Spot a bug?">
-	The arcade is under active development — if a game misbehaves, please [open
-	an issue](https://github.com/KBVE/kbve/issues) with the title and your
-	browser/device. We move fast on player feedback.
-</Aside>
+<ArcadeFeatureBoard
+	items={[
+		{
+			title: 'Spot a bug?',
+			icon: 'warn',
+			body: 'The arcade is under active development. If a game misbehaves, <a href="https://github.com/KBVE/kbve/issues">open an issue</a> with the title and your browser or device — we move fast on player feedback.',
+		},
+		{
+			title: 'Free to play',
+			icon: 'sparkles',
+			body: 'No account, no install, no paywall. Ads keep the lights on; everything else is on the house.',
+		},
+	]}
+/>
 
 </BentoShell>
 

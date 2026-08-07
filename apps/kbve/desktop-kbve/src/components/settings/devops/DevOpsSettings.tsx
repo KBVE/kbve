@@ -120,13 +120,15 @@ export const DevOpsSettings: React.FC = () => {
 			}
 		};
 
-		checkDependencies();
-		loadEnabledAgents();
-		loadSandboxSetting();
-		checkClaudeAuthVolume();
+		void Promise.resolve().then(() => {
+			checkDependencies();
+			loadEnabledAgents();
+			loadSandboxSetting();
+			checkClaudeAuthVolume();
 
-		// Initialize DevOps store for agents and sessions
-		initializeDevOpsStore();
+			// Initialize DevOps store for agents and sessions
+			initializeDevOpsStore();
+		});
 
 		// Cleanup on unmount
 		return () => {

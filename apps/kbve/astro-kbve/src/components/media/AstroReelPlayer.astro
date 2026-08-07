@@ -105,6 +105,27 @@ import ReactReelDiagnostics from '@/components/media/ReactReelDiagnostics';
 		font-size: 0.875rem;
 	}
 
+	:global(.reel-player__badge) {
+		position: absolute;
+		top: 0.75rem;
+		left: 0.75rem;
+		display: flex;
+		align-items: center;
+		gap: 0.4rem;
+		max-width: min(90%, 32rem);
+		padding: 0.35rem 0.6rem;
+		border-radius: 0.4rem;
+		background: rgba(17, 24, 39, 0.82);
+		color: #e5e7eb;
+		font-size: 0.8125rem;
+		line-height: 1.3;
+		pointer-events: none;
+	}
+
+	:global(.reel-player__badge--warn) {
+		color: #fbbf24;
+	}
+
 	:global(.reel-player__meta) {
 		color: #9ca3af;
 		font-size: 0.8125rem;

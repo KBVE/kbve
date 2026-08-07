@@ -1,11 +1,11 @@
 {
-	"generated_at": "2026-08-06T04:13:32.295Z",
+	"generated_at": "2026-08-07T03:51:11.385Z",
 	"summary": {
 		"total_protos": 47,
-		"registered": 38,
-		"orphaned": 8,
+		"registered": 0,
+		"orphaned": 46,
 		"utility_only": 1,
-		"total_messages": 829,
+		"total_messages": 831,
 		"total_enums": 171
 	},
 	"protos": [
@@ -68,11 +68,11 @@
 			"message_count": 35,
 			"enum_count": 0,
 			"codegen": {
-				"registered": true,
-				"name": "forgejo",
-				"zod_config": "packages/data/codegen/forgejo-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/forgejo-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/forgejo.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -83,11 +83,11 @@
 			"message_count": 2,
 			"enum_count": 2,
 			"codegen": {
-				"registered": true,
-				"name": "git_common",
-				"zod_config": "packages/data/codegen/git_common-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/git_common-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/git_common.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -122,11 +122,11 @@
 			"message_count": 23,
 			"enum_count": 0,
 			"codegen": {
-				"registered": true,
-				"name": "github",
-				"zod_config": "packages/data/codegen/github-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/github-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/github.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -148,11 +148,11 @@
 			"message_count": 10,
 			"enum_count": 4,
 			"codegen": {
-				"registered": true,
-				"name": "icons",
-				"zod_config": "packages/data/codegen/icons-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/icons-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/icons.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -201,11 +201,11 @@
 			"message_count": 29,
 			"enum_count": 7,
 			"codegen": {
-				"registered": true,
-				"name": "itemdb",
-				"zod_config": "packages/data/codegen/itemdb-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/itemdb-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/itemdb.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -225,11 +225,11 @@
 			"message_count": 8,
 			"enum_count": 2,
 			"codegen": {
-				"registered": true,
-				"name": "argocd",
-				"zod_config": "packages/data/codegen/argocd-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/argocd-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/argocd.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -257,11 +257,11 @@
 			"message_count": 16,
 			"enum_count": 1,
 			"codegen": {
-				"registered": true,
-				"name": "clickhouse",
-				"zod_config": "packages/data/codegen/clickhouse-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/clickhouse-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/clickhouse.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -279,11 +279,11 @@
 			"message_count": 6,
 			"enum_count": 0,
 			"codegen": {
-				"registered": true,
-				"name": "groq",
-				"zod_config": "packages/data/codegen/groq-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/groq-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/groq.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -300,11 +300,11 @@
 			"message_count": 5,
 			"enum_count": 2,
 			"codegen": {
-				"registered": true,
-				"name": "jedi",
-				"zod_config": "packages/data/codegen/jedi-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/jedi-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/jedi.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -338,11 +338,11 @@
 			"message_count": 22,
 			"enum_count": 0,
 			"codegen": {
-				"registered": true,
-				"name": "redis",
-				"zod_config": "packages/data/codegen/redis-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/redis-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/redis.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -367,11 +367,11 @@
 			"message_count": 13,
 			"enum_count": 0,
 			"codegen": {
-				"registered": true,
-				"name": "twitch",
-				"zod_config": "packages/data/codegen/twitch-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/twitch-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/twitch.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -420,11 +420,11 @@
 			"message_count": 29,
 			"enum_count": 7,
 			"codegen": {
-				"registered": true,
-				"name": "jobboard",
-				"zod_config": "packages/data/codegen/jobboard-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/jobboard-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/jobboard.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -448,11 +448,11 @@
 			"message_count": 12,
 			"enum_count": 1,
 			"codegen": {
-				"registered": true,
-				"name": "agents",
-				"zod_config": "packages/data/codegen/agents-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/agents-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/agents.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -463,11 +463,11 @@
 			"message_count": 1,
 			"enum_count": 2,
 			"codegen": {
-				"registered": true,
-				"name": "chat",
-				"zod_config": "packages/data/codegen/chat-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/chat-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/chat.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -495,11 +495,11 @@
 			"message_count": 16,
 			"enum_count": 2,
 			"codegen": {
-				"registered": true,
-				"name": "ci_registry",
-				"zod_config": "packages/data/codegen/ci_registry-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/ci_registry-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/ci_registry.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -522,11 +522,11 @@
 			"message_count": 11,
 			"enum_count": 0,
 			"codegen": {
-				"registered": true,
-				"name": "common",
-				"zod_config": "packages/data/codegen/common-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/common-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/common.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -576,11 +576,11 @@
 			"message_count": 31,
 			"enum_count": 6,
 			"codegen": {
-				"registered": true,
-				"name": "discordsh",
-				"zod_config": "packages/data/codegen/discordsh-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/discordsh-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/discordsh.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -641,11 +641,11 @@
 			"message_count": 23,
 			"enum_count": 3,
 			"codegen": {
-				"registered": true,
-				"name": "firecracker",
-				"zod_config": "packages/data/codegen/firecracker-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/firecracker-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/firecracker.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -702,11 +702,11 @@
 			"message_count": 30,
 			"enum_count": 14,
 			"codegen": {
-				"registered": true,
-				"name": "forum",
-				"zod_config": "packages/data/codegen/forum-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/forum-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/forum.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -850,11 +850,11 @@
 			"message_count": 21,
 			"enum_count": 3,
 			"codegen": {
-				"registered": true,
-				"name": "mc_lot",
-				"zod_config": "packages/data/codegen/mc_lot-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/mc_lot-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/mc_lot.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -925,11 +925,11 @@
 			"message_count": 52,
 			"enum_count": 6,
 			"codegen": {
-				"registered": true,
-				"name": "osrs",
-				"zod_config": "packages/data/codegen/osrs-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/osrs-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/osrs.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -945,11 +945,11 @@
 			"message_count": 4,
 			"enum_count": 0,
 			"codegen": {
-				"registered": true,
-				"name": "pool",
-				"zod_config": "packages/data/codegen/pool-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/pool-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/pool.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -969,11 +969,11 @@
 			"message_count": 8,
 			"enum_count": 1,
 			"codegen": {
-				"registered": true,
-				"name": "profile",
-				"zod_config": "packages/data/codegen/profile-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/profile-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/profile.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -989,11 +989,11 @@
 			"message_count": 4,
 			"enum_count": 1,
 			"codegen": {
-				"registered": true,
-				"name": "rcon",
-				"zod_config": "packages/data/codegen/rcon-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/rcon-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/rcon.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -1032,11 +1032,11 @@
 			"message_count": 27,
 			"enum_count": 0,
 			"codegen": {
-				"registered": true,
-				"name": "schema",
-				"zod_config": "packages/data/codegen/schema-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/schema-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/schema.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -1055,11 +1055,11 @@
 			"message_count": 7,
 			"enum_count": 0,
 			"codegen": {
-				"registered": true,
-				"name": "snapshot",
-				"zod_config": "packages/data/codegen/snapshot-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/snapshot-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/snapshot.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -1081,11 +1081,11 @@
 			"message_count": 10,
 			"enum_count": 1,
 			"codegen": {
-				"registered": true,
-				"name": "staff",
-				"zod_config": "packages/data/codegen/staff-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/staff-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/staff.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -1101,11 +1101,11 @@
 			"message_count": 4,
 			"enum_count": 0,
 			"codegen": {
-				"registered": true,
-				"name": "telemetry",
-				"zod_config": "packages/data/codegen/telemetry-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/telemetry-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/telemetry.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -1125,11 +1125,11 @@
 			"message_count": 8,
 			"enum_count": 3,
 			"codegen": {
-				"registered": true,
-				"name": "vm",
-				"zod_config": "packages/data/codegen/vm-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/vm-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/vm.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -1140,11 +1140,11 @@
 			"message_count": 2,
 			"enum_count": 4,
 			"codegen": {
-				"registered": true,
-				"name": "workflow",
-				"zod_config": "packages/data/codegen/workflow-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/workflow-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/workflow.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -1267,11 +1267,11 @@
 			"message_count": 74,
 			"enum_count": 36,
 			"codegen": {
-				"registered": true,
-				"name": "mapdb",
-				"zod_config": "packages/data/codegen/mapdb-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/mapdb-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/mapdb.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -1370,11 +1370,11 @@
 			"message_count": 75,
 			"enum_count": 11,
 			"codegen": {
-				"registered": true,
-				"name": "meme",
-				"zod_config": "packages/data/codegen/meme-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/meme-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/meme.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -1432,11 +1432,11 @@
 			"message_count": 30,
 			"enum_count": 15,
 			"codegen": {
-				"registered": true,
-				"name": "npcdb",
-				"zod_config": "packages/data/codegen/npcdb-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/npcdb-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/npcdb.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -1485,11 +1485,11 @@
 			"message_count": 37,
 			"enum_count": 2,
 			"codegen": {
-				"registered": true,
-				"name": "ows",
-				"zod_config": "packages/data/codegen/ows-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/ows-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/ows.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -1502,17 +1502,19 @@
 				"ProfessionUnlock",
 				"ProfessionExtension",
 				"Profession",
-				"ProfessionRegistry"
+				"ProfessionRegistry",
+				"KeyList",
+				"XrefIndex"
 			],
 			"enums": ["ProfessionCategory", "CurveKind"],
-			"message_count": 7,
+			"message_count": 9,
 			"enum_count": 2,
 			"codegen": {
-				"registered": true,
-				"name": "professiondb",
-				"zod_config": "packages/data/codegen/professiondb-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/professiondb-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/professiondb.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -1546,11 +1548,11 @@
 			"message_count": 15,
 			"enum_count": 6,
 			"codegen": {
-				"registered": true,
-				"name": "questdb",
-				"zod_config": "packages/data/codegen/questdb-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/questdb-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/questdb.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -1635,11 +1637,11 @@
 			"message_count": 49,
 			"enum_count": 0,
 			"codegen": {
-				"registered": true,
-				"name": "rows",
-				"zod_config": "packages/data/codegen/rows-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/rows-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/rows.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -1655,11 +1657,11 @@
 			"message_count": 2,
 			"enum_count": 4,
 			"codegen": {
-				"registered": true,
-				"name": "spelldb",
-				"zod_config": "packages/data/codegen/spelldb-zod-config.json",
-				"zod_output": "packages/data/codegen/generated/spelldb-schema.ts",
-				"binpb": "packages/data/codegen/descriptors/spelldb.binpb"
+				"registered": false,
+				"name": null,
+				"zod_config": null,
+				"zod_output": null,
+				"binpb": null
 			}
 		},
 		{
@@ -1710,15 +1712,53 @@
 	],
 	"orphaned_protos": [
 		"packages/data/proto/empire/empire.proto",
+		"packages/data/proto/git/forgejo.proto",
+		"packages/data/proto/git/git_common.proto",
+		"packages/data/proto/git/github.proto",
+		"packages/data/proto/icon/icons.proto",
+		"packages/data/proto/item/itemdb.proto",
+		"packages/data/proto/jedi/argocd.proto",
+		"packages/data/proto/jedi/clickhouse.proto",
+		"packages/data/proto/jedi/groq.proto",
+		"packages/data/proto/jedi/jedi.proto",
+		"packages/data/proto/jedi/redis.proto",
+		"packages/data/proto/jedi/twitch.proto",
+		"packages/data/proto/jobboard/jobboard.proto",
+		"packages/data/proto/kbve/agents.proto",
+		"packages/data/proto/kbve/chat.proto",
+		"packages/data/proto/kbve/ci_registry.proto",
+		"packages/data/proto/kbve/common.proto",
+		"packages/data/proto/kbve/discordsh.proto",
+		"packages/data/proto/kbve/firecracker.proto",
+		"packages/data/proto/kbve/forum.proto",
 		"packages/data/proto/kbve/kbve.proto",
 		"packages/data/proto/kbve/kbveproto.proto",
 		"packages/data/proto/kbve/mc/mc_blocks.proto",
 		"packages/data/proto/kbve/mc/mc_enchants.proto",
 		"packages/data/proto/kbve/mc/mc_items.proto",
+		"packages/data/proto/kbve/mc/mc_lot.proto",
+		"packages/data/proto/kbve/osrs.proto",
+		"packages/data/proto/kbve/pool.proto",
+		"packages/data/proto/kbve/profile.proto",
+		"packages/data/proto/kbve/rcon.proto",
+		"packages/data/proto/kbve/schema.proto",
+		"packages/data/proto/kbve/snapshot.proto",
+		"packages/data/proto/kbve/staff.proto",
+		"packages/data/proto/kbve/telemetry.proto",
+		"packages/data/proto/kbve/vm.proto",
+		"packages/data/proto/kbve/workflow.proto",
+		"packages/data/proto/map/mapdb.proto",
+		"packages/data/proto/meme/meme.proto",
+		"packages/data/proto/npc/npcdb.proto",
+		"packages/data/proto/ows/ows.proto",
+		"packages/data/proto/profession/professiondb.proto",
+		"packages/data/proto/quest/questdb.proto",
 		"packages/data/proto/referral/referral.proto",
+		"packages/data/proto/rows/rows.proto",
+		"packages/data/proto/spell/spelldb.proto",
 		"packages/data/proto/wallet/wallet.proto"
 	],
-	"checked_at": "2026-08-06T04:13:00Z",
-	"drift_detected": false,
-	"drift_files": []
+	"checked_at": "2026-08-07T03:50:43Z",
+	"drift_detected": true,
+	"drift_files": ["packages/data/codegen/generated/professiondb-schema.ts"]
 }

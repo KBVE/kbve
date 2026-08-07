@@ -90,7 +90,7 @@ export const IssueQueue: React.FC<IssueQueueProps> = ({
 	}, [activeRepo, checkAuth]);
 
 	useEffect(() => {
-		loadIssues();
+		void Promise.resolve().then(loadIssues);
 	}, [loadIssues]);
 
 	const handleSetRepo = () => {
@@ -133,7 +133,7 @@ export const IssueQueue: React.FC<IssueQueueProps> = ({
 				.agentVoiceAnnounce(
 					`Claude agent spawned on issue ${issue.number}`,
 				)
-				.catch(() => {});
+				.catch(() => undefined);
 			onAgentSpawned?.();
 			await loadIssues(); // Refresh to show updated labels
 		} catch (err) {

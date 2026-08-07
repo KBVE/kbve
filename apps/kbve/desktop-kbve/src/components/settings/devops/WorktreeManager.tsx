@@ -86,7 +86,7 @@ export const WorktreeManager: React.FC<WorktreeManagerProps> = ({
 	}, [detectRepoPath]);
 
 	useEffect(() => {
-		loadWorktrees();
+		void Promise.resolve().then(loadWorktrees);
 	}, [loadWorktrees]);
 
 	const handleRemoveWorktree = async (

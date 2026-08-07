@@ -114,12 +114,14 @@ const isNavGroup = (entry: DashboardNavEntry): entry is DashboardNavGroup =>
 const toStarlightLink = (
 	item: DashboardNavItem,
 	pathname: string,
-): StarlightLink => ({
-	type: 'link',
-	label: item.label,
-	href: item.href,
-	isCurrent: normalize(item.href) === normalize(pathname),
-});
+): StarlightLink =>
+	({
+		type: 'link',
+		label: item.label,
+		href: item.href,
+		icon: item.icon,
+		isCurrent: normalize(item.href) === normalize(pathname),
+	}) as StarlightLink;
 
 /**
  * Map a hand-authored nav module onto Starlight's sidebar shape so the route

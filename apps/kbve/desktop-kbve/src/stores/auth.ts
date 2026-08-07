@@ -78,36 +78,35 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 type SetAuth = (partial: Partial<AuthState>) => void;
 
 async function initInner(set: SetAuth, _get: () => AuthState): Promise<void> {
-	{
-		await onAuthCallback(async (url) => {
-			set({ phase: 'authing' });
-			try {
-				const session = await authApi.complete(url);
-				await saveSession(session);
-				set({
-					session,
-					user: toAuthUser(session),
-					phase: 'authed',
-					error: null,
-				});
-			} catch (e) {
-				set({ phase: 'anon', error: String(e) });
-			}
-		});
-
-		const stored = await loadSession();
-		if (!stored) return;
+	await onAuthCallback(async (url) => {
+		set({ phase: 'authing' });
 		try {
-			await authApi.restore(stored);
-			const fresh = await freshSession(stored);
-			if (fresh !== stored) await saveSession(fresh);
+			const session = await authApi.complete(url);
+			await saveSession(session);
 			set({
-				session: fresh,
-				user: toAuthUser(fresh),
+				session,
+				user: toAuthUser(session),
 				phase: 'authed',
+				error: null,
 			});
-		} catch {
-			await saveSession(null);
+		} catch (e) {
+			set({ phase: 'anon', error: String(e) });
 		}
+	});
+
+	const stored = await loadSession();
+	if (!stored) return;
+	try {
+		await authApi.restore(stored);
+		const fresh = await freshSession(stored);
+		if (fresh !== stored) await saveSession(fresh);
+		set({
+			session: fresh,
+			user: toAuthUser(fresh),
+			phase: 'authed',
+		});
+	} catch {
+		await saveSession(null);
 	}
+
 }

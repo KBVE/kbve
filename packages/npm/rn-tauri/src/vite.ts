@@ -40,7 +40,6 @@ export function kbveRnTauri({ packagesDir }: KbveRnTauriOptions): Plugin {
 		config: () => ({
 			resolve: {
 				alias: [
-					{ find: /^react-native$/, replacement: 'react-native-web' },
 					{
 						find: /^@kbve\/rn\/ui$/,
 						replacement: `${rn}/ui/index.ts`,
@@ -57,9 +56,6 @@ export function kbveRnTauri({ packagesDir }: KbveRnTauriOptions): Plugin {
 					{ find: /^@kbve\/core$/, replacement: `${core}/index.ts` },
 				],
 				extensions: WEB_EXTENSIONS,
-			},
-			optimizeDeps: {
-				include: ['react-native-web'],
 			},
 			define: {
 				global: 'globalThis',
