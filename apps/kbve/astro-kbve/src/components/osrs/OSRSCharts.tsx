@@ -285,8 +285,17 @@ function formatTime(timestamp: number, timeRange: TimeRangeOption): string {
 }
 
 interface TooltipData {
+	/** Anchor in viewBox user units, for marks drawn inside the SVG. */
 	x: number;
 	y: number;
+	/** Same anchor in CSS pixels relative to the chart container, for the
+	 * absolutely-positioned tooltip. The two differ whenever the rendered
+	 * element is not exactly `width` x `height` CSS pixels, which is almost
+	 * always — the SVG is width:100% inside a fixed-height box. */
+	clientX: number;
+	clientY: number;
+	/** Rendered width of the SVG box in CSS pixels, for clamping. */
+	boxWidth: number;
 	point: TimeSeriesPoint;
 	index: number;
 }
@@ -439,7 +448,24 @@ function LineChart({
 
 			const svg = e.currentTarget;
 			const rect = svg.getBoundingClientRect();
-			const x = ((e.clientX - rect.left) / rect.width) * width;
+
+			// The viewBox does NOT map linearly onto the element box. With the
+			// default preserveAspectRatio (xMidYMid meet) the drawing is scaled
+			// uniformly and centred, so once the box aspect diverges from
+			// width:height the content is letterboxed and a naive
+			// (clientX - rect.left) / rect.width mapping picks up an offset
+			// that grows toward the edges. getScreenCTM() carries the real
+			// transform, so inverting it is exact under any aspect ratio.
+			const ctm = svg.getScreenCTM();
+			let x: number;
+			if (ctm) {
+				const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(
+					ctm.inverse(),
+				);
+				x = pt.x;
+			} else {
+				x = ((e.clientX - rect.left) / rect.width) * width;
+			}
 
 			// Find closest data point
 			const targetTime =
@@ -466,9 +492,25 @@ function LineChart({
 						? yScale(closest.avgLowPrice)
 						: height / 2;
 
+			// Project the anchor back into CSS pixels so the tooltip, which is
+			// a sibling DOM node rather than an SVG child, lands on the point
+			// it describes instead of at raw viewBox coordinates.
+			let clientX = (pointX / width) * rect.width;
+			let clientY = (pointY / height) * rect.height;
+			if (ctm) {
+				const screenPt = new DOMPoint(pointX, pointY).matrixTransform(
+					ctm,
+				);
+				clientX = screenPt.x - rect.left;
+				clientY = screenPt.y - rect.top;
+			}
+
 			onHover({
 				x: pointX,
 				y: pointY,
+				clientX,
+				clientY,
+				boxWidth: rect.width,
 				point: closest,
 				index: closestIndex,
 			});
@@ -1001,13 +1043,24 @@ export default function OSRSCharts({
 		fetchData();
 	}, [fetchData]);
 
-	// Calculate tooltip position (keep it inside bounds)
+	// Calculate tooltip position (keep it inside bounds).
+	// Clamped against the measured box rather than the old hardcoded 500,
+	// which was a pixel guess at a 700-unit viewBox and so pinned the tooltip
+	// mid-chart on wide layouts while overflowing narrow ones. Flips to the
+	// left of the cursor when it would otherwise run off the right edge.
 	const tooltipStyle = useMemo(() => {
 		if (!tooltip) return {};
+		// minWidth 150 + 0.75rem padding each side + 1px borders.
+		const TOOLTIP_WIDTH = 176;
+		const GAP = 15;
+		const flip = tooltip.clientX + GAP + TOOLTIP_WIDTH > tooltip.boxWidth;
+		const left = flip
+			? Math.max(tooltip.clientX - GAP - TOOLTIP_WIDTH, 0)
+			: tooltip.clientX + GAP;
 		return {
 			...styles.tooltip,
-			left: Math.min(tooltip.x + 15, 500),
-			top: Math.max(tooltip.y - 100, 10),
+			left,
+			top: Math.max(tooltip.clientY - 100, 10),
 		};
 	}, [tooltip]);
 
