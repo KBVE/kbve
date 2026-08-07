@@ -33,6 +33,10 @@ spec:
                         name: api
                       - containerPort: 9002
                         name: alertmanager
+                      - containerPort: 4317
+                        name: otel-grpc
+                      - containerPort: 4318
+                        name: otel-http
                   env:
                       - name: VECTOR_SELF_NODE_NAME
                         valueFrom:
@@ -159,5 +163,13 @@ spec:
           targetPort: 9002
           protocol: TCP
           name: alertmanager
+        - port: 4317
+          targetPort: 4317
+          protocol: TCP
+          name: otel-grpc
+        - port: 4318
+          targetPort: 4318
+          protocol: TCP
+          name: otel-http
     selector:
         app: supabase-vector
