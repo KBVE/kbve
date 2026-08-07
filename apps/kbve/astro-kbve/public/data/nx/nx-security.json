@@ -1,20 +1,20 @@
 {
-	"generated_at": "2026-08-06T04:15:40Z",
+	"generated_at": "2026-08-07T03:53:59Z",
 	"summary": {
 		"critical": 4,
-		"high": 47,
-		"medium": 54,
-		"low": 10,
+		"high": 49,
+		"medium": 59,
+		"low": 11,
 		"info": 30
 	},
 	"ecosystems": {
 		"npm": {
-			"total": 100,
+			"total": 107,
 			"severities": {
 				"critical": 4,
-				"high": 47,
-				"medium": 39,
-				"low": 10,
+				"high": 49,
+				"medium": 43,
+				"low": 11,
 				"info": 0
 			},
 			"advisories": [
@@ -698,13 +698,6 @@
 					"url": "https://github.com/advisories/GHSA-rgw5-rvv9-x895"
 				},
 				{
-					"id": "1136581",
-					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
-					"severity": "high",
-					"package": "fast-uri",
-					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
-				},
-				{
 					"id": "1137242",
 					"title": "undici vulnerable to HTTP response queue poisoning via keep-alive socket reuse",
 					"severity": "low",
@@ -717,15 +710,71 @@
 					"severity": "low",
 					"package": "undici",
 					"url": "https://github.com/advisories/GHSA-35p6-xmwp-9g52"
+				},
+				{
+					"id": "1138075",
+					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
+					"severity": "high",
+					"package": "fast-uri",
+					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
+				},
+				{
+					"id": "1138097",
+					"title": "Mermaid configuration APIs allow prototype pollution",
+					"severity": "low",
+					"package": "mermaid",
+					"url": "https://github.com/advisories/GHSA-c4c3-pg64-4m4v"
+				},
+				{
+					"id": "1138099",
+					"title": "Mermaid allows CSS injection applying to sibling elements of the diagram",
+					"severity": "medium",
+					"package": "mermaid",
+					"url": "https://github.com/advisories/GHSA-6x64-9x62-f2gx"
+				},
+				{
+					"id": "1138100",
+					"title": "Mermaid Architecture diagrams are vulnerable to prototype pollution",
+					"severity": "medium",
+					"package": "mermaid",
+					"url": "https://github.com/advisories/GHSA-3rrr-jr9j-h3q3"
+				},
+				{
+					"id": "1138101",
+					"title": "Mermaid XY Charts are vulnerable to an infinite loop DoS",
+					"severity": "medium",
+					"package": "mermaid",
+					"url": "https://github.com/advisories/GHSA-2v8p-3f2j-5mp7"
+				},
+				{
+					"id": "1138113",
+					"title": "Mermaid radar diagrams are vulnerable to DoS",
+					"severity": "medium",
+					"package": "mermaid",
+					"url": "https://github.com/advisories/GHSA-rhh3-jpg6-66xh"
+				},
+				{
+					"id": "1138114",
+					"title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) \u2014 CVE-2026-59870 fix not backported",
+					"severity": "high",
+					"package": "js-yaml",
+					"url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj"
+				},
+				{
+					"id": "1138115",
+					"title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) \u2014 CVE-2026-59870 fix not backported",
+					"severity": "high",
+					"package": "js-yaml",
+					"url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj"
 				}
 			]
 		},
 		"cargo": {
-			"total": 45,
+			"total": 46,
 			"severities": {
 				"critical": 0,
 				"high": 0,
-				"medium": 15,
+				"medium": 16,
 				"low": 0,
 				"info": 30
 			},
@@ -764,6 +813,13 @@
 					"severity": "medium",
 					"package": "quick-xml",
 					"url": "https://github.com/tafia/quick-xml/issues/970"
+				},
+				{
+					"id": "RUSTSEC-2026-0235",
+					"title": "Insufficient archive validation can cause out-of-bounds reads in archives containing Rc/Arc",
+					"severity": "medium",
+					"package": "rkyv",
+					"url": "https://github.com/rkyv/rkyv/issues/670"
 				},
 				{
 					"id": "RUSTSEC-2023-0071",
