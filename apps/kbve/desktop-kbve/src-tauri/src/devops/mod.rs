@@ -9,7 +9,9 @@
 //! - Agent orchestration
 //! - Pipeline state tracking
 
+pub mod actor;
 mod dependencies;
+pub mod detector;
 pub mod docker;
 pub mod github;
 pub mod operations;

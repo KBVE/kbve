@@ -607,6 +607,8 @@ pub fn run() {
                 log::warn!("Failed to create master tmux session: {}", e);
             }
 
+            app.manage(devops::actor::spawn(app.handle().clone()));
+
             Ok(())
         })
         .invoke_handler(builder.invoke_handler())
