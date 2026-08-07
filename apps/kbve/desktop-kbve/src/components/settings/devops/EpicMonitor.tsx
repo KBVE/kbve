@@ -151,7 +151,7 @@ export const EpicMonitor: React.FC = () => {
 					status,
 				}),
 			);
-		} catch (err) {
+		} catch {
 			toast.error(t('devops.epicMonitor.phaseUpdateFailed'));
 		} finally {
 			setMarkingPhase(null);

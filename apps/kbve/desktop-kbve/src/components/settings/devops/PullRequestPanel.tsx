@@ -116,7 +116,7 @@ export const PullRequestPanel: React.FC<PullRequestPanelProps> = ({
 	);
 
 	useEffect(() => {
-		loadPrs();
+		void Promise.resolve().then(loadPrs);
 	}, [loadPrs]);
 
 	const handleSetRepo = () => {

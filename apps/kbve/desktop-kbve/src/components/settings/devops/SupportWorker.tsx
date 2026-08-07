@@ -35,7 +35,7 @@ export const SupportWorker: React.FC = () => {
 	// Fetch output when session is running
 	useEffect(() => {
 		if (!isRunning) {
-			setOutput('');
+			void Promise.resolve().then(() => setOutput(''));
 			return;
 		}
 
