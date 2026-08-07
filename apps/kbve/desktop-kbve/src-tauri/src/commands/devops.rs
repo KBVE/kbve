@@ -132,6 +132,57 @@ pub fn attach_tmux_session(session_name: String) -> Result<(), String> {
     }
 }
 
+/// Open an embedded PTY attached to a tmux session for xterm.js rendering.
+#[tauri::command]
+#[specta::specta]
+pub async fn open_tmux_terminal(
+    session_name: String,
+    cols: u16,
+    rows: u16,
+    pty: tauri::State<'_, std::sync::Arc<crate::pty::PtyManager>>,
+) -> Result<String, String> {
+    let _ = tokio::process::Command::new("tmux")
+        .args([
+            "-L",
+            crate::devops::tmux::SOCKET_NAME,
+            "set-option",
+            "-t",
+            &session_name,
+            "window-size",
+            "latest",
+        ])
+        .kill_on_drop(true)
+        .output()
+        .await;
+
+    let pane_id = format!("tmux-attach-{}", session_name);
+    let cfg = crate::pty::PtySpawnConfig {
+        shell: Some("tmux".to_string()),
+        args: vec![
+            "-L".to_string(),
+            crate::devops::tmux::SOCKET_NAME.to_string(),
+            "attach-session".to_string(),
+            "-t".to_string(),
+            session_name,
+        ],
+        cwd: None,
+        rows,
+        cols,
+        env: vec![("TERM".to_string(), "xterm-256color".to_string())],
+    };
+
+    match pty.spawn(pane_id.clone(), cfg.clone()) {
+        Ok(()) => Ok(pane_id),
+        Err(crate::pty::PtyError::AlreadyExists) => {
+            let _ = pty.kill(&pane_id);
+            pty.spawn(pane_id.clone(), cfg)
+                .map(|_| pane_id)
+                .map_err(|e| e.to_string())
+        }
+        Err(e) => Err(e.to_string()),
+    }
+}
+
 /// List all Handy agent tmux sessions.
 #[tauri::command]
 #[specta::specta]

@@ -29,6 +29,7 @@ import {
 	AlertTriangle,
 } from 'lucide-react';
 import { EpicMonitor } from './EpicMonitor';
+import { SessionTerminal } from './SessionTerminal';
 
 const SUPPORT_SESSION_NAME = 'handy-agent-support-worker';
 
@@ -267,11 +268,8 @@ const ExpandedSessionView: React.FC<ExpandedSessionViewProps> = ({
 	isRestarting,
 }) => {
 	const { t } = useTranslation();
-	const [output, setOutput] = useState<string>('');
-	const [loadingOutput, setLoadingOutput] = useState(true);
 	const [inputMessage, setInputMessage] = useState('');
 	const [isSending, setIsSending] = useState(false);
-	const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
 	// Get the current session data from the store to keep it fresh
 	const sessions = useDevOpsStore((state) => state.sessions);
@@ -306,39 +304,6 @@ const ExpandedSessionView: React.FC<ExpandedSessionViewProps> = ({
 		}
 	};
 
-	useEffect(() => {
-		let isMounted = true;
-
-		const fetchOutput = async () => {
-			if (!isMounted) return;
-			try {
-				// Fetch more lines for expanded view
-				const result = await commands.getTmuxSessionOutput(
-					sessionName,
-					100,
-				);
-				if (result.status === 'ok' && isMounted) {
-					setOutput(result.data);
-					setLastUpdated(new Date());
-				}
-			} catch {
-				// Silently fail
-			} finally {
-				if (isMounted) {
-					setLoadingOutput(false);
-				}
-			}
-		};
-
-		fetchOutput();
-		// Refresh output every 2 seconds for expanded view
-		const interval = setInterval(fetchOutput, 2000);
-		return () => {
-			isMounted = false;
-			clearInterval(interval);
-		};
-	}, [sessionName]);
-
 	const getStatusColor = (status: string) => {
 		switch (status) {
 			case 'Running':
@@ -366,21 +331,6 @@ const ExpandedSessionView: React.FC<ExpandedSessionViewProps> = ({
 		} catch {
 			return timestamp;
 		}
-	};
-
-	const formatRelativeTime = (date: Date) => {
-		const seconds = Math.floor(
-			(new Date().getTime() - date.getTime()) / 1000,
-		);
-		if (seconds < 5) return t('devops.sessions.justNow', 'just now');
-		if (seconds < 60)
-			return t('devops.sessions.secondsAgo', '{{count}}s ago', {
-				count: seconds,
-			});
-		const minutes = Math.floor(seconds / 60);
-		return t('devops.sessions.minutesAgo', '{{count}}m ago', {
-			count: minutes,
-		});
 	};
 
 	const handleOpenInTerminal = async () => {
@@ -485,30 +435,11 @@ const ExpandedSessionView: React.FC<ExpandedSessionViewProps> = ({
 							</span>
 						</div>
 					)}
-					{/* Last updated indicator */}
-					<div className="flex items-center gap-2 ml-auto">
-						<RefreshCcw
-							className={`w-3 h-3 ${loadingOutput ? 'animate-spin' : ''}`}
-						/>
-						<span className="text-xs">
-							{lastUpdated
-								? formatRelativeTime(lastUpdated)
-								: t('devops.sessions.updating', 'updating...')}
-						</span>
-					</div>
 				</div>
 
-				{/* Output area - scrollable */}
-				<div className="flex-1 overflow-auto bg-black/40 p-4 min-h-[200px] max-h-[50vh]">
-					{loadingOutput && !output ? (
-						<div className="flex items-center justify-center h-full">
-							<Loader2 className="w-6 h-6 animate-spin text-mid-gray" />
-						</div>
-					) : (
-						<div className="text-sm font-mono text-green-400/90 whitespace-pre-wrap break-words">
-							{output || t('devops.sessions.noOutput')}
-						</div>
-					)}
+				{/* Live terminal attached to the tmux session */}
+				<div className="flex-1 min-h-[300px] max-h-[50vh]">
+					<SessionTerminal sessionName={sessionName} />
 				</div>
 
 				{/* Send message input */}
