@@ -1,0 +1,70 @@
+---
+import { ARCADE_GAMES } from './arcadeGames';
+
+const SITE = 'https://kbve.com';
+const HUB = `${SITE}/arcade/`;
+
+/**
+ * Catalog structured data for the hub. Each playable title is a VideoGame
+ * node; `soon` entries are omitted because they have no page to land on and
+ * an ItemList pointing at anchors dilutes the collection.
+ */
+const playable = ARCADE_GAMES.filter(
+	(game) => game.status !== 'soon' && game.href !== '/arcade/',
+);
+
+const itemList = {
+	'@context': 'https://schema.org',
+	'@type': 'ItemList',
+	name: 'KBVE Arcade games',
+	description:
+		'Browser games built by KBVE — card games, tactics, tower defense, action RPGs and an endless runner, all playable without an install.',
+	url: HUB,
+	numberOfItems: playable.length,
+	itemListElement: playable.map((game, i) => ({
+		'@type': 'ListItem',
+		position: i + 1,
+		item: {
+			'@type': 'VideoGame',
+			name: game.title,
+			url: `${SITE}${game.href}`,
+			description: game.description,
+			genre: game.tags,
+			applicationCategory: 'Game',
+			gamePlatform: 'Web browser',
+			operatingSystem: 'Any',
+			playMode: 'SinglePlayer',
+			isAccessibleForFree: true,
+			publisher: { '@type': 'Organization', name: 'KBVE', url: SITE },
+			offers: {
+				'@type': 'Offer',
+				price: '0',
+				priceCurrency: 'USD',
+				availability: 'https://schema.org/InStock',
+			},
+		},
+	})),
+};
+
+const collection = {
+	'@context': 'https://schema.org',
+	'@type': 'CollectionPage',
+	name: 'KBVE Arcade',
+	url: HUB,
+	description:
+		'Free browser games from KBVE — no install, no account. Blackjack, roguelite Klondike, turn-based tactics, tower defense, a WebGL action RPG, a WebGPU isometric prototype and an endless runner.',
+	isPartOf: { '@type': 'WebSite', name: 'KBVE', url: SITE },
+	about: { '@type': 'Thing', name: 'Browser games' },
+};
+---
+
+<script
+	type="application/ld+json"
+	is:inline
+	set:html={JSON.stringify(collection)}
+/>
+<script
+	type="application/ld+json"
+	is:inline
+	set:html={JSON.stringify(itemList)}
+/>

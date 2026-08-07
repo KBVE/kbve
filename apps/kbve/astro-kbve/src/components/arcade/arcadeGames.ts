@@ -2,6 +2,8 @@ export type ArcadeStatus = 'live' | 'beta' | 'soon';
 
 export interface ArcadeGame {
 	slug: string;
+	/** Registry glyph used by the section rail (see @kbve/rn/icons). */
+	navIcon: string;
 	title: string;
 	href: string;
 	description: string;
@@ -24,6 +26,7 @@ export const ARCADE_STATUS_LABEL: Record<ArcadeStatus, string> = {
 export const ARCADE_GAMES: ArcadeGame[] = [
 	{
 		slug: 'tactics',
+		navIcon: 'kanban',
 		title: 'Frontline Grid',
 		href: '/arcade/tactics/',
 		description:
@@ -35,6 +38,7 @@ export const ARCADE_GAMES: ArcadeGame[] = [
 	},
 	{
 		slug: 'blackjack',
+		navIcon: 'gem',
 		title: 'Blackjack',
 		href: '/arcade/blackjack/',
 		description:
@@ -46,6 +50,7 @@ export const ARCADE_GAMES: ArcadeGame[] = [
 	},
 	{
 		slug: 'solitaire',
+		navIcon: 'layers',
 		title: 'Solitaire',
 		href: '/arcade/solitaire/',
 		description:
@@ -57,6 +62,7 @@ export const ARCADE_GAMES: ArcadeGame[] = [
 	},
 	{
 		slug: 'towerdefense',
+		navIcon: 'shield',
 		title: 'Tower Defense',
 		href: '/arcade/towerdefense/',
 		description:
@@ -68,6 +74,7 @@ export const ARCADE_GAMES: ArcadeGame[] = [
 	},
 	{
 		slug: 'runner',
+		navIcon: 'zap',
 		title: 'Endless Runner',
 		href: '/arcade/runner/',
 		description:
@@ -79,6 +86,7 @@ export const ARCADE_GAMES: ArcadeGame[] = [
 	},
 	{
 		slug: 'arpg',
+		navIcon: 'gamepad',
 		title: 'ARPG',
 		href: '/arcade/arpg/',
 		description:
@@ -90,6 +98,7 @@ export const ARCADE_GAMES: ArcadeGame[] = [
 	},
 	{
 		slug: 'rareicon',
+		navIcon: 'sparkles',
 		title: 'RareIcon (WebGL)',
 		href: '/arcade/rareicon/',
 		description:
@@ -101,6 +110,7 @@ export const ARCADE_GAMES: ArcadeGame[] = [
 	},
 	{
 		slug: 'isometric',
+		navIcon: 'cube',
 		title: 'Isometric',
 		href: '/arcade/isometric/',
 		description:
@@ -112,6 +122,7 @@ export const ARCADE_GAMES: ArcadeGame[] = [
 	},
 	{
 		slug: 'ruffle',
+		navIcon: 'play',
 		title: 'Ruffle Flash player',
 		href: '/arcade/',
 		description:
@@ -123,6 +134,7 @@ export const ARCADE_GAMES: ArcadeGame[] = [
 	},
 	{
 		slug: 'more',
+		navIcon: 'star',
 		title: 'More first-party titles',
 		href: '/arcade/',
 		description:

@@ -1,0 +1,54 @@
+---
+import { iconMarkup } from '../icons/Icon';
+import type { IconName } from '../icons/Icon';
+
+export interface FeatureItem {
+	title: string;
+	icon: IconName;
+	/** Rendered as HTML so entries can carry inline links. */
+	body: string;
+	/** Optional bullet list rendered under the body. */
+	list?: string[];
+}
+
+export interface Props {
+	items: FeatureItem[];
+	columns?: 2 | 3;
+}
+
+const { items, columns = 2 } = Astro.props;
+---
+
+<div class:list={['bento-board', `bento-board--cols-${columns}`]}>
+	{
+		items.map((item) => (
+			<div class="bento-cell bento-featurecard">
+				<h3 class="bento-featurecard__title">{item.title}</h3>
+				<span
+					class="bento-icon-tile"
+					set:html={iconMarkup(item.icon, { size: 18 })}
+				/>
+				<div class="bento-featurecard__body">
+					<p set:html={item.body} />
+					{item.list && (
+						<ul class="bento-list">
+							{item.list.map((li) => (
+								<li set:html={li} />
+							))}
+						</ul>
+					)}
+				</div>
+			</div>
+		))
+	}
+</div>
+
+<style>
+	.bento-featurecard__body p {
+		margin: 0;
+	}
+
+	.bento-featurecard__body :global(a) {
+		color: var(--bento-accent, var(--sl-color-text-accent));
+	}
+</style>

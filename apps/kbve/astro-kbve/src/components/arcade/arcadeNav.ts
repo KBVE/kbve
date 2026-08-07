@@ -36,6 +36,7 @@ export const buildArcadeNav = (): DashboardNavGroup[] =>
 		).map<DashboardNavItem>((game) => ({
 			label: game.title,
 			href: game.href,
+			icon: game.navIcon,
 			copy: game.description,
 		}));
 		if (!items.length) return [];
