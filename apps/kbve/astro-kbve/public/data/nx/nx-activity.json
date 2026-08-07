@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-08-06T04:12:16Z",
+  "generated_at": "2026-08-07T03:49:57Z",
   "window": {
     "days": 7,
-    "since": "2026-07-30T04:12:16Z"
+    "since": "2026-07-31T03:49:57Z"
   },
   "commits": {
-    "total": 536,
+    "total": 551,
     "authors": 4,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 345
+        "commits": 359
       },
       {
         "author": "github-actions[bot]",
-        "commits": 185
+        "commits": 186
       },
       {
         "author": "dependabot[bot]",
@@ -27,158 +27,158 @@
     ],
     "recent": [
       {
-        "sha": "4f50ffd",
+        "sha": "6b893dc",
         "author": "h0lybyte",
-        "message": "Merge pull request #15406 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/4f50ffd0ddf6d9b2a2617c0325fe6577921bd2fb",
-        "date": "2026-08-05T21:57:25Z"
+        "message": "Merge pull request #15474 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/6b893dc825fae29b061974f0f2297459f450852c",
+        "date": "2026-08-06T23:23:19Z"
       },
       {
-        "sha": "880d003",
+        "sha": "697371a",
         "author": "h0lybyte",
-        "message": "fix(isometric): disable physics on harvest instead of removing components (#15407)",
-        "url": "https://github.com/KBVE/kbve/commit/880d0032595b544f74bfc2c2689bf97ec21e41e1",
-        "date": "2026-08-05T21:57:10Z"
+        "message": "Merge pull request #15472 from KBVE/feature/graph-mobile-ux-improvements",
+        "url": "https://github.com/KBVE/kbve/commit/697371ac97d6f7e2125230b8234b7602ec99e70c",
+        "date": "2026-08-06T23:22:24Z"
       },
       {
-        "sha": "7edc14d",
+        "sha": "f79208f",
         "author": "github-actions[bot]",
-        "message": "chore(axum-kbve): post-publish sync to v1.0.274 (#15405)",
-        "url": "https://github.com/KBVE/kbve/commit/7edc14d367de21471d46bd187f7108e4c6186b20",
-        "date": "2026-08-05T21:25:11Z"
+        "message": "chore(axum-kbve): post-publish sync to v1.0.277 (#15473)",
+        "url": "https://github.com/KBVE/kbve/commit/f79208f86bcba25718b1eb0bdfdbd8532c0d0387",
+        "date": "2026-08-06T23:02:09Z"
       },
       {
-        "sha": "d8405e2",
+        "sha": "5b51b52",
         "author": "h0lybyte",
-        "message": "Merge pull request #15404 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/d8405e2dd15c279e180a85e56967bb5e18f1b99e",
-        "date": "2026-08-05T20:48:49Z"
+        "message": "feat(graph): mobile UX improvements and enhanced node visualization",
+        "url": "https://github.com/KBVE/kbve/commit/5b51b526b4e3ea0a073c940f85480f2a5125f337",
+        "date": "2026-08-06T22:56:24Z"
       },
       {
-        "sha": "2bc5e1d",
+        "sha": "40e6db5",
         "author": "h0lybyte",
-        "message": "fix(kbve-wgpu): ship the iOS asset bundle so Bevy can load shaders (#15403)",
-        "url": "https://github.com/KBVE/kbve/commit/2bc5e1d79c25f6f8598bd21d644e1e8b0b9d840e",
-        "date": "2026-08-05T20:25:43Z"
+        "message": "fix(desktop-kbve): boot white-screen \u2014 RN shims, lazy profile view, auth gate hardening (#15471)",
+        "url": "https://github.com/KBVE/kbve/commit/40e6db5143917e6de81c8b723a236015433a2df1",
+        "date": "2026-08-06T22:50:39Z"
       },
       {
-        "sha": "f316a9c",
+        "sha": "0a5dec3",
         "author": "h0lybyte",
-        "message": "Merge pull request #15401 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/f316a9c4b1843095ac0bf468777e3ba8cf300743",
-        "date": "2026-08-05T16:04:54Z"
+        "message": "fix(vector): end-to-end acks on ClickHouse sinks (keep memory buffers) (#15469)",
+        "url": "https://github.com/KBVE/kbve/commit/0a5dec3a53b6551ae812fba33b654262d059644f",
+        "date": "2026-08-06T22:48:00Z"
       },
       {
-        "sha": "6a89641",
+        "sha": "b1f394c",
         "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#15402)",
-        "url": "https://github.com/KBVE/kbve/commit/6a8964130380cea948174bcca13233b90ae55e25",
-        "date": "2026-08-05T16:01:49Z"
+        "message": "chore(edge): post-publish sync to v0.1.49 (#15470)",
+        "url": "https://github.com/KBVE/kbve/commit/b1f394caa1c0e8b87a377a478f9566b984f9faf9",
+        "date": "2026-08-06T22:34:35Z"
       },
       {
-        "sha": "a898d11",
-        "author": "h0lybyte",
-        "message": "chore(kbve): preparing the release of v1.0.274",
-        "url": "https://github.com/KBVE/kbve/commit/a898d11928d676192b455ab1c8da5eaa36fec112",
-        "date": "2026-08-05T15:59:16Z"
-      },
-      {
-        "sha": "3fa095a",
+        "sha": "abf95fb",
         "author": "github-actions[bot]",
-        "message": "chore(agones-palworld-relay): post-publish sync to v0.0.15 (#15400)",
-        "url": "https://github.com/KBVE/kbve/commit/3fa095a0d911d0a1b3c06f309d0090d976b9eec9",
-        "date": "2026-08-05T15:58:36Z"
+        "message": "chore(reel): post-publish sync to v0.1.38 (#15468)",
+        "url": "https://github.com/KBVE/kbve/commit/abf95fb732dc1313f0502a7ee173f6c6972c40d6",
+        "date": "2026-08-06T22:32:11Z"
       },
       {
-        "sha": "5946b57",
+        "sha": "e71c4d1",
         "author": "h0lybyte",
-        "message": "Merge pull request #15395 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/5946b57d9ea5a58e26f0809266ff82f01f430654",
-        "date": "2026-08-05T15:48:54Z"
+        "message": "fix(desktop-kbve): private terminal prompt + vite dev server unbreak (#15467)",
+        "url": "https://github.com/KBVE/kbve/commit/e71c4d1f3eb63bff861fd435c31f5ca4ccd2b3ab",
+        "date": "2026-08-06T22:31:52Z"
       },
       {
-        "sha": "8f01bad",
+        "sha": "d9ce27a",
         "author": "h0lybyte",
-        "message": "refactor(rn): break the ClickHouse dash require cycle (#15398)",
-        "url": "https://github.com/KBVE/kbve/commit/8f01bad0ab134135c2fdadf443aef6dbd757b9b1",
-        "date": "2026-08-05T15:23:11Z"
+        "message": "fix(axum-kbve): 301 /services and /services/ to /service/ (#15466)",
+        "url": "https://github.com/KBVE/kbve/commit/d9ce27a74fa44b01ff78d9893679c93c098a13be",
+        "date": "2026-08-06T22:17:04Z"
       },
       {
-        "sha": "01106df",
+        "sha": "3eb9ade",
         "author": "h0lybyte",
-        "message": "fix(palworld): gameops CH schema + join/leave identity + loud insert failures (#15397)",
-        "url": "https://github.com/KBVE/kbve/commit/01106dfb41fbd0f1b5672cff0a79658bf4d509f8",
-        "date": "2026-08-05T15:23:03Z"
+        "message": "feat(desktop-kbve): persist agent voice, backend announce hooks, unit + e2e tests (#15465)",
+        "url": "https://github.com/KBVE/kbve/commit/3eb9adeb4a4d52866f01a53d4d87ad179b6ece86",
+        "date": "2026-08-06T20:34:16Z"
+      },
+      {
+        "sha": "7fc1395",
+        "author": "h0lybyte",
+        "message": "fix(bevy_supa): apply HTTP timeout per-request so wasm honors it (#15464)",
+        "url": "https://github.com/KBVE/kbve/commit/7fc1395a359e855d0f8d30467faddba046d62fbc",
+        "date": "2026-08-06T20:31:16Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 462,
+    "merged": 463,
     "recent": [
       {
-        "number": 15406,
-        "title": "Release: 1 chore \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15406"
-      },
-      {
-        "number": 15407,
-        "title": "fix(isometric): disable physics on harvest instead of removing components",
+        "number": 15482,
+        "title": "fix(desktop-kbve): resolve 12 lint errors blocking dev\u2192main validate",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15407"
+        "url": "https://github.com/KBVE/kbve/pull/15482"
       },
       {
-        "number": 15405,
-        "title": "Atomic: axum-kbve v1.0.274 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15405"
-      },
-      {
-        "number": 15404,
-        "title": "Release: 1 fix \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15404"
-      },
-      {
-        "number": 15403,
-        "title": "fix(kbve-wgpu): ship the iOS asset bundle so Bevy can load shaders",
+        "number": 15481,
+        "title": "fix(desktop-kbve): optimize RNW with single alias, profile error boundary, boot self-heal",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15403"
+        "url": "https://github.com/KBVE/kbve/pull/15481"
       },
       {
-        "number": 15401,
-        "title": "Release: 2 chores \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15401"
+        "number": 15479,
+        "title": "feat(observability): OpenTelemetry traces via Vector otel source \u2192 traces_raw",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/15479"
       },
       {
-        "number": 15402,
+        "number": 15478,
+        "title": "feat(professiondb): xref-index.binpb + graph-integrity cycle/unreachable checks",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/15478"
+      },
+      {
+        "number": 15477,
+        "title": "fix(desktop-kbve): stop prebundling RN cluster, single alias source",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/15477"
+      },
+      {
+        "number": 15469,
+        "title": "fix(vector): end-to-end acks on ClickHouse sinks (keep memory buffers)",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/15469"
+      },
+      {
+        "number": 15476,
         "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15402"
+        "url": "https://github.com/KBVE/kbve/pull/15476"
       },
       {
-        "number": 15400,
-        "title": "Atomic: agones-palworld-relay v0.0.15 post-publish sync",
+        "number": 15474,
+        "title": "Release: 1 feature, 5 fixes, 4 chores \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15400"
+        "url": "https://github.com/KBVE/kbve/pull/15474"
       },
       {
-        "number": 15395,
-        "title": "Release: 1 feature, 2 fixes, 1 refactor \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15395"
-      },
-      {
-        "number": 15398,
-        "title": "refactor(rn): break the ClickHouse dash require cycle",
+        "number": 15472,
+        "title": "feat(graph): mobile UX improvements and enhanced node visualization",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15398"
+        "url": "https://github.com/KBVE/kbve/pull/15472"
+      },
+      {
+        "number": 15473,
+        "title": "Atomic: axum-kbve v1.0.277 post-publish sync",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15473"
       }
     ]
   },
   "issues": {
-    "opened": 465,
+    "opened": 462,
     "closed": 471
   }
 }
