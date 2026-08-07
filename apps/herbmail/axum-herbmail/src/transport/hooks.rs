@@ -2,7 +2,10 @@ use std::{sync::OnceLock, time::Duration};
 
 use axum::{
     Json, Router,
+    extract::Request,
     http::{HeaderMap, StatusCode, header},
+    middleware::Next,
+    response::Response,
     routing::post,
 };
 use serde::Deserialize;
@@ -51,8 +54,21 @@ pub fn router() -> Router {
                         tower_http::trace::DefaultMakeSpan::new().level(tracing::Level::INFO),
                     ),
                 )
+                .layer(axum::middleware::from_fn(hook_auth))
+                .layer(tower_http::timeout::TimeoutLayer::new(Duration::from_secs(30)))
                 .layer(tower_http::limit::RequestBodyLimitLayer::new(32 * 1024 * 1024)),
         )
+}
+
+async fn hook_auth(request: Request, next: Next) -> Result<Response, StatusCode> {
+    match bearer_authorized(request.headers()) {
+        None => {
+            warn!("STALWART_HOOK_SECRET not configured — refusing hook call");
+            Err(StatusCode::SERVICE_UNAVAILABLE)
+        }
+        Some(false) => Err(StatusCode::UNAUTHORIZED),
+        Some(true) => Ok(next.run(request).await),
+    }
 }
 
 fn http_client() -> &'static reqwest::Client {
@@ -103,19 +119,7 @@ fn subject_of(message: &Message) -> Option<String> {
         .map(|(_, value)| value.trim().to_string())
 }
 
-async fn stalwart_hook(
-    headers: HeaderMap,
-    Json(req): Json<HookRequest>,
-) -> Result<Json<Value>, StatusCode> {
-    match bearer_authorized(&headers) {
-        None => {
-            warn!("STALWART_HOOK_SECRET not configured — refusing hook call");
-            return Err(StatusCode::SERVICE_UNAVAILABLE);
-        }
-        Some(false) => return Err(StatusCode::UNAUTHORIZED),
-        Some(true) => {}
-    }
-
+async fn stalwart_hook(Json(req): Json<HookRequest>) -> Result<Json<Value>, StatusCode> {
     if req.context.stage != "data" {
         return Ok(accept());
     }

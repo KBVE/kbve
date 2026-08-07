@@ -12,7 +12,7 @@ thiserror = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 tower = { workspace = true, features = ["util", "timeout", "load-shed", "limit"] }
-tower-http = { workspace = true, features = ["compression-full", "limit", "trace", "fs", "cors", "set-header"] }
+tower-http = { workspace = true, features = ["compression-full", "limit", "trace", "fs", "cors", "set-header", "timeout"] }
 tokio = { workspace = true, features = ["default", "full", "rt-multi-thread"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }

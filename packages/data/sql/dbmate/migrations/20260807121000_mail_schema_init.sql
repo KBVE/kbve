@@ -98,7 +98,7 @@ BEGIN
      WHERE lower(u.username) = lower(split_part(p_from, '@', 1))
        AND lower(split_part(p_from, '@', 2)) = 'herbmail.com';
 
-    FOREACH v_rcpt IN ARRAY p_recipients LOOP
+    FOREACH v_rcpt IN ARRAY coalesce(p_recipients, '{}') LOOP
         v_local := lower(split_part(v_rcpt, '@', 1));
 
         IF lower(split_part(v_rcpt, '@', 2)) <> 'herbmail.com' THEN
@@ -129,6 +129,20 @@ END;
 $$;
 
 ALTER FUNCTION public.stalwart_ingest(text, text[], text, text, jsonb) OWNER TO postgres;
+
+-- The definer runs as postgres; profile.username is RLS-locked (see
+-- 20260510210000_profile_custom_access_token_hook.sql which needed the same
+-- treatment for supabase_auth_admin). Grant + policy defensively so recipient
+-- resolution never silently returns zero rows and 550s all inbound mail.
+GRANT USAGE ON SCHEMA profile TO postgres;
+GRANT SELECT ON profile.username TO postgres;
+
+DROP POLICY IF EXISTS "postgres_select" ON profile.username;
+CREATE POLICY "postgres_select"
+    ON profile.username
+    FOR SELECT
+    TO postgres
+    USING (true);
 
 COMMENT ON FUNCTION public.stalwart_ingest IS
     'Stalwart MTA hook ingest: resolves $username@herbmail.com recipients against profile.username and inserts one mail.messages row per accepted recipient. service_role only.';
@@ -199,6 +213,8 @@ BEGIN
     END IF;
 END;
 $$;
+
+DROP POLICY IF EXISTS "postgres_select" ON profile.username;
 
 DROP FUNCTION IF EXISTS public.stalwart_ingest(text, text[], text, text, jsonb);
 DROP SCHEMA IF EXISTS mail CASCADE;

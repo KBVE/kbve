@@ -30,6 +30,28 @@ spec:
                 fsGroup: 2000
                 seccompProfile:
                     type: RuntimeDefault
+                # UID 2000 cannot bind 25/443/465 otherwise: k8s does not grant
+                # ambient NET_BIND_SERVICE to non-root, unlike plain Docker which
+                # defaults ip_unprivileged_port_start=0.
+                sysctls:
+                    - name: net.ipv4.ip_unprivileged_port_start
+                      value: '0'
+            initContainers:
+                - name: seed-config
+                  image: docker.io/stalwartlabs/stalwart:v0.16.16
+                  imagePullPolicy: IfNotPresent
+                  command: ['sh', '-c', 'cp /config-src/config.json /etc/stalwart/config.json']
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
+                  volumeMounts:
+                      - name: config
+                        mountPath: /config-src
+                        readOnly: true
+                      - name: etc
+                        mountPath: /etc/stalwart
             containers:
                 - name: stalwart
                   image: docker.io/stalwartlabs/stalwart:v0.16.16
@@ -67,8 +89,6 @@ spec:
                       capabilities:
                           drop:
                               - ALL
-                          add:
-                              - NET_BIND_SERVICE
                   readinessProbe:
                       tcpSocket:
                           port: 8080
@@ -80,10 +100,8 @@ spec:
                       initialDelaySeconds: 15
                       periodSeconds: 30
                   volumeMounts:
-                      - name: config
-                        mountPath: /etc/stalwart/config.json
-                        subPath: config.json
-                        readOnly: true
+                      - name: etc
+                        mountPath: /etc/stalwart
                       - name: data
                         mountPath: /var/lib/stalwart
                         subPath: lib
@@ -94,6 +112,9 @@ spec:
                 - name: config
                   configMap:
                       name: stalwart-config
+                - name: etc
+                  emptyDir:
+                      sizeLimit: 64Mi
                 - name: data
                   persistentVolumeClaim:
                       claimName: stalwart-data
