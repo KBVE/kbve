@@ -182,7 +182,7 @@ async fn refresh(
 
         let status = match activity {
             Some(AgentActivity::Idle) | Some(AgentActivity::Done) => {
-                if is_shell(&row.pane_command) {
+                if tmux::is_shell(&row.pane_command) {
                     SessionStatus::Stopped
                 } else {
                     SessionStatus::Running
@@ -190,7 +190,7 @@ async fn refresh(
             }
             Some(_) => SessionStatus::Running,
             None => {
-                if row.pane_command.is_empty() || is_shell(&row.pane_command) {
+                if row.pane_command.is_empty() || tmux::is_shell(&row.pane_command) {
                     SessionStatus::Stopped
                 } else {
                     SessionStatus::Running
@@ -210,13 +210,6 @@ async fn refresh(
     }
 
     sessions
-}
-
-fn is_shell(cmd: &str) -> bool {
-    matches!(
-        cmd,
-        "bash" | "zsh" | "sh" | "fish" | "dash" | "ksh" | "tcsh" | "csh" | "nu" | "pwsh"
-    )
 }
 
 async fn list_session_rows() -> Vec<SessionRow> {
