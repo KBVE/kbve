@@ -20,8 +20,8 @@ export function MarkdownEpicPlanner() {
 			try {
 				const agents = await commands.getEnabledAgents();
 				setEnabledAgents(agents);
-				if (agents.length > 0 && !agentType) {
-					setAgentType(agents[0]); // Default to first enabled agent
+				if (agents.length > 0) {
+					setAgentType((prev) => prev || agents[0]);
 				}
 			} catch (err) {
 				console.error('Failed to load enabled agents:', err);

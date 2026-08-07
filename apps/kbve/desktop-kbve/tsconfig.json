@@ -17,6 +17,9 @@
 		"noFallthroughCasesInSwitch": true,
 		"paths": {
 			"@/*": ["./src/*"],
+			"@kbve/rn-tauri": [
+				"../../../packages/npm/rn-tauri/src/theme.ts"
+			],
 			"react-i18next": ["./src/i18n/react-i18next.ts"]
 		}
 	},

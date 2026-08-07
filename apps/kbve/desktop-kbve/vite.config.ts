@@ -39,6 +39,12 @@ export default defineConfig({
 	],
 	resolve: {
 		alias: [
+			// @kbve/rn-tauri is consumed from source via alias (like @kbve/rn
+			// inside the kbveRnTauri plugin) — it is not an installed package.
+			{
+				find: /^@kbve\/rn-tauri$/,
+				replacement: resolve(packagesDir, 'rn-tauri/src/index.ts'),
+			},
 			// RN libraries import native-runtime pieces (TurboModuleRegistry,
 			// Fabric codegen helpers) that react-native-web does not export;
 			// shims cover them so the module graph loads in the webview.

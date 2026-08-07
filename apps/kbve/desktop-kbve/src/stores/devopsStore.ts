@@ -392,7 +392,7 @@ export const useDevOpsStore = create<DevOpsStore>()(
 					.agentVoiceAnnounce(
 						`Pull request created for ${agent.issue_ref}`,
 					)
-					.catch(() => {});
+					.catch(() => undefined);
 				await get().refreshAgents(false);
 			} catch (err) {
 				set({
