@@ -10,10 +10,28 @@ import {
 	__invokeCalls,
 } from '../__mocks__/tauri-api-core';
 import { DevOpsView } from './devops';
+import type { DependencyStatus } from '../bindings';
 
 // Handlers return the RAW invoke payload; the generated bindings wrap it
 // into { status: 'ok', data } and turn non-Error throws into
 // { status: 'error', error }.
+function dep(
+	name: string,
+	overrides: Partial<DependencyStatus> = {},
+): DependencyStatus {
+	return {
+		name,
+		installed: false,
+		authenticated: null,
+		auth_user: null,
+		auth_hint_url: null,
+		version: null,
+		path: null,
+		install_hint: `install ${name}`,
+		...overrides,
+	};
+}
+
 function scriptBackend(overrides: Record<string, unknown> = {}) {
 	__setInvokeHandler((cmd) => {
 		if (cmd in overrides) return overrides[cmd];
@@ -25,13 +43,21 @@ function scriptBackend(overrides: Record<string, unknown> = {}) {
 				return null;
 			case 'check_devops_dependencies':
 				return {
-					gh: {
+					gh: dep('gh', {
 						installed: true,
 						version: '2.0',
 						authenticated: true,
-					},
-					tmux: { installed: true, version: '3.4' },
-					docker: { installed: false, version: null },
+					}),
+					tmux: dep('tmux', { installed: true, version: '3.4' }),
+					docker: dep('docker'),
+					claude: dep('claude'),
+					aider: dep('aider'),
+					gemini: dep('gemini'),
+					ollama: dep('ollama'),
+					vllm: dep('vllm'),
+					all_satisfied: false,
+					available_agents: [],
+					sandbox_available: false,
 				};
 			case 'get_enabled_agents':
 				return ['claude'];
