@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: stalwart
+    namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/stalwart
+        kbve.com/manifest-path: apps/kube/stalwart/manifest
+        kbve.com/application-file: kube/stalwart/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: application
+        kbve.com/stack: mail
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/KBVE/kbve
+        targetRevision: HEAD
+        path: apps/kube/stalwart/manifest
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: stalwart
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
+        syncOptions:
+            - CreateNamespace=true
+            - PrunePropagationPolicy=foreground
+            - PruneLast=true
+            - RespectIgnoreDifferences=true
+            - Replace=false

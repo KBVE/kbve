@@ -4,7 +4,7 @@ import { dashFetch, dashJson, dashHttpError } from '../dashFetch';
 describe('dashFetch', () => {
 	beforeEach(() => {
 		vi.restoreAllMocks();
-		vi.spyOn(console, 'error').mockImplementation(() => {});
+		vi.spyOn(console, 'error').mockImplementation(() => undefined);
 	});
 
 	it('returns the response on success', async () => {
@@ -40,7 +40,7 @@ describe('dashFetch', () => {
 describe('dashJson', () => {
 	beforeEach(() => {
 		vi.restoreAllMocks();
-		vi.spyOn(console, 'error').mockImplementation(() => {});
+		vi.spyOn(console, 'error').mockImplementation(() => undefined);
 	});
 
 	it('parses valid JSON', async () => {

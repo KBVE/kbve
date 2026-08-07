@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: stalwart
+    namespace: stalwart
+    labels:
+        app: stalwart
+        kbve.com/category: application
+        kbve.com/stack: mail
+        kbve.com/managed-by: argocd
+spec:
+    type: ClusterIP
+    selector:
+        app: stalwart
+    ports:
+        - name: admin
+          port: 8080
+          targetPort: 8080
+          protocol: TCP
+        - name: submission
+          port: 587
+          targetPort: 587
+          protocol: TCP

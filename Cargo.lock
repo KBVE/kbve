@@ -2304,6 +2304,7 @@ dependencies = [
  "jedi",
  "kbve",
  "num_cpus",
+ "reqwest 0.13.4",
  "serde",
  "serde_json",
  "serial_test",

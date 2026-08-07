@@ -92,6 +92,7 @@ fn router() -> Router {
         .layer(axum::middleware::from_fn(fix_ts_mime))
         .layer(axum::middleware::from_fn(cache_headers))
         .layer(middleware)
+        .merge(super::hooks::router())
 }
 
 async fn health() -> impl IntoResponse {

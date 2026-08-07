@@ -55,6 +55,12 @@ spec:
                             secretKeyRef:
                                 name: supabase-shared
                                 key: service-role-key
+                      - name: STALWART_HOOK_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: stalwart-hook-secret
+                                key: secret
+                                optional: true
                   resources:
                       requests:
                           memory: 512Mi

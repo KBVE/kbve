@@ -50,6 +50,9 @@ resources:
 
     - cityvote/application.yaml
     - herbmail/application.yaml
+    # Stalwart — MTA-only mail server for $username@herbmail.com
+    # (MTA hook -> axum-herbmail -> mail.messages; no local mail store)
+    - stalwart/application.yaml
     - memes/application.yaml
     - jobboard/application.yaml
     - metrics/application.yaml
