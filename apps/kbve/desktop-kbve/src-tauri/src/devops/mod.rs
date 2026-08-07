@@ -10,6 +10,7 @@
 //! - Pipeline state tracking
 
 pub mod actor;
+pub mod control;
 mod dependencies;
 pub mod detector;
 pub mod docker;

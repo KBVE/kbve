@@ -120,6 +120,7 @@ interface DevOpsStore {
 	_orphanCleanupInterval: number | null;
 	_prEventUnlisten: UnlistenFn | null;
 	_orphanEventUnlisten: UnlistenFn | null;
+	_sessionsEventUnlisten: UnlistenFn | null;
 	_previousSubIssueStates: Map<number, string>;
 	_mergeWorkersSpawned: Set<number>; // Track issues with merge workers already spawned
 	_setAgentRefreshInterval: (id: number | null) => void;
@@ -170,6 +171,7 @@ export const useDevOpsStore = create<DevOpsStore>()(
 		_orphanCleanupInterval: null,
 		_prEventUnlisten: null,
 		_orphanEventUnlisten: null,
+		_sessionsEventUnlisten: null,
 		_previousSubIssueStates: new Map(),
 		_mergeWorkersSpawned: new Set(),
 
@@ -909,6 +911,23 @@ export const useDevOpsStore = create<DevOpsStore>()(
 			);
 			set({ _orphanEventUnlisten: orphanUnlisten });
 
+			const sessionsUnlisten = await listen<TmuxSession[]>(
+				'devops-sessions-updated',
+				(event) => {
+					const current = get();
+					const changed =
+						JSON.stringify(current.sessions) !==
+						JSON.stringify(event.payload);
+					if (changed) {
+						set({ sessions: event.payload });
+					}
+					if (!current.isTmuxRunning && event.payload.length > 0) {
+						set({ isTmuxRunning: true });
+					}
+				},
+			);
+			set({ _sessionsEventUnlisten: sessionsUnlisten });
+
 			// Set up polling intervals
 			// Agents: 12 seconds (staggered from sessions)
 			const agentInterval = window.setInterval(
@@ -917,10 +936,10 @@ export const useDevOpsStore = create<DevOpsStore>()(
 			);
 			_setAgentRefreshInterval(agentInterval);
 
-			// Sessions: 10 seconds
+			// Sessions fallback: 30 seconds; live state arrives via devops-sessions-updated
 			const sessionInterval = window.setInterval(
 				() => refreshSessions(false),
-				10000,
+				30000,
 			);
 			_setSessionRefreshInterval(sessionInterval);
 
@@ -958,6 +977,7 @@ export const useDevOpsStore = create<DevOpsStore>()(
 				_orphanCleanupInterval,
 				_prEventUnlisten,
 				_orphanEventUnlisten,
+				_sessionsEventUnlisten,
 			} = get();
 
 			if (_agentRefreshInterval !== null) {
@@ -988,6 +1008,11 @@ export const useDevOpsStore = create<DevOpsStore>()(
 			if (_orphanEventUnlisten !== null) {
 				_orphanEventUnlisten();
 				set({ _orphanEventUnlisten: null });
+			}
+
+			if (_sessionsEventUnlisten !== null) {
+				_sessionsEventUnlisten();
+				set({ _sessionsEventUnlisten: null });
 			}
 		},
 	})),
