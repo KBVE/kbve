@@ -6,6 +6,7 @@ use tokio::process::Command;
 use tokio::sync::{mpsc, watch};
 use tokio::time::MissedTickBehavior;
 
+use super::control::{self, Notification};
 use super::detector::hysteresis::Smoother;
 use super::detector::{AgentActivity, DetectContext, DetectorRegistry};
 use super::tmux::{self, AgentMetadata, SessionStatus, TmuxSession};
@@ -67,12 +68,36 @@ async fn run(
     let mut tick = tokio::time::interval(REFRESH_INTERVAL);
     tick.set_missed_tick_behavior(MissedTickBehavior::Skip);
 
+    let (_control_guard, mut notif_rx) = match control::ensure_monitor_session().await {
+        Ok(()) => match control::spawn_control_client() {
+            Ok((guard, rx)) => (Some(guard), Some(rx)),
+            Err(e) => {
+                log::warn!("tmux control client unavailable, polling only: {}", e);
+                (None, None)
+            }
+        },
+        Err(e) => {
+            log::warn!("tmux monitor session unavailable, polling only: {}", e);
+            (None, None)
+        }
+    };
+
     loop {
         tokio::select! {
             cmd = cmd_rx.recv() => {
                 match cmd {
                     Some(ActorCommand::Refresh) => {}
                     None => break,
+                }
+            }
+            notif = recv_notification(&mut notif_rx) => {
+                match notif {
+                    Some(Notification::Exit) | None => {
+                        log::warn!("tmux control client exited, polling only");
+                        notif_rx = None;
+                        continue;
+                    }
+                    Some(_) => {}
                 }
             }
             _ = tick.tick() => {}
@@ -86,6 +111,15 @@ async fn run(
             let _ = snapshot_tx.send(Some(sessions.clone()));
             let _ = app.emit("devops-sessions-updated", &sessions);
         }
+    }
+}
+
+async fn recv_notification(
+    rx: &mut Option<mpsc::UnboundedReceiver<Notification>>,
+) -> Option<Notification> {
+    match rx {
+        Some(rx) => rx.recv().await,
+        None => std::future::pending().await,
     }
 }
 
