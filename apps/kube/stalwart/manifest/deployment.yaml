@@ -1,0 +1,91 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: stalwart
+    namespace: stalwart
+    labels:
+        app: stalwart
+        kbve.com/category: application
+        kbve.com/stack: mail
+        kbve.com/managed-by: argocd
+    annotations:
+        reloader.stakater.com/auto: 'true'
+spec:
+    replicas: 1
+    strategy:
+        type: Recreate
+    selector:
+        matchLabels:
+            app: stalwart
+    template:
+        metadata:
+            labels:
+                app: stalwart
+        spec:
+            terminationGracePeriodSeconds: 60
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 2000
+                runAsGroup: 2000
+                fsGroup: 2000
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: stalwart
+                  image: docker.io/stalwartlabs/stalwart:v0.16.16
+                  imagePullPolicy: IfNotPresent
+                  ports:
+                      - name: smtp
+                        containerPort: 25
+                        protocol: TCP
+                      - name: submission
+                        containerPort: 587
+                        protocol: TCP
+                      - name: smtps
+                        containerPort: 465
+                        protocol: TCP
+                      - name: admin
+                        containerPort: 8080
+                        protocol: TCP
+                  resources:
+                      requests:
+                          memory: 256Mi
+                          cpu: 100m
+                      limits:
+                          memory: 1024Mi
+                          cpu: 1000m
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
+                          add:
+                              - NET_BIND_SERVICE
+                  readinessProbe:
+                      tcpSocket:
+                          port: 8080
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                  livenessProbe:
+                      tcpSocket:
+                          port: 8080
+                      initialDelaySeconds: 15
+                      periodSeconds: 30
+                  volumeMounts:
+                      - name: data
+                        mountPath: /etc/stalwart
+                        subPath: etc
+                      - name: data
+                        mountPath: /var/lib/stalwart
+                        subPath: lib
+                      - name: tls
+                        mountPath: /opt/stalwart-tls
+                        readOnly: true
+            volumes:
+                - name: data
+                  persistentVolumeClaim:
+                      claimName: stalwart-data
+                - name: tls
+                  secret:
+                      secretName: stalwart-tls
+                      optional: true

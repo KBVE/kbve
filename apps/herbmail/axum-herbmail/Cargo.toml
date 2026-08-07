@@ -18,6 +18,7 @@ tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
 axum = { workspace = true, features = ["default", "ws", "macros"] }
 axum-extra = { workspace = true, features = ["cookie"] }
+reqwest = { workspace = true, features = ["json"] }
 askama = { workspace = true }
 socket2 = { workspace = true }
 num_cpus = { workspace = true }
