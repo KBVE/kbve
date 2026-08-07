@@ -9,13 +9,13 @@ use std::collections::HashMap;
 use std::process::Command;
 
 /// Session naming prefix for all Handy agent sessions
-const SESSION_PREFIX: &str = "handy-agent-";
+pub(crate) const SESSION_PREFIX: &str = "handy-agent-";
 
 /// Base prefix for all Handy-related tmux sessions (includes master)
-const HANDY_PREFIX: &str = "handy-";
+pub(crate) const HANDY_PREFIX: &str = "handy-";
 
 /// Custom socket name to avoid macOS /private/tmp permission issues
-const SOCKET_NAME: &str = "handy";
+pub(crate) const SOCKET_NAME: &str = "handy";
 
 /// Environment variable keys stored in tmux sessions
 const ENV_ISSUE_REF: &str = "HANDY_ISSUE_REF";
@@ -26,7 +26,7 @@ const ENV_MACHINE_ID: &str = "HANDY_MACHINE_ID";
 const ENV_STARTED_AT: &str = "HANDY_STARTED_AT";
 
 /// Status of an agent session
-#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, Type, PartialEq)]
 pub enum SessionStatus {
     /// Session is running and agent is active
     Running,
@@ -37,7 +37,7 @@ pub enum SessionStatus {
 }
 
 /// Metadata stored with each agent session
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq)]
 pub struct AgentMetadata {
     /// Session name (e.g., "handy-agent-42")
     pub session: String,
@@ -56,7 +56,7 @@ pub struct AgentMetadata {
 }
 
 /// Information about a tmux session
-#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, Type, PartialEq)]
 pub struct TmuxSession {
     /// Session name
     pub name: String,
@@ -70,6 +70,8 @@ pub struct TmuxSession {
     pub metadata: Option<AgentMetadata>,
     /// Current status
     pub status: SessionStatus,
+    /// Smoothed detector state for agent sessions
+    pub activity: Option<super::detector::AgentActivity>,
 }
 
 /// Source of recovered session information
@@ -180,6 +182,7 @@ pub fn list_sessions() -> Result<Vec<TmuxSession>, String> {
                     created,
                     metadata,
                     status,
+                    activity: None,
                 });
             }
         }
