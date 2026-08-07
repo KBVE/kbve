@@ -1,4 +1,5 @@
-import { Suspense, createElement, lazy } from 'react';
+import { Component, Suspense, createElement, lazy } from 'react';
+import type { ReactNode } from 'react';
 import { registerView } from '../engine';
 import {
 	IconSettings,
@@ -20,16 +21,46 @@ import { AboutView } from './about';
 import { TerminalView } from './terminal';
 
 // Loaded on demand: pulls the whole @kbve/rn (react-native-web) stack, which
-// should never gate app boot.
+// should never gate app boot — a load failure renders an inline notice
+// instead of unmounting the app.
 const ProfileLazy = lazy(() =>
 	import('./profile').then((m) => ({ default: m.ProfileView })),
 );
 
+class ProfileBoundary extends Component<
+	{ children: ReactNode },
+	{ error: string | null }
+> {
+	state = { error: null };
+
+	static getDerivedStateFromError(error: unknown) {
+		return { error: String(error) };
+	}
+
+	render() {
+		if (this.state.error) {
+			return createElement(
+				'div',
+				{
+					style: {
+						color: 'var(--color-text-muted)',
+						padding: '2rem',
+						font: '12px monospace',
+						whiteSpace: 'pre-wrap',
+					},
+				},
+				'Profile view failed to load:\n' + this.state.error,
+			);
+		}
+		return this.props.children;
+	}
+}
+
 function ProfileView() {
 	return createElement(
-		Suspense,
-		{ fallback: null },
-		createElement(ProfileLazy),
+		ProfileBoundary,
+		null,
+		createElement(Suspense, { fallback: null }, createElement(ProfileLazy)),
 	);
 }
 

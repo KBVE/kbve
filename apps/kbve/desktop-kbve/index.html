@@ -12,6 +12,22 @@
 			// graph before React can render anything.
 			(function () {
 				function show(msg) {
+					try {
+						fetch('/__client_log', { method: 'POST', body: msg });
+					} catch (_) {}
+					// Module-graph link errors on a cold dev server are a race
+					// with the dep optimizer; one automatic reload heals them.
+					if (
+						/star export entries|Importing binding/.test(msg) &&
+						!sessionStorage.getItem('kbve-boot-retry')
+					) {
+						sessionStorage.setItem('kbve-boot-retry', '1');
+						setTimeout(function () {
+							location.reload();
+						}, 400);
+						return;
+					}
+					sessionStorage.removeItem('kbve-boot-retry');
 					var root = document.getElementById('root');
 					if (!root || root.childElementCount > 0) return;
 					var pre = document.createElement('pre');

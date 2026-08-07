@@ -9,8 +9,34 @@ const host = process.env.TAURI_DEV_HOST;
 const root = fileURLToPath(new URL('.', import.meta.url));
 const packagesDir = resolve(root, '../../../packages/npm');
 
+import type { Plugin } from 'vite';
+
+// Webview console is invisible in dev; the index.html boot guard POSTs
+// errors here so they show up in the `cargo tauri dev` terminal.
+function clientLog(): Plugin {
+	return {
+		name: 'kbve-client-log',
+		configureServer(server) {
+			server.middlewares.use('/__client_log', (req, res) => {
+				let body = '';
+				req.on('data', (c) => (body += c));
+				req.on('end', () => {
+					console.log('[webview]', body);
+					res.statusCode = 204;
+					res.end();
+				});
+			});
+		},
+	};
+}
+
 export default defineConfig({
-	plugins: [react(), tailwindcss(), kbveRnTauri({ packagesDir })],
+	plugins: [
+		react(),
+		tailwindcss(),
+		kbveRnTauri({ packagesDir }),
+		clientLog(),
+	],
 	resolve: {
 		alias: [
 			// RN libraries import native-runtime pieces (TurboModuleRegistry,
@@ -35,12 +61,15 @@ export default defineConfig({
 	// proves it) but esbuild's dep pre-bundler chokes on their Fabric/codegen
 	// internals — keep them out of optimizeDeps.
 	optimizeDeps: {
+		// react-native-web must go THROUGH the optimizer: its ESM dist
+		// default-imports CJS deps (fbjs, normalize-colors, …) that only the
+		// optimizer's interop makes importable in the browser.
+		include: ['react-native-web'],
 		exclude: [
-			// Never prebundle the RN cluster: the prebundled ESM drops default
-			// exports the shims re-export, and the optimizer/runtime resolve
-			// aliases differently — mismatched graphs break boot in WebKit.
+			// 'react-native' resolves to the src shim (never optimizable);
+			// keeping it out of the optimizer keeps the optimizer's graph and
+			// the runtime graph identical.
 			'react-native',
-			'react-native-web',
 			'react-native-svg',
 			'react-native-reanimated',
 			'react-native-safe-area-context',
@@ -51,6 +80,11 @@ export default defineConfig({
 	server: {
 		port: 1421,
 		strictPort: true,
+		// Pre-transform the entry (and run dep optimization) at server start,
+		// so the webview's first load never races the optimizer.
+		warmup: {
+			clientFiles: ['./src/main.tsx', './src/overlay/index.html'],
+		},
 		host: host || false,
 		watch: {
 			ignored: ['**/src-tauri/**'],
