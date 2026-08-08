@@ -98,12 +98,12 @@ export function GenericEpicCreator() {
 	const [currentStep, setCurrentStep] = useState<Step>('template');
 	const [createMode, setCreateMode] = useState<CreateMode>('new');
 	const [selectedTemplate, setSelectedTemplate] = useState<string>('blank');
-	const [repo, setRepo] = useState<string>('KBVE/Handy');
+	const [repo, setRepo] = useState<string>('KBVE/kbve');
 	const [workRepo, setWorkRepo] = useState<string>('');
 
 	// Link existing epic state
 	const [linkEpicNumber, setLinkEpicNumber] = useState<string>('');
-	const [linkRepo, setLinkRepo] = useState<string>('KBVE/Handy');
+	const [linkRepo, setLinkRepo] = useState<string>('KBVE/kbve');
 	const [linking, setLinking] = useState(false);
 	const [recoveryInfo, setRecoveryInfo] = useState<EpicRecoveryInfo | null>(
 		null,

@@ -13,10 +13,8 @@ import { GeneralView } from './general';
 import { AudioView } from './audio';
 import { ModelsView } from './models';
 import { ShortcutsView } from './shortcuts';
-import { OnichanView } from './onichan';
 import { DevOpsView } from './devops';
 import { DiscordView } from './discord';
-import { TerminalView } from './terminal';
 
 // Loaded on demand: pulls the whole @kbve/rn (react-native-web) stack, which
 // should never gate app boot — a load failure renders an inline notice
@@ -72,12 +70,6 @@ export function initViews() {
 		component: GeneralView,
 	});
 	registerView({
-		id: 'terminal',
-		label: 'Terminal',
-		icon: createElement(IconTerminal),
-		component: TerminalView,
-	});
-	registerView({
 		id: 'audio',
 		label: 'Audio',
 		icon: createElement(IconMic),
@@ -96,12 +88,6 @@ export function initViews() {
 		component: ShortcutsView,
 	});
 	registerView({
-		id: 'onichan',
-		label: 'Onichan',
-		icon: createElement(IconUser),
-		component: OnichanView,
-	});
-	registerView({
 		id: 'discord',
 		label: 'Discord',
 		icon: createElement(IconUser),
@@ -118,5 +104,6 @@ export function initViews() {
 		label: 'Profile',
 		icon: createElement(IconUser),
 		component: ProfileView,
+		hidden: true,
 	});
 }

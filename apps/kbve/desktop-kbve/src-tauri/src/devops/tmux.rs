@@ -584,15 +584,20 @@ pub(crate) fn configure_status_bar(session_name: &str) {
         ("status-left", ""),
         ("status-left-length", "0"),
         ("status-justify", "left"),
-        (
-            "status-right",
-            "#[fg=#7c8495]handy · C-b d detach ",
-        ),
+        ("status-right", "#[fg=#7c8495]handy · C-b d detach "),
         ("status-right-length", "120"),
     ];
     for (key, value) in OPTS {
         let _ = Command::new("tmux")
-            .args(["-L", SOCKET_NAME, "set-option", "-t", session_name, key, value])
+            .args([
+                "-L",
+                SOCKET_NAME,
+                "set-option",
+                "-t",
+                session_name,
+                key,
+                value,
+            ])
             .output();
     }
 }

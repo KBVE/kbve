@@ -379,6 +379,7 @@ mod bindings_export {
         super::specta_builder()
             .export(
                 specta_typescript::Typescript::default()
+                    .header("// @ts-nocheck — generated file; emits unused helpers this app does not consume.")
                     .bigint(specta_typescript::BigIntExportBehavior::Number),
                 "../src/bindings.ts",
             )
@@ -394,6 +395,7 @@ pub fn run() {
     builder
         .export(
             specta_typescript::Typescript::default()
+                .header("// @ts-nocheck — generated file; emits unused helpers this app does not consume.")
                 .bigint(specta_typescript::BigIntExportBehavior::Number),
             "../src/bindings.ts",
         )

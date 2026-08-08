@@ -94,8 +94,8 @@ pub async fn ensure_monitor_session() -> Result<(), String> {
     Err(format!("Failed to create monitor session: {}", stderr))
 }
 
-pub fn spawn_control_client(
-) -> Result<(ControlClientGuard, mpsc::UnboundedReceiver<Notification>), String> {
+pub fn spawn_control_client()
+-> Result<(ControlClientGuard, mpsc::UnboundedReceiver<Notification>), String> {
     let mut child = Command::new("tmux")
         .args([
             "-L",

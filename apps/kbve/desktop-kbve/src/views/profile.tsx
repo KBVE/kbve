@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { ThemeProvider, themeFromCssVars } from '../lib/rn-theme';
 import { Surface, Stack, Text, Badge } from '@kbve/rn/ui';
 import { SettingsCard } from '../components/SettingsCard';
@@ -6,7 +6,7 @@ import { SettingsRow } from '../components/SettingsRow';
 import { ToggleSwitch } from '../components/ToggleSwitch';
 import { useAuthStore } from '../stores/auth';
 import { useSidecarStore } from '../stores/sidecarStore';
-import { fetchKbveProfile, type KbveProfile } from '../lib/kbveProfile';
+import { useKbveProfileStore } from '../stores/kbveProfile';
 
 const muted = { color: 'var(--color-text-muted)' } as const;
 
@@ -40,26 +40,15 @@ export function ProfileView() {
 	const lastDiscordChannelName = useSidecarStore(
 		(s) => s.lastDiscordChannelName,
 	);
-	const [kbveProfile, setKbveProfile] = useState<KbveProfile | null>(null);
-	const [kbveProfileLoading, setKbveProfileLoading] = useState(false);
+	const kbveProfile = useKbveProfileStore((s) => s.profile);
+	const kbveProfileLoading = useKbveProfileStore((s) => s.loading);
+	const loadKbveProfile = useKbveProfileStore((s) => s.load);
 
 	const accessToken = session?.access_token ?? null;
 	useEffect(() => {
-		if (!accessToken) {
-			setKbveProfile(null);
-			return;
-		}
-		const controller = new AbortController();
-		setKbveProfileLoading(true);
-		fetchKbveProfile(accessToken, controller.signal)
-			.then((profile) => {
-				if (!controller.signal.aborted) setKbveProfile(profile);
-			})
-			.finally(() => {
-				if (!controller.signal.aborted) setKbveProfileLoading(false);
-			});
-		return () => controller.abort();
-	}, [accessToken]);
+		if (!accessToken) return;
+		void loadKbveProfile(accessToken);
+	}, [accessToken, loadKbveProfile]);
 
 	if (!user) {
 		return (
@@ -121,7 +110,7 @@ export function ProfileView() {
 				<SettingsRow
 					label="Username"
 					description="Your kbve.com identity">
-					{kbveProfileLoading ? (
+					{kbveProfileLoading && !kbveProfile ? (
 						<span className="text-caption" style={muted}>
 							Loading…
 						</span>

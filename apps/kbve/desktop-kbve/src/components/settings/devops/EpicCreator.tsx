@@ -42,8 +42,8 @@ export function EpicCreator() {
 
 			const config: EpicConfig = {
 				title: 'CICD Testing Infrastructure',
-				repo: 'KBVE/Handy',
-				work_repo: 'KBVE/Handy',
+				repo: 'KBVE/kbve',
+				work_repo: 'KBVE/kbve',
 				goal: 'Build comprehensive testing and CI/CD infrastructure for the multi-agent DevOps system to ensure production readiness and prevent future breakage.',
 				success_metrics: [
 					'100+ total tests',

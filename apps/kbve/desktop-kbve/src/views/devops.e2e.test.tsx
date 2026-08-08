@@ -101,7 +101,9 @@ describe('DevOps view (e2e-style)', () => {
 
 	it('toggling voice announcements calls the backend', async () => {
 		const { container } = render(<DevOpsView />);
-		const toggle = container.querySelector('button');
+		const toggle = Array.from(container.querySelectorAll('button')).find(
+			(b) => !b.textContent?.trim(),
+		);
 		expect(toggle).not.toBeNull();
 		fireEvent.click(toggle as HTMLButtonElement);
 		await waitFor(() => {

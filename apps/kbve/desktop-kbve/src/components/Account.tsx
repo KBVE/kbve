@@ -1,4 +1,7 @@
+import { useEffect } from 'react';
 import { useAuthStore } from '../stores/auth';
+import { useAppStore } from '../stores/app';
+import { useKbveProfileStore } from '../stores/kbveProfile';
 import { IconDiscord, IconGitHub, IconLogOut, IconUser } from './Icons';
 import type { Provider } from '@kbve/tauri';
 
@@ -39,31 +42,54 @@ function SignedIn({
 	collapsed: boolean;
 }) {
 	const signOut = useAuthStore((s) => s.signOut);
+	const setActiveView = useAppStore((s) => s.setActiveView);
+	const session = useAuthStore((s) => s.session);
+	const kbveUsername = useKbveProfileStore((s) => s.profile?.username);
+	const loadKbveProfile = useKbveProfileStore((s) => s.load);
+
+	// Warm the kbve profile cache so the profile view paints instantly.
+	const accessToken = session?.access_token ?? null;
+	useEffect(() => {
+		if (!accessToken) return;
+		void loadKbveProfile(accessToken);
+	}, [accessToken, loadKbveProfile]);
+
+	const displayName = kbveUsername ? `@${kbveUsername}` : name;
 	return (
 		<div className="sidebar-row flex items-center gap-3">
-			{avatarUrl ? (
-				<img
-					src={avatarUrl}
-					alt=""
-					className="sidebar-icon rounded-full"
-				/>
-			) : (
+			<button
+				type="button"
+				onClick={() => setActiveView('profile')}
+				title="Open profile"
+				className="flex min-w-0 flex-1 cursor-pointer items-center gap-3 rounded-lg border px-2 py-1.5 text-left transition-opacity hover:opacity-80"
+				style={{ borderColor: 'var(--color-border)' }}>
+				{avatarUrl ? (
+					<img
+						src={avatarUrl}
+						alt=""
+						className="sidebar-icon rounded-full"
+					/>
+				) : (
+					<span
+						className="sidebar-icon"
+						style={{ color: 'var(--color-text-muted)' }}>
+						<IconUser />
+					</span>
+				)}
 				<span
-					className="sidebar-icon"
-					style={{ color: 'var(--color-text-muted)' }}>
-					<IconUser />
+					className={`sidebar-label text-caption flex-1 truncate ${collapsed ? 'pointer-events-none max-w-0 opacity-0' : 'max-w-40 opacity-100'}`}
+					style={{ color: 'var(--color-text)' }}
+					title={displayName}>
+					{displayName}
 				</span>
-			)}
-			<span
-				className={`sidebar-label text-caption flex-1 truncate ${collapsed ? 'pointer-events-none max-w-0 opacity-0' : 'max-w-40 opacity-100'}`}
-				style={{ color: 'var(--color-text)' }}
-				title={name}>
-				{name}
-			</span>
+			</button>
 			<button
 				onClick={() => void signOut()}
-				className={`sidebar-label flex-shrink-0 rounded-md p-1 transition-colors ${collapsed ? 'pointer-events-none max-w-0 opacity-0' : 'max-w-12 opacity-100'}`}
-				style={{ color: 'var(--color-text-muted)' }}
+				className={`sidebar-label flex-shrink-0 cursor-pointer rounded-md border p-1.5 transition-colors ${collapsed ? 'pointer-events-none max-w-0 opacity-0' : 'max-w-12 opacity-100'}`}
+				style={{
+					color: 'var(--color-text-muted)',
+					borderColor: 'var(--color-border)',
+				}}
 				title="Sign out">
 				<IconLogOut size={14} />
 			</button>

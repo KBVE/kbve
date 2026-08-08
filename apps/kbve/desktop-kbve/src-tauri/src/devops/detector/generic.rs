@@ -38,19 +38,37 @@ mod tests {
 
     #[test]
     fn recent_activity_is_running() {
-        assert_eq!(GenericDetector.detect(&ctx_with_age(0)), AgentActivity::Running);
-        assert_eq!(GenericDetector.detect(&ctx_with_age(1)), AgentActivity::Running);
+        assert_eq!(
+            GenericDetector.detect(&ctx_with_age(0)),
+            AgentActivity::Running
+        );
+        assert_eq!(
+            GenericDetector.detect(&ctx_with_age(1)),
+            AgentActivity::Running
+        );
     }
 
     #[test]
     fn mid_range_is_waiting() {
-        assert_eq!(GenericDetector.detect(&ctx_with_age(5)), AgentActivity::Waiting);
-        assert_eq!(GenericDetector.detect(&ctx_with_age(20)), AgentActivity::Waiting);
+        assert_eq!(
+            GenericDetector.detect(&ctx_with_age(5)),
+            AgentActivity::Waiting
+        );
+        assert_eq!(
+            GenericDetector.detect(&ctx_with_age(20)),
+            AgentActivity::Waiting
+        );
     }
 
     #[test]
     fn old_activity_is_idle() {
-        assert_eq!(GenericDetector.detect(&ctx_with_age(60)), AgentActivity::Idle);
-        assert_eq!(GenericDetector.detect(&ctx_with_age(3600)), AgentActivity::Idle);
+        assert_eq!(
+            GenericDetector.detect(&ctx_with_age(60)),
+            AgentActivity::Idle
+        );
+        assert_eq!(
+            GenericDetector.detect(&ctx_with_age(3600)),
+            AgentActivity::Idle
+        );
     }
 }

@@ -24,3 +24,12 @@ Object.defineProperty(window, 'matchMedia', {
 		dispatchEvent: () => false,
 	}),
 });
+
+// jsdom does not implement ResizeObserver — the terminal pane observes its
+// container for xterm refits.
+class ResizeObserverStub {
+	observe() {}
+	unobserve() {}
+	disconnect() {}
+}
+globalThis.ResizeObserver ??= ResizeObserverStub as typeof ResizeObserver;

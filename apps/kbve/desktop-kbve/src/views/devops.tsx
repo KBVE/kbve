@@ -3,9 +3,11 @@ import { DevOpsLayout } from '../components/settings/devops/DevOpsLayout';
 import { SettingsCard } from '../components/SettingsCard';
 import { SettingsRow } from '../components/SettingsRow';
 import { ToggleSwitch } from '../components/ToggleSwitch';
+import { ViewTabs } from '../components/ViewTabs';
+import { TerminalView } from './terminal';
 import { commands } from '../bindings';
 
-export function DevOpsView() {
+function OperationsTab() {
 	const [voiceEnabled, setVoiceEnabled] = useState(false);
 
 	useEffect(() => {
@@ -21,7 +23,7 @@ export function DevOpsView() {
 	};
 
 	return (
-		<div className="flex flex-col gap-4">
+		<>
 			<SettingsCard title="Agent voice">
 				<SettingsRow
 					label="Voice announcements"
@@ -33,6 +35,25 @@ export function DevOpsView() {
 				</SettingsRow>
 			</SettingsCard>
 			<DevOpsLayout />
-		</div>
+		</>
+	);
+}
+
+export function DevOpsView() {
+	return (
+		<ViewTabs
+			tabs={[
+				{
+					id: 'ops',
+					label: 'Operations',
+					content: <OperationsTab />,
+				},
+				{
+					id: 'terminal',
+					label: 'Terminal',
+					content: <TerminalView />,
+				},
+			]}
+		/>
 	);
 }
