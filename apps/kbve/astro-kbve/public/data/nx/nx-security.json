@@ -1,19 +1,19 @@
 {
-	"generated_at": "2026-08-07T03:53:59Z",
+	"generated_at": "2026-08-08T02:58:39Z",
 	"summary": {
 		"critical": 4,
-		"high": 49,
-		"medium": 59,
+		"high": 54,
+		"medium": 60,
 		"low": 11,
 		"info": 30
 	},
 	"ecosystems": {
 		"npm": {
-			"total": 107,
+			"total": 113,
 			"severities": {
 				"critical": 4,
-				"high": 49,
-				"medium": 43,
+				"high": 54,
+				"medium": 44,
 				"low": 11,
 				"info": 0
 			},
@@ -712,13 +712,6 @@
 					"url": "https://github.com/advisories/GHSA-35p6-xmwp-9g52"
 				},
 				{
-					"id": "1138075",
-					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
-					"severity": "high",
-					"package": "fast-uri",
-					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
-				},
-				{
 					"id": "1138097",
 					"title": "Mermaid configuration APIs allow prototype pollution",
 					"severity": "low",
@@ -766,6 +759,55 @@
 					"severity": "high",
 					"package": "js-yaml",
 					"url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj"
+				},
+				{
+					"id": "1138395",
+					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
+					"severity": "high",
+					"package": "fast-uri",
+					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
+				},
+				{
+					"id": "1138538",
+					"title": "DOMPurify: IN_PLACE hook removal leaves a detached subtree executable, causing XSS",
+					"severity": "medium",
+					"package": "dompurify",
+					"url": "https://github.com/advisories/GHSA-55q2-fjhq-7xh7"
+				},
+				{
+					"id": "1138808",
+					"title": "image-size: ICNS parser allows denial of service through an infinite loop",
+					"severity": "high",
+					"package": "image-size",
+					"url": "https://github.com/advisories/GHSA-w3rx-r6r6-pgpr"
+				},
+				{
+					"id": "1138809",
+					"title": "image-size: JXL and HEIF parsers allow denial of service through infinite loops",
+					"severity": "high",
+					"package": "image-size",
+					"url": "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq"
+				},
+				{
+					"id": "1138810",
+					"title": "nanoid: non-secure generators can loop indefinitely with negative size",
+					"severity": "high",
+					"package": "nanoid",
+					"url": "https://github.com/advisories/GHSA-28wg-ghj8-5hjv"
+				},
+				{
+					"id": "1138811",
+					"title": "nanoid: non-secure generators can loop indefinitely with negative size",
+					"severity": "high",
+					"package": "nanoid",
+					"url": "https://github.com/advisories/GHSA-28wg-ghj8-5hjv"
+				},
+				{
+					"id": "1138813",
+					"title": "nanoid: custom generators can loop indefinitely when size is zero",
+					"severity": "high",
+					"package": "nanoid",
+					"url": "https://github.com/advisories/GHSA-2v37-7h3g-55p8"
 				}
 			]
 		},
