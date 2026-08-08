@@ -716,6 +716,31 @@ export const commands = {
 	async isLocalLlmLoaded(): Promise<boolean> {
 		return await TAURI_INVOKE('is_local_llm_loaded');
 	},
+	async openOnichanModelsDir(): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('open_onichan_models_dir'),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	async getLlmEngine(): Promise<LlmEngine> {
+		return await TAURI_INVOKE('get_llm_engine');
+	},
+	async setLlmEngine(engine: LlmEngine): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('set_llm_engine', { engine }),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
 	async getLocalLlmModelName(): Promise<string | null> {
 		return await TAURI_INVOKE('get_local_llm_model_name');
 	},
@@ -4041,6 +4066,19 @@ export type JsonValue =
 	| JsonValue[]
 	| Partial<{ [key in string]: JsonValue }>;
 export type LLMPrompt = { id: string; name: string; prompt: string };
+/**
+ * Thread-safe manager for the LLM sidecar
+ * Which inference engine backs the local LLM.
+ */
+export type LlmEngine =
+	/**
+	 * llama.cpp via llm-sidecar (default)
+	 */
+	| 'llama_cpp'
+	/**
+	 * mistral.rs via mistralrs-sidecar (pure Rust)
+	 */
+	| 'mistral_rs';
 export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error';
 /**
  * A memory message from the sidecar
@@ -4165,6 +4203,18 @@ export type OnichanModelInfo = {
 	 * For TTS models: voice name/style
 	 */
 	voice_name: string | null;
+	/**
+	 * Extra files for split multi-part downloads (empty for single-file models)
+	 */
+	extra_parts?: OnichanModelPart[];
+};
+/**
+ * Additional file belonging to a multi-part model download (split GGUF).
+ */
+export type OnichanModelPart = {
+	filename: string;
+	url: string;
+	size_mb: number;
 };
 /**
  * Type of Onichan model

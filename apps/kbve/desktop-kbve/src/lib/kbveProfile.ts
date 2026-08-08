@@ -19,6 +19,35 @@ export interface KbveProfile {
 	[k: string]: unknown;
 }
 
+export interface KbveBalance {
+	account_id: string;
+	credits: number;
+	khash: number;
+	updated_at: string;
+}
+
+export async function fetchKbveBalance(
+	token: string,
+	signal?: AbortSignal,
+): Promise<KbveBalance | null> {
+	try {
+		const res = await fetch(`${KBVE_API_BASE}/api/v1/wallet/me/balance`, {
+			method: 'GET',
+			headers: {
+				Authorization: `Bearer ${token}`,
+				Accept: 'application/json',
+			},
+			signal,
+		});
+		if (!res.ok) return null;
+		const json = (await res.json()) as KbveBalance;
+		if (!json || !json.account_id) return null;
+		return json;
+	} catch {
+		return null;
+	}
+}
+
 export async function fetchKbveProfile(
 	token: string,
 	signal?: AbortSignal,

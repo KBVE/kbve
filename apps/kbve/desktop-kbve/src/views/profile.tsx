@@ -10,6 +10,7 @@ import { ToggleSwitch } from '../components/ToggleSwitch';
 import { useAuthStore } from '../stores/auth';
 import { useSidecarStore } from '../stores/sidecarStore';
 import { useKbveProfileStore } from '../stores/kbveProfile';
+import { ShortcutsSettings } from './shortcuts';
 
 const muted = { color: 'var(--color-text-muted)' } as const;
 
@@ -44,14 +45,17 @@ export function ProfileView() {
 		(s) => s.lastDiscordChannelName,
 	);
 	const kbveProfile = useKbveProfileStore((s) => s.profile);
+	const kbveBalance = useKbveProfileStore((s) => s.balance);
 	const kbveProfileLoading = useKbveProfileStore((s) => s.loading);
 	const loadKbveProfile = useKbveProfileStore((s) => s.load);
+	const loadKbveBalance = useKbveProfileStore((s) => s.loadBalance);
 
 	const accessToken = session?.access_token ?? null;
 	useEffect(() => {
 		if (!accessToken) return;
 		void loadKbveProfile(accessToken);
-	}, [accessToken, loadKbveProfile]);
+		void loadKbveBalance(accessToken);
+	}, [accessToken, loadKbveProfile, loadKbveBalance]);
 
 	if (!user) {
 		return (
@@ -144,6 +148,23 @@ export function ProfileView() {
 				</SettingsRow>
 			</SettingsCard>
 
+			<SettingsCard title="Wallet">
+				<SettingsRow
+					label="Credits"
+					description="Spendable balance on kbve.com">
+					<span className="text-body font-mono">
+						{kbveBalance
+							? kbveBalance.credits.toLocaleString()
+							: '—'}
+					</span>
+				</SettingsRow>
+				<SettingsRow label="Khash" description="Earned khash balance">
+					<span className="text-body font-mono">
+						{kbveBalance ? kbveBalance.khash.toLocaleString() : '—'}
+					</span>
+				</SettingsRow>
+			</SettingsCard>
+
 			<SettingsCard title="Account">
 				<SettingsRow
 					label="Member since"
@@ -180,6 +201,8 @@ export function ProfileView() {
 					</span>
 				</SettingsRow>
 			</SettingsCard>
+
+			<ShortcutsSettings />
 
 			<SettingsCard title="Session">
 				<SettingsRow

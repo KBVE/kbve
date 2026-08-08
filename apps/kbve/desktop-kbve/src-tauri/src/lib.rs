@@ -200,6 +200,9 @@ fn specta_builder() -> Builder<tauri::Wry> {
         commands::onichan::load_local_llm,
         commands::onichan::unload_local_llm,
         commands::onichan::is_local_llm_loaded,
+        commands::onichan::open_onichan_models_dir,
+        commands::onichan::get_llm_engine,
+        commands::onichan::set_llm_engine,
         commands::onichan::get_local_llm_model_name,
         commands::onichan::local_llm_chat,
         commands::onichan::load_local_tts,
@@ -514,8 +517,22 @@ pub fn run() {
                 onichan_models::OnichanModelManager::new(&dict_handle)
                     .expect("Failed to initialize onichan model manager"),
             );
-            let local_llm_manager =
-                Arc::new(local_llm::LocalLlmManager::new(sidecar_path("llm-sidecar")));
+            let local_llm_manager = Arc::new(local_llm::LocalLlmManager::new(
+                sidecar_path("llm-sidecar"),
+                sidecar_path("mistralrs-sidecar"),
+            ));
+            {
+                use tauri_plugin_store::StoreExt;
+                let store_engine = dict_handle
+                    .store("sidecar_config.json")
+                    .ok()
+                    .and_then(|s| s.get("llm_engine"))
+                    .and_then(|v| v.as_str().map(String::from));
+                if let Some(engine) = store_engine {
+                    let _ = local_llm_manager
+                        .set_engine(local_llm::LlmEngine::from_str_or_default(&engine));
+                }
+            }
             let local_tts_manager =
                 Arc::new(local_tts::LocalTtsManager::new(sidecar_path("tts-sidecar")));
             let memory_manager =

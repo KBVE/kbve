@@ -31,6 +31,7 @@ build_one() {
 }
 
 build_one llm-sidecar $LLM_FEATURES
+build_one mistralrs-sidecar $LLM_FEATURES
 build_one tts-sidecar
 build_one memory-sidecar
 build_one discord-sidecar

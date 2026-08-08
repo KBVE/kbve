@@ -1,4 +1,4 @@
-use crate::local_llm::LocalLlmManager;
+use crate::local_llm::{LlmEngine, LocalLlmManager};
 use crate::local_tts::LocalTtsManager;
 use crate::onichan::{ConversationMessage, OnichanManager, OnichanMode};
 use crate::onichan_conversation::OnichanConversationManager;
@@ -150,6 +150,43 @@ pub fn unload_local_llm(llm_manager: State<'_, Arc<LocalLlmManager>>) {
 #[specta::specta]
 pub fn is_local_llm_loaded(llm_manager: State<'_, Arc<LocalLlmManager>>) -> bool {
     llm_manager.is_loaded()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn open_onichan_models_dir(
+    app: AppHandle,
+    manager: State<'_, Arc<OnichanModelManager>>,
+) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    app.opener()
+        .open_path(
+            manager.get_models_dir().to_string_lossy().to_string(),
+            None::<String>,
+        )
+        .map_err(|e| format!("Failed to open models folder: {}", e))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_llm_engine(llm_manager: State<'_, Arc<LocalLlmManager>>) -> LlmEngine {
+    llm_manager.engine()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_llm_engine(
+    app: AppHandle,
+    llm_manager: State<'_, Arc<LocalLlmManager>>,
+    engine: LlmEngine,
+) -> Result<(), String> {
+    use tauri_plugin_store::StoreExt;
+    llm_manager.set_engine(engine)?;
+    let store = app
+        .store("sidecar_config.json")
+        .map_err(|e| format!("Failed to access sidecar config store: {}", e))?;
+    store.set("llm_engine", serde_json::json!(engine.as_str()));
+    Ok(())
 }
 
 #[tauri::command]

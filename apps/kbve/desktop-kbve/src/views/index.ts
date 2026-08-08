@@ -5,14 +5,12 @@ import {
 	IconSettings,
 	IconMic,
 	IconCpu,
-	IconKeyboard,
 	IconTerminal,
 	IconUser,
 } from '../components/Icons';
 import { GeneralView } from './general';
 import { AudioView } from './audio';
 import { ModelsView } from './models';
-import { ShortcutsView } from './shortcuts';
 import { DevOpsView } from './devops';
 import { DiscordView } from './discord';
 
@@ -80,12 +78,6 @@ export function initViews() {
 		label: 'Models',
 		icon: createElement(IconCpu),
 		component: ModelsView,
-	});
-	registerView({
-		id: 'shortcuts',
-		label: 'Shortcuts',
-		icon: createElement(IconKeyboard),
-		component: ShortcutsView,
 	});
 	registerView({
 		id: 'discord',
