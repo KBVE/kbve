@@ -1,6 +1,9 @@
 import { useEffect } from 'react';
 import { ThemeProvider, themeFromCssVars } from '../lib/rn-theme';
-import { Surface, Stack, Text, Badge } from '@kbve/rn/ui';
+import { Surface } from '@kbve/rn/ui/primitives/Surface';
+import { Stack } from '@kbve/rn/ui/primitives/Stack';
+import { Text } from '@kbve/rn/ui/primitives/Text';
+import { Badge } from '@kbve/rn/ui/primitives/Badge';
 import { SettingsCard } from '../components/SettingsCard';
 import { SettingsRow } from '../components/SettingsRow';
 import { ToggleSwitch } from '../components/ToggleSwitch';
