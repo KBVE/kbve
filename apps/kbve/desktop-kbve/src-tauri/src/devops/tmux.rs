@@ -315,6 +315,8 @@ pub fn create_session(
         set_session_env(session_name, ENV_WORKTREE, worktree)?;
     }
 
+    configure_status_bar(session_name);
+
     Ok(())
 }
 
@@ -444,6 +446,155 @@ pub fn send_command(session_name: &str, command: &str) -> Result<(), String> {
     }
 
     Ok(())
+}
+
+/// Send an agent launch command as one atomic literal chunk with a trailing
+/// carriage return, so a busy shell either receives all of it or none of it.
+pub fn send_launch_command(session_name: &str, command: &str) -> Result<(), String> {
+    let payload = format!("{}\r", command);
+    let output = Command::new("tmux")
+        .args([
+            "-L",
+            SOCKET_NAME,
+            "send-keys",
+            "-l",
+            "-t",
+            session_name,
+            "--",
+            &payload,
+        ])
+        .output()
+        .map_err(|e| format!("Failed to send launch command: {}", e))?;
+
+    if !output.status.success() {
+        return Err(format!(
+            "tmux error: {}",
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+
+    Ok(())
+}
+
+pub(crate) fn is_shell(cmd: &str) -> bool {
+    matches!(
+        cmd,
+        "bash" | "zsh" | "sh" | "fish" | "dash" | "ksh" | "tcsh" | "csh" | "nu" | "pwsh"
+    )
+}
+
+fn pane_current_command(session_name: &str) -> Option<String> {
+    Command::new("tmux")
+        .args([
+            "-L",
+            SOCKET_NAME,
+            "display-message",
+            "-p",
+            "-t",
+            session_name,
+            "#{pane_current_command}",
+        ])
+        .output()
+        .ok()
+        .filter(|o| o.status.success())
+        .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+}
+
+/// Interrupt whatever runs in the pane and wait until a bare shell is back.
+fn stop_pane_process(session_name: &str) -> Result<(), String> {
+    use std::time::{Duration, Instant};
+
+    match pane_current_command(session_name) {
+        None => return Err(format!("Session '{}' not found", session_name)),
+        Some(cmd) if cmd.is_empty() || is_shell(&cmd) => return Ok(()),
+        Some(_) => {}
+    }
+
+    let deadline = Instant::now() + Duration::from_millis(3500);
+    let mut next_interrupt = Instant::now();
+    loop {
+        if Instant::now() >= next_interrupt {
+            send_keys(session_name, "C-c")?;
+            next_interrupt = Instant::now() + Duration::from_millis(300);
+        }
+        std::thread::sleep(Duration::from_millis(80));
+        match pane_current_command(session_name) {
+            None => return Ok(()),
+            Some(cmd) if cmd.is_empty() || is_shell(&cmd) => return Ok(()),
+            Some(_) => {}
+        }
+        if Instant::now() >= deadline {
+            return Err(format!(
+                "Process in '{}' did not stop within 3.5s",
+                session_name
+            ));
+        }
+    }
+}
+
+/// Launch an agent command in a pane sitting at a shell prompt, retrying if a
+/// still-initializing shell swallows it. Polls `pane_current_command` until a
+/// non-shell process appears instead of guessing with sleeps.
+pub fn launch_agent_command(session_name: &str, command: &str) -> Result<(), String> {
+    use std::time::{Duration, Instant};
+
+    stop_pane_process(session_name)?;
+    std::thread::sleep(Duration::from_millis(120));
+    send_keys(session_name, "C-u")?;
+    std::thread::sleep(Duration::from_millis(160));
+
+    for attempt in 0..3 {
+        send_launch_command(session_name, command)?;
+
+        let deadline = Instant::now() + Duration::from_millis(8000);
+        while Instant::now() < deadline {
+            std::thread::sleep(Duration::from_millis(100));
+            match pane_current_command(session_name) {
+                None => return Err(format!("Session '{}' disappeared", session_name)),
+                Some(cmd) if !cmd.is_empty() && !is_shell(&cmd) => {
+                    std::thread::sleep(Duration::from_millis(250));
+                    let _ = send_keys(session_name, "C-l");
+                    return Ok(());
+                }
+                Some(_) => {}
+            }
+        }
+
+        log::warn!(
+            "Agent launch attempt {} in '{}' did not leave the shell",
+            attempt + 1,
+            session_name
+        );
+        send_keys(session_name, "C-u")?;
+        std::thread::sleep(Duration::from_millis(150));
+    }
+
+    Err(format!(
+        "Agent failed to start in '{}' after 3 attempts",
+        session_name
+    ))
+}
+
+/// Apply a minimal per-session status bar. Never uses `-g`: global options
+/// would clobber the user's own tmux sessions on this server.
+pub(crate) fn configure_status_bar(session_name: &str) {
+    const OPTS: &[(&str, &str)] = &[
+        ("status", "on"),
+        ("status-style", "bg=default,fg=#e6e9ef"),
+        ("status-left", ""),
+        ("status-left-length", "0"),
+        ("status-justify", "left"),
+        (
+            "status-right",
+            "#[fg=#7c8495]handy · C-b d detach ",
+        ),
+        ("status-right-length", "120"),
+    ];
+    for (key, value) in OPTS {
+        let _ = Command::new("tmux")
+            .args(["-L", SOCKET_NAME, "set-option", "-t", session_name, key, value])
+            .output();
+    }
 }
 
 /// Send raw keys to a session without appending Enter
@@ -885,7 +1036,7 @@ pub fn start_agent_in_session(
     issue_title: Option<&str>,
 ) -> Result<(), String> {
     let command = build_agent_command(agent_type, repo, issue_number, issue_title)?;
-    send_command(session_name, &command)
+    launch_agent_command(session_name, &command)
 }
 
 /// Start an agent in a Docker container inside a tmux session
@@ -910,7 +1061,7 @@ pub fn start_sandboxed_agent_in_session(
 ) -> Result<(), String> {
     let command =
         build_sandboxed_agent_command(agent_type, repo, issue_number, issue_title, sandbox_config)?;
-    send_command(session_name, &command)
+    launch_agent_command(session_name, &command)
 }
 
 /// Restart an agent in an existing session
