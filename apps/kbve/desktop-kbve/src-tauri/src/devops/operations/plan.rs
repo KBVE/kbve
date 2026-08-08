@@ -41,7 +41,7 @@ fn determine_planning_agent(
 pub struct PlanFromMarkdownConfig {
     /// Path to the markdown plan file
     pub plan_file_path: String,
-    /// Tracking repository where Epic/Sub-issues are created (e.g., "KBVE/Handy")
+    /// Tracking repository where Epic/Sub-issues are created (e.g., "KBVE/kbve")
     pub repo: String,
     /// Work repository where code lives and agents work (e.g., "user/project")
     /// If None, defaults to same as repo

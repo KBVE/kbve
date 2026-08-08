@@ -17,6 +17,14 @@ pub enum OnichanModelType {
     Tts,
 }
 
+/// Additional file belonging to a multi-part model download (split GGUF).
+#[derive(Debug, Clone, Serialize, Deserialize, Type)]
+pub struct OnichanModelPart {
+    pub filename: String,
+    pub url: String,
+    pub size_mb: u64,
+}
+
 /// Information about an Onichan model (LLM or TTS)
 #[derive(Debug, Clone, Serialize, Deserialize, Type)]
 pub struct OnichanModelInfo {
@@ -36,6 +44,9 @@ pub struct OnichanModelInfo {
     pub sample_rate: Option<u32>,
     /// For TTS models: voice name/style
     pub voice_name: Option<String>,
+    /// Extra files for split multi-part downloads (empty for single-file models)
+    #[serde(default)]
+    pub extra_parts: Vec<OnichanModelPart>,
 }
 
 /// Download progress for Onichan models
@@ -45,6 +56,9 @@ pub struct OnichanDownloadProgress {
     pub downloaded: u64,
     pub total: u64,
     pub percentage: f64,
+    /// Instantaneous download speed in bytes/sec (0 when unknown)
+    #[serde(default)]
+    pub speed_bps: u64,
 }
 
 /// Manages LLM and TTS models for Onichan
@@ -85,6 +99,7 @@ impl OnichanModelManager {
                 context_size: Some(8192),
                 sample_rate: None,
                 voice_name: None,
+                extra_parts: Vec::new(),
             },
         );
 
@@ -104,6 +119,7 @@ impl OnichanModelManager {
                 context_size: Some(8192),
                 sample_rate: None,
                 voice_name: None,
+                extra_parts: Vec::new(),
             },
         );
 
@@ -123,6 +139,7 @@ impl OnichanModelManager {
                 context_size: Some(32768),
                 sample_rate: None,
                 voice_name: None,
+                extra_parts: Vec::new(),
             },
         );
 
@@ -143,6 +160,38 @@ impl OnichanModelManager {
                 context_size: Some(32768),
                 sample_rate: None,
                 voice_name: None,
+                extra_parts: Vec::new(),
+            },
+        );
+
+        available_models.insert(
+            "deepseek-v4-flash-q2".to_string(),
+            OnichanModelInfo {
+                id: "deepseek-v4-flash-q2".to_string(),
+                name: "DeepSeek V4 Flash 0731 (284B MoE, 2-bit)".to_string(),
+                description: "Frontier-class 284B MoE (13B active). ~97GB download — needs 128GB unified memory. llama.cpp engine.".to_string(),
+                filename: "DeepSeek-V4-Flash-0731-UD-Q2_K_XL-00001-of-00003.gguf".to_string(),
+                url: Some("https://huggingface.co/unsloth/DeepSeek-V4-Flash-0731-GGUF/resolve/main/UD-Q2_K_XL/DeepSeek-V4-Flash-0731-UD-Q2_K_XL-00001-of-00003.gguf".to_string()),
+                size_mb: 5,
+                is_downloaded: false,
+                is_downloading: false,
+                partial_size: 0,
+                model_type: OnichanModelType::Llm,
+                context_size: Some(262144),
+                sample_rate: None,
+                voice_name: None,
+                extra_parts: vec![
+                    OnichanModelPart {
+                        filename: "DeepSeek-V4-Flash-0731-UD-Q2_K_XL-00002-of-00003.gguf".to_string(),
+                        url: "https://huggingface.co/unsloth/DeepSeek-V4-Flash-0731-GGUF/resolve/main/UD-Q2_K_XL/DeepSeek-V4-Flash-0731-UD-Q2_K_XL-00002-of-00003.gguf".to_string(),
+                        size_mb: 47111,
+                    },
+                    OnichanModelPart {
+                        filename: "DeepSeek-V4-Flash-0731-UD-Q2_K_XL-00003-of-00003.gguf".to_string(),
+                        url: "https://huggingface.co/unsloth/DeepSeek-V4-Flash-0731-GGUF/resolve/main/UD-Q2_K_XL/DeepSeek-V4-Flash-0731-UD-Q2_K_XL-00003-of-00003.gguf".to_string(),
+                        size_mb: 45204,
+                    },
+                ],
             },
         );
 
@@ -162,6 +211,7 @@ impl OnichanModelManager {
                 context_size: Some(131072), // 128k context
                 sample_rate: None,
                 voice_name: None,
+                extra_parts: Vec::new(),
             },
         );
 
@@ -181,6 +231,7 @@ impl OnichanModelManager {
                 context_size: Some(4096),
                 sample_rate: None,
                 voice_name: None,
+                extra_parts: Vec::new(),
             },
         );
 
@@ -200,6 +251,7 @@ impl OnichanModelManager {
                 context_size: Some(131072), // 128k context
                 sample_rate: None,
                 voice_name: None,
+                extra_parts: Vec::new(),
             },
         );
 
@@ -220,6 +272,7 @@ impl OnichanModelManager {
                 context_size: None,
                 sample_rate: Some(22050),
                 voice_name: Some("Amy".to_string()),
+                extra_parts: Vec::new(),
             },
         );
 
@@ -239,6 +292,7 @@ impl OnichanModelManager {
                 context_size: None,
                 sample_rate: Some(22050),
                 voice_name: Some("Lessac".to_string()),
+                extra_parts: Vec::new(),
             },
         );
 
@@ -258,6 +312,7 @@ impl OnichanModelManager {
                 context_size: None,
                 sample_rate: Some(22050),
                 voice_name: Some("Jenny".to_string()),
+                extra_parts: Vec::new(),
             },
         );
 
@@ -277,6 +332,7 @@ impl OnichanModelManager {
                 context_size: None,
                 sample_rate: Some(22050),
                 voice_name: Some("Lessac (Anime)".to_string()),
+                extra_parts: Vec::new(),
             },
         );
 
@@ -296,11 +352,15 @@ impl OnichanModelManager {
     }
 
     pub fn get_available_models(&self) -> Vec<OnichanModelInfo> {
+        self.scan_sideloaded_models();
+        let _ = self.update_download_status();
         let models = self.available_models.lock().unwrap();
         models.values().cloned().collect()
     }
 
     pub fn get_llm_models(&self) -> Vec<OnichanModelInfo> {
+        self.scan_sideloaded_models();
+        let _ = self.update_download_status();
         let models = self.available_models.lock().unwrap();
         models
             .values()
@@ -310,12 +370,92 @@ impl OnichanModelManager {
     }
 
     pub fn get_tts_models(&self) -> Vec<OnichanModelInfo> {
+        let _ = self.update_download_status();
         let models = self.available_models.lock().unwrap();
         models
             .values()
             .filter(|m| m.model_type == OnichanModelType::Tts)
             .cloned()
             .collect()
+    }
+
+    /// Register any GGUF dropped into the models dir that isn't part of the
+    /// curated catalog, so users can sideload arbitrary models (e.g. large
+    /// MoE quants downloaded manually). Split GGUFs (`-00001-of-000NN`) are
+    /// registered once, pointing at the first part — llama.cpp resolves the
+    /// remaining parts from it.
+    fn scan_sideloaded_models(&self) {
+        let entries = match fs::read_dir(&self.models_dir) {
+            Ok(e) => e,
+            Err(_) => return,
+        };
+
+        let mut models = self.available_models.lock().unwrap();
+        let known: Vec<String> = models
+            .values()
+            .flat_map(|m| {
+                std::iter::once(m.filename.clone())
+                    .chain(m.extra_parts.iter().map(|p| p.filename.clone()))
+            })
+            .collect();
+
+        for entry in entries.flatten() {
+            let path = entry.path();
+            let filename = match path.file_name().and_then(|n| n.to_str()) {
+                Some(n) => n.to_string(),
+                None => continue,
+            };
+
+            if !filename.ends_with(".gguf") || known.contains(&filename) {
+                continue;
+            }
+
+            // Split GGUF: only the first part is loadable directly.
+            if let Some(idx) = filename.find("-of-") {
+                let before = &filename[..idx];
+                if !before.ends_with("-00001") {
+                    continue;
+                }
+            }
+
+            let id = format!("sideload:{}", filename.trim_end_matches(".gguf"));
+            if models.contains_key(&id) {
+                continue;
+            }
+
+            let size_mb = entry.metadata().map(|m| m.len() / 1_048_576).unwrap_or(0);
+            let display_name = filename
+                .trim_end_matches(".gguf")
+                .replace(['_', '-'], " ")
+                .trim()
+                .to_string();
+
+            log::info!("Registered sideloaded model: {} ({} MB)", filename, size_mb);
+            models.insert(
+                id.clone(),
+                OnichanModelInfo {
+                    id,
+                    name: display_name,
+                    description: "Sideloaded from the models folder".to_string(),
+                    filename,
+                    url: None,
+                    size_mb,
+                    is_downloaded: true,
+                    is_downloading: false,
+                    partial_size: 0,
+                    model_type: OnichanModelType::Llm,
+                    context_size: None,
+                    sample_rate: None,
+                    voice_name: None,
+                    extra_parts: Vec::new(),
+                },
+            );
+        }
+
+        // Drop sideloaded entries whose file was removed.
+        models.retain(|id, m| {
+            !id.starts_with("sideload:") || self.models_dir.join(&m.filename).exists()
+        });
     }
 
     pub fn get_model_info(&self, model_id: &str) -> Option<OnichanModelInfo> {
@@ -330,14 +470,18 @@ impl OnichanModelManager {
             let model_path = self.models_dir.join(&model.filename);
             let partial_path = self.models_dir.join(format!("{}.partial", &model.filename));
 
-            model.is_downloaded = model_path.exists();
-            model.is_downloading = false;
+            model.is_downloaded = model_path.exists()
+                && model
+                    .extra_parts
+                    .iter()
+                    .all(|p| self.models_dir.join(&p.filename).exists());
 
-            if partial_path.exists() {
-                model.partial_size = partial_path.metadata().map(|m| m.len()).unwrap_or(0);
-            } else {
-                model.partial_size = 0;
+            let mut partial = partial_path.metadata().map(|m| m.len()).unwrap_or(0);
+            for part in &model.extra_parts {
+                let part_partial = self.models_dir.join(format!("{}.partial", &part.filename));
+                partial += part_partial.metadata().map(|m| m.len()).unwrap_or(0);
             }
+            model.partial_size = partial;
         }
 
         Ok(())
@@ -354,11 +498,8 @@ impl OnichanModelManager {
 
         let url = model_info
             .url
+            .clone()
             .ok_or_else(|| anyhow::anyhow!("No download URL for model"))?;
-        let model_path = self.models_dir.join(&model_info.filename);
-        let partial_path = self
-            .models_dir
-            .join(format!("{}.partial", &model_info.filename));
 
         // Also download the JSON config for TTS models
         let config_url = if model_info.model_type == OnichanModelType::Tts {
@@ -367,28 +508,13 @@ impl OnichanModelManager {
             None
         };
 
-        if model_path.exists() {
-            if partial_path.exists() {
-                let _ = fs::remove_file(&partial_path);
-            }
-            self.update_download_status()?;
-            return Ok(());
+        // Full file list: main file + any extra parts (split GGUF).
+        let mut files: Vec<(String, String, u64)> =
+            vec![(model_info.filename.clone(), url, model_info.size_mb)];
+        for part in &model_info.extra_parts {
+            files.push((part.filename.clone(), part.url.clone(), part.size_mb));
         }
-
-        let mut resume_from = if partial_path.exists() {
-            let size = partial_path.metadata()?.len();
-            info!(
-                "Resuming download of onichan model {} from byte {}",
-                model_id, size
-            );
-            size
-        } else {
-            info!(
-                "Starting fresh download of onichan model {} from {}",
-                model_id, url
-            );
-            0
-        };
+        let combined_total: u64 = files.iter().map(|(_, _, mb)| mb * 1024 * 1024).sum();
 
         // Mark as downloading
         {
@@ -398,18 +524,6 @@ impl OnichanModelManager {
             }
         }
 
-        // Emit initial progress event immediately so UI updates
-        let initial_progress = OnichanDownloadProgress {
-            model_id: model_id.to_string(),
-            downloaded: resume_from,
-            total: model_info.size_mb * 1024 * 1024, // Use expected size
-            percentage: 0.0,
-        };
-        info!("Emitting initial download progress for {}", model_id);
-        let _ = self
-            .app_handle
-            .emit("onichan-model-download-progress", &initial_progress);
-
         let client = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36")
             .redirect(reqwest::redirect::Policy::limited(10))
@@ -418,144 +532,27 @@ impl OnichanModelManager {
             .build()
             .map_err(|e| anyhow::anyhow!("Failed to build HTTP client: {}", e))?;
 
-        info!("Sending HTTP request to: {}", url);
-        let mut request = client.get(&url);
-
-        if resume_from > 0 {
-            request = request.header("Range", format!("bytes={}-", resume_from));
-        }
-
-        let mut response = match request.send().await {
-            Ok(r) => {
-                info!("HTTP response status: {}", r.status());
-                r
-            }
-            Err(e) => {
-                log::error!("HTTP request failed: {}", e);
-                {
-                    let mut models = self.available_models.lock().unwrap();
-                    if let Some(model) = models.get_mut(model_id) {
-                        model.is_downloading = false;
-                    }
-                }
-                return Err(anyhow::anyhow!("HTTP request failed: {}", e));
-            }
-        };
-
-        if resume_from > 0 && response.status() == reqwest::StatusCode::OK {
-            warn!(
-                "Server doesn't support range requests for model {}, restarting download",
-                model_id
-            );
-            drop(response);
-            let _ = fs::remove_file(&partial_path);
-            resume_from = 0;
-            response = client.get(&url).send().await?;
-        }
-
-        if !response.status().is_success()
-            && response.status() != reqwest::StatusCode::PARTIAL_CONTENT
-        {
-            {
+        let mut completed_bytes: u64 = 0;
+        for (filename, file_url, size_mb) in &files {
+            let result = self
+                .download_single_file(
+                    model_id,
+                    filename,
+                    file_url,
+                    &client,
+                    completed_bytes,
+                    combined_total,
+                )
+                .await;
+            if let Err(e) = result {
                 let mut models = self.available_models.lock().unwrap();
                 if let Some(model) = models.get_mut(model_id) {
                     model.is_downloading = false;
                 }
+                return Err(e);
             }
-            return Err(anyhow::anyhow!(
-                "Failed to download model: HTTP {}",
-                response.status()
-            ));
+            completed_bytes += size_mb * 1024 * 1024;
         }
-
-        let total_size = if resume_from > 0 {
-            resume_from + response.content_length().unwrap_or(0)
-        } else {
-            response.content_length().unwrap_or(0)
-        };
-
-        let mut downloaded = resume_from;
-        let mut stream = response.bytes_stream();
-
-        let mut file = if resume_from > 0 {
-            std::fs::OpenOptions::new()
-                .create(true)
-                .append(true)
-                .open(&partial_path)?
-        } else {
-            std::fs::File::create(&partial_path)?
-        };
-
-        // Update progress with real total size now that we know it
-        info!("Download started - total size: {} bytes", total_size);
-        let updated_progress = OnichanDownloadProgress {
-            model_id: model_id.to_string(),
-            downloaded,
-            total: total_size,
-            percentage: if total_size > 0 {
-                (downloaded as f64 / total_size as f64) * 100.0
-            } else {
-                0.0
-            },
-        };
-        let _ = self
-            .app_handle
-            .emit("onichan-model-download-progress", &updated_progress);
-
-        while let Some(chunk) = stream.next().await {
-            let chunk = chunk.map_err(|e| {
-                {
-                    let mut models = self.available_models.lock().unwrap();
-                    if let Some(model) = models.get_mut(model_id) {
-                        model.is_downloading = false;
-                    }
-                }
-                e
-            })?;
-
-            file.write_all(&chunk)?;
-            downloaded += chunk.len() as u64;
-
-            let percentage = if total_size > 0 {
-                (downloaded as f64 / total_size as f64) * 100.0
-            } else {
-                0.0
-            };
-
-            let progress = OnichanDownloadProgress {
-                model_id: model_id.to_string(),
-                downloaded,
-                total: total_size,
-                percentage,
-            };
-
-            let _ = self
-                .app_handle
-                .emit("onichan-model-download-progress", &progress);
-        }
-
-        file.flush()?;
-        drop(file);
-
-        if total_size > 0 {
-            let actual_size = partial_path.metadata()?.len();
-            if actual_size != total_size {
-                let _ = fs::remove_file(&partial_path);
-                {
-                    let mut models = self.available_models.lock().unwrap();
-                    if let Some(model) = models.get_mut(model_id) {
-                        model.is_downloading = false;
-                    }
-                }
-                return Err(anyhow::anyhow!(
-                    "Download incomplete: expected {} bytes, got {} bytes",
-                    total_size,
-                    actual_size
-                ));
-            }
-        }
-
-        fs::rename(&partial_path, &model_path)?;
 
         // Download config file for TTS models
         if let Some(config_url) = config_url {
@@ -591,11 +588,146 @@ impl OnichanModelManager {
             .app_handle
             .emit("onichan-model-download-complete", model_id);
 
-        info!(
-            "Successfully downloaded onichan model {} to {:?}",
-            model_id, model_path
-        );
+        info!("Successfully downloaded onichan model {}", model_id);
 
+        Ok(())
+    }
+
+    /// Download one file of a model, emitting progress against the combined
+    /// multi-part total (base_bytes = bytes already accounted for by earlier
+    /// parts).
+    async fn download_single_file(
+        &self,
+        model_id: &str,
+        filename: &str,
+        url: &str,
+        client: &reqwest::Client,
+        base_bytes: u64,
+        combined_total: u64,
+    ) -> Result<()> {
+        let model_path = self.models_dir.join(filename);
+        let partial_path = self.models_dir.join(format!("{}.partial", filename));
+
+        if model_path.exists() {
+            if partial_path.exists() {
+                let _ = fs::remove_file(&partial_path);
+            }
+            return Ok(());
+        }
+
+        let mut resume_from = if partial_path.exists() {
+            let size = partial_path.metadata()?.len();
+            info!("Resuming download of {} from byte {}", filename, size);
+            size
+        } else {
+            info!("Starting fresh download of {} from {}", filename, url);
+            0
+        };
+
+        let emit_progress = |downloaded_in_file: u64, speed_bps: u64| {
+            let downloaded = base_bytes + downloaded_in_file;
+            let progress = OnichanDownloadProgress {
+                model_id: model_id.to_string(),
+                downloaded,
+                total: combined_total,
+                percentage: if combined_total > 0 {
+                    (downloaded as f64 / combined_total as f64) * 100.0
+                } else {
+                    0.0
+                },
+                speed_bps,
+            };
+            let _ = self
+                .app_handle
+                .emit("onichan-model-download-progress", &progress);
+        };
+
+        emit_progress(resume_from, 0);
+
+        let mut request = client.get(url);
+        if resume_from > 0 {
+            request = request.header("Range", format!("bytes={}-", resume_from));
+        }
+
+        let mut response = request.send().await?;
+
+        if resume_from > 0 && response.status() == reqwest::StatusCode::OK {
+            warn!(
+                "Server doesn't support range requests for {}, restarting download",
+                filename
+            );
+            drop(response);
+            let _ = fs::remove_file(&partial_path);
+            resume_from = 0;
+            response = client.get(url).send().await?;
+        }
+
+        if !response.status().is_success()
+            && response.status() != reqwest::StatusCode::PARTIAL_CONTENT
+        {
+            return Err(anyhow::anyhow!(
+                "Failed to download {}: HTTP {}",
+                filename,
+                response.status()
+            ));
+        }
+
+        let file_total = if resume_from > 0 {
+            resume_from + response.content_length().unwrap_or(0)
+        } else {
+            response.content_length().unwrap_or(0)
+        };
+
+        let mut downloaded = resume_from;
+        let mut stream = response.bytes_stream();
+
+        let mut file = if resume_from > 0 {
+            std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(&partial_path)?
+        } else {
+            std::fs::File::create(&partial_path)?
+        };
+
+        info!("Download of {} started - {} bytes", filename, file_total);
+
+        // Throttle progress events: one per ~250ms keeps the UI smooth
+        // without a re-render per network chunk.
+        let mut last_emit = std::time::Instant::now();
+        let mut last_emit_bytes = downloaded;
+        while let Some(chunk) = stream.next().await {
+            let chunk = chunk?;
+            file.write_all(&chunk)?;
+            downloaded += chunk.len() as u64;
+            let elapsed = last_emit.elapsed();
+            if elapsed >= std::time::Duration::from_millis(250) {
+                let speed_bps =
+                    ((downloaded - last_emit_bytes) as f64 / elapsed.as_secs_f64()) as u64;
+                emit_progress(downloaded, speed_bps);
+                last_emit = std::time::Instant::now();
+                last_emit_bytes = downloaded;
+            }
+        }
+        emit_progress(downloaded, 0);
+
+        file.flush()?;
+        drop(file);
+
+        if file_total > 0 {
+            let actual_size = partial_path.metadata()?.len();
+            if actual_size != file_total {
+                let _ = fs::remove_file(&partial_path);
+                return Err(anyhow::anyhow!(
+                    "Download of {} incomplete: expected {} bytes, got {} bytes",
+                    filename,
+                    file_total,
+                    actual_size
+                ));
+            }
+        }
+
+        fs::rename(&partial_path, &model_path)?;
         Ok(())
     }
 
@@ -630,6 +762,18 @@ impl OnichanModelManager {
 
         if config_path.exists() {
             fs::remove_file(&config_path)?;
+        }
+
+        for part in &model_info.extra_parts {
+            for path in [
+                self.models_dir.join(&part.filename),
+                self.models_dir.join(format!("{}.partial", &part.filename)),
+            ] {
+                if path.exists() {
+                    fs::remove_file(&path)?;
+                    deleted_something = true;
+                }
+            }
         }
 
         if !deleted_something {

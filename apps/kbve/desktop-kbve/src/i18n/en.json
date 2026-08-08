@@ -782,6 +782,10 @@
 				"thinking": "Generating response...",
 				"speaking": "Speaking response..."
 			}
+		},
+		"quickConnect": {
+			"label": "Quick Connect",
+			"description": "Automatically rejoin the last voice channel on app start"
 		}
 	},
 	"memory": {

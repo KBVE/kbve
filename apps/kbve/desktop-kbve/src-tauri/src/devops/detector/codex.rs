@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use super::{bottom_region, is_braille, AgentActivity, DetectContext, StatusDetector};
+use super::{AgentActivity, DetectContext, StatusDetector, bottom_region, is_braille};
 
 pub struct CodexDetector;
 

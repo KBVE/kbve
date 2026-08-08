@@ -250,20 +250,85 @@ impl Drop for SidecarProcess {
 }
 
 /// Thread-safe manager for the LLM sidecar
+/// Which inference engine backs the local LLM.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "snake_case")]
+pub enum LlmEngine {
+    /// llama.cpp via llm-sidecar (default)
+    LlamaCpp,
+    /// mistral.rs via mistralrs-sidecar (pure Rust)
+    MistralRs,
+}
+
+impl LlmEngine {
+    pub fn from_str_or_default(s: &str) -> Self {
+        match s {
+            "mistral_rs" => Self::MistralRs,
+            _ => Self::LlamaCpp,
+        }
+    }
+
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::LlamaCpp => "llama_cpp",
+            Self::MistralRs => "mistral_rs",
+        }
+    }
+}
+
 pub struct LocalLlmManager {
     sidecar: Mutex<Option<SidecarProcess>>,
     sidecar_path: PathBuf,
+    mistralrs_path: PathBuf,
+    engine: Mutex<LlmEngine>,
     /// Track the loaded model path so we can reload after crash
     loaded_model_path: Mutex<Option<PathBuf>>,
 }
 
 impl LocalLlmManager {
-    pub fn new(sidecar_path: PathBuf) -> Self {
+    pub fn new(sidecar_path: PathBuf, mistralrs_path: PathBuf) -> Self {
         Self {
             sidecar: Mutex::new(None),
             sidecar_path,
+            mistralrs_path,
+            engine: Mutex::new(LlmEngine::LlamaCpp),
             loaded_model_path: Mutex::new(None),
         }
+    }
+
+    pub fn engine(&self) -> LlmEngine {
+        *self.engine.lock().unwrap()
+    }
+
+    fn engine_path(&self) -> PathBuf {
+        match self.engine() {
+            LlmEngine::LlamaCpp => self.sidecar_path.clone(),
+            LlmEngine::MistralRs => self.mistralrs_path.clone(),
+        }
+    }
+
+    /// Switch engines. Shuts down the running sidecar; the previously loaded
+    /// model (if any) is reloaded into the new engine on demand.
+    pub fn set_engine(&self, engine: LlmEngine) -> Result<(), String> {
+        if engine == LlmEngine::MistralRs && !self.mistralrs_path.exists() {
+            return Err(format!(
+                "mistral.rs sidecar not staged at {:?} — run build:sidecars",
+                self.mistralrs_path
+            ));
+        }
+        {
+            let mut current = self.engine.lock().unwrap();
+            if *current == engine {
+                return Ok(());
+            }
+            *current = engine;
+        }
+        info!("LLM engine switched to {:?}", engine);
+        let mut guard = self.sidecar.lock().unwrap();
+        if let Some(mut sidecar) = guard.take() {
+            sidecar.shutdown();
+        }
+        Ok(())
     }
 
     /// Get the sidecar, spawning it if necessary or if it crashed
@@ -285,7 +350,7 @@ impl LocalLlmManager {
             }
 
             info!("Starting LLM sidecar process...");
-            let mut sidecar = SidecarProcess::spawn(&self.sidecar_path)?;
+            let mut sidecar = SidecarProcess::spawn(&self.engine_path())?;
 
             // If we had a model loaded before the crash, reload it
             if was_running {
@@ -510,8 +575,11 @@ impl LocalLlmManager {
 
 impl Default for LocalLlmManager {
     fn default() -> Self {
-        // Default path - will be set properly from tauri config
-        Self::new(PathBuf::from("llm-sidecar"))
+        // Default paths - will be set properly from tauri config
+        Self::new(
+            PathBuf::from("llm-sidecar"),
+            PathBuf::from("mistralrs-sidecar"),
+        )
     }
 }
 

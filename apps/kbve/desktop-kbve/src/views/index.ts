@@ -5,20 +5,14 @@ import {
 	IconSettings,
 	IconMic,
 	IconCpu,
-	IconKeyboard,
-	IconInfo,
 	IconTerminal,
 	IconUser,
 } from '../components/Icons';
 import { GeneralView } from './general';
 import { AudioView } from './audio';
 import { ModelsView } from './models';
-import { ShortcutsView } from './shortcuts';
-import { OnichanView } from './onichan';
 import { DevOpsView } from './devops';
 import { DiscordView } from './discord';
-import { AboutView } from './about';
-import { TerminalView } from './terminal';
 
 // Loaded on demand: pulls the whole @kbve/rn (react-native-web) stack, which
 // should never gate app boot — a load failure renders an inline notice
@@ -74,12 +68,6 @@ export function initViews() {
 		component: GeneralView,
 	});
 	registerView({
-		id: 'terminal',
-		label: 'Terminal',
-		icon: createElement(IconTerminal),
-		component: TerminalView,
-	});
-	registerView({
 		id: 'audio',
 		label: 'Audio',
 		icon: createElement(IconMic),
@@ -90,18 +78,6 @@ export function initViews() {
 		label: 'Models',
 		icon: createElement(IconCpu),
 		component: ModelsView,
-	});
-	registerView({
-		id: 'shortcuts',
-		label: 'Shortcuts',
-		icon: createElement(IconKeyboard),
-		component: ShortcutsView,
-	});
-	registerView({
-		id: 'onichan',
-		label: 'Onichan',
-		icon: createElement(IconUser),
-		component: OnichanView,
 	});
 	registerView({
 		id: 'discord',
@@ -120,11 +96,6 @@ export function initViews() {
 		label: 'Profile',
 		icon: createElement(IconUser),
 		component: ProfileView,
-	});
-	registerView({
-		id: 'about',
-		label: 'About',
-		icon: createElement(IconInfo),
-		component: AboutView,
+		hidden: true,
 	});
 }

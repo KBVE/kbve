@@ -12,7 +12,7 @@ const PASTE_METHODS: { value: PasteMethod; label: string }[] = [
 	{ value: 'none', label: 'None (clipboard only)' },
 ];
 
-export function ShortcutsView() {
+export function ShortcutsSettings() {
 	const [bindings, setBindings] = useState<ShortcutBinding[]>([]);
 	const [pushToTalk, setPushToTalk] = useState(true);
 	const [pasteMethod, setPasteMethod] = useState<PasteMethod>('ctrl_v');
@@ -48,7 +48,7 @@ export function ShortcutsView() {
 	};
 
 	return (
-		<div className="view-column">
+		<>
 			{error && <div className="alert-danger text-caption">{error}</div>}
 			<SettingsCard title="Global Shortcuts">
 				{bindings.length === 0 && (
@@ -104,7 +104,7 @@ export function ShortcutsView() {
 					</select>
 				</SettingsRow>
 			</SettingsCard>
-		</div>
+		</>
 	);
 }
 

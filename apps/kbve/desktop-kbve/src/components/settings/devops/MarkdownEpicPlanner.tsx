@@ -5,7 +5,7 @@ import type { PlanFromMarkdownConfig, PlanResult } from '../../../bindings';
 
 export function MarkdownEpicPlanner() {
 	const [planFilePath, setPlanFilePath] = useState<string>('');
-	const [repo, setRepo] = useState<string>('KBVE/Handy');
+	const [repo, setRepo] = useState<string>('KBVE/kbve');
 	const [workRepo, setWorkRepo] = useState<string>('');
 	const [titleOverride, setTitleOverride] = useState<string>('');
 	const [agentType, setAgentType] = useState<string>('');
