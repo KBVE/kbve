@@ -19,6 +19,7 @@ pub struct SidecarQuickConfig {
     pub last_discord_guild_name: Option<String>,
     pub last_discord_channel_name: Option<String>,
     pub last_embedding_model_id: Option<String>,
+    pub discord_quick_connect: bool,
 }
 
 #[tauri::command]
@@ -37,7 +38,24 @@ pub fn get_sidecar_quick_config(app: AppHandle) -> SidecarQuickConfig {
         last_discord_guild_name: read_string(&store, "last_discord_guild_name"),
         last_discord_channel_name: read_string(&store, "last_discord_channel_name"),
         last_embedding_model_id: read_string(&store, "last_embedding_model_id"),
+        discord_quick_connect: read_bool(&store, "discord_quick_connect"),
     }
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_sidecar_quick_config_flag(
+    app: AppHandle,
+    key: String,
+    value: bool,
+) -> Result<(), String> {
+    let store = app
+        .store(SIDECAR_CONFIG_STORE)
+        .map_err(|e| format!("Failed to access sidecar config store: {}", e))?;
+
+    store.set(&key, serde_json::json!(value));
+
+    Ok(())
 }
 
 #[tauri::command]
@@ -70,9 +88,14 @@ fn default_config() -> SidecarQuickConfig {
         last_discord_guild_name: None,
         last_discord_channel_name: None,
         last_embedding_model_id: None,
+        discord_quick_connect: false,
     }
 }
 
 fn read_string(store: &tauri_plugin_store::Store<tauri::Wry>, key: &str) -> Option<String> {
     store.get(key).and_then(|v| v.as_str().map(String::from))
+}
+
+fn read_bool(store: &tauri_plugin_store::Store<tauri::Wry>, key: &str) -> bool {
+    store.get(key).and_then(|v| v.as_bool()).unwrap_or(false)
 }

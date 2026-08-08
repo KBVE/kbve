@@ -24,7 +24,7 @@ struct PlanFrontmatter {
     /// Repository for tracking issues (e.g., "KBVE/KBVE")
     #[serde(default)]
     tracking_repo: Option<String>,
-    /// Repository for working/implementation (e.g., "KBVE/Handy")
+    /// Repository for working/implementation (e.g., "KBVE/kbve")
     #[serde(default)]
     working_repo: Option<String>,
 }
@@ -42,7 +42,7 @@ pub struct PlanTemplate {
     pub labels: Vec<String>,
     /// Repository for tracking issues (e.g., "KBVE/KBVE")
     pub tracking_repo: Option<String>,
-    /// Repository for working/implementation (e.g., "KBVE/Handy")
+    /// Repository for working/implementation (e.g., "KBVE/kbve")
     pub working_repo: Option<String>,
     /// Epic goal extracted from markdown
     pub goal: String,

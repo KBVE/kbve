@@ -3,35 +3,26 @@ import { listen } from '@tauri-apps/api/event';
 import { SettingsCard } from '../components/SettingsCard';
 import { SettingsRow } from '../components/SettingsRow';
 import { ToggleSwitch } from '../components/ToggleSwitch';
-import { commands, type OnichanModelInfo } from '../bindings';
+import { commands } from '../bindings';
+import { useAppStore } from '../stores/app';
+import { useSidecarStore } from '../stores/sidecarStore';
 
 const muted = { color: 'var(--color-text-muted)' } as const;
 
-interface OnichanProgress {
-	model_id: string;
-	percentage: number;
-}
-
-export function OnichanView() {
+export function OnichanSettings() {
 	const [active, setActive] = useState(false);
-	const [llm, setLlm] = useState<OnichanModelInfo[]>([]);
-	const [tts, setTts] = useState<OnichanModelInfo[]>([]);
-	const [llmLoaded, setLlmLoaded] = useState(false);
-	const [ttsLoaded, setTtsLoaded] = useState(false);
 	const [conversing, setConversing] = useState(false);
-	const [progress, setProgress] = useState<Record<string, number>>({});
 	const [chat, setChat] = useState('');
 	const [reply, setReply] = useState('');
 	const [error, setError] = useState<string | null>(null);
 	const busyRef = useRef(false);
+	const llmLoaded = useSidecarStore((s) => s.llmLoaded);
+	const ttsLoaded = useSidecarStore((s) => s.ttsLoaded);
+	const setActiveView = useAppStore((s) => s.setActiveView);
 
 	const refresh = useCallback(async () => {
 		const a = await commands.onichanIsActive();
 		setActive(a);
-		setLlm(await commands.getOnichanLlmModels());
-		setTts(await commands.getOnichanTtsModels());
-		setLlmLoaded(await commands.isLocalLlmLoaded());
-		setTtsLoaded(await commands.isLocalTtsLoaded());
 		setConversing(await commands.onichanIsConversationRunning());
 	}, []);
 
@@ -42,45 +33,13 @@ export function OnichanView() {
 	}, [refresh]);
 
 	useEffect(() => {
-		const p = listen<OnichanProgress>(
-			'onichan-model-download-progress',
-			(e) =>
-				setProgress((prev) => ({
-					...prev,
-					[e.payload.model_id]: e.payload.percentage,
-				})),
-		);
-		const done = listen('onichan-model-download-complete', () => {
-			setProgress({});
-			refresh();
-		});
 		const resp = listen<{ text: string }>('onichan-response', (e) =>
 			setReply(e.payload.text),
 		);
 		return () => {
-			p.then((f) => f());
-			done.then((f) => f());
 			resp.then((f) => f());
 		};
-	}, [refresh]);
-
-	const download = async (id: string) => {
-		const res = await commands.downloadOnichanModel(id);
-		if (res.status === 'error') setError(res.error);
-		refresh();
-	};
-
-	const loadLlm = async (id: string) => {
-		const res = await commands.loadLocalLlm(id);
-		if (res.status === 'error') setError(res.error);
-		else setLlmLoaded(true);
-	};
-
-	const loadTts = async (id: string) => {
-		const res = await commands.loadLocalTts(id);
-		if (res.status === 'error') setError(res.error);
-		else setTtsLoaded(true);
-	};
+	}, []);
 
 	const send = async () => {
 		if (!chat.trim() || busyRef.current) return;
@@ -96,7 +55,7 @@ export function OnichanView() {
 	};
 
 	return (
-		<div className="view-column">
+		<>
 			{error && <div className="alert-danger text-caption">{error}</div>}
 
 			<SettingsCard title="Onichan Assistant">
@@ -130,22 +89,18 @@ export function OnichanView() {
 						}}
 					/>
 				</SettingsRow>
+				<SettingsRow
+					label="Models"
+					description={`LLM ${llmLoaded ? 'loaded' : 'not loaded'} · TTS ${
+						ttsLoaded ? 'loaded' : 'not loaded'
+					} — download and load in the Models view`}>
+					<button
+						onClick={() => setActiveView('models')}
+						className="btn">
+						Manage models
+					</button>
+				</SettingsRow>
 			</SettingsCard>
-
-			<ModelCard
-				title={`Language Model${llmLoaded ? ' · loaded' : ''}`}
-				models={llm}
-				progress={progress}
-				onDownload={download}
-				onLoad={loadLlm}
-			/>
-			<ModelCard
-				title={`Voice (TTS)${ttsLoaded ? ' · loaded' : ''}`}
-				models={tts}
-				progress={progress}
-				onDownload={download}
-				onLoad={loadTts}
-			/>
 
 			<SettingsCard title="Chat">
 				<div className="flex flex-col gap-3 px-5 py-4">
@@ -176,71 +131,6 @@ export function OnichanView() {
 					)}
 				</div>
 			</SettingsCard>
-		</div>
-	);
-}
-
-function ModelCard({
-	title,
-	models,
-	progress,
-	onDownload,
-	onLoad,
-}: {
-	title: string;
-	models: OnichanModelInfo[];
-	progress: Record<string, number>;
-	onDownload: (id: string) => void;
-	onLoad: (id: string) => void;
-}) {
-	return (
-		<SettingsCard title={title}>
-			<div className="flex flex-col">
-				{models.length === 0 && (
-					<p className="px-5 py-4 text-caption" style={muted}>
-						Loading…
-					</p>
-				)}
-				{models.map((m) => {
-					const pct = progress[m.id];
-					const downloading = m.is_downloading || pct != null;
-					return (
-						<div
-							key={m.id}
-							className="settings-row flex items-center justify-between gap-6 px-5 py-4">
-							<div className="flex flex-col gap-1.5">
-								<span className="text-body">{m.name}</span>
-								<span className="text-caption" style={muted}>
-									{m.size_mb} MB · {m.description}
-								</span>
-								{downloading && pct != null && (
-									<span
-										className="text-caption"
-										style={muted}>
-										Downloading… {pct.toFixed(0)}%
-									</span>
-								)}
-							</div>
-							<div className="flex gap-2">
-								{m.is_downloaded ? (
-									<button
-										onClick={() => onLoad(m.id)}
-										className="btn">
-										Load
-									</button>
-								) : (
-									<button
-										onClick={() => onDownload(m.id)}
-										disabled={downloading}
-										className="btn">
-										Download
-									</button>
-								)}
-							</div>
-						</div>
-					);
-				})}
-			</div>
-		</SettingsCard>
+		</>
 	);
 }

@@ -19,7 +19,7 @@ use serenity::all::{ChannelId, GatewayIntents, GuildId, Ready, VoiceState};
 use serenity::cache::Settings as CacheSettings;
 use serenity::client::{Client, Context, EventHandler};
 use serenity::prelude::TypeMapKey;
-use songbird::driver::DecodeMode;
+use songbird::driver::{DecodeConfig, DecodeMode};
 use songbird::events::{Event, EventContext, EventHandler as VoiceEventHandler, TrackEvent};
 use songbird::input::{Input, RawAdapter};
 use songbird::tracks::TrackHandle;
@@ -1173,7 +1173,8 @@ async fn main() {
 
                 // Configure Songbird with DecodeMode::Decode to receive audio
                 // This MUST be done at initialization using register_songbird_from_config
-                let songbird_config = Config::default().decode_mode(DecodeMode::Decode);
+                let songbird_config =
+                    Config::default().decode_mode(DecodeMode::Decode(DecodeConfig::default()));
 
                 let mut client = match Client::builder(&token, intents)
                     .event_handler(Handler)
@@ -1323,7 +1324,7 @@ async fn main() {
                         .await
                         .is_ok()
                     {
-                        match tokio::time::timeout(std::time::Duration::from_secs(10), respond_rx)
+                        match tokio::time::timeout(std::time::Duration::from_secs(30), respond_rx)
                             .await
                         {
                             Ok(Ok(Ok(()))) => {
@@ -1332,9 +1333,11 @@ async fn main() {
                                 });
                             }
                             Ok(Ok(Err(e))) => {
+                                log::error!("join_voice failed: {}", e);
                                 send_response(&Response::Error { message: e });
                             }
                             _ => {
+                                log::error!("join_voice did not resolve within 30s");
                                 send_response(&Response::Error {
                                     message: "Timeout joining voice".to_string(),
                                 });

@@ -1,8 +1,16 @@
+import { useEffect } from 'react';
 import { ThemeProvider, themeFromCssVars } from '../lib/rn-theme';
-import { Surface, Stack, Text, Badge } from '@kbve/rn/ui';
+import { Surface } from '@kbve/rn/ui/primitives/Surface';
+import { Stack } from '@kbve/rn/ui/primitives/Stack';
+import { Text } from '@kbve/rn/ui/primitives/Text';
+import { Badge } from '@kbve/rn/ui/primitives/Badge';
 import { SettingsCard } from '../components/SettingsCard';
 import { SettingsRow } from '../components/SettingsRow';
+import { ToggleSwitch } from '../components/ToggleSwitch';
 import { useAuthStore } from '../stores/auth';
+import { useSidecarStore } from '../stores/sidecarStore';
+import { useKbveProfileStore } from '../stores/kbveProfile';
+import { ShortcutsSettings } from './shortcuts';
 
 const muted = { color: 'var(--color-text-muted)' } as const;
 
@@ -28,6 +36,26 @@ export function ProfileView() {
 	const user = useAuthStore((s) => s.user);
 	const session = useAuthStore((s) => s.session);
 	const signOut = useAuthStore((s) => s.signOut);
+	const discordQuickConnect = useSidecarStore((s) => s.discordQuickConnect);
+	const setDiscordQuickConnect = useSidecarStore(
+		(s) => s.setDiscordQuickConnect,
+	);
+	const lastDiscordGuildName = useSidecarStore((s) => s.lastDiscordGuildName);
+	const lastDiscordChannelName = useSidecarStore(
+		(s) => s.lastDiscordChannelName,
+	);
+	const kbveProfile = useKbveProfileStore((s) => s.profile);
+	const kbveBalance = useKbveProfileStore((s) => s.balance);
+	const kbveProfileLoading = useKbveProfileStore((s) => s.loading);
+	const loadKbveProfile = useKbveProfileStore((s) => s.load);
+	const loadKbveBalance = useKbveProfileStore((s) => s.loadBalance);
+
+	const accessToken = session?.access_token ?? null;
+	useEffect(() => {
+		if (!accessToken) return;
+		void loadKbveProfile(accessToken);
+		void loadKbveBalance(accessToken);
+	}, [accessToken, loadKbveProfile, loadKbveBalance]);
 
 	if (!user) {
 		return (
@@ -36,6 +64,16 @@ export function ProfileView() {
 					<p className="px-5 py-4 text-caption" style={muted}>
 						Not signed in.
 					</p>
+				</SettingsCard>
+				<SettingsCard title="About">
+					<div className="flex flex-col gap-2 px-5 py-4">
+						<p className="text-body" style={muted}>
+							KBVE Desktop — Version 0.1.0
+						</p>
+						<p className="text-body" style={muted}>
+							MIT License
+						</p>
+					</div>
 				</SettingsCard>
 			</div>
 		);
@@ -75,6 +113,58 @@ export function ProfileView() {
 				</Surface>
 			</ThemeProvider>
 
+			<SettingsCard title="KBVE Profile">
+				<SettingsRow
+					label="Username"
+					description="Your kbve.com identity">
+					{kbveProfileLoading && !kbveProfile ? (
+						<span className="text-caption" style={muted}>
+							Loading…
+						</span>
+					) : kbveProfile?.username ? (
+						<a
+							href={`https://kbve.com/@${kbveProfile.username}`}
+							target="_blank"
+							rel="noreferrer"
+							className="text-body">
+							@{kbveProfile.username}
+						</a>
+					) : (
+						<span className="text-caption" style={muted}>
+							{kbveProfile
+								? 'No username claimed'
+								: 'Unavailable'}
+						</span>
+					)}
+				</SettingsRow>
+				<SettingsRow
+					label="Connected providers"
+					description="Accounts linked to your KBVE profile">
+					<span className="text-caption" style={muted}>
+						{kbveProfile?.connected_providers?.length
+							? kbveProfile.connected_providers.join(', ')
+							: 'None'}
+					</span>
+				</SettingsRow>
+			</SettingsCard>
+
+			<SettingsCard title="Wallet">
+				<SettingsRow
+					label="Credits"
+					description="Spendable balance on kbve.com">
+					<span className="text-body font-mono">
+						{kbveBalance
+							? kbveBalance.credits.toLocaleString()
+							: '—'}
+					</span>
+				</SettingsRow>
+				<SettingsRow label="Khash" description="Earned khash balance">
+					<span className="text-body font-mono">
+						{kbveBalance ? kbveBalance.khash.toLocaleString() : '—'}
+					</span>
+				</SettingsRow>
+			</SettingsCard>
+
 			<SettingsCard title="Account">
 				<SettingsRow
 					label="Member since"
@@ -92,6 +182,28 @@ export function ProfileView() {
 				</SettingsRow>
 			</SettingsCard>
 
+			<SettingsCard title="Discord">
+				<SettingsRow
+					label="Quick connect"
+					description="Automatically rejoin the last voice channel on app start">
+					<ToggleSwitch
+						checked={discordQuickConnect}
+						onChange={(next) => void setDiscordQuickConnect(next)}
+					/>
+				</SettingsRow>
+				<SettingsRow
+					label="Last voice channel"
+					description="Saved from your most recent connection">
+					<span className="text-caption" style={muted}>
+						{lastDiscordGuildName && lastDiscordChannelName
+							? `${lastDiscordGuildName} / ${lastDiscordChannelName}`
+							: 'None yet'}
+					</span>
+				</SettingsRow>
+			</SettingsCard>
+
+			<ShortcutsSettings />
+
 			<SettingsCard title="Session">
 				<SettingsRow
 					label="Sign out"
@@ -103,6 +215,21 @@ export function ProfileView() {
 						Sign out
 					</button>
 				</SettingsRow>
+			</SettingsCard>
+
+			<SettingsCard title="About">
+				<div className="flex flex-col gap-2 px-5 py-4">
+					<p className="text-body" style={muted}>
+						KBVE Desktop — Version 0.1.0
+					</p>
+					<p className="text-body" style={muted}>
+						A cross-platform desktop application built with Tauri,
+						React, and Rust.
+					</p>
+					<p className="text-body" style={muted}>
+						MIT License
+					</p>
+				</div>
 			</SettingsCard>
 		</div>
 	);

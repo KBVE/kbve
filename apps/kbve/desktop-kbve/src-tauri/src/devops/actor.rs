@@ -103,8 +103,7 @@ async fn run(
             _ = tick.tick() => {}
         }
 
-        let sessions =
-            refresh(&registry, &mut smoothers, &mut metadata_cache).await;
+        let sessions = refresh(&registry, &mut smoothers, &mut metadata_cache).await;
 
         if last_published.as_ref() != Some(&sessions) {
             last_published = Some(sessions.clone());
@@ -140,12 +139,11 @@ async fn refresh(
             Some(m) => Some(m.clone()),
             None => {
                 let name = row.name.clone();
-                let fetched = tauri::async_runtime::spawn_blocking(move || {
-                    tmux::get_session_metadata(&name)
-                })
-                .await
-                .ok()
-                .and_then(|r| r.ok());
+                let fetched =
+                    tauri::async_runtime::spawn_blocking(move || tmux::get_session_metadata(&name))
+                        .await
+                        .ok()
+                        .and_then(|r| r.ok());
                 if let Some(m) = &fetched {
                     metadata_cache.insert(row.name.clone(), m.clone());
                 }
@@ -214,13 +212,7 @@ async fn refresh(
 
 async fn list_session_rows() -> Vec<SessionRow> {
     let output = Command::new("tmux")
-        .args([
-            "-L",
-            tmux::SOCKET_NAME,
-            "list-sessions",
-            "-F",
-            LIST_FORMAT,
-        ])
+        .args(["-L", tmux::SOCKET_NAME, "list-sessions", "-F", LIST_FORMAT])
         .kill_on_drop(true)
         .output()
         .await;

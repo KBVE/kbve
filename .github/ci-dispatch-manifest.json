@@ -138,7 +138,7 @@
 		{
 			"key": "arpg_web",
 			"app_name": "arpg-web",
-			"version": "0.1.29",
+			"version": "0.1.30",
 			"version_toml": "apps/agones/arpg/web/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/arpg-web.mdx",
 			"version_target": "apps/agones/arpg/web/version.toml",

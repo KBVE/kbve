@@ -49,17 +49,19 @@ export function Sidebar() {
 			<nav
 				aria-label="Primary navigation"
 				className="sidebar-nav flex flex-1 flex-col gap-1.5">
-				{views.map((view) => (
-					<SidebarItem
-						key={view.id}
-						id={view.id}
-						label={view.label}
-						icon={view.icon}
-						active={activeView === view.id}
-						sidebarOpen={sidebarOpen}
-						onSelect={setActiveView}
-					/>
-				))}
+				{views
+					.filter((view) => !view.hidden)
+					.map((view) => (
+						<SidebarItem
+							key={view.id}
+							id={view.id}
+							label={view.label}
+							icon={view.icon}
+							active={activeView === view.id}
+							sidebarOpen={sidebarOpen}
+							onSelect={setActiveView}
+						/>
+					))}
 			</nav>
 
 			<Account collapsed={!sidebarOpen} />

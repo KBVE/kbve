@@ -63,6 +63,7 @@ interface SidecarStore {
 	lastDiscordGuildName: string | null;
 	lastDiscordChannelName: string | null;
 	lastEmbeddingModelId: string | null;
+	discordQuickConnect: boolean;
 	quickConfigLoaded: boolean;
 
 	// Actions
@@ -73,6 +74,7 @@ interface SidecarStore {
 	// Quick-config actions
 	loadQuickConfig: () => Promise<void>;
 	saveQuickConfigField: (key: string, value: string | null) => Promise<void>;
+	setDiscordQuickConnect: (enabled: boolean) => Promise<void>;
 
 	// LLM actions
 	loadLlm: (modelId: string) => Promise<void>;
@@ -94,7 +96,7 @@ interface SidecarStore {
 		channelId: string,
 		guildName: string,
 		channelName: string,
-	) => Promise<void>;
+	) => Promise<string | null>;
 	quickStartDiscord: () => Promise<void>;
 	quickStopDiscord: () => Promise<void>;
 
@@ -147,6 +149,7 @@ export const useSidecarStore = create<SidecarStore>()(
 		lastDiscordGuildName: null,
 		lastDiscordChannelName: null,
 		lastEmbeddingModelId: null,
+		discordQuickConnect: false,
 		quickConfigLoaded: false,
 
 		_unlisteners: [],
@@ -159,6 +162,22 @@ export const useSidecarStore = create<SidecarStore>()(
 			// First, fetch current state from backend
 			await refresh();
 			await loadQuickConfig();
+
+			const {
+				discordQuickConnect,
+				lastDiscordGuildId,
+				lastDiscordChannelId,
+				discordInVoice,
+				quickStartDiscord,
+			} = get();
+			if (
+				discordQuickConnect &&
+				lastDiscordGuildId &&
+				lastDiscordChannelId &&
+				!discordInVoice
+			) {
+				quickStartDiscord();
+			}
 
 			// Set up event listeners for state changes
 			const unlisteners: UnlistenFn[] = [];
@@ -285,6 +304,7 @@ export const useSidecarStore = create<SidecarStore>()(
 						config.last_discord_channel_name ?? null,
 					lastEmbeddingModelId:
 						config.last_embedding_model_id ?? null,
+					discordQuickConnect: config.discord_quick_connect,
 					quickConfigLoaded: true,
 				});
 			} catch (error) {
@@ -298,6 +318,18 @@ export const useSidecarStore = create<SidecarStore>()(
 				await commands.setSidecarQuickConfigField(key, value);
 			} catch (error) {
 				console.error('Failed to save sidecar config field:', error);
+			}
+		},
+
+		setDiscordQuickConnect: async (enabled: boolean) => {
+			set({ discordQuickConnect: enabled });
+			try {
+				await commands.setSidecarQuickConfigFlag(
+					'discord_quick_connect',
+					enabled,
+				);
+			} catch (error) {
+				console.error('Failed to save discord quick connect:', error);
 			}
 		},
 
@@ -429,9 +461,12 @@ export const useSidecarStore = create<SidecarStore>()(
 						'Failed to connect Discord voice:',
 						result.error,
 					);
+					return result.error;
 				}
+				return null;
 			} catch (error) {
 				console.error('Failed to connect Discord voice:', error);
+				return String(error);
 			} finally {
 				set({ discordLoading: false });
 			}

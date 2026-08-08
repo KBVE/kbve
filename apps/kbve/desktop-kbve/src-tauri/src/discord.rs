@@ -265,6 +265,12 @@ impl SidecarProcess {
         let json = serde_json::to_string(request)
             .map_err(|e| format!("Failed to serialize request: {}", e))?;
 
+        // Drain any stale responses left over from a previous request that
+        // timed out client-side but later resolved sidecar-side.
+        while let Ok(stale) = self.response_rx.try_recv() {
+            warn!("Discarding stale sidecar response: {:?}", stale);
+        }
+
         writeln!(stdin, "{}", json).map_err(|e| format!("Failed to write to sidecar: {}", e))?;
         stdin
             .flush()
@@ -272,7 +278,7 @@ impl SidecarProcess {
 
         // Wait for response from the reader thread via channel
         self.response_rx
-            .recv_timeout(std::time::Duration::from_secs(30))
+            .recv_timeout(std::time::Duration::from_secs(35))
             .map_err(|e| {
                 format!(
                     "Failed to receive response (sidecar may have crashed): {}",

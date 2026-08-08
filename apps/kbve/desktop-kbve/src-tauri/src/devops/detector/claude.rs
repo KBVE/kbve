@@ -1,5 +1,5 @@
 use super::{
-    bottom_region, is_braille, title_is_working, AgentActivity, DetectContext, StatusDetector,
+    AgentActivity, DetectContext, StatusDetector, bottom_region, is_braille, title_is_working,
 };
 
 pub struct ClaudeDetector;
@@ -42,9 +42,7 @@ fn looks_like_claude(plain: &str, bottom: &str, pane_command: Option<&str>) -> b
     if bottom.contains('╭') && bottom.contains('╰') {
         return true;
     }
-    plain.contains("? for shortcuts")
-        || plain.contains("▐▛███▜▌")
-        || plain.contains("Claude Code")
+    plain.contains("? for shortcuts") || plain.contains("▐▛███▜▌") || plain.contains("Claude Code")
 }
 
 fn is_claude_version_command(cmd: &str) -> bool {
@@ -228,8 +226,7 @@ mod tests {
         let ansi = b"\x1b]0;\xe2\xa0\x99 task\x07\xe2\x95\xad box \xe2\x95\xb0";
         let now = SystemTime::now();
         let plain = strip_test(ansi);
-        let ctx =
-            DetectContext::from_parts(ansi, &plain, Some(now), now, None, "s", None, None);
+        let ctx = DetectContext::from_parts(ansi, &plain, Some(now), now, None, "s", None, None);
         assert_eq!(ClaudeDetector.detect(&ctx), AgentActivity::Running);
     }
 

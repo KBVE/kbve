@@ -1,0 +1,29 @@
+[package]
+name = "mistralrs-sidecar"
+version = "0.1.0"
+edition = "2021"
+description = "mistral.rs LLM sidecar for KBVE - pure-Rust inference engine, same wire protocol as llm-sidecar"
+
+[[bin]]
+name = "mistralrs-sidecar"
+path = "src/main.rs"
+
+[dependencies]
+mistralrs = { version = "0.8", default-features = false }
+tokio = { version = "1", features = ["rt-multi-thread"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+log = "0.4"
+env_logger = "0.11"
+
+[features]
+default = []
+metal = ["mistralrs/metal"]
+cuda = ["mistralrs/cuda"]
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+
+[workspace]

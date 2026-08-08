@@ -5,4 +5,6 @@ export interface ViewDefinition {
 	label: string;
 	icon: ReactNode;
 	component: ComponentType;
+	/** Rendered by the view host but omitted from sidebar navigation. */
+	hidden?: boolean;
 }

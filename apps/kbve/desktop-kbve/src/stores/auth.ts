@@ -8,6 +8,7 @@ import {
 	type Provider,
 	type Session,
 } from '@kbve/tauri';
+import { useKbveProfileStore } from './kbveProfile';
 import { loadSession, saveSession } from '../lib/persist';
 
 const REDIRECT = 'kbve-desktop://auth/callback';
@@ -71,6 +72,7 @@ export const useAuthStore = create<AuthState>()((set, get) => ({
 	signOut: async () => {
 		await authApi.signOut();
 		await saveSession(null);
+		useKbveProfileStore.getState().clear();
 		set({ session: null, user: null, phase: 'anon', error: null });
 	},
 }));
@@ -108,5 +110,4 @@ async function initInner(set: SetAuth, _get: () => AuthState): Promise<void> {
 	} catch {
 		await saveSession(null);
 	}
-
 }

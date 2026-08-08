@@ -1,6 +1,6 @@
 import type { ThemeOverride } from '@kbve/rn/ui/theme';
 
-export { ThemeProvider, useTheme } from '@kbve/rn/ui';
+export { ThemeProvider, useTheme } from '@kbve/rn/ui/ThemeProvider';
 export { tokens, mergeTheme } from '@kbve/rn/ui/theme';
 export type { ThemeOverride, Tokens } from '@kbve/rn/ui/theme';
 

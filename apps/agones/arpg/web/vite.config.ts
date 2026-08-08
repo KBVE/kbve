@@ -224,7 +224,9 @@ export default defineConfig(({ mode }) => {
 				rollupOptions: {
 					output: {
 						inlineDynamicImports: true,
-						exports: 'named' as const,
+						exports: discord
+							? ('none' as const)
+							: ('named' as const),
 						// Discord only: content-hashed, immutable URL per build
 						// (see hashDiscordBundle). The embed bundle keeps its
 						// stable name — kbve.com loads it by fixed URL.
