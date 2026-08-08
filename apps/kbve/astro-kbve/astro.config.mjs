@@ -215,20 +215,6 @@ export default defineConfig({
 					},
 				},
 				{
-					tag: 'meta',
-					attrs: {
-						name: 'twitter:site',
-						content: '@kbve',
-					},
-				},
-				{
-					tag: 'meta',
-					attrs: {
-						name: 'twitter:creator',
-						content: '@kbve',
-					},
-				},
-				{
 					tag: 'link',
 					attrs: {
 						rel: 'preconnect',
