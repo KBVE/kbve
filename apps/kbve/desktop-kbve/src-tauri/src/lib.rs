@@ -260,6 +260,7 @@ fn specta_builder() -> Builder<tauri::Wry> {
         commands::devops::recover_all_agent_sessions,
         commands::devops::is_tmux_running,
         commands::devops::ensure_master_tmux_session,
+        commands::devops::open_tmux_terminal,
         // devops: git worktrees
         commands::devops::list_git_worktrees,
         commands::devops::get_git_worktree_info,
@@ -606,6 +607,8 @@ pub fn run() {
             if let Err(e) = devops::tmux::ensure_master_session() {
                 log::warn!("Failed to create master tmux session: {}", e);
             }
+
+            app.manage(devops::actor::spawn(app.handle().clone()));
 
             Ok(())
         })

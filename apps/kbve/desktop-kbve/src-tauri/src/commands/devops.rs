@@ -132,11 +132,67 @@ pub fn attach_tmux_session(session_name: String) -> Result<(), String> {
     }
 }
 
+/// Open an embedded PTY attached to a tmux session for xterm.js rendering.
+#[tauri::command]
+#[specta::specta]
+pub async fn open_tmux_terminal(
+    session_name: String,
+    cols: u16,
+    rows: u16,
+    pty: tauri::State<'_, std::sync::Arc<crate::pty::PtyManager>>,
+) -> Result<String, String> {
+    let _ = tokio::process::Command::new("tmux")
+        .args([
+            "-L",
+            crate::devops::tmux::SOCKET_NAME,
+            "set-option",
+            "-t",
+            &session_name,
+            "window-size",
+            "latest",
+        ])
+        .kill_on_drop(true)
+        .output()
+        .await;
+
+    let pane_id = format!("tmux-attach-{}", session_name);
+    let cfg = crate::pty::PtySpawnConfig {
+        shell: Some("tmux".to_string()),
+        args: vec![
+            "-L".to_string(),
+            crate::devops::tmux::SOCKET_NAME.to_string(),
+            "attach-session".to_string(),
+            "-t".to_string(),
+            session_name,
+        ],
+        cwd: None,
+        rows,
+        cols,
+        env: vec![("TERM".to_string(), "xterm-256color".to_string())],
+    };
+
+    match pty.spawn(pane_id.clone(), cfg.clone()) {
+        Ok(()) => Ok(pane_id),
+        Err(crate::pty::PtyError::AlreadyExists) => {
+            let _ = pty.kill(&pane_id);
+            pty.spawn(pane_id.clone(), cfg)
+                .map(|_| pane_id)
+                .map_err(|e| e.to_string())
+        }
+        Err(e) => Err(e.to_string()),
+    }
+}
+
 /// List all Handy agent tmux sessions.
 #[tauri::command]
 #[specta::specta]
-pub fn list_tmux_sessions() -> Result<Vec<TmuxSession>, String> {
-    tmux::list_sessions()
+pub fn list_tmux_sessions(
+    actor: tauri::State<'_, crate::devops::actor::DevOpsActorHandle>,
+) -> Result<Vec<TmuxSession>, String> {
+    match actor.sessions() {
+        Some(sessions) => Ok(sessions),
+        None => tmux::list_sessions(),
+    }
 }
 
 /// Get metadata for a specific tmux session.
@@ -150,6 +206,7 @@ pub fn get_tmux_session_metadata(session_name: String) -> Result<AgentMetadata, 
 #[tauri::command]
 #[specta::specta]
 pub fn create_tmux_session(
+    actor: tauri::State<'_, crate::devops::actor::DevOpsActorHandle>,
     session_name: String,
     working_dir: Option<String>,
     issue_ref: Option<String>,
@@ -168,14 +225,25 @@ pub fn create_tmux_session(
         started_at: chrono::Utc::now().to_rfc3339(),
     };
 
-    tmux::create_session(&session_name, working_dir.as_deref(), &metadata)
+    let result = tmux::create_session(&session_name, working_dir.as_deref(), &metadata);
+    if result.is_ok() {
+        actor.poke();
+    }
+    result
 }
 
 /// Kill a tmux session.
 #[tauri::command]
 #[specta::specta]
-pub fn kill_tmux_session(session_name: String) -> Result<(), String> {
-    tmux::kill_session(&session_name)
+pub fn kill_tmux_session(
+    actor: tauri::State<'_, crate::devops::actor::DevOpsActorHandle>,
+    session_name: String,
+) -> Result<(), String> {
+    let result = tmux::kill_session(&session_name);
+    if result.is_ok() {
+        actor.poke();
+    }
+    result
 }
 
 /// Get recent output from a tmux session.

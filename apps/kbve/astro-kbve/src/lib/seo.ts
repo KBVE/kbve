@@ -24,8 +24,6 @@ export const seo = createSeo({
 		'https://discord.gg/kbve',
 		'https://www.youtube.com/@kbve',
 		'https://twitch.tv/kbve',
-		'https://x.com/kbve',
-		'https://bsky.app/profile/kbve.com',
 	],
 });
 

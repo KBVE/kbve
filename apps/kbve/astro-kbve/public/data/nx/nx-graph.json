@@ -9162,7 +9162,7 @@
 							"parallelism": true
 						},
 						"build": {
-							"dependsOn": ["^build"],
+							"dependsOn": ["install-deps"],
 							"inputs": ["production", "^production"],
 							"cache": true,
 							"executor": "nx:run-commands",
@@ -9179,6 +9179,7 @@
 							"inputs": ["default", "^production"],
 							"cache": true,
 							"executor": "nx:run-commands",
+							"dependsOn": ["install-deps"],
 							"options": {
 								"commands": [
 									"npx vitest run --config vitest.config.ts"
@@ -9228,6 +9229,18 @@
 							"options": {
 								"commands": [
 									"lsof -ti:1421 | xargs kill 2>/dev/null; pnpm dev"
+								],
+								"cwd": "apps/kbve/desktop-kbve"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"install-deps": {
+							"executor": "nx:run-commands",
+							"cache": false,
+							"options": {
+								"commands": [
+									"CI=true pnpm install --frozen-lockfile"
 								],
 								"cwd": "apps/kbve/desktop-kbve"
 							},
