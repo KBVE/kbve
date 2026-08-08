@@ -224,6 +224,7 @@ fn specta_builder() -> Builder<tauri::Wry> {
         // onichan: sidecar quick-config
         commands::sidecar_config::get_sidecar_quick_config,
         commands::sidecar_config::set_sidecar_quick_config_field,
+        commands::sidecar_config::set_sidecar_quick_config_flag,
         // agent voice: spoken devops feedback
         commands::agent_voice::agent_voice_set_enabled,
         commands::agent_voice::agent_voice_is_enabled,

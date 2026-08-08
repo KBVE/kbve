@@ -976,6 +976,23 @@ export const commands = {
 			else return { status: 'error', error: e as any };
 		}
 	},
+	async setSidecarQuickConfigFlag(
+		key: string,
+		value: boolean,
+	): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('set_sidecar_quick_config_flag', {
+					key,
+					value,
+				}),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
 	async agentVoiceSetEnabled(
 		enabled: boolean,
 	): Promise<Result<null, string>> {
@@ -4864,6 +4881,7 @@ export type SidecarQuickConfig = {
 	last_discord_guild_name: string | null;
 	last_discord_channel_name: string | null;
 	last_embedding_model_id: string | null;
+	discord_quick_connect: boolean;
 };
 /**
  * Configuration for skipping an issue.

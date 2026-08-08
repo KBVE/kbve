@@ -6,7 +6,6 @@ import {
 	IconMic,
 	IconCpu,
 	IconKeyboard,
-	IconInfo,
 	IconTerminal,
 	IconUser,
 } from '../components/Icons';
@@ -17,7 +16,6 @@ import { ShortcutsView } from './shortcuts';
 import { OnichanView } from './onichan';
 import { DevOpsView } from './devops';
 import { DiscordView } from './discord';
-import { AboutView } from './about';
 import { TerminalView } from './terminal';
 
 // Loaded on demand: pulls the whole @kbve/rn (react-native-web) stack, which
@@ -120,11 +118,5 @@ export function initViews() {
 		label: 'Profile',
 		icon: createElement(IconUser),
 		component: ProfileView,
-	});
-	registerView({
-		id: 'about',
-		label: 'About',
-		icon: createElement(IconInfo),
-		component: AboutView,
 	});
 }

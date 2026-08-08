@@ -18,7 +18,7 @@ serenity = { version = "0.12", default-features = false, features = [
 # Songbird for voice - the key library for Discord voice
 # default-features includes "driver" which pulls in audiopus for Opus codec
 # "receive" is needed for receiving voice packets from other users
-songbird = { version = "0.5", default-features = true, features = ["builtin-queue", "receive", "serenity"] }
+songbird = { version = "0.6", default-features = true, features = ["builtin-queue", "receive", "serenity"] }
 
 # Async runtime
 tokio = { version = "1", features = ["full", "rt-multi-thread", "macros", "sync"] }

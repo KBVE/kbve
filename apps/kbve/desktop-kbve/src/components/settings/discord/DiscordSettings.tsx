@@ -76,6 +76,12 @@ export const DiscordSettings: React.FC = () => {
 		llmLoaded: isLlmLoaded,
 		ttsLoaded: isTtsLoaded,
 		refresh: refreshSidecarState,
+		connectDiscordVoice,
+		discordQuickConnect,
+		setDiscordQuickConnect,
+		lastDiscordGuildId,
+		lastDiscordChannelId,
+		quickConfigLoaded,
 	} = useSidecarStore();
 
 	// Model state for LLM and TTS (local - for model selection UI)
@@ -281,6 +287,30 @@ export const DiscordSettings: React.FC = () => {
 		}
 	}, []);
 
+	// Seed guild/channel selection from the persisted quick config
+	useEffect(() => {
+		if (!quickConfigLoaded || selectedGuild || guilds.length === 0) return;
+		if (!lastDiscordGuildId) return;
+		if (!guilds.some((g) => g.id === lastDiscordGuildId)) return;
+		setSelectedGuild(lastDiscordGuildId);
+		commands.discordGetChannels(lastDiscordGuildId).then((result) => {
+			if (result.status !== 'ok') return;
+			setChannels(result.data);
+			if (
+				lastDiscordChannelId &&
+				result.data.some((c) => c.id === lastDiscordChannelId)
+			) {
+				setSelectedChannel(lastDiscordChannelId);
+			}
+		});
+	}, [
+		quickConfigLoaded,
+		guilds,
+		selectedGuild,
+		lastDiscordGuildId,
+		lastDiscordChannelId,
+	]);
+
 	const handleConnect = useCallback(async () => {
 		if (!selectedGuild || !selectedChannel) {
 			setError(t('discord.errors.selectChannel'));
@@ -288,15 +318,29 @@ export const DiscordSettings: React.FC = () => {
 		}
 		setIsConnecting(true);
 		setError(null);
-		const result = await commands.discordConnect(
+		const guildName =
+			guilds.find((g) => g.id === selectedGuild)?.name ?? selectedGuild;
+		const channelName =
+			channels.find((c) => c.id === selectedChannel)?.name ??
+			selectedChannel;
+		const connectError = await connectDiscordVoice(
 			selectedGuild,
 			selectedChannel,
+			guildName,
+			channelName,
 		);
-		if (result.status === 'error') {
-			setError(result.error);
+		if (connectError) {
+			setError(connectError);
 			setIsConnecting(false);
 		}
-	}, [selectedGuild, selectedChannel, t]);
+	}, [
+		selectedGuild,
+		selectedChannel,
+		guilds,
+		channels,
+		connectDiscordVoice,
+		t,
+	]);
 
 	const handleDisconnect = useCallback(async () => {
 		// Stop conversation mode first if running
@@ -895,6 +939,37 @@ export const DiscordSettings: React.FC = () => {
 								</>
 							)}
 						</button>
+
+						{/* Quick Connect Toggle */}
+						<div className="flex items-center justify-between mt-4">
+							<div>
+								<p className="text-sm font-medium">
+									{t('discord.quickConnect.label')}
+								</p>
+								<p className="text-xs text-text/50">
+									{t('discord.quickConnect.description')}
+								</p>
+							</div>
+							<button
+								role="switch"
+								aria-checked={discordQuickConnect}
+								onClick={() =>
+									setDiscordQuickConnect(!discordQuickConnect)
+								}
+								className={`relative w-10 h-6 rounded-full transition-colors ${
+									discordQuickConnect
+										? 'bg-logo-primary'
+										: 'bg-background-dark'
+								}`}>
+								<span
+									className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-transform ${
+										discordQuickConnect
+											? 'translate-x-5'
+											: 'translate-x-1'
+									}`}
+								/>
+							</button>
+						</div>
 					</div>
 				</SettingsGroup>
 			)}

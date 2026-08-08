@@ -105,12 +105,12 @@ pub fn discord_set_token(app: AppHandle, token: String) -> Result<(), String> {
 /// Clear the stored Discord bot token
 #[tauri::command]
 #[specta::specta]
-pub fn discord_clear_token(app: AppHandle) -> Result<(), String> {
+pub async fn discord_clear_token(app: AppHandle) -> Result<(), String> {
     delete_token_from_store(&app)?;
 
     // Disconnect if connected
-    let manager = app.state::<Arc<DiscordManager>>();
-    let _ = manager.disconnect();
+    let manager = app.state::<Arc<DiscordManager>>().inner().clone();
+    let _ = tauri::async_runtime::spawn_blocking(move || manager.disconnect()).await;
 
     Ok(())
 }
@@ -118,13 +118,17 @@ pub fn discord_clear_token(app: AppHandle) -> Result<(), String> {
 /// Connect to Discord using the stored token
 #[tauri::command]
 #[specta::specta]
-pub fn discord_connect_with_stored_token(app: AppHandle) -> Result<(), String> {
+pub async fn discord_connect_with_stored_token(app: AppHandle) -> Result<(), String> {
     let token = load_token_from_store(&app)
         .ok_or_else(|| "No Discord token configured. Please set a bot token first.".to_string())?;
 
-    let manager = app.state::<Arc<DiscordManager>>();
-    manager.set_token(token)?;
-    manager.connect()
+    let manager = app.state::<Arc<DiscordManager>>().inner().clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        manager.set_token(token)?;
+        manager.connect()
+    })
+    .await
+    .map_err(|e| format!("Task failed: {}", e))?
 }
 
 /// Get Discord connection status
@@ -138,31 +142,47 @@ pub fn discord_get_status(app: AppHandle) -> DiscordState {
 /// Get list of guilds the bot is in
 #[tauri::command]
 #[specta::specta]
-pub fn discord_get_guilds(app: AppHandle) -> Result<Vec<GuildInfo>, String> {
-    let manager = app.state::<Arc<DiscordManager>>();
-    manager.get_guilds()
+pub async fn discord_get_guilds(app: AppHandle) -> Result<Vec<GuildInfo>, String> {
+    let manager = app.state::<Arc<DiscordManager>>().inner().clone();
+    tauri::async_runtime::spawn_blocking(move || manager.get_guilds())
+        .await
+        .map_err(|e| format!("Task failed: {}", e))?
 }
 
 /// Get voice channels for a guild
 #[tauri::command]
 #[specta::specta]
-pub fn discord_get_channels(app: AppHandle, guild_id: String) -> Result<Vec<ChannelInfo>, String> {
-    let manager = app.state::<Arc<DiscordManager>>();
-    manager.get_channels(&guild_id)
+pub async fn discord_get_channels(
+    app: AppHandle,
+    guild_id: String,
+) -> Result<Vec<ChannelInfo>, String> {
+    let manager = app.state::<Arc<DiscordManager>>().inner().clone();
+    tauri::async_runtime::spawn_blocking(move || manager.get_channels(&guild_id))
+        .await
+        .map_err(|e| format!("Task failed: {}", e))?
 }
 
 /// Connect to a Discord voice channel
 #[tauri::command]
 #[specta::specta]
-pub fn discord_connect(app: AppHandle, guild_id: String, channel_id: String) -> Result<(), String> {
+pub async fn discord_connect(
+    app: AppHandle,
+    guild_id: String,
+    channel_id: String,
+) -> Result<(), String> {
     use tauri::Emitter;
     info!(
         "discord_connect command called: guild={}, channel={}",
         guild_id, channel_id
     );
 
-    let manager = app.state::<Arc<DiscordManager>>();
-    let result = manager.join_voice(&guild_id, &channel_id);
+    let manager = app.state::<Arc<DiscordManager>>().inner().clone();
+    let result = {
+        let manager = manager.clone();
+        tauri::async_runtime::spawn_blocking(move || manager.join_voice(&guild_id, &channel_id))
+            .await
+            .map_err(|e| format!("Task failed: {}", e))?
+    };
 
     match &result {
         Ok(_) => info!("Successfully joined voice channel"),
@@ -179,10 +199,15 @@ pub fn discord_connect(app: AppHandle, guild_id: String, channel_id: String) -> 
 /// Disconnect from Discord voice
 #[tauri::command]
 #[specta::specta]
-pub fn discord_disconnect(app: AppHandle) -> Result<(), String> {
+pub async fn discord_disconnect(app: AppHandle) -> Result<(), String> {
     use tauri::Emitter;
-    let manager = app.state::<Arc<DiscordManager>>();
-    let result = manager.disconnect();
+    let manager = app.state::<Arc<DiscordManager>>().inner().clone();
+    let result = {
+        let manager = manager.clone();
+        tauri::async_runtime::spawn_blocking(move || manager.disconnect())
+            .await
+            .map_err(|e| format!("Task failed: {}", e))?
+    };
 
     // Emit state update to frontend
     let state = manager.status();
@@ -194,9 +219,11 @@ pub fn discord_disconnect(app: AppHandle) -> Result<(), String> {
 /// Speak text in the voice channel
 #[tauri::command]
 #[specta::specta]
-pub fn discord_speak(app: AppHandle, text: String) -> Result<(), String> {
-    let manager = app.state::<Arc<DiscordManager>>();
-    manager.speak(&text)
+pub async fn discord_speak(app: AppHandle, text: String) -> Result<(), String> {
+    let manager = app.state::<Arc<DiscordManager>>().inner().clone();
+    tauri::async_runtime::spawn_blocking(move || manager.speak(&text))
+        .await
+        .map_err(|e| format!("Task failed: {}", e))?
 }
 
 /// Start Discord conversation mode (listen and respond to voice in Discord)
