@@ -31,6 +31,7 @@
 		},
 		"build": {
 			"executor": "nx:run-commands",
+			"dependsOn": ["install-deps"],
 			"options": {
 				"commands": [
 					"export PATH=\"$HOME/.cargo/bin:$PATH\" && pnpm build"
@@ -38,8 +39,17 @@
 				"cwd": "apps/kbve/desktop-kbve"
 			}
 		},
+		"install-deps": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": ["CI=true pnpm install --frozen-lockfile"],
+				"cwd": "apps/kbve/desktop-kbve"
+			}
+		},
 		"test": {
 			"executor": "nx:run-commands",
+			"dependsOn": ["install-deps"],
 			"options": {
 				"commands": ["npx vitest run --config vitest.config.ts"],
 				"cwd": "apps/kbve/desktop-kbve"
