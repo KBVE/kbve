@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-07T03:49:59Z",
+  "generated_at": "2026-08-08T02:54:47Z",
   "summary": {
     "pending": 3,
     "behind": 1,
@@ -222,7 +222,7 @@
       "ecosystem": "npm",
       "name": "droid",
       "local": "0.1.2",
-      "published": "0.189.0",
+      "published": "0.190.0",
       "status": "behind"
     },
     {
