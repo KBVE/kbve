@@ -1,10 +1,16 @@
 #!/usr/bin/env bash
-# seal-vpn-secret.sh — Seal the SINGLE shared WireGuard VPN secret (kasm vault)
+# seal-vpn-secret.sh — Seal a per-consumer WireGuard VPN secret (kasm vault)
 #
-# Creates the canonical vpn-wireguard SealedSecret in the kasm namespace.
-# Every VPN consumer flows from this one secret:
-#   - kasm: mounts it directly (deployment.yaml)
-#   - reel / angelscript / firecracker: pull it via ESO from the kasm vault
+# One vault namespace (kasm), one secret PER consumer — concurrent tunnels
+# sharing one WireGuard identity collide (the VPN server keeps a single peer
+# endpoint per key, so two pods keep stealing return traffic from each other,
+# and NAT-PMP port mappings never survive a renewal). Per the provider's
+# multi-tunnel guidance each consumer uses the same key but a distinct
+# tunnel address (10.2.0.2/32, 10.3.0.2/32, 10.4.0.2/32, ...).
+#
+#   APP=""            -> vpn-wireguard             (reel via ESO), 10.2.0.2/32
+#   APP=kasm          -> vpn-wireguard-kasm        (kasm direct),  10.3.0.2/32
+#   APP=firecracker   -> vpn-wireguard-firecracker (ESO),          10.4.0.2/32
 #
 # Provider server-selection mode: gluetun picks the server itself, so the
 # secret carries ONLY the account key + addresses (+ optional country filter).
@@ -24,13 +30,15 @@
 #   - sealed-secrets-controller running in kube-system
 #
 # Usage:
-#   VPN_SERVICE_PROVIDER=<provider> ./seal-vpn-secret.sh
-#   # Output: apps/kube/kasm/manifest/sealed-vpn-wireguard.yaml
+#   VPN_SERVICE_PROVIDER=<provider> WG_ADDRESS=10.3.0.2/32 APP=kasm ./seal-vpn-secret.sh
+#   # Output: apps/kube/kasm/manifest/sealed-vpn-wireguard[-<app>].yaml
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-OUTPUT_FILE="${SCRIPT_DIR}/manifest/sealed-vpn-wireguard.yaml"
+APP="${APP:-}"
+SECRET_NAME="vpn-wireguard${APP:+-${APP}}"
+OUTPUT_FILE="${SCRIPT_DIR}/manifest/sealed-${SECRET_NAME}.yaml"
 TARGET_NS="kasm"
 
 # --- Preflight checks ---
@@ -70,9 +78,9 @@ SERVER_COUNTRIES="${SERVER_COUNTRIES:-Germany}"
 
 # --- Seal the credentials ---
 
-echo "Sealing the shared WireGuard VPN secret into the ${TARGET_NS} vault..."
+echo "Sealing ${SECRET_NAME} into the ${TARGET_NS} vault..."
 
-kubectl create secret generic vpn-wireguard \
+kubectl create secret generic "${SECRET_NAME}" \
     --namespace="${TARGET_NS}" \
     --from-literal=VPN_SERVICE_PROVIDER="${VPN_SERVICE_PROVIDER}" \
     --from-literal=VPN_TYPE="wireguard" \
