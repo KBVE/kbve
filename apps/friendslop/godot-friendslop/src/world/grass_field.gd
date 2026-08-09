@@ -41,8 +41,9 @@ func _ready() -> void:
 	var count := int(chunk_size * chunk_size * blades_per_sqm)
 	var aabb := AABB(Vector3(-0.5, 0.0, -0.5), Vector3(chunk_size + 1.0, 2.0, chunk_size + 1.0))
 	_boundaries.clear()
+	var half_diagonal := chunk_size * 0.7071
 	for f in ring_fractions:
-		_boundaries.append(grass_fade_out_start + fade_tail * -log(f * 0.95))
+		_boundaries.append(grass_fade_out_start + fade_tail * -log(f * 0.95) + half_diagonal)
 	_last_tier = TIER_MID + ring_fractions.size()
 	for v in layout_variants:
 		var buf := _build_layout_buffer(layout_seed + v, count)

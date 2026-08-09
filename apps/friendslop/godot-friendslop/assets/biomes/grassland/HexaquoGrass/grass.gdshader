@@ -39,8 +39,9 @@ varying float edge_blend;
 
 void vertex() {
 	cut_height = 1.0;
+	vec3 blade_world = MODEL_MATRIX[3].xyz;
 	float rank = float(INSTANCE_ID) / total_blades * 0.95;
-	float player_distance = distance(NODE_POSITION_WORLD.xz, object_position.xz);
+	float player_distance = distance(blade_world.xz, object_position.xz);
 	float keep = max(exp(-max(player_distance - fade_start, 0.0) / fade_tail), far_floor);
 	float end_shrink = 1.0 - smoothstep(fade_end - 25.0, fade_end, player_distance);
 	edge_blend = smoothstep(fade_end - 25.0, fade_end - 5.0, player_distance);
@@ -57,7 +58,7 @@ void vertex() {
 	bottom_to_top = 1.0 - UV.y;
 
 	// Wind logic
-	vec2 wind_position = NODE_POSITION_WORLD.xz / 10.0;
+	vec2 wind_position = blade_world.xz / 10.0;
 	wind_position -= (TIME + 8.0) * wind_direction * wind_strength;
 
 	current_wind_bend = texture(wind_noise, wind_position).x;
@@ -70,10 +71,10 @@ void vertex() {
 
 	VERTEX.xz += current_wind_bend * local_direction * wind_bend_strength;
 
-	float object_distance = distance(object_position, NODE_POSITION_WORLD);
+	float object_distance = distance(object_position, blade_world);
 	float bend_away_strength = max(object_radius - object_distance, 0.0) / object_radius;
 	if (bend_away_strength > 0.0) {
-		vec2 bend_direction = normalize(object_position.xz - NODE_POSITION_WORLD.xz + vec2(0.0001));
+		vec2 bend_direction = normalize(object_position.xz - blade_world.xz + vec2(0.0001));
 
 		VERTEX.xz -= (inv_model * vec4(bend_direction.x, 0.0, bend_direction.y, 0.0)).xz
 				* bend_away_strength * bottom_to_top;
@@ -84,7 +85,7 @@ void vertex() {
 	float bend_variation = 0.5 + fract(float(INSTANCE_ID) * 0.75487766);
 	VERTEX.z += blade_bend * bend_variation * pow(bottom_to_top, 2.0);
 
-	patch_factor = texture(patch_noise, NODE_POSITION_WORLD.xz / patch_scale).r;
+	patch_factor = texture(patch_noise, blade_world.xz / patch_scale).r;
 	VERTEX *= mix(size_small, size_large, patch_factor) * (1.0 + distance_growth * (1.0 - keep)) * end_shrink;
 
 	NORMAL = mix(NORMAL, vec3(0.0, 1.0, 0.0), mix(1.0, bottom_to_top, alpha + 0.2));
