@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://src/world/grass_field.gd" id="2_grass"]
@@ -13,6 +13,7 @@
 [ext_resource type="Shader" path="res://assets/fx/shaders/film_grade.gdshader" id="11_film"]
 [ext_resource type="Script" path="res://src/world/terrain.gd" id="12_terrain"]
 [ext_resource type="Material" path="res://assets/environment/water/water.tres" id="13_water"]
+[ext_resource type="Script" path="res://src/world/ravens.gd" id="14_ravens"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(1024, 1024)
@@ -107,6 +108,10 @@ environment_node = NodePath("../WorldEnvironment")
 
 [node name="Player" parent="." instance=ExtResource("5_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+
+[node name="Ravens" type="Node3D" parent="."]
+script = ExtResource("14_ravens")
+player_path = NodePath("../Player")
 
 [node name="DebugTools" type="Node3D" parent="."]
 script = ExtResource("10_debug")
