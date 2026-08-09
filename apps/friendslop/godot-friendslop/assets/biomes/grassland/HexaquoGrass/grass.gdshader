@@ -21,6 +21,7 @@ uniform float wind_ao_affect = 1.0;
 
 uniform float object_radius = 1.0;
 uniform vec3 object_position;
+uniform vec3 fade_origin;
 
 uniform float fade_start = 16.0;
 uniform float fade_tail = 14.0;
@@ -41,7 +42,7 @@ void vertex() {
 	cut_height = 1.0;
 	vec3 blade_world = MODEL_MATRIX[3].xyz;
 	float rank = float(INSTANCE_ID) / total_blades * 0.95;
-	float player_distance = distance(blade_world.xz, object_position.xz);
+	float player_distance = distance(blade_world.xz, fade_origin.xz);
 	float keep = max(exp(-max(player_distance - fade_start, 0.0) / fade_tail), far_floor);
 	float end_shrink = 1.0 - smoothstep(fade_end - 25.0, fade_end, player_distance);
 	edge_blend = smoothstep(fade_end - 25.0, fade_end - 5.0, player_distance);

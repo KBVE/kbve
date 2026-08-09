@@ -1,3 +1,4 @@
+@tool
 extends Node3D
 
 const DETAILED_MESH := preload("res://assets/biomes/grassland/HexaquoGrass/grass-stalk.obj")
@@ -34,7 +35,7 @@ var _mm: Array = []
 var _boundaries: Array[float] = []
 var _last_tier: int
 
-@onready var _player: Node3D = get_node(player_path)
+@onready var _player: Node3D = get_node_or_null(player_path)
 
 
 func _ready() -> void:
@@ -63,20 +64,38 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	var p := _player.global_position
+	var v := _view_origin()
 	if grass_material:
-		grass_material.set_shader_parameter("object_position", Vector3(p.x, 0.0, p.z))
+		grass_material.set_shader_parameter("fade_origin", Vector3(v.x, 0.0, v.z))
+		if _player:
+			var p := _player.global_position
+			grass_material.set_shader_parameter("object_position", Vector3(p.x, 0.0, p.z))
 
-	var center := Vector2i(floori(p.x / chunk_size), floori(p.z / chunk_size))
+	var center := Vector2i(floori(v.x / chunk_size), floori(v.z / chunk_size))
 	if center != _last_center:
 		_last_center = center
-		_refresh_chunks(center, p)
-		Game.events.notify(EventNames.PLAYER_MOVED_CHUNK, center)
+		_refresh_chunks(center, v)
+		_notify(EventNames.PLAYER_MOVED_CHUNK, center)
 
 	var spawned := _drain_pending()
-	if spawned or p.distance_squared_to(_last_lod_position) >= LOD_UPDATE_DISTANCE_SQ:
-		_last_lod_position = p
-		_update_lods(p)
+	if spawned or v.distance_squared_to(_last_lod_position) >= LOD_UPDATE_DISTANCE_SQ:
+		_last_lod_position = v
+		_update_lods(v)
+
+
+func _view_origin() -> Vector3:
+	if Engine.is_editor_hint():
+		var cam: Camera3D = Engine.get_singleton("EditorInterface").get_editor_viewport_3d().get_camera_3d()
+		return cam.global_position if cam else Vector3.ZERO
+	var cam := get_viewport().get_camera_3d()
+	if cam:
+		return cam.global_position
+	return _player.global_position if _player else Vector3.ZERO
+
+
+func _notify(event: String, payload: Variant) -> void:
+	if not Engine.is_editor_hint():
+		Game.events.notify(event, payload)
 
 
 func _refresh_chunks(center: Vector2i, p: Vector3) -> void:
@@ -103,7 +122,7 @@ func _refresh_chunks(center: Vector2i, p: Vector3) -> void:
 		_chunks[coord].queue_free()
 		_chunks.erase(coord)
 		_tiers.erase(coord)
-		Game.events.notify(EventNames.CHUNK_FREED, coord)
+		_notify(EventNames.CHUNK_FREED, coord)
 
 	_pending = _pending.filter(func(c: Vector2i) -> bool: return needed.has(c))
 	_pending.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
@@ -115,7 +134,7 @@ func _drain_pending() -> bool:
 	for i in budget:
 		var coord: Vector2i = _pending.pop_front()
 		_chunks[coord] = _spawn_chunk(coord)
-		Game.events.notify(EventNames.CHUNK_SPAWNED, coord)
+		_notify(EventNames.CHUNK_SPAWNED, coord)
 	return budget > 0
 
 
@@ -210,8 +229,8 @@ func _in_bounds(coord: Vector2i) -> bool:
 
 
 func _spawn_chunk(coord: Vector2i) -> MultiMeshInstance3D:
-	var p := _player.global_position
-	var tier := _raw_tier(_chunk_center(coord).distance_to(Vector2(p.x, p.z)))
+	var v := _view_origin()
+	var tier := _raw_tier(_chunk_center(coord).distance_to(Vector2(v.x, v.z)))
 	var inst := MultiMeshInstance3D.new()
 	inst.multimesh = _mm[_layout_index(coord)][tier]
 	inst.material_override = grass_material
