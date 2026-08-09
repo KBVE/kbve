@@ -1,6 +1,5 @@
 # Blender 4.3.2
 # www.blender.org
-mtllib grass-stalk.mtl
 o Plane
 v -0.060289 -0.000477 0.000000
 v 0.065903 -0.000477 0.000000

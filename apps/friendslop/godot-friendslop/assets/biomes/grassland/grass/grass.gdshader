@@ -15,7 +15,7 @@ varying float patch_factor;
 
 uniform sampler2D wind_noise;
 uniform float wind_strength = 0.15;
-uniform vec2 wind_direction = vec2(1.0, 0.0);
+global uniform vec2 wind_direction;
 uniform float wind_bend_strength = 2.0;
 uniform float wind_ao_affect = 1.0;
 

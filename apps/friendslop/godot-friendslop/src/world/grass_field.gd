@@ -1,9 +1,9 @@
 @tool
 extends Node3D
 
-const DETAILED_MESH := preload("res://assets/biomes/grassland/HexaquoGrass/grass-stalk.obj")
-const SIMPLE_MESH := preload("res://assets/biomes/grassland/HexaquoGrass/grass-stalk-simple.obj")
-const CLUMP_MESH := preload("res://assets/biomes/grassland/HexaquoGrass/grass-clump.obj")
+const DETAILED_MESH := preload("res://assets/biomes/grassland/grass/grass-stalk.obj")
+const SIMPLE_MESH := preload("res://assets/biomes/grassland/grass/grass-stalk-simple.obj")
+const CLUMP_MESH := preload("res://assets/biomes/grassland/grass/grass-clump.obj")
 
 const LOD_UPDATE_DISTANCE_SQ := 0.25
 const TIER_NEAR := 0

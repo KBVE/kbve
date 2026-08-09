@@ -75,3 +75,10 @@ debug_down={
 [rendering]
 
 renderer/rendering_method="forward_plus"
+
+[shader_globals]
+
+wind_direction={
+"type": "vec2",
+"value": Vector2(0.951, 0.309)
+}

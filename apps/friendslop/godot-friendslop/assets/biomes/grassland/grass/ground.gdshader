@@ -16,7 +16,7 @@ uniform sampler2D baked_normals: hint_normal, filter_linear_mipmap_anisotropic;
 
 uniform sampler2D wind_noise;
 uniform float wind_strength = 0.1;
-uniform vec2 wind_direction = vec2(1.0, 0.0);
+global uniform vec2 wind_direction;
 uniform float wind_bend_strength = 2.0;
 uniform float wind_ao_affect = 1.5;
 

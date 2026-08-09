@@ -1,7 +1,7 @@
 [gd_resource type="ShaderMaterial" load_steps=9 format=3]
 
-[ext_resource type="Shader" path="res://assets/biomes/grassland/HexaquoGrass/impostor_grass.gdshader" id="1_shader"]
-[ext_resource type="Texture2D" path="res://assets/biomes/grassland/HexaquoGrass/grass_normals.png" id="2_normals"]
+[ext_resource type="Shader" path="res://assets/biomes/grassland/grass/ground.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://assets/biomes/grassland/grass/grass_normals.png" id="2_normals"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_patch"]
 
@@ -39,6 +39,5 @@ shader_parameter/high_frequency_noise = SubResource("NoiseTexture2D_hf")
 shader_parameter/baked_normals = ExtResource("2_normals")
 shader_parameter/wind_noise = SubResource("NoiseTexture2D_wind")
 shader_parameter/wind_strength = 0.1
-shader_parameter/wind_direction = Vector2(1, 0)
 shader_parameter/wind_bend_strength = 2.0
 shader_parameter/wind_ao_affect = 1.0

@@ -36,7 +36,7 @@ group_uniforms clouds;
 	uniform vec3 clouds_middle_color : source_color = vec3( 0.92, 0.92, 0.98 );
 	uniform vec3 clouds_bottom_color : source_color = vec3( 0.83, 0.83, 0.94 );
 	uniform float clouds_speed : hint_range( 0.0, 20.0, 0.01 ) = 2.0;
-	uniform float clouds_direction : hint_range( -0.5, 0.5, 0.0 ) = 0.2;
+	global uniform vec2 wind_direction;
 	uniform float clouds_scale : hint_range( 0.0, 4.0, 0.01 ) = 1.0;
 	uniform float clouds_cutoff : hint_range( 0.0, 1.0, 0.01 ) = 0.3;
 	uniform float clouds_fuzziness : hint_range( 0.0, 2.0, 0.01 ) = 0.5;
@@ -252,17 +252,17 @@ void sky()
 	{
 		// Clouds UV movement direction
 		float _clouds_speed = time * clouds_speed * 0.01;
-		float _sin_x = sin( clouds_direction * PI * 2.0 );
-		float _cos_y = cos( clouds_direction * PI * 2.0 );
+		float _sin_x = -wind_direction.x;
+		float _cos_y = -wind_direction.y;
 		// I using 3 levels of clouds. Top is the lightes and botom the darkest.
 		// The speed of movement (and direction a little) is different for the illusion of the changing shape of the clouds.
 		vec2 _clouds_movement = vec2( _sin_x, _cos_y ) * _clouds_speed;
 //		float _noise_top = texture( clouds_top_texture, ( _sky_uv + _clouds_movement ) * clouds_scale ).r;
 		float _noise_top = gen_fractal_ping_pong( ( _sky_uv + _clouds_movement ) * clouds_scale, 0, 0.5 );
-		_clouds_movement = vec2( _sin_x * 0.97, _cos_y * 1.07 ) * _clouds_speed * 0.89;
+		_clouds_movement = vec2( _sin_x, _cos_y ) * _clouds_speed * 0.89;
 //		float _noise_middle = texture( clouds_middle_texture, ( _sky_uv + _clouds_movement ) * clouds_scale ).r;
 		float _noise_middle = gen_fractal_ping_pong( ( _sky_uv + _clouds_movement ) * clouds_scale, 1, 0.75 );
-		_clouds_movement = vec2( _sin_x * 1.01, _cos_y * 0.89 ) * _clouds_speed * 0.79;
+		_clouds_movement = vec2( _sin_x, _cos_y ) * _clouds_speed * 0.79;
 //		float _noise_bottom = texture( clouds_bottom_texture, ( _sky_uv + _clouds_movement ) * clouds_scale ).r;
 		float _noise_bottom = gen_fractal_ping_pong( ( _sky_uv + _clouds_movement ) * clouds_scale, 2, 1.0 );
 		// Smoothstep with the addition of a noise value from a lower level gives a nice, deep result

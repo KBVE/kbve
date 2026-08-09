@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://se8nc8tgocfp"
-path="res://.godot/imported/grass_basic_04.png-1a23ef7e85677935130be5b30841fbab.ctex"
+uid="uid://c8fd7qmbj6uyt"
+path="res://.godot/imported/grass_normals.png-269368b1373dc2c19f1abe68db7e894e.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/biomes/grassland/BinbunGrass/src/texture/basic/grass_basic_04.png"
-dest_files=["res://.godot/imported/grass_basic_04.png-1a23ef7e85677935130be5b30841fbab.ctex"]
+source_file="res://assets/biomes/grassland/grass/grass_normals.png"
+dest_files=["res://.godot/imported/grass_normals.png-269368b1373dc2c19f1abe68db7e894e.ctex"]
 
 [params]
 
