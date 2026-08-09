@@ -20,6 +20,7 @@ pub struct SidecarQuickConfig {
     pub last_discord_channel_name: Option<String>,
     pub last_embedding_model_id: Option<String>,
     pub discord_quick_connect: bool,
+    pub discord_auto_conversation: bool,
 }
 
 #[tauri::command]
@@ -39,6 +40,7 @@ pub fn get_sidecar_quick_config(app: AppHandle) -> SidecarQuickConfig {
         last_discord_channel_name: read_string(&store, "last_discord_channel_name"),
         last_embedding_model_id: read_string(&store, "last_embedding_model_id"),
         discord_quick_connect: read_bool(&store, "discord_quick_connect"),
+        discord_auto_conversation: read_bool(&store, "discord_auto_conversation"),
     }
 }
 
@@ -89,6 +91,7 @@ fn default_config() -> SidecarQuickConfig {
         last_discord_channel_name: None,
         last_embedding_model_id: None,
         discord_quick_connect: false,
+        discord_auto_conversation: false,
     }
 }
 

@@ -64,6 +64,7 @@ interface SidecarStore {
 	lastDiscordChannelName: string | null;
 	lastEmbeddingModelId: string | null;
 	discordQuickConnect: boolean;
+	discordAutoConversation: boolean;
 	quickConfigLoaded: boolean;
 
 	// Actions
@@ -75,6 +76,7 @@ interface SidecarStore {
 	loadQuickConfig: () => Promise<void>;
 	saveQuickConfigField: (key: string, value: string | null) => Promise<void>;
 	setDiscordQuickConnect: (enabled: boolean) => Promise<void>;
+	setDiscordAutoConversation: (enabled: boolean) => Promise<void>;
 
 	// LLM actions
 	loadLlm: (modelId: string) => Promise<void>;
@@ -150,6 +152,7 @@ export const useSidecarStore = create<SidecarStore>()(
 		lastDiscordChannelName: null,
 		lastEmbeddingModelId: null,
 		discordQuickConnect: false,
+		discordAutoConversation: false,
 		quickConfigLoaded: false,
 
 		_unlisteners: [],
@@ -305,6 +308,7 @@ export const useSidecarStore = create<SidecarStore>()(
 					lastEmbeddingModelId:
 						config.last_embedding_model_id ?? null,
 					discordQuickConnect: config.discord_quick_connect,
+					discordAutoConversation: config.discord_auto_conversation,
 					quickConfigLoaded: true,
 				});
 			} catch (error) {
@@ -318,6 +322,21 @@ export const useSidecarStore = create<SidecarStore>()(
 				await commands.setSidecarQuickConfigField(key, value);
 			} catch (error) {
 				console.error('Failed to save sidecar config field:', error);
+			}
+		},
+
+		setDiscordAutoConversation: async (enabled: boolean) => {
+			set({ discordAutoConversation: enabled });
+			try {
+				await commands.setSidecarQuickConfigFlag(
+					'discord_auto_conversation',
+					enabled,
+				);
+			} catch (error) {
+				console.error(
+					'Failed to save discord auto conversation:',
+					error,
+				);
 			}
 		},
 
@@ -511,6 +530,16 @@ export const useSidecarStore = create<SidecarStore>()(
 							'Failed to join voice:',
 							joinResult.error,
 						);
+					} else if (get().discordAutoConversation) {
+						const conv = await commands.discordStartConversation();
+						if (conv.status !== 'ok') {
+							console.error(
+								'Failed to auto-start conversation:',
+								conv.error,
+							);
+						} else {
+							set({ discordConversationRunning: true });
+						}
 					}
 				}
 			} catch (error) {

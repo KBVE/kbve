@@ -258,12 +258,18 @@ pub enum LlmEngine {
     LlamaCpp,
     /// mistral.rs via mistralrs-sidecar (pure Rust)
     MistralRs,
+    /// External OpenAI-compatible server (oMLX, rMLX, ollama, LM Studio, ...)
+    OpenaiCompat,
+    /// Built-in MLX engine: bundled rMLX sidecar serving mlx-community models
+    Mlx,
 }
 
 impl LlmEngine {
     pub fn from_str_or_default(s: &str) -> Self {
         match s {
             "mistral_rs" => Self::MistralRs,
+            "openai_compat" => Self::OpenaiCompat,
+            "mlx" => Self::Mlx,
             _ => Self::LlamaCpp,
         }
     }
@@ -272,6 +278,8 @@ impl LlmEngine {
         match self {
             Self::LlamaCpp => "llama_cpp",
             Self::MistralRs => "mistral_rs",
+            Self::OpenaiCompat => "openai_compat",
+            Self::Mlx => "mlx",
         }
     }
 }
@@ -281,19 +289,179 @@ pub struct LocalLlmManager {
     sidecar_path: PathBuf,
     mistralrs_path: PathBuf,
     engine: Mutex<LlmEngine>,
+    /// Base URL for the OpenAI-compatible engine (e.g. http://localhost:8000/v1)
+    endpoint_url: Mutex<String>,
+    /// Staged rMLX binary for the built-in MLX engine
+    mlx_binary_path: PathBuf,
+    /// Managed rMLX server process (Mlx engine only)
+    mlx_process: Mutex<Option<Child>>,
+    mlx_model_dir: Mutex<Option<PathBuf>>,
     /// Track the loaded model path so we can reload after crash
     loaded_model_path: Mutex<Option<PathBuf>>,
 }
 
 impl LocalLlmManager {
-    pub fn new(sidecar_path: PathBuf, mistralrs_path: PathBuf) -> Self {
+    pub fn new(sidecar_path: PathBuf, mistralrs_path: PathBuf, mlx_binary_path: PathBuf) -> Self {
         Self {
             sidecar: Mutex::new(None),
             sidecar_path,
             mistralrs_path,
+            mlx_binary_path,
+            mlx_process: Mutex::new(None),
+            mlx_model_dir: Mutex::new(None),
             engine: Mutex::new(LlmEngine::LlamaCpp),
+            endpoint_url: Mutex::new("http://localhost:8000/v1".to_string()),
             loaded_model_path: Mutex::new(None),
         }
+    }
+
+    const MLX_PORT: u16 = 18434;
+
+    fn mlx_base_url() -> String {
+        format!("http://127.0.0.1:{}/v1", Self::MLX_PORT)
+    }
+
+    fn active_http_base(&self) -> String {
+        match self.engine() {
+            LlmEngine::Mlx => Self::mlx_base_url(),
+            _ => self.endpoint_url(),
+        }
+    }
+
+    fn mlx_stop(&self) {
+        let mut guard = self.mlx_process.lock().unwrap();
+        if let Some(mut child) = guard.take() {
+            info!("Stopping rMLX server");
+            let _ = child.kill();
+            let _ = child.wait();
+        }
+        *self.mlx_model_dir.lock().unwrap() = None;
+    }
+
+    fn mlx_load(&self, model_dir: &Path) -> Result<(), String> {
+        if !self.mlx_binary_path.exists() {
+            return Err(format!(
+                "rMLX binary not staged at {:?} — run build:sidecars",
+                self.mlx_binary_path
+            ));
+        }
+        if !model_dir.is_dir() {
+            return Err(format!(
+                "MLX engine needs an MLX model folder (safetensors layout), got: {:?}",
+                model_dir
+            ));
+        }
+
+        self.mlx_stop();
+        info!("Starting rMLX server for {:?}", model_dir);
+        let child = Command::new(&self.mlx_binary_path)
+            .arg("serve")
+            .arg("--model")
+            .arg(model_dir)
+            .arg("--port")
+            .arg(Self::MLX_PORT.to_string())
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::inherit())
+            .spawn()
+            .map_err(|e| format!("Failed to spawn rMLX: {}", e))?;
+        *self.mlx_process.lock().unwrap() = Some(child);
+
+        // Poll until the server answers (large models take a while to load).
+        let deadline = std::time::Instant::now() + Duration::from_secs(180);
+        loop {
+            if self.http_model_name_at(&Self::mlx_base_url()).is_some() {
+                break;
+            }
+            if std::time::Instant::now() > deadline {
+                self.mlx_stop();
+                return Err("rMLX server did not become ready within 180s".to_string());
+            }
+            // Bail fast if the process died (bad model dir, port clash, ...)
+            if let Some(child) = self.mlx_process.lock().unwrap().as_mut() {
+                if let Ok(Some(status)) = child.try_wait() {
+                    *self.mlx_model_dir.lock().unwrap() = None;
+                    return Err(format!("rMLX exited during startup: {}", status));
+                }
+            }
+            thread::sleep(Duration::from_millis(500));
+        }
+
+        *self.mlx_model_dir.lock().unwrap() = Some(model_dir.to_path_buf());
+        info!("rMLX server ready on port {}", Self::MLX_PORT);
+        Ok(())
+    }
+
+    pub fn endpoint_url(&self) -> String {
+        self.endpoint_url.lock().unwrap().clone()
+    }
+
+    pub fn set_endpoint_url(&self, url: String) {
+        *self.endpoint_url.lock().unwrap() = url.trim_end_matches('/').to_string();
+    }
+
+    fn http_client() -> Result<reqwest::blocking::Client, String> {
+        reqwest::blocking::Client::builder()
+            .connect_timeout(Duration::from_secs(5))
+            .timeout(Duration::from_secs(300))
+            .build()
+            .map_err(|e| format!("Failed to build HTTP client: {}", e))
+    }
+
+    fn http_chat(
+        &self,
+        system_prompt: Option<&str>,
+        user_message: &str,
+        max_tokens: u32,
+    ) -> Result<String, String> {
+        let base = self.active_http_base();
+        let mut messages = Vec::new();
+        if let Some(sys) = system_prompt {
+            messages.push(serde_json::json!({"role": "system", "content": sys}));
+        }
+        messages.push(serde_json::json!({"role": "user", "content": user_message}));
+
+        let body = serde_json::json!({
+            "model": "default",
+            "messages": messages,
+            "max_tokens": max_tokens,
+        });
+
+        let resp = Self::http_client()?
+            .post(format!("{}/chat/completions", base))
+            .json(&body)
+            .send()
+            .map_err(|e| format!("LLM server request failed ({}): {}", base, e))?;
+
+        if !resp.status().is_success() {
+            return Err(format!("LLM server returned HTTP {}", resp.status()));
+        }
+
+        let json: serde_json::Value = resp
+            .json()
+            .map_err(|e| format!("Invalid LLM server response: {}", e))?;
+        json["choices"][0]["message"]["content"]
+            .as_str()
+            .map(|s| s.trim().to_string())
+            .ok_or_else(|| "LLM server response had no content".to_string())
+    }
+
+    fn http_model_name(&self) -> Option<String> {
+        let base = self.active_http_base();
+        self.http_model_name_at(&base)
+    }
+
+    fn http_model_name_at(&self, base: &str) -> Option<String> {
+        let resp = Self::http_client()
+            .ok()?
+            .get(format!("{}/models", base))
+            .send()
+            .ok()?;
+        if !resp.status().is_success() {
+            return None;
+        }
+        let json: serde_json::Value = resp.json().ok()?;
+        json["data"][0]["id"].as_str().map(|s| s.to_string())
     }
 
     pub fn engine(&self) -> LlmEngine {
@@ -304,13 +472,21 @@ impl LocalLlmManager {
         match self.engine() {
             LlmEngine::LlamaCpp => self.sidecar_path.clone(),
             LlmEngine::MistralRs => self.mistralrs_path.clone(),
+            LlmEngine::OpenaiCompat | LlmEngine::Mlx => PathBuf::new(),
         }
     }
 
     /// Switch engines. Shuts down the running sidecar; the previously loaded
     /// model (if any) is reloaded into the new engine on demand.
     pub fn set_engine(&self, engine: LlmEngine) -> Result<(), String> {
-        if engine == LlmEngine::MistralRs && !self.mistralrs_path.exists() {
+        if engine == LlmEngine::OpenaiCompat {
+            // External server: nothing to stage; sidecar shut down below.
+        } else if engine == LlmEngine::Mlx && !self.mlx_binary_path.exists() {
+            return Err(format!(
+                "rMLX binary not staged at {:?} — run build:sidecars",
+                self.mlx_binary_path
+            ));
+        } else if engine == LlmEngine::MistralRs && !self.mistralrs_path.exists() {
             return Err(format!(
                 "mistral.rs sidecar not staged at {:?} — run build:sidecars",
                 self.mistralrs_path
@@ -327,6 +503,10 @@ impl LocalLlmManager {
         let mut guard = self.sidecar.lock().unwrap();
         if let Some(mut sidecar) = guard.take() {
             sidecar.shutdown();
+        }
+        drop(guard);
+        if engine != LlmEngine::Mlx {
+            self.mlx_stop();
         }
         Ok(())
     }
@@ -379,6 +559,31 @@ impl LocalLlmManager {
             model_path
         );
 
+        if self.engine() == LlmEngine::Mlx {
+            // Catalog MLX entries point at a file inside the model folder
+            // (config.json); rMLX wants the folder itself.
+            let dir = if model_path.is_file() {
+                model_path.parent().unwrap_or(model_path)
+            } else {
+                model_path
+            };
+            return self.mlx_load(dir);
+        }
+
+        if self.engine() == LlmEngine::OpenaiCompat {
+            // The external server manages its own models; verify it responds.
+            return match self.http_model_name() {
+                Some(name) => {
+                    info!("OpenAI-compatible server ready, serving: {}", name);
+                    Ok(())
+                }
+                None => Err(format!(
+                    "No OpenAI-compatible server reachable at {}",
+                    self.endpoint_url()
+                )),
+            };
+        }
+
         // Verify the file exists first
         if !model_path.exists() {
             let err = format!("Model file does not exist: {:?}", model_path);
@@ -405,6 +610,9 @@ impl LocalLlmManager {
     }
 
     pub fn unload_model(&self) {
+        if self.engine() == LlmEngine::OpenaiCompat {
+            return;
+        }
         let mut guard = self.sidecar.lock().unwrap();
         if let Some(ref mut sidecar) = *guard {
             if let Err(e) = sidecar.unload_model() {
@@ -417,12 +625,18 @@ impl LocalLlmManager {
     }
 
     pub fn is_loaded(&self) -> bool {
+        if self.engine() == LlmEngine::OpenaiCompat {
+            return self.http_model_name().is_some();
+        }
         let guard = self.sidecar.lock().unwrap();
         guard.as_ref().map(|s| s.is_loaded()).unwrap_or(false)
     }
 
     /// Get the currently loaded model name (file stem without extension)
     pub fn get_loaded_model_name(&self) -> Option<String> {
+        if self.engine() == LlmEngine::OpenaiCompat {
+            return self.http_model_name();
+        }
         let guard = self.loaded_model_path.lock().unwrap();
         guard.as_ref().and_then(|path| {
             path.file_stem()
@@ -437,6 +651,9 @@ impl LocalLlmManager {
         user_message: &str,
         max_tokens: u32,
     ) -> Result<String, String> {
+        if matches!(self.engine(), LlmEngine::OpenaiCompat | LlmEngine::Mlx) {
+            return self.http_chat(Some(system_prompt), user_message, max_tokens);
+        }
         self.ensure_sidecar()?;
 
         let result = {
@@ -501,6 +718,9 @@ impl LocalLlmManager {
     }
 
     pub fn generate(&self, prompt: &str, max_tokens: u32) -> Result<String, String> {
+        if matches!(self.engine(), LlmEngine::OpenaiCompat | LlmEngine::Mlx) {
+            return self.http_chat(None, prompt, max_tokens);
+        }
         self.ensure_sidecar()?;
 
         let result = {
@@ -579,6 +799,7 @@ impl Default for LocalLlmManager {
         Self::new(
             PathBuf::from("llm-sidecar"),
             PathBuf::from("mistralrs-sidecar"),
+            PathBuf::from("rmlx"),
         )
     }
 }

@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { listen } from '@tauri-apps/api/event';
+interface FeedMessage {
+	role: string;
+	content: string;
+	speaker?: string;
+	skipped?: boolean;
+}
 import { SettingsCard } from '../components/SettingsCard';
 import { SettingsRow } from '../components/SettingsRow';
 import { ToggleSwitch } from '../components/ToggleSwitch';
@@ -10,10 +16,11 @@ import { useSidecarStore } from '../stores/sidecarStore';
 const muted = { color: 'var(--color-text-muted)' } as const;
 
 export function OnichanSettings() {
-	const [active, setActive] = useState(false);
 	const [conversing, setConversing] = useState(false);
+	const [conversationPhase, setConversationPhase] =
+		useState<string>('stopped');
+	const [transcript, setTranscript] = useState<FeedMessage[]>([]);
 	const [chat, setChat] = useState('');
-	const [reply, setReply] = useState('');
 	const [error, setError] = useState<string | null>(null);
 	const busyRef = useRef(false);
 	const llmLoaded = useSidecarStore((s) => s.llmLoaded);
@@ -21,9 +28,8 @@ export function OnichanSettings() {
 	const setActiveView = useAppStore((s) => s.setActiveView);
 
 	const refresh = useCallback(async () => {
-		const a = await commands.onichanIsActive();
-		setActive(a);
 		setConversing(await commands.onichanIsConversationRunning());
+		setTranscript(await commands.onichanGetHistory());
 	}, []);
 
 	useEffect(() => {
@@ -33,11 +39,45 @@ export function OnichanSettings() {
 	}, [refresh]);
 
 	useEffect(() => {
-		const resp = listen<{ text: string }>('onichan-response', (e) =>
-			setReply(e.payload.text),
+		const resp = listen<{ text: string }>('onichan-response', (e) => {
+			setTranscript((prev) => [
+				...prev,
+				{ role: 'assistant', content: e.payload.text },
+			]);
+		});
+		const speech = listen<string>('onichan-user-speech', (e) =>
+			setTranscript((prev) => [
+				...prev,
+				{ role: 'user', content: e.payload },
+			]),
+		);
+		const phase = listen<string>('onichan-conversation-state', (e) =>
+			setConversationPhase(e.payload),
+		);
+		const discordSpeech = listen<{
+			user_id: string;
+			text: string;
+			skipped: boolean;
+		}>('discord-user-speech', (e) =>
+			setTranscript((prev) => [
+				...prev,
+				{
+					role: 'user',
+					content: e.payload.text,
+					speaker: `Discord ${e.payload.user_id.slice(-4)}`,
+					skipped: e.payload.skipped,
+				},
+			]),
+		);
+		const discordPhase = listen<string>('discord-conversation-state', (e) =>
+			setConversationPhase(`discord ${e.payload}`),
 		);
 		return () => {
 			resp.then((f) => f());
+			speech.then((f) => f());
+			phase.then((f) => f());
+			discordSpeech.then((f) => f());
+			discordPhase.then((f) => f());
 		};
 	}, []);
 
@@ -45,9 +85,9 @@ export function OnichanSettings() {
 		if (!chat.trim() || busyRef.current) return;
 		busyRef.current = true;
 		setError(null);
+		setTranscript((prev) => [...prev, { role: 'user', content: chat }]);
 		const res = await commands.onichanProcessInput(chat);
 		if (res.status === 'ok') {
-			setReply(res.data);
 			if (ttsLoaded) commands.onichanSpeak(res.data);
 		} else setError(res.error);
 		setChat('');
@@ -60,20 +100,8 @@ export function OnichanSettings() {
 
 			<SettingsCard title="Onichan Assistant">
 				<SettingsRow
-					label="Enabled"
-					description="Turn the local voice assistant on or off">
-					<ToggleSwitch
-						checked={active}
-						onChange={async (v) => {
-							if (v) await commands.onichanEnable();
-							else await commands.onichanDisable();
-							setActive(v);
-						}}
-					/>
-				</SettingsRow>
-				<SettingsRow
 					label="Continuous conversation"
-					description="Listen and respond hands-free (requires LLM + TTS loaded)">
+					description="Hands-free loop for THIS computer's microphone. For Discord voice, use Conversation Mode in the Discord section above">
 					<ToggleSwitch
 						checked={conversing}
 						onChange={async (v) => {
@@ -102,8 +130,65 @@ export function OnichanSettings() {
 				</SettingsRow>
 			</SettingsCard>
 
-			<SettingsCard title="Chat">
+			<SettingsCard title="Conversation">
 				<div className="flex flex-col gap-3 px-5 py-4">
+					<div className="flex items-center gap-2">
+						<span
+							className="h-2 w-2 rounded-full"
+							style={{
+								backgroundColor: conversing
+									? 'var(--color-toggle-on)'
+									: 'var(--color-border)',
+							}}
+						/>
+						<span className="text-caption" style={muted}>
+							{conversing
+								? `Conversation mode: ${conversationPhase}`
+								: 'Conversation mode off — toggle above for hands-free voice'}
+						</span>
+					</div>
+
+					<div
+						className="flex max-h-72 flex-col gap-2 overflow-y-auto rounded-lg p-3"
+						style={{ backgroundColor: 'var(--color-bg)' }}>
+						{transcript.length === 0 && (
+							<p className="text-caption" style={muted}>
+								Nothing yet — speak (conversation mode) or type
+								below and the exchange shows up here.
+							</p>
+						)}
+						{transcript.map((m, i) => (
+							<div
+								key={i}
+								className="flex flex-col gap-0.5"
+								style={{
+									alignItems:
+										m.role === 'user'
+											? 'flex-end'
+											: 'flex-start',
+								}}>
+								<span className="text-caption" style={muted}>
+									{m.role === 'user' ? 'You' : 'Onichan'}
+								</span>
+								<p
+									className="text-body max-w-[85%] rounded-lg px-3 py-1.5"
+									style={{
+										backgroundColor:
+											m.role === 'user'
+												? 'var(--color-accent)'
+												: 'var(--color-surface)',
+										color:
+											m.role === 'user'
+												? 'var(--color-bg)'
+												: 'var(--color-text)',
+										opacity: m.skipped ? 0.55 : 1,
+									}}>
+									{m.content}
+								</p>
+							</div>
+						))}
+					</div>
+
 					<div className="flex gap-2">
 						<input
 							value={chat}
@@ -114,21 +199,16 @@ export function OnichanSettings() {
 									? 'Type a message…'
 									: 'Load a language model first'
 							}
-							disabled={!llmLoaded || !active}
+							disabled={!llmLoaded}
 							className="control flex-1"
 						/>
 						<button
 							onClick={send}
-							disabled={!llmLoaded || !active}
+							disabled={!llmLoaded}
 							className="btn">
 							Send
 						</button>
 					</div>
-					{reply && (
-						<p className="text-body" style={muted}>
-							{reply}
-						</p>
-					)}
 				</div>
 			</SettingsCard>
 		</>

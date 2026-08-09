@@ -1,13 +1,13 @@
-import { memo, useCallback, useEffect, useState } from 'react';
-import { listen } from '@tauri-apps/api/event';
+import { memo, useEffect } from 'react';
 import { SettingsCard } from '../../SettingsCard';
 import {
 	commands,
 	type LlmEngine,
-	type ModelInfo,
 	type OnichanModelInfo,
+	type TtsEngine,
 } from '@/bindings';
 import { useSidecarStore } from '@/stores/sidecarStore';
+import { useModelsStore, type ProgressEntry } from '@/stores/models';
 
 const muted = { color: 'var(--color-text-muted)' } as const;
 
@@ -47,52 +47,101 @@ function DownloadBar({ pct, bps }: { pct: number; bps?: number }) {
 	);
 }
 
-interface ProgressEntry {
-	pct: number;
-	bps: number;
+function LoadedCard({
+	title,
+	loadedName,
+	note,
+	onUnload,
+}: {
+	title: string;
+	loadedName: string | null;
+	note?: string;
+	onUnload: () => void;
+}) {
+	return (
+		<SettingsCard title={title}>
+			<div className="settings-row flex items-center justify-between gap-6 px-5 py-3">
+				{loadedName ? (
+					<>
+						<span
+							className="text-body"
+							style={{ color: 'var(--color-toggle-on)' }}>
+							● {loadedName}
+						</span>
+						<button
+							onClick={() => onUnload()}
+							className="btn btn-danger">
+							Unload
+						</button>
+					</>
+				) : (
+					<span className="text-caption" style={muted}>
+						{note ?? 'None'}
+					</span>
+				)}
+			</div>
+		</SettingsCard>
+	);
 }
 
-interface OnichanModelRowProps {
-	model: OnichanModelInfo;
+interface ModelRowProps {
+	id: string;
+	name: string;
+	description: string;
+	sizeMb: number;
+	installed: boolean;
+	installedLabel?: string;
+	isDownloading: boolean;
+	partialSize: number;
 	prog: ProgressEntry | undefined;
 	busy: boolean;
 	onLoad: (id: string) => void;
 	onDownload: (id: string) => void;
+	onDelete?: (id: string) => void;
+	onCancel?: (id: string) => void;
+	deleteDisabled?: boolean;
 }
 
-const OnichanModelRow = memo(function OnichanModelRow({
-	model: m,
+const ModelRow = memo(function ModelRow({
+	id,
+	name,
+	description,
+	sizeMb,
+	installed,
+	installedLabel = 'installed',
+	isDownloading,
+	partialSize,
 	prog,
 	busy,
 	onLoad,
 	onDownload,
-}: OnichanModelRowProps) {
-	const downloading = m.is_downloading || prog != null;
-	const totalMb =
-		m.size_mb +
-		(m.extra_parts?.reduce((sum, p) => sum + p.size_mb, 0) ?? 0);
+	onDelete,
+	onCancel,
+	deleteDisabled = false,
+}: ModelRowProps) {
+	const downloading = isDownloading || prog != null;
 	const sizeLabel =
-		totalMb >= 1024 ? `${(totalMb / 1024).toFixed(1)} GB` : `${totalMb} MB`;
+		sizeMb >= 1024 ? `${(sizeMb / 1024).toFixed(1)} GB` : `${sizeMb} MB`;
 	const partialPct =
-		!downloading && !m.is_downloaded && m.partial_size > 0 && totalMb > 0
-			? (m.partial_size / 1024 / 1024 / totalMb) * 100
+		!downloading && !installed && partialSize > 0 && sizeMb > 0
+			? (partialSize / 1024 / 1024 / sizeMb) * 100
 			: null;
 
 	return (
 		<div className="settings-row flex items-center justify-between gap-6 px-5 py-4">
 			<div className="flex min-w-0 flex-1 flex-col gap-1.5">
 				<span className="text-body">
-					{m.name}
-					{m.is_downloaded && (
+					{name}
+					{installed && (
 						<span
 							className="ml-2 text-caption"
 							style={{ color: 'var(--color-toggle-on)' }}>
-							● installed
+							● {installedLabel}
 						</span>
 					)}
 				</span>
 				<span className="text-caption" style={muted}>
-					{sizeLabel} · {m.description}
+					{sizeLabel} · {description}
 				</span>
 				{downloading && prog != null && (
 					<DownloadBar pct={prog.pct} bps={prog.bps} />
@@ -101,24 +150,44 @@ const OnichanModelRow = memo(function OnichanModelRow({
 					<>
 						<DownloadBar pct={partialPct} />
 						<span className="text-caption" style={muted}>
-							{(m.partial_size / 1024 / 1024 / 1024).toFixed(1)}{' '}
-							GB downloaded — resume with Download
+							{(partialSize / 1024 / 1024 / 1024).toFixed(1)} GB
+							downloaded — resume with Download
 						</span>
 					</>
 				)}
 			</div>
 			<div className="flex gap-2">
-				{m.is_downloaded ? (
-					<button
-						onClick={() => onLoad(m.id)}
-						disabled={busy}
-						className="btn">
-						Load
-					</button>
+				{installed ? (
+					<>
+						<button
+							onClick={() => onLoad(id)}
+							disabled={busy}
+							className="btn">
+							Load
+						</button>
+						{onDelete && (
+							<button
+								onClick={() => onDelete(id)}
+								disabled={busy || deleteDisabled}
+								className="btn btn-danger">
+								Delete
+							</button>
+						)}
+					</>
+				) : downloading ? (
+					onCancel ? (
+						<button onClick={() => onCancel(id)} className="btn">
+							Cancel
+						</button>
+					) : (
+						<button disabled className="btn">
+							Downloading…
+						</button>
+					)
 				) : (
 					<button
-						onClick={() => onDownload(m.id)}
-						disabled={downloading || busy}
+						onClick={() => onDownload(id)}
+						disabled={busy}
 						className="btn">
 						{partialPct != null ? 'Resume' : 'Download'}
 					</button>
@@ -130,12 +199,6 @@ const OnichanModelRow = memo(function OnichanModelRow({
 
 export type ModelSection = 'llm' | 'tts' | 'stt';
 
-interface DownloadProgress {
-	model_id: string;
-	percentage: number;
-	speed_bps?: number;
-}
-
 interface ModelEcosystemPanelProps {
 	sections?: ModelSection[];
 }
@@ -143,162 +206,97 @@ interface ModelEcosystemPanelProps {
 export function ModelEcosystemPanel({
 	sections = ['llm', 'tts', 'stt'],
 }: ModelEcosystemPanelProps) {
-	const [llmModels, setLlmModels] = useState<OnichanModelInfo[]>([]);
-	const [ttsModels, setTtsModels] = useState<OnichanModelInfo[]>([]);
-	const [sttModels, setSttModels] = useState<ModelInfo[]>([]);
-	const [llmEngine, setLlmEngine] = useState<LlmEngine>('llama_cpp');
-	const [sttActiveId, setSttActiveId] = useState('');
-	const [progress, setProgress] = useState<Record<string, ProgressEntry>>({});
-	const [busy, setBusy] = useState<string | null>(null);
-	const [error, setError] = useState<string | null>(null);
+	const llmModels = useModelsStore((s) => s.llmModels);
+	const ttsModels = useModelsStore((s) => s.ttsModels);
+	const sttModels = useModelsStore((s) => s.sttModels);
+	const sttActiveId = useModelsStore((s) => s.sttActiveId);
+	const llmEngine = useModelsStore((s) => s.llmEngine);
+	const loadedLlmName = useModelsStore((s) => s.loadedLlmName);
+	const loadedTtsName = useModelsStore((s) => s.loadedTtsName);
+	const progress = useModelsStore((s) => s.progress);
+	const busy = useModelsStore((s) => s.busy);
+	const error = useModelsStore((s) => s.error);
+	const initModels = useModelsStore((s) => s.init);
+	const changeLlmEngine = useModelsStore((s) => s.changeLlmEngine);
+	const llmEndpoint = useModelsStore((s) => s.llmEndpoint);
+	const changeLlmEndpoint = useModelsStore((s) => s.changeLlmEndpoint);
+	const downloadOnichan = useModelsStore((s) => s.downloadOnichanModel);
+	const cancelOnichan = useModelsStore((s) => s.cancelOnichanDownload);
+	const deleteOnichan = useModelsStore((s) => s.deleteOnichanModel);
+	const loadLlmRow = useModelsStore((s) => s.loadLlmModel);
+	const loadTtsRow = useModelsStore((s) => s.loadTtsModel);
+	const unloadLlmModel = useModelsStore((s) => s.unloadLlmModel);
+	const unloadTtsModel = useModelsStore((s) => s.unloadTtsModel);
+	const ttsEngine = useModelsStore((s) => s.ttsEngine);
+	const changeTtsEngine = useModelsStore((s) => s.changeTtsEngine);
+	const ttsEndpoint = useModelsStore((s) => s.ttsEndpoint);
+	const changeTtsEndpoint = useModelsStore((s) => s.changeTtsEndpoint);
+	const ttsHttpModel = useModelsStore((s) => s.ttsHttpModel);
+	const ttsHttpVoice = useModelsStore((s) => s.ttsHttpVoice);
+	const changeTtsHttpConfig = useModelsStore((s) => s.changeTtsHttpConfig);
+	const downloadStt = useModelsStore((s) => s.downloadSttModel);
+	const deleteStt = useModelsStore((s) => s.deleteSttModel);
+	const activateStt = useModelsStore((s) => s.activateSttModel);
+	const cancelStt = useModelsStore((s) => s.cancelSttDownload);
+	const unloadStt = useModelsStore((s) => s.unloadSttModel);
 
 	const llmLoaded = useSidecarStore((s) => s.llmLoaded);
 	const ttsLoaded = useSidecarStore((s) => s.ttsLoaded);
-	const refreshSidecar = useSidecarStore((s) => s.refresh);
-	const storeLoadLlm = useSidecarStore((s) => s.loadLlm);
-	const storeLoadTts = useSidecarStore((s) => s.loadTts);
-	const unloadLlm = useSidecarStore((s) => s.unloadLlm);
-	const unloadTts = useSidecarStore((s) => s.unloadTts);
 
-	const wantsOnichan = sections.includes('llm') || sections.includes('tts');
 	const wantsStt = sections.includes('stt');
 
-	const refresh = useCallback(async () => {
-		if (wantsOnichan) {
-			if (sections.includes('llm')) {
-				setLlmModels(await commands.getOnichanLlmModels());
-				setLlmEngine(await commands.getLlmEngine());
-			}
-			if (sections.includes('tts'))
-				setTtsModels(await commands.getOnichanTtsModels());
-		}
-		if (wantsStt) {
-			const list = await commands.getAvailableModels();
-			if (list.status === 'ok') setSttModels(list.data);
-			const current = await commands.getCurrentModel();
-			if (current.status === 'ok') setSttActiveId(current.data);
-		}
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [wantsOnichan, wantsStt, sections.join(',')]);
-
 	useEffect(() => {
-		void refresh();
-	}, [refresh]);
-
-	useEffect(() => {
-		const unlisteners: Promise<() => void>[] = [];
-		const onProgress = (e: { payload: DownloadProgress }) =>
-			setProgress((prev) => ({
-				...prev,
-				[e.payload.model_id]: {
-					pct: e.payload.percentage,
-					bps: e.payload.speed_bps ?? 0,
-				},
-			}));
-		const onDone = () => {
-			setProgress({});
-			void refresh();
-			void refreshSidecar();
-		};
-		if (wantsOnichan) {
-			unlisteners.push(
-				listen<DownloadProgress>(
-					'onichan-model-download-progress',
-					onProgress,
-				),
-				listen('onichan-model-download-complete', onDone),
-			);
-		}
-		if (wantsStt) {
-			unlisteners.push(
-				listen<DownloadProgress>('model-download-progress', onProgress),
-				listen('model-download-complete', onDone),
-			);
-		}
-		return () => {
-			unlisteners.forEach((u) => u.then((f) => f()));
-		};
-	}, [wantsOnichan, wantsStt, refresh, refreshSidecar]);
-
-	const run = useCallback(
-		async (id: string, fn: () => Promise<void>) => {
-			setBusy(id);
-			setError(null);
-			try {
-				await fn();
-			} finally {
-				setBusy(null);
-			}
-			void refresh();
-		},
-		[refresh],
-	);
-
-	const changeLlmEngine = async (engine: LlmEngine) => {
-		setError(null);
-		const res = await commands.setLlmEngine(engine);
-		if (res.status === 'error') {
-			setError(res.error);
-			return;
-		}
-		setLlmEngine(engine);
-		void refreshSidecar();
-	};
-
-	const downloadOnichan = useCallback(
-		(id: string) =>
-			void run(id, async () => {
-				const res = await commands.downloadOnichanModel(id);
-				if (res.status === 'error') setError(res.error);
-			}),
-		[run],
-	);
-
-	const loadLlmRow = useCallback(
-		(id: string) => void run(id, () => storeLoadLlm(id)),
-		[run, storeLoadLlm],
-	);
-
-	const loadTtsRow = useCallback(
-		(id: string) => void run(id, () => storeLoadTts(id)),
-		[run, storeLoadTts],
-	);
+		void initModels();
+	}, [initModels]);
 
 	const renderOnichanSection = (
 		title: string,
 		models: OnichanModelInfo[],
 		loaded: boolean,
+		loadedName: string | null,
 		onLoad: (id: string) => void,
-		onUnload: () => Promise<void>,
+		onUnload: () => void,
 	) => (
-		<SettingsCard title={`${title}${loaded ? ' · loaded' : ''}`}>
-			<div className="flex flex-col">
-				{models.length === 0 && (
-					<p className="px-5 py-4 text-caption" style={muted}>
-						Loading…
-					</p>
-				)}
-				{models.map((m) => (
-					<OnichanModelRow
-						key={m.id}
-						model={m}
-						prog={progress[m.id]}
-						busy={busy === m.id}
-						onLoad={onLoad}
-						onDownload={downloadOnichan}
-					/>
-				))}
-				{loaded && (
-					<div className="settings-row flex items-center justify-end px-5 py-3">
-						<button
-							onClick={() => run('unload', onUnload)}
-							className="btn btn-danger">
-							Unload
-						</button>
-					</div>
-				)}
-			</div>
-		</SettingsCard>
+		<>
+			<LoadedCard
+				title={`${title} · Loaded`}
+				loadedName={loaded ? loadedName : null}
+				onUnload={onUnload}
+			/>
+			<SettingsCard title={`${title} Models`}>
+				<div className="flex flex-col">
+					{models.length === 0 && (
+						<p className="px-5 py-4 text-caption" style={muted}>
+							Loading…
+						</p>
+					)}
+					{models.map((m) => (
+						<ModelRow
+							key={m.id}
+							id={m.id}
+							name={m.name}
+							description={m.description}
+							sizeMb={
+								m.size_mb +
+								(m.extra_parts?.reduce(
+									(sum, p) => sum + p.size_mb,
+									0,
+								) ?? 0)
+							}
+							installed={m.is_downloaded}
+							isDownloading={m.is_downloading}
+							partialSize={m.partial_size}
+							prog={progress[m.id]}
+							busy={busy === m.id}
+							onLoad={onLoad}
+							onDownload={downloadOnichan}
+							onDelete={deleteOnichan}
+							onCancel={(id) => void cancelOnichan(id)}
+						/>
+					))}
+				</div>
+			</SettingsCard>
+		</>
 	);
 
 	return (
@@ -309,11 +307,32 @@ export function ModelEcosystemPanel({
 				<SettingsCard title="LLM Engine">
 					<div className="settings-row flex items-center justify-between gap-6 px-5 py-4">
 						<div className="flex flex-col gap-1.5">
-							<span className="text-body">Inference engine</span>
+							<span className="text-body">
+								Inference engine
+								{llmLoaded && loadedLlmName ? (
+									<span
+										className="ml-2 text-caption"
+										style={{
+											color: 'var(--color-toggle-on)',
+										}}>
+										● {loadedLlmName} loaded
+									</span>
+								) : (
+									<span
+										className="ml-2 text-caption"
+										style={muted}>
+										no model loaded
+									</span>
+								)}
+							</span>
 							<span className="text-caption" style={muted}>
 								{llmEngine === 'mistral_rs'
 									? 'mistral.rs — pure-Rust engine (Metal)'
-									: 'llama.cpp — default engine (Metal)'}
+									: llmEngine === 'openai_compat'
+										? 'External server (oMLX / rMLX / ollama / LM Studio) — serves MLX and other formats'
+										: llmEngine === 'mlx'
+											? 'Built-in rMLX server — native MLX models (mlx-community), fastest on Apple Silicon'
+											: 'llama.cpp — default engine (Metal)'}
 								{'. Switching reloads the model on next use.'}
 							</span>
 						</div>
@@ -325,15 +344,40 @@ export function ModelEcosystemPanel({
 							}>
 							<option value="llama_cpp">llama.cpp</option>
 							<option value="mistral_rs">mistral.rs</option>
+							<option value="mlx">MLX (built-in)</option>
+							<option value="openai_compat">
+								MLX / OpenAI server
+							</option>
 						</select>
 					</div>
+					{llmEngine === 'openai_compat' && (
+						<div className="settings-row flex items-center justify-between gap-6 px-5 py-4">
+							<div className="flex flex-col gap-1.5">
+								<span className="text-body">Server URL</span>
+								<span className="text-caption" style={muted}>
+									OpenAI-compatible base URL. Run oMLX/rMLX
+									with your MLX model and point here.
+								</span>
+							</div>
+							<input
+								className="control w-72 font-mono"
+								defaultValue={llmEndpoint}
+								spellCheck={false}
+								onBlur={(e) => {
+									const v = e.target.value.trim();
+									if (v && v !== llmEndpoint)
+										void changeLlmEndpoint(v);
+								}}
+							/>
+						</div>
+					)}
 					<div className="settings-row flex items-center justify-between gap-6 px-5 py-4">
 						<div className="flex flex-col gap-1.5">
 							<span className="text-body">Sideload models</span>
 							<span className="text-caption" style={muted}>
-								Drop any .gguf into the models folder and it
-								appears in the list below (first part only for
-								split downloads)
+								Drop a .gguf file, or an MLX model folder
+								(mlx-community), into the models folder and it
+								appears below
 							</span>
 						</div>
 						<button
@@ -352,154 +396,190 @@ export function ModelEcosystemPanel({
 					'Language Model (LLM)',
 					llmModels,
 					llmLoaded,
+					loadedLlmName,
 					loadLlmRow,
-					unloadLlm,
+					unloadLlmModel,
 				)}
+
+			{sections.includes('tts') && (
+				<SettingsCard title="TTS Engine">
+					<div className="settings-row flex items-center justify-between gap-6 px-5 py-4">
+						<div className="flex flex-col gap-1.5">
+							<span className="text-body">
+								Synthesis engine
+								{ttsLoaded && loadedTtsName ? (
+									<span
+										className="ml-2 text-caption"
+										style={{
+											color: 'var(--color-toggle-on)',
+										}}>
+										● {loadedTtsName} loaded
+									</span>
+								) : (
+									<span
+										className="ml-2 text-caption"
+										style={muted}>
+										no model loaded
+									</span>
+								)}
+							</span>
+							<span className="text-caption" style={muted}>
+								{ttsEngine === 'openai_compat'
+									? 'External server (mlx-audio) — Chatterbox Turbo and other MLX voices via /v1/audio/speech'
+									: 'Built-in sidecars — piper + Kokoro-82M, routed by loaded model'}
+							</span>
+						</div>
+						<select
+							className="control"
+							value={ttsEngine}
+							onChange={(e) =>
+								changeTtsEngine(e.target.value as TtsEngine)
+							}>
+							<option value="piper">
+								Built-in (piper / Kokoro)
+							</option>
+							<option value="openai_compat">
+								MLX / OpenAI server
+							</option>
+						</select>
+					</div>
+					{ttsEngine === 'openai_compat' && (
+						<>
+							<div className="settings-row flex items-center justify-between gap-6 px-5 py-4">
+								<div className="flex flex-col gap-1.5">
+									<span className="text-body">
+										Server URL
+									</span>
+									<span
+										className="text-caption"
+										style={muted}>
+										Run: mlx_audio.server --port 8000, then
+										point here
+									</span>
+								</div>
+								<input
+									className="control w-72 font-mono"
+									defaultValue={ttsEndpoint}
+									spellCheck={false}
+									onBlur={(e) => {
+										const v = e.target.value.trim();
+										if (v && v !== ttsEndpoint)
+											void changeTtsEndpoint(v);
+									}}
+								/>
+							</div>
+							<div className="settings-row flex items-center justify-between gap-6 px-5 py-4">
+								<div className="flex flex-col gap-1.5">
+									<span className="text-body">Model</span>
+									<span
+										className="text-caption"
+										style={muted}>
+										Hugging Face id — server downloads it on
+										first request
+									</span>
+								</div>
+								<input
+									className="control w-72 font-mono"
+									defaultValue={ttsHttpModel}
+									spellCheck={false}
+									onBlur={(e) => {
+										const v = e.target.value.trim();
+										if (v && v !== ttsHttpModel)
+											void changeTtsHttpConfig(
+												v,
+												ttsHttpVoice,
+											);
+									}}
+								/>
+							</div>
+							<div className="settings-row flex items-center justify-between gap-6 px-5 py-4">
+								<div className="flex flex-col gap-1.5">
+									<span className="text-body">Voice</span>
+									<span
+										className="text-caption"
+										style={muted}>
+										Optional voice name or reference; blank
+										= model default
+									</span>
+								</div>
+								<input
+									className="control w-72 font-mono"
+									defaultValue={ttsHttpVoice}
+									spellCheck={false}
+									placeholder="default"
+									onBlur={(e) => {
+										const v = e.target.value.trim();
+										if (v !== ttsHttpVoice)
+											void changeTtsHttpConfig(
+												ttsHttpModel,
+												v,
+											);
+									}}
+								/>
+							</div>
+						</>
+					)}
+				</SettingsCard>
+			)}
 
 			{sections.includes('tts') &&
 				renderOnichanSection(
 					'Text-to-Speech (TTS)',
 					ttsModels,
 					ttsLoaded,
+					loadedTtsName,
 					loadTtsRow,
-					unloadTts,
+					unloadTtsModel,
 				)}
 
 			{wantsStt && (
-				<SettingsCard title="Speech-to-Text (STT)">
-					<div className="flex flex-col">
-						{sttModels.length === 0 && (
-							<p className="px-5 py-4 text-caption" style={muted}>
-								Loading models…
-							</p>
-						)}
-						{sttModels.map((m) => {
-							const isActive = m.id === sttActiveId;
-							const prog = progress[m.id];
-							const downloading =
-								m.is_downloading || prog != null;
-							return (
-								<div
+				<>
+					<LoadedCard
+						title="Speech-to-Text (STT) · Loaded"
+						loadedName={
+							sttActiveId
+								? (sttModels.find((m) => m.id === sttActiveId)
+										?.name ?? sttActiveId)
+								: null
+						}
+						onUnload={() => void unloadStt()}
+					/>
+					<SettingsCard title="Speech-to-Text (STT) Models">
+						<div className="flex flex-col">
+							{sttModels.length === 0 && (
+								<p
+									className="px-5 py-4 text-caption"
+									style={muted}>
+									Loading models…
+								</p>
+							)}
+							{sttModels.map((m) => (
+								<ModelRow
 									key={m.id}
-									className="settings-row flex items-center justify-between gap-6 px-5 py-4">
-									<div className="flex flex-col gap-1.5">
-										<span className="text-body">
-											{m.name}
-											{isActive && (
-												<span
-													className="ml-2 text-caption"
-													style={{
-														color: 'var(--color-toggle-on)',
-													}}>
-													● active
-												</span>
-											)}
-										</span>
-										<span
-											className="text-caption"
-											style={muted}>
-											{m.engine_type} · {m.size_mb} MB ·{' '}
-											{m.description}
-										</span>
-										{downloading && prog != null && (
-											<DownloadBar
-												pct={prog.pct}
-												bps={prog.bps}
-											/>
-										)}
-									</div>
-									<div className="flex gap-2">
-										{m.is_downloaded ? (
-											<>
-												{!isActive && (
-													<button
-														onClick={() =>
-															run(
-																m.id,
-																async () => {
-																	const res =
-																		await commands.setActiveModel(
-																			m.id,
-																		);
-																	if (
-																		res.status ===
-																		'ok'
-																	)
-																		setSttActiveId(
-																			m.id,
-																		);
-																	else
-																		setError(
-																			res.error,
-																		);
-																},
-															)
-														}
-														disabled={busy === m.id}
-														className="btn">
-														Use
-													</button>
-												)}
-												<button
-													onClick={() =>
-														run(m.id, async () => {
-															const res =
-																await commands.deleteModel(
-																	m.id,
-																);
-															if (
-																res.status ===
-																'error'
-															)
-																setError(
-																	res.error,
-																);
-														})
-													}
-													disabled={
-														busy === m.id ||
-														isActive
-													}
-													className="btn btn-danger">
-													Delete
-												</button>
-											</>
-										) : downloading ? (
-											<button
-												onClick={() =>
-													commands
-														.cancelDownload(m.id)
-														.then(() => refresh())
-												}
-												className="btn">
-												Cancel
-											</button>
-										) : (
-											<button
-												onClick={() =>
-													run(m.id, async () => {
-														const res =
-															await commands.downloadModel(
-																m.id,
-															);
-														if (
-															res.status ===
-															'error'
-														)
-															setError(res.error);
-													})
-												}
-												disabled={busy === m.id}
-												className="btn">
-												Download
-											</button>
-										)}
-									</div>
-								</div>
-							);
-						})}
-					</div>
-				</SettingsCard>
+									id={m.id}
+									name={m.name}
+									description={`${m.engine_type} · ${m.description}`}
+									sizeMb={m.size_mb}
+									installed={m.is_downloaded}
+									installedLabel={
+										m.id === sttActiveId
+											? 'active'
+											: 'installed'
+									}
+									isDownloading={m.is_downloading}
+									partialSize={m.partial_size ?? 0}
+									prog={progress[m.id]}
+									busy={busy === m.id}
+									onLoad={(id) => void activateStt(id)}
+									onDownload={(id) => void downloadStt(id)}
+									onDelete={(id) => void deleteStt(id)}
+									onCancel={(id) => void cancelStt(id)}
+									deleteDisabled={m.id === sttActiveId}
+								/>
+							))}
+						</div>
+					</SettingsCard>
+				</>
 			)}
 		</>
 	);

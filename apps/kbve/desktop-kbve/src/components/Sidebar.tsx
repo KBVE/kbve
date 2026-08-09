@@ -3,6 +3,7 @@ import { getViews } from '../engine';
 import { useAppStore } from '../stores/app';
 import { ThemeSwitch } from './ThemeSwitch';
 import { Account } from './Account';
+import { EngineStatus } from './EngineStatus';
 
 const collapsible = (open: boolean, maxWidth: string) =>
 	[
@@ -64,6 +65,7 @@ export function Sidebar() {
 					))}
 			</nav>
 
+			<EngineStatus collapsed={!sidebarOpen} />
 			<Account collapsed={!sidebarOpen} />
 
 			<footer

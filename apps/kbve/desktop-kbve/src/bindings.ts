@@ -699,6 +699,9 @@ export const commands = {
 			else return { status: 'error', error: e as any };
 		}
 	},
+	async cancelOnichanDownload(modelId: string): Promise<void> {
+		await TAURI_INVOKE('cancel_onichan_download', { modelId });
+	},
 	async loadLocalLlm(modelId: string): Promise<Result<null, string>> {
 		try {
 			return {
@@ -710,8 +713,16 @@ export const commands = {
 			else return { status: 'error', error: e as any };
 		}
 	},
-	async unloadLocalLlm(): Promise<void> {
-		await TAURI_INVOKE('unload_local_llm');
+	async unloadLocalLlm(): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('unload_local_llm'),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
 	},
 	async isLocalLlmLoaded(): Promise<boolean> {
 		return await TAURI_INVOKE('is_local_llm_loaded');
@@ -735,6 +746,20 @@ export const commands = {
 			return {
 				status: 'ok',
 				data: await TAURI_INVOKE('set_llm_engine', { engine }),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	async getLlmEndpoint(): Promise<string> {
+		return await TAURI_INVOKE('get_llm_endpoint');
+	},
+	async setLlmEndpoint(url: string): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('set_llm_endpoint', { url }),
 			};
 		} catch (e) {
 			if (e instanceof Error) throw e;
@@ -774,8 +799,19 @@ export const commands = {
 			else return { status: 'error', error: e as any };
 		}
 	},
-	async unloadLocalTts(): Promise<void> {
-		await TAURI_INVOKE('unload_local_tts');
+	async unloadLocalTts(): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('unload_local_tts'),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	async getLocalTtsModelName(): Promise<string | null> {
+		return await TAURI_INVOKE('get_local_tts_model_name');
 	},
 	async isLocalTtsLoaded(): Promise<boolean> {
 		return await TAURI_INVOKE('is_local_tts_loaded');
@@ -785,6 +821,50 @@ export const commands = {
 			return {
 				status: 'ok',
 				data: await TAURI_INVOKE('local_tts_speak', { text }),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	async getTtsEngine(): Promise<TtsEngine> {
+		return await TAURI_INVOKE('get_tts_engine');
+	},
+	async setTtsEngine(engine: TtsEngine): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('set_tts_engine', { engine }),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	async getTtsEndpoint(): Promise<string> {
+		return await TAURI_INVOKE('get_tts_endpoint');
+	},
+	async setTtsEndpoint(url: string): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('set_tts_endpoint', { url }),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	async getTtsHttpConfig(): Promise<TtsHttpConfig> {
+		return await TAURI_INVOKE('get_tts_http_config');
+	},
+	async setTtsHttpConfig(
+		config: TtsHttpConfig,
+	): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('set_tts_http_config', { config }),
 			};
 		} catch (e) {
 			if (e instanceof Error) throw e;
@@ -4078,7 +4158,15 @@ export type LlmEngine =
 	/**
 	 * mistral.rs via mistralrs-sidecar (pure Rust)
 	 */
-	| 'mistral_rs';
+	| 'mistral_rs'
+	/**
+	 * External OpenAI-compatible server (oMLX, rMLX, ollama, LM Studio, ...)
+	 */
+	| 'openai_compat'
+	/**
+	 * Built-in MLX engine: bundled rMLX sidecar serving mlx-community models
+	 */
+	| 'mlx';
 export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error';
 /**
  * A memory message from the sidecar
@@ -4931,6 +5019,7 @@ export type SidecarQuickConfig = {
 	last_discord_channel_name: string | null;
 	last_embedding_model_id: string | null;
 	discord_quick_connect: boolean;
+	discord_auto_conversation: boolean;
 };
 /**
  * Configuration for skipping an issue.
@@ -5274,6 +5363,19 @@ export type TrackedSubIssue = {
 	 */
 	pr_number?: number | null;
 };
+/**
+ * Which backend synthesizes speech.
+ */
+export type TtsEngine =
+	/**
+	 * piper ONNX via tts-sidecar (default)
+	 */
+	| 'piper'
+	/**
+	 * External OpenAI-compatible /v1/audio/speech server (mlx-audio, ...)
+	 */
+	| 'openai_compat';
+export type TtsHttpConfig = { model: string; voice: string };
 export type ViewError = { message: string };
 /**
  * A point-in-time snapshot of a view's state, returned via GetSnapshot.

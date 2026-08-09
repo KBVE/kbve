@@ -17848,12 +17848,12 @@
 				},
 				{
 					"source": "desktop-kbve",
-					"target": "rn",
+					"target": "rn-tauri",
 					"type": "static"
 				},
 				{
 					"source": "desktop-kbve",
-					"target": "rn-tauri",
+					"target": "rn",
 					"type": "static"
 				}
 			],

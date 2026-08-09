@@ -67,6 +67,7 @@ export const DiscordSettings: React.FC = () => {
 		connectDiscordVoice,
 		discordQuickConnect,
 		setDiscordQuickConnect,
+		setDiscordAutoConversation,
 		lastDiscordGuildId,
 		lastDiscordChannelId,
 		quickConfigLoaded,
@@ -297,15 +298,17 @@ export const DiscordSettings: React.FC = () => {
 		if (isConversationMode) {
 			commands.discordStopConversation();
 			setIsConversationMode(false);
+			void setDiscordAutoConversation(false);
 		} else {
 			const result = await commands.discordStartConversation();
 			if (result.status === 'ok') {
 				setIsConversationMode(true);
+				void setDiscordAutoConversation(true);
 			} else {
 				setError(result.error);
 			}
 		}
-	}, [isConversationMode]);
+	}, [isConversationMode, setDiscordAutoConversation]);
 
 	const handleRefreshGuilds = useCallback(async () => {
 		setIsLoadingGuilds(true);

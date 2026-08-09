@@ -197,18 +197,28 @@ fn specta_builder() -> Builder<tauri::Wry> {
         commands::onichan::get_onichan_tts_models,
         commands::onichan::download_onichan_model,
         commands::onichan::delete_onichan_model,
+        commands::onichan::cancel_onichan_download,
         commands::onichan::load_local_llm,
         commands::onichan::unload_local_llm,
         commands::onichan::is_local_llm_loaded,
         commands::onichan::open_onichan_models_dir,
         commands::onichan::get_llm_engine,
         commands::onichan::set_llm_engine,
+        commands::onichan::get_llm_endpoint,
+        commands::onichan::set_llm_endpoint,
         commands::onichan::get_local_llm_model_name,
         commands::onichan::local_llm_chat,
         commands::onichan::load_local_tts,
         commands::onichan::unload_local_tts,
+        commands::onichan::get_local_tts_model_name,
         commands::onichan::is_local_tts_loaded,
         commands::onichan::local_tts_speak,
+        commands::onichan::get_tts_engine,
+        commands::onichan::set_tts_engine,
+        commands::onichan::get_tts_endpoint,
+        commands::onichan::set_tts_endpoint,
+        commands::onichan::get_tts_http_config,
+        commands::onichan::set_tts_http_config,
         commands::onichan::onichan_start_conversation,
         commands::onichan::onichan_stop_conversation,
         commands::onichan::onichan_is_conversation_running,
@@ -520,6 +530,7 @@ pub fn run() {
             let local_llm_manager = Arc::new(local_llm::LocalLlmManager::new(
                 sidecar_path("llm-sidecar"),
                 sidecar_path("mistralrs-sidecar"),
+                sidecar_path("rmlx"),
             ));
             {
                 use tauri_plugin_store::StoreExt;
@@ -532,9 +543,49 @@ pub fn run() {
                     let _ = local_llm_manager
                         .set_engine(local_llm::LlmEngine::from_str_or_default(&engine));
                 }
+                if let Ok(store) = dict_handle.store("sidecar_config.json") {
+                    if let Some(url) = store
+                        .get("llm_endpoint_url")
+                        .and_then(|v| v.as_str().map(String::from))
+                    {
+                        local_llm_manager.set_endpoint_url(url);
+                    }
+                }
             }
-            let local_tts_manager =
-                Arc::new(local_tts::LocalTtsManager::new(sidecar_path("tts-sidecar")));
+            let local_tts_manager = Arc::new(local_tts::LocalTtsManager::new(
+                sidecar_path("tts-sidecar"),
+                sidecar_path("kokoro-sidecar"),
+            ));
+            {
+                use tauri_plugin_store::StoreExt;
+                if let Ok(store) = dict_handle.store("sidecar_config.json") {
+                    if let Some(engine) = store
+                        .get("tts_engine")
+                        .and_then(|v| v.as_str().map(String::from))
+                    {
+                        local_tts_manager
+                            .set_engine(local_tts::TtsEngine::from_str_or_default(&engine));
+                    }
+                    if let Some(url) = store
+                        .get("tts_endpoint_url")
+                        .and_then(|v| v.as_str().map(String::from))
+                    {
+                        local_tts_manager.set_endpoint_url(url);
+                    }
+                    if let Some(model) = store
+                        .get("tts_http_model")
+                        .and_then(|v| v.as_str().map(String::from))
+                    {
+                        local_tts_manager.set_http_model(model);
+                    }
+                    if let Some(voice) = store
+                        .get("tts_http_voice")
+                        .and_then(|v| v.as_str().map(String::from))
+                    {
+                        local_tts_manager.set_http_voice(voice);
+                    }
+                }
+            }
             let memory_manager =
                 Arc::new(memory::MemoryManager::new(sidecar_path("memory-sidecar")));
 

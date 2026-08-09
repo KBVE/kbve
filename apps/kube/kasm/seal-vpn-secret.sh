@@ -1,7 +1,22 @@
 #!/usr/bin/env bash
-# seal-vpn-secret.sh — Seal WireGuard VPN credentials for KASM
+# seal-vpn-secret.sh — Seal the SINGLE shared WireGuard VPN secret (kasm vault)
 #
-# Creates a SealedSecret with the Gluetun-compatible WireGuard config.
+# Creates the canonical vpn-wireguard SealedSecret in the kasm namespace.
+# Every VPN consumer flows from this one secret:
+#   - kasm: mounts it directly (deployment.yaml)
+#   - reel / angelscript / firecracker: pull it via ESO from the kasm vault
+#
+# Provider server-selection mode: gluetun picks the server itself, so the
+# secret carries ONLY the account key + addresses (+ optional country filter).
+# Do NOT add WIREGUARD_ENDPOINT_IP / WIREGUARD_ENDPOINT_PORT /
+# WIREGUARD_PUBLIC_KEY — gluetun REJECTS pinned endpoints under provider
+# server selection ("Wireguard server selection settings: endpoint port is
+# set" -> gluetun exits).
+#
+# The VPN provider name is intentionally NOT hardcoded here — pass it at seal
+# time so it never lands in the repo (only inside the encrypted SealedSecret):
+#   VPN_SERVICE_PROVIDER=<provider> ./seal-vpn-secret.sh
+# If unset, the script prompts for it.
 #
 # Prerequisites:
 #   - kubectl configured with cluster access
@@ -9,7 +24,7 @@
 #   - sealed-secrets-controller running in kube-system
 #
 # Usage:
-#   ./seal-vpn-secret.sh
+#   VPN_SERVICE_PROVIDER=<provider> ./seal-vpn-secret.sh
 #   # Output: apps/kube/kasm/manifest/sealed-vpn-wireguard.yaml
 
 set -euo pipefail
@@ -39,6 +54,11 @@ fi
 
 # --- Get credentials (env vars or interactive prompt) ---
 
+if [[ -z "${VPN_SERVICE_PROVIDER:-}" ]]; then
+    echo -n "Enter VPN service provider (gluetun VPN_SERVICE_PROVIDER): "
+    read -r VPN_SERVICE_PROVIDER
+fi
+
 if [[ -z "${WG_PRIVATE_KEY:-}" ]]; then
     echo -n "Enter WireGuard PrivateKey: "
     read -rs WG_PRIVATE_KEY
@@ -46,34 +66,19 @@ if [[ -z "${WG_PRIVATE_KEY:-}" ]]; then
 fi
 
 WG_ADDRESS="${WG_ADDRESS:-10.2.0.2/32}"
-WG_PUBLIC_KEY="${WG_PUBLIC_KEY:-}"
-WG_ENDPOINT_IP="${WG_ENDPOINT_IP:-}"
-WG_ENDPOINT_PORT="${WG_ENDPOINT_PORT:-51820}"
-VPN_PROVIDER="${VPN_PROVIDER:-custom}"
-
-if [[ -z "${WG_PUBLIC_KEY}" ]]; then
-    echo -n "Enter WireGuard peer PublicKey: "
-    read -r WG_PUBLIC_KEY
-fi
-
-if [[ -z "${WG_ENDPOINT_IP}" ]]; then
-    echo -n "Enter WireGuard Endpoint IP: "
-    read -r WG_ENDPOINT_IP
-fi
+SERVER_COUNTRIES="${SERVER_COUNTRIES:-Germany}"
 
 # --- Seal the credentials ---
 
-echo "Sealing WireGuard VPN credentials for KASM..."
+echo "Sealing the shared WireGuard VPN secret into the ${TARGET_NS} vault..."
 
 kubectl create secret generic vpn-wireguard \
     --namespace="${TARGET_NS}" \
-    --from-literal=VPN_SERVICE_PROVIDER="${VPN_PROVIDER}" \
+    --from-literal=VPN_SERVICE_PROVIDER="${VPN_SERVICE_PROVIDER}" \
     --from-literal=VPN_TYPE="wireguard" \
     --from-literal=WIREGUARD_PRIVATE_KEY="${WG_PRIVATE_KEY}" \
     --from-literal=WIREGUARD_ADDRESSES="${WG_ADDRESS}" \
-    --from-literal=WIREGUARD_PUBLIC_KEY="${WG_PUBLIC_KEY}" \
-    --from-literal=WIREGUARD_ENDPOINT_IP="${WG_ENDPOINT_IP}" \
-    --from-literal=WIREGUARD_ENDPOINT_PORT="${WG_ENDPOINT_PORT}" \
+    --from-literal=SERVER_COUNTRIES="${SERVER_COUNTRIES}" \
     --dry-run=client \
     -o yaml \
 | kubeseal \
@@ -87,7 +92,5 @@ echo "Sealed secret written to: ${OUTPUT_FILE}"
 echo "Plaintext credentials were never written to disk."
 echo ""
 echo "Next steps:"
-echo "  1. Remove manifest/vpn-secret.yaml (plaintext placeholder)"
-echo "  2. git add ${OUTPUT_FILE}"
-echo "  3. Commit and push — ArgoCD will sync the SealedSecret"
-echo "  4. Scale deployment: kubectl scale deployment kasm-vpn -n kasm --replicas=1"
+echo "  1. git add ${OUTPUT_FILE}"
+echo "  2. Commit and push — ArgoCD syncs it; reloader rolls kasm/reel/angelscript/firecracker"

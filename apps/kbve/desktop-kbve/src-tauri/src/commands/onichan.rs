@@ -1,5 +1,5 @@
 use crate::local_llm::{LlmEngine, LocalLlmManager};
-use crate::local_tts::LocalTtsManager;
+use crate::local_tts::{LocalTtsManager, TtsEngine};
 use crate::onichan::{ConversationMessage, OnichanManager, OnichanMode};
 use crate::onichan_conversation::OnichanConversationManager;
 use crate::onichan_models::{OnichanModelInfo, OnichanModelManager};
@@ -105,6 +105,12 @@ pub async fn download_onichan_model(
 
 #[tauri::command]
 #[specta::specta]
+pub fn cancel_onichan_download(manager: State<'_, Arc<OnichanModelManager>>, model_id: String) {
+    manager.cancel_download(&model_id);
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn delete_onichan_model(
     manager: State<'_, Arc<OnichanModelManager>>,
     model_id: String,
@@ -114,7 +120,7 @@ pub fn delete_onichan_model(
 
 #[tauri::command]
 #[specta::specta]
-pub fn load_local_llm(
+pub async fn load_local_llm(
     model_manager: State<'_, Arc<OnichanModelManager>>,
     llm_manager: State<'_, Arc<LocalLlmManager>>,
     model_id: String,
@@ -128,9 +134,12 @@ pub fn load_local_llm(
 
     log::info!("Model path resolved to: {:?}", model_path);
 
-    // Load model synchronously (blocking) - tokio spawn_blocking causes crashes with llama-cpp
-    log::info!("Loading model synchronously...");
-    let result = llm_manager.load_model(&model_path);
+    // The load blocks on sidecar IPC (all llama.cpp work happens in the
+    // sidecar process) — keep it off the main thread so the UI stays live.
+    let llm_manager = llm_manager.inner().clone();
+    let result = tauri::async_runtime::spawn_blocking(move || llm_manager.load_model(&model_path))
+        .await
+        .map_err(|e| format!("Task failed: {}", e))?;
 
     match &result {
         Ok(()) => log::info!("Model loaded successfully via command"),
@@ -142,8 +151,11 @@ pub fn load_local_llm(
 
 #[tauri::command]
 #[specta::specta]
-pub fn unload_local_llm(llm_manager: State<'_, Arc<LocalLlmManager>>) {
-    llm_manager.unload_model();
+pub async fn unload_local_llm(llm_manager: State<'_, Arc<LocalLlmManager>>) -> Result<(), String> {
+    let llm_manager = llm_manager.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || llm_manager.unload_model())
+        .await
+        .map_err(|e| format!("Task failed: {}", e))
 }
 
 #[tauri::command]
@@ -191,24 +203,55 @@ pub fn set_llm_engine(
 
 #[tauri::command]
 #[specta::specta]
+pub fn get_llm_endpoint(llm_manager: State<'_, Arc<LocalLlmManager>>) -> String {
+    llm_manager.endpoint_url()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_llm_endpoint(
+    app: AppHandle,
+    llm_manager: State<'_, Arc<LocalLlmManager>>,
+    url: String,
+) -> Result<(), String> {
+    use tauri_plugin_store::StoreExt;
+    let url = url.trim().to_string();
+    if !url.starts_with("http://") && !url.starts_with("https://") {
+        return Err("Endpoint must start with http:// or https://".to_string());
+    }
+    llm_manager.set_endpoint_url(url.clone());
+    let store = app
+        .store("sidecar_config.json")
+        .map_err(|e| format!("Failed to access sidecar config store: {}", e))?;
+    store.set("llm_endpoint_url", serde_json::json!(url));
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
 pub fn get_local_llm_model_name(llm_manager: State<'_, Arc<LocalLlmManager>>) -> Option<String> {
     llm_manager.get_loaded_model_name()
 }
 
 #[tauri::command]
 #[specta::specta]
-pub fn local_llm_chat(
+pub async fn local_llm_chat(
     llm_manager: State<'_, Arc<LocalLlmManager>>,
     system_prompt: String,
     user_message: String,
     max_tokens: u32,
 ) -> Result<String, String> {
-    llm_manager.chat(&system_prompt, &user_message, max_tokens)
+    let llm_manager = llm_manager.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        llm_manager.chat(&system_prompt, &user_message, max_tokens)
+    })
+    .await
+    .map_err(|e| format!("Task failed: {}", e))?
 }
 
 #[tauri::command]
 #[specta::specta]
-pub fn load_local_tts(
+pub async fn load_local_tts(
     model_manager: State<'_, Arc<OnichanModelManager>>,
     tts_manager: State<'_, Arc<LocalTtsManager>>,
     model_id: String,
@@ -216,13 +259,111 @@ pub fn load_local_tts(
     let model_path = model_manager
         .get_model_path(&model_id)
         .map_err(|e| e.to_string())?;
-    tts_manager.load_model(&model_path)
+    let tts_manager = tts_manager.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || tts_manager.load_model(&model_path))
+        .await
+        .map_err(|e| format!("Task failed: {}", e))?
 }
 
 #[tauri::command]
 #[specta::specta]
-pub fn unload_local_tts(tts_manager: State<'_, Arc<LocalTtsManager>>) {
-    tts_manager.unload_model();
+pub async fn unload_local_tts(tts_manager: State<'_, Arc<LocalTtsManager>>) -> Result<(), String> {
+    let tts_manager = tts_manager.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || tts_manager.unload_model())
+        .await
+        .map_err(|e| format!("Task failed: {}", e))
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_local_tts_model_name(tts_manager: State<'_, Arc<LocalTtsManager>>) -> Option<String> {
+    tts_manager.get_loaded_model_name()
+}
+
+#[derive(serde::Serialize, serde::Deserialize, specta::Type)]
+pub struct TtsHttpConfig {
+    pub model: String,
+    pub voice: String,
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_tts_engine(tts_manager: State<'_, Arc<LocalTtsManager>>) -> TtsEngine {
+    tts_manager.engine()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_tts_engine(
+    app: AppHandle,
+    tts_manager: State<'_, Arc<LocalTtsManager>>,
+    engine: TtsEngine,
+) -> Result<(), String> {
+    use tauri_plugin_store::StoreExt;
+    tts_manager.set_engine(engine);
+    let store = app
+        .store("sidecar_config.json")
+        .map_err(|e| format!("Failed to access sidecar config store: {}", e))?;
+    store.set("tts_engine", serde_json::json!(engine.as_str()));
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_tts_endpoint(tts_manager: State<'_, Arc<LocalTtsManager>>) -> String {
+    tts_manager.endpoint_url()
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_tts_endpoint(
+    app: AppHandle,
+    tts_manager: State<'_, Arc<LocalTtsManager>>,
+    url: String,
+) -> Result<(), String> {
+    use tauri_plugin_store::StoreExt;
+    let url = url.trim().to_string();
+    if !url.starts_with("http://") && !url.starts_with("https://") {
+        return Err("Endpoint must start with http:// or https://".to_string());
+    }
+    tts_manager.set_endpoint_url(url.clone());
+    let store = app
+        .store("sidecar_config.json")
+        .map_err(|e| format!("Failed to access sidecar config store: {}", e))?;
+    store.set("tts_endpoint_url", serde_json::json!(url));
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn get_tts_http_config(tts_manager: State<'_, Arc<LocalTtsManager>>) -> TtsHttpConfig {
+    TtsHttpConfig {
+        model: tts_manager.http_model(),
+        voice: tts_manager.http_voice(),
+    }
+}
+
+#[tauri::command]
+#[specta::specta]
+pub fn set_tts_http_config(
+    app: AppHandle,
+    tts_manager: State<'_, Arc<LocalTtsManager>>,
+    config: TtsHttpConfig,
+) -> Result<(), String> {
+    use tauri_plugin_store::StoreExt;
+    let model = config.model.trim().to_string();
+    if model.is_empty() {
+        return Err("Model id cannot be empty".to_string());
+    }
+    let voice = config.voice.trim().to_string();
+    tts_manager.set_http_model(model.clone());
+    tts_manager.set_http_voice(voice.clone());
+    let store = app
+        .store("sidecar_config.json")
+        .map_err(|e| format!("Failed to access sidecar config store: {}", e))?;
+    store.set("tts_http_model", serde_json::json!(model));
+    store.set("tts_http_voice", serde_json::json!(voice));
+    Ok(())
 }
 
 #[tauri::command]
@@ -233,7 +374,7 @@ pub fn is_local_tts_loaded(tts_manager: State<'_, Arc<LocalTtsManager>>) -> bool
 
 #[tauri::command]
 #[specta::specta]
-pub fn local_tts_speak(
+pub async fn local_tts_speak(
     app: AppHandle,
     tts_manager: State<'_, Arc<LocalTtsManager>>,
     text: String,
@@ -242,7 +383,10 @@ pub fn local_tts_speak(
     let volume = settings.audio_feedback_volume;
     // Set the output device from settings before speaking
     tts_manager.set_output_device(settings.selected_output_device.clone());
-    tts_manager.speak(&text, volume)
+    let tts_manager = tts_manager.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || tts_manager.speak(&text, volume))
+        .await
+        .map_err(|e| format!("Task failed: {}", e))?
 }
 
 // Conversation mode commands
