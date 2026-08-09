@@ -415,6 +415,38 @@ impl OnichanModelManager {
             },
         );
 
+        available_models.insert(
+            "kokoro-82m".to_string(),
+            OnichanModelInfo {
+                id: "kokoro-82m".to_string(),
+                name: "Kokoro-82M (multi-voice)".to_string(),
+                description:
+                    "Best built-in quality. Natural female voice (af_heart) + more, 24kHz."
+                        .to_string(),
+                filename: "Kokoro-82M/model.onnx".to_string(),
+                url: Some("https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/onnx/model.onnx".to_string()),
+                size_mb: 310,
+                is_downloaded: false,
+                is_downloading: false,
+                partial_size: 0,
+                model_type: OnichanModelType::Tts,
+                context_size: None,
+                sample_rate: Some(24000),
+                voice_name: Some("Heart".to_string()),
+                extra_parts: ["af_heart", "af_bella", "bf_emma", "am_michael"]
+                    .iter()
+                    .map(|voice| OnichanModelPart {
+                        filename: format!("Kokoro-82M/voices/{}.bin", voice),
+                        url: format!(
+                            "https://huggingface.co/onnx-community/Kokoro-82M-v1.0-ONNX/resolve/main/voices/{}.bin",
+                            voice
+                        ),
+                        size_mb: 1,
+                    })
+                    .collect(),
+            },
+        );
+
         let manager = Self {
             cancel_requested: Mutex::new(HashSet::new()),
             app_handle: app_handle.clone(),
@@ -649,8 +681,10 @@ impl OnichanModelManager {
             .clone()
             .ok_or_else(|| anyhow::anyhow!("No download URL for model"))?;
 
-        // Also download the JSON config for TTS models
-        let config_url = if model_info.model_type == OnichanModelType::Tts {
+        // Also download the JSON config for piper TTS models (kokoro has none)
+        let config_url = if model_info.model_type == OnichanModelType::Tts
+            && !model_info.filename.contains("Kokoro")
+        {
             Some(url.replace(".onnx", ".onnx.json"))
         } else {
             None

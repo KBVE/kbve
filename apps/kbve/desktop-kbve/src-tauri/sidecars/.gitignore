@@ -3,6 +3,7 @@
 # Staged externalBin binaries (produced by build.sh)
 llm-sidecar-*
 tts-sidecar-*
+kokoro-sidecar-*
 memory-sidecar-*
 discord-sidecar-*
 mistralrs-sidecar-*

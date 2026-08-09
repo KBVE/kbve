@@ -426,7 +426,7 @@ export function ModelEcosystemPanel({
 							<span className="text-caption" style={muted}>
 								{ttsEngine === 'openai_compat'
 									? 'External server (mlx-audio) — Chatterbox Turbo and other MLX voices via /v1/audio/speech'
-									: 'piper — default ONNX engine, fast built-in voices'}
+									: 'Built-in sidecars — piper + Kokoro-82M, routed by loaded model'}
 							</span>
 						</div>
 						<select
@@ -435,7 +435,9 @@ export function ModelEcosystemPanel({
 							onChange={(e) =>
 								changeTtsEngine(e.target.value as TtsEngine)
 							}>
-							<option value="piper">piper (built-in)</option>
+							<option value="piper">
+								Built-in (piper / Kokoro)
+							</option>
 							<option value="openai_compat">
 								MLX / OpenAI server
 							</option>

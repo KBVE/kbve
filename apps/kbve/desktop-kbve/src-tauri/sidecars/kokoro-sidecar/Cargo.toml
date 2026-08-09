@@ -1,0 +1,27 @@
+[package]
+name = "kokoro-sidecar"
+version = "0.1.0"
+edition = "2021"
+description = "Kokoro-82M TTS sidecar process for KBVE - separate process for its own ort version"
+
+[[bin]]
+name = "kokoro-sidecar"
+path = "src/main.rs"
+
+[dependencies]
+kokoro-en = { version = "0.1.5", default-features = false, features = ["misaki-lean"] }
+tokio = { version = "1", features = ["rt-multi-thread"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+log = "0.4"
+env_logger = "0.11"
+rodio = "0.20"
+cpal = "0.15"
+base64 = "0.22"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = true
+
+[workspace]

@@ -103,6 +103,7 @@ enum SidecarResponse {
 struct TtsSidecarProcess {
     child: Child,
     model_path: Option<String>,
+    binary: PathBuf,
 }
 
 impl TtsSidecarProcess {
@@ -153,6 +154,7 @@ impl TtsSidecarProcess {
         Ok(Self {
             child,
             model_path: None,
+            binary: sidecar_path.to_path_buf(),
         })
     }
 
@@ -299,6 +301,7 @@ impl Drop for TtsSidecarProcess {
 pub struct LocalTtsManager {
     sidecar: Mutex<Option<TtsSidecarProcess>>,
     sidecar_path: PathBuf,
+    kokoro_sidecar_path: PathBuf,
     output_device: Mutex<Option<String>>,
     /// Track the loaded model path so we can reload after crash
     loaded_model_path: Mutex<Option<PathBuf>>,
@@ -312,10 +315,11 @@ pub struct LocalTtsManager {
 }
 
 impl LocalTtsManager {
-    pub fn new(sidecar_path: PathBuf) -> Self {
+    pub fn new(sidecar_path: PathBuf, kokoro_sidecar_path: PathBuf) -> Self {
         Self {
             sidecar: Mutex::new(None),
             sidecar_path,
+            kokoro_sidecar_path,
             output_device: Mutex::new(None),
             loaded_model_path: Mutex::new(None),
             engine: Mutex::new(TtsEngine::Piper),
@@ -475,35 +479,68 @@ impl LocalTtsManager {
         Ok(())
     }
 
+    fn is_kokoro_model(path: &Path) -> bool {
+        path.to_string_lossy().to_lowercase().contains("kokoro")
+    }
+
+    /// Which sidecar binary serves the given model.
+    fn binary_for_model(&self, model_path: &Path) -> PathBuf {
+        if Self::is_kokoro_model(model_path) {
+            self.kokoro_sidecar_path.clone()
+        } else {
+            self.sidecar_path.clone()
+        }
+    }
+
+    /// Which sidecar binary serves the currently loaded model.
+    fn active_binary(&self) -> PathBuf {
+        let guard = self.loaded_model_path.lock().unwrap();
+        match guard.as_ref() {
+            Some(p) if Self::is_kokoro_model(p) => self.kokoro_sidecar_path.clone(),
+            _ => self.sidecar_path.clone(),
+        }
+    }
+
     /// Get the sidecar, spawning it if necessary or if it crashed
     fn ensure_sidecar(&self) -> Result<(), String> {
+        self.ensure_sidecar_binary(&self.active_binary())
+    }
+
+    fn ensure_sidecar_binary(&self, binary: &Path) -> Result<(), String> {
         let mut guard = self.sidecar.lock().unwrap();
 
-        // Check if existing sidecar is still alive
+        // Respawn when dead, absent, or running the wrong backend binary
         let needs_respawn = match guard.as_mut() {
-            Some(sidecar) => !sidecar.is_alive(),
+            Some(sidecar) => !sidecar.is_alive() || sidecar.binary != binary,
             None => true,
         };
 
         if needs_respawn {
-            // Clear the dead sidecar if any
+            // Clear the old sidecar if any
             let was_running = guard.is_some();
-            if was_running {
-                warn!("TTS sidecar crashed, respawning...");
-                *guard = None;
+            if let Some(mut old) = guard.take() {
+                if old.is_alive() {
+                    info!("Switching TTS sidecar backend, shutting down old process");
+                    old.shutdown();
+                } else {
+                    warn!("TTS sidecar crashed, respawning...");
+                }
             }
 
-            info!("Starting TTS sidecar process...");
-            let mut sidecar = TtsSidecarProcess::spawn(&self.sidecar_path)?;
+            info!("Starting TTS sidecar process: {:?}", binary);
+            let mut sidecar = TtsSidecarProcess::spawn(binary)?;
 
-            // If we had a model loaded before the crash, reload it
+            // If we had a model loaded before the crash, reload it — but only
+            // when it belongs to this backend (not when switching backends)
             if was_running {
                 let model_path_guard = self.loaded_model_path.lock().unwrap();
                 if let Some(ref model_path) = *model_path_guard {
-                    info!("Reloading TTS model after crash: {:?}", model_path);
-                    if let Err(e) = sidecar.load_model(&model_path.to_string_lossy()) {
-                        error!("Failed to reload TTS model after crash: {}", e);
-                        // Don't fail - the sidecar is running, just without a model
+                    if self.binary_for_model(model_path) == binary {
+                        info!("Reloading TTS model after crash: {:?}", model_path);
+                        if let Err(e) = sidecar.load_model(&model_path.to_string_lossy()) {
+                            error!("Failed to reload TTS model after crash: {}", e);
+                            // Don't fail - the sidecar is running, just without a model
+                        }
                     }
                 }
             }
@@ -529,8 +566,9 @@ impl LocalTtsManager {
             return Err(err);
         }
 
-        // Check for config file
-        if !json_path.exists() {
+        // Piper models need a JSON config next to the onnx; kokoro does not
+        // (its sidecar looks for a voices/ directory instead).
+        if !Self::is_kokoro_model(model_path) && !json_path.exists() {
             // Try the alternate naming convention
             let alt_json_path = PathBuf::from(format!("{}.json", onnx_path.display()));
             if !alt_json_path.exists() {
@@ -543,7 +581,7 @@ impl LocalTtsManager {
             }
         }
 
-        self.ensure_sidecar()?;
+        self.ensure_sidecar_binary(&self.binary_for_model(model_path))?;
 
         let mut guard = self.sidecar.lock().unwrap();
         let sidecar = guard
@@ -741,7 +779,10 @@ impl LocalTtsManager {
 impl Default for LocalTtsManager {
     fn default() -> Self {
         // Default path - will be set properly from tauri config
-        Self::new(PathBuf::from("tts-sidecar"))
+        Self::new(
+            PathBuf::from("tts-sidecar"),
+            PathBuf::from("kokoro-sidecar"),
+        )
     }
 }
 

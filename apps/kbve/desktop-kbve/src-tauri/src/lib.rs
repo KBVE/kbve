@@ -552,8 +552,10 @@ pub fn run() {
                     }
                 }
             }
-            let local_tts_manager =
-                Arc::new(local_tts::LocalTtsManager::new(sidecar_path("tts-sidecar")));
+            let local_tts_manager = Arc::new(local_tts::LocalTtsManager::new(
+                sidecar_path("tts-sidecar"),
+                sidecar_path("kokoro-sidecar"),
+            ));
             {
                 use tauri_plugin_store::StoreExt;
                 if let Ok(store) = dict_handle.store("sidecar_config.json") {
