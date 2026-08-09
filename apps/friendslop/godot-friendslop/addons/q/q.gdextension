@@ -1,0 +1,12 @@
+[configuration]
+entry_symbol = "gdext_rust_init"
+compatibility_minimum = 4.2
+reloadable = true
+
+[libraries]
+macos.debug = "res://addons/q/macos/libq.dylib"
+macos.release = "res://addons/q/macos/libq.dylib"
+linux.debug.x86_64 = "res://addons/q/linux/libq.so"
+linux.release.x86_64 = "res://addons/q/linux/libq.so"
+windows.debug.x86_64 = "res://addons/q/windows/q.dll"
+windows.release.x86_64 = "res://addons/q/windows/q.dll"

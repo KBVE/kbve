@@ -70,7 +70,7 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 
 # Client / shared infra (gated by features)
-godot = { version = "0.5.3", optional = true, features = ["experimental-wasm", "experimental-threads"] }
+godot = { version = "0.5.5", optional = true, features = ["experimental-wasm", "experimental-threads"] }
 dashmap = { workspace = true, optional = true }
 crossbeam-channel = { workspace = true, optional = true }
 bitflags = { workspace = true, optional = true, features = ["serde"] }

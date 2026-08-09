@@ -23,6 +23,8 @@ mod macros;
 mod manager;
 #[cfg(feature = "client")]
 mod threads;
+#[cfg(feature = "client")]
+mod world;
 
 #[cfg(all(
     feature = "client",

@@ -91,6 +91,7 @@ debug_down={
 [rendering]
 
 renderer/rendering_method="forward_plus"
+scaling_3d/scale=0.75
 
 [shader_globals]
 
