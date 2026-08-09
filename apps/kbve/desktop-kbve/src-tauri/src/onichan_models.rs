@@ -3,7 +3,7 @@ use futures_util::StreamExt;
 use log::{info, warn};
 use serde::{Deserialize, Serialize};
 use specta::Type;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::io::Write;
 use std::path::PathBuf;
@@ -66,6 +66,7 @@ pub struct OnichanModelManager {
     app_handle: AppHandle,
     models_dir: PathBuf,
     available_models: Mutex<HashMap<String, OnichanModelInfo>>,
+    cancel_requested: Mutex<HashSet<String>>,
 }
 
 impl OnichanModelManager {
@@ -194,6 +195,84 @@ impl OnichanModelManager {
                 ],
             },
         );
+
+        available_models.insert(
+            "qwen3.5-122b-mxfp4".to_string(),
+            OnichanModelInfo {
+                id: "qwen3.5-122b-mxfp4".to_string(),
+                name: "Qwen3.5 122B A10B (MXFP4, fast)".to_string(),
+                description: "Best value large model: near-frontier quality, 10B active params so decode is fast. ~75GB download.".to_string(),
+                filename: "Qwen3.5-122B-A10B-MXFP4_MOE-00001-of-00003.gguf".to_string(),
+                url: Some("https://huggingface.co/unsloth/Qwen3.5-122B-A10B-GGUF/resolve/main/MXFP4_MOE/Qwen3.5-122B-A10B-MXFP4_MOE-00001-of-00003.gguf".to_string()),
+                size_mb: 10,
+                is_downloaded: false,
+                is_downloading: false,
+                partial_size: 0,
+                model_type: OnichanModelType::Llm,
+                context_size: Some(262144),
+                sample_rate: None,
+                voice_name: None,
+                extra_parts: vec![
+                    OnichanModelPart {
+                        filename: "Qwen3.5-122B-A10B-MXFP4_MOE-00002-of-00003.gguf".to_string(),
+                        url: "https://huggingface.co/unsloth/Qwen3.5-122B-A10B-GGUF/resolve/main/MXFP4_MOE/Qwen3.5-122B-A10B-MXFP4_MOE-00002-of-00003.gguf".to_string(),
+                        size_mb: 47339,
+                    },
+                    OnichanModelPart {
+                        filename: "Qwen3.5-122B-A10B-MXFP4_MOE-00003-of-00003.gguf".to_string(),
+                        url: "https://huggingface.co/unsloth/Qwen3.5-122B-A10B-GGUF/resolve/main/MXFP4_MOE/Qwen3.5-122B-A10B-MXFP4_MOE-00003-of-00003.gguf".to_string(),
+                        size_mb: 23855,
+                    },
+                ],
+            },
+        );
+
+        {
+            let dir = "Qwen3.5-122B-A10B-mxfp4-mlx";
+            let base =
+                "https://huggingface.co/nightmedia/Qwen3.5-122B-A10B-Text-mxfp4-mlx/resolve/main";
+            let mut extra_parts = Vec::new();
+            for (file, size_mb) in [
+                ("model.safetensors.index.json", 1u64),
+                ("tokenizer.json", 20),
+                ("tokenizer_config.json", 1),
+                ("generation_config.json", 1),
+                ("chat_template.jinja", 1),
+            ] {
+                extra_parts.push(OnichanModelPart {
+                    filename: format!("{}/{}", dir, file),
+                    url: format!("{}/{}", base, file),
+                    size_mb,
+                });
+            }
+            for i in 1..=13u32 {
+                let file = format!("model-{:05}-of-00013.safetensors", i);
+                extra_parts.push(OnichanModelPart {
+                    filename: format!("{}/{}", dir, file),
+                    url: format!("{}/{}", base, file),
+                    size_mb: if i == 13 { 800 } else { 5094 },
+                });
+            }
+            available_models.insert(
+                "qwen3.5-122b-mxfp4-mlx".to_string(),
+                OnichanModelInfo {
+                    id: "qwen3.5-122b-mxfp4-mlx".to_string(),
+                    name: "Qwen3.5 122B A10B (MLX, fastest)".to_string(),
+                    description: "Native MLX build — ~57 tok/s decode on Apple Silicon. Requires the MLX engine. ~65GB download.".to_string(),
+                    filename: format!("{}/config.json", dir),
+                    url: Some(format!("{}/config.json", base)),
+                    size_mb: 1,
+                    is_downloaded: false,
+                    is_downloading: false,
+                    partial_size: 0,
+                    model_type: OnichanModelType::Llm,
+                    context_size: Some(262144),
+                    sample_rate: None,
+                    voice_name: None,
+                    extra_parts,
+                },
+            );
+        }
 
         available_models.insert(
             "dolphin-3.0-llama3.1-8b".to_string(),
@@ -337,6 +416,7 @@ impl OnichanModelManager {
         );
 
         let manager = Self {
+            cancel_requested: Mutex::new(HashSet::new()),
             app_handle: app_handle.clone(),
             models_dir,
             available_models: Mutex::new(available_models),
@@ -398,6 +478,15 @@ impl OnichanModelManager {
                     .chain(m.extra_parts.iter().map(|p| p.filename.clone()))
             })
             .collect();
+        let known_dirs: Vec<String> = known
+            .iter()
+            .filter_map(|f| {
+                f.split('/')
+                    .next()
+                    .map(String::from)
+                    .filter(|_| f.contains('/'))
+            })
+            .collect();
 
         for entry in entries.flatten() {
             let path = entry.path();
@@ -406,7 +495,57 @@ impl OnichanModelManager {
                 None => continue,
             };
 
-            if !filename.ends_with(".gguf") || known.contains(&filename) {
+            if known.contains(&filename) {
+                continue;
+            }
+
+            // MLX model folders (mlx-community layout): config.json + safetensors
+            if path.is_dir() {
+                if known_dirs.contains(&filename) {
+                    continue;
+                }
+                let has_config = path.join("config.json").exists();
+                let has_weights = fs::read_dir(&path)
+                    .map(|d| {
+                        d.flatten()
+                            .any(|f| f.file_name().to_string_lossy().ends_with(".safetensors"))
+                    })
+                    .unwrap_or(false);
+                if has_config && has_weights {
+                    let id = format!("sideload:{}", filename);
+                    if models.contains_key(&id) {
+                        continue;
+                    }
+                    let size_mb = dir_size_bytes(&path) / 1_048_576;
+                    log::info!(
+                        "Registered sideloaded MLX model: {} ({} MB)",
+                        filename,
+                        size_mb
+                    );
+                    models.insert(
+                        id.clone(),
+                        OnichanModelInfo {
+                            id,
+                            name: format!("{} (MLX)", filename.replace(['_', '-'], " ")),
+                            description: "Sideloaded MLX model — use the MLX engine".to_string(),
+                            filename,
+                            url: None,
+                            size_mb,
+                            is_downloaded: true,
+                            is_downloading: false,
+                            partial_size: 0,
+                            model_type: OnichanModelType::Llm,
+                            context_size: None,
+                            sample_rate: None,
+                            voice_name: None,
+                            extra_parts: Vec::new(),
+                        },
+                    );
+                }
+                continue;
+            }
+
+            if !filename.ends_with(".gguf") {
                 continue;
             }
 
@@ -476,12 +615,21 @@ impl OnichanModelManager {
                     .iter()
                     .all(|p| self.models_dir.join(&p.filename).exists());
 
+            // Count all bytes already on disk toward resume progress: partials
+            // plus fully-downloaded files of a not-yet-complete multi-part set.
             let mut partial = partial_path.metadata().map(|m| m.len()).unwrap_or(0);
+            if !model.is_downloaded && model_path.exists() {
+                partial += model_path.metadata().map(|m| m.len()).unwrap_or(0);
+            }
             for part in &model.extra_parts {
                 let part_partial = self.models_dir.join(format!("{}.partial", &part.filename));
                 partial += part_partial.metadata().map(|m| m.len()).unwrap_or(0);
+                if !model.is_downloaded {
+                    let part_path = self.models_dir.join(&part.filename);
+                    partial += part_path.metadata().map(|m| m.len()).unwrap_or(0);
+                }
             }
-            model.partial_size = partial;
+            model.partial_size = if model.is_downloaded { 0 } else { partial };
         }
 
         Ok(())
@@ -516,6 +664,8 @@ impl OnichanModelManager {
         }
         let combined_total: u64 = files.iter().map(|(_, _, mb)| mb * 1024 * 1024).sum();
 
+        self.cancel_requested.lock().unwrap().remove(model_id);
+
         // Mark as downloading
         {
             let mut models = self.available_models.lock().unwrap();
@@ -524,34 +674,85 @@ impl OnichanModelManager {
             }
         }
 
+        // No total-request timeout: large models legitimately take longer than
+        // any fixed budget. read_timeout aborts only when the stream stalls,
+        // and the retry loop below resumes from the partial file.
         let client = reqwest::Client::builder()
             .user_agent("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36")
             .redirect(reqwest::redirect::Policy::limited(10))
             .connect_timeout(std::time::Duration::from_secs(30))
-            .timeout(std::time::Duration::from_secs(600)) // 10 min timeout per chunk
+            .read_timeout(std::time::Duration::from_secs(60))
             .build()
             .map_err(|e| anyhow::anyhow!("Failed to build HTTP client: {}", e))?;
 
-        let mut completed_bytes: u64 = 0;
-        for (filename, file_url, size_mb) in &files {
-            let result = self
-                .download_single_file(
-                    model_id,
-                    filename,
-                    file_url,
-                    &client,
-                    completed_bytes,
-                    combined_total,
-                )
-                .await;
-            if let Err(e) = result {
-                let mut models = self.available_models.lock().unwrap();
-                if let Some(model) = models.get_mut(model_id) {
-                    model.is_downloading = false;
-                }
-                return Err(e);
+        // Aggregate progress baseline: every file already on disk counts,
+        // regardless of position in the list.
+        let mut completed_bytes: u64 = files
+            .iter()
+            .filter_map(|(filename, _, _)| {
+                self.models_dir
+                    .join(filename)
+                    .metadata()
+                    .ok()
+                    .map(|m| m.len())
+            })
+            .sum();
+        for (filename, file_url, _) in &files {
+            if self.models_dir.join(filename).exists() {
+                continue;
             }
-            completed_bytes += size_mb * 1024 * 1024;
+            // Transient network drops are expected on multi-GB files: retry
+            // with resume (the partial file survives between attempts).
+            const MAX_ATTEMPTS: u32 = 5;
+            let mut attempt = 0;
+            loop {
+                attempt += 1;
+                match self
+                    .download_single_file(
+                        model_id,
+                        filename,
+                        file_url,
+                        &client,
+                        completed_bytes,
+                        combined_total,
+                    )
+                    .await
+                {
+                    Ok(()) => break,
+                    Err(e) if e.to_string() == "cancelled" => {
+                        info!("Download of {} cancelled by user", model_id);
+                        let mut models = self.available_models.lock().unwrap();
+                        if let Some(model) = models.get_mut(model_id) {
+                            model.is_downloading = false;
+                        }
+                        drop(models);
+                        let _ = self
+                            .app_handle
+                            .emit("onichan-model-download-complete", model_id);
+                        return Ok(());
+                    }
+                    Err(e) if attempt < MAX_ATTEMPTS => {
+                        warn!(
+                            "Download of {} failed (attempt {}/{}): {} — retrying",
+                            filename, attempt, MAX_ATTEMPTS, e
+                        );
+                        tokio::time::sleep(std::time::Duration::from_secs(3)).await;
+                    }
+                    Err(e) => {
+                        let mut models = self.available_models.lock().unwrap();
+                        if let Some(model) = models.get_mut(model_id) {
+                            model.is_downloading = false;
+                        }
+                        return Err(e);
+                    }
+                }
+            }
+            completed_bytes += self
+                .models_dir
+                .join(filename)
+                .metadata()
+                .map(|m| m.len())
+                .unwrap_or(0);
         }
 
         // Download config file for TTS models
@@ -607,6 +808,12 @@ impl OnichanModelManager {
     ) -> Result<()> {
         let model_path = self.models_dir.join(filename);
         let partial_path = self.models_dir.join(format!("{}.partial", filename));
+
+        if let Some(parent) = model_path.parent() {
+            if parent != self.models_dir {
+                fs::create_dir_all(parent)?;
+            }
+        }
 
         if model_path.exists() {
             if partial_path.exists() {
@@ -700,6 +907,10 @@ impl OnichanModelManager {
             let chunk = chunk?;
             file.write_all(&chunk)?;
             downloaded += chunk.len() as u64;
+            if self.cancel_requested.lock().unwrap().contains(model_id) {
+                let _ = file.flush();
+                return Err(anyhow::anyhow!("cancelled"));
+            }
             let elapsed = last_emit.elapsed();
             if elapsed >= std::time::Duration::from_millis(250) {
                 let speed_bps =
@@ -729,6 +940,13 @@ impl OnichanModelManager {
 
         fs::rename(&partial_path, &model_path)?;
         Ok(())
+    }
+
+    pub fn cancel_download(&self, model_id: &str) {
+        self.cancel_requested
+            .lock()
+            .unwrap()
+            .insert(model_id.to_string());
     }
 
     pub fn delete_model(&self, model_id: &str) -> Result<()> {
@@ -801,4 +1019,17 @@ impl OnichanModelManager {
             Err(anyhow::anyhow!("Model file not found: {}", model_id))
         }
     }
+}
+
+fn dir_size_bytes(dir: &std::path::Path) -> u64 {
+    fs::read_dir(dir)
+        .map(|entries| {
+            entries
+                .flatten()
+                .filter_map(|e| e.metadata().ok())
+                .filter(|m| m.is_file())
+                .map(|m| m.len())
+                .sum()
+        })
+        .unwrap_or(0)
 }

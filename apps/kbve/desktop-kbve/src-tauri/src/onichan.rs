@@ -145,8 +145,11 @@ impl OnichanManager {
 
     /// Process user input and generate response
     pub async fn process_input(&self, user_text: String) -> Result<String, String> {
+        // Auto-enable on first use: requiring a separate "enable" click before
+        // chatting was pure friction (Discord conversation mode already
+        // auto-enables the same way).
         if !self.is_active() {
-            return Err("Onichan mode is not active".to_string());
+            self.enable();
         }
 
         if user_text.trim().is_empty() {

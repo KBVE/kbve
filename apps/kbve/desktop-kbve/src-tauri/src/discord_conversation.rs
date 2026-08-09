@@ -545,7 +545,7 @@ async fn process_transcription_result(
     }
 
     // Check for wake words - only respond if addressed
-    const WAKE_WORDS: &[&str] = &["chan", "omni", "oni", "onichan", "amy"];
+    const WAKE_WORDS: &[&str] = &["chan", "omni", "oni", "onichan", "amy", "yuki"];
     let text_lower = text.to_lowercase();
     let has_wake_word = WAKE_WORDS.iter().any(|w| text_lower.contains(w));
 

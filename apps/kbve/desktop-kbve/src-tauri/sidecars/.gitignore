@@ -6,3 +6,8 @@ tts-sidecar-*
 memory-sidecar-*
 discord-sidecar-*
 mistralrs-sidecar-*
+
+# espeak-ng data staged from brew (see build.sh)
+espeak-ng-data/
+rmlx-*
+.rmlx-install/

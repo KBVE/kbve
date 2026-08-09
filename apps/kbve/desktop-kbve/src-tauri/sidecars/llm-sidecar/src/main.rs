@@ -10,8 +10,8 @@
 use llama_cpp_2::context::params::LlamaContextParams;
 use llama_cpp_2::llama_backend::LlamaBackend;
 use llama_cpp_2::llama_batch::LlamaBatch;
-use llama_cpp_2::model::params::LlamaModelParams;
 use llama_cpp_2::model::LlamaModel;
+use llama_cpp_2::model::params::LlamaModelParams;
 use llama_cpp_2::sampling::LlamaSampler;
 use serde::{Deserialize, Serialize};
 use std::io::{self, BufRead, Write};
@@ -50,7 +50,10 @@ enum Response {
     #[serde(rename = "result")]
     Result { text: String },
     #[serde(rename = "status")]
-    Status { loaded: bool, model_path: Option<String> },
+    Status {
+        loaded: bool,
+        model_path: Option<String>,
+    },
 }
 
 struct LlmState {
@@ -61,8 +64,8 @@ struct LlmState {
 
 impl LlmState {
     fn new() -> Result<Self, String> {
-        let backend = LlamaBackend::init()
-            .map_err(|e| format!("Failed to init llama backend: {}", e))?;
+        let backend =
+            LlamaBackend::init().map_err(|e| format!("Failed to init llama backend: {}", e))?;
 
         Ok(Self {
             backend: Arc::new(backend),
@@ -87,8 +90,9 @@ impl LlmState {
         self.model = None;
         self.model_path = None;
 
-        // Use default params - Metal will be enabled if feature is on
-        let model_params = LlamaModelParams::default();
+        // Offload every layer to the GPU: default n_gpu_layers is 0 (pure
+        // CPU) even with the Metal feature compiled in.
+        let model_params = LlamaModelParams::default().with_n_gpu_layers(u32::MAX);
 
         let model = LlamaModel::load_from_file(&self.backend, path, &model_params)
             .map_err(|e| format!("Failed to load model: {}", e))?;
@@ -112,13 +116,20 @@ impl LlmState {
         self.generate_internal(prompt, max_tokens, true)
     }
 
-    fn generate_internal(&self, prompt: &str, max_tokens: u32, add_bos: bool) -> Result<String, String> {
-        let model = self.model.as_ref()
+    fn generate_internal(
+        &self,
+        prompt: &str,
+        max_tokens: u32,
+        add_bos: bool,
+    ) -> Result<String, String> {
+        let model = self
+            .model
+            .as_ref()
             .ok_or_else(|| "No model loaded".to_string())?;
 
         let ctx_params = LlamaContextParams::default()
-            .with_n_ctx(NonZeroU32::new(4096))
-            .with_n_batch(512);
+            .with_n_ctx(NonZeroU32::new(2048))
+            .with_n_batch(2048);
 
         let mut ctx = model
             .new_context(&self.backend, ctx_params)
@@ -162,10 +173,12 @@ impl LlmState {
             // Top-p (nucleus) sampling - consider tokens in top 92% probability mass
             LlamaSampler::top_p(0.92, 1),
             // Final token selection with time-based seed for variation
-            LlamaSampler::dist(std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map(|d| d.as_nanos() as u32)
-                .unwrap_or(42)),
+            LlamaSampler::dist(
+                std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|d| d.as_nanos() as u32)
+                    .unwrap_or(42),
+            ),
         ]);
 
         // Generate tokens
@@ -212,7 +225,12 @@ impl LlmState {
         Ok(output.trim().to_string())
     }
 
-    fn chat(&self, system_prompt: &str, user_message: &str, max_tokens: u32) -> Result<String, String> {
+    fn chat(
+        &self,
+        system_prompt: &str,
+        user_message: &str,
+        max_tokens: u32,
+    ) -> Result<String, String> {
         // Detect model type from path to use correct chat format
         let model_path = self.model_path.as_deref().unwrap_or("");
         let model_lower = model_path.to_lowercase();
@@ -221,12 +239,11 @@ impl LlmState {
         log::debug!("System prompt: {}", system_prompt);
         log::debug!("User message: {}", user_message);
 
-        let (prompt, add_bos) = if model_lower.contains("mistral") || model_lower.contains("mixtral") {
+        let (prompt, add_bos) = if model_lower.contains("mistral")
+            || model_lower.contains("mixtral")
+        {
             // Mistral/Mixtral format: [INST] ... [/INST]
-            let prompt = format!(
-                "<s>[INST] {}\n\n{} [/INST]",
-                system_prompt, user_message
-            );
+            let prompt = format!("<s>[INST] {}\n\n{} [/INST]", system_prompt, user_message);
             (prompt, false) // <s> is BOS
         } else if model_lower.contains("dolphin") || model_lower.contains("chatml") {
             // ChatML format (used by Dolphin and many fine-tunes)
@@ -249,7 +266,13 @@ impl LlmState {
                 system_prompt, user_message
             );
             (prompt, true)
-        } else if model_lower.contains("openai-") || model_lower.contains("neoplus") || model_lower.contains("neo-") || model_lower.contains("brainstorm") || model_lower.contains("brains") || model_lower.contains("uncensored") {
+        } else if model_lower.contains("openai-")
+            || model_lower.contains("neoplus")
+            || model_lower.contains("neo-")
+            || model_lower.contains("brainstorm")
+            || model_lower.contains("brains")
+            || model_lower.contains("uncensored")
+        {
             // DavidAU's OpenAI/NEO models and other uncensored models use ChatML format
             log::info!("Using ChatML format for OpenAI/NEO/uncensored model");
             let prompt = format!(
