@@ -18,7 +18,7 @@ const TIER_MID := 1
 @export var fade_tail := 14.0
 @export var grass_fade_out_end := 100.0
 @export var ring_fractions: Array[float] = [0.45, 0.25, 0.12, 0.06, 0.025]
-@export var clump_fraction_threshold := 0.15
+@export var clump_fraction_threshold := 0.0
 @export var ring_hysteresis := 1.0
 @export var world_half_extent := 256.0
 @export var max_chunks_spawned_per_frame := 8
@@ -64,7 +64,7 @@ func _ready() -> void:
 func _process(_delta: float) -> void:
 	var p := _player.global_position
 	if grass_material:
-		grass_material.set_shader_parameter("object_position", p)
+		grass_material.set_shader_parameter("object_position", Vector3(p.x, 0.0, p.z))
 
 	var center := Vector2i(floori(p.x / chunk_size), floori(p.z / chunk_size))
 	if center != _last_center:
@@ -166,15 +166,23 @@ func _build_layout_buffer(seed_value: int, count: int) -> PackedFloat32Array:
 	buf.resize(count * 12)
 	for i in count:
 		var o := i * 12
-		var angle := rng.randf() * TAU
-		var c := cos(angle)
-		var s := sin(angle)
-		buf[o] = c
-		buf[o + 2] = s
+		var yaw := rng.randf() * TAU
+		var tilt_dir := rng.randf() * TAU
+		var tilt := rng.randf_range(0.0, 0.25)
+		var s := rng.randf_range(0.75, 1.3)
+		var axis := Vector3(cos(tilt_dir), 0.0, sin(tilt_dir))
+		var basis := Basis(axis, tilt) * Basis(Vector3.UP, yaw)
+		basis = basis.scaled(Vector3(s, s, s))
+		buf[o] = basis.x.x
+		buf[o + 1] = basis.y.x
+		buf[o + 2] = basis.z.x
 		buf[o + 3] = rng.randf() * chunk_size
-		buf[o + 5] = 1.0
-		buf[o + 8] = -s
-		buf[o + 10] = c
+		buf[o + 4] = basis.x.y
+		buf[o + 5] = basis.y.y
+		buf[o + 6] = basis.z.y
+		buf[o + 8] = basis.x.z
+		buf[o + 9] = basis.y.z
+		buf[o + 10] = basis.z.z
 		buf[o + 11] = rng.randf() * chunk_size
 	return buf
 

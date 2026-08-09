@@ -24,8 +24,9 @@ uniform vec3 object_position;
 
 uniform float fade_start = 16.0;
 uniform float fade_tail = 14.0;
+uniform float far_floor = 0.02;
 uniform float fade_end = 100.0;
-uniform float distance_growth = 1.2;
+uniform float distance_growth = 1.6;
 uniform float total_blades = 10000.0;
 
 instance uniform float alpha = 1.0;
@@ -34,13 +35,15 @@ varying float bottom_to_top;
 varying float current_wind_bend;
 varying float cut_height;
 varying float dist_alpha;
+varying float edge_blend;
 
 void vertex() {
 	cut_height = 1.0;
 	float rank = float(INSTANCE_ID) / total_blades * 0.95;
 	float player_distance = distance(NODE_POSITION_WORLD.xz, object_position.xz);
-	float keep = exp(-max(player_distance - fade_start, 0.0) / fade_tail);
-	keep *= 1.0 - smoothstep(fade_end - 20.0, fade_end, player_distance);
+	float keep = max(exp(-max(player_distance - fade_start, 0.0) / fade_tail), far_floor);
+	float end_shrink = 1.0 - smoothstep(fade_end - 25.0, fade_end, player_distance);
+	edge_blend = smoothstep(fade_end - 25.0, fade_end - 5.0, player_distance);
 	dist_alpha = clamp((keep - rank) / 0.05, 0.0, 1.0);
 
 	//// Cutting all grass on the right
@@ -78,14 +81,15 @@ void vertex() {
 	}
 
 	// General appearance
-	VERTEX.z += blade_bend * pow(bottom_to_top, 2.0);
+	float bend_variation = 0.5 + fract(float(INSTANCE_ID) * 0.75487766);
+	VERTEX.z += blade_bend * bend_variation * pow(bottom_to_top, 2.0);
 
 	patch_factor = texture(patch_noise, NODE_POSITION_WORLD.xz / patch_scale).r;
-	VERTEX *= mix(size_small, size_large, patch_factor) * (1.0 + distance_growth * (1.0 - keep));
+	VERTEX *= mix(size_small, size_large, patch_factor) * (1.0 + distance_growth * (1.0 - keep)) * end_shrink;
 
 	NORMAL = mix(NORMAL, vec3(0.0, 1.0, 0.0), mix(1.0, bottom_to_top, alpha + 0.2));
 
-	if (dist_alpha <= 0.0) {
+	if (dist_alpha <= 0.0 || end_shrink <= 0.0) {
 		VERTEX = vec3(0.0);
 	}
 }
@@ -93,7 +97,7 @@ void vertex() {
 void fragment() {
 	if (!FRONT_FACING) NORMAL = -NORMAL;
 
-	AO = bottom_to_top - current_wind_bend * wind_ao_affect;
+	AO = mix(bottom_to_top - current_wind_bend * wind_ao_affect, 1.0, edge_blend);
 	AO_LIGHT_AFFECT = mix(0.2, 1.0, alpha);
 
 	ALBEDO = mix(color_small, color_large, patch_factor);
@@ -101,7 +105,7 @@ void fragment() {
 
 	ROUGHNESS = 0.4;
 	SPECULAR = 0.12;
-	
-	ALPHA = alpha * dist_alpha;
+
+	ALPHA = alpha * dist_alpha * (1.0 - edge_blend);
 	ALPHA_HASH_SCALE = 1.0;
 }
