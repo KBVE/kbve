@@ -1,0 +1,52 @@
+[gd_scene load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://src/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://src/world/grass_field.gd" id="2_grass"]
+[ext_resource type="Material" uid="uid://bra6ug2wjmj0j" path="res://assets/BinbunGrass/src/materials/grass_01/grass_ground_01.tres" id="3_ground"]
+[ext_resource type="Material" uid="uid://c2to67v55oatp" path="res://assets/BinbunGrass/src/materials/grass_01/grass_01.tres" id="4_grassmat"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="5_player"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
+size = Vector2(512, 512)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
+size = Vector3(512, 0.1, 512)
+
+[sub_resource type="Environment" id="Environment_world"]
+background_mode = 1
+background_color = Color(1, 1, 1, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.695381, 0.644979, 0.598817, 1)
+fog_enabled = true
+fog_light_color = Color(0.94, 0.95, 0.92, 1)
+fog_density = 0.012
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+material_override = ExtResource("3_ground")
+mesh = SubResource("PlaneMesh_ground")
+
+[node name="GroundBody" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GroundBody"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)
+shape = SubResource("BoxShape3D_ground")
+
+[node name="GrassField" type="Node3D" parent="."]
+script = ExtResource("2_grass")
+player_path = NodePath("../Player")
+grass_material = ExtResource("4_grassmat")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 0, 0)
+shadow_enabled = true
+directional_shadow_mode = 1
+directional_shadow_split_1 = 0.01
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_world")
+
+[node name="Player" parent="." instance=ExtResource("5_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)

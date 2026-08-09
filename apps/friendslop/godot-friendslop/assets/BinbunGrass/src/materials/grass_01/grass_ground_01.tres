@@ -1,0 +1,19 @@
+[gd_resource type="ShaderMaterial" load_steps=5 format=3 uid="uid://bra6ug2wjmj0j"]
+
+[ext_resource type="Shader" uid="uid://d2pxrch4crrap" path="res://assets/BinbunGrass/src/shader/ground.gdshader" id="1_qlfk2"]
+[ext_resource type="Texture2D" uid="uid://di62ixsr75dl2" path="res://assets/BinbunGrass/src/palette/palette_01.tres" id="2_qlfk2"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_1bvp3"]
+seed = 6
+frequency = 0.008
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_lquwl"]
+seamless = true
+seamless_blend_skirt = 0.2
+noise = SubResource("FastNoiseLite_1bvp3")
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_qlfk2")
+shader_parameter/noise_texture = SubResource("NoiseTexture2D_lquwl")
+shader_parameter/color_gradient = ExtResource("2_qlfk2")
