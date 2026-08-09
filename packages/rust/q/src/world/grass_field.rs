@@ -10,10 +10,6 @@ use std::collections::HashMap;
 
 const LOD_UPDATE_DISTANCE_SQ: f32 = 0.25;
 
-const MESH_DETAILED: usize = 0;
-const MESH_SIMPLE: usize = 1;
-const MESH_CARD: usize = 2;
-
 const DETAILED_MESH: &str = "res://assets/biomes/grassland/grass/grass-stalk.obj";
 const SIMPLE_MESH: &str = "res://assets/biomes/grassland/grass/grass-stalk-simple.obj";
 const CARD_SHADER: &str = "res://assets/biomes/grassland/grass/grass_card.gdshader";
@@ -36,10 +32,9 @@ const CARD_COPY_PARAMS: &[&str] = &[
     "water_level",
 ];
 
-struct ChunkSlot {
-    card: Rid,
-    blade: Option<Rid>,
-    blade_near: bool,
+struct BladeSlot {
+    instance: Rid,
+    near: bool,
 }
 
 #[derive(GodotClass)]
@@ -54,6 +49,9 @@ pub struct QGrassField {
     #[export]
     #[init(val = 5.0)]
     chunk_size: f32,
+    #[export]
+    #[init(val = 20.0)]
+    card_chunk_size: f32,
     #[export]
     #[init(val = 250.0)]
     blades_per_sqm: f32,
@@ -73,10 +71,10 @@ pub struct QGrassField {
     #[init(val = 40.0)]
     blade_range: f32,
     #[export]
-    #[init(val = 140.0)]
+    #[init(val = 200.0)]
     grass_fade_out_end: f32,
     #[export]
-    #[init(val = 0.02)]
+    #[init(val = 0.011)]
     card_ratio: f32,
     #[export]
     #[init(val = 256.0)]
@@ -91,17 +89,21 @@ pub struct QGrassField {
     #[init(val = 4)]
     layout_variants: i32,
 
-    multimeshes: Vec<Vec<Rid>>,
-    chunks: HashMap<(i32, i32), ChunkSlot>,
+    blade_multimeshes: Vec<Vec<Rid>>,
+    card_multimeshes: Vec<Rid>,
+    blade_chunks: HashMap<(i32, i32), BladeSlot>,
+    card_chunks: HashMap<(i32, i32), Rid>,
     pool: Vec<Rid>,
-    pending: Vec<(i32, i32)>,
-    last_center: Option<(i32, i32)>,
+    card_pending: Vec<(i32, i32)>,
+    last_blade_center: Option<(i32, i32)>,
+    last_card_center: Option<(i32, i32)>,
     last_lod_position: Vector3,
     card_material: Option<Gd<ShaderMaterial>>,
     #[init(val = Vec::new())]
     kept_resources: Vec<Gd<Mesh>>,
     card_mesh: Option<Gd<QuadMesh>>,
-    chunk_aabb: Aabb,
+    blade_aabb: Aabb,
+    card_aabb: Aabb,
 }
 
 #[godot_api]
@@ -111,11 +113,18 @@ impl INode3D for QGrassField {
             return;
         }
         self.last_lod_position = Vector3::new(f32::INFINITY, f32::INFINITY, f32::INFINITY);
-        let count = (self.chunk_size * self.chunk_size * self.blades_per_sqm) as usize;
-        let card_count = ((count as f32 * self.card_ratio) as usize).max(4);
-        self.chunk_aabb = Aabb::new(
+        let blade_count = (self.chunk_size * self.chunk_size * self.blades_per_sqm) as usize;
+        let card_count =
+            ((self.card_chunk_size * self.card_chunk_size * self.blades_per_sqm * self.card_ratio)
+                as usize)
+                .max(8);
+        self.blade_aabb = Aabb::new(
             Vector3::new(-0.5, -8.0, -0.5),
             Vector3::new(self.chunk_size + 1.0, 16.0, self.chunk_size + 1.0),
+        );
+        self.card_aabb = Aabb::new(
+            Vector3::new(-0.5, -8.0, -0.5),
+            Vector3::new(self.card_chunk_size + 1.0, 16.0, self.card_chunk_size + 1.0),
         );
 
         self.build_card_material();
@@ -129,19 +138,30 @@ impl INode3D for QGrassField {
 
         let mut rs = RenderingServer::singleton();
         for v in 0..self.layout_variants {
-            let buf = self.build_layout_buffer(self.layout_seed + v as i64, count);
-            self.multimeshes.push(vec![
-                Self::make_multimesh(&mut rs, detailed.get_rid(), &buf, count),
-                Self::make_multimesh(&mut rs, simple.get_rid(), &buf, count),
-                Self::make_multimesh(&mut rs, card_mesh.get_rid(), &buf, card_count),
+            let blade_buf =
+                self.build_layout_buffer(self.layout_seed + v as i64, blade_count, self.chunk_size);
+            self.blade_multimeshes.push(vec![
+                Self::make_multimesh(&mut rs, detailed.get_rid(), &blade_buf, blade_count),
+                Self::make_multimesh(&mut rs, simple.get_rid(), &blade_buf, blade_count),
             ]);
+            let card_buf = self.build_layout_buffer(
+                self.layout_seed + 7919 + v as i64,
+                card_count,
+                self.card_chunk_size,
+            );
+            self.card_multimeshes.push(Self::make_multimesh(
+                &mut rs,
+                card_mesh.get_rid(),
+                &card_buf,
+                card_count,
+            ));
         }
         self.kept_resources.push(detailed);
         self.kept_resources.push(simple);
         self.card_mesh = Some(card_mesh);
 
         if let Some(m) = self.grass_material.as_mut() {
-            m.set_shader_parameter("total_blades", &(count as f32).to_variant());
+            m.set_shader_parameter("total_blades", &(blade_count as f32).to_variant());
         }
         self.sync_fade_parameters();
     }
@@ -171,20 +191,32 @@ impl INode3D for QGrassField {
             m.set_shader_parameter("object_position", &obj.to_variant());
         }
 
-        let center = (
+        let blade_center = (
             (origin.x / self.chunk_size).floor() as i32,
             (origin.z / self.chunk_size).floor() as i32,
         );
-        if self.last_center != Some(center) {
-            self.last_center = Some(center);
-            self.refresh_chunks(center, origin);
-            self.notify_event("player/moved_chunk", Vector2i::new(center.0, center.1));
+        if self.last_blade_center != Some(blade_center) {
+            self.last_blade_center = Some(blade_center);
+            self.refresh_blades(blade_center, origin);
+            self.notify_event(
+                "player/moved_chunk",
+                Vector2i::new(blade_center.0, blade_center.1),
+            );
         }
 
-        let spawned = self.drain_pending();
+        let card_center = (
+            (origin.x / self.card_chunk_size).floor() as i32,
+            (origin.z / self.card_chunk_size).floor() as i32,
+        );
+        if self.last_card_center != Some(card_center) {
+            self.last_card_center = Some(card_center);
+            self.refresh_cards(card_center, origin);
+        }
+
+        let spawned = self.drain_card_pending();
         if spawned || origin.distance_squared_to(self.last_lod_position) >= LOD_UPDATE_DISTANCE_SQ {
             self.last_lod_position = origin;
-            self.update_lods(origin);
+            self.update_blade_lods(origin);
         }
     }
 
@@ -193,11 +225,11 @@ impl INode3D for QGrassField {
             Node3DNotification::VISIBILITY_CHANGED => {
                 let visible = self.base().is_visible_in_tree();
                 let mut rs = RenderingServer::singleton();
-                for slot in self.chunks.values() {
-                    rs.instance_set_visible(slot.card, visible);
-                    if let Some(blade) = slot.blade {
-                        rs.instance_set_visible(blade, visible);
-                    }
+                for slot in self.blade_chunks.values() {
+                    rs.instance_set_visible(slot.instance, visible);
+                }
+                for rid in self.card_chunks.values() {
+                    rs.instance_set_visible(*rid, visible);
                 }
             }
             Node3DNotification::PREDELETE => self.free_all(),
@@ -247,20 +279,17 @@ impl QGrassField {
         }
     }
 
-    fn chunk_center(&self, coord: (i32, i32)) -> Vector2 {
-        Vector2::new(
-            (coord.0 as f32 + 0.5) * self.chunk_size,
-            (coord.1 as f32 + 0.5) * self.chunk_size,
-        )
+    fn grid_center(&self, coord: (i32, i32), size: f32) -> Vector2 {
+        Vector2::new((coord.0 as f32 + 0.5) * size, (coord.1 as f32 + 0.5) * size)
     }
 
-    fn in_bounds(&self, coord: (i32, i32)) -> bool {
-        let min_x = coord.0 as f32 * self.chunk_size;
-        let min_z = coord.1 as f32 * self.chunk_size;
+    fn in_bounds(&self, coord: (i32, i32), size: f32) -> bool {
+        let min_x = coord.0 as f32 * size;
+        let min_z = coord.1 as f32 * size;
         min_x >= -self.world_half_extent
-            && min_x + self.chunk_size <= self.world_half_extent
+            && min_x + size <= self.world_half_extent
             && min_z >= -self.world_half_extent
-            && min_z + self.chunk_size <= self.world_half_extent
+            && min_z + size <= self.world_half_extent
     }
 
     fn layout_index(&self, coord: (i32, i32)) -> usize {
@@ -268,71 +297,8 @@ impl QGrassField {
         h.rem_euclid(self.layout_variants.max(1)) as usize
     }
 
-    fn half_diagonal(&self) -> f32 {
-        self.chunk_size * std::f32::consts::FRAC_1_SQRT_2
-    }
-
     fn blade_attach_distance(&self) -> f32 {
-        self.blade_range + self.half_diagonal()
-    }
-
-    fn refresh_chunks(&mut self, center: (i32, i32), p: Vector3) {
-        let margin = self.grass_fade_out_end + self.half_diagonal() + 10.0;
-        let view_chunks = (margin / self.chunk_size).ceil() as i32;
-        let player_xz = Vector2::new(p.x, p.z);
-        let mut needed: HashMap<(i32, i32), bool> = HashMap::new();
-        for dx in -view_chunks..=view_chunks {
-            for dz in -view_chunks..=view_chunks {
-                let coord = (center.0 + dx, center.1 + dz);
-                if !self.in_bounds(coord) {
-                    continue;
-                }
-                if self.chunk_center(coord).distance_to(player_xz) > margin {
-                    continue;
-                }
-                needed.insert(coord, true);
-                if !self.chunks.contains_key(&coord) && !self.pending.contains(&coord) {
-                    self.pending.push(coord);
-                }
-            }
-        }
-
-        let mut rs = RenderingServer::singleton();
-        let to_remove: Vec<(i32, i32)> = self
-            .chunks
-            .keys()
-            .filter(|c| !needed.contains_key(c))
-            .copied()
-            .collect();
-        for coord in to_remove {
-            if let Some(slot) = self.chunks.remove(&coord) {
-                rs.instance_set_visible(slot.card, false);
-                self.pool.push(slot.card);
-                if let Some(blade) = slot.blade {
-                    rs.instance_set_visible(blade, false);
-                    self.pool.push(blade);
-                }
-            }
-        }
-
-        self.pending.retain(|c| needed.contains_key(c));
-        self.pending.sort_by_key(|c| {
-            let dx = (c.0 - center.0) as i64;
-            let dz = (c.1 - center.1) as i64;
-            dx * dx + dz * dz
-        });
-    }
-
-    fn drain_pending(&mut self) -> bool {
-        let budget = self
-            .pending
-            .len()
-            .min(self.max_chunks_spawned_per_frame.max(0) as usize);
-        for _ in 0..budget {
-            let coord = self.pending.remove(0);
-            self.spawn_chunk(coord);
-        }
-        budget > 0
+        self.blade_range + self.chunk_size * std::f32::consts::FRAC_1_SQRT_2
     }
 
     fn alloc_instance(&mut self) -> Option<Rid> {
@@ -347,107 +313,197 @@ impl QGrassField {
         Some(rid)
     }
 
-    fn assign_instance(&self, rid: Rid, coord: (i32, i32), mesh_kind: usize) {
-        let mm = self.multimeshes[self.layout_index(coord)][mesh_kind];
-        let material = if mesh_kind == MESH_CARD {
-            self.card_material.as_ref()
-        } else {
-            self.grass_material.as_ref()
-        };
+    fn assign_instance(
+        &self,
+        rid: Rid,
+        base_mm: Rid,
+        material: Option<&Gd<ShaderMaterial>>,
+        origin: Vector3,
+        aabb: Aabb,
+    ) {
         let material_rid = material.map(|m| m.get_rid()).unwrap_or(Rid::Invalid);
         let mut rs = RenderingServer::singleton();
-        rs.instance_set_base(rid, mm);
-        rs.instance_set_custom_aabb(rid, self.chunk_aabb);
+        rs.instance_set_base(rid, base_mm);
+        rs.instance_set_custom_aabb(rid, aabb);
         rs.instance_geometry_set_material_override(rid, material_rid);
-        let xf = Transform3D::new(
-            Basis::IDENTITY,
-            Vector3::new(
-                coord.0 as f32 * self.chunk_size,
-                0.0,
-                coord.1 as f32 * self.chunk_size,
-            ),
-        );
-        rs.instance_set_transform(rid, xf);
+        rs.instance_set_transform(rid, Transform3D::new(Basis::IDENTITY, origin));
         rs.instance_set_visible(rid, self.base().is_visible_in_tree());
     }
 
-    fn spawn_chunk(&mut self, coord: (i32, i32)) {
-        let Some(origin) = self.view_origin() else {
-            return;
-        };
-        let dist = self
-            .chunk_center(coord)
-            .distance_to(Vector2::new(origin.x, origin.z));
+    fn refresh_blades(&mut self, center: (i32, i32), p: Vector3) {
+        let margin = self.blade_attach_distance() + 3.0;
+        let view_chunks = (margin / self.chunk_size).ceil() as i32;
+        let player_xz = Vector2::new(p.x, p.z);
+        let mut rs = RenderingServer::singleton();
 
-        let Some(card) = self.alloc_instance() else {
-            return;
-        };
-        self.assign_instance(card, coord, MESH_CARD);
-
-        let mut blade = None;
-        let mut blade_near = false;
-        if dist < self.blade_attach_distance() {
-            if let Some(rid) = self.alloc_instance() {
-                blade_near = dist <= self.lod_near_enter;
-                let kind = if blade_near {
-                    MESH_DETAILED
-                } else {
-                    MESH_SIMPLE
-                };
-                self.assign_instance(rid, coord, kind);
-                blade = Some(rid);
+        let to_remove: Vec<(i32, i32)> = self
+            .blade_chunks
+            .iter()
+            .filter(|(c, _)| {
+                self.grid_center(**c, self.chunk_size)
+                    .distance_to(player_xz)
+                    > margin
+            })
+            .map(|(c, _)| *c)
+            .collect();
+        for coord in to_remove {
+            if let Some(slot) = self.blade_chunks.remove(&coord) {
+                rs.instance_set_visible(slot.instance, false);
+                self.pool.push(slot.instance);
             }
         }
 
-        self.chunks.insert(
-            coord,
-            ChunkSlot {
-                card,
-                blade,
-                blade_near,
-            },
-        );
-        self.notify_event("world/chunk_spawned", Vector2i::new(coord.0, coord.1));
+        let mut to_add: Vec<(i32, i32)> = Vec::new();
+        for dx in -view_chunks..=view_chunks {
+            for dz in -view_chunks..=view_chunks {
+                let coord = (center.0 + dx, center.1 + dz);
+                if !self.in_bounds(coord, self.chunk_size) {
+                    continue;
+                }
+                if self.blade_chunks.contains_key(&coord) {
+                    continue;
+                }
+                if self
+                    .grid_center(coord, self.chunk_size)
+                    .distance_to(player_xz)
+                    > self.blade_attach_distance()
+                {
+                    continue;
+                }
+                to_add.push(coord);
+            }
+        }
+        for coord in to_add {
+            self.spawn_blade_chunk(coord, player_xz);
+        }
     }
 
-    fn update_lods(&mut self, p: Vector3) {
-        let player_xz = Vector2::new(p.x, p.z);
-        let attach = self.blade_attach_distance();
-        let detach = attach + 3.0;
-        let coords: Vec<(i32, i32)> = self.chunks.keys().copied().collect();
-        for coord in coords {
-            let dist = self.chunk_center(coord).distance_to(player_xz);
-            let slot = &self.chunks[&coord];
-            let has_blade = slot.blade.is_some();
-            let was_near = slot.blade_near;
+    fn spawn_blade_chunk(&mut self, coord: (i32, i32), player_xz: Vector2) {
+        let Some(rid) = self.alloc_instance() else {
+            return;
+        };
+        let dist = self
+            .grid_center(coord, self.chunk_size)
+            .distance_to(player_xz);
+        let near = dist <= self.lod_near_enter;
+        let kind = if near { 0 } else { 1 };
+        let mm = self.blade_multimeshes[self.layout_index(coord)][kind];
+        let origin = Vector3::new(
+            coord.0 as f32 * self.chunk_size,
+            0.0,
+            coord.1 as f32 * self.chunk_size,
+        );
+        let material = self.grass_material.clone();
+        self.assign_instance(rid, mm, material.as_ref(), origin, self.blade_aabb);
+        self.blade_chunks.insert(
+            coord,
+            BladeSlot {
+                instance: rid,
+                near,
+            },
+        );
+    }
 
-            if has_blade && dist > detach {
-                let slot = self.chunks.get_mut(&coord).unwrap();
-                if let Some(rid) = slot.blade.take() {
-                    RenderingServer::singleton().instance_set_visible(rid, false);
-                    self.pool.push(rid);
+    fn refresh_cards(&mut self, center: (i32, i32), p: Vector3) {
+        let margin =
+            self.grass_fade_out_end + self.card_chunk_size * std::f32::consts::FRAC_1_SQRT_2 + 10.0;
+        let view_chunks = (margin / self.card_chunk_size).ceil() as i32;
+        let player_xz = Vector2::new(p.x, p.z);
+        let mut needed: HashMap<(i32, i32), bool> = HashMap::new();
+        for dx in -view_chunks..=view_chunks {
+            for dz in -view_chunks..=view_chunks {
+                let coord = (center.0 + dx, center.1 + dz);
+                if !self.in_bounds(coord, self.card_chunk_size) {
+                    continue;
                 }
-            } else if !has_blade && dist < attach {
-                if let Some(rid) = self.alloc_instance() {
-                    let near = dist <= self.lod_near_enter;
-                    let kind = if near { MESH_DETAILED } else { MESH_SIMPLE };
-                    self.assign_instance(rid, coord, kind);
-                    let slot = self.chunks.get_mut(&coord).unwrap();
-                    slot.blade = Some(rid);
-                    slot.blade_near = near;
+                if self
+                    .grid_center(coord, self.card_chunk_size)
+                    .distance_to(player_xz)
+                    > margin
+                {
+                    continue;
                 }
-            } else if has_blade {
-                let near = if was_near {
-                    dist <= self.lod_near_exit
-                } else {
-                    dist < self.lod_near_enter
-                };
-                if near != was_near {
-                    let kind = if near { MESH_DETAILED } else { MESH_SIMPLE };
-                    let rid = self.chunks[&coord].blade.unwrap();
-                    self.assign_instance(rid, coord, kind);
-                    self.chunks.get_mut(&coord).unwrap().blade_near = near;
+                needed.insert(coord, true);
+                if !self.card_chunks.contains_key(&coord) && !self.card_pending.contains(&coord) {
+                    self.card_pending.push(coord);
                 }
+            }
+        }
+
+        let mut rs = RenderingServer::singleton();
+        let to_remove: Vec<(i32, i32)> = self
+            .card_chunks
+            .keys()
+            .filter(|c| !needed.contains_key(c))
+            .copied()
+            .collect();
+        for coord in to_remove {
+            if let Some(rid) = self.card_chunks.remove(&coord) {
+                rs.instance_set_visible(rid, false);
+                self.pool.push(rid);
+            }
+        }
+
+        self.card_pending.retain(|c| needed.contains_key(c));
+        self.card_pending.sort_by_key(|c| {
+            let dx = (c.0 - center.0) as i64;
+            let dz = (c.1 - center.1) as i64;
+            dx * dx + dz * dz
+        });
+    }
+
+    fn drain_card_pending(&mut self) -> bool {
+        let budget = self
+            .card_pending
+            .len()
+            .min(self.max_chunks_spawned_per_frame.max(0) as usize);
+        for _ in 0..budget {
+            let coord = self.card_pending.remove(0);
+            let Some(rid) = self.alloc_instance() else {
+                continue;
+            };
+            let mm = self.card_multimeshes[self.layout_index(coord)];
+            let origin = Vector3::new(
+                coord.0 as f32 * self.card_chunk_size,
+                0.0,
+                coord.1 as f32 * self.card_chunk_size,
+            );
+            let material = self.card_material.clone();
+            self.assign_instance(rid, mm, material.as_ref(), origin, self.card_aabb);
+            self.card_chunks.insert(coord, rid);
+        }
+        budget > 0
+    }
+
+    fn update_blade_lods(&mut self, p: Vector3) {
+        let player_xz = Vector2::new(p.x, p.z);
+        let swap_radius = self.lod_near_exit + self.chunk_size * 2.0;
+        let coords: Vec<(i32, i32)> = self
+            .blade_chunks
+            .iter()
+            .filter(|(c, _)| {
+                self.grid_center(**c, self.chunk_size)
+                    .distance_to(player_xz)
+                    < swap_radius
+            })
+            .map(|(c, _)| *c)
+            .collect();
+        for coord in coords {
+            let dist = self
+                .grid_center(coord, self.chunk_size)
+                .distance_to(player_xz);
+            let was_near = self.blade_chunks[&coord].near;
+            let near = if was_near {
+                dist <= self.lod_near_exit
+            } else {
+                dist < self.lod_near_enter
+            };
+            if near != was_near {
+                let kind = if near { 0 } else { 1 };
+                let mm = self.blade_multimeshes[self.layout_index(coord)][kind];
+                let rid = self.blade_chunks[&coord].instance;
+                RenderingServer::singleton().instance_set_base(rid, mm);
+                self.blade_chunks.get_mut(&coord).unwrap().near = near;
             }
         }
     }
@@ -466,7 +522,7 @@ impl QGrassField {
         mm
     }
 
-    fn build_layout_buffer(&self, seed: i64, count: usize) -> PackedFloat32Array {
+    fn build_layout_buffer(&self, seed: i64, count: usize, extent: f32) -> PackedFloat32Array {
         let mut rng = RandomNumberGenerator::new_gd();
         rng.set_seed(seed as u64);
         let mut buf = vec![0.0f32; count * 12];
@@ -483,14 +539,14 @@ impl QGrassField {
             buf[o] = basis.col_a().x;
             buf[o + 1] = basis.col_b().x;
             buf[o + 2] = basis.col_c().x;
-            buf[o + 3] = rng.randf() * self.chunk_size;
+            buf[o + 3] = rng.randf() * extent;
             buf[o + 4] = basis.col_a().y;
             buf[o + 5] = basis.col_b().y;
             buf[o + 6] = basis.col_c().y;
             buf[o + 8] = basis.col_a().z;
             buf[o + 9] = basis.col_b().z;
             buf[o + 10] = basis.col_c().z;
-            buf[o + 11] = rng.randf() * self.chunk_size;
+            buf[o + 11] = rng.randf() * extent;
         }
         PackedFloat32Array::from(buf.as_slice())
     }
@@ -541,19 +597,22 @@ impl QGrassField {
 
     fn free_all(&mut self) {
         let mut rs = RenderingServer::singleton();
-        for (_, slot) in self.chunks.drain() {
-            rs.free_rid(slot.card);
-            if let Some(blade) = slot.blade {
-                rs.free_rid(blade);
-            }
+        for (_, slot) in self.blade_chunks.drain() {
+            rs.free_rid(slot.instance);
+        }
+        for (_, rid) in self.card_chunks.drain() {
+            rs.free_rid(rid);
         }
         for rid in self.pool.drain(..) {
             rs.free_rid(rid);
         }
-        for group in self.multimeshes.drain(..) {
+        for group in self.blade_multimeshes.drain(..) {
             for mm in group {
                 rs.free_rid(mm);
             }
+        }
+        for mm in self.card_multimeshes.drain(..) {
+            rs.free_rid(mm);
         }
     }
 }
