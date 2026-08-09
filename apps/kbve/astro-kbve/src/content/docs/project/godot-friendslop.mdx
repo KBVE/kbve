@@ -1,0 +1,53 @@
+---
+title: Friendslop — Godot Co-op Slop
+description: Friendslop is a Godot 4 game built around a lightweight GDScript ECS, shipping Windows, macOS, and Linux builds to itch.io through the CI godot pipeline.
+sem: 1
+sidebar:
+    label: Friendslop
+    order: 96
+tags:
+    - gaming
+    - godot
+    - friendslop
+key: godot_friendslop
+pipeline: godot
+app_name: friendslop
+source_path: apps/friendslop/godot-friendslop
+version_toml: apps/friendslop/godot-friendslop/version.toml
+version: "0.1.0"
+runner: ubuntu-latest
+author: h0lybyte
+license: KBVE
+status: beta
+homepage_url: https://kbve.itch.io/friendslop
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+external_publish:
+    itch_user: kbve
+    itch_game: friendslop
+engine:
+    version: "4.7.1"
+    project_path: apps/friendslop/godot-friendslop
+    build_targets:
+        - Windows Desktop
+        - macOS
+        - Linux
+---
+
+## Friendslop
+
+A Godot 4.7 game driven by a small GDScript ECS (`addons/GodotECS`) with observer hubs and entity relations, toon-shaded rendering, and procedural grassland biomes.
+
+### Build & Ship
+
+`ci-main.yml` reads the CI dispatch manifest and hands this entry to `ci-godot.yml` whenever the MDX `version` outpaces `version.toml`. The godot pipeline runs the gdUnit4 suite headless via `scripts/test.sh`, exports the `Windows Desktop`, `macOS`, and `Linux` presets in the `barichello/godot-ci` container, and pushes each build to `kbve/friendslop` on itch.io with butler. gdUnit4 and the `tests/` directory are excluded from exports via the preset `exclude_filter`, so the test harness never ships in the finished product.
+
+### Local
+
+- `pnpm nx run godot-friendslop:test` — import + gdUnit4 headless suite
+- `pnpm nx run godot-friendslop:test:smoke` — raw SceneTree smoke pass
+- `pnpm nx run godot-friendslop:export` — all three release exports
