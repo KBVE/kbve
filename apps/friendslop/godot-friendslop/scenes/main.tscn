@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://src/world/grass_field.gd" id="2_grass"]
-[ext_resource type="Material" uid="uid://bra6ug2wjmj0j" path="res://assets/BinbunGrass/src/materials/grass_01/grass_ground_01.tres" id="3_ground"]
-[ext_resource type="Material" uid="uid://c2to67v55oatp" path="res://assets/BinbunGrass/src/materials/grass_01/grass_01.tres" id="4_grassmat"]
+[ext_resource type="Material" uid="uid://bra6ug2wjmj0j" path="res://assets/biomes/grassland/BinbunGrass/src/materials/grass_01/grass_ground_01.tres" id="3_ground"]
+[ext_resource type="Material" uid="uid://c2to67v55oatp" path="res://assets/biomes/grassland/BinbunGrass/src/materials/grass_01/grass_01.tres" id="4_grassmat"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="5_player"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
