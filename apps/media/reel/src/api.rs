@@ -804,6 +804,11 @@ async fn hls_outcome_response(
         )
             .into_response(),
         hls::StartOutcome::Disabled => StatusCode::SERVICE_UNAVAILABLE.into_response(),
+        hls::StartOutcome::FailedRecently(reason) => (
+            StatusCode::BAD_GATEWAY,
+            Json(serde_json::json!({"state": "hls_failed", "error": reason})),
+        )
+            .into_response(),
     }
 }
 

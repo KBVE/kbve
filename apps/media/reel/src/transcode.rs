@@ -4,7 +4,7 @@ use std::sync::Arc;
 use tokio::process::Command;
 use tokio::sync::Semaphore;
 
-pub(crate) const MAP_VIDEO_AUDIO: &[&str] = &["-map", "0:V:0", "-map", "0:a:0?"];
+pub(crate) const MAP_VIDEO_AUDIO: &[&str] = &["-map", "0:V:0?", "-map", "0:a:0?"];
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct ProbeResult {
@@ -902,8 +902,8 @@ mod tests {
         );
     }
     #[test]
-    fn map_selects_real_video_and_optional_audio() {
-        assert_eq!(MAP_VIDEO_AUDIO, &["-map", "0:V:0", "-map", "0:a:0?"]);
+    fn map_selects_optional_video_and_audio() {
+        assert_eq!(MAP_VIDEO_AUDIO, &["-map", "0:V:0?", "-map", "0:a:0?"]);
     }
     #[test]
     fn picks_largest_file() {

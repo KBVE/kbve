@@ -3,6 +3,7 @@ use crate::transcode::{Delivery, pick_primary_file};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 use tokio::process::{Child, Command};
 use tokio::sync::Semaphore;
 
@@ -171,6 +172,16 @@ pub enum StartOutcome {
     NotCompleted,
     RawProgressive,
     Disabled,
+    FailedRecently(String),
+}
+
+/// Minimum wait between automatic retries of a Failed HLS job. Without this,
+/// every player manifest poll (~2-5s) respawns ffmpeg against an input that
+/// just failed — an infinite retry storm for permanent failures.
+pub const HLS_RETRY_COOLDOWN: Duration = Duration::from_secs(30);
+
+pub fn retry_allowed(since_fail: Option<Duration>, cooldown: Duration) -> bool {
+    since_fail.is_none_or(|e| e >= cooldown)
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -222,6 +233,7 @@ pub struct HlsManager {
     max_height: u32,
     children: Arc<Mutex<HashMap<String, Child>>>,
     delivery_cache: Arc<Mutex<HashMap<String, Delivery>>>,
+    failed_at: Arc<Mutex<HashMap<String, Instant>>>,
 }
 
 impl HlsManager {
@@ -251,6 +263,7 @@ impl HlsManager {
             max_height,
             children: Arc::new(Mutex::new(HashMap::new())),
             delivery_cache: Arc::new(Mutex::new(HashMap::new())),
+            failed_at: Arc::new(Mutex::new(HashMap::new())),
         };
         for m in this.store.list() {
             if matches!(m.hls, HlsStatus::Starting | HlsStatus::Live) {
@@ -285,10 +298,32 @@ impl HlsManager {
         self.live_enabled
     }
 
+    fn mark_failed_now(&self, id: &str) {
+        self.failed_at
+            .lock()
+            .unwrap()
+            .insert(id.to_string(), Instant::now());
+    }
+
+    fn clear_failed(&self, id: &str) {
+        self.failed_at.lock().unwrap().remove(id);
+    }
+
+    fn retry_blocked(&self, id: &str) -> bool {
+        let since = self
+            .failed_at
+            .lock()
+            .unwrap()
+            .get(id)
+            .map(|t| t.elapsed());
+        !retry_allowed(since, HLS_RETRY_COOLDOWN)
+    }
+
     pub async fn request(&self, id: &str, delivery: Delivery) -> StartOutcome {
         if delivery == Delivery::RawProgressive {
             return StartOutcome::RawProgressive;
         }
+        let blocked = self.retry_blocked(id);
         let result = self
             .store
             .update(id, |m| match next_hls(&m.hls, &m.state, self.enabled) {
@@ -300,6 +335,10 @@ impl HlsManager {
                     (outcome, false)
                 }
                 HlsDecision::Reject(outcome) => (outcome, false),
+                HlsDecision::Start if m.hls == HlsStatus::Failed && blocked => {
+                    let reason = m.hls_error.clone().unwrap_or_else(|| "hls failed".into());
+                    (StartOutcome::FailedRecently(reason), false)
+                }
                 HlsDecision::Start => {
                     m.hls = HlsStatus::Starting;
                     m.hls_error = None;
@@ -321,6 +360,7 @@ impl HlsManager {
 
     pub async fn abort(&self, id: &str) {
         self.delivery_cache.lock().unwrap().remove(id);
+        self.clear_failed(id);
         let child = self.take_child(id);
         if let Some(mut child) = child {
             let _ = child.kill().await;
@@ -352,6 +392,7 @@ impl HlsManager {
         tokio::spawn(async move {
             if let Err(e) = this.run_hls(&id, &meta, delivery).await {
                 crate::telemetry::hls_failed(&id, &e.to_string());
+                this.mark_failed_now(&id);
                 let _ = this.store.update(&id, |m| {
                     m.hls = HlsStatus::Failed;
                     m.hls_error = Some(e.to_string());
@@ -514,6 +555,7 @@ impl HlsManager {
 
             match exit_result {
                 Some(Ok(status)) if status.success() => {
+                    this.clear_failed(&id);
                     let _ = this.store.update(&id, |m| {
                         m.hls = HlsStatus::Ready;
                         m.hls_error = None;
@@ -524,6 +566,7 @@ impl HlsManager {
                 Some(Ok(status)) => {
                     let reason = format!("ffmpeg exited: {status}: {}", ffmpeg_tail(&errbuf));
                     crate::telemetry::hls_failed(&id, &reason);
+                    this.mark_failed_now(&id);
                     finalize_event_playlists(&hls_dir);
                     let _ = this.store.update(&id, |m| {
                         m.hls = HlsStatus::Failed;
@@ -534,6 +577,7 @@ impl HlsManager {
                 Some(Err(e)) => {
                     let reason = e.to_string();
                     crate::telemetry::hls_failed(&id, &reason);
+                    this.mark_failed_now(&id);
                     finalize_event_playlists(&hls_dir);
                     let _ = this.store.update(&id, |m| {
                         m.hls = HlsStatus::Failed;
@@ -563,6 +607,7 @@ impl HlsManager {
         reader: Box<dyn crate::engine::ReadSeek>,
         out_dir: PathBuf,
     ) -> StartOutcome {
+        let blocked = self.retry_blocked(id);
         let result = self.store.update(id, |m| {
             match next_hls_live(&m.hls, &m.state, self.live_enabled) {
                 HlsDecision::Reject(StartOutcome::InProgress(HlsStatus::Ready)) => {
@@ -573,6 +618,10 @@ impl HlsManager {
                     (outcome, false)
                 }
                 HlsDecision::Reject(outcome) => (outcome, false),
+                HlsDecision::Start if m.hls == HlsStatus::Failed && blocked => {
+                    let reason = m.hls_error.clone().unwrap_or_else(|| "hls failed".into());
+                    (StartOutcome::FailedRecently(reason), false)
+                }
                 HlsDecision::Start => {
                     m.hls = HlsStatus::Starting;
                     m.hls_error = None;
@@ -601,6 +650,7 @@ impl HlsManager {
         tokio::spawn(async move {
             if let Err(e) = this.run_live(&id, reader, out_dir).await {
                 crate::telemetry::hls_failed(&id, &e.to_string());
+                this.mark_failed_now(&id);
                 let _ = this.store.update(&id, |m| {
                     m.hls = HlsStatus::Failed;
                     m.hls_error = Some(e.to_string());
@@ -893,6 +943,63 @@ mod mgr_tests {
         );
         mgr.abort("unknown-id").await;
         assert!(mgr.take_child("unknown-id").is_none());
+    }
+
+    #[test]
+    fn retry_allowed_respects_cooldown() {
+        let cd = Duration::from_secs(30);
+        assert!(retry_allowed(None, cd));
+        assert!(!retry_allowed(Some(Duration::from_secs(1)), cd));
+        assert!(retry_allowed(Some(Duration::from_secs(30)), cd));
+    }
+
+    #[tokio::test]
+    async fn failed_within_cooldown_rejects_restart() {
+        let dir = std::env::temp_dir().join(format!("reel-hls-test-cd-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let store = StateStore::load(dir.join("state.json")).unwrap();
+        store
+            .upsert(Metadata {
+                id: "t1".into(),
+                name: "t1".into(),
+                path: dir.display().to_string(),
+                size: 0,
+                completed_at: None,
+                last_access: 0,
+                state: TorrentState::Seeding,
+                error: None,
+                active_path: None,
+                transcode: crate::state::TranscodeStatus::None,
+                transcode_path: None,
+                transcode_error: None,
+                hls: HlsStatus::Failed,
+                hls_dir: None,
+                hls_error: Some("boom".into()),
+            })
+            .unwrap();
+        let mgr = HlsManager::new(
+            store,
+            1,
+            "ffmpeg".into(),
+            "ffprobe".into(),
+            4,
+            true,
+            true,
+            3,
+            1,
+            1080,
+        );
+        mgr.mark_failed_now("t1");
+        assert_eq!(
+            mgr.request("t1", Delivery::RemuxHls).await,
+            StartOutcome::FailedRecently("boom".into())
+        );
+        mgr.clear_failed("t1");
+        assert_eq!(
+            mgr.request("t1", Delivery::RemuxHls).await,
+            StartOutcome::Started
+        );
     }
 
     #[test]
