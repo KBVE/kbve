@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=24 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://src/world/grass_field.gd" id="2_grass"]
@@ -13,7 +13,9 @@
 [ext_resource type="Shader" path="res://assets/fx/shaders/film_grade.gdshader" id="11_film"]
 [ext_resource type="Script" path="res://src/world/terrain.gd" id="12_terrain"]
 [ext_resource type="Material" path="res://assets/environment/water/water.tres" id="13_water"]
-[ext_resource type="Script" path="res://src/world/ravens.gd" id="14_ravens"]
+[ext_resource type="Script" path="res://src/fauna/flock.gd" id="14_ravens"]
+[ext_resource type="Resource" path="res://assets/environment/props/fauna/raven/raven_species.tres" id="15_species"]
+[ext_resource type="Script" path="res://src/ui/pause_menu.gd" id="16_pause"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(1024, 1024)
@@ -111,11 +113,16 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
 
 [node name="Ravens" type="Node3D" parent="."]
 script = ExtResource("14_ravens")
+species = ExtResource("15_species")
 player_path = NodePath("../Player")
 
 [node name="DebugTools" type="Node3D" parent="."]
 script = ExtResource("10_debug")
 player_path = NodePath("../Player")
+
+[node name="PauseMenu" type="CanvasLayer" parent="."]
+script = ExtResource("16_pause")
+species = ExtResource("15_species")
 
 [node name="PostFX" type="CanvasLayer" parent="."]
 layer = 100
