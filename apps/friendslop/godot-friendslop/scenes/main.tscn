@@ -66,12 +66,13 @@ grass_material = ExtResource("4_grassmat")
 script = ExtResource("7_daynight")
 
 [node name="Sun" type="DirectionalLight3D" parent="DayNight"]
+light_angular_distance = 0.25
 shadow_enabled = true
-directional_shadow_mode = 1
-directional_shadow_split_1 = 0.01
+shadow_blur = 1.5
 
 [node name="Moon" type="DirectionalLight3D" parent="DayNight"]
 light_energy = 0.0
+shadow_blur = 2.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_world")
