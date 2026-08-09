@@ -562,7 +562,7 @@
 		{
 			"key": "reel",
 			"app_name": "reel",
-			"version": "0.1.39",
+			"version": "0.1.40",
 			"version_toml": "apps/media/reel/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/reel.mdx",
 			"version_target": "apps/media/reel/Cargo.toml",
