@@ -1,4 +1,4 @@
-[gd_scene load_steps=24 format=3]
+[gd_scene load_steps=25 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://src/world/grass_field.gd" id="2_grass"]
@@ -16,6 +16,7 @@
 [ext_resource type="Script" path="res://src/fauna/flock.gd" id="14_ravens"]
 [ext_resource type="Resource" path="res://assets/environment/props/fauna/raven/raven_species.tres" id="15_species"]
 [ext_resource type="Script" path="res://src/ui/pause_menu.gd" id="16_pause"]
+[ext_resource type="Script" path="res://src/debug/debug_hud.gd" id="17_hud"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(1024, 1024)
@@ -123,6 +124,10 @@ player_path = NodePath("../Player")
 [node name="PauseMenu" type="CanvasLayer" parent="."]
 script = ExtResource("16_pause")
 species = ExtResource("15_species")
+
+[node name="DebugHud" type="CanvasLayer" parent="."]
+script = ExtResource("17_hud")
+player_path = NodePath("../Player")
 
 [node name="PostFX" type="CanvasLayer" parent="."]
 layer = 100
