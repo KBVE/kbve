@@ -1,8 +1,8 @@
 {
-	"generated_at": "2026-08-08T02:58:38Z",
+	"generated_at": "2026-08-09T03:05:47Z",
 	"node": {
-		"count": 122,
-		"major": 22,
+		"count": 123,
+		"major": 23,
 		"items": [
 			{
 				"name": "@astrojs/starlight",
@@ -296,7 +296,7 @@
 				"name": "@tanstack/react-router",
 				"current": "1.170.16",
 				"wanted": "1.170.16",
-				"latest": "1.170.22",
+				"latest": "1.170.23",
 				"type": "dependencies",
 				"major": false
 			},
@@ -341,6 +341,14 @@
 				"major": false
 			},
 			{
+				"name": "@types/jsdom",
+				"current": "28.0.3",
+				"wanted": "28.0.3",
+				"latest": "30.0.0",
+				"type": "devDependencies",
+				"major": true
+			},
+			{
 				"name": "@types/leaflet",
 				"current": "1.9.21",
 				"wanted": "1.9.21",
@@ -352,7 +360,7 @@
 				"name": "@types/node",
 				"current": "18.19.17",
 				"wanted": "18.19.17",
-				"latest": "26.1.2",
+				"latest": "26.2.0",
 				"type": "devDependencies",
 				"major": true
 			},
@@ -544,7 +552,7 @@
 				"name": "eslint",
 				"current": "9.39.5",
 				"wanted": "9.39.5",
-				"latest": "10.8.0",
+				"latest": "10.8.1",
 				"type": "devDependencies",
 				"major": true
 			},
@@ -616,7 +624,7 @@
 				"name": "happy-dom",
 				"current": "20.10.6",
 				"wanted": "20.10.6",
-				"latest": "20.11.1",
+				"latest": "20.11.2",
 				"type": "dependencies",
 				"major": false
 			},
@@ -648,7 +656,7 @@
 				"name": "jsonc-eslint-parser",
 				"current": "2.4.0",
 				"wanted": "2.4.0",
-				"latest": "3.2.0",
+				"latest": "3.3.0",
 				"type": "devDependencies",
 				"major": true
 			},
@@ -768,7 +776,7 @@
 				"name": "react-hook-form",
 				"current": "7.55.0",
 				"wanted": "7.55.0",
-				"latest": "7.84.0",
+				"latest": "7.85.0",
 				"type": "dependencies",
 				"major": false
 			},
@@ -983,19 +991,25 @@
 		]
 	},
 	"rust": {
-		"count": 111,
+		"count": 118,
 		"major": 0,
 		"items": [
 			{
 				"name": "actix-http",
 				"current": "3.13.1",
-				"latest": "3.13.2",
+				"latest": "3.13.3",
 				"major": false
 			},
 			{
 				"name": "actix-server",
 				"current": "2.6.0",
 				"latest": "2.7.0",
+				"major": false
+			},
+			{
+				"name": "actix-web",
+				"current": "4.14.0",
+				"latest": "4.14.1",
 				"major": false
 			},
 			{
@@ -1122,6 +1136,12 @@
 				"name": "async-compression",
 				"current": "0.4.42",
 				"latest": "0.4.43",
+				"major": false
+			},
+			{
+				"name": "async-trait",
+				"current": "0.1.91",
+				"latest": "0.1.92",
 				"major": false
 			},
 			{
@@ -1254,6 +1274,12 @@
 				"name": "clap_builder",
 				"current": "4.6.2",
 				"latest": "4.6.6",
+				"major": false
+			},
+			{
+				"name": "cookie",
+				"current": "0.18.1",
+				"latest": "0.18.2",
 				"major": false
 			},
 			{
@@ -1539,6 +1565,18 @@
 				"major": false
 			},
 			{
+				"name": "thiserror",
+				"current": "2.0.19",
+				"latest": "2.0.20",
+				"major": false
+			},
+			{
+				"name": "thiserror-impl",
+				"current": "2.0.19",
+				"latest": "2.0.20",
+				"major": false
+			},
+			{
 				"name": "time",
 				"current": "0.3.54",
 				"latest": "0.3.55",
@@ -1584,6 +1622,18 @@
 				"name": "trybuild",
 				"current": "1.0.118",
 				"latest": "1.0.120",
+				"major": false
+			},
+			{
+				"name": "ureq",
+				"current": "3.3.0",
+				"latest": "3.4.0",
+				"major": false
+			},
+			{
+				"name": "ureq-proto",
+				"current": "0.6.0",
+				"latest": "0.6.1",
 				"major": false
 			},
 			{
@@ -1654,6 +1704,6 @@
 			}
 		]
 	},
-	"total": 233,
-	"major_total": 22
+	"total": 241,
+	"major_total": 23
 }
