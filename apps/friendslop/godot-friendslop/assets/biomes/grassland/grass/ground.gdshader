@@ -20,6 +20,10 @@ global uniform vec2 wind_direction;
 uniform float wind_bend_strength = 2.0;
 uniform float wind_ao_affect = 1.5;
 
+uniform float cloud_shadow_strength: hint_range(0.0, 1.0) = 0.25;
+uniform float cloud_shadow_scale = 70.0;
+uniform float cloud_shadow_speed = 0.012;
+
 instance uniform float alpha = 1.0;
 
 varying vec3 world_vertex;
@@ -51,6 +55,10 @@ void fragment() {
 
 	float current_wind_bend = texture(wind_noise, wind_position).x;
 	current_wind_bend *= wind_strength * 2.0;
+
+	vec2 cloud_uv = world_vertex.xz / cloud_shadow_scale - TIME * wind_direction * cloud_shadow_speed;
+	float cloud_shadow = smoothstep(0.55, 0.75, texture(wind_noise, cloud_uv).x);
+	ALBEDO *= 1.0 - cloud_shadow * cloud_shadow_strength;
 
 	float bottom_to_top_simulation = high_frequency_sample + smoothstep(0.6, 1.0, normal_to_view) * 0.4;
 	AO = mix(0.5, 1.0, bottom_to_top_simulation) - current_wind_bend * wind_ao_affect;

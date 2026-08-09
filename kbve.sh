@@ -1088,6 +1088,7 @@ Games:
   rentearth  → https://git.kbve.com/KBVE/rentearth.git/info/lfs
   arpg       → https://git.kbve.com/KBVE/arpg.git/info/lfs
   cryptothrone → https://git.kbve.com/KBVE/cryptothrone.git/info/lfs
+  friendslop → https://git.kbve.com/KBVE/friendslop.git/info/lfs
 
 Standard subcommands forwarded to `git lfs`:
   push|pull|fetch|ls-files|env|...
@@ -1161,8 +1162,12 @@ EOF
             url="https://git.kbve.com/KBVE/herbmail.git/info/lfs"
             path_prefix="apps/herbmail/herbmail-game"
             ;;
+        friendslop)
+            url="https://git.kbve.com/KBVE/friendslop.git/info/lfs"
+            path_prefix="apps/friendslop/godot-friendslop"
+            ;;
         *)
-            echo "Unknown game '$game'. Known: chuck, rareicon, rentearth, arpg, cryptothrone, cleanroom, herbmail" >&2
+            echo "Unknown game '$game'. Known: chuck, rareicon, rentearth, arpg, cryptothrone, cleanroom, herbmail, friendslop" >&2
             return 1
             ;;
     esac

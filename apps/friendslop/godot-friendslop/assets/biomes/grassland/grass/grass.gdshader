@@ -19,6 +19,10 @@ global uniform vec2 wind_direction;
 uniform float wind_bend_strength = 2.0;
 uniform float wind_ao_affect = 1.0;
 
+uniform float cloud_shadow_strength: hint_range(0.0, 1.0) = 0.25;
+uniform float cloud_shadow_scale = 70.0;
+uniform float cloud_shadow_speed = 0.012;
+
 uniform float object_radius = 1.0;
 uniform vec3 object_position;
 uniform vec3 fade_origin;
@@ -34,6 +38,7 @@ instance uniform float alpha = 1.0;
 
 varying float bottom_to_top;
 varying float current_wind_bend;
+varying float cloud_shadow;
 varying float cut_height;
 varying float dist_alpha;
 varying float edge_blend;
@@ -47,14 +52,6 @@ void vertex() {
 	float end_shrink = 1.0 - smoothstep(fade_end - 25.0, fade_end, player_distance);
 	edge_blend = smoothstep(fade_end - 25.0, fade_end - 5.0, player_distance);
 	dist_alpha = clamp((keep - rank) / 0.05, 0.0, 1.0);
-
-	//// Cutting all grass on the right
-	//if (NODE_POSITION_WORLD.x > 0.0) {
-		//cut_height = 0.5;
-//
-		//VERTEX.y = min(VERTEX.y, cut_height);
-		//UV.y = max(UV.y, 1.0 - cut_height);
-	//}
 
 	bottom_to_top = 1.0 - UV.y;
 
@@ -87,6 +84,10 @@ void vertex() {
 	VERTEX.z += blade_bend * bend_variation * pow(bottom_to_top, 2.0);
 
 	patch_factor = texture(patch_noise, blade_world.xz / patch_scale).r;
+
+	vec2 cloud_uv = blade_world.xz / cloud_shadow_scale - TIME * wind_direction * cloud_shadow_speed;
+	cloud_shadow = smoothstep(0.55, 0.75, texture(wind_noise, cloud_uv).x);
+
 	VERTEX *= mix(size_small, size_large, patch_factor) * (1.0 + distance_growth * (1.0 - keep)) * end_shrink;
 
 	NORMAL = mix(NORMAL, vec3(0.0, 1.0, 0.0), mix(1.0, bottom_to_top, alpha + 0.2));
@@ -103,6 +104,7 @@ void fragment() {
 	AO_LIGHT_AFFECT = mix(0.2, 1.0, alpha);
 
 	ALBEDO = mix(color_small, color_large, patch_factor);
+	ALBEDO *= 1.0 - cloud_shadow * cloud_shadow_strength;
 	BACKLIGHT = vec3(0.2);
 
 	ROUGHNESS = 0.4;

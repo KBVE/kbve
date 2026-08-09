@@ -1,6 +1,6 @@
 extends Node3D
 
-const SHRUB := preload("res://assets/environment/props/flora/euonymus.fbx")
+const SHRUB := preload("res://assets/environment/props/flora/euonymus/euonymus.fbx")
 const MARKER_SCRIPT := preload("res://src/debug/debug_marker.gd")
 
 @export var player_path: NodePath

@@ -99,3 +99,17 @@ apps/herbmail/herbmail-game/public/**/*.ogg  filter=lfs diff=lfs merge=lfs -text
 apps/herbmail/herbmail-game/public/**/*.wav  filter=lfs diff=lfs merge=lfs -text
 apps/herbmail/herbmail-game/art/**/*.blend   filter=lfs diff=lfs merge=lfs -text
 apps/herbmail/herbmail-game/art/**/*.fbx     filter=lfs diff=lfs merge=lfs -text
+
+# Friendslop — apps/friendslop/godot-friendslop Godot 4 3D game assets
+# Pointer files live in this repo; blobs live on git.kbve.com/KBVE/friendslop.git
+# (see apps/friendslop/godot-friendslop/.lfsconfig). Push/pull the blobs to the
+# friendslop endpoint with `./kbve.sh -lfs friendslop <push|pull|register|...>`.
+apps/friendslop/godot-friendslop/assets/**/*.fbx   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.glb   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.gltf  filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.blend filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.png   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.webp  filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.mp3   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.ogg   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.wav   filter=lfs diff=lfs merge=lfs -text

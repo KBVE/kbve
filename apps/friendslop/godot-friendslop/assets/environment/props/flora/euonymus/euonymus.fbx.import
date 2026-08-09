@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://dxt315q1qhge8"
-path="res://.godot/imported/euonymus.fbx-51d0a56d7ac19bcf17a5d0c2769755e0.scn"
+path="res://.godot/imported/euonymus.fbx-e0e56422d94dbbf4f5980b322fe186b7.scn"
 
 [deps]
 
-source_file="res://assets/environment/props/flora/euonymus.fbx"
-dest_files=["res://.godot/imported/euonymus.fbx-51d0a56d7ac19bcf17a5d0c2769755e0.scn"]
+source_file="res://assets/environment/props/flora/euonymus/euonymus.fbx"
+dest_files=["res://.godot/imported/euonymus.fbx-e0e56422d94dbbf4f5980b322fe186b7.scn"]
 
 [params]
 
@@ -35,7 +35,7 @@ animation/fps=30
 animation/trimming=true
 animation/remove_immutable_tracks=true
 animation/import_rest_as_RESET=false
-import_script/path=""
+import_script/path="res://assets/environment/props/flora/euonymus/post_import.gd"
 materials/extract=0
 materials/extract_format=0
 materials/extract_path=""

@@ -1,10 +1,26 @@
-[gd_scene load_steps=5 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://src/player/player.gd" id="1_player"]
+[ext_resource type="Shader" path="res://assets/fx/shaders/toon.gdshader" id="2_toon"]
+[ext_resource type="Shader" path="res://assets/fx/shaders/outline.gdshader" id="3_outline"]
+[ext_resource type="Shader" path="res://assets/fx/shaders/ink_lines.gdshader" id="4_ink"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_toon"]
+shader = ExtResource("2_toon")
+shader_parameter/albedo_tint = Color(0.85, 0.3, 0.25, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_outline"]
+shader = ExtResource("3_outline")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ink"]
+shader = ExtResource("4_ink")
+
+[sub_resource type="QuadMesh" id="QuadMesh_ink"]
+size = Vector2(2, 2)
 
 [sub_resource type="SphereShape3D" id="SphereShape3D_cam"]
 radius = 0.25
@@ -19,6 +35,12 @@ shape = SubResource("CapsuleShape3D_body")
 [node name="Mesh" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 mesh = SubResource("CapsuleMesh_body")
+material_override = SubResource("ShaderMaterial_toon")
+
+[node name="Outline" type="MeshInstance3D" parent="Mesh"]
+mesh = SubResource("CapsuleMesh_body")
+material_override = SubResource("ShaderMaterial_outline")
+cast_shadow = 0
 
 [node name="Pivot" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
@@ -29,3 +51,9 @@ spring_length = 4.0
 margin = 0.2
 
 [node name="Camera3D" type="Camera3D" parent="Pivot/SpringArm3D"]
+
+[node name="InkLines" type="MeshInstance3D" parent="Pivot/SpringArm3D/Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+mesh = SubResource("QuadMesh_ink")
+material_override = SubResource("ShaderMaterial_ink")
+cast_shadow = 0

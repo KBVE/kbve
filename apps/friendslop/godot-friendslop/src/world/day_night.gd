@@ -10,7 +10,7 @@ extends Node3D
 @export_category("Sun")
 @export var sun_max_energy := 1.0
 @export var sun_shadow_distance := 80.0
-@export_range(0.0, 1.0, 0.01) var sun_angular_distance := 0.25
+@export_range(0.0, 1.0, 0.01) var sun_angular_distance := 0.0
 
 @export_category("Moon")
 @export var moon_max_energy := 0.20
