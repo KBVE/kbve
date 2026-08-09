@@ -5,24 +5,56 @@ extends Node3D
 @export var start_hour := 9.0
 
 @export_category("Celestial Movement")
-@export var light_angle_step_deg := 0.15
+@export_range(0.01, 1.0, 0.01) var light_angle_step_deg := 0.15
 
 @export_category("Sun")
 @export var sun_max_energy := 1.0
 @export var sun_shadow_distance := 80.0
+@export_range(0.0, 1.0, 0.01) var sun_angular_distance := 0.25
 
 @export_category("Moon")
 @export var moon_max_energy := 0.20
 @export var moon_shadow_distance := 45.0
 
 @export_category("Shadow Thresholds")
-@export var sun_shadow_elevation := 0.04
-@export var moon_shadow_elevation := 0.10
+@export var sun_shadow_enable_elevation := 0.05
+@export var sun_shadow_disable_elevation := 0.02
+@export var moon_shadow_enable_elevation := 0.12
+@export var moon_shadow_disable_elevation := 0.07
+
+const HOURS_PER_DAY := 24.0
+const SUNRISE_OFFSET := 6.0
+const DAY_RADIANS := TAU / HOURS_PER_DAY
+
+const SUN_ENERGY_START := -0.04
+const SUN_ENERGY_FULL := 0.20
+const MOON_ENERGY_START := -0.02
+const MOON_ENERGY_FULL := 0.20
+
+const SUN_SHADOW_FULL := 0.18
+const MOON_SHADOW_FULL := 0.25
+const MOON_SHADOW_MAX_OPACITY := 0.45
+
+const LUT_STRIDE := 5
+const LUT_SUN_ENERGY := 0
+const LUT_MOON_ENERGY := 1
+const LUT_SUN_OPACITY := 2
+const LUT_MOON_OPACITY := 3
+const LUT_SUN_ELEVATION := 4
 
 var hour: float
 
+var _hours_per_second: float
+var _angle_step_rad: float
+var _angle_step_inv: float
+var _steps_per_day: int
+var _lut: PackedFloat32Array
+
 var _last_hour := -1
-var _last_angle := INF
+var _last_angle_step := -1
+
+var _sun_shadow_active := false
+var _moon_shadow_active := false
 
 @onready var sun: DirectionalLight3D = $Sun
 @onready var moon: DirectionalLight3D = $Moon
@@ -30,57 +62,92 @@ var _last_angle := INF
 
 func _ready() -> void:
 	hour = start_hour
-	_configure_shadows()
-	_update_lights(true)
+	_rebuild_constants()
+	_configure_lights()
+	_update_celestial_state(true)
 
 
 func _process(delta: float) -> void:
-	hour = fmod(hour + delta * 24.0 / (day_length_minutes * 60.0), 24.0)
-	_update_lights()
-	var h := int(hour)
-	if h != _last_hour:
-		_last_hour = h
-		Game.events.notify(EventNames.HOUR_CHANGED, h)
+	hour += delta * _hours_per_second
+	if hour >= HOURS_PER_DAY:
+		hour -= HOURS_PER_DAY
+
+	var current_hour := int(hour)
+	if current_hour != _last_hour:
+		_last_hour = current_hour
+		Game.events.notify(EventNames.HOUR_CHANGED, current_hour)
+
+	_update_celestial_state()
 
 
-func _configure_shadows() -> void:
+func _rebuild_constants() -> void:
+	_hours_per_second = HOURS_PER_DAY / (day_length_minutes * 60.0)
+	_angle_step_rad = deg_to_rad(light_angle_step_deg)
+	_angle_step_inv = 1.0 / _angle_step_rad
+	_steps_per_day = maxi(1, roundi(TAU * _angle_step_inv))
+	_lut.resize(_steps_per_day * LUT_STRIDE)
+	for i in _steps_per_day:
+		var sun_elevation := sin(float(i) * _angle_step_rad)
+		var moon_elevation := -sun_elevation
+		var o := i * LUT_STRIDE
+		_lut[o + LUT_SUN_ENERGY] = smoothstep(SUN_ENERGY_START, SUN_ENERGY_FULL, sun_elevation) * sun_max_energy
+		_lut[o + LUT_MOON_ENERGY] = smoothstep(MOON_ENERGY_START, MOON_ENERGY_FULL, moon_elevation) * moon_max_energy
+		_lut[o + LUT_SUN_OPACITY] = smoothstep(sun_shadow_enable_elevation, SUN_SHADOW_FULL, sun_elevation)
+		_lut[o + LUT_MOON_OPACITY] = smoothstep(moon_shadow_enable_elevation, MOON_SHADOW_FULL, moon_elevation) * MOON_SHADOW_MAX_OPACITY
+		_lut[o + LUT_SUN_ELEVATION] = sun_elevation
+
+
+func _configure_lights() -> void:
 	sun.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
-	moon.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 	sun.directional_shadow_max_distance = sun_shadow_distance
-	moon.directional_shadow_max_distance = moon_shadow_distance
 	sun.directional_shadow_fade_start = 0.85
-	moon.directional_shadow_fade_start = 0.80
 	sun.directional_shadow_split_1 = 0.18
-	moon.directional_shadow_split_1 = 0.22
 	sun.directional_shadow_blend_splits = false
+	sun.light_angular_distance = sun_angular_distance
+
+	moon.directional_shadow_mode = DirectionalLight3D.SHADOW_ORTHOGONAL
+	moon.directional_shadow_max_distance = moon_shadow_distance
+	moon.directional_shadow_fade_start = 0.80
 	moon.directional_shadow_blend_splits = false
+	moon.light_angular_distance = 0.0
 
 
-func _update_lights(force := false) -> void:
-	var raw_angle := (hour - 6.0) * TAU / 24.0
-	var visual_angle := raw_angle
-	if light_angle_step_deg > 0.0:
-		visual_angle = snappedf(raw_angle, deg_to_rad(light_angle_step_deg))
+func _update_celestial_state(force := false) -> void:
+	var raw_angle := (hour - SUNRISE_OFFSET) * DAY_RADIANS
+	var angle_step := roundi(raw_angle * _angle_step_inv)
+	if not force and angle_step == _last_angle_step:
+		return
+	_last_angle_step = angle_step
 
-	var sun_elevation := sin(raw_angle)
+	var angle := float(angle_step) * _angle_step_rad
+	var o := posmod(angle_step, _steps_per_day) * LUT_STRIDE
+	var sun_elevation := _lut[o + LUT_SUN_ELEVATION]
 	var moon_elevation := -sun_elevation
 
-	var sun_amount := smoothstep(-0.04, 0.20, sun_elevation)
-	var moon_amount := smoothstep(-0.02, 0.20, moon_elevation)
-	sun.light_energy = sun_amount * sun_max_energy
-	moon.light_energy = moon_amount * moon_max_energy
+	sun.light_energy = _lut[o + LUT_SUN_ENERGY]
+	moon.light_energy = _lut[o + LUT_MOON_ENERGY]
+	_update_shadow_state(sun_elevation, moon_elevation)
+	sun.shadow_opacity = _lut[o + LUT_SUN_OPACITY]
+	moon.shadow_opacity = _lut[o + LUT_MOON_OPACITY]
 
-	var sun_casts_shadow := sun_elevation > sun_shadow_elevation
-	var moon_casts_shadow := moon_elevation > moon_shadow_elevation and not sun_casts_shadow
-	if sun.shadow_enabled != sun_casts_shadow:
-		sun.shadow_enabled = sun_casts_shadow
-	if moon.shadow_enabled != moon_casts_shadow:
-		moon.shadow_enabled = moon_casts_shadow
+	sun.rotation.x = -angle
+	moon.rotation.x = -angle + PI
 
-	sun.shadow_opacity = smoothstep(sun_shadow_elevation, 0.18, sun_elevation)
-	moon.shadow_opacity = smoothstep(moon_shadow_elevation, 0.25, moon_elevation) * 0.55
 
-	if force or not is_equal_approx(visual_angle, _last_angle):
-		_last_angle = visual_angle
-		sun.rotation.x = -visual_angle
-		moon.rotation.x = -visual_angle + PI
+func _update_shadow_state(sun_elevation: float, moon_elevation: float) -> void:
+	if _sun_shadow_active:
+		if sun_elevation < sun_shadow_disable_elevation:
+			_sun_shadow_active = false
+	elif sun_elevation > sun_shadow_enable_elevation:
+		_sun_shadow_active = true
+
+	if _moon_shadow_active:
+		if moon_elevation < moon_shadow_disable_elevation or _sun_shadow_active:
+			_moon_shadow_active = false
+	elif moon_elevation > moon_shadow_enable_elevation and not _sun_shadow_active:
+		_moon_shadow_active = true
+
+	if sun.shadow_enabled != _sun_shadow_active:
+		sun.shadow_enabled = _sun_shadow_active
+	if moon.shadow_enabled != _moon_shadow_active:
+		moon.shadow_enabled = _moon_shadow_active
