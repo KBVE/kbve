@@ -137,7 +137,7 @@ export const useModelsStore = create<ModelsStore>((set, get) => {
 				llmModels,
 				llmEngine,
 				llmEndpoint,
-				loadedLlmName,
+				loadedLlmNameRes,
 				ttsModels,
 				loadedTtsName,
 				ttsEngine,
@@ -154,6 +154,8 @@ export const useModelsStore = create<ModelsStore>((set, get) => {
 				commands.getTtsEndpoint(),
 				commands.getTtsHttpConfig(),
 			]);
+			const loadedLlmName =
+				loadedLlmNameRes.status === 'ok' ? loadedLlmNameRes.data : null;
 			set({
 				llmModels,
 				llmEngine,

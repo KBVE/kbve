@@ -243,8 +243,12 @@ export const useSidecarStore = create<SidecarStore>()(
 		refresh: async () => {
 			try {
 				// Fetch LLM/TTS state
-				const llmLoaded = await commands.isLocalLlmLoaded();
-				const ttsLoaded = await commands.isLocalTtsLoaded();
+				const llmLoadedRes = await commands.isLocalLlmLoaded();
+				const llmLoaded =
+					llmLoadedRes.status === 'ok' ? llmLoadedRes.data : false;
+				const ttsLoadedRes = await commands.isLocalTtsLoaded();
+				const ttsLoaded =
+					ttsLoadedRes.status === 'ok' ? ttsLoadedRes.data : false;
 
 				// Fetch Discord state
 				const discordStatus = await commands.discordGetStatus();

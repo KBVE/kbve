@@ -613,10 +613,25 @@ impl LocalTtsManager {
 
     pub fn is_loaded(&self) -> bool {
         if self.engine() == TtsEngine::OpenaiCompat {
-            return true;
+            return self.http_server_reachable();
         }
         let guard = self.sidecar.lock().unwrap();
         guard.as_ref().map(|s| s.is_loaded()).unwrap_or(false)
+    }
+
+    /// Any HTTP response (even 404) means the server is up; only connection
+    /// failures count as unreachable.
+    fn http_server_reachable(&self) -> bool {
+        let base = self.endpoint_url().trim_end_matches('/').to_string();
+        let client = match reqwest::blocking::Client::builder()
+            .connect_timeout(std::time::Duration::from_secs(2))
+            .timeout(std::time::Duration::from_secs(3))
+            .build()
+        {
+            Ok(c) => c,
+            Err(_) => return false,
+        };
+        client.get(format!("{}/models", base)).send().is_ok()
     }
 
     /// Get the currently loaded model name (file stem without extension)

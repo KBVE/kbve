@@ -160,8 +160,14 @@ pub async fn unload_local_llm(llm_manager: State<'_, Arc<LocalLlmManager>>) -> R
 
 #[tauri::command]
 #[specta::specta]
-pub fn is_local_llm_loaded(llm_manager: State<'_, Arc<LocalLlmManager>>) -> bool {
-    llm_manager.is_loaded()
+pub async fn is_local_llm_loaded(
+    llm_manager: State<'_, Arc<LocalLlmManager>>,
+) -> Result<bool, String> {
+    // HTTP-backed engines probe the server; keep that off the main thread.
+    let llm_manager = llm_manager.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || llm_manager.is_loaded())
+        .await
+        .map_err(|e| format!("Task failed: {}", e))
 }
 
 #[tauri::command]
@@ -229,8 +235,13 @@ pub fn set_llm_endpoint(
 
 #[tauri::command]
 #[specta::specta]
-pub fn get_local_llm_model_name(llm_manager: State<'_, Arc<LocalLlmManager>>) -> Option<String> {
-    llm_manager.get_loaded_model_name()
+pub async fn get_local_llm_model_name(
+    llm_manager: State<'_, Arc<LocalLlmManager>>,
+) -> Result<Option<String>, String> {
+    let llm_manager = llm_manager.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || llm_manager.get_loaded_model_name())
+        .await
+        .map_err(|e| format!("Task failed: {}", e))
 }
 
 #[tauri::command]
@@ -368,8 +379,13 @@ pub fn set_tts_http_config(
 
 #[tauri::command]
 #[specta::specta]
-pub fn is_local_tts_loaded(tts_manager: State<'_, Arc<LocalTtsManager>>) -> bool {
-    tts_manager.is_loaded()
+pub async fn is_local_tts_loaded(
+    tts_manager: State<'_, Arc<LocalTtsManager>>,
+) -> Result<bool, String> {
+    let tts_manager = tts_manager.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || tts_manager.is_loaded())
+        .await
+        .map_err(|e| format!("Task failed: {}", e))
 }
 
 #[tauri::command]
