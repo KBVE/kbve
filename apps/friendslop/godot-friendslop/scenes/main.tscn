@@ -44,9 +44,11 @@ tonemap_mode = 4
 glow_enabled = true
 glow_bloom = 0.1
 glow_blend_mode = 1
+ambient_light_source = 2
+ambient_light_color = Color(0.7, 0.66, 0.6, 1)
 fog_enabled = true
 fog_light_color = Color(0.851974, 0.909539, 1, 1)
-fog_density = 0.012
+fog_density = 0.008
 fog_sun_scatter = 0.15
 fog_aerial_perspective = 0.93
 fog_sky_affect = 0.0
@@ -74,6 +76,7 @@ grass_material = ExtResource("4_grassmat")
 
 [node name="DayNight" type="Node3D" parent="."]
 script = ExtResource("7_daynight")
+environment_node = NodePath("../WorldEnvironment")
 
 [node name="Sun" type="DirectionalLight3D" parent="DayNight"]
 shadow_enabled = true

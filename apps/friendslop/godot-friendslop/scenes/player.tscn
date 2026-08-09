@@ -1,10 +1,13 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://src/player/player.gd" id="1_player"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_cam"]
+radius = 0.25
 
 [node name="Player" type="CharacterBody3D"]
 script = ExtResource("1_player")
@@ -21,6 +24,8 @@ mesh = SubResource("CapsuleMesh_body")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 
 [node name="SpringArm3D" type="SpringArm3D" parent="Pivot"]
+shape = SubResource("SphereShape3D_cam")
 spring_length = 4.0
+margin = 0.2
 
 [node name="Camera3D" type="Camera3D" parent="Pivot/SpringArm3D"]

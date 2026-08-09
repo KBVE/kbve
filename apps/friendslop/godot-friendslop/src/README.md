@@ -72,6 +72,13 @@ unpack. Set `factory` (ObjectFactory with registered component classes) before u
 Whole-world snapshot only — delta compression and interest management TODO before
 real multiplayer.
 
+## Future utilities
+
+- Offscreen rendering via RenderingServer (item thumbnails, prop impostors):
+  <https://hexaquo.at/pages/using-godots-renderingserver-for-dynamically-rendering-billboards-thumbnails-and-more/>
+  — scenario/viewport/instance RIDs, grab via `texture_2d_get`; never `force_draw()`
+  mid-gameplay, await `frame_post_draw` or bake during loading.
+
 ## Entities
 
 ```gdscript

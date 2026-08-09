@@ -9,6 +9,7 @@ const MOUSE_SENSITIVITY := 0.003
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	$Pivot/SpringArm3D.add_excluded_object(get_rid())
 
 
 func _unhandled_input(event: InputEvent) -> void:
