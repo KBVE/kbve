@@ -1,0 +1,36 @@
+[gd_resource type="ShaderMaterial" load_steps=6 format=3]
+
+[ext_resource type="Shader" path="res://assets/biomes/grassland/HexaquoGrass/grass.gdshader" id="1_shader"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_patch"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_patch"]
+seamless = true
+noise = SubResource("FastNoiseLite_patch")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_wind"]
+frequency = 0.0043
+fractal_type = 2
+fractal_gain = 0.45
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_wind"]
+seamless = true
+noise = SubResource("FastNoiseLite_wind")
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/size_small = 0.2
+shader_parameter/size_large = 0.6
+shader_parameter/blade_bend = 0.5
+shader_parameter/color_small = Color(0.3, 0.6, 0.1, 1)
+shader_parameter/color_large = Color(0.9, 0.9, 0.2, 1)
+shader_parameter/patch_noise = SubResource("NoiseTexture2D_patch")
+shader_parameter/patch_scale = 5.0
+shader_parameter/wind_noise = SubResource("NoiseTexture2D_wind")
+shader_parameter/wind_strength = 0.15
+shader_parameter/wind_direction = Vector2(1, 0)
+shader_parameter/wind_bend_strength = 2.0
+shader_parameter/wind_ao_affect = 1.0
+shader_parameter/object_radius = 1.0
+shader_parameter/object_position = Vector3(0, 0.3, 0)

@@ -4,7 +4,15 @@
 
 - **BinbunGrass** (`biomes/grassland/BinbunGrass/`) — grass shader + textures by
   [Binbun3D](https://binbun3d.itch.io/godot-grass), <https://binbun3d.itch.io/godot-grass>.
-  Vendored as-is; grass/ground materials referenced from `scenes/main.tscn`.
+  Vendored as-is; base for the stylized forks below.
+- **HexaquoGrass** (`biomes/grassland/HexaquoGrass/`) — geometry grass system by
+  Karl Bittner, [godot-grass](https://git.hexaquo.at/karl/godot-grass)
+  (Unlicense/public domain, from the Grass Rendering Series tutorials). Stalk
+  meshes, grass + impostor-ground shaders, baked normals. Vendored with the
+  object-bend feature enabled; driven by `src/world/grass_field.gd` (streaming +
+  LOD) and `hexaquo_*.tres` materials.
+- **BinbunGrass billboards** kept as the alternate grass style — swap materials in
+  `scenes/main.tscn` and restore quad blades in `grass_field.gd` to switch back.
 
 ## Layout
 

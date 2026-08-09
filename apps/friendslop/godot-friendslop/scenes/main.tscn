@@ -2,8 +2,8 @@
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://src/world/grass_field.gd" id="2_grass"]
-[ext_resource type="Material" uid="uid://bra6ug2wjmj0j" path="res://assets/biomes/grassland/BinbunGrass/src/materials/grass_01/grass_ground_01.tres" id="3_ground"]
-[ext_resource type="Material" uid="uid://c2to67v55oatp" path="res://assets/biomes/grassland/BinbunGrass/src/materials/grass_01/grass_01.tres" id="4_grassmat"]
+[ext_resource type="Material" path="res://assets/biomes/grassland/hexaquo_ground.tres" id="3_ground"]
+[ext_resource type="Material" path="res://assets/biomes/grassland/hexaquo_grass.tres" id="4_grassmat"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="5_player"]
 [ext_resource type="Shader" path="res://assets/environment/skyboxes/sky.gdshader" id="6_sky"]
 [ext_resource type="Script" path="res://src/world/day_night.gd" id="7_daynight"]
@@ -40,11 +40,19 @@ sky_material = SubResource("ShaderMaterial_sky")
 [sub_resource type="Environment" id="Environment_world"]
 background_mode = 2
 sky = SubResource("Sky_world")
+tonemap_mode = 4
+glow_enabled = true
+glow_bloom = 0.1
+glow_blend_mode = 1
 fog_enabled = true
-fog_light_color = Color(0.94, 0.95, 0.92, 1)
+fog_light_color = Color(0.851974, 0.909539, 1, 1)
 fog_density = 0.012
-fog_aerial_perspective = 0.5
+fog_sun_scatter = 0.15
+fog_aerial_perspective = 0.93
 fog_sky_affect = 0.0
+adjustment_enabled = true
+adjustment_contrast = 1.3
+adjustment_saturation = 1.3
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -81,6 +89,7 @@ environment = SubResource("Environment_world")
 [node name="Wind" type="Node" parent="."]
 script = ExtResource("8_wind")
 grass_material = ExtResource("4_grassmat")
+ground_material = ExtResource("3_ground")
 environment_node = NodePath("../WorldEnvironment")
 
 [node name="Climate" type="Node" parent="."]
