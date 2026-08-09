@@ -1,10 +1,12 @@
-[gd_scene load_steps=9 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://src/world/grass_field.gd" id="2_grass"]
 [ext_resource type="Material" uid="uid://bra6ug2wjmj0j" path="res://assets/biomes/grassland/BinbunGrass/src/materials/grass_01/grass_ground_01.tres" id="3_ground"]
 [ext_resource type="Material" uid="uid://c2to67v55oatp" path="res://assets/biomes/grassland/BinbunGrass/src/materials/grass_01/grass_01.tres" id="4_grassmat"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="5_player"]
+[ext_resource type="Shader" path="res://assets/environment/skyboxes/sky.gdshader" id="6_sky"]
+[ext_resource type="Script" path="res://src/world/day_night.gd" id="7_daynight"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(512, 512)
@@ -12,14 +14,35 @@ size = Vector2(512, 512)
 [sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
 size = Vector3(512, 0.1, 512)
 
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_stars"]
+frequency = 0.3
+
+[sub_resource type="Gradient" id="Gradient_stars"]
+offsets = PackedFloat32Array(0.85, 0.92)
+colors = PackedColorArray(0, 0, 0, 1, 1, 1, 1, 1)
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_stars"]
+width = 1024
+height = 1024
+seamless = true
+color_ramp = SubResource("Gradient_stars")
+noise = SubResource("FastNoiseLite_stars")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sky"]
+shader = ExtResource("6_sky")
+shader_parameter/stars_texture = SubResource("NoiseTexture2D_stars")
+
+[sub_resource type="Sky" id="Sky_world"]
+sky_material = SubResource("ShaderMaterial_sky")
+
 [sub_resource type="Environment" id="Environment_world"]
-background_mode = 1
-background_color = Color(1, 1, 1, 1)
-ambient_light_source = 2
-ambient_light_color = Color(0.695381, 0.644979, 0.598817, 1)
+background_mode = 2
+sky = SubResource("Sky_world")
 fog_enabled = true
 fog_light_color = Color(0.94, 0.95, 0.92, 1)
 fog_density = 0.012
+fog_aerial_perspective = 0.5
+fog_sky_affect = 0.0
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -39,11 +62,16 @@ script = ExtResource("2_grass")
 player_path = NodePath("../Player")
 grass_material = ExtResource("4_grassmat")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 0.707107, 0.707107, 0, -0.707107, 0.707107, 0, 0, 0)
+[node name="DayNight" type="Node3D" parent="."]
+script = ExtResource("7_daynight")
+
+[node name="Sun" type="DirectionalLight3D" parent="DayNight"]
 shadow_enabled = true
 directional_shadow_mode = 1
 directional_shadow_split_1 = 0.01
+
+[node name="Moon" type="DirectionalLight3D" parent="DayNight"]
+light_energy = 0.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_world")
