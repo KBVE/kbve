@@ -298,6 +298,10 @@ pub struct LocalLlmManager {
     mlx_model_dir: Mutex<Option<PathBuf>>,
     /// Track the loaded model path so we can reload after crash
     loaded_model_path: Mutex<Option<PathBuf>>,
+    /// Short-lived cache of the HTTP server's model name; status polls hit
+    /// is_loaded + get_loaded_model_name back-to-back and shouldn't double
+    /// the network round-trips.
+    http_name_cache: Mutex<Option<(std::time::Instant, Option<String>)>>,
 }
 
 impl LocalLlmManager {
@@ -312,7 +316,12 @@ impl LocalLlmManager {
             engine: Mutex::new(LlmEngine::LlamaCpp),
             endpoint_url: Mutex::new("http://localhost:8000/v1".to_string()),
             loaded_model_path: Mutex::new(None),
+            http_name_cache: Mutex::new(None),
         }
+    }
+
+    fn clear_http_name_cache(&self) {
+        *self.http_name_cache.lock().unwrap() = None;
     }
 
     const MLX_PORT: u16 = 18434;
@@ -336,6 +345,7 @@ impl LocalLlmManager {
             let _ = child.wait();
         }
         *self.mlx_model_dir.lock().unwrap() = None;
+        self.clear_http_name_cache();
     }
 
     fn mlx_load(&self, model_dir: &Path) -> Result<(), String> {
@@ -360,6 +370,9 @@ impl LocalLlmManager {
             .arg(model_dir)
             .arg("--port")
             .arg(Self::MLX_PORT.to_string())
+            // rMLX writes .rmlx/ logs+metrics into its cwd — keep that in the
+            // model folder (app data), not wherever the app was launched from.
+            .current_dir(model_dir)
             .stdin(Stdio::null())
             .stdout(Stdio::null())
             .stderr(Stdio::inherit())
@@ -388,6 +401,7 @@ impl LocalLlmManager {
         }
 
         *self.mlx_model_dir.lock().unwrap() = Some(model_dir.to_path_buf());
+        self.clear_http_name_cache();
         info!("rMLX server ready on port {}", Self::MLX_PORT);
         Ok(())
     }
@@ -398,6 +412,7 @@ impl LocalLlmManager {
 
     pub fn set_endpoint_url(&self, url: String) {
         *self.endpoint_url.lock().unwrap() = url.trim_end_matches('/').to_string();
+        self.clear_http_name_cache();
     }
 
     fn http_client() -> Result<reqwest::blocking::Client, String> {
@@ -447,8 +462,18 @@ impl LocalLlmManager {
     }
 
     fn http_model_name(&self) -> Option<String> {
+        {
+            let cache = self.http_name_cache.lock().unwrap();
+            if let Some((at, ref name)) = *cache {
+                if at.elapsed() < Duration::from_secs(2) {
+                    return name.clone();
+                }
+            }
+        }
         let base = self.active_http_base();
-        self.http_model_name_at(&base)
+        let name = self.http_model_name_at(&base);
+        *self.http_name_cache.lock().unwrap() = Some((std::time::Instant::now(), name.clone()));
+        name
     }
 
     fn http_model_name_at(&self, base: &str) -> Option<String> {
@@ -500,6 +525,7 @@ impl LocalLlmManager {
             *current = engine;
         }
         info!("LLM engine switched to {:?}", engine);
+        self.clear_http_name_cache();
         let mut guard = self.sidecar.lock().unwrap();
         if let Some(mut sidecar) = guard.take() {
             sidecar.shutdown();
@@ -613,6 +639,12 @@ impl LocalLlmManager {
         if self.engine() == LlmEngine::OpenaiCompat {
             return;
         }
+        if self.engine() == LlmEngine::Mlx {
+            self.mlx_stop();
+            let mut model_path_guard = self.loaded_model_path.lock().unwrap();
+            *model_path_guard = None;
+            return;
+        }
         let mut guard = self.sidecar.lock().unwrap();
         if let Some(ref mut sidecar) = *guard {
             if let Err(e) = sidecar.unload_model() {
@@ -625,7 +657,7 @@ impl LocalLlmManager {
     }
 
     pub fn is_loaded(&self) -> bool {
-        if self.engine() == LlmEngine::OpenaiCompat {
+        if matches!(self.engine(), LlmEngine::OpenaiCompat | LlmEngine::Mlx) {
             return self.http_model_name().is_some();
         }
         let guard = self.sidecar.lock().unwrap();
@@ -634,7 +666,7 @@ impl LocalLlmManager {
 
     /// Get the currently loaded model name (file stem without extension)
     pub fn get_loaded_model_name(&self) -> Option<String> {
-        if self.engine() == LlmEngine::OpenaiCompat {
+        if matches!(self.engine(), LlmEngine::OpenaiCompat | LlmEngine::Mlx) {
             return self.http_model_name();
         }
         let guard = self.loaded_model_path.lock().unwrap();

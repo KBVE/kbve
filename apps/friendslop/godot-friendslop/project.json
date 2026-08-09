@@ -1,0 +1,65 @@
+{
+	"name": "godot-friendslop",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/friendslop/godot-friendslop",
+	"tags": ["scope:friendslop", "type:godot-app"],
+	"targets": {
+		"editor": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "godot --editor .",
+				"cwd": "apps/friendslop/godot-friendslop"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "godot --headless -s tests/smoke_ecs.gd",
+				"cwd": "apps/friendslop/godot-friendslop"
+			}
+		},
+		"run": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "godot .",
+				"cwd": "apps/friendslop/godot-friendslop"
+			}
+		},
+		"export:windows": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "mkdir -p ../../../dist/apps/friendslop/windows && godot --headless --export-release \"Windows Desktop\"",
+				"cwd": "apps/friendslop/godot-friendslop"
+			},
+			"outputs": ["{workspaceRoot}/dist/apps/friendslop/windows"]
+		},
+		"export:macos": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "mkdir -p ../../../dist/apps/friendslop/macos && godot --headless --export-release \"macOS\"",
+				"cwd": "apps/friendslop/godot-friendslop"
+			},
+			"outputs": ["{workspaceRoot}/dist/apps/friendslop/macos"]
+		},
+		"export:linux": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "mkdir -p ../../../dist/apps/friendslop/linux && godot --headless --export-release \"Linux\"",
+				"cwd": "apps/friendslop/godot-friendslop"
+			},
+			"outputs": ["{workspaceRoot}/dist/apps/friendslop/linux"]
+		},
+		"export": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"nx run godot-friendslop:export:windows",
+					"nx run godot-friendslop:export:macos",
+					"nx run godot-friendslop:export:linux"
+				],
+				"parallel": false
+			}
+		}
+	}
+}

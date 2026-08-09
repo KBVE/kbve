@@ -724,8 +724,16 @@ export const commands = {
 			else return { status: 'error', error: e as any };
 		}
 	},
-	async isLocalLlmLoaded(): Promise<boolean> {
-		return await TAURI_INVOKE('is_local_llm_loaded');
+	async isLocalLlmLoaded(): Promise<Result<boolean, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('is_local_llm_loaded'),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
 	},
 	async openOnichanModelsDir(): Promise<Result<null, string>> {
 		try {
@@ -766,8 +774,16 @@ export const commands = {
 			else return { status: 'error', error: e as any };
 		}
 	},
-	async getLocalLlmModelName(): Promise<string | null> {
-		return await TAURI_INVOKE('get_local_llm_model_name');
+	async getLocalLlmModelName(): Promise<Result<string | null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('get_local_llm_model_name'),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
 	},
 	async localLlmChat(
 		systemPrompt: string,
@@ -813,8 +829,16 @@ export const commands = {
 	async getLocalTtsModelName(): Promise<string | null> {
 		return await TAURI_INVOKE('get_local_tts_model_name');
 	},
-	async isLocalTtsLoaded(): Promise<boolean> {
-		return await TAURI_INVOKE('is_local_tts_loaded');
+	async isLocalTtsLoaded(): Promise<Result<boolean, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('is_local_tts_loaded'),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
 	},
 	async localTtsSpeak(text: string): Promise<Result<null, string>> {
 		try {

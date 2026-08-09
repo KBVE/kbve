@@ -1,0 +1,91 @@
+[gd_scene load_steps=17 format=3]
+
+[ext_resource type="Script" path="res://src/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://src/world/grass_field.gd" id="2_grass"]
+[ext_resource type="Material" uid="uid://bra6ug2wjmj0j" path="res://assets/biomes/grassland/BinbunGrass/src/materials/grass_01/grass_ground_01.tres" id="3_ground"]
+[ext_resource type="Material" uid="uid://c2to67v55oatp" path="res://assets/biomes/grassland/BinbunGrass/src/materials/grass_01/grass_01.tres" id="4_grassmat"]
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="5_player"]
+[ext_resource type="Shader" path="res://assets/environment/skyboxes/sky.gdshader" id="6_sky"]
+[ext_resource type="Script" path="res://src/world/day_night.gd" id="7_daynight"]
+[ext_resource type="Script" path="res://src/world/wind.gd" id="8_wind"]
+[ext_resource type="Script" path="res://src/world/climate.gd" id="9_climate"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
+size = Vector2(512, 512)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
+size = Vector3(512, 0.1, 512)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_stars"]
+frequency = 0.3
+
+[sub_resource type="Gradient" id="Gradient_stars"]
+offsets = PackedFloat32Array(0.85, 0.92)
+colors = PackedColorArray(0, 0, 0, 1, 1, 1, 1, 1)
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_stars"]
+width = 1024
+height = 1024
+seamless = true
+color_ramp = SubResource("Gradient_stars")
+noise = SubResource("FastNoiseLite_stars")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sky"]
+shader = ExtResource("6_sky")
+shader_parameter/stars_texture = SubResource("NoiseTexture2D_stars")
+
+[sub_resource type="Sky" id="Sky_world"]
+sky_material = SubResource("ShaderMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_world"]
+background_mode = 2
+sky = SubResource("Sky_world")
+fog_enabled = true
+fog_light_color = Color(0.94, 0.95, 0.92, 1)
+fog_density = 0.012
+fog_aerial_perspective = 0.5
+fog_sky_affect = 0.0
+
+[node name="Main" type="Node3D"]
+script = ExtResource("1_main")
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+material_override = ExtResource("3_ground")
+mesh = SubResource("PlaneMesh_ground")
+
+[node name="GroundBody" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GroundBody"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)
+shape = SubResource("BoxShape3D_ground")
+
+[node name="GrassField" type="Node3D" parent="."]
+script = ExtResource("2_grass")
+player_path = NodePath("../Player")
+grass_material = ExtResource("4_grassmat")
+
+[node name="DayNight" type="Node3D" parent="."]
+script = ExtResource("7_daynight")
+
+[node name="Sun" type="DirectionalLight3D" parent="DayNight"]
+shadow_enabled = true
+shadow_blur = 1.5
+
+[node name="Moon" type="DirectionalLight3D" parent="DayNight"]
+light_energy = 0.0
+shadow_blur = 2.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_world")
+
+[node name="Wind" type="Node" parent="."]
+script = ExtResource("8_wind")
+grass_material = ExtResource("4_grassmat")
+environment_node = NodePath("../WorldEnvironment")
+
+[node name="Climate" type="Node" parent="."]
+script = ExtResource("9_climate")
+environment_node = NodePath("../WorldEnvironment")
+
+[node name="Player" parent="." instance=ExtResource("5_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
