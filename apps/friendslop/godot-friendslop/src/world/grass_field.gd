@@ -40,7 +40,7 @@ var _last_tier: int
 
 func _ready() -> void:
 	var count := int(chunk_size * chunk_size * blades_per_sqm)
-	var aabb := AABB(Vector3(-0.5, 0.0, -0.5), Vector3(chunk_size + 1.0, 2.0, chunk_size + 1.0))
+	var aabb := AABB(Vector3(-0.5, -8.0, -0.5), Vector3(chunk_size + 1.0, 16.0, chunk_size + 1.0))
 	_boundaries.clear()
 	var half_diagonal := chunk_size * 0.7071
 	for f in ring_fractions:

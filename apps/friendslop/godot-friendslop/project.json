@@ -15,6 +15,17 @@
 		"test": {
 			"executor": "nx:run-commands",
 			"options": {
+				"commands": [
+					"godot --headless --import",
+					"godot --headless -d -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd --ignoreHeadlessMode -a res://tests -c"
+				],
+				"parallel": false,
+				"cwd": "apps/friendslop/godot-friendslop"
+			}
+		},
+		"test:smoke": {
+			"executor": "nx:run-commands",
+			"options": {
 				"command": "godot --headless -s tests/smoke_ecs.gd",
 				"cwd": "apps/friendslop/godot-friendslop"
 			}

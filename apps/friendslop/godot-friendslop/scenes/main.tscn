@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=21 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://src/world/grass_field.gd" id="2_grass"]
@@ -11,12 +11,13 @@
 [ext_resource type="Script" path="res://src/world/climate.gd" id="9_climate"]
 [ext_resource type="Script" path="res://src/debug/debug_tools.gd" id="10_debug"]
 [ext_resource type="Shader" path="res://assets/fx/shaders/film_grade.gdshader" id="11_film"]
+[ext_resource type="Script" path="res://src/world/terrain.gd" id="12_terrain"]
+[ext_resource type="Material" path="res://assets/environment/water/water.tres" id="13_water"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
-size = Vector2(4096, 4096)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
-size = Vector3(512, 0.1, 512)
+size = Vector2(1024, 1024)
+subdivide_width = 511
+subdivide_depth = 511
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_stars"]
 frequency = 0.3
@@ -65,12 +66,14 @@ script = ExtResource("1_main")
 [node name="Ground" type="MeshInstance3D" parent="."]
 material_override = ExtResource("3_ground")
 mesh = SubResource("PlaneMesh_ground")
+extra_cull_margin = 16.0
 
-[node name="GroundBody" type="StaticBody3D" parent="."]
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="GroundBody"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)
-shape = SubResource("BoxShape3D_ground")
+[node name="Terrain" type="Node3D" parent="."]
+script = ExtResource("12_terrain")
+player_path = NodePath("../Player")
+grass_material = ExtResource("4_grassmat")
+ground_material = ExtResource("3_ground")
+water_material = ExtResource("13_water")
 
 [node name="GrassField" type="Node3D" parent="."]
 script = ExtResource("2_grass")

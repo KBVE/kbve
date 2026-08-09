@@ -97,10 +97,11 @@ func _spawn_marker(pos: Vector3) -> void:
 	var marker := Node3D.new()
 	marker.set_script(MARKER_SCRIPT)
 	var shrub := SHRUB.instantiate()
+	shrub.scale = Vector3(2.0, 2.0, 2.0)
 	marker.add_child(shrub)
 	var label := Label3D.new()
 	label.name = "Label"
-	label.position = Vector3(0.0, 2.2, 0.0)
+	label.position = Vector3(0.0, 4.2, 0.0)
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.font_size = 96
 	label.outline_size = 24
