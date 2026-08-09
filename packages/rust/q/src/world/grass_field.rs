@@ -62,11 +62,8 @@ pub struct QGrassField {
     #[init(val = 8.0)]
     lod_near_exit: f32,
     #[export]
-    #[init(val = 16.0)]
-    grass_fade_out_start: f32,
-    #[export]
-    #[init(val = 14.0)]
-    fade_tail: f32,
+    #[init(val = 25.0)]
+    thin_start: f32,
     #[export]
     #[init(val = 40.0)]
     blade_range: f32,
@@ -93,7 +90,8 @@ pub struct QGrassField {
     card_multimeshes: Vec<Rid>,
     blade_chunks: HashMap<(i32, i32), BladeSlot>,
     card_chunks: HashMap<(i32, i32), Rid>,
-    pool: Vec<Rid>,
+    blade_pool: Vec<Rid>,
+    card_pool: Vec<Rid>,
     card_pending: Vec<(i32, i32)>,
     last_blade_center: Option<(i32, i32)>,
     last_card_center: Option<(i32, i32)>,
@@ -264,13 +262,11 @@ impl QGrassField {
     }
 
     fn sync_fade_parameters(&mut self) {
-        let fs = self.grass_fade_out_start;
-        let ft = self.fade_tail;
+        let ts = self.thin_start;
         let br = self.blade_range;
         let fe = self.grass_fade_out_end;
         if let Some(m) = self.grass_material.as_mut() {
-            m.set_shader_parameter("fade_start", &fs.to_variant());
-            m.set_shader_parameter("fade_tail", &ft.to_variant());
+            m.set_shader_parameter("thin_start", &ts.to_variant());
             m.set_shader_parameter("blade_range", &br.to_variant());
         }
         if let Some(m) = self.card_material.as_mut() {
@@ -301,8 +297,13 @@ impl QGrassField {
         self.blade_range + self.chunk_size * std::f32::consts::FRAC_1_SQRT_2
     }
 
-    fn alloc_instance(&mut self) -> Option<Rid> {
-        if let Some(rid) = self.pool.pop() {
+    fn alloc_instance(&mut self, card: bool) -> Option<Rid> {
+        let pool = if card {
+            &mut self.card_pool
+        } else {
+            &mut self.blade_pool
+        };
+        if let Some(rid) = pool.pop() {
             return Some(rid);
         }
         let world = self.base().get_world_3d()?;
@@ -349,7 +350,7 @@ impl QGrassField {
         for coord in to_remove {
             if let Some(slot) = self.blade_chunks.remove(&coord) {
                 rs.instance_set_visible(slot.instance, false);
-                self.pool.push(slot.instance);
+                self.blade_pool.push(slot.instance);
             }
         }
 
@@ -379,7 +380,7 @@ impl QGrassField {
     }
 
     fn spawn_blade_chunk(&mut self, coord: (i32, i32), player_xz: Vector2) {
-        let Some(rid) = self.alloc_instance() else {
+        let Some(rid) = self.alloc_instance(false) else {
             return;
         };
         let dist = self
@@ -440,7 +441,7 @@ impl QGrassField {
         for coord in to_remove {
             if let Some(rid) = self.card_chunks.remove(&coord) {
                 rs.instance_set_visible(rid, false);
-                self.pool.push(rid);
+                self.card_pool.push(rid);
             }
         }
 
@@ -459,7 +460,7 @@ impl QGrassField {
             .min(self.max_chunks_spawned_per_frame.max(0) as usize);
         for _ in 0..budget {
             let coord = self.card_pending.remove(0);
-            let Some(rid) = self.alloc_instance() else {
+            let Some(rid) = self.alloc_instance(true) else {
                 continue;
             };
             let mm = self.card_multimeshes[self.layout_index(coord)];
@@ -603,7 +604,12 @@ impl QGrassField {
         for (_, rid) in self.card_chunks.drain() {
             rs.free_rid(rid);
         }
-        for rid in self.pool.drain(..) {
+        let pooled: Vec<Rid> = self
+            .blade_pool
+            .drain(..)
+            .chain(self.card_pool.drain(..))
+            .collect();
+        for rid in pooled {
             rs.free_rid(rid);
         }
         for group in self.blade_multimeshes.drain(..) {
