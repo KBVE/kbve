@@ -5,6 +5,9 @@ uniform vec3 color_large: source_color = vec3(0.9, 0.9, 0.2);
 
 uniform vec3 ground_color: source_color = vec3(0.0, 0.0, 0.0);
 
+uniform float soil_fade_start = 5.0;
+uniform float soil_fade_end = 10.0;
+
 uniform sampler2D patch_noise;
 uniform float patch_scale = 5.0;
 
@@ -38,7 +41,9 @@ void fragment() {
 	float spottiness = (1.0 - normal_to_view) * 0.5 - patch_factor * 0.2;
 	float ground_factor = smoothstep(spottiness + 0.1, spottiness - 0.1, high_frequency_sample);
 
-	ALBEDO = mix(ALBEDO, ground_color, clamp(ground_factor + 1.0 - alpha, 0.0, 1.0));
+	float distance_alpha = smoothstep(soil_fade_start, soil_fade_end, distance(CAMERA_POSITION_WORLD, world_vertex));
+	float final_alpha = min(alpha, distance_alpha);
+	ALBEDO = mix(ALBEDO, ground_color, clamp(ground_factor + 1.0 - final_alpha, 0.0, 1.0));
 
 	// Wind
 	vec2 wind_position = world_vertex.xz / 10.0;

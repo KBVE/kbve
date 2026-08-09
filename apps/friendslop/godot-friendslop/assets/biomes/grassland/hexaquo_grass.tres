@@ -34,3 +34,6 @@ shader_parameter/wind_bend_strength = 2.0
 shader_parameter/wind_ao_affect = 1.0
 shader_parameter/object_radius = 1.0
 shader_parameter/object_position = Vector3(0, 0.3, 0)
+shader_parameter/fade_start = 16.0
+shader_parameter/fade_tail = 14.0
+shader_parameter/fade_end = 100.0

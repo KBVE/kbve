@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://dn8xj7cg3gbr7"
+path="res://.godot/imported/grass-clump.obj-a3e29af8c240ca4c523472bf8311a5bf.mesh"
+
+[deps]
+
+files=["res://.godot/imported/grass-clump.obj-a3e29af8c240ca4c523472bf8311a5bf.mesh"]
+
+source_file="res://assets/biomes/grassland/HexaquoGrass/grass-clump.obj"
+dest_files=["res://.godot/imported/grass-clump.obj-a3e29af8c240ca4c523472bf8311a5bf.mesh", "res://.godot/imported/grass-clump.obj-a3e29af8c240ca4c523472bf8311a5bf.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

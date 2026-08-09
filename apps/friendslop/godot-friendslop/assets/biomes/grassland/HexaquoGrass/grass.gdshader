@@ -22,14 +22,26 @@ uniform float wind_ao_affect = 1.0;
 uniform float object_radius = 1.0;
 uniform vec3 object_position;
 
+uniform float fade_start = 16.0;
+uniform float fade_tail = 14.0;
+uniform float fade_end = 100.0;
+uniform float distance_growth = 1.2;
+uniform float total_blades = 10000.0;
+
 instance uniform float alpha = 1.0;
 
 varying float bottom_to_top;
 varying float current_wind_bend;
 varying float cut_height;
+varying float dist_alpha;
 
 void vertex() {
 	cut_height = 1.0;
+	float rank = float(INSTANCE_ID) / total_blades * 0.95;
+	float player_distance = distance(NODE_POSITION_WORLD.xz, object_position.xz);
+	float keep = exp(-max(player_distance - fade_start, 0.0) / fade_tail);
+	keep *= 1.0 - smoothstep(fade_end - 20.0, fade_end, player_distance);
+	dist_alpha = clamp((keep - rank) / 0.05, 0.0, 1.0);
 
 	//// Cutting all grass on the right
 	//if (NODE_POSITION_WORLD.x > 0.0) {
@@ -69,9 +81,13 @@ void vertex() {
 	VERTEX.z += blade_bend * pow(bottom_to_top, 2.0);
 
 	patch_factor = texture(patch_noise, NODE_POSITION_WORLD.xz / patch_scale).r;
-	VERTEX *= mix(size_small, size_large, patch_factor);
+	VERTEX *= mix(size_small, size_large, patch_factor) * (1.0 + distance_growth * (1.0 - keep));
 
 	NORMAL = mix(NORMAL, vec3(0.0, 1.0, 0.0), mix(1.0, bottom_to_top, alpha + 0.2));
+
+	if (dist_alpha <= 0.0) {
+		VERTEX = vec3(0.0);
+	}
 }
 
 void fragment() {
@@ -86,6 +102,6 @@ void fragment() {
 	ROUGHNESS = 0.4;
 	SPECULAR = 0.12;
 	
-	ALPHA = alpha;
+	ALPHA = alpha * dist_alpha;
 	ALPHA_HASH_SCALE = 1.0;
 }
