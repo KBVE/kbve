@@ -14,6 +14,7 @@ var _markers: Array[Node3D] = []
 var _yaw := 0.0
 var _pitch := 0.0
 var _place_queued := false
+var _smoke_state := 0
 
 @onready var _player: CharacterBody3D = get_node(player_path)
 
@@ -33,7 +34,35 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_I:
 		var fx := get_node_or_null("../ImpactFX")
 		if fx:
-			fx.trigger()
+			fx.trigger_at(_player.global_position + Vector3(0.0, 1.2, 0.0))
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_O:
+		var hit := _player.global_position + Vector3(0.0, 1.2, 0.0) - _player.global_basis.z * 1.2
+		var slash := _player.get_node_or_null("SlashArc")
+		if slash:
+			slash.slash()
+		var burst := get_node_or_null("../ImpactBurst")
+		if burst:
+			burst.burst_at(hit, Color(1.0, 0.85, 0.4))
+		var frame := get_node_or_null("../ImpactFX")
+		if frame:
+			frame.combo_at(hit)
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_U:
+		var nuke_fx := get_node_or_null("../ImpactFX")
+		if nuke_fx:
+			nuke_fx.nuke(12.0, 0.28, Color(0.0, 0.0, 0.0, 1.0), 0.6)
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_Y:
+		var burst_fx := get_node_or_null("../ImpactFX")
+		if burst_fx:
+			burst_fx.blackhole_at(_player.global_position + Vector3(0.0, 1.6, 0.0) - _player.global_basis.z * 3.0)
+		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_P:
+		var smoke := _player.get_node_or_null("StatusSmoke")
+		if smoke:
+			_smoke_state = (_smoke_state + 1) % 3
+			smoke.set_status(["none", "poison", "curse"][_smoke_state])
 		return
 	if not _active:
 		return
