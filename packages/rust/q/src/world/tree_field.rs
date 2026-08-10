@@ -97,6 +97,7 @@ pub struct QTreeField {
     candidates: Vec<f32>,
     meshes: Vec<Gd<ArrayMesh>>,
     leaf_mats: Vec<Gd<ShaderMaterial>>,
+    bark_mats: Vec<Gd<ShaderMaterial>>,
     player: Option<Gd<Node3D>>,
     last_player_pos: Vector3,
     #[init(val = -1.0)]
@@ -302,6 +303,9 @@ impl INode3D for QTreeField {
                     if let Some(lm) = leaf_mat {
                         self.leaf_mats.push(lm);
                     }
+                    if let Some(bm) = bark_mat {
+                        self.bark_mats.push(bm);
+                    }
                 }
                 (n, f) => {
                     for mut c in [n, f].into_iter().flatten() {
@@ -329,7 +333,7 @@ impl INode3D for QTreeField {
             if p.distance_squared_to(self.last_player_pos) > 0.0004 {
                 self.last_player_pos = p;
                 let obj = p + Vector3::new(0.0, 1.1, 0.0);
-                for m in self.leaf_mats.iter_mut() {
+                for m in self.leaf_mats.iter_mut().chain(self.bark_mats.iter_mut()) {
                     m.set_shader_parameter("object_position", &obj.to_variant());
                 }
             }
