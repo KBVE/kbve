@@ -97,7 +97,7 @@ void main() {
         if (alive) {
             h = terrain_h(vec2(wx, wz));
             vec3 pos = vec3(wx, h + 0.7, wz);
-            alive = h >= pc.terra.y + 0.25
+            alive = h >= pc.terra.y + 0.6
                 && rank < 1.0 - clearance_at(vec2(wx, wz))
                 && !(outside(pc.p0, pos) || outside(pc.p1, pos) || outside(pc.p2, pos)
                     || outside(pc.p3, pos));
@@ -287,7 +287,7 @@ void main() {
         if (alive) {
             h = terrain_h(vec2(wx, wz));
             vec3 pos = vec3(wx, h + 1.0, wz);
-            alive = h >= WATER + 0.25
+            alive = h >= WATER + 0.6
                 && rank < 1.0 - clearance_at(vec2(wx, wz))
                 && !(outside(pc.p0, pos) || outside(pc.p1, pos) || outside(pc.p2, pos)
                     || outside(pc.p3, pos));

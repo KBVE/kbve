@@ -63,6 +63,8 @@ pub struct QTerrain {
     ground_material: Option<Gd<ShaderMaterial>>,
     #[export]
     water_material: Option<Gd<ShaderMaterial>>,
+    #[export]
+    riverbed_material: Option<Gd<ShaderMaterial>>,
 
     hills: Option<FastNoiseLite>,
     river: Option<FastNoiseLite>,
@@ -104,16 +106,26 @@ impl INode3D for QTerrain {
             .and_then(|img| ImageTexture::create_from_image(&img));
         self.texture = tex.clone();
 
-        for m in [self.grass_material.as_mut(), self.ground_material.as_mut()]
-            .into_iter()
-            .flatten()
+        for m in [
+            self.grass_material.as_mut(),
+            self.ground_material.as_mut(),
+            self.riverbed_material.as_mut(),
+        ]
+        .into_iter()
+        .flatten()
         {
             if let Some(t) = tex.as_ref() {
                 m.set_shader_parameter("heightmap", &t.to_variant());
             }
             m.set_shader_parameter("terrain_extent", &self.extent.to_variant());
         }
-        if let Some(m) = self.grass_material.as_mut() {
+        for m in [
+            self.grass_material.as_mut(),
+            self.riverbed_material.as_mut(),
+        ]
+        .into_iter()
+        .flatten()
+        {
             m.set_shader_parameter("water_level", &self.water_level.to_variant());
         }
 
@@ -151,11 +163,22 @@ impl INode3D for QTerrain {
         body.add_child(&col);
         self.base_mut().add_child(&body);
 
+        let strip_width = self.river_wander * 2.0 + self.river_width * 8.0;
+        let mut bed_plane = PlaneMesh::new_gd();
+        bed_plane.set_size(Vector2::new(strip_width, self.extent * 2.0));
+        bed_plane.set_subdivide_width(((strip_width * 0.5) as i32).max(1));
+        bed_plane.set_subdivide_depth((self.extent as i32).max(1));
+        let mut bed = MeshInstance3D::new_alloc();
+        bed.set_name("Riverbed");
+        bed.set_mesh(&bed_plane);
+        if let Some(m) = self.riverbed_material.as_ref() {
+            bed.set_material_override(m);
+        }
+        bed.set_extra_cull_margin(16.0);
+        self.base_mut().add_child(&bed);
+
         let mut plane = PlaneMesh::new_gd();
-        plane.set_size(Vector2::new(
-            self.river_wander * 2.0 + self.river_width * 8.0,
-            self.extent * 2.0,
-        ));
+        plane.set_size(Vector2::new(strip_width, self.extent * 2.0));
         let mut water = MeshInstance3D::new_alloc();
         water.set_name("Water");
         water.set_mesh(&plane);

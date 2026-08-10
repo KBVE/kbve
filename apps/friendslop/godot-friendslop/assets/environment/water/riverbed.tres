@@ -1,0 +1,26 @@
+[gd_resource type="ShaderMaterial" load_steps=6 format=3]
+
+[ext_resource type="Shader" path="res://assets/environment/water/riverbed.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://assets/biomes/desert/desert_ground_01_albedo.png" id="2_albedo"]
+[ext_resource type="Texture2D" path="res://assets/biomes/desert/desert_ground_01_normal_gl.png" id="3_normal"]
+[ext_resource type="Texture2D" path="res://assets/biomes/desert/desert_ground_01_orm.png" id="4_orm"]
+[ext_resource type="Texture2D" path="res://assets/biomes/desert/desert_ground_01_height.png" id="5_height"]
+
+[resource]
+render_priority = -1
+shader = ExtResource("1_shader")
+shader_parameter/albedo_tex = ExtResource("2_albedo")
+shader_parameter/normal_tex = ExtResource("3_normal")
+shader_parameter/orm_tex = ExtResource("4_orm")
+shader_parameter/height_tex = ExtResource("5_height")
+shader_parameter/albedo_tint = Color(1, 1, 1, 1)
+shader_parameter/tile_scale = 4.0
+shader_parameter/normal_strength = 1.0
+shader_parameter/wet_darkening = 0.25
+shader_parameter/wet_roughness = 0.15
+shader_parameter/wet_band = 0.6
+shader_parameter/pom_depth = 0.06
+shader_parameter/pom_fade_start = 8.0
+shader_parameter/pom_fade_end = 22.0
+shader_parameter/shore_fade_start = 1.6
+shader_parameter/shore_fade_end = 0.9

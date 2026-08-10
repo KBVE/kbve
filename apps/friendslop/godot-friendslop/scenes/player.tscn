@@ -1,7 +1,7 @@
 [gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://src/player/player.gd" id="1_player"]
-[ext_resource type="Shader" path="res://assets/fx/shaders/anime.gdshader" id="2_anime"]
+[ext_resource type="Shader" path="res://assets/fx/shaders/toon.gdshader" id="2_toon"]
 [ext_resource type="Shader" path="res://assets/fx/shaders/outline.gdshader" id="3_outline"]
 [ext_resource type="Shader" path="res://assets/fx/shaders/ink_lines.gdshader" id="4_ink"]
 
@@ -9,8 +9,8 @@
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
 
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_anime"]
-shader = ExtResource("2_anime")
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_toon"]
+shader = ExtResource("2_toon")
 shader_parameter/albedo_tint = Color(0.85, 0.3, 0.25, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_outline"]
@@ -35,12 +35,18 @@ shape = SubResource("CapsuleShape3D_body")
 [node name="Mesh" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 mesh = SubResource("CapsuleMesh_body")
-material_override = SubResource("ShaderMaterial_anime")
+material_override = SubResource("ShaderMaterial_toon")
 
 [node name="Outline" type="MeshInstance3D" parent="Mesh"]
 mesh = SubResource("CapsuleMesh_body")
 material_override = SubResource("ShaderMaterial_outline")
 cast_shadow = 0
+
+[node name="StatusSmoke" type="QStatusSmoke" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="SlashArc" type="QSlashArc" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 
 [node name="Pivot" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)

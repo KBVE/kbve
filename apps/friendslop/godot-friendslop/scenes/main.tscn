@@ -1,4 +1,4 @@
-[gd_scene load_steps=29 format=3]
+[gd_scene load_steps=31 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="Material" path="res://assets/biomes/grassland/grass/ground.tres" id="3_ground"]
@@ -12,6 +12,7 @@
 [ext_resource type="Shader" path="res://assets/fx/shaders/film_grade.gdshader" id="11_film"]
 [ext_resource type="Shader" path="res://assets/fx/shaders/anime_filter.gdshader" id="12_anime"]
 [ext_resource type="Material" path="res://assets/environment/water/water.tres" id="13_water"]
+[ext_resource type="Material" path="res://assets/environment/water/riverbed.tres" id="24_riverbed"]
 [ext_resource type="Script" path="res://src/fauna/flock.gd" id="14_ravens"]
 [ext_resource type="Resource" path="res://assets/environment/props/fauna/raven/raven_species.tres" id="15_species"]
 [ext_resource type="Script" path="res://src/ui/pause_menu.gd" id="16_pause"]
@@ -21,6 +22,7 @@
 [ext_resource type="Material" path="res://assets/environment/props/flora/shrub.tres" id="20_shrub"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/tree_leaf.tres" id="21_leaf"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/tree_bark.tres" id="22_bark"]
+[ext_resource type="Material" path="res://assets/environment/props/rocks/rock.tres" id="23_rock"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(1024, 1024)
@@ -84,6 +86,7 @@ player_path = NodePath("../Player")
 grass_material = ExtResource("4_grassmat")
 ground_material = ExtResource("3_ground")
 water_material = ExtResource("13_water")
+riverbed_material = ExtResource("24_riverbed")
 
 [node name="GrassField" type="QGrassField" parent="."]
 player_path = NodePath("../Player")
@@ -112,6 +115,11 @@ player_path = NodePath("../Player")
 tree_material = ExtResource("19_tree")
 bark_material = ExtResource("22_bark")
 leaf_material = ExtResource("21_leaf")
+
+[node name="StoneField" type="QStoneField" parent="."]
+terrain_path = NodePath("../Terrain")
+player_path = NodePath("../Player")
+stone_material = ExtResource("23_rock")
 
 [node name="DayNight" type="Node3D" parent="."]
 script = ExtResource("7_daynight")
@@ -163,6 +171,9 @@ layer = 100
 
 [node name="ImpactFX" type="QImpactFrame" parent="."]
 layer = 101
+day_night_path = NodePath("../DayNight")
+
+[node name="ImpactBurst" type="QImpactBurst" parent="."]
 
 [node name="AnimeFilter" type="ColorRect" parent="PostFX"]
 visible = false

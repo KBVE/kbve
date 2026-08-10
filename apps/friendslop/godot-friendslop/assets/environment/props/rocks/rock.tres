@@ -1,0 +1,14 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://assets/fx/shaders/toon.gdshader" id="1_toon"]
+[ext_resource type="Texture2D" path="res://assets/environment/props/rocks/rock_albedo.png" id="2_albedo"]
+
+[resource]
+shader = ExtResource("1_toon")
+shader_parameter/albedo_tex = ExtResource("2_albedo")
+shader_parameter/albedo_tint = Color(1, 0.98, 0.94, 1)
+shader_parameter/specular_intensity = 0.0
+shader_parameter/rim_strength = 0.08
+shader_parameter/stroke_scale = 3.0
+shader_parameter/stroke_hue = 0.01
+shader_parameter/stroke_val = 0.06
