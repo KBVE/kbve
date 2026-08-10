@@ -107,7 +107,7 @@
 		"lint-staged": "^16.4.0",
 		"mdream": "^1.4.1",
 		"mermaid": "^11.15.0",
-		"monocart-reporter": "^2.9.19",
+		"monocart-reporter": "^2.12.4",
 		"nanostores": "^1.4.0",
 		"nx": "23.1.1",
 		"openapi-typescript": "^7.13.0",
