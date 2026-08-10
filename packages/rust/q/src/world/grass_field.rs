@@ -121,6 +121,7 @@ impl RingGrid {
 pub struct QGrassField {
     base: Base<Node3D>,
 
+    init_done: bool,
     #[export]
     player_path: NodePath,
     #[export]
@@ -223,12 +224,20 @@ pub struct QGrassField {
     water_cached: f32,
 }
 
-#[godot_api]
-impl INode3D for QGrassField {
-    fn ready(&mut self) {
-        if Engine::singleton().is_editor_hint() || super::q_hidden("grass") {
-            return;
+impl QGrassField {
+    fn late_init(&mut self) -> bool {
+        let terrain_poll = if self.terrain_path.is_empty() {
+            self.base().get_node_or_null("../Terrain")
+        } else {
+            self.base().get_node_or_null(&self.terrain_path)
         }
+        .and_then(|n| n.try_cast::<QTerrain>().ok());
+        if let Some(t) = terrain_poll.as_ref() {
+            if t.bind().cpu_heights().is_none() {
+                return false;
+            }
+        }
+        let _t = super::ReadyTimer::start("grass");
         self.last_lod_position = Vector3::new(f32::INFINITY, f32::INFINITY, f32::INFINITY);
         self.last_shader_origin = Vector3::new(f32::INFINITY, f32::INFINITY, f32::INFINITY);
         self.player = self
@@ -380,10 +389,20 @@ impl INode3D for QGrassField {
             0.0f32
         };
         self.apply_compute_mode(mode);
+        true
     }
+}
 
+#[godot_api]
+impl INode3D for QGrassField {
     fn process(&mut self, _delta: f64) {
         if Engine::singleton().is_editor_hint() {
+            return;
+        }
+        if !self.init_done {
+            if super::q_hidden("grass") || self.late_init() {
+                self.init_done = true;
+            }
             return;
         }
         let origin = match self.view_origin() {

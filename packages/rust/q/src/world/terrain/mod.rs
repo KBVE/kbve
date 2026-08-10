@@ -21,6 +21,58 @@ fn make_noise(seed: i32, frequency: f32, octaves: i32) -> FastNoiseLite {
     n
 }
 
+pub(super) struct HeightGen {
+    hills: FastNoiseLite,
+    river: FastNoiseLite,
+    hill_amplitude: f32,
+    hill_base: f32,
+    river_wander: f32,
+    river_width: f32,
+    water_level: f32,
+    riverbed_depth: f32,
+}
+
+impl HeightGen {
+    fn from_terrain(t: &QTerrain) -> Self {
+        Self {
+            hills: make_noise(t.terrain_seed, t.hill_frequency, 4),
+            river: make_noise(t.terrain_seed + 7, t.river_wander_frequency, 5),
+            hill_amplitude: t.hill_amplitude,
+            hill_base: t.hill_base,
+            river_wander: t.river_wander,
+            river_width: t.river_width,
+            water_level: t.water_level,
+            riverbed_depth: t.riverbed_depth,
+        }
+    }
+
+    fn height(&self, x: f32, z: f32) -> f32 {
+        let h = self.hills.get_noise_2d(x, z) * self.hill_amplitude + self.hill_base;
+        let river_x = self.river.get_noise_2d(z, 0.0) * self.river_wander;
+        let d = (x - river_x).abs();
+        let t = (-(d * d) / (2.0 * self.river_width * self.river_width)).exp();
+        let m = (t * 1.15).clamp(0.0, 1.0);
+        h + (self.water_level - self.riverbed_depth - h) * m
+    }
+
+    fn river_x(&self, z: f32) -> f32 {
+        self.river.get_noise_2d(z, 0.0) * self.river_wander
+    }
+
+    fn bake(&self, extent: f32, res: i32) -> Vec<f32> {
+        let step = extent * 2.0 / (res - 1) as f32;
+        let mut heights = vec![0.0f32; (res * res) as usize];
+        for iy in 0..res {
+            let z = -extent + iy as f32 * step;
+            for ix in 0..res {
+                let x = -extent + ix as f32 * step;
+                heights[(iy * res + ix) as usize] = self.height(x, z);
+            }
+        }
+        heights
+    }
+}
+
 #[derive(GodotClass)]
 #[class(init, base = Node3D)]
 pub struct QTerrain {
@@ -103,8 +155,9 @@ pub struct QTerrain {
     wake_active: bool,
     wake_origin: Vector2,
     last_player_pos: Vector3,
-    hills: Option<FastNoiseLite>,
-    river: Option<FastNoiseLite>,
+    hgen: Option<HeightGen>,
+    gen_rx: Option<std::sync::mpsc::Receiver<Vec<f32>>>,
+    gen_t0: Option<std::time::Instant>,
     heights: Vec<f32>,
     texture: Option<Gd<ImageTexture>>,
     clearance: Vec<u8>,
@@ -119,6 +172,7 @@ impl INode3D for QTerrain {
         if Engine::singleton().is_editor_hint() {
             return;
         }
+        let _t = crate::world::ReadyTimer::start("terrain");
         if std::env::var("Q_NO_WAKE").is_ok() {
             self.wake_enabled = false;
         }
@@ -126,24 +180,69 @@ impl INode3D for QTerrain {
             godot::classes::DisplayServer::singleton()
                 .window_set_vsync_mode(godot::classes::display_server::VSyncMode::DISABLED);
         }
-        self.hills = Some(make_noise(self.terrain_seed, self.hill_frequency, 4));
-        self.river = Some(make_noise(
-            self.terrain_seed + 7,
-            self.river_wander_frequency,
-            5,
-        ));
-
+        self.hgen = Some(HeightGen::from_terrain(self));
+        self.gen_t0 = Some(std::time::Instant::now());
+        let worker_gen = HeightGen::from_terrain(self);
+        let extent = self.extent;
         let res = self.resolution.max(2);
-        let step = self.extent * 2.0 / (res - 1) as f32;
-        let mut heights = vec![0.0f32; (res * res) as usize];
-        for iy in 0..res {
-            let z = -self.extent + iy as f32 * step;
-            for ix in 0..res {
-                let x = -self.extent + ix as f32 * step;
-                heights[(iy * res + ix) as usize] = self.height(x, z);
+        let (tx, rx) = std::sync::mpsc::channel();
+        let job = move || {
+            let _ = tx.send(worker_gen.bake(extent, res));
+        };
+        let rt = Engine::singleton()
+            .get_singleton(crate::threads::runtime::RuntimeManager::SINGLETON)
+            .and_then(|s| s.try_cast::<crate::threads::runtime::RuntimeManager>().ok());
+        match rt {
+            Some(rt) => {
+                rt.bind().spawn_blocking(job);
+            }
+            None => {
+                std::thread::spawn(job);
             }
         }
+        self.gen_rx = Some(rx);
+    }
 
+    fn process(&mut self, delta: f64) {
+        if let Some(rx) = self.gen_rx.as_ref() {
+            match rx.try_recv() {
+                Ok(h) => {
+                    self.gen_rx = None;
+                    self.finish_init(h);
+                }
+                Err(std::sync::mpsc::TryRecvError::Empty) => return,
+                Err(_) => {
+                    self.gen_rx = None;
+                    return;
+                }
+            }
+        }
+        if self.heights.is_empty() {
+            return;
+        }
+        if let Some(p) = self.player.as_ref().map(|p| p.get_global_position()) {
+            if let Some(m) = self.water_material.as_mut() {
+                m.set_shader_parameter("player_position", &p.to_variant());
+            }
+            if self.wake_enabled {
+                self.dispatch_wake(delta as f32, p);
+            }
+            self.last_player_pos = p;
+        }
+        self.water_time += delta as f32;
+        self.dispatch_water_fx();
+    }
+
+    fn on_notification(&mut self, what: Node3DNotification) {
+        if what == Node3DNotification::PREDELETE {
+            self.free_water_fx();
+        }
+    }
+}
+
+impl QTerrain {
+    fn finish_init(&mut self, heights: Vec<f32>) {
+        let res = self.resolution.max(2);
         let bytes: Vec<u8> = heights.iter().flat_map(|h| h.to_le_bytes()).collect();
         let data = PackedByteArray::from(bytes.as_slice());
         let tex = Image::create_from_data(res, res, false, ImageFormat::RF, &data)
@@ -209,11 +308,7 @@ impl INode3D for QTerrain {
                 .map(|v| v == "river")
                 .unwrap_or(false)
             {
-                let rx = self
-                    .river
-                    .as_ref()
-                    .map(|r| r.get_noise_2d(p.z, 0.0) * self.river_wander)
-                    .unwrap_or(0.0);
+                let rx = self.hgen.as_ref().map(|g| g.river_x(p.z)).unwrap_or(0.0);
                 player.set_global_position(Vector3::new(rx, self.water_level + 0.6, p.z));
             } else {
                 let mut sx = p.x;
@@ -224,25 +319,8 @@ impl INode3D for QTerrain {
             }
         }
         self.setup_water_fx();
-    }
-
-    fn process(&mut self, delta: f64) {
-        if let Some(p) = self.player.as_ref().map(|p| p.get_global_position()) {
-            if let Some(m) = self.water_material.as_mut() {
-                m.set_shader_parameter("player_position", &p.to_variant());
-            }
-            if self.wake_enabled {
-                self.dispatch_wake(delta as f32, p);
-            }
-            self.last_player_pos = p;
-        }
-        self.water_time += delta as f32;
-        self.dispatch_water_fx();
-    }
-
-    fn on_notification(&mut self, what: Node3DNotification) {
-        if what == Node3DNotification::PREDELETE {
-            self.free_water_fx();
+        if let Some(t0) = self.gen_t0.take() {
+            godot_print!("[q] terrain gen+apply {}ms", t0.elapsed().as_millis());
         }
     }
 }
@@ -356,14 +434,6 @@ impl QTerrain {
     }
 
     fn height(&self, x: f32, z: f32) -> f32 {
-        let (Some(hills), Some(river)) = (self.hills.as_ref(), self.river.as_ref()) else {
-            return 0.0;
-        };
-        let h = hills.get_noise_2d(x, z) * self.hill_amplitude + self.hill_base;
-        let river_x = river.get_noise_2d(z, 0.0) * self.river_wander;
-        let d = (x - river_x).abs();
-        let t = (-(d * d) / (2.0 * self.river_width * self.river_width)).exp();
-        let m = (t * 1.15).clamp(0.0, 1.0);
-        h + (self.water_level - self.riverbed_depth - h) * m
+        self.hgen.as_ref().map(|g| g.height(x, z)).unwrap_or(0.0)
     }
 }

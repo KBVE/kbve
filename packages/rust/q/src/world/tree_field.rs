@@ -135,6 +135,8 @@ fn randf(state: &mut u32) -> f32 {
 pub struct QTreeField {
     base: Base<Node3D>,
 
+    init_done: bool,
+
     #[export]
     terrain_path: NodePath,
     #[export]
@@ -184,12 +186,9 @@ pub struct QTreeField {
     extent: f32,
 }
 
-#[godot_api]
-impl INode3D for QTreeField {
-    fn ready(&mut self) {
-        if Engine::singleton().is_editor_hint() || super::q_hidden("trees") {
-            return;
-        }
+impl QTreeField {
+    fn late_init(&mut self) -> bool {
+        let _t = super::ReadyTimer::start("trees");
         self.player = self
             .base()
             .get_node_or_null(&self.player_path)
@@ -202,13 +201,12 @@ impl INode3D for QTreeField {
         .and_then(|n| n.try_cast::<QTerrain>().ok());
         let Some(terrain) = terrain else {
             godot_error!("[QTreeField] no QTerrain found; trees disabled");
-            return;
+            return true;
         };
         let (heights, res, extent, water) = {
             let t = terrain.bind();
             let Some((h, r)) = t.cpu_heights() else {
-                godot_error!("[QTreeField] terrain has no CPU heights; trees disabled");
-                return;
+                return false;
             };
             (h.to_vec(), r, t.world_extent(), t.water())
         };
@@ -274,7 +272,7 @@ impl INode3D for QTreeField {
         }
         if cand.is_empty() {
             godot_error!("[QTreeField] no tree candidates survived placement");
-            return;
+            return true;
         }
         self.candidates = cand;
         self.build_colliders();
@@ -290,7 +288,7 @@ impl INode3D for QTreeField {
 
         let world = self.base().get_world_3d();
         let Some(world) = world else {
-            return;
+            return true;
         };
         let scenario = world.get_scenario();
         let e = extent + 10.0;
@@ -396,10 +394,20 @@ impl INode3D for QTreeField {
         if self.computes.is_empty() {
             godot_error!("[QTreeField] no tree computes online; trees disabled");
         }
+        true
     }
+}
 
+#[godot_api]
+impl INode3D for QTreeField {
     fn process(&mut self, _delta: f64) {
         if Engine::singleton().is_editor_hint() || !self.base().is_visible_in_tree() {
+            return;
+        }
+        if !self.init_done {
+            if super::q_hidden("trees") || self.late_init() {
+                self.init_done = true;
+            }
             return;
         }
         let player_pos = self

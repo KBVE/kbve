@@ -136,6 +136,14 @@ impl RuntimeManager {
         self.runtime.spawn(future)
     }
 
+    pub fn spawn_blocking<F, R>(&self, f: F) -> JoinHandle<R>
+    where
+        F: FnOnce() -> R + Send + 'static,
+        R: Send + 'static,
+    {
+        self.runtime.spawn_blocking(f)
+    }
+
     pub async fn get_map_value(&self, key: String) -> Option<String> {
         let (tx, rx) = oneshot::channel();
         self.send_map_message(MapMessage::Get(key, tx));
