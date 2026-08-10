@@ -907,35 +907,42 @@ fn limb(
     }
     let tip = nodes[segs];
     if depth == 0 {
-        let n_roots = 4 + (randf(state) * 3.0) as u32;
+        let n_roots = 5 + (randf(state) * 3.0) as u32;
         let raz0 = randf(state) * std::f32::consts::TAU;
         for i in 0..n_roots {
             let az = raz0
                 + std::f32::consts::TAU * i as f32 / n_roots as f32
                 + (randf(state) - 0.5) * 0.5;
-            let f = 0.12 + randf(state) * 0.11;
+            let f = 0.05 + randf(state) * 0.1;
             let ff = f * segs as f32;
             let i0 = (ff as usize).min(segs - 1);
             let bp = nodes[i0] + (nodes[i0 + 1] - nodes[i0]) * (ff - i0 as f32);
             let pd = segd[i0];
             let (t, b) = frame(pd);
             let out = t * az.cos() + b * az.sin();
-            let rd = (out * 0.9 - Vector3::UP * (0.16 + randf(state) * 0.14)).normalized();
             let r_at = r_of(f);
-            let rr = r_at * (0.5 + randf(state) * 0.18);
-            let reach = 0.2 + randf(state) * 0.14;
+            let rr = r_at * (0.42 + randf(state) * 0.16);
+            let reach = 0.3 + randf(state) * 0.22;
+            let sink = start.y - 0.07 - randf(state) * 0.05;
+            let rd = (out - Vector3::UP * 0.2).normalized();
             let (rt, rb) = frame(rd);
-            let mid = bp + rd * reach * 0.6;
-            let end = Vector3::new(
-                mid.x + rd.x * reach * 0.45,
-                (start.y - 0.04).min(mid.y - 0.03),
-                mid.z + rd.z * reach * 0.45,
-            );
-            let ring0 = bark.ring(bp, rt, rb, rr, 5, 0.0, col);
-            let ring1 = bark.ring(mid, rt, rb, rr * 0.5, 5, reach * 0.6, col);
-            let ring2 = bark.ring(end, rt, rb, rr * 0.16, 5, reach, col);
-            bark.bridge(&ring0, &ring1);
-            bark.bridge(&ring1, &ring2);
+            let wobble = (randf(state) - 0.5) * 0.6;
+            let mut prev_ring: Option<Vec<i32>> = None;
+            for k in 0..=4 {
+                let tt = k as f32 / 4.0;
+                let sway_az = az + wobble * tt;
+                let dirk = t * sway_az.cos() + b * sway_az.sin();
+                let horiz = Vector3::new(dirk.x, 0.0, dirk.z).normalized();
+                let u = ((tt - 0.25) / 0.75).clamp(0.0, 1.0);
+                let yk = bp.y + (sink - bp.y) * (u * u * (3.0 - 2.0 * u));
+                let pos = Vector3::new(bp.x, yk, bp.z) + horiz * reach * tt;
+                let rk = (rr * (1.0 - tt).powf(1.8)).max(0.004);
+                let ring = bark.ring(pos, rt, rb, rk, 5, reach * tt, col);
+                if let Some(pr) = prev_ring.as_ref() {
+                    bark.bridge(pr, &ring);
+                }
+                prev_ring = Some(ring);
+            }
         }
     }
     if depth < 3 {

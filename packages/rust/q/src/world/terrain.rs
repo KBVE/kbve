@@ -142,7 +142,7 @@ impl INode3D for QTerrain {
                 let px = ((u * (hres - 1) as f32) as i32).clamp(0, hres - 1);
                 let py = ((v * (hres - 1) as f32) as i32).clamp(0, hres - 1);
                 let h = heights[(py * hres + px) as usize];
-                let t = ((h - (self.water_level + 0.4)) / 1.4).clamp(0.0, 1.0);
+                let t = ((h - (self.water_level + 0.4)) / 2.2).clamp(0.0, 1.0);
                 let band = 1.0 - t * t * (3.0 - 2.0 * t);
                 clearance[(iy * cres + ix) as usize] = (band * 255.0) as u8;
             }
@@ -152,6 +152,11 @@ impl INode3D for QTerrain {
             .and_then(|img| ImageTexture::create_from_image(&img));
         self.clearance = clearance;
         self.clearance_res = cres;
+        if let Some(t) = self.clearance_tex.as_ref() {
+            if let Some(m) = self.ground_material.as_mut() {
+                m.set_shader_parameter("clearance_tex", &t.to_variant());
+            }
+        }
 
         let mut shape = HeightMapShape3D::new_gd();
         shape.set_map_width(res);
