@@ -120,6 +120,144 @@ void main() {
 }
 "#;
 
+const CARD_CULL_GLSL: &str = r#"
+#version 450
+layout(local_size_x = 64) in;
+layout(set = 0, binding = 0, std430) restrict readonly buffer Layouts { float data[]; } layouts;
+layout(set = 0, binding = 1, std430) restrict readonly buffer Cells { vec4 data[]; } cells;
+layout(set = 0, binding = 2, std430) restrict writeonly buffer OutB { float data[]; } outb;
+layout(set = 0, binding = 3, std430) restrict buffer Counter { uint data[]; } counter;
+layout(set = 0, binding = 4) uniform sampler2D heightmap;
+layout(push_constant, std430) uniform Params {
+    vec4 cam;
+    vec4 p0;
+    vec4 p1;
+    vec4 p2;
+    vec4 p3;
+} pc;
+
+const float BLADE_RANGE = %BLADE_RANGE%;
+const float CARD_TAIL = %CARD_TAIL%;
+const float CARD_FLOOR = %CARD_FLOOR%;
+const float FADE_END = %FADE_END%;
+const float BAND_START = %BAND_START%;
+const float BAND_END = %BAND_END%;
+const float EXTENT = %EXTENT%;
+const float WATER = %WATER%;
+const float OCCL_START = %OCCL_START%;
+const float OCCL_MARGIN = %OCCL_MARGIN%;
+const uint COUNT = %COUNT%u;
+const uint CAP = %CAP%u;
+
+float terrain_h(vec2 xz) {
+    vec2 uv = clamp((xz + EXTENT) / (EXTENT * 2.0), 0.001, 0.999);
+    return textureLod(heightmap, uv, 0.0).r;
+}
+
+bool outside(vec4 plane, vec3 pos) {
+    return dot(plane.xyz, pos) - plane.w > 6.0;
+}
+
+void main() {
+    uint id = gl_GlobalInvocationID.x;
+    uint cell = id / COUNT;
+    if (cell >= uint(pc.cam.w)) {
+        return;
+    }
+    uint card = id - cell * COUNT;
+    vec4 cinfo = cells.data[cell];
+    uint src = uint(cinfo.z) + card * 12u;
+    float wx = layouts.data[src + 3u] + cinfo.x;
+    float wz = layouts.data[src + 11u] + cinfo.y;
+    float d = distance(vec2(wx, wz), pc.cam.xz);
+    if (d >= FADE_END) {
+        return;
+    }
+    float rank = min(float(card) / float(COUNT), 0.999);
+    float keep = max(exp(-max(d - BLADE_RANGE, 0.0) / CARD_TAIL), CARD_FLOOR);
+    if (rank >= keep) {
+        return;
+    }
+    if (BAND_END > BAND_START) {
+        float band_keep = 1.0 - smoothstep(BAND_START, BAND_END, d);
+        if (rank >= band_keep * 1.001) {
+            return;
+        }
+    }
+    float appear = BLADE_RANGE * (0.55 + rank * 0.35);
+    if (d <= appear - 5.0) {
+        return;
+    }
+    float h = terrain_h(vec2(wx, wz));
+    if (h < WATER + 0.25) {
+        return;
+    }
+    vec3 pos = vec3(wx, h + 1.0, wz);
+    if (outside(pc.p0, pos) || outside(pc.p1, pos) || outside(pc.p2, pos) || outside(pc.p3, pos)) {
+        return;
+    }
+    if (d > OCCL_START) {
+        vec3 tip = vec3(wx, h + 2.2, wz);
+        for (int i = 1; i <= 8; i++) {
+            vec3 p = mix(tip, pc.cam.xyz, float(i) / 9.0);
+            if (terrain_h(p.xz) > p.y + OCCL_MARGIN) {
+                return;
+            }
+        }
+    }
+    uint slot = atomicAdd(counter.data[0], 1u);
+    if (slot >= CAP) {
+        return;
+    }
+    uint o = slot * 16u;
+    for (uint k = 0u; k < 12u; k++) {
+        outb.data[o + k] = layouts.data[src + k];
+    }
+    outb.data[o + 3u] = wx;
+    outb.data[o + 11u] = wz;
+    outb.data[o + 12u] = rank;
+    outb.data[o + 13u] = 0.0;
+    outb.data[o + 14u] = 0.0;
+    outb.data[o + 15u] = 0.0;
+}
+"#;
+
+const CARD_RESOLVE_GLSL: &str = r#"
+#version 450
+layout(local_size_x = 1) in;
+layout(set = 0, binding = 0, std430) restrict readonly buffer Counter { uint data[]; } counter;
+layout(set = 0, binding = 1, std430) restrict buffer Cmd { uint data[]; } cmd;
+
+void main() {
+    cmd.data[1] = min(counter.data[0], %CAP%u);
+}
+"#;
+
+pub struct CardParams {
+    pub blade_range: f32,
+    pub card_tail: f32,
+    pub card_floor: f32,
+    pub fade_end: f32,
+    pub band_out_start: f32,
+    pub band_out_end: f32,
+    pub terrain_extent: f32,
+    pub water_level: f32,
+    pub occl_start: f32,
+    pub occl_margin: f32,
+}
+
+fn bake(src: &str, subs: &[(&str, String)]) -> String {
+    let mut out = src.to_string();
+    for (key, val) in subs {
+        out = out.replace(key, val);
+    }
+    out
+}
+
+fn glsl_f(v: f32) -> String {
+    format!("{v:.6}")
+}
+
 pub struct BladeCompute {
     rd: Gd<RenderingDevice>,
     cull_shader: Rid,
@@ -220,9 +358,6 @@ impl BladeCompute {
                 .use_indirect(true)
                 .done();
             rs.multimesh_set_mesh(mm, mesh);
-            let mut zeros = PackedFloat32Array::new();
-            zeros.resize((cap * 16) as usize);
-            rs.multimesh_set_buffer(mm, &zeros);
             mm
         };
         let mm_near = make_mm(cap_near, detailed_mesh);
@@ -422,5 +557,288 @@ impl BladeCompute {
         }
         self.cull_set = Rid::Invalid;
         self.resolve_set = Rid::Invalid;
+    }
+}
+
+pub struct CardCompute {
+    rd: Gd<RenderingDevice>,
+    cull_shader: Rid,
+    cull_pipeline: Rid,
+    resolve_shader: Rid,
+    resolve_pipeline: Rid,
+    cull_set: Rid,
+    resolve_set: Rid,
+    layouts_buf: Rid,
+    cells_buf: Rid,
+    counter_buf: Rid,
+    mm: Rid,
+    inst: Rid,
+    count_per_cell: u32,
+    cell_capacity: u32,
+    cell_count: u32,
+    cap: u32,
+    heightmap_tex: Rid,
+    sampler: Rid,
+    zero_counter: PackedByteArray,
+}
+
+impl CardCompute {
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        scenario: Rid,
+        world_aabb: Aabb,
+        mesh: Rid,
+        material: Rid,
+        layouts: &[f32],
+        count_per_cell: u32,
+        cell_capacity: u32,
+        cap: u32,
+        heightmap_tex: Rid,
+        params: &CardParams,
+    ) -> Option<Self> {
+        if !heightmap_tex.is_valid() {
+            return None;
+        }
+        let mut rd = RenderingServer::singleton().get_rendering_device()?;
+        let subs = [
+            ("%BLADE_RANGE%", glsl_f(params.blade_range)),
+            ("%CARD_TAIL%", glsl_f(params.card_tail)),
+            ("%CARD_FLOOR%", glsl_f(params.card_floor)),
+            ("%FADE_END%", glsl_f(params.fade_end)),
+            ("%BAND_START%", glsl_f(params.band_out_start)),
+            ("%BAND_END%", glsl_f(params.band_out_end)),
+            ("%EXTENT%", glsl_f(params.terrain_extent)),
+            ("%WATER%", glsl_f(params.water_level)),
+            ("%OCCL_START%", glsl_f(params.occl_start)),
+            ("%OCCL_MARGIN%", glsl_f(params.occl_margin)),
+            ("%COUNT%", count_per_cell.to_string()),
+            ("%CAP%", cap.to_string()),
+        ];
+        let cull_src = bake(CARD_CULL_GLSL, &subs);
+        let resolve_src = bake(CARD_RESOLVE_GLSL, &[("%CAP%", cap.to_string())]);
+        let cull_shader = compile(&mut rd, &cull_src)?;
+        let resolve_shader = compile(&mut rd, &resolve_src)?;
+        let cull_pipeline = rd.compute_pipeline_create(cull_shader);
+        let resolve_pipeline = rd.compute_pipeline_create(resolve_shader);
+
+        let mut sampler_state = RdSamplerState::new_gd();
+        sampler_state.set_min_filter(SamplerFilter::LINEAR);
+        sampler_state.set_mag_filter(SamplerFilter::LINEAR);
+        sampler_state.set_repeat_u(SamplerRepeatMode::CLAMP_TO_EDGE);
+        sampler_state.set_repeat_v(SamplerRepeatMode::CLAMP_TO_EDGE);
+        let sampler = rd.sampler_create(&sampler_state);
+
+        let layout_bytes = PackedFloat32Array::from(layouts).to_byte_array();
+        let layouts_buf = rd
+            .storage_buffer_create_ex(layout_bytes.len() as u32)
+            .data(&layout_bytes)
+            .done();
+        let cells_buf = rd.storage_buffer_create(cell_capacity * 16);
+        let counter_buf = rd.storage_buffer_create(4);
+
+        let mut rs = RenderingServer::singleton();
+        let mm = rs.multimesh_create();
+        rs.multimesh_allocate_data_ex(mm, cap as i32, MultimeshTransformFormat::TRANSFORM_3D)
+            .custom_data_format(true)
+            .use_indirect(true)
+            .done();
+        rs.multimesh_set_mesh(mm, mesh);
+
+        let inst = rs.instance_create();
+        rs.instance_set_scenario(inst, scenario);
+        rs.instance_set_base(inst, mm);
+        rs.instance_geometry_set_material_override(inst, material);
+        rs.instance_geometry_set_cast_shadows_setting(inst, ShadowCastingSetting::OFF);
+        rs.instance_set_custom_aabb(inst, world_aabb);
+        rs.instance_set_transform(inst, Transform3D::IDENTITY);
+
+        let mut zero_counter = PackedByteArray::new();
+        zero_counter.resize(4);
+
+        Some(Self {
+            rd,
+            cull_shader,
+            cull_pipeline,
+            resolve_shader,
+            resolve_pipeline,
+            cull_set: Rid::Invalid,
+            resolve_set: Rid::Invalid,
+            layouts_buf,
+            cells_buf,
+            counter_buf,
+            mm,
+            inst,
+            count_per_cell,
+            cell_capacity,
+            cell_count: 0,
+            cap,
+            heightmap_tex,
+            sampler,
+            zero_counter,
+        })
+    }
+
+    pub fn online(&self) -> bool {
+        self.cull_set.is_valid()
+    }
+
+    pub fn try_finalize(&mut self) -> bool {
+        if self.online() {
+            return true;
+        }
+        let rs = RenderingServer::singleton();
+        let out_buf = rs.multimesh_get_buffer_rd_rid(self.mm);
+        let cmd_buf = rs.multimesh_get_command_buffer_rd_rid(self.mm);
+        let hm_rd = rs.texture_get_rd_texture(self.heightmap_tex);
+        if !out_buf.is_valid() || !cmd_buf.is_valid() || !hm_rd.is_valid() {
+            return false;
+        }
+        let mut hm_uniform = RdUniform::new_gd();
+        hm_uniform.set_uniform_type(UniformType::SAMPLER_WITH_TEXTURE);
+        hm_uniform.set_binding(4);
+        hm_uniform.add_id(self.sampler);
+        hm_uniform.add_id(hm_rd);
+        let cull_uniforms: Array<Gd<RdUniform>> = [
+            storage_uniform(0, self.layouts_buf),
+            storage_uniform(1, self.cells_buf),
+            storage_uniform(2, out_buf),
+            storage_uniform(3, self.counter_buf),
+            hm_uniform,
+        ]
+        .into_iter()
+        .collect();
+        self.cull_set = self
+            .rd
+            .uniform_set_create(&cull_uniforms, self.cull_shader, 0);
+        let resolve_uniforms: Array<Gd<RdUniform>> = [
+            storage_uniform(0, self.counter_buf),
+            storage_uniform(1, cmd_buf),
+        ]
+        .into_iter()
+        .collect();
+        self.resolve_set = self
+            .rd
+            .uniform_set_create(&resolve_uniforms, self.resolve_shader, 0);
+        self.cull_set.is_valid() && self.resolve_set.is_valid()
+    }
+
+    pub fn update_cells(&mut self, entries: &[f32]) {
+        let count = (entries.len() / 4) as u32;
+        self.cell_count = count.min(self.cell_capacity);
+        if self.cell_count == 0 {
+            return;
+        }
+        let bytes =
+            PackedFloat32Array::from(&entries[..(self.cell_count * 4) as usize]).to_byte_array();
+        self.rd
+            .buffer_update(self.cells_buf, 0, bytes.len() as u32, &bytes);
+    }
+
+    pub fn dispatch(&mut self, cam_pos: Vector3, planes: &[Plane; 4]) {
+        if !self.online() || self.cell_count == 0 {
+            return;
+        }
+        self.rd
+            .buffer_update(self.counter_buf, 0, 4, &self.zero_counter);
+        let mut pc = [0.0f32; 20];
+        pc[0] = cam_pos.x;
+        pc[1] = cam_pos.y;
+        pc[2] = cam_pos.z;
+        pc[3] = self.cell_count as f32;
+        for (i, p) in planes.iter().enumerate() {
+            let o = 4 + i * 4;
+            pc[o] = p.normal.x;
+            pc[o + 1] = p.normal.y;
+            pc[o + 2] = p.normal.z;
+            pc[o + 3] = p.d;
+        }
+        let pc_bytes = PackedFloat32Array::from(&pc[..]).to_byte_array();
+        let total = self.cell_count * self.count_per_cell;
+        let groups = total.div_ceil(64);
+        let cl = self.rd.compute_list_begin();
+        self.rd
+            .compute_list_bind_compute_pipeline(cl, self.cull_pipeline);
+        self.rd.compute_list_bind_uniform_set(cl, self.cull_set, 0);
+        self.rd
+            .compute_list_set_push_constant(cl, &pc_bytes, pc_bytes.len() as u32);
+        self.rd.compute_list_dispatch(cl, groups, 1, 1);
+        self.rd
+            .compute_list_bind_compute_pipeline(cl, self.resolve_pipeline);
+        self.rd
+            .compute_list_bind_uniform_set(cl, self.resolve_set, 0);
+        self.rd.compute_list_dispatch(cl, 1, 1, 1);
+        self.rd.compute_list_end();
+    }
+
+    pub fn set_visible(&mut self, visible: bool) {
+        let mut rs = RenderingServer::singleton();
+        rs.instance_set_visible(self.inst, visible);
+    }
+
+    pub fn free(&mut self) {
+        let mut rs = RenderingServer::singleton();
+        for rid in [self.inst, self.mm] {
+            if rid.is_valid() {
+                rs.free_rid(rid);
+            }
+        }
+        for rid in [
+            self.layouts_buf,
+            self.cells_buf,
+            self.counter_buf,
+            self.sampler,
+            self.cull_pipeline,
+            self.cull_shader,
+            self.resolve_pipeline,
+            self.resolve_shader,
+        ] {
+            if rid.is_valid() {
+                self.rd.free_rid(rid);
+            }
+        }
+        self.cull_set = Rid::Invalid;
+        self.resolve_set = Rid::Invalid;
+    }
+}
+
+impl BladeCompute {
+    pub fn survivor_counts(&mut self) -> (u32, u32) {
+        if !self.online() {
+            return (0, 0);
+        }
+        let data = self.rd.buffer_get_data(self.counter_buf);
+        let bytes = data.as_slice();
+        if bytes.len() < 8 {
+            return (0, 0);
+        }
+        let near = u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]).min(self.cap_near);
+        let far = u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]).min(self.cap_far);
+        (near, far)
+    }
+}
+
+impl CardCompute {
+    pub fn survivor_count(&mut self) -> u32 {
+        if !self.online() {
+            return 0;
+        }
+        let data = self.rd.buffer_get_data(self.counter_buf);
+        let bytes = data.as_slice();
+        if bytes.len() < 4 {
+            return 0;
+        }
+        u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]).min(self.cap)
+    }
+}
+
+impl BladeCompute {
+    pub fn caps(&self) -> (u32, u32) {
+        (self.cap_near, self.cap_far)
+    }
+}
+
+impl CardCompute {
+    pub fn cap(&self) -> u32 {
+        self.cap
     }
 }

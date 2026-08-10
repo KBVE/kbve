@@ -7,6 +7,7 @@ const UPDATE_INTERVAL := 0.25
 var _label: Label
 var _accum := 0.0
 var _player: Node3D
+var _grass: Node
 
 
 func _ready() -> void:
@@ -14,6 +15,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	visible = OS.is_debug_build()
 	_player = get_node_or_null(player_path) as Node3D
+	_grass = get_parent().get_node_or_null("GrassField") if get_parent() else null
 	var panel := PanelContainer.new()
 	panel.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
@@ -53,7 +55,15 @@ func _process(delta: float) -> void:
 	var mem := OS.get_static_memory_usage()
 	var lines := PackedStringArray()
 	lines.append("FPS %d  (%.2f ms)" % [fps, frame_ms])
+	var grass_line := ""
+	if _grass and _grass.has_method("get_grass_stats"):
+		var s: Dictionary = _grass.get_grass_stats()
+		if s.get("active", false):
+			tris = maxi(tris - s.get("cap_tris", 0), 0) + s.get("tris", 0)
+			grass_line = "Grass GPU %s inst  %s tris" % [_fmt_count(s.get("instances", 0)), _fmt_count(s.get("tris", 0))]
 	lines.append("Tris %s  Draws %d  Objects %d" % [_fmt_count(tris), draws, objects])
+	if grass_line != "":
+		lines.append(grass_line)
 	lines.append("VRAM %.1f MB  Mem %.1f MB" % [vram / 1048576.0, mem / 1048576.0])
 	if _player:
 		var p := _player.global_position
