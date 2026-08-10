@@ -2,17 +2,15 @@ use fastnoise_lite::{FastNoiseLite, NoiseType};
 use godot::classes::notify::Node3DNotification;
 use godot::classes::physics_server_3d::BodyMode;
 use godot::classes::rendering_server::MultimeshTransformFormat;
-use godot::classes::{
-    Engine, Mesh, MeshInstance3D, PackedScene, PhysicsServer3D, RenderingServer, ShaderMaterial,
-};
+use godot::classes::{ArrayMesh, Engine, PhysicsServer3D, RenderingServer, ShaderMaterial};
 use godot::prelude::*;
-use godot::tools::try_load;
 
 use crate::world::harvest::{Entry, HarvestKind, ScatterCore, Stone, stable_id};
+use crate::world::stone_mesh::{SPECIES, build_cracked_mesh, build_rubble_mesh, build_stone_mesh};
 use crate::world::terrain::QTerrain;
 
-const VARIANTS: usize = 3;
-const CHUNKS: usize = 5;
+const VARIANTS: usize = 12;
+const STAGE_SLOTS: usize = 3;
 
 fn hash32(mut x: u32) -> u32 {
     x ^= x >> 16;
@@ -29,8 +27,7 @@ fn randf(state: &mut u32) -> f32 {
 }
 
 struct VariantMeshes {
-    whole: Gd<Mesh>,
-    chunks: Vec<Gd<Mesh>>,
+    stages: [Gd<ArrayMesh>; STAGE_SLOTS],
 }
 
 struct MmSlot {
@@ -62,19 +59,18 @@ pub struct QStoneField {
     #[init(val = 0.025)]
     patch_frequency: f32,
     #[export]
-    #[init(val = 0.9)]
+    #[init(val = 1.6)]
     scale_min: f32,
     #[export]
-    #[init(val = 1.7)]
+    #[init(val = 3.2)]
     scale_max: f32,
     #[export]
-    #[init(val = 0.9)]
+    #[init(val = 1.1)]
     clearance_radius: f32,
 
     core: ScatterCore<Stone>,
     meshes: Vec<VariantMeshes>,
-    whole_slots: Vec<MmSlot>,
-    chunk_slots: Vec<Vec<MmSlot>>,
+    slots: Vec<Vec<MmSlot>>,
     #[init(val = Rid::Invalid)]
     body: Rid,
     #[init(val = Rid::Invalid)]
@@ -86,7 +82,7 @@ pub struct QStoneField {
 #[godot_api]
 impl INode3D for QStoneField {
     fn ready(&mut self) {
-        if Engine::singleton().is_editor_hint() {
+        if Engine::singleton().is_editor_hint() || super::q_hidden("stones") {
             return;
         }
         let terrain = if self.terrain_path.is_empty() {
@@ -133,6 +129,14 @@ impl INode3D for QStoneField {
 
         let seed64 = self.stone_seed as u64;
         let cells = ((extent * 2.0) / self.grid_size) as i32;
+        let mut placed: Vec<(f32, f32, f32)> = Vec::new();
+        let overlaps = |placed: &Vec<(f32, f32, f32)>, x: f32, z: f32, r: f32| -> bool {
+            placed.iter().any(|(px, pz, pr)| {
+                let dx = px - x;
+                let dz = pz - z;
+                dx * dx + dz * dz < ((pr + r) * 0.92).powi(2)
+            })
+        };
         for iz in 0..cells {
             for ix in 0..cells {
                 let mut state = hash32(
@@ -159,17 +163,54 @@ impl INode3D for QStoneField {
                     continue;
                 }
                 let scale = self.scale_min + randf(&mut state) * (self.scale_max - self.scale_min);
+                let radius = scale * 0.85;
+                if overlaps(&placed, x, z, radius) {
+                    continue;
+                }
+                placed.push((x, z, radius));
                 let yaw = randf(&mut state) * std::f32::consts::TAU;
                 let variant = ((randf(&mut state) * VARIANTS as f32) as usize).min(VARIANTS - 1);
                 self.core.insert(Entry {
                     id: stable_id(seed64, x, z),
-                    pos: Vector3::new(x, h - 0.1 * scale, z),
+                    pos: Vector3::new(x, h - 0.06 * scale, z),
                     scale,
                     yaw,
                     variant: variant as u8,
                     ore: 0,
                     amount: 0,
                 });
+                let companions = (randf(&mut state) * 3.0) as usize;
+                for _ in 0..companions {
+                    let cscale = scale * (0.28 + randf(&mut state) * 0.27);
+                    let cradius = cscale * 0.85;
+                    let az = randf(&mut state) * std::f32::consts::TAU;
+                    let dist = (radius + cradius) * (1.15 + randf(&mut state) * 0.5);
+                    let cx = x + az.cos() * dist;
+                    let cz = z + az.sin() * dist;
+                    if cx.abs() > extent - 5.0 || cz.abs() > extent - 5.0 {
+                        continue;
+                    }
+                    let ch = sample(cx, cz);
+                    if ch < water + 0.4 {
+                        continue;
+                    }
+                    if overlaps(&placed, cx, cz, cradius) {
+                        continue;
+                    }
+                    placed.push((cx, cz, cradius));
+                    let cyaw = randf(&mut state) * std::f32::consts::TAU;
+                    let cvariant =
+                        ((randf(&mut state) * VARIANTS as f32) as usize).min(VARIANTS - 1);
+                    self.core.insert(Entry {
+                        id: stable_id(seed64, cx, cz),
+                        pos: Vector3::new(cx, ch - 0.06 * cscale, cz),
+                        scale: cscale,
+                        yaw: cyaw,
+                        variant: cvariant as u8,
+                        ore: 0,
+                        amount: 0,
+                    });
+                }
             }
         }
         if self.core.entries().is_empty() {
@@ -186,10 +227,7 @@ impl INode3D for QStoneField {
             tb.flush_clearance();
         }
 
-        if !self.load_meshes() {
-            godot_error!("[QStoneField] rock meshes failed to load; stones disabled");
-            return;
-        }
+        self.build_meshes();
         self.build_multimeshes();
         self.build_colliders();
         self.dirty = true;
@@ -277,6 +315,17 @@ impl QStoneField {
     }
 
     #[func]
+    fn preview_mesh(&self, variant: i64, stage: i64) -> Option<Gd<ArrayMesh>> {
+        let species = (variant.max(0) as usize) % SPECIES.len();
+        let s = hash32((self.stone_seed as u32).wrapping_add(variant.max(0) as u32 * 7919));
+        Some(match stage {
+            1 => build_cracked_mesh(s, species),
+            2 => build_rubble_mesh(s, species, 5, 0.7),
+            _ => build_stone_mesh(s, species),
+        })
+    }
+
+    #[func]
     fn get_stone_stats(&self) -> VarDictionary {
         let mut d = VarDictionary::new();
         let total = self.core.entries().len() as i64;
@@ -294,39 +343,19 @@ impl QStoneField {
 }
 
 impl QStoneField {
-    fn load_meshes(&mut self) -> bool {
+    fn build_meshes(&mut self) {
+        let seed = self.stone_seed as u32;
         for v in 0..VARIANTS {
-            let path = format!("res://assets/environment/props/rocks/rock_{v}.glb");
-            let Ok(scene) = try_load::<PackedScene>(&path) else {
-                godot_error!("[QStoneField] missing {path}");
-                return false;
-            };
-            let Some(root) = scene.instantiate() else {
-                return false;
-            };
-            let mut whole: Option<Gd<Mesh>> = None;
-            let mut chunks: Vec<Gd<Mesh>> = Vec::new();
-            for child in root.get_children().iter_shared() {
-                let Ok(mi) = child.try_cast::<MeshInstance3D>() else {
-                    continue;
-                };
-                let Some(mesh) = mi.get_mesh() else {
-                    continue;
-                };
-                if mi.get_name().to_string().contains("chunk") {
-                    chunks.push(mesh);
-                } else {
-                    whole = Some(mesh);
-                }
-            }
-            root.free();
-            let Some(whole) = whole else {
-                godot_error!("[QStoneField] no whole mesh in {path}");
-                return false;
-            };
-            self.meshes.push(VariantMeshes { whole, chunks });
+            let species = v % SPECIES.len();
+            let s = hash32(seed.wrapping_add(v as u32 * 7919));
+            self.meshes.push(VariantMeshes {
+                stages: [
+                    build_stone_mesh(s, species),
+                    build_cracked_mesh(s, species),
+                    build_rubble_mesh(s, species, 5, 0.7),
+                ],
+            });
         }
-        true
     }
 
     fn world_aabb(&self) -> Aabb {
@@ -337,7 +366,7 @@ impl QStoneField {
         )
     }
 
-    fn make_slot(&self, mesh: &Gd<Mesh>, scenario: Rid, material: Rid) -> MmSlot {
+    fn make_slot(&self, mesh: &Gd<ArrayMesh>, scenario: Rid, material: Rid) -> MmSlot {
         let mut rs = RenderingServer::singleton();
         let mm = rs.multimesh_create();
         rs.multimesh_set_mesh(mm, mesh.get_rid());
@@ -362,27 +391,21 @@ impl QStoneField {
             .as_ref()
             .map(|m| m.get_rid())
             .unwrap_or(Rid::Invalid);
-        let mesh_ptrs: Vec<(Gd<Mesh>, Vec<Gd<Mesh>>)> = self
-            .meshes
-            .iter()
-            .map(|v| (v.whole.clone(), v.chunks.clone()))
-            .collect();
-        for (whole, chunks) in mesh_ptrs {
-            let slot = self.make_slot(&whole, scenario, material);
-            self.whole_slots.push(slot);
-            let mut cs = Vec::new();
-            for c in &chunks {
-                cs.push(self.make_slot(c, scenario, material));
-            }
-            self.chunk_slots.push(cs);
+        let stage_meshes: Vec<[Gd<ArrayMesh>; STAGE_SLOTS]> =
+            self.meshes.iter().map(|v| v.stages.clone()).collect();
+        for stages in stage_meshes {
+            let row: Vec<MmSlot> = stages
+                .iter()
+                .map(|m| self.make_slot(m, scenario, material))
+                .collect();
+            self.slots.push(row);
         }
     }
 
     fn upload_buffers(&mut self) {
         let mut rs = RenderingServer::singleton();
-        for v in 0..self.whole_slots.len() {
-            let mut whole_buf: Vec<f32> = Vec::new();
-            let mut chunk_bufs: Vec<Vec<f32>> = vec![Vec::new(); self.chunk_slots[v].len()];
+        for v in 0..self.slots.len() {
+            let mut bufs: Vec<Vec<f32>> = vec![Vec::new(); STAGE_SLOTS];
             for e in self.core.entries() {
                 if e.variant as usize != v {
                     continue;
@@ -392,30 +415,18 @@ impl QStoneField {
                     continue;
                 }
                 let (c, s) = (e.yaw.cos() * e.scale, e.yaw.sin() * e.scale);
-                let row = [
+                bufs[(stage as usize).min(STAGE_SLOTS - 1)].extend_from_slice(&[
                     c, 0.0, -s, e.pos.x, 0.0, e.scale, 0.0, e.pos.y, s, 0.0, c, e.pos.z,
-                ];
-                if stage == 0 {
-                    whole_buf.extend_from_slice(&row);
-                } else {
-                    for (ci, buf) in chunk_bufs.iter_mut().enumerate() {
-                        if ci >= (stage as usize - 1) * 2 {
-                            buf.extend_from_slice(&row);
-                        }
-                    }
-                }
+                ]);
             }
-            let fill = |rs: &mut Gd<RenderingServer>, slot: &MmSlot, buf: &[f32]| {
+            for (si, buf) in bufs.iter().enumerate() {
+                let slot = &self.slots[v][si];
                 let count = (buf.len() / 12) as i32;
                 rs.multimesh_allocate_data(slot.mm, count, MultimeshTransformFormat::TRANSFORM_3D);
                 if count > 0 {
-                    rs.multimesh_set_buffer(slot.mm, &PackedFloat32Array::from(buf));
+                    rs.multimesh_set_buffer(slot.mm, &PackedFloat32Array::from(buf.as_slice()));
                 }
                 rs.instance_set_visible(slot.inst, count > 0);
-            };
-            fill(&mut rs, &self.whole_slots[v], &whole_buf);
-            for (ci, buf) in chunk_bufs.iter().enumerate() {
-                fill(&mut rs, &self.chunk_slots[v][ci], buf);
             }
         }
     }
@@ -458,16 +469,11 @@ impl QStoneField {
     }
 
     fn all_slots(&self) -> Vec<(Rid, Rid)> {
-        let mut out: Vec<(Rid, Rid)> = Vec::new();
-        for s in &self.whole_slots {
-            out.push((s.mm, s.inst));
-        }
-        for cs in &self.chunk_slots {
-            for s in cs {
-                out.push((s.mm, s.inst));
-            }
-        }
-        out
+        self.slots
+            .iter()
+            .flatten()
+            .map(|s| (s.mm, s.inst))
+            .collect()
     }
 
     fn free_all(&mut self) {
@@ -479,8 +485,7 @@ impl QStoneField {
                 }
             }
         }
-        self.whole_slots.clear();
-        self.chunk_slots.clear();
+        self.slots.clear();
         let mut ps = PhysicsServer3D::singleton();
         for rid in [self.body, self.shape] {
             if rid.is_valid() {

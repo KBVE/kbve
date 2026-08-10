@@ -1,8 +1,10 @@
 use godot::classes::rendering_device::{
-    DataFormat, ShaderLanguage, ShaderStage, TextureUsageBits, UniformType,
+    DataFormat, SamplerFilter, SamplerRepeatMode, ShaderLanguage, ShaderStage, TextureUsageBits,
+    UniformType,
 };
 use godot::classes::{
-    RdShaderSource, RdTextureFormat, RdTextureView, RdUniform, RenderingServer, Texture2Drd,
+    RdSamplerState, RdShaderSource, RdTextureFormat, RdTextureView, RdUniform, RenderingServer,
+    Texture2Drd,
 };
 use godot::prelude::*;
 
@@ -10,6 +12,45 @@ use super::QTerrain;
 
 pub(super) const PATTERN_RES: u32 = 256;
 pub(super) const PATTERN_CELLS: f32 = 12.0;
+pub(super) const WAKE_RES: u32 = 256;
+pub(super) const WAKE_WINDOW: f32 = 64.0;
+
+const WAKE_GLSL: &str = r#"
+#version 450
+layout(local_size_x = 8, local_size_y = 8) in;
+layout(set = 0, binding = 0) uniform sampler2D wake_prev;
+layout(set = 0, binding = 1, r8) restrict writeonly uniform image2D wake_next;
+layout(push_constant, std430) uniform P {
+    vec2 player;
+    vec2 flow;
+    vec2 org_new;
+    vec2 org_old;
+    float window;
+    float delta;
+    float strength;
+    float radius;
+} pc;
+
+const int RES = 256;
+
+void main() {
+    ivec2 px = ivec2(gl_GlobalInvocationID.xy);
+    if (any(greaterThanEqual(px, ivec2(RES)))) {
+        return;
+    }
+    vec2 uv = (vec2(px) + 0.5) / float(RES);
+    vec2 w = pc.org_new + (uv - 0.5) * pc.window;
+    vec2 prev_uv = (w - pc.flow * pc.delta - pc.org_old) / pc.window + 0.5;
+    float v = 0.0;
+    if (all(greaterThan(prev_uv, vec2(0.0))) && all(lessThan(prev_uv, vec2(1.0)))) {
+        v = texture(wake_prev, prev_uv).r;
+    }
+    v *= exp(-pc.delta * 0.8);
+    float d = length(w - pc.player);
+    v += pc.strength * (1.0 - smoothstep(pc.radius * 0.25, pc.radius, d)) * pc.delta * 6.0;
+    imageStore(wake_next, px, vec4(clamp(v, 0.0, 1.0)));
+}
+"#;
 
 const PATTERN_GLSL: &str = r#"
 #version 450
@@ -24,18 +65,20 @@ layout(push_constant, std430) uniform P {
 
 const float N = 12.0;
 
+vec3 hash33(vec3 p) {
+    p = fract(p * vec3(0.1031, 0.1030, 0.0973));
+    p += dot(p, p.yxz + 33.33);
+    return fract((p.xxy + p.yxx) * p.zyx);
+}
+
 vec3 cellpt(vec3 c) {
     c.xy = mod(c.xy, N);
-    return fract(sin(vec3(
-        dot(c, vec3(127.1, 311.7,  74.7)),
-        dot(c, vec3(269.5, 183.3, 246.1)),
-        dot(c, vec3(113.5, 271.9, 124.6))
-    )) * 43758.5453);
+    return hash33(c);
 }
 
 void main() {
     ivec2 px = ivec2(gl_GlobalInvocationID.xy);
-    if (px.x >= 256 || px.y >= 256) {
+    if (any(greaterThanEqual(px, ivec2(256)))) {
         return;
     }
     vec3 p = vec3((vec2(px) / 256.0) * N, pc.zc);
@@ -115,6 +158,164 @@ impl QTerrain {
         self.pattern_pipeline = pipeline;
         self.pattern_set = set;
         self.pattern_wrap = Some(wrap);
+        self.setup_wake();
+    }
+
+    fn setup_wake(&mut self) {
+        let Some(rd) = self.water_rd.as_mut() else {
+            return;
+        };
+        let mut source = RdShaderSource::new_gd();
+        source.set_language(ShaderLanguage::GLSL);
+        source.set_stage_source(ShaderStage::COMPUTE, WAKE_GLSL);
+        let Some(spirv) = rd.shader_compile_spirv_from_source(&source) else {
+            return;
+        };
+        let err = spirv.get_stage_compile_error(ShaderStage::COMPUTE);
+        if !err.is_empty() {
+            godot_error!("[QTerrain] wake compute failed: {err}");
+            return;
+        }
+        let shader = rd.shader_create_from_spirv(&spirv);
+        if !shader.is_valid() {
+            return;
+        }
+        let mut sampler_state = RdSamplerState::new_gd();
+        sampler_state.set_min_filter(SamplerFilter::LINEAR);
+        sampler_state.set_mag_filter(SamplerFilter::LINEAR);
+        sampler_state.set_repeat_u(SamplerRepeatMode::CLAMP_TO_EDGE);
+        sampler_state.set_repeat_v(SamplerRepeatMode::CLAMP_TO_EDGE);
+        let sampler = rd.sampler_create(&sampler_state);
+
+        let mut texs = [Rid::Invalid; 2];
+        for t in texs.iter_mut() {
+            let mut fmt = RdTextureFormat::new_gd();
+            fmt.set_width(WAKE_RES);
+            fmt.set_height(WAKE_RES);
+            fmt.set_format(DataFormat::R8_UNORM);
+            fmt.set_usage_bits(
+                TextureUsageBits::SAMPLING_BIT
+                    | TextureUsageBits::STORAGE_BIT
+                    | TextureUsageBits::CAN_UPDATE_BIT
+                    | TextureUsageBits::CAN_COPY_TO_BIT,
+            );
+            *t = rd.texture_create(&fmt, &RdTextureView::new_gd());
+        }
+        if !texs[0].is_valid() || !texs[1].is_valid() {
+            return;
+        }
+        for t in texs {
+            rd.texture_clear(t, Color::from_rgba(0.0, 0.0, 0.0, 0.0), 0, 1, 0, 1);
+        }
+
+        let mut sets = [Rid::Invalid; 2];
+        for (i, set) in sets.iter_mut().enumerate() {
+            let prev = texs[i];
+            let next = texs[1 - i];
+            let mut su = RdUniform::new_gd();
+            su.set_uniform_type(UniformType::SAMPLER_WITH_TEXTURE);
+            su.set_binding(0);
+            su.add_id(sampler);
+            su.add_id(prev);
+            let mut iu = RdUniform::new_gd();
+            iu.set_uniform_type(UniformType::IMAGE);
+            iu.set_binding(1);
+            iu.add_id(next);
+            let uniforms: Array<Gd<RdUniform>> = [su, iu].into_iter().collect();
+            *set = rd.uniform_set_create(&uniforms, shader, 0);
+        }
+        let pipeline = rd.compute_pipeline_create(shader);
+
+        let mut wraps = Vec::new();
+        for t in texs {
+            let mut w = Texture2Drd::new_gd();
+            w.set_texture_rd_rid(t);
+            wraps.push(w);
+        }
+        self.wake_tex = texs;
+        self.wake_sets = sets;
+        self.wake_shader = shader;
+        self.wake_pipeline = pipeline;
+        self.wake_sampler = sampler;
+        self.wake_wraps = wraps;
+        self.wake_idx = 0;
+    }
+
+    pub(super) fn dispatch_wake(&mut self, delta: f32, p: Vector3) {
+        if !self.wake_sets[0].is_valid() || !self.wake_sets[1].is_valid() {
+            return;
+        }
+        let dp = p - self.last_player_pos;
+        let speed_h = (Vector2::new(dp.x, dp.z) / delta.max(0.001)).length();
+        let in_water = ((self.water_level + 0.15 - p.y) / 0.5).clamp(0.0, 1.0);
+        let strength = in_water * (speed_h * 0.22).clamp(0.06, 0.65);
+
+        let idle = in_water <= 0.0;
+        self.wake_energy = self.wake_energy * (-delta * 0.8).exp()
+            + if idle { 0.0 } else { strength * delta * 6.0 };
+        if idle && self.wake_energy < 0.004 {
+            self.wake_active = false;
+            return;
+        }
+
+        let (flow_dir, flow_speed) = if let Some(m) = self.water_material.as_ref() {
+            let d = m
+                .get_shader_parameter("flow_direction")
+                .try_to::<Vector2>()
+                .unwrap_or(Vector2::new(0.0, 1.0));
+            (d, mat_f32(m, "flow_speed", 0.02))
+        } else {
+            (Vector2::new(0.0, 1.0), 0.02)
+        };
+        let flow = flow_dir.normalized() * flow_speed * 80.0;
+
+        let texel = WAKE_WINDOW / WAKE_RES as f32;
+        let org_new = Vector2::new((p.x / texel).floor() * texel, (p.z / texel).floor() * texel);
+        let org_old = if self.wake_active {
+            self.wake_origin
+        } else {
+            org_new
+        };
+        self.wake_origin = org_new;
+        self.wake_active = true;
+
+        let set = self.wake_sets[self.wake_idx];
+        let written = self.wake_tex[1 - self.wake_idx];
+        self.wake_idx = 1 - self.wake_idx;
+
+        let pc = [
+            p.x,
+            p.z,
+            flow.x,
+            flow.y,
+            org_new.x,
+            org_new.y,
+            org_old.x,
+            org_old.y,
+            WAKE_WINDOW,
+            delta,
+            strength,
+            0.9f32,
+        ];
+        let Some(rd) = self.water_rd.as_mut() else {
+            return;
+        };
+        let pc_bytes = PackedFloat32Array::from(&pc[..]).to_byte_array();
+        let cl = rd.compute_list_begin();
+        rd.compute_list_bind_compute_pipeline(cl, self.wake_pipeline);
+        rd.compute_list_bind_uniform_set(cl, set, 0);
+        rd.compute_list_set_push_constant(cl, &pc_bytes, pc_bytes.len() as u32);
+        rd.compute_list_dispatch(cl, WAKE_RES / 8, WAKE_RES / 8, 1);
+        rd.compute_list_end();
+
+        let widx = if self.wake_tex[0] == written { 0 } else { 1 };
+        if let Some(w) = self.wake_wraps.get(widx).cloned() {
+            if let Some(m) = self.water_material.as_mut() {
+                m.set_shader_parameter("wake_tex", &w.to_variant());
+                m.set_shader_parameter("wake_origin", &org_new.to_variant());
+                m.set_shader_parameter("wake_window", &WAKE_WINDOW.to_variant());
+            }
+        }
     }
 
     pub(super) fn dispatch_water_fx(&mut self) {
@@ -164,7 +365,16 @@ impl QTerrain {
         let Some(rd) = self.water_rd.as_mut() else {
             return;
         };
-        for rid in [self.pattern_pipeline, self.pattern_shader, self.pattern_tex] {
+        for rid in [
+            self.pattern_pipeline,
+            self.pattern_shader,
+            self.pattern_tex,
+            self.wake_pipeline,
+            self.wake_shader,
+            self.wake_sampler,
+            self.wake_tex[0],
+            self.wake_tex[1],
+        ] {
             if rid.is_valid() {
                 rd.free_rid(rid);
             }
@@ -173,6 +383,12 @@ impl QTerrain {
         self.pattern_shader = Rid::Invalid;
         self.pattern_pipeline = Rid::Invalid;
         self.pattern_set = Rid::Invalid;
+        self.wake_tex = [Rid::Invalid; 2];
+        self.wake_sets = [Rid::Invalid; 2];
+        self.wake_shader = Rid::Invalid;
+        self.wake_pipeline = Rid::Invalid;
+        self.wake_sampler = Rid::Invalid;
+        self.wake_wraps.clear();
         self.water_rd = None;
         self.pattern_wrap = None;
     }

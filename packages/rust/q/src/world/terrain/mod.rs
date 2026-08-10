@@ -60,6 +60,9 @@ pub struct QTerrain {
     #[init(val = 513)]
     resolution: i32,
     #[export]
+    #[init(val = true)]
+    wake_enabled: bool,
+    #[export]
     player_path: NodePath,
     #[export]
     grass_material: Option<Gd<ShaderMaterial>>,
@@ -84,6 +87,22 @@ pub struct QTerrain {
     water_time: f32,
     #[init(val = f32::MIN)]
     pattern_zc: f32,
+    #[init(val = [Rid::Invalid; 2])]
+    wake_tex: [Rid; 2],
+    #[init(val = [Rid::Invalid; 2])]
+    wake_sets: [Rid; 2],
+    #[init(val = Rid::Invalid)]
+    wake_shader: Rid,
+    #[init(val = Rid::Invalid)]
+    wake_pipeline: Rid,
+    #[init(val = Rid::Invalid)]
+    wake_sampler: Rid,
+    wake_wraps: Vec<Gd<Texture2Drd>>,
+    wake_idx: usize,
+    wake_energy: f32,
+    wake_active: bool,
+    wake_origin: Vector2,
+    last_player_pos: Vector3,
     hills: Option<FastNoiseLite>,
     river: Option<FastNoiseLite>,
     heights: Vec<f32>,
@@ -99,6 +118,13 @@ impl INode3D for QTerrain {
     fn ready(&mut self) {
         if Engine::singleton().is_editor_hint() {
             return;
+        }
+        if std::env::var("Q_NO_WAKE").is_ok() {
+            self.wake_enabled = false;
+        }
+        if std::env::var("Q_NO_VSYNC").is_ok() {
+            godot::classes::DisplayServer::singleton()
+                .window_set_vsync_mode(godot::classes::display_server::VSyncMode::DISABLED);
         }
         self.hills = Some(make_noise(self.terrain_seed, self.hill_frequency, 4));
         self.river = Some(make_noise(
@@ -146,6 +172,9 @@ impl INode3D for QTerrain {
         {
             m.set_shader_parameter("water_level", &self.water_level.to_variant());
         }
+        if let Some(m) = self.water_material.as_mut() {
+            m.set_shader_parameter("terrain_extent", &self.extent.to_variant());
+        }
 
         self.bake_clearance(&heights, res);
 
@@ -159,6 +188,12 @@ impl INode3D for QTerrain {
         body.add_child(&col);
         self.base_mut().add_child(&body);
 
+        if crate::world::q_hidden("pom") {
+            if let Some(m) = self.riverbed_material.as_mut() {
+                m.set_shader_parameter("pom_depth", &0.0f32.to_variant());
+                m.set_shader_parameter("pom_fade_end", &0.0f32.to_variant());
+            }
+        }
         self.build_river_planes();
 
         self.heights = heights;
@@ -170,11 +205,23 @@ impl INode3D for QTerrain {
         self.player = player.clone();
         if let Some(mut player) = player {
             let p = player.get_global_position();
-            let mut sx = p.x;
-            while self.height(sx, p.z) < self.water_level + 1.0 && sx < self.extent {
-                sx += 4.0;
+            if std::env::var("Q_SPAWN")
+                .map(|v| v == "river")
+                .unwrap_or(false)
+            {
+                let rx = self
+                    .river
+                    .as_ref()
+                    .map(|r| r.get_noise_2d(p.z, 0.0) * self.river_wander)
+                    .unwrap_or(0.0);
+                player.set_global_position(Vector3::new(rx, self.water_level + 0.6, p.z));
+            } else {
+                let mut sx = p.x;
+                while self.height(sx, p.z) < self.water_level + 1.0 && sx < self.extent {
+                    sx += 4.0;
+                }
+                player.set_global_position(Vector3::new(sx, self.height(sx, p.z) + 1.0, p.z));
             }
-            player.set_global_position(Vector3::new(sx, self.height(sx, p.z) + 1.0, p.z));
         }
         self.setup_water_fx();
     }
@@ -184,6 +231,10 @@ impl INode3D for QTerrain {
             if let Some(m) = self.water_material.as_mut() {
                 m.set_shader_parameter("player_position", &p.to_variant());
             }
+            if self.wake_enabled {
+                self.dispatch_wake(delta as f32, p);
+            }
+            self.last_player_pos = p;
         }
         self.water_time += delta as f32;
         self.dispatch_water_fx();

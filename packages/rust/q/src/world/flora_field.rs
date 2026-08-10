@@ -73,7 +73,7 @@ pub struct QFloraField {
 #[godot_api]
 impl INode3D for QFloraField {
     fn ready(&mut self) {
-        if Engine::singleton().is_editor_hint() {
+        if Engine::singleton().is_editor_hint() || super::q_hidden("flora") {
             return;
         }
         self.player = self

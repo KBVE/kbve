@@ -187,7 +187,7 @@ pub struct QTreeField {
 #[godot_api]
 impl INode3D for QTreeField {
     fn ready(&mut self) {
-        if Engine::singleton().is_editor_hint() {
+        if Engine::singleton().is_editor_hint() || super::q_hidden("trees") {
             return;
         }
         self.player = self

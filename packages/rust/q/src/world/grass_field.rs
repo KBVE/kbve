@@ -226,7 +226,7 @@ pub struct QGrassField {
 #[godot_api]
 impl INode3D for QGrassField {
     fn ready(&mut self) {
-        if Engine::singleton().is_editor_hint() {
+        if Engine::singleton().is_editor_hint() || super::q_hidden("grass") {
             return;
         }
         self.last_lod_position = Vector3::new(f32::INFINITY, f32::INFINITY, f32::INFINITY);
