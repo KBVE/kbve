@@ -1,20 +1,33 @@
-[gd_scene load_steps=17 format=3]
+[gd_scene load_steps=31 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
-[ext_resource type="Script" path="res://src/world/grass_field.gd" id="2_grass"]
-[ext_resource type="Material" uid="uid://bra6ug2wjmj0j" path="res://assets/biomes/grassland/BinbunGrass/src/materials/grass_01/grass_ground_01.tres" id="3_ground"]
-[ext_resource type="Material" uid="uid://c2to67v55oatp" path="res://assets/biomes/grassland/BinbunGrass/src/materials/grass_01/grass_01.tres" id="4_grassmat"]
+[ext_resource type="Material" path="res://assets/biomes/grassland/grass/ground.tres" id="3_ground"]
+[ext_resource type="Material" path="res://assets/biomes/grassland/grass/grass.tres" id="4_grassmat"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="5_player"]
 [ext_resource type="Shader" path="res://assets/environment/skyboxes/sky.gdshader" id="6_sky"]
 [ext_resource type="Script" path="res://src/world/day_night.gd" id="7_daynight"]
 [ext_resource type="Script" path="res://src/world/wind.gd" id="8_wind"]
 [ext_resource type="Script" path="res://src/world/climate.gd" id="9_climate"]
+[ext_resource type="Script" path="res://src/debug/debug_tools.gd" id="10_debug"]
+[ext_resource type="Shader" path="res://assets/fx/shaders/film_grade.gdshader" id="11_film"]
+[ext_resource type="Shader" path="res://assets/fx/shaders/anime_filter.gdshader" id="12_anime"]
+[ext_resource type="Material" path="res://assets/environment/water/water.tres" id="13_water"]
+[ext_resource type="Material" path="res://assets/environment/water/riverbed.tres" id="24_riverbed"]
+[ext_resource type="Script" path="res://src/fauna/flock.gd" id="14_ravens"]
+[ext_resource type="Resource" path="res://assets/environment/props/fauna/raven/raven_species.tres" id="15_species"]
+[ext_resource type="Script" path="res://src/ui/pause_menu.gd" id="16_pause"]
+[ext_resource type="Script" path="res://src/debug/debug_hud.gd" id="17_hud"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/flora.tres" id="18_flora"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/tree.tres" id="19_tree"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/shrub.tres" id="20_shrub"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/tree_leaf.tres" id="21_leaf"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/tree_bark.tres" id="22_bark"]
+[ext_resource type="Material" path="res://assets/environment/props/rocks/rock.tres" id="23_rock"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
-size = Vector2(512, 512)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
-size = Vector3(512, 0.1, 512)
+size = Vector2(1024, 1024)
+subdivide_width = 511
+subdivide_depth = 511
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_stars"]
 frequency = 0.3
@@ -33,18 +46,32 @@ noise = SubResource("FastNoiseLite_stars")
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_sky"]
 shader = ExtResource("6_sky")
 shader_parameter/stars_texture = SubResource("NoiseTexture2D_stars")
+shader_parameter/clouds_fuzziness = 0.3
+shader_parameter/clouds_blur = 0.2
 
 [sub_resource type="Sky" id="Sky_world"]
 sky_material = SubResource("ShaderMaterial_sky")
 
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_film"]
+shader = ExtResource("11_film")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_anime"]
+shader = ExtResource("12_anime")
+
 [sub_resource type="Environment" id="Environment_world"]
 background_mode = 2
 sky = SubResource("Sky_world")
+ambient_light_source = 2
+ambient_light_color = Color(0.7, 0.66, 0.6, 1)
 fog_enabled = true
-fog_light_color = Color(0.94, 0.95, 0.92, 1)
-fog_density = 0.012
-fog_aerial_perspective = 0.5
+fog_light_color = Color(0.851974, 0.909539, 1, 1)
+fog_density = 0.008
+fog_sun_scatter = 0.15
+fog_aerial_perspective = 0.93
 fog_sky_affect = 0.0
+adjustment_enabled = true
+adjustment_contrast = 1.15
+adjustment_saturation = 1.2
 
 [node name="Main" type="Node3D"]
 script = ExtResource("1_main")
@@ -52,28 +79,59 @@ script = ExtResource("1_main")
 [node name="Ground" type="MeshInstance3D" parent="."]
 material_override = ExtResource("3_ground")
 mesh = SubResource("PlaneMesh_ground")
+extra_cull_margin = 16.0
 
-[node name="GroundBody" type="StaticBody3D" parent="."]
+[node name="Terrain" type="QTerrain" parent="."]
+player_path = NodePath("../Player")
+grass_material = ExtResource("4_grassmat")
+ground_material = ExtResource("3_ground")
+water_material = ExtResource("13_water")
+riverbed_material = ExtResource("24_riverbed")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="GroundBody"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0)
-shape = SubResource("BoxShape3D_ground")
-
-[node name="GrassField" type="Node3D" parent="."]
-script = ExtResource("2_grass")
+[node name="GrassField" type="QGrassField" parent="."]
 player_path = NodePath("../Player")
 grass_material = ExtResource("4_grassmat")
 
+[node name="FloraField" type="QFloraField" parent="."]
+terrain_path = NodePath("../Terrain")
+player_path = NodePath("../Player")
+flora_material = ExtResource("18_flora")
+
+[node name="ShrubField" type="QFloraField" parent="."]
+terrain_path = NodePath("../Terrain")
+player_path = NodePath("../Player")
+flora_material = ExtResource("20_shrub")
+flora_seed = 7777
+density = 0.008
+fade_end = 90.0
+patch_frequency = 0.03
+patch_threshold = 0.4
+scale_min = 0.8
+scale_max = 1.6
+
+[node name="TreeField" type="QTreeField" parent="."]
+terrain_path = NodePath("../Terrain")
+player_path = NodePath("../Player")
+tree_material = ExtResource("19_tree")
+bark_material = ExtResource("22_bark")
+leaf_material = ExtResource("21_leaf")
+
+[node name="StoneField" type="QStoneField" parent="."]
+terrain_path = NodePath("../Terrain")
+player_path = NodePath("../Player")
+stone_material = ExtResource("23_rock")
+
 [node name="DayNight" type="Node3D" parent="."]
 script = ExtResource("7_daynight")
+environment_node = NodePath("../WorldEnvironment")
 
 [node name="Sun" type="DirectionalLight3D" parent="DayNight"]
 shadow_enabled = true
-shadow_blur = 1.5
+shadow_blur = 0.3
 
 [node name="Moon" type="DirectionalLight3D" parent="DayNight"]
 light_energy = 0.0
-shadow_blur = 2.0
+shadow_blur = 0.5
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_world")
@@ -81,6 +139,7 @@ environment = SubResource("Environment_world")
 [node name="Wind" type="Node" parent="."]
 script = ExtResource("8_wind")
 grass_material = ExtResource("4_grassmat")
+ground_material = ExtResource("3_ground")
 environment_node = NodePath("../WorldEnvironment")
 
 [node name="Climate" type="Node" parent="."]
@@ -89,3 +148,48 @@ environment_node = NodePath("../WorldEnvironment")
 
 [node name="Player" parent="." instance=ExtResource("5_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+
+[node name="Ravens" type="Node3D" parent="."]
+script = ExtResource("14_ravens")
+species = ExtResource("15_species")
+player_path = NodePath("../Player")
+
+[node name="DebugTools" type="Node3D" parent="."]
+script = ExtResource("10_debug")
+player_path = NodePath("../Player")
+
+[node name="PauseMenu" type="CanvasLayer" parent="."]
+script = ExtResource("16_pause")
+species = ExtResource("15_species")
+
+[node name="DebugHud" type="CanvasLayer" parent="."]
+script = ExtResource("17_hud")
+player_path = NodePath("../Player")
+
+[node name="PostFX" type="CanvasLayer" parent="."]
+layer = 100
+
+[node name="ImpactFX" type="QImpactFrame" parent="."]
+layer = 101
+day_night_path = NodePath("../DayNight")
+
+[node name="ImpactBurst" type="QImpactBurst" parent="."]
+
+[node name="AnimeFilter" type="ColorRect" parent="PostFX"]
+visible = false
+material = SubResource("ShaderMaterial_anime")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="FilmGrade" type="ColorRect" parent="PostFX"]
+material = SubResource("ShaderMaterial_film")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2

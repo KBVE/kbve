@@ -1,0 +1,28 @@
+{
+	"dir": "unified",
+	"center": [-3000.0, -190.59],
+	"r": 74.26,
+	"files": [
+		{
+			"i": 0,
+			"label": "unified",
+			"path": "unified",
+			"x": -3000.0,
+			"y": -190.59,
+			"n": 1
+		}
+	],
+	"symbols": [
+		{
+			"i": 0,
+			"f": 0,
+			"label": "unified",
+			"x": -3000.0,
+			"y": -190.59,
+			"c": 12826,
+			"loc": ""
+		}
+	],
+	"fileEdges": [],
+	"symbolEdges": []
+}

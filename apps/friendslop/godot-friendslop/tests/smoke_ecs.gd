@@ -13,18 +13,18 @@ func _initialize() -> void:
 	hub.observe([&"Health", &"Tag"], ObserverHub.MATCHED | ObserverHub.UNMATCHED, func(ev: int, e: ECSEntity, _c: ECSComponent) -> void:
 		_fired.append("pair/%d/%d" % [ev, e.id()]))
 
-	var e := world.create_entity()
-	hub.track(e)
-	e.add_component("Health", ECSDataComponent.new(0))
-	e.add_component("Tag", ECSDataComponent.new(0))
-	e.remove_component("Tag")
-	e.remove_component("Health")
+	var entity := world.create_entity()
+	hub.track(entity)
+	entity.add_component("Health", ECSDataComponent.new(0))
+	entity.add_component("Tag", ECSDataComponent.new(0))
+	entity.remove_component("Tag")
+	entity.remove_component("Health")
 
 	assert(_fired == [
-		"health/%d/%d" % [ObserverHub.ADDED, e.id()],
-		"pair/%d/%d" % [ObserverHub.MATCHED, e.id()],
-		"pair/%d/%d" % [ObserverHub.UNMATCHED, e.id()],
-		"health/%d/%d" % [ObserverHub.REMOVED, e.id()],
+		"health/%d/%d" % [ObserverHub.ADDED, entity.id()],
+		"pair/%d/%d" % [ObserverHub.MATCHED, entity.id()],
+		"pair/%d/%d" % [ObserverHub.UNMATCHED, entity.id()],
+		"health/%d/%d" % [ObserverHub.REMOVED, entity.id()],
 	], "observer events wrong: %s" % [_fired])
 
 	var got: Array[String] = []

@@ -1282,7 +1282,30 @@
 			}
 		}
 	],
-	"godot": [],
+	"godot": [
+		{
+			"key": "godot_friendslop",
+			"app_name": "friendslop",
+			"engine": {
+				"version": "4.7.1",
+				"project_path": "apps/friendslop/godot-friendslop",
+				"build_targets": [
+					"Windows Desktop",
+					"macOS",
+					"Linux"
+				]
+			},
+			"source_path": "apps/friendslop/godot-friendslop",
+			"version": "0.1.0",
+			"version_toml": "apps/friendslop/godot-friendslop/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/godot-friendslop.mdx",
+			"runner": "ubuntu-latest",
+			"external_publish": {
+				"itch_user": "kbve",
+				"itch_game": "friendslop"
+			}
+		}
+	],
 	"unreal_game": [
 		{
 			"key": "unreal_chuck_beta",
@@ -1438,10 +1461,10 @@
 		"unreal": 27,
 		"ue5_server": 1,
 		"unity": 1,
-		"godot": 0,
+		"godot": 1,
 		"unreal_game": 4,
 		"bevy_game": 0,
 		"vite_game": 1,
-		"total": 108
+		"total": 109
 	}
 }

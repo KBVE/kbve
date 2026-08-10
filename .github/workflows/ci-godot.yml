@@ -1,6 +1,6 @@
 name: CI - Godot
 
-run-name: 'CI - Godot / ${{ inputs.app_name }}'
+run-name: 'CI - Godot / ${{ fromJSON(inputs.engine).app_name }}'
 
 on:
     workflow_dispatch:
@@ -9,62 +9,24 @@ on:
                 description: 'Manifest key'
                 required: true
                 type: string
-            app_name:
-                description: 'Godot project / build name'
-                required: true
-                type: string
-            project_path:
-                description: 'Path to dir containing project.godot'
-                required: true
-                type: string
-            engine_version:
-                description: 'Godot version (e.g. 4.3-stable)'
-                required: true
-                type: string
-            build_targets:
-                description: 'JSON array of export preset names matching export_presets.cfg'
-                required: false
-                type: string
-                default: '["Linux/X11"]'
-            dotnet_enabled:
-                description: 'Use Godot .NET / C# build'
-                required: false
-                type: boolean
-                default: false
-            version_source:
-                description: 'Path to version source file (mdx)'
-                required: false
-                type: string
-                default: ''
-            version_toml:
-                description: 'Path to version.toml (PUBLISHED tracker)'
-                required: false
-                type: string
-                default: ''
-            manifest_version:
-                description: 'Version from manifest (LOCAL)'
-                required: false
-                type: string
-                default: ''
-            deploy_to_itch:
-                description: 'Deploy artefacts to itch.io after build'
-                required: false
-                type: boolean
-                default: false
-            itch_user:
-                description: 'Itch.io publisher user'
-                required: false
-                type: string
-                default: ''
-            itch_game:
-                description: 'Itch.io game slug'
-                required: false
-                type: string
-                default: ''
             dispatched_at:
                 description: 'Unix timestamp when this was dispatched (queue guard)'
                 required: true
                 type: string
+            engine:
+                description: 'JSON engine config: app_name, project_path, version, build_targets, dotnet_enabled'
+                required: true
+                type: string
+            version:
+                description: 'JSON version config: source, toml, manifest'
+                required: false
+                type: string
+                default: '{}'
+            publish:
+                description: 'JSON publish config: deploy_to_itch, itch_user, itch_game, itch_channel'
+                required: false
+                type: string
+                default: '{}'
 
 permissions: {}
 
@@ -76,7 +38,7 @@ jobs:
         steps:
             - run: |
                   AGE=$(( $(date +%s) - ${{ inputs.dispatched_at }} ))
-                  echo "godot/${{ inputs.app_name }} queued ${AGE}s"
+                  echo "godot/${{ fromJSON(inputs.engine).app_name }} queued ${AGE}s"
                   if [ "$AGE" -gt 7200 ]; then
                     echo "::error::Queue timeout: ${AGE}s > 2h"
                     exit 1
@@ -96,8 +58,8 @@ jobs:
             - uses: actions/checkout@v7
             - id: check
               run: |
-                  LOCAL="${{ inputs.manifest_version }}"
-                  VTOML="${{ inputs.version_toml }}"
+                  LOCAL="${{ fromJSON(inputs.version).manifest }}"
+                  VTOML="${{ fromJSON(inputs.version).toml }}"
                   PUB="0.0.0"
                   if [ -n "$VTOML" ] && [ -f "$VTOML" ]; then
                     PUB=$(grep -m1 '^version' "$VTOML" | sed 's/version = "\(.*\)"/\1/' || echo "0.0.0")
@@ -119,13 +81,13 @@ jobs:
         permissions:
             contents: read
         container:
-            image: barichello/godot-ci:${{ inputs.engine_version }}${{ inputs.dotnet_enabled && '-mono' || '' }}
+            image: barichello/godot-ci:${{ fromJSON(inputs.engine).dotnet_enabled && 'mono-' || '' }}${{ fromJSON(inputs.engine).version }}
         steps:
             - uses: actions/checkout@v7
             - name: Run headless test pass
               env:
                   GODOT_BIN: godot
-              working-directory: ${{ inputs.project_path }}
+              working-directory: ${{ fromJSON(inputs.engine).project_path }}
               run: |
                   # Prefer the project's own scripts/test.sh when present — it knows
                   # whether the suite is gdUnit4, GUT, or raw godot --quit-after.
@@ -141,61 +103,64 @@ jobs:
     build:
         name: Build (${{ matrix.preset }})
         needs: [version_gate, test]
-        if: ${{ inputs.build_targets != '[]' }}
+        if: ${{ join(fromJSON(inputs.engine).build_targets) != '' }}
         runs-on: ubuntu-latest
         timeout-minutes: 60
         permissions:
             contents: read
         container:
-            image: barichello/godot-ci:${{ inputs.engine_version }}${{ inputs.dotnet_enabled && '-mono' || '' }}
+            image: barichello/godot-ci:${{ fromJSON(inputs.engine).dotnet_enabled && 'mono-' || '' }}${{ fromJSON(inputs.engine).version }}
         strategy:
             fail-fast: false
             matrix:
-                preset: ${{ fromJSON(inputs.build_targets) }}
+                preset: ${{ fromJSON(inputs.engine).build_targets }}
         steps:
             - uses: actions/checkout@v7
             - name: Stage export templates
               run: |
-                  mkdir -p ~/.local/share/godot/export_templates/${{ inputs.engine_version }}
-                  if [ -d /root/.local/share/godot/export_templates/${{ inputs.engine_version }} ]; then
-                    cp -r /root/.local/share/godot/export_templates/${{ inputs.engine_version }}/* \
-                          ~/.local/share/godot/export_templates/${{ inputs.engine_version }}/
+                  mkdir -p ~/.local/share/godot/export_templates
+                  if [ -d "/root/.local/share/godot/export_templates" ]; then
+                    cp -r /root/.local/share/godot/export_templates/* \
+                          ~/.local/share/godot/export_templates/ 2>/dev/null || true
                   fi
             - name: Sanitize preset name for path
               id: san
               run: |
                   CLEAN=$(echo '${{ matrix.preset }}' | tr '/' '-' | tr ' ' '-')
                   echo "name=$CLEAN" >> "$GITHUB_OUTPUT"
+            - name: Import project
+              working-directory: ${{ fromJSON(inputs.engine).project_path }}
+              run: godot --headless --import || true
             - name: Export
-              working-directory: ${{ inputs.project_path }}
+              working-directory: ${{ fromJSON(inputs.engine).project_path }}
               run: |
                   mkdir -p build/${{ steps.san.outputs.name }}
                   godot --headless --export-release "${{ matrix.preset }}" \
-                        "build/${{ steps.san.outputs.name }}/${{ inputs.app_name }}"
+                        "build/${{ steps.san.outputs.name }}/${{ fromJSON(inputs.engine).app_name }}"
             - name: Upload artefact
               uses: actions/upload-artifact@v7
               with:
-                  name: ${{ inputs.app_name }}-${{ steps.san.outputs.name }}
-                  path: ${{ inputs.project_path }}/build/${{ steps.san.outputs.name }}
+                  name: ${{ fromJSON(inputs.engine).app_name }}-${{ steps.san.outputs.name }}
+                  path: ${{ fromJSON(inputs.engine).project_path }}/build/${{ steps.san.outputs.name }}
                   if-no-files-found: error
 
     itch:
         name: Itch.io Publish
         needs: [version_gate, build]
-        if: needs.version_gate.outputs.should_publish == 'true' && inputs.deploy_to_itch && inputs.itch_user != '' && inputs.itch_game != ''
+        if: needs.version_gate.outputs.should_publish == 'true' && fromJSON(inputs.publish).deploy_to_itch && fromJSON(inputs.publish).itch_user != '' && fromJSON(inputs.publish).itch_game != ''
         runs-on: ubuntu-latest
         timeout-minutes: 30
         strategy:
             fail-fast: false
             matrix:
-                preset: ${{ fromJSON(inputs.build_targets) }}
+                preset: ${{ fromJSON(inputs.engine).build_targets }}
         steps:
             - name: Sanitize preset name
               id: san
               run: echo "name=$(echo '${{ matrix.preset }}' | tr '/' '-' | tr ' ' '-')" >> "$GITHUB_OUTPUT"
             - uses: actions/download-artifact@v8
               with:
-                  name: ${{ inputs.app_name }}-${{ steps.san.outputs.name }}
+                  name: ${{ fromJSON(inputs.engine).app_name }}-${{ steps.san.outputs.name }}
                   path: ./build
             - name: Install butler
               run: |
@@ -218,22 +183,22 @@ jobs:
               env:
                   BUTLER_API_KEY: ${{ secrets.ITCH_API }}
               run: |
-                  ./butler push ./build "${{ inputs.itch_user }}/${{ inputs.itch_game }}:${{ steps.chan.outputs.channel }}" \
-                    --userversion "${{ inputs.manifest_version }}"
+                  ./butler push ./build "${{ fromJSON(inputs.publish).itch_user }}/${{ fromJSON(inputs.publish).itch_game }}:${{ steps.chan.outputs.channel }}" \
+                    --userversion "${{ fromJSON(inputs.version).manifest }}"
 
     post_publish_sync:
         name: Post-publish version sync
         needs: [version_gate, build, itch]
-        if: ${{ always() && needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success' && (needs.itch.result == 'success' || needs.itch.result == 'skipped') && inputs.version_toml != '' }}
+        if: ${{ always() && needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success' && (needs.itch.result == 'success' || needs.itch.result == 'skipped') && fromJSON(inputs.version).toml != '' }}
         permissions:
             contents: write
             pull-requests: write
             actions: write
         uses: KBVE/kbve/.github/workflows/utils-post-publish.yml@main
         with:
-            app_name: ${{ inputs.app_name }}
-            version: ${{ inputs.manifest_version }}
-            version_toml_path: ${{ inputs.version_toml }}
+            app_name: ${{ fromJSON(inputs.engine).app_name }}
+            version: ${{ fromJSON(inputs.version).manifest }}
+            version_toml_path: ${{ fromJSON(inputs.version).toml }}
         secrets:
             TRIGGER_PAT: ${{ secrets.UNITY_PAT }}
 
@@ -247,7 +212,7 @@ jobs:
         uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
         with:
             workflow_name: 'CI - Godot'
-            job_name: ${{ inputs.app_name }}
+            job_name: ${{ fromJSON(inputs.engine).app_name }}
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             status: 'failure'
@@ -262,7 +227,7 @@ jobs:
         uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
         with:
             workflow_name: 'CI - Godot'
-            job_name: ${{ inputs.app_name }}
+            job_name: ${{ fromJSON(inputs.engine).app_name }}
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             status: 'success'

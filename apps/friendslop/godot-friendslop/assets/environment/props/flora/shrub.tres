@@ -1,0 +1,22 @@
+[gd_resource type="ShaderMaterial" load_steps=4 format=3]
+
+[ext_resource type="Shader" path="res://assets/environment/props/flora/shrub.gdshader" id="1_shader"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_wind"]
+frequency = 0.0043
+fractal_type = 2
+fractal_gain = 0.45
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_wind"]
+seamless = true
+noise = SubResource("FastNoiseLite_wind")
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/fade_end = 90.0
+shader_parameter/object_radius = 1.4
+shader_parameter/object_position = Vector3(0, 0, 0)
+shader_parameter/wind_noise = SubResource("NoiseTexture2D_wind")
+shader_parameter/wind_strength = 0.15
+shader_parameter/sway_strength = 0.1

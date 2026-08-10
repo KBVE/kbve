@@ -29,8 +29,6 @@ jsonld:
           answer: Q is a Rust crate powering KBVE games. Its default build is a Godot GDExtension (cdylib) with a tokio-backed game manager, and feature flags expose a parallel server flavor built on bevy, axum, and rapier2d.
         - question: Can q be built as both a client and a server?
           answer: Yes, but not at once. The client and server features are mutually exclusive — enforced by a compile_error in lib.rs — so a build is either the Godot GDExtension client or the headless server flavor.
-        - question: What game bundles does the q crate provide?
-          answer: Feature rollups such as nexus-defense and nexus-defense-server bundle protocol, physics, networking, and (server-side) bevy ECS plus Supabase JWT auth and shared mapdb/npc registries, so build pipelines can select a whole game flavor with one feature.
 bento:
     badge: crates · rust
     title: Godot game client and server
@@ -51,10 +49,9 @@ bento:
         body: >-
             The default build is a Godot GDExtension (cdylib) with a tokio-backed
             game manager; feature flags expose a parallel server flavor built on
-            bevy, axum, and rapier2d, along with per-game bundles.
+            bevy, axum, and rapier2d.
         points:
             - <strong>Mutually exclusive</strong> — client and server gated by a compile_error in lib.rs.
-            - <strong>Game bundles</strong> — rollups like nexus-defense select a whole flavor.
     stats:
         - { label: Package, value: q, icon: package }
         - { label: Edition, value: "2024", icon: rust }
@@ -79,9 +76,6 @@ bento:
         - title: Supabase auth
           icon: key
           body: Server-side HS256 JWT verification to admit players.
-        - title: Game bundles
-          icon: package
-          body: nexus-defense / nexus-defense-server roll up the features per game.
     related:
         - title: KBVE Crate
           href: /project/kbve-crate/

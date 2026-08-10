@@ -549,8 +549,9 @@ jobs:
                     # Collapse per-game fields into JSON blobs so ci-unreal's
                     # workflow_dispatch stays under GitHub's 10-input cap; the
                     # engine workflow fromJSON-forwards into ci-unreal-build
-                    # (workflow_call, no cap). ci-unity/ci-godot still expect the
-                    # legacy per-field inputs — convert them before they get entries.
+                    # (workflow_call, no cap). ci-godot reads the same blobs;
+                    # ci-unity still expects the legacy per-field inputs —
+                    # convert it before it gets entries.
                     local engine_json version_json publish_json
                     engine_json=$(echo "$entry" | jq -c --arg app "$app" --arg sp "$shell_path" \
                       '(.engine // {}) + {app_name:$app, shell_path:$sp, build_targets:(.engine.build_targets // []), maps:(.engine.maps // [])}')

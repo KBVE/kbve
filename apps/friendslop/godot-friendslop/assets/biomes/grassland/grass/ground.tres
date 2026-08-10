@@ -1,0 +1,43 @@
+[gd_resource type="ShaderMaterial" load_steps=9 format=3]
+
+[ext_resource type="Shader" path="res://assets/biomes/grassland/grass/ground.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://assets/biomes/grassland/grass/grass_normals.png" id="2_normals"]
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_patch"]
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_patch"]
+seamless = true
+noise = SubResource("FastNoiseLite_patch")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_wind"]
+frequency = 0.0043
+fractal_type = 2
+fractal_gain = 0.45
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_wind"]
+seamless = true
+noise = SubResource("FastNoiseLite_wind")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_hf"]
+frequency = 0.1
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_hf"]
+seamless_blend_skirt = 0.0
+noise = SubResource("FastNoiseLite_hf")
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/color_small = Color(0.3, 0.6, 0.1, 1)
+shader_parameter/color_large = Color(0.9, 0.9, 0.2, 1)
+shader_parameter/ground_color = Color(0.09, 0.07, 0.04, 1)
+shader_parameter/soil_fade_start = 5.0
+shader_parameter/soil_fade_end = 10.0
+shader_parameter/patch_noise = SubResource("NoiseTexture2D_patch")
+shader_parameter/patch_scale = 5.0
+shader_parameter/high_frequency_noise = SubResource("NoiseTexture2D_hf")
+shader_parameter/baked_normals = ExtResource("2_normals")
+shader_parameter/wind_noise = SubResource("NoiseTexture2D_wind")
+shader_parameter/wind_strength = 0.1
+shader_parameter/wind_bend_strength = 2.0
+shader_parameter/wind_ao_affect = 1.0

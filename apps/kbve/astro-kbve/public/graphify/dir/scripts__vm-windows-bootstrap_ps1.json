@@ -1,14 +1,14 @@
 {
 	"dir": "scripts/vm-windows-bootstrap.ps1",
-	"center": [2465.94, 1564.54],
-	"r": 75.94,
+	"center": [1715.09, 2479.59],
+	"r": 75.91,
 	"files": [
 		{
 			"i": 0,
 			"label": "vm-windows-bootstrap.ps1",
 			"path": "scripts/vm-windows-bootstrap.ps1",
-			"x": 2465.94,
-			"y": 1564.54,
+			"x": 1715.09,
+			"y": 2479.59,
 			"n": 3
 		}
 	],
@@ -17,27 +17,27 @@
 			"i": 0,
 			"f": 0,
 			"label": "vm-windows-bootstrap.ps1",
-			"x": 2472.03,
-			"y": 1564.54,
-			"c": 3643,
+			"x": 1721.19,
+			"y": 2479.59,
+			"c": 3778,
 			"loc": "L1"
 		},
 		{
 			"i": 1,
 			"f": 0,
 			"label": "Write-Step()",
-			"x": 2458.16,
-			"y": 1571.67,
-			"c": 3643,
+			"x": 1707.31,
+			"y": 2486.72,
+			"c": 3778,
 			"loc": "L21"
 		},
 		{
 			"i": 2,
 			"f": 0,
 			"label": "Install-FromUrl()",
-			"x": 2467.13,
-			"y": 1550.96,
-			"c": 3643,
+			"x": 1716.28,
+			"y": 2466.01,
+			"c": 3778,
 			"loc": "L22"
 		}
 	],

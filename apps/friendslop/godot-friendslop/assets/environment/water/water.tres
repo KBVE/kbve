@@ -1,0 +1,81 @@
+[gd_resource type="ShaderMaterial" load_steps=8 format=3]
+
+[ext_resource type="Shader" path="res://assets/environment/water/water.gdshader" id="1_shader"]
+
+[sub_resource type="Gradient" id="Gradient_water"]
+interpolation_mode = 2
+interpolation_color_space = 2
+offsets = PackedFloat32Array(0.7041, 0.7937, 0.8235)
+colors = PackedColorArray(0, 0.171, 0.236, 0.706, 0, 0.889, 1.446, 1, 0.754, 1.109, 1.446, 1)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_ramp"]
+gradient = SubResource("Gradient_water")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_dist"]
+frequency = 0.0102
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_dist"]
+seamless = true
+as_normal_map = true
+noise = SubResource("FastNoiseLite_dist")
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_wobble"]
+noise_type = 0
+
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_wobble"]
+seamless = true
+bump_strength = 0.4
+noise = SubResource("FastNoiseLite_wobble")
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/scale1 = 30.0
+shader_parameter/scale2 = 30.0
+shader_parameter/smoothness = 11.0
+shader_parameter/contrast = 6.415
+shader_parameter/brightness = 0.097
+shader_parameter/color_ramp = SubResource("GradientTexture1D_ramp")
+shader_parameter/noise_texture = SubResource("NoiseTexture2D_wobble")
+shader_parameter/distortion_texture = SubResource("NoiseTexture2D_dist")
+shader_parameter/wobble_strength = 0.03
+shader_parameter/wobble_scale = 0.3
+shader_parameter/wobble_speed = 2.0
+shader_parameter/flow_direction = Vector2(0, 1)
+shader_parameter/flow_speed = 0.02
+shader_parameter/z_flow_speed = 0.01
+shader_parameter/enable_surface_waves = true
+shader_parameter/wave_amplitude = 0.05
+shader_parameter/wave_frequency = 0.612
+shader_parameter/wave_direction_1 = Vector2(1, -0.225)
+shader_parameter/wave_direction_2 = Vector2(-0.65, 1)
+shader_parameter/wave_speed_1 = 4.0
+shader_parameter/wave_speed_2 = 4.0
+shader_parameter/wave_steepness = 1.0
+shader_parameter/enable_stepped_animation = true
+shader_parameter/animation_fps = 8.0
+shader_parameter/caustics_intensity = 5.0
+shader_parameter/caustic_scale_multiplier = 0.15
+shader_parameter/caustic_depth_fade = 0.756
+shader_parameter/caustic_sharpness = 5.0
+shader_parameter/beers_law = 2.0
+shader_parameter/alpha_min = 0.42
+shader_parameter/alpha_max = 0.78
+shader_parameter/shimmer_density = 100.0
+shader_parameter/shimmer_brightness = 1.8
+shader_parameter/shimmer_color = Color(0.243, 2.141, 2.708, 1)
+shader_parameter/distortion_strength = 0.1
+shader_parameter/distortion_scale = 0.1
+shader_parameter/color_saturation = 0.75
+shader_parameter/color_vibrance = 0.0
+shader_parameter/enable_specular_shimmer = false
+shader_parameter/enable_ssr = false
+shader_parameter/enable_light_reactive_waves = false
+shader_parameter/enable_star_sparkles = false
+shader_parameter/enable_cross_highlights = false
+shader_parameter/enable_foam = true
+shader_parameter/foam_depth_width = 0.32
+shader_parameter/foam_brightness = 1.5
+shader_parameter/foam_scale = 8.0
+shader_parameter/foam_sharpness = 5.5
+shader_parameter/foam_cutoff = 0.5

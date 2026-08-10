@@ -11,7 +11,7 @@ metadata:
         kbve.com/stack: core
         kbve.com/managed-by: argocd
     annotations:
-        secret.reloader.stakater.com/reload: vpn-wireguard
+        secret.reloader.stakater.com/reload: vpn-wireguard-kasm
 spec:
     replicas: 0
     selector:
@@ -109,7 +109,7 @@ spec:
                         protocol: TCP
                   envFrom:
                       - secretRef:
-                            name: vpn-wireguard
+                            name: vpn-wireguard-kasm
                   env:
                       - name: UPDATER_PERIOD
                         value: 24h

@@ -10,11 +10,18 @@ extends Node3D
 @export_category("Sun")
 @export var sun_max_energy := 1.0
 @export var sun_shadow_distance := 80.0
-@export_range(0.0, 1.0, 0.01) var sun_angular_distance := 0.25
+@export_range(0.0, 1.0, 0.01) var sun_angular_distance := 0.0
 
 @export_category("Moon")
 @export var moon_max_energy := 0.20
 @export var moon_shadow_distance := 45.0
+
+@export_category("Atmosphere")
+@export var environment_node: WorldEnvironment
+@export var day_fog_color := Color(0.851974, 0.909539, 1.0)
+@export var night_fog_color := Color(0.045, 0.055, 0.09)
+@export var day_ambient := Color(0.7, 0.66, 0.6)
+@export var night_ambient := Color(0.12, 0.14, 0.22)
 
 @export_category("Shadow Thresholds")
 @export var sun_shadow_enable_elevation := 0.05
@@ -132,6 +139,12 @@ func _update_celestial_state(force := false) -> void:
 
 	sun.rotation.x = -angle
 	moon.rotation.x = -angle + PI
+
+	if environment_node:
+		var t := smoothstep(-0.1, 0.15, sun_elevation)
+		var env := environment_node.environment
+		env.fog_light_color = night_fog_color.lerp(day_fog_color, t)
+		env.ambient_light_color = night_ambient.lerp(day_ambient, t)
 
 
 func _update_shadow_state(sun_elevation: float, moon_elevation: float) -> void:

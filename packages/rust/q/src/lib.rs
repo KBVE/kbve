@@ -18,11 +18,15 @@ mod entity;
 #[cfg(feature = "client")]
 mod extensions;
 #[cfg(feature = "client")]
+mod fx;
+#[cfg(feature = "client")]
 mod macros;
 #[cfg(feature = "client")]
 mod manager;
 #[cfg(feature = "client")]
 mod threads;
+#[cfg(feature = "client")]
+mod world;
 
 #[cfg(all(
     feature = "client",
@@ -77,9 +81,3 @@ pub mod net;
 
 #[cfg(feature = "supabase-auth")]
 pub mod auth;
-
-#[cfg(feature = "nexus-defense")]
-pub mod nexus_defense;
-
-#[cfg(feature = "nexus-defense-server")]
-pub mod nexus_defense_server;

@@ -1,10 +1,27 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://src/player/player.gd" id="1_player"]
+[ext_resource type="Script" path="res://src/player/camera_rig.gd" id="5_camrig"]
+[ext_resource type="Shader" path="res://assets/fx/shaders/toon.gdshader" id="2_toon"]
+[ext_resource type="Shader" path="res://assets/fx/shaders/outline.gdshader" id="3_outline"]
+[ext_resource type="Shader" path="res://assets/fx/shaders/ink_lines.gdshader" id="4_ink"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_toon"]
+shader = ExtResource("2_toon")
+shader_parameter/albedo_tint = Color(0.85, 0.3, 0.25, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_outline"]
+shader = ExtResource("3_outline")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_ink"]
+shader = ExtResource("4_ink")
+
+[sub_resource type="QuadMesh" id="QuadMesh_ink"]
+size = Vector2(2, 2)
 
 [node name="Player" type="CharacterBody3D"]
 script = ExtResource("1_player")
@@ -16,11 +33,27 @@ shape = SubResource("CapsuleShape3D_body")
 [node name="Mesh" type="MeshInstance3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 mesh = SubResource("CapsuleMesh_body")
+material_override = SubResource("ShaderMaterial_toon")
+
+[node name="Outline" type="MeshInstance3D" parent="Mesh"]
+mesh = SubResource("CapsuleMesh_body")
+material_override = SubResource("ShaderMaterial_outline")
+cast_shadow = 0
+
+[node name="StatusSmoke" type="QStatusSmoke" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="SlashArc" type="QSlashArc" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
 
 [node name="Pivot" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
 
-[node name="SpringArm3D" type="SpringArm3D" parent="Pivot"]
-spring_length = 4.0
+[node name="Camera3D" type="Camera3D" parent="Pivot"]
+script = ExtResource("5_camrig")
 
-[node name="Camera3D" type="Camera3D" parent="Pivot/SpringArm3D"]
+[node name="InkLines" type="MeshInstance3D" parent="Pivot/Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+mesh = SubResource("QuadMesh_ink")
+material_override = SubResource("ShaderMaterial_ink")
+cast_shadow = 0

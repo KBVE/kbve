@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="BirdSpecies" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://src/fauna/bird_species.gd" id="1_species"]
+[ext_resource type="PackedScene" path="res://assets/environment/props/fauna/raven/raven.glb" id="2_model"]
+
+[resource]
+script = ExtResource("1_species")
+model = ExtResource("2_model")
