@@ -1,4 +1,4 @@
-[gd_scene load_steps=27 format=3]
+[gd_scene load_steps=29 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="Material" path="res://assets/biomes/grassland/grass/ground.tres" id="3_ground"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://src/world/climate.gd" id="9_climate"]
 [ext_resource type="Script" path="res://src/debug/debug_tools.gd" id="10_debug"]
 [ext_resource type="Shader" path="res://assets/fx/shaders/film_grade.gdshader" id="11_film"]
+[ext_resource type="Shader" path="res://assets/fx/shaders/anime_filter.gdshader" id="12_anime"]
 [ext_resource type="Material" path="res://assets/environment/water/water.tres" id="13_water"]
 [ext_resource type="Script" path="res://src/fauna/flock.gd" id="14_ravens"]
 [ext_resource type="Resource" path="res://assets/environment/props/fauna/raven/raven_species.tres" id="15_species"]
@@ -18,6 +19,8 @@
 [ext_resource type="Material" path="res://assets/environment/props/flora/flora.tres" id="18_flora"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/tree.tres" id="19_tree"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/shrub.tres" id="20_shrub"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/tree_leaf.tres" id="21_leaf"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/tree_bark.tres" id="22_bark"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(1024, 1024)
@@ -49,6 +52,9 @@ sky_material = SubResource("ShaderMaterial_sky")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_film"]
 shader = ExtResource("11_film")
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_anime"]
+shader = ExtResource("12_anime")
 
 [sub_resource type="Environment" id="Environment_world"]
 background_mode = 2
@@ -102,7 +108,10 @@ scale_max = 1.6
 
 [node name="TreeField" type="QTreeField" parent="."]
 terrain_path = NodePath("../Terrain")
+player_path = NodePath("../Player")
 tree_material = ExtResource("19_tree")
+bark_material = ExtResource("22_bark")
+leaf_material = ExtResource("21_leaf")
 
 [node name="DayNight" type="Node3D" parent="."]
 script = ExtResource("7_daynight")
@@ -151,6 +160,16 @@ player_path = NodePath("../Player")
 
 [node name="PostFX" type="CanvasLayer" parent="."]
 layer = 100
+
+[node name="AnimeFilter" type="ColorRect" parent="PostFX"]
+visible = false
+material = SubResource("ShaderMaterial_anime")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="FilmGrade" type="ColorRect" parent="PostFX"]
 material = SubResource("ShaderMaterial_film")

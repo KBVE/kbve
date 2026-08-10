@@ -18,6 +18,8 @@ layout(push_constant, std430) uniform Params {
 } pc;
 
 const float FADE_END = %FADE_END%;
+const float DIST_MIN = %DIST_MIN%;
+const float RANK_FADE = %RANK_FADE%;
 const uint COUNT = %COUNT%u;
 const uint CAP = %CAP%u;
 
@@ -48,8 +50,8 @@ void main() {
         s = cand.data[src + 3u];
         rank = cand.data[src + 4u];
         float d = distance(vec2(x, z), pc.cam.xz);
-        float keep = 1.0 - smoothstep(FADE_END * 0.7, FADE_END, d);
-        alive = d < FADE_END && rank < keep;
+        float keep = RANK_FADE > 0.5 ? 1.0 - smoothstep(FADE_END * 0.7, FADE_END, d) : 1.0;
+        alive = d >= DIST_MIN && d < FADE_END && rank <= keep;
         if (alive) {
             vec3 pos = vec3(x, y + s * 0.5, z);
             float m = s + 1.5;
@@ -102,7 +104,10 @@ layout(set = 0, binding = 0, std430) restrict readonly buffer Counter { uint dat
 layout(set = 0, binding = 1, std430) restrict buffer Cmd { uint data[]; } cmd;
 
 void main() {
-    cmd.data[1] = min(counter.data[0], %CAP%u);
+    uint n = min(counter.data[0], %CAP%u);
+    for (uint i = 0u; i < %SURF%u; i++) {
+        cmd.data[i * 5u + 1u] = n;
+    }
 }
 "#;
 
@@ -165,7 +170,10 @@ impl FloraCompute {
         candidates: &[f32],
         cap: u32,
         fade_end: f32,
+        dist_min: f32,
+        rank_fade: bool,
         shadows: bool,
+        surfaces: u32,
     ) -> Option<Self> {
         let count = (candidates.len() / 8) as u32;
         if count == 0 || cap == 0 {
@@ -174,11 +182,22 @@ impl FloraCompute {
         let mut rd = RenderingServer::singleton().get_rendering_device()?;
         let subs = [
             ("%FADE_END%", format!("{fade_end:.6}")),
+            ("%DIST_MIN%", format!("{dist_min:.6}")),
+            (
+                "%RANK_FADE%",
+                if rank_fade { "1.0" } else { "0.0" }.to_string(),
+            ),
             ("%COUNT%", count.to_string()),
             ("%CAP%", cap.to_string()),
         ];
         let cull_src = bake(FLORA_CULL_GLSL, &subs);
-        let resolve_src = bake(FLORA_RESOLVE_GLSL, &[("%CAP%", cap.to_string())]);
+        let resolve_src = bake(
+            FLORA_RESOLVE_GLSL,
+            &[
+                ("%CAP%", cap.to_string()),
+                ("%SURF%", surfaces.max(1).to_string()),
+            ],
+        );
         let cull_shader = compile(&mut rd, &cull_src)?;
         let resolve_shader = compile(&mut rd, &resolve_src)?;
         let cull_pipeline = rd.compute_pipeline_create(cull_shader);
@@ -202,7 +221,9 @@ impl FloraCompute {
         let inst = rs.instance_create();
         rs.instance_set_scenario(inst, scenario);
         rs.instance_set_base(inst, mm);
-        rs.instance_geometry_set_material_override(inst, material);
+        if material.is_valid() {
+            rs.instance_geometry_set_material_override(inst, material);
+        }
         rs.instance_geometry_set_cast_shadows_setting(
             inst,
             if shadows {

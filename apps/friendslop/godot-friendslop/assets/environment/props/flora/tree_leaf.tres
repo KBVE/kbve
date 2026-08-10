@@ -1,0 +1,17 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://assets/environment/props/flora/tree_leaf.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://assets/environment/props/flora/euonymus/euonymus_alpha_0.png" id="2_leaf"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/albedo_tex = ExtResource("2_leaf")
+shader_parameter/sway_strength = 0.015
+shader_parameter/flutter_strength = 0.022
+shader_parameter/flutter_speed = 4.5
+shader_parameter/sway_speed = 1.1
+shader_parameter/object_radius = 1.7
+shader_parameter/bend_strength = 0.65
+shader_parameter/texture_color_mix = 0.35
+shader_parameter/object_position = Vector3(0, -100, 0)

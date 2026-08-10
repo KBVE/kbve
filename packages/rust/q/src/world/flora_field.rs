@@ -273,7 +273,10 @@ impl QFloraField {
             &self.candidates,
             cap,
             self.fade_end,
+            0.0,
+            true,
             false,
+            1,
         )
     }
 

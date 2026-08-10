@@ -1,0 +1,12 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3]
+
+[ext_resource type="Shader" path="res://assets/environment/props/flora/tree_bark.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://assets/environment/props/flora/euonymus/SH06_Bark01_dif_su.png" id="2_bark"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/bark_tex = ExtResource("2_bark")
+shader_parameter/sway_strength = 0.015
+shader_parameter/sway_speed = 1.1
+shader_parameter/texture_color_mix = 0.45
