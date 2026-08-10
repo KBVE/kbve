@@ -216,6 +216,9 @@ pub struct QGrassField {
     terrain_res: i32,
     #[init(val = Rid::Invalid)]
     terrain_heightmap_rid: Rid,
+    #[init(val = Rid::Invalid)]
+    terrain_clearance_rid: Rid,
+    clearance_fallback: Option<Gd<godot::classes::ImageTexture>>,
     terrain_extent_cached: f32,
     water_cached: f32,
 }
@@ -322,6 +325,10 @@ impl INode3D for QGrassField {
             self.water_cached = t.water();
             self.terrain_heightmap_rid = t
                 .heightmap_texture()
+                .map(|tex| tex.get_rid())
+                .unwrap_or(Rid::Invalid);
+            self.terrain_clearance_rid = t
+                .clearance_texture()
                 .map(|tex| tex.get_rid())
                 .unwrap_or(Rid::Invalid);
         } else if let Some(mat) = self.grass_material.as_ref() {
@@ -599,6 +606,7 @@ impl QGrassField {
             Vector3::new(extent * 2.0, 120.0, extent * 2.0),
         );
         let heightmap = self.resolve_heightmap_rid()?;
+        let clearance = self.resolve_clearance_rid()?;
         let terrain_extent = self.terrain_extent_cached.max(1.0);
         let water_level = self.water_cached;
         BladeCompute::new(
@@ -613,6 +621,7 @@ impl QGrassField {
             cap_near,
             cap_far,
             heightmap,
+            clearance,
             terrain_extent,
             water_level,
         )
@@ -741,6 +750,27 @@ impl QGrassField {
             .try_to::<Gd<godot::classes::Texture2D>>()
             .ok()
             .map(|t| t.get_rid())
+    }
+
+    fn resolve_clearance_rid(&mut self) -> Option<Rid> {
+        if self.terrain_clearance_rid.is_valid() {
+            return Some(self.terrain_clearance_rid);
+        }
+        if let Some(tex) = self.clearance_fallback.as_ref() {
+            return Some(tex.get_rid());
+        }
+        let data = PackedByteArray::from(&[0u8][..]);
+        let tex = godot::classes::Image::create_from_data(
+            1,
+            1,
+            false,
+            godot::classes::image::Format::R8,
+            &data,
+        )
+        .and_then(|img| godot::classes::ImageTexture::create_from_image(&img))?;
+        let rid = tex.get_rid();
+        self.clearance_fallback = Some(tex);
+        Some(rid)
     }
 
     fn terrain_sample(&self, x: f32, z: f32) -> f32 {
@@ -904,6 +934,7 @@ impl QGrassField {
             Vector3::new(-extent, -40.0, -extent),
             Vector3::new(extent * 2.0, 120.0, extent * 2.0),
         );
+        let clearance = self.resolve_clearance_rid()?;
         CardCompute::new(
             scenario,
             world_aabb,
@@ -914,6 +945,7 @@ impl QGrassField {
             cell_capacity,
             cap,
             heightmap,
+            clearance,
             &params,
         )
     }

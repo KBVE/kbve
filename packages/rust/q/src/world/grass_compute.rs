@@ -26,6 +26,7 @@ layout(set = 0, binding = 2, std430) restrict writeonly buffer OutNear { float d
 layout(set = 0, binding = 3, std430) restrict writeonly buffer OutFar { float data[]; } out_far;
 layout(set = 0, binding = 4, std430) restrict buffer Counter { uint data[]; } counter;
 layout(set = 0, binding = 5) uniform sampler2D heightmap;
+layout(set = 0, binding = 6) uniform sampler2D clearance;
 layout(push_constant, std430) uniform Params {
     vec4 cam;
     vec4 p0;
@@ -45,6 +46,11 @@ shared uint base_far;
 float terrain_h(vec2 xz) {
     vec2 uv = clamp((xz + pc.terra.x) / (pc.terra.x * 2.0), 0.001, 0.999);
     return textureLod(heightmap, uv, 0.0).r;
+}
+
+float clearance_at(vec2 xz) {
+    vec2 uv = clamp((xz + pc.terra.x) / (pc.terra.x * 2.0), 0.001, 0.999);
+    return textureLod(clearance, uv, 0.0).r;
 }
 
 bool outside(vec4 plane, vec3 pos) {
@@ -92,6 +98,7 @@ void main() {
             h = terrain_h(vec2(wx, wz));
             vec3 pos = vec3(wx, h + 0.7, wz);
             alive = h >= pc.terra.y + 0.25
+                && rank < 1.0 - clearance_at(vec2(wx, wz))
                 && !(outside(pc.p0, pos) || outside(pc.p1, pos) || outside(pc.p2, pos)
                     || outside(pc.p3, pos));
             if (alive && d > pc.terra.z) {
@@ -200,6 +207,7 @@ layout(set = 0, binding = 1, std430) restrict readonly buffer Cells { vec4 data[
 layout(set = 0, binding = 2, std430) restrict writeonly buffer OutB { float data[]; } outb;
 layout(set = 0, binding = 3, std430) restrict buffer Counter { uint data[]; } counter;
 layout(set = 0, binding = 4) uniform sampler2D heightmap;
+layout(set = 0, binding = 5) uniform sampler2D clearance;
 layout(push_constant, std430) uniform Params {
     vec4 cam;
     vec4 p0;
@@ -227,6 +235,11 @@ shared uint base_slot;
 float terrain_h(vec2 xz) {
     vec2 uv = clamp((xz + EXTENT) / (EXTENT * 2.0), 0.001, 0.999);
     return textureLod(heightmap, uv, 0.0).r;
+}
+
+float clearance_at(vec2 xz) {
+    vec2 uv = clamp((xz + EXTENT) / (EXTENT * 2.0), 0.001, 0.999);
+    return textureLod(clearance, uv, 0.0).r;
 }
 
 bool outside(vec4 plane, vec3 pos) {
@@ -275,6 +288,7 @@ void main() {
             h = terrain_h(vec2(wx, wz));
             vec3 pos = vec3(wx, h + 1.0, wz);
             alive = h >= WATER + 0.25
+                && rank < 1.0 - clearance_at(vec2(wx, wz))
                 && !(outside(pc.p0, pos) || outside(pc.p1, pos) || outside(pc.p2, pos)
                     || outside(pc.p3, pos));
             if (alive && d > OCCL_START) {
@@ -391,6 +405,7 @@ pub struct BladeCompute {
     cap_far: u32,
     zero_counter: PackedByteArray,
     heightmap_tex: Rid,
+    clearance_tex: Rid,
     sampler: Rid,
     terrain_extent: f32,
     water_level: f32,
@@ -435,10 +450,11 @@ impl BladeCompute {
         cap_near: u32,
         cap_far: u32,
         heightmap_tex: Rid,
+        clearance_tex: Rid,
         terrain_extent: f32,
         water_level: f32,
     ) -> Option<Self> {
-        if !heightmap_tex.is_valid() {
+        if !heightmap_tex.is_valid() || !clearance_tex.is_valid() {
             return None;
         }
         let mut rd = RenderingServer::singleton().get_rendering_device()?;
@@ -512,6 +528,7 @@ impl BladeCompute {
             cap_far,
             zero_counter,
             heightmap_tex,
+            clearance_tex,
             sampler,
             terrain_extent,
             water_level,
@@ -532,11 +549,13 @@ impl BladeCompute {
         let cmd_near = rs.multimesh_get_command_buffer_rd_rid(self.mm_near);
         let cmd_far = rs.multimesh_get_command_buffer_rd_rid(self.mm_far);
         let hm_rd = rs.texture_get_rd_texture(self.heightmap_tex);
+        let clr_rd = rs.texture_get_rd_texture(self.clearance_tex);
         if !near_buf.is_valid()
             || !far_buf.is_valid()
             || !cmd_near.is_valid()
             || !cmd_far.is_valid()
             || !hm_rd.is_valid()
+            || !clr_rd.is_valid()
         {
             return false;
         }
@@ -545,6 +564,11 @@ impl BladeCompute {
         hm_uniform.set_binding(5);
         hm_uniform.add_id(self.sampler);
         hm_uniform.add_id(hm_rd);
+        let mut clr_uniform = RdUniform::new_gd();
+        clr_uniform.set_uniform_type(UniformType::SAMPLER_WITH_TEXTURE);
+        clr_uniform.set_binding(6);
+        clr_uniform.add_id(self.sampler);
+        clr_uniform.add_id(clr_rd);
         let cull_uniforms: Array<Gd<RdUniform>> = [
             storage_uniform(0, self.layouts_buf),
             storage_uniform(1, self.cells_buf),
@@ -552,6 +576,7 @@ impl BladeCompute {
             storage_uniform(3, far_buf),
             storage_uniform(4, self.counter_buf),
             hm_uniform,
+            clr_uniform,
         ]
         .into_iter()
         .collect();
@@ -695,6 +720,7 @@ pub struct CardCompute {
     cell_count: u32,
     cap: u32,
     heightmap_tex: Rid,
+    clearance_tex: Rid,
     sampler: Rid,
     zero_counter: PackedByteArray,
 }
@@ -711,9 +737,10 @@ impl CardCompute {
         cell_capacity: u32,
         cap: u32,
         heightmap_tex: Rid,
+        clearance_tex: Rid,
         params: &CardParams,
     ) -> Option<Self> {
-        if !heightmap_tex.is_valid() {
+        if !heightmap_tex.is_valid() || !clearance_tex.is_valid() {
             return None;
         }
         let mut rd = RenderingServer::singleton().get_rendering_device()?;
@@ -790,6 +817,7 @@ impl CardCompute {
             cell_count: 0,
             cap,
             heightmap_tex,
+            clearance_tex,
             sampler,
             zero_counter,
         })
@@ -807,7 +835,8 @@ impl CardCompute {
         let out_buf = rs.multimesh_get_buffer_rd_rid(self.mm);
         let cmd_buf = rs.multimesh_get_command_buffer_rd_rid(self.mm);
         let hm_rd = rs.texture_get_rd_texture(self.heightmap_tex);
-        if !out_buf.is_valid() || !cmd_buf.is_valid() || !hm_rd.is_valid() {
+        let clr_rd = rs.texture_get_rd_texture(self.clearance_tex);
+        if !out_buf.is_valid() || !cmd_buf.is_valid() || !hm_rd.is_valid() || !clr_rd.is_valid() {
             return false;
         }
         let mut hm_uniform = RdUniform::new_gd();
@@ -815,12 +844,18 @@ impl CardCompute {
         hm_uniform.set_binding(4);
         hm_uniform.add_id(self.sampler);
         hm_uniform.add_id(hm_rd);
+        let mut clr_uniform = RdUniform::new_gd();
+        clr_uniform.set_uniform_type(UniformType::SAMPLER_WITH_TEXTURE);
+        clr_uniform.set_binding(5);
+        clr_uniform.add_id(self.sampler);
+        clr_uniform.add_id(clr_rd);
         let cull_uniforms: Array<Gd<RdUniform>> = [
             storage_uniform(0, self.layouts_buf),
             storage_uniform(1, self.cells_buf),
             storage_uniform(2, out_buf),
             storage_uniform(3, self.counter_buf),
             hm_uniform,
+            clr_uniform,
         ]
         .into_iter()
         .collect();

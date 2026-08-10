@@ -2,11 +2,44 @@ use fastnoise_lite::{FastNoiseLite, NoiseType};
 use godot::classes::mesh::PrimitiveType;
 use godot::classes::notify::Node3DNotification;
 use godot::classes::physics_server_3d::BodyMode;
-use godot::classes::{ArrayMesh, Engine, PhysicsServer3D, ShaderMaterial};
+use godot::classes::{ArrayMesh, Engine, PhysicsServer3D, ShaderMaterial, Texture2D};
 use godot::prelude::*;
+use godot::tools::try_load;
 
 use crate::world::flora_compute::FloraCompute;
 use crate::world::terrain::QTerrain;
+
+struct TreeSpecies {
+    seed_off: u32,
+    height: (f32, f32),
+    crown: f32,
+    leaf_tex: &'static str,
+    bark_color: Color,
+}
+
+const SPECIES: &[TreeSpecies] = &[
+    TreeSpecies {
+        seed_off: 0,
+        height: (4.2, 7.0),
+        crown: 1.15,
+        leaf_tex: "res://assets/environment/props/flora/euonymus/euonymus_alpha_0.png",
+        bark_color: Color::from_rgba(0.38, 0.28, 0.2, 1.0),
+    },
+    TreeSpecies {
+        seed_off: 7919,
+        height: (3.4, 5.6),
+        crown: 0.9,
+        leaf_tex: "res://assets/environment/props/flora/euonymus/euonymus_alpha_5.png",
+        bark_color: Color::from_rgba(0.52, 0.47, 0.4, 1.0),
+    },
+    TreeSpecies {
+        seed_off: 104729,
+        height: (3.0, 4.8),
+        crown: 1.0,
+        leaf_tex: "res://assets/environment/props/flora/euonymus/euonymus_alpha_11.png",
+        bark_color: Color::from_rgba(0.33, 0.24, 0.19, 1.0),
+    },
+];
 
 fn hash32(mut x: u32) -> u32 {
     x ^= x >> 16;
@@ -50,26 +83,25 @@ pub struct QTreeField {
     #[init(val = 0.02)]
     grove_frequency: f32,
     #[export]
-    #[init(val = 3.6)]
-    height_min: f32,
-    #[export]
-    #[init(val = 6.5)]
-    height_max: f32,
-    #[export]
-    #[init(val = 90.0)]
+    #[init(val = 110.0)]
     mesh_range: f32,
+    #[export]
+    #[init(val = 0.08)]
+    growth_per_day: f32,
     #[export]
     #[init(val = 0.3)]
     trunk_collider_radius: f32,
 
-    near_compute: Option<FloraCompute>,
-    far_compute: Option<FloraCompute>,
+    computes: Vec<FloraCompute>,
     attempts: i32,
     candidates: Vec<f32>,
-    near_mesh: Option<Gd<ArrayMesh>>,
-    far_mesh: Option<Gd<ArrayMesh>>,
+    meshes: Vec<Gd<ArrayMesh>>,
+    leaf_mats: Vec<Gd<ShaderMaterial>>,
     player: Option<Gd<Node3D>>,
     last_player_pos: Vector3,
+    #[init(val = -1.0)]
+    prev_hour: f32,
+    day_progress: f32,
     #[init(val = Rid::Invalid)]
     body: Rid,
     #[init(val = Rid::Invalid)]
@@ -147,11 +179,12 @@ impl INode3D for QTreeField {
                     continue;
                 }
                 let rank = randf(&mut state);
-                let kind = (randf(&mut state) * 3.0).floor();
+                let kind =
+                    ((randf(&mut state) * SPECIES.len() as f32) as usize).min(SPECIES.len() - 1);
                 let phase = randf(&mut state) * std::f32::consts::TAU;
-                let scale =
-                    self.height_min + randf(&mut state) * (self.height_max - self.height_min);
-                cand.extend_from_slice(&[x, h - 0.15, z, scale, rank, kind, phase, 0.0]);
+                let sp = &SPECIES[kind];
+                let scale = sp.height.0 + randf(&mut state) * (sp.height.1 - sp.height.0);
+                cand.extend_from_slice(&[x, h - 0.15, z, scale, rank, kind as f32, phase, 0.0]);
             }
         }
         if cand.is_empty() {
@@ -159,69 +192,117 @@ impl INode3D for QTreeField {
             return;
         }
         self.candidates = cand;
-
-        let mut near = build_skeleton_tree_mesh(self.tree_seed as u32);
-        if let Some(m) = self.bark_material.as_ref() {
-            near.surface_set_material(0, m);
-        }
-        if let Some(m) = self.leaf_material.as_ref() {
-            near.surface_set_material(1, m);
-        }
-        let mut far = build_far_tree_mesh(self.tree_seed as u32);
-        if let Some(m) = self.tree_material.as_ref() {
-            far.surface_set_material(0, m);
-        }
-        if let Some(m) = self.leaf_material.as_ref() {
-            far.surface_set_material(1, m);
-        }
-        self.near_mesh = Some(near);
-        self.far_mesh = Some(far);
         self.build_colliders();
 
-        let count = (self.candidates.len() / 8) as u32;
+        {
+            let mut terrain = terrain;
+            let mut tb = terrain.bind_mut();
+            for c in self.candidates.chunks_exact(8) {
+                tb.stamp_clearance(c[0], c[2], 1.1 + c[3] * 0.18);
+            }
+            tb.flush_clearance();
+        }
+
         let world = self.base().get_world_3d();
-        let (Some(world), Some(near_rid), Some(far_rid)) = (
-            world,
-            self.near_mesh.as_ref().map(|m| m.get_rid()),
-            self.far_mesh.as_ref().map(|m| m.get_rid()),
-        ) else {
+        let Some(world) = world else {
             return;
         };
+        let scenario = world.get_scenario();
         let e = extent + 10.0;
         let aabb = Aabb::new(
             Vector3::new(-e, -40.0, -e),
             Vector3::new(e * 2.0, 120.0, e * 2.0),
         );
-        let scenario = world.get_scenario();
-        self.near_compute = FloraCompute::new(
-            scenario,
-            aabb,
-            near_rid,
-            Rid::Invalid,
-            &self.candidates,
-            count,
-            self.mesh_range,
-            0.0,
-            false,
-            true,
-            2,
-        );
-        self.far_compute = FloraCompute::new(
-            scenario,
-            aabb,
-            far_rid,
-            Rid::Invalid,
-            &self.candidates,
-            count,
-            extent * 8.0,
-            self.mesh_range,
-            false,
-            true,
-            2,
-        );
-        if self.near_compute.is_none() || self.far_compute.is_none() {
-            godot_error!("[QTreeField] compute unavailable; trees disabled");
-            self.free_computes();
+
+        for (i, sp) in SPECIES.iter().enumerate() {
+            let cands: Vec<f32> = self
+                .candidates
+                .chunks_exact(8)
+                .filter(|c| c[5] as usize == i)
+                .flatten()
+                .copied()
+                .collect();
+            if cands.is_empty() {
+                continue;
+            }
+            let count = (cands.len() / 8) as u32;
+            let seed = (self.tree_seed as u32).wrapping_add(sp.seed_off);
+
+            let leaf_mat = self.leaf_material.as_ref().map(|m| m.duplicate_resource());
+            if let Some(mut lm) = leaf_mat.clone() {
+                if let Ok(tex) = try_load::<Texture2D>(sp.leaf_tex) {
+                    lm.set_shader_parameter("albedo_tex", &tex.to_variant());
+                }
+            }
+            let bark_mat = self.bark_material.as_ref().map(|m| {
+                let mut dup = m.duplicate_resource();
+                dup.set_shader_parameter("bark_color", &sp.bark_color.to_variant());
+                dup
+            });
+
+            let mut near = build_skeleton_tree_mesh(seed, sp.crown);
+            if let Some(m) = bark_mat.as_ref() {
+                near.surface_set_material(0, m);
+            }
+            if let Some(m) = leaf_mat.as_ref() {
+                near.surface_set_material(1, m);
+            }
+            let mut far = build_far_tree_mesh(seed, sp.crown);
+            if let Some(m) = self.tree_material.as_ref() {
+                far.surface_set_material(0, m);
+            }
+            if let Some(m) = leaf_mat.as_ref() {
+                far.surface_set_material(1, m);
+            }
+
+            let near_c = FloraCompute::new(
+                scenario,
+                aabb,
+                near.get_rid(),
+                Rid::Invalid,
+                &cands,
+                count,
+                self.mesh_range,
+                0.0,
+                false,
+                true,
+                true,
+                2,
+            );
+            let far_c = FloraCompute::new(
+                scenario,
+                aabb,
+                far.get_rid(),
+                Rid::Invalid,
+                &cands,
+                count,
+                extent * 8.0,
+                self.mesh_range,
+                false,
+                true,
+                true,
+                2,
+            );
+            match (near_c, far_c) {
+                (Some(n), Some(f)) => {
+                    self.computes.push(n);
+                    self.computes.push(f);
+                    self.meshes.push(near);
+                    self.meshes.push(far);
+                    if let Some(lm) = leaf_mat {
+                        self.leaf_mats.push(lm);
+                    }
+                }
+                (n, f) => {
+                    for mut c in [n, f].into_iter().flatten() {
+                        c.free();
+                    }
+                    godot_error!("[QTreeField] compute unavailable for species {i}");
+                }
+            }
+        }
+        if self.computes.is_empty() {
+            godot_error!("[QTreeField] no tree computes online; trees disabled");
         }
     }
 
@@ -237,24 +318,39 @@ impl INode3D for QTreeField {
         if let Some(p) = player_pos {
             if p.distance_squared_to(self.last_player_pos) > 0.0004 {
                 self.last_player_pos = p;
-                if let Some(m) = self.leaf_material.as_mut() {
-                    let obj = p + Vector3::new(0.0, 1.1, 0.0);
+                let obj = p + Vector3::new(0.0, 1.1, 0.0);
+                for m in self.leaf_mats.iter_mut() {
                     m.set_shader_parameter("object_position", &obj.to_variant());
                 }
             }
         }
-        if self.near_compute.is_none() {
+        if self.computes.is_empty() {
             return;
         }
-        let near_online = self
-            .near_compute
-            .as_mut()
-            .is_some_and(|fc| fc.online() || fc.try_finalize());
-        let far_online = self
-            .far_compute
-            .as_mut()
-            .is_some_and(|fc| fc.online() || fc.try_finalize());
-        if !near_online || !far_online {
+        if let Some(dn) = self.base().get_node_or_null("../DayNight") {
+            let hour = dn.get("hour").try_to::<f32>().unwrap_or(-1.0);
+            if hour >= 0.0 {
+                if self.prev_hour >= 0.0 {
+                    let mut delta = hour - self.prev_hour;
+                    if delta < -12.0 {
+                        delta += 24.0;
+                    }
+                    if delta > 0.0 && delta < 12.0 {
+                        self.day_progress += delta / 24.0;
+                    }
+                }
+                self.prev_hour = hour;
+            }
+        }
+        let growth = (0.5 + self.day_progress * self.growth_per_day).min(1.0);
+        for fc in self.computes.iter_mut() {
+            fc.growth = growth;
+        }
+        let all_online = self
+            .computes
+            .iter_mut()
+            .all(|fc| fc.online() || fc.try_finalize());
+        if !all_online {
             self.attempts += 1;
             if self.attempts > 300 {
                 godot_warn!("[QTreeField] compute never came online");
@@ -274,10 +370,7 @@ impl INode3D for QTreeField {
         }
         let planes = [frustum.at(2), frustum.at(3), frustum.at(4), frustum.at(5)];
         let cam_pos = cam.get_global_position();
-        if let Some(fc) = self.near_compute.as_mut() {
-            fc.dispatch(cam_pos, &planes);
-        }
-        if let Some(fc) = self.far_compute.as_mut() {
+        for fc in self.computes.iter_mut() {
             fc.dispatch(cam_pos, &planes);
         }
     }
@@ -286,10 +379,7 @@ impl INode3D for QTreeField {
         match what {
             Node3DNotification::VISIBILITY_CHANGED => {
                 let visible = self.base().is_visible_in_tree();
-                for fc in [self.near_compute.as_mut(), self.far_compute.as_mut()]
-                    .into_iter()
-                    .flatten()
-                {
+                for fc in self.computes.iter_mut() {
                     fc.set_visible(visible);
                 }
             }
@@ -306,16 +396,19 @@ impl QTreeField {
         let mut d = VarDictionary::new();
         let mut near: i64 = 0;
         let mut far: i64 = 0;
-        if let Some(fc) = self.near_compute.as_mut() {
-            near = fc.survivor_count().min(fc.cap()) as i64;
+        for (i, fc) in self.computes.iter_mut().enumerate() {
+            let n = fc.survivor_count().min(fc.cap()) as i64;
+            if i % 2 == 0 {
+                near += n;
+            } else {
+                far += n;
+            }
         }
-        if let Some(fc) = self.far_compute.as_mut() {
-            far = fc.survivor_count().min(fc.cap()) as i64;
-        }
-        let _ = d.insert("active", self.near_compute.is_some());
+        let _ = d.insert("active", !self.computes.is_empty());
         let _ = d.insert("instances", near + far);
         let _ = d.insert("near", near);
         let _ = d.insert("far", far);
+        let _ = d.insert("species", (self.computes.len() / 2) as i64);
         let _ = d.insert("candidates", (self.candidates.len() / 8) as i64);
         d
     }
@@ -354,10 +447,7 @@ impl QTreeField {
     }
 
     fn free_computes(&mut self) {
-        for mut fc in [self.near_compute.take(), self.far_compute.take()]
-            .into_iter()
-            .flatten()
-        {
+        for mut fc in self.computes.drain(..) {
             fc.free();
         }
     }
@@ -552,33 +642,51 @@ fn limb(
     sides: u32,
     depth: u32,
     sway: f32,
+    crown: f32,
     state: &mut u32,
 ) {
     let segs = if depth == 0 { 3 } else { 2 };
     let col = Color::from_rgba(1.0, 1.0, 1.0, sway);
-    let mut p = start;
-    let mut d = dir;
+    let bend = if depth == 0 { 0.18 } else { 0.35 };
+    let step = len / segs as f32;
+    let mut nodes: Vec<Vector3> = vec![start];
+    let mut segd: Vec<Vector3> = Vec::new();
+    {
+        let mut p = start;
+        let mut d = dir;
+        for _ in 0..segs {
+            let (jt, jb) = frame(d);
+            let jitter = (jt * (randf(state) - 0.5) + jb * (randf(state) - 0.5)) * step * bend;
+            d = (d * step + jitter + Vector3::UP * step * 0.06).normalized();
+            p = p + d * step;
+            nodes.push(p);
+            segd.push(d);
+        }
+    }
+    let (mut ft, _) = frame(segd[0]);
+    let mut fb;
     let mut prev: Option<Vec<i32>> = None;
     let mut v = 0.0f32;
     for i in 0..=segs {
         let f = i as f32 / segs as f32;
         let r = r0 + (r1 - r0) * f;
-        let (t, b) = frame(d);
-        let ring = bark.ring(p, t, b, r, sides, v, col);
+        let n = if i == 0 {
+            segd[0]
+        } else if i == segs {
+            segd[segs - 1]
+        } else {
+            (segd[i - 1] + segd[i]).normalized()
+        };
+        ft = (ft - n * ft.dot(n)).normalized();
+        fb = n.cross(ft).normalized();
+        let ring = bark.ring(nodes[i], ft, fb, r, sides, v, col);
         if let Some(pr) = prev.as_ref() {
             bark.bridge(pr, &ring);
         }
         prev = Some(ring);
-        if i < segs {
-            let step = len / segs as f32;
-            let (t2, b2) = frame(d);
-            let jitter = (t2 * (randf(state) - 0.5) + b2 * (randf(state) - 0.5)) * step * 0.35;
-            d = (d * step + jitter + Vector3::UP * step * 0.06).normalized();
-            p = p + d * step;
-            v += step;
-        }
+        v += step;
     }
-    let tip = p;
+    let tip = nodes[segs];
     if depth < 2 {
         let n_children = if depth == 0 { 6 } else { 3 };
         let az0 = randf(state) * std::f32::consts::TAU;
@@ -621,51 +729,112 @@ fn limb(
                 sides.saturating_sub(1).max(3),
                 depth + 1,
                 child_sway,
+                crown,
                 state,
             );
         }
         if depth > 0 {
-            leaf_cluster(leaves, tip, 14, 0.1, 0.055, (sway + 0.3).min(0.9), state);
+            leaf_cluster(
+                leaves,
+                tip,
+                19,
+                0.1 * crown,
+                0.04 * crown,
+                (sway + 0.3).min(0.9),
+                state,
+            );
         }
     } else {
-        leaf_cluster(leaves, tip, 18, 0.13, 0.06, 0.9, state);
+        leaf_cluster(leaves, tip, 26, 0.13 * crown, 0.042 * crown, 0.9, state);
         leaf_cluster(
             leaves,
             start + (tip - start) * 0.55,
-            8,
-            0.085,
-            0.05,
+            11,
+            0.085 * crown,
+            0.036 * crown,
             (sway + 0.2).min(0.9),
             state,
         );
     }
 }
 
-fn build_skeleton_tree_mesh(seed: u32) -> Gd<ArrayMesh> {
+fn build_skeleton_tree_mesh(seed: u32, crown: f32) -> Gd<ArrayMesh> {
     let mut bark = MeshBuilder::new();
     let mut leaves = MeshBuilder::new();
     let mut state = hash32(seed | 1);
 
-    for _ in 0..4 {
-        let az = randf(&mut state) * std::f32::consts::TAU;
+    let col = Color::from_rgba(1.0, 1.0, 1.0, 0.0);
+    let n_roots = 4 + (randf(&mut state) * 3.0) as u32;
+    let raz0 = randf(&mut state) * std::f32::consts::TAU;
+    let roots: Vec<(f32, f32, f32)> = (0..n_roots)
+        .map(|i| {
+            let az = raz0
+                + std::f32::consts::TAU * i as f32 / n_roots as f32
+                + (randf(&mut state) - 0.5) * 0.6;
+            let rr = 0.045 + randf(&mut state) * 0.014;
+            let reach = 0.13 + randf(&mut state) * 0.09;
+            (az, rr, reach)
+        })
+        .collect();
+
+    let lobed_ring = |bark: &mut MeshBuilder,
+                      y: f32,
+                      base_r: f32,
+                      lobe_amt: f32,
+                      roots: &[(f32, f32, f32)],
+                      v: f32|
+     -> Vec<i32> {
+        let sides = 14u32;
+        let mut out = Vec::with_capacity(sides as usize + 1);
+        for i in 0..=sides {
+            let a = std::f32::consts::TAU * i as f32 / sides as f32;
+            let mut r = base_r;
+            for (az, rr, _) in roots {
+                let mut da = (a - az).rem_euclid(std::f32::consts::TAU);
+                if da > std::f32::consts::PI {
+                    da = std::f32::consts::TAU - da;
+                }
+                r += lobe_amt * rr * (-da * da / 0.18).exp();
+            }
+            let dir = Vector3::new(a.cos(), 0.0, a.sin());
+            let base = bark.verts.len() as i32;
+            bark.verts.push(Vector3::new(dir.x * r, y, dir.z * r));
+            bark.normals.push(dir);
+            bark.colors.push(col);
+            bark.uvs
+                .push(Vector2::new(i as f32 / sides as f32 * 2.0, v * 6.0));
+            out.push(base);
+        }
+        out
+    };
+
+    let ground = lobed_ring(&mut bark, -0.02, 0.1, 2.4, &roots, 0.0);
+    let flare = lobed_ring(&mut bark, 0.05, 0.078, 1.1, &roots, 0.07);
+    let neck = lobed_ring(&mut bark, 0.13, 0.062, 0.25, &roots, 0.15);
+    bark.bridge(&flare, &ground);
+    bark.bridge(&neck, &flare);
+
+    for (az, rr, reach) in &roots {
         let out = Vector3::new(az.cos(), 0.0, az.sin());
-        let dir = (out * 0.8 - Vector3::UP * 0.5).normalized();
-        let start = Vector3::new(0.0, 0.045, 0.0) + out * 0.02;
-        let len = 0.06 + randf(&mut state) * 0.04;
-        let col = Color::from_rgba(1.0, 1.0, 1.0, 0.0);
-        let (t, b) = frame(dir);
-        let r0 = bark.ring(start, t, b, 0.028, 4, 0.0, col);
-        let r1 = bark.ring(start + dir * len, t, b, 0.006, 4, len, col);
-        bark.bridge(&r0, &r1);
+        let lobe_r = 0.1 + 2.4 * rr * 0.85;
+        let start = out * (lobe_r - rr * 0.5) + Vector3::new(0.0, 0.015, 0.0);
+        let d0 = (out * 0.95 - Vector3::UP * 0.3).normalized();
+        let d1 = (out * 0.95 - Vector3::UP * 0.15).normalized();
+        let mid = start + d0 * *reach * 0.5;
+        let end = Vector3::new(
+            mid.x + d1.x * reach * 0.5,
+            -0.045,
+            mid.z + d1.z * reach * 0.5,
+        );
+        let (t0, b0) = frame(d0);
+        let (t1, b1) = frame(d1);
+        let ring0 = bark.ring(start, t0, b0, *rr, 5, 0.0, col);
+        let ring1 = bark.ring(mid, t1, b1, rr * 0.55, 5, reach * 0.5, col);
+        let ring2 = bark.ring(end, t1, b1, rr * 0.2, 5, *reach, col);
+        bark.bridge(&ring0, &ring1);
+        bark.bridge(&ring1, &ring2);
     }
 
-    {
-        let col = Color::from_rgba(1.0, 1.0, 1.0, 0.0);
-        let (t, b) = frame(Vector3::UP);
-        let flare = bark.ring(Vector3::new(0.0, 0.0, 0.0), t, b, 0.085, 6, 0.0, col);
-        let neck = bark.ring(Vector3::new(0.0, 0.07, 0.0), t, b, 0.055, 6, 0.07, col);
-        bark.bridge(&flare, &neck);
-    }
     let lean = Vector3::new(
         (randf(&mut state) - 0.5) * 0.2,
         1.0,
@@ -675,14 +844,15 @@ fn build_skeleton_tree_mesh(seed: u32) -> Gd<ArrayMesh> {
     limb(
         &mut bark,
         &mut leaves,
-        Vector3::new(0.0, 0.05, 0.0),
+        Vector3::new(0.0, 0.11, 0.0),
         lean,
-        0.42,
-        0.054,
+        0.38,
+        0.06,
         0.03,
         6,
         0,
         0.0,
+        crown,
         &mut state,
     );
 
@@ -692,7 +862,7 @@ fn build_skeleton_tree_mesh(seed: u32) -> Gd<ArrayMesh> {
     am
 }
 
-fn build_far_tree_mesh(seed: u32) -> Gd<ArrayMesh> {
+fn build_far_tree_mesh(seed: u32, crown: f32) -> Gd<ArrayMesh> {
     let mut mb = MeshBuilder::new();
     let mut state = hash32(seed | 1);
 
@@ -763,14 +933,24 @@ fn build_far_tree_mesh(seed: u32) -> Gd<ArrayMesh> {
             mb.tri(bottom, lower[j], lower[i], cb);
         }
     };
+    let cw = crown;
     let blob_defs = [
-        (Vector3::new(0.0, 0.64, 0.0), Vector3::new(0.32, 0.32, 0.32)),
-        (Vector3::new(0.15, 0.5, 0.09), Vector3::new(0.2, 0.2, 0.2)),
         (
-            Vector3::new(-0.16, 0.52, -0.07),
-            Vector3::new(0.19, 0.19, 0.19),
+            Vector3::new(0.0, 0.6, 0.0),
+            Vector3::new(0.42 * cw, 0.26 * cw, 0.42 * cw),
         ),
-        (Vector3::new(0.01, 0.9, -0.03), Vector3::new(0.2, 0.2, 0.2)),
+        (
+            Vector3::new(0.24 * cw, 0.52, 0.12 * cw),
+            Vector3::new(0.24 * cw, 0.18 * cw, 0.24 * cw),
+        ),
+        (
+            Vector3::new(-0.26 * cw, 0.55, -0.1 * cw),
+            Vector3::new(0.22 * cw, 0.17 * cw, 0.22 * cw),
+        ),
+        (
+            Vector3::new(0.01, 0.78, -0.03),
+            Vector3::new(0.24 * cw, 0.18 * cw, 0.24 * cw),
+        ),
     ];
     for (c, r) in blob_defs {
         blob(c, r, &mut mb, &mut state);
@@ -789,7 +969,7 @@ fn build_far_tree_mesh(seed: u32) -> Gd<ArrayMesh> {
             let roll = randf(&mut state) * std::f32::consts::TAU;
             let t = t0 * roll.cos() + b0 * roll.sin();
             let b = dir.cross(t).normalized();
-            let hs = 0.22 + randf(&mut state) * 0.12;
+            let hs = (0.12 + randf(&mut state) * 0.07) * crown;
             let sway = ((pos.y - 0.4) / 0.6).clamp(0.2, 1.0);
             let col = Color::from_rgba(1.0, 1.0, 1.0, sway);
             leaves.card(

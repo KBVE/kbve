@@ -20,6 +20,7 @@ layout(push_constant, std430) uniform Params {
 const float FADE_END = %FADE_END%;
 const float DIST_MIN = %DIST_MIN%;
 const float RANK_FADE = %RANK_FADE%;
+const float GROWTH_ON = %GROWTH_ON%;
 const uint COUNT = %COUNT%u;
 const uint CAP = %CAP%u;
 
@@ -49,6 +50,9 @@ void main() {
         z = cand.data[src + 2u];
         s = cand.data[src + 3u];
         rank = cand.data[src + 4u];
+        if (GROWTH_ON > 0.5) {
+            s *= mix(0.7, 1.25, clamp(pc.cam.w + rank * 0.3 - 0.15, 0.0, 1.0));
+        }
         float d = distance(vec2(x, z), pc.cam.xz);
         float keep = RANK_FADE > 0.5 ? 1.0 - smoothstep(FADE_END * 0.7, FADE_END, d) : 1.0;
         alive = d >= DIST_MIN && d < FADE_END && rank <= keep;
@@ -159,6 +163,7 @@ pub struct FloraCompute {
     count: u32,
     cap: u32,
     zero_counter: PackedByteArray,
+    pub growth: f32,
 }
 
 impl FloraCompute {
@@ -172,6 +177,7 @@ impl FloraCompute {
         fade_end: f32,
         dist_min: f32,
         rank_fade: bool,
+        growth_on: bool,
         shadows: bool,
         surfaces: u32,
     ) -> Option<Self> {
@@ -186,6 +192,10 @@ impl FloraCompute {
             (
                 "%RANK_FADE%",
                 if rank_fade { "1.0" } else { "0.0" }.to_string(),
+            ),
+            (
+                "%GROWTH_ON%",
+                if growth_on { "1.0" } else { "0.0" }.to_string(),
             ),
             ("%COUNT%", count.to_string()),
             ("%CAP%", cap.to_string()),
@@ -253,6 +263,7 @@ impl FloraCompute {
             count,
             cap,
             zero_counter,
+            growth: 0.5,
         })
     }
 
@@ -302,6 +313,7 @@ impl FloraCompute {
         pc[0] = cam_pos.x;
         pc[1] = cam_pos.y;
         pc[2] = cam_pos.z;
+        pc[3] = self.growth;
         for (i, p) in planes.iter().enumerate() {
             let o = 4 + i * 4;
             pc[o] = p.normal.x;

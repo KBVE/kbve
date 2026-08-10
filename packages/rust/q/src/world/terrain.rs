@@ -68,6 +68,10 @@ pub struct QTerrain {
     river: Option<FastNoiseLite>,
     heights: Vec<f32>,
     texture: Option<Gd<ImageTexture>>,
+    clearance: Vec<u8>,
+    clearance_res: i32,
+    clearance_tex: Option<Gd<ImageTexture>>,
+    clearance_dirty: bool,
 }
 
 #[godot_api]
@@ -112,6 +116,30 @@ impl INode3D for QTerrain {
         if let Some(m) = self.grass_material.as_mut() {
             m.set_shader_parameter("water_level", &self.water_level.to_variant());
         }
+
+        let cres = 512;
+        let cstep = self.extent * 2.0 / (cres - 1) as f32;
+        let hres = res;
+        let mut clearance = vec![0u8; (cres * cres) as usize];
+        for iy in 0..cres {
+            let z = -self.extent + iy as f32 * cstep;
+            for ix in 0..cres {
+                let x = -self.extent + ix as f32 * cstep;
+                let u = ((x + self.extent) / (self.extent * 2.0)).clamp(0.0, 1.0);
+                let v = ((z + self.extent) / (self.extent * 2.0)).clamp(0.0, 1.0);
+                let px = ((u * (hres - 1) as f32) as i32).clamp(0, hres - 1);
+                let py = ((v * (hres - 1) as f32) as i32).clamp(0, hres - 1);
+                let h = heights[(py * hres + px) as usize];
+                let t = ((h - (self.water_level + 0.4)) / 1.4).clamp(0.0, 1.0);
+                let band = 1.0 - t * t * (3.0 - 2.0 * t);
+                clearance[(iy * cres + ix) as usize] = (band * 255.0) as u8;
+            }
+        }
+        let cdata = PackedByteArray::from(clearance.as_slice());
+        self.clearance_tex = Image::create_from_data(cres, cres, false, ImageFormat::R8, &cdata)
+            .and_then(|img| ImageTexture::create_from_image(&img));
+        self.clearance = clearance;
+        self.clearance_res = cres;
 
         let mut shape = HeightMapShape3D::new_gd();
         shape.set_map_width(res);
@@ -182,6 +210,55 @@ impl QTerrain {
 
     pub fn water(&self) -> f32 {
         self.water_level
+    }
+
+    pub fn clearance_texture(&self) -> Option<Gd<ImageTexture>> {
+        self.clearance_tex.clone()
+    }
+
+    pub fn stamp_clearance(&mut self, x: f32, z: f32, radius: f32) {
+        let cres = self.clearance_res;
+        if cres < 2 || radius <= 0.0 {
+            return;
+        }
+        let texel = self.extent * 2.0 / (cres - 1) as f32;
+        let to_px = |w: f32| ((w + self.extent) / texel).round() as i32;
+        let r_px = (radius / texel).ceil() as i32 + 1;
+        let cx = to_px(x);
+        let cz = to_px(z);
+        let inner = radius * 0.55;
+        for py in (cz - r_px).max(0)..=(cz + r_px).min(cres - 1) {
+            let wz = -self.extent + py as f32 * texel;
+            for px in (cx - r_px).max(0)..=(cx + r_px).min(cres - 1) {
+                let wx = -self.extent + px as f32 * texel;
+                let d = ((wx - x) * (wx - x) + (wz - z) * (wz - z)).sqrt();
+                if d >= radius {
+                    continue;
+                }
+                let t = ((d - inner) / (radius - inner)).clamp(0.0, 1.0);
+                let v = ((1.0 - t * t * (3.0 - 2.0 * t)) * 255.0) as u8;
+                let idx = (py * cres + px) as usize;
+                if v > self.clearance[idx] {
+                    self.clearance[idx] = v;
+                    self.clearance_dirty = true;
+                }
+            }
+        }
+    }
+
+    pub fn flush_clearance(&mut self) {
+        if !self.clearance_dirty {
+            return;
+        }
+        self.clearance_dirty = false;
+        let cres = self.clearance_res;
+        let cdata = PackedByteArray::from(self.clearance.as_slice());
+        if let (Some(img), Some(tex)) = (
+            Image::create_from_data(cres, cres, false, ImageFormat::R8, &cdata),
+            self.clearance_tex.as_mut(),
+        ) {
+            tex.update(&img);
+        }
     }
 
     fn height(&self, x: f32, z: f32) -> f32 {
