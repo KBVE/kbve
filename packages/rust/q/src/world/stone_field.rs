@@ -67,6 +67,9 @@ pub struct QStoneField {
     #[export]
     #[init(val = 1.7)]
     scale_max: f32,
+    #[export]
+    #[init(val = 0.9)]
+    clearance_radius: f32,
 
     core: ScatterCore<Stone>,
     meshes: Vec<VariantMeshes>,
@@ -172,6 +175,15 @@ impl INode3D for QStoneField {
         if self.core.entries().is_empty() {
             godot_error!("[QStoneField] no stone candidates survived placement");
             return;
+        }
+
+        if self.clearance_radius > 0.0 {
+            let mut terrain = terrain;
+            let mut tb = terrain.bind_mut();
+            for e in self.core.entries() {
+                tb.stamp_clearance(e.pos.x, e.pos.z, self.clearance_radius * e.scale);
+            }
+            tb.flush_clearance();
         }
 
         if !self.load_meshes() {
