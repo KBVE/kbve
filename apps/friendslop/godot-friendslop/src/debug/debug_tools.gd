@@ -30,6 +30,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("debug_screenshot"):
 		_screenshot()
 		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_I:
+		var fx := get_node_or_null("../ImpactFX")
+		if fx:
+			fx.trigger()
+		return
 	if not _active:
 		return
 	if event.is_action_pressed("ui_cancel"):

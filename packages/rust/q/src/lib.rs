@@ -18,6 +18,8 @@ mod entity;
 #[cfg(feature = "client")]
 mod extensions;
 #[cfg(feature = "client")]
+mod fx;
+#[cfg(feature = "client")]
 mod macros;
 #[cfg(feature = "client")]
 mod manager;
