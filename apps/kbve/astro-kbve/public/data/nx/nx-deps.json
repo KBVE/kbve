@@ -1,7 +1,7 @@
 {
-	"generated_at": "2026-08-09T03:05:47Z",
+	"generated_at": "2026-08-10T03:14:56Z",
 	"node": {
-		"count": 123,
+		"count": 124,
 		"major": 23,
 		"items": [
 			{
@@ -73,6 +73,14 @@
 				"current": "6.41.0",
 				"wanted": "6.41.0",
 				"latest": "6.43.8",
+				"type": "dependencies",
+				"major": false
+			},
+			{
+				"name": "@dimforge/rapier3d-compat",
+				"current": "0.19.3",
+				"wanted": "0.19.3",
+				"latest": "0.20.0",
 				"type": "dependencies",
 				"major": false
 			},
@@ -296,7 +304,7 @@
 				"name": "@tanstack/react-router",
 				"current": "1.170.16",
 				"wanted": "1.170.16",
-				"latest": "1.170.23",
+				"latest": "1.170.24",
 				"type": "dependencies",
 				"major": false
 			},
@@ -544,7 +552,7 @@
 				"name": "esbuild",
 				"current": "0.28.0",
 				"wanted": "0.28.0",
-				"latest": "0.28.1",
+				"latest": "0.28.2",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -672,7 +680,7 @@
 				"name": "lucide",
 				"current": "0.575.0",
 				"wanted": "0.575.0",
-				"latest": "1.30.0",
+				"latest": "1.31.0",
 				"type": "dependencies",
 				"major": true
 			},
@@ -680,7 +688,7 @@
 				"name": "lucide-react",
 				"current": "0.575.0",
 				"wanted": "0.575.0",
-				"latest": "1.30.0",
+				"latest": "1.31.0",
 				"type": "dependencies",
 				"major": true
 			},
@@ -696,7 +704,7 @@
 				"name": "mdream",
 				"current": "1.4.1",
 				"wanted": "1.4.1",
-				"latest": "1.5.12",
+				"latest": "1.5.13",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -991,8 +999,8 @@
 		]
 	},
 	"rust": {
-		"count": 118,
-		"major": 0,
+		"count": 128,
+		"major": 1,
 		"items": [
 			{
 				"name": "actix-http",
@@ -1457,6 +1465,12 @@
 				"major": false
 			},
 			{
+				"name": "moka",
+				"current": "0.12.15",
+				"latest": "0.12.16",
+				"major": false
+			},
+			{
 				"name": "open",
 				"current": "5.4.0",
 				"latest": "5.4.1",
@@ -1484,6 +1498,12 @@
 				"name": "pest_meta",
 				"current": "2.8.7",
 				"latest": "2.8.8",
+				"major": false
+			},
+			{
+				"name": "portable-atomic",
+				"current": "1.14.0",
+				"latest": "1.15.0",
 				"major": false
 			},
 			{
@@ -1538,6 +1558,18 @@
 				"name": "schemars_derive",
 				"current": "1.2.1",
 				"latest": "1.2.2",
+				"major": false
+			},
+			{
+				"name": "serde_with",
+				"current": "3.21.0",
+				"latest": "3.22.0",
+				"major": false
+			},
+			{
+				"name": "serde_with_macros",
+				"current": "3.21.0",
+				"latest": "3.22.0",
 				"major": false
 			},
 			{
@@ -1655,6 +1687,12 @@
 				"major": false
 			},
 			{
+				"name": "web_atoms",
+				"current": "0.2.5",
+				"latest": "0.2.6",
+				"major": false
+			},
+			{
 				"name": "webbrowser",
 				"current": "1.2.1",
 				"latest": "1.2.4",
@@ -1676,6 +1714,18 @@
 				"name": "xxhash-rust",
 				"current": "0.8.17",
 				"latest": "0.8.18",
+				"major": false
+			},
+			{
+				"name": "zbus",
+				"current": "5.18.0",
+				"latest": "5.19.0",
+				"major": false
+			},
+			{
+				"name": "zbus_macros",
+				"current": "5.18.0",
+				"latest": "5.19.0",
 				"major": false
 			},
 			{
@@ -1701,9 +1751,27 @@
 				"current": "0.5.1",
 				"latest": "0.5.3",
 				"major": false
+			},
+			{
+				"name": "zvariant",
+				"current": "5.13.1",
+				"latest": "5.14.0",
+				"major": false
+			},
+			{
+				"name": "zvariant_derive",
+				"current": "5.13.1",
+				"latest": "5.14.0",
+				"major": false
+			},
+			{
+				"name": "zvariant_utils",
+				"current": "3.5.0",
+				"latest": "4.0.0",
+				"major": true
 			}
 		]
 	},
-	"total": 241,
-	"major_total": 23
+	"total": 252,
+	"major_total": 24
 }
