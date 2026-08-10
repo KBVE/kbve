@@ -204,7 +204,13 @@ pub struct QGrassField {
     blade_cells: Vec<f32>,
     card_cells: Vec<f32>,
     trans_cells: Vec<f32>,
+    blade_cell_y: Vec<f32>,
+    card_cell_y: Vec<f32>,
+    trans_cell_y: Vec<f32>,
     classic_built: bool,
+    terrain_image: Option<Gd<Image>>,
+    terrain_extent_cached: f32,
+    water_cached: f32,
 }
 
 #[godot_api]
@@ -292,6 +298,23 @@ impl INode3D for QGrassField {
             m.set_shader_parameter("total_blades", &(blade_count as f32).to_variant());
         }
         self.sync_fade_parameters();
+
+        if let Some(mat) = self.grass_material.as_ref() {
+            self.terrain_extent_cached = mat
+                .get_shader_parameter("terrain_extent")
+                .try_to::<f32>()
+                .unwrap_or(self.world_half_extent);
+            self.water_cached = mat
+                .get_shader_parameter("water_level")
+                .try_to::<f32>()
+                .unwrap_or(-1.4);
+            if let Ok(tex) = mat
+                .get_shader_parameter("heightmap")
+                .try_to::<Gd<godot::classes::Texture2D>>()
+            {
+                self.terrain_image = tex.get_image();
+            }
+        }
 
         if godot::classes::Os::singleton().get_environment("GRASS_NO_COMPUTE") == GString::from("1")
         {
@@ -590,6 +613,7 @@ impl QGrassField {
         let cell = grid.cell_size;
         let blade_count = (self.chunk_size * self.chunk_size * self.blades_per_sqm) as usize;
         let mut entries: Vec<f32> = Vec::with_capacity(grid.offsets.len() * 4);
+        let mut ys: Vec<f32> = Vec::with_capacity(grid.offsets.len() * 2);
         for (dx, dz) in &grid.offsets {
             let coord = (center.0 + dx, center.1 + dz);
             let cx = *dx as f32 * cell;
@@ -597,14 +621,22 @@ impl QGrassField {
             if cx * cx + cz * cz > attach_sq || !self.in_world(coord, cell) {
                 continue;
             }
+            let (ymin, ymax) =
+                self.cell_y_range(coord.0 as f32 * cell, coord.1 as f32 * cell, cell);
+            if ymax < self.water_cached + 0.25 {
+                continue;
+            }
             let variant = self.layout_index(coord);
             entries.push(coord.0 as f32 * cell);
             entries.push(coord.1 as f32 * cell);
             entries.push((variant * blade_count * 6) as f32);
             entries.push(variant as f32);
+            ys.push(ymin);
+            ys.push(ymax);
         }
         self.blade_grid = Some(grid);
         self.blade_cells = entries;
+        self.blade_cell_y = ys;
     }
 
     fn step_compute(&mut self) {
@@ -653,12 +685,24 @@ impl QGrassField {
         let planes = [frustum.at(2), frustum.at(3), frustum.at(4), frustum.at(5)];
         let cam_pos = cam.get_global_position();
         let (ts, br, ln) = (self.thin_start, self.blade_range, self.lod_near_enter);
-        let blade_visible =
-            Self::filter_cells(&self.blade_cells, &planes, cam_pos, self.chunk_size);
-        let card_visible =
-            Self::filter_cells(&self.card_cells, &planes, cam_pos, self.card_chunk_size);
-        let trans_visible =
-            Self::filter_cells(&self.trans_cells, &planes, cam_pos, self.card_chunk_size);
+        let blade_visible = Self::filter_cells(
+            &self.blade_cells,
+            &self.blade_cell_y,
+            &planes,
+            self.chunk_size,
+        );
+        let card_visible = Self::filter_cells(
+            &self.card_cells,
+            &self.card_cell_y,
+            &planes,
+            self.card_chunk_size,
+        );
+        let trans_visible = Self::filter_cells(
+            &self.trans_cells,
+            &self.trans_cell_y,
+            &planes,
+            self.card_chunk_size,
+        );
         if let Some(bc) = self.blade_compute.as_mut() {
             bc.update_cells(&blade_visible);
             bc.dispatch(cam_pos, &planes, ts, br, ln);
@@ -673,14 +717,50 @@ impl QGrassField {
         }
     }
 
-    fn filter_cells(cells: &[f32], planes: &[Plane; 4], cam: Vector3, cell: f32) -> Vec<f32> {
-        let radius = cell * std::f32::consts::FRAC_1_SQRT_2 + 4.0;
+    fn terrain_sample(&self, x: f32, z: f32) -> f32 {
+        let Some(img) = self.terrain_image.as_ref() else {
+            return 0.0;
+        };
+        let e = self.terrain_extent_cached.max(1.0);
+        let u = ((x + e) / (e * 2.0)).clamp(0.001, 0.999);
+        let v = ((z + e) / (e * 2.0)).clamp(0.001, 0.999);
+        let px = (u * img.get_width() as f32) as i32;
+        let py = (v * img.get_height() as f32) as i32;
+        img.get_pixel(
+            px.clamp(0, img.get_width() - 1),
+            py.clamp(0, img.get_height() - 1),
+        )
+        .r
+    }
+
+    fn cell_y_range(&self, x0: f32, z0: f32, size: f32) -> (f32, f32) {
+        if self.terrain_image.is_none() {
+            return (-1.0e4, 1.0e4);
+        }
+        let mut mn = f32::MAX;
+        let mut mx = f32::MIN;
+        for i in 0..5 {
+            for j in 0..5 {
+                let h = self.terrain_sample(x0 + size * i as f32 / 4.0, z0 + size * j as f32 / 4.0);
+                mn = mn.min(h);
+                mx = mx.max(h);
+            }
+        }
+        (mn, mx)
+    }
+
+    fn filter_cells(cells: &[f32], ys: &[f32], planes: &[Plane; 4], cell: f32) -> Vec<f32> {
+        let rh = cell * std::f32::consts::FRAC_1_SQRT_2 + 3.0;
         let mut out = Vec::with_capacity(cells.len());
-        for e in cells.chunks_exact(4) {
-            let center = Vector3::new(e[0] + cell * 0.5, cam.y, e[1] + cell * 0.5);
+        for (i, e) in cells.chunks_exact(4).enumerate() {
+            let ymin = ys.get(i * 2).copied().unwrap_or(-1.0e4);
+            let ymax = ys.get(i * 2 + 1).copied().unwrap_or(1.0e4);
+            let center = Vector3::new(e[0] + cell * 0.5, (ymin + ymax) * 0.5, e[1] + cell * 0.5);
+            let vr = (ymax - ymin) * 0.5 + 4.0;
             let mut visible = true;
             for p in planes {
-                if p.normal.dot(center) - p.d > radius + p.normal.y.abs() * 25.0 {
+                let horiz = (p.normal.x * p.normal.x + p.normal.z * p.normal.z).sqrt();
+                if p.normal.dot(center) - p.d > rh * horiz + vr * p.normal.y.abs() + 2.0 {
                     visible = false;
                     break;
                 }
@@ -830,6 +910,7 @@ impl QGrassField {
                 as usize)
                 .max(8);
         let mut entries: Vec<f32> = Vec::with_capacity(grid.offsets.len() * 4);
+        let mut ys: Vec<f32> = Vec::with_capacity(grid.offsets.len() * 2);
         for (dx, dz) in &grid.offsets {
             let coord = (center.0 + dx, center.1 + dz);
             let cx = *dx as f32 * cell;
@@ -837,14 +918,22 @@ impl QGrassField {
             if cx * cx + cz * cz > margin_sq || !self.in_world(coord, cell) {
                 continue;
             }
+            let (ymin, ymax) =
+                self.cell_y_range(coord.0 as f32 * cell, coord.1 as f32 * cell, cell);
+            if ymax < self.water_cached + 0.25 {
+                continue;
+            }
             let variant = self.layout_index(coord);
             entries.push(coord.0 as f32 * cell);
             entries.push(coord.1 as f32 * cell);
             entries.push((variant * card_count * 6) as f32);
             entries.push(variant as f32);
+            ys.push(ymin);
+            ys.push(ymax);
         }
         self.card_grid = Some(grid);
         self.card_cells = entries;
+        self.card_cell_y = ys;
     }
 
     fn rebuild_transition_cells(&mut self, center: (i32, i32)) {
@@ -863,6 +952,7 @@ impl QGrassField {
             * self.transition_ratio) as usize)
             .max(8);
         let mut entries: Vec<f32> = Vec::with_capacity(grid.offsets.len() * 4);
+        let mut ys: Vec<f32> = Vec::with_capacity(grid.offsets.len() * 2);
         for (dx, dz) in &grid.offsets {
             let coord = (center.0 + dx, center.1 + dz);
             let cx = *dx as f32 * cell;
@@ -874,14 +964,22 @@ impl QGrassField {
             if dist_sq.sqrt() + half_diag < far_gate {
                 continue;
             }
+            let (ymin, ymax) =
+                self.cell_y_range(coord.0 as f32 * cell, coord.1 as f32 * cell, cell);
+            if ymax < self.water_cached + 0.25 {
+                continue;
+            }
             let variant = self.layout_index(coord);
             entries.push(coord.0 as f32 * cell);
             entries.push(coord.1 as f32 * cell);
             entries.push((variant * transition_count * 6) as f32);
             entries.push(variant as f32);
+            ys.push(ymin);
+            ys.push(ymax);
         }
         self.transition_grid = Some(grid);
         self.trans_cells = entries;
+        self.trans_cell_y = ys;
     }
 
     fn blade_attach_distance(&self) -> f32 {

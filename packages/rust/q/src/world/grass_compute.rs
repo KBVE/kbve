@@ -76,6 +76,7 @@ void main() {
     float wx = 0.0;
     float wz = 0.0;
     float rank = 0.0;
+    float h = 0.0;
     uint src = 0u;
     if (alive) {
         vec4 cinfo = cells.data[cell];
@@ -88,7 +89,7 @@ void main() {
         rank = float(blade) / float(blade_count) * 0.95;
         alive = rank < density;
         if (alive) {
-            float h = terrain_h(vec2(wx, wz));
+            h = terrain_h(vec2(wx, wz));
             vec3 pos = vec3(wx, h + 0.7, wz);
             alive = h >= pc.terra.y + 0.25
                 && !(outside(pc.p0, pos) || outside(pc.p1, pos) || outside(pc.p2, pos)
@@ -152,7 +153,7 @@ void main() {
         out_near.data[o + 11u] = wz;
         out_near.data[o + 12u] = rank;
         out_near.data[o + 13u] = shape;
-        out_near.data[o + 14u] = 0.0;
+        out_near.data[o + 14u] = h;
         out_near.data[o + 15u] = 0.0;
     } else {
         out_far.data[o] = b[0].x;
@@ -169,7 +170,7 @@ void main() {
         out_far.data[o + 11u] = wz;
         out_far.data[o + 12u] = rank;
         out_far.data[o + 13u] = shape;
-        out_far.data[o + 14u] = 0.0;
+        out_far.data[o + 14u] = h;
         out_far.data[o + 15u] = 0.0;
     }
 }
@@ -254,6 +255,7 @@ void main() {
     float wx = 0.0;
     float wz = 0.0;
     float rank = 0.0;
+    float h = 0.0;
     uint src = 0u;
     if (alive) {
         vec4 cinfo = cells.data[cell];
@@ -270,7 +272,7 @@ void main() {
             alive = rank < band_keep * 1.001;
         }
         if (alive) {
-            float h = terrain_h(vec2(wx, wz));
+            h = terrain_h(vec2(wx, wz));
             vec3 pos = vec3(wx, h + 1.0, wz);
             alive = h >= WATER + 0.25
                 && !(outside(pc.p0, pos) || outside(pc.p1, pos) || outside(pc.p2, pos)
@@ -325,7 +327,7 @@ void main() {
     outb.data[o + 10u] = b[2].z;
     outb.data[o + 11u] = wz;
     outb.data[o + 12u] = rank;
-    outb.data[o + 13u] = 0.0;
+    outb.data[o + 13u] = h;
     outb.data[o + 14u] = 0.0;
     outb.data[o + 15u] = 0.0;
 }

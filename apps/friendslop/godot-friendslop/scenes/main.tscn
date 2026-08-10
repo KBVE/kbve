@@ -10,7 +10,6 @@
 [ext_resource type="Script" path="res://src/world/climate.gd" id="9_climate"]
 [ext_resource type="Script" path="res://src/debug/debug_tools.gd" id="10_debug"]
 [ext_resource type="Shader" path="res://assets/fx/shaders/film_grade.gdshader" id="11_film"]
-[ext_resource type="Script" path="res://src/world/terrain.gd" id="12_terrain"]
 [ext_resource type="Material" path="res://assets/environment/water/water.tres" id="13_water"]
 [ext_resource type="Script" path="res://src/fauna/flock.gd" id="14_ravens"]
 [ext_resource type="Resource" path="res://assets/environment/props/fauna/raven/raven_species.tres" id="15_species"]
@@ -71,8 +70,7 @@ material_override = ExtResource("3_ground")
 mesh = SubResource("PlaneMesh_ground")
 extra_cull_margin = 16.0
 
-[node name="Terrain" type="Node3D" parent="."]
-script = ExtResource("12_terrain")
+[node name="Terrain" type="QTerrain" parent="."]
 player_path = NodePath("../Player")
 grass_material = ExtResource("4_grassmat")
 ground_material = ExtResource("3_ground")

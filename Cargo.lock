@@ -15080,6 +15080,7 @@ dependencies = [
  "bitflags 2.13.1",
  "crossbeam-channel",
  "dashmap 6.2.1",
+ "fastnoise-lite",
  "futures-util",
  "godot",
  "http 1.4.2",

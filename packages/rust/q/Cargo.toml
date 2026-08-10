@@ -103,6 +103,7 @@ futures-util = { workspace = true, optional = true, features = ["sink", "std"] }
 
 # Supabase JWT verification (HS256 against SUPABASE_JWT_SECRET).
 jsonwebtoken = { workspace = true, optional = true }
+fastnoise-lite = "1.1.1"
 
 # -----------------------------------------------------------------------------
 # Desktop platform deps — link in unconditionally on those OSes (target-cfg gated).
