@@ -15,9 +15,9 @@
 [ext_resource type="Resource" path="res://assets/environment/props/fauna/raven/raven_species.tres" id="15_species"]
 [ext_resource type="Script" path="res://src/ui/pause_menu.gd" id="16_pause"]
 [ext_resource type="Script" path="res://src/debug/debug_hud.gd" id="17_hud"]
-[ext_resource type="Material" path="res://assets/biomes/grassland/flora/flora.tres" id="18_flora"]
-[ext_resource type="Material" path="res://assets/biomes/grassland/flora/tree.tres" id="19_tree"]
-[ext_resource type="Material" path="res://assets/biomes/grassland/flora/shrub.tres" id="20_shrub"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/flora.tres" id="18_flora"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/tree.tres" id="19_tree"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/shrub.tres" id="20_shrub"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(1024, 1024)

@@ -1,6 +1,6 @@
 [gd_resource type="ShaderMaterial" load_steps=2 format=3]
 
-[ext_resource type="Shader" path="res://assets/biomes/grassland/flora/tree.gdshader" id="1_shader"]
+[ext_resource type="Shader" path="res://assets/environment/props/flora/tree.gdshader" id="1_shader"]
 
 [resource]
 render_priority = 0
