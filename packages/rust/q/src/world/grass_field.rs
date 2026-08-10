@@ -7,6 +7,7 @@ use godot::classes::{
 use godot::prelude::*;
 
 use crate::world::grass_compute::{BladeCompute, CardCompute, CardParams};
+use crate::world::terrain::QTerrain;
 
 const LOD_UPDATE_DISTANCE_SQ: f32 = 0.25;
 const TIER_FRACTIONS: [f32; 4] = [1.0, 0.5, 0.25, 0.125];
@@ -208,7 +209,13 @@ pub struct QGrassField {
     card_cell_y: Vec<f32>,
     trans_cell_y: Vec<f32>,
     classic_built: bool,
+    #[export]
+    terrain_path: NodePath,
     terrain_image: Option<Gd<Image>>,
+    terrain_heights: Vec<f32>,
+    terrain_res: i32,
+    #[init(val = Rid::Invalid)]
+    terrain_heightmap_rid: Rid,
     terrain_extent_cached: f32,
     water_cached: f32,
 }
@@ -299,7 +306,25 @@ impl INode3D for QGrassField {
         }
         self.sync_fade_parameters();
 
-        if let Some(mat) = self.grass_material.as_ref() {
+        let terrain = if self.terrain_path.is_empty() {
+            self.base().get_node_or_null("../Terrain")
+        } else {
+            self.base().get_node_or_null(&self.terrain_path)
+        }
+        .and_then(|n| n.try_cast::<QTerrain>().ok());
+        if let Some(terrain) = terrain {
+            let t = terrain.bind();
+            if let Some((heights, res)) = t.cpu_heights() {
+                self.terrain_heights = heights.to_vec();
+                self.terrain_res = res;
+            }
+            self.terrain_extent_cached = t.world_extent();
+            self.water_cached = t.water();
+            self.terrain_heightmap_rid = t
+                .heightmap_texture()
+                .map(|tex| tex.get_rid())
+                .unwrap_or(Rid::Invalid);
+        } else if let Some(mat) = self.grass_material.as_ref() {
             self.terrain_extent_cached = mat
                 .get_shader_parameter("terrain_extent")
                 .try_to::<f32>()
@@ -573,20 +598,9 @@ impl QGrassField {
             Vector3::new(-extent, -40.0, -extent),
             Vector3::new(extent * 2.0, 120.0, extent * 2.0),
         );
-        let mat = self.grass_material.as_ref()?;
-        let heightmap = mat
-            .get_shader_parameter("heightmap")
-            .try_to::<Gd<godot::classes::Texture2D>>()
-            .ok()?
-            .get_rid();
-        let terrain_extent = mat
-            .get_shader_parameter("terrain_extent")
-            .try_to::<f32>()
-            .unwrap_or(self.world_half_extent);
-        let water_level = mat
-            .get_shader_parameter("water_level")
-            .try_to::<f32>()
-            .unwrap_or(-1.4);
+        let heightmap = self.resolve_heightmap_rid()?;
+        let terrain_extent = self.terrain_extent_cached.max(1.0);
+        let water_level = self.water_cached;
         BladeCompute::new(
             scenario,
             world_aabb,
@@ -717,13 +731,31 @@ impl QGrassField {
         }
     }
 
+    fn resolve_heightmap_rid(&self) -> Option<Rid> {
+        if self.terrain_heightmap_rid.is_valid() {
+            return Some(self.terrain_heightmap_rid);
+        }
+        self.grass_material
+            .as_ref()?
+            .get_shader_parameter("heightmap")
+            .try_to::<Gd<godot::classes::Texture2D>>()
+            .ok()
+            .map(|t| t.get_rid())
+    }
+
     fn terrain_sample(&self, x: f32, z: f32) -> f32 {
-        let Some(img) = self.terrain_image.as_ref() else {
-            return 0.0;
-        };
         let e = self.terrain_extent_cached.max(1.0);
         let u = ((x + e) / (e * 2.0)).clamp(0.001, 0.999);
         let v = ((z + e) / (e * 2.0)).clamp(0.001, 0.999);
+        if !self.terrain_heights.is_empty() {
+            let res = self.terrain_res.max(2);
+            let px = ((u * res as f32) as i32).clamp(0, res - 1);
+            let py = ((v * res as f32) as i32).clamp(0, res - 1);
+            return self.terrain_heights[(py * res + px) as usize];
+        }
+        let Some(img) = self.terrain_image.as_ref() else {
+            return 0.0;
+        };
         let px = (u * img.get_width() as f32) as i32;
         let py = (v * img.get_height() as f32) as i32;
         img.get_pixel(
@@ -734,7 +766,7 @@ impl QGrassField {
     }
 
     fn cell_y_range(&self, x0: f32, z0: f32, size: f32) -> (f32, f32) {
-        if self.terrain_image.is_none() {
+        if self.terrain_heights.is_empty() && self.terrain_image.is_none() {
             return (-1.0e4, 1.0e4);
         }
         let mut mn = f32::MAX;
@@ -828,20 +860,9 @@ impl QGrassField {
         };
         let cell_capacity = grid.offsets.len() as u32;
         let cell = grid.cell_size;
-        let mat = self.grass_material.as_ref()?;
-        let heightmap = mat
-            .get_shader_parameter("heightmap")
-            .try_to::<Gd<godot::classes::Texture2D>>()
-            .ok()?
-            .get_rid();
-        let terrain_extent = mat
-            .get_shader_parameter("terrain_extent")
-            .try_to::<f32>()
-            .unwrap_or(self.world_half_extent);
-        let water_level = mat
-            .get_shader_parameter("water_level")
-            .try_to::<f32>()
-            .unwrap_or(-1.4);
+        let heightmap = self.resolve_heightmap_rid()?;
+        let terrain_extent = self.terrain_extent_cached.max(1.0);
+        let water_level = self.water_cached;
         let margin = if transition {
             self.transition_out_end + cell * std::f32::consts::FRAC_1_SQRT_2 + 5.0
         } else {

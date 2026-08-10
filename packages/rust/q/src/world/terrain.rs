@@ -67,6 +67,7 @@ pub struct QTerrain {
     hills: Option<FastNoiseLite>,
     river: Option<FastNoiseLite>,
     heights: Vec<f32>,
+    texture: Option<Gd<ImageTexture>>,
 }
 
 #[godot_api]
@@ -97,6 +98,7 @@ impl INode3D for QTerrain {
         let data = PackedByteArray::from(bytes.as_slice());
         let tex = Image::create_from_data(res, res, false, ImageFormat::RF, &data)
             .and_then(|img| ImageTexture::create_from_image(&img));
+        self.texture = tex.clone();
 
         for m in [self.grass_material.as_mut(), self.ground_material.as_mut()]
             .into_iter()
@@ -127,6 +129,7 @@ impl INode3D for QTerrain {
             self.extent * 2.0,
         ));
         let mut water = MeshInstance3D::new_alloc();
+        water.set_name("Water");
         water.set_mesh(&plane);
         if let Some(m) = self.water_material.as_ref() {
             water.set_material_override(m);
@@ -161,6 +164,26 @@ impl QTerrain {
 }
 
 impl QTerrain {
+    pub fn cpu_heights(&self) -> Option<(&[f32], i32)> {
+        if self.heights.is_empty() {
+            None
+        } else {
+            Some((&self.heights, self.resolution.max(2)))
+        }
+    }
+
+    pub fn heightmap_texture(&self) -> Option<Gd<ImageTexture>> {
+        self.texture.clone()
+    }
+
+    pub fn world_extent(&self) -> f32 {
+        self.extent
+    }
+
+    pub fn water(&self) -> f32 {
+        self.water_level
+    }
+
     fn height(&self, x: f32, z: f32) -> f32 {
         let (Some(hills), Some(river)) = (self.hills.as_ref(), self.river.as_ref()) else {
             return 0.0;
