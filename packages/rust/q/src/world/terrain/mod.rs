@@ -1,57 +1,14 @@
+mod river;
+mod water;
+
 use fastnoise_lite::{FastNoiseLite, FractalType, NoiseType};
 use godot::classes::image::Format as ImageFormat;
-use godot::classes::rendering_device::{
-    DataFormat, ShaderLanguage, ShaderStage, TextureUsageBits, UniformType,
-};
+use godot::classes::notify::Node3DNotification;
 use godot::classes::{
-    CollisionShape3D, Engine, HeightMapShape3D, Image, ImageTexture, MeshInstance3D, PlaneMesh,
-    RdShaderSource, RdTextureFormat, RdTextureView, RdUniform, RenderingDevice, RenderingServer,
+    CollisionShape3D, Engine, HeightMapShape3D, Image, ImageTexture, RenderingDevice,
     ShaderMaterial, StaticBody3D, Texture2Drd,
 };
 use godot::prelude::*;
-
-const CAUSTIC_RES: u32 = 256;
-const CAUSTIC_GLSL: &str = r#"
-#version 450
-layout(local_size_x = 8, local_size_y = 8) in;
-layout(set = 0, binding = 0, r8) restrict writeonly uniform image2D caustic_img;
-layout(push_constant, std430) uniform P { float t; float p0; float p1; float p2; } pc;
-
-const float N = 12.0;
-
-vec2 cellpt(vec2 id, float t) {
-    vec2 m = mod(id, N);
-    vec2 h = fract(sin(vec2(
-        dot(m, vec2(127.1, 311.7)),
-        dot(m, vec2(269.5, 183.3))
-    )) * 43758.5453);
-    return 0.5 + 0.45 * sin(t * 6.2831 + 6.2831 * h);
-}
-
-void main() {
-    ivec2 px = ivec2(gl_GlobalInvocationID.xy);
-    if (px.x >= 256 || px.y >= 256) {
-        return;
-    }
-    vec2 p = (vec2(px) / 256.0) * N;
-    vec2 i = floor(p);
-    vec2 f = fract(p);
-    float f1 = 1.0;
-    float res = 0.0;
-    for (int y = -1; y <= 1; y++) {
-        for (int x = -1; x <= 1; x++) {
-            vec2 nb = vec2(float(x), float(y));
-            vec2 pt = cellpt(i + nb, pc.t);
-            float d = length(nb + pt - f);
-            f1 = min(f1, d);
-            res += exp(-6.0 * d);
-        }
-    }
-    float sf1 = -(1.0 / 6.0) * log(res);
-    float v = clamp((f1 - sf1) * 6.4 + 0.1, -1.0, 1.0) * 0.5 + 0.5;
-    imageStore(caustic_img, px, vec4(v));
-}
-"#;
 
 fn make_noise(seed: i32, frequency: f32, octaves: i32) -> FastNoiseLite {
     let mut n = FastNoiseLite::with_seed(seed);
@@ -114,17 +71,17 @@ pub struct QTerrain {
     riverbed_material: Option<Gd<ShaderMaterial>>,
 
     player: Option<Gd<Node3D>>,
-    caustic_rd: Option<Gd<RenderingDevice>>,
+    water_rd: Option<Gd<RenderingDevice>>,
     #[init(val = Rid::Invalid)]
-    caustic_tex: Rid,
+    pattern_tex: Rid,
     #[init(val = Rid::Invalid)]
-    caustic_shader: Rid,
+    pattern_shader: Rid,
     #[init(val = Rid::Invalid)]
-    caustic_pipeline: Rid,
+    pattern_pipeline: Rid,
     #[init(val = Rid::Invalid)]
-    caustic_set: Rid,
-    caustic_wrap: Option<Gd<Texture2Drd>>,
-    caustic_time: f32,
+    pattern_set: Rid,
+    pattern_wrap: Option<Gd<Texture2Drd>>,
+    water_time: f32,
     hills: Option<FastNoiseLite>,
     river: Option<FastNoiseLite>,
     heights: Vec<f32>,
@@ -188,9 +145,67 @@ impl INode3D for QTerrain {
             m.set_shader_parameter("water_level", &self.water_level.to_variant());
         }
 
+        self.bake_clearance(&heights, res);
+
+        let mut shape = HeightMapShape3D::new_gd();
+        shape.set_map_width(res);
+        shape.set_map_depth(res);
+        shape.set_map_data(&PackedFloat32Array::from(heights.as_slice()));
+        let mut col = CollisionShape3D::new_alloc();
+        col.set_shape(&shape);
+        let mut body = StaticBody3D::new_alloc();
+        body.add_child(&col);
+        self.base_mut().add_child(&body);
+
+        self.build_river_planes();
+
+        self.heights = heights;
+
+        let player = self
+            .base()
+            .get_node_or_null(&self.player_path)
+            .and_then(|n| n.try_cast::<Node3D>().ok());
+        self.player = player.clone();
+        if let Some(mut player) = player {
+            let p = player.get_global_position();
+            let mut sx = p.x;
+            while self.height(sx, p.z) < self.water_level + 1.0 && sx < self.extent {
+                sx += 4.0;
+            }
+            player.set_global_position(Vector3::new(sx, self.height(sx, p.z) + 1.0, p.z));
+        }
+        self.setup_water_fx();
+    }
+
+    fn process(&mut self, delta: f64) {
+        if let Some(p) = self.player.as_ref().map(|p| p.get_global_position()) {
+            if let Some(m) = self.water_material.as_mut() {
+                m.set_shader_parameter("player_position", &p.to_variant());
+            }
+        }
+        self.water_time += delta as f32;
+        self.dispatch_water_fx();
+    }
+
+    fn on_notification(&mut self, what: Node3DNotification) {
+        if what == Node3DNotification::PREDELETE {
+            self.free_water_fx();
+        }
+    }
+}
+
+#[godot_api]
+impl QTerrain {
+    #[func]
+    fn height_at(&self, x: f32, z: f32) -> f32 {
+        self.height(x, z)
+    }
+}
+
+impl QTerrain {
+    fn bake_clearance(&mut self, heights: &[f32], hres: i32) {
         let cres = 512;
         let cstep = self.extent * 2.0 / (cres - 1) as f32;
-        let hres = res;
         let mut clearance = vec![0u8; (cres * cres) as usize];
         for iy in 0..cres {
             let z = -self.extent + iy as f32 * cstep;
@@ -216,153 +231,8 @@ impl INode3D for QTerrain {
                 m.set_shader_parameter("clearance_tex", &t.to_variant());
             }
         }
-
-        let mut shape = HeightMapShape3D::new_gd();
-        shape.set_map_width(res);
-        shape.set_map_depth(res);
-        shape.set_map_data(&PackedFloat32Array::from(heights.as_slice()));
-        let mut col = CollisionShape3D::new_alloc();
-        col.set_shape(&shape);
-        let mut body = StaticBody3D::new_alloc();
-        body.add_child(&col);
-        self.base_mut().add_child(&body);
-
-        let strip_width = ((self.river_wander * 2.0 + self.river_width * 8.0) / 4.0).ceil() * 4.0;
-        let mut bed_plane = PlaneMesh::new_gd();
-        bed_plane.set_size(Vector2::new(strip_width, self.extent * 2.0));
-        bed_plane.set_subdivide_width(((strip_width * 0.5) as i32 - 1).max(1));
-        bed_plane.set_subdivide_depth((self.extent as i32 - 1).max(1));
-        let mut bed = MeshInstance3D::new_alloc();
-        bed.set_name("Riverbed");
-        bed.set_mesh(&bed_plane);
-        if let Some(m) = self.riverbed_material.as_ref() {
-            bed.set_material_override(m);
-        }
-        bed.set_extra_cull_margin(16.0);
-        self.base_mut().add_child(&bed);
-
-        let mut plane = PlaneMesh::new_gd();
-        plane.set_size(Vector2::new(strip_width, self.extent * 2.0));
-        let mut water = MeshInstance3D::new_alloc();
-        water.set_name("Water");
-        water.set_mesh(&plane);
-        if let Some(m) = self.water_material.as_ref() {
-            water.set_material_override(m);
-        }
-        water.set_position(Vector3::new(0.0, self.water_level, 0.0));
-        water.set_extra_cull_margin(16.0);
-        self.base_mut().add_child(&water);
-
-        self.heights = heights;
-
-        let player = self
-            .base()
-            .get_node_or_null(&self.player_path)
-            .and_then(|n| n.try_cast::<Node3D>().ok());
-        self.player = player.clone();
-        if let Some(mut player) = player {
-            let p = player.get_global_position();
-            let mut sx = p.x;
-            while self.height(sx, p.z) < self.water_level + 1.0 && sx < self.extent {
-                sx += 4.0;
-            }
-            player.set_global_position(Vector3::new(sx, self.height(sx, p.z) + 1.0, p.z));
-        }
-        self.setup_caustics();
     }
 
-    fn process(&mut self, delta: f64) {
-        if let Some(p) = self.player.as_ref().map(|p| p.get_global_position()) {
-            if let Some(m) = self.water_material.as_mut() {
-                m.set_shader_parameter("player_position", &p.to_variant());
-            }
-        }
-        self.caustic_time += delta as f32 * 0.011;
-        self.dispatch_caustics();
-    }
-}
-
-impl QTerrain {
-    fn setup_caustics(&mut self) {
-        let Some(mut rd) = RenderingServer::singleton().get_rendering_device() else {
-            return;
-        };
-        let mut source = RdShaderSource::new_gd();
-        source.set_language(ShaderLanguage::GLSL);
-        source.set_stage_source(ShaderStage::COMPUTE, CAUSTIC_GLSL);
-        let Some(spirv) = rd.shader_compile_spirv_from_source(&source) else {
-            return;
-        };
-        let err = spirv.get_stage_compile_error(ShaderStage::COMPUTE);
-        if !err.is_empty() {
-            godot_error!("[QTerrain] caustic compute failed: {err}");
-            return;
-        }
-        let shader = rd.shader_create_from_spirv(&spirv);
-        if !shader.is_valid() {
-            return;
-        }
-        let mut fmt = RdTextureFormat::new_gd();
-        fmt.set_width(CAUSTIC_RES);
-        fmt.set_height(CAUSTIC_RES);
-        fmt.set_format(DataFormat::R8_UNORM);
-        fmt.set_usage_bits(
-            TextureUsageBits::SAMPLING_BIT
-                | TextureUsageBits::STORAGE_BIT
-                | TextureUsageBits::CAN_UPDATE_BIT,
-        );
-        let tex = rd.texture_create(&fmt, &RdTextureView::new_gd());
-        if !tex.is_valid() {
-            rd.free_rid(shader);
-            return;
-        }
-        let mut u = RdUniform::new_gd();
-        u.set_uniform_type(UniformType::IMAGE);
-        u.set_binding(0);
-        u.add_id(tex);
-        let uniforms: Array<Gd<RdUniform>> = [u].into_iter().collect();
-        let set = rd.uniform_set_create(&uniforms, shader, 0);
-        let pipeline = rd.compute_pipeline_create(shader);
-        let mut wrap = Texture2Drd::new_gd();
-        wrap.set_texture_rd_rid(tex);
-        if let Some(m) = self.water_material.as_mut() {
-            m.set_shader_parameter("caustic_tex", &wrap.to_variant());
-        }
-        self.caustic_rd = Some(rd);
-        self.caustic_tex = tex;
-        self.caustic_shader = shader;
-        self.caustic_pipeline = pipeline;
-        self.caustic_set = set;
-        self.caustic_wrap = Some(wrap);
-    }
-
-    fn dispatch_caustics(&mut self) {
-        let Some(rd) = self.caustic_rd.as_mut() else {
-            return;
-        };
-        if !self.caustic_set.is_valid() {
-            return;
-        }
-        let pc = [self.caustic_time, 0.0, 0.0, 0.0];
-        let pc_bytes = PackedFloat32Array::from(&pc[..]).to_byte_array();
-        let cl = rd.compute_list_begin();
-        rd.compute_list_bind_compute_pipeline(cl, self.caustic_pipeline);
-        rd.compute_list_bind_uniform_set(cl, self.caustic_set, 0);
-        rd.compute_list_set_push_constant(cl, &pc_bytes, pc_bytes.len() as u32);
-        rd.compute_list_dispatch(cl, CAUSTIC_RES / 8, CAUSTIC_RES / 8, 1);
-        rd.compute_list_end();
-    }
-}
-
-#[godot_api]
-impl QTerrain {
-    #[func]
-    fn height_at(&self, x: f32, z: f32) -> f32 {
-        self.height(x, z)
-    }
-}
-
-impl QTerrain {
     pub fn cpu_heights(&self) -> Option<(&[f32], i32)> {
         if self.heights.is_empty() {
             None
