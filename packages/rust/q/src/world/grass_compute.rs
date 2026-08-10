@@ -111,7 +111,8 @@ void main() {
                     }
                 }
             }
-            near = d < pc.fade.z;
+            float lod_j = fract(float(blade) * 0.61803398875);
+            near = d < pc.fade.z * (0.3 + 1.8 * lod_j);
         }
     }
     uint lslot = 0u;

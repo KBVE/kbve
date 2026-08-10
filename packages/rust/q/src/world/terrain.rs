@@ -163,11 +163,11 @@ impl INode3D for QTerrain {
         body.add_child(&col);
         self.base_mut().add_child(&body);
 
-        let strip_width = self.river_wander * 2.0 + self.river_width * 8.0;
+        let strip_width = ((self.river_wander * 2.0 + self.river_width * 8.0) / 4.0).ceil() * 4.0;
         let mut bed_plane = PlaneMesh::new_gd();
         bed_plane.set_size(Vector2::new(strip_width, self.extent * 2.0));
-        bed_plane.set_subdivide_width(((strip_width * 0.5) as i32).max(1));
-        bed_plane.set_subdivide_depth((self.extent as i32).max(1));
+        bed_plane.set_subdivide_width(((strip_width * 0.5) as i32 - 1).max(1));
+        bed_plane.set_subdivide_depth((self.extent as i32 - 1).max(1));
         let mut bed = MeshInstance3D::new_alloc();
         bed.set_name("Riverbed");
         bed.set_mesh(&bed_plane);
