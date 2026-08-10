@@ -89,8 +89,8 @@ importers:
         specifier: ^3.5.3
         version: 3.5.3(three@0.185.1)
       '@pixiv/three-vrm-animation':
-        specifier: ^3.5.3
-        version: 3.5.3(three@0.185.1)
+        specifier: ^3.5.5
+        version: 3.5.5(three@0.185.1)
       '@react-native-async-storage/async-storage':
         specifier: 2.2.0
         version: 2.2.0(react-native@0.86.2(@babel/core@7.26.10(supports-color@10.2.2))(@react-native-community/cli@15.1.3(supports-color@10.2.2)(typescript@6.0.3))(@react-native/metro-config@0.86.2(@babel/core@7.26.10(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.9)(react@19.2.3)(supports-color@10.2.2))
@@ -4746,13 +4746,18 @@ packages:
   '@pinojs/redact@0.4.0':
     resolution: {integrity: sha512-k2ENnmBugE/rzQfEcdWHcCY+/FM3VLzH9cYEsbdsoqrvzAKRhUZeRNhAZvB8OitQJ1TBed3yqWtdjzS6wJKBwg==}
 
-  '@pixiv/three-vrm-animation@3.5.3':
-    resolution: {integrity: sha512-3zcp8TfPZdVX2y0Tgff9HmLl7KlEQ7WfeTSdmmZzEJpauzqxCK609TOtpQQnFASZBtMsCLt5XIH3B+I1VRfuTw==}
+  '@pixiv/three-vrm-animation@3.5.5':
+    resolution: {integrity: sha512-Q0kEtmftxfv0iCUHQkJH2jAr1zmT9ywYXnAzhxnLPMYCsx0Kken3J3U2GJF9PdGZmLlKpoK0LFEXVdD/L7ZA4Q==}
     peerDependencies:
       three: '>=0.137'
 
   '@pixiv/three-vrm-core@3.5.3':
     resolution: {integrity: sha512-iZDOkOxOnvT8vGPE2SgNRee3fQw/u11y4MULE9VPXN/LKSf946aVi+YfVnnMBRdwMfQ2uBNHxUvkIQlRIkXnHQ==}
+    peerDependencies:
+      three: '>=0.137'
+
+  '@pixiv/three-vrm-core@3.5.5':
+    resolution: {integrity: sha512-jjaXZbMVRsk2HAGVxqDLmSJyGOJqbMcJpuTHR1TY/TN1FxiKdAzSqdr/ZUcczYipNf8IL9vDT9NX2XmWj+ybRQ==}
     peerDependencies:
       three: '>=0.137'
 
@@ -4789,6 +4794,9 @@ packages:
   '@pixiv/types-vrm-0.0@3.5.3':
     resolution: {integrity: sha512-dkXmTqIxKC3A1AMs4Ts3DzlKN7SYab/d5QX9SvAwOUAe4wuafwzIYFzm+q85wNjlgSF4xuNuYIbqQfBcE7Mz0w==}
 
+  '@pixiv/types-vrm-0.0@3.5.5':
+    resolution: {integrity: sha512-2S/0jswMjJTwL9ky8YzDR0CIaP6ZmE+HFuyW/0h+SA+awELf+J7WGgC8lTLM1MXzokO7Z2YVljU2F0fEhlKDIQ==}
+
   '@pixiv/types-vrmc-materials-hdr-emissive-multiplier-1.0@3.5.3':
     resolution: {integrity: sha512-G+g/Sw+/geG6xu6MYbb0mZFNTgczWXvLCs9CliXxhSKsXYE4SW9AbSlYqg9bPFA0fnNQN8vVQstnhO7FiL0ipg==}
 
@@ -4807,8 +4815,11 @@ packages:
   '@pixiv/types-vrmc-vrm-1.0@3.5.3':
     resolution: {integrity: sha512-3HsBZWKXU/CnY2J6uAVuYmM0NPt/e5jroQZH85WYK0EzYmebqTmWKF/fllguNliJQAovdhn8sIA8NbHZoQvbUA==}
 
-  '@pixiv/types-vrmc-vrm-animation-1.0@3.5.3':
-    resolution: {integrity: sha512-SwwHofRepbZVvseIXIC3THA3Z/EKULOH2JJR9NjHRGOUdDcrIkQuQaZ0ml99P47EaUx5vwSlG7C7FEM9+ByvTQ==}
+  '@pixiv/types-vrmc-vrm-1.0@3.5.5':
+    resolution: {integrity: sha512-WnemHHo2375BcBdumEhvrupZzsMSzTfdWlokmV9sUX2oC+OAQqJFfBjLF8ppkOhzHpl4MAPJqEfuhBJtNPm9ww==}
+
+  '@pixiv/types-vrmc-vrm-animation-1.0@3.5.5':
+    resolution: {integrity: sha512-pyow6wBLdRZbLQbtHqu8uvYG+NXJbwIiLVK6pM6UvtaYotecOv43t6qIdMLYuieV+F+bEJcdfOLFZZVolrOOcQ==}
 
   '@pkgjs/parseargs@0.11.0':
     resolution: {integrity: sha512-+1VkjdD0QBLPodGrJUeqarH8VAIvQODIbwh9XpP5Syisf7YoQgsJKPNFoqqLQlu+VQ/tVSshMR6loPMn8U+dPg==}
@@ -22190,17 +22201,23 @@ snapshots:
 
   '@pinojs/redact@0.4.0': {}
 
-  '@pixiv/three-vrm-animation@3.5.3(three@0.185.1)':
+  '@pixiv/three-vrm-animation@3.5.5(three@0.185.1)':
     dependencies:
-      '@pixiv/three-vrm-core': 3.5.3(three@0.185.1)
-      '@pixiv/types-vrmc-vrm-1.0': 3.5.3
-      '@pixiv/types-vrmc-vrm-animation-1.0': 3.5.3
+      '@pixiv/three-vrm-core': 3.5.5(three@0.185.1)
+      '@pixiv/types-vrmc-vrm-1.0': 3.5.5
+      '@pixiv/types-vrmc-vrm-animation-1.0': 3.5.5
       three: 0.185.1
 
   '@pixiv/three-vrm-core@3.5.3(three@0.185.1)':
     dependencies:
       '@pixiv/types-vrm-0.0': 3.5.3
       '@pixiv/types-vrmc-vrm-1.0': 3.5.3
+      three: 0.185.1
+
+  '@pixiv/three-vrm-core@3.5.5(three@0.185.1)':
+    dependencies:
+      '@pixiv/types-vrm-0.0': 3.5.5
+      '@pixiv/types-vrmc-vrm-1.0': 3.5.5
       three: 0.185.1
 
   '@pixiv/three-vrm-materials-hdr-emissive-multiplier@3.5.3(three@0.185.1)':
@@ -22244,6 +22261,8 @@ snapshots:
 
   '@pixiv/types-vrm-0.0@3.5.3': {}
 
+  '@pixiv/types-vrm-0.0@3.5.5': {}
+
   '@pixiv/types-vrmc-materials-hdr-emissive-multiplier-1.0@3.5.3': {}
 
   '@pixiv/types-vrmc-materials-mtoon-1.0@3.5.3': {}
@@ -22256,9 +22275,11 @@ snapshots:
 
   '@pixiv/types-vrmc-vrm-1.0@3.5.3': {}
 
-  '@pixiv/types-vrmc-vrm-animation-1.0@3.5.3':
+  '@pixiv/types-vrmc-vrm-1.0@3.5.5': {}
+
+  '@pixiv/types-vrmc-vrm-animation-1.0@3.5.5':
     dependencies:
-      '@pixiv/types-vrmc-vrm-1.0': 3.5.3
+      '@pixiv/types-vrmc-vrm-1.0': 3.5.5
 
   '@pkgjs/parseargs@0.11.0':
     optional: true
