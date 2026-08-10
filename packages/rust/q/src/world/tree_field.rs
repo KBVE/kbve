@@ -369,7 +369,7 @@ impl INode3D for QTreeField {
                 (band_lo, band_hi, false),
                 false,
                 true,
-                true,
+                false,
                 2,
             );
             match (near_c, far_c) {

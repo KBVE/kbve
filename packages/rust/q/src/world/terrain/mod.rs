@@ -82,6 +82,8 @@ pub struct QTerrain {
     pattern_set: Rid,
     pattern_wrap: Option<Gd<Texture2Drd>>,
     water_time: f32,
+    #[init(val = f32::MIN)]
+    pattern_zc: f32,
     hills: Option<FastNoiseLite>,
     river: Option<FastNoiseLite>,
     heights: Vec<f32>,

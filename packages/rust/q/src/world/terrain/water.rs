@@ -143,6 +143,10 @@ impl QTerrain {
             self.water_time
         };
         let zc = t * z_flow * scale1;
+        if (zc - self.pattern_zc).abs() < 1e-6 {
+            return;
+        }
+        self.pattern_zc = zc;
         let Some(rd) = self.water_rd.as_mut() else {
             return;
         };
