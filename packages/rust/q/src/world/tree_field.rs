@@ -9,35 +9,110 @@ use godot::tools::try_load;
 use crate::world::flora_compute::FloraCompute;
 use crate::world::terrain::QTerrain;
 
+struct Growth {
+    lateral_angle: [(f32, f32); 3],
+    leader_angle: (f32, f32),
+    phyllotaxis: f32,
+    az_jitter: f32,
+    length_ratio: (f32, f32),
+    murray: f32,
+    lateral_share: (f32, f32),
+    leader_share: f32,
+    tropism: (f32, f32),
+    curl: f32,
+    children: [u32; 3],
+    shape: u32,
+    fork: f32,
+    up_attract: f32,
+}
+
+fn crown_shape(id: u32, f: f32) -> f32 {
+    match id {
+        0 => 0.55 + 0.45 * (std::f32::consts::PI * (0.15 + 0.85 * f)).sin(),
+        1 => 1.0 - 0.55 * f,
+        2 => 0.5 + 0.5 * f,
+        _ => 1.0,
+    }
+}
+
 struct TreeSpecies {
     seed_off: u32,
     height: (f32, f32),
     crown: f32,
     leaf_tex: &'static str,
     bark_color: Color,
+    growth: Growth,
 }
 
 const SPECIES: &[TreeSpecies] = &[
     TreeSpecies {
         seed_off: 0,
-        height: (4.2, 7.0),
-        crown: 1.15,
+        height: (4.2, 8.4),
+        crown: 1.3,
         leaf_tex: "res://assets/environment/props/flora/euonymus/euonymus_alpha_0.png",
         bark_color: Color::from_rgba(0.38, 0.28, 0.2, 1.0),
+        growth: Growth {
+            lateral_angle: [(0.55, 0.2), (0.68, 0.24), (0.68, 0.24)],
+            leader_angle: (0.24, 0.14),
+            phyllotaxis: 2.399963,
+            az_jitter: 0.35,
+            length_ratio: (0.6, 0.2),
+            murray: 2.49,
+            lateral_share: (0.2, 0.1),
+            leader_share: 0.72,
+            tropism: (-0.05, 0.35),
+            curl: 0.55,
+            children: [6, 4, 2],
+            shape: 0,
+            fork: 0.42,
+            up_attract: 0.12,
+        },
     },
     TreeSpecies {
         seed_off: 7919,
-        height: (3.4, 5.6),
-        crown: 0.9,
+        height: (3.4, 6.6),
+        crown: 1.0,
         leaf_tex: "res://assets/environment/props/flora/euonymus/euonymus_alpha_5.png",
         bark_color: Color::from_rgba(0.52, 0.47, 0.4, 1.0),
+        growth: Growth {
+            lateral_angle: [(0.42, 0.15), (0.55, 0.2), (0.6, 0.2)],
+            leader_angle: (0.18, 0.1),
+            phyllotaxis: 2.399963,
+            az_jitter: 0.3,
+            length_ratio: (0.65, 0.2),
+            murray: 2.49,
+            lateral_share: (0.18, 0.08),
+            leader_share: 0.78,
+            tropism: (0.15, 0.45),
+            curl: 0.4,
+            children: [5, 4, 2],
+            shape: 1,
+            fork: 0.0,
+            up_attract: 0.2,
+        },
     },
     TreeSpecies {
         seed_off: 104729,
-        height: (3.0, 4.8),
-        crown: 1.0,
+        height: (3.0, 5.8),
+        crown: 1.1,
         leaf_tex: "res://assets/environment/props/flora/euonymus/euonymus_alpha_11.png",
         bark_color: Color::from_rgba(0.33, 0.24, 0.19, 1.0),
+        growth: Growth {
+            lateral_angle: [(0.7, 0.25), (0.8, 0.25), (0.85, 0.25)],
+            leader_angle: (0.3, 0.18),
+            phyllotaxis: 2.399963,
+            az_jitter: 0.45,
+            length_ratio: (0.55, 0.2),
+            murray: 2.49,
+            lateral_share: (0.22, 0.1),
+            leader_share: 0.68,
+            tropism: (-0.15, 0.2),
+            curl: 0.7,
+            children: [6, 3, 2],
+            shape: 2,
+            fork: 0.6,
+            up_attract: 0.08,
+        },
     },
 ];
 
@@ -105,8 +180,7 @@ pub struct QTreeField {
     day_progress: f32,
     #[init(val = Rid::Invalid)]
     body: Rid,
-    #[init(val = Rid::Invalid)]
-    trunk_shape: Rid,
+    trunk_shapes: Vec<Rid>,
     extent: f32,
 }
 
@@ -251,7 +325,7 @@ impl INode3D for QTreeField {
                 dup
             });
 
-            let mut near = build_skeleton_tree_mesh(seed, sp.crown);
+            let mut near = build_skeleton_tree_mesh(seed, sp);
             if let Some(m) = bark_mat.as_ref() {
                 near.surface_set_material(0, m);
             }
@@ -266,6 +340,8 @@ impl INode3D for QTreeField {
                 far.surface_set_material(1, m);
             }
 
+            let band_lo = self.mesh_range - 8.0;
+            let band_hi = self.mesh_range + 8.0;
             let near_c = FloraCompute::new(
                 scenario,
                 aabb,
@@ -273,8 +349,9 @@ impl INode3D for QTreeField {
                 Rid::Invalid,
                 &cands,
                 count,
-                self.mesh_range,
+                band_hi,
                 0.0,
+                (band_lo, band_hi, true),
                 false,
                 true,
                 true,
@@ -288,7 +365,8 @@ impl INode3D for QTreeField {
                 &cands,
                 count,
                 extent * 8.0,
-                self.mesh_range,
+                band_lo,
+                (band_lo, band_hi, false),
                 false,
                 true,
                 true,
@@ -457,20 +535,35 @@ impl QTreeField {
         };
         let space = world.get_space();
         let mut ps = PhysicsServer3D::singleton();
-        let shape = ps.cylinder_shape_create();
-        let mut data = VarDictionary::new();
-        let _ = data.insert("radius", self.trunk_collider_radius);
-        let _ = data.insert("height", 4.0);
-        ps.shape_set_data(shape, &data.to_variant());
+        let scale_r = self.trunk_collider_radius / 5.0;
+        let buckets = [3.5f32, 5.5, 7.5];
+        let shapes: Vec<Rid> = buckets
+            .iter()
+            .map(|s| {
+                let shape = ps.cylinder_shape_create();
+                let mut data = VarDictionary::new();
+                let _ = data.insert("radius", scale_r * s);
+                let _ = data.insert("height", 4.0);
+                ps.shape_set_data(shape, &data.to_variant());
+                shape
+            })
+            .collect();
         let body = ps.body_create();
         ps.body_set_mode(body, BodyMode::STATIC);
         ps.body_set_space(body, space);
         for c in self.candidates.chunks_exact(8) {
+            let bi = if c[3] < 4.5 {
+                0
+            } else if c[3] < 6.5 {
+                1
+            } else {
+                2
+            };
             let t = Transform3D::IDENTITY.translated(Vector3::new(c[0], c[1] + 2.0, c[2]));
-            ps.body_add_shape_ex(body, shape).transform(t).done();
+            ps.body_add_shape_ex(body, shapes[bi]).transform(t).done();
         }
         self.body = body;
-        self.trunk_shape = shape;
+        self.trunk_shapes = shapes;
     }
 
     fn free_computes(&mut self) {
@@ -482,13 +575,12 @@ impl QTreeField {
     fn free_all(&mut self) {
         self.free_computes();
         let mut ps = PhysicsServer3D::singleton();
-        for rid in [self.body, self.trunk_shape] {
+        for rid in std::iter::once(self.body).chain(self.trunk_shapes.drain(..)) {
             if rid.is_valid() {
                 ps.free_rid(rid);
             }
         }
         self.body = Rid::Invalid;
-        self.trunk_shape = Rid::Invalid;
     }
 }
 
@@ -672,9 +764,14 @@ fn limb(
     depth: u32,
     sway: f32,
     crown: f32,
+    g: &Growth,
     state: &mut u32,
 ) {
-    let segs = if depth == 0 { 4 } else { 2 };
+    let segs = match depth {
+        0 => 4,
+        1 => 3,
+        _ => 2,
+    };
     let col = Color::from_rgba(1.0, 1.0, 1.0, sway);
     let bend = if depth == 0 { 0.18 } else { 0.35 };
     let step = len / segs as f32;
@@ -683,15 +780,90 @@ fn limb(
     {
         let mut p = start;
         let mut d = dir;
-        for _ in 0..segs {
+        for k in 0..segs {
             let (jt, jb) = frame(d);
             let jitter = (jt * (randf(state) - 0.5) + jb * (randf(state) - 0.5)) * step * bend;
-            d = (d * step + jitter + Vector3::UP * step * 0.06 + curve * step * 0.5).normalized();
+            let thin = (k + 1) as f32 / segs as f32;
+            let up_amt = 0.06 + g.up_attract * thin * if depth >= 2 { 1.0 } else { 0.25 };
+            d = (d * step + jitter + Vector3::UP * step * up_amt + curve * step * 0.5).normalized();
             p = p + d * step;
             nodes.push(p);
             segd.push(d);
         }
     }
+    let base_r = |f: f32| r0 + (r1 - r0) * f.powf(taper_pow);
+    let mut specs: Vec<(f32, bool, f32, f32, f32, f32)> = Vec::new();
+    if depth < 3 {
+        let n_children = g.children[depth as usize];
+        let az0 = randf(state) * std::f32::consts::TAU;
+        let mut lead_az = 0.0f32;
+        let mut lead_seen = false;
+        for c in 0..n_children {
+            let leader = depth == 0 && c + 2 >= n_children;
+            let frac = if leader {
+                1.0
+            } else if depth == 0 {
+                let n_lat = (n_children - 2).max(1);
+                let u = c as f32 / (n_lat.saturating_sub(1)).max(1) as f32;
+                (0.58 + 0.3 * u.powf(0.65)).min(0.88)
+            } else {
+                let u = c as f32 / (n_children - 1).max(1) as f32;
+                (0.45 + 0.43 * u.powf(0.65)).min(0.88)
+            };
+            let mut az = az0 + g.phyllotaxis * c as f32 + (randf(state) - 0.5) * g.az_jitter;
+            if leader && g.fork > 0.0 {
+                if lead_seen {
+                    az = lead_az + std::f32::consts::PI + (randf(state) - 0.5) * 0.4;
+                } else {
+                    lead_az = az;
+                    lead_seen = true;
+                }
+            }
+            let second = leader && g.fork > 0.0 && c + 1 == n_children;
+            let ang = if leader {
+                if g.fork > 0.0 {
+                    g.fork * if second { 1.18 } else { 0.85 } + randf(state) * 0.12
+                } else {
+                    g.leader_angle.0 + randf(state) * g.leader_angle.1
+                }
+            } else {
+                let (ab, aj) = g.lateral_angle[depth as usize];
+                ab + randf(state) * aj
+            };
+            let share = if leader {
+                if g.fork > 0.0 {
+                    if second { 0.5 } else { 0.64 }
+                } else {
+                    g.leader_share
+                }
+            } else {
+                g.lateral_share.0 + randf(state) * g.lateral_share.1
+            };
+            let mut lr = g.length_ratio.0 + randf(state) * g.length_ratio.1;
+            if depth == 0 && !leader {
+                lr *= crown_shape(g.shape, ((frac - 0.55) / 0.35).clamp(0.0, 1.0));
+            }
+            specs.push((frac, leader, az, ang, share, lr));
+        }
+    }
+    let mut drops: Vec<(f32, f32)> = specs
+        .iter()
+        .filter(|s| !s.1)
+        .map(|s| {
+            let cr = base_r(s.0) * s.4.powf(1.0 / g.murray);
+            (s.0, cr * cr * 0.5)
+        })
+        .collect();
+    drops.sort_by(|a, b| a.0.partial_cmp(&b.0).unwrap());
+    let r_of = |f: f32| {
+        let mut a = base_r(f) * base_r(f);
+        for (fc, dsq) in &drops {
+            if *fc < f {
+                a -= dsq;
+            }
+        }
+        a.max(r1 * r1 * 0.55).sqrt()
+    };
     let (mut ft, _) = frame(segd[0]);
     let mut fb;
     let mut prev: Option<Vec<i32>> = None;
@@ -699,7 +871,7 @@ fn limb(
     let mut v = 0.0f32;
     for i in 0..=segs {
         let f = i as f32 / segs as f32;
-        let r = r0 + (r1 - r0) * f.powf(taper_pow);
+        let r = r_of(f);
         let n = if i == 0 {
             segd[0]
         } else if i == segs {
@@ -749,7 +921,7 @@ fn limb(
             let (t, b) = frame(pd);
             let out = t * az.cos() + b * az.sin();
             let rd = (out * 0.9 - Vector3::UP * (0.16 + randf(state) * 0.14)).normalized();
-            let r_at = r0 + (r1 - r0) * f.powf(taper_pow);
+            let r_at = r_of(f);
             let rr = r_at * (0.5 + randf(state) * 0.18);
             let reach = 0.2 + randf(state) * 0.14;
             let (rt, rb) = frame(rd);
@@ -767,23 +939,7 @@ fn limb(
         }
     }
     if depth < 3 {
-        let n_children = match depth {
-            0 => 6,
-            1 => 4,
-            _ => 2,
-        };
-        let az0 = randf(state) * std::f32::consts::TAU;
-        for c in 0..n_children {
-            let leader = depth == 0 && c >= n_children - 2;
-            let frac = if depth == 0 {
-                if leader {
-                    1.0
-                } else {
-                    (0.58 + 0.42 * (c as f32 / (n_children - 3).max(1) as f32)).min(0.88)
-                }
-            } else {
-                (0.45 + 0.55 * (c as f32 / (n_children - 1).max(1) as f32)).min(0.88)
-            };
+        for (frac, leader, az, ang, share, lr) in specs.iter().copied() {
             let f = (frac * segs as f32).clamp(0.0, segs as f32);
             let i0 = (f as usize).min(segs - 1);
             let tt = f - i0 as f32;
@@ -793,24 +949,23 @@ fn limb(
                 bp -= pd * (r1 * 0.9);
             }
             let (t, b) = frame(pd);
-            let az = az0
-                + std::f32::consts::TAU * c as f32 / n_children as f32
-                + (randf(state) - 0.5) * 0.9;
             let out = t * az.cos() + b * az.sin();
-            let cd = if leader {
-                (pd * 0.8 + out * 0.25 + Vector3::UP * (0.2 + randf(state) * 0.2)).normalized()
-            } else if depth == 0 {
-                (pd * (0.55 + randf(state) * 0.2) + out * (0.45 + randf(state) * 0.2)).normalized()
+            let cd = if leader && g.fork <= 0.0 {
+                (pd * ang.cos() + (out * 0.6 + Vector3::UP * 0.8).normalized() * ang.sin())
+                    .normalized()
             } else {
-                (pd * (0.45 + randf(state) * 0.2) + out * (0.55 + randf(state) * 0.25)).normalized()
+                (pd * ang.cos() + out * ang.sin()).normalized()
             };
-            let ccurve = if leader {
+            let trop = if depth >= 1 { g.tropism.1 } else { g.tropism.0 };
+            let ccurve = if leader && g.fork <= 0.0 {
                 Vector3::ZERO
+            } else if leader {
+                (out * 0.3 + Vector3::UP * 0.5).normalized() * 0.35
             } else {
-                (out * (0.55 - depth as f32 * 0.1) - Vector3::UP * 0.07).normalized() * 0.5
+                (out * (1.0 - trop.abs() * 0.5) + Vector3::UP * trop).normalized() * g.curl
             };
-            let cl = len * (0.55 + randf(state) * 0.25);
-            let cr0 = ((r0 + (r1 - r0) * frac.powf(taper_pow)) * 0.55).max(0.006);
+            let cl = len * lr;
+            let cr0 = (r_of(frac) * share.powf(1.0 / g.murray)).max(0.006);
             let child_sway = (sway + 0.3).min(0.9);
             limb(
                 bark,
@@ -826,6 +981,7 @@ fn limb(
                 depth + 1,
                 child_sway,
                 crown,
+                g,
                 state,
             );
         }
@@ -844,17 +1000,26 @@ fn limb(
         leaf_cluster(
             leaves,
             tip,
-            (30.0 * crown) as u32,
-            0.12 * crown,
+            (24.0 * crown) as u32,
+            0.11 * crown,
             0.036 * crown,
             0.9,
             state,
         );
         leaf_cluster(
             leaves,
-            start + (tip - start) * 0.55,
+            start + (tip - start) * 0.78,
             (14.0 * crown) as u32,
-            0.08 * crown,
+            0.085 * crown,
+            0.033 * crown,
+            (sway + 0.25).min(0.9),
+            state,
+        );
+        leaf_cluster(
+            leaves,
+            start + (tip - start) * 0.55,
+            (10.0 * crown) as u32,
+            0.07 * crown,
             0.031 * crown,
             (sway + 0.2).min(0.9),
             state,
@@ -862,7 +1027,8 @@ fn limb(
     }
 }
 
-fn build_skeleton_tree_mesh(seed: u32, crown: f32) -> Gd<ArrayMesh> {
+fn build_skeleton_tree_mesh(seed: u32, sp: &TreeSpecies) -> Gd<ArrayMesh> {
+    let crown = sp.crown;
     let mut bark = MeshBuilder::new();
     let mut leaves = MeshBuilder::new();
     let mut state = hash32(seed | 1);
@@ -887,6 +1053,7 @@ fn build_skeleton_tree_mesh(seed: u32, crown: f32) -> Gd<ArrayMesh> {
         0,
         0.0,
         crown,
+        &sp.growth,
         &mut state,
     );
 

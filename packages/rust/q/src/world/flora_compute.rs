@@ -21,6 +21,9 @@ const float FADE_END = %FADE_END%;
 const float DIST_MIN = %DIST_MIN%;
 const float RANK_FADE = %RANK_FADE%;
 const float GROWTH_ON = %GROWTH_ON%;
+const float BAND0 = %BAND0%;
+const float BAND1 = %BAND1%;
+const float BAND_OUT = %BAND_OUT%;
 const uint COUNT = %COUNT%u;
 const uint CAP = %CAP%u;
 
@@ -43,6 +46,7 @@ void main() {
     float z = 0.0;
     float s = 1.0;
     float rank = 0.0;
+    float fade = 1.0;
     uint src = id * 8u;
     if (alive) {
         x = cand.data[src];
@@ -56,6 +60,10 @@ void main() {
         float d = distance(vec2(x, z), pc.cam.xz);
         float keep = RANK_FADE > 0.5 ? 1.0 - smoothstep(FADE_END * 0.7, FADE_END, d) : 1.0;
         alive = d >= DIST_MIN && d < FADE_END && rank <= keep;
+        if (BAND1 > BAND0) {
+            float bf = smoothstep(BAND0, BAND1, d);
+            fade = mix(bf, 1.0 - bf, BAND_OUT);
+        }
         if (alive) {
             vec3 pos = vec3(x, y + s * 0.5, z);
             float m = s + 1.5;
@@ -97,7 +105,7 @@ void main() {
     outb.data[o + 12u] = rank;
     outb.data[o + 13u] = kind;
     outb.data[o + 14u] = phase;
-    outb.data[o + 15u] = 0.0;
+    outb.data[o + 15u] = fade;
 }
 "#;
 
@@ -176,6 +184,7 @@ impl FloraCompute {
         cap: u32,
         fade_end: f32,
         dist_min: f32,
+        band: (f32, f32, bool),
         rank_fade: bool,
         growth_on: bool,
         shadows: bool,
@@ -189,6 +198,9 @@ impl FloraCompute {
         let subs = [
             ("%FADE_END%", format!("{fade_end:.6}")),
             ("%DIST_MIN%", format!("{dist_min:.6}")),
+            ("%BAND0%", format!("{:.6}", band.0)),
+            ("%BAND1%", format!("{:.6}", band.1)),
+            ("%BAND_OUT%", if band.2 { "1.0" } else { "0.0" }.to_string()),
             (
                 "%RANK_FADE%",
                 if rank_fade { "1.0" } else { "0.0" }.to_string(),

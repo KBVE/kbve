@@ -284,6 +284,7 @@ impl QFloraField {
             cap,
             self.fade_end,
             0.0,
+            (0.0, 0.0, false),
             true,
             false,
             false,

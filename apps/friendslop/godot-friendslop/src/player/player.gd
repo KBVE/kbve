@@ -7,10 +7,6 @@ const MOUSE_SENSITIVITY := 0.003
 @onready var pivot: Node3D = $Pivot
 
 
-func _ready() -> void:
-	$Pivot/SpringArm3D.add_excluded_object(get_rid())
-
-
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
