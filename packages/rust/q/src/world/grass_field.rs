@@ -198,6 +198,13 @@ pub struct QGrassField {
     compute_attempts: i32,
     detailed_tris: u64,
     simple_tris: u64,
+    blade_params: Vec<f32>,
+    card_params: Vec<f32>,
+    trans_params: Vec<f32>,
+    blade_cells: Vec<f32>,
+    card_cells: Vec<f32>,
+    trans_cells: Vec<f32>,
+    classic_built: bool,
 }
 
 #[godot_api]
@@ -242,47 +249,30 @@ impl INode3D for QGrassField {
         self.detailed_tris = (detailed.get_faces().len() / 3) as u64;
         self.simple_tris = (simple.get_faces().len() / 3) as u64;
 
-        let mut rs = RenderingServer::singleton();
         let variants = self.layout_variants.max(1) as usize;
-        let mut blade_layouts: Vec<f32> = Vec::with_capacity(variants * blade_count * 12);
-        let mut card_layouts: Vec<f32> = Vec::with_capacity(variants * card_count * 12);
-        let mut trans_layouts: Vec<f32> = Vec::with_capacity(variants * transition_count * 12);
+        let mut blade_params: Vec<f32> = Vec::with_capacity(variants * blade_count * 6);
+        let mut card_params: Vec<f32> = Vec::with_capacity(variants * card_count * 6);
+        let mut trans_params: Vec<f32> = Vec::with_capacity(variants * transition_count * 6);
         for v in 0..self.layout_variants {
-            let blade_buf = self.build_layout_buffer(
+            blade_params.extend(self.build_layout_params(
                 (self.layout_seed as u32) ^ hash32(v as u32),
                 blade_count,
                 self.chunk_size,
-            );
-            blade_layouts.extend_from_slice(blade_buf.as_slice());
-            self.blade_multimeshes.push(vec![
-                Self::make_tiers(&mut rs, detailed.get_rid(), &blade_buf, blade_count),
-                Self::make_tiers(&mut rs, simple.get_rid(), &blade_buf, blade_count),
-            ]);
-            let card_buf = self.build_layout_buffer(
+            ));
+            card_params.extend(self.build_layout_params(
                 (self.layout_seed as u32) ^ hash32(7919 + v as u32),
                 card_count,
                 self.card_chunk_size,
-            );
-            card_layouts.extend_from_slice(card_buf.as_slice());
-            self.card_multimeshes.push(Self::make_tiers(
-                &mut rs,
-                card_mesh.get_rid(),
-                &card_buf,
-                card_count,
             ));
-            let trans_buf = self.build_layout_buffer(
+            trans_params.extend(self.build_layout_params(
                 (self.layout_seed as u32) ^ hash32(104729 + v as u32),
                 transition_count,
                 self.card_chunk_size,
-            );
-            trans_layouts.extend_from_slice(trans_buf.as_slice());
-            self.transition_multimeshes.push(Self::make_tiers(
-                &mut rs,
-                card_mesh.get_rid(),
-                &trans_buf,
-                transition_count,
             ));
         }
+        self.blade_params = blade_params;
+        self.card_params = card_params;
+        self.trans_params = trans_params;
         self.kept_resources.push(detailed);
         self.kept_resources.push(simple);
         self.card_mesh = Some(card_mesh);
@@ -294,9 +284,9 @@ impl INode3D for QGrassField {
         let transition_margin =
             self.transition_out_end + self.card_chunk_size * std::f32::consts::FRAC_1_SQRT_2 + 5.0;
         let transition_radius_cells = (transition_margin / self.card_chunk_size).ceil() as i32;
-        self.blade_grid = Some(self.build_grid(blade_radius_cells, self.chunk_size));
-        self.card_grid = Some(self.build_grid(card_radius_cells, self.card_chunk_size));
-        self.transition_grid = Some(self.build_grid(transition_radius_cells, self.card_chunk_size));
+        self.blade_grid = Some(RingGrid::new(blade_radius_cells, self.chunk_size));
+        self.card_grid = Some(RingGrid::new(card_radius_cells, self.card_chunk_size));
+        self.transition_grid = Some(RingGrid::new(transition_radius_cells, self.card_chunk_size));
 
         if let Some(m) = self.grass_material.as_mut() {
             m.set_shader_parameter("total_blades", &(blade_count as f32).to_variant());
@@ -308,18 +298,26 @@ impl INode3D for QGrassField {
             self.compute_blades = false;
         }
         if self.compute_blades {
-            self.blade_compute = self.build_blade_compute(&blade_layouts, blade_count);
+            let bp = std::mem::take(&mut self.blade_params);
+            let cp = std::mem::take(&mut self.card_params);
+            let tp = std::mem::take(&mut self.trans_params);
+            self.blade_compute = self.build_blade_compute(&bp, blade_count);
             if self.blade_compute.is_some() {
-                self.card_compute = self.build_card_compute(&card_layouts, card_count, false);
-                self.transition_compute =
-                    self.build_card_compute(&trans_layouts, transition_count, true);
+                self.card_compute = self.build_card_compute(&cp, card_count, false);
+                self.transition_compute = self.build_card_compute(&tp, transition_count, true);
             }
+            self.blade_params = bp;
+            self.card_params = cp;
+            self.trans_params = tp;
             if self.blade_compute.is_none()
                 || self.card_compute.is_none()
                 || self.transition_compute.is_none()
             {
                 self.teardown_compute();
             }
+        }
+        if self.blade_compute.is_none() {
+            self.ensure_classic();
         }
         let mode = if self.blade_compute.is_some() {
             1.0f32
@@ -441,26 +439,36 @@ impl QGrassField {
         let mut tris: u64 = 0;
         let mut cap_tris: u64 = 0;
         let active = self.blade_compute.is_some();
+        let mut utils: Vec<i64> = Vec::with_capacity(4);
         if let Some(bc) = self.blade_compute.as_mut() {
-            let (near, far) = bc.survivor_counts();
+            let (near_raw, far_raw) = bc.survivor_counts();
+            let (cn, cf) = bc.caps();
+            let near = near_raw.min(cn);
+            let far = far_raw.min(cf);
             instances += (near + far) as u64;
             tris += near as u64 * self.detailed_tris + far as u64 * self.simple_tris;
-            let (cn, cf) = bc.caps();
             cap_tris += cn as u64 * self.detailed_tris + cf as u64 * self.simple_tris;
+            utils.push((near_raw as u64 * 100 / cn.max(1) as u64) as i64);
+            utils.push((far_raw as u64 * 100 / cf.max(1) as u64) as i64);
         }
         for cc in [self.card_compute.as_mut(), self.transition_compute.as_mut()]
             .into_iter()
             .flatten()
         {
-            let n = cc.survivor_count() as u64;
+            let raw = cc.survivor_count();
+            let cap = cc.cap();
+            let n = raw.min(cap) as u64;
             instances += n;
             tris += n * 2;
-            cap_tris += cc.cap() as u64 * 2;
+            cap_tris += cap as u64 * 2;
+            utils.push((raw as u64 * 100 / cap.max(1) as u64) as i64);
         }
         let _ = d.insert("active", active);
         let _ = d.insert("instances", instances as i64);
         let _ = d.insert("tris", tris as i64);
         let _ = d.insert("cap_tris", cap_tris as i64);
+        let util_arr: Array<i64> = utils.into_iter().collect();
+        let _ = d.insert("utils", &util_arr);
         d
     }
 
@@ -592,13 +600,11 @@ impl QGrassField {
             let variant = self.layout_index(coord);
             entries.push(coord.0 as f32 * cell);
             entries.push(coord.1 as f32 * cell);
-            entries.push((variant * blade_count * 12) as f32);
+            entries.push((variant * blade_count * 6) as f32);
             entries.push(variant as f32);
         }
         self.blade_grid = Some(grid);
-        if let Some(bc) = self.blade_compute.as_mut() {
-            bc.update_cells(&entries);
-        }
+        self.blade_cells = entries;
     }
 
     fn step_compute(&mut self) {
@@ -647,15 +653,43 @@ impl QGrassField {
         let planes = [frustum.at(2), frustum.at(3), frustum.at(4), frustum.at(5)];
         let cam_pos = cam.get_global_position();
         let (ts, br, ln) = (self.thin_start, self.blade_range, self.lod_near_enter);
+        let blade_visible =
+            Self::filter_cells(&self.blade_cells, &planes, cam_pos, self.chunk_size);
+        let card_visible =
+            Self::filter_cells(&self.card_cells, &planes, cam_pos, self.card_chunk_size);
+        let trans_visible =
+            Self::filter_cells(&self.trans_cells, &planes, cam_pos, self.card_chunk_size);
         if let Some(bc) = self.blade_compute.as_mut() {
+            bc.update_cells(&blade_visible);
             bc.dispatch(cam_pos, &planes, ts, br, ln);
         }
         if let Some(cc) = self.card_compute.as_mut() {
+            cc.update_cells(&card_visible);
             cc.dispatch(cam_pos, &planes);
         }
         if let Some(tc) = self.transition_compute.as_mut() {
+            tc.update_cells(&trans_visible);
             tc.dispatch(cam_pos, &planes);
         }
+    }
+
+    fn filter_cells(cells: &[f32], planes: &[Plane; 4], cam: Vector3, cell: f32) -> Vec<f32> {
+        let radius = cell * std::f32::consts::FRAC_1_SQRT_2 + 4.0;
+        let mut out = Vec::with_capacity(cells.len());
+        for e in cells.chunks_exact(4) {
+            let center = Vector3::new(e[0] + cell * 0.5, cam.y, e[1] + cell * 0.5);
+            let mut visible = true;
+            for p in planes {
+                if p.normal.dot(center) - p.d > radius + p.normal.y.abs() * 25.0 {
+                    visible = false;
+                    break;
+                }
+            }
+            if visible {
+                out.extend_from_slice(e);
+            }
+        }
+        out
     }
 
     fn teardown_compute(&mut self) {
@@ -687,6 +721,7 @@ impl QGrassField {
     fn disable_compute(&mut self) {
         self.teardown_compute();
         self.apply_compute_mode(0.0);
+        self.ensure_classic();
         self.last_blade_center = None;
         self.last_card_center = None;
         godot_warn!("[QGrassField] compute path unavailable, falling back to classic grass");
@@ -754,7 +789,13 @@ impl QGrassField {
             },
             terrain_extent,
             water_level,
-            occl_start: if transition { 25.0 } else { 30.0 },
+            occl_start: if !crate::world::grass_compute::occlusion_enabled() {
+                1.0e9
+            } else if transition {
+                25.0
+            } else {
+                30.0
+            },
             occl_margin: if transition { 1.5 } else { 2.0 },
         };
         let extent = self.world_half_extent + self.grass_fade_out_end + 50.0;
@@ -799,13 +840,11 @@ impl QGrassField {
             let variant = self.layout_index(coord);
             entries.push(coord.0 as f32 * cell);
             entries.push(coord.1 as f32 * cell);
-            entries.push((variant * card_count * 12) as f32);
+            entries.push((variant * card_count * 6) as f32);
             entries.push(variant as f32);
         }
         self.card_grid = Some(grid);
-        if let Some(cc) = self.card_compute.as_mut() {
-            cc.update_cells(&entries);
-        }
+        self.card_cells = entries;
     }
 
     fn rebuild_transition_cells(&mut self, center: (i32, i32)) {
@@ -838,13 +877,11 @@ impl QGrassField {
             let variant = self.layout_index(coord);
             entries.push(coord.0 as f32 * cell);
             entries.push(coord.1 as f32 * cell);
-            entries.push((variant * transition_count * 12) as f32);
+            entries.push((variant * transition_count * 6) as f32);
             entries.push(variant as f32);
         }
         self.transition_grid = Some(grid);
-        if let Some(tc) = self.transition_compute.as_mut() {
-            tc.update_cells(&entries);
-        }
+        self.trans_cells = entries;
     }
 
     fn blade_attach_distance(&self) -> f32 {
@@ -1264,15 +1301,34 @@ impl QGrassField {
             .collect()
     }
 
-    fn build_layout_buffer(&self, seed: u32, count: usize, extent: f32) -> PackedFloat32Array {
+    fn build_layout_params(&self, seed: u32, count: usize, extent: f32) -> Vec<f32> {
         let mut state = hash32(seed | 1);
-        let mut buf = vec![0.0f32; count * 12];
+        let mut out = vec![0.0f32; count * 6];
         for i in 0..count {
-            let o = i * 12;
+            let o = i * 6;
             let yaw = randf(&mut state) * std::f32::consts::TAU;
             let tilt_dir = randf(&mut state) * std::f32::consts::TAU;
             let tilt = randf_range(&mut state, 0.0, 0.25);
             let s = randf_range(&mut state, 0.75, 1.3);
+            out[o] = randf(&mut state) * extent;
+            out[o + 1] = randf(&mut state) * extent;
+            out[o + 2] = yaw;
+            out[o + 3] = tilt_dir;
+            out[o + 4] = tilt;
+            out[o + 5] = s;
+        }
+        out
+    }
+
+    fn params_to_transforms(params: &[f32], count: usize) -> PackedFloat32Array {
+        let mut buf = vec![0.0f32; count * 12];
+        for i in 0..count {
+            let p = i * 6;
+            let o = i * 12;
+            let yaw = params[p + 2];
+            let tilt_dir = params[p + 3];
+            let tilt = params[p + 4];
+            let s = params[p + 5];
             let axis = Vector3::new(tilt_dir.cos(), 0.0, tilt_dir.sin());
             let basis = (Basis::from_axis_angle(axis, tilt)
                 * Basis::from_axis_angle(Vector3::UP, yaw))
@@ -1280,16 +1336,119 @@ impl QGrassField {
             buf[o] = basis.col_a().x;
             buf[o + 1] = basis.col_b().x;
             buf[o + 2] = basis.col_c().x;
-            buf[o + 3] = randf(&mut state) * extent;
+            buf[o + 3] = params[p];
             buf[o + 4] = basis.col_a().y;
             buf[o + 5] = basis.col_b().y;
             buf[o + 6] = basis.col_c().y;
             buf[o + 8] = basis.col_a().z;
             buf[o + 9] = basis.col_b().z;
             buf[o + 10] = basis.col_c().z;
-            buf[o + 11] = randf(&mut state) * extent;
+            buf[o + 11] = params[p + 1];
         }
         PackedFloat32Array::from(buf.as_slice())
+    }
+
+    fn ensure_classic(&mut self) {
+        if self.classic_built {
+            return;
+        }
+        self.classic_built = true;
+        let blade_count = (self.chunk_size * self.chunk_size * self.blades_per_sqm) as usize;
+        let card_count =
+            ((self.card_chunk_size * self.card_chunk_size * self.blades_per_sqm * self.card_ratio)
+                as usize)
+                .max(8);
+        let transition_count = ((self.card_chunk_size
+            * self.card_chunk_size
+            * self.blades_per_sqm
+            * self.transition_ratio) as usize)
+            .max(8);
+        let detailed = self
+            .kept_resources
+            .first()
+            .map(|m| m.get_rid())
+            .unwrap_or(Rid::Invalid);
+        let simple = self
+            .kept_resources
+            .get(1)
+            .map(|m| m.get_rid())
+            .unwrap_or(Rid::Invalid);
+        let card_mesh_rid = self
+            .card_mesh
+            .as_ref()
+            .map(|m| m.get_rid())
+            .unwrap_or(Rid::Invalid);
+        let mut rs = RenderingServer::singleton();
+        for v in 0..self.layout_variants.max(1) as usize {
+            let bb = Self::params_to_transforms(
+                &self.blade_params[v * blade_count * 6..(v + 1) * blade_count * 6],
+                blade_count,
+            );
+            self.blade_multimeshes.push(vec![
+                Self::make_tiers(&mut rs, detailed, &bb, blade_count),
+                Self::make_tiers(&mut rs, simple, &bb, blade_count),
+            ]);
+            let cb = Self::params_to_transforms(
+                &self.card_params[v * card_count * 6..(v + 1) * card_count * 6],
+                card_count,
+            );
+            self.card_multimeshes
+                .push(Self::make_tiers(&mut rs, card_mesh_rid, &cb, card_count));
+            let tb = Self::params_to_transforms(
+                &self.trans_params[v * transition_count * 6..(v + 1) * transition_count * 6],
+                transition_count,
+            );
+            self.transition_multimeshes.push(Self::make_tiers(
+                &mut rs,
+                card_mesh_rid,
+                &tb,
+                transition_count,
+            ));
+        }
+        drop(rs);
+        self.fill_all_grid_slots();
+        self.last_blade_center = None;
+        self.last_card_center = None;
+    }
+
+    fn fill_all_grid_slots(&mut self) {
+        let Some(world) = self.base().get_world_3d() else {
+            return;
+        };
+        let scenario = world.get_scenario();
+        let mut rs = RenderingServer::singleton();
+        fn fill(rs: &mut Gd<RenderingServer>, scenario: Rid, grid: &mut RingGrid) {
+            if !grid.slots.is_empty() {
+                return;
+            }
+            let count = (grid.width * grid.width) as usize;
+            grid.slots.reserve(count);
+            for _ in 0..count {
+                let rid = rs.instance_create();
+                rs.instance_set_scenario(rid, scenario);
+                rs.instance_geometry_set_cast_shadows_setting(rid, ShadowCastingSetting::OFF);
+                rs.instance_set_visible(rid, false);
+                grid.slots.push(Slot {
+                    rid,
+                    coord: (i32::MAX, i32::MAX),
+                    active: false,
+                    near: false,
+                    tier: 0,
+                });
+            }
+        }
+        if let Some(mut g) = self.blade_grid.take() {
+            fill(&mut rs, scenario, &mut g);
+            self.blade_grid = Some(g);
+        }
+        if let Some(mut g) = self.card_grid.take() {
+            fill(&mut rs, scenario, &mut g);
+            self.card_grid = Some(g);
+        }
+        if let Some(mut g) = self.transition_grid.take() {
+            fill(&mut rs, scenario, &mut g);
+            self.transition_grid = Some(g);
+        }
     }
 
     fn build_card_material(&mut self, card_count: usize, transition_count: usize) {

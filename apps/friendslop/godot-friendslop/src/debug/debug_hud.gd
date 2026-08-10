@@ -61,6 +61,9 @@ func _process(delta: float) -> void:
 		if s.get("active", false):
 			tris = maxi(tris - s.get("cap_tris", 0), 0) + s.get("tris", 0)
 			grass_line = "Grass GPU %s inst  %s tris" % [_fmt_count(s.get("instances", 0)), _fmt_count(s.get("tris", 0))]
+			var u: Array = s.get("utils", [])
+			if u.size() >= 4:
+				grass_line += "\nCaps N%d%% F%d%% C%d%% T%d%%" % [u[0], u[1], u[2], u[3]]
 	lines.append("Tris %s  Draws %d  Objects %d" % [_fmt_count(tris), draws, objects])
 	if grass_line != "":
 		lines.append(grass_line)

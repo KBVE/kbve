@@ -8,6 +8,15 @@ use godot::prelude::*;
 const OCCLUSION_START: f32 = 15.0;
 const OCCLUSION_MARGIN: f32 = 1.0;
 
+pub fn occlusion_enabled() -> bool {
+    static V: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *V.get_or_init(|| {
+        std::env::var("GRASS_OCCL")
+            .map(|v| v == "1")
+            .unwrap_or(false)
+    })
+}
+
 const CULL_GLSL: &str = r#"
 #version 450
 layout(local_size_x = 64) in;
@@ -28,6 +37,11 @@ layout(push_constant, std430) uniform Params {
     vec4 terra;
 } pc;
 
+shared uint local_near;
+shared uint local_far;
+shared uint base_near;
+shared uint base_far;
+
 float terrain_h(vec2 xz) {
     vec2 uv = clamp((xz + pc.terra.x) / (pc.terra.x * 2.0), 0.001, 0.999);
     return textureLod(heightmap, uv, 0.0).r;
@@ -37,64 +51,121 @@ bool outside(vec4 plane, vec3 pos) {
     return dot(plane.xyz, pos) - plane.w > 3.0;
 }
 
+mat3 axis_rot(vec3 ax, float a) {
+    float c = cos(a);
+    float s = sin(a);
+    float t = 1.0 - c;
+    return mat3(
+        vec3(t * ax.x * ax.x + c, t * ax.x * ax.y + s * ax.z, t * ax.x * ax.z - s * ax.y),
+        vec3(t * ax.x * ax.y - s * ax.z, t * ax.y * ax.y + c, t * ax.y * ax.z + s * ax.x),
+        vec3(t * ax.x * ax.z + s * ax.y, t * ax.y * ax.z - s * ax.x, t * ax.z * ax.z + c));
+}
+
 void main() {
+    if (gl_LocalInvocationIndex == 0u) {
+        local_near = 0u;
+        local_far = 0u;
+    }
+    barrier();
     uint blade_count = uint(pc.fade.w);
     uint id = gl_GlobalInvocationID.x;
     uint cell = id / blade_count;
-    if (cell >= uint(pc.cam.w)) {
-        return;
-    }
     uint blade = id - cell * blade_count;
-    vec4 cinfo = cells.data[cell];
-    uint src = uint(cinfo.z) + blade * 12u;
-    float wx = layouts.data[src + 3u] + cinfo.x;
-    float wz = layouts.data[src + 11u] + cinfo.y;
-    float d = distance(vec2(wx, wz), pc.cam.xz);
-    float t = smoothstep(pc.fade.x, pc.fade.y, d);
-    float density = 1.0 - t * t;
-    float rank = float(blade) / float(blade_count) * 0.95;
-    if (rank >= density) {
-        return;
-    }
-    float h = terrain_h(vec2(wx, wz));
-    if (h < pc.terra.y + 0.25) {
-        return;
-    }
-    vec3 pos = vec3(wx, h + 0.7, wz);
-    if (outside(pc.p0, pos) || outside(pc.p1, pos) || outside(pc.p2, pos) || outside(pc.p3, pos)) {
-        return;
-    }
-    if (d > pc.terra.z) {
-        vec3 tip = vec3(wx, h + 1.4, wz);
-        for (int i = 1; i <= 5; i++) {
-            vec3 p = mix(tip, pc.cam.xyz, float(i) / 6.0);
-            if (terrain_h(p.xz) > p.y + pc.terra.w) {
-                return;
+    bool alive = cell < uint(pc.cam.w);
+    bool near = false;
+    float wx = 0.0;
+    float wz = 0.0;
+    float rank = 0.0;
+    uint src = 0u;
+    if (alive) {
+        vec4 cinfo = cells.data[cell];
+        src = uint(cinfo.z) + blade * 6u;
+        wx = layouts.data[src] + cinfo.x;
+        wz = layouts.data[src + 1u] + cinfo.y;
+        float d = distance(vec2(wx, wz), pc.cam.xz);
+        float t = smoothstep(pc.fade.x, pc.fade.y, d);
+        float density = 1.0 - t * t;
+        rank = float(blade) / float(blade_count) * 0.95;
+        alive = rank < density;
+        if (alive) {
+            float h = terrain_h(vec2(wx, wz));
+            vec3 pos = vec3(wx, h + 0.7, wz);
+            alive = h >= pc.terra.y + 0.25
+                && !(outside(pc.p0, pos) || outside(pc.p1, pos) || outside(pc.p2, pos)
+                    || outside(pc.p3, pos));
+            if (alive && d > pc.terra.z) {
+                vec3 tip = vec3(wx, h + 1.4, wz);
+                for (int i = 1; i <= 5; i++) {
+                    vec3 p = mix(tip, pc.cam.xyz, float(i) / 6.0);
+                    if (terrain_h(p.xz) > p.y + pc.terra.w) {
+                        alive = false;
+                        break;
+                    }
+                }
             }
+            near = d < pc.fade.z;
         }
     }
-    bool near = d < pc.fade.z;
-    uint slot = atomicAdd(counter.data[near ? 0u : 1u], 1u);
+    uint lslot = 0u;
+    if (alive) {
+        if (near) {
+            lslot = atomicAdd(local_near, 1u);
+        } else {
+            lslot = atomicAdd(local_far, 1u);
+        }
+    }
+    barrier();
+    if (gl_LocalInvocationIndex == 0u) {
+        base_near = atomicAdd(counter.data[0], local_near);
+        base_far = atomicAdd(counter.data[1], local_far);
+    }
+    barrier();
+    if (!alive) {
+        return;
+    }
+    uint slot = (near ? base_near : base_far) + lslot;
     if (slot >= uint(near ? pc.caps.x : pc.caps.y)) {
         return;
     }
+    float yaw = layouts.data[src + 2u];
+    float td = layouts.data[src + 3u];
+    float tilt = layouts.data[src + 4u];
+    float s = layouts.data[src + 5u];
+    mat3 b = axis_rot(vec3(cos(td), 0.0, sin(td)), tilt) * axis_rot(vec3(0.0, 1.0, 0.0), yaw);
+    b[0] *= s;
+    b[1] *= s;
+    b[2] *= s;
+    float shape = fract(float(blade) * 0.75487766 + cells.data[cell].w * 0.618034);
     uint o = slot * 16u;
-    float shape = fract(float(blade) * 0.75487766 + cinfo.w * 0.618034);
     if (near) {
-        for (uint k = 0u; k < 12u; k++) {
-            out_near.data[o + k] = layouts.data[src + k];
-        }
+        out_near.data[o] = b[0].x;
+        out_near.data[o + 1u] = b[1].x;
+        out_near.data[o + 2u] = b[2].x;
         out_near.data[o + 3u] = wx;
+        out_near.data[o + 4u] = b[0].y;
+        out_near.data[o + 5u] = b[1].y;
+        out_near.data[o + 6u] = b[2].y;
+        out_near.data[o + 7u] = 0.0;
+        out_near.data[o + 8u] = b[0].z;
+        out_near.data[o + 9u] = b[1].z;
+        out_near.data[o + 10u] = b[2].z;
         out_near.data[o + 11u] = wz;
         out_near.data[o + 12u] = rank;
         out_near.data[o + 13u] = shape;
         out_near.data[o + 14u] = 0.0;
         out_near.data[o + 15u] = 0.0;
     } else {
-        for (uint k = 0u; k < 12u; k++) {
-            out_far.data[o + k] = layouts.data[src + k];
-        }
+        out_far.data[o] = b[0].x;
+        out_far.data[o + 1u] = b[1].x;
+        out_far.data[o + 2u] = b[2].x;
         out_far.data[o + 3u] = wx;
+        out_far.data[o + 4u] = b[0].y;
+        out_far.data[o + 5u] = b[1].y;
+        out_far.data[o + 6u] = b[2].y;
+        out_far.data[o + 7u] = 0.0;
+        out_far.data[o + 8u] = b[0].z;
+        out_far.data[o + 9u] = b[1].z;
+        out_far.data[o + 10u] = b[2].z;
         out_far.data[o + 11u] = wz;
         out_far.data[o + 12u] = rank;
         out_far.data[o + 13u] = shape;
@@ -149,6 +220,9 @@ const float OCCL_MARGIN = %OCCL_MARGIN%;
 const uint COUNT = %COUNT%u;
 const uint CAP = %CAP%u;
 
+shared uint local_cnt;
+shared uint base_slot;
+
 float terrain_h(vec2 xz) {
     vec2 uv = clamp((xz + EXTENT) / (EXTENT * 2.0), 0.001, 0.999);
     return textureLod(heightmap, uv, 0.0).r;
@@ -158,62 +232,97 @@ bool outside(vec4 plane, vec3 pos) {
     return dot(plane.xyz, pos) - plane.w > 6.0;
 }
 
+mat3 axis_rot(vec3 ax, float a) {
+    float c = cos(a);
+    float s = sin(a);
+    float t = 1.0 - c;
+    return mat3(
+        vec3(t * ax.x * ax.x + c, t * ax.x * ax.y + s * ax.z, t * ax.x * ax.z - s * ax.y),
+        vec3(t * ax.x * ax.y - s * ax.z, t * ax.y * ax.y + c, t * ax.y * ax.z + s * ax.x),
+        vec3(t * ax.x * ax.z + s * ax.y, t * ax.y * ax.z - s * ax.x, t * ax.z * ax.z + c));
+}
+
 void main() {
+    if (gl_LocalInvocationIndex == 0u) {
+        local_cnt = 0u;
+    }
+    barrier();
     uint id = gl_GlobalInvocationID.x;
     uint cell = id / COUNT;
-    if (cell >= uint(pc.cam.w)) {
-        return;
-    }
     uint card = id - cell * COUNT;
-    vec4 cinfo = cells.data[cell];
-    uint src = uint(cinfo.z) + card * 12u;
-    float wx = layouts.data[src + 3u] + cinfo.x;
-    float wz = layouts.data[src + 11u] + cinfo.y;
-    float d = distance(vec2(wx, wz), pc.cam.xz);
-    if (d >= FADE_END) {
-        return;
-    }
-    float rank = min(float(card) / float(COUNT), 0.999);
-    float keep = max(exp(-max(d - BLADE_RANGE, 0.0) / CARD_TAIL), CARD_FLOOR);
-    if (rank >= keep) {
-        return;
-    }
-    if (BAND_END > BAND_START) {
-        float band_keep = 1.0 - smoothstep(BAND_START, BAND_END, d);
-        if (rank >= band_keep * 1.001) {
-            return;
+    bool alive = cell < uint(pc.cam.w);
+    float wx = 0.0;
+    float wz = 0.0;
+    float rank = 0.0;
+    uint src = 0u;
+    if (alive) {
+        vec4 cinfo = cells.data[cell];
+        src = uint(cinfo.z) + card * 6u;
+        wx = layouts.data[src] + cinfo.x;
+        wz = layouts.data[src + 1u] + cinfo.y;
+        float d = distance(vec2(wx, wz), pc.cam.xz);
+        rank = min(float(card) / float(COUNT), 0.999);
+        float keep = max(exp(-max(d - BLADE_RANGE, 0.0) / CARD_TAIL), CARD_FLOOR);
+        float appear = BLADE_RANGE * (0.55 + rank * 0.35);
+        alive = d < FADE_END && rank < keep && d > appear - 5.0;
+        if (alive && BAND_END > BAND_START) {
+            float band_keep = 1.0 - smoothstep(BAND_START, BAND_END, d);
+            alive = rank < band_keep * 1.001;
         }
-    }
-    float appear = BLADE_RANGE * (0.55 + rank * 0.35);
-    if (d <= appear - 5.0) {
-        return;
-    }
-    float h = terrain_h(vec2(wx, wz));
-    if (h < WATER + 0.25) {
-        return;
-    }
-    vec3 pos = vec3(wx, h + 1.0, wz);
-    if (outside(pc.p0, pos) || outside(pc.p1, pos) || outside(pc.p2, pos) || outside(pc.p3, pos)) {
-        return;
-    }
-    if (d > OCCL_START) {
-        vec3 tip = vec3(wx, h + 2.2, wz);
-        for (int i = 1; i <= 8; i++) {
-            vec3 p = mix(tip, pc.cam.xyz, float(i) / 9.0);
-            if (terrain_h(p.xz) > p.y + OCCL_MARGIN) {
-                return;
+        if (alive) {
+            float h = terrain_h(vec2(wx, wz));
+            vec3 pos = vec3(wx, h + 1.0, wz);
+            alive = h >= WATER + 0.25
+                && !(outside(pc.p0, pos) || outside(pc.p1, pos) || outside(pc.p2, pos)
+                    || outside(pc.p3, pos));
+            if (alive && d > OCCL_START) {
+                vec3 tip = vec3(wx, h + 2.2, wz);
+                for (int i = 1; i <= 8; i++) {
+                    vec3 p = mix(tip, pc.cam.xyz, float(i) / 9.0);
+                    if (terrain_h(p.xz) > p.y + OCCL_MARGIN) {
+                        alive = false;
+                        break;
+                    }
+                }
             }
         }
     }
-    uint slot = atomicAdd(counter.data[0], 1u);
+    uint lslot = 0u;
+    if (alive) {
+        lslot = atomicAdd(local_cnt, 1u);
+    }
+    barrier();
+    if (gl_LocalInvocationIndex == 0u) {
+        base_slot = atomicAdd(counter.data[0], local_cnt);
+    }
+    barrier();
+    if (!alive) {
+        return;
+    }
+    uint slot = base_slot + lslot;
     if (slot >= CAP) {
         return;
     }
+    float yaw = layouts.data[src + 2u];
+    float td = layouts.data[src + 3u];
+    float tilt = layouts.data[src + 4u];
+    float s = layouts.data[src + 5u];
+    mat3 b = axis_rot(vec3(cos(td), 0.0, sin(td)), tilt) * axis_rot(vec3(0.0, 1.0, 0.0), yaw);
+    b[0] *= s;
+    b[1] *= s;
+    b[2] *= s;
     uint o = slot * 16u;
-    for (uint k = 0u; k < 12u; k++) {
-        outb.data[o + k] = layouts.data[src + k];
-    }
+    outb.data[o] = b[0].x;
+    outb.data[o + 1u] = b[1].x;
+    outb.data[o + 2u] = b[2].x;
     outb.data[o + 3u] = wx;
+    outb.data[o + 4u] = b[0].y;
+    outb.data[o + 5u] = b[1].y;
+    outb.data[o + 6u] = b[2].y;
+    outb.data[o + 7u] = 0.0;
+    outb.data[o + 8u] = b[0].z;
+    outb.data[o + 9u] = b[1].z;
+    outb.data[o + 10u] = b[2].z;
     outb.data[o + 11u] = wz;
     outb.data[o + 12u] = rank;
     outb.data[o + 13u] = 0.0;
@@ -480,7 +589,7 @@ impl BladeCompute {
         blade_range: f32,
         lod_near: f32,
     ) {
-        if !self.online() || self.cell_count == 0 {
+        if !self.online() {
             return;
         }
         self.rd
@@ -505,19 +614,25 @@ impl BladeCompute {
         pc[25] = self.cap_far as f32;
         pc[28] = self.terrain_extent;
         pc[29] = self.water_level;
-        pc[30] = OCCLUSION_START;
+        pc[30] = if occlusion_enabled() {
+            OCCLUSION_START
+        } else {
+            1.0e9
+        };
         pc[31] = OCCLUSION_MARGIN;
         let pc_bytes = PackedFloat32Array::from(&pc[..]).to_byte_array();
         let caps_bytes = PackedFloat32Array::from(&pc[24..28]).to_byte_array();
-        let total = self.cell_count * self.blade_count;
-        let groups = total.div_ceil(64);
         let cl = self.rd.compute_list_begin();
-        self.rd
-            .compute_list_bind_compute_pipeline(cl, self.cull_pipeline);
-        self.rd.compute_list_bind_uniform_set(cl, self.cull_set, 0);
-        self.rd
-            .compute_list_set_push_constant(cl, &pc_bytes, pc_bytes.len() as u32);
-        self.rd.compute_list_dispatch(cl, groups, 1, 1);
+        if self.cell_count > 0 {
+            let total = self.cell_count * self.blade_count;
+            let groups = total.div_ceil(64);
+            self.rd
+                .compute_list_bind_compute_pipeline(cl, self.cull_pipeline);
+            self.rd.compute_list_bind_uniform_set(cl, self.cull_set, 0);
+            self.rd
+                .compute_list_set_push_constant(cl, &pc_bytes, pc_bytes.len() as u32);
+            self.rd.compute_list_dispatch(cl, groups, 1, 1);
+        }
         self.rd
             .compute_list_bind_compute_pipeline(cl, self.resolve_pipeline);
         self.rd
@@ -735,7 +850,7 @@ impl CardCompute {
     }
 
     pub fn dispatch(&mut self, cam_pos: Vector3, planes: &[Plane; 4]) {
-        if !self.online() || self.cell_count == 0 {
+        if !self.online() {
             return;
         }
         self.rd
@@ -753,15 +868,17 @@ impl CardCompute {
             pc[o + 3] = p.d;
         }
         let pc_bytes = PackedFloat32Array::from(&pc[..]).to_byte_array();
-        let total = self.cell_count * self.count_per_cell;
-        let groups = total.div_ceil(64);
         let cl = self.rd.compute_list_begin();
-        self.rd
-            .compute_list_bind_compute_pipeline(cl, self.cull_pipeline);
-        self.rd.compute_list_bind_uniform_set(cl, self.cull_set, 0);
-        self.rd
-            .compute_list_set_push_constant(cl, &pc_bytes, pc_bytes.len() as u32);
-        self.rd.compute_list_dispatch(cl, groups, 1, 1);
+        if self.cell_count > 0 {
+            let total = self.cell_count * self.count_per_cell;
+            let groups = total.div_ceil(64);
+            self.rd
+                .compute_list_bind_compute_pipeline(cl, self.cull_pipeline);
+            self.rd.compute_list_bind_uniform_set(cl, self.cull_set, 0);
+            self.rd
+                .compute_list_set_push_constant(cl, &pc_bytes, pc_bytes.len() as u32);
+            self.rd.compute_list_dispatch(cl, groups, 1, 1);
+        }
         self.rd
             .compute_list_bind_compute_pipeline(cl, self.resolve_pipeline);
         self.rd
@@ -811,8 +928,8 @@ impl BladeCompute {
         if bytes.len() < 8 {
             return (0, 0);
         }
-        let near = u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]).min(self.cap_near);
-        let far = u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]).min(self.cap_far);
+        let near = u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]);
+        let far = u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]);
         (near, far)
     }
 }
@@ -827,7 +944,7 @@ impl CardCompute {
         if bytes.len() < 4 {
             return 0;
         }
-        u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]).min(self.cap)
+        u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]])
     }
 }
 
