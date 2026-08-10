@@ -161,6 +161,9 @@ player_path = NodePath("../Player")
 [node name="PostFX" type="CanvasLayer" parent="."]
 layer = 100
 
+[node name="ImpactFX" type="QImpactFrame" parent="."]
+layer = 101
+
 [node name="AnimeFilter" type="ColorRect" parent="PostFX"]
 visible = false
 material = SubResource("ShaderMaterial_anime")
