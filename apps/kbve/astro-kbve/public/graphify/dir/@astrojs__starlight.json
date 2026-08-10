@@ -1,54 +1,62 @@
 {
 	"dir": "@astrojs/starlight",
-	"center": [-324.39, -1071.55],
-	"r": 77.57,
+	"center": [-671.4, -46.28],
+	"r": 77.97,
 	"files": [
 		{
 			"i": 0,
 			"label": "Footer.astro",
 			"path": "@astrojs/starlight/components/Footer.astro",
-			"x": -142.87,
-			"y": -1071.55,
+			"x": -493.53,
+			"y": -46.28,
 			"n": 1
 		},
 		{
 			"i": 1,
 			"label": "MarkdownContent.astro",
 			"path": "@astrojs/starlight/components/MarkdownContent.astro",
-			"x": -233.63,
-			"y": -914.35,
+			"x": -563.99,
+			"y": 100.04,
 			"n": 1
 		},
 		{
 			"i": 2,
-			"label": "PageSidebar.astro",
-			"path": "@astrojs/starlight/components/PageSidebar.astro",
-			"x": -415.15,
-			"y": -914.35,
+			"label": "MobileMenuFooter.astro",
+			"path": "@astrojs/starlight/components/MobileMenuFooter.astro",
+			"x": -722.31,
+			"y": 136.18,
 			"n": 1
 		},
 		{
 			"i": 3,
-			"label": "Sidebar.astro",
-			"path": "@astrojs/starlight/components/Sidebar.astro",
-			"x": -505.91,
-			"y": -1071.55,
+			"label": "PageSidebar.astro",
+			"path": "@astrojs/starlight/components/PageSidebar.astro",
+			"x": -849.28,
+			"y": 34.92,
 			"n": 1
 		},
 		{
 			"i": 4,
-			"label": "ThemeProvider.astro",
-			"path": "@astrojs/starlight/components/ThemeProvider.astro",
-			"x": -415.15,
-			"y": -1228.75,
+			"label": "Sidebar.astro",
+			"path": "@astrojs/starlight/components/Sidebar.astro",
+			"x": -849.28,
+			"y": -127.47,
 			"n": 1
 		},
 		{
 			"i": 5,
+			"label": "ThemeProvider.astro",
+			"path": "@astrojs/starlight/components/ThemeProvider.astro",
+			"x": -722.31,
+			"y": -228.73,
+			"n": 1
+		},
+		{
+			"i": 6,
 			"label": "props",
 			"path": "@astrojs/starlight/props",
-			"x": -233.63,
-			"y": -1228.75,
+			"x": -563.99,
+			"y": -192.59,
 			"n": 1
 		}
 	],
@@ -57,54 +65,63 @@
 			"i": 0,
 			"f": 0,
 			"label": "components/Footer.astro",
-			"x": -142.87,
-			"y": -1071.55,
-			"c": 58,
+			"x": -493.53,
+			"y": -46.28,
+			"c": 310,
 			"loc": ""
 		},
 		{
 			"i": 1,
 			"f": 1,
 			"label": "components/MarkdownContent.astro",
-			"x": -233.63,
-			"y": -914.35,
-			"c": 67,
+			"x": -563.99,
+			"y": 100.04,
+			"c": 3846,
 			"loc": ""
 		},
 		{
 			"i": 2,
 			"f": 2,
-			"label": "components/PageSidebar.astro",
-			"x": -415.15,
-			"y": -914.35,
-			"c": 549,
+			"label": "@astrojs/starlight/components/MobileMenuFooter.astro",
+			"x": -722.31,
+			"y": 136.18,
+			"c": 1549,
 			"loc": ""
 		},
 		{
 			"i": 3,
 			"f": 3,
-			"label": "components/Sidebar.astro",
-			"x": -505.91,
-			"y": -1071.55,
-			"c": 51,
+			"label": "components/PageSidebar.astro",
+			"x": -849.28,
+			"y": 34.92,
+			"c": 565,
 			"loc": ""
 		},
 		{
 			"i": 4,
 			"f": 4,
-			"label": "components/ThemeProvider.astro",
-			"x": -415.15,
-			"y": -1228.75,
-			"c": 3709,
+			"label": "components/Sidebar.astro",
+			"x": -849.28,
+			"y": -127.47,
+			"c": 20,
 			"loc": ""
 		},
 		{
 			"i": 5,
 			"f": 5,
+			"label": "components/ThemeProvider.astro",
+			"x": -722.31,
+			"y": -228.73,
+			"c": 3848,
+			"loc": ""
+		},
+		{
+			"i": 6,
+			"f": 6,
 			"label": "@astrojs/starlight/props",
-			"x": -233.63,
-			"y": -1228.75,
-			"c": 58,
+			"x": -563.99,
+			"y": -192.59,
+			"c": 310,
 			"loc": ""
 		}
 	],

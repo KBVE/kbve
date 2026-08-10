@@ -1,14 +1,14 @@
 {
 	"dir": "scripts/resolve-docker-digests.sh",
-	"center": [-299.87, -3000.0],
-	"r": 75.22,
+	"center": [-2324.22, 1931.56],
+	"r": 75.19,
 	"files": [
 		{
 			"i": 0,
 			"label": "resolve-docker-digests.sh",
 			"path": "scripts/resolve-docker-digests.sh",
-			"x": -299.87,
-			"y": -3000.0,
+			"x": -2324.22,
+			"y": 1931.56,
 			"n": 2
 		}
 	],
@@ -17,18 +17,18 @@
 			"i": 0,
 			"f": 0,
 			"label": "resolve-docker-digests.sh",
-			"x": -293.05,
-			"y": -3000.0,
-			"c": 4427,
+			"x": -2317.39,
+			"y": 1931.56,
+			"c": 4595,
 			"loc": "L1"
 		},
 		{
 			"i": 1,
 			"f": 0,
 			"label": "resolve-docker-digests.sh script",
-			"x": -308.6,
-			"y": -2992.01,
-			"c": 4427,
+			"x": -2332.94,
+			"y": 1939.55,
+			"c": 4595,
 			"loc": "L1"
 		}
 	],

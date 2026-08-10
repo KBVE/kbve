@@ -1,0 +1,28 @@
+{
+	"dir": "https:/",
+	"center": [-633.8, -454.01],
+	"r": 74.26,
+	"files": [
+		{
+			"i": 0,
+			"label": "+esm",
+			"path": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm",
+			"x": -633.8,
+			"y": -454.01,
+			"n": 1
+		}
+	],
+	"symbols": [
+		{
+			"i": 0,
+			"f": 0,
+			"label": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm",
+			"x": -633.8,
+			"y": -454.01,
+			"c": 20,
+			"loc": ""
+		}
+	],
+	"fileEdges": [],
+	"symbolEdges": []
+}
