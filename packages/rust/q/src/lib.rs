@@ -79,9 +79,3 @@ pub mod net;
 
 #[cfg(feature = "supabase-auth")]
 pub mod auth;
-
-#[cfg(feature = "nexus-defense")]
-pub mod nexus_defense;
-
-#[cfg(feature = "nexus-defense-server")]
-pub mod nexus_defense_server;
