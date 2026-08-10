@@ -55,6 +55,9 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _toggle() -> void:
 	_active = not _active
+	var grass := get_node_or_null("../GrassField")
+	if grass:
+		grass.set_debug_tint(_active)
 	if _active:
 		_prev_cam = get_viewport().get_camera_3d()
 		_cam.global_transform = _prev_cam.global_transform
