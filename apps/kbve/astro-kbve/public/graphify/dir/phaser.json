@@ -1,0 +1,28 @@
+{
+	"dir": "phaser",
+	"center": [-2810.31, 1179.84],
+	"r": 74.26,
+	"files": [
+		{
+			"i": 0,
+			"label": "phaser",
+			"path": "phaser",
+			"x": -2810.31,
+			"y": 1179.84,
+			"n": 1
+		}
+	],
+	"symbols": [
+		{
+			"i": 0,
+			"f": 0,
+			"label": "phaser",
+			"x": -2810.31,
+			"y": 1179.84,
+			"c": 12820,
+			"loc": ""
+		}
+	],
+	"fileEdges": [],
+	"symbolEdges": []
+}

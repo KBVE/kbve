@@ -1,14 +1,14 @@
 {
 	"dir": "gsap/ScrollTrigger",
-	"center": [-603.92, 639.11],
-	"r": 74.28,
+	"center": [379.96, 24.55],
+	"r": 74.26,
 	"files": [
 		{
 			"i": 0,
 			"label": "ScrollTrigger",
 			"path": "gsap/ScrollTrigger",
-			"x": -603.92,
-			"y": 639.11,
+			"x": 379.96,
+			"y": 24.55,
 			"n": 1
 		}
 	],
@@ -17,9 +17,9 @@
 			"i": 0,
 			"f": 0,
 			"label": "gsap/ScrollTrigger",
-			"x": -603.92,
-			"y": 639.11,
-			"c": 256,
+			"x": 379.96,
+			"y": 24.55,
+			"c": 225,
 			"loc": ""
 		}
 	],

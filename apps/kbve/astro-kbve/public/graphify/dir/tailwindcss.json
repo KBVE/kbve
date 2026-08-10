@@ -1,0 +1,28 @@
+{
+	"dir": "tailwindcss",
+	"center": [2391.44, 1763.31],
+	"r": 74.26,
+	"files": [
+		{
+			"i": 0,
+			"label": "tailwindcss",
+			"path": "tailwindcss",
+			"x": 2391.44,
+			"y": 1763.31,
+			"n": 1
+		}
+	],
+	"symbols": [
+		{
+			"i": 0,
+			"f": 0,
+			"label": "tailwindcss",
+			"x": 2391.44,
+			"y": 1763.31,
+			"c": 12824,
+			"loc": ""
+		}
+	],
+	"fileEdges": [],
+	"symbolEdges": []
+}
