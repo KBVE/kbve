@@ -1,7 +1,12 @@
-use godot::classes::rendering_device::{ShaderLanguage, ShaderStage, UniformType};
+use godot::classes::rendering_device::{
+    SamplerFilter, SamplerRepeatMode, ShaderLanguage, ShaderStage, UniformType,
+};
 use godot::classes::rendering_server::{MultimeshTransformFormat, ShadowCastingSetting};
-use godot::classes::{RdShaderSource, RdUniform, RenderingDevice, RenderingServer};
+use godot::classes::{RdSamplerState, RdShaderSource, RdUniform, RenderingDevice, RenderingServer};
 use godot::prelude::*;
+
+const OCCLUSION_START: f32 = 15.0;
+const OCCLUSION_MARGIN: f32 = 1.0;
 
 const CULL_GLSL: &str = r#"
 #version 450
@@ -11,6 +16,7 @@ layout(set = 0, binding = 1, std430) restrict readonly buffer Cells { vec4 data[
 layout(set = 0, binding = 2, std430) restrict writeonly buffer OutNear { float data[]; } out_near;
 layout(set = 0, binding = 3, std430) restrict writeonly buffer OutFar { float data[]; } out_far;
 layout(set = 0, binding = 4, std430) restrict buffer Counter { uint data[]; } counter;
+layout(set = 0, binding = 5) uniform sampler2D heightmap;
 layout(push_constant, std430) uniform Params {
     vec4 cam;
     vec4 p0;
@@ -19,10 +25,16 @@ layout(push_constant, std430) uniform Params {
     vec4 p3;
     vec4 fade;
     vec4 caps;
+    vec4 terra;
 } pc;
 
+float terrain_h(vec2 xz) {
+    vec2 uv = clamp((xz + pc.terra.x) / (pc.terra.x * 2.0), 0.001, 0.999);
+    return textureLod(heightmap, uv, 0.0).r;
+}
+
 bool outside(vec4 plane, vec3 pos) {
-    return dot(plane.xyz, pos) - plane.w > 2.0 + abs(plane.y) * 30.0;
+    return dot(plane.xyz, pos) - plane.w > 3.0;
 }
 
 void main() {
@@ -44,9 +56,22 @@ void main() {
     if (rank >= density) {
         return;
     }
-    vec3 pos = vec3(wx, pc.cam.y, wz);
+    float h = terrain_h(vec2(wx, wz));
+    if (h < pc.terra.y + 0.25) {
+        return;
+    }
+    vec3 pos = vec3(wx, h + 0.7, wz);
     if (outside(pc.p0, pos) || outside(pc.p1, pos) || outside(pc.p2, pos) || outside(pc.p3, pos)) {
         return;
+    }
+    if (d > pc.terra.z) {
+        vec3 tip = vec3(wx, h + 1.4, wz);
+        for (int i = 1; i <= 5; i++) {
+            vec3 p = mix(tip, pc.cam.xyz, float(i) / 6.0);
+            if (terrain_h(p.xz) > p.y + pc.terra.w) {
+                return;
+            }
+        }
     }
     bool near = d < pc.fade.z;
     uint slot = atomicAdd(counter.data[near ? 0u : 1u], 1u);
@@ -116,6 +141,10 @@ pub struct BladeCompute {
     cap_near: u32,
     cap_far: u32,
     zero_counter: PackedByteArray,
+    heightmap_tex: Rid,
+    sampler: Rid,
+    terrain_extent: f32,
+    water_level: f32,
 }
 
 fn compile(rd: &mut Gd<RenderingDevice>, src: &str) -> Option<Rid> {
@@ -156,8 +185,20 @@ impl BladeCompute {
         cell_capacity: u32,
         cap_near: u32,
         cap_far: u32,
+        heightmap_tex: Rid,
+        terrain_extent: f32,
+        water_level: f32,
     ) -> Option<Self> {
+        if !heightmap_tex.is_valid() {
+            return None;
+        }
         let mut rd = RenderingServer::singleton().get_rendering_device()?;
+        let mut sampler_state = RdSamplerState::new_gd();
+        sampler_state.set_min_filter(SamplerFilter::LINEAR);
+        sampler_state.set_mag_filter(SamplerFilter::LINEAR);
+        sampler_state.set_repeat_u(SamplerRepeatMode::CLAMP_TO_EDGE);
+        sampler_state.set_repeat_v(SamplerRepeatMode::CLAMP_TO_EDGE);
+        let sampler = rd.sampler_create(&sampler_state);
         let cull_shader = compile(&mut rd, CULL_GLSL)?;
         let resolve_shader = compile(&mut rd, RESOLVE_GLSL)?;
         let cull_pipeline = rd.compute_pipeline_create(cull_shader);
@@ -224,6 +265,10 @@ impl BladeCompute {
             cap_near,
             cap_far,
             zero_counter,
+            heightmap_tex,
+            sampler,
+            terrain_extent,
+            water_level,
         })
     }
 
@@ -240,19 +285,27 @@ impl BladeCompute {
         let far_buf = rs.multimesh_get_buffer_rd_rid(self.mm_far);
         let cmd_near = rs.multimesh_get_command_buffer_rd_rid(self.mm_near);
         let cmd_far = rs.multimesh_get_command_buffer_rd_rid(self.mm_far);
+        let hm_rd = rs.texture_get_rd_texture(self.heightmap_tex);
         if !near_buf.is_valid()
             || !far_buf.is_valid()
             || !cmd_near.is_valid()
             || !cmd_far.is_valid()
+            || !hm_rd.is_valid()
         {
             return false;
         }
+        let mut hm_uniform = RdUniform::new_gd();
+        hm_uniform.set_uniform_type(UniformType::SAMPLER_WITH_TEXTURE);
+        hm_uniform.set_binding(5);
+        hm_uniform.add_id(self.sampler);
+        hm_uniform.add_id(hm_rd);
         let cull_uniforms: Array<Gd<RdUniform>> = [
             storage_uniform(0, self.layouts_buf),
             storage_uniform(1, self.cells_buf),
             storage_uniform(2, near_buf),
             storage_uniform(3, far_buf),
             storage_uniform(4, self.counter_buf),
+            hm_uniform,
         ]
         .into_iter()
         .collect();
@@ -297,7 +350,7 @@ impl BladeCompute {
         }
         self.rd
             .buffer_update(self.counter_buf, 0, 8, &self.zero_counter);
-        let mut pc = [0.0f32; 28];
+        let mut pc = [0.0f32; 32];
         pc[0] = cam_pos.x;
         pc[1] = cam_pos.y;
         pc[2] = cam_pos.z;
@@ -315,6 +368,10 @@ impl BladeCompute {
         pc[23] = self.blade_count as f32;
         pc[24] = self.cap_near as f32;
         pc[25] = self.cap_far as f32;
+        pc[28] = self.terrain_extent;
+        pc[29] = self.water_level;
+        pc[30] = OCCLUSION_START;
+        pc[31] = OCCLUSION_MARGIN;
         let pc_bytes = PackedFloat32Array::from(&pc[..]).to_byte_array();
         let caps_bytes = PackedFloat32Array::from(&pc[24..28]).to_byte_array();
         let total = self.cell_count * self.blade_count;
@@ -353,6 +410,7 @@ impl BladeCompute {
             self.layouts_buf,
             self.cells_buf,
             self.counter_buf,
+            self.sampler,
             self.cull_pipeline,
             self.cull_shader,
             self.resolve_pipeline,

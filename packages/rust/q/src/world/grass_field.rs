@@ -485,6 +485,20 @@ impl QGrassField {
             Vector3::new(-extent, -40.0, -extent),
             Vector3::new(extent * 2.0, 120.0, extent * 2.0),
         );
+        let mat = self.grass_material.as_ref()?;
+        let heightmap = mat
+            .get_shader_parameter("heightmap")
+            .try_to::<Gd<godot::classes::Texture2D>>()
+            .ok()?
+            .get_rid();
+        let terrain_extent = mat
+            .get_shader_parameter("terrain_extent")
+            .try_to::<f32>()
+            .unwrap_or(self.world_half_extent);
+        let water_level = mat
+            .get_shader_parameter("water_level")
+            .try_to::<f32>()
+            .unwrap_or(-1.4);
         BladeCompute::new(
             scenario,
             world_aabb,
@@ -496,6 +510,9 @@ impl QGrassField {
             cell_capacity,
             cap_near,
             cap_far,
+            heightmap,
+            terrain_extent,
+            water_level,
         )
     }
 
