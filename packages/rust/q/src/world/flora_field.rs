@@ -106,11 +106,21 @@ impl INode3D for QFloraField {
         noise.set_frequency(Some(self.patch_frequency));
 
         let sample = |x: f32, z: f32| -> f32 {
-            let u = ((x + extent) / (extent * 2.0)).clamp(0.001, 0.999);
-            let v = ((z + extent) / (extent * 2.0)).clamp(0.001, 0.999);
-            let px = ((u * res as f32) as i32).clamp(0, res - 1);
-            let py = ((v * res as f32) as i32).clamp(0, res - 1);
-            heights[(py * res + px) as usize]
+            let fx =
+                (((x + extent) / (extent * 2.0)).clamp(0.001, 0.999) * res as f32 - 0.5).max(0.0);
+            let fz =
+                (((z + extent) / (extent * 2.0)).clamp(0.001, 0.999) * res as f32 - 0.5).max(0.0);
+            let x0 = (fx as i32).clamp(0, res - 2);
+            let z0 = (fz as i32).clamp(0, res - 2);
+            let tx = (fx - x0 as f32).clamp(0.0, 1.0);
+            let tz = (fz - z0 as f32).clamp(0.0, 1.0);
+            let h00 = heights[(z0 * res + x0) as usize];
+            let h10 = heights[(z0 * res + x0 + 1) as usize];
+            let h01 = heights[((z0 + 1) * res + x0) as usize];
+            let h11 = heights[((z0 + 1) * res + x0 + 1) as usize];
+            let a = h00 + (h10 - h00) * tx;
+            let b = h01 + (h11 - h01) * tx;
+            a + (b - a) * tz
         };
 
         let attempts = ((extent * 2.0) * (extent * 2.0) * self.density) as usize;

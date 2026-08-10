@@ -140,11 +140,21 @@ impl INode3D for QTreeField {
         self.extent = extent;
 
         let sample = |x: f32, z: f32| -> f32 {
-            let u = ((x + extent) / (extent * 2.0)).clamp(0.001, 0.999);
-            let v = ((z + extent) / (extent * 2.0)).clamp(0.001, 0.999);
-            let px = ((u * res as f32) as i32).clamp(0, res - 1);
-            let py = ((v * res as f32) as i32).clamp(0, res - 1);
-            heights[(py * res + px) as usize]
+            let fx =
+                (((x + extent) / (extent * 2.0)).clamp(0.001, 0.999) * res as f32 - 0.5).max(0.0);
+            let fz =
+                (((z + extent) / (extent * 2.0)).clamp(0.001, 0.999) * res as f32 - 0.5).max(0.0);
+            let x0 = (fx as i32).clamp(0, res - 2);
+            let z0 = (fz as i32).clamp(0, res - 2);
+            let tx = (fx - x0 as f32).clamp(0.0, 1.0);
+            let tz = (fz - z0 as f32).clamp(0.0, 1.0);
+            let h00 = heights[(z0 * res + x0) as usize];
+            let h10 = heights[(z0 * res + x0 + 1) as usize];
+            let h01 = heights[((z0 + 1) * res + x0) as usize];
+            let h11 = heights[((z0 + 1) * res + x0 + 1) as usize];
+            let a = h00 + (h10 - h00) * tx;
+            let b = h01 + (h11 - h01) * tx;
+            a + (b - a) * tz
         };
 
         let mut noise = FastNoiseLite::with_seed(self.tree_seed + 5);
@@ -184,7 +194,7 @@ impl INode3D for QTreeField {
                 let phase = randf(&mut state) * std::f32::consts::TAU;
                 let sp = &SPECIES[kind];
                 let scale = sp.height.0 + randf(&mut state) * (sp.height.1 - sp.height.0);
-                cand.extend_from_slice(&[x, h - 0.15, z, scale, rank, kind as f32, phase, 0.0]);
+                cand.extend_from_slice(&[x, h - 0.17, z, scale, rank, kind as f32, phase, 0.0]);
             }
         }
         if cand.is_empty() {
@@ -421,6 +431,19 @@ impl QTreeField {
         }
         out
     }
+
+    #[func]
+    fn get_tree_info(&self, max: i32) -> VarArray {
+        let mut out = VarArray::new();
+        for c in self.candidates.chunks_exact(8).take(max.max(0) as usize) {
+            let mut d = VarDictionary::new();
+            let _ = d.insert("pos", Vector3::new(c[0], c[1], c[2]));
+            let _ = d.insert("scale", c[3]);
+            let _ = d.insert("kind", c[5] as i32);
+            out.push(&d.to_variant());
+        }
+        out
+    }
 }
 
 impl QTreeField {
@@ -639,13 +662,15 @@ fn limb(
     len: f32,
     r0: f32,
     r1: f32,
+    taper_pow: f32,
+    curve: Vector3,
     sides: u32,
     depth: u32,
     sway: f32,
     crown: f32,
     state: &mut u32,
 ) {
-    let segs = if depth == 0 { 3 } else { 2 };
+    let segs = if depth == 0 { 4 } else { 2 };
     let col = Color::from_rgba(1.0, 1.0, 1.0, sway);
     let bend = if depth == 0 { 0.18 } else { 0.35 };
     let step = len / segs as f32;
@@ -657,7 +682,7 @@ fn limb(
         for _ in 0..segs {
             let (jt, jb) = frame(d);
             let jitter = (jt * (randf(state) - 0.5) + jb * (randf(state) - 0.5)) * step * bend;
-            d = (d * step + jitter + Vector3::UP * step * 0.06).normalized();
+            d = (d * step + jitter + Vector3::UP * step * 0.06 + curve * step * 0.5).normalized();
             p = p + d * step;
             nodes.push(p);
             segd.push(d);
@@ -666,10 +691,11 @@ fn limb(
     let (mut ft, _) = frame(segd[0]);
     let mut fb;
     let mut prev: Option<Vec<i32>> = None;
+    let mut first: Option<Vec<i32>> = None;
     let mut v = 0.0f32;
     for i in 0..=segs {
         let f = i as f32 / segs as f32;
-        let r = r0 + (r1 - r0) * f;
+        let r = r0 + (r1 - r0) * f.powf(taper_pow);
         let n = if i == 0 {
             segd[0]
         } else if i == segs {
@@ -683,12 +709,65 @@ fn limb(
         if let Some(pr) = prev.as_ref() {
             bark.bridge(pr, &ring);
         }
+        if i == 0 {
+            first = Some(ring.clone());
+        }
         prev = Some(ring);
         v += step;
     }
+    if let Some(pr) = prev.as_ref() {
+        let tipp = nodes[segs] + segd[segs - 1] * (r1 * 0.8);
+        let pts: Vec<Vector3> = pr.iter().map(|i| bark.verts[*i as usize]).collect();
+        for w in pts.windows(2) {
+            bark.tri(tipp, w[0], w[1], col);
+        }
+    }
+    if let Some(fr) = first.as_ref() {
+        let backp = nodes[0] - segd[0] * (r0 * 0.5);
+        let pts: Vec<Vector3> = fr.iter().map(|i| bark.verts[*i as usize]).collect();
+        for w in pts.windows(2) {
+            bark.tri(backp, w[1], w[0], col);
+        }
+    }
     let tip = nodes[segs];
-    if depth < 2 {
-        let n_children = if depth == 0 { 6 } else { 3 };
+    if depth == 0 {
+        let n_roots = 4 + (randf(state) * 3.0) as u32;
+        let raz0 = randf(state) * std::f32::consts::TAU;
+        for i in 0..n_roots {
+            let az = raz0
+                + std::f32::consts::TAU * i as f32 / n_roots as f32
+                + (randf(state) - 0.5) * 0.5;
+            let f = 0.12 + randf(state) * 0.11;
+            let ff = f * segs as f32;
+            let i0 = (ff as usize).min(segs - 1);
+            let bp = nodes[i0] + (nodes[i0 + 1] - nodes[i0]) * (ff - i0 as f32);
+            let pd = segd[i0];
+            let (t, b) = frame(pd);
+            let out = t * az.cos() + b * az.sin();
+            let rd = (out * 0.9 - Vector3::UP * (0.16 + randf(state) * 0.14)).normalized();
+            let r_at = r0 + (r1 - r0) * f.powf(taper_pow);
+            let rr = r_at * (0.5 + randf(state) * 0.18);
+            let reach = 0.2 + randf(state) * 0.14;
+            let (rt, rb) = frame(rd);
+            let mid = bp + rd * reach * 0.6;
+            let end = Vector3::new(
+                mid.x + rd.x * reach * 0.45,
+                (start.y - 0.04).min(mid.y - 0.03),
+                mid.z + rd.z * reach * 0.45,
+            );
+            let ring0 = bark.ring(bp, rt, rb, rr, 5, 0.0, col);
+            let ring1 = bark.ring(mid, rt, rb, rr * 0.5, 5, reach * 0.6, col);
+            let ring2 = bark.ring(end, rt, rb, rr * 0.16, 5, reach, col);
+            bark.bridge(&ring0, &ring1);
+            bark.bridge(&ring1, &ring2);
+        }
+    }
+    if depth < 3 {
+        let n_children = match depth {
+            0 => 6,
+            1 => 4,
+            _ => 2,
+        };
         let az0 = randf(state) * std::f32::consts::TAU;
         for c in 0..n_children {
             let leader = depth == 0 && c >= n_children - 2;
@@ -696,27 +775,38 @@ fn limb(
                 if leader {
                     1.0
                 } else {
-                    0.5 + 0.5 * (c as f32 / (n_children - 3).max(1) as f32)
+                    (0.58 + 0.42 * (c as f32 / (n_children - 3).max(1) as f32)).min(0.88)
                 }
             } else {
-                0.45 + 0.55 * (c as f32 / (n_children - 1).max(1) as f32)
+                (0.45 + 0.55 * (c as f32 / (n_children - 1).max(1) as f32)).min(0.88)
             };
-            let bp = start + (tip - start) * frac;
-            let (t, b) = frame(dir);
+            let f = (frac * segs as f32).clamp(0.0, segs as f32);
+            let i0 = (f as usize).min(segs - 1);
+            let tt = f - i0 as f32;
+            let mut bp = nodes[i0] + (nodes[i0 + 1] - nodes[i0]) * tt;
+            let pd = segd[i0];
+            if leader {
+                bp -= pd * (r1 * 0.9);
+            }
+            let (t, b) = frame(pd);
             let az = az0
                 + std::f32::consts::TAU * c as f32 / n_children as f32
                 + (randf(state) - 0.5) * 0.9;
             let out = t * az.cos() + b * az.sin();
-            let up_mix = if leader {
-                0.65 + randf(state) * 0.25
+            let cd = if leader {
+                (pd * 0.8 + out * 0.25 + Vector3::UP * (0.2 + randf(state) * 0.2)).normalized()
             } else if depth == 0 {
-                0.22 + randf(state) * 0.35
+                (pd * (0.55 + randf(state) * 0.2) + out * (0.45 + randf(state) * 0.2)).normalized()
             } else {
-                0.3 + randf(state) * 0.45
+                (pd * (0.45 + randf(state) * 0.2) + out * (0.55 + randf(state) * 0.25)).normalized()
             };
-            let cd = (out * (1.0 - up_mix) + Vector3::UP * up_mix + dir * 0.2).normalized();
+            let ccurve = if leader {
+                Vector3::ZERO
+            } else {
+                (out * (0.55 - depth as f32 * 0.1) - Vector3::UP * 0.07).normalized() * 0.5
+            };
             let cl = len * (0.55 + randf(state) * 0.25);
-            let cr0 = ((r0 + (r1 - r0) * frac) * 0.55).max(0.006);
+            let cr0 = ((r0 + (r1 - r0) * frac.powf(taper_pow)) * 0.55).max(0.006);
             let child_sway = (sway + 0.3).min(0.9);
             limb(
                 bark,
@@ -726,6 +816,8 @@ fn limb(
                 cl,
                 cr0,
                 (cr0 * 0.4).max(0.004),
+                1.0,
+                ccurve,
                 sides.saturating_sub(1).max(3),
                 depth + 1,
                 child_sway,
@@ -737,21 +829,29 @@ fn limb(
             leaf_cluster(
                 leaves,
                 tip,
-                19,
-                0.1 * crown,
-                0.04 * crown,
+                (16.0 * crown) as u32,
+                0.095 * crown,
+                0.035 * crown,
                 (sway + 0.3).min(0.9),
                 state,
             );
         }
     } else {
-        leaf_cluster(leaves, tip, 26, 0.13 * crown, 0.042 * crown, 0.9, state);
+        leaf_cluster(
+            leaves,
+            tip,
+            (30.0 * crown) as u32,
+            0.12 * crown,
+            0.036 * crown,
+            0.9,
+            state,
+        );
         leaf_cluster(
             leaves,
             start + (tip - start) * 0.55,
-            11,
-            0.085 * crown,
-            0.036 * crown,
+            (14.0 * crown) as u32,
+            0.08 * crown,
+            0.031 * crown,
             (sway + 0.2).min(0.9),
             state,
         );
@@ -763,78 +863,6 @@ fn build_skeleton_tree_mesh(seed: u32, crown: f32) -> Gd<ArrayMesh> {
     let mut leaves = MeshBuilder::new();
     let mut state = hash32(seed | 1);
 
-    let col = Color::from_rgba(1.0, 1.0, 1.0, 0.0);
-    let n_roots = 4 + (randf(&mut state) * 3.0) as u32;
-    let raz0 = randf(&mut state) * std::f32::consts::TAU;
-    let roots: Vec<(f32, f32, f32)> = (0..n_roots)
-        .map(|i| {
-            let az = raz0
-                + std::f32::consts::TAU * i as f32 / n_roots as f32
-                + (randf(&mut state) - 0.5) * 0.6;
-            let rr = 0.045 + randf(&mut state) * 0.014;
-            let reach = 0.13 + randf(&mut state) * 0.09;
-            (az, rr, reach)
-        })
-        .collect();
-
-    let lobed_ring = |bark: &mut MeshBuilder,
-                      y: f32,
-                      base_r: f32,
-                      lobe_amt: f32,
-                      roots: &[(f32, f32, f32)],
-                      v: f32|
-     -> Vec<i32> {
-        let sides = 14u32;
-        let mut out = Vec::with_capacity(sides as usize + 1);
-        for i in 0..=sides {
-            let a = std::f32::consts::TAU * i as f32 / sides as f32;
-            let mut r = base_r;
-            for (az, rr, _) in roots {
-                let mut da = (a - az).rem_euclid(std::f32::consts::TAU);
-                if da > std::f32::consts::PI {
-                    da = std::f32::consts::TAU - da;
-                }
-                r += lobe_amt * rr * (-da * da / 0.18).exp();
-            }
-            let dir = Vector3::new(a.cos(), 0.0, a.sin());
-            let base = bark.verts.len() as i32;
-            bark.verts.push(Vector3::new(dir.x * r, y, dir.z * r));
-            bark.normals.push(dir);
-            bark.colors.push(col);
-            bark.uvs
-                .push(Vector2::new(i as f32 / sides as f32 * 2.0, v * 6.0));
-            out.push(base);
-        }
-        out
-    };
-
-    let ground = lobed_ring(&mut bark, -0.02, 0.1, 2.4, &roots, 0.0);
-    let flare = lobed_ring(&mut bark, 0.05, 0.078, 1.1, &roots, 0.07);
-    let neck = lobed_ring(&mut bark, 0.13, 0.062, 0.25, &roots, 0.15);
-    bark.bridge(&flare, &ground);
-    bark.bridge(&neck, &flare);
-
-    for (az, rr, reach) in &roots {
-        let out = Vector3::new(az.cos(), 0.0, az.sin());
-        let lobe_r = 0.1 + 2.4 * rr * 0.85;
-        let start = out * (lobe_r - rr * 0.5) + Vector3::new(0.0, 0.015, 0.0);
-        let d0 = (out * 0.95 - Vector3::UP * 0.3).normalized();
-        let d1 = (out * 0.95 - Vector3::UP * 0.15).normalized();
-        let mid = start + d0 * *reach * 0.5;
-        let end = Vector3::new(
-            mid.x + d1.x * reach * 0.5,
-            -0.045,
-            mid.z + d1.z * reach * 0.5,
-        );
-        let (t0, b0) = frame(d0);
-        let (t1, b1) = frame(d1);
-        let ring0 = bark.ring(start, t0, b0, *rr, 5, 0.0, col);
-        let ring1 = bark.ring(mid, t1, b1, rr * 0.55, 5, reach * 0.5, col);
-        let ring2 = bark.ring(end, t1, b1, rr * 0.2, 5, *reach, col);
-        bark.bridge(&ring0, &ring1);
-        bark.bridge(&ring1, &ring2);
-    }
-
     let lean = Vector3::new(
         (randf(&mut state) - 0.5) * 0.2,
         1.0,
@@ -844,12 +872,14 @@ fn build_skeleton_tree_mesh(seed: u32, crown: f32) -> Gd<ArrayMesh> {
     limb(
         &mut bark,
         &mut leaves,
-        Vector3::new(0.0, 0.11, 0.0),
+        Vector3::new(0.0, -0.05, 0.0),
         lean,
-        0.38,
-        0.06,
-        0.03,
-        6,
+        0.68,
+        0.12,
+        0.028,
+        0.42,
+        Vector3::ZERO,
+        7,
         0,
         0.0,
         crown,
