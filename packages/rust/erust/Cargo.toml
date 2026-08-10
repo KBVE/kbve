@@ -18,7 +18,7 @@ tauri = []
 
 [dependencies]
 base64 = { workspace = true }
-egui = { version = "0.34.1", optional = true }
+egui = { version = "0.35.0", optional = true }
 eframe = { version = "0.34.1", default-features = false, optional = true, features = [
     "accesskit",     # Make egui compatible with screen readers. NOTE: adds a lot of dependencies.
     "default_fonts", # Embed the default egui fonts.
