@@ -16,7 +16,7 @@ spec:
     project: default
     sources:
         - repoURL: https://valkey-io.github.io/valkey-helm/
-          targetRevision: 0.9.4
+          targetRevision: 0.11.0
           chart: valkey
           helm:
               releaseName: valkey
