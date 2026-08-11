@@ -88,6 +88,9 @@ pub struct QStoneField {
     #[init(val = 24.0)]
     max_tilt_degrees: f32,
     #[export]
+    #[init(val = 0.6)]
+    seat_bias: f32,
+    #[export]
     #[init(val = 45.0)]
     lod1_distance: f32,
     #[export]
@@ -381,6 +384,17 @@ impl QStoneField {
     }
 
     #[func]
+    fn preview_lod(&self, variant: i64, lod: i64) -> Option<Gd<ArrayMesh>> {
+        let species = (variant.max(0) as usize) % SPECIES.len();
+        let s = hash32((self.stone_seed as u32).wrapping_add(variant.max(0) as u32 * 7919));
+        Some(build_stone_lod(
+            s,
+            species,
+            (lod.max(0) as usize).min(LOD_LEVELS - 1),
+        ))
+    }
+
+    #[func]
     fn get_stone_stats(&self) -> VarDictionary {
         let mut d = VarDictionary::new();
         let total = self.core.entries().len() as i64;
@@ -454,7 +468,8 @@ impl QStoneField {
         // Drop the origin until that tilted plane is under the ground at every
         // sample in the footprint, then bite in by the burial fraction.
         let uy = up.y.max(0.2);
-        let mut seat = centre;
+        let mut sunk = centre;
+        let mut rest = centre;
         let mut lowest = centre;
         for ring in 1..=3 {
             let rr = e * ring as f32 / 3.0;
@@ -464,9 +479,19 @@ impl QStoneField {
                 let g = sample(x + dx, z + dz);
                 lowest = lowest.min(g);
                 let plane_drop = (up.x * dx + up.z * dz) / uy;
-                seat = seat.min(g + plane_drop);
+                sunk = sunk.min(g + plane_drop);
+                rest = rest.max(g + plane_drop);
             }
         }
+        // `sunk` clears the ground everywhere under the footprint; `rest` is
+        // where a rigid base would first touch down. Neither alone is right:
+        // sunk swallows a stone on a convex crest, rest leaves it perched over
+        // a hollow. Bias between them, then bite in.
+        let seat = sunk + (rest - sunk) * self.seat_bias.clamp(0.0, 1.0);
+        // Whatever the bias picks, never leave a lip worth more than a few
+        // percent of the stone's own height: that is the gap you can see under
+        // the downhill edge.
+        let seat = seat.min(sunk + stone_height * 0.05);
         // Burial is measured against the stone's own height, not its width, so
         // a flat slab doesn't vanish while a tall boulder barely dents the soil.
         // The floor bounds how deep a stone sinks, but it tracks the lowest
@@ -489,8 +514,13 @@ impl QStoneField {
         if right.length_squared() < 1e-6 {
             right = Vector3::RIGHT.cross(up);
         }
-        let right = right.normalized() * e.scale;
-        let fwd = up.cross(right.normalized()).normalized() * e.scale;
+        // Basis columns are X, Y, Z, so a right-handed frame needs X cross Y == Z.
+        // Building Z as up cross X gives the negative of that: the basis mirrors,
+        // every instance rasterises with reversed winding, and back-face culling
+        // eats the faces it should be keeping.
+        let right = right.normalized();
+        let fwd = right.cross(up).normalized() * e.scale;
+        let right = right * e.scale;
         let up = up * e.scale;
         [
             right.x, up.x, fwd.x, e.pos.x, right.y, up.y, fwd.y, e.pos.y, right.z, up.z, fwd.z,
