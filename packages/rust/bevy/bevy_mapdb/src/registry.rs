@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use bevy::prelude::*;
 use prost::Message;
 
 use crate::proto::map;
@@ -25,7 +24,8 @@ impl ProtoMapId {
 /// Loaded once at startup from a proto-encoded `MapRegistry` binary or
 /// built programmatically. Provides fast lookups for zones, regions,
 /// and world object definitions.
-#[derive(Resource, Default)]
+#[derive(Default)]
+#[cfg_attr(feature = "bevy", derive(bevy::prelude::Resource))]
 pub struct MapDb {
     zones_by_id: HashMap<ProtoMapId, map::Zone>,
     zones_by_ref: HashMap<String, ProtoMapId>,

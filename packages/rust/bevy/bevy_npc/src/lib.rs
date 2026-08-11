@@ -39,6 +39,7 @@ pub use proto::npc::*;
 // Re-export registry types
 pub use registry::{NpcDb, ProtoNpcId};
 
+#[cfg(feature = "bevy")]
 use bevy::prelude::*;
 
 /// Bevy plugin that registers the [`NpcDb`] resource.
@@ -46,8 +47,10 @@ use bevy::prelude::*;
 /// The resource is initialized empty. Games should populate it during
 /// startup by calling [`NpcDb::from_json`], [`NpcDb::from_bytes`],
 /// or [`NpcDb::from_proto`] and inserting it via [`Commands::insert_resource`].
+#[cfg(feature = "bevy")]
 pub struct BevyNpcPlugin;
 
+#[cfg(feature = "bevy")]
 impl Plugin for BevyNpcPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<NpcDb>();

@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use bevy::prelude::*;
 use prost::Message;
 
 use crate::proto::item;
@@ -27,7 +26,8 @@ impl ProtoItemId {
 /// Loaded once at startup from a proto-encoded `ItemRegistry` binary or
 /// built programmatically. Provides fast lookups by [`ProtoItemId`], ref,
 /// ULID, or type-flag bitmask.
-#[derive(Resource, Default)]
+#[derive(Default)]
+#[cfg_attr(feature = "bevy", derive(bevy::prelude::Resource))]
 pub struct ItemDb {
     by_id: HashMap<ProtoItemId, item::Item>,
     by_ref: HashMap<String, ProtoItemId>,

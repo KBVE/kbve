@@ -34,6 +34,7 @@ pub use proto::map;
 pub use proto::map::*;
 pub use registry::{MapDb, ProtoMapId};
 
+#[cfg(feature = "bevy")]
 use bevy::prelude::*;
 
 /// Bevy plugin that registers the [`MapDb`] resource.
@@ -41,8 +42,10 @@ use bevy::prelude::*;
 /// The resource is initialized empty. Games should populate it during
 /// startup by calling [`MapDb::from_json`], [`MapDb::from_bytes`],
 /// or [`MapDb::from_proto`] and inserting it via [`Commands::insert_resource`].
+#[cfg(feature = "bevy")]
 pub struct BevyMapDbPlugin;
 
+#[cfg(feature = "bevy")]
 impl Plugin for BevyMapDbPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<MapDb>();
