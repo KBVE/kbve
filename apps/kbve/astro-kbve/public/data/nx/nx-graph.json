@@ -2348,6 +2348,36 @@
 							"configurations": {},
 							"parallelism": true
 						},
+						"dev": {
+							"executor": "nx:run-commands",
+							"dependsOn": [
+								{
+									"projects": ["q"],
+									"target": "deploy-mac"
+								}
+							],
+							"options": {
+								"command": "godot .",
+								"cwd": "apps/friendslop/godot-friendslop"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"dev:editor": {
+							"executor": "nx:run-commands",
+							"dependsOn": [
+								{
+									"projects": ["q"],
+									"target": "deploy-mac"
+								}
+							],
+							"options": {
+								"command": "godot --editor .",
+								"cwd": "apps/friendslop/godot-friendslop"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
 						"export:windows": {
 							"executor": "nx:run-commands",
 							"outputs": [
@@ -15665,7 +15695,23 @@
 								"commands": [
 									"cargo +nightly build -Z build-std=std,panic_abort  -Z unstable-options --target aarch64-apple-darwin --artifact-dir dist/macos --release",
 									"mkdir -p release/addons/q/macos",
-									"cp dist/macos/*.dylib release/addons/q/macos/"
+									"cp dist/macos/*.dylib release/addons/q/macos/",
+									"bash scripts/sign-dylib.sh release/addons/q/macos/libq.dylib"
+								],
+								"parallel": false
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"deploy-mac": {
+							"executor": "nx:run-commands",
+							"dependsOn": ["build-mac"],
+							"options": {
+								"cwd": "packages/rust/q",
+								"commands": [
+									"mkdir -p ../../../apps/friendslop/godot-friendslop/addons/q/macos",
+									"cp dist/macos/libq.dylib ../../../apps/friendslop/godot-friendslop/addons/q/macos/libq.dylib",
+									"bash scripts/sign-dylib.sh ../../../apps/friendslop/godot-friendslop/addons/q/macos/libq.dylib"
 								],
 								"parallel": false
 							},
@@ -18268,18 +18314,7 @@
 					"type": "static"
 				}
 			],
-			"q": [
-				{
-					"source": "q",
-					"target": "bevy_mapdb",
-					"type": "static"
-				},
-				{
-					"source": "q",
-					"target": "bevy_npc",
-					"type": "static"
-				}
-			],
+			"q": [],
 			"reel": [],
 			"rn": [
 				{
