@@ -7,6 +7,12 @@ const MOUSE_SENSITIVITY := 0.003
 @onready var pivot: Node3D = $Pivot
 
 
+func _ready() -> void:
+	var pitch := OS.get_environment("Q_PITCH")
+	if pitch != "":
+		pivot.rotation.x = clampf(float(pitch), -1.5, 1.5)
+
+
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE

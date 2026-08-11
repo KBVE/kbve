@@ -68,6 +68,9 @@ var _moon_shadow_active := false
 
 
 func _ready() -> void:
+	var forced_hour := OS.get_environment("Q_HOUR")
+	if forced_hour != "":
+		start_hour = clampf(float(forced_hour), 0.0, HOURS_PER_DAY)
 	hour = start_hour
 	_rebuild_constants()
 	_configure_lights()
