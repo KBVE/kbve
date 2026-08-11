@@ -40,7 +40,7 @@ struct Q;
 #[cfg(feature = "client")]
 #[gdextension]
 unsafe impl ExtensionLibrary for Q {
-    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
+    #[cfg(not(target_family = "wasm"))]
     fn on_stage_init(stage: godot::init::InitStage) {
         use crate::threads::runtime::RuntimeManager;
         if stage == godot::init::InitStage::Scene {
@@ -49,7 +49,7 @@ unsafe impl ExtensionLibrary for Q {
         }
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
+    #[cfg(not(target_family = "wasm"))]
     fn on_stage_deinit(stage: godot::init::InitStage) {
         use crate::threads::runtime::RuntimeManager;
         if stage == godot::init::InitStage::Scene {

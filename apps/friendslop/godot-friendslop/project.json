@@ -77,6 +77,31 @@
 			},
 			"outputs": ["{workspaceRoot}/dist/apps/friendslop/linux"]
 		},
+		"export:ios": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["q:deploy-ios"],
+			"options": {
+				"command": "bash scripts/ios.sh export",
+				"cwd": "apps/friendslop/godot-friendslop"
+			},
+			"outputs": ["{workspaceRoot}/dist/apps/friendslop/ios"]
+		},
+		"install:ios": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["export:ios"],
+			"options": {
+				"command": "bash scripts/ios.sh install",
+				"cwd": "apps/friendslop/godot-friendslop"
+			}
+		},
+		"run:ios": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["install:ios"],
+			"options": {
+				"command": "bash scripts/ios.sh run",
+				"cwd": "apps/friendslop/godot-friendslop"
+			}
+		},
 		"export": {
 			"executor": "nx:run-commands",
 			"options": {

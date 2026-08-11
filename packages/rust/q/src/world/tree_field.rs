@@ -162,6 +162,12 @@ pub struct QTreeField {
     #[export]
     #[init(val = 110.0)]
     mesh_range: f32,
+    /// Draw distance for the cheap far tree LOD. Zero keeps the historic
+    /// behaviour of covering the whole map, which on a large terrain means
+    /// every tree is drawn every frame regardless of how far away it is.
+    #[export]
+    #[init(val = 0.0)]
+    far_range: f32,
     #[export]
     #[init(val = 0.08)]
     growth_per_day: f32,
@@ -173,6 +179,9 @@ pub struct QTreeField {
     attempts: i32,
     candidates: Vec<f32>,
     meshes: Vec<Gd<ArrayMesh>>,
+    /// Per-entry triangle count, parallel to `meshes`. Cached at build time so
+    /// the stats hook never walks the vertex arrays on a live frame.
+    mesh_tris: Vec<u64>,
     leaf_mats: Vec<Gd<ShaderMaterial>>,
     bark_mats: Vec<Gd<ShaderMaterial>>,
     player: Option<Gd<Node3D>>,
@@ -382,7 +391,11 @@ impl QTreeField {
                 Rid::Invalid,
                 &cands,
                 count,
-                extent * 8.0,
+                if self.far_range > 0.0 {
+                    self.far_range
+                } else {
+                    extent * 8.0
+                },
                 band_lo,
                 (band_lo, band_hi, false),
                 false,
@@ -394,6 +407,8 @@ impl QTreeField {
                 (Some(n), Some(f)) => {
                     self.computes.push(n);
                     self.computes.push(f);
+                    self.mesh_tris.push((near.get_faces().len() / 3) as u64);
+                    self.mesh_tris.push((far.get_faces().len() / 3) as u64);
                     self.meshes.push(near);
                     self.meshes.push(far);
                     if let Some(lm) = leaf_mat {
@@ -517,18 +532,25 @@ impl QTreeField {
         let mut d = VarDictionary::new();
         let mut near: i64 = 0;
         let mut far: i64 = 0;
+        let mut near_tris: i64 = 0;
+        let mut far_tris: i64 = 0;
         for (i, fc) in self.computes.iter_mut().enumerate() {
             let n = fc.survivor_count().min(fc.cap()) as i64;
+            let t = n * self.mesh_tris.get(i).copied().unwrap_or(0) as i64;
             if i % 2 == 0 {
                 near += n;
+                near_tris += t;
             } else {
                 far += n;
+                far_tris += t;
             }
         }
         let _ = d.insert("active", !self.computes.is_empty());
         let _ = d.insert("instances", near + far);
         let _ = d.insert("near", near);
         let _ = d.insert("far", far);
+        let _ = d.insert("near_tris", near_tris);
+        let _ = d.insert("far_tris", far_tris);
         let _ = d.insert("species", (self.computes.len() / 2) as i64);
         let _ = d.insert("candidates", (self.candidates.len() / 8) as i64);
         d

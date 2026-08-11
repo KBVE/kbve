@@ -57,6 +57,32 @@
 			}
 		},
 
+		"build-ios": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "packages/rust/q",
+				"commands": [
+					"cargo build --target aarch64-apple-ios --release"
+				],
+				"parallel": false
+			}
+		},
+
+		"deploy-ios": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["build-ios"],
+			"options": {
+				"cwd": "packages/rust/q",
+				"commands": [
+					"mkdir -p ../../../apps/friendslop/godot-friendslop/addons/q/ios/libq.framework",
+					"cp ../../../dist/target/aarch64-apple-ios/release/libq.dylib ../../../apps/friendslop/godot-friendslop/addons/q/ios/libq.framework/libq",
+					"install_name_tool -id @rpath/libq.framework/libq ../../../apps/friendslop/godot-friendslop/addons/q/ios/libq.framework/libq",
+					"codesign --force --sign - --timestamp=none ../../../apps/friendslop/godot-friendslop/addons/q/ios/libq.framework"
+				],
+				"parallel": false
+			}
+		},
+
 		"deploy-mac": {
 			"executor": "nx:run-commands",
 			"dependsOn": ["build-mac"],

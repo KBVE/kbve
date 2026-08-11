@@ -1,6 +1,7 @@
-[gd_scene load_steps=33 format=3]
+[gd_scene load_steps=34 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://src/ui/touch_controls.gd" id="28_touch"]
 [ext_resource type="Material" path="res://assets/biomes/grassland/grass/ground.tres" id="3_ground"]
 [ext_resource type="Material" path="res://assets/biomes/grassland/grass/grass.tres" id="4_grassmat"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="5_player"]
@@ -174,6 +175,18 @@ player_path = NodePath("../Player")
 [node name="FrameWatch" type="Node" parent="."]
 script = ExtResource("27_watch")
 player_path = NodePath("../Player")
+
+[node name="TouchControls" type="CanvasLayer" parent="."]
+layer = 50
+
+[node name="Overlay" type="Control" parent="TouchControls"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("28_touch")
 
 [node name="PostFX" type="CanvasLayer" parent="."]
 layer = 100
