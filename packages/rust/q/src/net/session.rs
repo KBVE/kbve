@@ -561,6 +561,44 @@ mod tests {
         );
     }
 
+    fn snapshot_of(n: u32) -> SimSnapshot {
+        SimSnapshot {
+            tick: 100_000,
+            sim_time: 1666.6,
+            bodies: (0..n)
+                .map(|i| crate::rapier::sim3d::BodySnapshot {
+                    id: BodyId(i),
+                    iso: Iso::at(i as f32, 1.5, -(i as f32)),
+                    linvel: [1.0, -2.0, 3.0],
+                    grounded: i % 2 == 0,
+                })
+                .collect(),
+        }
+    }
+
+    /// Snapshots ride an unreliable datagram, and Steam fragments anything past
+    /// roughly an MTU. Fragmentation is not fatal but it amplifies loss — one
+    /// missing fragment discards the whole snapshot — so the per-body cost is
+    /// worth pinning. At ~42 bytes each, about 28 bodies fit in a single ~1200
+    /// byte datagram; beyond that, cull what is replicated rather than letting
+    /// the snapshot grow.
+    #[test]
+    fn snapshot_wire_cost_per_body_stays_bounded() {
+        let small = proto::encode(&SessionMsg::Snapshot(snapshot_of(8)))
+            .unwrap()
+            .len();
+        let large = proto::encode(&SessionMsg::Snapshot(snapshot_of(72)))
+            .unwrap()
+            .len();
+        let per_body = (large - small) / 64;
+
+        assert!(
+            per_body <= 48,
+            "per-body wire cost grew to {per_body} bytes; \
+             re-check the datagram budget before accepting this"
+        );
+    }
+
     #[test]
     fn a_departing_player_leaves_the_world() {
         let (mut host, mut client) = host_and_client();

@@ -360,20 +360,31 @@ impl QTerrain {
         // Approach ramps: follow the bank down from each deck end so the road
         // meets the deck on a walkable slope instead of a step.
         let ramp_steps = 6;
+        let ramp_run = 5.5;
+        // (offset along right, world y) for each ramp's start and end, kept so
+        // the collider can be pitched to match the visual slope.
+        let mut ramps: Vec<(f32, f32, f32, f32)> = Vec::new();
         for side in [-1.0f32, 1.0] {
-            let start = deck_half * side;
-            let mut prev = center + right * start;
+            let x_start = deck_half * side;
+            let y_start = deck_y - 0.11;
+            let mut prev = center + right * x_start;
+            let mut prev_x = x_start;
+            let mut prev_y = y_start;
             for i in 1..=ramp_steps {
                 let t = i as f32 / ramp_steps as f32;
-                let x = start + right.x.signum() * 0.0 + side * (t * 5.5);
+                let x = x_start + side * (t * ramp_run);
                 let p = center + right * x;
                 let ground = hgen.height(p.x, p.z) + 0.06;
                 // Ease onto the terrain rather than meeting it at a hard angle.
-                let y = deck_y - 0.11 + (ground - (deck_y - 0.11)) * (t * t * (3.0 - 2.0 * t));
-                let next = Vector3::new(p.x, y.min(deck_y - 0.02), p.z);
+                let y =
+                    (y_start + (ground - y_start) * (t * t * (3.0 - 2.0 * t))).min(deck_y - 0.02);
+                let next = Vector3::new(p.x, y, p.z);
                 mb.slab(prev, next, fwd, half_w, 0.1, uvs);
                 prev = next;
+                prev_x = x;
+                prev_y = y;
             }
+            ramps.push((x_start, y_start, prev_x, prev_y));
         }
 
         let Some(mesh) = mb.build() else {
@@ -394,6 +405,32 @@ impl QTerrain {
         let mut body = StaticBody3D::new_alloc();
         body.set_name("BridgeBody");
         body.add_child(&col);
+
+        // One pitched box per ramp. Body local axes are (right, up, fwd), so a
+        // rotation about local Z tilts the slab to match the visual slope.
+        for (x0, y0, x1, y1) in ramps {
+            let dx = x1 - x0;
+            let dy = y1 - y0;
+            let len = (dx * dx + dy * dy).sqrt();
+            if len < 0.05 {
+                continue;
+            }
+            let mut ramp_shape = BoxShape3D::new_gd();
+            ramp_shape.set_size(Vector3::new(len, 0.2, half_w * 2.0));
+            let mut ramp_col = CollisionShape3D::new_alloc();
+            ramp_col.set_shape(&ramp_shape);
+            ramp_col.set_position(Vector3::new(
+                (x0 + x1) * 0.5,
+                (y0 + y1) * 0.5 - deck_y - 0.1,
+                0.0,
+            ));
+            ramp_col.set_basis(Basis::from_axis_angle(
+                Vector3::new(0.0, 0.0, 1.0),
+                dy.atan2(dx),
+            ));
+            body.add_child(&ramp_col);
+        }
+
         body.set_position(center);
         let basis = Basis::from_cols(right, Vector3::UP, fwd);
         body.set_basis(basis);
