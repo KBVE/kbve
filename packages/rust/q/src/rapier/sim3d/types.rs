@@ -83,6 +83,68 @@ impl Default for BodyDesc {
     }
 }
 
+/// A stair/ledge the controller is allowed to step onto instead of being
+/// stopped by it. `min_width` guards against stepping onto a lip too narrow to
+/// stand on, which otherwise reads as the character snagging on scenery.
+#[derive(Clone, Copy, Debug)]
+pub struct AutostepDesc {
+    pub max_height: f32,
+    pub min_width: f32,
+    /// Whether dynamic bodies count as steppable. Usually false, or players
+    /// climb the debris they just knocked over.
+    pub include_dynamic: bool,
+}
+
+impl Default for AutostepDesc {
+    fn default() -> Self {
+        Self {
+            max_height: 0.4,
+            min_width: 0.2,
+            include_dynamic: false,
+        }
+    }
+}
+
+/// A character proxy — the rapier equivalent of a `CharacterBody3D`.
+///
+/// Movement is driven by [`SimCommand::MoveCharacter`], not by forces: the sim
+/// resolves the requested motion against the world (sliding, stepping,
+/// ground-snapping) rather than integrating it. Gravity is **not** applied for
+/// you — fold it into the requested translation exactly as you would manage
+/// `velocity.y` before `move_and_slide`.
+#[derive(Clone, Copy, Debug)]
+pub struct CharacterDesc {
+    pub shape: ShapeDesc,
+    pub iso: Iso,
+    /// Skin width kept between the character and geometry. Too small and the
+    /// character jitters against surfaces; too large and it floats.
+    pub offset: f32,
+    pub max_slope_climb_deg: f32,
+    /// Slopes steeper than this make the character slide back down.
+    pub min_slope_slide_deg: f32,
+    pub autostep: Option<AutostepDesc>,
+    /// Distance to search downward for ground when walking off a lip, so the
+    /// character follows terrain instead of launching off every bump.
+    pub snap_to_ground: Option<f32>,
+}
+
+impl Default for CharacterDesc {
+    fn default() -> Self {
+        Self {
+            shape: ShapeDesc::Capsule {
+                half_height: 0.6,
+                radius: 0.35,
+            },
+            iso: Iso::IDENTITY,
+            offset: 0.01,
+            max_slope_climb_deg: 45.0,
+            min_slope_slide_deg: 30.0,
+            autostep: Some(AutostepDesc::default()),
+            snap_to_ground: Some(0.4),
+        }
+    }
+}
+
 /// A square, origin-centred heightfield spanning `-extent..=extent` on both X
 /// and Z. Row-major, `resolution * resolution` samples — the exact layout
 /// `QTerrain::cpu_heights` already hands out, so no repack on the app side.
@@ -117,6 +179,17 @@ pub enum SimCommand {
         impulse: [f32; 3],
     },
     SetGravity([f32; 3]),
+    SpawnCharacter {
+        id: BodyId,
+        desc: CharacterDesc,
+    },
+    /// Requested motion for this tick, in world units — gravity included by the
+    /// caller. Repeated sends before a step accumulate rather than overwrite,
+    /// so a frame that outruns the sim adds its intent instead of dropping it.
+    MoveCharacter {
+        id: BodyId,
+        translation: [f32; 3],
+    },
 }
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -124,6 +197,9 @@ pub struct BodySnapshot {
     pub id: BodyId,
     pub iso: Iso,
     pub linvel: [f32; 3],
+    /// Characters only — always false for ordinary bodies, which have no
+    /// meaningful notion of standing on something.
+    pub grounded: bool,
 }
 
 /// One published sim state. Snapshots are latest-wins: a slow app frame drops
