@@ -50,7 +50,22 @@
 				"commands": [
 					"cargo +nightly build -Z build-std=std,panic_abort  -Z unstable-options --target aarch64-apple-darwin --artifact-dir dist/macos --release",
 					"mkdir -p release/addons/q/macos",
-					"cp dist/macos/*.dylib release/addons/q/macos/"
+					"cp dist/macos/*.dylib release/addons/q/macos/",
+					"bash scripts/sign-dylib.sh release/addons/q/macos/libq.dylib"
+				],
+				"parallel": false
+			}
+		},
+
+		"deploy-mac": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["build-mac"],
+			"options": {
+				"cwd": "packages/rust/q",
+				"commands": [
+					"mkdir -p ../../../apps/friendslop/godot-friendslop/addons/q/macos",
+					"cp dist/macos/libq.dylib ../../../apps/friendslop/godot-friendslop/addons/q/macos/libq.dylib",
+					"bash scripts/sign-dylib.sh ../../../apps/friendslop/godot-friendslop/addons/q/macos/libq.dylib"
 				],
 				"parallel": false
 			}

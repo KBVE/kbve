@@ -40,6 +40,8 @@ struct MmSlot {
 pub struct QStoneField {
     base: Base<Node3D>,
 
+    init_done: bool,
+
     #[export]
     terrain_path: NodePath,
     #[export]
@@ -79,12 +81,9 @@ pub struct QStoneField {
     dirty: bool,
 }
 
-#[godot_api]
-impl INode3D for QStoneField {
-    fn ready(&mut self) {
-        if Engine::singleton().is_editor_hint() || super::q_hidden("stones") {
-            return;
-        }
+impl QStoneField {
+    fn late_init(&mut self) -> bool {
+        let _t = super::ReadyTimer::start("stones");
         let terrain = if self.terrain_path.is_empty() {
             self.base().get_node_or_null("../Terrain")
         } else {
@@ -93,13 +92,12 @@ impl INode3D for QStoneField {
         .and_then(|n| n.try_cast::<QTerrain>().ok());
         let Some(terrain) = terrain else {
             godot_error!("[QStoneField] no QTerrain found; stones disabled");
-            return;
+            return true;
         };
         let (heights, res, extent, water) = {
             let t = terrain.bind();
             let Some((h, r)) = t.cpu_heights() else {
-                godot_error!("[QStoneField] terrain has no CPU heights; stones disabled");
-                return;
+                return false;
             };
             (h.to_vec(), r, t.world_extent(), t.water())
         };
@@ -215,7 +213,7 @@ impl INode3D for QStoneField {
         }
         if self.core.entries().is_empty() {
             godot_error!("[QStoneField] no stone candidates survived placement");
-            return;
+            return true;
         }
 
         if self.clearance_radius > 0.0 {
@@ -231,10 +229,20 @@ impl INode3D for QStoneField {
         self.build_multimeshes();
         self.build_colliders();
         self.dirty = true;
+        true
     }
+}
 
+#[godot_api]
+impl INode3D for QStoneField {
     fn process(&mut self, _delta: f64) {
         if Engine::singleton().is_editor_hint() {
+            return;
+        }
+        if !self.init_done {
+            if super::q_hidden("stones") || self.late_init() {
+                self.init_done = true;
+            }
             return;
         }
         if self.dirty {

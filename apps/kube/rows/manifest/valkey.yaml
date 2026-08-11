@@ -22,7 +22,7 @@ spec:
         spec:
             containers:
                 - name: valkey
-                  image: valkey/valkey:8-alpine
+                  image: valkey/valkey:9.1.1-alpine
                   # Intentional volatile cache (routing/affinity/occupancy only — no durable state).
                   # `--appendonly yes` on an emptyDir was a no-op (the AOF is wiped on every
                   # reschedule), so it's dropped. maxmemory + allkeys-lru cap usage below the 256Mi

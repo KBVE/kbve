@@ -13,3 +13,17 @@ pub(crate) fn q_hidden(name: &str) -> bool {
         .map(|v| v.split(',').any(|s| s.trim() == name))
         .unwrap_or(false)
 }
+
+pub(crate) struct ReadyTimer(&'static str, std::time::Instant);
+
+impl ReadyTimer {
+    pub(crate) fn start(name: &'static str) -> Self {
+        Self(name, std::time::Instant::now())
+    }
+}
+
+impl Drop for ReadyTimer {
+    fn drop(&mut self) {
+        godot::global::godot_print!("[q] {} ready {}ms", self.0, self.1.elapsed().as_millis());
+    }
+}

@@ -26,6 +26,8 @@ fn randf(state: &mut u32) -> f32 {
 pub struct QFloraField {
     base: Base<Node3D>,
 
+    init_done: bool,
+
     #[export]
     terrain_path: NodePath,
     #[export]
@@ -70,12 +72,9 @@ pub struct QFloraField {
     extent: f32,
 }
 
-#[godot_api]
-impl INode3D for QFloraField {
-    fn ready(&mut self) {
-        if Engine::singleton().is_editor_hint() || super::q_hidden("flora") {
-            return;
-        }
+impl QFloraField {
+    fn late_init(&mut self) -> bool {
+        let _t = super::ReadyTimer::start("flora");
         self.player = self
             .base()
             .get_node_or_null(&self.player_path)
@@ -89,13 +88,12 @@ impl INode3D for QFloraField {
         .and_then(|n| n.try_cast::<QTerrain>().ok());
         let Some(terrain) = terrain else {
             godot_error!("[QFloraField] no QTerrain found; flora disabled");
-            return;
+            return true;
         };
         let (heights, res, extent, water) = {
             let t = terrain.bind();
             let Some((h, r)) = t.cpu_heights() else {
-                godot_error!("[QFloraField] terrain has no CPU heights; flora disabled");
-                return;
+                return false;
             };
             (h.to_vec(), r, t.world_extent(), t.water())
         };
@@ -148,7 +146,7 @@ impl INode3D for QFloraField {
         }
         if cand.is_empty() {
             godot_error!("[QFloraField] no candidates survived placement");
-            return;
+            return true;
         }
         self.candidates = cand;
 
@@ -175,10 +173,20 @@ impl INode3D for QFloraField {
         if self.compute.is_none() {
             self.build_classic();
         }
+        true
     }
+}
 
+#[godot_api]
+impl INode3D for QFloraField {
     fn process(&mut self, _delta: f64) {
         if Engine::singleton().is_editor_hint() {
+            return;
+        }
+        if !self.init_done {
+            if super::q_hidden("flora") || self.late_init() {
+                self.init_done = true;
+            }
             return;
         }
         let Some(origin) = self.view_origin() else {
