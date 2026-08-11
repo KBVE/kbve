@@ -12,8 +12,17 @@ keywords = ["bevy", "map", "gamedev", "protobuf", "plugin"]
 categories = ["game-development", "game-engines"]
 readme = "README.md"
 
+[features]
+default = ["bevy"]
+
+# Bevy ECS integration — adds the `Resource` derive and `BevyMapDbPlugin`.
+# Without this feature the crate is plain Rust with zero Bevy dependency: the
+# proto types and `MapDb` lookups still work, which is what lets FFI cdylibs
+# (Godot GDExtension) and non-Bevy consumers read the same mapdb registry.
+bevy = ["dep:bevy"]
+
 [dependencies]
-bevy = { workspace = true, features = ["bevy_state"] }
+bevy = { workspace = true, features = ["bevy_state"], optional = true }
 prost = { workspace = true, features = ["derive"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

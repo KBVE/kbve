@@ -40,6 +40,7 @@ pub use proto::item::*;
 // Re-export registry types
 pub use registry::{ItemDb, ProtoItemId};
 
+#[cfg(feature = "bevy")]
 use bevy::prelude::*;
 
 /// Bevy plugin that registers the [`ItemDb`] resource.
@@ -47,8 +48,10 @@ use bevy::prelude::*;
 /// The resource is initialized empty. Games should populate it during
 /// startup by calling [`ItemDb::from_json`], [`ItemDb::from_bytes`],
 /// or [`ItemDb::from_proto`] and inserting it via [`Commands::insert_resource`].
+#[cfg(feature = "bevy")]
 pub struct BevyItemsPlugin;
 
+#[cfg(feature = "bevy")]
 impl Plugin for BevyItemsPlugin {
     fn build(&self, app: &mut App) {
         app.init_resource::<ItemDb>();

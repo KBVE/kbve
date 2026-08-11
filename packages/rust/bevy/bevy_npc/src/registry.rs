@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use bevy::prelude::*;
 use prost::Message;
 
 use crate::proto::npc;
@@ -34,7 +33,8 @@ impl ProtoNpcId {
 /// Loaded once at startup from a proto-encoded `NpcRegistry` binary or
 /// built programmatically. Provides fast lookups by [`ProtoNpcId`], ref,
 /// ULID, or type-flag bitmask.
-#[derive(Resource, Default)]
+#[derive(Default)]
+#[cfg_attr(feature = "bevy", derive(bevy::prelude::Resource))]
 pub struct NpcDb {
     by_id: HashMap<ProtoNpcId, npc::Npc>,
     by_ref: HashMap<String, ProtoNpcId>,

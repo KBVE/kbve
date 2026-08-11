@@ -13,11 +13,18 @@ categories = ["game-development", "game-engines"]
 readme = "README.md"
 
 [features]
-default = []
+default = ["bevy"]
+
+# Bevy ECS integration — adds the `Resource` derive and `BevyItemsPlugin`.
+# Without this feature the crate is plain Rust with zero Bevy dependency: the
+# proto types, `ItemDb`, and `profession` still work, which is what lets FFI
+# cdylibs (Godot GDExtension) and non-Bevy consumers read the same itemdb.
+bevy = ["dep:bevy"]
+
 inventory = ["dep:bevy_inventory"]
 
 [dependencies]
-bevy = { workspace = true, features = ["bevy_state"] }
+bevy = { workspace = true, features = ["bevy_state"], optional = true }
 prost = { workspace = true, features = ["derive"] }
 prost-types = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
