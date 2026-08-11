@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://c3do578aif8wx"
 path.s3tc="res://.godot/imported/desert_ground_01_height.png-4b87cb21eec0406cb9ad3b837035200a.s3tc.ctex"
+path.etc2="res://.godot/imported/desert_ground_01_height.png-4b87cb21eec0406cb9ad3b837035200a.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/biomes/desert/desert_ground_01_height.png"
-dest_files=["res://.godot/imported/desert_ground_01_height.png-4b87cb21eec0406cb9ad3b837035200a.s3tc.ctex"]
+dest_files=["res://.godot/imported/desert_ground_01_height.png-4b87cb21eec0406cb9ad3b837035200a.s3tc.ctex", "res://.godot/imported/desert_ground_01_height.png-4b87cb21eec0406cb9ad3b837035200a.etc2.ctex"]
 
 [params]
 

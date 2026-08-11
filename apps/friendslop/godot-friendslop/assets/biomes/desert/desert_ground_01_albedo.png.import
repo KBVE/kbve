@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dei0e4oihpjo0"
 path.s3tc="res://.godot/imported/desert_ground_01_albedo.png-0f019f44c022b8d220a1f6b317eae9d2.s3tc.ctex"
+path.etc2="res://.godot/imported/desert_ground_01_albedo.png-0f019f44c022b8d220a1f6b317eae9d2.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/biomes/desert/desert_ground_01_albedo.png"
-dest_files=["res://.godot/imported/desert_ground_01_albedo.png-0f019f44c022b8d220a1f6b317eae9d2.s3tc.ctex"]
+dest_files=["res://.godot/imported/desert_ground_01_albedo.png-0f019f44c022b8d220a1f6b317eae9d2.s3tc.ctex", "res://.godot/imported/desert_ground_01_albedo.png-0f019f44c022b8d220a1f6b317eae9d2.etc2.ctex"]
 
 [params]
 

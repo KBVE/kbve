@@ -4,8 +4,9 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://dm2csegw3pqof"
 path.s3tc="res://.godot/imported/raven_Raven_Mat.png-4269b49eec251814f91f764e00beb409.s3tc.ctex"
+path.etc2="res://.godot/imported/raven_Raven_Mat.png-4269b49eec251814f91f764e00beb409.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 generator_parameters={
@@ -15,7 +16,7 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/environment/props/fauna/raven/raven_Raven_Mat.png"
-dest_files=["res://.godot/imported/raven_Raven_Mat.png-4269b49eec251814f91f764e00beb409.s3tc.ctex"]
+dest_files=["res://.godot/imported/raven_Raven_Mat.png-4269b49eec251814f91f764e00beb409.s3tc.ctex", "res://.godot/imported/raven_Raven_Mat.png-4269b49eec251814f91f764e00beb409.etc2.ctex"]
 
 [params]
 
