@@ -228,6 +228,7 @@ impl INode3D for QFloraField {
                 }
             }
         }
+        let _t = crate::world::StallTimer::start("flora.step_compute");
         self.step_compute();
     }
 

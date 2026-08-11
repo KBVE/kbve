@@ -457,6 +457,7 @@ impl INode3D for QGrassField {
         );
         if self.last_blade_center != Some(blade_center) {
             self.last_blade_center = Some(blade_center);
+            let _t = crate::world::StallTimer::start("grass.blade_cells");
             if self.blade_compute.is_some() {
                 self.rebuild_compute_cells(blade_center);
             } else {
@@ -470,6 +471,7 @@ impl INode3D for QGrassField {
         );
         if self.last_card_center != Some(card_center) {
             self.last_card_center = Some(card_center);
+            let _t = crate::world::StallTimer::start("grass.card_cells");
             if self.blade_compute.is_some() {
                 self.rebuild_card_cells(card_center);
                 self.rebuild_transition_cells(card_center);
@@ -481,10 +483,12 @@ impl INode3D for QGrassField {
 
         if origin.distance_squared_to(self.last_lod_position) >= LOD_UPDATE_DISTANCE_SQ {
             self.last_lod_position = origin;
+            let _t = crate::world::StallTimer::start("grass.tiers");
             self.update_tiers(origin);
         }
 
         if self.blade_compute.is_some() {
+            let _t = crate::world::StallTimer::start("grass.step_compute");
             self.step_compute();
         }
     }

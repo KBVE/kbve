@@ -14,6 +14,30 @@ pub(crate) fn q_hidden(name: &str) -> bool {
         .unwrap_or(false)
 }
 
+/// Times a block that runs on the main thread only occasionally — streaming
+/// rebuilds and the like — and reports it when it is slow enough to be seen as
+/// a hitch. Armed by Q_PROFILE so a normal run never pays for it.
+pub(crate) struct StallTimer(&'static str, std::time::Instant);
+
+impl StallTimer {
+    pub(crate) fn start(name: &'static str) -> Option<Self> {
+        if std::env::var("Q_PROFILE").is_ok() {
+            Some(Self(name, std::time::Instant::now()))
+        } else {
+            None
+        }
+    }
+}
+
+impl Drop for StallTimer {
+    fn drop(&mut self) {
+        let ms = self.1.elapsed().as_micros() as f64 / 1000.0;
+        if ms >= 2.0 {
+            godot::global::godot_print!("[q] stall {} {:.1}ms", self.0, ms);
+        }
+    }
+}
+
 pub(crate) struct ReadyTimer(&'static str, std::time::Instant);
 
 impl ReadyTimer {

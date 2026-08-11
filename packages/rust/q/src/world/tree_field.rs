@@ -490,6 +490,7 @@ impl INode3D for QTreeField {
         }
         let planes = [frustum.at(2), frustum.at(3), frustum.at(4), frustum.at(5)];
         let cam_pos = cam.get_global_position();
+        let _t = crate::world::StallTimer::start("trees.dispatch");
         for fc in self.computes.iter_mut() {
             fc.dispatch(cam_pos, &planes);
         }

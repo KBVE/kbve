@@ -319,6 +319,7 @@ impl INode3D for QStoneField {
         }
         if self.dirty {
             self.dirty = false;
+            let _t = crate::world::StallTimer::start("stones.upload");
             self.upload_buffers();
         }
     }

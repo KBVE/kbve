@@ -133,6 +133,8 @@ pub struct QTerrain {
     #[export]
     bridge_material: Option<Gd<ShaderMaterial>>,
     #[export]
+    abutment_material: Option<Gd<ShaderMaterial>>,
+    #[export]
     #[init(val = 3.2)]
     road_width: f32,
     #[export]
@@ -427,8 +429,15 @@ impl QTerrain {
     }
 
     pub fn stamp_clearance(&mut self, x: f32, z: f32, radius: f32) {
+        self.stamp_clearance_band(x, z, radius * 0.55, radius);
+    }
+
+    /// Clearance stamp with an explicit fully-cleared core. Scatter props are
+    /// happy with a soft blob, but the road needs its carriageway swept to zero
+    /// well past the painted edge, so it drives the two radii directly.
+    pub fn stamp_clearance_band(&mut self, x: f32, z: f32, inner: f32, radius: f32) {
         let cres = self.clearance_res;
-        if cres < 2 || radius <= 0.0 {
+        if cres < 2 || radius <= 0.0 || inner >= radius {
             return;
         }
         let texel = self.extent * 2.0 / (cres - 1) as f32;
@@ -436,7 +445,6 @@ impl QTerrain {
         let r_px = (radius / texel).ceil() as i32 + 1;
         let cx = to_px(x);
         let cz = to_px(z);
-        let inner = radius * 0.55;
         for py in (cz - r_px).max(0)..=(cz + r_px).min(cres - 1) {
             let wz = -self.extent + py as f32 * texel;
             for px in (cx - r_px).max(0)..=(cx + r_px).min(cres - 1) {
