@@ -145,7 +145,68 @@ jobs:
                     - slot: windows
                       os: windows-latest
         steps:
+            - name: Permit colon paths in the index (Windows)
+              if: matrix.slot == 'windows'
+              run: git config --global core.protectNTFS false
+              # git validates every index entry name before sparse rules get to
+              # say the file won't be written, so the ':' names under
+              # public/graphify/dir/ abort `git checkout` even when that directory
+              # is excluded. Relaxing the check lets the index load; the sparse
+              # list below still keeps those files off disk, so nothing illegal is
+              # ever created. Scoped to this job's runner.
             - uses: actions/checkout@v7
+              with:
+                  # `apps/kbve/astro-kbve/public/graphify/dir/` holds generated
+                  # files with ':' in the name (astro:components.json, node:fs.json,
+                  # …). NTFS forbids ':', so a full checkout aborts with "invalid
+                  # path" before cargo ever runs. Excluding just that directory
+                  # doesn't work — git never descends into a directory a pattern
+                  # already matched, so a negation under it is dead. Instead: cone
+                  # checkout of only the cargo workspace dirs, which skips
+                  # astro-kbve entirely. Root-level files (Cargo.toml/.lock) always
+                  # come along. The guard below fails loudly if a new workspace
+                  # member lands outside this list.
+                  sparse-checkout: |
+                      packages/rust
+                      apps/kbve/kilobase
+                      apps/kbve/axum-kbve
+                      apps/kbve/kbve-gate
+                      apps/kbve/isometric/src-tauri
+                      apps/kbve/desktop-kbve/src-tauri
+                      apps/herbmail/axum-herbmail
+                      apps/memes/axum-memes
+                      apps/irc/irc-gateway
+                      apps/discordsh/axum-discordsh
+                      apps/discordsh/discordsh-bot
+                      apps/chuckrpg/axum-chuckrpg
+                      apps/rentearth/axum-rentearth
+                      apps/rareicon/axum-rareicon
+                      apps/cryptothrone/axum-cryptothrone
+                      apps/rows
+                      apps/jobboard
+                      apps/metrics
+                      apps/vm
+                      apps/mc/behavior_statetree
+                      apps/mc/mc_auth
+                      apps/agones/factorio/relay
+                      apps/agones/palworld/relay
+                      apps/agones/cryptothrone/server
+                      apps/agones/arpg/server
+                      apps/agones/herbmail/server
+                      apps/media/reel
+            - name: Verify workspace members were checked out
+              shell: bash
+              run: |
+                  # cargo parses every member manifest, so a member missing from the
+                  # sparse list fails with a confusing manifest-not-found. Name it here.
+                  MISSING=""
+                  while read -r m; do
+                    [ -f "$m/Cargo.toml" ] || MISSING="$MISSING $m"
+                  done < <(sed -n '/^members = \[/,/^\]/p' Cargo.toml | grep -oE "['\"][^'\"]+/[^'\"]+['\"]" | tr -d "'\"")
+                  if [ -n "$MISSING" ]; then
+                    echo "::error::Workspace members absent from the sparse-checkout list in ci-godot.yml:$MISSING"
+                    exit 1
+                  fi
             - name: Install Linux build prerequisites
               if: matrix.slot == 'linux'
               run: |

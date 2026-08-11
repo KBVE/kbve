@@ -97,6 +97,14 @@ export const ExternalPublishSchema = z.object({
 
 export type ExternalPublish = z.infer<typeof ExternalPublishSchema>;
 
+// GdExtensionConfig
+export const GdExtensionConfigSchema = z.object({
+	package: z.string().min(1).max(64),
+	addon_path: z.string().min(1).max(256),
+});
+
+export type GdExtensionConfig = z.infer<typeof GdExtensionConfigSchema>;
+
 // GameEngineConfig
 export const GameEngineConfigSchema = z.object({
 	version: z.string().min(1).max(64),
@@ -114,6 +122,7 @@ export const GameEngineConfigSchema = z.object({
 	maps: z.array(z.string()).optional(),
 	game_mode: z.string().optional(),
 	custom_config: z.string().optional(),
+	gdextension: GdExtensionConfigSchema.optional(),
 });
 
 export type GameEngineConfig = z.infer<typeof GameEngineConfigSchema>;
