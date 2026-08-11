@@ -62,12 +62,14 @@ var _last_angle_step := -1
 
 var _sun_shadow_active := false
 var _moon_shadow_active := false
+var _shadows_off := false
 
 @onready var sun: DirectionalLight3D = $Sun
 @onready var moon: DirectionalLight3D = $Moon
 
 
 func _ready() -> void:
+	_shadows_off = "shadows" in OS.get_environment("Q_HIDE").split(",", false)
 	var forced_hour := OS.get_environment("Q_HOUR")
 	if forced_hour != "":
 		start_hour = clampf(float(forced_hour), 0.0, HOURS_PER_DAY)
@@ -151,6 +153,11 @@ func _update_celestial_state(force := false) -> void:
 
 
 func _update_shadow_state(sun_elevation: float, moon_elevation: float) -> void:
+	if _shadows_off:
+		sun.shadow_enabled = false
+		moon.shadow_enabled = false
+		return
+
 	if _sun_shadow_active:
 		if sun_elevation < sun_shadow_disable_elevation:
 			_sun_shadow_active = false
