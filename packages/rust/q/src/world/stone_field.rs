@@ -125,12 +125,29 @@ impl QStoneField {
             godot_error!("[QStoneField] no QTerrain found; stones disabled");
             return true;
         };
-        let (heights, res, extent, water) = {
+        let (heights, res, extent, water, road_mask, road_res) = {
             let t = terrain.bind();
             let Some((h, r)) = t.cpu_heights() else {
                 return false;
             };
-            (h.to_vec(), r, t.world_extent(), t.water())
+            let (rm, rr) = t
+                .road_mask()
+                .map(|(m, r)| (m.to_vec(), r))
+                .unwrap_or((Vec::new(), 0));
+            (h.to_vec(), r, t.world_extent(), t.water(), rm, rr)
+        };
+
+        // Keep the carriageway clear; grass already honours this through the
+        // clearance map, but scatter placement never consulted it.
+        let on_road = |x: f32, z: f32| -> f32 {
+            if road_res < 2 {
+                return 0.0;
+            }
+            let u = ((x + extent) / (extent * 2.0)).clamp(0.0, 1.0);
+            let v = ((z + extent) / (extent * 2.0)).clamp(0.0, 1.0);
+            let px = ((u * (road_res - 1) as f32) as i32).clamp(0, road_res - 1);
+            let pz = ((v * (road_res - 1) as f32) as i32).clamp(0, road_res - 1);
+            road_mask[(pz * road_res + px) as usize] as f32 / 255.0
         };
         self.extent = extent;
 
@@ -191,6 +208,9 @@ impl QStoneField {
                 if noise.get_noise_2d(x, z) < self.patch_threshold && slope < 0.32 {
                     continue;
                 }
+                if on_road(x, z) > 0.12 {
+                    continue;
+                }
                 let h = sample(x, z);
                 if h < water + 0.4 {
                     continue;
@@ -223,6 +243,9 @@ impl QStoneField {
                     let cx = x + az.cos() * dist;
                     let cz = z + az.sin() * dist;
                     if cx.abs() > extent - 5.0 || cz.abs() > extent - 5.0 {
+                        continue;
+                    }
+                    if on_road(cx, cz) > 0.12 {
                         continue;
                     }
                     let ch = sample(cx, cz);

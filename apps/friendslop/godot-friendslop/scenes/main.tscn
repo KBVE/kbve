@@ -13,6 +13,7 @@
 [ext_resource type="Shader" path="res://assets/fx/shaders/anime_filter.gdshader" id="12_anime"]
 [ext_resource type="Material" path="res://assets/environment/water/water.tres" id="13_water"]
 [ext_resource type="Material" path="res://assets/environment/water/riverbed.tres" id="24_riverbed"]
+[ext_resource type="Material" path="res://assets/environment/props/bridge/bridge.tres" id="25_bridge"]
 [ext_resource type="Script" path="res://src/fauna/flock.gd" id="14_ravens"]
 [ext_resource type="Resource" path="res://assets/environment/props/fauna/raven/raven_species.tres" id="15_species"]
 [ext_resource type="Script" path="res://src/ui/pause_menu.gd" id="16_pause"]
@@ -87,6 +88,7 @@ grass_material = ExtResource("4_grassmat")
 ground_material = ExtResource("3_ground")
 water_material = ExtResource("13_water")
 riverbed_material = ExtResource("24_riverbed")
+bridge_material = ExtResource("25_bridge")
 
 [node name="GrassField" type="QGrassField" parent="."]
 player_path = NodePath("../Player")

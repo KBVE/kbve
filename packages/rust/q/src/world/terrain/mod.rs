@@ -1,4 +1,5 @@
 mod river;
+mod road;
 mod water;
 
 use fastnoise_lite::{FastNoiseLite, FractalType, NoiseType};
@@ -57,6 +58,11 @@ impl HeightGen {
 
     fn river_x(&self, z: f32) -> f32 {
         self.river.get_noise_2d(z, 0.0) * self.river_wander
+    }
+
+    /// Low-frequency drift used to keep the trunk road from being a ruler line.
+    fn wander(&self, x: f32) -> f32 {
+        self.river.get_noise_2d(x * 0.35, 500.0)
     }
 
     fn bake(&self, extent: f32, res: i32) -> Vec<f32> {
@@ -124,6 +130,14 @@ pub struct QTerrain {
     water_material: Option<Gd<ShaderMaterial>>,
     #[export]
     riverbed_material: Option<Gd<ShaderMaterial>>,
+    #[export]
+    bridge_material: Option<Gd<ShaderMaterial>>,
+    #[export]
+    #[init(val = 3.2)]
+    road_width: f32,
+    #[export]
+    #[init(val = 1.4)]
+    road_tile_scale: f32,
 
     player: Option<Gd<Node3D>>,
     water_rd: Option<Gd<RenderingDevice>>,
@@ -164,6 +178,10 @@ pub struct QTerrain {
     clearance_res: i32,
     clearance_tex: Option<Gd<ImageTexture>>,
     clearance_dirty: bool,
+    road_tex: Option<Gd<ImageTexture>>,
+    road_mask: Vec<u8>,
+    road_res: i32,
+    road: Option<road::RoadNetwork>,
 }
 
 #[godot_api]
@@ -297,6 +315,10 @@ impl QTerrain {
 
         self.heights = heights;
 
+        if !crate::world::q_hidden("road") {
+            self.build_road();
+        }
+
         let player = self
             .base()
             .get_node_or_null(&self.player_path)
@@ -304,12 +326,18 @@ impl QTerrain {
         self.player = player.clone();
         if let Some(mut player) = player {
             let p = player.get_global_position();
-            if std::env::var("Q_SPAWN")
-                .map(|v| v == "river")
-                .unwrap_or(false)
-            {
+            let spawn = std::env::var("Q_SPAWN").unwrap_or_default();
+            if spawn == "river" {
                 let rx = self.hgen.as_ref().map(|g| g.river_x(p.z)).unwrap_or(0.0);
                 player.set_global_position(Vector3::new(rx, self.water_level + 0.6, p.z));
+            } else if spawn == "road" {
+                let target = self
+                    .road
+                    .as_ref()
+                    .map(|r| r.point_near_x(r.crossing.x + r.half_span + 20.0))
+                    .unwrap_or(Vector2::ZERO);
+                let (rx, rz) = (target.x, target.y);
+                player.set_global_position(Vector3::new(rx, self.height(rx, rz) + 1.0, rz));
             } else {
                 let mut sx = p.x;
                 while self.height(sx, p.z) < self.water_level + 1.0 && sx < self.extent {
@@ -386,6 +414,16 @@ impl QTerrain {
 
     pub fn clearance_texture(&self) -> Option<Gd<ImageTexture>> {
         self.clearance_tex.clone()
+    }
+
+    /// Scatter fields snapshot this the same way they snapshot heights, so they
+    /// can keep their placement loops off the road without binding per candidate.
+    pub fn road_mask(&self) -> Option<(&[u8], i32)> {
+        if self.road_mask.is_empty() {
+            None
+        } else {
+            Some((&self.road_mask, self.road_res))
+        }
     }
 
     pub fn stamp_clearance(&mut self, x: f32, z: f32, radius: f32) {

@@ -90,12 +90,29 @@ impl QFloraField {
             godot_error!("[QFloraField] no QTerrain found; flora disabled");
             return true;
         };
-        let (heights, res, extent, water) = {
+        let (heights, res, extent, water, road_mask, road_res) = {
             let t = terrain.bind();
             let Some((h, r)) = t.cpu_heights() else {
                 return false;
             };
-            (h.to_vec(), r, t.world_extent(), t.water())
+            let (rm, rr) = t
+                .road_mask()
+                .map(|(m, r)| (m.to_vec(), r))
+                .unwrap_or((Vec::new(), 0));
+            (h.to_vec(), r, t.world_extent(), t.water(), rm, rr)
+        };
+
+        // Keep the carriageway clear; grass already honours this through the
+        // clearance map, but scatter placement never consulted it.
+        let on_road = |x: f32, z: f32| -> f32 {
+            if road_res < 2 {
+                return 0.0;
+            }
+            let u = ((x + extent) / (extent * 2.0)).clamp(0.0, 1.0);
+            let v = ((z + extent) / (extent * 2.0)).clamp(0.0, 1.0);
+            let px = ((u * (road_res - 1) as f32) as i32).clamp(0, road_res - 1);
+            let pz = ((v * (road_res - 1) as f32) as i32).clamp(0, road_res - 1);
+            road_mask[(pz * road_res + px) as usize] as f32 / 255.0
         };
         self.extent = extent;
 
@@ -132,6 +149,9 @@ impl QFloraField {
             let phase = randf(&mut state) * std::f32::consts::TAU;
             let scale = self.scale_min + randf(&mut state) * (self.scale_max - self.scale_min);
             if noise.get_noise_2d(x, z) < self.patch_threshold {
+                continue;
+            }
+            if on_road(x, z) > 0.45 {
                 continue;
             }
             let h = sample(x, z);
