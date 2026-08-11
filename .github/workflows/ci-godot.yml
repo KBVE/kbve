@@ -84,6 +84,31 @@ jobs:
             image: barichello/godot-ci:${{ fromJSON(inputs.engine).dotnet_enabled && 'mono-' || '' }}${{ fromJSON(inputs.engine).version }}
         steps:
             - uses: actions/checkout@v7
+            - name: Pull LFS assets (Forgejo)
+              env:
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+                  PROJECT_PATH: ${{ fromJSON(inputs.engine).project_path }}
+              run: |
+                  # checkout leaves LFS entries as ~130-byte pointer stubs. Godot happily
+                  # imports those as corrupt PNG/GLB, so the suite goes green against a
+                  # project with no art. Pull the real blobs off git.kbve.com first.
+                  if ! git -C "$PROJECT_PATH" ls-files ':(attr:filter=lfs)' | head -1 | grep -q .; then
+                    echo "::notice::No LFS-tracked files under $PROJECT_PATH — skipping"
+                    exit 0
+                  fi
+                  if [ -z "$FORGEJO_USER" ] || [ -z "$FORGEJO_TOKEN" ]; then
+                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — LFS assets would import as pointer stubs"
+                    exit 1
+                  fi
+                  command -v git-lfs >/dev/null 2>&1 || {
+                    apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
+                  }
+                  printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
+                    "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
+                  chmod 600 "$HOME/.netrc"
+                  git lfs install --local
+                  git lfs pull -I "$PROJECT_PATH/**"
             - name: Run headless test pass
               env:
                   GODOT_BIN: godot
@@ -100,14 +125,75 @@ jobs:
                     echo "::notice::No scripts/test.sh, tests/ dir, or test_*.gd files — skipping headless run"
                   fi
 
+    gdextension:
+        name: GDExtension (${{ matrix.slot }})
+        needs: [version_gate]
+        # `engine.gdextension` is optional — projects with no native extension skip
+        # this whole job. macOS is deliberately absent: its signed dylib is committed
+        # (and LFS-tracked) because the export container can't run `codesign`.
+        if: ${{ fromJSON(inputs.engine).gdextension.package != '' }}
+        runs-on: ${{ matrix.os }}
+        timeout-minutes: 60
+        permissions:
+            contents: read
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - slot: linux
+                      os: ubuntu-latest
+                    - slot: windows
+                      os: windows-latest
+        steps:
+            - uses: actions/checkout@v7
+            - name: Install Linux build prerequisites
+              if: matrix.slot == 'linux'
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends \
+                    build-essential pkg-config \
+                    libgtk-3-dev libwebkit2gtk-4.1-dev libsoup-3.0-dev \
+                    libjavascriptcoregtk-4.1-dev
+            - name: Setup Rust (stable)
+              uses: dtolnay/rust-toolchain@stable
+            - name: Rust Cache
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: '.'
+                  key: gdext-${{ matrix.slot }}
+                  cache-on-failure: true
+            - name: Build cdylib
+              shell: bash
+              run: cargo build --release -p ${{ fromJSON(inputs.engine).gdextension.package }}
+            - name: Stage artefact
+              shell: bash
+              env:
+                  PKG: ${{ fromJSON(inputs.engine).gdextension.package }}
+              run: |
+                  LIB=$(echo "$PKG" | tr '-' '_')
+                  case "${{ matrix.slot }}" in
+                    linux)   SRC="target/release/lib${LIB}.so";  DST="lib${LIB}.so" ;;
+                    windows) SRC="target/release/${LIB}.dll";    DST="${LIB}.dll" ;;
+                  esac
+                  mkdir -p stage
+                  cp "$SRC" "stage/$DST"
+            - name: Upload artefact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: gdext-${{ fromJSON(inputs.engine).app_name }}-${{ matrix.slot }}
+                  path: stage
+                  if-no-files-found: error
+
     build:
         name: Build (${{ matrix.preset }})
-        needs: [version_gate, test]
-        if: ${{ join(fromJSON(inputs.engine).build_targets) != '' }}
+        needs: [version_gate, test, gdextension]
+        # `always()` so a project with no `engine.gdextension` (job skipped) still builds.
+        if: ${{ always() && needs.test.result == 'success' && needs.gdextension.result != 'failure' && needs.gdextension.result != 'cancelled' && join(fromJSON(inputs.engine).build_targets) != '' }}
         runs-on: ubuntu-latest
         timeout-minutes: 60
         permissions:
             contents: read
+            actions: read
         container:
             image: barichello/godot-ci:${{ fromJSON(inputs.engine).dotnet_enabled && 'mono-' || '' }}${{ fromJSON(inputs.engine).version }}
         strategy:
@@ -116,6 +202,54 @@ jobs:
                 preset: ${{ fromJSON(inputs.engine).build_targets }}
         steps:
             - uses: actions/checkout@v7
+            - name: Pull LFS assets (Forgejo)
+              env:
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+                  PROJECT_PATH: ${{ fromJSON(inputs.engine).project_path }}
+              run: |
+                  # Without this the export packs pointer stubs: every LFS texture
+                  # imports as ERR_FILE_CORRUPT and any committed native lib (e.g. the
+                  # signed macOS dylib) is a 130-byte text file the loader rejects.
+                  if ! git -C "$PROJECT_PATH" ls-files ':(attr:filter=lfs)' | head -1 | grep -q .; then
+                    echo "::notice::No LFS-tracked files under $PROJECT_PATH — skipping"
+                    exit 0
+                  fi
+                  if [ -z "$FORGEJO_USER" ] || [ -z "$FORGEJO_TOKEN" ]; then
+                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — LFS assets would ship as pointer stubs"
+                    exit 1
+                  fi
+                  command -v git-lfs >/dev/null 2>&1 || {
+                    apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
+                  }
+                  printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
+                    "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
+                  chmod 600 "$HOME/.netrc"
+                  git lfs install --local
+                  git lfs pull -I "$PROJECT_PATH/**"
+            - name: Download GDExtension binaries
+              if: ${{ fromJSON(inputs.engine).gdextension.package != '' }}
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: gdext-${{ fromJSON(inputs.engine).app_name }}-*
+                  path: gdext
+            - name: Stage GDExtension binaries
+              if: ${{ fromJSON(inputs.engine).gdextension.package != '' }}
+              env:
+                  PROJECT_PATH: ${{ fromJSON(inputs.engine).project_path }}
+                  ADDON_PATH: ${{ fromJSON(inputs.engine).gdextension.addon_path }}
+                  APP: ${{ fromJSON(inputs.engine).app_name }}
+              run: |
+                  # The .gdextension manifest lists a per-platform path and the exporter
+                  # hard-fails when one is missing, so every preset in build_targets needs
+                  # its lib present even though a single container drives all the exports.
+                  for SLOT in linux windows; do
+                    SRC="gdext/gdext-${APP}-${SLOT}"
+                    [ -d "$SRC" ] || continue
+                    mkdir -p "$PROJECT_PATH/$ADDON_PATH/$SLOT"
+                    cp "$SRC"/* "$PROJECT_PATH/$ADDON_PATH/$SLOT/"
+                  done
+                  find "$PROJECT_PATH/$ADDON_PATH" -type f -printf '%p\t%s bytes\n'
             - name: Stage export templates
               run: |
                   mkdir -p ~/.local/share/godot/export_templates
@@ -205,7 +339,16 @@ jobs:
     track_failure:
         name: Track Failures
         if: ${{ always() && contains(needs.*.result, 'failure') }}
-        needs: [queue_guard, version_gate, test, build, itch, post_publish_sync]
+        needs:
+            [
+                queue_guard,
+                version_gate,
+                test,
+                gdextension,
+                build,
+                itch,
+                post_publish_sync,
+            ]
         permissions:
             issues: write
             contents: read
@@ -220,7 +363,16 @@ jobs:
     track_success:
         name: Track Success
         if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
-        needs: [queue_guard, version_gate, test, build, itch, post_publish_sync]
+        needs:
+            [
+                queue_guard,
+                version_gate,
+                test,
+                gdextension,
+                build,
+                itch,
+                post_publish_sync,
+            ]
         permissions:
             issues: write
             contents: read
