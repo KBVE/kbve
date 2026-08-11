@@ -337,7 +337,11 @@ jobs:
                   # format" on macOS, which only takes .app/.zip/.dmg). Web wants
                   # the entry page. Linux is the one platform happy bare.
                   CASE=$(echo '${{ matrix.preset }}' | tr '[:upper:]' '[:lower:]')
+                  # iOS before mac: "iOS" contains no 'mac', but keep the order
+                  # explicit so a future "macOS iOS Universal"-style preset name
+                  # can't fall into the wrong arm.
                   case "$CASE" in
+                    *ios*)           OUT="$APP.ipa" ;;
                     *mac*|*osx*)     OUT="$APP.zip" ;;
                     *win*)           OUT="$APP.exe" ;;
                     *web*|*html*)    OUT="index.html" ;;
