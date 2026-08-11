@@ -90,6 +90,7 @@ debug_down={
 
 [rendering]
 
+textures/vram_compression/import_etc2_astc=true
 scaling_3d/scale=0.75
 
 [shader_globals]
