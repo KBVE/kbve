@@ -145,6 +145,15 @@ jobs:
                     - slot: windows
                       os: windows-latest
         steps:
+            - name: Permit colon paths in the index (Windows)
+              if: matrix.slot == 'windows'
+              run: git config --global core.protectNTFS false
+              # git validates every index entry name before sparse rules get to
+              # say the file won't be written, so the ':' names under
+              # public/graphify/dir/ abort `git checkout` even when that directory
+              # is excluded. Relaxing the check lets the index load; the sparse
+              # list below still keeps those files off disk, so nothing illegal is
+              # ever created. Scoped to this job's runner.
             - uses: actions/checkout@v7
               with:
                   # `apps/kbve/astro-kbve/public/graphify/dir/` holds generated
