@@ -80,7 +80,11 @@ pub mod proto;
 ))]
 pub mod rapier;
 
-#[cfg(any(feature = "net-client", feature = "net-server"))]
+#[cfg(any(
+    feature = "net-client",
+    feature = "net-server",
+    feature = "net-transport"
+))]
 pub mod net;
 
 #[cfg(feature = "supabase-auth")]

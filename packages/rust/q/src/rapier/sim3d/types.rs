@@ -6,12 +6,16 @@
 
 use std::sync::Arc;
 
+use serde::{Deserialize, Serialize};
+
 /// App-assigned body id. The app owns the numbering so it can key its own
 /// node tables without waiting for a round trip through the sim.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash, PartialOrd, Ord)]
+#[derive(
+    Clone, Copy, Debug, Default, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize,
+)]
 pub struct BodyId(pub u32);
 
-#[derive(Clone, Copy, Debug, Default, PartialEq)]
+#[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct Iso {
     pub pos: [f32; 3],
     /// Quaternion, xyzw order (matches Godot's `Quaternion` component order).
@@ -151,6 +155,11 @@ impl Default for CharacterDesc {
 ///
 /// `Arc` because the app keeps its copy for its own queries; the send is a
 /// refcount bump rather than a clone of a half-megabyte grid.
+///
+/// Deliberately **not** `Serialize`: terrain never travels over the wire. Peers
+/// regenerate an identical grid from the seed in `ServerEvent::Welcome`, which
+/// is eight bytes instead of a megabyte. If you find yourself wanting to send
+/// this, send the seed instead.
 #[derive(Clone, Debug)]
 pub struct TerrainDesc {
     pub heights: Arc<Vec<f32>>,
@@ -192,7 +201,7 @@ pub enum SimCommand {
     },
 }
 
-#[derive(Clone, Copy, Debug, Default)]
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize)]
 pub struct BodySnapshot {
     pub id: BodyId,
     pub iso: Iso,
@@ -205,7 +214,7 @@ pub struct BodySnapshot {
 /// One published sim state. Snapshots are latest-wins: a slow app frame drops
 /// intermediate ticks rather than queueing them, so the sim never blocks on
 /// rendering and the app never replays stale physics.
-#[derive(Clone, Debug, Default)]
+#[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct SimSnapshot {
     pub tick: u64,
     /// Seconds of sim time this snapshot represents.
