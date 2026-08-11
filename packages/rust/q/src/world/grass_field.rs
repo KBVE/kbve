@@ -389,6 +389,24 @@ impl QGrassField {
             0.0f32
         };
         self.apply_compute_mode(mode);
+
+        // Per-tier draw toggles. These hide instances but leave the compute
+        // dispatch running, so they isolate raster cost from culling cost.
+        if super::q_hidden("blades") {
+            if let Some(bc) = self.blade_compute.as_mut() {
+                bc.set_visible(false);
+            }
+        }
+        if super::q_hidden("cards") {
+            if let Some(cc) = self.card_compute.as_mut() {
+                cc.set_visible(false);
+            }
+        }
+        if super::q_hidden("transition") {
+            if let Some(tc) = self.transition_compute.as_mut() {
+                tc.set_visible(false);
+            }
+        }
         true
     }
 }
