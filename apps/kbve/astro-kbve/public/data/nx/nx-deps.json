@@ -1,7 +1,7 @@
 {
-	"generated_at": "2026-08-10T03:14:56Z",
+	"generated_at": "2026-08-11T03:07:56Z",
 	"node": {
-		"count": 124,
+		"count": 125,
 		"major": 23,
 		"items": [
 			{
@@ -304,7 +304,7 @@
 				"name": "@tanstack/react-router",
 				"current": "1.170.16",
 				"wanted": "1.170.16",
-				"latest": "1.170.24",
+				"latest": "1.170.25",
 				"type": "dependencies",
 				"major": false
 			},
@@ -328,7 +328,7 @@
 				"name": "@testing-library/jest-dom",
 				"current": "6.9.1",
 				"wanted": "6.9.1",
-				"latest": "7.0.0",
+				"latest": "7.0.1",
 				"type": "devDependencies",
 				"major": true
 			},
@@ -520,7 +520,7 @@
 				"name": "cssnano",
 				"current": "7.1.4",
 				"wanted": "7.1.4",
-				"latest": "8.0.4",
+				"latest": "8.0.5",
 				"type": "devDependencies",
 				"major": true
 			},
@@ -624,7 +624,7 @@
 				"name": "framer-motion",
 				"current": "12.42.2",
 				"wanted": "12.42.2",
-				"latest": "13.0.0",
+				"latest": "13.1.0",
 				"type": "dependencies",
 				"major": true
 			},
@@ -704,7 +704,7 @@
 				"name": "mdream",
 				"current": "1.4.1",
 				"wanted": "1.4.1",
-				"latest": "1.5.13",
+				"latest": "1.6.0",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -722,6 +722,14 @@
 				"wanted": "2.11.2",
 				"latest": "2.12.4",
 				"type": "devDependencies",
+				"major": false
+			},
+			{
+				"name": "n8ao",
+				"current": "2.0.0",
+				"wanted": "2.0.0",
+				"latest": "2.0.1",
+				"type": "dependencies",
 				"major": false
 			},
 			{
@@ -752,7 +760,7 @@
 				"name": "postcss-merge-rules",
 				"current": "8.0.1",
 				"wanted": "8.0.1",
-				"latest": "8.0.2",
+				"latest": "8.0.3",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -880,7 +888,7 @@
 				"name": "shiki",
 				"current": "1.29.2",
 				"wanted": "1.29.2",
-				"latest": "4.4.2",
+				"latest": "4.4.3",
 				"type": "dependencies",
 				"major": true
 			},
@@ -999,7 +1007,7 @@
 		]
 	},
 	"rust": {
-		"count": 128,
+		"count": 130,
 		"major": 1,
 		"items": [
 			{
@@ -1246,6 +1254,12 @@
 				"name": "branches",
 				"current": "0.4.4",
 				"latest": "0.4.5",
+				"major": false
+			},
+			{
+				"name": "bstr",
+				"current": "1.13.0",
+				"latest": "1.13.1",
 				"major": false
 			},
 			{
@@ -1519,6 +1533,12 @@
 				"major": false
 			},
 			{
+				"name": "pulldown-cmark-to-cmark",
+				"current": "22.0.0",
+				"latest": "22.0.1",
+				"major": false
+			},
+			{
 				"name": "redox_syscall",
 				"current": "0.9.0",
 				"latest": "0.9.1",
@@ -1772,6 +1792,6 @@
 			}
 		]
 	},
-	"total": 252,
+	"total": 255,
 	"major_total": 24
 }
