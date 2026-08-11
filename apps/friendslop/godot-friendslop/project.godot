@@ -95,6 +95,10 @@ scaling_3d/scale=0.75
 
 [shader_globals]
 
+sun_direction={
+"type": "vec3",
+"value": Vector3(0, 1, 0)
+}
 wind_direction={
 "type": "vec2",
 "value": Vector2(0.951, 0.309)

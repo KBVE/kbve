@@ -145,6 +145,14 @@ func _update_celestial_state(force := false) -> void:
 	sun.rotation.x = -angle
 	moon.rotation.x = -angle + PI
 
+	# Direction toward the dominant light, for shaders that march their own
+	# shadows and so need the light vector in the fragment stage, where Godot
+	# exposes it only inside light(). A DirectionalLight3D shines along -Z, so
+	# +Z of its basis points back at it.
+	var key_light := sun if sun.light_energy >= moon.light_energy else moon
+	RenderingServer.global_shader_parameter_set("sun_direction",
+			key_light.global_transform.basis.z.normalized())
+
 	if environment_node:
 		var t := smoothstep(-0.1, 0.15, sun_elevation)
 		var env := environment_node.environment
