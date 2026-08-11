@@ -83,7 +83,8 @@ pub mod rapier;
 #[cfg(any(
     feature = "net-client",
     feature = "net-server",
-    feature = "net-transport"
+    feature = "net-transport",
+    feature = "net-session"
 ))]
 pub mod net;
 

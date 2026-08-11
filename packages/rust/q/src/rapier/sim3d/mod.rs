@@ -12,7 +12,7 @@ pub mod world;
 
 pub use thread::PhysicsHandle;
 pub use types::{
-    BodyDesc, BodyId, BodyKind, BodySnapshot, Iso, ShapeDesc, SimCommand, SimConfig, SimSnapshot,
-    TerrainDesc,
+    AutostepDesc, BodyDesc, BodyId, BodyKind, BodySnapshot, CharacterDesc, Iso, ShapeDesc,
+    SimCommand, SimConfig, SimSnapshot, TerrainDesc,
 };
 pub use world::SimWorld;

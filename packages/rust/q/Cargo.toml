@@ -56,6 +56,9 @@ rapier3d-server = ["server", "rapier3d-sim"]
 # axum, no Steam. It carries the in-process Loopback impl so session logic is
 # testable in CI, where a real Steam client can never run.
 net-transport = ["proto-shared"]
+# Listen-server host/client roles driving the sim over a Transport. Needs the
+# sim itself, so it is separate from the bare transport seam.
+net-session = ["net-transport", "rapier3d-sim"]
 net-client = ["client", "proto-client", "net-transport", "dep:tokio-tungstenite", "dep:futures-util"]
 net-server = ["server", "proto-server", "net-transport", "dep:axum", "dep:tokio-tungstenite", "dep:futures-util"]
 
