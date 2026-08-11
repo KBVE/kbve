@@ -73,7 +73,11 @@ unsafe impl ExtensionLibrary for Q {
 #[cfg(feature = "proto-shared")]
 pub mod proto;
 
-#[cfg(any(feature = "rapier2d-client", feature = "rapier2d-server"))]
+#[cfg(any(
+    feature = "rapier2d-client",
+    feature = "rapier2d-server",
+    feature = "rapier3d-sim"
+))]
 pub mod rapier;
 
 #[cfg(any(feature = "net-client", feature = "net-server"))]
