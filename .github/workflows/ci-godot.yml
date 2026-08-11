@@ -146,6 +146,16 @@ jobs:
                       os: windows-latest
         steps:
             - uses: actions/checkout@v7
+              with:
+                  # `public/graphify/dir/` holds generated files with ':' in the
+                  # name (astro:components.json, node:fs.json, …). NTFS rejects
+                  # those, so a plain checkout dies with "invalid path" before
+                  # cargo ever runs. Excluding that one directory is enough —
+                  # non-cone mode is required for a negated pattern.
+                  sparse-checkout: |
+                      /*
+                      !/apps/kbve/astro-kbve/public/graphify
+                  sparse-checkout-cone-mode: false
             - name: Install Linux build prerequisites
               if: matrix.slot == 'linux'
               run: |
