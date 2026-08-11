@@ -62,7 +62,7 @@ services:
                 condition: service_healthy
 
     valkey:
-        image: valkey/valkey:8-alpine
+        image: valkey/valkey:9.1.1-alpine
         command: ['valkey-server', '--requirepass', 'localdev']
         ports:
             - '6379:6379'

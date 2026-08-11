@@ -49,7 +49,7 @@ services:
         restart: unless-stopped
 
     valkey:
-        image: valkey/valkey:8-alpine
+        image: valkey/valkey:9.1.1-alpine
         ports:
             - '6379:6379'
         # appendonly so placed objects survive a Valkey container restart too —
