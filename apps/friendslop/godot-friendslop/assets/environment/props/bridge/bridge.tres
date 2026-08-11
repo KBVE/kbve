@@ -1,0 +1,33 @@
+[gd_resource type="ShaderMaterial" load_steps=5 format=3]
+
+[ext_resource type="Shader" path="res://assets/environment/props/bridge/bridge.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://assets/environment/props/bridge/wood_planks_22_albedo.png" id="2_albedo"]
+[ext_resource type="Texture2D" path="res://assets/environment/props/bridge/wood_planks_22_normal_gl.png" id="3_normal"]
+[ext_resource type="Texture2D" path="res://assets/environment/props/bridge/wood_planks_22_orm.png" id="4_orm"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/albedo_tex = ExtResource("2_albedo")
+shader_parameter/normal_tex = ExtResource("3_normal")
+shader_parameter/orm_tex = ExtResource("4_orm")
+shader_parameter/wood_tint = Color(0.8, 0.82, 0.8, 1)
+shader_parameter/wood_desaturate = 0.45
+shader_parameter/normal_strength = 1.0
+shader_parameter/roughness_scale = 1.0
+shader_parameter/damp_color = Color(0.42, 0.44, 0.4, 1)
+shader_parameter/damp_height = 0.9
+shader_parameter/water_level = -1.4
+shader_parameter/moss_amount = 0.35
+shader_parameter/moss_color = Color(0.3, 0.42, 0.2, 1)
+shader_parameter/shadow_threshold = 0.5
+shader_parameter/shadow_softness = 0.04
+shader_parameter/shadow_darkness = 0.45
+shader_parameter/shadow_desaturation = 0.3
+shader_parameter/shadow_tint = Color(0.6, 0.62, 1, 1)
+shader_parameter/deep_shadow_threshold = 0.2
+shader_parameter/deep_shadow_softness = 0.04
+shader_parameter/deep_shadow_darkness = 0.65
+shader_parameter/fringe_strength = 0.12
+shader_parameter/fringe_width = 0.05
+shader_parameter/fringe_color = Color(0.85, 0.62, 0.42, 1)

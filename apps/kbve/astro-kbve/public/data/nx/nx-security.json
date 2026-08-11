@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-08-10T03:15:54Z",
+	"generated_at": "2026-08-11T03:08:11Z",
 	"summary": {
 		"critical": 4,
 		"high": 54,
@@ -164,20 +164,6 @@
 					"severity": "medium",
 					"package": "lodash",
 					"url": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
-				},
-				{
-					"id": "1117870",
-					"title": "fast-uri vulnerable to path traversal via percent-encoded dot segments",
-					"severity": "high",
-					"package": "fast-uri",
-					"url": "https://github.com/advisories/GHSA-q3j6-qgpj-74h6"
-				},
-				{
-					"id": "1117884",
-					"title": "fast-uri vulnerable to host confusion via percent-encoded authority delimiters",
-					"severity": "high",
-					"package": "fast-uri",
-					"url": "https://github.com/advisories/GHSA-v39h-62p7-jpjc"
 				},
 				{
 					"id": "1119108",
@@ -808,6 +794,20 @@
 					"severity": "high",
 					"package": "nanoid",
 					"url": "https://github.com/advisories/GHSA-2v37-7h3g-55p8"
+				},
+				{
+					"id": "1138948",
+					"title": "fast-uri vulnerable to path traversal via percent-encoded dot segments",
+					"severity": "high",
+					"package": "fast-uri",
+					"url": "https://github.com/advisories/GHSA-q3j6-qgpj-74h6"
+				},
+				{
+					"id": "1138950",
+					"title": "fast-uri vulnerable to host confusion via percent-encoded authority delimiters",
+					"severity": "high",
+					"package": "fast-uri",
+					"url": "https://github.com/advisories/GHSA-v39h-62p7-jpjc"
 				}
 			]
 		},

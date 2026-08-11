@@ -1293,7 +1293,11 @@
 					"Windows Desktop",
 					"macOS",
 					"Linux"
-				]
+				],
+				"gdextension": {
+					"package": "q",
+					"addon_path": "addons/q"
+				}
 			},
 			"source_path": "apps/friendslop/godot-friendslop",
 			"version": "0.1.0",

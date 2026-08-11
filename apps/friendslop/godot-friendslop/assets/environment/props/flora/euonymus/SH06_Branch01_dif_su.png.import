@@ -4,15 +4,16 @@ importer="texture"
 type="CompressedTexture2D"
 uid="uid://cr1uw78towqd0"
 path.s3tc="res://.godot/imported/SH06_Branch01_dif_su.png-26b2fe4a5728a71ee0981075a77c16ae.s3tc.ctex"
+path.etc2="res://.godot/imported/SH06_Branch01_dif_su.png-26b2fe4a5728a71ee0981075a77c16ae.etc2.ctex"
 metadata={
-"imported_formats": ["s3tc_bptc"],
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
 "vram_texture": true
 }
 
 [deps]
 
 source_file="res://assets/environment/props/flora/euonymus/SH06_Branch01_dif_su.png"
-dest_files=["res://.godot/imported/SH06_Branch01_dif_su.png-26b2fe4a5728a71ee0981075a77c16ae.s3tc.ctex"]
+dest_files=["res://.godot/imported/SH06_Branch01_dif_su.png-26b2fe4a5728a71ee0981075a77c16ae.s3tc.ctex", "res://.godot/imported/SH06_Branch01_dif_su.png-26b2fe4a5728a71ee0981075a77c16ae.etc2.ctex"]
 
 [params]
 

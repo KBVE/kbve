@@ -1,5 +1,10 @@
 .godot/
 *.translation
+
+# GDExtension libs for the cross-built platforms — CI stages these from the
+# `gdextension` job. Only the signed macOS dylib is committed (LFS).
+addons/q/linux/
+addons/q/windows/
 export_credentials.cfg
 screenshots/
 reports/

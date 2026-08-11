@@ -109,6 +109,23 @@ message GameEngineConfig {
 
   // UE -CustomConfig client cook layer (e.g. Beta). Empty = no custom config.
   optional string custom_config = 15;
+
+  // Native extension built alongside the engine project. Unset = the project
+  // has no native library and CI skips the cross-build entirely.
+  optional GdExtensionConfig gdextension = 16;
+}
+
+// Native GDExtension library that a Godot project loads at runtime. The
+// exporter hard-fails on any platform entry declared in the .gdextension file
+// whose shared object is missing, so CI cross-builds the crate per platform
+// and stages the result into the addon before exporting.
+message GdExtensionConfig {
+  // Cargo package name to build (`cargo build --release -p <package>`).
+  string package = 1;
+
+  // Addon directory holding the .gdextension file, relative to project_path.
+  // CI writes the built libs to <addon_path>/<platform>/.
+  string addon_path = 2;
 }
 
 // One Steam application entry for [`ExternalPublish`]. Demos, the main

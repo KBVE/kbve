@@ -37,6 +37,22 @@
 				"cwd": "apps/friendslop/godot-friendslop"
 			}
 		},
+		"dev": {
+			"executor": "nx:run-commands",
+			"dependsOn": [{ "projects": ["q"], "target": "deploy-mac" }],
+			"options": {
+				"command": "godot .",
+				"cwd": "apps/friendslop/godot-friendslop"
+			}
+		},
+		"dev:editor": {
+			"executor": "nx:run-commands",
+			"dependsOn": [{ "projects": ["q"], "target": "deploy-mac" }],
+			"options": {
+				"command": "godot --editor .",
+				"cwd": "apps/friendslop/godot-friendslop"
+			}
+		},
 		"export:windows": {
 			"executor": "nx:run-commands",
 			"options": {

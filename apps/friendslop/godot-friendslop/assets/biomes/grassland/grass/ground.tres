@@ -1,7 +1,10 @@
-[gd_resource type="ShaderMaterial" load_steps=9 format=3]
+[gd_resource type="ShaderMaterial" load_steps=12 format=3]
 
 [ext_resource type="Shader" path="res://assets/biomes/grassland/grass/ground.gdshader" id="1_shader"]
 [ext_resource type="Texture2D" path="res://assets/biomes/grassland/grass/grass_normals.png" id="2_normals"]
+[ext_resource type="Texture2D" path="res://assets/biomes/grassland/road/ground_tiles_13_albedo.png" id="3_road_albedo"]
+[ext_resource type="Texture2D" path="res://assets/biomes/grassland/road/ground_tiles_13_normal_gl.png" id="4_road_normal"]
+[ext_resource type="Texture2D" path="res://assets/biomes/grassland/road/ground_tiles_13_orm.png" id="5_road_orm"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_patch"]
 
@@ -41,3 +44,9 @@ shader_parameter/wind_noise = SubResource("NoiseTexture2D_wind")
 shader_parameter/wind_strength = 0.1
 shader_parameter/wind_bend_strength = 2.0
 shader_parameter/wind_ao_affect = 1.0
+shader_parameter/road_albedo = ExtResource("3_road_albedo")
+shader_parameter/road_normal = ExtResource("4_road_normal")
+shader_parameter/road_orm = ExtResource("5_road_orm")
+shader_parameter/road_tile_scale = 1.4
+shader_parameter/road_edge_break = 0.35
+shader_parameter/road_tint = Color(0.86, 0.83, 0.78, 1)

@@ -38,10 +38,29 @@ proto-server = ["server", "proto-shared"]
 rapier2d-client = ["client", "dep:rapier2d"]
 rapier2d-server = ["server", "dep:rapier2d"]
 
+# Physics 3d — the off-thread fixed-tick sim behind friendslop.
+# `sim3d` is the engine-agnostic core: pure rapier3d, no Godot, no Bevy, so the
+# identical step code compiles headless for the authoritative server. The
+# `-client` flavor adds the Godot bridge node on top of it.
+# tokio is a direct requirement, not inherited from a side: the sim thread uses
+# `tokio::sync` for its command queue and snapshot channel, so `rapier3d-sim`
+# must build standalone without `client` or `server`.
+rapier3d-sim = ["dep:rapier3d", "dep:tokio"]
+rapier3d-client = ["client", "rapier3d-sim"]
+rapier3d-server = ["server", "rapier3d-sim"]
+
 # Networking — WS client for the Godot extension, axum for the server.
 # Both sides require proto-* for wire framing.
-net-client = ["client", "proto-client", "dep:tokio-tungstenite", "dep:futures-util"]
-net-server = ["server", "proto-server", "dep:axum", "dep:tokio-tungstenite", "dep:futures-util"]
+#
+# `net-transport` is the vendor-agnostic seam only: no tokio-tungstenite, no
+# axum, no Steam. It carries the in-process Loopback impl so session logic is
+# testable in CI, where a real Steam client can never run.
+net-transport = ["proto-shared"]
+# Listen-server host/client roles driving the sim over a Transport. Needs the
+# sim itself, so it is separate from the bare transport seam.
+net-session = ["net-transport", "rapier3d-sim"]
+net-client = ["client", "proto-client", "net-transport", "dep:tokio-tungstenite", "dep:futures-util"]
+net-server = ["server", "proto-server", "net-transport", "dep:axum", "dep:tokio-tungstenite", "dep:futures-util"]
 
 # Bevy ECS app for server flavors. Server-only — clients use their host engine.
 bevy-server = ["server", "dep:bevy"]
@@ -69,6 +88,7 @@ bincode = { workspace = true, optional = true, features = ["serde"] }
 
 # Physics
 rapier2d = { version = "0.22", optional = true }
+rapier3d = { version = "0.35", optional = true }
 
 # Bevy ECS — headless server. No render, no winit; we drive App::update from a tokio task.
 bevy = { workspace = true, optional = true, features = ["bevy_state"] }

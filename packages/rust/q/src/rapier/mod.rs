@@ -8,3 +8,12 @@ pub mod client;
 
 #[cfg(feature = "rapier2d-server")]
 pub mod server;
+
+/// Engine-agnostic 3d sim, shared by the client bridge and the headless server.
+#[cfg(feature = "rapier3d-sim")]
+pub mod sim3d;
+
+/// Godot adapter over [`sim3d`]. Client-only — it is the one place in the
+/// physics stack allowed to name Godot types.
+#[cfg(feature = "rapier3d-client")]
+pub mod bridge3d;
