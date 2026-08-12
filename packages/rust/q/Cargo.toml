@@ -64,6 +64,8 @@ net-session = ["net-transport", "rapier3d-sim"]
 net-ws = ["net-transport", "dep:tokio", "dep:axum", "dep:tokio-tungstenite", "dep:futures-util"]
 # Everything the dedicated server needs: authoritative sim + session + wire.
 net-dedicated = ["net-session", "net-ws"]
+# Godot node that renders a remote session — the client half of the dedicated flow.
+net-godot = ["rapier3d-client", "net-session", "net-ws"]
 net-client = ["client", "proto-client", "net-transport", "dep:tokio-tungstenite", "dep:futures-util"]
 net-server = ["server", "proto-server", "net-transport", "dep:axum", "dep:tokio-tungstenite", "dep:futures-util"]
 

@@ -48,7 +48,7 @@
 			"options": {
 				"cwd": "packages/rust/q",
 				"commands": [
-					"cargo +nightly build -Z build-std=std,panic_abort  -Z unstable-options --target aarch64-apple-darwin --artifact-dir dist/macos --release",
+					"cargo +nightly build -Z build-std=std,panic_abort  -Z unstable-options --features net-godot --target aarch64-apple-darwin --artifact-dir dist/macos --release",
 					"mkdir -p release/addons/q/macos",
 					"cp dist/macos/*.dylib release/addons/q/macos/",
 					"bash scripts/sign-dylib.sh release/addons/q/macos/libq.dylib"
@@ -62,7 +62,7 @@
 			"options": {
 				"cwd": "packages/rust/q",
 				"commands": [
-					"cargo build --target aarch64-apple-ios --release"
+					"cargo build --features net-godot --target aarch64-apple-ios --release"
 				],
 				"parallel": false
 			}
