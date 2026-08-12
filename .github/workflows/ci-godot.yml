@@ -90,25 +90,38 @@ jobs:
                   FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
                   PROJECT_PATH: ${{ fromJSON(inputs.engine).project_path }}
               run: |
-                  # checkout leaves LFS entries as ~130-byte pointer stubs. Godot happily
-                  # imports those as corrupt PNG/GLB, so the suite goes green against a
-                  # project with no art. Pull the real blobs off git.kbve.com first.
-                  if ! git -C "$PROJECT_PATH" ls-files ':(attr:filter=lfs)' | head -1 | grep -q .; then
+                  # git-lfs first: the LFS-presence probe needs it, and the
+                  # `:(attr:filter=lfs)` pathspec that used to answer this question
+                  # silently returns nothing in a --filter=blob:none partial clone
+                  # (no blobs, no attributes to match) — which skipped the pull and
+                  # shipped a 132-byte pointer as the macOS dylib.
+                  command -v git-lfs >/dev/null 2>&1 || {
+                    apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
+                  }
+                  git lfs install --local
+                  if ! git lfs ls-files -n | grep -q "^$PROJECT_PATH/"; then
                     echo "::notice::No LFS-tracked files under $PROJECT_PATH — skipping"
                     exit 0
                   fi
                   if [ -z "$FORGEJO_USER" ] || [ -z "$FORGEJO_TOKEN" ]; then
-                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — LFS assets would import as pointer stubs"
+                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — LFS assets would ship as pointer stubs"
                     exit 1
                   fi
-                  command -v git-lfs >/dev/null 2>&1 || {
-                    apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
-                  }
                   printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
                     "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
                   chmod 600 "$HOME/.netrc"
-                  git lfs install --local
                   git lfs pull -I "$PROJECT_PATH/**"
+                  # Assert the pull actually resolved: a leftover pointer is a text
+                  # file starting with the LFS spec URL. Godot imports those as
+                  # ERR_FILE_CORRUPT / refuses to load them, but the export itself
+                  # still "succeeds", so nothing else catches it.
+                  STUBS=$(git lfs ls-files -n | grep "^$PROJECT_PATH/" \
+                    | xargs -r grep -l "^version https://git-lfs" 2>/dev/null | head -5)
+                  if [ -n "$STUBS" ]; then
+                    echo "::error::LFS pointers unresolved after pull:"
+                    echo "$STUBS"
+                    exit 1
+                  fi
             - name: Run headless test pass
               env:
                   GODOT_BIN: godot
@@ -306,10 +319,16 @@ jobs:
                   FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
                   PROJECT_PATH: ${{ fromJSON(inputs.engine).project_path }}
               run: |
-                  # Without this the export packs pointer stubs: every LFS texture
-                  # imports as ERR_FILE_CORRUPT and any committed native lib (e.g. the
-                  # signed macOS dylib) is a 130-byte text file the loader rejects.
-                  if ! git -C "$PROJECT_PATH" ls-files ':(attr:filter=lfs)' | head -1 | grep -q .; then
+                  # git-lfs first: the LFS-presence probe needs it, and the
+                  # `:(attr:filter=lfs)` pathspec that used to answer this question
+                  # silently returns nothing in a --filter=blob:none partial clone
+                  # (no blobs, no attributes to match) — which skipped the pull and
+                  # shipped a 132-byte pointer as the macOS dylib.
+                  command -v git-lfs >/dev/null 2>&1 || {
+                    apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
+                  }
+                  git lfs install --local
+                  if ! git lfs ls-files -n | grep -q "^$PROJECT_PATH/"; then
                     echo "::notice::No LFS-tracked files under $PROJECT_PATH — skipping"
                     exit 0
                   fi
@@ -317,14 +336,21 @@ jobs:
                     echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — LFS assets would ship as pointer stubs"
                     exit 1
                   fi
-                  command -v git-lfs >/dev/null 2>&1 || {
-                    apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
-                  }
                   printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
                     "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
                   chmod 600 "$HOME/.netrc"
-                  git lfs install --local
                   git lfs pull -I "$PROJECT_PATH/**"
+                  # Assert the pull actually resolved: a leftover pointer is a text
+                  # file starting with the LFS spec URL. Godot imports those as
+                  # ERR_FILE_CORRUPT / refuses to load them, but the export itself
+                  # still "succeeds", so nothing else catches it.
+                  STUBS=$(git lfs ls-files -n | grep "^$PROJECT_PATH/" \
+                    | xargs -r grep -l "^version https://git-lfs" 2>/dev/null | head -5)
+                  if [ -n "$STUBS" ]; then
+                    echo "::error::LFS pointers unresolved after pull:"
+                    echo "$STUBS"
+                    exit 1
+                  fi
             - name: Download GDExtension binaries
               if: ${{ fromJSON(inputs.engine).gdextension.package != '' }}
               uses: actions/download-artifact@v8
