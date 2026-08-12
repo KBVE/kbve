@@ -142,8 +142,14 @@ jobs:
                 include:
                     - slot: linux
                       os: ubuntu-latest
+                      dest: linux
                     - slot: windows
                       os: windows-latest
+                      dest: windows
+                    - slot: android
+                      os: ubuntu-latest
+                      dest: android/arm64
+                      rust_target: aarch64-linux-android
         steps:
             - name: Permit colon paths in the index (Windows)
               if: matrix.slot == 'windows'
@@ -217,6 +223,18 @@ jobs:
                     libjavascriptcoregtk-4.1-dev
             - name: Setup Rust (stable)
               uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: ${{ matrix.rust_target }}
+            - name: Point cargo at the Android NDK linker
+              if: matrix.slot == 'android'
+              run: |
+                  # The runner image ships an NDK; take the newest one rather than
+                  # pinning a revision that ages out of the image.
+                  NDK=$(ls -d "$ANDROID_HOME"/ndk/* | sort -V | tail -1)
+                  CLANG="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang"
+                  test -x "$CLANG" || { echo "::error::No aarch64 clang wrapper under $NDK"; exit 1; }
+                  echo "CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=$CLANG" >> "$GITHUB_ENV"
+                  echo "CC_aarch64_linux_android=$CLANG" >> "$GITHUB_ENV"
             - name: Rust Cache
               uses: Swatinem/rust-cache@v2
               with:
@@ -225,19 +243,38 @@ jobs:
                   cache-on-failure: true
             - name: Build cdylib
               shell: bash
-              run: cargo build --release -p ${{ fromJSON(inputs.engine).gdextension.package }}
+              env:
+                  PKG: ${{ fromJSON(inputs.engine).gdextension.package }}
+                  RUST_TARGET: ${{ matrix.rust_target }}
+              run: cargo build --release -p "$PKG" ${RUST_TARGET:+--target "$RUST_TARGET"}
             - name: Stage artefact
               shell: bash
               env:
                   PKG: ${{ fromJSON(inputs.engine).gdextension.package }}
+                  RUST_TARGET: ${{ matrix.rust_target }}
+                  DEST: ${{ matrix.dest }}
               run: |
                   LIB=$(echo "$PKG" | tr '-' '_')
                   case "${{ matrix.slot }}" in
-                    linux)   SRC="target/release/lib${LIB}.so";  DST="lib${LIB}.so" ;;
-                    windows) SRC="target/release/${LIB}.dll";    DST="${LIB}.dll" ;;
+                    windows) NAME="${LIB}.dll" ;;
+                    *)       NAME="lib${LIB}.so" ;;
                   esac
-                  mkdir -p stage
-                  cp "$SRC" "stage/$DST"
+                  # Root .cargo/config.toml redirects target-dir to dist/target, but
+                  # the cone sparse-checkout only pulls root-level files, not the
+                  # .cargo/ directory — so which one exists depends on the checkout.
+                  # Look in both instead of betting on it.
+                  SUB="release/$NAME"
+                  [ -n "$RUST_TARGET" ] && SUB="$RUST_TARGET/$SUB"
+                  for BASE in target dist/target; do
+                    [ -f "$BASE/$SUB" ] && SRC="$BASE/$SUB" && break
+                  done
+                  test -n "$SRC" || { echo "::error::Built library not found at */$SUB"; exit 1; }
+                  # Staged under its addon-relative path so the export job can copy
+                  # the tree straight in — android nests one level deeper than the
+                  # desktop slots.
+                  mkdir -p "stage/$DEST"
+                  cp "$SRC" "stage/$DEST/$NAME"
+                  find stage -type f -printf '%p\t%s bytes\n'
             - name: Upload artefact
               uses: actions/upload-artifact@v7
               with:
@@ -304,11 +341,12 @@ jobs:
                   # The .gdextension manifest lists a per-platform path and the exporter
                   # hard-fails when one is missing, so every preset in build_targets needs
                   # its lib present even though a single container drives all the exports.
-                  for SLOT in linux windows; do
-                    SRC="gdext/gdext-${APP}-${SLOT}"
+                  # Each artefact already carries its addon-relative directory, so copy
+                  # the tree rather than re-deriving the layout here.
+                  mkdir -p "$PROJECT_PATH/$ADDON_PATH"
+                  for SRC in gdext/gdext-"${APP}"-*; do
                     [ -d "$SRC" ] || continue
-                    mkdir -p "$PROJECT_PATH/$ADDON_PATH/$SLOT"
-                    cp "$SRC"/* "$PROJECT_PATH/$ADDON_PATH/$SLOT/"
+                    cp -R "$SRC"/. "$PROJECT_PATH/$ADDON_PATH/"
                   done
                   find "$PROJECT_PATH/$ADDON_PATH" -type f -printf '%p\t%s bytes\n'
             - name: Stage export templates
