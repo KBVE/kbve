@@ -90,25 +90,42 @@ jobs:
                   FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
                   PROJECT_PATH: ${{ fromJSON(inputs.engine).project_path }}
               run: |
-                  # checkout leaves LFS entries as ~130-byte pointer stubs. Godot happily
-                  # imports those as corrupt PNG/GLB, so the suite goes green against a
-                  # project with no art. Pull the real blobs off git.kbve.com first.
-                  if ! git -C "$PROJECT_PATH" ls-files ':(attr:filter=lfs)' | head -1 | grep -q .; then
+                  # git-lfs first: the LFS-presence probe needs it, and the
+                  # `:(attr:filter=lfs)` pathspec that used to answer this question
+                  # silently returns nothing in a --filter=blob:none partial clone
+                  # (no blobs, no attributes to match) — which skipped the pull and
+                  # shipped a 132-byte pointer as the macOS dylib.
+                  command -v git-lfs >/dev/null 2>&1 || {
+                    apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
+                  }
+                  # actions/checkout writes its safe.directory entry under a HOME it
+                  # then restores, so inside the container git doesn't trust the
+                  # workspace and git-lfs exits 128 "Not in a Git repository".
+                  git config --global --add safe.directory "$PWD"
+                  git lfs install --local
+                  if ! git lfs ls-files -n | grep -q "^$PROJECT_PATH/"; then
                     echo "::notice::No LFS-tracked files under $PROJECT_PATH — skipping"
                     exit 0
                   fi
                   if [ -z "$FORGEJO_USER" ] || [ -z "$FORGEJO_TOKEN" ]; then
-                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — LFS assets would import as pointer stubs"
+                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — LFS assets would ship as pointer stubs"
                     exit 1
                   fi
-                  command -v git-lfs >/dev/null 2>&1 || {
-                    apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
-                  }
                   printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
                     "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
                   chmod 600 "$HOME/.netrc"
-                  git lfs install --local
                   git lfs pull -I "$PROJECT_PATH/**"
+                  # Assert the pull actually resolved: a leftover pointer is a text
+                  # file starting with the LFS spec URL. Godot imports those as
+                  # ERR_FILE_CORRUPT / refuses to load them, but the export itself
+                  # still "succeeds", so nothing else catches it.
+                  STUBS=$(git lfs ls-files -n | grep "^$PROJECT_PATH/" \
+                    | xargs -r grep -l "^version https://git-lfs" 2>/dev/null | head -5)
+                  if [ -n "$STUBS" ]; then
+                    echo "::error::LFS pointers unresolved after pull:"
+                    echo "$STUBS"
+                    exit 1
+                  fi
             - name: Run headless test pass
               env:
                   GODOT_BIN: godot
@@ -142,8 +159,14 @@ jobs:
                 include:
                     - slot: linux
                       os: ubuntu-latest
+                      dest: linux
                     - slot: windows
                       os: windows-latest
+                      dest: windows
+                    - slot: android
+                      os: ubuntu-latest
+                      dest: android/arm64
+                      rust_target: aarch64-linux-android
         steps:
             - name: Permit colon paths in the index (Windows)
               if: matrix.slot == 'windows'
@@ -217,6 +240,18 @@ jobs:
                     libjavascriptcoregtk-4.1-dev
             - name: Setup Rust (stable)
               uses: dtolnay/rust-toolchain@stable
+              with:
+                  targets: ${{ matrix.rust_target }}
+            - name: Point cargo at the Android NDK linker
+              if: matrix.slot == 'android'
+              run: |
+                  # The runner image ships an NDK; take the newest one rather than
+                  # pinning a revision that ages out of the image.
+                  NDK=$(ls -d "$ANDROID_HOME"/ndk/* | sort -V | tail -1)
+                  CLANG="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang"
+                  test -x "$CLANG" || { echo "::error::No aarch64 clang wrapper under $NDK"; exit 1; }
+                  echo "CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=$CLANG" >> "$GITHUB_ENV"
+                  echo "CC_aarch64_linux_android=$CLANG" >> "$GITHUB_ENV"
             - name: Rust Cache
               uses: Swatinem/rust-cache@v2
               with:
@@ -225,19 +260,38 @@ jobs:
                   cache-on-failure: true
             - name: Build cdylib
               shell: bash
-              run: cargo build --release -p ${{ fromJSON(inputs.engine).gdextension.package }}
+              env:
+                  PKG: ${{ fromJSON(inputs.engine).gdextension.package }}
+                  RUST_TARGET: ${{ matrix.rust_target }}
+              run: cargo build --release -p "$PKG" ${RUST_TARGET:+--target "$RUST_TARGET"}
             - name: Stage artefact
               shell: bash
               env:
                   PKG: ${{ fromJSON(inputs.engine).gdextension.package }}
+                  RUST_TARGET: ${{ matrix.rust_target }}
+                  DEST: ${{ matrix.dest }}
               run: |
                   LIB=$(echo "$PKG" | tr '-' '_')
                   case "${{ matrix.slot }}" in
-                    linux)   SRC="target/release/lib${LIB}.so";  DST="lib${LIB}.so" ;;
-                    windows) SRC="target/release/${LIB}.dll";    DST="${LIB}.dll" ;;
+                    windows) NAME="${LIB}.dll" ;;
+                    *)       NAME="lib${LIB}.so" ;;
                   esac
-                  mkdir -p stage
-                  cp "$SRC" "stage/$DST"
+                  # Root .cargo/config.toml redirects target-dir to dist/target, but
+                  # the cone sparse-checkout only pulls root-level files, not the
+                  # .cargo/ directory — so which one exists depends on the checkout.
+                  # Look in both instead of betting on it.
+                  SUB="release/$NAME"
+                  [ -n "$RUST_TARGET" ] && SUB="$RUST_TARGET/$SUB"
+                  for BASE in target dist/target; do
+                    [ -f "$BASE/$SUB" ] && SRC="$BASE/$SUB" && break
+                  done
+                  test -n "$SRC" || { echo "::error::Built library not found at */$SUB"; exit 1; }
+                  # Staged under its addon-relative path so the export job can copy
+                  # the tree straight in — android nests one level deeper than the
+                  # desktop slots.
+                  mkdir -p "stage/$DEST"
+                  cp "$SRC" "stage/$DEST/$NAME"
+                  find stage -type f -printf '%p\t%s bytes\n'
             - name: Upload artefact
               uses: actions/upload-artifact@v7
               with:
@@ -269,10 +323,20 @@ jobs:
                   FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
                   PROJECT_PATH: ${{ fromJSON(inputs.engine).project_path }}
               run: |
-                  # Without this the export packs pointer stubs: every LFS texture
-                  # imports as ERR_FILE_CORRUPT and any committed native lib (e.g. the
-                  # signed macOS dylib) is a 130-byte text file the loader rejects.
-                  if ! git -C "$PROJECT_PATH" ls-files ':(attr:filter=lfs)' | head -1 | grep -q .; then
+                  # git-lfs first: the LFS-presence probe needs it, and the
+                  # `:(attr:filter=lfs)` pathspec that used to answer this question
+                  # silently returns nothing in a --filter=blob:none partial clone
+                  # (no blobs, no attributes to match) — which skipped the pull and
+                  # shipped a 132-byte pointer as the macOS dylib.
+                  command -v git-lfs >/dev/null 2>&1 || {
+                    apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
+                  }
+                  # actions/checkout writes its safe.directory entry under a HOME it
+                  # then restores, so inside the container git doesn't trust the
+                  # workspace and git-lfs exits 128 "Not in a Git repository".
+                  git config --global --add safe.directory "$PWD"
+                  git lfs install --local
+                  if ! git lfs ls-files -n | grep -q "^$PROJECT_PATH/"; then
                     echo "::notice::No LFS-tracked files under $PROJECT_PATH — skipping"
                     exit 0
                   fi
@@ -280,14 +344,21 @@ jobs:
                     echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — LFS assets would ship as pointer stubs"
                     exit 1
                   fi
-                  command -v git-lfs >/dev/null 2>&1 || {
-                    apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
-                  }
                   printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
                     "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
                   chmod 600 "$HOME/.netrc"
-                  git lfs install --local
                   git lfs pull -I "$PROJECT_PATH/**"
+                  # Assert the pull actually resolved: a leftover pointer is a text
+                  # file starting with the LFS spec URL. Godot imports those as
+                  # ERR_FILE_CORRUPT / refuses to load them, but the export itself
+                  # still "succeeds", so nothing else catches it.
+                  STUBS=$(git lfs ls-files -n | grep "^$PROJECT_PATH/" \
+                    | xargs -r grep -l "^version https://git-lfs" 2>/dev/null | head -5)
+                  if [ -n "$STUBS" ]; then
+                    echo "::error::LFS pointers unresolved after pull:"
+                    echo "$STUBS"
+                    exit 1
+                  fi
             - name: Download GDExtension binaries
               if: ${{ fromJSON(inputs.engine).gdextension.package != '' }}
               uses: actions/download-artifact@v8
@@ -304,11 +375,12 @@ jobs:
                   # The .gdextension manifest lists a per-platform path and the exporter
                   # hard-fails when one is missing, so every preset in build_targets needs
                   # its lib present even though a single container drives all the exports.
-                  for SLOT in linux windows; do
-                    SRC="gdext/gdext-${APP}-${SLOT}"
+                  # Each artefact already carries its addon-relative directory, so copy
+                  # the tree rather than re-deriving the layout here.
+                  mkdir -p "$PROJECT_PATH/$ADDON_PATH"
+                  for SRC in gdext/gdext-"${APP}"-*; do
                     [ -d "$SRC" ] || continue
-                    mkdir -p "$PROJECT_PATH/$ADDON_PATH/$SLOT"
-                    cp "$SRC"/* "$PROJECT_PATH/$ADDON_PATH/$SLOT/"
+                    cp -R "$SRC"/. "$PROJECT_PATH/$ADDON_PATH/"
                   done
                   find "$PROJECT_PATH/$ADDON_PATH" -type f -printf '%p\t%s bytes\n'
             - name: Stage export templates
@@ -337,7 +409,11 @@ jobs:
                   # format" on macOS, which only takes .app/.zip/.dmg). Web wants
                   # the entry page. Linux is the one platform happy bare.
                   CASE=$(echo '${{ matrix.preset }}' | tr '[:upper:]' '[:lower:]')
+                  # iOS before mac: "iOS" contains no 'mac', but keep the order
+                  # explicit so a future "macOS iOS Universal"-style preset name
+                  # can't fall into the wrong arm.
                   case "$CASE" in
+                    *ios*)           OUT="$APP.ipa" ;;
                     *mac*|*osx*)     OUT="$APP.zip" ;;
                     *win*)           OUT="$APP.exe" ;;
                     *web*|*html*)    OUT="index.html" ;;
