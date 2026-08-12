@@ -1,11 +1,11 @@
 {
-	"generated_at": "2026-08-11T03:05:29.700Z",
+	"generated_at": "2026-08-12T03:24:42.995Z",
 	"summary": {
 		"total_protos": 47,
 		"registered": 0,
 		"orphaned": 46,
 		"utility_only": 1,
-		"total_messages": 831,
+		"total_messages": 832,
 		"total_enums": 171
 	},
 	"protos": [
@@ -475,6 +475,7 @@
 			"package": "kbve.ci",
 			"messages": [
 				"GameEngineConfig",
+				"GdExtensionConfig",
 				"SteamApp",
 				"FactorioMod",
 				"KubeMetadata",
@@ -492,7 +493,7 @@
 				"CiRegistry"
 			],
 			"enums": ["DispatchPipeline", "TestFramework"],
-			"message_count": 16,
+			"message_count": 17,
 			"enum_count": 2,
 			"codegen": {
 				"registered": false,
@@ -1758,7 +1759,7 @@
 		"packages/data/proto/spell/spelldb.proto",
 		"packages/data/proto/wallet/wallet.proto"
 	],
-	"checked_at": "2026-08-11T03:05:00Z",
+	"checked_at": "2026-08-12T03:24:12Z",
 	"drift_detected": true,
 	"drift_files": ["packages/data/codegen/generated/professiondb-schema.ts"]
 }
