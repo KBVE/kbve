@@ -12,7 +12,7 @@ spec:
         annotations:
             io.cilium/lb-ipam-ips: '142.132.206.71'
             lbipam.cilium.io/sharing-key: public-71
-            lbipam.cilium.io/sharing-cross-namespace: arpg,stalwart
+            lbipam.cilium.io/sharing-cross-namespace: arpg,stalwart,friendslop
     listeners:
         - name: http
           protocol: HTTP

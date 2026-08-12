@@ -176,11 +176,13 @@ Terrain is never transmitted. Both sides bake heights from the seed via `q::worl
 
 **Deployment** — an Agones `Fleet` (`apps/kube/agones/friendslop/manifests/`) with `replicas: 0` and a buffer autoscaler. The image must land on `ghcr.io/kbve/friendslop-server` before the Fleet can scale up, and the ArgoCD application is not registered yet.
 
-The two lanes are exposed differently, and the difference is forced: the WebSocket uses `portPolicy: None` and is reached through the Cilium gateway, but **UDP cannot traverse an L7 HTTPRoute**, so the datagram lane uses `portPolicy: Dynamic` and Agones maps it to a host port. The server reads its published address and port back over the Agones SDK and advertises those to clients — otherwise it would hand out `7981`, which is unreachable outside the pod. `FS_UDP_ADVERTISE_HOST` / `FS_UDP_ADVERTISE_PORT` override it when something Agones does not know about fronts the lane.
+The two lanes are exposed differently because UDP cannot traverse an L7 HTTPRoute. The WebSocket goes through the Cilium gateway; the datagram lane gets its own L4 `LoadBalancer` Service (`friendslop-game-udp`). Both use `portPolicy: None`, so no hostPort is involved and the pods stay compatible with baseline PodSecurity — the same shape `arpg` already uses for its WS + UDP split.
 
-A hostPort violates PodSecurity `baseline`, so the `friendslop` namespace needs a `privileged` label or an equivalent exception before GameServer pods will schedule.
+The public IP pool is a single `/32`, so every LoadBalancer in the cluster shares `142.132.206.71` via `sharing-key: public-71`. Cilium only permits that when each participant names the others in `sharing-cross-namespace`, so registering this service also required adding `friendslop` to `kbve-gateway` and to `arpg-game-udp`. Port `7981/UDP` is free on that IP.
 
-**Status** — Beta, undeployed. Container and e2e green locally; Fleet manifest written but not registered with ArgoCD, and Godot scene wiring outstanding.
+Because the datagram lane answers on the LoadBalancer IP rather than the gateway hostname the WebSocket uses, the server advertises it explicitly via `FS_UDP_ADVERTISE_HOST` / `FS_UDP_ADVERTISE_PORT`. When Agones does port-map instead (`portPolicy: Dynamic` or `Static`), the server falls back to reading its published address and port from the Agones SDK.
+
+**Status** — Beta, undeployed. Container and e2e green locally; Fleet manifests written but not registered with ArgoCD, and Godot scene wiring outstanding.
 
 </BentoProse>
 

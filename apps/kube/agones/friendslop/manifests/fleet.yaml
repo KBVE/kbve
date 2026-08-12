@@ -21,25 +21,19 @@ spec:
                 app.kubernetes.io/part-of: friendslop
         spec:
             ports:
-                # Reliable lane. No hostPort — clients reach it through the
-                # Cilium gateway (HTTPRoute -> friendslop-game Service), so the
-                # pod stays compatible with baseline PodSecurity.
+                # No hostPort — the reliable lane is reached through the
+                # Cilium gateway (HTTPRoute -> friendslop-game Service) and the
+                # datagram lane through an L4 LoadBalancer Service
+                # (friendslop-game-udp), so the pod stays compatible with
+                # baseline PodSecurity. Same shape as arpg.
                 - name: ws
                   portPolicy: None
                   containerPort: 7980
                   protocol: TCP
-                # Unreliable lane. Dynamic rather than None because UDP cannot
-                # traverse an L7 HTTPRoute — it has to reach the node directly,
-                # so Agones maps 7981 to a host port and publishes the pair in
-                # GameServer status. The server reads that back over the SDK and
-                # advertises it to clients; without the mapping it would tell
-                # them 7981, which is not reachable from outside the pod.
-                #
-                # NOTE: a hostPort violates PodSecurity `baseline`. This
-                # namespace must be labelled `privileged` (or a hostPort
-                # exception granted) or the GameServer pods will be rejected.
+                # UDP cannot traverse an L7 HTTPRoute, hence the separate
+                # LoadBalancer Service rather than a gateway route.
                 - name: udp
-                  portPolicy: Dynamic
+                  portPolicy: None
                   containerPort: 7981
                   protocol: UDP
             health:
@@ -80,6 +74,15 @@ spec:
                                 value: '256'
                               - name: FS_TERRAIN_RESOLUTION
                                 value: '513'
+                              # portPolicy None means no port mapping, so the
+                              # container port is the reachable one — but the
+                              # datagram lane answers on the LoadBalancer IP,
+                              # not the gateway hostname the WebSocket uses, so
+                              # the host still has to be advertised explicitly.
+                              - name: FS_UDP_ADVERTISE_HOST
+                                value: '142.132.206.71'
+                              - name: FS_UDP_ADVERTISE_PORT
+                                value: '7981'
                               - name: RUST_LOG
                                 value: 'info,friendslop_server=debug,q=info'
                           ports:
