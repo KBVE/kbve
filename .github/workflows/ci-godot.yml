@@ -98,6 +98,10 @@ jobs:
                   command -v git-lfs >/dev/null 2>&1 || {
                     apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
                   }
+                  # actions/checkout writes its safe.directory entry under a HOME it
+                  # then restores, so inside the container git doesn't trust the
+                  # workspace and git-lfs exits 128 "Not in a Git repository".
+                  git config --global --add safe.directory "$PWD"
                   git lfs install --local
                   if ! git lfs ls-files -n | grep -q "^$PROJECT_PATH/"; then
                     echo "::notice::No LFS-tracked files under $PROJECT_PATH — skipping"
@@ -327,6 +331,10 @@ jobs:
                   command -v git-lfs >/dev/null 2>&1 || {
                     apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
                   }
+                  # actions/checkout writes its safe.directory entry under a HOME it
+                  # then restores, so inside the container git doesn't trust the
+                  # workspace and git-lfs exits 128 "Not in a Git repository".
+                  git config --global --add safe.directory "$PWD"
                   git lfs install --local
                   if ! git lfs ls-files -n | grep -q "^$PROJECT_PATH/"; then
                     echo "::notice::No LFS-tracked files under $PROJECT_PATH — skipping"
