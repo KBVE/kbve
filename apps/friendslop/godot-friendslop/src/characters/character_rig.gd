@@ -9,6 +9,10 @@ extends Node3D
 
 @export var body: PackedScene
 @export var attachments: Array[PackedScene] = []
+## Weapon held in the main hand. A scene wins if both are set; the proxy name is
+## one of weapon_proxy.gd's stand-ins, for working before the art lands.
+@export var weapon_scene: PackedScene
+@export var weapon_proxy := ""
 @export var terrain_path: NodePath
 @export var snap_to_terrain := true
 ## The kit exports with the character facing +Z; Godot's forward is -Z.
@@ -125,6 +129,7 @@ const TINTS := {
 }
 
 var skeleton: Skeleton3D
+var mount: SkeletonModifier3D
 
 
 func _ready() -> void:
@@ -145,8 +150,23 @@ func _ready() -> void:
 	_build_animation(rig)
 	if foot_ik:
 		_build_foot_ik()
+	_build_weapon()
 	if snap_to_terrain:
 		_snap()
+
+
+## Q_WEAPON=greatsword|sword|dagger|mace|spear overrides whatever the scene
+## carries, so every grip can be looked at in one run.
+func _build_weapon() -> void:
+	mount = preload("res://src/characters/weapon_mount.gd").new()
+	skeleton.add_child(mount)
+	var proxy := OS.get_environment("Q_WEAPON")
+	if proxy == "":
+		proxy = weapon_proxy
+	if weapon_scene and proxy == "":
+		mount.equip(weapon_scene)
+	elif proxy != "":
+		mount.equip_proxy(proxy)
 
 
 func _build_foot_ik() -> void:
