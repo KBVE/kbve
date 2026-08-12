@@ -330,6 +330,18 @@
 			"has_test": false
 		},
 		{
+			"key": "friendslop_server",
+			"app_name": "friendslop-server",
+			"version": "0.0.1",
+			"version_toml": "apps/agones/friendslop/server/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/friendslop-server.mdx",
+			"version_target": "apps/agones/friendslop/server/Cargo.toml",
+			"source_path": "apps/agones/friendslop/server",
+			"runner": "arc-runner-set",
+			"image": "kbve/friendslop-server",
+			"has_test": false
+		},
+		{
 			"key": "herbmail",
 			"app_name": "herbmail",
 			"version": "0.1.2",
@@ -1458,7 +1470,7 @@
 		}
 	],
 	"summary": {
-		"docker": 41,
+		"docker": 42,
 		"npm": 4,
 		"crates": 27,
 		"python": 2,
@@ -1469,6 +1481,6 @@
 		"unreal_game": 4,
 		"bevy_game": 0,
 		"vite_game": 1,
-		"total": 109
+		"total": 110
 	}
 }
