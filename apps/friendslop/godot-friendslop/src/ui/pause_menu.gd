@@ -8,9 +8,9 @@ var _settings_panel: VBoxContainer
 var _graphics_panel: Control
 var _gameplay_panel: Control
 var _gfx
-var _gfx_rows: Array[Callable] = []
+var _gfx_pages: Array[MenuPage] = []
 var _play
-var _play_rows: Array[Callable] = []
+var _play_pages: Array[MenuPage] = []
 var _codex_panel: HBoxContainer
 var _preview_model: Node3D
 var _preview_pivot: Node3D
@@ -39,7 +39,8 @@ const CLOSE_SPEED := 3.0
 func _ready() -> void:
 	layer = 120
 	process_mode = Node.PROCESS_MODE_ALWAYS
-	_touch = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
+	MenuStyle.detect()
+	_touch = MenuStyle.touch
 	_root = Control.new()
 	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_root.visible = false
@@ -194,57 +195,68 @@ func _build_graphics() -> void:
 	_root.add_child(_graphics_panel)
 
 	_gfx = get_parent().get_node_or_null("GraphicsSettings") if get_parent() else null
-	var left := _page_box(PAGE_LEFT_UV, _graphics_panel)
-	var right := _page_box(PAGE_RIGHT_UV, _graphics_panel)
+	var left := MenuPage.make(MenuStyle.Side.LEFT, _graphics_panel)
+	var right := MenuPage.make(MenuStyle.Side.RIGHT, _graphics_panel)
+	left.pair_with(right)
+	_gfx_pages = [left, right]
 	if _gfx == null:
 		_page_back(right)
 		return
 
-	_gfx_rows.append(_add_cycler(left, "Preset",
+	# One control on touch. The tier already sets scale, ground detail, shadows,
+	# grass and PostFX together, so the individual rows are a way to build a
+	# broken combination on a phone rather than a way to tune one -- and a phone
+	# has no cursor to hover a row it did not mean to change. Count is TIERS, not
+	# PRESET_NAMES: "Custom" is a readout, never something to cycle into.
+	left.add_cycler("Quality" if _touch else "Preset",
 			func() -> Array: return _gfx.PRESET_NAMES,
 			func() -> int: return _gfx.preset_index(),
 			func(i: int) -> void: _gfx.apply_preset(i),
-			_gfx.TIERS.size(), _gfx_rows))
+			_gfx.TIERS.size())
 
-	_gfx_rows.append(_add_cycler(left, "Ground Detail",
+	if _touch:
+		_page_back(right)
+		return
+
+	left.add_cycler("Ground Detail",
 			func() -> Array: return _gfx.DETAIL_NAMES,
 			func() -> int: return _gfx.detail,
 			func(i: int) -> void:
 				_gfx.detail = i
 				_gfx.apply(),
-			_gfx.DETAIL_NAMES.size(), _gfx_rows))
+			_gfx.DETAIL_NAMES.size())
 
-	_gfx_rows.append(_add_cycler(left, "Resolution",
+	left.add_cycler("Resolution",
 			func() -> Array: return ["50%", "60%", "70%", "85%", "100%"],
 			func() -> int: return _nearest_scale(_gfx.render_scale),
 			func(i: int) -> void:
 				_gfx.render_scale = SCALE_STEPS[i]
 				_gfx.apply(),
-			SCALE_STEPS.size(), _gfx_rows))
+			SCALE_STEPS.size())
 
-	_gfx_rows.append(_add_cycler(right, "Shadows",
+	right.add_cycler("Shadows",
 			func() -> Array: return ["Off", "On"],
 			func() -> int: return 1 if _gfx.shadows else 0,
 			func(i: int) -> void:
 				_gfx.shadows = i == 1
 				_gfx.apply(),
-			2, _gfx_rows))
+			2)
 
-	_gfx_rows.append(_add_cycler(right, "Grass",
+	right.add_cycler("Grass",
 			func() -> Array: return _grass_labels(),
 			func() -> int: return _nearest(_gfx.GRASS_STEPS, _gfx.grass_blades),
 			func(i: int) -> void:
 				_gfx.grass_blades = _gfx.GRASS_STEPS[i]
 				_gfx.apply(),
-			_gfx.GRASS_STEPS.size(), _gfx_rows))
+			_gfx.GRASS_STEPS.size())
 
-	_gfx_rows.append(_add_cycler(right, "Post FX",
+	right.add_cycler("Post FX",
 			func() -> Array: return ["Off", "On"],
 			func() -> int: return 1 if _gfx.postfx else 0,
 			func(i: int) -> void:
 				_gfx.postfx = i == 1
 				_gfx.apply(),
-			2, _gfx_rows))
+			2)
 
 	_page_back(right)
 
@@ -257,69 +269,43 @@ func _build_gameplay() -> void:
 	_root.add_child(_gameplay_panel)
 
 	_play = get_parent().get_node_or_null("GameplaySettings") if get_parent() else null
-	var left := _page_box(PAGE_LEFT_UV, _gameplay_panel)
-	var right := _page_box(PAGE_RIGHT_UV, _gameplay_panel)
+	var left := MenuPage.make(MenuStyle.Side.LEFT, _gameplay_panel)
+	var right := MenuPage.make(MenuStyle.Side.RIGHT, _gameplay_panel)
+	left.pair_with(right)
+	_play_pages = [left, right]
 	if _play == null:
 		_page_back(right)
 		return
 
-	_play_rows.append(_add_cycler(left, "Camera",
+	left.add_cycler("Camera",
 			func() -> Array: return _play.CAMERA_NAMES,
 			func() -> int: return _play.camera_mode,
 			func(i: int) -> void: _play.set_camera_mode(i),
-			_play.CAMERA_NAMES.size(), _play_rows))
+			_play.CAMERA_NAMES.size())
 
-	_play_rows.append(_add_cycler(right, "Crosshair",
+	right.add_cycler("Crosshair",
 			func() -> Array: return ["Off", "On"],
 			func() -> int: return 1 if _play.crosshair else 0,
 			func(i: int) -> void: _play.set_crosshair(i == 1),
-			2, _play_rows))
+			2)
 
 	_page_back(right)
 
 
-func _page_back(parent: Container) -> Button:
-	var back := _add_button(parent, "Back", func() -> void: _show(_settings_panel))
-	back.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	back.custom_minimum_size = Vector2(0, _row_h)
-	back.add_theme_font_size_override("font_size", _row_font)
-	_scaled_rows.append(back)
-	return back
+func _page_back(page: MenuPage) -> PaperButton:
+	return page.add_button("Back", func() -> void: _show(_settings_panel))
 
 
 const SCALE_STEPS := [0.5, 0.6, 0.7, 0.85, 1.0]
 
-## The writable area of each open page, in fractions of the book as it lands on
-## screen -- not of the screen. The book is a 3D model in a SubViewport, so its
-## on-screen rect moves with the window aspect, the render scale and the camera
-## framing; anchoring the pages to screen fractions meant re-tuning four numbers
-## every time any of those changed. These are measured against the projected
-## book instead, so they hold at any window size. Flip PAGE_BORDER to see them.
-## The reference frame is the projected bounds of the book mesh, which is the
-## closed bind pose and so narrower than the spread of the open pages -- hence
-## values outside 0..1 on x. What matters is that it moves with the book.
-const PAGE_LEFT_UV := Rect2(-1.161, 0.250, 1.429, 0.570)
-const PAGE_RIGHT_UV := Rect2(0.732, 0.421, 1.429, 0.570)
-const PAGE_BORDER := false
+## Page rects, touch padding and row sizing all moved to MenuStyle -- the pages
+## are the only thing that reads them, and MenuPage applies them in its layout
+## pass. The long note on why they are measured against the projected book
+## rather than the screen lives there with the values.
 
-## Touch gets wider pages and taller rows: the margins that read as comfortable
-## on a desktop window leave the rows squeezed under a thumb.
-const PAGE_PAD_TOUCH := Vector2(0.23, 0.03)
-## Row height as a fraction of the projected book height, clamped so a tiny
-## window still gets a hittable row and a 4K one does not get slabs. Apple and
-## Android both put the minimum comfortable touch target near 44pt.
-const ROW_H_UV := 0.067
-const ROW_H_UV_TOUCH := 0.095
-const ROW_H_RANGE := Vector2(26.0, 64.0)
-const ROW_H_RANGE_TOUCH := Vector2(44.0, 82.0)
-const ROW_FONT_RATIO := 0.5
-const ROW_FONT_RATIO_TOUCH := 0.44
-const ROW_FONT_RANGE := Vector2i(13, 32)
 
-var _page_frames: Array[Dictionary] = []
-var _scaled_rows: Array[Control] = []
-var _row_h := 34.0
-var _row_font := 17
+
+
 
 
 func _book_rect() -> Rect2:
@@ -350,59 +336,12 @@ func _layout_pages() -> void:
 	if debug:
 		print("[book] rect %s  root %s  vp %s" % [book, _root.size, _book_vp.size])
 
-	for entry in _page_frames:
-		var uv: Rect2 = entry.uv
-		if _touch:
-			uv = uv.grow_individual(PAGE_PAD_TOUCH.x, PAGE_PAD_TOUCH.y, PAGE_PAD_TOUCH.x, PAGE_PAD_TOUCH.y)
-		var frame: Control = entry.frame
-		frame.anchor_left = book.position.x + book.size.x * uv.position.x
-		frame.anchor_top = book.position.y + book.size.y * uv.position.y
-		frame.anchor_right = book.position.x + book.size.x * (uv.position.x + uv.size.x)
-		frame.anchor_bottom = book.position.y + book.size.y * (uv.position.y + uv.size.y)
-		# Anchors alone do not move a Control -- the default offsets still apply
-		# on top of them, so the box lands off its page unless they are cleared.
-		frame.offset_left = 0.0
-		frame.offset_top = 0.0
-		frame.offset_right = 0.0
-		frame.offset_bottom = 0.0
+	var metrics := MenuStyle.row_metrics(book.size.y, _root.size.y)
+	for page in _gfx_pages + _play_pages:
+		page.layout(book, metrics)
 		if debug:
-			print("[book] page %.3f %.3f %.3f %.3f" % [frame.anchor_left, frame.anchor_top,
-					frame.anchor_right - frame.anchor_left, frame.anchor_bottom - frame.anchor_top])
-
-	var limits := ROW_H_RANGE_TOUCH if _touch else ROW_H_RANGE
-	var row_uv := ROW_H_UV_TOUCH if _touch else ROW_H_UV
-	var font_ratio := ROW_FONT_RATIO_TOUCH if _touch else ROW_FONT_RATIO
-	_row_h = clampf(book.size.y * row_uv * _root.size.y, limits.x, limits.y)
-	_row_font = clampi(int(round(_row_h * font_ratio)), ROW_FONT_RANGE.x, ROW_FONT_RANGE.y)
-	for row in _scaled_rows:
-		row.custom_minimum_size.y = _row_h
-		row.add_theme_font_size_override("font_size", _row_font)
-
-
-func _page_box(uv: Rect2, panel: Control) -> VBoxContainer:
-	var frame := MarginContainer.new()
-	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.add_child(frame)
-	_page_frames.append({"frame": frame, "uv": uv})
-
-	if PAGE_BORDER:
-		var edge := Panel.new()
-		var style := StyleBoxFlat.new()
-		style.bg_color = Color(0, 0, 0, 0)
-		style.border_color = Color(0.8, 0.2, 0.2, 0.7)
-		style.set_border_width_all(1)
-		edge.add_theme_stylebox_override("panel", style)
-		edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		edge.set_anchors_preset(Control.PRESET_FULL_RECT)
-		frame.add_child(edge)
-
-	var box := VBoxContainer.new()
-	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	box.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	box.add_theme_constant_override("separation", 8)
-	frame.add_child(box)
-	return box
+			print("[book] page %.3f %.3f %.3f %.3f" % [page.anchor_left, page.anchor_top,
+					page.anchor_right - page.anchor_left, page.anchor_bottom - page.anchor_top])
 
 
 func _nearest_scale(v: float) -> int:
@@ -432,41 +371,6 @@ func _nearest(steps: Array, v: float) -> int:
 
 ## One row, cycled by clicking rather than a dropdown: every option here is a
 ## short ordered list, and a Button is already themed to match the book.
-func _add_cycler(parent: Container, label: String, names: Callable, get_index: Callable,
-		set_index: Callable, count: int, rows: Array[Callable]) -> Callable:
-	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 8)
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var name_label := Label.new()
-	name_label.text = label
-	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	name_label.size_flags_stretch_ratio = 1.1
-	name_label.custom_minimum_size = Vector2(0, _row_h)
-	name_label.add_theme_font_size_override("font_size", _row_font)
-	_scaled_rows.append(name_label)
-	name_label.add_theme_color_override("font_color", Color(0.25, 0.16, 0.08))
-	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
-	row.add_child(name_label)
-	var value_button := _add_button(row, "", func() -> void: pass)
-	value_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	value_button.custom_minimum_size = Vector2(0, _row_h)
-	value_button.add_theme_font_size_override("font_size", _row_font)
-	_scaled_rows.append(value_button)
-	var refresh := func() -> void:
-		var list: Array = names.call()
-		var i: int = clampi(get_index.call(), 0, list.size() - 1)
-		value_button.text = str(list[i])
-	value_button.pressed.connect(func() -> void:
-		var i: int = (get_index.call() + 1) % count
-		set_index.call(i)
-		for r in rows:
-			r.call())
-	refresh.call()
-	parent.add_child(row)
-	return refresh
-
-
 func _menu_box(page_x: float = 0.5, page_y: float = 0.5) -> VBoxContainer:
 	var box := VBoxContainer.new()
 	box.anchor_left = page_x
@@ -578,11 +482,11 @@ func _show(panel: Control) -> void:
 	if panel == _graphics_panel or panel == _gameplay_panel:
 		_layout_pages()
 	if panel == _graphics_panel:
-		for r in _gfx_rows:
-			r.call()
+		for page in _gfx_pages:
+			page.refresh()
 	if panel == _gameplay_panel:
-		for r in _play_rows:
-			r.call()
+		for page in _play_pages:
+			page.refresh()
 	_main_panel.visible = panel == _main_panel
 	_settings_panel.visible = panel == _settings_panel
 	_graphics_panel.visible = panel == _graphics_panel
