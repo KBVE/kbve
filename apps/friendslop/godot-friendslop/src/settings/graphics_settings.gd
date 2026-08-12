@@ -126,6 +126,7 @@ var grass_blades := 150.0
 var postfx := true
 
 var _ground: ShaderMaterial
+var _riverbed: ShaderMaterial
 var _grass: Node
 var _day: Node
 var _post: CanvasLayer
@@ -170,6 +171,9 @@ func _ready() -> void:
 		var g := main.get_node_or_null("Ground") as MeshInstance3D
 		if g and g.material_override is ShaderMaterial:
 			_ground = g.material_override
+		var terrain := main.get_node_or_null("Terrain")
+		if terrain:
+			_riverbed = terrain.get("riverbed_material") as ShaderMaterial
 		_grass = main.get_node_or_null("GrassField")
 		_day = main.get_node_or_null("DayNight")
 		_post = main.get_node_or_null("PostFX") as CanvasLayer
@@ -219,14 +223,19 @@ func apply() -> void:
 	vp.scaling_3d_scale = clampf(render_scale, 0.5, 1.0)
 	vp.msaa_3d = TIERS[clampi(preset_index(), 0, TIERS.size() - 1)].msaa
 
-	if _ground:
-		var d: Dictionary = DETAIL_POM[clampi(detail, 0, DETAIL_POM.size() - 1)]
-		_ground.set_shader_parameter("pom_strength", d.strength)
-		_ground.set_shader_parameter("pom_layers_max", d.layers)
-		_ground.set_shader_parameter("pom_shadow_strength", d.shadow)
-		if OS.has_feature("mobile"):
-			for key in MOBILE_GROUND:
-				_ground.set_shader_parameter(key, MOBILE_GROUND[key])
+	# The riverbed runs the same SPOM as the ground, so one Ground Detail step
+	# drives both surfaces rather than leaving the bank on whatever its material
+	# shipped with.
+	var d: Dictionary = DETAIL_POM[clampi(detail, 0, DETAIL_POM.size() - 1)]
+	for m in [_ground, _riverbed]:
+		if m == null:
+			continue
+		m.set_shader_parameter("pom_strength", d.strength)
+		m.set_shader_parameter("pom_layers_max", d.layers)
+		m.set_shader_parameter("pom_shadow_strength", d.shadow)
+	if _ground and OS.has_feature("mobile"):
+		for key in MOBILE_GROUND:
+			_ground.set_shader_parameter(key, MOBILE_GROUND[key])
 
 	if _grass:
 		_grass.set("blades_per_sqm", clampf(grass_blades, 10.0, 600.0))

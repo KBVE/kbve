@@ -20,6 +20,8 @@ var _fix_label: Label
 var _book_anim: AnimationPlayer
 var _book_anim_name := ""
 var _book_root: Node3D
+var _book_cam: Camera3D
+var _book_vp: SubViewport
 var _book_warm_light: OmniLight3D
 var _book_base: Transform3D
 var _book_start: Transform3D
@@ -76,6 +78,7 @@ func _build_book() -> void:
 	vp.msaa_3d = Viewport.MSAA_2X
 	vp.render_target_update_mode = SubViewport.UPDATE_ALWAYS
 	add_child(vp)
+	_book_vp = vp
 
 	var screen := TextureRect.new()
 	screen.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -95,6 +98,7 @@ func _build_book() -> void:
 		px.y = maxf(px.y, 64.0)
 		if Vector2i(px) != vp.size:
 			vp.size = Vector2i(px)
+		_layout_pages()
 	get_window().size_changed.connect(fit, CONNECT_DEFERRED)
 	fit.call_deferred()
 
@@ -141,6 +145,7 @@ func _build_book() -> void:
 	var aabb := _model_aabb(_book_root)
 	var cam := Camera3D.new()
 	world.add_child(cam)
+	_book_cam = cam
 	var dist := maxf(aabb.size.length(), 0.3) * 1.45
 	cam.fov = 50.0
 	cam.look_at_from_position(aabb.get_center() + Vector3(0, dist * 0.06, dist), aabb.get_center())
@@ -189,8 +194,8 @@ func _build_graphics() -> void:
 	_root.add_child(_graphics_panel)
 
 	_gfx = get_parent().get_node_or_null("GraphicsSettings") if get_parent() else null
-	var left := _page_box(PAGE_LEFT, _graphics_panel)
-	var right := _page_box(PAGE_RIGHT, _graphics_panel)
+	var left := _page_box(PAGE_LEFT_UV, _graphics_panel)
+	var right := _page_box(PAGE_RIGHT_UV, _graphics_panel)
 	if _gfx == null:
 		_page_back(right)
 		return
@@ -199,7 +204,7 @@ func _build_graphics() -> void:
 			func() -> Array: return _gfx.PRESET_NAMES,
 			func() -> int: return _gfx.preset_index(),
 			func(i: int) -> void: _gfx.apply_preset(i),
-			_gfx.PRESETS.size(), _gfx_rows))
+			_gfx.TIERS.size(), _gfx_rows))
 
 	_gfx_rows.append(_add_cycler(left, "Ground Detail",
 			func() -> Array: return _gfx.DETAIL_NAMES,
@@ -252,8 +257,8 @@ func _build_gameplay() -> void:
 	_root.add_child(_gameplay_panel)
 
 	_play = get_parent().get_node_or_null("GameplaySettings") if get_parent() else null
-	var left := _page_box(PAGE_LEFT, _gameplay_panel)
-	var right := _page_box(PAGE_RIGHT, _gameplay_panel)
+	var left := _page_box(PAGE_LEFT_UV, _gameplay_panel)
+	var right := _page_box(PAGE_RIGHT_UV, _gameplay_panel)
 	if _play == null:
 		_page_back(right)
 		return
@@ -276,61 +281,109 @@ func _build_gameplay() -> void:
 func _page_back(parent: Container) -> Button:
 	var back := _add_button(parent, "Back", func() -> void: _show(_settings_panel))
 	back.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	back.custom_minimum_size = Vector2(0, _row_h())
-	back.add_theme_font_size_override("font_size", _row_font())
+	back.custom_minimum_size = Vector2(0, _row_h)
+	back.add_theme_font_size_override("font_size", _row_font)
+	_scaled_rows.append(back)
 	return back
 
 
 const SCALE_STEPS := [0.5, 0.6, 0.7, 0.85, 1.0]
 
-## The writable area of each open page, as anchor fractions of the screen
-## (x, y, width, height). Content fills its page rather than being centred on a
-## point, so a row added or removed re-flows inside the page instead of growing
-## past the paper. Flip PAGE_BORDER to see the two rects while tuning them.
-const PAGE_LEFT := Rect2(0.285, 0.335, 0.185, 0.40)
-const PAGE_RIGHT := Rect2(0.530, 0.335, 0.185, 0.40)
+## The writable area of each open page, in fractions of the book as it lands on
+## screen -- not of the screen. The book is a 3D model in a SubViewport, so its
+## on-screen rect moves with the window aspect, the render scale and the camera
+## framing; anchoring the pages to screen fractions meant re-tuning four numbers
+## every time any of those changed. These are measured against the projected
+## book instead, so they hold at any window size. Flip PAGE_BORDER to see them.
+## The reference frame is the projected bounds of the book mesh, which is the
+## closed bind pose and so narrower than the spread of the open pages -- hence
+## values outside 0..1 on x. What matters is that it moves with the book.
+const PAGE_LEFT_UV := Rect2(-1.161, 0.250, 1.429, 0.570)
+const PAGE_RIGHT_UV := Rect2(0.732, 0.421, 1.429, 0.570)
 const PAGE_BORDER := false
 
-## Apple and Android both put the minimum comfortable touch target near 44pt.
-const ROW_H := 34.0
-const ROW_H_TOUCH := 48.0
-const ROW_FONT := 17
-const ROW_FONT_TOUCH := 21
-## Touch gets wider pages: the same fractions that leave a comfortable margin on
-## a desktop window leave the rows squeezed on a phone.
-const PAGE_LEFT_TOUCH := Rect2(0.255, 0.315, 0.225, 0.43)
-const PAGE_RIGHT_TOUCH := Rect2(0.520, 0.315, 0.225, 0.43)
+## Touch gets wider pages and taller rows: the margins that read as comfortable
+## on a desktop window leave the rows squeezed under a thumb.
+const PAGE_PAD_TOUCH := Vector2(0.23, 0.03)
+## Row height as a fraction of the projected book height, clamped so a tiny
+## window still gets a hittable row and a 4K one does not get slabs. Apple and
+## Android both put the minimum comfortable touch target near 44pt.
+const ROW_H_UV := 0.067
+const ROW_H_UV_TOUCH := 0.095
+const ROW_H_RANGE := Vector2(26.0, 64.0)
+const ROW_H_RANGE_TOUCH := Vector2(44.0, 82.0)
+const ROW_FONT_RATIO := 0.5
+const ROW_FONT_RATIO_TOUCH := 0.44
+const ROW_FONT_RANGE := Vector2i(13, 32)
+
+var _page_frames: Array[Dictionary] = []
+var _scaled_rows: Array[Control] = []
+var _row_h := 34.0
+var _row_font := 17
 
 
-func _row_h() -> float:
-	return ROW_H_TOUCH if _touch else ROW_H
+func _book_rect() -> Rect2:
+	if _book_cam == null or _book_root == null or _book_vp == null:
+		return Rect2()
+	var vp_size := Vector2(_book_vp.size)
+	if vp_size.x <= 0.0 or vp_size.y <= 0.0:
+		return Rect2()
+	var aabb := _model_aabb(_book_root)
+	if aabb.size == Vector3.ZERO:
+		return Rect2()
+	var mn := Vector2(INF, INF)
+	var mx := Vector2(-INF, -INF)
+	for i in 8:
+		var p := _book_cam.unproject_position(aabb.get_endpoint(i)) / vp_size
+		mn = mn.min(p)
+		mx = mx.max(p)
+	return Rect2(mn, mx - mn)
 
 
-func _row_font() -> int:
-	return ROW_FONT_TOUCH if _touch else ROW_FONT
+## Anchors and row metrics both come off the projected book, so a resize re-flows
+## the pages instead of sliding them off the paper.
+func _layout_pages() -> void:
+	var book := _book_rect()
+	if book.size.x <= 0.0 or book.size.y <= 0.0:
+		return
+	var debug := OS.get_environment("Q_BOOK_RECT") != ""
+	if debug:
+		print("[book] rect %s  root %s  vp %s" % [book, _root.size, _book_vp.size])
+
+	for entry in _page_frames:
+		var uv: Rect2 = entry.uv
+		if _touch:
+			uv = uv.grow_individual(PAGE_PAD_TOUCH.x, PAGE_PAD_TOUCH.y, PAGE_PAD_TOUCH.x, PAGE_PAD_TOUCH.y)
+		var frame: Control = entry.frame
+		frame.anchor_left = book.position.x + book.size.x * uv.position.x
+		frame.anchor_top = book.position.y + book.size.y * uv.position.y
+		frame.anchor_right = book.position.x + book.size.x * (uv.position.x + uv.size.x)
+		frame.anchor_bottom = book.position.y + book.size.y * (uv.position.y + uv.size.y)
+		# Anchors alone do not move a Control -- the default offsets still apply
+		# on top of them, so the box lands off its page unless they are cleared.
+		frame.offset_left = 0.0
+		frame.offset_top = 0.0
+		frame.offset_right = 0.0
+		frame.offset_bottom = 0.0
+		if debug:
+			print("[book] page %.3f %.3f %.3f %.3f" % [frame.anchor_left, frame.anchor_top,
+					frame.anchor_right - frame.anchor_left, frame.anchor_bottom - frame.anchor_top])
+
+	var limits := ROW_H_RANGE_TOUCH if _touch else ROW_H_RANGE
+	var row_uv := ROW_H_UV_TOUCH if _touch else ROW_H_UV
+	var font_ratio := ROW_FONT_RATIO_TOUCH if _touch else ROW_FONT_RATIO
+	_row_h = clampf(book.size.y * row_uv * _root.size.y, limits.x, limits.y)
+	_row_font = clampi(int(round(_row_h * font_ratio)), ROW_FONT_RANGE.x, ROW_FONT_RANGE.y)
+	for row in _scaled_rows:
+		row.custom_minimum_size.y = _row_h
+		row.add_theme_font_size_override("font_size", _row_font)
 
 
-func _page_rect(area: Rect2) -> Rect2:
-	if not _touch:
-		return area
-	return PAGE_LEFT_TOUCH if area == PAGE_LEFT else PAGE_RIGHT_TOUCH
-
-
-func _page_box(src_area: Rect2, panel: Control) -> VBoxContainer:
-	var area := _page_rect(src_area)
+func _page_box(uv: Rect2, panel: Control) -> VBoxContainer:
 	var frame := MarginContainer.new()
-	frame.anchor_left = area.position.x
-	frame.anchor_top = area.position.y
-	frame.anchor_right = area.position.x + area.size.x
-	frame.anchor_bottom = area.position.y + area.size.y
-	# Anchors alone do not move a Control -- the default offsets still apply on
-	# top of them, so the box lands off its page unless they are cleared.
-	frame.offset_left = 0.0
-	frame.offset_top = 0.0
-	frame.offset_right = 0.0
-	frame.offset_bottom = 0.0
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.add_child(frame)
+	_page_frames.append({"frame": frame, "uv": uv})
 
 	if PAGE_BORDER:
 		var edge := Panel.new()
@@ -388,16 +441,18 @@ func _add_cycler(parent: Container, label: String, names: Callable, get_index: C
 	name_label.text = label
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_label.size_flags_stretch_ratio = 1.1
-	name_label.custom_minimum_size = Vector2(0, _row_h())
-	name_label.add_theme_font_size_override("font_size", _row_font())
+	name_label.custom_minimum_size = Vector2(0, _row_h)
+	name_label.add_theme_font_size_override("font_size", _row_font)
+	_scaled_rows.append(name_label)
 	name_label.add_theme_color_override("font_color", Color(0.25, 0.16, 0.08))
 	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	row.add_child(name_label)
 	var value_button := _add_button(row, "", func() -> void: pass)
 	value_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	value_button.custom_minimum_size = Vector2(0, _row_h())
-	value_button.add_theme_font_size_override("font_size", _row_font())
+	value_button.custom_minimum_size = Vector2(0, _row_h)
+	value_button.add_theme_font_size_override("font_size", _row_font)
+	_scaled_rows.append(value_button)
 	var refresh := func() -> void:
 		var list: Array = names.call()
 		var i: int = clampi(get_index.call(), 0, list.size() - 1)
@@ -520,6 +575,8 @@ func _show(panel: Control) -> void:
 		_gameplay_panel.visible = false
 		_codex_panel.visible = false
 		return
+	if panel == _graphics_panel or panel == _gameplay_panel:
+		_layout_pages()
 	if panel == _graphics_panel:
 		for r in _gfx_rows:
 			r.call()
