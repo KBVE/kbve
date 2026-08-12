@@ -19,6 +19,7 @@ version_toml: apps/agones/friendslop/server/version.toml
 version_target: apps/agones/friendslop/server/Cargo.toml
 runner: arc-runner-set
 image: kbve/friendslop-server
+deployment_yaml: apps/kube/agones/friendslop/manifests/fleet.yaml
 has_test: false
 author: h0lybyte
 license: MIT
@@ -43,8 +44,8 @@ jsonld:
           answer: Hosting is a role, not a build. The same HostSession drives both a player-hosted listen server and this dedicated one, so the dedicated flavor can be tested against the Kubernetes cluster today without waiting on Steam appid approval. Steam later swaps the Transport implementation, not the game logic.
         - question: How does the server avoid shipping terrain over the wire?
           answer: Both sides bake collision from the same seed using the shared q::worldgen height generator, so terrain is never transmitted. Static bodies are also culled from snapshots — a fixed body cannot move, so replicating it is pure bandwidth.
-        - question: Is the WebSocket transport final?
-          answer: No. WebSocket rides TCP, so unreliable snapshots are still retransmitted and still head-of-line block. Delivery is threaded through the Transport seam as a routing key so a UDP side-lane can carry the unreliable traffic without the session layer changing.
+        - question: How do the two network lanes differ?
+          answer: Reliable traffic (join, welcome, reject) rides a WebSocket over TCP; unreliable traffic (snapshots and inputs) rides UDP datagrams and is allowed to drop. The host hands each client a one-time token over the reliable lane, the client echoes it in a datagram, and the host binds token to address. If the datagram handshake never completes, or a payload exceeds one packet, that traffic falls back to the WebSocket — degraded but still playable.
 bento:
     badge: game-server · rust · friendslop
     title: Authoritative physics host
@@ -75,7 +76,7 @@ bento:
     stats:
         - { label: App, value: friendslop-server, icon: server }
         - { label: Stack, value: axum + rapier3d, icon: rust }
-        - { label: Protocol, value: postcard COBS, icon: network }
+        - { label: Lanes, value: "WS + UDP", icon: network }
         - { label: Listen, value: "0.0.0.0:7980", icon: activity }
     features:
         - title: Authoritative sim
@@ -173,9 +174,13 @@ Terrain is never transmitted. Both sides bake heights from the seed via `q::worl
 
 **Transport caveat** — WebSocket rides TCP, so `Delivery::Unreliable` is currently advisory: snapshots are still retransmitted and still head-of-line block. `delivery` is carried through the seam rather than discarded so a UDP side-lane can route on it, with the reliable channel keeping join/welcome traffic. Until that lands, treat WS as correct-but-not-final.
 
-**Deployment** — not yet wired. There is no Agones `Fleet` manifest for Friendslop; the image builds and the SDK lifecycle is in place, but nothing scales it up yet.
+**Deployment** — an Agones `Fleet` (`apps/kube/agones/friendslop/manifests/`) with `replicas: 0` and a buffer autoscaler. The image must land on `ghcr.io/kbve/friendslop-server` before the Fleet can scale up, and the ArgoCD application is not registered yet.
 
-**Status** — Beta, undeployed. Container and e2e green locally; UDP lane, Fleet manifest, and Godot scene wiring outstanding.
+The two lanes are exposed differently, and the difference is forced: the WebSocket uses `portPolicy: None` and is reached through the Cilium gateway, but **UDP cannot traverse an L7 HTTPRoute**, so the datagram lane uses `portPolicy: Dynamic` and Agones maps it to a host port. The server reads its published address and port back over the Agones SDK and advertises those to clients — otherwise it would hand out `7981`, which is unreachable outside the pod. `FS_UDP_ADVERTISE_HOST` / `FS_UDP_ADVERTISE_PORT` override it when something Agones does not know about fronts the lane.
+
+A hostPort violates PodSecurity `baseline`, so the `friendslop` namespace needs a `privileged` label or an equivalent exception before GameServer pods will schedule.
+
+**Status** — Beta, undeployed. Container and e2e green locally; Fleet manifest written but not registered with ArgoCD, and Godot scene wiring outstanding.
 
 </BentoProse>
 

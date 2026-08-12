@@ -339,6 +339,7 @@
 			"source_path": "apps/agones/friendslop/server",
 			"runner": "arc-runner-set",
 			"image": "kbve/friendslop-server",
+			"deployment_yaml": "apps/kube/agones/friendslop/manifests/fleet.yaml",
 			"has_test": false
 		},
 		{

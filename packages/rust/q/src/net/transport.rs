@@ -72,6 +72,28 @@ pub trait Transport {
     fn peers(&self) -> Vec<PeerId>;
 }
 
+/// Non-blocking inbox shared by a transport and its reader tasks.
+#[cfg(feature = "net-ws")]
+pub(crate) struct Inbox {
+    pub(crate) tx: tokio::sync::mpsc::UnboundedSender<Envelope>,
+    rx: Mutex<tokio::sync::mpsc::UnboundedReceiver<Envelope>>,
+}
+
+#[cfg(feature = "net-ws")]
+impl Inbox {
+    pub(crate) fn new() -> Self {
+        let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
+        Self {
+            tx,
+            rx: Mutex::new(rx),
+        }
+    }
+
+    pub(crate) fn pop(&self) -> Option<Envelope> {
+        self.rx.lock().unwrap().try_recv().ok()
+    }
+}
+
 #[derive(Debug)]
 pub enum LoopbackError {
     /// Addressed a peer that is not part of this mesh.
