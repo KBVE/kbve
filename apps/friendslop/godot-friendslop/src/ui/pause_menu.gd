@@ -24,6 +24,10 @@ var _book_warm_light: OmniLight3D
 var _book_base: Transform3D
 var _book_start: Transform3D
 var _transition := 0
+## Touch needs a bigger hit target than a mouse cursor, and the book pages are a
+## smaller share of a phone screen, so sizes come from here rather than being
+## hardcoded per control.
+var _touch := false
 
 const BOOK_MODEL := preload("res://assets/ui/book/book.glb")
 const BOOK_OPEN_POSE := 1.6
@@ -33,6 +37,7 @@ const CLOSE_SPEED := 3.0
 func _ready() -> void:
 	layer = 120
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_touch = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
 	_root = Control.new()
 	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_root.visible = false
@@ -221,12 +226,12 @@ func _build_graphics() -> void:
 			2, _gfx_rows))
 
 	_gfx_rows.append(_add_cycler(right, "Grass",
-			func() -> Array: return ["25%", "50%", "75%", "100%"],
-			func() -> int: return _nearest_grass(_gfx.grass_density),
+			func() -> Array: return _grass_labels(),
+			func() -> int: return _nearest(_gfx.GRASS_STEPS, _gfx.grass_blades),
 			func(i: int) -> void:
-				_gfx.grass_density = GRASS_STEPS[i]
+				_gfx.grass_blades = _gfx.GRASS_STEPS[i]
 				_gfx.apply(),
-			GRASS_STEPS.size(), _gfx_rows))
+			_gfx.GRASS_STEPS.size(), _gfx_rows))
 
 	_gfx_rows.append(_add_cycler(right, "Post FX",
 			func() -> Array: return ["Off", "On"],
@@ -271,13 +276,12 @@ func _build_gameplay() -> void:
 func _page_back(parent: Container) -> Button:
 	var back := _add_button(parent, "Back", func() -> void: _show(_settings_panel))
 	back.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	back.custom_minimum_size = Vector2(0, 34)
-	back.add_theme_font_size_override("font_size", 17)
+	back.custom_minimum_size = Vector2(0, _row_h())
+	back.add_theme_font_size_override("font_size", _row_font())
 	return back
 
 
 const SCALE_STEPS := [0.5, 0.6, 0.7, 0.85, 1.0]
-const GRASS_STEPS := [0.25, 0.5, 0.75, 1.0]
 
 ## The writable area of each open page, as anchor fractions of the screen
 ## (x, y, width, height). Content fills its page rather than being centred on a
@@ -287,8 +291,33 @@ const PAGE_LEFT := Rect2(0.285, 0.335, 0.185, 0.40)
 const PAGE_RIGHT := Rect2(0.530, 0.335, 0.185, 0.40)
 const PAGE_BORDER := false
 
+## Apple and Android both put the minimum comfortable touch target near 44pt.
+const ROW_H := 34.0
+const ROW_H_TOUCH := 48.0
+const ROW_FONT := 17
+const ROW_FONT_TOUCH := 21
+## Touch gets wider pages: the same fractions that leave a comfortable margin on
+## a desktop window leave the rows squeezed on a phone.
+const PAGE_LEFT_TOUCH := Rect2(0.255, 0.315, 0.225, 0.43)
+const PAGE_RIGHT_TOUCH := Rect2(0.520, 0.315, 0.225, 0.43)
 
-func _page_box(area: Rect2, panel: Control) -> VBoxContainer:
+
+func _row_h() -> float:
+	return ROW_H_TOUCH if _touch else ROW_H
+
+
+func _row_font() -> int:
+	return ROW_FONT_TOUCH if _touch else ROW_FONT
+
+
+func _page_rect(area: Rect2) -> Rect2:
+	if not _touch:
+		return area
+	return PAGE_LEFT_TOUCH if area == PAGE_LEFT else PAGE_RIGHT_TOUCH
+
+
+func _page_box(src_area: Rect2, panel: Control) -> VBoxContainer:
+	var area := _page_rect(src_area)
 	var frame := MarginContainer.new()
 	frame.anchor_left = area.position.x
 	frame.anchor_top = area.position.y
@@ -327,8 +356,14 @@ func _nearest_scale(v: float) -> int:
 	return _nearest(SCALE_STEPS, v)
 
 
-func _nearest_grass(v: float) -> int:
-	return _nearest(GRASS_STEPS, v)
+## Blades per square metre, shown as the number rather than a percentage: the
+## field default has already moved 250 -> 150, and a percentage would have meant
+## a different density either side of that.
+func _grass_labels() -> Array:
+	var out: Array = []
+	for v in _gfx.GRASS_STEPS:
+		out.append("%d/m2" % int(v))
+	return out
 
 
 func _nearest(steps: Array, v: float) -> int:
@@ -353,16 +388,16 @@ func _add_cycler(parent: Container, label: String, names: Callable, get_index: C
 	name_label.text = label
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_label.size_flags_stretch_ratio = 1.1
-	name_label.custom_minimum_size = Vector2(0, 34)
-	name_label.add_theme_font_size_override("font_size", 17)
+	name_label.custom_minimum_size = Vector2(0, _row_h())
+	name_label.add_theme_font_size_override("font_size", _row_font())
 	name_label.add_theme_color_override("font_color", Color(0.25, 0.16, 0.08))
 	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 	row.add_child(name_label)
 	var value_button := _add_button(row, "", func() -> void: pass)
 	value_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	value_button.custom_minimum_size = Vector2(0, 34)
-	value_button.add_theme_font_size_override("font_size", 17)
+	value_button.custom_minimum_size = Vector2(0, _row_h())
+	value_button.add_theme_font_size_override("font_size", _row_font())
 	var refresh := func() -> void:
 		var list: Array = names.call()
 		var i: int = clampi(get_index.call(), 0, list.size() - 1)

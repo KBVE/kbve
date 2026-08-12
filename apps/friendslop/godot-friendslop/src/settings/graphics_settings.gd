@@ -26,16 +26,23 @@ const DETAIL_POM := [
 	{"strength": 1.0, "layers": 48.0, "shadow": 0.7},
 ]
 
+## Blades per square metre, absolute rather than a fraction of whatever the
+## field happens to ship with -- the Rust default has already moved 250 -> 150,
+## and a percentage would have silently meant a different density either side of
+## that change. Near-camera density is where grass cost lives; blade_range buys
+## far less for the same loss.
+const GRASS_STEPS := [40.0, 80.0, 150.0, 250.0, 400.0]
+
 const PRESETS := [
-	{"scale": 0.7, "detail": Detail.OFF, "shadows": false, "grass": 0.5, "post": false},
-	{"scale": 0.85, "detail": Detail.LOW, "shadows": true, "grass": 0.8, "post": true},
-	{"scale": 1.0, "detail": Detail.HIGH, "shadows": true, "grass": 1.0, "post": true},
+	{"scale": 0.7, "detail": Detail.OFF, "shadows": false, "grass": 40.0, "post": false},
+	{"scale": 0.85, "detail": Detail.LOW, "shadows": true, "grass": 80.0, "post": true},
+	{"scale": 1.0, "detail": Detail.HIGH, "shadows": true, "grass": 150.0, "post": true},
 ]
 
 var render_scale := 1.0
 var detail := Detail.HIGH
 var shadows := true
-var grass_density := 1.0
+var grass_blades := 150.0
 var postfx := true
 
 var _ground: ShaderMaterial
@@ -54,8 +61,11 @@ func _ready() -> void:
 		_grass = main.get_node_or_null("GrassField")
 		_day = main.get_node_or_null("DayNight")
 		_post = main.get_node_or_null("PostFX") as CanvasLayer
+	# Whatever the field readied with is the default, so the mobile profile in
+	# main.gd still decides the starting point on phones.
 	if _grass:
 		_grass_base_blades = float(_grass.get("blades_per_sqm"))
+		grass_blades = _grass_base_blades
 	load_settings()
 	# The fields read their own exports during _ready, which runs after this node
 	# on some orderings, so the first apply waits a frame rather than racing them.
@@ -66,7 +76,7 @@ func preset_index() -> int:
 	for i in PRESETS.size():
 		var p: Dictionary = PRESETS[i]
 		if is_equal_approx(p.scale, render_scale) and p.detail == detail \
-				and p.shadows == shadows and is_equal_approx(p.grass, grass_density) \
+				and p.shadows == shadows and is_equal_approx(p.grass, grass_blades) \
 				and p.post == postfx:
 			return i
 	return PRESET_NAMES.size() - 1
@@ -79,7 +89,7 @@ func apply_preset(index: int) -> void:
 	render_scale = p.scale
 	detail = p.detail
 	shadows = p.shadows
-	grass_density = p.grass
+	grass_blades = p.grass
 	postfx = p.post
 	apply()
 
@@ -93,8 +103,8 @@ func apply() -> void:
 		_ground.set_shader_parameter("pom_layers_max", d.layers)
 		_ground.set_shader_parameter("pom_shadow_strength", d.shadow)
 
-	if _grass and _grass_base_blades > 0.0:
-		_grass.set("blades_per_sqm", _grass_base_blades * clampf(grass_density, 0.1, 1.0))
+	if _grass:
+		_grass.set("blades_per_sqm", clampf(grass_blades, 10.0, 600.0))
 
 	if _day:
 		_day.set("shadows_enabled", shadows)
@@ -113,7 +123,7 @@ func load_settings() -> void:
 	render_scale = cfg.get_value("graphics", "render_scale", render_scale)
 	detail = cfg.get_value("graphics", "detail", detail)
 	shadows = cfg.get_value("graphics", "shadows", shadows)
-	grass_density = cfg.get_value("graphics", "grass_density", grass_density)
+	grass_blades = cfg.get_value("graphics", "grass_blades", grass_blades)
 	postfx = cfg.get_value("graphics", "postfx", postfx)
 
 
@@ -122,6 +132,6 @@ func save_settings() -> void:
 	cfg.set_value("graphics", "render_scale", render_scale)
 	cfg.set_value("graphics", "detail", detail)
 	cfg.set_value("graphics", "shadows", shadows)
-	cfg.set_value("graphics", "grass_density", grass_density)
+	cfg.set_value("graphics", "grass_blades", grass_blades)
 	cfg.set_value("graphics", "postfx", postfx)
 	cfg.save(CONFIG_PATH)
