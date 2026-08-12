@@ -39,7 +39,12 @@
 		},
 		"dev": {
 			"executor": "nx:run-commands",
-			"dependsOn": [{ "projects": ["q"], "target": "deploy-mac" }],
+			"dependsOn": [
+				{
+					"projects": ["q"],
+					"target": "deploy-mac"
+				}
+			],
 			"options": {
 				"command": "godot .",
 				"cwd": "apps/friendslop/godot-friendslop"
@@ -47,7 +52,12 @@
 		},
 		"dev:editor": {
 			"executor": "nx:run-commands",
-			"dependsOn": [{ "projects": ["q"], "target": "deploy-mac" }],
+			"dependsOn": [
+				{
+					"projects": ["q"],
+					"target": "deploy-mac"
+				}
+			],
 			"options": {
 				"command": "godot --editor .",
 				"cwd": "apps/friendslop/godot-friendslop"
@@ -109,6 +119,17 @@
 					"nx run godot-friendslop:export:windows",
 					"nx run godot-friendslop:export:macos",
 					"nx run godot-friendslop:export:linux"
+				],
+				"parallel": false
+			}
+		},
+		"bake:turf": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"commands": [
+					"blender -b -P packages/python/kbve/kbve/blender/turf_bake.py -- --out apps/friendslop/godot-friendslop/assets/biomes/grassland/textures --res 2048 --ao-samples 40",
+					"python3 packages/python/kbve/kbve/blender/pack_orm.py apps/friendslop/godot-friendslop/assets/biomes/grassland/textures"
 				],
 				"parallel": false
 			}
