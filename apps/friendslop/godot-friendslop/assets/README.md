@@ -8,6 +8,15 @@
   meshes, grass + impostor-ground shaders, baked normals. Vendored with the
   object-bend feature enabled; driven by `src/world/grass_field.gd` (streaming +
   LOD) and the `grass.tres` / `ground.tres` materials.
+- **Characters** (`characters/quaternius_ubc/`) — Universal Base Characters Kit by
+  [Quaternius](https://quaternius.com) (CC0 1.0 Universal, public domain).
+  Source version: `.blend` masters plus Godot/Unity/Unreal projects. Vendored as
+  GLB repacked from the kit's glTF exports, with image URIs repointed at a shared
+  `textures/` folder so all archetypes reference one texture set. The kit ships no
+  animations. Rig is Unreal Mannequin naming (`pelvis`, `spine_01`, `upperarm_l`,
+  `thigh_l`, ...), 65 joints, identical across every body and hairstyle. Base
+  colour maps are greyscale and multiply by a colour parameter, so skin and hair
+  tone are values rather than textures.
 - Early prototyping used the BinbunGrass billboard pack by
   [Binbun3D](https://binbun3d.itch.io/godot-grass) — removed after the geometry
   grass replaced it; credit kept for the inspiration.

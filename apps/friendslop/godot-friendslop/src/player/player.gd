@@ -4,7 +4,6 @@ const SPEED := 5.0
 const JUMP_VELOCITY := 4.5
 const MOUSE_SENSITIVITY := 0.003
 const PITCH_LIMITS := Vector2(-1.2, 0.6)
-const BODY_COLOR := Color(0.85, 0.3, 0.25)
 
 @onready var pivot: Node3D = $Pivot
 
@@ -20,15 +19,9 @@ func _ready() -> void:
 		_use_mobile_materials()
 
 
-## The toon and anime body materials, and the screen-space ink pass, depend on
-## Forward+ only inputs. Under the mobile renderer the body resolves to a flat
-## white block, so both are swapped for something that renders everywhere.
+## The screen-space ink pass depends on Forward+ only inputs, so it is dropped
+## under the mobile renderer.
 func _use_mobile_materials() -> void:
-	var body := StandardMaterial3D.new()
-	body.albedo_color = BODY_COLOR
-	body.roughness = 1.0
-	body.specular_mode = BaseMaterial3D.SPECULAR_DISABLED
-	$Mesh.material_override = body
 	var ink: Node = get_node_or_null("Pivot/Camera3D/InkLines")
 	if ink:
 		ink.visible = false

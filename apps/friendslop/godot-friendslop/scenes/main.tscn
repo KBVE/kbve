@@ -1,4 +1,4 @@
-[gd_scene load_steps=36 format=3]
+[gd_scene load_steps=39 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://src/ui/touch_controls.gd" id="28_touch"]
@@ -25,6 +25,9 @@
 [ext_resource type="Script" path="res://src/settings/graphics_settings.gd" id="30_gfx"]
 [ext_resource type="Script" path="res://src/settings/gameplay_settings.gd" id="31_play"]
 [ext_resource type="Script" path="res://src/ui/crosshair.gd" id="32_cross"]
+[ext_resource type="Script" path="res://src/characters/character_rig.gd" id="33_rig"]
+[ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/models/Regular_Male_FullBody.glb" id="34_body"]
+[ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Ponytail.glb" id="35_hair"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/flora.tres" id="18_flora"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/tree.tres" id="19_tree"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/shrub.tres" id="20_shrub"]
@@ -158,6 +161,13 @@ environment_node = NodePath("../WorldEnvironment")
 
 [node name="Player" parent="." instance=ExtResource("5_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+
+[node name="CharacterProbe" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 2)
+script = ExtResource("33_rig")
+body = ExtResource("34_body")
+attachments = Array[PackedScene]([ExtResource("35_hair")])
+terrain_path = NodePath("../Terrain")
 
 [node name="Ravens" type="Node3D" parent="."]
 script = ExtResource("14_ravens")
