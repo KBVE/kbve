@@ -45,6 +45,19 @@ var ik: SkeletonModifier3D
 
 const IDLE_CLIP := "UAL1/Idle"
 const JUMP_CLIP := "UAL1/Jump"
+const JUMP_START_CLIP := "UAL1/Jump_Start"
+const JUMP_LAND_CLIP := "UAL1/Jump_Land"
+
+## Take-off and landing are one-shots either side of the airborne loop. The
+## graph is walked by travel(), so airborne only ever asks for "jump" and
+## grounded for "move"; the crouch and the recovery come from the states in
+## between rather than from anything driving them frame by frame.
+const JUMP_CHAIN := [
+	{"from": "move", "to": "jump_start", "at_end": false, "xfade": 0.08},
+	{"from": "jump_start", "to": "jump", "at_end": true, "xfade": 0.05},
+	{"from": "jump", "to": "jump_land", "at_end": false, "xfade": 0.06},
+	{"from": "jump_land", "to": "move", "at_end": true, "xfade": 0.18},
+]
 
 ## Unit ring, counter-clockwise from forward. x is right, y is forward.
 const RING := [
@@ -152,6 +165,12 @@ func _build_tree(rig: Node3D) -> void:
 	space.auto_triangles = true
 	space.min_space = Vector2(-2.2, -2.2)
 	space.max_space = Vector2(2.2, 2.2)
+	# Walk cycles run 1.33s and jog 0.93s. Blended unsynchronised, a footfall in
+	# one lands mid-swing in the other and the legs stutter through every
+	# transition. Cyclic sync phase-locks the loops and carries the cycle length
+	# across the rings with the blend.
+	space.sync = true
+	space.sync_mode = AnimationNodeBlendSpace2D.SYNC_MODE_CYCLIC_MUTABLE
 	space.add_blend_point(_clip(IDLE_CLIP), Vector2.ZERO, -1, &"idle")
 	for gait in GAITS:
 		for entry in RING:
@@ -173,12 +192,18 @@ func _build_tree(rig: Node3D) -> void:
 	var machine := AnimationNodeStateMachine.new()
 	machine.add_node("move", move)
 	machine.add_node("jump", _clip(JUMP_CLIP))
-	for pair in [["move", "jump"], ["jump", "move"]]:
+	machine.add_node("jump_start", _clip(JUMP_START_CLIP))
+	machine.add_node("jump_land", _clip(JUMP_LAND_CLIP))
+	for link in JUMP_CHAIN:
 		var t := AnimationNodeStateMachineTransition.new()
-		t.switch_mode = AnimationNodeStateMachineTransition.SWITCH_MODE_SYNC
-		t.advance_mode = AnimationNodeStateMachineTransition.ADVANCE_MODE_DISABLED
-		t.xfade_time = 0.15
-		machine.add_transition(pair[0], pair[1], t)
+		# The one-shots hand over when they finish; the two driven by the
+		# controller switch the moment it says so.
+		t.switch_mode = AnimationNodeStateMachineTransition.SWITCH_MODE_AT_END \
+				if link.at_end else AnimationNodeStateMachineTransition.SWITCH_MODE_IMMEDIATE
+		t.advance_mode = AnimationNodeStateMachineTransition.ADVANCE_MODE_AUTO \
+				if link.at_end else AnimationNodeStateMachineTransition.ADVANCE_MODE_DISABLED
+		t.xfade_time = link.xfade
+		machine.add_transition(link.from, link.to, t)
 
 	tree = AnimationTree.new()
 	tree.tree_root = machine
@@ -209,9 +234,12 @@ func set_locomotion(local_velocity: Vector3, airborne: bool, delta: float) -> vo
 	_blend = _blend.lerp(dir * radius, clampf(blend_sharpness * delta, 0.0, 1.0))
 	tree.set("parameters/move/space/blend_position", _blend)
 	tree.set("parameters/move/scale/scale", _time_scale(speed, dir, radius))
+	# Only ever asked for the two ends of the chain: travel() routes through
+	# take-off or landing on the way, so a landing plays its recovery instead of
+	# cutting from a mid-air pose straight into idle.
 	var playback: AnimationNodeStateMachinePlayback = tree.get("parameters/playback")
 	var want := "jump" if airborne else "move"
-	if playback.get_current_node() != want:
+	if playback.get_travel_path().is_empty() and playback.get_current_node() != want:
 		playback.travel(want)
 	if ik:
 		ik.set_grounded(not airborne)

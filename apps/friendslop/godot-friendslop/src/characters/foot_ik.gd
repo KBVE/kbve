@@ -24,6 +24,24 @@ const FEET := [
 ## Newton steps used to drive the reach violation to zero. Three is enough for
 ## the drop to converge on every slope the terrain actually produces.
 @export var solver_iterations := 3
+## Extension the hips are solved to keep the most-stretched planted leg under.
+## Bare reachability is not enough: a leg is "solved" at 99% extension and still
+## reads as a locked knee, so the target is comfort, and the hips drop to buy the
+## bend back the way a person settles on a slope.
+@export_range(0.7, 1.0) var knee_comfort := 0.94
+## Budget for the comfort part of the drop, on top of whatever reachability
+## demands. Mid-stride a leg routinely passes the comfort threshold, so an
+## unbudgeted comfort solve just parks the character in a permanent crouch at
+## the max_hip_drop cap.
+@export var max_comfort_drop := 0.09
+## Fraction of the thigh the clip's knee has to stand off the leg axis before its
+## bend direction is trusted outright. Below it the direction is noise and the
+## anatomical bend is blended in.
+@export var knee_confidence_span := 0.25
+## How far the bend may point away from straight ahead. A knee is a hinge, so
+## the pole leaning sideways is always wrong; unbounded it lets one knee fold
+## across the body while the other splays, since nothing keeps the pair mirrored.
+@export var max_knee_yaw_deg := 30.0
 ## Clip lift at which a foot counts as fully mid-stride and is left to the
 ## animation. It has to clear the lift the walk and jog cycles actually use --
 ## measured at 0.16 to 0.18 -- or the plant fades out partway through every
@@ -32,6 +50,11 @@ const FEET := [
 ## Ground normals steeper than this stop steering the foot, so a cliff edge
 ## under one toe does not snap the whole foot sideways.
 @export var max_foot_tilt_deg := 35.0
+## How far a foot's ground may sit from the ground the body is standing on. This
+## is a guard against a foot overhanging a cliff and reading a surface metres
+## down, not against slopes: on any real bank the downhill foot is legitimately
+## well below the body, and a tight value here silently unplants it.
+@export var max_ground_step := 1.2
 @export var adapt_speed := 10.0
 
 ## Added to ankle_height by footwear, whose sole sits below the bare foot. Set
@@ -58,6 +81,11 @@ var _hit: Array[bool] = [false, false]
 var _hit_y: Array[float] = [0.0, 0.0]
 var _hit_normal: Array[Vector3] = [Vector3.UP, Vector3.UP]
 var _post_y: Array[float] = [0.0, 0.0]
+## Per-foot confidence that the sampled surface is the one the body stands on.
+var _edge: Array[float] = [1.0, 1.0]
+## Bend direction actually used per leg, in skeleton space, for the debug line.
+var _pole_dbg: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO]
+var _conf_dbg: Array[float] = [0.0, 0.0]
 var _exclude: Array[RID] = []
 
 
@@ -185,15 +213,23 @@ func _process_modification_with_delta(delta: float) -> void:
 			surface = _hit_y[i]
 			normal = _hit_normal[i]
 
+		# Fade the plant out as the surface departs from the plane the body is
+		# actually standing on, rather than clamping it. A hard clamp still drags
+		# the foot to the clamped height, which on a ledge parks it in mid-air;
+		# fading hands the foot back to the animation instead.
+		var step := absf(surface - base_y)
+		var reachable := 1.0 - smoothstep(max_ground_step, max_ground_step * 1.6, step)
+
 		posed.append(pose)
 		grounds.append(surface + ankle_height + sole_offset)
-		normals.append(normal)
+		normals.append(normal.lerp(Vector3.UP, 1.0 - reachable).normalized())
+		_edge[i] = reachable
 		# How far the clip itself lifts the foot off the body's base, which is
 		# the only signal that separates a stride from a slope. Height above the
 		# ground cannot: standing still on a bank, the downhill foot is just as
 		# high as a swing foot, and treating it as one leaves it in mid-air.
-		plant.append(1.0 - smoothstep(0.0, plant_height,
-				world.y - base_y - ankle_height - sole_offset))
+		plant.append(reachable * (1.0 - smoothstep(0.0, plant_height,
+				world.y - base_y - ankle_height - sole_offset)))
 
 	_hip_offset = lerpf(_hip_offset, _solve_hips(skeleton, posed, grounds, plant), weight)
 	_apply_hips(skeleton)
@@ -247,15 +283,36 @@ func _solve_leg(skeleton: Skeleton3D, i: int, goal: Vector3, normal: Vector3,
 	span = clampf(span, absf(thigh - shin) + 0.001, thigh + shin - 0.001)
 	var dir := to_goal / to_goal.length()
 
-	# The bend plane is spanned by the leg direction and the pole. Taking the
-	# pole from the current knee keeps the clip's own knee direction instead of
-	# snapping every leg to one canonical bend.
-	var pole := (k - h) - dir * (k - h).dot(dir)
-	if pole.length_squared() < 0.000001:
-		pole = to_world.basis.z - dir * to_world.basis.z.dot(dir)
+	# The bend plane is spanned by the leg direction and the pole. The clip's own
+	# knee carries the pose's character, but its offset off the leg axis shrinks
+	# as the leg straightens and its direction goes with it -- measured at 0.08
+	# against a thigh of 0.43 on this rig, already noisy. So it is weighted by
+	# how well-conditioned it is and blended toward the anatomical bend, which on
+	# this skeleton is +Z. A leg extended down a slope is exactly the case that
+	# was picking an arbitrary direction and throwing the knee sideways.
+	var knee_off := (k - h) - dir * (k - h).dot(dir)
+	var forward := to_world.basis.z
+	var anatomical := forward - dir * forward.dot(dir)
+	var pole := Vector3.ZERO
+	if anatomical.length_squared() > 0.000001:
+		pole = anatomical.normalized()
+	var confidence := clampf(knee_off.length() / (thigh * knee_confidence_span), 0.0, 1.0)
+	if knee_off.length_squared() > 0.00000001:
+		pole = pole.lerp(knee_off.normalized(), confidence)
 	if pole.length_squared() < 0.000001:
 		return
 	pole = pole.normalized()
+	# Held inside a cone around forward. Measured without it, both knees pointed
+	# the same way sideways instead of mirroring, which is one leg splayed out
+	# and the other folded in across the body.
+	if anatomical.length_squared() > 0.000001:
+		var ahead := anatomical.normalized()
+		var yaw := ahead.angle_to(pole)
+		var cap := deg_to_rad(max_knee_yaw_deg)
+		if yaw > cap:
+			pole = ahead.slerp(pole, cap / yaw).normalized()
+	_pole_dbg[i] = to_world.basis.inverse() * pole
+	_conf_dbg[i] = confidence
 
 	var cos_hip := clampf((thigh * thigh + span * span - shin * shin) / (2.0 * thigh * span), -1.0, 1.0)
 	var angle := acos(cos_hip)
@@ -339,9 +396,10 @@ func _debug(skeleton: Skeleton3D, posed: Array[Transform3D], grounds: Array[floa
 				+ skeleton.get_bone_global_rest(knee).origin.distance_to(
 				skeleton.get_bone_global_rest(ankle).origin)
 		var target := Vector3(posed[i].origin.x, grounds[i], posed[i].origin.z)
-		out += " | %s foot_y=%.3f ground=%.3f lift=%+.3f w=%.2f tgt=%.3f post=%.3f err=%+.3f reach=%.3f need=%.3f" % [
-				FEET[i].foot, posed[i].origin.y, grounds[i], posed[i].origin.y - grounds[i],
-				plant[i], targets[i].global_transform.origin.y, _post_y[i], _post_y[i] - grounds[i], reach, hip_w.distance_to(target)]
+		out += " | %s w=%.2f err=%+.3f pole=(%.2f,%.2f,%.2f) conf=%.2f" % [
+				FEET[i].foot,
+				plant[i], _post_y[i] - grounds[i],
+				_pole_dbg[i].x, _pole_dbg[i].y, _pole_dbg[i].z, _conf_dbg[i]]
 	print("[footik] ", out)
 
 
@@ -367,19 +425,31 @@ func _solve_hips(skeleton: Skeleton3D, posed: Array[Transform3D], grounds: Array
 		socket.append(Vector3.ZERO if upper < 0 else
 				to_world * skeleton.get_bone_global_pose(upper).origin)
 		target.append(Vector3(posed[i].origin.x, grounds[i], posed[i].origin.z))
-		reach.append(_leg_reach(skeleton, i) * 0.97)
+		reach.append(_leg_reach(skeleton, i))
 		if upper >= 0 and plant[i] > 0.5:
 			active.append(i)
 
+	# Reachability first, since a foot that cannot touch its ground is a visible
+	# failure, then comfort on its own budget on top.
+	var needed := _drop_for(socket, target, reach, active, 0.99, max_hip_drop)
+	var eased := _drop_for(socket, target, reach, active, knee_comfort, max_hip_drop)
+	return maxf(eased, needed - max_comfort_drop)
+
+
+## Newton-steps the pelvis down until no planted leg is stretched past `ratio`
+## of its span. Each step subtracts the worst violation outright, which is exact
+## when the target is below the socket and the usual case here.
+func _drop_for(socket: Array[Vector3], target: Array[Vector3], reach: Array[float],
+		active: Array[int], ratio: float, limit: float) -> float:
 	var drop := 0.0
 	for step in solver_iterations:
 		var worst := 0.0
 		for i in active:
 			var moved := socket[i] + Vector3(0.0, drop, 0.0)
-			worst = maxf(worst, moved.distance_to(target[i]) - reach[i])
+			worst = maxf(worst, moved.distance_to(target[i]) - reach[i] * ratio)
 		if worst <= 0.0:
 			break
-		drop = maxf(drop - worst, -max_hip_drop)
+		drop = maxf(drop - worst, -limit)
 	return drop
 
 
