@@ -34,14 +34,6 @@ const FEET := [
 ## unbudgeted comfort solve just parks the character in a permanent crouch at
 ## the max_hip_drop cap.
 @export var max_comfort_drop := 0.09
-## Fraction of the thigh the clip's knee has to stand off the leg axis before its
-## bend direction is trusted outright. Below it the direction is noise and the
-## anatomical bend is blended in.
-@export var knee_confidence_span := 0.25
-## How far the bend may point away from straight ahead. A knee is a hinge, so
-## the pole leaning sideways is always wrong; unbounded it lets one knee fold
-## across the body while the other splays, since nothing keeps the pair mirrored.
-@export var max_knee_yaw_deg := 30.0
 ## Clip lift at which a foot counts as fully mid-stride and is left to the
 ## animation. It has to clear the lift the walk and jog cycles actually use --
 ## measured at 0.16 to 0.18 -- or the plant fades out partway through every
@@ -83,9 +75,11 @@ var _hit_normal: Array[Vector3] = [Vector3.UP, Vector3.UP]
 var _post_y: Array[float] = [0.0, 0.0]
 ## Per-foot confidence that the sampled surface is the one the body stands on.
 var _edge: Array[float] = [1.0, 1.0]
-## Bend direction actually used per leg, in skeleton space, for the debug line.
+## Hinge the bend was solved about, in skeleton space, and the degrees of bend
+## the solve added to the clip, for the debug line.
 var _pole_dbg: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO]
-var _conf_dbg: Array[float] = [0.0, 0.0]
+var _bend_dbg: Array[float] = [0.0, 0.0]
+var _probe_dbg: Array[String] = ["", ""]
 var _exclude: Array[RID] = []
 
 
@@ -209,9 +203,14 @@ func _process_modification_with_delta(delta: float) -> void:
 		var terrain_h: float = _terrain.height_at(world.x, world.z)
 		var surface := terrain_h
 		var normal := _terrain_normal(world)
-		if _hit[i] and _hit_y[i] > terrain_h + 0.05:
+		var from_ray := _hit[i] and _hit_y[i] > terrain_h + 0.05
+		if from_ray:
 			surface = _hit_y[i]
 			normal = _hit_normal[i]
+		if OS.get_environment("Q_FOOT_DEBUG") != "":
+			_probe_dbg[i] = "terrain=%.3f ray=%s%.3f used=%s src=%s" % [terrain_h,
+					"" if _hit[i] else "miss@", _hit_y[i], surface,
+					"ray" if from_ray else "field"]
 
 		# Fade the plant out as the surface departs from the plane the body is
 		# actually standing on, rather than clamping it. A hard clamp still drags
@@ -275,54 +274,67 @@ func _solve_leg(skeleton: Skeleton3D, i: int, goal: Vector3, normal: Vector3,
 		return
 
 	var to_goal := goal - h
-	var span := to_goal.length()
-	if span < 0.0001:
+	if to_goal.length_squared() < 0.00000001:
 		return
 	# Inside the annulus the two bones can actually close, so the cosine below
 	# stays in domain without needing a clamp to paper over a bad pose.
-	span = clampf(span, absf(thigh - shin) + 0.001, thigh + shin - 0.001)
-	var dir := to_goal / to_goal.length()
+	var span := clampf(to_goal.length(), absf(thigh - shin) + 0.001, thigh + shin - 0.001)
+	var dir := to_goal.normalized()
 
-	# The bend plane is spanned by the leg direction and the pole. The clip's own
-	# knee carries the pose's character, but its offset off the leg axis shrinks
-	# as the leg straightens and its direction goes with it -- measured at 0.08
-	# against a thigh of 0.43 on this rig, already noisy. So it is weighted by
-	# how well-conditioned it is and blended toward the anatomical bend, which on
-	# this skeleton is +Z. A leg extended down a slope is exactly the case that
-	# was picking an arbitrary direction and throwing the knee sideways.
-	var knee_off := (k - h) - dir * (k - h).dot(dir)
-	var forward := to_world.basis.z
-	var anatomical := forward - dir * forward.dot(dir)
-	var pole := Vector3.ZERO
-	if anatomical.length_squared() > 0.000001:
-		pole = anatomical.normalized()
-	var confidence := clampf(knee_off.length() / (thigh * knee_confidence_span), 0.0, 1.0)
-	if knee_off.length_squared() > 0.00000001:
-		pole = pole.lerp(knee_off.normalized(), confidence)
-	if pole.length_squared() < 0.000001:
+	# No bend direction is chosen. A knee is a hinge, so its axis is a fact about
+	# the rig, and the thigh's rotation is what carries that axis around -- which
+	# is how a strafe or turn clip, whose knee genuinely points elsewhere, keeps
+	# its own bend plane without any of it being inferred per frame.
+	#
+	# Measuring the plane off the posed triangle instead looks equivalent and is
+	# not: it degrades exactly where a leg is nearly straight. The idle right leg
+	# sits at 158 degrees, where the cross product is 0.074 against a thigh-shin
+	# product of 0.197, and reports a plane 50 degrees off the anatomical one.
+	# Amplify that by the bend the solve wants and the knee leaves the body.
+	var axis := _hinge_axis(skeleton, i, to_world)
+	if axis.length_squared() < 0.00000001:
 		return
-	pole = pole.normalized()
-	# Held inside a cone around forward. Measured without it, both knees pointed
-	# the same way sideways instead of mirroring, which is one leg splayed out
-	# and the other folded in across the body.
-	if anatomical.length_squared() > 0.000001:
-		var ahead := anatomical.normalized()
-		var yaw := ahead.angle_to(pole)
-		var cap := deg_to_rad(max_knee_yaw_deg)
-		if yaw > cap:
-			pole = ahead.slerp(pole, cap / yaw).normalized()
-	_pole_dbg[i] = to_world.basis.inverse() * pole
-	_conf_dbg[i] = confidence
+	axis = axis.normalized()
+	_pole_dbg[i] = to_world.basis.inverse() * axis
 
-	var cos_hip := clampf((thigh * thigh + span * span - shin * shin) / (2.0 * thigh * span), -1.0, 1.0)
-	var angle := acos(cos_hip)
-	var solved_knee := h + (dir * cos(angle) + pole * sin(angle)) * thigh
+	# How far to turn the knee about that hinge to put the ankle `span` from the
+	# hip. Solved on the hinge rather than from the law of cosines: a real hinge
+	# is not square to the triangle the three joints make, so the cosine rule
+	# asks for an angle that swings the ankle somewhere slightly else, and the
+	# foot lands short by the difference -- 3cm on the right leg, 1mm on the
+	# left, which is just how far each hinge leans out of its own leg's plane.
+	#
+	# Turning the shin by `t` about the hinge moves the ankle on a circle, so
+	# hip-to-ankle distance falls out as `b*cos(t) + c*sin(t) = d`, which is one
+	# rotation with two roots -- the knee bent each way. Taking the root nearer
+	# the pose is the same principle as the hinge itself: the clip already says
+	# which way this knee is bent, so nothing has to be assumed about it.
+	var v := h - k
+	var u := a - k
+	var flat := u - axis * u.dot(axis)
+	var b := flat.dot(v)
+	var c := axis.cross(flat).dot(v)
+	var reach := sqrt(b * b + c * c)
+	if reach < 0.000001:
+		return
+	var d := (u.length_squared() + v.length_squared() - span * span) * 0.5 \
+			- u.dot(axis) * axis.dot(v)
+	var phase := atan2(c, b)
+	var spread := acos(clampf(d / reach, -1.0, 1.0))
+	var near := wrapf(phase + spread, -PI, PI)
+	var far := wrapf(phase - spread, -PI, PI)
+	var turn := near if absf(near) < absf(far) else far
+	_bend_dbg[i] = rad_to_deg(turn)
+	_spin(skeleton, knee, to_world, Quaternion(axis, turn), amount)
 
-	_aim(skeleton, hip, to_world, h, k, solved_knee, amount)
-	# The thigh has moved, so the knee is re-read before the shin is aimed.
-	var moved_knee := to_world * skeleton.get_bone_global_pose(knee).origin
-	var moved_ankle := to_world * skeleton.get_bone_global_pose(ankle).origin
-	_aim(skeleton, knee, to_world, moved_knee, moved_ankle, h + dir * span, amount)
+	# Bending moved the ankle, so the swing that aims the leg is measured after
+	# it. Applied to the thigh, it carries the shin rigidly and the bend plane
+	# rides along with it.
+	var bent_ankle := to_world * skeleton.get_bone_global_pose(ankle).origin
+	var reached := bent_ankle - h
+	if reached.length_squared() > 0.00000001:
+		_spin(skeleton, hip, to_world,
+				Quaternion(reached.normalized(), dir), amount)
 
 	# Read after the leg has moved, so the foot carries the shin's new rotation
 	# and only the ground tilt is layered on. Taking the pre-solve basis instead
@@ -334,20 +346,35 @@ func _solve_leg(skeleton: Skeleton3D, i: int, goal: Vector3, normal: Vector3,
 			to_world.basis.inverse() * _tilt(normal, followed, amount), ankle_pose.origin))
 
 
-## Rotates a bone so the line from its own origin to its child swings onto the
-## line toward where that child has to end up.
-func _aim(skeleton: Skeleton3D, bone: int, to_world: Transform3D,
-		origin: Vector3, child: Vector3, wanted: Vector3, amount: float) -> void:
-	var from := child - origin
-	var to := wanted - origin
-	if from.length_squared() < 0.000001 or to.length_squared() < 0.000001:
-		return
-	var swing := Quaternion.IDENTITY.slerp(
-			Quaternion(from.normalized(), to.normalized()), amount)
+## Turns a bone about its own origin, carrying everything below it.
+func _spin(skeleton: Skeleton3D, bone: int, to_world: Transform3D,
+		rotation: Quaternion, amount: float) -> void:
+	var turn := Quaternion.IDENTITY.slerp(rotation, amount)
 	var pose := skeleton.get_bone_global_pose(bone)
 	var world_basis := to_world.basis * pose.basis
 	skeleton.set_bone_global_pose(bone,
-			Transform3D(to_world.basis.inverse() * (Basis(swing) * world_basis), pose.origin))
+			Transform3D(to_world.basis.inverse() * (Basis(turn) * world_basis), pose.origin))
+
+
+## The knee's hinge: read once off the bend the rest pose was authored with,
+## held in the thigh's frame, and handed back in the pose the leg is in now.
+##
+## The thigh is the anchor rather than the shin because the shin's rotation is
+## the very thing being solved, so reading the axis from it feeds the solve its
+## own output. Rest poses with a dead-straight leg have no bend to read, and
+## there the thigh's own side axis is the rig's answer.
+func _hinge_axis(skeleton: Skeleton3D, i: int, to_world: Transform3D) -> Vector3:
+	var hip := skeleton.find_bone(FEET[i].upper)
+	var knee := skeleton.find_bone(FEET[i].lower)
+	var ankle := skeleton.find_bone(FEET[i].foot)
+	var thigh_rest := skeleton.get_bone_global_rest(hip)
+	var knee_rest := skeleton.get_bone_global_rest(knee).origin
+	var axis := (thigh_rest.origin - knee_rest).cross(
+			skeleton.get_bone_global_rest(ankle).origin - knee_rest)
+	var local := thigh_rest.basis.x
+	if axis.length_squared() > 0.00000001:
+		local = thigh_rest.basis.inverse() * axis
+	return to_world.basis * skeleton.get_bone_global_pose(hip).basis * local
 
 
 ## Clamps a target into the leg's span. Handed anything further, a two-bone
@@ -396,10 +423,11 @@ func _debug(skeleton: Skeleton3D, posed: Array[Transform3D], grounds: Array[floa
 				+ skeleton.get_bone_global_rest(knee).origin.distance_to(
 				skeleton.get_bone_global_rest(ankle).origin)
 		var target := Vector3(posed[i].origin.x, grounds[i], posed[i].origin.z)
-		out += " | %s w=%.2f err=%+.3f pole=(%.2f,%.2f,%.2f) conf=%.2f" % [
+		out += " | %s w=%.2f err=%+.3f hinge=(%.2f,%.2f,%.2f) bend=%+.1f" % [
 				FEET[i].foot,
 				plant[i], _post_y[i] - grounds[i],
-				_pole_dbg[i].x, _pole_dbg[i].y, _pole_dbg[i].z, _conf_dbg[i]]
+				_pole_dbg[i].x, _pole_dbg[i].y, _pole_dbg[i].z, _bend_dbg[i]]
+		out += "\n    %s %s" % [FEET[i].foot, _probe_dbg[i]]
 	print("[footik] ", out)
 
 

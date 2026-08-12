@@ -42,11 +42,21 @@ static var _library_cache: Dictionary = {}
 var animation: AnimationPlayer
 var tree: AnimationTree
 var ik: SkeletonModifier3D
+## Held while a climb owns the body, so the per-frame locomotion state does not
+## travel out of the climb the moment the controller reports it airborne.
+var _climbing := false
 
 const IDLE_CLIP := "UAL1/Idle"
 const JUMP_CLIP := "UAL1/Jump"
 const JUMP_START_CLIP := "UAL1/Jump_Start"
 const JUMP_LAND_CLIP := "UAL1/Jump_Land"
+## Two heights of climb, so a hop onto a rock and a haul over a fence are not
+## the same clip stretched. Which one plays is chosen by how far the body
+## actually rises, and the clip's own length is what the movement is timed to,
+## rather than the animation being scaled to fit a made-up duration.
+const CLIMB_LOW_CLIP := "UAL2/ClimbUp_1m"
+const CLIMB_HIGH_CLIP := "UAL2/ClimbUp_2m"
+const CLIMB_SPLIT := 1.35
 
 ## Take-off and landing are one-shots either side of the airborne loop. The
 ## graph is walked by travel(), so airborne only ever asks for "jump" and
@@ -57,6 +67,17 @@ const JUMP_CHAIN := [
 	{"from": "jump_start", "to": "jump", "at_end": true, "xfade": 0.05},
 	{"from": "jump", "to": "jump_land", "at_end": false, "xfade": 0.06},
 	{"from": "jump_land", "to": "move", "at_end": true, "xfade": 0.18},
+]
+
+## A climb can start from standing or from mid-air, and always ends on the
+## ground, so it hangs off both ends of the jump chain.
+const CLIMB_CHAIN := [
+	{"from": "move", "to": "climb_low", "at_end": false, "xfade": 0.08},
+	{"from": "move", "to": "climb_high", "at_end": false, "xfade": 0.08},
+	{"from": "jump", "to": "climb_low", "at_end": false, "xfade": 0.08},
+	{"from": "jump", "to": "climb_high", "at_end": false, "xfade": 0.08},
+	{"from": "climb_low", "to": "move", "at_end": true, "xfade": 0.15},
+	{"from": "climb_high", "to": "move", "at_end": true, "xfade": 0.15},
 ]
 
 ## Unit ring, counter-clockwise from forward. x is right, y is forward.
@@ -74,13 +95,21 @@ const RING := [
 ## The two libraries disagree on the pure-sideways names: walk uses L/R, jog
 ## spells them out. Everything else differs only by the gait prefix.
 ##
-## fwd/side are the ground speeds the clips were authored at, read off the root
-## motion in the _RM builds of the same libraries. They set both which ring a
-## given speed lands on and how far playback has to be rescaled to stop the feet
-## sliding. Sideways clips cover barely half the ground the forward ones do.
+## fwd/lateral/back are the ground speeds the clips were authored at. They set
+## both which ring a given speed lands on and how far playback has to be
+## rescaled to stop the feet sliding. Sideways clips cover barely half the
+## ground the forward ones do, and backwards is slower again.
+##
+## fwd and lateral were read off the root motion in the _RM builds. back was
+## measured from the in-place clips by tools/gait_probe.gd, which times the
+## stance foot's travel through the rig's own frame; run against the forward
+## clips as a check it lands within 3% on the jog and 9% on the walk, and each
+## back value is corrected by its own gait's forward error.
 const GAITS := [
-	{"radius": 1.0, "prefix": "UAL2/Walk_", "side": {"L": "L", "R": "R"}, "fwd": 1.01, "lateral": 0.64},
-	{"radius": 2.0, "prefix": "UAL1/Jog_", "side": {"L": "Left", "R": "Right"}, "fwd": 5.36, "lateral": 3.21},
+	{"radius": 1.0, "prefix": "UAL2/Walk_", "side": {"L": "L", "R": "R"},
+		"fwd": 1.01, "lateral": 0.64, "back": 1.07},
+	{"radius": 2.0, "prefix": "UAL1/Jog_", "side": {"L": "Left", "R": "Right"},
+		"fwd": 5.36, "lateral": 3.21, "back": 4.36},
 ]
 
 var _blend := Vector2.ZERO
@@ -194,7 +223,9 @@ func _build_tree(rig: Node3D) -> void:
 	machine.add_node("jump", _clip(JUMP_CLIP))
 	machine.add_node("jump_start", _clip(JUMP_START_CLIP))
 	machine.add_node("jump_land", _clip(JUMP_LAND_CLIP))
-	for link in JUMP_CHAIN:
+	machine.add_node("climb_low", _clip(CLIMB_LOW_CLIP))
+	machine.add_node("climb_high", _clip(CLIMB_HIGH_CLIP))
+	for link in JUMP_CHAIN + CLIMB_CHAIN:
 		var t := AnimationNodeStateMachineTransition.new()
 		# The one-shots hand over when they finish; the two driven by the
 		# controller switch the moment it says so.
@@ -223,6 +254,36 @@ func _clip(name: String) -> AnimationNodeAnimation:
 	return node
 
 
+## Starts the climb that fits `rise` and reports how long it runs, which is the
+## span the body has to be moved over for the hands to meet the ledge.
+func play_climb(rise: float) -> float:
+	if tree == null or animation == null:
+		return 0.0
+	var clip := CLIMB_LOW_CLIP if rise <= CLIMB_SPLIT else CLIMB_HIGH_CLIP
+	if not animation.has_animation(clip):
+		return 0.0
+	_climbing = true
+	var playback: AnimationNodeStateMachinePlayback = tree.get("parameters/playback")
+	playback.travel("climb_low" if rise <= CLIMB_SPLIT else "climb_high")
+	if ik:
+		ik.set_grounded(false)
+	return animation.get_animation(clip).length
+
+
+func end_climb() -> void:
+	_climbing = false
+
+
+## What the state machine is doing, for Q_MOVE_DEBUG. A latched animation and a
+## latched airborne flag look identical from outside the rig.
+func debug_state() -> String:
+	if tree == null:
+		return "no tree"
+	var playback: AnimationNodeStateMachinePlayback = tree.get("parameters/playback")
+	return "%s travel=%s" % [playback.get_current_node(),
+			",".join(Array(playback.get_travel_path()).map(func(n): return str(n)))]
+
+
 ## local_velocity is in the character's own frame: +x right, +z backward.
 func set_locomotion(local_velocity: Vector3, airborne: bool, delta: float) -> void:
 	if tree == null:
@@ -237,6 +298,8 @@ func set_locomotion(local_velocity: Vector3, airborne: bool, delta: float) -> vo
 	# Only ever asked for the two ends of the chain: travel() routes through
 	# take-off or landing on the way, so a landing plays its recovery instead of
 	# cutting from a mid-air pose straight into idle.
+	if _climbing:
+		return
 	var playback: AnimationNodeStateMachinePlayback = tree.get("parameters/playback")
 	var want := "jump" if airborne else "move"
 	if playback.get_travel_path().is_empty() and playback.get_current_node() != want:
@@ -247,8 +310,14 @@ func set_locomotion(local_velocity: Vector3, airborne: bool, delta: float) -> vo
 
 ## Ground speed the blended clip covers in this direction, which is what the
 ## ring radius has to be solved against.
+##
+## Forward and backward are looked up separately rather than through the
+## magnitude of dir.y. Collapsing them treats a backpedal as a forward run, so
+## the ring and the playback rate are both solved against a speed those clips
+## never cover, and the feet skate the difference.
 func _authored(gait: Dictionary, dir: Vector2) -> float:
-	return lerpf(gait.lateral, gait.fwd, absf(dir.y))
+	var toward: float = gait.fwd if dir.y >= 0.0 else gait.back
+	return lerpf(gait.lateral, toward, absf(dir.y))
 
 
 ## Inverse of the ring layout: find the radius whose blended clip is authored
