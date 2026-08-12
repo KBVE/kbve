@@ -12,11 +12,6 @@ var _gfx_pages: Array[MenuPage] = []
 var _play
 var _play_pages: Array[MenuPage] = []
 var _codex_panel: HBoxContainer
-var _preview_model: Node3D
-var _preview_pivot: Node3D
-var _yaw_slider: HSlider
-var _pitch_slider: HSlider
-var _fix_label: Label
 var _book_anim: AnimationPlayer
 var _book_anim_name := ""
 var _book_root: Node3D
@@ -36,7 +31,18 @@ const BOOK_OPEN_POSE := 1.6
 const CLOSE_SPEED := 3.0
 
 
+## Q_CODEX=1 opens straight into it, which is how the Codex gets looked at while
+## it is being worked on.
+func _open_codex_on_start() -> void:
+	if OS.get_environment("Q_CODEX") == "":
+		return
+	await get_tree().process_frame
+	_open()
+	_open_codex()
+
+
 func _ready() -> void:
+	_open_codex_on_start.call_deferred()
 	layer = 120
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	MenuStyle.detect()
@@ -501,147 +507,12 @@ func _open_codex() -> void:
 
 
 func _build_codex() -> void:
-	var viewport_box := SubViewportContainer.new()
-	viewport_box.stretch = true
-	viewport_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	viewport_box.size_flags_stretch_ratio = 1.2
-	_codex_panel.add_child(viewport_box)
-
-	var vp := SubViewport.new()
-	vp.own_world_3d = true
-	vp.transparent_bg = false
-	vp.msaa_3d = Viewport.MSAA_4X
-	viewport_box.add_child(vp)
-
-	var world := Node3D.new()
-	vp.add_child(world)
-	var env := WorldEnvironment.new()
-	var e := Environment.new()
-	e.background_mode = Environment.BG_COLOR
-	e.background_color = Color(0.55, 0.58, 0.66)
-	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	e.ambient_light_color = Color(0.85, 0.85, 0.9)
-	e.ambient_light_energy = 1.4
-	env.environment = e
-	world.add_child(env)
-	var key := DirectionalLight3D.new()
-	key.rotation_degrees = Vector3(-40, 35, 0)
-	key.light_energy = 1.6
-	world.add_child(key)
-	var fill := DirectionalLight3D.new()
-	fill.rotation_degrees = Vector3(-15, -120, 0)
-	fill.light_energy = 0.8
-	fill.light_color = Color(0.9, 0.92, 1.0)
-	world.add_child(fill)
-	var back := DirectionalLight3D.new()
-	back.rotation_degrees = Vector3(30, 180, 0)
-	back.light_energy = 1.0
-	world.add_child(back)
-
-	_preview_pivot = Node3D.new()
-	world.add_child(_preview_pivot)
-	_preview_model = species.model.instantiate()
-	_preview_pivot.add_child(_preview_model)
-	_preview_model.scale = Vector3.ONE * species.scale
-	_preview_model.rotation.y = species.model_yaw_fix
-	_preview_model.rotation.x = species.model_pitch_fix
-
-	var aabb := _model_aabb(_preview_model)
-	var cam := Camera3D.new()
-	world.add_child(cam)
-	var dist := maxf(aabb.size.length(), 0.5) * 1.1
-	cam.look_at_from_position(Vector3(dist, aabb.size.y * 0.45, dist), aabb.get_center())
-
-	var arrow := MeshInstance3D.new()
-	var arrow_mesh := BoxMesh.new()
-	arrow_mesh.size = Vector3(0.02, 0.02, aabb.size.length())
-	arrow.mesh = arrow_mesh
-	arrow.position = aabb.get_center() + Vector3(0, -aabb.size.y * 0.6, arrow_mesh.size.z * 0.5)
-	var arrow_mat := StandardMaterial3D.new()
-	arrow_mat.albedo_color = Color(1.0, 0.4, 0.2)
-	arrow_mat.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	arrow.material_override = arrow_mat
-	world.add_child(arrow)
-
-	var side_panel := PanelContainer.new()
-	side_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.09, 0.08, 0.12, 0.95)
-	style.content_margin_left = 16.0
-	style.content_margin_right = 16.0
-	style.content_margin_top = 12.0
-	style.content_margin_bottom = 12.0
-	side_panel.add_theme_stylebox_override("panel", style)
-	_codex_panel.add_child(side_panel)
-
-	var side := VBoxContainer.new()
-	side.add_theme_constant_override("separation", 10)
-	side_panel.add_child(side)
-
-	var info := RichTextLabel.new()
-	info.bbcode_enabled = true
-	info.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	info.add_theme_font_size_override("normal_font_size", 16)
-	info.add_theme_font_size_override("bold_font_size", 18)
-	info.text = _species_report(aabb)
-	side.add_child(info)
-
-	_fix_label = Label.new()
-	_fix_label.add_theme_font_size_override("font_size", 18)
-	_fix_label.add_theme_color_override("font_color", Color(1.0, 0.85, 0.4))
-	side.add_child(_fix_label)
-
-	_yaw_slider = _add_slider(side, "yaw fix", -PI, PI, species.model_yaw_fix)
-	_pitch_slider = _add_slider(side, "pitch fix", -PI * 0.5, PI * 0.5, species.model_pitch_fix)
-	_update_fix()
-
-	_add_button(side, "Back", func() -> void: _show(_settings_panel))
-
-
-func _add_slider(parent: Container, label: String, from: float, to: float, value: float) -> HSlider:
-	var l := Label.new()
-	l.text = label
-	l.add_theme_font_size_override("font_size", 16)
-	parent.add_child(l)
-	var s := HSlider.new()
-	s.custom_minimum_size = Vector2(0, 28)
-	s.min_value = from
-	s.max_value = to
-	s.step = 0.01
-	s.value = value
-	s.value_changed.connect(func(_v: float) -> void: _update_fix())
-	parent.add_child(s)
-	return s
-
-
-func _update_fix() -> void:
-	var yaw := _yaw_slider.value
-	var pitch := _pitch_slider.value
-	_preview_model.rotation.y = yaw
-	_preview_model.rotation.x = pitch
-	_fix_label.text = "model_yaw_fix = %.2f   model_pitch_fix = %.2f" % [yaw, pitch]
-	for flock in get_tree().get_nodes_in_group("flocks"):
-		for bird in flock.get_children():
-			if bird.get_child_count() > 0:
-				var model := bird.get_child(0) as Node3D
-				model.rotation.y = yaw
-				model.rotation.x = pitch
-
-
-func _species_report(aabb: AABB) -> String:
-	var lines := []
-	lines.append("[b]%s[/b]" % species.resource_path.get_file())
-	lines.append("size: %.2f x %.2f x %.2f m (scale %.1f)" % [aabb.size.x, aabb.size.y, aabb.size.z, species.scale])
-	lines.append("flap: speed %.1f  amount %.2f  axis %s" % [species.flap_speed, species.flap_amount, species.flap_axis])
-	lines.append("orbit: r %.1f  h %.1f  speed %.2f" % [species.orbit_radius, species.orbit_height, species.orbit_speed])
-	lines.append("orange line = flight direction (+Z of entity)")
-	var sk := _find_skeleton(_preview_model)
-	if sk:
-		lines.append("\n[b]skeleton[/b]: %d bones" % sk.get_bone_count())
-		for i in sk.get_bone_count():
-			var rest := sk.get_bone_rest(i)
-			lines.append("  %d %s  pos %s" % [i, sk.get_bone_name(i), "(%.2f, %.2f, %.2f)" % [rest.origin.x, rest.origin.y, rest.origin.z]])
-	return "\n".join(lines)
+	var codex := HBoxContainer.new()
+	codex.set_script(preload("res://src/ui/codex.gd"))
+	codex.set_anchors_preset(Control.PRESET_FULL_RECT)
+	codex.species = species
+	codex.on_back = func() -> void: _show(_settings_panel)
+	_codex_panel.add_child(codex)
 
 
 func _model_aabb(root: Node) -> AABB:
@@ -658,16 +529,4 @@ func _model_aabb(root: Node) -> AABB:
 	return result
 
 
-func _find_skeleton(node: Node) -> Skeleton3D:
-	if node is Skeleton3D:
-		return node
-	for child in node.get_children():
-		var found := _find_skeleton(child)
-		if found:
-			return found
-	return null
 
-
-func _process(_delta: float) -> void:
-	if _codex_panel and _codex_panel.visible and _preview_pivot:
-		_preview_pivot.rotation.y += 0.008
