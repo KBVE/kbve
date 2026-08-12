@@ -4,7 +4,7 @@ use godot::classes::rendering_server::{MultimeshTransformFormat, ShadowCastingSe
 use godot::classes::{Engine, QuadMesh, RenderingServer, ShaderMaterial};
 use godot::prelude::*;
 
-use crate::world::flora_compute::FloraCompute;
+use crate::world::flora_compute::{FloraCompute, TerrainOcclusion};
 use crate::world::terrain::QTerrain;
 
 fn hash32(mut x: u32) -> u32 {
@@ -318,6 +318,9 @@ impl QFloraField {
             false,
             false,
             1,
+            // Flora and shrubs fade out well inside the range where a hill would
+            // hide them, so the march would cost more than it culls.
+            TerrainOcclusion::disabled(),
         )
     }
 

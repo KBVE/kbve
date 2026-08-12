@@ -6,7 +6,7 @@ use godot::classes::{ArrayMesh, Engine, PhysicsServer3D, ShaderMaterial, Texture
 use godot::prelude::*;
 use godot::tools::try_load;
 
-use crate::world::flora_compute::FloraCompute;
+use crate::world::flora_compute::{FloraCompute, TerrainOcclusion};
 use crate::world::terrain::QTerrain;
 
 struct Growth {
@@ -383,6 +383,7 @@ impl QTreeField {
                 true,
                 true,
                 2,
+                TerrainOcclusion::new(&heights, res, extent, 25.0),
             );
             let far_c = FloraCompute::new(
                 scenario,
@@ -402,6 +403,7 @@ impl QTreeField {
                 true,
                 false,
                 2,
+                TerrainOcclusion::new(&heights, res, extent, 25.0),
             );
             match (near_c, far_c) {
                 (Some(n), Some(f)) => {

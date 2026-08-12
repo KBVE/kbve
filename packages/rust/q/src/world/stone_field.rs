@@ -107,6 +107,13 @@ pub struct QStoneField {
     body: Rid,
     shapes: Vec<Rid>,
     extent: f32,
+    /// Snapshot of the terrain used to test sight lines during LOD rebucketing.
+    terrain_heights: Vec<f32>,
+    terrain_res: i32,
+    /// Stones nearer than this are never occlusion tested; the march costs more
+    /// than it saves at close range and a false positive there is very visible.
+    #[init(val = 30.0)]
+    occlusion_start: f32,
     dirty: bool,
     #[init(val = Vector3::new(1.0e9, 0.0, 0.0))]
     last_lod_origin: Vector3,
@@ -150,6 +157,8 @@ impl QStoneField {
             road_mask[(pz * road_res + px) as usize] as f32 / 255.0
         };
         self.extent = extent;
+        self.terrain_heights = heights.clone();
+        self.terrain_res = res;
 
         let sample = |x: f32, z: f32| -> f32 {
             let fx =
@@ -654,6 +663,9 @@ impl QStoneField {
                 if stage >= Stone::STAGES {
                     continue;
                 }
+                if self.occluded(e.pos, e.scale * 2.0, view) {
+                    continue;
+                }
                 let slot = if stage == 0 {
                     // Bigger stones hold detail longer: scale the LOD ranges by
                     // instance size so a boulder doesn't pop before a pebble.
@@ -680,6 +692,52 @@ impl QStoneField {
                 rs.instance_set_visible(slot.inst, count > 0);
             }
         }
+    }
+
+    fn terrain_at(&self, x: f32, z: f32) -> f32 {
+        let res = self.terrain_res;
+        if res < 2 || self.terrain_heights.len() < (res * res) as usize {
+            return f32::MIN;
+        }
+        let e = self.extent.max(1.0);
+        let fx = (((x + e) / (e * 2.0)).clamp(0.0, 1.0) * (res - 1) as f32).max(0.0);
+        let fz = (((z + e) / (e * 2.0)).clamp(0.0, 1.0) * (res - 1) as f32).max(0.0);
+        let x0 = (fx as i32).clamp(0, res - 2);
+        let z0 = (fz as i32).clamp(0, res - 2);
+        let tx = fx - x0 as f32;
+        let tz = fz - z0 as f32;
+        let h00 = self.terrain_heights[(z0 * res + x0) as usize];
+        let h10 = self.terrain_heights[(z0 * res + x0 + 1) as usize];
+        let h01 = self.terrain_heights[((z0 + 1) * res + x0) as usize];
+        let h11 = self.terrain_heights[((z0 + 1) * res + x0 + 1) as usize];
+        (h00 + (h10 - h00) * tx) + ((h01 + (h11 - h01) * tx) - (h00 + (h10 - h00) * tx)) * tz
+    }
+
+    /// Distance culling keeps everything in a radius, hill or no hill. Walking
+    /// the ground between a stone and the eye drops the ones standing behind a
+    /// ridge. Tested against the top of the stone, so it is fully hidden before
+    /// it is dropped, and only run during LOD rebucketing.
+    fn occluded(&self, pos: Vector3, top: f32, view: Vector3) -> bool {
+        if self.terrain_res < 2 {
+            return false;
+        }
+        let from = Vector3::new(pos.x, pos.y + top, pos.z);
+        if Vector2::new(from.x, from.z).distance_to(Vector2::new(view.x, view.z))
+            < self.occlusion_start
+        {
+            return false;
+        }
+        let d = view - from;
+        const STEPS: i32 = 12;
+        const BIAS: f32 = 0.75;
+        for i in 1..STEPS {
+            let t = i as f32 / STEPS as f32;
+            let sp = from + d * t;
+            if self.terrain_at(sp.x, sp.z) > sp.y + BIAS {
+                return true;
+            }
+        }
+        false
     }
 
     fn view_origin(&self) -> Vector3 {
