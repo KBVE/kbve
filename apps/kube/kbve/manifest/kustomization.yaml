@@ -20,6 +20,7 @@ resources:
     - direct-git-cert.yaml
     - kubevirt-rbac.yaml
     - kbve-deployment.yaml
+    - kbve-bbs-lb.yaml
     - kbve-gateway.yaml
     - kbve-mc-redirect-httproute.yaml
     - kbve-wt-selfsigned-cronjob.yaml

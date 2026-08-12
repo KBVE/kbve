@@ -506,6 +506,8 @@ fn router(state: AppState) -> Router {
             "/api/v1/referral/me/targets/{slug}/set-default",
             post(super::referral::me_set_default),
         )
+        .route("/api/v1/bbs/claim", post(super::bbs::claim_code))
+        .route("/api/v1/bbs/status", get(super::bbs::status))
         .route("/api/v1/yuki/chat", get(super::yuki::chat_handler))
         .route(
             "/api/v1/wallet/service/balance/{user_id}",
