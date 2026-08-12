@@ -5,6 +5,12 @@ extends CanvasLayer
 var _root: Control
 var _main_panel: VBoxContainer
 var _settings_panel: VBoxContainer
+var _graphics_panel: Control
+var _gameplay_panel: Control
+var _gfx
+var _gfx_rows: Array[Callable] = []
+var _play
+var _play_rows: Array[Callable] = []
 var _codex_panel: HBoxContainer
 var _preview_model: Node3D
 var _preview_pivot: Node3D
@@ -18,6 +24,10 @@ var _book_warm_light: OmniLight3D
 var _book_base: Transform3D
 var _book_start: Transform3D
 var _transition := 0
+## Touch needs a bigger hit target than a mouse cursor, and the book pages are a
+## smaller share of a phone screen, so sizes come from here rather than being
+## hardcoded per control.
+var _touch := false
 
 const BOOK_MODEL := preload("res://assets/ui/book/book.glb")
 const BOOK_OPEN_POSE := 1.6
@@ -27,6 +37,7 @@ const CLOSE_SPEED := 3.0
 func _ready() -> void:
 	layer = 120
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	_touch = DisplayServer.is_touchscreen_available() or OS.has_feature("mobile")
 	_root = Control.new()
 	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_root.visible = false
@@ -44,8 +55,13 @@ func _ready() -> void:
 	_add_button(_main_panel, "Settings", func() -> void: _show(_settings_panel))
 
 	_settings_panel = _menu_box(0.60)
+	_add_button(_settings_panel, "Graphics", func() -> void: _show(_graphics_panel))
+	_add_button(_settings_panel, "Gameplay", func() -> void: _show(_gameplay_panel))
 	_add_button(_settings_panel, "Codex", _open_codex)
 	_add_button(_settings_panel, "Back", func() -> void: _show(_main_panel))
+
+	_build_graphics()
+	_build_gameplay()
 
 	_codex_panel = HBoxContainer.new()
 	_codex_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -162,12 +178,246 @@ func _find_anim(node: Node) -> AnimationPlayer:
 	return null
 
 
-func _menu_box(page_x: float = 0.5) -> VBoxContainer:
+## Split across both open pages rather than one tall centred column: six rows
+## grow from the middle in both directions and run off the top of the book.
+## Ordered by measured cost, worst first.
+func _build_graphics() -> void:
+	_graphics_panel = Control.new()
+	_graphics_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_graphics_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_graphics_panel.visible = false
+	_root.add_child(_graphics_panel)
+
+	_gfx = get_parent().get_node_or_null("GraphicsSettings") if get_parent() else null
+	var left := _page_box(PAGE_LEFT, _graphics_panel)
+	var right := _page_box(PAGE_RIGHT, _graphics_panel)
+	if _gfx == null:
+		_page_back(right)
+		return
+
+	_gfx_rows.append(_add_cycler(left, "Preset",
+			func() -> Array: return _gfx.PRESET_NAMES,
+			func() -> int: return _gfx.preset_index(),
+			func(i: int) -> void: _gfx.apply_preset(i),
+			_gfx.PRESETS.size(), _gfx_rows))
+
+	_gfx_rows.append(_add_cycler(left, "Ground Detail",
+			func() -> Array: return _gfx.DETAIL_NAMES,
+			func() -> int: return _gfx.detail,
+			func(i: int) -> void:
+				_gfx.detail = i
+				_gfx.apply(),
+			_gfx.DETAIL_NAMES.size(), _gfx_rows))
+
+	_gfx_rows.append(_add_cycler(left, "Resolution",
+			func() -> Array: return ["50%", "60%", "70%", "85%", "100%"],
+			func() -> int: return _nearest_scale(_gfx.render_scale),
+			func(i: int) -> void:
+				_gfx.render_scale = SCALE_STEPS[i]
+				_gfx.apply(),
+			SCALE_STEPS.size(), _gfx_rows))
+
+	_gfx_rows.append(_add_cycler(right, "Shadows",
+			func() -> Array: return ["Off", "On"],
+			func() -> int: return 1 if _gfx.shadows else 0,
+			func(i: int) -> void:
+				_gfx.shadows = i == 1
+				_gfx.apply(),
+			2, _gfx_rows))
+
+	_gfx_rows.append(_add_cycler(right, "Grass",
+			func() -> Array: return _grass_labels(),
+			func() -> int: return _nearest(_gfx.GRASS_STEPS, _gfx.grass_blades),
+			func(i: int) -> void:
+				_gfx.grass_blades = _gfx.GRASS_STEPS[i]
+				_gfx.apply(),
+			_gfx.GRASS_STEPS.size(), _gfx_rows))
+
+	_gfx_rows.append(_add_cycler(right, "Post FX",
+			func() -> Array: return ["Off", "On"],
+			func() -> int: return 1 if _gfx.postfx else 0,
+			func(i: int) -> void:
+				_gfx.postfx = i == 1
+				_gfx.apply(),
+			2, _gfx_rows))
+
+	_page_back(right)
+
+
+func _build_gameplay() -> void:
+	_gameplay_panel = Control.new()
+	_gameplay_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_gameplay_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_gameplay_panel.visible = false
+	_root.add_child(_gameplay_panel)
+
+	_play = get_parent().get_node_or_null("GameplaySettings") if get_parent() else null
+	var left := _page_box(PAGE_LEFT, _gameplay_panel)
+	var right := _page_box(PAGE_RIGHT, _gameplay_panel)
+	if _play == null:
+		_page_back(right)
+		return
+
+	_play_rows.append(_add_cycler(left, "Camera",
+			func() -> Array: return _play.CAMERA_NAMES,
+			func() -> int: return _play.camera_mode,
+			func(i: int) -> void: _play.set_camera_mode(i),
+			_play.CAMERA_NAMES.size(), _play_rows))
+
+	_play_rows.append(_add_cycler(right, "Crosshair",
+			func() -> Array: return ["Off", "On"],
+			func() -> int: return 1 if _play.crosshair else 0,
+			func(i: int) -> void: _play.set_crosshair(i == 1),
+			2, _play_rows))
+
+	_page_back(right)
+
+
+func _page_back(parent: Container) -> Button:
+	var back := _add_button(parent, "Back", func() -> void: _show(_settings_panel))
+	back.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	back.custom_minimum_size = Vector2(0, _row_h())
+	back.add_theme_font_size_override("font_size", _row_font())
+	return back
+
+
+const SCALE_STEPS := [0.5, 0.6, 0.7, 0.85, 1.0]
+
+## The writable area of each open page, as anchor fractions of the screen
+## (x, y, width, height). Content fills its page rather than being centred on a
+## point, so a row added or removed re-flows inside the page instead of growing
+## past the paper. Flip PAGE_BORDER to see the two rects while tuning them.
+const PAGE_LEFT := Rect2(0.285, 0.335, 0.185, 0.40)
+const PAGE_RIGHT := Rect2(0.530, 0.335, 0.185, 0.40)
+const PAGE_BORDER := false
+
+## Apple and Android both put the minimum comfortable touch target near 44pt.
+const ROW_H := 34.0
+const ROW_H_TOUCH := 48.0
+const ROW_FONT := 17
+const ROW_FONT_TOUCH := 21
+## Touch gets wider pages: the same fractions that leave a comfortable margin on
+## a desktop window leave the rows squeezed on a phone.
+const PAGE_LEFT_TOUCH := Rect2(0.255, 0.315, 0.225, 0.43)
+const PAGE_RIGHT_TOUCH := Rect2(0.520, 0.315, 0.225, 0.43)
+
+
+func _row_h() -> float:
+	return ROW_H_TOUCH if _touch else ROW_H
+
+
+func _row_font() -> int:
+	return ROW_FONT_TOUCH if _touch else ROW_FONT
+
+
+func _page_rect(area: Rect2) -> Rect2:
+	if not _touch:
+		return area
+	return PAGE_LEFT_TOUCH if area == PAGE_LEFT else PAGE_RIGHT_TOUCH
+
+
+func _page_box(src_area: Rect2, panel: Control) -> VBoxContainer:
+	var area := _page_rect(src_area)
+	var frame := MarginContainer.new()
+	frame.anchor_left = area.position.x
+	frame.anchor_top = area.position.y
+	frame.anchor_right = area.position.x + area.size.x
+	frame.anchor_bottom = area.position.y + area.size.y
+	# Anchors alone do not move a Control -- the default offsets still apply on
+	# top of them, so the box lands off its page unless they are cleared.
+	frame.offset_left = 0.0
+	frame.offset_top = 0.0
+	frame.offset_right = 0.0
+	frame.offset_bottom = 0.0
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_child(frame)
+
+	if PAGE_BORDER:
+		var edge := Panel.new()
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0, 0, 0, 0)
+		style.border_color = Color(0.8, 0.2, 0.2, 0.7)
+		style.set_border_width_all(1)
+		edge.add_theme_stylebox_override("panel", style)
+		edge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		edge.set_anchors_preset(Control.PRESET_FULL_RECT)
+		frame.add_child(edge)
+
+	var box := VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 8)
+	frame.add_child(box)
+	return box
+
+
+func _nearest_scale(v: float) -> int:
+	return _nearest(SCALE_STEPS, v)
+
+
+## Blades per square metre, shown as the number rather than a percentage: the
+## field default has already moved 250 -> 150, and a percentage would have meant
+## a different density either side of that.
+func _grass_labels() -> Array:
+	var out: Array = []
+	for v in _gfx.GRASS_STEPS:
+		out.append("%d/m2" % int(v))
+	return out
+
+
+func _nearest(steps: Array, v: float) -> int:
+	var best := 0
+	var best_d := 1e9
+	for i in steps.size():
+		var d: float = absf(float(steps[i]) - v)
+		if d < best_d:
+			best_d = d
+			best = i
+	return best
+
+
+## One row, cycled by clicking rather than a dropdown: every option here is a
+## short ordered list, and a Button is already themed to match the book.
+func _add_cycler(parent: Container, label: String, names: Callable, get_index: Callable,
+		set_index: Callable, count: int, rows: Array[Callable]) -> Callable:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var name_label := Label.new()
+	name_label.text = label
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name_label.size_flags_stretch_ratio = 1.1
+	name_label.custom_minimum_size = Vector2(0, _row_h())
+	name_label.add_theme_font_size_override("font_size", _row_font())
+	name_label.add_theme_color_override("font_color", Color(0.25, 0.16, 0.08))
+	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	row.add_child(name_label)
+	var value_button := _add_button(row, "", func() -> void: pass)
+	value_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	value_button.custom_minimum_size = Vector2(0, _row_h())
+	value_button.add_theme_font_size_override("font_size", _row_font())
+	var refresh := func() -> void:
+		var list: Array = names.call()
+		var i: int = clampi(get_index.call(), 0, list.size() - 1)
+		value_button.text = str(list[i])
+	value_button.pressed.connect(func() -> void:
+		var i: int = (get_index.call() + 1) % count
+		set_index.call(i)
+		for r in rows:
+			r.call())
+	refresh.call()
+	parent.add_child(row)
+	return refresh
+
+
+func _menu_box(page_x: float = 0.5, page_y: float = 0.5) -> VBoxContainer:
 	var box := VBoxContainer.new()
 	box.anchor_left = page_x
 	box.anchor_right = page_x
-	box.anchor_top = 0.5
-	box.anchor_bottom = 0.5
+	box.anchor_top = page_y
+	box.anchor_bottom = page_y
 	box.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	box.grow_vertical = Control.GROW_DIRECTION_BOTH
 	box.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -216,6 +466,7 @@ func _open() -> void:
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_root.visible = true
+	_set_crosshair(false)
 	_show(null)
 	if _book_anim and _book_anim_name != "":
 		_transition += 1
@@ -252,16 +503,33 @@ func _close() -> void:
 	get_tree().paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_root.visible = false
+	_set_crosshair(true)
+
+
+func _set_crosshair(shown: bool) -> void:
+	var hud := get_parent().get_node_or_null("Crosshair") if get_parent() else null
+	if hud:
+		hud.visible = shown and (_play == null or _play.crosshair)
 
 
 func _show(panel: Control) -> void:
 	if panel == null:
 		_main_panel.visible = false
 		_settings_panel.visible = false
+		_graphics_panel.visible = false
+		_gameplay_panel.visible = false
 		_codex_panel.visible = false
 		return
+	if panel == _graphics_panel:
+		for r in _gfx_rows:
+			r.call()
+	if panel == _gameplay_panel:
+		for r in _play_rows:
+			r.call()
 	_main_panel.visible = panel == _main_panel
 	_settings_panel.visible = panel == _settings_panel
+	_graphics_panel.visible = panel == _graphics_panel
+	_gameplay_panel.visible = panel == _gameplay_panel
 	_codex_panel.visible = panel == _codex_panel
 
 

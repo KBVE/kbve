@@ -2,6 +2,10 @@
 
 [ext_resource type="Shader" path="res://assets/biomes/grassland/grass/ground.gdshader" id="1_shader"]
 [ext_resource type="Texture2D" path="res://assets/biomes/grassland/grass/grass_normals.png" id="2_normals"]
+[ext_resource type="Texture2D" path="res://assets/biomes/grassland/textures/grass_with_rocks_01_albedo.png" id="6_dalb"]
+[ext_resource type="Texture2D" path="res://assets/biomes/grassland/textures/grass_with_rocks_01_normal_gl.png" id="7_dnrm"]
+[ext_resource type="Texture2D" path="res://assets/biomes/grassland/textures/grass_with_rocks_01_orm.png" id="8_dorm"]
+[ext_resource type="Texture2D" path="res://assets/biomes/grassland/textures/grass_with_rocks_01_height.png" id="9_dhgt"]
 [ext_resource type="Texture2D" path="res://assets/biomes/grassland/road/ground_tiles_13_albedo.png" id="3_road_albedo"]
 [ext_resource type="Texture2D" path="res://assets/biomes/grassland/road/ground_tiles_13_normal_gl.png" id="4_road_normal"]
 [ext_resource type="Texture2D" path="res://assets/biomes/grassland/road/ground_tiles_13_orm.png" id="5_road_orm"]
@@ -34,6 +38,7 @@ shader = ExtResource("1_shader")
 shader_parameter/color_small = Color(0.3, 0.6, 0.1, 1)
 shader_parameter/color_large = Color(0.9, 0.9, 0.2, 1)
 shader_parameter/ground_color = Color(0.09, 0.07, 0.04, 1)
+shader_parameter/view_angle_shading = 1.0
 shader_parameter/soil_fade_start = 5.0
 shader_parameter/soil_fade_end = 10.0
 shader_parameter/patch_noise = SubResource("NoiseTexture2D_patch")
@@ -43,10 +48,32 @@ shader_parameter/baked_normals = ExtResource("2_normals")
 shader_parameter/wind_noise = SubResource("NoiseTexture2D_wind")
 shader_parameter/wind_strength = 0.1
 shader_parameter/wind_bend_strength = 2.0
-shader_parameter/wind_ao_affect = 1.0
+shader_parameter/wind_ao_affect = 1.5
 shader_parameter/road_albedo = ExtResource("3_road_albedo")
 shader_parameter/road_normal = ExtResource("4_road_normal")
 shader_parameter/road_orm = ExtResource("5_road_orm")
 shader_parameter/road_tile_scale = 1.4
 shader_parameter/road_edge_break = 0.35
 shader_parameter/road_tint = Color(0.86, 0.83, 0.78, 1)
+shader_parameter/detail_albedo = ExtResource("6_dalb")
+shader_parameter/detail_normal = ExtResource("7_dnrm")
+shader_parameter/detail_orm = ExtResource("8_dorm")
+shader_parameter/detail_height = ExtResource("9_dhgt")
+shader_parameter/detail_tile_scale = 2.0
+shader_parameter/detail_amount = 0.9
+shader_parameter/detail_normal_strength = 2.0
+shader_parameter/detail_far_amount = 0.55
+shader_parameter/detail_far_blur = 1.5
+shader_parameter/detail_turf_scale = 1.0
+shader_parameter/detail_tint = 0.35
+shader_parameter/pom_offset_mode = 2
+shader_parameter/pom_strength = 1.0
+shader_parameter/pom_depth = 0.18
+shader_parameter/pom_turf_scale = 1.0
+shader_parameter/pom_fade_start = 6.0
+shader_parameter/pom_fade_end = 14.0
+shader_parameter/pom_min_tilt = 0.30
+shader_parameter/height_normal_strength = 6.0
+shader_parameter/pom_layers_max = 48.0
+shader_parameter/pom_samples_per_uv = 900.0
+shader_parameter/pom_grazing_fade = 0.55

@@ -40,7 +40,7 @@ struct Q;
 #[cfg(feature = "client")]
 #[gdextension]
 unsafe impl ExtensionLibrary for Q {
-    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
+    #[cfg(not(target_family = "wasm"))]
     fn on_stage_init(stage: godot::init::InitStage) {
         use crate::threads::runtime::RuntimeManager;
         if stage == godot::init::InitStage::Scene {
@@ -49,7 +49,7 @@ unsafe impl ExtensionLibrary for Q {
         }
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
+    #[cfg(not(target_family = "wasm"))]
     fn on_stage_deinit(stage: godot::init::InitStage) {
         use crate::threads::runtime::RuntimeManager;
         if stage == godot::init::InitStage::Scene {
@@ -73,6 +73,9 @@ unsafe impl ExtensionLibrary for Q {
 #[cfg(feature = "proto-shared")]
 pub mod proto;
 
+#[cfg(any(feature = "client", feature = "rapier3d-sim"))]
+pub mod worldgen;
+
 #[cfg(any(
     feature = "rapier2d-client",
     feature = "rapier2d-server",
@@ -84,7 +87,8 @@ pub mod rapier;
     feature = "net-client",
     feature = "net-server",
     feature = "net-transport",
-    feature = "net-session"
+    feature = "net-session",
+    feature = "net-ws"
 ))]
 pub mod net;
 

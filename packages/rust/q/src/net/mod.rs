@@ -9,6 +9,12 @@ pub mod transport;
 #[cfg(feature = "net-session")]
 pub mod session;
 
+#[cfg(feature = "net-ws")]
+pub mod ws;
+
+#[cfg(all(feature = "net-ws", feature = "net-session"))]
+pub mod client_thread;
+
 #[cfg(feature = "net-client")]
 pub mod client;
 

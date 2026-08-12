@@ -132,8 +132,11 @@ pub struct QGrassField {
     #[export]
     #[init(val = 20.0)]
     card_chunk_size: f32,
+    /// Near-camera density is where grass cost lives: 250 -> 150 roughly halved
+    /// frame time in an open field for very little visible thinning, while
+    /// cutting blade_range over the same span bought a fraction of that.
     #[export]
-    #[init(val = 250.0)]
+    #[init(val = 150.0)]
     blades_per_sqm: f32,
     #[export]
     #[init(val = 6.5)]
@@ -162,6 +165,13 @@ pub struct QGrassField {
     #[export]
     #[init(val = 100.0)]
     transition_out_end: f32,
+    /// The billboard card and transition tiers are a local addition; the
+    /// upstream design this is based on goes blades straight to the ground
+    /// impostor. Cards fade by rescaling an alpha-tested cutout, which crawls
+    /// under motion, so they are off by default.
+    #[export]
+    #[init(val = true)]
+    billboards: bool,
     #[export]
     #[init(val = 256.0)]
     world_half_extent: f32,
@@ -263,7 +273,9 @@ impl QGrassField {
             Vector3::new(self.card_chunk_size + 1.0, 16.0, self.card_chunk_size + 1.0),
         );
 
-        self.build_card_material(card_count, transition_count);
+        if self.billboards {
+            self.build_card_material(card_count, transition_count);
+        }
 
         let mut card_mesh = QuadMesh::new_gd();
         card_mesh.set_size(Vector2::new(1.0, 1.0));
@@ -284,16 +296,18 @@ impl QGrassField {
                 blade_count,
                 self.chunk_size,
             ));
-            card_params.extend(self.build_layout_params(
-                (self.layout_seed as u32) ^ hash32(7919 + v as u32),
-                card_count,
-                self.card_chunk_size,
-            ));
-            trans_params.extend(self.build_layout_params(
-                (self.layout_seed as u32) ^ hash32(104729 + v as u32),
-                transition_count,
-                self.card_chunk_size,
-            ));
+            if self.billboards {
+                card_params.extend(self.build_layout_params(
+                    (self.layout_seed as u32) ^ hash32(7919 + v as u32),
+                    card_count,
+                    self.card_chunk_size,
+                ));
+                trans_params.extend(self.build_layout_params(
+                    (self.layout_seed as u32) ^ hash32(104729 + v as u32),
+                    transition_count,
+                    self.card_chunk_size,
+                ));
+            }
         }
         self.blade_params = blade_params;
         self.card_params = card_params;
@@ -310,8 +324,11 @@ impl QGrassField {
             self.transition_out_end + self.card_chunk_size * std::f32::consts::FRAC_1_SQRT_2 + 5.0;
         let transition_radius_cells = (transition_margin / self.card_chunk_size).ceil() as i32;
         self.blade_grid = Some(RingGrid::new(blade_radius_cells, self.chunk_size));
-        self.card_grid = Some(RingGrid::new(card_radius_cells, self.card_chunk_size));
-        self.transition_grid = Some(RingGrid::new(transition_radius_cells, self.card_chunk_size));
+        if self.billboards {
+            self.card_grid = Some(RingGrid::new(card_radius_cells, self.card_chunk_size));
+            self.transition_grid =
+                Some(RingGrid::new(transition_radius_cells, self.card_chunk_size));
+        }
 
         if let Some(m) = self.grass_material.as_mut() {
             m.set_shader_parameter("total_blades", &(blade_count as f32).to_variant());
@@ -366,17 +383,16 @@ impl QGrassField {
             let cp = std::mem::take(&mut self.card_params);
             let tp = std::mem::take(&mut self.trans_params);
             self.blade_compute = self.build_blade_compute(&bp, blade_count);
-            if self.blade_compute.is_some() {
+            if self.blade_compute.is_some() && self.billboards {
                 self.card_compute = self.build_card_compute(&cp, card_count, false);
                 self.transition_compute = self.build_card_compute(&tp, transition_count, true);
             }
             self.blade_params = bp;
             self.card_params = cp;
             self.trans_params = tp;
-            if self.blade_compute.is_none()
-                || self.card_compute.is_none()
-                || self.transition_compute.is_none()
-            {
+            let cards_failed = self.billboards
+                && (self.card_compute.is_none() || self.transition_compute.is_none());
+            if self.blade_compute.is_none() || cards_failed {
                 self.teardown_compute();
             }
         }
@@ -457,6 +473,7 @@ impl INode3D for QGrassField {
         );
         if self.last_blade_center != Some(blade_center) {
             self.last_blade_center = Some(blade_center);
+            let _t = crate::world::StallTimer::start("grass.blade_cells");
             if self.blade_compute.is_some() {
                 self.rebuild_compute_cells(blade_center);
             } else {
@@ -470,6 +487,7 @@ impl INode3D for QGrassField {
         );
         if self.last_card_center != Some(card_center) {
             self.last_card_center = Some(card_center);
+            let _t = crate::world::StallTimer::start("grass.card_cells");
             if self.blade_compute.is_some() {
                 self.rebuild_card_cells(card_center);
                 self.rebuild_transition_cells(card_center);
@@ -481,10 +499,12 @@ impl INode3D for QGrassField {
 
         if origin.distance_squared_to(self.last_lod_position) >= LOD_UPDATE_DISTANCE_SQ {
             self.last_lod_position = origin;
+            let _t = crate::world::StallTimer::start("grass.tiers");
             self.update_tiers(origin);
         }
 
         if self.blade_compute.is_some() {
+            let _t = crate::world::StallTimer::start("grass.step_compute");
             self.step_compute();
         }
     }
@@ -707,14 +727,17 @@ impl QGrassField {
             Some(bc) => bc.online() || bc.try_finalize(),
             None => return,
         };
+        // A tier that was never built is not a tier that failed, so absent
+        // counts as online; otherwise running without billboards trips the
+        // fallback and drops the whole field to the classic path.
         let card_online = self
             .card_compute
             .as_mut()
-            .is_some_and(|c| c.online() || c.try_finalize());
+            .map_or(true, |c| c.online() || c.try_finalize());
         let trans_online = self
             .transition_compute
             .as_mut()
-            .is_some_and(|c| c.online() || c.try_finalize());
+            .map_or(true, |c| c.online() || c.try_finalize());
         if !blade_online || !card_online || !trans_online {
             self.compute_attempts += 1;
             if self.compute_attempts > 300 {
@@ -1576,22 +1599,28 @@ impl QGrassField {
                 Self::make_tiers(&mut rs, detailed, &bb, blade_count),
                 Self::make_tiers(&mut rs, simple, &bb, blade_count),
             ]);
-            let cb = Self::params_to_transforms(
-                &self.card_params[v * card_count * 6..(v + 1) * card_count * 6],
-                card_count,
-            );
-            self.card_multimeshes
-                .push(Self::make_tiers(&mut rs, card_mesh_rid, &cb, card_count));
-            let tb = Self::params_to_transforms(
-                &self.trans_params[v * transition_count * 6..(v + 1) * transition_count * 6],
-                transition_count,
-            );
-            self.transition_multimeshes.push(Self::make_tiers(
-                &mut rs,
-                card_mesh_rid,
-                &tb,
-                transition_count,
-            ));
+            if self.billboards {
+                let cb = Self::params_to_transforms(
+                    &self.card_params[v * card_count * 6..(v + 1) * card_count * 6],
+                    card_count,
+                );
+                self.card_multimeshes.push(Self::make_tiers(
+                    &mut rs,
+                    card_mesh_rid,
+                    &cb,
+                    card_count,
+                ));
+                let tb = Self::params_to_transforms(
+                    &self.trans_params[v * transition_count * 6..(v + 1) * transition_count * 6],
+                    transition_count,
+                );
+                self.transition_multimeshes.push(Self::make_tiers(
+                    &mut rs,
+                    card_mesh_rid,
+                    &tb,
+                    transition_count,
+                ));
+            }
         }
         drop(rs);
         self.fill_all_grid_slots();
@@ -1693,10 +1722,24 @@ impl QGrassField {
                 let t = yy as f32 / bh;
                 let half = bw * (1.0 - t * 0.92) * 0.5;
                 let cx = base_x + lean * t * t;
-                for xx in ((cx - half) as i32)..=((cx + half) as i32) {
-                    if xx >= 0 && xx < w {
-                        img.set_pixel(xx, h - 1 - yy, Color::WHITE);
+                // Coverage rather than a binary stamp. A hard-edged stroke whose
+                // half-width falls below a pixel toward the tip lands on one
+                // pixel some rows and two the next, and the ragged result cuts
+                // visible lines across the card once it is mipmapped and
+                // alpha-tested.
+                let left = cx - half;
+                let right = cx + half;
+                let x0 = left.floor().max(0.0) as i32;
+                let x1 = (right.ceil() as i32).min(w);
+                let y = h - 1 - yy;
+                for xx in x0..x1 {
+                    let cover =
+                        ((xx as f32 + 1.0).min(right) - (xx as f32).max(left)).clamp(0.0, 1.0);
+                    if cover <= 0.0 {
+                        continue;
                     }
+                    let prev = img.get_pixel(xx, y).a;
+                    img.set_pixel(xx, y, Color::from_rgba(1.0, 1.0, 1.0, prev.max(cover)));
                 }
             }
         }

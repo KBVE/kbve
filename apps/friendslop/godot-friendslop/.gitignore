@@ -8,3 +8,5 @@ addons/q/windows/
 export_credentials.cfg
 screenshots/
 reports/
+addons/q/android/
+build/

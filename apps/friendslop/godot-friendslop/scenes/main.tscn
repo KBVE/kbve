@@ -1,6 +1,7 @@
-[gd_scene load_steps=31 format=3]
+[gd_scene load_steps=36 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
+[ext_resource type="Script" path="res://src/ui/touch_controls.gd" id="28_touch"]
 [ext_resource type="Material" path="res://assets/biomes/grassland/grass/ground.tres" id="3_ground"]
 [ext_resource type="Material" path="res://assets/biomes/grassland/grass/grass.tres" id="4_grassmat"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="5_player"]
@@ -14,10 +15,16 @@
 [ext_resource type="Material" path="res://assets/environment/water/water.tres" id="13_water"]
 [ext_resource type="Material" path="res://assets/environment/water/riverbed.tres" id="24_riverbed"]
 [ext_resource type="Material" path="res://assets/environment/props/bridge/bridge.tres" id="25_bridge"]
+[ext_resource type="Material" path="res://assets/environment/props/bridge/abutment.tres" id="26_abut"]
 [ext_resource type="Script" path="res://src/fauna/flock.gd" id="14_ravens"]
 [ext_resource type="Resource" path="res://assets/environment/props/fauna/raven/raven_species.tres" id="15_species"]
 [ext_resource type="Script" path="res://src/ui/pause_menu.gd" id="16_pause"]
 [ext_resource type="Script" path="res://src/debug/debug_hud.gd" id="17_hud"]
+[ext_resource type="Script" path="res://src/debug/frame_watch.gd" id="27_watch"]
+[ext_resource type="Script" path="res://src/debug/debug_stats_server.gd" id="29_stats"]
+[ext_resource type="Script" path="res://src/settings/graphics_settings.gd" id="30_gfx"]
+[ext_resource type="Script" path="res://src/settings/gameplay_settings.gd" id="31_play"]
+[ext_resource type="Script" path="res://src/ui/crosshair.gd" id="32_cross"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/flora.tres" id="18_flora"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/tree.tres" id="19_tree"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/shrub.tres" id="20_shrub"]
@@ -89,6 +96,7 @@ ground_material = ExtResource("3_ground")
 water_material = ExtResource("13_water")
 riverbed_material = ExtResource("24_riverbed")
 bridge_material = ExtResource("25_bridge")
+abutment_material = ExtResource("26_abut")
 
 [node name="GrassField" type="QGrassField" parent="."]
 player_path = NodePath("../Player")
@@ -160,6 +168,15 @@ player_path = NodePath("../Player")
 script = ExtResource("10_debug")
 player_path = NodePath("../Player")
 
+[node name="GraphicsSettings" type="Node" parent="."]
+script = ExtResource("30_gfx")
+
+[node name="GameplaySettings" type="Node" parent="."]
+script = ExtResource("31_play")
+
+[node name="Crosshair" type="CanvasLayer" parent="."]
+script = ExtResource("32_cross")
+
 [node name="PauseMenu" type="CanvasLayer" parent="."]
 script = ExtResource("16_pause")
 species = ExtResource("15_species")
@@ -167,6 +184,25 @@ species = ExtResource("15_species")
 [node name="DebugHud" type="CanvasLayer" parent="."]
 script = ExtResource("17_hud")
 player_path = NodePath("../Player")
+
+[node name="DebugStats" type="Node" parent="."]
+script = ExtResource("29_stats")
+
+[node name="FrameWatch" type="Node" parent="."]
+script = ExtResource("27_watch")
+player_path = NodePath("../Player")
+
+[node name="TouchControls" type="CanvasLayer" parent="."]
+layer = 50
+
+[node name="Overlay" type="Control" parent="TouchControls"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("28_touch")
 
 [node name="PostFX" type="CanvasLayer" parent="."]
 layer = 100

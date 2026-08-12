@@ -2414,6 +2414,39 @@
 							"configurations": {},
 							"parallelism": true
 						},
+						"export:ios": {
+							"executor": "nx:run-commands",
+							"dependsOn": ["q:deploy-ios"],
+							"outputs": [
+								"{workspaceRoot}/dist/apps/friendslop/ios"
+							],
+							"options": {
+								"command": "bash scripts/ios.sh export",
+								"cwd": "apps/friendslop/godot-friendslop"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"install:ios": {
+							"executor": "nx:run-commands",
+							"dependsOn": ["export:ios"],
+							"options": {
+								"command": "bash scripts/ios.sh install",
+								"cwd": "apps/friendslop/godot-friendslop"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"run:ios": {
+							"executor": "nx:run-commands",
+							"dependsOn": ["install:ios"],
+							"options": {
+								"command": "bash scripts/ios.sh run",
+								"cwd": "apps/friendslop/godot-friendslop"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
 						"export": {
 							"executor": "nx:run-commands",
 							"options": {
@@ -15697,6 +15730,34 @@
 									"mkdir -p release/addons/q/macos",
 									"cp dist/macos/*.dylib release/addons/q/macos/",
 									"bash scripts/sign-dylib.sh release/addons/q/macos/libq.dylib"
+								],
+								"parallel": false
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"build-ios": {
+							"executor": "nx:run-commands",
+							"options": {
+								"cwd": "packages/rust/q",
+								"commands": [
+									"cargo build --target aarch64-apple-ios --release"
+								],
+								"parallel": false
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"deploy-ios": {
+							"executor": "nx:run-commands",
+							"dependsOn": ["build-ios"],
+							"options": {
+								"cwd": "packages/rust/q",
+								"commands": [
+									"mkdir -p ../../../apps/friendslop/godot-friendslop/addons/q/ios/libq.framework",
+									"cp ../../../dist/target/aarch64-apple-ios/release/libq.dylib ../../../apps/friendslop/godot-friendslop/addons/q/ios/libq.framework/libq",
+									"install_name_tool -id @rpath/libq.framework/libq ../../../apps/friendslop/godot-friendslop/addons/q/ios/libq.framework/libq",
+									"codesign --force --sign - --timestamp=none ../../../apps/friendslop/godot-friendslop/addons/q/ios/libq.framework"
 								],
 								"parallel": false
 							},

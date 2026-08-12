@@ -55,6 +55,7 @@ members = [
 	'apps/agones/cryptothrone/server',
 	'apps/agones/arpg/server',
 	'apps/agones/herbmail/server',
+	'apps/agones/friendslop/server',
 	'packages/rust/kbve_wgpu',
 	'apps/media/reel',
 ]

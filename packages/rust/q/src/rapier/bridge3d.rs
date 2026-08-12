@@ -38,7 +38,7 @@ struct Tracked {
     drive: Drive,
 }
 
-fn iso_of(node: &Gd<Node3D>) -> super::sim3d::Iso {
+pub(super) fn iso_of(node: &Gd<Node3D>) -> super::sim3d::Iso {
     let xform = node.get_global_transform();
     let q = xform.basis.get_quaternion();
     super::sim3d::Iso {
@@ -47,7 +47,7 @@ fn iso_of(node: &Gd<Node3D>) -> super::sim3d::Iso {
     }
 }
 
-fn apply_iso(node: &mut Gd<Node3D>, iso: &super::sim3d::Iso) {
+pub(super) fn apply_iso(node: &mut Gd<Node3D>, iso: &super::sim3d::Iso) {
     let mut xform = node.get_global_transform();
     // Rebuild the basis from the sim's rotation but keep the node's authored
     // scale — the sim carries no scale, so a naive overwrite would silently
@@ -187,7 +187,12 @@ impl QPhysics3D {
                 ..Default::default()
             },
         });
-        self.tracked.insert(id, Tracked { node, drive });
+        // Fixed bodies are not tracked: they never move, and the sim leaves
+        // them out of snapshots entirely, so tracking one would walk a node
+        // every frame waiting for an update that by definition never comes.
+        if kind != BodyKind::Fixed {
+            self.tracked.insert(id, Tracked { node, drive });
+        }
         id.0 as i64
     }
 }

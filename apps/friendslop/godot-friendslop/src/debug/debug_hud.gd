@@ -8,6 +8,17 @@ var _label: Label
 var _accum := 0.0
 var _player: Node3D
 var _grass: Node
+var _trees: Node
+## Per-system counts need buffer_get_data on the compute counters, which is a
+## blocking GPU readback. That is affordable on desktop and wrecks the very
+## frame time we are trying to measure on mobile, so mobile shows totals only.
+var _detailed := true
+## Worst frame seen since the last readout, plus a slower-decaying peak. An
+## average hides hitches completely, and hitches and a low steady rate need
+## opposite fixes, so both are tracked separately.
+var _worst_ms := 0.0
+var _peak_ms := 0.0
+var _peak_age := 0.0
 
 
 func _ready() -> void:
@@ -16,6 +27,8 @@ func _ready() -> void:
 	visible = OS.is_debug_build()
 	_player = get_node_or_null(player_path) as Node3D
 	_grass = get_parent().get_node_or_null("GrassField") if get_parent() else null
+	_trees = get_parent().get_node_or_null("TreeField") if get_parent() else null
+	_detailed = not OS.has_feature("mobile")
 	var panel := PanelContainer.new()
 	panel.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
 	panel.grow_vertical = Control.GROW_DIRECTION_BEGIN
@@ -42,6 +55,12 @@ func _unhandled_input(event: InputEvent) -> void:
 func _process(delta: float) -> void:
 	if not visible:
 		return
+	var this_ms := delta * 1000.0
+	_worst_ms = maxf(_worst_ms, this_ms)
+	_peak_age += delta
+	if this_ms >= _peak_ms or _peak_age > 10.0:
+		_peak_ms = this_ms
+		_peak_age = 0.0
 	_accum += delta
 	if _accum < UPDATE_INTERVAL:
 		return
@@ -54,9 +73,20 @@ func _process(delta: float) -> void:
 	var vram := RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_VIDEO_MEM_USED)
 	var mem := OS.get_static_memory_usage()
 	var lines := PackedStringArray()
+	# CPU time against total frame time: if they track, we are CPU bound, and a
+	# large gap means the GPU is the one behind.
+	var proc_ms := Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
+	var phys_ms := Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
 	lines.append("FPS %d  (%.2f ms)" % [fps, frame_ms])
+	lines.append("proc %.2f  phys %.2f" % [proc_ms, phys_ms])
+	var mode := ""
+	var main := get_parent()
+	if main and main.has_method("bisect_name"):
+		mode = "  [%s]" % main.bisect_name()
+	lines.append("Worst %.1f ms  Peak10s %.1f ms%s" % [_worst_ms, _peak_ms, mode])
+	_worst_ms = 0.0
 	var grass_line := ""
-	if _grass and _grass.has_method("get_grass_stats"):
+	if _detailed and _grass and _grass.has_method("get_grass_stats"):
 		var s: Dictionary = _grass.get_grass_stats()
 		if s.get("active", false):
 			tris = maxi(tris - s.get("cap_tris", 0), 0) + s.get("tris", 0)
@@ -67,6 +97,13 @@ func _process(delta: float) -> void:
 	lines.append("Tris %s  Draws %d  Objects %d" % [_fmt_count(tris), draws, objects])
 	if grass_line != "":
 		lines.append(grass_line)
+	if _detailed and _trees and _trees.has_method("get_tree_stats"):
+		var t: Dictionary = _trees.get_tree_stats()
+		if t.get("active", false):
+			lines.append("Trees N%d/%s tris  F%d/%s tris" % [
+				t.get("near", 0), _fmt_count(t.get("near_tris", 0)),
+				t.get("far", 0), _fmt_count(t.get("far_tris", 0)),
+			])
 	lines.append("VRAM %.1f MB  Mem %.1f MB" % [vram / 1048576.0, mem / 1048576.0])
 	if _player:
 		var p := _player.global_position

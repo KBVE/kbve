@@ -118,3 +118,7 @@ apps/friendslop/godot-friendslop/**/*.gdshaderinc filter=lfs diff=lfs merge=lfs 
 apps/friendslop/godot-friendslop/addons/**/*.dylib filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/addons/**/*.so    filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/addons/**/*.dll   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/addons/**/*.a     filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/addons/**/*.framework/** filter=lfs diff=lfs merge=lfs -text
+# The bundle's plist is small text worth diffing; only the binary needs LFS.
+apps/friendslop/godot-friendslop/addons/**/*.framework/Info.plist !filter !diff !merge text

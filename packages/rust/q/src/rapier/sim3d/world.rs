@@ -282,6 +282,14 @@ impl SimWorld {
 
     /// Writes into a caller-owned snapshot so the steady state reuses one
     /// buffer rather than allocating a fresh `Vec` every tick.
+    ///
+    /// Fixed bodies are **excluded**. They cannot move — a fixed body that
+    /// needs to move is a kinematic body — so replicating them would spend
+    /// bandwidth restating level geometry many times a second, forever. At
+    /// roughly 42 bytes per body that is the difference between a snapshot
+    /// that fits one datagram and one that fragments; peers are expected to
+    /// build static geometry locally from the shared seed, exactly as they do
+    /// for terrain.
     pub fn snapshot_into(&self, out: &mut SimSnapshot) {
         out.tick = self.tick;
         out.sim_time = self.tick as f64 * self.physics.integration_parameters.dt as f64;
@@ -291,6 +299,9 @@ impl SimWorld {
             let Some(rb) = self.physics.bodies.get(*handle) else {
                 continue;
             };
+            if rb.is_fixed() {
+                continue;
+            }
             let v = rb.linvel();
             out.bodies.push(BodySnapshot {
                 id: *id,
@@ -477,6 +488,36 @@ mod tests {
         assert_eq!(world.body_count(), 1);
         assert!(snap.body(BodyId(1)).is_none());
         assert!(snap.body(BodyId(2)).is_some());
+    }
+
+    /// Static level geometry must not ride the wire. It cannot move, and at
+    /// ~42 bytes each it is what pushes a snapshot past a single datagram.
+    #[test]
+    fn fixed_bodies_are_excluded_from_snapshots() {
+        let mut world = SimWorld::new(&SimConfig::default());
+        drop_ball(&mut world, BodyId(1), [0.0, 5.0, 0.0]);
+        world.apply(SimCommand::Spawn {
+            id: BodyId(2),
+            desc: BodyDesc {
+                kind: BodyKind::Fixed,
+                shape: ShapeDesc::Cuboid {
+                    half_extents: [1.0; 3],
+                },
+                ..Default::default()
+            },
+        });
+        world.apply(SimCommand::SpawnCharacter {
+            id: BodyId(3),
+            desc: CharacterDesc::default(),
+        });
+        world.step();
+
+        let snap = world.snapshot();
+        assert_eq!(world.body_count(), 3, "all three still exist in the sim");
+        assert!(snap.body(BodyId(1)).is_some(), "dynamic replicates");
+        assert!(snap.body(BodyId(3)).is_some(), "characters replicate");
+        assert!(snap.body(BodyId(2)).is_none(), "fixed must not replicate");
+        assert_eq!(snap.bodies.len(), 2);
     }
 
     #[test]
@@ -747,10 +788,12 @@ mod tests {
         // 90 degrees about Y, as xyzw.
         let h = std::f32::consts::FRAC_1_SQRT_2;
         let mut world = SimWorld::new(&SimConfig::default());
+        // Kinematic rather than fixed: fixed bodies are not replicated, so a
+        // fixed body would never appear in the snapshot to check.
         world.apply(SimCommand::Spawn {
             id: BodyId(1),
             desc: BodyDesc {
-                kind: BodyKind::Fixed,
+                kind: BodyKind::KinematicPosition,
                 iso: Iso {
                     pos: [0.0, 0.0, 0.0],
                     rot: [0.0, h, 0.0, h],

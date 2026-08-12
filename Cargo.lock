@@ -7822,6 +7822,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "friendslop-server"
+version = "0.0.1"
+dependencies = [
+ "agones",
+ "axum 0.8.9",
+ "q",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "fs-err"
 version = "3.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"

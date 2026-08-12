@@ -55,6 +55,29 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 
 <BentoProse id="2026" heading="2026">
 
+### FriendSlop iOS
+
+-   01:59PM
+
+    The iOS application for friendslop has started, which means we can finally test the game on the iphone.
+    A couple things that I did notice on the iphone, the first being the terrible graphical process and then we have a worker issue.
+    Now the plan is to use tokio to get as much of the multi threading, then have godot handle mainly the rendering.
+    Yet this might be an issue if we want Godot to also handle the audio, which I think I might also offload to the rust worker.
+    A dedicated thread to handle the audio, might even have it sit there with the networking or move the networking to another dedicated thread.
+    These are all decisions that we will have to think through and hope we get a solid understanding around it.
+
+
+### Friendslop SPOM
+
+-   05:42PM
+
+    The SPOM will be the most interesting part of the game build, because we want to see if we can get really solid heightmaps for the game, so the blending is seemless.
+    One of the main issues that I can see is that we will lose some depth and end up with flat maps, which will be cheap but could cause some issues in the future.
+    For the mobile side, we will just flatten them, since they can not afford to run the complexity, but I think we might be able to find a way around it!
+
+    Currently trying to improve the maps that we have using blender, to give us better SPOM for our game!
+    I will be including that inside of the kbve python library, under the blender eco-system. 
+
 - [ ]
 
 </BentoProse>

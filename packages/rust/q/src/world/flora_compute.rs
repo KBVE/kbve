@@ -9,6 +9,7 @@ layout(local_size_x = 64) in;
 layout(set = 0, binding = 0, std430) restrict readonly buffer Cand { float data[]; } cand;
 layout(set = 0, binding = 1, std430) restrict writeonly buffer OutB { float data[]; } outb;
 layout(set = 0, binding = 2, std430) restrict buffer Counter { uint data[]; } counter;
+layout(set = 0, binding = 3, std430) restrict readonly buffer Heights { float data[]; } hmap;
 layout(push_constant, std430) uniform Params {
     vec4 cam;
     vec4 p0;
@@ -26,12 +27,48 @@ const float BAND1 = %BAND1%;
 const float BAND_OUT = %BAND_OUT%;
 const uint COUNT = %COUNT%u;
 const uint CAP = %CAP%u;
+const float EXTENT = %EXTENT%;
+const int HRES = %HRES%;
+const float OCCL_START = %OCCL_START%;
+const int OCCL_STEPS = %OCCL_STEPS%;
+const float OCCL_BIAS = %OCCL_BIAS%;
 
 shared uint local_cnt;
 shared uint base_slot;
 
 bool outside(vec4 plane, vec3 pos, float m) {
     return dot(plane.xyz, pos) - plane.w > m;
+}
+
+float terrain_at(vec2 p) {
+    vec2 uv = clamp((p + EXTENT) / (EXTENT * 2.0), 0.0, 1.0) * float(HRES - 1);
+    ivec2 i0 = ivec2(uv);
+    ivec2 i1 = min(i0 + 1, ivec2(HRES - 1));
+    vec2 f = fract(uv);
+    float h00 = hmap.data[i0.y * HRES + i0.x];
+    float h10 = hmap.data[i0.y * HRES + i1.x];
+    float h01 = hmap.data[i1.y * HRES + i0.x];
+    float h11 = hmap.data[i1.y * HRES + i1.x];
+    return mix(mix(h00, h10, f.x), mix(h01, h11, f.x), f.y);
+}
+
+// Frustum culling keeps whatever is in front of the camera, including the far
+// side of a hill. Walking the terrain between the instance and the eye is what
+// drops those: if the ground stands above the sight line anywhere along the
+// way, nothing at that spot can be seen. Tested against the top of the
+// instance, so the whole thing is hidden before it is dropped.
+bool occluded(vec3 top, vec3 eye) {
+    if (OCCL_STEPS <= 0 || distance(top.xz, eye.xz) < OCCL_START) {
+        return false;
+    }
+    vec3 d = eye - top;
+    for (int i = 1; i < OCCL_STEPS; i++) {
+        vec3 sp = top + d * (float(i) / float(OCCL_STEPS));
+        if (terrain_at(sp.xz) > sp.y + OCCL_BIAS) {
+            return true;
+        }
+    }
+    return false;
 }
 
 void main() {
@@ -69,6 +106,9 @@ void main() {
             float m = s + 1.5;
             alive = !(outside(pc.p0, pos, m) || outside(pc.p1, pos, m)
                 || outside(pc.p2, pos, m) || outside(pc.p3, pos, m));
+        }
+        if (alive) {
+            alive = !occluded(vec3(x, y + s, z), pc.cam.xyz);
         }
     }
     uint lslot = 0u;
@@ -156,6 +196,62 @@ fn storage_uniform(binding: i32, buffer: Rid) -> Gd<RdUniform> {
     u
 }
 
+/// Terrain the cull pass tests sight lines against. Carries its own dummy so a
+/// field that readies before the terrain still builds a valid uniform set, just
+/// with the occlusion step switched off.
+pub struct TerrainOcclusion {
+    pub heights: Vec<f32>,
+    pub res: i32,
+    pub extent: f32,
+    pub start: f32,
+    pub steps: i32,
+    pub bias: f32,
+}
+
+impl TerrainOcclusion {
+    pub fn new(heights: &[f32], res: i32, extent: f32, start: f32) -> Self {
+        Self {
+            heights: heights.to_vec(),
+            res,
+            extent,
+            start,
+            steps: 12,
+            bias: 0.75,
+        }
+    }
+
+    pub fn disabled() -> Self {
+        Self {
+            heights: Vec::new(),
+            res: 0,
+            extent: 1.0,
+            start: 0.0,
+            steps: 0,
+            bias: 0.0,
+        }
+    }
+
+    fn usable(&self) -> bool {
+        self.steps > 0 && self.res >= 2 && self.heights.len() >= (self.res * self.res) as usize
+    }
+
+    fn res(&self) -> i32 {
+        if self.usable() { self.res } else { 2 }
+    }
+
+    fn steps(&self) -> i32 {
+        if self.usable() { self.steps } else { 0 }
+    }
+
+    fn sample_data(&self) -> &[f32] {
+        if self.usable() {
+            &self.heights
+        } else {
+            &[0.0, 0.0, 0.0, 0.0]
+        }
+    }
+}
+
 pub struct FloraCompute {
     rd: Gd<RenderingDevice>,
     cull_shader: Rid,
@@ -166,6 +262,7 @@ pub struct FloraCompute {
     resolve_set: Rid,
     cand_buf: Rid,
     counter_buf: Rid,
+    height_buf: Rid,
     mm: Rid,
     inst: Rid,
     count: u32,
@@ -189,6 +286,7 @@ impl FloraCompute {
         growth_on: bool,
         shadows: bool,
         surfaces: u32,
+        terrain: TerrainOcclusion,
     ) -> Option<Self> {
         let count = (candidates.len() / 8) as u32;
         if count == 0 || cap == 0 {
@@ -211,6 +309,11 @@ impl FloraCompute {
             ),
             ("%COUNT%", count.to_string()),
             ("%CAP%", cap.to_string()),
+            ("%EXTENT%", format!("{:.6}", terrain.extent.max(1.0))),
+            ("%HRES%", terrain.res().to_string()),
+            ("%OCCL_START%", format!("{:.6}", terrain.start)),
+            ("%OCCL_STEPS%", terrain.steps().to_string()),
+            ("%OCCL_BIAS%", format!("{:.6}", terrain.bias)),
         ];
         let cull_src = bake(FLORA_CULL_GLSL, &subs);
         let resolve_src = bake(
@@ -231,6 +334,14 @@ impl FloraCompute {
             .data(&cand_bytes)
             .done();
         let counter_buf = rd.storage_buffer_create(4);
+        // Always allocated, even with occlusion off: the binding has to exist for
+        // the uniform set to validate, and a one-float dummy is cheaper than a
+        // second shader variant.
+        let height_bytes = PackedFloat32Array::from(terrain.sample_data()).to_byte_array();
+        let height_buf = rd
+            .storage_buffer_create_ex(height_bytes.len() as u32)
+            .data(&height_bytes)
+            .done();
 
         let mut rs = RenderingServer::singleton();
         let mm = rs.multimesh_create();
@@ -270,6 +381,7 @@ impl FloraCompute {
             resolve_set: Rid::Invalid,
             cand_buf,
             counter_buf,
+            height_buf,
             mm,
             inst,
             count,
@@ -297,6 +409,7 @@ impl FloraCompute {
             storage_uniform(0, self.cand_buf),
             storage_uniform(1, out_buf),
             storage_uniform(2, self.counter_buf),
+            storage_uniform(3, self.height_buf),
         ]
         .into_iter()
         .collect();
@@ -381,6 +494,7 @@ impl FloraCompute {
         for rid in [
             self.cand_buf,
             self.counter_buf,
+            self.height_buf,
             self.cull_pipeline,
             self.cull_shader,
             self.resolve_pipeline,

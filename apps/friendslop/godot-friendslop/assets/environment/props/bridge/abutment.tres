@@ -1,0 +1,16 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://assets/environment/props/rocks/rock.gdshader" id="1_rock"]
+
+[resource]
+shader = ExtResource("1_rock")
+shader_parameter/albedo_tint = Color(0.62, 0.6, 0.57, 1)
+shader_parameter/moss_amount = 0.42
+shader_parameter/moss_skirt = 0.16
+shader_parameter/moss_drip = 0.2
+shader_parameter/grit_scale = 14.0
+shader_parameter/grit_strength = 0.18
+shader_parameter/crevice_strength = 0.6
+shader_parameter/stroke_scale = 1.6
+shader_parameter/macro_start = 40.0
+shader_parameter/macro_end = 70.0

@@ -1,0 +1,21 @@
+[package]
+name = "friendslop-server"
+authors = ["kbve", "h0lybyte"]
+version = "0.0.1"
+edition = "2024"
+rust-version.workspace = true
+license = "MIT"
+description = "Friendslop dedicated server — authoritative rapier3d sim over a WebSocket transport, hosted on Agones."
+
+[[bin]]
+name = "friendslop-server"
+path = "src/main.rs"
+
+[dependencies]
+q = { path = "../../../../packages/rust/q", default-features = false, features = ["net-dedicated"] }
+axum = { workspace = true, features = ["ws", "json", "http1", "tokio"] }
+tokio = { workspace = true, features = ["default", "rt-multi-thread", "macros", "signal", "sync", "time", "net"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["default", "env-filter", "fmt"] }
+agones = { workspace = true }
+serde_json = { workspace = true }

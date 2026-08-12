@@ -48,10 +48,36 @@
 			"options": {
 				"cwd": "packages/rust/q",
 				"commands": [
-					"cargo +nightly build -Z build-std=std,panic_abort  -Z unstable-options --target aarch64-apple-darwin --artifact-dir dist/macos --release",
+					"cargo +nightly build -Z build-std=std,panic_abort  -Z unstable-options --features net-godot --target aarch64-apple-darwin --artifact-dir dist/macos --release",
 					"mkdir -p release/addons/q/macos",
 					"cp dist/macos/*.dylib release/addons/q/macos/",
 					"bash scripts/sign-dylib.sh release/addons/q/macos/libq.dylib"
+				],
+				"parallel": false
+			}
+		},
+
+		"build-ios": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "packages/rust/q",
+				"commands": [
+					"cargo build --features net-godot --target aarch64-apple-ios --release"
+				],
+				"parallel": false
+			}
+		},
+
+		"deploy-ios": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["build-ios"],
+			"options": {
+				"cwd": "packages/rust/q",
+				"commands": [
+					"mkdir -p ../../../apps/friendslop/godot-friendslop/addons/q/ios/libq.framework",
+					"cp ../../../dist/target/aarch64-apple-ios/release/libq.dylib ../../../apps/friendslop/godot-friendslop/addons/q/ios/libq.framework/libq",
+					"install_name_tool -id @rpath/libq.framework/libq ../../../apps/friendslop/godot-friendslop/addons/q/ios/libq.framework/libq",
+					"codesign --force --sign - --timestamp=none ../../../apps/friendslop/godot-friendslop/addons/q/ios/libq.framework"
 				],
 				"parallel": false
 			}

@@ -26,7 +26,7 @@ crate-type = ["cdylib", "rlib"]
 default = ["client"]
 
 # Side selection — `client` and `server` are mutually exclusive (enforced by compile_error! in lib.rs).
-client = ["dep:godot", "dep:dashmap", "dep:crossbeam-channel", "dep:bitflags", "dep:tokio"]
+client = ["dep:godot", "dep:dashmap", "dep:crossbeam-channel", "dep:bitflags", "dep:tokio", "dep:wry", "dep:raw-window-handle", "dep:http", "dep:infer", "dep:objc2", "dep:windows"]
 server = ["dep:tokio"]
 
 # Protocol (postcard wire format + bincode for snapshot framing).
@@ -59,6 +59,13 @@ net-transport = ["proto-shared"]
 # Listen-server host/client roles driving the sim over a Transport. Needs the
 # sim itself, so it is separate from the bare transport seam.
 net-session = ["net-transport", "rapier3d-sim"]
+# WebSocket `Transport` impl — host (axum) and client (tungstenite) in one
+# sideless module, so the dedicated Agones server and the Godot client share it.
+net-ws = ["net-transport", "dep:tokio", "dep:axum", "dep:tokio-tungstenite", "dep:futures-util"]
+# Everything the dedicated server needs: authoritative sim + session + wire.
+net-dedicated = ["net-session", "net-ws"]
+# Godot node that renders a remote session — the client half of the dedicated flow.
+net-godot = ["rapier3d-client", "net-session", "net-ws"]
 net-client = ["client", "proto-client", "net-transport", "dep:tokio-tungstenite", "dep:futures-util"]
 net-server = ["server", "proto-server", "net-transport", "dep:axum", "dep:tokio-tungstenite", "dep:futures-util"]
 
@@ -80,7 +87,7 @@ godot = { version = "0.5.5", optional = true, features = ["experimental-wasm", "
 dashmap = { workspace = true, optional = true }
 crossbeam-channel = { workspace = true, optional = true }
 bitflags = { workspace = true, optional = true, features = ["serde"] }
-tokio = { workspace = true, optional = true, features = ["default", "rt-multi-thread", "macros", "sync", "time"] }
+tokio = { workspace = true, optional = true, features = ["default", "rt-multi-thread", "macros", "sync", "time", "net"] }
 
 # Protocol
 postcard = { workspace = true, optional = true, features = ["use-std"] }
@@ -95,7 +102,7 @@ bevy = { workspace = true, optional = true, features = ["bevy_state"] }
 
 # Networking
 tokio-tungstenite = { workspace = true, optional = true, features = ["rustls-tls-webpki-roots", "connect"] }
-axum = { workspace = true, optional = true, features = ["ws", "json"] }
+axum = { workspace = true, optional = true, features = ["ws", "json", "http1", "tokio"] }
 futures-util = { workspace = true, optional = true, features = ["sink", "std"] }
 
 # Supabase JWT verification (HS256 against SUPABASE_JWT_SECRET).
@@ -103,32 +110,31 @@ jsonwebtoken = { workspace = true, optional = true }
 fastnoise-lite = "1.1.1"
 
 # -----------------------------------------------------------------------------
-# Desktop platform deps — link in unconditionally on those OSes (target-cfg gated).
-# Pulled in only by the `client` flavor's platform module (which is itself cfg-gated
-# at the source level), so server-only builds on those OSes get them as link bloat
-# we'll trim with an explicit `no-desktop` feature if it ever matters.
+# Desktop platform deps — used only by the `client` flavor's `platform` module,
+# so they are optional and activated by `client`. Leaving them unconditional
+# would make a headless server build drag in wry/webkit2gtk.
 # -----------------------------------------------------------------------------
 [target."cfg(all(target_os = \"macos\", not(target_family = \"wasm\")))".dependencies]
-objc2 = { workspace = true }
-wry = { version = "0.54.2", features = ["transparent", "devtools"] }
-raw-window-handle = { workspace = true }
-http = { workspace = true }
-infer = "0.19.0"
+objc2 = { workspace = true, optional = true }
+wry = { version = "0.54.2", optional = true, features = ["transparent", "devtools"] }
+raw-window-handle = { workspace = true, optional = true }
+http = { workspace = true, optional = true }
+infer = { version = "0.19.0", optional = true }
 
 [target."cfg(all(target_os = \"windows\", not(target_family = \"wasm\")))".dependencies]
-windows = { version = "0.62.2", features = [
+windows = { version = "0.62.2", optional = true, features = [
     "Data_Xml_Dom",
     "Win32_Security",
     "Win32_System_Threading",
     "Win32_UI_WindowsAndMessaging",
 ] }
-wry = { version = "0.54.2", features = ["transparent", "devtools"] }
-raw-window-handle = { workspace = true }
-http = { workspace = true }
-infer = "0.19.0"
+wry = { version = "0.54.2", optional = true, features = ["transparent", "devtools"] }
+raw-window-handle = { workspace = true, optional = true }
+http = { workspace = true, optional = true }
+infer = { version = "0.19.0", optional = true }
 
 [target."cfg(all(target_os = \"linux\", not(target_family = \"wasm\")))".dependencies]
-wry = { version = "0.54.2", features = ["transparent", "devtools"] }
-raw-window-handle = { workspace = true }
-http = { workspace = true }
-infer = "0.19.0"
+wry = { version = "0.54.2", optional = true, features = ["transparent", "devtools"] }
+raw-window-handle = { workspace = true, optional = true }
+http = { workspace = true, optional = true }
+infer = { version = "0.19.0", optional = true }
