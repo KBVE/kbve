@@ -3,6 +3,7 @@
 
 mod astro;
 mod auth;
+pub mod bbs;
 mod db;
 pub mod gameserver;
 mod mcp;
@@ -297,6 +298,12 @@ async fn main() -> anyhow::Result<()> {
     // Runs in its own thread; lightyear binds WebSocket on GAME_WS_ADDR (default :5000)
     gameserver::init_gameserver();
     info!("Game server initialized - lightyear WebSocket on separate port");
+
+    if bbs::init_bbs() {
+        info!("BBS initialized - telnet listeners on BBS_PETSCII_ADDR / BBS_ANSI_ADDR");
+    } else {
+        info!("BBS not listening (BBS_ENABLED off or no valid listen address)");
+    }
 
     // Shared application state (no longer carries GameServerState)
     let state = transport::https::AppState::new();

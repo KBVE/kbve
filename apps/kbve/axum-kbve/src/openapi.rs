@@ -74,7 +74,8 @@ impl Modify for SecurityAddon {
         (name = "telemetry", description = "Client-side error reporting from WASM/JS."),
         (name = "dashboard", description = "Staff-only routes powering kbve.com/dashboard. Gated on DASHBOARD_VIEW."),
         (name = "wallet", description = "Authenticated wallet surface: balance, coupons, claim flows."),
-        (name = "market", description = "Player marketplace: list, browse, bid, buy-now. Khash-only with a 1% KBVE Treasury fee.")
+        (name = "market", description = "Player marketplace: list, browse, bid, buy-now. Khash-only with a 1% KBVE Treasury fee."),
+        (name = "bbs", description = "Telnet bulletin board: dial-in details and the device-code login the terminal shows.")
     ),
     paths(
         // system
@@ -175,6 +176,9 @@ impl Modify for SecurityAddon {
         crate::transport::mc_lot::service_mark_applied,
         crate::transport::mc_lot::service_mark_failed,
         crate::transport::mc_lot::service_requeue_stale,
+        // bbs
+        crate::transport::bbs::claim_code,
+        crate::transport::bbs::status,
     ),
     components(
         schemas(
@@ -200,6 +204,9 @@ impl Modify for SecurityAddon {
             EditCommentBody,
             ClickHouseLogsRequest,
             ClickHouseLogsResponse,
+            crate::transport::bbs::ClaimBody,
+            crate::transport::bbs::ClaimResult,
+            crate::transport::bbs::BbsStatus,
             // wallet — user surface
             crate::transport::wallet::BalanceDto,
             crate::transport::wallet::CouponDto,
