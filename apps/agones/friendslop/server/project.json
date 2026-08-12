@@ -1,0 +1,94 @@
+{
+	"name": "friendslop-server",
+	"$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/agones/friendslop/server/src",
+	"tags": ["rust", "game-server", "agones", "friendslop"],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo build -p friendslop-server"
+			},
+			"outputs": ["{workspaceRoot}/dist/target/debug/friendslop-server"]
+		},
+		"build-release": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo build --release -p friendslop-server"
+			},
+			"outputs": ["{workspaceRoot}/dist/target/release/friendslop-server"]
+		},
+		"run": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo run -p friendslop-server"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo test -p friendslop-server"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "cargo clippy -p friendslop-server --all-targets -- -D warnings"
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"dependsOn": [
+				{
+					"target": "container",
+					"projects": ["friendslop-server"],
+					"params": "forward"
+				}
+			],
+			"cache": false,
+			"options": {
+				"commands": [
+					"docker rm -f friendslop-server-e2e 2>/dev/null || true",
+					"docker run -d --name friendslop-server-e2e -p 7980:7980 -e FS_SERVER_ADDR=0.0.0.0:7980 kbve/friendslop-server:latest",
+					"echo 'Waiting for friendslop-server...' && for i in $(seq 1 60); do if curl -fsS http://127.0.0.1:7980/healthz >/dev/null 2>&1; then echo 'ready after '\"$i\"'s'; break; fi; if [ $i -eq 60 ]; then echo 'did not start in 60s'; docker logs friendslop-server-e2e 2>&1 | tail -80; docker rm -f friendslop-server-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
+					"FS_HOST=127.0.0.1 FS_PORT=7980 npx vitest run; EC=$?; echo '--- container logs ---'; docker logs friendslop-server-e2e 2>&1 | tail -80; docker rm -f friendslop-server-e2e 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false,
+				"cwd": "apps/agones/friendslop/server"
+			},
+			"configurations": {
+				"ci": {}
+			}
+		},
+		"container": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/agones/friendslop/server/Dockerfile",
+				"load": true,
+				"tags": ["kbve/friendslop-server:latest"]
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/friendslop-server:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/friendslop-server:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/friendslop-server:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/friendslop-server:buildcache,mode=max"
+					]
+				}
+			}
+		}
+	}
+}

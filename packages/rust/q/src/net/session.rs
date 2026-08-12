@@ -41,9 +41,18 @@ pub struct PlayerInput {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum SessionMsg {
-    Join { protocol: u32 },
-    Welcome { protocol: u32, seed: u64 },
-    Reject { reason: String },
+    Join {
+        protocol: u32,
+    },
+    /// `peer` is the id the host assigned; a client cannot infer its own.
+    Welcome {
+        protocol: u32,
+        seed: u64,
+        peer: PeerId,
+    },
+    Reject {
+        reason: String,
+    },
     Input(PlayerInput),
     Snapshot(SimSnapshot),
 }
@@ -98,8 +107,18 @@ pub struct HostSession<T: Transport> {
 }
 
 impl<T: Transport> HostSession<T> {
+    /// Listen-server host: the local peer is also a player, admitted up front
+    /// since it will never send itself a Join.
     pub fn new(transport: T, config: SessionConfig, sim: SimConfig, seed: u64) -> Self {
-        let mut host = Self {
+        let mut host = Self::dedicated(transport, config, sim, seed);
+        host.admit(host.transport.local_peer());
+        host
+    }
+
+    /// Dedicated host: authoritative but not a participant, so no body is
+    /// spawned for the local peer.
+    pub fn dedicated(transport: T, config: SessionConfig, sim: SimConfig, seed: u64) -> Self {
+        Self {
             world: SimWorld::new(&sim),
             transport,
             config,
@@ -107,11 +126,7 @@ impl<T: Transport> HostSession<T> {
             players: HashMap::new(),
             seed,
             snapshot_accum: 0.0,
-        };
-        // The host plays too: admit it immediately rather than waiting for a
-        // Join it will never send to itself.
-        host.admit(host.transport.local_peer());
-        host
+        }
     }
 
     pub fn world_mut(&mut self) -> &mut SimWorld {
@@ -168,6 +183,7 @@ impl<T: Transport> HostSession<T> {
                     &SessionMsg::Welcome {
                         protocol: PROTOCOL_VERSION,
                         seed: self.seed,
+                        peer: from,
                     },
                 );
             }
@@ -272,6 +288,8 @@ pub struct ClientSession<T: Transport> {
     snapshot: Option<SimSnapshot>,
     input: PlayerInput,
     reject_reason: Option<String>,
+    /// Assigned by the host in `Welcome`; unknown until then.
+    peer: Option<PeerId>,
 }
 
 impl<T: Transport> ClientSession<T> {
@@ -285,6 +303,7 @@ impl<T: Transport> ClientSession<T> {
             snapshot: None,
             input: PlayerInput::default(),
             reject_reason: None,
+            peer: None,
         };
         let msg = SessionMsg::Join {
             protocol: PROTOCOL_VERSION,
@@ -315,8 +334,14 @@ impl<T: Transport> ClientSession<T> {
         self.snapshot.as_ref()
     }
 
-    pub fn local_body(&self) -> BodyId {
-        player_body(self.transport.local_peer())
+    /// `None` until the host welcomes us.
+    pub fn peer(&self) -> Option<PeerId> {
+        self.peer
+    }
+
+    /// `None` until welcomed; guessing would render another player's character.
+    pub fn local_body(&self) -> Option<BodyId> {
+        self.peer.map(player_body)
     }
 
     pub fn set_input(&mut self, wish_dir: [f32; 2], jump: bool) {
@@ -331,9 +356,10 @@ impl<T: Transport> ClientSession<T> {
                 continue;
             };
             match msg {
-                SessionMsg::Welcome { seed, .. } => {
+                SessionMsg::Welcome { seed, peer, .. } => {
                     self.status = ClientStatus::Joined;
                     self.seed = Some(seed);
+                    self.peer = Some(peer);
                 }
                 SessionMsg::Reject { reason } => {
                     self.status = ClientStatus::Rejected;
@@ -438,11 +464,51 @@ mod tests {
     }
 
     #[test]
+    fn a_dedicated_host_is_authoritative_without_being_a_player() {
+        let mesh = Loopback::mesh(2);
+        let mut host = HostSession::dedicated(
+            mesh[0].clone(),
+            SessionConfig::default(),
+            SimConfig::default(),
+            7,
+        );
+        host.set_terrain(flat_terrain());
+        assert_eq!(host.player_count(), 0, "nobody has joined yet");
+
+        let mut client = ClientSession::connect(mesh[1].clone());
+        run(&mut host, &mut client, 120);
+
+        assert_eq!(host.player_count(), 1, "only the joining client");
+        let snapshot = host.world_mut().snapshot();
+        assert!(
+            snapshot.body(player_body(PeerId::HOST)).is_none(),
+            "a dedicated host must not spawn a body for itself"
+        );
+        assert_eq!(
+            snapshot.bodies.len(),
+            1,
+            "terrain is fixed and culled, so only the client's character remains"
+        );
+        assert_eq!(client.local_body(), Some(player_body(PeerId(1))));
+    }
+
+    #[test]
+    fn the_host_assigns_the_client_its_peer_id() {
+        let (mut host, mut client) = host_and_client();
+        assert_eq!(client.peer(), None, "unknown before Welcome");
+        run(&mut host, &mut client, 2);
+        assert_eq!(client.peer(), Some(PeerId(1)));
+        assert_eq!(client.local_body(), Some(player_body(PeerId(1))));
+    }
+
+    #[test]
     fn client_input_moves_its_character_on_the_host() {
         let (mut host, mut client) = host_and_client();
         run(&mut host, &mut client, 120);
 
-        let body = client.local_body();
+        let body = client
+            .local_body()
+            .expect("client should be welcomed by now");
         let start = host.world_mut().snapshot().body(body).unwrap().iso.pos;
 
         client.set_input([1.0, 0.0], false);
@@ -465,7 +531,13 @@ mod tests {
 
         let snapshot = client.latest_snapshot().expect("should have a snapshot");
         assert!(snapshot.tick > 0);
-        let me = snapshot.body(client.local_body()).expect("own body");
+        let me = snapshot
+            .body(
+                client
+                    .local_body()
+                    .expect("client should be welcomed by now"),
+            )
+            .expect("own body");
         assert!(
             me.iso.pos[0] > 1.0,
             "movement should be visible client-side"
@@ -538,7 +610,9 @@ mod tests {
     fn an_oversized_wish_dir_does_not_grant_extra_speed() {
         let (mut host, mut client) = host_and_client();
         run(&mut host, &mut client, 120);
-        let body = client.local_body();
+        let body = client
+            .local_body()
+            .expect("client should be welcomed by now");
         let start = host.world_mut().snapshot().body(body).unwrap().iso.pos;
 
         // A cheating client claiming a huge direction vector.

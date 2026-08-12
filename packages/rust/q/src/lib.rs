@@ -73,6 +73,9 @@ unsafe impl ExtensionLibrary for Q {
 #[cfg(feature = "proto-shared")]
 pub mod proto;
 
+#[cfg(any(feature = "client", feature = "rapier3d-sim"))]
+pub mod worldgen;
+
 #[cfg(any(
     feature = "rapier2d-client",
     feature = "rapier2d-server",
@@ -84,7 +87,8 @@ pub mod rapier;
     feature = "net-client",
     feature = "net-server",
     feature = "net-transport",
-    feature = "net-session"
+    feature = "net-session",
+    feature = "net-ws"
 ))]
 pub mod net;
 

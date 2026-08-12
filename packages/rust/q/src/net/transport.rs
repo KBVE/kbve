@@ -11,13 +11,21 @@
 use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex};
 
+use serde::{Deserialize, Serialize};
+
 /// A participant in a session. The listen-server host is always [`PeerId::HOST`];
 /// with one client hosting, "host" is a role, not a separate build.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash, PartialOrd, Ord)]
+#[derive(
+    Clone, Copy, Debug, Default, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize,
+)]
 pub struct PeerId(pub u32);
 
 impl PeerId {
     pub const HOST: Self = PeerId(0);
+
+    /// A client's id before the host welcomes it; real transports assign on
+    /// accept. `ClientSession::peer` is the answer once known.
+    pub const UNASSIGNED: Self = PeerId(u32::MAX);
 
     pub fn is_host(self) -> bool {
         self == Self::HOST

@@ -2,7 +2,6 @@ mod river;
 mod road;
 mod water;
 
-use fastnoise_lite::{FastNoiseLite, FractalType, NoiseType};
 use godot::classes::image::Format as ImageFormat;
 use godot::classes::notify::Node3DNotification;
 use godot::classes::{
@@ -11,71 +10,22 @@ use godot::classes::{
 };
 use godot::prelude::*;
 
-fn make_noise(seed: i32, frequency: f32, octaves: i32) -> FastNoiseLite {
-    let mut n = FastNoiseLite::with_seed(seed);
-    n.set_noise_type(Some(NoiseType::OpenSimplex2S));
-    n.set_frequency(Some(frequency));
-    n.set_fractal_type(Some(FractalType::FBm));
-    n.set_fractal_octaves(Some(octaves));
-    n.set_fractal_lacunarity(Some(2.0));
-    n.set_fractal_gain(Some(0.5));
-    n
-}
+pub(super) use crate::worldgen::HeightGen;
+use crate::worldgen::HeightParams;
 
-pub(super) struct HeightGen {
-    hills: FastNoiseLite,
-    river: FastNoiseLite,
-    hill_amplitude: f32,
-    hill_base: f32,
-    river_wander: f32,
-    river_width: f32,
-    water_level: f32,
-    riverbed_depth: f32,
-}
-
-impl HeightGen {
-    fn from_terrain(t: &QTerrain) -> Self {
-        Self {
-            hills: make_noise(t.terrain_seed, t.hill_frequency, 4),
-            river: make_noise(t.terrain_seed + 7, t.river_wander_frequency, 5),
-            hill_amplitude: t.hill_amplitude,
-            hill_base: t.hill_base,
-            river_wander: t.river_wander,
-            river_width: t.river_width,
-            water_level: t.water_level,
-            riverbed_depth: t.riverbed_depth,
+impl QTerrain {
+    fn height_params(&self) -> HeightParams {
+        HeightParams {
+            seed: self.terrain_seed,
+            hill_amplitude: self.hill_amplitude,
+            hill_base: self.hill_base,
+            hill_frequency: self.hill_frequency,
+            river_wander: self.river_wander,
+            river_wander_frequency: self.river_wander_frequency,
+            river_width: self.river_width,
+            water_level: self.water_level,
+            riverbed_depth: self.riverbed_depth,
         }
-    }
-
-    fn height(&self, x: f32, z: f32) -> f32 {
-        let h = self.hills.get_noise_2d(x, z) * self.hill_amplitude + self.hill_base;
-        let river_x = self.river.get_noise_2d(z, 0.0) * self.river_wander;
-        let d = (x - river_x).abs();
-        let t = (-(d * d) / (2.0 * self.river_width * self.river_width)).exp();
-        let m = (t * 1.15).clamp(0.0, 1.0);
-        h + (self.water_level - self.riverbed_depth - h) * m
-    }
-
-    fn river_x(&self, z: f32) -> f32 {
-        self.river.get_noise_2d(z, 0.0) * self.river_wander
-    }
-
-    /// Low-frequency drift used to keep the trunk road from being a ruler line.
-    fn wander(&self, x: f32) -> f32 {
-        self.river.get_noise_2d(x * 0.35, 500.0)
-    }
-
-    fn bake(&self, extent: f32, res: i32) -> Vec<f32> {
-        let step = extent * 2.0 / (res - 1) as f32;
-        let mut heights = vec![0.0f32; (res * res) as usize];
-        for iy in 0..res {
-            let z = -extent + iy as f32 * step;
-            for ix in 0..res {
-                let x = -extent + ix as f32 * step;
-                heights[(iy * res + ix) as usize] = self.height(x, z);
-            }
-        }
-        heights
     }
 }
 
@@ -200,9 +150,9 @@ impl INode3D for QTerrain {
             godot::classes::DisplayServer::singleton()
                 .window_set_vsync_mode(godot::classes::display_server::VSyncMode::DISABLED);
         }
-        self.hgen = Some(HeightGen::from_terrain(self));
+        self.hgen = Some(HeightGen::new(&self.height_params()));
         self.gen_t0 = Some(std::time::Instant::now());
-        let worker_gen = HeightGen::from_terrain(self);
+        let worker_gen = HeightGen::new(&self.height_params());
         let extent = self.extent;
         let res = self.resolution.max(2);
         let (tx, rx) = std::sync::mpsc::channel();
