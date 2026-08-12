@@ -6,6 +6,7 @@ const MOUSE_SENSITIVITY := 0.003
 const PITCH_LIMITS := Vector2(-1.2, 0.6)
 
 @onready var pivot: Node3D = $Pivot
+@onready var rig: Node3D = $Mesh
 
 var _touch := false
 
@@ -75,3 +76,4 @@ func _physics_process(delta: float) -> void:
 		velocity.z = move_toward(velocity.z, 0.0, SPEED)
 
 	move_and_slide()
+	rig.set_locomotion(global_transform.basis.inverse() * velocity, not is_on_floor(), delta)

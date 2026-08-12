@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://dk6o1i6lggove"
-path="res://.godot/imported/Regular_Male_FullBody.glb-7a3ae4565eb1e4802e47b030548dd3e1.scn"
+uid="uid://dqhvcf38xbwiq"
+path="res://.godot/imported/UAL2.glb-1124b494fb5316d67a4d044ab490650f.scn"
 
 [deps]
 
-source_file="res://assets/characters/quaternius_ubc/models/Regular_Male_FullBody.glb"
-dest_files=["res://.godot/imported/Regular_Male_FullBody.glb-7a3ae4565eb1e4802e47b030548dd3e1.scn"]
+source_file="res://assets/characters/quaternius_ubc/animations/UAL2.glb"
+dest_files=["res://.godot/imported/UAL2.glb-1124b494fb5316d67a4d044ab490650f.scn"]
 
 [params]
 

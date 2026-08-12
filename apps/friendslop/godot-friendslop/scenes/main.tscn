@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3]
+[gd_scene load_steps=41 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://src/ui/touch_controls.gd" id="28_touch"]
@@ -28,6 +28,8 @@
 [ext_resource type="Script" path="res://src/characters/character_rig.gd" id="33_rig"]
 [ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/models/Regular_Male_FullBody.glb" id="34_body"]
 [ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Ponytail.glb" id="35_hair"]
+[ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/animations/UAL1.glb" id="36_ual1"]
+[ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/animations/UAL2.glb" id="37_ual2"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/flora.tres" id="18_flora"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/tree.tres" id="19_tree"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/shrub.tres" id="20_shrub"]
@@ -168,6 +170,8 @@ script = ExtResource("33_rig")
 body = ExtResource("34_body")
 attachments = Array[PackedScene]([ExtResource("35_hair")])
 terrain_path = NodePath("../Terrain")
+animation_sources = Array[PackedScene]([ExtResource("36_ual1"), ExtResource("37_ual2")])
+default_animation = "UAL1/Idle_LookAround"
 
 [node name="Ravens" type="Node3D" parent="."]
 script = ExtResource("14_ravens")
