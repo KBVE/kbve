@@ -187,7 +187,12 @@ impl QPhysics3D {
                 ..Default::default()
             },
         });
-        self.tracked.insert(id, Tracked { node, drive });
+        // Fixed bodies are not tracked: they never move, and the sim leaves
+        // them out of snapshots entirely, so tracking one would walk a node
+        // every frame waiting for an update that by definition never comes.
+        if kind != BodyKind::Fixed {
+            self.tracked.insert(id, Tracked { node, drive });
+        }
         id.0 as i64
     }
 }
