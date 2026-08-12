@@ -342,7 +342,7 @@ impl Session {
             return self.pause().await;
         };
         let url =
-            std::env::var("BBS_CLAIM_URL").unwrap_or_else(|_| "https://kbve.com/bbs".to_string());
+            std::env::var("BBS_CLAIM_URL").unwrap_or_else(|_| "https://kbve.com/bbs/".to_string());
         let mins = CLAIM_TTL.as_secs() / 60;
 
         self.screen.clear().banner("LOG IN");

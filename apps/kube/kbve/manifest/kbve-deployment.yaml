@@ -87,7 +87,7 @@ spec:
                       - name: BBS_PUBLIC_HOST
                         value: bbs.kbve.com
                       - name: BBS_CLAIM_URL
-                        value: https://kbve.com/bbs
+                        value: https://kbve.com/bbs/
                       - name: SUPABASE_URL
                         value: http://kong.kilobase.svc.cluster.local:8000
                       - name: GOTRUE_INTERNAL_URL
