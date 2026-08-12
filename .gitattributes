@@ -111,6 +111,11 @@ apps/friendslop/godot-friendslop/assets/**/*.bin   filter=lfs diff=lfs merge=lfs
 apps/friendslop/godot-friendslop/assets/**/*.blend filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.png   filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.webp  filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.jpg   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.jpeg  filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.tga   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.exr   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.hdr   filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.mp3   filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.ogg   filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.wav   filter=lfs diff=lfs merge=lfs -text

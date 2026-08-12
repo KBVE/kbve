@@ -1,3 +1,4 @@
+pub mod fish_field;
 pub mod flora_compute;
 pub mod flora_field;
 pub mod grass_compute;

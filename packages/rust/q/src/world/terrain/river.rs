@@ -19,10 +19,6 @@ impl QTerrain {
         self.build_water_plane(strip_width);
     }
 
-    /// The bed plane is as wide as the river can wander, so it ends on a straight
-    /// cut across the valley wherever the bank has not faded out by then. The
-    /// shader fades its own last metres instead, which needs the width it was
-    /// built at.
     fn share_bed_bounds(&mut self, strip_width: f32) {
         const EDGE_MARGIN: f32 = 6.0;
         let half = strip_width * 0.5;
@@ -33,10 +29,6 @@ impl QTerrain {
         self.share_ground_palette();
     }
 
-    /// The bed cuts against the ground rather than blending over it, so it has to
-    /// finish the crossing in its own shader. Copying the ground's palette instead
-    /// of duplicating the values in riverbed.tres means retuning the ground moves
-    /// the bank with it.
     fn share_ground_palette(&mut self) {
         const KEYS: [(&str, &str); 6] = [
             ("color_small", "ground_color_small"),

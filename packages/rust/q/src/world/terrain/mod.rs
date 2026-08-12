@@ -311,6 +311,21 @@ impl QTerrain {
     fn height_at(&self, x: f32, z: f32) -> f32 {
         self.height(x, z)
     }
+
+    #[func]
+    fn river_x_at(&self, z: f32) -> f32 {
+        self.hgen.as_ref().map(|g| g.river_x(z)).unwrap_or(0.0)
+    }
+
+    #[func]
+    fn water_level_at(&self) -> f32 {
+        self.water_level
+    }
+
+    #[func]
+    fn river_width_at(&self) -> f32 {
+        self.river_width
+    }
 }
 
 impl QTerrain {
@@ -362,6 +377,18 @@ impl QTerrain {
 
     pub fn water(&self) -> f32 {
         self.water_level
+    }
+
+    pub fn river_center(&self, z: f32) -> f32 {
+        self.hgen.as_ref().map(|g| g.river_x(z)).unwrap_or(0.0)
+    }
+
+    pub fn river_width_value(&self) -> f32 {
+        self.river_width
+    }
+
+    pub fn sample_height(&self, x: f32, z: f32) -> f32 {
+        self.height(x, z)
     }
 
     pub fn clearance_texture(&self) -> Option<Gd<ImageTexture>> {

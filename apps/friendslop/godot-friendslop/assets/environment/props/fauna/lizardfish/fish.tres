@@ -1,0 +1,30 @@
+[gd_resource type="ShaderMaterial" load_steps=8 format=3]
+
+[ext_resource type="Shader" path="res://assets/environment/props/fauna/lizardfish/fish.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://assets/environment/props/fauna/lizardfish/lizardfish_vat_pos.exr" id="2_pos"]
+[ext_resource type="Texture2D" path="res://assets/environment/props/fauna/lizardfish/lizardfish_vat_nrm.exr" id="3_nrm"]
+[ext_resource type="Texture2D" path="res://assets/environment/props/fauna/lizardfish/lizardfish_albedo.jpg" id="4_albedo"]
+[ext_resource type="Texture2D" path="res://assets/environment/props/fauna/lizardfish/lizardfish_normal.jpg" id="5_normal"]
+[ext_resource type="Texture2D" path="res://assets/environment/props/fauna/lizardfish/lizardfish_orm.jpg" id="6_orm"]
+[ext_resource type="Texture2D" path="res://assets/environment/props/fauna/lizardfish/lizardfish_opacity.png" id="7_opacity"]
+
+[resource]
+shader = ExtResource("1_shader")
+shader_parameter/vat_pos = ExtResource("2_pos")
+shader_parameter/vat_nrm = ExtResource("3_nrm")
+shader_parameter/vat_frames = 32.0
+shader_parameter/swim_speed = 0.45
+shader_parameter/model_scale = 0.07
+shader_parameter/vat_enabled = 1.0
+shader_parameter/albedo_tex = ExtResource("4_albedo")
+shader_parameter/normal_tex = ExtResource("5_normal")
+shader_parameter/orm_tex = ExtResource("6_orm")
+shader_parameter/opacity_tex = ExtResource("7_opacity")
+shader_parameter/tint = Color(1, 1, 1, 1)
+shader_parameter/normal_strength = 1.0
+shader_parameter/alpha_cut = 0.5
+shader_parameter/deep_color = Color(0.09, 0.21, 0.24, 1)
+shader_parameter/water_level = -1.4
+shader_parameter/depth_fade = 1.6
+shader_parameter/fade_start = 45.0
+shader_parameter/fade_end = 70.0

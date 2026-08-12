@@ -1,4 +1,4 @@
-[gd_scene load_steps=41 format=3]
+[gd_scene load_steps=43 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://src/ui/touch_controls.gd" id="28_touch"]
@@ -25,6 +25,8 @@
 [ext_resource type="Script" path="res://src/settings/graphics_settings.gd" id="30_gfx"]
 [ext_resource type="Script" path="res://src/settings/gameplay_settings.gd" id="31_play"]
 [ext_resource type="Script" path="res://src/ui/crosshair.gd" id="32_cross"]
+[ext_resource type="PackedScene" path="res://assets/environment/props/fauna/lizardfish/lizardfish.glb" id="39_fishmodel"]
+[ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish.tres" id="40_fishmat"]
 [ext_resource type="Script" path="res://src/characters/character_rig.gd" id="33_rig"]
 [ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/models/Regular_Male_FullBody.glb" id="34_body"]
 [ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Ponytail.glb" id="35_hair"]
@@ -172,6 +174,11 @@ attachments = Array[PackedScene]([ExtResource("35_hair")])
 terrain_path = NodePath("../Terrain")
 animation_sources = Array[PackedScene]([ExtResource("36_ual1"), ExtResource("37_ual2")])
 default_animation = "UAL1/Idle_LookAround"
+
+[node name="FishField" type="QFishField" parent="."]
+terrain_path = NodePath("../Terrain")
+fish_model = ExtResource("39_fishmodel")
+fish_material = ExtResource("40_fishmat")
 
 [node name="Ravens" type="Node3D" parent="."]
 script = ExtResource("14_ravens")

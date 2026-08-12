@@ -59,6 +59,26 @@ def retarget_main() -> None:
     sys.exit(code)
 
 
+def vat_main() -> None:
+    p = argparse.ArgumentParser(
+        prog="kbve-blender-vat",
+        description="Bake a looping skinned animation to a vertex animation texture.")
+    p.add_argument("--src", required=True, help="source fbx/glb with one skinned mesh")
+    p.add_argument("--out", required=True, help="output directory")
+    p.add_argument("--tris", type=int, default=1200,
+                   help="decimate target; texture size is verts x frames")
+    p.add_argument("--frames", type=int, default=32, help="resampled cycle length")
+    p.add_argument("--name", default=None, help="output basename (default: source stem)")
+    p.add_argument("--blender", default=None, help="path to blender binary")
+    a = p.parse_args()
+    blender = find_blender(a.blender)
+    passthrough = [a.src, a.out, str(a.tris), str(a.frames)]
+    if a.name:
+        passthrough.append(a.name)
+    code = run_in_blender(HERE / "vat_bake.py", passthrough, blender)
+    sys.exit(code)
+
+
 # Default entry when invoked bare; kept generic in case more tools are added.
 def main() -> None:
     retarget_main()
