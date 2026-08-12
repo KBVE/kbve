@@ -50,7 +50,7 @@
 			"options": {
 				"commands": [
 					"docker rm -f friendslop-server-e2e 2>/dev/null || true",
-					"docker run -d --name friendslop-server-e2e -p 7980:7980 -e FS_SERVER_ADDR=0.0.0.0:7980 kbve/friendslop-server:latest",
+					"docker run -d --name friendslop-server-e2e -p 7980:7980 -p 7981:7981/udp -e FS_SERVER_ADDR=0.0.0.0:7980 -e FS_UDP_ADDR=0.0.0.0:7981 kbve/friendslop-server:latest",
 					"echo 'Waiting for friendslop-server...' && for i in $(seq 1 60); do if curl -fsS http://127.0.0.1:7980/healthz >/dev/null 2>&1; then echo 'ready after '\"$i\"'s'; break; fi; if [ $i -eq 60 ]; then echo 'did not start in 60s'; docker logs friendslop-server-e2e 2>&1 | tail -80; docker rm -f friendslop-server-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done",
 					"FS_HOST=127.0.0.1 FS_PORT=7980 npx vitest run; EC=$?; echo '--- container logs ---'; docker logs friendslop-server-e2e 2>&1 | tail -80; docker rm -f friendslop-server-e2e 2>/dev/null || true; exit $EC"
 				],

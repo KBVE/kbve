@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { execSync } from 'child_process';
+import { createSocket } from 'dgram';
 import { dockerRunning } from './helpers/docker';
 
 const host = process.env.FS_HOST ?? '127.0.0.1';
@@ -29,5 +30,35 @@ describe('friendslop-server boot smoke', () => {
 		await sleep(1000);
 		const after = JSON.parse(get('/stats')).tick;
 		expect(after).toBeGreaterThan(before);
+	});
+
+	it('the datagram lane is bound', () => {
+		const stats = JSON.parse(get('/stats'));
+		expect(stats.udp_port).toBe(7981);
+		expect(stats.udp_bound).toBe(0);
+		expect(stats.udp_oversize).toBe(0);
+	});
+
+	// The protocol needs postcard framing, which is covered by the Rust tests.
+	// What is only testable here is that the published UDP port actually
+	// reaches the recv loop and that garbage on it does not take the server
+	// down — an unauthenticated port is reachable by anyone.
+	it('survives unauthenticated garbage on the udp port', async () => {
+		const socket = createSocket('udp4');
+		await new Promise<void>((resolve, reject) => {
+			socket.send(
+				Buffer.from([0xde, 0xad, 0xbe, 0xef]),
+				7981,
+				host,
+				(err) => (err ? reject(err) : resolve()),
+			);
+		});
+		socket.close();
+
+		await sleep(500);
+		expect(dockerRunning()).toBe(true);
+		const stats = JSON.parse(get('/stats'));
+		expect(stats.udp_bound).toBe(0);
+		expect(stats.tick).toBeGreaterThan(0);
 	});
 });
