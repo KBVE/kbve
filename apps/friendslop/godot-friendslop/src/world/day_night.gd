@@ -64,6 +64,16 @@ var _sun_shadow_active := false
 var _moon_shadow_active := false
 var _shadows_off := false
 
+## Player setting. The elevation logic below re-decides shadow state every angle
+## step, so a toggle has to live here or it gets overwritten on the next tick.
+var shadows_enabled := true:
+	set(value):
+		shadows_enabled = value
+		if not is_node_ready():
+			return
+		_last_angle_step = -1
+		_update_celestial_state(true)
+
 @onready var sun: DirectionalLight3D = $Sun
 @onready var moon: DirectionalLight3D = $Moon
 
@@ -161,9 +171,11 @@ func _update_celestial_state(force := false) -> void:
 
 
 func _update_shadow_state(sun_elevation: float, moon_elevation: float) -> void:
-	if _shadows_off:
+	if _shadows_off or not shadows_enabled:
 		sun.shadow_enabled = false
 		moon.shadow_enabled = false
+		_sun_shadow_active = false
+		_moon_shadow_active = false
 		return
 
 	if _sun_shadow_active:

@@ -5,6 +5,9 @@ extends CanvasLayer
 var _root: Control
 var _main_panel: VBoxContainer
 var _settings_panel: VBoxContainer
+var _graphics_panel: VBoxContainer
+var _gfx
+var _gfx_rows: Array[Callable] = []
 var _codex_panel: HBoxContainer
 var _preview_model: Node3D
 var _preview_pivot: Node3D
@@ -44,8 +47,11 @@ func _ready() -> void:
 	_add_button(_main_panel, "Settings", func() -> void: _show(_settings_panel))
 
 	_settings_panel = _menu_box(0.60)
+	_add_button(_settings_panel, "Graphics", func() -> void: _show(_graphics_panel))
 	_add_button(_settings_panel, "Codex", _open_codex)
 	_add_button(_settings_panel, "Back", func() -> void: _show(_main_panel))
+
+	_build_graphics()
 
 	_codex_panel = HBoxContainer.new()
 	_codex_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -162,6 +168,116 @@ func _find_anim(node: Node) -> AnimationPlayer:
 	return null
 
 
+## Options are ordered by measured cost, worst first, and each carries its price
+## so the choice is informed rather than a guess about what "High" means.
+func _build_graphics() -> void:
+	_graphics_panel = _menu_box(0.60)
+	_gfx = get_parent().get_node_or_null("GraphicsSettings") if get_parent() else null
+	if _gfx == null:
+		_add_button(_graphics_panel, "Back", func() -> void: _show(_settings_panel))
+		return
+
+	_gfx_rows.append(_add_cycler(_graphics_panel, "Preset",
+			func() -> Array: return _gfx.PRESET_NAMES,
+			func() -> int: return _gfx.preset_index(),
+			func(i: int) -> void: _gfx.apply_preset(i),
+			_gfx.PRESETS.size()))
+
+	_gfx_rows.append(_add_cycler(_graphics_panel, "Ground Detail",
+			func() -> Array: return _gfx.DETAIL_NAMES,
+			func() -> int: return _gfx.detail,
+			func(i: int) -> void:
+				_gfx.detail = i
+				_gfx.apply(),
+			_gfx.DETAIL_NAMES.size()))
+
+	_gfx_rows.append(_add_cycler(_graphics_panel, "Resolution",
+			func() -> Array: return ["50%", "60%", "70%", "85%", "100%"],
+			func() -> int: return _nearest_scale(_gfx.render_scale),
+			func(i: int) -> void:
+				_gfx.render_scale = SCALE_STEPS[i]
+				_gfx.apply(),
+			SCALE_STEPS.size()))
+
+	_gfx_rows.append(_add_cycler(_graphics_panel, "Shadows",
+			func() -> Array: return ["Off", "On"],
+			func() -> int: return 1 if _gfx.shadows else 0,
+			func(i: int) -> void:
+				_gfx.shadows = i == 1
+				_gfx.apply(),
+			2))
+
+	_gfx_rows.append(_add_cycler(_graphics_panel, "Grass",
+			func() -> Array: return ["25%", "50%", "75%", "100%"],
+			func() -> int: return _nearest_grass(_gfx.grass_density),
+			func(i: int) -> void:
+				_gfx.grass_density = GRASS_STEPS[i]
+				_gfx.apply(),
+			GRASS_STEPS.size()))
+
+	_gfx_rows.append(_add_cycler(_graphics_panel, "Post FX",
+			func() -> Array: return ["Off", "On"],
+			func() -> int: return 1 if _gfx.postfx else 0,
+			func(i: int) -> void:
+				_gfx.postfx = i == 1
+				_gfx.apply(),
+			2))
+
+	_add_button(_graphics_panel, "Back", func() -> void: _show(_settings_panel))
+
+
+const SCALE_STEPS := [0.5, 0.6, 0.7, 0.85, 1.0]
+const GRASS_STEPS := [0.25, 0.5, 0.75, 1.0]
+
+
+func _nearest_scale(v: float) -> int:
+	return _nearest(SCALE_STEPS, v)
+
+
+func _nearest_grass(v: float) -> int:
+	return _nearest(GRASS_STEPS, v)
+
+
+func _nearest(steps: Array, v: float) -> int:
+	var best := 0
+	var best_d := 1e9
+	for i in steps.size():
+		var d: float = absf(float(steps[i]) - v)
+		if d < best_d:
+			best_d = d
+			best = i
+	return best
+
+
+## One row, cycled by clicking rather than a dropdown: every option here is a
+## short ordered list, and a Button is already themed to match the book.
+func _add_cycler(parent: Container, label: String, names: Callable, get_index: Callable,
+		set_index: Callable, count: int) -> Callable:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	var name_label := Label.new()
+	name_label.text = label
+	name_label.custom_minimum_size = Vector2(150, 0)
+	name_label.add_theme_font_size_override("font_size", 18)
+	name_label.add_theme_color_override("font_color", Color(0.25, 0.16, 0.08))
+	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(name_label)
+	var value_button := _add_button(row, "", func() -> void: pass)
+	value_button.custom_minimum_size = Vector2(150, 40)
+	var refresh := func() -> void:
+		var list: Array = names.call()
+		var i: int = clampi(get_index.call(), 0, list.size() - 1)
+		value_button.text = str(list[i])
+	value_button.pressed.connect(func() -> void:
+		var i: int = (get_index.call() + 1) % count
+		set_index.call(i)
+		for r in _gfx_rows:
+			r.call())
+	refresh.call()
+	parent.add_child(row)
+	return refresh
+
+
 func _menu_box(page_x: float = 0.5) -> VBoxContainer:
 	var box := VBoxContainer.new()
 	box.anchor_left = page_x
@@ -258,10 +374,15 @@ func _show(panel: Control) -> void:
 	if panel == null:
 		_main_panel.visible = false
 		_settings_panel.visible = false
+		_graphics_panel.visible = false
 		_codex_panel.visible = false
 		return
+	if panel == _graphics_panel:
+		for r in _gfx_rows:
+			r.call()
 	_main_panel.visible = panel == _main_panel
 	_settings_panel.visible = panel == _settings_panel
+	_graphics_panel.visible = panel == _graphics_panel
 	_codex_panel.visible = panel == _codex_panel
 
 

@@ -21,6 +21,8 @@
 [ext_resource type="Script" path="res://src/ui/pause_menu.gd" id="16_pause"]
 [ext_resource type="Script" path="res://src/debug/debug_hud.gd" id="17_hud"]
 [ext_resource type="Script" path="res://src/debug/frame_watch.gd" id="27_watch"]
+[ext_resource type="Script" path="res://src/debug/debug_stats_server.gd" id="29_stats"]
+[ext_resource type="Script" path="res://src/settings/graphics_settings.gd" id="30_gfx"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/flora.tres" id="18_flora"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/tree.tres" id="19_tree"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/shrub.tres" id="20_shrub"]
@@ -164,6 +166,9 @@ player_path = NodePath("../Player")
 script = ExtResource("10_debug")
 player_path = NodePath("../Player")
 
+[node name="GraphicsSettings" type="Node" parent="."]
+script = ExtResource("30_gfx")
+
 [node name="PauseMenu" type="CanvasLayer" parent="."]
 script = ExtResource("16_pause")
 species = ExtResource("15_species")
@@ -171,6 +176,9 @@ species = ExtResource("15_species")
 [node name="DebugHud" type="CanvasLayer" parent="."]
 script = ExtResource("17_hud")
 player_path = NodePath("../Player")
+
+[node name="DebugStats" type="Node" parent="."]
+script = ExtResource("29_stats")
 
 [node name="FrameWatch" type="Node" parent="."]
 script = ExtResource("27_watch")
