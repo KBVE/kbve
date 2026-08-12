@@ -1,4 +1,4 @@
-[gd_scene load_steps=34 format=3]
+[gd_scene load_steps=36 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://src/ui/touch_controls.gd" id="28_touch"]
@@ -23,6 +23,8 @@
 [ext_resource type="Script" path="res://src/debug/frame_watch.gd" id="27_watch"]
 [ext_resource type="Script" path="res://src/debug/debug_stats_server.gd" id="29_stats"]
 [ext_resource type="Script" path="res://src/settings/graphics_settings.gd" id="30_gfx"]
+[ext_resource type="Script" path="res://src/settings/gameplay_settings.gd" id="31_play"]
+[ext_resource type="Script" path="res://src/ui/crosshair.gd" id="32_cross"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/flora.tres" id="18_flora"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/tree.tres" id="19_tree"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/shrub.tres" id="20_shrub"]
@@ -168,6 +170,12 @@ player_path = NodePath("../Player")
 
 [node name="GraphicsSettings" type="Node" parent="."]
 script = ExtResource("30_gfx")
+
+[node name="GameplaySettings" type="Node" parent="."]
+script = ExtResource("31_play")
+
+[node name="Crosshair" type="CanvasLayer" parent="."]
+script = ExtResource("32_cross")
 
 [node name="PauseMenu" type="CanvasLayer" parent="."]
 script = ExtResource("16_pause")

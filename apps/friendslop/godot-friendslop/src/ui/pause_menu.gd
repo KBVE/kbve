@@ -6,8 +6,11 @@ var _root: Control
 var _main_panel: VBoxContainer
 var _settings_panel: VBoxContainer
 var _graphics_panel: Control
+var _gameplay_panel: Control
 var _gfx
 var _gfx_rows: Array[Callable] = []
+var _play
+var _play_rows: Array[Callable] = []
 var _codex_panel: HBoxContainer
 var _preview_model: Node3D
 var _preview_pivot: Node3D
@@ -48,10 +51,12 @@ func _ready() -> void:
 
 	_settings_panel = _menu_box(0.60)
 	_add_button(_settings_panel, "Graphics", func() -> void: _show(_graphics_panel))
+	_add_button(_settings_panel, "Gameplay", func() -> void: _show(_gameplay_panel))
 	_add_button(_settings_panel, "Codex", _open_codex)
 	_add_button(_settings_panel, "Back", func() -> void: _show(_main_panel))
 
 	_build_graphics()
+	_build_gameplay()
 
 	_codex_panel = HBoxContainer.new()
 	_codex_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -179,17 +184,17 @@ func _build_graphics() -> void:
 	_root.add_child(_graphics_panel)
 
 	_gfx = get_parent().get_node_or_null("GraphicsSettings") if get_parent() else null
-	var left := _page_box(PAGE_LEFT)
-	var right := _page_box(PAGE_RIGHT)
+	var left := _page_box(PAGE_LEFT, _graphics_panel)
+	var right := _page_box(PAGE_RIGHT, _graphics_panel)
 	if _gfx == null:
-		_add_button(right, "Back", func() -> void: _show(_settings_panel))
+		_page_back(right)
 		return
 
 	_gfx_rows.append(_add_cycler(left, "Preset",
 			func() -> Array: return _gfx.PRESET_NAMES,
 			func() -> int: return _gfx.preset_index(),
 			func(i: int) -> void: _gfx.apply_preset(i),
-			_gfx.PRESETS.size()))
+			_gfx.PRESETS.size(), _gfx_rows))
 
 	_gfx_rows.append(_add_cycler(left, "Ground Detail",
 			func() -> Array: return _gfx.DETAIL_NAMES,
@@ -197,7 +202,7 @@ func _build_graphics() -> void:
 			func(i: int) -> void:
 				_gfx.detail = i
 				_gfx.apply(),
-			_gfx.DETAIL_NAMES.size()))
+			_gfx.DETAIL_NAMES.size(), _gfx_rows))
 
 	_gfx_rows.append(_add_cycler(left, "Resolution",
 			func() -> Array: return ["50%", "60%", "70%", "85%", "100%"],
@@ -205,7 +210,7 @@ func _build_graphics() -> void:
 			func(i: int) -> void:
 				_gfx.render_scale = SCALE_STEPS[i]
 				_gfx.apply(),
-			SCALE_STEPS.size()))
+			SCALE_STEPS.size(), _gfx_rows))
 
 	_gfx_rows.append(_add_cycler(right, "Shadows",
 			func() -> Array: return ["Off", "On"],
@@ -213,7 +218,7 @@ func _build_graphics() -> void:
 			func(i: int) -> void:
 				_gfx.shadows = i == 1
 				_gfx.apply(),
-			2))
+			2, _gfx_rows))
 
 	_gfx_rows.append(_add_cycler(right, "Grass",
 			func() -> Array: return ["25%", "50%", "75%", "100%"],
@@ -221,7 +226,7 @@ func _build_graphics() -> void:
 			func(i: int) -> void:
 				_gfx.grass_density = GRASS_STEPS[i]
 				_gfx.apply(),
-			GRASS_STEPS.size()))
+			GRASS_STEPS.size(), _gfx_rows))
 
 	_gfx_rows.append(_add_cycler(right, "Post FX",
 			func() -> Array: return ["Off", "On"],
@@ -229,12 +234,46 @@ func _build_graphics() -> void:
 			func(i: int) -> void:
 				_gfx.postfx = i == 1
 				_gfx.apply(),
-			2))
+			2, _gfx_rows))
 
-	var back := _add_button(right, "Back", func() -> void: _show(_settings_panel))
+	_page_back(right)
+
+
+func _build_gameplay() -> void:
+	_gameplay_panel = Control.new()
+	_gameplay_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_gameplay_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_gameplay_panel.visible = false
+	_root.add_child(_gameplay_panel)
+
+	_play = get_parent().get_node_or_null("GameplaySettings") if get_parent() else null
+	var left := _page_box(PAGE_LEFT, _gameplay_panel)
+	var right := _page_box(PAGE_RIGHT, _gameplay_panel)
+	if _play == null:
+		_page_back(right)
+		return
+
+	_play_rows.append(_add_cycler(left, "Camera",
+			func() -> Array: return _play.CAMERA_NAMES,
+			func() -> int: return _play.camera_mode,
+			func(i: int) -> void: _play.set_camera_mode(i),
+			_play.CAMERA_NAMES.size(), _play_rows))
+
+	_play_rows.append(_add_cycler(right, "Crosshair",
+			func() -> Array: return ["Off", "On"],
+			func() -> int: return 1 if _play.crosshair else 0,
+			func(i: int) -> void: _play.set_crosshair(i == 1),
+			2, _play_rows))
+
+	_page_back(right)
+
+
+func _page_back(parent: Container) -> Button:
+	var back := _add_button(parent, "Back", func() -> void: _show(_settings_panel))
 	back.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	back.custom_minimum_size = Vector2(0, 34)
 	back.add_theme_font_size_override("font_size", 17)
+	return back
 
 
 const SCALE_STEPS := [0.5, 0.6, 0.7, 0.85, 1.0]
@@ -249,7 +288,7 @@ const PAGE_RIGHT := Rect2(0.530, 0.335, 0.185, 0.40)
 const PAGE_BORDER := false
 
 
-func _page_box(area: Rect2) -> VBoxContainer:
+func _page_box(area: Rect2, panel: Control) -> VBoxContainer:
 	var frame := MarginContainer.new()
 	frame.anchor_left = area.position.x
 	frame.anchor_top = area.position.y
@@ -262,7 +301,7 @@ func _page_box(area: Rect2) -> VBoxContainer:
 	frame.offset_right = 0.0
 	frame.offset_bottom = 0.0
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_graphics_panel.add_child(frame)
+	panel.add_child(frame)
 
 	if PAGE_BORDER:
 		var edge := Panel.new()
@@ -306,7 +345,7 @@ func _nearest(steps: Array, v: float) -> int:
 ## One row, cycled by clicking rather than a dropdown: every option here is a
 ## short ordered list, and a Button is already themed to match the book.
 func _add_cycler(parent: Container, label: String, names: Callable, get_index: Callable,
-		set_index: Callable, count: int) -> Callable:
+		set_index: Callable, count: int, rows: Array[Callable]) -> Callable:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 8)
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -331,7 +370,7 @@ func _add_cycler(parent: Container, label: String, names: Callable, get_index: C
 	value_button.pressed.connect(func() -> void:
 		var i: int = (get_index.call() + 1) % count
 		set_index.call(i)
-		for r in _gfx_rows:
+		for r in rows:
 			r.call())
 	refresh.call()
 	parent.add_child(row)
@@ -392,6 +431,7 @@ func _open() -> void:
 	get_tree().paused = true
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_root.visible = true
+	_set_crosshair(false)
 	_show(null)
 	if _book_anim and _book_anim_name != "":
 		_transition += 1
@@ -428,6 +468,13 @@ func _close() -> void:
 	get_tree().paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_root.visible = false
+	_set_crosshair(true)
+
+
+func _set_crosshair(shown: bool) -> void:
+	var hud := get_parent().get_node_or_null("Crosshair") if get_parent() else null
+	if hud:
+		hud.visible = shown and (_play == null or _play.crosshair)
 
 
 func _show(panel: Control) -> void:
@@ -435,14 +482,19 @@ func _show(panel: Control) -> void:
 		_main_panel.visible = false
 		_settings_panel.visible = false
 		_graphics_panel.visible = false
+		_gameplay_panel.visible = false
 		_codex_panel.visible = false
 		return
 	if panel == _graphics_panel:
 		for r in _gfx_rows:
 			r.call()
+	if panel == _gameplay_panel:
+		for r in _play_rows:
+			r.call()
 	_main_panel.visible = panel == _main_panel
 	_settings_panel.visible = panel == _settings_panel
 	_graphics_panel.visible = panel == _graphics_panel
+	_gameplay_panel.visible = panel == _gameplay_panel
 	_codex_panel.visible = panel == _codex_panel
 
 
