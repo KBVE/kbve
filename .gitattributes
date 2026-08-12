@@ -107,6 +107,7 @@ apps/herbmail/herbmail-game/art/**/*.fbx     filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.fbx   filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.glb   filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.gltf  filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.bin   filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.blend filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.png   filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.webp  filter=lfs diff=lfs merge=lfs -text
