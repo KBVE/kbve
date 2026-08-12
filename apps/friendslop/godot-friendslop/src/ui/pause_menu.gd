@@ -510,7 +510,6 @@ func _build_codex() -> void:
 	var codex := HBoxContainer.new()
 	codex.set_script(preload("res://src/ui/codex.gd"))
 	codex.set_anchors_preset(Control.PRESET_FULL_RECT)
-	codex.species = species
 	codex.on_back = func() -> void: _show(_settings_panel)
 	_codex_panel.add_child(codex)
 

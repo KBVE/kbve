@@ -20,7 +20,6 @@ const CharacterRig := preload("res://src/characters/character_rig.gd")
 
 ## Set by whoever opens the Codex, so it does not have to know what it sits in.
 var on_back := Callable()
-var species
 
 var _world: Node3D
 var _camera: Camera3D
@@ -30,6 +29,7 @@ var _subject: Node3D
 var _rig: Node
 var _entries: Array = []
 var _entry: Dictionary = {}
+var _weapons: Array = []
 
 var _info: RichTextLabel
 var _subject_pick: OptionButton
@@ -58,7 +58,8 @@ var _syncing := false
 
 
 func _ready() -> void:
-	_entries = Entries.with_species(Entries.all(), species)
+	_entries = Entries.all()
+	_weapons = Entries.weapons()
 	_build_view()
 	_build_side()
 	if not _entries.is_empty():
@@ -155,10 +156,13 @@ func _build_side() -> void:
 	_scrub = _add_slider(side, "frame", 0.0, 1.0, 0.0)
 	_scrub.value_changed.connect(_seek)
 
+	# The same weapons the Codex lists on their own are the ones the hand is
+	# offered, so a mesh that has just been exported can be put in a fist without
+	# it being registered twice.
 	_weapon_pick = OptionButton.new()
 	_weapon_pick.add_item("no weapon")
-	for kind in WeaponProxy.kinds():
-		_weapon_pick.add_item(kind)
+	for entry in _weapons:
+		_weapon_pick.add_item(entry.name.trim_prefix("Weapon: "))
 	_weapon_pick.item_selected.connect(_equip)
 	side.add_child(_weapon_pick)
 
@@ -242,7 +246,7 @@ func _load(index: int) -> void:
 		"character":
 			_subject = _build_character()
 		"weapon":
-			_subject = WeaponProxy.make(_entry.proxy)
+			_subject = _build_weapon(_entry)
 		_:
 			_subject = _build_model()
 	if _subject == null:
@@ -286,6 +290,17 @@ func _build_character() -> Node3D:
 	rig.terrain_path = _ground.get_path()
 	_rig = rig
 	return rig
+
+
+## A weapon from wherever it came from. A stand-in and an exported mesh differ
+## only in which key the entry carries.
+func _build_weapon(entry: Dictionary) -> Node3D:
+	if entry.has("proxy"):
+		return WeaponProxy.make(entry.proxy)
+	var scene := load(entry.scene) as PackedScene
+	if scene == null:
+		return null
+	return scene.instantiate() as Node3D
 
 
 func _build_model() -> Node3D:
@@ -342,10 +357,14 @@ func _seek(value: float) -> void:
 func _equip(index: int) -> void:
 	if _rig == null or _rig.mount == null:
 		return
-	if index <= 0:
+	if index <= 0 or index > _weapons.size():
 		_rig.mount.equip(null)
 		return
-	_rig.mount.equip_proxy(_weapon_pick.get_item_text(index))
+	var entry: Dictionary = _weapons[index - 1]
+	if entry.has("proxy"):
+		_rig.mount.equip_proxy(entry.proxy)
+	else:
+		_rig.mount.equip(load(entry.scene))
 
 
 func _show_control(control: Control, shown: bool) -> void:
@@ -387,7 +406,11 @@ func _report() -> void:
 	if _rig and _rig.skeleton:
 		lines.append("skeleton: %d bones" % _rig.skeleton.get_bone_count())
 	if _entry.kind == "weapon":
-		lines.append("two-handed: %s" % str(WeaponProxy.two_handed(_entry.proxy)))
+		var two := WeaponProxy.two_handed(_entry.proxy) if _entry.has("proxy") \
+				else _subject.get_node_or_null("Grip_Off") != null
+		lines.append("two-handed: %s" % str(two))
+		if _subject.get_node_or_null("Grip_Main") == null:
+			lines.append("[color=#ff9a5a]no Grip_Main marker[/color]")
 	if _entry.kind == "model":
 		lines.append("model_yaw_fix = %.2f\nmodel_pitch_fix = %.2f" % [
 				_yaw_fix.value, _pitch_fix.value])
