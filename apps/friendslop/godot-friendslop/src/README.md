@@ -8,7 +8,8 @@ src/
   components/          ECSComponent / ECSDataComponent subclasses (data only)
   systems/             ECSSystem (main thread) / ECSParallel (WorkerThreadPool)
   ecs/                 ObserverHub (reactive), Relations (entity links) — GECS-inspired
-  net/                 NetSync — server-authoritative snapshot sync (experimental)
+  net/                 NetGameClient — renders the authoritative friendslop-server
+                       NetSync — ENet ECS snapshot sync (experimental, superseded)
   events/              EventNames StringName constants
   player/              player controller
   world/               world streaming (grass chunks)
@@ -63,6 +64,30 @@ Game.relations.unlink_all(id)
 
 Bidirectional O(1) lookup. Mirrored onto the event bus as
 `EventNames.RELATION_ADDED / RELATION_REMOVED`. `Game.despawn()` cleans links.
+
+## NetGameClient
+
+Renders a session hosted by `friendslop-server` (`apps/agones/friendslop/server`).
+Wraps the `QNetClient3D` GDExtension node.
+
+```gdscript
+var client := NetGameClient.new()
+client.server_url = "ws://127.0.0.1:7980/ws"
+add_child(client)
+client.connect_to_server()
+```
+
+Bodies are authored by the server, so avatars are spawned in response to
+`body_added` rather than created locally; each is handed to the extension with
+`track(id, node)` so the server drives its transform. Input is sent as intent
+(`wish_dir` + jump) and never applied locally — the server owns movement.
+
+Set `avatar_scene` to control what a body looks like; without it a plain capsule
+mesh is used. Manual end-to-end check against a running server:
+
+```bash
+FS_URL=ws://127.0.0.1:7980/ws godot --headless -s tests/live_net.gd
+```
 
 ## NetSync (experimental)
 
