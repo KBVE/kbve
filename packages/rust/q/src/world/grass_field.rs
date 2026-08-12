@@ -132,8 +132,11 @@ pub struct QGrassField {
     #[export]
     #[init(val = 20.0)]
     card_chunk_size: f32,
+    /// Near-camera density is where grass cost lives: 250 -> 150 roughly halved
+    /// frame time in an open field for very little visible thinning, while
+    /// cutting blade_range over the same span bought a fraction of that.
     #[export]
-    #[init(val = 250.0)]
+    #[init(val = 150.0)]
     blades_per_sqm: f32,
     #[export]
     #[init(val = 6.5)]

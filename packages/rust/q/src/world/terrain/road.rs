@@ -162,8 +162,15 @@ impl QTerrain {
         }
 
         let data = PackedByteArray::from(mask.as_slice());
-        let tex = Image::create_from_data(res, res, false, ImageFormat::R8, &data)
-            .and_then(|img| ImageTexture::create_from_image(&img));
+        // One texel per metre, so a carriageway is only a few pixels wide at
+        // range. Without a mip chain the ground shader point-samples the mask
+        // there and whole stretches of road fall under the paint threshold;
+        // averaging down keeps them present as a weaker mask instead.
+        let tex =
+            Image::create_from_data(res, res, false, ImageFormat::R8, &data).and_then(|mut img| {
+                img.generate_mipmaps();
+                ImageTexture::create_from_image(&img)
+            });
         if let (Some(t), Some(m)) = (tex.as_ref(), self.ground_material.as_mut()) {
             m.set_shader_parameter("road_tex", &t.to_variant());
             m.set_shader_parameter("road_tile_scale", &self.road_tile_scale.to_variant());
