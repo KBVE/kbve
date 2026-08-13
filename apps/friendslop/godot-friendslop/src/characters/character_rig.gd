@@ -84,6 +84,26 @@ const CLIMB_CHAIN := [
 	{"from": "climb_high", "to": "move", "at_end": true, "xfade": 0.15},
 ]
 
+## What each state wants out of a transition into it.
+##
+## reset says whether entering restarts the state's clip. Godot defaults this on,
+## which is right for the one-shots and wrong for move: every landing dropped the
+## locomotion cycle back to frame 0, so the legs cut out of whatever stride they
+## were in. Resuming instead lets the cyclic sync in the blend space carry the
+## phase through the jump.
+##
+## ik is how much of the leg solve the state hands to the ground. There is nothing
+## to stand on in the air, and a take-off crouch or a landing recovery is only
+## partly weight-bearing, so neither should be planted as hard as a walk.
+const STATES := {
+	&"move": {&"reset": false, &"ik": 1.0},
+	&"jump_start": {&"reset": true, &"ik": 0.4},
+	&"jump": {&"reset": true, &"ik": 0.0},
+	&"jump_land": {&"reset": true, &"ik": 0.7},
+	&"climb_low": {&"reset": true, &"ik": 0.0},
+	&"climb_high": {&"reset": true, &"ik": 0.0},
+}
+
 ## Unit ring, counter-clockwise from forward. x is right, y is forward.
 const RING := [
 	[Vector2(0, 1), "Fwd"],
@@ -268,6 +288,11 @@ func _build_tree(rig: Node3D) -> void:
 		t.advance_mode = AnimationNodeStateMachineTransition.ADVANCE_MODE_AUTO \
 				if link.at_end else AnimationNodeStateMachineTransition.ADVANCE_MODE_DISABLED
 		t.xfade_time = link.xfade
+		# Linear crossfades read as a snap at both ends, because the pose leaves
+		# the outgoing clip and arrives at the incoming one at full rate. Easing
+		# the weight instead means the fade starts and finishes at a standstill.
+		t.xfade_curve = _fade_curve()
+		t.reset = STATES[link.to].reset
 		machine.add_transition(link.from, link.to, t)
 
 	tree = AnimationTree.new()
@@ -275,6 +300,18 @@ func _build_tree(rig: Node3D) -> void:
 	rig.add_child(tree)
 	tree.anim_player = tree.get_path_to(animation)
 	tree.active = true
+
+
+## One curve shared by every transition, since they all want the same easing.
+static var _curve: Curve
+
+
+static func _fade_curve() -> Curve:
+	if _curve == null:
+		_curve = Curve.new()
+		_curve.add_point(Vector2(0.0, 0.0), 0.0, 0.0)
+		_curve.add_point(Vector2(1.0, 1.0), 0.0, 0.0)
+	return _curve
 
 
 ## A missing clip is reported rather than silently leaving a hole in the space,
@@ -299,8 +336,6 @@ func play_climb(rise: float) -> float:
 	_climbing = true
 	var playback: AnimationNodeStateMachinePlayback = tree.get("parameters/playback")
 	playback.travel("climb_low" if rise <= CLIMB_SPLIT else "climb_high")
-	if ik:
-		ik.set_grounded(false)
 	return animation.get_animation(clip).length
 
 
@@ -329,17 +364,39 @@ func set_locomotion(local_velocity: Vector3, airborne: bool, delta: float) -> vo
 	_blend = _blend.lerp(dir * radius, clampf(blend_sharpness * delta, 0.0, 1.0))
 	tree.set("parameters/move/space/blend_position", _blend)
 	tree.set("parameters/move/scale/scale", _time_scale(speed, dir, radius))
+	var playback: AnimationNodeStateMachinePlayback = tree.get("parameters/playback")
+	if ik:
+		ik.set_ground_weight(_ground_weight(playback))
 	# Only ever asked for the two ends of the chain: travel() routes through
 	# take-off or landing on the way, so a landing plays its recovery instead of
 	# cutting from a mid-air pose straight into idle.
 	if _climbing:
 		return
-	var playback: AnimationNodeStateMachinePlayback = tree.get("parameters/playback")
 	var want := "jump" if airborne else "move"
 	if playback.get_travel_path().is_empty() and playback.get_current_node() != want:
 		playback.travel(want)
-	if ik:
-		ik.set_grounded(not airborne)
+
+
+## Leg solve weight for the pose that is actually on the skeleton. Mid-transition
+## that pose is a blend of two states and matches neither, so the weight is read
+## off the same fade the animation is using rather than from the controller's
+## airborne flag. A flag flips a frame before the pose it describes exists, which
+## is what re-planted the feet onto a pose still half way out of the air.
+func _ground_weight(playback: AnimationNodeStateMachinePlayback) -> float:
+	var length := playback.get_fading_length()
+	var at := 1.0 if length <= 0.0 else playback.get_fading_position() / length
+	return ground_weight_for(playback.get_current_node(),
+			playback.get_fading_from_node(), at)
+
+
+## Split from the playback so the curve can be checked without a live tree. `at`
+## is how far the crossfade has run, 0 at the outgoing pose and 1 at the incoming.
+func ground_weight_for(into: StringName, from: StringName, at: float) -> float:
+	var arriving: float = STATES.get(into, {}).get(&"ik", 1.0)
+	if from == &"":
+		return arriving
+	var leaving: float = STATES.get(from, {}).get(&"ik", 1.0)
+	return lerpf(leaving, arriving, clampf(at, 0.0, 1.0))
 
 
 ## Ground speed the blended clip covers in this direction, which is what the
