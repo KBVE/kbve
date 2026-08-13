@@ -31,7 +31,7 @@ impl eframe::App for TemplateApp {
     fn ui(&mut self, ui: &mut egui::Ui, _frame: &mut eframe::Frame) {
         let ctx = ui.ctx().clone();
 
-        egui::Panel::top("top_panel").show_inside(ui, |ui| {
+        egui::Panel::top("top_panel").show(ui, |ui| {
             egui::MenuBar::new().ui(ui, |ui| {
                 let is_web = cfg!(target_arch = "wasm32");
                 if !is_web {
@@ -47,7 +47,7 @@ impl eframe::App for TemplateApp {
             });
         });
 
-        egui::Panel::left("side_panel").show_inside(ui, |ui| {
+        egui::Panel::left("side_panel").show(ui, |ui| {
             ui.heading("Side Panel");
             ui.horizontal(|ui| {
                 ui.label("Adjust value: ");
@@ -68,7 +68,7 @@ impl eframe::App for TemplateApp {
             }
         });
 
-        egui::CentralPanel::default().show_inside(ui, |ui| {
+        egui::CentralPanel::default().show(ui, |ui| {
             ui.heading("eRust - Tonic Talks");
 
             ui.horizontal(|ui| {
