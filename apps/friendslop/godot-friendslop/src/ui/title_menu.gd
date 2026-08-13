@@ -15,9 +15,9 @@ extends CanvasLayer
 
 signal play_requested
 signal solo_requested
-## Credentials the player typed. The menu does not know what to do with them —
+## Which provider the player chose. The menu does not know what to do with it —
 ## `title_screen.gd` owns the Auth call and reports back.
-signal sign_in_requested(email: String, password: String)
+signal sign_in_requested(provider: String)
 signal sign_out_requested
 signal settings_requested
 signal quit_requested
@@ -196,9 +196,9 @@ func open_sign_in() -> void:
 	if _sign_in != null:
 		return
 	_sign_in = SIGN_IN_PANEL.new()
-	_sign_in.submitted.connect(func(email: String, password: String) -> void:
+	_sign_in.submitted.connect(func(provider: String) -> void:
 		_sign_in.set_busy(true)
-		sign_in_requested.emit(email, password))
+		sign_in_requested.emit(provider))
 	_sign_in.cancelled.connect(close_sign_in)
 	_root.add_child(_sign_in)
 	# Hidden rather than dimmed: both are centred columns, and two of those on
@@ -209,7 +209,6 @@ func open_sign_in() -> void:
 func close_sign_in() -> void:
 	if _sign_in == null:
 		return
-	_sign_in.clear_password()
 	_sign_in.queue_free()
 	_sign_in = null
 	_column.visible = true
@@ -220,7 +219,7 @@ func is_signing_in() -> bool:
 
 
 ## The sign-in failed and the panel stays open holding the reason — closing it
-## would leave the player guessing which half of the form was wrong.
+## would leave the player with a title screen that simply did nothing.
 func sign_in_failed(message: String) -> void:
 	if _sign_in:
 		_sign_in.show_message(message)

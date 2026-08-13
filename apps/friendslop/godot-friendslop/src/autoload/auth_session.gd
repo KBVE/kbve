@@ -1,3 +1,4 @@
+class_name AuthSession
 extends Node
 
 ## Who the player currently is, for as long as the process lives.
@@ -8,11 +9,15 @@ extends Node
 ## claimed username — is exposed here as an empty value in guest mode, so a
 ## caller never has to ask which mode it is in before wiring a join.
 ##
-## Accounts are Supabase GoTrue, the same issuer the rest of the ecosystem uses:
-## `sign_in` exchanges an email and password for an access token carrying a
-## `kbve_username` claim, stamped by the Custom Access Token hook. The token is
-## what the game server verifies — the username read out of it here is for
-## drawing on this screen before the join, and the server's answer wins.
+## Accounts are Supabase GoTrue, the same issuer the rest of the ecosystem uses.
+## The token carries a `kbve_username` claim stamped by the Custom Access Token
+## hook; it is what the game server verifies, and the username read out of it
+## here is only for drawing on this screen before the join.
+##
+## Signing in goes through the player's own browser (`sign_in_with_provider`):
+## GoTrue has hCaptcha enabled, and a password grant from a client with no
+## browser is refused outright. `sign_in` keeps the password path for the day
+## that changes, but nothing calls it.
 ##
 ## Nothing is written to disk. A refresh token on a shared machine is a login,
 ## and the cost of typing a password again is smaller than the cost of leaving
@@ -34,6 +39,10 @@ const SUPABASE_URL := "https://supabase.kbve.com"
 const ANON_KEY := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzU1NDAzMjAwLCJleHAiOjE5MTMxNjk2MDB9.oietJI22ZytbghFywvdYMSJp7rcsBdBYbcciJxeGWrg"
 
 const TIMEOUT_SECONDS := 15.0
+
+## Providers offered on the title. Both are enabled on GoTrue; the list is here
+## rather than in the UI so the menu never names one this cannot start.
+const PROVIDERS := ["discord", "github"]
 
 ## Refresh this far before the token actually expires, so a join that takes a
 ## moment to travel does not arrive holding something that just went stale.
@@ -91,6 +100,53 @@ func sign_in(email: String, password: String) -> Error:
 		"password": password,
 	})
 	return _adopt_answer(answer)
+
+
+## Signs in through the player's browser: opens the provider, catches the
+## redirect on a loopback socket, and exchanges the code for a token.
+##
+## PKCE, so no client secret ships in the game: the browser carries the hash of
+## a secret generated here, and the code it brings back is worthless without the
+## original — which never leaves this process.
+func sign_in_with_provider(provider: String) -> Error:
+	if not PROVIDERS.has(provider):
+		_error = "Unknown sign-in provider."
+		return ERR_INVALID_PARAMETER
+
+	var loopback := OAuthLoopback.new()
+	add_child(loopback)
+	var port := loopback.listen()
+	if port == 0:
+		loopback.queue_free()
+		_error = "No local port was available for sign-in."
+		return ERR_CANT_CREATE
+
+	var verifier := OAuthLoopback.new_verifier()
+	OS.shell_open(authorize_url(provider, port, verifier))
+
+	var answer: Dictionary = await loopback.wait_for_code()
+	loopback.queue_free()
+	if answer.has("error"):
+		_error = answer["error"]
+		return ERR_UNAUTHORIZED
+
+	# The code alone proves nothing; the verifier is what claims it.
+	return _adopt_answer(await _post("/auth/v1/token?grant_type=pkce", {
+		"auth_code": answer["code"],
+		"code_verifier": verifier,
+	}))
+
+
+## The URL the browser is sent to. Built here so it can be asserted on without
+## opening anything.
+static func authorize_url(provider: String, port: int, verifier: String) -> String:
+	var redirect := "http://127.0.0.1:%d/callback" % port
+	return "%s/auth/v1/authorize?provider=%s&redirect_to=%s&code_challenge=%s&code_challenge_method=s256" % [
+		SUPABASE_URL,
+		provider.uri_encode(),
+		redirect.uri_encode(),
+		OAuthLoopback.challenge_for(verifier).uri_encode(),
+	]
 
 
 ## Renews the access token from the refresh token obtained at sign-in. No-op for
@@ -205,6 +261,10 @@ func _adopt_answer(answer: Dictionary) -> Error:
 ## a game client has no browser to solve one in, so "request disallowed" is not
 ## something the player can fix by retyping anything.
 static func _message_in(body: Dictionary, code: int) -> String:
+	# GoTrue's own words for a code that was never issued, or one whose flow
+	# state has already been spent or aged out. True, and useless to a player.
+	if String(body.get("error_code", "")).begins_with("flow_state"):
+		return "Sign-in expired before it finished — try again."
 	for key in ["error_description", "msg", "message", "error"]:
 		var value = body.get(key, "")
 		if typeof(value) == TYPE_STRING and not value.is_empty():

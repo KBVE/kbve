@@ -67,11 +67,18 @@ Identity lives in the `Auth` autoload (`src/autoload/auth_session.gd`):
 | `GUEST` | `""` | the server answers with `Anon-XXXX` |
 | `ACCOUNT` | Supabase JWT | `kbve_username`, read from the claims |
 
-`sign_in` posts to GoTrue's password grant at `supabase.kbve.com`, keeps the access and refresh tokens in memory only, and reads the username out of the token for the title to draw. Nothing is written to `user://` — a refresh token on a shared machine is a login. `adopt_account` is the same seam an OAuth flow would land on.
+Signing in happens **in the player's own browser**. GoTrue runs with `GOTRUE_SECURITY_CAPTCHA_ENABLED=true` (hCaptcha), so the password grant refuses any client that has no browser to solve a challenge in — it answers `captcha protection: request disallowed`. `sign_in` keeps that path for the day that changes; nothing calls it.
 
-The token is what the **server** verifies; the username decoded on this side is only for what the title screen prints before the join. See [friendslop-server](/project/friendslop-server) for the verification half.
+`sign_in_with_provider` runs the loopback OAuth flow, PKCE so that no client secret ships in the game:
 
-**Password sign-in cannot succeed against production today.** GoTrue runs with `GOTRUE_SECURITY_CAPTCHA_ENABLED=true` (hCaptcha), and the password grant answers `captcha protection: request disallowed (no captcha_token found)` to any client that has no browser to solve one in. The form reports that as "not available yet" rather than as a wrong password. The two ways out are a loopback OAuth flow (`GOTRUE_URI_ALLOW_LIST` already permits `http://127.0.0.1:**` and `kbve://**`) or exempting the grant from captcha; the client half is otherwise finished and works the moment either lands.
+1. `OAuthLoopback` binds an ephemeral port on `127.0.0.1` — never `0.0.0.0`, which would let the rest of the network answer the redirect.
+2. `OS.shell_open` sends the browser to `/auth/v1/authorize?provider=…&redirect_to=http://127.0.0.1:PORT/callback&code_challenge=…&code_challenge_method=s256`. `GOTRUE_URI_ALLOW_LIST` already permits `http://127.0.0.1:**`.
+3. The provider redirects back to the loopback port with `?code=…`; the socket serves a small "close this tab" page and shuts down.
+4. `POST /auth/v1/token?grant_type=pkce` with `{auth_code, code_verifier}` returns the session. The verifier never leaves the process until this step, so a code caught by anything else on the machine is worthless.
+
+Tokens live in memory only — a refresh token in `user://` on a shared machine is a login. `adopt_account` is the same seam a stored session would land on.
+
+The token is what the **server** verifies; the username decoded on this side is only for what the title prints before the join. See [friendslop-server](/project/friendslop-server) for the verification half.
 
 `scenes/title.tscn` is now the boot scene (`run/main_scene`). The pause menu's Log Off already returns here from either world.
 

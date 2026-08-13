@@ -6,12 +6,12 @@
 		"sign_in": "Sign In",
 		"sign_in_hint": "Sign in with your KBVE account, or play as a guest.",
 		"guest_status": "Playing as a guest",
-		"email": "Email",
-		"password": "Password",
-		"signing_in": "Signing in…",
+		"signing_in": "Waiting for your browser…",
 		"signed_in_as": "Signed in as {name}",
 		"sign_out": "Sign Out",
-		"play_as_account": "Play"
+		"play_as_account": "Play",
+		"sign_in_with": "Sign in with {provider}",
+		"sign_in_browser": "Your browser will open — come back here when it is done."
 	},
 	"pause": {
 		"log_off": "Log Off"

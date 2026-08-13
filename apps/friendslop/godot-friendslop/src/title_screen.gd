@@ -151,14 +151,14 @@ func _play() -> void:
 	_enter(TitleMenu.ONLINE_SCENE)
 
 
-## Owned here rather than in the menu so the form stays a form: it collects two
-## strings and shows what it is told, and never learns what a token is.
-func _sign_in(email: String, password: String) -> void:
+## Owned here rather than in the menu so the panel stays a panel: it reports a
+## button press and shows what it is told, and never learns what a token is.
+func _sign_in(provider: String) -> void:
 	var auth := get_node_or_null(^"/root/Auth")
 	if auth == null:
 		_menu.sign_in_failed("Sign-in is unavailable in this build.")
 		return
-	if await auth.sign_in(email, password) == OK:
+	if await auth.sign_in_with_provider(provider) == OK:
 		_menu.sign_in_succeeded()
 	else:
 		_menu.sign_in_failed(auth.last_error())
