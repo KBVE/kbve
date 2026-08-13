@@ -132,6 +132,7 @@ export const collections = {
 		loader: docsLoader(),
 		schema: docsSchema({
 			extend: z.object({
+				canonical: z.string().url().optional(),
 				itemdb: z.array(IObjectSchema).optional(),
 				questdb: z.array(IQuestSchema).optional(),
 				mapdb: z.array(IMapObjectSchema).optional(),
