@@ -18,14 +18,14 @@ Related: [DISCORDSH_PLAN.md](./DISCORDSH_PLAN.md), [DISCORDSH_GAMEIDEA.md](./DIS
 
 The identity plumbing is further along than it looks. Already in place:
 
-| Piece                                                                       | Where            |
-| --------------------------------------------------------------------------- | ---------------- |
-| `auth.identities` rows with `provider='discord'`, `provider_id` = snowflake | Supabase auth    |
-| `tracker.find_claim_identity_by_discord_id(TEXT)` → `user_id`               | `20260523033932` |
-| `dungeon_profiles.auth_user_id UUID UNIQUE` + index                         | `20260409210000` |
-| `service_load_profile_by_auth(UUID)`                                        | `20260409210000` |
-| `service_link_auth(BIGINT, UUID)`                                           | `20260409210000` |
-| `service_claim_mode` / `service_release_mode` mode lock                     | `20260409210000` |
+| Piece | Where |
+|---|---|
+| `auth.identities` rows with `provider='discord'`, `provider_id` = snowflake | Supabase auth |
+| `tracker.find_claim_identity_by_discord_id(TEXT)` → `user_id` | `20260523033932` |
+| `dungeon_profiles.auth_user_id UUID UNIQUE` + index | `20260409210000` |
+| `service_load_profile_by_auth(UUID)` | `20260409210000` |
+| `service_link_auth(BIGINT, UUID)` | `20260409210000` |
+| `service_claim_mode` / `service_release_mode` mode lock | `20260409210000` |
 
 `service_load_profile_by_auth` and `service_link_auth` currently have **zero Rust callers** — they were built for the isometric client and never wired up.
 
