@@ -88,6 +88,16 @@ spec:
                         value: bbs.kbve.com
                       - name: BBS_CLAIM_URL
                         value: https://kbve.com/bbs/
+                      - name: BBS_CHAT_ENABLED
+                        value: 'false'
+                      - name: BBS_IRC_HOST
+                        value: ergo-irc-service.irc.svc.cluster.local
+                      - name: BBS_IRC_PORT
+                        value: '6667'
+                      - name: BBS_IRC_CHANNEL
+                        value: '#general'
+                      - name: BBS_IRC_NICK
+                        value: bbs-bot
                       - name: SUPABASE_URL
                         value: http://kong.kilobase.svc.cluster.local:8000
                       - name: GOTRUE_INTERNAL_URL

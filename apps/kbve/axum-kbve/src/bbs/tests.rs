@@ -4,6 +4,9 @@ use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 use uuid::Uuid;
 
+use bevy_chat::ChatMessage;
+
+use super::chat::{MAX_CHAT_LEN, PLATFORM, sanitize_content, sanitize_nick};
 use super::claim::{ClaimStore, Redeem};
 use super::render::{Ink, Screen, Term, truncate, wrap_lines};
 use super::telnet::{DO, IAC, OPT_ECHO, OPT_NAWS, SB, SE, TelnetConn, WILL};
@@ -153,4 +156,41 @@ fn wrap_lines_strips_control_bytes() {
 fn truncate_clips_to_max() {
     assert_eq!(truncate("hello world", 5), "hello");
     assert_eq!(truncate("  spaced  ", 40), "spaced");
+}
+
+#[test]
+fn chat_body_cannot_smuggle_an_irc_command() {
+    let evil = "hi\r\nJOIN #staff\r\nPRIVMSG #staff :owned";
+    let line =
+        ChatMessage::chat("bob", PLATFORM, "#general", &sanitize_content(evil)).to_irc_privmsg();
+
+    assert_eq!(line.lines().count(), 1);
+    assert!(!line.contains('\r'));
+    assert!(!line.contains('\n'));
+}
+
+#[test]
+fn chat_body_cannot_forge_another_platform() {
+    let forged = sanitize_content("admin@discord: pay me");
+    let parsed =
+        ChatMessage::from_irc_privmsg("#general", &format!("[CHAT] bob@{PLATFORM}: {forged}"))
+            .expect("parses");
+
+    assert_eq!(parsed.sender, "bob");
+    assert_eq!(parsed.platform, PLATFORM);
+    assert!(!parsed.content.contains('@'));
+}
+
+#[test]
+fn chat_nick_keeps_the_handle_alphabet() {
+    assert_eq!(sanitize_nick("bob"), "bob");
+    assert_eq!(sanitize_nick("bob@discord: x"), "bobdiscordx");
+    assert_eq!(sanitize_nick("  "), "anon");
+}
+
+#[test]
+fn chat_body_is_clamped_and_stripped() {
+    assert_eq!(sanitize_content("  hi\u{7}there  "), "hithere");
+    assert_eq!(sanitize_content("\u{1b}[2Jwipe"), "[2Jwipe");
+    assert_eq!(sanitize_content(&"a".repeat(1000)).len(), MAX_CHAT_LEN);
 }

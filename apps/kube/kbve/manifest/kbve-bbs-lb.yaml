@@ -18,6 +18,10 @@ spec:
     selector:
         app: kbve
     ports:
+        - name: bbs-telnet
+          port: 23
+          targetPort: 6401
+          protocol: TCP
         - name: bbs-petscii
           port: 6400
           targetPort: 6400

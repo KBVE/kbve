@@ -1,3 +1,4 @@
+mod chat;
 pub mod claim;
 mod presence;
 mod render;
@@ -61,6 +62,7 @@ pub fn init_bbs() -> bool {
             .unwrap_or(DEFAULT_IDLE_SECS),
     );
     let permits = Arc::new(Semaphore::new(max_sessions));
+    chat::init_chat();
 
     let mut bound = false;
     for (key, default, term) in [
