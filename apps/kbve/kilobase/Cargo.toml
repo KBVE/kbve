@@ -19,7 +19,7 @@ pg_test = []
 
 [dependencies]
 thiserror = { workspace = true }
-pgrx = { version = "=0.16.1", default-features = false }
+pgrx = { version = "=0.19.2", default-features = false }
 serde = { workspace = true }
 
 [dev-dependencies]
