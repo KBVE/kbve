@@ -74,24 +74,40 @@ func test_sign_in_opens_a_form_rather_than_signing_anyone_in() -> void:
 	assert_bool(menu.is_signing_in()).is_true()
 
 
-## The menu collects credentials and reports them; it never calls Auth itself,
-## which is what lets the flow be tested without a network.
-func test_the_form_reports_what_was_typed() -> void:
+## The menu reports which provider was chosen; it never calls Auth itself,
+## which is what lets the flow be tested without a browser.
+func test_the_panel_reports_the_provider_that_was_chosen() -> void:
 	var menu := _menu()
 	var seen := []
-	menu.sign_in_requested.connect(func(email: String, password: String) -> void:
-		seen.append([email, password]))
+	menu.sign_in_requested.connect(func(provider: String) -> void: seen.append(provider))
 	menu.open_sign_in()
-	var panel: SignInPanel = menu._sign_in
-	panel.email_field.text = "someone@kbve.com"
-	panel.password_field.text = "hunter2"
-	panel.submit_button.pressed.emit()
-	assert_array(seen).is_equal([["someone@kbve.com", "hunter2"]])
+	menu._sign_in.provider_buttons["discord"].pressed.emit()
+	assert_array(seen).is_equal(["discord"])
+
+
+## Every provider Auth will accept has a button, and no button names one it
+## would refuse to start.
+func test_every_offered_provider_can_actually_be_started() -> void:
+	var menu := _menu()
+	menu.open_sign_in()
+	assert_array(menu._sign_in.provider_buttons.keys()).is_equal(AuthSession.PROVIDERS)
+
+
+## A second press would open a second tab against a verifier the first one
+## already owns.
+func test_a_sign_in_in_flight_ignores_further_presses() -> void:
+	var menu := _menu()
+	var seen := []
+	menu.sign_in_requested.connect(func(provider: String) -> void: seen.append(provider))
+	menu.open_sign_in()
+	menu._sign_in.provider_buttons["discord"].pressed.emit()
+	menu._sign_in.provider_buttons["github"].pressed.emit()
+	assert_array(seen).is_equal(["discord"])
 
 
 ## A failed sign-in leaves the form open holding the reason — closing it would
 ## leave the player guessing which half was wrong.
-func test_a_failed_sign_in_keeps_the_form_and_the_reason() -> void:
+func test_a_failed_sign_in_keeps_the_panel_and_the_reason() -> void:
 	var menu := _menu()
 	menu.open_sign_in()
 	menu.sign_in_failed("Invalid login credentials")
@@ -99,16 +115,13 @@ func test_a_failed_sign_in_keeps_the_form_and_the_reason() -> void:
 	assert_str(menu._sign_in.message_label.text).is_equal("Invalid login credentials")
 
 
-## The password lives in the form and nowhere else, so closing it is what
-## disposes of it.
-func test_closing_the_form_clears_the_password() -> void:
+func test_closing_the_panel_puts_the_menu_back() -> void:
 	var menu := _menu()
 	menu.open_sign_in()
-	var panel: SignInPanel = menu._sign_in
-	panel.password_field.text = "hunter2"
+	assert_bool(menu._column.visible).is_false()
 	menu.close_sign_in()
-	assert_str(panel.password_field.text).is_empty()
 	assert_bool(menu.is_signing_in()).is_false()
+	assert_bool(menu._column.visible).is_true()
 
 
 func test_play_asks_rather_than_loading_the_world_itself() -> void:

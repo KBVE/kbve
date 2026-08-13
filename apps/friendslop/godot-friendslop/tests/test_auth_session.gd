@@ -50,6 +50,14 @@ func test_empty_credentials_never_reach_the_network() -> void:
 	assert_str(auth.last_error()).is_not_empty()
 
 
+## Nothing opens a browser for a provider GoTrue has not got.
+func test_an_unknown_provider_opens_nothing() -> void:
+	var auth := _auth()
+	var code: int = await auth.sign_in_with_provider("myspace")
+	assert_int(code).is_equal(ERR_INVALID_PARAMETER)
+	assert_bool(auth.is_signed_in()).is_false()
+
+
 ## The username the title draws comes out of the token itself, so the claim has
 ## to survive base64url without padding — which is what a JWT always is.
 func test_the_username_is_read_out_of_the_token() -> void:
