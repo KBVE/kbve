@@ -55,6 +55,10 @@ A Godot 4.7 game driven by a small GDScript ECS (`addons/GodotECS`) with observe
 
 `scenes/title.tscn` is the front door: the real world generator drifting behind a paper button column, not a render of one — same `QTerrain`, same materials, same sky, so it costs what the game costs. The orbit rig doubles as the streaming anchor the terrain and grass fields normally take a player for.
 
+The backdrop runs none of what the world scene runs — no player, no physics step, no creatures, and none of the tree, flora, shrub or rock fields — so `title_screen.gd` spends that budget on grass instead: `GRASS_BOOST` (1.8×) on density and `RANGE_BOOST` (1.35×) on the distance tiers, applied *relative to the saved tier* so a phone on Low still gets a phone's worth of grass. Mobile takes no boost at all; its budget was already gone. The boost re-applies on `GraphicsSettings.changed`, because `apply()` writes the tier's own density straight onto the field and would otherwise undo it the first time a player opened Settings.
+
+A `QFishField` swims the river under the bridge — the same field the world scene uses, turned up (560 fish, 52 pods, `school_chance` 0.45) since nothing here is scaring them.
+
 Identity lives in the `Auth` autoload (`src/autoload/auth_session.gd`), which has three modes and one implemented path:
 
 | Mode | Token | Requested name |
