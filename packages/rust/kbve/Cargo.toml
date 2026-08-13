@@ -62,7 +62,7 @@ resvg = { version = "0.47.0", optional = true }
 uuid = { workspace = true, optional = true, features = ["v4", "serde"] }
 tokio-tungstenite = { workspace = true, features = ["default", "rustls-tls-webpki-roots"], optional = true }
 metrics = { workspace = true, optional = true }
-jedi = { path = "../jedi" }
+jedi = { version = "0.2.2", path = "../jedi" }
 holy = { version = "0.2.1", path = "../holy" }
 
 [dev-dependencies]
