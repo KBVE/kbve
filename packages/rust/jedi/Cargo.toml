@@ -1,7 +1,7 @@
 [package]
 name = "jedi"
 authors = ["kbve", "h0lybyte"]
-version = "0.2.2"
+version = "0.2.3"
 edition = "2024"
 license = "MIT"
 description = "Jedi is the Juggernaut Electronic Data Interchange package. This library provides a data exchange layer extended through the holy crate."
@@ -96,7 +96,7 @@ observ = ["dep:tracing-subscriber"]
 aws = ["dep:aws-config", "dep:aws-sdk-s3"]
 
 [dependencies.tracing-subscriber]
-version = "0.3"
+version = "0.2.3"
 optional = true
 default-features = false
 features = ["registry", "std"]
