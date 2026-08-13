@@ -57,6 +57,31 @@
 			}
 		},
 
+		"build-linux": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "packages/rust/q",
+				"commands": [
+					"cargo build --release -p q --features net-godot --target-dir ../../../dist/target/q"
+				],
+				"parallel": false
+			},
+			"outputs": ["{workspaceRoot}/dist/target/q/release/libq.so"]
+		},
+
+		"deploy-linux": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["build-linux"],
+			"options": {
+				"cwd": "packages/rust/q",
+				"commands": [
+					"mkdir -p ../../../apps/friendslop/godot-friendslop/addons/q/linux",
+					"cp ../../../dist/target/q/release/libq.so ../../../apps/friendslop/godot-friendslop/addons/q/linux/libq.so"
+				],
+				"parallel": false
+			}
+		},
+
 		"build-ios": {
 			"executor": "nx:run-commands",
 			"options": {
