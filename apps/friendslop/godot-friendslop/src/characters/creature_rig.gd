@@ -90,6 +90,7 @@ var _dead := false
 var _speed := 0.0
 ## Top of the mesh in local space, which is where the nameplate hangs from.
 var _height := 0.0
+var _bounds := AABB()
 
 
 func _ready() -> void:
@@ -107,6 +108,7 @@ func _ready() -> void:
 			CelShading.apply(child, SHADING, self)
 			var box := (child as MeshInstance3D).mesh.get_aabb()
 			_height = maxf(_height, box.position.y + box.size.y)
+			_bounds = box if _bounds.size == Vector3.ZERO else _bounds.merge(box)
 	if display_name != "":
 		_build_nameplate()
 	animation = _find_player(rig)
@@ -138,6 +140,12 @@ func _build_nameplate() -> void:
 	nameplate.outline_modulate = Color(0.05, 0.04, 0.08)
 	nameplate.position = Vector3(0.0, _height + nameplate_clearance, 0.0)
 	add_child(nameplate)
+
+
+## Combined mesh bounds in local space, for whatever has to size a collider or
+## hang something off the top of the creature.
+func mesh_extents() -> AABB:
+	return _bounds
 
 
 func set_display_name(value: String) -> void:
