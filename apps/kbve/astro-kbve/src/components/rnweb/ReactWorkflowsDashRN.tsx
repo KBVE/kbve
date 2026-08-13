@@ -1,6 +1,5 @@
-import { useMemo } from 'react';
+import { useMemo, type ComponentType } from 'react';
 import { WithSkiaWeb } from '@shopify/react-native-skia/lib/module/web';
-// @ts-expect-error — vite emits the wasm as a same-origin asset and returns its URL
 import canvaskitWasmUrl from 'canvaskit-wasm/bin/full/canvaskit.wasm?url';
 import { initSupa, getSupa } from '@/lib/supa';
 import { DASH_PROXY_BASE } from './dashProxyBase';
@@ -17,13 +16,18 @@ async function getToken(): Promise<string | null> {
 	}
 }
 
+interface WorkflowsCanvasProps {
+	config: { baseUrl: string; getToken: () => Promise<string | null> };
+}
+
 export default function ReactWorkflowsDashRN() {
 	const config = useMemo(() => ({ baseUrl: DASH_PROXY_BASE, getToken }), []);
 	return (
-		<WithSkiaWeb
+		<WithSkiaWeb<WorkflowsCanvasProps>
 			getComponent={() =>
 				import('@kbve/rn/workflows').then((m) => ({
-					default: m.WorkflowsCanvas,
+					default:
+						m.WorkflowsCanvas as ComponentType<WorkflowsCanvasProps>,
 				}))
 			}
 			componentProps={{ config }}

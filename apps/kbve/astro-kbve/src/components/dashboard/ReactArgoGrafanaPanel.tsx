@@ -54,8 +54,8 @@ const tickFormatter = (t: number) =>
 		minute: '2-digit',
 	});
 
-const tooltipLabelFormatter = (t: number) =>
-	new Date(t * 1000).toLocaleString();
+const tooltipLabelFormatter = (t: unknown) =>
+	new Date(Number(t) * 1000).toLocaleString();
 
 const axisStroke = AXIS_STROKE;
 const gridStroke = GRID_STROKE;
@@ -694,10 +694,10 @@ export default function ReactArgoGrafanaPanel({
 									/>
 									<ChartTooltip
 										labelFormatter={tooltipLabelFormatter}
-										formatter={(v: number, n: string) =>
+										formatter={(v: unknown, n: unknown) =>
 											n === 'CPU'
-												? formatCores(v)
-												: formatBytesAbs(v)
+												? formatCores(Number(v))
+												: formatBytesAbs(Number(v))
 										}
 									/>
 									<Area
@@ -761,8 +761,8 @@ export default function ReactArgoGrafanaPanel({
 									/>
 									<ChartTooltip
 										labelFormatter={tooltipLabelFormatter}
-										formatter={(v: number) =>
-											formatBytes(v)
+										formatter={(v: unknown) =>
+											formatBytes(Number(v))
 										}
 									/>
 									<Area
