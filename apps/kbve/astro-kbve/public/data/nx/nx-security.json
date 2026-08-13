@@ -1,9 +1,9 @@
 {
-	"generated_at": "2026-08-12T03:27:17Z",
+	"generated_at": "2026-08-13T03:31:03Z",
 	"summary": {
 		"critical": 4,
 		"high": 54,
-		"medium": 60,
+		"medium": 61,
 		"low": 11,
 		"info": 32
 	},
@@ -812,11 +812,11 @@
 			]
 		},
 		"cargo": {
-			"total": 48,
+			"total": 49,
 			"severities": {
 				"critical": 0,
 				"high": 0,
-				"medium": 16,
+				"medium": 17,
 				"low": 0,
 				"info": 32
 			},
@@ -871,13 +871,6 @@
 					"url": "https://github.com/RustCrypto/RSA/issues/626"
 				},
 				{
-					"id": "RUSTSEC-2026-0098",
-					"title": "Name constraints for URI names were incorrectly accepted",
-					"severity": "medium",
-					"package": "rustls-webpki",
-					"url": null
-				},
-				{
 					"id": "RUSTSEC-2026-0099",
 					"title": "Name constraints were accepted for certificates asserting a wildcard name",
 					"severity": "medium",
@@ -894,6 +887,13 @@
 				{
 					"id": "RUSTSEC-2026-0098",
 					"title": "Name constraints for URI names were incorrectly accepted",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0099",
+					"title": "Name constraints were accepted for certificates asserting a wildcard name",
 					"severity": "medium",
 					"package": "rustls-webpki",
 					"url": null
@@ -906,15 +906,15 @@
 					"url": null
 				},
 				{
-					"id": "RUSTSEC-2026-0099",
-					"title": "Name constraints were accepted for certificates asserting a wildcard name",
+					"id": "RUSTSEC-2026-0104",
+					"title": "Reachable panic in certificate revocation list parsing",
 					"severity": "medium",
 					"package": "rustls-webpki",
 					"url": null
 				},
 				{
-					"id": "RUSTSEC-2026-0104",
-					"title": "Reachable panic in certificate revocation list parsing",
+					"id": "RUSTSEC-2026-0098",
+					"title": "Name constraints for URI names were incorrectly accepted",
 					"severity": "medium",
 					"package": "rustls-webpki",
 					"url": null
@@ -932,6 +932,13 @@
 					"severity": "medium",
 					"package": "steamworks",
 					"url": "https://github.com/Noxime/steamworks-rs/issues/321"
+				},
+				{
+					"id": "RUSTSEC-2026-0257",
+					"title": "Unix `BROWSER` handling allows browser argument injection",
+					"severity": "medium",
+					"package": "webbrowser",
+					"url": "https://github.com/amodm/webbrowser-rs/security/advisories/GHSA-2ph8-5cr8-hr33"
 				},
 				{
 					"id": "RUSTSEC-2024-0413",
