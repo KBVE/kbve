@@ -25,7 +25,7 @@ const CelShading := preload("res://src/characters/cel_shading.gd")
 @export var terrain_path: NodePath
 @export var snap_to_terrain := true
 ## The mech pack already exports facing -Z, unlike the humanoid kit, so this is 0
-## here and 180 there. Turning it the humanoid's way puts the boss's back to
+## here and 180 there. Turning it the humanoid's way puts the creature's back to
 ## whatever it was aimed at.
 @export var facing_offset_deg := 0.0
 @export var tint := Color(1, 1, 1)

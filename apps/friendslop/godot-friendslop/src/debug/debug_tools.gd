@@ -28,16 +28,17 @@ func _ready() -> void:
 	var shot := OS.get_environment("Q_SHOT")
 	if shot != "":
 		_shot_frames = maxi(int(shot), 1)
-	var boss := OS.get_environment("Q_BOSS")
-	if boss != "":
+	var extra := OS.get_environment("Q_CREATURES")
+	if extra != "":
 		# Deferred so the terrain it is dropped onto has finished generating.
-		_spawn_boss.call_deferred(boss)
+		_spawn_creatures.call_deferred(extra)
 
 
-## Q_BOSS=all, or a comma-separated pick of George,Leela,Mike,Stan, adds another
-## group of creatures in front of the player. The scene already carries a
-## Creatures spawner, so this is for trying a different set without editing it.
-func _spawn_boss(which: String) -> void:
+## Q_CREATURES=all, or a comma-separated pick of George,Leela,Mike,Stan, adds
+## another group in front of the player. The scene already carries a Creatures
+## spawner, so this is for trying a different set without editing it. These roam
+## rather than follow, so they can be watched without trailing the player around.
+func _spawn_creatures(which: String) -> void:
 	var spawner: Node3D = CreatureSpawner.new()
 	if which != "all":
 		var picked: Array[String] = []
@@ -186,9 +187,12 @@ func _spawn_marker(pos: Vector3) -> void:
 func _screenshot() -> void:
 	var dir := ProjectSettings.globalize_path("res://screenshots")
 	DirAccess.make_dir_recursive_absolute(dir)
-	for spawner in _spawners:
+	# Every spawner, not just the ones this file made, so the scene's own group is
+	# reported too.
+	for spawner in get_tree().get_nodes_in_group(CreatureSpawner.GROUP):
 		for p in spawner.spawned:
-			print("  patrol ", p.rig.display_name, " at ", p.global_position,
+			print("  creature ", p.rig.display_name, " at ", p.global_position,
+					" gap=%.1f" % p.global_position.distance_to(_player.global_position),
 					" state=", p.rig.debug_state())
 	var path := "%s/shot_%d.png" % [dir, Time.get_ticks_msec()]
 	get_viewport().get_texture().get_image().save_png(path)

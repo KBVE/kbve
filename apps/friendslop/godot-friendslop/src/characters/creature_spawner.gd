@@ -1,10 +1,11 @@
 extends Node3D
 
-## Drops a line of creatures around wherever this node sits and sets them walking.
+## Drops a group of creatures into the world and puts them in formation behind a
+## leader, or leaves them roaming if there is nobody to follow.
 ##
-## A stand-in for encounter placement, so the rigs are in the world on Play rather
-## than behind a debug flag. When there is a real spawn system this node is what it
-## replaces; nothing else depends on it.
+## A stand-in for whatever grants a player an ally, so the rigs are in the world on
+## Play rather than behind a debug flag. When there is a real party system this
+## node is what it replaces; nothing else depends on it.
 
 const CreatureRig := preload("res://src/characters/creature_rig.gd")
 const CreaturePatrol := preload("res://src/characters/creature_patrol.gd")
@@ -12,6 +13,9 @@ const MECH_DIR := "res://assets/characters/creatures/mech/models/"
 
 @export var mechs: Array[String] = ["George", "Leela", "Mike", "Stan"]
 @export var terrain_path: NodePath
+## Followed by everything spawned here. Empty leaves them roaming their spawn area
+## instead, which is what a wild pack or a staged encounter wants.
+@export var leader_path: NodePath
 ## A mech is over 7 units across, so anything under that spawns them intersecting.
 @export var spacing := 13.0
 @export var roam_radius := 20.0
@@ -19,10 +23,13 @@ const MECH_DIR := "res://assets/characters/creatures/mech/models/"
 ## Seconds between one-shot actions. Zero leaves them walking without attacking.
 @export var action_interval := 7.0
 
+const GROUP := &"creature_spawner"
+
 var spawned: Array[Node3D] = []
 
 
 func _ready() -> void:
+	add_to_group(GROUP)
 	# Deferred so the terrain they are dropped onto has finished generating.
 	_spawn.call_deferred()
 
@@ -31,6 +38,7 @@ func _spawn() -> void:
 	var terrain := get_node_or_null(terrain_path)
 	if terrain == null:
 		terrain = get_tree().current_scene.get_node_or_null("Terrain")
+	var leader := get_node_or_null(leader_path)
 	var span := spacing * maxf(mechs.size() - 1.0, 0.0)
 	for i in mechs.size():
 		var name := mechs[i].strip_edges()
@@ -44,7 +52,11 @@ func _spawn() -> void:
 		patrol.roam_radius = roam_radius
 		patrol.speed = speed
 		patrol.action_interval = action_interval
+		patrol.formation_slot = i
+		patrol.formation_count = mechs.size()
 		add_child(patrol)
+		if leader:
+			patrol.leader_path = patrol.get_path_to(leader)
 		patrol.global_position = at
 		if terrain:
 			patrol.terrain_path = patrol.get_path_to(terrain)

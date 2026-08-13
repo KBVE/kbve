@@ -265,6 +265,8 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="Creatures" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -30)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -14)
 script = ExtResource("30_creatures")
 terrain_path = NodePath("../Terrain")
+leader_path = NodePath("../Player")
+action_interval = 0.0
