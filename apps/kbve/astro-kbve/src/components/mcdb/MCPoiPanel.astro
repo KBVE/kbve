@@ -24,7 +24,7 @@ const accent = kindAccent[p.kind] ?? '#cbd5e1';
 <section class="mcpoi-panel not-content kbve-dashboard-page">
 	<header class="mcpoi-panel__head">
 		<div>
-			<h2>{p.display_name}</h2>
+			<h1 id="_top">{p.display_name}</h1>
 			<p class="mcpoi-panel__sub">
 				<code>{p.poi_id}</code> · <code>{p.world}</code>
 			</p>
@@ -106,7 +106,7 @@ const accent = kindAccent[p.kind] ?? '#cbd5e1';
 		flex-wrap: wrap;
 	}
 
-	.mcpoi-panel__head h2 {
+	.mcpoi-panel__head h1 {
 		margin: 0;
 	}
 

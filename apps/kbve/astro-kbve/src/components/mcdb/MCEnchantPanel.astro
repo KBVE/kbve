@@ -11,7 +11,7 @@ const e = McEnchantSchema.parse(data);
 			<span>{e.display_name.charAt(0)}</span>
 		</div>
 		<div class="mcdb-panel__title">
-			<h2>{e.display_name}</h2>
+			<h1 id="_top">{e.display_name}</h1>
 			<div class="mcdb-panel__meta">
 				<span
 					class={`mcdb-pill mcdb-pill--rarity mcdb-pill--rarity-${e.rarity}`}>
@@ -89,6 +89,12 @@ const e = McEnchantSchema.parse(data);
 </section>
 
 <style is:global>
+	.mcdb-panel__title h1 {
+		margin: 0;
+		font-size: 1.5em;
+		font-weight: 800;
+		line-height: 1.2;
+	}
 	.mcdb-panel__icon--text {
 		font-size: 2.5rem;
 		font-weight: 800;

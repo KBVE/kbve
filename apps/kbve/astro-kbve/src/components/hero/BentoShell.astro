@@ -4,9 +4,11 @@ interface Props {
 	heading?: string;
 	sub?: string;
 	id?: string;
+	headingLevel?: 'h1' | 'h2';
 }
 
-const { eyebrow, heading, sub, id } = Astro.props;
+const { eyebrow, heading, sub, id, headingLevel = 'h2' } = Astro.props;
+const Heading = headingLevel;
 ---
 
 <section {id} class="bento-shell bento-section not-content">
@@ -15,7 +17,13 @@ const { eyebrow, heading, sub, id } = Astro.props;
 			(eyebrow || heading || sub) && (
 				<header class="bento-shell__header">
 					{eyebrow && <p class="bento-eyebrow">{eyebrow}</p>}
-					{heading && <h2 class="bento-heading">{heading}</h2>}
+					{heading && (
+						<Heading
+							id={headingLevel === 'h1' ? '_top' : undefined}
+							class="bento-heading">
+							{heading}
+						</Heading>
+					)}
 					{sub && <p class="bento-shell__sub">{sub}</p>}
 				</header>
 			)
