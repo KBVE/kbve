@@ -2,6 +2,13 @@ extends CanvasLayer
 
 @export var species: BirdSpecies
 
+## In the world this menu owns the escape key and hands the mouse back to the
+## camera on close. On the title screen neither is true: escape belongs to the
+## title, and there is no camera to capture the cursor for. Both default to the
+## in-world behaviour, so the world scene sets nothing.
+var toggles_on_cancel := true
+var captures_mouse_on_close := true
+
 var _root: Control
 var _main_panel: VBoxContainer
 var _settings_panel: VBoxContainer
@@ -419,12 +426,30 @@ func _add_button(parent: Container, text: String, action: Callable) -> Button:
 
 
 func _input(event: InputEvent) -> void:
+	if not toggles_on_cancel:
+		return
 	if event.is_action_pressed("ui_cancel"):
 		if _root.visible:
 			_close()
 		else:
 			_open()
 		get_viewport().set_input_as_handled()
+
+
+func is_open() -> bool:
+	return _root != null and _root.visible
+
+
+func close() -> void:
+	_close()
+
+
+## Opens straight onto the settings pages. The title screen has its own Play
+## button, so showing the book's would be two buttons for one action.
+func open_settings() -> void:
+	await _open()
+	if _root.visible:
+		_show(_settings_panel)
 
 
 func _open() -> void:
@@ -466,7 +491,8 @@ func _close() -> void:
 		if token != _transition:
 			return
 	get_tree().paused = false
-	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	Input.mouse_mode = (Input.MOUSE_MODE_CAPTURED if captures_mouse_on_close
+			else Input.MOUSE_MODE_VISIBLE)
 	_root.visible = false
 	_set_crosshair(true)
 
