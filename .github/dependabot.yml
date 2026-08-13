@@ -13,6 +13,13 @@ updates:
           - npm
           - security
           - update
+      ignore:
+          - dependency-name: '@react-native-async-storage/async-storage'
+            update-types:
+                - version-update:semver-major
+          - dependency-name: expo
+            update-types:
+                - version-update:semver-major
 
     - package-ecosystem: pip
       directory: /

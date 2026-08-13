@@ -5,21 +5,7 @@ use godot::classes::{Engine, QuadMesh, RenderingServer, ShaderMaterial};
 use godot::prelude::*;
 
 use crate::world::flora_compute::{FloraCompute, TerrainOcclusion};
-use crate::world::terrain::QTerrain;
-
-fn hash32(mut x: u32) -> u32 {
-    x ^= x >> 16;
-    x = x.wrapping_mul(0x7feb352d);
-    x ^= x >> 15;
-    x = x.wrapping_mul(0x846ca68b);
-    x ^= x >> 16;
-    x
-}
-
-fn randf(state: &mut u32) -> f32 {
-    *state = hash32(*state);
-    (*state >> 8) as f32 / 16_777_216.0
-}
+use crate::world::{TerrainSnapshot, hash32, randf, view_origin, world_aabb};
 
 #[derive(GodotClass)]
 #[class(init, base = Node3D)]
@@ -80,63 +66,21 @@ impl QFloraField {
             .get_node_or_null(&self.player_path)
             .and_then(|n| n.try_cast::<Node3D>().ok());
 
-        let terrain = if self.terrain_path.is_empty() {
-            self.base().get_node_or_null("../Terrain")
-        } else {
-            self.base().get_node_or_null(&self.terrain_path)
-        }
-        .and_then(|n| n.try_cast::<QTerrain>().ok());
-        let Some(terrain) = terrain else {
+        let node = self.base().clone().upcast::<godot::classes::Node>();
+        let Some(terrain) = crate::world::resolve_terrain(&node, &self.terrain_path) else {
             godot_error!("[QFloraField] no QTerrain found; flora disabled");
             return true;
         };
-        let (heights, res, extent, water, road_mask, road_res) = {
-            let t = terrain.bind();
-            let Some((h, r)) = t.cpu_heights() else {
-                return false;
-            };
-            let (rm, rr) = t
-                .road_mask()
-                .map(|(m, r)| (m.to_vec(), r))
-                .unwrap_or((Vec::new(), 0));
-            (h.to_vec(), r, t.world_extent(), t.water(), rm, rr)
+        let Some(terra) = TerrainSnapshot::take(&terrain) else {
+            return false;
         };
-
-        // Keep the carriageway clear; grass already honours this through the
-        // clearance map, but scatter placement never consulted it.
-        let on_road = |x: f32, z: f32| -> f32 {
-            if road_res < 2 {
-                return 0.0;
-            }
-            let u = ((x + extent) / (extent * 2.0)).clamp(0.0, 1.0);
-            let v = ((z + extent) / (extent * 2.0)).clamp(0.0, 1.0);
-            let px = ((u * (road_res - 1) as f32) as i32).clamp(0, road_res - 1);
-            let pz = ((v * (road_res - 1) as f32) as i32).clamp(0, road_res - 1);
-            road_mask[(pz * road_res + px) as usize] as f32 / 255.0
-        };
+        let extent = terra.extent;
+        let water = terra.water;
         self.extent = extent;
 
         let mut noise = FastNoiseLite::with_seed(self.flora_seed + 13);
         noise.set_noise_type(Some(NoiseType::OpenSimplex2S));
         noise.set_frequency(Some(self.patch_frequency));
-
-        let sample = |x: f32, z: f32| -> f32 {
-            let fx =
-                (((x + extent) / (extent * 2.0)).clamp(0.001, 0.999) * res as f32 - 0.5).max(0.0);
-            let fz =
-                (((z + extent) / (extent * 2.0)).clamp(0.001, 0.999) * res as f32 - 0.5).max(0.0);
-            let x0 = (fx as i32).clamp(0, res - 2);
-            let z0 = (fz as i32).clamp(0, res - 2);
-            let tx = (fx - x0 as f32).clamp(0.0, 1.0);
-            let tz = (fz - z0 as f32).clamp(0.0, 1.0);
-            let h00 = heights[(z0 * res + x0) as usize];
-            let h10 = heights[(z0 * res + x0 + 1) as usize];
-            let h01 = heights[((z0 + 1) * res + x0) as usize];
-            let h11 = heights[((z0 + 1) * res + x0 + 1) as usize];
-            let a = h00 + (h10 - h00) * tx;
-            let b = h01 + (h11 - h01) * tx;
-            a + (b - a) * tz
-        };
 
         let attempts = ((extent * 2.0) * (extent * 2.0) * self.density) as usize;
         let mut state = hash32(self.flora_seed as u32 | 1);
@@ -151,14 +95,14 @@ impl QFloraField {
             if noise.get_noise_2d(x, z) < self.patch_threshold {
                 continue;
             }
-            if on_road(x, z) > 0.45 {
+            if terra.on_road(x, z) > 0.45 {
                 continue;
             }
-            let h = sample(x, z);
+            let h = terra.height(x, z);
             if h < water + 0.35 {
                 continue;
             }
-            let edge = sample(x + 1.2, z).min(sample(x - 1.2, z));
+            let edge = terra.height(x + 1.2, z).min(terra.height(x - 1.2, z));
             if edge < water + 0.35 {
                 continue;
             }
@@ -209,7 +153,10 @@ impl INode3D for QFloraField {
             }
             return;
         }
-        let Some(origin) = self.view_origin() else {
+        let Some(origin) = view_origin(
+            &self.base().clone(),
+            self.player.as_ref().filter(|p| p.is_instance_valid()),
+        ) else {
             return;
         };
         if origin.distance_squared_to(self.last_shader_origin) > 0.0004 {
@@ -280,25 +227,6 @@ impl QFloraField {
 }
 
 impl QFloraField {
-    fn view_origin(&self) -> Option<Vector3> {
-        let cam = self.base().get_viewport()?.get_camera_3d();
-        if let Some(cam) = cam {
-            return Some(cam.get_global_position());
-        }
-        self.player
-            .as_ref()
-            .filter(|p| p.is_instance_valid())
-            .map(|p| p.get_global_position())
-    }
-
-    fn world_aabb(&self) -> Aabb {
-        let e = self.extent + 10.0;
-        Aabb::new(
-            Vector3::new(-e, -40.0, -e),
-            Vector3::new(e * 2.0, 120.0, e * 2.0),
-        )
-    }
-
     fn build_compute(&mut self, cap: u32) -> Option<FloraCompute> {
         let world = self.base().get_world_3d()?;
         let scenario = world.get_scenario();
@@ -306,7 +234,7 @@ impl QFloraField {
         let material = self.flora_material.as_ref().map(|m| m.get_rid())?;
         FloraCompute::new(
             scenario,
-            self.world_aabb(),
+            world_aabb(self.extent),
             mesh,
             material,
             &self.candidates,
@@ -356,7 +284,7 @@ impl QFloraField {
         rs.instance_set_base(inst, mm);
         rs.instance_geometry_set_material_override(inst, material);
         rs.instance_geometry_set_cast_shadows_setting(inst, ShadowCastingSetting::OFF);
-        rs.instance_set_custom_aabb(inst, self.world_aabb());
+        rs.instance_set_custom_aabb(inst, world_aabb(self.extent));
         rs.instance_set_transform(inst, Transform3D::IDENTITY);
         self.classic_mm = mm;
         self.classic_inst = inst;

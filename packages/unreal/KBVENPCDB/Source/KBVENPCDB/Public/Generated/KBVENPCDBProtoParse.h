@@ -381,6 +381,18 @@ namespace KBVENPCDBProto
 		if ((V = yyjson_obj_get(Obj, "canFly"))) Out.CanFly = (yyjson_is_bool(V) ? yyjson_get_bool(V) : false);
 	}
 
+	inline void Populate(FKBVEGenCreatureConfig& Out, yyjson_val* Obj)
+	{
+		if (!Obj || !yyjson_is_obj(Obj)) return;
+		yyjson_val* V = nullptr; (void)V;
+		if ((V = yyjson_obj_get(Obj, "renderKind")) && yyjson_is_str(V)) Out.RenderKind = FString(UTF8_TO_TCHAR(yyjson_get_str(V)));
+		if ((V = yyjson_obj_get(Obj, "poolSize"))) Out.PoolSize = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "chunkSize"))) Out.ChunkSize = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
+		if ((V = yyjson_obj_get(Obj, "perChunk"))) Out.PerChunk = (int32)(yyjson_is_int(V) ? yyjson_get_int(V) : (yyjson_is_uint(V) ? (int32)yyjson_get_uint(V) : 0));
+		if ((V = yyjson_obj_get(Obj, "spawnChance"))) Out.SpawnChance = (float)(yyjson_is_num(V) ? yyjson_get_real(V) : 0.0);
+		if ((V = yyjson_obj_get(Obj, "schedule")) && yyjson_is_str(V)) Out.Schedule = FString(UTF8_TO_TCHAR(yyjson_get_str(V)));
+	}
+
 	inline void Populate(FKBVEGenInteractionFlags& Out, yyjson_val* Obj)
 	{
 		if (!Obj || !yyjson_is_obj(Obj)) return;
@@ -637,6 +649,7 @@ namespace KBVENPCDBProto
 		if ((V = yyjson_obj_get(Obj, "partyScaling"))) Populate(Out.PartyScaling, V);
 		if ((V = yyjson_obj_get(Obj, "spatial"))) Populate(Out.Spatial, V);
 		if ((V = yyjson_obj_get(Obj, "interaction"))) Populate(Out.Interaction, V);
+		if ((V = yyjson_obj_get(Obj, "creatureConfig"))) Populate(Out.CreatureConfig, V);
 		if ((V = yyjson_obj_get(Obj, "pet"))) Populate(Out.Pet, V);
 		if ((V = yyjson_obj_get(Obj, "extensions")) && yyjson_is_arr(V))
 		{

@@ -43,27 +43,27 @@ pub fn enable_mac_always_on_top() {
 
 // --- Wry Browser Options ---
 
-#[cfg(target_os = "macos")]
+#[cfg(all(feature = "webview", target_os = "macos"))]
 use std::ffi::c_void;
-#[cfg(target_os = "macos")]
+#[cfg(all(feature = "webview", target_os = "macos"))]
 use std::ptr::NonNull;
 
-#[cfg(target_os = "macos")]
+#[cfg(all(feature = "webview", target_os = "macos"))]
 use godot::classes::DisplayServer;
-#[cfg(target_os = "macos")]
+#[cfg(all(feature = "webview", target_os = "macos"))]
 use godot::classes::display_server::HandleType;
-#[cfg(target_os = "macos")]
+#[cfg(all(feature = "webview", target_os = "macos"))]
 use godot::prelude::*;
 
-#[cfg(target_os = "macos")]
+#[cfg(all(feature = "webview", target_os = "macos"))]
 use raw_window_handle::{
     AppKitWindowHandle, HandleError, HasWindowHandle, RawWindowHandle, WindowHandle,
 };
 
-#[cfg(target_os = "macos")]
+#[cfg(all(feature = "webview", target_os = "macos"))]
 pub struct MacOSWryBrowserOptions;
 
-#[cfg(target_os = "macos")]
+#[cfg(all(feature = "webview", target_os = "macos"))]
 impl MacOSWryBrowserOptions {
     pub fn get_window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
         let display_server = DisplayServer::singleton();
@@ -90,7 +90,7 @@ impl MacOSWryBrowserOptions {
     }
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(all(feature = "webview", target_os = "macos"))]
 impl HasWindowHandle for MacOSWryBrowserOptions {
     fn window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
         godot_print!("[BrowserManager] -> [MacOSWryBrowserOptions] Window Handle");

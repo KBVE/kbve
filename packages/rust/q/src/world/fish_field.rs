@@ -7,20 +7,7 @@ use godot::classes::{
 use godot::prelude::*;
 
 use crate::world::terrain::QTerrain;
-
-fn hash32(mut x: u32) -> u32 {
-    x ^= x >> 16;
-    x = x.wrapping_mul(0x7feb352d);
-    x ^= x >> 15;
-    x = x.wrapping_mul(0x846ca68b);
-    x ^= x >> 16;
-    x
-}
-
-fn randf(state: &mut u32) -> f32 {
-    *state = hash32(*state);
-    (*state >> 8) as f32 / 16_777_216.0
-}
+use crate::world::{hash32, randf};
 
 #[derive(Clone, Copy, Default)]
 struct Fish {
@@ -35,6 +22,7 @@ struct Fish {
     base_depth: f32,
     lane: f32,
     phase: f32,
+    offset: f32,
     rate: f32,
     size: f32,
     panic: f32,
@@ -43,6 +31,8 @@ struct Fish {
     pod: u32,
     vy: f32,
     speed: f32,
+    roll: f32,
+    flee_cd: f32,
 }
 
 struct Chunk {
@@ -128,7 +118,7 @@ pub struct QFishField {
     #[init(val = 0.9)]
     center_pull: f32,
     #[export]
-    #[init(val = 3.5)]
+    #[init(val = 6.5)]
     flee_radius: f32,
     #[export]
     #[init(val = 4.5)]
@@ -143,8 +133,14 @@ pub struct QFishField {
     #[init(val = 3.0)]
     bank_push: f32,
     #[export]
-    #[init(val = 2.75)]
+    #[init(val = 3.5)]
     panic_spread_radius: f32,
+    #[export]
+    #[init(val = 2.5)]
+    flee_turn_cooldown: f32,
+    #[export]
+    #[init(val = 0.3)]
+    flee_dive: f32,
     #[export]
     #[init(val = 0.5)]
     weave_amp: f32,
@@ -173,8 +169,26 @@ pub struct QFishField {
     #[init(val = 2.2)]
     turn_rate: f32,
     #[export]
-    #[init(val = 2.5)]
-    speed_smooth: f32,
+    #[init(val = 6.0)]
+    accel_smooth: f32,
+    #[export]
+    #[init(val = 1.2)]
+    decel_smooth: f32,
+    #[export]
+    #[init(val = 0.35)]
+    alignment: f32,
+    #[export]
+    #[init(val = 0.55)]
+    roll_amount: f32,
+    #[export]
+    #[init(val = 6.0)]
+    roll_smooth: f32,
+    #[export]
+    #[init(val = 0.75)]
+    beat_hz: f32,
+    #[export]
+    #[init(val = 1.0)]
+    beat_speed_gain: f32,
     #[export]
     #[init(val = 0.3)]
     match_speed: f32,
@@ -193,6 +207,9 @@ pub struct QFishField {
     #[export]
     #[init(val = 14.0)]
     respawn_time: f32,
+    #[export]
+    #[init(val = 95.0)]
+    sim_radius: f32,
 
     placed: i32,
     mesh: Option<Gd<Mesh>>,
@@ -202,6 +219,7 @@ pub struct QFishField {
     fish: Vec<Fish>,
     pod_ranges: Vec<(u32, u32)>,
     centroids: Vec<(f32, f32, f32)>,
+    headings: Vec<(f32, f32)>,
     chunks: Vec<Chunk>,
     time: f32,
     chunk_cap: i32,
@@ -214,6 +232,7 @@ pub struct QFishField {
     water: f32,
     half_width: f32,
     model_len: f32,
+    simulated: i32,
 }
 
 impl QFishField {
@@ -305,12 +324,21 @@ impl QFishField {
             }
         }
         self.centroids = vec![(0.0, 0.0, 0.0); self.pod_ranges.len()];
+        self.headings = vec![(0.0, 0.0); self.pod_ranges.len()];
 
         self.placed = self.fish.len() as i32;
         godot_print!("[q] fish placed={}", self.placed);
         if self.placed == 0 {
             godot_warn!("[QFishField] no fish survived placement");
             return true;
+        }
+
+        if self.sim_radius <= self.fade_end {
+            godot_warn!(
+                "[QFishField] sim_radius {} <= fade_end {}; fish will visibly freeze before they fade out",
+                self.sim_radius,
+                self.fade_end
+            );
         }
 
         if let Some(m) = self.fish_material.as_mut() {
@@ -351,6 +379,7 @@ impl QFishField {
             base_depth: depth,
             lane,
             phase: randf(&mut self.rng),
+            offset: randf(&mut self.rng),
             rate,
             size: randf(&mut self.rng),
             panic: 0.0,
@@ -358,6 +387,8 @@ impl QFishField {
             respawn: 0.0,
             pod: 0,
             vy: 0.0,
+            roll: 0.0,
+            flee_cd: 0.0,
             speed: self.swim_speed * (0.75 + 0.5 * rate),
         })
     }
@@ -381,10 +412,23 @@ impl QFishField {
         }
     }
 
+    fn focus_point(&self) -> Vector3 {
+        if let Some(cam) = self.base().get_viewport().and_then(|v| v.get_camera_3d()) {
+            return cam.get_global_position();
+        }
+        if let Some(p) = self.player.as_ref() {
+            return p.get_global_position();
+        }
+        Vector3::ZERO
+    }
+
     fn tick(&mut self, delta: f32) {
         let Some(terrain) = self.terrain.clone() else {
             return;
         };
+        let focus = self.focus_point();
+        let sim_r = self.sim_radius.max(1.0);
+        let sim_r2 = sim_r * sim_r;
         let player = self
             .player
             .as_ref()
@@ -403,6 +447,8 @@ impl QFishField {
         let half_width = self.half_width;
         let bank_push = self.bank_push;
         let flee_turn = self.flee_turn;
+        let flee_cd_time = self.flee_turn_cooldown;
+        let flee_dive = self.flee_dive;
         let weave_amp = self.weave_amp;
         let weave_rate = self.weave_rate;
         let bob_amp = self.bob_amp;
@@ -412,7 +458,13 @@ impl QFishField {
         let separation = self.separation;
         let sep_r = self.separation_radius.max(0.05);
         let turn_rate = self.turn_rate.max(0.1);
-        let speed_smooth = self.speed_smooth.max(0.1);
+        let accel_smooth = self.accel_smooth.max(0.1);
+        let decel_smooth = self.decel_smooth.max(0.1);
+        let alignment = self.alignment;
+        let roll_amount = self.roll_amount;
+        let roll_smooth = self.roll_smooth.max(0.1);
+        let beat_hz = self.beat_hz;
+        let beat_speed_gain = self.beat_speed_gain;
         let match_speed = self.match_speed;
 
         self.time += delta;
@@ -422,16 +474,27 @@ impl QFishField {
             let (s, e) = (*start as usize, (*start + *len) as usize);
             let mut sx = 0.0;
             let mut sz = 0.0;
+            let mut hx = 0.0;
+            let mut hz = 0.0;
             let mut n = 0.0;
             for f in self.fish[s..e].iter().filter(|f| f.alive) {
                 sx += f.x;
                 sz += f.z;
+                let (fy, fc) = f.yaw.sin_cos();
+                hx += fy;
+                hz += fc;
                 n += 1.0;
             }
             self.centroids[pi] = if n > 0.0 {
                 (sx / n, sz / n, n)
             } else {
                 (0.0, 0.0, 0.0)
+            };
+            let hl = (hx * hx + hz * hz).sqrt();
+            self.headings[pi] = if hl > 0.001 {
+                (hx / hl, hz / hl)
+            } else {
+                (0.0, 0.0)
             };
         }
 
@@ -441,6 +504,11 @@ impl QFishField {
             let (s, e) = (*start as usize, (*start + *len) as usize);
             let (cx, cz, n) = self.centroids[pi];
             if n < 1.5 {
+                continue;
+            }
+            let fdx = cx - focus.x;
+            let fdz = cz - focus.z;
+            if fdx * fdx + fdz * fdz > sim_r2 {
                 continue;
             }
             for i in s..e {
@@ -468,12 +536,17 @@ impl QFishField {
                         az += dz / d * w;
                     }
                 }
+                let (ahx, _) = self.headings[pi];
+                if ahx != 0.0 {
+                    ax += (ahx - fi.yaw.sin()) * alignment;
+                }
                 steer[i] = (ax.clamp(-1.5, 1.5), az.clamp(-1.5, 1.5));
             }
         }
 
         let t = terrain.bind();
         let mut respawn: Vec<usize> = Vec::new();
+        let mut simulated = 0i32;
         for (i, f) in self.fish.iter_mut().enumerate() {
             if !f.alive {
                 f.respawn -= delta;
@@ -483,15 +556,27 @@ impl QFishField {
                 continue;
             }
 
+            let fdx = f.x - focus.x;
+            let fdz = f.z - focus.z;
+            if fdx * fdx + fdz * fdz > sim_r2 {
+                continue;
+            }
+            simulated += 1;
+
             let to_player = Vector3::new(player.x - f.x, 0.0, player.z - f.z);
             let pdist = to_player.length();
+            f.flee_cd = (f.flee_cd - delta).max(0.0);
             if pdist < flee_r {
                 f.panic = 1.0;
+                if f.flee_cd <= 0.0 && to_player.z * f.dir > 0.0 {
+                    f.dir = -f.dir;
+                    f.flee_cd = flee_cd_time;
+                }
             }
             f.panic = (f.panic - decay * delta).max(0.0);
 
             let center = t.river_center(f.z);
-            let wob = (time * weave_rate + f.phase * std::f32::consts::TAU).sin() * weave_amp;
+            let wob = (time * weave_rate + f.offset * std::f32::consts::TAU).sin() * weave_amp;
             let lane = (f.lane + wob).clamp(-half_width, half_width);
             let mut hx = ((center + lane - f.x) * pull).clamp(-1.0, 1.0);
             let mut hz = f.dir;
@@ -520,11 +605,14 @@ impl QFishField {
             }
 
             let along = (steer[i].1 * f.dir * match_speed).clamp(-0.3, 0.5);
-            let target = base_speed
-                * (0.75 + 0.5 * f.rate)
-                * (1.0 + f.panic * (flee_mul - 1.0))
-                * (1.0 + along);
-            f.speed += (target - f.speed) * (1.0 - (-speed_smooth * delta).exp());
+            let cruise = base_speed * (0.75 + 0.5 * f.rate);
+            let target = cruise * (1.0 + f.panic * (flee_mul - 1.0)) * (1.0 + along);
+            let k = if target > f.speed {
+                accel_smooth
+            } else {
+                decel_smooth
+            };
+            f.speed += (target - f.speed) * (1.0 - (-k * delta).exp());
             let speed = f.speed;
 
             let desired = hx.atan2(hz);
@@ -532,7 +620,15 @@ impl QFishField {
             let tau = std::f32::consts::TAU;
             turn -= tau * ((turn / tau).round());
             let max_turn = turn_rate * (1.0 + f.panic) * delta;
-            f.yaw += turn.clamp(-max_turn, max_turn);
+            let applied = turn.clamp(-max_turn, max_turn);
+            f.yaw += applied;
+
+            let roll_target = (-applied / delta.max(0.0001) * roll_amount).clamp(-0.7, 0.7);
+            f.roll += (roll_target - f.roll) * (1.0 - (-roll_smooth * delta).exp());
+
+            let beat = 1.0 + (speed / cruise.max(0.001) - 1.0) * beat_speed_gain;
+            f.phase += beat_hz * beat.clamp(0.6, 3.5) * (1.35 - 0.35 * f.size) * delta;
+            f.phase = f.phase.fract();
 
             let (sy, cy) = f.yaw.sin_cos();
             f.x += sy * speed * delta;
@@ -552,7 +648,8 @@ impl QFishField {
             }
 
             f.depth = f.base_depth
-                + (time * bob_rate + f.phase * std::f32::consts::TAU * 1.7).sin() * bob_amp;
+                + (time * bob_rate + f.offset * std::f32::consts::TAU * 1.7).sin() * bob_amp
+                + f.panic * flee_dive;
 
             f.bed = t.sample_height(f.x, f.z);
             let floor = f.bed + clearance;
@@ -565,6 +662,7 @@ impl QFishField {
             f.y = new_y;
         }
         drop(t);
+        self.simulated = simulated;
 
         let spread = self.panic_spread_radius;
         if spread > 0.0 {
@@ -782,6 +880,10 @@ impl QFishField {
         }
 
         let mut counts = vec![0usize; n];
+        let mut active = vec![false; n];
+        let focus = self.focus_point();
+        let sim_r = self.sim_radius.max(1.0);
+        let sim_r2 = sim_r * sim_r;
         self.overflow = 0;
         let scale = self.shadow_size;
         let alpha = self.shadow_alpha;
@@ -803,17 +905,18 @@ impl QFishField {
             let o = c * stride + slot * 16;
             let (s, cs) = (f.yaw + yaw_off).sin_cos();
             let (sp, cp) = f.pitch.sin_cos();
+            let (sr, cr) = f.roll.sin_cos();
             self.buf[o..o + 16].copy_from_slice(&[
-                cs,
-                s * sp,
+                cs * cr + s * sp * sr,
+                -cs * sr + s * sp * cr,
                 s * cp,
                 f.x,
-                0.0,
-                cp,
+                cp * sr,
+                cp * cr,
                 -sp,
                 f.y,
-                -s,
-                cs * sp,
+                -s * cr + cs * sp * sr,
+                s * sr + cs * sp * cr,
                 cs * cp,
                 f.z,
                 f.phase,
@@ -846,6 +949,11 @@ impl QFishField {
                 1.0,
             ]);
             counts[c] = slot + 1;
+            let fdx = f.x - focus.x;
+            let fdz = f.z - focus.z;
+            if fdx * fdx + fdz * fdz <= sim_r2 {
+                active[c] = true;
+            }
         }
 
         let mut rs = RenderingServer::singleton();
@@ -856,6 +964,9 @@ impl QFishField {
         for c in 0..n {
             let used = counts[c];
             if used == 0 && self.chunks[c].count == 0 {
+                continue;
+            }
+            if !active[c] && self.chunks[c].count == used as i32 {
                 continue;
             }
             let o = c * stride;
@@ -946,6 +1057,7 @@ impl QFishField {
         let _ = d.insert("alive", alive);
         let _ = d.insert("visible", visible);
         let _ = d.insert("chunks", self.chunks.len() as i64);
+        let _ = d.insert("simulated", self.simulated as i64);
         d
     }
 

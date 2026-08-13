@@ -7,7 +7,7 @@
 
 use godot::prelude::*;
 
-use super::{Locomotion, LocomotionState, Stance};
+use super::{Intent, Locomotion, LocomotionState, Motion, Stance};
 
 #[derive(GodotClass)]
 #[class(no_init, base = RefCounted)]
@@ -15,6 +15,7 @@ pub struct QLocomotion {
     base: Base<RefCounted>,
     inner: Locomotion,
     state: LocomotionState,
+    motion: Motion,
 }
 
 #[godot_api]
@@ -34,7 +35,67 @@ impl QLocomotion {
             base,
             inner: Locomotion::default(),
             state: LocomotionState::default(),
+            motion: Motion::default(),
         })
+    }
+
+    /// Where the body wants to go this tick, world space. `move_axis` is x right,
+    /// y forward -- Godot's input vector calls +y backward, so the caller flips it
+    /// once on the way in.
+    #[func]
+    fn wish_direction(&self, move_axis: Vector2, yaw: f32) -> Vector3 {
+        let d = self.inner.wish_direction([move_axis.x, move_axis.y], yaw);
+        Vector3::new(d[0], d[1], d[2])
+    }
+
+    /// The whole movement decision for one tick: gravity, the fall cap, whether a
+    /// jump press is taken, and the speed for the heading. Returns the velocity to
+    /// carry into `move_and_slide`; the slide itself stays with the body.
+    #[func]
+    #[allow(clippy::too_many_arguments)]
+    fn step_motion(
+        &mut self,
+        move_axis: Vector2,
+        jump: bool,
+        velocity: Vector3,
+        yaw: f32,
+        grounded: bool,
+        gravity_y: f32,
+        delta: f32,
+    ) -> Vector3 {
+        self.motion = self.inner.step_motion(
+            Intent {
+                move_axis: [move_axis.x, move_axis.y],
+                jump,
+            },
+            [velocity.x, velocity.y, velocity.z],
+            yaw,
+            grounded,
+            gravity_y,
+            delta,
+        );
+        Vector3::new(
+            self.motion.velocity[0],
+            self.motion.velocity[1],
+            self.motion.velocity[2],
+        )
+    }
+
+    /// Whether the last [`Self::step_motion`] actually took a jump, rather than
+    /// the caller re-deriving it from a press it already handed over.
+    #[func]
+    fn jumped(&self) -> bool {
+        self.motion.jumped
+    }
+
+    #[func]
+    fn set_jump_velocity(&mut self, value: f32) {
+        self.inner.tuning.jump_velocity = value;
+    }
+
+    #[func]
+    fn set_terminal_fall(&mut self, value: f32) {
+        self.inner.tuning.terminal_fall = value;
     }
 
     /// `local_velocity` is in the character's own frame: +x right, +z backward.

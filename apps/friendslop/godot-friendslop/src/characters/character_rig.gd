@@ -345,11 +345,23 @@ func end_climb() -> void:
 
 ## What the state machine is doing, for Q_MOVE_DEBUG. A latched animation and a
 ## latched airborne flag look identical from outside the rig.
-## Top speed for a heading, taking Godot's input vector as it comes: its y is
-## positive going backward, and QLocomotion's is positive going forward, so the
-## flip between the two frames happens here and nowhere else.
-func gait_speed(input_dir: Vector2) -> float:
-	return loco.gait_speed(Vector2(input_dir.x, -input_dir.y))
+## Godot's input vector calls +y backward and QLocomotion's calls it forward, so
+## the flip between the two frames happens on the way through here and nowhere
+## else.
+func wish_direction(input_dir: Vector2, yaw: float) -> Vector3:
+	return loco.wish_direction(Vector2(input_dir.x, -input_dir.y), yaw)
+
+
+## Velocity for one tick. The decision is QLocomotion's; the collide-and-slide
+## stays with the body, which is the seam a sim-driven player would move.
+func step_motion(input_dir: Vector2, jump: bool, velocity: Vector3, yaw: float,
+		grounded: bool, gravity_y: float, delta: float) -> Vector3:
+	return loco.step_motion(Vector2(input_dir.x, -input_dir.y), jump, velocity,
+			yaw, grounded, gravity_y, delta)
+
+
+func jumped() -> bool:
+	return loco.jumped()
 
 
 func debug_state() -> String:

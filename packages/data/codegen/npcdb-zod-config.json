@@ -77,6 +77,18 @@
 			"stripPrefix": "STAT_KIND_",
 			"caseTransform": "lowercase",
 			"skipUnspecified": false
+		},
+		"npc.CreatureRenderKind": {
+			"mode": "const_array",
+			"stripPrefix": "CREATURE_RENDER_KIND_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
+		},
+		"npc.CreatureSchedule": {
+			"mode": "const_array",
+			"stripPrefix": "CREATURE_SCHEDULE_",
+			"caseTransform": "lowercase",
+			"skipUnspecified": false
 		}
 	},
 
@@ -158,6 +170,18 @@
 			"sourceEnum": "npc.StatKind",
 			"typeName": "StatKindValue",
 			"zodSchemaName": "StatKindSchema"
+		},
+		{
+			"name": "CreatureRenderKinds",
+			"sourceEnum": "npc.CreatureRenderKind",
+			"typeName": "CreatureRenderKindValue",
+			"zodSchemaName": "CreatureRenderKindSchema"
+		},
+		{
+			"name": "CreatureSchedules",
+			"sourceEnum": "npc.CreatureSchedule",
+			"typeName": "CreatureScheduleValue",
+			"zodSchemaName": "CreatureScheduleSchema"
 		}
 	],
 

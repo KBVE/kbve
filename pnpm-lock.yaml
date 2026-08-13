@@ -427,10 +427,10 @@ importers:
         version: 3.0.0(@napi-rs/cli@3.5.1(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(@types/node@18.19.17)(node-addon-api@7.1.1)(supports-color@10.2.2))(nx@23.1.1(@swc-node/register@1.11.1(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(@swc/core@1.15.21(@swc/helpers@0.5.21))(@swc/types@0.1.25)(supports-color@10.2.2)(typescript@6.0.3))(@swc/core@1.15.21(@swc/helpers@0.5.21)))
       '@nanostores/persistent':
         specifier: ^1.3.4
-        version: 1.3.4(nanostores@1.4.0)
+        version: 1.3.4(nanostores@1.4.2)
       '@nanostores/react':
         specifier: ^1.0.0
-        version: 1.0.0(nanostores@1.4.0)(react@19.2.3)
+        version: 1.0.0(nanostores@1.4.2)(react@19.2.3)
       '@nx-tools/nx-container':
         specifier: ^7.2.3
         version: 7.2.3(d7c1555364d514544060616da4bc56eb)
@@ -684,11 +684,11 @@ importers:
         specifier: ^11.15.0
         version: 11.15.0(supports-color@10.2.2)
       monocart-reporter:
-        specifier: ^2.9.19
-        version: 2.11.2
+        specifier: ^2.12.4
+        version: 2.12.4
       nanostores:
-        specifier: ^1.4.0
-        version: 1.4.0
+        specifier: ^1.4.2
+        version: 1.4.2
       nx:
         specifier: 23.1.1
         version: 23.1.1(@swc-node/register@1.11.1(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(@swc/core@1.15.21(@swc/helpers@0.5.21))(@swc/types@0.1.25)(supports-color@10.2.2)(typescript@6.0.3))(@swc/core@1.15.21(@swc/helpers@0.5.21))
@@ -7630,6 +7630,11 @@ packages:
     engines: {node: '>=0.4.0'}
     hasBin: true
 
+  acorn@8.18.0:
+    resolution: {integrity: sha512-lGq+9yr1/GuAWaVYIHRjvvySG5/4VfKIvC8EWxStPdcDh/Ka7FG3twP6v4d5BkravUilhIAsG4Qj83t02LWUPQ==}
+    engines: {node: '>=0.4.0'}
+    hasBin: true
+
   address@2.0.3:
     resolution: {integrity: sha512-XNAb/a6TCqou+TufU8/u11HCu9x1gYvOoxLwtlXgIqmkrYQADVv6ljyW2zwiPhHz9R1gItAWpuDrdJMmrOBFEA==}
     engines: {node: '>= 16.0.0'}
@@ -12641,8 +12646,8 @@ packages:
   monocart-locator@1.0.3:
     resolution: {integrity: sha512-pe29W2XAoA1WQmZZqxXoP7s06ZEXUhcb81086v68cqjk1HnVL7Q/iU/WJnnetxjPcLqwb4qG8vaSGUOMQU602g==}
 
-  monocart-reporter@2.11.2:
-    resolution: {integrity: sha512-CMzRSN1QyjbPvQRm7TOc/kTzozKNzwySVI47iajwPnvrkKOtS3P4PV2korNPNE/4uqkhvbzhXjZNjfWT03OT6Q==}
+  monocart-reporter@2.12.4:
+    resolution: {integrity: sha512-IdnPNt5QL2Hsvq9ZTzFTvruvdqTi366f0pGQWcLBEMuZJsayiyMiiLMkeCX/HmOP+NQA0AOMtkoU4N1WhEzMVQ==}
     hasBin: true
 
   motion-dom@12.42.2:
@@ -12707,8 +12712,8 @@ packages:
     engines: {node: ^18 || >=20}
     hasBin: true
 
-  nanostores@1.4.0:
-    resolution: {integrity: sha512-i0tloweeudshAEuddpDxcg9Ik6pkPfVsHIgKyf143JrgG7/MOh0+q7BypdLXZPoOP7fOYt1eTcwGkyiVmhJFkA==}
+  nanostores@1.4.2:
+    resolution: {integrity: sha512-Wxv8Roefr2nqtiRG0bnaFlpYqpIVtOEeJZHaH+4nGgOK1/7n6OHOuHCb/bhqrNQgZM8fyd0s1PqhdrJc9Ib44g==}
     engines: {node: ^20.0.0 || >=22.0.0}
 
   napi-postinstall@0.3.4:
@@ -12805,10 +12810,6 @@ packages:
   node-stream-zip@1.15.0:
     resolution: {integrity: sha512-LN4fydt9TqhZhThkZIVQnF9cwjU3qmUH9h78Mx/K7d3VvfRqqwthLwJEUOEL0QPZ0XQmNN7be5Ggit5+4dq3Bw==}
     engines: {node: '>=0.12.0'}
-
-  nodemailer@8.0.10:
-    resolution: {integrity: sha512-BLFuSth7QtHOkBzyqTehWWyub0NTRDuK2Q2SQfnGLsrJnzyU+Yeh4WpV1eZGuARFj1xQJHIdnTuJZLP+b9R1GQ==}
-    engines: {node: '>=6.0.0'}
 
   nopt@8.1.0:
     resolution: {integrity: sha512-ieGu42u/Qsa4TFktmaKEwM6MQH0pOWnaB3htzh0JRtx84+Mebc0cbZYN5bC+6WTZ4+77xrL9Pn5m7CV6VIkV7A==}
@@ -20955,13 +20956,13 @@ snapshots:
       promise-worker-transferable: 1.0.4
       three: 0.185.1
 
-  '@nanostores/persistent@1.3.4(nanostores@1.4.0)':
+  '@nanostores/persistent@1.3.4(nanostores@1.4.2)':
     dependencies:
-      nanostores: 1.4.0
+      nanostores: 1.4.2
 
-  '@nanostores/react@1.0.0(nanostores@1.4.0)(react@19.2.3)':
+  '@nanostores/react@1.0.0(nanostores@1.4.2)(react@19.2.3)':
     dependencies:
-      nanostores: 1.4.0
+      nanostores: 1.4.2
       react: 19.2.3
 
   '@napi-rs/cli@3.5.1(@emnapi/core@1.11.2)(@emnapi/runtime@1.11.2)(@types/node@18.19.17)(node-addon-api@7.1.1)(supports-color@10.2.2)':
@@ -25732,13 +25733,21 @@ snapshots:
     dependencies:
       acorn: 8.17.0
 
+  acorn-import-phases@1.0.4(acorn@8.18.0):
+    dependencies:
+      acorn: 8.18.0
+
   acorn-jsx@5.3.2(acorn@8.17.0):
     dependencies:
       acorn: 8.17.0
 
+  acorn-jsx@5.3.2(acorn@8.18.0):
+    dependencies:
+      acorn: 8.18.0
+
   acorn-loose@8.5.2:
     dependencies:
-      acorn: 8.17.0
+      acorn: 8.18.0
 
   acorn-walk@8.3.4:
     dependencies:
@@ -25746,13 +25755,15 @@ snapshots:
 
   acorn-walk@8.3.5:
     dependencies:
-      acorn: 8.17.0
+      acorn: 8.18.0
 
   acorn@8.14.1: {}
 
   acorn@8.16.0: {}
 
   acorn@8.17.0: {}
+
+  acorn@8.18.0: {}
 
   address@2.0.3: {}
 
@@ -28306,7 +28317,7 @@ snapshots:
   esast-util-from-js@2.0.1:
     dependencies:
       '@types/estree-jsx': 1.0.5
-      acorn: 8.17.0
+      acorn: 8.18.0
       esast-util-from-estree: 2.0.0
       vfile-message: 4.0.2
 
@@ -32075,8 +32086,8 @@ snapshots:
 
   micromark-extension-mdxjs@3.0.0:
     dependencies:
-      acorn: 8.17.0
-      acorn-jsx: 5.3.2(acorn@8.17.0)
+      acorn: 8.18.0
+      acorn-jsx: 5.3.2(acorn@8.18.0)
       micromark-extension-mdx-expression: 3.0.0
       micromark-extension-mdx-jsx: 3.0.1
       micromark-extension-mdx-md: 2.0.0
@@ -32371,7 +32382,7 @@ snapshots:
 
   monocart-coverage-reports@2.12.12:
     dependencies:
-      acorn: 8.17.0
+      acorn: 8.18.0
       acorn-loose: 8.5.2
       acorn-walk: 8.3.5
       commander: 14.0.3
@@ -32386,7 +32397,7 @@ snapshots:
 
   monocart-locator@1.0.3: {}
 
-  monocart-reporter@2.11.2:
+  monocart-reporter@2.12.4:
     dependencies:
       console-grid: 2.2.4
       eight-colors: 1.3.3
@@ -32395,7 +32406,6 @@ snapshots:
       lz-utils: 2.1.1
       monocart-coverage-reports: 2.12.12
       monocart-locator: 1.0.3
-      nodemailer: 8.0.10
 
   motion-dom@12.42.2:
     dependencies:
@@ -32438,7 +32448,7 @@ snapshots:
 
   nanoid@5.1.16: {}
 
-  nanostores@1.4.0: {}
+  nanostores@1.4.2: {}
 
   napi-postinstall@0.3.4: {}
 
@@ -32512,8 +32522,6 @@ snapshots:
 
   node-stream-zip@1.15.0:
     optional: true
-
-  nodemailer@8.0.10: {}
 
   nopt@8.1.0:
     dependencies:
@@ -35642,7 +35650,7 @@ snapshots:
   terser@5.49.0:
     dependencies:
       '@jridgewell/source-map': 0.3.11
-      acorn: 8.17.0
+      acorn: 8.18.0
       commander: 2.20.3
       source-map-support: 0.5.21
 
@@ -36905,8 +36913,8 @@ snapshots:
       '@webassemblyjs/ast': 1.14.1
       '@webassemblyjs/wasm-edit': 1.14.1
       '@webassemblyjs/wasm-parser': 1.14.1
-      acorn: 8.17.0
-      acorn-import-phases: 1.0.4(acorn@8.17.0)
+      acorn: 8.18.0
+      acorn-import-phases: 1.0.4(acorn@8.18.0)
       browserslist: 4.28.2
       chrome-trace-event: 1.0.4
       enhanced-resolve: 5.24.0

@@ -8,6 +8,7 @@ use godot::prelude::*;
 
 use crate::world::grass_compute::{BladeCompute, CardCompute, CardParams};
 use crate::world::terrain::QTerrain;
+use crate::world::{hash32, randf};
 
 const LOD_UPDATE_DISTANCE_SQ: f32 = 0.25;
 const TIER_FRACTIONS: [f32; 4] = [1.0, 0.5, 0.25, 0.125];
@@ -35,20 +36,6 @@ const CARD_COPY_PARAMS: &[&str] = &[
     "terrain_extent",
     "water_level",
 ];
-
-fn hash32(mut x: u32) -> u32 {
-    x ^= x >> 16;
-    x = x.wrapping_mul(0x7feb352d);
-    x ^= x >> 15;
-    x = x.wrapping_mul(0x846ca68b);
-    x ^= x >> 16;
-    x
-}
-
-fn randf(state: &mut u32) -> f32 {
-    *state = hash32(*state);
-    (*state >> 8) as f32 / 16_777_216.0
-}
 
 fn randf_range(state: &mut u32, from: f32, to: f32) -> f32 {
     from + randf(state) * (to - from)

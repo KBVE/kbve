@@ -26,8 +26,12 @@ crate-type = ["cdylib", "rlib"]
 default = ["client"]
 
 # Side selection — `client` and `server` are mutually exclusive (enforced by compile_error! in lib.rs).
-client = ["dep:godot", "dep:dashmap", "dep:crossbeam-channel", "dep:bitflags", "dep:tokio", "dep:wry", "dep:raw-window-handle", "dep:http", "dep:infer", "dep:objc2", "dep:windows"]
+client = ["dep:godot", "dep:dashmap", "dep:crossbeam-channel", "dep:bitflags", "dep:tokio", "dep:objc2", "dep:windows"]
 server = ["dep:tokio"]
+
+# In-game webview (GodotBrowser / BrowserManager). Opt-in: wry needs
+# libwebkit2gtk-4.1 on linux and the WebView2 runtime on windows.
+webview = ["client", "dep:wry", "dep:raw-window-handle", "dep:http", "dep:infer"]
 
 # Protocol (postcard wire format + bincode for snapshot framing).
 proto-shared = ["dep:postcard", "dep:bincode"]
@@ -114,8 +118,8 @@ fastnoise-lite = "1.1.1"
 
 # -----------------------------------------------------------------------------
 # Desktop platform deps — used only by the `client` flavor's `platform` module,
-# so they are optional and activated by `client`. Leaving them unconditional
-# would make a headless server build drag in wry/webkit2gtk.
+# so they are optional. objc2 / `windows` come in with `client`; the wry stack
+# waits for `webview`.
 # -----------------------------------------------------------------------------
 [target."cfg(all(target_os = \"macos\", not(target_family = \"wasm\")))".dependencies]
 objc2 = { workspace = true, optional = true }

@@ -1,22 +1,9 @@
+use crate::world::{hash32, randf};
 use std::collections::HashMap;
 
 use godot::classes::ArrayMesh;
 use godot::classes::mesh::PrimitiveType;
 use godot::prelude::*;
-
-fn hash32(mut x: u32) -> u32 {
-    x ^= x >> 16;
-    x = x.wrapping_mul(0x7feb352d);
-    x ^= x >> 15;
-    x = x.wrapping_mul(0x846ca68b);
-    x ^= x >> 16;
-    x
-}
-
-fn randf(state: &mut u32) -> f32 {
-    *state = hash32(*state);
-    (*state >> 8) as f32 / 16_777_216.0
-}
 
 fn hash3(x: i32, y: i32, z: i32, seed: u32) -> f32 {
     let h = hash32(

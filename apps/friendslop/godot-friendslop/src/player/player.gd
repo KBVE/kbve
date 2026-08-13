@@ -1,11 +1,9 @@
 extends CharacterBody3D
 
-## Only the deceleration rate. The top speeds per heading are QLocomotion's, so
-## the ring the rig blends over and the speed the body actually travels cannot
-## drift apart -- and so an authoritative server reaches the same numbers.
-const STOP_RATE := 5.0
-const JUMP_VELOCITY := 4.5
-const TERMINAL_FALL := 55.0
+## Speeds, the jump impulse, the fall cap and the stopping rate are all
+## QLocomotion's now, so the ring the rig blends over and the speed the body
+## actually travels cannot drift apart -- and an authoritative server reaches the
+## same numbers from the same intent. What is left here is input and the slide.
 const MOUSE_SENSITIVITY := 0.003
 const PITCH_LIMITS := Vector2(-1.2, 0.6)
 
@@ -85,34 +83,20 @@ func _physics_process(delta: float) -> void:
 		input_dir = Vector2.RIGHT.rotated(_walk_t * 0.8)
 	elif _walk != Vector2.ZERO:
 		input_dir = _walk
-	var direction := (transform.basis * Vector3(input_dir.x, 0.0, input_dir.y)).normalized()
+	var jump := Input.is_action_just_pressed("jump")
+	var direction: Vector3 = rig.wish_direction(input_dir, global_rotation.y)
 
 	# Offered the jump before the jump is: pressed against a ledge, climbing it
 	# is what was meant, and a hop into the wall is not. The rig is left alone
 	# while it owns the body, since it is playing its own climb.
-	if _mantle.update(delta, direction, Input.is_action_just_pressed("jump")):
+	if _mantle.update(delta, direction, jump):
 		_report(delta)
 		return
 
-	if not is_on_floor():
-		velocity += get_gravity() * delta
-		# Capped so a fall that never lands cannot wind gravity up without
-		# bound. Left open, a body held off the floor by geometry it is stuck in
-		# builds a speed that fires it through the world the moment it comes
-		# free.
-		velocity.y = maxf(velocity.y, -TERMINAL_FALL)
-
-	if Input.is_action_just_pressed("jump") and is_on_floor():
-		velocity.y = JUMP_VELOCITY
+	velocity = rig.step_motion(input_dir, jump, velocity, global_rotation.y,
+			is_on_floor(), get_gravity().y, delta)
+	if rig.jumped():
 		Game.events.notify(EventNames.PLAYER_JUMPED, global_position)
-
-	if direction:
-		var gait: float = rig.gait_speed(input_dir.normalized())
-		velocity.x = direction.x * gait
-		velocity.z = direction.z * gait
-	else:
-		velocity.x = move_toward(velocity.x, 0.0, STOP_RATE)
-		velocity.z = move_toward(velocity.z, 0.0, STOP_RATE)
 
 	move_and_slide()
 	rig.set_locomotion(global_transform.basis.inverse() * velocity, not is_on_floor(), delta)

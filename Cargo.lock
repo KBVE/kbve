@@ -7302,7 +7302,7 @@ checksum = "dea2df4cf52843e0452895c455a1a2cfbb842a1e7329671acf418fdc53ed4c59"
 
 [[package]]
 name = "erust"
-version = "0.1.7"
+version = "0.1.8"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -10211,7 +10211,7 @@ dependencies = [
 
 [[package]]
 name = "jedi"
-version = "0.2.2"
+version = "0.2.3"
 dependencies = [
  "ammonia",
  "async-trait",
@@ -19233,13 +19233,12 @@ dependencies = [
 
 [[package]]
 name = "tokio-postgres-rustls"
-version = "0.13.0"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "27d684bad428a0f2481f42241f821db42c54e2dc81d8c00db8536c506b0a0144"
+checksum = "4c2ad44aa0ae96db89c4742212ed41645b2f597311ff6e1945542a4d9fadc2fb"
 dependencies = [
- "const-oid 0.9.6",
- "ring",
  "rustls 0.23.42",
+ "sha2 0.11.0",
  "tokio",
  "tokio-postgres",
  "tokio-rustls 0.26.4",
